@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?><!-- -*- coding: utf-8;-*- -->
 <!DOCTYPE ramtranslator SYSTEM "ramtranslator.dtd">
 <ramtranslator version="1.12b">
-    <maxrow>629</maxrow>
+    <maxrow>660</maxrow>
     <languages>
         <langlist>Spanish es English en</langlist>
         <current>Spanish</current>
@@ -9,27 +9,27 @@
     <srcstrings>
         <src id="1">
             <base>Model validation</base>
-            <position>modelvalidation.tcl:88</position>
+            <position>modelvalidation.tcl:89</position>
             <priority>0</priority>
         </src>
         <src id="2">
             <base>Close</base>
-            <position>modelvalidation.tcl:119;kmpropswin.tcl:443</position>
+            <position>modelvalidation.tcl:120;kmpropswin.tcl:443</position>
             <priority>801</priority>
         </src>
         <src id="3">
             <base>Close the report window</base>
-            <position>modelvalidation.tcl:119</position>
+            <position>modelvalidation.tcl:120</position>
             <priority>0</priority>
         </src>
         <src id="4">
             <base>Print</base>
-            <position>modelvalidation.tcl:125</position>
+            <position>modelvalidation.tcl:126</position>
             <priority>1429</priority>
         </src>
         <src id="5">
             <base>Print the report via a temporal file using notepad</base>
-            <position>modelvalidation.tcl:125</position>
+            <position>modelvalidation.tcl:126</position>
             <priority>0</priority>
         </src>
         <src id="6">
@@ -160,32 +160,32 @@
         </src>
         <src id="30">
             <base>Properties</base>
-            <position>kratos_default.spd:81;kratos_default.spd:217;kratos_default.spd:287;kratos_default.spd:325;kratos_default.spd:331;kratos_default.spd:337;kratos_default.spd:343;kratos_default.spd:349;kratos_default.spd:349;kratos_default.spd:577;kratos_default.spd:577;kmaterials.tcl:465;kmaterials.tcl:783;kmaterials.tcl:1011;kmpropsfwg.tcl:131;kmpropsfwg.tcl:507;kmpropsfwg.tcl:850</position>
+            <position>kratos_default.spd:81;kratos_default.spd:219;kratos_default.spd:289;kratos_default.spd:327;kratos_default.spd:333;kratos_default.spd:339;kratos_default.spd:345;kratos_default.spd:351;kratos_default.spd:351;kratos_default.spd:591;kratos_default.spd:591;kmaterials.tcl:465;kmaterials.tcl:783;kmaterials.tcl:1011;kmpropsfwg.tcl:137;kmpropsfwg.tcl:563;kmpropsfwg.tcl:975</position>
             <priority>0</priority>
         </src>
         <src id="33">
             <base>Root</base>
-            <position>kFunctions.tcl:316;kmaterials.tcl:206;kmpropstree.tcl:95;kGroupEntities.tcl:194</position>
+            <position>kFunctions.tcl:316;kmaterials.tcl:206;kmpropstree.tcl:96;kGroupEntities.tcl:194</position>
             <priority>0</priority>
         </src>
         <src id="35">
             <base>Entity %s</base>
-            <position>kmpropsfwg.tcl:263;kmpropsfwg.tcl:312</position>
+            <position>kmpropsfwg.tcl:269;kmpropsfwg.tcl:318</position>
             <priority>0</priority>
         </src>
         <src id="37">
             <base>Create automatic new group</base>
-            <position>kmpropsfwg.tcl:349</position>
+            <position>kmpropsfwg.tcl:355</position>
             <priority>0</priority>
         </src>
         <src id="38">
             <base>Assign condition to the selected group</base>
-            <position>kmpropsfwg.tcl:354</position>
+            <position>kmpropsfwg.tcl:360</position>
             <priority>0</priority>
         </src>
         <src id="39">
             <base>Cancel assignation</base>
-            <position>kmaterials.tcl:500;kmaterials.tcl:558;kmaterials.tcl:1042;kmpropsfwg.tcl:358;kmpropsfwg.tcl:1040</position>
+            <position>kmaterials.tcl:500;kmaterials.tcl:558;kmaterials.tcl:1042;kmpropsfwg.tcl:364;kmpropsfwg.tcl:1223</position>
             <priority>0</priority>
         </src>
         <src id="40">
@@ -193,19 +193,14 @@
             <position>kmpropsgroups.tcl:43</position>
             <priority>0</priority>
         </src>
-        <src id="41">
-            <base>Property Name:</base>
-            <position>kmpropsfwg.tcl:867</position>
-            <priority>0</priority>
-        </src>
         <src id="43">
             <base>The property name can not be empty</base>
-            <position>kmpropsfwg.tcl:715;kmpropsfwg.tcl:1186</position>
+            <position>kmpropsfwg.tcl:821;kmpropsfwg.tcl:1371</position>
             <priority>0</priority>
         </src>
         <src id="44">
             <base>This name property it is already assigned.</base>
-            <position>kmpropsfwg.tcl:724</position>
+            <position>kmpropsfwg.tcl:830</position>
             <priority>0</priority>
         </src>
         <src id="45">
@@ -220,67 +215,67 @@
         </src>
         <src id="48">
             <base>Group:</base>
-            <position>kmpropsfwg.tcl:892</position>
+            <position>kmpropsfwg.tcl:1018</position>
             <priority>0</priority>
         </src>
         <src id="49">
             <base>Confirm values</base>
-            <position>kmaterials.tcl:496;kmaterials.tcl:554;kmaterials.tcl:1038;kmpropsfwg.tcl:1036</position>
+            <position>kmaterials.tcl:496;kmaterials.tcl:554;kmaterials.tcl:1038;kmpropsfwg.tcl:1219</position>
             <priority>0</priority>
         </src>
         <src id="51">
             <base>This property name already exist.</base>
-            <position>kmpropsfwg.tcl:1196</position>
+            <position>kmpropsfwg.tcl:1381</position>
             <priority>0</priority>
         </src>
         <src id="54">
             <base>New</base>
-            <position>kmpropstree.tcl:549</position>
+            <position>kmpropstree.tcl:552</position>
             <priority>1866</priority>
         </src>
         <src id="55">
             <base>Delete</base>
-            <position>kmpropstree.tcl:555;kmpropstree.tcl:559;kmpropstree.tcl:562</position>
+            <position>kmpropstree.tcl:558;kmpropstree.tcl:562;kmpropstree.tcl:565</position>
             <priority>5630</priority>
         </src>
         <src id="56">
             <base>Edit</base>
-            <position>kmpropstree.tcl:567;kmpropstree.tcl:569</position>
+            <position>kmpropstree.tcl:570;kmpropstree.tcl:572</position>
             <priority>2153</priority>
         </src>
         <src id="57">
             <base>Collapse All</base>
-            <position>kmpropstree.tcl:579</position>
+            <position>kmpropstree.tcl:582</position>
             <priority>0</priority>
         </src>
         <src id="58">
             <base>Expand All</base>
-            <position>kmpropstree.tcl:580</position>
+            <position>kmpropstree.tcl:583</position>
             <priority>0</priority>
         </src>
         <src id="59">
             <base>You must define a valid Property for this element type.</base>
-            <position>kmpropstree.tcl:267</position>
+            <position>kmpropstree.tcl:269</position>
             <priority>0</priority>
         </src>
         <src id="61">
             <base>Function manager</base>
-            <position>kFunctions.tcl:383;kmpropsfwg.tcl:222;kmpropsfwg.tcl:986</position>
+            <position>kFunctions.tcl:383;kmpropsfwg.tcl:228;kmpropsfwg.tcl:1144</position>
             <priority>0</priority>
         </src>
         <src id="62">
             <base>newGroup</base>
-            <position>kmpropsfwg.tcl:348</position>
+            <position>kmpropsfwg.tcl:354</position>
             <priority>0</priority>
         </src>
         <src id="63">
             <base>Ok</base>
-            <position>kFunctions.tcl:718;kmpropsfwg.tcl:353;kmpropsfwg.tcl:650;kegroups.tcl:674</position>
+            <position>kFunctions.tcl:718;kmpropsfwg.tcl:359;kmpropsfwg.tcl:754;kegroups.tcl:674</position>
             <priority>49</priority>
         </src>
         <src id="64">
             <base>Cancel</base>
-            <position>kFunctions.tcl:722;kmpropsfwg.tcl:357;kmpropsfwg.tcl:655</position>
+            <position>kFunctions.tcl:722;kmpropsfwg.tcl:363;kmpropsfwg.tcl:759</position>
             <priority>543</priority>
         </src>
         <src id="66">
@@ -295,7 +290,7 @@
         </src>
         <src id="68">
             <base>This property it is assigned to %s groups.\nDo you want to delete the property and all this groups?</base>
-            <position>kmpropstree.tcl:644</position>
+            <position>kmpropstree.tcl:647</position>
             <priority>0</priority>
         </src>
         <src id="69">
@@ -395,7 +390,7 @@
         </src>
         <src id="97">
             <base>Unassign function</base>
-            <position>kmpropsfwg.tcl:228;kmpropsfwg.tcl:992</position>
+            <position>kmpropsfwg.tcl:234;kmpropsfwg.tcl:1150</position>
             <priority>0</priority>
         </src>
         <src id="98">
@@ -420,62 +415,62 @@
         </src>
         <src id="461">
             <base>Compressible fluids are not available in this version</base>
-            <position>kmpropscbwd.tcl:426</position>
+            <position>kmpropscbwd.tcl:541</position>
             <priority>0</priority>
         </src>
         <src id="462">
             <base>PFEM is not available in this version.\nYou need the GiD version 11.1.2d or higher.</base>
-            <position>kmpropscbwd.tcl:436</position>
+            <position>kmpropscbwd.tcl:551</position>
             <priority>0</priority>
         </src>
         <src id="463">
             <base>Cut Id</base>
-            <position>kmpropsfwg.tcl:516</position>
+            <position>kmpropsfwg.tcl:573</position>
             <priority>0</priority>
         </src>
         <src id="464">
             <base>Choose a new cut identifier</base>
-            <position>kmpropsfwg.tcl:517</position>
+            <position>kmpropsfwg.tcl:574</position>
             <priority>0</priority>
         </src>
         <src id="465">
             <base>Graph Id</base>
-            <position>kmpropsfwg.tcl:520</position>
+            <position>kmpropsfwg.tcl:577</position>
             <priority>0</priority>
         </src>
         <src id="466">
             <base>Choose a new graph identifier</base>
-            <position>kmpropsfwg.tcl:521</position>
+            <position>kmpropsfwg.tcl:578</position>
             <priority>0</priority>
         </src>
         <src id="467">
             <base>Property Id</base>
-            <position>kmpropsfwg.tcl:524</position>
+            <position>kmpropsfwg.tcl:581;kmpropsfwg.tcl:991</position>
             <priority>0</priority>
         </src>
         <src id="468">
             <base>Choose a new property identifier</base>
-            <position>kmpropsfwg.tcl:525</position>
+            <position>kmpropsfwg.tcl:582</position>
             <priority>0</priority>
         </src>
         <src id="469">
             <base>Assign the defined properties</base>
-            <position>kmpropsfwg.tcl:652</position>
+            <position>kmpropsfwg.tcl:756</position>
             <priority>0</priority>
         </src>
         <src id="470">
             <base>Cancel the defined properties</base>
-            <position>kmpropsfwg.tcl:656</position>
+            <position>kmpropsfwg.tcl:760</position>
             <priority>0</priority>
         </src>
         <src id="471">
             <base>You can't use some reservate chars like:\n  :   /   $   .   \\  %</base>
-            <position>kmpropsfwg.tcl:708;kmpropsfwg.tcl:1179</position>
+            <position>kmpropsfwg.tcl:814;kmpropsfwg.tcl:1364</position>
             <priority>0</priority>
         </src>
         <src id="472">
             <base>Curves</base>
-            <position>kratos_default.spd:321;kmpropswin.tcl:124</position>
+            <position>kratos_default.spd:323;kmpropswin.tcl:124</position>
             <priority>0</priority>
         </src>
         <src id="473">
@@ -565,37 +560,37 @@
         </src>
         <src id="498">
             <base>ASGS</base>
-            <position>kratos_default.spd:219;kratos_default.spd:219;kratos_default.spd:220;kratos_default.spd:220</position>
+            <position>kratos_default.spd:221;kratos_default.spd:221;kratos_default.spd:222;kratos_default.spd:222</position>
             <priority>0</priority>
         </src>
         <src id="499">
             <base>Absolute pressure tolerance</base>
-            <position>kratos_default.spd:181;kratos_default.spd:181</position>
+            <position>kratos_default.spd:183;kratos_default.spd:183</position>
             <priority>0</priority>
         </src>
         <src id="500">
             <base>Absolute velocity tolerance</base>
-            <position>kratos_default.spd:178;kratos_default.spd:178</position>
+            <position>kratos_default.spd:180;kratos_default.spd:180</position>
             <priority>0</priority>
         </src>
         <src id="501">
             <base>Activate</base>
-            <position>kratos_default.spd:517;kratos_default.spd:523;kratos_default.spd:528</position>
+            <position>kratos_default.spd:531;kratos_default.spd:537;kratos_default.spd:542</position>
             <priority>0</priority>
         </src>
         <src id="502">
             <base>Activation</base>
-            <position>kratos_default.spd:354;kratos_default.spd:355;kratos_default.spd:355;kratos_default.spd:411;kratos_default.spd:431</position>
+            <position>kratos_default.spd:356;kratos_default.spd:413;kratos_default.spd:433</position>
             <priority>0</priority>
         </src>
         <src id="503">
             <base>Add a new Property</base>
-            <position>kratos_default.spd:81;kratos_default.spd:217;kratos_default.spd:287</position>
+            <position>kratos_default.spd:81;kratos_default.spd:219;kratos_default.spd:289</position>
             <priority>0</priority>
         </src>
         <src id="504">
             <base>Advanced</base>
-            <position>kratos_default.spd:175;kratos_default.spd:282</position>
+            <position>kratos_default.spd:177;kratos_default.spd:284</position>
             <priority>0</priority>
         </src>
         <src id="505">
@@ -620,7 +615,7 @@
         </src>
         <src id="509">
             <base>Analysis data</base>
-            <position>kratos_default.spd:125;kratos_default.spd:125;kratos_default.spd:271;kratos_default.spd:271</position>
+            <position>kratos_default.spd:127;kratos_default.spd:127;kratos_default.spd:273;kratos_default.spd:273</position>
             <priority>0</priority>
         </src>
         <src id="510">
@@ -630,7 +625,7 @@
         </src>
         <src id="511">
             <base>Angular Velocity</base>
-            <position>kratos_default.spd:398;kratos_default.spd:398</position>
+            <position>kratos_default.spd:400;kratos_default.spd:400</position>
             <priority>0</priority>
         </src>
         <src id="512">
@@ -645,22 +640,22 @@
         </src>
         <src id="514">
             <base>Area</base>
-            <position>kratos_default.spd:449</position>
+            <position>kratos_default.spd:453</position>
             <priority>0</priority>
         </src>
         <src id="515">
             <base>Ascii</base>
-            <position>kratos_default.spd:117;kratos_default.spd:117;kratos_default.spd:261;kratos_default.spd:261;kratos_default.spd:308;kratos_default.spd:308</position>
+            <position>kratos_default.spd:119;kratos_default.spd:119;kratos_default.spd:263;kratos_default.spd:263;kratos_default.spd:310;kratos_default.spd:310</position>
             <priority>0</priority>
         </src>
         <src id="516">
             <base>Automatic</base>
-            <position>kratos_default.spd:168;kratos_default.spd:168;kratos_default.spd:279;kratos_default.spd:279</position>
+            <position>kratos_default.spd:170;kratos_default.spd:170;kratos_default.spd:281;kratos_default.spd:281</position>
             <priority>1430</priority>
         </src>
         <src id="517">
             <base>Automatic delta time</base>
-            <position>kratos_default.spd:168;kratos_default.spd:279</position>
+            <position>kratos_default.spd:170;kratos_default.spd:281</position>
             <priority>0</priority>
         </src>
         <src id="518">
@@ -725,7 +720,7 @@
         </src>
         <src id="530">
             <base>Beam total Lagrangian</base>
-            <position>kratos_default.spd:336</position>
+            <position>kratos_default.spd:338</position>
             <priority>0</priority>
         </src>
         <src id="531">
@@ -735,47 +730,47 @@
         </src>
         <src id="532">
             <base>BiConjugate gradient stabilized</base>
-            <position>kratos_default.spd:62;kratos_default.spd:145;kratos_default.spd:152;kratos_default.spd:158</position>
+            <position>kratos_default.spd:62;kratos_default.spd:147;kratos_default.spd:154;kratos_default.spd:160</position>
             <priority>0</priority>
         </src>
         <src id="533">
             <base>Binary</base>
-            <position>kratos_default.spd:117;kratos_default.spd:117;kratos_default.spd:261;kratos_default.spd:261;kratos_default.spd:308;kratos_default.spd:308</position>
+            <position>kratos_default.spd:119;kratos_default.spd:119;kratos_default.spd:263;kratos_default.spd:263;kratos_default.spd:310;kratos_default.spd:310</position>
             <priority>0</priority>
         </src>
         <src id="534">
             <base>Body force</base>
-            <position>kratos_default.spd:95;kratos_default.spd:205;kratos_default.spd:463</position>
+            <position>kratos_default.spd:95;kratos_default.spd:207;kratos_default.spd:470</position>
             <priority>0</priority>
         </src>
         <src id="535">
             <base>Body forces</base>
-            <position>kratos_default.spd:95;kratos_default.spd:205</position>
+            <position>kratos_default.spd:95;kratos_default.spd:207</position>
             <priority>0</priority>
         </src>
         <src id="536">
             <base>BodyForce</base>
-            <position>kratos_default.spd:462</position>
+            <position>kratos_default.spd:469</position>
             <priority>0</priority>
         </src>
         <src id="537">
             <base>Boundary Conditions</base>
-            <position>kratos_default.spd:100;kratos_default.spd:237</position>
+            <position>kratos_default.spd:101;kratos_default.spd:239</position>
             <priority>0</priority>
         </src>
         <src id="538">
             <base>Boundary conditions</base>
-            <position>kratos_default.spd:292</position>
+            <position>kratos_default.spd:294</position>
             <priority>0</priority>
         </src>
         <src id="539">
             <base>Bounding Box</base>
-            <position>kratos_default.spd:196</position>
+            <position>kratos_default.spd:198</position>
             <priority>0</priority>
         </src>
         <src id="540">
             <base>Boundingbox</base>
-            <position>kratos_default.spd:423</position>
+            <position>kratos_default.spd:425</position>
             <priority>0</priority>
         </src>
         <src id="541">
@@ -785,7 +780,7 @@
         </src>
         <src id="542">
             <base>Check problem type version</base>
-            <position>kratos_default.spd:592</position>
+            <position>kratos_default.spd:606</position>
             <priority>0</priority>
         </src>
         <src id="543">
@@ -805,7 +800,7 @@
         </src>
         <src id="546">
             <base>Compressible</base>
-            <position>kratos_default.spd:126;kratos_default.spd:126;kratos_default.spd:272;kratos_default.spd:272</position>
+            <position>kratos_default.spd:128;kratos_default.spd:128;kratos_default.spd:274;kratos_default.spd:274</position>
             <priority>0</priority>
         </src>
         <src id="547">
@@ -825,7 +820,7 @@
         </src>
         <src id="550">
             <base>Conditions</base>
-            <position>kratos_default.spd:100;kratos_default.spd:237;kratos_default.spd:292</position>
+            <position>kratos_default.spd:101;kratos_default.spd:239;kratos_default.spd:294</position>
             <priority>784</priority>
         </src>
         <src id="551">
@@ -835,17 +830,17 @@
         </src>
         <src id="552">
             <base>Conjugate gradient</base>
-            <position>kratos_default.spd:62;kratos_default.spd:152;kratos_default.spd:158;kratos_default.spd:164</position>
+            <position>kratos_default.spd:62;kratos_default.spd:154;kratos_default.spd:160;kratos_default.spd:166</position>
             <priority>0</priority>
         </src>
         <src id="553">
             <base>Continuous</base>
-            <position>kratos_default.spd:185;kratos_default.spd:185</position>
+            <position>kratos_default.spd:187;kratos_default.spd:187</position>
             <priority>0</priority>
         </src>
         <src id="554">
             <base>Convection diffusion</base>
-            <position>kratos_default.spd:46;kratos_default.spd:46;kratos_default.spd:318;kratos_default.spd:318</position>
+            <position>kratos_default.spd:46;kratos_default.spd:46;kratos_default.spd:320;kratos_default.spd:320</position>
             <priority>0</priority>
         </src>
         <src id="555">
@@ -860,57 +855,57 @@
         </src>
         <src id="557">
             <base>Cross section area</base>
-            <position>kratos_default.spd:449</position>
+            <position>kratos_default.spd:453</position>
             <priority>0</priority>
         </src>
         <src id="558">
             <base>Curve Id</base>
-            <position>kratos_default.spd:581</position>
+            <position>kratos_default.spd:595</position>
             <priority>0</priority>
         </src>
         <src id="559">
             <base>Curve Identifier</base>
-            <position>kratos_default.spd:581</position>
+            <position>kratos_default.spd:595</position>
             <priority>0</priority>
         </src>
         <src id="560">
             <base>Curve Type</base>
-            <position>kratos_default.spd:582</position>
+            <position>kratos_default.spd:596</position>
             <priority>0</priority>
         </src>
         <src id="561">
             <base>Curve definition</base>
-            <position>kratos_default.spd:321</position>
+            <position>kratos_default.spd:323</position>
             <priority>0</priority>
         </src>
         <src id="562">
             <base>Cut plane postprocess options</base>
-            <position>kratos_default.spd:266</position>
+            <position>kratos_default.spd:268</position>
             <priority>0</priority>
         </src>
         <src id="563">
             <base>Cut planes</base>
-            <position>kratos_default.spd:266</position>
+            <position>kratos_default.spd:268</position>
             <priority>0</priority>
         </src>
         <src id="564">
             <base>Cut properties</base>
-            <position>kratos_default.spd:554</position>
+            <position>kratos_default.spd:568</position>
             <priority>0</priority>
         </src>
         <src id="565">
             <base>Cx</base>
-            <position>kratos_default.spd:207;kratos_default.spd:465</position>
+            <position>kratos_default.spd:209;kratos_default.spd:472</position>
             <priority>0</priority>
         </src>
         <src id="566">
             <base>Cy</base>
-            <position>kratos_default.spd:208;kratos_default.spd:466</position>
+            <position>kratos_default.spd:210;kratos_default.spd:473</position>
             <priority>0</priority>
         </src>
         <src id="567">
             <base>Cz</base>
-            <position>kratos_default.spd:209;kratos_default.spd:467</position>
+            <position>kratos_default.spd:211;kratos_default.spd:474</position>
             <priority>0</priority>
         </src>
         <src id="568">
@@ -960,32 +955,32 @@
         </src>
         <src id="577">
             <base>Define the diameter value</base>
-            <position>kratos_default.spd:544</position>
+            <position>kratos_default.spd:558</position>
             <priority>0</priority>
         </src>
         <src id="578">
             <base>Define the divergence cleareance step value</base>
-            <position>kratos_default.spd:171</position>
+            <position>kratos_default.spd:173</position>
             <priority>0</priority>
         </src>
         <src id="579">
             <base>Define the flag variable properties</base>
-            <position>kratos_default.spd:245</position>
+            <position>kratos_default.spd:247</position>
             <priority>0</priority>
         </src>
         <src id="580">
             <base>Define the linear Darcy coefficient value</base>
-            <position>kratos_default.spd:550</position>
+            <position>kratos_default.spd:564</position>
             <priority>0</priority>
         </src>
         <src id="581">
             <base>Define the nonlinear Darcy coefficient value</base>
-            <position>kratos_default.spd:551</position>
+            <position>kratos_default.spd:565</position>
             <priority>0</priority>
         </src>
         <src id="582">
             <base>Define the porosity value</base>
-            <position>kratos_default.spd:543;kratos_default.spd:549</position>
+            <position>kratos_default.spd:557;kratos_default.spd:563</position>
             <priority>0</priority>
         </src>
         <src id="583">
@@ -995,27 +990,27 @@
         </src>
         <src id="584">
             <base>Define the positive or negative shell pressure</base>
-            <position>kratos_default.spd:486</position>
+            <position>kratos_default.spd:500</position>
             <priority>0</priority>
         </src>
         <src id="585">
             <base>Define the turbulent viscosity value</base>
-            <position>kratos_default.spd:135</position>
+            <position>kratos_default.spd:137</position>
             <priority>0</priority>
         </src>
         <src id="586">
             <base>Define the value</base>
-            <position>kratos_default.spd:518;kratos_default.spd:533;kratos_default.spd:538</position>
+            <position>kratos_default.spd:532;kratos_default.spd:547;kratos_default.spd:552</position>
             <priority>0</priority>
         </src>
         <src id="587">
             <base>Defines which side of the face that matches the direction of the normal to the surface, positive or negative</base>
-            <position>kratos_default.spd:489</position>
+            <position>kratos_default.spd:503</position>
             <priority>0</priority>
         </src>
         <src id="588">
             <base>Delta time</base>
-            <position>kratos_default.spd:69;kratos_default.spd:169;kratos_default.spd:280</position>
+            <position>kratos_default.spd:69;kratos_default.spd:171;kratos_default.spd:282</position>
             <priority>0</priority>
         </src>
         <src id="589">
@@ -1030,17 +1025,17 @@
         </src>
         <src id="591">
             <base>Developing in process</base>
-            <position>kratos_default.spd:316;kratos_default.spd:319</position>
+            <position>kratos_default.spd:318;kratos_default.spd:321</position>
             <priority>0</priority>
         </src>
         <src id="592">
             <base>Diagonal</base>
-            <position>kratos_default.spd:65;kratos_default.spd:65;kratos_default.spd:149;kratos_default.spd:149;kratos_default.spd:155;kratos_default.spd:155;kratos_default.spd:161;kratos_default.spd:161;kratos_default.spd:165;kratos_default.spd:165</position>
+            <position>kratos_default.spd:65;kratos_default.spd:65;kratos_default.spd:151;kratos_default.spd:151;kratos_default.spd:157;kratos_default.spd:157;kratos_default.spd:163;kratos_default.spd:163;kratos_default.spd:167;kratos_default.spd:167</position>
             <priority>0</priority>
         </src>
         <src id="593">
             <base>Diameter</base>
-            <position>kratos_default.spd:544</position>
+            <position>kratos_default.spd:458;kratos_default.spd:558</position>
             <priority>0</priority>
         </src>
         <src id="594">
@@ -1050,22 +1045,22 @@
         </src>
         <src id="595">
             <base>Direct</base>
-            <position>kratos_default.spd:60;kratos_default.spd:60;kratos_default.spd:143;kratos_default.spd:143;kratos_default.spd:150;kratos_default.spd:150;kratos_default.spd:156;kratos_default.spd:156;kratos_default.spd:162;kratos_default.spd:162</position>
+            <position>kratos_default.spd:60;kratos_default.spd:60;kratos_default.spd:145;kratos_default.spd:145;kratos_default.spd:152;kratos_default.spd:152;kratos_default.spd:158;kratos_default.spd:158;kratos_default.spd:164;kratos_default.spd:164</position>
             <priority>0</priority>
         </src>
         <src id="596">
             <base>Direct solver type</base>
-            <position>kratos_default.spd:61;kratos_default.spd:144;kratos_default.spd:163</position>
+            <position>kratos_default.spd:61;kratos_default.spd:146;kratos_default.spd:165</position>
             <priority>0</priority>
         </src>
         <src id="597">
             <base>Discrete</base>
-            <position>kratos_default.spd:185;kratos_default.spd:185</position>
+            <position>kratos_default.spd:187;kratos_default.spd:187</position>
             <priority>0</priority>
         </src>
         <src id="598">
             <base>Discrete with dt</base>
-            <position>kratos_default.spd:185</position>
+            <position>kratos_default.spd:187</position>
             <priority>0</priority>
         </src>
         <src id="599">
@@ -1095,22 +1090,22 @@
         </src>
         <src id="604">
             <base>Displacements</base>
-            <position>kratos_default.spd:101;kratos_default.spd:101;kratos_default.spd:107;kratos_default.spd:107</position>
+            <position>kratos_default.spd:102;kratos_default.spd:102;kratos_default.spd:108;kratos_default.spd:108</position>
             <priority>0</priority>
         </src>
         <src id="605">
             <base>Distance</base>
-            <position>kratos_default.spd:243;kratos_default.spd:257;kratos_default.spd:257;kratos_default.spd:305;kratos_default.spd:305</position>
+            <position>kratos_default.spd:245;kratos_default.spd:259;kratos_default.spd:259;kratos_default.spd:307;kratos_default.spd:307</position>
             <priority>2838</priority>
         </src>
         <src id="606">
             <base>Distance variable for the free surface using level set method</base>
-            <position>kratos_default.spd:243</position>
+            <position>kratos_default.spd:245</position>
             <priority>0</priority>
         </src>
         <src id="607">
             <base>Divergence cleareance step</base>
-            <position>kratos_default.spd:171</position>
+            <position>kratos_default.spd:173</position>
             <priority>0</priority>
         </src>
         <src id="608">
@@ -1120,12 +1115,12 @@
         </src>
         <src id="609">
             <base>Drag calculation</base>
-            <position>kratos_default.spd:267</position>
+            <position>kratos_default.spd:269</position>
             <priority>0</priority>
         </src>
         <src id="610">
             <base>Drag calculation properties</base>
-            <position>kratos_default.spd:267;kratos_default.spd:576</position>
+            <position>kratos_default.spd:269;kratos_default.spd:590</position>
             <priority>0</priority>
         </src>
         <src id="611">
@@ -1150,22 +1145,22 @@
         </src>
         <src id="615">
             <base>Element Type</base>
-            <position>kratos_default.spd:326;kratos_default.spd:332;kratos_default.spd:338;kratos_default.spd:344;kratos_default.spd:350</position>
+            <position>kratos_default.spd:328;kratos_default.spd:334;kratos_default.spd:340;kratos_default.spd:346;kratos_default.spd:352</position>
             <priority>0</priority>
         </src>
         <src id="616">
             <base>Element type</base>
-            <position>kratos_default.spd:326;kratos_default.spd:332;kratos_default.spd:338;kratos_default.spd:344;kratos_default.spd:350;kratos_default.spd:445;kratos_default.spd:456</position>
+            <position>kratos_default.spd:328;kratos_default.spd:334;kratos_default.spd:340;kratos_default.spd:346;kratos_default.spd:352;kratos_default.spd:447;kratos_default.spd:463</position>
             <priority>753</priority>
         </src>
         <src id="617">
             <base>Elements</base>
-            <position>kratos_default.spd:82;kratos_default.spd:82;kratos_default.spd:218;kratos_default.spd:218;kratos_default.spd:288;kratos_default.spd:288</position>
+            <position>kratos_default.spd:82;kratos_default.spd:82;kratos_default.spd:220;kratos_default.spd:220;kratos_default.spd:290;kratos_default.spd:290</position>
             <priority>9699</priority>
         </src>
         <src id="618">
             <base>End time</base>
-            <position>kratos_default.spd:68;kratos_default.spd:167;kratos_default.spd:278</position>
+            <position>kratos_default.spd:68;kratos_default.spd:169;kratos_default.spd:280</position>
             <priority>0</priority>
         </src>
         <src id="619">
@@ -1180,12 +1175,12 @@
         </src>
         <src id="621">
             <base>Environment temperature</base>
-            <position>kratos_default.spd:132</position>
+            <position>kratos_default.spd:134</position>
             <priority>0</priority>
         </src>
         <src id="622">
             <base>Eulerian</base>
-            <position>kratos_default.spd:127;kratos_default.spd:127</position>
+            <position>kratos_default.spd:129;kratos_default.spd:129</position>
             <priority>0</priority>
         </src>
         <src id="623">
@@ -1200,7 +1195,7 @@
         </src>
         <src id="625">
             <base>Extrapolation layers</base>
-            <position>kratos_default.spd:189;kratos_default.spd:189</position>
+            <position>kratos_default.spd:191;kratos_default.spd:191</position>
             <priority>0</priority>
         </src>
         <src id="626">
@@ -1210,87 +1205,87 @@
         </src>
         <src id="627">
             <base>Face type</base>
-            <position>kratos_default.spd:489</position>
+            <position>kratos_default.spd:503</position>
             <priority>0</priority>
         </src>
         <src id="628">
             <base>False</base>
-            <position>kratos_default.spd:176;kratos_default.spd:176;kratos_default.spd:262;kratos_default.spd:263;kratos_default.spd:309;kratos_default.spd:310</position>
+            <position>kratos_default.spd:178;kratos_default.spd:178;kratos_default.spd:264;kratos_default.spd:265;kratos_default.spd:311;kratos_default.spd:312</position>
             <priority>0</priority>
         </src>
         <src id="629">
             <base>Fix</base>
-            <position>kratos_default.spd:432</position>
+            <position>kratos_default.spd:434</position>
             <priority>0</priority>
         </src>
         <src id="630">
             <base>Fix X velocity</base>
-            <position>kratos_default.spd:373;kratos_default.spd:385;kratos_default.spd:418</position>
+            <position>kratos_default.spd:375;kratos_default.spd:387;kratos_default.spd:420</position>
             <priority>0</priority>
         </src>
         <src id="631">
             <base>Fix Y velocity</base>
-            <position>kratos_default.spd:374;kratos_default.spd:386;kratos_default.spd:419</position>
+            <position>kratos_default.spd:376;kratos_default.spd:388;kratos_default.spd:421</position>
             <priority>0</priority>
         </src>
         <src id="632">
             <base>Fix Z velocity</base>
-            <position>kratos_default.spd:375;kratos_default.spd:387;kratos_default.spd:420</position>
+            <position>kratos_default.spd:377;kratos_default.spd:389;kratos_default.spd:422</position>
             <priority>0</priority>
         </src>
         <src id="633">
             <base>Fix coordinates</base>
-            <position>kratos_default.spd:432</position>
+            <position>kratos_default.spd:434</position>
             <priority>0</priority>
         </src>
         <src id="634">
             <base>Fix pressure</base>
-            <position>kratos_default.spd:482;kratos_default.spd:482;kratos_default.spd:488;kratos_default.spd:488</position>
+            <position>kratos_default.spd:496;kratos_default.spd:496;kratos_default.spd:502;kratos_default.spd:502</position>
             <priority>0</priority>
         </src>
         <src id="635">
             <base>Fixed</base>
-            <position>kratos_default.spd:168;kratos_default.spd:168;kratos_default.spd:279;kratos_default.spd:279</position>
+            <position>kratos_default.spd:170;kratos_default.spd:170;kratos_default.spd:281;kratos_default.spd:281;kratos_default.spd:362</position>
             <priority>0</priority>
         </src>
         <src id="636">
             <base>Fixity</base>
-            <position>kratos_default.spd:372;kratos_default.spd:372;kratos_default.spd:384;kratos_default.spd:384;kratos_default.spd:417;kratos_default.spd:417</position>
+            <position>kratos_default.spd:374;kratos_default.spd:374;kratos_default.spd:386;kratos_default.spd:386;kratos_default.spd:419;kratos_default.spd:419</position>
             <priority>0</priority>
         </src>
         <src id="637">
             <base>Flag</base>
-            <position>kratos_default.spd:512</position>
+            <position>kratos_default.spd:526</position>
             <priority>0</priority>
         </src>
         <src id="638">
             <base>Flag variable</base>
-            <position>kratos_default.spd:510</position>
+            <position>kratos_default.spd:524</position>
             <priority>0</priority>
         </src>
         <src id="639">
             <base>Flag-Variable</base>
-            <position>kratos_default.spd:245</position>
+            <position>kratos_default.spd:247</position>
             <priority>0</priority>
         </src>
         <src id="640">
             <base>Fluid</base>
-            <position>kratos_default.spd:7;kratos_default.spd:43;kratos_default.spd:124;kratos_default.spd:124;kratos_default.spd:221;kratos_default.spd:222;kratos_default.spd:223;kratos_default.spd:223;kratos_default.spd:224;kratos_default.spd:224;kratos_default.spd:225;kratos_default.spd:225;kratos_default.spd:226;kratos_default.spd:226;kratos_default.spd:227;kratos_default.spd:227;kratos_default.spd:228;kratos_default.spd:228;kratos_default.spd:229;kratos_default.spd:229;kratos_default.spd:230;kratos_default.spd:230;kratos_default.spd:289;kratos_default.spd:289;kratos_default.spd:290;kratos_default.spd:290;kratos_default.kmdb:101;kratos_default.kmdb:206;kratos_default.kmdb:216;kratos_default.kmdb:313;kratos_default.kmdb:418;kratos_default.kmdb:526;kratos_default.kmdb:640;kratos_default_backup.kmdb:101;kratos_default_backup.kmdb:206;kratos_default_backup.kmdb:216;kratos_default_backup.kmdb:313;kratos_default_backup.kmdb:418;kratos_default_backup.kmdb:526;kratos_default_backup.kmdb:640</position>
+            <position>kratos_default.spd:7;kratos_default.spd:43;kratos_default.spd:126;kratos_default.spd:126;kratos_default.spd:223;kratos_default.spd:224;kratos_default.spd:225;kratos_default.spd:225;kratos_default.spd:226;kratos_default.spd:226;kratos_default.spd:227;kratos_default.spd:227;kratos_default.spd:228;kratos_default.spd:228;kratos_default.spd:229;kratos_default.spd:229;kratos_default.spd:230;kratos_default.spd:230;kratos_default.spd:231;kratos_default.spd:231;kratos_default.spd:232;kratos_default.spd:232;kratos_default.spd:291;kratos_default.spd:291;kratos_default.spd:292;kratos_default.spd:292;kratos_default.kmdb:101;kratos_default.kmdb:206;kratos_default.kmdb:216;kratos_default.kmdb:313;kratos_default.kmdb:418;kratos_default.kmdb:526;kratos_default.kmdb:640;kratos_default_backup.kmdb:101;kratos_default_backup.kmdb:206;kratos_default_backup.kmdb:216;kratos_default_backup.kmdb:313;kratos_default_backup.kmdb:418;kratos_default_backup.kmdb:526;kratos_default_backup.kmdb:640</position>
             <priority>0</priority>
         </src>
         <src id="641">
             <base>Fluid Approach</base>
-            <position>kratos_default.spd:127</position>
+            <position>kratos_default.spd:129</position>
             <priority>0</priority>
         </src>
         <src id="642">
             <base>Fluid Inlet</base>
-            <position>kratos_default.spd:247</position>
+            <position>kratos_default.spd:249</position>
             <priority>0</priority>
         </src>
         <src id="643">
             <base>Fluid approach</base>
-            <position>kratos_default.spd:127</position>
+            <position>kratos_default.spd:129</position>
             <priority>0</priority>
         </src>
         <src id="644">
@@ -1300,72 +1295,67 @@
         </src>
         <src id="645">
             <base>Fluid structure interaction (FSI)</base>
-            <position>kratos_default.spd:45;kratos_default.spd:45;kratos_default.spd:315;kratos_default.spd:315</position>
+            <position>kratos_default.spd:45;kratos_default.spd:45;kratos_default.spd:317;kratos_default.spd:317</position>
             <priority>0</priority>
         </src>
         <src id="646">
             <base>Fluid type</base>
-            <position>kratos_default.spd:126;kratos_default.spd:126;kratos_default.spd:272;kratos_default.spd:272</position>
-            <priority>0</priority>
-        </src>
-        <src id="647">
-            <base>Forces</base>
-            <position>kratos_default.spd:108;kratos_default.spd:108</position>
+            <position>kratos_default.spd:128;kratos_default.spd:128;kratos_default.spd:274;kratos_default.spd:274</position>
             <priority>0</priority>
         </src>
         <src id="648">
             <base>Fractional step</base>
-            <position>kratos_default.spd:129;kratos_default.spd:130</position>
+            <position>kratos_default.spd:131;kratos_default.spd:132</position>
             <priority>0</priority>
         </src>
         <src id="649">
             <base>Fractional step level set</base>
-            <position>kratos_default.spd:131</position>
+            <position>kratos_default.spd:133</position>
             <priority>0</priority>
         </src>
         <src id="650">
             <base>Fractional step semi-explicit element based</base>
-            <position>kratos_default.spd:129</position>
+            <position>kratos_default.spd:131</position>
             <priority>0</priority>
         </src>
         <src id="651">
             <base>Free surface</base>
-            <position>kratos_default.spd:128;kratos_default.spd:128;kratos_default.spd:273;kratos_default.spd:273</position>
+            <position>kratos_default.spd:130;kratos_default.spd:130;kratos_default.spd:275;kratos_default.spd:275</position>
             <priority>0</priority>
         </src>
         <src id="652">
             <base>Fx</base>
-            <position>kratos_default.spd:472</position>
+            <position>kratos_default.spd:479;kratos_default.spd:489</position>
             <priority>0</priority>
         </src>
         <src id="653">
             <base>Fx Vector</base>
-            <position>kratos_default.spd:472</position>
+            <position>kratos_default.spd:479</position>
             <priority>0</priority>
         </src>
         <src id="654">
             <base>Fy</base>
-            <position>kratos_default.spd:473</position>
+            <position>kratos_default.spd:480;kratos_default.spd:490</position>
             <priority>0</priority>
         </src>
         <src id="655">
             <base>Fy Vector</base>
-            <position>kratos_default.spd:473</position>
+            <position>kratos_default.spd:480</position>
             <priority>0</priority>
         </src>
         <src id="656">
             <base>Fz</base>
-            <position>kratos_default.spd:474</position>
+            <position>kratos_default.spd:481;kratos_default.spd:491</position>
             <priority>0</priority>
         </src>
         <src id="657">
             <base>Fz Vector</base>
-            <position>kratos_default.spd:474</position>
+            <position>kratos_default.spd:481</position>
             <priority>0</priority>
         </src>
         <src id="658">
             <base>GMRES</base>
-            <position>kratos_default.spd:152;kratos_default.spd:152</position>
+            <position>kratos_default.spd:154;kratos_default.spd:154</position>
             <priority>0</priority>
         </src>
         <src id="659">
@@ -1380,17 +1370,17 @@
         </src>
         <src id="661">
             <base>GiD postprocess options</base>
-            <position>kratos_default.spd:116;kratos_default.spd:260;kratos_default.spd:307</position>
+            <position>kratos_default.spd:118;kratos_default.spd:262;kratos_default.spd:309</position>
             <priority>0</priority>
         </src>
         <src id="663">
             <base>GiD result file format</base>
-            <position>kratos_default.spd:117;kratos_default.spd:261;kratos_default.spd:308</position>
+            <position>kratos_default.spd:119;kratos_default.spd:263;kratos_default.spd:310</position>
             <priority>0</priority>
         </src>
         <src id="664">
             <base>Gravity value</base>
-            <position>kratos_default.spd:174;kratos_default.spd:174;kratos_default.spd:206;kratos_default.spd:206;kratos_default.spd:464;kratos_default.spd:464</position>
+            <position>kratos_default.spd:176;kratos_default.spd:176;kratos_default.spd:208;kratos_default.spd:208;kratos_default.spd:471;kratos_default.spd:471</position>
             <priority>0</priority>
         </src>
         <src id="665">
@@ -1415,77 +1405,77 @@
         </src>
         <src id="669">
             <base>Hexahedra</base>
-            <position>kratos_default.spd:344;kratos_default.spd:344</position>
+            <position>kratos_default.spd:346;kratos_default.spd:346</position>
             <priority>719</priority>
         </src>
         <src id="670">
             <base>History graph</base>
-            <position>kratos_default.spd:567</position>
+            <position>kratos_default.spd:581</position>
             <priority>0</priority>
         </src>
         <src id="671">
             <base>History graph properties</base>
-            <position>kratos_default.spd:567</position>
+            <position>kratos_default.spd:581</position>
             <priority>0</priority>
         </src>
         <src id="672">
             <base>History output on points</base>
-            <position>kratos_default.spd:259;kratos_default.spd:259</position>
+            <position>kratos_default.spd:261;kratos_default.spd:261</position>
             <priority>0</priority>
         </src>
         <src id="673">
             <base>History output on points properties</base>
-            <position>kratos_default.spd:566</position>
+            <position>kratos_default.spd:580</position>
             <priority>0</priority>
         </src>
         <src id="674">
             <base>ILU0</base>
-            <position>kratos_default.spd:65;kratos_default.spd:65;kratos_default.spd:149;kratos_default.spd:149;kratos_default.spd:155;kratos_default.spd:155;kratos_default.spd:161;kratos_default.spd:161</position>
+            <position>kratos_default.spd:65;kratos_default.spd:65;kratos_default.spd:151;kratos_default.spd:151;kratos_default.spd:157;kratos_default.spd:157;kratos_default.spd:163;kratos_default.spd:163</position>
             <priority>0</priority>
         </src>
         <src id="675">
             <base>Incompressible</base>
-            <position>kratos_default.spd:126;kratos_default.spd:126;kratos_default.spd:272;kratos_default.spd:272</position>
+            <position>kratos_default.spd:128;kratos_default.spd:128;kratos_default.spd:274;kratos_default.spd:274</position>
             <priority>0</priority>
         </src>
         <src id="676">
             <base>Inertia Ix</base>
-            <position>kratos_default.spd:450</position>
+            <position>kratos_default.spd:454</position>
             <priority>0</priority>
         </src>
         <src id="677">
             <base>Inertia Iy</base>
-            <position>kratos_default.spd:451</position>
+            <position>kratos_default.spd:455</position>
             <priority>0</priority>
         </src>
         <src id="678">
             <base>Initial Conditions</base>
-            <position>kratos_default.spd:232;kratos_default.spd:233;kratos_default.spd:234;kratos_default.spd:235</position>
+            <position>kratos_default.spd:234;kratos_default.spd:235;kratos_default.spd:236;kratos_default.spd:237</position>
             <priority>0</priority>
         </src>
         <src id="679">
             <base>Initial conditions</base>
-            <position>kratos_default.spd:232</position>
+            <position>kratos_default.spd:234</position>
             <priority>0</priority>
         </src>
         <src id="680">
             <base>Initial pressure</base>
-            <position>kratos_default.spd:235;kratos_default.spd:505</position>
+            <position>kratos_default.spd:237;kratos_default.spd:519</position>
             <priority>0</priority>
         </src>
         <src id="681">
             <base>Initial temperature</base>
-            <position>kratos_default.spd:234;kratos_default.spd:500</position>
+            <position>kratos_default.spd:236;kratos_default.spd:514</position>
             <priority>0</priority>
         </src>
         <src id="682">
             <base>Initial velocity</base>
-            <position>kratos_default.spd:233;kratos_default.spd:493</position>
+            <position>kratos_default.spd:235;kratos_default.spd:507</position>
             <priority>0</priority>
         </src>
         <src id="683">
             <base>Inlet velocity</base>
-            <position>kratos_default.spd:238;kratos_default.spd:238;kratos_default.spd:239;kratos_default.spd:366</position>
+            <position>kratos_default.spd:240;kratos_default.spd:240;kratos_default.spd:241;kratos_default.spd:368</position>
             <priority>0</priority>
         </src>
         <src id="684">
@@ -1495,37 +1485,37 @@
         </src>
         <src id="685">
             <base>Is boundary</base>
-            <position>kratos_default.spd:295</position>
+            <position>kratos_default.spd:297</position>
             <priority>0</priority>
         </src>
         <src id="686">
             <base>Is fluid</base>
-            <position>kratos_default.spd:294</position>
+            <position>kratos_default.spd:296</position>
             <priority>0</priority>
         </src>
         <src id="687">
             <base>Is-Boundary</base>
-            <position>kratos_default.spd:295</position>
+            <position>kratos_default.spd:297</position>
             <priority>0</priority>
         </src>
         <src id="688">
             <base>Is-Fluid</base>
-            <position>kratos_default.spd:294</position>
+            <position>kratos_default.spd:296</position>
             <priority>0</priority>
         </src>
         <src id="689">
             <base>Is-Slip</base>
-            <position>kratos_default.spd:241;kratos_default.spd:293</position>
+            <position>kratos_default.spd:243;kratos_default.spd:295</position>
             <priority>0</priority>
         </src>
         <src id="690">
             <base>Is-Slip conditional data</base>
-            <position>kratos_default.spd:515</position>
+            <position>kratos_default.spd:529</position>
             <priority>0</priority>
         </src>
         <src id="691">
             <base>Is-boundary conditional data</base>
-            <position>kratos_default.spd:521</position>
+            <position>kratos_default.spd:535</position>
             <priority>0</priority>
         </src>
         <src id="692">
@@ -1545,17 +1535,17 @@
         </src>
         <src id="695">
             <base>Iterative</base>
-            <position>kratos_default.spd:60;kratos_default.spd:60;kratos_default.spd:63;kratos_default.spd:143;kratos_default.spd:143;kratos_default.spd:150;kratos_default.spd:150;kratos_default.spd:156;kratos_default.spd:156;kratos_default.spd:162;kratos_default.spd:162</position>
+            <position>kratos_default.spd:60;kratos_default.spd:60;kratos_default.spd:63;kratos_default.spd:145;kratos_default.spd:145;kratos_default.spd:152;kratos_default.spd:152;kratos_default.spd:158;kratos_default.spd:158;kratos_default.spd:164;kratos_default.spd:164</position>
             <priority>0</priority>
         </src>
         <src id="696">
             <base>Iterative solver type</base>
-            <position>kratos_default.spd:62;kratos_default.spd:145;kratos_default.spd:164</position>
+            <position>kratos_default.spd:62;kratos_default.spd:147;kratos_default.spd:166</position>
             <priority>0</priority>
         </src>
         <src id="697">
             <base>Iterative solver type options</base>
-            <position>kratos_default.spd:145</position>
+            <position>kratos_default.spd:147</position>
             <priority>0</priority>
         </src>
         <src id="698">
@@ -1590,37 +1580,37 @@
         </src>
         <src id="704">
             <base>Krylov space dimension</base>
-            <position>kratos_default.spd:148</position>
+            <position>kratos_default.spd:150</position>
             <priority>0</priority>
         </src>
         <src id="705">
             <base>Laplacian correction of pressure</base>
-            <position>kratos_default.spd:195</position>
+            <position>kratos_default.spd:197</position>
             <priority>0</priority>
         </src>
         <src id="706">
             <base>Laplacian form</base>
-            <position>kratos_default.spd:185</position>
+            <position>kratos_default.spd:187</position>
             <priority>0</priority>
         </src>
         <src id="707">
             <base>Level set distance data</base>
-            <position>kratos_default.spd:536</position>
+            <position>kratos_default.spd:550</position>
             <priority>0</priority>
         </src>
         <src id="708">
             <base>Linear</base>
-            <position>kratos_default.spd:54;kratos_default.spd:54;kratos_default.spd:332;kratos_default.spd:332;kratos_default.spd:338;kratos_default.spd:338;kratos_default.kmdb:72;kratos_default.kmdb:72;kratos_default.kmdb:79;kratos_default.kmdb:79;kratos_default.kmdb:177;kratos_default.kmdb:177;kratos_default.kmdb:184;kratos_default.kmdb:184;kratos_default.kmdb:284;kratos_default.kmdb:284;kratos_default.kmdb:291;kratos_default.kmdb:291;kratos_default.kmdb:389;kratos_default.kmdb:389;kratos_default.kmdb:396;kratos_default.kmdb:396;kratos_default.kmdb:497;kratos_default.kmdb:497;kratos_default.kmdb:504;kratos_default.kmdb:611;kratos_default.kmdb:611;kratos_default.kmdb:618;kratos_default.kmdb:618;kratos_default_backup.kmdb:72;kratos_default_backup.kmdb:72;kratos_default_backup.kmdb:79;kratos_default_backup.kmdb:79;kratos_default_backup.kmdb:177;kratos_default_backup.kmdb:177;kratos_default_backup.kmdb:184;kratos_default_backup.kmdb:184;kratos_default_backup.kmdb:284;kratos_default_backup.kmdb:284;kratos_default_backup.kmdb:291;kratos_default_backup.kmdb:291;kratos_default_backup.kmdb:389;kratos_default_backup.kmdb:389;kratos_default_backup.kmdb:396;kratos_default_backup.kmdb:396;kratos_default_backup.kmdb:497;kratos_default_backup.kmdb:497;kratos_default_backup.kmdb:504;kratos_default_backup.kmdb:611;kratos_default_backup.kmdb:611;kratos_default_backup.kmdb:618;kratos_default_backup.kmdb:618</position>
+            <position>kratos_default.spd:54;kratos_default.spd:54;kratos_default.spd:334;kratos_default.spd:334;kratos_default.spd:340;kratos_default.spd:340;kratos_default.kmdb:72;kratos_default.kmdb:72;kratos_default.kmdb:79;kratos_default.kmdb:79;kratos_default.kmdb:177;kratos_default.kmdb:177;kratos_default.kmdb:184;kratos_default.kmdb:184;kratos_default.kmdb:284;kratos_default.kmdb:284;kratos_default.kmdb:291;kratos_default.kmdb:291;kratos_default.kmdb:389;kratos_default.kmdb:389;kratos_default.kmdb:396;kratos_default.kmdb:396;kratos_default.kmdb:497;kratos_default.kmdb:497;kratos_default.kmdb:504;kratos_default.kmdb:611;kratos_default.kmdb:611;kratos_default.kmdb:618;kratos_default.kmdb:618;kratos_default_backup.kmdb:72;kratos_default_backup.kmdb:72;kratos_default_backup.kmdb:79;kratos_default_backup.kmdb:79;kratos_default_backup.kmdb:177;kratos_default_backup.kmdb:177;kratos_default_backup.kmdb:184;kratos_default_backup.kmdb:184;kratos_default_backup.kmdb:284;kratos_default_backup.kmdb:284;kratos_default_backup.kmdb:291;kratos_default_backup.kmdb:291;kratos_default_backup.kmdb:389;kratos_default_backup.kmdb:389;kratos_default_backup.kmdb:396;kratos_default_backup.kmdb:396;kratos_default_backup.kmdb:497;kratos_default_backup.kmdb:497;kratos_default_backup.kmdb:504;kratos_default_backup.kmdb:611;kratos_default_backup.kmdb:611;kratos_default_backup.kmdb:618;kratos_default_backup.kmdb:618</position>
             <priority>1027</priority>
         </src>
         <src id="709">
             <base>Linear Darcy coefficient</base>
-            <position>kratos_default.spd:550</position>
+            <position>kratos_default.spd:564</position>
             <priority>0</priority>
         </src>
         <src id="710">
             <base>Linear Velocity</base>
-            <position>kratos_default.spd:391;kratos_default.spd:391</position>
+            <position>kratos_default.spd:393;kratos_default.spd:393</position>
             <priority>0</priority>
         </src>
         <src id="711">
@@ -1630,7 +1620,7 @@
         </src>
         <src id="712">
             <base>Linear solver type</base>
-            <position>kratos_default.spd:60;kratos_default.spd:143;kratos_default.spd:162</position>
+            <position>kratos_default.spd:60;kratos_default.spd:145;kratos_default.spd:164</position>
             <priority>0</priority>
         </src>
         <src id="713">
@@ -1650,7 +1640,7 @@
         </src>
         <src id="716">
             <base>MPI</base>
-            <position>kratos_default.spd:57;kratos_default.spd:57;kratos_default.spd:140;kratos_default.spd:140;kratos_default.spd:276;kratos_default.spd:276</position>
+            <position>kratos_default.spd:57;kratos_default.spd:57;kratos_default.spd:142;kratos_default.spd:142;kratos_default.spd:278;kratos_default.spd:278</position>
             <priority>0</priority>
         </src>
         <src id="717">
@@ -1660,32 +1650,32 @@
         </src>
         <src id="718">
             <base>Material</base>
-            <position>kratos_default.spd:447;kratos_default.spd:447;kratos_default.spd:458;kratos_default.spd:458</position>
+            <position>kratos_default.spd:449;kratos_default.spd:449;kratos_default.spd:465;kratos_default.spd:465</position>
             <priority>619</priority>
         </src>
         <src id="719">
             <base>Material model</base>
-            <position>kratos_default.spd:446;kratos_default.spd:446;kratos_default.spd:457;kratos_default.spd:457</position>
+            <position>kratos_default.spd:448;kratos_default.spd:448;kratos_default.spd:464;kratos_default.spd:464</position>
             <priority>0</priority>
         </src>
         <src id="720">
             <base>Max X</base>
-            <position>kratos_default.spd:197;kratos_default.spd:197;kratos_default.spd:424;kratos_default.spd:424</position>
+            <position>kratos_default.spd:199;kratos_default.spd:199;kratos_default.spd:426;kratos_default.spd:426</position>
             <priority>0</priority>
         </src>
         <src id="721">
             <base>Max Y</base>
-            <position>kratos_default.spd:198;kratos_default.spd:198;kratos_default.spd:425;kratos_default.spd:425</position>
+            <position>kratos_default.spd:200;kratos_default.spd:200;kratos_default.spd:427;kratos_default.spd:427</position>
             <priority>0</priority>
         </src>
         <src id="722">
             <base>Max Z</base>
-            <position>kratos_default.spd:199;kratos_default.spd:199;kratos_default.spd:426;kratos_default.spd:426</position>
+            <position>kratos_default.spd:201;kratos_default.spd:201;kratos_default.spd:428;kratos_default.spd:428</position>
             <priority>0</priority>
         </src>
         <src id="723">
             <base>Max time variation</base>
-            <position>kratos_default.spd:172</position>
+            <position>kratos_default.spd:174</position>
             <priority>0</priority>
         </src>
         <src id="725">
@@ -1695,17 +1685,17 @@
         </src>
         <src id="726">
             <base>Maximum iterations</base>
-            <position>kratos_default.spd:78;kratos_default.spd:183</position>
+            <position>kratos_default.spd:78;kratos_default.spd:185</position>
             <priority>0</priority>
         </src>
         <src id="727">
             <base>Maximum pressure iterations</base>
-            <position>kratos_default.spd:182</position>
+            <position>kratos_default.spd:184</position>
             <priority>0</priority>
         </src>
         <src id="728">
             <base>Maximum velocity iterations</base>
-            <position>kratos_default.spd:179</position>
+            <position>kratos_default.spd:181</position>
             <priority>0</priority>
         </src>
         <src id="729">
@@ -1715,7 +1705,7 @@
         </src>
         <src id="730">
             <base>Membrane element</base>
-            <position>kratos_default.spd:348</position>
+            <position>kratos_default.spd:350</position>
             <priority>0</priority>
         </src>
         <src id="731">
@@ -1735,32 +1725,32 @@
         </src>
         <src id="734">
             <base>Min X</base>
-            <position>kratos_default.spd:200;kratos_default.spd:200;kratos_default.spd:427;kratos_default.spd:427</position>
+            <position>kratos_default.spd:202;kratos_default.spd:202;kratos_default.spd:429;kratos_default.spd:429</position>
             <priority>0</priority>
         </src>
         <src id="735">
             <base>Min Y</base>
-            <position>kratos_default.spd:201;kratos_default.spd:201;kratos_default.spd:428;kratos_default.spd:428</position>
+            <position>kratos_default.spd:203;kratos_default.spd:203;kratos_default.spd:430;kratos_default.spd:430</position>
             <priority>0</priority>
         </src>
         <src id="736">
             <base>Min Z</base>
-            <position>kratos_default.spd:202;kratos_default.spd:202;kratos_default.spd:429;kratos_default.spd:429</position>
+            <position>kratos_default.spd:204;kratos_default.spd:204;kratos_default.spd:431;kratos_default.spd:431</position>
             <priority>0</priority>
         </src>
         <src id="737">
             <base>Min time variation</base>
-            <position>kratos_default.spd:173</position>
+            <position>kratos_default.spd:175</position>
             <priority>0</priority>
         </src>
         <src id="739">
             <base>Mixed UP Krylov space dimension</base>
-            <position>kratos_default.spd:148</position>
+            <position>kratos_default.spd:150</position>
             <priority>0</priority>
         </src>
         <src id="740">
             <base>MixedUP</base>
-            <position>kratos_default.spd:145;kratos_default.spd:145</position>
+            <position>kratos_default.spd:147;kratos_default.spd:147</position>
             <priority>0</priority>
         </src>
         <src id="741">
@@ -1780,72 +1770,72 @@
         </src>
         <src id="744">
             <base>Moment of inertia Ix</base>
-            <position>kratos_default.spd:450</position>
+            <position>kratos_default.spd:454</position>
             <priority>0</priority>
         </src>
         <src id="745">
             <base>Moment of inertia Iy</base>
-            <position>kratos_default.spd:451</position>
+            <position>kratos_default.spd:455</position>
             <priority>0</priority>
         </src>
         <src id="746">
             <base>Monolithic</base>
-            <position>kratos_default.spd:130;kratos_default.spd:130</position>
+            <position>kratos_default.spd:132;kratos_default.spd:132</position>
             <priority>0</priority>
         </src>
         <src id="747">
             <base>Monolithic solver maximum iteration numbers</base>
-            <position>kratos_default.spd:147</position>
+            <position>kratos_default.spd:149</position>
             <priority>0</priority>
         </src>
         <src id="748">
             <base>Multiples</base>
-            <position>kratos_default.spd:120;kratos_default.spd:120;kratos_default.spd:264;kratos_default.spd:264;kratos_default.spd:311;kratos_default.spd:311</position>
+            <position>kratos_default.spd:122;kratos_default.spd:122;kratos_default.spd:266;kratos_default.spd:266;kratos_default.spd:313;kratos_default.spd:313</position>
             <priority>0</priority>
         </src>
         <src id="749">
             <base>Mx</base>
-            <position>kratos_default.spd:475</position>
+            <position>kratos_default.spd:482</position>
             <priority>0</priority>
         </src>
         <src id="750">
             <base>Mx Vector</base>
-            <position>kratos_default.spd:475</position>
+            <position>kratos_default.spd:482</position>
             <priority>0</priority>
         </src>
         <src id="751">
             <base>My</base>
-            <position>kratos_default.spd:476</position>
+            <position>kratos_default.spd:483</position>
             <priority>0</priority>
         </src>
         <src id="752">
             <base>My Vector</base>
-            <position>kratos_default.spd:476</position>
+            <position>kratos_default.spd:483</position>
             <priority>0</priority>
         </src>
         <src id="753">
             <base>Mz</base>
-            <position>kratos_default.spd:477</position>
+            <position>kratos_default.spd:484</position>
             <priority>0</priority>
         </src>
         <src id="754">
             <base>Mz Vector</base>
-            <position>kratos_default.spd:477</position>
+            <position>kratos_default.spd:484</position>
             <priority>0</priority>
         </src>
         <src id="755">
             <base>Negative</base>
-            <position>kratos_default.spd:489;kratos_default.spd:489</position>
+            <position>kratos_default.spd:503;kratos_default.spd:503</position>
             <priority>0</priority>
         </src>
         <src id="756">
             <base>New group</base>
-            <position>kratos_default.spd:527</position>
+            <position>kratos_default.spd:541</position>
             <priority>0</priority>
         </src>
         <src id="757">
             <base>New property</base>
-            <position>kratos_default.spd:444;kratos_default.spd:455;kratos_default.spd:481;kratos_default.spd:487;kratos_default.spd:501;kratos_default.spd:506;kratos_default.spd:511;kratos_default.spd:516;kratos_default.spd:522;kratos_default.spd:532;kratos_default.spd:537;kratos_default.spd:542;kratos_default.spd:548</position>
+            <position>kratos_default.spd:446;kratos_default.spd:462;kratos_default.spd:495;kratos_default.spd:501;kratos_default.spd:515;kratos_default.spd:520;kratos_default.spd:525;kratos_default.spd:530;kratos_default.spd:536;kratos_default.spd:546;kratos_default.spd:551;kratos_default.spd:556;kratos_default.spd:562</position>
             <priority>0</priority>
         </src>
         <src id="758">
@@ -1860,17 +1850,17 @@
         </src>
         <src id="760">
             <base>No</base>
-            <position>kratos_default.spd:42;kratos_default.spd:42;kratos_default.spd:43;kratos_default.spd:43;kratos_default.spd:44;kratos_default.spd:44;kratos_default.spd:45;kratos_default.spd:45;kratos_default.spd:46;kratos_default.spd:46;kratos_default.spd:101;kratos_default.spd:101;kratos_default.spd:107;kratos_default.spd:107;kratos_default.spd:108;kratos_default.spd:108;kratos_default.spd:109;kratos_default.spd:109;kratos_default.spd:112;kratos_default.spd:112;kratos_default.spd:113;kratos_default.spd:113;kratos_default.spd:114;kratos_default.spd:114;kratos_default.spd:118;kratos_default.spd:118;kratos_default.spd:119;kratos_default.spd:119;kratos_default.spd:128;kratos_default.spd:128;kratos_default.spd:195;kratos_default.spd:195;kratos_default.spd:212;kratos_default.spd:212;kratos_default.spd:250;kratos_default.spd:250;kratos_default.spd:252;kratos_default.spd:252;kratos_default.spd:254;kratos_default.spd:254;kratos_default.spd:255;kratos_default.spd:255;kratos_default.spd:256;kratos_default.spd:256;kratos_default.spd:257;kratos_default.spd:257;kratos_default.spd:262;kratos_default.spd:263;kratos_default.spd:273;kratos_default.spd:273;kratos_default.spd:298;kratos_default.spd:298;kratos_default.spd:300;kratos_default.spd:300;kratos_default.spd:302;kratos_default.spd:302;kratos_default.spd:303;kratos_default.spd:303;kratos_default.spd:304;kratos_default.spd:304;kratos_default.spd:305;kratos_default.spd:305;kratos_default.spd:309;kratos_default.spd:310</position>
+            <position>kratos_default.spd:42;kratos_default.spd:42;kratos_default.spd:43;kratos_default.spd:43;kratos_default.spd:44;kratos_default.spd:44;kratos_default.spd:45;kratos_default.spd:45;kratos_default.spd:46;kratos_default.spd:46;kratos_default.spd:102;kratos_default.spd:102;kratos_default.spd:108;kratos_default.spd:108;kratos_default.spd:109;kratos_default.spd:109;kratos_default.spd:112;kratos_default.spd:112;kratos_default.spd:113;kratos_default.spd:113;kratos_default.spd:114;kratos_default.spd:114;kratos_default.spd:115;kratos_default.spd:115;kratos_default.spd:116;kratos_default.spd:116;kratos_default.spd:120;kratos_default.spd:120;kratos_default.spd:121;kratos_default.spd:121;kratos_default.spd:130;kratos_default.spd:130;kratos_default.spd:197;kratos_default.spd:197;kratos_default.spd:214;kratos_default.spd:214;kratos_default.spd:252;kratos_default.spd:252;kratos_default.spd:254;kratos_default.spd:254;kratos_default.spd:256;kratos_default.spd:256;kratos_default.spd:257;kratos_default.spd:257;kratos_default.spd:258;kratos_default.spd:258;kratos_default.spd:259;kratos_default.spd:259;kratos_default.spd:264;kratos_default.spd:265;kratos_default.spd:275;kratos_default.spd:275;kratos_default.spd:300;kratos_default.spd:300;kratos_default.spd:302;kratos_default.spd:302;kratos_default.spd:304;kratos_default.spd:304;kratos_default.spd:305;kratos_default.spd:305;kratos_default.spd:306;kratos_default.spd:306;kratos_default.spd:307;kratos_default.spd:307;kratos_default.spd:311;kratos_default.spd:312</position>
             <priority>1065</priority>
         </src>
         <src id="761">
             <base>No Slip</base>
-            <position>kratos_default.spd:378</position>
+            <position>kratos_default.spd:380</position>
             <priority>0</priority>
         </src>
         <src id="762">
             <base>No-Slip</base>
-            <position>kratos_default.spd:244;kratos_default.spd:244</position>
+            <position>kratos_default.spd:246;kratos_default.spd:246</position>
             <priority>0</priority>
         </src>
         <src id="763">
@@ -1880,47 +1870,47 @@
         </src>
         <src id="764">
             <base>None</base>
-            <position>kratos_default.spd:65;kratos_default.spd:65;kratos_default.spd:149;kratos_default.spd:149;kratos_default.spd:155;kratos_default.spd:155;kratos_default.spd:161;kratos_default.spd:161;kratos_default.spd:165;kratos_default.spd:165</position>
+            <position>kratos_default.spd:65;kratos_default.spd:65;kratos_default.spd:151;kratos_default.spd:151;kratos_default.spd:157;kratos_default.spd:157;kratos_default.spd:163;kratos_default.spd:163;kratos_default.spd:167;kratos_default.spd:167</position>
             <priority>961</priority>
         </src>
         <src id="765">
             <base>Nonlinear Darcy coefficient</base>
-            <position>kratos_default.spd:551</position>
+            <position>kratos_default.spd:565</position>
             <priority>0</priority>
         </src>
         <src id="766">
             <base>Normal to plane</base>
-            <position>kratos_default.spd:560</position>
+            <position>kratos_default.spd:574</position>
             <priority>0</priority>
         </src>
         <src id="767">
             <base>Normal to the plane</base>
-            <position>kratos_default.spd:560</position>
+            <position>kratos_default.spd:574</position>
             <priority>0</priority>
         </src>
         <src id="768">
             <base>Not available</base>
-            <position>kratos_default.spd:316;kratos_default.spd:319</position>
+            <position>kratos_default.spd:318;kratos_default.spd:321</position>
             <priority>0</priority>
         </src>
         <src id="769">
             <base>Number of initial steps</base>
-            <position>kratos_default.spd:194;kratos_default.spd:194</position>
+            <position>kratos_default.spd:196;kratos_default.spd:196</position>
             <priority>0</priority>
         </src>
         <src id="770">
             <base>Number of processors</base>
-            <position>kratos_default.spd:58;kratos_default.spd:58;kratos_default.spd:141;kratos_default.spd:141</position>
+            <position>kratos_default.spd:58;kratos_default.spd:58;kratos_default.spd:143;kratos_default.spd:143</position>
             <priority>0</priority>
         </src>
         <src id="771">
             <base>Number of threads</base>
-            <position>kratos_default.spd:59;kratos_default.spd:59;kratos_default.spd:142;kratos_default.spd:142</position>
+            <position>kratos_default.spd:59;kratos_default.spd:59;kratos_default.spd:144;kratos_default.spd:144</position>
             <priority>0</priority>
         </src>
         <src id="772">
             <base>Off</base>
-            <position>kratos_default.spd:133;kratos_default.spd:133</position>
+            <position>kratos_default.spd:135;kratos_default.spd:135</position>
             <priority>5055</priority>
         </src>
         <src id="773">
@@ -1930,97 +1920,97 @@
         </src>
         <src id="774">
             <base>On nodes</base>
-            <position>kratos_default.spd:106;kratos_default.spd:106;kratos_default.spd:253;kratos_default.spd:253;kratos_default.spd:301;kratos_default.spd:301</position>
+            <position>kratos_default.spd:107;kratos_default.spd:107;kratos_default.spd:255;kratos_default.spd:255;kratos_default.spd:303;kratos_default.spd:303</position>
             <priority>0</priority>
         </src>
         <src id="775">
             <base>OpenMP</base>
-            <position>kratos_default.spd:57;kratos_default.spd:57;kratos_default.spd:140;kratos_default.spd:140;kratos_default.spd:276;kratos_default.spd:276</position>
+            <position>kratos_default.spd:57;kratos_default.spd:57;kratos_default.spd:142;kratos_default.spd:142;kratos_default.spd:278;kratos_default.spd:278</position>
             <priority>0</priority>
         </src>
         <src id="776">
             <base>Options</base>
-            <position>kratos_default.spd:116;kratos_default.spd:260;kratos_default.spd:307</position>
+            <position>kratos_default.spd:118;kratos_default.spd:262;kratos_default.spd:309</position>
             <priority>707</priority>
         </src>
         <src id="777">
             <base>Origin</base>
-            <position>kratos_default.spd:555</position>
+            <position>kratos_default.spd:569</position>
             <priority>0</priority>
         </src>
         <src id="778">
             <base>Origin properties</base>
-            <position>kratos_default.spd:555</position>
+            <position>kratos_default.spd:569</position>
             <priority>0</priority>
         </src>
         <src id="779">
             <base>Outlet pressure</base>
-            <position>kratos_default.spd:240;kratos_default.spd:240;kratos_default.spd:480</position>
+            <position>kratos_default.spd:242;kratos_default.spd:242;kratos_default.spd:494</position>
             <priority>0</priority>
         </src>
         <src id="780">
             <base>Output delata time</base>
-            <position>kratos_default.spd:251;kratos_default.spd:299</position>
+            <position>kratos_default.spd:253;kratos_default.spd:301</position>
             <priority>0</priority>
         </src>
         <src id="781">
             <base>Output delta time</base>
-            <position>kratos_default.spd:105;kratos_default.spd:105;kratos_default.spd:251;kratos_default.spd:299</position>
+            <position>kratos_default.spd:106;kratos_default.spd:106;kratos_default.spd:253;kratos_default.spd:301</position>
             <priority>0</priority>
         </src>
         <src id="782">
             <base>Output file</base>
-            <position>kratos_default.spd:573</position>
+            <position>kratos_default.spd:587</position>
             <priority>0</priority>
         </src>
         <src id="783">
             <base>Output file Id</base>
-            <position>kratos_default.spd:578</position>
+            <position>kratos_default.spd:592</position>
             <priority>0</priority>
         </src>
         <src id="784">
             <base>Output file identifier</base>
-            <position>kratos_default.spd:573;kratos_default.spd:578</position>
+            <position>kratos_default.spd:587;kratos_default.spd:592</position>
             <priority>0</priority>
         </src>
         <src id="785">
             <base>PFEM</base>
-            <position>kratos_default.spd:44;kratos_default.spd:44;kratos_default.spd:270;kratos_default.spd:270</position>
+            <position>kratos_default.spd:44;kratos_default.spd:44;kratos_default.spd:272;kratos_default.spd:272</position>
             <priority>0</priority>
         </src>
         <src id="786">
             <base>PFEM Wall</base>
-            <position>kratos_default.spd:390</position>
+            <position>kratos_default.spd:392</position>
             <priority>0</priority>
         </src>
         <src id="787">
             <base>PFEM-Lagrangian</base>
-            <position>kratos_default.spd:127;kratos_default.spd:127</position>
+            <position>kratos_default.spd:129;kratos_default.spd:129</position>
             <priority>0</priority>
         </src>
         <src id="788">
             <base>Parallel MKL Pardiso</base>
-            <position>kratos_default.spd:61;kratos_default.spd:144;kratos_default.spd:151;kratos_default.spd:157;kratos_default.spd:163</position>
+            <position>kratos_default.spd:61;kratos_default.spd:146;kratos_default.spd:153;kratos_default.spd:159;kratos_default.spd:165</position>
             <priority>0</priority>
         </src>
         <src id="789">
             <base>Parallel type</base>
-            <position>kratos_default.spd:57;kratos_default.spd:140;kratos_default.spd:276</position>
+            <position>kratos_default.spd:57;kratos_default.spd:142;kratos_default.spd:278</position>
             <priority>0</priority>
         </src>
         <src id="790">
             <base>Period. Activ.</base>
-            <position>kratos_default.spd:395;kratos_default.spd:402</position>
+            <position>kratos_default.spd:397;kratos_default.spd:404</position>
             <priority>0</priority>
         </src>
         <src id="791">
             <base>Periode</base>
-            <position>kratos_default.spd:396;kratos_default.spd:403</position>
+            <position>kratos_default.spd:398;kratos_default.spd:405</position>
             <priority>0</priority>
         </src>
         <src id="792">
             <base>Periodic</base>
-            <position>kratos_default.spd:396;kratos_default.spd:403</position>
+            <position>kratos_default.spd:398;kratos_default.spd:405</position>
             <priority>0</priority>
         </src>
         <src id="793">
@@ -2050,87 +2040,87 @@
         </src>
         <src id="798">
             <base>Porosity</base>
-            <position>kratos_default.spd:543;kratos_default.spd:549</position>
+            <position>kratos_default.spd:557;kratos_default.spd:563</position>
             <priority>0</priority>
         </src>
         <src id="799">
             <base>Porosity and darcy law data</base>
-            <position>kratos_default.spd:547</position>
+            <position>kratos_default.spd:561</position>
             <priority>0</priority>
         </src>
         <src id="800">
             <base>Porosity and diameter data</base>
-            <position>kratos_default.spd:541</position>
+            <position>kratos_default.spd:555</position>
             <priority>0</priority>
         </src>
         <src id="801">
             <base>Porous zones</base>
-            <position>kratos_default.spd:211;kratos_default.spd:211</position>
+            <position>kratos_default.spd:213;kratos_default.spd:213</position>
             <priority>0</priority>
         </src>
         <src id="802">
             <base>Positive</base>
-            <position>kratos_default.spd:489;kratos_default.spd:489</position>
+            <position>kratos_default.spd:503;kratos_default.spd:503</position>
             <priority>0</priority>
         </src>
         <src id="803">
             <base>Preconditioner type</base>
-            <position>kratos_default.spd:65;kratos_default.spd:149;kratos_default.spd:165</position>
+            <position>kratos_default.spd:65;kratos_default.spd:151;kratos_default.spd:167</position>
             <priority>0</priority>
         </src>
         <src id="804">
             <base>Predictor corrector</base>
-            <position>kratos_default.spd:176</position>
+            <position>kratos_default.spd:178</position>
             <priority>0</priority>
         </src>
         <src id="805">
             <base>Prescribed velocity</base>
-            <position>kratos_default.spd:239</position>
+            <position>kratos_default.spd:241</position>
             <priority>0</priority>
         </src>
         <src id="806">
             <base>Pressure</base>
-            <position>kratos_default.spd:97;kratos_default.spd:255;kratos_default.spd:255;kratos_default.spd:303;kratos_default.spd:303;kratos_default.spd:507;kratos_default.spd:571;kratos_default.spd:571;kratos_default.spd:572;kratos_default.spd:572</position>
+            <position>kratos_default.spd:97;kratos_default.spd:257;kratos_default.spd:257;kratos_default.spd:305;kratos_default.spd:305;kratos_default.spd:521;kratos_default.spd:585;kratos_default.spd:585;kratos_default.spd:586;kratos_default.spd:586</position>
             <priority>0</priority>
         </src>
         <src id="807">
             <base>Pressure direct solver type</base>
-            <position>kratos_default.spd:157</position>
+            <position>kratos_default.spd:159</position>
             <priority>0</priority>
         </src>
         <src id="808">
             <base>Pressure iterative solver type</base>
-            <position>kratos_default.spd:158</position>
+            <position>kratos_default.spd:160</position>
             <priority>0</priority>
         </src>
         <src id="809">
             <base>Pressure linear solver type</base>
-            <position>kratos_default.spd:156</position>
+            <position>kratos_default.spd:158</position>
             <priority>0</priority>
         </src>
         <src id="810">
             <base>Pressure preconditioner type</base>
-            <position>kratos_default.spd:161</position>
+            <position>kratos_default.spd:163</position>
             <priority>0</priority>
         </src>
         <src id="811">
             <base>Pressure solver maximum iteration</base>
-            <position>kratos_default.spd:160</position>
+            <position>kratos_default.spd:162</position>
             <priority>0</priority>
         </src>
         <src id="812">
             <base>Pressure solver tolerance</base>
-            <position>kratos_default.spd:159</position>
+            <position>kratos_default.spd:161</position>
             <priority>0</priority>
         </src>
         <src id="813">
             <base>Pressure value</base>
-            <position>kratos_default.spd:483;kratos_default.spd:483;kratos_default.spd:490;kratos_default.spd:490</position>
+            <position>kratos_default.spd:497;kratos_default.spd:497;kratos_default.spd:504;kratos_default.spd:504</position>
             <priority>0</priority>
         </src>
         <src id="814">
             <base>Print in layer</base>
-            <position>kratos_default.spd:252;kratos_default.spd:252;kratos_default.spd:300;kratos_default.spd:300</position>
+            <position>kratos_default.spd:254;kratos_default.spd:254;kratos_default.spd:302;kratos_default.spd:302</position>
             <priority>0</priority>
         </src>
         <src id="815">
@@ -2155,22 +2145,22 @@
         </src>
         <src id="819">
             <base>Property</base>
-            <position>kratos_default.spd:327;kratos_default.spd:327;kratos_default.spd:333;kratos_default.spd:333;kratos_default.spd:339;kratos_default.spd:339;kratos_default.spd:345;kratos_default.spd:345;kratos_default.spd:351;kratos_default.spd:351;kratos_default.spd:443;kratos_default.spd:454</position>
+            <position>kratos_default.spd:329;kratos_default.spd:329;kratos_default.spd:335;kratos_default.spd:335;kratos_default.spd:341;kratos_default.spd:341;kratos_default.spd:347;kratos_default.spd:347;kratos_default.spd:353;kratos_default.spd:353;kratos_default.spd:445;kratos_default.spd:461</position>
             <priority>0</priority>
         </src>
         <src id="820">
             <base>Property type</base>
-            <position>kratos_default.spd:445;kratos_default.spd:456</position>
+            <position>kratos_default.spd:447;kratos_default.spd:463</position>
             <priority>0</priority>
         </src>
         <src id="821">
             <base>Puntual</base>
-            <position>kratos_default.spd:96;kratos_default.spd:470;kratos_default.spd:471</position>
+            <position>kratos_default.spd:96;kratos_default.spd:477;kratos_default.spd:478</position>
             <priority>0</priority>
         </src>
         <src id="822">
             <base>Quadrilateral</base>
-            <position>kratos_default.spd:326;kratos_default.spd:326</position>
+            <position>kratos_default.spd:328;kratos_default.spd:328</position>
             <priority>757</priority>
         </src>
         <src id="823">
@@ -2180,22 +2170,22 @@
         </src>
         <src id="824">
             <base>Reactions</base>
-            <position>kratos_default.spd:109;kratos_default.spd:256;kratos_default.spd:304</position>
+            <position>kratos_default.spd:109;kratos_default.spd:258;kratos_default.spd:306</position>
             <priority>0</priority>
         </src>
         <src id="825">
             <base>Redistance frequency</base>
-            <position>kratos_default.spd:188;kratos_default.spd:188</position>
+            <position>kratos_default.spd:190;kratos_default.spd:190</position>
             <priority>0</priority>
         </src>
         <src id="826">
             <base>Relative pressure tolerance</base>
-            <position>kratos_default.spd:180;kratos_default.spd:180</position>
+            <position>kratos_default.spd:182;kratos_default.spd:182</position>
             <priority>0</priority>
         </src>
         <src id="827">
             <base>Relative velocity tolerance</base>
-            <position>kratos_default.spd:177;kratos_default.spd:177</position>
+            <position>kratos_default.spd:179;kratos_default.spd:179</position>
             <priority>0</priority>
         </src>
         <src id="828">
@@ -2220,17 +2210,17 @@
         </src>
         <src id="832">
             <base>Result file</base>
-            <position>kratos_default.spd:120;kratos_default.spd:264;kratos_default.spd:311</position>
+            <position>kratos_default.spd:122;kratos_default.spd:266;kratos_default.spd:313</position>
             <priority>0</priority>
         </src>
         <src id="833">
             <base>Result format</base>
-            <position>kratos_default.spd:117;kratos_default.spd:261;kratos_default.spd:308</position>
+            <position>kratos_default.spd:119;kratos_default.spd:263;kratos_default.spd:310</position>
             <priority>0</priority>
         </src>
         <src id="834">
             <base>Results</base>
-            <position>kratos_default.spd:104;kratos_default.spd:104;kratos_default.spd:249;kratos_default.spd:249;kratos_default.spd:297;kratos_default.spd:297</position>
+            <position>kratos_default.spd:105;kratos_default.spd:105;kratos_default.spd:251;kratos_default.spd:251;kratos_default.spd:299;kratos_default.spd:299</position>
             <priority>0</priority>
         </src>
         <src id="835">
@@ -2240,47 +2230,47 @@
         </src>
         <src id="836">
             <base>Rotation Center</base>
-            <position>kratos_default.spd:405;kratos_default.spd:405</position>
+            <position>kratos_default.spd:407;kratos_default.spd:407</position>
             <priority>0</priority>
         </src>
         <src id="837">
             <base>Rotations</base>
-            <position>kratos_default.spd:102;kratos_default.spd:102;kratos_default.spd:113;kratos_default.spd:113</position>
+            <position>kratos_default.spd:103;kratos_default.spd:103;kratos_default.spd:113;kratos_default.spd:113</position>
             <priority>0</priority>
         </src>
         <src id="838">
             <base>Safety factor</base>
-            <position>kratos_default.spd:193;kratos_default.spd:193</position>
+            <position>kratos_default.spd:195;kratos_default.spd:195</position>
             <priority>0</priority>
         </src>
         <src id="839">
             <base>Select the Delta time option to be used</base>
-            <position>kratos_default.spd:168;kratos_default.spd:279</position>
+            <position>kratos_default.spd:170;kratos_default.spd:281</position>
             <priority>0</priority>
         </src>
         <src id="840">
             <base>Select the activate option value</base>
-            <position>kratos_default.spd:517;kratos_default.spd:523;kratos_default.spd:528</position>
+            <position>kratos_default.spd:531;kratos_default.spd:537;kratos_default.spd:542</position>
             <priority>0</priority>
         </src>
         <src id="841">
             <base>Select the active tubulence model</base>
-            <position>kratos_default.spd:133</position>
+            <position>kratos_default.spd:135</position>
             <priority>0</priority>
         </src>
         <src id="842">
             <base>Select the flag value</base>
-            <position>kratos_default.spd:512</position>
+            <position>kratos_default.spd:526</position>
             <priority>0</priority>
         </src>
         <src id="843">
             <base>Select the fluid 2D element type</base>
-            <position>kratos_default.spd:221;kratos_default.spd:222</position>
+            <position>kratos_default.spd:223;kratos_default.spd:224</position>
             <priority>0</priority>
         </src>
         <src id="844">
             <base>Select the group identifier</base>
-            <position>kratos_default.spd:136;kratos_default.spd:137</position>
+            <position>kratos_default.spd:138;kratos_default.spd:139</position>
             <priority>0</priority>
         </src>
         <src id="845">
@@ -2330,27 +2320,27 @@
         </src>
         <src id="854">
             <base>Single</base>
-            <position>kratos_default.spd:120;kratos_default.spd:120;kratos_default.spd:264;kratos_default.spd:264;kratos_default.spd:311;kratos_default.spd:311</position>
+            <position>kratos_default.spd:122;kratos_default.spd:122;kratos_default.spd:266;kratos_default.spd:266;kratos_default.spd:313;kratos_default.spd:313</position>
             <priority>0</priority>
         </src>
         <src id="855">
             <base>Skyline LU factorization</base>
-            <position>kratos_default.spd:61;kratos_default.spd:151;kratos_default.spd:157;kratos_default.spd:163</position>
+            <position>kratos_default.spd:61;kratos_default.spd:153;kratos_default.spd:159;kratos_default.spd:165</position>
             <priority>0</priority>
         </src>
         <src id="856">
             <base>Slip</base>
-            <position>kratos_default.spd:241;kratos_default.spd:293</position>
+            <position>kratos_default.spd:243;kratos_default.spd:295</position>
             <priority>0</priority>
         </src>
         <src id="857">
             <base>Smagorinsky constant</base>
-            <position>kratos_default.spd:134</position>
+            <position>kratos_default.spd:136</position>
             <priority>0</priority>
         </src>
         <src id="858">
             <base>Smagorinsky-Lilly</base>
-            <position>kratos_default.spd:133;kratos_default.spd:133</position>
+            <position>kratos_default.spd:135;kratos_default.spd:135</position>
             <priority>0</priority>
         </src>
         <src id="859">
@@ -2365,7 +2355,7 @@
         </src>
         <src id="861">
             <base>Solution Strategy</base>
-            <position>kratos_default.spd:56;kratos_default.spd:139;kratos_default.spd:275</position>
+            <position>kratos_default.spd:56;kratos_default.spd:141;kratos_default.spd:277</position>
             <priority>0</priority>
         </src>
         <src id="862">
@@ -2375,7 +2365,7 @@
         </src>
         <src id="863">
             <base>Solution strategy</base>
-            <position>kratos_default.spd:56;kratos_default.spd:139;kratos_default.spd:275</position>
+            <position>kratos_default.spd:56;kratos_default.spd:141;kratos_default.spd:277</position>
             <priority>0</priority>
         </src>
         <src id="864">
@@ -2385,32 +2375,32 @@
         </src>
         <src id="865">
             <base>Solver maximum iterations</base>
-            <position>kratos_default.spd:147</position>
+            <position>kratos_default.spd:149</position>
             <priority>0</priority>
         </src>
         <src id="866">
             <base>Solver tolerance</base>
-            <position>kratos_default.spd:146</position>
+            <position>kratos_default.spd:148</position>
             <priority>0</priority>
         </src>
         <src id="867">
             <base>Solver type</base>
-            <position>kratos_default.spd:129;kratos_default.spd:130;kratos_default.spd:131</position>
+            <position>kratos_default.spd:131;kratos_default.spd:132;kratos_default.spd:133</position>
             <priority>0</priority>
         </src>
         <src id="868">
             <base>SolverType</base>
-            <position>kratos_default.spd:130;kratos_default.spd:131</position>
+            <position>kratos_default.spd:132;kratos_default.spd:133</position>
             <priority>0</priority>
         </src>
         <src id="869">
             <base>Spalart-Allmaras</base>
-            <position>kratos_default.spd:133;kratos_default.spd:133</position>
+            <position>kratos_default.spd:135;kratos_default.spd:135</position>
             <priority>0</priority>
         </src>
         <src id="870">
             <base>Spalart-Allmaras groups</base>
-            <position>kratos_default.spd:136;kratos_default.spd:137</position>
+            <position>kratos_default.spd:138;kratos_default.spd:139</position>
             <priority>0</priority>
         </src>
         <src id="871">
@@ -2430,17 +2420,17 @@
         </src>
         <src id="874">
             <base>Stabilized convection factor</base>
-            <position>kratos_default.spd:191;kratos_default.spd:191</position>
+            <position>kratos_default.spd:193;kratos_default.spd:193</position>
             <priority>0</priority>
         </src>
         <src id="875">
             <base>Stabilized dt pressure factor</base>
-            <position>kratos_default.spd:190;kratos_default.spd:190</position>
+            <position>kratos_default.spd:192;kratos_default.spd:192</position>
             <priority>0</priority>
         </src>
         <src id="876">
             <base>Start time</base>
-            <position>kratos_default.spd:67;kratos_default.spd:166;kratos_default.spd:277</position>
+            <position>kratos_default.spd:67;kratos_default.spd:168;kratos_default.spd:279</position>
             <priority>0</priority>
         </src>
         <src id="877">
@@ -2455,7 +2445,7 @@
         </src>
         <src id="879">
             <base>Stresses</base>
-            <position>kratos_default.spd:109;kratos_default.spd:256;kratos_default.spd:304</position>
+            <position>kratos_default.spd:109;kratos_default.spd:258;kratos_default.spd:306</position>
             <priority>0</priority>
         </src>
         <src id="880">
@@ -2480,12 +2470,12 @@
         </src>
         <src id="884">
             <base>Super LU</base>
-            <position>kratos_default.spd:61;kratos_default.spd:144;kratos_default.spd:151;kratos_default.spd:157;kratos_default.spd:163</position>
+            <position>kratos_default.spd:61;kratos_default.spd:146;kratos_default.spd:153;kratos_default.spd:159;kratos_default.spd:165</position>
             <priority>0</priority>
         </src>
         <src id="885">
             <base>SuperLU iterative solver</base>
-            <position>kratos_default.spd:145</position>
+            <position>kratos_default.spd:147</position>
             <priority>0</priority>
         </src>
         <src id="886">
@@ -2495,12 +2485,12 @@
         </src>
         <src id="887">
             <base>Target CFL</base>
-            <position>kratos_default.spd:170;kratos_default.spd:281</position>
+            <position>kratos_default.spd:172;kratos_default.spd:283</position>
             <priority>0</priority>
         </src>
         <src id="888">
             <base>Temperature</base>
-            <position>kratos_default.spd:502;kratos_default.spd:583</position>
+            <position>kratos_default.spd:516;kratos_default.spd:597</position>
             <priority>0</priority>
         </src>
         <src id="889">
@@ -2515,27 +2505,27 @@
         </src>
         <src id="891">
             <base>Tetrahedra</base>
-            <position>kratos_default.spd:344;kratos_default.spd:344</position>
+            <position>kratos_default.spd:346;kratos_default.spd:346</position>
             <priority>719</priority>
         </src>
         <src id="892">
             <base>The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2</base>
-            <position>kratos_default.spd:134</position>
+            <position>kratos_default.spd:136</position>
             <priority>0</priority>
         </src>
         <src id="893">
             <base>Thickness</base>
-            <position>kratos_default.spd:448;kratos_default.spd:448;kratos_default.spd:459;kratos_default.spd:459</position>
+            <position>kratos_default.spd:450;kratos_default.spd:450;kratos_default.spd:466;kratos_default.spd:466</position>
             <priority>0</priority>
         </src>
         <src id="894">
             <base>Time order</base>
-            <position>kratos_default.spd:184</position>
+            <position>kratos_default.spd:186</position>
             <priority>0</priority>
         </src>
         <src id="895">
             <base>Total Lagrangian</base>
-            <position>kratos_default.spd:83;kratos_default.spd:83;kratos_default.spd:84;kratos_default.spd:84;kratos_default.spd:91;kratos_default.spd:324;kratos_default.spd:325;kratos_default.spd:330;kratos_default.spd:331;kratos_default.spd:337;kratos_default.spd:342;kratos_default.spd:343</position>
+            <position>kratos_default.spd:83;kratos_default.spd:83;kratos_default.spd:84;kratos_default.spd:84;kratos_default.spd:91;kratos_default.spd:326;kratos_default.spd:327;kratos_default.spd:332;kratos_default.spd:333;kratos_default.spd:339;kratos_default.spd:344;kratos_default.spd:345</position>
             <priority>0</priority>
         </src>
         <src id="896">
@@ -2545,12 +2535,12 @@
         </src>
         <src id="897">
             <base>Triangle</base>
-            <position>kratos_default.spd:326;kratos_default.spd:326;kratos_default.spd:350;kratos_default.spd:350</position>
+            <position>kratos_default.spd:328;kratos_default.spd:328;kratos_default.spd:352;kratos_default.spd:352</position>
             <priority>766</priority>
         </src>
         <src id="898">
             <base>True</base>
-            <position>kratos_default.spd:176;kratos_default.spd:176;kratos_default.spd:262;kratos_default.spd:263;kratos_default.spd:309;kratos_default.spd:310</position>
+            <position>kratos_default.spd:178;kratos_default.spd:178;kratos_default.spd:264;kratos_default.spd:265;kratos_default.spd:311;kratos_default.spd:312</position>
             <priority>0</priority>
         </src>
         <src id="899">
@@ -2560,97 +2550,97 @@
         </src>
         <src id="900">
             <base>Turbulence model</base>
-            <position>kratos_default.spd:133</position>
+            <position>kratos_default.spd:135</position>
             <priority>0</priority>
         </src>
         <src id="901">
             <base>Turbulent viscosity</base>
-            <position>kratos_default.spd:135</position>
+            <position>kratos_default.spd:137</position>
             <priority>0</priority>
         </src>
         <src id="902">
             <base>Type of curve</base>
-            <position>kratos_default.spd:582;kratos_default.spd:583;kratos_default.spd:584</position>
+            <position>kratos_default.spd:596;kratos_default.spd:597;kratos_default.spd:598</position>
             <priority>0</priority>
         </src>
         <src id="903">
             <base>Use Ergun equation</base>
-            <position>kratos_default.spd:212;kratos_default.spd:212</position>
+            <position>kratos_default.spd:214;kratos_default.spd:214</position>
             <priority>0</priority>
         </src>
         <src id="904">
             <base>Use Laplacian correction of pressure</base>
-            <position>kratos_default.spd:195</position>
+            <position>kratos_default.spd:197</position>
             <priority>0</priority>
         </src>
         <src id="905">
             <base>Use dt in stabilization</base>
-            <position>kratos_default.spd:186;kratos_default.spd:283</position>
+            <position>kratos_default.spd:188;kratos_default.spd:285</position>
             <priority>0</priority>
         </src>
         <src id="906">
             <base>Use orthogonal subscales</base>
-            <position>kratos_default.spd:187;kratos_default.spd:284</position>
+            <position>kratos_default.spd:189;kratos_default.spd:286</position>
             <priority>0</priority>
         </src>
         <src id="907">
             <base>Validate model before calculate</base>
-            <position>kratos_default.spd:591</position>
+            <position>kratos_default.spd:605</position>
             <priority>0</priority>
         </src>
         <src id="908">
             <base>Value</base>
-            <position>kratos_default.spd:533;kratos_default.spd:538</position>
+            <position>kratos_default.spd:547;kratos_default.spd:552</position>
             <priority>14</priority>
         </src>
         <src id="909">
             <base>Values</base>
-            <position>kratos_default.spd:360;kratos_default.spd:360;kratos_default.spd:367;kratos_default.spd:367;kratos_default.spd:379;kratos_default.spd:379;kratos_default.spd:412;kratos_default.spd:437;kratos_default.spd:437;kratos_default.spd:444;kratos_default.spd:455;kratos_default.spd:463;kratos_default.spd:471;kratos_default.spd:481;kratos_default.spd:487;kratos_default.spd:494;kratos_default.spd:494;kratos_default.spd:501;kratos_default.spd:506;kratos_default.spd:511;kratos_default.spd:516;kratos_default.spd:522;kratos_default.spd:527;kratos_default.spd:532;kratos_default.spd:537;kratos_default.spd:542;kratos_default.spd:548</position>
+            <position>kratos_default.spd:357;kratos_default.spd:369;kratos_default.spd:369;kratos_default.spd:381;kratos_default.spd:381;kratos_default.spd:414;kratos_default.spd:439;kratos_default.spd:439;kratos_default.spd:446;kratos_default.spd:462;kratos_default.spd:470;kratos_default.spd:478;kratos_default.spd:495;kratos_default.spd:501;kratos_default.spd:508;kratos_default.spd:508;kratos_default.spd:515;kratos_default.spd:520;kratos_default.spd:525;kratos_default.spd:530;kratos_default.spd:536;kratos_default.spd:541;kratos_default.spd:546;kratos_default.spd:551;kratos_default.spd:556;kratos_default.spd:562</position>
             <priority>10</priority>
         </src>
         <src id="910">
             <base>Variable</base>
-            <position>kratos_default.spd:571;kratos_default.spd:572</position>
+            <position>kratos_default.spd:585;kratos_default.spd:586</position>
             <priority>0</priority>
         </src>
         <src id="911">
             <base>Variable to be plotted for this output point</base>
-            <position>kratos_default.spd:571;kratos_default.spd:572</position>
+            <position>kratos_default.spd:585;kratos_default.spd:586</position>
             <priority>0</priority>
         </src>
         <src id="912">
             <base>Velocity</base>
-            <position>kratos_default.spd:254;kratos_default.spd:254;kratos_default.spd:302;kratos_default.spd:302;kratos_default.spd:412;kratos_default.spd:571;kratos_default.spd:571;kratos_default.spd:572;kratos_default.spd:572</position>
+            <position>kratos_default.spd:256;kratos_default.spd:256;kratos_default.spd:304;kratos_default.spd:304;kratos_default.spd:414;kratos_default.spd:585;kratos_default.spd:585;kratos_default.spd:586;kratos_default.spd:586</position>
             <priority>0</priority>
         </src>
         <src id="913">
             <base>Velocity direct solver type</base>
-            <position>kratos_default.spd:151</position>
+            <position>kratos_default.spd:153</position>
             <priority>0</priority>
         </src>
         <src id="914">
             <base>Velocity iterative solver type</base>
-            <position>kratos_default.spd:152</position>
+            <position>kratos_default.spd:154</position>
             <priority>0</priority>
         </src>
         <src id="915">
             <base>Velocity linear solver type</base>
-            <position>kratos_default.spd:150</position>
+            <position>kratos_default.spd:152</position>
             <priority>0</priority>
         </src>
         <src id="916">
             <base>Velocity preconditioner type</base>
-            <position>kratos_default.spd:155</position>
+            <position>kratos_default.spd:157</position>
             <priority>0</priority>
         </src>
         <src id="917">
             <base>Velocity solver maximum iteration</base>
-            <position>kratos_default.spd:154</position>
+            <position>kratos_default.spd:156</position>
             <priority>0</priority>
         </src>
         <src id="918">
             <base>Velocity solver tolerance</base>
-            <position>kratos_default.spd:153</position>
+            <position>kratos_default.spd:155</position>
             <priority>0</priority>
         </src>
         <src id="919">
@@ -2660,7 +2650,7 @@
         </src>
         <src id="920">
             <base>Volume output</base>
-            <position>kratos_default.spd:250;kratos_default.spd:250;kratos_default.spd:298;kratos_default.spd:298</position>
+            <position>kratos_default.spd:252;kratos_default.spd:252;kratos_default.spd:300;kratos_default.spd:300</position>
             <priority>0</priority>
         </src>
         <src id="921">
@@ -2670,37 +2660,37 @@
         </src>
         <src id="922">
             <base>Vx</base>
-            <position>kratos_default.spd:495</position>
+            <position>kratos_default.spd:509</position>
             <priority>0</priority>
         </src>
         <src id="923">
             <base>Vy</base>
-            <position>kratos_default.spd:496</position>
+            <position>kratos_default.spd:510</position>
             <priority>0</priority>
         </src>
         <src id="924">
             <base>Vz</base>
-            <position>kratos_default.spd:497</position>
+            <position>kratos_default.spd:511</position>
             <priority>0</priority>
         </src>
         <src id="925">
             <base>Wall law</base>
-            <position>kratos_default.spd:242;kratos_default.spd:242</position>
+            <position>kratos_default.spd:244;kratos_default.spd:244</position>
             <priority>0</priority>
         </src>
         <src id="926">
             <base>Wall law nodaI data</base>
-            <position>kratos_default.spd:531</position>
+            <position>kratos_default.spd:545</position>
             <priority>0</priority>
         </src>
         <src id="927">
             <base>Wall law value</base>
-            <position>kratos_default.spd:192;kratos_default.spd:192;kratos_default.spd:518</position>
+            <position>kratos_default.spd:194;kratos_default.spd:194;kratos_default.spd:532</position>
             <priority>0</priority>
         </src>
         <src id="928">
             <base>Wall/Object</base>
-            <position>kratos_default.spd:246</position>
+            <position>kratos_default.spd:248</position>
             <priority>0</priority>
         </src>
         <src id="929">
@@ -2710,127 +2700,127 @@
         </src>
         <src id="930">
             <base>Write conditions</base>
-            <position>kratos_default.spd:119;kratos_default.spd:263;kratos_default.spd:310</position>
+            <position>kratos_default.spd:121;kratos_default.spd:265;kratos_default.spd:312</position>
             <priority>0</priority>
         </src>
         <src id="931">
             <base>Write deformed mesh</base>
-            <position>kratos_default.spd:118;kratos_default.spd:262;kratos_default.spd:309</position>
+            <position>kratos_default.spd:120;kratos_default.spd:264;kratos_default.spd:311</position>
             <priority>0</priority>
         </src>
         <src id="933">
             <base>Write the GiD deformed or undeformed mesh</base>
-            <position>kratos_default.spd:118;kratos_default.spd:262;kratos_default.spd:309</position>
+            <position>kratos_default.spd:120;kratos_default.spd:264;kratos_default.spd:311</position>
             <priority>0</priority>
         </src>
         <src id="934">
             <base>Write the conditions or only element to the GiD result file</base>
-            <position>kratos_default.spd:119;kratos_default.spd:263;kratos_default.spd:310</position>
+            <position>kratos_default.spd:121;kratos_default.spd:265;kratos_default.spd:312</position>
             <priority>0</priority>
         </src>
         <src id="935">
             <base>X</base>
-            <position>kratos_default.spd:361;kratos_default.spd:368;kratos_default.spd:380;kratos_default.spd:392;kratos_default.spd:399;kratos_default.spd:406;kratos_default.spd:413;kratos_default.spd:438;kratos_default.spd:556;kratos_default.spd:561;kratos_default.spd:568</position>
+            <position>kratos_default.spd:358;kratos_default.spd:370;kratos_default.spd:382;kratos_default.spd:394;kratos_default.spd:401;kratos_default.spd:408;kratos_default.spd:415;kratos_default.spd:440;kratos_default.spd:570;kratos_default.spd:575;kratos_default.spd:582</position>
             <priority>0</priority>
         </src>
         <src id="936">
             <base>X Variable</base>
-            <position>kratos_default.spd:583</position>
+            <position>kratos_default.spd:597</position>
             <priority>0</priority>
         </src>
         <src id="937">
             <base>X Vector</base>
-            <position>kratos_default.spd:207;kratos_default.spd:465</position>
+            <position>kratos_default.spd:209;kratos_default.spd:472</position>
             <priority>0</priority>
         </src>
         <src id="938">
             <base>X Velocity</base>
-            <position>kratos_default.spd:438</position>
+            <position>kratos_default.spd:440</position>
             <priority>0</priority>
         </src>
         <src id="939">
             <base>X active</base>
-            <position>kratos_default.spd:356;kratos_default.spd:373;kratos_default.spd:385;kratos_default.spd:418</position>
+            <position>kratos_default.spd:363;kratos_default.spd:375;kratos_default.spd:387;kratos_default.spd:420</position>
             <priority>0</priority>
         </src>
         <src id="940">
             <base>X coordinate</base>
-            <position>kratos_default.spd:356;kratos_default.spd:361;kratos_default.spd:433;kratos_default.spd:556;kratos_default.spd:561</position>
+            <position>kratos_default.spd:358;kratos_default.spd:435;kratos_default.spd:570;kratos_default.spd:575</position>
             <priority>0</priority>
         </src>
         <src id="941">
             <base>X coordinate of the output point</base>
-            <position>kratos_default.spd:568</position>
+            <position>kratos_default.spd:582</position>
             <priority>0</priority>
         </src>
         <src id="942">
             <base>X fix</base>
-            <position>kratos_default.spd:433</position>
+            <position>kratos_default.spd:435</position>
             <priority>0</priority>
         </src>
         <src id="943">
             <base>X initial velocity</base>
-            <position>kratos_default.spd:495</position>
+            <position>kratos_default.spd:509</position>
             <priority>0</priority>
         </src>
         <src id="944">
             <base>X velocity</base>
-            <position>kratos_default.spd:368;kratos_default.spd:380;kratos_default.spd:392;kratos_default.spd:399;kratos_default.spd:406;kratos_default.spd:413</position>
+            <position>kratos_default.spd:370;kratos_default.spd:382;kratos_default.spd:394;kratos_default.spd:401;kratos_default.spd:408;kratos_default.spd:415</position>
             <priority>0</priority>
         </src>
         <src id="945">
             <base>Y</base>
-            <position>kratos_default.spd:362;kratos_default.spd:369;kratos_default.spd:381;kratos_default.spd:393;kratos_default.spd:400;kratos_default.spd:407;kratos_default.spd:414;kratos_default.spd:439;kratos_default.spd:557;kratos_default.spd:562;kratos_default.spd:569</position>
+            <position>kratos_default.spd:359;kratos_default.spd:371;kratos_default.spd:383;kratos_default.spd:395;kratos_default.spd:402;kratos_default.spd:409;kratos_default.spd:416;kratos_default.spd:441;kratos_default.spd:571;kratos_default.spd:576;kratos_default.spd:583</position>
             <priority>0</priority>
         </src>
         <src id="946">
             <base>Y Variable</base>
-            <position>kratos_default.spd:584</position>
+            <position>kratos_default.spd:598</position>
             <priority>0</priority>
         </src>
         <src id="947">
             <base>Y Vector</base>
-            <position>kratos_default.spd:208;kratos_default.spd:466</position>
+            <position>kratos_default.spd:210;kratos_default.spd:473</position>
             <priority>0</priority>
         </src>
         <src id="948">
             <base>Y Velocity</base>
-            <position>kratos_default.spd:439</position>
+            <position>kratos_default.spd:441</position>
             <priority>0</priority>
         </src>
         <src id="949">
             <base>Y active</base>
-            <position>kratos_default.spd:357;kratos_default.spd:374;kratos_default.spd:386;kratos_default.spd:419</position>
+            <position>kratos_default.spd:364;kratos_default.spd:376;kratos_default.spd:388;kratos_default.spd:421</position>
             <priority>0</priority>
         </src>
         <src id="950">
             <base>Y coordinate</base>
-            <position>kratos_default.spd:357;kratos_default.spd:362;kratos_default.spd:434;kratos_default.spd:557;kratos_default.spd:562</position>
+            <position>kratos_default.spd:359;kratos_default.spd:436;kratos_default.spd:571;kratos_default.spd:576</position>
             <priority>0</priority>
         </src>
         <src id="951">
             <base>Y coordinate of the output point</base>
-            <position>kratos_default.spd:569</position>
+            <position>kratos_default.spd:583</position>
             <priority>0</priority>
         </src>
         <src id="952">
             <base>Y fix</base>
-            <position>kratos_default.spd:434</position>
+            <position>kratos_default.spd:436</position>
             <priority>0</priority>
         </src>
         <src id="953">
             <base>Y initial velocity</base>
-            <position>kratos_default.spd:496</position>
+            <position>kratos_default.spd:510</position>
             <priority>0</priority>
         </src>
         <src id="954">
             <base>Y velocity</base>
-            <position>kratos_default.spd:369;kratos_default.spd:381;kratos_default.spd:393;kratos_default.spd:400;kratos_default.spd:407;kratos_default.spd:414</position>
+            <position>kratos_default.spd:371;kratos_default.spd:383;kratos_default.spd:395;kratos_default.spd:402;kratos_default.spd:409;kratos_default.spd:416</position>
             <priority>0</priority>
         </src>
         <src id="955">
             <base>Yes</base>
-            <position>kratos_default.spd:42;kratos_default.spd:42;kratos_default.spd:43;kratos_default.spd:43;kratos_default.spd:44;kratos_default.spd:44;kratos_default.spd:45;kratos_default.spd:45;kratos_default.spd:46;kratos_default.spd:46;kratos_default.spd:101;kratos_default.spd:101;kratos_default.spd:107;kratos_default.spd:107;kratos_default.spd:108;kratos_default.spd:108;kratos_default.spd:109;kratos_default.spd:109;kratos_default.spd:112;kratos_default.spd:112;kratos_default.spd:113;kratos_default.spd:113;kratos_default.spd:114;kratos_default.spd:114;kratos_default.spd:118;kratos_default.spd:118;kratos_default.spd:119;kratos_default.spd:119;kratos_default.spd:128;kratos_default.spd:128;kratos_default.spd:195;kratos_default.spd:195;kratos_default.spd:212;kratos_default.spd:212;kratos_default.spd:250;kratos_default.spd:250;kratos_default.spd:252;kratos_default.spd:252;kratos_default.spd:254;kratos_default.spd:254;kratos_default.spd:255;kratos_default.spd:255;kratos_default.spd:256;kratos_default.spd:256;kratos_default.spd:257;kratos_default.spd:257;kratos_default.spd:262;kratos_default.spd:263;kratos_default.spd:273;kratos_default.spd:273;kratos_default.spd:298;kratos_default.spd:298;kratos_default.spd:300;kratos_default.spd:300;kratos_default.spd:302;kratos_default.spd:302;kratos_default.spd:303;kratos_default.spd:303;kratos_default.spd:304;kratos_default.spd:304;kratos_default.spd:305;kratos_default.spd:305;kratos_default.spd:309;kratos_default.spd:310</position>
+            <position>kratos_default.spd:42;kratos_default.spd:42;kratos_default.spd:43;kratos_default.spd:43;kratos_default.spd:44;kratos_default.spd:44;kratos_default.spd:45;kratos_default.spd:45;kratos_default.spd:46;kratos_default.spd:46;kratos_default.spd:102;kratos_default.spd:102;kratos_default.spd:108;kratos_default.spd:108;kratos_default.spd:109;kratos_default.spd:109;kratos_default.spd:112;kratos_default.spd:112;kratos_default.spd:113;kratos_default.spd:113;kratos_default.spd:114;kratos_default.spd:114;kratos_default.spd:115;kratos_default.spd:115;kratos_default.spd:116;kratos_default.spd:116;kratos_default.spd:120;kratos_default.spd:120;kratos_default.spd:121;kratos_default.spd:121;kratos_default.spd:130;kratos_default.spd:130;kratos_default.spd:197;kratos_default.spd:197;kratos_default.spd:214;kratos_default.spd:214;kratos_default.spd:252;kratos_default.spd:252;kratos_default.spd:254;kratos_default.spd:254;kratos_default.spd:256;kratos_default.spd:256;kratos_default.spd:257;kratos_default.spd:257;kratos_default.spd:258;kratos_default.spd:258;kratos_default.spd:259;kratos_default.spd:259;kratos_default.spd:264;kratos_default.spd:265;kratos_default.spd:275;kratos_default.spd:275;kratos_default.spd:300;kratos_default.spd:300;kratos_default.spd:302;kratos_default.spd:302;kratos_default.spd:304;kratos_default.spd:304;kratos_default.spd:305;kratos_default.spd:305;kratos_default.spd:306;kratos_default.spd:306;kratos_default.spd:307;kratos_default.spd:307;kratos_default.spd:311;kratos_default.spd:312</position>
             <priority>147</priority>
         </src>
         <src id="956">
@@ -2865,52 +2855,52 @@
         </src>
         <src id="962">
             <base>Z</base>
-            <position>kratos_default.spd:363;kratos_default.spd:370;kratos_default.spd:382;kratos_default.spd:394;kratos_default.spd:401;kratos_default.spd:408;kratos_default.spd:415;kratos_default.spd:440;kratos_default.spd:558;kratos_default.spd:563;kratos_default.spd:570</position>
+            <position>kratos_default.spd:360;kratos_default.spd:372;kratos_default.spd:384;kratos_default.spd:396;kratos_default.spd:403;kratos_default.spd:410;kratos_default.spd:417;kratos_default.spd:442;kratos_default.spd:572;kratos_default.spd:577;kratos_default.spd:584</position>
             <priority>0</priority>
         </src>
         <src id="963">
             <base>Z Vector</base>
-            <position>kratos_default.spd:209;kratos_default.spd:467</position>
+            <position>kratos_default.spd:211;kratos_default.spd:474</position>
             <priority>0</priority>
         </src>
         <src id="964">
             <base>Z Velocity</base>
-            <position>kratos_default.spd:440</position>
+            <position>kratos_default.spd:442</position>
             <priority>0</priority>
         </src>
         <src id="965">
             <base>Z active</base>
-            <position>kratos_default.spd:358;kratos_default.spd:375;kratos_default.spd:387;kratos_default.spd:420</position>
+            <position>kratos_default.spd:365;kratos_default.spd:377;kratos_default.spd:389;kratos_default.spd:422</position>
             <priority>0</priority>
         </src>
         <src id="966">
             <base>Z coordinate</base>
-            <position>kratos_default.spd:358;kratos_default.spd:363;kratos_default.spd:435;kratos_default.spd:558;kratos_default.spd:563</position>
+            <position>kratos_default.spd:360;kratos_default.spd:437;kratos_default.spd:572;kratos_default.spd:577</position>
             <priority>0</priority>
         </src>
         <src id="967">
             <base>Z coordinate of the output point</base>
-            <position>kratos_default.spd:570</position>
+            <position>kratos_default.spd:584</position>
             <priority>0</priority>
         </src>
         <src id="968">
             <base>Z fix</base>
-            <position>kratos_default.spd:435</position>
+            <position>kratos_default.spd:437</position>
             <priority>0</priority>
         </src>
         <src id="969">
             <base>Z initial velocity</base>
-            <position>kratos_default.spd:497</position>
+            <position>kratos_default.spd:511</position>
             <priority>0</priority>
         </src>
         <src id="970">
             <base>Z velocity</base>
-            <position>kratos_default.spd:370;kratos_default.spd:382;kratos_default.spd:394;kratos_default.spd:395;kratos_default.spd:401;kratos_default.spd:402;kratos_default.spd:408;kratos_default.spd:415</position>
+            <position>kratos_default.spd:372;kratos_default.spd:384;kratos_default.spd:396;kratos_default.spd:397;kratos_default.spd:403;kratos_default.spd:404;kratos_default.spd:410;kratos_default.spd:417</position>
             <priority>0</priority>
         </src>
         <src id="971">
             <base>Zones</base>
-            <position>kratos_default.spd:213;kratos_default.spd:214</position>
+            <position>kratos_default.spd:215;kratos_default.spd:216</position>
             <priority>0</priority>
         </src>
         <src id="972">
@@ -2960,27 +2950,27 @@
         </src>
         <src id="981">
             <base>SkylineLUFactorization</base>
-            <position>kratos_default.spd:61;kratos_default.spd:151;kratos_default.spd:157;kratos_default.spd:163</position>
+            <position>kratos_default.spd:61;kratos_default.spd:153;kratos_default.spd:159;kratos_default.spd:165</position>
             <priority>0</priority>
         </src>
         <src id="982">
             <base>SuperLU</base>
-            <position>kratos_default.spd:61;kratos_default.spd:144;kratos_default.spd:151;kratos_default.spd:157;kratos_default.spd:163</position>
+            <position>kratos_default.spd:61;kratos_default.spd:146;kratos_default.spd:153;kratos_default.spd:159;kratos_default.spd:165</position>
             <priority>0</priority>
         </src>
         <src id="983">
             <base>ParallelMKLPardiso</base>
-            <position>kratos_default.spd:61;kratos_default.spd:144;kratos_default.spd:151;kratos_default.spd:157;kratos_default.spd:163</position>
+            <position>kratos_default.spd:61;kratos_default.spd:146;kratos_default.spd:153;kratos_default.spd:159;kratos_default.spd:165</position>
             <priority>0</priority>
         </src>
         <src id="984">
             <base>ConjugateGradient</base>
-            <position>kratos_default.spd:62;kratos_default.spd:152;kratos_default.spd:158;kratos_default.spd:164</position>
+            <position>kratos_default.spd:62;kratos_default.spd:154;kratos_default.spd:160;kratos_default.spd:166</position>
             <priority>0</priority>
         </src>
         <src id="985">
             <base>BiConjugateGradientStabilized</base>
-            <position>kratos_default.spd:62;kratos_default.spd:145;kratos_default.spd:152;kratos_default.spd:158</position>
+            <position>kratos_default.spd:62;kratos_default.spd:147;kratos_default.spd:154;kratos_default.spd:160</position>
             <priority>0</priority>
         </src>
         <src id="986">
@@ -3010,57 +3000,57 @@
         </src>
         <src id="991">
             <base>FSSE-ElementBased</base>
-            <position>kratos_default.spd:129</position>
+            <position>kratos_default.spd:131</position>
             <priority>0</priority>
         </src>
         <src id="992">
             <base>ElementBased</base>
-            <position>kratos_default.spd:130</position>
+            <position>kratos_default.spd:132</position>
             <priority>0</priority>
         </src>
         <src id="993">
             <base>LevelSet</base>
-            <position>kratos_default.spd:131</position>
+            <position>kratos_default.spd:133</position>
             <priority>0</priority>
         </src>
         <src id="994">
             <base>SuperLUIterativeSolver</base>
-            <position>kratos_default.spd:145</position>
+            <position>kratos_default.spd:147</position>
             <priority>0</priority>
         </src>
         <src id="997">
             <base>DiscreteWithDt</base>
-            <position>kratos_default.spd:185</position>
+            <position>kratos_default.spd:187</position>
             <priority>0</priority>
         </src>
         <src id="998">
             <base>ByPoints</base>
-            <position>kratos_default.spd:582</position>
+            <position>kratos_default.spd:596</position>
             <priority>0</priority>
         </src>
         <src id="999">
             <base>Time</base>
-            <position>kratos_default.spd:583</position>
+            <position>kratos_default.spd:597</position>
             <priority>0</priority>
         </src>
         <src id="1000">
             <base>YoungModulus</base>
-            <position>kratos_default.spd:584</position>
+            <position>kratos_default.spd:598</position>
             <priority>0</priority>
         </src>
         <src id="1001">
             <base>More</base>
-            <position>kratos_default.spd:584</position>
+            <position>kratos_default.spd:598</position>
             <priority>11</priority>
         </src>
         <src id="1002">
             <base>Points</base>
-            <position>kratos_default.spd:585</position>
+            <position>kratos_default.spd:599</position>
             <priority>11074</priority>
         </src>
         <src id="1003">
             <base>Curve Points</base>
-            <position>kratos_default.spd:585</position>
+            <position>kratos_default.spd:599</position>
             <priority>0</priority>
         </src>
         <src id="1004">
@@ -3145,17 +3135,182 @@
         </src>
         <src id="1020">
             <base>Max Dt</base>
-            <position>kratos_default.spd:172</position>
+            <position>kratos_default.spd:174</position>
             <priority>0</priority>
         </src>
         <src id="1021">
             <base>Min Dt</base>
-            <position>kratos_default.spd:173</position>
+            <position>kratos_default.spd:175</position>
             <priority>0</priority>
         </src>
         <src id="1022">
             <base>Write one GiD result file or multiple files</base>
-            <position>kratos_default.spd:120;kratos_default.spd:264;kratos_default.spd:311</position>
+            <position>kratos_default.spd:122;kratos_default.spd:266;kratos_default.spd:313</position>
+            <priority>0</priority>
+        </src>
+        <src id="1023">
+            <base>-Automatic alt-</base>
+            <position>kratos.cnd:45</position>
+            <priority>0</priority>
+        </src>
+        <src id="1024">
+            <base>-Automatic-</base>
+            <position>kratos.cnd:45</position>
+            <priority>0</priority>
+        </src>
+        <src id="1025">
+            <base>-GLOBAL-</base>
+            <position>kratos.cnd:51</position>
+            <priority>0</priority>
+        </src>
+        <src id="1026">
+            <base>Local Axes</base>
+            <position>kratos.cnd:51</position>
+            <priority>0</priority>
+        </src>
+        <src id="1027">
+            <base>Local axes</base>
+            <position>kratos.cnd:48</position>
+            <priority>0</priority>
+        </src>
+        <src id="1028">
+            <base>groups</base>
+            <position>kratos.cnd:23</position>
+            <priority>0</priority>
+        </src>
+        <src id="1029">
+            <base>name</base>
+            <position>kratos.cnd:27</position>
+            <priority>0</priority>
+        </src>
+        <src id="1030">
+            <base>Uniformly distributed</base>
+            <position>kratos_default.spd:99</position>
+            <priority>0</priority>
+        </src>
+        <src id="1031">
+            <base>Beam uniformly distributed load</base>
+            <position>kratos_default.spd:99</position>
+            <priority>0</priority>
+        </src>
+        <src id="1032">
+            <base>Beam moments</base>
+            <position>kratos_default.spd:115;kratos_default.spd:115</position>
+            <priority>0</priority>
+        </src>
+        <src id="1033">
+            <base>Beam forces</base>
+            <position>kratos_default.spd:116;kratos_default.spd:116</position>
+            <priority>0</priority>
+        </src>
+        <src id="1034">
+            <base>Set the values</base>
+            <position>kratos_default.spd:357</position>
+            <priority>0</priority>
+        </src>
+        <src id="1035">
+            <base>Fix/release some degree of freedom</base>
+            <position>kratos_default.spd:362</position>
+            <priority>0</priority>
+        </src>
+        <src id="1036">
+            <base>Fix X degree of freedom</base>
+            <position>kratos_default.spd:363</position>
+            <priority>0</priority>
+        </src>
+        <src id="1037">
+            <base>Fix Y degree of freedom</base>
+            <position>kratos_default.spd:364</position>
+            <priority>0</priority>
+        </src>
+        <src id="1038">
+            <base>Fix Z degree of freedom</base>
+            <position>kratos_default.spd:365</position>
+            <priority>0</priority>
+        </src>
+        <src id="1039">
+            <base>Section type</base>
+            <position>kratos_default.spd:451</position>
+            <priority>0</priority>
+        </src>
+        <src id="1040">
+            <base>Select the section type</base>
+            <position>kratos_default.spd:451</position>
+            <priority>0</priority>
+        </src>
+        <src id="1041">
+            <base>Profile list</base>
+            <position>kratos_default.spd:452</position>
+            <priority>0</priority>
+        </src>
+        <src id="1042">
+            <base>Select the profile from the list</base>
+            <position>kratos_default.spd:452</position>
+            <priority>0</priority>
+        </src>
+        <src id="1043">
+            <base>Height</base>
+            <position>kratos_default.spd:456</position>
+            <priority>0</priority>
+        </src>
+        <src id="1044">
+            <base>Height value</base>
+            <position>kratos_default.spd:456</position>
+            <priority>0</priority>
+        </src>
+        <src id="1045">
+            <base>Width</base>
+            <position>kratos_default.spd:457</position>
+            <priority>0</priority>
+        </src>
+        <src id="1046">
+            <base>Width value</base>
+            <position>kratos_default.spd:457</position>
+            <priority>0</priority>
+        </src>
+        <src id="1047">
+            <base>Diameter value</base>
+            <position>kratos_default.spd:458</position>
+            <priority>0</priority>
+        </src>
+        <src id="1048">
+            <base>Beam uniformly distributed loads</base>
+            <position>kratos_default.spd:487</position>
+            <priority>0</priority>
+        </src>
+        <src id="1049">
+            <base>BeamDistributedLoad</base>
+            <position>kratos_default.spd:488</position>
+            <priority>0</priority>
+        </src>
+        <src id="1050">
+            <base>Beam uniformly distributed load values</base>
+            <position>kratos_default.spd:488</position>
+            <priority>0</priority>
+        </src>
+        <src id="1051">
+            <base>Beam uniformly distributed global Fx value</base>
+            <position>kratos_default.spd:489</position>
+            <priority>0</priority>
+        </src>
+        <src id="1052">
+            <base>Beam uniformly distributed global Fy value</base>
+            <position>kratos_default.spd:490</position>
+            <priority>0</priority>
+        </src>
+        <src id="1053">
+            <base>Beam uniformly distributed global Fz value</base>
+            <position>kratos_default.spd:491</position>
+            <priority>0</priority>
+        </src>
+        <src id="1054">
+            <base>%s</base>
+            <position>kmpropsfwg.tcl:564;kmpropsfwg.tcl:974;kmpropsfwg.tcl:1095;kmpropsfwg.tcl:1121</position>
+            <priority>0</priority>
+        </src>
+        <src id="1055">
+            <base>Pick Coordinates</base>
+            <position>kmpropsfwg.tcl:1136</position>
             <priority>0</priority>
         </src>
     </srcstrings>
@@ -3340,11 +3495,6 @@
                 <base>El nuevo grupo '%s' no tiene ningun entdad asignadaº</base>
                 <tuser>Luis</tuser>
                 <date>2010-07-19</date>
-            </translate>
-            <translate id="41">
-                <base>Nombre de la propiedad:</base>
-                <tuser>escolano</tuser>
-                <date>2013-06-14</date>
             </translate>
             <translate id="43">
                 <base>El nombre de propiedad no puede ser vacío</base>
@@ -4454,11 +4604,6 @@ Desea borrar la propiedad y todos sus grupos?</base>
             </translate>
             <translate id="646">
                 <base>Tipo de fluido</base>
-                <tuser>Luis</tuser>
-                <date>2010-07-19</date>
-            </translate>
-            <translate id="647">
-                <base>Forces</base>
                 <tuser>Luis</tuser>
                 <date>2010-07-19</date>
             </translate>
@@ -6322,62 +6467,12 @@ Desea borrar la propiedad y todos sus grupos?</base>
         <user id="2">Translator</user>
         <user id="3">Web</user>
         <user id="4">escolano</user>
-        <user id="5">Luis</user>
-        <user id="6">Abel</user>
-        <user id="7">Mogollon</user>
-        <user id="8">ollu</user>
-        <user id="9">Anna</user>
-        <user id="10">ramsan</user>
-        <user id="11">paqui</user>
-        <user id="12">MAW</user>
-        <user id="13">Theo Jägen</user>
-        <user id="14">Mizuho</user>
-        <user id="15">miz_n</user>
-        <user id="16">kumiko</user>
-        <user id="17">Yumi</user>
-        <user id="18">b.vacquier</user>
-        <user id="19">Sergiog</user>
-        <user id="20">Alinka</user>
-        <user id="21">Appyazov Evgeny</user>
-        <user id="22">Andreev Nikita</user>
-        <user id="23">Irene</user>
-        <user id="24">AppyazovGiD10</user>
-        <user id="25">Vlasenko</user>
-        <user id="26">Vladimir</user>
-        <user id="27">philip</user>
-        <user id="28">Adrià</user>
-        <user id="29">miguel</user>
-        <user id="30">Mónica</user>
-        <user id="31">David</user>
-        <user id="32">Gerardo Socorro</user>
-        <user id="33">miz_N</user>
-        <user id="34">ada</user>
-        <user id="35">Ivan_CNIT</user>
-        <user id="36">Appyazov Evg 2</user>
-        <user id="37">的</user>
-        <user id="38">Georgina</user>
-        <user id="39">theo</user>
-        <user id="40">Programador</user>
-        <user id="41">Traductor</user>
-        <user id="42">Laur</user>
-        <user id="43">Jean-Louis</user>
-        <user id="44">yu yuan</user>
-        <user id="45">Yuan Yu</user>
-        <user id="46">Fritz</user>
-        <user id="47">augusto</user>
-        <user id="48">joaquim</user>
-        <user id="49">Joaquim</user>
-        <user id="50">Dani Sá</user>
-        <user id="51">Paqui</user>
-        <user id="52">Clara</user>
-        <user id="53">Imported</user>
-        <user id="54">Petrov</user>
-        <user id="55">Buzlaev</user>
+        <user id="5">Luis</user>      
         <current>escolano</current>
     </users>
     <abbrevs/>
     <options>
         <option name="defaultexportdir" value="C:/gid project more/problemtypes/kratos/kratos-1.0.6-linux-64/kratos.gid/msgs"/>
-        <option name="TranslationProgram" value="RamTranslator {{C:\gid project more\problemtypes\kratos\kratos-1.0.6-linux-64\kratos.gid} {C:\gid project more\problemtypes\kratos\kratos-1.0.6-linux-64\kratos.gid\scripts} {C:\gid project more\problemtypes\kratos\kratos-1.0.6-linux-64\kratos.gid\scripts\kmprops} {C:\gid project more\problemtypes\kratos\kratos-1.0.6-linux-64\kratos.gid\scripts\kegroups}} {.tcl .cnd .mat .prb .spd .kmdb} 1"/>
+        <option name="TranslationProgram" value="Kratos {{C:\gid project more\problemtypes\kratos\svn\gid_interface\kratos.gid} {C:\gid project more\problemtypes\kratos\svn\gid_interface\kratos.gid\scripts} {C:\gid project more\problemtypes\kratos\svn\gid_interface\kratos.gid\scripts\kmprops} {C:\gid project more\problemtypes\kratos\svn\gid_interface\kratos.gid\scripts\kegroups}} {.tcl .cnd .mat .prb .spd .kmdb} 1"/>
     </options>
 </ramtranslator>
