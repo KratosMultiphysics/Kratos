@@ -52,6 +52,27 @@ def Run():
 	os.chdir("..")
         ###############################################################################
 
+	Text += "DEM element rotation no tangential damp test: "
+	os.chdir("rotating_ball_no_tangent_damp.gid")	
+	sys.path.append(os.getcwd())
+
+	print "running the DEM rotating_ball_no_tangent_damp test..."
+        Msg = benchmarking.RunBenchmark("rotating_ball_no_tangent_damp.py", "rotating_ball_no_tangent_damp_ref.txt")
+
+        if (Msg == True):
+            Text += "OK\n"
+            print "rotating_ball_no_tangent_damp test succesful"
+        else:
+            Text += "FAILED\n"
+            Text += Msg
+            Text += "\n\n"
+            print "rotating_ball_no_tangent_damp test FAILED"
+
+
+	os.chdir("..")
+        ###############################################################################
+
+
 	# Add other examples here
 
 
