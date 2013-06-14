@@ -186,10 +186,20 @@ proc ::kfiles::LoadSPD {filename} {
 	
         set filename "$KPriv(dir)/$xmlNameFile"
 	
-    } else {
-	
+    } else {	
         #Se guarda una copia del archivo original antes de modificarlo
-        ::kfiles::MakeBackupCopyOfSPDFile $filename
+
+	if { [file tail $filename] == "kratos_default.spd" } {
+	    # kike: commented, this backup copy is unneeded 
+	    # (the 'kratos_default.spd' file must be opened for read only and then can't be corrupted)
+	    # and in general will be forbidden to write in the problemtype folder !!
+	    # it is only allowed at runtime to write in user folders (preferences, tmp, or model folder)
+	    # maybe this backup is interesting when reading the model .spd file to avoid possible corruption during transform??
+
+	    #::kfiles::MakeBackupCopyOfSPDFile $filename
+	} else {
+	    ::kfiles::MakeBackupCopyOfSPDFile $filename
+	}       
     }
     
     #::KEGroups::Init
@@ -225,7 +235,18 @@ proc ::kfiles::LoadSPD {filename} {
 	
     } else {
         #Se guarda una copia del archivo original antes de modificarlo
-	    ::kfiles::MakeBackupCopyOfSPDFile $filename_mat ".kmdb"
+
+	if { [file tail $filename] == "kratos_default.kmdb" } {
+	    # kike: commented, this backup copy is unneeded 
+	    # (the 'kratos_default.kmdb' file must be opened for read only and then can't be corrupted)
+	    # and in general will be forbidden to write in the problemtype folder !!
+	    # it is only allowed at runtime to write in user folders (preferences, tmp, or model folder)
+	    # maybe this backup is interesting when reading the model .kmdb file to avoid possible corruption during transform??
+
+	    #::kfiles::MakeBackupCopyOfSPDFile $filename_mat .kmdb
+	} else {
+	    ::kfiles::MakeBackupCopyOfSPDFile $filename_mat .kmdb
+	}
     }
     
     set xmlArray [::xmlutils::openFile "." "$filename_mat"]
@@ -246,14 +267,13 @@ proc ::kfiles::LoadSPD {filename} {
     set KPriv(xmlDocKKW) [lindex $xmlArray 2]
     #No es necesario porque solo lo necesitamos para leer
     #set KPriv(encrXml) [lindex $xmlArray 1]
-    
-    
-    #
-    # IDIOMA: Lee todas las palabras del spd por si se quieren 
-    #
-    ::xmlutils::getLanguageWords
-    
-    
+            
+    # IDIOMA: Lee todas las palabras del spd por si se quieren    
+    # kike: commented, now ramtranslator scans also the kratos_default.spd and kratos_default.kmdb
+    # and then is not necessary the trick of invoke ::xmlutils::getLanguageWords to parse them creating an auxiliary msgs\words.tcl file
+    # and must not invoke this parsing every time a model is load, it is a kratos problemtype developer task only!!
+    #::xmlutils::getLanguageWords
+        
     
 
     # Set KMat xml path
