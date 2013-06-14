@@ -1553,7 +1553,7 @@ proc ::xmlutils::getXMLValues { fullname {idTemplate ""} {iValues ""} {idTemplat
 	if { $iValues == "" } {
 		set resultList {}
 		foreach val $comboList {
-	    set traduction "[= "%s" $val]"
+		        set traduction "[= $val ]"
 		        lappend resultList $traduction
 		}
 		return $resultList

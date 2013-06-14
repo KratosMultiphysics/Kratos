@@ -60,7 +60,7 @@ proc ::KMProps::CreateTreeProperties {w} {
 	-xscrollincrement 20 -yscrollincrement 20
 	
 	
-	$T column create -text [= " "] -tags C0 -weight 0
+        $T column create -text " " -tags C0 -weight 0
 	
 	# Configure the column weight and arrow
 	$T column configure C0 -weight 1 -arrow up
@@ -445,7 +445,7 @@ proc ::KMProps::InsertNewProp { node id T {parent ""} {parentitem root} {childs 
 	set item [$T item create -button yes -tags [EncodeName $fullname] -open $open]
 	$T item lastchild $parentitem $item
 	$T item style set $item C0 styAnyRead
-	$T item element configure $item C0 elemTxtRead -text "$propName"
+        $T item element configure $item C0 elemTxtRead -text [= $propName]
 	
 	} else {
 	
@@ -466,17 +466,17 @@ proc ::KMProps::InsertNewProp { node id T {parent ""} {parentitem root} {childs 
 		
 		#Miramos si tiene algun estilo especial
 		if { [::xmlutils::setXml $fullname style] == "*" } {
-		        $T item element configure $item C0 elemTxtRead -text "$propName* : $dv"
+                        $T item element configure $item C0 elemTxtRead -text "[= $propName]* : $dv"
 		} else {
-		        $T item element configure $item C0 elemTxtRead -text "$propName: $dv"
+                        $T item element configure $item C0 elemTxtRead -text "[= $propName]: $dv"
 		}
 		
 		} else {
 		        
 		        if {[gid_themes::GetCurrentTheme] == "GiD_black"} {
-		        $T item element configure $item C0 elemTxtRead -text "$propName: $dv" -fill { darkgreen }
+                        $T item element configure $item C0 elemTxtRead -text "[= $propName]: $dv" -fill { darkgreen }
 		        } else {
-		                $T item element configure $item C0 elemTxtRead -text "$propName: $dv" -fill { gray }
+                                $T item element configure $item C0 elemTxtRead -text "[= $propName]: $dv" -fill { gray }
 		        }
 		}
 		
@@ -485,7 +485,7 @@ proc ::KMProps::InsertNewProp { node id T {parent ""} {parentitem root} {childs 
 	} elseif { [string range $id 0 1] == "c." } {                                                                                                                   
 		
 		$T item style set $item C0 styAnyRead
-		$T item element configure $item C0 elemTxtRead -text "$propName"
+                $T item element configure $item C0 elemTxtRead -text [= $propName]
 	}
 	}
 	
