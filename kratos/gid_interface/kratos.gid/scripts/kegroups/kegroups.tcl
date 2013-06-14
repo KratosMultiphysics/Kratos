@@ -669,9 +669,9 @@ proc ::KEGroups::ErrorRenameWindow { oldname newname errlist} {
 	
 	grid [frame $qq.main] -sticky nswe -padx 4 -pady 4
 	grid [ttk::label $qq.main.msg -text $errlist] -sticky nswe -pady 2 -padx 2 -column 0 -row 0
-	grid [ttk::label $qq.main.ask -text "Please choose a new name: "] -sticky nswe -pady 2 -padx 2 -column 0 -row 1
+        grid [ttk::label $qq.main.ask -text [= "Please choose a new name"]:] -sticky nswe -pady 2 -padx 2 -column 0 -row 1
 	grid [ttk::entry $qq.main.ent -textvariable KPriv(newnewname) -validate key] -sticky nswe -pady 2 -padx 2 -column 1 -row 1
-	grid [ttk::button $qq.main.ok -text "Ok" -command [list ::KEGroups::AuxRenameGroup $oldname $newname $qq] ] -sticky nswe -pady 2 -padx 2 -ipady 2 -column 1 -row 2
+    grid [ttk::button $qq.main.ok -text [= "Ok"] -command [list ::KEGroups::AuxRenameGroup $oldname $newname $qq] ] -sticky nswe -pady 2 -padx 2 -ipady 2 -column 1 -row 2
 	bind $qq <Return> [list ::KEGroups::AuxRenameGroup $oldname $newname $qq]
 }
 

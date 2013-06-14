@@ -115,11 +115,11 @@
 		<Item id="BeamMoments" pid="Beam moments" dv="Yes" strucType="Beams" ivalues="Yes,No" values="Yes,No" help="Beam moments"/>
 		<Item id="BeamForces" pid="Beam forces" dv="Yes" strucType="Beams" ivalues="Yes,No" values="Yes,No" help="Beam forces"/>
 	    </Container>
-	    <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess otions" open="1">
+	    <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess options" open="1">
 	      <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
 	      <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
 	      <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
-	      <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" help="Write one GiD result file or multiplies files"/>
+	      <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" help="Write one GiD result file or multiple files"/>
 	    </Container>
 	</Container>
     </RootData>
@@ -171,8 +171,8 @@
             <Item id="DeltaTime" deltatimetype="Fixed" pid="Delta time" dv="0.001" help=""/>
             <Item id="TargetCFL" pid="Target CFL" deltatimetype="Automatic" dv="5.0" help=""/>
             <Item id="DivergenceCleareanceStep" pid="Divergence cleareance step" dv="0" fluidAppr="Eulerian" fluidType="Incompressible" help="Define the divergence cleareance step value"/>
-            <Item id="MaxVart" pid="Max Δt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Max time variation"/>
-            <Item id="MinVart" pid="Min Δt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Min time variation"/>
+            <Item id="MaxVart" pid="Max Dt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Max time variation"/>
+            <Item id="MinVart" pid="Min Dt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Min time variation"/>
             <Item id="PFEMBodyForceGravity" pid="Gravity value" dv="9.81" fluidAppr="PFEM-Lagrangian" help="Gravity value"/>
             <Container id="Advanced" pid="Advanced" fluidType="Incompressible" help="" open="1">
                 <Item id="PredictorCorrector" pid="Predictor corrector" fluidAppr="Eulerian" fluidSolvTyp="ElementBased,EdgeBased" dv="False" ivalues="True,False" values="True,False" help=""/>
@@ -263,7 +263,7 @@
                 <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
                 <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="Yes" ivalues="True,False" values="Yes,No" fluidAppr="Eulerian" help="Write the GiD deformed or undeformed mesh"/>
                 <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="True,False" values="Yes,No" fluidAppr="Eulerian" help="Write the conditions or only element to the GiD result file"/>
-                <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" fluidAppr="Eulerian" help="Write one GiD result file or multiplies files"/>
+                <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" fluidAppr="Eulerian" help="Write one GiD result file or multiple files"/>
             </Container>
             <Container id="CutOptions" pid="Cut planes" class="Properties" UseCuts="No" idTemplate="CutProperties" help="Cut plane postprocess options" open="1"/>
             <Container id="DragOptions" pid="Drag calculation" class="Groups" idTemplate="DragProperties" GiDEntity="point,line,surface" help="Drag calculation properties" open="1"/>
@@ -310,7 +310,7 @@
 	      <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
 	      <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="Yes" ivalues="True,False" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
 	      <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="True,False" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
-	      <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" help="Write one GiD result file or multiplies files"/>
+	      <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" help="Write one GiD result file or multiple files"/>
 	    </Container>
         </Container>
     </RootData>

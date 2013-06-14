@@ -848,7 +848,7 @@ proc ::KMat::Combos {node row framePath} {
 			}
 			grid [ttk::combobox $framePath.cmb$id -values $comboList -width [::KMProps::getCmbWidth $comboList] -textvariable "::KMat::cmb$id"] \
 			    -row [expr $i+2] -column 1 -padx 3 -pady 2 -sticky nw -in $framePath
-			tooltip::tooltip $framePath.cmb$id [= "%s" $help]
+			tooltip::tooltip $framePath.cmb$id [= $help]
 
 			::xmlutils::setComboDv $framePath.cmb$id $fullname $value
 
@@ -858,7 +858,7 @@ proc ::KMat::Combos {node row framePath} {
 			}
 			grid [ttk::combobox $framePath.cmb$id -values $values -textvariable "::KMat::cmb$id" -width [::KMProps::getCmbWidth $comboList]] \
 				-row [expr $i+2] -column 1 -padx 3 -pady 2 -sticky nw -in $framePath
-			tooltip::tooltip $framePath.cmb$id [= "%s" $help]
+			tooltip::tooltip $framePath.cmb$id [= $help]
 		}
 			set ::KMat::cmb$id $value
 		
@@ -1479,7 +1479,7 @@ proc ::KMat::SetMatToRename { T item newtext } {
     global KPriv
     if { $newtext == ""} {  return  }
     if { $item == 0 } {
-	msg "Root folder can't be edited"
+	msg [= "Root folder can't be edited"]
 	return
     }
     set oldId [$T item text $item 0]

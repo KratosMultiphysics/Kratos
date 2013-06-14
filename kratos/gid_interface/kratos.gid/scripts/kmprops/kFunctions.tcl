@@ -134,7 +134,7 @@ proc ::KFun::CreateTreeAndToolbar { w } {
 	#::KEGroups::FillTree
 	
 	if { $::KFun::applyFun } {
-		grid [ ttk::button $tbf.applyFun -text "Apply" -command [list ::KFun::applyFunction $T]] \
+	    grid [ ttk::button $tbf.applyFun -text [= "Apply"] -command [list ::KFun::applyFunction $T]] \
 		-row 2 -column 0 -columnspan 2 -sticky wes
 		tooltip::tooltip $tbf.applyFun [= "Assign the selection function and close editor"]
 	}
@@ -646,12 +646,12 @@ proc ::KFun::buildEditor { T {item ""} } {
 	set cmbDv [::xmlutils::getAttribute $xml $cmbXPath dv]
 	set cmbTooltip [::xmlutils::getAttribute $xml $cmbXPath tooltip]
 	
-	grid [ttk::label $f.lblAppliedTo -text [= "$cmbPid:"] ] \
+	grid [ttk::label $f.lblAppliedTo -text [= $cmbPid]:] \
 	-row 2 -column 0 -padx 3 -pady 2 -sticky nw -in $f
 	
 	grid [ttk::combobox $f.cmbAppliedTo -values $comboList -state readonly -width $width -textvariable "::KFun::cmbAppliedTo"] \
 	-row 2 -column 1 -padx 3 -pady 2 -sticky nw -in $f
-	tooltip::tooltip $f.cmbAppliedTo [= "$cmbTooltip"]
+	tooltip::tooltip $f.cmbAppliedTo [= $cmbTooltip]
 	
 	::xmlutils::setComboValue $xml $cmbXPath $f.cmbAppliedTo $cmbDv
 	
@@ -665,24 +665,24 @@ proc ::KFun::buildEditor { T {item ""} } {
 	set cmbDv [::xmlutils::getAttribute $xml $cmbXPath dv]
 	set cmbTooltip [::xmlutils::getAttribute $xml $cmbXPath tooltip]
 	
-	grid [ttk::label $f.lblFunctionType -text [= "$cmbPid:"] ] \
+	grid [ttk::label $f.lblFunctionType -text [= $cmbPid]:] \
 	-row 3 -column 0 -padx 3 -pady 2 -sticky nw -in $f
 	
 	grid [ttk::combobox $f.cmbFunctionType -values $comboList -state readonly -width $width -textvariable "::KFun::cmbFunctionType"] \
 	-row 3 -column 1 -padx 3 -pady 2 -sticky nw -in $f
-	tooltip::tooltip $f.cmbFunctionType [= "$cmbTooltip"]
+	tooltip::tooltip $f.cmbFunctionType [= $cmbTooltip]
 	
 	::xmlutils::setComboValue $xml $cmbXPath $f.cmbFunctionType $cmbDv
 	
 	#
 	#  VARIABLES
 	#
-	grid [ttk::label $f.lblVars -text [= "Kratos variables:"] ] \
+	grid [ttk::label $f.lblVars -text [= "Kratos variables"]: ] \
 	-row 4 -column 0 -pady 3 -pady 2 -sticky nw -in $f
 	
 	grid [ttk::combobox $f.cmbVars -values [::KFun::getComboVars] -state readonly -width $width -textvariable "::KFun::cmbVars"] \
 	-row 4 -column 1 -padx 3 -pady 2 -sticky nw -in $f
-	tooltip::tooltip $f.cmbVars [= "Kratos variables:"]
+	tooltip::tooltip $f.cmbVars [= "Kratos variables"]:
 	#Inicializamos la variable del valor seleccionado
 	set ::KFun::cmbVars ""
 	

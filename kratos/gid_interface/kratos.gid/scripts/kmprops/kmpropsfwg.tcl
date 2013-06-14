@@ -181,7 +181,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
                                 }
                                 grid [ttk::combobox $fTab.cmb$id -values $comboList -state $state -width [::KMProps::getCmbWidth $comboList] -textvariable "::KMProps::cmb$id"] \
                                     -row $i -column 1 -padx 3 -pady 2 -sticky nw -in $fTab
-                                tooltip::tooltip $fTab.cmb$id [= "%s" $tooltip]
+                                tooltip::tooltip $fTab.cmb$id [= $tooltip]
                                 
                                 if {$id == "Ax" || $id == "Ay" || $id == "Az"} {
                                     bind $fTab.cmb$id <<ComboboxSelected>> "::KMProps::cmbDisable $fullname $f.nb $id"
@@ -203,7 +203,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
                                 
                                 grid [ttk::combobox $fTab.cmb$id -state $state -values $values -textvariable "::KMProps::cmb$id" -width [::KMProps::getCmbWidth $comboList]] \
                                     -row $i -column 1 -padx 3 -pady 2 -sticky nw -in $fTab
-                                tooltip::tooltip $fTab.cmb$id [= "%s" $tooltip]
+                                tooltip::tooltip $fTab.cmb$id [= $tooltip]
                                 
                                 #set dv [::KMProps::getPropTemplate $idTemplate dvText "$idContainer//$id"]
                                 set ::KMProps::cmb$id $dv
@@ -315,7 +315,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
                             #append i "element_" $i
                         }
                         
-                        tooltip::tooltip $fb [= "Entity $command"]
+                        tooltip::tooltip $fb [= "Entity %s" $command]
                         set img [::WinUtils::GetImage $i]
                         
                         if { $img != -1 } {
