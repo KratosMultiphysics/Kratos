@@ -49,8 +49,8 @@ End NodalData
 
 
 Begin NodalData RADIUS
-1 0 2.50000e-01
-2 0 2.50000e-01
+1 0 3.00000e-01
+2 0 3.00000e-01
 End NodalData
 
 
@@ -68,8 +68,8 @@ Begin NodalData PARTICLE_DENSITY
 End NodalData
 
 Begin NodalData YOUNG_MODULUS
-1 0 2.1e5
-2 0 2.1e5
+1 0 2.1e7
+2 0 2.1e7
 End NodalData
 
 Begin NodalData POISSON_RATIO
@@ -89,16 +89,16 @@ Begin NodalData PARTICLE_TENSION
 End NodalData
 
 Begin NodalData PARTICLE_FRICTION
-1 0 45
-2 0 45
+1 0 1.00000e+00)
+2 0 1.00000e+00)
 End NodalData
 
 
 
 
-Begin NodalData RESTITUTION_COEFF
-1 0 0
-2 0 0
+Begin NodalData LN_OF_RESTITUTION_COEFF
+1 0       -inf
+2 0       -inf
 End NodalData
 
 
