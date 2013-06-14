@@ -363,7 +363,7 @@ proc ::wkcf::WriteGroupProperties_m1 {AppId} {
     set filename "GroupDefinition.txt"
     set PDir [::KUtils::GetPaths "PDir"]
 
-    set fullname [file native [file join $PDir $filename]]
+    set fullname [file join $PDir $filename]
     
     # Use the write_calc_data procedure from the GiD kernel
     # Init
@@ -445,7 +445,7 @@ proc ::wkcf::WriteGroupProperties_m2 {AppId} {
     set filename "GroupDefinition.txt"
     set PDir [::KUtils::GetPaths "PDir"]
 
-    set fullname [file native [file join $PDir $filename]]
+    set fullname [file join $PDir $filename]
     
     # Use the write_calc_data procedure from the GiD kernel
     # Init
@@ -526,14 +526,14 @@ proc ::wkcf::WriteGroupProperties_m0 {AppId} {
     set filename "GroupDefinition.txt"
     set PDir [::KUtils::GetPaths "PDir"]
 
-    set fullname [file native [file join $PDir $filename]]
+    set fullname [file join $PDir $filename]
     
     # First delete the file
     if {[file exists $fullname]} {
         set res [file delete -force $fullname]
     }
 
-    if { [catch { set fileid [open $fullname w+] }] } {
+    if { [catch { set fileid [open $fullname w] }] } {
         WarnWin [= "Cannot write file %s. Permission denied" $fullname].
         return 0
     }
@@ -645,14 +645,14 @@ proc ::wkcf::WritePythonGroupProperties {} {
     set filename "ProjectGroups.py"
     set PDir [::KUtils::GetPaths "PDir"]
 
-    set fullname [file native [file join $PDir $filename]]
+    set fullname [file join $PDir $filename]
     
     # First delete the file
     if {[file exists $fullname]} {
         set res [file delete -force $fullname]
     }
 
-    if { [catch { set fileid [open $fullname w+] }] } {
+    if { [catch { set fileid [open $fullname w] }] } {
         WarnWin [= "Cannot write file %s. Permission denied" $fullname].
         return 0
     }
@@ -680,16 +680,12 @@ proc ::wkcf::WritePythonGroupProperties {} {
             foreach celemid $dprops($AppId,AllKElemId) {
                 # Check for all defined group identifier for this element
                 if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ($dprops($AppId,KElem,$celemid,AllGroupId)>0)} {
-                    # WarnWinText "celemid:$celemid"
                     # For all defined group identifier for this element
                     foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
                         # Get the GiD entity type, element type and property identifier
-                        lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
-                        # WarnWinText "GiDEntity:$GiDEntity GiDElemType:$GiDElemType PropertyId:$PropertyId KEKWord:$KEKWord nDim:$nDim"
-                        
+                        lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim                        
                         # Get all defined entities for this group identifier
                         set allelist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity]
-                        # WarnWinText "alllist:$allelist"
                         if {[llength $allelist]>0} {
                             append pgeids "\"$cgroupid\":\[[join $allelist ,]\],"
                         }
