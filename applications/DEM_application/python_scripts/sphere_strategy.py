@@ -141,7 +141,7 @@ class ExplicitStrategy:
         self.surface_friction_angle         = surface_friction_angle
 
 
-        # GLOBAL PHISICAL ASPECTS
+        # GLOBAL PHYSICAL ASPECTS
         self.gravity                        = Vector(3)
         self.gravity[0]                     = gravity_x
         self.gravity[1]                     = gravity_y
