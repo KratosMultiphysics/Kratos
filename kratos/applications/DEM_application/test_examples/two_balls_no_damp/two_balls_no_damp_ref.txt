@@ -1,2 +1,0 @@
-KRATOS_BENCHMARK | Float | Time | 0.1 | None | None
-KRATOS_BENCHMARK | Float | Node displacement | -0.04909905 | 0.05 | None
