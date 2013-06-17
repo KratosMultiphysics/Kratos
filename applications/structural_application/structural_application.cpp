@@ -225,6 +225,7 @@ KRATOS_CREATE_VARIABLE( double,  MAX_FRECUENCY )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( JOINT_FORCE_REACTION );
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( JOINT_MOMENT_REACTION );
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( INTERNAL_FORCE );
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( ELASTIC_BEDDING_STIFFNESS );
 
 
 //  KRATOS_CREATE_VARIABLE(int, CONTACT_RAMP )
@@ -424,6 +425,16 @@ KratosStructuralApplication::KratosStructuralApplication():
     mPointForce3D( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mPointForce2D( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mPointMoment3D( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+    
+    mElasticPointConstraint( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+    mElasticLineConstraint2N( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mElasticLineConstraint3N( 0, Element::GeometryType::Pointer( new Line3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mElasticFaceConstraint3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mElasticFaceConstraint6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
+    mElasticFaceConstraint4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+    mElasticFaceConstraint8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
+    mElasticFaceConstraint9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) ),
+
     mNodeTyingLagrange( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mNodeTyingLagrangeZ( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
 
@@ -567,6 +578,7 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( JOINT_FORCE_REACTION );
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( JOINT_MOMENT_REACTION );
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( INTERNAL_FORCE );
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( ELASTIC_BEDDING_STIFFNESS );
 
 
     //KRATOS_REGISTER_VARIABLE(ERASE_FLAG )
@@ -755,6 +767,16 @@ void KratosStructuralApplication::Register()
     KRATOS_REGISTER_CONDITION( "SlaveContactFace3D9Newmark", mSlaveContactFace3D9Newmark )
     KRATOS_REGISTER_CONDITION( "PointForce3D", mPointForce3D )
     KRATOS_REGISTER_CONDITION( "PointMoment3D", mPointMoment3D )
+    
+    KRATOS_REGISTER_CONDITION( "ElasticPointConstraint", mElasticPointConstraint )
+    KRATOS_REGISTER_CONDITION( "ElasticLineConstraint2N", mElasticLineConstraint2N )
+    KRATOS_REGISTER_CONDITION( "ElasticLineConstraint3N", mElasticLineConstraint3N )
+    KRATOS_REGISTER_CONDITION( "ElasticFaceConstraint3N", mElasticFaceConstraint3N )
+    KRATOS_REGISTER_CONDITION( "ElasticFaceConstraint6N", mElasticFaceConstraint6N )
+    KRATOS_REGISTER_CONDITION( "ElasticFaceConstraint4N", mElasticFaceConstraint4N )
+    KRATOS_REGISTER_CONDITION( "ElasticFaceConstraint8N", mElasticFaceConstraint8N )
+    KRATOS_REGISTER_CONDITION( "ElasticFaceConstraint9N", mElasticFaceConstraint9N )
+    
     KRATOS_REGISTER_CONDITION( "NodeTyingLagrange", mNodeTyingLagrange )
     KRATOS_REGISTER_CONDITION( "NodeTyingLagrangeZ", mNodeTyingLagrangeZ )
     KRATOS_REGISTER_CONDITION( "PointPointJointCondition", mPointPointJointCondition )

@@ -116,6 +116,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/slave_contact_point_2d.h"
 #include "custom_conditions/face_vel_3D.h"
 #include "custom_conditions/point_point_joint_condition.h"
+#include "custom_conditions/elastic_constraint.h"
 
 #include "constitutive_laws/isotropic_2d.h"
 #include "constitutive_laws/isotropic_3d.h"
@@ -255,6 +256,7 @@ KRATOS_DEFINE_VARIABLE(double, MAX_FRECUENCY1)
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(JOINT_FORCE_REACTION);
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(JOINT_MOMENT_REACTION);
 KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(INTERNAL_FORCE);
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(ELASTIC_BEDDING_STIFFNESS);
 
 
 // 	KRATOS_DEFINE_VARIABLE(double, DP_EPSILON )
@@ -568,6 +570,14 @@ private:
     const PointForce3D  mPointForce3D;
     const PointForce2D  mPointForce2D;
     const PointMoment3D mPointMoment3D;
+    const ElasticConstraint mElasticPointConstraint;
+    const ElasticConstraint mElasticLineConstraint2N;
+    const ElasticConstraint mElasticLineConstraint3N;
+    const ElasticConstraint mElasticFaceConstraint3N;
+    const ElasticConstraint mElasticFaceConstraint6N;
+    const ElasticConstraint mElasticFaceConstraint4N;
+    const ElasticConstraint mElasticFaceConstraint8N;
+    const ElasticConstraint mElasticFaceConstraint9N;
     const NodeTyingLagrange mNodeTyingLagrange;
     const NodeTyingLagrangeZ mNodeTyingLagrangeZ;
     const PointPointJointCondition mPointPointJointCondition;
