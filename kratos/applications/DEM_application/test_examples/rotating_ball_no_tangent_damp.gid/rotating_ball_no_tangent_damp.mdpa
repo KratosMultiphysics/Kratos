@@ -16,8 +16,8 @@ Begin Nodes
 End Nodes
 
 Begin Elements SphericParticle3D
-1 1 2
-2 1 1
+1 1 1
+2 1 2
 End Elements
 
 Begin NodalData VELOCITY_X
@@ -49,8 +49,8 @@ End NodalData
 
 
 Begin NodalData RADIUS
-2 0 1.00000e-03
 1 0 1.00000e+00
+2 0 1.00000e-02
 End NodalData
 
 
@@ -58,53 +58,53 @@ Begin NodalData GROUP_ID
 End NodalData
 
 Begin NodalData PARTICLE_CONTINUUM
-2 0 0
 1 0 0
+2 0 0
 End NodalData
 
 Begin NodalData PARTICLE_DENSITY
-2 0 100
 1 0 100
+2 0 100
 End NodalData
 
 Begin NodalData YOUNG_MODULUS
-2 0 2.1e5
 1 0 2.1e5
+2 0 2.1e5
 End NodalData
 
 Begin NodalData POISSON_RATIO
-2 0 0.5
 1 0 0.5
+2 0 0.5
 End NodalData
 
 
 Begin NodalData PARTICLE_COHESION
-2 0 0
 1 0 0
+2 0 0
 End NodalData
 
 Begin NodalData PARTICLE_TENSION
-2 0 0
 1 0 0
+2 0 0
 End NodalData
 
 Begin NodalData PARTICLE_FRICTION
-2 0 1.00000e+00)
 1 0 1.00000e+00)
+2 0 1.00000e+00)
 End NodalData
 
 
 
 
 Begin NodalData LN_OF_RESTITUTION_COEFF
-2 0 -2.30259e+00
 1 0 -2.30259e+00
+2 0 -2.30259e+00
 End NodalData
 
 
 Begin NodalData PARTICLE_MATERIAL
-2 0 1
 1 0 1
+2 0 1
 End NodalData
 
 Begin ElementalData PREDEFINED_SKIN

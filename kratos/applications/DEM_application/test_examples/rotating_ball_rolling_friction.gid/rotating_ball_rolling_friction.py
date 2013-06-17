@@ -37,6 +37,7 @@ def BenchmarkCheck(time, node1):                                                
     benchmarking.Output(node1.GetSolutionStepValue(VELOCITY_Y), "Node Velocity", 0.01)                ########## BENCHMARK ##########
     benchmarking.Output(node1.GetSolutionStepValue(ANGULAR_VELOCITY_Z), "Node Angular Velocity", 0.01)########## BENCHMARK ##########
 
+
 #---------------------MODEL PART KRATOS AND GID.IO ------------------------------------------------------------------
 
 # Defining a model part for the solid part
