@@ -3,7 +3,7 @@
 ContinuumOption                  = "OFF"
 RotationOption                   = "OFF"
 HomogeneousMaterialOption        = "OFF"
-ElementType = "SphericParticle3D"
+ElementType                      = "SphericParticle3D"
 
 # Meshing Settings
 
