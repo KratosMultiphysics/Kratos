@@ -528,6 +528,7 @@ proc ::KMProps::CloseWindowInside { p } {
     destroy $p
     
     if { $truco == 1 } {
+        update idletask
         $GidPriv(pwCentral) sash place 0 $x 0        
     }
 
