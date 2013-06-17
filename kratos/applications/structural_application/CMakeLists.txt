@@ -111,6 +111,7 @@ set( KRATOS_STRUCTURAL_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/slave_contact_point_3d.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_link_3D_explicit.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_point_joint_condition.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/elastic_constraint.cpp
 )
 
 ###############################################################
