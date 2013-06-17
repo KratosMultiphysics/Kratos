@@ -209,7 +209,6 @@ void ElasticConstraint::CalculateAll( MatrixType& rLeftHandSideMatrix, VectorTyp
                 }
             }
         }
-        KRATOS_WATCH( rLeftHandSideMatrix );
     }
     
     KRATOS_CATCH("")
