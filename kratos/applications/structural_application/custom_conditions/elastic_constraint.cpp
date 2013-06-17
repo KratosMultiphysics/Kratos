@@ -58,7 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/elastic_point_constraint.h"
+#include "custom_conditions/elastic_constraint.h"
 #include "structural_application.h"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.h"
