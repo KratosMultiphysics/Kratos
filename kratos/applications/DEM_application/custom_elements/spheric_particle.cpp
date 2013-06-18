@@ -55,20 +55,17 @@ namespace Kratos
           mYoung                    = GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);         
           mPoisson                  = GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
           mTgOfFrictionAngle        = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
-          mRestitCoeff              = GetGeometry()(0)->FastGetSolutionStepValue(RESTITUTION_COEFF);
+          mLnOfRestitCoeff          = GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
           double& density           = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
           double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
           double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
           double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-          double& ln_of_rest_coef   = GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
 
           mass                      = 4.0 / 3.0 * M_PI * density * mRadius * mRadius * mRadius;         
           sqrt_of_mass              = sqrt(mass);
-          ln_of_rest_coef           = log(mRestitCoeff);
           moment_of_inertia         = 0.4 * mass * mRadius * mRadius;
           mRealMass                 = mass;          
           mSqrtOfRealMass           = sqrt_of_mass;
-          mLnOfRestitCoeff          = ln_of_rest_coef;
           mMomentOfInertia          = moment_of_inertia;
 
           CustomInitialize();
