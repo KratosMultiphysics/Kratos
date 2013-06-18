@@ -12,6 +12,7 @@
 #
 #        HISTORY:
 #
+#        2.5- 18/06/13- G. Socorro, delete the use of the proc kipt::NewGiDGroups (delete the call to the compass groups => Cond_Groups)
 #        2.4- 12/04/13- G. Socorro, correct a bug in the proc getGroupGiDEntities for the special case of faces, add -count in the proc getGroupGiDEntitiesNew
 #        2.3- 13/12/12- J. Garate,  Corrected ::KEGroups::getGroupGiDEntities bug for Model Validation and Transfrer CondGroups to GiD Groups
 #        2.2- 28/11/12- J. Garate,  Corrected bug when transferring old groups to new gid groups, erasing old Cond
@@ -78,7 +79,6 @@ proc ::KEGroups::SelectionAssign { entity GroupId WinPath } {
 
     # msg $entity
     # Get the condition identifier
-    if {[kipt::NewGiDGroups]} {
     
         # Mapeamos el tipo de entity
         if {$entity eq "point"} {
@@ -94,20 +94,6 @@ proc ::KEGroups::SelectionAssign { entity GroupId WinPath } {
         } else {
             set entity "Elements"
         } 
-    } else {
-        if { [string range $entity 0 6] == "element" } {
-            #WarnWin [= "Element assignation unavailable"]
-            #return ""
-            set condname [string range $entity 8 end]
-            append condname "_groups"
-        } else {
-            if { $entity == "node" } {
-                    set condname "point_groups"
-            } else {
-                    set condname "${entity}_groups"
-            }
-        }
-    }
     
 	set OldSmallWinSelecting [GiD_Info variable SmallWinSelecting]
 	if {$OldSmallWinSelecting == 0 } {
@@ -117,21 +103,15 @@ proc ::KEGroups::SelectionAssign { entity GroupId WinPath } {
 		set SmallWinSelecting 1
 	}
     
-	#msg $Location
-	#msg $WinPath
 	FinishButton $WinPath $WinPath.bPropOk [= "Press 'Finish' to stop the entities selection"] "::GidUtils::EnableWarnLine" disableall $SmallWinSelecting
-	# Try to assign conditions
+    
+    # Try to assign the entities
     
     GiD_Process MEscape
     
     
-    if {[kipt::NewGiDGroups]} {
         GiD_Process Utilities EntitiesGroups Assign $GroupId $entity
-    } else {
-        GiD_Process Data Conditions AssignCond $condname NoRepeatField name
-        GiD_Process change $GroupId
     }
-}
 
 
 proc ::KEGroups::FreezeLayers {frozen_layers} {
@@ -313,11 +293,7 @@ proc ::KEGroups::split2 { x separator } {
 proc ::KEGroups::GetAutomaticGroupName { {auto ""} } {
     
     set name ""
-    if {[kipt::NewGiDGroups]} {
         set groups [GiD_Groups list]
-    } else {
-        set groups [Cond_Groups list]
-    }
     set i 0
 
     if { [llength $groups] > 0 } {
@@ -475,21 +451,13 @@ proc ::KEGroups::GroupsToXml { } {
 	foreach child [$basenode childNodes] {
         $child delete
     }
-    if {[kipt::NewGiDGroups]} {
-        # msg "New GiD Groups"
         set grw "GiD_Groups"
         ::xmlutils::setXml $xpath "modeltype" "write" "GiD" "props" 1
-    } else {
-        # msg "Cond Groups"
-        set grw "Cond_Groups"
-        ::xmlutils::setXml $xpath "modeltype" "write" "Cond" "props" 1
-    }
     
     set GiDGroups [$grw list]
 	foreach group $GiDGroups {
 		set lgroup [split $group //]
 		set path [::KEGroups::nodePath $group]
-		#set color [$grw get color $group]
 		set color [::KEGroups::randomColor]
 		set state [$grw get visible $group]
 		::KEGroups::insertgroupXml $path $group $color $state 
@@ -689,11 +657,7 @@ proc ::KEGroups::ErrorRenameWindow { oldname newname errlist} {
 	} else {
         set valid 0
             
-        if {[kipt::NewGiDGroups]} {
             GiD_Groups edit rename $newname $KPriv(newnewname)
-        } else {
-            Cond_Groups edit rename $newname $KPriv(newnewname)
-        }
 		
 		::KEGroups::RenombraGrupo $oldname $KPriv(newnewname) $valid
 		
