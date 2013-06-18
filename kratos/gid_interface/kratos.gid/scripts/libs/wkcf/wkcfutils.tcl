@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #	
+#     3.4- 17/06/13-G. Socorro, delete wmethod variable => now we are using only the new GiD groups
 #     3.3- 17/05/13-G. Socorro, add the proc SumInertia, modify the proc GetCrossSectionProperties to include the new cross section properties (database)
 #     3.2- 11/02/13-G. Socorro, correct a bug in the proc GetCrossSectionProperties when write the matrix properties (delete a parenthesis was left)
 #     3.1- 17/12/12-J. Garate,  Disabled the Wall PFEM .mdpa Write. Add Beam 2D
@@ -141,14 +142,6 @@ proc ::wkcf::Preprocess {} {
     # Create the kratos global properties identifier
     ::wkcf::CreateKratosPropertiesIdentifier
 
-    # 0 => Metodo antiguo (Poco eficiente)
-    # 1 => Metodo nuevo (write_calc_data)
-    variable wmethod 
-    set wmethod 1
-    if {[kipt::NewGiDGroups]} {
-        set wmethod 2
-    }
-    # msg "wmethod: $wmethod"
     # To write the bat file
     variable wbatfile
     set wbatfile 0

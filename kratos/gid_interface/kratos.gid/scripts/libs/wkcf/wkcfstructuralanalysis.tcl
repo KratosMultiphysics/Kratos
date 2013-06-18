@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #   
+#     1.6- 17/06/13-G. Socorro, delete wmethod variable and all relalated procedure (*_m0,*_m1,*_m2) => now we are using only the new GiD groups
 #     1.5- 22/05/13-G. Socorro, correct a bug in the procs WritePuntualLoads and WriteBeamUniformlyDistributedLoads when write condition 
 #                               identifier in the case of more than one load group
 #     1.4- 17/05/13-G. Socorro, add the proc WriteBeamUniformlyDistributedLoads, update the proc WriteConstitutiveLawsProperties
@@ -35,227 +36,16 @@
 
 proc ::wkcf::WriteDispRotBC {AppId ccondid kwordlist} {
     # ABSTRACT: Write displacements or rotation boundary condition
-    variable wmethod
+    variable ndime; variable dprops
+    variable filechannel
        
     # For debug
     if {!$::wkcf::pflag} {
         set inittime [clock seconds]
     }
-    if {$wmethod eq 0} {
-        ::wkcf::WriteDispRotBC_m0 $AppId $ccondid $kwordlist
-    } elseif {$wmethod eq 1} {
-        ::wkcf::WriteDispRotBC_m1 $AppId $ccondid $kwordlist
-    } elseif {$wmethod eq 2} {
-        ::wkcf::WriteDispRotBC_m2 $AppId $ccondid $kwordlist
-    }
-    # For debug
-    if {!$::wkcf::pflag} {
-        set endtime [clock seconds]
-        set ttime [expr $endtime-$inittime]
-        # WarnWinText "endtime:$endtime ttime:$ttime"
-        WarnWinText "Write structural analysis displacements or rotation boundary condition: [::KUtils::Duration $ttime]"
-    }
-}
-
-proc ::wkcf::WriteDispRotBC_m0 {AppId ccondid kwordlist} {
-    # Write displacements or rotation boundary condition
-    variable ndime;    variable gidentitylist
-    variable useqelem; variable dprops
-
-    set dxnodeplist [list]
-    set dynodeplist [list]
-    set dznodeplist [list]
     
     # For all defined group identifier inside this condition type
     foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
-        # Get the condition properties
-        set GProps $dprops($AppId,BC,$ccondid,$cgroupid,GProps)
-        # WarnWinText "GProps:$GProps"
-        # Assign values
-        lassign $GProps fix_x xval fix_y yval fix_z zval
-        # WarnWinText "fix_x:$fix_x xval:$xval fix_y:$fix_y yval:$yval fix_z:$fix_z zval:$zval"
-        set allnlist [list]
-        foreach GiDEntity $gidentitylist {
-            # WarnWin "GiDEntity:$GiDEntity cgroupid:$cgroupid"
-            # Get all defined entities for this group identifier
-            switch $GiDEntity {
-                "point" {
-                    set callnlist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity "Nodes" $useqelem]
-                    if {[llength $callnlist]} {
-                        lappend allnlist $callnlist
-                    }
-                    # WarnWinText "$GiDEntity alllist:$allnlist"
-                }
-                "line" - "surface" {
-                    set callnlist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity "Nodes" $useqelem]
-                    if {[llength $callnlist]} {
-                        lappend allnlist $callnlist
-                    }
-                    # WarnWinText "$GiDEntity alllist:$allnlist"
-                } 
-                "volume" {
-                    # Only for displacement BC
-                    if {$ccondid =="Displacements"} {
-                        set callnlist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity "Nodes" $useqelem]
-                        if {[llength $callnlist]} {
-                            lappend allnlist $callnlist
-                        }
-                        # WarnWinText "$GiDEntity alllist:$allnlist"
-                    }
-                } 
-            }
-        }
-        # WarnWinText "$GiDEntity alllist:$allnlist"
-        foreach cprop $allnlist {
-            set cprop [lsort -integer -unique $cprop]
-            foreach nodeid $cprop {
-                # Fix x
-                if {$fix_x =="1"} {
-                    lappend dxnodeplist "$nodeid 1 $xval"
-                }
-                # Fix y
-                if {$fix_y =="1"} {
-                    lappend dynodeplist "$nodeid 1 $yval"
-                }
-                # Check for 3D problem
-                if {$ndime =="3D"} {
-                    # Fix z
-                    if {$fix_z =="1"} {
-                        lappend dznodeplist "$nodeid 1 $zval"
-                    }
-                }
-            }
-        }
-    }
-    unset allnlist
-    # WarnWinText "dxnodeplist:$dxnodeplist"
-    # WarnWinText "dynodeplist:$dynodeplist"
-    # WarnWinText "dznodeplist:$dznodeplist"
-    
-    # DISPLACEMENT_X or ROTATION_X
-    if {[llength $dxnodeplist]>0} {
-	set xitem [lindex $kwordlist 0]
-	write_calc_data puts "Begin NodalData $xitem"
-	foreach citem $dxnodeplist {
-	    lassign $citem nodeid fix_x xval
-	    set cf "[format "%4i%4i%10.5f" $nodeid $fix_x $xval]"
-	    write_calc_data puts "$cf"
-	}
-	write_calc_data puts "End NodalData"
-	write_calc_data puts ""
-    }
-    
-    # DISPLACEMENT_Y or ROTATION_Y
-    if {[llength $dynodeplist]>0} {
-	set yitem [lindex $kwordlist 1]
-	write_calc_data puts "Begin NodalData $yitem"
-	foreach citem $dynodeplist {
-	    lassign $citem nodeid fix_y yval
-	    set cf "[format "%4i%4i%10.5f" $nodeid $fix_y $yval]"
-	    write_calc_data puts "$cf"
-	}
-	write_calc_data puts "End NodalData"
-	write_calc_data puts ""
-    }
-    
-    # Check for 3D problem
-    if {$ndime =="3D"} {
-	# DISPLACEMENT_Z or ROTATION_Z
-	if {[llength $dznodeplist]>0} {
-	    set zitem [lindex $kwordlist 2]
-	    write_calc_data puts "Begin NodalData $zitem"
-	    foreach citem $dznodeplist {
-		lassign $citem nodeid fix_z zval
-		set cf "[format "%4i%4i%10.5f" $nodeid 1 $zval]"
-		write_calc_data puts "$cf"
-	    }
-	    write_calc_data puts "End NodalData"
-	    write_calc_data puts ""
-	}
-    }
-    unset dxnodeplist
-    unset dynodeplist
-    unset dznodeplist
-}
-
-proc ::wkcf::WriteDispRotBC_m1 {AppId ccondid kwordlist} {
-    # Write displacements or rotation boundary condition
-    variable ndime; variable dprops
-
-    # For all defined group identifier inside this condition type
-    foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
-	    
-	# Get the condition properties
-	lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) fix_x xval fix_y yval fix_z zval
-	# WarnWinText "fix_x:$fix_x xval:$xval fix_y:$fix_y yval:$yval fix_z:$fix_z zval:$zval
-
-	# Create the dictionary formats
-	set gpropdx [dict create]
-	set gpropdy [dict create]
-	if {$ndime eq "3D"} {
-	    set gpropdz [dict create]
-	}
-		
-	# For X
-	set f "%10i [format "%4i" $fix_x] [format "%10.5f" $xval]\n"
-	set f [subst $f]
-	dict set gpropdx $cgroupid $f
-	# For Y
-	set f "%10i [format "%4i" $fix_y] [format "%10.5f" $yval]\n"
-	set f [subst $f]
-	dict set gpropdy $cgroupid $f
-	if {$ndime eq "3D"} {
-	    # For Z
-	    set f "%10i [format "%4i" $fix_z] [format "%10.5f" $zval]\n"
-	    set f [subst $f]
-	    dict set gpropdz $cgroupid $f
-	}
-	
-	# DISPLACEMENT_X or ROTATION_X
-	if {[write_calc_data nodes -count $gpropdx]>0} {
-	    set xitem [lindex $kwordlist 0]
-	    write_calc_data puts "Begin NodalData $xitem"
-	    write_calc_data nodes -sorted $gpropdx
-	    write_calc_data puts "End NodalData"
-	    write_calc_data puts ""        
-	}
-	
-	# DISPLACEMENT_Y or ROTATION_Y
-	if {[write_calc_data nodes -count $gpropdy]>0} {
-	    set yitem [lindex $kwordlist 1]
-	    write_calc_data puts "Begin NodalData $yitem"
-	    write_calc_data nodes -sorted $gpropdy
-	    write_calc_data puts "End NodalData"
-	    write_calc_data puts ""        
-	}
-
-	# DISPLACEMENT_Z or ROTATION_Z
-	if {($ndime eq "3D") && ([write_calc_data nodes -count $gpropdz]>0)} {
-	    set zitem [lindex $kwordlist 2]
-	    write_calc_data puts "Begin NodalData $zitem"
-	    write_calc_data nodes -sorted $gpropdz
-	    write_calc_data puts "End NodalData"
-	    write_calc_data puts ""        
-	}
-
-	# Unset Local Variables
-	unset gpropdx
-	unset gpropdy
-	if {$ndime ne "2D"} {
-	    unset gpropdz
-	}
-    }  
-   
-}
-
-proc ::wkcf::WriteDispRotBC_m2 {AppId ccondid kwordlist} {
-    # Write displacements or rotation boundary condition
-    variable ndime; variable dprops
-    variable filechannel
-    
-    # For all defined group identifier inside this condition type
-    foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
-            
         # Get the condition properties
         lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) fix_x xval fix_y yval fix_z zval
         # WarnWinText "fix_x:$fix_x xval:$xval fix_y:$fix_y yval:$yval fix_z:$fix_z zval:$zval"
@@ -295,7 +85,15 @@ proc ::wkcf::WriteDispRotBC_m2 {AppId ccondid kwordlist} {
             GiD_File fprintf $filechannel "" 
         }
     }  
+
+    # For debug
+    if {!$::wkcf::pflag} {
+        set endtime [clock seconds]
+        set ttime [expr $endtime-$inittime]
+        # WarnWinText "endtime:$endtime ttime:$ttime"
+        WarnWinText "Write structural analysis displacements or rotation boundary condition: [::KUtils::Duration $ttime]"
    
+}
 }
 
 proc ::wkcf::WriteLoads {AppId} {
@@ -336,28 +134,13 @@ proc ::wkcf::WriteLoads {AppId} {
 
 proc ::wkcf::WriteBeamUniformlyDistributedLoads {AppId cloadtid} {
     # ASBTRACT: Write beam uniformly distributed loads (forces)
-    variable wmethod
+    variable ndime;  variable dprops
+    variable filechannel;  variable sa_icondid 
     
     # For debug
     if {!$::wkcf::pflag} {
         set inittime [clock seconds]
     }
-    if {$wmethod eq 2} {
-	::wkcf::WriteBeamUniformlyDistributedLoads_m2 $AppId $cloadtid
-    } 
-    # For debug
-    if {!$::wkcf::pflag} {
-        set endtime [clock seconds]
-        set ttime [expr $endtime-$inittime]
-        # WarnWinText "endtime:$endtime ttime:$ttime"
-        WarnWinText "Write structural analysis beam uniformly distributed loads (forces): [::KUtils::Duration $ttime]"
-    }
-}
-
-proc ::wkcf::WriteBeamUniformlyDistributedLoads_m2 {AppId cloadtid} {
-    # ABSTRACT: Write beam uniformly distributed loads (forces)
-    variable ndime;  variable dprops
-    variable filechannel;  variable sa_icondid 
     
     # Kratos key word xpath
     set kwxpath "Applications/$AppId"
@@ -418,120 +201,25 @@ proc ::wkcf::WriteBeamUniformlyDistributedLoads_m2 {AppId cloadtid} {
             }
         } 
     }
-}
-
-proc ::wkcf::WritePressureLoads {AppId cloadtid} {
-    # ABSTRACT: Write pressure loads (positive or negative shell pressure)
-    variable wmethod
        
-    # For debug
-    if {!$::wkcf::pflag} {
-        set inittime [clock seconds]
-    }
-    if {$wmethod eq 1} {
-        ::wkcf::WritePressureLoads_m1 $AppId $cloadtid
-    } elseif {$wmethod eq 0} {
-        ::wkcf::WritePressureLoads_m0 $AppId $cloadtid
-    } elseif {$wmethod eq 2} {
-        ::wkcf::WritePressureLoads_m2 $AppId $cloadtid
-    }
     # For debug
     if {!$::wkcf::pflag} {
         set endtime [clock seconds]
         set ttime [expr $endtime-$inittime]
         # WarnWinText "endtime:$endtime ttime:$ttime"
-        WarnWinText "Write structural analysis write pressure loads (positive or negative shell pressure): [::KUtils::Duration $ttime]"
+        WarnWinText "Write structural analysis beam uniformly distributed loads (forces): [::KUtils::Duration $ttime]"
     }
 }
 
-proc ::wkcf::WritePressureLoads_m1 {AppId cloadtid} {
-    # ABSTRACT: Write pressure loads (positive or negative shell pressure)
-    variable ndime;  variable dprops
-    variable sa_icondid
-
-    # Kratos key word xpath
-    set kxpath "Applications/$AppId"
-    # Set the GiD element type
-    set GiDElemType "Triangle"
-    # Set the face 3d-3n condition keyword
-    set face3d3nkword "Face3D3N"
-    # Set the reference property id
-    set RefPropId "1"
-       
-    # For all defined group identifier inside this load type
-    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
-    	set gpressface [dict create]
-	# Diccionario gpressface
-	set f "%8i%8i%8i%8i\n"
-	set f [subst $f]
-	dict set gpressface $cgroupid $f
-	if {[write_calc_data has_elements -elemtype $GiDElemType $gpressface]} {
-	    # Write Face3D3N condition
-	    write_calc_data puts "Begin Conditions $face3d3nkword // GUI pressure load group identifier: $cgroupid"
-	    foreach {elemid N1 N2 N3} [write_calc_data connectivities -return -elements_faces elements $gpressface] {
-		incr sa_icondid
-		set cf "[format "%4i%4i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3]"
-		write_calc_data puts "$cf"
-	    }
-	    write_calc_data puts "End Conditions"
-	    write_calc_data puts ""
-	}
-	# Unset the local dictionary
-	unset gpressface
-    }
-
-
-    # Write pressure values for all nodes inside a group identifier 
-    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
-
-	# Get the load properties
-	set GProps $dprops($AppId,Loads,$cloadtid,$cgroupid,GProps)
-	# WarnWinText "cgroupid:$cgroupid GProps:$GProps"
-	# Assign values
-	foreach item $GProps {
-	    foreach {cvar cval} $item {
-		set $cvar $cval
-	    }
-	} 
-
-	# WarnWinText "FixPressure:$FixPressure PressureType:$PressureType PressureValue:$PressureValue"
-
-	# Create the dictionary
-	set gprop [dict create]
-
-	# Node format
-	set f "%10i"
-	set f [subst $f]
-	dict set gprop $cgroupid $f
-	if {([write_calc_data nodes -count $gprop]>0)&&($ndime=="3D")} {
-	    # Get the current pressure keyword 
-	    set kwid "${PressureType}Pressure"
-	    set ckword [::xmlutils::getKKWord $kxpath $kwid]
-	    # WarnWinText "ckword:$ckword"
-		
-	    if {$PressureValue !="0.0"} {
-		set f "%10i [format "%6i%20.10f" $FixPressure $PressureValue]\n"
-		set f [subst $f]
-		dict set gprop $cgroupid $f
-		# Set the real pressure value
-		# set PressureValue [expr double($PressureValue)/$ngroupnodes]
-		# Write the pressure values
-		# Pressure properties
-		write_calc_data puts "Begin NodalData $ckword // GUI pressure load group identifier: $cgroupid"
-		write_calc_data nodes -sorted $gprop
-		write_calc_data puts "End NodalData"
-		write_calc_data puts ""
-	    }
-	}
-	# Unset the local dictionary
-	unset gprop
-    }
-}
-
-proc ::wkcf::WritePressureLoads_m2 {AppId cloadtid} {
+proc ::wkcf::WritePressureLoads {AppId cloadtid} {
     # ABSTRACT: Write pressure loads (positive or negative shell pressure)
     variable ndime;  variable dprops
     variable filechannel; variable sa_icondid
+       
+    # For debug
+    if {!$::wkcf::pflag} {
+        set inittime [clock seconds]
+    }
 
     # Kratos key word xpath
     set kxpath "Applications/$AppId"
@@ -596,291 +284,25 @@ proc ::wkcf::WritePressureLoads_m2 {AppId cloadtid} {
             }
         }
     }
-}
-
-proc ::wkcf::WritePressureLoads_m0 {AppId cloadtid} {
-    # Write pressure loads (positive or negative shell pressure)
-    variable ndime;    variable gidentitylist
-    variable useqelem; variable dprops
-    variable sa_icondid
-
-    # Kratos key word xpath
-    set kxpath "Applications/$AppId"
-    # Set GiD entity
-    set GiDEntity "surface"
-    # Set the GiD element type
-    set GiDElemType "Triangle"
-    # Set the face 3d-3n condition keyword
-    set face3d3nkword "Face3D3N"
-    # Set the reference property id
-    set RefPropId "1"
-    set cnodeglist [list]
-    # Node dictionary
-    set ndict [dict create]
-    # Create an element dictionary
-    set edict [dict create]
-
-    # For all defined group identifier inside this load type
-    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
-	# Get all defined entities for this group identifier
-	set allelist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity]
-	# WarnWinText "cgroupid:$cgroupid alllist:$allelist"
-	if {([llength $allelist])&&($ndime=="3D")} {
-	    # Create a node group dictionary
-	    set nc [dict create]
-	    # Non repeated nodes identifier
-	    # Get all defined nodes
-	    foreach elemid $allelist {
-		# Update the element group (delete repeated identifier)
-		dict set edict $elemid $cgroupid
-		# Get the element properties
-		lassign [lrange [GiD_Info Mesh Elements $GiDElemType $elemid] 1 end-1] N1 N2 N3
-		# Update node group dictionary variable (delete repeated nodes)
-		dict set nc $N1 ""
-		dict set nc $N2 ""
-		dict set nc $N3 ""
-	    }
-	    # Update nodal group dictionary
-	    dict set ndict $cgroupid $nc
-	    unset nc
-	}
-    }
-
-
-    # Write Face3D3N condition
-    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
-	
-	# Init the element group list
-	set celemglist [list]
-	dict for {elemid dgroupid} $edict {
-	    if {$cgroupid ==$dgroupid} {
-		lappend celemglist $elemid
-	    }
-	}
-	set ngroupelems [llength $celemglist]
-	# WarnWinText "ngroupelems:$ngroupelems"
-	if {($ngroupelems) && ($ndime=="3D")} {
-	    write_calc_data puts "Begin Conditions $face3d3nkword // GUI pressure load group identifier: $cgroupid"
-	    # Get all defined nodes
-	    foreach elemid $celemglist {
-		incr sa_icondid 1
-		# Get the element properties
-		lassign [lrange [GiD_Info Mesh Elements $GiDElemType $elemid] 1 end-1] N1 N2 N3
-		set cf "[format "%4i%4i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3]"
-		write_calc_data puts "$cf"
-	    }
-	    write_calc_data puts "End Conditions"
-	    write_calc_data puts ""
-	}
-    }
-    unset edict
-
-    # Write pressure values for all nodes inside a group identifier 
-    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
-
-	# Get the load properties
-	set GProps $dprops($AppId,Loads,$cloadtid,$cgroupid,GProps)
-	# WarnWinText "cgroupid:$cgroupid GProps:$GProps"
-	# Assign values
-	foreach item $GProps {
-	    foreach {cvar cval} $item {
-		set $cvar $cval
-	    }
-	} 
-
-	# WarnWinText "FixPressure:$FixPressure PressureType:$PressureType PressureValue:$PressureValue"
-
-	# Init the node group list
-	if {[llength [dict get $ndict $cgroupid]]} {
-	    set cnodeglist [list]
-	    foreach {nodeid empty} [dict get $ndict $cgroupid] {
-		lappend cnodeglist $nodeid
-	    }
-	    
-	    set ngroupnodes [llength $cnodeglist]
-	    # WarnWinText "ngroupnodes:$ngroupnodes"
-	    if {($ngroupnodes) && ($ndime=="3D")} {
-		# Get the current pressure keyword 
-		set kwid "${PressureType}Pressure"
-		set ckword [::xmlutils::getKKWord $kxpath $kwid]
-		# WarnWinText "ckword:$ckword"
-		
-		if {$PressureValue !="0.0"} {
-		    # Set the real pressure value
-		    # set PressureValue [expr double($PressureValue)/$ngroupnodes]
-		    # Write the pressure values
-		    # Pressure properties
-		    write_calc_data puts "Begin NodalData $ckword // GUI pressure load group identifier: $cgroupid"
-		    foreach nodeid [lsort -integer $cnodeglist] {
-		        set cf "[format "%6i%4i%20.10f" $nodeid $FixPressure $PressureValue]"
-		        write_calc_data puts "$cf"
-		    }
-		    write_calc_data puts "End NodalData"
-		    write_calc_data puts ""
-		}
-		unset cnodeglist
-	    }
-	}
-    }
-    unset ndict
-}
-
-proc ::wkcf::WritePuntualLoads {AppId cloadtid kwordlist} {
-    # ASBTRACT: Write concentrated loads (puntual force or moment)
-    variable wmethod
     
-    # For debug
-    if {!$::wkcf::pflag} {
-        set inittime [clock seconds]
-    }
-    if {$wmethod eq 1} {
-        ::wkcf::WritePuntualLoads_m1 $AppId $cloadtid $kwordlist
-    } elseif {$wmethod eq 2} {
-        ::wkcf::WritePuntualLoads_m2 $AppId $cloadtid $kwordlist
-    } elseif {$wmethod eq 0} {
-        ::wkcf::WritePuntualLoads_m0 $AppId $cloadtid $kwordlist
-    }
     # For debug
     if {!$::wkcf::pflag} {
         set endtime [clock seconds]
         set ttime [expr $endtime-$inittime]
         # WarnWinText "endtime:$endtime ttime:$ttime"
-        WarnWinText "Write structural analysis concentrated loads (puntual force or moment): [::KUtils::Duration $ttime]"
+        WarnWinText "Write structural analysis write pressure loads (positive or negative shell pressure): [::KUtils::Duration $ttime]"
     }
 }
 
-proc ::wkcf::WritePuntualLoads_m1 {AppId cloadtid kwordlist} {
-    # ASBTRACT: Write concentrated loads (puntual force or moment)
-    variable ndime; variable dprops
-    variable sa_icondid
-
-    # For all defined group identifier inside this load type
-    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
-	# Get the load properties
-	set GProps $dprops($AppId,Loads,$cloadtid,$cgroupid,GProps)
-	# WarnWinText "cgroupid:$cgroupid GProps:$GProps"
-	# Assign values
-	foreach item $GProps {
-	    foreach {cvar cval} $item {
-		if {$cval eq "0.0"} {
-		    set cval 0
-		}
-		set $cvar $cval
-	    }
-	} 
-	# Declaración del diccionario
-	set gpointforce [dict create]
-	
-	set usepointforce "No"
-	# Diccionario gpointforce
-	set f "%10i"
-	set f [subst $f]
-	dict set gpointforce $cgroupid $f
-	
-	switch -exact -- $ndime {
-	    "2D" {
-		set pointforcekword "PointForce2D"
-		foreach item [list $Fx $Fy $Mx $My] {
-		    if {$item !="0"} {
-			set usepointforce "Yes"
-			break
-		    }
-		}
-	    }
-	    "3D" {
-		set pointforcekword "PointForce3D"
-		foreach item [list $Fx $Fy $Fz $Mx $My $Mz] {
-		    if {$item !="0"} {
-			set usepointforce "Yes"
-			break
-		    }
-		}
-	    }
-	}
-	if {$usepointforce =="Yes"} {
-	    # Active the PointForce condition
-	    
-	    write_calc_data puts "Begin Conditions $pointforcekword // GUI puntual load group identifier: $cgroupid"
-	    foreach output [write_calc_data nodes -return -sorted $gpointforce] {
-		incr sa_icondid
-		set cf "[format "%4i %4i %10i" $sa_icondid 1 $output]"
-		write_calc_data puts "$cf"
-	    }
-	    write_calc_data puts "End Conditions"
-	    write_calc_data puts ""
-	}
-	
-	
-	set gforcex [dict create]
-	set gforcey [dict create]
-	if {$ndime eq "3D"} {
-	    set gforcez [dict create]
-	}
-	
-	# Assign values
-	foreach item $GProps {
-	    foreach {cvar cval} $item {
-		if {$cval eq "0.0"} {
-		    set cval 0
-		}
-		set $cvar $cval
-	    }
-	} 
-	set IsFixed "0"
-	set f "%10i [format "%2i %20.10f" $IsFixed $Fx]\n"
-	set f [subst $f]
-	dict set gforcex $cgroupid $f
-	set f "%10i [format "%2i %20.10f" $IsFixed $Fy]\n"
-	set f [subst $f]
-	dict set gforcey $cgroupid $f
-	if {$ndime eq "3D"} {
-	    set f "%10i [format "%2i %20.10f" $IsFixed $Fz]\n"
-	    set f [subst $f]
-	    dict set gforcez $cgroupid $f
-	}
-	# WarnWinText "Fx:$Fx Fy:$Fy Fz:$Fz"
-	
-	# DISPLACEMENT_X or ROTATION_X
-	if {$Fx ne 0} {
-	    set xitem [lindex $kwordlist 0]
-	    write_calc_data puts "Begin NodalData $xitem // GUI puntual load group identifier: $cgroupid"
-	    write_calc_data nodes -sorted $gforcex
-	    write_calc_data puts "End NodalData"
-	    write_calc_data puts ""        
-	}
-	if {$Fy ne 0} {
-	    set yitem [lindex $kwordlist 1]
-	    write_calc_data puts "Begin NodalData $yitem // GUI puntual load group identifier: $cgroupid"
-	    write_calc_data nodes -sorted $gforcey
-	    write_calc_data puts "End NodalData"
-	    write_calc_data puts ""        
-	}
-	if {$Fz ne 0} {
-	    set zitem [lindex $kwordlist 2]
-	    write_calc_data puts "Begin NodalData $zitem // GUI puntual load group identifier: $cgroupid"
-	    write_calc_data nodes -sorted $gforcez
-	    write_calc_data puts "End NodalData"
-	    write_calc_data puts ""        
-	}
-	if { [info exists gforcex] } {
-	    unset gforcex
-	}
-	if { [info exists gforcey] } {
-	    unset gforcey
-	}
-	if { [info exists gforcez] } {
-	    unset gforcez
-	}
-	if { [info exists gpointforce] } {
-	    unset gpointforce
-	}
-    }
-}
-
-proc ::wkcf::WritePuntualLoads_m2 {AppId cloadtid kwordlist} {
-    # ASBTRACT: Write concentrated loads (puntual force or moment)
+proc ::wkcf::WritePuntualLoads {AppId cloadtid kwordlist} {
+    # ABSTRACT: Write concentrated loads (puntual force or moment)
     variable ndime; variable dprops
     variable filechannel; variable sa_icondid
+    
+    # For debug
+    if {!$::wkcf::pflag} {
+        set inittime [clock seconds]
+    }
 
     # For all defined group identifier inside this load type
     foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
@@ -973,121 +395,13 @@ proc ::wkcf::WritePuntualLoads_m2 {AppId cloadtid kwordlist} {
             GiD_File fprintf $filechannel "%s" ""        
         }
     }
-}
 
-proc ::wkcf::WritePuntualLoads_m0 {AppId cloadtid kwordlist} {
-    # Write concentrated loads (puntual force or moment)
-    variable ndime;    variable gidentitylist
-    variable useqelem; variable dprops
-    variable sa_icondid
-
-    # For all defined group identifier inside this load type
-    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
-	# Get the load properties
-	set GProps $dprops($AppId,Loads,$cloadtid,$cgroupid,GProps)
-	# WarnWinText "cgroupid:$cgroupid GProps:$GProps"
-	# Assign values
-	foreach item $GProps {
-	    foreach {cvar cval} $item {
-		set $cvar $cval
-	    }
-	} 
-	# WarnWinText "Fx:$Fx Fy:$Fy Fz:$Fz"
-	set allnlist [list]
-	set GiDEntity "point"
-	# Get all defined entities for this group identifier
-	set callnlist [::KUtils::GetDefinedMeshGiDEntities $cgroupid $GiDEntity "Nodes" $useqelem]
-	# WarnWinText "callnlist:$callnlist"
-	if {[llength $callnlist]} {
-	    lappend allnlist $callnlist
-	} 
-
-	# Sort the node list
-	# WarnWinText "$GiDEntity alllist:$allnlist"
-	
-	if {[llength $allnlist]} {
-	    set allnlist [lsort -integer -unique {*}$allnlist]         
-
-	    set usepointforce "No"
-	    switch -exact -- $ndime {
-		"2D" {
-		    set pointforcekword "PointForce2D"
-		    foreach item [list $Fx $Fy $Mx $My] {
-		        if {$item !="0.0"} {
-		            set usepointforce "Yes"
-		            break
-		        }
-		    }
-		}
-		"3D" {
-		    set pointforcekword "PointForce3D"
-		    foreach item [list $Fx $Fy $Fz $Mx $My $Mz] {
-		        if {$item !="0.0"} {
-		            set usepointforce "Yes"
-		            break
-		        }
-		    }
-		}
-	    }
-
-
-	    if {$usepointforce =="Yes"} {
-		# Active the PointForce condition
-		write_calc_data puts "Begin Conditions $pointforcekword // GUI puntual load group identifier: $cgroupid"
-		foreach nodeid $allnlist {
-		    incr sa_icondid
-		    set cf "[format "%4i%4i%8i" $sa_icondid 1 $nodeid]"
-		    write_calc_data puts "$cf"
-		}
-		write_calc_data puts "End Conditions"
-		write_calc_data puts ""
-	    }
-	    
-	    # WarnWinText "Fx:$Fx"
-	    set nplist [list "0.0" ""]
-	    set IsFixed "0"
-	    # FORCE_X
-	    if {$Fx ni $nplist} {
-		set xitem [lindex $kwordlist 0]
-		write_calc_data puts "Begin NodalData $xitem // GUI puntual load group identifier: $cgroupid"
-		foreach nodeid $allnlist {
-		    set cf "[format "%6i%4i%20.10f" $nodeid $IsFixed $Fx]"
-		    write_calc_data puts "$cf"
-		}
-		write_calc_data puts "End NodalData"
-		write_calc_data puts ""
-	    }
-
-	    # FORCE_Y
-	    if {$Fy ni $nplist} {
-		set xitem [lindex $kwordlist 1]
-		write_calc_data puts "Begin NodalData $xitem // GUI puntual load group identifier: $cgroupid"
-		foreach nodeid $allnlist {
-		    set cf "[format "%6i%4i%20.10f" $nodeid $IsFixed $Fy]"
-		    write_calc_data puts "$cf"
-		}
-		write_calc_data puts "End NodalData"
-		write_calc_data puts ""
-	    }
-	    
-	    if {$ndime =="3D"} {
-		# FORCE_Z
-		if {$Fz ni $nplist} {
-		    set xitem [lindex $kwordlist 2]
-		    write_calc_data puts "Begin NodalData $xitem // GUI puntual load group identifier: $cgroupid"
-		    foreach nodeid $allnlist {
-		        set cf "[format "%6i%4i%20.10f" $nodeid $IsFixed $Fz]"
-		        write_calc_data puts "$cf"
-		    }
-		    write_calc_data puts "End NodalData"
-		    write_calc_data puts ""
-		}
-	    }
-	}
-	# si allnlist no está vacío...        
-	#else {
-	#      msg "Check the Loads"
-	#}
+    # For debug
+    if {!$::wkcf::pflag} {
+        set endtime [clock seconds]
+        set ttime [expr $endtime-$inittime]
+        # WarnWinText "endtime:$endtime ttime:$ttime"
+        WarnWinText "Write structural analysis concentrated loads (puntual force or moment): [::KUtils::Duration $ttime]"
     }
 }
 
@@ -1095,9 +409,7 @@ proc ::wkcf::WriteBodyForceValues {props} {
     # Write the gravity properties to the kratos data file
     # Arguments
     # props => Body force properties
-    variable ndime
-    variable wmethod 
-    variable filechannel 
+    variable ndime; variable filechannel 
     
     # WarnWinText "props:$props"
     set GravityValue [lindex $props 0 1]
@@ -1109,11 +421,7 @@ proc ::wkcf::WriteBodyForceValues {props} {
     } else {
         set vector "\($Cx, $Cy, 0.0\)"
     }
-    if {$wmethod eq 1} {
-        write_calc_data puts " BODY_FORCE \[3\] $vector"
-    } elseif {$wmethod eq 2} {
         GiD_File fprintf $filechannel "%s" " BODY_FORCE \[3\] $vector"
-    }
 }
 
 proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
