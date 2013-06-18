@@ -57,6 +57,8 @@ namespace Kratos
           array_1d<double,3>& buoyancy              = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);
           array_1d<double, 3> contact_force;
           array_1d<double, 3> contact_moment;
+          array_1d<double, 3> initial_rotation_moment;
+          array_1d<double, 3> max_rotation_moment;
 
           contact_force[0]  = 0.0;
           contact_force[1]  = 0.0;
@@ -64,12 +66,18 @@ namespace Kratos
           contact_moment[0] = 0.0;
           contact_moment[1] = 0.0;
           contact_moment[2] = 0.0;
-
+          initial_rotation_moment[0]  = 0.0;
+          initial_rotation_moment[1]  = 0.0;
+          initial_rotation_moment[2]  = 0.0;
+          max_rotation_moment[0] = 0.0;
+          max_rotation_moment[1] = 0.0;
+          max_rotation_moment[2] = 0.0;
+	  
           ComputeNewNeighboursHistoricalData();
-          ComputeBallToBallContactForce(contact_force, contact_moment, rCurrentProcessInfo);
+          ComputeBallToBallContactForce(contact_force, contact_moment, initial_rotation_moment, max_rotation_moment, rCurrentProcessInfo);
 
           if (mLimitSurfaceOption){
-              ComputeBallToSurfaceContactForce(contact_force, contact_moment, rCurrentProcessInfo); //MSI: eliminate processInfo
+              ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, max_rotation_moment, rCurrentProcessInfo); //MSI: eliminate processInfo
           }
 
           ComputeDragForces(rCurrentProcessInfo);
