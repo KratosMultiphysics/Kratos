@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.5- 17/06/13- G. Socorro, delete the procs RecursiveChildTransfer and TransferOldGroupstoGID to use only the new GiD groups
 #     1.4- 12/02/13- J. Garate, ::kfiles::TransferOldGroupstoGID FIXED
 #     1.3- 12/11/12- J. Garate, ::kfiles::TransferOldGroupstoGID modifications
 #     1.2- 07/11/12- J. Garate, Adaptation for New GiD Groups on Transfer Function
@@ -34,140 +35,6 @@ namespace eval ::kfiles:: {
 
 }
 
-proc ::kfiles::TransferOldGroupstoGID { filename } {
-    global KPriv
-    
-    set root [$KPriv(xml) selectNodes "/Kratos_Data/Groups"]
-    set model [$root getAttribute modeltype ""]
-    #wa "model:$model"
-    
-    # Cuando acabo de crear un modelo, no hace falta transferir nada
-    if {$model eq "" } { return }
-    
-    # Si vengo de un modelo antiguo
-    if {$model != "GiD" } {
-        if {![kipt::NewGiDGroups]} {
-            #wa "Old Groups, Old GiD version"
-            
-            # Si es un Gid antiguo y un modelo antiguo, todo bien.
-        }
-        # Si es un modelo Viejo pero un GiD nuevo, hay que hacer el transform
-        
-        set grw "Cond_Groups"
-        set GiDGroups [Cond_Groups list]
-        #wa $filename
-        if { $filename != "" } { 
-
-            if {[file exists $filename] && [file size $filename] > 1} {
-                
-                #Reseteamos la lista de Id's por si contenía un estado anterior
-                set KPriv(groupsId) {}
-                set KPriv(groupsCol) {}
-                # Si llega un groupId
-                set childNodes {}
-
-                #Seleccionamos todos los nodos del primer nivel
-                set nodes [$KPriv(xml) selectNodes "/Kratos_Data/Groups/Group\[@id\]"]
-                foreach node $nodes {
-                    set gname [$node getAttribute id ""]
-                    #set gcolor [$node getAttribute color ""]
-                    set state [$node getAttribute state ""]
-                    if {$gname ni $GiDGroups} {
-                
-                        Cond_Groups create $gname
-                        #Cond_Groups edit color $gname $gcolor
-                        Cond_Groups edit visible $gname $state
-                        #Seleccionamos sus hijos (2º nivel)
-                        set nodes2 [$node childNodes]
-                        set gpath $gname
-                
-                        ::kfiles::RecursiveChildTransfer $nodes2 $gpath
-                    } else {
-                        #wa "It already exists a GiD Group with name \"$gname\""
-                    }
-                }
-                if {[kipt::NewGiDGroups]} {
-                    ::KEGroups::TransferCondGroupstoGiDGroups
-                }
-            }
-        }
-    } else {
-        
-        if {[kipt::NewGiDGroups]} {
-            set grw "GiD_Groups"
-            set force 2
-            # Si tiene grupos nuevos (Flag modeltype en el spd GiD) y un GiD nuevo, no hace falta hacer nada
-            #msg "Grupos Nuevos sobre GiD nuevo, todo OK"
-            return
-        } else {
-            set grw "Cond_Groups"
-            set force 1
-        }
-        set GiDGroups [$grw list]
-        
-	 #wa "GiDGroups:$GiDGroups"
-     #return
-        if { $filename != "" } { 
-
-            if {[file exists $filename] && [file size $filename] > 1} {
-                
-                #Reseteamos la lista de Id's por si contenía un estado anterior
-                set KPriv(groupsId) {}
-                set KPriv(groupsCol) {}
-                # Si llega un groupId
-                set childNodes {}
-
-                #Seleccionamos todos los nodos del primer nivel
-                set nodes [$KPriv(xml) selectNodes "/Kratos_Data/Groups/Group\[@id\]"]
-                foreach node $nodes {
-                    set gname [$node getAttribute id ""]
-                    #set gcolor [$node getAttribute color ""]
-                    set state [$node getAttribute state ""]
-                    if {$gname ni $GiDGroups} {
-			# wa "gname:$gname"
-                        $grw create $gname
-                        #Cond_Groups edit color $gname $gcolor
-                        $grw edit visible $gname $state
-                        #Seleccionamos sus hijos (2º nivel)
-                        set nodes2 [$node childNodes]
-                        set gpath $gname
-                
-                        ::kfiles::RecursiveChildTransfer $nodes2 $gpath $force
-                    } else {
-                        #wa "It already exists a GiD Group with name \"$gname\""
-                    }
-                }
-            }
-        }
-    } 
-}
-
-proc ::kfiles::RecursiveChildTransfer {nodes gpath {force 0} } {
-    
-    if {$nodes != ""} {
-        set grw "Cond_Groups"
-        if {$force eq 2} { set grw "GiD_Groups" }
-        set GiDGroups [grw list]
-        foreach node $nodes {
-            #Agregamos cada elemento de 2º nivel
-
-            append gname $gpath "//" [$node getAttribute id ""]
-            set state [$node getAttribute state ""]
-
-            if {$gname ni $GiDGroups} {
-            
-                    $grw create $gname
-                    #$grw edit color $gname $gcolor
-                    $grw edit visible $gname $state
-                    #Seleccionamos los hijos (siguiente nivel)
-                    set nodes2 [$node childNodes]
-                    ::kfiles::RecursiveChildTransfer $nodes2 $gname
-            } else {
-                #msg "It already exists a GiD Group with name \"$gname\""
-            }
-        }
-    }
-}
 
 proc ::kfiles::LoadSPD {filename} {
     
@@ -177,9 +44,7 @@ proc ::kfiles::LoadSPD {filename} {
 
     set KPriv(problemTypeDir) [file dirname $filename]
     
-    #
     # PROPERTIES
-    #
     set xmlNameFile "kratos_default.spd"
     
     if {![file exists $filename] || [file size $filename] < 1} {
@@ -285,7 +150,6 @@ proc ::kfiles::LoadSPD {filename} {
     set ptypeName [lindex [split $KPriv(problemTypeDir) "/"] end]
     set KPriv(pTypeName) [string map {".gid" ""} $ptypeName]
 
-    ::kfiles::TransferOldGroupstoGID $filename
     
 }
 
