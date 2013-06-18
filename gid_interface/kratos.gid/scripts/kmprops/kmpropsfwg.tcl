@@ -7,12 +7,13 @@
 #
 #  QUANTECH ATZ-DEVELOPMENT DEPARTMENT
 #
-#  AUTHORS : G. Socorro
+#  AUTHORS : G. Socorro => GSM
 #
 #  CREATED AT: 29/03/2012
 #
 #  HISTORY:
 # 
+#   1.4- 18/06/13- GSM, delete the use of the proc kipt::NewGiDGroups 
 #   1.3- 13/05/13- G. Socorro, add the ShowPropertyBySectionType, update the proc buildGroupsFrame
 #                               - modify the proc buildPropertyFrame to show the help, add translation option
 #                               - add cross section database options
@@ -333,11 +334,8 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
         #COMBO DE GRUPOS
         set fGroups $f.cGroups
         
-        if {[kipt::NewGiDGroups]} {
+	# Get the group list
             set filterGroups [GiD_Groups list]
-        } else {
-            set filterGroups [Cond_Groups list]
-        }
         
         grid [ttk::combobox $fGroups -state readonly -values "$filterGroups" -textvariable "::KMProps::selGroup" \
             -postcommand "::KMProps::changeGroups [list $entityList] $fGroups" -width 15] \
@@ -1007,13 +1005,9 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
                 set ::KMProps::selGroup "[$T item text $item 0]"
 
                 set entityList [split [::xmlutils::setXml $fullname GiDEntity] ","]
-                #set filterGroups [::KMProps::getGroups $entityList $fullname]
-                if {[kipt::NewGiDGroups]} {
+               
+		# Get the group list               
                     set filterGroups [GiD_Groups list]
-                } else {
-                    set filterGroups [Cond_Groups list]
-                }
-                #msg "lleggo a  filterGroups = $filterGroups"
                 grid [ttk::label $fTab.lblName -text "[= Group:]" ] \
                 -row 0 -column 0 -pady 5 -sticky nw -in $fTab
 

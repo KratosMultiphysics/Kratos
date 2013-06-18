@@ -12,6 +12,7 @@
 #
 #  HISTORY:
 # 
+#   0.7- 18/06/13- G. Socorro, delete the use of the proc kipt::NewGiDGroups (delete the call to the compass groups => Cond_Groups)
 #   0.6- 12/02/12-G. Socorro, modify the link to the GiD group window to use ::WinUtils::OpenGiDGroupTab
 #   0.5- 10/10/12-J. Garate, Adaptation for New GiD Groups, Autogroup Frame Bug Corrected when assigning entities
 #   0.4- 01/10/12-J. Garate, Deleting group function corrected
@@ -29,12 +30,7 @@
 
 proc ::KMProps::changeGroups { entityList f {fullname ""} } {
     
-    if {[kipt::NewGiDGroups]} {
         set valores [GiD_Groups list]
-    } else {
-        set valores [Cond_Groups list]
-    }
-    #set valores [::KMProps::getGroups $entityList $fullname]
     $f configure -values $valores
     
     if { !($::KMProps::selGroup in $valores) } {
@@ -48,14 +44,8 @@ proc ::KMProps::changeGroups { entityList f {fullname ""} } {
 
 proc ::KMProps::cmbChangeCheckGroups { f } {
 
-    global KPriv
-    #msg "entro a cambio de grupos"
     if { [winfo exists $f.cGroups] } {
-        if {[kipt::NewGiDGroups]} {
             set Groups [GiD_Groups list]
-        } else {
-            set Groups [Cond_Groups list]
-        }
         
         if { [llength $Groups] } {
             
@@ -97,11 +87,7 @@ proc ::KMProps::getGroups { entityList {fullname ""}} {
     }
     
     set grupos {}
-    if {[kipt::NewGiDGroups]} {
         set grw "GiD_Groups"
-    } else {
-        set grw "Cond_Groups"
-    }
     foreach groupId [$grw list] {
         foreach entity $entityList {
             if { [::KEGroups::getGroupGiDEntities $groupId $entity "hasEntities"] } {
@@ -136,11 +122,7 @@ proc ::KMProps::autoNewGroup { id fpath } {
     set selGroup $GroupId 
     
     # Create the new group
-    if {[kipt::NewGiDGroups]} {
         GiD_Groups create $GroupId
-    } else {
-        Cond_Groups create $GroupId
-    }
     # Selection the entities to be assigned
     ::KEGroups::SelectionAssign $::KMProps::selectedEntity $GroupId $fpath
     
@@ -270,12 +252,8 @@ proc ::KMProps::acceptGroups { T idTemplate fullname item listT entityList fGrou
             
             $T selection add $item
             $T item expand $item
-            if {[kipt::NewGiDGroups]} {
 		# Open the new group tab
 		::WinUtils::OpenGiDGroupTab
-	    } else {
-		Cond_Groups window open
-            }
         }
     }
 }
