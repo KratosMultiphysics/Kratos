@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.3- 17/06/13- GSM, delete the proc DeleteAllGroupIdentifier
 #     1.2- 22/10/12- J.Garate, Support for new GiD Groups
 #     1.1- 26/09/12- J.Garate, update Parsing function to allow spacing when renaming
 #     1.0- 20/07/12-GSM, update the proc ElemenDosListas and rename it to TwoListRepeatedItems
@@ -33,19 +34,6 @@ namespace eval ::KUtils:: {
  
 }
 
-proc ::KUtils::DeleteAllGroupIdentifier { } {
-    #msg [kipt::NewGiDGroups]
-    if {[kipt::NewGiDGroups]} {
-        set grw "GiD_Groups"
-    } else {
-        set grw "Cond_Groups"
-        foreach groupid [$grw list] {
-             #wa "que groupid:$groupid"
-            $grw delete $groupid
-        }
-    }
-    
-}
 
 proc ::KUtils::CreateTBEFiles {} {
     
