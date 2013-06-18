@@ -67,6 +67,7 @@ namespace Kratos
           mRealMass                 = mass;          
           mSqrtOfRealMass           = sqrt_of_mass;
           mMomentOfInertia          = moment_of_inertia;
+          mRestitCoeff              = exp(mLnOfRestitCoeff);
 
           CustomInitialize();
 
@@ -308,12 +309,12 @@ namespace Kratos
 
               // ROLLING FRICTION
 
-              if (mRotationDampType == 2){  //Rolling friccion type
-                  double rolling_friction_coeff             = mRollingFriction * mRadius;
+              if (mRotationDampType == 2){  // rolling friccion type
+                  double rolling_friction_coeff            = mRollingFriction * mRadius;
                   double equiv_rolling_friction_coeff;
 
                   if (mUniformMaterialOption){
-                      equiv_rolling_friction_coeff          = rolling_friction_coeff;
+                      equiv_rolling_friction_coeff         = rolling_friction_coeff;
                   }
 
                   else {
@@ -504,7 +505,7 @@ namespace Kratos
 
               }
 
-              if (isinf(equiv_ln_of_restit_coeff) || isnan(equiv_ln_of_restit_coeff)){
+              if (mRestitCoeff > 0.0){
                   equiv_visco_damp_coeff_normal     = 2 * sqrt(equiv_mass * kn);
                   equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(equiv_mass * kt);
               }
@@ -677,7 +678,7 @@ namespace Kratos
                  }
                  double aux_norm_to_tang = sqrt(kt / kn);
 
-                  if (isinf(mLnOfRestitCoeff) || isnan(mLnOfRestitCoeff)){
+                 if (mRestitCoeff > 0.0){
                      visco_damp_coeff_normal     = - (2 * mLnOfRestitCoeff * sqrt(mRealMass * kn)) / sqrt((mLnOfRestitCoeff * mLnOfRestitCoeff) + (M_PI * M_PI));
                      visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(restitution_coeff) * sqrt(mass * kt)) / (sqrt((log(restitution_coeff) * log(restitution_coeff)) + (M_PI * M_PI)));
                  }
