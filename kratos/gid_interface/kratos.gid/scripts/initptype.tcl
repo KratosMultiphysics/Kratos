@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.2-18/06/13-G. Socorro, delete the proc kipt::NewGiDGroups
 #     1.1-22/10/12-J. Garate, Support for new GiD Groups
 #     1.0-08/10/12-J. Garate, Enable/disable kipt::NewGiDGroups
 #     0.9-01/10/12-J. Garate, Enable/disable Curves Module
@@ -159,18 +160,6 @@ proc kipt::FreePType {} {
     
     # Postprocess 
     
-    # Set the delete group variable to 0 => Not delete group identifier from the properties tree
-    set KPriv(Groups,DeleteGroup) 0
-
-    # Delete all group identifier
-    ::KUtils::DeleteAllGroupIdentifier
-  
-    # Close all group window
-    Cond_Groups window close
-    
-    if {[kipt::NewGiDGroups]} {
-        GiD_Groups window close
-    }
 
     # Limpiar los objetos tDom si aun existían
     catch { [$KPriv(xml) delete] }
@@ -181,8 +170,6 @@ proc kipt::FreePType {} {
         $KPriv(xmlDoc) delete
     }
     
-    # Set the delete group variable to 1 => delete group identifier from the properties tree
-    set KPriv(Groups,DeleteGroup) 1
     
     if { [info exists KPriv(xml) ] } { 
         unset KPriv(xml)
@@ -382,12 +369,3 @@ proc kipt::CurvesModule { } {
     return 0
 }
 
-proc kipt::NewGiDGroups { } {
-    global KPriv
-    
-    if { [info exists KPriv(NewGiDGroups)] } {
-        # msg $KPriv(NewGiDGroups)
-        return $KPriv(NewGiDGroups)
-    } 
-    return 0
-}
