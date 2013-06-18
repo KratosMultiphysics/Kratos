@@ -12,6 +12,9 @@
 #
 #    HISTORY: 
 # 
+#     3.6- 18/06/13-G. Socorro, delete the global variable KPriv(NewGiDGroups)
+#     3.5- 17/06/13- G. Socorro, modify the proc BeforeMeshGeneration to delete the old Compass condition
+#     3.4- 14/06/13- G. Socorro, modify the procs CheckRequiredGiDVersion
 #     3.3- 18/06/13- A. Melendo, simplify the proc BeforeMeshGeneration to write conditional data condition in all applications
 #     3.2- 19/04/13- G. Socorro, modify the proc BeforeMeshGeneration to write conditional data condition in the fluid application
 #     3.1- 26/11/12- J. Garate,  BeforeMeshGeneration modified, support PFEM Application
@@ -61,16 +64,6 @@ proc ReadSomePTData {dir} {
     $doc delete
 }
 
-proc CheckRequiredGiDVersion {VersionRequired} {
-    
-    set comp -1
-    catch { 
-	set comp [::GidUtils::VersionCmp $VersionRequired]
-    }
-    if { $comp < 0 } {
-	msg "Error: This interface requires GiD $VersionRequired or later"
-    }
-}
 
 proc UnsetGlobalVars {} {
 	
@@ -84,18 +77,29 @@ proc UnsetGlobalVars {} {
     }
 }
 
+proc CheckRequiredGiDVersion {VersionRequired} {
+    set ok 1
+   
+    set comp -1
+    catch { 
+	set comp [::GidUtils::VersionCmp $VersionRequired]
+    }
+    if { $comp < 0 } {
+	WarnWin [= "Error: This interface requires GiD %s or later" $VersionRequired].
+	set ok 0
+    }
+    return $ok
+}
+
 proc LoadGIDProject {filename} {
-    #msgS "Load"
     ::kfiles::LoadSPD $filename
 }
 
 proc SaveGIDProject {filename} {
-    # msg "saveGIDProject"
     ::kfiles::SaveSPD $filename
 }
 
 proc AfterTransformProblemType { file oldproblemtype newproblemtype } {
-	#WarnWin 1
 	set name [lindex [split $file "/"] end]
 	#msg "${file}/${name}.spd"
 	::kfiles::LoadSPD "${file}.gid/${name}.spd"
@@ -123,8 +127,6 @@ proc BeforeTransformProblemType { file oldproblemtype newproblemtype } {
 }
 
 proc InitGIDProject { dir } {
-	#msgS "InitPType"
-    global GidPriv
     global KData KPriv
     global VersionNumber ProgramName MinimumGiDVersion
 
@@ -137,7 +139,10 @@ proc InitGIDProject { dir } {
     # WarnWinText "VersionNumber:$VersionNumber ProgramName:$ProgramName MinimumGiDVersion:$MinimumGiDVersion"
     # Check the required GiD version
     set VersionRequired "$MinimumGiDVersion"
-    CheckRequiredGiDVersion $VersionRequired
+    set isvalidversion [CheckRequiredGiDVersion $VersionRequired]
+    if {!$isvalidversion} {
+	# return ""
+    }
     
     # Init packages
     SRC gid_groups_public.tcl
@@ -146,15 +151,6 @@ proc InitGIDProject { dir } {
     # For activating the Curves Module [Disabled -> 0 | Enabled -> 1]
     set KPriv(CurvesModule) 0
     
-    # For activating the new GiD Groups Module [Old Groups -> 0 | New Groups -> 1]
-    set KPriv(NewGiDGroups) 0
-    set VersionRequired "11.1.2"
-    #set VersionRequired "11.1.2d" -count -elemtype .bas
-    set comp [GiDVersionCmp $VersionRequired]
-    
-    if { $comp > 0 } {
-	set KPriv(NewGiDGroups) 1
-    }
 
     
     # For release/debug options [Release =>1|Debug => 0]
@@ -189,9 +185,7 @@ proc InitGIDProject { dir } {
 proc EndGIDProject {} {
 
     # Free problem type
-    #msgS "preFree"
     ::kipt::FreePType
-    #msgS "postFree"
 }
 
 proc BeforeWriteCalcFileGIDProject { file } {
@@ -413,18 +407,6 @@ proc KLoadTBEFiles {dir} {
     }
 } 
 
-## if { [GiD_Info GiDVersion] == "11.0.1" || [GiD_Info GiDVersion] == "11.0" } {
- #     proc AfterCreateGroup { name } {
- #         return [::AfterCreateCondGroup $name]
- #     }
- #     proc AfterRenameGroup { oldname newname } {
- #         return [::AfterRenameCondGroup $oldname $newname]
- #     }
- #     proc BeforeDeleteGroup { del_group } { 
- #         return [::BeforeDeleteCondGroup $del_group]
- #     }
- # }  
- ##
  
  proc BeforeDeleteCondGroup { name } {
     # Válida para los grupos antiguos de GiD_Cond
