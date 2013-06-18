@@ -100,9 +100,10 @@ def Transfer1D_to_3D( model_part_1d, model_part_3d, inlet_nodes_1d, inlet_nodes_
       beta = outlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS) * outlet_nodes_1d[0].GetSolutionStepValue(THICKNESS) * math.sqrt(math.pi)
       A= outlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA)
       A0 = outlet_nodes_1d[0].GetValue(NODAL_AREA)
+      #print "in Transfer1D_to_3D",A0
       press = math.sqrt(A/A0)*beta - beta
       #Edu
-      press = beta/A0*(math.sqrt(A) - math.sqrt(A0) )
+      #press = beta/A0*(math.sqrt(A) - math.sqrt(A0) )
       print "in Transfer1D_to_3D",press      
       
       for node in outlet_nodes_3d:
@@ -125,7 +126,7 @@ def Transfer3D_to_1D( model_part_1d, model_part_3d, inlet_nodes_1d, inlet_nodes_
       A = area3d*(avg_press/beta + 1)**2
       
       #Edu
-      A = (avg_press*A0/beta + math.sqrt(A0) )**2
+      #A = (avg_press*A0/beta + math.sqrt(A0) )**2
       print "in Transfer3D_to_1D",A  
       
       
@@ -144,10 +145,10 @@ def Transfer3D_to_1D( model_part_1d, model_part_3d, inlet_nodes_1d, inlet_nodes_
 	flow += normal[0]*vel[0] + normal[1]*vel[1] + normal[2]*vel[2]
 	
       #print "flow = ",flow
-      Edu
+      #Edu
       print "sin Riemman", flow	
-      flow=2*flow-outlet_nodes_1d[0].GetSolutionStepValue(FLOW, 1)	
-      print "con Riemman",flow
+      #flow=2*flow-outlet_nodes_1d[0].GetSolutionStepValue(FLOW, 1)	
+      #print "con Riemman",flow
       
       
 	

@@ -120,11 +120,7 @@ void Artery12Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
             const double coriolis_coefficient = 1.1;
             //const double kr_coefficient = 1.0;
             //const double kinematic_viscosity = dynamic_viscosity/density;
-
-
-
-            //const int kk =GetProperties().Id();
-            //KRATOS_WATCH(kk);
+	    
 
             //resize the vector to the correct size
             if (rRightHandSideVector.size() != 6)

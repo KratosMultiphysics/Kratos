@@ -117,7 +117,23 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
     // To be removed!!!!!!!!!!!!! Pooyan.
     //h_int = 0.001;
     //mL = 0.001;
-
+    
+    	    const double A0_actual = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
+	    const double A1_actual = GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA);
+	    
+	    //check the AREA of the model
+	    if((A0_actual == 0.00) || (A1_actual== 0.00))
+	        KRATOS_WATCH(A0_actual);
+		//KRATOS_WATCH(i_element->GetGeometry()[0]);
+	     
+	     if((A0_actual == 0.00) || (A1_actual== 0.00))
+		KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, Please check your model or boundary conditions used", "");
+            //const int kk =GetProperties().Id();
+	    //KRATOS_WATCH("-----------------")
+            //KRATOS_WATCH(A0_actual);
+    
+    
+    
     //get data as needed
     const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
     const double density = GetProperties()[DENSITY];
@@ -151,7 +167,7 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
     for (unsigned int i=0; i<2; i++)
     {
         const double& A = GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA);
-        const double C = beta*sqrt(A*A*A)/(3.0*density*GetGeometry()[i].GetValue(NODAL_AREA) );
+        const double C = beta*sqrt(A*A*A)/(3.0*density*GetGeometry()[i].GetValue(NODAL_AREA));
         //KRATOS_WATCH(C);
         //KRATOS_WATCH(beta);
         //KRATOS_WATCH(mL);
@@ -163,7 +179,7 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
 //       }
 
         Fj[i][0] = flow;
-        Fj[i][1] = C + coriolis_coefficient*flow*flow/(A);
+        Fj[i][1] = C + ((coriolis_coefficient*flow*flow)/A);
 
         Sj[i][0] = 0.0;
         Sj[i][1] = -kr_coefficient*flow/(A);
@@ -179,9 +195,10 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
         Suj[i](0,1) = 0.0;
         Suj[i](1,0)   = kr_coefficient*flow/(A*A);;
         Suj[i](1,1) = -kr_coefficient/A;
-//KRATOS_WATCH(Suj[i]);
+//KRATOS_WATCH(Suj[i]);	
     }
 
+    
     array_1d<double,2> Fder;
     Fder[0] = (Fj[1][0] - Fj[0][0]) / mL;
     Fder[1] = (Fj[1][1] - Fj[0][1]) / mL;
@@ -304,8 +321,10 @@ void ArteryElement::Initialize()
     const double H0 = GetProperties()[THICKNESS];
     const double E = GetProperties()[YOUNG_MODULUS];
     const double nu = GetProperties()[POISSON_RATIO];
-    const double pressure = GetProperties()[PRESSURE];    
-
+    const double pressure = GetProperties()[PRESSURE];
+    
+    double beta=E*H0*1.77245385/(1.0-nu*nu);
+    
     //compute the lenght of the element
     array_1d<double,3> lvec = GetGeometry()[1].Coordinates();
     lvec -= GetGeometry()[0].Coordinates();
@@ -320,8 +339,10 @@ void ArteryElement::Initialize()
     GetGeometry()[0].FastGetSolutionStepValue(THICKNESS) = H0;
     GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS) = E;
     GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO) = nu;
-    GetGeometry()[0].FastGetSolutionStepValue(PRESSURE) = pressure;
-    GetGeometry()[0].GetValue(NODAL_AREA) = A0[0]; //here we store the initial area
+    GetGeometry()[0].FastGetSolutionStepValue(BETA) = beta;
+    GetGeometry()[0].FastGetSolutionStepValue(PRESSURE) = pressure;    
+    GetGeometry()[0].GetValue(NODAL_AREA) = A0[0];//here we store the initial area    
+    GetGeometry()[0].GetValue(PRESSURE) = pressure;//here we store the initial area    
     GetGeometry()[0].UnSetLock();
 
     GetGeometry()[1].SetLock();
@@ -332,7 +353,9 @@ void ArteryElement::Initialize()
     GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS) = E;
     GetGeometry()[1].FastGetSolutionStepValue(POISSON_RATIO) = nu;
     GetGeometry()[1].FastGetSolutionStepValue(PRESSURE) = pressure;
+    GetGeometry()[1].FastGetSolutionStepValue(BETA) = beta;
     GetGeometry()[1].GetValue(NODAL_AREA) = A0[1]; //here we store the initial area
+    GetGeometry()[1].GetValue(PRESSURE) = pressure;//here we store the initial area    
     GetGeometry()[1].UnSetLock();
 
      //const double kk= GetGeometry()[0].FastGetSolutionStepValue(FLOW);

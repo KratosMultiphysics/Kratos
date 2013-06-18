@@ -45,6 +45,9 @@ model_part_io_fluid.ReadModelPart(fluid_model_part)
 #setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 fluid_model_part.SetBufferSize(2)
 
+#import removal_tool
+#removal_tool.DoRemoval(model_part1D)
+
 #for element in fluid_model_part.Elements:
  #properties = element.Properties
  #print properties.Id

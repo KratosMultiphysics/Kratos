@@ -104,6 +104,8 @@ namespace Python
     .def("Initialize", &ArteryTimeIntegrator::Initialize)
     .def("SolveStep", &ArteryTimeIntegrator::SolveStep)
     .def("EstimateDeltaTime", &ArteryTimeIntegrator::EstimateDeltaTime)
+    .def("Element_minLength", &ArteryTimeIntegrator::Element_minLength)
+    .def("ComputePressure", &ArteryTimeIntegrator::ComputePressure)    
     ;
     
     def("CreateNewCondition",CreateNewCondition1node);

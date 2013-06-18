@@ -149,8 +149,8 @@ void ArteryOutletCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
     const double flow1 =  (par1*(sqrt(A)-sqrt(initial_area))+p_init)*(1/terminal_resistence); // NOTE: HERE we have to put the corrected value
     const double flow2 =  GetGeometry()[0].FastGetSolutionStepValue(FLOW);
     
-    const double flow = 2* flow1 - flow2;
-    
+    //const double flow = 2* flow1 - flow2;
+    const double flow = flow1;
 
     //KRATOS_WATCH(flow)
     //KRATOS_WATCH(A)
