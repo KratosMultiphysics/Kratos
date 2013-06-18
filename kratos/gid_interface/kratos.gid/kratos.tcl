@@ -12,6 +12,7 @@
 #
 #    HISTORY: 
 # 
+#     3.3- 18/06/13- A. Melendo, simplify the proc BeforeMeshGeneration to write conditional data condition in all applications
 #     3.2- 19/04/13- G. Socorro, modify the proc BeforeMeshGeneration to write conditional data condition in the fluid application
 #     3.1- 26/11/12- J. Garate,  BeforeMeshGeneration modified, support PFEM Application
 #     3.0- 12/11/12- J. Garate, Minor Fixing
@@ -64,10 +65,10 @@ proc CheckRequiredGiDVersion {VersionRequired} {
     
     set comp -1
     catch { 
-        set comp [::GidUtils::VersionCmp $VersionRequired]
+	set comp [::GidUtils::VersionCmp $VersionRequired]
     }
     if { $comp < 0 } {
-        msg "Error: This interface requires GiD $VersionRequired or later"
+	msg "Error: This interface requires GiD $VersionRequired or later"
     }
 }
 
@@ -77,9 +78,9 @@ proc UnsetGlobalVars {} {
     global VersionNumber ProgramName
 
     foreach arrid [list KData KPriv VersionNumber ProgramName MinimumGiDVersion] {
-        if {[info exists $arrid]} {
-            unset $arrid
-        }
+	if {[info exists $arrid]} {
+	    unset $arrid
+	}
     }
 }
 
@@ -152,7 +153,7 @@ proc InitGIDProject { dir } {
     set comp [GiDVersionCmp $VersionRequired]
     
     if { $comp > 0 } {
-        set KPriv(NewGiDGroups) 1
+	set KPriv(NewGiDGroups) 1
     }
 
     
@@ -208,9 +209,9 @@ proc AfterWriteCalcFileGIDProject {filename errorflag } {
     # Try to write the Kratos input data file
     set err [catch { ::wkcf::WriteCalculationFiles $filename} ret]
     if { $err } {
-        snit_messageBox -parent .gid -message \
-            [= "Error when preparing data for analysis (%s)" $ret]
-        return "-cancel-"
+	snit_messageBox -parent .gid -message \
+	    [= "Error when preparing data for analysis (%s)" $ret]
+	return "-cancel-"
     }
     return $ret
 }
@@ -232,214 +233,88 @@ proc wa {mesage} {
 
 proc BeforeMeshGeneration {elementsize} { 
     global KPriv
-   
+    
+    ::GidUtils::DisableGraphics
+
+    
     set ndime "3D"
     # Get the spatial dimension
     set cxpath "GeneralApplicationData//c.Domain//i.SpatialDimension"
     set cproperty "dv"
     catch { set ndime [::xmlutils::setXml $cxpath $cproperty] }
+ 
+   
+    # Reset Automatic Conditions from previous executions
+    GiD_Process Mescape Meshing MeshCriteria DefaultMesh Lines 1:end
+    GiD_Process Mescape Meshing MeshCriteria DefaultMesh Surfaces 1:end escape
+    #end common
     
-    # Get application type
-  
-    # Fuild application
-    set cxpath "GeneralApplicationData//c.ApplicationTypes//i.Fluid"
-    set cproperty "dv"
-    set FluidApplication [::xmlutils::setXml $cxpath $cproperty]
-
-    # Create a new variable to control when apply the conditional data conditions
-    set useconditionaldata "0"
-
-    if {$FluidApplication eq "Yes"} {
-        #set cxpath "Kratos_Data//c.Fluid//c.AnalysisData//i.FluidApproach"
-        set root "/Kratos_Data/RootData\[@id='Fluid'\]/Container\[@id='AnalysisData'\]/Item\[@id='FluidApproach'\]"
-        set FluidApproachnod [$KPriv(xml) selectNodes $root]
-        set FluidApproach [$FluidApproachnod getAttribute dv ""]
-        # msg "FluidApproach $FluidApproach"
-
-	# Enable conditional data conditions in the fluid application
-	set useconditionaldata "1"
-	# Check if IS-SLIP condition is active
-	set UseCheckIsSlipCondition 0
-	# Check if IS-WALL condition is active
-	set UseCheckIsWallCondition 0
-
-        if {$ndime =="2D"} {
-            
-            # Align the normal
-            ::wkcf::AlignLineNormals Outwards 
-            
-            # Reset Automatic Conditions from previous executions 
-            set entitytype "line"
-
-            if {[kipt::NewGiDGroups]} {
-                # Automatic Kratos Group for Boundary Condition
-                set groupid "-AKGSkinMesh2D"
-                ::wkcf::CleanAutomaticConditionGroupGiD $entitytype $groupid
-            } else {
-                # Reset Automatic Conditions from previous executions 
-                set what "UseAllWhereField"
-                set groupid "-@kratos@b2d"
-                # Old groups
-                set fieldname "groupid"
-                ::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
-                # New groups
-                set fieldname "name"
-                ::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
-            }
-            # msg "FluidApproach : $FluidApproach"
-            if {$FluidApproach eq "Eulerian"} {
-		  
-		# Check for use Is-Slip BC
-		if {$UseCheckIsSlipCondition} {
-		    set issliplist [::KMValid::SlipNoSlipList "slip"]
-		    set issliplistlen [llength $issliplist]
-		    if {!$issliplistlen} {
-			# Disable write conditional data conditions
-			set useconditionaldata 0
-		    }
-		}
-		if {$useconditionaldata} {
-                    # Find boundaries
-                    set blinelist [::wkcf::FindBoundaries $entitytype]
-                    # wa "belist:$blinelist"
-                    
-		    # Automatically meshing all the boundary lines
-                    GiD_Process Mescape Meshing MeshCriteria Mesh Lines {*}$blinelist escape 
-                    
-                    # Assign the boundary condition
-                    if {[kipt::NewGiDGroups]} {
-                        ::wkcf::AssignConditionToGroupGID $entitytype $blinelist $groupid
-                    } else {
-                        ::wkcf::AssignConditionToGroup $entitytype $blinelist $groupid
-                    }
-                }
-            } elseif {$FluidApproach eq "PFEM-Lagrangian"} {
-
-		# Check is wall condition
-		if {$UseCheckIsWallCondition} {
-		    set iswall [::KMValid::isWall "2D"]
-		    set iswalllen [llength $iswall]
-		    if {!$iswalllen} {
-			# Disable write conditional data conditions
-			set useconditionaldata 0
-		    }
-		}
-		
-		if {$useconditionaldata} {
-		    
-		    set blinelist [::wkcf::FindBoundaries $entitytype]
-		    # msgS "blinelist : $blinelist"
-                    GiD_Process Mescape Meshing MeshCriteria Mesh Lines {*}$blinelist escape 
-                    # Assign the boundary condition
-                    if {[kipt::NewGiDGroups]} {
-                        ::wkcf::AssignConditionToGroupGID $entitytype $blinelist $groupid
-                    } else {
-                        ::wkcf::AssignConditionToGroup $entitytype $blinelist $groupid
-                    }
-                }
-            }
-
-        } elseif {$ndime =="3D"} {
-            
-            # Align the normal
-            ::wkcf::AlignSurfNormals Outwards
-            
-            # Reset Automatic Conditions from previous executions 
-            set entitytype "surface"
-
-            if {[kipt::NewGiDGroups]} {
-                # Automatic Kratos Group for Boundary Condition
-                set groupid "-AKGSkinMesh3D"
-                ::wkcf::CleanAutomaticConditionGroupGiD $entitytype $groupid
-            } else {
-                # Reset Automatic Conditions from previous executions 
-                set what "UseAllWhereField"
-                set groupid "-@kratos@b3d"
-                # Old groups
-                set fieldname "groupid"
-                ::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
-                # New groups
-                set fieldname "name"
-                ::wkcf::CleanAutomaticConditionGroup $what $entitytype $fieldname $groupid
-            }
-            
-            if { $FluidApproach eq "Eulerian"} {
-
-		# Check for use Is-Slip BC
-		if {$UseCheckIsSlipCondition} {
-		    set issliplist [::KMValid::SlipNoSlipList "slip"]
-		    set issliplistlen [llength $issliplist]
-		    if {!$issliplistlen} {
-			# Disable write conditional data conditions
-			set useconditionaldata 0
-		    }
-		}
-
-		if {$useconditionaldata} {
-		    
+	if {$ndime =="2D"} {
+	    
+	    # Align the normal
+	    ::wkcf::AlignLineNormals Outwards 
+	    
+	    # Reset Automatic Conditions from previous executions 
+	    set entitytype "line"
+	    
+	   
+		# Automatic Kratos Group for Boundary Condition
+		set groupid "-AKGSkinMesh2D"
+		::wkcf::CleanAutomaticConditionGroupGiD $entitytype $groupid
+	 
+	 
 		    # Find boundaries
-                    set bsurfacelist [::wkcf::FindBoundaries $entitytype]
-                    # WarnWinText "bsurfacelist:$bsurfacelist"
-                    
-                    # Assign the triangle element type
-                    GiD_Process Mescape Meshing ElemType Triangle $bsurfacelist escape 
+		    set blinelist [::wkcf::FindBoundaries $entitytype]
+		    # wa "belist:$blinelist"
 		    
-                    # Automatically meshing all the boundary surfaces
-                    GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces {*}$bsurfacelist escape 
+		    # Automatically meshing all the boundary lines
+		    GiD_Process Mescape Meshing MeshCriteria Mesh Lines {*}$blinelist escape 
 		    
-                    if {[kipt::NewGiDGroups]} {
-                        ::wkcf::AssignConditionToGroupGID $entitytype $bsurfacelist $groupid
-                    } else {
-                        # Assign the boundary condition
-                        ::wkcf::AssignConditionToGroup $entitytype $bsurfacelist $groupid
-                    }
-                }
-            } elseif {$FluidApproach eq "PFEM-Lagrangian"} {
+		    # Assign the boundary condition
+		    ::wkcf::AssignConditionToGroupGID $entitytype $blinelist $groupid
 
-		# Check is wall condition
-		if {$UseCheckIsWallCondition} {
-		    set iswall [::KMValid::isWall "3D"]
-		    set iswalllen [llength $iswall]
-		    if {!$iswalllen} {
-			# Disable write conditional data conditions
-			set useconditionaldata 0
-		    }
-		}
-		
-		if {$useconditionaldata} {
-                    # Find boundaries
-                    set bsurfacelist [::wkcf::FindBoundaries $entitytype]
-                    # WarnWinText "bsurfacelist:$bsurfacelist"
-                    
-                    # Assign the triangle element type
-                    GiD_Process Mescape Meshing ElemType Triangle $bsurfacelist escape 
-                
-                    # Automatically meshing all the boundary surfaces
-                    GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces {*}$bsurfacelist escape 
+	    
+	} elseif {$ndime =="3D"} {
+	    
+	    # Align the normal
+	    ::wkcf::AlignSurfNormals Outwards
+	    
+	    # Reset Automatic Conditions from previous executions 
+	    set entitytype "surface"
+	    
+      # Automatic Kratos Group for Boundary Condition
+      set groupid "-AKGSkinMesh3D"
+      ::wkcf::CleanAutomaticConditionGroupGiD $entitytype $groupid
 
-                    if {[kipt::NewGiDGroups]} {
-                        ::wkcf::AssignConditionToGroupGID $entitytype $bsurfacelist $groupid
-                    } else {
-                        # Assign the boundary condition
-                        ::wkcf::AssignConditionToGroup $entitytype $bsurfacelist $groupid
-                    }
-                }
-            }
-        }
+		    # Find boundaries
+		    set bsurfacelist [::wkcf::FindBoundaries $entitytype]
+		    # WarnWinText "bsurfacelist:$bsurfacelist"
+		    
+		    # Assign the triangle element type
+		    GiD_Process Mescape Meshing ElemType Triangle $bsurfacelist escape 
+		    
+		    # Automatically meshing all the boundary surfaces
+		    GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces {*}$bsurfacelist escape 
+		    
+		    ::wkcf::AssignConditionToGroupGID $entitytype $bsurfacelist $groupid
+
     }
+    
+    ::GidUtils::EnableGraphics
+    
 }
 
 proc InitGIDPostProcess {} { 
 
     set ::KMProps::RestoreWinFromPost 0
     if {[info exists ::KMProps::Layout]} {
-        if {($::KMProps::Layout eq "INSIDE_LEFT") ||($::KMProps::Layout eq "INSIDE_RIGHT")} {
-            set w ".gid.kmprops" 
-            if {[winfo exists $w]} {
-            destroy $w
-            set ::KMProps::RestoreWinFromPost 1
-            }
-    	}
+	if {($::KMProps::Layout eq "INSIDE_LEFT") ||($::KMProps::Layout eq "INSIDE_RIGHT")} {
+	    set w ".gid.kmprops" 
+	    if {[winfo exists $w]} {
+	    destroy $w
+	    set ::KMProps::RestoreWinFromPost 1
+	    }
+	    }
     }
 
     # Get application type
@@ -467,15 +342,15 @@ proc InitGIDPostProcess {} {
 	# Get the result type
 	set cprop "GiDMultiFileFlag"
 	set cxpath "$appid//c.Results//c.GiDOptions//i.${cprop}"
-     	set cproperty "dv"
-     	set rtype [::xmlutils::setXml $cxpath $cproperty]
+	     set cproperty "dv"
+	     set rtype [::xmlutils::setXml $cxpath $cproperty]
 	# WarnWinText "rtype:$rtype"
 	
 	# Get the GiD post mode
 	set cprop "GiDPostMode"
 	set cxpath "$appid//c.Results//c.GiDOptions//i.${cprop}"
-     	set cproperty "dv"
-     	set pmode [::xmlutils::setXml $cxpath $cproperty]
+	     set cproperty "dv"
+	     set pmode [::xmlutils::setXml $cxpath $cproperty]
 	# WarnWinText "pmode:$pmode"
 
 	set existfiles [::KUtils::ReadResultsFromFiles $appid $rtype $pmode "CheckRFiles"]
@@ -507,24 +382,24 @@ proc KLoadTBEFiles {dir} {
 		foreach tbe_level1 $tbelist {
 		    # WarnWinText "Current tbe_level1:$tbe_level1"
 		    if {[file isdirectory $tbe_level1]} {
-			cd $tbe_level1
-			set tbe_l2list ""
-			catch { set tbe_l2list [glob *] }
-			# WarnWinText "tbe_l2list:$tbe_l2list"
-			if {[llength $tbe_l2list]} {
-			    foreach tbe_level2 $tbe_l2list {
-				if {[file extension $tbe_level2]==".tbe"} {
-				    # WarnWinText "current l2 tbe_l2list:$tbe_level2"
-				    loadtbefile $tbe_level2		    
-				}
-			    }
-			}
-			cd ..
+		        cd $tbe_level1
+		        set tbe_l2list ""
+		        catch { set tbe_l2list [glob *] }
+		        # WarnWinText "tbe_l2list:$tbe_l2list"
+		        if {[llength $tbe_l2list]} {
+		            foreach tbe_level2 $tbe_l2list {
+		                if {[file extension $tbe_level2]==".tbe"} {
+		                    # WarnWinText "current l2 tbe_l2list:$tbe_level2"
+		                    loadtbefile $tbe_level2                    
+		                }
+		            }
+		        }
+		        cd ..
 		    } else {
-			if {[file extension $tbe_level1]==".tbe"} {
-			    # WarnWinText "current level1:$tbe_level1\n"
-			    loadtbefile $tbe_level1
-			}
+		        if {[file extension $tbe_level1]==".tbe"} {
+		            # WarnWinText "current level1:$tbe_level1\n"
+		            loadtbefile $tbe_level1
+		        }
 		    }
 		}
 	    }
@@ -540,13 +415,13 @@ proc KLoadTBEFiles {dir} {
 
 ## if { [GiD_Info GiDVersion] == "11.0.1" || [GiD_Info GiDVersion] == "11.0" } {
  #     proc AfterCreateGroup { name } {
- # 	return [::AfterCreateCondGroup $name]
+ #         return [::AfterCreateCondGroup $name]
  #     }
  #     proc AfterRenameGroup { oldname newname } {
- # 	return [::AfterRenameCondGroup $oldname $newname]
+ #         return [::AfterRenameCondGroup $oldname $newname]
  #     }
  #     proc BeforeDeleteGroup { del_group } { 
- # 	return [::BeforeDeleteCondGroup $del_group]
+ #         return [::BeforeDeleteCondGroup $del_group]
  #     }
  # }  
  ##
@@ -557,12 +432,12 @@ proc KLoadTBEFiles {dir} {
     set DeleteGroup "Delete" 
     #msg $::KPriv(Groups,DeleteGroup)
     if {[info exists ::KPriv(Groups,DeleteGroup)]} {
-        if {$::KPriv(Groups,DeleteGroup)} {
-            set DeleteGroup [::KEGroups::BorraGrupo $name]
-        } 
+	if {$::KPriv(Groups,DeleteGroup)} {
+	    set DeleteGroup [::KEGroups::BorraGrupo $name]
+	} 
     }
     if { $DeleteGroup eq "-cancel-" } {
-        return $DeleteGroup
+	return $DeleteGroup
     }
  }
   
@@ -573,12 +448,12 @@ proc KLoadTBEFiles {dir} {
     # wa "delete name:$name"
     set DeleteGroup "Delete" 
     if {[info exists ::KPriv(Groups,DeleteGroup)]} {
-        if {$::KPriv(Groups,DeleteGroup)} {
-            set DeleteGroup [::KEGroups::BorraGrupo $name]
-        } 
+	if {$::KPriv(Groups,DeleteGroup)} {
+	    set DeleteGroup [::KEGroups::BorraGrupo $name]
+	} 
     }
     if { $DeleteGroup eq "-cancel-" } {
-        return $DeleteGroup
+	return $DeleteGroup
     }
  }
  
@@ -606,9 +481,9 @@ proc EndGIDPostProcess { } {
     
     # Try to restore the properties window
     if {[info exists ::KMProps::RestoreWinFromPost]} {
-        if {$::KMProps::RestoreWinFromPost} {
-            ::KMProps::StartBaseWindow
-    	}
+	if {$::KMProps::RestoreWinFromPost} {
+	    ::KMProps::StartBaseWindow
+	    }
     }
 }
 
@@ -633,130 +508,130 @@ proc SelectGIDBatFile {directory basename } {
     
     # Structural analyis
     if {$StructuralAnalysis eq "Yes"} {
-        set rootid "StructuralAnalysis"
-        # Kratos key word xpath
-        set kxpath "Applications/$rootid"
-        # Get the parallel solution type
-        set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
-        set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
-        
-        # Solution type
-        set cxpath "$rootid//c.AnalysisData//i.SolutionType"
-        set SolutionType [::xmlutils::setXml $cxpath $cproperty]
-        # wa "SolutionType:$SolutionType"
+	set rootid "StructuralAnalysis"
+	# Kratos key word xpath
+	set kxpath "Applications/$rootid"
+	# Get the parallel solution type
+	set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
+	set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
+	
+	# Solution type
+	set cxpath "$rootid//c.AnalysisData//i.SolutionType"
+	set SolutionType [::xmlutils::setXml $cxpath $cproperty]
+	# wa "SolutionType:$SolutionType"
 
-        if {$ParallelSolutionType eq "MPI"} {
-            if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
-                if {($::tcl_platform(os) eq "Linux")} {
-                    set batfilename "kratos-structuraldynamic-mpi.unix.bat"
-                } else {
-                    # set batfilename "kratos-structuraldynamic-mpi.win.bat"
-                }
-            } elseif {$SolutionType =="Static"} {
-                if {($::tcl_platform(os) eq "Linux")} {
-                    set batfilename "kratos-structuralstatic-mpi.unix.bat"
-                } else {
-                    # set batfilename "kratos-structuralstatic-mpi.win.bat"
-                }
-            }
+	if {$ParallelSolutionType eq "MPI"} {
+	    if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
+		if {($::tcl_platform(os) eq "Linux")} {
+		    set batfilename "kratos-structuraldynamic-mpi.unix.bat"
+		} else {
+		    # set batfilename "kratos-structuraldynamic-mpi.win.bat"
+		}
+	    } elseif {$SolutionType =="Static"} {
+		if {($::tcl_platform(os) eq "Linux")} {
+		    set batfilename "kratos-structuralstatic-mpi.unix.bat"
+		} else {
+		    # set batfilename "kratos-structuralstatic-mpi.win.bat"
+		}
+	    }
 
-            #  Get the number of processors
-            set cxpath "$rootid//c.SolutionStrategy//i.MPINumberOfProcessors"
-            set MPINumberOfProcessors [::xmlutils::setXml $cxpath $cproperty]
-            # wa "MPINumberOfProcessors:$MPINumberOfProcessors"
-            if {$MPINumberOfProcessors>0} {
-                # Calculate arguments
-                set args "$MPINumberOfProcessors"
-            }
-        } else {
-            # OpenMP
-            #  Get the number of threads
-            set cxpath "$rootid//c.SolutionStrategy//i.OpenMPNumberOfThreads"
-            set OpenMPNumberOfThreads [::xmlutils::setXml $cxpath $cproperty]
-            # wa "OpenMPNumberOfThreads:$OpenMPNumberOfThreads"
-            if {$OpenMPNumberOfThreads>0} {
-                # Calculate arguments
-                set args "$OpenMPNumberOfThreads"
-            }
-            if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
-                if {($::tcl_platform(os) eq "Linux")} {
-                    set batfilename "kratos-structuraldynamic-openmp.unix.bat"
-                } else {
-                    set batfilename "kratos-structuraldynamic-openmp.win.bat"
-                }
-            } elseif {$SolutionType =="Static"} {
-                if {($::tcl_platform(os) eq "Linux")} {
-                    set batfilename "kratos-structuralstatic-openmp.unix.bat"
-                } else {
-                    set batfilename "kratos-structuralstatic-openmp.win.bat"
-                }
-            }
-        }
+	    #  Get the number of processors
+	    set cxpath "$rootid//c.SolutionStrategy//i.MPINumberOfProcessors"
+	    set MPINumberOfProcessors [::xmlutils::setXml $cxpath $cproperty]
+	    # wa "MPINumberOfProcessors:$MPINumberOfProcessors"
+	    if {$MPINumberOfProcessors>0} {
+		# Calculate arguments
+		set args "$MPINumberOfProcessors"
+	    }
+	} else {
+	    # OpenMP
+	    #  Get the number of threads
+	    set cxpath "$rootid//c.SolutionStrategy//i.OpenMPNumberOfThreads"
+	    set OpenMPNumberOfThreads [::xmlutils::setXml $cxpath $cproperty]
+	    # wa "OpenMPNumberOfThreads:$OpenMPNumberOfThreads"
+	    if {$OpenMPNumberOfThreads>0} {
+		# Calculate arguments
+		set args "$OpenMPNumberOfThreads"
+	    }
+	    if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
+		if {($::tcl_platform(os) eq "Linux")} {
+		    set batfilename "kratos-structuraldynamic-openmp.unix.bat"
+		} else {
+		    set batfilename "kratos-structuraldynamic-openmp.win.bat"
+		}
+	    } elseif {$SolutionType =="Static"} {
+		if {($::tcl_platform(os) eq "Linux")} {
+		    set batfilename "kratos-structuralstatic-openmp.unix.bat"
+		} else {
+		    set batfilename "kratos-structuralstatic-openmp.win.bat"
+		}
+	    }
+	}
     }
 
     # Fluid application
     if {$FluidApplication eq "Yes"} {
-        set rootid "Fluid"
-        # Kratos key word xpath
-        set kxpath "Applications/$rootid"
-        # Get the parallel solution type
-        set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
-        set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
-        
-        # Free surface
-        set cxpath "$rootid//c.AnalysisData//i.FreeSurface"
-        set FreeSurface [::xmlutils::setXml $cxpath $cproperty]
-        # wa "FreeSurface:$FreeSurface"
+	set rootid "Fluid"
+	# Kratos key word xpath
+	set kxpath "Applications/$rootid"
+	# Get the parallel solution type
+	set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
+	set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
+	
+	# Free surface
+	set cxpath "$rootid//c.AnalysisData//i.FreeSurface"
+	set FreeSurface [::xmlutils::setXml $cxpath $cproperty]
+	# wa "FreeSurface:$FreeSurface"
 
-        # Solver type for free surface
-        set cxpath "$rootid//c.AnalysisData//i.SolverTypeFreeSurf"
-        set SolverTypeFreeSurf [::xmlutils::setXml $cxpath $cproperty]
-        # WarnWinText "SolverTypeFreeSurf:$SolverTypeFreeSurf"
+	# Solver type for free surface
+	set cxpath "$rootid//c.AnalysisData//i.SolverTypeFreeSurf"
+	set SolverTypeFreeSurf [::xmlutils::setXml $cxpath $cproperty]
+	# WarnWinText "SolverTypeFreeSurf:$SolverTypeFreeSurf"
 
-        if {$ParallelSolutionType eq "MPI"} {
-            if {($::tcl_platform(os) eq "Linux")} {
-                set batfilename "kratos-mpi.unix.bat"
-                #  Get the number of processors
-                set cxpath "$rootid//c.SolutionStrategy//i.MPINumberOfProcessors"
-                set MPINumberOfProcessors [::xmlutils::setXml $cxpath $cproperty]
-                # wa "MPINumberOfProcessors:$MPINumberOfProcessors"
-                if {$MPINumberOfProcessors>0} {
-                    # Calculate arguments
-                    set args "$MPINumberOfProcessors"
-                }
-            }
-        } else {
-            # OpenMP
-            #  Get the number of threads
-            set cxpath "$rootid//c.SolutionStrategy//i.OpenMPNumberOfThreads"
-            set OpenMPNumberOfThreads [::xmlutils::setXml $cxpath $cproperty]
-            # wa "OpenMPNumberOfThreads:$OpenMPNumberOfThreads"
-            if {$OpenMPNumberOfThreads>0} {
-                # Calculate arguments
-                set args "$OpenMPNumberOfThreads"
-            }
-            if {($FreeSurface eq "Yes") && ($SolverTypeFreeSurf eq "LevelSet")} {
-                if {($::tcl_platform(os) eq "Linux")} {
-                    set batfilename "kratos-openmplevelset.unix.bat"
-                } else {
-                    set batfilename "kratos-openmplevelset.win.bat"
-                }
-            } else {
-                if {($::tcl_platform(os) eq "Linux")} {
-                    set batfilename "kratos.unix.bat"
-                } else {
-                    set batfilename "kratos.win.bat"
-                }
-            }
-        }
+	if {$ParallelSolutionType eq "MPI"} {
+	    if {($::tcl_platform(os) eq "Linux")} {
+		set batfilename "kratos-mpi.unix.bat"
+		#  Get the number of processors
+		set cxpath "$rootid//c.SolutionStrategy//i.MPINumberOfProcessors"
+		set MPINumberOfProcessors [::xmlutils::setXml $cxpath $cproperty]
+		# wa "MPINumberOfProcessors:$MPINumberOfProcessors"
+		if {$MPINumberOfProcessors>0} {
+		    # Calculate arguments
+		    set args "$MPINumberOfProcessors"
+		}
+	    }
+	} else {
+	    # OpenMP
+	    #  Get the number of threads
+	    set cxpath "$rootid//c.SolutionStrategy//i.OpenMPNumberOfThreads"
+	    set OpenMPNumberOfThreads [::xmlutils::setXml $cxpath $cproperty]
+	    # wa "OpenMPNumberOfThreads:$OpenMPNumberOfThreads"
+	    if {$OpenMPNumberOfThreads>0} {
+		# Calculate arguments
+		set args "$OpenMPNumberOfThreads"
+	    }
+	    if {($FreeSurface eq "Yes") && ($SolverTypeFreeSurf eq "LevelSet")} {
+		if {($::tcl_platform(os) eq "Linux")} {
+		    set batfilename "kratos-openmplevelset.unix.bat"
+		} else {
+		    set batfilename "kratos-openmplevelset.win.bat"
+		}
+	    } else {
+		if {($::tcl_platform(os) eq "Linux")} {
+		    set batfilename "kratos.unix.bat"
+		} else {
+		    set batfilename "kratos.win.bat"
+		}
+	    }
+	}
     }
     
     set ret "$batfilename $args"
     # set ret "$batfilename"
     # wa "\n\nret:$ret" 
     if {$batfilename != ""} {
-        return $ret
+	return $ret
     } else {
-        return ""
+	return ""
     }
 }  
