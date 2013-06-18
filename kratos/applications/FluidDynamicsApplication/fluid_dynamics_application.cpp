@@ -97,7 +97,7 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("FractionalStep2D",mFractionalStep2D);
     KRATOS_REGISTER_ELEMENT("FractionalStep3D",mFractionalStep3D);
     KRATOS_REGISTER_ELEMENT("FractionalStepDiscontinuous2D",mFractionalStepDiscontinuous2D);
-    KRATOS_REGISTER_ELEMENT("FractionalStepDiscontinuousD",mFractionalStepDiscontinuous3D);
+    KRATOS_REGISTER_ELEMENT("FractionalStepDiscontinuous3D",mFractionalStepDiscontinuous3D);
 	
     KRATOS_REGISTER_ELEMENT("SpalartAllmaras2D",mSpalartAllmaras2D);
     KRATOS_REGISTER_ELEMENT("SpalartAllmaras3D",mSpalartAllmaras3D);
