@@ -13,6 +13,7 @@
 #
 #  HISTORY:
 #
+#   0.9- 18/06/13-GSM, delete the use of the proc kipt::NewGiDGroups 
 #   0.8- 06/05/13-G. Socorro, add the option to work with the cross section properties (simple property or database)
 #                             - modify and update some procedures
 #   0.7- 13/12/12- J. Garate, add a message for the "PFEM" fluid case on old versions (11.1.2d)
@@ -542,17 +543,6 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
                     WarnWin "$txt."
                     set fullname [DecodeName [$T item tag names $item]]
                     ::xmlutils::setXml "$fullname" dv "write" "Incompressible"
-                } 
-            } 
-            # PFEM restricted to GiD versions older than 11.1.2d
-            if { $var == "fluidAppr" } {
-                if {$selCombo == "PFEM-Lagrangian" } {
-                    if {![kipt::NewGiDGroups] } {
-                        set txt [= "PFEM is not available in this version.\nYou need the GiD version 11.1.2d or higher."]   
-                        WarnWin "$txt."
-                        set fullname [DecodeName [$T item tag names $item]]
-                        ::xmlutils::setXml "$fullname" dv "write" "Eulerian"
-                    }
                 } 
             } 
         }
