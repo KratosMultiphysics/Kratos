@@ -220,7 +220,6 @@ namespace Kratos
       double mPoisson;
       double mFrictionAngle;
       double mTgOfFrictionAngle;
-      double mRestitCoeff;
       double mLnOfRestitCoeff;
       double mMagicFactor;
       double mGlobalKn;
