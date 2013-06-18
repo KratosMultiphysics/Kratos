@@ -439,14 +439,20 @@ void FractionalStepDiscontinuous<TDim>::CalculateGeometryData(ShapeFunctionDeriv
 				rNContainer.resize(ndivisions,TDim+1,false);
 			rDN_DX.resize(ndivisions);
 			
-			rNContainer = Nenriched;
-			rGaussWeights = volumes;
-
+//KRATOS_WATCH(this->Id())
 			for (unsigned int g = 0; g < ndivisions; g++)
 			{
-				rDN_DX[g] = gauss_gradients[g];
-			
+				for(unsigned int d=0; d<TDim+1; d++)
+				  rNContainer(g,d) = Nenriched(g,d);
+				rGaussWeights[g] = volumes[g];
+				rDN_DX[g] = gauss_gradients[g];			
+/*			KRATOS_WATCH(g)
+			KRATOS_WATCH(rDN_DX[g])
+			KRATOS_WATCH(rGaussWeights[g])*/
 			}
+//			KRATOS_WATCH(rNContainer)
+			
+
 		}
 		else
 		{
