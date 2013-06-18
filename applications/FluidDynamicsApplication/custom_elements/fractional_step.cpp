@@ -1301,7 +1301,7 @@ void FractionalStep<TDim>::ConvectionOperator(Vector& rResult,
 {
     const SizeType NumNodes = this->GetGeometry().PointsNumber();
 
-    if(rResult.size() != NumNodes) rResult.resize(NumNodes);
+    if(rResult.size() != NumNodes) rResult.resize(NumNodes,false);
 
     for (SizeType i = 0; i < NumNodes; i++)
     {
