@@ -14,6 +14,7 @@
 #
 #    HISTORY:
 # 
+#     0.6-  17/06/13- A. Melendo, layer / tree inside windows, redimension problems solved
 #     0.5-  01/10/12- J. Garate, Enable/disable Curves Module
 #     0.4-  20/09/12- J. Garate, Adaptation for New Kratos Interface Version, including Curves support
 #     0.3-  02/04/12- G. Socorro, correct a bug when the layer and the kratos windows are inside
