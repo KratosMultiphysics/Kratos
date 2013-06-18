@@ -23,10 +23,10 @@
     <!-- Kratos application data containers -->
     <RootData id="GeneralApplicationData" pid="General application data" help="Helptext" open="1">
         <Container id="ProjectInfo" pid="Project information" class="Tab" help="Project information" open="0" icon="ProjectInfo.gif">
-            <Item id="CompanyName" pid="Company name" dv="" style="*" help="Company name"/>
-            <Item id="ProjectName" pid="Project name" dv="" style="*" help="Project name"/>
-            <Item id="ProjectNumber" pid="Project number" style="*" dv="" help="Project number"/>
-            <Item id="ModelName" pid="Model name" dv="" style="*" help="Model name"/>
+            <Item id="CompanyName" pid="Company name" dv="" style="" help="Company name"/>
+            <Item id="ProjectName" pid="Project name" dv="" style="" help="Project name"/>
+            <Item id="ProjectNumber" pid="Project number" style="" dv="" help="Project number"/>
+            <Item id="ModelName" pid="Model name" dv="" style="" help="Model name"/>
             <Item id="ModelDescription" pid="Model description" dv="" help="Model description"/>
             <Item id="RevisionNumber" pid="Revision number" dv="" help="Revision number"/>
             <Item id="Engineer" pid="Engineer" dv="" help="Engineer"/>
