@@ -413,7 +413,7 @@ namespace Kratos
 
               array_1d<double, 3> other_to_me_vect  = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
               double &other_radius                  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-              double &other_sqrt_of_mass            = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+              double &other_sqrt_of_mass            = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
               double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                                                            other_to_me_vect[1] * other_to_me_vect[1] +
                                                            other_to_me_vect[2] * other_to_me_vect[2]);
@@ -647,8 +647,8 @@ namespace Kratos
                  }
                  double aux_norm_to_tang = sqrt(kt / kn);
 
-                 if (mRestitCoeff > 0){
-                     visco_damp_coeff_normal     = - (2 * log(mRestitCoeff) * sqrt(mRealMass * kn)) / sqrt((log(mRestitCoeff) * log(mRestitCoeff)) + (M_PI * M_PI));
+                  if (isinf(mLnOfRestitCoeff) || isnan(mLnOfRestitCoeff)){
+                     visco_damp_coeff_normal     = - (2 * mLnOfRestitCoeff * sqrt(mRealMass * kn)) / sqrt((mLnOfRestitCoeff * mLnOfRestitCoeff) + (M_PI * M_PI));
                      visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(restitution_coeff) * sqrt(mass * kt)) / (sqrt((log(restitution_coeff) * log(restitution_coeff)) + (M_PI * M_PI)));
                  }
 
