@@ -613,14 +613,19 @@ namespace Kratos
         {
             GeometryType& rGeom = this->GetGeometry();
             const SizeType NumNodes = rGeom.PointsNumber();
-
-            for (SizeType d = 0; d < TDim; ++d)
-            {
-                rResult[d] = rDN_DX(0,d) * rGeom[0].FastGetSolutionStepValue(Var);
-                for(SizeType i = 1; i < NumNodes; i++)
-                    rResult[d] += rDN_DX(i,d) * rGeom[i].FastGetSolutionStepValue(Var);
-            }
-        }
+	    
+			const double& var = rGeom[0].FastGetSolutionStepValue(Var);
+			for (SizeType d = 0; d < TDim; ++d)
+				rResult[d] = rDN_DX(0,d) * var;
+			
+			for(SizeType i = 1; i < NumNodes; i++)
+			{
+			  const double& var = rGeom[i].FastGetSolutionStepValue(Var);
+			  for (SizeType d = 0; d < TDim; ++d)
+						rResult[d] += rDN_DX(i,d) * var;
+				
+			}
+		}
 
         void EvaluateDivergenceInPoint(double& rResult,
                                        const Kratos::Variable< array_1d<double,3> >& Var,
@@ -630,11 +635,14 @@ namespace Kratos
             const SizeType NumNodes = rGeom.PointsNumber();
 
             rResult = 0.0;
-            for (SizeType d = 0; d < TDim; ++d)
-            {
-                for(SizeType i = 0; i < NumNodes; i++)
-                    rResult += rDN_DX(i,d) * rGeom[i].FastGetSolutionStepValue(Var)[d];
-            }
+	    for(SizeType i = 0; i < NumNodes; i++)
+	    {
+	      const array_1d<double,3>& var = rGeom[i].FastGetSolutionStepValue(Var);
+	      for (SizeType d = 0; d < TDim; ++d)
+	      {
+		  rResult += rDN_DX(i,d) * var[d];
+	      }
+	    }
         }
 
         /// Helper function to print results on gauss points

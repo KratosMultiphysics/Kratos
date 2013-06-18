@@ -1129,8 +1129,12 @@ void FractionalStep<TDim>::CalculateProjectionRHS(VectorType& rMomentumRHS,
 
     array_1d<double,3> Convection(3,0.0);
     for (SizeType i = 0; i < NumNodes; ++i)
+	{
+		const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
         for (SizeType d = 0; d < TDim; ++d)
-            Convection[d] += ConvOp[i] * this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[d];
+            Convection[d] += ConvOp[i] * vel[d];
+			
+	}
 
     array_1d<double,TDim> PressureGradient(TDim,0.0);
     this->EvaluateGradientInPoint(PressureGradient,PRESSURE,rDN_DX);
@@ -1173,8 +1177,11 @@ void FractionalStep<TDim>::CalculateProjectionRHS(VectorType& rConvTerm,
 
     array_1d<double,3> Convection(3,0.0);
     for (unsigned int i = 0; i < NumNodes; ++i)
+	{	
+		const array_1d<double,3>& vel = this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
         for (unsigned int d = 0; d < TDim; ++d)
-            Convection[d] += ConvOp[i] * this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)[d];
+            Convection[d] += ConvOp[i] * vel[d];			
+	}
 
     array_1d<double,TDim> PressureGradient(TDim,0.0);
     this->EvaluateGradientInPoint(PressureGradient,PRESSURE,rDN_DX);
