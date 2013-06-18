@@ -86,6 +86,8 @@ namespace Kratos
 
           array_1d<double, 3> contact_force;
           array_1d<double, 3> contact_moment;
+          array_1d<double, 3> initial_rotation_moment;
+          array_1d<double, 3> max_rotation_moment;
 
           contact_force[0]  = 0.0;
           contact_force[1]  = 0.0;
@@ -93,13 +95,19 @@ namespace Kratos
           contact_moment[0] = 0.0;
           contact_moment[1] = 0.0;
           contact_moment[2] = 0.0;
+          initial_rotation_moment[0]  = 0.0;
+          initial_rotation_moment[1]  = 0.0;
+          initial_rotation_moment[2]  = 0.0;
+          max_rotation_moment[0] = 0.0;
+          max_rotation_moment[1] = 0.0;
+          max_rotation_moment[2] = 0.0;  
 
           ComputeNewNeighboursHistoricalData();
 
-          ComputeBallToBallContactForce(   contact_force, contact_moment, rCurrentProcessInfo); //MSI: processInfo will be eliminated since all variables will be member
+          ComputeBallToBallContactForce(   contact_force, contact_moment, initial_rotation_moment, max_rotation_moment, rCurrentProcessInfo); //MSI: processInfo will be eliminated since all variables will be member
 
           if (mLimitSurfaceOption){
-              ComputeBallToSurfaceContactForce(contact_force, contact_moment, rCurrentProcessInfo); //MSI: eliminate processInfo
+              ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, max_rotation_moment, rCurrentProcessInfo); //MSI: eliminate processInfo
           }
 
           CustomCalculateRightHandSide(contact_force, contact_moment);
@@ -366,7 +374,11 @@ namespace Kratos
           } // if (mRotationOption)
       }
 
-      void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, ProcessInfo& rCurrentProcessInfo)
+      void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rContactForce,
+                                                          array_1d<double, 3>& rContactMoment,
+                                                          array_1d<double, 3>& rInitialRotaMoment,
+                                                          array_1d<double, 3>& rMaxRotaMoment,
+                                                          ProcessInfo& rCurrentProcessInfo)
       {
           KRATOS_TRY
 
@@ -567,6 +579,13 @@ namespace Kratos
               i_neighbour_count++;
 
           }// for each neighbour
+          
+          rInitialRotaMoment [0] = InitialRotaMoment [0];
+          rInitialRotaMoment [1] = InitialRotaMoment [1];
+          rInitialRotaMoment [2] = InitialRotaMoment [2];
+          rMaxRotaMoment [0]     = MaxRotaMoment [0];
+          rMaxRotaMoment [1]     = MaxRotaMoment [1];
+          rMaxRotaMoment [2]     = MaxRotaMoment [2];
 
           KRATOS_CATCH("")
 
@@ -575,7 +594,11 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, ProcessInfo& rCurrentProcessInfo)
+      void SphericParticle::ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce,
+                                                             array_1d<double, 3>& rContactMoment,
+                                                             array_1d<double, 3>& rInitialRotaMoment,
+                                                             array_1d<double, 3>& rMaxRotaMoment,
+                                                             ProcessInfo& rCurrentProcessInfo)
       {
           KRATOS_TRY
 
@@ -593,6 +616,13 @@ namespace Kratos
              double MaxRotaMoment[3]               = {0.0};
              double visco_damp_coeff_normal;
              double visco_damp_coeff_tangential;
+
+             InitialRotaMoment [0] = rInitialRotaMoment [0];
+             InitialRotaMoment [1] = rInitialRotaMoment [1];
+             InitialRotaMoment [2] = rInitialRotaMoment [2];
+             MaxRotaMoment [0]     = rMaxRotaMoment [0];
+             MaxRotaMoment [1]     = rMaxRotaMoment [1];
+             MaxRotaMoment [2]     = rMaxRotaMoment [2];
 
              // SLIDING
 
@@ -850,6 +880,13 @@ namespace Kratos
                      rContactMoment[0] += RotaMoment[0];
                      rContactMoment[1] += RotaMoment[1];
                      rContactMoment[2] += RotaMoment[2];
+
+                     rInitialRotaMoment [0] = InitialRotaMoment [0];
+                     rInitialRotaMoment [1] = InitialRotaMoment [1];
+                     rInitialRotaMoment [2] = InitialRotaMoment [2];
+                     rMaxRotaMoment [0]     = MaxRotaMoment [0];
+                     rMaxRotaMoment [1]     = MaxRotaMoment [1];
+                     rMaxRotaMoment [2]     = MaxRotaMoment [2];
 
                  } //if (mRotationOption)
 
