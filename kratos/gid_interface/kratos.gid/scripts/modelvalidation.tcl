@@ -12,6 +12,7 @@
 #
 #	HISTORY:
 #
+#   1.6- 17/06/13- GSM, modify the procs ValidateGroups, groupsWithEntities and ValidateAssignedGroupsInModel to use only the new GiD group,
 #   1.5- 17/05/13- GSM, add the validation of the cross section properties for the structural analysis application
 #   1.4- 26/11/12- J. Gárate, PFEM correction on ::KMValid::isWall, join 3D and 2D
 #   1.3- 26/11/12- J. Gárate, PFEM support, ::KMValid::isWall
@@ -32,7 +33,6 @@
 #
 ###############################################################################
 
-package provide KMat 1.0 
 
 
 # Create a base namespace KMat
@@ -385,15 +385,8 @@ proc ::KMValid::ValidateGroups { allreportlist } {
 	
 	set noEntitiesGroups [list ]
     
-    if {![kipt::NewGiDGroups]} {
         foreach group $groups {
             
-            if {![::KEGroups::getGroupGiDEntities $group ALL hasEntities]} {
-                lappend noEntitiesGroups $group
-            }
-        }
-	} else {
-        foreach group $groups {
             set hasent [::KEGroups::getGroupGiDEntitiesNew $group "hasEntities"]
             # msg "Hasent for $group $hasent"
             if {$hasent eq "0"} {
@@ -401,7 +394,6 @@ proc ::KMValid::ValidateGroups { allreportlist } {
                 lappend noEntitiesGroups $group
             }
         }
-    }
 	if { [llength $noEntitiesGroups] } {
 	    
 	    if { [llength $noEntitiesGroups] == [llength $groups] } {
@@ -484,11 +476,7 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
             set active [::xmlutils::getAttribute $xml $grNodeXPath active]
             # wa "grNodeXPath:$grNodeXPath"
             if {$active} {
-                    if {![kipt::NewGiDGroups]} {
-                        set hasEntities [KEGroups::getGroupGiDEntities $group ALL hasEntities]
-                    } else {
                         set hasEntities [::KEGroups::getGroupGiDEntitiesNew $group "hasEntities"]
-                    }
                     # wa "hasEntities:$hasEntities Existe active en grNodeXPath $group"
                 if {$hasEntities} {
                     #Si uno de los grupos tiene entidades ya no sacaremos ese error
@@ -715,11 +703,7 @@ proc ::KMValid::groupsWithEntities { xml xpath {returnNodes 0}} {
             
             #Se tiene que cumplir que el nodo esté activo (visible en árbol según los filtros seleccionados)
             if {[$nodeGroup getAttribute active 0] != 0} {
-                if {![kipt::NewGiDGroups]} {    
-                    set hasEntities [::KEGroups::getGroupGiDEntities $idGroup ALL hasEntities]
-                } else {
                     set hasEntities [::KEGroups::getGroupGiDEntitiesNew $idGroup "hasEntities"]
-                }
                 if {$hasEntities} {
                     #Si uno de los grupos tiene entidades ya no sacaremos ese error
                     if { $returnNodes } {
