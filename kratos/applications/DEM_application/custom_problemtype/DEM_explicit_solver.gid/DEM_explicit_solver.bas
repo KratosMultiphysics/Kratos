@@ -260,7 +260,11 @@ End NodalData
 Begin NodalData LN_OF_RESTITUTION_COEFF
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
+*if(elemsmatprop(Restitution_coef,real)==0.0)
+*elemsconec(1) 0 1
+*else
 *elemsconec(1) 0 *operation(log(elemsmatprop(Restitution_coef,real)))
+*endif
 *endif
 *end elems 
 End NodalData
