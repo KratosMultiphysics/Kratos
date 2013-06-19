@@ -92,7 +92,7 @@
 	    <Container id="Membrane" pid="Membrane" class="Groups" nDim="3D" GiDEntity="surface" strucType="Membranes" idTemplate="MembraneElement" icon="groupsTreeNew.gif" help="Membrane element type" open="1"/>
         </Container>
         <Container id="Loads" pid="Loads" help="Loads" open="1" icon="loads.gif">
-            <Container id="BodyForce" pid="Body force" class="Groups" idTemplate="BodyForce" icon="groupsTreeNew.gif" help="Body forces" open="1"/>
+            <Container id="BodyForce" pid="Gravity" class="Groups" idTemplate="BodyForce" icon="groupsTreeNew.gif" help="Gravity" open="1"/>
             <Container id="Puntual" pid="Puntual" class="Groups" idTemplate="Puntual" icon="groupsTreeNew.gif" help="Concentrated" open="1"/>
             <Container id="Pressure" pid="Pressure" class="Groups" idTemplate="ShellPressure" nDim="3D" GiDEntity="surface" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="1"/>
             <Container id="Face" pid="Face" class="Groups" nDim="3D" strucType="Solids" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Face" open="0"/>
