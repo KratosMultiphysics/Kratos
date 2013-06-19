@@ -1060,17 +1060,13 @@ namespace Kratos {
 
                 const int is_intersected = /*configuration_type::*/IsIntersected(object,tolerance, cell_min_point, cell_max_point);
 
-                if(is_intersected)
+               if(is_intersected)
                   leaves.push_back(cell);
-
               }
             }
 
-
 //            std::cout << "min_coord : [" << min_coord[0] << "," << min_coord[1] << "," << min_coord[2] << std::endl;
 //            std::cout << "max_coord : [" << max_coord[0] << "," << max_coord[1] << "," << max_coord[2] << std::endl;
-
-
 
         }
 
@@ -1124,10 +1120,47 @@ namespace Kratos {
             triverts[i] =  geom_1.GetPoint( i );
         }
 
+
+
+        // Having 4 Intersection nodes, one can build 4 triangles. The 4 possible combinations are defined by indices in a matrix.
+        bounded_matrix<unsigned int,4,3> IndexNodesTriangles;
+
+        IndexNodesTriangles(0,0) = 0;
+        IndexNodesTriangles(0,1) = 1;
+        IndexNodesTriangles(0,2) = 2;
+
+        IndexNodesTriangles(1,0) = 1;
+        IndexNodesTriangles(1,1) = 2;
+        IndexNodesTriangles(1,2) = 3;
+
+        IndexNodesTriangles(2,0) = 0;
+        IndexNodesTriangles(2,1) = 1;
+        IndexNodesTriangles(2,2) = 3;
+
+        IndexNodesTriangles(3,0) = 0;
+        IndexNodesTriangles(3,1) = 2;
+        IndexNodesTriangles(3,2) = 3;
+
 //        std::cout << "triangle: " << triverts[0] << ", " << triverts[1] << ", " << triverts[2];
 
-        return TriBoxOverlap( boxcenter, boxhalfsize, triverts );
+        if(size == 3) // object is just a triangle
+            return TriBoxOverlap( boxcenter, boxhalfsize, triverts );
+        else if(size == 4) // object is a tetrahedra --> consider 4 triangles
+        {
 
+            for( unsigned int i = 0; i < 4 ; i++ )
+            {
+                triverts[0] = geom_1.GetPoint( IndexNodesTriangles(i,0) );
+                triverts[1] = geom_1.GetPoint( IndexNodesTriangles(i,1) );
+                triverts[2] = geom_1.GetPoint( IndexNodesTriangles(i,2) );
+
+                if(TriBoxOverlap( boxcenter, boxhalfsize, triverts ) == true)
+                    return true;
+            }
+            return false;
+        }
+        else
+            return false;
     }
 
         inline bool TriBoxOverlap( Point<3, double>& boxcenter, Point<3, double>& boxhalfsize, std::vector< Point<3, double> >& triverts )
@@ -1705,15 +1738,15 @@ namespace Kratos {
 
         /// Assignment operator.
 
-        OctreeBinary & operator=(OctreeBinary const& rOther) {
-            return *this;
-        }
+        //OctreeBinary & operator=(OctreeBinary const& rOther) {
+        //   return *this;
+        //}
 
         /// Copy constructor.
 
-        OctreeBinary(OctreeBinary const& rOther) {
+        //OctreeBinary(OctreeBinary const& rOther) {
 
-        }
+        //}
 
 
         ///@}
