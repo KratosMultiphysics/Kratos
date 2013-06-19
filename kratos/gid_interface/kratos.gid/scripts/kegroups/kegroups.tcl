@@ -12,6 +12,7 @@
 #
 #        HISTORY:
 #
+#        2.6- 19/06/13- G. Socorro, modify/update some procedures (BorraGrupo, CheckGroup, RenombraGrupo, ValidateNewName)
 #        2.5- 18/06/13- G. Socorro, delete the use of the proc kipt::NewGiDGroups (delete the call to the compass groups => Cond_Groups)
 #        2.4- 12/04/13- G. Socorro, correct a bug in the proc getGroupGiDEntities for the special case of faces, add -count in the proc getGroupGiDEntitiesNew
 #        2.3- 13/12/12- J. Garate,  Corrected ::KEGroups::getGroupGiDEntities bug for Model Validation and Transfrer CondGroups to GiD Groups
@@ -315,30 +316,31 @@ proc ::KEGroups::GetAutomaticGroupName { {auto ""} } {
 
 proc ::KEGroups::isValidGroupName {name} {
     set checklist {0 0 end end}
+  
     foreach {check1 check2} $checklist {
-		if { [string range $name $check1 $check2] == "/" } {
-			return 0
-		} elseif { [string range $name $check1 $check2] == "/" } {
-			return 0
-		} elseif { $name == "" } {
-			return 0
-		} elseif { [string range $name $check1 $check2] == "." } {
-			return 0
-		
-		} elseif { [string range $name $check1 $check2] == "-" } {
-			return 0
-		
-		} elseif { [string range $name $check1 $check2] == "@" } {
-			return 0
-		
-		} elseif { [string range $name $check1 $check2] == "<" } {
-			return 0
-		
-		} elseif { [string range $name $check1 $check2] == "%" } {
-			return 0
-		}
+	if { [string range $name $check1 $check2] == "/" } {
+	    return 0
+	} elseif { [string range $name $check1 $check2] == "/" } {
+	    return 0
+	} elseif { $name == "" } {
+	    return 0
+	} elseif { [string range $name $check1 $check2] == "." } {
+	    return 0
+	    
+	} elseif { [string range $name $check1 $check2] == "-" } {
+	    return 0
+	    
+	} elseif { [string range $name $check1 $check2] == "@" } {
+	    return 0
+	    
+	} elseif { [string range $name $check1 $check2] == "<" } {
+	    return 0
+	    
+	} elseif { [string range $name $check1 $check2] == "%" } {
+	    return 0
 	}
-	return 1
+    }
+    return 1
 }
 
 proc ::KEGroups::RenameGroupIdGiDCond {oldgroupid newgroupid} {
@@ -443,25 +445,25 @@ proc ::KEGroups::addGroupId { node groupId } {
 ## Transfer GROUPS to .spd
 proc ::KEGroups::GroupsToXml { } {
 
-	global KPriv
-
-	set xpath "/Kratos_Data/Groups"
-	set basenode [$KPriv(xmlDoc) selectNodes $xpath]
+    global KPriv
     
-	foreach child [$basenode childNodes] {
+    set xpath "/Kratos_Data/Groups"
+    set basenode [$KPriv(xmlDoc) selectNodes $xpath]
+    
+    foreach child [$basenode childNodes] {
         $child delete
     }
-        set grw "GiD_Groups"
-        ::xmlutils::setXml $xpath "modeltype" "write" "GiD" "props" 1
+    set grw "GiD_Groups"
+    ::xmlutils::setXml $xpath "modeltype" "write" "GiD" "props" 1
     
     set GiDGroups [$grw list]
-	foreach group $GiDGroups {
-		set lgroup [split $group //]
-		set path [::KEGroups::nodePath $group]
-		set color [::KEGroups::randomColor]
-		set state [$grw get visible $group]
-		::KEGroups::insertgroupXml $path $group $color $state 
-	}
+    foreach group $GiDGroups {
+	set lgroup [split $group //]
+	set path [::KEGroups::nodePath $group]
+	set color [::KEGroups::randomColor]
+	set state [$grw get visible $group]
+	::KEGroups::insertgroupXml $path $group $color $state 
+    }
 }
 
 proc ::KEGroups::insertgroupXml { path id color state } {
@@ -530,7 +532,7 @@ proc ::KEGroups::BorraGrupo { name } {
     set deletinglist [::KMProps::findGroups $name]
     #msg "deleting $deletinglist"
     if { $deletinglist != 0 } {
-        #wa "si-2"
+     
         if { [::KEGroups::CheckGroup $name "delete"] != "-cancel-" } {
             if { [winfo exists $::KMProps::WinPath] } {
             foreach { fullname T item } $deletinglist {
@@ -555,43 +557,44 @@ proc ::KEGroups::BorraGrupo { name } {
 }
 
 proc ::KEGroups::CheckGroup {name action} {
-	
-    set aviso "There are properties assigned to $name , Do you want to $action it? \n Note: This action will affect all the Project Properties"
     
-    set answer [::WinUtils::confirmBox "." "$aviso" "okcancel"]
+    set txt [= "Note: This action will affect all the Project Properties"]
+    set msg [= "There are properties assigned to %s, do you want to %s it?\n $txt" $name $action]
+    
+    set answer [::WinUtils::confirmBox "." "$msg" "okcancel"]
     if { $answer == "ok" } {
-		return 1
+	return 1
     } else {
-		return "-cancel-"
+	return "-cancel-"
     }
 }
 
 proc ::KEGroups::RenombraGrupo { oldname newname validation } {
-	# if validation == 1 -> newname needs the validation process
-	set valid 1
-	if {$validation == 1} {
-		set valid [::KEGroups::ValidateNewName $oldname $newname]
-	}
-	if {$valid != 0 } {
-		set editinglist [::KMProps::findGroups $oldname]
-		#findGroups busca si el grupo que vamos a editar está en el arbol, y devuelve a editinglist, la lista de propiedades que estaban relacionadas con ese grupo.
-		global KPriv
-		#msg "editing $editinglist"
-		if { $editinglist != 0 } {
-            if { [winfo exists $::KMProps::WinPath] } {
-                foreach { fullname T item } $editinglist {
-                    ::xmlutils::setXml $fullname pid "write" $newname
-                    ::xmlutils::setXml $fullname id "write" $newname
-                }
-                    ::KMProps::RefreshTree $T
-            } else {
-                foreach { node } $editinglist {
-                    $node setAttribute pid $newname
-                    $node setAttribute id $newname
-                }
-            }
-		} 
-	}
+    # if validation == 1 -> newname needs the validation process
+    set valid 1
+    if {$validation == 1} {
+	set valid [::KEGroups::ValidateNewName $oldname $newname]
+    }
+    if {$valid != 0 } {
+	set editinglist [::KMProps::findGroups $oldname]
+	#findGroups busca si el grupo que vamos a editar está en el arbol, y devuelve a editinglist, la lista de propiedades que estaban relacionadas con ese grupo.
+	global KPriv
+	#msg "editing $editinglist"
+	if { $editinglist != 0 } {
+	    if { [winfo exists $::KMProps::WinPath] } {
+		foreach { fullname T item } $editinglist {
+		    ::xmlutils::setXml $fullname pid "write" $newname
+		    ::xmlutils::setXml $fullname id "write" $newname
+		}
+		::KMProps::RefreshTree $T
+	    } else {
+		foreach { node } $editinglist {
+		    $node setAttribute pid $newname
+		    $node setAttribute id $newname
+		}
+	    }
+	} 
+    }
 }
 
 proc ::KEGroups::ValidateNewName { oldname newname } {
@@ -600,15 +603,17 @@ proc ::KEGroups::ValidateNewName { oldname newname } {
     set ret 1
     set errlist {}
     set newtext [::KUtils::parseTreeStr $newname]
-    
+
+    set txt [= "You can't use some reservate chars like"]    
     if { $newname == ""} {  
-        append errlist "You can not choose an empty group name."
+        append errlist [= "You can not choose an empty group name"].
         set ret 0
     } elseif { $newtext == -1 } {
-        append errlist "You can't use some reservate chars like:\n  :   /   $   .   \\  %  "
+
+        append errlist "$txt:\n  :   /   $   .   \\  %  "
         set ret 0
     } elseif { [::KEGroups::isValidGroupName $newname] != 1} {
-        append errlist "You can't use some reservate chars like:\n  :   /   $   .   \\  %  "
+        append errlist "$txt:\n  :   /   $   .   \\  %  "
         set ret 0
     }
     if { $ret == 0 } {
@@ -618,58 +623,62 @@ proc ::KEGroups::ValidateNewName { oldname newname } {
 }
 
 proc ::KEGroups::ErrorRenameWindow { oldname newname errlist} {
-	set qq .errwin
-	global KPriv
-	if { [winfo exists $qq] } {
-		catch {destroy $qq}
-	}
-	set newnewname ""
-	# Init the window
-	set title [= "Rename Error Window"]
-	InitWindow $qq $title "" ""
-	focus $qq
-	#toplevel $qq
-	if {[info exists Kpriv(newnewname)] } {
-		unset Kpriv(newnewname)
-	}
-	set Kpriv(newnewname) ""
-	set Kpriv(grnamerror) ""
-	
-	grid [frame $qq.main] -sticky nswe -padx 4 -pady 4
-	grid [ttk::label $qq.main.msg -text $errlist] -sticky nswe -pady 2 -padx 2 -column 0 -row 0
-        grid [ttk::label $qq.main.ask -text [= "Please choose a new name"]:] -sticky nswe -pady 2 -padx 2 -column 0 -row 1
-	grid [ttk::entry $qq.main.ent -textvariable KPriv(newnewname) -validate key] -sticky nswe -pady 2 -padx 2 -column 1 -row 1
-    grid [ttk::button $qq.main.ok -text [= "Ok"] -command [list ::KEGroups::AuxRenameGroup $oldname $newname $qq] ] -sticky nswe -pady 2 -padx 2 -ipady 2 -column 1 -row 2
-	bind $qq <Return> [list ::KEGroups::AuxRenameGroup $oldname $newname $qq]
+    global KPriv
+    
+    set qq .errwin
+    if {[winfo exists $qq] } {
+	destroy $qq
+    }
+    set newnewname ""
+    # Init the window
+    set title [= "Rename Error Window"]
+    InitWindow $qq $title "" ""
+    focus $qq
+    
+    if {[info exists Kpriv(newnewname)] } {
+	unset Kpriv(newnewname)
+    }
+    set Kpriv(newnewname) ""
+    set Kpriv(grnamerror) ""
+    
+    grid [frame $qq.main] -sticky nswe -padx 4 -pady 4
+    grid [ttk::label $qq.main.msg -text $errlist] -sticky nswe -pady 2 -padx 2 -column 0 -row 0
+    grid [ttk::label $qq.main.ask -text [= "Please choose a new name"]:] -sticky nswe -pady 2 -padx 2 -column 0 -row 1
+    grid [ttk::entry $qq.main.ent -textvariable KPriv(newnewname) -validate key] -sticky nswe -pady 2 -padx 2 -column 1 -row 1
+    grid [ttk::button $qq.main.ok -text [= "Ok"] -command [list ::KEGroups::AuxRenameGroup $oldname $newname $qq]] -sticky nswe -pady 2 -padx 2 -ipady 2 -column 1 -row 2
+ 
+    bind $qq <Return> [list ::KEGroups::AuxRenameGroup $oldname $newname $qq]
 }
 
  proc ::KEGroups::AuxRenameGroup { oldname newname qq} {
 	global KPriv
-	if { $KPriv(newnewname) == ""} {
-		set Kpriv(grnamerror) "Choose a valid name"
-		
-	} elseif { [::KEGroups::isValidGroupName $KPriv(newnewname)] != 1} {
-		set Kpriv(grnamerror) "Choose a valid name"
-		
-	} elseif {$KPriv(newnewname) in [Cond_Groups list]} {
-		set Kpriv(grnamerror) "Group name already exists"
-		
-	} else {
-        set valid 0
-            
-            GiD_Groups edit rename $newname $KPriv(newnewname)
-		
-		::KEGroups::RenombraGrupo $oldname $KPriv(newnewname) $valid
-		
-		catch {destroy $qq}
-		catch {destroy $KPriv(newnewname)}
-		return
-	}
-	if { [winfo exists  $qq.main.warn] } {
-		catch {destroy  $qq.main.warn}
-	}
-    grid [ttk::label $qq.main.warn -text $Kpriv(grnamerror)] -sticky nswe -pady 2 -padx 2 -column 0 -row 3
-    $qq.main.warn configure -foreground red
+
+     if { $KPriv(newnewname) == ""} {
+	 set Kpriv(grnamerror) [= "Choose a valid name"]
+	 
+     } elseif { [::KEGroups::isValidGroupName $KPriv(newnewname)] != 1} {
+	 set Kpriv(grnamerror) [= "Choose a valid name"]
+	 
+     } else {
+	 set valid 0
+	 
+	 GiD_Groups edit rename $newname $KPriv(newnewname)
+	 
+	 ::KEGroups::RenombraGrupo $oldname $KPriv(newnewname) $valid
+	 
+	 if {[winfo exists $qq]} {
+	     destroy $qq
+	 }
+	 if {[info exists Kpriv(newnewname)] } {
+	     unset Kpriv(newnewname)
+	 }
+	 return
+     }
+     if { [winfo exists  $qq.main.warn] } {
+	 destroy  $qq.main.warn
+     }
+     grid [ttk::label $qq.main.warn -text $Kpriv(grnamerror)] -sticky nswe -pady 2 -padx 2 -column 0 -row 3
+     $qq.main.warn configure -foreground red
 }
 
 proc ::KEGroups::TransferCondGroupstoGiDGroups { } {
