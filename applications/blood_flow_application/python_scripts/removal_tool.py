@@ -22,6 +22,8 @@ def DoRemoval(model_part):
   print "list of inlets",config.inlets_1d
   print "list of outlets",config.outlets_1d
   print "full nodes table",full_nodes_table.table
+  print model_part
+  
   
   #mark for deactivation all of the nodes which are not needed
   for prop_id in config.deactivate_list:
@@ -39,6 +41,9 @@ def DoRemoval(model_part):
   for i in range(0,len(config.inlets_1d)):
     flag_id = config.inlets_1d[i][0]
     prop_id = config.inlets_1d[i][1]
+    print "flag_id", flag_id
+    print "prop_id", prop_id
+    print GetNodeBefore(full_nodes_table.table, prop_id)
     node_before = model_part.Nodes[ GetNodeBefore(full_nodes_table.table, prop_id) ]
     node_begin = model_part.Nodes[ GetNodeBegin(full_nodes_table.table, prop_id) ]
     node_before.SetValue(ERASE_FLAG,True)

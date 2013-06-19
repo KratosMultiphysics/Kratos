@@ -213,6 +213,15 @@ void Artery12Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
              double temp = (C + coriolis_coefficient*flow[0]*flow[0]/(A1));
              rRightHandSideVector[1] = -(C + (coriolis_coefficient*flow[0]*flow[0]/(A1)));
 
+	     if(A1 == 0.00 || A0 == 0.00)
+	     {
+		KRATOS_WATCH(A0);
+		KRATOS_WATCH(A1);
+		KRATOS_WATCH(GetProperties().Id());
+		KRATOS_WATCH(this->Id());
+		KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, in boundary 1-2 conditions used: father", "");
+	     }	
+	     	     
              A1 = area[1];
              A0 = InitialArea[1];
              E = GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS);
@@ -224,6 +233,15 @@ void Artery12Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
              temp = (C + coriolis_coefficient*flow[1]*flow[1]/(A1));
              rRightHandSideVector[3] = (C + (coriolis_coefficient*flow[1]*flow[1]/(A1)));
 
+	     if(A1 == 0.00 || A0 == 0.00)
+	      {
+		KRATOS_WATCH(A0);
+		KRATOS_WATCH(A1);
+		KRATOS_WATCH(GetProperties().Id());
+		KRATOS_WATCH(this->Id());
+		KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, in boundary 1-2 conditions used:son", "");
+	      }	     
+	     
              A1 = area[2];
              A0 = InitialArea[2];
              E = GetGeometry()[2].FastGetSolutionStepValue(YOUNG_MODULUS);
@@ -235,6 +253,15 @@ void Artery12Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
              temp = (C + coriolis_coefficient*flow[2]*flow[2]/(A1));
              rRightHandSideVector[5] = (C + (coriolis_coefficient*flow[2]*flow[2]/(A1)));
 
+	     if(A1 == 0.00 || A0 == 0.00)
+	      {
+		KRATOS_WATCH(A0);
+		KRATOS_WATCH(A1);
+		KRATOS_WATCH(GetProperties().Id());
+		KRATOS_WATCH(this->Id());
+		KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, in boundary 1-2 conditions used:son", "");
+	      }	     
+	     	     
     KRATOS_CATCH("")
 }
 

@@ -270,6 +270,15 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
             rRightHandSideVector[0] = -flow[0];
             rRightHandSideVector[1] = -(C + (coriolis_coefficient*flow[0]*flow[0]/(A1)));
 
+	    if(A1 == 0.00 || A0 == 0.00)
+	    {
+		KRATOS_WATCH(A1);
+		KRATOS_WATCH(GetProperties().Id());
+		KRATOS_WATCH(this->Id());
+		KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, Please check your in boundary 1-1 conditions used", "");
+	    }
+	    
+	    
             //ndoe 1
             A1 = area[1];
             A0 = GetGeometry()[1].GetValue(NODAL_AREA);
@@ -277,6 +286,15 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
             rRightHandSideVector[2] = flow[1];
             rRightHandSideVector[3] = (C + (coriolis_coefficient*flow[1]*flow[1]/(A1)));
 
+	    if(A1 == 0.00 || A0 == 0.00)
+	    {
+		KRATOS_WATCH(A1);
+		KRATOS_WATCH(GetProperties().Id());
+		KRATOS_WATCH(this->Id());
+		KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, Please check your in boundary 1-1 conditions used", "");
+	    }
+	    
+	    
     KRATOS_CATCH("")
 }
 

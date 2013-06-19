@@ -120,14 +120,18 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
     
     	    const double A0_actual = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
 	    const double A1_actual = GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA);
-	    
-	    //check the AREA of the model
-	    if((A0_actual == 0.00) || (A1_actual== 0.00))
-	        KRATOS_WATCH(A0_actual);
-		//KRATOS_WATCH(i_element->GetGeometry()[0]);
 	     
 	     if((A0_actual == 0.00) || (A1_actual== 0.00))
-		KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, Please check your model or boundary conditions used", "");
+	     {
+// 	       	KRATOS_WATCH("------sssssssssssssssssssssssssss-----------");
+// 	       	KRATOS_WATCH("----");
+	        KRATOS_WATCH(A0_actual);
+		KRATOS_WATCH(A1_actual);
+		KRATOS_WATCH(GetProperties().Id());
+	        std::cout << "this element is" << this->Id() <<std::endl;
+		KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, Please check your model", "");
+	     }
+	        
             //const int kk =GetProperties().Id();
 	    //KRATOS_WATCH("-----------------")
             //KRATOS_WATCH(A0_actual);
