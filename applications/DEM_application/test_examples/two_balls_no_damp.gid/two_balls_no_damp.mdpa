@@ -97,8 +97,8 @@ End NodalData
 
 
 Begin NodalData LN_OF_RESTITUTION_COEFF
-1 0       -inf
-2 0       -inf
+1 0 1
+2 0 1
 End NodalData
 
 
