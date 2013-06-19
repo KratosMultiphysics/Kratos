@@ -405,13 +405,13 @@ namespace Kratos
               RotaAcc[1]                         = ang_vel[1] * dt_i;
               RotaAcc[2]                         = ang_vel[2] * dt_i;
 
-              InitialRotaMoment[0] = RotaAcc[0] * mMomentOfInertia;
-              InitialRotaMoment[1] = RotaAcc[1] * mMomentOfInertia;
-              InitialRotaMoment[2] = RotaAcc[2] * mMomentOfInertia;
+              InitialRotaMoment[0]               = RotaAcc[0] * mMomentOfInertia;
+              InitialRotaMoment[1]               = RotaAcc[1] * mMomentOfInertia;
+              InitialRotaMoment[2]               = RotaAcc[2] * mMomentOfInertia;
 
-              MaxRotaMoment[0] = InitialRotaMoment[0];
-              MaxRotaMoment[1] = InitialRotaMoment[1];
-              MaxRotaMoment[2] = InitialRotaMoment[2];
+              MaxRotaMoment[0]                   = InitialRotaMoment[0];
+              MaxRotaMoment[1]                   = InitialRotaMoment[1];
+              MaxRotaMoment[2]                   = InitialRotaMoment[2];
           }
 
 
@@ -427,6 +427,7 @@ namespace Kratos
               array_1d<double, 3> other_to_me_vect  = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
               double &other_radius                  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
               double &other_sqrt_of_mass            = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
+              double &other_ln_of_restit_coeff      = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
               double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                                                            other_to_me_vect[1] * other_to_me_vect[1] +
                                                            other_to_me_vect[2] * other_to_me_vect[2]);
@@ -470,7 +471,6 @@ namespace Kratos
                   // Getting neighbour properties
                   double &other_young               = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
                   double &other_poisson             = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
-                  double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RESTITUTION_COEFF);
                   double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
 
                   equiv_young                       = 2 * mYoung * other_young / (mYoung + other_young);
@@ -505,7 +505,7 @@ namespace Kratos
 
               }
 
-              if (mRestitCoeff > 0.0){
+              if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0){
                   equiv_visco_damp_coeff_normal     = 2 * sqrt(equiv_mass * kn);
                   equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(equiv_mass * kt);
               }
@@ -575,7 +575,7 @@ namespace Kratos
               AddUpForcesAndProject(LocalCoordSystem, mOldNeighbourContactForces, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce, rContactForce, i_neighbour_count);
 
               // ROTATION FORCES
-              ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce, InitialRotaMoment, MaxRotaMoment, LocalCoordSystem, other_radius, rContactMoment, neighbour_iterator);
+              ComputeMoments(LocalElasticContactForce, GlobalElasticContactForce, InitialRotaMoment, MaxRotaMoment, LocalCoordSystem, other_radius, rContactMoment, neighbour_iterator);
 
               i_neighbour_count++;
 
@@ -679,13 +679,13 @@ namespace Kratos
                  double aux_norm_to_tang = sqrt(kt / kn);
 
                  if (mRestitCoeff > 0.0){
-                     visco_damp_coeff_normal     = - (2 * mLnOfRestitCoeff * sqrt(mRealMass * kn)) / sqrt((mLnOfRestitCoeff * mLnOfRestitCoeff) + (M_PI * M_PI));
-                     visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(restitution_coeff) * sqrt(mass * kt)) / (sqrt((log(restitution_coeff) * log(restitution_coeff)) + (M_PI * M_PI)));
+                     visco_damp_coeff_normal     = 2 * sqrt(mRealMass * kn);
+                     visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(mass * kt);
                  }
 
                  else {
-                     visco_damp_coeff_normal     = 2 * sqrt(mRealMass * kn);
-                     visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(mass * kt);
+                     visco_damp_coeff_normal     = - (2 * mLnOfRestitCoeff * sqrt(mRealMass * kn)) / sqrt((mLnOfRestitCoeff * mLnOfRestitCoeff) + (M_PI * M_PI));
+                     visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(restitution_coeff) * sqrt(mass * kt)) / (sqrt((log(restitution_coeff) * log(restitution_coeff)) + (M_PI * M_PI)));
                  }
 
                  // FORMING LOCAL CORDINATES
