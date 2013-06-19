@@ -149,8 +149,8 @@ void ArteryOutletCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
     const double flow1 =  (par1*(sqrt(A)-sqrt(initial_area))+p_init)*(1/terminal_resistence); // NOTE: HERE we have to put the corrected value
     const double flow2 =  GetGeometry()[0].FastGetSolutionStepValue(FLOW);
     
-    //const double flow = 2* flow1 - flow2;
-    const double flow = flow1;
+    const double flow = 2* flow1 - flow2;
+    //const double flow = flow1;
 
     //KRATOS_WATCH(flow)
     //KRATOS_WATCH(A)
@@ -198,7 +198,6 @@ double ArteryOutletCondition::UpdateArea(double Beta, double Density)
     const double w1 = flow / A + 4.00*par2*pow(A,0.25);
     //const double p_init = 10640.00;
     //std::cout << "ENTRDA" << std::endl;
-    //KRATOS_WATCH(A);
     double x = A;
     for(int i = 0 ; i < max_iteration ; i++)
     {
@@ -224,9 +223,15 @@ double ArteryOutletCondition::UpdateArea(double Beta, double Density)
         KRATOS_WATCH(GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA));
     }
 
+    if(A == 0.00)
+    {
+        KRATOS_WATCH(A);
+	KRATOS_WATCH(GetProperties().Id());
+	KRATOS_WATCH(this->Id());
+	KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, Please check your inlet boundary conditions used", "");
+    }
     //std::cout << "SALIDA" << std::endl;
     //KRATOS_WATCH(A);
-
 
     return A;
     KRATOS_CATCH("")

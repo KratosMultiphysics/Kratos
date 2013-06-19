@@ -55,7 +55,7 @@ class TransferTools:
 		  aux.append(node)
 		  node.Fix(NODAL_AREA)
 		  node.Fix(FLOW)
-		  print "1D_inlet has been assigned", node
+		  #print "1D_inlet has been assigned", node
 	  if(len(aux) != 0):
 	      self.inlets_1d.append(aux)
 	  else:
@@ -81,7 +81,7 @@ class TransferTools:
 		    normN = math.sqrt(tmp[0]**2 + tmp[1]**2 + tmp[2]**2)
 		    tmp /= normN
 		    directions.append(tmp)
-		    print "3D_inlet has been assigned", node
+		    #print "3D_inlet has been assigned", node
 	    if(len(aux) != 0):
 		self.inlets_3d.append(aux)
 		self.inlet_velocity_directions.append(directions)
@@ -157,14 +157,14 @@ class TransferTools:
 	      area3d += a  
 	    self.outlet_areas_3d.append(area3d)	
 	    
-	print "inlet areas 1d = ",self.inlets_1d[0][0].GetValue(NODAL_AREA)
-	print "outlet areas 1d = ",self.outlets_1d[0][0].GetValue(NODAL_AREA)
-	print "inlets_1d = ",self.inlets_1d
-	#print "inlet_velocity_directions = ",self.inlet_velocity_directions
-	#print "outlets_3d = ",self.outlets_3d
-	print "outlet areas 3d = ",self.outlet_areas_3d
-	print "outlet areas 3d = ",self.outlet_areas_3d
-	raw_input()
+	#print "inlet areas 1d = ",self.inlets_1d[0][0].GetValue(NODAL_AREA)
+	#print "outlet areas 1d = ",self.outlets_1d[0][0].GetValue(NODAL_AREA)
+	#print "inlets_1d = ",self.inlets_1d
+	##print "inlet_velocity_directions = ",self.inlet_velocity_directions
+	##print "outlets_3d = ",self.outlets_3d
+	#print "outlet areas 3d = ",self.outlet_areas_3d
+	#print "outlet areas 3d = ",self.outlet_areas_3d
+	##raw_input()
 	#for direc in self.inlet_velocity_directions[0]:
 	  #print direc[0]," ",direc[1]," ",direc[2]
 	  
@@ -173,8 +173,10 @@ class TransferTools:
 
     def Transfer1D_to_3D( self  ):
         #ARCHIVE TO SET :::::::::::::::::::::::::::>>>>>>>>>>>>>> VARIABLES
-	import config_full
-      	initial_pressure=config_full.initial_pressure
+	#import config_full
+      	#initial_pressure=config_full.initial_pressure
+      	initial_pressure=0
+      	
       	
 	for i in range(0,len(self.inlets_3d)):  
 	  inlet_nodes_1d = self.inlets_1d[i]
@@ -190,9 +192,9 @@ class TransferTools:
 	  	  
 	  vel1d =  inlet_nodes_1d[0].GetSolutionStepValue(FLOW) / area3d
 	  
-	  print "inlet_nodes_1d[0].Id::::::>>>> ",inlet_nodes_1d[0].Id	  
-	  print "velocity  1d to 3D ::::::> ", vel1d
-	  print "flow 	    1d to 3D ::::::>", inlet_nodes_1d[0].GetSolutionStepValue(FLOW) 
+	  #print "inlet_nodes_1d[0].Id::::::>>>> ",inlet_nodes_1d[0].Id	  
+	  #print "velocity  1d to 3D ::::::> ", vel1d
+	  #print "flow 	    1d to 3D ::::::>", inlet_nodes_1d[0].GetSolutionStepValue(FLOW) 
 	  	  
 	  k = 0
 	  	  
@@ -241,7 +243,7 @@ class TransferTools:
 	  #TODO: make it to read from the input
 	  #print "inlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS)",inlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS)
 	  #print "inlet_nodes_1d[0].GetSolutionStepValue(THICKNESS)",inlet_nodes_1d[0].GetSolutionStepValue(THICKNESS)
-	  print inlet_nodes_1d[0].Id
+	  #print inlet_nodes_1d[0].Id
 	  beta = inlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS) * inlet_nodes_1d[0].GetSolutionStepValue(THICKNESS) * math.sqrt(math.pi)
 	  A0 = inlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA)
 	  #print "beta,", beta
