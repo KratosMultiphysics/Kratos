@@ -90,7 +90,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/inter_fracture_tetrahedra_utility.h"
 //#include "custom_utilities/mark_element_for_refinement.h"
 #include "custom_utilities/disconnect_utility.h"
-
+#include "processes/calculate_signed_distance_to_3d_skin_process.h"
 
 namespace Kratos
 {
@@ -333,9 +333,9 @@ void  AddCustomUtilitiesToPython()
     .def( "DetectAndSplitElements",              &Inter_Fracture_Tetrahedra::Detect_And_Split_Elements )
     ;
 
-
-
-
+    class_<CalculateSignedDistanceTo3DSkinProcess > ( "CalculateSignedDistanceTo3DSkinProcess", init<ModelPart&, ModelPart&>())
+    .def( "Execute", &CalculateSignedDistanceTo3DSkinProcess::Execute )
+    ;
 
 }
 }  // namespace Python.
