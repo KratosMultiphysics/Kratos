@@ -12,7 +12,8 @@
 #
 #    HISTORY: 
 # 
-#     3.6- 18/06/13-G. Socorro, delete the global variable KPriv(NewGiDGroups)
+#     3.7- 19/06/13- G. Socorro, delete the event AfterRenameCondGroup, AfterCreateCondGroup and BeforeDeleteCondGroup used in the Compass library
+#     3.6- 18/06/13- G. Socorro, delete the global variable KPriv(NewGiDGroups)
 #     3.5- 17/06/13- G. Socorro, modify the proc BeforeMeshGeneration to delete the old Compass condition
 #     3.4- 14/06/13- G. Socorro, modify the procs CheckRequiredGiDVersion
 #     3.3- 18/06/13- A. Melendo, simplify the proc BeforeMeshGeneration to write conditional data condition in all applications
@@ -408,25 +409,8 @@ proc KLoadTBEFiles {dir} {
 } 
 
  
- proc BeforeDeleteCondGroup { name } {
-    # Válida para los grupos antiguos de GiD_Cond
-    # wa "olddelete name:$name"
-    set DeleteGroup "Delete" 
-    #msg $::KPriv(Groups,DeleteGroup)
-    if {[info exists ::KPriv(Groups,DeleteGroup)]} {
-	if {$::KPriv(Groups,DeleteGroup)} {
-	    set DeleteGroup [::KEGroups::BorraGrupo $name]
-	} 
-    }
-    if { $DeleteGroup eq "-cancel-" } {
-	return $DeleteGroup
-    }
- }
-  
- 
- proc BeforeDeleteGroup { name } {
-    # Válida para los grupos de GiD 11.1.1d
-    #msg $::KPriv(Groups,DeleteGroup)
+proc BeforeDeleteGroup { name } {
+    
     # wa "delete name:$name"
     set DeleteGroup "Delete" 
     if {[info exists ::KPriv(Groups,DeleteGroup)]} {
@@ -439,21 +423,9 @@ proc KLoadTBEFiles {dir} {
     }
  }
  
- proc AfterCreateCondGroup { name } {
+proc AfterRenameGroup { oldname newname } {
     # Válida para los grupos de GiD 11.1.1d
-    # wa "name:$name"
- }
- 
- proc AfterRenameCondGroup { oldname newname } {
-    # Válida para los grupos antiguos de GiD_Cond
-    # wa "oldname:$oldname newname:$newname"
-    ::KEGroups::RenombraGrupo $oldname $newname 1
-    #Si se renombra un grupo, no nos queda otra... no se puede impedir.
- }
- 
- proc AfterRenameGroup { oldname newname } {
-    # Válida para los grupos de GiD 11.1.1d
-    # wa "oldname:$oldname newname:$newname"
+     # wa "oldname:$oldname newname:$newname"
     ::KEGroups::RenombraGrupo $oldname $newname 1
     #Si se renombra un grupo, no nos queda otra... no se puede impedir.
  }
