@@ -26,4 +26,4 @@ fi
 export OMP_NUM_THREADS=$5
 
 # Run Python using the script KratosOpenMPFluidLevelSet.py
-python KratosOpenMPFluidLevelSet.py > "$2/$1.info" 2> "$2/$1.err"
+"$3/kratos/runkratos" KratosOpenMPFluidLevelSet.py > "$2/$1.info" 2> "$2/$1.err"
