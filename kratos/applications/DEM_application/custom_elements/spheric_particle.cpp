@@ -67,7 +67,6 @@ namespace Kratos
           mRealMass                 = mass;          
           mSqrtOfRealMass           = sqrt_of_mass;
           mMomentOfInertia          = moment_of_inertia;
-          mRestitCoeff              = exp(mLnOfRestitCoeff);
 
           CustomInitialize();
 
@@ -678,13 +677,13 @@ namespace Kratos
                  }
                  double aux_norm_to_tang = sqrt(kt / kn);
 
-                 if (mRestitCoeff > 0.0){
+                 if (mLnOfRestitCoeff > 0.0){
                      visco_damp_coeff_normal     = 2 * sqrt(mRealMass * kn);
                      visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(mass * kt);
                  }
 
                  else {
-                     visco_damp_coeff_normal     = - (2 * mLnOfRestitCoeff * sqrt(mRealMass * kn)) / sqrt((mLnOfRestitCoeff * mLnOfRestitCoeff) + (M_PI * M_PI));
+                     visco_damp_coeff_normal     = - 2 * mLnOfRestitCoeff * sqrt(mRealMass * kn / (mLnOfRestitCoeff * mLnOfRestitCoeff + M_PI * M_PI));
                      visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(restitution_coeff) * sqrt(mass * kt)) / (sqrt((log(restitution_coeff) * log(restitution_coeff)) + (M_PI * M_PI)));
                  }
 
