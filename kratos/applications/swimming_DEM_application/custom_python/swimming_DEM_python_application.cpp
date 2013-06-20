@@ -72,8 +72,6 @@ namespace Python
 
 using namespace boost::python;
 
-
-
 BOOST_PYTHON_MODULE(KratosSwimmingDEMApplication)
 {
 
@@ -88,8 +86,6 @@ BOOST_PYTHON_MODULE(KratosSwimmingDEMApplication)
     //registering variables in python
 
    // KRATOS_REGISTER_IN_PYTHON_VARIABLE( EXPORT_NEIGHBOUR_LIST)
-    
-        KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS( BUOYANCY )
 
 }
 
