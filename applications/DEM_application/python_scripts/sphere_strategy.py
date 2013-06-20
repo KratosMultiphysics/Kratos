@@ -264,7 +264,6 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_OPTION);
         self.model_part.ProcessInfo.SetValue(ROTATION_SPRING_OPTION, self.rotation_spring_OPTION);
 
-
         # TOLERANCES
         self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);
 
@@ -280,8 +279,7 @@ class ExplicitStrategy:
 
         # GLOBAL MATERIAL PROPERTIES
 
-        if(self.homogeneous_material_OPTION == "ON"):
-            self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
+        self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
      
         if (self.global_variables_OPTION == "ON"):
             self.model_part.ProcessInfo.SetValue(GLOBAL_KN, self.global_kn)
