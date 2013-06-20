@@ -27,7 +27,6 @@ namespace Kratos
 {
 
 
-        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( BUOYANCY )
 
 	KratosSwimmingDEMApplication::KratosSwimmingDEMApplication()  
 	{}
@@ -37,9 +36,6 @@ namespace Kratos
 		// calling base class register to register Kratos components
 		KratosApplication::Register();
 		std::cout << "Initializing KratosSwimmingDEMApplication... " << std::endl;
-
-
-                KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( BUOYANCY )
 
 	  //  KRATOS_REGISTER_VARIABLE ( EXPORT_NEIGHBOUR_LIST )
 

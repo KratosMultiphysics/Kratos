@@ -24,8 +24,6 @@
 
 #include "includes/variables.h"
 
-const long double pi = 3.141592653589793238462643383279;
-
 namespace Kratos
 {
     /* Define In Global variables.h
@@ -34,8 +32,6 @@ namespace Kratos
         typedef vector<array_1d<double,3> > VectorArray3Double;
         KRATOS_DEFINE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
      */
-
-        KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(BUOYANCY)
     
 
 class KratosSwimmingDEMApplication : public KratosApplication
