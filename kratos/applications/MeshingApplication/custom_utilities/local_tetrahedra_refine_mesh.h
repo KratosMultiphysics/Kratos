@@ -105,13 +105,24 @@ public:
         ModelPart& this_model_part = mr_model_part;
 
         ElementsArrayType& rElements = this_model_part.Elements();
-        ElementsArrayType::iterator it_begin = rElements.ptr_begin();
-        ElementsArrayType::iterator it_end = rElements.ptr_end();
+        //ElementsArrayType::iterator it_begin = rElements.ptr_begin();
+        //ElementsArrayType::iterator it_end = rElements.ptr_end();
         PointerVector< Element > New_Elements;
         New_Elements.reserve(20);
+		
+		//initial renumber of nodes and elemetns
+		unsigned int id = 1;
+		for (ModelPart::NodesContainerType::iterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); it++)
+			it->SetId(id++);
+		
+		id = 1;
+		for (ModelPart::ElementsContainerType::iterator it = mr_model_part.ElementsBegin(); it != mr_model_part.ElementsEnd(); it++)
+			it->SetId(id++);
 
-
-
+		id = 1;
+		for (ModelPart::ConditionsContainerType::iterator it = mr_model_part.ConditionsBegin(); it != mr_model_part.ConditionsEnd(); it++)
+			it->SetId(id++);
+			
         ///WARNING = La numeracion local viene de 0 a 9
 
         if (refine_on_reference == true)
@@ -302,8 +313,18 @@ public:
         Coordinate_New_Node.resize(Position_Node.size());
         unsigned int step_data_size = this_model_part.GetNodalSolutionStepDataSize();
         Node < 3 > ::DofsContainerType& reference_dofs = (this_model_part.NodesBegin())->GetDofs();
+		
+		if(Position_Node.size() != List_New_Nodes.size())
+		{
+			KRATOS_WATCH(Position_Node.size())
+			KRATOS_WATCH(List_New_Nodes.size())
+			KRATOS_ERROR(std::logic_error,"mismatch in the number of nodes to be created","")
+		}
 
-        new_nodes.reserve(10);
+
+        //new_nodes.reserve(10);
+		
+		unsigned int nlocal_nodes_initially = this_model_part.Nodes().size();
 
 
         for (unsigned int i = 0; i < Position_Node.size(); i++)
@@ -379,11 +400,31 @@ public:
                    }  */
 
             //     KRATOS_WATCH("line 346");
-            new_nodes.push_back(pnode);
         }
 
         unsigned int nlocal_nodes = this_model_part.Nodes().size();
+
+
         this_model_part.Nodes().Unique();
+		
+		if( (this_model_part.Nodes().end()-1)->Id() != this_model_part.Nodes().size())
+		{
+			for (ModelPart::NodesContainerType::iterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); it++)
+				KRATOS_WATCH(it->Id())
+			KRATOS_WATCH((this_model_part.Nodes().end()-1)->Id())
+			KRATOS_WATCH(this_model_part.Nodes().size())
+			
+            KRATOS_ERROR(std::logic_error,"numeration of nodes is not consecutive!!!","")
+		}
+	
+		if(nlocal_nodes != nlocal_nodes_initially + List_New_Nodes.size())
+		{
+			KRATOS_WATCH(nlocal_nodes)
+			KRATOS_WATCH(nlocal_nodes_initially)
+			KRATOS_WATCH(List_New_Nodes.size())
+			
+            KRATOS_ERROR(std::logic_error,"something wrong, some of the new nodes was already existing!!","")
+		}
         if(nlocal_nodes != this_model_part.Nodes().size())
             KRATOS_ERROR(std::logic_error,"nodes were created twice!!","")
 
@@ -712,7 +753,7 @@ public:
 
         //generate the new node
         Node < 3 > ::Pointer pnode = model_part.CreateNewNode(new_id, X, Y, Z);
-
+		
         unsigned int buffer_size = model_part.NodesBegin()->GetBufferSize();
         pnode->SetBufferSize(buffer_size);
 
