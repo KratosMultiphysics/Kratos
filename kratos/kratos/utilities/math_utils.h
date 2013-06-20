@@ -514,18 +514,16 @@ public:
         unsigned int dimension)
     {
         KRATOS_TRY
-        unsigned int size=ReducedMatrix.size2();
-
-        for (unsigned int i=0; i<size; i++)
-        {
-            int rowindex = i*dimension;
-            for (unsigned int j=0; j<size; j++)
-            {
-                unsigned int colindex = j*dimension;
+        unsigned int size     = ReducedMatrix.size2();
+        unsigned int rowindex = 0;
+	unsigned int colindex = 0;
+        for (unsigned int i=0; i<size; i++){
+            rowindex = i*dimension;
+            for (unsigned int j=0; j<size; j++){
+                colindex = j*dimension;
                 for(unsigned int ii=0; ii<dimension; ii++)
                     Destination(rowindex+ii,colindex+ii)+=ReducedMatrix(i,j);
-            }
-        }
+            } }
         KRATOS_CATCH("")
     }
 
@@ -592,6 +590,19 @@ public:
       KRATOS_CATCH("")
 
     }
+    
+    
+    //***********************************************************************
+    //***********************************************************************
+    /// sign function
+    static inline int Sign(const TDataType& ThisDataType)
+    {
+        KRATOS_TRY
+        const TDataType& x = ThisDataType;
+        return (x > 0) ? 1 : ((x < 0) ? -1 : 0);
+        KRATOS_CATCH("")
+    }
+    
 
     /**
      * Transforms a strain vector into a matrix. Strains are assumed to be stored
@@ -713,6 +724,7 @@ public:
 
 
 
+>>>>>>> .r6948
     /*@} */
     /**@name Acces */
     /*@{ */
