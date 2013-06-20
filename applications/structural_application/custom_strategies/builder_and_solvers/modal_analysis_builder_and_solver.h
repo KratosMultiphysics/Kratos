@@ -156,6 +156,9 @@ public:
 
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
+	typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
+    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
+
     typedef typename BaseType::NodesArrayType NodesArrayType;
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
@@ -208,15 +211,12 @@ public:
         ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
 
         //resetting to zero the vector of reactions
-        TSparseSpace::SetToZero(BaseType::mReactionsVector);
+        TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
 
         //create a partition of the element array
         int number_of_threads = omp_get_max_threads();
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, pElements.size(), element_partition);
-        KRATOS_WATCH( number_of_threads );
-        KRATOS_WATCH( element_partition );
-
 
         double start_prod = omp_get_wtime();
 
@@ -253,7 +253,7 @@ public:
             }
         }
 
-        vector<unsigned int> condition_partition;
+        std::vector<unsigned int> condition_partition;
         CreatePartition(number_of_threads, ConditionsArray.size(), condition_partition);
 
         #pragma omp parallel for
@@ -331,7 +331,7 @@ public:
         ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
 
         //resetting to zero the vector of reactions
-        TSparseSpace::SetToZero(BaseType::mReactionsVector);
+        TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
 
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
@@ -389,7 +389,7 @@ public:
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         //resetting to zero the vector of reactions
-        TSparseSpace::SetToZero(BaseType::mReactionsVector);
+        TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
 
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
@@ -501,6 +501,7 @@ public:
 //             SystemSolve(A,Dx,b);
         PowerIterationEigenvalueSolver<TSparseSpace, TDenseSpace, TLinearSolver>
         eigenvalue_solver( 1.0e-8, 1000, 1, BaseType::mpLinearSystemSolver );
+
         LocalSystemVectorType Eigenvalues(1);
         LocalSystemMatrixType Eigenvectors(1,1);
 
@@ -555,7 +556,7 @@ public:
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         //resetting to zero the vector of reactions
-        TSparseSpace::SetToZero(BaseType::mReactionsVector);
+        TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
 
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0,0);
@@ -677,15 +678,38 @@ public:
     //**************************************************************************
     //**************************************************************************
     void ResizeAndInitializeVectors(
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b,
+        TSystemMatrixPointerType& pA,
+        TSystemVectorPointerType& pDx,
+        TSystemVectorPointerType& pb,
         ElementsArrayType& rElements,
         ConditionsArrayType& rConditions,
         ProcessInfo& CurrentProcessInfo
     )
     {
         KRATOS_TRY
+		if(pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
+        {
+            TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0,0) );
+            pA.swap(pNewA);
+        }
+        if(pDx == NULL) //if the pointer is not initialized initialize it to an empty matrix
+        {
+            TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0) );
+            pDx.swap(pNewDx);
+        }
+        if(pb == NULL) //if the pointer is not initialized initialize it to an empty matrix
+        {
+            TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0) );
+            pb.swap(pNewb);
+        }
+        if(BaseType::mpReactionsVector == NULL) //if the pointer is not initialized initialize it to an empty matrix
+        {
+            TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(0) );
+            BaseType::mpReactionsVector.swap(pNewReactionsVector);
+        }
+        TSystemMatrixType& A  = *pA;
+        TSystemVectorType& Dx = *pDx;
+        TSystemVectorType& b  = *pb;
 
         //resizing the system vectors and matrix
         if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
@@ -714,8 +738,8 @@ public:
         if(BaseType::mCalculateReactionsFlag == true)
         {
             unsigned int ReactionsVectorSize = BaseType::mDofSet.size()-BaseType::mEquationSystemSize;
-            if(BaseType::mReactionsVector.size() != ReactionsVectorSize)
-                BaseType::mReactionsVector.resize(ReactionsVectorSize,false);
+            if(BaseType::mpReactionsVector->size() != ReactionsVectorSize)
+                BaseType::mpReactionsVector->resize(ReactionsVectorSize,false);
         }
 
 
@@ -761,13 +785,15 @@ public:
         BuildRHS(pScheme,r_model_part,b);
 
         int i;
-        int systemsize = BaseType::mDofSet.size() - BaseType::mReactionsVector.size();
+        int systemsize = BaseType::mDofSet.size() - BaseType::mpReactionsVector->size();
 
         typename DofsArrayType::ptr_iterator it2;
         //std::set<Dof::Pointer,ComparePDof>::iterator it2;
 
         //updating variables
-        //for (it2=mDofSet.begin();it2 != mDofSet.end(); ++it2)
+
+        TSystemVectorType& ReactionsVector = *(BaseType::mpReactionsVector);
+
         for (it2=BaseType::mDofSet.ptr_begin(); it2 != BaseType::mDofSet.ptr_end(); ++it2)
         {
             if ( (*it2)->IsFixed()  )
@@ -775,7 +801,7 @@ public:
                 i=(*it2)->EquationId();
                 i-=systemsize;
 
-                (*it2)->GetSolutionStepReactionValue() = BaseType::mReactionsVector[i];
+                (*it2)->GetSolutionStepReactionValue() = ReactionsVector[i];
             }
         }
     }
@@ -805,7 +831,11 @@ public:
     void Clear()
     {
         this->mDofSet = DofsArrayType();
-        this->mReactionsVector = TSystemVectorType();
+        
+		if(this->mpReactionsVector != NULL)
+        {
+            TSparseSpace::Clear( (this->mpReactionsVector) );
+        }
 
         if (this->GetEchoLevel()>0)
         {
@@ -974,6 +1004,7 @@ protected:
         }
         else //when the calculation of reactions is needed
         {
+			TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
             for (unsigned int i_local=0; i_local<local_size; i_local++)
             {
                 unsigned int i_global=EquationId[i_local];
@@ -985,7 +1016,7 @@ protected:
                 else //on "fixed" DOFs
                 {
                     // Assembling the Vector of REACTIONS
-                    BaseType::mReactionsVector[i_global-BaseType::mEquationSystemSize] -= RHS_Contribution[i_local];
+                    ReactionsVector[i_global-BaseType::mEquationSystemSize] -= RHS_Contribution[i_local];
                 }
             }
         }
@@ -1053,15 +1084,12 @@ private:
         ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
 
         //resetting to zero the vector of reactions
-        TSparseSpace::SetToZero(BaseType::mReactionsVector);
+        TSparseSpace::SetToZero( *(BaseType::mpReactionsVector) );
 
         //create a partition of the element array
         int number_of_threads = omp_get_max_threads();
-        vector<unsigned int> element_partition;
+        std::vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, pElements.size(), element_partition);
-        KRATOS_WATCH( number_of_threads );
-        KRATOS_WATCH( element_partition );
-
 
         double start_prod = omp_get_wtime();
 
@@ -1086,8 +1114,9 @@ private:
             for (typename ElementsArrayType::ptr_iterator it=it_begin; it!=it_end; ++it)
             {
                 //calculate elemental contribution
+				pScheme->CalculateSystemContributions(*it, K_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                 (*it)->MassMatrix( M_Contribution, CurrentProcessInfo );
-                (*it)->CalculateLocalSystem( K_Contribution,RHS_Contribution,CurrentProcessInfo );
+                //(*it)->CalculateLocalSystem( K_Contribution,RHS_Contribution,CurrentProcessInfo );
 
                 #pragma omp critical
                 {
@@ -1100,7 +1129,7 @@ private:
             }
         }
 
-        vector<unsigned int> condition_partition;
+        std::vector<unsigned int> condition_partition;
         CreatePartition(number_of_threads, ConditionsArray.size(), condition_partition);
 
         #pragma omp parallel for
@@ -1124,8 +1153,9 @@ private:
             for (typename ConditionsArrayType::ptr_iterator it=it_begin; it!=it_end; ++it)
             {
                 //calculate elemental contribution
+				pScheme->Condition_CalculateSystemContributions(*it, K_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
                 (*it)->MassMatrix( M_Contribution, CurrentProcessInfo );
-                (*it)->CalculateLocalSystem( K_Contribution,RHS_Contribution,CurrentProcessInfo );
+                //(*it)->CalculateLocalSystem( K_Contribution,RHS_Contribution,CurrentProcessInfo );
 
                 #pragma omp critical
                 {
@@ -1186,7 +1216,7 @@ private:
 
     //******************************************************************************************
     //******************************************************************************************
-    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, vector<unsigned int>& partitions)
+    inline void CreatePartition(unsigned int number_of_threads,const int number_of_rows, std::vector<unsigned int>& partitions)
     {
         partitions.resize(number_of_threads+1);
         int partition_size = number_of_rows / number_of_threads;
