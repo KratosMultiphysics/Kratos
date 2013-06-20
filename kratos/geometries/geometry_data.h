@@ -111,11 +111,11 @@ public:
     integrating. These enums are used to refere to each
     different integration methods:
 
-    - GI_GAUSS_1 gaussian integration with orden 1.
-    - GI_GAUSS_2 gaussian integration with orden 2.
-    - GI_GAUSS_3 gaussian integration with orden 3.
-    - GI_GAUSS_4 gaussian integration with orden 4.
-    - GI_GAUSS_5 gaussian integration with orden 5.
+    - GI_GAUSS_1 gaussian integration with order 1.
+    - GI_GAUSS_2 gaussian integration with order 2.
+    - GI_GAUSS_3 gaussian integration with order 3.
+    - GI_GAUSS_4 gaussian integration with order 4.
+    - GI_GAUSS_5 gaussian integration with order 5.
     */
     enum IntegrationMethod {GI_GAUSS_1, GI_GAUSS_2, GI_GAUSS_3, GI_GAUSS_4, GI_GAUSS_5,
                             NumberOfIntegrationMethods
