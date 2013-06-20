@@ -1,8 +1,11 @@
 import sys
-from KratosMultiphysics import *
-from KratosMultiphysics.DEMApplication import *
 sys.path.insert(0, '../../DEM_application/python_scripts')
 sys.path.insert(0, '../../ULFapplication/python_scripts')
+from KratosMultiphysics import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.PFEMApplication import *
+from KratosMultiphysics.StructuralApplication import *
+#from KratosMultiphysics.PFEMApplication import *
 from UD_var import *
 
 # Importing DEM solver strategy
@@ -53,6 +56,7 @@ def DEMStrategy(ParticlesModelPart, domain_size):
     return DEM_solver
 
 def FluidStrategy(OutFile, FluidOnlyModelPart, FluidModelPart, StructureModelPart, CombinedModelPart, BoxCorner1, BoxCorner2):
+
     if (SolverType == "Incompressible_Modified_FracStep"):
         fluid_solver = fluid.ULF_FSISolver(OutFile, FluidOnlyModelPart, FluidModelPart, StructureModelPart, CombinedModelPart, FSI, compute_reactions, BoxCorner1, BoxCorner2, domain_size, adaptive_refinement, bulk_modulus, density)
 
@@ -84,8 +88,31 @@ def FluidStrategy(OutFile, FluidOnlyModelPart, FluidModelPart, StructureModelPar
             node.SetSolutionStepValue(DENSITY, 0, density)
 
     fluid_solver.alpha_shape = alpha_shape
-    fluid_solver.Initialize()
     fluid_solver.echo_level = 2
 
     return fluid_solver
-#def FluidStrategy(FluidModelPart, DomainSize, SolverType):
+
+class ProjectionModule:
+
+    def __init__(self, FluidModelPart, ParticlesModelPart, DomainSize, NParticlesInDepth):
+
+        self.fluid_model_part     = FluidModelPart
+        self.particles_model_part = ParticlesModelPart
+        self.n_particles_in_depth = NParticlesInDepth
+
+        if (DomainSize == 3):
+            self.projector = BinBasedDEMULFCoupledMapping3D()
+            self.bin_of_objects_fluid = BinBasedFastPointLocator3D(FluidModelPart)
+
+        else:
+            self.projector = BinBasedDEMULFCoupledMapping2D()
+            self.bin_of_objects_fluid = BinBasedFastPointLocator2D(FluidModelPart)
+
+    def UpdateDatabase(self, HMin):
+        self.bin_of_objects_fluid.UpdateSearchDatabaseAssignedSize(HMin)
+
+    def ProjectFromFluid(self):
+        self.projector.InterpolationFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
+
+    def ProjectFromParticles(self):
+        self.projector.InterpolationFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.n_particles_in_depth, self.bin_of_objects_fluid)
