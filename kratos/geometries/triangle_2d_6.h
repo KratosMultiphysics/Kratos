@@ -86,7 +86,7 @@ namespace Kratos
 ///@{
 
 /**
- * A four node quadrilateral geometry. While the shape functions are only defined in
+ * A six node triangular geometry. While the shape functions are only defined in
  * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
  * defining surfaces on 3D elements.
  */
@@ -221,7 +221,7 @@ public:
     ShapeFunctionsThirdDerivativesType;
 
     /**
-     * Type of the normal vector used for normal to edges in geomety.
+     * Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
