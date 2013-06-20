@@ -289,7 +289,7 @@ namespace Kratos
           #pragma omp parallel for private(rhs_elem)
           for (int k = 0; k < this->GetNumberOfThreads(); k++){
 
-              if(rhs_elem.size() != 6){
+              if (rhs_elem.size() != 6){
                 rhs_elem.resize(6);
               }
 
@@ -306,7 +306,7 @@ namespace Kratos
                   for (int i = 0; i < 3; i++){
                       applied_force[i]  = rhs_elem[i];
                       applied_moment[i] = rhs_elem[3 + i];
-                      }
+                  }
 
               } //loop over particles
 
@@ -383,7 +383,7 @@ namespace Kratos
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-                (it)->FinalizeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
+                  (it)->FinalizeSolutionStep(rCurrentProcessInfo); //we use this function to call the set initial contacts and the add continuum contacts.
               } //loop over particles
 
           } // loop threads OpenMP
@@ -530,10 +530,9 @@ namespace Kratos
         ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
         ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
 
-        for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
-        {
-            if(particle_pointer_it->Id() == id)
-            {
+        for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
+
+            if (particle_pointer_it->Id() == id){
                 std::cout << msg << " " << particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).size() << std::endl; break;
             }
         }
