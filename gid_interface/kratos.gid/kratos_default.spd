@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.9">
+<Kratos_Data version="1.2.10">
     <Groups modeltype="GiD"/>
     <GroupTypes>
         <Item id="load" pid="Load"/>
@@ -95,7 +95,7 @@
             <Container id="BodyForce" pid="Gravity" class="Groups" idTemplate="BodyForce" icon="groupsTreeNew.gif" help="Gravity" open="1"/>
             <Container id="Puntual" pid="Puntual" class="Groups" idTemplate="Puntual" icon="groupsTreeNew.gif" help="Concentrated" open="1"/>
             <Container id="Pressure" pid="Pressure" class="Groups" idTemplate="ShellPressure" nDim="3D" GiDEntity="surface" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="1"/>
-            <Container id="Face" pid="Face" class="Groups" nDim="3D" strucType="Solids" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Face" open="0"/>
+            <Container id="Face" pid="Face" class="Groups" idTemplate="FaceForce" nDim="3D" GiDEntity="surface" strucType="Solids" icon="groupsTreeNew.gif" help="Define Face Force" open="1"/>
 	    <Container id="BeamUniformlyDistributed" pid="Uniformly distributed" class="Groups" nDim="3D" strucType="Beams" idTemplate="BeamUniformlyDistributedLoad" icon="groupsTreeNew.gif" help="Beam uniformly distributed load" open="0"/>
         </Container>
         <Container id="Conditions" pid="Conditions" help="Boundary Conditions" open="1" icon="boundarycond.gif">
@@ -504,6 +504,13 @@
                 <Item id="PressureValue" pid="Pressure value" dv="0.0" help="Pressure value"/>
             </Container>
         </Template>
+        <Template id="FaceForce" icon="groupsTree.gif" help="Face Force">
+            <Container id="MainProperties" pid="Face" state="hidden" help="Values">
+                <Item id="BUDFx" pid="Fx" dv="0.0" functionDissable="0" help="Fx Vector"/>
+                <Item id="BUDFy" pid="Fy" dv="0.0" functionDissable="0" help="Fy Vector"/>
+                <Item id="BUDFz" pid="Fz" dv="0.0" functionDissable="0" nDim="3D" help="Fz Vector"/>                
+            </Container>
+        </Template>
         <Template id="InitialVelocity" icon="groupsTree.gif" help="Initial velocity">
             <Container id="Values" pid="Values" help="Values">
                 <Item id="Vx" pid="Vx" dv="0.0" help="X initial velocity"/>
@@ -521,6 +528,7 @@
                 <Item id="InitialPressure" pid="Pressure" dv="0.0" help=""/>
             </Container>
         </Template>
+        
 	<Template id="FlagVariable" icon="groupsTree.gif" help="Flag variable">
             <Container id="MainProperties" pid="New property" state="hidden" help="Values">
                 <Item id="Flag" pid="Flag" dv="1" ivalues="1,2" values="1,2" help="Select the flag value"/>
