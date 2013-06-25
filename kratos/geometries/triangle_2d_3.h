@@ -89,7 +89,7 @@ namespace Kratos
 ///@{
 
 /**
- * A four node quadrilateral geometry. While the shape functions are only defined in
+ * A three node element geometry. While the shape functions are only defined in
  * 2D it is possible to define an arbitrary orientation in space. Thus it can be used for
  * defining surfaces on 3D elements.
  */
@@ -224,7 +224,7 @@ public:
     ShapeFunctionsThirdDerivativesType;
 
     /**
-     * Type of the normal vector used for normal to edges in geomety.
+     * Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -572,6 +572,41 @@ public:
         std::fill( rResult.begin(), rResult.end(), jacobian );
 
         return rResult;
+
+        /* ShapeFunctionsGradientsType shape_functions_gradients = */
+        /*     CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod ); */
+        /* //getting values of shape functions */
+        /* Matrix shape_functions_values = */
+        /*     CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ); */
+        /* //workaround by riccardo... */
+
+        /* if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) ) */
+        /* { */
+        /*     // KLUDGE: While there is a bug in ublas */
+        /*     // vector resize, I have to put this beside resizing!! */
+        /*     JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) ); */
+        /*     rResult.swap( temp ); */
+        /* } */
+
+        /* //loop over all integration points */
+        /* for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ ) */
+        /* { */
+        /*     //defining single jacobian matrix */
+        /*     Matrix jacobian = ZeroMatrix( 2, 2 ); */
+        /*     //loop over all nodes */
+
+        /*     for ( unsigned int i = 0; i < this->PointsNumber(); i++ ) */
+        /*     { */
+        /*         jacobian( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 0 ) ); */
+        /*         jacobian( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 1 ) ); */
+        /*         jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients[pnt]( i, 0 ) ); */
+        /*         jacobian( 1, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients[pnt]( i, 1 ) ); */
+        /*     } */
+
+        /*     rResult[pnt] = jacobian; */
+        /* }//end of loop over all integration points */
+
+        /* return rResult; */
     }
 
     /**
@@ -600,6 +635,84 @@ public:
         rResult( 0, 1 ) = -( this->GetPoint( 0 ).X() ) + ( this->GetPoint( 2 ).X() );
         rResult( 1, 1 ) = -( this->GetPoint( 0 ).Y() ) + ( this->GetPoint( 2 ).Y() );
         return rResult;
+
+
+       /* //setting up size of jacobian matrix */
+       /*  rResult.resize( 2, 2 ); */
+       /*  //derivatives of shape functions */
+       /*  ShapeFunctionsGradientsType shape_functions_gradients = */
+       /*      CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod ); */
+       /*  Matrix ShapeFunctionsGradientInIntegrationPoint = */
+       /*      shape_functions_gradients( IntegrationPointIndex ); */
+       /*  //values of shape functions in integration points */
+       /*  vector<double> ShapeFunctionValuesInIntegrationPoint = ZeroVector( 3 ); */
+       /*  /\*vector<double>*\/ */
+       /*  ShapeFunctionValuesInIntegrationPoint = */
+       /*      row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ), IntegrationPointIndex ); */
+
+       /*  //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1) */
+       /*  //loop over all nodes */
+
+       /*  for ( unsigned int i = 0; i < this->PointsNumber(); i++ ) */
+       /*  { */
+       /* 	    rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) ); */
+       /*      rResult( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) ); */
+       /*      rResult( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) ); */
+       /*      rResult( 1, 1 ) += ( this->GetPoint( i ).Y() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) ); */
+       /*  } */
+
+       /*  return rResult; */
+    }
+
+    /**
+     * Jacobian in specific integration point of given integration
+     * method. This method calculate jacobian matrix in given
+     * integration point of given integration method.
+     *
+     * @param IntegrationPointIndex index of integration point which jacobians has to
+     * be calculated in it.
+     *
+     * @param ThisMethod integration method which jacobians has to
+     * be calculated in its integration points.
+     *
+     * @param DeltaPosition array of the position increment which describes
+     * the configuration where the jacobian has to be calculated.
+     *
+     * @return Matrix<double> Jacobian matrix \f$ J_i \f$ where \f$
+     * i \f$ is the given integration point index of given
+     * integration method.
+     *
+     * @see DeterminantOfJacobian
+     * @see InverseOfJacobian
+     */
+    virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod, std::vector<array_1d<double, 3> > & DeltaPosition ) const
+    {
+        //setting up size of jacobian matrix
+        rResult.resize( 2, 2 );
+        //derivatives of shape functions
+        ShapeFunctionsGradientsType shape_functions_gradients =
+            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+        Matrix ShapeFunctionsGradientInIntegrationPoint =
+            shape_functions_gradients( IntegrationPointIndex );
+        //values of shape functions in integration points
+        vector<double> ShapeFunctionValuesInIntegrationPoint = ZeroVector( 3 );
+        /*vector<double>*/
+        ShapeFunctionValuesInIntegrationPoint =
+            row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ), IntegrationPointIndex );
+
+        //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
+        //loop over all nodes
+
+        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
+        {
+	    rResult( 0, 0 ) += ( this->GetPoint( i ).X() + DeltaPosition[i][0] ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
+            rResult( 0, 1 ) += ( this->GetPoint( i ).X() + DeltaPosition[i][0] ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
+            rResult( 1, 0 ) += ( this->GetPoint( i ).Y() + DeltaPosition[i][1] ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
+            rResult( 1, 1 ) += ( this->GetPoint( i ).Y() + DeltaPosition[i][1] ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
+        }
+
+        return rResult;
+
     }
 
     /**
@@ -622,6 +735,25 @@ public:
         rResult( 0, 1 ) = -( this->GetPoint( 0 ).X() ) + ( this->GetPoint( 2 ).X() );
         rResult( 1, 1 ) = -( this->GetPoint( 0 ).Y() ) + ( this->GetPoint( 2 ).Y() );
         return rResult;
+
+       /* //setting up size of jacobian matrix */
+       /*  rResult.resize( 2, 2 ); */
+       /*  //derivatives of shape functions */
+       /*  Matrix shape_functions_gradients; */
+       /*  shape_functions_gradients = ShapeFunctionsLocalGradients( */
+       /*                                  shape_functions_gradients, rPoint ); */
+       /*  //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1) */
+       /*  //loop over all nodes */
+
+       /*  for ( unsigned int i = 0; i < this->PointsNumber(); i++ ) */
+       /*  { */
+       /*      rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 0 ) ); */
+       /*      rResult( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 1 ) ); */
+       /*      rResult( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 0 ) ); */
+       /*      rResult( 1, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 1 ) ); */
+       /*  } */
+
+       /*  return rResult; */
     }
 
     /**
@@ -808,13 +940,13 @@ public:
         rResult.resize( 2, 2 );
 
         //filling matrix
-        rResult( 0, 0 ) = ( tempMatrix( 1, 1 ) ) / ( det_j );
+        rResult( 0, 0 ) =  ( tempMatrix( 1, 1 ) ) / ( det_j );
 
         rResult( 1, 0 ) = -( tempMatrix( 1, 0 ) ) / ( det_j );
 
         rResult( 0, 1 ) = -( tempMatrix( 0, 1 ) ) / ( det_j );
 
-        rResult( 1, 1 ) = ( tempMatrix( 0, 0 ) ) / ( det_j );
+        rResult( 1, 1 ) =  ( tempMatrix( 0, 0 ) ) / ( det_j );
 
         return rResult;
     }
@@ -1015,11 +1147,11 @@ public:
         double detJ = x10 * y20-y10 * x20;
 
         DN_DX(0,0) = -y20 + y10;
-        DN_DX(0,1) = x20 - x10;
-        DN_DX(1,0) =  y20	   ;
-        DN_DX(1,1) = -x20     ;
-        DN_DX(2,0) = -y10	   ;
-        DN_DX(2,1) = x10	   ;
+        DN_DX(0,1) =  x20 - x10;
+        DN_DX(1,0) =  y20;
+        DN_DX(1,1) = -x20;
+        DN_DX(2,0) = -y10;
+        DN_DX(2,1) =  x10;
 
         DN_DX /= detJ;
 		
