@@ -572,6 +572,19 @@ public:
 	  StressTensor(1,0) = rStressVector[2];
 	  StressTensor(1,1) = rStressVector[1];
         }
+      else if (rStressVector.size()==4)
+        {
+	  StressTensor.resize(3,3,false);
+	  StressTensor(0,0) = rStressVector[0];
+	  StressTensor(0,1) = rStressVector[3];
+	  StressTensor(0,2) = 0;
+	  StressTensor(1,0) = rStressVector[3];
+	  StressTensor(1,1) = rStressVector[1];
+	  StressTensor(1,2) = 0;
+	  StressTensor(2,0) = 0;
+	  StressTensor(2,1) = 0;
+	  StressTensor(2,2) = rStressVector[2];
+	}
       else if (rStressVector.size()==6)
         {
 	  StressTensor.resize(3,3,false);
@@ -656,20 +669,35 @@ public:
     * @return the corresponding strain tensor in vector form
     */
 
-    static inline Vector StrainTensorToVector( const Matrix& rStrainTensor )
+    static inline Vector StrainTensorToVector( const Matrix& rStrainTensor, unsigned int rSize = 0 )
     {
       KRATOS_TRY
 
       Vector StrainVector;
 
-      if (rStrainTensor.size1()==2)
+     if(rSize == 0){
+	if(rStrainTensor.size1() == 2)
+	  rSize = 3;
+	if(rStrainTensor.size1() == 3)
+	  rSize = 6;
+      }
+
+      if (rSize == 3)
         {
 	  StrainVector.resize(3);
 	  StrainVector[0] = rStrainTensor(0,0);
 	  StrainVector[1] = rStrainTensor(1,1);
 	  StrainVector[2] = 2.00*rStrainTensor(0,1);
         }
-      else if (rStrainTensor.size1()==3)
+      else if (rSize == 4)
+        {
+	  StrainVector.resize(4);
+	  StrainVector[0] = rStrainTensor(0,0);
+	  StrainVector[1] = rStrainTensor(1,1);
+	  StrainVector[2] = rStrainTensor(2,2);
+	  StrainVector[3] = 2.00*rStrainTensor(0,1);
+        }
+      else if (rSize == 6)
         {
 	  StrainVector.resize(6);
 	  StrainVector[0] = rStrainTensor(0,0);
@@ -693,23 +721,38 @@ public:
     * @param rStressTensor the given symmetric second order stress tensor
     * @return the corresponding stress tensor in vector form
     */
-    static inline Vector StressTensorToVector(const Matrix& rStressTensor)
+    static inline Vector StressTensorToVector(const Matrix& rStressTensor, unsigned int rSize = 0)
     {
 
       KRATOS_TRY
 
       Vector StressVector;
+      
+      if(rSize == 0){
+	if(rStressTensor.size1() == 2)
+	  rSize = 3;
+	if(rStressTensor.size1() == 3)
+	  rSize = 6;
+      }
 
-      if (rStressTensor.size1()==2)
+      if (rSize==3)
         {
 	  StressVector.resize(3);
 	  StressVector[0]= rStressTensor(0,0);
 	  StressVector[1]= rStressTensor(1,1);
 	  StressVector[2]= rStressTensor(0,1);
         }
-      else if (rStressTensor.size1()==3)
+      else if (rSize==4)
         {
-	  StressVector.resize(6);
+	  StressVector.resize(4);
+	  StressVector[0]= rStressTensor(0,0);
+	  StressVector[1]= rStressTensor(1,1);
+	  StressVector[2]= rStressTensor(2,2);
+	  StressVector[3]= rStressTensor(0,1);
+        }
+      else if (rSize==6)
+        {
+	  StressVector.resize(4);
 	  StressVector[0]= rStressTensor(0,0);
 	  StressVector[1]= rStressTensor(1,1);
 	  StressVector[2]= rStressTensor(2,2);
@@ -717,6 +760,7 @@ public:
 	  StressVector[4]= rStressTensor(1,2);
 	  StressVector[5]= rStressTensor(0,2);
         }
+
         
       return StressVector;
       KRATOS_CATCH("")
