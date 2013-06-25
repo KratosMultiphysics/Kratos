@@ -381,7 +381,7 @@ namespace Kratos
                                                           ProcessInfo& rCurrentProcessInfo)
       {
           KRATOS_TRY
-
+          
           // PROCESS INFO
 
           ParticleWeakVectorType& mrNeighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);
@@ -504,6 +504,7 @@ namespace Kratos
 
               }
 
+            
               if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0){
                   equiv_visco_damp_coeff_normal     = 2 * sqrt(equiv_mass * kn);
                   equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(equiv_mass * kt);
@@ -933,7 +934,7 @@ namespace Kratos
           KRATOS_TRY
 
           MemberDeclarationFirstStep(rCurrentProcessInfo);
-
+          mInitializedVariablesFlag = 1;
           KRATOS_CATCH("")
 
       }
@@ -1029,7 +1030,7 @@ namespace Kratos
           // Paso al nodo la id del elemento cuando inicializo al mismo
 
           if (!mInitializedVariablesFlag){
-              mInitializedVariablesFlag = 1;
+              
 
               if (rCurrentProcessInfo[INT_DUMMY_3] == 1){
                   this->GetGeometry()(0)->FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
