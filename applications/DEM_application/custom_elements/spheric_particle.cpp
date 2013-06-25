@@ -935,6 +935,7 @@ namespace Kratos
 
           MemberDeclarationFirstStep(rCurrentProcessInfo);
           mInitializedVariablesFlag = 1;
+
           KRATOS_CATCH("")
 
       }
@@ -1030,7 +1031,6 @@ namespace Kratos
           // Paso al nodo la id del elemento cuando inicializo al mismo
 
           if (!mInitializedVariablesFlag){
-              
 
               if (rCurrentProcessInfo[INT_DUMMY_3] == 1){
                   this->GetGeometry()(0)->FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
