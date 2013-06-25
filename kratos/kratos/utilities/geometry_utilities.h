@@ -357,7 +357,7 @@ public:
         const double epsilon = 1e-15; //1.00e-9;
 
         int number_of_intersection_points = 0;
-        for(int i = 0 ; i < TSize1 ; i++)
+        for(unsigned int i = 0 ; i < TSize1 ; i++)
         {
             if(fabs(Distances[i]) < epsilon)
             {
@@ -366,7 +366,7 @@ public:
                 number_of_intersection_points++;
                 continue;
             }
-            for(int j = i + 1 ; j < TSize1 ; j++)
+            for(unsigned int j = i + 1 ; j < TSize1 ; j++)
             {
                 if(fabs(Distances[j]) < epsilon)
                     continue; // we will add it to the intersections by the i index to be unique
