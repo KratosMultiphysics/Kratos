@@ -12,6 +12,7 @@
 #
 #    HISTORY: 
 # 
+#     3.8- 25/06/13- A. Melendo, to not let disabledGraphics never
 #     3.7- 19/06/13- G. Socorro, delete the event AfterRenameCondGroup, AfterCreateCondGroup and BeforeDeleteCondGroup used in the Compass library
 #     3.6- 18/06/13- G. Socorro, delete the global variable KPriv(NewGiDGroups)
 #     3.5- 17/06/13- G. Socorro, modify the proc BeforeMeshGeneration to delete the old Compass condition
@@ -230,7 +231,8 @@ proc BeforeMeshGeneration {elementsize} {
     global KPriv
     
     ::GidUtils::DisableGraphics
-
+    #to not let disabledGraphics never
+    if { [catch {
     
     set ndime "3D"
     # Get the spatial dimension
@@ -294,8 +296,11 @@ proc BeforeMeshGeneration {elementsize} {
 		    ::wkcf::AssignConditionToGroupGID $entitytype $bsurfacelist $groupid
 
     }
-    
+    } err] } {
+       WarnWinText $err
+    }
     ::GidUtils::EnableGraphics
+   
     
 }
 
