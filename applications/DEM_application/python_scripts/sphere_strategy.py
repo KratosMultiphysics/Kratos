@@ -220,8 +220,6 @@ class ExplicitStrategy:
         # TIME RELATED PARAMETERS
         self.delta_time                     = max_time_step
         self.max_delta_time                 = max_time_step
-        print 'max_delta_time'
-        print self.max_delta_time
         self.final_time                     = final_time
         self.time_increasing_ratio          = int(IncreasingTemporaily) # Percentage (%)
 
