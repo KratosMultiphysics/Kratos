@@ -12,6 +12,7 @@
 #
 #  HISTORY:
 # 
+#   0.8- 25/06/13- A. Melendo, new List and Draw procs
 #   0.7- 18/06/13- G. Socorro, delete the use of the proc kipt::NewGiDGroups (delete the call to the compass groups => Cond_Groups)
 #   0.6- 12/02/12-G. Socorro, modify the link to the GiD group window to use ::WinUtils::OpenGiDGroupTab
 #   0.5- 10/10/12-J. Garate, Adaptation for New GiD Groups, Autogroup Frame Bug Corrected when assigning entities
@@ -290,6 +291,205 @@ proc ::KMProps::deleteGroupCondition { T item } {
     }
     
 }
+
+#
+# Dibujado el grupo de la condición
+#
+proc ::KMProps::drawGroupCondition { T item } {
+    #msg "$T $item"
+    set fullname [DecodeName [$T item tag names $item]]
+    set GroupId [$T item text $item 0]
+    
+    GiD_Groups draw $GroupId
+    GiD_Redraw
+    set parent [winfo parent [winfo parent [winfo parent $T]]]
+    FinishButton $parent $parent.caption [_ "Press 'Finish' to end selection"] {GiD_Groups end_draw; GiD_Redraw} disableall [GiD_Set SmallWinSelecting]
+   
+    #GiD_Groups end_draw
+    
+    
+}
+#
+# Dibujado los grupos de una condición
+#
+proc ::KMProps::drawGroupsCondition { T item } {
+    set ListGroupId ""
+    
+    foreach childitem [$T item children $item] {
+      set fullname [DecodeName [$T item tag names $childitem]]
+      set class [::xmlutils::setXml $fullname class]
+	    if {$class == "Group" } {
+        lappend ListGroupId [$T item text $childitem 0]
+	    }
+    }
+       
+    GiD_Groups draw $ListGroupId
+    GiD_Redraw
+    set parent [winfo parent [winfo parent [winfo parent $T]]]
+    FinishButton $parent $parent.caption [_ "Press 'Finish' to end selection"] {GiD_Groups end_draw; GiD_Redraw} disableall [GiD_Set SmallWinSelecting]
+     
+}
+
+proc ::KMProps::auxiliarfunction_ReturnEntitiesInsideGroups { ListGroupId } {
+
+  set ReturnList ""
+
+  set types [list [_ "Points"] [_ "Lines"] [_ "Surfaces"] [_ "Volumes"] [_ "Nodes"] [_ "Elements"] [_ "Faces"]]
+  
+  set totallistentities [list {*}[GiD_EntitiesGroups get [lindex $ListGroupId 0] all_geometry] {*}[GiD_EntitiesGroups get [lindex $ListGroupId 0] all_mesh]]
+  #convert faces format
+  if { [llength [lindex $totallistentities end]] > 0} {
+    set txt ""
+    foreach element [lindex [lindex $totallistentities end] 0] face [lindex [lindex $totallistentities end] 1] {
+      #convert to real format to sort
+      lappend txt $element.$face
+    }
+    set totallistentities [lreplace $totallistentities end end $txt]
+  }
+  
+  foreach GroupId [lrange $ListGroupId 1 end] {   
+    set listentities [list {*}[GiD_EntitiesGroups get [lindex $GroupId 0] all_geometry] {*}[GiD_EntitiesGroups get [lindex $GroupId 0] all_mesh]]
+    if { [llength [lindex $listentities end]] > 0} {
+      set txt ""
+      foreach element [lindex [lindex $listentities end] 0] face [lindex [lindex $listentities end] 1] {
+        #convert to real format to sort
+        lappend txt $element.$face
+      }
+      set listentities [lreplace $listentities end end $txt]
+    }
+    set count 0
+    foreach entititype $listentities {    
+      set totallistentities [lreplace $totallistentities $count $count [ lsort -increasing -unique -real [list {*}[lindex $totallistentities $count] {*}$entititype ]]]
+      incr count
+    }
+  }
+  set count 0
+  foreach type $types {
+    if {[llength [lindex $totallistentities $count]]>0} {
+      #convert from real format to face format
+      append ReturnList "  " $type ": " [regsub -all {\.} [lindex $totallistentities $count] :] "\n"
+    }
+    incr count
+  }
+  return $ReturnList
+ 
+}
+
+
+proc ::KMProps::listGroupCondition { T item } {
+    #msg "$T $item"
+    #set fullname [DecodeName [$T item tag names $item]]
+    set GroupId [$T item text $item 0]
+    
+    set listentities [::KMProps::auxiliarfunction_ReturnEntitiesInsideGroups $GroupId]
+    
+    WarnWinText "${GroupId}: "
+    WarnWinText $listentities
+}
+
+
+proc ::KMProps::listGroupsCondition { T item } {
+
+    set ListGroupId ""
+    
+    foreach childitem [$T item children $item] {
+      set fullname [DecodeName [$T item tag names $childitem]]
+      set class [::xmlutils::setXml $fullname class]
+	    if {$class == "Group" } {
+        lappend ListGroupId [$T item text $childitem 0]
+	    }
+    }
+    
+    set listentities [::KMProps::auxiliarfunction_ReturnEntitiesInsideGroups $ListGroupId]
+    set fullname [DecodeName [$T item tag names $item]]
+    set name [::xmlutils::setXml $fullname pid]
+    
+    WarnWinText "$name [_ "has been applied to"]:"
+     WarnWinText "  [_ "Groups"]: $ListGroupId"
+    WarnWinText $listentities
+    
+}
+proc ::KMProps::auxiliarfunction_GetItemTextFromTreeItem { T item} {
+  set text ""
+  if { [$T item id $item] != "" } {  
+      set fullname [DecodeName [$T item tag names $item]]
+      set dv [::xmlutils::setXml $fullname dv]
+      set pid [::xmlutils::setXml $fullname pid]
+      if { $dv != "" } {        
+        append text $pid ": " $dv
+      }    
+  }
+  return $text
+}
+proc ::KMProps::auxiliarfunction_GetContainerTextFromTreeItem { T item} {
+  set text ""
+  if { [$T item id $item] != "" } {
+    set fullname [DecodeName [$T item tag names $item]]
+    set pid [::xmlutils::setXml $fullname pid]   
+    if { $pid=="" } {
+      set pid [_ "Root"]  
+    }
+    append text $pid    
+  }
+  return $text
+}
+proc ::KMProps::auxiliarfunction_WritteChildren { T item level} {
+  incr level
+  set numspaces "  "
+  set separatoritem ", "
+  
+  set fullname [DecodeName [$T item tag names $item]]
+  
+  if { $fullname!="" && [::xmlutils::getXmlNodeName $fullname] == "Item" } {
+    set information [::KMProps::auxiliarfunction_GetItemTextFromTreeItem $T $item]
+    return $information
+  } else {
+    #like Container
+    set tab ""
+    for { set i 1 } { $i < $level } { incr i } {        
+      append tab $numspaces
+    }
+    set text "$tab"    
+    set importantinformation 0
+    append text [::KMProps::auxiliarfunction_GetContainerTextFromTreeItem $T $item] ":"
+    set listchildrens [$T item children $item]
+    foreach children $listchildrens { 
+      set information [::KMProps::auxiliarfunction_WritteChildren $T $children $level]
+      if { $information != "" } {        
+        set fullnamechildren [DecodeName [$T item tag names $children]]
+      
+          if { [::xmlutils::getXmlNodeName $fullnamechildren] == "Item"} {
+            if { $importantinformation==0 } {
+              #tab de level + 1
+              append text "\n$tab" 
+              append text $numspaces
+            } else {
+              append text $separatoritem
+            }
+          } else {
+            append text "\n"           
+          }
+                  
+        set importantinformation 1
+        append text $information
+      }
+    }
+    if {$importantinformation==0} {
+      set text ""
+    }
+  }
+  return $text
+}
+
+proc ::KMProps::listSubtree { T item } {
+  set listId ""
+
+  set listsubitems [::KMProps::auxiliarfunction_WritteChildren $T $item 0]
+	
+  WarnWinText $listsubitems
+
+}
+
 
 #
 # Busca en el arbol de propiedades, todos los grupos que se llamen $GroupId
