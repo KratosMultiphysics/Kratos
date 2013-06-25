@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #   
+#     1.7- 25/06/13-A. Melendo, new proc WriteFaceLoads
 #     1.6- 17/06/13-G. Socorro, delete wmethod variable and all relalated procedure (*_m0,*_m1,*_m2) => now we are using only the new GiD groups
 #     1.5- 22/05/13-G. Socorro, correct a bug in the procs WritePuntualLoads and WriteBeamUniformlyDistributedLoads when write condition 
 #                               identifier in the case of more than one load group
@@ -125,6 +126,10 @@ proc ::wkcf::WriteLoads {AppId} {
                 "Pressure" {
                     # Pressure loads
                     ::wkcf::WritePressureLoads $AppId $cloadtid
+                }
+                "Face" {
+                    # Face loads
+                    ::wkcf::WriteFaceLoads $AppId $cloadtid
                 }
             }
             }
@@ -291,6 +296,102 @@ proc ::wkcf::WritePressureLoads {AppId cloadtid} {
         set ttime [expr $endtime-$inittime]
         # WarnWinText "endtime:$endtime ttime:$ttime"
         WarnWinText "Write structural analysis write pressure loads (positive or negative shell pressure): [::KUtils::Duration $ttime]"
+    }
+}
+
+proc ::wkcf::WriteFaceLoads {AppId cloadtid} {
+    # ABSTRACT: Write face loads (positive or negative shell pressure)
+    variable ndime;  variable dprops
+    variable filechannel; variable sa_icondid
+       
+    # For debug
+    if {!$::wkcf::pflag} {
+        set inittime [clock seconds]
+    }
+
+    # Kratos key word xpath
+    set kxpath "Applications/$AppId"
+    # Set the GiD element type
+    set GiDElemType "Triangle"
+    # Set the face 3d-3n condition keyword
+    set faceforce3d3nkword "FaceForce3D3N"
+    # Set the reference property id
+    set RefPropId "1"
+       
+    # For all defined group identifier inside this load type
+    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
+        if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
+            # Write Face3D3N condition
+            GiD_File fprintf $filechannel "%s" "Begin Conditions $faceforce3d3nkword // GUI face load group identifier: $cgroupid"
+            foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
+                set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
+                set N1 [lindex $nodes 0]
+                set N2 [lindex $nodes 1]
+                set N3 [lindex $nodes 2]
+                incr sa_icondid
+                set cf "[format "%4i%4i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3]"
+                GiD_File fprintf $filechannel "%s" "$cf"
+            }
+            GiD_File fprintf $filechannel "%s" "End Conditions"
+            GiD_File fprintf $filechannel ""
+        }
+    }
+
+
+    # Write faceforce values for all nodes inside a group identifier 
+    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
+
+        # Get the load properties
+        set GProps $dprops($AppId,Loads,$cloadtid,$cgroupid,GProps)
+        # WarnWinText "cgroupid:$cgroupid GProps:$GProps"
+        # Assign values
+        foreach item $GProps {
+            foreach {cvar cval} $item {
+                set $cvar $cval
+            }
+        } 
+
+        #values:
+        #<Container id="Values" pid="Values" help="Set the values">
+        #        <Item id="Vx" pid="X" dv="0.0" help="X coordinate"/>
+        #        <Item id="Vy" pid="Y" dv="0.0" help="Y coordinate"/>
+        #        <Item id="Vz" pid="Z" dv="0.0" nDim="3D" help="Z coordinate"/>
+        #</Container>
+        #<Container id="Activation" pid="Fixed" help="Fix/release some degree of freedom">
+        #        <Item id="Ax" pid="X active" dv="1" ivalues="1,0" values="1,0" help="Fix X degree of freedom"/>
+        #        <Item id="Ay" pid="Y active" dv="1" ivalues="1,0" values="1,0" help="Fix Y degree of freedom"/>
+        #        <Item id="Az" pid="Z active" dv="0" nDim="3D" ivalues="1,0" values="1,0" help="Fix Z degree of freedom"/>
+        #</Container>
+        
+        # WarnWinText "FixPressure:$FixPressure PressureType:$PressureType PressureValue:$PressureValue"
+        if {([GiD_EntitiesGroups get $cgroupid nodes -count]>0)&&($ndime=="3D")} {
+            
+            foreach Component {BUDFx BUDFy BUDFz} {
+              # Get the current face load component keyword                       
+              set kwid "$Component"
+              set ckword [::xmlutils::getKKWord $kxpath $kwid]              
+              if {[set $Component] !="0.0"} {
+                # Set the real pressure value
+                # set PressureValue [expr double($PressureValue)/$ngroupnodes]
+                # Write the pressure values
+                # Pressure properties
+                GiD_File fprintf $filechannel "%s" "Begin NodalData $ckword // GUI pressure load group identifier: $cgroupid"
+                foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+                    GiD_File fprintf $filechannel "%10i %6i %20.10f" $node_id 0 [set $Component]
+                }
+                GiD_File fprintf $filechannel "%s" "End NodalData"
+                GiD_File fprintf $filechannel ""
+              }
+            }
+        }
+    }
+    
+    # For debug
+    if {!$::wkcf::pflag} {
+        set endtime [clock seconds]
+        set ttime [expr $endtime-$inittime]
+        # WarnWinText "endtime:$endtime ttime:$ttime"
+        WarnWinText "Write structural analysis write face loads: [::KUtils::Duration $ttime]"
     }
 }
 
