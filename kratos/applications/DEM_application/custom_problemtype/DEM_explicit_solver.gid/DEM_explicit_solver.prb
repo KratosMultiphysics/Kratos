@@ -231,6 +231,9 @@ VALUE: 40.0
 #Options only relevant to the DEM-modelled continuum problems
 TITLE: Continuum_Options
 
+QUESTION: Amplified_Continuum_Search_Radius_Extension
+HELP: Manually especified factor that enlarges the initial radius of search in order to find the continuum neighbours that are may be separated by traccional strain. 
+VALUE: 1.10
 QUESTION: Stress_Strain_Operations#CB#(ON,OFF)
 VALUE: OFF
 QUESTION: Contact_Mesh_Option#CB#(ON,OFF)
