@@ -3,9 +3,10 @@ sys.path.insert(0, '../../DEM_application/python_scripts')
 sys.path.insert(0, '../../ULFapplication/python_scripts')
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
+from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.PFEMApplication import *
+
 from KratosMultiphysics.StructuralApplication import *
-#from KratosMultiphysics.PFEMApplication import *
 from UD_var import *
 
 # Importing DEM solver strategy
@@ -101,11 +102,11 @@ class ProjectionModule:
         self.n_particles_in_depth = NParticlesInDepth
 
         if (DomainSize == 3):
-            self.projector = BinBasedDEMULFCoupledMapping3D()
+            self.projector = BinBasedDEMFluidCoupledMapping3D()
             self.bin_of_objects_fluid = BinBasedFastPointLocator3D(FluidModelPart)
 
         else:
-            self.projector = BinBasedDEMULFCoupledMapping2D()
+            self.projector = BinBasedDEMFluidCoupledMapping2D()
             self.bin_of_objects_fluid = BinBasedFastPointLocator2D(FluidModelPart)
 
     def UpdateDatabase(self, HMin):
