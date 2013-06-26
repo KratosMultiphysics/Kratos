@@ -59,6 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/create_and_destroy.h"
+#include "custom_utilities/binbased_DEM_fluid_coupled_mapping.h"
 
 
 
@@ -67,7 +68,22 @@ namespace Kratos{
 namespace Python{
 
 
-void  AddCustomUtilitiesToPython(){}
+void  AddCustomUtilitiesToPython()
+{
+  using namespace boost::python;
+
+  class_<BinBasedDEMFluidCoupledMapping < 2 > >("BinBasedDEMFluidCoupledMapping2D", init< >())
+ .def("InterpolationFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 2 > ::InterpolationFromFluidMesh)
+ .def("InterpolationFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 2 > ::InterpolationFromDEMMesh)
+ ;
+
+ class_<BinBasedDEMFluidCoupledMapping < 3 > >("BinBasedDEMFluidCoupledMapping3D", init< >())
+ .def("InterpolationFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolationFromFluidMesh)
+ .def("InterpolationFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolationFromDEMMesh)
+ ;
+
+}
+
 }  // namespace Python.
 
 } // Namespace Kratos
