@@ -26,8 +26,6 @@
 namespace Kratos
 {
 
-
-
 	KratosSwimmingDEMApplication::KratosSwimmingDEMApplication()  
 	{}
         
@@ -37,15 +35,9 @@ namespace Kratos
 		KratosApplication::Register();
 		std::cout << "Initializing KratosSwimmingDEMApplication... " << std::endl;
 
-	  //  KRATOS_REGISTER_VARIABLE ( EXPORT_NEIGHBOUR_LIST )
-
 		/* Define In Global variables.cpp
 		  */
 
-
-
-		
-				               
 	Serializer::Register( "VariablesList", mVariablesList );
 	
         }
