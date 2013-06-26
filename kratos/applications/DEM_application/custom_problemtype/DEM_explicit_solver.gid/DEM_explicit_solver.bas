@@ -18,7 +18,7 @@ End Properties
 
 
 Begin Nodes
-*#// id	  X	Y	Z
+*#// id	  X	 Y	Z
 *loop nodes
 *nodesnum	*NodesCoord(1)	*NodesCoord(2)	*NodesCoord(3)
 *end nodes
@@ -27,6 +27,7 @@ End Nodes
 *# Condition Blocks
 
 *set elems(sphere)
+*Add elems(circle)
 Begin Elements *GenData(DEM_Element_Type)
 *loop elems 
 *ElemsNum 1 *elemsconec(1)
