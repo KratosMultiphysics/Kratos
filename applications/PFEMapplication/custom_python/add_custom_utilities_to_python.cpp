@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/erosion_utilities.h"
 #include "custom_utilities/drag_utilities.h"
 #include "custom_utilities/binbased_seepage_coupled_mapping.h"
+#include "custom_utilities/binbased_DEM_ULF_coupled_mapping.h"
 //#include "custom_utilities/streamline_utils.h"
 
 #include "spaces/ublas_space.h"
@@ -189,6 +190,16 @@ void  AddCustomUtilitiesToPython()
     class_<BinBasedSeepageCoupledMapping < 3 > >("BinBasedSeepageCoupledMapping3D", init< >())
     .def("InterpolationFromFixedMesh", &BinBasedSeepageCoupledMapping < 3 > ::InterpolationFromFixedMesh)
     .def("InterpolationFromMovingMesh", &BinBasedSeepageCoupledMapping < 3 > ::InterpolationFromMovingMesh)
+    ;
+    
+     class_<BinBasedDEMULFCoupledMapping < 2 > >("BinBasedDEMULFCoupledMapping2D", init< >())
+    .def("InterpolationFromFluidMesh", &BinBasedDEMULFCoupledMapping < 2 > ::InterpolationFromFluidMesh)
+    .def("InterpolationFromDEMMesh", &BinBasedDEMULFCoupledMapping < 2 > ::InterpolationFromDEMMesh)
+    ;
+
+    class_<BinBasedDEMULFCoupledMapping < 3 > >("BinBasedDEMULFCoupledMapping3D", init< >())
+    .def("InterpolationFromFluidMesh", &BinBasedDEMULFCoupledMapping < 3 > ::InterpolationFromFluidMesh)
+    .def("InterpolationFromDEMMesh", &BinBasedDEMULFCoupledMapping < 3 > ::InterpolationFromDEMMesh)
     ;
 
 //         class_<StreamlineUtils<2>,  boost::noncopyable>  ("StreamlineUtils2D", init< >())
