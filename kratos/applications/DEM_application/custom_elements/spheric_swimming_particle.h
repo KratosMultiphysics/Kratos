@@ -130,7 +130,12 @@ namespace Kratos
 
         SphericSwimmingParticle();
 
-        void ComputeDragForces(ProcessInfo& rCurrentProcessInfo);
+        void ComputeFluidForcesOnParticle(ProcessInfo& rCurrentProcessInfo);
+        double CalculateDragCoeffFromSphericity(const double Reynolds, double Sphericity, int DragModifierType);
+        void CalculateDragCoefficient(int NonNewtonianOption, const double Reynolds, const double Sphericity, double& rDrag_coeff, int DragModifierType);
+        void ComputeReynoldsNumber(int NonNewtonianOption, double rNormOfSlipVel, double FluidDensity, double rViscosity, double& rReynolds);
+        double CalculateShahsTerm(double PowerLawN,double PowerLawK, double PowerLawTol, const double& ParticleDensity, const double& FluidDensity, double Sphericity, int DragModifier);
+        void ComputeWetherfordFluidForcesOnParticle(ProcessInfo& rCurrentProcessInfo);
 
       ///@name Protected static Member Variables
       ///@{
