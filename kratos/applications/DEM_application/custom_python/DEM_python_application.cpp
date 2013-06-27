@@ -130,6 +130,12 @@ BOOST_PYTHON_MODULE(KratosDEMApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(EXPORT_SKIN_SPHERE)
     // *************** Continuum only END ***************
 
+    // *************** Swimming only BEGIN *************
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(NON_NEWTONIAN_OPTION)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(MANUALLY_IMPOSED_DRAG_LAW_OPTION)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(DRAG_MODIFIER_TYPE)
+    // *************** Swimming only END ***************
+
     // COUNTING
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(NUM_OF_NEIGH)
@@ -139,6 +145,10 @@ BOOST_PYTHON_MODULE(KratosDEMApplication)
     // TOLERANCES
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(DISTANCE_TOLERANCE)
+
+    // *************** Swimming only BEGIN *************
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(POWER_LAW_TOLERANCE)
+    // *************** Swimming only END ***************
 
     // TIME RELATED
 
@@ -200,7 +210,19 @@ BOOST_PYTHON_MODULE(KratosDEMApplication)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(HIGH_POISSON_FORCE)
     // *************** Continuum only END *************
 
+    // *************** Swimming only BEGIN *************
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(GEL_STRENGTH)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(POWER_LAW_N)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(POWER_LAW_K)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(INIT_DRAG_FORCE)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(DRAG_LAW_SLOPE)
+    // *************** Swimming only END ***************
+
     // GEOMETRIC PARAMETERS
+
+    // *************** Swimming only BEGIN *************
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SPHERICITY)
+    // *************** Swimming only END ***************
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(MAX_INDENTATION)
 
