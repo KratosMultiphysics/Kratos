@@ -1175,7 +1175,7 @@ private:
 
         OctreeType mOctree;
 
-        static const double epsilon = 1e-12;
+        static const double epsilon;
         
         
       ///@} 
@@ -1239,6 +1239,8 @@ private:
       return rOStream;
     }
   ///@} 
+
+  const double CalculateSignedDistanceTo3DSkinProcess::epsilon = 1e-12;
   
   
 }  // namespace Kratos.
