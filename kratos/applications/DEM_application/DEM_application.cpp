@@ -62,6 +62,12 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, EXPORT_SKIN_SPHERE)
   // *************** Continuum only END ***************
 
+  // *************** Swimming only BEGIN *************
+  KRATOS_CREATE_VARIABLE(int, NON_NEWTONIAN_OPTION)
+  KRATOS_CREATE_VARIABLE(int, MANUALLY_IMPOSED_DRAG_LAW_OPTION)
+  KRATOS_CREATE_VARIABLE(int, DRAG_MODIFIER_TYPE)
+  // *************** Swimming only END ***************
+
   // COUNTING
 
   KRATOS_CREATE_VARIABLE(int, NUM_OF_NEIGH)
@@ -71,6 +77,10 @@ namespace Kratos
   // TOLERANCES
 
   KRATOS_CREATE_VARIABLE(double, DISTANCE_TOLERANCE)
+
+  // *************** Swimming only BEGIN *************
+  KRATOS_CREATE_VARIABLE(double, POWER_LAW_TOLERANCE)
+  // *************** Swimming only END ***************
 
   // TIME RELATED
 
@@ -132,7 +142,19 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, HIGH_POISSON_FORCE)
   // *************** Continuum only END *************
 
+  // *************** Swimming only BEGIN *************
+  KRATOS_CREATE_VARIABLE(double, GEL_STRENGTH)
+  KRATOS_CREATE_VARIABLE(double, POWER_LAW_N)
+  KRATOS_CREATE_VARIABLE(double, POWER_LAW_K)
+  KRATOS_CREATE_VARIABLE(double, INIT_DRAG_FORCE)
+  KRATOS_CREATE_VARIABLE(double, DRAG_LAW_SLOPE)
+  // *************** Swimming only END ***************
+
   // GEOMETRIC PARAMETERS
+
+  // *************** Swimming only BEGIN *************
+  KRATOS_CREATE_VARIABLE(double, SPHERICITY)
+  // *************** Swimming only END ***************
 
   KRATOS_CREATE_VARIABLE(double, MAX_INDENTATION)
 
@@ -291,6 +313,12 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(EXPORT_SKIN_SPHERE)
     // *************** Continuum only END ***************
 
+    // *************** Swimming only BEGIN *************
+    KRATOS_REGISTER_VARIABLE(NON_NEWTONIAN_OPTION)
+    KRATOS_REGISTER_VARIABLE(MANUALLY_IMPOSED_DRAG_LAW_OPTION)
+    KRATOS_REGISTER_VARIABLE(DRAG_MODIFIER_TYPE)
+    // *************** Swimming only END ***************
+
     // COUNTING
 
     KRATOS_REGISTER_VARIABLE(NUM_OF_NEIGH)
@@ -300,6 +328,10 @@ namespace Kratos
     // TOLERANCES
 
     KRATOS_REGISTER_VARIABLE(DISTANCE_TOLERANCE)
+
+    // *************** Swimming only BEGIN *************
+    KRATOS_REGISTER_VARIABLE(POWER_LAW_TOLERANCE)
+    // *************** Swimming only END ***************
 
     // TIME RELATED
 
@@ -361,7 +393,19 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(HIGH_POISSON_FORCE)
     // *************** Continuum only END *************
 
+    // *************** Swimming only BEGIN *************
+    KRATOS_REGISTER_VARIABLE(GEL_STRENGTH)
+    KRATOS_REGISTER_VARIABLE(POWER_LAW_N)
+    KRATOS_REGISTER_VARIABLE(POWER_LAW_K)
+    KRATOS_REGISTER_VARIABLE(INIT_DRAG_FORCE)
+    KRATOS_REGISTER_VARIABLE(DRAG_LAW_SLOPE)
+    // *************** Swimming only END ***************
+
     // GEOMETRIC PARAMETERS
+
+    // *************** Swimming only BEGIN *************
+    KRATOS_REGISTER_VARIABLE(SPHERICITY)
+    // *************** Swimming only END ***************
 
     KRATOS_REGISTER_VARIABLE(MAX_INDENTATION)
 
