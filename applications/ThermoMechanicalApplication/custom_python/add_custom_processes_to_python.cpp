@@ -64,7 +64,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_processes/activation_deactivation_conditions_process.h"
 #include "custom_processes/solidification_process.h"
 #include "custom_processes/DPG_copy_to_vulcan_post_variables_process.h"
-#include "custom_processes/shrinkage_porocity_calculation_process.h"
+#include "custom_processes/shrinkage_porosity_calculation_process.h"
 
 #include "includes/node.h"
 
