@@ -640,6 +640,19 @@ public:
 	  StrainTensor(1,0) = 0.5*rStrainVector[2];
 	  StrainTensor(1,1) = rStrainVector[1];
         }
+      else if (rStrainVector.size()==4)
+        {
+	  StrainTensor.resize(3,3, false);
+	  StrainTensor(0,0) = rStrainVector[0];
+	  StrainTensor(0,1) = 0.5*rStrainVector[3];
+	  StrainTensor(0,2) = 0;
+	  StrainTensor(1,0) = 0.5*rStrainVector[3];
+	  StrainTensor(1,1) = rStrainVector[1];
+	  StrainTensor(1,2) = 0;
+	  StrainTensor(2,0) = 0;
+	  StrainTensor(2,1) = 0;
+	  StrainTensor(2,2) = rStrainVector[2];
+        }
       else if (rStrainVector.size()==6)
         {
 	  StrainTensor.resize(3,3, false);
