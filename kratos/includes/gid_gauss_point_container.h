@@ -371,6 +371,11 @@ public:
                                 GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
                                                    ValuesOnIntPoint[index](0,1), 0.0,
                                                    ValuesOnIntPoint[index](0,2), 0.0, 0.0);
+                            else if(ValuesOnIntPoint[index].size1() ==1
+                                    && ValuesOnIntPoint[index].size2() ==4)
+ 			        GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
+                                                   ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
+                                                   ValuesOnIntPoint[index](0,3), 0.0, 0.0);
                         }
                     }
                 }
@@ -404,6 +409,11 @@ public:
                                 GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
                                                    ValuesOnIntPoint[index](0,1), 0.0,
                                                    ValuesOnIntPoint[index](0,2), 0.0, 0.0);
+			    else if(ValuesOnIntPoint[index].size1() ==1
+                                    && ValuesOnIntPoint[index].size2() ==4)
+ 			        GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
+                                                   ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
+                                                   ValuesOnIntPoint[index](0,3), 0.0, 0.0);
                         }
                     }
                 }
