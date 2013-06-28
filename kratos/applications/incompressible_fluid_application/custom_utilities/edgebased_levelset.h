@@ -3685,7 +3685,7 @@ private:
                 }
                 mod_vel = sqrt(mod_vel);
                 area = sqrt(area);
-				diag_stiffness[i_node] = area * mod_vel /pow(1.0/k*log(100) + B,2);/* * mWallReductionFactor[ i_node ];*/
+				diag_stiffness[i_node] = area * mod_vel /pow(1.0/k*log(100.0) + B,2);/* * mWallReductionFactor[ i_node ];*/
                 //now compute the skin friction
                 double mod_uthaw = sqrt(mod_vel * nu / ym);
                 const double y_plus = ym * mod_uthaw / nu;
