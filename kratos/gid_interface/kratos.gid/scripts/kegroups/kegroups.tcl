@@ -96,15 +96,15 @@ proc ::KEGroups::SelectionAssign { entity GroupId WinPath } {
             set entity "Elements"
         } 
     
-	set OldSmallWinSelecting [GiD_Info variable SmallWinSelecting]
-	if {$OldSmallWinSelecting == 0 } {
-		set SmallWinSelecting 1
-		GiD_Set SmallWinSelecting $SmallWinSelecting
-	} else {
-		set SmallWinSelecting 1
-	}
+	#set OldSmallWinSelecting [GiD_Info variable SmallWinSelecting]
+	#if {$OldSmallWinSelecting == 0 } {
+	#	set SmallWinSelecting 1
+	#	GiD_Set SmallWinSelecting $SmallWinSelecting
+	#} else {
+	#	set SmallWinSelecting 1
+	#}
     
-	FinishButton $WinPath $WinPath.bPropOk [= "Press 'Finish' to stop the entities selection"] "::GidUtils::EnableWarnLine" disableall $SmallWinSelecting
+	#FinishButton $WinPath $WinPath.bPropOk [= "Press 'Finish' to stop the entities selection"] "::GidUtils::EnableWarnLine" disableall $SmallWinSelecting
     
     # Try to assign the entities
     
@@ -473,7 +473,12 @@ proc ::KEGroups::insertgroupXml { path id color state } {
     set basenode [$KPriv(xmlDoc) selectNodes $path]
     if { $basenode != "" } {
 	    set id [lindex [split $id //] end]
-	    $basenode appendXML "<Group id=\"$id\" color=\"$color\" state=\"$state\" type=\"Generic\"/>"
+      #id to xml
+	    #$basenode appendXML "<Group id=\"$id\" color=\"$color\" state=\"$state\" type=\"Generic\"/>"
+      set child [$KPriv(xmlDoc) createElement "Group"]
+      $child setAttribute id [list $id] color [list $color] state [list $state] type Generic
+      $basenode appendChild $child
+      
     } else {
     
 	}
@@ -663,7 +668,11 @@ proc ::KEGroups::ErrorRenameWindow { oldname newname errlist} {
 	 set valid 0
 	 
 	 GiD_Groups edit rename $newname $KPriv(newnewname)
-	 
+   #Temporal until GiD11.1.5d released
+   #WarnWinText [list 1 [::GidUtils::VersionCmp "11.1.5"]]
+	 if { [::GidUtils::VersionCmp "11.1.5"] } { 
+      GidUtils::UpdateWindow GROUPS
+   }
 	 ::KEGroups::RenombraGrupo $oldname $KPriv(newnewname) $valid
 	 
 	 if {[winfo exists $qq]} {
@@ -725,6 +734,11 @@ proc ::KEGroups::TransferCondGroupstoGiDGroups { } {
     
     if {[info exists ::KPriv(Groups,DeleteGroup)]} {
      set ::KPriv(Groups,DeleteGroup) $oldvar
+    }
+    #Temporal until GiD11.1.5d released
+    #WarnWinText [list 2 [::GidUtils::VersionCmp "11.1.5"]]
+	  if { [::GidUtils::VersionCmp "11.1.5"] } { 
+      GidUtils::UpdateWindow GROUPS
     }
 }
 
