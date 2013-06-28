@@ -129,7 +129,11 @@ proc ::KMProps::autoNewGroup { id fpath } {
     
     # Ponemos el foco en la ventana de propiedades
     #focus $winpath
-    
+    #Temporal until GiD11.1.5d released
+    #WarnWinText [list 3 [::GidUtils::VersionCmp "11.1.5"]]
+	  if { [::GidUtils::VersionCmp "11.1.5"] } { 
+      GidUtils::UpdateWindow GROUPS
+    }
 }
 
 proc ::KMProps::acceptGroups { T idTemplate fullname item listT entityList fGroups} {
@@ -300,13 +304,14 @@ proc ::KMProps::drawGroupCondition { T item } {
     set fullname [DecodeName [$T item tag names $item]]
     set GroupId [$T item text $item 0]
     
-    GiD_Groups draw $GroupId
-    GiD_Redraw
-    set parent [winfo parent [winfo parent [winfo parent $T]]]
-    FinishButton $parent $parent.caption [_ "Press 'Finish' to end selection"] {GiD_Groups end_draw; GiD_Redraw} disableall [GiD_Set SmallWinSelecting]
-   
-    #GiD_Groups end_draw
+    #GiD_Groups draw $GroupId
+    #GiD_Redraw
     
+    set parent [winfo parent [winfo parent [winfo parent $T]]]    
+    #FinishButton [winfo parent [winfo parent $parent]] $parent.caption [_ "Press 'Finish' to end selection"] {GiD_Groups end_draw; GiD_Redraw} disableall [GiD_Set SmallWinSelecting]
+    GiD_Process 'Groups Draw {*}$GroupId escape
+    
+    FinishButton $parent $parent.caption [_ "Press 'Finish' to end selection"] "" disableall [GiD_Set SmallWinSelecting]
     
 }
 #
@@ -323,10 +328,15 @@ proc ::KMProps::drawGroupsCondition { T item } {
 	    }
     }
        
-    GiD_Groups draw $ListGroupId
-    GiD_Redraw
+    #GiD_Groups draw $ListGroupId
+    #GiD_Redraw
     set parent [winfo parent [winfo parent [winfo parent $T]]]
-    FinishButton $parent $parent.caption [_ "Press 'Finish' to end selection"] {GiD_Groups end_draw; GiD_Redraw} disableall [GiD_Set SmallWinSelecting]
+    #FinishButton $parent $parent.caption [_ "Press 'Finish' to end selection"] {GiD_Groups end_draw; GiD_Redraw} disableall [GiD_Set SmallWinSelecting]
+    
+    GiD_Process 'Groups Draw {*}$ListGroupId escape
+    
+    FinishButton $parent $parent.caption [_ "Press 'Finish' to end selection"] "" disableall [GiD_Set SmallWinSelecting]
+    
      
 }
 
