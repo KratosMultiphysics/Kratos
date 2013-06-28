@@ -185,8 +185,9 @@ namespace Kratos
           this->GetInitializeWasPerformed() = true;
 
           // 6. Compute initial time step
-          InitialTimeStepCalculation();  //MSI: should we ask whether this will be calculated or not
-
+          if (rCurrentProcessInfo[CRITICAL_TIME_OPTION]){
+              InitialTimeStepCalculation();  //MSI: should we ask whether this will be calculated or not
+          }
 
       KRATOS_CATCH("")
       }// Initialize()
