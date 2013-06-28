@@ -134,10 +134,11 @@ proc kipt::FreePType {} {
     if {[winfo exists $w]} {
         destroy $w
     }
-    
+      
     set w ".gid.kmprops" 
     if {[winfo exists $w]} {
-        destroy $w
+        ::KMProps::CloseWindowInside $w
+        if {[winfo exists $w]} { destroy $w }
     }
 
     # Validation window
