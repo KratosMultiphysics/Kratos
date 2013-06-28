@@ -348,7 +348,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
         bind $f.cGroups <<ComboboxSelected>> "::KMProps::cmbChangeCheckGroups $f"
         
         # BOTON A LA DERECHA DE LOS GRUPOS (CREAR GRUPO AUTOMATICAMENTE)
-        grid [ttk::button $f.iGroups -text [= "newGroup"] -command "::KMProps::autoNewGroup $id $f" ] \
+        grid [ttk::button $f.iGroups -text [= "newGroup"] -command "::KMProps::autoNewGroup [list [$T item text $item 0]] $f" ] \
             -row 2 -column 0 -sticky nw  -pady 0 -padx 180 -in $f
         tooltip::tooltip $f.iGroups [= "Create automatic new group"]
         $f.iGroups configure -image [::WinUtils::GetImage "newAutoGroup.gif" ]
