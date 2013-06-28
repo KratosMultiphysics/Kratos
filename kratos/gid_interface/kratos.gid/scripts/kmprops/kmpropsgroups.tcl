@@ -319,25 +319,19 @@ proc ::KMProps::drawGroupCondition { T item } {
 #
 proc ::KMProps::drawGroupsCondition { T item } {
     set ListGroupId ""
-    
     foreach childitem [$T item children $item] {
       set fullname [DecodeName [$T item tag names $childitem]]
       set class [::xmlutils::setXml $fullname class]
-	    if {$class == "Group" } {
+      if {$class == "Group" } {
         lappend ListGroupId [$T item text $childitem 0]
-	    }
+      }
     }
-       
-    #GiD_Groups draw $ListGroupId
-    #GiD_Redraw
-    set parent [winfo parent [winfo parent [winfo parent $T]]]
-    #FinishButton $parent $parent.caption [_ "Press 'Finish' to end selection"] {GiD_Groups end_draw; GiD_Redraw} disableall [GiD_Set SmallWinSelecting]
+    if { [llength $ListGroupId] > 0 } {
+      set parent [winfo parent [winfo parent [winfo parent $T]]]
+      GiD_Process 'Groups Draw {*}$ListGroupId escape
     
-    GiD_Process 'Groups Draw {*}$ListGroupId escape
-    
-    FinishButton $parent $parent.caption [_ "Press 'Finish' to end selection"] "" disableall [GiD_Set SmallWinSelecting]
-    
-     
+      FinishButton $parent $parent.caption [_ "Press 'Finish' to end selection"] "" disableall [GiD_Set SmallWinSelecting]
+    }
 }
 
 proc ::KMProps::auxiliarfunction_ReturnEntitiesInsideGroups { ListGroupId } {
@@ -409,15 +403,15 @@ proc ::KMProps::listGroupsCondition { T item } {
         lappend ListGroupId [$T item text $childitem 0]
 	    }
     }
+    if { [llength $ListGroupId] > 0 } {
+      set listentities [::KMProps::auxiliarfunction_ReturnEntitiesInsideGroups $ListGroupId]
+      set fullname [DecodeName [$T item tag names $item]]
+      set name [::xmlutils::setXml $fullname pid]
     
-    set listentities [::KMProps::auxiliarfunction_ReturnEntitiesInsideGroups $ListGroupId]
-    set fullname [DecodeName [$T item tag names $item]]
-    set name [::xmlutils::setXml $fullname pid]
-    
-    WarnWinText "$name [_ "has been applied to"]:"
-     WarnWinText "  [_ "Groups"]: $ListGroupId"
-    WarnWinText $listentities
-    
+      WarnWinText "$name [_ "has been applied to"]:"
+      WarnWinText "  [_ "Groups"]: $ListGroupId"
+      WarnWinText $listentities
+    }
 }
 proc ::KMProps::auxiliarfunction_GetItemTextFromTreeItem { T item} {
   set text ""
