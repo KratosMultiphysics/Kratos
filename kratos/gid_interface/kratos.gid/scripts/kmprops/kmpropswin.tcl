@@ -51,7 +51,7 @@ proc ::KMProps::StartBaseWindow {{whattab "Model"} {what "1"} } {
     ::KMProps::Init
     ::KMat::Init
     if { [kipt::CurvesModule ] } {
-        ::KCurves::Init
+	::KCurves::Init
     }
     set w "$winpath"
     # wa "w:$w whattab:$whattab what:$what"
@@ -121,12 +121,12 @@ proc ::KMProps::CreatePropertiesTabs { w {whattab "Model"}} {
     set ::KMat::TreeMatsPath [::KMat::CreateTreeAndToolbar $fMat]
     
     if { [kipt::CurvesModule ] } {
-        # Curve properties
-        set txt [= Curves]
-        set fCurv ${nb}.fCurv
-        $nb add [ttk::frame $fCurv -padding {1 1 1 1}] -text "$txt"
-        set ::KMat::NbCurvPath $fCurv
-        set KPriv(TreeCurvePath) [::KCurves::CreateTreeAndToolbar $fCurv]
+	# Curve properties
+	set txt [= Curves]
+	set fCurv ${nb}.fCurv
+	$nb add [ttk::frame $fCurv -padding {1 1 1 1}] -text "$txt"
+	set ::KMat::NbCurvPath $fCurv
+	set KPriv(TreeCurvePath) [::KCurves::CreateTreeAndToolbar $fCurv]
     }
     # Model treeﬂ
     ::KMProps::initVisibilityClass
@@ -137,9 +137,9 @@ proc ::KMProps::CreatePropertiesTabs { w {whattab "Model"}} {
     ::KMat::FillTreeMat
     
     if { [kipt::CurvesModule ] } {
-        # Curves tree
-        ::KMProps::initVisibilityClass
-        ::KCurves::FillTreeCurves
+	# Curves tree
+	::KMProps::initVisibilityClass
+	::KCurves::FillTreeCurves
     }
     
     # Select the active tab
@@ -151,9 +151,9 @@ proc ::KMProps::CreatePropertiesTabs { w {whattab "Model"}} {
 	    $nb select "$nb.fMat"
 	}
 	"Curve" {
-        if { [kipt::CurvesModule ] } {
-            $nb select "$nb.fCurv"
-        }
+	if { [kipt::CurvesModule ] } {
+	    $nb select "$nb.fCurv"
+	}
 	}
     }
 }
@@ -522,15 +522,14 @@ proc ::KMProps::CloseWindowInside { p } {
 
     set truco 0
     if { [llength $panes] == 3 } {
-        set truco 1
-        set x [lindex [$GidPriv(pwCentral) sash coord 1] 0]
+	set truco 1
+	set x [lindex [$GidPriv(pwCentral) sash coord 1] 0]
     }
 
-    destroy $p
-    
-    if { $truco == 1 } {
-        update idletask
-        $GidPriv(pwCentral) sash place 0 $x 0        
+    destroy $p 
+    update idletasks
+    if { $truco == 1 } {        
+	$GidPriv(pwCentral) sash place 0 $x 0        
     }
 
 }
