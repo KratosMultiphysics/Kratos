@@ -230,7 +230,21 @@ proc ::LEntities::CreateTreeProperties {w} {
     #	  bind $T <F2> [list ::LEntities::BeginEditGroups $T]
 
     #bind $T <Button-3> "[list ::LEntities::MenuContextualGroup %W %x %y] ; break"
-
+    # MouseWheel
+    if {[string equal "x11" [tk windowingsystem]]} {
+      # Support for mousewheels on Linux/Unix commonly comes through mapping
+      # the wheel to the extended buttons.  If you have a mousewheel, find
+      # Linux configuration info at:
+      #        http://www.inria.fr/koala/colas/mouse-wheel-scroll/
+      bind $T <4> [list $T yview scroll -3 units ]
+      bind $T <5> [list $T yview scroll 3 units ]
+    } elseif {[string equal [tk windowingsystem] "aqua"]} {
+      bind $T <MouseWheel> [subst -nocommands { $T yview scroll {eval [expr - (%D)]} units } ]
+    } else {
+      bind $T <MouseWheel> [subst -nocommands { $T yview scroll [expr - (%D / 120) * 3] units } ]    
+    }
+    
+    
     # Grid the tree
     grid $T $vsb -sticky nsew
     grid configure $vsb -sticky ns
