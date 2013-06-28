@@ -95,7 +95,8 @@ proc ::KEGroups::SelectionAssign { entity GroupId WinPath } {
         } else {
             set entity "Elements"
         } 
-    
+  
+  
 	#set OldSmallWinSelecting [GiD_Info variable SmallWinSelecting]
 	#if {$OldSmallWinSelecting == 0 } {
 	#	set SmallWinSelecting 1
@@ -104,14 +105,13 @@ proc ::KEGroups::SelectionAssign { entity GroupId WinPath } {
 	#	set SmallWinSelecting 1
 	#}
     
-	#FinishButton $WinPath $WinPath.bPropOk [= "Press 'Finish' to stop the entities selection"] "::GidUtils::EnableWarnLine" disableall $SmallWinSelecting
-    
     # Try to assign the entities
     
     GiD_Process MEscape
     
     
         GiD_Process Utilities EntitiesGroups Assign $GroupId $entity
+        FinishButton $WinPath $WinPath.bPropOk [= "Press 'Finish' to stop the entities selection"] "" disableall [GiD_Set SmallWinSelecting]        
     }
 
 
