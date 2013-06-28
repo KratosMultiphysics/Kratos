@@ -113,11 +113,11 @@ proc ::KMProps::getGroups { entityList {fullname ""}} {
     return $grupos
 }
 
-proc ::KMProps::autoNewGroup { id fpath } {
+proc ::KMProps::autoNewGroup { group_name fpath } {
     variable selGroup
     global KPriv
-    
-    set GroupId [::KEGroups::GetAutomaticGroupName "Auto"]
+    WarnWinText "group_name: $group_name       fpath: $fpath"
+    set GroupId [::KEGroups::GetAutomaticGroupName "$group_name "]
     
     # Assign the selected group identifier
     set selGroup $GroupId 
