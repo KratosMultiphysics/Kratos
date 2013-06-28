@@ -48,6 +48,7 @@ proc ::KMProps::CreateTreeProperties {w} {
 	ttk::scrollbar $vsb -orient vertical -command [list $T yview]
 	ttk::scrollbar $hsb -orient horizontal -command [list $T xview]
 	
+	
 	# Set the height
 	set height [font metrics [$T cget -font] -linespace]
 	if {$height < 18} {
@@ -120,7 +121,21 @@ proc ::KMProps::CreateTreeProperties {w} {
 	bind $T <Button-1> [list ::KMProps::ClickTree %x %y $T]
 	bind $T <Double-Button-1> [list ::KMProps::DoubleClickTree %x %y $T]
 	bind $T <Return> [list ::KMProps::IntroEvent $T]
-	bind $T <Button-3> "[list ::KMProps::MenuContextual %W %x %y] ; break"
+	bind $T <Button-3> "[list ::KMProps::RightClick %x %y $T]"
+  
+  # MouseWheel
+  if {[string equal "x11" [tk windowingsystem]]} {
+    # Support for mousewheels on Linux/Unix commonly comes through mapping
+    # the wheel to the extended buttons.  If you have a mousewheel, find
+    # Linux configuration info at:
+    #        http://www.inria.fr/koala/colas/mouse-wheel-scroll/
+    bind $T <4> [list $T yview scroll -3 units ]
+    bind $T <5> [list $T yview scroll 3 units ]
+  } elseif {[string equal [tk windowingsystem] "aqua"]} {
+    bind $T <MouseWheel> [subst -nocommands { $T yview scroll {eval [expr - (%D)]} units } ]
+  } else {
+    bind $T <MouseWheel> [subst -nocommands { $T yview scroll [expr - (%D / 120) * 3] units } ]    
+  }
 	
 	# Grid the tree
 	grid $T $vsb -sticky nsew
@@ -366,6 +381,15 @@ proc ::KMProps::ClickTree { x y T } {
 	return -code break
 	}
 	return ""
+}
+proc ::KMProps::RightClick { x y T } {
+  $T identify -array clicked $x $y
+  if { $clicked(where)== "item" } {
+    $T selection clear
+    $T selection add $clicked(item)    
+    update idletasks
+  }
+  ::KMProps::MenuContextual $T $x $y  
 }
 
 proc ::KMProps::IntroEvent { T } {
