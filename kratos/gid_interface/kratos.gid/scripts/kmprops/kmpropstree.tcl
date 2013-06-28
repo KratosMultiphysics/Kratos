@@ -572,28 +572,17 @@ proc ::KMProps::MenuContextual { T x y } {
 	if { $item != "" } {
 	set fullname [DecodeName [$T item tag names $item]]
 	set class [::xmlutils::setXml $fullname class]
-	
-  if {$class == "Groups"} {
-    $w add command -label [= "Draw Entities"] -command [list ::KMProps::drawGroupsCondition $T $item] -state normal
-    $w add command -label [= "List Entities"] -command [list ::KMProps::listGroupsCondition $T $item] -state normal
-    $w add separator
-  }
+  set numchilds [llength [$T item children $item]]
+	  
 	if {$class == "Groups" || $class == "Properties"} {
 		$w add command -label [= "New"] -command [list ::KMProps::DoubleClickTree 0 0 $T $item] -state normal
 		$w add separator
 	}
 	
 	if {$class == "Group"} {
-		
-    $w add command -label [= "Draw Entities"] -command [list ::KMProps::drawGroupCondition $T $item] -state normal
-    $w add command -label [= "List Entities"] -command [list ::KMProps::listGroupCondition $T $item] -state normal
-    $w add separator
 		$w add command -label [= "Delete"] -command [list ::KMProps::deleteGroupCondition $T $item] -state normal
-		
 	} elseif {$class == "Property"} {
-		
 		$w add command -label [= "Delete"] -command [list ::KMProps::deleteProps $T $item] -state normal
-		
 	} else {                
 		$w add command -label [= "Delete"] -state disabled
 	}
@@ -606,16 +595,38 @@ proc ::KMProps::MenuContextual { T x y } {
 	}
 	
 	$w add separator
+  
+  if {$class == "Groups"} {
+    if { $numchilds > 0 } {
+      $w add command -label [= "Draw Entities"] -command [list ::KMProps::drawGroupsCondition $T $item] -state normal
+      $w add command -label [= "List Entities"] -command [list ::KMProps::listGroupsCondition $T $item] -state normal
+    } else {
+      $w add command -label [= "Draw Entities"] -state disabled
+      $w add command -label [= "List Entities"] -state disabled    
+    }
+    $w add separator
+  } elseif {$class == "Group"} {
+    $w add command -label [= "Draw Entities"] -command [list ::KMProps::drawGroupCondition $T $item] -state normal
+    $w add command -label [= "List Entities"] -command [list ::KMProps::listGroupCondition $T $item] -state normal
+    $w add separator
+  }
+  
 	} else {
 	set item "root"                
 	}                
 	
 	
-	
-	$w add command -label [= "Collapse All"] -command [list $T collapse -recurse "$item"] -state normal
-	$w add command -label [= "Expand All"] -command [list $T expand -recurse "$item"] -state normal
-  $w add separator
-  $w add command -label [= "List Subtree"] -command [list ::KMProps::listSubtree $T $item] -state normal
+	if { $numchilds > 0 } {
+    $w add command -label [= "Collapse All"] -command [list $T collapse -recurse "$item"] -state normal
+    $w add command -label [= "Expand All"] -command [list $T expand -recurse "$item"] -state normal
+    $w add separator
+    $w add command -label [= "List Subtree"] -command [list ::KMProps::listSubtree $T $item] -state normal
+  } else {
+    $w add command -label [= "Collapse All"] -state disabled
+    $w add command -label [= "Expand All"] -state disabled
+    $w add separator
+    $w add command -label [= "List Subtree"] -state disabled  
+  }
 	
 	set x [expr [winfo rootx $T]+$x+2]
 	set y [expr [winfo rooty $T]+$y]
