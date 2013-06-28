@@ -32,13 +32,13 @@
             <Item id="Engineer" pid="Engineer" dv="" help="Engineer"/>
             <Item id="Supervisor" pid="Supervisor" dv="" help="Supervisor"/>
         </Container>
-        <Container id="ProjectConfiguration" pid="Project configuration" state="hidden" help="Project configuration" open="1">
+        <Container id="ProjectConfiguration" pid="Project configuration" state="hidden" help="Project configuration" open="0">
             <Item id="KratosPath" pid="Kratos path" dv="D:\Kratos" state="hidden" help="Kratos path"/>
         </Container>
-        <Container id="Domain" pid="Domain" help="Helptext" open="1">
+        <Container id="Domain" pid="Domain" help="Helptext" open="0">
             <Item id="SpatialDimension" pid="Spatial dimension" class="nDim" dv="3D" ivalues="2D,3D" values="2D,3D" help="Spatial Dimension"/>
         </Container>
-        <Container id="ApplicationTypes" pid="Application types" icon="aplicationTree.gif" help="Application types" open="1">
+        <Container id="ApplicationTypes" pid="Application types" icon="aplicationTree.gif" help="Application types" open="0">
             <Item id="StructuralAnalysis" pid="Structural analysis" class="application" state="normal" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Structural analysis" icon="aplicationTree.gif" open="0"/>
             <Item id="Fluid" pid="Fluid" class="application" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid dynamics" icon="aplicationTree.gif"/>
 	    <Item id="PFEM" pid="PFEM" class="application" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="PFEM" icon="aplicationTree.gif"/>
@@ -47,13 +47,13 @@
         </Container>
     </RootData>
     <RootData id="StructuralAnalysis" pid="Structural simulation" state="normal" class="application" icon="aplicationTree.gif" help="Structural simulation" open="1">
-        <Container id="AnalysisData" pid="Analysis type" class="Tab" help="Analysis Data" open="1">
-            <Item id="StructuralType2D" nDim="2D" pid="Structural type" class="strucType" dv="Generic" ivalues="Beams,Solids,Generic" values="Beams,Solids,Generic" help="Structural Type"/>
-            <Item id="StructuralType3D" nDim="3D" pid="Structural type" class="strucType" dv="Generic" ivalues="Beams,Truss,Membranes,Shells,Solids,Generic" values="Beams,Truss,Membranes,Shells,Solids,Generic" help="Structural Type"/>
+        <Container id="AnalysisData" pid="Analysis type" class="Tab" help="Analysis Data" open="0">
+            <Item id="StructuralType2D" nDim="2D" pid="Structural type" class="strucType" state="hidden" dv="Generic" ivalues="Beams,Solids,Generic" values="Beams,Solids,Generic" help="Structural Type"/>
+            <Item id="StructuralType3D" nDim="3D" pid="Structural type" class="strucType" state="hidden" dv="Generic" ivalues="Beams,Truss,Membranes,Shells,Solids,Generic" values="Beams,Truss,Membranes,Shells,Solids,Generic" help="Structural Type"/>
             <Item id="SolutionType" pid="Solution type" class="soluType" dv="Dynamic" ivalues="Static,Dynamic,RelaxedDynamic" values="Static,Dynamic,Relaxed dynamic" help="Solution type"/>
             <Item id="AnalysisType" pid="Analysis type" class="analysType" dv="Non-Linear" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" help="Analysis Type"/>
         </Container>
-        <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="1" icon="solstrategy.gif">
+        <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="0" icon="solstrategy.gif">
 	  <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
 	  <Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
 	  <Item id="OpenMPNumberOfThreads" pid="Number of threads" dv="2" PSolutionType="OpenMP" help="Number of threads"/>
@@ -63,7 +63,7 @@
             <Item id="Tolerance" pid="Iterative" solverType="Iterative" dv="1E-6" help=""/>
             <Item id="MaximumIteration" pid="Maximum iteration" solverType="Iterative" dv="5000" help=""/>
             <Item id="PreconditionerType" pid="Preconditioner type" solverType="Iterative" dv="ILU0" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
-            <Container id="Dynamic" pid="Dynamic" class="Tab" soluType="Dynamic,RelaxedDynamic" open="1">
+            <Container id="Dynamic" pid="Dynamic" class="Tab" soluType="Dynamic,RelaxedDynamic" open="0">
                 <Item id="StartTime" pid="Start time" dv="0.01" help=""/>
                 <Item id="EndTime" pid="End time" dv="1" help=""/>
                 <Item id="DeltaTime" pid="Delta time" dv="0.01" help=""/>
@@ -78,44 +78,45 @@
                 <Item id="MaximumIterations" pid="Maximum iterations" dv="30" help=""/>
             </Container>
         </Container>
-        <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesStruct" icon="propsTreeNew.gif" help="Add a new Property" open="1"/>
-        <Container id="Elements" pid="Elements" help="Elements" open="1" icon="femelements.gif">
-            <Container id="TotalLagrangian" pid="Total Lagrangian" class="Groups" nDim="2D" GiDEntity="surface" strucType="Solids" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Total Lagrangian" open="1"/>
-            <Container id="TotalLagrangian3D" pid="Total Lagrangian" nDim="3D" class="Groups" GiDEntity="volume" strucType="Solids" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Total Lagrangian" open="1"/>
-            <Container id="CrisfieldTrussElement" pid="Crisfield truss element" class="Groups" strucType="Truss" idTemplate="TrussTLagrangian" GiDEntity="line" nDim="3D" icon="groupsTreeNew.gif" help="Crisfield truss element" open="1"/>
-	    <Container id="BeamElement" pid="Beam element" class="Groups" nDim="3D" strucType="Beams" idTemplate="BeamTLagrangian" GiDEntity="line" icon="groupsTreeNew.gif" help="Beam element type" open="1"/>
-            <Container id="ShellIsotropic" pid="Shell isotropic" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ShellIsotropic" open="1"/>
-            <Container id="ShellAnisotropic" pid="Shell anisotropic" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ShellAnisotropic" open="1"/>
-            <Container id="LinearElement" pid="Linear element" class="Groups" nDim="2D" GiDEntity="surface" strucType="Solids" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="LinearElement" open="1"/>
-            <Container id="LinearElement3D" pid="Linear element" class="Groups" strucType="Solids" idTemplate="TLagrangian3D"  nDim="3D" GiDEntity="volume" icon="groupsTreeNew.gif" help="LinearElement" open="1"/>
-            <Container id="EBST" pid="EBST (formulation)" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Total Lagrangian" open="1"/>
-	    <Container id="Membrane" pid="Membrane" class="Groups" nDim="3D" GiDEntity="surface" strucType="Membranes" idTemplate="MembraneElement" icon="groupsTreeNew.gif" help="Membrane element type" open="1"/>
+        <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesStruct" icon="propsTreeNew.gif" help="Add a new Property" open="0"/>
+        <Container id="Elements" pid="Elements" help="Elements" open="0" icon="femelements.gif">
+            <Container id="TotalLagrangian" pid="Total Lagrangian" class="Groups" nDim="2D" GiDEntity="surface" strucType="Solids" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Total Lagrangian" open="0"/>
+            <Container id="TotalLagrangian3D" pid="Total Lagrangian" nDim="3D" class="Groups" GiDEntity="volume" strucType="Solids" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Total Lagrangian" open="0"/>
+            <Container id="CrisfieldTrussElement" pid="Crisfield truss element" class="Groups" strucType="Truss" idTemplate="TrussTLagrangian" GiDEntity="line" nDim="3D" icon="groupsTreeNew.gif" help="Crisfield truss element" open="0"/>
+	    <Container id="BeamElement" pid="Beam element" class="Groups" nDim="3D" strucType="Beams" idTemplate="BeamTLagrangian" GiDEntity="line" icon="groupsTreeNew.gif" help="Beam element type" open="0"/>
+            <Container id="ShellIsotropic" pid="Shell isotropic" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ShellIsotropic" open="0"/>
+            <Container id="ShellAnisotropic" pid="Shell anisotropic" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ShellAnisotropic" open="0"/>
+            <Container id="LinearElement" pid="Linear element" class="Groups" nDim="2D" GiDEntity="surface" strucType="Solids" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="LinearElement" open="0"/>
+            <Container id="LinearElement3D" pid="Linear element" class="Groups" strucType="Solids" idTemplate="TLagrangian3D"  nDim="3D" GiDEntity="volume" icon="groupsTreeNew.gif" help="LinearElement" open="0"/>
+            <Container id="EBST" pid="EBST (formulation)" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Total Lagrangian" open="0"/>
+	    <Container id="Membrane" pid="Membrane" class="Groups" nDim="3D" GiDEntity="surface" strucType="Membranes" idTemplate="MembraneElement" icon="groupsTreeNew.gif" help="Membrane element type" open="0"/>
         </Container>
-        <Container id="Loads" pid="Loads" help="Loads" open="1" icon="loads.gif">
-            <Container id="BodyForce" pid="Gravity" class="Groups" idTemplate="BodyForce" icon="groupsTreeNew.gif" help="Gravity" open="1"/>
-            <Container id="Puntual" pid="Puntual" class="Groups" idTemplate="Puntual" icon="groupsTreeNew.gif" help="Concentrated" open="1"/>
-            <Container id="Pressure" pid="Pressure" class="Groups" idTemplate="ShellPressure" nDim="3D" GiDEntity="surface" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="1"/>
-            <Container id="Face" pid="Face" class="Groups" idTemplate="FaceForce" nDim="3D" GiDEntity="surface" strucType="Solids" icon="groupsTreeNew.gif" help="Define Face Force" open="1"/>
-	    <Container id="BeamUniformlyDistributed" pid="Uniformly distributed" class="Groups" nDim="3D" strucType="Beams" idTemplate="BeamUniformlyDistributedLoad" icon="groupsTreeNew.gif" help="Beam uniformly distributed load" open="0"/>
+        <Container id="Loads" pid="Loads" help="Loads" open="0" icon="loads.gif">
+            <Container id="BodyForce" pid="Gravity" class="Groups" idTemplate="BodyForce" icon="groupsTreeNew.gif" help="Gravity (Body Force)" open="0"/>
+            <Container id="Puntual" pid="Puntual Force" class="Groups" idTemplate="Puntual" GiDEntity="point" icon="groupsTreeNew.gif" help="Concentrated" open="0"/>
+            <Container id="PuntualMoment" pid="Puntual Moment" class="Groups" idTemplate="PuntualMoment" GiDEntity="point" icon="groupsTreeNew.gif" help="Bending Moment" open="0"/>
+            <Container id="Pressure" pid="Face Pressure" class="Groups" idTemplate="ShellPressure" nDim="3D" GiDEntity="surface" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="0"/>
+            <Container id="Face" pid="Face Force" class="Groups" idTemplate="FaceForce" nDim="3D" GiDEntity="surface" strucType="Solids" icon="groupsTreeNew.gif" help="Define Face Force" open="0"/>
+	          <Container id="BeamUniformlyDistributed" pid="Beam Uniformly distributed" class="Groups" nDim="3D" strucType="Beams" idTemplate="BeamUniformlyDistributedLoad" icon="groupsTreeNew.gif" help="Beam uniformly distributed load" open="0"/>
         </Container>
-        <Container id="Conditions" pid="Conditions" help="Boundary Conditions" open="1" icon="boundarycond.gif">
-            <Container id="Displacements" pid="Displacements" class="Groups" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Displacements" open="1" dv="Yes" ivalues="Yes,No" values="Yes,No"/>
-            <Container id="Rotations" pid="Rotations" class="Groups" strucType="Beams,Shells" GiDEntity="point,line,surface" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Rotations" open="1"/>
+        <Container id="Conditions" pid="Conditions" help="Boundary Conditions" open="0" icon="boundarycond.gif">
+            <Container id="Displacements" pid="Displacements" class="Groups" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Displacements" open="0" dv="Yes" ivalues="Yes,No" values="Yes,No"/>
+            <Container id="Rotations" pid="Rotations" class="Groups" strucType="Beams,Shells" GiDEntity="point,line,surface" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Rotations" open="0"/>
         </Container>
-        <Container id="Results" pid="Results" help="Results" open="1" icon="outputresults.gif">
+        <Container id="Results" pid="Results" help="Results" open="0" icon="outputresults.gif">
 	  <Item id="OutputDeltaTime" pid="Output delta time" dv="0.0" help="Output delta time"/>
-            <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="1">
+            <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="0">
                 <Item id="Displacements" pid="Displacements" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Displacements"/>
                 <Item id="Reactions" pid="Reactions" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Stresses"/>
             </Container>
-            <Container id="OnGaussPoints" pid="On gauss points" class="Tab" help="On gauss points" open="1">
+            <Container id="OnGaussPoints" pid="On gauss points" class="Tab" help="On gauss points" open="0">
                 <Item id="GreenLagrangeStrainTensor" pid="Green Lagrange strain tensor" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Green Lagrange strain tensor"/>
                 <Item id="Rotations" pid="Rotations" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Rotations"/>
                 <Item id="PK2StressTensor" pid="2nd Piola - Kirchhoff stress tensor" dv="Yes" ivalues="Yes,No" values="Yes,No" help="2nd Piola - Kirchhoff stress tensor"/>
 		<Item id="BeamMoments" pid="Beam moments" dv="Yes" strucType="Beams" ivalues="Yes,No" values="Yes,No" help="Beam moments"/>
 		<Item id="BeamForces" pid="Beam forces" dv="Yes" strucType="Beams" ivalues="Yes,No" values="Yes,No" help="Beam forces"/>
 	    </Container>
-	    <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess options" open="1">
+	    <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess options" open="0">
 	      <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
 	      <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
 	      <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
@@ -123,8 +124,8 @@
 	    </Container>
 	</Container>
     </RootData>
-    <RootData id="Fluid" pid="Fluid" state="hiddenAll" class="application" icon="aplicationTree.gif" help="Fluid" open="0">
-        <Container id="AnalysisData" pid="Analysis data" class="Tab" help="Analysis data" open="1">
+    <RootData id="Fluid" pid="Fluid" state="hiddenAll" class="application" icon="aplicationTree.gif" help="Fluid" open="1">
+        <Container id="AnalysisData" pid="Analysis data" class="Tab" help="Analysis data" open="0">
             <Item id="FluidType" pid="Fluid type" class="fluidType" dv="Incompressible" ivalues="Compressible,Incompressible" values="Compressible,Incompressible" help="Fluid type"/>
             <Item id="FluidApproach" pid="Fluid Approach" class="fluidAppr" dv="Eulerian" ivalues="Eulerian,PFEM-Lagrangian" values="Eulerian,PFEM-Lagrangian" help="Fluid approach"/>
             <Item id="FreeSurface" pid="Free surface" class="freeSurf" fluidAppr="Eulerian" fluidType="Incompressible" dv="No" ivalues="Yes,No" values="Yes,No" help="Free surface"/>
@@ -135,10 +136,10 @@
             <Item id="TurbulenceModel" pid="Turbulence model" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>        
             <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModelType="Smagorinsky-Lilly" dv="0.1" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
             <Item id="TurbulentViscosity" pid="Turbulent viscosity" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" dv="0.01" help="Define the turbulent viscosity value"/>
-            <Container id="Spalart-AllmarasGroupId2D" pid="Spalart-Allmaras groups" nDim="2D" GiDEntity="point,line" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="1"/>
-            <Container id="Spalart-AllmarasGroupId3D" pid="Spalart-Allmaras groups" nDim="3D" GiDEntity="point,line,surface" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="1"/>          
+            <Container id="Spalart-AllmarasGroupId2D" pid="Spalart-Allmaras groups" nDim="2D" GiDEntity="point,line" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="0"/>
+            <Container id="Spalart-AllmarasGroupId3D" pid="Spalart-Allmaras groups" nDim="3D" GiDEntity="point,line,surface" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="0"/>          
         </Container>
-        <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="1" dv="fh" values="">
+        <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="0" dv="fh" values="">
             <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
             <Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
             <Item id="OpenMPNumberOfThreads" pid="Number of threads" dv="2" PSolutionType="OpenMP" help="Number of threads"/>
@@ -174,7 +175,7 @@
             <Item id="MaxVart" pid="Max Dt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Max time variation"/>
             <Item id="MinVart" pid="Min Dt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Min time variation"/>
             <Item id="PFEMBodyForceGravity" pid="Gravity value" dv="9.81" fluidAppr="PFEM-Lagrangian" help="Gravity value"/>
-            <Container id="Advanced" pid="Advanced" fluidType="Incompressible" help="" open="1">
+            <Container id="Advanced" pid="Advanced" fluidType="Incompressible" help="" open="0">
                 <Item id="PredictorCorrector" pid="Predictor corrector" fluidAppr="Eulerian" fluidSolvTyp="ElementBased,EdgeBased" dv="False" ivalues="True,False" values="True,False" help=""/>
                 <Item id="RelativeVelocityTolerance" pid="Relative velocity tolerance" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,PressureSplitting,ElementBased,EdgeBased" dv="1E-3" help="Relative velocity tolerance"/>
                 <Item id="AbsoluteVelocityTolerance" pid="Absolute velocity tolerance" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,PressureSplitting" dv="1E-6" help="Absolute velocity tolerance"/>
@@ -204,109 +205,109 @@
                     <Item id="MinZ" pid="Min Z" dv="0.0" help="Min Z"/> 
                 </Container>
             </Container>
-	    <Container id="LevelSetBodyForce" pid="Body force" fluidSolvTyp="LevelSet" fluidAppr="Eulerian" PSolutionType="OpenMP" help="Body forces" class="Tab" open="1">
+	    <Container id="LevelSetBodyForce" pid="Body force" fluidSolvTyp="LevelSet" fluidAppr="Eulerian" PSolutionType="OpenMP" help="Body forces" class="Tab" open="0">
 	      <Item id="GravityValue" pid="Gravity value" dv="9.8" help="Gravity value"/>
 	      <Item id="Cx" pid="Cx" dv="0.0" help="X Vector"/>
 	      <Item id="Cy" pid="Cy" dv="0.0" help="Y Vector"/>
 	      <Item id="Cz" pid="Cz" dv="1.0" nDim="3D" help="Z Vector"/>
 	    </Container>
-	    <Container id="PorousZones" pid="Porous zones" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" help="Porous zones" open="1">
+	    <Container id="PorousZones" pid="Porous zones" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" help="Porous zones" open="0">
                 <Item id="UseErgunEquation" pid="Use Ergun equation" dv="No" class="ErgunEquationType" ivalues="Yes,No" values="Yes,No" help="Use Ergun equation"/>
-                <Container id="ErgunEquationNo" pid="Zones" class="Groups" ErgunEquationType="No" nDim="3D" GiDEntity="line,surface,volume" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" idTemplate="PorosityDarcy" icon="groupsTreeNew.gif" help="" open="1"/>
-                <Container id="ErgunEquationYes" pid="Zones" class="Groups" ErgunEquationType="Yes" nDim="3D" GiDEntity="line,surface,volume" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" idTemplate="PorosityDiameter" icon="groupsTreeNew.gif" help="" open="1"/>
+                <Container id="ErgunEquationNo" pid="Zones" class="Groups" ErgunEquationType="No" nDim="3D" GiDEntity="line,surface,volume" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" idTemplate="PorosityDarcy" icon="groupsTreeNew.gif" help="" open="0"/>
+                <Container id="ErgunEquationYes" pid="Zones" class="Groups" ErgunEquationType="Yes" nDim="3D" GiDEntity="line,surface,volume" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" idTemplate="PorosityDiameter" icon="groupsTreeNew.gif" help="" open="0"/>
 	    </Container>
 	  </Container>
-        <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesFluid" icon="propsTreeNew.gif" help="Add a new Property" open="1"/>
-        <Container id="Elements" pid="Elements" help="Elements" open="1">
-            <Container id="ASGS2D" pid="ASGS" class="Groups" nDim="2D" GiDEntity="surface"  fluidAppr="Eulerian" fluidSolvTyp="PressureSplitting" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ASGS" open="1"/>
-            <Container id="ASGS3D" pid="ASGS" class="Groups" nDim="3D" GiDEntity="volume"   fluidAppr="Eulerian" fluidSolvTyp="PressureSplitting" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="ASGS" open="1"/>
-            <Container id="Fluid2DMonolithic" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface"  fluidAppr="Eulerian" fluidSolvTyp="Monolithic" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Select the fluid 2D element type" open="1"/>
-            <Container id="Fluid3DMonolithic" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume"   fluidAppr="Eulerian" fluidSolvTyp="Monolithic" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Select the fluid 2D element type" open="1"/>
-            <Container id="Fluid2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface" fluidAppr="Eulerian" fluidSolvTyp="EdgeBased" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
-            <Container id="Fluid3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume"  fluidAppr="Eulerian" fluidSolvTyp="EdgeBased" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
-	    <Container id="LevelSetFluid2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface" fluidAppr="Eulerian" fluidSolvTyp="LevelSet" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
-            <Container id="LevelSetFluid3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume"  fluidAppr="Eulerian" fluidSolvTyp="LevelSet" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
-            <Container id="VMS2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface" fluidAppr="Eulerian" fluidSolvTyp="ElementBased" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
-            <Container id="VMS3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume"  fluidAppr="Eulerian" fluidSolvTyp="ElementBased" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
-            <Container id="PFEM2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface" fluidAppr="PFEM-Lagrangian" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
-            <Container id="PFEM3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume" fluidAppr="PFEM-Lagrangian" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
+        <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesFluid" icon="propsTreeNew.gif" help="Add a new Property" open="0"/>
+        <Container id="Elements" pid="Elements" help="Elements" open="0">
+            <Container id="ASGS2D" pid="ASGS" class="Groups" nDim="2D" GiDEntity="surface"  fluidAppr="Eulerian" fluidSolvTyp="PressureSplitting" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ASGS" open="0"/>
+            <Container id="ASGS3D" pid="ASGS" class="Groups" nDim="3D" GiDEntity="volume"   fluidAppr="Eulerian" fluidSolvTyp="PressureSplitting" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="ASGS" open="0"/>
+            <Container id="Fluid2DMonolithic" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface"  fluidAppr="Eulerian" fluidSolvTyp="Monolithic" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Select the fluid 2D element type" open="0"/>
+            <Container id="Fluid3DMonolithic" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume"   fluidAppr="Eulerian" fluidSolvTyp="Monolithic" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Select the fluid 2D element type" open="0"/>
+            <Container id="Fluid2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface" fluidAppr="Eulerian" fluidSolvTyp="EdgeBased" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
+            <Container id="Fluid3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume"  fluidAppr="Eulerian" fluidSolvTyp="EdgeBased" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
+	    <Container id="LevelSetFluid2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface" fluidAppr="Eulerian" fluidSolvTyp="LevelSet" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
+            <Container id="LevelSetFluid3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume"  fluidAppr="Eulerian" fluidSolvTyp="LevelSet" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
+            <Container id="VMS2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface" fluidAppr="Eulerian" fluidSolvTyp="ElementBased" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
+            <Container id="VMS3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume"  fluidAppr="Eulerian" fluidSolvTyp="ElementBased" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
+            <Container id="PFEM2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface" fluidAppr="PFEM-Lagrangian" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
+            <Container id="PFEM3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume" fluidAppr="PFEM-Lagrangian" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
         </Container>
-        <Container id="InitialConditions" pid="Initial conditions" fluidAppr="Eulerian" help="Initial Conditions" open="1">
-            <Container id="InitialVelocity" pid="Initial velocity" class="Groups" idTemplate="InitialVelocity" icon="groupsTreeNew.gif" help="Initial Conditions" open="1"/>
-            <Container id="InitialTemperature" pid="Initial temperature" fluidType="Compressible" class="Groups" idTemplate="InitialTemperature" icon="groupsTreeNew.gif" help="Initial Conditions" open="1"/>
-            <Container id="InitialPressure" pid="Initial pressure" class="Groups" idTemplate="InitialPressure" icon="groupsTreeNew.gif" help="Initial Conditions" open="1"/>
+        <Container id="InitialConditions" pid="Initial conditions" fluidAppr="Eulerian" help="Initial Conditions" open="0">
+            <Container id="InitialVelocity" pid="Initial velocity" class="Groups" idTemplate="InitialVelocity" icon="groupsTreeNew.gif" help="Initial Conditions" open="0"/>
+            <Container id="InitialTemperature" pid="Initial temperature" fluidType="Compressible" class="Groups" idTemplate="InitialTemperature" icon="groupsTreeNew.gif" help="Initial Conditions" open="0"/>
+            <Container id="InitialPressure" pid="Initial pressure" class="Groups" idTemplate="InitialPressure" icon="groupsTreeNew.gif" help="Initial Conditions" open="0"/>
         </Container>
-        <Container id="Conditions" pid="Conditions" help="Boundary Conditions" open="1">
-            <Container id="InletVelocity" pid="Inlet velocity" class="Groups" fluidAppr="Eulerian" fluidType="Incompressible" idTemplate="InletVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="1"/>
-            <Container id="PrescribedVelocity" pid="Prescribed velocity" class="Groups" fluidAppr="Eulerian" fluidType="Compressible" idTemplate="PrescribedVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="1"/>
-            <Container id="OutletPressure" pid="Outlet pressure" class="Groups" fluidAppr="Eulerian" idTemplate="OutletPressure" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Outlet pressure" open="1"/>
-            <Container id="Is-Slip" pid="Is-Slip" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,ElementBased,LevelSet" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="1"/>
-            <Container id="WallLaw" state="hidden" pid="Wall law" fluidAppr="Eulerian" class="Groups" fluidSolvTyp="ElementBased" idTemplate="WallLaw" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Wall law" open="1"/>
-	    <Container id="Distance" pid="Distance" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="LevelSet" idTemplate="LevelSetDistance" GiDEntity="line,surface,volume" icon="groupsTreeNew.gif" help="Distance variable for the free surface using level set method" open="1"/>
-            <Container id="No-Slip" pid="No-Slip" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="NoSlip" icon="groupsTreeNew.gif" help="No-Slip" open="1"/>
-	    <Container id="Flag-Variable" pid="Flag-Variable" fluidAppr="Eulerian" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="FlagVariable" icon="groupsTreeNew.gif" help="Define the flag variable properties" open="1"/>
-	    <Container id="PFEMWall" pid="Wall/Object" class="Groups" fluidAppr="PFEM-Lagrangian" idTemplate="PFEMwall" icon="groupsTreeNew.gif" GiDEntity="line,surface,volume" help="" open="1"/>
-	    <Container id="PFEMFluidInlet" pid="Fluid Inlet" class="Groups" fluidAppr="PFEM-Lagrangian" idTemplate="PFEMFluidInlet" icon="groupsTreeNew.gif" GiDEntity="line,surface" help="" open="1"/>
+        <Container id="Conditions" pid="Conditions" help="Boundary Conditions" open="0">
+            <Container id="InletVelocity" pid="Inlet velocity" class="Groups" fluidAppr="Eulerian" fluidType="Incompressible" idTemplate="InletVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="0"/>
+            <Container id="PrescribedVelocity" pid="Prescribed velocity" class="Groups" fluidAppr="Eulerian" fluidType="Compressible" idTemplate="PrescribedVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="0"/>
+            <Container id="OutletPressure" pid="Outlet pressure" class="Groups" fluidAppr="Eulerian" idTemplate="OutletPressure" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Outlet pressure" open="0"/>
+            <Container id="Is-Slip" pid="Is-Slip" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,ElementBased,LevelSet" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="0"/>
+            <Container id="WallLaw" state="hidden" pid="Wall law" fluidAppr="Eulerian" class="Groups" fluidSolvTyp="ElementBased" idTemplate="WallLaw" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Wall law" open="0"/>
+	    <Container id="Distance" pid="Distance" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="LevelSet" idTemplate="LevelSetDistance" GiDEntity="line,surface,volume" icon="groupsTreeNew.gif" help="Distance variable for the free surface using level set method" open="0"/>
+            <Container id="No-Slip" pid="No-Slip" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="NoSlip" icon="groupsTreeNew.gif" help="No-Slip" open="0"/>
+	    <Container id="Flag-Variable" pid="Flag-Variable" fluidAppr="Eulerian" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="FlagVariable" icon="groupsTreeNew.gif" help="Define the flag variable properties" open="0"/>
+	    <Container id="PFEMWall" pid="Wall/Object" class="Groups" fluidAppr="PFEM-Lagrangian" idTemplate="PFEMwall" icon="groupsTreeNew.gif" GiDEntity="line,surface,volume" help="" open="0"/>
+	    <Container id="PFEMFluidInlet" pid="Fluid Inlet" class="Groups" fluidAppr="PFEM-Lagrangian" idTemplate="PFEMFluidInlet" icon="groupsTreeNew.gif" GiDEntity="line,surface" help="" open="0"/>
         </Container>
-        <Container id="Results" pid="Results" help="Results" open="1">
+        <Container id="Results" pid="Results" help="Results" open="0">
             <Item id="VolumeOutput" pid="Volume output" dv="Yes" nDim="3D" class="UseCuts" ivalues="Yes,No" values="Yes,No" help="Volume output"/>
             <Item id="OutputDeltaTime" pid="Output delta time" dv="0.1" help="Output delata time"/>
             <Item id="PrintInLayer" pid="Print in layer" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Print in layer"/>
-            <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="1">
+            <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="0">
                 <Item id="Velocity" pid="Velocity" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
                 <Item id="Pressure" pid="Pressure" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Pressure"/>
                 <Item id="Reactions" pid="Reactions" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Stresses"/>
                 <Item id="Distance" pid="Distance" dv="No" ivalues="Yes,No" values="Yes,No" fluidAppr="Eulerian" help="Distance"/>
             </Container>
-            <Container id="HistoryOutputOnPoints" pid="History output on points" class="Properties" idTemplate="HistoryOutputOnPoints" help="History output on points" open="1"/>
-            <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess options" open="1">
+            <Container id="HistoryOutputOnPoints" pid="History output on points" class="Properties" idTemplate="HistoryOutputOnPoints" help="History output on points" open="0"/>
+            <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess options" open="0">
                 <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
                 <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="Yes" ivalues="True,False" values="Yes,No" fluidAppr="Eulerian" help="Write the GiD deformed or undeformed mesh"/>
                 <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="True,False" values="Yes,No" fluidAppr="Eulerian" help="Write the conditions or only element to the GiD result file"/>
                 <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" fluidAppr="Eulerian" help="Write one GiD result file or multiple files"/>
             </Container>
-            <Container id="CutOptions" pid="Cut planes" class="Properties" UseCuts="No" idTemplate="CutProperties" help="Cut plane postprocess options" open="1"/>
-            <Container id="DragOptions" pid="Drag calculation" class="Groups" idTemplate="DragProperties" GiDEntity="point,line,surface" help="Drag calculation properties" open="1"/>
+            <Container id="CutOptions" pid="Cut planes" class="Properties" UseCuts="No" idTemplate="CutProperties" help="Cut plane postprocess options" open="0"/>
+            <Container id="DragOptions" pid="Drag calculation" class="Groups" idTemplate="DragProperties" GiDEntity="point,line,surface" help="Drag calculation properties" open="0"/>
         </Container>
     </RootData>
-    <RootData id="PFEM" pid="PFEM" state="hiddenAll" class="application" icon="aplicationTree.gif" help="PFEM">
-      <Container id="AnalysisData" pid="Analysis data" class="Tab" help="Analysis data" open="1">
+    <RootData id="PFEM" pid="PFEM" state="hiddenAll" class="application" icon="aplicationTree.gif" help="PFEM" open="1">
+      <Container id="AnalysisData" pid="Analysis data" class="Tab" help="Analysis data" open="0">
         <Item id="FluidType" pid="Fluid type" class="fluidType" dv="Incompressible" ivalues="Compressible,Incompressible" values="Compressible,Incompressible" help="Fluid type"/>
 	    <Item id="FreeSurface" pid="Free surface" class="freeSurf" fluidType="Incompressible" dv="No" ivalues="Yes,No" values="Yes,No" help="Free surface"/>
       </Container>
-        <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="1" dv="fh" values="">
+        <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="0" dv="fh" values="">
             <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
             <Item id="StartTime" pid="Start time" dv="0.0" help=""/>
             <Item id="EndTime" pid="End time" dv="1" help=""/>
             <Item id="UseAutomaticDeltaTime" pid="Automatic delta time" class="deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the Delta time option to be used"/>
             <Item id="DeltaTime" deltatimetype="Fixed" pid="Delta time" dv="0.001" help=""/>
             <Item id="TargetCFL" pid="Target CFL" deltatimetype="Automatic" dv="5.0" help=""/>
-            <Container id="Advanced" pid="Advanced" fluidType="Incompressible" class="Tab" help="" open="1">
+            <Container id="Advanced" pid="Advanced" fluidType="Incompressible" class="Tab" help="" open="0">
             <Item id="DynamicTau" pid="Use dt in stabilization" dv="0.01" CBState="normal" values="1.0,0.1,0.01,0.001,0.0" help=""/>
             <Item id="OssSwitch" pid="Use orthogonal subscales" dv="0" ivalues="0,1" values="0,1" help=""/> 
         </Container>
     </Container>
-  <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesFluid" icon="propsTreeNew.gif" help="Add a new Property" open="1"/>
-        <Container id="Elements" pid="Elements" help="Elements" open="1">
-            <Container id="Fluid2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface"  idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
-            <Container id="Fluid3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="1"/>
+  <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesFluid" icon="propsTreeNew.gif" help="Add a new Property" open="0"/>
+        <Container id="Elements" pid="Elements" help="Elements" open="0">
+            <Container id="Fluid2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface"  idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
+            <Container id="Fluid3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
         </Container>
-	<Container id="Conditions" pid="Conditions" help="Boundary conditions" open="1">
-	  <Container id="Is-Slip" pid="Is-Slip" class="Groups" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="1"/>
-	  <Container id="Is-Fluid" pid="Is-Fluid" class="Groups" idTemplate="IsSlip" icon="groupsTreeNew.gif" help="Is fluid" open="1"/>
-	  <Container id="Is-Boundary" pid="Is-Boundary" class="Groups" idTemplate="IsBoundary" icon="groupsTreeNew.gif" help="Is boundary" open="1"/>
+	<Container id="Conditions" pid="Conditions" help="Boundary conditions" open="0">
+	  <Container id="Is-Slip" pid="Is-Slip" class="Groups" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="0"/>
+	  <Container id="Is-Fluid" pid="Is-Fluid" class="Groups" idTemplate="IsSlip" icon="groupsTreeNew.gif" help="Is fluid" open="0"/>
+	  <Container id="Is-Boundary" pid="Is-Boundary" class="Groups" idTemplate="IsBoundary" icon="groupsTreeNew.gif" help="Is boundary" open="0"/>
 	  </Container>
-        <Container id="Results" pid="Results" help="Results" open="1">
+        <Container id="Results" pid="Results" help="Results" open="0">
         <Item id="VolumeOutput" pid="Volume output" dv="Yes" nDim="3D" class="UseCuts" ivalues="Yes,No" values="Yes,No" help="Volume output"/>
         <Item id="OutputDeltaTime" pid="Output delta time" dv="0.0" help="Output delata time"/>
 	    <Item id="PrintInLayer" pid="Print in layer" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Print in layer"/>
-	    <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="1">
+	    <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="0">
 	      <Item id="Velocity" pid="Velocity" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
 	      <Item id="Pressure" pid="Pressure" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Pressure"/>
 	      <Item id="Reactions" pid="Reactions" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Stresses"/>
 	      <Item id="Distance" pid="Distance" dv="No" ivalues="Yes,No" values="Yes,No" help="Distance"/>
 	    </Container>
-	    <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess options" open="1">
+	    <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess options" open="0">
 	      <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
 	      <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="Yes" ivalues="True,False" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
 	      <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="True,False" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
@@ -314,13 +315,13 @@
 	    </Container>
         </Container>
     </RootData>
-    <RootData id="FluidStructureInteraction" pid="Fluid structure interaction (FSI)" state="hiddenAll" class="application" icon="aplicationTree.gif" help="Fluid structure interaction (FSI)">
+    <RootData id="FluidStructureInteraction" pid="Fluid structure interaction (FSI)" state="hiddenAll" class="application" icon="aplicationTree.gif" help="Fluid structure interaction (FSI)" open="1">
       <Container id="NotAvailable" pid="Not available" dv="res" help="Developing in process"/>
     </RootData>
-    <RootData id="ConvectionDiffusion" pid="Convection diffusion" state="hiddenAll" class="application" icon="aplicationTree.gif" help="Convection diffusion">
+    <RootData id="ConvectionDiffusion" pid="Convection diffusion" state="hiddenAll" class="application" icon="aplicationTree.gif" help="Convection diffusion" open="1">
         <Container id="NotAvailable" pid="Not available" dv="res" help="Developing in process"/>
     </RootData>
-    <RootData id="Curves" pid="Curves" state="hiddenAll" class="Curves" icon="arc.gif" help="Curve definition">
+    <RootData id="Curves" pid="Curves" state="hiddenAll" class="Curves" icon="arc.gif" help="Curve definition" open="1">
     </RootData>
      <Templates>
         <Template id="TLagrangian" icon="groupsTree.gif" help="Total Lagrangian">
@@ -484,6 +485,15 @@
                 <Item id="Mz" pid="Mz" dv="0.0" state="hidden" nDim="3D" help="Mz Vector"/>
             </Container>
         </Template>
+        <Template id="PuntualMoment" icon="groupsTree.gif" help="PuntualMoment">
+            <Container id="MainProperties" pid="Puntual" state="hidden" help="Values">                
+                <Item id="Mx" pid="Mx" dv="0.0" nDim="3D" help="Mx Vector"/>
+                <Item id="My" pid="My" dv="0.0" nDim="3D" help="My Vector"/>
+                <Item id="Mz" pid="Mz" dv="0.0" help="Mz Vector"/>
+            </Container>
+        </Template>
+        
+        
 	<Template id="BeamUniformlyDistributedLoad" icon="groupsTree.gif" help="Beam uniformly distributed loads">
             <Container id="MainProperties" pid="BeamDistributedLoad" state="hidden" help="Beam uniformly distributed load values">
                 <Item id="BUDFx" pid="Fx" dv="0.0" functionDissable="0" help="Beam uniformly distributed global Fx value"/>
