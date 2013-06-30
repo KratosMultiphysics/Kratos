@@ -224,8 +224,8 @@ namespace Kratos
                    break;
 
                    case 1:
-                        aux_power_of_contact_i_normal_force = pow(mOldNeighbourContactForces[i_neighbour_count][2], 5/3);
-                        added_potential_energy_of_contacts  += 0.4 * aux_power_of_contact_i_normal_force / pow(kn, 0.4);
+                        aux_power_of_contact_i_normal_force = pow(fabs(mOldNeighbourContactForces[i_neighbour_count][2]), 5/3);
+                        added_potential_energy_of_contacts  += 0.4 * aux_power_of_contact_i_normal_force / pow(kn, 2 / 3);
 
                    break;
 
@@ -1065,17 +1065,12 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CustomInitialize()
-      {
-
-      }
+      void SphericParticle::CustomInitialize(){}
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment)
-      {
-      }
+      void SphericParticle::CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment){}
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
