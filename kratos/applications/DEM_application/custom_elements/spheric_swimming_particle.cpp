@@ -86,7 +86,7 @@ namespace Kratos
           }
 
           else {
-              ComputeWetherfordFluidForcesOnParticle(rCurrentProcessInfo);
+              ComputeWeatherfordFluidForcesOnParticle(rCurrentProcessInfo);
           }
 
           rRightHandSideVector[0] = contact_force[0] + buoyancy[0] + drag_force[0] + mRealMass * gravity[0];
@@ -229,7 +229,7 @@ namespace Kratos
           return terminal_vel;
       }
 
-      void SphericSwimmingParticle::ComputeWetherfordFluidForcesOnParticle(ProcessInfo& rCurrentProcessInfo)
+      void SphericSwimmingParticle::ComputeWeatherfordFluidForcesOnParticle(ProcessInfo& rCurrentProcessInfo)
       {
             KRATOS_TRY
 
