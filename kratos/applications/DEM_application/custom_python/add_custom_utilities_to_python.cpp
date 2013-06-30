@@ -56,9 +56,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "includes/model_part.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-
-#include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/create_and_destroy.h"
+#include "custom_utilities/calculate_global_physical_properties.h"
 
 
 
@@ -82,6 +81,17 @@ void  AddCustomUtilitiesToPython(){
     //.def( "calculate_surrounding_bounding_box_given_box", &Particle_Creator_Destructor::DestroyDistantParticlesGivenBBox )
     ;
 
+    class_<Spheric_Element_Global_Physics_Calculator, boost::noncopyable >
+        ("spheric_element_global_physics_calculator", init<ModelPart&>())
+        .def("calculate_total_mass", &Spheric_Element_Global_Physics_Calculator::CalculateTotalMass)
+        .def("calculate_center_of_mass", &Spheric_Element_Global_Physics_Calculator::CalculateCenterOfMass)
+        .def("get_initial_center_of_mass", &Spheric_Element_Global_Physics_Calculator::GetInitialCenterOfMass)
+        .def("calculate_kinetic_energy", &Spheric_Element_Global_Physics_Calculator::CalculateKineticEnergy)
+        .def("calculate_elastic_energy", &Spheric_Element_Global_Physics_Calculator::CalculateElasticEnergy)
+        .def("calculate_gravitational_potential_energy", &Spheric_Element_Global_Physics_Calculator::CalculateGravitationalPotentialEnergy)
+        .def("calculate_total_momentum", &Spheric_Element_Global_Physics_Calculator::CalculateTotalMomentum)
+        .def("calculate_total_angular_momentum", &Spheric_Element_Global_Physics_Calculator::CalulateTotalAngularMomentum)
+        ;
     }
 }  // namespace Python.
 
