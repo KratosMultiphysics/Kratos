@@ -137,6 +137,10 @@ public:
 
         PartitionMesh(NodePartition,ConditionConnectivities,ConditionPartition);
 
+        // Detect hanging nodes (nodes that belong to a partition where no local elements have them) and send them to another partition.
+        // Hanging nodes should be avoided, as they can cause problems when setting the Dofs
+        RedistributeHangingNodes(NodePartition,ElementPartition,ElementConnectivities,ConditionPartition,ConditionConnectivities);
+
         // Coloring
         GraphType DomainGraph = zero_matrix<int>(mNumberOfPartitions);
         CalculateDomainsGraph(DomainGraph,NumElements,ElementConnectivities,NodePartition,ElementPartition);
@@ -417,6 +421,70 @@ private:
 
         PrintDebugData("Mesh Partition",rElemPartition);
 
+    }
+
+    void RedistributeHangingNodes(
+            std::vector<int>& rNodePartition,
+            std::vector<int> const& rElementPartition,
+            const IO::ConnectivitiesContainerType& rElementConnectivities,
+            std::vector<int> const& rConditionPartition,
+            const IO::ConnectivitiesContainerType& rConditionConnectivities)
+    {
+        std::vector<int> NodeUseCounts(rNodePartition.size(),0);
+
+        // Count number of times a node is used locally
+        unsigned int ElemIndex = 0;
+        for (IO::ConnectivitiesContainerType::const_iterator iElem = rElementConnectivities.begin(); iElem != rElementConnectivities.end(); iElem++)
+        {
+            for (std::vector<std::size_t>::const_iterator iNode = iElem->begin(); iNode != iElem->end(); iNode++)
+                if ( rNodePartition[ *iNode-1] == rElementPartition[ ElemIndex ] )
+                    NodeUseCounts[ *iNode-1 ]++;
+            ElemIndex++;
+        }
+
+        unsigned int CondIndex = 0;
+        for (IO::ConnectivitiesContainerType::const_iterator iCond = rConditionConnectivities.begin(); iCond != rConditionConnectivities.end(); iCond++)
+        {
+            for (std::vector<std::size_t>::const_iterator iNode = iCond->begin(); iNode != iCond->end(); iNode++)
+                if ( rNodePartition[ *iNode-1] == rConditionPartition[ CondIndex ] )
+                    NodeUseCounts[ *iNode-1 ]++;
+            CondIndex++;
+        }
+
+        std::vector<std::size_t> HangingNodes;
+        for (unsigned int i = 0; i < NodeUseCounts.size(); i++)
+            if( NodeUseCounts[i] == 0 )
+                HangingNodes.push_back( i+1 );
+
+        // Find a new home for hanging nodes
+        for (unsigned int n = 0; n < HangingNodes.size(); n++)
+        {
+            std::vector<int> LocalUseCount(mNumberOfPartitions,0);
+            unsigned int ElemIndex = 0;
+
+            for (IO::ConnectivitiesContainerType::const_iterator iElem = rElementConnectivities.begin(); iElem != rElementConnectivities.end(); iElem++)
+            {
+                for (std::vector<std::size_t>::const_iterator iNode = iElem->begin(); iNode != iElem->end(); iNode++)
+                    if ( HangingNodes[n] == *iNode )
+                        LocalUseCount[ rElementPartition[ElemIndex] ]++;
+                ElemIndex++;
+            }
+
+            unsigned int CondIndex = 0;
+            for (IO::ConnectivitiesContainerType::const_iterator iCond = rConditionConnectivities.begin(); iCond != rConditionConnectivities.end(); iCond++)
+            {
+                for (std::vector<std::size_t>::const_iterator iNode = iCond->begin(); iNode != iCond->end(); iNode++)
+                    if ( HangingNodes[n] == *iNode )
+                        LocalUseCount[ rConditionPartition[CondIndex] ]++;
+                CondIndex++;
+            }
+
+            SizeType Destination = FindMax(mNumberOfPartitions,LocalUseCount);
+            rNodePartition[ HangingNodes[n]-1 ] = Destination;
+        }
+
+        if (mVerbosity > 0)
+            std::cout << "Relocated " << HangingNodes.size() << " hanging nodes." << std::endl;
     }
 
     SizeType FindMax(SizeType NumTerms, const std::vector<int>& rVect)
