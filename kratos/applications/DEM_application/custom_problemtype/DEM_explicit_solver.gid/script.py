@@ -116,6 +116,11 @@ print 'Initializing Problem....'
 
 solver.Initialize()
 
+# Initialization of physics monitor and of the initial position of the center of mass
+
+physics_calculator = spheric_element_global_physics_calculator(balls_model_part)
+properties_list = []
+
 print 'Initialitzation Complete' + '\n'
 
 dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
@@ -215,7 +220,9 @@ while (time < final_time):
 
     if (time_to_print >= output_dt):
         os.chdir(data_and_results)
-        
+
+        properties_list = ProcMonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
+
         if (index_5 == 5):       
             multifile_5.write(problem_name + '_' + str(time) + '.post.bin\n')
             index_5 = 0
@@ -268,6 +275,7 @@ while (time < final_time):
 
 
 #-----------------------FINALITZATION OPERATIONS-------------------------------------------------------------------------------------- 
+ProcPlotPhysicalProperties(properties_list, graphs_path)
 
 if (Multifile == "single_file"):
     gid_io.FinalizeResults()
