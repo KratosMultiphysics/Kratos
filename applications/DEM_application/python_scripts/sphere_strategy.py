@@ -154,11 +154,11 @@ class ExplicitStrategy:
         if (self.global_variables_OPTION):
             self.global_kn                  = global_kn
             self.global_kt                  = global_kt
-            self.global_kr                = global_kr
-            self.global_rn                = global_rn
-            self.global_rt                = global_rt
-            self.global_rr                = global_rr
-            self.global_fri_ang           = global_fri_ang
+            self.global_kr                  = global_kr
+            self.global_rn                  = global_rn
+            self.global_rt                  = global_rt
+            self.global_rr                  = global_rr
+            self.global_fri_ang             = global_fri_ang
 
         if (NormalForceCalculation == "Linear"):
             self.force_calculation_type_id  = 0
@@ -166,10 +166,10 @@ class ExplicitStrategy:
             self.force_calculation_type_id  = 1
 
         if (self.Non_Linear_Option):
-            self.C1                       = C1
-            self.C2                       = C2
-            self.N1                       = N1
-            self.N2                       = N2
+            self.C1                         = C1
+            self.C2                         = C2
+            self.N1                         = N1
+            self.N2                         = N2
 
         if (NormalDampId == "ViscDamp"):
 
