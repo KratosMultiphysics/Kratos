@@ -104,7 +104,7 @@ namespace Kratos
 
           ComputeNewNeighboursHistoricalData();
 
-          ComputeBallToBallContactForce(   contact_force, contact_moment, initial_rotation_moment, max_rotation_moment, rCurrentProcessInfo); //MSI: processInfo will be eliminated since all variables will be member
+          ComputeBallToBallContactForce(contact_force, contact_moment, initial_rotation_moment, max_rotation_moment, rCurrentProcessInfo); //MSI: processInfo will be eliminated since all variables will be member
 
           if (mLimitSurfaceOption){
               ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, max_rotation_moment, rCurrentProcessInfo); //MSI: eliminate processInfo
@@ -148,6 +148,124 @@ namespace Kratos
 
           }
 
+      }
+
+      //**************************************************************************************************************************************************
+      //**************************************************************************************************************************************************
+
+      void SphericParticle::CalculateKineticEnergy(double& rKineticEnergy)
+      {
+          const array_1d<double, 3>& vel    = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+          const array_1d<double, 3> ang_vel = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          double square_of_celerity         = vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2];
+          double square_of_angular_celerity = ang_vel[0] * ang_vel[0] + ang_vel[1] * ang_vel[1] + ang_vel[2] * ang_vel[2];
+
+          rKineticEnergy = 0.5 * (mRealMass * square_of_celerity + mMomentOfInertia * square_of_angular_celerity);
+      }
+
+      //**************************************************************************************************************************************************
+      //**************************************************************************************************************************************************
+
+      void SphericParticle::CalculateElasticEnergyOfContacts(double& rElasticEnergy) // Calculates the elastic energy stored in the sum of all the contacts shared by the particle and all its neighbours
+      {
+          ParticleWeakVectorType& rNeighbours       = this->GetValue(NEIGHBOUR_ELEMENTS);
+          double added_potential_energy_of_contacts = 0.0;
+          size_t i_neighbour_count                  = 0;
+
+          for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin();
+              neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
+              const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+              double radius_sum                       = mRadius + other_radius;
+              double radius_sum_i                     = 1 / radius_sum;
+              double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;
+              double equiv_area                       = 0.25 * M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
+              double corrected_area                   = equiv_area;
+              double equiv_young;
+              double equiv_poisson;
+              double kn;
+              double kt;
+
+              if (mUniformMaterialOption){
+                  equiv_young                        = mYoung;
+                  equiv_poisson                      = mPoisson;
+              }
+
+              else {
+                  // Getting neighbour properties
+                  const double &other_young           = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+                  const double &other_poisson         = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+
+                  equiv_young                         = 2 * mYoung * other_young / (mYoung + other_young);
+                  equiv_poisson                       = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
+              }
+
+              // Globally defined parameters
+
+              if (mGlobalVariablesOption){
+                  kn                                  = mGlobalKn;
+                  kt                                  = mGlobalKt;
+              }
+
+              else {
+                  kn                                  = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                  kt                                  = kn / (2.0 + equiv_poisson + equiv_poisson);
+              }
+
+              // Normal contribution
+
+              double aux_power_of_contact_i_normal_force;
+
+              switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
+                   case 0:
+
+                       aux_power_of_contact_i_normal_force = mOldNeighbourContactForces[i_neighbour_count][2] * mOldNeighbourContactForces[i_neighbour_count][2];
+                       added_potential_energy_of_contacts  += 0.5 * aux_power_of_contact_i_normal_force / kn;
+
+                   break;
+
+                   case 1:
+                        aux_power_of_contact_i_normal_force = pow(mOldNeighbourContactForces[i_neighbour_count][2], 5/3);
+                        added_potential_energy_of_contacts  += 0.4 * aux_power_of_contact_i_normal_force / pow(kn, 0.4);
+
+                   break;
+
+                   default:
+
+                       aux_power_of_contact_i_normal_force = mOldNeighbourContactForces[i_neighbour_count][2] * mOldNeighbourContactForces[i_neighbour_count][2];
+                       added_potential_energy_of_contacts  += 0.5 * aux_power_of_contact_i_normal_force / kn;
+
+                  break;
+
+               }//switch
+
+              // Tangential Contribution
+
+              double aux_power_of_contact_i_tang_force = mOldNeighbourContactForces[i_neighbour_count][0] * mOldNeighbourContactForces[i_neighbour_count][0] + mOldNeighbourContactForces[i_neighbour_count][1] * mOldNeighbourContactForces[i_neighbour_count][1];
+              added_potential_energy_of_contacts       += 0.5 * aux_power_of_contact_i_tang_force / kt;
+
+              i_neighbour_count ++;
+
+          }
+
+          rElasticEnergy = added_potential_energy_of_contacts;
+      }
+
+      //**************************************************************************************************************************************************
+      //**************************************************************************************************************************************************
+
+      void SphericParticle::CalculateMomentum(array_1d<double, 3>& rMomentum)
+      {
+          const array_1d<double, 3>& vel = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+          rMomentum = mRealMass * vel;
+      }
+
+      //**************************************************************************************************************************************************
+      //**************************************************************************************************************************************************
+
+      void SphericParticle::CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum)
+      {
+          const array_1d<double, 3> ang_vel  = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          rAngularMomentum = mMomentOfInertia * ang_vel;
       }
 
       //**************************************************************************************************************************************************
@@ -384,7 +502,7 @@ namespace Kratos
           
           // PROCESS INFO
 
-          ParticleWeakVectorType& mrNeighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);
+          ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);
           //vector<double>& r_VectorContactInitialDelta  = this->GetValue(PARTICLE_CONTACT_DELTA);  //MSI: must be changed in the same fashion as contactforces
 
           double dt = rCurrentProcessInfo[DELTA_TIME];
@@ -418,8 +536,8 @@ namespace Kratos
 
           size_t i_neighbour_count = 0;
 
-          for (ParticleWeakIteratorType neighbour_iterator = mrNeighbours.begin();
-              neighbour_iterator != mrNeighbours.end(); neighbour_iterator++){
+          for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin();
+              neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
 
               // BASIC CALCULATIONS
 
@@ -459,7 +577,6 @@ namespace Kratos
               bool sliding = false;
               
               if (mUniformMaterialOption){
-                  equiv_radius                       = mRadius;
                   equiv_young                        = mYoung;
                   equiv_poisson                      = mPoisson;
                   equiv_ln_of_restit_coeff           = mLnOfRestitCoeff;
@@ -536,8 +653,8 @@ namespace Kratos
               // TRANSLATION FORCES
 
               if (indentation > 0.0){
-        
-              NormalForceCalculation(LocalElasticContactForce, kn, indentation, mElasticityType);
+
+                  NormalForceCalculation(LocalElasticContactForce, kn, indentation, mElasticityType);
                             
                   // TANGENTIAL FORCE
                   // Incremental calculation. YADE develops a complicated "absolute method"
@@ -1143,6 +1260,15 @@ namespace Kratos
               CalculateMaxIndentation(Output, rCurrentProcessInfo[DISTANCE_TOLERANCE]);
           }
 
+          else if (rVariable == KINETIC_ENERGY){
+              CalculateKineticEnergy(Output);
+
+          }
+
+          else if (rVariable == ELASTIC_ENERGY_OF_CONTACTS){
+              CalculateElasticEnergyOfContacts(Output);
+          }
+
           KRATOS_CATCH("")
 
       }// Calculate
@@ -1150,7 +1276,20 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& rCurrentProcessInfo){}
+      void SphericParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& rCurrentProcessInfo)
+      {
+          if (rVariable == MOMENTUM){
+              CalculateMomentum(Output);
+          }
+
+          else if (rVariable == ANGULAR_MOMENTUM){
+              CalculateLocalAngularMomentum(Output);
+          }
+      }
+
+      //**************************************************************************************************************************************************
+      //**************************************************************************************************************************************************
+
       void SphericParticle::Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo){}
       void SphericParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
 
