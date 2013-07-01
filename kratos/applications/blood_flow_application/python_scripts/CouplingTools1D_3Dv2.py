@@ -100,7 +100,7 @@ class TransferTools:
 	  
 	  	  
 	##detect 1d outlets
-	for i in range(101,199):
+	for i in range(1001,1199):
 	  nfound = 0
 	  aux = []
 	  
@@ -118,7 +118,7 @@ class TransferTools:
 	  sys.exit("number of 1d_outlets are zero!! Please check your config.py file!")
 	  
 	##detect 3d outlets
-	for i in range(101,199):
+	for i in range(1001,1199):
 	  nfound = 0
 	  aux = []
 	  for node in self.model_part_3d.Nodes:
@@ -334,7 +334,7 @@ class TransferTools:
 	if(cond.Properties.Id > 100): ##outlet
 	  for node in cond.GetNodes():
 	    node.Fix(PRESSURE)
-	    node.SetSolutionStepValue(FLAG_VARIABLE,0,101.0)
+	    node.SetSolutionStepValue(FLAG_VARIABLE,0,1001.0)
 	    
       for cond in self.model_part_3d.Conditions:
 	if(cond.Properties.Id == 1): ##sides --> note that this is done in an outer separated loop!!
