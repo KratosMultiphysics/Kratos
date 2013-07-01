@@ -74,7 +74,10 @@ write_conditions     = WriteConditionsFlag.WriteConditions
 gid_io               = GidIO(input_file_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
 model_part_io_origin = ModelPartIO(input_file_name)
 
+# Reading fluid model part
+
 model_part_io_origin.ReadModelPart(fluid_model_part)
+
 print "ULF model read correctly"
 
 # Setting the fluid buffer size: SHOULD BE DONE AFTER READING!!!
@@ -143,23 +146,9 @@ is_fsi_interf = 0.0
 
 # Calculating porosity
 
-porosity_output      = CalculateGlobalPorosity(balls_model_part, domain_volume)
-solid_volume         = porosity_output[0]
-global_porosity      = porosity_output[1]
-number_of_balls      = porosity_output[2]
-balls_per_area_unit  = porosity_output[3]
-n_particles_in_depth = int(math.sqrt(number_of_balls / domain_volume))
-
-print "solid_volume"
-print solid_volume
-print "global_porosity"
-print global_porosity
-print "number_of_balls"
-print number_of_balls
-print "balls_per_area_unit"
-print balls_per_area_unit
-print "n_particles_in_depth: "
-print n_particles_in_depth
+porosity_utils = PorosityUtils(domain_volume, balls_model_part)
+porosity_utils.PrintCurrentData()
+n_particles_in_depth = int(math.sqrt(porosity_utils.number_of_balls / domain_volume))
 
 # Constitutive laws
 
@@ -223,9 +212,9 @@ time_list         = []
 
 os.chdir(list_path)
 DEM_multifile     = open(UD_var.DEM_problem_name + '_all' + '.post.lst', 'w')
-multifile_5       = open(UD_var.DEM_problem_name + '_5' + '.post.lst', 'w')
-multifile_10      = open(UD_var.DEM_problem_name + '_10' + '.post.lst', 'w')
-multifile_50      = open(UD_var.DEM_problem_name + '_50' + '.post.lst', 'w')
+multifile_5       = open(UD_var.DEM_problem_name + '_5'   + '.post.lst', 'w')
+multifile_10      = open(UD_var.DEM_problem_name + '_10'  + '.post.lst', 'w')
+multifile_50      = open(UD_var.DEM_problem_name + '_50'  + '.post.lst', 'w')
 
 DEM_multifile.write('Multiple\n')
 multifile_5.write('Multiple\n')
@@ -314,31 +303,27 @@ while (time < UD_var.max_time):
             time   = time + new_dt * safety_factor
             combined_model_part.CloneTimeStep(time)
 
-            if (UD_var.domain_size == 3):
-                bin_of_objects_fluid = BinBasedFastPointLocator3D(fluid_model_part)
-
-            else:
-                bin_of_objects_fluid = BinBasedFastPointLocator2D(fluid_model_part)
-
-            # Projecting from particles
+            # Updating containers database
 
             projection_module.UpdateDatabase(h_min)
+
+            # Coupling DEM to fluid
+
             projection_module.ProjectFromParticles()
 
             # Solving fluid
 
             fluid_solver.Solve(inlet_process)
 
-            # Projecting from fluid
+            # Coupling fluid to DEM
 
             projection_module.ProjectFromFluid()
 
     # Solving particles
 
     DEM_solver.Solve()
+
     incremental_time = (timer.time() - initial_real_time) - prev_time
-
-
     balls_model_part.CloneTimeStep(DEM_time)
     balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
     total_force = 0
