@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
+#include "custom_strategies/strategies/explicit_solver_continuum.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -133,12 +134,21 @@ namespace Kratos
                     ("OMP_DEMSearch", init< >())
                     ;
         
-          typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;  
+          typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;
+          typedef ContinuumExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ContinuumExplicitSolverStrategyType;
+          
           class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
           (
           "ExplicitSolverStrategy", init< ModelPart&, double, double, double, double, bool, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ExplicitSolverStrategyType::InitialTimeStepCalculation)
+          ;
+          
+          class_< ContinuumExplicitSolverStrategyType, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
+          (
+          "ContinuumExplicitSolverStrategy", init< ModelPart&, ModelPart&, double, double, double, double, bool, bool, bool, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
+                  .def("Initialize", &ContinuumExplicitSolverStrategyType::Initialize)
+                  .def("InitialTimeStepCalculation", &ContinuumExplicitSolverStrategyType::InitialTimeStepCalculation)
           ;
 
         }
