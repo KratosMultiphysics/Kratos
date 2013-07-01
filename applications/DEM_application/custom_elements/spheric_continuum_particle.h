@@ -94,14 +94,16 @@ namespace Kratos
 
 
       void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-      void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+      virtual void ComputeNewNeighboursHistoricalData();
+      
+      //void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
       
-      virtual void EvaluateFailureCriteria();
-      virtual void CalculateOnContactElements();
+      virtual void EvaluateFailureCriteria(double LocalElasticContactForce[3], double ShearForceNow, double corrected_area, int i_neighbour_count, double& contact_sigma, double& contact_tau, double& failure_criterion_state, bool& sliding);
+      //virtual void CalculateOnContactElements();
 
       virtual void ComputeStressStrain(   double mStressTensor[3][3],
                                           ProcessInfo& rCurrentProcessInfo);
@@ -123,7 +125,7 @@ namespace Kratos
                                           array_1d<double,3>& damp_forces);
 
       
-      virtual void InitializeContactElements(ParticleWeakIteratorType neighbour_iterator, double& corrected_area);
+      //virtual void InitializeContactElements(ParticleWeakIteratorType neighbour_iterator, double& corrected_area);
 
       ///***********************************************////////////// AIXO ES DECLARA AKI O LA INITIALITZACIÓ.
 
@@ -204,12 +206,19 @@ namespace Kratos
         virtual void CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment);
         virtual void CustomInitialize();
         
-        virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, ProcessInfo& rCurrentProcessInfo);
+        
+        virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo); 
+        //virtual void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo);
+        //MSIMSI 6 aixo hauria de cridar el del basic o cal ke sigui del continu?
+        
+        
         //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
         void CharacteristicParticleFailureId(const ProcessInfo& rCurrentProcessInfo );
         //void CalculateInitialLocalAxes(const ProcessInfo& rCurrentProcessInfo );
         //void CalculateLocalAxes(const ProcessInfo& rCurrentProcessInfo );
+        
+        
         
         void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
         void ComputeParticleRotationSpring();
@@ -224,16 +233,33 @@ namespace Kratos
         bool mContinuumSimulationOption;
         bool mContactMeshOption;
         int* mpCaseOption;
+   
+        int mFailureCriterionOption;
         
         double mTension;
         double mCohesion;
         double mSectionalInertia;
         
-        
+        double mTensionLimit;
+        double mCompressionLimit;
+        double mTauZero;
+        double mContactInternalFriccion;
+        double mTanContactInternalFriccion;
+        double mSinContactInternalFriccion;
+        double mCosContactInternalFriccion;
+                
         double mtotal_equiv_area;
         vector<double> mcont_ini_neigh_area;
-        int mContinuumGroup;
-        int* mpFailureId;
+        
+        vector<int> mIniNeighbourIds;
+        vector<int> mIniContinuumNeighbourIds;
+        vector<double> mIniNeighbourDelta;
+        vector<double> mNeighbourDelta;
+        vector<int> mIniNeighbourFailureId;
+        vector<int> mNeighbourFailureId;
+        
+       
+                   
         
         //FOR DEM_FEM APP
         
@@ -241,12 +267,10 @@ namespace Kratos
         void ComputeParticleBlockContactForce_Without_Rotation();
         void FindContactFaceOfBlockForParticle(ParticleWeakIteratorType rObj_2, int & RightFace, double LocalCoordSystem[3][3], double Coeff[4],double &DistPToB);
 
-        unsigned int mDimension;
+        
         //double mDampType;
         //double mTimeStep;
-      
-        double mRealMass;
-    
+
 
 
 
