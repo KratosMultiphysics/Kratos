@@ -5,20 +5,34 @@ from KratosMultiphysics.ULFApplication import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 
-def CalculateGlobalPorosity(ParticleModelPart, DomainVolume):
-    n_balls      = 0
-    solid_volume = 0.0
+class PorosityUtils:
 
-    for ball in ParticleModelPart.Nodes:
-        n_balls += 1
-        radius = ball.GetSolutionStepValue(RADIUS)
-        volume = 4 / 3 * pow(radius, 3) * math.pi
-        solid_volume += volume
-        global_porosity = solid_volume / (solid_volume + DomainVolume)
+    def __init__(self, DomainVolume, ParticlesModelPart):
 
-    balls_per_area = DomainVolume / n_balls
-    output = [solid_volume, global_porosity, n_balls, balls_per_area]
-    return output
+        self.balls_model_part = ParticlesModelPart
+        self.UpdateData(DomainVolume)
+
+    def UpdateData(self, DomainVolume):
+
+        self.number_of_balls = 0
+        self.solid_volume    = 0.0
+
+        for ball in self.balls_model_part.Nodes:
+            self.number_of_balls += 1
+            radius = ball.GetSolutionStepValue(RADIUS)
+            volume = 4 / 3 * pow(radius, 3) * math.pi
+            self.solid_volume += volume
+            self.global_porosity = self.solid_volume / (self.solid_volume + DomainVolume)
+
+        self.balls_per_area = DomainVolume / self.number_of_balls
+        self.fluid_volume   = DomainVolume - self.solid_volume
+
+    def PrintCurrentData(self):
+
+        print "solid volume: ", self.solid_volume
+        print "global porosity: ", self.global_porosity
+        print "number_of_balls: ", self.number_of_balls
+        print "balls per area unit: ", self.balls_per_area
 
 class ProjectionModule:
 
