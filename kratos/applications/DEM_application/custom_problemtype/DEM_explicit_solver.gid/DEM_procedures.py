@@ -415,7 +415,7 @@ def ProcPrintingVariables(gid_io,export_model_part,time):
     if (print_particle_tension=="1"):
       gid_io.WriteNodalResults(PARTICLE_TENSION, export_model_part.Nodes, time, 0)
     if (print_group_id=="1"):
-      gid_io.WriteNodalResults(GROUP_ID, export_model_part.Nodes, time, 0)
+      gid_io.WriteNodalResults(EXPORT_GROUP_ID, export_model_part.Nodes, time, 0)
     if (print_export_id=="1"):
       gid_io.WriteNodalResults(EXPORT_ID, export_model_part.Nodes, time, 0)
     if (print_export_particle_failure_id=="1"):
