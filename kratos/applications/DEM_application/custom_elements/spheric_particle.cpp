@@ -102,7 +102,7 @@ namespace Kratos
           max_rotation_moment[1] = 0.0;
           max_rotation_moment[2] = 0.0;  
 
-          ComputeNewNeighboursHistoricalData();
+         ComputeNewNeighboursHistoricalData();
 
           ComputeBallToBallContactForce(contact_force, contact_moment, initial_rotation_moment, max_rotation_moment, rCurrentProcessInfo); //MSI: processInfo will be eliminated since all variables will be member
 
@@ -576,6 +576,9 @@ namespace Kratos
 
               bool sliding = false;
               
+              
+#if 1
+              
               if (mUniformMaterialOption){
                   equiv_young                        = mYoung;
                   equiv_poisson                      = mPoisson;
@@ -695,7 +698,7 @@ namespace Kratos
               ComputeMoments(LocalElasticContactForce, GlobalElasticContactForce, InitialRotaMoment, MaxRotaMoment, LocalCoordSystem, other_radius, rContactMoment, neighbour_iterator);
 
               i_neighbour_count++;
-
+#endif
           }// for each neighbour
           
           rInitialRotaMoment [0] = InitialRotaMoment [0];
@@ -705,8 +708,11 @@ namespace Kratos
           rMaxRotaMoment [1]     = MaxRotaMoment [1];
           rMaxRotaMoment [2]     = MaxRotaMoment [2];
 
+   
+         
           KRATOS_CATCH("")
-
+        
+          
       }// ComputeBallToBallContactForce
 
       //**************************************************************************************************************************************************
@@ -1060,7 +1066,14 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo){}
+      void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo){
+        
+        if (rCurrentProcessInfo[INT_DUMMY_8] == 1)
+            {
+                  this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_GROUP_ID) = double(this->GetGeometry()[0].FastGetSolutionStepValue(GROUP_ID));
+            }
+    
+      }
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
@@ -1147,6 +1160,7 @@ namespace Kratos
               if (rCurrentProcessInfo[INT_DUMMY_3] == 1){
                   this->GetGeometry()(0)->FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
               }
+                          
 
               mDampType                 = rCurrentProcessInfo[DAMP_TYPE];
               mElasticityType           = rCurrentProcessInfo[FORCE_CALCULATION_TYPE];
