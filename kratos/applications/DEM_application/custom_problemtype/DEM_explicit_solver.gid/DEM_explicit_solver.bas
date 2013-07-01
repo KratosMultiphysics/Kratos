@@ -158,6 +158,7 @@ End NodalData
 
 *endif
 
+
 Begin NodalData RADIUS
 *set var iterator=1
 *loop elems *all
@@ -170,6 +171,7 @@ Begin NodalData RADIUS
 End NodalData
 
 *Set cond volume_GROUP_ID *elems
+*Add cond surface_GROUP_ID *elems
 *Add cond test_PARTICLES *elems
 
 Begin NodalData GROUP_ID
@@ -232,7 +234,7 @@ End NodalData
 Begin NodalData PARTICLE_FRICTION
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
-*elemsconec(1) 0 *operation(tan(elemsmatprop(Friction(Deg),real)*3.141592653589793238462643383279502884197/180.0)))
+*elemsconec(1) 0 *operation(tan(elemsmatprop(Friction(Deg),real)*3.141592653589793238462643383279502884197/180.0))
 *endif
 *end elems 
 End NodalData
