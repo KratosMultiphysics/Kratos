@@ -34,7 +34,7 @@
 #include <omp.h>
 #endif
 
-//#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
+#define CUSTOMTIMER 1  // ACTIVATES AND DISABLES ::TIMER:::::
 
 #include "boost/smart_ptr.hpp"
 
@@ -49,6 +49,15 @@
 
 /* Search */
 #include "spatial_containers/spatial_search.h"
+
+/* Timer defines */
+#ifdef CUSTOMTIMER
+#define KRATOS_TIMER_START(t) Timer::Start(t);
+#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
+#else
+#define KRATOS_TIMER_START(t)
+#define KRATOS_TIMER_STOP(t)
+#endif
 
 namespace Kratos
 {
@@ -137,8 +146,8 @@ namespace Kratos
       /// Destructor.
       virtual ~ExplicitSolverStrategy()
       {
-        Timer my_timer;
-        my_timer.PrintTimingInformation();
+          Timer::SetOuputFile("TimesPartialRelease");
+          Timer::PrintTimingInformation();
       }
 
       virtual void Initialize()
@@ -185,9 +194,8 @@ namespace Kratos
           this->GetInitializeWasPerformed() = true;
 
           // 6. Compute initial time step
-          if (rCurrentProcessInfo[CRITICAL_TIME_OPTION]){
-              InitialTimeStepCalculation();  //MSI: should we ask whether this will be calculated or not
-          }
+          //InitialTimeStepCalculation();  //MSI: should we ask whether this will be calculated or not
+
 
       KRATOS_CATCH("")
       }// Initialize()
@@ -196,6 +204,7 @@ namespace Kratos
       {
           KRATOS_TRY
 
+          KRATOS_TIMER_START("BEGIN")
           ModelPart& rModelPart            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -206,21 +215,30 @@ namespace Kratos
           }
 
           int time_step = rCurrentProcessInfo[TIME_STEPS];
-
+          KRATOS_TIMER_STOP("BEGIN")
+          
           // 1. Here we initialize member variables that depend on the rCurrentProcessInfo
+          KRATOS_TIMER_START("InitializeSolutionStep")
           InitializeSolutionStep();
+          KRATOS_TIMER_STOP("InitializeSolutionStep")
 
           // 2. Get and Calculate the forces
+          KRATOS_TIMER_START("GetForce")
           GetForce();
+          KRATOS_TIMER_STOP("GetForce")
 
           // 3. Motion Integration
+          KRATOS_TIMER_START("PerformTimeIntegrationOfMotion")
           PerformTimeIntegrationOfMotion(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
+          KRATOS_TIMER_STOP("PerformTimeIntegrationOfMotion")
 
           // 4. Synchronize
+          KRATOS_TIMER_START("SynchronizeSolidMesh")
           SynchronizeSolidMesh(rModelPart);
+          KRATOS_TIMER_STOP("SynchronizeSolidMesh")
 
           // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box
-
+          KRATOS_TIMER_START("SearchNeighbours")
           if (rCurrentProcessInfo[ACTIVATE_SEARCH] == 1){
 
               if ((time_step + 1)%this->GetNStepSearch() == 0 && time_step > 0){
@@ -233,6 +251,7 @@ namespace Kratos
               }
 
           }
+          KRATOS_TIMER_STOP("SearchNeighbours")
 
           FinalizeSolutionStep();
 
@@ -350,9 +369,6 @@ namespace Kratos
 
           } // loop threads OpenMP
 
-         int& neighbours_initialized    = rCurrentProcessInfo[NEIGH_INITIALIZED];
-         neighbours_initialized = 1;  //MSI: aixo com es feia sense initialized? el solutionstep nomes es fa un cop. no hauria de definirse aki.
-         
         KRATOS_CATCH("")
       }
 
@@ -739,7 +755,4 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_FILENAME_H_INCLUDED  defined
-
-
-
 
