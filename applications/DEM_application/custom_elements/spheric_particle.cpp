@@ -168,9 +168,9 @@ namespace Kratos
 
       void SphericParticle::CalculateElasticEnergyOfContacts(double& rElasticEnergy) // Calculates the elastic energy stored in the sum of all the contacts shared by the particle and all its neighbours
       {
-          ParticleWeakVectorType& rNeighbours       = this->GetValue(NEIGHBOUR_ELEMENTS);
-          double added_potential_energy_of_contacts = 0.0;
-          size_t i_neighbour_count                  = 0;
+          ParticleWeakVectorType& rNeighbours         = this->GetValue(NEIGHBOUR_ELEMENTS);
+          double added_potential_energy_of_contacts   = 0.0;
+          size_t i_neighbour_count                    = 0;
 
           for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin();
               neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
@@ -383,25 +383,23 @@ namespace Kratos
                                                       const array_1d<double, 3> &ang_vel,
                                                       ParticleWeakIteratorType neighbour_iterator)
       {
-          if (mRotationOption == 1){
-              array_1d<double, 3> other_ang_vel     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-              double velA[3]                        = {0.0};
-              double velB[3]                        = {0.0};
-              double dRotaDisp[3]                   = {0.0};
+          array_1d<double, 3> other_ang_vel     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          double velA[3]                        = {0.0};
+          double velB[3]                        = {0.0};
+          double dRotaDisp[3]                   = {0.0};
 
-              double VelTemp[3]                     = {      ang_vel[0],       ang_vel[1],       ang_vel[2]};
-              double OtherVelTemp[3]                = {other_ang_vel[0], other_ang_vel[1], other_ang_vel[2]};
-              GeometryFunctions::CrossProduct(     VelTemp, OldLocalCoordSystem[2], velA); //it was Local Coordinate system, now we do OLD.
-              GeometryFunctions::CrossProduct(OtherVelTemp, OldLocalCoordSystem[2], velB);
+          double VelTemp[3]                     = {      ang_vel[0],       ang_vel[1],       ang_vel[2]};
+          double OtherVelTemp[3]                = {other_ang_vel[0], other_ang_vel[1], other_ang_vel[2]};
+          GeometryFunctions::CrossProduct(     VelTemp, OldLocalCoordSystem[2], velA); //it was Local Coordinate system, now we do OLD.
+          GeometryFunctions::CrossProduct(OtherVelTemp, OldLocalCoordSystem[2], velB);
 
-              dRotaDisp[0] = - velA[0] * mRadius - velB[0] * other_radius;
-              dRotaDisp[1] = - velA[1] * mRadius - velB[1] * other_radius;
-              dRotaDisp[2] = - velA[2] * mRadius - velB[2] * other_radius;
-              // Contribution of the rotation velocity
-              DeltDisp[0] += dRotaDisp[0] * dt;
-              DeltDisp[1] += dRotaDisp[1] * dt;
-              DeltDisp[2] += dRotaDisp[2] * dt;
-          }
+          dRotaDisp[0] = - velA[0] * mRadius - velB[0] * other_radius;
+          dRotaDisp[1] = - velA[1] * mRadius - velB[1] * other_radius;
+          dRotaDisp[2] = - velA[2] * mRadius - velB[2] * other_radius;
+          // Contribution of the rotation velocity
+          DeltDisp[0] += dRotaDisp[0] * dt;
+          DeltDisp[1] += dRotaDisp[1] * dt;
+          DeltDisp[2] += dRotaDisp[2] * dt;
       }
 
       void SphericParticle::ComputeMoments(double LocalElasticContactForce[3],
@@ -638,7 +636,11 @@ namespace Kratos
               }
 
               EvaluateDeltaDisplacement(DeltDisp, RelVel, NormalDir, OldNormalDir, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator);
-              DisplacementDueToRotation(DeltDisp, OldNormalDir, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
+
+              if (mRotationOption == 1){
+                  DisplacementDueToRotation(DeltDisp, OldNormalDir, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
+              }
+
 
               double LocalDeltDisp[3]               = {0.0};
               double LocalElasticContactForce[3]    = {0.0};
@@ -908,6 +910,7 @@ namespace Kratos
                  double ViscoDampingLocalContactForce[3]    = {0.0};
 
                  if ((mDampType > 0) && ((indentation > 0.0))){
+
                      if (mDampType == 11 || mDampType == 10){
                          ViscoDampingLocalContactForce[2] = - visco_damp_coeff_normal * LocalRelVel[2];
                      }
@@ -1190,8 +1193,7 @@ namespace Kratos
           }
 
       }
-      
-       
+        
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
       
@@ -1218,8 +1220,6 @@ namespace Kratos
 
                   }//switch
               } //NormalForceCalculation
-      
-      
       
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
