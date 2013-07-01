@@ -39,7 +39,7 @@ DeltaOption                      = "*GenData(Delta_Option)"
 *format "%10.5e"
 search_radius_extension          = *GenData(Search_Radius_Extension)
 *format "%10.5e"
-amplified_continuum_search_radius_extension = *GenData(Amplified_Continuum_Search_Radius_Extension)
+ampl_search_radius_extension     = *GenData(Amplified_Continuum_Search_Radius_Extension)
 FixVelocities                    = "*GenData(Fix_Velocities_At_Predetermined_Time)"
 *format "%10.5e"
 TimePercentageFixVelocities      = *GenData(Time_Step_Constrain_DOFs_Percentage)
