@@ -60,6 +60,8 @@ def AddVariables(model_part):
 
     if (print_export_id == "1"):
       model_part.AddNodalSolutionStepVariable(EXPORT_ID)
+    if (print_group_id=="1"):
+      model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
 
     print "Variables for the explicit solver added correctly"
 
@@ -117,7 +119,7 @@ class ExplicitStrategy:
 
 
         if (self.search_radius_extension and Var_Translator(ContinuumOption)):
-            self.amplified_continuum_search_radius_extension = Var_Translator(ContinuumOption)
+            self.amplified_continuum_search_radius_extension = 0.0
 
         if (Var_Translator(DeltaOption)):
             self.delta_OPTION               = True
@@ -214,6 +216,7 @@ class ExplicitStrategy:
 
         # PRINTING VARIABLES
         self.print_export_id                = Var_Translator(print_export_id)
+        self.print_group_id                 = Var_Translator(print_group_id)
         self.print_export_skin_sphere       = Var_Translator(print_export_skin_sphere)
         self.print_radial_displacement      = Var_Translator(print_radial_displacement)
 
@@ -288,6 +291,7 @@ class ExplicitStrategy:
 
         # PRINTING VARIABLES
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_3, self.print_export_id) # Reserved for: Export Print Skin sphere
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_8, self.print_group_id) # Reserved for: Export Print Group ID
         self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
         self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
         self.model_part.ProcessInfo.SetValue(ROTA_DAMP_TYPE, self.rota_damp_id)
