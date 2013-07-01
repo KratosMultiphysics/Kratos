@@ -60,7 +60,8 @@ def AddVariables(model_part):
 
     if (print_export_id == "1"):
       model_part.AddNodalSolutionStepVariable(EXPORT_ID)
-    if (print_group_id=="1"):
+
+    if (print_group_id == "1"):
       model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
 
     print "Variables for the explicit solver added correctly"
