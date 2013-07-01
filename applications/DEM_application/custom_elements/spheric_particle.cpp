@@ -224,7 +224,7 @@ namespace Kratos
                    break;
 
                    case 1:
-                        aux_power_of_contact_i_normal_force = pow(fabs(mOldNeighbourContactForces[i_neighbour_count][2]), 5/3);
+                        aux_power_of_contact_i_normal_force = pow(fabs(mOldNeighbourContactForces[i_neighbour_count][2]), 5 / 3);
                         added_potential_energy_of_contacts  += 0.4 * aux_power_of_contact_i_normal_force / pow(kn, 2 / 3);
 
                    break;
