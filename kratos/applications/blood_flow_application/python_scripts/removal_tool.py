@@ -16,17 +16,17 @@ def GetNodeAfter(table,prop):
   
 #select and remove
 def DoRemoval(model_part):
-  import config_by
+  import config
   import full_nodes_table
-  print "deactivate_list",config_by.deactivate_list
-  print "list of inlets",config_by.inlets_1d
-  print "list of outlets",config_by.outlets_1d
+  print "deactivate_list",config.deactivate_list
+  print "list of inlets",config.inlets_1d
+  print "list of outlets",config.outlets_1d
   print "full nodes table",full_nodes_table.table
   print model_part
   
   
   #mark for deactivation all of the nodes which are not needed
-  for prop_id in config_by.deactivate_list:
+  for prop_id in config.deactivate_list:
     for elem in model_part.Elements:
       if(elem.Properties.Id == prop_id):
 	elem.SetValue(ERASE_FLAG,True)
@@ -38,9 +38,9 @@ def DoRemoval(model_part):
   outlet_nodes = []
 	  
   #mark for erasal nodes before inlet 
-  for i in range(0,len(config_by.inlets_1d)):
-    flag_id = config_by.inlets_1d[i][0]
-    prop_id = config_by.inlets_1d[i][1]
+  for i in range(0,len(config.inlets_1d)):
+    flag_id = config.inlets_1d[i][0]
+    prop_id = config.inlets_1d[i][1]
     print "flag_id", flag_id
     print "prop_id", prop_id
     print GetNodeBefore(full_nodes_table.table, prop_id)
@@ -53,9 +53,9 @@ def DoRemoval(model_part):
     nodes_to_preserve.append(node_before)
     
   #mark for erasal nodes after outler
-  for i in range(0,len(config_by.outlets_1d)):
-    flag_id = config_by.outlets_1d[i][0]
-    prop_id = config_by.outlets_1d[i][1]
+  for i in range(0,len(config.outlets_1d)):
+    flag_id = config.outlets_1d[i][0]
+    prop_id = config.outlets_1d[i][1]
     node_end = model_part.Nodes[ GetNodeEnd(full_nodes_table.table, prop_id) ]
     node_after = model_part.Nodes[ GetNodeAfter(full_nodes_table.table, prop_id) ]
     node_end.SetValue(ERASE_FLAG,True)
@@ -99,9 +99,9 @@ def DoRemoval(model_part):
     highest_cond_id+=1
   
   #add conditions associated to the inlet of the 3d
-  for i in range(0,len(config_by.inlets_1d)):
-    flag_id = config_by.inlets_1d[i][0]
-    prop_id = config_by.inlets_1d[i][1]
+  for i in range(0,len(config.inlets_1d)):
+    flag_id = config.inlets_1d[i][0]
+    prop_id = config.inlets_1d[i][1]
     node_before = model_part.Nodes[ GetNodeBefore(full_nodes_table.table, prop_id) ]
     node_begin = model_part.Nodes[ GetNodeBegin(full_nodes_table.table, prop_id) ]
     CreateNewCondition( "Artery1Dto3DCondition",model_part, highest_cond_id+1, id_of_new_property, node_before, node_begin)
