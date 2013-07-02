@@ -1133,7 +1133,7 @@ public:
     @param ThisMethod integration method which jacobians has to
     be calculated in its integration points.
 
-    @param DeltaPosition array of the position increment which describes
+    @param DeltaPosition Matrix with the nodes position increment which describes
     the configuration where the jacobian has to be calculated.
 
     @return Matrix<double> Jacobian matrix \f$ J_i \f$ where \f$
@@ -1143,7 +1143,7 @@ public:
     @see DeterminantOfJacobian
     @see InverseOfJacobian
     */
-    virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod, std::vector<array_1d<double, 3> > & DeltaPosition ) const
+    virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod, Matrix& DeltaPosition ) const
     {
         KRATOS_ERROR( std::logic_error,
                       "Calling base class Jacobian method instead of drived class one. Please check the definition of derived class." , *this );
