@@ -4,22 +4,23 @@ from KratosMultiphysics import *
 #######################################################################################
 #######################################################################################
 def ConstructPreconditioner( configuration ):
-    if hasattr(configuration, 'verbosity'):
+    if hasattr(configuration, 'preconditioner_type'):
       preconditioner_type = configuration.preconditioner_type
+      if(preconditioner_type == "None"):
+	  return None
+      else:
+	  if(preconditioner_type == "DiagonalPreconditioner"):
+		return DiagonalPreconditioner()
+	  elif(preconditioner_type == "ILU0Preconditioner"):
+		return ILU0Preconditioner()
+	  else:
+		print "Preconditioner type not found. Returning None"
+		return None
     else:
       return None
       
       
-    if(preconditioner_type == "None"):
-	return None
-    else:
-	if(preconditioner_type == "DiagonalPreconditioner"):
-	      return DiagonalPreconditioner()
-	elif(preconditioner_type == "ILU0Preconditioner"):
-	      return ILU0Preconditioner()
-	else:
-	      print "Preconditioner type not found. Returning None"
-	      return None
+
 
     
 #######################################################################################
@@ -74,7 +75,8 @@ def ConstructSolver( configuration ):
     #######################################################################################
     elif(solver_type == "AMGCL"):  
 	import KratosMultiphysics.ExternalSolversApplication
-	if(configuration.preconditioner_type != "None"):
+	if hasattr(configuration, 'preconditioner_type'):
+	  if(configuration.preconditioner_type != "None"):
 	    print "WARNING: preconditioner specified in preconditioner_type will not be used as it is not compatible with the AMGCL solver"
 	    
         max_it = configuration.max_iteration
