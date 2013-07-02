@@ -675,7 +675,7 @@ public:
      * @param ThisMethod integration method which jacobians has to
      * be calculated in its integration points.
      *
-     * @param DeltaPosition array of the position increment which describes
+     * @param DeltaPosition Matrix with the nodes position increment which describes
      * the configuration where the jacobian has to be calculated.
      *
      * @return Matrix<double> Jacobian matrix \f$ J_i \f$ where \f$
@@ -685,7 +685,7 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod, std::vector<array_1d<double, 3> > & DeltaPosition ) const
+    virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const
     {
         //setting up size of jacobian matrix
         rResult.resize( 2, 2 );
@@ -694,22 +694,16 @@ public:
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
         Matrix ShapeFunctionsGradientInIntegrationPoint =
             shape_functions_gradients( IntegrationPointIndex );
-        //values of shape functions in integration points
-        vector<double> ShapeFunctionValuesInIntegrationPoint = ZeroVector( 3 );
-        /*vector<double>*/
-        ShapeFunctionValuesInIntegrationPoint =
-            row( CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ), IntegrationPointIndex );
-
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
         //loop over all nodes
 
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-        {
-	    rResult( 0, 0 ) += ( this->GetPoint( i ).X() + DeltaPosition[i][0] ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
-            rResult( 0, 1 ) += ( this->GetPoint( i ).X() + DeltaPosition[i][0] ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
-            rResult( 1, 0 ) += ( this->GetPoint( i ).Y() + DeltaPosition[i][1] ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
-            rResult( 1, 1 ) += ( this->GetPoint( i ).Y() + DeltaPosition[i][1] ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
-        }
+	  {
+	    rResult( 0, 0 ) += ( this->GetPoint( i ).X() + DeltaPosition(i,0) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
+	    rResult( 0, 1 ) += ( this->GetPoint( i ).X() + DeltaPosition(i,0) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
+	    rResult( 1, 0 ) += ( this->GetPoint( i ).Y() + DeltaPosition(i,1) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
+	    rResult( 1, 1 ) += ( this->GetPoint( i ).Y() + DeltaPosition(i,1) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
+	  }
 
         return rResult;
 
