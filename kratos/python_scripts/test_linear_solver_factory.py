@@ -15,6 +15,23 @@ class cg_solver_config:
     tolerance = 1e-3
 
 ######################################################################
+class gmres_solver_config:
+    solver_type = "GMRES"
+    scaling = True
+    preconditioner_type = "None"
+    max_iteration = 1000
+    tolerance = 1e-3
+    
+######################################################################
+class deflated_solver_config:
+    solver_type = "Deflated Conjugate gradient"
+    scaling = True
+    max_iteration = 1000
+    tolerance = 1e-3
+    assume_constant_structure = True
+    max_reduced_size = 1000
+    
+######################################################################
 class amgcl_solver_config:
     solver_type = "AMGCL"
     scaling = False
@@ -55,7 +72,10 @@ class pastix_iterative_solver_configure:
     gmres_krylov_space_dimension = 100
     ilu_level_of_fill = 5
     verbosity = 0
-    is_symmetric = False      
+    is_symmetric = False  
+    
+    
+    
 
 ######################################################################
 class block_UP_iterative_solver_configure:
@@ -94,6 +114,10 @@ import linear_solver_factory
 linear_solver =  linear_solver_factory.ConstructSolver(bicg_solver_config)
 
 linear_solver =  linear_solver_factory.ConstructSolver(cg_solver_config)
+
+linear_solver =  linear_solver_factory.ConstructSolver(gmres_solver_config)
+
+linear_solver =  linear_solver_factory.ConstructSolver(deflated_solver_config)
 
 linear_solver =  linear_solver_factory.ConstructSolver(amgcl_solver_config)
 

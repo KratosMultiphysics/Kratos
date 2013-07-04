@@ -54,13 +54,28 @@ def ConstructSolver( configuration ):
           linear_solver = BICGSTABSolver(tol, max_it, precond)
     #######################################################################################
     elif(solver_type == "GMRES"):     
+        import KratosMultiphysics.ExternalSolversApplication
         precond = ConstructPreconditioner( configuration )
         max_it = configuration.max_iteration
 	tol    = configuration.tolerance
         if(precond == None):
-	    linear_solver = GMRESSolver(tol, max_it)
+	    linear_solver = KratosMultiphysics.ExternalSolversApplication.GMRESSolver(tol, max_it)
         else:
-	    linear_solver = GMRESSolver(tol, max_it, precond)
+	    linear_solver = KratosMultiphysics.ExternalSolversApplication.GMRESSolver(tol, max_it, precond)
+    #######################################################################################
+    elif(solver_type == "Deflated Conjugate gradient"):     
+        max_it = configuration.max_iteration
+	tol    = configuration.tolerance
+	
+        assume_constant_structure = False
+        if hasattr(configuration, 'assume_constant_structure'):
+	    assume_constant_structure = configuration.assume_constant_structure
+	  
+        max_reduced_size = 1000
+        if hasattr(configuration, 'assume_constant_structure'):
+	    max_reduced_size = configuration.max_reduced_size
+	    
+        linear_solver =  DeflatedCGSolver(tol,max_it,assume_constant_structure,max_reduced_size) 
     #######################################################################################
     elif(solver_type == "GMRES-UP Block"):  
 	velocity_linear_solver = ConstructSolver( configuration.velocity_block_configuration )
@@ -161,8 +176,9 @@ def ConstructSolver( configuration ):
 	print "Conjugate gradient"
 	print "BiConjugate gradient stabilized"
 	print "GMRES"
+	print "Deflated Conjugate gradient"
 	print "AMGCL"
-	print "Block UP Solver"
+	print "GMRES-UP Block"
 	print "Skyline LU factorization"
 	print "Super LU (requires ExternalSolversApplication)"
 	print "SuperLUIterativeSolver (requires ExternalSolversApplication)"
