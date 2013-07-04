@@ -171,8 +171,8 @@ Begin NodalData RADIUS
 End NodalData
 
 *Set cond volume_GROUP_ID *elems
-*Add cond surface_GROUP_ID *elems
 *Add cond test_PARTICLES *elems
+*Add cond surface_GROUP_ID *elems
 
 Begin NodalData GROUP_ID
 *loop elems *OnlyInCond
