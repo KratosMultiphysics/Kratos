@@ -726,13 +726,14 @@ proc ::KFun::buildEditor { T {item ""} } {
 
 	
 	#OK CANCEL
-	grid [ttk::button $f.bOk -text [= "Ok"]  -command "::KFun::acceptFunction $ft $T" ] \
+  #$f.bBottomOk and $f.bBottomCancel names need to popup click ok cancel before change item
+	grid [ttk::button $f.bBottomOk -text [= "Ok"]  -command "::KFun::acceptFunction $ft $T" ] \
 	    -row 6 -column 0 -sticky nw -columnspan 2 -pady 3 -padx 30  -in $f
-	tooltip::tooltip $f.bOk [= "Add this function"]
+	tooltip::tooltip $f.bBottomOk [= "Add this function"]
 	
-	grid [ttk::button $f.bCancel -text [= "Cancel"]  -command "::KFun::cancelBottom" ] \
+	grid [ttk::button $f.bBottomCancel -text [= "Cancel"]  -command "::KFun::cancelBottom" ] \
 	    -row 6 -column 0 -sticky nw -columnspan 2 -pady 3 -padx 120  -in $f
-	tooltip::tooltip $f.bCancel [= "Cancel process"]
+	tooltip::tooltip $f.bBottomCancel [= "Cancel process"]
 	
 	if { $::KFun::applyFun } {
 		
