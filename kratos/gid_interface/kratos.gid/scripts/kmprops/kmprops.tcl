@@ -156,7 +156,7 @@ proc ::KMProps::FillTreeProps { } {
 		set item [::KMProps::InsertNewProp $node [$node getAttribute id ""] $T "" "root" [$node hasChildNodes] [::KMProps::stateNode $node] [$node getAttribute open "0"]]
 		# wa "item:$item"
 		if {$item != -1} {
-			set path "[$node getAttribute id 0]//"
+		        set path "[$node getAttribute id 0]//"
 		        ::KMProps::FillRecursiveChilds $T $path $node $item
 		}
 	}
@@ -172,13 +172,15 @@ proc ::KMProps::FillRecursiveChilds { T path node item} {
 	   # msg "[$node2 getAttribute id ""]"
 	    #set item3 [::KMProps::InsertNewProp $node3 [::KMProps::splitNode $node3] $T "[$node getAttribute id 0]//[::KMProps::splitNode $node2]//" "$item2" [$node3 hasChildNodes] [::KMProps::stateNode $node3] [$node3 getAttribute open "0"]]
 	    set item2 [::KMProps::InsertNewProp $node2 [::KMProps::splitNode $node2] $T $path "$item" [$node2 hasChildNodes] [::KMProps::stateNode $node2] [$node2 getAttribute open "0"]]
-	        if {$item2 != -1} {
-			
-			set pathcp [join [concat $path "[::KMProps::splitNode $node2]//"] ""]
-			
-			#msg "$pathcp \n"
-			::KMProps::FillRecursiveChilds $T $pathcp $node2 $item2
-			set pathcp [join [concat $path "[::KMProps::splitNode $node2]//"] ""]
+		if {$item2 != -1} {
+		        
+		        #set pathcp [join [concat $path "[::KMProps::splitNode $node2]//"] ""]
+	    set pathcp [regsub -all "// " [concat $path "[::KMProps::splitNode $node2]//"] "//"]
+		        
+		        #msg "$pathcp \n"
+		        ::KMProps::FillRecursiveChilds $T $pathcp $node2 $item2
+		        #set pathcp [join [concat $path "[::KMProps::splitNode $node2]//"] ""]
+	    set pathcp [regsub -all "// " [concat $path "[::KMProps::splitNode $node2]//"] "//"]
 		}
 	}
 }
@@ -271,9 +273,9 @@ proc ::KMProps::stateNode { node } {
 		#msg "$state:  --------- > g: $globalVar in nodeVals: $nodeValuesVar"
 		if {$var == "strucType" } {
 		    if { $globalVar != "Generic"} { 
-			#msg "$nodeValuesVar \"\" !=  && $globalVar in $nodeValuesVar"
-			::KMProps::setNoActiveGroups $node
-			return -1
+		        #msg "$nodeValuesVar \"\" !=  && $globalVar in $nodeValuesVar"
+		        ::KMProps::setNoActiveGroups $node
+		        return -1
 		    }
 		} else {
 		    #msg "$nodeValuesVar \"\" !=  && $globalVar in $nodeValuesVar"
@@ -431,7 +433,7 @@ proc ::KMProps::copyTemplate { idTemplate fullname groupId clase } {
 		return $template
 	}
 	
-	$KPriv(xml) lappend "$xpath/Container id=\"$groupId\" pid=\"$groupId\" class=\"$clase\" icon=\"$icon\" help=\"$help\" open=\"1\"" $template
+	$KPriv(xml) lappend "$xpath/Container\[@id='$groupId' pid='$groupId' class='$clase' icon='$icon' help='$help' open='1'\]" $template
 	
 	#Eliminamos ahora las etiquetas auxiliares "<gouptemplate></gouptemplate>"
 	::KMProps::replaceTemplate
