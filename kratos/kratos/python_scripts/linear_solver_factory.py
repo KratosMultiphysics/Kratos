@@ -62,7 +62,7 @@ def ConstructSolver( configuration ):
         else:
 	    linear_solver = GMRESSolver(tol, max_it, precond)
     #######################################################################################
-    elif(solver_type == "Block UP Solver"):  
+    elif(solver_type == "GMRES-UP Block"):  
 	velocity_linear_solver = ConstructSolver( configuration.velocity_block_configuration )
 	pressure_linear_solver = ConstructSolver( configuration.pressure_block_configuration )
 	m = configuration.gmres_krylov_space_dimension

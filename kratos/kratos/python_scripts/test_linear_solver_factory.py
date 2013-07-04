@@ -59,7 +59,7 @@ class pastix_iterative_solver_configure:
 
 ######################################################################
 class block_UP_iterative_solver_configure:
-    solver_type = "Block UP Solver"
+    solver_type = "GMRES-UP Block"
     scaling = False
     tolerance = 1e-3
     max_iteration = 5     
