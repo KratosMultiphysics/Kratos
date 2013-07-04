@@ -22,13 +22,15 @@ def ConstructPreconditioner( configuration ):
       
 
 
-    
 #######################################################################################
 #######################################################################################
 #######################################################################################
 def ConstructSolver( configuration ):
     solver_type = configuration.solver_type
-    scaling = configuration.scaling
+    
+    scaling = False
+    if hasattr(configuration, 'scaling'):
+	scaling = configuration.scaling
     
     linear_solver = None
         
@@ -73,6 +75,38 @@ def ConstructSolver( configuration ):
 	import KratosMultiphysics.ExternalSolversApplication
         linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUSolver()
     #######################################################################################
+    elif(solver_type == "SuperLUIterativeSolver"):  
+	import KratosMultiphysics.ExternalSolversApplication
+	tol = configuration.tolerance
+	max_it = configuration.max_iteration
+	restart = configuration.gmres_krylov_space_dimension
+	DropTol = configuration.DropTol
+	FillTol = configuration.FillTol
+	ilu_level_of_fill = configuration.ilu_level_of_fill
+	linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUIterativeSolver(tol,max_it,restart,DropTol,FillTol,ilu_level_of_fill)
+    #######################################################################################
+    elif(solver_type == "PastixDirect"):  
+	import KratosMultiphysics.ExternalSolversApplication
+	is_symmetric = False
+	if hasattr(configuration, 'is_symmetric'):
+	  configuration.is_symmetric
+	verbosity = 0
+	if hasattr(configuration, 'verbosity'):
+	    verbosity = configuration.verbosity
+        linear_solver = KratosMultiphysics.ExternalSolversApplication.PastixSolver(verbosity,is_symmetric)
+    #######################################################################################
+    elif(solver_type == "PastixIterative"):  
+	import KratosMultiphysics.ExternalSolversApplication
+	tol = configuration.tolerance
+	max_it = configuration.max_iteration
+	restart = configuration.gmres_krylov_space_dimension
+	ilu_level_of_fill = configuration.ilu_level_of_fill
+	is_symmetric = configuration.is_symmetric
+	verbosity = 0
+	if hasattr(configuration, 'verbosity'):
+	    verbosity = configuration.verbosity
+        linear_solver = KratosMultiphysics.ExternalSolversApplication.PastixSolver(tol,restart,ilu_level_of_fill,verbosity,is_symmetric)
+    #######################################################################################
     elif(solver_type == "AMGCL"):  
 	import KratosMultiphysics.ExternalSolversApplication
 	if hasattr(configuration, 'preconditioner_type'):
@@ -82,10 +116,10 @@ def ConstructSolver( configuration ):
         max_it = configuration.max_iteration
 	tol    = configuration.tolerance
 	
+	verbosity = 0
 	if hasattr(configuration, 'verbosity'):
 	    verbosity = configuration.verbosity
-	else:
-	    verbosity = 0
+	    
 	smoother_type  	= configuration.smoother_type #options are DAMPED_JACOBI, ILU0, SPAI
 		
 	if(smoother_type == "ILU0"): 
