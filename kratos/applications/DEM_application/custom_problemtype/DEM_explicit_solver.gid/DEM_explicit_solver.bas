@@ -18,9 +18,9 @@ End Properties
 
 
 Begin Nodes
-*#// id	  X	 Y	Z
+*#// id   X  Y  Z
 *loop nodes
-*nodesnum	*NodesCoord(1)	*NodesCoord(2)	*NodesCoord(3)
+*nodesnum   *NodesCoord(1)  *NodesCoord(2)  *NodesCoord(3)
 *end nodes
 End Nodes
 *# Element blocks
@@ -34,11 +34,12 @@ Begin Elements *GenData(DEM_Element_Type)
 *end elems
 End Elements
 
-*Set cond volume_VELOCITY *elems
-*Add cond surface_VELOCITY *elems
-*Add cond line_VELOCITY *elems
-*Add cond test_PARTICLES *elems
+*Set cond volume_CONDITIONS *elems
+*Add cond surface_CONDITIONS *elems
+*Add cond line_CONDITIONS *elems
+
 *#Add cond point_VELOCITY *nodes
+
 *if(CondNumEntities > 0)
 *# Check if some node has its X value set
 *set var Xset=0
@@ -47,7 +48,7 @@ End Elements
 *set var Xset=1
 *break
 *endif
-*end elems
+*end elems      
 *if(Xset == 1)
 Begin NodalData VELOCITY_X
 *loop elems *OnlyInCond
@@ -56,9 +57,8 @@ Begin NodalData VELOCITY_X
 *endif
 *end elems
 End NodalData
-
 *endif
-*#
+
 *# Check if some node has its Y value set
 *set var Yset=0
 *loop elems *OnlyInCond
@@ -74,11 +74,9 @@ Begin NodalData VELOCITY_Y
 *elemsconec(1) *cond(Y_fixed) *cond(Y_Value)
 *endif
 *end elems
-
 End NodalData
-
 *endif
-*#
+
 *# Check if some node has its Z value set
 *set var Zset=0
 *loop elems *OnlyInCond
@@ -98,6 +96,7 @@ Begin NodalData VELOCITY_Z
 End NodalData
 *#
 *endif
+
 *# Check if some node has its X value set
 *set var X_ang_vel_set=0
 *loop elems *OnlyInCond
@@ -169,10 +168,6 @@ Begin NodalData RADIUS
 *endif
 *end elems 
 End NodalData
-
-*Set cond volume_GROUP_ID *elems
-*Add cond test_PARTICLES *elems
-*Add cond surface_GROUP_ID *elems
 
 Begin NodalData GROUP_ID
 *loop elems *OnlyInCond
