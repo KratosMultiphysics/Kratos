@@ -167,7 +167,7 @@ proc ::kfiles::SaveSPD {filename} {
     ::KEGroups::GroupsToXml
     # msg $filename
     # Escribimos en el fichero .spd el xml almacenado en memoria
-    ::xmlutils::writeFile "${filename}" $KPriv(dir) $KPriv(encrXml) $KPriv(xmlDoc) $KPriv(RDConfig)
+    ::xmlutils::writeFile "${filename}" $KPriv(dir) $KPriv(encrXml) $KPriv(xmlDoc) $KPriv(RDConfig) 0
     
     # Escribimos en el fichero .kmdb de materiales el xml almacenado en memoria
     set materialFile "[string range $filename 0 [expr [string length $filename] - 5]].kmdb"
