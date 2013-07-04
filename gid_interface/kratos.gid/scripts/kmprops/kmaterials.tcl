@@ -502,14 +502,14 @@ proc ::KMat::buildfatherFrame { T item {class "Tab"} } {
     }
 
 	set clase [lappend fTab $listItems]
-	
-	grid [ttk::button $f.bPropOk -text "Ok"  -command "[list ::KMat::acceptTabFrame $T $acceptItems $clase $item]" ] \
+	#$f.bBottomOk and $f.bBottomCancel names need to popup click ok cancel before change item
+	grid [ttk::button $f.bBottomOk -text "Ok"  -command "[list ::KMat::acceptTabFrame $T $acceptItems $clase $item]" ] \
 			-row $count -column 0 -sticky sw  -pady 3 -padx 20  -in $f
-			tooltip::tooltip $f.bPropOk [= "Confirm values"]
+			tooltip::tooltip $f.bBottomOk [= "Confirm values"]
 	
-	grid [ttk::button $f.bPropCancel -text "Cancel"  -command "::KMat::cancelBottom" ] \
+	grid [ttk::button $f.bBottomCancel -text "Cancel"  -command "::KMat::cancelBottom" ] \
 	-row $count -column 0 -sticky sw  -pady 3 -padx 100 -in $f
-	tooltip::tooltip $f.bPropCancel [= "Cancel assignation"]
+	tooltip::tooltip $f.bBottomCancel [= "Cancel assignation"]
 }
 
 proc ::KMat::buildTabFrame { T item f {class "Tab"} } {
@@ -561,13 +561,14 @@ proc ::KMat::buildTabFrame { T item f {class "Tab"} } {
 		incr row 1
 
 		#Finalmente colocamos los Botones de OK y de Cancel debajo de todo
-		grid [ttk::button $f.bPropOk -text "Ok"  -command "[list ::KMat::acceptTabFrame $T $acceptItems $class $item]" ] \
+    #$f.bBottomOk and $f.bBottomCancel names need to popup click ok cancel before change item
+		grid [ttk::button $f.bBottomOk -text "Ok"  -command "[list ::KMat::acceptTabFrame $T $acceptItems $class $item]" ] \
 			-row $row -column 0 -sticky sw  -pady 3 -padx 20  -in $f
-			tooltip::tooltip $f.bPropOk [= "Confirm values"]
+			tooltip::tooltip $f.bBottomOk [= "Confirm values"]
 
-		grid [ttk::button $f.bPropCancel -text "Cancel"  -command "::KMat::DestroyBottomFrame" ] \
+		grid [ttk::button $f.bBottomCancel -text "Cancel"  -command "::KMat::DestroyBottomFrame" ] \
 			-row $row -column 0 -sticky sw  -pady 3 -padx 100  -in $f
-			tooltip::tooltip $f.bPropCancel [= "Cancel assignation"]
+			tooltip::tooltip $f.bBottomCancel [= "Cancel assignation"]
 	}
 }
 
@@ -1044,14 +1045,15 @@ proc ::KMat::buildTabFrameABD { T item {class "Tab"} } {
     #			 incr count
     #		 }
     # }
-
-    grid [ttk::button $f.bPropOk -text "Ok"  -command "::KMat::acceptTabFrameABD $T $listItems $class $item" ] \
-	-row $count -column 0 -sticky sw  -pady 3 -padx 20  -in $f
-    tooltip::tooltip $f.bPropOk [= "Confirm values"]
     
-    grid [ttk::button $f.bPropCancel -text "Cancel"  -command "::KMat::cancelBottom" ] \
+    #$f.bBottomOk and $f.bBottomCancel names need to popup click ok cancel before change item
+    grid [ttk::button $f.bBottomOk -text "Ok"  -command "::KMat::acceptTabFrameABD $T $listItems $class $item" ] \
+	-row $count -column 0 -sticky sw  -pady 3 -padx 20  -in $f
+    tooltip::tooltip $f.bBottomOk [= "Confirm values"]
+    
+    grid [ttk::button $f.bBottomCancel -text "Cancel"  -command "::KMat::cancelBottom" ] \
 	-row $count -column 0 -sticky sw  -pady 3 -padx 100  -in $f
-    tooltip::tooltip $f.bPropCancel [= "Cancel assignation"]
+    tooltip::tooltip $f.bBottomCancel [= "Cancel assignation"]
 
 }
 
