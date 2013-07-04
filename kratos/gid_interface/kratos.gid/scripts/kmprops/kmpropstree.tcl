@@ -13,6 +13,7 @@
 #
 #  HISTORY:
 # 
+#   0.5- 04/07/13- A.Melendo, popup to don't forget to click ok, cancel on bottom frame
 #   0.4- 25/06/13- A. Melendo, new List and Draw procs
 #   0.3- 17/05/13-G. Socorro, reformat the source code using Emacs tabulations 
 #   0.2- 20/09/12-J.Garate, Adaptation for New Kratos Interface Version, including Curves support
@@ -243,6 +244,27 @@ proc ::KMProps::DoubleClickTree { x y T {item ""}} {
 	return ""
 	}
 	
+  #Deteccion de si hay frame abierto y popup de aviso que debe dar al ok-cancel antes de cambiar
+  #Es una solucion rapida, lo que se deberia hacer es controlar si ha habido cambios, y que saltara un pop up de
+  #si quiere guardar o descartar los cambios
+    variable NbPropsPath    
+    variable selGroup
+    
+    set f ${NbPropsPath}.fBottom    
+    if {[winfo exists $f]} {
+      #hay ya una bottom frame abierto
+      if { [winfo exist $f.bBottomOk] && [winfo exist $f.bBottomCancel] } {
+      #el bottom frame tiene un ok y un cancel      
+        if { [info exists selGroup] && $selGroup!="" } {
+          #Not Empty selected group
+          WarnWin [= "Click Ok or Cancel in the bottom frame before selecting a new item"]
+          return ""
+        }
+      }
+    }
+  #end Deteccion...
+  
+  
 	set id [::xmlutils::setXml $fullname id]
 	set dv [::xmlutils::setXml $fullname dv]
 	
@@ -346,7 +368,9 @@ proc ::KMProps::ClickTree { x y T } {
 		if { $ClassType == "Groups" || $ClassType == "Properties" } {
 		
 		# En este caso desplegamos el frame de alta de propiedades o grupos
-		::KMProps::DoubleClickTree $x $y $T
+    # comentado al cambiar muy a menudo el frame de abajo produce que se pierda la informacion introducida por el usuario
+    # si se gestiona mejor el control de cambios se puede volver a activar, (relacionado con 
+		#::KMProps::DoubleClickTree $x $y $T
 
 		} else {
 		# $T item toggle $item
