@@ -38,8 +38,10 @@ proc ::WinUtils::OpenGiDGroupTab {} {
     # ABSTRACT: Open the GiD group tab inside the layer window
    
     set w ".gid.central.wlay"
-    if {![winfo exists $w]} {   
-	ChangeLayers
+    if {![winfo exists $w]} {
+      #no open new window
+      #ChangeLayers
+      return;
     }
     # wa "::GID_INTERNAL_GROUPS:$::GID_INTERNAL_GROUPS ::GidPriv(ShowGroupsTab):$::GidPriv(ShowGroupsTab) ::GidPriv(LayersOrGroupsCurrentTab):$::GidPriv(LayersOrGroupsCurrentTab) "
     # Select the tab
