@@ -263,10 +263,13 @@ proc ::KCurves::FillRecursiveChilds { T path node item} {
 		set item2 [::KCurves::InsertNewProp $node2 [::KMProps::splitNode $node2] $T $path "$item" [$node2 hasChildNodes] [::KMProps::stateNode $node2] [$node2 getAttribute open "0"]]
 	        if {$item2 != -1} {
 			
-			set pathcp [join [concat $path "[::KMProps::splitNode $node2]//"] ""]
+			#set pathcp [join [concat $path "[::KMProps::splitNode $node2]//"] ""]
+      set pathcp [regsub -all "// " [concat $path "[::KMProps::splitNode $node2]//"] "//"]
 			
 			::KMProps::FillRecursiveChilds $T $pathcp $node2 $item2
-			set pathcp [join [concat $path "[::KMProps::splitNode $node2]//"] ""]
+			#set pathcp [join [concat $path "[::KMProps::splitNode $node2]//"] ""]
+      set pathcp [regsub -all "// " [concat $path "[::KMProps::splitNode $node2]//"] "//"]
+      
 		}
 	}
 }
