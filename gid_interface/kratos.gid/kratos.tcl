@@ -12,6 +12,7 @@
 #
 #    HISTORY: 
 # 
+#     3.9- 04/07/13- A. Melendo, group name without validation
 #     3.8- 25/06/13- A. Melendo, to not let disabledGraphics never
 #     3.7- 19/06/13- G. Socorro, delete the event AfterRenameCondGroup, AfterCreateCondGroup and BeforeDeleteCondGroup used in the Compass library
 #     3.6- 18/06/13- G. Socorro, delete the global variable KPriv(NewGiDGroups)
@@ -431,7 +432,8 @@ proc BeforeDeleteGroup { name } {
 proc AfterRenameGroup { oldname newname } {
     # Válida para los grupos de GiD 11.1.1d
      # wa "oldname:$oldname newname:$newname"
-    ::KEGroups::RenombraGrupo $oldname $newname 1
+    #modificado kratos para que acepte cualquier nombre grupo ::KEGroups::RenombraGrupo $oldname $newname 1
+    ::KEGroups::RenombraGrupo $oldname $newname 0
     #Si se renombra un grupo, no nos queda otra... no se puede impedir.
  }
 
