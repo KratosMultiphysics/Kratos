@@ -116,7 +116,7 @@ proc ::KMProps::getGroups { entityList {fullname ""}} {
 proc ::KMProps::autoNewGroup { group_name fpath } {
     variable selGroup
     global KPriv
-    WarnWinText "group_name: $group_name       fpath: $fpath"
+    #WarnWinText "group_name: $group_name       fpath: $fpath"
     set GroupId [::KEGroups::GetAutomaticGroupName "$group_name "]
     
     # Assign the selected group identifier
@@ -131,7 +131,7 @@ proc ::KMProps::autoNewGroup { group_name fpath } {
     #focus $winpath
     #Temporal until GiD11.1.5d released
     #WarnWinText [list 3 [::GidUtils::VersionCmp "11.1.5"]]
-	  if { [::GidUtils::VersionCmp "11.1.5"] } { 
+	  if { [::GidUtils::VersionCmp "11.1.5"]>=0 } { 
       GidUtils::UpdateWindow GROUPS
     }
 }
@@ -147,7 +147,7 @@ proc ::KMProps::acceptGroups { T idTemplate fullname item listT entityList fGrou
     } else {
         
         #Primero comprobamos q el grupo aun no exista
-        set id [::xmlutils::setXml "$fullname//c.$grupo" id]
+        set id [::xmlutils::setXml "$fullname//c.[list $grupo]" id]
         
         if { $id != "" } {
             
