@@ -111,7 +111,7 @@ proc ::KEGroups::SelectionAssign { entity GroupId WinPath } {
     
     
         GiD_Process Utilities EntitiesGroups Assign $GroupId $entity
-        FinishButton $WinPath $WinPath.bPropOk [= "Press 'Finish' to stop the entities selection"] "" disableall [GiD_Set SmallWinSelecting]        
+        FinishButton $WinPath $WinPath.bBottomOk [= "Press 'Finish' to stop the entities selection"] "" disableall [GiD_Set SmallWinSelecting]        
     }
 
 
@@ -297,18 +297,22 @@ proc ::KEGroups::GetAutomaticGroupName { {auto ""} } {
         set groups [GiD_Groups list]
     set i 0
 
+    if { $auto == "" } {
+      set name "Group"
+    }
+    
     if { [llength $groups] > 0 } {
         
         for {set i 1} {$i<10000} {incr i} {
             
-            set name ${auto}Group${i}
+            set name ${auto}${i}
             if { [lsearch -exact $groups $name] == -1 } { break }
         }
     } else {
         if { $auto == "" } {
-            set name "Group1"
+            set name "Group0"
         } else {
-            set name "${auto}Group1"
+            set name "${auto}0"
         }
     }
     return $name
@@ -578,7 +582,9 @@ proc ::KEGroups::RenombraGrupo { oldname newname validation } {
     # if validation == 1 -> newname needs the validation process
     set valid 1
     if {$validation == 1} {
-	set valid [::KEGroups::ValidateNewName $oldname $newname]
+      #only call of this function ::KEGroups::RenombraGrupo is with parameter validation==0
+      #code part not in use
+      set valid [::KEGroups::ValidateNewName $oldname $newname]
     }
     if {$valid != 0 } {
 	set editinglist [::KMProps::findGroups $oldname]
@@ -602,6 +608,7 @@ proc ::KEGroups::RenombraGrupo { oldname newname validation } {
     }
 }
 
+#proc not in use!!
 proc ::KEGroups::ValidateNewName { oldname newname } {
     # POST: Returns 0 if name is invalid, returns 1 if name is valid,
     
@@ -627,6 +634,7 @@ proc ::KEGroups::ValidateNewName { oldname newname } {
     return $ret
 }
 
+#proc not in use!!
 proc ::KEGroups::ErrorRenameWindow { oldname newname errlist} {
     global KPriv
     
@@ -655,6 +663,8 @@ proc ::KEGroups::ErrorRenameWindow { oldname newname errlist} {
     bind $qq <Return> [list ::KEGroups::AuxRenameGroup $oldname $newname $qq]
 }
 
+
+#proc not in use!!
  proc ::KEGroups::AuxRenameGroup { oldname newname qq} {
 	global KPriv
 
@@ -670,7 +680,7 @@ proc ::KEGroups::ErrorRenameWindow { oldname newname errlist} {
 	 GiD_Groups edit rename $newname $KPriv(newnewname)
    #Temporal until GiD11.1.5d released
    #WarnWinText [list 1 [::GidUtils::VersionCmp "11.1.5"]]
-	 if { [::GidUtils::VersionCmp "11.1.5"] } { 
+	 if { [::GidUtils::VersionCmp "11.1.5"]>=0 } { 
       GidUtils::UpdateWindow GROUPS
    }
 	 ::KEGroups::RenombraGrupo $oldname $KPriv(newnewname) $valid
@@ -737,7 +747,7 @@ proc ::KEGroups::TransferCondGroupstoGiDGroups { } {
     }
     #Temporal until GiD11.1.5d released
     #WarnWinText [list 2 [::GidUtils::VersionCmp "11.1.5"]]
-	  if { [::GidUtils::VersionCmp "11.1.5"] } { 
+	  if { [::GidUtils::VersionCmp "11.1.5"]>=0 } { 
       GidUtils::UpdateWindow GROUPS
     }
 }
