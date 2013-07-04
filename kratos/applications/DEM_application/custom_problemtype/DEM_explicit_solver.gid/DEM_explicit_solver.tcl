@@ -104,8 +104,8 @@ proc  DEM::Elements_Substitution { } {
 		if {  [info exists applied_conditions_by_element($element_id)] } {
 		    foreach element_data $applied_conditions_by_element($element_id) {
 		        set values [lindex $element_data 1]
-		        GiD_AssignData condition volume_VELOCITY body_elements $values $new_element_id; #Faltaria is structure aixi tambe si finalment es decideix ferho, NO PODREM POSAR QUE TOT HO GUARDI A VOLUME VELOCITY
-		        #ARA SI PK TOT SON VELOCITATS, SOBRE LINEA, VOLUM O SURFACE I LES PASEM A VOLUM I NO PASA RES...
+		        GiD_AssignData condition volume_CONDITIONS body_elements $values $new_element_id;
+
 		    }
 		}
 	    } elseif { $dimensions==2 } {
@@ -117,7 +117,7 @@ proc  DEM::Elements_Substitution { } {
 		if {  [info exists applied_conditions_by_element($element_id)] } {
 		    foreach element_data $applied_conditions_by_element($element_id) {
 		        set values [lindex $element_data 1]
-		        GiD_AssignData condition surface_VELOCITY body_elements $values $new_element_id
+		        GiD_AssignData condition surface_CONDITIONS body_elements $values $new_element_id
 		    }
 		}
 	    } else { 
@@ -155,7 +155,7 @@ proc  DEM::Elements_Substitution { } {
 	    if {  [info exists applied_conditions_by_point($node_id)] } {
 		foreach point_data $applied_conditions_by_point($node_id) {
 		    set values [lindex $point_data 1]
-		    GiD_AssignData condition volume_VELOCITY body_elements $values $new_element_id; #POSSIBLE ERROR nodes realment?
+		    GiD_AssignData condition volume_CONDITIONS body_elements $values $new_element_id; 
 		}
 	    }
 	} elseif { $dimensions==2 } {
@@ -167,7 +167,7 @@ proc  DEM::Elements_Substitution { } {
 	    if {  [info exists applied_conditions_by_point($node_id)] } {
 		foreach point_data $applied_conditions_by_point($node_id) {
 		    set values [lindex $point_data 1]
-		    GiD_AssignData condition surface_VELOCITY body_elements $values $new_element_id; #POSSIBLE ERROR nodes realment?
+		    GiD_AssignData condition surface_CONDITIONS body_elements $values $new_element_id; 
 		}
 	    }        
 	} else { 
@@ -210,13 +210,12 @@ proc InitGIDProject {dir} {
 	}
 	GiDMenu::Create "DEM explicit solver" PRE
 	GiDMenu::InsertOption "DEM explicit solver" [list "Nodal Values"] 0 PRE {GidOpenConditions Nodal_Values} "" ""
-	GiDMenu::InsertOption "DEM explicit solver" [list "Test Particles"] 1 PRE {GidOpenConditions Test_Particles} "" ""
-	GiDMenu::InsertOption "DEM explicit solver" [list "Predefined Skin Particles"] 2 PRE {GidOpenConditions Predefined_Skin_Particles} "" ""
-	GiDMenu::InsertOption "DEM explicit solver" [list "Problem Parameters"] 3 PRE "GidOpenProblemData \"Problem_Parameters\"" "" ""
-	GiDMenu::InsertOption "DEM explicit solver" [list "Materials"] 4 PRE "GidOpenMaterials \"DEM Materials\"" "" ""
-	GiDMenu::InsertOption "DEM explicit solver" [list "---"] 5 PRE "" "" ""
-	GiDMenu::InsertOption "DEM explicit solver" [list "Model Status"] 6 PRE "cond_report" "" ""
-	GiDMenu::InsertOption "DEM explicit solver" [list "Change Kratos Path"] 7 PRE "GetKratosPath" "" ""
+	GiDMenu::InsertOption "DEM explicit solver" [list "Predefined Skin Particles"] 1 PRE {GidOpenConditions Predefined_Skin_Particles} "" ""
+	GiDMenu::InsertOption "DEM explicit solver" [list "Problem Parameters"] 2 PRE "GidOpenProblemData \"Problem_Parameters\"" "" ""
+	GiDMenu::InsertOption "DEM explicit solver" [list "Materials"] 3 PRE "GidOpenMaterials \"DEM Materials\"" "" ""
+	GiDMenu::InsertOption "DEM explicit solver" [list "---"] 4 PRE "" "" ""
+	GiDMenu::InsertOption "DEM explicit solver" [list "Model Status"] 5 PRE "cond_report" "" ""
+	GiDMenu::InsertOption "DEM explicit solver" [list "Change Kratos Path"] 6 PRE "GetKratosPath" "" ""
 	GiDMenu::UpdateMenus
 	# Custom Menu
 }
@@ -304,7 +303,7 @@ proc BeforeMeshGeneration {elementsize} {
 		set vol_elemtype_check 0
 	}
 
-	cleanautomatic VELOCITY line surface point
+	cleanautomatic CONDITIONS line surface point
 	# End Reset Block
 	
 	# Volume Model Parts
