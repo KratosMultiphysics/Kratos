@@ -1,5 +1,4 @@
 ######################################################################
-##here i give a possible configure for the fractional step solver
 class bicg_solver_config:
     solver_type = "BiConjugate gradient stabilized"
     scaling = False
@@ -7,6 +6,7 @@ class bicg_solver_config:
     max_iteration = 500
     tolerance = 1e-6
 	
+######################################################################
 class cg_solver_config:
     solver_type = "Conjugate gradient"
     scaling = True
@@ -14,6 +14,7 @@ class cg_solver_config:
     max_iteration = 1000
     tolerance = 1e-3
 
+######################################################################
 class amgcl_solver_config:
     solver_type = "AMGCL"
     scaling = False
@@ -23,10 +24,12 @@ class amgcl_solver_config:
     smoother_type = "ILU0"
     krylov_type = "GMRES"
 	
+######################################################################
 class superlu_config: #note that i repeat the name of "velocity_linear_solver_config" which is not a problem since it is within a class
     solver_type = "Super LU"
     scaling = False	   
     
+######################################################################
 class superlu_iterative_solver_configure:
     solver_type = "SuperLUIterativeSolver"
     scaling = False
@@ -37,11 +40,13 @@ class superlu_iterative_solver_configure:
     FillTol = 1e-2
     ilu_level_of_fill = 5
   
+######################################################################
 class pastix_direct_solver_configure:
     solver_type = "PastixDirect"
     verbosity = 0
     is_symmetric = False 
      
+######################################################################
 class pastix_iterative_solver_configure:
     solver_type = "PastixIterative"
     scaling = False
@@ -51,6 +56,32 @@ class pastix_iterative_solver_configure:
     ilu_level_of_fill = 5
     verbosity = 0
     is_symmetric = False      
+
+######################################################################
+class block_UP_iterative_solver_configure:
+    solver_type = "Block UP Solver"
+    scaling = False
+    tolerance = 1e-3
+    max_iteration = 5     
+    gmres_krylov_space_dimension = 5
+    
+    class velocity_block_configuration:
+	solver_type = "PastixIterative"
+	scaling = False
+	tolerance = 1e-6
+	max_iteration = 300     
+	gmres_krylov_space_dimension = 100
+	ilu_level_of_fill = 3
+	verbosity = 0
+	is_symmetric = False  
+	
+    class pressure_block_configuration:
+	solver_type = "AMGCL"
+	scaling = False
+	max_iteration = 50
+	tolerance = 1e-3
+	smoother_type = "DAMPED_JACOBI"
+	krylov_type = "GMRES"
     
 ######################################################################
 ## KRATOS IS IMPORTED ONLY FROM THIS POINT ON
@@ -71,4 +102,6 @@ linear_solver =  linear_solver_factory.ConstructSolver(superlu_iterative_solver_
 linear_solver =  linear_solver_factory.ConstructSolver(pastix_direct_solver_configure)
 
 linear_solver =  linear_solver_factory.ConstructSolver(pastix_iterative_solver_configure)
+
+linear_solver =  linear_solver_factory.ConstructSolver(block_UP_iterative_solver_configure)
 

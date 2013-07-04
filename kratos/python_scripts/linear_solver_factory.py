@@ -62,10 +62,12 @@ def ConstructSolver( configuration ):
         else:
 	    linear_solver = GMRESSolver(tol, max_it, precond)
     #######################################################################################
-    elif(solver_type == "Mixed UP"):  
-	velocity_linear_solver = ConstructSolver( configuration.velocity_linear_solver_configuration )
-	pressure_linear_solver = ConstructSolver( configuration.pressure_linear_solver_configuration )
+    elif(solver_type == "Block UP Solver"):  
+	velocity_linear_solver = ConstructSolver( configuration.velocity_block_configuration )
+	pressure_linear_solver = ConstructSolver( configuration.pressure_block_configuration )
 	m = configuration.gmres_krylov_space_dimension
+	max_it = configuration.max_iteration
+	tol    = configuration.tolerance
 	linear_solver = MixedUPLinearSolver(velocity_linear_solver,pressure_linear_solver,tol,max_it,m)
     #######################################################################################
     elif(solver_type == "Skyline LU factorization"): 
@@ -159,9 +161,13 @@ def ConstructSolver( configuration ):
 	print "Conjugate gradient"
 	print "BiConjugate gradient stabilized"
 	print "GMRES"
-	print "Mixed UP"
+	print "AMGCL"
+	print "Block UP Solver"
 	print "Skyline LU factorization"
 	print "Super LU (requires ExternalSolversApplication)"
+	print "SuperLUIterativeSolver (requires ExternalSolversApplication)"
+	print "PastixDirect (requires ExternalSolversApplication + shall be habilitated at compilation time)"
+	print "PastixIterative (requires ExternalSolversApplication + shall be habilitated at compilation time)"
 	print "Parallel MKL Pardiso (requires MKLSolversApplication)"
 	print "*****************************************************************"
 	err
