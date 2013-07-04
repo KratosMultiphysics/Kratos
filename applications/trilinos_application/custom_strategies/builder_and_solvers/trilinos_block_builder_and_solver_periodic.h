@@ -172,6 +172,10 @@ public:
         for (typename DofsArrayType::iterator itDof = this->mDofSet.begin(); itDof != this->mDofSet.end(); ++itDof)
             if ( (itDof->GetSolutionStepValue(PARTITION_INDEX) == Rank) && ( itDof->GetSolutionStepValue(mPeriodicIdVar) < static_cast<int>(itDof->Id()) ) )
                 itDof->SetEquationId(DofOffset++);
+            else
+                // If this rank is not responsible for assigning an EquationId to this Dof, reset the current value
+                // This is necessary when dealing with changing meshes, as we risk inadvertently reusing the previous EqIdValue
+                itDof->SetEquationId(0);
 
         // Synchronize Dof Ids across processes
         rModelPart.GetCommunicator().SynchronizeDofs();
@@ -361,7 +365,7 @@ private:
                     for (ModelPart::NodeType::DofsContainerType::iterator i_dof = i_node->GetDofs().begin(); i_dof != i_node->GetDofs().end(); i_dof++)
                     {
                         unsigned int NewId = static_cast<unsigned int>(receive_buffer[position++]);
-                        if (NewId > i_dof->EquationId())
+                        if (NewId > i_dof->EquationId()) // Note: in a general case, only one rank will have assinged an EquationId, the others will send 0s
                             i_dof->SetEquationId(NewId);
                     }
 
