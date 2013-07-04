@@ -471,6 +471,70 @@ protected:
     }
 
     //*******************************************************************
+    void AddDistanceToNodesNew(const Variable<double>& rDistanceVar,
+                            const Variable<double>& rAreaVar,
+                            Geometry<Node<3> >& geom,
+                            const boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim>& DN_DX,
+                            const double& Volume
+                           )
+    {
+        unsigned int unknown_node_index = 0;
+        array_1d<double,TDim> d;
+        double nodal_vol = Volume/static_cast<double>(TDim+1);
+        double avg_dist = 0.0;
+
+
+		Matrix coord_a(3,3);
+		int row = 0;
+		int reference_node_index;
+
+        //compute discriminant and find the index of the unknown node
+        noalias(d) = ZeroVector(TDim);
+        for (unsigned int iii = 0; iii < TDim + 1; iii++)
+        {
+            double node_is_known = geom[iii].GetValue(IS_VISITED);
+
+            if (node_is_known == 1) //identyfing the known node
+            {
+				reference_node_index = iii;
+				for(int i_coord = 0 ; i_coord < 3 ; i_coord++)
+					coord_a(row,i_coord) = geom[iii].Coordinates()[i_coord];
+
+
+                d[row] = geom[iii].FastGetSolutionStepValue(rDistanceVar);
+                avg_dist += d[row];
+				row++;
+            }
+            else
+                unknown_node_index = iii;
+        }
+        avg_dist /= static_cast<double>(TDim);
+
+		Matrix inverse_a(3,3);
+		double det_a;
+		MathUtils<double>::InvertMatrix3(coord_a,inverse_a,det_a);
+		array_1d<double,TDim> x;  // normal to the surface
+		noalias(x) = prod(inverse_a,d);
+		double norm_x = norm_2(x);
+		x /= norm_x;
+		array_1d<double,TDim> v = geom[unknown_node_index].Coordinates() - geom[reference_node_index].Coordinates();
+
+		double distance = inner_prod(x,v);
+		distance += geom[reference_node_index].FastGetSolutionStepValue(rDistanceVar);
+		//KRATOS_WATCH(coord_a)
+		//KRATOS_WATCH(distance)
+
+        geom[unknown_node_index].SetLock();
+        geom[unknown_node_index].FastGetSolutionStepValue(rDistanceVar) += distance*nodal_vol;
+        geom[unknown_node_index].FastGetSolutionStepValue(rAreaVar) += nodal_vol;
+        geom[unknown_node_index].UnSetLock();
+
+        //GeometryUtils::CalculateTetrahedraDistances(element_geometry, dist);
+
+     }
+
+
+    //*******************************************************************
     void AddDistanceToNodes(const Variable<double>& rDistanceVar,
                             const Variable<double>& rAreaVar,
                             Geometry<Node<3> >& geom,
