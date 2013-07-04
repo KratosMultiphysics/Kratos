@@ -93,8 +93,8 @@ class Spheric_Element_Global_Physics_Calculator
 
           #pragma omp parallel for
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
-              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+              ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+              ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                   double particle_mass = (it)->GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
@@ -131,8 +131,8 @@ class Spheric_Element_Global_Physics_Calculator
 
           #pragma omp parallel for
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
-              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+              ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+              ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                   double particle_kinetic_energy            = 0.0;
@@ -158,8 +158,8 @@ class Spheric_Element_Global_Physics_Calculator
 
           #pragma omp parallel for
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
-              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+              ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+              ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                   double particle_contacts_potential_energy = 0.0;
@@ -187,8 +187,8 @@ class Spheric_Element_Global_Physics_Calculator
 
           #pragma omp parallel for
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
-              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+              ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+              ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                   array_1d<double, 3> particle_momentum;
@@ -222,8 +222,8 @@ class Spheric_Element_Global_Physics_Calculator
 
           #pragma omp parallel for
           for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
-              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+              ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+              ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                   array_1d<double, 3> particle_momentum;
