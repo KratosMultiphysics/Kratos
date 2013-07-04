@@ -1617,7 +1617,7 @@ proc ::wkcf::CleanAutomaticConditionGroupGiD {args {fieldvalue ""}} {
     }
     #Temporal until GiD11.1.5d released
     #WarnWinText [list 4 [::GidUtils::VersionCmp "11.1.5"]]
-	  if { [::GidUtils::VersionCmp "11.1.5"] } { 
+	  if { [::GidUtils::VersionCmp "11.1.5"]>=0 } { 
       GidUtils::UpdateWindow GROUPS
     }
 }
@@ -1640,7 +1640,7 @@ proc ::wkcf::AssignConditionToGroupGID {entity elist groupid} {
     GiD_EntitiesGroups assign $groupid $entity $elist
     #Temporal until GiD11.1.5d released
     #WarnWinText [list 5 [::GidUtils::VersionCmp "11.1.5"]]
-	  if { [::GidUtils::VersionCmp "11.1.5"] } { 
+	  if { [::GidUtils::VersionCmp "11.1.5"]>=0 } { 
       GidUtils::UpdateWindow GROUPS
     }
 }
