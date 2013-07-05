@@ -14,6 +14,12 @@ rm -f "$2/$1.info"
 rm -f "$2/$1.err"
 rm -f "$2/$1.flavia.dat"
 
+# Set the number of threads for OpenMP
 export OMP_NUM_THREADS=1
 
-mpirun -np $5 /usr/bin/python KratosMPIStructuralDynamic.py >"$2/$1.info" 2>"$2/$1.err"
+# Set mpi paths
+export OPAL_PREFIX="$3/openmpi"
+export PATH="$3/openmpi/bin":$PATH
+export LD_LIBRARY_PATH="$3/openmpi/lib":$D_LIBRARY_PATH
+
+"$3/openmpi/bin/mpirun" -np $5 "$3/kratos/runkratos" KratosMPIStructuralDynamic.py >"$2/$1.info" 2>"$2/$1.err"
