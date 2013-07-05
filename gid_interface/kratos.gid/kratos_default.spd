@@ -35,10 +35,10 @@
         <Container id="ProjectConfiguration" pid="Project configuration" state="hidden" help="Project configuration" open="0">
             <Item id="KratosPath" pid="Kratos path" dv="D:\Kratos" state="hidden" help="Kratos path"/>
         </Container>
-        <Container id="Domain" pid="Domain" help="Helptext" open="0">
+        <Container id="Domain" pid="Domain" help="Helptext" open="1">
             <Item id="SpatialDimension" pid="Spatial dimension" class="nDim" dv="3D" ivalues="2D,3D" values="2D,3D" help="Spatial Dimension"/>
         </Container>
-        <Container id="ApplicationTypes" pid="Application types" icon="aplicationTree.gif" help="Application types" open="0">
+        <Container id="ApplicationTypes" pid="Application types" icon="aplicationTree.gif" help="Application types" open="1">
             <Item id="StructuralAnalysis" pid="Structural analysis" class="application" state="normal" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Structural analysis" icon="aplicationTree.gif" open="0"/>
             <Item id="Fluid" pid="Fluid" class="application" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid dynamics" icon="aplicationTree.gif"/>
 	    <Item id="PFEM" pid="PFEM" class="application" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="PFEM" icon="aplicationTree.gif"/>
@@ -63,13 +63,13 @@
             <Item id="Tolerance" pid="Iterative" solverType="Iterative" dv="1E-6" help=""/>
             <Item id="MaximumIteration" pid="Maximum iteration" solverType="Iterative" dv="5000" help=""/>
             <Item id="PreconditionerType" pid="Preconditioner type" solverType="Iterative" dv="ILU0" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
-            <Container id="Dynamic" pid="Dynamic" class="Tab" soluType="Dynamic,RelaxedDynamic" open="0">
+            <Container id="Dynamic" pid="Problem parametres" class="Tab" soluType="Dynamic,RelaxedDynamic" open="0">
                 <Item id="StartTime" pid="Start time" dv="0.01" help=""/>
                 <Item id="EndTime" pid="End time" dv="1" help=""/>
                 <Item id="DeltaTime" pid="Delta time" dv="0.01" help=""/>
             </Container>
             <Container id="Non-Linear" pid="Non-Linear" class="Tab" analysType="Non-Linear" help="" open="0" icon="nonlinear.gif">
-                <Item id="SolutionMethod" pid="Solution method" dv="Newton-Raphson" ivalues="Newton-Raphson,LineSearch,ArcLength" values="Newton-Raphson methods,Newton-Raphson with line search,Arc length methods" help=""/>
+                <Item id="SolutionMethod" pid="Solution method" dv="Newton-Raphson" ivalues="Newton-Raphson,LineSearch,ArcLength" values="Newton-Raphson,Newton-Raphson with line search,Arc length" help=""/>
                 <Item id="ConvergenceCriteria" pid="Convergence criteria" class="convCriteria" dv="Residual" ivalues="Displacement,Residual,DisplacementAndResidual,DisplacementOrResidual" values="Displacement,Residual,Displacement and residual,Displacement or residual" help=""/>
                 <Item id="ResidualConvergenceTolerance" pid="Residual convergence tolerance" convCriteria="Residual,DisplacementAndResidual,DisplacementOrResidual" dv="1.0E-3" help="Residual convergence tolerance"/>
                 <Item id="ResidualAbsoluteTolerance" pid="Residual absolute tolerance" convCriteria="Residual,DisplacementAndResidual,DisplacementOrResidual" dv="1.0E-6" help="Residual absolute tolerance"/>
@@ -80,7 +80,7 @@
         </Container>
         <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesStruct" icon="propsTreeNew.gif" help="Add a new Property" open="0"/>
         <Container id="Elements" pid="Elements" help="Elements" open="0" icon="femelements.gif">
-            <Container id="TotalLagrangian" pid="Total Lagrangian" class="Groups" nDim="2D" GiDEntity="surface" strucType="Solids" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Total Lagrangian" open="0"/>
+            <Container id="TotalLagrangian" pid="Total Lagrangian" class="Groups" nDim="2D" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solids" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Total Lagrangian" open="0"/>
             <Container id="TotalLagrangian3D" pid="Total Lagrangian" nDim="3D" class="Groups" GiDEntity="volume" strucType="Solids" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Total Lagrangian" open="0"/>
             <Container id="CrisfieldTrussElement" pid="Crisfield truss element" class="Groups" strucType="Truss" idTemplate="TrussTLagrangian" GiDEntity="line" nDim="3D" icon="groupsTreeNew.gif" help="Crisfield truss element" open="0"/>
 	    <Container id="BeamElement" pid="Beam element" class="Groups" nDim="3D" strucType="Beams" idTemplate="BeamTLagrangian" GiDEntity="line" icon="groupsTreeNew.gif" help="Beam element type" open="0"/>
@@ -92,14 +92,25 @@
 	    <Container id="Membrane" pid="Membrane" class="Groups" nDim="3D" GiDEntity="surface" strucType="Membranes" idTemplate="MembraneElement" icon="groupsTreeNew.gif" help="Membrane element type" open="0"/>
         </Container>
         <Container id="Loads" pid="Loads" help="Loads" open="0" icon="loads.gif">
-            <Container id="BodyForce" pid="Gravity" class="Groups" idTemplate="BodyForce" icon="groupsTreeNew.gif" help="Gravity (Body Force)" open="0"/>
-            <Container id="Puntual" pid="Puntual Force" class="Groups" idTemplate="Puntual" GiDEntity="point" icon="groupsTreeNew.gif" help="Concentrated" open="0"/>
-            <Container id="PuntualMoment" pid="Puntual Moment" class="Groups" idTemplate="PuntualMoment" GiDEntity="point" icon="groupsTreeNew.gif" help="Bending Moment" open="0"/>
-            <Container id="Pressure" pid="Face Pressure" class="Groups" idTemplate="ShellPressure" nDim="3D" GiDEntity="surface" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="0"/>
-            <Container id="Face" pid="Face Force" class="Groups" idTemplate="FaceForce" nDim="3D" GiDEntity="surface" strucType="Solids" icon="groupsTreeNew.gif" help="Define Face Force" open="0"/>
-	          <Container id="BeamUniformlyDistributed" pid="Beam Uniformly distributed" class="Groups" nDim="3D" strucType="Beams" idTemplate="BeamUniformlyDistributedLoad" icon="groupsTreeNew.gif" help="Beam uniformly distributed load" open="0"/>
+            <Container id="BodyForce" pid="Self weight" class="Tab" help="Gravity (Body Force)" idTemplate="BodyForce" open="0" icon="groupsTreeNew.gif">   
+                <Item id="Apply" pid="Apply" dv="No" ivalues="Yes,No" values="Yes,No" help="Apply self weight to all elemets defined"/>
+                <Item id="GravityValue" pid="Gravity value" dv="9.8" help="Gravity value"/>
+                <Item id="Cx" pid="Cx" dv="0.0" help="X Vector"/>
+                <Item id="Cy" pid="Cy" dv="0.0" help="Y Vector"/>
+                <Item id="Cz" pid="Cz" dv="1.0" nDim="3D" help="Z Vector"/>            
+            </Container>
+            <Container id="Force" pid="Force" class="SameTemplateGroups" help="Force" idTemplate="Puntual" open="0" icon="groupsTreeNew.gif">
+              <Container id="Puntual" pid="Over Points" class="Groups" idTemplate="Puntual" GiDEntity="point" icon="groupsTreeNew.gif" GiDValidMesh="Node" help="Concentrated" open="0"/>
+              <Container id="BeamUniformlyDistributed" pid="Over Lines" class="Groups" idTemplate="FaceForce" GiDEntity="line" GiDValidMesh="Linear" strucType="Solids" icon="groupsTreeNew.gif" help="Define Face Force" open="0"/>
+              <Container id="Face" pid="Over Surface" class="Groups" idTemplate="FaceForce" nDim="3D" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solids" icon="groupsTreeNew.gif" help="Define Face Force" open="0"/>
+            </Container>
+            <Container id="PressureContainer" pid="Pressure" class="SameTemplateGroups" help="Pressure" idTemplate="ShellPressure" open="0" icon="groupsTreeNew.gif">
+              <Container id="LinearPressure" pid="Over Lines" class="Groups" idTemplate="ShellPressure" nDim="2D" GiDEntity="line" GiDValidMesh="Linear" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="0"/>
+              <Container id="Pressure" pid="Over Surfaces" class="Groups" idTemplate="ShellPressure"  nDim="3D" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="0"/>
+            </Container>
+            <Container id="PuntualMoment" pid="Moment" class="Groups" idTemplate="PuntualMoment" GiDEntity="point" icon="groupsTreeNew.gif" state="hidden" help="Bending Moment" open="0"/>
         </Container>
-        <Container id="Conditions" pid="Conditions" help="Boundary Conditions" open="0" icon="boundarycond.gif">
+        <Container id="Conditions" pid="Boundary conditions" help="Boundary Conditions" open="0" icon="boundarycond.gif">
             <Container id="Displacements" pid="Displacements" class="Groups" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Displacements" open="0" dv="Yes" ivalues="Yes,No" values="Yes,No"/>
             <Container id="Rotations" pid="Rotations" class="Groups" strucType="Beams,Shells" GiDEntity="point,line,surface" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Rotations" open="0"/>
         </Container>
@@ -140,11 +151,11 @@
             <Container id="Spalart-AllmarasGroupId3D" pid="Spalart-Allmaras groups" nDim="3D" GiDEntity="point,line,surface" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="0"/>          
         </Container>
         <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="0" dv="fh" values="">
-            <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
+            <Item id="ParallelSolutionType" pid="Parallelization" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
             <Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
             <Item id="OpenMPNumberOfThreads" pid="Number of threads" dv="2" PSolutionType="OpenMP" help="Number of threads"/>
             <Item id="MonolithicLinearSolverType" pid="Linear solver type" class="monolithicLinearSolvTyp" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
-            <Item id="MonolithicDirectSolverType" pid="Direct solver type" monolithicLinearSolvTyp="Direct" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="SuperLU" ivalues="SuperLU,ParallelMKLPardiso" values="Super LU,Parallel MKL Pardiso" help=""/>
+            <Item id="MonolithicDirectSolverType" pid="Solver" monolithicLinearSolvTyp="Direct" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="SuperLU" ivalues="SuperLU,ParallelMKLPardiso" values="Super LU,Parallel MKL Pardiso" help=""/>
             <Item id="MonolithicIterativeSolverType" pid="Iterative solver type"  class="monolithiciterativesolvertype" monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="BiConjugateGradientStabilized" ivalues="BiConjugateGradientStabilized,MixedUP,SuperLUIterativeSolver" values="BiConjugate gradient stabilized,MixedUP,SuperLU iterative solver" help="Iterative solver type options"/>
             <Item id="MonolithicISTolerance" pid="Solver tolerance" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="1E-6" help=""/>
             <Item id="MonolithicISMaximumIteration" pid="Solver maximum iterations" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="5000" help="Monolithic solver maximum iteration numbers"/>
@@ -237,7 +248,7 @@
             <Container id="InitialTemperature" pid="Initial temperature" fluidType="Compressible" class="Groups" idTemplate="InitialTemperature" icon="groupsTreeNew.gif" help="Initial Conditions" open="0"/>
             <Container id="InitialPressure" pid="Initial pressure" class="Groups" idTemplate="InitialPressure" icon="groupsTreeNew.gif" help="Initial Conditions" open="0"/>
         </Container>
-        <Container id="Conditions" pid="Conditions" help="Boundary Conditions" open="0">
+        <Container id="Conditions" pid="Boundary conditions" help="Boundary Conditions" open="0">
             <Container id="InletVelocity" pid="Inlet velocity" class="Groups" fluidAppr="Eulerian" fluidType="Incompressible" idTemplate="InletVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="0"/>
             <Container id="PrescribedVelocity" pid="Prescribed velocity" class="Groups" fluidAppr="Eulerian" fluidType="Compressible" idTemplate="PrescribedVelocity" icon="groupsTreeNew.gif" help="Inlet velocity" open="0"/>
             <Container id="OutletPressure" pid="Outlet pressure" class="Groups" fluidAppr="Eulerian" idTemplate="OutletPressure" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Outlet pressure" open="0"/>
@@ -292,7 +303,7 @@
             <Container id="Fluid2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface"  idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
             <Container id="Fluid3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
         </Container>
-	<Container id="Conditions" pid="Conditions" help="Boundary conditions" open="0">
+	<Container id="Conditions" pid="Boundary conditions" help="Boundary conditions" open="0">
 	  <Container id="Is-Slip" pid="Is-Slip" class="Groups" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="0"/>
 	  <Container id="Is-Fluid" pid="Is-Fluid" class="Groups" idTemplate="IsSlip" icon="groupsTreeNew.gif" help="Is fluid" open="0"/>
 	  <Container id="Is-Boundary" pid="Is-Boundary" class="Groups" idTemplate="IsBoundary" icon="groupsTreeNew.gif" help="Is boundary" open="0"/>
@@ -445,8 +456,8 @@
         </Template>
         <Template id="PropertiesStruct" icon="propsTree.gif" help="Property">
             <Container id="MainProperties" pid="New property" state="hidden" help="Values">
-                <Item id="ElemType" pid="Property type" dv="Beam" GCV="ElemType" help="Element type"/>
-                <Item id="MatModel" pid="Material model" dv="Elastic-Isotropic" GCV="MatModel" help="Material model"/>
+                <Item id="ElemType" pid="Element type" dv="Beam" GCV="ElemType" help="Element type"/>
+                <Item id="MatModel" pid="Constitutive law" dv="Elastic-Isotropic" GCV="MatModel" help="Material model"/>
                 <Item id="Material" pid="Material" dv="" GCV="Materials" help="Material"/>
                 <Item id="Thickness" pid="Thickness" dv="1.0" help="Thickness"/>
 		<Item id="SectionType" pid="Section type"  dv="UserDefined" GCV="SectType" help="Select the section type"/>
@@ -466,15 +477,7 @@
                 <Item id="Material" pid="Material" dv="" GCV="Materials" help="Material"/>
                 <Item id="Thickness" pid="Thickness" dv="1.0" help="Thickness" state="hidden"/>
             </Container>
-        </Template>
-        <Template id="BodyForce" icon="groupsTree.gif" help="BodyForce">
-            <Container id="MainProperties" pid="Body force" state="hidden" help="Values">
-                <Item id="GravityValue" pid="Gravity value" dv="9.8" help="Gravity value"/>
-                <Item id="Cx" pid="Cx" dv="0.0" help="X Vector"/>
-                <Item id="Cy" pid="Cy" dv="0.0" help="Y Vector"/>
-                <Item id="Cz" pid="Cz" dv="1.0" nDim="3D" help="Z Vector"/>
-            </Container>
-        </Template>
+        </Template>        
         <Template id="Puntual" icon="groupsTree.gif" help="Puntual">
             <Container id="MainProperties" pid="Puntual" state="hidden" help="Values">
                 <Item id="Fx" pid="Fx" dv="0.0" functionDissable="0" help="Fx Vector"/>
@@ -486,7 +489,7 @@
             </Container>
         </Template>
         <Template id="PuntualMoment" icon="groupsTree.gif" help="PuntualMoment">
-            <Container id="MainProperties" pid="Puntual" state="hidden" help="Values">                
+            <Container id="MainProperties" pid="Puntual" state="hidden" help="Values" open="0">                
                 <Item id="Mx" pid="Mx" dv="0.0" nDim="3D" help="Mx Vector"/>
                 <Item id="My" pid="My" dv="0.0" nDim="3D" help="My Vector"/>
                 <Item id="Mz" pid="Mz" dv="0.0" help="Mz Vector"/>
