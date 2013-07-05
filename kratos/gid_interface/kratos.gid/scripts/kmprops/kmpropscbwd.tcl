@@ -212,7 +212,7 @@ proc ::KMProps::cmbDisable { fullname f {id "" }} {
     
     set whatDisable [string map {A V} $id]
     
-    set fullname [string map [list "Activation//i.$id" "Values//i.$whatDisable"] $fullname]
+    set fullname [string map [list "Activation//i.[list $id]" "Values//i.[list $whatDisable]"] $fullname]
     
     #msg "state?[$f.fValues.cmb$whatDisable  "
     if {$selCombo == 0 } {
@@ -467,7 +467,7 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
 	    set applications [::xmlutils::setXmlContainerIds $fullParent "Item"]
 	    foreach aplicId $applications {
 		if { $aplicId != $id } {
-		    ::xmlutils::setXml "${fullParent}//i.${aplicId}" dv "write" "No"
+		    ::xmlutils::setXml "${fullParent}//i.[list ${aplicId}]" dv "write" "No"
 		    ::xmlutils::setXml "$aplicId" state "write" "hiddenAll"
 		}
 	    }
@@ -513,7 +513,7 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
 		    ::xmlutils::setXml "FluidStructureInteraction" state "write" "hiddenAll"
 		    ::xmlutils::setXml "FluidStructureInteraction" open "write" 0
 		} else {
-		    #if{ [::xmlutils::setXml "${fullParent}//i.${aplicId}" dv] } {}
+		    #if{ [::xmlutils::setXml "[list ${fullParent}]//i.[list ${aplicId}]" dv] } {}
 		    ::xmlutils::setXml "StructuralAnalysis" state "write" "hiddenAll"
 		    ::xmlutils::setXml "Fluid" state "write" "hiddenAll"
 		    ::xmlutils::setXml "PFEM" state "write" "hiddenAll"
