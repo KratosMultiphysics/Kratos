@@ -129,11 +129,7 @@ proc ::KMProps::autoNewGroup { group_name fpath } {
     
     # Ponemos el foco en la ventana de propiedades
     #focus $winpath
-    #Temporal until GiD11.1.5d released
-    #WarnWinText [list 3 [::GidUtils::VersionCmp "11.1.5"]]
-	  if { [::GidUtils::VersionCmp "11.1.5"]>=0 } { 
-      GidUtils::UpdateWindow GROUPS
-    }
+    GidUtils::UpdateWindow GROUPS
 }
 
 proc ::KMProps::acceptGroups { T idTemplate fullname item listT entityList fGroups} {
