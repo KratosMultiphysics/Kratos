@@ -974,7 +974,7 @@ proc ::KFun::buildFrame { T item } {
 	#---------------------------#---------------------------#
 	set bg "#F8F8F8"
 	set idFrame "f${parentId}/${itemId}"
-	set f "$T.$idFrame"
+	set f "$T.[list $idFrame]"
 	
 	if { [winfo exists $f] } {
 		destroy $f
@@ -1056,7 +1056,7 @@ proc ::KFun::cmbSelectChange { T xml item {remove 1} {selectVal "current"}} {
 		
 		if {$selectVal == "current"} {
 		        
-		        set f "$T.${idFrame}.cmb"
+		        set f "$T.[list ${idFrame}].cmb"
 		        set selCombo [::xmlutils::getComboValue $xml $xpath $f]
 		        set selComboText [::xmlutils::getComboValue $xml $xpath $f "text"]
 		        set ::KFun::lastSelected [list $item $selCombo $selComboText]
