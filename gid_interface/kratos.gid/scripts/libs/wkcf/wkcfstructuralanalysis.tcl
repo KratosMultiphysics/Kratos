@@ -767,7 +767,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     set cnrlist [list "Displacements" "Forces" "Reactions"]
     set nodal_results "nodal_results=\["
     foreach cnr $cnrlist {
-	set cxpath "$AppId//c.Results//c.OnNodes//i.${cnr}"
+	set cxpath "$AppId//c.Results//c.OnNodes//i.[list ${cnr}]"
 	set cproperty "dv"
 	set cvalue [::xmlutils::setXml $cxpath $cproperty]
 	if {$cvalue =="Yes"} {
@@ -788,7 +788,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     set cgrlist [list "GreenLagrangeStrainTensor" "Rotations" "PK2StressTensor" "BeamMoments" "BeamForces"]
     set gauss_points_results "gauss_points_results=\["
     foreach cgr $cgrlist {
-	set cxpath "$AppId//c.Results//c.OnGaussPoints//i.${cgr}"
+	set cxpath "$AppId//c.Results//c.OnGaussPoints//i.[list ${cgr}]"
 	set cproperty "dv"
 	set cvalue [::xmlutils::setXml $cxpath $cproperty]
 	if {$cvalue =="Yes"} {
@@ -958,7 +958,7 @@ proc ::wkcf::GetBehaviorFluencyProperties {AppId MatId MatModel cptype ptype} {
     # Xpath for constitutive laws
     set clxpath "CLawProperties"
     # Get all material properties
-    set mpxpath "[::KMat::findMaterialParent $MatId]//m.${MatId}"
+    set mpxpath "[::KMat::findMaterialParent $MatId]//m.[list ${MatId}]"
     # WarnWinText "mpxpath:$mpxpath"
 
     # Set fluency and behavior variables
@@ -970,12 +970,12 @@ proc ::wkcf::GetBehaviorFluencyProperties {AppId MatId MatModel cptype ptype} {
     set mbxpath [::xmlutils::getKKWord $clxpath $ptype "mbxpath"]
     # WarnWinText "mbehavior:$mbehavior mbxpath:$mbxpath"
     # Get the current behavior 
-    set cbvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mbxpath//p.$mbehavior"] 0 1]
+    set cbvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mbxpath//p.[list $mbehavior]"] 0 1]
     # Get the internal behavior properties
     set mbivalues [split [::xmlutils::getKKWord $clxpath $ptype "mbivalues"] ,]
     # Get the write behavior properties
     set mbwritev [split [::xmlutils::getKKWord $clxpath $ptype "mbwritev"] ,]
-    # WarnWinText "mbwritev:$mbwritev mbivalues:$mbivalues\n$mpxpath//$mbxpath//p.$mbehavior cbvalue:$cbvalue"
+    # WarnWinText "mbwritev:$mbwritev mbivalues:$mbivalues\n$mpxpath//$mbxpath//p.[list $mbehavior] cbvalue:$cbvalue"
     foreach mbiv $mbivalues mbwv $mbwritev {
         if {$mbiv ==$cbvalue} {
             set dprops($AppId,Material,$MatId,Behavior) "$mbwv"
@@ -994,7 +994,7 @@ proc ::wkcf::GetBehaviorFluencyProperties {AppId MatId MatModel cptype ptype} {
         foreach msiv $msivalues mswv $mswritev {
             # WarnWinText "msiv:$msiv cptype:$cptype mswv:$mswv" 
             if {$msiv ==$cptype} {
-                set dprops($AppId,Material,$MatId,Fluency) "EnergyYieldFunction(State.${mswv})"
+                set dprops($AppId,Material,$MatId,Fluency) "EnergyYieldFunction(State.[list ${mswv}])"
                 break
             }
         }
@@ -1009,7 +1009,7 @@ proc ::wkcf::GetBehaviorFluencyProperties {AppId MatId MatModel cptype ptype} {
 	foreach msiv $msivalues mswv $mswritev {
 	    # WarnWinText "msiv:$msiv cptype:$cptype mswv:$mswv" 
 	    if {$msiv ==$cptype} {
-		set cstate "myState.${mswv}"
+		set cstate "myState.[list ${mswv}]"
 		break
 	    }
 	}
@@ -1021,7 +1021,7 @@ proc ::wkcf::GetBehaviorFluencyProperties {AppId MatId MatModel cptype ptype} {
 	# Get the yield criteria xpath values
 	set mycxpath [::xmlutils::getKKWord "$clxpath" $ptype "mycxpath"]
 	# Get the current yield criteria
-	set cycvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mycxpath//p.$myieldcriteria"] 0 1]
+	set cycvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mycxpath//p.[list $myieldcriteria]"] 0 1]
 	# WarnWinText "myieldcriteria:$myieldcriteria mycxpath:$mycxpath cycvalue:$cycvalue"
 	# Get the yield function options
 	set yfivalues [split [::xmlutils::getKKWord "$clxpath//$yfid" "AvailableYieldFunction" "yfivalues"] ,]
