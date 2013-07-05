@@ -260,7 +260,7 @@ public:
      */
     virtual StrainMeasure GetStrainMeasure()
     {
-        return StrainMeasure_Linear;
+        return StrainMeasure_Infinitesimal;
     }
 
     /**
