@@ -97,11 +97,9 @@
               <Container id="Puntual" pid="Over Points" class="Groups" idTemplate="Puntual" GiDEntity="point" icon="groupsTreeNew.gif" GiDValidMesh="Node" help="Concentrated" open="0"/>
               <Container id="BeamUniformlyDistributed" pid="Over Lines" class="Groups" idTemplate="FaceForce" GiDEntity="line" GiDValidMesh="Linear" strucType="Solids" icon="groupsTreeNew.gif" help="Define Face Force" open="0"/>
               <Container id="Face" pid="Over Surface" class="Groups" idTemplate="FaceForce" nDim="3D" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solids" icon="groupsTreeNew.gif" help="Define Face Force" open="0"/>
-            </Container>
-            <Container id="PressureContainer" pid="Pressure" class="SameTemplateGroups" help="Pressure" idTemplate="ShellPressure" open="0" icon="groupsTreeNew.gif">
-              <Container id="LinearPressure" pid="Over Lines" class="Groups" idTemplate="ShellPressure" nDim="2D" GiDEntity="line" GiDValidMesh="Linear" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="0"/>
-              <Container id="Pressure" pid="Over Surfaces" class="Groups" idTemplate="ShellPressure"  nDim="3D" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="0"/>
-            </Container>
+            </Container>            
+            <Container id="LinearPressure" pid="Pressure" class="Groups" state="hidden" idTemplate="ShellPressure" nDim="2D" GiDEntity="line" GiDValidMesh="Linear" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="0"/>
+            <Container id="Pressure" pid="Pressure" class="Groups" idTemplate="ShellPressure"  nDim="3D" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="0"/>            
             <Container id="PuntualMoment" pid="Moment" class="Groups" idTemplate="PuntualMoment" GiDEntity="point" icon="groupsTreeNew.gif" state="hidden" help="Bending Moment" open="0"/>
         </Container>
         <Container id="Conditions" pid="Boundary conditions" help="Boundary Conditions" open="0" icon="boundarycond.gif">
