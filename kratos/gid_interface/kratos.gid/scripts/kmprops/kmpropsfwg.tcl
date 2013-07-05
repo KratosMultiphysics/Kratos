@@ -845,7 +845,7 @@ proc ::KMProps::acceptProperty { T idTemplate fullname item listT} {
     }
     
     # Comprobamos q la propiedad aun no exista
-    set id [::xmlutils::setXml "$fullname//c.$property" id]
+    set id [::xmlutils::setXml "$fullname//c.[list $property]" id]
 
     if { $id != "" } {
 	
@@ -876,7 +876,7 @@ proc ::KMProps::acceptProperty { T idTemplate fullname item listT} {
 		    
 		    set id [lindex $listContainer $i]
 		    
-		    set fullNombre "$fullname//c.$property//c.$idContainer//i.$id"
+		    set fullNombre "$fullname//c.[list $property]//c.[list $idContainer]//i.[list $id]"
 		    # wa "id:$id fullNombre:$fullNombre"
 		    
 		    # Los nodos ocultos no existían en el formulario
@@ -1393,7 +1393,7 @@ proc ::KMProps::acceptTabFrame { T listItems class {itemSel ""}} {
 	#Comprobamos q si la propiedad ha cambiado no exista el nuevo nombre
 	set fullname [DecodeName [$T item tag names $itemSel]]
 	set oldId [::xmlutils::setXml "$fullname" id]
-	set repeatId [::xmlutils::setXml "[::KMProps::getApplication $fullname]//c.Properties//c.$newPropertyName" id]
+	set repeatId [::xmlutils::setXml "[::KMProps::getApplication $fullname]//c.Properties//c.[list $newPropertyName]" id]
 	
 	if { $repeatId != "" && $oldId != $newPropertyName } {
 	    WarnWin [= "This property name already exist."]
