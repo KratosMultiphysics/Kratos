@@ -29,6 +29,9 @@
       <Item id="Fx" kkword="FORCE_X" />
       <Item id="Fy" kkword="FORCE_Y" />
       <Item id="Fz" kkword="FORCE_Z" />
+      <Item id="Mx" kkword="MOMENT_X" />
+      <Item id="My" kkword="MOMENT_Y" />
+      <Item id="Mz" kkword="MOMENT_Z" />
       <Item id="BUDFx" kkword="FACE_LOAD_X" />
       <Item id="BUDFy" kkword="FACE_LOAD_Y" />
       <Item id="BUDFz" kkword="FACE_LOAD_Z" />
