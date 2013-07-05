@@ -333,17 +333,17 @@ proc ::KMProps::splitNode { node } {
 	set id [$node getAttribute id ""]
 	
 	if { [$node tagName] == "Container"} {
-		return "c.$id"
+		return "c.[list $id]"
 	} elseif { [$node tagName] == "Item"} {
-		return "i.$id"
+		return "i.[list $id]"
 	} elseif { [$node tagName] == "Property"} {
-		return "p.[$node getAttribute id ""]"
+		return "p.[list [$node getAttribute id ""]]"
 	} elseif { [$node tagName] == "Material"} {
-		return "m.[$node getAttribute id ""]"
+		return "m.[list [$node getAttribute id ""]]"
 	} elseif { [$node tagName] == "ContainerTable"} {
-		return "t.$id"
+		return "t.[list $id]"
 	} elseif { [$node tagName] == "TItem"} {
-		return "T.$id"
+		return "T.[list $id]"
 	} else {
 		return "NoTree"
 	}
@@ -531,7 +531,7 @@ proc ::KMProps::getProps { fullname } {
 		        set FilterProps {} 
 		        foreach idProp $props {
 		        
-		        set dv [::xmlutils::setXml "${application}//c.Properties//c.${idProp}//c.MainProperties//i.MatModel" dv]
+		        set dv [::xmlutils::setXml "${application}//c.Properties//c.[list ${idProp}]//c.MainProperties//i.MatModel" dv]
 		        
 		        if {$dv in $cLawsList } {
 		                
