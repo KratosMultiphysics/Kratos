@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.10">
+<Kratos_Data version="1.2.11">
     <Groups modeltype="GiD"/>
     <GroupTypes>
         <Item id="load" pid="Load"/>
@@ -92,13 +92,7 @@
 	    <Container id="Membrane" pid="Membrane" class="Groups" nDim="3D" GiDEntity="surface" strucType="Membranes" idTemplate="MembraneElement" icon="groupsTreeNew.gif" help="Membrane element type" open="0"/>
         </Container>
         <Container id="Loads" pid="Loads" help="Loads" open="0" icon="loads.gif">
-            <Container id="BodyForce" pid="Self weight" class="Tab" help="Gravity (Body Force)" idTemplate="BodyForce" open="0" icon="groupsTreeNew.gif">   
-                <Item id="Apply" pid="Apply" dv="No" ivalues="Yes,No" values="Yes,No" help="Apply self weight to all elemets defined"/>
-                <Item id="GravityValue" pid="Gravity value" dv="9.8" help="Gravity value"/>
-                <Item id="Cx" pid="Cx" dv="0.0" help="X Vector"/>
-                <Item id="Cy" pid="Cy" dv="0.0" help="Y Vector"/>
-                <Item id="Cz" pid="Cz" dv="1.0" nDim="3D" help="Z Vector"/>            
-            </Container>
+            <Container id="BodyForce" pid="Self weight" class="Groups" idTemplate="BodyForce" icon="groupsTreeNew.gif" help="Gravity (Body Force)" open="0"/>           
             <Container id="Force" pid="Force" class="SameTemplateGroups" help="Force" idTemplate="Puntual" open="0" icon="groupsTreeNew.gif">
               <Container id="Puntual" pid="Over Points" class="Groups" idTemplate="Puntual" GiDEntity="point" icon="groupsTreeNew.gif" GiDValidMesh="Node" help="Concentrated" open="0"/>
               <Container id="BeamUniformlyDistributed" pid="Over Lines" class="Groups" idTemplate="FaceForce" GiDEntity="line" GiDValidMesh="Linear" strucType="Solids" icon="groupsTreeNew.gif" help="Define Face Force" open="0"/>
@@ -476,6 +470,14 @@
                 <Item id="MatModel" pid="Material model" dv="" GCV="MatModel" help="Material model" state="hidden"/>
                 <Item id="Material" pid="Material" dv="" GCV="Materials" help="Material"/>
                 <Item id="Thickness" pid="Thickness" dv="1.0" help="Thickness" state="hidden"/>
+            </Container>
+        </Template>   
+        <Template id="BodyForce" icon="groupsTree.gif" help="BodyForce">
+            <Container id="MainProperties" pid="Body force" state="hidden" help="Values">
+                <Item id="GravityValue" pid="Gravity value" dv="9.8" help="Gravity value"/>
+                <Item id="Cx" pid="Cx" dv="0.0" help="X Vector"/>
+                <Item id="Cy" pid="Cy" dv="0.0" help="Y Vector"/>
+                <Item id="Cz" pid="Cz" dv="1.0" nDim="3D" help="Z Vector"/>
             </Container>
         </Template>        
         <Template id="Puntual" icon="groupsTree.gif" help="Puntual">
