@@ -138,7 +138,7 @@ proc ::wkcf::WriteGroupMeshProperties {AppId} {
             # wa "gproplist:$gproplist"
             foreach cgroupid $gproplist {
                 # Get the group properties
-                set cxpath "${basexpath}//c.${cgroupid}//c.MainProperties"
+                set cxpath "${basexpath}//c.[list ${cgroupid}]//c.MainProperties"
                 set allgprop [::xmlutils::setXmlContainerPairs $cxpath "" "dv"]
                 # wa "allgprop:$allgprop"
                 if {[llength $allgprop]} {
