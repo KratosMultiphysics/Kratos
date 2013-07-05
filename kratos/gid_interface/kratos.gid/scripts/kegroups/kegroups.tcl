@@ -683,11 +683,8 @@ proc ::KEGroups::AuxRenameGroup { oldname newname qq} {
 	 set valid 0
 	 
 	 GiD_Groups edit rename $newname $KPriv(newnewname)
-   #Temporal until GiD11.1.5d released
-   #WarnWinText [list 1 [::GidUtils::VersionCmp "11.1.5"]]
-	 if { [::GidUtils::VersionCmp "11.1.5"]>=0 } { 
-      GidUtils::UpdateWindow GROUPS
-   }
+   GidUtils::UpdateWindow GROUPS
+   
 	 ::KEGroups::RenombraGrupo $oldname $KPriv(newnewname) $valid
 	 
 	 if {[winfo exists $qq]} {
@@ -751,11 +748,7 @@ proc ::KEGroups::TransferCondGroupstoGiDGroups { } {
     if {[info exists ::KPriv(Groups,DeleteGroup)]} {
      set ::KPriv(Groups,DeleteGroup) $oldvar
     }
-    #Temporal until GiD11.1.5d released
-    #WarnWinText [list 2 [::GidUtils::VersionCmp "11.1.5"]]
-	  if { [::GidUtils::VersionCmp "11.1.5"]>=0 } { 
-      GidUtils::UpdateWindow GROUPS
-    }
+    GidUtils::UpdateWindow GROUPS
 }
 
 proc ::KEGroups::TransferGiDGroupstoCondGroups { { what "all" } } {
