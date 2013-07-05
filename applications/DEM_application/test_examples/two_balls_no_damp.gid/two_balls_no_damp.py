@@ -4,7 +4,7 @@ import sys
 import math
 #import matplotlib
 from numpy import *
-from pylab import *  
+#from pylab import *  
 
 #including kratos path
 kratos_path = '../../../..'                                                                    ########## BENCHMARK ##########
