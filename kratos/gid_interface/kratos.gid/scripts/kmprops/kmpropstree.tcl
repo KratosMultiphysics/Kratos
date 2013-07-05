@@ -595,6 +595,7 @@ proc ::KMProps::MenuContextual { T x y } {
 	
 	set item [$T selection get]
 	#msg "item$item"
+  set numchilds 0
 	if { $item != "" } {
 	set fullname [DecodeName [$T item tag names $item]]
 	set class [::xmlutils::setXml $fullname class]
