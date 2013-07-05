@@ -128,7 +128,7 @@ proc ::wkcf::WritePropertyAtNodes {AppId} {
             # Get the application root identifier    
             set rootdataid $AppId
             set cpropid "0"       
-            set cxpath "$rootdataid//c.SolutionStrategy//c.${contid}//i.UseErgunEquation"
+            set cxpath "$rootdataid//c.SolutionStrategy//c.[list ${contid}]//i.UseErgunEquation"
             set UseErgunEquation [::xmlutils::setXml $cxpath $cproperty]
             # wa "UseErgunEquation:$UseErgunEquation"
 
@@ -196,24 +196,24 @@ proc ::wkcf::GetDensityViscosityValues {AppId} {
             # Get the group identifier
             set GroupId $dprops($AppId,Property,$PropertyId,GroupId)
             # Get all material properties
-            set mpxpath "[::KMat::findMaterialParent $MatId]//m.${MatId}"
+            set mpxpath "[::KMat::findMaterialParent $MatId]//m.[list ${MatId}]"
             # WarnWinText "mpxpath:$mpxpath"
             # Get the material properties
             foreach pid $cproplist {
             if {$pid =="Density"} {
                 set xpath "c.General"
                 # Get the current value for this properties
-                set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.$pid"] 0 1]
+                set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
                 set Density [GiD_FormatReal "%10.5e" $cvalue]
             } elseif {$pid =="Viscosity"} {
                 set xpath "c.Fluid"
                 # Get the current value for this properties
-                set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.$pid"] 0 1]
+                set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
                 set Viscosity [GiD_FormatReal "%10.5e" $cvalue]
             } elseif {$pid =="BulkModulus"} {
                 set xpath "c.Fluid"
                 # Get the current value for this properties
-                set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.$pid"] 0 1]
+                set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
                 set BulkMod [GiD_FormatReal "%10.5e" $cvalue]
             }
             }
@@ -1114,7 +1114,7 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
                         set meshidlist [list]
                         foreach cgroupid $gproplist {
                             # Get the group properties
-                            set cxpath "${basexpath}//c.${cgroupid}//c.MainProperties"
+                            set cxpath "${basexpath}//c.[list ${cgroupid}]//c.MainProperties"
                             set allgprop [::xmlutils::setXmlContainerPairs $cxpath "" "dv"]
                             # wa "allgprop:$allgprop"
                             if {[llength $allgprop]} {
@@ -1147,7 +1147,7 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
             puts $fileid ""
             set ctlist [list "RelativeVelocityTolerance" "AbsoluteVelocityTolerance" "RelativePressureTolerance" "AbsolutePressureTolerance"]
             foreach cv $ctlist {
-                set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.${cv}"
+                set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.[list ${cv}]"
                 set cvalue [::xmlutils::setXml $cxpath $cproperty]
                 set ckword [::xmlutils::getKKWord $kxpath $cv]
                 puts $fileid "$ckword = $cvalue"
@@ -1211,7 +1211,7 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
             # Write some project parameters used in the level set solver
             set pidlist [list "RedistanceFrequency" "ExtrapolationLayers" "StabdtPressureFactor" "StabdtConvectionFactor" "WallLawY" "SafetyFactor" "NumberOfInitialSteps"]
             foreach cvar $pidlist {
-                set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.${cvar}"
+                set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.[list ${cvar}]"
                 set cvarvalue [::xmlutils::setXml $cxpath $cproperty]
                 set ckword [::xmlutils::getKKWord $kxpath $cvar]
                 puts $fileid "$ckword = $cvarvalue"
@@ -1219,13 +1219,13 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
 
             # Write the body force properties
             set contid "LevelSetBodyForce"
-            set cxpath "$rootid//c.SolutionStrategy//c.${contid}//i.GravityValue"
+            set cxpath "$rootid//c.SolutionStrategy//c.[list ${contid}]//i.GravityValue"
             set GravityValue [::xmlutils::setXml $cxpath $cproperty]
-            set cxpath "$rootid//c.SolutionStrategy//c.${contid}//i.Cx"
+            set cxpath "$rootid//c.SolutionStrategy//c.[list ${contid}]//i.Cx"
             set Cx [::xmlutils::setXml $cxpath $cproperty]
-            set cxpath "$rootid//c.SolutionStrategy//c.${contid}//i.Cy"
+            set cxpath "$rootid//c.SolutionStrategy//c.[list ${contid}]//i.Cy"
             set Cy [::xmlutils::setXml $cxpath $cproperty]
-            set cxpath "$rootid//c.SolutionStrategy//c.${contid}//i.Cz"
+            set cxpath "$rootid//c.SolutionStrategy//c.[list ${contid}]//i.Cz"
             set Cz [::xmlutils::setXml $cxpath $cproperty]
             # wa "GravityValue:$GravityValue Cx:$Cx Cy:$Cy Cz:$Cz"
             set kwordlist [list "body_force_x" "body_force_y" "body_force_z"]
@@ -1236,7 +1236,7 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
 
             # Porous zone properties
             set contid "PorousZones"
-            set cxpath "$rootid//c.SolutionStrategy//c.${contid}//i.UseErgunEquation"
+            set cxpath "$rootid//c.SolutionStrategy//c.[list ${contid}]//i.UseErgunEquation"
             set UseErgunEquation [::xmlutils::setXml $cxpath $cproperty]
             if {$UseErgunEquation eq "Yes"} {
                 puts $fileid "UseErgun = True "
@@ -1360,7 +1360,7 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
     # set cnrlist [list "Velocity" "Pressure" "Reactions"]
     set nodal_results "nodal_results=\["
     foreach cnr $cnrlist {
-        set cxpath "$rootid//c.Results//c.OnNodes//i.${cnr}"
+        set cxpath "$rootid//c.Results//c.OnNodes//i.[list ${cnr}]"
         set cproperty "dv"
         set cvalue [::xmlutils::setXml $cxpath $cproperty]
         if {$cvalue =="Yes"} {
@@ -1537,11 +1537,11 @@ proc ::wkcf::WriteFluidSolvers {rootid fileid vartype {wfsmethod 0}} {
 	puts $fileid "class Fluid${vartype}LinearSolverConfiguration:"
     }
 
-    set cxpath "$rootid//c.SolutionStrategy//i.${vartype}LinearSolverType"
+    set cxpath "$rootid//c.SolutionStrategy//i.[list ${vartype}]LinearSolverType"
     set LinearSolverType [::xmlutils::setXml $cxpath $cproperty]
     if {$LinearSolverType =="Direct"} {
 	# Direct solver type
-	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}DirectSolverType"
+	set cxpath "$rootid//c.SolutionStrategy//i.[list ${vartype}]DirectSolverType"
 	set DirectSolverType [::xmlutils::setXml $cxpath $cproperty]
 	# WarnWinText "DirectSolverType:$DirectSolverType"
 	set cDirectSolverType [::xmlutils::getKKWord $kxpath $DirectSolverType]
@@ -1555,16 +1555,16 @@ proc ::wkcf::WriteFluidSolvers {rootid fileid vartype {wfsmethod 0}} {
     } elseif {$LinearSolverType =="Iterative"} {
 	
 	# Iterative solver type 
-	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}IterativeSolverType"
+	set cxpath "$rootid//c.SolutionStrategy//i.[list ${vartype}]IterativeSolverType"
 	set IterativeSolverType [::xmlutils::setXml $cxpath $cproperty]
 	# Tolerance
-	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}ISTolerance"
+	set cxpath "$rootid//c.SolutionStrategy//i.[list ${vartype}]ISTolerance"
 	set Tolerance [::xmlutils::setXml $cxpath $cproperty]
 	# Maximum iteration
-	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}ISMaximumIteration"
+	set cxpath "$rootid//c.SolutionStrategy//i.[list ${vartype}]ISMaximumIteration"
 	set MaximumIteration [::xmlutils::setXml $cxpath $cproperty]
 	# preconditioner type
-	set cxpath "$rootid//c.SolutionStrategy//i.${vartype}PreconditionerType"
+	set cxpath "$rootid//c.SolutionStrategy//i.[list ${vartype}]PreconditionerType"
 	set PreconditionerType [::xmlutils::setXml $cxpath $cproperty]
 	# WarnWinText "vartype:$vartype IterativeSolverType:$IterativeSolverType Tolerance:$Tolerance MaximumIteration:$MaximumIteration PreconditionerType:$PreconditionerType"
 	
@@ -1621,7 +1621,7 @@ proc ::wkcf::WriteCutAndGraph {AppId} {
     set opproplist [::xmlutils::setXmlContainerIds $basexpath]
     foreach copid $opproplist {
 	# Get the output point properties
-	set cxpath "${basexpath}//c.${copid}//c.HistoryGraph"
+	set cxpath "${basexpath}//c.[list ${copid}]//c.HistoryGraph"
 	set alloprop [::xmlutils::setXmlContainerPairs $cxpath "" "dv"]
 	# wa "alloprop:$alloprop"
 	if {[llength $alloprop]} {
@@ -1666,7 +1666,7 @@ proc ::wkcf::WriteCutAndGraph {AppId} {
 	# WarnWinText "ccutid:$ccutid"
 	
 	# Get the origin cut properties
-	set cxpath "${basexpath}//c.${ccutid}//c.Origin"
+	set cxpath "${basexpath}//c.[list ${ccutid}]//c.Origin"
 	set alloprop [::xmlutils::setXmlContainerPairs $cxpath "" "dv"]
 	if {[llength $alloprop]} {
 	    set cpprop "\["
@@ -1678,7 +1678,7 @@ proc ::wkcf::WriteCutAndGraph {AppId} {
 	}
 	
 	# Get the normal to plane properties
-	set cxpath "${basexpath}//c.${ccutid}//c.NormalToPlane"
+	set cxpath "${basexpath}//c.[list ${ccutid}]//c.NormalToPlane"
 	set allnprop [::xmlutils::setXmlContainerPairs $cxpath "" "dv"]
 	if {[llength $allnprop]} {
 	    set cnprop "\["
@@ -1708,7 +1708,7 @@ proc ::wkcf::WriteCutAndGraph {AppId} {
     # wa "dragproplist:$dragproplist"
     foreach cdpid $dragproplist {
 	# Get the drag force properties
-	set cxpath "${basexpath}//c.${cdpid}//c.MainProperties"
+	set cxpath "${basexpath}//c.[list ${cdpid}]//c.MainProperties"
 	set alldragprop [::xmlutils::setXmlContainerPairs $cxpath "" "dv"]
 	# wa "alldragprop:$alldragprop"
 	if {[llength $alldragprop]} {
