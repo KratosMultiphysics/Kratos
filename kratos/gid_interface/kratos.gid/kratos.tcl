@@ -342,14 +342,14 @@ proc InitGIDPostProcess {} {
     if {$appid !=""} {
 	# Get the result type
 	set cprop "GiDMultiFileFlag"
-	set cxpath "$appid//c.Results//c.GiDOptions//i.${cprop}"
+	set cxpath "$appid//c.Results//c.GiDOptions//i.[list ${cprop}]"
 	     set cproperty "dv"
 	     set rtype [::xmlutils::setXml $cxpath $cproperty]
 	# WarnWinText "rtype:$rtype"
 	
 	# Get the GiD post mode
 	set cprop "GiDPostMode"
-	set cxpath "$appid//c.Results//c.GiDOptions//i.${cprop}"
+	set cxpath "$appid//c.Results//c.GiDOptions//i.[list ${cprop}]"
 	     set cproperty "dv"
 	     set pmode [::xmlutils::setXml $cxpath $cproperty]
 	# WarnWinText "pmode:$pmode"
@@ -432,8 +432,11 @@ proc BeforeDeleteGroup { name } {
 proc AfterRenameGroup { oldname newname } {
     # Válida para los grupos de GiD 11.1.1d
      # wa "oldname:$oldname newname:$newname"
-    #modificado kratos para que acepte cualquier nombre grupo ::KEGroups::RenombraGrupo $oldname $newname 1
-    ::KEGroups::RenombraGrupo $oldname $newname 0
+     
+    #(work in progress, falta poco para poderlo activar) modificado kratos para que acepte cualquier nombre grupo 
+    #       ::KEGroups::RenombraGrupo $oldname $newname 0
+    
+    ::KEGroups::RenombraGrupo $oldname $newname 1
     #Si se renombra un grupo, no nos queda otra... no se puede impedir.
  }
 
