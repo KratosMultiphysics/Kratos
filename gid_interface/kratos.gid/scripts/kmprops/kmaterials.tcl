@@ -1522,7 +1522,7 @@ proc ::KMat::SetMatToRename { T item newtext } {
 	set splitted [::KEGroups::split2 $fullname //]
 
 	#Sustituimos la posición apropiada del path por el nuevo nombre
-	set splitted [::KEGroups::listReplace $splitted [lindex $splitted [expr $whereRename - 1]] m.$newtext]
+	set splitted [::KEGroups::listReplace $splitted [lindex $splitted [expr $whereRename - 1]] m.[list $newtext]]
 
 	#Reconstruimos el nuevo path
 	set fullNewName ""
@@ -1554,12 +1554,12 @@ proc ::KMat::SetMatToRename { T item newtext } {
 proc ::KMat::editTag { T item fullname newtext } {		
     global KPriv		
     set parts [::KEGroups::split2 $fullname //]
-    lset parts end m.$newtext
+    lset parts end m.[list $newtext]
     set newPath [join $parts //]
 
     #Renombra en la lista de ID's
     set idItem [lindex [$T item text $item] 0]
-    set KPriv(materialsId) [::KEGroups::listReplace $KPriv(materialsId) $idItem m.$newtext]
+    set KPriv(materialsId) [::KEGroups::listReplace $KPriv(materialsId) $idItem m.[list $newtext]]
     
     #Cambiar nombre en el árbol
     $T item tag remove $item [list names [$T item tag names $item]]
@@ -1609,13 +1609,13 @@ proc ::KMat::GetAutomaticMatName { {auto ""} { startname "" } } {
 proc ::KMat::splitNode { node } {
     set id [$node getAttribute id ""]		
     if { [$node tagName] == "Container"} {
-		return "c.$id"
+		return "c.[list $id]"
     } elseif { [$node tagName] == "Item"} {
-		return "i.$id"
+		return "i.[list $id]"
     } elseif { [$node tagName] == "Property"} {
-		return "p.[$node getAttribute id ""]"
+		return "p.[list $[$node getAttribute id ""]]"
     } elseif { [$node tagName] == "Material"} {
-		return "m.[$node getAttribute id ""]"
+		return "m.[list $[$node getAttribute id ""]]"
     } else {
 		return "NoTree"
     }
