@@ -802,7 +802,7 @@ proc ::wkcf::WriteGiDPostMode {AppId fileid} {
     set gidrlist [list "GiDPostMode" "GiDWriteMeshFlag" "GiDWriteConditionsFlag" "GiDMultiFileFlag"]
     foreach gidr $gidrlist {
         # Get the value
-        set cxpath "$AppId//c.Results//c.GiDOptions//i.${gidr}"
+        set cxpath "$AppId//c.Results//c.GiDOptions//i.[list ${gidr}]"
         set cproperty "dv"
         set cvalue [::xmlutils::setXml $cxpath $cproperty]
         # Get the kratos keyword
