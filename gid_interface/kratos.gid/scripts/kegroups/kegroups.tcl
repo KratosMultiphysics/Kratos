@@ -582,7 +582,7 @@ proc ::KEGroups::RenombraGrupo { oldname newname validation } {
     # if validation == 1 -> newname needs the validation process
     set valid 1
     if {$validation == 1} {
-      #only call of this function ::KEGroups::RenombraGrupo is with parameter validation==0
+      #future: only call of this function ::KEGroups::RenombraGrupo is with parameter validation==0
       #code part not in use
       set valid [::KEGroups::ValidateNewName $oldname $newname]
     }
@@ -608,7 +608,7 @@ proc ::KEGroups::RenombraGrupo { oldname newname validation } {
     }
 }
 
-#proc not in use!!
+#near future: proc not in use!!
 proc ::KEGroups::ValidateNewName { oldname newname } {
     # POST: Returns 0 if name is invalid, returns 1 if name is valid,
     
@@ -622,10 +622,10 @@ proc ::KEGroups::ValidateNewName { oldname newname } {
         set ret 0
     } elseif { $newtext == -1 } {
 
-        append errlist "$txt:\n  :   /   $   .   \\  %  "
+        append errlist "$txt:\n  :   /   $   .   \\  %  (space)"
         set ret 0
     } elseif { [::KEGroups::isValidGroupName $newname] != 1} {
-        append errlist "$txt:\n  :   /   $   .   \\  %  "
+        append errlist "$txt:\n  :   /   $   .   \\  %  (space)"
         set ret 0
     }
     if { $ret == 0 } {
@@ -634,7 +634,7 @@ proc ::KEGroups::ValidateNewName { oldname newname } {
     return $ret
 }
 
-#proc not in use!!
+#near future: proc not in use!!
 proc ::KEGroups::ErrorRenameWindow { oldname newname errlist} {
     global KPriv
     
@@ -648,11 +648,11 @@ proc ::KEGroups::ErrorRenameWindow { oldname newname errlist} {
     InitWindow $qq $title "" ""
     focus $qq
     
-    if {[info exists Kpriv(newnewname)] } {
-	unset Kpriv(newnewname)
+    if {[info exists KPriv(newnewname)] } {
+	unset KPriv(newnewname)
     }
-    set Kpriv(newnewname) ""
-    set Kpriv(grnamerror) ""
+    set KPriv(newnewname) ""
+    set KPriv(grnamerror) ""
     
     grid [frame $qq.main] -sticky nswe -padx 4 -pady 4
     grid [ttk::label $qq.main.msg -text $errlist] -sticky nswe -pady 2 -padx 2 -column 0 -row 0
@@ -664,17 +664,22 @@ proc ::KEGroups::ErrorRenameWindow { oldname newname errlist} {
 }
 
 
-#proc not in use!!
- proc ::KEGroups::AuxRenameGroup { oldname newname qq} {
+#near future: proc not in use!!
+proc ::KEGroups::AuxRenameGroup { oldname newname qq} {
 	global KPriv
 
-     if { $KPriv(newnewname) == ""} {
-	 set Kpriv(grnamerror) [= "Choose a valid name"]
-	 
-     } elseif { [::KEGroups::isValidGroupName $KPriv(newnewname)] != 1} {
-	 set Kpriv(grnamerror) [= "Choose a valid name"]
-	 
-     } else {
+         set ret 1         
+          set newtext [::KUtils::parseTreeStr $KPriv(newnewname)]
+          if { $KPriv(newnewname) == ""} {              
+            set ret 0
+          } elseif { $newtext == -1 } {
+            set ret 0
+          } elseif { [::KEGroups::isValidGroupName $KPriv(newnewname)] != 1} {
+            set ret 0
+          }
+    if { $ret==0 } {
+      set KPriv(grnamerror) [= "Choose a valid name"]
+    } else {
 	 set valid 0
 	 
 	 GiD_Groups edit rename $newname $KPriv(newnewname)
@@ -688,15 +693,16 @@ proc ::KEGroups::ErrorRenameWindow { oldname newname errlist} {
 	 if {[winfo exists $qq]} {
 	     destroy $qq
 	 }
-	 if {[info exists Kpriv(newnewname)] } {
-	     unset Kpriv(newnewname)
+	 if {[info exists KPriv(newnewname)] } {
+	     unset KPriv(newnewname)
 	 }
 	 return
      }
+     
      if { [winfo exists  $qq.main.warn] } {
 	 destroy  $qq.main.warn
      }
-     grid [ttk::label $qq.main.warn -text $Kpriv(grnamerror)] -sticky nswe -pady 2 -padx 2 -column 0 -row 3
+     grid [ttk::label $qq.main.warn -text $KPriv(grnamerror)] -sticky nswe -pady 2 -padx 2 -column 0 -row 3
      $qq.main.warn configure -foreground red
 }
 
