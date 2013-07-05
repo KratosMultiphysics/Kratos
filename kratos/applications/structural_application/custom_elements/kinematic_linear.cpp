@@ -1190,7 +1190,7 @@ int KinematicLinear::Check( const Kratos::ProcessInfo& rCurrentProcessInfo )
         if( ok != 0 ) break;
         if( mConstitutiveLawVector[i]->IsIncremental() )
             KRATOS_ERROR( std::logic_error, "This element does not provide incremental strains!", "" );
-        if( mConstitutiveLawVector[i]->GetStrainMeasure() != ConstitutiveLaw::StrainMeasure_Linear )
+        if( mConstitutiveLawVector[i]->GetStrainMeasure() != ConstitutiveLaw::StrainMeasure_Infinitesimal)
             KRATOS_ERROR( std::logic_error, "This element formulated in linear strain measure", "" );
         if( mConstitutiveLawVector[i]->GetStressMeasure() != ConstitutiveLaw::StressMeasure_PK1 )
             KRATOS_ERROR( std::logic_error, "This element is formulated in PK1 stresses", "" );
