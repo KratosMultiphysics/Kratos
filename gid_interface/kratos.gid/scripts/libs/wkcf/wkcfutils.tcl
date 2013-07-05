@@ -253,7 +253,7 @@ proc ::wkcf::GetLoadProperties {} {
     foreach cloadtid $clproplist_temp {
 	set fullname "$rootdataid//c.Loads//c.[list $cloadtid]"
 	set class [::xmlutils::setXml $fullname class]
-	if { $class == "Group" } {
+	if { $class == "Groups" } {
 	    lappend clproplist $cloadtid
 	    set cloadtidpath "$cxpath//c.[list ${cloadtid}]"
 	    lappend clproplist $cloadtidpath

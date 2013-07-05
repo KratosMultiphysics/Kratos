@@ -118,7 +118,14 @@ proc ::wkcf::WriteLoads {AppId} {
                     # Write puntual loads
                     ::wkcf::WritePuntualLoads $AppId $cloadtid $kwordlist
                 }
-		"BeamUniformlyDistributed"
+                "PuntualMoment"
+                {
+                    # Concentrate or puntual loads (forces or moments)
+                    set kwordlist [list [::xmlutils::getKKWord $kwxpath "Mx"] [::xmlutils::getKKWord $kwxpath "My"] [::xmlutils::getKKWord $kwxpath "Mz"]]
+                    # Write puntual loads
+                    ::wkcf::WritePuntualMomentLoads $AppId $cloadtid $kwordlist
+                }
+                "BeamUniformlyDistributed"
                 {
 		    # Write beam uniformly distributed loads
                     ::wkcf::WriteBeamUniformlyDistributedLoads $AppId $cloadtid
@@ -126,6 +133,10 @@ proc ::wkcf::WriteLoads {AppId} {
                 "Pressure" {
                     # Pressure loads
                     ::wkcf::WritePressureLoads $AppId $cloadtid
+                }
+                "LinearPressure" {
+                    # Pressure loads
+                    #::wkcf::WritePressureLoads $AppId $cloadtid
                 }
                 "Face" {
                     # Face loads
@@ -425,7 +436,7 @@ proc ::wkcf::WritePuntualLoads {AppId cloadtid kwordlist} {
         switch -exact -- $ndime {
             "2D" {
                 set pointforcekword "PointForce2D"
-                foreach item [list $Fx $Fy $Mx $My] {
+                foreach item [list $Fx $Fy $Mz] {
                     if {$item !="0"} {
                         set usepointforce "Yes"
                         break
@@ -505,6 +516,119 @@ proc ::wkcf::WritePuntualLoads {AppId cloadtid kwordlist} {
         WarnWinText "Write structural analysis concentrated loads (puntual force or moment): [::KUtils::Duration $ttime]"
     }
 }
+
+proc ::wkcf::WritePuntualMomentLoads {AppId cloadtid kwordlist} {
+    # ABSTRACT: Write concentrated loads (puntual force or moment)
+    variable ndime; variable dprops
+    variable filechannel; variable sa_icondid
+    
+    # For debug
+    if {!$::wkcf::pflag} {
+        set inittime [clock seconds]
+    }
+
+    # For all defined group identifier inside this load type
+    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
+        # Get the load properties
+        set GProps $dprops($AppId,Loads,$cloadtid,$cgroupid,GProps)
+        # WarnWinText "cgroupid:$cgroupid GProps:$GProps"
+        # Assign values
+        foreach item $GProps {
+            foreach {cvar cval} $item {
+                if {$cval eq "0.0"} {
+                    set cval 0
+                }
+                set $cvar $cval
+            }
+        } 
+
+        set usepointforce "No"
+        
+        switch -exact -- $ndime {
+            "2D" {
+                set pointforcekword "PointMoment2D"
+                foreach item [list $Mz] {
+                    if {$item !="0"} {
+                        set usepointforce "Yes"
+                        break
+                    }
+                }
+            }
+            "3D" {
+                set pointforcekword "PointMoment3D"
+                foreach item [list $Mx $My $Mz] {
+                    if {$item !="0"} {
+                        set usepointforce "Yes"
+                        break
+                    }
+                }
+            }
+        }
+        if {$usepointforce =="Yes"} {
+            # Active the PointForce condition
+            
+            GiD_File fprintf $filechannel "%s" "Begin Conditions $pointforcekword // GUI puntual load group identifier: $cgroupid"
+            foreach output [GiD_EntitiesGroups get $cgroupid nodes] {
+                incr sa_icondid
+                set cf "[format "%4i %4i %10i" $sa_icondid 1 $output]"
+                GiD_File fprintf $filechannel "%s" "$cf"
+            }
+            GiD_File fprintf $filechannel "%s" "End Conditions"
+            GiD_File fprintf $filechannel "%s" ""
+        }
+
+        # Assign values
+        foreach item $GProps {
+            foreach {cvar cval} $item {
+                if {$cval eq "0.0"} {
+                    set cval 0
+                }
+                set $cvar $cval
+            }
+        } 
+        set IsFixed "0"
+        # WarnWinText "Fx:$Fx Fy:$Fy Fz:$Fz"
+        
+        # DISPLACEMENT_X or ROTATION_X
+        if {$Mx ne 0} {
+            set xitem [lindex $kwordlist 0]
+            GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem // GUI puntual load group identifier: $cgroupid"
+            foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+                GiD_File fprintf $filechannel "%10i %2i %20.10f" $node_id $IsFixed $Fx
+            }
+            GiD_File fprintf $filechannel "%s" "End NodalData"
+            GiD_File fprintf $filechannel ""        
+        }
+        if {$My ne 0} {
+            set yitem [lindex $kwordlist 1]
+            GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem // GUI puntual load group identifier: $cgroupid"
+            foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+                GiD_File fprintf $filechannel "%10i %2i %20.10f" $node_id $IsFixed $Fy
+            }
+            GiD_File fprintf $filechannel "%s" "End NodalData"
+            GiD_File fprintf $filechannel ""       
+        }
+        if {$Mz ne 0} {
+            set zitem [lindex $kwordlist 2]
+            GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem // GUI puntual load group identifier: $cgroupid"
+            foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+                GiD_File fprintf $filechannel "%10i %2i %20.10f" $node_id $IsFixed $Fz
+            }
+            GiD_File fprintf $filechannel "%s" "End NodalData"
+            GiD_File fprintf $filechannel "%s" ""        
+        }
+    }
+
+    # For debug
+    if {!$::wkcf::pflag} {
+        set endtime [clock seconds]
+        set ttime [expr $endtime-$inittime]
+        # WarnWinText "endtime:$endtime ttime:$ttime"
+        WarnWinText "Write structural analysis concentrated loads (puntual force or moment): [::KUtils::Duration $ttime]"
+    }
+}
+
+
 
 proc ::wkcf::WriteBodyForceValues {props} {
     # Write the gravity properties to the kratos data file
