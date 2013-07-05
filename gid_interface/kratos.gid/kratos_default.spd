@@ -100,7 +100,7 @@
             </Container>            
             <Container id="LinearPressure" pid="Pressure" class="Groups" state="hidden" idTemplate="ShellPressure" nDim="2D" GiDEntity="line" GiDValidMesh="Linear" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="0"/>
             <Container id="Pressure" pid="Pressure" class="Groups" idTemplate="ShellPressure"  nDim="3D" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Shells,Membranes,Generic" icon="groupsTreeNew.gif" help="Define the positive or negative pressure" open="0"/>            
-            <Container id="PuntualMoment" pid="Moment" class="Groups" idTemplate="PuntualMoment" GiDEntity="point" icon="groupsTreeNew.gif" state="hidden" help="Bending Moment" open="0"/>
+            <Container id="PuntualMoment" pid="Moment" class="Groups" idTemplate="PuntualMoment" GiDEntity="point" icon="groupsTreeNew.gif" help="Bending Moment" open="0"/>
         </Container>
         <Container id="Conditions" pid="Boundary conditions" help="Boundary Conditions" open="0" icon="boundarycond.gif">
             <Container id="Displacements" pid="Displacements" class="Groups" idTemplate="Displacements" icon="groupsTreeNew.gif" help="Displacements" open="0" dv="Yes" ivalues="Yes,No" values="Yes,No"/>
@@ -490,9 +490,12 @@
         </Template>
         <Template id="PuntualMoment" icon="groupsTree.gif" help="PuntualMoment">
             <Container id="MainProperties" pid="Puntual" state="hidden" help="Values" open="0">                
+                <Item id="Fx" pid="Fx" dv="0.0" state="hidden" help="Fx Vector"/>
+                <Item id="Fy" pid="Fy" dv="0.0" state="hidden" help="Fy Vector"/>
+                <Item id="Fz" pid="Fz" dv="0.0" state="hidden" help="Fz Vector"/>
                 <Item id="Mx" pid="Mx" dv="0.0" nDim="3D" help="Mx Vector"/>
                 <Item id="My" pid="My" dv="0.0" nDim="3D" help="My Vector"/>
-                <Item id="Mz" pid="Mz" dv="0.0" help="Mz Vector"/>
+                <Item id="Mz" pid="Mz" dv="0.0" help="Mz Vector"/>           
             </Container>
         </Template>
         
