@@ -63,7 +63,7 @@ proc ::xmlutils::initKKWord { } {
 
 proc ::xmlutils::GetPropertyElemType {propId} {
     # ABSTRACT: Get the property element type for a specific property identifier
-    set cxpath "StructuralAnalysis//c.Properties//c.${propId}//c.MainProperties//i.ElemType"
+    set cxpath "StructuralAnalysis//c.Properties//c.[list ${propId}]//c.MainProperties//i.ElemType"
     set cproperty "dv"
     set PropertyElemType [::xmlutils::setXml $cxpath $cproperty]
 
@@ -73,7 +73,7 @@ proc ::xmlutils::GetPropertyElemType {propId} {
 proc ::xmlutils::GetPropertySectionType {propId} {
     # ABSTRACT: Get the property section type for a specific property identifier
     
-    set cxpath "StructuralAnalysis//c.Properties//c.${propId}//c.MainProperties//i.SectionType"
+    set cxpath "StructuralAnalysis//c.Properties//c.[list ${propId}]//c.MainProperties//i.SectionType"
     set cproperty "dv"
     set PropertySectionType [::xmlutils::setXml $cxpath $cproperty]
 
@@ -808,7 +808,7 @@ proc ::xmlutils::myPathFromNode { finalNode {type "props"} } {
 
 		set id [$node getAttribute id ""]
 		if { $id != "" } {
-		        set path "c.$id//$path"
+		        set path "c.[list $id]//$path"
 		}
 	}
 	
@@ -896,7 +896,7 @@ proc ::xmlutils::getPathFromNode { finalNode {includeFinal 1} {type "props"}} {
 
 		set id [$node getAttribute id ""]
 		if { $id != "" } {
-		        set path "c.$id//$path"
+		        set path "c.[list $id]//$path"
 		}
 	}
 
@@ -923,7 +923,7 @@ proc ::xmlutils::getFullnameFromNode { finalNode {includeFinal 1} {type "props"}
 
 		set id [$node getAttribute id ""]
 		if { $id != "" } {
-		        set path "c.$id//$path"
+		        set path "c.[list $id]//$path"
 		}
 	}
 
@@ -950,7 +950,7 @@ proc ::xmlutils::getPathFromXPath { xpath {type "props"} } {
 	foreach node $nodes {
 		set id [$node getAttribute id ""]
 		if { $id != "" } {
-		        set path "c.$id//$path"
+		        set path "c.[list $id]//$path"
 		}
 	}
 	
