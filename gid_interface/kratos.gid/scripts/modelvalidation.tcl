@@ -1,16 +1,16 @@
 ###############################################################################
 #
-#	NAME: modelvalidation.tcl
+#        NAME: modelvalidation.tcl
 #
-#	PURPOSE: Validation of interface data
+#        PURPOSE: Validation of interface data
 #
-#	QUANTECH ATZ-DEVELOPMENT DEPARTMENT
+#        QUANTECH ATZ-DEVELOPMENT DEPARTMENT
 #
-#	AUTHOR : G. Socorro => GSM
+#        AUTHOR : G. Socorro => GSM
 #
-#	CREATED AT: 09/06/2010
+#        CREATED AT: 09/06/2010
 #
-#	HISTORY:
+#        HISTORY:
 #
 #   1.6- 17/06/13- GSM, modify the procs ValidateGroups, groupsWithEntities and ValidateAssignedGroupsInModel to use only the new GiD group,
 #   1.5- 17/05/13- GSM, add the validation of the cross section properties for the structural analysis application
@@ -20,16 +20,16 @@
 #   1.1- 10/10/12- GSM, improve the model validation to element type and cross section properties
 #   1.0- 03/10/12- GSM, correct a bug with the namespace variable Errors
 #   0.9- 20/07/12- GSM, update some proc to delete old source code
-#	0.8- 19/07/12- J. Gárate, Check if any group or node is shared between Slip and NoSlip
-#	0.7- 09/02/12- J. Gárate, Deshabilitada la comprobacion del Kratos Path
-#	0.6- 08/02/12- J. Gárate, Si no hay ni error ni warning,  cierra la ventana de Model Validation
-#	0.5- 25/01/11-GSM, show the warning/error message only when find some error
-#	0.4- 01/20/10 LC, Corregido bug con la gestión de initalConditions al mostrar errores
-#	0.3- 27/09/10 LC, Se ha pasado InitialConditions de errores a warnings, 
-#	se valida que los elements, conditions e InitialConditions tengan algún grupo activo, 
-#	y se valida que el path de Kratos exista en la computadora.
-#	0.2- 11/06/10 GS, Update CreateReportWindow to use InitWindow and add a close button
-#	0.1- 25/02/10 KS, create a base source code
+#        0.8- 19/07/12- J. Gárate, Check if any group or node is shared between Slip and NoSlip
+#        0.7- 09/02/12- J. Gárate, Deshabilitada la comprobacion del Kratos Path
+#        0.6- 08/02/12- J. Gárate, Si no hay ni error ni warning,  cierra la ventana de Model Validation
+#        0.5- 25/01/11-GSM, show the warning/error message only when find some error
+#        0.4- 01/20/10 LC, Corregido bug con la gestión de initalConditions al mostrar errores
+#        0.3- 27/09/10 LC, Se ha pasado InitialConditions de errores a warnings, 
+#        se valida que los elements, conditions e InitialConditions tengan algún grupo activo, 
+#        y se valida que el path de Kratos exista en la computadora.
+#        0.2- 11/06/10 GS, Update CreateReportWindow to use InitWindow and add a close button
+#        0.1- 25/02/10 KS, create a base source code
 #
 ###############################################################################
 
@@ -172,7 +172,7 @@ proc ::KMValid::CreateReportWindow {w} {
     
     #lappend allreportlist "ErrorAplication:ApplicationTitle Structural Analysis:"
     
-    set xml $KPriv(xml)	
+    set xml $KPriv(xml)        
     set apliXpath "/Kratos_Data/RootData\[@id='GeneralApplicationData'\]/Container\[@id='ApplicationTypes'\]/Item"
     
     
@@ -182,7 +182,7 @@ proc ::KMValid::CreateReportWindow {w} {
 	set structural "Yes"
 	set fluid "Yes"
     } else {
-	set structural [::xmlutils::getAttribute $xml "${apliXpath}\[@id='StructuralAnalysis'\]" dv]	
+	set structural [::xmlutils::getAttribute $xml "${apliXpath}\[@id='StructuralAnalysis'\]" dv]        
 	set fluid [::xmlutils::getAttribute $xml "${apliXpath}\[@id='Fluid'\]" dv]
     }
     
@@ -254,7 +254,7 @@ proc ::KMValid::CreateReportWindow {w} {
 
 proc ::KMValid::CreateReportWindowbClose {{w .gid.modelvalidation}} {
 
-    # Destroy the window widget	
+    # Destroy the window widget        
     if {[winfo exists $w]} { 
 	destroy $w
     }
@@ -377,23 +377,23 @@ proc ::KMValid::ValidateGroups { allreportlist } {
 	lappend allreportlist "Error: \n"
 	
 	set line1 ""
-        set line2 ""
-        lappend allreportlist ${line1}
-        lappend allreportlist ${line2}
-        
+	set line2 ""
+	lappend allreportlist ${line1}
+	lappend allreportlist ${line2}
+	
     } else {
 	
 	set noEntitiesGroups [list ]
     
-        foreach group $groups {
-            
-            set hasent [::KEGroups::getGroupGiDEntitiesNew $group "hasEntities"]
-            # msg "Hasent for $group $hasent"
-            if {$hasent eq "0"} {
-                
-                lappend noEntitiesGroups $group
-            }
-        }
+	foreach group $groups {
+	    
+	    set hasent [::KEGroups::getGroupGiDEntitiesNew $group "hasEntities"]
+	    # msg "Hasent for $group $hasent"
+	    if {$hasent eq "0"} {
+		
+		lappend noEntitiesGroups $group
+	    }
+	}
 	if { [llength $noEntitiesGroups] } {
 	    
 	    if { [llength $noEntitiesGroups] == [llength $groups] } {
@@ -465,139 +465,139 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
     
     foreach node $nodes {
 	
-        set idElem [$node getAttribute id ""]
-        
-        set groupsXPath "${xpath}\[@id='$idElem'\]/Container"
-        set groups [::xmlutils::getXmlChildIds $xml "${groupsXPath}" ] 
-        # msg "idElem$idElem   groups:$groups\n"
-        foreach group $groups {
-            
-            set grNodeXPath "${groupsXPath}\[@id='$group'\]"
-            set active [::xmlutils::getAttribute $xml $grNodeXPath active]
-            # wa "grNodeXPath:$grNodeXPath"
-            if {$active} {
-                        set hasEntities [::KEGroups::getGroupGiDEntitiesNew $group "hasEntities"]
-                    # wa "hasEntities:$hasEntities Existe active en grNodeXPath $group"
-                if {$hasEntities} {
-                    #Si uno de los grupos tiene entidades ya no sacaremos ese error
-                    
-                    #Pero además tiene que estar activo para esa combinación de filtros (visible en el árbol)
-                    #set isActiveGroup $groupsXPath...
-                    set elementsGroups 1
-                    set groupwithoutEntities 1
-                    
-                } else {
-                    lappend groupwithoutEntitiesList [list $idElem $group]
-                }
-                
-                # Now check the property assigned to this group
-                set grNodeXPath "${groupsXPath}\[@id='$group'\]/Container"
-                set grNodeConainers [$xml selectNodes "$grNodeXPath"]
-                foreach nodeContainer $grNodeConainers {
-                    
-                    set nodeItems [$nodeContainer childNodes]
-                    foreach item $nodeItems {
-                    
-                        set idItem [$item getAttribute id ""]
-                        if { $idItem == "Property" } {
-                            set propId [$item getAttribute dv ""]
-                            
-                            # Now look that property in 'Properties'
-                            set xpath "$appPath/Container\[@id='Properties'\]/Container\[@id='$propId'\]"
-                            # wa "propId:$propId xpath:$xpath"
-                            set node [$xml selectNodes $xpath]
-                            if { $node != "" } {
-                                # Get the cross section property list
-                                set PropertyList [::KMProps::GetCrossSectionPropertyList]
-                                # wa "propId:$propId PropertyList:$PropertyList"
-                                foreach nodeCont [$node childNodes] {
-                                    set plist [list]
-                                    foreach nodePropIt [$nodeCont childNodes] {
-                                    
-                                        # Here are the items of property
-                                        set idItem [$nodePropIt getAttribute id ""]
-                                        # wa "idItem:$idItem"
-                                        # We found that the material is not null
-                                        if { $idItem == "Material" } {
-                                            if {  [$nodePropIt getAttribute dv ""] == "" } {
-                                            
-                                                #Si la propiedad no tiene material asignado, 
-                                                #la añadimos a la lista de propiedades sin material
-                                                if { !($propId in $noMaterialProps) } {
-                                                    
-                                                    lappend noMaterialProps $propId
-                                                }
-                                            }
-                                        } elseif { $idItem == "ElemType" } {
-                                            
-                                            set ::KMProps::ElemTypeProperty [$nodePropIt getAttribute dv ""]
-                                            
-					} elseif { $idItem == "SectionType" } {
-                                            
-                                            set ::KMProps::SectionTypeProperty [$nodePropIt getAttribute dv ""]
-                                            
-                                        } elseif { $idItem in $PropertyList } {
-					    # Check only in the structural analysis application
-					    if {$application eq "StructuralAnalysis"} {
-						# Get the element type
-                                            set cxpath "$xpath/Container\[@id='MainProperties'\]/Item\[@id='ElemType'\]"
-                                            # wa "cxpath:$cxpath"
-                                            set cnode [$xml selectNodes $cxpath]
-                                            # wa "cnode:$cnode"
-						# Set the element type
-                                            set ::KMProps::ElemTypeProperty [$cnode getAttribute dv ""]
-                                            # wa "ElemTypeProperty:$::KMProps::ElemTypeProperty"
-						
-						# Set the section type
-						set cxpath "$xpath/Container\[@id='MainProperties'\]/Item\[@id='SectionType'\]"
-						# wa "cxpath:$cxpath"
-						set cnode [$xml selectNodes $cxpath]
-						# wa "cnode:$cnode"
-						# Set the section type
-						set ::KMProps::SectionTypeProperty [$cnode getAttribute dv ""]
-						# wa "SectionTypeProperty:$::KMProps::SectionTypeProperty"
-						
-                                            # Check that this cross section property is necessary and this is not empty
-                                            set ::KMProps::nDim $ndime
-                                            set ShowProperty [::KMProps::ShowPropertyByElementType $idItem]
-                                            set CurrentValue [$nodePropIt getAttribute dv ""]
-                                            # wa "ShowProperty:$ShowProperty CurrentValue:$CurrentValue "
-                                            if {(($ShowProperty) && ($CurrentValue == ""))} {
-                                                # wa "inside propId:$propId"
-						    # Check the section type
-						    set ShowSectionProperty [::KMProps::ShowPropertyBySectionType $idItem]
-						    # wa "ShowSectionProperty:$ShowSectionProperty idItem:$idItem"
-						    if {$ShowSectionProperty} {
-                                                # If the property needs tickness and do not have it, error
-                                                if { !($propId in $nullProperty) } {
-                                                    
-                                                    lappend nullProperty $propId
-                                                }
-                                                # Update the property list
-                                                lappend plist $idItem
-                                                # Update the dictionary
-                                                dict set nullPropertyDict $propId $plist
-                                                # wa "nullProperty:$nullProperty"
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }	
-                    }
-                }
-            }
-        }
+	set idElem [$node getAttribute id ""]
+	
+	set groupsXPath "${xpath}\[@id='$idElem'\]/Container"
+	set groups [::xmlutils::getXmlChildIds $xml "${groupsXPath}" ] 
+	# msg "idElem$idElem   groups:$groups\n"
+	foreach group $groups {
+	    
+	    set grNodeXPath "${groupsXPath}\[@id='$group'\]"
+	    set active [::xmlutils::getAttribute $xml $grNodeXPath active]
+	    # wa "grNodeXPath:$grNodeXPath"
+	    if {$active} {
+		        set hasEntities [::KEGroups::getGroupGiDEntitiesNew $group "hasEntities"]
+		    # wa "hasEntities:$hasEntities Existe active en grNodeXPath $group"
+		if {$hasEntities} {
+		    #Si uno de los grupos tiene entidades ya no sacaremos ese error
+		    
+		    #Pero además tiene que estar activo para esa combinación de filtros (visible en el árbol)
+		    #set isActiveGroup $groupsXPath...
+		    set elementsGroups 1
+		    set groupwithoutEntities 1
+		    
+		} else {
+		    lappend groupwithoutEntitiesList [list $idElem $group]
+		}
+		
+		# Now check the property assigned to this group
+		set grNodeXPath "${groupsXPath}\[@id='$group'\]/Container"
+		set grNodeConainers [$xml selectNodes "$grNodeXPath"]
+		foreach nodeContainer $grNodeConainers {
+		    
+		    set nodeItems [$nodeContainer childNodes]
+		    foreach item $nodeItems {
+		    
+		        set idItem [$item getAttribute id ""]
+		        if { $idItem == "Property" } {
+		            set propId [$item getAttribute dv ""]
+		            
+		            # Now look that property in 'Properties'
+		            set xpath "$appPath/Container\[@id='Properties'\]/Container\[@id='$propId'\]"
+		            # wa "propId:$propId xpath:$xpath"
+		            set node [$xml selectNodes $xpath]
+		            if { $node != "" } {
+		                # Get the cross section property list
+		                set PropertyList [::KMProps::GetCrossSectionPropertyList]
+		                # wa "propId:$propId PropertyList:$PropertyList"
+		                foreach nodeCont [$node childNodes] {
+		                    set plist [list]
+		                    foreach nodePropIt [$nodeCont childNodes] {
+		                    
+		                        # Here are the items of property
+		                        set idItem [$nodePropIt getAttribute id ""]
+		                        # wa "idItem:$idItem"
+		                        # We found that the material is not null
+		                        if { $idItem == "Material" } {
+		                            if {  [$nodePropIt getAttribute dv ""] == "" } {
+		                            
+		                                #Si la propiedad no tiene material asignado, 
+		                                #la añadimos a la lista de propiedades sin material
+		                                if { !($propId in $noMaterialProps) } {
+		                                    
+		                                    lappend noMaterialProps $propId
+		                                }
+		                            }
+		                        } elseif { $idItem == "ElemType" } {
+		                            
+		                            set ::KMProps::ElemTypeProperty [$nodePropIt getAttribute dv ""]
+		                            
+		                        } elseif { $idItem == "SectionType" } {
+		                            
+		                            set ::KMProps::SectionTypeProperty [$nodePropIt getAttribute dv ""]
+		                            
+		                        } elseif { $idItem in $PropertyList } {
+		                            # Check only in the structural analysis application
+		                            if {$application eq "StructuralAnalysis"} {
+		                                # Get the element type
+		                            set cxpath "$xpath/Container\[@id='MainProperties'\]/Item\[@id='ElemType'\]"
+		                            # wa "cxpath:$cxpath"
+		                            set cnode [$xml selectNodes $cxpath]
+		                            # wa "cnode:$cnode"
+		                                # Set the element type
+		                            set ::KMProps::ElemTypeProperty [$cnode getAttribute dv ""]
+		                            # wa "ElemTypeProperty:$::KMProps::ElemTypeProperty"
+		                                
+		                                # Set the section type
+		                                set cxpath "$xpath/Container\[@id='MainProperties'\]/Item\[@id='SectionType'\]"
+		                                # wa "cxpath:$cxpath"
+		                                set cnode [$xml selectNodes $cxpath]
+		                                # wa "cnode:$cnode"
+		                                # Set the section type
+		                                set ::KMProps::SectionTypeProperty [$cnode getAttribute dv ""]
+		                                # wa "SectionTypeProperty:$::KMProps::SectionTypeProperty"
+		                                
+		                            # Check that this cross section property is necessary and this is not empty
+		                            set ::KMProps::nDim $ndime
+		                            set ShowProperty [::KMProps::ShowPropertyByElementType $idItem]
+		                            set CurrentValue [$nodePropIt getAttribute dv ""]
+		                            # wa "ShowProperty:$ShowProperty CurrentValue:$CurrentValue "
+		                            if {(($ShowProperty) && ($CurrentValue == ""))} {
+		                                # wa "inside propId:$propId"
+		                                    # Check the section type
+		                                    set ShowSectionProperty [::KMProps::ShowPropertyBySectionType $idItem]
+		                                    # wa "ShowSectionProperty:$ShowSectionProperty idItem:$idItem"
+		                                    if {$ShowSectionProperty} {
+		                                # If the property needs tickness and do not have it, error
+		                                if { !($propId in $nullProperty) } {
+		                                    
+		                                    lappend nullProperty $propId
+		                                }
+		                                # Update the property list
+		                                lappend plist $idItem
+		                                # Update the dictionary
+		                                dict set nullPropertyDict $propId $plist
+		                                # wa "nullProperty:$nullProperty"
+		                            }
+		                        }
+		                    }
+		                }
+		            }
+		        }        
+		    }
+		}
+	    }
+	}
     }
-        }
+	}
     }
     
     if { ! $elementsGroups && !$groupwithoutEntities} {
 	if {[llength $groupwithoutEntitiesList]} {
 	    set bf ""
 	    foreach cprop $groupwithoutEntitiesList {
-            lassign $cprop ElemId GroupId
-            append bf "Element:$ElemId -> Group:$GroupId "
+	    lassign $cprop ElemId GroupId
+	    append bf "Element:$ElemId -> Group:$GroupId "
 	    }
 	    lappend allreportlist "Error: There are no entities assigned to this element and group ($bf)."
 	    lappend allreportlist "\n"
@@ -646,7 +646,7 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
     
     if { [llength $propsMessages] } {
 	
-	#lappend allreportlist "Error:PROPERTIES:"	
+	#lappend allreportlist "Error:PROPERTIES:"        
 	foreach prop $propsMessages {
 	    
 	    lappend allreportlist $prop
@@ -666,8 +666,8 @@ proc ::KMValid::ValidateAssignedGroupsInModel { allreportlist {application "Stru
     }
 
     #set xpath "$appPath/Container\[@id='Conditions'\]/Container"
-    #if { [llength [::KMValid::groupsWithEntities $xml $xpath]] == 0 } {	
-    #	lappend allreportlist "Error: There are no groups assigned to Conditions."
+    #if { [llength [::KMValid::groupsWithEntities $xml $xpath]] == 0 } {        
+    #        lappend allreportlist "Error: There are no groups assigned to Conditions."
     #}
     
     #set line1 ""
@@ -687,33 +687,46 @@ proc ::KMValid::groupsWithEntities { xml xpath {returnNodes 0}} {
     set groupEntities {}
     
     #Buscamos los grupos asignados a algún element
-    set nodes [$xml selectNodes $xpath]
-    
-    foreach node $nodes {
+    set nodes_inside_load [$xml selectNodes $xpath]
+    set nodes [list]
+    foreach node $nodes_inside_load {
+	set idElem [$node getAttribute id ""]
+	if { [$node getAttribute class]=="Groups" } {            
+	    set groupsXPath "${xpath}\[@id='[list $idElem]'\]/Container"            
+	    lappend nodes {*}[list $node $groupsXPath]
+	} elseif { [$node getAttribute class]=="SameTemplateGroups" } {
+	    foreach childnode [$node childNodes] {
+		set childidElem [$childnode getAttribute id ""]
+		set groupsXPath "${xpath}\[@id='[list $idElem]'\]/Container\[@id='[list $childidElem]'\]/Container"
+		lappend nodes {*}[list $childnode $groupsXPath]
+	    }            
+	}
+    }
 	
-        set idElem [$node getAttribute id ""]
-        
-        set groupsXPath "${xpath}\[@id='$idElem'\]/Container"
-        set groups [$xml selectNodes $groupsXPath]
-        #set groups [::xmlutils::getXmlChildIds $xml "${groupsXPath}" ]
-        
-        foreach nodeGroup $groups {
-            
-            set idGroup [$nodeGroup getAttribute id ""]
-            
-            #Se tiene que cumplir que el nodo esté activo (visible en árbol según los filtros seleccionados)
-            if {[$nodeGroup getAttribute active 0] != 0} {
-                    set hasEntities [::KEGroups::getGroupGiDEntitiesNew $idGroup "hasEntities"]
-                if {$hasEntities} {
-                    #Si uno de los grupos tiene entidades ya no sacaremos ese error
-                    if { $returnNodes } {
-                        lappend groupEntities $nodeGroup
-                    } else {
-                        lappend groupEntities $idGroup
-                    }
-                }
-            }
-        }
+    
+    
+    foreach {node groupsXPath} $nodes {
+	
+	set groups [$xml selectNodes $groupsXPath]
+	#set groups [::xmlutils::getXmlChildIds $xml "${groupsXPath}" ]
+	
+	foreach nodeGroup $groups {
+	    
+	    set idGroup [$nodeGroup getAttribute id ""]
+	    
+	    #Se tiene que cumplir que el nodo esté activo (visible en árbol según los filtros seleccionados)
+	    if {[$nodeGroup getAttribute active 0] != 0} {
+		    set hasEntities [::KEGroups::getGroupGiDEntitiesNew $idGroup "hasEntities"]
+		if {$hasEntities} {
+		    #Si uno de los grupos tiene entidades ya no sacaremos ese error
+		    if { $returnNodes } {
+		        lappend groupEntities $nodeGroup
+		    } else {
+		        lappend groupEntities $idGroup
+		    }
+		}
+	    }
+	}
     }
     return $groupEntities
 }
@@ -723,9 +736,9 @@ proc getPropertyItems { } {
     set xpath "$appPath/Container\[@id='Properties'\]/Container"
     set nodes [$xml selectNodes $xpath]
     foreach nodeCont $nodes {
-        foreach node [$nedeCont childNodes] {
-            #Aquí tenemos los items de una propiedad
-        }
+	foreach node [$nedeCont childNodes] {
+	    #Aquí tenemos los items de una propiedad
+	}
     }
 }
 
@@ -745,10 +758,10 @@ proc ::KMValid::ValidateProjectInformation { allreportlist } {
 	
 	set style [$node getAttribute style ""]
 	if { $style == "*" } {
-	    if { [$node getAttribute dv ""]	== "" } {
+	    if { [$node getAttribute dv ""]        == "" } {
 		set id [$node getAttribute id ""]
 		lappend importantFields $id
-	    }		
+	    }                
 	}
     }
     if { [llength $importantFields] } {
@@ -796,39 +809,39 @@ proc ::KMValid::checkGroups { xml appPath rootContainer allreportlist} {
 
 		foreach nodeGroup $assignedGroups {
 
-			foreach nodeContainer [$nodeGroup childNodes] {
-			
-				set nodeItems [$nodeContainer childNodes]
-				foreach item $nodeItems {
-					set idItem [$item getAttribute id ""]
-					set dv [$item getAttribute dv ""]
-					if { $dv == "" } {
-					lappend nullProps [$item getAttribute id ""]
-					}
-				}
+		        foreach nodeContainer [$nodeGroup childNodes] {
+		        
+		                set nodeItems [$nodeContainer childNodes]
+		                foreach item $nodeItems {
+		                        set idItem [$item getAttribute id ""]
+		                        set dv [$item getAttribute dv ""]
+		                        if { $dv == "" } {
+		                        lappend nullProps [$item getAttribute id ""]
+		                        }
+		                }
 		    }
 		    if { [llength $nullProps] } {
-			
-			set parentPID [[$nodeGroup parentNode] getAttribute pid ""]
-			set groupId [$nodeGroup getAttribute id ""]
+		        
+		        set parentPID [[$nodeGroup parentNode] getAttribute pid ""]
+		        set groupId [$nodeGroup getAttribute id ""]
 
-			lappend allreportlist "Error: $rootContainer-> $parentPID-> group '$groupId': Empty properties '$nullProps'"
-			
-			
+		        lappend allreportlist "Error: $rootContainer-> $parentPID-> group '$groupId': Empty properties '$nullProps'"
+		        
+		        
 		    }
 		}
 
     } else {
 	
-        #En el caso de Initial conditions se ha cambiado de error a warning, por lo que se ha creado
-        # una variable global para tratar este caso particular en vez de cambiar el diseño
-        if { $rootContainer == "InitialConditions" } {
+	#En el caso de Initial conditions se ha cambiado de error a warning, por lo que se ha creado
+	# una variable global para tratar este caso particular en vez de cambiar el diseño
+	if { $rootContainer == "InitialConditions" } {
 
-            set ::KMValid::initialConditions "Warning: There are no groups assigned to $rootContainer."
-        } else {
-            
-            lappend allreportlist "Error: There are no groups assigned to $rootContainer."
-        }
+	    set ::KMValid::initialConditions "Warning: There are no groups assigned to $rootContainer."
+	} else {
+	    
+	    lappend allreportlist "Error: There are no groups assigned to $rootContainer."
+	}
     }
     
     return $allreportlist
@@ -876,7 +889,7 @@ proc ::KMValid::isWall { nDim } {
     # msg "List [$Wallnode asXML]"
     set nodes [$Wallnode childNodes]
     foreach node $nodes {
-        lappend wallList [$node getAttribute id ""]
+	lappend wallList [$node getAttribute id ""]
     }
     return $wallList
 
@@ -937,7 +950,7 @@ proc ::KMValid::CheckRepeatedNodes { grouplist1 grouplist2 Item1 Item2 } {
 		if {[llength $l2nlist]} {
 		    set rnodes [::KMValid::FindRepeated $l1nlist $l2nlist]
 		    if {[llength $rnodes]} {
-			return "Warning: Repeated node ($rnodes) between the $Item1 and $Item2 boundary condition. Check the group properties assigned to this boundary conditions"
+		        return "Warning: Repeated node ($rnodes) between the $Item1 and $Item2 boundary condition. Check the group properties assigned to this boundary conditions"
 		    } 
 		}
     }
@@ -959,10 +972,10 @@ proc ::KMValid::FindRepeated {nlist1 nlist2} {
 		foreach item $total {
 
 		    if { $item == [lindex $total $i] } {
-			return $item
-			break
-			}
-			incr i 1
+		        return $item
+		        break
+		        }
+		        incr i 1
 		}
 	}
 	return ""
@@ -979,16 +992,16 @@ proc ::KMValid::ValidateDragFiles { allreportlist } {
     #msg [$noded asXML]
     set nodes [$noded childNodes]
     foreach node $nodes {
-        
-        set nitem [lindex [$node childNodes] 0]
-        #msg [$nitem asXML]
-        set item [$nitem childNodes]
-        #msg [$item asXML]
-        set dv [$item getAttribute dv ""]
-        #msg [[lindex [$node childNodes] 0] getAttribute id ""]
-        if {$dv eq ""} {
-            lappend allreportlist "Error: Empty Field: Drag Calculation Output File id."
-        }
+	
+	set nitem [lindex [$node childNodes] 0]
+	#msg [$nitem asXML]
+	set item [$nitem childNodes]
+	#msg [$item asXML]
+	set dv [$item getAttribute dv ""]
+	#msg [[lindex [$node childNodes] 0] getAttribute id ""]
+	if {$dv eq ""} {
+	    lappend allreportlist "Error: Empty Field: Drag Calculation Output File id."
+	}
     }
     return $allreportlist
 }
