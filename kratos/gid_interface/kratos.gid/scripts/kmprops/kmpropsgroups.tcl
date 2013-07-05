@@ -117,7 +117,7 @@ proc ::KMProps::autoNewGroup { group_name fpath } {
     variable selGroup
     global KPriv
     #WarnWinText "group_name: $group_name       fpath: $fpath"
-    set GroupId [::KEGroups::GetAutomaticGroupName "$group_name "]
+    set GroupId [::KEGroups::GetAutomaticGroupName "$group_name"]
     
     # Assign the selected group identifier
     set selGroup $GroupId 
@@ -207,7 +207,7 @@ proc ::KMProps::acceptGroups { T idTemplate fullname item listT entityList fGrou
                         #Cuando tengamos nodos ocultos o incompatibles la variable no existirá
                         if {[info exists ::KMProps::cmb$id]} {
                             
-                            set fullNombre "$fullname//c.$grupo//c.$idContainer//i.$id"
+                            set fullNombre "$fullname//c.[list $grupo]//c.[list $idContainer]//i.[list $id]"
                             
                             set f "${fBottom}.nb.f${idContainer}.cmb${id}"
                             
@@ -224,7 +224,7 @@ proc ::KMProps::acceptGroups { T idTemplate fullname item listT entityList fGrou
                                 if {$id == "Vx" || $id == "Vy" || $id == "Vz"} {
                                     
                                     set activeId "A[string range $id 1 1]"
-                                    set fullActive "$fullname//c.$grupo//c.Activation//i.$activeId"
+                                    set fullActive "$fullname//c.[list $grupo]//c.Activation//i.[list $activeId]"
                                     set active [::xmlutils::setXml $fullActive dv "read"]
                                     
                                     if { $active == 0 } {
@@ -346,7 +346,7 @@ proc ::KMProps::auxiliarfunction_ReturnEntitiesInsideGroups { ListGroupId } {
     set txt ""
     foreach element [lindex [lindex $totallistentities end] 0] face [lindex [lindex $totallistentities end] 1] {
       #convert to real format to sort
-      lappend txt $element.$face
+      lappend txt $element.[list $face]
     }
     set totallistentities [lreplace $totallistentities end end $txt]
   }
@@ -357,7 +357,7 @@ proc ::KMProps::auxiliarfunction_ReturnEntitiesInsideGroups { ListGroupId } {
       set txt ""
       foreach element [lindex [lindex $listentities end] 0] face [lindex [lindex $listentities end] 1] {
         #convert to real format to sort
-        lappend txt $element.$face
+        lappend txt $element.[list $face]
       }
       set listentities [lreplace $listentities end end $txt]
     }
