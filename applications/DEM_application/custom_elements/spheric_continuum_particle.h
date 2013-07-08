@@ -102,7 +102,7 @@ namespace Kratos
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
       
-      virtual void EvaluateFailureCriteria(double LocalElasticContactForce[3], double ShearForceNow, double corrected_area, int i_neighbour_count, double& contact_sigma, double& contact_tau, double& failure_criterion_state, bool& sliding);
+      virtual void EvaluateFailureCriteria(double LocalElasticContactForce[3], double ShearForceNow, double corrected_area, int i_neighbour_count, double& contact_sigma, double& contact_tau, double& failure_criterion_state, bool& sliding, int mapping);
       //virtual void CalculateOnContactElements();
 
       virtual void ComputeStressStrain(   double mStressTensor[3][3],
@@ -257,6 +257,7 @@ namespace Kratos
         vector<double> mNeighbourDelta;
         vector<int> mIniNeighbourFailureId;
         vector<int> mNeighbourFailureId;
+        vector<int> mMapping_New_Ini;
         
        
                    
