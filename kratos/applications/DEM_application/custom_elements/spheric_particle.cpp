@@ -1171,6 +1171,8 @@ namespace Kratos
               mGlobalKt                 = rCurrentProcessInfo[GLOBAL_KT];
               mLimitSurfaceOption       = rCurrentProcessInfo[LIMIT_SURFACE_OPTION];
               mRotationSpringOption     = rCurrentProcessInfo[ROTATION_SPRING_OPTION];
+              
+              mpTimeStep                 =  &(rCurrentProcessInfo[TIME_STEPS]); // reference.
 
               if (mRotationOption){
                   mRollingFriction      = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
