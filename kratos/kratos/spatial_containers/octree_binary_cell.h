@@ -1,8 +1,8 @@
-//
+//   
 //   Project Name:        Kratos       
 //   Last Modified by:    $Author: abel $
-//   Date:                $Date: 2012-03-22 17:22:14 $
-//   Revision:            $Revision: 1.16 $
+//   Date:                $Date: 2013-05-27 16:48:42 $
+//   Revision:            $Revision: 1.23 $
 //
 //
 
@@ -15,9 +15,6 @@
 // System includes
 #include <string>
 #include <iostream> 
-
-//temporary
-//#include "gid_boundingbox.h"
 
 // External includes 
 
@@ -121,13 +118,19 @@ namespace Kratos {
 
         virtual ~OctreeBinaryCell() {
 
-            configuration_type::DeleteData(data_);
+            if (data_) configuration_type::DeleteData(data_);
             delete [] children_;
         }
 
         void DeleteChildren() {
            delete [] children_;
            children_=NULL;
+        }
+        void DeleteData() {
+          if (data_){
+            configuration_type::DeleteData(data_);
+            data_=NULL;
+          }
         }
         ///@}
         ///@name Operators
@@ -139,7 +142,7 @@ namespace Kratos {
         ///@{
 
         std::size_t GetChildIndex(key_type x_key, key_type y_key, key_type z_key) const {
-            char next_level = level_ - 1;
+	  char next_level = ( char)( level_ - 1);
             key_type level_bit = 1 << next_level;
             return (((x_key & level_bit) >> next_level) + (((y_key & level_bit) >> next_level) << 1) + (((z_key & level_bit) >> next_level) << 2));
         }
@@ -152,7 +155,7 @@ namespace Kratos {
 
             children_ = new OctreeBinaryCell[CHILDREN_NUMBER];
 
-            char next_level = level_ - 1;
+            char next_level = ( char)( level_ - 1);
 
             for (std::size_t i = 0; i < CHILDREN_NUMBER; i++) {
                 children_[i].SetMinKey(min_key_[0] | ((i & 1) << next_level), min_key_[1] | (((i & 2) >> 1)) << next_level, min_key_[2] | (((i & 4) >> 2)) << next_level);
@@ -162,22 +165,16 @@ namespace Kratos {
             return 0; // Zero says no error!
         }
 
-        double GetSize() const {
-            const double scale = 1.00 / (1 << ROOT_LEVEL);
-
-            return (1 << level_) * scale; // I'm doing it in this way to avoid division
-        }
-
-        void GetMinPoint(double* min_point) const {
+        void GetMinPointNormalized(double* min_point) const {
             for (std::size_t i = 0; i < DIMENSION; i++) {
-                min_point[i] = GetCoordinate(min_key_[i]);
+                min_point[i] = GetCoordinateNormalized(min_key_[i]);
             }
         }
 
-        void GetMaxPoint(double* max_point) const {
-            double size = GetSize();
+        void GetMaxPointNormalized(double* max_point) const {
+            double size = CalcSizeNormalized();
             for (std::size_t i = 0; i < DIMENSION; i++) {
-                max_point[i] = GetCoordinate(min_key_[i]) + size;
+                max_point[i] = GetCoordinateNormalized(min_key_[i]) + size;
             }
         }
 
@@ -342,22 +339,22 @@ namespace Kratos {
                 position[i] = (keys[i] - min_key_[i]) >> (level_-1);
             }
             std::size_t index = position[0] + position[1] * 3 + position[2] * 9;
-//            assert(index <= 26);
-            if(local_index[index] > 26)
-            {
-                KRATOS_WATCH(int(level_));
-                KRATOS_WATCH(index);
-                KRATOS_WATCH(min_key_[0]);
-                KRATOS_WATCH(min_key_[1]);
-                KRATOS_WATCH(min_key_[2]);
-                KRATOS_WATCH(keys[0]);
-                KRATOS_WATCH(keys[1]);
-                KRATOS_WATCH(keys[2]);
-                KRATOS_WATCH(position[0]);
-                KRATOS_WATCH(position[1]);
-                KRATOS_WATCH(position[2]);
-                KRATOS_WATCH(local_index[index]);
-            }
+            assert(index <= 26);
+//            if(local_index[index] > 26)
+//            {
+//                KRATOS_WATCH(int(level_));
+//                KRATOS_WATCH(index);
+//                KRATOS_WATCH(min_key_[0]);
+//                KRATOS_WATCH(min_key_[1]);
+//                KRATOS_WATCH(min_key_[2]);
+//                KRATOS_WATCH(keys[0]);
+//                KRATOS_WATCH(keys[1]);
+//                KRATOS_WATCH(keys[2]);
+//                KRATOS_WATCH(position[0]);
+//                KRATOS_WATCH(position[1]);
+//                KRATOS_WATCH(position[2]);
+//                KRATOS_WATCH(local_index[index]);
+//            }
             return local_index[index];
 
         }
@@ -367,7 +364,7 @@ namespace Kratos {
             objects_.push_back(object);
         }
 
-        void TransferObjectsToSons(){      
+        void TransferObjectsToSonsNormalized(){      
           
           if (!objects_.size()) return;
           assert(this->HasChildren());
@@ -379,22 +376,18 @@ namespace Kratos {
           for (std::size_t i = 0; i < CHILDREN_NUMBER; i++){            
             OctreeBinaryCell* son = pGetChild(i);
             if (son->HasChildren()){
-              son->TransferObjectsToSons();
+              son->TransferObjectsToSonsNormalized();
               continue;
             }
-            son->GetMinPoint(min_coord);
-            son->GetMaxPoint(max_coord);
+            son->GetMinPointNormalized(min_coord);
+            son->GetMaxPointNormalized(max_coord);
             pointer_type object;
             for (int i=0;i<(int)objects_.size();i++){
               object=objects_[i];
             //for (object_container_type::iterator i_object = objects_.begin(); i_object != objects_.end(); i_object++) {
-
-
-              KRATOS_ERROR(std::logic_error,"To be added to configure", "")
-              // To be added to configure
-              //const int is_intersected = configuration_type::IsIntersected(object,tolerance, min_coord, max_coord);
-              //if(is_intersected)
-              //  son->Insert(object);
+              const int is_intersected = configuration_type::IsIntersected(object,tolerance, min_coord, max_coord);
+              if(is_intersected)
+                son->Insert(object);
             }
           }        
 
@@ -416,7 +409,7 @@ namespace Kratos {
             return level_;
         }
 
-        void GetMinKey(key_type& min_key_x, key_type& min_key_y, key_type& min_key_z) {
+        void GetMinKey(key_type& min_key_x, key_type& min_key_y, key_type& min_key_z) const {
             min_key_x = min_key_[0];
             min_key_y = min_key_[1];
             min_key_z = min_key_[2];
@@ -448,12 +441,6 @@ namespace Kratos {
             return children_;
         }
 
-        double GetCoordinate(key_type key) const {
-            const double scale = 1.00 / (1 << ROOT_LEVEL);
-
-            return key * scale;
-        }
-
         data_type* pGetData() const
         {
             return data_;
@@ -472,6 +459,12 @@ namespace Kratos {
         std::vector<pointer_type>* pGetObjects()
         {
           return &objects_;
+        }
+
+        void EmptyObjects()
+        {
+          object_container_type tmp;     
+          tmp.swap(objects_);
         }
 
         ///@}
@@ -508,8 +501,8 @@ namespace Kratos {
         /// Print object's data.
 
         virtual void PrintData(std::ostream& rOStream) const {
-            rOStream << "(" << GetCoordinate(min_key_[0]) << "," << GetCoordinate(min_key_[1]) << "," << GetCoordinate(min_key_[2]) << "),";
-            rOStream << "(" << GetCoordinate(min_key_[0]) + GetSize() << "," << GetCoordinate(min_key_[1]) + GetSize() << "," << GetCoordinate(min_key_[2]) + GetSize() << ")" << std::endl;
+            rOStream << "(" << GetCoordinateNormalized(min_key_[0]) << "," << GetCoordinateNormalized(min_key_[1]) << "," << GetCoordinateNormalized(min_key_[2]) << "),";
+            rOStream << "(" << GetCoordinateNormalized(min_key_[0]) + CalcSizeNormalized() << "," << GetCoordinateNormalized(min_key_[1]) + CalcSizeNormalized() << "," << GetCoordinateNormalized(min_key_[2]) + CalcSizeNormalized() << ")" << std::endl;
 
             for (std::size_t i = 0; i < CHILDREN_NUMBER; i++) {
                 if (children_) {
@@ -583,6 +576,18 @@ namespace Kratos {
         data_type* data_;
         object_container_type objects_;
         
+
+        double CalcSizeNormalized() const {
+          const double scale = 1.00 / (1 << ROOT_LEVEL);
+
+          return (1 << level_) * scale; // I'm doing it in this way to avoid division
+        }
+
+        double GetCoordinateNormalized(key_type key) const {
+            const double scale = 1.00 / (1 << ROOT_LEVEL);
+
+            return static_cast<double>(key * scale);
+        }
 
         ///@}
         ///@name Private Operators
