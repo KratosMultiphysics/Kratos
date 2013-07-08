@@ -82,12 +82,7 @@ namespace Kratos
 
             ParticleWeakVectorType& mrNeighbours                  = this->GetValue(NEIGHBOUR_ELEMENTS);            
             ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
-
-            ParticleWeakVectorType tempNeighbours;
-            
-            tempNeighbours.swap(mrNeighbours);
-            
-            mrNeighbours.clear();
+ 
             r_continuum_ini_neighbours.clear();
                         
             size_t ini_size = 0;
@@ -97,12 +92,9 @@ namespace Kratos
             *mpFailureId=1;
 
             //SAVING THE INICIAL NEIGHBOURS, THE DELTAS AND THE FAILURE ID
-             
-            //mNeighbourFailureId.resize(mrNeighbours.size());
-            //mNeighbourDelta.resize(mrNeighbours.size());
-            
-            for(ParticleWeakIteratorType_ptr ineighbour = tempNeighbours.ptr_begin();  //loop over the temp neighbours and store into a initial_neighbours vector.
-            ineighbour != tempNeighbours.ptr_end(); ineighbour++)
+                  
+            for(ParticleWeakIteratorType_ptr ineighbour = mrNeighbours.ptr_begin();  //loop over the temp neighbours and store into a initial_neighbours vector.
+            ineighbour != mrNeighbours.ptr_end(); ineighbour++)
             {
                
               
@@ -115,10 +107,10 @@ namespace Kratos
                 double initial_delta                = radius_sum - distance;
 
                 int r_other_continuum_group         = ((*ineighbour).lock())->GetGeometry()(0)->GetSolutionStepValue(PARTICLE_CONTINUUM);
-
+   
                 if( ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) ) || ( fabs(initial_delta)>1.0e-6 ) ) // which would be the appropiate tolerance?
                 
-                //THESE ARE THE CASES THAT NEED TO STORE THE INITIAL NEIGHBOURS
+                //THESE ARE THE CASES THAT NEED TO STORE THE INITIAL NEIGHBOURS  #5
                 {
                     //Number of contacts accounting.
               /*
@@ -126,30 +118,26 @@ namespace Kratos
 
                     total_number_of_contacts++;
              
-             */ //MSIMSI 10
+             */ //MSIMSI 10 : mira aixo no ha d'anar aqui pk aki no trobem els que son de diferent grup cohesiu i tenen 0 indentació.... A més a Set Initila neigh només s'hi entra si 
+                  //estem en un cas cohesiu o amb delta. per tant ha de ser una operation fora i comuna amb la bàsica.
              
                     //initial neighbours
 
                     ini_size++;
-                                       
-                    mrNeighbours.push_back(*ineighbour);    
-                    mNeighbourFailureId.resize(mrNeighbours.size());
-                    mNeighbourDelta.resize(mrNeighbours.size());
                     
                     mIniNeighbourIds.resize(ini_size);         
                     mIniNeighbourDelta.resize(ini_size);
                     mIniNeighbourFailureId.resize(ini_size);           
-                    
+                    mMapping_New_Ini.resize(ini_size); 
+        
                     mIniNeighbourIds[ini_size - 1]          = ((*ineighbour).lock())->Id();
                     mIniNeighbourDelta[ini_size - 1]        = 0.0;
                     mIniNeighbourFailureId[ini_size - 1]    = 1;
-              
-                    
+                    mMapping_New_Ini[ini_size - 1]          = ini_size - 1;
+                                 
                     if (mDeltaOption == true)
-                    {
-            
+                    {            
                         mIniNeighbourDelta[ini_size - 1]    = initial_delta;
-                        mNeighbourDelta[ini_size - 1]       = initial_delta;                        //this->GetValue(PARTICLE_CONTACT_DELTA)[i]               =   initial_delta; //these variables are different and need to be kept.
                                                 
                     }
 
@@ -159,8 +147,8 @@ namespace Kratos
                         if ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) )
                         {
                             
-                            mIniNeighbourFailureId[ini_size - 1]=0;//this->GetValue(PARTICLE_INITIAL_FAILURE_ID)[ini_size - 1]=0;
-                            mNeighbourFailureId[ini_size - 1] = 0; //this->GetValue(PARTICLE_CONTACT_FAILURE_ID)[i]=0;
+                            mIniNeighbourFailureId[ini_size - 1]=0;
+                           
                             *mpFailureId=0; // if a cohesive contact exist, the FailureId becomes 0.          
                             continuum_ini_size++;
                                 
@@ -183,6 +171,7 @@ namespace Kratos
               
             } //end for: ParticleWeakIteratorType ineighbour
             
+
             if (mContinuumSimulationOption == true)
             {
               
@@ -269,9 +258,7 @@ namespace Kratos
         
         KRATOS_TRY
           
-          KRATOS_TIMER_START("Z_BALL2BALL_0_FORA_LOOP_VEINS")
-          
-          
+
           ParticleWeakVectorType& mrNeighbours         = this->GetValue(NEIGHBOUR_ELEMENTS); 
           
           double dt = rCurrentProcessInfo[DELTA_TIME];
@@ -306,23 +293,18 @@ namespace Kratos
           //LINEAR MODIFICATION OF THE APPLIED PRESSURE WAS HERE #C1
 
           size_t i_neighbour_count = 0;
-          
-          
-          KRATOS_TIMER_STOP("Z_BALL2BALL_0_FORA_LOOP_VEINS")
-       
+                 
           for(ParticleWeakIteratorType neighbour_iterator = mrNeighbours.begin();
               neighbour_iterator != mrNeighbours.end(); neighbour_iterator++)
           {
               // BASIC CALCULATIONS
               
-              KRATOS_TIMER_START("Z_BALL2BALL_1_INICIALITZACIONS")
-              KRATOS_TIMER_START("Z_BALL2BALL_1_INICIALITZACIONS_1") 
+
               array_1d<double,3> other_to_me_vect   = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
               const double &other_radius                  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
               const double &other_sqrt_of_mass            = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
               const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-             KRATOS_TIMER_STOP("Z_BALL2BALL_1_INICIALITZACIONS_1") 
-              KRATOS_TIMER_START("Z_BALL2BALL_1_INICIALITZACIONS_2") 
+
               double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                                                            other_to_me_vect[1] * other_to_me_vect[1] +
                                                            other_to_me_vect[2] * other_to_me_vect[2]);
@@ -357,8 +339,9 @@ namespace Kratos
               double OldLocalCoordSystem[3][3]      = {{0.0}, {0.0}, {0.0}};
 
               bool sliding = false;
-               KRATOS_TIMER_STOP("Z_BALL2BALL_1_INICIALITZACIONS_2") 
-              KRATOS_TIMER_START("Z_BALL2BALL_1_INICIALITZACIONS_3")    
+              
+              int mapping = mMapping_New_Ini[i_neighbour_count];
+  
               if (mUniformMaterialOption){
                   equiv_radius                      = mRadius;
                   equiv_young                       = mYoung;
@@ -382,9 +365,6 @@ namespace Kratos
 
               // Globally defined parameters
                   double aux_norm_to_tang;
-              KRATOS_TIMER_STOP("Z_BALL2BALL_1_INICIALITZACIONS_3")   
-              
-              KRATOS_TIMER_START("Z_BALL2BALL_2_KN_KT")
                   
               if (mGlobalVariablesOption){
                   kn                                = mGlobalKn;
@@ -398,9 +378,6 @@ namespace Kratos
                   aux_norm_to_tang                  = sqrt(kt / kn);
               }
 
-              KRATOS_TIMER_STOP("Z_BALL2BALL_2_KN_KT")
-              
-              KRATOS_TIMER_START("Z_BALL2BALL_3_HISTORIC_KN")
               // Historical minimun K for the critical time
 
               if (mCriticalTimeOption){
@@ -411,11 +388,7 @@ namespace Kratos
                   }
 
               }
-              
-              KRATOS_TIMER_STOP("Z_BALL2BALL_3_HISTORIC_KN")
-              
-              KRATOS_TIMER_START("Z_BALL2BALL_4_RESITUTION")
-             
+
               if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0){
                   equiv_visco_damp_coeff_normal     = 2 * sqrt(equiv_mass * kn);
                   equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(equiv_mass * kt);
@@ -428,22 +401,13 @@ namespace Kratos
                   equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(equiv_restitution_coeff) * sqrt(equiv_mass * kt)) / (sqrt((log(equiv_restitution_coeff) * log(equiv_restitution_coeff)) + (M_PI * M_PI)));
               }
 
-              KRATOS_TIMER_STOP("Z_BALL2BALL_4_RESITUTION")
-              
-              KRATOS_TIMER_START("Z_BALL2BALL_5_DELTADISPL")
              
              //BLOC INITIALIZE CONTACT
              //InitializeContactElements(neighbour_iterator, corrected_area); MSI #C3:
 
               EvaluateDeltaDisplacement(DeltDisp, RelVel, NormalDir, OldNormalDir, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator);
-              
-              KRATOS_TIMER_STOP("Z_BALL2BALL_5_DELTADISPL")
-              
-              KRATOS_TIMER_START("Z_BALL2BALL_6_ROTATION")
+
               DisplacementDueToRotation(DeltDisp, OldNormalDir, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
-             KRATOS_TIMER_STOP("Z_BALL2BALL_6_ROTATION")
-              
-             KRATOS_TIMER_START("Z_BALL2BALL_7_GLOBAL_LOCAL")
              
               double LocalDeltDisp[3] = {0.0};
               double LocalElasticContactForce[3]  = {0.0}; // 0: first tangential, // 1: second tangential, // 2: normal force
@@ -458,12 +422,6 @@ namespace Kratos
               GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, DeltDisp, LocalDeltDisp);
               GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, RelVel, LocalRelVel);
              
-              KRATOS_TIMER_STOP("Z_BALL2BALL_7_GLOBAL_LOCAL")
-              
-              KRATOS_TIMER_START("Z_BALL2BALL_8_TRANSLATION_FORCES")
-              
-              
-              
               // TRANSLATION FORCES
            
               if  (indentation > 0.0 || (mNeighbourFailureId[i_neighbour_count] == 0) )//*  //#3
@@ -509,42 +467,33 @@ namespace Kratos
               // if(corrected_area <1e-09) {KRATOS_WATCH(corrected_area) KRATOS_WATCH(this->Id())}  MSIMSI 10
 
   //BLOC PROPI
-              KRATOS_TIMER_STOP("Z_BALL2BALL_8_TRANSLATION_FORCES")
-             
-  
-              //KRATOS_TIMER_START("Z_BALL2BALL_9_EVALUATEFAILURE")
+
               
               double contact_tau = 0.0;
               double contact_sigma = 0.0;
               
               if(mNeighbourFailureId[i_neighbour_count] == 0)
-              {
-                EvaluateFailureCriteria(LocalElasticContactForce,ShearForceNow,corrected_area,i_neighbour_count,contact_sigma,contact_tau, failure_criterion_state, sliding);
+              {                
+                EvaluateFailureCriteria(LocalElasticContactForce,ShearForceNow,corrected_area,i_neighbour_count,contact_sigma,contact_tau, failure_criterion_state, sliding, mapping);
               }
-              
-              //KRATOS_TIMER_STOP("Z_BALL2BALL_9_EVALUATEFAILURE")
-              
-              //KRATOS_TIMER_START("Z_BALL2BALL_10_CALCULATEVISCO")
-              
+        
               // VISCODAMPING (applyied locally)
               double ViscoDampingLocalContactForce[3]    = {0.0};
 
+                if  (indentation > 0.0 || (mNeighbourFailureId[i_neighbour_count] == 0) )//*  //#3
+              {  
+              
               CalculateViscoDamping(LocalRelVel,ViscoDampingLocalContactForce,indentation,equiv_visco_damp_coeff_normal,equiv_visco_damp_coeff_tangential,sliding);
-  
+              }
               // Transforming to global forces and adding up
               double LocalContactForce[3] =                 {0.0};
               double ViscoDampingGlobalContactForce[3] =    {0.0}; //OK
               double GlobalContactForce[3] =                {0.0};
               
-              //KRATOS_TIMER_STOP("Z_BALL2BALL_10_CALCULATEVISCO")
-
-              //KRATOS_TIMER_START("Z_BALL2BALL_11_ADDUPFORCES")
-              
+               
               AddUpForcesAndProject(LocalCoordSystem,mOldNeighbourContactForces,LocalContactForce,LocalElasticContactForce,GlobalContactForce,
                                     GlobalElasticContactForce,ViscoDampingLocalContactForce,ViscoDampingGlobalContactForce,rContactForce,
                                     i_neighbour_count);
-              
-              //KRATOS_TIMER_STOP("Z_BALL2BALL_11_ADDUPFORCES")
               
 //BLOC POISSON CONTRIBUTION
 
@@ -552,24 +501,19 @@ namespace Kratos
               //MSI: repondre en un futur
 
 // ROTATION FORCES
-              
-              //KRATOS_TIMER_START("Z_BALL2BALL_12_COMPUTEMOMENTS")
+
 
               ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce,InitialRotaMoment,MaxRotaMoment,LocalCoordSystem,other_radius,rContactMoment,neighbour_iterator);
-              
-              //KRATOS_TIMER_STOP("Z_BALL2BALL_12_COMPUTEMOMENTS")
+  
 //COMPUTE THE MEAN STRESS TENSOR:
               
               //StressTensorOperations(mStressTensor,GlobalElasticContactForce,other_to_me_vect,distance,radius_sum,corrected_area,neighbour_iterator,rCurrentProcessInfo);
-          
-        
+     
               //CalculateOnContactElements(); #C5
 
               i_neighbour_count++;
 
           }//for each neighbour
-
-          //KRATOS_TIMER_START("Z_BALL2BALL_13_FORA_FINAL")
           
   		  rInitialRotaMoment [0] = InitialRotaMoment [0];
           rInitialRotaMoment [1] = InitialRotaMoment [1];
@@ -580,10 +524,6 @@ namespace Kratos
           
             //BLOC ComputeStressStrain
           //ComputeStressStrain(mStressTensor, rCurrentProcessInfo);  //MSIMSI
-          
-          //KRATOS_TIMER_STOP("Z_BALL2BALL_13_FORA_FINAL")
-          
-          //KRATOS_TIMER_STOP("Z_BALL2BALL")
           
           KRATOS_CATCH("")         
              
@@ -721,7 +661,7 @@ namespace Kratos
 
        //composició 
    
-     ParticleWeakVectorType& mrNeighbours                = this->GetValue(NEIGHBOUR_ELEMENTS);
+     ParticleWeakVectorType& mrNeighbours                = this->GetValue(NEIGHBOUR_ELEMENTS); //MSIMSI 10 aixo no sha de treure de un getvalue sino del membre.
   
       
       for(ParticleWeakIteratorType neighbour_iterator = mrNeighbours.begin();
@@ -890,7 +830,7 @@ namespace Kratos
          mTanContactInternalFriccion    = tan(mContactInternalFriccion);
          
          mFailureCriterionOption        = rCurrentProcessInfo[FAILURE_CRITERION_OPTION];
-         
+
          mTensionLimit                  = rCurrentProcessInfo[CONTACT_SIGMA_MIN]*1e6; //N/m2
          mCompressionLimit              = rCurrentProcessInfo[CONTACT_SIGMA_MAX]*1e6;
          mTauZero                       = rCurrentProcessInfo[CONTACT_TAU_ZERO]*1e6;           
@@ -905,8 +845,7 @@ namespace Kratos
            
         }// if (!mInitializedVariablesFlag)
          
-         
-          
+   
           //#C6: Initialize Volume... Stresstraintensors...MSIMSI 7
 
       }//void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
@@ -962,11 +901,10 @@ namespace Kratos
      void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() //NOTA: LOOP SOBRE TOTS ELS VEINS PROVISIONALS, TEN KEDERAS UNS QUANTS FENT PUSHBACK. ALS VECTORS DELTA ETC.. HI HAS DE POSAR
      //LA POSICIÓ DELS QUE SON DEFINITIUS.
      {
-       
-       
+   
        ParticleWeakVectorType TempNeighbours;
-       TempNeighbours.swap(this->GetValue(NEIGHBOUR_ELEMENTS)); 
- 
+       TempNeighbours.swap(this->GetValue(NEIGHBOUR_ELEMENTS)); //GetValue is needed becouse this information comes from the strategy (the search function)
+       
        this->GetValue(NEIGHBOUR_ELEMENTS).clear(); 
               
        unsigned int neighbour_counter       = 0;
@@ -975,6 +913,7 @@ namespace Kratos
        vector<double>               temp_neighbours_delta;
        vector<int>                  temp_neighbours_failure_id;
        vector<array_1d<double, 3> > temp_neighbours_contact_forces;
+       vector<int>                  temp_neighbours_mapping;
 
        array_1d<double, 3> vector_of_zeros;
        vector_of_zeros[0]                   = 0.0;
@@ -990,7 +929,7 @@ namespace Kratos
           double                ini_delta       = 0.0;
           int                   failure_id      = 1;
           array_1d<double, 3>   neigh_forces    = vector_of_zeros;
-              
+          double                mapping            = -1;    
 
           //Loop Over Initial Neighbours
 
@@ -999,9 +938,10 @@ namespace Kratos
                            
               if (static_cast<int>((*i).lock()->Id()) == mIniNeighbourIds[k])
               {               
-                //mMapping_New_Ini[neighbour_counter] = k; MSIMSI 1: aixo és per kuan trenqui es modifiqui el vector de inifailureid corresponents.
+                
                 ini_delta  = mIniNeighbourDelta[k];
                 failure_id = mIniNeighbourFailureId[k];
+                mapping = k; 
                 
                 break;
               }
@@ -1030,7 +970,7 @@ namespace Kratos
             
             if ( indentation > 0.0 || (indentation < 1.0e-6 && failure_id == 0 ) )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10: guillermo tolerancia
             {
-            
+           
                 this->GetValue(NEIGHBOUR_ELEMENTS).push_back(*i);
                 size_t size = this->GetValue(NEIGHBOUR_ELEMENTS).size();
                 
@@ -1038,8 +978,10 @@ namespace Kratos
                 temp_neighbours_delta.resize(size);
                 temp_neighbours_failure_id.resize(size);
                 temp_neighbours_contact_forces.resize(size);
+                temp_neighbours_mapping.resize(size);
                 
                 temp_neighbours_ids[neighbour_counter]              = static_cast<int>((*i).lock()->Id());
+                temp_neighbours_mapping[neighbour_counter]          = mapping;
                 temp_neighbours_delta[neighbour_counter]            = ini_delta;
                 temp_neighbours_failure_id[neighbour_counter]       = failure_id;
                 temp_neighbours_contact_forces[neighbour_counter]   = neigh_forces;
@@ -1049,17 +991,14 @@ namespace Kratos
             }
 
         }
-
+        mMapping_New_Ini.swap(temp_neighbours_mapping);
         mOldNeighbourIds.swap(temp_neighbours_ids);
         mNeighbourDelta.swap(temp_neighbours_delta);
         mNeighbourFailureId.swap(temp_neighbours_failure_id);
         mOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
-        
 
-      }
+      } //ComputeNewNeighboursHistoricalData
 
-   
-   
    
       void SphericContinuumParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
       {
@@ -1146,11 +1085,11 @@ namespace Kratos
       }
 
       
-      void SphericContinuumParticle::EvaluateFailureCriteria(double LocalElasticContactForce[3],double ShearForceNow,double corrected_area, int i_neighbour_count,double& contact_sigma, double& contact_tau,double& failure_criterion_state, bool& sliding)
+      void SphericContinuumParticle::EvaluateFailureCriteria(double LocalElasticContactForce[3],double ShearForceNow,double corrected_area, int i_neighbour_count,double& contact_sigma, double& contact_tau,double& failure_criterion_state, bool& sliding, int mapping)
       {             
 
              //(1) MOHR-COULOMB FAILURE: (we don't consider rotational spring!!!!! here) need to be thought.
-      
+      /*
               if (mFailureCriterionOption==1)  //MOHR-COULOMB
               {   
                   contact_tau = ShearForceNow/(corrected_area);
@@ -1168,6 +1107,8 @@ namespace Kratos
                       sigma_max = 0;
                       sigma_min = contact_sigma;
                   }
+                  
+   
 
                   //change into principal stresses
 
@@ -1177,13 +1118,20 @@ namespace Kratos
                   double sigma_I = centre + radius;
                   double sigma_II = centre - radius;
 
+               
+                  
                   // Check:
            
                   
                   double distance_to_failure = ( mTauZero/(mTanContactInternalFriccion) + centre )*mSinContactInternalFriccion;
               
                   failure_criterion_state = radius/distance_to_failure;
-        
+                
+                  KRATOS_WATCH(sigma_I - sigma_II)
+                  KRATOS_WATCH(2*mTauZero*mCosContactInternalFriccion + (sigma_I + sigma_II)*mSinContactInternalFriccion)
+                  
+                  
+                  
                 if ( sigma_I - sigma_II >= 2*mTauZero*mCosContactInternalFriccion + (sigma_I + sigma_II)*mSinContactInternalFriccion )
                   {
 
@@ -1196,11 +1144,11 @@ namespace Kratos
   
                   
               } //MOHR-COULOMB
-        
+        */
               ///(2) UNCOUPLED FRACTURE
         
               ///vam decidir amb miguel angel de no fer el mapping de les shear fins al pas seguent.. esta correcte? afecta quan trenca?
-       /* 
+       
               if (mFailureCriterionOption==2)//UNCOUPLED FRACTURE
               {    
                 
@@ -1208,47 +1156,58 @@ namespace Kratos
                   contact_sigma = LocalElasticContactForce[2]/(corrected_area);
 
                   //double mTauZero = 0.5*sqrt(mCompressionLimit*mTensionLimit); 
-                  double mTauZero = rCurrentProcessInfo[CONTACT_TAU_ZERO]*1e6;
-              
+                               
                   if (LocalElasticContactForce[2]>=0)
                   {
-                      double tau_strength = mTauZero+tan(mContactInternalFriccion)*contact_sigma;
+                      double tau_strength = mTauZero+mTanContactInternalFriccion*contact_sigma;
                       
                       failure_criterion_state = contact_tau/tau_strength;
                                             
                       if(contact_tau>tau_strength)
                       {
                           mNeighbourFailureId[i_neighbour_count] = 2;
+                          mIniNeighbourFailureId[ mapping ] = 2;
+                          
                           sliding = true;
                       }
                   } //positive sigmas
+                  
                   else //negative sigmas
                   {
                       double tau_strength = mTauZero;
             
                       failure_criterion_state = GeometryFunctions::max(contact_tau/tau_strength, -contact_sigma/mTensionLimit) ;
-            
+
                       if(contact_tau > tau_strength)
                       {
                           mNeighbourFailureId[i_neighbour_count] = 3;  //shear failure
+                          mIniNeighbourFailureId[ mapping ] = 3;
                           sliding = true;
               
                           if(contact_sigma<-mTensionLimit)
                           {
                               mNeighbourFailureId[i_neighbour_count] = 12;
+                              mIniNeighbourFailureId[ mapping ] = 12;
                           } //both shear and tension
               
                       }
+                   
                       else if(contact_sigma<-mTensionLimit)
                       {
                           mNeighbourFailureId[i_neighbour_count] = 4; //tension failure
+                          mIniNeighbourFailureId[ mapping ] = 4;
                           sliding = true;
+                          
+                                   
+                      KRATOS_WATCH(mNeighbourFailureId[i_neighbour_count])
+                     
+                      
                       }
                       
                   } //negative values of sigma              
           
               } //UNCOUPLED FRACTURE
-           */     
+              
     
         /*   MSIMSI 10 Activar la busqueda quan un peti. 
           if(mNeighbourFailureId[i_neighbour_count] != 0 && rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
@@ -1408,6 +1367,8 @@ namespace Kratos
  * #2: 0.25 is becouse we take only the half of the equivalent mRadius, corresponding to the case of one sphere with mRadius Requivalent and other = mRadius 0.
  * #3: For detached particles we enter only if the indentation is > 0. For attached particles we enter only if the particle is still attached.
  * #4: we use incremental calculation. YADE develops a complicated "absolute method"
+ * #5: We only store in the initial neighbours array the ones that are cohesive or the ones that have possitive or negative initial indentation. In other words,
+ *     the non-cohesive ones with 0 indentation (<some tolerance) don't have to be stored since we can treat it indistinctly from other new neighbours that the particle in stury would meet.
 */
 
 //UNDER CONSTRUCTION::
