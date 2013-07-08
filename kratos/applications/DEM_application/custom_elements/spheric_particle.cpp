@@ -172,6 +172,8 @@ namespace Kratos
           double added_potential_energy_of_contacts   = 0.0;
           size_t i_neighbour_count                    = 0;
 
+          ComputeNewNeighboursHistoricalData();
+
           for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin();
               neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
               const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
@@ -361,8 +363,8 @@ namespace Kratos
           GeometryFunctions::ComputeContactLocalCoordSystem(OldNormalDir, OldLocalCoordSystem); //Old Local Coord System
 
           // VELOCITIES AND DISPLACEMENTS
-          array_1d<double, 3 > other_vel            = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
-          array_1d<double, 3 > other_delta_displ    = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(DELTA_DISPLACEMENT);
+          array_1d<double, 3 > other_vel          = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
+          array_1d<double, 3 > other_delta_displ  = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(DELTA_DISPLACEMENT);
 
           RelVel[0] = (vel[0] - other_vel[0]);
           RelVel[1] = (vel[1] - other_vel[1]);
