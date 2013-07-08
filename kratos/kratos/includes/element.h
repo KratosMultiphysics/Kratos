@@ -518,7 +518,14 @@ mpGeometry(pGeometry), mpProperties(new PropertiesType)
             Vector& Output,
             const ProcessInfo& rCurrentProcessInfo)
     {
+    } //must be changed in all elements and deleted
+
+    virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+					      std::vector<double>& Output,
+					      const ProcessInfo& rCurrentProcessInfo)
+    {
     }
+
 
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
             std::vector< array_1d<double, 3 > >& Output,

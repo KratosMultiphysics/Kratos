@@ -123,6 +123,8 @@ public:
 
     KRATOS_DEFINE_LOCAL_FLAG( AXISYMMETRIC );
 
+    KRATOS_DEFINE_LOCAL_FLAG( TOTAL_DEFORMATION_GRADIENT );
+
     /**
      *Structure to be used by the element to pass the parameters into the constitutive law
      * @param mOptions flags for the current Constitutive Law Parameters
