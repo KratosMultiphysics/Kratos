@@ -233,6 +233,11 @@ namespace Kratos
       int mRotationSpringOption;
       vector<int> mOldNeighbourIds;
       vector< array_1d<double, 3> > mOldNeighbourContactForces;
+      
+      //pointers:
+      int *mpTimeStep;       
+      
+      
       //ParticleWeakVectorType mrNeighbours;
 
       ///@name Protected static Member Variables
