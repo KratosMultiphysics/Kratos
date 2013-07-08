@@ -29,6 +29,8 @@ namespace Kratos
   
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, AXISYMMETRIC,                8 );
 
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, TOTAL_DEFORMATION_GRADIENT,  9 );
+
     /**
      * Constructor.
      */
