@@ -10,6 +10,9 @@ REM ErrorFile: "%2\%1.err"
 DEL "%2\%1.info" 
 DEL "%2\%1.err"
 
+REM Updathe PATH
+set PATH=%3\\kratos;%3\\kratos\\libs;%PATH%
+
 REM Set the number of threads for OpenMP
 REM export OMP_NUM_THREADS=%5
 set OMP_NUM_THREADS=%5
