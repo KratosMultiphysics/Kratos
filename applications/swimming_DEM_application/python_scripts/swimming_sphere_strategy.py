@@ -5,91 +5,101 @@ from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 from KratosMultiphysics.PFEMApplication import *
-
 from KratosMultiphysics.StructuralApplication import *
-from UD_var import *
 
 # Importing DEM solver strategy
 
-import sphere_strategy as particles
+class ULFDEMStrategy:
 
-# Importing fluid solver strategy
+    def __init__ (self, ProblemParameters):
 
-if (SolverType == "Incompressible_Modified_FracStep"):
-    import ulf_frac_swimming as fluid
+        self.param = ProblemParameters
+        self.ImportStrategies()
 
-elif (SolverType == "FracStep"):
-    import ulf_frac_swimming as fluid
+    def ImportStrategies(self):
 
-elif (SolverType == "Quasi_Inc_Constant_Pressure"):
-    import ulf_fsi as fluid
+        import sphere_strategy as particles
 
-elif (SolverType == "Quasi_Inc_Linear_Pressure"):
-    import ulf_fsi_inc as fluid
+        # Importing fluid solver strategy
 
-else:
-    raise "Solver type not supported: options are fractional_step - \
-           modified_frac_steop - quasi_inc_constant_pres - \
-           quasi_inc_lin_pres"
+        if (self.param.SolverType == "Incompressible_Modified_FracStep"):
+            import ulf_frac_swimming as fluid
 
-def AddVariables(ParticlesModelPart, FluidModelPart):
+        elif (self.param.SolverType == "FracStep"):
+            import ulf_frac_swimming as fluid
 
-    particles.AddVariables(ParticlesModelPart)
-    fluid.AddVariables(FluidModelPart)
+        elif (self.param.SolverType == "Quasi_Inc_Constant_Pressure"):
+            import ulf_fsi as fluid
 
-    # HYDRODYNAMICS
-    ParticlesModelPart.AddNodalSolutionStepVariable(FLUID_VEL_PROJECTED)
-    ParticlesModelPart.AddNodalSolutionStepVariable(FLUID_DENSITY_PROJECTED)
-    ParticlesModelPart.AddNodalSolutionStepVariable(PRESSURE_GRAD_PROJECTED)
-    ParticlesModelPart.AddNodalSolutionStepVariable(FLUID_VISCOSITY_PROJECTED)
+        elif (self.param.SolverType == "Quasi_Inc_Linear_Pressure"):
+            import ulf_fsi_inc as fluid
 
-    # FORCES
-    ParticlesModelPart.AddNodalSolutionStepVariable(DRAG_FORCE)
-    ParticlesModelPart.AddNodalSolutionStepVariable(BUOYANCY)
+        else:
+            raise "Solver type not supported: options are fractional_step - \
+                   modified_frac_steop - quasi_inc_constant_pres - \
+                   quasi_inc_lin_pres"
 
-def AddDofs(ParticlesModelPart, FluidModelPart):
+        self.DEM = particles
+        self.fluid = fluid
 
-    particles.AddDofs(ParticlesModelPart)
-    fluid.AddDofs(FluidModelPart, compute_reactions)
+    def AddVariables(self, ParticlesModelPart, FluidModelPart):
 
-def DEMStrategy(ParticlesModelPart, domain_size):
-    DEM_solver = particles.ExplicitStrategy(ParticlesModelPart, domain_size)
+        self.DEM.AddVariables(ParticlesModelPart, self.param)
+        self.fluid.AddVariables(FluidModelPart)
 
-    return DEM_solver
+        # HYDRODYNAMICS
+        ParticlesModelPart.AddNodalSolutionStepVariable(FLUID_VEL_PROJECTED)
+        ParticlesModelPart.AddNodalSolutionStepVariable(FLUID_DENSITY_PROJECTED)
+        ParticlesModelPart.AddNodalSolutionStepVariable(PRESSURE_GRAD_PROJECTED)
+        ParticlesModelPart.AddNodalSolutionStepVariable(FLUID_VISCOSITY_PROJECTED)
 
-def FluidStrategy(OutFile, FluidOnlyModelPart, FluidModelPart, StructureModelPart, CombinedModelPart, BoxCorner1, BoxCorner2):
+        # FORCES
+        ParticlesModelPart.AddNodalSolutionStepVariable(DRAG_FORCE)
+        ParticlesModelPart.AddNodalSolutionStepVariable(BUOYANCY)
 
-    if (SolverType == "Incompressible_Modified_FracStep"):
-        fluid_solver = fluid.ULF_FSISolver(OutFile, FluidOnlyModelPart, FluidModelPart, StructureModelPart, CombinedModelPart, FSI, compute_reactions, BoxCorner1, BoxCorner2, domain_size, adaptive_refinement, bulk_modulus, density)
+    def AddDofs(self, ParticlesModelPart, FluidModelPart):
 
-        for node in FluidModelPart.Nodes:
-            node.SetSolutionStepValue(BULK_MODULUS, 0, bulk_modulus)
-            node.SetSolutionStepValue(DENSITY, 0, density)
-            node.SetSolutionStepValue(VISCOSITY, 0, 0.0001)
-            node.SetSolutionStepValue(BODY_FORCE_Y, 0, -10.0001)
+        self.DEM.AddDofs(ParticlesModelPart)
+        self.fluid.AddDofs(FluidModelPart, self.param.compute_reactions)
 
-    if (SolverType == "FracStep"):
-        fluid_solver = fluid.ULF_FSISolver(OutFile, FluidOnlyModelPart, FluidModelPart, StructureModelPart, CombinedModelPart, FSI, compute_reactions, BoxCorner1, BoxCorner2, domain_size, adaptive_refinement, bulk_modulus, density)
+    def DEMStrategy(self, ParticlesModelPart):
+        DEM_solver = self.DEM.ExplicitStrategy(ParticlesModelPart, self.param)
 
-        for node in FluidModelPart.Nodes:
-            node.SetSolutionStepValue(BULK_MODULUS, 0, 0.0)
-            node.SetSolutionStepValue(DENSITY, 0, density)
+        return DEM_solver
 
-    elif (SolverType == "Quasi_Inc_Constant_Pressure"):
-        fluid_solver = fluid.ULF_FSISolver(FluidModelPart, StructureModelPart, CombinedModelPart, compute_reactions, BoxCorner1, BoxCorner2, domain_size, adaptive_refinement)
+    def FluidStrategy(self, OutFile, FluidOnlyModelPart, FluidModelPart, StructureModelPart, CombinedModelPart, BoxCorner1, BoxCorner2):
 
-        for node in FluidModelPart.Nodes:
-            node.SetSolutionStepValue(BULK_MODULUS, 0, bulk_modulus)
-            node.SetSolutionStepValue(DENSITY, 0, density)
+        if (self.param.SolverType == "Incompressible_Modified_FracStep"):
+            fluid_solver = self.fluid.ULF_FSISolver(OutFile, FluidOnlyModelPart, FluidModelPart, StructureModelPart, CombinedModelPart, self.param.FSI, self.param.compute_reactions, BoxCorner1, BoxCorner2, self.param.domain_size, self.param.adaptive_refinement, self.param.bulk_modulus, self.param.density)
 
-    elif (SolverType == "Quasi_Inc_Linear_Pressure"):
-        fluid_solver = fluid.ULF_FSISolver(OutFile, FluidModelPart, StructureModelPart, CombinedModelPart, compute_reactions, BoxCorner1, BoxCorner2, domain_size, adaptive_refinement, bulk_modulus, density)
+            for node in FluidModelPart.Nodes:
+                node.SetSolutionStepValue(BULK_MODULUS, 0, self.param.bulk_modulus)
+                node.SetSolutionStepValue(DENSITY, 0, self.param.density)
+                node.SetSolutionStepValue(VISCOSITY, 0, 0.0001)
+                node.SetSolutionStepValue(BODY_FORCE_Y, 0, -10.0001)
 
-        for node in FluidModelPart.Nodes:
-            node.SetSolutionStepValue(BULK_MODULUS, 0, bulk_modulus)
-            node.SetSolutionStepValue(DENSITY, 0, density)
+        if (self.param.SolverType == "FracStep"):
+            fluid_solver = self.fluid.ULF_FSISolver(OutFile, FluidOnlyModelPart, FluidModelPart, StructureModelPart, CombinedModelPart, self.param.FSI, self.param.compute_reactions, BoxCorner1, BoxCorner2, self.param.domain_size, self.param.adaptive_refinement, self.param.bulk_modulus, self.param.density)
 
-    fluid_solver.alpha_shape = alpha_shape
-    fluid_solver.echo_level = 2
+            for node in FluidModelPart.Nodes:
+                node.SetSolutionStepValue(BULK_MODULUS, 0, 0.0)
+                node.SetSolutionStepValue(DENSITY, 0, self.param.density)
 
-    return fluid_solver
+        elif (self.param.SolverType == "Quasi_Inc_Constant_Pressure"):
+            fluid_solver = self.fluid.ULF_FSISolver(FluidModelPart, StructureModelPart, CombinedModelPart, self.param.compute_reactions, BoxCorner1, BoxCorner2, self.param.domain_size, self.param.adaptive_refinement)
+
+            for node in FluidModelPart.Nodes:
+                node.SetSolutionStepValue(BULK_MODULUS, 0, self.param.bulk_modulus)
+                node.SetSolutionStepValue(DENSITY, 0, self.param.density)
+
+        elif (self.param.SolverType == "Quasi_Inc_Linear_Pressure"):
+            fluid_solver = self.fluid.ULF_FSISolver(OutFile, FluidModelPart, StructureModelPart, CombinedModelPart, self.param.compute_reactions, BoxCorner1, BoxCorner2, self.param.domain_size, self.param.adaptive_refinement, self.param.bulk_modulus, self.param.density)
+
+            for node in FluidModelPart.Nodes:
+                node.SetSolutionStepValue(BULK_MODULUS, 0, self.param.bulk_modulus)
+                node.SetSolutionStepValue(DENSITY, 0, self.param.density)
+
+        fluid_solver.alpha_shape = self.param.alpha_shape
+        fluid_solver.echo_level = 2
+
+        return fluid_solver
