@@ -120,6 +120,10 @@ if(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
   add_subdirectory(pure_diffusion_application)
 endif(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
 
+if(${MESHLESS_APPLICATION} MATCHES ON)
+  add_subdirectory(meshless_application)
+endif(${MESHLESS_APPLICATION} MATCHES ON)
+
 
 # if(${WIND_TURBINE_APPLICATION} MATCHES ON)
 #   add_subdirectory(wind_turbine_application)
