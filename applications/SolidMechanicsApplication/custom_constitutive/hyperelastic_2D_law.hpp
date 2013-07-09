@@ -241,28 +241,11 @@ namespace Kratos
 		
   private:
 
-			
-    /**
-     * Member Variables 
-     * @param mStressVector, Historic Stress ( 2PK_STRESS at the timestep start, CAUCHY_STRESS at the end )
-     */
-
-    Vector mStressVector;
-    StressMeasure mStressMeasure;
-
-    /**
-     * Deformation Gradient determinant from the initial to the reference configuration
-     */
-
-    Matrix mDeformationGradientF0;
-    double mDetF0;
-
-    /**
-     * Member Variables 
-     * @param mVoigtSize, VoigtTensorSize
-     */
-    unsigned int mVoigtSize;
-
+    ///@}
+    ///@Member Variables 
+    ///@{
+ 			
+ 
     ///@}
     ///@name Serialization
     ///@{
@@ -271,23 +254,11 @@ namespace Kratos
     virtual void save(Serializer& rSerializer) const
     {
       KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
-      rSerializer.save("StressVector",mStressVector);
-      int SigmaMeasure = int(mStressMeasure);
-      rSerializer.save("StressMeasure",SigmaMeasure);
-      rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
-      rSerializer.save("mDetF0",mDetF0);
     }
 
     virtual void load(Serializer& rSerializer)
     {
       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-      rSerializer.load("StressVector",mStressVector);
-      int SigmaMeasure;
-      rSerializer.load("StressMeasure",SigmaMeasure);
-      mStressMeasure= StressMeasure(SigmaMeasure);
-      rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
-      rSerializer.load("mDetF0",mDetF0);
-
     }
 
     /**
@@ -332,17 +303,6 @@ namespace Kratos
 
 
     /**
-     * Calculates the stresses for given strain state
-     * @param rStrainVector
-     * @param rConstitutiveMatrix
-     * @param rStressVector the stress vector corresponding to the deformation
-     */
-    void CalculateStress( const Vector &rStrainVector,
-			  const Matrix &rConstitutiveMatrix,
-			  Vector& rStressVector);
-
-	       
-    /**
      * calculates the linear elastic constitutive matrix in terms of Young's modulus and
      * Poisson ratio
      * @param E the Young's modulus
@@ -363,23 +323,6 @@ namespace Kratos
 				    const double &rLameLambda, 
 				    const double &rLameMu );
     
-   void CalculateAxisymNeoHookeanMatrix( Matrix& rConstitutiveMatrix, 
-					 const Matrix &rMatrixIC,
-					 const double &rdetF0, 
-					 const double &rLameLambda, 
-					 const double &rLameMu );
-    
-    void CalculateAxisymNeoHookeanMatrix( Matrix& rConstitutiveMatrix, 
-					  const Matrix &rMatrixIC,
-					  const Matrix &rinvF,
-					  const double &rdetF0, 
-					  const double &rLameLambda, 
-					  const double &rLameMu );
-   
-
-    void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, 
-				       const double &rYoungModulus, 
-				       const double &rPoissonCoefficient );
 
 
     double ConstitutiveComponent( const Matrix &rMatrixIC,
@@ -396,19 +339,6 @@ namespace Kratos
 				  const double &rLameMu, 
 				  int a, int b, int c, int d);
     
-    void CalculateStressIncrement( const Matrix &rMatrixIC,
-				   const Matrix &rIdentityMatrix,
-				   const double &rdetF0,
-				   const double &rLameLambda, 
-				   const double &rLameMu, 
-				   StressMeasure rStressMeasure,
-				   Vector& rStressVector);
-
-
-    void CalculateStressIncrement( const Vector &rStrainVector,
-				   const Matrix &rConstitutiveMatrix,
-				   Vector& rStressVector);
-
 
     
     /**

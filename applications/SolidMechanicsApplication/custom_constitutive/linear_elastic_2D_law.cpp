@@ -27,9 +27,6 @@ namespace Kratos
   LinearElastic2DLaw::LinearElastic2DLaw()
   : ConstitutiveLaw()
   {
-    //pointer to constitutive law in properties :: serializer has nan in not set internal variables
-    mDetF0 = 0;
-
   }
 
   //******************************COPY CONSTRUCTOR**************************************
@@ -37,10 +34,6 @@ namespace Kratos
 
   LinearElastic2DLaw::LinearElastic2DLaw(const LinearElastic2DLaw& rOther)
   : ConstitutiveLaw()
-    ,mStressVector(rOther.mStressVector)
-    ,mStressMeasure(rOther.mStressMeasure)
-    ,mDeformationGradientF0(rOther.mDeformationGradientF0)
-    ,mDetF0(rOther.mDetF0)
   {
   }
   
@@ -88,87 +81,16 @@ namespace Kratos
 
   double& LinearElastic2DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
   {
-    rValue = 0;
-
-    if (rThisVariable==DETERMINANT_F)
-      {
-	rValue=mDetF0;
-      }
-  
-    return rValue; 
+    return( rValue ); 
   }
 
   Vector& LinearElastic2DLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
   {
-
-    if (rThisVariable==PK2_STRESS_TENSOR)
-      {
-	rValue =  mStressVector; 
-
-	if(mStressMeasure!=StressMeasure_PK2)
-	  KRATOS_WATCH(" this is not the PK2_STRESS_TENSOR ");
-      }
-
-    if (rThisVariable==CAUCHY_STRESS_TENSOR)
-      {
-	rValue = mStressVector;
-
-	if(mStressMeasure!=StressMeasure_Cauchy)
-	  KRATOS_WATCH(" this is not the CAUCHY_STRESS_TENSOR ");
-
-      }
-
-    /////**********///// transfer purpouses
-
-    if (rThisVariable==CAUCHY_STRESS_VECTOR)
-      {
-	rValue = mStressVector;
-
-	if(mStressMeasure!=StressMeasure_Cauchy)
-	  KRATOS_WATCH(" this is not the CAUCHY_STRESS_VECTOR ");
-
-      }
-
-    if (rThisVariable==PK2_STRESS_VECTOR)
-      {
-	rValue = mStressVector;
-
-	if(mStressMeasure!=StressMeasure_PK2)
-	  KRATOS_WATCH(" this is not the PK2_STRESS_VECTOR ");
-
-      }
-				
-
     return( rValue );
   }
 
   Matrix& LinearElastic2DLaw::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
   {
-    if (rThisVariable==PK2_STRESS_TENSOR)
-      {
-	rValue = MathUtils<double>::StressVectorToTensor( mStressVector );
-
-	if(mStressMeasure!=StressMeasure_PK2){
-	  KRATOS_WATCH(" this is not the PK2_STRESS_TENSOR ");
-	  KRATOS_WATCH(mStressVector);
-	}
-
-      }
-
-    if (rThisVariable==CAUCHY_STRESS_TENSOR)
-      {	        
-	rValue = MathUtils<double>::StressVectorToTensor( mStressVector );
-
-	if(mStressMeasure!=StressMeasure_Cauchy)
-	  KRATOS_WATCH(" this is not the CAUCHY_STRESS_TENSOR ");
-
-      }
-
-    if (rThisVariable==DEFORMATION_GRADIENT) //returns the deformation gradient to compute the green lagrange strain
-      {
-	rValue = mDeformationGradientF0;
-      }
-    
     return( rValue );
   }
 
@@ -181,44 +103,17 @@ namespace Kratos
 				    const ProcessInfo& rCurrentProcessInfo )
   {
 
-    if (rThisVariable==DETERMINANT_F)
-      {
-	mDetF0=rValue;
-      }
-
-
   }
 
   void LinearElastic2DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
 				    const ProcessInfo& rCurrentProcessInfo )
   {
-		
-    if (rThisVariable==PK2_STRESS_TENSOR)
-      {
-	mStressVector=rValue;
-      }
 
-    if (rThisVariable==CAUCHY_STRESS_TENSOR)
-      {
-	mStressVector=rValue;
-      }
-
-    if (rThisVariable==CAUCHY_STRESS_VECTOR)
-      {
-	mStressVector=rValue;
-      }
-		
   }
 
   void LinearElastic2DLaw::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
 				    const ProcessInfo& rCurrentProcessInfo )
   {
-
-    if (rThisVariable==DEFORMATION_GRADIENT)
-      {
-	mDeformationGradientF0=rValue;
-      }
-
 
   }
 
@@ -233,13 +128,7 @@ namespace Kratos
 					      const GeometryType& geom,
 					      const Vector& ShapeFunctionsValues )
   {
-    unsigned int VoigtSize = 3;
-    if(props[AXISYMMETRIC_LAW] == true)
-      VoigtSize=4;
-	  
-    mStressVector = ZeroVector(VoigtSize);
-    mDetF0 = 1;
-    mDeformationGradientF0=identity_matrix<double>( VoigtSize-1 );
+ 
   }
 
   //************************************************************************************
@@ -251,7 +140,7 @@ namespace Kratos
 						  const Vector& ShapeFunctionsValues,
 						  const ProcessInfo& CurrentProcessInfo)
   {
-    mStressMeasure=StressMeasure_PK2;
+
   }
 		
   //************************************************************************************
@@ -263,7 +152,7 @@ namespace Kratos
 						const Vector& ShapeFunctionsValues,
 						const ProcessInfo& CurrentProcessInfo)
   {
-    mStressMeasure=StressMeasure_Cauchy;
+
   }
 
 
@@ -280,59 +169,64 @@ namespace Kratos
   void  LinearElastic2DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
   {
 
-    //-----------------------------//
+     //-----------------------------//
    
     //a.-Check if the constitutive parameters are passed correctly to the law calculation
     CheckParameters(rValues);
     
     //b.- Get Values to compute the constitutive law:
-    const Matrix& DeformationGradientF  = rValues.GetDeformationGradientF();
-    Vector& StressVector                = rValues.GetStressVector();
-    //const Vector& StrainVector          = rValues.GetStrainVector();
-    Matrix& ConstitutiveMatrix          = rValues.GetConstitutiveMatrix();
-    const Properties&   props           = rValues.GetMaterialProperties();
-    double detF                         = rValues.GetDeterminantF(detF); //Determinant of F from the reference configuration 
-      
+    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
+    const Matrix& DeformationGradientF    = rValues.GetDeformationGradientF();
+    const double& detF                    = rValues.GetDeterminantF(); 
+
+    Vector& StrainVector                  = rValues.GetStrainVector();
+    Matrix& DeformationGradientF0         = rValues.GetDeformationGradientF0();
+    double& detF0                         = rValues.GetDeterminantF0(); 
+
+    Vector& StressVector                  = rValues.GetStressVector();
+    Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();      
+
     //-----------------------------//
 
     //0.- Voigt size
     Flags &Options=rValues.GetOptions();
-    mVoigtSize = 3;
-
-    if(Options.Is(ConstitutiveLaw::AXISYMMETRIC))
-      mVoigtSize = 4;
-
-    //check if the given deformation gradient is the total or the incremental one for PK2
-    if(Options.Is(ConstitutiveLaw::TOTAL_DEFORMATION_GRADIENT)){
-      mDeformationGradientF0 = identity_matrix<double>( mVoigtSize-1 );
-      mDetF0 = 1;
-    }
 
     //1.- Lame constants
-    const double& YoungModulus          = props[YOUNG_MODULUS];
-    const double& PoissonCoefficient    = props[POISSON_RATIO];
+    const double& YoungModulus          = MaterialProperties[YOUNG_MODULUS];
+    const double& PoissonCoefficient    = MaterialProperties[POISSON_RATIO];
 
+    //2.-Total Deformation Gradient
+    Matrix F0 = prod(DeformationGradientF,DeformationGradientF0);
 
-    //2.-Right Cauchy-Green tensor C
-    Matrix DeformationGradientF0 = prod(DeformationGradientF,mDeformationGradientF0);
-     
-    //3.-Right Cauchy Green
-    Matrix RightCauchyGreen = prod(trans(DeformationGradientF0),DeformationGradientF0);
+    //3.-Determinant of the Total Deformation Gradient
+    detF0 *= detF;
+   
+    //4.-Right Cauchy Green
+    Matrix RightCauchyGreen = prod(trans(F0),F0);
 
-    //4.-Compute Green-Lagrange Strain  E= 0.5*(FT*F-1)
-    Vector TotalStrainVector( mVoigtSize );
-    TotalStrainVector[0] = 0.5 * ( RightCauchyGreen( 0, 0 ) - 1.00 );
-    TotalStrainVector[1] = 0.5 * ( RightCauchyGreen( 1, 1 ) - 1.00 );
-    TotalStrainVector[2] = RightCauchyGreen( 0, 1 );
+    //5.-Inverse of the Right Cauchy-Green tensor C:
+    double Trace_C=0;
+    Matrix InverseRightCauchyGreen ( 2 , 2 );
+    MathUtils<double>::InvertMatrix( RightCauchyGreen, InverseRightCauchyGreen, Trace_C);
 
+    //6.-Green-Lagrange Strain:
+    if(Options.Is( COMPUTE_STRAIN ))
+      {
+	//E= 0.5*(FT*F-1)
+	StrainVector[0] = 0.5 * ( RightCauchyGreen( 0, 0 ) - 1.00 );
+	StrainVector[1] = 0.5 * ( RightCauchyGreen( 1, 1 ) - 1.00 );
+	StrainVector[2] = RightCauchyGreen( 0, 1 );
+      }
 
-    //7.-Incremental form
+    //7.-Calculate Total PK2 stress   
+    Matrix IdentityMatrix  = identity_matrix<double> ( 2 );
+
    
     if( Options.Is( COMPUTE_STRESS ) && Options.Is( COMPUTE_CONSTITUTIVE_TENSOR ) ){
 	  
       CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
-      CalculateStress( TotalStrainVector, ConstitutiveMatrix, StressVector );		
+      CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );		
 
     }
     else if(  Options.IsNot( COMPUTE_STRESS ) && Options.Is( COMPUTE_CONSTITUTIVE_TENSOR ) ){
@@ -359,7 +253,7 @@ namespace Kratos
   
     Vector& StressVector=rValues.GetStressVector();
     const Matrix& F     =rValues.GetDeformationGradientF();
-    const double& detF  =MathUtils<double>::Det(F);
+    const double& detF  =rValues.GetDeterminantF();
     
     TransformStresses(StressVector,F,detF,StressMeasure_PK2,StressMeasure_PK1);
   }
@@ -377,50 +271,51 @@ namespace Kratos
     CheckParameters(rValues);
     
     //b.- Get Values to compute the constitutive law:
-    const Matrix& DeformationGradientF  = rValues.GetDeformationGradientF();
-    Vector& StressVector                = rValues.GetStressVector();
-    //const Vector& StrainVector          = rValues.GetStrainVector();
-    Matrix& ConstitutiveMatrix          = rValues.GetConstitutiveMatrix();
-    const Properties&   props           = rValues.GetMaterialProperties();
-    double detF                         = rValues.GetDeterminantF(detF); //Determinant of F from the reference configuration 
-      
+    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
+    const Matrix&   DeformationGradientF  = rValues.GetDeformationGradientF();
+    const double&   detF                  = rValues.GetDeterminantF(); 
+
+    Vector& StrainVector                  = rValues.GetStrainVector();
+    Matrix& DeformationGradientF0         = rValues.GetDeformationGradientF0();
+    double& detF0                         = rValues.GetDeterminantF0(); 
+
+    Vector& StressVector                  = rValues.GetStressVector();
+    Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();      
+
     //-----------------------------//
 
     //0.- Voigt size
     Flags &Options=rValues.GetOptions();
-    mVoigtSize = 3;
-
-    if(Options.Is(ConstitutiveLaw::AXISYMMETRIC))
-      mVoigtSize = 4;
-
-    //Set configuration where the the law is integrated:
-    if(Options.Is(ConstitutiveLaw::INITIAL_CONFIGURATION)){
-      mDeformationGradientF0 = identity_matrix<double>( mVoigtSize-1 );
-      mDetF0 = 1;
-    }
 
     //1.- Lame constants
-    const double& YoungModulus          = props[YOUNG_MODULUS];
-    const double& PoissonCoefficient    = props[POISSON_RATIO];
+    const double& YoungModulus          = MaterialProperties[YOUNG_MODULUS];
+    const double& PoissonCoefficient    = MaterialProperties[POISSON_RATIO];
 
+    //2.-Total Deformation Gradient
+    Matrix F0 = prod(DeformationGradientF,DeformationGradientF0);
 
-    //2.-Right Cauchy-Green tensor C
-    Matrix DeformationGradientF0 = prod(DeformationGradientF,mDeformationGradientF0);
+    //3.-Determinant of the Total Deformation Gradient
+    detF0 *= detF;
+        
+    //4.-Left Cauchy-Green tensor b
+    Matrix LeftCauchyGreen = prod(F0,trans(F0));
 
-    //3.-Left Cauchy-Green tensor b
-    Matrix LeftCauchyGreen = prod(DeformationGradientF0,trans(DeformationGradientF0));
+    //6.-Almansi Strain:
+    if(Options.Is( COMPUTE_STRAIN ))
+      {
+	// e= 0.5*(1-invbT*invb)   
+	Matrix InverseLeftCauchyGreen ( 2 , 2 );
+	double Trace_b = 0;
+	MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, Trace_b);
 
-    //4.-Invert the Left Cauchy-Green tensor b
-    Matrix InverseLeftCauchyGreen ( mVoigtSize-1 , mVoigtSize-1 );
-    double Trace_b=0;
-    MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, Trace_b);
-
-    //5.-Compute almansi-strain  e= 0.5*(1-invbT*invb)
-    Vector TotalStrainVector( mVoigtSize );
-    TotalStrainVector[0] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 0, 0 ) );
-    TotalStrainVector[1] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 1, 1 ) );
-    TotalStrainVector[2] = InverseLeftCauchyGreen( 0, 1 );
-
+	Vector StrainVector( 3 );
+	StrainVector[0] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 0, 0 ) );
+	StrainVector[1] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 1, 1 ) );
+	StrainVector[2] = InverseLeftCauchyGreen( 0, 1 );
+       }
+ 
+    //4.-Calculate Total PK2 stress   
+    Matrix IdentityMatrix  = identity_matrix<double> ( 2 );
 
     //7.-Incremental form
    
@@ -428,7 +323,7 @@ namespace Kratos
 	  
       CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
-      CalculateStress( TotalStrainVector, ConstitutiveMatrix, StressVector );		
+      CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );		
 
     }
     else if(  Options.IsNot( COMPUTE_STRESS ) && Options.Is( COMPUTE_CONSTITUTIVE_TENSOR ) ){
@@ -449,12 +344,12 @@ namespace Kratos
 
     Vector& StressVector                = rValues.GetStressVector();
     Matrix& ConstitutiveMatrix          = rValues.GetConstitutiveMatrix();
-    double detF                         = rValues.GetDeterminantF();
-    double detF0                        = mDetF0 * detF;
+    double& detF0                       = rValues.GetDeterminantF0();;
 
     //Set to cauchy Stress:
     StressVector       /= detF0;
     ConstitutiveMatrix /= detF0;
+
   
     // std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
     // std::cout<<" Stress "<<StressVector<<std::endl;
@@ -467,26 +362,21 @@ namespace Kratos
 
   void LinearElastic2DLaw::FinalizeMaterialResponsePK2 (Parameters& rValues)
   {
-	    
     CalculateMaterialResponsePK2 (rValues);
   
     Vector& StressVector                   =rValues.GetStressVector();
+    Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
+    double& detF0                          =rValues.GetDeterminantF0();
     const Matrix& DeformationGradientF     =rValues.GetDeformationGradientF();
-    const double& detF                     =MathUtils<double>::Det(DeformationGradientF);
-
-    //0.-Transform historical stresses to the current magnitude
-    StressVector -= mStressVector;
-    mStressVector+= StressVector;
+    const double& detF                     =rValues.GetDeterminantF();
 
     //1.-Push-Forward to the updated configuration to be used as a reference in the next step
-    TransformStresses(mStressVector,DeformationGradientF,detF,StressMeasure_PK2,StressMeasure_Cauchy); //total Cauchy Stress
+    TransformStresses(StressVector,DeformationGradientF,detF,StressMeasure_PK2,StressMeasure_Cauchy);  //Cauchy Stress
 
-    //2.-Returns the stress increment to the updated configuration
-    TransformStresses(StressVector,DeformationGradientF,detF,StressMeasure_PK2,StressMeasure_Cauchy);  //increment of Cauchy Stress
+    //2.-Update Internal Variables
+    DeformationGradientF0  = prod(DeformationGradientF,DeformationGradientF0);
+    detF0                  = MathUtils<double>::Det(DeformationGradientF0);
 
-    //3.-Update Internal Variables
-    mDeformationGradientF0  = prod(DeformationGradientF,mDeformationGradientF0);
-    mDetF0 *= detF;
   }
 
   //************************************************************************************
@@ -495,29 +385,20 @@ namespace Kratos
 
   void LinearElastic2DLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
   {
-	    
     CalculateMaterialResponsePK1 (rValues);
   
     Vector& StressVector                   =rValues.GetStressVector();
+    Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
+    double& detF0                          =rValues.GetDeterminantF0();
     const Matrix& DeformationGradientF     =rValues.GetDeformationGradientF();
-    const double& detF                     =MathUtils<double>::Det(DeformationGradientF);
+    const double& detF                     =rValues.GetDeterminantF();
 
-
-    //0.-Transform historical stresses to the current magnitude
-    TransformStresses(mStressVector,DeformationGradientF,detF,StressMeasure_PK2,StressMeasure_PK1);
-
-    StressVector -= mStressVector;
-    mStressVector+= StressVector;
-
-    //1.-Push-Forward to the updated configuration to be used as a reference in the next step
-    TransformStresses(mStressVector,DeformationGradientF,detF,StressMeasure_PK1,StressMeasure_Cauchy); //total Cauchy Stress
-
-    //2.-Returns the stress increment to the updated configuration
+    //1.-Push-Forward to the updated configuration to be used as a reference in the next step  
     TransformStresses(StressVector,DeformationGradientF,detF,StressMeasure_PK1,StressMeasure_Cauchy);  //increment of Cauchy Stress
 
-    //3.-Update Internal Variables
-    mDeformationGradientF0  = prod(DeformationGradientF,mDeformationGradientF0);
-    mDetF0 *= detF;
+    //2.-Update Internal Variables
+    DeformationGradientF0  = prod(DeformationGradientF,DeformationGradientF0);
+    detF0                  = MathUtils<double>::Det(DeformationGradientF0);
   }
 
   //************************************************************************************
@@ -526,28 +407,20 @@ namespace Kratos
   
   void LinearElastic2DLaw::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
   {		
-   
-    CalculateMaterialResponseKirchhoff (rValues);
+        CalculateMaterialResponseKirchhoff (rValues);
   
     Vector& StressVector                   =rValues.GetStressVector();
+    Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
+    double& detF0                          =rValues.GetDeterminantF0();
     const Matrix& DeformationGradientF     =rValues.GetDeformationGradientF();
-    const double& detF                     =MathUtils<double>::Det(DeformationGradientF);
+    const double& detF                     =rValues.GetDeterminantF();
 
-    //0.-Transform historical stresses to the current magnitude
-    TransformStresses(mStressVector,DeformationGradientF,detF,StressMeasure_PK2,StressMeasure_Kirchhoff);
-
-    StressVector -= mStressVector;
-    mStressVector+= StressVector;
-
-    //1.-Push-Forward to the updated configuration to be used as a reference in the next step
-    TransformStresses(mStressVector,DeformationGradientF,detF,StressMeasure_Kirchhoff,StressMeasure_Cauchy); //total Cauchy Stress
-
-    //2.-Returns the stress increment to the updated configuration
+    //1.-Push-Forward to the updated configuration to be used as a reference in the next step  
     TransformStresses(StressVector,DeformationGradientF,detF,StressMeasure_Kirchhoff,StressMeasure_Cauchy);  //increment of Cauchy Stress
 
-    //3.-Update Internal Variables
-    mDeformationGradientF0  = prod(DeformationGradientF,mDeformationGradientF0);
-    mDetF0 *= detF;
+    //2.-Update Internal Variables
+    DeformationGradientF0  = prod(DeformationGradientF,DeformationGradientF0);
+    detF0                  = MathUtils<double>::Det(DeformationGradientF0);
   }
 
 
@@ -556,23 +429,17 @@ namespace Kratos
 
   void LinearElastic2DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
   {
-
-   
+     
     CalculateMaterialResponseCauchy (rValues);
   
-    Vector& StressVector                   =rValues.GetStressVector();
+    Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
+    double& detF0                          =rValues.GetDeterminantF0();
     const Matrix& DeformationGradientF     =rValues.GetDeformationGradientF();
-    const double& detF                     =MathUtils<double>::Det(DeformationGradientF);
 
-    //0.-Transform historical stresses to the current magnitude
-    TransformStresses(mStressVector,DeformationGradientF,detF,StressMeasure_PK2,StressMeasure_Cauchy);
+    //2.-Update Internal Variables
+    DeformationGradientF0  = prod(DeformationGradientF,DeformationGradientF0);
+    detF0                  = MathUtils<double>::Det(DeformationGradientF0);
 
-    StressVector -= mStressVector;
-    mStressVector+= StressVector;
-
-    //3.-Update Internal Variables
-    mDeformationGradientF0  = prod(DeformationGradientF,mDeformationGradientF0);
-    mDetF0 *= detF;
 
   }
 
@@ -586,35 +453,11 @@ namespace Kratos
 					   const Matrix & rConstitutiveMatrix,
 					   Vector& rStressVector )
   {
-    
-    //1.-Calculate Stress Increment
-    CalculateStressIncrement(rStrainVector,rConstitutiveMatrix,rStressVector);
-
-    //2.-Add the hitorical 2nd Piola Kirchooff stress:
-    for(unsigned int i = 0; i<mStressVector.size(); i++){
-      rStressVector[i]+=mStressVector[i];
-    }
-    
-  }
-
- 
-
-  //***********************COMPUTE STRESS INCREMENT ************************************
-  //************************************************************************************
-
-  void LinearElastic2DLaw::CalculateStressIncrement(const Vector & rStrainVector,
-						    const Matrix & rConstitutiveMatrix,
-						    Vector& rStressVector)
-  {
-	  
+      
     //1.-2nd Piola Kirchhoff StressVector increment
     rStressVector = prod(rConstitutiveMatrix,rStrainVector);
 
-    //2.-Increment of Stresses:
-    for(unsigned int i = 0; i<rStressVector.size(); i++){
-      rStressVector[i]-=mStressVector[i];
-    }
-    
+
   }
 
 

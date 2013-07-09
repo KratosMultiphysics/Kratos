@@ -365,10 +365,16 @@ namespace Kratos
 						     ConstitutiveLaw::Parameters& rValues,
 						     const int & rPointNumber)
   {
-    rVariables.detF =MathUtils<double>::Det(rVariables.F);
-
+    rVariables.detF  = MathUtils<double>::Det(rVariables.F);
+    
     if(rVariables.detF<0)
       KRATOS_ERROR(std::invalid_argument,"DeterminantF < 0","");
+
+    //in this element F = F0, then the F0 is set to the identity for coherence in the constitutive law.
+    double detF0 = 1;
+    Matrix F0    = identity_matrix<double> (rVariables.F.size1());
+    rValues.SetDeterminantF0(detF0);
+    rValues.SetDeformationGradientF0(F0);
 
     rValues.SetDeterminantF(rVariables.detF);
     rValues.SetDeformationGradientF(rVariables.F);
@@ -377,6 +383,9 @@ namespace Kratos
     rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
     rValues.SetShapeFunctionsDevivatives(rVariables.DN_DX);
 
+    Flags &Options=rValues.GetOptions();
+    Options.Reset(ConstitutiveLaw::COMPUTE_STRAIN); //to use the already computed strain in the linear_elastic_law
+   
     const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
     rVariables.N=row(Ncontainer , rPointNumber);
     rValues.SetShapeFunctionsValues(rVariables.N);
@@ -470,9 +479,6 @@ namespace Kratos
     Flags &Options=Values.GetOptions();
     Options.Set(ConstitutiveLaw::COMPUTE_STRESS);
     Options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-    //set that the given deformation gradient is the total one: (total lagrangian formulation)
-    Options.Set(ConstitutiveLaw::TOTAL_DEFORMATION_GRADIENT);
 
     //Create and Initialize Element Variables:
     Standard Variables;
@@ -1001,11 +1007,12 @@ namespace Kratos
   {
     unsigned int StrainSize;
 
-    if ( GetGeometry().WorkingSpaceDimension() == 2 ) StrainSize = 3;
-    else StrainSize = 6;
+    if ( GetGeometry().WorkingSpaceDimension() == 2 ) 
+      StrainSize = 3;
+    else 
+      StrainSize = 6;
 
-    Vector StrainVector( StrainSize );
-
+    
     if ( rVariable == CAUCHY_STRESS_VECTOR )
       {
 	ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -1034,6 +1041,9 @@ namespace Kratos
 
 	    mConstitutiveLawVector[PointNumber]->TransformStresses(Variables.StressVector,Variables.F,Variables.detF,ConstitutiveLaw::StressMeasure_PK2,ConstitutiveLaw::StressMeasure_Cauchy);
 
+           if ( rOutput[PointNumber].size() != StrainSize )
+	      rOutput[PointNumber].resize( StrainSize, false );
+
 	    rOutput[PointNumber] = Variables.StressVector;
 	  }
 
@@ -1042,8 +1052,8 @@ namespace Kratos
       {
 	for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
 	  {
-            if ( rOutput[ii].size() != StrainVector.size() )
-	      rOutput[ii].resize( StrainVector.size(), false );
+            if ( rOutput[ii].size() != StrainSize )
+	      rOutput[ii].resize( StrainSize, false );
 
             rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable , rOutput[ii] );
 	  }
@@ -1060,7 +1070,7 @@ namespace Kratos
 
 
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-    unsigned int StrainSize;
+    unsigned int StrainSize = 0;
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     
     if ( dimension == 2 )
@@ -1083,6 +1093,7 @@ namespace Kratos
 
 	if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR )
 	  {
+
 	    if ( rOutput[PointNumber].size2() != Variables.StrainVector.size() )
 	      rOutput[PointNumber].resize( 1, Variables.StrainVector.size(), false );
 
@@ -1091,42 +1102,65 @@ namespace Kratos
 	  }
 	else if ( rVariable == PK2_STRESS_TENSOR )
 	  {
-	    if ( rOutput[PointNumber].size2() != Variables.StrainVector.size() )
-	      rOutput[PointNumber].resize( 1, Variables.StrainVector.size(), false );
 
-	    // DO NOT COMPUTE AFTER THE UPDATE OF THE HISTORICAL VARIABLES, ADULTERATED RESULTS
-
-	    Matrix StressMatrix ( dimension, dimension );
-            StressMatrix = mConstitutiveLawVector[PointNumber]->GetValue( rVariable , StressMatrix );
-
-            Vector StressVector ( StrainSize );
-            StressVector = MathUtils<double>::StressTensorToVector( StressMatrix );
-
-	    for ( unsigned int ii = 0; ii < Variables.StrainVector.size(); ii++ )
+	    Flags &Options=Values.GetOptions();
+	    Options.Set(ConstitutiveLaw::COMPUTE_STRESS);
+     
+	    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 	      {
-		rOutput[PointNumber]( 0, ii ) = StressVector[ii];
+	  
+		//COMPUTE kinematics B,F,DN_DX ...
+		CalculateKinematics(Variables,PointNumber);
+	
+		//set standart parameters
+		SetStandardParameters(Variables,Values,PointNumber);
+	    
+		//CALL the constitutive law
+		mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
+
+		Variables.StressVector=Values.GetStressVector(Variables.StressVector);
+
+		if ( rOutput[PointNumber].size2() != Variables.StrainVector.size() )
+		  rOutput[PointNumber].resize( 1, Variables.StrainVector.size(), false );
+	    
+		for ( unsigned int ii = 0; ii < Variables.StrainVector.size(); ii++ )
+		  {
+		    rOutput[PointNumber]( 0, ii ) = Variables.StressVector[ii];
+		  }
+
 	      }
+
 	  }
 	else if ( rVariable == CAUCHY_STRESS_TENSOR )
 	  {
-	    if ( rOutput[PointNumber].size2() != Variables.StrainVector.size() )
-	      rOutput[PointNumber].resize( 1, Variables.StrainVector.size(), false );
 
-	    // DO NOT COMPUTE AFTER THE UPDATE OF THE HISTORICAL VARIABLES, ADULTERATED RESULTS
-	    Variables.detF =MathUtils<double>::Det(Variables.F);
-
-            Matrix StressMatrix ( dimension, dimension );
-            StressMatrix = mConstitutiveLawVector[PointNumber]->GetValue( rVariable , StressMatrix );
-
-            StressMatrix = mConstitutiveLawVector[PointNumber]->TransformStresses(StressMatrix,Variables.F,Variables.detF,ConstitutiveLaw::StressMeasure_PK2,ConstitutiveLaw::StressMeasure_Cauchy);
-
-            Vector StressVector ( StrainSize );
-            StressVector = MathUtils<double>::StressTensorToVector( StressMatrix );
-
-            for ( unsigned int ii = 0; ii < StressVector.size(); ii++ )
+	    Flags &Options=Values.GetOptions();
+	    Options.Set(ConstitutiveLaw::COMPUTE_STRESS);
+     
+	    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 	      {
-                rOutput[PointNumber]( 0, ii ) = StressVector[ii];
+	  
+		//COMPUTE kinematics B,F,DN_DX ...
+		CalculateKinematics(Variables,PointNumber);
+	
+		//set standart parameters
+		SetStandardParameters(Variables,Values,PointNumber);
+	    
+		//CALL the constitutive law
+		mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
+
+		Variables.StressVector=Values.GetStressVector(Variables.StressVector);
+
+		if ( rOutput[PointNumber].size2() != Variables.StrainVector.size() )
+		  rOutput[PointNumber].resize( 1, Variables.StrainVector.size(), false );
+	    
+		for ( unsigned int ii = 0; ii < Variables.StrainVector.size(); ii++ )
+		  {
+		    rOutput[PointNumber]( 0, ii ) = Variables.StressVector[ii];
+		  }
+
 	      }
+
 	  }
 
       }
