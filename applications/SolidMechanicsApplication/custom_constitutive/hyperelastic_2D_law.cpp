@@ -341,7 +341,7 @@ namespace Kratos
 	double Trace_b=0;
 	MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, Trace_b);
 
-	Vector StrainVector( 3 );
+	StrainVector.clear();
 	StrainVector[0] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 0, 0 ) );
 	StrainVector[1] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 1, 1 ) );
 	StrainVector[2] = InverseLeftCauchyGreen( 0, 1 );

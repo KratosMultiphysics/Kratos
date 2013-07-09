@@ -72,6 +72,7 @@ protected:
         Vector  N;
         Matrix  B;
         Matrix  F;
+        Matrix  F0;
         Matrix  DN_DX;
         Matrix  ConstitutiveMatrix;
     };
@@ -398,6 +399,16 @@ private:
      */
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
+    /**
+     * Container for historical total deformation gradient
+     */
+    std::vector< Matrix > mDeformationGradientF0;
+
+    /**
+     * Container for the total deformation gradient determinants
+     */
+    Vector mDeterminantF0;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -412,6 +423,12 @@ private:
      * Initialize Material Properties on the Constitutive Law
      */
     void InitializeMaterial ();
+
+
+    /**
+     * Reset the Constitutive Law Parameters
+     */
+    void ResetConstitutiveLaw();
 
     /**
      * Clear Nodal Forces

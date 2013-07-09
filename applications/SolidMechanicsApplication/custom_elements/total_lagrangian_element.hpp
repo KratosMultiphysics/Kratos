@@ -119,56 +119,187 @@ public:
      * Returns the currently selected integration method
      * @return current integration method selected
      */
-    IntegrationMethod GetIntegrationMethod() const;
-
+    /**
+     * creates a new total lagrangian updated element pointer
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
+    //************* GETTING METHODS
+
+    /**
+     * Returns the currently selected integration method
+     * @return current integration method selected
+     */
+    IntegrationMethod GetIntegrationMethod() const;
+
+    /**
+     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
+     */
+    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Sets on rResult the ID's of the element degrees of freedom
+     */
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Sets on rValues the nodal displacements
+     */
+    void GetValuesVector(Vector& rValues, int Step = 0);
+
+    /**
+     * Sets on rValues the nodal velocities
+     */
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+
+    /**
+     * Sets on rValues the nodal accelerations
+     */
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+
+
+
+    //on integration points:
+    /**
+     * Access for variables on Integration points.
+     * This gives access to variables stored in the constitutive law on each integration point.
+     * Specialisations of element.h (e.g. the TotalLagrangian) must specify the actual
+     * interface to the constitutive law!
+     * Note, that these functions expect a std::vector of values for the
+     * specified variable type that contains a value for each integration point!
+     * SetValueOnIntegrationPoints: set the values for given Variable.
+     * GetValueOnIntegrationPoints: get the values for given Variable.
+     */
+
+    //SET
+    /**
+     * Set a double  Value on the Element Constitutive Law
+     */
+    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Set a Vector Value on the Element Constitutive Law
+     */
+    void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Set a Matrix Value on the Element Constitutive Law
+     */
+    void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+ 
+    //GET:
+    /**
+     * Get on rVariable a double Value from the Element Constitutive Law
+     */
+    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Get on rVariable a Vector Value from the Element Constitutive Law
+     */
+    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Get on rVariable a Matrix Value from the Element Constitutive Law
+     */
+    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
+
+
+
+
+    //************* STARTING - ENDING  METHODS
+
+    /**
+      * Called to initialize the element.
+      * Must be called before any calculation is done
+      */
     void Initialize();
 
-    void ResetConstitutiveLaw();
+
+    /**
+     * Called at the beginning of each solution step
+     */
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+
+    /**
+     * this is called for non-linear analysis at the beginning of the iteration process
+     */
+    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+
+    /**
+     * Called at the end of eahc solution step
+     */
+    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+
+
+    //************* COMPUTING  METHODS
+
+    /**
+     * this is called during the assembling process in order
+     * to calculate all elemental contributions to the global system
+     * matrix and the right hand side
+     * @param rLeftHandSideMatrix: the elemental left hand side matrix
+     * @param rRightHandSideVector: the elemental right hand side
+     * @param rCurrentProcessInfo: the current process info instance
+     */
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
+    /**
+      * this is called during the assembling process in order
+      * to calculate the elemental right hand side vector only
+      * @param rRightHandSideVector: the elemental right hand side vector
+      * @param rCurrentProcessInfo: the current process info instance
+      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental left hand side vector only
+     * @param rLeftHandSideVector: the elemental left hand side vector
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-
-    void GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& CurrentProcessInfo);
-
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
-
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
-
+    /**
+      * this is called during the assembling process in order
+      * to calculate the elemental mass matrix
+      * @param rMassMatrix: the elemental mass matrix
+      * @param rCurrentProcessInfo: the current process info instance
+      */
     void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
 
+    /**
+      * this is called during the assembling process in order
+      * to calculate the elemental damping matrix
+      * @param rDampMatrix: the elemental damping matrix
+      * @param rCurrentProcessInfo: the current process info instance
+      */
     void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
 
+
+    //on integration points:
+    /**
+     * Calculate a double Variable on the Element Constitutive Law
+     */
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
+    /**
+     * Calculate a Vector Variable on the Element Constitutive Law
+     */
     void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
+    /**
+     * Calculate a Matrix Variable on the Element Constitutive Law
+     */
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
-  void SetValueOnIntegrationPoints( const Variable<double>& rVariable,std::vector<double>& rValues,const ProcessInfo& rCurrentProcessInfo );
 
-    void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
-
-    void GetValuesVector(Vector& values, int Step = 0);
-    void GetFirstDerivativesVector(Vector& values, int Step = 0);
-    void GetSecondDerivativesVector(Vector& values, int Step = 0);
-
-
-    void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
+    void Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
     //************************************************************************************
     //************************************************************************************
@@ -180,6 +311,7 @@ public:
      * @param rCurrentProcessInfo
      */
     int Check(const ProcessInfo& rCurrentProcessInfo);
+
 
     //std::string Info() const;
 
@@ -261,9 +393,22 @@ private:
      */
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
+ 
+    /**
+     * Total element volume or area
+     */
     double mTotalDomainInitialSize;
+
+    /**
+     * Container for historical total Jacobians
+     */
     std::vector< Matrix > mInvJ0;
+
+    /**
+     * Container for the total Jacobian determinants
+     */
     Vector mDetJ0;
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -343,6 +488,14 @@ private:
      * Initialize Material Properties on the Constitutive Law
      */
     void InitializeMaterial ();
+
+
+
+    /**
+     * Reset the Constitutive Law Parameters
+     */
+    void ResetConstitutiveLaw();
+
 
     /**
      * Clear Nodal Forces

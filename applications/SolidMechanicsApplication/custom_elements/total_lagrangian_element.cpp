@@ -48,6 +48,9 @@ namespace Kratos
     :Element(rOther)
     ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
     ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
+    ,mTotalDomainInitialSize(rOther.mTotalDomainInitialSize)
+    ,mInvJ0(rOther.mInvJ0)
+    ,mDetJ0(rOther.mDetJ0)
   {
   }
 
@@ -62,12 +65,20 @@ namespace Kratos
     mThisIntegrationMethod = rOther.mThisIntegrationMethod;
 
     mConstitutiveLawVector.clear();
-    mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
+    mConstitutiveLawVector.resize( rOther.mConstitutiveLawVector.size());
+
+    mInvJ0.clear();
+    mInvJ0.resize( rOther.mInvJ0.size());
+
 
     for(unsigned int i=0; i<<mConstitutiveLawVector.size(); i++)
       {
         mConstitutiveLawVector[i] = rOther.mConstitutiveLawVector[i];
+	mInvJ0[i]=rOther.mInvJ0[i];
       }
+
+    mTotalDomainInitialSize = rOther.mTotalDomainInitialSize;
+    mDetJ0 = rOther.mDetJ0;
 
     return *this;
   }
@@ -557,6 +568,18 @@ namespace Kratos
     CalculateElementalSystem( temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag );
   }
 
+
+ //************************************************************************************
+  //************************************************************************************
+
+
+  void TotalLagrangianElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+  {
+    if (rLeftHandSideMatrix.size1() != 0)
+      rLeftHandSideMatrix.resize(0, 0);
+  }
+
+
   //************************************************************************************
   //************************************************************************************
 
@@ -577,12 +600,22 @@ namespace Kratos
 
   void TotalLagrangianElement::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
   {
+    ClearNodalForces();
+
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
       mConstitutiveLawVector[i]->InitializeSolutionStep( GetProperties(),
 							 GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ),
 							 CurrentProcessInfo );
   }
 
+
+  ////************************************************************************************
+  ////************************************************************************************
+
+  void TotalLagrangianElement::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+  {
+    ClearNodalForces();
+  }
   ////************************************************************************************
   ////************************************************************************************
 
@@ -771,6 +804,34 @@ namespace Kratos
     KRATOS_CATCH( "" )
       }
 
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void TotalLagrangianElement::ClearNodalForces()
+  {
+    KRATOS_TRY
+
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+	
+	array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
+	array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_INTERNAL);
+	array_1d<double, 3 > & DynamicForce  = GetGeometry()[i].FastGetSolutionStepValue(FORCE_DYNAMIC);
+	
+	ExternalForce.clear();
+	InternalForce.clear();
+	DynamicForce.clear();
+
+      }
+
+    KRATOS_CATCH( "" )
+      }
+
+  //************* COMPUTING  METHODS
+  //************************************************************************************
+  //************************************************************************************
 
 
   //*********************************COMPUTE KINEMATICS*********************************
@@ -972,26 +1033,38 @@ namespace Kratos
 
   void TotalLagrangianElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo )
   {
+
+    KRATOS_TRY
+
     if ( rOutput.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
       rOutput.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(), false );
 
 
     if ( rVariable == VON_MISES_STRESS )
       {
-	double StressSize = 3;
-	if ( GetGeometry().WorkingSpaceDimension() == 2 )
-	  StressSize = 3;
-	else
-	  StressSize = 6;
-      
-        Vector StressVector( StressSize );
+	ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+	Flags &Options=Values.GetOptions();
+	Options.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
+	Standard Variables;
+	InitializeStandardVariables (Variables,rCurrentProcessInfo);
+ 
+	//reading integration points
+	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+	for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 	  {
-            StressVector = mConstitutiveLawVector[ii]->GetValue(CAUCHY_STRESS_VECTOR,StressVector);
+	    //COMPUTE kinematics B,F,DN_DX ...
+	    CalculateKinematics(Variables,PointNumber);
+	
+	    //set standart parameters
+	    SetStandardParameters(Variables,Values,PointNumber);
+	    
+	    //CALL the constitutive law
+	    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
 	    ComparisonUtils EquivalentStress;
-	    rOutput[ii] =  EquivalentStress.CalculateVonMises(StressVector);
+	    rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(Variables.StressVector);
 	  }
       }
     else{
@@ -1000,6 +1073,7 @@ namespace Kratos
         rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
     }
 
+    KRATOS_CATCH( "" )
   }
 
   //************************************************************************************
@@ -1007,6 +1081,9 @@ namespace Kratos
 
   void TotalLagrangianElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo )
   {
+
+    KRATOS_TRY
+
     unsigned int StrainSize;
 
     if ( GetGeometry().WorkingSpaceDimension() == 2 ) 
@@ -1061,6 +1138,7 @@ namespace Kratos
 	  }
       }
 
+    KRATOS_CATCH( "" )
   }
 
   //************************************************************************************
@@ -1072,13 +1150,6 @@ namespace Kratos
 
 
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
-    unsigned int StrainSize = 0;
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
-    if ( dimension == 2 )
-      StrainSize = 3;
-    else
-      StrainSize = 6;
 
     Standard Variables;
     InitializeStandardVariables(Variables,rCurrentProcessInfo);
@@ -1325,16 +1396,24 @@ namespace Kratos
 
   void TotalLagrangianElement::save( Serializer& rSerializer ) const
   {
-    //  std::cout << "Saving the TotalLagrangianElement #" << Id() << std::endl;
-    rSerializer.save( "Name", "TotalLagrangianElement" );
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element );
-  }
+    int IntMethod = int(mThisIntegrationMethod);
+    rSerializer.save("IntegrationMethod",IntMethod);
+    rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
+    rSerializer.save("InvJ0",mInvJ0);
+    rSerializer.save("DetJ0",mDetJ0);
+   }
 
   void TotalLagrangianElement::load( Serializer& rSerializer )
   {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element );
-    //  std::cout << "Loading the TotalLagrangianElement #" << Id() << std::endl;
-    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+    int IntMethod;
+    rSerializer.load("IntegrationMethod",IntMethod);
+    mThisIntegrationMethod = IntegrationMethod(IntMethod);
+    rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
+    rSerializer.load("InvJ0",mInvJ0);
+    rSerializer.load("DetJ0",mDetJ0);
+
   }
 
 

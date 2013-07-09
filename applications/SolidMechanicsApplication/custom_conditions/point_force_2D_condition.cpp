@@ -75,7 +75,7 @@ void PointForce2DCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
     array_1d<double, 3 > & ExternalForce = GetGeometry()[0].FastGetSolutionStepValue(FORCE_EXTERNAL);
     ExternalForce+=force;
 
-     KRATOS_CATCH("")
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
