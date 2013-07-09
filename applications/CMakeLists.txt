@@ -8,12 +8,12 @@ message("EXTERNAL_SOLVERS_APPLICATION........ ${EXTERNAL_SOLVERS_APPLICATION}")
 message("PFEM_APPLICATION.................... ${PFEM_APPLICATION}")
 message("STRUCTURAL_APPLICATION.............. ${STRUCTURAL_APPLICATION}")
 message("CONVECTION_DIFFUSION_APPLICATION.... ${CONVECTION_DIFFUSION_APPLICATION}")
+message("SOLID_MECHANICS_APPLICATION..........${SOLID_MECHANICS_APPLICATION}")
 message("FLUID_DYNAMICS_APPLICATION.......... ${FLUID_DYNAMICS_APPLICATION}")
 message("ALE_APPLICATION..................... ${ALE_APPLICATION}")
 message("FSI_APPLICATION..................... ${FSI_APPLICATION}")
 message("MIXED_ELEMENT_APPLICATION........... ${MIXED_ELEMENT_APPLICATION}")
 message("DEM_APPLICATION......................${DEM_APPLICATION}")
-message("SWIMMING_DEM_APPLICATION.............${SWIMMING_DEM_APPLICATION}")
 message("CONSTITUTIVE_LAWS_APPLICATION....... ${CONSTITUTIVE_LAWS_APPLICATION}")
 message("THERMO_MECHANICAL_APPLICATION....... ${THERMO_MECHANICAL_APPLICATION}")
 message("OPENCL_APPLICATION.................. ${OPENCL_APPLICATION}")
@@ -24,15 +24,12 @@ message("TRILINOS_APPLICATION................ ${TRILINOS_APPLICATION}")
 message("TURBULENT_FLOW_APPLICATION.......... ${TURBULENT_FLOW_APPLICATION}")
 message("BLOOD_FLOW_APPLICATION.............. ${BLOOD_FLOW_APPLICATION}")
 message("PURE_DIFFUSION_APPLICATION.............. ${PURE_DIFFUSION_APPLICATION}")
-message("MESHLESS_APPLICATION.............. ${MESHLESS_APPLICATION}")
-message("WIND_TURBINE_APPLICATION ........... ${WIND_TURBINE_APPLICATION}")
+
 message( " ")
 
 if(${INSTALL_PYTHON_FILES} MATCHES ON)
   install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/applications_interface.py DESTINATION applications)
 endif(${INSTALL_PYTHON_FILES} MATCHES ON)
-
-
 
 #include subdirectories for compilation
 if(${INCOMPRESSIBLE_FLUID_APPLICATION} MATCHES ON)
@@ -83,10 +80,6 @@ if(${DEM_APPLICATION} MATCHES ON)
   add_subdirectory(DEM_application)
 endif(${DEM_APPLICATION} MATCHES ON)
 
-if(${SWIMMING_DEM_APPLICATION} MATCHES ON)
-  add_subdirectory(swimming_DEM_application)
-endif(${SWIMMING_DEM_APPLICATION} MATCHES ON)
-
 if(${CONSTITUTIVE_LAWS_APPLICATION} MATCHES ON)
   add_subdirectory(constitutive_laws_application)
 endif(${CONSTITUTIVE_LAWS_APPLICATION} MATCHES ON)
@@ -115,31 +108,18 @@ if(${TRILINOS_APPLICATION} MATCHES ON)
   add_subdirectory(trilinos_application)
 endif(${TRILINOS_APPLICATION} MATCHES ON)
 
-
 if(${TURBULENT_FLOW_APPLICATION} MATCHES ON)
   add_subdirectory(TurbulentFlowApplication)
 endif(${TURBULENT_FLOW_APPLICATION} MATCHES ON)
 
-if(${DEM_FEM_APPLICATION} MATCHES ON)
-  add_subdirectory(DEM_FEM_Application)
-endif(${DEM_FEM_APPLICATION} MATCHES ON)
-
-if(${BLOOD_FLOW_APPLICATION} MATCHES ON)
-  add_subdirectory(blood_flow_application)
-endif(${BLOOD_FLOW_APPLICATION} MATCHES ON)
+if(${SOLID_MECHANICS_APPLICATION} MATCHES ON)
+  add_subdirectory(SolidMechanicsApplication)
+endif(${SOLID_MECHANICS_APPLICATION} MATCHES ON)
 
 if(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
   add_subdirectory(pure_diffusion_application)
 endif(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
 
-if(${MESHLESS_APPLICATION} MATCHES ON)
-  add_subdirectory(meshless_application)
-endif(${MESHLESS_APPLICATION} MATCHES ON)
-
-
-if(${WIND_TURBINE_APPLICATION} MATCHES ON)
-  add_subdirectory(wind_turbine_application)
-endif(${WIND_TURBINE_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
