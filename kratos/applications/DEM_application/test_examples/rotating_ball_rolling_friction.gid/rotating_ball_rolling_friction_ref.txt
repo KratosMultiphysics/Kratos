@@ -1,396 +1,396 @@
-KRATOS_BENCHMARK | Float | Time | 0.0100236178242 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.000454791651833 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.0861340522488 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.000260365519724 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.0200472356484 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.00166831397812 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.152708726466 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.00254609227614 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.0300708534726 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.00347465259762 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.205260775616 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.00976116414875 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.0400944712968 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.00575217882195 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.247266996339 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.0250738534255 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.050118089121 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.00840708044502 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.280919528326 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.0512929295261 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.0601417069452 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0113634223458 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.307676182082 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.0903974532802 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.0701653247694 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0145578513154 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.328644751081 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.14322407184 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.0801889425936 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0179374617513 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.344835418031 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.209313261676 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.0902125604178 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0214596375582 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.357307460796 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.28690985751 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.100236178242 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0250929225022 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.367231798859 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.373105010675 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.110259796066 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0288181728769 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.375888357702 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.464097915994 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.12028341389 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0326294289891 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.384615864455 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.555547558338 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.130307031715 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0365341139803 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.394730824738 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.642978471714 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.140330649539 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0405523321301 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.407431550522 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.722200914394 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.150354267363 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0447151919726 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.423701861982 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.789705461259 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.160377885187 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0490622174912 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.44422727607 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.842994970665 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.170401503011 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0536380273127 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.469334063198 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.880823021677 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.180425120836 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.058488551175 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.498958563099 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.903316743292 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.19044873866 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0636571101395 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.532650760479 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.911972708235 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.200472356484 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0691807091491 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.569612559002 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.909526287992 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.210495974308 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0750868772142 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.60876772616 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.899706511147 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.220519592132 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0813913440994 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.648857387787 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.886898982385 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.230543209957 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0880967679394 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.688552483395 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.875747851661 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.240566827781 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.0951926330875 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.726572957618 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.870733406379 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.250590445605 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.102656330787 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.761802794269 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.875764086856 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.260614063429 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.110455326984 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.79339034916 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.893820395545 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.270637681254 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.11855022186 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.820824766861 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.926683406929 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.280661299078 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.126898423662 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.843981448652 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.974772824913 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.290684916902 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.135458102831 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.863132370821 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.03710948938 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.300708534726 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.144192066348 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.878920272719 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.11140582371 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.31073215255 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.153071199222 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.892299046082 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.19427598565 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.320755770375 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.162077159346 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.904445756803 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.28154651006 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.330779388199 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.171204080104 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.916652332937 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.36863901794 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.340803006023 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.180459125743 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.930206819502 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.45098995755 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.350826623847 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.189861849427 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.94627506026 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.52446894386 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.360850241671 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.199442413445 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.965793631159 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.58575738553 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.370873859496 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.209238835093 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -0.989383822509 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.63265272115 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.38089747732 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.219293510986 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.01729454144 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.66427039747 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.390921095144 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.229649338506 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.04937935907 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.68112508664 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.400944712968 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.240345790017 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.08510980063 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.68508370017 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.410968330792 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.251415299708 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.12362365778 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.67919450066 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.420991948617 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.262880294302 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.16380389502 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.66740796289 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.431015566441 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.274751139839 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.20438091973 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.65421495274 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.441039184265 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.287025192803 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.2440488453 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.64423536882 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.451062802089 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.299687042697 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.28158509479 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.6417949309 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.461086419913 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.312709923988 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.31596238638 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.65052888746 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.471110037738 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.326058168193 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.34644283939 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.67304895067 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.481133655562 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.33969047158 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.37264557736 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.71070397654 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.491157273386 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.353563679214 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.39458163241 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.76345632148 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.50118089121 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.367636738726 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.41265295035 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.82988521054 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.511204509034 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.381874461636 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.42761558495 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.90731681688 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.521228126859 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.396250747643 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.44051045066 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.99206914388 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.531251744683 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.410750976476 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.45256797523 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.07978928305 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.541275362507 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.425373348137 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.46509538547 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.1658521564 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.551298980331 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.440129048707 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.47935695086 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.2457842175 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.561322598155 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.455041226443 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.49645815569 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.31567329639 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.57134621598 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.470142871907 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.51724441118 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.37252704058 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.581369833804 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.485473796267 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.54222358751 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.4145471112 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.591393451628 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.501076984551 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.57151946443 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.44129400909 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.601417069452 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.516994657888 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.60486036679 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.45372742412 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.611440687276 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.533264405486 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.6416040281 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.45411840313 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.621464305101 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.549915740708 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.68079640684 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.44584137534 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.631487922925 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.566967396777 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.72125906903 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.43306508066 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.641511540749 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.584425609905 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.76169713356 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.42037070966 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.651535158573 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.602283547205 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.80081789242 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.41233223377 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.661558776397 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.620521931857 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.83744923929 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.41309737065 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.671582394221 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.639110808339 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.8706470569 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.42600757357 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.681606012046 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.65801228607 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.89978172441 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.45329186115 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.69162962987 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.677184010178 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.9245958184 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.4958625412 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.701653247694 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.696583041473 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.94522771931 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.55323154931 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.711676865518 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.716169790189 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.9621989588 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.62355507422 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.721700483342 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.735911643127 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.97636646467 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.70380238973 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.731724101167 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.755785951873 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -1.98884407628 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.79003343383 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.741747718991 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.775782108314 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.00090051868 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.87775971183 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.751771336815 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.795902517224 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.01384318082 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.96235546573 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.761794954639 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.816162376775 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.02889834438 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.03948144418 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.771818572463 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.836588286987 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.04709883563 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.1054824514 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.781842190288 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.857215813543 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.06918939319 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.15772225269 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.791865808112 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.878086230075 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.09555842244 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.194825151 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.801889425936 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.899242737329 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.1262023903 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.21680209722 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.81191304376 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.920726505546 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.16072612439 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.22504977372 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.821936661584 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.942572902614 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.1983789914 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.22222272702 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.831960279409 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.96480825355 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.23812364242 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.21199025607 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.841983897233 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -0.987447428233 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.2787310295 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.19870032098 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.852007515057 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -1.01049247841 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.31889299013 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.18698125667 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.862031132881 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -1.03393244893 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.35734208674 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.18131777572 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.872054750705 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -1.05774438057 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.39296772275 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.18564010233 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.88207836853 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -1.08189541261 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.42491789721 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.20296387877 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.892101986354 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -1.10634579275 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.4526772752 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.23511383678 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.902125604178 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -1.13105251839 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.47611442016 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.28255655427 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.912149222002 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -1.15597327612 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.49549385916 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.34435762587 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.922172839826 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -1.18107031816 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.51145187361 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.41826717877 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.93219645765 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -1.20631392081 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.52493823099 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.5009259076 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.942220075475 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -1.23168510808 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.53712919361 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.58817276033 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.952243693299 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -1.25717739074 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.54931977212 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.67542609382 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.962267311123 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -1.28279736165 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.56280509334 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.75810338457 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.972290928947 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -1.30856409257 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.57876175013 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.83204104652 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.982314546771 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -1.3345073877 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.59814000295 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.89387589499 | 0.01 | None
-KRATOS_BENCHMARK | Float | Time | 0.992338164596 | None | None
-KRATOS_BENCHMARK | Float | Node Displacement | -1.36066505396 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Velocity | -2.62157670976 | 0.01 | None
-KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.94135330752 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.01 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.000468414914149 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.09009528706 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.000232500948189 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.02 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.00175776195179 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.164492854912 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.00217006101184 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.0301 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.00373871123669 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.224804506451 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.00828226798729 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.0401 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.00623159866587 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.271232355679 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.0211967399447 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.0501 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.00912854854409 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.306002903379 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.0435738147372 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.0601 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0123212813038 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.330770042914 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.0775218052373 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.0701 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0157183609172 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.347243654372 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.124291744793 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.0801 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0192456486311 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.357170679944 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.184043466329 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.0901 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.022846608113 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.362322088133 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.255739810835 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.1001 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0264824611366 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.364474541984 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.337176609555 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.1101 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0301321018615 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.365379771687 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.425142496236 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.1201 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.033791629831 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.366719007649 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.515690114624 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.1302 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0375103654357 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.370091934745 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.605354277934 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.1403 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0412795376463 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.37688384296 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.688795535218 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.1504 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0451396295436 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.388209895649 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.762019567854 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.1605 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.049140680118 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.404840683514 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.821868283905 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.1706 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0533385324895 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.427152308348 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.866334940158 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.1807 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0577906934826 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.455100234607 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.894772406714 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.1908 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0625520749439 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.488222421895 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.907973673815 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.2009 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0676709283836 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.525674319495 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.908116104467 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.211 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0731852938863 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.566294996481 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.898574050487 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.2211 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0791202598497 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.608700367123 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.883617047271 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.2312 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0854862737558 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.6513965089 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.868021713079 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.2413 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0922786610588 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.692903771847 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.856633693722 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.2514 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.0994784073768 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.731880982581 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.853920759053 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.2615 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.107054148454 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.76723869972 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.863559042228 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.2716 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.114965203702 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.798231219293 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.888091346167 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.2817 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.123165393276 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.824518791519 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.928689721145 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.2918 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.131607305111 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.846194126721 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -0.985044778516 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.3019 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.140246634581 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.863770488329 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.05539236327 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.312 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.149046209957 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.878132187392 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.13667537127 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.3221 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.157979343006 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.890451769642 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.22482586515 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.3322 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.167032203638 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.902081290943 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.31514139554 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.3423 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.176205005372 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.914427512868 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.40272061932 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.3524 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.185511896284 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.928822383563 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.48291774737 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.3625 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.194979568317 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.946400651326 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.5517735661 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.3726 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.204644715223 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.967995840067 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.60638292873 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.3827 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.214550575193 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -0.994064150882 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.64516450129 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.3928 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.22474287842 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.02464329505 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.66800762752 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.4029 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.23526557463 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.0593500474 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.67628259939 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.413 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.246156735828 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.09741673355 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.67271332403 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.4231 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.257445013156 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.13776326313 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.66112417896 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.4332 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.269146975367 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.1790980282 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.64608455548 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.4433 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.281265574647 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.22003830973 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.63248411379 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.4534 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.293789880973 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.25923902426 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.62507822694 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.4635 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.306696108522 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.29551786763 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.62804587273 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.4736 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.319949837775 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.32796524538 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.64460108357 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.4837 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.333509226047 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.35602879084 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.67669409098 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.4938 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.347328907441 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.37956463077 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.72482996534 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.5039 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.361364219329 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.3988506464 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.7880216283 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.514 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.375575362195 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.4145605076 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.86388162058 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.5241 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.389931105984 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.42770090272 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -1.94884410365 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.5342 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.404411698329 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.43951780593 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.03849646064 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.5443 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.419010704287 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.45138050161 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.12798966657 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.5544 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.433735606609 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.4646541522 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.21248926892 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.5645 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.448607110815 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.48057276069 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.28762503899 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.5746 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.463657219837 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.50012434191 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.34989747428 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.5847 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.478926257378 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.52395898128 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.39700334183 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.5948 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.494459116936 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.55232833149 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.42804997885 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.6049 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.51030108542 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.58506217386 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.44363841097 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.615 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.526493629899 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.62158422468 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.44580754798 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.6251 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.543070539388 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.66096571654 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.43784463728 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.6352 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.560054780641 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.70201177193 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.42397959504 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.6453 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.577456360431 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.74337253592 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.40899163668 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.6554 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.595271393274 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.78366873207 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.39776478808 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.6655 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.613482461353 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.82161996332 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.3948336157 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.6756 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.632060233294 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.85616382419 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.40396142721 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.6857 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.650966191265 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.88655474418 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.42779017728 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.6958 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.67015621284 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.91243336734 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.46759464651 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.7059 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.6895846745 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.93386001239 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.52316376585 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.716 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.709208695122 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.95130909889 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.59282013429 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.7261 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.72899212475 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.96562505485 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.67357592497 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.7362 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.748908907617 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.97794380442 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.76141068906 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.7463 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.768945506543 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -1.98958713578 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.85164522764 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.7564 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.789102163143 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.00193977244 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -2.93937676435 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.7665 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.809392876524 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.01632058075 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.01993494721 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.7766 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.829844102354 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.03385989268 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.08931626751 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.7867 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.8504922932 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.05539435487 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.14455648791 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.7968 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.871380508826 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.08138908589 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.18400643443 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.8069 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.892554411661 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.11189438413 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.20748549294 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.817 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.914058019865 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.14654101588 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.21629852355 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.8271 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.935929612986 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.1845745248 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.21311460897 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.8372 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.958198171048 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.22492537469 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.20171890398 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.8473 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -0.980880678329 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.26630840423 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.18666065716 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.8574 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -1.00398054267 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.30734234544 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.17283013499 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.8675 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -1.02748727743 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.34667829068 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.16500379407 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.8776 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -1.05137747577 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.38312515999 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.16740000341 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.8877 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -1.07561698677 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.41576049839 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.18328664099 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.8978 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -1.100164091 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.44401629649 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.21467706675 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.9079 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -1.12497338037 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.46773185021 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.26214275741 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.918 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -1.1499999813 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.48716874015 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.32476003924 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.9281 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -1.17520372857 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.50298653467 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.40019588391 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.9382 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -1.20055290153 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.51618147325 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.48492479818 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.9483 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -1.22602717517 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.52799383056 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.57455664435 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.9584 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -1.25161951147 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.53979257509 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.6642449088 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.9685 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -1.27733681508 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.55294804851 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.74913745102 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.9786 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -1.30319929217 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.56870450743 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.82482781125 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.9887 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -1.32923857207 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.58806438257 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.88776509977 | 0.01 | None
+KRATOS_BENCHMARK | Float | Time | 0.9988 | None | None
+KRATOS_BENCHMARK | Float | Node Displacement | -1.35549476624 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Velocity | -2.61169502166 | 0.01 | None
+KRATOS_BENCHMARK | Float | Node Angular Velocity | -3.93558433971 | 0.01 | None

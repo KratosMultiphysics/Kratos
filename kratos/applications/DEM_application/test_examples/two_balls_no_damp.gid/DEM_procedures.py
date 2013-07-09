@@ -5,6 +5,8 @@ from KratosMultiphysics.DEMApplication import *
 from DEM_explicit_solver_var import *
 from pressure_script import *
 
+import os
+import matplotlib.pyplot as plt
 from numpy import *
 
 #from KratosMultiphysics.mpi import * #CARLOS
@@ -73,29 +75,30 @@ def ProcModelData(solid_model_part,solver):
    i = 0
    sum_radi = 0
    sum_squared = 0
+
    for node in solid_model_part.Nodes:
 
      sum_radi += node.GetSolutionStepValue(RADIUS)
      sum_squared += node.GetSolutionStepValue(RADIUS)**2
-     i+=1
+     i += 1
 
-   mean=sum_radi/i
-   var =sum_squared/i-mean**2
-   if(abs(var)<1e-05):
-     var=0
-   std_dev=var**0.5
+   mean = sum_radi / i
+   var = sum_squared/i-mean**2
+   if (abs(var) < 1e-05):
+     var = 0
+   std_dev = var**0.5
 
    Model_Data.write("Radius Mean: "+str(mean)+'\n')
    Model_Data.write("Std Deviation: "+str(std_dev)+'\n')
    Model_Data.write('\n')
 
    Total_Particles     = len(solid_model_part.Nodes)
-   Total_Contacts      = solver.model_part.ProcessInfo.GetValue(TOTAL_CONTACTS)/2
-   Coordination_Number    = 1.0*(Total_Contacts*2)/Total_Particles
+   Total_Contacts      = solver.model_part.ProcessInfo.GetValue(TOTAL_CONTACTS) / 2
+   Coordination_Number = 1.0 * (Total_Contacts * 2) / Total_Particles
 
    Model_Data.write("Total Number of Particles: "+str(Total_Particles)+'\n')
-   Model_Data.write("Total Number of Contacts: "+str(Total_Contacts)+'\n')
-   Model_Data.write("Coordination Number NC: "+str(Coordination_Number)+'\n')
+   Model_Data.write("Total Number of Contacts: " +str(Total_Contacts)+'\n')
+   Model_Data.write("Coordination Number NC: "   +str(Coordination_Number)+'\n')
    Model_Data.write('\n')
 
    Model_Data.write("Volume Elements: "+str(mass_elements)+'\n')
@@ -108,15 +111,15 @@ def ProcListDefinition(model_part,solver):
 # Defining lists (FOR COMPRESSION TESTS)
 
     for node in model_part.Nodes:
-        if (node.GetSolutionStepValue(GROUP_ID)==1):      #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
+        if (node.GetSolutionStepValue(GROUP_ID) == 1):      #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
             sup_layer_fm.append(node)
-        elif (node.GetSolutionStepValue(GROUP_ID)==2):    #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
+        elif (node.GetSolutionStepValue(GROUP_ID) == 2):    #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
             inf_layer_fm.append(node)
-        elif (node.GetSolutionStepValue(GROUP_ID)==3):    #reserved for auxiliar strain-stress measurement plate (superior)
+        elif (node.GetSolutionStepValue(GROUP_ID) == 3):    #reserved for auxiliar strain-stress measurement plate (superior)
             sup_plate_fm.append(node)
-        elif (node.GetSolutionStepValue(GROUP_ID)==4):    #reserved for auxiliar strain-stress measurement plate (inferior)
+        elif (node.GetSolutionStepValue(GROUP_ID) == 4):    #reserved for auxiliar strain-stress measurement plate (inferior)
             inf_plate_fm.append(node)
-        elif (node.GetSolutionStepValue(GROUP_ID)==5):
+        elif (node.GetSolutionStepValue(GROUP_ID) == 5):
             special_selection.append(node)
         else:
             others.append(node)
@@ -152,17 +155,19 @@ def ProcGiDSolverTransfer(model_part,solver):
 
     solver.enlargement_factor = m_bounding_box_enlargement_factor
     
-    if ( TriaxialOption =="ON" ):
+    if (TriaxialOption == "ON" ):
        Pressure = ConfinementPressure*1e6 #Mpa
+
     else:
        Pressure = 0.0
     
-    if(Pressure!=0):
+    if (Pressure != 0):
       
       solver.external_pressure = 1
    
-    if(FixVelocities =="ON"):
+    if (FixVelocities == "ON"):
         solver.fix_velocities = 1  #xapuza
+
     solver.time_step_percentage_fix_velocities = TimePercentageFixVelocities   
     
     return Pressure
@@ -299,7 +304,94 @@ def ProcMeasureTOP(TOP,solver):
       counter += r
 
     return (y_mean,counter)
-    
+
+def ProcMonitorPhysicalProperties(model_part, physics_calculator, properties_list):
+
+# This function returns a list of arrays (also lists)
+# Each array contains the values of the physical properties at the current time
+
+    time = model_part.ProcessInfo.GetValue(TIME)
+    present_prop     = []
+
+    if (len(properties_list) == 0): # The first array in the list only contains the entries names
+        names = []
+        names.append("time")
+        names.append("mass")
+        names.append("gravitational_energy")
+        names.append("kinetic_energy")
+        names.append("elastic_energy")
+        names.append("momentum")
+        names.append("angular_momentum")
+        names.append("total_energy")
+
+        properties_list.append(names)
+
+# Calculating current values
+
+    mass             = physics_calculator.calculate_total_mass(model_part)
+    center           = physics_calculator.calculate_center_of_mass(model_part)
+    initial_center   = physics_calculator.get_initial_center_of_mass()
+    gravity_energy   = physics_calculator.calculate_gravitational_potential_energy(model_part, initial_center)
+    kinetic_energy   = physics_calculator.calculate_kinetic_energy(model_part)
+    elastic_energy   = physics_calculator.calculate_elastic_energy(model_part)
+    momentum         = physics_calculator.calculate_total_momentum(model_part)
+    angular_momentum = physics_calculator.calculate_total_angular_momentum(model_part)
+    total_energy     = gravity_energy + kinetic_energy + elastic_energy
+
+# Filling in the entries values corresponding to the entries names above
+
+    present_prop.append(time)
+    present_prop.append(mass)
+    present_prop.append(gravity_energy)
+    present_prop.append(kinetic_energy)
+    present_prop.append(elastic_energy)
+    present_prop.append(momentum)
+    present_prop.append(angular_momentum)
+    present_prop.append(total_energy)
+
+    properties_list.append(present_prop)
+
+    return properties_list
+
+def ProcPlotPhysicalProperties(properties_list, path):
+
+# This function creates one graph for each physical property.
+# properties_list[0][0] = 'time'
+# properties_list[0][j] = 'property_j'
+# properties_list[i][j] = value of property_j at time properties_list[i][0]
+
+    n_measures     = len(properties_list)
+    entries        = properties_list[0]
+    n_entries      = len(entries)
+    time_vect      = []
+    os.chdir(path)
+
+    for j in range(1, n_measures):
+        time_vect.append(properties_list[j][0])
+
+    for i in range(1, n_entries):
+        prop_vect_i = []
+
+        for j in range(1, n_measures):
+            prop_i_j = properties_list[j][i]
+
+            if (hasattr(prop_i_j, '__getitem__')): # Checking if it is an iterable object (a vector). If yes, take the modulus
+                mod_prop_i_j = 0.0
+
+                for k in range(len(prop_i_j)):
+                    mod_prop_i_j += prop_i_j[k] * prop_i_j[k]
+
+                prop_i_j = sqrt(mod_prop_i_j) # Euclidean norm
+
+            prop_vect_i.append(prop_i_j)
+
+        plt.figure(i)
+        plot = plt.plot(time_vect, prop_vect_i)
+        plt.xlabel(entries[0])
+        plt.ylabel(entries[i])
+        plt.title('Evolution of ' + entries[i] + ' in time')
+        plt.savefig(entries[i] + '.pdf')
+
 def ProcPrintingVariables(gid_io,export_model_part,time):
   
     if (print_displacement=="1"):
@@ -323,7 +415,7 @@ def ProcPrintingVariables(gid_io,export_model_part,time):
     if (print_particle_tension=="1"):
       gid_io.WriteNodalResults(PARTICLE_TENSION, export_model_part.Nodes, time, 0)
     if (print_group_id=="1"):
-      gid_io.WriteNodalResults(GROUP_ID, export_model_part.Nodes, time, 0)
+      gid_io.WriteNodalResults(EXPORT_GROUP_ID, export_model_part.Nodes, time, 0)
     if (print_export_id=="1"):
       gid_io.WriteNodalResults(EXPORT_ID, export_model_part.Nodes, time, 0)
     if (print_export_particle_failure_id=="1"):
