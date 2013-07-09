@@ -104,7 +104,6 @@ class ExplicitStrategy:
         self.critical_time_OPTION           = Var_Translator(Param.AutoReductionOfTimeStepOption)
         self.trihedron_OPTION               = Var_Translator(Param.TrihedronOption)
         self.rotation_OPTION                = Var_Translator(Param.RotationOption)
-        self.rotation_spring_OPTION         = Var_Translator(Param.RotationalSpringOption)
         self.bounding_box_OPTION            = Var_Translator(Param.BoundingBoxOption)
         self.fix_velocities                 = Var_Translator(Param.FixVelocitiesOption)
         self.limit_surface_OPTION           = Var_Translator(Param.LimitSurfaceOption)
@@ -256,7 +255,6 @@ class ExplicitStrategy:
         self.ModelPart.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
         self.ModelPart.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
         self.ModelPart.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_OPTION);
-        self.ModelPart.ProcessInfo.SetValue(ROTATION_SPRING_OPTION, self.rotation_spring_OPTION);
 
         # TOLERANCES
         self.ModelPart.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);
