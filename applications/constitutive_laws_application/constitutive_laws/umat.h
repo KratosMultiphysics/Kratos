@@ -150,7 +150,7 @@ public:
 
     StrainMeasure GetStrainMeasure()
     {
-        return StrainMeasure_Linear;
+        return StrainMeasure_Infinitesimal;
     }
 
     StressMeasure GetStressMeasure()
