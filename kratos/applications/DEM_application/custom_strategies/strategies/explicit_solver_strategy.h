@@ -136,8 +136,8 @@ namespace Kratos
           this->GetElementsAreInitialized()      = false;
           this->GetInitializeWasPerformed()      = false;
           this->GetEnlargementFactor()           = enlargement_factor;
-          this->GetScheme()                     = pScheme;
-          this->GetSpSearch()                   = pSpSearch;
+          this->GetScheme()                      = pScheme;
+          this->GetSpSearch()                    = pSpSearch;
           this->GetMaxTimeStep()                 = max_delta_time;
           this->GetNStepSearch()                 = n_step_search;
           this->GetSafetyFactor()                = safety_factor;
@@ -239,18 +239,16 @@ namespace Kratos
 
           // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box
           KRATOS_TIMER_START("SearchNeighbours")
-          if (rCurrentProcessInfo[ACTIVATE_SEARCH] == 1){
 
-              if ((time_step + 1)%this->GetNStepSearch() == 0 && time_step > 0){
+          if ((time_step + 1)%this->GetNStepSearch() == 0 && time_step > 0){
 
-                  if (this->GetBoundingBoxOption() == 1){
-                      BoundingBoxUtility();
-                  }
-
-                  SearchNeighbours(rModelPart, extension_option); //extension option false;
+              if (this->GetBoundingBoxOption() == 1){
+                  BoundingBoxUtility();
               }
 
+              SearchNeighbours(rModelPart, extension_option); //extension option false;
           }
+
           KRATOS_TIMER_STOP("SearchNeighbours")
 
           FinalizeSolutionStep();
