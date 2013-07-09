@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #
+#     1.8-09/07/13-G. Socorro, add the Toolbar argument when call the proc OpenGiDGroupTab 
 #     1.7-17/06/13-G. Socorro, modify the procs AddMenuToPreprocessMenu and CreatePreprocessModelTBar to use only the new GiD group options
 #     1.6-12/02/13-G. Socorro, modify the command to access to the group window for version 11.0.x and 11.1.x
 #     1.5-10/10/12-G. Socorro, change arc.gif by curves.gif
@@ -208,7 +209,7 @@ proc ::kmtb::CreatePreprocessModelTBar {dir {type "DEFAULT INSIDELEFT"}} {
 				$KPriv(imagesdir)/stop.gif"
 	
 	    set KBitmapsCommands(0) [list \
-					 [list -np- ::WinUtils::OpenGiDGroupTab] \
+					 [list -np- ::WinUtils::OpenGiDGroupTab Toolbar] \
 					 [list -np- ::KMProps::StartBaseWindow] \
 					 [list -np- ::KMProps::StartBaseWindow Materials] \
 					 [list -np- ::KMProps::StartBaseWindow Curve] \
@@ -235,7 +236,7 @@ proc ::kmtb::CreatePreprocessModelTBar {dir {type "DEFAULT INSIDELEFT"}} {
 				$KPriv(imagesdir)/stop.gif"
 	    
 	    set KBitmapsCommands(0) [list \
-					 [list -np- ::WinUtils::OpenGiDGroupTab] \
+					 [list -np- ::WinUtils::OpenGiDGroupTab Toolbar] \
 					 [list -np- ::KMProps::StartBaseWindow] \
 					 [list -np- ::KMProps::StartBaseWindow Materials] \
 					 "" \
