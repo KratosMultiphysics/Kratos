@@ -22,7 +22,9 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
 from DEM_explicit_solver_var import *
-from DEM_procedures import *
+import DEM_explicit_solver_var as Param
+import DEM_procedures
+proc = DEM_procedures.Procedures(Param)
 
 import benchmarking                                                                            ########## BENCHMARK ##########
 
@@ -45,22 +47,22 @@ balls_model_part = ModelPart("SolidPart");
 
 # Importing the strategy object
 
-if (ElementType == "SphericParticle3D" or ElementType == "CylinderParticle2D"):
+if (Param.ElementType == "SphericParticle3D" or Param.ElementType == "CylinderParticle2D"):
     import sphere_strategy as SolverStrategy
-elif (ElementType == "SphericContinuumParticle3D"):
+elif (Param.ElementType == "SphericContinuumParticle3D"):
     import continuum_sphere_strategy as SolverStrategy
 
-SolverStrategy.AddVariables(balls_model_part)
+SolverStrategy.AddVariables(balls_model_part, Param)
 
 # Reading the model_part: binary or ascii, multifile or single --> only binary and single for mpi.
 
-if (OutputFileType == "Binary"):
+if (Param.OutputFileType == "Binary"):
     gid_mode = GiDPostMode.GiD_PostBinary
   
 else:
     gid_mode = GiDPostMode.GiD_PostAscii
   
-if (Multifile == "multiple_files"):
+if (Param.Multifile == "multiple_files"):
     multifile = MultiFileFlag.MultipleFiles
   
 else:
@@ -83,7 +85,8 @@ SolverStrategy.AddDofs(balls_model_part)
 
 # Creating a solver object
 
-solver = SolverStrategy.ExplicitStrategy(balls_model_part, domain_size) #here, solver variables initialize as default
+solver = SolverStrategy.ExplicitStrategy(balls_model_part, Param) #here, solver variables initialize as default
+
 
 # Creating necessary directories
 
@@ -129,11 +132,11 @@ export_model_part = balls_model_part
 #------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALITZATIONS--------------------------------------------------------
 
 Pressure = 0.0  
-Pressure = ProcGiDSolverTransfer(balls_model_part, solver)
+Pressure = proc.GiDSolverTransfer(balls_model_part, solver)
 
-if (ModelDataInfo == "ON"):
+if (Param.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
-    ProcModelData(balls_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
+    proc.ModelData(balls_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
     os.chdir(main_path)
                    
 print 'Initializing Problem....'
@@ -161,9 +164,9 @@ initial_real_time      = timer.time()
 
 os.chdir(post_path)
 
-if (Multifile == "single_file"):
+if (Param.Multifile == "single_file"):
 
-  if (ContactMeshOption == "ON"): 
+  if (Param.ContactMeshOption == "ON"):
       gid_io.InitializeMesh(0.0)
       gid_io.WriteMesh(contact_model_part.GetMesh());
       gid_io.FinalizeMesh()
@@ -185,11 +188,11 @@ os.chdir(main_path)
 
 print ('Main loop starts at instant: ' + str(initial_pr_time) + '\n')
 
-total_steps_expected = int(final_time / dt)
+total_steps_expected = int(FinalTime / dt)
 
 print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n' )
 
-while (time < final_time):
+while (time < FinalTime):
  
     dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
@@ -203,12 +206,12 @@ while (time < final_time):
    
     incremental_time = (timer.time() - initial_real_time) - prev_time
 
-    if (incremental_time > control_time):      
+    if (incremental_time > ControlTime):
         percentage = 100 * (float(step) / total_steps_expected)
       
-        print 'Real time calculation: '        + str(timer.time() - initial_real_time) 
-        print 'Percentage Completed: '        + str(percentage) + ' %' 
-        print "TIME STEP = "        + str(step) + '\n'
+        print 'Real time calculation: ' + str(timer.time() - initial_real_time)
+        print 'Percentage Completed: '  + str(percentage) + ' %'
+        print "TIME STEP = "            + str(step) + '\n'
       
         prev_time = (timer.time() - initial_real_time)
   
@@ -231,8 +234,8 @@ while (time < final_time):
     total_force = 0.0
     force_node  = 0.0
 
-    if (FixVelocities == 'OFF'):
-      TimePercentageFixVelocities = 0.0
+    if (FixVelocitiesOption == 'OFF'):
+        TimePercentageFixVelocities = 0.0
       
     os.chdir(list_path)    
     multifile.write(problem_name + '_' + str(time) + '.post.bin\n')   
@@ -242,7 +245,7 @@ while (time < final_time):
 
     time_to_print = time - time_old_print
 
-    if (time_to_print >= output_dt):
+    if (time_to_print >= Param.OutputTimeStep):
         BenchmarkCheck(time, node1)      ########## BENCHMARK ##########
         os.chdir(data_and_results)
         
@@ -267,7 +270,7 @@ while (time < final_time):
 
         os.chdir(graphs_path)
 
-        if(PrintNeighbourLists == "ON"): # Printing neighbours id's
+        if (PrintNeighbourLists == "ON"): # Printing neighbours id's
             os.chdir(neigh_list_path)
             neighbours_list = open('neigh_list_' + str(time), 'w')
   
@@ -288,7 +291,7 @@ while (time < final_time):
             gid_io.FinalizeMesh()
             gid_io.InitializeResults(time, balls_model_part.GetMesh()); 
  
-        ProcPrintingVariables(gid_io, export_model_part, time)  
+        proc.PrintingVariables(gid_io, export_model_part, time)
         os.chdir(main_path)     
               
         time_old_print = time
