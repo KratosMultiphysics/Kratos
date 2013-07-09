@@ -109,6 +109,7 @@ public:
     /**
      * Flags related to the constitutive Law
      */
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_STRAIN );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_STRESS );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_CONSTITUTIVE_TENSOR );
     
@@ -123,12 +124,11 @@ public:
 
     KRATOS_DEFINE_LOCAL_FLAG( AXISYMMETRIC );
 
-    KRATOS_DEFINE_LOCAL_FLAG( TOTAL_DEFORMATION_GRADIENT );
-
     /**
      *Structure to be used by the element to pass the parameters into the constitutive law
      * @param mOptions flags for the current Constitutive Law Parameters
      * @param mDeterminantF copy of the determinant of the Current DeformationGradient (althought Current F is also included as a matrix)
+     * @param mDeterminantF0 copy of the determinant of the Total DeformationGradient (althought Toal F0 is also included as a matrix)
 
      * @param mpStrainVector pointer to the current strains (total strains, input)
      * @param mpStressVector pointer to the computed stresses (output)
@@ -136,6 +136,8 @@ public:
      * @param mpShapeFunctionsDerivatires pointer to the shape functions derivaties values in the current integration point
 
      * @param mpDeformationGradientF pointer to the current deformation gradient (can be an empty matrix if a linear strain measure is used)
+
+     * @param mpDeformationGradientF0 pointer to the total deformation gradient (can be an empty matrix if a linear strain measure is used)
 
      * @param mpConstitutiveMatrix pointer to the material tangent matrix (output)
 
@@ -153,13 +155,15 @@ public:
     
       Flags                mOptions;
       double               mDeterminantF;
-      const Vector*        mpStrainVector;
+      double               mDeterminantF0;
+      Vector*              mpStrainVector;
       Vector*              mpStressVector; 
       const Vector*        mpShapeFunctionsValues;
       const Matrix*        mpShapeFunctionsDerivatives;
 
       const Matrix*        mpDeformationGradientF;
 
+      Matrix*              mpDeformationGradientF0;
       Matrix*              mpConstitutiveMatrix;
      
       const ProcessInfo*   mpCurrentProcessInfo;
@@ -176,11 +180,13 @@ public:
       Parameters ()
       {  
 	mDeterminantF=-1;
+	mDeterminantF0=-1;
 	mpStrainVector=NULL;
 	mpStressVector=NULL;
 	mpShapeFunctionsValues=NULL;
 	mpShapeFunctionsDerivatives=NULL;
 	mpDeformationGradientF=NULL;
+	mpDeformationGradientF0=NULL;
 	mpConstitutiveMatrix=NULL;
 	mpCurrentProcessInfo=NULL;
 	mpMaterialProperties=NULL;
@@ -199,11 +205,13 @@ public:
       ,mpElementGeometry(&rElementGeometry)
       {  
 	mDeterminantF=-1;
+	mDeterminantF0=-1;
 	mpStrainVector=NULL;
 	mpStressVector=NULL;
 	mpShapeFunctionsValues=NULL;
 	mpShapeFunctionsDerivatives=NULL;
 	mpDeformationGradientF=NULL;
+	mpDeformationGradientF0=NULL;
 	mpConstitutiveMatrix=NULL;
       };
 
@@ -214,11 +222,13 @@ public:
       Parameters (const Parameters & rNewParameters)
         :mOptions(rNewParameters.mOptions)
         ,mDeterminantF(rNewParameters.mDeterminantF)
+        ,mDeterminantF0(rNewParameters.mDeterminantF0)
 	,mpStrainVector(rNewParameters.mpStrainVector)
 	,mpStressVector(rNewParameters.mpStressVector)
 	,mpShapeFunctionsValues(rNewParameters.mpShapeFunctionsValues)
 	,mpShapeFunctionsDerivatives(rNewParameters.mpShapeFunctionsDerivatives)
 	,mpDeformationGradientF(rNewParameters.mpDeformationGradientF)
+	,mpDeformationGradientF0(rNewParameters.mpDeformationGradientF0)
 	,mpConstitutiveMatrix(rNewParameters.mpConstitutiveMatrix)
 	,mpCurrentProcessInfo(rNewParameters.mpCurrentProcessInfo)
 	,mpMaterialProperties(rNewParameters.mpMaterialProperties)
@@ -289,8 +299,14 @@ public:
 	if(mDeterminantF==-1)
 	  KRATOS_ERROR(std::invalid_argument,"DeterminantF NOT SET","");
 
+	if(mDeterminantF0==-1)
+	  KRATOS_ERROR(std::invalid_argument,"DeterminantF0 NOT SET","");
+
 	if(!mpDeformationGradientF)
 	  KRATOS_ERROR(std::invalid_argument,"DeformationGradientF NOT SET","");
+
+	if(!mpDeformationGradientF0)
+	  KRATOS_ERROR(std::invalid_argument,"DeformationGradientF0 NOT SET","");
 
 	if(!mpStrainVector)
 	  KRATOS_ERROR(std::invalid_argument,"StrainVector NOT SET","");
@@ -315,12 +331,14 @@ public:
 
       void SetOptions                   (const Flags&  rOptions)                   {mOptions=rOptions;};
       void SetDeterminantF              (const double& rDeterminantF)              {mDeterminantF=rDeterminantF;};
-      void SetStrainVector              (const Vector& rStrainVector)              {mpStrainVector=&rStrainVector;};
+      void SetDeterminantF0             (const double& rDeterminantF0)             {mDeterminantF0=rDeterminantF0;};
+      void SetStrainVector              (Vector& rStrainVector)                    {mpStrainVector=&rStrainVector;};
       void SetStressVector              (Vector& rStressVector)                    {mpStressVector=&rStressVector;};
       void SetShapeFunctionsValues      (const Vector& rShapeFunctionsValues)      {mpShapeFunctionsValues=&rShapeFunctionsValues;};
       void SetShapeFunctionsDevivatives (const Matrix& rShapeFunctionsDerivatives) {mpShapeFunctionsDerivatives=&rShapeFunctionsDerivatives;};
 
       void SetDeformationGradientF      (const Matrix& rDeformationGradientF)     {mpDeformationGradientF=&rDeformationGradientF;};
+      void SetDeformationGradientF0     (Matrix& rDeformationGradientF0)     {mpDeformationGradientF0=&rDeformationGradientF0;};
 
       void SetConstitutiveMatrix        (Matrix& rConstitutiveMatrix)              {mpConstitutiveMatrix =&rConstitutiveMatrix;};
 
@@ -334,14 +352,17 @@ public:
        */ 
       Flags& GetOptions () {return mOptions;};
    
-      const double& GetDeterminantF              () {return mDeterminantF;};
-      const Vector& GetStrainVector              () {return *mpStrainVector;};
+      const double& GetDeterminantF              () {return mDeterminantF;};     
       const Vector& GetShapeFunctionsValues      () {return *mpShapeFunctionsValues;};
       const Matrix& GetShapeFunctionsDerivatives () {return *mpShapeFunctionsDerivatives;};
       const Matrix& GetDeformationGradientF      () {return *mpDeformationGradientF;};
 
+      double& GetDeterminantF0                   () {return mDeterminantF0;};
+      Vector& GetStrainVector                    () {return *mpStrainVector;};
       Vector& GetStressVector                    () {return *mpStressVector;};
+      Matrix& GetDeformationGradientF0           () {return *mpDeformationGradientF0;};
       Matrix& GetConstitutiveMatrix              () {return *mpConstitutiveMatrix;};
+
 
       const ProcessInfo&  GetProcessInfo         () {return *mpCurrentProcessInfo;};
       const Properties&   GetMaterialProperties  () {return *mpMaterialProperties;};
@@ -352,8 +373,11 @@ public:
        */ 
       
       double& GetDeterminantF              (double & rDeterminantF) {rDeterminantF=mDeterminantF; return rDeterminantF;};
+      double& GetDeterminantF0             (double & rDeterminantF0) {rDeterminantF0=mDeterminantF0; return rDeterminantF0;};
       Vector& GetStrainVector              (Vector & rStrainVector) {rStrainVector=*mpStrainVector; return rStrainVector;};
       Matrix& GetDeformationGradientF      (Matrix & rDeformationGradientF) {rDeformationGradientF=*mpDeformationGradientF; return rDeformationGradientF;};
+
+      Matrix& GetDeformationGradientF0     (Matrix & rDeformationGradientF0) {rDeformationGradientF0=*mpDeformationGradientF0; return rDeformationGradientF0;};
 
       Vector& GetStressVector              (Vector & rStressVector) {rStressVector=*mpStressVector; return rStressVector;};
       Matrix& GetConstitutiveMatrix        (Matrix & rConstitutiveMatrix) {rConstitutiveMatrix=*mpConstitutiveMatrix; return rConstitutiveMatrix;};
