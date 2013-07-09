@@ -121,5 +121,11 @@ if(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
 endif(${PURE_DIFFUSION_APPLICATION} MATCHES ON)
 
 
+# if(${WIND_TURBINE_APPLICATION} MATCHES ON)
+#   add_subdirectory(wind_turbine_application)
+# endif(${WIND_TURBINE_APPLICATION} MATCHES ON)
+
+
+
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
