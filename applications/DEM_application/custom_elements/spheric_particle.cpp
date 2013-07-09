@@ -1170,7 +1170,6 @@ namespace Kratos
               mGlobalKn                 = rCurrentProcessInfo[GLOBAL_KN];
               mGlobalKt                 = rCurrentProcessInfo[GLOBAL_KT];
               mLimitSurfaceOption       = rCurrentProcessInfo[LIMIT_SURFACE_OPTION];
-              mRotationSpringOption     = rCurrentProcessInfo[ROTATION_SPRING_OPTION];
               
               mpTimeStep                 =  &(rCurrentProcessInfo[TIME_STEPS]); // reference.
 
