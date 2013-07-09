@@ -193,10 +193,10 @@ class ExplicitStrategy:
         else:
             self.rota_damp_id               = 0
 
-        if (Param.FailureCriterionOption == "Mohr-Coulomb"):
+        if (Param.FailureCriterionType == "Mohr-Coulomb"):
             self.failure_criterion_OPTION   = 1
 
-        elif (Param.FailureCriterionOption == "Uncoupled"):
+        elif (Param.FailureCriterionType == "Uncoupled"):
             self.failure_criterion_OPTION   = 2
 
         self.tau_zero                       = Param.TauZero
