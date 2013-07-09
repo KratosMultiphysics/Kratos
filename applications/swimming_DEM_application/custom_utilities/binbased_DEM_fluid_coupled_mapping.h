@@ -131,6 +131,7 @@ public:
             ClearVariables(node_it, FLUID_VEL_PROJECTED);
             ClearVariables(node_it, PRESSURE_GRAD_PROJECTED);
             ClearVariables(node_it, FLUID_DENSITY_PROJECTED);
+            ClearVariables(node_it, FLUID_VISCOSITY_PROJECTED);
         }
 
         array_1d<double, TDim + 1 > N;
@@ -159,6 +160,7 @@ public:
                     Interpolate(  pelement,  N, pparticle, DENSITY , FLUID_DENSITY_PROJECTED  );
                     Interpolate(  pelement,  N, pparticle, VELOCITY , FLUID_VEL_PROJECTED  );
                     Interpolate(  pelement,  N, pparticle, PRESSURE_GRADIENT , PRESSURE_GRAD_PROJECTED  );
+                    Interpolate(  pelement,  N, pparticle, VISCOSITY , FLUID_VISCOSITY_PROJECTED  );
 
 
                 }
