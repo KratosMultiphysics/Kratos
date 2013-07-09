@@ -324,3 +324,4 @@ void Isotropic2D::Interpolate_Internal_Variables(double& weight,
 
 
 } // Namespace Kratos
+
