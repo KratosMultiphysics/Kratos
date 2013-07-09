@@ -236,8 +236,8 @@
     <Item id="Membrane" ivalues="Elastic-Isotropic"
     values="Elastic-Isotropic" />
     <Item id="Shell"
-    ivalues="Elastic-Isotropic,Elastic-Anisotropic"
-    values="Elastic-Isotropic,Elastic-Anisotropic" />
+    ivalues="Elastic-Isotropic"
+    values="Elastic-Isotropic" />
     <Item id="EBST"
     ivalues="Elastic-Isotropic,Elasto-Plastic,Damage"
     values="Elastic-Isotropic,Elasto-Plastic,Damage" />
