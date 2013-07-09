@@ -233,6 +233,7 @@ namespace Kratos
         bool mContinuumSimulationOption;
         bool mContactMeshOption;
         int* mpCaseOption;
+        int  mFailureId;
    
         int mFailureCriterionOption;
         
