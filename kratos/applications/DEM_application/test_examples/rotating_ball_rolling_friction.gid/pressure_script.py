@@ -5,9 +5,6 @@ from KratosMultiphysics.DEMApplication import *
 
 from numpy import *
 
-from DEM_explicit_solver_var import *
-
-
 #PRESSURE CALCULATION
 
 def ApplyPressure(Pressure,model_part,solver,SKIN,BOT,TOP,LAT,XLAT,XBOT,XTOP,XBOTCORNER,XTOPCORNER,alpha_top,alpha_bot,alpha_lat):
