@@ -16,6 +16,7 @@
 #
 #    HISTORY:
 #
+#     0.4- 09/07/13- G. Socorro, open GiD group window only from the toolbar when the window is not open 
 #     0.3- 11/02/13- G. Socorro, add the proc OpenGiDGroupTab
 #     0.2- 10/04/12- J. Garate Change image path to KPriv(imagesdir) en ::WinUtils::GetImage
 #     0.1- 04/11/09-G. Socorro, create the base source code
@@ -34,14 +35,17 @@ namespace eval ::WinUtils:: {
 # 1. 
 # 2.
 
-proc ::WinUtils::OpenGiDGroupTab {} {
+proc ::WinUtils::OpenGiDGroupTab {{from "None"}} {
     # ABSTRACT: Open the GiD group tab inside the layer window
    
     set w ".gid.central.wlay"
     if {![winfo exists $w]} {
       #no open new window
-      #ChangeLayers
-      return;
+	if {$from eq "Toolbar"} {
+	    ChangeLayers
+	} else {
+	    return ""
+	}
     }
     # wa "::GID_INTERNAL_GROUPS:$::GID_INTERNAL_GROUPS ::GidPriv(ShowGroupsTab):$::GidPriv(ShowGroupsTab) ::GidPriv(LayersOrGroupsCurrentTab):$::GidPriv(LayersOrGroupsCurrentTab) "
     # Select the tab
