@@ -1,6 +1,7 @@
 #path for applications
 import sys
 
+Import_SolidMechanicsApplication = False
 Import_ALEApplication = False
 Import_IncompressibleFluidApplication = False
 Import_StructuralApplication = False
@@ -32,6 +33,7 @@ Import_DEM_FEM_Application = False
 Import_WindTurbineApplication = False
 
 print "Applications Available:"
+print "Import_SolidMechanicsApplication: False"
 print "Import_ALEApplication: False"
 print "Import_IncompressibleFluidApplication: False"
 print "Import_StructuralApplication: False"
@@ -69,6 +71,7 @@ def ImportApplications(kernel, applications_path=application_directory ):
     ##########################################################################
     ##importing the applications
     print "Applications Available:"
+    print "Import_SolidMechanicsApplication: "+str(Import_SolidMechanicsApplication) 
     print "Import_ALEApplication: "+str(Import_ALEApplication)
     print "Import_IncompressibleFluidApplication: "+str(Import_IncompressibleFluidApplication)
     print "Import_StructuralApplication: "+str(Import_StructuralApplication)
@@ -96,6 +99,15 @@ def ImportApplications(kernel, applications_path=application_directory ):
     print "Import_ThermoMechanicalApplication: "+str(Import_ThermoMechanicalApplication)
     print "Import_DEM_FEM_Application: "+str(Import_DEM_FEM_Application)
     print "Import_WindTurbineApplication: "+str(Import_WindTurbineApplication)
+
+    if(Import_SolidMechanicsApplication == True):
+        print "importing KratosSolidMechanicsApplication ..."
+        sys.path.append(applications_path + '/SolidMechanicsApplication/python_scripts') 
+        sys.path.append(applications_path + '/SolidMechanicsApplication/Linux') 
+        from KratosSolidMechanicsApplication import *
+        structural_application = KratosSolidMechanicsApplication()
+        kernel.AddApplication(solid_mechanics_application)
+        print "KratosSolidMechanicsApplication Succesfully imported"
 
     if(Import_ALEApplication == True):
         print "importing KratosALEApplication ..."
@@ -341,6 +353,8 @@ def ImportApplications(kernel, applications_path=application_directory ):
     ##########################################################################
     ##dynamic renumbering of variables to ensure the consistency
     kernel.Initialize()
+    if(Import_SolidMechanicsApplication == True):
+        kernel.InitializeApplication(solid_mechanics_application);
     if(Import_ALEApplication == True):
         kernel.InitializeApplication(ale_app);
     if(Import_IncompressibleFluidApplication == True):
