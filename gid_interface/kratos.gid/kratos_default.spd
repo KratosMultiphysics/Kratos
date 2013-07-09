@@ -50,15 +50,15 @@
         <Container id="AnalysisData" pid="Analysis type" class="Tab" help="Analysis Data" open="0">
             <Item id="StructuralType2D" nDim="2D" pid="Structural type" class="strucType" state="hidden" dv="Generic" ivalues="Beams,Solids,Generic" values="Beams,Solids,Generic" help="Structural Type"/>
             <Item id="StructuralType3D" nDim="3D" pid="Structural type" class="strucType" state="hidden" dv="Generic" ivalues="Beams,Truss,Membranes,Shells,Solids,Generic" values="Beams,Truss,Membranes,Shells,Solids,Generic" help="Structural Type"/>
-            <Item id="SolutionType" pid="Solution type" class="soluType" dv="Dynamic" ivalues="Static,Dynamic,RelaxedDynamic" values="Static,Dynamic,Relaxed dynamic" help="Solution type"/>
-            <Item id="AnalysisType" pid="Analysis type" class="analysType" dv="Non-Linear" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" help="Analysis Type"/>
+            <Item id="SolutionType" pid="Solution type" class="soluType" dv="Static" ivalues="Static,Dynamic,RelaxedDynamic" values="Static,Dynamic,Relaxed dynamic" help="Solution type"/>
+            <Item id="AnalysisType" pid="Analysis type" class="analysType" dv="Linear" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" help="Analysis Type"/>
         </Container>
         <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="0" icon="solstrategy.gif">
 	  <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
 	  <Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
 	  <Item id="OpenMPNumberOfThreads" pid="Number of threads" dv="2" PSolutionType="OpenMP" help="Number of threads"/>
 	  <Item id="LinearSolverType" pid="Linear solver type" class="solverType" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
-            <Item id="DirectSolverType" pid="Direct solver type" solverType="Direct" dv="SkylineLUFactorization" ivalues="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" values="Skyline LU factorization,Super LU,Parallel MKL Pardiso" help=""/>
+          <Item id="DirectSolverType" pid="Direct solver type" solverType="Direct" dv="SkylineLUFactorization" ivalues="SkylineLUFactorization,SuperLU" values="Skyline LU factorization,Super LU" help=""/>
             <Item id="IterativeSolverType" pid="Iterative solver type" solverType="Iterative" dv="ConjugateGradient" ivalues="ConjugateGradient,BiConjugateGradientStabilized" values="Conjugate gradient,BiConjugate gradient stabilized" help=""/>
             <Item id="Tolerance" pid="Iterative" solverType="Iterative" dv="1E-6" help=""/>
             <Item id="MaximumIteration" pid="Maximum iteration" solverType="Iterative" dv="5000" help=""/>
@@ -212,7 +212,7 @@
 	      <Item id="GravityValue" pid="Gravity value" dv="9.8" help="Gravity value"/>
 	      <Item id="Cx" pid="Cx" dv="0.0" help="X Vector"/>
 	      <Item id="Cy" pid="Cy" dv="0.0" help="Y Vector"/>
-	      <Item id="Cz" pid="Cz" dv="1.0" nDim="3D" help="Z Vector"/>
+	      <Item id="Cz" pid="Cz" dv="-1.0" nDim="3D" help="Z Vector"/>
 	    </Container>
 	    <Container id="PorousZones" pid="Porous zones" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" help="Porous zones" open="0">
                 <Item id="UseErgunEquation" pid="Use Ergun equation" dv="No" class="ErgunEquationType" ivalues="Yes,No" values="Yes,No" help="Use Ergun equation"/>
@@ -475,7 +475,7 @@
                 <Item id="GravityValue" pid="Gravity value" dv="9.8" help="Gravity value"/>
                 <Item id="Cx" pid="Cx" dv="0.0" help="X Vector"/>
                 <Item id="Cy" pid="Cy" dv="0.0" help="Y Vector"/>
-                <Item id="Cz" pid="Cz" dv="1.0" nDim="3D" help="Z Vector"/>
+                <Item id="Cz" pid="Cz" dv="-1.0" nDim="3D" help="Z Vector"/>
             </Container>
         </Template>        
         <Template id="Puntual" icon="groupsTree.gif" help="Puntual">
