@@ -39,7 +39,7 @@ proc  DEM::Elements_Substitution { } {
     if { [GiD_AccessValue get gendata Autodetermine_2D-3D_problem] == 1 } {
 	set dimensions [DEM::GetDimensions]
     } else {
-	set dimensions  [GiD_AccessValue get gendata Dimensions]
+	set dimensions  [GiD_AccessValue get gendata Domain_Dimension]
     }    
     
     set materials [GiD_Info materials]
@@ -283,7 +283,7 @@ proc BeforeMeshGeneration {elementsize} {
 
 	# Set the domain_size variable
        if { [GiD_AccessValue get gendata Autodetermine_2D-3D_problem] == 1 } {
-	   GiD_AccessValue set gendata Dimensions [DEM::GetDimensions]
+	   GiD_AccessValue set gendata Domain_Dimension [DEM::GetDimensions]
 	}
 	# Assign Materials
 	if { [GiD_AccessValue get gendata Transfer_materials_to_lower_entities] == 1 } {
@@ -358,7 +358,7 @@ proc BeforeWriteCalcFileGIDProject { file } {
 	# Before Write Calc File
 	# Set the domain_size variable again (in case was General Data changed after meshing)
     if { [GiD_AccessValue get gendata Autodetermine_2D-3D_problem] == 1 } {
-	  GiD_AccessValue set gendata Dimensions [DEM::GetDimensions]
+	  GiD_AccessValue set gendata Domain_Dimension [DEM::GetDimensions]
 	}
 	#set D [GiD_AccessValue get gendata DOMAIN_SIZE]
 	#WarnWinText "ProblemData's DOMAIN_SIZE is $D"
