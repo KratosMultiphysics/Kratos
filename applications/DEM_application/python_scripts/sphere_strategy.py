@@ -1,6 +1,15 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
+def Var_Translator(variable):
+
+    if (variable == "OFF" or variable == "0"):
+        variable = 0
+    else:
+        variable = 1
+
+    return variable
+
 def AddVariables(ModelPart, Param):
 
     # KINEMATIC
@@ -33,6 +42,7 @@ def AddVariables(ModelPart, Param):
     ModelPart.AddNodalSolutionStepVariable(PARTICLE_TENSION)
 
     # ROTATION RELATED PROPERTIES
+
     if (Var_Translator(Param.RotationOption)):
         ModelPart.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
         ModelPart.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
@@ -49,6 +59,7 @@ def AddVariables(ModelPart, Param):
     ModelPart.AddNodalSolutionStepVariable(EULER_ANGLES)
 
     # BOUNDARY SURFACE
+
     if (Var_Translator(Param.LimitSurfaceOption)):
         ModelPart.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES)
         ModelPart.AddNodalSolutionStepVariable(PARTICLE_SURFACE_ROTATE_SPRING_MOMENT)
@@ -81,15 +92,6 @@ def AddDofs(ModelPart):
 
     print "DOFs for the DEM solution added correctly"
 
-def Var_Translator(variable):
-
-    if (variable == "OFF" or variable == "0"):
-        variable = 0
-    else:
-        variable = 1
-
-    return variable
-
 class ExplicitStrategy:
 
     def __init__(self, ModelPart, Param):
@@ -118,18 +120,8 @@ class ExplicitStrategy:
         self.search_radius_extension        = Var_Translator(Param.SearchRadiusExtension)
         self.MoveMeshFlag                   = True
 
-        if (self.search_radius_extension and Var_Translator(Param.ContinuumOption)):
-            self.amplified_continuum_search_radius_extension = 0.0
-
-        if (Var_Translator(Param.DeltaOption)):
-            self.delta_OPTION               = True
-
-        if (Var_Translator(Param.ContinuumOption)):
-            self.continuum_simulating_OPTION = True
-
         # MODEL
         self.ModelPart                      = ModelPart
-        self.domain_size                    = Param.Dimension
 
         # BOUNDARY
         self.surface_normal_dir             = Vector(3)
@@ -142,7 +134,6 @@ class ExplicitStrategy:
         self.surface_point_coor[2]          = Param.SurfacePointCoorZ
         self.surface_friction_angle         = Param.SurfaceFrictionAngle
 
-
         # GLOBAL PHYSICAL ASPECTS
         self.gravity                        = Vector(3)
         self.gravity[0]                     = Param.GravityX
@@ -151,7 +142,7 @@ class ExplicitStrategy:
 
         # GLOBAL MATERIAL PROPERTIES
         self.nodal_mass_coeff               = Param.VirtualMassCoefficient
-        self.magic_factor                   = Var_Translator(Param.MagicFactor)
+        self.magic_factor                   = Param.MagicFactor
 
         if (self.global_variables_OPTION):
             self.global_kn                  = Param.GlobalKn
@@ -164,8 +155,13 @@ class ExplicitStrategy:
 
         if (Param.NormalForceCalculationType == "Linear"):
             self.force_calculation_type_id  = 0
+
         elif (Param.NormalForceCalculationType == "Hertz"):
             self.force_calculation_type_id  = 1
+
+        else:
+
+            raise 'Specified NormalForceCalculationType is not defined'
 
         if (self.Non_Linear_Option):
             self.C1                         = Param.C1
@@ -208,12 +204,6 @@ class ExplicitStrategy:
         self.sigma_min                      = Param.SigmaMin
         self.internal_fricc                 = Param.InternalFriction
 
-        # CONCRETE TEST
-
-        if (self.triaxial_OPTION):
-            self.initial_pressure_time        = Param.InitialTime
-            self.time_increasing_ratio        = Param.TotalTimePercentAsForceAplTime # (%)
-
         # PRINTING VARIABLES
         self.print_export_id                = Var_Translator(Param.PostExportId)
         self.print_group_id                 = Var_Translator(Param.PostGroupId)
@@ -226,7 +216,20 @@ class ExplicitStrategy:
         self.final_time                     = Param.FinalTime
 
         # RESOLUTION METHODS AND PARAMETERS
-        self.n_step_search                  = int(Param.TimeStepsPerSearchStep)
+
+        if (Param.TimeStepsPerSearchStep < 1):
+
+            raise 'Variable TimeStepsPerSearchStep must be an integer, grater or equal to 1. The current input value is ', Param.TimeStepsPerSearchStep
+
+        elif (not isinstance(Param.TimeStepsPerSearchStep, int)):
+
+            print 'Variable TimeStepsPerSearchStep is not an integer. Its input value is ', Param.TimeStepsPerSearchStep, 'Rounding up to ', int(Param.TimeStepsPerSearchStep)
+
+            self.n_step_search              = int(Param.TimeStepsPerSearchStep)
+
+        else:
+            self.n_step_search              = int(Param.TimeStepsPerSearchStep)
+
         self.safety_factor                  = Param.DeltaTimeSafetyFactor # For critical time step
         self.create_and_destroy             = particle_destructor_and_constructor()
 
@@ -234,13 +237,17 @@ class ExplicitStrategy:
         self.search_strategy                = OMP_DEMSearch()
 
         if (Param.IntegrationScheme == 'forward_euler'):
-            self.time_scheme = ForwardEulerScheme()
+            self.time_scheme                = ForwardEulerScheme()
+
         elif (Param.IntegrationScheme == 'mid_point_rule'):
-            self.time_scheme = MidPointScheme()
+            self.time_scheme                = MidPointScheme()
+
         elif (Param.IntegrationScheme == 'const_average_acc'):
-            self.time_scheme = ConstAverageAccelerationScheme()
+            self.time_scheme                = ConstAverageAccelerationScheme()
+
         else:
-            print('scheme not defined')
+
+            print('Specified IntegrationScheme is not defined')
 
     ######################################################################
 
@@ -256,7 +263,7 @@ class ExplicitStrategy:
         self.ModelPart.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_OPTION)
         self.ModelPart.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_OPTION)
         self.ModelPart.ProcessInfo.SetValue(ACTIVATE_SEARCH, self.activate_search)
-        self.ModelPart.ProcessInfo.SetValue(INT_DUMMY_6, self.fix_velocities) #reserved for fix_velocities
+        self.ModelPart.ProcessInfo.SetValue(INT_DUMMY_6, self.fix_velocities)
         self.ModelPart.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_OPTION)
         self.ModelPart.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_OPTION)
         self.ModelPart.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
@@ -289,20 +296,14 @@ class ExplicitStrategy:
         self.ModelPart.ProcessInfo.SetValue(SEARCH_RADIUS_EXTENSION, self.search_radius_extension)
 
         # PRINTING VARIABLES
-        self.ModelPart.ProcessInfo.SetValue(INT_DUMMY_3, self.print_export_id) # Reserved for: Export Print Skin sphere
         self.ModelPart.ProcessInfo.SetValue(INT_DUMMY_8, self.print_group_id) # Reserved for: Export Print Group ID
         self.ModelPart.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
         self.ModelPart.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
         self.ModelPart.ProcessInfo.SetValue(ROTA_DAMP_TYPE, self.rota_damp_id)
-        self.ModelPart.ProcessInfo.SetValue(INT_DUMMY_1, 0) # Reserved for: message when confinement ends.
 
         # TIME RELATED PARAMETERS
         self.ModelPart.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
         self.ModelPart.ProcessInfo.SetValue(FINAL_SIMULATION_TIME, self.final_time)
-
-        if (self.triaxial_OPTION):
-            self.ModelPart.ProcessInfo.SetValue(TIME_INCREASING_RATIO, self.time_increasing_ratio)
-
         self.ModelPart.ProcessInfo.SetValue(INT_DUMMY_7, 0) # int(self.time_step_percentage_fix_velocities * (self.final_time / self.delta_time))) # Reserved for timestep fix_velocities
 
         # RESOLUTION METHODS AND PARAMETERS
