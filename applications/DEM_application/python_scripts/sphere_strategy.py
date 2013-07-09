@@ -1,3 +1,4 @@
+import sys
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
@@ -101,24 +102,21 @@ class ExplicitStrategy:
         # SIMULATION FLAGS        
         self.virtual_mass_OPTION            = Var_Translator(Param.VirtualMassOption)
         self.critical_time_OPTION           = Var_Translator(Param.AutoReductionOfTimeStepOption)
-        self.case_OPTION                    = 3
         self.trihedron_OPTION               = Var_Translator(Param.TrihedronOption)
         self.rotation_OPTION                = Var_Translator(Param.RotationOption)
         self.rotation_spring_OPTION         = Var_Translator(Param.RotationalSpringOption)
         self.bounding_box_OPTION            = Var_Translator(Param.BoundingBoxOption)
-        self.activate_search                = 1
         self.fix_velocities                 = Var_Translator(Param.FixVelocitiesOption)
         self.limit_surface_OPTION           = Var_Translator(Param.LimitSurfaceOption)
         self.clean_init_indentation_OPTION  = Var_Translator(Param.CleanIndentationsOption)
         self.homogeneous_material_OPTION    = Var_Translator(Param.HomogeneousMaterialOption)
         self.global_variables_OPTION        = Var_Translator(Param.GlobalVariablesOption)
         self.Non_Linear_Option              = Var_Translator(Param.NonLinearNormalElasticOption)
-        self.stress_strain_operations       = Var_Translator(Param.StressStrainOperationsOption)
         self.contact_mesh_OPTION            = Var_Translator(Param.ContactMeshOption)
-        self.concrete_test_OPTION           = Var_Translator(Param.ConcreteTestOption)
-        self.triaxial_OPTION                = Var_Translator(Param.TriaxialOption)
         self.search_radius_extension        = Var_Translator(Param.SearchRadiusExtension)
         self.MoveMeshFlag                   = True
+        self.deactivate_search              = 0
+        self.case_OPTION                    = 3
 
         # MODEL
         self.ModelPart                      = ModelPart
@@ -147,11 +145,6 @@ class ExplicitStrategy:
         if (self.global_variables_OPTION):
             self.global_kn                  = Param.GlobalKn
             self.global_kt                  = Param.GlobalKt
-            self.global_kr                  = Param.GlobalKr
-            self.global_rn                  = Param.GlobalRn
-            self.global_rt                  = Param.GlobalRT
-            self.global_rr                  = Param.GlobalRr
-            self.global_fri_ang             = Param.GlobalFrictionAngle
 
         if (Param.NormalForceCalculationType == "Linear"):
             self.force_calculation_type_id  = 0
@@ -193,21 +186,13 @@ class ExplicitStrategy:
         else:
             self.rota_damp_id               = 0
 
-        if (Param.FailureCriterionType == "Mohr-Coulomb"):
-            self.failure_criterion_OPTION   = 1
-
-        elif (Param.FailureCriterionType == "Uncoupled"):
-            self.failure_criterion_OPTION   = 2
-
         self.tau_zero                       = Param.TauZero
         self.sigma_max                      = Param.SigmaMax
         self.sigma_min                      = Param.SigmaMin
-        self.internal_fricc                 = Param.InternalFriction
 
         # PRINTING VARIABLES
         self.print_export_id                = Var_Translator(Param.PostExportId)
         self.print_group_id                 = Var_Translator(Param.PostGroupId)
-        self.print_export_skin_sphere       = Var_Translator(Param.PostExportSkinSphere)
         self.print_radial_displacement      = Var_Translator(Param.PostRadialDisplacement)
 
         # TIME RELATED PARAMETERS
@@ -229,6 +214,9 @@ class ExplicitStrategy:
 
         else:
             self.n_step_search              = int(Param.TimeStepsPerSearchStep)
+
+        if (self.deactivate_search):
+            self.n_step_search              = sys.maxint
 
         self.safety_factor                  = Param.DeltaTimeSafetyFactor # For critical time step
         self.create_and_destroy             = particle_destructor_and_constructor()
@@ -262,7 +250,6 @@ class ExplicitStrategy:
         self.ModelPart.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_OPTION)
         self.ModelPart.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_OPTION)
         self.ModelPart.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_OPTION)
-        self.ModelPart.ProcessInfo.SetValue(ACTIVATE_SEARCH, self.activate_search)
         self.ModelPart.ProcessInfo.SetValue(INT_DUMMY_6, self.fix_velocities)
         self.ModelPart.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_OPTION)
         self.ModelPart.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_OPTION)
@@ -313,11 +300,6 @@ class ExplicitStrategy:
                                              self.MoveMeshFlag, self.time_scheme, self.search_strategy)
 
         self.solver.Initialize() # Calls the solver Initialized function (initializes all elements and performs other necessary tasks before iterating)
-
-    #######################################################################
-
-    def Initial_Critical_Time(self):
-        (self.solver).InitialTimeStepCalculation()
 
     #######################################################################
 
