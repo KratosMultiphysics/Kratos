@@ -11,7 +11,9 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
     model_part.AddNodalSolutionStepVariable(INSITU_STRESS);
     model_part.AddNodalSolutionStepVariable(FACE_LOAD);
-    model_part.AddNodalSolutionStepVariable(FORCE);
+    model_part.AddNodalSolutionStepVariable(FORCE_INTERNAL);
+    model_part.AddNodalSolutionStepVariable(FORCE_EXTERNAL);
+    model_part.AddNodalSolutionStepVariable(FORCE_DYNAMIC);
     model_part.AddNodalSolutionStepVariable(DENSITY);
     model_part.AddNodalSolutionStepVariable(ROTATION);
     model_part.AddNodalSolutionStepVariable(MOMENTUM);
@@ -25,8 +27,8 @@ def AddVariables(model_part):
 
 def ChangeCondition(model_part, lamda):
 	for node in model_part.Nodes:
-	    new_load = node.GetSolutionStepValue(FORCE)*lamda;
-	    node.SetSolutionStepValue(FORCE,0,new_load)
+	    new_load = node.GetSolutionStepValue(FORCE_EXTERNAL)*lamda;
+	    node.SetSolutionStepValue(FORCE_EXTERNAL,0,new_load)
 
 
 def AddDofs(model_part):

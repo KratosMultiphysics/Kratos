@@ -51,6 +51,9 @@ UpdatedLagrangianElement::UpdatedLagrangianElement( UpdatedLagrangianElement con
     :Element(rOther)
     ,mThisIntegrationMethod(rOther.mThisIntegrationMethod)
     ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
+    ,mDeformationGradientF0(rOther.mDeformationGradientF0)
+    ,mDeterminantF0(rOther.mDeterminantF0)
+
 {
 }
 
@@ -64,14 +67,20 @@ UpdatedLagrangianElement&  UpdatedLagrangianElement::operator=(UpdatedLagrangian
     Element::operator=(rOther);
 
     mThisIntegrationMethod = rOther.mThisIntegrationMethod;
-
     mConstitutiveLawVector.clear();
-    mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
+    mConstitutiveLawVector.resize(rOther.mConstitutiveLawVector.size());
+
+    mDeformationGradientF0.clear();
+    mDeformationGradientF0.resize(rOther.mDeformationGradientF0.size());
+
 
     for(unsigned int i=0; i<<mConstitutiveLawVector.size(); i++)
-    {
+      {
         mConstitutiveLawVector[i] = rOther.mConstitutiveLawVector[i];
-    }
+	mDeformationGradientF0 [i] = rOther.mDeformationGradientF0[i];
+      }
+
+    mDeterminantF0 = rOther.mDeterminantF0;
 
     return *this;
 }
@@ -415,6 +424,12 @@ void UpdatedLagrangianElement::Initialize()
     //Material initialisation
     InitializeMaterial();
 
+
+    //Resize historic deformation gradient
+    mDeformationGradientF0.resize( integration_points_number );
+    mDeterminantF0.resize( integration_points_number, false );
+
+
     KRATOS_CATCH( "" )
 }
 
@@ -478,6 +493,9 @@ void UpdatedLagrangianElement::FinalizeSolutionStep( ProcessInfo& CurrentProcess
         //returns the variables increment (stresses, strains and internal)
         mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponsePK2 (Values);
 
+	mDeformationGradientF0[PointNumber] = Values.GetDeformationGradientF0();
+	mDeterminantF0[PointNumber]         = Values.GetDeterminantF0();
+
         mConstitutiveLawVector[PointNumber]->FinalizeSolutionStep( GetProperties(),
                 GetGeometry(),
                 Variables.N,
@@ -511,7 +529,21 @@ void UpdatedLagrangianElement::InitializeMaterial()
     KRATOS_CATCH( "" )
 }
 
+  //************************************************************************************
+  //************************************************************************************
 
+  void UpdatedLagrangianElement::ResetConstitutiveLaw()
+  {
+    KRATOS_TRY
+
+      if ( GetProperties()[CONSTITUTIVE_LAW] != NULL )
+        {
+	  for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
+	    mConstitutiveLawVector[i]->ResetMaterial( GetProperties(), GetGeometry(), row( GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
+        }
+
+    KRATOS_CATCH( "" )
+      }
 
 //************************************************************************************
 //************************************************************************************
@@ -1048,6 +1080,9 @@ void UpdatedLagrangianElement::SetStandardParameters(Standard& rVariables,
 {
     rVariables.detF =MathUtils<double>::Det(rVariables.F);
 
+    rValues.SetDeformationGradientF0(mDeformationGradientF0[rPointNumber]);
+    rValues.SetDeterminantF0(mDeterminantF0[rPointNumber]);
+
     rValues.SetDeterminantF(rVariables.detF);
     rValues.SetDeformationGradientF(rVariables.F);
     rValues.SetStrainVector(rVariables.StrainVector);
@@ -1084,6 +1119,8 @@ void UpdatedLagrangianElement::InitializeStandardVariables (Standard & rVariable
   rVariables.B.resize( StrainSize, number_of_nodes * dimension );
   
   rVariables.F.resize( dimension, dimension );
+
+  rVariables.F0.resize( dimension, dimension );
   
   rVariables.ConstitutiveMatrix.resize( StrainSize, StrainSize );
   
@@ -1182,47 +1219,7 @@ void UpdatedLagrangianElement::CalculateElementalSystem( MatrixType& rLeftHandSi
         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
 
 
-	//CONTROL ELEMENT VARIABLES
-	// std::cout<<"//******** ELEMENT "<<this->Id()<<" ********// "<<std::endl;
-	// std::vector<array_1d<double, 3 > > CurrentPosition (GetGeometry().size());
-	// for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
-	//   {
-	//     array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-	//     array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-	//     array_1d<double, 3 > & ReferencePosition    = GetGeometry()[i].Coordinates();
-	    
-	//     CurrentPosition[i] = ReferencePosition + (CurrentDisplacement-PreviousDisplacement);
-
-	//     double & CurrentPressure  = GetGeometry()[i].FastGetSolutionStepValue(PRESSURE);
-	//     std::cout<<" node "<<i<<" : "<<GetGeometry()[i].Id()<<" Current Position "<<CurrentPosition[i]<<" Pressure "<<CurrentPressure<<" Displacement" <<CurrentDisplacement[i]<<std::endl;
-	//   }
-	// std::cout<<" [ "<<std::endl;
-	// std::cout<<" F : "<<Variables.F<<" detF : "<<Variables.detF<<std::endl;
-
-
-	// Matrix F0;
-	// mConstitutiveLawVector[PointNumber]->GetValue(DEFORMATION_GRADIENT,F0); //still not updated
-	// Variables.detF0  = MathUtils<double>::Det(F0); //from reference configuration to n
-	// Variables.detF0 *= Variables.detF;  //from reference configuration
-
-	mConstitutiveLawVector[PointNumber]->GetValue(DETERMINANT_F,Variables.detF0); //still not updated: from reference configuration to n
-	Variables.detF0 *= Variables.detF;  //from reference configuration to n+1
-
-
-	// std::cout<<" detF0: "<<Variables.detF0<<std::endl;
-        // std::cout<<" Strain: "<<Variables.StrainVector<<std::endl;
-	// Vector StressCauchy=Variables.StressVector;
-	// mConstitutiveLawVector[PointNumber]->TransformStresses(StressCauchy,Variables.F,Variables.detF,ConstitutiveLaw::StressMeasure_PK2,ConstitutiveLaw::StressMeasure_Cauchy);
-        // std::cout<<" Stress Cauchy: "<<StressCauchy<<std::endl;
-	// std::cout<<" Stress PK2: "<<Variables.StressVector<<std::endl;
-	// std::cout<<" Constitutive: "<<Variables.ConstitutiveMatrix<<std::endl;
-	// std::cout<<" B: "<<Variables.B<<std::endl;
-	// std::cout<<" N: "<<Variables.N<<std::endl;
-	// std::cout<<" DN_DX: "<<Variables.DN_DX<<std::endl;
-	// std::cout<<" IntegrationWeight: "<<IntegrationWeight<<std::endl;
-	// std::cout<<" ] "<<std::endl;
-	//CONTROL ELEMENT VARIABLES
-
+	Variables.detF0 = mDeterminantF0[PointNumber] * Variables.detF;  //from reference configuration to n+1
 
 
         if ( dimension == 2 ) IntegrationWeight *= GetProperties()[THICKNESS];
@@ -1477,25 +1474,36 @@ void UpdatedLagrangianElement::CalculateAndAddKg(MatrixType& rK,
 
 void UpdatedLagrangianElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
+
+  KRATOS_TRY
     if ( rOutput.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
         rOutput.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(), false );
 
    if ( rVariable == VON_MISES_STRESS )
       {
-	double StressSize = 3;
-	if ( GetGeometry().WorkingSpaceDimension() == 2 )
-	  StressSize = 3;
-	else
-	  StressSize = 6;
-      
-        Vector StressVector( StressSize );
+	ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
+	Flags &Options=Values.GetOptions();
+	Options.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
+	Standard Variables;
+	InitializeStandardVariables (Variables,rCurrentProcessInfo);
+ 
+	//reading integration points
+	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+
+	for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 	  {
-            StressVector = mConstitutiveLawVector[ii]->GetValue(CAUCHY_STRESS_VECTOR,StressVector);
+	    //COMPUTE kinematics B,F,DN_DX ...
+	    CalculateKinematics(Variables,PointNumber);
+	
+	    //set standart parameters
+	    SetStandardParameters(Variables,Values,PointNumber);
+	    
+	    //CALL the constitutive law
+	    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
 	    ComparisonUtils EquivalentStress;
-	    rOutput[ii] =  EquivalentStress.CalculateVonMises(StressVector);
+	    rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(Variables.StressVector);
 	  }
       }
     else{
@@ -1503,6 +1511,8 @@ void UpdatedLagrangianElement::CalculateOnIntegrationPoints( const Variable<doub
       for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
         rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
     }
+
+	KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -1510,6 +1520,9 @@ void UpdatedLagrangianElement::CalculateOnIntegrationPoints( const Variable<doub
 
 void UpdatedLagrangianElement::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
+  
+  KRATOS_TRY
+
     unsigned int StrainSize;
 
     if ( GetGeometry().WorkingSpaceDimension() == 2 )
@@ -1523,28 +1536,8 @@ void UpdatedLagrangianElement::CalculateOnIntegrationPoints( const Variable<Vect
 
     Vector StrainVector( StrainSize );
 
-    if ( rVariable == PK2_STRESS_TENSOR )
+    if ( rVariable == PK2_STRESS_VECTOR )
     {
-        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-        {
-            if ( rOutput[ii].size() != StrainVector.size() )
-                rOutput[ii].resize( StrainVector.size(), false );
-
-            rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable , rOutput[ii] );
-        }
-    }
-    else if ( rVariable == CAUCHY_STRESS_VECTOR )
-    {
-        for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
-        {
-            if ( rOutput[ii].size() != StrainVector.size() )
-                rOutput[ii].resize( StrainVector.size(), false );
-
-            rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable , rOutput[ii] );
-        }
-    }    
-    else if ( rVariable == PK2_STRESS_VECTOR )
-      {
 
 	ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
 	Flags &Options=Values.GetOptions();
@@ -1555,24 +1548,29 @@ void UpdatedLagrangianElement::CalculateOnIntegrationPoints( const Variable<Vect
       
 	//reading integration points
 	const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
-    
+
 	for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
 	  {
-
+	  
 	    //COMPUTE kinematics B,F,DN_DX ...
 	    CalculateKinematics(Variables,PointNumber);
-
-            //set standart parameters
-            SetStandardParameters(Variables,Values,PointNumber);
+	
+	    //set standart parameters
+	    SetStandardParameters(Variables,Values,PointNumber);
 	    
-            //CALL the constitutive law
-            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
+	    //CALL the constitutive law
+	    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
-            Variables.StressVector=Values.GetStressVector(Variables.StressVector);
+	    Variables.StressVector=Values.GetStressVector(Variables.StressVector);
+
+	    mConstitutiveLawVector[PointNumber]->TransformStresses(Variables.StressVector,Variables.F,Variables.detF,ConstitutiveLaw::StressMeasure_Cauchy,ConstitutiveLaw::StressMeasure_PK2);
+
+          if ( rOutput[PointNumber].size() != StrainSize )
+	      rOutput[PointNumber].resize( StrainSize, false );
 
 	    rOutput[PointNumber] = Variables.StressVector;
 	  }
-      }
+    }
     else
     {
         if ( rOutput.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
@@ -1582,7 +1580,7 @@ void UpdatedLagrangianElement::CalculateOnIntegrationPoints( const Variable<Vect
             rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
     }
   
-
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -1636,72 +1634,63 @@ void UpdatedLagrangianElement::CalculateOnIntegrationPoints( const Variable<Matr
         }
         else if ( rVariable == PK2_STRESS_TENSOR )   // in fact is a vector due to a mismatch on kratos-gid printing
         { 
+	    Flags &Options=Values.GetOptions();
+	    Options.Set(ConstitutiveLaw::COMPUTE_STRESS);
+     
+	    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+	      {
+	  
+		//COMPUTE kinematics B,F,DN_DX ...
+		CalculateKinematics(Variables,PointNumber);
+	
+		//set standart parameters
+		SetStandardParameters(Variables,Values,PointNumber);
+	    
+		//CALL the constitutive law
+		mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
+	
+		if ( rOutput[PointNumber].size2() != Variables.StrainVector.size() )
+		  rOutput[PointNumber].resize( 1, Variables.StrainVector.size(), false );
+	    
+		for ( unsigned int ii = 0; ii < Variables.StrainVector.size(); ii++ )
+		  {
+		    rOutput[PointNumber]( 0, ii ) = Variables.StressVector[ii];
+		  }
 
-            if ( rOutput[PointNumber].size2() != StrainSize )
-                rOutput[PointNumber].resize( 1 ,  StrainSize , false );
-
-	    // DO NOT COMPUTE AFTER THE UPDATE OF THE HISTORICAL VARIABLES, ADULTERATED RESULTS
-
-            Variables.detF =MathUtils<double>::Det(Variables.F);
-
-            Matrix StressMatrix ( dimension, dimension );
-            StressMatrix = mConstitutiveLawVector[PointNumber]->GetValue( rVariable , StressMatrix );
-
-            StressMatrix = mConstitutiveLawVector[PointNumber]->TransformStresses(StressMatrix,Variables.F,Variables.detF,ConstitutiveLaw::StressMeasure_Cauchy,ConstitutiveLaw::StressMeasure_PK2);
-
-            Vector StressVector ( StrainSize );
-            StressVector = MathUtils<double>::StressTensorToVector( StressMatrix );
-
-            for ( unsigned int ii = 0; ii < StressVector.size(); ii++ )
-            {
-                rOutput[PointNumber]( 0, ii ) = StressVector[ii];
-            }
+	      }
 
 
         }
         else if ( rVariable == CAUCHY_STRESS_TENSOR )  // in fact is a vector due to a mismatch on kratos-gid printing
         {
-            if ( rOutput[PointNumber].size2() != StrainSize)
-                rOutput[PointNumber].resize( 1 , StrainSize , false );
-
-            Matrix StressMatrix ( dimension, dimension );
-            StressMatrix = mConstitutiveLawVector[PointNumber]->GetValue( rVariable , StressMatrix );
-
-            Vector StressVector ( StrainSize );
-            StressVector = MathUtils<double>::StressTensorToVector( StressMatrix );
-	    
-	   
-            for ( unsigned int ii = 0; ii < StressVector.size(); ii++ )
-            {
-                rOutput[PointNumber]( 0, ii ) = StressVector[ii];
-            }
-
-
-        }
-	else if ( rVariable == CONSTITUTIVE_MATRIX )
-	{
 
 	    Flags &Options=Values.GetOptions();
-	    Options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-
-	    //set standart parameters
-	    SetStandardParameters(Variables,Values,PointNumber);
+	    Options.Set(ConstitutiveLaw::COMPUTE_STRESS);
+     
+	    for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
+	      {
+	  
+		//COMPUTE kinematics B,F,DN_DX ...
+		CalculateKinematics(Variables,PointNumber);
+	
+		//set standart parameters
+		SetStandardParameters(Variables,Values,PointNumber);
 	    
-	    //CALL the constitutive law
-	    Options.Set(ConstitutiveLaw::LAST_KNOWN_CONFIGURATION);
-	    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
+		//CALL the constitutive law
+		mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
-	    Variables.ConstitutiveMatrix=Values.GetConstitutiveMatrix(Variables.ConstitutiveMatrix);
 
-	    rOutput[PointNumber] = Variables.ConstitutiveMatrix;
+		if ( rOutput[PointNumber].size2() != Variables.StrainVector.size() )
+		  rOutput[PointNumber].resize( 1, Variables.StrainVector.size(), false );
 	    
-	}
-	else if ( rVariable == DEFORMATION_GRADIENT )  // VARIABLE SET FOR TRANSFER PURPOUSES
-        {
-            if ( rOutput[PointNumber].size2() != dimension)
-                rOutput[PointNumber].resize( dimension , dimension , false );
-	    
-	    rOutput[PointNumber] = Variables.F;
+		for ( unsigned int ii = 0; ii < Variables.StrainVector.size(); ii++ )
+		  {
+		    rOutput[PointNumber]( 0, ii ) = Variables.StressVector[ii];
+		  }
+
+  
+	      }
+   
 	}
 
     }
@@ -1853,6 +1842,9 @@ void UpdatedLagrangianElement::save( Serializer& rSerializer ) const
     int IntMethod = int(mThisIntegrationMethod);
     rSerializer.save("IntegrationMethod",IntMethod);
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
+    rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
+    rSerializer.save("DeterminantF0",mDeterminantF0);
+
 }
 
 void UpdatedLagrangianElement::load( Serializer& rSerializer )
@@ -1862,6 +1854,9 @@ void UpdatedLagrangianElement::load( Serializer& rSerializer )
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
+    rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
+    rSerializer.load("DeterminantF0",mDeterminantF0);
+
 }
 
 
