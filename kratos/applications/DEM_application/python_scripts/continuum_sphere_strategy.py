@@ -157,7 +157,7 @@ class ExplicitStrategy:
 
         # GLOBAL MATERIAL PROPERTIES
         self.nodal_mass_coeff               = Param.VirtualMassCoefficient
-        self.magic_factor                   = Var_Translator(Param.MagicFactor)
+        self.magic_factor                   = Param.MagicFactor
 
         if (self.global_variables_OPTION):
             self.global_kn                  = Param.GlobalKn
