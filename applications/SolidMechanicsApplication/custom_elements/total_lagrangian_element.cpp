@@ -371,10 +371,10 @@ namespace Kratos
       KRATOS_ERROR(std::invalid_argument,"DeterminantF < 0","");
 
     //in this element F = F0, then the F0 is set to the identity for coherence in the constitutive law.
-    double detF0 = 1;
-    Matrix F0    = identity_matrix<double> (rVariables.F.size1());
-    rValues.SetDeterminantF0(detF0);
-    rValues.SetDeformationGradientF0(F0);
+    rVariables.detF0 = 1;
+    rVariables.F0 = identity_matrix<double> (rVariables.F.size1());
+    rValues.SetDeterminantF0(rVariables.detF0);
+    rValues.SetDeformationGradientF0(rVariables.F0);
 
     rValues.SetDeterminantF(rVariables.detF);
     rValues.SetDeformationGradientF(rVariables.F);
@@ -414,6 +414,8 @@ namespace Kratos
     rVariables.B.resize( StrainSize, number_of_nodes * dimension );
   
     rVariables.F.resize( dimension, dimension );
+
+    rVariables.F0.resize( dimension, dimension );
   
     rVariables.ConstitutiveMatrix.resize( StrainSize, StrainSize );
   
@@ -1117,9 +1119,7 @@ namespace Kratos
 	    
 		//CALL the constitutive law
 		mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
-
-		Variables.StressVector=Values.GetStressVector(Variables.StressVector);
-
+	
 		if ( rOutput[PointNumber].size2() != Variables.StrainVector.size() )
 		  rOutput[PointNumber].resize( 1, Variables.StrainVector.size(), false );
 	    
@@ -1149,7 +1149,6 @@ namespace Kratos
 		//CALL the constitutive law
 		mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
 
-		Variables.StressVector=Values.GetStressVector(Variables.StressVector);
 
 		if ( rOutput[PointNumber].size2() != Variables.StrainVector.size() )
 		  rOutput[PointNumber].resize( 1, Variables.StrainVector.size(), false );
