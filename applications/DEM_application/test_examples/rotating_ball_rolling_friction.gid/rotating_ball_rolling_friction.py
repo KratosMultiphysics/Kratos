@@ -47,7 +47,7 @@ balls_model_part = ModelPart("SolidPart");
 
 # Importing the strategy object
 
-if (ElementType == "SphericParticle3D"):
+if (ElementType == "SphericParticle3D" or ElementType == "CylinderParticle2D"):
     import sphere_strategy as SolverStrategy
 elif (ElementType == "SphericContinuumParticle3D"):
     import continuum_sphere_strategy as SolverStrategy

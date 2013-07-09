@@ -11,8 +11,8 @@ End Properties
 
 
 Begin Nodes
-1        7.07107e-01        7.07107e-01        0.00000e+00
-2        7.07107e-01        2.70711e+00        0.00000e+00
+1   7.07107e-01  7.07107e-01  0.00000e+00
+2   7.07107e-01  2.70711e+00  0.00000e+00
 End Nodes
 
 Begin Elements SphericParticle3D
@@ -20,19 +20,21 @@ Begin Elements SphericParticle3D
 2 1 2
 End Elements
 
+
+
 Begin NodalData VELOCITY_X
 2 1 0.0
 End NodalData
 
 Begin NodalData VELOCITY_Y
 2 1 0.0
-
 End NodalData
 
 Begin NodalData VELOCITY_Z
 2 1 0.0
 
 End NodalData
+
 Begin NodalData ANGULAR_VELOCITY_X
 2 1 0.0
 End NodalData
@@ -48,13 +50,14 @@ End NodalData
 
 
 
+
 Begin NodalData RADIUS
 1 0 1.00000e+00
 2 0 1.00000e-02
 End NodalData
 
-
 Begin NodalData GROUP_ID
+2 0 1
 End NodalData
 
 Begin NodalData PARTICLE_CONTINUUM
@@ -89,8 +92,8 @@ Begin NodalData PARTICLE_TENSION
 End NodalData
 
 Begin NodalData PARTICLE_FRICTION
-1 0 1.00000e+00)
-2 0 1.00000e+00)
+1 0 1.00000e+00
+2 0 1.00000e+00
 End NodalData
 
 

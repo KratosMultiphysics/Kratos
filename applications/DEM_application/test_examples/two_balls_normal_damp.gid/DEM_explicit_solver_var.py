@@ -30,6 +30,7 @@ VirtualMassCoefficient           = 0.00000e+00
 MagicFactor                      = 1.00000e+00
 DeltaOption                      = "OFF"
 search_radius_extension          = 1.00000e-02
+ampl_search_radius_extension     = 1.10000e+00
 FixVelocities                    = "OFF"
 TimePercentageFixVelocities      = 1.00000e+01
 TrihedronOption                  = "OFF"
