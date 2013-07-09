@@ -84,8 +84,8 @@
             <Container id="TotalLagrangian3D" pid="Total Lagrangian" nDim="3D" class="Groups" GiDEntity="volume" strucType="Solids" idTemplate="TLagrangian3D" icon="groupsTreeNew.gif" help="Total Lagrangian" open="0"/>
             <Container id="CrisfieldTrussElement" pid="Crisfield truss element" class="Groups" strucType="Truss" idTemplate="TrussTLagrangian" GiDEntity="line" nDim="3D" icon="groupsTreeNew.gif" help="Crisfield truss element" open="0"/>
 	    <Container id="BeamElement" pid="Beam element" class="Groups" nDim="3D" strucType="Beams" idTemplate="BeamTLagrangian" GiDEntity="line" icon="groupsTreeNew.gif" help="Beam element type" open="0"/>
-            <Container id="ShellIsotropic" pid="Shell isotropic" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ShellIsotropic" open="0"/>
-            <Container id="ShellAnisotropic" pid="Shell anisotropic" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ShellAnisotropic" open="0"/>
+            <Container id="ShellIsotropic" pid="Shell isotropic" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="ShellIsotropic" icon="groupsTreeNew.gif" help="Shell isotropic" open="0"/>
+            <Container id="ShellAnisotropic" pid="Shell anisotropic" state="hidden" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="ShellAnisotropic" open="0"/>
             <Container id="LinearElement" pid="Linear element" class="Groups" nDim="2D" GiDEntity="surface" strucType="Solids" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="LinearElement" open="0"/>
             <Container id="LinearElement3D" pid="Linear element" class="Groups" strucType="Solids" idTemplate="TLagrangian3D"  nDim="3D" GiDEntity="volume" icon="groupsTreeNew.gif" help="LinearElement" open="0"/>
             <Container id="EBST" pid="EBST (formulation)" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shells" idTemplate="TLagrangian" icon="groupsTreeNew.gif" help="Total Lagrangian" open="0"/>
@@ -330,6 +330,12 @@
         <Template id="TLagrangian" icon="groupsTree.gif" help="Total Lagrangian">
             <Container id="Properties" pid="Total Lagrangian" state="hidden" help="Properties">
                 <Item id="ElementType" pid="Element type" dv="Triangle" ivalues="Triangle,Quadrilateral" values="Triangle,Quadrilateral" help="Element Type"/>
+                <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
+            </Container>
+        </Template>
+	<Template id="ShellIsotropic" icon="groupsTree.gif" help="Isotropic shell formulation">
+            <Container id="Properties" pid="Isotropic shell" state="hidden" help="Properties">
+                <Item id="ElementType" pid="Element type" dv="Triangle" ivalues="Triangle" values="Triangle" help="Element Type"/>
                 <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
             </Container>
         </Template>
