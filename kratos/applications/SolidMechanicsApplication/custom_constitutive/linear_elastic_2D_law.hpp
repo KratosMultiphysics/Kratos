@@ -1,0 +1,429 @@
+//   
+//   Project Name:        KratosSolidMechanicsApplication $      
+//   Last modified by:    $Author:            JMCarbonell $ 
+//   Date:                $Date:                July 2013 $
+//   Revision:            $Revision:                  0.0 $
+//
+//
+
+#if !defined (KRATOS_LINEAR_ELASTIC_2D_LAW_H_INCLUDED)
+#define  KRATOS_LINEAR_ELASTIC_2D_LAW_H_INCLUDED
+
+// System includes 
+
+// External includes 
+
+// Project includes
+#include "includes/constitutive_law.h"
+
+
+namespace Kratos
+{
+  /**
+   * Defines a hyper elastic isotropic constitutive law in 2D
+   * This material law is defined by the parameters:
+   * 1) E  (Young's modulus) 
+   * 2) NU (Poisson ratio)
+   * As there are no further parameters the functionality is limited 
+   * to large displacements elasticity.
+   */
+
+  class LinearElastic2DLaw : public ConstitutiveLaw
+  {
+  public:
+    /**
+     * Type Definitions
+     */
+    typedef ProcessInfo      ProcessInfoType;
+    typedef ConstitutiveLaw         BaseType;
+    typedef std::size_t             SizeType;
+    /**
+     * Counted pointer of LinearElastic2DLaw
+     */
+    
+    KRATOS_CLASS_POINTER_DEFINITION(LinearElastic2DLaw);
+    
+    /**
+     * Life Cycle 
+     */
+
+    /**
+     * Default constructor.
+     */
+    LinearElastic2DLaw();
+			
+    /**
+     * Clone function (has to be implemented by any derived class)
+     * @return a pointer to a new instance of this constitutive law
+     */
+    ConstitutiveLaw::Pointer Clone() const;
+    
+    /**
+     * Copy constructor.
+     */
+    LinearElastic2DLaw (const LinearElastic2DLaw& rOther);
+   
+
+    /**
+     * Assignment operator.
+     */
+
+    //LinearElastic2DLaw& operator=(const LinearElastic2DLaw& rOther);
+
+
+    /**
+     * Destructor.
+     */
+    virtual ~LinearElastic2DLaw();
+			
+    /**
+     * Operators 
+     */
+    
+    /**
+     * Operations needed by the base class:
+     */
+
+    SizeType WorkingSpaceDimension() { return 2; };
+    SizeType GetStrainSize()         { return 3; };
+
+    bool Has( const Variable<double>& rThisVariable );
+    bool Has( const Variable<Vector>& rThisVariable );
+    bool Has( const Variable<Matrix>& rThisVariable );
+			
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+
+			
+    void SetValue( const Variable<double>& rVariable, 
+		   const double& Value, 
+		   const ProcessInfo& rCurrentProcessInfo );
+    void SetValue( const Variable<Vector>& rThisVariable, 
+		   const Vector& rValue, 
+		   const ProcessInfo& rCurrentProcessInfo );
+    void SetValue( const Variable<Matrix>& rThisVariable, 
+		   const Matrix& rValue, 
+		   const ProcessInfo& rCurrentProcessInfo );
+    /**
+     * Material parameters are inizialized
+     */ 
+    void InitializeMaterial( const Properties& props,
+			     const GeometryType& geom,
+			     const Vector& ShapeFunctionsValues );
+
+    /**
+     * As this constitutive law describes only linear elastic material properties
+     * this function is rather useless and in fact does nothing
+     */ 		
+    void InitializeSolutionStep( const Properties& props,
+				 const GeometryType& geom, //this is just to give the array of nodes
+				 const Vector& ShapeFunctionsValues ,
+				 const ProcessInfo& CurrentProcessInfo);
+			
+    void FinalizeSolutionStep( const Properties& props,
+			       const GeometryType& geom, //this is just to give the array of nodes
+			       const Vector& ShapeFunctionsValues ,
+			       const ProcessInfo& CurrentProcessInfo);
+    
+
+    /**
+     * Calculates the cauchy stresses. For a given deformation and stress state
+     * the cauchy stress vector is calculated
+     * @param Cauchy_StressVector the result vector of cauchy stresses (will be overwritten)
+     * @param F the current deformation gradient
+     * @param PK2_StressVector the current second Piola-Kirchhoff-Stress vector
+     * @param GreenLagrangeStrainVector the current Green-Lagrangian strains
+     */
+    void CalculateCauchyStresses( Vector& rCauchy_StressVector,
+				  const Matrix& rF,
+				  const Vector& rPK2_StressVector,
+				  const Vector& rGreenLagrangeStrainVector);
+
+					           
+    /**
+     * Computes the material response:
+     * PK1 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues 
+     * @see   Parameters
+     */          
+    void CalculateMaterialResponsePK1 (Parameters & rValues);
+
+    /**
+     * Computes the material response:
+     * PK2 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues 
+     * @see   Parameters
+     */
+    void CalculateMaterialResponsePK2 (Parameters & rValues);
+
+    /**
+     * Computes the material response:
+     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
+     * @param rValues 
+     * @see   Parameters
+     */
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues);
+
+
+    /**
+     * Computes the material response:
+     * Cauchy stresses and algorithmic ConstitutiveMatrix
+     * @param rValues 
+     * @see   Parameters
+     */
+    void CalculateMaterialResponseCauchy (Parameters & rValues);
+    
+    
+   /**
+     * Updates the material response:
+     * Cauchy stresses and Internal Variables
+     * @param rValues 
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponsePK1 (Parameters & rValues);
+ 
+   /**
+     * Updates the material response:
+     * Cauchy stresses and Internal Variables
+     * @param rValues 
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponsePK2 (Parameters & rValues);
+
+   /**
+     * Updates the material response:
+     * Cauchy stresses and Internal Variables
+     * @param rValues 
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponseKirchhoff (Parameters & rValues);
+
+   /**
+     * Updates the material response:
+     * Cauchy stresses and Internal Variables
+     * @param rValues 
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponseCauchy (Parameters & rValues);
+
+    /**
+     * This function is designed to be called once to perform all the checks needed
+     * on the input provided. Checks can be "expensive" as the function is designed
+     * to catch user's errors.
+     * @param props
+     * @param geom
+     * @param CurrentProcessInfo
+     * @return
+     */
+    int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Input and output
+     */
+    /**
+     * Turn back information as a string.
+     */
+    //virtual String Info() const;
+    /**
+     * Print information about this object.
+     */
+    //virtual void PrintInfo(std::ostream& rOStream) const;
+    /**
+     * Print object's data.
+     */
+    //virtual void PrintData(std::ostream& rOStream) const;
+		
+  protected:
+    /**
+     * there are no protected class members
+     */
+		
+  private:
+
+			
+    /**
+     * Member Variables 
+     * @param mStressVector, Historic Stress ( 2PK_STRESS at the timestep start, CAUCHY_STRESS at the end )
+     */
+
+    Vector mStressVector;
+    StressMeasure mStressMeasure;
+
+    /**
+     * Deformation Gradient determinant from the initial to the reference configuration
+     */
+
+    Matrix mDeformationGradientF0;
+    double mDetF0;
+
+    /**
+     * Member Variables 
+     * @param mVoigtSize, VoigtTensorSize
+     */
+    unsigned int mVoigtSize;
+
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
+      rSerializer.save("StressVector",mStressVector);
+      int SigmaMeasure = int(mStressMeasure);
+      rSerializer.save("StressMeasure",SigmaMeasure);
+      rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
+      rSerializer.save("mDetF0",mDetF0);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
+      rSerializer.load("StressVector",mStressVector);
+      int SigmaMeasure;
+      rSerializer.load("StressMeasure",SigmaMeasure);
+      mStressMeasure= StressMeasure(SigmaMeasure);
+      rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
+      rSerializer.load("mDetF0",mDetF0);
+
+    }
+
+    /**
+     * Calculates the constitutive matrix for a given strain vector
+     * @param DeformationGradient and its determinant detF 
+     * matrix is to be generated for
+     * @param rResult Matrix the result will be stored in
+     */
+    void CalculateConstitutiveMatrix (const Matrix & rMatrixIC,
+				      const double &rdetF,
+				      const double &rLameLambda,
+				      const double &rLameMu,
+				      Matrix& rResult);
+
+
+    /**
+     * Calculates the constitutive matrix and makes a pull-back
+     * @param DeformationGradient and its determinant detF 
+     * matrix is to be generated for
+     * @param rResult Matrix the result will be stored in
+     */
+    void CalculateConstitutiveMatrix (const Matrix &rMatrixIC,
+				      const Matrix &rinvF, 
+				      const double &rdetF,
+				      const double &rLameLambda,
+				      const double &rLameMu,
+				      Matrix& rResult);
+
+  			
+    /**
+     * Calculates the stresses for given strain state
+     * @param DeformationGradientF0 and its determinant detF0
+     * @param rStressVector the stress vector corresponding to the deformation
+     */
+    void CalculateStress( const Matrix &rMatrixIC,
+			  const Matrix &rIdentityMatrix,
+			  const double &rdetF0,
+			  const double &rLameLambda, 
+			  const double &rLameMu, 
+			  StressMeasure rStressMeasure,
+			  Vector& rStressVector);
+
+
+    /**
+     * Calculates the stresses for given strain state
+     * @param rStrainVector
+     * @param rConstitutiveMatrix
+     * @param rStressVector the stress vector corresponding to the deformation
+     */
+    void CalculateStress( const Vector &rStrainVector,
+			  const Matrix &rConstitutiveMatrix,
+			  Vector& rStressVector);
+
+	       
+    /**
+     * calculates the linear elastic constitutive matrix in terms of Young's modulus and
+     * Poisson ratio
+     * @param E the Young's modulus
+     * @param NU the Poisson ratio
+     * @return the linear elastic constitutive matrix
+     */
+
+    void CalculateNeoHookeanMatrix( Matrix& rConstitutiveMatrix, 
+				    const Matrix &rMatrixIC,
+				    const double &rdetF0, 
+				    const double &rLameLambda, 
+				    const double &rLameMu );
+    
+    void CalculateNeoHookeanMatrix( Matrix& rConstitutiveMatrix, 
+				    const Matrix &rMatrixIC,
+				    const Matrix &rinvF,
+				    const double &rdetF0, 
+				    const double &rLameLambda, 
+				    const double &rLameMu );
+    
+   void CalculateAxisymNeoHookeanMatrix( Matrix& rConstitutiveMatrix, 
+					 const Matrix &rMatrixIC,
+					 const double &rdetF0, 
+					 const double &rLameLambda, 
+					 const double &rLameMu );
+    
+    void CalculateAxisymNeoHookeanMatrix( Matrix& rConstitutiveMatrix, 
+					  const Matrix &rMatrixIC,
+					  const Matrix &rinvF,
+					  const double &rdetF0, 
+					  const double &rLameLambda, 
+					  const double &rLameMu );
+   
+
+    void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, 
+				       const double &rYoungModulus, 
+				       const double &rPoissonCoefficient );
+
+
+    double ConstitutiveComponent( const Matrix &rMatrixIC,
+				  const Matrix &rinvF,
+				  const double &rdetF0, 
+				  const double &rLameLambda, 
+				  const double &rLameMu, 
+				  int a, int b, int c, int d);
+
+
+    double ConstitutiveComponent( const Matrix &rMatrixIC,
+				  const double &rdetF0, 
+				  const double &rLameLambda, 
+				  const double &rLameMu, 
+				  int a, int b, int c, int d);
+    
+    void CalculateStressIncrement( const Matrix &rMatrixIC,
+				   const Matrix &rIdentityMatrix,
+				   const double &rdetF0,
+				   const double &rLameLambda, 
+				   const double &rLameMu, 
+				   StressMeasure rStressMeasure,
+				   Vector& rStressVector);
+
+
+    void CalculateStressIncrement( const Vector &rStrainVector,
+				   const Matrix &rConstitutiveMatrix,
+				   Vector& rStressVector);
+
+
+    
+    /**
+     * This function is designed to be called when before the material response
+     * to check if all needed parameters for the constitutive are initialized 
+     * @param Parameters
+     * @return
+     */
+    bool CheckParameters(Parameters& rValues);
+   
+    /**
+     * Unaccessible methods 
+     */
+
+
+  }; // Class LinearElastic2DLaw 
+}  // namespace Kratos.
+#endif // KRATOS_LINEAR_ELASTIC_2D_LAW_H_INCLUDED  defined 
