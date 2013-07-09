@@ -157,7 +157,6 @@ End NodalData
 
 *endif
 
-
 Begin NodalData RADIUS
 *set var iterator=1
 *loop elems *all
