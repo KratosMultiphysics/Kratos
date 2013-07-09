@@ -15,21 +15,21 @@ namespace Kratos
     /**
      * Flags related to the constitutive Law
      */
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRESS,              0 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_CONSTITUTIVE_TENSOR, 1 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRAIN,              0 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRESS,              1 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_CONSTITUTIVE_TENSOR, 2 );
       
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOCHORIC_TENSOR_ONLY,       2 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, VOLUMETRIC_TENSOR_ONLY,      3 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOCHORIC_TENSOR_ONLY,       3 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, VOLUMETRIC_TENSOR_ONLY,      4 );
       
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, TOTAL_TENSOR,                4 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, TOTAL_TENSOR,                5 );
       
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INITIAL_CONFIGURATION,       5 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, LAST_KNOWN_CONFIGURATION,    6 );
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINAL_CONFIGURATION,         7 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INITIAL_CONFIGURATION,       6 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, LAST_KNOWN_CONFIGURATION,    7 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINAL_CONFIGURATION,         8 );
   
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, AXISYMMETRIC,                8 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, AXISYMMETRIC,                9 );
 
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, TOTAL_DEFORMATION_GRADIENT,  9 );
 
     /**
      * Constructor.
