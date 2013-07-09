@@ -63,7 +63,7 @@ namespace Kratos
       /// Pointer definition of SphericParticle
       KRATOS_CLASS_POINTER_DEFINITION(SphericParticle);
 
-      typedef WeakPointerVector<Element> ParticleWeakVectorType;  //M: l'he afegit jo.. esta be akesta?
+      typedef WeakPointerVector<Element> ParticleWeakVectorType; 
       typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
       typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
 
@@ -99,7 +99,7 @@ namespace Kratos
       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
 
       int mContinuumGroup;
-      int* mpFailureId;
+
 
       ///@}
       ///@name Access
