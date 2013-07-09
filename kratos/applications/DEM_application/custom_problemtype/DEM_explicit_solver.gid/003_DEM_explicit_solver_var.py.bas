@@ -79,7 +79,7 @@ ControlTime                      = *GenData(Control_Time)
 NormalForceCalculationType       = "*GenData(Normal_Force_Calculation)"
 NormalDampingType                = "*GenData(Normal_Contact_Damp)"
 TangentialDampingType            = "*GenData(Tangential_Contact_Damp)"
-FailureCriterionOption           = "*GenData(Failure_Criterion)"
+FailureCriterionType             = "*GenData(Failure_Criterion)"
 *format "%10.5e"
 TauZero                          = *GenData(Tau_Zero)
 *format "%10.5e"
