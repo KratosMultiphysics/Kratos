@@ -221,7 +221,7 @@ while (time < FinalTime):
 
     time_to_print = time - time_old_print
 
-    if (time_to_print >= OutputDeltaTime):
+    if (time_to_print >= Param.OutputTimeStep):
         os.chdir(data_and_results)
 
         properties_list = proc.MonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
