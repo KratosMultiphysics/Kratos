@@ -89,7 +89,7 @@ namespace Kratos
             size_t continuum_ini_size =0;
 
             //default
-            *mpFailureId=1;
+            mFailureId=1;
 
             //SAVING THE INICIAL NEIGHBOURS, THE DELTAS AND THE FAILURE ID
                   
@@ -110,19 +110,8 @@ namespace Kratos
    
                 if( ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) ) || ( fabs(initial_delta)>1.0e-6 ) ) // which would be the appropiate tolerance?
                 
-                //THESE ARE THE CASES THAT NEED TO STORE THE INITIAL NEIGHBOURS  #5
+                //for the ones that need to be stored... #5
                 {
-                    //Number of contacts accounting.
-              /*
-                    int& total_number_of_contacts = rCurrentProcessInfo[TOTAL_CONTACTS];
-
-                    total_number_of_contacts++;
-             
-             */ //MSIMSI 10 : mira aixo no ha d'anar aqui pk aki no trobem els que son de diferent grup cohesiu i tenen 0 indentació.... A més a Set Initila neigh només s'hi entra si 
-                  //estem en un cas cohesiu o amb delta. per tant ha de ser una operation fora i comuna amb la bàsica.
-             
-                    //initial neighbours
-
                     ini_size++;
                     
                     mIniNeighbourIds.resize(ini_size);         
@@ -149,13 +138,13 @@ namespace Kratos
                             
                             mIniNeighbourFailureId[ini_size - 1]=0;
                            
-                            *mpFailureId=0; // if a cohesive contact exist, the FailureId becomes 0.          
+                            mFailureId=0; // if a cohesive contact exist, the FailureId becomes 0.          
                             continuum_ini_size++;
                                 
                             r_continuum_ini_neighbours.push_back(*ineighbour);
                               
-                            mIniContinuumNeighbourIds.resize(continuum_ini_size);                               //(this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)).resize(continuum_ini_size);
-                            mIniContinuumNeighbourIds[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();   //this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS)[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();
+                            mIniContinuumNeighbourIds.resize(continuum_ini_size);                               
+                            mIniContinuumNeighbourIds[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();   
                                                           
                            /* if(mContactMeshOption)
                             {
@@ -253,19 +242,13 @@ namespace Kratos
                                                                                                                        
       void SphericContinuumParticle::ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rInitialRotaMoment, array_1d<double, 3>& rMaxRotaMoment, ProcessInfo& rCurrentProcessInfo)
       {
-         
-        //KRATOS_TIMER_START("Z_BALL2BALL")
-        
+                 
         KRATOS_TRY
-          
 
           ParticleWeakVectorType& mrNeighbours         = this->GetValue(NEIGHBOUR_ELEMENTS); 
           
           double dt = rCurrentProcessInfo[DELTA_TIME];
-          double dt_i = 1 / dt;
-          
-          //vector<double>& r_VectorContactInitialDelta  = this->GetValue(PARTICLE_CONTACT_DELTA);  //MSI: canviats per guillermo en funció externa dintre la classe
-          //ParticleWeakVectorType& r_continuum_ini_neighbours  = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
+          double dt_i = 1 / dt; 
                   
           //INITIALIZATIONS
                             
@@ -340,7 +323,7 @@ namespace Kratos
 
               bool sliding = false;
               
-              int mapping = mMapping_New_Ini[i_neighbour_count];
+              int mapping = mMapping_New_Ini[i_neighbour_count]; //*
   
               if (mUniformMaterialOption){
                   equiv_radius                      = mRadius;
@@ -373,7 +356,8 @@ namespace Kratos
               }
 
               else {
-                  kn                                = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                
+                  kn                                = mMagicFactor * equiv_young * corrected_area * radius_sum_i;
                   kt                                = kn / (2.0 + equiv_poisson + equiv_poisson);
                   aux_norm_to_tang                  = sqrt(kt / kn);
               }
@@ -391,13 +375,12 @@ namespace Kratos
 
               if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0){
                   equiv_visco_damp_coeff_normal     = 2 * sqrt(equiv_mass * kn);
-                  equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(equiv_mass * kt);
+                  equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; 
               }
 
               else {
                   equiv_visco_damp_coeff_normal     = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + M_PI * M_PI));
-                  //equiv_visco_damp_coeff_normal     = - 2 * log(equiv_restitution_coeff) * sqrt(equiv_mass * kn) / sqrt((log(equiv_restitution_coeff) * log(equiv_restitution_coeff)) + (M_PI * M_PI));
-
+  
                   equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(equiv_restitution_coeff) * sqrt(equiv_mass * kt)) / (sqrt((log(equiv_restitution_coeff) * log(equiv_restitution_coeff)) + (M_PI * M_PI)));
               }
 
@@ -466,18 +449,16 @@ namespace Kratos
               
               // if(corrected_area <1e-09) {KRATOS_WATCH(corrected_area) KRATOS_WATCH(this->Id())}  MSIMSI 10
 
-  //BLOC PROPI
-
-              
               double contact_tau = 0.0;
               double contact_sigma = 0.0;
-              
+
               if(mNeighbourFailureId[i_neighbour_count] == 0)
               {                
                 EvaluateFailureCriteria(LocalElasticContactForce,ShearForceNow,corrected_area,i_neighbour_count,contact_sigma,contact_tau, failure_criterion_state, sliding, mapping);
               }
         
               // VISCODAMPING (applyied locally)
+              
               double ViscoDampingLocalContactForce[3]    = {0.0};
 
                 if  (indentation > 0.0 || (mNeighbourFailureId[i_neighbour_count] == 0) )//*  //#3
@@ -487,7 +468,7 @@ namespace Kratos
               }
               // Transforming to global forces and adding up
               double LocalContactForce[3] =                 {0.0};
-              double ViscoDampingGlobalContactForce[3] =    {0.0}; //OK
+              double ViscoDampingGlobalContactForce[3] =    {0.0}; 
               double GlobalContactForce[3] =                {0.0};
               
                
@@ -501,8 +482,7 @@ namespace Kratos
               //MSI: repondre en un futur
 
 // ROTATION FORCES
-
-
+              
               ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce,InitialRotaMoment,MaxRotaMoment,LocalCoordSystem,other_radius,rContactMoment,neighbour_iterator);
   
 //COMPUTE THE MEAN STRESS TENSOR:
@@ -578,7 +558,7 @@ namespace Kratos
              */
 
             /*
-             *   *mpFailureId values:
+             *   mFailureId values:
              *      0 := all neighbours attached
              *      1 := General detachment (all neighbours lost or no initial continuum case)
              *      2 := Partially detached and no dominance
@@ -589,7 +569,7 @@ namespace Kratos
 
           int tempType[5] = {0,0,0,0,0};
 
-          if (*mpFailureId != 1)  // for *mpFailureId == 1 there's no failure to represent, the particle is not a continuum-simulating one or has been completelly detached already.
+          if (mFailureId != 1)  // for mFailureId == 1 there's no failure to represent, the particle is not a continuum-simulating one or has been completelly detached already.
           {
               vector<int>& r_initial_neighbours_id          = this->GetValue(INI_NEIGHBOURS_IDS);
 
@@ -620,26 +600,26 @@ namespace Kratos
 
               if ( tempType[0] == 0)  //no neighbour is attached
               {
-                  *mpFailureId = 1;
+                  mFailureId = 1;
               }   // no one neighbour is attached (but maybe still contacting).
               else if( (tempType[3] > tempType[4]) ) //some neighbour attached but failure 3 dominates over 4.
               {
-                  *mpFailureId = 3;
+                  mFailureId = 3;
               }
               else if( (tempType[4] > tempType[3]) ) // the same but 4 dominates over 3.
               {
-                  *mpFailureId = 4;
+                  mFailureId = 4;
               }
               else if ( (tempType[4] > 0) || (tempType[3] > 0) ) // no 3 neither 4 dominates but one of them may exist.
               {
-                  *mpFailureId = 2;  // Partially detached / mix case.
+                  mFailureId = 2;  // Partially detached / mix case.
               }
               else
               {
-                  *mpFailureId = 0;  // last option: no one detached.
+                  mFailureId = 0;  // last option: no one detached.
               }
 
-          }// if (*mpFailureId != 1)
+          }// if (mFailureId != 1)
 
           KRATOS_CATCH("")
 
@@ -811,13 +791,8 @@ namespace Kratos
          
          if (!mInitializedVariablesFlag){
            
-         mpFailureId            = &(this->GetValue(PARTICLE_FAILURE_ID));
          mContinuumGroup        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);             
 
-          //provisional way is:
-          if(mContinuumGroup==0)  {*mpFailureId=1;}
-          else                    {*mpFailureId=0;}
-   
  
          mpCaseOption                   = &(rCurrentProcessInfo[CASE_OPTION]);   //NOTE: pointer
          mContactMeshOption             = rCurrentProcessInfo[CONTACT_MESH_OPTION];     
@@ -1075,13 +1050,7 @@ namespace Kratos
           double& mRepresentative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);   
           
           mRepresentative_Volume = 0.0;
-          
-          //easiest way is:   
-          //*mpFailureId          = !(mContinuumGroup);
-          
-          //double mTension        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION);
-          //double mCohesion       = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);  MSIMSI
-               
+      
       }
 
       
@@ -1089,7 +1058,7 @@ namespace Kratos
       {             
 
              //(1) MOHR-COULOMB FAILURE: (we don't consider rotational spring!!!!! here) need to be thought.
-      /*
+      
               if (mFailureCriterionOption==1)  //MOHR-COULOMB
               {   
                   contact_tau = ShearForceNow/(corrected_area);
@@ -1107,8 +1076,6 @@ namespace Kratos
                       sigma_max = 0;
                       sigma_min = contact_sigma;
                   }
-                  
-   
 
                   //change into principal stresses
 
@@ -1117,41 +1084,35 @@ namespace Kratos
 
                   double sigma_I = centre + radius;
                   double sigma_II = centre - radius;
-
-               
-                  
+                 
                   // Check:
-           
-                  
+                 
                   double distance_to_failure = ( mTauZero/(mTanContactInternalFriccion) + centre )*mSinContactInternalFriccion;
               
                   failure_criterion_state = radius/distance_to_failure;
-                
-                  KRATOS_WATCH(sigma_I - sigma_II)
-                  KRATOS_WATCH(2*mTauZero*mCosContactInternalFriccion + (sigma_I + sigma_II)*mSinContactInternalFriccion)
-                  
-                  
+    
                   
                 if ( sigma_I - sigma_II >= 2*mTauZero*mCosContactInternalFriccion + (sigma_I + sigma_II)*mSinContactInternalFriccion )
                   {
-
                       //breaks
 
                       mNeighbourFailureId[i_neighbour_count] = 5; //mohr coulomb   
+                      mIniNeighbourFailureId[ mapping ] = 5;
                       sliding = true ;
 
                   }
   
                   
               } //MOHR-COULOMB
-        */
+        
               ///(2) UNCOUPLED FRACTURE
         
               ///vam decidir amb miguel angel de no fer el mapping de les shear fins al pas seguent.. esta correcte? afecta quan trenca?
+
        
               if (mFailureCriterionOption==2)//UNCOUPLED FRACTURE
               {    
-                
+       
                   contact_tau = ShearForceNow/(corrected_area);
                   contact_sigma = LocalElasticContactForce[2]/(corrected_area);
 
