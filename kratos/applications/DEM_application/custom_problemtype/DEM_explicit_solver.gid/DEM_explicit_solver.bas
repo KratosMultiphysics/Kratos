@@ -234,7 +234,7 @@ Begin NodalData PARTICLE_FRICTION
 *end elems 
 End NodalData
 
-*if(strcmp(GenData(Rota_Damp_Id),"RollingFric")==0)
+*if(strcmp(GenData(Rota_Damp_Type),"RollingFric")==0)
 Begin NodalData ROLLING_FRICTION
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
@@ -244,7 +244,7 @@ Begin NodalData ROLLING_FRICTION
 End NodalData
 *endif
 
-*if(strcmp(GenData(Rota_Damp_Id),"LocalDamp")==0)
+*if(strcmp(GenData(Rota_Damp_Type),"LocalDamp")==0)
 Begin NodalData PARTICLE_ROTATION_DAMP_RATIO
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
