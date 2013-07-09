@@ -222,7 +222,7 @@ namespace Kratos
     Matrix IdentityMatrix  = identity_matrix<double> ( 2 );
 
    
-    if( Options.Is( COMPUTE_STRESS ) && Options.Is( COMPUTE_CONSTITUTIVE_TENSOR ) ){
+    if( Options.Is( COMPUTE_STRESS ) ){
 	  
       CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
@@ -235,9 +235,8 @@ namespace Kratos
 
     }
 
-   
-    //std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
-    // std::cout<<" Strain "<<TotalStrainVector<<std::endl;
+    // std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
+    // std::cout<<" Strain "<<StrainVector<<std::endl;
     // std::cout<<" Stress "<<StressVector<<std::endl;
 		
   }
@@ -319,7 +318,7 @@ namespace Kratos
 
     //7.-Incremental form
    
-    if( Options.Is( COMPUTE_STRESS ) && Options.Is( COMPUTE_CONSTITUTIVE_TENSOR ) ){
+    if( Options.Is( COMPUTE_STRESS ) ){
 	  
       CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 

@@ -73,6 +73,7 @@ protected:
         Vector  N;
         Matrix  B;
         Matrix  F;
+        Matrix  F0;
         Matrix  DN_DX;
         Matrix  ConstitutiveMatrix;
     };
