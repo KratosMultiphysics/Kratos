@@ -108,6 +108,8 @@ void Particle_Contact_Element::Initialize()
 {
     KRATOS_TRY
     
+    KRATOS_WATCH("HSHHS")
+    
     this->GetValue(LOW_POISSON_FORCE) = 0.0;  
     this->GetValue(HIGH_POISSON_FORCE) = 0.0; 
    
