@@ -210,7 +210,7 @@ namespace Kratos
     MathUtils<double>::InvertMatrix( RightCauchyGreen, InverseRightCauchyGreen, Trace_C);
 
     //6.-Green-Lagrange Strain:
-    if(Options.Is( COMPUTE_STRAIN ))
+    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
       {
 	//E= 0.5*(FT*F-1)
 	StrainVector[0] = 0.5 * ( RightCauchyGreen( 0, 0 ) - 1.00 );
@@ -222,14 +222,14 @@ namespace Kratos
     Matrix IdentityMatrix  = identity_matrix<double> ( 2 );
 
    
-    if( Options.Is( COMPUTE_STRESS ) ){
+    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
 	  
       CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
       CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );		
 
     }
-    else if(  Options.IsNot( COMPUTE_STRESS ) && Options.Is( COMPUTE_CONSTITUTIVE_TENSOR ) ){
+    else if(  Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) && Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
 
       CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
@@ -300,7 +300,7 @@ namespace Kratos
     Matrix LeftCauchyGreen = prod(F0,trans(F0));
 
     //6.-Almansi Strain:
-    if(Options.Is( COMPUTE_STRAIN ))
+    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
       {
 	// e= 0.5*(1-invbT*invb)   
 	Matrix InverseLeftCauchyGreen ( 2 , 2 );
@@ -318,14 +318,14 @@ namespace Kratos
 
     //7.-Incremental form
    
-    if( Options.Is( COMPUTE_STRESS ) ){
+    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
 	  
       CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
       CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );		
 
     }
-    else if(  Options.IsNot( COMPUTE_STRESS ) && Options.Is( COMPUTE_CONSTITUTIVE_TENSOR ) ){
+    else if(  Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) && Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
 
       CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 

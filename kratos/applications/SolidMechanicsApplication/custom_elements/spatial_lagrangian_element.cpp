@@ -29,6 +29,7 @@ namespace Kratos
     : Element( NewId, pGeometry )
   {
     //DO NOT ADD DOFS HERE!!!
+    mVoigtSize = 6;
   }
 
 
@@ -38,6 +39,7 @@ namespace Kratos
   SpatialLagrangianElement::SpatialLagrangianElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : Element( NewId, pGeometry, pProperties )
   {
+    mVoigtSize = 6;
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
   }
 
@@ -1319,7 +1321,7 @@ namespace Kratos
       {
         int index = dimension * i;
 	
-	array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
+	array_1d<double, 3> & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
 
 	Fext=0;
         for ( unsigned int j = 0; j < dimension; j++ )

@@ -6,17 +6,13 @@
 //
 //
 
-#if !defined(KRATOS_SPATIAL_LAGRANGIAN_ELEMENT_H_INCLUDED )
-#define  KRATOS_SPATIAL_LAGRANGIAN_ELEMENT_H_INCLUDED
-
-
+#if !defined(KRATOS_TOTAL_LAGRANGIAN_3D_ELEMENT_H_INCLUDED )
+#define  KRATOS_TOTAL_LAGRANGIAN_3D_ELEMENT_H_INCLUDED
 
 // System includes
 
-
 // External includes
 #include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -26,6 +22,7 @@
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 #include "custom_utilities/comparison_utils.hpp"
+
 
 namespace Kratos
 {
@@ -37,33 +34,38 @@ namespace Kratos
 ///@}
 ///@name  Enum's
 ///@{
-
 ///@}
 ///@name  Functions
 ///@{
-
 ///@}
 ///@name Kratos Classes
 ///@{
 
-/// Updated Total Lagrangian element for 2D and 3D geometries.
+/// Total Lagrangian element for 3D geometries.
 
 /**
- * Implements an Updated Lagrangian Element based on the reference (or previous) configuration
- * This works for arbitrary geometries in 2D and 3D
+ * Implements a total Lagrangian definition for structural analysis.
+ * This works for arbitrary geometries in 3D
  */
 
-class SpatialLagrangianElement
+class TotalLagrangian3DElement
     : public Element
 {
 protected:
+ 
+  /**
+   * Flags related to the element computation
+   */
 
-    /**
-      * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
-      */
+  KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
+  KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
 
-    struct Standard
-    {
+  /**
+   * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
+   */
+
+  struct Standard
+  {
         double  detF;
         double  detF0;
         double  detJ;
@@ -77,7 +79,6 @@ protected:
         Matrix  ConstitutiveMatrix;
     };
 
-
 public:
 
     ///@name Type Definitions
@@ -89,39 +90,37 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-
-    /// Counted pointer of SpatialLagrangianElement
-    KRATOS_CLASS_POINTER_DEFINITION(SpatialLagrangianElement);
-
-
+    /// Counted pointer of TotalLagrangian3DElement
+    KRATOS_CLASS_POINTER_DEFINITION(TotalLagrangian3DElement);
     ///@}
     ///@name Life Cycle
     ///@{
 
+    /// Default constructors
+    TotalLagrangian3DElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    /// Default constructors.
-    SpatialLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry);
-    SpatialLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    TotalLagrangian3DElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    SpatialLagrangianElement(SpatialLagrangianElement const& rOther);
-
+    TotalLagrangian3DElement(TotalLagrangian3DElement const& rOther);
 
     /// Destructor.
-    virtual ~SpatialLagrangianElement();
+    virtual ~TotalLagrangian3DElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SpatialLagrangianElement& operator=(SpatialLagrangianElement const& rOther);
+    TotalLagrangian3DElement& operator=(TotalLagrangian3DElement const& rOther);
 
- 
     ///@}
     ///@name Operations
     ///@{
-
+    /**
+     * Returns the currently selected integration method
+     * @return current integration method selected
+     */
     /**
      * creates a new total lagrangian updated element pointer
      * @param NewId: the ID of the new element
@@ -194,13 +193,7 @@ public:
      */
     void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-     /**
-     * Set a Constitutive Law Value
-     */
-    void SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-				      std::vector<ConstitutiveLaw::Pointer>& rValues,
-				      const ProcessInfo& rCurrentProcessInfo );
-
+ 
     //GET:
     /**
      * Get on rVariable a double Value from the Element Constitutive Law
@@ -218,12 +211,6 @@ public:
     void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
 
-    /**
-     * Get a Constitutive Law Value
-     */
-    void GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-				      std::vector<ConstitutiveLaw::Pointer>& rValues,
-				      const ProcessInfo& rCurrentProcessInfo );
 
 
     //************* STARTING - ENDING  METHODS
@@ -234,21 +221,25 @@ public:
       */
     void Initialize();
 
-
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called for non-linear analysis at the beginning of the iteration process
      */
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
+    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * this is called for non-linear analysis at the beginning of the iteration process
+     */
+    void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Called at the end of eahc solution step
      */
-    void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
 
     //************* COMPUTING  METHODS
@@ -314,8 +305,6 @@ public:
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
 
-    void Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo);
-
     //************************************************************************************
     //************************************************************************************
     /**
@@ -327,7 +316,6 @@ public:
      */
     int Check(const ProcessInfo& rCurrentProcessInfo);
 
-    //std::string Info() const;
 
     ///@}
     ///@name Access
@@ -339,15 +327,6 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-    //      virtual String Info() const;
-
-    /// Print information about this object.
-    //      virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /// Print object's data.
-    //      virtual void PrintData(std::ostream& rOStream) const;
     ///@}
     ///@name Friends
     ///@{
@@ -363,168 +342,47 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
+    TotalLagrangian3DElement() : Element()
+    {
+    }
 
     /**
      * Calculates the elemental contributions
      * \f$ K^e = w\,B^T\,D\,B \f$ and
      * \f$ r^e \f$
      */
-    virtual void CalculateElementalSystem(MatrixType& rLeftHandSideMatrix,
-                                          VectorType& rRightHandSideVector,
-                                          ProcessInfo& rCurrentProcessInfo,
-                                          bool CalculateStiffnessMatrixFlag,
-                                          bool CalculateResidualVectorFlag);
+    void CalculateElementalSystem(MatrixType& rLeftHandSideMatrix,
+				VectorType& rRightHandSideVector,
+				ProcessInfo& rCurrentProcessInfo,
+				Flags & rCalculationFlags);
     ///@}
     ///@name Protected Operations
     ///@{
-    ///@}
-    ///@name Protected  Access
-    ///@{
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
 
-private:
-
-
-    /**
-     * Currently selected integration methods
-     */
-    IntegrationMethod mThisIntegrationMethod;
-
-    /**
-     * Container for constitutive law instances on each integration point
-     */
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-
-    /**
-     * Container for historical total deformation gradient
-     */
-    std::vector< Matrix > mDeformationGradientF0;
-
-    /**
-     * Container for the total deformation gradient determinants
-     */
-    Vector mDeterminantF0;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    /**
-     * Initialize Variables
-     */
-    void InitializeVariables ();
-
-    /**
-     * Initialize Material Properties on the Constitutive Law
-     */
-    void InitializeMaterial ();
-
-
-    /**
-     * Reset the Constitutive Law Parameters
-     */
-    void ResetConstitutiveLaw();
-
-    /**
-     * Clear Nodal Forces
-     */
-    void ClearNodalForces ();
-
-    /**
-     * Calculation of the Strain. E = 0.5 * ( 1 - F^⁻1 * F^-T)
-     */
-    void CalculateAlmansiStrain( const Matrix & rF,
-                                       Vector& rStrainVector ); //total strain
-
-    /**
-     * Calculation of the StrainIncrement. De = 0.5 * (grad (u) + gradT (u)) = BL * u
-     */
-    void CalculateAlmansiStrainIncrement( const Matrix & rF,
-					  const Matrix& rDN_DX,
-					  Vector& rStrainVector ); //current increment
-
-
-    /**
-     * Correct Precision Errors (for rigid free movements)
-     */
-    void DecimalCorrection(Vector& rStrainVector);
-
-
-    /**
-     * Calculate Element Kinematics
-     */
-    void CalculateKinematics(Standard& rVariables,
-                             const double& rPointNumber);
-
-   /**
-     * Calculation of the Jacobian Matrix, from Parent to Current Configuration
-     */
-    Matrix & CalculateJacobian (Matrix& rJ);
-
-
-    /**
-     * Calculation of the Deformation Gradient F
-     */
-    void CalculateDeformationGradient(const Matrix& rDN_DX,
-                                      Matrix& rF
-                                     );
-
-    /**
-     * Calculation of the Velocidty Gradient DF
-     */
-    void CalculateVelocityGradient(const Matrix& rDN_DX,
-                                   Matrix& rDF
-                                  );
-
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    void CalculateDeformationMatrix(Matrix& rB,
-                                    Matrix& rF,
-                                    Matrix& rDN_DX
-                                   );
-
-
-    /**
-     * Calculation integration weigths W
-     */
-    double CalculateIntegrationWeight (double &GaussPointWeight,
-                                       double &DetJ0
-                                      );
-
-    /**
-     * Calculation of the Material Stiffness Matrix. Km = BT * D * B
-     */
-    void CalculateAndAddKm(MatrixType& rK,
-                           Matrix& rB,
-                           Matrix& rD,
-                           double& rIntegrationWeight
-                          );
+    void CalculateAndAddKm(
+        MatrixType& rK,
+        Matrix& rB,
+        Matrix& rD,
+        double& IntegrationWeight);
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kg = BT * S
      */
-    void CalculateAndAddKg(MatrixType& rK,
-                           Matrix& rDN_DX,
-                           Vector& rStressVector,
-                           double& rIntegrationWeight
-                          );
+    void CalculateAndAddKg(
+        MatrixType& rK,
+        Matrix& rDN_DX,
+        Vector& rStressVector,
+        double& rIntegrationWeight
+    );
 
 
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
-    void CalculateAndAddExternalForces(const Vector& N,
-                                       const ProcessInfo& CurrentProcessInfo,
-                                       Vector& BodyForce,
-                                       VectorType& mResidualVector,
+    void CalculateAndAddExternalForces(const Vector& rN,
+                                       const ProcessInfo& rCurrentProcessInfo,
+                                       Vector& rBodyForce,
+                                       VectorType& rRightHandSideVector,
                                        double& rIntegrationWeight
                                       );
 
@@ -546,11 +404,6 @@ private:
                                ConstitutiveLaw::Parameters& rValues,
                                const int & rPointNumber);
 
-  
-    /**
-     * Initialize Standard Variables
-     */ 
-    void InitializeStandardVariables(Standard & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
@@ -558,8 +411,118 @@ private:
      */
     void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 				  VectorType& rRightHandSideVector,
-				  bool CalculateStiffnessMatrixFlag,
-				  bool CalculateResidualVectorFlag);
+				  Flags& rCalculationFlags);
+
+
+ 
+    /**
+     * Initialize Material Properties on the Constitutive Law
+     */
+    void InitializeMaterial ();
+
+
+    /**
+     * Reset the Constitutive Law Parameters
+     */
+    void ResetConstitutiveLaw();
+
+
+    /**
+     * Clear Nodal Forces
+     */
+    void ClearNodalForces ();
+
+
+    /**
+     * Calculate Element Kinematics
+     */
+    void CalculateKinematics(Standard& rVariables,
+                             const double& rPointNumber);
+
+    /**
+     * Correct Precision Errors (for rigid free movements)
+     */
+    void DecimalCorrection(Vector& rVector);
+
+
+    /**
+     * Initialize Element Standard Variables
+     */ 
+    virtual void InitializeStandardVariables(Standard & rVariables, const ProcessInfo& rCurrentProcessInfo);
+
+
+    /**
+     * Calculation of the Green Lagrange Strain Vector
+     */
+    virtual void CalculateGreenLagrangeStrain(const Matrix& rF,
+					      Vector& rStrainVector);
+
+    /**
+     * Calculation of the Almansi Strain Vector
+     */
+    virtual void CalculateAlmansiStrain(const Matrix& rF,
+					Vector& rStrainVector);
+
+
+    /**
+     * Calculation of the Deformation Matrix  BL
+     */
+    virtual void CalculateDeformationMatrix(Matrix& rB,
+					    Matrix& rF,
+					    Matrix& rDN_DX);
+
+    /**
+     * Calculation of the Integration Weight
+     */
+    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+    ///@}
+
+private:
+
+    ///@name Static Member Variables
+    ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
+    /**
+     * Currently selected integration methods
+     */
+    IntegrationMethod mThisIntegrationMethod;
+    /**
+     * Container for constitutive law instances on each integration point
+     */
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
+
+    /**
+     * Total element volume or area
+     */
+    double mTotalDomainInitialSize;
+
+    /**
+     * Container for historical total Jacobians
+     */
+    std::vector< Matrix > mInvJ0;
+
+    /**
+     * Container for the total Jacobian determinants
+     */
+    Vector mDetJ0;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -577,10 +540,6 @@ private:
 
     // A private default constructor necessary for serialization
 
-    SpatialLagrangianElement() : Element()
-    {
-    }
-
     virtual void save(Serializer& rSerializer) const;
 
     virtual void load(Serializer& rSerializer);
@@ -593,7 +552,7 @@ private:
     ///@{
     ///@}
 
-}; // Class SpatialLagrangianElement
+}; // Class TotalLagrangian3DElement
 
 ///@}
 ///@name Type Definitions
@@ -601,21 +560,7 @@ private:
 ///@}
 ///@name Input and output
 ///@{
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-    SpatialLagrangianElement& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-    const SpatialLagrangianElement& rThis)
-    {
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-    }*/
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SPATIAL_LAGRANGIAN_UPDATED_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_TOTAL_LAGRANGIAN_ELEMENT_3D_H_INCLUDED  defined 

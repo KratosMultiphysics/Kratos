@@ -80,8 +80,16 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, INFINITY_HARDENING );
 
  //element
+  //KRATOS_CREATE_VARIABLE(Matrix, CAUCHY_STRESS_TENSOR );
+  //KRATOS_CREATE_VARIABLE(Matrix, PK2_STRESS_TENSOR );
   KRATOS_CREATE_VARIABLE(Vector, CAUCHY_STRESS_VECTOR );
   KRATOS_CREATE_VARIABLE(Vector, PK2_STRESS_VECTOR );
+
+  //KRATOS_CREATE_VARIABLE(Matrix, GREEN_LAGRANGE_STRAIN_TENSOR );
+  KRATOS_CREATE_VARIABLE(Matrix, ALMANSI_STRAIN_TENSOR );
+  KRATOS_CREATE_VARIABLE(Vector, GREEN_LAGRANGE_STRAIN_VECTOR );
+  KRATOS_CREATE_VARIABLE(Vector, ALMANSI_STRAIN_VECTOR );
+
   KRATOS_CREATE_VARIABLE(double, VON_MISES_STRESS );
 
   //mechanical
@@ -128,10 +136,6 @@ namespace Kratos
     mTotalLagrangianElement3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) ),
     mTotalLagrangianElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
     mTotalLagrangianElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
-    mSpatialLagrangianElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mSpatialLagrangianElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mUpdatedLagrangianElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mUpdatedLagrangianElement3D4N( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mPointForce2DCondition( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mPointForce3DCondition( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mPointMoment3DCondition( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
@@ -166,13 +170,6 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT( "TotalLagrangianElement3D15N", mTotalLagrangianElement3D15N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangianElement3D20N", mTotalLagrangianElement3D20N )
     KRATOS_REGISTER_ELEMENT( "TotalLagrangianElement3D27N", mTotalLagrangianElement3D27N )
-
-    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement2D3N", mSpatialLagrangianElement2D3N );
-    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement3D4N", mSpatialLagrangianElement3D4N );
-
-    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianElement2D3N", mUpdatedLagrangianElement2D3N );
-    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianElement3D4N", mUpdatedLagrangianElement3D4N );
-    
 
     //Register Conditions
  
@@ -222,8 +219,14 @@ namespace Kratos
 
 
     //element
+    //KRATOS_REGISTER_VARIABLE( CAUCHY_STRESS_TENSOR );
+    //KRATOS_REGISTER_VARIABLE( PK2_STRESS_TENSOR );
     KRATOS_REGISTER_VARIABLE( CAUCHY_STRESS_VECTOR );
     KRATOS_REGISTER_VARIABLE( PK2_STRESS_VECTOR );
+    //KRATOS_REGISTER_VARIABLE( GREEN_LAGRANGE_STRAIN_TENSOR );
+    KRATOS_REGISTER_VARIABLE( ALMANSI_STRAIN_TENSOR );
+    KRATOS_REGISTER_VARIABLE( GREEN_LAGRANGE_STRAIN_VECTOR );
+    KRATOS_REGISTER_VARIABLE( ALMANSI_STRAIN_VECTOR );
     KRATOS_REGISTER_VARIABLE( VON_MISES_STRESS );
 
     //mechanical
