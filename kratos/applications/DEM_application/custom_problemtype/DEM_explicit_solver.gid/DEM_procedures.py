@@ -531,3 +531,15 @@ class Procedures:
 
         gid_io.Flush()
         sys.stdout.flush()
+        
+# # # DEM CONTINUUM # # #
+        
+    def SetPredefinedSkin(balls_model_part):
+   
+        for element in balls_model_part.Elements:
+              
+            element.SetValue(SKIN_SPHERE,0)   
+        
+            if (element.GetValue(PREDEFINED_SKIN)>0.0): #PREDEFINED_SKIN is a double
+            
+              element.SetValue(SKIN_SPHERE,1)
