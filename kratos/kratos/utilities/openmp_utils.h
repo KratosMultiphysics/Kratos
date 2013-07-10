@@ -195,11 +195,58 @@ public:
      that values greater than the environment variable OMP_NUM_THREADS
      will be ignored.
      */
-    static inline void SetNumThreads(int NumThreads)
+    static inline void SetNumThreads(int NumThreads = 1)
     {
 #ifdef _OPENMP
-        omp_set_num_threads(NumThreads);
-        std::cout << "Maximum number of threads is now " << omp_get_max_threads() << std::endl;
+
+      int nthreads,tid, procs, maxt, inpar, dynamic, nested;
+  
+      /* Start parallel region */
+  
+      /* Set thread number */  
+      omp_set_num_threads(NumThreads);
+
+#pragma omp parallel private(nthreads, tid)
+      {
+	/* Obtain thread number */
+	tid = omp_get_thread_num();
+    
+	/* Only master thread does this */
+	if (tid == 0)
+	  {
+	    printf("Thread %d getting environment info...\n", tid);
+	
+	    /* Get environment information */
+	    procs    = omp_get_num_procs();
+	    nthreads = omp_get_num_threads();
+	    maxt     = omp_get_max_threads();
+	    inpar    = omp_in_parallel();
+	    //omp_set_dynamic(true);
+	    dynamic  = omp_get_dynamic();
+	    //omp_set_nested(true);
+	    nested   = omp_get_nested();
+	
+	    /* Print environment information */
+	    printf( "  | ------------ OMP IN USE --------- |\n");
+	    printf( "  | Machine number of processors  = %d |\n", procs);
+	    printf( "  | Number of threads set         = %d |\n", nthreads);
+	    printf( "  | Max threads in use            = %d |\n", maxt);
+	    printf( "  | In parallel?                  = %d |\n", inpar);
+	    printf( "  | Dynamic threads enabled?      = %d |\n", dynamic);
+	    printf( "  | Nested parallelism supported? = %d |\n", nested);
+	    printf( "  | --------------------------------- |\n");
+	
+	    
+	    if( procs < nthreads )
+	      std::cout<<" ( WARNING: Maximimun number of threads is EXCEEDED )"<<std::endl;
+	    
+	    std::cout<<std::endl;
+
+	    
+	  }
+    
+      }
+      
 #endif
     }
 
