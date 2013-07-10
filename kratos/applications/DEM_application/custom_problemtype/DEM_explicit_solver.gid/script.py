@@ -25,6 +25,7 @@ balls_model_part = ModelPart("SolidPart");
 
 if (Param.ElementType == "SphericParticle3D" or Param.ElementType == "CylinderParticle2D"):
     import sphere_strategy as SolverStrategy
+
 elif (Param.ElementType == "SphericContinuumParticle3D"):
     import continuum_sphere_strategy as SolverStrategy
 
