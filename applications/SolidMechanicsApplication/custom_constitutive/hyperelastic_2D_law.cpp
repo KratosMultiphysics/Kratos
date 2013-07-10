@@ -82,19 +82,19 @@ namespace Kratos
 
   double& HyperElastic2DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
   {
+
     return( rValue ); 
   }
 
   Vector& HyperElastic2DLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
   {
 
-
     return( rValue );
   }
 
   Matrix& HyperElastic2DLaw::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
   {
-    
+ 
     return( rValue );
   }
 
@@ -218,7 +218,7 @@ namespace Kratos
     MathUtils<double>::InvertMatrix( RightCauchyGreen, InverseRightCauchyGreen, Trace_C);
 
     //6.-Green-Lagrange Strain:
-    if(Options.Is( COMPUTE_STRAIN ))
+    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
       {
 	//E= 0.5*(FT*F-1)
 	StrainVector[0] = 0.5 * ( RightCauchyGreen( 0, 0 ) - 1.00 );
@@ -231,20 +231,20 @@ namespace Kratos
 
 
     //OPTION 1:
-    if( Options.Is( COMPUTE_STRESS ) ){
+    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
 		  
  	CalculateStress( InverseRightCauchyGreen, IdentityMatrix, detF0, LameLambda, LameMu, StressMeasure_PK2, StressVector );
     }
    
-    if( Options.Is( COMPUTE_CONSTITUTIVE_TENSOR ) ){
+    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
 
  	CalculateConstitutiveMatrix ( InverseRightCauchyGreen, detF0, LameLambda, LameMu, ConstitutiveMatrix );
     }
     
     //OPTION 2:
-    if( Options.Is( LAST_KNOWN_CONFIGURATION ) ){
+    if( Options.Is( ConstitutiveLaw::LAST_KNOWN_CONFIGURATION ) ){
 
-      if( Options.Is( COMPUTE_STRESS ) ){
+      if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
 	//Left Cauchy-Green tensor b
 	Matrix LeftCauchyGreen = prod(F0,trans(F0));
 
@@ -253,7 +253,7 @@ namespace Kratos
 	TransformStresses(StressVector,DeformationGradientF,detF,StressMeasure_Kirchhoff,StressMeasure_PK2);  //2nd PK Stress in the last known configuration
       }
 
-      if( Options.Is( COMPUTE_CONSTITUTIVE_TENSOR ) ){
+      if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
      
 	Matrix invF ( 2 , 2 );
 	double DetInvF=0;
@@ -267,8 +267,8 @@ namespace Kratos
     }
   
 
-    //std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
-    //std::cout<<" Stress "<<StressVector<<std::endl;
+    // std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
+    // std::cout<<" Stress "<<StressVector<<std::endl;
 		
   }
 
@@ -334,7 +334,7 @@ namespace Kratos
     Matrix LeftCauchyGreen = prod(F0,trans(F0));
 
     //6.-Almansi Strain:
-    if(Options.Is( COMPUTE_STRAIN ))
+    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
       {
 	// e= 0.5*(1-invbT*invb)   
 	Matrix InverseLeftCauchyGreen ( 2 , 2 );
@@ -352,10 +352,10 @@ namespace Kratos
 
  		
     //OPTION 1:
-    if( Options.Is( COMPUTE_STRESS ) )
+    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
       CalculateStress( LeftCauchyGreen, IdentityMatrix, detF0, LameLambda, LameMu, StressMeasure_Kirchhoff, StressVector );
    
-    if( Options.Is( COMPUTE_CONSTITUTIVE_TENSOR ) )
+    if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
       CalculateConstitutiveMatrix ( IdentityMatrix, detF0, LameLambda, LameMu, ConstitutiveMatrix );
          
   }

@@ -35,9 +35,8 @@
 
 //elements
 #include "custom_elements/isotropic_shell_element.hpp"
-#include "custom_elements/total_lagrangian_element.hpp"
-#include "custom_elements/updated_lagrangian_element.hpp"
-#include "custom_elements/spatial_lagrangian_element.hpp"
+#include "custom_elements/total_lagrangian_3D_element.hpp"
+#include "custom_elements/total_lagrangian_2D_element.hpp"
 #include "custom_elements/beam_element.hpp"
 
 //constitutive laws
@@ -84,9 +83,18 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, INFINITY_HARDENING );
 
   //element
+  //KRATOS_DEFINE_VARIABLE(Matrix, CAUCHY_STRESS_TENSOR );
+  //KRATOS_DEFINE_VARIABLE(Matrix, PK2_STRESS_TENSOR );
   KRATOS_DEFINE_VARIABLE(Vector, CAUCHY_STRESS_VECTOR );
   KRATOS_DEFINE_VARIABLE(Vector, PK2_STRESS_VECTOR );
+
+  //KRATOS_DEFINE_VARIABLE(Matrix, GREEN_LAGRANGE_STRAIN_TENSOR );
+  KRATOS_DEFINE_VARIABLE(Matrix, ALMANSI_STRAIN_TENSOR );
+  KRATOS_DEFINE_VARIABLE(Vector, GREEN_LAGRANGE_STRAIN_VECTOR );
+  KRATOS_DEFINE_VARIABLE(Vector, ALMANSI_STRAIN_VECTOR );
+
   KRATOS_DEFINE_VARIABLE(double, VON_MISES_STRESS );
+
 
   //mechanical
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( FORCE_INTERNAL );
@@ -284,24 +292,18 @@ namespace Kratos
 
     //solid 
 
-    const TotalLagrangianElement mTotalLagrangianElement2D3N;
-    const TotalLagrangianElement mTotalLagrangianElement2D4N;
-    const TotalLagrangianElement mTotalLagrangianElement2D6N;
-    const TotalLagrangianElement mTotalLagrangianElement2D8N;
+    const TotalLagrangian2DElement mTotalLagrangianElement2D3N;
+    const TotalLagrangian2DElement mTotalLagrangianElement2D4N;
+    const TotalLagrangian2DElement mTotalLagrangianElement2D6N;
+    const TotalLagrangian2DElement mTotalLagrangianElement2D8N;
 
-    const TotalLagrangianElement mTotalLagrangianElement3D4N;
-    const TotalLagrangianElement mTotalLagrangianElement3D6N;
-    const TotalLagrangianElement mTotalLagrangianElement3D8N;
-    const TotalLagrangianElement mTotalLagrangianElement3D10N;
-    const TotalLagrangianElement mTotalLagrangianElement3D15N;
-    const TotalLagrangianElement mTotalLagrangianElement3D20N;
-    const TotalLagrangianElement mTotalLagrangianElement3D27N;
-
-    const SpatialLagrangianElement mSpatialLagrangianElement2D3N;
-    const SpatialLagrangianElement mSpatialLagrangianElement3D4N;
-
-    const UpdatedLagrangianElement mUpdatedLagrangianElement2D3N;
-    const UpdatedLagrangianElement mUpdatedLagrangianElement3D4N;
+    const TotalLagrangian3DElement mTotalLagrangianElement3D4N;
+    const TotalLagrangian3DElement mTotalLagrangianElement3D6N;
+    const TotalLagrangian3DElement mTotalLagrangianElement3D8N;
+    const TotalLagrangian3DElement mTotalLagrangianElement3D10N;
+    const TotalLagrangian3DElement mTotalLagrangianElement3D15N;
+    const TotalLagrangian3DElement mTotalLagrangianElement3D20N;
+    const TotalLagrangian3DElement mTotalLagrangianElement3D27N;
 
  
     const PointForce2DCondition    mPointForce2DCondition;
