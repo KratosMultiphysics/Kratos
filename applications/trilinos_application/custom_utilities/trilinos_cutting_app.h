@@ -192,7 +192,8 @@ public:
         int k = 0;
         for (ModelPart::NodesContainerType::iterator it = this_model_part.GetCommunicator().LocalMesh().NodesBegin(); it != this_model_part.GetCommunicator().LocalMesh().NodesEnd(); it++)
         {
-            local_ids[k++] = it->Id() - 1;
+            local_ids[k] = it->Id() - 1;
+            k++;
         }
         boost::shared_ptr<Epetra_Map> pmy_map = boost::shared_ptr<Epetra_Map > (new Epetra_Map(-1, nlocal_nodes, local_ids, 0, mrComm));
         delete [] local_ids;
@@ -203,7 +204,8 @@ public:
         k = 0;
         for (ModelPart::NodesContainerType::iterator it = this_model_part.NodesBegin(); it != this_model_part.NodesEnd(); it++)
         {
-            ids[k++] = it->Id() - 1;
+            ids[k] = it->Id() - 1;
+            k++;
         }
         boost::shared_ptr<Epetra_Map> pmy_ov_map = boost::shared_ptr<Epetra_Map > (new Epetra_Map(-1, nnodes, ids, 0, mrComm));
         delete [] ids;
@@ -265,6 +267,7 @@ public:
                 ++n_owned_nonzeros;
             }
         }
+
 
         // COUNTING THE NUMBER OF NODES AND CONDITIONS THAT WILL BE CREATED BY PREVIOUS PROCESSES OF THE CONDITIONS
         int nodes_before;
@@ -384,7 +387,7 @@ public:
         new_model_part.Nodes().Sort();
 
         new_model_part.Nodes().Unique();
-
+		
         //KRATOS_WATCH('line404')
 
         //NOW WE MUST COPY THE CONDITIONS
@@ -414,9 +417,11 @@ public:
                 new_model_part.Conditions().push_back(p_condition); //and done! added a new triangloe to the new model part
             }
         }
-
+		
         Clear();
-        ParallelFillCommunicator(new_model_part).Execute(); //changed from PrintDebugInfo to Execute
+        //KRATOS_WATCH(new_model_part)
+        //ParallelFillCommunicator(new_model_part).Execute(); //changed from PrintDebugInfo to Execute
+        
         if (mrComm.MyPID() == 0) cout << "copyng conditions and recalculation plan have been completed" << endl;
         KRATOS_CATCH("")
     }
@@ -490,7 +495,7 @@ public:
 
 
         //fill the communicator
-        ParallelFillCommunicator(mr_new_model_part).Execute();
+        //ParallelFillCommunicator(mr_new_model_part).Execute();
         if (mrComm.MyPID() == 0) cout << "recalculation of communication plan completed" << endl;
 
         //clean up the data
