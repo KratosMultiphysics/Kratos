@@ -12,6 +12,7 @@
 #
 #	HISTORY:
 #
+#	1.6- 11/07/13-G. Socorro, correct the bug in the proc splitNode from the last Adrià modification
 #	1.5- 20/09/12-J. Garate, Minor bug fixing, 
 #	1.4- 24/07/12-J. Garate, Minor bug fixing, function comments 
 #	1.3- 20/07/12-J. Garate, Materials Tab Frame Combos with multiple values 
@@ -1114,23 +1115,17 @@ proc ::KMat::ClickTree { x y T } {
 
 proc ::KMat::CreateNewMaterial { {T ""} {name ""} } {
 
-    #	if { $name == "" } {
-    #				set name [::KMat::GetAutomaticMatName]
-    #	} else {
-    #				if { ![::KEGroups::isValidGroupName $name] } {
-    #					WarnWin [_ "Bad material name, start or end by '//' is not allowed"]
-    #					return ""
-    #				}
-    #	}
-    
-    # insertamos en el grup adecuado. Si no, no insertamos
+    # insertamos en el grupo adecuado. Si no, no insertamos
     set item [$T selection get 0]	
     if {$item == "" } {
-	WarnWin [_ "No materials group selected."]
+	set txt [= "No materials group selected"]
+	WarnWin "${txt}."
 	return ""
     }
 
-    #Insertamos siempre el nuevo material en el padre del item seleccionado
+    # wa "item:$item"
+
+    # Insertamos siempre el nuevo material en el padre del item seleccionado
     set aux 99
     set aux2 [$T item parent $item]
     while {$aux != 1 && $aux2 != 0} {
@@ -1141,31 +1136,21 @@ proc ::KMat::CreateNewMaterial { {T ""} {name ""} } {
 	set aux [llength $splitted]
     }
 
-    #		if { [llength $splitted] != 1 } {
-    #		WarnWin [_ "Can not create new material. No material Group selected."]
-    #				return ""
-    #		}
-
     set path [DecodeName [$T item tag names $item]]   
 
     if { $name == "" } {
 	set name [::KMat::GetAutomaticMatName "" $path]
     } else {
 	if { ![::KEGroups::isValidGroupName $name] } {
-	    WarnWin [_ "Bad material name, start or end by '//' is not allowed"]
+	    WarnWin [= "Bad material name, start or end by '//' is not allowed"]
 	    return ""
 	}
     }
 
-
-
     ::KMat::insertXml "$path" $name 1 Generic
     
     ::KMat::refreshTree $T
-    
-    # añadimos el nuevo material en el arbol
-    #::KMat::InsertNewMaterial $name $T 1 Generic "" "$item" 0  
-
+   
     return $name   
 }
 
@@ -1607,17 +1592,18 @@ proc ::KMat::GetAutomaticMatName { {auto ""} { startname "" } } {
 # Separa cada node en "inicialNombreTag.idNodo"
 #
 proc ::KMat::splitNode { node } {
+    
     set id [$node getAttribute id ""]		
     if { [$node tagName] == "Container"} {
-		return "c.[list $id]"
+	return "c.[list $id]"
     } elseif { [$node tagName] == "Item"} {
-		return "i.[list $id]"
+	return "i.[list $id]"
     } elseif { [$node tagName] == "Property"} {
-		return "p.[list $[$node getAttribute id ""]]"
+	return "p.[list $id]"
     } elseif { [$node tagName] == "Material"} {
-		return "m.[list $[$node getAttribute id ""]]"
+	return "m.[list $id]"
     } else {
-		return "NoTree"
+	return "NoTree"
     }
 }
 
