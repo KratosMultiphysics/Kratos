@@ -68,7 +68,7 @@ proc ::KMProps::CreateBottomFrame { } {
     ttk::frame $f -borderwidth 0
     
     # Grid for toolbar
-    grid $f -row 2 -column 0 -sticky wes
+    grid $f -row 2 -column 0 -sticky wes -columnspan 2
     
     return $f
     
@@ -109,32 +109,32 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
     set listT [::KMProps::getTemplateStructure $idTemplate]
     
     if {[llength $listT] >= 1 } {
-	set nb ${f}.nb
+	set nb $f.nb
 	if {[winfo exists $nb]} {
 	    destroy $nb
 	}
-  
-  set long_name_description [$T item text $item 0]
-  set parent_item [$T item parent $item]
-  set parent_fullname [DecodeName [$T item tag names $parent_item]]
-  set parent_class [::xmlutils::setXml $parent_fullname class]
-  
-  if { $parent_class=="SameTemplateGroups" } {
-    set long_name_description "[$T item text $parent_item 0] $long_name_description"      
-  }  
-  set short_name_autogroup ""
-  if { [string length $long_name_description] < 10 } {
-      set short_name_autogroup $long_name_description
-  } else {
-    foreach word $long_name_description {
-      append short_name_autogroup [string range $word 0 3]      
-    }
-    if { [string length $short_name_autogroup] > 20 } {
-      set short_name_autogroup [string range $short_name_autogroup 0 20] 
-    }
-  }
-  
-	grid [ttk::notebook $nb ] -row 0 -column 0 -columnspan 2 -padx 0 -sticky nw -in $f
+	
+	set long_name_description [$T item text $item 0]
+	set parent_item [$T item parent $item]
+	set parent_fullname [DecodeName [$T item tag names $parent_item]]
+	set parent_class [::xmlutils::setXml $parent_fullname class]
+	
+	if { $parent_class=="SameTemplateGroups" } {
+	    set long_name_description "[$T item text $parent_item 0] $long_name_description"      
+	}  
+	set short_name_autogroup ""
+	if { [string length $long_name_description] < 10 } {
+	    set short_name_autogroup $long_name_description
+	} else {
+	    foreach word $long_name_description {
+		append short_name_autogroup [string range $word 0 3]      
+	    }
+	    if { [string length $short_name_autogroup] > 20 } {
+		set short_name_autogroup [string range $short_name_autogroup 0 20] 
+	    }
+	}
+	
+	grid [ ttk::notebook $nb ] -sticky nwe
 	
 	
 	# Lista de listas con formato {idContainer idItem1 idItem2...}
@@ -142,7 +142,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 	    
 	    # Si tiene como mínimo el container y un item ponemos tab y dentro label-combos
 	    if {[llength $listContainer] >= 2} {
-	    
+		
 		set idContainer [lindex $listContainer 0]
 		
 		# Si solo hay un container le damos el nombre del item pulsado, no del template
@@ -190,20 +190,24 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 		            }
 		            
 		            # Para cada item añadimos label y combo
-		            grid [ttk::label $fTab.lbl$id -text "$pid:" ] -row $i -column 0 -pady 2 -sticky nw -in $fTab
+		            grid [ttk::label $fTab.lbl$id -text "$pid:" ] -row $i -column 0 -pady 2 -sticky nw
 		            
 		            if { [llength $comboList] > 0 } {
 		                
 		                if {$state != "disable"} {
 		                    set state "readonly"
 		                }
-		                if {[string length $id] == 2 && ([string index $id end] == "x" || [string index $id end] == "y" || [string index $id end] == "z") } { 
+		                if {[string length $id] == 2 && \
+					([string index $id end] == "x" || [string index $id end] == "y" ||\
+					     [string index $id end] == "z") } { 
 		                    set width 15
 		                } else {
 		                    set width 20
 		                }
-		                grid [ttk::combobox $fTab.cmb$id -values $comboList -state $state -width [::KMProps::getCmbWidth $comboList] -textvariable "::KMProps::cmb$id"] \
-		                    -row $i -column 1 -padx 3 -pady 2 -sticky nw -in $fTab
+		                grid [ttk::combobox $fTab.cmb$id -values $comboList \
+					  -state $state -width [::KMProps::getCmbWidth $comboList] \
+					  -textvariable "::KMProps::cmb$id"] \
+		                    -row $i -column 1 -padx 3 -pady 2 -sticky nw
 		                tooltip::tooltip $fTab.cmb$id [= $tooltip]
 		                
 		                if {$id == "Ax" || $id == "Ay" || $id == "Az"} {
@@ -211,9 +215,9 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 		                    set activation 1
 		                }
 		                ::xmlutils::setComboDv $fTab.cmb$id $fullname $dv $idTemplate 
-		            
+				
 		            } else {
-		            
+				
 		                if {$id == "Vx" || $id == "Vy" || $id == "Vz"} {
 		                    if { $activation } {
 		                        set activeId "A[string range $id 1 1]"
@@ -225,7 +229,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 		                }
 		                
 		                grid [ttk::combobox $fTab.cmb$id -state $state -values $values -textvariable "::KMProps::cmb$id" -width [::KMProps::getCmbWidth $comboList]] \
-		                    -row $i -column 1 -padx 3 -pady 2 -sticky nw -in $fTab
+		                    -row $i -column 1 -padx 3 -pady 2 -sticky nw
 		                tooltip::tooltip $fTab.cmb$id [= $tooltip]
 		                
 		                #set dv [::KMProps::getPropTemplate $idTemplate dvText "$idContainer//$id"]
@@ -238,26 +242,26 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 		                    set sbxp [::KMProps::getPropTemplate $idTemplate sbxp "$idContainer//$id"]
 		                    set sbp [::KMProps::getPropTemplate $idTemplate sbp "$idContainer//$id"]
 		                    grid [ttk::button $fTab.btn$id -text $sbp -command [list ::KMProps::selectionButton $sbxp] -width 4 ] \
-		                    -row $i -column 2 -padx 5 -pady 2 -sticky ew -in $fTab
+					-row $i -column 2 -padx 5 -pady 2 -sticky ew
 		                    tooltip::tooltip $fTab.btn$id "Pick Coordinates"
 		                }
-		            
+				
 		            }
 		            
-		    
+			    
 		            if {$function != "" } {
 		                grid [ttk::button $fTab.funct$id -text "functions" -command "KFun::InitBaseWindow $fTab $id" -style TMenubutton.Toolbutton -width [::KMProps::getCmbWidth $comboList]]  \
-		                    -row $i -column 2 -sticky nw  -pady 0 -padx 3 -in $fTab
+		                    -row $i -column 2 -sticky nw  -pady 0 -padx 3
 		                tooltip::tooltip $fTab.funct$id [= "Function manager"]
 		                set img [::WinUtils::GetImage "functions.gif"]
 		                if { $img != -1 } { $fTab.funct$id configure -image $img }
 		                
 		                grid [ttk::button $fTab.deleteFunct$id -text "delete" -command "::KMProps::unassignFunction $fTab $id $fullname" -style TMenubutton.Toolbutton -width [::KMProps::getCmbWidth $comboList]] \
-		                    -row $i -column 3 -sticky nw  -pady 0 -padx 2 -in $fTab
+		                    -row $i -column 3 -sticky nw  -pady 0 -padx 2
 		                tooltip::tooltip $fTab.deleteFunct$id [= "Unassign function"]
 		                set img [::WinUtils::GetImage "delete_icon.gif"]
 		                if { $img != -1 } { $fTab.deleteFunct$id configure -image $img }
-		            
+				
 		            }
 		        }
 		    }
@@ -277,18 +281,26 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 	set entityList [split [::xmlutils::setXml $fullname GiDEntity] "," ]
 	
 	#set entityList [split [::KMProps::getPropTemplate $idTemplate GiDEntity] "," ]
-	
+
+	set fet [ ttk::frame $f.fEntityTypes]
+
+	set idx_col 0
+
 	switch $whatuse {
 	    
 	    GEOMETRYUSE {
 		foreach i $geomlist {
 		    #::KMProps::CorrectFileExtensionTo ".png" $i
 		    
-		    set command [file rootname $i]
+		    set command [ file rootname $i]
 		    if {$command in $entityList || $entityList == "" } {
-		        set fb "${f}.b$command"
-		        grid [ttk::button $fb -text "$i" -command "::KMProps::changeImage $command $i $f" -style TMenubutton.Toolbutton -width 15] \
-		            -row 1 -column 0 -sticky nw  -pady 3 -padx [expr (50 * $col) + 15] -in $f
+		        set fb $fet.b$command
+		        grid [ ttk::button $fb -text $i \
+				   -command [ list ::KMProps::changeImage $command $i $fet] \
+				   -style TMenubutton.Toolbutton -width 15] \
+		            -sticky nw -pady 3 -padx 5 \
+			    -row 0 -column $idx_col
+			incr idx_col
 		        tooltip::tooltip $fb [= "Entity %s" $command]
 		        set im {}
 		        append im $command ".gif"
@@ -300,7 +312,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 		            #Por defecto dejamos marcada la primera
 		            set i "[string range $i 0 [expr [string length $i] - 5]]_sel.gif"
 		            set ::KMProps::selectedEntity $command
-		            ::KMProps::changeImage $::KMProps::selectedEntity $i $f
+		            ::KMProps::changeImage $::KMProps::selectedEntity $i $fet
 		        }
 		        incr col
 		    }
@@ -330,9 +342,13 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 		            set ::KMProps::selectedEntity $command
 		        }
 		        
-		        set fb "${f}.b$command"
-		        grid [ttk::button $fb -text "$i" -command "::KMProps::changeImage $command $i $f" -style TMenubutton.Toolbutton -width 15] \
-		            -row 1 -column 0 -sticky nw  -pady 3 -padx [expr (50 * $col) + 15] -in $f
+		        set fb $fet.b$command
+		        grid [ ttk::button $fb -text $i \
+				   -command [ list ::KMProps::changeImage $command $i $fet] \
+				   -style TMenubutton.Toolbutton -width 15] \
+		            -sticky nw -pady 3 -padx 5 \
+			    -row 0 -column $idx_col
+			incr idx_col
 		        if { [string range $command 0 6] == "element" } {
 		            set command [string range $command 8 end]
 		            #append i "element_" $i
@@ -349,42 +365,69 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 		}
 	    }
 	}
-	
-	grid [ttk::label $f.lGroups -text "Group:" ] \
-	    -row 2 -column 0 -pady 3 -padx 5 -sticky nw -in $f
+
+	grid $fet -sticky new
+
+	set fg [ ttk::frame $f.fGroups]
+
+	ttk::label $fg.lGroups -text [= "Group"]:
 	
 	#COMBO DE GRUPOS
-	set fGroups $f.cGroups
+	set fGroups $fg.cGroups
 	
 	# Get the group list
-	    set filterGroups [GiD_Groups list]
+	set filterGroups [GiD_Groups list]
 	
-	grid [ttk::combobox $fGroups -state readonly -values "$filterGroups" -textvariable "::KMProps::selGroup" \
-	    -postcommand "::KMProps::changeGroups [list $entityList] $fGroups" -width 15] \
-	    -row 2 -column 0 -pady 3 -padx 55 -sticky nw -in $f
-	
+	ttk::combobox $fGroups -state readonly -values "$filterGroups" \
+	    -textvariable "::KMProps::selGroup" \
+	    -postcommand "::KMProps::changeGroups [list $entityList] $fGroups" \
+	    -width 15
+	# -pady 3 -padx 55
+
 	set ::KMProps::selGroup ""
 	#Better always start frame with empty combo
 	#if { [llength $filterGroups] > 0 } {
-	#    $f.cGroups current 0
+	#    $fg.cGroups current 0
 	#}
-	bind $f.cGroups <<ComboboxSelected>> "::KMProps::cmbChangeCheckGroups $f"
+	bind $fg.cGroups <<ComboboxSelected>> "::KMProps::cmbChangeCheckGroups $f"
 	
 	# BOTON A LA DERECHA DE LOS GRUPOS (CREAR GRUPO AUTOMATICAMENTE)
-	grid [ttk::button $f.iGroups -text [= "newGroup"] -command [list ::KMProps::autoNewGroup [list $short_name_autogroup] $f] ] \
-	    -row 2 -column 0 -sticky nw  -pady 0 -padx 180 -in $f
-	tooltip::tooltip $f.iGroups [= "Create automatic new group"]
-	$f.iGroups configure -image [::WinUtils::GetImage "newAutoGroup.gif" ]
+
+	ttk::button $fg.iGroups -text [= "newGroup"] \
+	    -command [list ::KMProps::autoNewGroup [list $short_name_autogroup] $f] 
+	#  -pady 0 -padx 180
+	tooltip::tooltip $fg.iGroups [= "Create automatic new group"]
+	$fg.iGroups configure -image [::WinUtils::GetImage "newAutoGroup.gif" ]
+
+	grid $fg.lGroups -row 0 -column 0 -sticky ne -padx 5 -pady 3
+	grid $fGroups -row 0 -column 1 -sticky wne  -padx 5 -pady 3
+	grid $fg.iGroups -row 0 -column 2 -sticky nw -padx 5 -pady 3
+	grid rowconfigure  $fg 0 -weight 1
+	grid columnconfigure  $fg 1 -weight 1
+
+	grid $fg -sticky new
+
+	set fbut [ ttk::frame $f.fbuttons]
+	#$fbut.bBottomOk and $fbut.bBottomCancel names need to popup click ok cancel before change item
+	ttk::button $fbut.bBottomOk -text [= "Ok"] \
+	    -command "::KMProps::acceptGroups $T $idTemplate $fullname $item {$listT} {$entityList} $fGroups"
+	tooltip::tooltip $fbut.bBottomOk [= "Assign condition to the selected group"]
 	
-	#$f.bBottomOk and $f.bBottomCancel names need to popup click ok cancel before change item
-	grid [ttk::button $f.bBottomOk -text [= "Ok"]  -command "::KMProps::acceptGroups $T $idTemplate $fullname $item {$listT} {$entityList} $fGroups" ] \
-	    -row 3 -column 0 -sticky nw  -pady 5 -padx 5 -in $f
-	tooltip::tooltip $f.bBottomOk [= "Assign condition to the selected group"]
-	
-	grid [ttk::button $f.bBottomCancel -text [= "Cancel"]  -command "::KMProps::DestroyBottomFrame" ] \
-	    -row 3 -column 0 -sticky nw  -pady 5 -padx 130  -in $f
-	tooltip::tooltip $f.bBottomCancel [= "Cancel assignation"]
-	
+	ttk::button $fbut.bBottomCancel -text [= "Cancel"] \
+		   -command "::KMProps::DestroyBottomFrame"
+	tooltip::tooltip $fbut.bBottomCancel [= "Cancel assignation"]
+
+	grid $fbut.bBottomOk  $fbut.bBottomCancel -sticky n -padx 5 -pady 3
+
+	grid $fbut -sticky news
+	if { $::tcl_version >= 8.5 } { grid anchor $fbut center }
+
+	# $nb
+	# $fet
+	# $fg
+	# $fbut
+	grid columnconfigure $f 0 -weight 1
+	grid rowconfigure $f {0 1 2 3} -weight 1
     }
     
     bind $T <KeyPress> "if { %k == 27   } { ::KMProps::DestroyBottomFrame }"
@@ -915,12 +958,12 @@ proc ::KMProps::changeImage {entity img path} {
     
     if {$selectedEntity != "" } {
 	
-	set f "$path.b$selectedEntity"
+	set f $path.b$selectedEntity
 	
-	$f configure -image [::WinUtils::GetImage "${selectedEntity}.gif"]
+	$f configure -image [::WinUtils::GetImage $selectedEntity.gif]
     }
     
-    "$path.b$entity" configure -image [::WinUtils::GetImage "${entity}_sel.gif"]
+    $path.b$entity configure -image [::WinUtils::GetImage ${entity}_sel.gif]
 
     set selectedEntity $entity
 }
