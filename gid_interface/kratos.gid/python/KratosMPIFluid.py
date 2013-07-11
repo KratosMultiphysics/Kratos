@@ -113,6 +113,8 @@ mpi.world.barrier()
 MPICommSetup = SetMPICommunicatorProcess(fluid_model_part)
 MPICommSetup.Execute()
 
+(ParallelFillCommunicator(fluid_model_part)).Execute()
+
 my_input_filename = input_file_name + "_" + str(mpi.rank)
 model_part_io_fluid = ModelPartIO(my_input_filename)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
