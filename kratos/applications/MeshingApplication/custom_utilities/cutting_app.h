@@ -194,15 +194,17 @@ public:
     void AddSkinConditions(ModelPart& mr_model_part, ModelPart& mr_new_model_part, int plane_number )
     {
         ModelPart& this_model_part = mr_model_part;
+        NodesArrayType::iterator it_begin_node_old = this_model_part.Nodes().ptr_begin();
         ModelPart& new_model_part = mr_new_model_part;
 
-        KRATOS_WATCH("Adding Skin Conditions to the new model part, added in layer:")
+        std::cout <<"Adding Skin Conditions to the new model part, added in layer:" << std::endl;
         KRATOS_WATCH(plane_number)
         KRATOS_TRY
         vector<int>  Condition_Nodes( this_model_part.Nodes().size());          //our (int) vector, where we write -1 when the node is part of the condition faces
         int number_of_triangles = 0; //we set it to zero to start
         int number_of_nodes = 0; //same as above
         int number_of_previous_nodes = 0; // nodes from the previous conditions (planes) created
+        int number_of_conditions = 0; 
 
         new_model_part.GetNodalSolutionStepVariablesList() = this_model_part.GetNodalSolutionStepVariablesList();
         new_model_part.AddNodalSolutionStepVariable(FATHER_NODES);
@@ -215,6 +217,7 @@ public:
         ConditionsArrayType& rConditions_new = new_model_part.Conditions();
         ConditionsArrayType::iterator cond_it_end_new = rConditions_new.ptr_end();
         ConditionsArrayType::iterator cond_it_begin_new = rConditions_new.ptr_begin();
+        number_of_conditions = cond_it_end - cond_it_begin;
 
         if (new_model_part.Nodes().size()!=0)  //it means this is not the first plane that has to be created
         {
@@ -223,17 +226,17 @@ public:
             NodesArrayType::iterator it_begin_node_new = rNodes_new.ptr_begin();
             number_of_previous_nodes=(it_end_node_new-it_begin_node_new);
             number_of_triangles=cond_it_end_new - cond_it_begin_new ;
-            KRATOS_WATCH(number_of_triangles)
-            KRATOS_WATCH(number_of_previous_nodes)
+           // KRATOS_WATCH(number_of_triangles)
+            //KRATOS_WATCH(number_of_previous_nodes)
             //KRATOS_CATCH("")
         }
         else //nothing. number of triangles and nodes already set to 0
         {
-            KRATOS_WATCH("First Cutting Plane");
+            std::cout <<"First Cutting Plane" << std::endl;
         }
 
 
-		if (number_of_triangles!=0) 
+		if (number_of_conditions!=0) 
 		{
 			for (unsigned int index=0 ; index != this_model_part.Nodes().size() ; ++index) Condition_Nodes[index]=0; //initializing in zero the whole vector (meaning no useful nodes for the condition layer)
 
@@ -242,7 +245,8 @@ public:
 				Geometry<Node<3> >&geom = i_condition->GetGeometry();
 				for(unsigned int i = 0; i < i_condition->GetGeometry().size() ; i++)
 				{
-					int position = (geom[i].Id()) - 1; //the id of the node minus one is the position in the Condition_Node array (position0 = node1)
+					//int position = (geom[i].Id()) - 1; //the id of the node minus one is the position in the Condition_Node array (position0 = node1)
+					int position = this_model_part.Nodes().find(geom[i].Id()) - it_begin_node_old; //probably there-s a better way to do this, i only need the position in the array, (not the ID)
 					Condition_Nodes[position] =  -1 ; //a -1 means we need this node!
 				}
 			}//done. now we know all the nodes that will have to be added to the new model part.
@@ -260,7 +264,7 @@ public:
 					pnode->GetValue(FATHER_NODES).resize(0);
 					pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node.base() ) );       // we keep the same size despite we only need one. to have everyhing with the same size
 					pnode->GetValue(FATHER_NODES).push_back( Node<3>::WeakPointer( *it_node.base() ) );
-					pnode-> GetValue(WEIGHT_FATHER_NODES) = 1.0;  //lo anterior no anduvo... creo q es así entonces. o hace falta el GetValue?
+					pnode-> GetValue(WEIGHT_FATHER_NODES) = 1.0;  //since both father node 1 and 2 are the same, any value between 0 and one would be ok.
 
 					pnode->X0() = it_node->X0();
 					pnode->Y0() = it_node->Y0();
@@ -278,7 +282,7 @@ public:
 				Geometry<Node<3> >&geom = i_condition->GetGeometry(); //current condition(nodes, etc)
 				for(unsigned int i = 0; i < i_condition->GetGeometry().size() ; i++)         //looping the nodes
 				{
-					int position = (geom[i].Id()) - 1; //the id of the node minus one is the position in the Condition_Node array (position0 = node1)
+					int position = this_model_part.Nodes().find(geom[i].Id()) - it_begin_node_old;  //the id of the node minus one is the position in the Condition_Node array (position0 = node1)
 					triangle_nodes[i]=Condition_Nodes[position]; // saving the i nodeId
 				} //nodes id saved. now we have to create the element.
 				Triangle3D3<Node<3> > geometry(
