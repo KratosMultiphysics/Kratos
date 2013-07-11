@@ -105,7 +105,7 @@ model_part_io_fluid = ModelPartIO(input_file_name)
 ########################## do parallel reading ######################
 number_of_partitions = mpi.size #we set it equal to the number of processors
 if mpi.rank == 0 :
-    partitioner = MetisDivideInputToPartitionsProcess(model_part_io_fluid, number_of_partitions, domain_size);
+    partitioner = MetisDivideHeterogeneousInputProcess(model_part_io_fluid, number_of_partitions , domain_size, 1)
     partitioner.Execute()
 
 mpi.world.barrier()
@@ -143,7 +143,10 @@ if(laplacian_form >= 2):
     for node in fluid_model_part.Nodes:
         node.Free(PRESSURE)
 
-
+#copy Y_WALL
+for node in fluid_model_part.Nodes:
+    y = node.GetSolutionStepValue(Y_WALL,0)
+    node.SetValue(Y_WALL,y)
 
 dynamic_tau = ProjectParameters.use_dt_in_stabilization
 oss_switch = ProjectParameters.use_orthogonal_subscales
