@@ -221,11 +221,10 @@ namespace Kratos
   {
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
  
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-	unsigned int index = dimension * i;
+	unsigned int index = 2 * i;
 
 	rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
 	rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
@@ -241,62 +240,19 @@ namespace Kratos
       }
 
 
-
+  //************************************CALCULATE TOTAL MASS****************************
   //************************************************************************************
-  //************************************************************************************
 
-  void TotalLagrangian2DElement::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+  double& TotalLagrangian2DElement::CalculateTotalMass( double& rTotalMass )
   {
     KRATOS_TRY
 
-    //lumped
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int MatSize = dimension * number_of_nodes;
+    rTotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY] * GetProperties()[THICKNESS];
 
-    if ( rMassMatrix.size1() != MatSize )
-      rMassMatrix.resize( MatSize, MatSize, false );
-
-    rMassMatrix = ZeroMatrix( MatSize, MatSize );
-
-    double TotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY] * GetProperties()[THICKNESS] ;
-
-    Vector LumpFact  = GetGeometry().LumpingFactors( LumpFact );
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	double temp = LumpFact[i] * TotalMass;
-
-	for ( unsigned int j = 0; j < dimension; j++ )
-	  {
-	    unsigned int index = i * dimension + j;
-	    rMassMatrix( index, index ) = temp;
-	  }
-      }
+    return rTotalMass;
 
     KRATOS_CATCH( "" )
-      }
-
-  //************************************************************************************
-  //************************************************************************************
-
-  void TotalLagrangian2DElement::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
-  {
-    KRATOS_TRY
-      unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    //resizing as needed the LHS
-    unsigned int MatSize = number_of_nodes * dimension;
-
-    if ( rDampMatrix.size1() != MatSize )
-      rDampMatrix.resize( MatSize, MatSize, false );
-
-    noalias( rDampMatrix ) = ZeroMatrix( MatSize, MatSize );
-
-    KRATOS_CATCH( "" )
-      }
-
+  }
 
 
   //************************************************************************************
@@ -312,7 +268,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    TotalLagrangian3DElement::Check(rCurrentProcessInfo);
+    LargeDisplacement3DElement::Check(rCurrentProcessInfo);
 
     if ( THICKNESS.Key() == 0 )
       KRATOS_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" );

@@ -106,22 +106,6 @@ public:
      */
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
-    /**
-      * this is called during the assembling process in order
-      * to calculate the elemental mass matrix
-      * @param rMassMatrix: the elemental mass matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-      * this is called during the assembling process in order
-      * to calculate the elemental damping matrix
-      * @param rDampMatrix: the elemental damping matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
-
 
     //************************************************************************************
     //************************************************************************************
@@ -198,6 +182,15 @@ protected:
      */
     double& CalculateIntegrationWeight(double& rIntegrationWeight);
 
+
+    /**
+     * Calculation of the Total Mass of the Element
+     */
+    double& CalculateTotalMass(double& rTotalMass);
+
+
+
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -216,29 +209,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    /**
-     * Currently selected integration methods
-     */
-    IntegrationMethod mThisIntegrationMethod;
-    /**
-     * Container for constitutive law instances on each integration point
-     */
-    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
-
-    /**
-     * Total element volume or area
-     */
-    double mTotalDomainInitialSize;
-
-    /**
-     * Container for historical total Jacobians
-     */
-    std::vector< Matrix > mInvJ0;
-
-    /**
-     * Container for the total Jacobian determinants
-     */
-    Vector mDetJ0;
 
     ///@}
     ///@name Private Operators
@@ -285,4 +255,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_ELEMENT_2D_H_INCLUDED  defined 
+#endif // KRATOS_TOTAL_LAGRANGIAN_2D_ELEMENT_H_INCLUDED  defined 

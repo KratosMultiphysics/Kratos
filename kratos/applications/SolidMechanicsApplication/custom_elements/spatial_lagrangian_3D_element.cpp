@@ -1,0 +1,327 @@
+//   
+//   Project Name:        KratosSolidMechanicsApplication $      
+//   Last modified by:    $Author:            JMCarbonell $ 
+//   Date:                $Date:                July 2013 $
+//   Revision:            $Revision:                  0.0 $
+//
+//
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "includes/define.h"
+#include "custom_elements/spatial_lagrangian_3D_element.hpp"
+#include "utilities/math_utils.h"
+#include "includes/constitutive_law.h"
+#include "solid_mechanics_application.h"
+
+
+namespace Kratos
+{
+ 
+
+  //******************************CONSTRUCTOR*******************************************
+  //************************************************************************************
+
+  SpatialLagrangian3DElement::SpatialLagrangian3DElement( IndexType NewId, GeometryType::Pointer pGeometry )
+    : LargeDisplacement3DElement( NewId, pGeometry )
+  {
+    //DO NOT ADD DOFS HERE!!!
+  }
+
+
+  //******************************CONSTRUCTOR*******************************************
+  //************************************************************************************
+
+  SpatialLagrangian3DElement::SpatialLagrangian3DElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+    : LargeDisplacement3DElement( NewId, pGeometry, pProperties )
+  {
+    //DO NOT ADD DOFS HERE!!!
+  }
+
+
+  //******************************COPY CONSTRUCTOR**************************************
+  //************************************************************************************
+
+  SpatialLagrangian3DElement::SpatialLagrangian3DElement( SpatialLagrangian3DElement const& rOther)
+    :LargeDisplacement3DElement(rOther)
+    ,mDeformationGradientF0(rOther.mDeformationGradientF0)
+    ,mDeterminantF0(rOther.mDeterminantF0)
+  {
+  }
+
+
+  //*******************************ASSIGMENT OPERATOR***********************************
+  //************************************************************************************
+
+  SpatialLagrangian3DElement&  SpatialLagrangian3DElement::operator=(SpatialLagrangian3DElement const& rOther)
+  {
+    LargeDisplacement3DElement::operator=(rOther);
+
+    mDeformationGradientF0.clear();
+    mDeformationGradientF0.resize(rOther.mDeformationGradientF0.size());
+
+
+    for(unsigned int i=0; i<<mConstitutiveLawVector.size(); i++)
+      {
+	mDeformationGradientF0 [i] = rOther.mDeformationGradientF0[i];
+      }
+
+    mDeterminantF0 = rOther.mDeterminantF0;
+
+
+    return *this;
+  }
+
+
+  //*********************************OPERATIONS*****************************************
+  //************************************************************************************
+
+  Element::Pointer SpatialLagrangian3DElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+  {
+    return Element::Pointer( new SpatialLagrangian3DElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+  }
+
+
+  //*******************************DESTRUCTOR*******************************************
+  //************************************************************************************
+
+  SpatialLagrangian3DElement::~SpatialLagrangian3DElement()
+  {
+  }
+
+
+
+  //************* STARTING - ENDING  METHODS
+  //************************************************************************************
+  //************************************************************************************
+
+
+  void SpatialLagrangian3DElement::Initialize()
+  {
+    KRATOS_TRY
+
+    LargeDisplacement3DElement::Initialize();
+
+    SizeType integration_points_number=GetGeometry().IntegrationPointsNumber();
+
+    //Resize historic deformation gradient
+    mDeformationGradientF0.resize( integration_points_number );
+    mDeterminantF0.resize( integration_points_number, false );
+
+    KRATOS_CATCH( "" )
+  }
+
+
+
+  //************************************************************************************
+  //************************************************************************************
+
+  double& SpatialLagrangian3DElement::CalculateIntegrationWeight(double& rIntegrationWeight)
+  {
+     return rIntegrationWeight;
+  }
+
+
+
+  //************* COMPUTING  METHODS
+  //************************************************************************************
+  //************************************************************************************
+
+
+  //*********************************COMPUTE KINEMATICS*********************************
+  //************************************************************************************
+
+
+  void SpatialLagrangian3DElement::CalculateKinematics(Standard& rVariables,
+						     const double& rPointNumber)
+
+  {
+    KRATOS_TRY
+      
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
+
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    //Parent to reference configuration
+    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
+
+    //Calculate Delta Position
+    Matrix& DeltaPosition =  CalculateDeltaPosition(DeltaPosition);
+
+    //Parent to current configuration
+    Matrix j = zero_matrix<double>( dimension , dimension);
+    j = GetGeometry().Jacobian( j, rPointNumber , mThisIntegrationMethod , DeltaPosition );
+    
+    //Parent to reference configuration
+    Matrix J ( dimension , dimension);
+    J = GetGeometry().Jacobian( J, rPointNumber , mThisIntegrationMethod );
+
+
+    //Calculating the inverse of the jacobian and the parameters needed
+    Matrix InvJ;
+    MathUtils<double>::InvertMatrix( J, InvJ, rVariables.detJ);
+
+    //Compute cartesian derivatives
+    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
+
+    //Current Deformation Gradient
+    this->CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, DeltaPosition);
+
+    Matrix Invj;
+    //Calculating the inverse of the jacobian and the parameters needed
+    MathUtils<double>::InvertMatrix( j, Invj, rVariables.detJ); //overwrites detJ 
+
+    //Compute cartesian derivatives
+    rVariables.DN_DX = prod( DN_De[rPointNumber] , Invj ); //overwrites DX now is the current position dx
+
+    //Determinant of the Deformation Gradient F0
+    rVariables.detF0 = mDeterminantF0[rPointNumber];
+    rVariables.F0    = mDeformationGradientF0[rPointNumber];
+
+    //Compute the deformation matrix B
+    this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
+
+
+    KRATOS_CATCH( "" )
+      }
+
+
+  //*************************COMPUTE DELTA POSITION*************************************
+  //************************************************************************************
+
+  Matrix& SpatialLagrangian3DElement::CalculateDeltaPosition(Matrix & DeltaPosition)
+  {
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    
+    DeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+   
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {	    
+	array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+	array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+	    	    
+	for ( unsigned int j = 0; j < dimension; j++ )
+	  {	    
+	    DeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+	  }
+      }
+
+    return DeltaPosition;
+
+    KRATOS_CATCH( "" )
+}
+
+
+  //*************************COMPUTE DEFORMATION GRADIENT*******************************
+  //************************************************************************************
+
+  void SpatialLagrangian3DElement::CalculateDeformationGradient(const Matrix& rDN_DX,
+								Matrix& rF,
+								Matrix& DeltaPosition)
+  {
+    KRATOS_TRY
+
+      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
+    rF = identity_matrix<double> ( 3 );
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+
+	rF ( 0 , 0 ) += DeltaPosition(i,0)*rDN_DX ( i , 0 );
+	rF ( 0 , 1 ) += DeltaPosition(i,0)*rDN_DX ( i , 1 );
+	rF ( 0 , 2 ) += DeltaPosition(i,0)*rDN_DX ( i , 2 );
+	rF ( 1 , 0 ) += DeltaPosition(i,1)*rDN_DX ( i , 0 );
+	rF ( 1 , 1 ) += DeltaPosition(i,1)*rDN_DX ( i , 1 );
+	rF ( 1 , 2 ) += DeltaPosition(i,1)*rDN_DX ( i , 2 );
+	rF ( 2 , 0 ) += DeltaPosition(i,0)*rDN_DX ( i , 0 );
+	rF ( 2 , 1 ) += DeltaPosition(i,0)*rDN_DX ( i , 1 );
+	rF ( 2 , 2 ) += DeltaPosition(i,0)*rDN_DX ( i , 2 );
+      }
+
+      
+
+    KRATOS_CATCH( "" )
+      }
+
+
+
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void SpatialLagrangian3DElement::CalculateDeformationMatrix(Matrix& rB,
+							    Matrix& rF,
+							    Matrix& rDN_DX)
+  {
+    KRATOS_TRY
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+ 
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
+	unsigned int index = 3 * i;
+
+	rB( 0, index + 0 ) = rDN_DX( i, 0 );
+	rB( 1, index + 1 ) = rDN_DX( i, 1 );
+	rB( 2, index + 2 ) = rDN_DX( i, 2 );
+	
+	rB( 3, index + 0 ) = rDN_DX( i, 1 );
+	rB( 3, index + 1 ) = rDN_DX( i, 0 );
+	
+	rB( 4, index + 1 ) = rDN_DX( i, 2 );
+	rB( 4, index + 2 ) = rDN_DX( i, 1 );
+	
+	rB( 5, index + 0 ) = rDN_DX( i, 2 );
+	rB( 5, index + 2 ) = rDN_DX( i, 0 );
+
+      }
+
+    KRATOS_CATCH( "" )
+      }
+
+
+
+  //************************************CALCULATE TOTAL MASS****************************
+  //************************************************************************************
+
+  double& SpatialLagrangian3DElement::CalculateTotalMass( double& rTotalMass )
+  {
+    KRATOS_TRY
+
+    rTotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY];
+
+    return rTotalMass;
+
+    KRATOS_CATCH( "" )
+  }
+
+  //************************************************************************************
+  //************************************************************************************
+
+
+  void SpatialLagrangian3DElement::save( Serializer& rSerializer ) const
+  {
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacement3DElement );
+    rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
+    rSerializer.save("DeterminantF0",mDeterminantF0);
+
+   }
+
+  void SpatialLagrangian3DElement::load( Serializer& rSerializer )
+  {
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacement3DElement );
+    rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
+    rSerializer.load("DeterminantF0",mDeterminantF0);
+
+  }
+
+
+} // Namespace Kratos
+
+
