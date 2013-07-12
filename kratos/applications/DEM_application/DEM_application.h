@@ -173,6 +173,7 @@ namespace Kratos
 
   // *************** Swimming only BEGIN *************
   KRATOS_DEFINE_VARIABLE(double, SPHERICITY)
+  KRATOS_DEFINE_VARIABLE(double, CYLINDER_RADIUS)
   // *************** Swimming only END ***************
 
   KRATOS_DEFINE_VARIABLE(double, MAX_INDENTATION)

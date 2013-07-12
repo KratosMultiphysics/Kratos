@@ -155,6 +155,7 @@ namespace Kratos
 
   // *************** Swimming only BEGIN *************
   KRATOS_CREATE_VARIABLE(double, SPHERICITY)
+  KRATOS_CREATE_VARIABLE(double, CYLINDER_RADIUS)
   // *************** Swimming only END ***************
 
   KRATOS_CREATE_VARIABLE(double, MAX_INDENTATION)
@@ -413,6 +414,7 @@ namespace Kratos
 
     // *************** Swimming only BEGIN *************
     KRATOS_REGISTER_VARIABLE(SPHERICITY)
+    KRATOS_REGISTER_VARIABLE(CYLINDER_RADIUS)
     // *************** Swimming only END ***************
 
     KRATOS_REGISTER_VARIABLE(MAX_INDENTATION)
