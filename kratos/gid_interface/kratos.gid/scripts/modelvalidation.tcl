@@ -12,6 +12,7 @@
 #
 #        HISTORY:
 #
+#   1.7- 12/07/13- GSM, correct a bug in the proc CheckRepeatedNodes (change write_calc_data by GiD_EntitiesGroups)
 #   1.6- 17/06/13- GSM, modify the procs ValidateGroups, groupsWithEntities and ValidateAssignedGroupsInModel to use only the new GiD group,
 #   1.5- 17/05/13- GSM, add the validation of the cross section properties for the structural analysis application
 #   1.4- 26/11/12- J. Gárate, PFEM correction on ::KMValid::isWall, join 3D and 2D
@@ -20,16 +21,16 @@
 #   1.1- 10/10/12- GSM, improve the model validation to element type and cross section properties
 #   1.0- 03/10/12- GSM, correct a bug with the namespace variable Errors
 #   0.9- 20/07/12- GSM, update some proc to delete old source code
-#        0.8- 19/07/12- J. Gárate, Check if any group or node is shared between Slip and NoSlip
-#        0.7- 09/02/12- J. Gárate, Deshabilitada la comprobacion del Kratos Path
-#        0.6- 08/02/12- J. Gárate, Si no hay ni error ni warning,  cierra la ventana de Model Validation
-#        0.5- 25/01/11-GSM, show the warning/error message only when find some error
-#        0.4- 01/20/10 LC, Corregido bug con la gestión de initalConditions al mostrar errores
-#        0.3- 27/09/10 LC, Se ha pasado InitialConditions de errores a warnings, 
-#        se valida que los elements, conditions e InitialConditions tengan algún grupo activo, 
-#        y se valida que el path de Kratos exista en la computadora.
-#        0.2- 11/06/10 GS, Update CreateReportWindow to use InitWindow and add a close button
-#        0.1- 25/02/10 KS, create a base source code
+#   0.8- 19/07/12- J. Gárate, Check if any group or node is shared between Slip and NoSlip
+#   0.7- 09/02/12- J. Gárate, Deshabilitada la comprobacion del Kratos Path
+#   0.6- 08/02/12- J. Gárate, Si no hay ni error ni warning,  cierra la ventana de Model Validation
+#   0.5- 25/01/11-GSM, show the warning/error message only when find some error
+#   0.4- 01/20/10 LC, Corregido bug con la gestión de initalConditions al mostrar errores
+#   0.3- 27/09/10 LC, Se ha pasado InitialConditions de errores a warnings, 
+#                     se valida que los elements, conditions e InitialConditions tengan algún grupo activo, 
+#                     y se valida que el path de Kratos exista en la computadora.
+#   0.2- 11/06/10 GS, Update CreateReportWindow to use InitWindow and add a close button
+#   0.1- 25/02/10 KS, create a base source code
 #
 ###############################################################################
 
@@ -911,7 +912,8 @@ proc ::KMValid::ValidateGroupRepeat { firstcomp secondcomp } {
 	set retval [::KUtils::TwoListRepeatedItems $listcomp1 $listcomp2 "groups"]
 	if { $retval != ""} {
 	    # Si algun grupo está en las 2 condiciones, para la ejecución
-	    return "Warning: Repeated groups ($retval) between $firstcomp and $secondcomp" 
+	    set txt [= "Warning: Repeated groups (%s) between %s and %s" $retval $firstcomp $secondcomp]
+	    return "$txt" 
 	} 
 	
 	# Ahora vamos a comporbar que no hayan nodos repetidos
@@ -925,60 +927,62 @@ proc ::KMValid::ValidateGroupRepeat { firstcomp secondcomp } {
 proc ::KMValid::CheckRepeatedNodes { grouplist1 grouplist2 Item1 Item2 } {
     # Comprueba que ningun nodo esté en $grouplist1 y en $grouplist2.
     # Need New GiD_Group Validate
-
-	set l1nlist [list]
-	set l2nlist [list]
-	set cformat "%10i"
-	set rnodes ""
-	foreach group $grouplist1 {
-		set gprop [dict create]
-		dict set gprop $group "$cformat"
-		lappend l1nlist {*}[write_calc_data nodes -return -sorted $gprop]
-		unset gprop
-		}
-		# wa "l1nlist:$l1nlist"
-		# Check for repeated nodes only if the first list is not empty
-		if {[llength $l1nlist]} { 
-		foreach group $grouplist2 {
-		    set gprop [dict create]
-		    dict set gprop $group "$cformat"
-		    lappend l2nlist {*}[write_calc_data nodes -return -sorted $gprop]
-		    unset gprop
-		}
-		# wa "l2nlist:$l2nlist"
-		# Check only if l2nlist is not empty
-		if {[llength $l2nlist]} {
-		    set rnodes [::KMValid::FindRepeated $l1nlist $l2nlist]
-		    if {[llength $rnodes]} {
-		        return "Warning: Repeated node ($rnodes) between the $Item1 and $Item2 boundary condition. Check the group properties assigned to this boundary conditions"
-		    } 
-		}
+    
+    set l1nlist [list]
+    set l2nlist [list]
+    
+    foreach cgroupid $grouplist1 {
+	if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
+	    lappend l1nlist {*}[GiD_EntitiesGroups get $cgroupid nodes]
+	}
     }
+    # wa "l1nlist:$l1nlist"
+    
+    # Check for repeated nodes only if the first list is not empty
+    if {[llength $l1nlist]} { 
+	foreach cgroupid $grouplist2 {
+	    if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
+		lappend l2nlist {*}[GiD_EntitiesGroups get $cgroupid nodes]
+	    }
+	}
+	# wa "l2nlist:$l2nlist"
+	
+	# Check only if l2nlist is not empty
+	if {[llength $l2nlist]} {
+	    set rnodes [list]
+	    set rnodes [::KMValid::FindRepeated $l1nlist $l2nlist]
+	    if {[llength $rnodes]} {
+		set txt [= "Warning: Repeated node (%s) between the %s and %s boundary condition. Check the group properties assigned to this boundary conditions" $rnodes $Item1 $Item2]
+		return "${txt}"
+	    } 
+	}
+    }
+
     return ""
 }
 
 proc ::KMValid::FindRepeated {nlist1 nlist2} {
-	# Busca si hay nodos repetidos entre nlist1 y nlist2
-	# Necesita eficiencia. En el peor caso puede recorrer cientos de miles de nodos
-	set total [append nlist1 $nlist2]
-	set total [lsort $total]
-	set rec [lsort -unique $total]
-
-	set a [llength $total]
-	set b [llength $rec]
-	if { $a != $b } {
-		set i 1
-		
-		foreach item $total {
-
-		    if { $item == [lindex $total $i] } {
-		        return $item
-		        break
-		        }
-		        incr i 1
-		}
+    # Busca si hay nodos repetidos entre nlist1 y nlist2
+    # Necesita eficiencia. En el peor caso puede recorrer cientos de miles de nodos
+    set total [append nlist1 $nlist2]
+    set total [lsort $total]
+    set rec [lsort -unique $total]
+    
+    set a [llength $total]
+    set b [llength $rec]
+    if { $a != $b } {
+	set i 1
+	
+	foreach item $total {
+	    
+	    if { $item == [lindex $total $i] } {
+		return $item
+		break
+	    }
+	    incr i 1
 	}
-	return ""
+    }
+    return ""
 }
 
 
