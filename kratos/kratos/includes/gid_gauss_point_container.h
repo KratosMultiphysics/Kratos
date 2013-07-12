@@ -360,12 +360,11 @@ public:
                                                    ValuesOnIntPoint[index](1,1), ValuesOnIntPoint[index](2,2),
                                                    ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](1,2),
                                                    ValuesOnIntPoint[index](0,2) );
-                            else if(ValuesOnIntPoint[index].size1() ==1
-                                    && ValuesOnIntPoint[index].size2() ==6)
+			    else if(ValuesOnIntPoint[index].size1() ==2
+                                    && ValuesOnIntPoint[index].size2() ==2)
                                 GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
-                                                   ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
-                                                   ValuesOnIntPoint[index](0,3), ValuesOnIntPoint[index](0,4),
-                                                   ValuesOnIntPoint[index](0,5) );
+                                                   ValuesOnIntPoint[index](1,1), 0.0,
+                                                   ValuesOnIntPoint[index](0,1), 0.0, 0.0);
                             else if(ValuesOnIntPoint[index].size1() ==1
                                     && ValuesOnIntPoint[index].size2() ==3)
                                 GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
@@ -376,6 +375,13 @@ public:
  			        GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
                                                    ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
                                                    ValuesOnIntPoint[index](0,3), 0.0, 0.0);
+			    else if(ValuesOnIntPoint[index].size1() ==1
+                                    && ValuesOnIntPoint[index].size2() ==6)
+			        GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
+                                                   ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
+						   ValuesOnIntPoint[index](0,3), ValuesOnIntPoint[index](0,4),
+                                                   ValuesOnIntPoint[index](0,5) );
+
                         }
                     }
                 }
