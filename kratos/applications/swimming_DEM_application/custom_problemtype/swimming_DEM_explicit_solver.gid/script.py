@@ -30,8 +30,8 @@ my_timer = Timer()
 # Constructing a DEM_procedures object
 DEM_proc = DEMProc.Procedures(Param)
 
-# Constructing a Swimming_DEM_procedures object
-swim_proc = SwimProc.Procedures(Param)
+# Constructing an IOTools object
+IO_tools = SwimProc.IOTools(Param)
 
 # Constructing fluid-DEM strategy (the constructor automatically imports a particle strategy and a fluid strategy):
 solver_strategy = SwimStrat.ULFDEMStrategy(Param)
@@ -138,7 +138,7 @@ is_fsi_interf = 0.0
 [inverted_elements, domain_volume] = fluid_solver.CheckForInvertedElements()
 
 # Calculating porosity
-porosity_utils = swim_proc.PorosityUtils(domain_volume, balls_model_part)
+porosity_utils = SwimProc.PorosityUtils(domain_volume, balls_model_part)
 porosity_utils.PrintCurrentData()
 n_particles_in_depth = int(math.sqrt(porosity_utils.number_of_balls / domain_volume))
 
@@ -158,7 +158,7 @@ if (Param.FSI):
 for node in fluid_model_part.Nodes:
 
     if (node.GetSolutionStepValue(DENSITY) == 0.0):
-        print "node ",node.Id," has zero density!"
+        print "node ", node.Id, " has zero density!"
         raise 'node with zero density found'
 
     if (node.GetSolutionStepValue(VISCOSITY) == 0.0):
@@ -187,7 +187,7 @@ dir_names.append('MPI_results')
 dir_names.append('fluid_results')
 dir_names.append('mixed_results')
 main_path = os.getcwd()
-directories = swim_proc.CreateProblemDirectories(main_path, dir_names)
+directories = IO_tools.CreateProblemDirectories(main_path, dir_names)
 
 # Creating a variable for each directory name 'name' with the name 'name_path'
 
@@ -273,7 +273,7 @@ inlet_process = LagrangianInletProcess(fluid_model_part, 0.0, inlet_vel)
 
 # Creation of projection module and initial projection
 h_min = 0.01
-projection_module = swim_proc.ProjectionModule(fluid_model_part, balls_model_part, Param.domain_size, n_particles_in_depth)
+projection_module = SwimProc.ProjectionModule(fluid_model_part, balls_model_part, Param.domain_size, n_particles_in_depth)
 projection_module.UpdateDatabase(h_min)
 projection_module.ProjectFromFluid()
 
@@ -328,10 +328,10 @@ while (time < Param.max_time):
     force_node = 0
 
     # Echoes
-    swim_proc.ControlEcho(step, incremental_time, total_steps_expected)
+    IO_tools.ControlEcho(step, incremental_time, total_steps_expected)
 
     if (first_print and incremental_time > 60.0):
-        swim_proc.CalculationLengthEstimation(step, incremental_time, total_steps_expected)
+        IO_tools.CalculationLengthEstimationEcho(step, incremental_time, total_steps_expected)
         first_print = False
 
     # Writting
