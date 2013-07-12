@@ -205,11 +205,10 @@ namespace Kratos
   {
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
  
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-	unsigned int index = dimension * i;
+	unsigned int index = 3 * i;
 
 	rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
 	rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );

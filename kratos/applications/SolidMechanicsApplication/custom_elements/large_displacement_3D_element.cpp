@@ -1330,8 +1330,9 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber();
-    
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();    
+
     if ( rOutput.size() != integration_points_number )
       rOutput.resize( integration_points_number );
     
@@ -1347,13 +1348,11 @@ namespace Kratos
 	//loop integration points
 	for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
 	  {    
-	    if ( rOutput[PointNumber].size2() != StressVector[PointNumber].size() )
-	      rOutput[PointNumber].resize( 1, StressVector[PointNumber].size(), false );
+	    if ( rOutput[PointNumber].size2() != dimension )
+	      rOutput[PointNumber].resize( dimension, dimension, false );
 	    
-	    for ( unsigned int ii = 0; ii < StressVector[PointNumber].size(); ii++ )
-	      {
-		rOutput[PointNumber]( 0, ii ) = StressVector[PointNumber][ii];
-	      }
+	      rOutput[PointNumber] = MathUtils<double>::StressVectorToTensor(StressVector[PointNumber]);
+
 	  }
       }
     else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR)
@@ -1364,16 +1363,15 @@ namespace Kratos
 	  CalculateOnIntegrationPoints( GREEN_LAGRANGE_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
 	else
 	  CalculateOnIntegrationPoints( ALMANSI_STRAIN_VECTOR, StrainVector, rCurrentProcessInfo );
-
+       
 	//loop integration points
 	for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
 	  {    
-
-	    if ( rOutput[PointNumber].size2() != StrainVector[PointNumber].size() )
-	      rOutput[PointNumber].resize( 1, StrainVector[PointNumber].size(), false );
 	    
-	    for ( unsigned int ii = 0; ii < StrainVector[PointNumber].size(); ii++ )
-	      rOutput[PointNumber]( 0, ii ) = StrainVector[PointNumber][ii];
+	    if ( rOutput[PointNumber].size2() != dimension )
+	      rOutput[PointNumber].resize( dimension, dimension, false );
+	    
+	      rOutput[PointNumber] = MathUtils<double>::StrainVectorToTensor(StrainVector[PointNumber]);
 	  }
       }
     else if ( rVariable == CONSTITUTIVE_MATRIX )
