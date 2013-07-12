@@ -83,7 +83,7 @@ proc ::KMProps::DestroyBottomFrame { } {
 	foreach w [winfo children $f] {
 	    destroy $w
 	}
-	    destroy $f
+	destroy $f
     }
     return $f
 }
@@ -103,7 +103,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
     if {[info exists ::KMProps::cmbProperty]} {
 	unset ::KMProps::cmbProperty
     }
-   
+    
     # Parametro para utilizar o no los combos "Activation"
     set activation 0
     set listT [::KMProps::getTemplateStructure $idTemplate]
@@ -416,7 +416,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 	tooltip::tooltip $fbut.bBottomOk [= "Assign condition to the selected group"]
 	
 	ttk::button $fbut.bBottomCancel -text [= "Cancel"] \
-		   -command "::KMProps::DestroyBottomFrame"
+	    -command "::KMProps::DestroyBottomFrame"
 	tooltip::tooltip $fbut.bBottomCancel [= "Cancel assignation"]
 
 	grid $fbut.bBottomOk  $fbut.bBottomCancel -sticky n -padx 5 -pady 3
@@ -516,7 +516,7 @@ proc ::KMProps::ShowPropertyByElementType {propertyid} {
 	set ndime [::xmlutils::GetSpatialDimension]
 	# wa "ndime:$ndime"
     }
-   
+    
     # Current edited properties
     if {[info exists ::KMProps::ElemTypeProperty] } {
 	set dv $::KMProps::ElemTypeProperty
@@ -566,7 +566,7 @@ proc ::KMProps::ShowPropertyBySectionType {propertyid} {
 	set ndime [::xmlutils::GetSpatialDimension]
 	# wa "ndime:$ndime"
     }
-   
+    
     # Current edited properties
     if {[info exists ::KMProps::SectionTypeProperty] } {
 	set dv $::KMProps::SectionTypeProperty
@@ -630,7 +630,7 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 		set ptxt "[= Properties]"
 		set tabtxt "[= "%s" $pid]" 
 		$nb add [ttk::labelframe $fTab -text "$ptxt" -padding {10 0 10 10}] \
-		-text "$tabtxt"
+		    -text "$tabtxt"
 
 		# En el caso del primer tab forzamos el item de "Nombre de propiedad" y 2campos mas
 		if { $idContainer == [lindex $listT 0 0] } {
@@ -651,10 +651,10 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 		    }
 
 		    grid [ttk::label $fTab.lblName -text "$cptxt:" ] \
-		    -row 0 -column 0 -pady 5 -sticky nw -in $fTab
+			-row 0 -column 0 -pady 5 -sticky nw -in $fTab
 
 		    grid [ttk::combobox $fTab.cmbPropertyName -state normal -textvariable "::KMProps::propertyName" -width 10         ] \
-		    -row 0 -column 1 -padx 3 -pady 5 -sticky nw -in $fTab
+			-row 0 -column 1 -padx 3 -pady 5 -sticky nw -in $fTab
 
 		    tooltip::tooltip $fTab.cmbPropertyName $cbhelp
 
@@ -664,7 +664,7 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 		for {set i 1} { $i < [llength $listContainer] } {incr i} {
 
 		    set id [lindex $listContainer $i]
-		     # wa "id:$id"
+		    # wa "id:$id"
 		    # Los nodos ocultos no se deben mostrar
 		    set state [::KMProps::getPropTemplate $idTemplate state "$idContainer//$id"]
 		    # wa "state:$state"
@@ -702,7 +702,7 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 		                destroy $lpath
 		            }
 		            grid [ttk::label $lpath -text "$pid:" ] \
-		            -row $i -column 0 -pady 5 -sticky nw -in $fTab
+				-row $i -column 0 -pady 5 -sticky nw -in $fTab
 
 
 		            # Init the global combobox variable
@@ -712,18 +712,18 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 		            }
 
 		            # Destroy the current combobox
-		                set cbpath "$fTab.cmb$id"
-		                if {[winfo exists $cbpath]} {
+			    set cbpath "$fTab.cmb$id"
+			    if {[winfo exists $cbpath]} {
 		                destroy $cbpath
-		                }
+			    }
 
 		            # wa "comboList:$comboList"
 		            if {[llength $comboList]} {
 
 		                grid [ttk::combobox $cbpath -values $comboList -state readonly -width [::KMProps::getCmbWidth $comboList] \
-		                -textvariable "$varid" \
-		                -postcommand [list ::KMProps::changeCmbValues "$cbpath" "$idContainer//$id" "$idTemplate" "" "$fullname"] ] \
-		                -row $i -column 1 -padx 5 -pady 2 -sticky nw -in $fTab
+					  -textvariable "$varid" \
+					  -postcommand [list ::KMProps::changeCmbValues "$cbpath" "$idContainer//$id" "$idTemplate" "" "$fullname"] ] \
+				    -row $i -column 1 -padx 5 -pady 2 -sticky nw -in $fTab
 		                
 		                # Set the combobox values
 
@@ -733,7 +733,7 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 		                tooltip::tooltip $cbpath $tooltip
 
 		                set psb [::KMProps::getPropTemplate $idTemplate sbi "$idContainer//$id"]
-		                    
+				
 
 		                # En este caso se tendrá qué recargar si existe el combo de "Material Model"
 		                if { $id == "ElemType" } {
@@ -749,7 +749,7 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 
 		                # Create the combobox
 		                grid [ttk::combobox $cbpath -state normal -width [::KMProps::getCmbWidth $comboList] -values $values -textvariable "$varid"] \
-		                -row $i -column 1 -padx 5 -pady 2 -sticky nw -in $fTab
+				    -row $i -column 1 -padx 5 -pady 2 -sticky nw -in $fTab
 
 		                # Set the current value
 		                set $varid $dv
@@ -759,16 +759,16 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 
 		                
 		            }
-		                # Pick Coordinates Button
-		                set psb [::KMProps::getPropTemplate $idTemplate sbi "$idContainer//$id"]
-		                if { $psb == "PickCoordinates" } {
-		                    # msg "pick for $id"
-		                    set sbxp [::KMProps::getPropTemplate $idTemplate sbxp "$idContainer//$id"]
-		                    set sbp [::KMProps::getPropTemplate $idTemplate sbp "$idContainer//$id"]
-		                    grid [ttk::button $fTab.btn$id -text $sbp -command [list ::KMProps::selectionButton $sbxp] -width 4 ] \
+			    # Pick Coordinates Button
+			    set psb [::KMProps::getPropTemplate $idTemplate sbi "$idContainer//$id"]
+			    if { $psb == "PickCoordinates" } {
+				# msg "pick for $id"
+				set sbxp [::KMProps::getPropTemplate $idTemplate sbxp "$idContainer//$id"]
+				set sbp [::KMProps::getPropTemplate $idTemplate sbp "$idContainer//$id"]
+				grid [ttk::button $fTab.btn$id -text $sbp -command [list ::KMProps::selectionButton $sbxp] -width 4 ] \
 		                    -row $i -column 2 -padx 5 -pady 2 -sticky ew -in $fTab
-		                    tooltip::tooltip $fTab.btn$id "Pick Coordinates"
-		                }
+				tooltip::tooltip $fTab.btn$id "Pick Coordinates"
+			    }
 
 		            # In the case of ElemType update the property filter
 		            # Get the cross section property list
@@ -776,7 +776,7 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 		            # wa "buildPropertyFrame =>PropertyList:$PropertyList"
 		            if { $id == "ElemType" } {
 		                set ::KMProps::ElemTypeProperty $dv
-		            
+				
 		            } elseif { $id == "SectionType" } {
 		                set ::KMProps::SectionTypeProperty $dv
 
@@ -791,7 +791,7 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 		                    grid remove $fTab.lbl$id
 		                    grid remove $fTab.cmb$id
 		                }
-		        
+				
 		                # Get the current section type
 		                set cdv [::KMProps::getPropTemplate $idTemplate dv "$idContainer//SectionType"]
 		                # wa "cdv:$cdv"
@@ -803,11 +803,11 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 		                }
 		            }
 		        }
-		            }
-		        }
 		    }
 		}
-	    }                                                
+	    }
+	}
+    }                                                
 
     # First delete buttons    
     set wdlist [list $f.bBottomOk $f.bBottomCancel]
@@ -818,12 +818,12 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
     }
     #$f.bBottomOk and $f.bBottomCancel names need to popup click ok cancel before change item
     grid [ttk::button $f.bBottomOk -text [= "Ok"]  -command "::KMProps::acceptProperty $T $idTemplate $fullname $item {$listT}" ] \
-    -row 3 -column 0 -sticky nw  -pady 3 -padx 20  -in $f
+	-row 3 -column 0 -sticky nw  -pady 3 -padx 20  -in $f
 
     tooltip::tooltip $f.bBottomOk [= "Assign the defined properties"]
 
     grid [ttk::button $f.bBottomCancel -text [= "Cancel"]  -command "::KMProps::DestroyBottomFrame" ] \
-    -row 3 -column 0 -sticky nw  -pady 3 -padx 100  -in $f
+	-row 3 -column 0 -sticky nw  -pady 3 -padx 100  -in $f
     tooltip::tooltip $f.bBottomCancel [= "Cancel the defined properties"]
 
     bind $T <KeyPress> "if { %k == 27   } { ::KMProps::DestroyBottomFrame }"
@@ -1057,10 +1057,10 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 		# Property name/identifier
 		set txt "[= "Property Id"]:"
 		grid [ttk::label $fTab.lblName -text "$txt" ] \
-		-row 0 -column 0 -pady 5 -sticky nw -in $fTab
+		    -row 0 -column 0 -pady 5 -sticky nw -in $fTab
 
 		grid [ttk::combobox $fTab.cmbPropertyName -state normal -textvariable "::KMProps::propertyName" -width 15] \
-		-row 0 -column 1 -padx 3 -pady 5 -sticky nw -in $fTab
+		    -row 0 -column 1 -padx 3 -pady 5 -sticky nw -in $fTab
 
 		set ::KMProps::propertyName "[$T item text $item 0]"
 		
@@ -1074,15 +1074,15 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 		set ::KMProps::selGroup "[$T item text $item 0]"
 
 		set entityList [split [::xmlutils::setXml $fullname GiDEntity] ","]
-	       
+		
 		# Get the group list               
-		    set filterGroups [GiD_Groups list]
+		set filterGroups [GiD_Groups list]
 		grid [ttk::label $fTab.lblName -text "[= Group:]" ] \
-		-row 0 -column 0 -pady 5 -sticky nw -in $fTab
+		    -row 0 -column 0 -pady 5 -sticky nw -in $fTab
 
 		set fGroups $fTab.cGroups
 		grid [ttk::combobox $fGroups -state readonly -values "$filterGroups" -textvariable "::KMProps::selGroup"  -postcommand "::KMProps::changeGroups [list $entityList] $fGroups $fullname" -width 15] \
-		-row 0 -column 1 -pady 5 -sticky nw -in $fTab
+		    -row 0 -column 1 -pady 5 -sticky nw -in $fTab
 
 
 
@@ -1129,7 +1129,7 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 
 		        # For each item add the label and combobox
 		        grid [ttk::label $fTab.lbl$id -text "${pid}:" ] \
-		        -row $row -column 0 -padx 3 -pady 5 -sticky nw -in $fTab
+			    -row $row -column 0 -padx 3 -pady 5 -sticky nw -in $fTab
 
 		        # Set the combobox path
 		        set cbpath $fTab.cmb$id
@@ -1148,11 +1148,11 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 		            if {$state != "disabled"} {
 		                set state "readonly"
 		            }
-		           
+			    
 		            # Create the combobox
 		            grid [ttk::combobox $cbpath -values $comboList -state $state \
-		            -textvariable "$varid" -width [::KMProps::getCmbWidth $comboList]]\
-		            -row $row -column 1 -padx 3 -pady 5 -sticky nw -in $fTab 
+				      -textvariable "$varid" -width [::KMProps::getCmbWidth $comboList]]\
+				-row $row -column 1 -padx 3 -pady 5 -sticky nw -in $fTab 
 
 		            # Set the help 
 		            ::tooltip::tooltip $cbpath [= "%s" $tooltip]
@@ -1178,7 +1178,7 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 
 		            # Create the combobox
 		            grid [ttk::combobox $cbpath -state $state -values $values -textvariable "$varid" -width [::KMProps::getCmbWidth $comboList]] \
-		            -row $row -column 1 -padx 3 -pady 5 -sticky nwe -in $fTab 
+				-row $row -column 1 -padx 3 -pady 5 -sticky nwe -in $fTab 
 
 		            # Set the help 
 		            ::tooltip::tooltip $cbpath [= "%s" $tooltip]
@@ -1187,7 +1187,7 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 		            set $varid $dv
 		            
 		        }
-		         # Pick Coordinates Button
+			# Pick Coordinates Button
 		        set psb [::xmlutils::setXml $fullname sbi]
 		        if { $psb eq "PickCoordinates" } {
 		            # msg "pick for $id"
@@ -1195,7 +1195,7 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 		            set sbxp [::xmlutils::setXml $fullname sbxp]
 		            set sbp [::xmlutils::setXml $fullname sbp]
 		            grid [ttk::button $fTab.btn$id -text $sbp -command [list ::KMProps::selectionButton $sbxp] -width 4 ] \
-		            -row $row -column 2 -padx 5 -pady 2 -sticky ew -in $fTab
+				-row $row -column 2 -padx 5 -pady 2 -sticky ew -in $fTab
 		            tooltip::tooltip $fTab.btn$id [= "Pick Coordinates"]
 		        }
 
@@ -1203,13 +1203,13 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 
 		        if {$function != "" } {
 		            grid [ttk::button $fTab.funct$id -text "functions" -command "KFun::InitBaseWindow $fTab $id" -style TMenubutton.Toolbutton -width [::KMProps::getCmbWidth $comboList]] \
-		            -row $row -column 2 -sticky nw  -pady 0 -padx 3 -in $fTab
+				-row $row -column 2 -sticky nw  -pady 0 -padx 3 -in $fTab
 		            tooltip::tooltip $fTab.funct$id [= "Function manager"]
 		            set img [::WinUtils::GetImage "functions.gif"]
 		            if { $img != -1 } { $fTab.funct$id configure -image $img }
 
 		            grid [ttk::button $fTab.deleteFunct$id -text "delete" -command "::KMProps::unassignFunction $fTab $id $fullname" -style TMenubutton.Toolbutton -width [::KMProps::getCmbWidth $comboList]] \
-		            -row $row -column 3 -sticky nw  -pady 0 -padx 2 -in $fTab
+				-row $row -column 3 -sticky nw  -pady 0 -padx 2 -in $fTab
 		            tooltip::tooltip $fTab.deleteFunct$id [= "Unassign function"]
 		            set img [::WinUtils::GetImage "delete_icon.gif"]
 		            if { $img != -1 } { $fTab.deleteFunct$id configure -image $img }
@@ -1276,14 +1276,14 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 		    destroy $wd
 		}
 	    }
-	#$f.bBottomOk and $f.bBottomCancel names need to popup click ok cancel before change item
-	grid [ttk::button $f.bBottomOk -text "Ok"  -command "[list ::KMProps::acceptTabFrame $T $acceptItems $class $item]" ] \
-	-row 1 -column 0 -sticky sw  -pady 3 -padx 20  -in $f
-	tooltip::tooltip $f.bBottomOk [= "Confirm values"]
+	    #$f.bBottomOk and $f.bBottomCancel names need to popup click ok cancel before change item
+	    grid [ttk::button $f.bBottomOk -text "Ok"  -command "[list ::KMProps::acceptTabFrame $T $acceptItems $class $item]" ] \
+		-row 1 -column 0 -sticky sw  -pady 3 -padx 20  -in $f
+	    tooltip::tooltip $f.bBottomOk [= "Confirm values"]
 
-	grid [ttk::button $f.bBottomCancel -text "Cancel"  -command "::KMProps::DestroyBottomFrame" ] \
-	-row 1 -column 0 -sticky sw  -pady 3 -padx 100  -in $f
-	tooltip::tooltip $f.bBottomCancel [= "Cancel assignation"]
+	    grid [ttk::button $f.bBottomCancel -text "Cancel"  -command "::KMProps::DestroyBottomFrame" ] \
+		-row 1 -column 0 -sticky sw  -pady 3 -padx 100  -in $f
+	    tooltip::tooltip $f.bBottomCancel [= "Cancel assignation"]
 	}
     }
 }
