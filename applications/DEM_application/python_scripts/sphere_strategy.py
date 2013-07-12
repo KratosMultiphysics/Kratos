@@ -130,6 +130,7 @@ class ExplicitStrategy:
         self.surface_point_coor[1]          = Param.SurfacePointCoorY
         self.surface_point_coor[2]          = Param.SurfacePointCoorZ
         self.surface_friction_angle         = Param.SurfaceFrictionAngle
+        self.cylinder_radius                = Param.CylinderRadius
 
         # GLOBAL PHYSICAL ASPECTS
         self.gravity                        = Vector(3)
@@ -264,6 +265,7 @@ class ExplicitStrategy:
         self.ModelPart.ProcessInfo.SetValue(SURFACE_NORMAL_DIR, self.surface_normal_dir)
         self.ModelPart.ProcessInfo.SetValue(SURFACE_POINT_COOR, self.surface_point_coor)
         self.ModelPart.ProcessInfo.SetValue(SURFACE_FRICC, self.surface_friction_angle)
+        self.ModelPart.ProcessInfo.SetValue(CYLINDER_RADIUS, self.cylinder_radius)
 
         # GLOBAL PHISICAL ASPECTS
         self.ModelPart.ProcessInfo.SetValue(GRAVITY, self.gravity)
