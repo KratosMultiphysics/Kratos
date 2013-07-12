@@ -223,6 +223,7 @@ BOOST_PYTHON_MODULE(KratosDEMApplication)
 
     // *************** Swimming only BEGIN *************
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(SPHERICITY)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(CYLINDER_RADIUS)
     // *************** Swimming only END ***************
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(MAX_INDENTATION)
