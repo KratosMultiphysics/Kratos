@@ -1296,7 +1296,7 @@ namespace Kratos
 	for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
 	  {
 	    //compute element kinematics B, F, DN_DX ...
-	    CalculateKinematics(Variables,PointNumber);
+	    this->CalculateKinematics(Variables,PointNumber);
 
 	    //Compute Green-Lagrange Strain 
 	    if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR )
@@ -1421,7 +1421,7 @@ namespace Kratos
 	for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
 	  {
 	    //compute element kinematics B, F, DN_DX ...
-	    CalculateKinematics(Variables,PointNumber);
+	    this->CalculateKinematics(Variables,PointNumber);
 	      
 	    if( rOutput[PointNumber].size2() != Variables.F.size2() )
 	      rOutput[PointNumber].resize( Variables.F.size1() , Variables.F.size2() , false );
