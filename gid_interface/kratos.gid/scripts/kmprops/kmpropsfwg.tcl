@@ -389,12 +389,15 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 	#if { [llength $filterGroups] > 0 } {
 	#    $fg.cGroups current 0
 	#}
-	bind $fg.cGroups <<ComboboxSelected>> "::KMProps::cmbChangeCheckGroups $f"
+	bind $fg.cGroups <<ComboboxSelected>> "::KMProps::cmbChangeCheckGroups $fg"
 	
 	# BOTON A LA DERECHA DE LOS GRUPOS (CREAR GRUPO AUTOMATICAMENTE)
 
+	# just define button frame ( ok, cancel) so that we can pass it to the autogroup command
+	set fbut [ ttk::frame $f.fbuttons]
+
 	ttk::button $fg.iGroups -text [= "newGroup"] \
-	    -command [list ::KMProps::autoNewGroup [list $short_name_autogroup] $f] 
+	    -command [list ::KMProps::autoNewGroup [list $short_name_autogroup] $fbut] 
 	#  -pady 0 -padx 180
 	tooltip::tooltip $fg.iGroups [= "Create automatic new group"]
 	$fg.iGroups configure -image [::WinUtils::GetImage "newAutoGroup.gif" ]
@@ -407,7 +410,6 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 
 	grid $fg -sticky new
 
-	set fbut [ ttk::frame $f.fbuttons]
 	#$fbut.bBottomOk and $fbut.bBottomCancel names need to popup click ok cancel before change item
 	ttk::button $fbut.bBottomOk -text [= "Ok"] \
 	    -command "::KMProps::acceptGroups $T $idTemplate $fullname $item {$listT} {$entityList} $fGroups"
