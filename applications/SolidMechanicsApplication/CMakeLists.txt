@@ -18,8 +18,14 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/isotropic_shell_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_3D_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_3D_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_3D_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_2D_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spatial_lagrangian_3D_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spatial_lagrangian_2D_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_3D_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_2D_element.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_force_2D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_force_3D_condition.cpp

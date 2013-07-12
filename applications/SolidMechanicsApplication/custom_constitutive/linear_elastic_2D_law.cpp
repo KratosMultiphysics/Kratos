@@ -219,8 +219,6 @@ namespace Kratos
       }
 
     //7.-Calculate Total PK2 stress   
-    Matrix IdentityMatrix  = identity_matrix<double> ( 2 );
-
    
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
 	  
@@ -313,10 +311,7 @@ namespace Kratos
 	StrainVector[2] = InverseLeftCauchyGreen( 0, 1 );
        }
  
-    //4.-Calculate Total PK2 stress   
-    Matrix IdentityMatrix  = identity_matrix<double> ( 2 );
-
-    //7.-Incremental form
+    //7.-Calculate total Kirchhoff stress   
    
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
 	  

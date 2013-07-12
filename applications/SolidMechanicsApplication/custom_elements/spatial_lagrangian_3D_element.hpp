@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_TOTAL_LAGRANGIAN_3D_ELEMENT_H_INCLUDED )
-#define  KRATOS_TOTAL_LAGRANGIAN_3D_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_SPATIAL_LAGRANGIAN_3D_ELEMENT_H_INCLUDED )
+#define  KRATOS_SPATIAL_LAGRANGIAN_3D_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -34,14 +34,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Total Lagrangian element for 3D geometries.
+/// Spatial Lagrangian element for 3D geometries.
 
 /**
- * Implements a total Lagrangian definition for structural analysis.
+ * Implements a spatial Lagrangian definition for structural analysis.
  * This works for arbitrary geometries in 3D
  */
 
-class TotalLagrangian3DElement
+class SpatialLagrangian3DElement
     : public LargeDisplacement3DElement
 {
 public:
@@ -55,29 +55,29 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of TotalLagrangian3DElement
-    KRATOS_CLASS_POINTER_DEFINITION(TotalLagrangian3DElement);
+    /// Counted pointer of SpatialLagrangian3DElement
+    KRATOS_CLASS_POINTER_DEFINITION(SpatialLagrangian3DElement);
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    TotalLagrangian3DElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    SpatialLagrangian3DElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    TotalLagrangian3DElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SpatialLagrangian3DElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    TotalLagrangian3DElement(TotalLagrangian3DElement const& rOther);
+    SpatialLagrangian3DElement(SpatialLagrangian3DElement const& rOther);
 
     /// Destructor.
-    virtual ~TotalLagrangian3DElement();
+    virtual ~SpatialLagrangian3DElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    TotalLagrangian3DElement& operator=(TotalLagrangian3DElement const& rOther);
+    SpatialLagrangian3DElement& operator=(SpatialLagrangian3DElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -102,7 +102,6 @@ public:
       * Must be called before any calculation is done
       */
     void Initialize();
-
 
     //************************************************************************************
     //************************************************************************************
@@ -139,24 +138,19 @@ protected:
     ///@{
 
     /**
-     * Total element volume or area
+     * Container for historical total deformation gradient
      */
-    double mTotalDomainInitialSize;
+    std::vector< Matrix > mDeformationGradientF0;
 
     /**
-     * Container for historical total Jacobians
+     * Container for the total deformation gradient determinants
      */
-    std::vector< Matrix > mInvJ0;
-
-    /**
-     * Container for the total Jacobian determinants
-     */
-    Vector mDetJ0;
+    Vector mDeterminantF0;
 
     ///@}
     ///@name Protected Operators
     ///@{
-    TotalLagrangian3DElement() : LargeDisplacement3DElement()
+    SpatialLagrangian3DElement() : LargeDisplacement3DElement()
     {
     }
 
@@ -164,9 +158,21 @@ protected:
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(Standard& rVariables,
-			     const double& rPointNumber);
+    virtual void CalculateKinematics(Standard& rVariables,
+				     const double& rPointNumber);
 
+    
+    /**
+     * Calculation of the Deformation Gradient F
+     */
+    Matrix& CalculateDeltaPosition(Matrix & DeltaPosition);
+
+    /**
+     * Calculation of the Deformation Gradient F
+     */
+    virtual void CalculateDeformationGradient(const Matrix& rDN_DX,
+					      Matrix& rF,
+					      Matrix& DeltaPosition);
 
     /**
      * Calculation of the Deformation Matrix  BL
@@ -186,6 +192,7 @@ protected:
      */
     virtual double& CalculateTotalMass(double& rTotalMass);
 
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -204,7 +211,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Private Operators
@@ -240,7 +246,7 @@ private:
     ///@{
     ///@}
 
-}; // Class TotalLagrangian3DElement
+}; // Class SpatialLagrangian3DElement
 
 ///@}
 ///@name Type Definitions
@@ -251,4 +257,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_3D_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_SPATIAL_LAGRANGIAN_3D_ELEMENT_H_INCLUDED  defined 

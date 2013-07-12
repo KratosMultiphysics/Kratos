@@ -34,10 +34,14 @@
 #include "custom_conditions/face_force_3D_condition.hpp"
 
 //elements
+#include "custom_elements/beam_element.hpp"
 #include "custom_elements/isotropic_shell_element.hpp"
 #include "custom_elements/total_lagrangian_3D_element.hpp"
 #include "custom_elements/total_lagrangian_2D_element.hpp"
-#include "custom_elements/beam_element.hpp"
+#include "custom_elements/spatial_lagrangian_3D_element.hpp"
+#include "custom_elements/spatial_lagrangian_2D_element.hpp"
+#include "custom_elements/updated_lagrangian_3D_element.hpp"
+#include "custom_elements/updated_lagrangian_2D_element.hpp"
 
 //constitutive laws
 #include "custom_constitutive/linear_elastic_2D_law.hpp"
@@ -67,6 +71,8 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE( Matrix , GEOMETRIC_STIFFNESS );
 
   //constitutive law   
+  KRATOS_DEFINE_VARIABLE(std::string, CONSTITUTIVE_LAW_NAME );
+  KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER );
   KRATOS_DEFINE_VARIABLE(Matrix, CONSTITUTIVE_MATRIX );
   KRATOS_DEFINE_VARIABLE(Matrix, DEFORMATION_GRADIENT );
   KRATOS_DEFINE_VARIABLE(double, DETERMINANT_F );
