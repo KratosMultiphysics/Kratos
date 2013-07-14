@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #        
+#     3.5- 14/07/13-G. Socorro, modify the proc GetBoundaryConditionProperties to enable the condition WallLaw
 #     3.4- 17/06/13-G. Socorro, delete wmethod variable => now we are using only the new GiD groups
 #     3.3- 17/05/13-G. Socorro, add the proc SumInertia, modify the proc GetCrossSectionProperties to include the new cross section properties (database)
 #     3.2- 11/02/13-G. Socorro, correct a bug in the proc GetCrossSectionProperties when write the matrix properties (delete a parenthesis was left)
@@ -383,7 +384,7 @@ proc ::wkcf::GetBoundaryConditionProperties {} {
 		        }
 		        "WallLaw" {
 		            # Get properties
-		            foreach citem [list "ConstantValue"] {
+		            foreach citem [list "Activate" "ConstantValue"] {
 		                # set xpath
 		                set pcxpath "$cxpath//c.[list ${cgroupid}]//c.MainProperties//i.[list ${citem}]"
 		                set cproperty "dv"
