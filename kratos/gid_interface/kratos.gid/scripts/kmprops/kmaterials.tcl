@@ -12,6 +12,7 @@
 #
 #	HISTORY:
 #
+#   1.7- 15/07/13-G. Socorro, update the proc insertXml and insertXmlCopy
 #	1.6- 11/07/13-G. Socorro, correct the bug in the proc splitNode from the last Adrià modification
 #	1.5- 20/09/12-J. Garate, Minor bug fixing, 
 #	1.4- 24/07/12-J. Garate, Minor bug fixing, function comments 
@@ -1286,12 +1287,13 @@ proc ::KMat::MenuContextualGroup { T x y } {
 proc ::KMat::insertXml { path id state type } {
     global KPriv
 
+    # wa "path:$path id:$id state:$state type:$type"
     if { $path == "root" } { 
 	set xpath "/Kratos_KMat_DB/Materials"
     } else {
 	set xpath "[::KMat::setMatXPath $path]"
     }
-
+    # wa "xpath:$xpath"
     set templatePath "/Kratos_KMat_DB/Templates/Template"
     if { $path == "Metal" } {
 	set maticon "grey.gif"
@@ -1303,8 +1305,8 @@ proc ::KMat::insertXml { path id state type } {
 	set maticon "green.gif"		
     }
 
-    set attributesArray [ list id=\"$id\" pid=\"$id\" icon=\"$maticon\" help=\"$id\" open=\"1\"]
-
+    set attributesArray [list id=\'$id\' pid=\'$id\' icon=\'$maticon\' help=\'$id\' open=\'1\']
+    # wa "attributesArray:$attributesArray"
     ::xmlutils::copyTemplate $::KMat::xml $xpath $templatePath "NewMaterial" "Material" $attributesArray 
 
     set xmlArray [::xmlutils::replaceTemplate $::KMat::xml $xpath]
@@ -1324,8 +1326,6 @@ proc ::KMat::insertXmlCopy { path id state type sourcematname} {
 	set xpath "[::KMat::setMatXPath $path]"
     }
 
-    #	set templatePath "/Kratos_KMat_DB/Templates/Template"
-    #	set templatePath "/Kratos_KMat_DB/Materials/Material"
     set templatePath "$xpath/Material"
     if { $path == "Metal" } {
 	set maticon "grey.gif"
@@ -1337,9 +1337,9 @@ proc ::KMat::insertXmlCopy { path id state type sourcematname} {
 	set maticon "green.gif"		
     }
 
-    set attributesArray [ list id=\"$id\" pid=\"$id\" icon=\"$maticon\" help=\"$id\" open=\"1\"]
+    set attributesArray [list id=\'$id\' pid=\'$id\' icon=\'$maticon\' help=\'$id\' open=\'1\']
 
-    #	::xmlutils::copyTemplate  $::KMat::xml $xpath $templatePath "NewMaterial" "Material" $attributesArray 
+    # wa "sourcematname:$sourcematname"
     ::xmlutils::copyTemplate  $::KMat::xml $xpath $templatePath "$sourcematname" "Material" $attributesArray 
 
     set xmlArray [::xmlutils::replaceTemplate $::KMat::xml $xpath]
@@ -1353,9 +1353,9 @@ proc ::KMat::insertXmlCopy { path id state type sourcematname} {
 
 # Prepara la query para utilizar las funciones de domNOde
 proc ::KMat::setMatXPath { path } {
-    set splitted [::KEGroups::split2 $path //]		
+    set splitted [::KEGroups::split2 $path //]	
+    # wa "splitted:$splitted path:$path"	
     if { [llength $splitted] >= 1 } {		
-	#				set xpath "/Kratos_KMat_DB/Materials/Material\[@id='[lindex $splitted 0]'\]"
 	set xpath "/Kratos_KMat_DB/Materials/MaterialGroup\[@id='[lindex $splitted 0]'\]"
     } 
     if { [llength $splitted] >= 2 } {		
@@ -1418,19 +1418,11 @@ proc ::KMat::BeginEditMaterial { T } {
 
 proc ::KMat::CopyMaterial { {T ""} {name ""} } {
     
-    #	if { $name == "" } {
-    #				set name [::KMat::GetAutomaticMatName]
-    #	} else {
-    #				if { ![::KEGroups::isValidGroupName $name] } {
-    #					WarnWin [_ "Bad material name, start or end by '//' is not allowed"]
-    #					return ""
-    #				}
-    #	}
-    
     # insertamos en el grup adecuado. Si no, no insertamos
     set item [$T selection get 0]	
     if {$item == "" } {
-	WarnWin [_ "No materials group selected."]
+	set txt [= "No materials group selected"]
+	WarnWin "${txt}."
 	return ""
     }
 
@@ -1451,10 +1443,10 @@ proc ::KMat::CopyMaterial { {T ""} {name ""} } {
     set path [DecodeName [$T item tag names $item]]   
 
     if { $name == "" } {
-		set name [::KMat::GetAutomaticMatName "" $sourcematname]
+	set name [::KMat::GetAutomaticMatName "" $sourcematname]
     } else {
 	if { ![::KEGroups::isValidGroupName $name] } {
-	    msg "Bad material name, start or end by '//' is not allowed"
+	    msg [= "Bad material name, start or end by '//' is not allowed"]
 	    return ""
 	}
     }
@@ -1463,10 +1455,6 @@ proc ::KMat::CopyMaterial { {T ""} {name ""} } {
     
     
     ::KMat::refreshTree $T
-    
-    # añadimos el nuevo material en el arbol
-    #::KMat::InsertNewMaterial $name $T 1 Generic "" "$item" 0  
-    
     
     return $name   
 
@@ -1566,24 +1554,26 @@ proc ::KMat::editTag { T item fullname newtext } {
 }
 
 proc ::KMat::GetAutomaticMatName { {auto ""} { startname "" } } {		
-    set name ""
     global KPriv
+  
+    set name ""
+    
     set i 0
     foreach grup $KPriv(materialsId) {
-		incr $i
+	incr $i
     }
     if { [llength $KPriv(materialsId)] > 0 } {
-		for {set i 1} {$i<10000} {incr i} {
-		    # set name ${auto}Material${i}
-		    set name ${auto}$startname${i}
-		    if { [lsearch -exact $KPriv(materialsId) $name] == -1 } { break }
-		}
+	for {set i 1} {$i<10000} {incr i} {
+	    # set name ${auto}Material${i}
+	    set name ${auto}$startname${i}
+	    if { [lsearch -exact $KPriv(materialsId) $name] == -1 } { break }
+	}
     } else {
-		if { $auto == "" } {
-		    set name "Material1"
-		} else {
-		    set name "${auto}Material1"
-		}
+	if { $auto == "" } {
+	    set name "Material1"
+	} else {
+	    set name "${auto}Material1"
+	}
     }
     return $name
 }
@@ -1609,56 +1599,56 @@ proc ::KMat::splitNode { node } {
 
 proc ::KMat::InsertNewItem { propName id T {parent ""} {parentitem root} {childs true} {state "normal"} {open 0}} {
     
-    
+    # wa "propName:$propName id:$id T:$T parent:$parent parentitem:$parentitem childs:$childs state:$state open:$open"
     if { $state == "hidden" } {
-		#No inserta este item pero se sigue el proceso
-		return $parentitem
+	#No inserta este item pero se sigue el proceso
+	return $parentitem
     } elseif { $state == -1 } {
-		#No inserta este item ni su descendencia
-		return -1
+	#No inserta este item ni su descendencia
+	return -1
     } 
     if {[string first "NoTree" $id] != -1 } {
-		#Solo insertamos determinados nodos (container, item..)
-		return "-1"
+	#Solo insertamos determinados nodos (container, item..)
+	return "-1"
     }
     if { $parent != "" } {
-		# set fullname "$parent//$id"
-		set fullname "$parent$id"
+	# set fullname "$parent//$id"
+	set fullname "$parent$id"
     } else {
-		set fullname $id
+	set fullname $id
     }
     
     if { $childs } {		
-		set item [$T item create -button yes -tags [EncodeName $fullname] -open $open]
-		$T item lastchild $parentitem $item
-		$T item style set $item C0 styAnyRead
-		$T item element configure $item C0 elemTxtRead -text "$propName"						
+	set item [$T item create -button yes -tags [EncodeName $fullname] -open $open]
+	$T item lastchild $parentitem $item
+	$T item style set $item C0 styAnyRead
+	$T item element configure $item C0 elemTxtRead -text "$propName"						
     } else {
-		set item [$T item create -button no -tags [EncodeName $fullname] -open $open]
-		$T item lastchild $parentitem $item
-		$T item style set $item C0 styFrame
-		
-		set xpath "[::KMat::setXPath $fullname]"
-		set value [::xmlutils::getValueText $::KMat::xml $xpath "value"]
-		
-		$T item style set $item C0 styAnyRead
-		if { $parentitem == "root" } {
-		    $T item element configure $item C0 elemTxtRead -text "$propName $value"
-		} else {
-		    $T item element configure $item C0 elemTxtRead -text "$propName: $value"
-		}
+	set item [$T item create -button no -tags [EncodeName $fullname] -open $open]
+	$T item lastchild $parentitem $item
+	$T item style set $item C0 styFrame
+	
+	set xpath "[::KMat::setXPath $fullname]"
+	set value [::xmlutils::getValueText $::KMat::xml $xpath "value"]
+	
+	$T item style set $item C0 styAnyRead
+	if { $parentitem == "root" } {
+	    $T item element configure $item C0 elemTxtRead -text "$propName $value"
+	} else {
+	    $T item element configure $item C0 elemTxtRead -text "$propName: $value"
+	}
     }
     
     # Consultamos el icono en el xml, y si existe en nuestro directorio se lo añadimos		
     set icon [::KMat::setXml $fullname icon "" ]
     set imagen [::WinUtils::GetImage $icon]
     if { $imagen != -1 } {
-		$T item image $item C0 $imagen
+	$T item image $item C0 $imagen
     } else {
     }	
     #Miramos si el item tiene que estar a disabled (viene del proc ::KMProps::stateNode)
     if {$state == "disabled"} {
-		$T item enabled $item 0
+	$T item enabled $item 0
     }	
     return $item
 }
@@ -2053,11 +2043,11 @@ proc ::KMat::stateNode { node } {
     #Validamos para cada nodo si tiene que estar visible 
     #(en función de los valores elegidos en algunos combos)
     if { [$node nodeName] == "Property" } {
-
+	
 	#Leemos la class del nodo para ver si requiere de acciones especiales (ocultar nodos)
 	set value [$node getAttribute value ""]
 	set class [$node getAttribute class ""]
-
+	
 	#Equivalente a Switch $class
 	foreach var $::KMat::visibilityVars {	
 	    if {$var == $class} {				
@@ -2067,7 +2057,7 @@ proc ::KMat::stateNode { node } {
 		    set freeYesOrNo [$node getAttribute freeSurf ""]
 		    #msg "FREEEEEEEEEEEEEE:  $freeYesOrNo == \"\" || $freeYesOrNo == $::KMProps::freeSurf"
 		    if { $freeYesOrNo == "" || $freeYesOrNo == $::KMProps::freeSurf } {
-				set ::KMProps::fluidSolvTyp "$value"
+			set ::KMProps::fluidSolvTyp "$value"
 		    }
 		} else {
 		    #Caso general
