@@ -10,29 +10,28 @@
 #
 #        CREATED AT: 01/11/09
 #
-#        LAST MODIFICATION : Correct an error with outfd
-#
 #        HISTORY:
 #
+#       2.0- 15/07/13- G. Socorro, correct a bug in the proc copyTemplate, add some comment to the proc ::xmlstruct::setnew
 #       1.9- 04/07/13- A.Melendo, modify ::xmlstruct::setnew to accept groups with any name
 #       1.8- 06/05/13- G. Socorro, add the proc GetPropertySectionType, indent the source code
 #       1.7- 12/02/13- J. Garate,   Modification on UpdateSpd. modeltype for Groups.
 #       1.6- 13/12/12- J. Garate,   Modification on UpdateSpd. If an Item or Container is hidden at Default.spd, keep it hidden.
 #       1.5- 07/11/12- J. Garate,   Modification on ::xmlutils::setXml to accept xpath or path as parameter
 #       1.4- 09/10/12- G. Socorro,  add the proc GetPropertyElemType 
-#                1.3- 03/10/12- J. Garate,   Update ::xmlutils::UpdateSpd
-#                1.2- 01/10/12- J. Garate,   Enable/disable Curves Module
-#                1.1- 20/09/12- J. Garate,   Adaptacion de más funciones para las creacion / edicion de curvas 
-#                1.0- 20/07/12- J. Garate,   Adaptacion de más funciones para los Tabs de Materiales 
-#                0.9- 19/07/12- J. Garate,   Adaptacion de funciones para los Tabs de Materiales (MyPathFromNode, parentNodePath, setXML, getXMLvalues)
-#                0.8- 04/06/12- J. Garate,   Template select when transferring user materials
-#                0.7- 27/05/12- J. Garate,   ::xmlutils::checkMatVersion y funciones auxiliares. Actualiza la base de datos de materiales
-#                0.6- 04/05/12- J. Garate,   cambio en el log
-#                0.5- 26/04/12- J. Garate,   ::xmlutils::checkSpdVersion  ::xmlutils::myPathFromNode   ::xmlutils::GetOldDvFromNewNode
-#                0.4- 27/02/12- J. Garate,   Correccion de la condicion de entrada a la validacion del .spd. Edicion de la misma funcion.
-#                0.3- 03/09/10- G. Socorro,  correct an error with outfd
-#                0.2- 24/12/09- G. Socorro,  add some new utilities procedures from the wiki http://wiki.tcl.tk/4193
-#                0.1- 01/11/09- G. Socorro,  create a base source code
+#       1.3- 03/10/12- J. Garate,   Update ::xmlutils::UpdateSpd
+#       1.2- 01/10/12- J. Garate,   Enable/disable Curves Module
+#       1.1- 20/09/12- J. Garate,   Adaptacion de más funciones para las creacion / edicion de curvas 
+#       1.0- 20/07/12- J. Garate,   Adaptacion de más funciones para los Tabs de Materiales 
+#       0.9- 19/07/12- J. Garate,   Adaptacion de funciones para los Tabs de Materiales (MyPathFromNode, parentNodePath, setXML, getXMLvalues)
+#       0.8- 04/06/12- J. Garate,   Template select when transferring user materials
+#       0.7- 27/05/12- J. Garate,   ::xmlutils::checkMatVersion y funciones auxiliares. Actualiza la base de datos de materiales
+#       0.6- 04/05/12- J. Garate,   cambio en el log
+#       0.5- 26/04/12- J. Garate,   ::xmlutils::checkSpdVersion  ::xmlutils::myPathFromNode   ::xmlutils::GetOldDvFromNewNode
+#       0.4- 27/02/12- J. Garate,   Correccion de la condicion de entrada a la validacion del .spd. Edicion de la misma funcion.
+#       0.3- 03/09/10- G. Socorro,  correct an error with outfd
+#       0.2- 24/12/09- G. Socorro,  add some new utilities procedures from the wiki http://wiki.tcl.tk/4193
+#       0.1- 01/11/09- G. Socorro,  create a base source code
 #
 ###############################################################################
 
@@ -1734,14 +1733,17 @@ proc ::xmlstruct::setvalue {node query value} {
 }
 
 proc ::xmlstruct::setnew {node query value} {
-	# Creates a new attribute/element for an xpath query in which all
-	# the elements of the query up to the last exist
-	
-	#hacer algo con xpath
-	#al hacer el split se destruye todo ya que query contiene "//" (carpeta grupos)
-		
-	#set possibleMatch [split $query /]
+    # Creates a new attribute/element for an xpath query in which all
+    # the elements of the query up to the last exist
+    
+    # wa "node:$node query:$query value:$value" 
+
+    #hacer algo con xpath
+    #al hacer el split se destruye todo ya que query contiene "//" (carpeta grupos)
+    
+    #set possibleMatch [split $query /]
     set list_splited [split $query \]]
+    # wa "list_splited:$list_splited"
     if { [lindex $list_splited end] == "" } {
 	#last element ends with \]
 	set unmatched [lindex $list_splited end-1]
@@ -1750,12 +1752,12 @@ proc ::xmlstruct::setnew {node query value} {
 	set unmatched [string range [lindex $list_splited end] 1 end]
     }
     set possibleMatch [string range $query 0 end-[expr [string length $unmatched]+1]]
-    
-	if {[llength $possibleMatch] == 0} {
-		set possibleMatch .
-	}
-	
+    if {[llength $possibleMatch] == 0} {
+	set possibleMatch .
+    }
+    # wa "unmatched:$unmatched possibleMatch:$possibleMatch"
     set nodes [$node selectNodes $possibleMatch type]
+    # wa "nodes:$nodes"
     switch $type {
 	nodes {            
 	    if {[string index $unmatched 0] == "@"} {
@@ -1767,12 +1769,13 @@ proc ::xmlstruct::setnew {node query value} {
 		    set nametag [string range $unmatched 0 [expr [lindex $idxs 0]-1]]
 		    set unmatched [string range $unmatched [expr [lindex $idxs 0]+1] end-1]
 		} else {
-		    set nametag $unmached
+		    set nametag $unmatched
 		    set unmatched ""
 		}
+		# wa "nametag:$nametag unmatched:$unmatched"
 		foreach node $nodes {
-		    set child [[$node ownerDocument] createElement "$nametag"]
 		    if {[string index $unmatched 0] == "@"} {
+			set child [[$node ownerDocument] createElement "$nametag"]
 		        $child setAttribute {*}[regsub -all ' [regsub -all =' [string range $unmatched 1 end] " \{"] \}]
 		    }                    
 		    $node appendChild $child
@@ -2017,22 +2020,21 @@ proc ::xmlutils::getComboState { xml xpath } {
 
 proc ::xmlutils::copyTemplate { xml xpath templatePath idTemplate nodeName attributesArray} {
 
-	set template [$xml set "${templatePath}\[@id='$idTemplate'\]"]
+	set template [$xml set "${templatePath}\[@id=\'$idTemplate\'\]"]
 	
 	#No se puede insertar en el xml un fragmento con mas de un nodo, por eso utilizamos 
 	#las etiquetas auxiliares "<grouptemplate>$template</grouptemplate>"
 	set template "<groupTemplate>$template</groupTemplate>"
-
+	# wa "template:$template"
 	set textAttr ""
 	foreach attrValue $attributesArray {
 		set textAttr "$textAttr $attrValue"
 	}
-	
-	$xml lappend "$xpath/$nodeName $textAttr" $template
+	# wa "xpath/nodeName:$xpath/$nodeName textAttr:$textAttr"
+	set firstattr [lindex $textAttr 0]
+	# wa "firstattr:$firstattr"
+	$xml lappend "$xpath/$nodeName\[@id=\'$firstattr\' $textAttr\]" $template
 
-	#Eliminamos ahora las etiquetas auxiliares "<gouptemplate></gouptemplate>"
-	#        ::xmlutils::replaceTemplate
-	
 	return $template
 }
 
