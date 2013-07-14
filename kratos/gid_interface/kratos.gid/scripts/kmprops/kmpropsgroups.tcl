@@ -47,14 +47,15 @@ proc ::KMProps::changeGroups { entityList f {fullname ""} } {
     set allgrouplist [::KMProps::GetAvailableGiDGroups] 
     if {[llength $allgrouplist]} {
 	$f configure -values $allgrouplist
-	if {$selGroup !=""} {
-	    if { !($selGroup in $allgrouplist) } {
-		WarnWin [= "The new group '%s' has not any usefull entity assigned." $selGroup]
-	    }
+    }
+    
+    if {$selGroup !=""} {
+	if { !($selGroup in $allgrouplist) } {
+	    WarnWin [= "The new group '%s' has not any usefull entity assigned." $selGroup]
+	    set selGroup ""
 	}
-	set selGroup ""
-    } 
-}
+    }
+ }
 
 proc ::KMProps::cmbChangeCheckGroups { f } {
     variable selGroup
@@ -177,7 +178,7 @@ proc ::KMProps::acceptGroups { T idTemplate fullname item listT entityList fGrou
             #Comprobamos que el grupo no sea un AutoGroup sin entidades
             ::KMProps::changeGroups $entityList $fGroups
             if { $::KMProps::selGroup == "" } {
-            return ""
+		return ""
             }
             
             set template [::KMProps::copyTemplate ${idTemplate} $fullname "$grupo" "Group"]
