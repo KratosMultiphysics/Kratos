@@ -13,6 +13,7 @@
 #
 #  HISTORY:
 # 
+#   1.6- 15/07/13- GSM, set filterGroups to [::KMProps::GetAvailableGiDGroups] to use only normal or disabled GiD group 
 #   1.5- 04/07/13- A.Melendo, created short_name_autogroup and long_name_description
 #   1.4- 18/06/13- GSM, delete the use of the proc kipt::NewGiDGroups 
 #   1.3- 13/05/13- G. Socorro, add the ShowPropertyBySectionType, update the proc buildGroupsFrame
@@ -376,7 +377,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 	set fGroups $fg.cGroups
 	
 	# Get the group list
-	set filterGroups [GiD_Groups list]
+	set filterGroups [::KMProps::GetAvailableGiDGroups]
 	
 	ttk::combobox $fGroups -state readonly -values "$filterGroups" \
 	    -textvariable "::KMProps::selGroup" \
@@ -1076,7 +1077,7 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 		set entityList [split [::xmlutils::setXml $fullname GiDEntity] ","]
 		
 		# Get the group list               
-		set filterGroups [GiD_Groups list]
+		set filterGroups [::KMProps::GetAvailableGiDGroups]
 		grid [ttk::label $fTab.lblName -text "[= Group:]" ] \
 		    -row 0 -column 0 -pady 5 -sticky nw -in $fTab
 
