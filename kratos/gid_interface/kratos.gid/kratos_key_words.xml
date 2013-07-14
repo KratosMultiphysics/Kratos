@@ -226,9 +226,9 @@
   </Materials>
   <ElementCLaws>
     <Item id="ElementTypes" dv="Beam"
-    ivalues="Beam,Truss,Membrane,Shell,EBST,PlaneStress,PlaneStrain,Solid"
-    values="Beam,Truss,Membrane,Shell,EBST,PlaneStress,PlaneStrain,Solid" />
-    <!-- Item id="MaterialModel" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage"/-->
+    ivalues="Beam,Membrane,Shell,PlaneStress,PlaneStrain,Solid"
+    values="Beam,Membrane,Shell,PlaneStress,PlaneStrain,Solid" delvalues = "Truss,EBST" />
+    <Item id="MaterialModel" ivalues="Elastic-Isotropic" delvalues = "Elastic-Orthotropic,Elasto-Plastic,Damage"/>
     <Item id="Beam" ivalues="Elastic-Isotropic"
     values="Elastic-Isotropic" />
     <Item id="Truss" ivalues="Elastic-Isotropic"
@@ -237,19 +237,19 @@
     values="Elastic-Isotropic" />
     <Item id="Shell"
     ivalues="Elastic-Isotropic"
-    values="Elastic-Isotropic" />
+    values="Elastic-Isotropic" delvalues ="Elastic-Anisotropic"/>
     <Item id="EBST"
     ivalues="Elastic-Isotropic,Elasto-Plastic,Damage"
     values="Elastic-Isotropic,Elasto-Plastic,Damage" />
     <Item id="Solid"
-    ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage"
-    values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />
+    ivalues="Elastic-Isotropic"
+    values="Elastic-Isotropic" delvalues ="Elastic-Orthotropic,Elasto-Plastic,Damage"/>
     <Item id="PlaneStress"
-    ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage"
-    values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />
+    ivalues="Elastic-Isotropic"
+    values="Elastic-Isotropic" delvalues= "Elastic-Orthotropic,Elasto-Plastic,Damage"/>
     <Item id="PlaneStrain"
-    ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage"
-    values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />
+    ivalues="Elastic-Isotropic"
+    values="Elastic-Isotropic" delvalues = "Elastic-Orthotropic,Elasto-Plastic,Damage"/>
     <Item id="Thickness2D" elementType="PlaneStress" />
     <Item id="Thickness3D" elementType="Shell,Membrane,EBST" />
     <Item id="Area" elementType="Truss,Beam"
