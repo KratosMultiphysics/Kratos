@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_SMALL_DISPLACEMENT_2D_ELEMENT_H_INCLUDED )
-#define  KRATOS_SMALL_DISPLACEMENT_2D_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_SMALL_DISPLACEMENT_3D_ELEMENT_H_INCLUDED )
+#define  KRATOS_SMALL_DISPLACEMENT_3D_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -82,27 +82,46 @@ protected:
 
   struct Standard
   {
-        StressMeasureType StressMeasure;
+    StressMeasureType StressMeasure;
 
-        double  detF;
-        double  detF0;
-        double  detJ;
-        Vector  StrainVector;
-        Vector  StressVector;
-        Vector  N;
-        Matrix  B;
-        Matrix  H;
-        Matrix  F;
-        Matrix  F0;
-        Matrix  DN_DX;
-        Matrix  ConstitutiveMatrix;
+    double  detF;
+    double  detF0;
+    double  detJ;
+    Vector  StrainVector;
+    Vector  StressVector;
+    Vector  N;
+    Matrix  B;
+    Matrix  H;
+    Matrix  F;
+    Matrix  F0;
+    Matrix  DN_DX;
+    Matrix  ConstitutiveMatrix;
     
-        //variables including all integration points
-        const GeometryType::ShapeFunctionsGradientsType* pDN_De;
-        GeometryType::JacobiansType J;
-        GeometryType::JacobiansType j;
-        const Matrix* pNcontainer;
-        Matrix  DeltaPosition;
+    //variables including all integration points
+    const GeometryType::ShapeFunctionsGradientsType* pDN_De;
+    GeometryType::JacobiansType J;
+    GeometryType::JacobiansType j;
+    const Matrix* pNcontainer;
+    Matrix  DeltaPosition;
+
+
+    /**
+     * sets the value of a specified pointer variable
+     */
+
+    void SetShapeFunctionsGradients(const GeometryType::ShapeFunctionsGradientsType &rDN_De)  {pDN_De=&rDN_De;};
+    
+    void SetShapeFunctions(const Matrix& rNcontainer)  {pNcontainer=&rNcontainer;};
+
+    
+    /**
+     * returns the value of a specified pointer variable
+     */ 
+
+    const GeometryType::ShapeFunctionsGradientsType& GetShapeFunctionsGradients()  {return *pDN_De;};
+
+    const Matrix& GetShapeFunctions()  {return *pNcontainer;};
+
   };
 
 

@@ -30,8 +30,11 @@
 
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
-#include "custom_constitutive/linear_elastic_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 
 
 
@@ -62,8 +65,26 @@ namespace Kratos
 	.def( "PushBack", Push_Back_Constitutive_Laws )
 	;
 
+
+      class_< HyperElastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+	( "HyperElastic3DLaw",
+	  init<>() )
+	;
+
+
+     class_< LinearElastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+	( "LinearElastic3DLaw",
+	  init<>() )
+	;
+
+
      class_< LinearElastic2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
 	( "LinearElastic2DLaw",
+	  init<>() )
+	;
+
+     class_< LinearElasticPlaneStress2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+	( "LinearElasticPlaneStress2DLaw",
 	  init<>() )
 	;
 
