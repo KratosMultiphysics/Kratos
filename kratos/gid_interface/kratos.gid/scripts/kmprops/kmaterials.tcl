@@ -1546,7 +1546,7 @@ proc ::KMat::editTag { T item fullname newtext } {
     ::KMat::setXml $fullname id  $newtext
 
     set createframeafteredit 0
-    if {$createframe} {
+    if {$createframeafteredit} {
 	set childs [$T item children $item]
 	foreach child $childs {		
 	    set fullname [DecodeName [$T item tag names $child]]
