@@ -63,6 +63,7 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+ 
     /// Counted pointer of LargeDisplacement3DElement
     KRATOS_CLASS_POINTER_DEFINITION(LargeDisplacement3DElement);
     ///@}
@@ -94,7 +95,14 @@ protected:
         Matrix  F;
         Matrix  F0;
         Matrix  DN_DX;
-        Matrix  ConstitutiveMatrix;        
+        Matrix  ConstitutiveMatrix;
+    
+        //variables including all integration points
+        const GeometryType::ShapeFunctionsGradientsType* pDN_De;
+        GeometryType::JacobiansType J;
+        GeometryType::JacobiansType j;
+        const Matrix* pNcontainer;
+        Matrix  DeltaPosition;
   };
 
 public:
@@ -380,10 +388,10 @@ protected:
      * \f$ K^e = w\,B^T\,D\,B \f$ and
      * \f$ r^e \f$
      */
-    void CalculateElementalSystem(MatrixType& rLeftHandSideMatrix,
-				VectorType& rRightHandSideVector,
-				ProcessInfo& rCurrentProcessInfo,
-				Flags & rCalculationFlags);
+    virtual void CalculateElementalSystem(MatrixType& rLeftHandSideMatrix,
+					  VectorType& rRightHandSideVector,
+					  ProcessInfo& rCurrentProcessInfo,
+					  Flags & rCalculationFlags);
     ///@}
     ///@name Protected Operations
     ///@{
@@ -408,7 +416,7 @@ protected:
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
-    void CalculateAndAddExternalForces(const Vector& rN,
+    inline void CalculateAndAddExternalForces(const Vector& rN,
                                        const ProcessInfo& rCurrentProcessInfo,
                                        Vector& rBodyForce,
                                        VectorType& rRightHandSideVector,
@@ -419,7 +427,7 @@ protected:
     /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
-    void CalculateAndAddInternalForces(Matrix & rB,
+    inline void CalculateAndAddInternalForces(Matrix & rB,
                                        Vector& rStressVector,
                                        VectorType& rRightHandSideVector,
                                        double& rIntegrationWeight

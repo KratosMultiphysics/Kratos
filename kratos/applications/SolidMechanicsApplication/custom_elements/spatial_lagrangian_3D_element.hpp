@@ -154,6 +154,11 @@ protected:
     {
     }
 
+    /**
+     * Initialize Element Standard Variables
+     */ 
+    virtual void InitializeStandardVariables(Standard & rVariables, const ProcessInfo& rCurrentProcessInfo);
+
 
     /**
      * Calculate Element Kinematics

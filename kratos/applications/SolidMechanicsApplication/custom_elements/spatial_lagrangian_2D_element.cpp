@@ -104,6 +104,23 @@ namespace Kratos
   
     rVariables.DN_DX.resize( number_of_nodes, 2 );
   
+    //set variables including all integration points values
+
+    //reading shape functions
+    rVariables.pNcontainer = &(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
+ 
+    //reading shape functions local gradients
+    rVariables.pDN_De = &(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
+    
+    //calculating the jacobian from cartesian coordinates to parent coordinates for all integration points
+    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod );
+
+    //Calculate Delta Position
+    rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+ 
+    //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points
+    rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod, rVariables.DeltaPosition );
+
   }
 
   //************************************************************************************

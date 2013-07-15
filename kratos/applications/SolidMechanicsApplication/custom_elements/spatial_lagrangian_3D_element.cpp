@@ -115,6 +115,23 @@ namespace Kratos
   }
 
 
+  //************************************************************************************
+  //************************************************************************************
+
+  void SpatialLagrangian3DElement::InitializeStandardVariables (Standard & rVariables, const ProcessInfo& rCurrentProcessInfo)
+  {
+    LargeDisplacement3DElement::InitializeStandardVariables(rVariables,rCurrentProcessInfo);
+
+    //Calculate Delta Position
+    rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+ 
+    //set variables including all integration points values
+   
+    //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points
+    rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod, rVariables.DeltaPosition );
+
+
+  }
 
   //************************************************************************************
   //************************************************************************************
@@ -129,6 +146,8 @@ namespace Kratos
   //************* COMPUTING  METHODS
   //************************************************************************************
   //************************************************************************************
+  //************************************************************************************
+  //************************************************************************************
 
 
   //*********************************COMPUTE KINEMATICS*********************************
@@ -141,45 +160,32 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
     //Parent to reference configuration
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
-
-    //Calculate Delta Position
-    Matrix& DeltaPosition =  CalculateDeltaPosition(DeltaPosition);
-
-    //Parent to current configuration
-    Matrix j = zero_matrix<double>( dimension , dimension);
-    j = GetGeometry().Jacobian( j, rPointNumber , mThisIntegrationMethod , DeltaPosition );
     
-    //Parent to reference configuration
-    Matrix J ( dimension , dimension);
-    J = GetGeometry().Jacobian( J, rPointNumber , mThisIntegrationMethod );
-
-
     //Calculating the inverse of the jacobian and the parameters needed
     Matrix InvJ;
-    MathUtils<double>::InvertMatrix( J, InvJ, rVariables.detJ);
+    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //Compute cartesian derivatives
-    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
+    noalias( rVariables.DN_DX ) = prod( (*rVariables.pDN_De)[rPointNumber], InvJ );
 
     //Current Deformation Gradient
-    this->CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, DeltaPosition);
+    this->CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition);
 
-    Matrix Invj;
     //Calculating the inverse of the jacobian and the parameters needed
-    MathUtils<double>::InvertMatrix( j, Invj, rVariables.detJ); //overwrites detJ 
+    Matrix Invj;
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ 
 
     //Compute cartesian derivatives
-    rVariables.DN_DX = prod( DN_De[rPointNumber] , Invj ); //overwrites DX now is the current position dx
+    rVariables.DN_DX = prod( (*rVariables.pDN_De)[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
     //Determinant of the Deformation Gradient F0
     rVariables.detF0 = mDeterminantF0[rPointNumber];
     rVariables.F0    = mDeformationGradientF0[rPointNumber];
+
+    //Set Shape Functions Values for this integration point
+    rVariables.N=row(*(rVariables.pNcontainer), rPointNumber);
 
     //Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);

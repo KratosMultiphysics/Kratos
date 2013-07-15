@@ -476,7 +476,7 @@ namespace Kratos
     rVariables.B.resize( 6 , number_of_nodes * 3 );
 
     rVariables.H.resize( 3, 3 );
- 
+
     rVariables.ConstitutiveMatrix.resize( 6, 6 );
   
     rVariables.StrainVector.resize( 6 );
@@ -490,6 +490,18 @@ namespace Kratos
     rVariables.detF  = 1;
     rVariables.F0    = identity_matrix<double>(3);
     rVariables.F     = identity_matrix<double>(3);
+
+    //set variables including all integration points values
+
+    //reading shape functions
+    rVariables.pNcontainer = &(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
+ 
+    //reading shape functions local gradients
+    rVariables.pDN_De = &(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
+    
+    //calculating the jacobian from cartesian coordinates to parent coordinates for all integration points
+    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod );
+
 
   }
 
@@ -553,7 +565,7 @@ namespace Kratos
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
   
-    //reading integration points and local gradients
+    //reading integration points 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     //auxiliary terms
@@ -725,6 +737,7 @@ namespace Kratos
 
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+
 
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
       {
@@ -915,23 +928,18 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    //Parent to reference configuration
-    Matrix J ( dimension , dimension);
-    J = GetGeometry().Jacobian( J, rPointNumber , mThisIntegrationMethod );
-
     //Calculating the inverse of the jacobian and the parameters needed
     Matrix InvJ;
-    MathUtils<double>::InvertMatrix( J, InvJ, rVariables.detJ);
+    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //Compute cartesian derivatives
-    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
+    noalias( rVariables.DN_DX ) = prod( (*rVariables.pDN_De)[rPointNumber] , InvJ );
 
     //Displacement Gradient H
     CalculateDisplacementGradient (rVariables.DN_DX, rVariables.H);
+
+    //Set Shape Functions Values for this integration point
+    rVariables.N=row(*(rVariables.pNcontainer), rPointNumber);
 
     //Compute the deformation matrix B
     CalculateDeformationMatrix(rVariables.B,rVariables.DN_DX);
@@ -1174,7 +1182,6 @@ namespace Kratos
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-	//reading integration points
 	for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
 	  {
 	    //compute element kinematics B, F, DN_DX ...
@@ -1229,6 +1236,7 @@ namespace Kratos
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
+
 	//reading integration points
 	for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
 	  {
@@ -1264,7 +1272,7 @@ namespace Kratos
 	for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
 	  {
 	    //compute element kinematics B, F, DN_DX ...
-	    CalculateKinematics(Variables,PointNumber);
+	    this->CalculateKinematics(Variables,PointNumber);
 
 	    if ( rOutput[PointNumber].size() != Variables.StrainVector.size() )
 	      rOutput[PointNumber].resize( Variables.StrainVector.size(), false );
@@ -1352,7 +1360,7 @@ namespace Kratos
 
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::LAST_KNOWN_CONFIGURATION);
-
+	
 	//reading integration points
 	for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
 	  {

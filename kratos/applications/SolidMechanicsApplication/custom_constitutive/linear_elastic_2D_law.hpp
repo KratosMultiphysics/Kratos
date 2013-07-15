@@ -14,21 +14,20 @@
 // External includes 
 
 // Project includes
-#include "includes/constitutive_law.h"
-
+#include "custom_constitutive/hyperelastic_2D_law.hpp"
 
 namespace Kratos
 {
   /**
-   * Defines a hyper elastic isotropic constitutive law in 2D
+   * Defines a linear isotropic constitutive law in 2D (Plane Strain)
    * This material law is defined by the parameters:
-   * 1) E  (Young's modulus) 
-   * 2) NU (Poisson ratio)
-   * As there are no further parameters the functionality is limited 
-   * to large displacements elasticity.
+   * 1) YOUNG MODULUS 
+   * 2) POISSON RATIO
+   * As there are no further parameters the functionality is valid
+   * for small and large displacements elasticity.
    */
 
-  class LinearElastic2DLaw : public ConstitutiveLaw
+  class LinearElastic2DLaw : public HyperElastic2DLaw
   {
   public:
     /**
@@ -84,71 +83,7 @@ namespace Kratos
      * Operations needed by the base class:
      */
 
-    SizeType WorkingSpaceDimension() { return 2; };
-    SizeType GetStrainSize()         { return 3; };
-
-    bool Has( const Variable<double>& rThisVariable );
-    bool Has( const Variable<Vector>& rThisVariable );
-    bool Has( const Variable<Matrix>& rThisVariable );
-			
-    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
-    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
-    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
-
-			
-    void SetValue( const Variable<double>& rVariable, 
-		   const double& Value, 
-		   const ProcessInfo& rCurrentProcessInfo );
-    void SetValue( const Variable<Vector>& rThisVariable, 
-		   const Vector& rValue, 
-		   const ProcessInfo& rCurrentProcessInfo );
-    void SetValue( const Variable<Matrix>& rThisVariable, 
-		   const Matrix& rValue, 
-		   const ProcessInfo& rCurrentProcessInfo );
-    /**
-     * Material parameters are inizialized
-     */ 
-    void InitializeMaterial( const Properties& props,
-			     const GeometryType& geom,
-			     const Vector& ShapeFunctionsValues );
-
-    /**
-     * As this constitutive law describes only linear elastic material properties
-     * this function is rather useless and in fact does nothing
-     */ 		
-    void InitializeSolutionStep( const Properties& props,
-				 const GeometryType& geom, //this is just to give the array of nodes
-				 const Vector& ShapeFunctionsValues ,
-				 const ProcessInfo& CurrentProcessInfo);
-			
-    void FinalizeSolutionStep( const Properties& props,
-			       const GeometryType& geom, //this is just to give the array of nodes
-			       const Vector& ShapeFunctionsValues ,
-			       const ProcessInfo& CurrentProcessInfo);
-    
-
-    /**
-     * Calculates the cauchy stresses. For a given deformation and stress state
-     * the cauchy stress vector is calculated
-     * @param Cauchy_StressVector the result vector of cauchy stresses (will be overwritten)
-     * @param F the current deformation gradient
-     * @param PK2_StressVector the current second Piola-Kirchhoff-Stress vector
-     * @param GreenLagrangeStrainVector the current Green-Lagrangian strains
-     */
-    void CalculateCauchyStresses( Vector& rCauchy_StressVector,
-				  const Matrix& rF,
-				  const Vector& rPK2_StressVector,
-				  const Vector& rGreenLagrangeStrainVector);
-
-					           
-    /**
-     * Computes the material response:
-     * PK1 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues 
-     * @see   Parameters
-     */          
-    void CalculateMaterialResponsePK1 (Parameters & rValues);
-
+ 
     /**
      * Computes the material response:
      * PK2 stresses and algorithmic ConstitutiveMatrix
@@ -164,49 +99,7 @@ namespace Kratos
      * @see   Parameters
      */
     void CalculateMaterialResponseKirchhoff (Parameters & rValues);
-
-
-    /**
-     * Computes the material response:
-     * Cauchy stresses and algorithmic ConstitutiveMatrix
-     * @param rValues 
-     * @see   Parameters
-     */
-    void CalculateMaterialResponseCauchy (Parameters & rValues);
-    
-    
-   /**
-     * Updates the material response:
-     * Cauchy stresses and Internal Variables
-     * @param rValues 
-     * @see   Parameters
-     */
-    void FinalizeMaterialResponsePK1 (Parameters & rValues);
- 
-   /**
-     * Updates the material response:
-     * Cauchy stresses and Internal Variables
-     * @param rValues 
-     * @see   Parameters
-     */
-    void FinalizeMaterialResponsePK2 (Parameters & rValues);
-
-   /**
-     * Updates the material response:
-     * Cauchy stresses and Internal Variables
-     * @param rValues 
-     * @see   Parameters
-     */
-    void FinalizeMaterialResponseKirchhoff (Parameters & rValues);
-
-   /**
-     * Updates the material response:
-     * Cauchy stresses and Internal Variables
-     * @param rValues 
-     * @see   Parameters
-     */
-    void FinalizeMaterialResponseCauchy (Parameters & rValues);
-
+  
     /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
@@ -235,31 +128,39 @@ namespace Kratos
     //virtual void PrintData(std::ostream& rOStream) const;
 		
   protected:
-    /**
-     * there are no protected class members
-     */
-		
+
+    ///@name Protected static Member Variables
+    ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
+    ///@}
+	
   private:
 
-    ///@}
-    ///@Member Variables
+
+    ///@name Static Member Variables
     ///@{
-			
     ///@}
-    ///@name Serialization
+    ///@name Member Variables
     ///@{
-    friend class Serializer;
 
-    virtual void save(Serializer& rSerializer) const
-    {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    }
 
-    virtual void load(Serializer& rSerializer)
-    {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    }
+    ///@}
+    ///@name Private Operators
+    ///@{
 
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+    ///@}
 
     /**
      * Calculates the stresses for given strain state
@@ -293,9 +194,25 @@ namespace Kratos
      */
     bool CheckParameters(Parameters& rValues);
    
-    /**
-     * Unaccessible methods 
-     */
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
+
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElastic2DLaw);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElastic2DLaw);
+    }
 
 
   }; // Class LinearElastic2DLaw 
