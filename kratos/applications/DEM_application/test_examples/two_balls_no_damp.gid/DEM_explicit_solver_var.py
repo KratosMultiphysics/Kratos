@@ -42,6 +42,7 @@ SurfacePointCoorX                = 0.00000e+00
 SurfacePointCoorY                = 0.00000e+00
 SurfacePointCoorZ                = 0.00000e+00
 SurfaceFrictionAngle             = 45
+CylinderRadius                   = 1.00000e+00
 
 # Time Discretization Settings
 

@@ -85,7 +85,7 @@ QUESTION: Trihedron_On_Each_Ball#CB#(ON,OFF)
 VALUE: OFF
 QUESTION: Limit_Surface#CB#(ON,OFF)
 VALUE: OFF
-DEPENDENCIES: (OFF,HIDE,Surface_Normal_Dir_X,#CURRENT#,HIDE,Surface_Normal_Dir_Y,#CURRENT#,HIDE,Surface_Normal_Dir_Z,#CURRENT#,HIDE,Surface_Point_Coor_X,#CURRENT#,HIDE,Surface_Point_Coor_Y,#CURRENT#,HIDE,Surface_Point_Coor_Z,#CURRENT#,HIDE,Surface_Friction_Angle,#CURRENT#)(ON,RESTORE,Surface_Normal_Dir_X,#CURRENT#,RESTORE,Surface_Normal_Dir_Y,#CURRENT#,RESTORE,Surface_Normal_Dir_Z,#CURRENT#,RESTORE,Surface_Point_Coor_X,#CURRENT#,RESTORE,Surface_Point_Coor_Y,#CURRENT#,RESTORE,Surface_Point_Coor_Z,#CURRENT#,RESTORE,Surface_Friction_Angle,#CURRENT#)
+DEPENDENCIES: (OFF,HIDE,Surface_Normal_Dir_X,#CURRENT#,HIDE,Surface_Normal_Dir_Y,#CURRENT#,HIDE,Surface_Normal_Dir_Z,#CURRENT#,HIDE,Surface_Point_Coor_X,#CURRENT#,HIDE,Surface_Point_Coor_Y,#CURRENT#,HIDE,Surface_Point_Coor_Z,#CURRENT#,HIDE,Surface_Friction_Angle,#CURRENT#,HIDE,Cylinder_Radius,#CURRENT#)(ON,RESTORE,Surface_Normal_Dir_X,#CURRENT#,RESTORE,Surface_Normal_Dir_Y,#CURRENT#,RESTORE,Surface_Normal_Dir_Z,#CURRENT#,RESTORE,Surface_Point_Coor_X,#CURRENT#,RESTORE,Surface_Point_Coor_Y,#CURRENT#,RESTORE,Surface_Point_Coor_Z,#CURRENT#,RESTORE,Surface_Friction_Angle,#CURRENT#,RESTORE,Cylinder_Radius,#CURRENT#)
 QUESTION: Surface_Normal_Dir_X
 VALUE: 0.0
 QUESTION: Surface_Normal_Dir_Y
@@ -100,6 +100,8 @@ QUESTION: Surface_Point_Coor_Z
 VALUE: 0.0
 QUESTION: Surface_Friction_Angle
 VALUE: 45
+QUESTION: Cylinder_Radius
+VALUE: 1.0
 TITLE: Time_Discretization_Settings
 QUESTION: Integration_Scheme#CB#(forward_euler,mid_point_rule,const_average_acc)
 VALUE: forward_euler
