@@ -667,6 +667,66 @@ public:
     }
 
     /**
+     * Jacobians for given  method.
+     * This method calculates the jacobians matrices in all
+     * integrations points of given integration method.
+     *
+     * @param ThisMethod integration method which jacobians has to
+     *
+     * @return JacobiansType a Vector of jacobian
+     * matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
+     * point index of given integration method.
+     *
+     * @param DeltaPosition Matrix with the nodes position increment which describes
+     * the configuration where the jacobian has to be calculated.     
+     *
+     * @see DeterminantOfJacobian
+     * @see InverseOfJacobian
+     */
+    virtual JacobiansType& Jacobian( JacobiansType& rResult,
+                                     IntegrationMethod ThisMethod,
+				     Matrix & DeltaPosition ) const
+    {
+        //getting derivatives of shape functions
+        ShapeFunctionsGradientsType shape_functions_gradients =
+            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+        //getting values of shape functions
+        Matrix shape_functions_values =
+            CalculateShapeFunctionsIntegrationPointsValues( ThisMethod );
+        //workaround by riccardo...
+
+        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
+        {
+            // KLUDGE: While there is a bug in ublas
+            // vector resize, I have to put this beside resizing!!
+            JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
+            rResult.swap( temp );
+        }
+
+        //loop over all integration points
+        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
+        {
+            //defining single jacobian matrix
+            Matrix jacobian = ZeroMatrix( 3, 2 );
+            //loop over all nodes
+
+            for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
+            {
+                jacobian( 0, 0 ) += ( this->GetPoint( i ).X() + DeltaPosition(i,0) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
+                jacobian( 0, 1 ) += ( this->GetPoint( i ).X() + DeltaPosition(i,0) ) * ( shape_functions_gradients[pnt]( i, 1 ) );
+                jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() + DeltaPosition(i,1) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
+                jacobian( 1, 1 ) += ( this->GetPoint( i ).Y() + DeltaPosition(i,1) ) * ( shape_functions_gradients[pnt]( i, 1 ) );
+                jacobian( 2, 0 ) += ( this->GetPoint( i ).Z() + DeltaPosition(i,2) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
+                jacobian( 2, 1 ) += ( this->GetPoint( i ).Z() + DeltaPosition(i,2) ) * ( shape_functions_gradients[pnt]( i, 1 ) );
+            }
+
+            rResult[pnt] = jacobian;
+        }//end of loop over all integration points
+
+        return rResult;
+    }
+
+    /**
      * :TODO: implemented but not yet tested
      */
     /**

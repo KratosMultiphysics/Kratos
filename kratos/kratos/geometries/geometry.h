@@ -1079,6 +1079,30 @@ public:
         return rResult;
     }
 
+    /** Jacobians for given  method. This method
+    calculate jacobians matrices in all integrations points of
+    given integration method.
+
+    @param ThisMethod integration method which jacobians has to
+    be calculated in its integration points.
+
+    @return JacobiansType a Vector of jacobian
+    matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
+    point index of given integration method.
+
+    @param DeltaPosition Matrix with the nodes position increment which describes
+    the configuration where the jacobian has to be calculated.
+
+    @see DeterminantOfJacobian
+    @see InverseOfJacobian
+    */
+    virtual JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const
+    {
+        KRATOS_ERROR( std::logic_error,
+                      "Calling base class Jacobian method instead of drived class one. Please check the definition of derived class." , *this );
+        return rResult;
+    }
+
     /** Jacobian in specific integration point of default integration method. This method just
     call Jacobian(IndexType IntegrationPointIndex, enum IntegrationMethod ThisMethod) with
     default integration method.

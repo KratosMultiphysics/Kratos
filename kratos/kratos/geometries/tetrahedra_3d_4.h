@@ -535,6 +535,64 @@ public:
         std::fill(rResult.begin(), rResult.end(), jacobian);
         return rResult;
     }
+
+    /**
+     * Jacobians for given  method.
+     * This method calculates jacobians matrices in all integrations
+     * points of given integration method.
+     *
+     * @param ThisMethod integration method which jacobians has to
+     * be calculated in its integration points.
+     * @return JacobiansType a Vector of jacobian
+     * matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the
+     * integration point index of given integration method.
+     *    
+     * @param DeltaPosition Matrix with the nodes position increment which describes
+     * the configuration where the jacobian has to be calculated.
+     *
+     * @see DeterminantOfJacobian
+     * @see InverseOfJacobian
+     */
+    virtual JacobiansType& Jacobian( JacobiansType& rResult,
+                                     IntegrationMethod ThisMethod,
+				     Matrix & DeltaPosition) const
+    {
+        Matrix jacobian(3,3);
+        double x0 = this->Points()[0].X() + DeltaPosition(0,0);
+        double x1 = this->Points()[1].X() + DeltaPosition(1,0);
+        double x2 = this->Points()[2].X() + DeltaPosition(2,0);
+        double x3 = this->Points()[3].X() + DeltaPosition(3,0);
+
+        double y0 = this->Points()[0].Y() + DeltaPosition(0,1);
+        double y1 = this->Points()[1].Y() + DeltaPosition(1,1);
+        double y2 = this->Points()[2].Y() + DeltaPosition(2,1);
+        double y3 = this->Points()[3].Y() + DeltaPosition(3,1);
+
+        double z0 = this->Points()[0].Z() + DeltaPosition(0,2);
+        double z1 = this->Points()[1].Z() + DeltaPosition(1,2);
+        double z2 = this->Points()[2].Z() + DeltaPosition(2,2);
+        double z3 = this->Points()[3].Z() + DeltaPosition(3,2);
+
+        //calculation of the jacobian
+        jacobian(0,0) = x1-x0;
+        jacobian(0,1) = x2-x0;
+        jacobian(0,2) = x3-x0;
+        jacobian(1,0) = y1-y0;
+        jacobian(1,1) = y2-y0;
+        jacobian(1,2) = y3-y0;
+        jacobian(2,0) = z1-z0;
+        jacobian(2,1) = z2-z0;
+        jacobian(2,2) = z3-z0;
+
+        if(rResult.size() != this->IntegrationPointsNumber(ThisMethod))
+        {
+            // KLUDGE: While there is a bug in ublas vector resize, I have to put this beside resizing!!
+            JacobiansType temp(this->IntegrationPointsNumber(ThisMethod));
+            rResult.swap(temp);
+        }
+        std::fill(rResult.begin(), rResult.end(), jacobian);
+        return rResult;
+    }
     /**
      * :TODO: TO BE TESTED
      */
