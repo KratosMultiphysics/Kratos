@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.6- 15/07/13- G. Socorro, modify the file giveConfigFile to add a dot before the name in linux platform
 #     1.5- 17/06/13- G. Socorro, delete the procs RecursiveChildTransfer and TransferOldGroupstoGID to use only the new GiD groups
 #     1.4- 12/02/13- J. Garate, ::kfiles::TransferOldGroupstoGID FIXED
 #     1.3- 12/11/12- J. Garate, ::kfiles::TransferOldGroupstoGID modifications
@@ -228,9 +229,18 @@ proc ::kfiles::giveConfigFile { {ptypeName "kratos"} } {
     set filename [GiveGidDefaultsFile]
     set dirname [file dirname $filename]
     set extname [file extension $filename]
-    set kname "${ptypeName}${extname}"
+    # wa "filename:$filename extname:$extname dirname:$dirname"
+    if {$extname ne ".ini"} {
+	set extname .ini
+    }
+    if {($::tcl_platform(os) eq "Linux")} {
+	set kname ".${ptypeName}${extname}"
+    } else {
+	set kname "${ptypeName}${extname}"
+    }
     
-    return [file join $dirname $kname]
+    set endpath [file native [file join $dirname $kname]]
+    return $endpath
 }
 
 proc ::kfiles::varOnConfigFile { var {def 0} } {
