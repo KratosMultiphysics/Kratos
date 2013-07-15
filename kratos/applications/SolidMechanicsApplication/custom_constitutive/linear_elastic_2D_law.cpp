@@ -25,7 +25,7 @@ namespace Kratos
   //************************************************************************************
 
   LinearElastic2DLaw::LinearElastic2DLaw()
-  : HyperElastic2DLaw()
+  : LinearElastic3DLaw()
   {
   }
 
@@ -33,7 +33,7 @@ namespace Kratos
   //************************************************************************************
 
   LinearElastic2DLaw::LinearElastic2DLaw(const LinearElastic2DLaw& rOther)
-  : HyperElastic2DLaw()
+  : LinearElastic3DLaw()
   {
   }
   
@@ -59,168 +59,38 @@ namespace Kratos
   //************************************************************************************
 
 
-  //*****************************MATERIAL RESPONSES*************************************
+  //***********************COMPUTE TOTAL STRAIN*****************************************
   //************************************************************************************
 
-
-  void  LinearElastic2DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
+  void LinearElastic2DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+							Vector& rStrainVector )
   {
 
-     //-----------------------------//
-   
-    //a.-Check if the constitutive parameters are passed correctly to the law calculation
-    CheckParameters(rValues);
-    
-    //b.- Get Values to compute the constitutive law:
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
-    const Matrix& DeformationGradientF    = rValues.GetDeformationGradientF();
-    const double& detF                    = rValues.GetDeterminantF(); 
+    //E= 0.5*(FT*F-1)
+    rStrainVector[0] = 0.5 * ( rRightCauchyGreen( 0, 0 ) - 1.00 );
+    rStrainVector[1] = 0.5 * ( rRightCauchyGreen( 1, 1 ) - 1.00 );
+    rStrainVector[2] = rRightCauchyGreen( 0, 1 );
 
-    Vector& StrainVector                  = rValues.GetStrainVector();
-    Matrix& DeformationGradientF0         = rValues.GetDeformationGradientF0();
-    double& detF0                         = rValues.GetDeterminantF0(); 
-
-    Vector& StressVector                  = rValues.GetStressVector();
-    Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();      
-
-    //-----------------------------//
-
-    //0.- Voigt size
-    Flags &Options=rValues.GetOptions();
-
-    //1.- Lame constants
-    const double& YoungModulus          = MaterialProperties[YOUNG_MODULUS];
-    const double& PoissonCoefficient    = MaterialProperties[POISSON_RATIO];
-
-    //2.-Total Deformation Gradient
-    Matrix F0 = prod(DeformationGradientF,DeformationGradientF0);
-
-    //3.-Determinant of the Total Deformation Gradient
-    detF0 *= detF;
-   
-    //4.-Right Cauchy Green
-    Matrix RightCauchyGreen = prod(trans(F0),F0);
-
-    //5.-Inverse of the Right Cauchy-Green tensor C:
-    double Trace_C=0;
-    Matrix InverseRightCauchyGreen ( 2 , 2 );
-    MathUtils<double>::InvertMatrix( RightCauchyGreen, InverseRightCauchyGreen, Trace_C);
-
-    //6.-Green-Lagrange Strain:
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
-      {
-	//E= 0.5*(FT*F-1)
-	StrainVector[0] = 0.5 * ( RightCauchyGreen( 0, 0 ) - 1.00 );
-	StrainVector[1] = 0.5 * ( RightCauchyGreen( 1, 1 ) - 1.00 );
-	StrainVector[2] = RightCauchyGreen( 0, 1 );
-      }
-
-    //7.-Calculate Total PK2 stress   
-   
-    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
-	  
-      CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-
-      CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );		
-
-    }
-    else if(  Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) && Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
-
-      CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-
-    }
-
-    // std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
-    // std::cout<<" Strain "<<StrainVector<<std::endl;
-    // std::cout<<" Stress "<<StressVector<<std::endl;
-		
   }
 
 
-  //************************************************************************************
+
+  //***********************COMPUTE TOTAL STRAIN*****************************************
   //************************************************************************************
 
-  
-  void LinearElastic2DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
+  void LinearElastic2DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+						  Vector& rStrainVector )
   {
 
-    //-----------------------------//
-   
-    //a.-Check if the constitutive parameters are passed correctly to the law calculation
-    CheckParameters(rValues);
-    
-    //b.- Get Values to compute the constitutive law:
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
-    const Matrix&   DeformationGradientF  = rValues.GetDeformationGradientF();
-    const double&   detF                  = rValues.GetDeterminantF(); 
+    // e= 0.5*(1-invbT*invb)   
+    Matrix InverseLeftCauchyGreen ( 2 , 2 );
+    double det_b=0;
+    MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
 
-    Vector& StrainVector                  = rValues.GetStrainVector();
-    Matrix& DeformationGradientF0         = rValues.GetDeformationGradientF0();
-    double& detF0                         = rValues.GetDeterminantF0(); 
-
-    Vector& StressVector                  = rValues.GetStressVector();
-    Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();      
-
-    //-----------------------------//
-
-    //0.- Voigt size
-    Flags &Options=rValues.GetOptions();
-
-    //1.- Lame constants
-    const double& YoungModulus          = MaterialProperties[YOUNG_MODULUS];
-    const double& PoissonCoefficient    = MaterialProperties[POISSON_RATIO];
-
-    //2.-Total Deformation Gradient
-    Matrix F0 = prod(DeformationGradientF,DeformationGradientF0);
-
-    //3.-Determinant of the Total Deformation Gradient
-    detF0 *= detF;
-        
-    //4.-Left Cauchy-Green tensor b
-    Matrix LeftCauchyGreen = prod(F0,trans(F0));
-
-    //6.-Almansi Strain:
-    if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
-      {
-	// e= 0.5*(1-invbT*invb)   
-	Matrix InverseLeftCauchyGreen ( 2 , 2 );
-	double Trace_b = 0;
-	MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, Trace_b);
-
-	Vector StrainVector( 3 );
-	StrainVector[0] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 0, 0 ) );
-	StrainVector[1] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 1, 1 ) );
-	StrainVector[2] = InverseLeftCauchyGreen( 0, 1 );
-       }
- 
-    //7.-Calculate total Kirchhoff stress   
-   
-    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
-	  
-      CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-
-      CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );		
-
-    }
-    else if(  Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) && Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
-
-      CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
-
-    }
-  }
-  
-
-  //***********************COMPUTE TOTAL STRESS PK2*************************************
-  //************************************************************************************
-
-
-  void LinearElastic2DLaw::CalculateStress( const Vector & rStrainVector,
-					   const Matrix & rConstitutiveMatrix,
-					   Vector& rStressVector )
-  {
-      
-    //1.-2nd Piola Kirchhoff StressVector increment
-    rStressVector = prod(rConstitutiveMatrix,rStrainVector);
+    rStrainVector.clear();
+    rStrainVector[0] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 0, 0 ) );
+    rStrainVector[1] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 1, 1 ) );
+    rStrainVector[2] = InverseLeftCauchyGreen( 0, 1 );
 
 
   }
@@ -237,6 +107,7 @@ namespace Kratos
   {
     rConstitutiveMatrix.clear();
 
+    //plane strain constitutive matrix:
     rConstitutiveMatrix ( 0 , 0 ) = (rYoungModulus*(1.0-rPoissonCoefficient)/((1.0+rPoissonCoefficient)*(1.0-2*rPoissonCoefficient)));
     rConstitutiveMatrix ( 1 , 1 ) = rConstitutiveMatrix ( 0 , 0 );
 
@@ -249,37 +120,5 @@ namespace Kratos
 
   
 
-  //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
-  //************************************************************************************
 
-  bool LinearElastic2DLaw::CheckParameters(Parameters& rValues)
-  {
-    return rValues.CheckAllParameters();
-  }
-
-
-
-  int LinearElastic2DLaw::Check(const Properties& rProperties, 
-			       const GeometryType& rGeometry, 
-			       const ProcessInfo& rCurrentProcessInfo)
-  {
-
-    if(YOUNG_MODULUS.Key() == 0 || rProperties[YOUNG_MODULUS]<= 0.00)
-      KRATOS_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
-
-    const double& nu = rProperties[POISSON_RATIO];
-    const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
-
-    if(POISSON_RATIO.Key() == 0 || check==true) 
-      KRATOS_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
-
-	  
-    if(DENSITY.Key() == 0 || rProperties[DENSITY]<0.00)
-      KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
-
-	  	    
-    return 0;
-	    
-  }
-    
 } // Namespace Kratos

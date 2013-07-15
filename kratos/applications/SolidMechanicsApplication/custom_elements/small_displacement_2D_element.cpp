@@ -12,7 +12,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/total_lagrangian_2D_element.hpp"
+#include "custom_elements/small_displacement_2D_element.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "solid_mechanics_application.h"
@@ -20,13 +20,13 @@
 
 namespace Kratos
 {
-
+ 
 
   //******************************CONSTRUCTOR*******************************************
   //************************************************************************************
 
-  TotalLagrangian2DElement::TotalLagrangian2DElement( IndexType NewId, GeometryType::Pointer pGeometry )
-    : TotalLagrangian3DElement( NewId, pGeometry )
+  SmallDisplacement2DElement::SmallDisplacement2DElement( IndexType NewId, GeometryType::Pointer pGeometry )
+    : SmallDisplacement3DElement( NewId, pGeometry )
   {
     //DO NOT ADD DOFS HERE!!!
   }
@@ -35,8 +35,8 @@ namespace Kratos
   //******************************CONSTRUCTOR*******************************************
   //************************************************************************************
 
-  TotalLagrangian2DElement::TotalLagrangian2DElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-    : TotalLagrangian3DElement( NewId, pGeometry, pProperties )
+  SmallDisplacement2DElement::SmallDisplacement2DElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+    : SmallDisplacement3DElement( NewId, pGeometry, pProperties )
   {
   }
 
@@ -44,8 +44,8 @@ namespace Kratos
   //******************************COPY CONSTRUCTOR**************************************
   //************************************************************************************
 
-  TotalLagrangian2DElement::TotalLagrangian2DElement( TotalLagrangian2DElement const& rOther)
-    :TotalLagrangian3DElement(rOther)
+  SmallDisplacement2DElement::SmallDisplacement2DElement( SmallDisplacement2DElement const& rOther)
+    :SmallDisplacement3DElement(rOther)
   {
   }
 
@@ -53,9 +53,10 @@ namespace Kratos
   //*******************************ASSIGMENT OPERATOR***********************************
   //************************************************************************************
 
-  TotalLagrangian2DElement&  TotalLagrangian2DElement::operator=(TotalLagrangian2DElement const& rOther)
+  SmallDisplacement2DElement&  SmallDisplacement2DElement::operator=(SmallDisplacement2DElement const& rOther)
   {
-    TotalLagrangian3DElement::operator=(rOther);
+    SmallDisplacement3DElement::operator=(rOther);
+
     return *this;
   }
 
@@ -63,16 +64,16 @@ namespace Kratos
   //*********************************OPERATIONS*****************************************
   //************************************************************************************
 
-  Element::Pointer TotalLagrangian2DElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+  Element::Pointer SmallDisplacement2DElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
   {
-    return Element::Pointer( new TotalLagrangian2DElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Element::Pointer( new SmallDisplacement2DElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
   }
 
 
   //*******************************DESTRUCTOR*******************************************
   //************************************************************************************
 
-  TotalLagrangian2DElement::~TotalLagrangian2DElement()
+  SmallDisplacement2DElement::~SmallDisplacement2DElement()
   {
   }
 
@@ -82,7 +83,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void TotalLagrangian2DElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+  void SmallDisplacement2DElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
   {
     rElementalDofList.resize( 0 );
 
@@ -97,7 +98,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void TotalLagrangian2DElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+  void SmallDisplacement2DElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
   {
     int number_of_nodes = GetGeometry().size();
     unsigned int element_size = number_of_nodes * 2;
@@ -114,30 +115,32 @@ namespace Kratos
 
   }
 
-
   //************* STARTING - ENDING  METHODS
   //************************************************************************************
   //************************************************************************************
 
-
-  void TotalLagrangian2DElement::InitializeStandardVariables (Standard & rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void SmallDisplacement2DElement::InitializeStandardVariables (Standard & rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
-  
+
     const unsigned int number_of_nodes = GetGeometry().size();
  
     rVariables.B.resize( 3 , number_of_nodes * 2 );
-  
-    rVariables.F.resize( 2, 2 );
 
-    rVariables.F0.resize( 2, 2 );
-  
+    rVariables.H.resize( 2, 2 );
+
     rVariables.ConstitutiveMatrix.resize( 3, 3 );
   
     rVariables.StrainVector.resize( 3 );
   
     rVariables.StressVector.resize( 3 );
-  
+
     rVariables.DN_DX.resize( number_of_nodes, 2 );
+ 
+    //needed parameters for consistency with the general constitutive law: small displacements 
+    rVariables.detF0 = 1;
+    rVariables.detF  = 1;
+    rVariables.F0    = identity_matrix<double>(2);
+    rVariables.F     = identity_matrix<double>(2);
 
     //set variables including all integration points values
 
@@ -150,16 +153,17 @@ namespace Kratos
     //calculating the jacobian from cartesian coordinates to parent coordinates for all integration points
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod );
 
-  
+
   }
 
   //************************************************************************************
   //************************************************************************************
 
-  double& TotalLagrangian2DElement::CalculateIntegrationWeight(double& rIntegrationWeight)
+  double& SmallDisplacement2DElement::CalculateIntegrationWeight(double& rIntegrationWeight)
   {
+
     rIntegrationWeight *= GetProperties()[THICKNESS];
-    
+
     return rIntegrationWeight;
   }
 
@@ -170,23 +174,28 @@ namespace Kratos
   //************************************************************************************
 
 
-  void TotalLagrangian2DElement::CalculateGreenLagrangeStrain(const Matrix& rF,
-							      Vector& rStrainVector )
+  //*************************COMPUTE DISPLACEMENT GRADIENT******************************
+  //************************************************************************************
+
+  void SmallDisplacement2DElement::CalculateDisplacementGradient(const Matrix& rDN_DX,
+								 Matrix& rH)
   {
     KRATOS_TRY
 
-    //Right Cauchy-Green Calculation
-    Matrix C ( 2, 2 );
-    noalias( C ) = prod( trans( rF ), rF );
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
-    //Green Lagrange Strain Calculation
-    if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
+    rH = zero_matrix<double> ( 2 );
 
-    rStrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {
 
-    rStrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
+	array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
-    rStrainVector[2] = C( 0, 1 ); // xy
+	rH ( 0 , 0 ) += Displacement[0]*rDN_DX ( i , 0 );
+	rH ( 0 , 1 ) += Displacement[0]*rDN_DX ( i , 1 );
+	rH ( 1 , 0 ) += Displacement[1]*rDN_DX ( i , 0 );
+	rH ( 1 , 1 ) += Displacement[1]*rDN_DX ( i , 1 );
+     }
 
 
     KRATOS_CATCH( "" )
@@ -196,40 +205,31 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void TotalLagrangian2DElement::CalculateAlmansiStrain(const Matrix& rF,
-						      Vector& rStrainVector )
+  void SmallDisplacement2DElement::CalculateInfinitesimalStrain(const Matrix& rH,
+								 Vector& rStrainVector )
   {
     KRATOS_TRY
 
-      //Left Cauchy-Green Calculation
-      Matrix LeftCauchyGreen = prod( rF, trans( rF ) );
 
-    //Calculating the inverse of the jacobian 
-    Matrix InverseLeftCauchyGreen ( 2, 2 );
-    double det_b=0;
-    MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+      //Green Lagrange Strain Calculation
+      if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
 
+    rStrainVector[0] = rH( 0, 0 );
 
-    //Almansi Strain Calculation
-    if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
+    rStrainVector[1] = rH( 1, 1 );
 
-    rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
-
-    rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );
-
-    rStrainVector[2] = - InverseLeftCauchyGreen( 0, 1 ); // xy
-
-
+    rStrainVector[2] = (rH( 0, 1 ) + rH( 1, 0 )); // xy
 
     KRATOS_CATCH( "" )
+
       }
 
+
   //************************************************************************************
   //************************************************************************************
 
-  void TotalLagrangian2DElement::CalculateDeformationMatrix(Matrix& rB,
-							    Matrix& rF,
-							    Matrix& rDN_DX)
+  void SmallDisplacement2DElement::CalculateDeformationMatrix(Matrix& rB,
+							      Matrix& rDN_DX)
   {
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -238,13 +238,10 @@ namespace Kratos
       {
 	unsigned int index = 2 * i;
 
-	rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
-	rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
-	rB( 1, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
-	rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
-	rB( 2, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
-	rB( 2, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
-	
+	rB( 0, index + 0 ) = rDN_DX( i, 0 );
+	rB( 1, index + 1 ) = rDN_DX( i, 1 );
+	rB( 2, index + 0 ) = rDN_DX( i, 1 );
+	rB( 2, index + 1 ) = rDN_DX( i, 0 );
 
       }
 
@@ -255,16 +252,18 @@ namespace Kratos
   //************************************CALCULATE TOTAL MASS****************************
   //************************************************************************************
 
-  double& TotalLagrangian2DElement::CalculateTotalMass( double& rTotalMass )
+  double& SmallDisplacement2DElement::CalculateTotalMass( double& TotalMass )
   {
     KRATOS_TRY
 
-    rTotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY] * GetProperties()[THICKNESS];
+    TotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY] * GetProperties()[THICKNESS];
 
-    return rTotalMass;
+    return TotalMass;
 
     KRATOS_CATCH( "" )
   }
+
+
 
 
   //************************************************************************************
@@ -276,11 +275,11 @@ namespace Kratos
    * or that no common error is found.
    * @param rCurrentProcessInfo
    */
-  int  TotalLagrangian2DElement::Check( const ProcessInfo& rCurrentProcessInfo )
+  int  SmallDisplacement2DElement::Check( const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
-    LargeDisplacement3DElement::Check(rCurrentProcessInfo);
+    SmallDisplacement3DElement::Check(rCurrentProcessInfo);
 
     if ( THICKNESS.Key() == 0 )
       KRATOS_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" );
@@ -294,15 +293,14 @@ namespace Kratos
   }
 
 
-  void TotalLagrangian2DElement::save( Serializer& rSerializer ) const
+  void SmallDisplacement2DElement::save( Serializer& rSerializer ) const
   {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, TotalLagrangian3DElement );
- }
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer,  SmallDisplacement3DElement );
+   }
 
-  void TotalLagrangian2DElement::load( Serializer& rSerializer )
+  void SmallDisplacement2DElement::load( Serializer& rSerializer )
   {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, TotalLagrangian3DElement );
-
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallDisplacement3DElement );
   }
 
 

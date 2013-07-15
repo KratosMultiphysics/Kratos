@@ -6,15 +6,15 @@
 //
 //
 
-#if !defined (KRATOS_LINEAR_ELASTIC_2D_LAW_H_INCLUDED)
-#define  KRATOS_LINEAR_ELASTIC_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_LINEAR_ELASTIC_PLANE_STRESS_2D_LAW_H_INCLUDED)
+#define  KRATOS_LINEAR_ELASTIC_PLANE_STRESS_2D_LAW_H_INCLUDED
 
 // System includes 
 
 // External includes 
 
 // Project includes
-#include "custom_constitutive/linear_elastic_3D_law.hpp"
+#include "custom_constitutive/linear_elastic_2D_law.hpp"
 
 namespace Kratos
 {
@@ -27,7 +27,7 @@ namespace Kratos
    * for small and large displacements elasticity.
    */
 
-  class LinearElastic2DLaw : public LinearElastic3DLaw
+  class LinearElasticPlaneStress2DLaw : public LinearElastic2DLaw
   {
   public:
     /**
@@ -37,10 +37,10 @@ namespace Kratos
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
     /**
-     * Counted pointer of LinearElastic2DLaw
+     * Counted pointer of LinearElasticPlaneStress2DLaw
      */
     
-    KRATOS_CLASS_POINTER_DEFINITION(LinearElastic2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(LinearElasticPlaneStress2DLaw);
     
     /**
      * Life Cycle 
@@ -49,7 +49,7 @@ namespace Kratos
     /**
      * Default constructor.
      */
-    LinearElastic2DLaw();
+    LinearElasticPlaneStress2DLaw();
 			
     /**
      * Clone function (has to be implemented by any derived class)
@@ -60,20 +60,20 @@ namespace Kratos
     /**
      * Copy constructor.
      */
-    LinearElastic2DLaw (const LinearElastic2DLaw& rOther);
+    LinearElasticPlaneStress2DLaw (const LinearElasticPlaneStress2DLaw& rOther);
    
 
     /**
      * Assignment operator.
      */
 
-    //LinearElastic2DLaw& operator=(const LinearElastic2DLaw& rOther);
+    //LinearElasticPlaneStress2DLaw& operator=(const LinearElasticPlaneStress2DLaw& rOther);
 
 
     /**
      * Destructor.
      */
-    virtual ~LinearElastic2DLaw();
+    virtual ~LinearElasticPlaneStress2DLaw();
 			
     /**
      * Operators 
@@ -83,8 +83,7 @@ namespace Kratos
      * Operations needed by the base class:
      */
 
-
-    /**
+     /**
      * Input and output
      */
     /**
@@ -116,24 +115,6 @@ namespace Kratos
     ///@}
 
     /**
-     * Calculates the GreenLagrange strains
-     * @param rRightCauchyGreen
-     * @param rStrainVector
-     */
-    virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-					       Vector& rStrainVector );
-
-
-    /**
-     * Calculates the Almansi strains
-     * @param rRightCauchyGreen
-     * @param rStrainVector
-     */
-    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-					 Vector& rStrainVector );
-
- 	       
-    /**
      * calculates the linear elastic constitutive matrix in terms of Young's modulus and
      * Poisson ratio
      * @param E the Young's modulus
@@ -142,11 +123,11 @@ namespace Kratos
      */
 
 
-    virtual void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, 
-					       const double &rYoungModulus, 
-					       const double &rPoissonCoefficient );
+    void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, 
+				       const double &rYoungModulus, 
+				       const double &rPoissonCoefficient );
 
-
+    
 	
   private:
 
@@ -167,7 +148,8 @@ namespace Kratos
     ///@name Private Operations
     ///@{
     ///@}
-   
+
+ 	       
     ///@}
     ///@name Private  Access
     ///@{
@@ -180,15 +162,15 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearElastic3DLaw);
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearElastic2DLaw);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearElastic3DLaw);
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearElastic2DLaw);
     }
 
 
-  }; // Class LinearElastic2DLaw 
+  }; // Class LinearElasticPlaneStress2DLaw 
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_ELASTIC_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_ELASTIC_PLANE_STRESS_2D_LAW_H_INCLUDED  defined 

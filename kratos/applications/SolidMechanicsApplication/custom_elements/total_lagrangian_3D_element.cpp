@@ -162,11 +162,14 @@ namespace Kratos
   {
     KRATOS_TRY
       
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+    const Matrix& Ncontainer = rVariables.GetShapeFunctions();
+
     //Parent to reference configuration
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
    
     //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-    noalias( rVariables.DN_DX ) = prod( (*rVariables.pDN_De)[rPointNumber], mInvJ0[rPointNumber] );
+    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], mInvJ0[rPointNumber] );
 
     //Deformation Gradient F
     noalias( rVariables.F ) = prod( rVariables.J[rPointNumber], mInvJ0[rPointNumber] );
@@ -180,7 +183,7 @@ namespace Kratos
     rVariables.F0    = identity_matrix<double>(rVariables.F0.size1());
 
     //Set Shape Functions Values for this integration point
-    rVariables.N=row(*(rVariables.pNcontainer), rPointNumber);
+    rVariables.N=row( Ncontainer, rPointNumber);
 
     //Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B,rVariables.F,rVariables.DN_DX);

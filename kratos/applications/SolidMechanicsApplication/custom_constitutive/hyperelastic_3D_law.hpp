@@ -1,0 +1,372 @@
+//   
+//   Project Name:        KratosSolidMechanicsApplication $      
+//   Last modified by:    $Author:            JMCarbonell $ 
+//   Date:                $Date:                July 2013 $
+//   Revision:            $Revision:                  0.0 $
+//
+//
+
+#if !defined (KRATOS_HYPERELASTIC_3D_LAW_H_INCLUDED)
+#define  KRATOS_HYPERELASTIC_3D_LAW_H_INCLUDED
+
+// System includes 
+
+// External includes 
+
+// Project includes
+#include "includes/constitutive_law.h"
+
+
+namespace Kratos
+{
+  /**
+   * Defines a hyperelastic isotropic constitutive law in 2D Neohookean Model (Plane Strain)
+   * This material law is defined by the parameters:
+   * 1) YOUNG MODULUS 
+   * 2) POISSON RATIO
+   * As there are no further parameters the functionality is limited 
+   * to large displacements elasticity.
+   */
+
+  class HyperElastic3DLaw : public ConstitutiveLaw
+  {
+  public:
+    /**
+     * Type Definitions
+     */
+    typedef ProcessInfo      ProcessInfoType;
+    typedef ConstitutiveLaw         BaseType;
+    typedef std::size_t             SizeType;
+    /**
+     * Counted pointer of HyperElastic3DLaw
+     */
+    
+    KRATOS_CLASS_POINTER_DEFINITION(HyperElastic3DLaw);
+    
+    /**
+     * Life Cycle 
+     */
+
+    /**
+     * Default constructor.
+     */
+    HyperElastic3DLaw();
+			
+    /**
+     * Clone function (has to be implemented by any derived class)
+     * @return a pointer to a new instance of this constitutive law
+     */
+    ConstitutiveLaw::Pointer Clone() const;
+    
+    /**
+     * Copy constructor.
+     */
+    HyperElastic3DLaw (const HyperElastic3DLaw& rOther);
+   
+
+    /**
+     * Assignment operator.
+     */
+
+    //HyperElastic3DLaw& operator=(const HyperElastic3DLaw& rOther);
+
+
+    /**
+     * Destructor.
+     */
+    virtual ~HyperElastic3DLaw();
+			
+    /**
+     * Operators 
+     */
+    
+    /**
+     * Operations needed by the base class:
+     */
+
+    SizeType WorkingSpaceDimension() { return 2; };
+    SizeType GetStrainSize()         { return 3; };
+
+    bool Has( const Variable<double>& rThisVariable );
+    bool Has( const Variable<Vector>& rThisVariable );
+    bool Has( const Variable<Matrix>& rThisVariable );
+			
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue );
+    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue );
+    Matrix& GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue );
+
+			
+    void SetValue( const Variable<double>& rVariable, 
+		   const double& Value, 
+		   const ProcessInfo& rCurrentProcessInfo );
+    void SetValue( const Variable<Vector>& rThisVariable, 
+		   const Vector& rValue, 
+		   const ProcessInfo& rCurrentProcessInfo );
+    void SetValue( const Variable<Matrix>& rThisVariable, 
+		   const Matrix& rValue, 
+		   const ProcessInfo& rCurrentProcessInfo );
+    /**
+     * Material parameters are inizialized
+     */ 
+    void InitializeMaterial( const Properties& props,
+			     const GeometryType& geom,
+			     const Vector& ShapeFunctionsValues );
+
+		
+    void InitializeSolutionStep( const Properties& props,
+				 const GeometryType& geom, //this is just to give the array of nodes
+				 const Vector& ShapeFunctionsValues ,
+				 const ProcessInfo& CurrentProcessInfo);
+			
+    void FinalizeSolutionStep( const Properties& props,
+			       const GeometryType& geom, //this is just to give the array of nodes
+			       const Vector& ShapeFunctionsValues ,
+			       const ProcessInfo& CurrentProcessInfo);
+    			           
+    /**
+     * Computes the material response:
+     * PK1 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues 
+     * @see   Parameters
+     */          
+    void CalculateMaterialResponsePK1 (Parameters & rValues);
+
+    /**
+     * Computes the material response:
+     * PK2 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues 
+     * @see   Parameters
+     */
+    void CalculateMaterialResponsePK2 (Parameters & rValues);
+
+    /**
+     * Computes the material response:
+     * Kirchhoff stresses and algorithmic ConstitutiveMatrix
+     * @param rValues 
+     * @see   Parameters
+     */
+    void CalculateMaterialResponseKirchhoff (Parameters & rValues);
+
+
+    /**
+     * Computes the material response:
+     * Cauchy stresses and algorithmic ConstitutiveMatrix
+     * @param rValues 
+     * @see   Parameters
+     */
+    void CalculateMaterialResponseCauchy (Parameters & rValues);
+    
+    
+   /**
+     * Updates the material response:
+     * Cauchy stresses and Internal Variables
+     * @param rValues 
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponsePK1 (Parameters & rValues);
+ 
+   /**
+     * Updates the material response:
+     * Cauchy stresses and Internal Variables
+     * @param rValues 
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponsePK2 (Parameters & rValues);
+
+   /**
+     * Updates the material response:
+     * Cauchy stresses and Internal Variables
+     * @param rValues 
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponseKirchhoff (Parameters & rValues);
+
+   /**
+     * Updates the material response:
+     * Cauchy stresses and Internal Variables
+     * @param rValues 
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponseCauchy (Parameters & rValues);
+
+    /**
+     * This function is designed to be called once to perform all the checks needed
+     * on the input provided. Checks can be "expensive" as the function is designed
+     * to catch user's errors.
+     * @param props
+     * @param geom
+     * @param CurrentProcessInfo
+     * @return
+     */
+    int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Input and output
+     */
+    /**
+     * Turn back information as a string.
+     */
+    //virtual String Info() const;
+    /**
+     * Print information about this object.
+     */
+    //virtual void PrintInfo(std::ostream& rOStream) const;
+    /**
+     * Print object's data.
+     */
+    //virtual void PrintData(std::ostream& rOStream) const;
+		
+  protected:
+
+    ///@name Protected static Member Variables
+    ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /**
+     * Calculates the GreenLagrange strains
+     * @param rRightCauchyGreen
+     * @param rStrainVector
+     */
+    virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+					       Vector& rStrainVector );
+
+
+    /**
+     * Calculates the Almansi strains
+     * @param rRightCauchyGreen
+     * @param rStrainVector
+     */
+    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+					 Vector& rStrainVector );
+
+    /**
+     * Calculates the constitutive matrix 
+     * @param rMatrixIC can be the Identity or the RightCauchyGreen tensor
+     * @param rdetF the determinant of the deformation gradient
+     * @param rLameLambda lame paramenter lambda
+     * @param rLameMu lame paramenter mu
+     * matrix is to be generated for
+     * @param rResult Matrix the result (Constitutive Matrix) will be stored in
+     */
+    virtual void CalculateConstitutiveMatrix (const Matrix & rMatrixIC,
+					      const double &rdetF,
+					      const double &rLameLambda,
+					      const double &rLameMu,
+					      Matrix& rConstitutiveMatrix);
+
+
+    /**
+     * Calculates the constitutive matrix and makes a pull-back
+     * @param rMatrixIC can be the Identity or the RightCauchyGreen tensor
+     * @param rinvF the invers of the current deformation gradient
+     * @param rdetF0 the determinant of the total deformation gradient
+     * @param rLameLambda lame paramenter lambda
+     * @param rLameMu lame paramenter mu
+     * matrix is to be generated for
+     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
+     */
+    virtual void CalculateConstitutiveMatrix (const Matrix &rMatrixIC,
+					      const Matrix &rinvF, 
+					      const double &rdetF0,
+					      const double &rLameLambda,
+					      const double &rLameMu,
+					      Matrix& rConstitutiveMatrix);
+
+
+
+    double ConstitutiveComponent( const Matrix &rMatrixIC,
+				  const Matrix &rinvF,
+				  const double &rdetF0, 
+				  const double &rLameLambda, 
+				  const double &rLameMu, 
+				  int a, int b, int c, int d);
+
+
+    double ConstitutiveComponent( const Matrix &rMatrixIC,
+				  const double &rdetF0, 
+				  const double &rLameLambda, 
+				  const double &rLameMu, 
+				  int a, int b, int c, int d);
+    
+    /**
+     * Calculates the stress vector
+     * @param rMatrixIC can be the Identity or the RightCauchyGreen tensor
+     * @param rIdentityMatrix can be the IdentityMatrix
+     * @param rdetF0 the determinant of the total deformation gradient
+     * @param rLameLambda lame paramenter lambda
+     * @param rLameMu lame paramenter mu
+     * matrix is to be generated for
+     * @param rStressMeasure measure of stress to be calculated
+     * @param rStressVector vector where the stress result is stored
+     */
+    void CalculateStress( const Matrix &rMatrixIC,
+			  const Matrix &rIdentityMatrix,
+			  const double &rdetF0,
+			  const double &rLameLambda, 
+			  const double &rLameMu, 
+			  StressMeasure rStressMeasure,
+			  Vector& rStressVector);
+
+
+     
+    /**
+     * This function is designed to be called when before the material response
+     * to check if all needed parameters for the constitutive are initialized 
+     * @param Parameters
+     * @return
+     */
+    virtual bool CheckParameters(Parameters& rValues);
+		
+  private:
+
+    ///@name Static Member Variables
+    ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
+
+ 
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+
+    virtual void save(Serializer& rSerializer) const
+    {
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    }
+
+    virtual void load(Serializer& rSerializer)
+    {
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
+    }
+
+
+
+  }; // Class HyperElastic3DLaw 
+}  // namespace Kratos.
+#endif // KRATOS_HYPERELASTIC_3D_LAW_H_INCLUDED  defined 

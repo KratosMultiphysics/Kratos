@@ -107,10 +107,10 @@ namespace Kratos
     //set variables including all integration points values
 
     //reading shape functions
-    rVariables.pNcontainer = &(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
+    rVariables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
  
     //reading shape functions local gradients
-    rVariables.pDN_De = &(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
+    rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
     
     //calculating the jacobian from cartesian coordinates to parent coordinates for all integration points
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod );

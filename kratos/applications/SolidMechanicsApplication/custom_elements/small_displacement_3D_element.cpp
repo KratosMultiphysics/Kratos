@@ -494,10 +494,10 @@ namespace Kratos
     //set variables including all integration points values
 
     //reading shape functions
-    rVariables.pNcontainer = &(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
+    rVariables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
  
     //reading shape functions local gradients
-    rVariables.pDN_De = &(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
+    rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
     
     //calculating the jacobian from cartesian coordinates to parent coordinates for all integration points
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod );
@@ -735,7 +735,6 @@ namespace Kratos
     //set constitutive law flags:
     Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
 
@@ -927,32 +926,35 @@ namespace Kratos
 
   {
     KRATOS_TRY
+
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+    const Matrix& Ncontainer = rVariables.GetShapeFunctions();
       
     //Calculating the inverse of the jacobian and the parameters needed
     Matrix InvJ;
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //Compute cartesian derivatives
-    noalias( rVariables.DN_DX ) = prod( (*rVariables.pDN_De)[rPointNumber] , InvJ );
+    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
 
     //Displacement Gradient H
-    CalculateDisplacementGradient (rVariables.DN_DX, rVariables.H);
-
+    this->CalculateDisplacementGradient (rVariables.DN_DX, rVariables.H);
+     
     //Set Shape Functions Values for this integration point
-    rVariables.N=row(*(rVariables.pNcontainer), rPointNumber);
+    rVariables.N=row( Ncontainer, rPointNumber);
 
     //Compute the deformation matrix B
-    CalculateDeformationMatrix(rVariables.B,rVariables.DN_DX);
+    this->CalculateDeformationMatrix(rVariables.B,rVariables.DN_DX);
 
     //Compute infinitessimal strain
-    CalculateInfinitesimalStrain(rVariables.H,rVariables.StrainVector);
+    this->CalculateInfinitesimalStrain(rVariables.H,rVariables.StrainVector);
 
 
     KRATOS_CATCH( "" )
       }
 
 
-  //*************************COMPUTE DEFORMATION GRADIENT*******************************
+  //*************************COMPUTE DISPLACEMENT GRADIENT******************************
   //************************************************************************************
 
   void SmallDisplacement3DElement::CalculateDisplacementGradient(const Matrix& rDN_DX,
@@ -1003,11 +1005,11 @@ namespace Kratos
 
     rStrainVector[2] = rH( 2, 2 );
 
-    rStrainVector[3] = 0.5 * ( rH( 0, 1 ) + rH( 1, 0 ) ); // xy
+    rStrainVector[3] = ( rH( 0, 1 ) + rH( 1, 0 ) ); // xy
+    
+    rStrainVector[4] = ( rH( 1, 2 ) + rH( 2, 1 ) ); // yz
 
-    rStrainVector[4] = 0.5 * ( rH( 1, 2 ) + rH( 2, 1 ) ); // yz
-
-    rStrainVector[5] = 0.5 * ( rH( 0, 2 ) + rH( 2, 0 ) ); // xz
+    rStrainVector[5] = ( rH( 0, 2 ) + rH( 2, 0 ) ); // xz
 
     KRATOS_CATCH( "" )
 
@@ -1114,7 +1116,8 @@ namespace Kratos
 
     rMassMatrix = ZeroMatrix( MatSize, MatSize );
 
-    double& TotalMass = this->CalculateTotalMass(TotalMass);
+    double TotalMass = 0;
+    TotalMass = this->CalculateTotalMass(TotalMass);
 
     Vector LumpFact  = GetGeometry().LumpingFactors( LumpFact );
 
@@ -1179,7 +1182,6 @@ namespace Kratos
 	//set constitutive law flags:
 	Flags &ConstitutiveLawOptions=Values.GetOptions();
 
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
 	for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -1233,7 +1235,6 @@ namespace Kratos
 	//set constitutive law flags:
 	Flags &ConstitutiveLawOptions=Values.GetOptions();
 	
-	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRAIN);
 	ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
 
@@ -1393,7 +1394,7 @@ namespace Kratos
 	for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
 	  {
 	    //compute element kinematics B, F, DN_DX ...
-	    CalculateKinematics(Variables,PointNumber);
+	    this->CalculateKinematics(Variables,PointNumber);
 	      
 	    if( rOutput[PointNumber].size2() != Variables.F.size2() )
 	      rOutput[PointNumber].resize( Variables.F.size1() , Variables.F.size2() , false );

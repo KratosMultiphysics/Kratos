@@ -1,0 +1,87 @@
+//   
+//   Project Name:        KratosSolidMechanicsApplication $      
+//   Last modified by:    $Author:            JMCarbonell $ 
+//   Date:                $Date:                July 2013 $
+//   Revision:            $Revision:                  0.0 $
+//
+//
+
+// System includes
+#include <iostream>
+
+// External includes
+#include<cmath>
+
+// Project includes
+#include "includes/properties.h"
+#include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
+
+#include "solid_mechanics_application.h"
+
+namespace Kratos
+{
+
+  //******************************CONSTRUCTOR*******************************************
+  //************************************************************************************
+
+  LinearElasticPlaneStress2DLaw::LinearElasticPlaneStress2DLaw()
+  : LinearElastic2DLaw()
+  {
+  }
+
+  //******************************COPY CONSTRUCTOR**************************************
+  //************************************************************************************
+
+  LinearElasticPlaneStress2DLaw::LinearElasticPlaneStress2DLaw(const LinearElasticPlaneStress2DLaw& rOther)
+  : LinearElastic2DLaw()
+  {
+  }
+  
+  //********************************CLONE***********************************************
+  //************************************************************************************
+
+  ConstitutiveLaw::Pointer LinearElasticPlaneStress2DLaw::Clone() const
+  {
+    LinearElasticPlaneStress2DLaw::Pointer p_clone(new LinearElasticPlaneStress2DLaw(*this));
+    return p_clone;
+  }
+  
+  //*******************************DESTRUCTOR*******************************************
+  //************************************************************************************
+
+  LinearElasticPlaneStress2DLaw::~LinearElasticPlaneStress2DLaw()
+  {
+  }
+
+
+  //************* COMPUTING  METHODS
+  //************************************************************************************
+  //************************************************************************************
+
+
+
+    //***********************COMPUTE ALGORITHMIC CONSTITUTIVE MATRIX**********************
+  //************************************************************************************
+
+
+  void LinearElasticPlaneStress2DLaw::CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, 
+							const double &rYoungModulus, 
+							const double &rPoissonCoefficient )
+  {
+    rConstitutiveMatrix.clear();
+
+    //plane stress constitutive matrix:
+    rConstitutiveMatrix ( 0 , 0 ) = (rYoungModulus)/(1.0-rPoissonCoefficient*rPoissonCoefficient);
+    rConstitutiveMatrix ( 1 , 1 ) = rConstitutiveMatrix ( 0 , 0 );
+
+    rConstitutiveMatrix ( 2 , 2 ) = rConstitutiveMatrix ( 0 , 0 )*(1-rPoissonCoefficient)*0.5;
+
+    rConstitutiveMatrix ( 0 , 1 ) = rConstitutiveMatrix ( 0 , 0 )*rPoissonCoefficient;
+    rConstitutiveMatrix ( 1 , 0 ) = rConstitutiveMatrix ( 0 , 1 );
+  }
+
+
+  
+
+    
+} // Namespace Kratos
