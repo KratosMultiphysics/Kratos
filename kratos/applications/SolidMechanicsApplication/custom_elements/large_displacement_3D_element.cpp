@@ -569,7 +569,7 @@ namespace Kratos
 	//compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
-        //set standart parameters
+        //set standard parameters
         this->SetStandardParameters(Variables,Values,PointNumber);
 
 	//compute stresses and constitutive parameters
@@ -738,7 +738,7 @@ namespace Kratos
 	//compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
-        //set standart parameters
+        //set standard parameters
         this->SetStandardParameters(Variables,Values,PointNumber);
 
         //call the constitutive law to update material variables
@@ -1199,7 +1199,7 @@ namespace Kratos
 	    //compute element kinematics B, F, DN_DX ...
 	    this->CalculateKinematics(Variables,PointNumber);
 	    
-	    //set standart parameters
+	    //set standard parameters
 	    this->SetStandardParameters(Variables,Values,PointNumber);
 	    
 	    //call the constitutive law to update material variables
@@ -1254,7 +1254,7 @@ namespace Kratos
 	    //compute element kinematics B, F, DN_DX ...
 	    this->CalculateKinematics(Variables,PointNumber);
 	    
-	    //set standart parameters
+	    //set standard parameters
 	    this->SetStandardParameters(Variables,Values,PointNumber);
 	    
 	    //call the constitutive law to update material variables
@@ -1382,7 +1382,7 @@ namespace Kratos
 	    //compute element kinematics B, F, DN_DX ...
 	    this->CalculateKinematics(Variables,PointNumber);
 	    
-	    //set standart parameters
+	    //set standard parameters
 	    this->SetStandardParameters(Variables,Values,PointNumber);
 	    
 	    //call the constitutive law to update material variables
