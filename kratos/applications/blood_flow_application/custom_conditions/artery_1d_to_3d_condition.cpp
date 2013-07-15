@@ -140,7 +140,7 @@ void Artery1Dto3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
 	    GetGeometry()[1].GetValue(NODAL_AREA) = GetGeometry()[0].GetValue(NODAL_AREA);
 	    
 	    //here we should change the 
-	    GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA) = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
+	    //GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA) = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
 	    
 
             //loop on nodes
@@ -159,10 +159,9 @@ void Artery1Dto3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
             }
  	    flow[1] = flow[0];
             wave_velocity[0] = (flow[0] / area[0]) + 4.00 * sqrt(beta[0] / (2.00 * density * GetGeometry()[0].GetValue(NODAL_AREA))) * pow(area[0],0.25);
-            wave_velocity[1] = (flow[1] / area[1]) - 4.00 * sqrt(beta[1] / (2.00 * density * GetGeometry()[1].GetValue(NODAL_AREA))) * pow(area[1],0.25);
+            wave_velocity[1] = (flow[1] / area[1]) - 4.00 * sqrt(beta[1] / (2.00 * density * GetGeometry()[0].GetValue(NODAL_AREA))) * pow(area[1],0.25);
 
             //KRATOS_WATCH(wave_velocity);
-
 
             double convergence;
             unsigned int max_iterations = 100;
@@ -232,7 +231,7 @@ void Artery1Dto3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
             //node 0
             double A1 = area[0];
             double A0 = GetGeometry()[0].GetValue(NODAL_AREA);
-            double C = beta[0]*sqrt(A1*A1*A1) / (3.0*density*A0);
+            double C = beta[0]*sqrt(A1*A1*A1) / (3.0*density*A0); 
 
             rRightHandSideVector[0] = -flow[0];
             rRightHandSideVector[1] = -(C + coriolis_coefficient*flow[0]*flow[0]/(A1));
@@ -244,9 +243,9 @@ void Artery1Dto3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
 //             C = beta[1]*sqrt(A1*A1*A1)/(3.0*density*A0);
 //             rRightHandSideVector[2] = flow[1] * m;
 //             rRightHandSideVector[3] = (C + coriolis_coefficient*flow[1]*flow[1]/(A1)) * m;
-	    const double m = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
-            rRightHandSideVector[2] = flow[1] * m;
-            rRightHandSideVector[3] = area[1] * m;
+// 	    const double m = GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS);
+//             rRightHandSideVector[2] = flow[1];// * m;
+//             rRightHandSideVector[3] = area[1];//* m;
 
 
     KRATOS_CATCH("")
@@ -348,7 +347,7 @@ void Artery1Dto3DCondition::CalculateFunctional4(array_1d<double,4>& rFunctional
     rFunctional[0]=Flow[0] + 4.00 * Coef[0]* pow(Area[0],1.25) - WaveVelocity[0]*Area[0];
 
     rFunctional[1]=ArteryProperty[0]*(sqrt(Area[0])-sqrt(GetGeometry()[0].GetValue(NODAL_AREA)))-
-		     ArteryProperty[1]*(sqrt(Area[1])-sqrt(GetGeometry()[1].GetValue(NODAL_AREA)))+
+		     ArteryProperty[1]*(sqrt(Area[1])-sqrt(GetGeometry()[0].GetValue(NODAL_AREA)))+
 		     0.50*BloodDensity*(qa0*qa0 - qa1*qa1);
     rFunctional[2]=Flow[0]-Flow[1];
     rFunctional[3]=Flow[1]-4.00*Coef[1] * pow(Area[1],1.25)-WaveVelocity[1]*Area[1];
