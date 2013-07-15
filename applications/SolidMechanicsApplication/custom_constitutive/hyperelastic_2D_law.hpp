@@ -20,10 +20,10 @@
 namespace Kratos
 {
   /**
-   * Defines a hyper elastic isotropic constitutive law in 2D
+   * Defines a hyperelastic isotropic constitutive law in 2D Neohookean Model (Plane Strain)
    * This material law is defined by the parameters:
-   * 1) E  (Young's modulus) 
-   * 2) NU (Poisson ratio)
+   * 1) YOUNG MODULUS 
+   * 2) POISSON RATIO
    * As there are no further parameters the functionality is limited 
    * to large displacements elasticity.
    */
@@ -112,10 +112,7 @@ namespace Kratos
 			     const GeometryType& geom,
 			     const Vector& ShapeFunctionsValues );
 
-    /**
-     * As this constitutive law describes only linear elastic material properties
-     * this function is rather useless and in fact does nothing
-     */ 		
+		
     void InitializeSolutionStep( const Properties& props,
 				 const GeometryType& geom, //this is just to give the array of nodes
 				 const Vector& ShapeFunctionsValues ,
@@ -125,22 +122,7 @@ namespace Kratos
 			       const GeometryType& geom, //this is just to give the array of nodes
 			       const Vector& ShapeFunctionsValues ,
 			       const ProcessInfo& CurrentProcessInfo);
-    
-
-    /**
-     * Calculates the cauchy stresses. For a given deformation and stress state
-     * the cauchy stress vector is calculated
-     * @param Cauchy_StressVector the result vector of cauchy stresses (will be overwritten)
-     * @param F the current deformation gradient
-     * @param PK2_StressVector the current second Piola-Kirchhoff-Stress vector
-     * @param GreenLagrangeStrainVector the current Green-Lagrangian strains
-     */
-    void CalculateCauchyStresses( Vector& rCauchy_StressVector,
-				  const Matrix& rF,
-				  const Vector& rPK2_StressVector,
-				  const Vector& rGreenLagrangeStrainVector);
-
-					           
+    			           
     /**
      * Computes the material response:
      * PK1 stresses and algorithmic ConstitutiveMatrix
@@ -235,16 +217,117 @@ namespace Kratos
     //virtual void PrintData(std::ostream& rOStream) const;
 		
   protected:
+
+    ///@name Protected static Member Variables
+    ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+    ///@}
+    ///@name Protected Operators
+    ///@{
+    ///@}
+    ///@name Protected Operations
+    ///@{
     /**
-     * there are no protected class members
+     * Calculates the constitutive matrix 
+     * @param rMatrixIC can be the Identity or the RightCauchyGreen tensor
+     * @param rdetF the determinant of the deformation gradient
+     * @param rLameLambda lame paramenter lambda
+     * @param rLameMu lame paramenter mu
+     * matrix is to be generated for
+     * @param rResult Matrix the result (Constitutive Matrix) will be stored in
      */
+    void CalculateConstitutiveMatrix (const Matrix & rMatrixIC,
+				      const double &rdetF,
+				      const double &rLameLambda,
+				      const double &rLameMu,
+				      Matrix& rConstitutiveMatrix);
+
+
+    /**
+     * Calculates the constitutive matrix and makes a pull-back
+     * @param rMatrixIC can be the Identity or the RightCauchyGreen tensor
+     * @param rinvF the invers of the current deformation gradient
+     * @param rdetF0 the determinant of the total deformation gradient
+     * @param rLameLambda lame paramenter lambda
+     * @param rLameMu lame paramenter mu
+     * matrix is to be generated for
+     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
+     */
+    void CalculateConstitutiveMatrix (const Matrix &rMatrixIC,
+				      const Matrix &rinvF, 
+				      const double &rdetF0,
+				      const double &rLameLambda,
+				      const double &rLameMu,
+				      Matrix& rConstitutiveMatrix);
+
+    /**
+     * Calculates the stress vector
+     * @param rMatrixIC can be the Identity or the RightCauchyGreen tensor
+     * @param rIdentityMatrix can be the IdentityMatrix
+     * @param rdetF0 the determinant of the total deformation gradient
+     * @param rLameLambda lame paramenter lambda
+     * @param rLameMu lame paramenter mu
+     * matrix is to be generated for
+     * @param rStressMeasure measure of stress to be calculated
+     * @param rStressVector vector where the stress result is stored
+     */
+    void CalculateStress( const Matrix &rMatrixIC,
+			  const Matrix &rIdentityMatrix,
+			  const double &rdetF0,
+			  const double &rLameLambda, 
+			  const double &rLameMu, 
+			  StressMeasure rStressMeasure,
+			  Vector& rStressVector);
+
+
+     
+    /**
+     * This function is designed to be called when before the material response
+     * to check if all needed parameters for the constitutive are initialized 
+     * @param Parameters
+     * @return
+     */
+    virtual bool CheckParameters(Parameters& rValues);
 		
   private:
 
-    ///@}
-    ///@Member Variables 
+    ///@name Static Member Variables
     ///@{
- 			
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    double ConstitutiveComponent( const Matrix &rMatrixIC,
+				  const Matrix &rinvF,
+				  const double &rdetF0, 
+				  const double &rLameLambda, 
+				  const double &rLameMu, 
+				  int a, int b, int c, int d);
+
+
+    double ConstitutiveComponent( const Matrix &rMatrixIC,
+				  const double &rdetF0, 
+				  const double &rLameLambda, 
+				  const double &rLameMu, 
+				  int a, int b, int c, int d);
+    
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
+
  
     ///@}
     ///@name Serialization
@@ -261,97 +344,6 @@ namespace Kratos
       KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
     }
 
-    /**
-     * Calculates the constitutive matrix for a given strain vector
-     * @param DeformationGradient and its determinant detF 
-     * matrix is to be generated for
-     * @param rResult Matrix the result will be stored in
-     */
-    void CalculateConstitutiveMatrix (const Matrix & rMatrixIC,
-				      const double &rdetF,
-				      const double &rLameLambda,
-				      const double &rLameMu,
-				      Matrix& rResult);
-
-
-    /**
-     * Calculates the constitutive matrix and makes a pull-back
-     * @param DeformationGradient and its determinant detF 
-     * matrix is to be generated for
-     * @param rResult Matrix the result will be stored in
-     */
-    void CalculateConstitutiveMatrix (const Matrix &rMatrixIC,
-				      const Matrix &rinvF, 
-				      const double &rdetF,
-				      const double &rLameLambda,
-				      const double &rLameMu,
-				      Matrix& rResult);
-
-  			
-    /**
-     * Calculates the stresses for given strain state
-     * @param DeformationGradientF0 and its determinant detF0
-     * @param rStressVector the stress vector corresponding to the deformation
-     */
-    void CalculateStress( const Matrix &rMatrixIC,
-			  const Matrix &rIdentityMatrix,
-			  const double &rdetF0,
-			  const double &rLameLambda, 
-			  const double &rLameMu, 
-			  StressMeasure rStressMeasure,
-			  Vector& rStressVector);
-
-
-    /**
-     * calculates the linear elastic constitutive matrix in terms of Young's modulus and
-     * Poisson ratio
-     * @param E the Young's modulus
-     * @param NU the Poisson ratio
-     * @return the linear elastic constitutive matrix
-     */
-
-    void CalculateNeoHookeanMatrix( Matrix& rConstitutiveMatrix, 
-				    const Matrix &rMatrixIC,
-				    const double &rdetF0, 
-				    const double &rLameLambda, 
-				    const double &rLameMu );
-    
-    void CalculateNeoHookeanMatrix( Matrix& rConstitutiveMatrix, 
-				    const Matrix &rMatrixIC,
-				    const Matrix &rinvF,
-				    const double &rdetF0, 
-				    const double &rLameLambda, 
-				    const double &rLameMu );
-    
-
-
-    double ConstitutiveComponent( const Matrix &rMatrixIC,
-				  const Matrix &rinvF,
-				  const double &rdetF0, 
-				  const double &rLameLambda, 
-				  const double &rLameMu, 
-				  int a, int b, int c, int d);
-
-
-    double ConstitutiveComponent( const Matrix &rMatrixIC,
-				  const double &rdetF0, 
-				  const double &rLameLambda, 
-				  const double &rLameMu, 
-				  int a, int b, int c, int d);
-    
-
-    
-    /**
-     * This function is designed to be called when before the material response
-     * to check if all needed parameters for the constitutive are initialized 
-     * @param Parameters
-     * @return
-     */
-    bool CheckParameters(Parameters& rValues);
-   
-    /**
-     * Unaccessible methods 
-     */
 
 
   }; // Class HyperElastic2DLaw 

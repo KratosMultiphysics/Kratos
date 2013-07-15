@@ -457,9 +457,6 @@ namespace Kratos
     rValues.SetStressVector(rVariables.StressVector);
     rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
     rValues.SetShapeFunctionsDevivatives(rVariables.DN_DX);
-  
-    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
-    rVariables.N=row(Ncontainer , rPointNumber);
     rValues.SetShapeFunctionsValues(rVariables.N);
   }
 
@@ -469,6 +466,7 @@ namespace Kratos
   void LargeDisplacement3DElement::InitializeStandardVariables (Standard & rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
   
+    
     const unsigned int number_of_nodes = GetGeometry().size();
  
     rVariables.B.resize( 6 , number_of_nodes * 3 );
@@ -484,7 +482,18 @@ namespace Kratos
     rVariables.StressVector.resize( 6 );
   
     rVariables.DN_DX.resize( number_of_nodes, 3 );
-  
+
+    //set variables including all integration points values
+
+    //reading shape functions
+    rVariables.pNcontainer = &(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
+ 
+    //reading shape functions local gradients
+    rVariables.pDN_De = &(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
+    
+    //calculating the jacobian from cartesian coordinates to parent coordinates for all integration points
+    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod );
+
   }
 
 
@@ -548,7 +557,7 @@ namespace Kratos
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
   
-    //reading integration points and local gradients
+    //reading integration points 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     //auxiliary terms
@@ -556,7 +565,6 @@ namespace Kratos
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
-
 	//compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
@@ -933,31 +941,7 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    // const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-
-    // unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    // //Parent to reference configuration
-    // rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
-
-    // //Parent to reference configuration
-    // Matrix J ( dimension , dimension);
-    // J = GetGeometry().Jacobian( J, rPointNumber , mThisIntegrationMethod );
-    
-    // //Calculating the cartesian derivatives
-    // noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], mInvJ0[rPointNumber] );
-
-    // //Deformation Gradient F0
-    // noalias( rVariables.F ) = prod( J, mInvJ0[rPointNumber] );
-
-    // //Jacobian Determinant for the isoparametric and numerical integration
-    // rVariables.detJ = mDetJ0[rPointNumber];
-
-    // //Determinant of the Deformation Gradient F0
-    // Variables.detF0 = mDeterminantF0[PointNumber] * Variables.detF;  //from reference configuration to n+1
-
-    // //Compute the deformation matrix B
-    // this->CalculateDeformationMatrix(rVariables.B,rVariables.F,rVariables.DN_DX);
+      KRATOS_ERROR(std::logic_error, "Called the virtual function CalculateKinematics", "");
 
 
     KRATOS_CATCH( "" )
@@ -1209,6 +1193,7 @@ namespace Kratos
 	//reading integration points
 	for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
 	  {
+
 	    //compute element kinematics B, F, DN_DX ...
 	    this->CalculateKinematics(Variables,PointNumber);
 	    

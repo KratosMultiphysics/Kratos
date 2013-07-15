@@ -103,34 +103,26 @@ namespace Kratos
 
   {
     KRATOS_TRY
-      
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //Parent to reference configuration
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
 
-    //Parent to reference configuration
-    Matrix J ( dimension , dimension);
-    J = GetGeometry().Jacobian( J, rPointNumber , mThisIntegrationMethod );
-
     //Calculating the inverse of the jacobian and the parameters needed
     Matrix InvJ;
-    MathUtils<double>::InvertMatrix( J, InvJ, rVariables.detJ);
+    MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //Compute cartesian derivatives
-    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
-
-    //Calculate Delta Position
-    Matrix& DeltaPosition =  CalculateDeltaPosition(DeltaPosition);
+  noalias( rVariables.DN_DX ) = prod( (*rVariables.pDN_De)[rPointNumber] , InvJ );
 
     //Current Deformation Gradient F
-    this->CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, DeltaPosition);
+    this->CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition);
 
     //Determinant of the Deformation Gradient F0
     rVariables.detF0 = mDeterminantF0[rPointNumber];
     rVariables.F0    = mDeformationGradientF0[rPointNumber];
+
+    //Set Shape Functions Values for this integration point
+    rVariables.N=row(*(rVariables.pNcontainer), rPointNumber);
 
     //Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);

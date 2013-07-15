@@ -25,7 +25,7 @@ namespace Kratos
   //************************************************************************************
 
   LinearElastic2DLaw::LinearElastic2DLaw()
-  : ConstitutiveLaw()
+  : HyperElastic2DLaw()
   {
   }
 
@@ -33,7 +33,7 @@ namespace Kratos
   //************************************************************************************
 
   LinearElastic2DLaw::LinearElastic2DLaw(const LinearElastic2DLaw& rOther)
-  : ConstitutiveLaw()
+  : HyperElastic2DLaw()
   {
   }
   
@@ -52,109 +52,6 @@ namespace Kratos
   LinearElastic2DLaw::~LinearElastic2DLaw()
   {
   }
-
-  
-  //*******************************OPERATIONS FROM BASE CLASS***************************
-  //************************************************************************************
-
-  //***********************HAS : DOUBLE - VECTOR - MATRIX*******************************
-  //************************************************************************************
-
-  bool LinearElastic2DLaw::Has( const Variable<double>& rThisVariable )
-  {
-    return false;
-  }
-
-  bool LinearElastic2DLaw::Has( const Variable<Vector>& rThisVariable )
-  {
-    return false;
-  }
-
-  bool LinearElastic2DLaw::Has( const Variable<Matrix>& rThisVariable )
-  {
-    return false;
-  }
-
-
-  //***********************GET VALUE: DOUBLE - VECTOR - MATRIX**************************
-  //************************************************************************************
-
-  double& LinearElastic2DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
-  {
-    return( rValue ); 
-  }
-
-  Vector& LinearElastic2DLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
-  {
-    return( rValue );
-  }
-
-  Matrix& LinearElastic2DLaw::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
-  {
-    return( rValue );
-  }
-
-
-  //***********************SET VALUE: DOUBLE - VECTOR - MATRIX**************************
-  //************************************************************************************
-
-
-  void LinearElastic2DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
-				    const ProcessInfo& rCurrentProcessInfo )
-  {
-
-  }
-
-  void LinearElastic2DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
-				    const ProcessInfo& rCurrentProcessInfo )
-  {
-
-  }
-
-  void LinearElastic2DLaw::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
-				    const ProcessInfo& rCurrentProcessInfo )
-  {
-
-  }
-
-
-
-  //************* STARTING - ENDING  METHODS
-  //************************************************************************************
-  //************************************************************************************
-
-
-  void LinearElastic2DLaw::InitializeMaterial( const Properties& props,
-					      const GeometryType& geom,
-					      const Vector& ShapeFunctionsValues )
-  {
- 
-  }
-
-  //************************************************************************************
-  //************************************************************************************
-
-
-  void LinearElastic2DLaw::InitializeSolutionStep( const Properties& props,
-						  const GeometryType& geom, //this is just to give the array of nodes
-						  const Vector& ShapeFunctionsValues,
-						  const ProcessInfo& CurrentProcessInfo)
-  {
-
-  }
-		
-  //************************************************************************************
-  //************************************************************************************
-
-	
-  void LinearElastic2DLaw::FinalizeSolutionStep( const Properties& props,
-						const GeometryType& geom, //this is just to give the array of nodes
-						const Vector& ShapeFunctionsValues,
-						const ProcessInfo& CurrentProcessInfo)
-  {
-
-  }
-
 
 
   //************* COMPUTING  METHODS
@@ -243,21 +140,6 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-
-  void LinearElastic2DLaw::CalculateMaterialResponsePK1 (Parameters& rValues)
-  {
-    CalculateMaterialResponsePK2 (rValues);
-  
-    Vector& StressVector=rValues.GetStressVector();
-    const Matrix& F     =rValues.GetDeformationGradientF();
-    const double& detF  =rValues.GetDeterminantF();
-    
-    TransformStresses(StressVector,F,detF,StressMeasure_PK2,StressMeasure_PK1);
-  }
-
-  //************************************************************************************
-  //************************************************************************************
-
   
   void LinearElastic2DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
   {
@@ -326,117 +208,6 @@ namespace Kratos
 
     }
   }
-
-
-  //************************************************************************************
-  //************************************************************************************
-
-  void LinearElastic2DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
-  {
-
-    CalculateMaterialResponseKirchhoff (rValues);
-
-    Vector& StressVector                = rValues.GetStressVector();
-    Matrix& ConstitutiveMatrix          = rValues.GetConstitutiveMatrix();
-    double& detF0                       = rValues.GetDeterminantF0();;
-
-    //Set to cauchy Stress:
-    StressVector       /= detF0;
-    ConstitutiveMatrix /= detF0;
-
-  
-    // std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
-    // std::cout<<" Stress "<<StressVector<<std::endl;
-
-  }
-
-
-  //***********************************UPDATE*******************************************
-  //************************************************************************************
-
-  void LinearElastic2DLaw::FinalizeMaterialResponsePK2 (Parameters& rValues)
-  {
-    CalculateMaterialResponsePK2 (rValues);
-  
-    Vector& StressVector                   =rValues.GetStressVector();
-    Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
-    double& detF0                          =rValues.GetDeterminantF0();
-    const Matrix& DeformationGradientF     =rValues.GetDeformationGradientF();
-    const double& detF                     =rValues.GetDeterminantF();
-
-    //1.-Push-Forward to the updated configuration to be used as a reference in the next step
-    TransformStresses(StressVector,DeformationGradientF,detF,StressMeasure_PK2,StressMeasure_Cauchy);  //Cauchy Stress
-
-    //2.-Update Internal Variables
-    DeformationGradientF0  = prod(DeformationGradientF,DeformationGradientF0);
-    detF0                  = MathUtils<double>::Det(DeformationGradientF0);
-
-  }
-
-  //************************************************************************************
-  //************************************************************************************
-
-
-  void LinearElastic2DLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
-  {
-    CalculateMaterialResponsePK1 (rValues);
-  
-    Vector& StressVector                   =rValues.GetStressVector();
-    Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
-    double& detF0                          =rValues.GetDeterminantF0();
-    const Matrix& DeformationGradientF     =rValues.GetDeformationGradientF();
-    const double& detF                     =rValues.GetDeterminantF();
-
-    //1.-Push-Forward to the updated configuration to be used as a reference in the next step  
-    TransformStresses(StressVector,DeformationGradientF,detF,StressMeasure_PK1,StressMeasure_Cauchy);  //increment of Cauchy Stress
-
-    //2.-Update Internal Variables
-    DeformationGradientF0  = prod(DeformationGradientF,DeformationGradientF0);
-    detF0                  = MathUtils<double>::Det(DeformationGradientF0);
-  }
-
-  //************************************************************************************
-  //************************************************************************************
-
-  
-  void LinearElastic2DLaw::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
-  {		
-        CalculateMaterialResponseKirchhoff (rValues);
-  
-    Vector& StressVector                   =rValues.GetStressVector();
-    Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
-    double& detF0                          =rValues.GetDeterminantF0();
-    const Matrix& DeformationGradientF     =rValues.GetDeformationGradientF();
-    const double& detF                     =rValues.GetDeterminantF();
-
-    //1.-Push-Forward to the updated configuration to be used as a reference in the next step  
-    TransformStresses(StressVector,DeformationGradientF,detF,StressMeasure_Kirchhoff,StressMeasure_Cauchy);  //increment of Cauchy Stress
-
-    //2.-Update Internal Variables
-    DeformationGradientF0  = prod(DeformationGradientF,DeformationGradientF0);
-    detF0                  = MathUtils<double>::Det(DeformationGradientF0);
-  }
-
-
-  //************************************************************************************
-  //************************************************************************************
-
-  void LinearElastic2DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
-  {
-     
-    CalculateMaterialResponseCauchy (rValues);
-  
-    Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
-    double& detF0                          =rValues.GetDeterminantF0();
-    const Matrix& DeformationGradientF     =rValues.GetDeformationGradientF();
-
-    //2.-Update Internal Variables
-    DeformationGradientF0  = prod(DeformationGradientF,DeformationGradientF0);
-    detF0                  = MathUtils<double>::Det(DeformationGradientF0);
-
-
-  }
-
   
 
   //***********************COMPUTE TOTAL STRESS PK2*************************************
@@ -477,20 +248,6 @@ namespace Kratos
 
 
   
-
- 
-  //*******************************METHOD FROM BASE CLASS******************************
-  //************************************************************************************
-    
-  void LinearElastic2DLaw::CalculateCauchyStresses(Vector& rCauchy_StressVector,
-						  const Matrix& rF,
-						  const Vector& rPK2_StressVector,
-						  const Vector& rGreenLagrangeStrainVector )
-  {
-
-  }
-
-
 
   //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
   //************************************************************************************

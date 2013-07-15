@@ -82,19 +82,29 @@ protected:
 
   struct Standard
   {
+        StressMeasureType StressMeasure;
+
         double  detF;
         double  detF0;
         double  detJ;
         Vector  StrainVector;
         Vector  StressVector;
         Vector  N;
+        Matrix  B;
         Matrix  H;
         Matrix  F;
         Matrix  F0;
-        Matrix  B;
         Matrix  DN_DX;
-        Matrix  ConstitutiveMatrix;        
+        Matrix  ConstitutiveMatrix;
+    
+        //variables including all integration points
+        const GeometryType::ShapeFunctionsGradientsType* pDN_De;
+        GeometryType::JacobiansType J;
+        GeometryType::JacobiansType j;
+        const Matrix* pNcontainer;
+        Matrix  DeltaPosition;
   };
+
 
 
 public:
@@ -399,7 +409,7 @@ protected:
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
-    void CalculateAndAddExternalForces(const Vector& rN,
+    inline void CalculateAndAddExternalForces(const Vector& rN,
                                        const ProcessInfo& rCurrentProcessInfo,
                                        Vector& rBodyForce,
                                        VectorType& rRightHandSideVector,
@@ -410,7 +420,7 @@ protected:
     /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
-    void CalculateAndAddInternalForces(Matrix & rB,
+    inline void CalculateAndAddInternalForces(Matrix & rB,
                                        Vector& rStressVector,
                                        VectorType& rRightHandSideVector,
                                        double& rIntegrationWeight

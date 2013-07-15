@@ -521,41 +521,9 @@ namespace Kratos
 						       const double &rdetF0,
 						       const double &rLameLambda,
 						       const double &rLameMu,
-						       Matrix& rResult)
+						       Matrix& rConstitutiveMatrix)
   {
     
-    CalculateNeoHookeanMatrix(rResult,rMatrixIC,rdetF0,rLameLambda,rLameMu);
-	  	
-  }
-
-
-  //**************COMPUTE ALGORITHMIC CONSTITUTIVE MATRIX PULL-BACK*********************
-  //************************************************************************************
-
-  void HyperElastic2DLaw::CalculateConstitutiveMatrix (const Matrix &rMatrixIC,
-						       const Matrix &rinvF,
-						       const double &rdetF0,
-						       const double &rLameLambda,
-						       const double &rLameMu,
-						       Matrix& rResult)
-  {
-    
-    CalculateNeoHookeanMatrix(rResult,rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu);
-	  
-  }
-
-
-
-  //*******************************NEOHOOKEAN MATRIX************************************
-  //************************************************************************************
-
-  void HyperElastic2DLaw::CalculateNeoHookeanMatrix( Matrix& rConstitutiveMatrix, 
-						     const Matrix &rMatrixIC, 
-						     const double &rdetF0, 
-						     const double &rLameLambda, 
-						     const double &rLameMu )
-  {
-        
     rConstitutiveMatrix.clear();
 		
     //C1111
@@ -580,22 +548,21 @@ namespace Kratos
     
     //C1222
     rConstitutiveMatrix( 2, 1 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,0,1,1,1);
-        
+	  	
   }
 
 
-
-  //*******************************NEOHOOKEAN MATRIX PULL-BACK**************************
+  //**************COMPUTE ALGORITHMIC CONSTITUTIVE MATRIX PULL-BACK*********************
   //************************************************************************************
 
-  void HyperElastic2DLaw::CalculateNeoHookeanMatrix( Matrix& rConstitutiveMatrix, 
-						     const Matrix &rMatrixIC, 
-						     const Matrix &rinvF,
-						     const double &rdetF0, 
-						     const double &rLameLambda, 
-						     const double &rLameMu )
+  void HyperElastic2DLaw::CalculateConstitutiveMatrix (const Matrix &rMatrixIC,
+						       const Matrix &rinvF,
+						       const double &rdetF0,
+						       const double &rLameLambda,
+						       const double &rLameMu,
+						       Matrix& rConstitutiveMatrix)
   {
-        
+
     rConstitutiveMatrix.clear();
 
     //C1111
@@ -621,8 +588,10 @@ namespace Kratos
     
     //C1222
     rConstitutiveMatrix( 2, 1 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,0,1,1,1);
-        
+    	  
   }
+
+
 
 
   
@@ -708,20 +677,6 @@ namespace Kratos
     return component;
 
   }
-
-
- 
-  //*******************************METHOD FROM BASE CLASS******************************
-  //************************************************************************************
-    
-  void HyperElastic2DLaw::CalculateCauchyStresses(Vector& rCauchy_StressVector,
-						  const Matrix& rF,
-						  const Vector& rPK2_StressVector,
-						  const Vector& rGreenLagrangeStrainVector )
-  {
-
-  }
-
 
 
   //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************

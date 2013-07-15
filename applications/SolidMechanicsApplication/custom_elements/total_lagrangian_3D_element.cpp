@@ -162,22 +162,14 @@ namespace Kratos
   {
     KRATOS_TRY
       
-    const GeometryType::ShapeFunctionsGradientsType& DN_De = GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod );
-
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
     //Parent to reference configuration
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
-
-    // Parent to reference configuration
-    Matrix J ( dimension , dimension);
-    J = GetGeometry().Jacobian( J, rPointNumber , mThisIntegrationMethod );
-    
+   
     //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], mInvJ0[rPointNumber] );
+    noalias( rVariables.DN_DX ) = prod( (*rVariables.pDN_De)[rPointNumber], mInvJ0[rPointNumber] );
 
     //Deformation Gradient F
-    noalias( rVariables.F ) = prod( J, mInvJ0[rPointNumber] );
+    noalias( rVariables.F ) = prod( rVariables.J[rPointNumber], mInvJ0[rPointNumber] );
 
     //Jacobian Determinant for the isoparametric and numerical integration
     rVariables.detJ = mDetJ0[rPointNumber];
@@ -186,6 +178,9 @@ namespace Kratos
     // (in this element F = F0, then the F0 is set to the identity for coherence in the constitutive law)
     rVariables.detF0 = 1;
     rVariables.F0    = identity_matrix<double>(rVariables.F0.size1());
+
+    //Set Shape Functions Values for this integration point
+    rVariables.N=row(*(rVariables.pNcontainer), rPointNumber);
 
     //Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B,rVariables.F,rVariables.DN_DX);
