@@ -359,7 +359,7 @@ public:
 
         for (int index=0; index!=nnodes; ++index)  //now we have to save the nodes!.
         {
-            // KRATOS_WATCH(auxiliar);
+             //KRATOS_WATCH(auxiliar);
             if (used_nodes[index]==true)
             {
                 //KRATOS_WATCH(index)
@@ -379,9 +379,11 @@ public:
                 pnode->X0() = it_node->X0();
                 pnode->Y0() = it_node->Y0();
                 pnode->Z0() = it_node->Z0();
-                pnode->FastGetSolutionStepValue(PARTITION_INDEX)=local_Partition_ov[index];
+                //pnode->FastGetSolutionStepValue(PARTITION_INDEX)=local_Partition_ov[index];
+                pnode->FastGetSolutionStepValue(PARTITION_INDEX)= it_node->FastGetSolutionStepValue(PARTITION_INDEX);
                 new_model_part.Nodes().push_back(pnode);
-                //std::cout <<  mrComm.MyPID() << " " << pnode->Id() <<" " << pnode->X0() << " " <<pnode->Y0() <<pnode->Z0() <<std::endl;
+                //if (mrComm.MyPID()==0)
+					std::cout <<  mrComm.MyPID() << " " << pnode->Id() <<" " << pnode->FastGetSolutionStepValue(PARTITION_INDEX) <<std::endl;
             }
         }
         new_model_part.Nodes().Sort();
@@ -420,7 +422,8 @@ public:
 		
         Clear();
         //KRATOS_WATCH(new_model_part)
-        //ParallelFillCommunicator(new_model_part).Execute(); //changed from PrintDebugInfo to Execute
+		ParallelFillCommunicator(new_model_part).Execute(); //changed from PrintDebugInfo to Execute
+        ParallelFillCommunicator(new_model_part).PrintDebugInfo(); //changed from PrintDebugInfo to Execute
         
         if (mrComm.MyPID() == 0) cout << "copyng conditions and recalculation plan have been completed" << endl;
         KRATOS_CATCH("")
@@ -495,7 +498,7 @@ public:
 
 
         //fill the communicator
-        //ParallelFillCommunicator(mr_new_model_part).Execute();
+        ParallelFillCommunicator(mr_new_model_part).Execute();
         if (mrComm.MyPID() == 0) cout << "recalculation of communication plan completed" << endl;
 
         //clean up the data
