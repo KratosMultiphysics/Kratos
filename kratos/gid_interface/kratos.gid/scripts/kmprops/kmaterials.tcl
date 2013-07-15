@@ -12,7 +12,8 @@
 #
 #	HISTORY:
 #
-#   1.7- 15/07/13-G. Socorro, update the proc insertXml and insertXmlCopy
+#       1.8- 15/07/13-G. Socorro, create a local variable createframeafteredit to disable/enable the bottom frame creation after rename a material
+#       1.7- 15/07/13-G. Socorro, update the proc insertXml and insertXmlCopy
 #	1.6- 11/07/13-G. Socorro, correct the bug in the proc splitNode from the last Adrià modification
 #	1.5- 20/09/12-J. Garate, Minor bug fixing, 
 #	1.4- 24/07/12-J. Garate, Minor bug fixing, function comments 
@@ -173,7 +174,7 @@ proc ::KMat::CreateTreeProperties {w} {
 	-highlightthickness 0 -borderwidth 0 -height 300 \
 	-xscrollincrement 20 -yscrollincrement 20 
     
-    $T column create -text "Materials" -tags C0 -weight 0
+    $T column create -text [= "Materials"] -tags C0 -weight 0
     
     # Configure the column weight and arrow
     $T column configure C0 -weight 1 -arrow up
@@ -392,7 +393,7 @@ proc ::KMat::FillTreeMat { } {
 proc ::KMat::DoubleClickTree {x y T {item ""}} {
     # Llegamos aqui cuando el usuario hace doble click en el arbol
     variable lastSelected
-    
+ 
     #Si no llega directamente el item, miramos cual ha sido pulsado
     if { $item == "" } {  
 		set info [$T identify $x $y]
@@ -518,7 +519,7 @@ proc ::KMat::buildTabFrame { T item f {class "Tab"} } {
 	# Crea el arbol de Tabs
 	
 	global KPriv
-
+  
     # Miramos los descendientes directos y si son container ponemos un tab por cada uno q tenga items
     set children [$T item children $item]
     set listTabs {}
@@ -1526,30 +1527,35 @@ proc ::KMat::SetMatToRename { T item newtext } {
 #
 proc ::KMat::editTag { T item fullname newtext } {		
     global KPriv		
+   
     set parts [::KEGroups::split2 $fullname //]
     lset parts end m.[list $newtext]
     set newPath [join $parts //]
 
-    #Renombra en la lista de ID's
+    # Renombra en la lista de ID's
     set idItem [lindex [$T item text $item] 0]
     set KPriv(materialsId) [::KEGroups::listReplace $KPriv(materialsId) $idItem m.[list $newtext]]
     
-    #Cambiar nombre en el árbol
+    # Cambiar nombre en el árbol
     $T item tag remove $item [list names [$T item tag names $item]]
     $T item tag add $item [EncodeName $newPath]
     $T item element configure $item C0 elemTxtRead -text $newtext
     
-    #Cambiar nombre en el XML
+    # Cambiar nombre en el XML
     ::KMat::setXml $fullname pid $newtext 
     ::KMat::setXml $fullname id  $newtext
-    
-    set childs [$T item children $item]
-    foreach child $childs {		
-	set fullname [DecodeName [$T item tag names $child]]
-	set idFull [string map { "." "" "//" ""} $fullname]
-	destroy "$T.f$idFull"		
-	set f [::KMat::buildFrame $T $child]					
+
+    set createframeafteredit 0
+    if {$createframe} {
+	set childs [$T item children $item]
+	foreach child $childs {		
+	    set fullname [DecodeName [$T item tag names $child]]
+	    set idFull [string map { "." "" "//" ""} $fullname]
+	    destroy "$T.f$idFull"		
+	    set f [::KMat::buildFrame $T $child]					
+	}
     }
+
     return $newPath
 }
 
