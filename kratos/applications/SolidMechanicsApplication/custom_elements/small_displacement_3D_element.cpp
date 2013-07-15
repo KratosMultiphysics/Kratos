@@ -546,9 +546,9 @@ namespace Kratos
   //************************************************************************************
 
   void SmallDisplacement3DElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
-							 VectorType& rRightHandSideVector,
-							 ProcessInfo& rCurrentProcessInfo,
-							 Flags& rCalculationOptions)
+							     VectorType& rRightHandSideVector,
+							     ProcessInfo& rCurrentProcessInfo,
+							     Flags& rCalculationOptions)
   {
     KRATOS_TRY
 
@@ -569,11 +569,10 @@ namespace Kratos
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     //auxiliary terms
-    Vector BodyForce;
+    Vector VolumeForce;
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
-
 	//compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
@@ -593,21 +592,16 @@ namespace Kratos
 	if ( rCalculationOptions.Is(SmallDisplacement3DElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
 	  {
 	    //contributions to stiffness matrix calculated on the reference config
+	    this->CalculateAndAddLHS ( rLeftHandSideMatrix, Variables, IntegrationWeight );
 
-            // operation performed: add Km to the rLefsHandSideMatrix
-            CalculateAndAddKm( rLeftHandSideMatrix, Variables.B, Variables.ConstitutiveMatrix, IntegrationWeight ); 
 	  }
 
 	if ( rCalculationOptions.Is(SmallDisplacement3DElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
 	  {
 	    //contribution to external forces
-	    BodyForce = GetProperties()[BODY_FORCE]*GetProperties()[DENSITY];
+	    VolumeForce = GetProperties()[BODY_FORCE]*GetProperties()[DENSITY];
 
-	    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-	    CalculateAndAddExternalForces(Variables.N, rCurrentProcessInfo, BodyForce, rRightHandSideVector, IntegrationWeight );
-
-	    // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-	    CalculateAndAddInternalForces(Variables.B,Variables.StressVector,rRightHandSideVector,IntegrationWeight);
+	    this->CalculateAndAddRHS ( rRightHandSideVector, Variables, VolumeForce, IntegrationWeight );
 	    
 	  }
 
@@ -619,6 +613,39 @@ namespace Kratos
     KRATOS_CATCH( "" )
       }
 
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void SmallDisplacement3DElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, Standard& rVariables, double& rIntegrationWeight)
+  {
+
+    //contributions to stiffness matrix calculated on the reference config
+    
+    // operation performed: add Km to the rLefsHandSideMatrix
+    CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight ); 
+       
+
+    //KRATOS_WATCH(rLeftHandSideMatrix)
+  }
+
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void SmallDisplacement3DElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, Standard& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+  {
+
+    //contribution to external forces
+
+    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+    CalculateAndAddExternalForces( rRightHandSideVector, rVariables,  rVolumeForce, rIntegrationWeight );
+
+    // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+    CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
+	    
+    //KRATOS_WATCH(rRightHandSideVector)
+  }
 
   //************************************************************************************
   //************************************************************************************
@@ -641,7 +668,7 @@ namespace Kratos
     MatrixType LeftHandSideMatrix = Matrix();
 
     //Initialize sizes for the system components:
-    InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, CalculationFlags );
+    this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, CalculationFlags );
 
     //Calculate elemental system
     CalculateElementalSystem( LeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculationFlags );
@@ -662,7 +689,7 @@ namespace Kratos
     VectorType RightHandSideVector = Vector();
     
     //Initialize sizes for the system components:
-    InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, CalculationFlags );
+    this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, CalculationFlags );
 
     //Calculate elemental system
     CalculateElementalSystem( rLeftHandSideMatrix, RightHandSideVector, rCurrentProcessInfo, CalculationFlags );
@@ -681,7 +708,7 @@ namespace Kratos
     CalculationFlags.Set(SmallDisplacement3DElement::COMPUTE_RHS_VECTOR);
 
     //Initialize sizes for the system components:
-    InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, CalculationFlags );
+    this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, CalculationFlags );
 
     //Calculate elemental system
     CalculateElementalSystem( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculationFlags );
@@ -799,12 +826,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  inline void SmallDisplacement3DElement::CalculateAndAddExternalForces(const Vector& rN,
-								    const ProcessInfo& rCurrentProcessInfo,
-								    Vector& rBodyForce,
-								    VectorType& rRightHandSideVector,
-								    double& rIntegrationWeight)
-								    
+   void SmallDisplacement3DElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+									Standard& rVariables,
+									Vector& rVolumeForce,
+									double& rIntegrationWeight)
+													    
   {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -820,7 +846,7 @@ namespace Kratos
 	Fext = 0;
 	for ( unsigned int j = 0; j < dimension; j++ )
 	  {
-	    Fext = rIntegrationWeight * rN[i] * rBodyForce[j];
+	    Fext = rIntegrationWeight * rVariables.N[i] * rVolumeForce[j];
 	    rRightHandSideVector[index + j] += Fext;
 	    ExternalForce[j] +=Fext;
 	  }
@@ -833,15 +859,13 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  inline void SmallDisplacement3DElement::CalculateAndAddInternalForces(Matrix & rB,
-								    Vector& rStressVector,
-								    VectorType& rRightHandSideVector,
-								    double& rIntegrationWeight
-								    )
+   void SmallDisplacement3DElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+									Standard & rVariables,
+									double& rIntegrationWeight)
   {
     KRATOS_TRY
 
-    VectorType InternalForces = rIntegrationWeight * prod( trans( rB ), rStressVector );
+    VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
     noalias( rRightHandSideVector ) -= InternalForces;
       
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -869,24 +893,21 @@ namespace Kratos
  //************************************************************************************
   //************************************************************************************
 
-  void SmallDisplacement3DElement::CalculateAndAddKm(MatrixType& rK,
-						   Matrix& rB,
-						   Matrix& rD,
-						   double& rIntegrationWeight
-						   )
+  void SmallDisplacement3DElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+						       Standard& rVariables,
+						       double& rIntegrationWeight
+						       )
   {
     KRATOS_TRY
 
       //contributions to stiffness matrix calculated on the reference config
-      noalias( rK ) += prod( trans( rB ),  rIntegrationWeight * Matrix( prod( rD, rB ) ) ); //to be optimized to remove the temporary
+      noalias( rLeftHandSideMatrix ) += prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); //to be optimized to remove the temporary
 
     // std::cout<<std::endl;
-    // std::cout<<" Kmat "<<rK<<std::endl;
+    // std::cout<<" Kmat "<<rLeftHandSideMatrix<<std::endl;
 
     KRATOS_CATCH( "" )
       }
-
-
 
   //************************************************************************************
   //************************************************************************************

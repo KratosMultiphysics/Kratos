@@ -418,32 +418,53 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void CalculateAndAddKm(
-        MatrixType& rK,
-        Matrix& rB,
-        Matrix& rD,
-        double& IntegrationWeight);
-
 
     /**
+     * Calculation and addition of the matrices of the LHS 
+     */
+
+    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
+				    Standard& rVariables, 
+				    double& rIntegrationWeight);
+  
+    /**
+     * Calculation and addition of the vectors of the RHS 
+     */
+
+    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, 
+				    Standard& rVariables, 
+				    Vector& rVolumeForce, 
+				    double& rIntegrationWeight);
+  
+
+    /**
+     * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B 
+     */
+
+    void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+			     Standard& rVariables,
+			     double& rIntegrationWeight
+			     );
+
+   /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
-    inline void CalculateAndAddExternalForces(const Vector& rN,
-                                       const ProcessInfo& rCurrentProcessInfo,
-                                       Vector& rBodyForce,
-                                       VectorType& rRightHandSideVector,
-                                       double& rIntegrationWeight
-                                      );
+    virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+					      Standard& rVariables,
+					      Vector& rVolumeForce,
+					      double& rIntegrationWeight
+					      );
 
 
     /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
-    inline void CalculateAndAddInternalForces(Matrix & rB,
-                                       Vector& rStressVector,
-                                       VectorType& rRightHandSideVector,
-                                       double& rIntegrationWeight
-                                      );
+    virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+					      Standard & rVariables,
+					      double& rIntegrationWeight
+					      );
+
+
 
 
     /**
