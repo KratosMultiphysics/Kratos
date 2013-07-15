@@ -415,6 +415,39 @@ public:
         return rResult;
     }
 
+    /** Jacobians for given  method. This method
+    calculate jacobians matrices in all integrations points of
+    given integration method.
+
+    @param ThisMethod integration method which jacobians has to
+    be calculated in its integration points.
+
+    @return JacobiansType a Vector of jacobian
+    matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
+    point index of given integration method.
+
+    @param DeltaPosition Matrix with the nodes position increment which describes
+    the configuration where the jacobian has to be calculated.     
+
+    @see DeterminantOfJacobian
+    @see InverseOfJacobian
+    */
+    virtual JacobiansType& Jacobian(JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const
+    {
+        Matrix jacobian(2,1);
+        jacobian(0,0)=(BaseType::GetPoint(1).X() + DeltaPosition(1,0) - BaseType::GetPoint(0).X() + DeltaPosition(0,0))*0.5;	//on the Gauss points (J is	constant at	each element)
+        jacobian(1,0)=(BaseType::GetPoint(1).Y() + DeltaPosition(1,1) - BaseType::GetPoint(0).Y() + DeltaPosition(0,1))*0.5;
+
+        if(rResult.size() != BaseType::IntegrationPointsNumber(ThisMethod))
+        {
+            // KLUDGE: While there is a bug in ublas vector resize, I have to put this beside resizing!!
+            JacobiansType temp(BaseType::IntegrationPointsNumber(ThisMethod));
+            rResult.swap(temp);
+        }
+        std::fill(rResult.begin(), rResult.end(), jacobian);
+        return rResult;
+    }
+
     /** Jacobian in specific integration point of given integration
     method. This method calculate jacobian matrix in given
     integration point of given integration method.
