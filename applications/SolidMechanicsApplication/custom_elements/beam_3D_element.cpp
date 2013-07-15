@@ -14,7 +14,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/beam_element.hpp"
+#include "custom_elements/beam_3D_element.hpp"
 #include "utilities/math_utils.h"
 #include "custom_utilities/sd_math_utils.hpp"
 
@@ -28,14 +28,14 @@ namespace Kratos
 
   typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-  BeamElement::BeamElement(IndexType NewId,GeometryType::Pointer pGeometry)
+  Beam3DElement::Beam3DElement(IndexType NewId,GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
   {
     //DO NOT ADD DOFS HERE!!!
     //THIS IS THE DEFAULT CONSTRUCTOR
   }
 
-  BeamElement::BeamElement(IndexType NewId,GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+  Beam3DElement::Beam3DElement(IndexType NewId,GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
   {
     KRATOS_TRY
@@ -64,14 +64,14 @@ namespace Kratos
       }
 
 
-  Element::Pointer BeamElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+  Element::Pointer Beam3DElement::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
   {
-    return Element::Pointer(new BeamElement(NewId, GetGeometry().Create(ThisNodes),
+    return Element::Pointer(new Beam3DElement(NewId, GetGeometry().Create(ThisNodes),
                                             pProperties));
   }
 
 
-  BeamElement::~BeamElement()
+  Beam3DElement::~Beam3DElement()
   {
   }
 
@@ -80,7 +80,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void BeamElement::Initialize()
+  void Beam3DElement::Initialize()
   {
     KRATOS_TRY
       CalculateSectionProperties();
@@ -91,14 +91,14 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+  void Beam3DElement::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
   {
 
   }
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
+  void Beam3DElement::FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
   {
   }
 
@@ -107,9 +107,9 @@ namespace Kratos
   //************************************************************************************
 
 
-  void BeamElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
-				 VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo,
-				 bool CalculateStiffnessMatrixFlag,bool CalculateResidualVectorFlag)
+  void Beam3DElement::CalculateElementalSystem(MatrixType& rLeftHandSideMatrix,
+					     VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo,
+					     bool CalculateStiffnessMatrixFlag,bool CalculateResidualVectorFlag)
   {
     KRATOS_TRY
 
@@ -140,7 +140,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void  BeamElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
+  void  Beam3DElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
 					    ProcessInfo& rCurrentProcessInfo)
   {
     //calculation flags
@@ -148,20 +148,20 @@ namespace Kratos
     bool CalculateResidualVectorFlag = true;
     MatrixType temp = Matrix();
 
-    CalculateAll(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag,  CalculateResidualVectorFlag);
+    CalculateElementalSystem(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag,  CalculateResidualVectorFlag);
   }
 
   //************************************************************************************
   //************************************************************************************
 
 
-  void BeamElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+  void Beam3DElement::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 					 VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
   {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = true;
     bool CalculateResidualVectorFlag = true;
-    CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
+    CalculateElementalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag,CalculateResidualVectorFlag);
 
   }
@@ -169,7 +169,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::EquationIdVector(EquationIdVectorType& rResult,
+  void Beam3DElement::EquationIdVector(EquationIdVectorType& rResult,
 				     ProcessInfo& CurrentProcessInfo)
   {
     if(rResult.size() != 12)
@@ -196,7 +196,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo&
+  void Beam3DElement::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo&
 			       CurrentProcessInfo)
   {
     ElementalDofList.resize(0);
@@ -219,7 +219,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::GetValuesVector(Vector& values, int Step)
+  void Beam3DElement::GetValuesVector(Vector& values, int Step)
   {
     if(values.size() != 12)
       values.resize(12,false);
@@ -243,7 +243,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateLHS(Matrix& rLeftHandSideMatrix)
+  void Beam3DElement::CalculateLHS(Matrix& rLeftHandSideMatrix)
   {
 
     Matrix LocalMatrix;
@@ -266,7 +266,7 @@ namespace Kratos
 
   //************************************************************************************
   //************************************************************************************
-  void BeamElement::CalculateRHS(Vector& rRightHandSideVector)
+  void Beam3DElement::CalculateRHS(Vector& rRightHandSideVector)
 
   {
 
@@ -308,19 +308,19 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
+  void Beam3DElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo)
   {
 
     bool CalculateStiffnessMatrixFlag = true;
     bool CalculateResidualVectorFlag  = false;
     Vector temp = Vector();
-    CalculateAll(rLeftHandSideMatrix, temp, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+    CalculateElementalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
 
   }
 
 
 
-  void BeamElement::CalculateSectionProperties()
+  void Beam3DElement::CalculateSectionProperties()
 
   {
     KRATOS_TRY
@@ -384,7 +384,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateLocalMatrix(Matrix& LocalMatrix)
+  void Beam3DElement::CalculateLocalMatrix(Matrix& LocalMatrix)
   {
     KRATOS_TRY
 
@@ -473,7 +473,7 @@ namespace Kratos
   //*****************************************************************************
   //*****************************************************************************
 
-  void BeamElement::CalculateTransformationMatrix(Matrix& Rotation)
+  void Beam3DElement::CalculateTransformationMatrix(Matrix& Rotation)
 
   {
 
@@ -560,7 +560,7 @@ namespace Kratos
 
   //************************************************************************************
   //************************************************************************************
-  void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector& GlobalBody)
+  void Beam3DElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector& GlobalBody)
 
   {
     KRATOS_TRY
@@ -769,7 +769,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
+  void Beam3DElement::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
   {
 
     KRATOS_TRY
@@ -806,7 +806,7 @@ namespace Kratos
 
   //************************************************************************************
   //************************************************************************************
-  void BeamElement::GetFirstDerivativesVector(Vector& values, int Step)
+  void Beam3DElement::GetFirstDerivativesVector(Vector& values, int Step)
   {
     KRATOS_TRY
       const unsigned int number_of_nodes = GetGeometry().size();
@@ -831,7 +831,7 @@ namespace Kratos
       }
   //************************************************************************************
   //************************************************************************************
-  void BeamElement::GetSecondDerivativesVector(Vector& values, int Step)
+  void Beam3DElement::GetSecondDerivativesVector(Vector& values, int Step)
   {
     KRATOS_TRY
       const unsigned int number_of_nodes = GetGeometry().size();
@@ -857,7 +857,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void BeamElement::CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+  void Beam3DElement::CalculateOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
 						  std::vector< array_1d<double,3> >& Output,
 						  const ProcessInfo& rCurrentProcessInfo)
   {
@@ -944,23 +944,23 @@ namespace Kratos
   }
 
 
-  double BeamElement::CalculateInternalMoment(const double& Mo, const double& Vo, const double& Load, const double& X)
+  double Beam3DElement::CalculateInternalMoment(const double& Mo, const double& Vo, const double& Load, const double& X)
   {
     //	     return Mo - Vo*X + 0.5 * Load * X * X;
     return Mo *(1-X) - Vo*X;
   }
 
-  double BeamElement::CalculateInternalShear(const double& Vo, const double& Load, const double& X)
+  double Beam3DElement::CalculateInternalShear(const double& Vo, const double& Load, const double& X)
   {
     return  -Vo + Load * X;
   }
 
-  double BeamElement::CalculateInternalAxil(const double& Ao, const double& Load, const double& X)
+  double Beam3DElement::CalculateInternalAxil(const double& Ao, const double& Load, const double& X)
   {
     return  -Ao +  Load * X;
   }
 
-  void BeamElement::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
+  void Beam3DElement::GetValueOnIntegrationPoints( const Variable<array_1d<double,3> >& rVariable,
 						 std::vector<array_1d<double,3> >& rValues,
 						 const ProcessInfo& rCurrentProcessInfo)
   {
@@ -968,12 +968,12 @@ namespace Kratos
     CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 
   }
-  IntegrationMethod  BeamElement::GetIntegrationMethod() const
+  IntegrationMethod  Beam3DElement::GetIntegrationMethod() const
   {
     return GeometryData::GI_GAUSS_3;
   }
 
-  void BeamElement::CalculateLocalNodalStress(Vector& Stress)
+  void Beam3DElement::CalculateLocalNodalStress(Vector& Stress)
   {
 
     Matrix Rotation;
@@ -1008,7 +1008,7 @@ namespace Kratos
 
   }
 
-  void BeamElement::CalculateDistrubuitedBodyForce(const int Direction, Vector& Load)
+  void Beam3DElement::CalculateDistrubuitedBodyForce(const int Direction, Vector& Load)
   {
 
     array_1d<double, 3> Weight;
@@ -1152,7 +1152,7 @@ namespace Kratos
    * or that no common error is found.
    * @param rCurrentProcessInfo
    */
-  int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
+  int  Beam3DElement::Check(const ProcessInfo& rCurrentProcessInfo)
   {
     KRATOS_TRY
 

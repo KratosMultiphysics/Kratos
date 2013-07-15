@@ -34,7 +34,7 @@
 #include "custom_conditions/face_force_3D_condition.hpp"
 
 //elements
-#include "custom_elements/beam_element.hpp"
+#include "custom_elements/beam_3D_element.hpp"
 #include "custom_elements/isotropic_shell_element.hpp"
 #include "custom_elements/total_lagrangian_3D_element.hpp"
 #include "custom_elements/total_lagrangian_2D_element.hpp"
@@ -289,7 +289,7 @@ namespace Kratos
 
     //beams
 
-    const BeamElement mBeamElement3D2N;
+    const Beam3DElement mBeamElement3D2N;
 
 
     //shells
