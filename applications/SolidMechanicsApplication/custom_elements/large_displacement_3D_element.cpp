@@ -256,22 +256,6 @@ namespace Kratos
 
   }
 
-  //*********************************GET DOUBLE VALUE***********************************
-  //************************************************************************************
-
-
-  void LargeDisplacement3DElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-							    std::vector<double>& rValues,
-							    const ProcessInfo& rCurrentProcessInfo )
-  {
-    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber();
-
-    if ( rValues.size() != integration_points_number )
-      rValues.resize( integration_points_number );
-
-    for ( unsigned int ii = 0; ii < integration_points_number; ii++ )
-      rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
-  }
 
   //********************************SET CONSTITUTIVE VALUE******************************
   //************************************************************************************
@@ -317,6 +301,23 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
+  //*********************************GET DOUBLE VALUE***********************************
+  //************************************************************************************
+
+
+  void LargeDisplacement3DElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+							    std::vector<double>& rValues,
+							    const ProcessInfo& rCurrentProcessInfo )
+  {
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber();
+
+    if ( rValues.size() != integration_points_number )
+      rValues.resize( integration_points_number );
+
+    for ( unsigned int ii = 0; ii < integration_points_number; ii++ )
+      rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
+    
+  }
 
   //**********************************GET VECTOR VALUE**********************************
   //************************************************************************************
@@ -475,8 +476,7 @@ namespace Kratos
 
     rVariables.F0.resize( 3, 3 );
   
-    if(rVariables.ConstitutiveMatrix.size1() != 6)
-      rVariables.ConstitutiveMatrix.resize( 6, 6, false );
+    rVariables.ConstitutiveMatrix.resize( 6, 6 );
   
     rVariables.StrainVector.resize( 6 );
   
@@ -562,7 +562,7 @@ namespace Kratos
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     //auxiliary terms
-    Vector BodyForce;
+    Vector VolumeForce;
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
       {
@@ -585,23 +585,15 @@ namespace Kratos
 	if ( rCalculationOptions.Is(LargeDisplacement3DElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
 	  {
 	    //contributions to stiffness matrix calculated on the reference config
-
-            // operation performed: add Km to the rLefsHandSideMatrix
-            CalculateAndAddKm( rLeftHandSideMatrix, Variables.B, Variables.ConstitutiveMatrix, IntegrationWeight ); 
-	    // operation performed: add Kg to the rLefsHandSideMatrix
-	    CalculateAndAddKg( rLeftHandSideMatrix, Variables.DN_DX, Variables.StressVector, IntegrationWeight );
+	    this->CalculateAndAddLHS ( rLeftHandSideMatrix, Variables, IntegrationWeight );
 	  }
 
 	if ( rCalculationOptions.Is(LargeDisplacement3DElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
 	  {
 	    //contribution to external forces
-	    BodyForce = GetProperties()[BODY_FORCE]*GetProperties()[DENSITY];
+	    VolumeForce = GetProperties()[BODY_FORCE]*GetProperties()[DENSITY];
 
-	    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-	    CalculateAndAddExternalForces(Variables.N, rCurrentProcessInfo, BodyForce, rRightHandSideVector, IntegrationWeight );
-
-	    // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-	    CalculateAndAddInternalForces(Variables.B,Variables.StressVector,rRightHandSideVector,IntegrationWeight);
+	    this->CalculateAndAddRHS ( rRightHandSideVector, Variables, VolumeForce, IntegrationWeight );
 	    
 	  }
 
@@ -613,6 +605,42 @@ namespace Kratos
     KRATOS_CATCH( "" )
       }
 
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void LargeDisplacement3DElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, Standard& rVariables, double& rIntegrationWeight)
+  {
+
+    //contributions to stiffness matrix calculated on the reference config
+    
+    // operation performed: add Km to the rLefsHandSideMatrix
+    CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight ); 
+    
+    // operation performed: add Kg to the rLefsHandSideMatrix
+    CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    
+
+    //KRATOS_WATCH(rLeftHandSideMatrix)
+  }
+
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void LargeDisplacement3DElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, Standard& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+  {
+
+    //contribution to external forces
+
+    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+    CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+
+    // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+    CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
+	    
+    //KRATOS_WATCH(rRightHandSideVector)
+  }
 
   //************************************************************************************
   //************************************************************************************
@@ -635,7 +663,7 @@ namespace Kratos
     MatrixType LeftHandSideMatrix = Matrix();
 
     //Initialize sizes for the system components:
-    InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, CalculationFlags );
+    this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, CalculationFlags );
 
     //Calculate elemental system
     CalculateElementalSystem( LeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculationFlags );
@@ -656,7 +684,7 @@ namespace Kratos
     VectorType RightHandSideVector = Vector();
     
     //Initialize sizes for the system components:
-    InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, CalculationFlags );
+    this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, CalculationFlags );
 
     //Calculate elemental system
     CalculateElementalSystem( rLeftHandSideMatrix, RightHandSideVector, rCurrentProcessInfo, CalculationFlags );
@@ -675,7 +703,7 @@ namespace Kratos
     CalculationFlags.Set(LargeDisplacement3DElement::COMPUTE_RHS_VECTOR);
 
     //Initialize sizes for the system components:
-    InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, CalculationFlags );
+    this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, CalculationFlags );
 
     //Calculate elemental system
     CalculateElementalSystem( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculationFlags );
@@ -793,11 +821,10 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  inline void LargeDisplacement3DElement::CalculateAndAddExternalForces(const Vector& rN,
-								    const ProcessInfo& rCurrentProcessInfo,
-								    Vector& rBodyForce,
-								    VectorType& rRightHandSideVector,
-								    double& rIntegrationWeight)
+   void LargeDisplacement3DElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+									Standard& rVariables,
+									Vector& rVolumeForce,
+									double& rIntegrationWeight)
 								    
   {
     KRATOS_TRY
@@ -814,7 +841,7 @@ namespace Kratos
 	Fext = 0;
 	for ( unsigned int j = 0; j < dimension; j++ )
 	  {
-	    Fext = rIntegrationWeight * rN[i] * rBodyForce[j];
+	    Fext = rIntegrationWeight * rVariables.N[i] * rVolumeForce[j];
 	    rRightHandSideVector[index + j] += Fext;
 	    ExternalForce[j] +=Fext;
 	  }
@@ -827,15 +854,14 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  inline void LargeDisplacement3DElement::CalculateAndAddInternalForces(Matrix & rB,
-								    Vector& rStressVector,
-								    VectorType& rRightHandSideVector,
-								    double& rIntegrationWeight
-								    )
+   void LargeDisplacement3DElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+									Standard & rVariables,
+									double& rIntegrationWeight
+									)
   {
     KRATOS_TRY
 
-    VectorType InternalForces = rIntegrationWeight * prod( trans( rB ), rStressVector );
+    VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
     noalias( rRightHandSideVector ) -= InternalForces;
       
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -863,19 +889,18 @@ namespace Kratos
  //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacement3DElement::CalculateAndAddKm(MatrixType& rK,
-						   Matrix& rB,
-						   Matrix& rD,
-						   double& rIntegrationWeight
-						   )
+  void LargeDisplacement3DElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+						       Standard& rVariables,
+						       double& rIntegrationWeight
+						       )
   {
     KRATOS_TRY
 
       //contributions to stiffness matrix calculated on the reference config
-      noalias( rK ) += prod( trans( rB ),  rIntegrationWeight * Matrix( prod( rD, rB ) ) ); //to be optimized to remove the temporary
+      noalias( rLeftHandSideMatrix ) += prod( trans( rVariables.B ),  rIntegrationWeight * Matrix( prod( rVariables.ConstitutiveMatrix, rVariables.B ) ) ); //to be optimized to remove the temporary
 
     // std::cout<<std::endl;
-    // std::cout<<" Kmat "<<rK<<std::endl;
+    // std::cout<<" Kmat "<<rLeftHandSideMatrix<<std::endl;
 
     KRATOS_CATCH( "" )
       }
@@ -885,19 +910,17 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacement3DElement::CalculateAndAddKg(MatrixType& rK,
-						   Matrix& rDN_DX,
-						   Vector& rStressVector,
-						   double& rIntegrationWeight
-						   )
+  void LargeDisplacement3DElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+						       Standard& rVariables,
+						       double& rIntegrationWeight)
 
   {
     KRATOS_TRY
  
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rStressVector );
-    Matrix ReducedKg = prod( rDN_DX, rIntegrationWeight * Matrix( prod( StressTensor, trans( rDN_DX ) ) ) ); //to be optimized
-    MathUtils<double>::ExpandAndAddReducedMatrix( rK, ReducedKg, dimension );
+    Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
+    Matrix ReducedKg = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
+    MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
 
     KRATOS_CATCH( "" )
       }
