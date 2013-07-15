@@ -39,7 +39,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosSolidMechanicsApplication SHARED ${KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES})
 ##target_link_libraries(KratosSolidMechanicsApplication KratosCore)
-target_link_libraries(KratosSolidMechanicsApplication KratosCore triangle tetgen)
+target_link_libraries(KratosSolidMechanicsApplication KratosCore)
 ##target_link_libraries(KratosSolidMechanicsApplication KratosCore triangle tetgen msuite tetMeshOpt)
 set_target_properties(KratosSolidMechanicsApplication PROPERTIES PREFIX "")
 install(TARGETS KratosSolidMechanicsApplication DESTINATION libs )
