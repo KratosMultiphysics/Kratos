@@ -50,6 +50,7 @@
 //#include "processes/node_erase_process.h"
 #include "custom_utilities/parallel_fill_communicator.h"
 // #include "spatial_containers/spatial_containers.h"
+#include "metis_application/custom_processes/set_mpi_communicator_process.h"
 
 #include "Epetra_Vector.h"
 #include "Epetra_Map.h"
@@ -100,6 +101,7 @@ public:
     TrilinosCuttingApplication(Epetra_MpiComm& Comm) : mrComm(Comm)
     {
         smallest_edge=1.0;
+        mMPICommSetup_is_defined=false;
     } //
 
     ~TrilinosCuttingApplication()
@@ -173,6 +175,13 @@ public:
     {
         ModelPart& this_model_part = mr_model_part;
         ModelPart& new_model_part = mr_new_model_part;
+        
+        if (mMPICommSetup_is_defined==false)
+		{
+			SetMPICommunicatorProcess(new_model_part).Execute();
+			mMPICommSetup_is_defined=true;
+		}
+        
         if (mrComm.MyPID() == 0)
         {
             cout <<"Adding Skin Conditions to the new model part, added in layer:"<<endl;
@@ -449,6 +458,13 @@ public:
     void GenerateCut(ModelPart& mr_model_part, ModelPart& mr_new_model_part, const array_1d<double, 3 > & versor, const array_1d<double, 3 > & Xp, int plane_number, double tolerance_factor)
     {
         KRATOS_TRY
+        
+        if (mMPICommSetup_is_defined==false)
+		{
+			SetMPICommunicatorProcess(mr_new_model_part).Execute();
+			mMPICommSetup_is_defined=true;
+		}
+        
         if (mrComm.MyPID() == 0)
         {
             cout <<"Generating Cutting plane with the following data:"<<endl;
@@ -1407,6 +1423,7 @@ public:
 protected:
 
     double smallest_edge;
+    bool mMPICommSetup_is_defined;
 
     Epetra_MpiComm& mrComm;
     boost::shared_ptr<Epetra_Map> mp_overlapping_map;
