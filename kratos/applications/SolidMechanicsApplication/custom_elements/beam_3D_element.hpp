@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_BEAM_ELEMENT_H_INCLUDED )
-#define  KRATOS_BEAM_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_BEAM_3D_ELEMENT_H_INCLUDED )
+#define  KRATOS_BEAM_3D_ELEMENT_H_INCLUDED
 
 
 // System includes
@@ -28,7 +28,7 @@
 namespace Kratos
 {
 
-  class BeamElement
+  class Beam3DElement
     :public Element
   {
 
@@ -68,14 +68,14 @@ namespace Kratos
 
 
 
-    KRATOS_CLASS_POINTER_DEFINITION(BeamElement);
+    KRATOS_CLASS_POINTER_DEFINITION(Beam3DElement);
 
     /// Default constructor.
-    BeamElement(IndexType NewId, GeometryType::Pointer pGeometry);
-    BeamElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    Beam3DElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    Beam3DElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~BeamElement();
+    virtual ~Beam3DElement();
 
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
@@ -104,10 +104,10 @@ namespace Kratos
 
     void CalculateLHS(Matrix& rLeftHandSideMatrix);
 
-    void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-                      ProcessInfo& rCurrentProcessInfo,
-                      bool CalculateStiffnessMatrixFlag,
-                      bool CalculateResidualVectorFlag);
+    void CalculateElementalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
+				  ProcessInfo& rCurrentProcessInfo,
+				  bool CalculateStiffnessMatrixFlag,
+				  bool CalculateResidualVectorFlag);
 
     void  GetFirstDerivativesVector(Vector& values, int Step);
     void  GetSecondDerivativesVector(Vector& values, int Step);
@@ -141,7 +141,7 @@ namespace Kratos
 
 
     // A private default constructor necessary for serialization
-    BeamElement() {};
+    Beam3DElement() {};
 
 
     virtual void save(Serializer& rSerializer) const
@@ -157,10 +157,10 @@ namespace Kratos
 
 
 
-  }; // Class BeamElement
+  }; // Class Beam3DElement
 
 } // Namespace Kratos.
 
 
-#endif //  KRATOS_BEAM_ELEMENT_H_INCLUDED defined
+#endif //  KRATOS_BEAM_3D_ELEMENT_H_INCLUDED defined
 

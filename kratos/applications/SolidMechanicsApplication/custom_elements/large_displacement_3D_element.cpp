@@ -1122,7 +1122,8 @@ namespace Kratos
 
     rMassMatrix = ZeroMatrix( MatSize, MatSize );
 
-    double& TotalMass = this->CalculateTotalMass(TotalMass);
+    double TotalMass = 0;
+    TotalMass = this->CalculateTotalMass(TotalMass);
 
     Vector LumpFact  = GetGeometry().LumpingFactors( LumpFact );
 
