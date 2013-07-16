@@ -60,6 +60,10 @@ def AddVariables(model_part, Param):
 
     if (Var_Translator(Param.PostExportId)):
       model_part.AddNodalSolutionStepVariable(EXPORT_ID)
+    if (Var_Translator(Param.PredefinedSkinOption)):
+      model_part.AddNodalSolutionStepVariable(EXPORT_SKIN_SPHERE)
+    if (Var_Translator(Param.PostGroupId)):
+      model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
 
     print "Variables for the explicit solver added correctly"
 
@@ -115,7 +119,7 @@ class ExplicitStrategy:
         self.delta_option                   = Var_Translator(Param.DeltaOption)
         self.continuum_simulating_option    = Var_Translator(Param.ContinuumOption)
         self.triaxial_option                = Var_Translator(Param.TriaxialOption)
-        self.search_radius_extension        = 0.0
+        self.search_radius_extension        = 1e-6 #needed for the tangential contacts. Charlie will modify the search. 
         self.amplified_continuum_search_radius_extension    = 1.0;
         
         
@@ -136,6 +140,7 @@ class ExplicitStrategy:
         # MODEL
         self.model_part                     = model_part
         self.contact_model_part             = ModelPart("ContactModelPart") #funcio kratos
+        self.contact_model_part.Nodes       = self.model_part.Nodes;
         self.domain_size                    = Param.Dimension
 
         # BOUNDARY
@@ -225,7 +230,8 @@ class ExplicitStrategy:
         self.print_export_id                = Var_Translator(Param.PostExportId)
         self.print_export_skin_sphere       = Var_Translator(Param.PostExportSkinSphere)
         self.print_radial_displacement      = Var_Translator(Param.PostRadialDisplacement)
-
+        self.print_group_id                 = Var_Translator(Param.PostGroupId)        
+        
         self.dummy_switch                   = 0
 
         # TIME RELATED PARAMETERS
@@ -302,7 +308,10 @@ class ExplicitStrategy:
             self.model_part.ProcessInfo.SetValue(GLOBAL_KT, self.global_kt)
 
         # PRINTING VARIABLES
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_3, self.print_export_id) # Reserved for: Export Print Skin sphere
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_10, self.print_radial_displacement)#reserved for ON OFF print RADIAL_DISPLACEMENT
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_8, self.print_group_id) # Reserved for: Export Print Group ID
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_3, self.print_export_id) # Reserved for: Export Id
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_4, self.print_export_skin_sphere) # Reserved for: Export Print Skin sphere
         self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
         self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
         self.model_part.ProcessInfo.SetValue(ROTA_DAMP_TYPE, self.rota_damp_id)
@@ -342,7 +351,6 @@ class ExplicitStrategy:
         
         self.model_part.ProcessInfo.SetValue(DUMMY_SWITCH, self.dummy_switch)
 
-        print(self.continuum_simulating_option)
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
 
