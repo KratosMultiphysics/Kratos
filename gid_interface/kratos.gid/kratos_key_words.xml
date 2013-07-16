@@ -250,7 +250,7 @@
     <Item id="PlaneStrain"
     ivalues="Elastic-Isotropic"
     values="Elastic-Isotropic" delvalues = "Elastic-Orthotropic,Elasto-Plastic,Damage"/>
-    <Item id="Thickness2D" elementType="PlaneStress" />
+    <Item id="Thickness2D" elementType="PlaneStress,PlaneStrain" />
     <Item id="Thickness3D" elementType="Shell,Membrane,EBST" />
     <Item id="Area" elementType="Truss,Beam"
     sectionType="UserDefined" />
