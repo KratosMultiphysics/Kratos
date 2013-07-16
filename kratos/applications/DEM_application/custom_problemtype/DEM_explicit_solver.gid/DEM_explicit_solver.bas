@@ -275,7 +275,8 @@ Begin NodalData PARTICLE_MATERIAL
 *end elems 
 End NodalData
 
-*Set cond SET_SKIN *elems
+*Set cond SET_SKIN_MANUALLY *elems
+*Add cond INHERIT_SKIN_FROM_SURFACE *elems
 Begin ElementalData PREDEFINED_SKIN
 *loop elems *OnlyInCond
 *elemsnum 1.0
