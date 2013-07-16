@@ -12,6 +12,7 @@
 #
 #  HISTORY:
 # 
+#   1.9- 16/07/13-G. Socorro, modify the proc stateNode to show the thickness as a function of the selected element type
 #   1.8- 06/05/13-G. Socorro, add the option to work with the cross section properties (simple property or database)
 #   1.7- 09/10/12-G. Socorro, update others procs to include the cross property functionality
 #   1.6- 20/09/12-J.Garate, Adaptation for New Kratos Interface Version, including Curves support
@@ -146,6 +147,7 @@ proc ::KMProps::initVisibilityClass { } {
 proc ::KMProps::FillTreeProps { } {
 	
 	variable TreePropsPath
+	
 	set T $TreePropsPath
 	
 	# Seleccionamos todos los nodos del primer nivel
@@ -201,15 +203,11 @@ proc ::KMProps::stateNode { node } {
 	
 	# Special case for the properties (cross section properties)
 	set id [$node getAttribute id ""]
-	# wa "id:$id"
+	# wa "\nid:$id\n"
 	if { $id == "ElemType" } {
 	    #  Element type property
 	    
 	    set ::KMProps::ElemTypeProperty [$node getAttribute dv ""]
-	    
-	} elseif { $id == "SectionType" } {
-	    # Section type property
-	    set ::KMProps::SectionTypeProperty [$node getAttribute dv ""]
 	    
 	} elseif {$id in $PropertyList} {
 	    # Get the parent node
@@ -225,19 +223,22 @@ proc ::KMProps::stateNode { node } {
 	    set ::KMProps::SectionTypeProperty [::xmlutils::GetPropertySectionType $CurrentPropertyId]
 	    # wa "SectionTypeProperty:$::KMProps::SectionTypeProperty"
 	   
-	    # Check that this cross section property is active
-	    set ShowProperty [::KMProps::ShowPropertyByElementType $id]
-	    # wa "ShowProperty:$ShowProperty"
-	    if {!$ShowProperty} {
-		
-		return "hidden"
-	    }
-	    # Check that this cross section property is active => Checking the section type
-	    set SectionTypeShowProperty [::KMProps::ShowPropertyBySectionType $id]
-	    # wa "SectionTypeShowProperty:$SectionTypeShowProperty"
-	    if {!$SectionTypeShowProperty} {
-		return "hidden"
-	    }
+	    # Special case of thickness
+	    if {$id eq "Thickness"} {
+		# Check that this cross section property is active
+		set ShowProperty [::KMProps::ShowPropertyByElementType $id]
+		# wa "ShowProperty:$ShowProperty"
+		if {!$ShowProperty} {
+		    return "hidden"
+		} 
+	    } else {
+		# Check that this cross section property is active => Checking the section type
+		set SectionTypeShowProperty [::KMProps::ShowPropertyBySectionType $id RTree]
+		# wa "SectionTypeShowProperty:$SectionTypeShowProperty"
+		if {!$SectionTypeShowProperty} {
+		    return "hidden"
+		}
+	    } 
 	}
     }
     
@@ -257,6 +258,7 @@ proc ::KMProps::stateNode { node } {
     #        }
     #}
     
+    # wa "::KMProps::visibilityVars:$::KMProps::visibilityVars"
     foreach var $::KMProps::visibilityVars {
 	
 	set globalVar [set ::KMProps::$var]
@@ -320,6 +322,7 @@ proc ::KMProps::stateNode { node } {
 	}
     }
     # wa "state:$state"
+    
     # Back node status ("normal" by default)
     return $state
 }
