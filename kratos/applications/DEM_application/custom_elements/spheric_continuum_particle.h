@@ -96,14 +96,16 @@ namespace Kratos
       void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       virtual void ComputeNewNeighboursHistoricalData();
       
-      //void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+      void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
       
       virtual void EvaluateFailureCriteria(double LocalElasticContactForce[3], double ShearForceNow, double corrected_area, int i_neighbour_count, double& contact_sigma, double& contact_tau, double& failure_criterion_state, bool& sliding, int mapping);
-      //virtual void CalculateOnContactElements();
+      
+      virtual void CalculateOnContactElements(ParticleWeakIteratorType neighbour_iterator, size_t i_neighbour_count, int mapping, double LocalElasticContactForce[3], 
+                                             double corrected_area, double contact_sigma, double contact_tau, double failure_criterion_state);
 
       virtual void ComputeStressStrain(   double mStressTensor[3][3],
                                           ProcessInfo& rCurrentProcessInfo);
@@ -250,12 +252,12 @@ namespace Kratos
         double mCosContactInternalFriccion;
                 
         double mtotal_equiv_area;
-        vector<double> mcont_ini_neigh_area;
+        Vector mcont_ini_neigh_area;
         
         vector<int> mIniNeighbourIds;
-        vector<int> mIniContinuumNeighbourIds;
-        vector<double> mIniNeighbourDelta;
-        vector<double> mNeighbourDelta;
+        //vector<int> mIniContinuumNeighbourIds;
+        Vector mIniNeighbourDelta;
+        Vector mNeighbourDelta;
         vector<int> mIniNeighbourFailureId;
         vector<int> mNeighbourFailureId;
         vector<int> mMapping_New_Ini;
