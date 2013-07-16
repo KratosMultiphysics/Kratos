@@ -12,6 +12,7 @@
 #
 #        HISTORY:
 #
+#       2.1- 16/07/13- G. Socorro, prepare the proc openFile to use the problemtype translation
 #       2.0- 15/07/13- G. Socorro, correct a bug in the proc copyTemplate, add some comment to the proc ::xmlstruct::setnew
 #       1.9- 04/07/13- A.Melendo, modify ::xmlstruct::setnew to accept groups with any name
 #       1.8- 06/05/13- G. Socorro, add the proc GetPropertySectionType, indent the source code
@@ -128,30 +129,29 @@ proc ::xmlutils::openFile {w fullname {encodeFile 1}} {
 	
 	# Read the input file 
 	if {![file exists $fullname]} {
-		set msg "The file ($fullname) does not exists. Check that this file exists"
-		WarnWin "$msg." 
-		return 0
+	    set msg [= "The file (%s) does not exists. Check that this file exists" $fullname]
+	    WarnWin "${msg}." 
+	    return 0
 	}
-	
 	
 	set xml [tDOM::xmlReadFile $fullname encriptStr]
 
 	#Inicializamos la variable que contendrá el documento parseado
 	set xmlDoc ""
 	catch {
-		#Intentamos leer y parsear el xml encriptado
-		set xmlDoc [dom parse [::xmlutils::DecodeK [string trim $xml]]]
+	    #Intentamos leer y parsear el xml encriptado
+	    set xmlDoc [dom parse [::xmlutils::DecodeK [string trim $xml]]]
 	}
 	
 	catch {
-		#Si está vacío es que falló porque no estaba encriptado, lo intentamos leer normal
-		if { $xmlDoc == "" } {
-		        set xmlDoc  [dom parse [string trim $xml]]
-		}
+	    #Si está vacío es que falló porque no estaba encriptado, lo intentamos leer normal
+	    if { $xmlDoc == "" } {
+		set xmlDoc  [dom parse [string trim $xml]]
+	    }
 	}
 	if { $xmlDoc == "" } {
 		#Si sigue fallando el xml tiene que ser erróneo
-		WarnWin "Format error parsing the xml document\n'$fullname'"
+	    WarnWin [= "Format error parsing the xml document '%s'" $fullname]
 	}
 	
 	#Devolvemos las 3 variables la primera "xml" para utilizar el documento, 
