@@ -108,8 +108,6 @@ void Particle_Contact_Element::Initialize()
 {
     KRATOS_TRY
     
-    KRATOS_WATCH("HSHHS")
-    
     this->GetValue(LOW_POISSON_FORCE) = 0.0;  
     this->GetValue(HIGH_POISSON_FORCE) = 0.0; 
    
@@ -176,6 +174,7 @@ void Particle_Contact_Element::GetValueOnIntegrationPoints( const Variable<array
         
         Output[0] = double(const_this->GetValue(rVariable));
       
+
       /*
           if (rVariable == CONTACT_FAILURE)
         {      
