@@ -100,6 +100,7 @@ namespace Kratos
       typedef ModelPart::NodesContainerType                             NodesArrayType;
       typedef ModelPart::ElementsContainerType                          ElementsArrayType;
       typedef ElementsArrayType::iterator                               ElementsIterator;
+
       typedef ModelPart::ConditionsContainerType                        ConditionsArrayType;
 
       typedef ModelPart::NodesContainerType::ContainerType              NodesContainerType;
@@ -112,6 +113,7 @@ namespace Kratos
       typedef SpatialSearch::RadiusArrayType                            RadiusArrayType;
       typedef SpatialSearch::DistanceType                               DistanceType;
       typedef SpatialSearch::VectorDistanceType                         VectorDistanceType;
+ 
 
       /// Pointer definition of ExplicitSolverStrategy
       KRATOS_CLASS_POINTER_DEFINITION(ExplicitSolverStrategy);
@@ -153,7 +155,9 @@ namespace Kratos
       virtual void Initialize()
       {
           KRATOS_TRY
-
+          
+          KRATOS_TIMER_START("INITIALIZE")
+          
           ModelPart& rModelPart            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -167,7 +171,7 @@ namespace Kratos
           this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
 
           // 0. Set search radius
-          SetSearchRadius(rModelPart, rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION], 0);
+          SetSearchRadius(rModelPart, rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);
 
           // 1. Search Neighbours with tolerance (Not in mpi.)
           bool extension_option            = false;
@@ -195,7 +199,7 @@ namespace Kratos
 
           // 6. Compute initial time step
           //InitialTimeStepCalculation();  //MSI: should we ask whether this will be calculated or not
-
+          KRATOS_TIMER_STOP("INITIALIZE")
 
       KRATOS_CATCH("")
       }// Initialize()
@@ -523,7 +527,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    void SetSearchRadius(ModelPart& rModelPart, double radiusExtend, double new_extension = 0)
+    void SetSearchRadius(ModelPart& rModelPart, double radiusExtend)
     {
         KRATOS_TRY
 
