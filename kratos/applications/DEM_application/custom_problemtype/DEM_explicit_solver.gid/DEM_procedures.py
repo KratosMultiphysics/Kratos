@@ -1,14 +1,13 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
-from pressure_script import *
+import pressure_script as Press
 
 import os
 import matplotlib.pyplot as plt
 from numpy import *
 
 #from KratosMultiphysics.mpi import * #CARLOS
-
 
 # GLOBAL VARIABLES OF THE SCRIPT
 #Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
@@ -127,7 +126,7 @@ class Procedures:
         return model_part_io_solid
         
 
-    def ModelData(self, solid_model_part, solver):
+    def ModelData(self, balls_model_part, solver):
     # Previous Calculations.
 
         Model_Data = open('Model_Data.txt', 'w')
@@ -138,7 +137,7 @@ class Procedures:
         sum_radi    = 0
         sum_squared = 0
 
-        for node in solid_model_part.Nodes:
+        for node in balls_model_part.Nodes:
 
             sum_radi += node.GetSolutionStepValue(RADIUS)
             sum_squared += node.GetSolutionStepValue(RADIUS) ** 2
@@ -156,7 +155,7 @@ class Procedures:
         Model_Data.write("Std Deviation: " + str(std_dev) + '\n')
         Model_Data.write('\n')
 
-        Total_Particles     = len(solid_model_part.Nodes)
+        Total_Particles     = len(balls_model_part.Nodes)
         Total_Contacts      = solver.model_part.ProcessInfo.GetValue(TOTAL_CONTACTS) / 2
         Coordination_Number = 1.0 * (Total_Contacts * 2) / Total_Particles
 
@@ -191,7 +190,7 @@ class Procedures:
         return (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm)
 
 
-    def GiDSolverTransfer(self, model_part, solver):
+    def GiDSolverTransfer(self, model_part, solver, Param):
 
         extra_radius = 0.0
         max_radius = 0.0
@@ -223,7 +222,7 @@ class Procedures:
         solver.enlargement_factor = m_bounding_box_enlargement_factor
         
         if (self.triaxial_OPTION):
-            Pressure = ConfinementPressure * 1e6 #Mpa
+            Pressure = Param.ConfinementPressure * 1e6 #Mpa
 
         else:
             Pressure = 0.0
@@ -238,11 +237,11 @@ class Procedures:
         
         return Pressure
         
-    def SkinAndPressure(self, model_part,solver):
+    def SkinAndPressure(self, model_part,solver,Param):
         
         #SKIN DETERMINATION
 
-        Pressure = ConfinementPressure * 1e6 #Mpa
+        Pressure = Param.ConfinementPressure * 1e6 #Mpa
         total_cross_section = 0.0
 
         #Cylinder dimensions
@@ -336,10 +335,10 @@ class Procedures:
             print "\n", "Predefined Skin by the user, In this case is not correct to apply pressure yet"  ,"\n" 
             
         else:
-            ApplyPressure(Pressure, model_part, solver, SKIN, BOT, TOP, LAT, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat)
+            Press.ApplyPressure(Pressure, model_part, solver, SKIN, BOT, TOP, LAT, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat)
 
         
-    def MeasureBOT(self, BOT,solver):
+    def MeasureBOT(self, solver):
 
         tol = 2.0
         y_mean = 0.0
@@ -353,18 +352,18 @@ class Procedures:
 
         return (y_mean, counter)      
 
-    def MeasureTOP(TOP,solver):
+    def MeasureTOP(self,solver):
 
         tol = 2.0
         y_mean = 0.0
         counter = 0.0
         
         for node in TOP:
-            r = node.GetSolutionStepValue(RADIUS, 0)
-            y = node.Y
+          r = node.GetSolutionStepValue(RADIUS, 0)
+          y = node.Y
         
-        y_mean += (y + r) * r
-        counter += r
+          y_mean += (y + r) * r
+          counter += r
 
         return (y_mean,counter)
 
@@ -533,8 +532,8 @@ class Procedures:
         sys.stdout.flush()
         
 # # # DEM CONTINUUM # # #
-        
-    def SetPredefinedSkin(balls_model_part):
+       
+    def SetPredefinedSkin(self,balls_model_part):
    
         for element in balls_model_part.Elements:
               
@@ -543,3 +542,119 @@ class Procedures:
             if (element.GetValue(PREDEFINED_SKIN)>0.0): #PREDEFINED_SKIN is a double
             
               element.SetValue(SKIN_SPHERE,1)
+              
+              
+    def ListDefinition(self,model_part,solver):   # Defining lists (FOR COMPRESSION TESTS) 
+      
+        for node in model_part.Nodes:
+          if (node.GetSolutionStepValue(GROUP_ID)==1):      #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
+            sup_layer_fm.append(node)
+          elif (node.GetSolutionStepValue(GROUP_ID)==2):    #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
+            inf_layer_fm.append(node)
+          elif (node.GetSolutionStepValue(GROUP_ID)==3):    #reserved for auxiliar strain-stress measurement plate (superior)
+            sup_plate_fm.append(node)
+          elif (node.GetSolutionStepValue(GROUP_ID)==4):    #reserved for auxiliar strain-stress measurement plate (inferior)
+            inf_plate_fm.append(node)
+          elif (node.GetSolutionStepValue(GROUP_ID)==5):
+            special_selection.append(node)
+          else:
+            others.append(node)
+          
+        return (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm)
+        
+    def SkinAndPressure(self,model_part,solver,Param):
+           
+        #SKIN DETERMINATION
+
+        Pressure = Param.ConfinementPressure*1e6 #Mpa
+        total_cross_section = 0.0
+
+        #Cylinder dimensions
+
+        h   = 0.3
+        d   = 0.15
+        eps = 2.0
+
+        surface = 2*(3.141592*d*d*0.25)+(3.141592*d*h)
+
+        top_pressure = 0.0
+        bot_pressure = 0.0
+
+        xlat_area = 0.0
+        xbot_area = 0.0
+        xtop_area = 0.0
+        xbotcorner_area = 0.0
+        xtopcorner_area = 0.0
+
+        for element in model_part.Elements:  
+      
+          #if ( self.predefined_skin_option == "OFF" ):
+
+            element.SetValue(SKIN_SPHERE,0)
+            
+            node = element.GetNode(0)
+            r = node.GetSolutionStepValue(RADIUS,0)
+            x = node.X
+            y = node.Y
+            z = node.Z
+            node_group = node.GetSolutionStepValue(GROUP_ID,0)
+            cross_section = 3.141592*r*r
+
+            #if( (node_group!=2) and (node_group!=4) ):
+          
+            if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) ): 
+          
+                element.SetValue(SKIN_SPHERE,1)     
+
+                LAT.append(node)
+                
+                if ( (y>eps*r ) and (y<(h-eps*r)) ) :
+            
+                  SKIN.append(element)
+            
+                  XLAT.append(node)
+              
+                  xlat_area = xlat_area + cross_section
+        
+            if ( (y<=eps*r ) or (y>=(h-eps*r)) ): 
+
+                  element.SetValue(SKIN_SPHERE,1)
+            
+                  SKIN.append(element)
+            
+                  if ( y<=eps*r ):
+
+                      BOT.append(node)
+
+                  elif ( y>=(h-eps*r) ):
+
+                      TOP.append(node)
+
+                  if ( (x*x+z*z) >= ((d/2-eps*r)*(d/2-eps*r) ) ) :
+            
+                      if ( y>h/2 ):
+
+                          XTOPCORNER.append(node)
+                          
+                          xtopcorner_area = xtopcorner_area + cross_section
+                    
+                      else:
+
+                          XBOTCORNER.append(node)
+                          xbotcorner_area = xbotcorner_area + cross_section
+                  else:
+
+                      if ( y<=eps*r ):
+                    
+                          XBOT.append(node)
+                          xbot_area = xbot_area + cross_section
+                    
+                      elif ( y>=(h-eps*r) ):
+                        
+                          XTOP.append(node)
+                          xtop_area = xtop_area + cross_section
+
+        print "End CLASSIC TEST SKIN DETERMINATION", "\n"
+                  
+        return (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area)
+        
