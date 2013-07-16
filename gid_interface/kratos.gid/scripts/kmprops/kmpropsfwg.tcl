@@ -13,6 +13,8 @@
 #
 #  HISTORY:
 # 
+#   1.7- 16/07/13- GSM, modify the proc ShowPropertyBySectionType to enable the properties as a function of the selected element type and section type
+#                       - modify the proc buildTabFrame to show the thickness as a function of the selected element type
 #   1.6- 15/07/13- GSM, set filterGroups to [::KMProps::GetAvailableGiDGroups] to use only normal or disabled GiD group 
 #   1.5- 04/07/13- A.Melendo, created short_name_autogroup and long_name_description
 #   1.4- 18/06/13- GSM, delete the use of the proc kipt::NewGiDGroups 
@@ -244,7 +246,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 		                    set sbp [::KMProps::getPropTemplate $idTemplate sbp "$idContainer//$id"]
 		                    grid [ttk::button $fTab.btn$id -text $sbp -command [list ::KMProps::selectionButton $sbxp] -width 4 ] \
 					-row $i -column 2 -padx 5 -pady 2 -sticky ew
-		                    tooltip::tooltip $fTab.btn$id "Pick Coordinates"
+		                    tooltip::tooltip $fTab.btn$id [= "Pick Coordinates"]
 		                }
 				
 		            }
@@ -550,7 +552,7 @@ proc ::KMProps::ShowPropertyByElementType {propertyid} {
 }
 
 
-proc ::KMProps::ShowPropertyBySectionType {propertyid} {
+proc ::KMProps::ShowPropertyBySectionType {propertyid {from CreateFrame}} {
     # ABSTRACT: Show some properties as a function of the select section type    
     # Arguments
     # propertyid  -> Property Id in the xml file
@@ -580,16 +582,49 @@ proc ::KMProps::ShowPropertyBySectionType {propertyid} {
     } 
     # wa "dv:$dv"
     if {$dv !=""} {
-	# Get the property from the Kratos keyword mapping file
-	set xpath "Kratos_KWords/ElementCLaws/Item\[@id='${propertyid}'\]"
 	
-	# Get the section type list
-	set ListSectionType [split [::xmlutils::getAttribute $KPriv(xmlDocKKW) $xpath sectionType] ","]
-	# wa "propertyid:$propertyid ListSectionType:$ListSectionType"
-	if { $dv in $ListSectionType } {
-	    return 1
+	if {$from eq "RTree"} {
+	    # Get the element type properties
+	    # Current edited properties
+	    if {[info exists ::KMProps::ElemTypeProperty] } {
+		set etypedv $::KMProps::ElemTypeProperty
+	    } else {
+		# Default case
+		# Xpath to all defined element type
+		set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"
+		set etypedv [::xmlutils::getAttribute $KPriv(xmlDocKKW) $xpath dv]
+	    } 
+	    
+	    # Get the property from the Kratos keyword mapping file
+	    set xpath "Kratos_KWords/ElementCLaws/Item\[@id='${propertyid}'\]"
+	    
+	    set ListElementType [split [::xmlutils::getAttribute $KPriv(xmlDocKKW) $xpath elementType] ","]
+	    # wa "etypedv:$etypedv ListElementType:$ListElementType"
+	    
+	    
+	    # Get the section type list
+	    set ListSectionType [split [::xmlutils::getAttribute $KPriv(xmlDocKKW) $xpath sectionType] ","]
+	    
+	    # wa "propertyid:$propertyid ListSectionType:$ListSectionType"
+	    if {($dv in $ListSectionType) && ($etypedv in $ListElementType) } {
+		return 1
+	    } else {
+		return 0
+	    }
 	} else {
-	    return 0
+
+	    # Get the property from the Kratos keyword mapping file
+	    set xpath "Kratos_KWords/ElementCLaws/Item\[@id='${propertyid}'\]"
+	    
+	    # Get the section type list
+	    set ListSectionType [split [::xmlutils::getAttribute $KPriv(xmlDocKKW) $xpath sectionType] ","]
+	    
+	    # wa "propertyid:$propertyid ListSectionType:$ListSectionType"
+	    if {$dv in $ListSectionType} {
+		return 1
+	    } else {
+		return 0
+	    }
 	}
     }
     return 0
@@ -633,7 +668,7 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 		$nb add [ttk::labelframe $fTab -text "$ptxt" -padding {10 0 10 10}] \
 		    -text "$tabtxt"
 
-		# En el caso del primer tab forzamos el item de "Nombre de propiedad" y 2campos mas
+		# En el caso del primer tab forzamos el item de "Nombre de propiedad" y 2 campos mas
 		if { $idContainer == [lindex $listT 0 0] } {
 
 		    # Property identifier
@@ -654,12 +689,13 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 		    grid [ttk::label $fTab.lblName -text "$cptxt:" ] \
 			-row 0 -column 0 -pady 5 -sticky nw -in $fTab
 
-		    grid [ttk::combobox $fTab.cmbPropertyName -state normal -textvariable "::KMProps::propertyName" -width 10         ] \
+		    grid [ttk::combobox $fTab.cmbPropertyName -state normal -textvariable "::KMProps::propertyName" -width 10] \
 			-row 0 -column 1 -padx 3 -pady 5 -sticky nw -in $fTab
 
 		    tooltip::tooltip $fTab.cmbPropertyName $cbhelp
 
 		    set ::KMProps::propertyName "[::KEGroups::GetAutomaticPropertyName $fullname "$whatoption"]"
+
 		    focus $fTab.cmbPropertyName
 		}
 		for {set i 1} { $i < [llength $listContainer] } {incr i} {
@@ -669,10 +705,12 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 		    # Los nodos ocultos no se deben mostrar
 		    set state [::KMProps::getPropTemplate $idTemplate state "$idContainer//$id"]
 		    # wa "state:$state"
+		    
 		    if {$state != "hidden" } {
 
 		        # Si no coincide la dimensión 2D/3D no lo ponemos
 		        set nDim [::KMProps::getPropTemplate $idTemplate nDim "$idContainer//$id"]
+			# wa "nDim:$nDim"
 		        if { $nDim == "" || $nDim == $::KMProps::nDim } {
 
 		            set pid [::KMProps::getPropTemplate $idTemplate pid "$idContainer//$id"]
@@ -680,7 +718,7 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 		            set dv [::KMProps::getPropTemplate $idTemplate dv "$idContainer//$id"]
 
 		            set CBState [::KMProps::getPropTemplate $idTemplate CBState "$idContainer//$id"]
-		            # wa "pid:$pid tooltip:$tooltip dv:$dv CBState:$CBState" 
+			    # wa "pid:$pid tooltip:$tooltip dv:$dv CBState:$CBState" 
 		            if { $CBState == "normal" } {
 		                set values $comboList
 		                set comboList {}
@@ -695,7 +733,7 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 		                set comboList [::xmlutils::getXMLValues "$idContainer//$id" $idTemplate "" "$fullname"]
 		            }
 		            set cdv [::KMProps::getPropTemplate $idTemplate dv "$idContainer//$id"]
-		            # wa "after cdv:$cdv"
+			    # wa "after cdv:$cdv"
 
 		            # Para cada item añadimos label y combo
 		            set lpath "$fTab.lbl$id"
@@ -718,7 +756,7 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 		                destroy $cbpath
 			    }
 
-		            # wa "comboList:$comboList"
+			    # wa "comboList:$comboList"
 		            if {[llength $comboList]} {
 
 		                grid [ttk::combobox $cbpath -values $comboList -state readonly -width [::KMProps::getCmbWidth $comboList] \
@@ -760,6 +798,7 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 
 		                
 		            }
+			    
 			    # Pick Coordinates Button
 			    set psb [::KMProps::getPropTemplate $idTemplate sbi "$idContainer//$id"]
 			    if { $psb == "PickCoordinates" } {
@@ -768,13 +807,13 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 				set sbp [::KMProps::getPropTemplate $idTemplate sbp "$idContainer//$id"]
 				grid [ttk::button $fTab.btn$id -text $sbp -command [list ::KMProps::selectionButton $sbxp] -width 4 ] \
 		                    -row $i -column 2 -padx 5 -pady 2 -sticky ew -in $fTab
-				tooltip::tooltip $fTab.btn$id "Pick Coordinates"
+				tooltip::tooltip $fTab.btn$id [= "Pick Coordinates"]
 			    }
 
 		            # In the case of ElemType update the property filter
 		            # Get the cross section property list
 		            set PropertyList [::KMProps::GetCrossSectionPropertyList]
-		            # wa "buildPropertyFrame =>PropertyList:$PropertyList"
+			    # wa "buildPropertyFrame =>PropertyList:$PropertyList"
 		            if { $id == "ElemType" } {
 		                set ::KMProps::ElemTypeProperty $dv
 				
@@ -795,7 +834,7 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 				
 		                # Get the current section type
 		                set cdv [::KMProps::getPropTemplate $idTemplate dv "$idContainer//SectionType"]
-		                # wa "cdv:$cdv"
+				# wa "cdv:$cdv"
 		                set ::KMProps::SectionTypeProperty $cdv
 		                if {![::KMProps::ShowPropertyBySectionType $id]} {
 		                    # Remove some properties
@@ -871,6 +910,8 @@ proc ::KEGroups::GetAutomaticPropertyName { fullname {baseid "Property"}} {
 #
 proc ::KMProps::acceptProperty { T idTemplate fullname item listT} {
     
+    # wa "T:$T idTemplate:$idTemplate fullname:$fullname item:$item listT:$listT"
+
     # Get the property identifier
     
     set property $::KMProps::propertyName
@@ -878,7 +919,6 @@ proc ::KMProps::acceptProperty { T idTemplate fullname item listT} {
     # Validamos que la propiedad no tenga carácteres extraños
     set property [::KUtils::parseTreeStr $property]
     if { $property == -1 } {
-	
 	WarnWin [= "You can't use some reservate chars like:\n  :   /   $   .   \\  %  "]
 	set ::KMProps::propertyName ""
 	return ""
@@ -894,7 +934,6 @@ proc ::KMProps::acceptProperty { T idTemplate fullname item listT} {
     set id [::xmlutils::setXml "$fullname//c.[list $property]" id]
 
     if { $id != "" } {
-	
 	WarnWin [= "This name property it is already assigned."]
 	return
     }
@@ -911,7 +950,7 @@ proc ::KMProps::acceptProperty { T idTemplate fullname item listT} {
 	# Lista de listas con formato {idContainer idItem1 idItem2...}
 	foreach listContainer $listT {
 	    
-	    #Si tiene como mínimo el container y un item entramos
+	    # Si tiene como mínimo el container y un item entramos
 	    if {[llength $listContainer] >= 2} {
 		
 		set idContainer [lindex $listContainer 0]
@@ -921,9 +960,9 @@ proc ::KMProps::acceptProperty { T idTemplate fullname item listT} {
 		for {set i 1} { $i < [llength $listContainer] } {incr i} {
 		    
 		    set id [lindex $listContainer $i]
-		    
+		    # wa "id:$id"
 		    set fullNombre "$fullname//c.[list $property]//c.[list $idContainer]//i.[list $id]"
-		    # wa "id:$id fullNombre:$fullNombre"
+		    # wa "fullNombre:$fullNombre"
 		    
 		    # Los nodos ocultos no existían en el formulario
 		    set state [::xmlutils::setXml $fullNombre state]
@@ -932,12 +971,13 @@ proc ::KMProps::acceptProperty { T idTemplate fullname item listT} {
 		        
 		        # Validamos la dimensión de cada elemento
 		        set nDim [::xmlutils::setXml $fullNombre nDim]
+			# wa "nDim:$nDim ::KMProps::nDim:$::KMProps::nDim"
 		        if { $nDim == "" || $nDim == $::KMProps::nDim } {
 		            
 		            # Get the value from the internal variable
 		            
 		            set value [set ::KMProps::cmb$id]
-		            # wa "value:$value"
+			    # wa "value:$value"
 		            # Update the value in the xml file
 		            
 		            ::xmlutils::setXml $fullNombre dv "write" $value
@@ -992,7 +1032,7 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 
 	set nodeName [::xmlutils::getXmlNodeName $fullname]
 
-	#Miramos si cada hijo es container o item
+	# Miramos si cada hijo es container o item
 	if { $nodeName == "Container" } {
 	    #Si no tiene items no agregamos el tab
 	    if { [$T item numchildren $itemChild] > 0 } {
@@ -1004,7 +1044,7 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 	}
     }
 
-    #Reset the variable used for this property
+    # Reset the variable used for this property
     set ::KMProps::propertyName ""
 
     # Si no tiene containers pero tiene items, utilizamos como tab el elemento padre seleccionado
@@ -1165,7 +1205,7 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 		                ::KMProps::cmbDisable $fullname $f.nb
 		                bind $fTab.cmb$id <<ComboboxSelected>> "::KMProps::cmbDisable $fullname $f.nb"
 		            } elseif {$id eq "ElemType" } {
-		                #En este caso se tendrá qué recargar si existe el combo de "Material Model"
+		                # En este caso se tendrá qué recargar si existe el combo de "Material Model"
 		                bind $cbpath <<ComboboxSelected>> "::KMProps::cmbElemTypeChange $cbpath $fullname"
 		            } elseif {$id eq "SectionType" } {
 		                # Update the section type combobox
@@ -1188,6 +1228,7 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 		            set $varid $dv
 		            
 		        }
+			
 			# Pick Coordinates Button
 		        set psb [::xmlutils::setXml $fullname sbi]
 		        if { $psb eq "PickCoordinates" } {
@@ -1223,11 +1264,7 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 		        if { $id == "ElemType" } {
 		            set ::KMProps::ElemTypeProperty $dv
 
-		        } elseif { $id == "SectionType" } {
-
-		            set ::KMProps::SectionTypeProperty $dv
-
-		        } elseif {$id in $PropertyList} {
+			} elseif {$id in $PropertyList} {
 		            # Get the parent node
 		            set ParentNode [$T item parent $nieto]
 		            set fpath [DecodeName [$T item tag names $ParentNode]]
@@ -1238,24 +1275,28 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 		            set ::KMProps::ElemTypeProperty [::xmlutils::GetPropertyElemType $CurrentPropertyId]
 		            # wa "ElemTypeProperty:$::KMProps::ElemTypeProperty"
 
-		            set ElemShowProperty [::KMProps::ShowPropertyByElementType $id]
-		            # wa "ElemShowProperty:$ElemShowProperty"
-		            if {!$ElemShowProperty} {
-		                # Remove some properties
-		                grid remove $fTab.lbl$id
-		                grid remove $fTab.cmb$id
-		            }
+			    # Get the select section base type
+			    set ::KMProps::SectionTypeProperty [::xmlutils::GetPropertySectionType $CurrentPropertyId]
+			    # wa "SectionTypeProperty:$::KMProps::SectionTypeProperty"
 
-		            # Get the select section type
-		            set ::KMProps::SectionTypeProperty [::xmlutils::GetPropertySectionType $CurrentPropertyId]
-		            # wa "SectionTypeProperty:$::KMProps::SectionTypeProperty"
-		            set SectionShowProperty [::KMProps::ShowPropertyBySectionType $id]
-		            # wa "SectionShowProperty:$SectionShowProperty"
-		            if {!$SectionShowProperty} {
-		                # Remove some properties
-		                grid remove $fTab.lbl$id
-		                grid remove $fTab.cmb$id
-		            }
+			    # Special case of thickness
+			    if {$id eq "Thickness"} {
+				set ElemShowProperty [::KMProps::ShowPropertyByElementType $id]
+				# wa "ElemShowProperty:$ElemShowProperty"
+				if {!$ElemShowProperty} {
+				    # Remove some properties
+				    grid remove $fTab.lbl$id
+				    grid remove $fTab.cmb$id
+				}
+			    } else {
+				set SectionShowProperty [::KMProps::ShowPropertyBySectionType $id]
+				# wa "SectionShowProperty:$SectionShowProperty"
+				if {!$SectionShowProperty} {
+				    # Remove some properties
+				    grid remove $fTab.lbl$id
+				    grid remove $fTab.cmb$id
+				}
+			    }
 		        }
 		        
 		        incr row
@@ -1264,6 +1305,7 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 	    }
 	    incr i
 	}
+	
 	# Si pulsan Esc también forzamos la salida del Tab
 	bind $T <KeyPress> "if { %k == 27   } { ::KMProps::DestroyBottomFrame }"
 	#bind $T <KeyPress> "if { %k == 13   } {  [list ::KMProps::acceptTabFrame $T $acceptItems $class $item] }"
