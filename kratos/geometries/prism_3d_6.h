@@ -1206,7 +1206,6 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
-        rSerializer.save( "Name", "Prism3D6" );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PointsArrayType );
     }
 
