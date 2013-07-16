@@ -187,7 +187,8 @@ PostStressTensor                 = "*GenData(STRESS_TENSOR)"
 
 #FROM CND:
 
-*Set cond SET_SKIN *elems
+*Set cond SET_SKIN_MANUALLY *elems
+*Add cond INHERIT_SKIN_FROM_SURFACE *elems
 *if(CondNumEntities(int))
 PredefinedSkinOption             = "ON"
 *else
