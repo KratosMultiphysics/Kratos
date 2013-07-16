@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.12">
+<Kratos_Data version="1.2.13">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -444,18 +444,18 @@
         </Template>
         <Template id="PropertiesStruct" icon="propsTree.gif" help="Property">
             <Container id="MainProperties" pid="New property" state="hidden" help="Values">
-                <Item id="ElemType" pid="Element type" dv="Beam" GCV="ElemType" help="Element type"/>
-                <Item id="MatModel" pid="Constitutive law" dv="Elastic-Isotropic" GCV="MatModel" help="Material model"/>
-                <Item id="Material" pid="Material" dv="" GCV="Materials" help="Material"/>
-                <Item id="Thickness" pid="Thickness" dv="1.0" help="Thickness"/>
-		<Item id="SectionType" pid="Section type"  dv="UserDefined" GCV="SectType" help="Select the section type"/>
-		<Item id="ProfileDB" pid="Profile list" dv="" GCV="ProfileType" help="Select the profile from the list"/>
-		<Item id="Area" pid="Area" dv="1.0" help="Cross section area"/>
-		<Item id="InertiaIx" pid="Inertia Ix" dv="1.0" help="Moment of inertia Ix"/>
-		<Item id="InertiaIy" pid="Inertia Iy" dv="1.0" help="Moment of inertia Iy"/>
-		<Item id="RectangularHeight" pid="Height" dv="1.0" help="Height value"/>
-		<Item id="RectangularWidth" pid="Width" dv="1.0" help="Width value"/>
-		<Item id="CircularDiameter" pid="Diameter" dv="1.0" help="Diameter value"/>
+                <Item id="ElemType" pid="Element type" dv="Beam" state="normal" GCV="ElemType" help="Element type"/>
+                <Item id="MatModel" pid="Constitutive law" state="normal" dv="Elastic-Isotropic" GCV="MatModel" help="Material model"/>
+                <Item id="Material" pid="Material" dv="" state="normal" GCV="Materials" help="Material"/>
+                <Item id="Thickness" pid="Thickness" state="normal" dv="1.0" help="Thickness"/>
+		<Item id="SectionType" pid="Section type" state="normal" dv="UserDefined" GCV="SectType" help="Select the section type"/>
+		<Item id="ProfileDB" pid="Profile list" state="normal" dv="" GCV="ProfileType" help="Select the profile from the list"/>
+		<Item id="Area" pid="Area" dv="1.0" state="normal" help="Cross section area"/>
+		<Item id="InertiaIx" pid="Inertia Ix" state="normal" dv="1.0" help="Moment of inertia Ix"/>
+		<Item id="InertiaIy" pid="Inertia Iy" state="normal" dv="1.0" help="Moment of inertia Iy"/>
+		<Item id="RectangularHeight" pid="Height" state="normal" dv="1.0" help="Height value"/>
+		<Item id="RectangularWidth" pid="Width" state="normal" dv="1.0" help="Width value"/>
+		<Item id="CircularDiameter" pid="Diameter" state="normal" dv="1.0" help="Diameter value"/>
             </Container>
         </Template>
         <Template id="PropertiesFluid" icon="propsTree.gif" help="Property">
@@ -494,9 +494,7 @@
                 <Item id="Mz" pid="Mz" dv="0.0" help="Mz Vector"/>           
             </Container>
         </Template>
-        
-        
-	<Template id="BeamUniformlyDistributedLoad" icon="groupsTree.gif" help="Beam uniformly distributed loads">
+     	<Template id="BeamUniformlyDistributedLoad" icon="groupsTree.gif" help="Beam uniformly distributed loads">
             <Container id="MainProperties" pid="BeamDistributedLoad" state="hidden" help="Beam uniformly distributed load values">
                 <Item id="BUDFx" pid="Fx" dv="0.0" functionDissable="0" help="Beam uniformly distributed global Fx value"/>
                 <Item id="BUDFy" pid="Fy" dv="0.0" functionDissable="0" help="Beam uniformly distributed global Fy value"/>
