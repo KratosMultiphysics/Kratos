@@ -11,76 +11,76 @@ def Var_Translator(variable):
 
     return variable
 
-def AddVariables(ModelPart, Param):
+def AddVariables(model_part, Param):
 
     # KINEMATIC
-    ModelPart.AddNodalSolutionStepVariable(DISPLACEMENT)
-    ModelPart.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
-    ModelPart.AddNodalSolutionStepVariable(VELOCITY)
-    ModelPart.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
-    ModelPart.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
-    ModelPart.AddNodalSolutionStepVariable(ORIENTATION_REAL)
-    ModelPart.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
-    ModelPart.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(VELOCITY)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
+    model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
+    model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
+    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
 
     # FORCES
-    ModelPart.AddNodalSolutionStepVariable(RHS)
-    ModelPart.AddNodalSolutionStepVariable(TOTAL_FORCES)
-    ModelPart.AddNodalSolutionStepVariable(DAMP_FORCES)
-    ModelPart.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
-    ModelPart.AddNodalSolutionStepVariable(APPLIED_FORCE)
+    model_part.AddNodalSolutionStepVariable(RHS)
+    model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
+    model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
+    model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
 
     # BASIC PARTICLE PROPERTIES
-    ModelPart.AddNodalSolutionStepVariable(RADIUS)
-    ModelPart.AddNodalSolutionStepVariable(NODAL_MASS)
-    ModelPart.AddNodalSolutionStepVariable(SQRT_OF_MASS)
-    ModelPart.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
-    ModelPart.AddNodalSolutionStepVariable(YOUNG_MODULUS)
-    ModelPart.AddNodalSolutionStepVariable(POISSON_RATIO)
-    ModelPart.AddNodalSolutionStepVariable(LN_OF_RESTITUTION_COEFF)
-    ModelPart.AddNodalSolutionStepVariable(PARTICLE_COHESION)
-    ModelPart.AddNodalSolutionStepVariable(PARTICLE_FRICTION)
-    ModelPart.AddNodalSolutionStepVariable(PARTICLE_TENSION)
+    model_part.AddNodalSolutionStepVariable(RADIUS)
+    model_part.AddNodalSolutionStepVariable(NODAL_MASS)
+    model_part.AddNodalSolutionStepVariable(SQRT_OF_MASS)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
+    model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
+    model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
+    model_part.AddNodalSolutionStepVariable(LN_OF_RESTITUTION_COEFF)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_COHESION)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_FRICTION)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_TENSION)
 
     # ROTATION RELATED PROPERTIES
 
     if (Var_Translator(Param.RotationOption)):
-        ModelPart.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
-        ModelPart.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
-        ModelPart.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
-        ModelPart.AddNodalSolutionStepVariable(ROLLING_FRICTION)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
+        model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
 
     # OTHER PROPERTIES
-    ModelPart.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
-    ModelPart.AddNodalSolutionStepVariable(PARTICLE_CONTINUUM)  # Continuum group
-    ModelPart.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
-    ModelPart.AddNodalSolutionStepVariable(MAX_INDENTATION)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
+    model_part.AddNodalSolutionStepVariable(PARTICLE_CONTINUUM)  # Continuum group
+    model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
+    model_part.AddNodalSolutionStepVariable(MAX_INDENTATION)
 
     # LOCAL AXIS
-    ModelPart.AddNodalSolutionStepVariable(EULER_ANGLES)
+    model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
     # BOUNDARY SURFACE
 
     if (Var_Translator(Param.LimitSurfaceOption)):
-        ModelPart.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES)
-        ModelPart.AddNodalSolutionStepVariable(PARTICLE_SURFACE_ROTATE_SPRING_MOMENT)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES)
+        model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_ROTATE_SPRING_MOMENT)
 
     # FLAGS
-    ModelPart.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
+    model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
 
     # ONLY VISUALITZATION
 
     if (Var_Translator(Param.PostGroupId)):
-        ModelPart.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
+        model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
 
     if (Var_Translator(Param.PostExportId)):
-        ModelPart.AddNodalSolutionStepVariable(EXPORT_ID)
+        model_part.AddNodalSolutionStepVariable(EXPORT_ID)
 
     print "Variables for the explicit solver added correctly"
 
-def AddDofs(ModelPart):
+def AddDofs(model_part):
 
-    for node in ModelPart.Nodes:
+    for node in model_part.Nodes:
         node.AddDof(DISPLACEMENT_X, REACTION_X);
         node.AddDof(DISPLACEMENT_Y, REACTION_Y);
         node.AddDof(DISPLACEMENT_Z, REACTION_Z);
@@ -95,7 +95,7 @@ def AddDofs(ModelPart):
 
 class ExplicitStrategy:
 
-    def __init__(self, ModelPart, Param):
+    def __init__(self, model_part, Param):
 
         # Initialization of member variables
 
@@ -118,7 +118,7 @@ class ExplicitStrategy:
         self.case_OPTION                    = 3
 
         # MODEL
-        self.ModelPart                      = ModelPart
+        self.model_part                      = model_part
 
         # BOUNDARY
         self.surface_normal_dir             = Vector(3)
@@ -244,59 +244,59 @@ class ExplicitStrategy:
         # Setting ProcessInfo variables
 
         # SIMULATION FLAGS
-        self.ModelPart.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_OPTION)
-        self.ModelPart.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_OPTION)
-        self.ModelPart.ProcessInfo.SetValue(CASE_OPTION, self.case_OPTION)
-        self.ModelPart.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_OPTION)
-        self.ModelPart.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_OPTION)
-        self.ModelPart.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_OPTION)
-        self.ModelPart.ProcessInfo.SetValue(INT_DUMMY_6, self.fix_velocities)
-        self.ModelPart.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_OPTION)
-        self.ModelPart.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_OPTION)
-        self.ModelPart.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
-        self.ModelPart.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
-        self.ModelPart.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_OPTION);
+        self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_OPTION)
+        self.model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_OPTION)
+        self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_OPTION)
+        self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_OPTION)
+        self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_OPTION)
+        self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_OPTION)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_6, self.fix_velocities)
+        self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_OPTION)
+        self.model_part.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_OPTION)
+        self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
+        self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
+        self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_OPTION);
 
         # TOLERANCES
-        self.ModelPart.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);
+        self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);
 
         # BOUNDARY
-        self.ModelPart.ProcessInfo.SetValue(LIMIT_SURFACE_OPTION, self.limit_surface_OPTION)
-        self.ModelPart.ProcessInfo.SetValue(SURFACE_NORMAL_DIR, self.surface_normal_dir)
-        self.ModelPart.ProcessInfo.SetValue(SURFACE_POINT_COOR, self.surface_point_coor)
-        self.ModelPart.ProcessInfo.SetValue(SURFACE_FRICC, self.surface_friction_angle)
-        self.ModelPart.ProcessInfo.SetValue(CYLINDER_RADIUS, self.cylinder_radius)
+        self.model_part.ProcessInfo.SetValue(LIMIT_SURFACE_OPTION, self.limit_surface_OPTION)
+        self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR, self.surface_normal_dir)
+        self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR, self.surface_point_coor)
+        self.model_part.ProcessInfo.SetValue(SURFACE_FRICC, self.surface_friction_angle)
+        self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS, self.cylinder_radius)
 
         # GLOBAL PHISICAL ASPECTS
-        self.ModelPart.ProcessInfo.SetValue(GRAVITY, self.gravity)
-        self.ModelPart.ProcessInfo.SetValue(DEM_MAGIC_FACTOR, self.magic_factor)
+        self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
+        self.model_part.ProcessInfo.SetValue(DEM_MAGIC_FACTOR, self.magic_factor)
 
         # GLOBAL MATERIAL PROPERTIES
 
-        self.ModelPart.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
+        self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
      
         if (self.global_variables_OPTION):
-            self.ModelPart.ProcessInfo.SetValue(GLOBAL_KN, self.global_kn)
-            self.ModelPart.ProcessInfo.SetValue(GLOBAL_KT, self.global_kt)
+            self.model_part.ProcessInfo.SetValue(GLOBAL_KN, self.global_kn)
+            self.model_part.ProcessInfo.SetValue(GLOBAL_KT, self.global_kt)
 
         # SEARCH-RELATED
-        self.ModelPart.ProcessInfo.SetValue(SEARCH_RADIUS_EXTENSION, self.search_radius_extension)
+        self.model_part.ProcessInfo.SetValue(SEARCH_RADIUS_EXTENSION, self.search_radius_extension)
 
         # PRINTING VARIABLES
-        self.ModelPart.ProcessInfo.SetValue(INT_DUMMY_8, self.print_group_id) # Reserved for: Export Print Group ID
-        self.ModelPart.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
-        self.ModelPart.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
-        self.ModelPart.ProcessInfo.SetValue(ROTA_DAMP_TYPE, self.rota_damp_id)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_8, self.print_group_id) # Reserved for: Export Print Group ID
+        self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
+        self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
+        self.model_part.ProcessInfo.SetValue(ROTA_DAMP_TYPE, self.rota_damp_id)
 
         # TIME RELATED PARAMETERS
-        self.ModelPart.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
-        self.ModelPart.ProcessInfo.SetValue(FINAL_SIMULATION_TIME, self.final_time)
-        self.ModelPart.ProcessInfo.SetValue(INT_DUMMY_7, 0) # int(self.time_step_percentage_fix_velocities * (self.final_time / self.delta_time))) # Reserved for timestep fix_velocities
+        self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
+        self.model_part.ProcessInfo.SetValue(FINAL_SIMULATION_TIME, self.final_time)
+        self.model_part.ProcessInfo.SetValue(INT_DUMMY_7, 0) # int(self.time_step_percentage_fix_velocities * (self.final_time / self.delta_time))) # Reserved for timestep fix_velocities
 
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
 
-        self.solver = ExplicitSolverStrategy(self.ModelPart, self.enlargement_factor, self.max_delta_time, self.n_step_search, self.safety_factor,
+        self.solver = ExplicitSolverStrategy(self.model_part, self.enlargement_factor, self.max_delta_time, self.n_step_search, self.safety_factor,
                                              self.MoveMeshFlag, self.time_scheme, self.search_strategy)
 
         self.solver.Initialize() # Calls the solver Initialized function (initializes all elements and performs other necessary tasks before iterating)
