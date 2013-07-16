@@ -505,7 +505,7 @@ protected:
     /**
      * Clear Nodal Forces
      */
-    void ClearNodalForces ();
+    virtual void ClearNodalForces ();
 
 
     /**

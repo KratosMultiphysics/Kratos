@@ -133,15 +133,6 @@ namespace Kratos
 
   }
 
-  //************************************************************************************
-  //************************************************************************************
-
-  double& SpatialLagrangian3DElement::CalculateIntegrationWeight(double& rIntegrationWeight)
-  {
-     return rIntegrationWeight;
-  }
-
-
 
   //************* COMPUTING  METHODS
   //************************************************************************************
@@ -224,7 +215,7 @@ namespace Kratos
     return DeltaPosition;
 
     KRATOS_CATCH( "" )
-}
+      }
 
 
   //*************************COMPUTE DEFORMATION GRADIENT*******************************
@@ -296,19 +287,6 @@ namespace Kratos
 
 
 
-  //************************************CALCULATE TOTAL MASS****************************
-  //************************************************************************************
-
-  double& SpatialLagrangian3DElement::CalculateTotalMass( double& rTotalMass )
-  {
-    KRATOS_TRY
-
-    rTotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY];
-
-    return rTotalMass;
-
-    KRATOS_CATCH( "" )
-  }
 
   //************************************************************************************
   //************************************************************************************

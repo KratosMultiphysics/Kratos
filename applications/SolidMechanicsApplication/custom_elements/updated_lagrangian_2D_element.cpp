@@ -115,11 +115,7 @@ namespace Kratos
 
     //Calculate Delta Position
     rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
- 
-    //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points
-    rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod, rVariables.DeltaPosition );
-
-  
+   
   }
 
   //************************************************************************************
