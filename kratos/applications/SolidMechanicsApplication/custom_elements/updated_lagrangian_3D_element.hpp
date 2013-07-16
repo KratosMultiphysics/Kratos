@@ -138,6 +138,11 @@ protected:
 
 
     /**
+     * Initialize Element Standard Variables
+     */ 
+    virtual void InitializeStandardVariables(Standard & rVariables, const ProcessInfo& rCurrentProcessInfo);
+
+    /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
     void SetStandardParameters(Standard& rVariables,
@@ -156,11 +161,6 @@ protected:
     virtual void CalculateDeformationMatrix(Matrix& rB,
 					    Matrix& rF,
 					    Matrix& rDN_DX);
-
-    /**
-     * Calculation of the Total Mass of the Element
-     */
-    virtual double& CalculateTotalMass(double& rTotalMass);
 
 
     ///@}

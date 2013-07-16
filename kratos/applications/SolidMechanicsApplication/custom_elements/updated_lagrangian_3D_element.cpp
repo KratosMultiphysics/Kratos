@@ -79,6 +79,20 @@ namespace Kratos
   }
 
 
+  //************* STARTING - ENDING  METHODS
+  //************************************************************************************
+  //************************************************************************************
+  
+
+  void UpdatedLagrangian3DElement::InitializeStandardVariables (Standard & rVariables, const ProcessInfo& rCurrentProcessInfo)
+  {
+    LargeDisplacement3DElement::InitializeStandardVariables(rVariables,rCurrentProcessInfo);
+
+    //Calculate Delta Position
+    rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+ 
+  }
+
   //************************************************************************************
   //************************************************************************************
 
@@ -174,21 +188,6 @@ namespace Kratos
       }
 
 
-  //************************************CALCULATE TOTAL MASS****************************
-  //************************************************************************************
-
-  double& UpdatedLagrangian3DElement::CalculateTotalMass( double& rTotalMass )
-  {
-    KRATOS_TRY
-
-    rTotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY];
-
-    return rTotalMass;
-
-    KRATOS_CATCH( "" )
-  }
-
-
 
   //************************************************************************************
   //************************************************************************************
@@ -197,13 +196,13 @@ namespace Kratos
 
   void UpdatedLagrangian3DElement::save( Serializer& rSerializer ) const
   {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SpatialLagrangian3DElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, UpdatedLagrangian3DElement );
 
    }
 
   void UpdatedLagrangian3DElement::load( Serializer& rSerializer )
   {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SpatialLagrangian3DElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, UpdatedLagrangian3DElement );
 
   }
 
