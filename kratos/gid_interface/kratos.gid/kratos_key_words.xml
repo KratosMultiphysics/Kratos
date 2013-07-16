@@ -147,6 +147,8 @@
       <Item id="NonLinearDarcyCoefficient"
       kkword="NONLIN_DARCY_COEF" />
       <Item id="DiameterValue" kkword="DIAMETER" />
+      <Item id="OutletPressureFractionalStep" kkword="PRESSURE" />
+      <Item id="OutletPressureMonolithic" kkword="EXTERNAL_PRESSURE" />
     </Fluid>
     <ConvectionDiffusion></ConvectionDiffusion>
     <FluidStructureInteraction></FluidStructureInteraction>
