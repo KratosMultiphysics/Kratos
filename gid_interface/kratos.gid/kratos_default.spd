@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.14">
+<Kratos_Data version="1.2.15">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -504,7 +504,7 @@
         <Template id="OutletPressure" icon="groupsTree.gif" help="Outlet pressure">
             <Container id="MainProperties" pid="New property" state="hidden" help="Values">
                 <Item id="FixPressure" pid="Fix pressure" dv="1" ivalues="1,0" values="1,0" help="Fix pressure"/>
-                <Item id="PressureValue" pid="Pressure value" fluidsolvtyp="ElementBased,EdgeBased,LevelSet" dv="0.0" help="Pressure value"/>
+                <Item id="PressureValue" pid="Pressure value" fluidsolvtyp="ElementBased,Monolithic,EdgeBased,LevelSet" dv="0.0" help="Pressure value"/>
             </Container>
         </Template>
 	<Template id="ShellPressure" icon="groupsTree.gif" help="Define the positive or negative shell pressure">
