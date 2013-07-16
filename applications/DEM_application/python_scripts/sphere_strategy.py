@@ -120,6 +120,9 @@ class ExplicitStrategy:
         # MODEL
         self.model_part                      = model_part
 
+        # BOUNDING_BOX
+        self.enlargement_factor             = Param.BoundingBoxEnlargementFactor
+
         # BOUNDARY
         self.surface_normal_dir             = Vector(3)
         self.surface_normal_dir[0]          = Param.SurfaceNormalDirX
