@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     6.8- 16/07/13-G. Socorro, modify the proc WriteBoundaryConditions to write the OutletPressure BC as a function of the solver type
 #     6.7- 14/07/13-G. Socorro, modify the proc WriteBoundaryConditions to write walllaw BC
 #     6.6- 18/06/13-G. Socorro, delete the call to the proc WritePythonGroupProperties
 #     6.5- 17/06/13-G. Socorro, delete wmethod variable and all related procedures (*_m0,*_m1,*_m2) => now we are using only the new GiD groups
@@ -589,9 +590,32 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
                         }
                     }
                     "OutletPressure" {
-                        set kwordlist [list "PRESSURE"]
-                        # Process outlet pressure
-                        ::wkcf::WriteOutLetPressureBC $AppId $ccondid $kwordlist 
+			if {$AppId=="Fluid"} {
+			    set cproperty "dv"
+			    set cxpath "$AppId//c.AnalysisData//i.FluidApproach"
+			    set FluidApproach [::xmlutils::setXml $cxpath $cproperty]
+			    if { $FluidApproach eq "Eulerian" } {
+				# Solver type
+				set cxpath "$AppId//c.AnalysisData//i.SolverType"
+				set SolverType [::xmlutils::setXml $cxpath $cproperty]
+				# WarnWinText "SolverType:$SolverType"
+				set kwxpath "Applications/$AppId"
+
+				switch -exact -- $SolverType {
+				    "ElementBased" {
+					set kwid "OutletPressureFractionalStep"
+					set kwordlist [list "[::xmlutils::getKKWord $kwxpath $kwid]"]
+				    }
+				    "Monolithic" {
+					set kwid "OutletPressureMonolithic"
+					set kwordlist [list "[::xmlutils::getKKWord $kwxpath $kwid]"]
+				    }
+				}
+							                       
+				# Process outlet pressure
+				::wkcf::WriteOutLetPressureBC $AppId $ccondid $kwordlist 
+			    }
+			}
                     }
                     "InletVelocity" {
                         if {[llength $dprops($AppId,BC,$ccondid,AllGroupId)]} {
