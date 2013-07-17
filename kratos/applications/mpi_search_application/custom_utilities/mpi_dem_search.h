@@ -138,14 +138,42 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
           KRATOS_CATCH(" ")
       }
       
-      void SearchNodesInRadiusExclusiveImplementation (
+     void SearchElementsInRadiusInclusiveImplementation (
           ModelPart& rModelPart,
-          NodesContainerType rNodes,
-          const RadiusArrayType & Radius, 
-          VectorResultNodesContainerType& rResults, 
+          ElementsContainerType rElements,
+          const RadiusArrayType& Radius, 
+          VectorResultElementsContainerType& rResults, 
           VectorDistanceType& rResultsDistance )
       {     
+      
       }
+
+      void SearchElementsInRadiusExclusiveImplementation (
+          ModelPart& rModelPart,
+          ElementsContainerType rElements,
+          const RadiusArrayType & Radius, 
+          VectorResultElementsContainerType& rResults )
+      {     
+
+      }
+      
+      void SearchElementsInRadiusInclusiveImplementation (
+          ModelPart& rModelPart,
+          ElementsContainerType rElements,
+          const RadiusArrayType& Radius, 
+          VectorResultElementsContainerType& rResults )
+      {     
+    
+      }
+      
+//       void SearchNodesInRadiusExclusiveImplementation (
+//           ModelPart& rModelPart,
+//           NodesContainerType rNodes,
+//           const RadiusArrayType & Radius, 
+//           VectorResultNodesContainerType& rResults, 
+//           VectorDistanceType& rResultsDistance )
+//       {     
+//       }
         
       ///@}
       ///@name Access
