@@ -128,11 +128,9 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
     const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
-    // const Variable<array_1d<double, 3 > >& rConvectionVar = my_settings->GetConvectionVariable();
     const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
     const Variable<double>& rSourceVar = my_settings->GetVolumeSourceVariable();
-    //const Variable<double>& rSurfaceSourceVar = my_settings->GetSurfaceSourceVariable();
     const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
     const Variable<double>& rProjectionVariable = my_settings->GetProjectionVariable();
 
@@ -140,8 +138,6 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     double density = GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
     double specific_heat = GetGeometry()[0].FastGetSolutionStepValue(SPECIFIC_HEAT);
     double heat_flux = GetGeometry()[0].FastGetSolutionStepValue(rSourceVar);
-    //double proj = GetGeometry()[0].FastGetSolutionStepValue(TEMP_CONV_PROJ);
-    //const Variable<double>& rProjectionVariable = my_settings->GetProjectionVariable();
     double proj = GetGeometry()[0].FastGetSolutionStepValue(rProjectionVariable);
     double nu = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);
 
@@ -156,7 +152,6 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
         density += GetGeometry()[i].FastGetSolutionStepValue(rDensityVar);
         specific_heat += GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
         heat_flux += GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
-        //proj += GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ);
         proj += GetGeometry()[i].FastGetSolutionStepValue(rProjectionVariable);
         nu += GetGeometry()[i].FastGetSolutionStepValue(VISCOSITY);
 
@@ -177,18 +172,6 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     //getting the BDF2 coefficients (not fixed to allow variable time step)
     //the coefficients INCLUDE the time step
     const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
-
-    //#############//
-    //double T0 = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
-    //double T0n = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar, 1);
-    //double T1 = GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar);
-    // double T1n = GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar, 1);
-    //double T2 = GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar);
-    //double T2n = GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar, 1);
-    //double T3 = GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar);
-    //double T3n = GetGeometry()[3].FastGetSolutionStepValue(rUnknownVar, 1);
-
-    //double g = 0.0;
 
     for (unsigned int i = 0; i < TDim; i++)
     {
@@ -211,7 +194,6 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     k_aux *= 0.707;
 
 
-    //#############//
     //calculating parameter tau
     double c1 = 4.00;
     double c2 = 2.00;
@@ -219,14 +201,6 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     double norm_u = norm_2(ms_vel_gauss);
     double tau1 = (h * h) / (density * specific_heat * BDFcoeffs[0] * h * h + c1 * conductivity + c2 * density * specific_heat * (norm_u + 1e-6) * h);
 
-
-    double Schmidt_Prandl=1.0;
-    double nu_turbulent = 0.0;
-    const double Cs = this->GetValue(C_SMAGORINSKY);
-    if (Cs != 0.0)
-    {
-        nu_turbulent = ComputeSmagorinskyViscosity(msDN_DX, h, Cs, nu);
-    }
 
     noalias(First) = outer_prod(ms_vel_gauss, trans(ms_vel_gauss));
     First /= ((norm_u + 1e-6)*(norm_u + 1e-6));
@@ -242,9 +216,7 @@ void ConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     noalias(rLeftHandSideMatrix) += density * specific_heat * density * specific_heat * tau1 * outer_prod(ms_u_DN, ms_u_DN);
 
     //VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
-    noalias(rLeftHandSideMatrix) += (conductivity /*+ k_aux * h*/) * prod(msDN_DX, trans(msDN_DX)) + k_aux * h * prod(msDN_DX, Third);
-
-    noalias(rLeftHandSideMatrix) += density * (nu_turbulent /Schmidt_Prandl ) * prod(msDN_DX,trans(msDN_DX));
+    noalias(rLeftHandSideMatrix) += conductivity  * prod(msDN_DX, trans(msDN_DX)) + k_aux * h * prod(msDN_DX, Third);
 
     //INERTIA CONTRIBUTION
     noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * (density * specific_heat) * msMassFactors;
@@ -297,7 +269,6 @@ void ConvDiff3D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
     KRATOS_TRY
     int FractionalStepNumber = CurrentProcessInfo[FRACTIONAL_STEP];
 
-    // 		const boost::numeric::ublas::bounded_matrix<double,4,4> msMassFactors = 0.25*IdentityMatrix(4,4);
     boost::numeric::ublas::bounded_matrix<double, 4, 3 > msDN_DX;
     array_1d<double, 4 > msN;
     array_1d<double, 3 > ms_vel_gauss;
@@ -309,7 +280,6 @@ void ConvDiff3D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
     GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);
     ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-    //const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
     const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
     const Variable<double>& rProjectionVariable = my_settings->GetProjectionVariable();
 
@@ -345,7 +315,6 @@ void ConvDiff3D::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
         for (unsigned int i = 0; i < number_of_points; i++)
         {
             GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += lumping_factor*Area;
-            //GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ) += lumping_factor*temp_conv;
             GetGeometry()[i].FastGetSolutionStepValue(rProjectionVariable) += lumping_factor*temp_conv;
             ;
         }
