@@ -99,9 +99,9 @@ namespace Kratos
     {
         KRATOS_TRY
 
-                //getting the BDF2 coefficients (not fixed to allow variable time step)
-                //the coefficients INCLUDE the time step
-                const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
+        //getting the BDF2 coefficients (not fixed to allow variable time step)
+        //the coefficients INCLUDE the time step
+        const Vector& BDFcoeffs = rCurrentProcessInfo[BDF_COEFFICIENTS];
 
         const unsigned int number_of_points = GetGeometry().size();
         const double lumping_factor = 1.00 / double(number_of_points);
@@ -112,8 +112,6 @@ namespace Kratos
 
         if (rRightHandSideVector.size() != number_of_points)
             rRightHandSideVector.resize(number_of_points, false);
-
-        //mThisIntegrationMethod= GeometryData::GI_GAUSS_1;
 
         boost::numeric::ublas::bounded_matrix<double, 3, 3 > msMassFactors = 1.0 / 3.0 * IdentityMatrix(3, 3);
         boost::numeric::ublas::bounded_matrix<double, 3, 2 > msDN_DX;
@@ -135,14 +133,10 @@ namespace Kratos
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
 
-        //calculating viscosity
-
         const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
-        //const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
         const Variable<double>& rDiffusionVar = my_settings->GetDiffusionVariable();
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
         const Variable<double>& rSourceVar = my_settings->GetVolumeSourceVariable();
-        //const Variable<double>& rSurfaceSourceVar =my_settings->GetSurfaceSourceVariable();
         const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
 	const Variable<double>& rProjectionVariable = my_settings->GetProjectionVariable();
 
@@ -151,9 +145,8 @@ namespace Kratos
         double density = GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
         double heat_flux = GetGeometry()[0].FastGetSolutionStepValue(rSourceVar);
         double proj = GetGeometry()[0].FastGetSolutionStepValue(rProjectionVariable);
-        const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY); //VELOCITY
-        const array_1d<double, 3 > & w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); //
-	double nu = GetGeometry()[0].FastGetSolutionStepValue(VISCOSITY);	
+        const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(VELOCITY); 
+        const array_1d<double, 3 > & w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); 
 
         for (unsigned int j = 0; j < TDim; j++)
             ms_vel_gauss[j] = v[j] - w[j];
@@ -164,9 +157,7 @@ namespace Kratos
             density += GetGeometry()[i].FastGetSolutionStepValue(rDensityVar);
             specific_heat += GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
             heat_flux += GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
-            //proj += GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ);
 	    proj += GetGeometry()[i].FastGetSolutionStepValue(rProjectionVariable);
-	    nu += GetGeometry()[i].FastGetSolutionStepValue(VISCOSITY);
             const array_1d<double, 3 > & v = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
             const array_1d<double, 3 > & w = GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
             for (unsigned int j = 0; j < TDim; j++)
@@ -179,58 +170,32 @@ namespace Kratos
         heat_flux *= lumping_factor;
         proj *= lumping_factor;
         ms_vel_gauss *= lumping_factor;
-	nu *= lumping_factor;
-
-
 
         double c1 = 4.00;
         double c2 = 2.00;
         double h = sqrt(2.00 * Area);
         double norm_u = norm_2(ms_vel_gauss);
         double tau1 = (h * h) / (density * specific_heat * BDFcoeffs[0] * h * h + c1 * conductivity + c2 * density * specific_heat * (norm_u + 1e-6) * h);
-        //        tau1 *= 0.1;
-        // 		double alpha = conductivity/(density*specific_heat);
-
-        // 		double g=0.0;
         double p1 = msDN_DX(0, 0) * GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar) + msDN_DX(1, 0) * GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar) + msDN_DX(2, 0) * GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar);
         double p2 = msDN_DX(0, 1) * GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar) + msDN_DX(1, 1) * GetGeometry()[1].FastGetSolutionStepValue(rUnknownVar) + msDN_DX(2, 1) * GetGeometry()[2].FastGetSolutionStepValue(rUnknownVar);
         grad_g[0] = p1;
         grad_g[1] = p2;
-        //     		double norm_g =norm_2(grad_g);
 
-//        double res = (inner_prod(ms_vel_gauss, grad_g)); //+ 0.333333333333333 * (t0media+t1media+t2media)*(1/dt)*density*conductivity;
-//        double aux_res = fabs(res - proj);
-//        if (fabs(res) > aux_res)
-//            res = aux_res;
+
+        double res = (inner_prod(ms_vel_gauss, grad_g)); //+ 0.333333333333333 * (t0media+t1media+t2media)*(1/dt)*density*conductivity;
+        double aux_res = fabs(res - proj);
+        if (fabs(res) > aux_res)
+            res = aux_res;
         //        res -= proj;
-//        res *= density*specific_heat;
-//        double norm_grad = norm_2(grad_g);
-//        double k_aux = fabs(res) / (norm_grad + 1e-6);
-//        k_aux *= 0.707;
-
-	//double Schmidt_Prandl=1.0;
-	double nu_turbulent = 0.0;
-	const double Cs = this->GetValue(C_SMAGORINSKY);
-	if (Cs != 0.0){
-        	nu_turbulent = ComputeSmagorinskyViscosity(msDN_DX, h, Cs, nu);
-	}
-
-
-	//double norm_g =norm_2(grad_g);
-
-	double res = density * specific_heat*(inner_prod(ms_vel_gauss,grad_g)) ;//+ 0.333333333333333 * (t0media+t1media+t2media)*(1/dt)*density*conductivity;
-	double norm_grad=norm_2(grad_g);
-	double k_aux=fabs(res) /(norm_grad + 0.000000000001);
-
+        res *= density*specific_heat;
+        double norm_grad = norm_2(grad_g);
+        double k_aux = fabs(res) / (norm_grad + 1e-6);
+        k_aux *= 0.707;
 
         noalias(First) = outer_prod(ms_vel_gauss, trans(ms_vel_gauss));
         First /= ((norm_u + 1e-6)*(norm_u + 1e-6));
         noalias(Second) = Identity - First;
         noalias(Third) = prod(Second, trans(msDN_DX));
-
-
-        //calculating parameter tau
-
 
 
         //CONVECTIVE CONTRIBUTION TO THE STIFFNESS MATRIX
@@ -242,18 +207,6 @@ namespace Kratos
 
         //VISCOUS CONTRIBUTION TO THE STIFFNESS MATRIX
         noalias(rLeftHandSideMatrix) += (conductivity * prod(msDN_DX, trans(msDN_DX)) + k_aux * h * prod(msDN_DX, Third));
-
-	//noalias(rLeftHandSideMatrix) += density * (nu_turbulent /Schmidt_Prandl ) * prod(msDN_DX,trans(msDN_DX));
-        //filling the mass factors
-        //        msMassFactors(0, 0) = 1/6.0; 1.00 / 3.00;
-        //        msMassFactors(0, 1) = 0.00;
-        //        msMassFactors(0, 2) = 0.00;
-        //        msMassFactors(1, 0) = 0.00;
-        //        msMassFactors(1, 1) = 1.00 / 3.00;
-        //        msMassFactors(1, 2) = 0.00;
-        //        msMassFactors(2, 0) = 0.00;
-        //        msMassFactors(2, 1) = 0.00;
-        //        msMassFactors(2, 2) = 1.00 / 3.00;
 
         //INERTIA CONTRIBUTION
         noalias(rLeftHandSideMatrix) += BDFcoeffs[0] * (density * specific_heat) * msMassFactors;
@@ -320,7 +273,6 @@ namespace Kratos
         GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);
         ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
         const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-        //const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
         const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
 	const Variable<double>& rProjectionVariable = my_settings->GetProjectionVariable();
 
@@ -356,7 +308,6 @@ namespace Kratos
             for (unsigned int i = 0; i < number_of_points; i++)
             {
                 GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += lumping_factor*Area;
-                //GetGeometry()[i].FastGetSolutionStepValue(TEMP_CONV_PROJ) += lumping_factor*temp_conv;
 		GetGeometry()[i].FastGetSolutionStepValue(rProjectionVariable) += lumping_factor*temp_conv;
             }
         }
