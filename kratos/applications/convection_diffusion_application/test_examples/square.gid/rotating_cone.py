@@ -40,8 +40,8 @@ thermal_settings.SetProjectionVariable(TEMP_CONV_PROJ);
 ##########################################################
 
 #importing the solver files
-import convection_diffusion_solver
-convection_diffusion_solver.AddVariables(model_part,thermal_settings)
+import nonlinear_convection_diffusion_solver
+nonlinear_convection_diffusion_solver.AddVariables(model_part,thermal_settings)
 
 
 #introducing input file name
@@ -69,10 +69,10 @@ print model_part
 model_part.SetBufferSize(3)
 
 #importing the solver files
-convection_diffusion_solver.AddDofs(model_part,thermal_settings)
+nonlinear_convection_diffusion_solver.AddDofs(model_part,thermal_settings)
     
 #creating a fluid solver object
-solver = convection_diffusion_solver.ConvectionDiffusionSolver(model_part,domain_size,thermal_settings)
+solver = nonlinear_convection_diffusion_solver.ConvectionDiffusionSolver(model_part,domain_size,thermal_settings)
 solver.time_order = 2
 solver.prediction_order = 2
 pDiagPrecond = DiagonalPreconditioner()
@@ -88,6 +88,10 @@ for node in model_part.Nodes:
     node.SetSolutionStepValue(CONDUCTIVITY,0,conductivity);
     node.SetSolutionStepValue(DENSITY,0,density);
     node.SetSolutionStepValue(SPECIFIC_HEAT,0,specific_heat);
+
+model_part.Properties[0][EMISSIVITY] = 0.0
+model_part.Properties[0][AMBIENT_TEMPERATURE] = 0.0
+model_part.Properties[0][CONVECTION_COEFFICIENT] = 0.0
 
 #assigning a rotational velocity field
 vel = Vector(3);
@@ -117,6 +121,7 @@ for node in model_part.Nodes:
 #settings to be changed
 nsteps = 205
 output_step = 20
+output_step = 1
 
 Dt = 2.00*math.pi/200.0;
 
