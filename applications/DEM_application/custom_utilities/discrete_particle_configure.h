@@ -132,7 +132,7 @@ public:
         const double& radius_1 = rObj_1->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
         const double& radius_2 = rObj_2->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
         double radius_sum      = radius_1 + radius_2;
-        bool intersect         = (distance_2 - radius_sum * radius_sum) <= 0;
+        bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
         return intersect;
     }
 
@@ -144,8 +144,8 @@ public:
 
         const double& radius_1 = Radius;
         const double& radius_2 = rObj_2->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-        double radius_sum = radius_1 + radius_2;
-        bool intersect = (distance_2 - radius_sum * radius_sum) <= 0;
+        double radius_sum      = radius_1 + radius_2;
+        bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
         return intersect;
     }
 
@@ -160,8 +160,13 @@ public:
  
         const double& radius = rObject->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
 
-        bool intersect = (rLowPoint[0] - radius <= center_of_particle[0] && rLowPoint[1] - radius <= center_of_particle[1] && rLowPoint[2] - radius <= center_of_particle[2] &&
-        rHighPoint[0] + radius >= center_of_particle[0] && rHighPoint[1] + radius >= center_of_particle[1] && rHighPoint[2] + radius >= center_of_particle[2]);
+        bool intersect = (
+          floatle(rLowPoint[0]  - radius,center_of_particle[0]) && 
+          floatle(rLowPoint[1]  - radius,center_of_particle[1]) && 
+          floatle(rLowPoint[2]  - radius,center_of_particle[2]) &&
+          floatge(rHighPoint[0] + radius,center_of_particle[0]) && 
+          floatge(rHighPoint[1] + radius,center_of_particle[1]) && 
+          floatge(rHighPoint[2] + radius,center_of_particle[2]));
 
         return  intersect;
  
@@ -173,9 +178,13 @@ public:
         array_1d<double, 3> center_of_particle = rObject->GetGeometry().GetPoint(0);
 
         double radius = Radius;//Cambien el radi del objecte de cerca per el gran, aixi no tindria que petar res
-        bool intersect = (rLowPoint[0] - radius <= center_of_particle[0] && rLowPoint[1] - radius <= center_of_particle[1] && rLowPoint[2] - radius <= center_of_particle[2] &&
- 
-        rHighPoint[0] + radius >= center_of_particle[0] && rHighPoint[1] + radius >= center_of_particle[1] && rHighPoint[2] + radius >= center_of_particle[2]);
+        bool intersect = (
+          floatle(rLowPoint[0]  - radius,center_of_particle[0]) && 
+          floatle(rLowPoint[1]  - radius,center_of_particle[1]) && 
+          floatle(rLowPoint[2]  - radius,center_of_particle[2]) &&
+          floatge(rHighPoint[0] + radius,center_of_particle[0]) && 
+          floatge(rHighPoint[1] + radius,center_of_particle[1]) && 
+          floatge(rHighPoint[2] + radius,center_of_particle[2]));
         return  intersect;
     }
 
@@ -266,6 +275,18 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+      
+    static inline bool floateq(double a, double b) {
+        return std::fabs(a - b) < std::numeric_limits<double>::epsilon();
+    }
+    
+    static inline bool floatle(double a, double b) {
+        return std::fabs(a - b) < std::numeric_limits<double>::epsilon() || a < b;
+    }
+    
+    static inline bool floatge(double a, double b) {
+        return std::fabs(a - b) < std::numeric_limits<double>::epsilon() || a > b;
+    }
 
     ///@}
     ///@name Private  Access
