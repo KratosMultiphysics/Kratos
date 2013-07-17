@@ -200,7 +200,7 @@ public:
             distance = TDistanceFunction()(**Point,ThisPoint); // squared distance function
             if( distance < Radius )
             {
-                *Results   = *Point;
+                *Results = *Point;
                 Results++;
                 NumberOfResults++;
             }
@@ -216,7 +216,7 @@ public:
             distance = TDistanceFunction()(**Point,ThisPoint); // squared distance function
             if( distance < Radius )
             {
-                *Results   = *Point;
+                *Results = *Point;
                 Results++;
                 *Distances = distance;
                 Distances++;
