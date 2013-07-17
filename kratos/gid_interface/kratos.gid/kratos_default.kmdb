@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_KMat_DB version="1.0.6">
+<Kratos_KMat_DB version="1.0.7">
     <Materials>
-        <MaterialGroup id="Metal" pid="Metal" icon="grey.gif" help="Helptext" open="1">
+        <MaterialGroup id="Metal" pid="Solid" icon="grey.gif" help="Helptext" open="1">
             <Material id="Steel_AISI1059" pid="Steel_AISI1059" icon="grey.gif" help="Helptext" open="0">
                 <Container id="General" pid="General" icon="prop.gif" class="normal" help="General" open="0">
                     <Property id="Description" pid="Description" value="High Carbon Steel" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
@@ -11,7 +11,7 @@
                     <Container id="Elastic" pid="Elastic" icon="prop.gif" class="normal" help="General" open="0">
                         <Container id="Isotropic" pid="Isotropic" icon="prop.gif" class="normal" help="General" open="0">
                             <Property id="YoungModulus" pid="Young modulus" value="200e9" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                            <Property id="ShearModulus" pid="Shear modulus" value="80e9" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                            <Property id="ShearModulus" pid="Shear modulus" value="80e9" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                             <Property id="PoissonRatio" pid="Poisson ratio" value="0.29" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         </Container>
                         <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" class="normal" state="hiddenAll" help="General" open="0">
@@ -116,7 +116,7 @@
                     <Container id="Elastic" pid="Elastic" icon="prop.gif" class="normal" help="General" open="0">
                         <Container id="Isotropic" pid="Isotropic" icon="prop.gif" class="normal" help="General" open="0">
                             <Property id="YoungModulus" pid="Young modulus" value="72e9" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                            <Property id="ShearModulus" pid="Shear modulus" value="27e9" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                            <Property id="ShearModulus" pid="Shear modulus" value="27e9" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                             <Property id="PoissonRatio" pid="Poisson ratio" value="0.33" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         </Container>
                         <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
@@ -223,7 +223,7 @@
                     <Container id="Elastic" pid="Elastic" icon="prop.gif" class="normal" help="General" open="0">
                         <Container id="Isotropic" pid="Isotropic" icon="prop.gif" class="normal" help="General" open="0">
                             <Property id="YoungModulus" pid="Young modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                            <Property id="ShearModulus" pid="Shear modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                            <Property id="ShearModulus" pid="Shear modulus" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                             <Property id="PoissonRatio" pid="Poisson ratio" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         </Container>
                         <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
@@ -328,7 +328,7 @@
                     <Container id="Elastic" pid="Elastic" icon="prop.gif" class="normal" help="General" open="0">
                         <Container id="Isotropic" pid="Isotropic" icon="prop.gif" class="normal" help="General" open="0">
                             <Property id="YoungModulus" pid="Young modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                            <Property id="ShearModulus" pid="Shear modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                            <Property id="ShearModulus" pid="Shear modulus" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                             <Property id="PoissonRatio" pid="Poisson ratio" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         </Container>
                         <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
@@ -436,7 +436,7 @@
                     <Container id="Elastic" pid="Elastic" icon="prop.gif" class="normal" help="General" open="0">
                         <Container id="Isotropic" pid="Isotropic" icon="prop.gif" class="normal" help="General" open="0">
                             <Property id="YoungModulus" pid="Young modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                            <Property id="ShearModulus" pid="Shear modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                            <Property id="ShearModulus" pid="Shear modulus" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                             <Property id="PoissonRatio" pid="Poisson ratio" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         </Container>
                         <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
@@ -550,7 +550,7 @@
                 <Container id="Elastic" pid="Elastic" icon="prop.gif" class="normal" help="General" open="0">
                     <Container id="Isotropic" pid="Isotropic" icon="prop.gif" class="normal" help="General" open="0">
                         <Property id="YoungModulus" pid="Young modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                        <Property id="ShearModulus" pid="Shear modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="ShearModulus" pid="Shear modulus" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                         <Property id="PoissonRatio" pid="Poisson ratio" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     </Container>
                     <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
