@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.15">
+<Kratos_Data version="1.2.16">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -120,7 +120,7 @@
     <RootData id="Fluid" pid="Fluid" state="hiddenAll" class="application" icon="aplicationTree.gif" help="Fluid" open="1">
         <Container id="AnalysisData" pid="Analysis data" class="Tab" help="Analysis data" open="0">
             <Item id="FluidType" pid="Fluid type" class="fluidType" dv="Incompressible" ivalues="Compressible,Incompressible" values="Compressible,Incompressible" help="Fluid type"/>
-            <Item id="FluidApproach" pid="Fluid Approach" class="fluidAppr" dv="Eulerian" ivalues="Eulerian,PFEM-Lagrangian" values="Eulerian,PFEM-Lagrangian" help="Fluid approach"/>
+            <Item id="FluidApproach" pid="Fluid Approach" class="fluidAppr" dv="Eulerian" ivalues="Eulerian" values="Eulerian" help="Fluid approach" delvalues="PFEM-Lagrangian" />
             <Item id="FreeSurface" pid="Free surface" state="hidden" class="freeSurf" fluidAppr="Eulerian" fluidType="Incompressible" dv="No" ivalues="Yes,No" values="Yes,No" help="Free surface"/>
             <Item id="SolverTypeCompressible" pid="Solver type" class="fluidSolvTyp" freeSurf="No" fluidType="Compressible" dv="FSSE-ElementBased" ivalues="FSSE-ElementBased" values="Fractional step semi-explicit element based" help="Fractional step"/>
             <Item id="SolverType" pid="Solver type" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="ElementBased" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="SolverType"/>
