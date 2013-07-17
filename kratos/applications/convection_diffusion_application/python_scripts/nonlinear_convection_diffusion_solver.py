@@ -47,7 +47,7 @@ class ConvectionDiffusionSolver:
 	self.prediction_order = 1;
         self.ReformDofAtEachIteration = False;
         self.max_iter = 15;
-        self.toll = 1e-9;
+        self.toll = 1e-3;
 
         self.echo_level = 0
 
@@ -57,11 +57,13 @@ class ConvectionDiffusionSolver:
 
 
     def Initialize(self):
+	
         (self.neighbour_search).Execute()
         self.model_part.ProcessInfo
 	(self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings)
         self.solver = ResidualBasedConvectionDiffusionStrategyNonLinear			           (self.model_part,self.linear_solver,self.ReformDofAtEachIteration,self.time_order,self.max_iter,self.toll)   
         (self.solver).SetEchoLevel(self.echo_level)
+	
         print "finished initialization of the fluid strategy"
                  
    
