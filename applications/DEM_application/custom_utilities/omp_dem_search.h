@@ -21,9 +21,6 @@
 #include "spatial_containers/dem_search.h"
 #include "discrete_particle_configure.h"
 
-#include "doubledispatch/discrete_sphere_configure.h"
-#include "doubledispatch/discrete_tetrahedron_configure.h"
-
 // External includes
 
 namespace Kratos
