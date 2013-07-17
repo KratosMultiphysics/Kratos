@@ -12,8 +12,9 @@
 #
 #	HISTORY:
 #
-#       1.8- 15/07/13-G. Socorro, create a local variable createframeafteredit to disable/enable the bottom frame creation after rename a material
-#       1.7- 15/07/13-G. Socorro, update the proc insertXml and insertXmlCopy
+#   1.9- 17/07/13-G. Socorro, modify the proc FillTreeMat to take into account the current state of the property (normal,hidden or disabled)
+#   1.8- 15/07/13-G. Socorro, create a local variable createframeafteredit to disable/enable the bottom frame creation after rename a material
+#   1.7- 15/07/13-G. Socorro, update the proc insertXml and insertXmlCopy
 #	1.6- 11/07/13-G. Socorro, correct the bug in the proc splitNode from the last Adrià modification
 #	1.5- 20/09/12-J. Garate, Minor bug fixing, 
 #	1.4- 24/07/12-J. Garate, Minor bug fixing, function comments 
@@ -281,14 +282,15 @@ proc ::KMat::CreateTreeProperties {w} {
 proc ::KMat::FillTreeMatRecursive { } {
 	variable abdlist; variable TreeMatsPath
 	global KPriv
-	set KPriv(materialsId) {}
 	
-	set T $TreeMatsPath
-	set nodes [$::KMat::xml selectNodes "/Kratos_KMat_DB/Materials/MaterialGroup\[@id\]"]
-	
-	foreach node $nodes {
-		::KMat::FillNextLevel 0 $node $T $node
-	}
+    set KPriv(materialsId) {}
+    
+    set T $TreeMatsPath
+    set nodes [$::KMat::xml selectNodes "/Kratos_KMat_DB/Materials/MaterialGroup\[@id\]"]
+    
+    foreach node $nodes {
+	::KMat::FillNextLevel 0 $node $T $node
+    }
 }
 
 proc ::KMat::FillNextLevel { depth acumPath T node } {
@@ -331,61 +333,98 @@ proc ::KMat::FillTreeMat { } {
 
     variable abdlist; variable TreeMatsPath
     global KPriv
+    
     set KPriv(materialsId) {}
     
     set T $TreeMatsPath
     set nodes [$::KMat::xml selectNodes "/Kratos_KMat_DB/Materials/MaterialGroup\[@id\]"]
     
     foreach node $nodes {			  
-		#Nos guardamos todos los Id	
-		#set item [::KMat::InsertNewItem [$node getAttribute pid ""] [$node getAttribute id ""] $T "" "root" [$node hasChildNodes] "normal" [$node getAttribute open "0"]]
-		set item [::KMat::InsertNewItem [$node getAttribute pid ""] [$node getAttribute id ""] $T "" "root" [$node hasChildNodes] [::KMat::stateNode $node] [$node getAttribute open "0"]]
+	# Nos guardamos todos los Id
+	set pid	[$node getAttribute pid ""]
+	set id_l1 [$node getAttribute id ""]
+	set open [$node getAttribute open "0"]
+	set state [::KMat::stateNode $node]
+	# wa "Level 1: pid:$pid id_l1:$id_l1 open:$open state:$state\n"
+	set item [::KMat::InsertNewItem $pid $id_l1 $T "" "root" [$node hasChildNodes] $state $open]
+	# wa "item:$item"
+	foreach node2 [$node childNodes] {
+	    set pid [$node2 getAttribute pid ""]
+	    set id [$node2 getAttribute id ""]
+	    set open [$node2 getAttribute open "0"]
+	    set state [::KMat::stateNode $node2]
+	    set node2split [::KMat::splitNode $node2]
+	    set cpath "$id_l1//"
+	    # wa "Level 2: pid:$pid id:$id open:$open state:$state node2split:$node2split\n"
+	    set item2 [::KMat::InsertNewItem $pid $node2split $T $cpath "$item" [$node2 hasChildNodes] $state $open]
+	    # wa "item2:$item2"
+	    if {$item2 != -1} {					
+		lappend KPriv(materialsId) $pid
 		
-		set nodes2 [$node childNodes]
-		foreach node2 $nodes2 {
-			#set item2 [::KMat::InsertNewItem [$node2 getAttribute pid ""] [::KMat::splitNode $node2] $T "[$node getAttribute id ""]//" "$item" [$node2 hasChildNodes] "normal" [$node2 getAttribute open "0"]]
-		    set item2 [::KMat::InsertNewItem [$node2 getAttribute pid ""] [::KMat::splitNode $node2] $T "[$node getAttribute id ""]//" "$item" [$node2 hasChildNodes] [::KMat::stateNode $node2] [$node2 getAttribute open "0"]]
-		    if {$item2 != -1} {					
-			lappend KPriv(materialsId) [$node2 getAttribute pid ""]
-			#Seleccionamos los hijos (3º nivel)
-			set nodes3 [$node2 childNodes]		   
-			foreach node3 $nodes3 {
-			    if { [$node3 getAttribute pid ""] ni $abdlist } {
-					# set item3 [::KMat::InsertNewItem [$node3 getAttribute pid ""] [::KMat::splitNode $node3] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//" "$item2" [$node3 hasChildNodes] "normal" [$node3 getAttribute open "0"]]
-					set item3 [::KMat::InsertNewItem [$node3 getAttribute pid ""] [::KMat::splitNode $node3] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//" "$item2" [$node3 hasChildNodes] [::KMat::stateNode $node3] [$node3 getAttribute open "0"]]
-				    }
-				    if {$item3 != -1} {
-						set nodes4 [$node3 childNodes]
-						foreach node4 $nodes4 {
-						    # set item4 [::KMat::InsertNewItem [$node4 getAttribute pid ""] [::KMat::splitNode $node4] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//" "$item3" [$node4 hasChildNodes] "normal" [$node4 getAttribute open "0"]]
-						    set item4 [::KMat::InsertNewItem [$node4 getAttribute pid ""] [::KMat::splitNode $node4] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//" "$item3" [$node4 hasChildNodes] [::KMat::stateNode $node4] [$node4 getAttribute open "0"]]
-						    if {$item4 != -1} {
-								set nodes5 [$node4 childNodes]
-								foreach node5 $nodes5 {
-									# set item5 [::KMat::InsertNewItem [$node5 getAttribute pid ""] [::KMat::splitNode $node5] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//" "$item4" [$node5 hasChildNodes]  "normal" [$node5 getAttribute open "0"]]
-								    set item5 [::KMat::InsertNewItem [$node5 getAttribute pid ""] [::KMat::splitNode $node5] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//" "$item4" [$node5 hasChildNodes]  [::KMat::stateNode $node5] [$node5 getAttribute open "0"]]
-								    if {$item5 != -1} {
-										set nodes6 [$node5 childNodes]				   
-										foreach node6 $nodes6 {		
-											set item6 [::KMat::InsertNewItem [$node6 getAttribute pid ""] [::KMat::splitNode $node6] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//[::KMat::splitNode $node5]//" "$item5" [$node6 hasChildNodes]]
-											#		set item6 [::KMat::InsertNewItem $node6 [::KMat::splitNode $node6] $T "[$node getAttribute id 0]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//[::KMat::splitNode $node5]//" "$item5" [$node6 hasChildNodes] [::KMat::stateNode $node6] [$node6 getAttribute open "0"]]
-											if {$item6 != -1} {
-												set nodes7 [$node6 childNodes]			 
-												foreach node7 $nodes7 {			
-													set item7 [::KMat::InsertNewItem [$node7 getAttribute pid ""] [::KMat::splitNode $node7] $T "[$node getAttribute id ""]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//[::KMat::splitNode $node5]//[::KMat::splitNode $node6]//" "$item6" [$node7 hasChildNodes]]
-													#set item7 [::KMat::InsertNewItem $node7 [::KMat::splitNode $node7] $T "[$node getAttribute id 0]//[::KMat::splitNode $node2]//[::KMat::splitNode $node3]//[::KMat::splitNode $node4]//[::KMat::splitNode $node5]//[::KMat::splitNode $node6]//" "$item6" [$node7 hasChildNodes] [::KMat::stateNode $node7] [$node7 getAttribute open "0"]]
-						
-												}
-										    }
-										}
-								    }
-								}
-						    }
+		# Seleccionamos los hijos (3º nivel)
+		foreach node3 [$node2 childNodes] {
+		    set pid [$node3 getAttribute pid ""]
+		    set id [$node3 getAttribute id ""]
+		    set open [$node3 getAttribute open "0"]
+		    set state [::KMat::stateNode $node3]
+		    set node3split [::KMat::splitNode $node3]
+		    set cpath "$id_l1//$node2split//"
+		    # wa "Level 3: pid:$pid id:$id open:$open state:$state node3split:$node3split cpath:$cpath"
+		    set item3 -1
+		    if {$pid ni $abdlist } {
+			set item3 [::KMat::InsertNewItem $pid $node3split $T $cpath "$item2" [$node3 hasChildNodes] $state $open]
+		    }
+		    if {$item3 != -1} {
+			foreach node4 [$node3 childNodes] {
+			    set pid [$node4 getAttribute pid ""]
+			    set id [$node4 getAttribute id ""]
+			    set open [$node4 getAttribute open "0"]
+			    set state [::KMat::stateNode $node4]
+			    set node4split [::KMat::splitNode $node4]
+			    set cpath "$id_l1//$node2split//$node3split//"
+			    # wa "Level 4: pid:$pid id:$id open:$open state:$state node4split:$node4split cpath:$cpath"
+			    set item4 [::KMat::InsertNewItem $pid $node4split $T "$cpath" "$item3" [$node4 hasChildNodes] $state $open]
+			    if {$item4 != -1} {
+				foreach node5 [$node4 childNodes] {
+				    set pid [$node5 getAttribute pid ""]
+				    set id [$node5 getAttribute id ""]
+				    set open [$node5 getAttribute open "0"]
+				    set state [::KMat::stateNode $node5]
+				    set node5split [::KMat::splitNode $node5]
+				    set cpath "$id_l1//$node2split//$node3split//$node4split//"
+				    # wa "Level 5: pid:$pid id:$id open:$open state:$state node5split:$node5split cpath:$cpath"
+				    set item5 [::KMat::InsertNewItem $pid $node5split $T "$cpath" "$item4" [$node5 hasChildNodes] $state $open]
+				    if {$item5 != -1} {
+					foreach node6 [$node5 childNodes] {
+					    set pid [$node6 getAttribute pid ""]
+					    set id [$node6 getAttribute id ""]
+					    set open [$node6 getAttribute open "0"]
+					    set state [::KMat::stateNode $node6]
+					    set node6split [::KMat::splitNode $node6]
+					    set cpath "$id_l1//$node2split//$node3split//$node4split//$node5split//"
+					    # wa "Level 6: pid:$pid id:$id open:$open state:$state node6split:$node6split cpath:$cpath"		
+					    set item6 [::KMat::InsertNewItem $pid $node6split $T "$cpath" "$item5" [$node6 hasChildNodes] $state $open]
+					    if {$item6 != -1} {
+						foreach node7 [$node6 childNodes] {			
+						    set pid [$node7 getAttribute pid ""]
+						    set id [$node7 getAttribute id ""]
+						    set open [$node7 getAttribute open "0"]
+						    set state [::KMat::stateNode $node7]
+						    set node7split [::KMat::splitNode $node7]
+						    set cpath "$id_l1//$node2split//$node3split//$node4split//$node5split//$node6split//"
+						    # wa "Level 7: pid:$pid id:$id open:$open state:$state node7split:$node7split cpath:$cpath"
+						    set item7 [::KMat::InsertNewItem $pid $node7split $T "$cpath" "$item6" [$node7 hasChildNodes] $state $open]
 						}
+					    }
+					}
 				    }
 				}
+			    }
+			}
 		    }
 		}
+	    }
+	}
     }
 }
 
@@ -1623,7 +1662,7 @@ proc ::KMat::InsertNewItem { propName id T {parent ""} {parentitem root} {childs
     } else {
 	set fullname $id
     }
-    
+    # wa "fullname:$fullname"
     if { $childs } {		
 	set item [$T item create -button yes -tags [EncodeName $fullname] -open $open]
 	$T item lastchild $parentitem $item
@@ -1635,6 +1674,7 @@ proc ::KMat::InsertNewItem { propName id T {parent ""} {parentitem root} {childs
 	$T item style set $item C0 styFrame
 	
 	set xpath "[::KMat::setXPath $fullname]"
+	# wa "xpath:$xpath"
 	set value [::xmlutils::getValueText $::KMat::xml $xpath "value"]
 	
 	$T item style set $item C0 styAnyRead
@@ -1652,7 +1692,8 @@ proc ::KMat::InsertNewItem { propName id T {parent ""} {parentitem root} {childs
 	$T item image $item C0 $imagen
     } else {
     }	
-    #Miramos si el item tiene que estar a disabled (viene del proc ::KMProps::stateNode)
+    
+    # Miramos si el item tiene que estar a disabled (viene del proc ::KMProps::stateNode)
     if {$state == "disabled"} {
 	$T item enabled $item 0
     }	
@@ -2048,13 +2089,15 @@ proc ::KMat::stateNode { node } {
     
     #Validamos para cada nodo si tiene que estar visible 
     #(en función de los valores elegidos en algunos combos)
+    # wa "nodeName:[$node nodeName]"
     if { [$node nodeName] == "Property" } {
 	
-	#Leemos la class del nodo para ver si requiere de acciones especiales (ocultar nodos)
+	# Leemos la class del nodo para ver si requiere de acciones especiales (ocultar nodos)
 	set value [$node getAttribute value ""]
 	set class [$node getAttribute class ""]
 	
-	#Equivalente a Switch $class
+	# wa "value:$value class:$class"
+	# Equivalente a Switch $class
 	foreach var $::KMat::visibilityVars {	
 	    if {$var == $class} {				
 		#Caso especial para el solver de fluidos
@@ -2066,14 +2109,14 @@ proc ::KMat::stateNode { node } {
 			set ::KMProps::fluidSolvTyp "$value"
 		    }
 		} else {
-		    #Caso general
+		    # Caso general
 		    set ::KMat::$var $value
 		}
 	    }
 	}
     } else {
 	
-	#Caso especial para application
+	# Caso especial para application
 	set class [$node getAttribute class ""]
 	if { $class == "application" } {			
 	    set apliState [$node getAttribute state ""]
@@ -2085,7 +2128,7 @@ proc ::KMat::stateNode { node } {
     }
     
     set state [$node getAttribute state "normal"]
-    #msg "\n[$node getAttribute id ""]				state:$state"
+    # wa "\n[$node getAttribute id ""]				state:$state"
     
     #Si el estado es hiddenAll se oculta el nodo y toda su descendencia
     if {$state == "hiddenAll"} {
@@ -2109,7 +2152,7 @@ proc ::KMat::stateNode { node } {
 	    }
 	}
     }
-    #Devolvemos el estado del nodo ("normal" por defecto)
+    # Devolvemos el estado del nodo ("normal" por defecto)
     return $state	
 }
 
