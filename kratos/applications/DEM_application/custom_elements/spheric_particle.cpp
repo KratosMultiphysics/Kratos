@@ -108,6 +108,7 @@ namespace Kratos
 
           if (mLimitSurfaceOption){
               ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, max_rotation_moment, rCurrentProcessInfo);
+              ComputeBallToCylinderContactForce(contact_force, contact_moment, initial_rotation_moment, max_rotation_moment, rCurrentProcessInfo);
           }
 
           CustomCalculateRightHandSide(contact_force, contact_moment);
@@ -750,10 +751,11 @@ namespace Kratos
 
              bool sliding = false;
 
-             // BASIC CALCULATIONS
-
              const array_1d<double,3>& surface_normal_dir = rCurrentProcessInfo[SURFACE_NORMAL_DIR];
              const array_1d<double,3>& surface_point_coor = rCurrentProcessInfo[SURFACE_POINT_COOR];
+
+
+             // BASIC CALCULATIONS
              array_1d<double, 3> & GlobalSurfContactForce = this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES);
              array_1d<double, 3> point_coor = this->GetGeometry()(0)->Coordinates();
 
@@ -1011,15 +1013,324 @@ namespace Kratos
                      rMaxRotaMoment [1]     = MaxRotaMoment [1];
                      rMaxRotaMoment [2]     = MaxRotaMoment [2];
 
-                 } //if (mRotationOption)
+                 } // if (mRotationOption)
 
-             }  //if (indentation >= 0.0)
+             }  // if (indentation >= 0.0)
 
-         } //if (LIMIT_SURFACE_OPTION)
+         } // if (LIMIT_SURFACE_OPTION)
 
          KRATOS_CATCH("")
       }//ComputeBallToSurfaceContactForce
 
+      void SphericParticle::ComputeBallToCylinderContactForce(array_1d<double, 3>& rContactForce,
+                                                              array_1d<double, 3>& rContactMoment,
+                                                              array_1d<double, 3>& rInitialRotaMoment,
+                                                              array_1d<double, 3>& rMaxRotaMoment,
+                                                              ProcessInfo& rCurrentProcessInfo)
+       {
+           KRATOS_TRY
+
+           // CONTACT WITH A PLANE
+
+          if (rCurrentProcessInfo[LIMIT_SURFACE_OPTION] != 0){
+               double dt                            = rCurrentProcessInfo[DELTA_TIME];
+
+          // INITIALIZATIONS
+
+          const array_1d<double, 3> vel         = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+          const array_1d<double, 3> delta_displ = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+          const array_1d<double, 3> ang_vel     = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          double InitialRotaMoment[3]           = {0.0};
+          double MaxRotaMoment[3]               = {0.0};
+          double visco_damp_coeff_normal;
+          double visco_damp_coeff_tangential;
+
+          InitialRotaMoment [0] = rInitialRotaMoment [0];
+          InitialRotaMoment [1] = rInitialRotaMoment [1];
+          InitialRotaMoment [2] = rInitialRotaMoment [2];
+          MaxRotaMoment [0]     = rMaxRotaMoment [0];
+          MaxRotaMoment [1]     = rMaxRotaMoment [1];
+          MaxRotaMoment [2]     = rMaxRotaMoment [2];
+
+          // SLIDING
+
+          bool sliding = false;
+
+          const array_1d<double,3>& surface_normal_dir = rCurrentProcessInfo[SURFACE_NORMAL_DIR];
+          const array_1d<double,3>& surface_point_coor = rCurrentProcessInfo[SURFACE_POINT_COOR];
+
+          //Calculate surface equation
+          array_1d<double, 3> point_coor = this->GetGeometry()(0)->Coordinates();
+          const double cylinder_radius = rCurrentProcessInfo[CYLINDER_RADIUS];
+
+          double surface_ecuation[4] = {0.0};
+          surface_ecuation[0] = surface_normal_dir[0];
+          surface_ecuation[1] = surface_normal_dir[1];
+          surface_ecuation[2] = surface_normal_dir[2];
+          surface_ecuation[3] = -(surface_normal_dir[0] * surface_point_coor[0] + surface_normal_dir[1] * surface_point_coor[1] + surface_normal_dir[2] * surface_point_coor[2]);
+
+          // BASIC CALCULATIONS
+        array_1d<double, 3> & GlobalSurfContactForce = this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES);
+
+
+        // Calculate indentation
+
+        double indentation = sqrt(point_coor[0] * point_coor[0] + point_coor[2] * point_coor[2]) + mRadius - cylinder_radius;
+
+        if (indentation <= 0.0){
+            GlobalSurfContactForce[0] = 0.0;  // 0: first tangential
+            GlobalSurfContactForce[1] = 0.0;  // 1: second tangential
+            GlobalSurfContactForce[2] = 0.0;  // 2: normal force
+        }
+
+        if (indentation > 0.0){
+
+            array_1d<double, 3> contact_to_axis;
+            contact_to_axis[0] = - point_coor[0];
+            contact_to_axis[1] = - 0.0;
+            contact_to_axis[2] = - point_coor[2];
+
+            // MACRO PARAMETERS
+            double kn = M_PI * 0.5 * mYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+            double kt = kn / (2.0 * (1.0 + mPoisson));
+
+            if (mGlobalVariablesOption){ //globally defined parameters
+                kn = mGlobalKn;
+                kt = mGlobalKt;
+            }
+
+            // Historical minimun K for the critical time:
+            if (mCriticalTimeOption){
+                double historic = rCurrentProcessInfo[HISTORICAL_MIN_K];
+
+                if ((kn < historic) || (kt < historic)){
+                    historic = fmin(kn, kt);
+                }
+
+            }
+            double aux_norm_to_tang = sqrt(kt / kn);
+
+            if (mLnOfRestitCoeff > 0.0){
+                visco_damp_coeff_normal     = 2 * sqrt(mRealMass * kn);
+                visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(mass * kt);
+            }
+
+            else {
+                visco_damp_coeff_normal     = - 2 * mLnOfRestitCoeff * sqrt(mRealMass * kn / (mLnOfRestitCoeff * mLnOfRestitCoeff + M_PI * M_PI));
+                visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(restitution_coeff) * sqrt(mass * kt)) / (sqrt((log(restitution_coeff) * log(restitution_coeff)) + (M_PI * M_PI)));
+            }
+
+            // FORMING LOCAL CORDINATES
+
+            // Notes: Since we will normally inherit the mesh from GiD, we respect the global system X,Y,Z [0],[1],[2]
+            // In the local coordinates we will define the normal direction of the contact as the [2] component!!!!!
+            // the way the normal direction is defined compression is positive
+
+            double NormalDir[3]            = {0.0};
+            double LocalCoordSystem[3][3]  = {{0.0}, {0.0}, {0.0}};
+
+            double norm_surface_normal_dir = sqrt(contact_to_axis[0] * contact_to_axis[0] + contact_to_axis[1] * contact_to_axis[1] + contact_to_axis[2] * contact_to_axis[2]);
+            NormalDir[0] = contact_to_axis[0] / norm_surface_normal_dir;
+            NormalDir[1] = contact_to_axis[1] / norm_surface_normal_dir;
+            NormalDir[2] = contact_to_axis[2] / norm_surface_normal_dir;
+
+            GeometryFunctions::ComputeContactLocalCoordSystem(NormalDir, LocalCoordSystem); //new Local Coord System
+
+            // VELOCITIES AND DISPLACEMENTS
+
+            double DeltDisp[3] = {0.0};
+            double RelVel  [3] = {0.0};
+
+            RelVel[0] = vel[0];
+            RelVel[1] = vel[1];
+            RelVel[2] = vel[2];
+
+            // DeltDisp in global cordinates
+
+            DeltDisp[0] = delta_displ[0];
+            DeltDisp[1] = delta_displ[1];
+            DeltDisp[2] = delta_displ[2];
+
+            if (mRotationOption){
+                double velA[3]      = {0.0};
+                double dRotaDisp[3] = {0.0};
+                double Vel_Temp[3]  = {ang_vel[0], ang_vel[1], ang_vel[2]};
+                GeometryFunctions::CrossProduct(Vel_Temp, LocalCoordSystem[2], velA);
+
+                dRotaDisp[0] = -velA[0] * mRadius;
+                dRotaDisp[1] = -velA[1] * mRadius;
+                dRotaDisp[2] = -velA[2] * mRadius;
+                // Contribution of the rotation vel
+                DeltDisp[0] += dRotaDisp[0] * dt;
+                DeltDisp[1] += dRotaDisp[1] * dt;
+                DeltDisp[2] += dRotaDisp[2] * dt;
+            }// if (mRotationOption)
+
+            double LocalDeltDisp[3]             = {0.0};
+            double LocalElasticContactForce[3]  = {0.0};
+            double GlobalElasticContactForce[3] = {0.0};
+            double LocalRelVel[3]               = {0.0};
+
+            GlobalElasticContactForce[0] = GlobalSurfContactForce[0];   // GlobalSurfContactForce saved in a container PARTICLE_SURFACE_CONTACT_FORCES
+            GlobalElasticContactForce[1] = GlobalSurfContactForce[1];
+            GlobalElasticContactForce[2] = GlobalSurfContactForce[2];
+
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce); //we recover this way the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, RelVel, LocalRelVel);
+
+            // FORCES
+
+            // NORMAL FORCE
+
+            switch (mElasticityType) //  0---linear comp ; 1 --- Hertzian
+            {
+                case 0:
+                    LocalElasticContactForce[2] = kn * indentation;
+                    break;
+
+                case 1:
+                    LocalElasticContactForce[2] = kn * pow(indentation, 1.5);
+                    break;
+            }
+
+            // TANGENTIAL FORCE
+
+            LocalElasticContactForce[0] += - kt * LocalDeltDisp[0];  // 0: first tangential
+            LocalElasticContactForce[1] += - kt * LocalDeltDisp[1];  // 1: second tangential
+
+            double dyn_friction_angle =  rCurrentProcessInfo[SURFACE_FRICC] * M_PI / 180;
+            double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+            double Frictional_ShearForceMax = tan(dyn_friction_angle) * LocalElasticContactForce[2];
+
+            if (Frictional_ShearForceMax < 0.0){
+                Frictional_ShearForceMax = 0.0;
+            }
+
+            if ((ShearForceNow > Frictional_ShearForceMax) && (ShearForceNow != 0.0)){
+                LocalElasticContactForce[0] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[0];
+                LocalElasticContactForce[1] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[1];
+                sliding = true;
+            }
+
+            // VISCODAMPING (applyied locally)
+
+            double ViscoDampingLocalContactForce[3]    = {0.0};
+
+            if ((mDampType > 0) && ((indentation > 0.0))){
+
+                if (mDampType == 11 || mDampType == 10){
+                    ViscoDampingLocalContactForce[2] = - visco_damp_coeff_normal * LocalRelVel[2];
+                }
+
+                if (sliding == false && (mDampType == 1 || mDampType == 11)){ //only applied when no sliding to help to the regularized friccion law or the spring convergence
+                    ViscoDampingLocalContactForce[0] = - visco_damp_coeff_tangential * LocalRelVel[0];
+                    ViscoDampingLocalContactForce[1] = - visco_damp_coeff_tangential * LocalRelVel[1];
+                }
+            }
+
+            // Transforming to global forces and adding up
+
+            double LocalContactForce[3]              = {0.0};
+            double ViscoDampingGlobalContactForce[3] = {0.0};
+            double GlobalContactForce[3]             = {0.0};
+
+            for (unsigned int index = 0; index < 3; index++){
+                LocalContactForce[index] = LocalElasticContactForce[index]  + ViscoDampingLocalContactForce[index];
+            }
+
+            GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+            GeometryFunctions::VectorLocal2Global(LocalCoordSystem, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce);
+            GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
+
+            rContactForce[0] += GlobalContactForce[0];
+            rContactForce[1] += GlobalContactForce[1];
+            rContactForce[2] += GlobalContactForce[2];
+
+            // Saving contact forces
+
+            this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES)[0] = GlobalElasticContactForce[0];
+            this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES)[1] = GlobalElasticContactForce[1];
+            this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES)[2] = GlobalElasticContactForce[2];
+
+            if (mRotationOption){
+                double MA[3]                     = {0.0};
+                double RotaMoment[3]             = {0.0};
+
+                GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalElasticContactForce, MA);
+
+                RotaMoment[0] -= MA[0] * mRadius;
+                RotaMoment[1] -= MA[1] * mRadius;
+                RotaMoment[2] -= MA[2] * mRadius;
+
+                if (mRotationDampType == 2){  // Rolling friccion type
+                    double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
+                    double rolling_friction_coeff       = rolling_friction * mRadius;
+
+                    if (rolling_friction_coeff != 0.0){
+                        double CoordSystemMoment[3] = {0.0};
+                        double MR[3]                = {0.0};
+                        double NormalForce[3]       = {0.0};
+
+                        MaxRotaMoment[0] += RotaMoment[0];
+                        MaxRotaMoment[1] += RotaMoment[1];
+                        MaxRotaMoment[2] += RotaMoment[2];
+
+                        NormalForce[0] = LocalCoordSystem[2][0] * fabs(LocalElasticContactForce[2]);
+                        NormalForce[1] = LocalCoordSystem[2][1] * fabs(LocalElasticContactForce[2]);
+                        NormalForce[2] = LocalCoordSystem[2][2] * fabs(LocalElasticContactForce[2]);
+
+                        GeometryFunctions::CrossProduct(LocalCoordSystem[2], MaxRotaMoment, CoordSystemMoment);
+                        double det_coor_sys_moment_i = 1 / sqrt(CoordSystemMoment[0] * CoordSystemMoment[0] + CoordSystemMoment[1] * CoordSystemMoment[1] + CoordSystemMoment[2] * CoordSystemMoment[2]);
+
+                        CoordSystemMoment[0] *= det_coor_sys_moment_i;
+                        CoordSystemMoment[1] *= det_coor_sys_moment_i;
+                        CoordSystemMoment[2] *= det_coor_sys_moment_i;
+
+                        GeometryFunctions::CrossProduct(NormalForce, CoordSystemMoment, MR);
+                        double det_MR = sqrt(MR[0] * MR[0] + MR[1] * MR[1] + MR[2] * MR[2]);
+                        double MR_now = det_MR * rolling_friction_coeff;
+                        double MR_max = sqrt(MaxRotaMoment[0] * MaxRotaMoment[0] + MaxRotaMoment[1] * MaxRotaMoment[1] + MaxRotaMoment[2] * MaxRotaMoment[2]);
+
+                        if (MR_max > MR_now){
+                            RotaMoment[0]    += MR[0] * rolling_friction_coeff;
+                            RotaMoment[1]    += MR[1] * rolling_friction_coeff;
+                            RotaMoment[2]    += MR[2] * rolling_friction_coeff;
+
+                            MaxRotaMoment[0] += MR[0] * rolling_friction_coeff;
+                            MaxRotaMoment[1] += MR[1] * rolling_friction_coeff;
+                            MaxRotaMoment[2] += MR[2] * rolling_friction_coeff;
+                        }
+
+                        else {
+                            RotaMoment[0]     = -InitialRotaMoment[0];
+                            RotaMoment[1]     = -InitialRotaMoment[1];
+                            RotaMoment[2]     = -InitialRotaMoment[2];
+                        }
+
+                    } // if (RollingFrictionCoeff != 0.0)
+
+                } // if (mRotationDampType == 2)
+
+                rContactMoment[0] += RotaMoment[0];
+                rContactMoment[1] += RotaMoment[1];
+                rContactMoment[2] += RotaMoment[2];
+
+                rInitialRotaMoment [0] = InitialRotaMoment [0];
+                rInitialRotaMoment [1] = InitialRotaMoment [1];
+                rInitialRotaMoment [2] = InitialRotaMoment [2];
+                rMaxRotaMoment [0]     = MaxRotaMoment [0];
+                rMaxRotaMoment [1]     = MaxRotaMoment [1];
+                rMaxRotaMoment [2]     = MaxRotaMoment [2];
+
+            } // if (mRotationOption)
+
+        }  // if (indentation >= 0.0)
+
+    } // if (LIMIT_SURFACE_OPTION)
+
+    KRATOS_CATCH("")
+ }//ComputeBallToSurfaceContactForce
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
