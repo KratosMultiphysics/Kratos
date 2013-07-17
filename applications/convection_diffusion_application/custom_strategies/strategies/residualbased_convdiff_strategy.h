@@ -246,11 +246,6 @@ public:
         CalculateProjection();
 
 
-//Dp_norm = mstep1->Solve();
-//CalculateProjection();
-//Dp_norm = mstep1->Solve();
-//CalculateProjection();
-
         return Dp_norm;
         KRATOS_CATCH("")
     }
@@ -269,7 +264,6 @@ public:
         ProcessInfo& rCurrentProcessInfo = BaseType::GetModelPart().GetProcessInfo();
 
         ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-//			const Variable<double>& rUnknownVar= my_settings->GetUnknownVariable();
 
         const Variable<double>& rProjectionVariable = my_settings->GetProjectionVariable();
 
@@ -277,7 +271,6 @@ public:
         for(ModelPart::NodeIterator i = BaseType::GetModelPart().NodesBegin() ;
                 i != BaseType::GetModelPart().NodesEnd() ; ++i)
         {
-            //double proj = GetGeometry()[0].FastGetSolutionStepValue(rProjectionVariable);
             (i)->GetSolutionStepValue(rProjectionVariable) = 0.00;
             (i)->GetSolutionStepValue(NODAL_AREA) = 0.00;
         }
@@ -341,12 +334,12 @@ public:
             KRATOS_ERROR(std::logic_error, "Add  ----rProjectionVariable---- variable!!!!!! ERROR", "");
 
 
-        if(BaseType::GetModelPart().GetMesh().GetProperties(0)[EMISSIVITY] == false)
+       /* if(BaseType::GetModelPart().GetMesh().GetProperties(0)[EMISSIVITY] == false)
             KRATOS_ERROR(std::logic_error, "Add  ----EMISSIVITY---- variable!!!!!! ERROR", "");
         if(BaseType::GetModelPart().GetMesh().GetProperties(0)[CONVECTION_COEFFICIENT] == false)
             KRATOS_ERROR(std::logic_error, "Add  ----CONVECTION_COEFFICIENT---- variable!!!!!! ERROR", "");
         if(BaseType::GetModelPart().GetMesh().GetProperties(0)[AMBIENT_TEMPERATURE] == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----AMBIENT_TEMPERATURE---- variable!!!!!! ERROR", "");
+            KRATOS_ERROR(std::logic_error, "Add  ----AMBIENT_TEMPERATURE---- variable!!!!!! ERROR", "");*/
 
 
         return 0;
