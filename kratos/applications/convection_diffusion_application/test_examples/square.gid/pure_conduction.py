@@ -71,14 +71,10 @@ model_part.SetBufferSize(3)
 #importing the solver files
 convection_diffusion_solver.AddDofs(model_part,thermal_settings)
 
-    
+  
 #creating a fluid solver object
 solver = convection_diffusion_solver.ConvectionDiffusionSolver(model_part,domain_size,thermal_settings)
 solver.time_order = 2
-#pDiagPrecond = DiagonalPreconditioner()
-#solver.linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
-#solver.linear_solver = SkylineLUFactorizationSolver();
-
 solver.Initialize()
 
 #assigning the fluid properties
@@ -90,19 +86,14 @@ for node in model_part.Nodes:
     node.SetSolutionStepValue(DENSITY,0,density);
     node.SetSolutionStepValue(SPECIFIC_HEAT,0,specific_heat);
 
-#assigning a zero velocity field
-##vel = Vector(3);
-##vel[0] = 0.0; vel[1]= 0.0; vel[2]=0.0
-##for node in model_part.Nodes:
-##    node.SetSolutionStepValue(VELOCITY,0,vel);
-##    node.Free(TEMPERATURE);
-##
+model_part.Properties[0][EMISSIVITY] = 0.0
+model_part.Properties[0][AMBIENT_TEMPERATURE] = 0.0
+model_part.Properties[0][CONVECTION_COEFFICIENT] = 0.0
+
+
+
 vel = Vector(3);
 for node in model_part.Nodes:
-##    vel[0] = -node.Y
-##    vel[1] = node.X
-##    vel[2] = 0.00
-##    node.SetSolutionStepValue(VELOCITY,0,vel);
     if(node.X**2 + node.Y**2 < 0.249999):
         vel[0] = -node.Y
         vel[1] = node.X
@@ -143,9 +134,6 @@ for step in range(0,nsteps):
 
     time = Dt*step
     model_part.CloneTimeStep(time)
-
-    print time
-    #print model_part.ProcessInfo()[TIME]
 
     #solving the fluid problem
     if(step > 3):
