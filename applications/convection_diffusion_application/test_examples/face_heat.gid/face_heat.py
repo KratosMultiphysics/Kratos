@@ -57,21 +57,20 @@ print model_part
 #the buffer size should be set up here after the mesh is read for the first time
 model_part.SetBufferSize(3)
 
-#importing the solver files
 nonlinear_convection_diffusion_solver.AddDofs(model_part,thermal_settings)
 
-    
+  
 #creating a fluid solver object
 solver = nonlinear_convection_diffusion_solver.ConvectionDiffusionSolver(model_part,domain_size,thermal_settings)
 solver.time_order = 1
-#pDiagPrecond = DiagonalPreconditioner()
-#solver.linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
 solver.linear_solver = SkylineLUFactorizationSolver();
 solver.echo_level = 0
 solver.Initialize()
 
 #assigning the fluid properties
 conductivity = 0.25;
+conductivity = 0.0025;
+conductivity = 25.0;
 density = 900.0;
 specific_heat = 2400.0;
 temperature = 298.0;
@@ -81,10 +80,9 @@ for node in model_part.Nodes:
     node.SetSolutionStepValue(SPECIFIC_HEAT,0,specific_heat);
     node.SetSolutionStepValue(TEMPERATURE,0,temperature);
 
-model_part.Properties[1][EMISSIVITY] = 1.0
-model_part.Properties[1][AMBIENT_TEMPERATURE] = 25.0
-model_part.Properties[1][CONVECTION_COEFFICIENT] = 8.0
-
+model_part.Properties[0][EMISSIVITY] = 0.0
+model_part.Properties[0][AMBIENT_TEMPERATURE] = 0.0
+model_part.Properties[0][CONVECTION_COEFFICIENT] = 0.0
    
 #applying a temperature of 100
 for node in model_part.Nodes:
@@ -106,9 +104,6 @@ out = 1
 for step in range(0,nsteps):
     time = Dt*step
     model_part.CloneTimeStep(time)
-
-    print time
-    #print model_part.ProcessInfo()[TIME]
 
     #solving the fluid problem
     if(step > 3):
