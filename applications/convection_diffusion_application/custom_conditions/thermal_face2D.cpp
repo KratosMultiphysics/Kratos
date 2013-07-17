@@ -121,22 +121,10 @@ void ThermalFace2D::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rR
     unsigned int MatSize=number_of_nodes;
 
     ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-    //const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
-
-    //ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-
-    //const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
 
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
     const Variable<double>& rSurfaceSourceVar = my_settings->GetSurfaceSourceVariable();
-
-    //KRATOS_WATCH(rUnknownVar);
-    //KRATOS_ERROR(std::logic_error, "method not implemented", "");
-    //const Variable<double>& rSurfaceSourceVar =my_settings->GetSurfaceSourceVariable();
-
-    //double conductivity = GetGeometry()[0].FastGetSolutionStepValue(rDiffusionVar);
-
 
     //calculate lenght
     double x21 = GetGeometry()[1].X() - GetGeometry()[0].X();
@@ -165,16 +153,6 @@ void ThermalFace2D::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rR
         rLeftHandSideMatrix(1,1) = ( convection_coefficient + emissivity*StefenBoltzmann*4.0*pow(T1,3)  )* 0.5 * lenght;
     }
 
-    /*		KRATOS_WATCH(GetProperties()[AMBIENT_TEMPERATURE] );
-    		KRATOS_WATCH(GetProperties()[EMISSIVITY] );
-    		KRATOS_WATCH(GetProperties()[CONVECTION_COEFFICIENT] );
-    		KRATOS_WATCH(convection_coefficient );
-    		KRATOS_WATCH(ambient_temperature );
-    		KRATOS_WATCH(T0 );
-    		KRATOS_WATCH(T1 );
-    		KRATOS_WATCH(convection_coefficient * ( T0 - ambient_temperature));
-    		KRATOS_WATCH(convection_coefficient * ( T1 - ambient_temperature));
-    */
     //resizing as needed the RHS
     double aux = pow(ambient_temperature,4);
     if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
@@ -186,12 +164,6 @@ void ThermalFace2D::CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rR
 
         rRightHandSideVector[1] =  q1   - emissivity*StefenBoltzmann*(pow(T1,4) - aux) -  convection_coefficient * ( T1 - ambient_temperature);
 
-        /*			rRightHandSideVector[0] =  emissivity*q0 - emissivity*StefenBoltzmann*(pow(T0,4) - aux)
-        									-  convection_coefficient * ( T0 - ambient_temperature);
-
-        			rRightHandSideVector[1] =  emissivity*q1  - emissivity*StefenBoltzmann*(pow(T1,4) - aux)
-        									-  convection_coefficient * ( T1 - ambient_temperature);
-        */
         rRightHandSideVector *= 0.5*lenght;
 
     }
@@ -208,8 +180,6 @@ void ThermalFace2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo&
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
     ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-
-    //const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
 
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
@@ -231,8 +201,6 @@ void ThermalFace2D::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& C
 
 
     ConvectionDiffusionSettings::Pointer my_settings = CurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
-
-    //const Variable<array_1d<double,3> >& rConvectionVar = my_settings->GetConvectionVariable();
 
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
 
