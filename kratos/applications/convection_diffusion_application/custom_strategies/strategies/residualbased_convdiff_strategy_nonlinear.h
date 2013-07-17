@@ -316,7 +316,6 @@ public:
 
 
                 (i)->FastGetSolutionStepValue(rProjectionVariable) = 0.00;
-                // (i)->FastGetSolutionStepValue(TEMP_CONV_PROJ) = 0.00;
                 (i)->FastGetSolutionStepValue(NODAL_AREA) = 0.00;
             }
             else
@@ -384,12 +383,12 @@ public:
             KRATOS_ERROR(std::logic_error, "Add  ----rProjectionVariable---- variable!!!!!! ERROR", "");
 
 
-        if(BaseType::GetModelPart().GetMesh().GetProperties(0)[EMISSIVITY] == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----EMISSIVITY---- variable!!!!!! ERROR", "");
-        if(BaseType::GetModelPart().GetMesh().GetProperties(0)[CONVECTION_COEFFICIENT] == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----CONVECTION_COEFFICIENT---- variable!!!!!! ERROR", "");
-        if(BaseType::GetModelPart().GetMesh().GetProperties(0)[AMBIENT_TEMPERATURE] == false)
-            KRATOS_ERROR(std::logic_error, "Add  ----AMBIENT_TEMPERATURE---- variable!!!!!! ERROR", "");
+        //if(BaseType::GetModelPart().GetMesh().GetProperties(0)[EMISSIVITY] == false)
+        //    KRATOS_ERROR(std::logic_error, "Add  ----EMISSIVITY---- variable!!!!!! ERROR", "");
+        //if(BaseType::GetModelPart().GetMesh().GetProperties(0)[CONVECTION_COEFFICIENT] == false)
+        //    KRATOS_ERROR(std::logic_error, "Add  ----CONVECTION_COEFFICIENT---- variable!!!!!! ERROR", "");
+        //if(BaseType::GetModelPart().GetMesh().GetProperties(0)[AMBIENT_TEMPERATURE] == false)
+        //    KRATOS_ERROR(std::logic_error, "Add  ----AMBIENT_TEMPERATURE---- variable!!!!!! ERROR", "");
 
 
         return 0;
