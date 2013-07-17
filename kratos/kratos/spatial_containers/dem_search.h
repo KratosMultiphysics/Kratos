@@ -93,6 +93,24 @@ class DEMSearch : public SpatialSearch
       {     
           static_cast<TDerived*>(this)->SearchElementsInRadiusInclusiveImplementation(rModelPart,InputElements,Radius,rResults,rResultsDistance);
       }
+      
+      void SearchElementsInRadiusExclusive (
+          ModelPart& rModelPart,
+          ElementsContainerType const& InputElements,
+          const RadiusArrayType & Radius,
+          VectorResultElementsContainerType& rResults )
+      {     
+          static_cast<TDerived*>(this)->SearchElementsInRadiusExclusiveImplementation(rModelPart,InputElements,Radius,rResults);
+      }
+      
+      void SearchElementsInRadiusInclusive (
+          ModelPart& rModelPart,
+          ElementsContainerType const& InputElements,
+          const RadiusArrayType & Radius,
+          VectorResultElementsContainerType& rResults )
+      {     
+          static_cast<TDerived*>(this)->SearchElementsInRadiusInclusiveImplementation(rModelPart,InputElements,Radius,rResults);
+      }
         
       ///@}
       ///@name Access

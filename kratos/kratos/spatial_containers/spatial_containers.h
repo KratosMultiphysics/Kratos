@@ -32,6 +32,7 @@
 #include "bucket.h"
 #include "kd_tree.h"
 #include "octree.h"
+#include "octree_binary.h"
 #include "bins_static.h"
 #include "bins_dynamic.h"
 #include "bins_dynamic_objects.h"
