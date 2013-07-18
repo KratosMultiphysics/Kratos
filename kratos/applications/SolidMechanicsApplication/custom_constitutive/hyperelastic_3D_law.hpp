@@ -20,7 +20,7 @@
 namespace Kratos
 {
   /**
-   * Defines a hyperelastic isotropic constitutive law in 2D Neohookean Model (Plane Strain)
+   * Defines a hyperelastic isotropic constitutive law in 3D Neohookean Model
    * This material law is defined by the parameters:
    * 1) YOUNG MODULUS 
    * 2) POISSON RATIO
@@ -84,8 +84,16 @@ namespace Kratos
      * Operations needed by the base class:
      */
 
-    SizeType WorkingSpaceDimension() { return 2; };
-    SizeType GetStrainSize()         { return 3; };
+    /**
+     * Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension() { return 3; };
+
+    /**
+     * Voigt tensor size:
+     */
+    SizeType GetStrainSize()         { return 6; };
+
 
     bool Has( const Variable<double>& rThisVariable );
     bool Has( const Variable<Vector>& rThisVariable );
@@ -233,7 +241,6 @@ namespace Kratos
     /**
      * Takes a matrix 2x2 and transforms it to a 3x3 adding a 3rd row and a 3rd column with a 1 in the diagonal
      */
-
     Matrix& DeformationGradient3D (Matrix & Matrix2D);
 
     /**
@@ -255,7 +262,7 @@ namespace Kratos
 
     /**
      * Calculates the constitutive matrix 
-     * @param rMatrixIC can be the Identity or the RightCauchyGreen tensor
+     * @param rMatrixIC can be the Identity or the inverse of the RightCauchyGreen tensor
      * @param rdetF the determinant of the deformation gradient
      * @param rLameLambda lame paramenter lambda
      * @param rLameMu lame paramenter mu
@@ -263,15 +270,15 @@ namespace Kratos
      * @param rResult Matrix the result (Constitutive Matrix) will be stored in
      */
     virtual void CalculateConstitutiveMatrix (const Matrix & rMatrixIC,
-					      const double &rdetF,
-					      const double &rLameLambda,
-					      const double &rLameMu,
+					      const double & rdetF,
+					      const double & rLameLambda,
+					      const double & rLameMu,
 					      Matrix& rConstitutiveMatrix);
 
 
     /**
      * Calculates the constitutive matrix and makes a pull-back
-     * @param rMatrixIC can be the Identity or the RightCauchyGreen tensor
+     * @param rMatrixIC can be the Identity or the inverse of the RightCauchyGreen tensor
      * @param rinvF the invers of the current deformation gradient
      * @param rdetF0 the determinant of the total deformation gradient
      * @param rLameLambda lame paramenter lambda
@@ -279,34 +286,42 @@ namespace Kratos
      * matrix is to be generated for
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
-    virtual void CalculateConstitutiveMatrix (const Matrix &rMatrixIC,
-					      const Matrix &rinvF, 
-					      const double &rdetF0,
-					      const double &rLameLambda,
-					      const double &rLameMu,
+    virtual void CalculateConstitutiveMatrix (const Matrix & rMatrixIC,
+					      const Matrix & rinvF, 
+					      const double & rdetF0,
+					      const double & rLameLambda,
+					      const double & rLameMu,
 					      Matrix& rConstitutiveMatrix);
 
 
+    /**
+     * Constitutive component
+     */
 
-    double ConstitutiveComponent( const Matrix &rMatrixIC,
-				  const Matrix &rinvF,
-				  const double &rdetF0, 
-				  const double &rLameLambda, 
-				  const double &rLameMu, 
-				  const unsigned int& a, const unsigned int& b,
-				  const unsigned int &c, const unsigned int& d);
+    double& ConstitutiveComponent( double & rCabcd, 
+				   const Matrix &rMatrixIC,
+				   const Matrix &rinvF,
+				   const double &rdetF0, 
+				   const double &rLameLambda, 
+				   const double &rLameMu, 
+				   const unsigned int& a, const unsigned int& b,
+				   const unsigned int& c, const unsigned int& d);
 
+    /**
+     * Constitutive component pull-back
+     */
 
-    double ConstitutiveComponent( const Matrix &rMatrixIC,
-				  const double &rdetF0, 
-				  const double &rLameLambda, 
-				  const double &rLameMu, 
-				  const unsigned int& a, const unsigned int& b, 
-				  const unsigned int& c, const unsigned int& d);
+    double& ConstitutiveComponent( double & rCabcd,
+				   const Matrix &rMatrixIC,
+				   const double &rdetF0, 
+				   const double &rLameLambda, 
+				   const double &rLameMu, 
+				   const unsigned int& a, const unsigned int& b, 
+				   const unsigned int& c, const unsigned int& d);
     
     /**
      * Calculates the stress vector
-     * @param rMatrixIC can be the Identity or the RightCauchyGreen tensor
+     * @param rMatrixIC can be the inverse of the RightCauchyGreen or the LeftCauchy Green tensor
      * @param rIdentityMatrix can be the IdentityMatrix
      * @param rdetF0 the determinant of the total deformation gradient
      * @param rLameLambda lame paramenter lambda

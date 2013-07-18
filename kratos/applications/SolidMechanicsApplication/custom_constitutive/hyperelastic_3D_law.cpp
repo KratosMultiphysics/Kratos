@@ -14,7 +14,7 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/hyperelastic_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_3D_law.hpp"
 
 #include "solid_mechanics_application.h"
 
@@ -264,7 +264,7 @@ namespace Kratos
  	this->CalculateConstitutiveMatrix ( InverseRightCauchyGreen, detF0, LameLambda, LameMu, ConstitutiveMatrix );
     }
     
-    //OPTION 2: ( last known configuration )
+    //OPTION 2: ( last known configuration : updated lagrangian approach only )
     if( Options.Is( ConstitutiveLaw::LAST_KNOWN_CONFIGURATION ) ){
 
       if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
@@ -597,7 +597,7 @@ namespace Kratos
       {
 	for(unsigned int j=0; j<6; j++)
 	  {
-	    rConstitutiveMatrix( i, j ) = ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,
+	    rConstitutiveMatrix( i, j ) = ConstitutiveComponent(rConstitutiveMatrix( i, j ),rMatrixIC,rdetF0,rLameLambda,rLameMu,
 								IndexVoigt3D[i][0],IndexVoigt3D[i][1],IndexVoigt3D[j][0],IndexVoigt3D[j][1]);
 	  }
 
@@ -626,7 +626,7 @@ namespace Kratos
       {
 	for(unsigned int j=0; j<6; j++)
 	  {
-	    rConstitutiveMatrix( i, j ) = ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,
+	    rConstitutiveMatrix( i, j ) = ConstitutiveComponent(rConstitutiveMatrix( i, j ),rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,
 								IndexVoigt3D[i][0],IndexVoigt3D[i][1],IndexVoigt3D[j][0],IndexVoigt3D[j][1]);
 	  }
 
@@ -639,12 +639,13 @@ namespace Kratos
   //************************************************************************************
 
 
-  double HyperElastic3DLaw::ConstitutiveComponent(const Matrix &rMatrixIC, 
-						  const double &rdetF0, 
-						  const double &rLameLambda, 
-						  const double &rLameMu, 
-						  const unsigned int& a, const unsigned int& b, 
-						  const unsigned int& c, const unsigned int& d)
+  double& HyperElastic3DLaw::ConstitutiveComponent(double & rCabcd,
+						   const Matrix &rMatrixIC, 
+						   const double &rdetF0, 
+						   const double &rLameLambda, 
+						   const double &rLameMu, 
+						   const unsigned int& a, const unsigned int& b, 
+						   const unsigned int& c, const unsigned int& d)
   {
 	  
     //(J²-1)/2
@@ -657,10 +658,10 @@ namespace Kratos
 
 
     //1.Elastic constitutive tensor component:
-    double Cabcd=(rLameLambda*auxiliar1*rMatrixIC(a,b)*rMatrixIC(c,d));
-    Cabcd+=((2*rLameMu-rLameLambda*auxiliar2)*0.5*(rMatrixIC(a,c)*rMatrixIC(b,d)+rMatrixIC(a,d)*rMatrixIC(b,c)));
+    rCabcd=(rLameLambda*auxiliar1*rMatrixIC(a,b)*rMatrixIC(c,d));
+    rCabcd+=((2*rLameMu-rLameLambda*auxiliar2)*0.5*(rMatrixIC(a,c)*rMatrixIC(b,d)+rMatrixIC(a,d)*rMatrixIC(b,c)));
 
-    return Cabcd;
+    return rCabcd;
   }
 
 
@@ -669,17 +670,19 @@ namespace Kratos
   //************************************************************************************
 
 
-  double HyperElastic3DLaw::ConstitutiveComponent(const Matrix &rMatrixIC, 
-						  const Matrix &rinvF,
-						  const double &rdetF0, 
-						  const double &rLameLambda, 
-						  const double &rLameMu, 
-						  const unsigned int& a, const unsigned int& b, 
-						  const unsigned int& c, const unsigned int& d)
+  double& HyperElastic3DLaw::ConstitutiveComponent(double & rCabcd,
+						   const Matrix &rMatrixIC, 
+						   const Matrix &rinvF,
+						   const double &rdetF0, 
+						   const double &rLameLambda, 
+						   const double &rLameMu, 
+						   const unsigned int& a, const unsigned int& b, 
+						   const unsigned int& c, const unsigned int& d)
 
   {
 
-    double component=0;
+    rCabcd = 0;
+    double Cijkl=0;
    
     unsigned int dimension = 3;
 
@@ -693,13 +696,13 @@ namespace Kratos
 		for(unsigned int i=0; i<dimension; i++)
 		  {
 		    //Cijkl
-		    component +=rinvF(a,i)*rinvF(b,j)*rinvF(c,k)*rinvF(d,l)*ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,i,j,k,l);
+		    rCabcd +=rinvF(a,i)*rinvF(b,j)*rinvF(c,k)*rinvF(d,l)*ConstitutiveComponent(Cijkl,rMatrixIC,rdetF0,rLameLambda,rLameMu,i,j,k,l);
 		  }
 	      }
 	  }
       }
 
-    return component;
+    return rCabcd;
 
   }
 

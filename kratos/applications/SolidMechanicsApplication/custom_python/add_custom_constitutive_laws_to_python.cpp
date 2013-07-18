@@ -32,7 +32,9 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_mixed_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_mixed_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 
