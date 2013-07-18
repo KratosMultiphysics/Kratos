@@ -37,60 +37,84 @@ def Var_Translator(variable):
 
     return variable
 
+class PorosityUtils:
+
+    def __init__(self, domain_volume, model_part):
+
+        self.balls_model_part = model_part
+        self.physics_calculator = SphericElementGlobalPhysicsCalculator(self.balls_model_part)
+        self.UpdateData(domain_volume)
+
+    def UpdateData(self, domain_volume):
+
+        self.number_of_balls = self.balls_model_part.NumberOfElements(0)
+        self.solid_volume    = self.physics_calculator.CalculateTotalVolume(self.balls_model_part)
+        self.balls_per_area  = domain_volume / self.number_of_balls
+        self.voids_volume    = domain_volume - self.solid_volume
+        self.global_porosity = self.voids_volume / domain_volume
+
+    def PrintCurrentData(self):
+
+        print "solid volume: ", self.solid_volume
+        print "voids volume: ", self.voids_volume
+        print "global porosity: ", self.global_porosity
+        print "number_of_balls: ", self.number_of_balls
+        print "balls per area unit: ", self.balls_per_area
+
 class Procedures:
     
-    def __init__(self, Param):
+    def __init__(self, param):
         
         # Initialization of member variables
 
         # SIMULATION FLAGS   
         
-        self.rotation_OPTION                     = Var_Translator(Param.RotationOption)
-        self.bounding_box_OPTION                 = Var_Translator(Param.BoundingBoxOption)  #its 1/0 xapuza
-        self.fix_velocities                      = Var_Translator(Param.FixVelocitiesOption)
-        self.triaxial_OPTION                     = Var_Translator(Param.TriaxialOption)
-        self.contact_mesh_OPTION                 = Var_Translator(Param.ContactMeshOption)
+        self.rotation_OPTION                     = Var_Translator(param.RotationOption)
+        self.bounding_box_OPTION                 = Var_Translator(param.BoundingBoxOption)  #its 1/0 xapuza
+        self.fix_velocities                      = Var_Translator(param.FixVelocitiesOption)
+        self.triaxial_OPTION                     = Var_Translator(param.TriaxialOption)
+        self.contact_mesh_OPTION                 = Var_Translator(param.ContactMeshOption)
  
         # SIMULATION SETTINGS
         
-        self.bounding_box_enlargement_factor     = Param.BoundingBoxEnlargementFactor
-        self.time_percentage_fix_velocities      = Param.TotalTimePercentageFixVelocities
+        self.bounding_box_enlargement_factor     = param.BoundingBoxEnlargementFactor
+        self.time_percentage_fix_velocities      = param.TotalTimePercentageFixVelocities
        # MODEL
-        self.domain_size                         = Param.Dimension
+        self.domain_size                         = param.Dimension
 
         # PRINTING VARIABLES
   
-        self.print_velocity                      = Var_Translator(Param.PostVelocity)
-        self.print_displacement                  = Var_Translator(Param.PostDisplacement)
-        self.print_radial_displacement           = Var_Translator(Param.PostRadialDisplacement)
-        self.print_rhs                           = Var_Translator(Param.PostRHS)
-        self.print_total_forces                  = Var_Translator(Param.PostTotalForces)
-        self.print_damp_forces                   = Var_Translator(Param.PostDampForces)
-        self.print_applied_forces                = Var_Translator(Param.PostAppliedForces)
-        self.print_radius                        = Var_Translator(Param.PostRadius)
-        self.print_particle_cohesion             = Var_Translator(Param.PostParticleCohesion)
-        self.print_particle_tension              = Var_Translator(Param.PostParticleTension)
-        self.print_group_id                      = Var_Translator(Param.PostGroupId)
-        self.print_export_id                     = Var_Translator(Param.PostExportId)
-        self.print_export_particle_failure_id    = Var_Translator(Param.PostExportParticleFailureId)
-        self.print_export_skin_sphere            = Var_Translator(Param.PostExportSkinSphere)
-        self.print_local_contact_force_low       = Var_Translator(Param.PostLocalContactForceLow)
-        self.print_local_contact_force_high      = Var_Translator(Param.PostLocalContactForceHigh)
-        self.print_failure_criterion_state       = Var_Translator(Param.PostFailureCriterionState)
-        self.print_contact_failure               = Var_Translator(Param.PostContactFailure)
-        self.print_contact_tau                   = Var_Translator(Param.PostContactTau)
-        self.print_contact_sigma                 = Var_Translator(Param.PostContactSigma)
-        self.print_angular_velocity              = Var_Translator(Param.PostAngularVelocity)
-        self.print_particle_moment               = Var_Translator(Param.PostParticleMoment)
-        self.print_euler_angles                  = Var_Translator(Param.PostEulerAngles)
-        self.print_representative_volume         = Var_Translator(Param.PostRepresentativeVolume)
-        self.print_mean_contact_area             = Var_Translator(Param.PostMeanContactArea)
-        self.print_stress_tensor                 = Var_Translator(Param.PostStressTensor)
+        self.print_velocity                      = Var_Translator(param.PostVelocity)
+        self.print_displacement                  = Var_Translator(param.PostDisplacement)
+        self.print_radial_displacement           = Var_Translator(param.PostRadialDisplacement)
+        self.print_rhs                           = Var_Translator(param.PostRHS)
+        self.print_total_forces                  = Var_Translator(param.PostTotalForces)
+        self.print_damp_forces                   = Var_Translator(param.PostDampForces)
+        self.print_applied_forces                = Var_Translator(param.PostAppliedForces)
+        self.print_radius                        = Var_Translator(param.PostRadius)
+        self.print_particle_cohesion             = Var_Translator(param.PostParticleCohesion)
+        self.print_particle_tension              = Var_Translator(param.PostParticleTension)
+        self.print_group_id                      = Var_Translator(param.PostGroupId)
+        self.print_export_id                     = Var_Translator(param.PostExportId)
+        self.print_export_particle_failure_id    = Var_Translator(param.PostExportParticleFailureId)
+        self.print_export_skin_sphere            = Var_Translator(param.PostExportSkinSphere)
+        self.print_local_contact_force_low       = Var_Translator(param.PostLocalContactForceLow)
+        self.print_local_contact_force_high      = Var_Translator(param.PostLocalContactForceHigh)
+        self.print_failure_criterion_state       = Var_Translator(param.PostFailureCriterionState)
+        self.print_contact_failure               = Var_Translator(param.PostContactFailure)
+        self.print_contact_tau                   = Var_Translator(param.PostContactTau)
+        self.print_contact_sigma                 = Var_Translator(param.PostContactSigma)
+        self.print_angular_velocity              = Var_Translator(param.PostAngularVelocity)
+        self.print_particle_moment               = Var_Translator(param.PostParticleMoment)
+        self.print_euler_angles                  = Var_Translator(param.PostEulerAngles)
+        self.print_representative_volume         = Var_Translator(param.PostRepresentativeVolume)
+        self.print_mean_contact_area             = Var_Translator(param.PostMeanContactArea)
+        self.print_stress_tensor                 = Var_Translator(param.PostStressTensor)
    
         #FROM CND:
 
-        self.predefined_skin_option              = Var_Translator(Param.PredefinedSkinOption)
-        self.total_volume                        = Param.TotalElementsVolume
+        self.predefined_skin_option              = Var_Translator(param.PredefinedSkinOption)
+        self.total_volume                        = param.TotalElementsVolume
         
     def AddMpiVariables(self, model_part):
         
@@ -190,7 +214,7 @@ class Procedures:
         return (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm)
 
 
-    def GiDSolverTransfer(self, model_part, solver, Param):
+    def GiDSolverTransfer(self, model_part, solver, param):
 
         extra_radius = 0.0
         max_radius = 0.0
@@ -222,7 +246,7 @@ class Procedures:
         solver.enlargement_factor = m_bounding_box_enlargement_factor
         
         if (self.triaxial_OPTION):
-            Pressure = Param.ConfinementPressure * 1e6 #Mpa
+            Pressure = param.ConfinementPressure * 1e6 #Mpa
 
         else:
             Pressure = 0.0
@@ -237,11 +261,11 @@ class Procedures:
         
         return Pressure
         
-    def SkinAndPressure(self, model_part,solver,Param):
+    def SkinAndPressure(self, model_part,solver, param):
         
         #SKIN DETERMINATION
 
-        Pressure = Param.ConfinementPressure * 1e6 #Mpa
+        Pressure = param.ConfinementPressure * 1e6 #Mpa
         total_cross_section = 0.0
 
         #Cylinder dimensions
@@ -390,14 +414,14 @@ class Procedures:
 
     # Calculating current values
 
-        mass             = physics_calculator.calculate_total_mass(model_part)
-        center           = physics_calculator.calculate_center_of_mass(model_part)
-        initial_center   = physics_calculator.get_initial_center_of_mass()
-        gravity_energy   = physics_calculator.calculate_gravitational_potential_energy(model_part, initial_center)
-        kinetic_energy   = physics_calculator.calculate_kinetic_energy(model_part)
-        elastic_energy   = physics_calculator.calculate_elastic_energy(model_part)
-        momentum         = physics_calculator.calculate_total_momentum(model_part)
-        angular_momentum = physics_calculator.calculate_total_angular_momentum(model_part)
+        mass             = physics_calculator.CalculateTotalMass(model_part)
+        center           = physics_calculator.CalculateCenterOfMass(model_part)
+        initial_center   = physics_calculator.GetInitialCenterOfMass()
+        gravity_energy   = physics_calculator.CalculateGravitationalPotentialEnergy(model_part, initial_center)
+        kinetic_energy   = physics_calculator.CalculateKineticEnergy(model_part)
+        elastic_energy   = physics_calculator.CalculateElasticEnergy(model_part)
+        momentum         = physics_calculator.CalculateTotalMomentum(model_part)
+        angular_momentum = physics_calculator.CalulateTotalAngularMomentum(model_part)
         total_energy     = gravity_energy + kinetic_energy + elastic_energy
 
     # Filling in the entries values corresponding to the entries names above
@@ -562,11 +586,11 @@ class Procedures:
           
         return (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm)
         
-    def SkinAndPressure(self,model_part,solver,Param):
+    def SkinAndPressure(self,model_part,solver, param):
            
         #SKIN DETERMINATION
 
-        Pressure = Param.ConfinementPressure*1e6 #Mpa
+        Pressure = param.ConfinementPressure*1e6 #Mpa
         total_cross_section = 0.0
 
         #Cylinder dimensions

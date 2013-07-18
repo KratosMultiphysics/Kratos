@@ -105,27 +105,27 @@ RotaDampingType                  = "*GenData(Rota_Damp_Type)"
 # Global Material Parameters
 
 *format "%10.5e"
-GeneralDensity                   = "*GenData(General_Density)"
+GeneralDensity                   = *GenData(General_Density)
 *format "%10.5e"
-GeneralYoungModulus              = "*GenData(General_Young_Modulus)"
+GeneralYoungModulus              = *GenData(General_Young_Modulus)
 *format "%10.5e"
-GeneralPoissonRatio              = "*GenData(General_Poisson_Ratio)"
+GeneralPoissonRatio              = *GenData(General_Poisson_Ratio)
 *format "%10.5e"
-GeneralCohesion                  = "*GenData(General_Cohesion)"
+GeneralCohesion                  = *GenData(General_Cohesion)
 *format "%10.5e"
-GeneralRollingFriction           = "*GenData(General_Rolling_Friction)"
+GeneralRollingFriction           = *GenData(General_Rolling_Friction)
 *format "%10.5e"
-GeneralTension                   = "*GenData(General_Tension)"
+GeneralTension                   = *GenData(General_Tension)
 *format "%10.5e"
-GeneralRotaDampRatio             = "*GenData(General_Rota_Damp_Ratio)"
+GeneralRotaDampRatio             = *GenData(General_Rota_Damp_Ratio)
 *format "%10.5e"
-GeneralStaticFrictionCoef        = "*GenData(General_Static_Friction_Coef)"
+GeneralStaticFrictionCoef        = *GenData(General_Static_Friction_Coef)
 *format "%10.5e"
-GeneralDynamicFrictionCoef       = "*GenData(General_Dynamic_Friction_Coef)"
+GeneralDynamicFrictionCoef       = *GenData(General_Dynamic_Friction_Coef)
 *format "%10.5e"
-GeneralRestitutionCoef           = "*GenData(General_Restitution_Coef)"
+GeneralRestitutionCoef           = *GenData(General_Restitution_Coef)
 *format "%10.5e"
-GeneralColour                    = "*GenData(General_Colour)"
+GeneralColour                    = *GenData(General_Colour)
 GlobalVariablesOption            = "*GenData(Globally_Specified_Variables)"
 *format "%10.5e"
 GlobalKn                         = *GenData(Global_KN)
