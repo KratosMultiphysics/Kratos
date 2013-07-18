@@ -138,7 +138,7 @@ is_fsi_interf = 0.0
 [inverted_elements, domain_volume] = fluid_solver.CheckForInvertedElements()
 
 # Calculating porosity
-porosity_utils = SwimProc.PorosityUtils(domain_volume, balls_model_part)
+porosity_utils = DEMProc.PorosityUtils(domain_volume, balls_model_part)
 porosity_utils.PrintCurrentData()
 n_particles_in_depth = int(math.sqrt(porosity_utils.number_of_balls / domain_volume))
 
