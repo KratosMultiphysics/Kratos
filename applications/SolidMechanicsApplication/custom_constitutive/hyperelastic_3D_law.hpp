@@ -231,6 +231,12 @@ namespace Kratos
     ///@{
 
     /**
+     * Takes a matrix 2x2 and transforms it to a 3x3 adding a 3rd row and a 3rd column with a 1 in the diagonal
+     */
+
+    Matrix& DeformationGradient3D (Matrix & Matrix2D);
+
+    /**
      * Calculates the GreenLagrange strains
      * @param rRightCauchyGreen
      * @param rStrainVector
@@ -287,14 +293,16 @@ namespace Kratos
 				  const double &rdetF0, 
 				  const double &rLameLambda, 
 				  const double &rLameMu, 
-				  int a, int b, int c, int d);
+				  const unsigned int& a, const unsigned int& b,
+				  const unsigned int &c, const unsigned int& d);
 
 
     double ConstitutiveComponent( const Matrix &rMatrixIC,
 				  const double &rdetF0, 
 				  const double &rLameLambda, 
 				  const double &rLameMu, 
-				  int a, int b, int c, int d);
+				  const unsigned int& a, const unsigned int& b, 
+				  const unsigned int& c, const unsigned int& d);
     
     /**
      * Calculates the stress vector

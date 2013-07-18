@@ -68,8 +68,6 @@ namespace Kratos
     rStrainVector[1] = 0.5 * ( rRightCauchyGreen( 1, 1 ) - 1.00 );
     rStrainVector[2] = rRightCauchyGreen( 0, 1 );
 
-
-
   }
 
 
@@ -108,28 +106,41 @@ namespace Kratos
     
     rConstitutiveMatrix.clear();
 		
-    //C1111
-    rConstitutiveMatrix( 0, 0 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,0,0,0,0);
-    //C2222
-    rConstitutiveMatrix( 1, 1 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,1,1,1,1);	       		//C1212
-    rConstitutiveMatrix( 2, 2 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,0,1,0,1);
+    static const unsigned int IndexVoigt2D [6][2] = { {0, 0}, {1, 1}, {0, 1} };		
+
+    for(unsigned int i=0; i<3; i++)
+      {
+    	for(unsigned int j=0; j<3; j++)
+    	  {
+    	    rConstitutiveMatrix( i, j ) = ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,
+    								IndexVoigt2D[i][0],IndexVoigt2D[i][1],IndexVoigt2D[j][0],IndexVoigt2D[j][1]);
+    	  }
+
+      }
+
+    // //C1111
+    // rConstitutiveMatrix( 0, 0 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,0,0,0,0);
+    // //C2222
+    // rConstitutiveMatrix( 1, 1 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,1,1,1,1);	       	       
+    // //C1212
+    // rConstitutiveMatrix( 2, 2 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,0,1,0,1);
    
-    //C1122
-    rConstitutiveMatrix( 0, 1 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,0,0,1,1);
-    //C2211
-    rConstitutiveMatrix( 1, 0 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,1,1,0,0);
+    // //C1122
+    // rConstitutiveMatrix( 0, 1 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,0,0,1,1);
+    // //C2211
+    // rConstitutiveMatrix( 1, 0 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,1,1,0,0);
 
-    //C1112
-    rConstitutiveMatrix( 0, 2 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,0,0,0,1);
+    // //C1112
+    // rConstitutiveMatrix( 0, 2 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,0,0,0,1);
     
-    //C2212
-    rConstitutiveMatrix( 1, 2 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,1,1,0,1);
+    // //C2212
+    // rConstitutiveMatrix( 1, 2 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,1,1,0,1);
 
-    //C1211
-    rConstitutiveMatrix( 2, 0 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,0,1,0,0);
+    // //C1211
+    // rConstitutiveMatrix( 2, 0 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,0,1,0,0);
     
-    //C1222
-    rConstitutiveMatrix( 2, 1 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,0,1,1,1);
+    // //C1222
+    // rConstitutiveMatrix( 2, 1 )=ConstitutiveComponent(rMatrixIC,rdetF0,rLameLambda,rLameMu,0,1,1,1);
 	  	
   }
 
@@ -147,29 +158,41 @@ namespace Kratos
 
     rConstitutiveMatrix.clear();
 
-    //C1111
-    rConstitutiveMatrix( 0, 0 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,0,0,0,0);
-    //C2222
-    rConstitutiveMatrix( 1, 1 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,1,1,1,1);
-    //C1212
-    rConstitutiveMatrix( 2, 2 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,0,1,0,1);
+    static const unsigned int IndexVoigt2D [6][2] = { {0, 0}, {1, 1}, {0, 1} };		
+
+    for(unsigned int i=0; i<3; i++)
+      {
+	for(unsigned int j=0; j<3; j++)
+	  {
+	    rConstitutiveMatrix( i, j ) = ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,
+								IndexVoigt2D[i][0],IndexVoigt2D[i][1],IndexVoigt2D[j][0],IndexVoigt2D[j][1]);
+	  }
+
+      }
+
+    // //C1111
+    // rConstitutiveMatrix( 0, 0 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,0,0,0,0);
+    // //C2222
+    // rConstitutiveMatrix( 1, 1 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,1,1,1,1);
+    // //C1212
+    // rConstitutiveMatrix( 2, 2 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,0,1,0,1);
    
-    //C1122
-    rConstitutiveMatrix( 0, 1 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,0,0,1,1);
-    //C2211
-    rConstitutiveMatrix( 1, 0 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,1,1,0,0);
+    // //C1122
+    // rConstitutiveMatrix( 0, 1 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,0,0,1,1);
+    // //C2211
+    // rConstitutiveMatrix( 1, 0 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,1,1,0,0);
 
-    //C1112
-    rConstitutiveMatrix( 0, 2 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,0,0,0,1);
+    // //C1112
+    // rConstitutiveMatrix( 0, 2 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,0,0,0,1);
     
-    //C2212
-    rConstitutiveMatrix( 1, 2 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,1,1,0,1);
+    // //C2212
+    // rConstitutiveMatrix( 1, 2 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,1,1,0,1);
 
-    //C1211
-    rConstitutiveMatrix( 2, 0 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,0,1,0,0);
+    // //C1211
+    // rConstitutiveMatrix( 2, 0 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,0,1,0,0);
     
-    //C1222
-    rConstitutiveMatrix( 2, 1 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,0,1,1,1);
+    // //C1222
+    // rConstitutiveMatrix( 2, 1 )=ConstitutiveComponent(rMatrixIC,rinvF,rdetF0,rLameLambda,rLameMu,0,1,1,1);
     	  
   }
 
