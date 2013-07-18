@@ -22,6 +22,7 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/line_2d.h"
+#include "geometries/line_2d_3.h"
 #include "fluid_dynamics_application.h"
 #include "includes/variables.h"
 
@@ -54,6 +55,7 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mMonolithicWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mMonolithicWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mPeriodicCondition(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mPeriodicConditionCorner(0, Element::GeometryType::Pointer( new Quadrilateral3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mFSPeriodicCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mFSPeriodicCondition3D(0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mLinearWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>())))),
@@ -113,6 +115,7 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition2D",mMonolithicWallCondition2D);
     KRATOS_REGISTER_CONDITION("MonolithicWallCondition3D",mMonolithicWallCondition3D);
     KRATOS_REGISTER_CONDITION("PeriodicCondition",mPeriodicCondition);
+    KRATOS_REGISTER_CONDITION("PeriodicConditionCorner",mPeriodicConditionCorner);
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition2D",mFSPeriodicCondition2D);
     KRATOS_REGISTER_CONDITION("FSPeriodicCondition3D",mFSPeriodicCondition3D);
     KRATOS_REGISTER_CONDITION("LinearWallCondition3D",mLinearWallCondition3D);    

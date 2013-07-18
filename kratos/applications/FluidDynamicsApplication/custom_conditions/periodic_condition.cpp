@@ -73,64 +73,35 @@ void PeriodicCondition::CalculateRightHandSide(VectorType& rRightHandSideVector,
 void PeriodicCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
 {
     rResult.resize(0);
-    /*PeriodicVariablesContainer const& rPeriodicVariables = this->GetProperties().GetValue(PERIODIC_VARIABLES);
-    const unsigned int BlockSize = rPeriodicVariables.size();
-    const unsigned int LocalSize = 2 * BlockSize; // Total contribution size = 2 nodes * num dofs
-
-    if (rResult.size() != LocalSize)
-        rResult.resize(LocalSize,false);
-
-    unsigned int LocalIndex = 0;
-
-    for(PeriodicVariablesContainer::DoubleVariablesConstIterator itDVar = rPeriodicVariables.DoubleVariablesBegin();
-            itDVar != rPeriodicVariables.DoubleVariablesEnd(); ++itDVar)
-    {
-        rResult[LocalIndex] = this->GetGeometry()[0].GetDof(*itDVar).EquationId();
-        rResult[LocalIndex+BlockSize] = this->GetGeometry()[1].GetDof(*itDVar).EquationId();
-        ++LocalIndex;
-    }
-
-    for(PeriodicVariablesContainer::VariableComponentsConstIterator itCVar = rPeriodicVariables.VariableComponentsBegin();
-            itCVar != rPeriodicVariables.VariableComponentsEnd(); ++itCVar)
-    {
-        rResult[LocalIndex] = this->GetGeometry()[0].GetDof(*itCVar).EquationId();
-        rResult[LocalIndex+BlockSize] = this->GetGeometry()[1].GetDof(*itCVar).EquationId();
-        ++LocalIndex;
-    }*/
 }
 
 void PeriodicCondition::GetDofList(DofsVectorType& ElementalDofList, ProcessInfo& rCurrentProcessInfo)
 {
-
+    GeometryType& rGeom = this->GetGeometry();
     PeriodicVariablesContainer const& rPeriodicVariables = this->GetProperties().GetValue(PERIODIC_VARIABLES);
     const unsigned int BlockSize = rPeriodicVariables.size();
-    const unsigned int LocalSize = 2 * BlockSize; // Total contribution size = 2 nodes * num dofs
+    const unsigned int NumNodes = rGeom.PointsNumber();
+    const unsigned int LocalSize = NumNodes * BlockSize;
 
     if (ElementalDofList.size() != LocalSize)
         ElementalDofList.resize(LocalSize);
 
     unsigned int LocalIndex = 0;
 
-    for(PeriodicVariablesContainer::DoubleVariablesConstIterator itDVar = rPeriodicVariables.DoubleVariablesBegin();
-            itDVar != rPeriodicVariables.DoubleVariablesEnd(); ++itDVar)
+    for ( unsigned int n = 0; n < NumNodes; n++)
     {
-        ElementalDofList[LocalIndex] = this->GetGeometry()[0].pGetDof(*itDVar);
-        ElementalDofList[LocalIndex+BlockSize] = this->GetGeometry()[1].pGetDof(*itDVar);
-        ++LocalIndex;
+        for(PeriodicVariablesContainer::DoubleVariablesConstIterator itDVar = rPeriodicVariables.DoubleVariablesBegin(); itDVar != rPeriodicVariables.DoubleVariablesEnd(); ++itDVar)
+            ElementalDofList[LocalIndex++] = rGeom[n].pGetDof(*itDVar);
+
+        for(PeriodicVariablesContainer::VariableComponentsConstIterator itCVar = rPeriodicVariables.VariableComponentsBegin(); itCVar != rPeriodicVariables.VariableComponentsEnd(); ++itCVar)
+            ElementalDofList[LocalIndex++] = rGeom[n].pGetDof(*itCVar);
     }
 
-    for(PeriodicVariablesContainer::VariableComponentsConstIterator itCVar = rPeriodicVariables.VariableComponentsBegin();
-            itCVar != rPeriodicVariables.VariableComponentsEnd(); ++itCVar)
-    {
-        ElementalDofList[LocalIndex] = this->GetGeometry()[0].pGetDof(*itCVar);
-        ElementalDofList[LocalIndex+BlockSize] = this->GetGeometry()[1].pGetDof(*itCVar);
-        ++LocalIndex;
-    }
 }
 
 void PeriodicCondition::GetValuesVector(Vector& Values, int Step)
 {
-    PeriodicVariablesContainer const& rPeriodicVariables = this->GetProperties().GetValue(PERIODIC_VARIABLES);
+/*    PeriodicVariablesContainer const& rPeriodicVariables = this->GetProperties().GetValue(PERIODIC_VARIABLES);
     const unsigned int BlockSize = rPeriodicVariables.size();
     const unsigned int LocalSize = 2 * BlockSize; // Total contribution size = 2 nodes * num dofs
 
@@ -153,7 +124,7 @@ void PeriodicCondition::GetValuesVector(Vector& Values, int Step)
         Values[LocalIndex] = this->GetGeometry()[0].FastGetSolutionStepValue(*itCVar,Step);
         Values[LocalIndex+BlockSize] = this->GetGeometry()[1].FastGetSolutionStepValue(*itCVar,Step);
         ++LocalIndex;
-    }
+    }*/
 }
 
 void PeriodicCondition::save(Serializer& rSerializer) const
