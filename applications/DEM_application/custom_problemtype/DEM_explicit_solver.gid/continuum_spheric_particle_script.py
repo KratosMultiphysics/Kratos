@@ -126,7 +126,7 @@ solver.Initialize()
 
 # Initialization of physics monitor and of the initial position of the center of mass
 
-#physics_calculator = spheric_element_global_physics_calculator(balls_model_part)
+#physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 #properties_list = []
 
 print 'Initialitzation Complete' + '\n'
