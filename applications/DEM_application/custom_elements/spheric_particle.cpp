@@ -60,8 +60,10 @@ namespace Kratos
           double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
           double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
           double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+          double& erase_flag        = GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
 
-          mass                      = 4.0 / 3.0 * M_PI * density * mRadius * mRadius * mRadius;         
+          erase_flag                = 0.0;
+          mass                      = 4.0 / 3.0 * M_PI * density * mRadius * mRadius * mRadius;
           sqrt_of_mass              = sqrt(mass);
           moment_of_inertia         = 0.4 * mass * mRadius * mRadius;
           mRealMass                 = mass;          
