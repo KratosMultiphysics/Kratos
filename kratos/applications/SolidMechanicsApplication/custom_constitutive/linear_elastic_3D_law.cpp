@@ -74,11 +74,11 @@ namespace Kratos
     //b.- Get Values to compute the constitutive law:
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();
     const Matrix& DeformationGradientF    = rValues.GetDeformationGradientF();
-    const double& detF                    = rValues.GetDeterminantF(); 
+    //const double& DeterminantF            = rValues.GetDeterminantF(); 
 
     Vector& StrainVector                  = rValues.GetStrainVector();
     Matrix& DeformationGradientF0         = rValues.GetDeformationGradientF0();
-    double& detF0                         = rValues.GetDeterminantF0(); 
+    //double& DeterminantF0                 = rValues.GetDeterminantF0(); 
 
     Vector& StressVector                  = rValues.GetStressVector();
     Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();      
@@ -96,7 +96,7 @@ namespace Kratos
     Matrix F0 = prod(DeformationGradientF,DeformationGradientF0);
 
     //3.-Determinant of the Total Deformation Gradient
-    detF0 *= detF;
+    //double detF0 = DeterminantF0 * DeterminantF;
    
     //4.-Right Cauchy Green
     Matrix RightCauchyGreen = prod(trans(F0),F0);
@@ -150,11 +150,11 @@ namespace Kratos
     //b.- Get Values to compute the constitutive law:
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();
     const Matrix&   DeformationGradientF  = rValues.GetDeformationGradientF();
-    const double&   detF                  = rValues.GetDeterminantF(); 
+    //const double&   DeterminantF          = rValues.GetDeterminantF(); 
 
     Vector& StrainVector                  = rValues.GetStrainVector();
     Matrix& DeformationGradientF0         = rValues.GetDeformationGradientF0();
-    double& detF0                         = rValues.GetDeterminantF0(); 
+    //double& DeterminantF0                 = rValues.GetDeterminantF0(); 
 
     Vector& StressVector                  = rValues.GetStressVector();
     Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();      
@@ -172,7 +172,7 @@ namespace Kratos
     Matrix F0 = prod(DeformationGradientF,DeformationGradientF0);
 
     //3.-Determinant of the Total Deformation Gradient
-    detF0 *= detF;
+    //double detF0 = DeterminantF0 * DeterminantF;
         
     //4.-Left Cauchy-Green tensor b
     Matrix LeftCauchyGreen = prod(F0,trans(F0));
