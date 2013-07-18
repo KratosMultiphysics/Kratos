@@ -174,12 +174,10 @@ namespace Kratos
           SetSearchRadius(rModelPart, rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);
 
           // 1. Search Neighbours with tolerance (Not in mpi.)
-          bool extension_option            = false;
           this->GetBoundingBoxOption()     = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
-          extension_option                 = rCurrentProcessInfo[CASE_OPTION];
 
           // 2. Search Neighbours with tolerance (after first repartition process)
-          SearchNeighbours(rModelPart, extension_option);
+          SearchNeighbours(rModelPart);
 
           // 3. Calculate bounding box
           this->GetParticleCreatorDestructor().CalculateSurroundingBoundingBox(rModelPart, this->GetEnlargementFactor());
@@ -212,12 +210,6 @@ namespace Kratos
           ModelPart& rModelPart            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
-          bool extension_option            = false;
-
-          if (rCurrentProcessInfo[CASE_OPTION]){
-              extension_option             = true;
-          }
-
           int time_step = rCurrentProcessInfo[TIME_STEPS];
           KRATOS_TIMER_STOP("BEGIN")
           
@@ -246,11 +238,11 @@ namespace Kratos
 
           if ((time_step + 1)%this->GetNStepSearch() == 0 && time_step > 0){
 
-              if (this->GetBoundingBoxOption() == 1){
+              if (this->GetBoundingBoxOption()){
                   BoundingBoxUtility();
               }
 
-              SearchNeighbours(rModelPart, extension_option); //extension option false;
+              SearchNeighbours(rModelPart);
           }
 
           KRATOS_TIMER_STOP("SearchNeighbours")
@@ -379,7 +371,8 @@ namespace Kratos
           KRATOS_TRY
 
           ModelPart& rModelPart = BaseType::GetModelPart();
-          this->GetParticleCreatorDestructor().DestroyDistantParticles(rModelPart);
+          this->GetParticleCreatorDestructor().MarkDistantParticlesForErasing(rModelPart);
+          this->GetParticleCreatorDestructor().DestroyParticles(rModelPart);
 
           KRATOS_CATCH("")
       }
@@ -559,7 +552,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    virtual void SearchNeighbours(ModelPart& rModelPart,bool extension_option)
+    virtual void SearchNeighbours(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
@@ -699,7 +692,7 @@ namespace Kratos
     double& GetMaxTimeStep(){return (mMaxTimeStep);};
     double& GetSafetyFactor(){return (mSafetyFactor);};
     
-    Particle_Creator_Destructor& GetParticleCreatorDestructor(){return (mParticleCreatorDestructor);};
+    ParticleCreatorDestructor& GetParticleCreatorDestructor(){return (mParticleCreatorDestructor);};
 
     vector<unsigned int>&    GetElementPartition(){return (mElementPartition);};
     
@@ -723,7 +716,7 @@ namespace Kratos
     double                              mMaxTimeStep;
     double                              mSafetyFactor;
 
-    Particle_Creator_Destructor         mParticleCreatorDestructor;
+    ParticleCreatorDestructor         mParticleCreatorDestructor;
 
     vector<unsigned int>                mElementPartition;
 

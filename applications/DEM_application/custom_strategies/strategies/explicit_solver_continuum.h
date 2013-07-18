@@ -97,9 +97,7 @@ namespace Kratos
           BaseType::SetSearchRadius(rModelPart,rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);
           
           // 1. Search Neighbours with tolerance (Not in mpi.)
-          bool extension_option            = false;
           this->GetBoundingBoxOption()     = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
-          extension_option                 = rCurrentProcessInfo[CASE_OPTION];
 
           // 2. Initializing elements and perform the repartition
           if (this->GetElementsAreInitialized() == false){
@@ -109,7 +107,7 @@ namespace Kratos
           this->GetInitializeWasPerformed() = true;
 
           // 3. Search Neighbours with tolerance (after first repartition process)
-          this->SearchInitialNeighbours(rModelPart, extension_option);
+          this->SearchInitialNeighbours(rModelPart);
           
           //the search radius is modified for the next steps.
         
@@ -152,12 +150,6 @@ namespace Kratos
           ModelPart& rModelPart            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
-          bool extension_option            = false;
-
-          if (rCurrentProcessInfo[CASE_OPTION]){
-              extension_option             = true;
-          }
-
           int time_step = rCurrentProcessInfo[TIME_STEPS];
           KRATOS_TIMER_STOP("BEGIN")
 
@@ -197,7 +189,7 @@ namespace Kratos
                       BaseType::BoundingBoxUtility();
                   }
 
-                   this->SearchNeighbours(rModelPart, extension_option); //the amplification factor has benn modified after the first search. 
+                   this->SearchNeighbours(rModelPart); //the amplification factor has benn modified after the first search.
               }
 
           }
@@ -219,7 +211,7 @@ namespace Kratos
           
       }//Solve()
 
-    void SearchInitialNeighbours(ModelPart& rModelPart,bool extension_option)
+    void SearchInitialNeighbours(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
