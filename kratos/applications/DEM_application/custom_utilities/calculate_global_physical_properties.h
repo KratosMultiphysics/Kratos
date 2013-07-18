@@ -35,7 +35,7 @@
 namespace Kratos
 {
 
-class Spheric_Element_Global_Physics_Calculator
+class SphericElementGlobalPhysicsCalculator
     {
      public:
 
@@ -43,11 +43,11 @@ class Spheric_Element_Global_Physics_Calculator
      typedef ModelPart::NodesContainerType::ContainerType              NodesContainerType;
 
 
-     KRATOS_CLASS_POINTER_DEFINITION(Spheric_Element_Global_Physics_Calculator);
+     KRATOS_CLASS_POINTER_DEFINITION(SphericElementGlobalPhysicsCalculator);
 
       /// Default constructor.
 
-      Spheric_Element_Global_Physics_Calculator(ModelPart& rModelPart)
+      SphericElementGlobalPhysicsCalculator(ModelPart& rModelPart)
       {
           mInitialCenterOfMassAndMass = CalculateCenterOfMass(rModelPart);
           mInitialMass                = CalculateTotalMass(rModelPart);
@@ -55,14 +55,36 @@ class Spheric_Element_Global_Physics_Calculator
 
       /// Destructor.
 
-      virtual ~Spheric_Element_Global_Physics_Calculator(){}
+      virtual ~SphericElementGlobalPhysicsCalculator(){}
+
+      double CalculateTotalVolume(ModelPart& rModelPart)
+      {
+          ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
+
+          OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), this->GetElementPartition());
+          double added_volume = 0.0;
+
+          #pragma omp parallel for
+          for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+              ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+              ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+              for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+                  const double& particle_radius = (it)->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                  double particle_volume = 4/3 * pi * particle_radius * particle_radius * particle_radius;
+                  added_volume += particle_volume;
+              }
+
+          }
+
+        return added_volume;
+      }
 
       double CalculateTotalMass(ModelPart& rModelPart)
       {
           ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
 
           OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), this->GetElementPartition());
-          array_1d<double, 3> center_of_mass;
           double added_mass = 0.0;
 
           #pragma omp parallel for
@@ -363,12 +385,12 @@ class Spheric_Element_Global_Physics_Calculator
         ///@{
 
         /// Assignment operator.
-        Spheric_Element_Global_Physics_Calculator & operator=(Spheric_Element_Global_Physics_Calculator const& rOther);
+        SphericElementGlobalPhysicsCalculator & operator=(SphericElementGlobalPhysicsCalculator const& rOther);
 
 
         ///@}
 
-    }; // Class Spheric_Element_Global_Physics_Calculator
+    }; // Class SphericElementGlobalPhysicsCalculator
 
 ///@}
 

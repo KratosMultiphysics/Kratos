@@ -28,7 +28,7 @@
 namespace Kratos
 {
 
-class Particle_Creator_Destructor
+class ParticleCreatorDestructor
 {
 public:
 
@@ -40,36 +40,30 @@ public:
 		
 
 
-    KRATOS_CLASS_POINTER_DEFINITION(Particle_Creator_Destructor);
-
-  
-    Particle_Creator_Destructor() {};
-    /// Destructor.
-
-    virtual ~Particle_Creator_Destructor() {};
+    KRATOS_CLASS_POINTER_DEFINITION(ParticleCreatorDestructor);
 
     /// Default constructor.
+    ParticleCreatorDestructor(){};
 
-    void CalculateSurroundingBoundingBox( ModelPart& r_model_part, double scale_factor)
+    /// Destructor.
+    virtual ~ParticleCreatorDestructor(){};
+
+    void CalculateSurroundingBoundingBox(ModelPart& r_model_part, double scale_factor)
     {
-
-
         KRATOS_TRY
 
         //Type definitions
         Configure::ElementsContainerType::Pointer pElements = r_model_part.pElements();
         Configure::ElementsContainerType Elements           = r_model_part.Elements();
        
-        double ref_radius         = (*(Elements.begin().base()))->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+        double ref_radius         = (*(Elements.begin().base()))->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
         array_1d<double, 3 > coor = (*(Elements.begin().base()))->GetGeometry()(0)->Coordinates();
         mLowPoint                 = coor;
         mHighPoint                = coor;
         mStrictLowPoint           = coor;
         mStrictHighPoint          = coor;
 
-        for (Configure::ElementsContainerType::iterator particle_pointer_it = Elements.begin();
-                particle_pointer_it != Elements.end(); ++particle_pointer_it){
-
+        for (Configure::ElementsContainerType::iterator particle_pointer_it = Elements.begin(); particle_pointer_it != Elements.end(); ++particle_pointer_it){
             coor = (*(particle_pointer_it.base()))->GetGeometry()(0)->Coordinates();
 
             for (std::size_t i = 0; i < 3; i++){
@@ -95,21 +89,20 @@ public:
          
     }
 
-    void DestroyDistantParticles(ModelPart& r_model_part)
+    void DestroyParticles(ModelPart& r_model_part)
     {
 
         KRATOS_TRY
 
         //Type definitions
-        Configure::ElementsContainerType::Pointer pElements      = r_model_part.pElements();
-        ModelPart::NodesContainerType::Pointer pNodes = r_model_part.pNodes();
+        Configure::ElementsContainerType::Pointer pElements = r_model_part.pElements();
+        ModelPart::NodesContainerType::Pointer pNodes       = r_model_part.pNodes();
 
-        Configure::ElementsContainerType& rElements      = r_model_part.Elements();
-        ModelPart::NodesContainerType& rNodes = r_model_part.Nodes();
+        Configure::ElementsContainerType& rElements         = r_model_part.Elements();
+        ModelPart::NodesContainerType& rNodes               = r_model_part.Nodes();
 
         Configure::ElementsContainerType temp_particles_container;
         ModelPart::NodesContainerType temp_nodes_container;
-
 
         //Copy the elements and clear the element container
         temp_particles_container.reserve(pElements->size());
@@ -120,131 +113,136 @@ public:
 
         //Add the ones inside the bounding box
         for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin();
-                particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it)
-        {
+                particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it){
 
-            array_1d<double, 3 > coor = ( *particle_pointer_it )->GetGeometry()(0)->Coordinates();
+            bool erase_flag = (0.5 < ((*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG)));
 
-            //KRATOS_WATCH(coor)
-            bool include = true;
-
-            for (std::size_t i = 0; i < 3; i++)
-            {
-                include = include && (coor[i] >= mLowPoint[i]) && (coor[i] <= mHighPoint[i]);
-
-
-            }
-
-            if (include)
-            {
+            if (!erase_flag){
                (rElements).push_back(*particle_pointer_it); //adding the elements
-   
                
-               for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++) //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
-               {
+               for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++){ //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
                    ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
-                   (rNodes).push_back( pNode );
+                   (rNodes).push_back(pNode);
                }
-            
-
 
             }
-
-            else
-            {
-            //KRATOS_WATCH((*(*particle_pointer_it)).Id()) KRATOS_WATCH(coor[1])  KRATOS_WATCH(mLowPoint[1]) KRATOS_WATCH(mHighPoint[1])
-
-            }
-
-            //rNodes.Sort(); //this makes the calculation go so slowly
-            //rNodes.Unique();
-
-            //KRATOS_WATCH(rElements.size())
-            //KRATOS_WATCH((r_model_part.Elements()).size())
-
 
         }
 
         KRATOS_CATCH("")
-       
     }
-      
-    
-    
 
-    void DestroyDistantParticlesGivenBBox( ModelPart& r_model_part, array_1d<double, 3 > low_point,
-                                          array_1d<double, 3 > high_point)
+    void MarkDistantParticlesForErasing(ModelPart& r_model_part)
     {
-    /*
-        KRATOS_TRY
 
-        mLowPoint = low_point;
-        mHighPoint = high_point;
+      MarkParticlesForErasingGivenBoundingBox(r_model_part, mLowPoint, mHighPoint);
 
-        //Type definitions
-        Configure::ElementsContainerType::Pointer pElements      = r_model_part.pElements();
-        Configure::ElementsContainerType Elements      = r_model_part.Elements();
-        Configure::ElementsContainerType temp_particles_container;
-
-        //Copy the elements and clear the element container
-        temp_particles_container.reserve(pElements->size());
-        temp_particles_container.swap(Elements);
-
-        //Add the ones inside the bounding box
-        for (Configure::ElementsContainerType::iterator particle_pointer_it = temp_particles_container.begin();
-                particle_pointer_it != temp_particles_container.end(); ++particle_pointer_it)
-        {
-
-            array_1d<double, 3 > coor = (*(particle_pointer_it.base()))->GetGeometry()(0)->Coordinates();
-
-            bool include = true;
-
-            for (std::size_t i = 0; i < 3; i++)
-            {
-                include = include && (coor[i] >= mLowPoint[i]) && (coor[i] <= mHighPoint[i]);
-            }
-
-            if (include)
-            {
-               (r_model_part.Elements()).push_back(*particle_pointer_it); //adding the elements
-            }
-        }
-
-        KRATOS_CATCH("")
-  */
     }
 
+    void MarkParticlesForErasingGivenScalarVariableValue(ModelPart& r_model_part, const Variable<double>& rVariable, double value, double tol)
+    {
+
+      KRATOS_TRY
+
+      Configure::ElementsContainerType& rElements = r_model_part.Elements();
+
+      for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
+              particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
+
+          const double& i_value     = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(rVariable);
+          double& erase_flag        = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
+          bool include              = (erase_flag < 0.5);
+
+          include = include && ((i_value <= value - fabs(tol)) || (i_value >= value + fabs(tol)));
+
+          erase_flag = include ? 0.0 : 1.0;
+
+      }
+
+      KRATOS_CATCH("")
+
+    }
+
+    void MarkParticlesForErasingGivenVectorVariableModulus(ModelPart& r_model_part, const Variable<array_1d<double, 3> >& rVariable, double value, double tol)
+    {
+
+      KRATOS_TRY
+
+      Configure::ElementsContainerType& rElements = r_model_part.Elements();
+
+      for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
+              particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
+
+          array_1d<double, 3 >& i_var = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(rVariable);
+          double i_value              = sqrt(i_var[0] * i_var[0] + i_var[1] * i_var[1] + i_var[2] * i_var[2]);
+          double& erase_flag          = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
+          bool include                = (erase_flag < 0.5);
+
+          include = include && ((i_value <= value - fabs(tol)) || (i_value >= value + fabs(tol)));
+
+          erase_flag = include ? 0.0 : 1.0;
+
+      }
+
+      KRATOS_CATCH("")
+
+    }
+
+    void MarkParticlesForErasingGivenBoundingBox(ModelPart& r_model_part, array_1d<double, 3> low_point, array_1d<double, 3> high_point)
+    {
+
+      KRATOS_TRY
+
+      Configure::ElementsContainerType& rElements = r_model_part.Elements();
+
+      for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
+              particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
+
+          double& erase_flag        = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
+          array_1d<double, 3 > coor = (*particle_pointer_it)->GetGeometry()(0)->Coordinates();
+          bool include              = (erase_flag < 0.5);
+
+          for (unsigned int i = 0; i < 3; i++){
+              include = include && (coor[i] >= low_point[i]) && (coor[i] <= high_point[i]);
+          }
+
+          erase_flag = include ? 0.0 : 1.0;
+
+      }
+
+      KRATOS_CATCH("")
+    }
 
     ///@}
     ///@name Access
     ///@{
 
-    array_1d<double, 3 > & GetHighNode()
+    array_1d<double, 3>& GetHighNode()
     {
         return (mHighPoint);
     };
 
-    array_1d<double, 3 > & GetLowNode()
+    array_1d<double, 3>& GetLowNode()
     {
         return (mLowPoint);
     };
 
-    array_1d<double, 3 > & GetStrictHighNode()
+    array_1d<double, 3>& GetStrictHighNode()
     {
         return (mHighPoint);
     };
 
-    array_1d<double, 3 > & GetStrictLowNode()
+    array_1d<double, 3>& GetStrictLowNode()
     {
         return (mLowPoint);
     };
 
-    double & GetDiameter()
+    double& GetDiameter()
     {
         return (mDiameter);
     };
 
-    double & GetStrictDiameter()
+    double& GetStrictDiameter()
     {
         return (mStrictDiameter);
     };
@@ -391,12 +389,12 @@ private:
     ///@{
 
     /// Assignment operator.
-    Particle_Creator_Destructor & operator=(Particle_Creator_Destructor const& rOther);
+    ParticleCreatorDestructor & operator=(ParticleCreatorDestructor const& rOther);
 
 
     ///@}
 
-}; // Class Particle_Creator_Destructor
+}; // Class ParticleCreatorDestructor
 
 ///@}
 
