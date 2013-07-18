@@ -61,21 +61,21 @@ proc kipt::Splash { } {
     set prev_splash_state [GiD_Set SplashWindow]
     GiD_Set SplashWindow 1 ;#set temporary to 1 to force show splash without take care of the GiD splash preference
     set off_x 150
-    set fnt BigFont
+    set fnt "Sans 10"
     if { $::tcl_platform(platform) == "windows" } {
 	set fnt "verdana 10"
 	set off_x 130
     }
     ::GidUtils::Splash [file join $::KPriv(dir) images Classic splash.png] .splash 1 \
-        [list "$::kipt::ProgramName Version $::kipt::VersionNumber" $off_x 230]
+        [list "$::kipt::ProgramName Version $::kipt::VersionNumber \n$::kipt::Web" $off_x 230]
     # next time to be removed...
-    if { [ winfo exists .splash.lv]} {
-	set prev_text [ .splash.lv cget -text]
-	append prev_text \n$::kipt::Web
-	.splash.lv configure -font $fnt -background white -foreground black \
-	    -relief solid -borderwidth 1 -padx 12 -pady 3 \
-	    -text $prev_text
-	update
+    # new_gid = gid v. 11.1.6d or above
+    # dev_kit's splash has been modified and some changes are already there...
+    set new_splash [ ::GidUtils::VersionCmp 11.1.6d]
+    if { [ winfo exists .splash.lv] && !$new_splash} {
+    	.splash.lv configure -font $fnt -background white -foreground black \
+    	    -relief solid -borderwidth 1 -padx 12 -pady 3
+    	update
     }
     GiD_Set SplashWindow $prev_splash_state
 }
@@ -87,20 +87,21 @@ proc kipt::About { } {
     set prev_splash_state [GiD_Set SplashWindow]
     GiD_Set SplashWindow 1
     set off_x 150
-    set fnt BigFont
+    set fnt "Sans 10"
     if { $::tcl_platform(platform) == "windows" } {
 	set fnt "verdana 10"
 	set off_x 130
     }
     ::GidUtils::Splash [file join $::KPriv(dir) images Classic splash.png] .splash 0 \
-        [list "$::kipt::ProgramName Version $::kipt::VersionNumber" $off_x 230]
+        [list "$::kipt::ProgramName Version $::kipt::VersionNumber \n$::kipt::Web" $off_x 230]
     # next time to be removed...
-    if { [ winfo exists .splash.lv]} {
-	set prev_text [ .splash.lv cget -text]
-	append prev_text \n$::kipt::Web
-	.splash.lv configure -font $fnt -background white -foreground black \
-	    -relief solid -borderwidth 1 -padx 12 -pady 3 \
-	    -text $prev_text
+    # new_gid = gid v. 11.1.6d or above
+    # dev_kit's splash has been modified and some changes are already there...
+    set new_splash [ ::GidUtils::VersionCmp 11.1.6d]
+    if { [ winfo exists .splash.lv] && !$new_splash} {
+    	.splash.lv configure -font $fnt -background white -foreground black \
+    	    -relief solid -borderwidth 1 -padx 12 -pady 3
+    	update
     }
     GiD_Set SplashWindow $prev_splash_state
 }
