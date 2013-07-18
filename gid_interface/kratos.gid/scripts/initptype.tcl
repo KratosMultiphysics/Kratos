@@ -69,10 +69,10 @@ proc kipt::Splash { } {
     ::GidUtils::Splash [file join $::KPriv(dir) images Classic splash.png] .splash 1 \
         [list "$::kipt::ProgramName Version $::kipt::VersionNumber \n$::kipt::Web" $off_x 230]
     # next time to be removed...
-    # new_gid = gid v. 11.1.6d or above
+    # new_gid = -1 for gid v. 11.1.5d or below
     # dev_kit's splash has been modified and some changes are already there...
     set new_splash [ ::GidUtils::VersionCmp 11.1.6d]
-    if { [ winfo exists .splash.lv] && !$new_splash} {
+    if { [ winfo exists .splash.lv] && ( $new_splash < 0)} {
     	.splash.lv configure -font $fnt -background white -foreground black \
     	    -relief solid -borderwidth 1 -padx 12 -pady 3
     	update
@@ -95,10 +95,10 @@ proc kipt::About { } {
     ::GidUtils::Splash [file join $::KPriv(dir) images Classic splash.png] .splash 0 \
         [list "$::kipt::ProgramName Version $::kipt::VersionNumber \n$::kipt::Web" $off_x 230]
     # next time to be removed...
-    # new_gid = gid v. 11.1.6d or above
+    # new_gid = -1 for gid v. 11.1.5d or below
     # dev_kit's splash has been modified and some changes are already there...
     set new_splash [ ::GidUtils::VersionCmp 11.1.6d]
-    if { [ winfo exists .splash.lv] && !$new_splash} {
+    if { [ winfo exists .splash.lv] &&  ( $new_splash < 0)} {
     	.splash.lv configure -font $fnt -background white -foreground black \
     	    -relief solid -borderwidth 1 -padx 12 -pady 3
     	update
