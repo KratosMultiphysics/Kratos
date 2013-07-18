@@ -57,10 +57,26 @@ proc kipt::Splash { } {
     global KPriv
     variable ProgramName
     variable VersionNumber
+
     set prev_splash_state [GiD_Set SplashWindow]
     GiD_Set SplashWindow 1 ;#set temporary to 1 to force show splash without take care of the GiD splash preference
+    set off_x 150
+    set fnt BigFont
+    if { $::tcl_platform(platform) == "windows" } {
+	set fnt "verdana 10"
+	set off_x 130
+    }
     ::GidUtils::Splash [file join $::KPriv(dir) images Classic splash.png] .splash 1 \
-        [list "$::kipt::ProgramName Version $::kipt::VersionNumber" 180 230]
+        [list "$::kipt::ProgramName Version $::kipt::VersionNumber" $off_x 230]
+    # next time to be removed...
+    if { [ winfo exists .splash.lv]} {
+	set prev_text [ .splash.lv cget -text]
+	append prev_text \n$::kipt::Web
+	.splash.lv configure -font $fnt -background white -foreground black \
+	    -relief solid -borderwidth 1 -padx 12 -pady 3 \
+	    -text $prev_text
+	update
+    }
     GiD_Set SplashWindow $prev_splash_state
 }
 
@@ -70,8 +86,22 @@ proc kipt::About { } {
     variable VersionNumber
     set prev_splash_state [GiD_Set SplashWindow]
     GiD_Set SplashWindow 1
+    set off_x 150
+    set fnt BigFont
+    if { $::tcl_platform(platform) == "windows" } {
+	set fnt "verdana 10"
+	set off_x 130
+    }
     ::GidUtils::Splash [file join $::KPriv(dir) images Classic splash.png] .splash 0 \
-        [list "$::kipt::ProgramName Version $::kipt::VersionNumber" 180 230]
+        [list "$::kipt::ProgramName Version $::kipt::VersionNumber" $off_x 230]
+    # next time to be removed...
+    if { [ winfo exists .splash.lv]} {
+	set prev_text [ .splash.lv cget -text]
+	append prev_text \n$::kipt::Web
+	.splash.lv configure -font $fnt -background white -foreground black \
+	    -relief solid -borderwidth 1 -padx 12 -pady 3 \
+	    -text $prev_text
+    }
     GiD_Set SplashWindow $prev_splash_state
 }
 
