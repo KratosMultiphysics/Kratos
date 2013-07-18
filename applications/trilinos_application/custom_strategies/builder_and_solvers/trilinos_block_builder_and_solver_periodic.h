@@ -158,6 +158,10 @@ public:
             if ( (itDof->GetSolutionStepValue(PARTITION_INDEX) == Rank) && ( itDof->GetSolutionStepValue(mPeriodicIdVar) < static_cast<int>(itDof->Id())) )
                 DofCount++;
 
+        // Periodic conditions on corners are counted separately
+        unsigned int ExtraDofs = SetUpEdgeDofs(rModelPart);
+        DofCount += ExtraDofs;
+
         // Comunicate the Dof counts to set a global numbering
         int DofOffset;
 
@@ -183,9 +187,8 @@ public:
         // Once the non-repeated EquationId are assigned and synchronized, copy the EquationId to the second node on each periodic pair
         for (ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond)
         {
-            // PeriodicCondition always have exactly 2 nodes
             ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
-            if (rGeom.PointsNumber() == 2)
+            if (rGeom.PointsNumber() == 2) // Regular 2-noded conditions
             {
                 int Node0 = rGeom[0].Id();
                 int Node0Pair = rGeom[0].FastGetSolutionStepValue(mPeriodicIdVar);
@@ -202,6 +205,11 @@ public:
                         CopyEquationId(rGeom[0],rGeom[1]);
                 }
             }
+            else if (rGeom.PointsNumber() == 4) // Special treatment for edge nodes
+            {
+                for (unsigned int i = 1; i < 4; i++)
+                    CopyEquationId(rGeom[0],rGeom[i]);
+            }
         }
 
         // Synchronize Dof Ids across processes a second time to transfer the Ids of periodic nodes.
@@ -209,6 +217,9 @@ public:
         // value on the owner process, while here the EquationId value is given by the owner of the PeriodicCondition,
         // which is not necessarily the same as the owner of the node.
         CommunicateEquationId(rModelPart.GetCommunicator());
+
+        // Clean temporary values to ensure that future calls to SetUpDofSet work as intended
+        this->CleanEdgeDofData(rModelPart);
 
         // Store local and gloabal system size
         int TotalDofNum;
@@ -220,6 +231,7 @@ public:
         this->mEquationSystemSize = TotalDofNum;
         this->mLastMyId = DofOffset;
 
+        //std::cout << Rank << ": mLocalSystemSize " << this->mLocalSystemSize << " mEquationSystemSize " << this->mEquationSystemSize << " mLastMyId " << this->mLastMyId << " mFirstMyId " << this->mFirstMyId << std::endl;
         KRATOS_CATCH("");
     }
 
@@ -379,6 +391,72 @@ private:
         // Once we are sure that the owner process of all nodes knows its equation id, replicate its value to all ghost images
         rComm.SynchronizeDofs();
     }
+
+    /// Additional operations required to assign a correct EquationId to periodic nodes corresponding to an edge (four images of the Dof exist in the domain).
+    /** Note that the EquationId is not assigned by this function (it will be assigned in SetUpSystem)
+      * @return Number of additional degrees of freedom in this partition, due to the presence of edge nodes
+      */
+    unsigned int SetUpEdgeDofs(ModelPart& rModelPart)
+    {
+        int LocalNodesNum = rModelPart.GetCommunicator().LocalMesh().Nodes().size();
+        int GlobalNodesNum = 0;
+        this->mrComm.SumAll(&LocalNodesNum,&GlobalNodesNum,1);
+
+        int NumProcs = this->mrComm.NumProc();
+        int* ExtraDofs = new int[NumProcs];
+        for (int i = 0; i < NumProcs; i++) ExtraDofs[i] = 0;
+
+        Condition::DofsVectorType DofList;
+        ProcessInfo& rProcessInfo = rModelPart.GetProcessInfo();
+        for (ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); ++itCond)
+        {
+            Condition::GeometryType& rGeom = itCond->GetGeometry();
+            // mPeriodicIdVar > GlobalNodesNum is an imposible value for regular periodic nodes, which we use to signal edges
+            if ( rGeom.PointsNumber() == 4 && rGeom[0].FastGetSolutionStepValue(mPeriodicIdVar) > GlobalNodesNum )
+            {
+                unsigned int FirstNode = rGeom[0].Id();
+                // KLUDGE: the following call should go through the scheme!!
+                itCond->GetDofList(DofList,rProcessInfo);
+                for(typename Condition::DofsVectorType::iterator iDof = DofList.begin() ; iDof != DofList.end() ; ++iDof)
+                    if ( (*iDof)->Id() == FirstNode)
+                        ExtraDofs[ (unsigned int)( (*iDof)->GetSolutionStepValue(PARTITION_INDEX) ) ]++;
+
+                rGeom[0].GetValue(mPeriodicIdVar) = rGeom[0].FastGetSolutionStepValue(mPeriodicIdVar);
+            }
+        }
+
+        int* TotalExtraDofs = new int[NumProcs];
+        for (int i = 0; i < NumProcs; i++) TotalExtraDofs[i] = 0;
+        
+        this->mrComm.SumAll(ExtraDofs,TotalExtraDofs,NumProcs);
+        
+        // free memory
+        int LocalExtraDofs = TotalExtraDofs[this->mrComm.MyPID()];
+        delete [] ExtraDofs;
+        delete [] TotalExtraDofs;
+
+        // Prepare edge dofs so only one of the duplicates gets an equation Id
+        rModelPart.GetCommunicator().AssembleNonHistoricalData(mPeriodicIdVar);
+        for ( ModelPart::NodeIterator iNode = rModelPart.NodesBegin(); iNode != rModelPart.NodesEnd(); iNode++)
+            if ( iNode->GetValue(mPeriodicIdVar) != 0)
+                iNode->FastGetSolutionStepValue(mPeriodicIdVar) = 0;
+
+        return LocalExtraDofs;
+    }
+
+    /// Clean temporary values written in previous calls to SetUpEdgeDofs
+    /** This is required for all calls after the first if the DofSet and the system need rebuilding
+      */
+    void CleanEdgeDofData(ModelPart& rModelPart)
+    {
+        for ( ModelPart::NodeIterator iNode = rModelPart.NodesBegin(); iNode != rModelPart.NodesEnd(); iNode++)
+            if ( iNode->GetValue(mPeriodicIdVar) != 0)
+            {
+                iNode->FastGetSolutionStepValue(mPeriodicIdVar) = iNode->GetValue(mPeriodicIdVar);
+                iNode->GetValue(mPeriodicIdVar) = 0;
+            }
+    }
+    
 
     /*@} */
     /**@name Private  Access */

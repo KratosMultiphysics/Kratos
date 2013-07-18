@@ -296,6 +296,7 @@ private:
 
     /// Periodic Condition 
     const PeriodicCondition mPeriodicCondition;
+    const PeriodicCondition mPeriodicConditionCorner;
     const FSPeriodicCondition<2> mFSPeriodicCondition2D;
     const FSPeriodicCondition<3> mFSPeriodicCondition3D;
 
