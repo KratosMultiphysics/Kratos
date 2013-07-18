@@ -27,26 +27,16 @@ from KratosMultiphysics.ConvectionDiffusionApplication import *
 #defining a model part
 model_part = ModelPart("FluidPart");  
 
-##########################################################
-thermal_settings = ConvectionDiffusionSettings()
-thermal_settings.SetDensityVariable(DENSITY)
-thermal_settings.SetDiffusionVariable(CONDUCTIVITY)
-thermal_settings.SetUnknownVariable(TEMPERATURE)
-thermal_settings.SetVolumeSourceVariable(HEAT_FLUX)
-thermal_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
-thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
-thermal_settings.SetProjectionVariable(TEMP_CONV_PROJ);
-##########################################################
+#read solver settings from configuration file
+import ProjectParameters
+SolverSettings = ProjectParameters.SolverSettings
 
-#importing the solver files
-import convection_diffusion_solver
-convection_diffusion_solver.AddVariables(model_part,thermal_settings)
+#import solver file
+solver_constructor = __import__(SolverSettings.solver_type)
 
+#define variables to be stored 
+solver_constructor.AddVariables(model_part, SolverSettings)
 
-#adding of Variables to Model Part should be here when the "very fix container will be ready"
-
-#reading a model
-#reading a model
 #introducing input file name
 input_file_name = "square"
 
@@ -68,14 +58,14 @@ print model_part
 #the buffer size should be set up here after the mesh is read for the first time
 model_part.SetBufferSize(3)
 
-#importing the solver files
-convection_diffusion_solver.AddDofs(model_part,thermal_settings)
+#define dofs to be stored
+solver_constructor.AddDofs(model_part,SolverSettings)
 
-  
-#creating a fluid solver object
-solver = convection_diffusion_solver.ConvectionDiffusionSolver(model_part,domain_size,thermal_settings)
-solver.time_order = 2
-solver.Initialize()
+#construct the solver
+conv_diff_solver = solver_constructor.CreateSolver( model_part, SolverSettings)
+   
+conv_diff_solver.Initialize()
+
 
 #assigning the fluid properties
 conductivity = 0.1;
@@ -119,25 +109,26 @@ for node in model_part.Nodes:
 
  
 
-
-#settings to be changed
-nsteps = 300
-output_step = 10
-
-Dt = 0.1
+Dt = ProjectParameters.Dt 
+full_Dt = Dt 
+initial_Dt = 0.01 * full_Dt #0.05 #0.01
+Nsteps  = ProjectParameters.nsteps
+final_time = ProjectParameters.max_time
+output_time = ProjectParameters.output_time
+output_step = ProjectParameters.output_step
+time = ProjectParameters.Start_time
 
 out = 0
+step = 0
 
-
-for step in range(0,nsteps):
-    print "line49"
-
+for step in range(0,Nsteps):
+    print step
     time = Dt*step
     model_part.CloneTimeStep(time)
 
     #solving the fluid problem
     if(step > 3):
-        solver.Solve()
+        conv_diff_solver.Solve()
 
     #print the results
     if(out == output_step):
