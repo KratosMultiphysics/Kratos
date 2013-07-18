@@ -67,7 +67,7 @@ def AddVariables(model_part, Param):
 
     # FLAGS
     model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
-
+    model_part.AddNodalSolutionStepVariable(ERASE_FLAG)
     # ONLY VISUALITZATION
 
     if (Var_Translator(Param.PostGroupId)):
@@ -222,7 +222,7 @@ class ExplicitStrategy:
             self.n_step_search              = sys.maxint
 
         self.safety_factor                  = Param.DeltaTimeSafetyFactor # For critical time step
-        self.create_and_destroy             = particle_destructor_and_constructor()
+        self.create_and_destroy             = ParticleCreatorDestructor()
 
         # STRATEGIES
         self.search_strategy                = OMP_DEMSearch()
