@@ -83,6 +83,16 @@ namespace Kratos
      * Operations needed by the base class:
      */
 
+    /**
+     * Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension() { return 2; };
+
+    /**
+     * Voigt tensor size:
+     */
+    SizeType GetStrainSize()         { return 3; };
+
 
     /**
      * Input and output

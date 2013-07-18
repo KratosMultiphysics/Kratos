@@ -80,6 +80,21 @@ namespace Kratos
      * Operators 
      */
     
+    /**
+     * Operations needed by the base class:
+     */
+
+    /**
+     * Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension() { return 2; };
+
+    /**
+     * Voigt tensor size:
+     */
+    SizeType GetStrainSize()         { return 3; };
+
+
      /**
      * Input and output
      */
@@ -131,7 +146,7 @@ namespace Kratos
 
     /**
      * Calculates the constitutive matrix 
-     * @param rMatrixIC can be the Identity or the RightCauchyGreen tensor
+     * @param rMatrixIC can be the Identity or the inverse of the RightCauchyGreen tensor
      * @param rdetF the determinant of the deformation gradient
      * @param rLameLambda lame paramenter lambda
      * @param rLameMu lame paramenter mu
@@ -139,15 +154,15 @@ namespace Kratos
      * @param rResult Matrix the result (Constitutive Matrix) will be stored in
      */
     void CalculateConstitutiveMatrix (const Matrix & rMatrixIC,
-				      const double &rdetF,
-				      const double &rLameLambda,
-				      const double &rLameMu,
+				      const double & rdetF,
+				      const double & rLameLambda,
+				      const double & rLameMu,
 				      Matrix& rConstitutiveMatrix);
 
 
     /**
      * Calculates the constitutive matrix and makes a pull-back
-     * @param rMatrixIC can be the Identity or the RightCauchyGreen tensor
+     * @param rMatrixIC can be the inverse of the RightCauchyGreen or the LeftCauchy Green tensor
      * @param rinvF the invers of the current deformation gradient
      * @param rdetF0 the determinant of the total deformation gradient
      * @param rLameLambda lame paramenter lambda

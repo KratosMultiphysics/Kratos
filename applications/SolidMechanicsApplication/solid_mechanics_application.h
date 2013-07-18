@@ -47,8 +47,11 @@
 
 //constitutive laws
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_mixed_3D_law.hpp"
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
+
 #include "custom_constitutive/hyperelastic_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_mixed_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 
@@ -376,10 +379,12 @@ namespace Kratos
 
 
     //constitutive laws
-    const HyperElastic3DLaw                           mHyperElastic3DLaw;
-    const LinearElastic3DLaw                         mLinearElastic3DLaw;
+    const HyperElastic3DLaw                          mHyperElastic3DLaw;
+    const HyperElasticMixed3DLaw                mHyperElasticMixed3DLaw;
+    const LinearElastic3DLaw                        mLinearElastic3DLaw;
 
     const HyperElastic2DLaw                          mHyperElastic2DLaw;
+    const HyperElasticMixed2DLaw                mHyperElasticMixed2DLaw;
     const LinearElastic2DLaw                        mLinearElastic2DLaw;
     const LinearElasticPlaneStress2DLaw  mLinearElasticPlaneStress2DLaw;
 
