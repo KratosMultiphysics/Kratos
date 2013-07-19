@@ -21,27 +21,15 @@ from KratosMultiphysics.ConvectionDiffusionApplication import *
 #defining a model part
 model_part = ModelPart("FluidPart");  
 
+#read solver settings from configuration file
+import ProjectParameters
+SolverSettings = ProjectParameters.SolverSettings2
 
-## from now on the order is not anymore crucial
-##################################################################
-##################################################################
+#import solver file
+solver_constructor = __import__(SolverSettings.solver_type)
 
-##from KratosConvectionDiffusionApplication import *
-
-##########################################################
-thermal_settings = ConvectionDiffusionSettings()
-thermal_settings.SetDensityVariable(DENSITY)
-thermal_settings.SetDiffusionVariable(CONDUCTIVITY)
-thermal_settings.SetUnknownVariable(TEMPERATURE)
-thermal_settings.SetVolumeSourceVariable(HEAT_FLUX)
-thermal_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
-thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
-thermal_settings.SetProjectionVariable(TEMP_CONV_PROJ);
-##########################################################
-
-#importing the solver files
-import nonlinear_convection_diffusion_solver
-nonlinear_convection_diffusion_solver.AddVariables(model_part,thermal_settings)
+#define variables to be stored 
+solver_constructor.AddVariables(model_part, SolverSettings)
 
 
 #introducing input file name
@@ -60,25 +48,17 @@ mesh_name = 0.0
 gid_io.InitializeMesh( mesh_name );
 gid_io.WriteMesh((model_part).GetMesh());
 gid_io.FinalizeMesh()
-print model_part
-
-
 
 
 #the buffer size should be set up here after the mesh is read for the first time
 model_part.SetBufferSize(3)
 
-#importing the solver files
-nonlinear_convection_diffusion_solver.AddDofs(model_part,thermal_settings)
-    
-#creating a fluid solver object
-solver = nonlinear_convection_diffusion_solver.ConvectionDiffusionSolver(model_part,domain_size,thermal_settings)
-solver.time_order = 2
-solver.prediction_order = 2
-pDiagPrecond = DiagonalPreconditioner()
-solver.linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
+#define dofs to be stored
+solver_constructor.AddDofs(model_part,SolverSettings)
 
-solver.Initialize()
+#construct the solver
+conv_diff_solver = solver_constructor.CreateSolver( model_part, SolverSettings)
+conv_diff_solver.Initialize()
 
 #assigning the fluid properties
 conductivity = 0.0;
@@ -98,9 +78,6 @@ vel = Vector(3);
 for node in model_part.Nodes:
     vel[0] = -node.Y
     vel[1] = node.X
-##   if(node.X**2 + node.Y**2 > 0.24):
-##        vel[0] = 0.0
-##        vel[1] = 0.0        
     node.SetSolutionStepValue(VELOCITY,0,vel);
 
 #assigning a cone shaped temperature distribution
@@ -117,18 +94,22 @@ for node in model_part.Nodes:
 
  
 
+Dt = ProjectParameters.Dt 
+full_Dt = Dt 
+initial_Dt = 0.01 * full_Dt #0.05 #0.01
+Nsteps  = ProjectParameters.nsteps
+final_time = ProjectParameters.max_time
+output_time = ProjectParameters.output_time
+output_step = ProjectParameters.output_step
+time = ProjectParameters.Start_time
 
-#settings to be changed
-nsteps = 205
-output_step = 20
-output_step = 1
+out = 0
+step = 0
 
 Dt = 2.00*math.pi/200.0;
 
-out = 0
 
-
-for step in range(0,nsteps):
+for step in range(0,Nsteps):
     print "line49"
 
     time = Dt*step
@@ -139,7 +120,7 @@ for step in range(0,nsteps):
 
     #solving the fluid problem
     if(step > 3):
-        solver.Solve()
+        conv_diff_solver.Solve()
 
     #print the results
     if(out == output_step):
