@@ -258,7 +258,7 @@ while (time < Param.FinalTime):
 
     if (Param.FixVelocitiesOption == 'OFF'):
         TimePercentageFixVelocities = 0.0
-        
+
     if( Param.ContinuumOption =="ON" and ( time >= 0.01*TimePercentageFixVelocities*Param.FinalTime) and Param.ConcreteTestOption =="ON"):
      
       if(first_time_entry):
@@ -285,9 +285,9 @@ while (time < Param.FinalTime):
 
       for node in sup_layer_fm:
       
-        force_node_x = node.GetSolutionStepValue(TOTAL_FORCES,0)[0]
-        force_node_y = node.GetSolutionStepValue(TOTAL_FORCES,0)[1]
-        force_node_z = node.GetSolutionStepValue(TOTAL_FORCES,0)[2]
+        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES,0)[0]
+        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES,0)[1]
+        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES,0)[2]
 
         total_force += force_node_y
         
