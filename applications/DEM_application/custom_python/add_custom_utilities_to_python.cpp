@@ -84,6 +84,7 @@ void  AddCustomUtilitiesToPython(){
         ("SphericElementGlobalPhysicsCalculator", init<ModelPart&>())
         .def("CalculateTotalVolume", &SphericElementGlobalPhysicsCalculator::CalculateTotalVolume)
         .def("CalculateTotalMass", &SphericElementGlobalPhysicsCalculator::CalculateTotalMass)
+        .def("CalculateD50", &SphericElementGlobalPhysicsCalculator::CalculateD50)
         .def("CalculateCenterOfMass", &SphericElementGlobalPhysicsCalculator::CalculateCenterOfMass)
         .def("GetInitialCenterOfMass", &SphericElementGlobalPhysicsCalculator::GetInitialCenterOfMass)
         .def("CalculateKineticEnergy", &SphericElementGlobalPhysicsCalculator::CalculateKineticEnergy)
