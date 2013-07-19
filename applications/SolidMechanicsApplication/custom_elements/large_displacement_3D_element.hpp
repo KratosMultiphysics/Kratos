@@ -81,7 +81,7 @@ protected:
    * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
    */
 
-  struct Standard
+  struct GeneralVariables
   {
     StressMeasureType StressMeasure;
 
@@ -90,10 +90,10 @@ protected:
     double  detJ;
     Vector  StrainVector;
     Vector  StressVector;
+    Vector  ElasticLeftCGVector;
     Vector  N;
     Matrix  B;
     Matrix  F;
-    Matrix  F0;
     Matrix  DN_DX;
     Matrix  ConstitutiveMatrix;
     
@@ -422,7 +422,7 @@ protected:
      */
 
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-				    Standard& rVariables, 
+				    GeneralVariables& rVariables, 
 				    double& rIntegrationWeight);
   
     /**
@@ -430,7 +430,7 @@ protected:
      */
 
     virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, 
-				    Standard& rVariables, 
+				    GeneralVariables& rVariables, 
 				    Vector& rVolumeForce, 
 				    double& rIntegrationWeight);
   
@@ -440,7 +440,7 @@ protected:
      */
 
     virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-				     Standard& rVariables,
+				     GeneralVariables& rVariables,
 				     double& rIntegrationWeight
 				     );
 
@@ -448,7 +448,7 @@ protected:
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-				     Standard& rVariables,
+				     GeneralVariables& rVariables,
 				     double& rIntegrationWeight
 				     );
 
@@ -457,7 +457,7 @@ protected:
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-						      Standard& rVariables,
+						      GeneralVariables& rVariables,
 						      Vector& rVolumeForce,
 						      double& rIntegrationWeight
 						      );
@@ -467,7 +467,7 @@ protected:
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-						      Standard & rVariables,
+						      GeneralVariables & rVariables,
 						      double& rIntegrationWeight
 						      );
 
@@ -475,7 +475,7 @@ protected:
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    virtual void SetStandardParameters(Standard& rVariables,
+    virtual void SetGeneralVariables(GeneralVariables& rVariables,
 				       ConstitutiveLaw::Parameters& rValues,
 				       const int & rPointNumber);
 
@@ -511,7 +511,7 @@ protected:
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(Standard& rVariables,
+    virtual void CalculateKinematics(GeneralVariables& rVariables,
 				     const double& rPointNumber);
 
     /**
@@ -521,9 +521,9 @@ protected:
 
 
     /**
-     * Initialize Element Standard Variables
+     * Initialize Element General Variables
      */ 
-    virtual void InitializeStandardVariables(Standard & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
     /**

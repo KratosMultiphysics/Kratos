@@ -151,12 +151,26 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
+ //************************************************************************************
+  //************************************************************************************
+
+  void TotalLagrangian3DElement::SetGeneralVariables(GeneralVariables& rVariables,
+						     ConstitutiveLaw::Parameters& rValues,
+						     const int & rPointNumber)
+  {
+    LargeDisplacement3DElement::SetGeneralVariables(rVariables,rValues,rPointNumber);
+
+    //Set extra options for the contitutive law
+    Flags &ConstitutiveLawOptions=rValues.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::INITIAL_CONFIGURATION);
+
+  }
 
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
 
 
-  void TotalLagrangian3DElement::CalculateKinematics(Standard& rVariables,
+  void TotalLagrangian3DElement::CalculateKinematics(GeneralVariables& rVariables,
 						     const double& rPointNumber)
 
   {
@@ -180,7 +194,7 @@ namespace Kratos
     //Determinant of the Deformation Gradient F0
     // (in this element F = F0, then the F0 is set to the identity for coherence in the constitutive law)
     rVariables.detF0 = 1;
-    rVariables.F0    = identity_matrix<double>(rVariables.F0.size1());
+    rVariables.ElasticLeftCGVector = ZeroVector(rVariables.ElasticLeftCGVector.size());
 
     //Set Shape Functions Values for this integration point
     rVariables.N=row( Ncontainer, rPointNumber);

@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     3.2- 14/07/13-G. Socorro, modify the proc WriteFluidIsSlipWallLawBC to write is-slip and walllaw BC
 #     3.1- 17/06/13-G. Socorro, delete wmethod variable and all related procedures (*_m0,*_m1,*_m2) => now we are using only the new GiD groups
 #     3.0- 12/04/13-G. Socorro, correct a bug in the proc WriteFluidInletNoSlipBC_m2 (2D case)
 #     2.9- 22/03/13-G. Socorro, correct a bug in the proc WriteFluidInletNoSlipBC_m2 (using write_calc_data instead of [GiD_EntitiesGroups get $nsgroupid nodes])
@@ -751,11 +752,12 @@ proc ::wkcf::WriteFluidFlagVariableBC {AppId flagvariablelist} {
 }
 
 
-proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
-    # ABSTRACT: Write is-slip boundary conditions => Conditional data
+proc ::wkcf::WriteFluidIsSlipWallLawBC {AppId ccondid kwordlist } {
+    # ABSTRACT: Write is-slip/walllaw boundary conditions => Conditional data
     variable dprops;   variable ndime
     variable ctbclink; variable filechannel
 
+    # wa "AppId:$AppId ccondid:$ccondid kwordlist:$kwordlist"
     # For debug
     if {!$::wkcf::pflag} {
         set inittime [clock seconds]
@@ -771,18 +773,17 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
 
     # For all defined group identifier inside this condition type
     foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
-        # wa "cgroupid:$cgroupid"
+	# wa "cgroupid:$cgroupid"
         # Get the condition properties
         lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) activateval ConstantValue
-
+	# wa "activateval:$activateval ConstantValue:$ConstantValue"
         if {$ndime == "2D"} {
             set GiDElemType "Linear"
             if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
                 set dprops($AppId,UseSlipConditions) 1
-                GiD_File fprintf $filechannel "%s" "Begin ConditionalData $isstructurekw // GUI is-slip condition group identifier: $cgroupid"
-                # write_calc_data connectivities -sorted $gprop
-                foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
-                    set nodes [lrange [GiD_Mesh get element $elem_id] 3 end] 
+                GiD_File fprintf $filechannel "%s" "Begin ConditionalData $isstructurekw // GUI $ccondid condition group identifier: $cgroupid"
+		foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
+		    # set nodes [lrange [GiD_Mesh get element $elem_id] 3 end] 
                     # wa "elemid:$elem_id cfixval:$cfixval nodei:$nodei nodej:$nodej"
                     if {[dict exists $ctbclink $elem_id]} {
                     # Check that exists this element in the dictionary with the condition indentifier links
@@ -793,23 +794,21 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
                 GiD_File fprintf $filechannel "%s" "End ConditionalData"
                 GiD_File fprintf $filechannel "%s" ""
                 
-
-                # Write Y_Wall values
-                GiD_File fprintf $filechannel "%s" " Begin NodalData $isywallkw // GUI Y-Wall condition group identifier: $cgroupid"
-                foreach nodeid [GiD_EntitiesGroups get $cgroupid nodes] {
-                    GiD_File fprintf $filechannel "%10d %4d %10g" $nodeid $state $ConstantValue
-                }
-                GiD_File fprintf $filechannel "%s" "End NodalData"
-                GiD_File fprintf $filechannel "" 
-
-            }
+		# Write wall_y values
+		GiD_File fprintf $filechannel "%s" " Begin NodalData $isywallkw // GUI $ccondid condition group identifier: $cgroupid"
+		foreach nodeid [GiD_EntitiesGroups get $cgroupid nodes] {
+		    GiD_File fprintf $filechannel "%10d %4d %10g" $nodeid $state $ConstantValue
+		}
+		GiD_File fprintf $filechannel "%s" "End NodalData"
+		GiD_File fprintf $filechannel "" 
+	
+	    }
         } elseif {$ndime == "3D"} {
             set GiDElemType "Triangle"
             if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
                 set dprops($AppId,UseSlipConditions) 1
-                GiD_File fprintf $filechannel "%s" "Begin ConditionalData $isstructurekw // GUI is-slip condition group identifier: $cgroupid"
-                # write_calc_data connectivities -sorted $gprop
-                foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
+                GiD_File fprintf $filechannel "%s" "Begin ConditionalData $isstructurekw // GUI $ccondid condition group identifier: $cgroupid"
+		foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
                     #set nodes [lrange [GiD_Mesh get element $elem_id] 3 end] 
                     # wa "elemid:$elem_id nodei:[lindex $nodes 0] nodej:[lindex $nodes 1] nodek:[lindex $nodes 2]"
                     # Check that exists this element in the dictionary with the condition indentifier links
@@ -823,15 +822,15 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
                 GiD_File fprintf $filechannel "End ConditionalData"
                 GiD_File fprintf $filechannel ""
                 
-                # Write Y_Wall values
-                GiD_File fprintf $filechannel "%s" " Begin NodalData $isywallkw // GUI Y-Wall condition group identifier: $cgroupid"
-                foreach nodeid [GiD_EntitiesGroups get $cgroupid nodes] {
-                    # msg "$nodeid $state $ConstantValue"
-                    GiD_File fprintf $filechannel "%10d %4d %10g" $nodeid $state $ConstantValue
-                }
-                GiD_File fprintf $filechannel "%s" "End NodalData"
-                GiD_File fprintf $filechannel ""
-            } 
+		# Write wall_y values
+		GiD_File fprintf $filechannel "%s" " Begin NodalData $isywallkw // GUI $ccondid condition group identifier: $cgroupid"
+		foreach nodeid [GiD_EntitiesGroups get $cgroupid nodes] {
+		    # msg "$nodeid $state $ConstantValue"
+		    GiD_File fprintf $filechannel "%10d %4d %10g" $nodeid $state $ConstantValue
+		}
+		GiD_File fprintf $filechannel "%s" "End NodalData"
+		GiD_File fprintf $filechannel ""
+	    } 
         }
     }
 
@@ -840,44 +839,10 @@ proc ::wkcf::WriteFluidIsSlipBC {AppId ccondid kwordlist} {
         set endtime [clock seconds]
         set ttime [expr $endtime-$inittime]
         # WarnWinText "endtime:$endtime ttime:$ttime"
-        WarnWinText "Write fluid wall is-slip boundary conditions: [::KUtils::Duration $ttime]"
+        WarnWinText "Write fluid wall law/is-slip boundary conditions: [::KUtils::Duration $ttime]"
     }
 }
 
-proc ::wkcf::WriteFluidWallLawBC {AppId ccondid kwordlist} {
-    # ABSTRACT: Write wall law boundary conditions => Nodal data
-    variable dprops; variable filechannel 
-    
-    # For debug
-    if {!$::wkcf::pflag} {
-        set inittime [clock seconds]
-}
-
-
-    # For all defined group identifier inside this condition type
-    foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
-        # wa "cgroupid:$cgroupid"
-        # Get the condition properties
-        lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) cvalue
-        # wa "cvalue:$cvalue"
-            if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
-                GiD_File fprintf $filechannel "%s" "Begin NodalData $kwordlist // GUI wall law condition group identifier: $cgroupid"
-                foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                    GiD_File fprintf $filechannel "%10i %10f" $node_id $cvalue
-                }
-                GiD_File fprintf $filechannel "%s" "End NodalData"
-                GiD_File fprintf $filechannel ""
-            }
-        } 
-
-    # For debug
-    if {!$::wkcf::pflag} {
-        set endtime [clock seconds]
-        set ttime [expr $endtime-$inittime]
-        # WarnWinText "endtime:$endtime ttime:$ttime"
-        WarnWinText "Write fluid wall is-slip boundary conditions: [::KUtils::Duration $ttime]"
-        } 
-    }
 
 proc ::wkcf::WriteFluidDistanceBC {AppId ccondid kwordlist} {
     # ABSTRACT: Write distance boundary conditions => Nodal data

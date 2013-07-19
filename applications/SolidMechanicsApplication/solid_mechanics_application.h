@@ -47,12 +47,12 @@
 
 //constitutive laws
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
-#include "custom_constitutive/hyperelastic_mixed_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
 
-#include "custom_constitutive/hyperelastic_2D_law.hpp"
-#include "custom_constitutive/hyperelastic_mixed_2D_law.hpp"
-#include "custom_constitutive/linear_elastic_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_U_P_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 
 #include "containers/flags.h"
@@ -378,15 +378,15 @@ namespace Kratos
     const FaceForce3DCondition    mFaceForceCondition3D9N;
 
 
-    //constitutive laws
-    const HyperElastic3DLaw                          mHyperElastic3DLaw;
-    const HyperElasticMixed3DLaw                mHyperElasticMixed3DLaw;
-    const LinearElastic3DLaw                        mLinearElastic3DLaw;
+    //constitutive laws 
+    const HyperElastic3DLaw                            mHyperElastic3DLaw;
+    const HyperElasticUP3DLaw                        mHyperElasticUP3DLaw;
+    const LinearElastic3DLaw                          mLinearElastic3DLaw;
 
-    const HyperElastic2DLaw                          mHyperElastic2DLaw;
-    const HyperElasticMixed2DLaw                mHyperElasticMixed2DLaw;
-    const LinearElastic2DLaw                        mLinearElastic2DLaw;
-    const LinearElasticPlaneStress2DLaw  mLinearElasticPlaneStress2DLaw;
+    const HyperElasticPlaneStrain2DLaw      mHyperElasticPlaneStrain2DLaw;
+    const HyperElasticUPPlaneStrain2DLaw  mHyperElasticUPPlaneStrain2DLaw;
+    const LinearElasticPlaneStrain2DLaw    mLinearElasticPlaneStrain2DLaw;
+    const LinearElasticPlaneStress2DLaw    mLinearElasticPlaneStress2DLaw;
 
     ///@} 
     ///@name Private Operators

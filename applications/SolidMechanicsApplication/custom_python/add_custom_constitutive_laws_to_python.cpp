@@ -32,10 +32,10 @@
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
-#include "custom_constitutive/hyperelastic_mixed_3D_law.hpp"
-#include "custom_constitutive/hyperelastic_2D_law.hpp"
-#include "custom_constitutive/hyperelastic_mixed_2D_law.hpp"
-#include "custom_constitutive/linear_elastic_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_U_P_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 
 
@@ -80,8 +80,8 @@ namespace Kratos
 	;
 
 
-     class_< LinearElastic2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-	( "LinearElastic2DLaw",
+     class_< LinearElasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+	( "LinearElasticPlaneStrain2DLaw",
 	  init<>() )
 	;
 
@@ -90,8 +90,8 @@ namespace Kratos
 	  init<>() )
 	;
 
-      class_< HyperElastic2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-	( "HyperElastic2DLaw",
+      class_< HyperElasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+	( "HyperElasticPlaneStrain2DLaw",
 	  init<>() )
 	;
 

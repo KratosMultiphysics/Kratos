@@ -6,20 +6,20 @@
 //
 //
 
-#if !defined (KRATOS_LINEAR_ELASTIC_PLANE_STRESS_2D_LAW_H_INCLUDED)
-#define  KRATOS_LINEAR_ELASTIC_PLANE_STRESS_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_LINEAR_ELASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED)
+#define  KRATOS_LINEAR_ELASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED
 
 // System includes 
 
 // External includes 
 
 // Project includes
-#include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_3D_law.hpp"
 
 namespace Kratos
 {
   /**
-   * Defines a linear isotropic constitutive law in 2D (Plane Stress)
+   * Defines a linear isotropic constitutive law in 2D (Plane Strain)
    * This material law is defined by the parameters:
    * 1) YOUNG MODULUS 
    * 2) POISSON RATIO
@@ -27,7 +27,7 @@ namespace Kratos
    * for small and large displacements elasticity.
    */
 
-  class LinearElasticPlaneStress2DLaw : public LinearElasticPlaneStrain2DLaw
+  class LinearElasticPlaneStrain2DLaw : public LinearElastic3DLaw
   {
   public:
     /**
@@ -37,10 +37,10 @@ namespace Kratos
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
     /**
-     * Counted pointer of LinearElasticPlaneStress2DLaw
+     * Counted pointer of LinearElasticPlaneStrain2DLaw
      */
     
-    KRATOS_CLASS_POINTER_DEFINITION(LinearElasticPlaneStress2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(LinearElasticPlaneStrain2DLaw);
     
     /**
      * Life Cycle 
@@ -49,7 +49,7 @@ namespace Kratos
     /**
      * Default constructor.
      */
-    LinearElasticPlaneStress2DLaw();
+    LinearElasticPlaneStrain2DLaw();
 			
     /**
      * Clone function (has to be implemented by any derived class)
@@ -60,20 +60,20 @@ namespace Kratos
     /**
      * Copy constructor.
      */
-    LinearElasticPlaneStress2DLaw (const LinearElasticPlaneStress2DLaw& rOther);
+    LinearElasticPlaneStrain2DLaw (const LinearElasticPlaneStrain2DLaw& rOther);
    
 
     /**
      * Assignment operator.
      */
 
-    //LinearElasticPlaneStress2DLaw& operator=(const LinearElasticPlaneStress2DLaw& rOther);
+    //LinearElasticPlaneStrain2DLaw& operator=(const LinearElasticPlaneStrain2DLaw& rOther);
 
 
     /**
      * Destructor.
      */
-    virtual ~LinearElasticPlaneStress2DLaw();
+    virtual ~LinearElasticPlaneStrain2DLaw();
 			
     /**
      * Operators 
@@ -83,7 +83,18 @@ namespace Kratos
      * Operations needed by the base class:
      */
 
-     /**
+    /**
+     * Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension() { return 2; };
+
+    /**
+     * Voigt tensor size:
+     */
+    SizeType GetStrainSize()         { return 3; };
+
+
+    /**
      * Input and output
      */
     /**
@@ -115,6 +126,24 @@ namespace Kratos
     ///@}
 
     /**
+     * Calculates the GreenLagrange strains
+     * @param rRightCauchyGreen
+     * @param rStrainVector
+     */
+    virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+					       Vector& rStrainVector );
+
+
+    /**
+     * Calculates the Almansi strains
+     * @param rRightCauchyGreen
+     * @param rStrainVector
+     */
+    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+					 Vector& rStrainVector );
+
+ 	       
+    /**
      * calculates the linear elastic constitutive matrix in terms of Young's modulus and
      * Poisson ratio
      * @param E the Young's modulus
@@ -123,11 +152,11 @@ namespace Kratos
      */
 
 
-    void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, 
-				       const double &rYoungModulus, 
-				       const double &rPoissonCoefficient );
+    virtual void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, 
+					       const double &rYoungModulus, 
+					       const double &rPoissonCoefficient );
 
-    
+
 	
   private:
 
@@ -148,8 +177,7 @@ namespace Kratos
     ///@name Private Operations
     ///@{
     ///@}
-
- 	       
+   
     ///@}
     ///@name Private  Access
     ///@{
@@ -162,15 +190,15 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearElasticPlaneStrain2DLaw);
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearElastic3DLaw);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearElasticPlaneStrain2DLaw);
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearElastic3DLaw);
     }
 
 
-  }; // Class LinearElasticPlaneStress2DLaw 
+  }; // Class LinearElasticPlaneStrain2DLaw 
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_ELASTIC_PLANE_STRESS_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_ELASTIC_PLANE_STRAIN_2D_LAW_H_INCLUDED  defined 

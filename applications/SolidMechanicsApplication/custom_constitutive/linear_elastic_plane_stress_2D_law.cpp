@@ -25,7 +25,7 @@ namespace Kratos
   //************************************************************************************
 
   LinearElasticPlaneStress2DLaw::LinearElasticPlaneStress2DLaw()
-  : LinearElastic2DLaw()
+  : LinearElasticPlaneStrain2DLaw()
   {
   }
 
@@ -33,7 +33,7 @@ namespace Kratos
   //************************************************************************************
 
   LinearElasticPlaneStress2DLaw::LinearElasticPlaneStress2DLaw(const LinearElasticPlaneStress2DLaw& rOther)
-  : LinearElastic2DLaw()
+  : LinearElasticPlaneStrain2DLaw()
   {
   }
   

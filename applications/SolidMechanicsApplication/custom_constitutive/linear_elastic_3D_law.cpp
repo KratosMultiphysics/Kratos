@@ -72,43 +72,31 @@ namespace Kratos
     CheckParameters(rValues);
     
     //b.- Get Values to compute the constitutive law:
+    Flags &Options=rValues.GetOptions();
+
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();
     const Matrix& DeformationGradientF    = rValues.GetDeformationGradientF();
-    //const double& DeterminantF            = rValues.GetDeterminantF(); 
 
     Vector& StrainVector                  = rValues.GetStrainVector();
-    Matrix& DeformationGradientF0         = rValues.GetDeformationGradientF0();
-    //double& DeterminantF0                 = rValues.GetDeterminantF0(); 
-
     Vector& StressVector                  = rValues.GetStressVector();
     Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();      
 
     //-----------------------------//
 
-    //0.- Voigt size
-    Flags &Options=rValues.GetOptions();
-
     //1.- Lame constants
     const double& YoungModulus          = MaterialProperties[YOUNG_MODULUS];
     const double& PoissonCoefficient    = MaterialProperties[POISSON_RATIO];
 
-    //2.-Total Deformation Gradient
-    Matrix F0 = prod(DeformationGradientF,DeformationGradientF0);
-
-    //3.-Determinant of the Total Deformation Gradient
-    //double detF0 = DeterminantF0 * DeterminantF;
-   
-    //4.-Right Cauchy Green
-    Matrix RightCauchyGreen = prod(trans(F0),F0);
-
-    //5.-Inverse of the Right Cauchy-Green tensor C:
-    double Trace_C=0;
-    Matrix InverseRightCauchyGreen ( 2 , 2 );
-    MathUtils<double>::InvertMatrix( RightCauchyGreen, InverseRightCauchyGreen, Trace_C);
-
-    //6.-Green-Lagrange Strain:
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
       {
+	//2.-Total Deformation Gradient
+	Matrix DeformationGradientF0 = DeformationGradientF;
+ 
+	//4.-Right Cauchy Green
+	Matrix RightCauchyGreen = prod(trans(DeformationGradientF0),DeformationGradientF0);
+    
+	//5.-Green-Lagrange Strain:
+
 	//E= 0.5*(FT*F-1)
 	this->CalculateGreenLagrangeStrain(RightCauchyGreen,StrainVector);
       }
@@ -148,41 +136,34 @@ namespace Kratos
     CheckParameters(rValues);
     
     //b.- Get Values to compute the constitutive law:
+    Flags &Options=rValues.GetOptions();
+
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();
     const Matrix&   DeformationGradientF  = rValues.GetDeformationGradientF();
-    //const double&   DeterminantF          = rValues.GetDeterminantF(); 
+
+    Vector& ElasticLeftCauchyGreenVector  = rValues.GetElasticLeftCauchyGreenVector();
 
     Vector& StrainVector                  = rValues.GetStrainVector();
-    Matrix& DeformationGradientF0         = rValues.GetDeformationGradientF0();
-    //double& DeterminantF0                 = rValues.GetDeterminantF0(); 
-
     Vector& StressVector                  = rValues.GetStressVector();
     Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();      
 
     //-----------------------------//
 
-    //0.- Voigt size
-    Flags &Options=rValues.GetOptions();
-
     //1.- Lame constants
     const double& YoungModulus          = MaterialProperties[YOUNG_MODULUS];
     const double& PoissonCoefficient    = MaterialProperties[POISSON_RATIO];
 
-    //2.-Total Deformation Gradient
-    Matrix F0 = prod(DeformationGradientF,DeformationGradientF0);
-
-    //3.-Determinant of the Total Deformation Gradient
-    //double detF0 = DeterminantF0 * DeterminantF;
-        
-    //4.-Left Cauchy-Green tensor b
-    Matrix LeftCauchyGreen = prod(F0,trans(F0));
-
-    //6.-Almansi Strain:
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
       {
+
+	//2.-Push-Forward Left Cauchy-Green tensor b to the new configuration
+	Matrix LeftCauchyGreenMatrix = LeftCauchyGreenPushForward( LeftCauchyGreenMatrix, ElasticLeftCauchyGreenVector, DeformationGradientF );
+
+	//3.-Almansi Strain:
+
 	// e= 0.5*(1-invbT*invb)   
-	this->CalculateAlmansiStrain(LeftCauchyGreen,StrainVector);
-	std::cout<<" compute strain "<<std::endl;
+	this->CalculateAlmansiStrain(LeftCauchyGreenMatrix,StrainVector);
+
       }
  
     //7.-Calculate total Kirchhoff stress   

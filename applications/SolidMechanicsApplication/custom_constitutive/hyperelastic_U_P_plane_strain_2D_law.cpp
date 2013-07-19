@@ -14,7 +14,7 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/hyperelastic_mixed_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_U_P_plane_strain_2D_law.hpp"
 
 #include "solid_mechanics_application.h"
 
@@ -24,8 +24,8 @@ namespace Kratos
   //******************************CONSTRUCTOR*******************************************
   //************************************************************************************
 
-  HyperElasticMixed2DLaw::HyperElasticMixed2DLaw()
-  : HyperElasticMixed3DLaw()
+  HyperElasticUPPlaneStrain2DLaw::HyperElasticUPPlaneStrain2DLaw()
+  : HyperElasticUP3DLaw()
   {
 
   }
@@ -33,24 +33,24 @@ namespace Kratos
   //******************************COPY CONSTRUCTOR**************************************
   //************************************************************************************
 
-  HyperElasticMixed2DLaw::HyperElasticMixed2DLaw(const HyperElasticMixed2DLaw& rOther)
-  : HyperElasticMixed3DLaw()
+  HyperElasticUPPlaneStrain2DLaw::HyperElasticUPPlaneStrain2DLaw(const HyperElasticUPPlaneStrain2DLaw& rOther)
+  : HyperElasticUP3DLaw()
   {
   }
   
   //********************************CLONE***********************************************
   //************************************************************************************
 
-  ConstitutiveLaw::Pointer HyperElasticMixed2DLaw::Clone() const
+  ConstitutiveLaw::Pointer HyperElasticUPPlaneStrain2DLaw::Clone() const
   {
-    HyperElasticMixed2DLaw::Pointer p_clone(new HyperElasticMixed2DLaw(*this));
+    HyperElasticUPPlaneStrain2DLaw::Pointer p_clone(new HyperElasticUPPlaneStrain2DLaw(*this));
     return p_clone;
   }
   
   //*******************************DESTRUCTOR*******************************************
   //************************************************************************************
 
-  HyperElasticMixed2DLaw::~HyperElasticMixed2DLaw()
+  HyperElasticUPPlaneStrain2DLaw::~HyperElasticUPPlaneStrain2DLaw()
   {
   }
 
@@ -59,7 +59,7 @@ namespace Kratos
   //***********************COMPUTE TOTAL STRAIN*****************************************
   //************************************************************************************
 
-  void HyperElasticMixed2DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+  void HyperElasticUPPlaneStrain2DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
 							Vector& rStrainVector )
   {
 
@@ -75,7 +75,7 @@ namespace Kratos
   //***********************COMPUTE TOTAL STRAIN*****************************************
   //************************************************************************************
 
-  void HyperElasticMixed2DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+  void HyperElasticUPPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
 						  Vector& rStrainVector )
   {
 
@@ -97,27 +97,22 @@ namespace Kratos
   //************************************************************************************
 
 
-  void HyperElasticMixed2DLaw::CalculateIsochoricConstitutiveMatrix (const Matrix & rMatrixIC,
-								     const Vector & rIsoStressVector,
-								     const double & rdetF0,
-								     const double & rTrace,
-								     const double & rLameLambda,
-								     const double & rLameMu,
-								     Matrix& rConstitutiveMatrix)
+  void HyperElasticUPPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
+									     const Vector & rIsoStressVector,
+									     Matrix& rConstitutiveMatrix)
   {
-    
     rConstitutiveMatrix.clear();
-		
-    static const unsigned int IndexVoigt2D [6][2] = { {0, 0}, {1, 1}, {0, 1} };
-
+		     
     Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rIsoStressVector );
+    
+    static const unsigned int msIndexVoigt2D [6][2] = { {0, 0}, {1, 1}, {0, 1} };
 
     for(unsigned int i=0; i<3; i++)
       {
 	for(unsigned int j=0; j<3; j++)
 	  {
-	    rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ),rMatrixIC,rdetF0,rTrace,rLameLambda,rLameMu,IsoStressMatrix,
-									 IndexVoigt2D[i][0],IndexVoigt2D[i][1],IndexVoigt2D[j][0],IndexVoigt2D[j][1]);
+	    rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, IsoStressMatrix,
+									 msIndexVoigt2D[i][0], msIndexVoigt2D[i][1], msIndexVoigt2D[j][0], msIndexVoigt2D[j][1]);
 	  }
 
       }
@@ -129,28 +124,25 @@ namespace Kratos
   //************************************************************************************
 
 
-  void HyperElasticMixed2DLaw::CalculateVolumetricConstitutiveMatrix (const Matrix & rMatrixIC,
-								      const double & rdetF0,
-								      const double & rLameLambda,
-								      const double & rLameMu,
-								      const GeometryType& rDomainGeometry,
-								      const Vector & rShapeFunctions,
-								      Matrix& rConstitutiveMatrix)
-  {
+  void HyperElasticUPPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
+								       const GeometryType& rDomainGeometry,
+								       const Vector & rShapeFunctions,
+								       Matrix& rConstitutiveMatrix)
     
+  {
     rConstitutiveMatrix.clear();
 		
-    static const unsigned int IndexVoigt2D [6][2] = { {0, 0}, {1, 1}, {0, 1} };	
-    
     double Pressure = 0;
     Pressure = CalculateDomainPressure ( rDomainGeometry, rShapeFunctions, Pressure);
+
+    static const unsigned int msIndexVoigt2D [6][2] = { {0, 0}, {1, 1}, {0, 1} };
 
     for(unsigned int i=0; i<3; i++)
       {
 	for(unsigned int j=0; j<3; j++)
 	  {
-	    rConstitutiveMatrix( i, j ) = VolumetricConstitutiveComponent(rConstitutiveMatrix( i, j ),rMatrixIC,rdetF0,rLameLambda,rLameMu,Pressure,
-									  IndexVoigt2D[i][0],IndexVoigt2D[i][1],IndexVoigt2D[j][0],IndexVoigt2D[j][1]);
+	    rConstitutiveMatrix( i, j ) = VolumetricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, Pressure,
+									  msIndexVoigt2D[i][0], msIndexVoigt2D[i][1], msIndexVoigt2D[j][0], msIndexVoigt2D[j][1]);
 	  }
 
       }
@@ -159,31 +151,27 @@ namespace Kratos
   }
 
 
-  //******************COMPUTE ISOCHORIC CONSTITUTIVE MATRIX PUSH-FORWARD****************
+  //******************COMPUTE ISOCHORIC CONSTITUTIVE MATRIX PULL-BACK*******************
   //************************************************************************************
 
-  void HyperElasticMixed2DLaw::CalculateIsochoricConstitutiveMatrix (const Matrix & rMatrixIC,
-								     const Vector & rIsoStressVector,
-								     const Matrix & rF,
-								     const double & rdetF0,
-								     const double & rTrace,
-								     const double & rLameLambda,
-								     const double & rLameMu,
-								     Matrix& rConstitutiveMatrix)
+  void HyperElasticUPPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
+								      const Vector & rIsoStressVector,
+								      const Matrix & rInverseDeformationGradientF,
+								      Matrix& rConstitutiveMatrix)
   {
     
     rConstitutiveMatrix.clear();
-		
-    static const unsigned int IndexVoigt2D [6][2] = { {0, 0}, {1, 1}, {0, 1} };		
-    
+		   
     Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rIsoStressVector );
 
+    static const unsigned int msIndexVoigt2D [6][2] = { {0, 0}, {1, 1}, {0, 1} };
+
     for(unsigned int i=0; i<3; i++)
       {
 	for(unsigned int j=0; j<3; j++)
 	  {
-	    rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ),rMatrixIC,rF,rdetF0,rTrace,rLameLambda,rLameMu,IsoStressMatrix,
-									 IndexVoigt2D[i][0],IndexVoigt2D[i][1],IndexVoigt2D[j][0],IndexVoigt2D[j][1]);
+	    rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, IsoStressMatrix, rInverseDeformationGradientF,
+									 msIndexVoigt2D[i][0], msIndexVoigt2D[i][1], msIndexVoigt2D[j][0], msIndexVoigt2D[j][1]);
 	  }
 
       }
@@ -191,14 +179,11 @@ namespace Kratos
 	  	
   }
 
-  //****************COMPUTE VOLUMETRIC CONSTITUTIVE MATRIX PUSH-FORWARD*****************
+  //****************COMPUTE VOLUMETRIC CONSTITUTIVE MATRIX PULL-BACK********************
   //************************************************************************************
 
-  void HyperElasticMixed2DLaw::CalculateVolumetricConstitutiveMatrix (const Matrix & rMatrixIC,
-								      const Matrix & rF,
-								      const double & rdetF0,
-								      const double & rLameLambda,
-								      const double & rLameMu,
+  void HyperElasticUPPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
+								      const Matrix & rInverseDeformationGradientF,
 								      const GeometryType& rDomainGeometry,
 								      const Vector & rShapeFunctions,
 								      Matrix& rConstitutiveMatrix)
@@ -206,18 +191,17 @@ namespace Kratos
     
     rConstitutiveMatrix.clear();
 		
-    static const unsigned int IndexVoigt2D [6][2] = { {0, 0}, {1, 1}, {0, 1} };		
-    
     double Pressure = 0;
     Pressure = CalculateDomainPressure ( rDomainGeometry, rShapeFunctions, Pressure);
 
+    static const unsigned int msIndexVoigt2D [6][2] = { {0, 0}, {1, 1}, {0, 1} };
 
     for(unsigned int i=0; i<3; i++)
       {
     	for(unsigned int j=0; j<3; j++)
     	  {
-	    rConstitutiveMatrix( i, j ) = VolumetricConstitutiveComponent(rConstitutiveMatrix( i, j ),rMatrixIC,rF,rdetF0,rLameLambda,rLameMu,Pressure,
-									  IndexVoigt2D[i][0],IndexVoigt2D[i][1],IndexVoigt2D[j][0],IndexVoigt2D[j][1]);
+	    rConstitutiveMatrix( i, j ) = VolumetricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rInverseDeformationGradientF, Pressure,
+									  msIndexVoigt2D[i][0], msIndexVoigt2D[i][1], msIndexVoigt2D[j][0], msIndexVoigt2D[j][1]);
 	  }
 
       }

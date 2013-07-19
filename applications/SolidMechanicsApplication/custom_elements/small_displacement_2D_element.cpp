@@ -119,7 +119,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void SmallDisplacement2DElement::InitializeStandardVariables (Standard & rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void SmallDisplacement2DElement::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
 
     const unsigned int number_of_nodes = GetGeometry().size();
@@ -134,13 +134,15 @@ namespace Kratos
   
     rVariables.StressVector.resize( 3 );
 
+    rVariables.ElasticLeftCGVector.resize( 4 );
+
     rVariables.DN_DX.resize( number_of_nodes, 2 );
  
     //needed parameters for consistency with the general constitutive law: small displacements 
     rVariables.detF0 = 1;
     rVariables.detF  = 1;
-    rVariables.F0    = identity_matrix<double>(2);
     rVariables.F     = identity_matrix<double>(2);
+    rVariables.ElasticLeftCGVector = ZeroVector(rVariables.ElasticLeftCGVector.size());
 
     //set variables including all integration points values
 

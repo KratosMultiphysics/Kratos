@@ -138,21 +138,21 @@ protected:
 
 
     /**
-     * Initialize Element Standard Variables
+     * Initialize Element General Variables
      */ 
-    virtual void InitializeStandardVariables(Standard & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    void SetStandardParameters(Standard& rVariables,
-			       ConstitutiveLaw::Parameters& rValues,
-			       const int & rPointNumber);
+    void SetGeneralVariables(GeneralVariables& rVariables,
+			     ConstitutiveLaw::Parameters& rValues,
+			     const int & rPointNumber);
 
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(Standard& rVariables,
+    void CalculateKinematics(GeneralVariables& rVariables,
 			     const double& rPointNumber);
 
     /**

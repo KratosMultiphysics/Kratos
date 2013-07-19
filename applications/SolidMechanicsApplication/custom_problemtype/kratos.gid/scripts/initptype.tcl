@@ -28,66 +28,192 @@
 #
 ###############################################################################
 
-# ikpt => kratos Init Problem Type 
-
-namespace eval kipt {
-
+#short alias
+proc msg {message} {    
+    WarnWinText $message
 }
 
-proc kipt::InitPType { dir } {
+proc msgS {message} {    
+    WarnWin $message
+}
+
+proc wa {message} {  
+    WarnWinText $message
+}
+
+# kipt => kratos Init Problem Type 
+
+#######################################################
+### namespace Kratos ###
+#######################################################
+
+namespace eval kipt { } {
+    variable ProgramName kratos
+    variable VersionNumber ;#interface version, get it from xml to avoid duplication
+    variable Web http://www.cimne.com/kratos
+}
+
+proc kipt::Splash { } {
+    global KPriv
+    variable ProgramName
+    variable VersionNumber
+
+    set prev_splash_state [GiD_Set SplashWindow]
+    GiD_Set SplashWindow 1 ;#set temporary to 1 to force show splash without take care of the GiD splash preference
+    set off_x 150
+    set fnt "Sans 10"
+    if { $::tcl_platform(platform) == "windows" } {
+	set fnt "verdana 10"
+	set off_x 130
+    }
+    ::GidUtils::Splash [file join $::KPriv(dir) images Classic splash.png] .splash 1 \
+        [list "$::kipt::ProgramName Version $::kipt::VersionNumber \n$::kipt::Web" $off_x 230]
+    # next time to be removed...
+    # new_gid = -1 for gid v. 11.1.5d or below
+    # dev_kit's splash has been modified and some changes are already there...
+    set new_splash [ ::GidUtils::VersionCmp 11.1.6d]
+    if { [ winfo exists .splash.lv] && ( $new_splash < 0)} {
+    	.splash.lv configure -font $fnt -background white -foreground black \
+    	    -relief solid -borderwidth 1 -padx 12 -pady 3
+    	update
+    }
+    GiD_Set SplashWindow $prev_splash_state
+}
+
+proc kipt::About { } {
+    variable KratosPriv
+    variable ProgramName
+    variable VersionNumber
+    set prev_splash_state [GiD_Set SplashWindow]
+    GiD_Set SplashWindow 1
+    set off_x 150
+    set fnt "Sans 10"
+    if { $::tcl_platform(platform) == "windows" } {
+	set fnt "verdana 10"
+	set off_x 130
+    }
+    ::GidUtils::Splash [file join $::KPriv(dir) images Classic splash.png] .splash 0 \
+        [list "$::kipt::ProgramName Version $::kipt::VersionNumber \n$::kipt::Web" $off_x 230]
+    # next time to be removed...
+    # new_gid = -1 for gid v. 11.1.5d or below
+    # dev_kit's splash has been modified and some changes are already there...
+    set new_splash [ ::GidUtils::VersionCmp 11.1.6d]
+    if { [ winfo exists .splash.lv] &&  ( $new_splash < 0)} {
+    	.splash.lv configure -font $fnt -background white -foreground black \
+    	    -relief solid -borderwidth 1 -padx 12 -pady 3
+    	update
+    }
+    GiD_Set SplashWindow $prev_splash_state
+}
+
+proc kipt::BeforeMeshGeneration { elementsize } {                   
+    set ndime "3D"
+    # Get the spatial dimension
+    set cxpath "GeneralApplicationData//c.Domain//i.SpatialDimension"
+    set cproperty "dv"
+    catch { set ndime [::xmlutils::setXml $cxpath $cproperty] }
     
-    global KPriv ProgramName
+    # Reset Automatic Conditions from previous executions
+    GiD_Process Mescape Meshing MeshCriteria DefaultMesh Lines 1:end
+    GiD_Process Mescape Meshing MeshCriteria DefaultMesh Surfaces 1:end escape
+    #end common
     
-    # kipt::CheckLicense
+    if { $ndime =="2D" } {        
+        # Align the normal
+        ::wkcf::AlignLineNormals Outwards         
+        # Reset Automatic Conditions from previous executions 
+        set entitytype "line"        
+        # Automatic Kratos Group for Boundary Condition
+        set groupid "-AKGSkinMesh2D"
+        ::wkcf::CleanAutomaticConditionGroupGiD $entitytype $groupid        
+        # Find boundaries
+        set blinelist [::wkcf::FindBoundaries $entitytype]        
+        # Automatically meshing all the boundary lines
+        GiD_Process Mescape Meshing MeshCriteria Mesh Lines {*}$blinelist escape         
+        # Assign the boundary condition
+        ::wkcf::AssignConditionToGroupGID $entitytype $blinelist $groupid        
+    } elseif { $ndime =="3D" } {        
+        # Align the normal
+        ::wkcf::AlignSurfNormals Outwards        
+        # Reset Automatic Conditions from previous executions 
+        set entitytype "surface"        
+        # Automatic Kratos Group for Boundary Condition
+        set groupid "-AKGSkinMesh3D"
+        ::wkcf::CleanAutomaticConditionGroupGiD $entitytype $groupid        
+        # Find boundaries
+        set bsurfacelist [::wkcf::FindBoundaries $entitytype]        
+        # Assign the triangle element type
+        GiD_Process Mescape Meshing ElemType Triangle $bsurfacelist escape         
+        # Automatically meshing all the boundary surfaces
+        GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces {*}$bsurfacelist escape 
+        
+        ::wkcf::AssignConditionToGroupGID $entitytype $bsurfacelist $groupid        
+    }
+}  
+
+
+proc kipt::InitGIDProject { dir } {
     
+    global KPriv
     # Set dir to a global variable
     set KPriv(dir) $dir
     set KPriv(problemTypeDir) $dir
     
+    set KPriv(CurvesModule) 0  ;# For activating the Curves Module [Disabled -> 0 | Enabled -> 1]    
+    set KPriv(RDConfig) 1 ;# For release/debug options [Release =>1|Debug => 0]
+    
+    # Read kratos.xml file
+    if { [info procs ::ReadProblemtypeXml] == "" } {
+        WarnWin [=  "This GiD version is too old, get the last available version"]
+        return 1
+    }
+    
+    set data [ReadProblemtypeXml [file join $dir kratos.xml] Infoproblemtype {Version MinimumGiDVersion}]
+    if { $data == "" } {
+        WarnWinText [= "Configuration file %s not found" [file join $dir kratos.xml]]
+        return 1
+    }
+    array set problemtype_local $data
+    set kipt::VersionNumber $problemtype_local(Version)
+    
+    # Check the required GiD version   
+    if { [::GidUtils::VersionCmp $problemtype_local(MinimumGiDVersion)]  < 0 } {
+        WarnWinText [= "Error: This interface requires GiD %s or later" $problemtype_local(MinimumGiDVersion)].
+    }
+    
+    kipt::Splash
+    
+    
+    # Init some xml global variables
+    ::kipt::InitGlobalXMLVariables            
+    ::kipt::LoadSourceFiles $dir    
+    
     # Variable to control the group deletion (when exists from the problem type)  
     set KPriv(Groups,DeleteGroup) 1
-
+    
     set ptypeName [lindex [split $KPriv(problemTypeDir) "/"] end]
     set KPriv(pTypeName) [string map {".gid" ""} $ptypeName]
     
     # Set images directory
-    ###########Aqui hay que separar entre GiD Classic y GiD Dark #########
-    set imagespath "images/Classic"
-    if {[gid_themes::GetCurrentTheme] == "GiD_black"} {
-        set imagespath "images/Dark"
+    if { [gid_themes::GetCurrentTheme] == "GiD_black"} {
+        set KPriv(imagesdir) [file join images Dark]
+    } else {
+        set KPriv(imagesdir) [file join images Classic]
     }
-    set KPriv(imagesdir) $imagespath
     
     # Change system menu
     # Preprocess
     # scripts/menus.tcl
     ::kmtb::ChangePreprocessMenu $dir
     
-    # Postprocess
+    # Create the process toolbar
+    ::kmtb::CreatePreprocessModelTBar $dir    
     
-    set GidPriv(ProgName) $ProgramName
     ChangeWindowTitle
     
     # Maintain the problem type
     GiD_Set MaintainProblemTypeInNew 1
-}
-
-proc kipt::CheckLicense { } {
-    package require verifp   
-    # get list of all sysinfos: local and usb's
-    WarnWin "all devices sysinfos: [vp_getsysinfo]"
-
-    #try for a valid password
-    set res [vp_getauthorization myprogname 1.1 * my_secret_key]
-    set status [lindex $res 0]    
-    if { $status != "VERSION_PRO" } {
-        set msg [lindex $res 1]
-        WarnWin "unregistered version. msg:$msg"
-    } else {
-        WarnWin "professional version."
-    }
-    #release password (specially if password is floating)
-    vp_releaseauthorization myprogname 1.1 *
+    return 0
 }
 
 proc kipt::InitGlobalXMLVariables {} {
@@ -123,32 +249,30 @@ proc kipt::InitGlobalXMLVariables {} {
     set KPriv(xmlDocIni) ""
 }
 
-proc kipt::FreePType {} {
-    
-    global KPriv
-
+proc kipt::EndGIDProject {} {    
+    global KPriv    
     # Destroy all pre/post open window
     
     # For group editor
-    set w ".gid.kegroups" 
+    set w .gid.kegroups
     if {[winfo exists $w]} {
         destroy $w
     }
-      
-    set w ".gid.kmprops" 
+    
+    set w .gid.kmprops 
     if {[winfo exists $w]} {
         ::KMProps::CloseWindowInside $w
         if {[winfo exists $w]} { destroy $w }
     }
-
+    
     # Validation window
-    set w ".gid.modelvalidation" 
+    set w .gid.modelvalidation
     if {[winfo exists $w]} {
         ::KMValid::CreateReportWindowbClose $w 
     }
     
     # Close Project Settings Window if it exists
-    set w ".gid.settingWin" 
+    set w .gid.settingWin
     if {[winfo exists $w]} {
         ::kps::WindowbClose $w 
     }
@@ -161,205 +285,275 @@ proc kipt::FreePType {} {
     
     # Postprocess 
     
-
-    # Limpiar los objetos tDom si aun existían
-    catch { [$KPriv(xml) delete] }
     
-    catch { [$KPriv(xmlMat) delete] }
-
+    # clean tDom object if exists
+    catch { [$KPriv(xml) delete] }    
+    catch { [$KPriv(xmlMat) delete] }    
     if { [info exists KPriv(xmlDoc) ] } { 
         $KPriv(xmlDoc) delete
-    }
-    
-    
+    }        
     if { [info exists KPriv(xml) ] } { 
         unset KPriv(xml)
     }
     
     # Unset the problem type global variables
-    UnsetGlobalVars
-  
-    # Reset namespaces
-  
-    global GidPriv
-    set GidPriv(ProgName) "GiD"
-    ChangeWindowTitle ""
-
-}
-
-proc kipt::LoadSourceMessage {tclfname} {
-    global VersionNumber ProgramName
+    kipt::UnsetGlobalVars
     
-    WarnWin [= "Error reading file %s %s %s problem type has been not correctly installed" $tclfname $ProgramName $VersionNumber].
+    ChangeWindowTitle
 }
 
-proc kipt::LoadSourceFiles {dir} {
+proc kipt::LoadSourceFiles { dir } {
     
     # Load the application scripts for Kratos applications
     global KPriv
-
+    
     # Load some packages
-    
-    # WarnWinText "dir:$dir"
+    set lib_paths [list]
+    set lib_filenames [list]
     # For scripts directory
-    set scriptspath "$dir/scripts"
-    if { [catch {source $scriptspath/files.tcl}] } {
-	::kipt::LoadSourceMessage files.tcl        
-	return ""
-    }
-    if { [catch {source $scriptspath/winutils.tcl}] } {
-	::kipt::LoadSourceMessage winutils.tcl.tcl        
-	return ""
-    }
-    if { [catch {source $scriptspath/menus.tcl}] } {
-	::kipt::LoadSourceMessage menus.tcl        
-	return ""
-    } 
-    if { [catch {source $scriptspath/utils.tcl}] } {
-	::kipt::LoadSourceMessage utils.tcl        
-	return ""
-    }
-    if { [catch {source $scriptspath/stringutils.tcl}] } {
-	::kipt::LoadSourceMessage stringutils.tcl        
-	return ""
-    } 
-    if { [catch {source $scriptspath/modelvalidation.tcl}] } {
-	::kipt::LoadSourceMessage modelvalidation.tcl        
-	return ""
-    }
-    if { [catch {source $scriptspath/projectSettings.tcl}] } {
-	::kipt::LoadSourceMessage projectSettings.tcl        
-	return ""
-    }
-    
+    lappend lib_paths [file join $dir scripts]
+    lappend lib_filenames {files.tcl winutils.tcl menus.tcl utils.tcl stringutils.tcl \
+        modelvalidation.tcl projectSettings.tcl}
     # For xml libs
-    set xmlpath "$dir/scripts/libs/xml"
-    if { [catch {source $xmlpath/xmlutils.tcl}] } {
-	::kipt::LoadSourceMessage xmlutils.tcl
-	return ""
-    }
-    if { [catch {source $xmlpath/xpathq.tcl}] } {
-	::kipt::LoadSourceMessage xpathq.tcl
-	return ""
-    }
-    if { [kipt::CurvesModule ] } {
+    lappend lib_paths [file join $dir scripts libs xml]
+    lappend lib_filenames {xmlutils.tcl xpathq.tcl}
+    if { [kipt::CurvesModule] } {
         # For Curves, graphics and tables
-        set curvepath "$dir/scripts/libs/curves"
-        if { [catch {source $curvepath/curves.tcl}] } {
-        ::kipt::LoadSourceMessage curves.tcl
-        return ""
-        }
-        if { [catch {source $curvepath/tables.tcl}] } {
-        ::kipt::LoadSourceMessage tables.tcl
-        return ""
-        }
-        set curvepath "$dir/scripts/libs/graphics"
-        if { [catch {source $curvepath/plotgraph.tcl}] } {
-        ::kipt::LoadSourceMessage plotgraph.tcl
-        return ""
-        }
+        lappend lib_paths [file join $dir scripts libs curves]
+        lappend lib_filenames {curves.tcl tables.tcl}
+        lappend lib_paths [file join $dir scripts libs graphics]
+        lappend lib_filenames {plotgraph.tcl}
     }
-    
     # For write calculation file
-    set wkcfpath "$dir/scripts/libs/wkcf"
-    if { [catch {source $wkcfpath/wkcf.tcl} cerror] } {
-    # WarnWin $cerror
-	::kipt::LoadSourceMessage wkcf.tcl
-	return ""
-    }
-    if { [catch {source $wkcfpath/wkcfutils.tcl}] } {
-	::kipt::LoadSourceMessage wkcfutils.tcl
-	return ""
-    }
-    if { [catch {source $wkcfpath/wkcffluid.tcl}] } {
-	::kipt::LoadSourceMessage wkcffluid.tcl
-	return ""
-    }
-    if { [catch {source $wkcfpath/wkcfstructuralanalysis.tcl}] } {
-	::kipt::LoadSourceMessage wkcfstructuralanalysis.tcl
-	return ""
-    }
-    if { [catch {source $wkcfpath/wkcfgroups.tcl}] } {
-	::kipt::LoadSourceMessage wkcfgroups.tcl
-	return ""
-    }
+    lappend lib_paths [file join $dir scripts libs wkcf]
+    lappend lib_filenames {wkcf.tcl wkcfutils.tcl wkcffluid.tcl wkcfstructuralanalysis.tcl wkcfgroups.tcl}
     # Load kegroups
-    set kegrouppath "$dir/scripts/kegroups"
-    if { [catch {source $kegrouppath/kegroups.tcl}] } {
-	::kipt::LoadSourceMessage kegroups.tcl
-	return ""
-    }
-    if { [catch {source $kegrouppath/kGroupEntities.tcl}] } {
-	::kipt::LoadSourceMessage kGroupEntities.tcl
-	return ""
-    }
+    lappend lib_paths [file join $dir scripts kegroups]
+    lappend lib_filenames {kegroups.tcl kGroupEntities.tcl}
+    # Load KMProps
+    lappend lib_paths [file join $dir scripts kmprops]
+    lappend lib_filenames {kmprops.tcl kmpropswin.tcl kmpropsfwg.tcl kmpropstree.tcl \
+        kmpropsgroups.tcl kmpropscbwd.tcl kmaterials.tcl kFunctions.tcl}
     
+    #source them
+    foreach lib_path $lib_paths filenames $lib_filenames {    
+        foreach filename $filenames {
+            set full_filename [file join $lib_path $filename]
+            if { [catch {source $full_filename} msg ] } {            
+                WarnWin [= "Error reading file '%s': %s" $full_filename $msg].
+                return 1
+            }
+        }
+    }
+    #kike: en kGroupEntities.tcl habia un "package provide KEGroups 1.0" !!
+    #      con lo cual este package require KEGroups no hara un source de kegroups.tcl
+    #      imagino que estaba mal kGroupEntities.tcl, lo he cambiado a "package require KEGroups"
     package require KEGroups
     
-    # Load KMProps
-    set kPropsPath "$dir/scripts/kmprops"
-    
-    if { [catch {source $kPropsPath/kmprops.tcl}] } {
-	::kipt::LoadSourceMessage kmprops.tcl
-	return ""
-    }
-    if { [catch {source $kPropsPath/kmpropswin.tcl}] } {
-	::kipt::LoadSourceMessage kmpropswin.tcl
-	return ""
-    }
-    if { [catch {source $kPropsPath/kmpropsfwg.tcl}] } {
-	::kipt::LoadSourceMessage kmpropsfwg.tcl
-	return ""
-    }
-    if { [catch {source $kPropsPath/kmpropstree.tcl}] } {
-	::kipt::LoadSourceMessage kmpropstree.tcl
-	return ""
-    }
-    if { [catch {source $kPropsPath/kmpropsgroups.tcl}] } {
-	::kipt::LoadSourceMessage kmpropsgroups.tcl
-	return ""
-    }
-    if { [catch {source $kPropsPath/kmpropscbwd.tcl}] } {
-	::kipt::LoadSourceMessage kmpropscbwd.tcl
-	return ""
-    }
-    if { [catch {source $kPropsPath/kmaterials.tcl} er] } {
-	msg $er
-	::kipt::LoadSourceMessage kmaterials.tcl
-	return ""
-    }
-    if { [catch {source $kPropsPath/kFunctions.tcl}] } {
-	::kipt::LoadSourceMessage kFunctions.tcl
-	return ""
-    }
+    return 0
 }
 
-proc kipt::InitPostProcess { } {
+proc kipt::InitGIDPostProcess {} {     
+    set ::KMProps::RestoreWinFromPost 0
+    if {[info exists ::KMProps::Layout]} {
+        if {($::KMProps::Layout eq "INSIDE_LEFT") ||($::KMProps::Layout eq "INSIDE_RIGHT")} {
+            set w .gid.kmprops
+            if {[winfo exists $w]} {
+                destroy $w
+                set ::KMProps::RestoreWinFromPost 1
+            }
+        }
+    }
     
+    # Get application type
+    # Structural analysis
+    set cxpath "GeneralApplicationData//c.ApplicationTypes//i.StructuralAnalysis"
+    set cproperty dv
+    set StructuralAnalysis [::xmlutils::setXml $cxpath $cproperty]
+    
+    # Fuild application
+    set cxpath "GeneralApplicationData//c.ApplicationTypes//i.Fluid"
+    set cproperty "dv"
+    set FluidApplication [::xmlutils::setXml $cxpath $cproperty]
+    
+    set appid ""
+    if {$FluidApplication =="Yes"} {
+        set appid Fluid
+    } elseif {$StructuralAnalysis=="Yes"} {
+        set appid StructuralAnalysis
+    }
+    
+    if {$appid !=""} {
+        # Get the result type
+        set cprop GiDMultiFileFlag
+        set cxpath "$appid//c.Results//c.GiDOptions//i.[list ${cprop}]"
+        set cproperty dv
+        set rtype [::xmlutils::setXml $cxpath $cproperty]
+        
+        # Get the GiD post mode
+        set cprop GiDPostMode
+        set cxpath "$appid//c.Results//c.GiDOptions//i.[list ${cprop}]"
+        set cproperty dv
+        set pmode [::xmlutils::setXml $cxpath $cproperty]
+        
+        set existfiles [::KUtils::ReadResultsFromFiles $appid $rtype $pmode CheckRFiles]
+        if {!$existfiles} {
+            WarnWin [= "The simulation is not calculated yet or is currently being calculated"].
+            return ""
+        } else {
+            # Try to read the result files
+            set ok [::KUtils::ReadResultsFromFiles $appid $rtype $pmode ReadRFiles]
+        }
+    } 
 }
 
-proc kipt::FreePostProcess { } {
+proc kipt::SelectGIDBatFile { directory basename } {
+    set batfilename ""
+    set args ""
     
-    # Destroy all postprocess open window
-    return "" 
+    # Get application type
+    # Structural analysis
+    set cxpath "GeneralApplicationData//c.ApplicationTypes//i.StructuralAnalysis"
+    set cproperty "dv"
+    set StructuralAnalysis [::xmlutils::setXml $cxpath $cproperty]
     
-}
+    # WarnWinText "StructuralAnalysis:$StructuralAnalysis"
+    
+    # Fuild application
+    set cxpath "GeneralApplicationData//c.ApplicationTypes//i.Fluid"
+    set FluidApplication [::xmlutils::setXml $cxpath $cproperty]
+    
+    # WarnWinText "FluidApplication:$FluidApplication"
+    
+    # Structural analyis
+    if {$StructuralAnalysis eq "Yes"} {
+        set rootid "StructuralAnalysis"
+        # Kratos key word xpath
+        set kxpath "Applications/$rootid"
+        # Get the parallel solution type
+        set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
+        set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
+        
+        # Solution type
+        set cxpath "$rootid//c.AnalysisData//i.SolutionType"
+        set SolutionType [::xmlutils::setXml $cxpath $cproperty]
+        
+        if {$ParallelSolutionType eq "MPI"} {
+            if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
+                if {($::tcl_platform(os) eq "Linux")} {
+                    set batfilename "kratos-structuraldynamic-mpi.unix.bat"
+                } else {
+                    # set batfilename "kratos-structuraldynamic-mpi.win.bat"
+                }
+            } elseif {$SolutionType =="Static"} {
+                if {($::tcl_platform(os) eq "Linux")} {
+                    set batfilename "kratos-structuralstatic-mpi.unix.bat"
+                } else {
+                    # set batfilename "kratos-structuralstatic-mpi.win.bat"
+                }
+            }
+            
+            #  Get the number of processors
+            set cxpath "$rootid//c.SolutionStrategy//i.MPINumberOfProcessors"
+            set MPINumberOfProcessors [::xmlutils::setXml $cxpath $cproperty]
+            if {$MPINumberOfProcessors>0} {
+                # Calculate arguments
+                set args "$MPINumberOfProcessors"
+            }
+        } else {
+            # OpenMP
+            #  Get the number of threads
+            set cxpath "$rootid//c.SolutionStrategy//i.OpenMPNumberOfThreads"
+            set OpenMPNumberOfThreads [::xmlutils::setXml $cxpath $cproperty]
+            if {$OpenMPNumberOfThreads>0} {
+                # Calculate arguments
+                set args "$OpenMPNumberOfThreads"
+            }
+            if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
+                if {($::tcl_platform(os) eq "Linux")} {
+                    set batfilename "kratos-structuraldynamic-openmp.unix.bat"
+                } else {
+                    set batfilename "kratos-structuraldynamic-openmp.win.bat"
+                }
+            } elseif {$SolutionType =="Static"} {
+                if {($::tcl_platform(os) eq "Linux")} {
+                    set batfilename "kratos-structuralstatic-openmp.unix.bat"
+                } else {
+                    set batfilename "kratos-structuralstatic-openmp.win.bat"
+                }
+            }
+        }
+    }
+    
+    # Fluid application
+    if {$FluidApplication eq "Yes"} {
+        set rootid "Fluid"
+        # Kratos key word xpath
+        set kxpath "Applications/$rootid"
+        # Get the parallel solution type
+        set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
+        set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
+        
+        # Free surface
+        set cxpath "$rootid//c.AnalysisData//i.FreeSurface"
+        set FreeSurface [::xmlutils::setXml $cxpath $cproperty]
+        
+        # Solver type for free surface
+        set cxpath "$rootid//c.AnalysisData//i.SolverTypeFreeSurf"
+        set SolverTypeFreeSurf [::xmlutils::setXml $cxpath $cproperty]
+        # WarnWinText "SolverTypeFreeSurf:$SolverTypeFreeSurf"
+        
+        if {$ParallelSolutionType eq "MPI"} {
+            if {($::tcl_platform(os) eq "Linux")} {
+                set batfilename "kratos-mpi.unix.bat"
+                #  Get the number of processors
+                set cxpath "$rootid//c.SolutionStrategy//i.MPINumberOfProcessors"
+                set MPINumberOfProcessors [::xmlutils::setXml $cxpath $cproperty]
+                if {$MPINumberOfProcessors>0} {
+                    # Calculate arguments
+                    set args "$MPINumberOfProcessors"
+                }
+            }
+        } else {
+            # OpenMP
+            #  Get the number of threads
+            set cxpath "$rootid//c.SolutionStrategy//i.OpenMPNumberOfThreads"
+            set OpenMPNumberOfThreads [::xmlutils::setXml $cxpath $cproperty]
+            if {$OpenMPNumberOfThreads>0} {
+                # Calculate arguments
+                set args "$OpenMPNumberOfThreads"
+            }
+            if {($FreeSurface eq "Yes") && ($SolverTypeFreeSurf eq "LevelSet")} {
+                if {($::tcl_platform(os) eq "Linux")} {
+                    set batfilename "kratos-openmplevelset.unix.bat"
+                } else {
+                    set batfilename "kratos-openmplevelset.win.bat"
+                }
+            } else {
+                if {($::tcl_platform(os) eq "Linux")} {
+                    set batfilename "kratos.unix.bat"
+                } else {
+                    set batfilename "kratos.win.bat"
+                }
+            }
+        }
+    }
+    
+    set ret "$batfilename $args"
+    if {$batfilename != ""} {
+        return $ret
+    } else {
+        return ""
+    }
+}  
 
-proc kipt::LoadResultsToPostProcess {filename} {
-    return ""
-}
-
-proc kipt::UpdateLanguage {language} {
-    
-    # WarnWinText "language:$language"
-    set dir [GiD_Info problemtypepath]
-    # WarnWinText "ProblemType: [GiD_Info problemtypepath]" 
-    
+proc kipt::ChangedLanguage { language } {
+    global KPriv    
+    #set dir [GiD_Info problemtypepath]    
+    set dir $KPriv(dir)
     # Preprocess
-    ::kmtb::ChangePreprocessMenu $dir
-    
-    # Postprocess
-    
+    ::kmtb::ChangePreprocessMenu $dir    
+    # Postprocess   
 }
 
 proc kipt::CurvesModule { } {
@@ -370,3 +564,11 @@ proc kipt::CurvesModule { } {
     return 0
 }
 
+proc kipt::UnsetGlobalVars {} {    
+    global KData KPriv   
+    foreach arrid [list KData KPriv] {
+        if {[info exists $arrid]} {
+            unset $arrid
+        }
+    }
+}

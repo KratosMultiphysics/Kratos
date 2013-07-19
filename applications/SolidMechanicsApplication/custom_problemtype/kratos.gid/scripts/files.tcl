@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.6- 15/07/13- G. Socorro, modify the file giveConfigFile to add a dot before the name in linux platform
 #     1.5- 17/06/13- G. Socorro, delete the procs RecursiveChildTransfer and TransferOldGroupstoGID to use only the new GiD groups
 #     1.4- 12/02/13- J. Garate, ::kfiles::TransferOldGroupstoGID FIXED
 #     1.3- 12/11/12- J. Garate, ::kfiles::TransferOldGroupstoGID modifications
@@ -31,40 +32,39 @@
 #
 ###############################################################################
 
-namespace eval ::kfiles:: {
-
+namespace eval ::kfiles {
+    
 }
-
 
 proc ::kfiles::LoadSPD {filename} {
     
     global KPriv
-
+    
     # wa "LoadSPD => filename:$filename"
-
+    
     set KPriv(problemTypeDir) [file dirname $filename]
     
     # PROPERTIES
     set xmlNameFile "kratos_default.spd"
     
     if {![file exists $filename] || [file size $filename] < 1} {
-	
+        
         set filename "$KPriv(dir)/$xmlNameFile"
-	
-    } else {	
+        
+    } else {        
         #Se guarda una copia del archivo original antes de modificarlo
-
-	if { [file tail $filename] == "kratos_default.spd" } {
-	    # kike: commented, this backup copy is unneeded 
-	    # (the 'kratos_default.spd' file must be opened for read only and then can't be corrupted)
-	    # and in general will be forbidden to write in the problemtype folder !!
-	    # it is only allowed at runtime to write in user folders (preferences, tmp, or model folder)
-	    # maybe this backup is interesting when reading the model .spd file to avoid possible corruption during transform??
-
-	    #::kfiles::MakeBackupCopyOfSPDFile $filename
-	} else {
-	    ::kfiles::MakeBackupCopyOfSPDFile $filename
-	}       
+        
+        if { [file tail $filename] == "kratos_default.spd" } {
+            # kike: commented, this backup copy is unneeded 
+            # (the 'kratos_default.spd' file must be opened for read only and then can't be corrupted)
+            # and in general will be forbidden to write in the problemtype folder !!
+            # it is only allowed at runtime to write in user folders (preferences, tmp, or model folder)
+            # maybe this backup is interesting when reading the model .spd file to avoid possible corruption during transform??
+            
+            #::kfiles::MakeBackupCopyOfSPDFile $filename
+        } else {
+            ::kfiles::MakeBackupCopyOfSPDFile $filename
+        }       
     }
     
     #::KEGroups::Init
@@ -80,12 +80,12 @@ proc ::kfiles::LoadSPD {filename} {
     
     #Si estamos cargando el default se tendrán que comprobar las versiones
     if {$filename != "$KPriv(dir)/$xmlNameFile"} {
-	
+        
         #Transforma el spd si son versiones distintas
         if { [::xmlutils::checkSpdVersion $filename] } {
             ::xmlutils::UpdateSpd $filename
         }
-	
+        
     }
     # wa "after [$KPriv(xml) asXML]"
     #
@@ -95,23 +95,23 @@ proc ::kfiles::LoadSPD {filename} {
     set xmlFile_mat "kratos_default.kmdb"
     #msg "filename_mat:$filename_mat xmlFile_mat:$xmlFile_mat"
     if {![file exists $filename_mat] || [file size $filename_mat] < 1} {
-	
+        
         set filename_mat "$KPriv(dir)/$xmlFile_mat"
-	
+        
     } else {
         #Se guarda una copia del archivo original antes de modificarlo
-
-	if { [file tail $filename] == "kratos_default.kmdb" } {
-	    # kike: commented, this backup copy is unneeded 
-	    # (the 'kratos_default.kmdb' file must be opened for read only and then can't be corrupted)
-	    # and in general will be forbidden to write in the problemtype folder !!
-	    # it is only allowed at runtime to write in user folders (preferences, tmp, or model folder)
-	    # maybe this backup is interesting when reading the model .kmdb file to avoid possible corruption during transform??
-
-	    #::kfiles::MakeBackupCopyOfSPDFile $filename_mat .kmdb
-	} else {
-	    ::kfiles::MakeBackupCopyOfSPDFile $filename_mat .kmdb
-	}
+        
+        if { [file tail $filename] == "kratos_default.kmdb" } {
+            # kike: commented, this backup copy is unneeded 
+            # (the 'kratos_default.kmdb' file must be opened for read only and then can't be corrupted)
+            # and in general will be forbidden to write in the problemtype folder !!
+            # it is only allowed at runtime to write in user folders (preferences, tmp, or model folder)
+            # maybe this backup is interesting when reading the model .kmdb file to avoid possible corruption during transform??
+            
+            #::kfiles::MakeBackupCopyOfSPDFile $filename_mat .kmdb
+        } else {
+            ::kfiles::MakeBackupCopyOfSPDFile $filename_mat .kmdb
+        }
     }
     
     set xmlArray [::xmlutils::openFile "." "$filename_mat"]
@@ -132,15 +132,15 @@ proc ::kfiles::LoadSPD {filename} {
     set KPriv(xmlDocKKW) [lindex $xmlArray 2]
     #No es necesario porque solo lo necesitamos para leer
     #set KPriv(encrXml) [lindex $xmlArray 1]
-            
+    
     # IDIOMA: Lee todas las palabras del spd por si se quieren    
     # kike: commented, now ramtranslator scans also the kratos_default.spd and kratos_default.kmdb
     # and then is not necessary the trick of invoke ::xmlutils::getLanguageWords to parse them creating an auxiliary msgs\words.tcl file
     # and must not invoke this parsing every time a model is load, it is a kratos problemtype developer task only!!
     #::xmlutils::getLanguageWords
-        
     
-
+    
+    
     # Set KMat xml path
     if {[info exists ::KMat::xml]} {
         set ::KMat::xml $KPriv(xmlMat)
@@ -148,19 +148,17 @@ proc ::kfiles::LoadSPD {filename} {
     
     # Nos guardamos el nombre del problemType cargado
     set ptypeName [lindex [split $KPriv(problemTypeDir) "/"] end]
-    set KPriv(pTypeName) [string map {".gid" ""} $ptypeName]
-
-    
+    set KPriv(pTypeName) [string map {".gid" ""} $ptypeName]    
 }
 
 proc ::kfiles::SaveSPD {filename} {
-    global KPriv; global VersionNumber
+    global KPriv;
     
     #Actualizamos los posibles cambios que haya habido en el ".spd"
     if {[info exists ::KMProps::WinPath]} {
-	    if {[winfo exists $::KMProps::WinPath]} {
-	    ::KMProps::RefreshTree "" 1
-	    }
+        if {[winfo exists $::KMProps::WinPath]} {
+            ::KMProps::RefreshTree "" 1
+        }
     }
     
     # Coger de la ventana de grupos y guardar en $KPriv(xmlDoc)
@@ -174,14 +172,14 @@ proc ::kfiles::SaveSPD {filename} {
     ::xmlutils::writeFile "${materialFile}" $KPriv(dir) $KPriv(encrXmlMat) $KPriv(xmlDocMat) $KPriv(RDConfig) 0
     
     if {$KPriv(xmlDocFun) != ""} {
-	    set encryptFile 0
-	    ::xmlutils::writeFile "$KPriv(dir)/python_functions.xml" $KPriv(dir) $KPriv(encrXmlFun) $KPriv(xmlDocFun) $KPriv(RDConfig) $encryptFile
+        set encryptFile 0
+        ::xmlutils::writeFile "$KPriv(dir)/python_functions.xml" $KPriv(dir) $KPriv(encrXmlFun) $KPriv(xmlDocFun) $KPriv(RDConfig) $encryptFile
     }
     
     if {$KPriv(RDConfig) == 0} {
-	    # En modo debug tenemos que encriptar los defaults para pasarlos con la versión
-	    ::xmlutils::writeFile "${filename}_encrypt" $KPriv(dir) $KPriv(encrXml) $KPriv(xmlDoc) 1
-	    ::xmlutils::writeFile "${materialFile}_encrypt" $KPriv(dir) $KPriv(encrXmlMat) $KPriv(xmlDocMat) 1
+        # En modo debug tenemos que encriptar los defaults para pasarlos con la versión
+        ::xmlutils::writeFile "${filename}_encrypt" $KPriv(dir) $KPriv(encrXml) $KPriv(xmlDoc) 1
+        ::xmlutils::writeFile "${materialFile}_encrypt" $KPriv(dir) $KPriv(encrXmlMat) $KPriv(xmlDocMat) 1
     }
 }
 
@@ -201,7 +199,7 @@ proc ::kfiles::MakeBackupCopyOfSPDFile {filename {extension ".spd"}} {
     if {$found !="-1"} {
         set name [string range $basename 0 [expr $found-1]]
     } else {
-	    return ""        
+        return ""        
     }
     set SPDBackup ${name}_backup$extension
     
@@ -224,13 +222,22 @@ proc ::kfiles::MakeBackupCopyOfSPDFile {filename {extension ".spd"}} {
 proc ::kfiles::giveConfigFile { {ptypeName "kratos"} } {
     
     global KPriv
-
+    
     set filename [GiveGidDefaultsFile]
     set dirname [file dirname $filename]
     set extname [file extension $filename]
-    set kname "${ptypeName}${extname}"
+    # wa "filename:$filename extname:$extname dirname:$dirname"
+    if {$extname ne ".ini"} {
+        set extname .ini
+    }
+    if {($::tcl_platform(os) eq "Linux")} {
+        set kname ".${ptypeName}${extname}"
+    } else {
+        set kname "${ptypeName}${extname}"
+    }
     
-    return [file join $dirname $kname]
+    set endpath [file native [file join $dirname $kname]]
+    return $endpath
 }
 
 proc ::kfiles::varOnConfigFile { var {def 0} } {
@@ -269,7 +276,7 @@ proc ::kfiles::writeVarConfigFile { varArray valArray } {
     }
     
     foreach var $varArray val $valArray {
-	
+        
         if { [regexp "$var" $fileread {}] } {
             regsub "$var\[ ]*(\[01])" $fileread "$var $val"  filewrite
         } else {

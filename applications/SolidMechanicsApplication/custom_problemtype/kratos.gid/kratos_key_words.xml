@@ -13,9 +13,9 @@
       usennode="No" />
       <Item id="ShellAnisotropic" kkword="ShellAnisotropic"
       usennode="No" />
-      <Item id="LinearElement" kkword="LinearElement"
+      <Item id="LinearElement" kkword="SmallDisplacementElement"
       usennode="Yes" />
-      <Item id="LinearElement3D" kkword="LinearElement"
+      <Item id="LinearElement3D" kkword="SmallDisplacementElement"
       usennode="Yes" />
       <Item id="Membrane" kkword="MembraneElement" usennode="No" />
       <Item id="EBST" kkword="EBST3DN" usennode="No" />
@@ -147,6 +147,8 @@
       <Item id="NonLinearDarcyCoefficient"
       kkword="NONLIN_DARCY_COEF" />
       <Item id="DiameterValue" kkword="DIAMETER" />
+      <Item id="OutletPressureFractionalStep" kkword="PRESSURE" />
+      <Item id="OutletPressureMonolithic" kkword="EXTERNAL_PRESSURE" />
     </Fluid>
     <ConvectionDiffusion></ConvectionDiffusion>
     <FluidStructureInteraction></FluidStructureInteraction>
@@ -226,9 +228,9 @@
   </Materials>
   <ElementCLaws>
     <Item id="ElementTypes" dv="Beam"
-    ivalues="Beam,Truss,Membrane,Shell,EBST,PlaneStress,PlaneStrain,Solid"
-    values="Beam,Truss,Membrane,Shell,EBST,PlaneStress,PlaneStrain,Solid" />
-    <!-- Item id="MaterialModel" ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage"/-->
+    ivalues="Beam,Membrane,Shell,PlaneStress,PlaneStrain,Solid"
+    values="Beam,Membrane,Shell,PlaneStress,PlaneStrain,Solid" delvalues = "Truss,EBST" />
+    <Item id="MaterialModel" ivalues="Elastic-Isotropic" delvalues = "Elastic-Orthotropic,Elasto-Plastic,Damage"/>
     <Item id="Beam" ivalues="Elastic-Isotropic"
     values="Elastic-Isotropic" />
     <Item id="Truss" ivalues="Elastic-Isotropic"
@@ -237,20 +239,20 @@
     values="Elastic-Isotropic" />
     <Item id="Shell"
     ivalues="Elastic-Isotropic"
-    values="Elastic-Isotropic" />
+    values="Elastic-Isotropic" delvalues ="Elastic-Anisotropic"/>
     <Item id="EBST"
     ivalues="Elastic-Isotropic,Elasto-Plastic,Damage"
     values="Elastic-Isotropic,Elasto-Plastic,Damage" />
     <Item id="Solid"
-    ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage"
-    values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />
+    ivalues="Elastic-Isotropic"
+    values="Elastic-Isotropic" delvalues ="Elastic-Orthotropic,Elasto-Plastic,Damage"/>
     <Item id="PlaneStress"
-    ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage"
-    values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />
+    ivalues="Elastic-Isotropic"
+    values="Elastic-Isotropic" delvalues= "Elastic-Orthotropic,Elasto-Plastic,Damage"/>
     <Item id="PlaneStrain"
-    ivalues="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage"
-    values="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage" />
-    <Item id="Thickness2D" elementType="PlaneStress" />
+    ivalues="Elastic-Isotropic"
+    values="Elastic-Isotropic" delvalues = "Elastic-Orthotropic,Elasto-Plastic,Damage"/>
+    <Item id="Thickness2D" elementType="PlaneStress,PlaneStrain" />
     <Item id="Thickness3D" elementType="Shell,Membrane,EBST" />
     <Item id="Area" elementType="Truss,Beam"
     sectionType="UserDefined" />
@@ -335,7 +337,7 @@
     <Item id="Fluid3D" claws="Fluid3D" active="0" />
   </ElementValidCLaws>
   <CLawProperties>
-    <Item id="Isotropic2D" matm="LinearElastic2DLaw()"
+    <Item id="Isotropic2D" matm="HyperElasticPlaneStrain2DLaw()"
     mprops="Density,YoungModulus,PoissonRatio"
     mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
     cprops="Thickness" />
@@ -343,7 +345,7 @@
     mprops="Density,YoungModulus,PoissonRatio"
     mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
     cprops="Thickness" />
-    <Item id="PlaneStrain" matm="HyperElastic2DLaw()"
+    <Item id="PlaneStrain" matm="HyperElasticPlaneStrain2DLaw()"
     mprops="Density,YoungModulus,PoissonRatio"
     mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
     cprops="Thickness" />

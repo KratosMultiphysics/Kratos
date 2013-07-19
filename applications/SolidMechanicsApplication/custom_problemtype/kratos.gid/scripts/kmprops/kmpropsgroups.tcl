@@ -12,6 +12,7 @@
 #
 #  HISTORY:
 # 
+#   0.9- 13/07/13- G. Socorro, add the proc GetAvailableGiDGroups, select all the group with normal or disabled state
 #   0.8- 25/06/13- A. Melendo, new List and Draw procs
 #   0.7- 18/06/13- G. Socorro, delete the use of the proc kipt::NewGiDGroups (delete the call to the compass groups => Cond_Groups)
 #   0.6- 12/02/12-G. Socorro, modify the link to the GiD group window to use ::WinUtils::OpenGiDGroupTab
@@ -29,34 +30,50 @@
 # 1.            | 
 
 
-proc ::KMProps::changeGroups { entityList f {fullname ""} } {
-    
-        set valores [GiD_Groups list]
-    $f configure -values $valores
-    
-    if { !($::KMProps::selGroup in $valores) } {
-	
-	if {[string range $::KMProps::selGroup 0 8] == "AutoGroup"} {
-	    WarnWin [= "The new group '%s' has not any usefull entity assigned." $::KMProps::selGroup]
+proc ::KMProps::GetAvailableGiDGroups {} {
+    set allgrouplist [list] 
+    foreach groupid [GiD_Groups list] {
+	if {[GiD_Groups get state $groupid] != "hidden"} {
+	    lappend allgrouplist $groupid
 	}
-	set ::KMProps::selGroup ""
-    } 
+    }
+    return $allgrouplist
 }
 
-proc ::KMProps::cmbChangeCheckGroups { f } {
+proc ::KMProps::changeGroups { entityList f {fullname ""} } {
+    variable selGroup
 
+    # Get the GiD group list
+    set allgrouplist [::KMProps::GetAvailableGiDGroups] 
+    if {[llength $allgrouplist]} {
+	$f configure -values $allgrouplist
+    }
+    
+    if {$selGroup !=""} {
+	if { !($selGroup in $allgrouplist) } {
+	    WarnWin [= "The new group '%s' has not any usefull entity assigned." $selGroup]
+	    set selGroup ""
+	}
+    }
+ }
+
+proc ::KMProps::cmbChangeCheckGroups { f } {
+    variable selGroup
+    
     if { [winfo exists $f.cGroups] } {
-            set Groups [GiD_Groups list]
+	
+	# Get the GiD group list
+	set allgrouplist [::KMProps::GetAvailableGiDGroups] 
         
-        if { [llength $Groups] } {
+        if {[llength $allgrouplist] } {
             
-            $f.cGroups configure -values $Groups
-            if { $::KMProps::selGroup ni $Groups} {
-            set ::KMProps::selGroup [lindex $Groups 0]
+            $f.cGroups configure -values $allgrouplist
+            if {$selGroup ni $allgrouplist} {
+		set selGroup [lindex $allgrouplist 0]
             }
         } else {
             $f.cGroups configure -values {}
-            set ::KMProps::selGroup ""
+            set selGroup ""
         }
     }
 }
@@ -161,7 +178,7 @@ proc ::KMProps::acceptGroups { T idTemplate fullname item listT entityList fGrou
             #Comprobamos que el grupo no sea un AutoGroup sin entidades
             ::KMProps::changeGroups $entityList $fGroups
             if { $::KMProps::selGroup == "" } {
-            return ""
+		return ""
             }
             
             set template [::KMProps::copyTemplate ${idTemplate} $fullname "$grupo" "Group"]
