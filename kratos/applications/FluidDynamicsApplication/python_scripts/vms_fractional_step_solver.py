@@ -7,7 +7,7 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 CheckForPreviousImport()
 
 
-def AddVariables(model_part):
+def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(FRACT_VEL)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
@@ -34,7 +34,7 @@ def AddVariables(model_part):
     print "variables for the vms fluid solver added correctly"
 
 
-def AddDofs(model_part):
+def AddDofs(model_part, config=None):
 
     for node in model_part.Nodes:
         # adding dofs
@@ -320,30 +320,10 @@ class IncompressibleFluidSolver:
         
        
 #################################################################################################
-#################################################################################################
-def AddDofUtility( model_part, config ):
-    AddDofs( model_part )
-    
-def AddVariablesUtility( model_part, config ):
-    AddVariables( model_part )
-    
+#################################################################################################   
 def CreateSolver( model_part, config ):
     fluid_solver = IncompressibleFluidSolver( model_part, config.domain_size )
-    
-    #import config_reader
-    #config_reader.AssignRequiredValue( fluid_solver.vel_toll , config, "vel_toll")
-    #config_reader.AssignRequiredValue( fluid_solver.press_toll , config, "press_toll")
-    #config_reader.AssignRequiredValue( fluid_solver.max_vel_its , config, "max_vel_its")
-    #config_reader.AssignRequiredValue( fluid_solver.max_press_its , config, "max_press_its")
-    #config_reader.AssignRequiredValue( fluid_solver.time_order , config, "time_order")
-    #config_reader.AssignRequiredValue( fluid_solver.compute_reactions , config, "compute_reactions")
-    #config_reader.AssignRequiredValue( fluid_solver.predictor_corrector , config, "predictor_corrector")
-    
-    #config_reader.AssignOptionalValue( fluid_solver.ReformDofAtEachIteration , config, "ReformDofAtEachIteration")
-    #config_reader.AssignOptionalValue( fluid_solver.echo_level , config, "echo_level")
-    #config_reader.AssignOptionalValue( fluid_solver.dynamic_tau , config, "dynamic_tau")
-    
-    
+      
     ##default settings 
     fluid_solver.vel_toll = config.vel_toll
     if( hasattr(config,"vel_toll") ): fluid_solver.vel_toll = config.vel_toll

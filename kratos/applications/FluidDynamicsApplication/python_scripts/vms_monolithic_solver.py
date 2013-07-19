@@ -6,7 +6,7 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 CheckForPreviousImport()
 
 
-def AddVariables(model_part):
+def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(ACCELERATION)
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY)
@@ -30,7 +30,7 @@ def AddVariables(model_part):
     print "variables for the MONOLITHIC_SOLVER_EULERIAN added correctly"
 
 
-def AddDofs(model_part):
+def AddDofs(model_part, config=None):
     for node in model_part.Nodes:
         # adding dofs
         node.AddDof(VELOCITY_X, REACTION_X)
@@ -203,13 +203,7 @@ class MonolithicSolver:
             
        
 #################################################################################################
-#################################################################################################
-def AddDofUtility( model_part, config ):
-    AddDofs( model_part )
-    
-def AddVariablesUtility( model_part, config ):
-    AddVariables( model_part )
-    
+################################################################################################# 
 def CreateSolver( model_part, config ):
     fluid_solver = MonolithicSolver( model_part, config.domain_size )
     
@@ -228,8 +222,7 @@ def CreateSolver( model_part, config ):
     self.ReformDofSetAtEachStep = config.ReformDofSetAtEachStep
     self.use_spalart_allmaras = config.use_spalart_allmaras
     self.use_des = config.use_des
-    
-    
+        
     import linear_solver_factory
     self.linear_solver =  linear_solver_factory.ConstructSolver(solver_settings_2.linear_solver_config)
     
