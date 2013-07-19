@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML3.2 EN">
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" CONTENT="DOCTEXT">
+<TITLE>MPE_Make_color_array</TITLE>
+</HEAD>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="MPE_Make_color_array"><H1>MPE_Make_color_array</H1></A>
+Makes an array of color indices 
+<H2>Synopsis</H2>
+<PRE>
+#include "mpe.h" 
+int MPE_Make_color_array( handle, ncolors, array )
+MPE_XGraph handle;
+int        ncolors;
+MPE_Color  array[];
+</PRE>
+<H2>Input Parameters</H2>
+<DL>
+<DT><B>handle </B><DD>MPE graphics handle
+
+<DT><B>nc     </B><DD>Number of colors
+
+<P>
+<H2>Output Parameter</H2>
+<DT><B>array </B><DD>Array of color indices
+</DL>
+<P>
+<H2>Notes</H2>
+The new colors for a uniform distribution in hue space and replace the
+existing colors `except` for 'MPE_WHITE' and 'MPE_BLACK'.
+<P>
+<P>
+<H2>Notes For Fortran Interface </H2>
+The Fortran interface to this routine is different from its C
+counterpart and it has an additional argument, ierr, at the end
+of the argument list, i.e. the returned function value (the error
+code) in C interface is returned as the additional argument in
+Fortran interface.  The Fortran interface is invoked with the
+CALL statement.
+<P>
+All MPI and MPE objects, MPI_Comm, MPE_XGraph and MPE_Color, are
+of type INTEGER in Fortran.
+<P><B>Location:</B>../src/graphics/src/mpe_graphics.c<P>
+</BODY></HTML>

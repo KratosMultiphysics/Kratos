@@ -1,0 +1,25 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML3.2 EN">
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" CONTENT="DOCTEXT">
+<TITLE>MPE_Log_get_solo_eventID</TITLE>
+</HEAD>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="MPE_Log_get_solo_eventID"><H1>MPE_Log_get_solo_eventID</H1></A>
+Get a single event number to be used to define EVENT drawable through MPE_Describe_event(). 
+<H2>Synopsis</H2>
+<PRE>
+int MPE_Log_get_solo_eventID( int *eventdef_eventID )
+</PRE>
+<H2>Input/Output Parameters</H2>
+<DL><DT><B>eventdef_eventID  </B> <DD> eventID for the definition of event drawable.
+</DL>
+<P>
+<H2>Notes</H2>
+This routine is provided to ensure that users are
+using unique event numbers.  It relies on all packages using this
+routine.
+<P>
+This function is threadsafe.
+<P><B>Location:</B>../src/logging/src/mpe_log.c<P>
+</BODY></HTML>

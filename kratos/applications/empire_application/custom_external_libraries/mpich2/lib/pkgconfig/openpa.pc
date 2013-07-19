@@ -1,0 +1,15 @@
+prefix=/home/stefan/tmp/empire_package/mpich2
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+# Technically, the -lopa below isn't needed if you are only using the atomic
+# primitives (not the queue code) and you are not using mutex emulation.
+
+Name: OpenPA
+Description: Portable library for atomic operations
+Version: 1.0.3
+Libs: -L${libdir} -lopa
+Libs.private: -lpthread 
+Cflags: -I${includedir}
+

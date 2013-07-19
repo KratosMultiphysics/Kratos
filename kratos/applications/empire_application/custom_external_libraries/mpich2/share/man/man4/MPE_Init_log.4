@@ -1,0 +1,27 @@
+.TH MPE_Init_log 4 "6/15/2009" " " "MPE"
+.SH NAME
+MPE_Init_log \-  Initialize the logging of events. 
+.SH SYNOPSIS
+.nf
+int MPE_Init_log( void )
+.fi
+.SH NOTES
+This routine must be called before any of the other MPE logging routines.
+It is a collective call over 'MPI_COMM_WORLD'.
+MPE_Init_log() & MPE_Finish_log() are NOT needed when liblmpe.a is linked
+because MPI_Init() would have called MPE_Init_log() already.
+liblmpe.a will be included in the link path if either "mpicc -mpe=mpilog"
+or "mpecc -mpilog" is used in the link step.
+
+This function is threadsafe, but
+MPE_Init_log() is expected to be called on only one thread in each
+process.  This thread will be labelled as main thread.
+
+.SH RETURNS
+Always return MPE_LOG_OK.
+
+.SH SEE ALSO
+MPE_Finish_log()
+.br
+.SH LOCATION
+../src/logging/src/mpe_log.c

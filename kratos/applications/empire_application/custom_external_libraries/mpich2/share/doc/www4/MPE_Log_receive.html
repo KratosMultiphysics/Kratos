@@ -1,0 +1,26 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML3.2 EN">
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" CONTENT="DOCTEXT">
+<TITLE>MPE_Log_receive</TITLE>
+</HEAD>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="MPE_Log_receive"><H1>MPE_Log_receive</H1></A>
+log the receive event of a message within MPI_COMM_WORLD. (on the calling thread where send event takes place) 
+<H2>Synopsis</H2>
+<PRE>
+int MPE_Log_receive( int other_party, int tag, int size )
+</PRE>
+<H2>Input Parameters</H2>
+<DL>
+<DT><B>other_party   </B><DD>the rank of the other party, i.e. send event's rank.
+
+<DT><B>tag           </B><DD>message tag ID.
+
+<DT><B>size          </B><DD>message size in byte.
+</DL>
+<P>
+<H2>Notes</H2>
+This function is threadsafe.
+<P><B>Location:</B>../src/logging/src/mpe_log.c<P>
+</BODY></HTML>

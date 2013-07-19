@@ -1,0 +1,38 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML3.2 EN">
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" CONTENT="DOCTEXT">
+<TITLE>MPE_Iget_mouse_press</TITLE>
+</HEAD>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="MPE_Iget_mouse_press"><H1>MPE_Iget_mouse_press</H1></A>
+Checks for mouse button press 
+<H2>Synopsis</H2>
+<PRE>
+#include "mpe.h" 
+int MPE_Iget_mouse_press( MPE_XGraph graph, int *x, int *y, int *button, 
+                        int *wasPressed )
+</PRE>
+<H2>Input Parameter</H2>
+<DL><DT><B>graph </B> <DD> MPE graphics handle
+</DL>
+<P>
+<H2>Output Parameters</H2>
+<DL>
+<DT><B>x </B><DD>horizontal coordinate of the point where the mouse button was pressed
+
+<DT><B>y </B><DD>vertical coordinate of the point where the mouse button was pressed
+
+<DT><B>button </B><DD>which button was pressed: MPE_BUTTON[1-5]
+
+<DT><B>wasPressed </B><DD>1 if the button was pressed, 0 if not
+</DL>
+<P>
+<H2>Notes</H2>
+Checks if the mouse button has been pressed inside this MPE window.
+If pressed, returns the coordinate relative to the upper right of
+this MPE window and the button that was pressed.
+<P>
+<P>
+<P><B>Location:</B>../src/graphics/src/xmouse.c<P>
+</BODY></HTML>

@@ -1,0 +1,127 @@
+#! /usr/bin/perl
+# -*- Mode: perl; -*-
+#
+# Kill all processes running a specified command
+#
+# Many systems also have the "killall" command; this should be used instead
+# if it is available.
+#
+# This script relies on the ps command; where possible, it uses the
+# /proc/<pid>/cmdline interface to more reliably access the commandline
+# (to avoid matching command line parameters as if they were functions).
+#
+$user = $ENV{'LOGNAME'};
+$progname = "";
+$noaddresses = 1;
+$debug = 0;
+$verbose = 0;
+$testing = 0;
+foreach $_ (@ARGV) {
+    if (/-debug/) {
+	$debug = 1;
+    }
+    elsif (/-verbose/) { 
+	$verbose = 1;
+    }
+    elsif (/-user=(.*)/) {
+	$user = $1;
+    }
+    elsif (/-help/ || /-usage/) {
+	print STDOUT "$0 [ -debug ] [ -verbose ] [ -user=name ] program\n";
+	print STDOUT "Kill all processes running \"program\".  To use the -user option
+you must have superuser privilege.\n";
+	exit(1);
+    }
+    $progname = $_;    
+}
+
+if ( $progname eq "" ) {
+    print STDERR "You must specify a program name\n";
+    exit(1);
+}
+
+print "user is $user\n" if $debug;
+#
+# Get pids
+$remoteps = "ps";
+$sysname=`uname -s`;
+chop $sysname;
+# Try to get nicer behavior from GNU ps.
+$ENV{'COLUMNS'} = 200;
+$ENV{'PS_PERSONALITY'} = "linux";
+if ($sysname eq "Linux") {
+    print "linux style ps\n" if $debug;
+    # The -width option can cause trouble, even with GNU ps, if the ps 
+    # program either doesn't support it or 
+    #$psopts = "-width 200 -lfu"; # LINUX
+    $psopts = "-lfu"; # LINUX
+    $pidloc = 3;  # 4 sometimes?
+} 
+elsif ($sysname eq "SunOS" || $sysname eq "IRIX64") {
+    print "solaris style ps\n" if $debug;
+    $psopts = "-fu";  # Solaris
+    $pidloc = 2;
+}
+elsif ($sysname eq "OSF1" ) {
+    $psopts = "-fu";  
+    $pidloc = 1;
+}
+elsif ($sysname eq "Darwin") {
+    $psopts = "-aux -U";
+    $pidloc = 1;
+}
+else {
+    print STDERR "Unsupported system \"$sysname\"\n";
+    exit(1);
+}
+
+open( FD, "$remoteps $psopts $user |" ) || die "Cannot execute ps\n";
+
+while (<FD>) {
+    print $_ if $verbose;
+    # Skip lines that may match this command
+    if (/tcsh/) { next; }
+    if (/grep/) { next; }
+    if (/perl/) { next; }
+    if (/\/bin\/sh /) { next; }
+    if ($progname ne "mpiexec" && /mpiexec/) { next; }
+    print $_ if $debug;
+
+    my @items = split(/\s+/);
+    my $pid   = $items[$pidloc];
+    print "PID for this job is $pid\n" if $debug;
+    my $procfile = "/proc/$pid/cmdline";
+    print "Looking for $procfile\n" if $debug;
+    # We *CANNOT USE* -s with a file in /proc because -s filename returns
+    # false alwyas ! (BUG BUG BUG).  Instead, we try to open and read from it
+    $rc = open PFD, "<$procfile";
+    if ($rc) {
+	my $cmdline = <PFD>;
+	$cmdline =~ s/\r?\n//;
+	print "Cmdline in /proc/$pid is $cmdline\n" if $debug;
+	if ($cmdline =~ /^$progname/ || $cmdline =~ /^\.\/$progname/) {
+	    print "Found $progname in /proc/$pid/cmdline\n" if $debug;
+	    $pids[$#pids+1] = @items[$pidloc];
+	}
+	close PFD;
+    }
+    else {
+	# Just try to match the commandline to the entire ps output.
+	if (/$progname/) {
+	    $pids[$#pids+1] = @items[$pidloc];
+	}
+    }
+}
+close FD;
+
+if ($#pids >= 0) {
+    print "Processes to kill are " . join(',',@pids) . "\n" if $debug;
+    if ($testing) { exit 0; }
+    foreach my $sig ("INT","QUIT","KILL") {
+	my $cnt = kill $sig, @pids;
+	print "Signaled (SIG$sig) $cnt processes\n" if ($debug || $verbose);
+    }
+}
+else {
+    print "No processes matched $progname for user $user\n" if $verbose;
+}

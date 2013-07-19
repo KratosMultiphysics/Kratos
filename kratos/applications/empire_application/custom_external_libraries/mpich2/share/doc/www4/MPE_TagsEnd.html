@@ -1,0 +1,20 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML3.2 EN">
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" CONTENT="DOCTEXT">
+<TITLE>MPE_TagsEnd</TITLE>
+</HEAD>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="MPE_TagsEnd"><H1>MPE_TagsEnd</H1></A>
+Returns the private keyval.   
+<H2>Synopsis</H2>
+<PRE>
+int MPE_TagsEnd()
+</PRE>
+<H2>Notes</H2>
+This routine is provided to aid in cleaning up all of the allocated
+storage in and MPI program.  Normally, this routine does `not` need
+to be called.  If it is, it should be called immediately before
+'MPI_Finalize'.
+<P><B>Location:</B>../src/misc/src/privtags.c<P>
+</BODY></HTML>

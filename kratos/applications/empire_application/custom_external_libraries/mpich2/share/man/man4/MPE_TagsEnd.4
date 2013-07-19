@@ -1,0 +1,14 @@
+.TH MPE_TagsEnd 4 "11/2/2007" " " "MPE"
+.SH NAME
+MPE_TagsEnd \-  Returns the private keyval.   
+.SH SYNOPSIS
+.nf
+int MPE_TagsEnd()
+.fi
+.SH NOTES
+This routine is provided to aid in cleaning up all of the allocated
+storage in and MPI program.  Normally, this routine does `not` need
+to be called.  If it is, it should be called immediately before
+'MPI_Finalize'.
+.SH LOCATION
+../src/misc/src/privtags.c

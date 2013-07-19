@@ -1,0 +1,21 @@
+.TH MPE_Log_bare_event 4 "6/15/2009" " " "MPE"
+.SH NAME
+MPE_Log_bare_event \-  Logs a bare event in MPI_COMM_WORLD. 
+.SH SYNOPSIS
+.nf
+int MPE_Log_bare_event( int event )
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B event   
+- event number.
+.PD 1
+
+.SH NOTES
+This function is threadsafe.
+
+.SH RETURNS
+alway returns MPE_LOG_OK
+.SH LOCATION
+../src/logging/src/mpe_log.c

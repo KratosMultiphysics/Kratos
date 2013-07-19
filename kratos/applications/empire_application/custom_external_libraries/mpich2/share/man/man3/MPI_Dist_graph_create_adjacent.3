@@ -1,0 +1,154 @@
+.TH MPI_Dist_graph_create_adjacent 3 "9/20/2012" " " "MPI"
+.SH NAME
+MPI_Dist_graph_create_adjacent \-  returns a handle to a new communicator to which the distributed graph topology information is attached. 
+.SH SYNOPSIS
+.nf
+int MPI_Dist_graph_create_adjacent(MPI_Comm comm_old,
+                                   int indegree, MPICH2_CONST int sources[],
+                                   MPICH2_CONST int sourceweights[],
+                                   int outdegree, MPICH2_CONST int destinations[],
+                                   MPICH2_CONST int destweights[],
+                                   MPI_Info info, int reorder, MPI_Comm *comm_dist_graph)
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B comm_old 
+- input communicator (handle)
+.PD 1
+.PD 0
+.TP
+.B indegree 
+- size of sources and sourceweights arrays (non-negative integer)
+.PD 1
+.PD 0
+.TP
+.B sources 
+- ranks of processes for which the calling process is a
+destination (array of non-negative integers)
+.PD 1
+.PD 0
+.TP
+.B sourceweights 
+- weights of the edges into the calling
+process (array of non-negative integers or MPI_UNWEIGHTED)
+.PD 1
+.PD 0
+.TP
+.B outdegree 
+- size of destinations and destweights arrays (non-negative integer)
+.PD 1
+.PD 0
+.TP
+.B destinations 
+- ranks of processes for which the calling process is a
+source (array of non-negative integers)
+.PD 1
+.PD 0
+.TP
+.B destweights 
+- weights of the edges out of the calling process 
+(array of non-negative integers or MPI_UNWEIGHTED)
+.PD 1
+.PD 0
+.TP
+.B info 
+- hints on optimization and interpretation of weights (handle)
+.PD 1
+.PD 0
+.TP
+.B reorder 
+- the ranks may be reordered (true) or not (false) (logical)
+.PD 1
+
+.SH OUTPUT PARAMETER
+.PD 0
+.TP
+.B comm_dist_graph 
+- communicator with distributed graph topology (handle)
+.PD 1
+
+.SH THREAD AND INTERRUPT SAFETY
+
+This routine is thread-safe.  This means that this routine may be
+safely used by multiple threads without the need for any user-provided
+thread locks.  However, the routine is not interrupt safe.  Typically,
+this is due to the use of memory allocation routines such as 
+.I malloc
+or other non-MPICH runtime routines that are themselves not interrupt-safe.
+
+.SH NOTES FOR FORTRAN
+All MPI routines in Fortran (except for 
+.I MPI_WTIME
+and 
+.I MPI_WTICK
+) have
+an additional argument 
+.I ierr
+at the end of the argument list.  
+.I ierr
+is an integer and has the same meaning as the return value of the routine
+in C.  In Fortran, MPI routines are subroutines, and are invoked with the
+.I call
+statement.
+
+All MPI objects (e.g., 
+.I MPI_Datatype
+, 
+.I MPI_Comm
+) are of type 
+.I INTEGER
+in Fortran.
+
+.SH ERRORS
+
+All MPI routines (except 
+.I MPI_Wtime
+and 
+.I MPI_Wtick
+) return an error value;
+C routines as the value of the function and Fortran routines in the last
+argument.  Before the value is returned, the current MPI error handler is
+called.  By default, this error handler aborts the MPI job.  The error handler
+may be changed with 
+.I MPI_Comm_set_errhandler
+(for communicators),
+.I MPI_File_set_errhandler
+(for files), and 
+.I MPI_Win_set_errhandler
+(for
+RMA windows).  The MPI-1 routine 
+.I MPI_Errhandler_set
+may be used but
+its use is deprecated.  The predefined error handler
+.I MPI_ERRORS_RETURN
+may be used to cause error values to be returned.
+Note that MPI does 
+.B not
+guarentee that an MPI program can continue past
+an error; however, MPI implementations will attempt to continue whenever
+possible.
+
+.PD 0
+.TP
+.B MPI_SUCCESS 
+- No error; MPI routine completed successfully.
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_ARG 
+- Invalid argument.  Some argument is invalid and is not
+identified by a specific error class (e.g., 
+.I MPI_ERR_RANK
+).
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_OTHER 
+- Other error; use 
+.I MPI_Error_string
+to get more information
+about this error code. 
+.PD 1
+.SH LOCATION
+src/mpi/topo/dist_gr_create_adj.c

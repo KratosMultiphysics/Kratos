@@ -1,0 +1,54 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML3.2 EN">
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" CONTENT="DOCTEXT">
+<TITLE>MPE_Add_RGB_color</TITLE>
+</HEAD>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="MPE_Add_RGB_color"><H1>MPE_Add_RGB_color</H1></A>
+Adds a color to the colormap given its RGB values 
+<H2>Synopsis</H2>
+<PRE>
+#include "mpe.h" 
+int MPE_Add_RGB_color( graph, red, green, blue, mapping )
+MPE_XGraph graph;
+int red, green, blue;
+MPE_Color *mapping;
+</PRE>
+<H2>Input Parameters</H2>
+<DL>
+<DT><B>graph </B><DD>MPE graphics handle
+
+<DT><B>red, green, blue </B><DD>color levels from 0 to 65535
+</DL>
+<P>
+<H2>Output Parameter</H2>
+<DL><DT><B>mapping </B> <DD> index of the new color
+</DL>
+<P>
+<H2>Return Values</H2>
+<DL>
+<DT><B>-1 </B><DD>maxcolors too large (equal to numcolors)
+
+<DT><B>MPE_SUCCESS </B><DD>successful
+
+<DT><B>mapping </B><DD>index of the new color
+</DL>
+<P>
+<H2>Notes</H2>
+This call adds a color cell to X11''s color table, increments maxcolors
+(the index), and writes it to the mapping parameter.
+<P>
+<P>
+<H2>Notes For Fortran Interface </H2>
+The Fortran interface to this routine is different from its C
+counterpart and it has an additional argument, ierr, at the end
+of the argument list, i.e. the returned function value (the error
+code) in C interface is returned as the additional argument in
+Fortran interface.  The Fortran interface is invoked with the
+CALL statement.
+<P>
+All MPI and MPE objects, MPI_Comm, MPE_XGraph and MPE_Color, are
+of type INTEGER in Fortran.
+<P><B>Location:</B>../src/graphics/src/mpe_graphics.c<P>
+</BODY></HTML>

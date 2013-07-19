@@ -1,0 +1,29 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML3.2 EN">
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" CONTENT="DOCTEXT">
+<TITLE>MPE_Log_get_state_eventIDs</TITLE>
+</HEAD>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="MPE_Log_get_state_eventIDs"><H1>MPE_Log_get_state_eventIDs</H1></A>
+Get a pair of event numbers to be used to define STATE drawable through MPE_Describe_state(). 
+<H2>Synopsis</H2>
+<PRE>
+int MPE_Log_get_state_eventIDs( int *statedef_startID,
+                                int *statedef_finalID )
+</PRE>
+<H2>Input/Output Parameters</H2>
+<DL>
+<DT><B>statedef_startID  </B><DD>starting eventID for the definition of state drawable.
+
+<DT><B>statedef_finalID  </B><DD>ending eventID for the definition of state drawable.
+</DL>
+<P>
+<H2>Notes</H2>
+This routine is provided to ensure that users are
+using unique event numbers.  It relies on all packages using this
+routine.
+<P>
+This function is threadsafe.
+<P><B>Location:</B>../src/logging/src/mpe_log.c<P>
+</BODY></HTML>

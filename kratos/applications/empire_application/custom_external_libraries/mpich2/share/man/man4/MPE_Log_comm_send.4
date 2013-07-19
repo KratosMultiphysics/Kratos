@@ -1,0 +1,33 @@
+.TH MPE_Log_comm_send 4 "6/15/2009" " " "MPE"
+.SH NAME
+MPE_Log_comm_send \-  Log the send event of a message within a specified MPI_Comm (on the calling thread where the send event takes place). 
+.SH SYNOPSIS
+.nf
+int MPE_Log_comm_send( MPI_Comm comm, int other_party, int tag, int size )
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B comm          
+- MPI_Comm where this process is part of.
+.PD 1
+.PD 0
+.TP
+.B other_party   
+- the rank of the other party, i.e. receive event's rank.
+.PD 1
+.PD 0
+.TP
+.B tag           
+- message tag ID.
+.PD 1
+.PD 0
+.TP
+.B size          
+- message size in byte.
+.PD 1
+
+.SH NOTES
+This function is threadsafe.
+.SH LOCATION
+../src/logging/src/mpe_log.c

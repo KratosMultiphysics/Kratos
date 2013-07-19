@@ -1,0 +1,71 @@
+.TH MPE_Log_pack 4 "6/15/2009" " " "MPE"
+.SH NAME
+MPE_Log_pack \-  pack the informational data into the byte buffer to be stored in a infomational event.  The routine will byteswap the data if it is invoked on a small endian machine. 
+.SH SYNOPSIS
+.nf
+int MPE_Log_pack( MPE_LOG_BYTES bytebuf, int *position,
+                  char tokentype, int count, const void *data )
+.fi
+.SH OUTPUT PARAMETERS
+.PD 0
+.TP
+.B bytebuf    
+- output byte buffer which is of sizeof(MPE_LOG_BYTES),
+i.e. 32 bytes.  For C, bytebuf could be of type
+MPE_LOG_BYTES.  For Fortran, bytebuf could be of
+type 'character*32'.
+.PD 1
+.PD 0
+.TP
+.B position   
+- an offset measured from the beginning of the bytebuf.
+On input, data will be written to the offset position.
+On Output, position will be updated to reflect the next
+available position in the byte buffer.
+.PD 1
+
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B tokentype  
+- a character token type indicator, currently supported tokens
+are 's', 'h', 'd', 'l', 'x', 'X', 'e' and 'E'.
+.PD 1
+.PD 0
+.TP
+.B count      
+- the number of continuous storage units as indicated by
+tokentype.
+.PD 1
+.PD 0
+.TP
+.B data       
+- pointer to the beginning of the storage units being copied.
+.PD 1
+
+.SH NOTES ON STORAGE FORMAT CONTROL SUPPORT
+The format control string is printf like, e.g. "Comment = %s".
+All the MPE %-token storage support is provided by SLOG-2.  That is
+whatever supported by SLOG-2 will be supported by MPE.  Currently,
+the following is supported.
+
+%s : variable length string, byte buffer size is length of string + 2.
+
+%h : 2-byte integer, printed as decimal integer, byte buffer size is 2.
+
+%d : 4-byte integer, printed as decimal integer, byte buffer size is 4.
+
+%l : 8-byte integer, printed as decimal integer, byte buffer size is 8.
+
+%x : 4-byte integer, printed as hexadecimal integer, byte buffer size is 4.
+
+%X : 8-byte integer, printed as hexadecimal integer, byte buffer size is 8.
+
+%e : 4-byte float, printed as decimal float, byte buffer size is 4.
+
+%E : 8-byte float, printed as decimal float, byte buffer size is 8.
+.br
+
+
+.SH LOCATION
+../src/logging/src/mpe_log.c

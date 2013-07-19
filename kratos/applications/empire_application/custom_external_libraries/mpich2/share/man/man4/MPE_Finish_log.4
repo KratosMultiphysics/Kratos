@@ -1,0 +1,28 @@
+.TH MPE_Finish_log 4 "6/15/2009" " " "MPE"
+.SH NAME
+MPE_Finish_log \-  Send log to master, who writes it out 
+.SH SYNOPSIS
+.nf
+int MPE_Finish_log( const char *filename )
+.fi
+.SH NOTES
+MPE_Finish_log() & MPE_Init_log() are NOT needed when liblmpe.a is linked
+because MPI_Finalize() would have called MPE_Finish_log() already.
+liblmpe.a will be included in the final executable if it is linked with
+either "mpicc -mpe=mpilog" or "mpecc -mpilog"
+
+This routine outputs the logfile in CLOG2 format, i.e.
+a collective call over 'MPI_COMM_WORLD'.
+
+This function is threadsafe, but
+MPE_Finish_log() is expected to be called only on the main thread
+which initializes MPE logging through MPE_Init_log().
+
+.SH RETURNS
+Always return MPE_LOG_OK.
+
+.SH SEE ALSO
+MPE_Init_log()
+.br
+.SH LOCATION
+../src/logging/src/mpe_log.c

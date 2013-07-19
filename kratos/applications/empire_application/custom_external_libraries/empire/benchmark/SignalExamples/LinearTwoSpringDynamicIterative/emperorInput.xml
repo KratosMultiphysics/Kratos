@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Loose coupling with Ping Pong for 10 time steps. -->
+<EMPEROR xmlns="http://www.example.org/emperorInput" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.example.org/emperorInput ../../../xmlSchema/emperorInput.xsd">
+	<!-- ================ define clientCodes ======================================== -->
+	<clientCode name="subSystem1">
+		<signal name="interfaceForceU" size="1" />
+		<signal name="interfaceDisplacementY" size="1" />
+	</clientCode>
+	<clientCode name="subSystem2">
+		<signal name="interfaceDisplacementU" size="1" />
+		<signal name="interfaceForceY" size="1" />
+	</clientCode>
+	<!-- ================ define dataOutputs ======================================== -->
+	<dataOutput name="timestep" interval="1">
+		<signalRef clientCodeName="subSystem1" signalName="interfaceForceU" />
+		<signalRef clientCodeName="subSystem1" signalName="interfaceDisplacementY" />
+		<signalRef clientCodeName="subSystem2" signalName="interfaceDisplacementU" />
+		<signalRef clientCodeName="subSystem2" signalName="interfaceForceY" />
+	</dataOutput>
+	<dataOutput name="iterativeCoupling" interval="1">
+		<signalRef clientCodeName="subSystem1" signalName="interfaceForceU" />
+		<signalRef clientCodeName="subSystem1" signalName="interfaceDisplacementY" />
+		<signalRef clientCodeName="subSystem2" signalName="interfaceDisplacementU" />
+		<signalRef clientCodeName="subSystem2" signalName="interfaceForceY" />
+	</dataOutput>
+	<!-- ================ define couplingAlgorithms ======================================== -->
+	<couplingAlgorithm type="aitken" name="aitken">
+		<aitken initialAitkenFactor="0.1" />
+	</couplingAlgorithm>
+	<!-- ================ define connections ======================================== -->
+	<connection name="set_initial_value">
+		<sequence>
+			<filter type="scalingFilter">
+				<inputAndOutput>
+					<signalRef clientCodeName="subSystem1" signalName="interfaceForceU" />
+				</inputAndOutput>
+				<scalingFilter factor="0.0" />
+			</filter>
+			<filter type="scalingFilter">
+				<inputAndOutput>
+					<signalRef clientCodeName="subSystem2" signalName="interfaceDisplacementU" />
+				</inputAndOutput>
+				<scalingFilter factor="0.0" />
+			</filter>
+		</sequence>
+	</connection>
+
+
+
+	<connection name="GS_step_1">
+		<output>
+			<signalRef clientCodeName="subSystem2" signalName="interfaceDisplacementU" />
+		</output>
+		<sequence>
+			<filter type="couplingAlgorithmFilter">
+				<inputAndOutput>
+					<signalRef clientCodeName="subSystem1" signalName="interfaceDisplacementY" />
+				</inputAndOutput>
+				<couplingAlgorithmFilter>
+					<couplingAlgorithmRef couplingAlgorithmName="aitken" />
+				</couplingAlgorithmFilter>
+			</filter>
+			<filter type="copyFilter">
+				<input>
+					<signalRef clientCodeName="subSystem1" signalName="interfaceDisplacementY" />
+				</input>
+				<output>
+					<signalRef clientCodeName="subSystem2" signalName="interfaceDisplacementU" />
+				</output>
+			</filter>
+		</sequence>
+	</connection>
+
+	<connection name="GS_step_2">
+		<input>
+			<signalRef clientCodeName="subSystem2" signalName="interfaceForceY" />
+		</input>
+		<output>
+			<signalRef clientCodeName="subSystem1" signalName="interfaceForceU" />
+		</output>
+		<sequence>
+			<filter type="copyFilter">
+				<input>
+					<signalRef clientCodeName="subSystem2" signalName="interfaceForceY" />
+				</input>
+				<output>
+					<signalRef clientCodeName="subSystem1" signalName="interfaceForceU" />
+				</output>
+			</filter>
+		</sequence>
+	</connection>
+
+	<connection name="GS_step_3">
+		<input>
+			<signalRef clientCodeName="subSystem1" signalName="interfaceDisplacementY" />
+		</input>
+	</connection>
+	<!-- ================ define coSimulation process ================================ -->
+	<coSimulation>
+		<sequence>
+			<couplingLogic type="connection">
+				<connectionRef connectionName="set_initial_value" />
+			</couplingLogic>
+
+			<couplingLogic type="timeStepLoop">
+				<timeStepLoop numTimeSteps="50">
+				</timeStepLoop>
+				<sequence>
+					<couplingLogic type="iterativeCouplingLoop">
+						<iterativeCouplingLoop>
+							<convergenceChecker relativeTolerance="0"
+								absoluteTolerance="1e-5" maxNumOfIterations="3">
+								<couplingAlgorithmRef
+									couplingAlgorithmName="aitken" />
+							</convergenceChecker>
+							<convergenceObserver>
+								<clientCodeRef clientCodeName="subSystem1" />
+							</convergenceObserver>
+							<convergenceObserver>
+								<clientCodeRef clientCodeName="subSystem2" />
+							</convergenceObserver>
+							<couplingAlgorithmRef couplingAlgorithmName="aitken" />
+						</iterativeCouplingLoop>
+						<sequence>
+							<couplingLogic type="connection">
+								<connectionRef connectionName="GS_step_1" />
+							</couplingLogic>
+							<couplingLogic type="connection">
+								<connectionRef connectionName="GS_step_2" />
+							</couplingLogic>
+							<couplingLogic type="connection">
+								<connectionRef connectionName="GS_step_3" />
+							</couplingLogic>
+						</sequence>
+					</couplingLogic>
+				</sequence>
+			</couplingLogic>
+		</sequence>
+	</coSimulation>
+	<general>
+		<portFile>server.port</portFile>
+		<verbosity>INFO</verbosity>
+	</general>
+</EMPEROR>

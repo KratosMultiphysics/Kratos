@@ -1,0 +1,323 @@
+.TH mpiexec 1 "11/2/2007" " " "MPI"
+.SH NAME
+mpiexec \-  Run an MPI program 
+.SH SYNOPSIS
+.nf
+.fi
+.nf
+mpiexec args executable pgmargs [ : args executable pgmargs ... ]
+.fi
+
+where 
+.I args
+are command line arguments for 
+.I mpiexec
+(see below),
+.I executable
+is the name of an executable MPI program, and 
+.I pgmargs
+are command line arguments for the executable.  Multiple executables
+can be specified by using the colon notation (for MPMD - Multiple Program
+Multiple Data applications).   For example, the following command will run
+the MPI program 
+.I a.out
+on 4 processes:
+.nf
+mpiexec -n 4 a.out
+.fi
+
+
+The MPI standard specifies the following arguments and their meanings:
+
+.PD 0
+.TP
+.B -n <np> 
+- Specify the number of processes to use
+.PD 1
+.PD 0
+.TP
+.B -host <hostname> 
+- Name of host on which to run processes
+.PD 1
+.PD 0
+.TP
+.B -arch <architecture name> 
+- Pick hosts with this architecture type
+.PD 1
+.PD 0
+.TP
+.B -wdir <working directory> 
+- cd to this one 
+.B before
+running executable
+.PD 1
+.PD 0
+.TP
+.B -path <pathlist> 
+- use this to find the executable
+.PD 1
+.PD 0
+.TP
+.B -soft <triplets> 
+- comma separated triplets that specify requested numbers
+of processes (see the MPI-2 specification for more details)
+.PD 1
+.PD 0
+.TP
+.B -file <name> 
+- implementation-defined specification file
+.PD 1
+.PD 0
+.TP
+.B -configfile <name> 
+- file containing specifications of host/program, 
+one per line, with # as a comment indicator, e.g., the usual
+mpiexec input, but with ":" replaced with a newline.  That is,
+the configfile contains lines with -soft, -n etc.
+.PD 1
+
+Additional arguments that are specific to the MPICH2 implementation
+are discussed below.
+
+Note that not all of these parameters are meaningful for all
+systems.  For example, the 
+.I gforker
+version of 
+.I mpiexec
+creates all
+processes on the same system on which it is running; in that case, the
+.I -arch
+and 
+.I -host
+options are ignored.
+
+The colon character (
+.I :
+) may be used to separate different executables
+for MPMD (multiple program multiple data) programming.  For example,
+to run the program 
+.I ocean
+on 4 processes and 
+.I air
+on 8 processes, use:
+
+.nf
+mpiexec -n 4 ocean : -n 8 air
+.fi
+
+
+
+.SH MPICH2-SPECIFIC ARGUMENTS
+
+Many of the implementations of process managers in MPICH2 support the
+following arguments to 
+.I mpiexec
+:
+
+.PD 0
+.TP
+.B -np <num> 
+- A synonym for the standard 
+.I -n
+argument
+.PD 1
+.PD 0
+.TP
+.B -env <name> <value> 
+- Set the environment variable 
+.I <name>
+to 
+.I <value>
+for
+the processes being run by 
+.I mpiexec
+
+.PD 1
+.PD 0
+.TP
+.B -envnone 
+- Pass no environment variables (other than ones specified with 
+other 
+.I -env
+or 
+.I -genv
+arguments) to the processes being run by 
+.I mpiexec
+\&.
+
+By default, all environment
+variables are provided to each MPI process (rationale: principle of
+least surprise for the user)
+.PD 1
+.PD 0
+.TP
+.B -envlist <list> 
+- Pass the listed environment variables (names separated
+by commas), with their current values, to the processes being run by
+.I mpiexec
+\&.
+
+.PD 1
+.PD 0
+.TP
+.B -genv <name> <value> 
+- The 
+.I -genv
+options have the same meaning as their
+corresponding 
+.I -env
+version, except they apply to all executables, not just 
+the current executable (in the case that the colon syntax is used to specify
+multiple execuables).
+.PD 1
+.PD 0
+.TP
+.B -genvnone 
+- Like 
+.I -envnone
+, but for all executables
+.PD 1
+.PD 0
+.TP
+.B -genvlist <list> 
+- Like 
+.I -envlist
+, but for all executables
+.PD 1
+.PD 0
+.TP
+.B -usize <n> 
+- Specify the value returned for the value of the attribute 
+.I MPI_UNIVERSE_SIZE
+\&.
+
+.PD 1
+.PD 0
+.TP
+.B -l 
+- Label standard out and standard error (
+.I stdout
+and 
+.I stderr
+) with 
+the rank of the process
+.PD 1
+.PD 0
+.TP
+.B -maxtime <n> 
+- Set a timelimit of 
+.I <n>
+seconds.
+.PD 1
+.PD 0
+.TP
+.B -exitinfo 
+- Provide more information on the reason each process exited if 
+there is an abnormal exit
+.PD 1
+
+.SH ENVIRONMENT VARIABLES FOR MPIEXEC
+The following environment variables are understood by some versions of
+.I mpiexec
+\&.
+The command line arguments have priority over these; that is,
+if both the environment variable and command line argument are used, the
+value specified by the command line argument is used.
+
+.PD 0
+.TP
+.B MPIEXEC_TIMEOUT  
+- Maximum running time in seconds.  
+.I mpiexec
+will
+terminate MPI programs that take longer than the value specified by
+.I MPIEXEC_TIMEOUT
+\&.
+
+.PD 1
+.PD 0
+.TP
+.B MPIEXEC_UNIVERSE_SIZE 
+- Set the universe size
+.PD 1
+.PD 0
+.TP
+.B MPIEXEC_PORT_RANGE 
+- Set the range of ports that 
+.I mpiexec
+will use 
+in communicating with the processes that it starts.  The format of 
+this is 
+.I <low>:<high>
+\&.
+For example, to specify any port between
+10000 and 10100, use 
+.I 10000:10100
+\&.
+
+.PD 1
+.PD 0
+.TP
+.B MPICH_PORT_RANGE 
+- Has the same meaning as 
+.I MPIEXEC_PORT_RANGE
+and 
+is used if 
+.I MPIEXEC_PORT_RANGE
+is not set.
+.PD 1
+.PD 0
+.TP
+.B MPIEXEC_PREFIX_DEFAULT 
+- If this environment variable is set, output
+to standard output is prefixed by the rank in 
+.I MPI_COMM_WORLD
+of the 
+process and output to standard error is prefixed by the rank and the 
+text 
+.I (err)
+; both are followed by an angle bracket (
+.I >
+).  If
+this variable is not set, there is no prefix.
+.PD 1
+.PD 0
+.TP
+.B MPIEXEC_PREFIX_STDOUT 
+- Set the prefix used for lines sent to standard
+output.  A 
+.I %d
+is replaced with the rank in 
+.I MPI_COMM_WORLD
+; a 
+.I %w
+is 
+replaced with an indication of which 
+.I MPI_COMM_WORLD
+in MPI jobs that
+involve multiple 
+.I MPI_COMM_WORLD
+s (e.g., ones that use 
+.I MPI_Comm_spawn
+or
+.I MPI_Comm_connect
+).
+.PD 1
+.PD 0
+.TP
+.B MPIEXEC_PREFIX_STDERR 
+- Like 
+.I MPIEXEC_PREFIX_STDOUT
+, but for standard error.
+.PD 1
+
+.SH RETURN STATUS
+.I mpiexec
+returns the maximum of the exit status values of all of the
+processes created by 
+.I mpiexec
+\&.
+
+
+.SH LOCATION
+src/env/mpiexec.txt

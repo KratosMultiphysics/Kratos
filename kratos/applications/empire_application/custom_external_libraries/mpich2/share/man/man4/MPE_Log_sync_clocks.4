@@ -1,0 +1,14 @@
+.TH MPE_Log_sync_clocks 4 "6/15/2009" " " "MPE"
+.SH NAME
+MPE_Log_sync_clocks \-  synchronize or recalibrate all MPI clocks to minimize the effect of time drift.  It is like a  longer version of MPI_Comm_barrier( MPI_COMM_WORLD ); 
+.SH SYNOPSIS
+.nf
+int MPE_Log_sync_clocks( void )
+.fi
+.SH NOTES
+This function is threadsafe.
+
+.SH RETURNS
+alway returns MPE_LOG_OK
+.SH LOCATION
+../src/logging/src/mpe_log.c

@@ -1,0 +1,22 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+
+Begin Nodes
+1           0.20000           0.45000           0.30000
+2           0.70000           0.45000           0.30000
+3           0.50000           0.70000           0.70000
+End Nodes
+
+Begin Elements IsoShellElement
+1 	0        1        2        3
+End Elements
+
+
+
+
+

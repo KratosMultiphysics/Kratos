@@ -1,0 +1,306 @@
+#! /bin/bash
+# 
+# (C) 2006 by Argonne National Laboratory.
+#     See COPYRIGHT in top-level directory.
+#
+# mpicc
+# Simple script to compile and/or link MPI programs.
+# This script knows the default flags and libraries, and can handle
+# alternative C compilers and the associated flags and libraries.
+# The important terms are:
+#    includedir, libdir - Directories containing an *installed* mpich2
+#    prefix, execprefix - Often used to define includedir and libdir
+#    CC                 - C compiler
+#    WRAPPER_CFLAGS        - Any special flags needed to compile 
+#    WRAPPER_LDFLAGS       - Any special flags needed to link
+#    WRAPPER_LIBS          - Any special libraries needed in order to link
+#    
+# We assume that (a) the C compiler can both compile and link programs
+#
+# Handling of command-line options:
+#   This is a little tricky because some options may contain blanks.
+#
+# Special issues with shared libraries - todo
+#
+# --------------------------------------------------------------------------
+# Set the default values of all variables.
+#
+# Directory locations: Fixed for any MPI implementation.
+# Set from the directory arguments to configure (e.g., --prefix=/usr/local)
+prefix=/home/stefan/tmp/empire_package/mpich2
+exec_prefix=/home/stefan/tmp/empire_package/mpich2
+sysconfdir=/home/stefan/tmp/empire_package/mpich2/etc
+includedir=${prefix}/include
+libdir=/home/stefan/tmp/empire_package/mpich2/lib
+
+# Default settings for compiler, flags, and libraries.
+# Determined by a combination of environment variables and tests within
+# configure (e.g., determining whehter -lsocket is needee)
+CC="gcc"
+CFLAGS=" "
+CPPFLAGS=" "
+LDFLAGS="  "
+LIBS="-lopa -lmpl  -lrt -lpthread  "
+MPICH2_VERSION="1.5"
+
+enable_wrapper_rpath="yes"
+
+# MPICH2 ADDITION
+# Shared library suffix, including any period (normally "so").
+shrext=".so"
+
+# How to pass a linker flag through the compiler.
+wl="-Wl,"
+
+# Static library suffix (normally "a").
+libext="a"
+
+# Shared library suffix (normally "so").
+shlibext="so"
+
+# Format of library name prefix.
+libname_spec="lib\$name"
+
+# Library names that the linker finds when passed -lNAME.
+library_names_spec="\$libname\$shrext"
+
+# Flag to hardcode $libdir into a binary during linking.
+# This must work even if $libdir does not exist.
+hardcode_libdir_flag_spec="\${wl}-rpath \${wl}\$libdir"
+
+# Whether we need a single -rpath flag with a separated argument.
+hardcode_libdir_separator=""
+
+# Set to yes if using DIR/libNAME.so during linking hardcodes DIR into the
+# resulting binary.
+hardcode_direct="no"
+
+# Set to yes if using the -LDIR flag during linking hardcodes DIR into the
+# resulting binary.
+hardcode_minus_L="no"
+
+
+# Internal variables
+# Show is set to echo to cause the compilation command to be echoed instead 
+# of executed.
+Show=
+#
+# End of initialization of variables
+#---------------------------------------------------------------------
+# Environment Variables.
+# The environment variables MPICH_CC may be used to override the 
+# default choices.
+# In addition, if there is a file $sysconfdir/mpicc-$CCname.conf, 
+# where CCname is the name of the compiler with all spaces replaced by hyphens
+# (e.g., "cc -64" becomes "cc--64", that file is sources, allowing other
+# changes to the compilation environment.  See the variables used by the 
+# script (defined above)
+# Added MPICH_CC_OLD, MPICH_CC can be used to prefix CC with external utility,
+# e.g. setenv MPICH_CC 'eval linkcache $MPICH_CC_OLD'
+if [ -n "$MPICH_CC" ] ; then
+    MPICH_CC_OLD="$CC"
+    CC="$MPICH_CC"
+    CCname=`echo $CC | sed 's/ /-/g'`
+    if [ -s $sysconfdir/mpicc-$CCname.conf ] ; then
+        . $sysconfdir/mpicc-$CCname.conf
+    fi
+fi
+# Allow a profiling option to be selected through an environment variable
+if [ -n "$MPICC_PROFILE" ] ; then
+    profConf=$MPICC_PROFILE
+fi
+#
+# ------------------------------------------------------------------------
+# Argument processing.
+# This is somewhat awkward because of the handling of arguments within
+# the shell.  We want to handle arguments that include spaces without 
+# loosing the spacing (an alternative would be to use a more powerful
+# scripting language that would allow us to retain the array of values, 
+# which the basic (rather than enhanced) Bourne shell does not.  
+#
+# Look through the arguments for arguments that indicate compile only.
+# If these are *not* found, add the library options
+
+linking=yes
+allargs=("$@")
+argno=0
+for arg in "$@" ; do
+    # Set addarg to no if this arg should be ignored by the C compiler
+    addarg=yes
+    case "$arg" in 
+ 	# ----------------------------------------------------------------
+	# Compiler options that affect whether we are linking or no
+    -c|-S|-E|-M|-MM)
+    # The compiler links by default
+    linking=no
+    ;;
+	# ----------------------------------------------------------------
+	# Options that control how we use mpicc (e.g., -show, 
+	# -cc=* -config=*
+    -echo)
+    addarg=no
+    set -x
+    ;;
+    -cc=*)
+    CC=`echo A$arg | sed -e 's/A-cc=//g'`
+    addarg=no
+    ;;
+    -show)
+    addarg=no
+    Show=echo
+    ;;
+    -config=*)
+    addarg=no
+    CCname=`echo A$arg | sed -e 's/A-config=//g'`
+    if [ -s "$sysconfdir/mpicc-$CCname.conf" ] ; then
+        . "$sysconfdir/mpicc-$CCname.conf"
+    else
+	echo "Configuration file mpicc-$CCname.conf not found"
+    fi
+    ;;
+    -compile-info|-compile_info)
+    # -compile_info included for backward compatibility
+    Show=echo
+    addarg=no
+    ;;
+    -link-info|-link_info)
+    # -link_info included for backward compatibility
+    Show=echo
+    addarg=no
+    ;;
+    -v)
+    # Pass this argument to the compiler as well.
+    echo "mpicc for MPICH2 version $MPICH2_VERSION"
+    # if there is only 1 argument, it must be -v.
+    if [ "$#" -eq "1" ] ; then
+        linking=no
+    fi
+    ;;
+    -profile=*)
+    # Pass the name of a profiling configuration.  As
+    # a special case, lib<name>.so or lib<name>.la may be used
+    # if the library is in $libdir
+    profConf=`echo A$arg | sed -e 's/A-profile=//g'`
+    addarg=no
+    # Loading the profConf file is handled below
+    ;;
+    -mpe=*)
+    # Pass the name of a profiling configuration; this is a special
+    # case for the MPE libs.  See -profile
+    profConf=`echo A$arg | sed -e 's/A-mpe=//g'`
+    profConf="mpe_$profConf"
+    addarg=no
+    # Loading the profConf file is handled below
+    ;;
+    -nativelinking)
+    # Internal option to use native compiler for linking without MPI libraries
+    nativelinking=yes
+    addarg=no
+    ;;
+    -help)
+    NC=`echo "$CC" | sed 's%\/% %g' | awk '{print $NF}' -`
+    if [ -f "$sysconfdir/mpixxx_opts.conf" ] ; then
+        . $sysconfdir/mpixxx_opts.conf
+        echo "    -cc=xxx       - Reset the native compiler to xxx."
+    else
+        if [ -f "./mpixxx_opts.conf" ] ; then
+            . ./mpixxx_opts.conf
+            echo "    -cc=xxx       - Reset the native compiler to xxx."
+        fi
+    fi
+    exit 0
+    ;;
+    *)
+    ;;
+
+    esac
+    if [ $addarg = no ] ; then
+	unset allargs[$argno]
+    fi
+    # Some versions of bash do not accept ((argno++))
+    argno=`expr $argno + 1`
+done
+
+if [ $# -eq 0 ] ; then
+    echo "Error: Command line argument is needed!"
+    "$0" -help
+    exit 1
+fi
+
+# -----------------------------------------------------------------------
+# Derived variables.  These are assembled from variables set from the
+# default, environment, configuration file (if any) and command-line
+# options (if any)
+mpilibs=" -lmpich"
+
+# Handle the case of a profile switch
+if [ -n "$profConf" ] ; then
+    profConffile=
+    if [ -s "$libdir/lib$profConf.a" -o -s "$libdir/lib$profConf.so" ] ; then
+	mpilibs="-l$profConf $mpilibs"
+    elif [ -s "$sysconfdir/$profConf.conf" ] ; then
+	profConffile="$sysconfdir/$profConf.conf"
+    elif [ -s "$profConf.conf" ] ; then
+        profConffile="$profConf.conf"
+    else
+        echo "Profiling configuration file $profConf.conf not found in $sysconfdir"
+    fi
+    if [ -n "$profConffile" -a -s "$profConffile" ] ; then
+	. $profConffile
+	if [ -n "$PROFILE_INCPATHS" ] ; then
+	    CFLAGS="$PROFILE_INCPATHS $CFLAGS"
+        fi
+        if [ -n "$PROFILE_PRELIB" ] ; then
+	    mpilibs="$PROFILE_PRELIB $mpilibs"
+        fi
+        if [ -n "$PROFILE_POSTLIB" ] ; then
+	    mpilibs="$mpilibs $PROFILE_POSTLIB"
+        fi
+    fi
+fi
+
+# -----------------------------------------------------------------------
+#
+# A temporary statement to invoke the compiler
+# Place the -L before any args incase there are any mpi libraries in there.
+# Eventually, we'll want to move this after any non-MPI implementation 
+# libraries.
+# We use a single invocation of the compiler.  This will be adequate until
+# we run into a system that uses a separate linking command.  With any luck,
+# such archaic systems are no longer with us.  This also lets us
+# accept any argument; we don't need to know if we've seen a source
+# file or an object file.  Instead, we just check for an option that
+# suppressing linking, such as -c or -M.
+if [ "$linking" = yes ] ; then
+    # Attempt to encode rpath info into the executable if the user has not
+    # disabled rpath usage and some flavor of rpath makes sense on this
+    # platform.
+    # TODO configure and config.rpath are computing more sophisticated rpath
+    # schemes than this simple one.  Consider updating this logic accordingly.
+    if test "X$enable_wrapper_rpath" = "Xyes" ; then
+        # prepend the path for the shared libraries to the library list
+        eval mpilibs=\"${hardcode_libdir_flag_spec} \$mpilibs\"
+    fi
+
+    path_list=""
+    for path in "-L$libdir" ; do
+	found_path=0
+	for p in $path_list ; do
+	    if [ "$path" = "$p" ] ; then found_path=1 ; break ; fi
+	done
+	if [ "$found_path" = "0" ] ; then path_list="$path_list $path" ; fi
+    done
+
+    if [ "$nativelinking" = yes ] ; then
+        $Show $CC $CPPFLAGS $CFLAGS $LDFLAGS "${allargs[@]}" -I$includedir
+        rc=$?
+    else
+        $Show $CC $CPPFLAGS $CFLAGS $LDFLAGS "${allargs[@]}" -I$includedir ${path_list} $mpilibs $LIBS
+        rc=$?
+    fi
+else
+    $Show $CC $CPPFLAGS $CFLAGS "${allargs[@]}" -I$includedir
+    rc=$?
+fi
+
+exit $rc

@@ -1,0 +1,60 @@
+#!/bin/sh
+#
+# bt2line : script to convert memory addresses to source code's line numbers
+#           in the backtrace output using addr2line.
+#
+
+ADDR2LINE=${ADDR2LINE:-addr2line}
+TR=${TR:-tr}
+SED=${SED:-sed}
+
+test "$#" -eq 0 && $0 -help
+
+replace_lineaddr=yes
+for arg in "$@" ; do
+    case $arg in
+    -h|-help|--h|--help)
+        pgmname="`basename $0`"
+cat <<_EOF
+$pgmname : Convert the memory addresses to line numbers in the backtrace output.
+          The backtrace output is read from the stdin.
+Usage: $pgmname [options] executable_name
+       e.g. $pgmname foo.exe < foo.txt
+            cat foo.txt | tr -d '\0' | $pgmname foo.exe
+Options:
+    -h|-help|--h|--help : Display this help message.
+    -n                  : Show the memory addresses.
+_EOF
+        exit 1
+    ;;
+    -n)
+        replace_lineaddr=no
+    ;;
+    *)
+        executable="$arg"
+        if [ ! -x "$executable" ] ; then
+            echo "$executable is either non-existent or not an executable file."
+            exit 1
+        fi
+    ;;
+    esac
+done
+
+# Since blank is in $IFS, set IFS to nothing so leading space can be preserved.
+save_IFS="$IFS"
+IFS=''
+${TR} -d '\0' | while read line ; do
+    lineaddr="`echo $line | ${SED} -n 's|.*\[\(0x[0-9a-f]\+\)\]$|\1|p'`"
+    if [ -n "$lineaddr" ] ; then
+        lineloc="`$ADDR2LINE -e $executable $lineaddr`"
+        if [ "$replace_lineaddr" = "yes" ] ; then
+#           echo "$line" | sed -n "s|\(.*\)\[0x[0-9a-f]\+\]$|\1\[${lineloc}\]|p"
+            echo "$line" | ${SED} -e "s|\[0x[0-9a-f]\+\]$|\[${lineloc}\]|g"
+        else
+            echo "$line $lineloc"
+        fi
+    else
+        echo "$line"
+    fi
+done
+IFS="$saved_IFS"

@@ -1,0 +1,148 @@
+.TH MPIX_Win_allocate 3 "9/20/2012" " " "MPI"
+.SH NAME
+MPIX_Win_allocate \-  Create and allocate an MPI Window object for one-sided communication 
+.SH SYNOPSIS
+.nf
+int MPIX_Win_allocate(MPI_Aint size, int disp_unit, MPI_Info info, 
+                  MPI_Comm comm, void *baseptr, MPI_Win *win)
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B base 
+- initial address of window (choice) 
+.PD 1
+.PD 0
+.TP
+.B size 
+- size of window in bytes (nonnegative integer) 
+.PD 1
+.PD 0
+.TP
+.B disp_unit 
+- local unit size for displacements, in bytes (positive integer) 
+.PD 1
+.PD 0
+.TP
+.B info 
+- info argument (handle) 
+.PD 1
+.PD 0
+.TP
+.B comm 
+- communicator (handle) 
+.PD 1
+
+.SH OUTPUT PARAMETER
+.PD 0
+.TP
+.B baseptr 
+- base address of the window in local memory
+.PD 1
+.PD 0
+.TP
+.B win 
+- window object returned by the call (handle) 
+.PD 1
+
+.SH THREAD AND INTERRUPT SAFETY
+
+This routine is thread-safe.  This means that this routine may be
+safely used by multiple threads without the need for any user-provided
+thread locks.  However, the routine is not interrupt safe.  Typically,
+this is due to the use of memory allocation routines such as 
+.I malloc
+or other non-MPICH runtime routines that are themselves not interrupt-safe.
+.SH NOTES FOR FORTRAN
+All MPI routines in Fortran (except for 
+.I MPI_WTIME
+and 
+.I MPI_WTICK
+) have
+an additional argument 
+.I ierr
+at the end of the argument list.  
+.I ierr
+is an integer and has the same meaning as the return value of the routine
+in C.  In Fortran, MPI routines are subroutines, and are invoked with the
+.I call
+statement.
+
+All MPI objects (e.g., 
+.I MPI_Datatype
+, 
+.I MPI_Comm
+) are of type 
+.I INTEGER
+in Fortran.
+
+.SH ERRORS
+
+All MPI routines (except 
+.I MPI_Wtime
+and 
+.I MPI_Wtick
+) return an error value;
+C routines as the value of the function and Fortran routines in the last
+argument.  Before the value is returned, the current MPI error handler is
+called.  By default, this error handler aborts the MPI job.  The error handler
+may be changed with 
+.I MPI_Comm_set_errhandler
+(for communicators),
+.I MPI_File_set_errhandler
+(for files), and 
+.I MPI_Win_set_errhandler
+(for
+RMA windows).  The MPI-1 routine 
+.I MPI_Errhandler_set
+may be used but
+its use is deprecated.  The predefined error handler
+.I MPI_ERRORS_RETURN
+may be used to cause error values to be returned.
+Note that MPI does 
+.B not
+guarentee that an MPI program can continue past
+an error; however, MPI implementations will attempt to continue whenever
+possible.
+
+.PD 0
+.TP
+.B MPI_SUCCESS 
+- No error; MPI routine completed successfully.
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_ARG 
+- Invalid argument.  Some argument is invalid and is not
+identified by a specific error class (e.g., 
+.I MPI_ERR_RANK
+).
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_COMM 
+- Invalid communicator.  A common error is to use a null
+communicator in a call (not even allowed in 
+.I MPI_Comm_rank
+).
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_INFO 
+- Invalid Info 
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_OTHER 
+- Other error; use 
+.I MPI_Error_string
+to get more information
+about this error code. 
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_SIZE 
+- 
+.PD 1
+.SH LOCATION
+src/mpi/rma/win_allocate.c

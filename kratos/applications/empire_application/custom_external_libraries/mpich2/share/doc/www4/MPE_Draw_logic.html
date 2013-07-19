@@ -1,0 +1,39 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML3.2 EN">
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" CONTENT="DOCTEXT">
+<TITLE>MPE_Draw_logic</TITLE>
+</HEAD>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="MPE_Draw_logic"><H1>MPE_Draw_logic</H1></A>
+Sets logical operation for laying down new pixels 
+<H2>Synopsis</H2>
+<PRE>
+#include "mpe.h" 
+int MPE_Draw_logic( graph, function )
+MPE_XGraph graph;
+int function;
+</PRE>
+<H2>Input Parameters</H2>
+<DL>
+<DT><B>graph </B><DD>MPE graphics handle
+
+<DT><B>function </B><DD>integer specifying one of the following:
+</DL>
+<BR>'MPE_LOGIC_COPY' - no logic, just copy the pixel
+<BR>'MPE_LOGIC_XOR'  - xor the new pixel with the existing one
+and many more... see 'mpe_graphics.h'
+<P>
+<P>
+<H2>Notes For Fortran Interface </H2>
+The Fortran interface to this routine is different from its C
+counterpart and it has an additional argument, ierr, at the end
+of the argument list, i.e. the returned function value (the error
+code) in C interface is returned as the additional argument in
+Fortran interface.  The Fortran interface is invoked with the
+CALL statement.
+<P>
+All MPI and MPE objects, MPI_Comm, MPE_XGraph and MPE_Color, are
+of type INTEGER in Fortran.
+<P><B>Location:</B>../src/graphics/src/mpe_graphics.c<P>
+</BODY></HTML>
