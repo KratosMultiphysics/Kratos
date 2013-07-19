@@ -148,7 +148,7 @@ namespace Kratos
       void CalculateElasticEnergyOfContacts(double& rElasticEnergy);
       void CalculateMomentum(array_1d<double, 3>& rMomentum);
       void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum);
-      virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo); 
+      virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo); 
       void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo);
       void ComputeBallToCylinderContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo);
       //virtual void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
@@ -196,6 +196,7 @@ namespace Kratos
                                 double ViscoDampingLocalContactForce[3],
                                 double ViscoDampingGlobalContactForce[3],
                                 array_1d<double, 3> &rContactForce,
+                                array_1d<double, 3> &rElasticForce,
                                 const double &i_neighbour_count);
 
       virtual void CalculateViscoDamping(double LocalRelVel[3],
