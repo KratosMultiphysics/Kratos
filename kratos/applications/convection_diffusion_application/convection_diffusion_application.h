@@ -27,9 +27,6 @@
 #include "custom_elements/conv_diff_2d.h"
 #include "custom_elements/conv_diff_3d.h"
 
-#include "custom_elements/conv_diff_change_of_phase_2d.h"
-
-
 #include "custom_conditions/thermal_face2D.h"
 #include "custom_conditions/thermal_face3D.h"
 
@@ -223,7 +220,6 @@ private:
     ///@{
     const ConvDiff2D  mConvDiff2D;
     const ConvDiff3D  mConvDiff3D;
-    const ConvDiffChangeOfPhase2D  mConvDiffChangeOfPhase2D;
     const ThermalFace2D  mThermalFace2D;
     const ThermalFace3D  mThermalFace3D;
 
