@@ -21,23 +21,17 @@ from KratosMultiphysics.ConvectionDiffusionApplication import *
 #defining a model part
 model_part = ModelPart("FluidPart");  
 
-#adding of Variables to Model Part
+#read solver settings from configuration file
+import ProjectParameters
+SolverSettings = ProjectParameters.SolverSettings2
 
-##########################################################
-thermal_settings = ConvectionDiffusionSettings()
-thermal_settings.SetDensityVariable(DENSITY)
-thermal_settings.SetDiffusionVariable(CONDUCTIVITY)
-thermal_settings.SetUnknownVariable(TEMPERATURE)
-thermal_settings.SetVolumeSourceVariable(HEAT_FLUX)
-thermal_settings.SetSurfaceSourceVariable(FACE_HEAT_FLUX)
-thermal_settings.SetMeshVelocityVariable(MESH_VELOCITY)
-thermal_settings.SetProjectionVariable(TEMP_CONV_PROJ);
-##########################################################
+#import solver file
+solver_constructor = __import__(SolverSettings.solver_type)
 
+#define variables to be stored 
+solver_constructor.AddVariables(model_part, SolverSettings)
 
-import nonlinear_convection_diffusion_solver
-nonlinear_convection_diffusion_solver.AddVariables(model_part,thermal_settings)
-
+#introducing input file name
 input_file_name = "face_heat"
 #reading the fluid part
 gid_mode = GiDPostMode.GiD_PostBinary
@@ -57,19 +51,15 @@ print model_part
 #the buffer size should be set up here after the mesh is read for the first time
 model_part.SetBufferSize(3)
 
-nonlinear_convection_diffusion_solver.AddDofs(model_part,thermal_settings)
+#define dofs to be stored
+solver_constructor.AddDofs(model_part,SolverSettings)
 
+#construct the solver
+conv_diff_solver = solver_constructor.CreateSolver( model_part, SolverSettings)
+conv_diff_solver.Initialize()
   
-#creating a fluid solver object
-solver = nonlinear_convection_diffusion_solver.ConvectionDiffusionSolver(model_part,domain_size,thermal_settings)
-solver.time_order = 1
-solver.linear_solver = SkylineLUFactorizationSolver();
-solver.echo_level = 0
-solver.Initialize()
 
 #assigning the fluid properties
-conductivity = 0.25;
-conductivity = 0.0025;
 conductivity = 25.0;
 density = 900.0;
 specific_heat = 2400.0;
@@ -89,25 +79,27 @@ for node in model_part.Nodes:
     if(node.Y > 0.499):
          node.SetSolutionStepValue(FACE_HEAT_FLUX,0,1000.0);
 
- 
-
-
 #settings to be changed
-nsteps = 10000
-output_step = 50
+Dt = ProjectParameters.Dt 
+full_Dt = Dt 
+initial_Dt = 0.01 * full_Dt #0.05 #0.01
+Nsteps  = ProjectParameters.nsteps
+final_time = ProjectParameters.max_time
+output_time = ProjectParameters.output_time
+output_step = ProjectParameters.output_step
+time = ProjectParameters.Start_time
 
-Dt = 10.0
+out = 0
+step = 0
 
-out = 1
-
-
-for step in range(0,nsteps):
+Nsteps=3000
+for step in range(0,Nsteps):
     time = Dt*step
     model_part.CloneTimeStep(time)
 
     #solving the fluid problem
     if(step > 3):
-        solver.Solve()
+        conv_diff_solver.Solve()
 
     #print the results
     if(out == output_step):
