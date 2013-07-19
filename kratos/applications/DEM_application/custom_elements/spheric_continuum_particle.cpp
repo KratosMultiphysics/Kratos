@@ -290,7 +290,7 @@ namespace Kratos
        * @param rCurrentProcessInfo
        **/
                                                                                                                        
-      void SphericContinuumParticle::ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rInitialRotaMoment, array_1d<double, 3>& rMaxRotaMoment, ProcessInfo& rCurrentProcessInfo)
+      void SphericContinuumParticle::ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& rInitialRotaMoment, array_1d<double, 3>& rMaxRotaMoment, ProcessInfo& rCurrentProcessInfo)
       {
                  
         KRATOS_TRY
@@ -346,7 +346,7 @@ namespace Kratos
               double equiv_radius                   = 2 * mRadius * other_radius * radius_sum_i;
               
               double initial_delta                  = mNeighbourDelta[i_neighbour_count]; //*
-              double indentation                    = radius_sum - distance - initial_delta;   //#1
+              double indentation                    = (radius_sum - initial_delta) - distance;   //#1
               double equiv_area                     = 0.25*M_PI * equiv_radius * equiv_radius; //#2 
               double corrected_area                 = equiv_area;
               double equiv_mass                     = mSqrtOfRealMass * other_sqrt_of_mass;
@@ -372,7 +372,12 @@ namespace Kratos
               bool sliding = false;
               
               int mapping = mMapping_New_Ini[i_neighbour_count]; //*
-  
+              
+              if(mContactMeshOption==1 && (mapping !=-1))
+              {
+                corrected_area = mcont_ini_neigh_area[mapping];                            
+              }
+              
               if (mUniformMaterialOption){
                   equiv_radius                      = mRadius;
                   equiv_young                       = mYoung;
@@ -409,7 +414,7 @@ namespace Kratos
                   kt                                = kn / (2.0 + equiv_poisson + equiv_poisson);
                   aux_norm_to_tang                  = sqrt(kt / kn);
               }
-
+            
               // Historical minimun K for the critical time
 
               if (mCriticalTimeOption){
@@ -517,7 +522,7 @@ namespace Kratos
               
                
               AddUpForcesAndProject(LocalCoordSystem,mOldNeighbourContactForces,LocalContactForce,LocalElasticContactForce,GlobalContactForce,
-                                    GlobalElasticContactForce,ViscoDampingLocalContactForce,ViscoDampingGlobalContactForce,rContactForce,
+                                    GlobalElasticContactForce,ViscoDampingLocalContactForce,ViscoDampingGlobalContactForce,rContactForce,rElasticForce,
                                     i_neighbour_count);
               
 //BLOC POISSON CONTRIBUTION
@@ -879,18 +884,22 @@ namespace Kratos
       {
 
           //this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_PARTICLE_FAILURE_ID) = double(this->GetValue(PARTICLE_FAILURE_ID)); //temporarily unused
-          if(rCurrentProcessInfo[INT_DUMMY_3]==1)
+          
+       
+          if(rCurrentProcessInfo[INT_DUMMY_3]==1) //ok
           {
             this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
           }
-          
-          if(rCurrentProcessInfo[INT_DUMMY_4]==1)
+  
+          if(rCurrentProcessInfo[INT_DUMMY_4]==1) //ok
           {
             
             this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(this->GetValue(SKIN_SPHERE));  
             
           }
           
+         
+        
           //this->GetGeometry()[0].FastGetSolutionStepValue(NUM_OF_NEIGH) = this->GetValue(NEIGHBOUR_ELEMENTS).size();
          /*
           if( mContactMeshOption ==1 && rCurrentProcessInfo[INT_DUMMY_9] )
