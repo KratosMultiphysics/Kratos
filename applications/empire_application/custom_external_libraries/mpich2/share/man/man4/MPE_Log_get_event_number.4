@@ -1,0 +1,22 @@
+.TH MPE_Log_get_event_number 4 "6/15/2009" " " "MPE"
+.SH NAME
+MPE_Log_get_event_number \-  Get an unused event number. 
+.SH SYNOPSIS
+.nf
+int MPE_Log_get_event_number( void )
+.fi
+.SH RETURNS
+A value that can be used in MPE_Describe_info_event() and
+MPE_Describe_info_state() which define an event or state not used before.
+
+.SH NOTES
+This routine is provided to ensure that users are
+using unique event numbers.  It relies on all packages using this
+routine.
+*** The function is deprecated, its use is strongly discouraged.
+The function has been replaced by
+MPE_Log_get_state_eventIDs() and MPE_Log_get_solo_eventID(). ***
+
+This function is threadsafe.
+.SH LOCATION
+../src/logging/src/mpe_log.c

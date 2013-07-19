@@ -1,0 +1,113 @@
+.TH MPI_Address 3 "9/20/2012" " " "MPI"
+.SH NAME
+MPI_Address \-  Gets the address of a location in memory 
+.SH SYNOPSIS
+.nf
+int MPI_Address(MPICH2_CONST void *location, MPI_Aint *address)
+.fi
+.SH INPUT PARAMETER
+.PD 0
+.TP
+.B location 
+- location in caller memory (choice)
+.PD 1
+
+.SH OUTPUT PARAMETER
+.PD 0
+.TP
+.B address 
+- address of location (address integer)
+.PD 1
+
+.SH NOTE
+This routine is provided for both the Fortran and C programmers.
+On many systems, the address returned by this routine will be the same
+as produced by the C 
+.I &
+operator, but this is not required in C and
+may not be true of systems with word- rather than byte-oriented
+instructions or systems with segmented address spaces.
+
+.SH THREAD AND INTERRUPT SAFETY
+
+This routine is both thread- and interrupt-safe.
+This means that this routine may safely be used by multiple threads and
+from within a signal handler.
+
+.SH DEPRECATED FUNCTION
+The MPI-2 standard deprecated a number of routines because MPI-2 provides
+better versions.  This routine is one of those that was deprecated.  The
+routine may continue to be used, but new code should use the replacement
+routine.
+The replacement for this routine is 
+.I MPI_Get_address
+\&.
+
+
+.SH NOTES FOR FORTRAN
+All MPI routines in Fortran (except for 
+.I MPI_WTIME
+and 
+.I MPI_WTICK
+) have
+an additional argument 
+.I ierr
+at the end of the argument list.  
+.I ierr
+is an integer and has the same meaning as the return value of the routine
+in C.  In Fortran, MPI routines are subroutines, and are invoked with the
+.I call
+statement.
+
+All MPI objects (e.g., 
+.I MPI_Datatype
+, 
+.I MPI_Comm
+) are of type 
+.I INTEGER
+in Fortran.
+
+.SH ERRORS
+
+All MPI routines (except 
+.I MPI_Wtime
+and 
+.I MPI_Wtick
+) return an error value;
+C routines as the value of the function and Fortran routines in the last
+argument.  Before the value is returned, the current MPI error handler is
+called.  By default, this error handler aborts the MPI job.  The error handler
+may be changed with 
+.I MPI_Comm_set_errhandler
+(for communicators),
+.I MPI_File_set_errhandler
+(for files), and 
+.I MPI_Win_set_errhandler
+(for
+RMA windows).  The MPI-1 routine 
+.I MPI_Errhandler_set
+may be used but
+its use is deprecated.  The predefined error handler
+.I MPI_ERRORS_RETURN
+may be used to cause error values to be returned.
+Note that MPI does 
+.B not
+guarentee that an MPI program can continue past
+an error; however, MPI implementations will attempt to continue whenever
+possible.
+
+.PD 0
+.TP
+.B MPI_SUCCESS 
+- No error; MPI routine completed successfully.
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_OTHER 
+- Other error; use 
+.I MPI_Error_string
+to get more information
+about this error code. 
+.PD 1
+.SH LOCATION
+src/mpi/datatype/address.c

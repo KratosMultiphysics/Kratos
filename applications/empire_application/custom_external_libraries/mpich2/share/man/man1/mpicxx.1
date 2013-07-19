@@ -1,0 +1,222 @@
+.TH mpicxx 1 "11/2/2007" " " "MPI"
+.SH NAME
+mpicxx \-  Compiles and links MPI programs written in C++ 
+.SH DESCRIPTION
+This command can be used to compile and link MPI programs written in
+C++.  It provides the options and any special libraries that are
+needed to compile and link MPI programs.
+
+It is important to use this command, particularly when linking programs,
+as it provides the necessary libraries.
+
+.SH COMMAND LINE ARGUMENTS
+.PD 0
+.TP
+.B -show      
+- Show the commands that would be used without
+runnning them
+.PD 1
+.PD 0
+.TP
+.B -help      
+- Give short help
+.PD 1
+.PD 0
+.TP
+.B -cxx=name   
+- Use compiler 
+.I name
+instead of the default choice.  Use
+this only if the compiler is compatible with the MPICH
+library (see below)
+.PD 1
+.PD 0
+.TP
+.B -config=name 
+- Load a configuration file for a particular compiler.
+This allows a single 
+.I mpicxx
+command to be used with 
+multiple compilers.
+.PD 1
+.PD 0
+.TP
+.B -compile_info 
+- Show the steps for compiling a program.  This option
+can be used to see what options and include paths are
+used by mpicxx.
+.PD 1
+.PD 0
+.TP
+.B -link_info 
+- Show the steps for linking a program.  This optoin 
+can be used to see what options and libraries are used by
+mpicxx.
+.PD 1
+.PD 0
+.TP
+.B -profile=name 
+- Use the MPI profiling given by name.  See below for
+details
+.PD 1
+.PD 0
+.TP
+.B -mpe=name  
+- Use an MPE profiling library.  The behavior is similar
+to using 
+.I -profile=mpe_name.conf
+\&.
+
+.PD 1
+.PD 0
+.TP
+.B -echo      
+- Show exactly what this program is doing.
+This option should normally not be used.
+.PD 1
+.PD 0
+.TP
+.B others     
+- are passed to the compiler or linker.  For example, 
+.I -c
+causes files to be compiled, 
+.I -g
+selects compilation with
+debugging on most systems, and 
+.I -o name
+causes linking 
+with the output executable given the name 
+.I name
+\&.
+
+.PD 1
+
+.SH ENVIRONMENT VARIABLES
+The environment variables 
+.I MPICH_CXX
+may be used
+to select different C++ compiler and linker.  Note that since
+MPICH is built with a particular C and Fortran compiler, changing the
+compilers used can cause problems.  Use this only if you could intermix
+code compiled with the different compilers.
+
+The environment variable 
+.I MPICC_PROFILE
+specifies a profile library
+and has the same effect as if 
+.I -profile=$MPICC_PROFILE
+were used as
+an argument to 
+.I mpicc
+\&.
+See the discussion of 
+.I -profile
+below for more
+details.
+
+.SH COMPATIBLE COMPILERS
+The MPI library may be used with any compiler that uses the same
+lengths for basic data objects (such as 
+.I long double
+) and that
+uses compatible run-time libraries.  On many systems, the various
+compilers are compatible and may be used interchangably.  There are
+exceptions; if you use the 
+.I MPICH_CXX
+environment variable or the
+.I -cxx=name
+command-line argument to override the choice of compiler
+and encounter problems, try reconfiguring MPICH2 with the new compiler,
+and installing MPICH2 in a separate location.  See the installation manual
+for more details.
+
+.SH EXAMPLES
+To compile a single file 
+.I foo.c
+, use
+.nf
+mpicxx -c foo.cxx
+.fi
+
+
+To link the output and make an executable, use
+.nf
+mpicxx -o foo foo.o
+.fi
+
+Combining compilation and linking in a single command
+.nf
+mpicxx -o foo foo.cxx
+.fi
+
+is a convenient way to build simple programs.
+
+.SH SELECTING A PROFILING LIBRARY
+The 
+.I -profile=name
+argument allows you to specify an MPI profiling
+library to be used.  
+.I name
+can have two forms:
+
+.br
+A library in the same directory as the MPI library
+.br
+The name of a profile configuration file
+.br
+
+If 
+.I name
+is a library, then this library is included before the MPI
+library.  This allows the simple use of libraries that make use of the
+MPI profiling interface and that are installed in the same directory as
+the MPI library.
+
+If 
+.I name.conf
+is the name of a file in the sysconfdir directory, then this
+is read and may define the following variables:
+.PD 0
+.TP
+.B PROFILE_PRELIB 
+- Libraries (and paths) to include before the MPI library
+.PD 1
+.PD 0
+.TP
+.B PROFILE_POSTLIB 
+- Libraries to include after the MPI library
+.PD 1
+.PD 0
+.TP
+.B PROFILE_INCPATHS 
+- C preprocessor arguments for any include files
+For example, to add 
+.I /usr/local/myprof/include
+to the include path and
+the library 
+.I libmyprof.a
+in 
+.I /usr/local/myprof/lib
+to the link step, 
+you could create the file 
+.I myprof.conf
+with the lines
+.PD 1
+
+.nf
+PROFILE_PRELIB="-L/usr/local/myprof/lib -lmyprof"
+PROFILE_INCPATHS="-I/usr/local/myprof/include"
+.fi
+
+and place it in the sysconfdir directory (this directory is set at
+configure time when MPICH is built).  Then using the command-line
+argument 
+.I -profile=myprof
+will cause these
+definitions to be added to the relevant compile commands.
+
+.SH SEE ALSO
+mpif77, mpicc, mpif90, mpiexec
+.br
+.SH LOCATION
+src/env/mpicxx.txt

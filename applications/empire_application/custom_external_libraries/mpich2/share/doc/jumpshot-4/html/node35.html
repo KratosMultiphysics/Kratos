@@ -1,0 +1,170 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>4.4.1 Test program</TITLE>
+<META NAME="description" CONTENT="4.4.1 Test program">
+<META NAME="keywords" CONTENT="usersguide">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-15">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="usersguide.css">
+
+<LINK REL="previous" HREF="node34.html">
+<LINK REL="up" HREF="node34.html">
+<LINK REL="next" HREF="node36.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html604"
+  HREF="node36.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html600"
+  HREF="node34.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html596"
+  HREF="node34.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html602"
+  HREF="node2.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html605"
+  HREF="node36.html">About this document ...</A>
+<B> Up:</B> <A NAME="tex2html601"
+  HREF="node34.html">4.4 Performance Analysis of</A>
+<B> Previous:</B> <A NAME="tex2html597"
+  HREF="node34.html">4.4 Performance Analysis of</A>
+ &nbsp; <B>  <A NAME="tex2html603"
+  HREF="node2.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H2><A NAME="SECTION00541000000000000000">
+4.4.1 Test program</A>
+</H2>
+
+<P>
+The following is the test program, pthread_sendrecv.c, used in the
+previous experiment.
+
+<P>
+<PRE>
+/*
+   (C) 2007 by Argonne National Laboratory.
+       See COPYRIGHT in top-level directory.
+*/
+#include "mpi.h"
+#include &lt;stdio.h&gt;
+#include &lt;pthread.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+
+#define BUFLEN 512
+#define NTIMES 100
+#define MAX_THREADS 10
+
+/*
+    Concurrent send and recv by multiple threads on each process. 
+*/
+void *thd_sendrecv( void * );
+void *thd_sendrecv( void *comm_ptr )
+{
+    MPI_Comm     comm;
+    int         my_rank, num_procs, next, buffer_size, namelen, idx;
+    char        buffer[BUFLEN], processor_name[MPI_MAX_PROCESSOR_NAME];
+    MPI_Status  status;
+
+    comm = *(MPI_Comm *) comm_ptr;
+
+    MPI_Comm_size( comm, &amp;num_procs );
+    MPI_Comm_rank( comm, &amp;my_rank );
+    MPI_Get_processor_name( processor_name, &amp;namelen );
+
+    fprintf( stderr, "Process %d on %s\n", my_rank, processor_name );
+    strcpy( buffer, "hello there" );
+    buffer_size = strlen(buffer)+1;
+
+    if ( my_rank == num_procs-1 )
+        next = 0;
+    else
+        next = my_rank+1;
+
+    for ( idx = 0; idx &lt; NTIMES; idx++ ) {
+        if (my_rank == 0) {
+            MPI_Send(buffer, buffer_size, MPI_CHAR, next, 99, comm);
+            MPI_Send(buffer, buffer_size, MPI_CHAR, MPI_PROC_NULL, 299, comm);
+            MPI_Recv(buffer, BUFLEN, MPI_CHAR, MPI_ANY_SOURCE, 99,
+                     comm, &amp;status);
+        }
+        else {
+            MPI_Recv(buffer, BUFLEN, MPI_CHAR, MPI_ANY_SOURCE, 99,
+                     comm, &amp;status);
+            MPI_Recv(buffer, BUFLEN, MPI_CHAR, MPI_PROC_NULL, 299,
+                     comm, &amp;status);
+            MPI_Send(buffer, buffer_size, MPI_CHAR, next, 99, comm);
+        }
+        /* MPI_Barrier(comm); */
+    }
+
+    pthread_exit( NULL );
+    return 0;
+}
+
+
+
+int main( int argc,char *argv[] )
+{
+    MPI_Comm   comm[ MAX_THREADS ];
+    pthread_t  thd_id[ MAX_THREADS ];
+    int        my_rank, ii, provided;
+    int        num_threads;
+
+    MPI_Init_thread( &amp;argc, &amp;argv, MPI_THREAD_MULTIPLE, &amp;provided );
+    if ( provided != MPI_THREAD_MULTIPLE ) {
+        printf( "Aborting, MPI_THREAD_MULTIPLE is needed...\n" );
+        MPI_Abort( MPI_COMM_WORLD, 1 );
+    }
+
+    MPI_Comm_rank( MPI_COMM_WORLD, &amp;my_rank );
+
+    if ( my_rank == 0 ) {
+        if (argc != 2) {
+            printf( "Error: %s num_threads\n", argv[0] );
+            MPI_Abort( MPI_COMM_WORLD, 1 );
+        }
+        num_threads = atoi( argv[1] );
+        MPI_Bcast( &amp;num_threads, 1, MPI_INT, 0, MPI_COMM_WORLD );
+    }
+    else
+        MPI_Bcast( &amp;num_threads, 1, MPI_INT, 0, MPI_COMM_WORLD );
+
+    MPI_Barrier( MPI_COMM_WORLD );
+
+    for ( ii=0; ii &lt; num_threads; ii++ ) {
+        MPI_Comm_dup( MPI_COMM_WORLD, &amp;comm[ii] );
+        pthread_create( &amp;thd_id[ii], NULL, thd_sendrecv, (void *) &amp;comm[ii] );
+    }
+        
+    for ( ii=0; ii &lt; num_threads; ii++ )
+        pthread_join( thd_id[ii], NULL );
+
+    MPI_Finalize();
+    return 0;
+}
+</PRE>
+<BR><HR>
+
+</BODY>
+</HTML>

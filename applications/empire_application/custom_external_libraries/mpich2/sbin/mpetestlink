@@ -1,0 +1,30 @@
+#! /bin/sh
+
+# The script is designed to be invoked from a "Makefile",
+# notice the command "$MAKE $pgm" below.
+
+MAKE="make --no-print-directory"
+ECHO_N="-n"
+ECHO_C=""
+ECHO_T=""
+RM="rm"
+
+execbasename=`basename $0`
+MPE_OUTFILE="mpe2_${execbasename}.txt"
+
+pgm=$1
+message=$2
+
+echo
+echo ${ECHO_N} "$message ${ECHO_C}"
+$RM -f $pgm
+$MAKE $pgm > $MPE_OUTFILE 2>&1
+if [ -x $pgm ] ; then
+    echo "${ECHO_T}Yes."
+    $RM -f $pgm
+else
+    echo "${ECHO_T}No."
+    echo "    The failed command is :"
+    cat $MPE_OUTFILE 
+fi
+$RM -f $MPE_OUTFILE

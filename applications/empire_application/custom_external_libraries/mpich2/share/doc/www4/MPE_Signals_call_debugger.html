@@ -1,0 +1,26 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML3.2 EN">
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" CONTENT="DOCTEXT">
+<TITLE>MPE_Signals_call_debugger</TITLE>
+</HEAD>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="MPE_Signals_call_debugger"><H1>MPE_Signals_call_debugger</H1></A>
+Process-killing signals invoke the MPE error handler 
+<H2>Synopsis</H2>
+<PRE>
+void MPE_Signals_call_debugger()
+</PRE>
+<H2>Notes</H2>
+This invokes the MPE error handler which prints some information
+about the signal and then attempts to start the debugger.  Some
+systems will not support calling the debugger.
+<P>
+You may need to ignore some signals, depending on the signals that
+the MPICH and underlying communications code is using.  You can
+do this in dbx by adding "'ignore signal-name'" to your .dbxinit file.
+For example, to ignore 'SIGUSR1', use "'ignore USR1'".
+<P>
+Currently, there is no Fortran interface for this routine.
+<P><B>Location:</B>../src/misc/src/dbxerr.c.in<P>
+</BODY></HTML>

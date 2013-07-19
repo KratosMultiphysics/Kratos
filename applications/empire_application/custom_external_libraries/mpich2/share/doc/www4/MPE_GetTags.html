@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML3.2 EN">
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" CONTENT="DOCTEXT">
+<TITLE>MPE_GetTags</TITLE>
+</HEAD>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="MPE_GetTags"><H1>MPE_GetTags</H1></A>
+Returns tags that can be used in communication with a  communicator 
+<H2>Synopsis</H2>
+<PRE>
+int MPE_GetTags( comm_in, ntags, comm_out, first_tag )
+MPI_Comm comm_in, *comm_out;
+int      ntags, *first_tag;
+</PRE>
+<H2>Input Parameters</H2>
+<DL>
+<DT><B>comm_in </B><DD>Input communicator
+
+<DT><B>ntags   </B><DD>Number of tags
+</DL>
+<P>
+<H2>Output Parameters</H2>
+<DL>
+<DT><B>comm_out </B><DD>Output communicator.  May be 'comm_in'.
+
+<DT><B>first_tag </B><DD>First tag available
+</DL>
+<P>
+<H2>Returns</H2>
+MPI_SUCCESS on success, MPI error class on failure.
+<P>
+<H2>Notes</H2>
+This routine returns the requested number of tags, with the tags being
+'first_tag', 'first_tag+1', ..., 'first_tag+ntags-1'.
+<P>
+These tags are guarenteed to be unique within 'comm_out'.
+<P>
+<H2>See Also</H2>
+ MPE_ReturnTags
+<BR>
+<P>
+<P><B>Location:</B>../src/misc/src/privtags.c<P>
+</BODY></HTML>

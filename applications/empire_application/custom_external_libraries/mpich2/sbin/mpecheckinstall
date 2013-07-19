@@ -1,0 +1,138 @@
+#! /bin/sh
+#
+# This script has to be built by configure.
+#
+# This is a script to install MPE Profiling Environment. It can be invoked with
+#
+#    make installcheck  ( if you used -prefix at configure time )
+#
+#    or,
+#
+#    make installcheck PREFIX=Path_to_the_installation_of_MPE
+#
+# in the top-level MPE __build__ directory which could be the same
+# or different from the source directory
+#
+
+MAKE="make --no-print-directory"
+
+# Location of sources
+# top_srcdir=..
+top_srcdir=/home/stefan/tmp/empire_package/mpich2-1.5/src/mpe2       # in absolute path
+
+# Installation directories: Default paths (set at configure time)
+prefix=/home/stefan/tmp/empire_package/mpich2
+exec_prefix=${prefix}
+includedir=${prefix}/include
+libdir=${exec_prefix}/lib
+bindir=${exec_prefix}/bin
+sbindir=${exec_prefix}/sbin
+datadir=${prefix}/share
+sysconfdir=${prefix}/etc
+
+# Assume PROF_LIBNAME=MPE_LIBNAME.
+PROF_LIBNAME=mpe
+CPRP="cp"
+RM="rm"
+LN_S="ln -s"
+MPI_IMPL=MPICH2
+MPE_BUILD_FORTRAN2C=yes
+
+Show=eval
+prefix_override=0
+
+make_target=linktest
+
+for arg in "$@" ; do
+    case "$arg" in
+        -prefix=*)
+            prefix=`echo $arg | sed -e 's/-prefix=//g'`
+            if [ "$prefix" != "/home/stefan/tmp/empire_package/mpich2" ] ; then
+                prefix_override=1
+            fi
+            ;;
+        -package=*)
+            PACKAGE=`echo $arg | sed -e 's/-package=//g'`
+            ;;
+        -t)
+            Show=echo
+            ;;
+        -run)
+            make_target=runtest
+            ;;
+        -run=*)
+            make_target=runtest
+            # Added extra quotes '\"' and '\"' so -run= can accept blanks.
+            make_mperun="MPERUN=\"`echo $arg | sed -e 's/-run=//g'`\""
+            ;;
+        -echo)                    set -x ;;
+        -help|-u|-usage|-h)
+cat <<EOF
+Check MPE installation at $prefix.
+-prefix=path        - Destination directory.
+-package=name       - Set the package name for sharedir(examplesdir).
+-t                  - Try only; do NO actual checking.
+-run                - Do installation runtests instead of linktests with
+                      MPERUN="$bindir/mpiexec -n 4".
+-run=<mpiexec_cmd>  - Do installation runtests instead of linktests with
+                      MPERUN=<mpiexec_cmd>.
+EOF
+            exit 1
+            ;;
+        *)
+            # Silently skip empty arguments (these can occur on
+            # some systems and within some scripts; they are
+            # harmless)
+            if [ -n "$arg" ] ; then
+                echo "mpecheckinstall: Unrecognized argument $arg ."
+                exit 1
+            fi
+            ;;
+    esac
+done
+
+if [ "$SHELL_ECHO" = "on" ] ; then
+    set -x
+fi
+
+# Check if installation location is set
+if [ ! -n "$prefix" ] ; then
+    echo "Set an installation location with -prefix=<location> ."
+    exit 1
+fi
+
+# If the prefix was set, we want to override these choices
+# use autoconf variables, @...@, here, as they are set w.r.t. $prefix.
+if [ "$prefix_override" = 1 ] ; then
+    exec_prefix=${prefix}
+    includedir=${prefix}/include
+    libdir=${exec_prefix}/lib
+    bindir=${exec_prefix}/bin
+    sbindir=${exec_prefix}/sbin
+    datadir=${prefix}/share
+fi
+
+if [ ! -s $libdir/lib${PROF_LIBNAME}.a ] ; then
+    echo "Could not find $libdir/lib${PROF_LIBNAME}.a !"
+    echo "You must install MPE before checking the installation!"
+    echo "Try to do \"make install\" or \"mpeinstall\" first."
+    exit 1
+fi
+
+sharedir=$datadir
+if [ -n "$PACKAGE" ] ; then
+    sharedir=$datadir/$PACKAGE
+fi
+
+# Set up Examples directory for the MPE Logging programs
+for pkg in logging graphics collchk ; do
+    examplesdir=$sharedir/examples/${pkg}
+    if [ -f $examplesdir/Makefile ] ; then
+        echo "Running installation $make_target for C $pkg program..."
+        $Show "( cd $examplesdir && $MAKE ${make_target}_C $make_mperun )"
+        if test "$MPE_BUILD_FORTRAN2C" = "yes" ; then
+            echo "Running installation $make_target for Fortran $pkg program..."
+            $Show "( cd $examplesdir && $MAKE ${make_target}_F77 $make_mperun )"
+        fi
+    fi
+done

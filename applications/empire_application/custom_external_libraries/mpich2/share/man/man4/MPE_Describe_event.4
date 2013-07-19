@@ -1,0 +1,41 @@
+.TH MPE_Describe_event 4 "6/15/2009" " " "MPE"
+.SH NAME
+MPE_Describe_event \-  Describe the attributes of an event without byte informational data in MPI_COMM_WORLD. 
+.SH SYNOPSIS
+.nf
+int MPE_Describe_event( int eventID,
+                        const char *name, const char *color )
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B eventID       
+- event number for the event.
+.PD 1
+.PD 0
+.TP
+.B name          
+- name of the event,
+the maximum length of the NULL-terminated string is,
+sizeof(CLOG_DESC), 32.
+.PD 1
+.PD 0
+.TP
+.B color         
+- color of the event,
+the maximum length of the NULL-terminated string is,
+sizeof(CLOG_COLOR), 24.
+.PD 1
+
+.SH NOTES
+Adds a event definition to the logfile.  The function is provided
+for backward compatibility purpose.  Users are urged to
+use 'MPE_Describe_comm_event' instead.
+
+This function is threadsafe.
+
+.SH SEE ALSO
+MPE_Log_get_solo_eventID(), MPE_Describe_comm_event()
+.br
+.SH LOCATION
+../src/logging/src/mpe_log.c

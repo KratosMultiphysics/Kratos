@@ -1,0 +1,148 @@
+.TH MPI_Win_create_keyval 3 "9/20/2012" " " "MPI"
+.SH NAME
+MPI_Win_create_keyval \-  Create an attribute keyval for MPI window objects 
+.SH SYNOPSIS
+.nf
+int MPI_Win_create_keyval(MPI_Win_copy_attr_function *win_copy_attr_fn, 
+                        MPI_Win_delete_attr_function *win_delete_attr_fn, 
+                        int *win_keyval, void *extra_state)
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B win_copy_attr_fn 
+- copy callback function for win_keyval (function) 
+.PD 1
+.PD 0
+.TP
+.B win_delete_attr_fn 
+- delete callback function for win_keyval (function) 
+.PD 1
+.PD 0
+.TP
+.B extra_state 
+- extra state for callback functions 
+.PD 1
+
+.SH OUTPUT PARAMETER
+.PD 0
+.TP
+.B win_keyval 
+- key value for future access (integer) 
+.PD 1
+
+.SH NOTES
+Default copy and delete functions are available.  These are
+.PD 0
+.TP
+.B MPI_WIN_NULL_COPY_FN   
+- empty copy function
+.PD 1
+.PD 0
+.TP
+.B MPI_WIN_NULL_DELETE_FN 
+- empty delete function
+.PD 1
+.PD 0
+.TP
+.B MPI_WIN_DUP_FN         
+- simple dup function
+.PD 1
+
+
+.SH RETURN VALUE FROM ATTRIBUTE CALLBACKS
+The MPI-2 versions of the attribute callbacks should return either
+.I MPI_SUCCESS
+on success or a valid MPI error code or class on failure.
+The MPI standard is ambiguous on this point, but as MPI-2 provides
+the routines 
+.I MPI_Add_error_class
+and 
+.I MPI_Add_error_code
+that allow the
+user to define and use MPI error codes and classes.
+
+.SH THREAD AND INTERRUPT SAFETY
+
+This routine is thread-safe.  This means that this routine may be
+safely used by multiple threads without the need for any user-provided
+thread locks.  However, the routine is not interrupt safe.  Typically,
+this is due to the use of memory allocation routines such as 
+.I malloc
+or other non-MPICH runtime routines that are themselves not interrupt-safe.
+
+.SH NOTES FOR FORTRAN
+All MPI routines in Fortran (except for 
+.I MPI_WTIME
+and 
+.I MPI_WTICK
+) have
+an additional argument 
+.I ierr
+at the end of the argument list.  
+.I ierr
+is an integer and has the same meaning as the return value of the routine
+in C.  In Fortran, MPI routines are subroutines, and are invoked with the
+.I call
+statement.
+
+All MPI objects (e.g., 
+.I MPI_Datatype
+, 
+.I MPI_Comm
+) are of type 
+.I INTEGER
+in Fortran.
+
+.SH ERRORS
+
+All MPI routines (except 
+.I MPI_Wtime
+and 
+.I MPI_Wtick
+) return an error value;
+C routines as the value of the function and Fortran routines in the last
+argument.  Before the value is returned, the current MPI error handler is
+called.  By default, this error handler aborts the MPI job.  The error handler
+may be changed with 
+.I MPI_Comm_set_errhandler
+(for communicators),
+.I MPI_File_set_errhandler
+(for files), and 
+.I MPI_Win_set_errhandler
+(for
+RMA windows).  The MPI-1 routine 
+.I MPI_Errhandler_set
+may be used but
+its use is deprecated.  The predefined error handler
+.I MPI_ERRORS_RETURN
+may be used to cause error values to be returned.
+Note that MPI does 
+.B not
+guarentee that an MPI program can continue past
+an error; however, MPI implementations will attempt to continue whenever
+possible.
+
+.PD 0
+.TP
+.B MPI_SUCCESS 
+- No error; MPI routine completed successfully.
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_ARG 
+- Invalid argument.  Some argument is invalid and is not
+identified by a specific error class (e.g., 
+.I MPI_ERR_RANK
+).
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_OTHER 
+- Other error; use 
+.I MPI_Error_string
+to get more information
+about this error code. 
+.PD 1
+.SH LOCATION
+src/mpi/attr/win_create_keyval.c

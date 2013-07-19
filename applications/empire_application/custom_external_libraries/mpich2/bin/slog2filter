@@ -1,0 +1,81 @@
+#!/bin/sh
+
+Show=""
+exejar_args=""
+for arg in "$@" ; do
+    case $arg in
+        -echo)
+            addarg=no
+            set -x
+            ;;
+        -show)
+            addarg=no
+            Show=echo
+            ;;
+        -h|--h|-help|--help)
+            addarg=yes
+cat <<EOF
+$0: Filter out unwanted Categories in slog2 file.
+
+-h|-help    : Display this help message.
+-echo       : Do set -x.
+-show       : Print the actual command being execited by this script.
+
+EOF
+#            exit 1  # exejar does not do anything with -h
+            ;;
+        *)
+            addarg=yes
+            ;;
+    esac
+    if [ $addarg = yes ] ; then
+        exejar_args="$exejar_args $arg"
+    fi
+done
+
+# Set JAVA runtime through env variables:
+# JAVA_HOME, JRE_HOME, JVM, or the value determined by configure.
+if [ -n "${JAVA_HOME}" -a -x "${JAVA_HOME}/bin/java" ] ; then
+    JVM="${JAVA_HOME}/bin/java"
+elif [ -n "${JRE_HOME}" -a -x "${JRE_HOME}/bin/java" ] ; then
+    JVM="${JRE_HOME}/bin/java"
+else
+    JVM=${JVM:-"/usr/bin/java"}
+fi
+JVMOPTS=" "
+# Assume user's environmental JVMFLAGS is better than what configure found.
+JVMFLAGS=${JVMFLAGS:-${JVMOPTS}}
+
+# Set PATH to the jar needed by the filter program
+# The default path libbuild_dir will be modified by sed -e "^GUI_LIBDIR=..."
+GUI_LIBDIR=/home/stefan/tmp/empire_package/mpich2/lib
+GUI_HOME="${GUI_LIBDIR}/.."
+if [ -n "${SLOG2_HOME}" -a -d "${SLOG2_HOME}/lib" ] ; then
+    GUI_LIBDIR="${SLOG2_HOME}/lib"
+    GUI_HOME="${SLOG2_HOME}"
+fi
+MAIN_LIB=${GUI_LIBDIR}/slog2filter.jar
+
+if [ -z "${GUI_LIBDIR}" -o "${GUI_LIBDIR}" = "/lib" ]; then
+    echo "GUI_LIBDIR is NOT set!"
+    exit 1
+else
+    echo "GUI_LIBDIR is set. GUI_LIBDIR = "${GUI_LIBDIR}
+fi
+
+case "$JVMFLAGS" in
+    *-Xms*)
+        ;;  # Do nothing
+    *)
+        JVMFLAGS="$JVMFLAGS -Xms32m"
+        ;;
+esac
+case "$JVMFLAGS" in
+    *-Xmx*)
+        ;;  # Do nothing
+    *)
+        JVMFLAGS="$JVMFLAGS -Xmx128m"
+        ;;
+esac
+
+$Show ${JVM} ${JVMFLAGS} -jar ${MAIN_LIB} ${exejar_args}

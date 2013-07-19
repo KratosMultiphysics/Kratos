@@ -1,0 +1,22 @@
+.TH MPE_Log_get_solo_eventID 4 "6/15/2009" " " "MPE"
+.SH NAME
+MPE_Log_get_solo_eventID \-  Get a single event number to be used to define EVENT drawable through MPE_Describe_event(). 
+.SH SYNOPSIS
+.nf
+int MPE_Log_get_solo_eventID( int *eventdef_eventID )
+.fi
+.SH INPUT/OUTPUT PARAMETERS
+.PD 0
+.TP
+.B eventdef_eventID  
+- eventID for the definition of event drawable.
+.PD 1
+
+.SH NOTES
+This routine is provided to ensure that users are
+using unique event numbers.  It relies on all packages using this
+routine.
+
+This function is threadsafe.
+.SH LOCATION
+../src/logging/src/mpe_log.c

@@ -1,0 +1,28 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML3.2 EN">
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" CONTENT="DOCTEXT">
+<TITLE>MPE_Log_info_event</TITLE>
+</HEAD>
+<BODY BGCOLOR="FFFFFF">
+<A NAME="MPE_Log_info_event"><H1>MPE_Log_info_event</H1></A>
+Logs an infomational event in MPI_COMM_WORLD. 
+<H2>Synopsis</H2>
+<PRE>
+int MPE_Log_info_event( int event, const char *bytebuf )
+</PRE>
+<H2>Input Parameters</H2>
+<DL>
+<DT><B>event   </B><DD>event number.
+
+<DT><B>bytebuf </B><DD>byte informational array.  If no byte inforamtional array,
+use MPE_Log_bare_event() instead.
+</DL>
+<P>
+<H2>Notes</H2>
+This function is threadsafe.
+<P>
+<H2>Returns</H2>
+alway returns MPE_LOG_OK
+<P><B>Location:</B>../src/logging/src/mpe_log.c<P>
+</BODY></HTML>

@@ -1,0 +1,456 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+
+<!--Converted with LaTeX2HTML 2008 (1.71)
+original version by:  Nikos Drakos, CBLU, University of Leeds
+* revised and updated by:  Marcus Hennecke, Ross Moore, Herb Swan
+* with significant contributions from:
+  Jens Lippmann, Marek Rouchal, Martin Wilck and others -->
+<HTML>
+<HEAD>
+<TITLE>4.4 Performance Analysis of Threaded MPI Application</TITLE>
+<META NAME="description" CONTENT="4.4 Performance Analysis of Threaded MPI Application">
+<META NAME="keywords" CONTENT="usersguide">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-15">
+<META NAME="Generator" CONTENT="LaTeX2HTML v2008">
+<META HTTP-EQUIV="Content-Style-Type" CONTENT="text/css">
+
+<LINK REL="STYLESHEET" HREF="usersguide.css">
+
+<LINK REL="previous" HREF="node33.html">
+<LINK REL="up" HREF="node30.html">
+<LINK REL="next" HREF="node35.html">
+</HEAD>
+
+<BODY >
+<!--Navigation Panel-->
+<A NAME="tex2html593"
+  HREF="node35.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html589"
+  HREF="node30.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html585"
+  HREF="node33.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html591"
+  HREF="node2.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html594"
+  HREF="node35.html">4.4.1 Test program</A>
+<B> Up:</B> <A NAME="tex2html590"
+  HREF="node30.html">4. Special Features</A>
+<B> Previous:</B> <A NAME="tex2html586"
+  HREF="node33.html">4.3 Estimation of MPI</A>
+ &nbsp; <B>  <A NAME="tex2html592"
+  HREF="node2.html">Contents</A></B> 
+<BR>
+<BR>
+<!--End of Navigation Panel-->
+
+<H1><A NAME="SECTION00540000000000000000">
+4.4 Performance Analysis of Threaded MPI Application</A>
+</H1>
+
+<P>
+The goal of this section is to provide an example how Jumpshot's ViewMap
+can be used to study the performance of threaded MPI applications.
+Let's say we are interested to find out the performance of different
+MPI implementations in a threaded environment. We will use a simple
+mult-threaded MPI program to see if there is any preformance difference.
+The test program, pthread_sendrecv.c, used here first creates multiple
+threads in each process. Each spawned thread then duplicates the MPI_COMM_WORLD
+to form a ring, i.e. each thread sends a message to its next rank
+and receives a message from its previous rank within same duplicated
+MPI_COMM_WORLD to form a ring. The program is shown at the end of
+the document. MPE is built with -enable-threadlogging<A NAME="tex2html82"
+  HREF="#foot700"><SUP>4.4</SUP></A> and -disable-safePMPI<A NAME="tex2html83"
+  HREF="#foot701"><SUP>4.5</SUP></A>. The most accessible MPI implementations with MPI_THREAD_MULTIPLE
+support are MPICH2 and OpenMPI. We will use the latest stable release
+of MPICH2, 1.0.5p4, and OpenMPI, 1.2.3 for this demonstration. Since
+OpenMPI has the option to enable progress thread in additional to
+the standard thread support, we will build 2 different versions of
+OpenMPIs for this little experiment. The experiment will be performed
+on 4 AMD64 nodes running Linux Ubuntu 7.04, each node consists of
+4 cores and the test program will be running with 1 to 6 extra threads
+to see if the oversubscribing has any effect on the send and receive
+performance.
+
+<P>
+Table <A HREF="#tab:runtime_pthread_sendrecv">4.2</A> shows the total duration
+of the 4-process run with various numbers of child threads. The data
+shows that as the number of child threads increases, so is the total
+runtime. For MPICH2, the runtime increase is modest for each additional
+thread. For OpenMPI+progress_thread, the performance isn't as good
+as MPICH2 but it is still reasonable as the number of threads increases.
+However for OpenMPI without progress thread support, the runtime increases
+drastically as there are 3 child threads or more. The situation becomes
+very bad as the node becomes oversubscribed, i.e. when there are 5
+or more child threads. Now we are going to use MPE logging and Jumpshot
+to find out what happens. 
+
+<P>
+<BR><P></P>
+<DIV ALIGN="CENTER"><A NAME="851"></A>
+<TABLE>
+<CAPTION><STRONG>Table 4.2:</STRONG>
+The total runtime (in second)
+of the 4-process run of pthread_sendrecv with various number of child
+threads in different MPI implementations. The 2nd column header, MPICH2:
+refers to MPICH2-1.0.5p4 built with default sock channel which has
+MPI_THREAD_MULTIPLE support. The 3rd column header, OpenMPI+progress_thread,
+refers to OpenMPI-1.2.3 configured with -enable-mpi-threads and -enable-progress-threads.
+The 4th column, OpenMPI, refers to OpenMPI-1.2.3 built with -enable-mpi-threads
+which enables the MPI_THREAD_MULTIPLE support.</CAPTION>
+<TR><TD>
+<DIV ALIGN="CENTER"></DIV>
+<P>
+<DIV ALIGN="CENTER"><TABLE CELLPADDING=3 BORDER="1">
+<TR><TD ALIGN="CENTER">child thread count</TD>
+<TD ALIGN="CENTER">MPICH2</TD>
+<TD ALIGN="CENTER">OpenMPI+progress_thread</TD>
+<TD ALIGN="CENTER">OpenMPI</TD>
+</TR>
+<TR><TD ALIGN="CENTER">1</TD>
+<TD ALIGN="CENTER">0.025299</TD>
+<TD ALIGN="CENTER">0.029545</TD>
+<TD ALIGN="CENTER">0.029230</TD>
+</TR>
+<TR><TD ALIGN="CENTER">2</TD>
+<TD ALIGN="CENTER">0.026213</TD>
+<TD ALIGN="CENTER">0.030872</TD>
+<TD ALIGN="CENTER">0.032966 <A HREF="#fig:openmpi_4_2">4.7</A></TD>
+</TR>
+<TR><TD ALIGN="CENTER">3</TD>
+<TD ALIGN="CENTER">0.028916</TD>
+<TD ALIGN="CENTER">0.038964</TD>
+<TD ALIGN="CENTER">0.050484 <A HREF="#fig:openmpi_4_3">4.8</A></TD>
+</TR>
+<TR><TD ALIGN="CENTER">4</TD>
+<TD ALIGN="CENTER">0.030145</TD>
+<TD ALIGN="CENTER">0.045354</TD>
+<TD ALIGN="CENTER">0.054791 <A HREF="#fig:openmpi_4_4">4.9</A></TD>
+</TR>
+<TR><TD ALIGN="CENTER">5</TD>
+<TD ALIGN="CENTER">0.031977</TD>
+<TD ALIGN="CENTER">0.058039</TD>
+<TD ALIGN="CENTER">0.149200 <A HREF="#fig:openmpi_4_5">4.10</A></TD>
+</TR>
+<TR><TD ALIGN="CENTER">6</TD>
+<TD ALIGN="CENTER">0.034462</TD>
+<TD ALIGN="CENTER">0.058505</TD>
+<TD ALIGN="CENTER">0.193399 <A HREF="#fig:openmpi_4_6">4.11</A></TD>
+</TR>
+</TABLE>
+</DIV>
+<P>
+<DIV ALIGN="CENTER"></DIV></TD></TR>
+</TABLE>
+</DIV><P></P>
+<BR>
+
+<P>
+The problematic data in the last column of Table <A HREF="#tab:runtime_pthread_sendrecv">4.2</A>
+are being analyzed with two Jumpshot viewmaps for each run. They are
+shown in Figures <A HREF="#fig:openmpi_4_2">4.7</A>, <A HREF="#fig:openmpi_4_3">4.8</A>,<A HREF="#fig:openmpi_4_4">4.9</A>,<A HREF="#fig:openmpi_4_5">4.10</A>
+and <A HREF="#fig:openmpi_4_6">4.11</A>. The legend for these pictures are shown
+in Figure<A HREF="#fig:pthread_sendrecv_legend">4.6</A>. 
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="fig:pthread_sendrecv_legend"></A><A NAME="852"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 4.6:</STRONG>
+The legend table of all the pthread_sendrecv
+runs.</CAPTION>
+<TR><TD>
+<DIV ALIGN="CENTER"></DIV>
+<P>
+<DIV ALIGN="CENTER"><IMG
+  ALIGN="BOTTOM" BORDER="0"
+ SRC="./pthread_sendrecv_legend.png"
+ ALT="Image pthread_sendrecv_legend">
+</DIV>
+<P>
+<DIV ALIGN="CENTER"></DIV></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+The extra viewmaps provided in MPE logging are:
+
+<P>
+1) Process-Thread view: where each thread timeline is shown nested
+under the process timeline it belongs to. Since we are only running
+4 processes, only 4 process timelines here.
+
+<P>
+2) Communicator-Thread view: where each thread is shown nested within
+the communicator timeline. Since we are runing with 2 to 6 child threads
+where a duplicated MPI_COMM_WORLD is created for each thread, so
+we expect to see 3 to 7 major communicator timelines. MPI_COMM_WORLD
+is always labeled as 0 in CLOG2 converted SLOG-2 file and other duplicated
+MPI_Comm is labeled with other integer depends on the order of when
+it is being created.
+
+<P>
+When the timeline window of the process-thread view first shows up,
+only process timelines are visible, i.e. all the thread timelines
+are nested within the process timeline. User needs to use the Y-axis
+LabelExpand button <IMG
+  ALIGN="BOTTOM" BORDER="0"
+ SRC="./TreeExpand24.png"
+ ALT="Image TreeExpand24"> or
+<I>Alt-E</I> to expand each process timeline to reveal the thread
+timeline. Similarly, user can use the Y-axis LabelCollapse button
+<IMG
+  ALIGN="BOTTOM" BORDER="0"
+ SRC="./TreeCollapse24.png"
+ ALT="Image TreeCollapse24"> or <I>Alt-C</I> to collapse
+the thread timeline back to their corresponding process timeline.
+Similarly for the communicator-thread view, the Y-axis LabelExpand
+and LabelCollapse buttons should be used to expand and collapse the
+communicator timelines.
+
+<P>
+Figures <A HREF="#fig:openmpi_4_3">4.8</A>, <A HREF="#fig:openmpi_4_4">4.9</A>, <A HREF="#fig:openmpi_4_5">4.10</A>
+and <A HREF="#fig:openmpi_4_6">4.11</A> clearly demonstrate that there is some
+kind of communication progress problem in OpenMPI when used without
+progress thread. Without alternating between communicator-thread and
+process-thread views, it would be difficult to identify the existence
+of a progress engine problem.
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="fig:openmpi_4_2"></A><A NAME="855"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 4.7:</STRONG>
+OpenMPI without progress thread: 2 child threads
+per process. As shown in both the Process-Thread view and Communicator-Thread
+views here, everything performs as expected.</CAPTION>
+<TR><TD>
+<DIV ALIGN="CENTER"></DIV>
+<P>
+<DIV ALIGN="CENTER">[process-thread view]<IMG
+  ALIGN="BOTTOM" BORDER="0"
+ SRC="./openmpi_4_2_procthd.png"
+ ALT="Image openmpi_4_2_procthd">
+</DIV>
+<P>
+<DIV ALIGN="CENTER">
+<DIV ALIGN="CENTER"></DIV></DIV>
+<P>
+<DIV ALIGN="CENTER">
+<DIV ALIGN="CENTER">[communicator-thread view]<IMG
+  ALIGN="BOTTOM" BORDER="0"
+ SRC="./openmpi_4_2_commthd.png"
+ ALT="Image openmpi_4_2_commthd">
+</DIV></DIV>
+<P>
+<DIV ALIGN="CENTER">
+<DIV ALIGN="CENTER"></DIV></DIV></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="fig:openmpi_4_3"></A><A NAME="858"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 4.8:</STRONG>
+OpenMPI without progress thread: 3 child threads
+per process where there are 3 MPI_Comm_dup() calls in the master
+thread 0. As shown in the expanded Process-Thread view, the 3rd MPI_Comm_dup()
+call takes significantly longer than the first two MPI_Comm_dup().
+The expanded Communicator-Thread view also suggests that the delayed
+3rd MPI_Comm_dup() is blocking MPI point-to-point communication
+in the first two duplicated MPI_COMM_WORLD. As soon as the delayed
+MPI_Comm_dup() exits, the MPI point-to-point communication is restored. </CAPTION>
+<TR><TD>
+<DIV ALIGN="CENTER"></DIV>
+<P>
+<DIV ALIGN="CENTER">[process-thread view]<IMG
+  ALIGN="BOTTOM" BORDER="0"
+ SRC="./openmpi_4_3_procthd.png"
+ ALT="Image openmpi_4_3_procthd">
+</DIV>
+<P>
+<DIV ALIGN="CENTER">
+<DIV ALIGN="CENTER"></DIV></DIV>
+<P>
+<DIV ALIGN="CENTER">
+<DIV ALIGN="CENTER">[communicator-thread view]<IMG
+  ALIGN="BOTTOM" BORDER="0"
+ SRC="./openmpi_4_3_commthd.png"
+ ALT="Image openmpi_4_3_commthd">
+</DIV></DIV>
+<P>
+<DIV ALIGN="CENTER">
+<DIV ALIGN="CENTER"></DIV></DIV></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="fig:openmpi_4_4"></A><A NAME="861"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 4.9:</STRONG>
+OpenMPI without progress thread: 4 child threads
+per process. Similar to Fig. <A HREF="#fig:openmpi_4_3">4.8</A>, the 3rd MPI_Comm_dup()
+is delayed but not the 4th MPI_Comm_dup(). The interference between
+the delayed 3rd MPI_Comm_dup() and the other dup MPI_COMM_WORLD
+seen in Fig. <A HREF="#fig:openmpi_4_3">4.8</A> is not observed here. So the communication
+in first two dup MPI_COMM_WORLD finishes much earlier than the communication
+in the last two communicators.</CAPTION>
+<TR><TD>
+<DIV ALIGN="CENTER"></DIV>
+<P>
+<DIV ALIGN="CENTER">[process-thread view]<IMG
+  ALIGN="BOTTOM" BORDER="0"
+ SRC="./openmpi_4_4_procthd.png"
+ ALT="Image openmpi_4_4_procthd">
+</DIV>
+<P>
+<DIV ALIGN="CENTER">
+<DIV ALIGN="CENTER"></DIV></DIV>
+<P>
+<DIV ALIGN="CENTER">
+<DIV ALIGN="CENTER">[communicator-thread view]<IMG
+  ALIGN="BOTTOM" BORDER="0"
+ SRC="./openmpi_4_4_commthd.png"
+ ALT="Image openmpi_4_4_commthd">
+</DIV></DIV>
+<P>
+<DIV ALIGN="CENTER">
+<DIV ALIGN="CENTER"></DIV></DIV></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="fig:openmpi_4_5"></A><A NAME="864"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 4.10:</STRONG>
+OpenMPI without progress thread: 5 child threads
+per process. Again, the last MPI_Comm_dup() takes longer than previous
+MPI_Comm_dup()s in finishing up. The feature that we observed in
+Fig. <A HREF="#fig:openmpi_4_3">4.8</A> that the delayed MPI_Comm_dup() is blocking
+other communicator's communication occurs here. However, even long
+after all MPI_Comm_dup() are done, there are many regions in the
+communicator-thread view that MPI communication is not progressing,
+i.e. some kind of temporary deadlock in the MPI progress engine may
+be happening here.</CAPTION>
+<TR><TD>
+<DIV ALIGN="CENTER"></DIV>
+<P>
+<DIV ALIGN="CENTER">[process-thread view]<IMG
+  ALIGN="BOTTOM" BORDER="0"
+ SRC="./openmpi_4_5_procthd.png"
+ ALT="Image openmpi_4_5_procthd">
+</DIV>
+<P>
+<DIV ALIGN="CENTER">
+<DIV ALIGN="CENTER"></DIV></DIV>
+<P>
+<DIV ALIGN="CENTER">
+<DIV ALIGN="CENTER">[communicator-thread view]<IMG
+  ALIGN="BOTTOM" BORDER="0"
+ SRC="./openmpi_4_5_commthd.png"
+ ALT="Image openmpi_4_5_commthd">
+</DIV></DIV>
+<P>
+<DIV ALIGN="CENTER">
+<DIV ALIGN="CENTER"></DIV></DIV></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+
+<DIV ALIGN="CENTER"><A NAME="fig:openmpi_4_6"></A><A NAME="867"></A>
+<TABLE>
+<CAPTION ALIGN="BOTTOM"><STRONG>Figure 4.11:</STRONG>
+OpenMPI without progress thread: 6 child threads
+per process. This is very similar to Fig. <A HREF="#fig:openmpi_4_5">4.10</A>.</CAPTION>
+<TR><TD>
+<DIV ALIGN="CENTER"></DIV>
+<P>
+<DIV ALIGN="CENTER">[process-thread view]<IMG
+  ALIGN="BOTTOM" BORDER="0"
+ SRC="./openmpi_4_6_procthd.png"
+ ALT="Image openmpi_4_6_procthd">
+</DIV>
+<P>
+<DIV ALIGN="CENTER">
+<DIV ALIGN="CENTER"></DIV></DIV>
+<P>
+<DIV ALIGN="CENTER">
+<DIV ALIGN="CENTER">[communicator-thread view]<IMG
+  ALIGN="BOTTOM" BORDER="0"
+ SRC="./openmpi_4_6_commthd.png"
+ ALT="Image openmpi_4_6_commthd">
+</DIV></DIV>
+<P>
+<DIV ALIGN="CENTER">
+<DIV ALIGN="CENTER"></DIV></DIV></TD></TR>
+</TABLE>
+</DIV>
+
+<P>
+<BR><HR><H4>Footnotes</H4>
+<DL>
+<DT><A NAME="foot700">... -enable-threadlogging</A><A
+ HREF="node34.html#tex2html82"><SUP>4.4</SUP></A></DT>
+<DD>-enable-threadlogging enables MPE to build a thread-safe MPI logging
+library which is implemented by using a global mutex over MPE logging
+library which is not thread-safe yet.
+
+</DD>
+<DT><A NAME="foot701">... -disable-safePMPI</A><A
+ HREF="node34.html#tex2html83"><SUP>4.5</SUP></A></DT>
+<DD>MPE by defaults does -enable-safePMPI to protect the logging code
+from doing circular logging in unknown MPI implementation where MPI
+calls are implementated with other MPI calls. Basically, -enable-safePMPI
+disables the logging before making PMPI call and then re-enables logging
+when the PMPI call is returned. Using -disable-safePMPI in MPE eliminiates
+this layer of protection but allows lowest possible logging overhead.
+
+</DD>
+</DL>
+<BR><HR>
+<!--Table of Child-Links-->
+<A NAME="CHILD_LINKS"><STRONG>Subsections</STRONG></A>
+
+<UL>
+<LI><A NAME="tex2html595"
+  HREF="node35.html">4.4.1 Test program</A>
+</UL>
+<!--End of Table of Child-Links-->
+<HR>
+<!--Navigation Panel-->
+<A NAME="tex2html593"
+  HREF="node35.html">
+<IMG WIDTH="37" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="next" SRC="next.png"></A> 
+<A NAME="tex2html589"
+  HREF="node30.html">
+<IMG WIDTH="26" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="up" SRC="up.png"></A> 
+<A NAME="tex2html585"
+  HREF="node33.html">
+<IMG WIDTH="63" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="previous" SRC="prev.png"></A> 
+<A NAME="tex2html591"
+  HREF="node2.html">
+<IMG WIDTH="65" HEIGHT="24" ALIGN="BOTTOM" BORDER="0" ALT="contents" SRC="contents.png"></A>  
+<BR>
+<B> Next:</B> <A NAME="tex2html594"
+  HREF="node35.html">4.4.1 Test program</A>
+<B> Up:</B> <A NAME="tex2html590"
+  HREF="node30.html">4. Special Features</A>
+<B> Previous:</B> <A NAME="tex2html586"
+  HREF="node33.html">4.3 Estimation of MPI</A>
+ &nbsp; <B>  <A NAME="tex2html592"
+  HREF="node2.html">Contents</A></B> 
+<!--End of Navigation Panel-->
+
+</BODY>
+</HTML>

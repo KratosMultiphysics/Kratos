@@ -1,0 +1,100 @@
+.TH MPI_Init 3 "1/11/2011" " " "MPI"
+.SH NAME
+MPI_Init \-  Initialize the MPI execution environment 
+.SH SYNOPSIS
+.nf
+int MPI_Init( int *argc, char ***argv )
+.fi
+.SH INPUT PARAMETERS
+.PD 0
+.TP
+.B argc 
+- Pointer to the number of arguments 
+.PD 1
+.PD 0
+.TP
+.B argv 
+- Pointer to the argument vector
+.PD 1
+
+.SH THREAD AND SIGNAL SAFETY
+This routine must be called by one thread only.  That thread is called
+the 
+.B main thread
+and must be the thread that calls 
+.I MPI_Finalize
+\&.
+
+
+.SH NOTES
+The MPI standard does not say what a program can do before an 
+.I MPI_INIT
+or
+after an 
+.I MPI_FINALIZE
+\&.
+In the MPICH implementation, you should do
+as little as possible.  In particular, avoid anything that changes the
+external state of the program, such as opening files, reading standard
+input or writing to standard output.
+
+.SH NOTES FOR FORTRAN
+The Fortran binding for 
+.I MPI_Init
+has only the error return
+.nf
+subroutine MPI_INIT( ierr )
+integer ierr
+.fi
+
+
+.SH ERRORS
+
+All MPI routines (except 
+.I MPI_Wtime
+and 
+.I MPI_Wtick
+) return an error value;
+C routines as the value of the function and Fortran routines in the last
+argument.  Before the value is returned, the current MPI error handler is
+called.  By default, this error handler aborts the MPI job.  The error handler
+may be changed with 
+.I MPI_Comm_set_errhandler
+(for communicators),
+.I MPI_File_set_errhandler
+(for files), and 
+.I MPI_Win_set_errhandler
+(for
+RMA windows).  The MPI-1 routine 
+.I MPI_Errhandler_set
+may be used but
+its use is deprecated.  The predefined error handler
+.I MPI_ERRORS_RETURN
+may be used to cause error values to be returned.
+Note that MPI does 
+.B not
+guarentee that an MPI program can continue past
+an error; however, MPI implementations will attempt to continue whenever
+possible.
+
+.PD 0
+.TP
+.B MPI_SUCCESS 
+- No error; MPI routine completed successfully.
+.PD 1
+.PD 0
+.TP
+.B MPI_ERR_OTHER 
+- This error class is associated with an error code that 
+indicates that an attempt was made to call 
+.I MPI_INIT
+a second time.
+.I MPI_INIT
+may only be called once in a program.
+.PD 1
+
+.SH SEE ALSO
+MPI_Init_thread, MPI_Finalize
+.br
+.SH LOCATION
+src/mpi/init/init.c
