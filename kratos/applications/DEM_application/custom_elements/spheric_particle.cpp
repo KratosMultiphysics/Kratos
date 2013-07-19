@@ -90,6 +90,9 @@ namespace Kratos
           array_1d<double, 3> contact_moment;
           array_1d<double, 3> initial_rotation_moment;
           array_1d<double, 3> max_rotation_moment;
+          
+          array_1d<double, 3>& elastic_force = this->GetGeometry()[0].GetSolutionStepValue(ELASTIC_FORCES);
+          elastic_force.clear();
 
           contact_force[0]  = 0.0;
           contact_force[1]  = 0.0;
@@ -106,7 +109,7 @@ namespace Kratos
 
           ComputeNewNeighboursHistoricalData();
 
-          ComputeBallToBallContactForce(contact_force, contact_moment, initial_rotation_moment, max_rotation_moment, rCurrentProcessInfo);
+          ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, max_rotation_moment, rCurrentProcessInfo);
 
           if (mLimitSurfaceOption){
               ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, max_rotation_moment, rCurrentProcessInfo);
@@ -493,6 +496,7 @@ namespace Kratos
 
       void SphericParticle::ComputeBallToBallContactForce(array_1d<double, 3>& rContactForce,
                                                           array_1d<double, 3>& rContactMoment,
+                                                          array_1d<double, 3>& rElasticForce,
                                                           array_1d<double, 3>& rInitialRotaMoment,
                                                           array_1d<double, 3>& rMaxRotaMoment,
                                                           ProcessInfo& rCurrentProcessInfo)
@@ -694,7 +698,8 @@ namespace Kratos
               // Transforming to global forces and adding up
 
 
-              AddUpForcesAndProject(LocalCoordSystem, mOldNeighbourContactForces, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce, rContactForce, i_neighbour_count);
+              AddUpForcesAndProject(LocalCoordSystem, mOldNeighbourContactForces, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, 
+                                    ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce, rContactForce, rElasticForce, i_neighbour_count);
 
               // ROTATION FORCES
 
@@ -1436,6 +1441,7 @@ namespace Kratos
                                  double ViscoDampingLocalContactForce[3],
                                  double ViscoDampingGlobalContactForce[3],
                                  array_1d<double, 3> &rContactForce,
+                                 array_1d<double, 3> &rElasticForce,
                                  const double &i_neighbour_count)
       {
           for (unsigned int index = 0; index < 3; index++)
@@ -1455,6 +1461,10 @@ namespace Kratos
           rContactForce[0] += GlobalContactForce[0];
           rContactForce[1] += GlobalContactForce[1];
           rContactForce[2] += GlobalContactForce[2];
+  
+          rElasticForce[0] += GlobalElasticContactForce[0];
+          rElasticForce[1] += GlobalElasticContactForce[1];
+          rElasticForce[2] += GlobalElasticContactForce[2];
       }
 
       //**************************************************************************************************************************************************
