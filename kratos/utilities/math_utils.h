@@ -555,7 +555,8 @@ public:
      * Transforms a stess vector into a matrix. Stresses are assumed to be stored
      * in the following way:
      * \f$ [ s11, s22, s33, s12, s23, s13 ] \f$ for 3D case and
-     * \f$ [ s11, s22, s12 ] \f$ fir 2D case.
+     * \f$ [ s11, s22, s33, s12 ] \f$ for 2D case.
+     * \f$ [ s11, s22, s12 ] \f$ for 2D case.
      * @param rStressVector the given stress vector
      * @return the corresponding stress tensor in matrix form
      */
@@ -604,6 +605,64 @@ public:
 
     }
     
+
+    //***********************************************************************
+    //***********************************************************************
+
+   /**
+     * Transforms a  vector into a symmetric matrix.  Components are assumed to be stored
+     * in the following way:
+     * \f$ [ s11, s22, s33, s12, s23, s13 ] \f$ for 3D case and
+     * \f$ [ s11, s22, s33, s12 ] \f$ for 2D case.
+     * \f$ [ s11, s22, s12 ] \f$ for 2D case.
+     * @param rVector the given stress vector
+     * @return the corresponding Tensor in matrix form
+     */
+    static inline MatrixType VectorToSymmetricTensor(const Vector& rVector)
+    {
+      KRATOS_TRY
+      Matrix Tensor;
+
+      if (rVector.size()==3)
+        {
+	  Tensor.resize(2,2,false);
+	  Tensor(0,0) = rVector[0];
+	  Tensor(0,1) = rVector[2];
+	  Tensor(1,0) = rVector[2];
+	  Tensor(1,1) = rVector[1];
+        }
+      else if (rVector.size()==4)
+        {
+	  Tensor.resize(3,3,false);
+	  Tensor(0,0) = rVector[0];
+	  Tensor(0,1) = rVector[3];
+	  Tensor(0,2) = 0;
+	  Tensor(1,0) = rVector[3];
+	  Tensor(1,1) = rVector[1];
+	  Tensor(1,2) = 0;
+	  Tensor(2,0) = 0;
+	  Tensor(2,1) = 0;
+	  Tensor(2,2) = rVector[2];
+	}
+      else if (rVector.size()==6)
+        {
+	  Tensor.resize(3,3,false);
+	  Tensor(0,0) = rVector[0];
+	  Tensor(0,1) = rVector[3];
+	  Tensor(0,2) = rVector[5];
+	  Tensor(1,0) = rVector[3];
+	  Tensor(1,1) = rVector[1];
+	  Tensor(1,2) = rVector[4];
+	  Tensor(2,0) = rVector[5];
+	  Tensor(2,1) = rVector[4];
+	  Tensor(2,2) = rVector[2];
+        }
+
+      return Tensor;
+      KRATOS_CATCH("")
+
+    }
+    
     
     //***********************************************************************
     //***********************************************************************
@@ -621,7 +680,8 @@ public:
      * Transforms a strain vector into a matrix. Strains are assumed to be stored
      * in the following way:
      * \f$ [ e11, e22, e33, 2*e12, 2*e23, 2*e13 ] \f$ for 3D case and
-     * \f$ [ e11, e22, 2*e12 ] \f$ fir 2D case.
+     * \f$ [ e11, e22, e33, 2*e12 ] \f$ for 2D case.
+     * \f$ [ e11, e22, 2*e12 ] \f$ for 2D case.
      * Hence the deviatoric components of the strain vector are divided by 2
      * while they are stored into the matrix
      * @param rStrainVector the given strain vector
@@ -676,6 +736,8 @@ public:
     * Transforms a given symmetric Strain Tensor to Voigt Notation:
     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
     * \f$ [ e11, e22, e33, 2*e12, 2*e23, 2*e13 ] \f$ for 3D case and
+    * in the 2D case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
+    * \f$ [ e11, e22, e33, 2*e12 ] \f$ fir 2D case.
     * in the 2D case: from a second order tensor (2*2) Matrix  to a corresponing (3*1) Vector
     * \f$ [ e11, e22, 2*e12 ] \f$ fir 2D case.
     * @param rStrainTensor the given symmetric second order strain tensor
@@ -730,6 +792,7 @@ public:
     /**
     * Transforms a given symmetric Stress Tensor to Voigt Notation:
     * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
+    * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
     * in the 2D case: from a second order tensor (2*2) Matrix  to a corresponing (3*1) Vector
     * @param rStressTensor the given symmetric second order stress tensor
     * @return the corresponding stress tensor in vector form
@@ -779,6 +842,60 @@ public:
       KRATOS_CATCH("")
      }
 
+
+
+    /**
+    * Transforms a given symmetric Tensor to Voigt Notation:
+    * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (6*1) Vector
+    * in the 3D case: from a second order tensor (3*3) Matrix  to a corresponing (4*1) Vector
+    * in the 2D case: from a second order tensor (2*2) Matrix  to a corresponing (3*1) Vector
+    * @param rStressTensor the given symmetric second order stress tensor
+    * @return the corresponding stress tensor in vector form
+    */
+    static inline Vector SymmetricTensorToVector(const Matrix& rTensor, unsigned int rSize = 0)
+    {
+
+      KRATOS_TRY
+
+      Vector Vector;
+      
+      if(rSize == 0){
+	if(rTensor.size1() == 2)
+	  rSize = 3;
+	if(rTensor.size1() == 3)
+	  rSize = 6;
+      }
+
+      if (rSize==3)
+        {
+	  Vector.resize(3);
+	  Vector[0]= rTensor(0,0);
+	  Vector[1]= rTensor(1,1);
+	  Vector[2]= rTensor(0,1);
+        }
+      else if (rSize==4)
+        {
+	  Vector.resize(4);
+	  Vector[0]= rTensor(0,0);
+	  Vector[1]= rTensor(1,1);
+	  Vector[2]= rTensor(2,2);
+	  Vector[3]= rTensor(0,1);
+        }
+      else if (rSize==6)
+        {
+	  Vector.resize(4);
+	  Vector[0]= rTensor(0,0);
+	  Vector[1]= rTensor(1,1);
+	  Vector[2]= rTensor(2,2);
+	  Vector[3]= rTensor(0,1);
+	  Vector[4]= rTensor(1,2);
+	  Vector[5]= rTensor(0,2);
+        }
+
+        
+      return Vector;
+      KRATOS_CATCH("")
+     }
 
 
     /*@} */
