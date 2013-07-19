@@ -14,11 +14,11 @@ def AddVariables(model_part, Param):
     model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
 
     # FORCES
-    model_part.AddNodalSolutionStepVariable(RHS)
+    model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
     model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
     model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
     model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
-    model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
+    model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
 
     # BASIC PARTICLE PROPERTIES
     model_part.AddNodalSolutionStepVariable(RADIUS)
@@ -60,7 +60,7 @@ def AddVariables(model_part, Param):
 
     if (Var_Translator(Param.PostExportId)):
       model_part.AddNodalSolutionStepVariable(EXPORT_ID)
-    if (Var_Translator(Param.PredefinedSkinOption)):
+    if (Var_Translator(Param.PredefinedSkinOption) | Var_Translator(Param.ConcreteTestOption) ):
       model_part.AddNodalSolutionStepVariable(EXPORT_SKIN_SPHERE)
     if (Var_Translator(Param.PostGroupId)):
       model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
