@@ -24,11 +24,11 @@ def AddVariables(model_part, Param):
     model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
 
     # FORCES
-    model_part.AddNodalSolutionStepVariable(RHS)
+    model_part.AddNodalSolutionStepVariable(ELASTIC_FORCES)
     model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
     model_part.AddNodalSolutionStepVariable(DAMP_FORCES)
     model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT)
-    model_part.AddNodalSolutionStepVariable(APPLIED_FORCE)
+    model_part.AddNodalSolutionStepVariable(EXTERNAL_APPLIED_FORCE)
 
     # BASIC PARTICLE PROPERTIES
     model_part.AddNodalSolutionStepVariable(RADIUS)
