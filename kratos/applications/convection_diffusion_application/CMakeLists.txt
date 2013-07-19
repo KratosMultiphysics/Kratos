@@ -13,7 +13,6 @@ set( KRATOS_CONVECTION_DIFFUSION_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_2d.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_change_of_phase_2d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/conv_diff_3d.cpp 
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/thermal_face2D.cpp 
