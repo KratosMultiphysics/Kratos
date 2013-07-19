@@ -69,7 +69,6 @@ typedef ModelPart::NodesContainerType::iterator PointIterator;
 typedef std::vector<array_1d<double, 3 > > ComponentVectorType;
 typedef std::vector<array_1d<double, 3 > >::iterator ComponentIteratorType;
 
-
 void  AddCustomUtilitiesToPython(){
     using namespace boost::python;
 
