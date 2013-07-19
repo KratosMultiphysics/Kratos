@@ -51,7 +51,6 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication():
     mConvDiff2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mConvDiff3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-    mConvDiffChangeOfPhase2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mThermalFace2D(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>())))),
     mThermalFace3D(0, Element::GeometryType::Pointer(new Triangle3D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
 {}
@@ -88,8 +87,6 @@ void KratosConvectionDiffusionApplication::Register()
     // Registering elements and conditions here
     KRATOS_REGISTER_ELEMENT("ConvDiff2D", mConvDiff2D);
     KRATOS_REGISTER_ELEMENT("ConvDiff3D", mConvDiff3D);
-
-    KRATOS_REGISTER_ELEMENT("ConvDiffChangeOfPhase2D", mConvDiffChangeOfPhase2D);
 
     KRATOS_REGISTER_CONDITION("ThermalFace2D", mThermalFace2D);
     KRATOS_REGISTER_CONDITION("ThermalFace3D", mThermalFace3D);
