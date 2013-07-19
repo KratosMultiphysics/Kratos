@@ -37,7 +37,7 @@ def Var_Translator(variable):
 
     return variable
 
-class PorosityUtils:
+class GranulometryUtils:
 
     def __init__(self, domain_volume, model_part):
 
@@ -49,16 +49,18 @@ class PorosityUtils:
 
         self.number_of_balls = self.balls_model_part.NumberOfElements(0)
         self.solid_volume    = self.physics_calculator.CalculateTotalVolume(self.balls_model_part)
+        self.d_50            = self.physics_calculator.CalculateD50(self.balls_model_part)
         self.balls_per_area  = domain_volume / self.number_of_balls
         self.voids_volume    = domain_volume - self.solid_volume
         self.global_porosity = self.voids_volume / domain_volume
 
     def PrintCurrentData(self):
 
-        print "solid volume: ", self.solid_volume
-        print "voids volume: ", self.voids_volume
-        print "global porosity: ", self.global_porosity
-        print "number_of_balls: ", self.number_of_balls
+        print "solid volume: ",        self.solid_volume
+        print "voids volume: ",        self.voids_volume
+        print "D50: ",                 self.d_50
+        print "global porosity: ",     self.global_porosity
+        print "number_of_balls: ",     self.number_of_balls
         print "balls per area unit: ", self.balls_per_area
 
 class Procedures:
