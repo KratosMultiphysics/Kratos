@@ -281,11 +281,11 @@ namespace Kratos
    //Register Constitutive Laws
 
     Serializer::Register("HyperElastic3DLaw",mHyperElastic3DLaw);
-    Serializer::Register("HyperElasticMixed3DLaw",mHyperElasticMixed3DLaw);  
+    Serializer::Register("HyperElasticUP3DLaw",mHyperElasticUP3DLaw);  
     Serializer::Register("LinearElastic3DLaw",mLinearElastic3DLaw); 
-    Serializer::Register("HyperElastic2DLaw",mHyperElastic2DLaw);
-    Serializer::Register("HyperElasticMixed2DLaw",mHyperElasticMixed2DLaw);
-    Serializer::Register("LinearElastic2DLaw",mLinearElastic2DLaw);
+    Serializer::Register("HyperElasticPlaneStrain2DLaw",mHyperElasticPlaneStrain2DLaw);
+    Serializer::Register("HyperElasticUPPlaneStrain2DLaw",mHyperElasticUPPlaneStrain2DLaw);
+    Serializer::Register("LinearElasticPlaneStrain2DLaw",mLinearElasticPlaneStrain2DLaw);
     Serializer::Register("LinearElasticPlaneStress2DLaw",mLinearElasticPlaneStress2DLaw);
 
 

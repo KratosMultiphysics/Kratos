@@ -6,17 +6,15 @@
 #
 #	QUANTECH ATZ-DEVELOPMENT DEPARTMENT
 #
-#	AUTHOR : Luis C.A.
+#	AUTHORS : Luis C.A.  => LCA
+#                 G. Socorro => GSM
 #
 #	CREATED AT: 08/07/2010
 #
-#	LAST MODIFICATION : 
-#
-#	VERSION : 0.2
-#
 #	HISTORY:
 #
-#	0.1- 08/07/2010
+#       0.2- 15/07/13- GSM, update to use translation, disable kratos_debug.ini file
+#	0.1- 08/07/10- LCA, create the base source code
 #
 ###############################################################################
 
@@ -61,21 +59,18 @@ proc ::kps::CreateSettingsWindow {w} {
 	set f $w.psettings
 	ttk::frame $f -padding {3 3 3 3}
 	
-	grid $f \
-		-sticky ewn
+	grid $f -sticky ewn
 		
 	# Lower buttons
 	set def_back [$w cget -background]
-	#frame $w.frmButtons -bg [CCColorActivo $def_back]
 	ttk::frame $w.frmButtons
 	
 	# Close button
 	ttk::button $w.frmButtons.btnclose -text [= "Save and Close"] \
 		-command "::kps::WindowbClose $w" \
 		-underline 0 -width 14
-	#-helptext [= "Close the report window"]
 	
-	#SetWidgetsWidthFromText $w.frmButtons.btnclose
+	tooltip::tooltip $w.frmButtons.btnclose [= "Close the Kratos global settinh window"]
 	
 	# Geometry manager
 	grid $w.frmButtons \
@@ -90,7 +85,7 @@ proc ::kps::CreateSettingsWindow {w} {
 
 	
 	# For w
-	#wm protocol $w WM_DELETE_WINDOW "::kps::WindowbClose $w"
+	wm protocol $w WM_DELETE_WINDOW "::kps::WindowbClose $w"
 
 	grid rowconfigure $w 0 -weight 1
 	grid columnconf $w 0 -weight 1
@@ -115,39 +110,40 @@ proc ::kps::CreateSettingsWindow {w} {
 #
 proc ::kps::initializeConfigFile { } {
 	
-	global KPriv
+    global KPriv
     
     set file [::kfiles::giveConfigFile]
+    # wa "file:$file"
     
-    #Abrimos el spd default
+    # Open the spd default => the block GlobalProjectSettings
     
     set xmlFileDefault "$KPriv(dir)/kratos_default.spd"
     set xmlArray [::xmlutils::openFile "." "$xmlFileDefault"]
     set xmlDef [lindex $xmlArray 0]
+    set xmlDoc [lindex $xmlArray 2]
+
+    set nodeDefSettings [$xmlDef selectNodes "/Kratos_Data/GlobalProjectSettings"]
 	
-	set nodeDefSettings [$xmlDef selectNodes "/Kratos_Data/GlobalProjectSettings"]
-	
+    # Create the file in case that the file does not exist 
     if { ![file exists $file] } {
+	set fileid [open $file w]
 	
-		
-		set fileid [open $file w]
-		
-		puts $fileid "<KratosConfig>"
-		puts $fileid "[$nodeDefSettings asXML]"
-		puts $fileid "</KratosConfig>"
-		
-		close $fileid
-	}
+	puts $fileid "<KratosConfig>"
+	puts $fileid "[$nodeDefSettings asXML]"
+	puts $fileid "</KratosConfig>"
 	
-	if { $KPriv(xmlIni) == "" } {
+	close $fileid
+    }
 	
-		set xmlArray [::xmlutils::openFile "." "$file"]
+    if { $KPriv(xmlIni) == "" } {
+	
+	set xmlArray [::xmlutils::openFile "." "$file"]
 		
-		set KPriv(xmlIni) [lindex $xmlArray 0]
-		set KPriv(xmlDocIni) [lindex $xmlArray 2]
-	}
-		
-	return $nodeDefSettings
+	set KPriv(xmlIni) [lindex $xmlArray 0]
+	set KPriv(xmlDocIni) [lindex $xmlArray 2]
+    }
+    
+    return $nodeDefSettings
 }
 
 #
@@ -190,83 +186,85 @@ proc ::kps::deleteOldNodes { nodeDefSettings globalIniNode } {
 # Si llega una w (está la ventana abierta) construimos etiquetas y widgets)
 #
 proc ::kps::updateKratosIniFile { {w ""} } {
+    
+    global KPriv
+    
+    # Initialize the configuration file
+    set nodeDefSettings [::kps::initializeConfigFile]
+    
+    set xmlIni $KPriv(xmlIni)
+    
+    set path "/KratosConfig/GlobalProjectSettings"
+    set globalIniNode [$xmlIni selectNodes $path]
+    
+    ::kps::deleteOldNodes $nodeDefSettings $globalIniNode
+    
+    set i 0
+    foreach node [$nodeDefSettings childNodes] {
 	
-	global KPriv
+	set id [$node getAttribute id ""]
+	set xpath "${path}/Item\[@id='$id'\]"
 	
-	set nodeDefSettings [::kps::initializeConfigFile]
-	
-	set xmlIni $KPriv(xmlIni)
-	
-	set path "/KratosConfig/GlobalProjectSettings"
-	set globalIniNode [$xmlIni selectNodes $path]
-	
-	::kps::deleteOldNodes $nodeDefSettings $globalIniNode
-	
-	set i 0
-	foreach node [$nodeDefSettings childNodes] {
-		
-		set id [$node getAttribute id ""]
-		set xpath "${path}/Item\[@id='$id'\]"
-		
-		set exists [$xmlIni selectNodes $xpath]
-		if {$exists == ""} {
-			
-			$globalIniNode appendChild $node
-		}
-		
-		set dv [::xmlutils::getAttribute $xmlIni $xpath dv]
-
-		set pid [::xmlutils::getAttribute $xmlIni $xpath pid]
-		
-		
-		if { $w != "" } {
-			
-			set fcmb ${w}.cmb$id
-			
-			if { [$node getAttribute widget ""] == "check" } {
-				
-				grid [ttk::checkbutton $fcmb -variable kps::cmb$id -text $pid] \
-				-row $i -column 0 -padx 3 -pady 10 -sticky nw -in $w
-				
-				set kps::cmb$id $dv
-				
-			} else {
-				
-				grid [ttk::label ${w}.lbl$id -text "$pid" -padding {10 10 10 10}] \
-				-row $i -column 0 -sticky nw -pady 2 -in $w
-				
-				# Para sacar los valores del combo o confirmar que es un text si no los hay
-				set comboList [split [::xmlutils::getAttribute $xmlIni $xpath values] ","]
-				
-				if { [llength $comboList] } {
-					set state "readonly"
-				} else {
-					set state "normal"
-				}
-				grid [ttk::combobox $fcmb -values $comboList -state $state -width 20 -textvariable "::kps::cmb$id"] \
-					-row $i -column 1 -padx 3 -pady 10 -sticky nw -in $w
-				
-				if {$state == "readonly" } {
-					::xmlutils::setComboValue $xmlIni $xpath $fcmb $dv
-				} else {
-					set kps::cmb$id $dv
-				}
-			}				 
-		}
-		
-		incr i
-		
+	set exists [$xmlIni selectNodes $xpath]
+	if {$exists == ""} {
+	    
+	    $globalIniNode appendChild $node
 	}
 	
-	#Lo guardamos por si se ha añadido algún nodo
+	set dv [::xmlutils::getAttribute $xmlIni $xpath dv]
+	
+	set pid [= [::xmlutils::getAttribute $xmlIni $xpath pid]]
+	
+	
+	if { $w != "" } {
+	    
+	    set fcmb ${w}.cmb$id
+	    
+	    if { [$node getAttribute widget ""] == "check" } {
+		
+		grid [ttk::checkbutton $fcmb -variable kps::cmb$id -text $pid] \
+		    -row $i -column 0 -padx 3 -pady 10 -sticky nw -in $w
+		
+		set kps::cmb$id $dv
+		
+	    } else {
+		
+		grid [ttk::label ${w}.lbl$id -text "$pid" -padding {10 10 10 10}] \
+		    -row $i -column 0 -sticky nw -pady 2 -in $w
+		
+		# Para sacar los valores del combo o confirmar que es un text si no los hay
+		set comboList [split [::xmlutils::getAttribute $xmlIni $xpath values] ","]
+		
+		if { [llength $comboList] } {
+		    set state "readonly"
+		} else {
+		    set state "normal"
+		}
+		grid [ttk::combobox $fcmb -values $comboList -state $state -width 20 -textvariable "::kps::cmb$id"] \
+		    -row $i -column 1 -padx 3 -pady 10 -sticky nw -in $w
+		
+		if {$state == "readonly" } {
+		    ::xmlutils::setComboValue $xmlIni $xpath $fcmb $dv
+		} else {
+		    set kps::cmb$id $dv
+		}
+	    }				 
+	}
+	
+	incr i
+	
+    }
+    
+    # Lo guardamos por si se ha añadido algún nodo
     set iniDir [file dirname [::kfiles::giveConfigFile]]
-	::xmlutils::writeFile "kratos.ini" $iniDir "utf-8" $xmlIni 0
+    ::xmlutils::writeFile "kratos.ini" $iniDir "utf-8" $xmlIni 0 0
 }
 
 
 proc ::kps::WindowbClose {{w .gid.settingWin}} {
 	
 	global KPriv 
+
 	set xml $KPriv(xmlIni)
 	
 	#Recorremos cada nodo para actualizar los cambios en el xml
@@ -294,14 +292,13 @@ proc ::kps::WindowbClose {{w .gid.settingWin}} {
 		::xmlutils::getAttribute $xml $xpath dv $selCombo
 	}
 		
-	#Al cerrar tenemos que actualizar los cambios en el .ini
+	# Al cerrar tenemos que actualizar los cambios en el .ini
 	set dir [file dirname [::kfiles::giveConfigFile]]
-	
-	::xmlutils::writeFile "kratos.ini" $dir "utf-8" $KPriv(xmlIni) 0
+	::xmlutils::writeFile "kratos.ini" $dir "utf-8" $KPriv(xmlIni) 0 0
 	
 	
 	# Destroy the window widget	
 	if {[winfo exists $w]} { 
-		destroy $w
+	    destroy $w
 	}
 }

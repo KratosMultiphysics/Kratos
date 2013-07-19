@@ -47,7 +47,7 @@ namespace Kratos
 
   SpatialLagrangian3DElement::SpatialLagrangian3DElement( SpatialLagrangian3DElement const& rOther)
     :LargeDisplacement3DElement(rOther)
-    ,mDeformationGradientF0(rOther.mDeformationGradientF0)
+    ,mElasticLeftCauchyGreenVector(rOther.mElasticLeftCauchyGreenVector)
     ,mDeterminantF0(rOther.mDeterminantF0)
   {
   }
@@ -60,13 +60,13 @@ namespace Kratos
   {
     LargeDisplacement3DElement::operator=(rOther);
 
-    mDeformationGradientF0.clear();
-    mDeformationGradientF0.resize(rOther.mDeformationGradientF0.size());
+    mElasticLeftCauchyGreenVector.clear();
+    mElasticLeftCauchyGreenVector.resize(rOther.mElasticLeftCauchyGreenVector.size());
 
 
     for(unsigned int i=0; i<<mConstitutiveLawVector.size(); i++)
       {
-	mDeformationGradientF0 [i] = rOther.mDeformationGradientF0[i];
+	mElasticLeftCauchyGreenVector [i] = rOther.mElasticLeftCauchyGreenVector[i];
       }
 
     mDeterminantF0 = rOther.mDeterminantF0;
@@ -108,7 +108,7 @@ namespace Kratos
     SizeType integration_points_number=GetGeometry().IntegrationPointsNumber();
 
     //Resize historic deformation gradient
-    mDeformationGradientF0.resize( integration_points_number );
+    mElasticLeftCauchyGreenVector.resize( integration_points_number );
     mDeterminantF0.resize( integration_points_number, false );
 
     KRATOS_CATCH( "" )
@@ -118,9 +118,9 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void SpatialLagrangian3DElement::InitializeStandardVariables (Standard & rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void SpatialLagrangian3DElement::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
-    LargeDisplacement3DElement::InitializeStandardVariables(rVariables,rCurrentProcessInfo);
+    LargeDisplacement3DElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
 
     //Calculate Delta Position
     rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
@@ -145,7 +145,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void SpatialLagrangian3DElement::CalculateKinematics(Standard& rVariables,
+  void SpatialLagrangian3DElement::CalculateKinematics(GeneralVariables& rVariables,
 						     const double& rPointNumber)
 
   {
@@ -175,8 +175,8 @@ namespace Kratos
     rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
     //Determinant of the Deformation Gradient F0
-    rVariables.detF0 = mDeterminantF0[rPointNumber];
-    rVariables.F0    = mDeformationGradientF0[rPointNumber];
+    rVariables.detF0                 = mDeterminantF0[rPointNumber];
+    rVariables.ElasticLeftCGVector   = mElasticLeftCauchyGreenVector[rPointNumber];
 
     //Set Shape Functions Values for this integration point
     rVariables.N=row( Ncontainer, rPointNumber);
@@ -295,7 +295,7 @@ namespace Kratos
   void SpatialLagrangian3DElement::save( Serializer& rSerializer ) const
   {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacement3DElement );
-    rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
+    rSerializer.save("ElasticLeftCauchyGreenVector",mElasticLeftCauchyGreenVector);
     rSerializer.save("DeterminantF0",mDeterminantF0);
 
    }
@@ -303,7 +303,7 @@ namespace Kratos
   void SpatialLagrangian3DElement::load( Serializer& rSerializer )
   {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacement3DElement );
-    rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
+    rSerializer.load("ElasticLeftCauchyGreenVector",mElasticLeftCauchyGreenVector);
     rSerializer.load("DeterminantF0",mDeterminantF0);
 
   }

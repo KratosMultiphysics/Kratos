@@ -13,6 +13,8 @@
 #
 #    HISTORY:
 #   
+#     6.8- 16/07/13-G. Socorro, modify the proc WriteBoundaryConditions to write the OutletPressure BC as a function of the solver type
+#     6.7- 14/07/13-G. Socorro, modify the proc WriteBoundaryConditions to write walllaw BC
 #     6.6- 18/06/13-G. Socorro, delete the call to the proc WritePythonGroupProperties
 #     6.5- 17/06/13-G. Socorro, delete wmethod variable and all related procedures (*_m0,*_m1,*_m2) => now we are using only the new GiD groups
 #     6.4- 24/04/13-G. Socorro, write rotational dofs boundary condition for beam element type
@@ -406,10 +408,9 @@ proc ::wkcf::WriteProperties {AppId} {
                 ::wkcf::WriteBodyForceValues $cprop
             }
             
-            #write_calc_data puts "End Properties"
-            GiD_File fprintf $filechannel "%s" "End Properties"
+	    GiD_File fprintf $filechannel "%s" "End Properties"
         }
-        #write_calc_data puts ""
+       
         GiD_File fprintf $filechannel ""
     }
     
@@ -589,9 +590,32 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
                         }
                     }
                     "OutletPressure" {
-                        set kwordlist [list "PRESSURE"]
-                        # Process outlet pressure
-                        ::wkcf::WriteOutLetPressureBC $AppId $ccondid $kwordlist 
+			if {$AppId=="Fluid"} {
+			    set cproperty "dv"
+			    set cxpath "$AppId//c.AnalysisData//i.FluidApproach"
+			    set FluidApproach [::xmlutils::setXml $cxpath $cproperty]
+			    if { $FluidApproach eq "Eulerian" } {
+				# Solver type
+				set cxpath "$AppId//c.AnalysisData//i.SolverType"
+				set SolverType [::xmlutils::setXml $cxpath $cproperty]
+				# WarnWinText "SolverType:$SolverType"
+				set kwxpath "Applications/$AppId"
+
+				switch -exact -- $SolverType {
+				    "ElementBased" {
+					set kwid "OutletPressureFractionalStep"
+					set kwordlist [list "[::xmlutils::getKKWord $kwxpath $kwid]"]
+				    }
+				    "Monolithic" {
+					set kwid "OutletPressureMonolithic"
+					set kwordlist [list "[::xmlutils::getKKWord $kwxpath $kwid]"]
+				    }
+				}
+							                       
+				# Process outlet pressure
+				::wkcf::WriteOutLetPressureBC $AppId $ccondid $kwordlist 
+			    }
+			}
                     }
                     "InletVelocity" {
                         if {[llength $dprops($AppId,BC,$ccondid,AllGroupId)]} {
@@ -614,17 +638,12 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
                             }
                         }
                     }
-                    "Is-Slip" {
-                        # Write is-slip boundary condition
+                    "Is-Slip" - "WallLaw" {
+                        # Write is-slip/walllaw boundary condition
                         set kwordlist [list "IS_STRUCTURE" "Y_WALL"]
-                        ::wkcf::WriteFluidIsSlipBC $AppId $ccondid $kwordlist
+                        ::wkcf::WriteFluidIsSlipWallLawBC $AppId $ccondid $kwordlist
                     }
-                    "WallLaw" {
-                        # Write wall law boundary condition
-                        set kwordlist [list "WALL_LAW_Y"]
-                        ::wkcf::WriteFluidWallLawBC $AppId $ccondid $kwordlist
-                    }
-                    "Distance" {
+		    "Distance" {
                         # Write distance boundary condition
                         set kwordlist [list "DISTANCE"]
                         ::wkcf::WriteFluidDistanceBC $AppId $ccondid $kwordlist
@@ -700,14 +719,13 @@ proc ::wkcf::WriteConditions {AppId} {
         
         if {$ndime =="2D"} {
 	    # 2D
-                set cgroupid "-AKGSkinMesh2D"
+	    set cgroupid "-AKGSkinMesh2D"
             set GiDElemType "Linear"
 
             if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
-                # Write the pressure value
+                # Write all conditions for 2D case
                 GiD_File fprintf $filechannel "%s" "Begin Conditions $ConditionId"
-                # write_calc_data connectivities -elemtype "$GiDElemType" $gprop
-                set condid 0
+		set condid 0
                 
                 foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
                     incr condid 1 
@@ -725,11 +743,11 @@ proc ::wkcf::WriteConditions {AppId} {
         } elseif {$ndime =="3D"} {
 
 	    # 3D
-                set cgroupid "-AKGSkinMesh3D"
+	    set cgroupid "-AKGSkinMesh3D"
             set GiDElemType "Triangle"
 
             if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
-                # Write the pressure value
+                # Write all conditions for 3D case
                 GiD_File fprintf $filechannel "%s" "Begin Conditions $ConditionId"
                 set condid 0
                 

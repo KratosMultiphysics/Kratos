@@ -152,9 +152,9 @@ protected:
     ///@{
 
     /**
-     * Initialize Element Standard Variables
+     * Initialize Element General Variables
      */ 
-    void InitializeStandardVariables(Standard & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
     /**

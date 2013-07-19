@@ -14,11 +14,11 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_conditions_to_python.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_3D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_mixed_3D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_U_P_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_3D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_mixed_2D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_U_P_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_plane_stress_2D_law.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_3D_element.cpp

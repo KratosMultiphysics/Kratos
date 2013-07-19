@@ -69,6 +69,7 @@ proc ::KMProps::cmbElemTypeChange { f fullname {idTemplate ""} } {
 	    
 	    ::KMProps::changeCmbValues $fMat "MainProperties//MatModel" $idTemplate
 	}
+	
 	# Get the cross section property list
 	set PropertyList [::KMProps::GetCrossSectionPropertyList]
 	# wa "PropertyList:$PropertyList"
@@ -107,7 +108,7 @@ proc ::KMProps::cmbElemTypeChange { f fullname {idTemplate ""} } {
 	    # wa "propid:$propid ListElementType:$ListElementType"
 	    if {($dv in $ListElementType) && ($dv ne "Truss") } {
 		# Note: Special case of truss element => Without using section type
- 
+		
 		# For section type
 		set fCmbPropId [string map [list "ElemType" "SectionType"] $f]
 		set fCmbPropId [string map [list "SectionType" "$propid"] $fCmbPropId]
@@ -117,26 +118,26 @@ proc ::KMProps::cmbElemTypeChange { f fullname {idTemplate ""} } {
 		# Get the show property state for the current property identifier => Using the section type
 		set ShowProperty [::KMProps::ShowPropertyBySectionType $propid]
 		# wa "propid:$propid ShowProperty:$ShowProperty"
-	    if {$ShowProperty} {
-		# Show this property	
-		if { [winfo exists $fCmbPropId] } { 
-		    grid $fCmbPropId 
-		}
-		if { [winfo exists $fLblPropId] } { 
-		    grid $fLblPropId 
-		}
-	    } else {
-		# Hide this property
-		if { [winfo exists $fCmbPropId] } { 
-		    grid remove $fCmbPropId 
-		}
-		if { [winfo exists $fLblPropId] } { 
-		    grid remove $fLblPropId 
+		if {$ShowProperty} {
+		    # Show this property	
+		    if { [winfo exists $fCmbPropId] } { 
+			grid $fCmbPropId 
+		    }
+		    if { [winfo exists $fLblPropId] } { 
+			grid $fLblPropId 
+		    }
+		} else {
+		    # Hide this property
+		    if { [winfo exists $fCmbPropId] } { 
+			grid remove $fCmbPropId 
+		    }
+		    if { [winfo exists $fLblPropId] } { 
+			grid remove $fLblPropId 
+		    }
 		}
 	    }
 	}
     }
-}
 }
 
 proc ::KMProps::cmbSectionTypeChange { f fullname {idTemplate ""} } {

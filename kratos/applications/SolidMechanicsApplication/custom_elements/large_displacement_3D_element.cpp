@@ -85,6 +85,9 @@ namespace Kratos
 
   Element::Pointer LargeDisplacement3DElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
   {
+
+    KRATOS_ERROR(std::logic_error, "calling the default constructor for a large displacement 3D element ... illegal operation!!","");
+
     return Element::Pointer( new LargeDisplacement3DElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
   }
 
@@ -441,7 +444,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacement3DElement::SetStandardParameters(Standard& rVariables,
+  void LargeDisplacement3DElement::SetGeneralVariables(GeneralVariables& rVariables,
 							 ConstitutiveLaw::Parameters& rValues,
 							 const int & rPointNumber)
   {
@@ -451,12 +454,12 @@ namespace Kratos
       KRATOS_ERROR(std::invalid_argument,"DeterminantF < 0","");
 
     rValues.SetDeterminantF0(rVariables.detF0);
-    rValues.SetDeformationGradientF0(rVariables.F0);
     rValues.SetDeterminantF(rVariables.detF);
     rValues.SetDeformationGradientF(rVariables.F);
     rValues.SetStrainVector(rVariables.StrainVector);
     rValues.SetStressVector(rVariables.StressVector);
     rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
+    rValues.SetElasticLeftCauchyGreenVector(rVariables.ElasticLeftCGVector);
     rValues.SetShapeFunctionsDevivatives(rVariables.DN_DX);
     rValues.SetShapeFunctionsValues(rVariables.N);
   }
@@ -464,7 +467,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacement3DElement::InitializeStandardVariables (Standard & rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void LargeDisplacement3DElement::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
   
     
@@ -473,14 +476,14 @@ namespace Kratos
     rVariables.B.resize( 6 , number_of_nodes * 3 );
   
     rVariables.F.resize( 3, 3 );
-
-    rVariables.F0.resize( 3, 3 );
-  
+ 
     rVariables.ConstitutiveMatrix.resize( 6, 6 );
   
     rVariables.StrainVector.resize( 6 );
   
     rVariables.StressVector.resize( 6 );
+
+    rVariables.ElasticLeftCGVector.resize( 4 );
   
     rVariables.DN_DX.resize( number_of_nodes, 3 );
 
@@ -545,8 +548,8 @@ namespace Kratos
     KRATOS_TRY
 
     //create and initialize element variables:
-    Standard Variables;
-    this->InitializeStandardVariables(Variables,rCurrentProcessInfo);
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
           
     //create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -570,7 +573,7 @@ namespace Kratos
         this->CalculateKinematics(Variables,PointNumber);
 
         //set standard parameters
-        this->SetStandardParameters(Variables,Values,PointNumber);
+        this->SetGeneralVariables(Variables,Values,PointNumber);
 
 	//compute stresses and constitutive parameters
 	mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values,Variables.StressMeasure);
@@ -609,7 +612,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacement3DElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, Standard& rVariables, double& rIntegrationWeight)
+  void LargeDisplacement3DElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
   {
 
     //contributions to stiffness matrix calculated on the reference config
@@ -628,7 +631,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacement3DElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, Standard& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+  void LargeDisplacement3DElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
   {
 
     //contribution to external forces
@@ -748,8 +751,8 @@ namespace Kratos
   {
 
     //create and initialize element variables:
-    Standard Variables;
-    this->InitializeStandardVariables(Variables,rCurrentProcessInfo);
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
           
     //create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -767,7 +770,7 @@ namespace Kratos
         this->CalculateKinematics(Variables,PointNumber);
 
         //set standard parameters
-        this->SetStandardParameters(Variables,Values,PointNumber);
+        this->SetGeneralVariables(Variables,Values,PointNumber);
 
         //call the constitutive law to update material variables
         mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponse(Values,Variables.StressMeasure);
@@ -822,7 +825,7 @@ namespace Kratos
   //************************************************************************************
 
    void LargeDisplacement3DElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-									Standard& rVariables,
+									GeneralVariables& rVariables,
 									Vector& rVolumeForce,
 									double& rIntegrationWeight)
 								    
@@ -855,7 +858,7 @@ namespace Kratos
   //************************************************************************************
 
    void LargeDisplacement3DElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-									Standard & rVariables,
+									GeneralVariables & rVariables,
 									double& rIntegrationWeight
 									)
   {
@@ -890,7 +893,7 @@ namespace Kratos
   //************************************************************************************
 
   void LargeDisplacement3DElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-						       Standard& rVariables,
+						       GeneralVariables& rVariables,
 						       double& rIntegrationWeight
 						       )
   {
@@ -911,7 +914,7 @@ namespace Kratos
   //************************************************************************************
 
   void LargeDisplacement3DElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-						       Standard& rVariables,
+						       GeneralVariables& rVariables,
 						       double& rIntegrationWeight)
 
   {
@@ -959,7 +962,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void LargeDisplacement3DElement::CalculateKinematics(Standard& rVariables,
+  void LargeDisplacement3DElement::CalculateKinematics(GeneralVariables& rVariables,
 						     const double& rPointNumber)
 
   {
@@ -1203,8 +1206,8 @@ namespace Kratos
     if ( rVariable == VON_MISES_STRESS )
       {
 	//create and initialize element variables:
-	Standard Variables;
-	this->InitializeStandardVariables(Variables,rCurrentProcessInfo);
+	GeneralVariables Variables;
+	this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 	
 	//create constitutive law parameters:
 	ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -1223,7 +1226,7 @@ namespace Kratos
 	    this->CalculateKinematics(Variables,PointNumber);
 	    
 	    //set standard parameters
-	    this->SetStandardParameters(Variables,Values,PointNumber);
+	    this->SetGeneralVariables(Variables,Values,PointNumber);
 	    
 	    //call the constitutive law to update material variables
 	    mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponseCauchy (Values);
@@ -1259,8 +1262,8 @@ namespace Kratos
     if ( rVariable == CAUCHY_STRESS_VECTOR || rVariable == PK2_STRESS_VECTOR )
       {
 	//create and initialize element variables:
-	Standard Variables;
-	this->InitializeStandardVariables(Variables,rCurrentProcessInfo);
+	GeneralVariables Variables;
+	this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 	
 	//create constitutive law parameters:
 	ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -1278,7 +1281,7 @@ namespace Kratos
 	    this->CalculateKinematics(Variables,PointNumber);
 	    
 	    //set standard parameters
-	    this->SetStandardParameters(Variables,Values,PointNumber);
+	    this->SetGeneralVariables(Variables,Values,PointNumber);
 	    
 	    //call the constitutive law to update material variables
 	    if( rVariable == CAUCHY_STRESS_VECTOR) 
@@ -1299,8 +1302,8 @@ namespace Kratos
     else if( rVariable == GREEN_LAGRANGE_STRAIN_VECTOR  || rVariable == ALMANSI_STRAIN_VECTOR )
       {
 	//create and initialize element variables:
-	Standard Variables;
-	this->InitializeStandardVariables(Variables,rCurrentProcessInfo);
+	GeneralVariables Variables;
+	this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 	
 	//reading integration points
 	for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -1387,8 +1390,8 @@ namespace Kratos
     else if ( rVariable == CONSTITUTIVE_MATRIX )
       {
 	//create and initialize element variables:
-	Standard Variables;
-	this->InitializeStandardVariables(Variables,rCurrentProcessInfo);
+	GeneralVariables Variables;
+	this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 	
 	//create constitutive law parameters:
 	ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -1406,7 +1409,7 @@ namespace Kratos
 	    this->CalculateKinematics(Variables,PointNumber);
 	    
 	    //set standard parameters
-	    this->SetStandardParameters(Variables,Values,PointNumber);
+	    this->SetGeneralVariables(Variables,Values,PointNumber);
 	    
 	    //call the constitutive law to update material variables
 	    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
@@ -1424,8 +1427,8 @@ namespace Kratos
     else if ( rVariable == DEFORMATION_GRADIENT )  // VARIABLE SET FOR TRANSFER PURPOUSES
       {
 	//create and initialize element variables:
-	Standard Variables;
-	this->InitializeStandardVariables(Variables,rCurrentProcessInfo);
+	GeneralVariables Variables;
+	this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
 	  
 	//reading integration points
 	for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )

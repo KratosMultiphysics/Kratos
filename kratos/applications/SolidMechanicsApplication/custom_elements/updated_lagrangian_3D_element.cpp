@@ -84,9 +84,9 @@ namespace Kratos
   //************************************************************************************
   
 
-  void UpdatedLagrangian3DElement::InitializeStandardVariables (Standard & rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void UpdatedLagrangian3DElement::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
-    LargeDisplacement3DElement::InitializeStandardVariables(rVariables,rCurrentProcessInfo);
+    LargeDisplacement3DElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
 
     //Calculate Delta Position
     rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
@@ -96,11 +96,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void UpdatedLagrangian3DElement::SetStandardParameters(Standard& rVariables,
-							 ConstitutiveLaw::Parameters& rValues,
-							 const int & rPointNumber)
+  void UpdatedLagrangian3DElement::SetGeneralVariables(GeneralVariables& rVariables,
+						       ConstitutiveLaw::Parameters& rValues,
+						       const int & rPointNumber)
   {
-    LargeDisplacement3DElement::SetStandardParameters(rVariables,rValues,rPointNumber);
+    LargeDisplacement3DElement::SetGeneralVariables(rVariables,rValues,rPointNumber);
 
     //Set extra options for the contitutive law
     Flags &ConstitutiveLawOptions=rValues.GetOptions();
@@ -112,7 +112,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void UpdatedLagrangian3DElement::CalculateKinematics(Standard& rVariables,
+  void UpdatedLagrangian3DElement::CalculateKinematics(GeneralVariables& rVariables,
 						     const double& rPointNumber)
 
   {
@@ -136,7 +136,7 @@ namespace Kratos
 
     //Determinant of the Deformation Gradient F0
     rVariables.detF0 = mDeterminantF0[rPointNumber];
-    rVariables.F0    = mDeformationGradientF0[rPointNumber];
+    rVariables.ElasticLeftCGVector = mElasticLeftCauchyGreenVector[rPointNumber];
 
     //Set Shape Functions Values for this integration point
     rVariables.N=row( Ncontainer, rPointNumber);

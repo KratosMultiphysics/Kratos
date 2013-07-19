@@ -120,7 +120,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void TotalLagrangian2DElement::InitializeStandardVariables (Standard & rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void TotalLagrangian2DElement::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
   
     const unsigned int number_of_nodes = GetGeometry().size();
@@ -128,14 +128,14 @@ namespace Kratos
     rVariables.B.resize( 3 , number_of_nodes * 2 );
   
     rVariables.F.resize( 2, 2 );
-
-    rVariables.F0.resize( 2, 2 );
   
     rVariables.ConstitutiveMatrix.resize( 3, 3 );
   
     rVariables.StrainVector.resize( 3 );
   
     rVariables.StressVector.resize( 3 );
+
+    rVariables.ElasticLeftCGVector.resize( 4 );
   
     rVariables.DN_DX.resize( number_of_nodes, 2 );
 

@@ -30,6 +30,23 @@ namespace Kratos
 
   class HyperElastic3DLaw : public ConstitutiveLaw
   {
+  protected:
+
+
+    struct MaterialResponseVariables
+    {
+      //general material properties
+      double LameMu;
+      double LameLambda;
+       	 
+      //kinematic properties
+      double DeterminantF0;
+      double traceCG;           //LeftCauchyGreen or RightCauchyGreen
+      Matrix CauchyGreenMatrix; //LeftCauchyGreen or InverseRightCauchyGreen
+      Matrix IdentityMatrix; 
+    };
+
+
   public:
     /**
      * Type Definitions
@@ -243,6 +260,20 @@ namespace Kratos
      */
     Matrix& DeformationGradient3D (Matrix & Matrix2D);
 
+    
+    /**
+     * Push-Forward the LeftCauchyGreen vector and returns a matrix
+     */
+    Matrix& LeftCauchyGreenPushForward (Matrix& rLeftCauchyGreenMatrix, 
+					Vector & rLeftCauchyGreenVector,
+					const Matrix& rDeformationGradientF);
+
+    /**
+     * Push-Forward the LeftCauchyGreen vector and returns a vector
+     */
+    Vector& LeftCauchyGreenPushForward (Vector & rLeftCauchyGreenVector,
+					const Matrix& rDeformationGradientF);
+    
     /**
      * Calculates the GreenLagrange strains
      * @param rRightCauchyGreen
@@ -262,35 +293,23 @@ namespace Kratos
 
     /**
      * Calculates the constitutive matrix 
-     * @param rMatrixIC can be the Identity or the inverse of the RightCauchyGreen tensor
-     * @param rdetF the determinant of the deformation gradient
-     * @param rLameLambda lame paramenter lambda
-     * @param rLameMu lame paramenter mu
+     * @param rElasticVariables 
      * matrix is to be generated for
      * @param rResult Matrix the result (Constitutive Matrix) will be stored in
      */
-    virtual void CalculateConstitutiveMatrix (const Matrix & rMatrixIC,
-					      const double & rdetF,
-					      const double & rLameLambda,
-					      const double & rLameMu,
+    virtual void CalculateConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
 					      Matrix& rConstitutiveMatrix);
 
 
     /**
      * Calculates the constitutive matrix and makes a pull-back
-     * @param rMatrixIC can be the Identity or the inverse of the RightCauchyGreen tensor
-     * @param rinvF the invers of the current deformation gradient
-     * @param rdetF0 the determinant of the total deformation gradient
-     * @param rLameLambda lame paramenter lambda
-     * @param rLameMu lame paramenter mu
+     * @param rElasticVariables 
+     * @param rInverseDeformationGradientF 
      * matrix is to be generated for
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
-    virtual void CalculateConstitutiveMatrix (const Matrix & rMatrixIC,
-					      const Matrix & rinvF, 
-					      const double & rdetF0,
-					      const double & rLameLambda,
-					      const double & rLameMu,
+    virtual void CalculateConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
+					      const Matrix & rInverseDeformationGradientF,
 					      Matrix& rConstitutiveMatrix);
 
 
@@ -299,11 +318,7 @@ namespace Kratos
      */
 
     double& ConstitutiveComponent( double & rCabcd, 
-				   const Matrix &rMatrixIC,
-				   const Matrix &rinvF,
-				   const double &rdetF0, 
-				   const double &rLameLambda, 
-				   const double &rLameMu, 
+				   const MaterialResponseVariables& rElasticVariables,
 				   const unsigned int& a, const unsigned int& b,
 				   const unsigned int& c, const unsigned int& d);
 
@@ -312,29 +327,19 @@ namespace Kratos
      */
 
     double& ConstitutiveComponent( double & rCabcd,
-				   const Matrix &rMatrixIC,
-				   const double &rdetF0, 
-				   const double &rLameLambda, 
-				   const double &rLameMu, 
+				   const MaterialResponseVariables& rElasticVariables,
+				   const Matrix & rInverseDeformationGradientF,
 				   const unsigned int& a, const unsigned int& b, 
 				   const unsigned int& c, const unsigned int& d);
     
     /**
      * Calculates the stress vector
-     * @param rMatrixIC can be the inverse of the RightCauchyGreen or the LeftCauchy Green tensor
-     * @param rIdentityMatrix can be the IdentityMatrix
-     * @param rdetF0 the determinant of the total deformation gradient
-     * @param rLameLambda lame paramenter lambda
-     * @param rLameMu lame paramenter mu
+     * @param rElasticVariables 
      * matrix is to be generated for
      * @param rStressMeasure measure of stress to be calculated
      * @param rStressVector vector where the stress result is stored
      */
-    void CalculateStress( const Matrix &rMatrixIC,
-			  const Matrix &rIdentityMatrix,
-			  const double &rdetF0,
-			  const double &rLameLambda, 
-			  const double &rLameMu, 
+    void CalculateStress( const MaterialResponseVariables& rElasticVariables,
 			  StressMeasure rStressMeasure,
 			  Vector& rStressVector);
 

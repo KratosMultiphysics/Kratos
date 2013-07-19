@@ -138,9 +138,9 @@ protected:
     ///@{
 
     /**
-     * Container for historical total deformation gradient
+     * Container for historical total elastic deformation measure
      */
-    std::vector< Matrix > mDeformationGradientF0;
+    std::vector< Vector > mElasticLeftCauchyGreenVector;
 
     /**
      * Container for the total deformation gradient determinants
@@ -155,15 +155,15 @@ protected:
     }
 
     /**
-     * Initialize Element Standard Variables
+     * Initialize Element General Variables
      */ 
-    virtual void InitializeStandardVariables(Standard & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(Standard& rVariables,
+    virtual void CalculateKinematics(GeneralVariables& rVariables,
 				     const double& rPointNumber);
 
     
