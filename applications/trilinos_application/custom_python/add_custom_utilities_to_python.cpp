@@ -75,6 +75,21 @@ namespace Python
 {
 using namespace boost::python;
 
+Process::Pointer AuxGetTurbulenceModel(TrilinosFractionalStepSettings<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>,
+                                                                      UblasSpace<double, Matrix, Vector>,
+                                                                      LinearSolver<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>, UblasSpace<double, Matrix, Vector> > >&rSettings)
+{
+    KRATOS_TRY;
+
+    Process::Pointer out;
+    bool HaveTurbModel = rSettings.GetTurbulenceModel(out);
+    if (HaveTurbModel)
+        return out;
+    else
+        KRATOS_ERROR(std::runtime_error,"Trying to access the turbulence model before defining it","");
+    KRATOS_CATCH("");
+}
+
 void  AddCustomUtilitiesToPython()
 {
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
@@ -163,7 +178,7 @@ void  AddCustomUtilitiesToPython()
             ("TrilinosFractionalStepSettingsPeriodic",init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool,const Kratos::Variable<int>&>())
     .def("SetStrategy",ThatSetStrategyOverload)
     .def("SetTurbulenceModel",&TrilinosFSSettingsPeriodicType::SetTurbulenceModel)
-    .def("GetTurbulenceModel",&TrilinosFSSettingsPeriodicType::GetTurbulenceModel)
+    .def("GetTurbulenceModel",AuxGetTurbulenceModel)
     .def("GetStrategy",&TrilinosFSSettingsPeriodicType::pGetStrategy)
     .def("SetEchoLevel",&TrilinosFSSettingsPeriodicType::SetEchoLevel)
     ;
