@@ -128,7 +128,10 @@ public:
     virtual bool GetTurbulenceModel(ProcessPointerType& pTurbulenceModel)
     {
         if( mHaveTurbulenceModel )
-            pTurbulenceModel.swap(mpTurbulenceModel);
+        {
+            pTurbulenceModel.reset();
+            pTurbulenceModel = ProcessPointerType(mpTurbulenceModel);
+        }
 
         return mHaveTurbulenceModel;
     }
