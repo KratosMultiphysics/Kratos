@@ -75,9 +75,28 @@ namespace Python
 {
 using namespace boost::python;
 
-Process::Pointer AuxGetTurbulenceModel(TrilinosFractionalStepSettings<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>,
-                                                                      UblasSpace<double, Matrix, Vector>,
-                                                                      LinearSolver<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>, UblasSpace<double, Matrix, Vector> > >&rSettings)
+Process::Pointer AuxGetTurbulenceModel1(TrilinosFractionalStepSettings<
+                                         TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>,
+                                         UblasSpace<double, Matrix, Vector>,
+                                         LinearSolver<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>, UblasSpace<double, Matrix, Vector> >
+                                        >& rSettings)
+{
+    KRATOS_TRY;
+
+    Process::Pointer out;
+    bool HaveTurbModel = rSettings.GetTurbulenceModel(out);
+    if (HaveTurbModel)
+        return out;
+    else
+        KRATOS_ERROR(std::runtime_error,"Trying to access the turbulence model before defining it","");
+    KRATOS_CATCH("");
+}
+
+Process::Pointer AuxGetTurbulenceModel2(TrilinosFractionalStepSettingsPeriodic<
+                                         TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>,
+                                         UblasSpace<double, Matrix, Vector>,
+                                         LinearSolver<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>, UblasSpace<double, Matrix, Vector> >
+                                        >& rSettings)
 {
     KRATOS_TRY;
 
@@ -164,6 +183,7 @@ void  AddCustomUtilitiesToPython()
             ("TrilinosFractionalStepSettings",init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
     .def("SetStrategy",ThisSetStrategyOverload)
     .def("SetTurbulenceModel",&TrilinosFSSettingsType::SetTurbulenceModel)
+    .def("GetTurbulenceModel",AuxGetTurbulenceModel1)
     .def("GetStrategy",&TrilinosFSSettingsType::pGetStrategy)
     .def("SetEchoLevel",&TrilinosFSSettingsType::SetEchoLevel)
     ;
@@ -178,7 +198,7 @@ void  AddCustomUtilitiesToPython()
             ("TrilinosFractionalStepSettingsPeriodic",init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool,const Kratos::Variable<int>&>())
     .def("SetStrategy",ThatSetStrategyOverload)
     .def("SetTurbulenceModel",&TrilinosFSSettingsPeriodicType::SetTurbulenceModel)
-    .def("GetTurbulenceModel",AuxGetTurbulenceModel)
+    .def("GetTurbulenceModel",AuxGetTurbulenceModel2)
     .def("GetStrategy",&TrilinosFSSettingsPeriodicType::pGetStrategy)
     .def("SetEchoLevel",&TrilinosFSSettingsPeriodicType::SetEchoLevel)
     ;
