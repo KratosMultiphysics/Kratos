@@ -163,6 +163,7 @@ void  AddCustomUtilitiesToPython()
             ("TrilinosFractionalStepSettingsPeriodic",init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool,const Kratos::Variable<int>&>())
     .def("SetStrategy",ThatSetStrategyOverload)
     .def("SetTurbulenceModel",&TrilinosFSSettingsPeriodicType::SetTurbulenceModel)
+    .def("GetTurbulenceModel",&TrilinosFSSettingsPeriodicType::GetTurbulenceModel)
     .def("GetStrategy",&TrilinosFSSettingsPeriodicType::pGetStrategy)
     .def("SetEchoLevel",&TrilinosFSSettingsPeriodicType::SetEchoLevel)
     ;

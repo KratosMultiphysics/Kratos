@@ -125,7 +125,7 @@ void  AddCustomUtilitiesToPython()
     .def("SetStrategy",ThisSetStrategyOverload)
     .def("SetTurbulenceModel",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel)
     .def("GetStrategy",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::pGetStrategy)
-    .def("GetTurbulenceModel",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel)
+    .def("GetTurbulenceModel",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::GetTurbulenceModel)
     .def("SetEchoLevel",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetEchoLevel)
     ;
 
