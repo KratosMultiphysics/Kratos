@@ -95,7 +95,18 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
- 
+     //************* GETTING METHODS
+
+    /**
+     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
+     */
+    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Sets on rResult the ID's of the element degrees of freedom
+     */
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+
     //************************************************************************************
     //************************************************************************************
     /**
@@ -140,6 +151,20 @@ protected:
      * Initialize Element General Variables
      */ 
     void InitializeGeneralVariables( GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+
+   /**
+     * Calculation of the Green Lagrange Strain Vector
+     */
+    void CalculateGreenLagrangeStrain(const Matrix& rF,
+					      Vector& rStrainVector);
+
+    /**
+     * Calculation of the Almansi Strain Vector
+     */
+    void CalculateAlmansiStrain(const Matrix& rF,
+				Vector& rStrainVector);
+
+
 
     /**
      * Calculation of the Deformation Gradient F

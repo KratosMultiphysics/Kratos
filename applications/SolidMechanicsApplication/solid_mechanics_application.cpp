@@ -179,16 +179,16 @@ namespace Kratos
     mSpatialLagrangianElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
     mSpatialLagrangianElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
 
-    mPointForce2DCondition( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-    mPointForce3DCondition( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+    mPointLoad2DCondition( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+    mPointLoad3DCondition( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mPointMoment3DCondition( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-    mLineForceCondition3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mFaceForceCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mFaceForceCondition3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mFaceForceCondition3D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
-    mFaceForceCondition3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
-    mFaceForceCondition3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
-    mFaceForceCondition3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
+    mLineLoadCondition3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mLineLoadCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mSurfaceLoadCondition3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mSurfaceLoadCondition3D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
+    mSurfaceLoadCondition3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+    mSurfaceLoadCondition3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
+    mSurfaceLoadCondition3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
 
   {}
   
@@ -264,18 +264,18 @@ namespace Kratos
 
     //Register Conditions
  
-    KRATOS_REGISTER_CONDITION( "PointForce2DCondition",   mPointForce2DCondition )
-    KRATOS_REGISTER_CONDITION( "PointForce3DCondition",   mPointForce3DCondition )
+    KRATOS_REGISTER_CONDITION( "PointLoad2DCondition",     mPointLoad2DCondition )
+    KRATOS_REGISTER_CONDITION( "PointLoad3DCondition",     mPointLoad3DCondition )
     KRATOS_REGISTER_CONDITION( "PointMoment3DCondition", mPointMoment3DCondition )
 
-    KRATOS_REGISTER_CONDITION( "LineForceCondition3D2N", mLineForceCondition3D2N )
+    KRATOS_REGISTER_CONDITION( "LineLoadCondition3D2N",   mLineLoadCondition3D2N )
+    KRATOS_REGISTER_CONDITION( "LineLoadCondition2D2N",   mLineLoadCondition2D2N )
 
-    KRATOS_REGISTER_CONDITION( "FaceForceCondition2D2N", mFaceForceCondition2D2N )
-    KRATOS_REGISTER_CONDITION( "FaceForceCondition3D3N", mFaceForceCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "FaceForceCondition3D6N", mFaceForceCondition3D6N )
-    KRATOS_REGISTER_CONDITION( "FaceForceCondition3D4N", mFaceForceCondition3D4N )
-    KRATOS_REGISTER_CONDITION( "FaceForceCondition3D8N", mFaceForceCondition3D8N )
-    KRATOS_REGISTER_CONDITION( "FaceForceCondition3D9N", mFaceForceCondition3D9N )
+    KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D3N", mSurfaceLoadCondition3D3N )
+    KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D6N", mSurfaceLoadCondition3D6N )
+    KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D4N", mSurfaceLoadCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D8N", mSurfaceLoadCondition3D8N )
+    KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D9N", mSurfaceLoadCondition3D9N )
  
 
    //Register Constitutive Laws

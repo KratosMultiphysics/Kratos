@@ -33,12 +33,12 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_3D_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_2D_element.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_force_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_force_3D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_force_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face_force_2D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/face_force_3D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_2D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_3D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_2D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_3D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_3D_condition.cpp
 )
 
 ###############################################################

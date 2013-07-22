@@ -473,6 +473,10 @@ namespace Kratos
     
     const unsigned int number_of_nodes = GetGeometry().size();
  
+    rVariables.detF  = 1;
+
+    rVariables.detF0 = 1;
+
     rVariables.B.resize( 6 , number_of_nodes * 3 );
   
     rVariables.F.resize( 3, 3 );
@@ -483,7 +487,7 @@ namespace Kratos
   
     rVariables.StressVector.resize( 6 );
 
-    rVariables.ElasticLeftCGVector.resize( 4 );
+    rVariables.ElasticLeftCGVector.resize( 6 );
   
     rVariables.DN_DX.resize( number_of_nodes, 3 );
 
@@ -1083,38 +1087,12 @@ namespace Kratos
 							  Matrix& rDN_DX)
   {
     KRATOS_TRY
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
- 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	unsigned int index = dimension * i;
-
-	rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
-	rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
-	rB( 0, index + 2 ) = rF( 2, 0 ) * rDN_DX( i, 0 );
-	rB( 1, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
-	rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
-	rB( 1, index + 2 ) = rF( 2, 1 ) * rDN_DX( i, 1 );
-	rB( 2, index + 0 ) = rF( 0, 2 ) * rDN_DX( i, 2 );
-	rB( 2, index + 1 ) = rF( 1, 2 ) * rDN_DX( i, 2 );
-	rB( 2, index + 2 ) = rF( 2, 2 ) * rDN_DX( i, 2 );
-	rB( 3, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
-	rB( 3, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
-	rB( 3, index + 2 ) = rF( 2, 0 ) * rDN_DX( i, 1 ) + rF( 2, 1 ) * rDN_DX( i, 0 );
-	rB( 4, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 2 ) + rF( 0, 2 ) * rDN_DX( i, 1 );
-	rB( 4, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 2 ) + rF( 1, 2 ) * rDN_DX( i, 1 );
-	rB( 4, index + 2 ) = rF( 2, 1 ) * rDN_DX( i, 2 ) + rF( 2, 2 ) * rDN_DX( i, 1 );
-	rB( 5, index + 0 ) = rF( 0, 2 ) * rDN_DX( i, 0 ) + rF( 0, 0 ) * rDN_DX( i, 2 );
-	rB( 5, index + 1 ) = rF( 1, 2 ) * rDN_DX( i, 0 ) + rF( 1, 0 ) * rDN_DX( i, 2 );
-	rB( 5, index + 2 ) = rF( 2, 2 ) * rDN_DX( i, 0 ) + rF( 2, 0 ) * rDN_DX( i, 2 );
-	
-
-      }
-
+  
+    KRATOS_ERROR(std::logic_error, "calling the default function for a large displacement 3D element ... illegal operation!!","");
+    
     KRATOS_CATCH( "" )
-      }
-
+  }
+  
 
   //************************************CALCULATE TOTAL MASS****************************
   //************************************************************************************

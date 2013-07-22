@@ -94,6 +94,7 @@ namespace Kratos
 
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;    
+    ElasticVariables.IdentityMatrix = identity_matrix<double> ( 3 );
 
     // Initialize Splited Parts: Isochoric and Volumetric stresses and constitutive tensors
     double voigtsize = StressVector.size();
@@ -133,9 +134,7 @@ namespace Kratos
 	  this->CalculateGreenLagrangeStrain(RightCauchyGreen, StrainVector);
 	}
  
-      //7.-Calculate Total PK2 stress   
-      ElasticVariables.IdentityMatrix = identity_matrix<double> ( 3 );
-      
+      //7.-Calculate Total PK2 stress         
       SplitStressVector.Isochoric = ZeroVector(voigtsize);
 
       if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
@@ -183,7 +182,10 @@ namespace Kratos
 
     //-----------------------------//
     //OPTION 2: ( last known configuration : updated lagrangian approach only )
-    if( Options.Is( ConstitutiveLaw::LAST_KNOWN_CONFIGURATION ) ){
+    if( Options.Is( ConstitutiveLaw::LAST_KNOWN_CONFIGURATION ) || Options.Is( ConstitutiveLaw::FINAL_CONFIGURATION ) ){
+
+     //Determinant of the Total Deformation Gradient
+      ElasticVariables.DeterminantF0 = DeterminantF0 * DeterminantF;
 
       //Left Cauchy-Green tensor b
       ElasticVariables.CauchyGreenMatrix = LeftCauchyGreenPushForward( ElasticVariables.CauchyGreenMatrix, ElasticLeftCauchyGreenVector, DeformationGradientF );
@@ -286,6 +288,8 @@ namespace Kratos
 
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;
+    ElasticVariables.IdentityMatrix = identity_matrix<double> ( 3 );
+
 
     // Initialize Splited Parts: Isochoric and Volumetric stresses and constitutive tensors
     double voigtsize = StressVector.size();
@@ -320,9 +324,7 @@ namespace Kratos
 	this->CalculateAlmansiStrain(ElasticVariables.CauchyGreenMatrix,StrainVector);
       }
  
-    //5.-Calculate Total PK2 stress   
-    ElasticVariables.IdentityMatrix = identity_matrix<double> ( 3 );
-    
+    //5.-Calculate Total PK2 stress       
     SplitStressVector.Isochoric = ZeroVector(voigtsize);
 
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
