@@ -86,10 +86,10 @@ for directory in [post_path, list_path, neigh_list_path, data_and_results, graph
 
 os.chdir(list_path)
 
-multifile       = open(problem_name + '_all' + '.post.lst', 'w')
-multifile_5     = open(problem_name + '_5'   + '.post.lst', 'w')
-multifile_10    = open(problem_name + '_10'  + '.post.lst', 'w')
-multifile_50    = open(problem_name + '_50'  + '.post.lst', 'w')
+multifile        = open(problem_name + '_all' + '.post.lst', 'w')
+multifile_5      = open(problem_name + '_5'   + '.post.lst', 'w')
+multifile_10     = open(problem_name + '_10'  + '.post.lst', 'w')
+multifile_50     = open(problem_name + '_50'  + '.post.lst', 'w')
 
 multifile.write('Multiple\n')
 multifile_5.write('Multiple\n')
@@ -124,25 +124,6 @@ solver.Initialize()
 # Initialization of physics monitor and of the initial position of the center of mass
 
 physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
-
-# Granulometry Utils
-
-domain_volume = 2.9 * 0.194 * 0.194 * math.pi
-porosity_utils = DEM_procedures.GranulometryUtils(domain_volume, balls_model_part)
-porosity_utils.PrintCurrentData()
-
-# Bounding box
-
-time_of_destruction = 1.8
-marking_for_destruction_not_performed = True
-manual_b_box_low = Array3()
-manual_b_box_high = Array3()
-manual_b_box_low[0]= -1.0;
-manual_b_box_low[1]= -1.0;
-manual_b_box_low[2]= -1.0;
-manual_b_box_high[0]= 1.0;
-manual_b_box_high[1]= 2.0;
-manual_b_box_high[2]= 1.0;
 
 # Mdpa Writing
 
@@ -209,14 +190,6 @@ while (time < FinalTime):
     #########################TIME CONTROL######################################4
 
     incremental_time = (timer.time() - initial_real_time) - prev_time
-
-    if (time > time_of_destruction and marking_for_destruction_not_performed):
-        creator_destructor.MarkParticlesForErasingGivenBoundingBox(balls_model_part, manual_b_box_low, manual_b_box_high)
-        marking_for_destruction_not_performed = False
-
-    if (time > time_of_mdpa_writing and mdpa_writing_not_performed):
-        mdpa_creator.WriteMdpa(balls_model_part)
-        mdpa_writing_not_performed = False
 
     if (incremental_time > ControlTime):
         percentage = 100 * (float(step) / total_steps_expected)
@@ -326,10 +299,6 @@ multifile_50.close()
 os.chdir(main_path)
 
 # Porosity
-
-domain_volume = 2 * 0.194 * 0.194 * math.pi
-porosity_utils.UpdateData(domain_volume)
-porosity_utils.PrintCurrentData()
 
 elapsed_pr_time 	= timer.clock() - initial_pr_time
 elapsed_real_time 	= timer.time() - initial_real_time
