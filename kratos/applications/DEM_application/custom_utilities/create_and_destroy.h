@@ -42,11 +42,20 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ParticleCreatorDestructor);
 
-    /// Default constructor.
-    ParticleCreatorDestructor(){};
+    /// Default constructor. 
+    ParticleCreatorDestructor()
+    {
+      mScaleFactor  = 1.0;
+      mHighPoint[0] = 10e18;
+      mHighPoint[1] = 10e18;
+      mHighPoint[2] = 10e18;
+      mLowPoint[0]  = -10e18;
+      mLowPoint[1]  = -10e18;
+      mLowPoint[2]  = -10e18;
+    }
 
     /// Destructor.
-    virtual ~ParticleCreatorDestructor(){};
+    virtual ~ParticleCreatorDestructor(){}
 
     void CalculateSurroundingBoundingBox(ModelPart& r_model_part, double scale_factor)
     {
@@ -217,37 +226,45 @@ public:
     ///@name Access
     ///@{
 
-    array_1d<double, 3>& GetHighNode()
+    array_1d<double, 3> GetHighNode()
     {
         return (mHighPoint);
-    };
+    }
 
-    array_1d<double, 3>& GetLowNode()
+    array_1d<double, 3> GetLowNode()
     {
         return (mLowPoint);
-    };
+    }
 
     array_1d<double, 3>& GetStrictHighNode()
     {
         return (mHighPoint);
-    };
+    }
 
     array_1d<double, 3>& GetStrictLowNode()
     {
         return (mLowPoint);
-    };
+    }
 
     double& GetDiameter()
     {
         return (mDiameter);
-    };
+    }
 
     double& GetStrictDiameter()
     {
         return (mStrictDiameter);
-    };
+    }
 
+    void SetHighNode(array_1d<double, 3> node)
+    {
+        mHighPoint = node;
+    }
 
+    void SetLowNode(array_1d<double, 3> node)
+    {
+        mLowPoint = node;
+    }
     ///@}
     ///@name Inquiry
     ///@{
@@ -335,6 +352,7 @@ private:
     array_1d<double, 3 > mStrictLowPoint;
     double mDiameter;
     double mStrictDiameter;
+    double mScaleFactor;
 
     inline void Clear(ModelPart::NodesContainerType::iterator node_it, int step_data_size)
     {
