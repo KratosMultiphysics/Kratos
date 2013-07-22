@@ -89,6 +89,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //Search
 #include "custom_utilities/omp_dem_search.h"
 
+// Create and Destroy
+#include "custom_utilities/create_and_destroy.h"
+
 namespace Kratos
 {
 
@@ -111,7 +114,11 @@ namespace Kratos
           class_<IntegrationScheme, boost::noncopyable >
                     ("IntegrationScheme", init< >())
                   ;
-                  
+
+          class_<ParticleCreatorDestructor, boost::noncopyable >
+                    ("ParticleCreatorDestructor", init<>())
+                  ;
+
           class_< ForwardEulerScheme, bases<IntegrationScheme>,  boost::noncopyable>
           (
                     "ForwardEulerScheme", init<>()
@@ -139,14 +146,14 @@ namespace Kratos
           
           class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
           (
-          "ExplicitSolverStrategy", init< ModelPart&, double, double, double, double, bool, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ExplicitSolverStrategy", init< ModelPart&, double, double, double, bool, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ExplicitSolverStrategyType::InitialTimeStepCalculation)
           ;
           
           class_< ContinuumExplicitSolverStrategyType, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
           (
-          "ContinuumExplicitSolverStrategy", init< ModelPart&, ModelPart&, double, double, double, double, bool, bool, bool, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ContinuumExplicitSolverStrategy", init< ModelPart&, ModelPart&, double, double, double, bool, bool, bool, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ContinuumExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ContinuumExplicitSolverStrategyType::InitialTimeStepCalculation)
           ;

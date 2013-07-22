@@ -74,10 +74,14 @@ void  AddCustomUtilitiesToPython(){
 
      class_<ParticleCreatorDestructor, boost::noncopyable >
         ("ParticleCreatorDestructor", init<>())
-        .def( "CalculateSurroundingBoundingBox", &ParticleCreatorDestructor::CalculateSurroundingBoundingBox)
-        .def( "MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox)
-        .def( "MarkParticlesForErasingGivenScalarVariableValue", &ParticleCreatorDestructor::MarkParticlesForErasingGivenScalarVariableValue)
-        .def( "MarkParticlesForErasingGivenVectorVariableModulus", &ParticleCreatorDestructor::MarkParticlesForErasingGivenVectorVariableModulus)
+        .def("CalculateSurroundingBoundingBox", &ParticleCreatorDestructor::CalculateSurroundingBoundingBox)
+        .def("MarkParticlesForErasingGivenBoundingBox", &ParticleCreatorDestructor::MarkParticlesForErasingGivenBoundingBox)
+        .def("MarkParticlesForErasingGivenScalarVariableValue", &ParticleCreatorDestructor::MarkParticlesForErasingGivenScalarVariableValue)
+        .def("MarkParticlesForErasingGivenVectorVariableModulus", &ParticleCreatorDestructor::MarkParticlesForErasingGivenVectorVariableModulus)
+        .def("GetHighNode", &ParticleCreatorDestructor::GetHighNode)
+        .def("GetLowNode", &ParticleCreatorDestructor::GetLowNode)
+        .def("SetHighNode", &ParticleCreatorDestructor::SetHighNode)
+        .def("SetLowNode", &ParticleCreatorDestructor::SetLowNode)
         ;
 
     class_<SphericElementGlobalPhysicsCalculator, boost::noncopyable >
