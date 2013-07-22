@@ -22,6 +22,19 @@ GravityZ                         = *GenData(Gravity_z)
 BoundingBoxOption                = "*GenData(Bounding_Box_option)"
 *format "%10.5e"
 BoundingBoxEnlargementFactor     = *GenData(Bounding_Box_Enlargement_Factor)
+AutomaticBoundingBoxOption       = "*GenData(Automatic_Calculation_Of_Bounding_Box)"
+*format "%10.5e"
+BoundingBoxMaxX                  = *GenData(Max_X)
+*format "%10.5e"
+BoundingBoxMaxY                  = *GenData(Max_Y)
+*format "%10.5e"
+BoundingBoxMaxZ                  = *GenData(Max_Z)
+*format "%10.5e"
+BoundingBoxMinX                  = *GenData(Min_X)
+*format "%10.5e"
+BoundingBoxMinY                  = *GenData(Min_Y)
+*format "%10.5e"
+BoundingBoxMinZ                  = *GenData(Min_Z)
 Dimension                        = *GenData(Domain_Dimension)
 OutputFileType                   = "*GenData(Output_file_type)"
 Multifile                        = "*GenData(Multifile)"

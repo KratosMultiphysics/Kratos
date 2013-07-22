@@ -60,9 +60,13 @@ balls_model_part.SetBufferSize(2)
 
 SolverStrategy.AddDofs(balls_model_part)
 
+# Constructing a creator/destructor object
+
+creator_destructor = ParticleCreatorDestructor()
+
 # Creating a solver object
 
-solver = SolverStrategy.ExplicitStrategy(balls_model_part, Param) #here, solver variables initialize as default
+solver = SolverStrategy.ExplicitStrategy(balls_model_part, creator_destructor, Param) #here, solver variables initialize as default
 
 
 # Creating necessary directories
@@ -121,11 +125,7 @@ solver.Initialize()
 
 physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 
-# Constructing a creator/destructor object
-
-creator_destructor = ParticleCreatorDestructor()
-
-# Porosity Utils
+# Granulometry Utils
 
 domain_volume = 2.9 * 0.194 * 0.194 * math.pi
 porosity_utils = DEM_procedures.GranulometryUtils(domain_volume, balls_model_part)
@@ -133,7 +133,7 @@ porosity_utils.PrintCurrentData()
 
 # Bounding box
 
-time_of_destruction = 2.0
+time_of_destruction = 1.8
 marking_for_destruction_not_performed = True
 manual_b_box_low = Array3()
 manual_b_box_high = Array3()
@@ -143,6 +143,12 @@ manual_b_box_low[2]= -1.0;
 manual_b_box_high[0]= 1.0;
 manual_b_box_high[1]= 2.0;
 manual_b_box_high[2]= 1.0;
+
+# Mdpa Writing
+
+mdpa_creator = DEM_procedures.MdpaCreator(main_path, Param)
+time_of_mdpa_writing = 2.8
+mdpa_writing_not_performed = True
 
 properties_list = []
 
@@ -207,6 +213,10 @@ while (time < FinalTime):
     if (time > time_of_destruction and marking_for_destruction_not_performed):
         creator_destructor.MarkParticlesForErasingGivenBoundingBox(balls_model_part, manual_b_box_low, manual_b_box_high)
         marking_for_destruction_not_performed = False
+
+    if (time > time_of_mdpa_writing and mdpa_writing_not_performed):
+        mdpa_creator.WriteMdpa(balls_model_part)
+        mdpa_writing_not_performed = False
 
     if (incremental_time > ControlTime):
         percentage = 100 * (float(step) / total_steps_expected)

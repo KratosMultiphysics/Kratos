@@ -37,6 +37,52 @@ def Var_Translator(variable):
 
     return variable
 
+class MdpaCreator:
+    def __init__(self, path, param):
+        self.problem_parameters = param
+        self.current_path = path
+
+        # Creating necessary directories
+
+        self.post_mdpas = str(self.current_path) + '/' + str(self.problem_parameters.problem_name) + '_post_mdpas'
+        os.chdir(self.current_path)
+        if not os.path.isdir(self.post_mdpas):
+            os.makedirs(str(self.post_mdpas))
+
+    def WriteMdpa(self, model_part):
+        os.chdir(self.post_mdpas)
+        time = model_part.ProcessInfo.GetValue(TIME)
+        mdpa = open(str(self.problem_parameters.problem_name) + '_post_' + str(time) + '.mdpa', 'w')
+        mdpa.write('\n')
+        mdpa.write('Begin ModelPartData')
+        mdpa.write('\n')
+        mdpa.write('//  VARIABLE_NAME value')
+        mdpa.write('\n')
+        mdpa.write('End ModelPartData')
+        mdpa.write('\n')
+        mdpa.write('\n')
+        mdpa.write('\n')
+        mdpa.write('\n')
+        mdpa.write('Begin Nodes')
+        mdpa.write('\n')
+
+        for node in model_part.Nodes:
+            mdpa.write(str(node.Id) + '   ' + str(node.X) + '  ' + str(node.Y) + '  ' + str(node.Z))
+            mdpa.write('\n')
+
+        mdpa.write('End Nodes')
+        mdpa.write('\n')
+        mdpa.write('\n')
+        mdpa.write('Begin NodalData RADIUS')
+        mdpa.write('\n')
+
+        for node in model_part.Nodes:
+            mdpa.write(str(node.Id) + ' ' + str(0) + ' ' + str(node.GetSolutionStepValue(RADIUS)))
+            mdpa.write('\n')
+
+        mdpa.write('End NodalData')
+        mdpa.write('\n')
+
 class GranulometryUtils:
 
     def __init__(self, domain_volume, model_part):

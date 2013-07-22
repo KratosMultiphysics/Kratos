@@ -55,9 +55,13 @@ balls_model_part.SetBufferSize(2)
 
 SolverStrategy.AddDofs(balls_model_part)
 
+# Constructing a creator/destructor object
+
+creator_destructor = ParticleCreatorDestructor()
+
 # Creating a solver object
 
-solver = SolverStrategy.ExplicitStrategy(balls_model_part, Param) #here, solver variables initialize as default
+solver = SolverStrategy.ExplicitStrategy(balls_model_part, creator_destructor, Param) #here, solver variables initialize as default
 
 
 # Creating necessary directories
