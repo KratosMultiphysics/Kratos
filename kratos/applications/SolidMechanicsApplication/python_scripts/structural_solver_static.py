@@ -58,10 +58,14 @@ class StaticStructuralSolver:
        #self.solver = strategy_python.SolvingStrategyPython(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
         ##(self.solver).SetEchoLevel(2)
        
-        #creating the solution strategy
-        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.MaxNewtonRapshonIterations,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
-        self.solver.Check();
         
+
+        #creating the solution strategy
+        #self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.MaxNewtonRapshonIterations,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
+        
+        builder_and_solver = BlockResidualBasedBuilderAndSolver(self.structure_linear_solver)
+        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,builder_and_solver,self.MaxNewtonRapshonIterations,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
+        self.solver.Check();
         #(self.solver).SetReformDofSetAtEachStepFlag(True)
         #(self.solver).SetMoveMeshFlag(True)
         

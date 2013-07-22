@@ -264,9 +264,9 @@ namespace Kratos
 	rF ( 1 , 0 ) += DeltaPosition(i,1)*rDN_DX ( i , 0 );
 	rF ( 1 , 1 ) += DeltaPosition(i,1)*rDN_DX ( i , 1 );
 	rF ( 1 , 2 ) += DeltaPosition(i,1)*rDN_DX ( i , 2 );
-	rF ( 2 , 0 ) += DeltaPosition(i,0)*rDN_DX ( i , 0 );
-	rF ( 2 , 1 ) += DeltaPosition(i,0)*rDN_DX ( i , 1 );
-	rF ( 2 , 2 ) += DeltaPosition(i,0)*rDN_DX ( i , 2 );
+	rF ( 2 , 0 ) += DeltaPosition(i,2)*rDN_DX ( i , 0 );
+	rF ( 2 , 1 ) += DeltaPosition(i,2)*rDN_DX ( i , 1 );
+	rF ( 2 , 2 ) += DeltaPosition(i,2)*rDN_DX ( i , 2 );
       }
 
       

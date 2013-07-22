@@ -129,7 +129,7 @@ namespace Kratos
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     //Compute cartesian derivatives
-  noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
+    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
 
     //Current Deformation Gradient F
     this->CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition);

@@ -256,19 +256,16 @@ namespace Kratos
   //************************************CALCULATE TOTAL MASS****************************
   //************************************************************************************
 
-  double& SmallDisplacement2DElement::CalculateTotalMass( double& TotalMass )
+  double& SmallDisplacement2DElement::CalculateTotalMass( double& rTotalMass )
   {
     KRATOS_TRY
 
-    TotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY] * GetProperties()[THICKNESS];
+    rTotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY] * GetProperties()[THICKNESS];
 
-    return TotalMass;
+    return rTotalMass;
 
     KRATOS_CATCH( "" )
   }
-
-
-
 
   //************************************************************************************
   //************************************************************************************

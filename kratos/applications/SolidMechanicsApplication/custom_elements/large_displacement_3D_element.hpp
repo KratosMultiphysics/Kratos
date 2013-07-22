@@ -564,6 +564,12 @@ protected:
      */
     virtual double& CalculateTotalMass(double& rTotalMass);
 
+
+    /**
+     * Calculation of the Volume Force of the Element
+     */
+    virtual Vector& CalculateVolumeForce(Vector& rVolumeForce, const Vector& rN);
+
     ///@}
     ///@name Protected  Access
     ///@{
