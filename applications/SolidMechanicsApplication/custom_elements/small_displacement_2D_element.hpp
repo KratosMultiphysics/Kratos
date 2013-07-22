@@ -195,7 +195,8 @@ protected:
      */
     double& CalculateTotalMass(double& rTotalMass);
 
-    ///@}
+
+   ///@}
     ///@name Protected  Access
     ///@{
     ///@}

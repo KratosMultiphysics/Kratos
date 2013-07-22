@@ -601,7 +601,7 @@ namespace Kratos
 	if ( rCalculationOptions.Is(SmallDisplacement3DElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
 	  {
 	    //contribution to external forces
-	    VolumeForce = GetProperties()[BODY_FORCE]*GetProperties()[DENSITY];
+	    VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables.N );
 
 	    this->CalculateAndAddRHS ( rRightHandSideVector, Variables, VolumeForce, IntegrationWeight );
 	    
@@ -1111,17 +1111,41 @@ namespace Kratos
   //************************************CALCULATE TOTAL MASS****************************
   //************************************************************************************
 
-  double& SmallDisplacement3DElement::CalculateTotalMass( double& TotalMass )
+  double& SmallDisplacement3DElement::CalculateTotalMass( double& rTotalMass )
   {
     KRATOS_TRY
 
-    TotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY];
+    rTotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY];
 
-    return TotalMass;
+    return rTotalMass;
 
     KRATOS_CATCH( "" )
   }
 
+
+  //************************************CALCULATE VOLUME ACCELERATION*******************
+  //************************************************************************************
+
+  Vector& SmallDisplacement3DElement::CalculateVolumeForce( Vector& rVolumeForce, const Vector &rN)
+  {
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    rVolumeForce = ZeroVector(dimension);
+    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+      {
+	if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ) //temporary, will be checked once at the beginning only
+	  rVolumeForce += rN[j] * GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+      }
+
+    rVolumeForce *= GetProperties()[DENSITY];
+   
+    return rVolumeForce;
+
+    KRATOS_CATCH( "" )
+  }
 
 
   //************************************************************************************
