@@ -321,6 +321,14 @@ namespace Kratos
 	//Left Cauchy-Green tensor b
 	ElasticVariables.CauchyGreenMatrix = LeftCauchyGreenPushForward( ElasticVariables.CauchyGreenMatrix, ElasticLeftCauchyGreenVector, DeformationGradientF );
 
+	//Almansi Strain:
+	if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
+	  {
+	    // e= 0.5*(1-invbT*invb)   
+	    this->CalculateAlmansiStrain(ElasticVariables.CauchyGreenMatrix,StrainVector);
+	  }
+
+
 	this->CalculateStress( ElasticVariables, StressMeasure_Kirchhoff, StressVector );
 
 	TransformStresses(StressVector, DeformationGradientF, DeterminantF, StressMeasure_Kirchhoff, StressMeasure_PK2); //2nd PK Stress in the last known configuration
@@ -619,10 +627,11 @@ namespace Kratos
 		  
       //2.-Kirchhoff Stress Matrix 
       StressMatrix  = rElasticVariables.LameLambda * auxiliar * rElasticVariables.IdentityMatrix;
-      StressMatrix += rElasticVariables.LameMu*( rElasticVariables.CauchyGreenMatrix - rElasticVariables.IdentityMatrix);
+      
+      StressMatrix += rElasticVariables.LameMu * ( rElasticVariables.CauchyGreenMatrix - rElasticVariables.IdentityMatrix );
     }
 
-    rStressVector = MathUtils<double>::StressTensorToVector(StressMatrix,rStressVector.size());
+    rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
     
   }
 
@@ -720,7 +729,7 @@ namespace Kratos
     rCabcd = 0;
     double Cijkl=0;
    
-    unsigned int dimension = 3;
+    unsigned int dimension = rInverseDeformationGradientF.size1();
 
     //Cabcd
     for(unsigned int j=0; j<dimension; j++)
