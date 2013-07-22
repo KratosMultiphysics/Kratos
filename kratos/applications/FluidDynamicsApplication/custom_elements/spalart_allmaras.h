@@ -299,7 +299,9 @@ protected:
                                double& rNormOmega,
                                const ShapeDerivativesType& DN_DX);
 
-    double CalculateTau(const ProcessInfo& rCurrentProcessInfo);
+    double CalculateTau(double ElementSize, const ProcessInfo& rCurrentProcessInfo);
+
+    double ElementSize();
 
 
     ///@}
