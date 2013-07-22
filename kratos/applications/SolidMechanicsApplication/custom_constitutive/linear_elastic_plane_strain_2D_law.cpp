@@ -90,7 +90,7 @@ namespace Kratos
     rStrainVector.clear();
     rStrainVector[0] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 0, 0 ) );
     rStrainVector[1] = 0.5 * ( 1.0 - InverseLeftCauchyGreen( 1, 1 ) );
-    rStrainVector[2] = InverseLeftCauchyGreen( 0, 1 );
+    rStrainVector[2] = -InverseLeftCauchyGreen( 0, 1 );
 
 
   }

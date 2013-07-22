@@ -682,7 +682,7 @@ namespace Kratos
     rCabcd = 0;
     double Cijkl=0;
    
-    unsigned int dimension = 3;
+    unsigned int dimension =  rInverseDeformationGradientF.size1();
 
     //Cabcd
     for(unsigned int j=0; j<dimension; j++)
@@ -721,7 +721,7 @@ namespace Kratos
 
     rCabcd = 0;
     double Cijkl = 0;
-    unsigned int dimension = 3;
+    unsigned int dimension =  rInverseDeformationGradientF.size1();
 
     //Cabcd
     for(unsigned int j=0; j<dimension; j++)
