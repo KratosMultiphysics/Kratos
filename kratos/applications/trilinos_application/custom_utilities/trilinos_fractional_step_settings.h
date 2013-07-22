@@ -207,6 +207,11 @@ public:
         KRATOS_CATCH("");
     }
 
+    virtual void SetTurbulenceModel(ProcessPointerType pTurbulenceModel)
+    {
+        BaseType::SetTurbulenceModel(pTurbulenceModel);
+    }
+
     ///@}
     ///@name Inquiry
     ///@{

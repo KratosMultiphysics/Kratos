@@ -75,40 +75,6 @@ namespace Python
 {
 using namespace boost::python;
 
-Process::Pointer AuxGetTurbulenceModel1(TrilinosFractionalStepSettings<
-                                         TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>,
-                                         UblasSpace<double, Matrix, Vector>,
-                                         LinearSolver<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>, UblasSpace<double, Matrix, Vector> >
-                                        >& rSettings)
-{
-    KRATOS_TRY;
-
-    Process::Pointer out;
-    bool HaveTurbModel = rSettings.GetTurbulenceModel(out);
-    if (HaveTurbModel)
-        return out;
-    else
-        KRATOS_ERROR(std::runtime_error,"Trying to access the turbulence model before defining it","");
-    KRATOS_CATCH("");
-}
-
-Process::Pointer AuxGetTurbulenceModel2(TrilinosFractionalStepSettingsPeriodic<
-                                         TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>,
-                                         UblasSpace<double, Matrix, Vector>,
-                                         LinearSolver<TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>, UblasSpace<double, Matrix, Vector> >
-                                        >& rSettings)
-{
-    KRATOS_TRY;
-
-    Process::Pointer out;
-    bool HaveTurbModel = rSettings.GetTurbulenceModel(out);
-    if (HaveTurbModel)
-        return out;
-    else
-        KRATOS_ERROR(std::runtime_error,"Trying to access the turbulence model before defining it","");
-    KRATOS_CATCH("");
-}
-
 void  AddCustomUtilitiesToPython()
 {
     typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
@@ -160,9 +126,17 @@ void  AddCustomUtilitiesToPython()
     ;
 
     typedef SolverSettings<TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType> BaseSettingsType;
+    typedef void (BaseSettingsType::*BuildTurbModelType)(BaseSettingsType::TurbulenceModelLabel const&, TrilinosLinearSolverType::Pointer, const double, const unsigned int);
+    typedef void (BaseSettingsType::*PassTurbModelType)(Process::Pointer);
+    BuildTurbModelType SetTurbModel_Build = &SolverSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType>::SetTurbulenceModel;
+    PassTurbModelType SetTurbModel_Pass = &SolverSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType>::SetTurbulenceModel;
+
 
     class_ < BaseSettingsType, boost::noncopyable >
-    ( "BaseSettingsType",no_init );
+    ( "BaseSettingsType",no_init )
+    .def("SetTurbulenceModel",SetTurbModel_Build)
+    .def("SetTurbulenceModel",SetTurbModel_Pass)
+    ;
 
     typedef TrilinosFractionalStepSettings<TrilinosSparseSpaceType,TrilinosLocalSpaceType,TrilinosLinearSolverType> TrilinosFSSettingsType;
 
@@ -182,8 +156,6 @@ void  AddCustomUtilitiesToPython()
     class_< TrilinosFSSettingsType,bases<BaseSettingsType>, boost::noncopyable>
             ("TrilinosFractionalStepSettings",init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
     .def("SetStrategy",ThisSetStrategyOverload)
-    .def("SetTurbulenceModel",&TrilinosFSSettingsType::SetTurbulenceModel)
-    .def("GetTurbulenceModel",AuxGetTurbulenceModel1)
     .def("GetStrategy",&TrilinosFSSettingsType::pGetStrategy)
     .def("SetEchoLevel",&TrilinosFSSettingsType::SetEchoLevel)
     ;
@@ -197,8 +169,6 @@ void  AddCustomUtilitiesToPython()
     class_< TrilinosFSSettingsPeriodicType,bases<BaseSettingsType>, boost::noncopyable>
             ("TrilinosFractionalStepSettingsPeriodic",init<Epetra_MpiComm&,ModelPart&,unsigned int,unsigned int,bool,bool,bool,const Kratos::Variable<int>&>())
     .def("SetStrategy",ThatSetStrategyOverload)
-    .def("SetTurbulenceModel",&TrilinosFSSettingsPeriodicType::SetTurbulenceModel)
-    .def("GetTurbulenceModel",AuxGetTurbulenceModel2)
     .def("GetStrategy",&TrilinosFSSettingsPeriodicType::pGetStrategy)
     .def("SetEchoLevel",&TrilinosFSSettingsPeriodicType::SetEchoLevel)
     ;
