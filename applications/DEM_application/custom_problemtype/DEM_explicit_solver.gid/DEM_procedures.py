@@ -135,7 +135,6 @@ class Procedures:
         self.print_velocity                      = Var_Translator(param.PostVelocity)
         self.print_displacement                  = Var_Translator(param.PostDisplacement)
         self.print_radial_displacement           = Var_Translator(param.PostRadialDisplacement)
-        self.print_rhs                           = Var_Translator(param.PostRHS)
         self.print_total_forces                  = Var_Translator(param.PostTotalForces)
         self.print_damp_forces                   = Var_Translator(param.PostDampForces)
         self.print_applied_forces                = Var_Translator(param.PostAppliedForces)
@@ -533,9 +532,7 @@ class Procedures:
         if (self.print_radial_displacement):
             gid_io.WriteNodalResults(RADIAL_DISPLACEMENT, export_model_part.Nodes, time, 0)       
         if (self.print_velocity):
-            gid_io.WriteNodalResults(VELOCITY, export_model_part.Nodes, time, 0)
-        if (self.print_rhs):
-            gid_io.WriteNodalResults(RHS, export_model_part.Nodes, time, 0)       
+            gid_io.WriteNodalResults(VELOCITY, export_model_part.Nodes, time, 0)  
         if (self.print_applied_forces):
             gid_io.WriteNodalResults(APPLIED_FORCE, export_model_part.Nodes, time, 0)       
         if (self.print_total_forces):     
