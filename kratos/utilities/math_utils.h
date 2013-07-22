@@ -578,12 +578,12 @@ public:
 	  StressTensor.resize(3,3,false);
 	  StressTensor(0,0) = rStressVector[0];
 	  StressTensor(0,1) = rStressVector[3];
-	  StressTensor(0,2) = 0;
+	  StressTensor(0,2) = 0.0;
 	  StressTensor(1,0) = rStressVector[3];
 	  StressTensor(1,1) = rStressVector[1];
-	  StressTensor(1,2) = 0;
-	  StressTensor(2,0) = 0;
-	  StressTensor(2,1) = 0;
+	  StressTensor(1,2) = 0.0;
+	  StressTensor(2,0) = 0.0;
+	  StressTensor(2,1) = 0.0;
 	  StressTensor(2,2) = rStressVector[2];
 	}
       else if (rStressVector.size()==6)
@@ -636,12 +636,12 @@ public:
 	  Tensor.resize(3,3,false);
 	  Tensor(0,0) = rVector[0];
 	  Tensor(0,1) = rVector[3];
-	  Tensor(0,2) = 0;
+	  Tensor(0,2) = 0.0;
 	  Tensor(1,0) = rVector[3];
 	  Tensor(1,1) = rVector[1];
-	  Tensor(1,2) = 0;
-	  Tensor(2,0) = 0;
-	  Tensor(2,1) = 0;
+	  Tensor(1,2) = 0.0;
+	  Tensor(2,0) = 0.0;
+	  Tensor(2,1) = 0.0;
 	  Tensor(2,2) = rVector[2];
 	}
       else if (rVector.size()==6)
@@ -828,7 +828,7 @@ public:
         }
       else if (rSize==6)
         {
-	  StressVector.resize(4);
+	  StressVector.resize(6);
 	  StressVector[0]= rStressTensor(0,0);
 	  StressVector[1]= rStressTensor(1,1);
 	  StressVector[2]= rStressTensor(2,2);
@@ -883,7 +883,7 @@ public:
         }
       else if (rSize==6)
         {
-	  Vector.resize(4);
+	  Vector.resize(6);
 	  Vector[0]= rTensor(0,0);
 	  Vector[1]= rTensor(1,1);
 	  Vector[2]= rTensor(2,2);
