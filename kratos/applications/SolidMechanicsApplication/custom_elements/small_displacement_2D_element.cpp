@@ -241,6 +241,8 @@ namespace Kratos
 	unsigned int index = 2 * i;
 
 	rB( 0, index + 0 ) = rDN_DX( i, 0 );
+	rB( 0, index + 1 ) = 0.0;
+	rB( 1, index + 0 ) = 0.0;
 	rB( 1, index + 1 ) = rDN_DX( i, 1 );
 	rB( 2, index + 0 ) = rDN_DX( i, 1 );
 	rB( 2, index + 1 ) = rDN_DX( i, 0 );

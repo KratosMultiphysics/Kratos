@@ -38,7 +38,6 @@ namespace Kratos
   SpatialLagrangian2DElement::SpatialLagrangian2DElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : SpatialLagrangian3DElement( NewId, pGeometry, pProperties )
   {
-    //DO NOT ADD DOFS HERE!!!
   }
 
 
@@ -57,7 +56,6 @@ namespace Kratos
   SpatialLagrangian2DElement&  SpatialLagrangian2DElement::operator=(SpatialLagrangian2DElement const& rOther)
   {
     SpatialLagrangian3DElement::operator=(rOther);
-
     return *this;
   }
 
@@ -79,6 +77,43 @@ namespace Kratos
   }
 
 
+  //************* GETTING METHODS
+  //************************************************************************************
+  //************************************************************************************
+
+
+  void SpatialLagrangian2DElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+  {
+    rElementalDofList.resize( 0 );
+
+    for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
+      {
+	rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
+	rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
+      }
+  }
+
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void SpatialLagrangian2DElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+  {
+    int number_of_nodes = GetGeometry().size();
+    unsigned int element_size = number_of_nodes * 2;
+
+    if ( rResult.size() != element_size )
+      rResult.resize( element_size, false );
+
+    for ( int i = 0; i < number_of_nodes; i++ )
+      {
+	int index = i * 2;
+	rResult[index]     = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
+	rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
+      }
+
+  }
+
 
   //************* STARTING - ENDING  METHODS
   //************************************************************************************
@@ -90,6 +125,10 @@ namespace Kratos
   
     const unsigned int number_of_nodes = GetGeometry().size();
  
+    rVariables.detF  = 1;
+
+    rVariables.detF0 = 1;
+
     rVariables.B.resize( 3 , number_of_nodes * 2 );
   
     rVariables.F.resize( 2, 2 );
@@ -138,6 +177,59 @@ namespace Kratos
   //************* COMPUTING  METHODS
   //************************************************************************************
   //************************************************************************************
+  void SpatialLagrangian2DElement::CalculateGreenLagrangeStrain(const Matrix& rF,
+							      Vector& rStrainVector )
+  {
+    KRATOS_TRY
+
+    //Right Cauchy-Green Calculation
+    Matrix C ( 2, 2 );
+    noalias( C ) = prod( trans( rF ), rF );
+
+    //Green Lagrange Strain Calculation
+    if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
+
+    rStrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
+
+    rStrainVector[1] = 0.5 * ( C( 1, 1 ) - 1.00 );
+
+    rStrainVector[2] = C( 0, 1 ); // xy
+
+
+    KRATOS_CATCH( "" )
+      }
+
+
+  //************************************************************************************
+  //************************************************************************************
+
+  void SpatialLagrangian2DElement::CalculateAlmansiStrain(const Matrix& rF,
+						      Vector& rStrainVector )
+  {
+    KRATOS_TRY
+
+      //Left Cauchy-Green Calculation
+      Matrix LeftCauchyGreen = prod( rF, trans( rF ) );
+
+    //Calculating the inverse of the jacobian 
+    Matrix InverseLeftCauchyGreen ( 2, 2 );
+    double det_b=0;
+    MathUtils<double>::InvertMatrix( LeftCauchyGreen, InverseLeftCauchyGreen, det_b);
+
+
+    //Almansi Strain Calculation
+    if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
+
+    rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
+
+    rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );
+
+    rStrainVector[2] = - InverseLeftCauchyGreen( 0, 1 ); // xy
+
+
+
+    KRATOS_CATCH( "" )
+      }
 
 
   //*************************COMPUTE DEFORMATION GRADIENT*******************************
@@ -184,6 +276,8 @@ namespace Kratos
 	unsigned int index = 2 * i;
 
 	rB( 0, index + 0 ) = rDN_DX( i, 0 );
+	rB( 0, index + 1 ) = 0.0;
+	rB( 1, index + 0 ) = 0.0;
 	rB( 1, index + 1 ) = rDN_DX( i, 1 );
 	rB( 2, index + 0 ) = rDN_DX( i, 1 );
 	rB( 2, index + 1 ) = rDN_DX( i, 0 );

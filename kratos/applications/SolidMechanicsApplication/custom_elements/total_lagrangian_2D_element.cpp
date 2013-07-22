@@ -125,6 +125,10 @@ namespace Kratos
   
     const unsigned int number_of_nodes = GetGeometry().size();
  
+    rVariables.detF  = 1;
+
+    rVariables.detF0 = 1;
+
     rVariables.B.resize( 3 , number_of_nodes * 2 );
   
     rVariables.F.resize( 2, 2 );
@@ -211,7 +215,7 @@ namespace Kratos
 
 
     //Almansi Strain Calculation
-    if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
+    if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
 
     rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
 

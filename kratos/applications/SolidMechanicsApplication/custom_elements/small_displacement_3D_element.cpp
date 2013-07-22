@@ -1083,6 +1083,8 @@ namespace Kratos
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
  
+    rB.clear();
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	unsigned int index = 3 * i;

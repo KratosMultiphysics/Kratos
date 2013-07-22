@@ -63,7 +63,6 @@ namespace Kratos
     mElasticLeftCauchyGreenVector.clear();
     mElasticLeftCauchyGreenVector.resize(rOther.mElasticLeftCauchyGreenVector.size());
 
-
     for(unsigned int i=0; i<<mConstitutiveLawVector.size(); i++)
       {
 	mElasticLeftCauchyGreenVector [i] = rOther.mElasticLeftCauchyGreenVector[i];
@@ -106,16 +105,26 @@ namespace Kratos
     LargeDisplacement3DElement::Initialize();
 
     SizeType integration_points_number=GetGeometry().IntegrationPointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     //Resize historic deformation gradient
     mElasticLeftCauchyGreenVector.resize( integration_points_number );
     mDeterminantF0.resize( integration_points_number, false );
+    
+    for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
+      {
+	mDeterminantF0[PointNumber] = 1;
+	mElasticLeftCauchyGreenVector[PointNumber] = ZeroVector(dimension * 2);
+	for( unsigned int i=0; i<3; i++)
+	  mElasticLeftCauchyGreenVector[PointNumber][i] = 1;
+	
+      }
 
     KRATOS_CATCH( "" )
   }
 
 
-  //************************************************************************************
+ //************************************************************************************
   //************************************************************************************
 
   void SpatialLagrangian3DElement::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
@@ -140,6 +149,19 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
+  //************************************************************************************
+
+  void SpatialLagrangian3DElement::SetGeneralVariables(GeneralVariables& rVariables,
+						       ConstitutiveLaw::Parameters& rValues,
+						       const int & rPointNumber)
+  {
+    LargeDisplacement3DElement::SetGeneralVariables(rVariables,rValues,rPointNumber);
+
+    //Set extra options for the contitutive law
+    Flags &ConstitutiveLawOptions=rValues.GetOptions();
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::FINAL_CONFIGURATION);
+
+  }
 
   //*********************************COMPUTE KINEMATICS*********************************
   //************************************************************************************
@@ -206,11 +228,13 @@ namespace Kratos
 	array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 	array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 	    	    
+	//std::cout<<" CurrentDisplacement "<<CurrentDisplacement<<" PreviousDisplacement "<<PreviousDisplacement<<std::endl;
 	for ( unsigned int j = 0; j < dimension; j++ )
 	  {	    
 	    DeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
 	  }
       }
+
 
     return DeltaPosition;
 
@@ -257,12 +281,14 @@ namespace Kratos
   //************************************************************************************
 
   void SpatialLagrangian3DElement::CalculateDeformationMatrix(Matrix& rB,
-							    Matrix& rF,
-							    Matrix& rDN_DX)
+							      Matrix& rF,
+							      Matrix& rDN_DX)
   {
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
  
+    rB.clear();
+    
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	unsigned int index = 3 * i;

@@ -26,12 +26,12 @@
 #include "includes/kratos_application.h"
 
 //conditions
-#include "custom_conditions/point_force_2D_condition.hpp"
-#include "custom_conditions/point_force_3D_condition.hpp"
 #include "custom_conditions/point_moment_3D_condition.hpp"
-#include "custom_conditions/line_force_3D_condition.hpp"
-#include "custom_conditions/face_force_2D_condition.hpp"
-#include "custom_conditions/face_force_3D_condition.hpp"
+#include "custom_conditions/point_load_2D_condition.hpp"
+#include "custom_conditions/point_load_3D_condition.hpp"
+#include "custom_conditions/line_load_2D_condition.hpp"
+#include "custom_conditions/line_load_3D_condition.hpp"
+#include "custom_conditions/surface_load_3D_condition.hpp"
 
 //elements
 #include "custom_elements/beam_3D_element.hpp"
@@ -363,19 +363,18 @@ namespace Kratos
     const SpatialLagrangian3DElement mSpatialLagrangianElement3D27N;
 
     //conditions
-    const PointForce2DCondition    mPointForce2DCondition;
-    const PointForce3DCondition    mPointForce3DCondition;
-    const PointMoment3DCondition   mPointMoment3DCondition;
+    const PointLoad2DCondition          mPointLoad2DCondition;
+    const PointLoad3DCondition          mPointLoad3DCondition;
+    const PointMoment3DCondition      mPointMoment3DCondition;
 
-    const LineForce3DCondition    mLineForceCondition3D2N;
+    const LineLoad3DCondition          mLineLoadCondition3D2N;
+    const LineLoad2DCondition          mLineLoadCondition2D2N;
 
-    const FaceForce2DCondition    mFaceForceCondition2D2N;
-
-    const FaceForce3DCondition    mFaceForceCondition3D3N;
-    const FaceForce3DCondition    mFaceForceCondition3D6N;
-    const FaceForce3DCondition    mFaceForceCondition3D4N;
-    const FaceForce3DCondition    mFaceForceCondition3D8N;
-    const FaceForce3DCondition    mFaceForceCondition3D9N;
+    const SurfaceLoad3DCondition    mSurfaceLoadCondition3D3N;
+    const SurfaceLoad3DCondition    mSurfaceLoadCondition3D6N;
+    const SurfaceLoad3DCondition    mSurfaceLoadCondition3D4N;
+    const SurfaceLoad3DCondition    mSurfaceLoadCondition3D8N;
+    const SurfaceLoad3DCondition    mSurfaceLoadCondition3D9N;
 
 
     //constitutive laws 

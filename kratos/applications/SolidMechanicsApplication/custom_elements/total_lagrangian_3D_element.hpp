@@ -181,11 +181,6 @@ protected:
 					    Matrix& rF,
 					    Matrix& rDN_DX);
 
-    /**
-     * Calculation of the Integration Weight
-     */
-    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
-
 
     /**
      * Calculation of the Total Mass of the Element
