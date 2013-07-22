@@ -93,7 +93,7 @@ def Var_Translator(variable):
 
 class ExplicitStrategy:
 
-    def __init__(self, model_part, Param):
+    def __init__(self, model_part, creator_destructor, Param):
 
         # Initialization of member variables
 
@@ -121,7 +121,7 @@ class ExplicitStrategy:
         self.triaxial_option                = Var_Translator(Param.TriaxialOption)
         self.search_radius_extension        = 1e-6 #needed for the tangential contacts. Charlie will modify the search. 
         self.amplified_continuum_search_radius_extension    = 1.0;
-        
+        self.automatic_bounding_box_option  = Var_Translator(Param.AutomaticBoundingBoxOption)
         
         if (self.delta_option ):
             self.delta_option               = True
@@ -245,7 +245,25 @@ class ExplicitStrategy:
 
         self.n_step_search                  = int(Param.TimeStepsPerSearchStep)
         self.safety_factor                  = Param.DeltaTimeSafetyFactor # For critical time step
-        self.create_and_destroy             = ParticleCreatorDestructor()
+
+        # CREATOR-DESTRUCTOR
+
+        self.creator_destructor             = creator_destructor
+
+        b_box_low     = Array3()
+        b_box_high    = Array3()
+        b_box_low[0]  = Param.BoundingBoxMaxX
+        b_box_low[1]  = Param.BoundingBoxMaxY
+        b_box_low[2]  = Param.BoundingBoxMaxZ
+        b_box_high[0] = Param.BoundingBoxMinX
+        b_box_high[1] = Param.BoundingBoxMinY
+        b_box_high[2] = Param.BoundingBoxMinZ
+
+        self.creator_destructor.SetLowNode(b_box_low)
+        self.creator_destructor.SetHighNode(b_box_high)
+
+        if (self.automatic_bounding_box_option):
+            self.creator_destructor.CalculateSurroundingBoundingBox()
 
 
         # STRATEGIES
@@ -354,8 +372,8 @@ class ExplicitStrategy:
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
 
-        self.solver = ContinuumExplicitSolverStrategy(self.model_part, self.contact_model_part, self.enlargement_factor, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                      self.MoveMeshFlag, self.delta_option,self.continuum_simulating_option, self.time_scheme, self.search_strategy)
+        self.solver = ContinuumExplicitSolverStrategy(self.model_part, self.contact_model_part, self.max_delta_time, self.n_step_search, self.safety_factor,
+                                                      self.MoveMeshFlag, self.delta_option, self.continuum_simulating_option, self.creator_destructor, self.time_scheme, self.search_strategy)
   
                                   
         self.solver.Initialize() # Calls the solver Initialized function (initializes all elements and performs other necessary tasks before iterating)

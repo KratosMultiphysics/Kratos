@@ -68,13 +68,12 @@ def AddVariables(model_part, Param):
     # FLAGS
     model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
     model_part.AddNodalSolutionStepVariable(ERASE_FLAG)
+
     # ONLY VISUALITZATION
+    model_part.AddNodalSolutionStepVariable(EXPORT_ID)
 
     if (Var_Translator(Param.PostGroupId)):
         model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
-
-    if (Var_Translator(Param.PostExportId)):
-        model_part.AddNodalSolutionStepVariable(EXPORT_ID)
 
     print "Variables for the explicit solver added correctly"
 
@@ -95,33 +94,43 @@ def AddDofs(model_part):
 
 class ExplicitStrategy:
 
-    def __init__(self, model_part, Param):
+    def __init__(self, model_part, creator_destructor, Param):
 
         # Initialization of member variables
 
         # SIMULATION FLAGS        
-        self.virtual_mass_OPTION            = Var_Translator(Param.VirtualMassOption)
-        self.critical_time_OPTION           = Var_Translator(Param.AutoReductionOfTimeStepOption)
-        self.trihedron_OPTION               = Var_Translator(Param.TrihedronOption)
-        self.rotation_OPTION                = Var_Translator(Param.RotationOption)
-        self.bounding_box_OPTION            = Var_Translator(Param.BoundingBoxOption)
+        self.virtual_mass_option            = Var_Translator(Param.VirtualMassOption)
+        self.critical_time_option           = Var_Translator(Param.AutoReductionOfTimeStepOption)
+        self.trihedron_option               = Var_Translator(Param.TrihedronOption)
+        self.rotation_option                = Var_Translator(Param.RotationOption)
+        self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)
         self.fix_velocities                 = Var_Translator(Param.FixVelocitiesOption)
-        self.limit_surface_OPTION           = Var_Translator(Param.LimitSurfaceOption)
-        self.clean_init_indentation_OPTION  = Var_Translator(Param.CleanIndentationsOption)
-        self.homogeneous_material_OPTION    = Var_Translator(Param.HomogeneousMaterialOption)
-        self.global_variables_OPTION        = Var_Translator(Param.GlobalVariablesOption)
-        self.Non_Linear_Option              = Var_Translator(Param.NonLinearNormalElasticOption)
-        self.contact_mesh_OPTION            = Var_Translator(Param.ContactMeshOption)
+        self.limit_surface_option           = Var_Translator(Param.LimitSurfaceOption)
+        self.clean_init_indentation_option  = Var_Translator(Param.CleanIndentationsOption)
+        self.homogeneous_material_option    = Var_Translator(Param.HomogeneousMaterialOption)
+        self.global_variables_option        = Var_Translator(Param.GlobalVariablesOption)
+        self.non_linear_option              = Var_Translator(Param.NonLinearNormalElasticOption)
+        self.contact_mesh_option            = Var_Translator(Param.ContactMeshOption)
         self.search_radius_extension        = Var_Translator(Param.SearchRadiusExtension)
-        self.MoveMeshFlag                   = True
+        self.automatic_bounding_box_option  = Var_Translator(Param.AutomaticBoundingBoxOption)
+        self.move_mesh_flag                 = True
         self.deactivate_search              = 0
-        self.case_OPTION                    = 3
+        self.case_option                    = 3
+
 
         # MODEL
         self.model_part                      = model_part
 
         # BOUNDING_BOX
         self.enlargement_factor             = Param.BoundingBoxEnlargementFactor
+        self.top_corner                     = Array3()
+        self.bottom_corner                  = Array3()
+        self.top_corner[0]                  = Param.BoundingBoxMaxX
+        self.top_corner[0]                  = Param.BoundingBoxMaxY
+        self.top_corner[0]                  = Param.BoundingBoxMaxZ
+        self.bottom_corner[0]               = Param.BoundingBoxMinX
+        self.bottom_corner[0]               = Param.BoundingBoxMinY
+        self.bottom_corner[0]               = Param.BoundingBoxMinZ
 
         # BOUNDARY
         self.surface_normal_dir             = Vector(3)
@@ -145,7 +154,7 @@ class ExplicitStrategy:
         self.nodal_mass_coeff               = Param.VirtualMassCoefficient
         self.magic_factor                   = Param.MagicFactor
 
-        if (self.global_variables_OPTION):
+        if (self.global_variables_option):
             self.global_kn                  = Param.GlobalKn
             self.global_kt                  = Param.GlobalKt
 
@@ -159,7 +168,7 @@ class ExplicitStrategy:
 
             raise 'Specified NormalForceCalculationType is not defined'
 
-        if (self.Non_Linear_Option):
+        if (self.non_linear_option):
             self.C1                         = Param.C1
             self.C2                         = Param.C2
             self.N1                         = Param.N1
@@ -222,7 +231,24 @@ class ExplicitStrategy:
             self.n_step_search              = sys.maxint
 
         self.safety_factor                  = Param.DeltaTimeSafetyFactor # For critical time step
-        self.create_and_destroy             = ParticleCreatorDestructor()
+
+        # CREATOR-DESTRUCTOR
+        self.creator_destructor             = creator_destructor
+
+        b_box_low     = Array3()
+        b_box_high    = Array3()
+        b_box_low[0]  = Param.BoundingBoxMaxX
+        b_box_low[1]  = Param.BoundingBoxMaxY
+        b_box_low[2]  = Param.BoundingBoxMaxZ
+        b_box_high[0] = Param.BoundingBoxMinX
+        b_box_high[1] = Param.BoundingBoxMinY
+        b_box_high[2] = Param.BoundingBoxMinZ
+
+        self.creator_destructor.SetLowNode(b_box_low)
+        self.creator_destructor.SetHighNode(b_box_high)
+
+        if (self.automatic_bounding_box_option):
+            self.creator_destructor.CalculateSurroundingBoundingBox(self.model_part, self.enlargement_factor)
 
         # STRATEGIES
         self.search_strategy                = OMP_DEMSearch()
@@ -247,24 +273,27 @@ class ExplicitStrategy:
         # Setting ProcessInfo variables
 
         # SIMULATION FLAGS
-        self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_OPTION)
-        self.model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_OPTION)
-        self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_OPTION)
-        self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_OPTION)
-        self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_OPTION)
-        self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_OPTION)
+        self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
+        self.model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
+        self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
+        self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
+        self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
+        self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
         self.model_part.ProcessInfo.SetValue(INT_DUMMY_6, self.fix_velocities)
-        self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_OPTION)
-        self.model_part.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_OPTION)
+        self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_option)
+        self.model_part.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_option)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
         self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
-        self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_OPTION);
+        self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option);
+
+        # TOTAL NUMBER OF INITIALIZED ELEMENTS
+        self.model_part.ProcessInfo.SetValue(NUM_PARTICLES_INITIALIZED, 0);
 
         # TOLERANCES
         self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);
 
         # BOUNDARY
-        self.model_part.ProcessInfo.SetValue(LIMIT_SURFACE_OPTION, self.limit_surface_OPTION)
+        self.model_part.ProcessInfo.SetValue(LIMIT_SURFACE_OPTION, self.limit_surface_option)
         self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR, self.surface_normal_dir)
         self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR, self.surface_point_coor)
         self.model_part.ProcessInfo.SetValue(SURFACE_FRICC, self.surface_friction_angle)
@@ -275,10 +304,9 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(DEM_MAGIC_FACTOR, self.magic_factor)
 
         # GLOBAL MATERIAL PROPERTIES
-
         self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
      
-        if (self.global_variables_OPTION):
+        if (self.global_variables_option):
             self.model_part.ProcessInfo.SetValue(GLOBAL_KN, self.global_kn)
             self.model_part.ProcessInfo.SetValue(GLOBAL_KT, self.global_kt)
 
@@ -299,8 +327,7 @@ class ExplicitStrategy:
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
 
-        self.solver = ExplicitSolverStrategy(self.model_part, self.enlargement_factor, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                             self.MoveMeshFlag, self.time_scheme, self.search_strategy)
+        self.solver = ExplicitSolverStrategy(self.model_part, self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag, self.creator_destructor, self.time_scheme, self.search_strategy)
 
         self.solver.Initialize() # Calls the solver Initialized function (initializes all elements and performs other necessary tasks before iterating)
 
