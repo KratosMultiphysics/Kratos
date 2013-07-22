@@ -15,7 +15,6 @@
 
 // Project includes
 #include "utilities/timer.h"
-#include "custom_utilities/create_and_destroy.h"
 
 #include "custom_elements/spheric_swimming_particle.h"
 #include "custom_elements/Particle_Contact_Element.h"
@@ -44,11 +43,8 @@
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/schemes/scheme.h"
-#include "geometries/line_3d_2.h"
 #include "custom_strategies/schemes/integration_scheme.h"
-
-/* Search */
-#include "spatial_containers/spatial_search.h"
+#include "custom_utilities/create_and_destroy.h"
 
 /* Timer defines */
 #ifdef CUSTOMTIMER
@@ -125,24 +121,25 @@ namespace Kratos
       /// Default constructor.
       ExplicitSolverStrategy(){}
 
-      ExplicitSolverStrategy(ModelPart& rModelPart,
-                             const double enlargement_factor,
+      ExplicitSolverStrategy(ModelPart& r_model_part,
                              const double max_delta_time,
                              const double n_step_search,
                              const double safety_factor,
-                             const bool MoveMeshFlag,
+                             const bool move_mesh_flag,
+                             typename ParticleCreatorDestructor::Pointer p_creator_destructor,
                              typename IntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch
-      ): SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(rModelPart, MoveMeshFlag)//, mcontacts_model_part(contacts_model_part)//inicialitzacio de variables const. no poden inicialitzarse a l'esquerra d'un igual. //les referencies tambe aqui
+      ): BaseType(r_model_part, move_mesh_flag)
       {
-          this->GetElementsAreInitialized()      = false;
-          this->GetInitializeWasPerformed()      = false;
-          this->GetEnlargementFactor()           = enlargement_factor;
-          this->GetScheme()                      = pScheme;
-          this->GetSpSearch()                    = pSpSearch;
-          this->GetMaxTimeStep()                 = max_delta_time;
-          this->GetNStepSearch()                 = n_step_search;
-          this->GetSafetyFactor()                = safety_factor;
+
+          mElementsAreInitialized      = false;
+          mInitializeWasPerformed      = false;
+          mpParticleCreatorDestructor  = p_creator_destructor;
+          mpScheme                     = pScheme;
+          mpSpSearch                   = pSpSearch;
+          mMaxTimeStep                 = max_delta_time;
+          mNStepSearch                 = n_step_search;
+          mSafetyFactor                = safety_factor;
       }
 
       /// Destructor.
@@ -158,10 +155,10 @@ namespace Kratos
           
           KRATOS_TIMER_START("INITIALIZE")
           
-          ModelPart& rModelPart            = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+          ModelPart& r_model_part            = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
 
-          int NumberOfElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray().end() - rModelPart.GetCommunicator().LocalMesh().ElementsArray().begin();
+          int NumberOfElements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
 
           this->GetResults().resize(NumberOfElements);
           this->GetResultsDistances().resize(NumberOfElements);
@@ -171,32 +168,27 @@ namespace Kratos
           this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
 
           // 0. Set search radius
-          SetSearchRadius(rModelPart, rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);
+          SetSearchRadius(r_model_part, rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);
 
           // 1. Search Neighbours with tolerance (Not in mpi.)
-          this->GetBoundingBoxOption()     = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
+          this->GetBoundingBoxOption() = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
 
           // 2. Search Neighbours with tolerance (after first repartition process)
-          SearchNeighbours(rModelPart);
+          SearchNeighbours(r_model_part);
 
-          // 3. Calculate bounding box
-          this->GetParticleCreatorDestructor().CalculateSurroundingBoundingBox(rModelPart, this->GetEnlargementFactor());
-
-          // 4. Finding overlapping of initial configurations
+          // 3. Finding overlapping of initial configurations
 
           if (rCurrentProcessInfo[CLEAN_INDENT_OPTION]){
               CalculateInitialMaxIndentations();
           }
 
-          // 5. Initializing elements and perform the repartition
-          if (this->GetElementsAreInitialized() == false){
+          // 4. Initializing elements and perform the repartition
+          if (!mElementsAreInitialized){
               InitializeElements();
           }
 
-          this->GetInitializeWasPerformed() = true;
+          mInitializeWasPerformed = true;
 
-          // 6. Compute initial time step
-          //InitialTimeStepCalculation();  //MSI: should we ask whether this will be calculated or not
           KRATOS_TIMER_STOP("INITIALIZE")
 
       KRATOS_CATCH("")
@@ -207,8 +199,8 @@ namespace Kratos
           KRATOS_TRY
 
           KRATOS_TIMER_START("BEGIN")
-          ModelPart& rModelPart            = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+          ModelPart& r_model_part            = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
 
           int time_step = rCurrentProcessInfo[TIME_STEPS];
           KRATOS_TIMER_STOP("BEGIN")
@@ -230,19 +222,19 @@ namespace Kratos
 
           // 4. Synchronize
           KRATOS_TIMER_START("SynchronizeSolidMesh")
-          SynchronizeSolidMesh(rModelPart);
+          SynchronizeSolidMesh(r_model_part);
           KRATOS_TIMER_STOP("SynchronizeSolidMesh")
 
           // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box
           KRATOS_TIMER_START("SearchNeighbours")
 
-          if ((time_step + 1)%this->GetNStepSearch() == 0 && time_step > 0){
+          if ((time_step + 1) % mNStepSearch == 0 && time_step > 0){
 
               if (this->GetBoundingBoxOption()){
                   BoundingBoxUtility();
               }
 
-              SearchNeighbours(rModelPart);
+              SearchNeighbours(r_model_part);
           }
 
           KRATOS_TIMER_STOP("SearchNeighbours")
@@ -258,15 +250,15 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          ModelPart& rModelPart             = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
-          ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
+          ModelPart& r_model_part             = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
 
           ElementsIterator it_begin = pElements.ptr_begin();
           ElementsIterator it_end   = pElements.ptr_end();
 
           double& process_info_delta_time = rCurrentProcessInfo[DELTA_TIME];
-          double temp_time_step           = this->GetMaxTimeStep();
+          double temp_time_step           = mMaxTimeStep;
           double elem_critical_time_step  = temp_time_step;
 
           for (ElementsIterator it = it_begin; it != it_end; it++){
@@ -278,9 +270,10 @@ namespace Kratos
 
           }
 
-          temp_time_step /= this->GetSafetyFactor();
+          temp_time_step /= mSafetyFactor;
           process_info_delta_time = temp_time_step;
-          KRATOS_WATCH(this->GetMaxTimeStep())
+          KRATOS_WATCH(mMaxTimeStep)
+
           std::cout<< "****************** Calculated time step is " << temp_time_step << " ******************" << std::endl;
 
           KRATOS_CATCH("")
@@ -292,9 +285,9 @@ namespace Kratos
 
           //M: aixo es una xapuza
 
-          ModelPart& rModelPart             = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
-          ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
+          ModelPart& r_model_part             = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
 
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
@@ -324,7 +317,7 @@ namespace Kratos
 
               } //loop over particles
 
-          }// loop threads OpenMP
+          } // loop threads OpenMP
 
           KRATOS_CATCH("")
       }
@@ -333,9 +326,9 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          ModelPart& rModelPart = BaseType::GetModelPart();
+          ModelPart& r_model_part = BaseType::GetModelPart();
 
-          this->GetScheme()->Calculate(rModelPart);
+          mpScheme->Calculate(r_model_part);
 
           KRATOS_CATCH("")
       }
@@ -346,9 +339,9 @@ namespace Kratos
 
           // SPHERE MODEL PART
 
-          ModelPart& rModelPart             = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
-          ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
+          ModelPart& r_model_part             = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
 
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
@@ -370,9 +363,9 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          ModelPart& rModelPart = BaseType::GetModelPart();
-          this->GetParticleCreatorDestructor().MarkDistantParticlesForErasing(rModelPart);
-          this->GetParticleCreatorDestructor().DestroyParticles(rModelPart);
+          ModelPart& r_model_part = BaseType::GetModelPart();
+          mpParticleCreatorDestructor->MarkDistantParticlesForErasing(r_model_part);
+          mpParticleCreatorDestructor->DestroyParticles(r_model_part);
 
           KRATOS_CATCH("")
       }
@@ -383,13 +376,13 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          ModelPart& rModelPart             = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
-          ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
+          ModelPart& r_model_part             = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
 
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
-          #pragma omp parallel for //private(index)
+          #pragma omp parallel for
           for (int k = 0; k < this->GetNumberOfThreads(); k++){
               typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -410,9 +403,9 @@ namespace Kratos
           KRATOS_WATCH("")
           KRATOS_WATCH("FIXING VELOCITIES!")
 
-          ModelPart& rModelPart             = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
-          ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
+          ModelPart& r_model_part             = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
 
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
@@ -445,9 +438,9 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          ModelPart& rModelPart             = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo  = rModelPart.GetProcessInfo();
-          ElementsArrayType& pElements      = rModelPart.GetCommunicator().LocalMesh().Elements();
+          ModelPart& r_model_part             = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
 
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
@@ -488,9 +481,9 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        ModelPart& rModelPart               = BaseType::GetModelPart();
-        ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
-        ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
+        ModelPart& r_model_part               = BaseType::GetModelPart();
+        ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
+        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
 
         int trihedron_OPTION = rCurrentProcessInfo[TRIHEDRON_OPTION];
 
@@ -515,17 +508,17 @@ namespace Kratos
 
         }
 
-        this->GetElementsAreInitialized() = true;
+        mElementsAreInitialized = true;
 
         KRATOS_CATCH("")
     }
 
-    void SetSearchRadius(ModelPart& rModelPart, double radiusExtend)
+    void SetSearchRadius(ModelPart& r_model_part, double radiusExtend)
     {
         KRATOS_TRY
 
-        ModelPart& rModelPart               = BaseType::GetModelPart();
-        ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
+        ModelPart& r_model_part               = BaseType::GetModelPart();
+        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
 
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
             this->GetRadius()[particle_pointer_it - pElements.begin()] = (1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
@@ -538,9 +531,8 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        ModelPart& rModelPart               = BaseType::GetModelPart();
-        ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
-        ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
+        ModelPart& r_model_part               = BaseType::GetModelPart();
+        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
 
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
 
@@ -552,18 +544,18 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    virtual void SearchNeighbours(ModelPart& rModelPart)
+    virtual void SearchNeighbours(ModelPart& r_model_part)
     {
         KRATOS_TRY
 
-        ModelPart& rModelPart               = BaseType::GetModelPart();
-        ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
+        ModelPart& r_model_part               = BaseType::GetModelPart();
+        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
 
         for (SpatialSearch::ElementsContainerType::iterator i = pElements.begin(); i != pElements.end(); i++){
             i->GetValue(NEIGHBOUR_ELEMENTS).clear();
         }
 
-        this->GetSpSearch()->SearchElementsInRadiusExclusive(rModelPart,this->GetRadius(),this->GetResults(),this->GetResultsDistances());
+        mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
 
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
         
@@ -593,14 +585,14 @@ namespace Kratos
 
         KRATOS_TRY
 
-        double tol                          = 10e-18 * this->GetParticleCreatorDestructor().GetStrictDiameter();
+        double tol                          = 10e-18 * mpParticleCreatorDestructor->GetStrictDiameter();
         double initial_max_indentation      = 1.0 + tol;
-        ModelPart& rModelPart               = BaseType::GetModelPart();
-        ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
+        ModelPart& r_model_part             = BaseType::GetModelPart();
+        ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
         rCurrentProcessInfo.SetValue(DISTANCE_TOLERANCE, tol);
-        ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
+        ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
         Vector reduction_distances;
-        reduction_distances.resize(rModelPart.Elements().size());
+        reduction_distances.resize(r_model_part.Elements().size());
 
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
@@ -663,69 +655,64 @@ namespace Kratos
         KRATOS_CATCH("")
     } // CalculateInitialMaxIndentations()
 
-    void PrepareContactModelPart(ModelPart& rModelPart, ModelPart& mcontacts_model_part)
+    void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part)
     {
-        mcontacts_model_part.GetCommunicator().SetNumberOfColors(rModelPart.GetCommunicator().GetNumberOfColors());
-        mcontacts_model_part.GetCommunicator().NeighbourIndices() = rModelPart.GetCommunicator().NeighbourIndices();
+        mcontacts_model_part.GetCommunicator().SetNumberOfColors(r_model_part.GetCommunicator().GetNumberOfColors());
+        mcontacts_model_part.GetCommunicator().NeighbourIndices() = r_model_part.GetCommunicator().NeighbourIndices();
     }
 
-    void SynchronizeSolidMesh(ModelPart& rModelPart)
+    void SynchronizeSolidMesh(ModelPart& r_model_part)
     {
-        rModelPart.GetCommunicator().SynchronizeNodalSolutionStepsData();
-        rModelPart.GetCommunicator().SynchronizeDofs();
+        r_model_part.GetCommunicator().SynchronizeNodalSolutionStepsData();
+        r_model_part.GetCommunicator().SynchronizeDofs();
     }
     
-    //Getting member variables
+    // Getting member variables
 
-    VectorResultElementsContainerType&      GetResults(){return(mResults);};
-    VectorDistanceType&                     GetResultsDistances(){return(mResultsDistances);};
-    RadiusArrayType&                        GetRadius(){return(mRadius);};
+    VectorResultElementsContainerType&           GetResults(){return(mResults);}
+    VectorDistanceType&                          GetResultsDistances(){return(mResultsDistances);}
+    RadiusArrayType&                             GetRadius(){return(mRadius);}
 
-    bool&   GetElementsAreInitialized(){return (mElementsAreInitialized);};
-    bool&   GetInitializeWasPerformed(){return (mInitializeWasPerformed);};
+    bool&                                        GetElementsAreInitialized(){return (mElementsAreInitialized);}
+    bool&                                        GetInitializeWasPerformed(){return (mInitializeWasPerformed);}
     
-    int&    GetNStepSearch(){return (mNStepSearch);};
-    int&    GetBoundingBoxOption(){return (mBoundingBoxOption);};
-    int&    GetNumberOfThreads(){return (mNumberOfThreads);};
-    
-    double& GetEnlargementFactor(){return (mEnlargementFactor);};
-    double& GetMaxTimeStep(){return (mMaxTimeStep);};
-    double& GetSafetyFactor(){return (mSafetyFactor);};
-    
-    ParticleCreatorDestructor& GetParticleCreatorDestructor(){return (mParticleCreatorDestructor);};
+    int&                                         GetNStepSearch(){return (mNStepSearch);}
+    int&                                         GetBoundingBoxOption(){return (mBoundingBoxOption);}
+    int&                                         GetNumberOfThreads(){return (mNumberOfThreads);}
 
-    vector<unsigned int>&    GetElementPartition(){return (mElementPartition);};
-    
-    typename IntegrationScheme::Pointer& GetScheme(){return (mpScheme);};
-    typename SpatialSearch::Pointer& GetSpSearch(){return (mpSpSearch);};
+    double&                                      GetMaxTimeStep(){return (mMaxTimeStep);}
+    double&                                      GetSafetyFactor(){return (mSafetyFactor);}
+
+    vector<unsigned int>&                        GetElementPartition(){return (mElementPartition);}
+
+    typename ParticleCreatorDestructor::Pointer& GetParticleCreatorDestructor(){return (mpParticleCreatorDestructor);}
+    typename IntegrationScheme::Pointer&         GetScheme(){return (mpScheme);}
+    typename SpatialSearch::Pointer&             GetSpSearch(){return (mpSpSearch);}
     
     protected:
 
-    VectorResultElementsContainerType   mResults;
-    VectorDistanceType                  mResultsDistances;
-    RadiusArrayType                     mRadius;
+    // Member variables
 
-    bool                                mElementsAreInitialized;
-    bool                                mInitializeWasPerformed;
+    VectorResultElementsContainerType            mResults;
+    VectorDistanceType                           mResultsDistances;
+    RadiusArrayType                              mRadius;
 
-    int                                 mNStepSearch;
-    int                                 mBoundingBoxOption;
-    int                                 mNumberOfThreads;
+    bool                                         mElementsAreInitialized;
+    bool                                         mInitializeWasPerformed;
 
-    double                              mEnlargementFactor;
-    double                              mMaxTimeStep;
-    double                              mSafetyFactor;
+    int                                          mNStepSearch;
+    int                                          mBoundingBoxOption;
+    int                                          mNumberOfThreads;
 
-    ParticleCreatorDestructor         mParticleCreatorDestructor;
+    double                                       mMaxTimeStep;
+    double                                       mSafetyFactor;
 
-    vector<unsigned int>                mElementPartition;
-
-    typename IntegrationScheme::Pointer mpScheme;
-    typename SpatialSearch::Pointer     mpSpSearch;
+    vector<unsigned int>                         mElementPartition;
+    typename ParticleCreatorDestructor::Pointer  mpParticleCreatorDestructor;
+    typename IntegrationScheme::Pointer          mpScheme;
+    typename SpatialSearch::Pointer              mpSpSearch;
     
   }; // Class ExplicitSolverStrategy
-
-
 
  /*
   /// input stream function

@@ -49,21 +49,21 @@ namespace Kratos
 
       ContinuumExplicitSolverStrategy(
                              ModelPart& model_part,
-                             ModelPart& contacts_model_part, 
-                             const double enlargement_factor,
+                             ModelPart& contacts_model_part,
                              const double max_delta_time,
                              const double n_step_search,
                              const double safety_factor,
                              const bool MoveMeshFlag,
                              const bool delta_option,
                              const bool continuum_simulating_option,
+                             typename ParticleCreatorDestructor::Pointer p_creator_destructor,
                              typename IntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch
-      ): ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, enlargement_factor, max_delta_time, n_step_search,safety_factor,MoveMeshFlag,pScheme,pSpSearch), mcontacts_model_part(contacts_model_part)
+      ): ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, max_delta_time, n_step_search, safety_factor, MoveMeshFlag, p_creator_destructor, pScheme, pSpSearch), mcontacts_model_part(contacts_model_part)
       {
           mdelta_option                 = delta_option;
           mcontinuum_simulating_option  = continuum_simulating_option;
-          
+          BaseType::GetParticleCreatorDestructor()   = p_creator_destructor;
       }
 
       /// Destructor.
@@ -129,9 +129,6 @@ namespace Kratos
               this->CreateContactElements();
               this->InitializeContactElements();
           }    
-           
-          // 5. Calculate bounding box
-          this->GetParticleCreatorDestructor().CalculateSurroundingBoundingBox(rModelPart, this->mEnlargementFactor);
 
           KRATOS_CATCH("")
           
