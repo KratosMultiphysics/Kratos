@@ -125,6 +125,12 @@ public:
                                     const double Tolerance,
                                     const unsigned int MaxIter) = 0;
 
+    virtual void SetTurbulenceModel(ProcessPointerType pTurbulenceModel)
+    {
+        mpTurbulenceModel = ProcessPointerType(pTurbulenceModel);
+        mHaveTurbulenceModel = true;
+    }
+
     virtual bool GetTurbulenceModel(ProcessPointerType& pTurbulenceModel)
     {
         if( mHaveTurbulenceModel )

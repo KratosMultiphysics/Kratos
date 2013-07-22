@@ -74,22 +74,6 @@ namespace Kratos
 namespace Python
 {
 
-Process::Pointer AuxGetTurbulenceModel( FractionalStepSettings<UblasSpace<double, CompressedMatrix, Vector>,
-                                                               UblasSpace<double, Matrix, Vector>,
-                                                               LinearSolver< UblasSpace<double, CompressedMatrix, Vector>, UblasSpace<double, Matrix, Vector> > >&rSettings)
-{
-    KRATOS_TRY;
-
-    Process::Pointer out;
-    bool HaveTurbModel = rSettings.GetTurbulenceModel(out);
-    if (HaveTurbModel)
-        return out;
-    else
-        KRATOS_ERROR(std::runtime_error,"Trying to access the turbulence model before defining it","");
-    KRATOS_CATCH("");
-}
-
-
 void  AddCustomUtilitiesToPython()
 {
     using namespace boost::python;
@@ -133,14 +117,18 @@ void  AddCustomUtilitiesToPython()
     ;
 
     typedef void (FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::*SetStrategyByParamsType)(FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::StrategyLabel const&,LinearSolverType::Pointer,const double,const unsigned int);
+    typedef void (FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::*BuildTurbModelType)(FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::TurbulenceModelLabel const&, LinearSolverType::Pointer, const double, const unsigned int);
+    typedef void (FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::*PassTurbModelType)(Process::Pointer);
     SetStrategyByParamsType ThisSetStrategyOverload = &FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetStrategy;
+    BuildTurbModelType SetTurbModel_Build = &FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel;
+    PassTurbModelType SetTurbModel_Pass = &FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel;
 
     class_< FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>,bases<BaseSettingsType>, boost::noncopyable>
             ("FractionalStepSettings",init<ModelPart&,unsigned int,unsigned int,bool,bool,bool>())
     .def("SetStrategy",ThisSetStrategyOverload)
-    .def("SetTurbulenceModel",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetTurbulenceModel)
+    .def("SetTurbulenceModel",SetTurbModel_Build)
+    .def("SetTurbulenceModel",SetTurbModel_Pass)
     .def("GetStrategy",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::pGetStrategy)
-    .def("GetTurbulenceModel",AuxGetTurbulenceModel)
     .def("SetEchoLevel",&FractionalStepSettings<SparseSpaceType,LocalSpaceType,LinearSolverType>::SetEchoLevel)
     ;
 
