@@ -256,8 +256,10 @@ public:
 
     void ActivateDES(double CDES)
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
+        mspalart_model_part.GetProcessInfo()[C_DES] = CDES;
+/*
         //update viscosity on the nodes
         for (ModelPart::NodeIterator i = mspalart_model_part.NodesBegin();
                 i != mspalart_model_part.NodesEnd(); ++i)
@@ -285,7 +287,7 @@ public:
             if(distance > h_max*CDES)
                 i->FastGetSolutionStepValue(DISTANCE) = h_max*CDES;
 
-        }
+        }*/
 
         KRATOS_CATCH("");
     }

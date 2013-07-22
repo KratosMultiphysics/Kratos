@@ -1,5 +1,6 @@
 #include "spalart_allmaras.h"
 #include "utilities/math_utils.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {
@@ -152,7 +153,28 @@ void SpalartAllmaras::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
     const Matrix NContainer = this->GetGeometry().ShapeFunctionsValues(this->mIntegrationMethod);
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints( this->mIntegrationMethod );
 
-    const double Tau = this->CalculateTau(rCurrentProcessInfo);
+    const double ElementSize = this->ElementSize();
+    const double Tau = this->CalculateTau(ElementSize,rCurrentProcessInfo);
+
+    // Choose between DES or URANS operation
+    bool UseRealDistance = true;
+    double Distance = 0.0;
+    double Cdes = rCurrentProcessInfo[C_DES];
+    if ( Cdes != 0.0)
+    {
+        Distance = this->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE);
+        for (SizeType i = 1; i < NumNodes; i++)
+            Distance += this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+        Distance /= double(NumNodes);
+
+        double DesSize = Cdes * ElementSize;
+        if (Distance > DesSize)
+        {
+            Distance = DesSize;
+            UseRealDistance = false;
+        }
+    }
+
 
     // Initialize local contribution
     if (rLeftHandSideMatrix.size1() != NumNodes)
@@ -179,15 +201,18 @@ void SpalartAllmaras::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
 
         double MolecularViscosity;
         double LastViscosity;
-        double Distance; // Distance to nearest wall
+
         array_1d<double,3> Velocity(3,0.0);
         array_1d<double,3> MeshVelocity(3,0.0);
 
         this->EvaluateInPoint(MolecularViscosity,MOLECULAR_VISCOSITY,N);
         this->EvaluateInPoint(LastViscosity,TURBULENT_VISCOSITY,N);
-        this->EvaluateInPoint(Distance,DISTANCE,N);
         this->EvaluateInPoint(Velocity,VELOCITY,N);
         this->EvaluateInPoint(MeshVelocity,MESH_VELOCITY,N);
+
+        // If not using DES (or if using DES but close to the wall
+        if (UseRealDistance)
+            this->EvaluateInPoint(Distance,DISTANCE,N);
 
         // For ALE: convective velocity
         array_1d<double,3> ConvVel = Velocity - MeshVelocity;
@@ -522,12 +547,11 @@ void SpalartAllmaras::VelocityGradientNorms(double &rNormS,
     rNormOmega = std::sqrt(rNormOmega);
 }
 
-double SpalartAllmaras::CalculateTau(const ProcessInfo &rCurrentProcessInfo)
+double SpalartAllmaras::CalculateTau(double ElementSize, const ProcessInfo &rCurrentProcessInfo)
 {
     // Geometry
     const Element::GeometryType& rGeom = this->GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
-    const SizeType NumNodes = rGeom.PointsNumber();
 
     // Shape functions at the element center
     const Matrix NContainer = rGeom.ShapeFunctionsValues(GeometryData::GI_GAUSS_1);
@@ -555,13 +579,23 @@ double SpalartAllmaras::CalculateTau(const ProcessInfo &rCurrentProcessInfo)
         VelNorm += Velocity[d]*Velocity[d];
     VelNorm = sqrt(VelNorm);
 
-    // Minimum element length
+    double Tmp = TimeCoeff + 4.0 * Diffusivity / (ElementSize*ElementSize) + 2.0 * VelNorm / ElementSize;
+    return 1.0 / Tmp;
+}
+
+double SpalartAllmaras::ElementSize()
+{
+    const Element::GeometryType& rGeom = this->GetGeometry();
+    const SizeType Dim = rGeom.WorkingSpaceDimension();
+    const SizeType NumNodes = rGeom.PointsNumber();
+
+    // Maximum edge length
     array_1d<double,3> Edge(3,0.0);
 
     Edge = rGeom[1].Coordinates() - rGeom[0].Coordinates();
-    double MinLength = Edge[0]*Edge[0];
+    double MaxLength = Edge[0]*Edge[0];
     for (SizeType d = 1; d < Dim; d++)
-        MinLength += Edge[d]*Edge[d];
+        MaxLength += Edge[d]*Edge[d];
 
     for (SizeType i = 2; i < NumNodes; i++)
         for(SizeType j = 0; j < i; j++)
@@ -570,12 +604,9 @@ double SpalartAllmaras::CalculateTau(const ProcessInfo &rCurrentProcessInfo)
             double Length = Edge[0]*Edge[0];
             for (SizeType d = 1; d < Dim; d++)
                 Length += Edge[d]*Edge[d];
-            if (Length < MinLength) MinLength = Length;
+            if (Length > MaxLength) MaxLength = Length;
         }
-    MinLength = sqrt(MinLength);
-
-    double Tmp = TimeCoeff + 4.0 * Diffusivity / (MinLength*MinLength) + 2.0 * VelNorm / MinLength;
-    return 1.0 / Tmp;
+    return sqrt(MaxLength);
 }
 
 }
