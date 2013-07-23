@@ -148,9 +148,9 @@ namespace Kratos
       void CalculateElasticEnergyOfContacts(double& rElasticEnergy);
       void CalculateMomentum(array_1d<double, 3>& rMomentum);
       void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum);
-      virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo); 
-      void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo);
-      void ComputeBallToCylinderContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo);
+      virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo); 
+      void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo);
+      void ComputeBallToCylinderContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo);
       //virtual void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
       //virtual void ComputeParticleRotationSpring(   const ProcessInfo& rCurrentProcessInfo);
 
@@ -178,7 +178,6 @@ namespace Kratos
       virtual void ComputeMoments(double LocalElasticContactForce[3],
                                   double GlobalElasticContactForces[3],
                                   double InitialRotaMoment[3],
-                                  double MaxRotaMoment[3],
                                   double LocalCoordSystem[3][3],
                                   const double &other_radius,
                                   array_1d<double, 3>& rContactMoment,
@@ -232,6 +231,9 @@ namespace Kratos
       double mGlobalKt;
       double mGlobalAuxNormToTang;
       int mLimitSurfaceOption;
+      int mLimitCylinderOption;
+      double mCylinderRadius;
+      double mCylinderVelocity;
       int mRotationSpringOption;
       vector<int> mOldNeighbourIds;
       vector< array_1d<double, 3> > mOldNeighbourContactForces;
