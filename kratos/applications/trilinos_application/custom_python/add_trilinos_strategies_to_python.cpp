@@ -498,6 +498,7 @@ void AddStrategies()
             .def("Clear",&TrilinosFSStrategy::Clear)
             .def("CalculateReactions",&TrilinosFSStrategy::CalculateReactions)
             .def("AddIterationStep",&TrilinosFSStrategy::AddIterationStep)
+            .def("ClearExtraIterationSteps",&TrilinosFSStrategy::ClearExtraIterationSteps)
             ;
 
 }
