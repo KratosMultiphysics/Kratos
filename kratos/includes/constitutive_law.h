@@ -158,12 +158,12 @@ public:
       double               mDeterminantF0;
       Vector*              mpStrainVector;
       Vector*              mpStressVector; 
-      Vector*              mpElasticLeftCauchyGreenVector; 
 
       const Vector*        mpShapeFunctionsValues;
       const Matrix*        mpShapeFunctionsDerivatives;
 
       const Matrix*        mpDeformationGradientF;
+      Matrix*              mpDeformationGradientF0;
       Matrix*              mpConstitutiveMatrix;
      
       const ProcessInfo*   mpCurrentProcessInfo;
@@ -183,10 +183,10 @@ public:
 	mDeterminantF0=-1;
 	mpStrainVector=NULL;
 	mpStressVector=NULL;
-	mpElasticLeftCauchyGreenVector=NULL;
 	mpShapeFunctionsValues=NULL;
 	mpShapeFunctionsDerivatives=NULL;
 	mpDeformationGradientF=NULL;
+	mpDeformationGradientF0=NULL;
 	mpConstitutiveMatrix=NULL;
 	mpCurrentProcessInfo=NULL;
 	mpMaterialProperties=NULL;
@@ -208,10 +208,10 @@ public:
 	mDeterminantF0=-1;
 	mpStrainVector=NULL;
 	mpStressVector=NULL;
-	mpElasticLeftCauchyGreenVector=NULL;
 	mpShapeFunctionsValues=NULL;
 	mpShapeFunctionsDerivatives=NULL;
 	mpDeformationGradientF=NULL;
+	mpDeformationGradientF0=NULL;
 	mpConstitutiveMatrix=NULL;
       };
 
@@ -225,10 +225,10 @@ public:
         ,mDeterminantF0(rNewParameters.mDeterminantF0)
 	,mpStrainVector(rNewParameters.mpStrainVector)
 	,mpStressVector(rNewParameters.mpStressVector)
-	,mpElasticLeftCauchyGreenVector(rNewParameters.mpElasticLeftCauchyGreenVector)
 	,mpShapeFunctionsValues(rNewParameters.mpShapeFunctionsValues)
 	,mpShapeFunctionsDerivatives(rNewParameters.mpShapeFunctionsDerivatives)
 	,mpDeformationGradientF(rNewParameters.mpDeformationGradientF)
+	,mpDeformationGradientF0(rNewParameters.mpDeformationGradientF0)
 	,mpConstitutiveMatrix(rNewParameters.mpConstitutiveMatrix)
 	,mpCurrentProcessInfo(rNewParameters.mpCurrentProcessInfo)
 	,mpMaterialProperties(rNewParameters.mpMaterialProperties)
@@ -305,8 +305,8 @@ public:
 	if(!mpDeformationGradientF)
 	  KRATOS_ERROR(std::invalid_argument,"DeformationGradientF NOT SET","");
 
-	if(!mpElasticLeftCauchyGreenVector)
-	  KRATOS_ERROR(std::invalid_argument,"ElasticLeftCauchyGreenVector NOT SET","");
+	if(!mpDeformationGradientF0)
+	  KRATOS_ERROR(std::invalid_argument,"DeformationGradientF0 NOT SET","");
 
 	if(!mpStrainVector)
 	  KRATOS_ERROR(std::invalid_argument,"StrainVector NOT SET","");
@@ -334,13 +334,13 @@ public:
       void SetDeterminantF0                (const double& rDeterminantF0)             {mDeterminantF0=rDeterminantF0;};
       void SetStrainVector                 (Vector& rStrainVector)                    {mpStrainVector=&rStrainVector;};
       void SetStressVector                 (Vector& rStressVector)                    {mpStressVector=&rStressVector;};
-
-      void SetElasticLeftCauchyGreenVector (Vector& rElasticLeftCauchyGreenVector) {mpElasticLeftCauchyGreenVector=&rElasticLeftCauchyGreenVector;};
  
       void SetShapeFunctionsValues         (const Vector& rShapeFunctionsValues)      {mpShapeFunctionsValues=&rShapeFunctionsValues;};
       void SetShapeFunctionsDevivatives    (const Matrix& rShapeFunctionsDerivatives) {mpShapeFunctionsDerivatives=&rShapeFunctionsDerivatives;};
 
       void SetDeformationGradientF         (const Matrix& rDeformationGradientF)     {mpDeformationGradientF=&rDeformationGradientF;};
+
+      void SetDeformationGradientF0        (Matrix& rDeformationGradientF0)     {mpDeformationGradientF0=&rDeformationGradientF0;};
       
       void SetConstitutiveMatrix           (Matrix& rConstitutiveMatrix)              {mpConstitutiveMatrix =&rConstitutiveMatrix;};
 
@@ -358,12 +358,12 @@ public:
       const Vector& GetShapeFunctionsValues      () {return *mpShapeFunctionsValues;};
       const Matrix& GetShapeFunctionsDerivatives () {return *mpShapeFunctionsDerivatives;};
       const Matrix& GetDeformationGradientF      () {return *mpDeformationGradientF;};
+      Matrix& GetDeformationGradientF0           () {return *mpDeformationGradientF0;};
 
       double& GetDeterminantF0                   () {return mDeterminantF0;};
       Vector& GetStrainVector                    () {return *mpStrainVector;};
       Vector& GetStressVector                    () {return *mpStressVector;};
-      Vector& GetElasticLeftCauchyGreenVector    () {return *mpElasticLeftCauchyGreenVector;};
- 
+
       Matrix& GetConstitutiveMatrix              () {return *mpConstitutiveMatrix;};
 
 
@@ -381,8 +381,7 @@ public:
       double& GetDeterminantF0                 (double & rDeterminantF0) {rDeterminantF0=mDeterminantF0; return rDeterminantF0;};
       Vector& GetStrainVector                  (Vector & rStrainVector) {rStrainVector=*mpStrainVector; return rStrainVector;};
       Matrix& GetDeformationGradientF          (Matrix & rDeformationGradientF) {rDeformationGradientF=*mpDeformationGradientF; return rDeformationGradientF;};
-
-      Vector& GetElasticLeftCauchyGreenVector  (Vector& rElasticLeftCauchyGreenVector) {rElasticLeftCauchyGreenVector=*mpElasticLeftCauchyGreenVector; return rElasticLeftCauchyGreenVector; };
+      Matrix& GetDeformationGradientF0         (Matrix & rDeformationGradientF0) {rDeformationGradientF0=*mpDeformationGradientF0; return rDeformationGradientF0;};
 
       Vector& GetStressVector              (Vector & rStressVector) {rStressVector=*mpStressVector; return rStressVector;};
       Matrix& GetConstitutiveMatrix        (Matrix & rConstitutiveMatrix) {rConstitutiveMatrix=*mpConstitutiveMatrix; return rConstitutiveMatrix;};
