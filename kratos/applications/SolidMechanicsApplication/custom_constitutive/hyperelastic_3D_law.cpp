@@ -278,6 +278,7 @@ namespace Kratos
 
 	//Left Cauchy-Green tensor b
 	Matrix TotalDeformationGradientF0  = prod(DeformationGradientF, DeformationGradientF0);
+	TotalDeformationGradientF0         = DeformationGradient3D( TotalDeformationGradientF0 );
 	ElasticVariables.CauchyGreenMatrix = prod(TotalDeformationGradientF0,trans(TotalDeformationGradientF0));
 
 	//Almansi Strain:
@@ -374,6 +375,7 @@ namespace Kratos
         
     //3.-Push-Forward Left Cauchy-Green tensor b to the new configuration
     Matrix TotalDeformationGradientF0  = prod(DeformationGradientF, DeformationGradientF0);
+    TotalDeformationGradientF0         = DeformationGradient3D( TotalDeformationGradientF0 );
     ElasticVariables.CauchyGreenMatrix = prod(TotalDeformationGradientF0,trans(TotalDeformationGradientF0));
     
     //4.-Almansi Strain:
