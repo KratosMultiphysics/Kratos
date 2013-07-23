@@ -14,26 +14,14 @@ VALUE: 2.1e7
 QUESTION: Poisson_ratio
 VALUE: 0.5
 
-QUESTION: Cohesion
-VALUE: 4.16e6
-
 QUESTION: Friction(Deg)
 VALUE: 45
 
 QUESTION: Rolling_Friction
 VALUE: 0
 
-QUESTION: Tension
-VALUE: 2.01e6
-
 QUESTION: RotaDampRatio
 VALUE: 0.5
-
-QUESTION: Static_friction_coef
-VALUE: 0
-
-QUESTION: Dynamic_friction_coef
-VALUE: 0
 
 QUESTION: Restitution_coef
 VALUE: 0.5
@@ -57,26 +45,15 @@ VALUE: 2.1e11
 QUESTION: Poisson_ratio
 VALUE: 0.2
 
-QUESTION: Cohesion
-VALUE: 4.16e6
-
 QUESTION: Friction(Deg)
 VALUE: 45
 
 QUESTION: Rolling_Friction
 VALUE: 0.1
 
-QUESTION: Tension
-VALUE: 2.01e6
-
 QUESTION: RotaDampRatio
 VALUE: 0.1
 
-QUESTION: Static_friction_coef
-VALUE: 0
-
-QUESTION: Dynamic_friction_coef
-VALUE: 0
 
 QUESTION: Restitution_coef
 VALUE: 0.5
@@ -100,26 +77,14 @@ VALUE: 2.1e11
 QUESTION: Poisson_ratio
 VALUE: 0.2
 
-QUESTION: Cohesion
-VALUE: 4.16e6
-
 QUESTION: Friction(Deg)
 VALUE: 45
 
 QUESTION: Rolling_Friction
 VALUE: 0.1
 
-QUESTION: Tension
-VALUE: 2.01e6
-
 QUESTION: RotaDampRatio
 VALUE: 0.1
-
-QUESTION: Static_friction_coef
-VALUE: 0
-
-QUESTION: Dynamic_friction_coef
-VALUE: 0
 
 QUESTION: Restitution_coef
 VALUE: 0.5
