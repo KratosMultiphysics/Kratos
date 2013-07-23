@@ -546,24 +546,22 @@ namespace Kratos
               const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
               const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
               const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-              double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
-                                                             other_to_me_vect[1] * other_to_me_vect[1] +
-                                                             other_to_me_vect[2] * other_to_me_vect[2]);
+              const double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
+
+              double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
               double radius_sum                       = mRadius + other_radius;
               double radius_sum_i                     = 1 / radius_sum;
               double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;
               double indentation                      = radius_sum - distance;
               double equiv_area                       = 0.25 * M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
-              double corrected_area                   = equiv_area;
               double equiv_mass                       = mSqrtOfRealMass * other_sqrt_of_mass;
 
-              double equiv_young;
-              double equiv_poisson;
               double equiv_visco_damp_coeff_normal;
               double equiv_visco_damp_coeff_tangential;
               double equiv_ln_of_restit_coeff;
               double kn;
               double kt;
+              double aux_norm_to_tang;
               double equiv_tg_of_fri_ang;
 
               double DeltDisp[3]                      = {0.0};
@@ -576,36 +574,41 @@ namespace Kratos
               double OldLocalCoordSystem[3][3]        = {{0.0}, {0.0}, {0.0}};
 
               bool sliding = false;
-                      
-              if (mUniformMaterialOption){
-                  equiv_young                        = mYoung;
-                  equiv_poisson                      = mPoisson;
-                  equiv_ln_of_restit_coeff           = mLnOfRestitCoeff;
-                  equiv_tg_of_fri_ang                = mTgOfFrictionAngle;
-              }
-
-              else {
-                  // Getting neighbour properties
-                  const double &other_young           = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-                  const double &other_poisson         = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
-                  const double &other_tg_of_fri_angle = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
-
-                  equiv_young                         = 2 * mYoung * other_young / (mYoung + other_young);
-                  equiv_poisson                       = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
-                  equiv_ln_of_restit_coeff            = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
-                  equiv_tg_of_fri_ang                 = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
-              }
 
               // Globally defined parameters
-                  double aux_norm_to_tang;
 
               if (mGlobalVariablesOption){
                   kn                                  = mGlobalKn;
                   kt                                  = mGlobalKt;
                   aux_norm_to_tang                    = mGlobalAuxNormToTang;
+                  equiv_ln_of_restit_coeff            = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
+                  equiv_tg_of_fri_ang                 = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
               }
 
               else {
+                  double equiv_young;
+                  double equiv_poisson;
+                  double corrected_area               = equiv_area;
+
+                  if (mUniformMaterialOption){
+                      equiv_young                     = mYoung;
+                      equiv_poisson                   = mPoisson;
+                      equiv_ln_of_restit_coeff        = mLnOfRestitCoeff;
+                      equiv_tg_of_fri_ang             = mTgOfFrictionAngle;
+                  }
+
+                  else {
+                      // Getting neighbour properties
+
+                      const double &other_young       = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+                      const double &other_poisson     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+
+                      equiv_young                     = 2 * mYoung * other_young / (mYoung + other_young);
+                      equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
+                      equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
+                      equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+                  }
+
                   kn                                  = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                   kt                                  = kn / (2.0 + equiv_poisson + equiv_poisson);
                   aux_norm_to_tang                    = sqrt(kt / kn);
@@ -622,17 +625,14 @@ namespace Kratos
 
               }
 
-            
               if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0){
-                  equiv_visco_damp_coeff_normal     = 2 * sqrt(equiv_mass * kn);
-                  equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(equiv_mass * kt);
+                  equiv_visco_damp_coeff_normal       = 2 * sqrt(equiv_mass * kn);
+                  equiv_visco_damp_coeff_tangential   = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(equiv_mass * kt);
               }
 
               else {
-                  equiv_visco_damp_coeff_normal     = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + M_PI * M_PI));
-                  //equiv_visco_damp_coeff_normal     = - 2 * log(equiv_restitution_coeff) * sqrt(equiv_mass * kn) / sqrt((log(equiv_restitution_coeff) * log(equiv_restitution_coeff)) + (M_PI * M_PI));
-
-                  equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(equiv_restitution_coeff) * sqrt(equiv_mass * kt)) / (sqrt((log(equiv_restitution_coeff) * log(equiv_restitution_coeff)) + (M_PI * M_PI)));
+                  equiv_visco_damp_coeff_normal       = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + M_PI * M_PI));
+                  equiv_visco_damp_coeff_tangential   = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
               }
 
               EvaluateDeltaDisplacement(DeltDisp, RelVel, NormalDir, OldNormalDir, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator);
@@ -640,7 +640,6 @@ namespace Kratos
               if (mRotationOption){
                   DisplacementDueToRotation(DeltDisp, OldNormalDir, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
               }
-
 
               double LocalDeltDisp[3]               = {0.0};
               double LocalElasticContactForce[3]    = {0.0};
@@ -660,7 +659,6 @@ namespace Kratos
               double ViscoDampingGlobalContactForce[3] = {0.0};
               double GlobalContactForce[3]             = {0.0};
 
-
               // TRANSLATION FORCES
 
               if (indentation > 0.0){
@@ -668,14 +666,13 @@ namespace Kratos
                   // NORMAL FORCE
 
                   NormalForceCalculation(LocalElasticContactForce, kn, indentation, mElasticityType);
-                            
+
                   // TANGENTIAL FORCE. Incremental calculation. YADE develops a complicated "absolute method"
 
                   LocalElasticContactForce[0] += - kt * LocalDeltDisp[0];  // 0: first tangential
                   LocalElasticContactForce[1] += - kt * LocalDeltDisp[1];  // 1: second tangential
 
-                  double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
-                                            + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+                  double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
                   double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
 
                   if (Frictional_ShearForceMax < 0.0){
@@ -697,19 +694,19 @@ namespace Kratos
               // Transforming to global forces and adding up
 
 
-              AddUpForcesAndProject(LocalCoordSystem, mOldNeighbourContactForces, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, 
+              AddUpForcesAndProject(LocalCoordSystem, mOldNeighbourContactForces, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce,
                                     ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce, rContactForce, rElasticForce, i_neighbour_count);
 
               // ROTATION FORCES
 
               if (mRotationOption){
-                  ComputeMoments(LocalElasticContactForce, GlobalElasticContactForce, InitialRotaMoment, LocalCoordSystem, other_radius, rContactMoment, neighbour_iterator);
+                  ComputeMoments(LocalElasticContactForce, GlobalElasticContactForce, InitialRotaMoment, MaxRotaMoment, LocalCoordSystem, other_radius, rContactMoment, neighbour_iterator);
               }
 
               i_neighbour_count++;
 
           }// for each neighbour
-          
+
           rInitialRotaMoment[0] = InitialRotaMoment[0];
           rInitialRotaMoment[1] = InitialRotaMoment[1];
           rInitialRotaMoment[2] = InitialRotaMoment[2];
