@@ -1,0 +1,374 @@
+//   
+//   Project Name:        KratosSolidMechanicsApplication $      
+//   Last modified by:    $Author:            JMCarbonell $ 
+//   Date:                $Date:                July 2013 $
+//   Revision:            $Revision:                  0.0 $
+//
+//
+
+#if !defined(KRATOS_LARGE_DISPLACEMENT_U_P_3D_ELEMENT_H_INCLUDED )
+#define  KRATOS_LARGE_DISPLACEMENT_U_P_3D_ELEMENT_H_INCLUDED
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "custom_elements/large_displacement_3D_element.hpp"
+
+
+namespace Kratos
+{
+///@name Kratos Globals
+///@{
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name  Enum's
+///@{
+///@}
+///@name  Functions
+///@{
+///@}
+///@name Kratos Classes
+///@{
+
+/// Large Displacement Lagrangian element for 3D geometries.
+
+/**
+ * Implements a Large Displacement Lagrangian definition for structural analysis.
+ * This works for arbitrary geometries in 3D
+ */
+
+class LargeDisplacementUP3DElement
+    : public LargeDisplacement3DElement
+{
+public:
+
+    ///@name Type Definitions
+    ///@{
+    ///Reference type definition for constitutive laws
+    typedef ConstitutiveLaw ConstitutiveLawType;
+    ///Pointer type for constitutive laws
+    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    ///StressMeasure from constitutive laws
+    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
+    ///Type definition for integration methods
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+ 
+    /// Counted pointer of LargeDisplacementUP3DElement
+    KRATOS_CLASS_POINTER_DEFINITION(LargeDisplacementUP3DElement);
+    ///@}
+
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructors
+    LargeDisplacementUP3DElement(IndexType NewId, GeometryType::Pointer pGeometry);
+
+    LargeDisplacementUP3DElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+
+    ///Copy constructor
+    LargeDisplacementUP3DElement(LargeDisplacementUP3DElement const& rOther);
+
+    /// Destructor.
+    virtual ~LargeDisplacementUP3DElement();
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+    /// Assignment operator.
+    LargeDisplacementUP3DElement& operator=(LargeDisplacementUP3DElement const& rOther);
+
+    ///@}
+    ///@name Operations
+    ///@{
+    /**
+     * Returns the currently selected integration method
+     * @return current integration method selected
+     */
+    /**
+     * creates a new total lagrangian updated element pointer
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+
+    //************* GETTING METHODS
+
+     /**
+     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
+     */
+    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Sets on rResult the ID's of the element degrees of freedom
+     */
+    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Sets on rValues the nodal displacements
+     */
+    void GetValuesVector(Vector& rValues, int Step = 0);
+
+    /**
+     * Sets on rValues the nodal velocities
+     */
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
+
+    /**
+     * Sets on rValues the nodal accelerations
+     */
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
+
+
+    //************* COMPUTING  METHODS
+
+    /**
+      * this is called during the assembling process in order
+      * to calculate the elemental mass matrix
+      * @param rMassMatrix: the elemental mass matrix
+      * @param rCurrentProcessInfo: the current process info instance
+      */
+    void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+
+    /**
+      * this is called during the assembling process in order
+      * to calculate the elemental damping matrix
+      * @param rDampMatrix: the elemental damping matrix
+      * @param rCurrentProcessInfo: the current process info instance
+      */
+    void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
+
+
+ 
+    //************************************************************************************
+    //************************************************************************************
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
+    int Check(const ProcessInfo& rCurrentProcessInfo);
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
+    ///@}
+    ///@name Friends
+    ///@{
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+    LargeDisplacementUP3DElement() : LargeDisplacement3DElement()
+    {
+    }
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    /**
+     * Calculation and addition of the matrices of the LHS 
+     */
+
+    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
+				    GeneralVariables& rVariables, 
+				    double& rIntegrationWeight);
+  
+    /**
+     * Calculation and addition of the vectors of the RHS 
+     */
+
+    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, 
+				    GeneralVariables& rVariables, 
+				    Vector& rVolumeForce, 
+				    double& rIntegrationWeight);
+ 
+    /**
+     * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
+     */
+    virtual void CalculateAndAddKuum(MatrixType& rK,
+				     GeneralVariables & rVariables,
+				     double& rIntegrationWeight
+				     );
+
+    /**
+     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
+     */
+    virtual void CalculateAndAddKuug(MatrixType& rK,
+				     GeneralVariables & rVariables,
+				     double& rIntegrationWeight
+				     );
+
+    /**
+     * Calculation of the Kup matrix
+     */
+    void CalculateAndAddKup (MatrixType& rK,
+			     GeneralVariables & rVariables,
+                             double& rIntegrationWeight
+			     );
+
+    /**
+     * Calculation of the Kpu matrix
+     */
+    void CalculateAndAddKpu(MatrixType& rK,
+			    GeneralVariables & rVariables,
+                            double& rIntegrationWeight
+			    );
+
+
+    /**
+     * Calculation of the Kpp matrix
+     */
+    void CalculateAndAddKpp(MatrixType& rK,
+			    GeneralVariables & rVariables,
+                            double& rIntegrationWeight
+			    );
+
+
+    /**
+     * Calculation of the Kpp Stabilization Term matrix
+     */
+    virtual void CalculateAndAddKppStab(MatrixType& rK,
+					GeneralVariables & rVariables,
+					double& rIntegrationWeight
+					);
+
+
+
+    /**
+     * Calculation of the External Forces Vector. Fe = N * t + N * b
+     */
+    void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+				       GeneralVariables& rVariables,
+				       Vector& rVolumeForce,
+				       double& rIntegrationWeight
+				       );
+
+
+    /**
+      * Calculation of the Internal Forces due to sigma. Fi = B * sigma
+      */
+    void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+				       GeneralVariables & rVariables,
+				       double& rIntegrationWeight
+				       );
+
+
+    /**
+     * Calculation of the Internal Forces due to Pressure-Balance
+     */
+    void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
+				       GeneralVariables & rVariables,
+				       double& rIntegrationWeight
+				       );
+
+
+    /**
+     * Calculation of the Internal Forces due to Pressure-Balance
+     */
+    virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
+					   GeneralVariables & rVariables,
+					   double& rIntegrationWeight
+					   );
+
+
+    /**
+     * Initialize System Matrices
+     */
+    void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+				  VectorType& rRightHandSideVector,
+				  Flags& rCalculationFlags);
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+    ///@}
+
+private:
+
+    ///@name Static Member Variables
+    ///@{
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
+
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+
+    // A private default constructor necessary for serialization
+
+    virtual void save(Serializer& rSerializer) const;
+
+    virtual void load(Serializer& rSerializer);
+
+
+    ///@name Private Inquiry
+    ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+    ///@}
+
+}; // Class LargeDisplacementUP3DElement
+
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name Input and output
+///@{
+///@}
+
+} // namespace Kratos.
+#endif // KRATOS_LARGE_DISPLACEMENT_U_P_3D_ELEMENT_H_INCLUDED  defined 

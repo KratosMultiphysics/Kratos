@@ -45,6 +45,11 @@
 #include "custom_elements/updated_lagrangian_3D_element.hpp"
 #include "custom_elements/updated_lagrangian_2D_element.hpp"
 
+#include "custom_elements/spatial_lagrangian_U_P_3D_element.hpp"
+#include "custom_elements/spatial_lagrangian_U_P_2D_element.hpp"
+#include "custom_elements/updated_lagrangian_U_P_3D_element.hpp"
+#include "custom_elements/updated_lagrangian_U_P_2D_element.hpp"
+
 //constitutive laws
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
@@ -348,6 +353,8 @@ namespace Kratos
     const UpdatedLagrangian3DElement mUpdatedLagrangianElement3D20N;
     const UpdatedLagrangian3DElement mUpdatedLagrangianElement3D27N;
 
+    //const UpdatedLagrangianUP2DElement mUpdatedLagrangianUPElement2D3N;
+    
     //spatial lagrangian
     const SpatialLagrangian2DElement mSpatialLagrangianElement2D3N;
     const SpatialLagrangian2DElement mSpatialLagrangianElement2D4N;
@@ -361,6 +368,8 @@ namespace Kratos
     const SpatialLagrangian3DElement mSpatialLagrangianElement3D15N;
     const SpatialLagrangian3DElement mSpatialLagrangianElement3D20N;
     const SpatialLagrangian3DElement mSpatialLagrangianElement3D27N;
+
+    //const SpatialLagrangianUP2DElement mSpatialLagrangianUPElement2D3N;
 
     //conditions
     const PointLoad2DCondition          mPointLoad2DCondition;
