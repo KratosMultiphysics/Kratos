@@ -9,7 +9,6 @@ from pylab import *
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
-from DEM_explicit_solver_var import *
 import DEM_explicit_solver_var as Param
 import DEM_procedures
 proc = DEM_procedures.Procedures(Param)
@@ -48,8 +47,8 @@ else:
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
 write_conditions   = WriteConditionsFlag.WriteConditions
 
-gid_io = GidIO(problem_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
-model_part_io_solid = ModelPartIO(problem_name)
+gid_io = GidIO(Param.problem_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
+model_part_io_solid = ModelPartIO(Param.problem_name)
 model_part_io_solid.ReadModelPart(balls_model_part)
 
 # Setting up the buffer size: SHOULD BE DONE AFTER READING!!!
@@ -72,12 +71,12 @@ solver = SolverStrategy.ExplicitStrategy(balls_model_part, creator_destructor, P
 # Creating necessary directories
 
 main_path        = os.getcwd()
-post_path        = str(main_path) + '/' + str(problem_name) + '_Post_Files'
-list_path        = str(main_path) + '/' + str(problem_name) + '_Post_Lists'
-neigh_list_path  = str(main_path) + '/' + str(problem_name) + '_Neigh_Lists'
-data_and_results = str(main_path) + '/' + str(problem_name) + '_Results_and_Data'
-graphs_path      = str(main_path) + '/' + str(problem_name) + '_Graphs'
-MPI_results      = str(main_path) + '/' + str(problem_name) + '_MPI_results'
+post_path        = str(main_path) + '/' + str(Param.problem_name) + '_Post_Files'
+list_path        = str(main_path) + '/' + str(Param.problem_name) + '_Post_Lists'
+neigh_list_path  = str(main_path) + '/' + str(Param.problem_name) + '_Neigh_Lists'
+data_and_results = str(main_path) + '/' + str(Param.problem_name) + '_Results_and_Data'
+graphs_path      = str(main_path) + '/' + str(Param.problem_name) + '_Graphs'
+MPI_results      = str(main_path) + '/' + str(Param.problem_name) + '_MPI_results'
 
 for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path, MPI_results]:
 
@@ -86,10 +85,10 @@ for directory in [post_path, list_path, neigh_list_path, data_and_results, graph
 
 os.chdir(list_path)
 
-multifile        = open(problem_name + '_all' + '.post.lst', 'w')
-multifile_5      = open(problem_name + '_5'   + '.post.lst', 'w')
-multifile_10     = open(problem_name + '_10'  + '.post.lst', 'w')
-multifile_50     = open(problem_name + '_50'  + '.post.lst', 'w')
+multifile        = open(Param.problem_name + '_all' + '.post.lst', 'w')
+multifile_5      = open(Param.problem_name + '_5'   + '.post.lst', 'w')
+multifile_10     = open(Param.problem_name + '_10'  + '.post.lst', 'w')
+multifile_50     = open(Param.problem_name + '_50'  + '.post.lst', 'w')
 
 multifile.write('Multiple\n')
 multifile_5.write('Multiple\n')
@@ -124,12 +123,6 @@ solver.Initialize()
 # Initialization of physics monitor and of the initial position of the center of mass
 
 physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
-
-# Mdpa Writing
-
-mdpa_creator = DEM_procedures.MdpaCreator(main_path, Param)
-time_of_mdpa_writing = 2.8
-mdpa_writing_not_performed = True
 
 properties_list = []
 
@@ -173,11 +166,11 @@ os.chdir(main_path)
 
 print ('Main loop starts at instant: ' + str(initial_pr_time) + '\n')
 
-total_steps_expected = int(FinalTime / dt)
+total_steps_expected = int(Param.FinalTime / dt)
 
 print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n' )
 
-while (time < FinalTime):
+while (time < Param.FinalTime):
 
     dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
@@ -191,7 +184,7 @@ while (time < FinalTime):
 
     incremental_time = (timer.time() - initial_real_time) - prev_time
 
-    if (incremental_time > ControlTime):
+    if (incremental_time > Param.ControlTime):
         percentage = 100 * (float(step) / total_steps_expected)
 
         print 'Real time calculation: ' + str(timer.time() - initial_real_time)
@@ -219,11 +212,8 @@ while (time < FinalTime):
     total_force = 0.0
     force_node  = 0.0
 
-    if (FixVelocitiesOption == 'OFF'):
-        TimePercentageFixVelocities = 0.0
-
     os.chdir(list_path)
-    multifile.write(problem_name + '_' + str(time) + '.post.bin\n')
+    multifile.write(Param.problem_name + '_' + str(time) + '.post.bin\n')
     os.chdir(main_path)
 
   #########################___GiD IO____#########################################4
@@ -236,27 +226,27 @@ while (time < FinalTime):
         properties_list = proc.MonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
 
         if (index_5 == 5):
-            multifile_5.write(problem_name + '_' + str(time) + '.post.bin\n')
+            multifile_5.write(Param.problem_name + '_' + str(time) + '.post.bin\n')
             index_5 = 0
 
         if (index_10 == 10):
-            multifile_10.write(problem_name + '_' + str(time) + '.post.bin\n')
+            multifile_10.write(Param.problem_name + '_' + str(time) + '.post.bin\n')
             index_10 = 0
 
         if (index_50 == 50):
-            multifile_50.write(problem_name + '_' + str(time) + '.post.bin\n')
+            multifile_50.write(Param.problem_name + '_' + str(time) + '.post.bin\n')
             index_50 = 0
 
         index_5  += 1
         index_10 += 1
         index_50 += 1
 
-        if (Multifile == "multiple_files"):
+        if (Param.Multifile == "multiple_files"):
             gid_io.FinalizeResults()
 
         os.chdir(graphs_path)
 
-        if (PrintNeighbourLists == "ON"): # Printing neighbours id's
+        if (Param.PrintNeighbourLists == "ON"): # Printing neighbours id's
             os.chdir(neigh_list_path)
             neighbours_list = open('neigh_list_' + str(time), 'w')
 
@@ -271,7 +261,7 @@ while (time < FinalTime):
 
         os.chdir(post_path)
 
-        if (Multifile == "multiple_files"):
+        if (Param.Multifile == "multiple_files"):
             gid_io.InitializeMesh(time)
             gid_io.WriteSphereMesh(balls_model_part.GetMesh())
             gid_io.FinalizeMesh()
@@ -289,7 +279,7 @@ while (time < FinalTime):
 #-----------------------FINALITZATION OPERATIONS--------------------------------------------------------------------------------------
 proc.PlotPhysicalProperties(properties_list, graphs_path)
 
-if (Multifile == "single_file"):
+if (Param.Multifile == "single_file"):
     gid_io.FinalizeResults()
 
 multifile.close()
