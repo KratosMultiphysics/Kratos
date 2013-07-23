@@ -120,8 +120,8 @@ class Procedures:
         self.rotation_OPTION                     = Var_Translator(param.RotationOption)
         self.bounding_box_OPTION                 = Var_Translator(param.BoundingBoxOption)  #its 1/0 xapuza
         self.fix_velocities                      = Var_Translator(param.FixVelocitiesOption)
-        self.triaxial_OPTION                     = Var_Translator(param.TriaxialOption)
-        self.contact_mesh_OPTION                 = Var_Translator(param.ContactMeshOption)
+        self.contact_mesh_OPTION                 = Var_Translator( Var_Translator(param.ContactMeshOption) & Var_Translator(param.ContinuumOption) ) 
+        self.triaxial_OPTION                     = Var_Translator( Var_Translator(param.TriaxialOption) & Var_Translator(param.ContinuumOption) ) 
  
         # SIMULATION SETTINGS
         
