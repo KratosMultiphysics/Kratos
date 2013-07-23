@@ -168,9 +168,14 @@ proc kipt::InitGIDProject { dir } {
         return 1
     }
     
-    set data [ReadProblemtypeXml [file join $dir kratos.xml] Infoproblemtype {Version MinimumGiDVersion}]
+    set xmlfile [file join $dir kratos.xml]
+    set data [ReadProblemtypeXml $xmlfile Infoproblemtype {Version MinimumGiDVersion}]
     if { $data == "" } {
-        WarnWinText [= "Configuration file %s not found" [file join $dir kratos.xml]]
+	if { [ file exists $xmlfile]} {
+	    WarnWinText [= "Couldn't read file %s" $xmlfile]
+	} else {
+	    WarnWinText [= "Configuration file %s not found" $xmlfile]
+	}
         return 1
     }
     array set problemtype_local $data
