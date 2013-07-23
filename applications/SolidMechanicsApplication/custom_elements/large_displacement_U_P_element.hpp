@@ -6,15 +6,15 @@
 //
 //
 
-#if !defined(KRATOS_LARGE_DISPLACEMENT_U_P_3D_ELEMENT_H_INCLUDED )
-#define  KRATOS_LARGE_DISPLACEMENT_U_P_3D_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED )
+#define  KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/large_displacement_3D_element.hpp"
+#include "custom_elements/large_displacement_element.hpp"
 
 
 namespace Kratos
@@ -34,15 +34,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Large Displacement Lagrangian element for 3D geometries.
+/// Large Displacement Lagrangian U-P Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)  
 
 /**
  * Implements a Large Displacement Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 3D
+ * This works for arbitrary geometries in 3D and 2D (base class)
  */
 
-class LargeDisplacementUP3DElement
-    : public LargeDisplacement3DElement
+class LargeDisplacementUPElement
+    : public LargeDisplacementElement
 {
 public:
 
@@ -57,30 +57,30 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
  
-    /// Counted pointer of LargeDisplacementUP3DElement
-    KRATOS_CLASS_POINTER_DEFINITION(LargeDisplacementUP3DElement);
+    /// Counted pointer of LargeDisplacementUPElement
+    KRATOS_CLASS_POINTER_DEFINITION(LargeDisplacementUPElement);
     ///@}
 
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    LargeDisplacementUP3DElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    LargeDisplacementUPElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    LargeDisplacementUP3DElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    LargeDisplacementUPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    LargeDisplacementUP3DElement(LargeDisplacementUP3DElement const& rOther);
+    LargeDisplacementUPElement(LargeDisplacementUPElement const& rOther);
 
     /// Destructor.
-    virtual ~LargeDisplacementUP3DElement();
+    virtual ~LargeDisplacementUPElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    LargeDisplacementUP3DElement& operator=(LargeDisplacementUP3DElement const& rOther);
+    LargeDisplacementUPElement& operator=(LargeDisplacementUPElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -183,7 +183,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    LargeDisplacementUP3DElement() : LargeDisplacement3DElement()
+    LargeDisplacementUPElement() : LargeDisplacementElement()
     {
     }
 
@@ -360,7 +360,7 @@ private:
     ///@{
     ///@}
 
-}; // Class LargeDisplacementUP3DElement
+}; // Class LargeDisplacementUPElement
 
 ///@}
 ///@name Type Definitions
@@ -371,4 +371,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_LARGE_DISPLACEMENT_U_P_3D_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED  defined 

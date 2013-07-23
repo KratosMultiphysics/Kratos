@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_BEAM_3D_ELEMENT_H_INCLUDED )
-#define  KRATOS_BEAM_3D_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_BEAM_ELEMENT_H_INCLUDED )
+#define  KRATOS_BEAM_ELEMENT_H_INCLUDED
 
 
 // System includes
@@ -25,10 +25,33 @@
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 
+
+
 namespace Kratos
 {
+  ///@name Kratos Globals
+  ///@{
+  ///@}
+  ///@name Type Definitions
+  ///@{
+  ///@}
+  ///@name  Enum's
+  ///@{
+  ///@}
+  ///@name  Functions
+  ///@{
+  ///@}
+  ///@name Kratos Classes
+  ///@{
 
-  class Beam3DElement
+  /// Beam Element for 3D space dimension
+
+  /**
+   * Implements a Small Displacement definition for structural analysis.
+   * This works for line geometries in 3D :: it must be extended to 2D and large displacement
+   */
+
+  class BeamElement
     :public Element
   {
 
@@ -68,14 +91,14 @@ namespace Kratos
 
 
 
-    KRATOS_CLASS_POINTER_DEFINITION(Beam3DElement);
+    KRATOS_CLASS_POINTER_DEFINITION(BeamElement);
 
     /// Default constructor.
-    Beam3DElement(IndexType NewId, GeometryType::Pointer pGeometry);
-    Beam3DElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    BeamElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    BeamElement(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~Beam3DElement();
+    virtual ~BeamElement();
 
 
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const;
@@ -141,7 +164,7 @@ namespace Kratos
 
 
     // A private default constructor necessary for serialization
-    Beam3DElement() {};
+    BeamElement() {};
 
 
     virtual void save(Serializer& rSerializer) const
@@ -157,10 +180,10 @@ namespace Kratos
 
 
 
-  }; // Class Beam3DElement
+  }; // Class BeamElement
 
 } // Namespace Kratos.
 
 
-#endif //  KRATOS_BEAM_3D_ELEMENT_H_INCLUDED defined
+#endif //  KRATOS_BEAM_ELEMENT_H_INCLUDED defined
 

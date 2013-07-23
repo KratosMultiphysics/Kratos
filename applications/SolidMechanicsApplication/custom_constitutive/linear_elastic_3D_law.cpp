@@ -90,10 +90,10 @@ namespace Kratos
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
       {
 	//2.-Total Deformation Gradient
-	Matrix DeformationGradientF0 = DeformationGradientF;
+	Matrix TotalDeformationGradientF0 = DeformationGradientF;
  
 	//4.-Right Cauchy Green
-	Matrix RightCauchyGreen = prod(trans(DeformationGradientF0),DeformationGradientF0);
+	Matrix RightCauchyGreen = prod(trans(TotalDeformationGradientF0),TotalDeformationGradientF0);
     
 	//5.-Green-Lagrange Strain:
 
@@ -140,9 +140,8 @@ namespace Kratos
 
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();
     const Matrix&   DeformationGradientF  = rValues.GetDeformationGradientF();
-
-    Vector& ElasticLeftCauchyGreenVector  = rValues.GetElasticLeftCauchyGreenVector();
-
+    
+    
     Vector& StrainVector                  = rValues.GetStrainVector();
     Vector& StressVector                  = rValues.GetStressVector();
     Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();      
@@ -157,7 +156,7 @@ namespace Kratos
       {
 
 	//2.-Push-Forward Left Cauchy-Green tensor b to the new configuration
-	Matrix LeftCauchyGreenMatrix = LeftCauchyGreenPushForward( LeftCauchyGreenMatrix, ElasticLeftCauchyGreenVector, DeformationGradientF );
+	Matrix LeftCauchyGreenMatrix = prod(DeformationGradientF,trans(DeformationGradientF));
 
 	//3.-Almansi Strain:
 

@@ -6,15 +6,15 @@
 //
 //
 
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_U_P_2D_ELEMENT_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_U_P_2D_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED )
+#define  KRATOS_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_U_P_3D_element.hpp"
+#include "custom_elements/large_displacement_U_P_element.hpp"
 
 
 namespace Kratos
@@ -34,15 +34,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Updated Lagrangian U-P element for 3D geometries.
+/// Spatial Lagrangian U-P Element for 3D and 2D geometries. Linear Triangles and Tetrahedra
 
 /**
- * Implements a updated Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 2D
+ * Implements a Large Displacement Lagrangian definition for structural analysis.
+ * This works for arbitrary geometries in 3D and 2D
  */
 
-class UpdatedLagrangianUP2DElement
-    : public UpdatedLagrangianUP3DElement
+class SpatialLagrangianUPElement
+    : public LargeDisplacementUPElement
 {
 public:
 
@@ -52,32 +52,35 @@ public:
     typedef ConstitutiveLaw ConstitutiveLawType;
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    ///StressMeasure from constitutive laws
+    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+ 
+    /// Counted pointer of SpatialLagrangianUPElement
+    KRATOS_CLASS_POINTER_DEFINITION(SpatialLagrangianUPElement);
 
-    /// Counted pointer of UpdatedLagrangianUP2DElement
-    KRATOS_CLASS_POINTER_DEFINITION(UpdatedLagrangianUP2DElement);
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    UpdatedLagrangianUP2DElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    SpatialLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UpdatedLagrangianUP2DElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SpatialLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    UpdatedLagrangianUP2DElement(UpdatedLagrangianUP2DElement const& rOther);
+    SpatialLagrangianUPElement(SpatialLagrangianUPElement const& rOther);
 
     /// Destructor.
-    virtual ~UpdatedLagrangianUP2DElement();
+    virtual ~SpatialLagrangianUPElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    UpdatedLagrangianUP2DElement& operator=(UpdatedLagrangianUP2DElement const& rOther);
+    SpatialLagrangianUPElement& operator=(SpatialLagrangianUPElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -95,17 +98,13 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
-      //************* GETTING METHODS
+   //************* STARTING - ENDING  METHODS
 
     /**
-     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
-     */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Sets on rResult the ID's of the element degrees of freedom
-     */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+      * Called to initialize the element.
+      * Must be called before any calculation is done
+      */
+    void Initialize();
 
     //************************************************************************************
     //************************************************************************************
@@ -116,7 +115,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    //int Check(const ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -140,58 +139,86 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    /**
+     * Container for historical total elastic deformation measure
+     */
+    std::vector< Matrix > mDeformationGradientF0;
+
+    /**
+     * Container for the total deformation gradient determinants
+     */
+    Vector mDeterminantF0;
+
     ///@}
     ///@name Protected Operators
     ///@{
-    UpdatedLagrangianUP2DElement() : UpdatedLagrangianUP3DElement()
+    SpatialLagrangianUPElement() : LargeDisplacementUPElement()
     {
     }
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    /**
+     * Calculation and addition of the matrices of the LHS 
+     */
+
+    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
+				    GeneralVariables& rVariables, 
+				    double& rIntegrationWeight);
+  
+    /**
+     * Calculation and addition of the vectors of the RHS 
+     */
+
+    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, 
+				    GeneralVariables& rVariables, 
+				    Vector& rVolumeForce, 
+				    double& rIntegrationWeight);
 
     /**
      * Initialize Element General Variables
      */ 
-    void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+
 
    /**
-     * Calculation of the Green Lagrange Strain Vector
+     * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    void CalculateGreenLagrangeStrain(const Matrix& rF,
-					      Vector& rStrainVector);
+    virtual void SetGeneralVariables(GeneralVariables& rVariables,
+				     ConstitutiveLaw::Parameters& rValues,
+				     const int & rPointNumber);
 
     /**
-     * Calculation of the Almansi Strain Vector
+     * Calculate Element Kinematics
      */
-    void CalculateAlmansiStrain(const Matrix& rF,
-				Vector& rStrainVector);
+    virtual void CalculateKinematics(GeneralVariables& rVariables,
+				     const double& rPointNumber);
 
-
+    
+    /**
+     * Calculation of the Deformation Gradient F
+     */
+    Matrix& CalculateDeltaPosition(Matrix & DeltaPosition);
 
     /**
      * Calculation of the Deformation Gradient F
      */
     void CalculateDeformationGradient(const Matrix& rDN_DX,
-					      Matrix& rF,
-					      Matrix& DeltaPosition);
+				      Matrix& rF,
+				      Matrix& DeltaPosition);
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
-    void CalculateDeformationMatrix(Matrix& rB,
-				    Matrix& rF,
-				    Matrix& rDN_DX);
+    virtual void CalculateDeformationMatrix(Matrix& rB,
+					    Matrix& rF,
+					    Matrix& rDN_DX);
 
-    /**
-     * Calculation of the Integration Weight
-     */
-    double& CalculateIntegrationWeight(double& rIntegrationWeight);
-
-    /**
-     * Calculation of the Total Mass of the Element
-     */
-    double& CalculateTotalMass(double& rTotalMass);
-
-
-    ///@}
+     ///@}
     ///@name Protected  Access
     ///@{
     ///@}
@@ -209,12 +236,18 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+
     ///@}
     ///@name Private Operators
     ///@{
+
+
     ///@}
     ///@name Private Operations
     ///@{
+
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -239,7 +272,7 @@ private:
     ///@{
     ///@}
 
-}; // Class UpdatedLagrangianUP2DElement
+}; // Class SpatialLagrangianUPElement
 
 ///@}
 ///@name Type Definitions
@@ -250,4 +283,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_U_P_2D_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED  defined 

@@ -34,21 +34,15 @@
 #include "custom_conditions/surface_load_3D_condition.hpp"
 
 //elements
-#include "custom_elements/beam_3D_element.hpp"
+#include "custom_elements/beam_element.hpp"
 #include "custom_elements/isotropic_shell_element.hpp"
-#include "custom_elements/small_displacement_3D_element.hpp"
-#include "custom_elements/small_displacement_2D_element.hpp"
-#include "custom_elements/total_lagrangian_3D_element.hpp"
-#include "custom_elements/total_lagrangian_2D_element.hpp"
-#include "custom_elements/spatial_lagrangian_3D_element.hpp"
-#include "custom_elements/spatial_lagrangian_2D_element.hpp"
-#include "custom_elements/updated_lagrangian_3D_element.hpp"
-#include "custom_elements/updated_lagrangian_2D_element.hpp"
+#include "custom_elements/small_displacement_element.hpp"
+#include "custom_elements/total_lagrangian_element.hpp"
+#include "custom_elements/spatial_lagrangian_element.hpp"
+#include "custom_elements/updated_lagrangian_element.hpp"
 
-#include "custom_elements/spatial_lagrangian_U_P_3D_element.hpp"
-#include "custom_elements/spatial_lagrangian_U_P_2D_element.hpp"
-#include "custom_elements/updated_lagrangian_U_P_3D_element.hpp"
-#include "custom_elements/updated_lagrangian_U_P_2D_element.hpp"
+#include "custom_elements/spatial_lagrangian_U_P_element.hpp"
+#include "custom_elements/updated_lagrangian_U_P_element.hpp"
 
 //constitutive laws
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
@@ -302,7 +296,7 @@ namespace Kratos
 
     //beams
 
-    const Beam3DElement mBeamElement3D2N;
+    const BeamElement mBeamElement3D2N;
 
 
     //shells
@@ -312,64 +306,64 @@ namespace Kratos
     //solid 
     
     //small displacement
-    const SmallDisplacement2DElement mSmallDisplacementElement2D3N;
-    const SmallDisplacement2DElement mSmallDisplacementElement2D4N;
-    const SmallDisplacement2DElement mSmallDisplacementElement2D6N;
-    const SmallDisplacement2DElement mSmallDisplacementElement2D8N;
+    const SmallDisplacementElement mSmallDisplacementElement2D3N;
+    const SmallDisplacementElement mSmallDisplacementElement2D4N;
+    const SmallDisplacementElement mSmallDisplacementElement2D6N;
+    const SmallDisplacementElement mSmallDisplacementElement2D8N;
 
-    const SmallDisplacement3DElement mSmallDisplacementElement3D4N;
-    const SmallDisplacement3DElement mSmallDisplacementElement3D6N;
-    const SmallDisplacement3DElement mSmallDisplacementElement3D8N;
-    const SmallDisplacement3DElement mSmallDisplacementElement3D10N;
-    const SmallDisplacement3DElement mSmallDisplacementElement3D15N;
-    const SmallDisplacement3DElement mSmallDisplacementElement3D20N;
-    const SmallDisplacement3DElement mSmallDisplacementElement3D27N;
+    const SmallDisplacementElement mSmallDisplacementElement3D4N;
+    const SmallDisplacementElement mSmallDisplacementElement3D6N;
+    const SmallDisplacementElement mSmallDisplacementElement3D8N;
+    const SmallDisplacementElement mSmallDisplacementElement3D10N;
+    const SmallDisplacementElement mSmallDisplacementElement3D15N;
+    const SmallDisplacementElement mSmallDisplacementElement3D20N;
+    const SmallDisplacementElement mSmallDisplacementElement3D27N;
 
     //total lagrangian
-    const TotalLagrangian2DElement mTotalLagrangianElement2D3N;
-    const TotalLagrangian2DElement mTotalLagrangianElement2D4N;
-    const TotalLagrangian2DElement mTotalLagrangianElement2D6N;
-    const TotalLagrangian2DElement mTotalLagrangianElement2D8N;
+    const TotalLagrangianElement mTotalLagrangianElement2D3N;
+    const TotalLagrangianElement mTotalLagrangianElement2D4N;
+    const TotalLagrangianElement mTotalLagrangianElement2D6N;
+    const TotalLagrangianElement mTotalLagrangianElement2D8N;
 
-    const TotalLagrangian3DElement mTotalLagrangianElement3D4N;
-    const TotalLagrangian3DElement mTotalLagrangianElement3D6N;
-    const TotalLagrangian3DElement mTotalLagrangianElement3D8N;
-    const TotalLagrangian3DElement mTotalLagrangianElement3D10N;
-    const TotalLagrangian3DElement mTotalLagrangianElement3D15N;
-    const TotalLagrangian3DElement mTotalLagrangianElement3D20N;
-    const TotalLagrangian3DElement mTotalLagrangianElement3D27N;
+    const TotalLagrangianElement mTotalLagrangianElement3D4N;
+    const TotalLagrangianElement mTotalLagrangianElement3D6N;
+    const TotalLagrangianElement mTotalLagrangianElement3D8N;
+    const TotalLagrangianElement mTotalLagrangianElement3D10N;
+    const TotalLagrangianElement mTotalLagrangianElement3D15N;
+    const TotalLagrangianElement mTotalLagrangianElement3D20N;
+    const TotalLagrangianElement mTotalLagrangianElement3D27N;
 
     //updated lagrangian
-    const UpdatedLagrangian2DElement mUpdatedLagrangianElement2D3N;
-    const UpdatedLagrangian2DElement mUpdatedLagrangianElement2D4N;
-    const UpdatedLagrangian2DElement mUpdatedLagrangianElement2D6N;
-    const UpdatedLagrangian2DElement mUpdatedLagrangianElement2D8N;
+    const UpdatedLagrangianElement mUpdatedLagrangianElement2D3N;
+    const UpdatedLagrangianElement mUpdatedLagrangianElement2D4N;
+    const UpdatedLagrangianElement mUpdatedLagrangianElement2D6N;
+    const UpdatedLagrangianElement mUpdatedLagrangianElement2D8N;
 
-    const UpdatedLagrangian3DElement mUpdatedLagrangianElement3D4N;
-    const UpdatedLagrangian3DElement mUpdatedLagrangianElement3D6N;
-    const UpdatedLagrangian3DElement mUpdatedLagrangianElement3D8N;
-    const UpdatedLagrangian3DElement mUpdatedLagrangianElement3D10N;
-    const UpdatedLagrangian3DElement mUpdatedLagrangianElement3D15N;
-    const UpdatedLagrangian3DElement mUpdatedLagrangianElement3D20N;
-    const UpdatedLagrangian3DElement mUpdatedLagrangianElement3D27N;
+    const UpdatedLagrangianElement mUpdatedLagrangianElement3D4N;
+    const UpdatedLagrangianElement mUpdatedLagrangianElement3D6N;
+    const UpdatedLagrangianElement mUpdatedLagrangianElement3D8N;
+    const UpdatedLagrangianElement mUpdatedLagrangianElement3D10N;
+    const UpdatedLagrangianElement mUpdatedLagrangianElement3D15N;
+    const UpdatedLagrangianElement mUpdatedLagrangianElement3D20N;
+    const UpdatedLagrangianElement mUpdatedLagrangianElement3D27N;
 
-    //const UpdatedLagrangianUP2DElement mUpdatedLagrangianUPElement2D3N;
+    //const UpdatedLagrangianUPElement mUpdatedLagrangianUPElement2D3N;
     
     //spatial lagrangian
-    const SpatialLagrangian2DElement mSpatialLagrangianElement2D3N;
-    const SpatialLagrangian2DElement mSpatialLagrangianElement2D4N;
-    const SpatialLagrangian2DElement mSpatialLagrangianElement2D6N;
-    const SpatialLagrangian2DElement mSpatialLagrangianElement2D8N;
+    const SpatialLagrangianElement mSpatialLagrangianElement2D3N;
+    const SpatialLagrangianElement mSpatialLagrangianElement2D4N;
+    const SpatialLagrangianElement mSpatialLagrangianElement2D6N;
+    const SpatialLagrangianElement mSpatialLagrangianElement2D8N;
 
-    const SpatialLagrangian3DElement mSpatialLagrangianElement3D4N;
-    const SpatialLagrangian3DElement mSpatialLagrangianElement3D6N;
-    const SpatialLagrangian3DElement mSpatialLagrangianElement3D8N;
-    const SpatialLagrangian3DElement mSpatialLagrangianElement3D10N;
-    const SpatialLagrangian3DElement mSpatialLagrangianElement3D15N;
-    const SpatialLagrangian3DElement mSpatialLagrangianElement3D20N;
-    const SpatialLagrangian3DElement mSpatialLagrangianElement3D27N;
+    const SpatialLagrangianElement mSpatialLagrangianElement3D4N;
+    const SpatialLagrangianElement mSpatialLagrangianElement3D6N;
+    const SpatialLagrangianElement mSpatialLagrangianElement3D8N;
+    const SpatialLagrangianElement mSpatialLagrangianElement3D10N;
+    const SpatialLagrangianElement mSpatialLagrangianElement3D15N;
+    const SpatialLagrangianElement mSpatialLagrangianElement3D20N;
+    const SpatialLagrangianElement mSpatialLagrangianElement3D27N;
 
-    //const SpatialLagrangianUP2DElement mSpatialLagrangianUPElement2D3N;
+    //const SpatialLagrangianUPElement mSpatialLagrangianUPElement2D3N;
 
     //conditions
     const PointLoad2DCondition          mPointLoad2DCondition;

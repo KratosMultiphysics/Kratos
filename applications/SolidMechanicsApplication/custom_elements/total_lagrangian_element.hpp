@@ -6,15 +6,15 @@
 //
 //
 
-#if !defined(KRATOS_SPATIAL_LAGRANGIAN_U_P_2D_ELEMENT_H_INCLUDED )
-#define  KRATOS_SPATIAL_LAGRANGIAN_U_P_2D_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_TOTAL_LAGRANGIAN_ELEMENT_H_INCLUDED )
+#define  KRATOS_TOTAL_LAGRANGIAN_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/spatial_lagrangian_U_P_3D_element.hpp"
+#include "custom_elements/large_displacement_element.hpp"
 
 
 namespace Kratos
@@ -34,15 +34,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Spatial Lagrangian element U-P for 3D geometries.
+/// Total Lagrangian Element for 3D and 2D geometries.
 
 /**
- * Implements a spatial Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 2D
+ * Implements a total Lagrangian definition for structural analysis.
+ * This works for arbitrary geometries in 3D and 2D
  */
 
-class SpatialLagrangianUP2DElement
-    : public SpatialLagrangianUP3DElement
+class TotalLagrangianElement
+    : public LargeDisplacementElement
 {
 public:
 
@@ -55,29 +55,29 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of SpatialLagrangianUP2DElement
-    KRATOS_CLASS_POINTER_DEFINITION(SpatialLagrangianUP2DElement);
+    /// Counted pointer of TotalLagrangianElement
+    KRATOS_CLASS_POINTER_DEFINITION(TotalLagrangianElement);
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    SpatialLagrangianUP2DElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    TotalLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    SpatialLagrangianUP2DElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    TotalLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    SpatialLagrangianUP2DElement(SpatialLagrangianUP2DElement const& rOther);
+    TotalLagrangianElement(TotalLagrangianElement const& rOther);
 
     /// Destructor.
-    virtual ~SpatialLagrangianUP2DElement();
+    virtual ~TotalLagrangianElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SpatialLagrangianUP2DElement& operator=(SpatialLagrangianUP2DElement const& rOther);
+    TotalLagrangianElement& operator=(TotalLagrangianElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -95,18 +95,15 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
-
-    //************* GETTING METHODS
-
-    /**
-     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
-     */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+   //************* STARTING - ENDING  METHODS
 
     /**
-     * Sets on rResult the ID's of the element degrees of freedom
-     */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
+      * Called to initialize the element.
+      * Must be called before any calculation is done
+      */
+    void Initialize();
+
+
     //************************************************************************************
     //************************************************************************************
     /**
@@ -116,7 +113,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    //int Check(const ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -141,39 +138,41 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    /**
+     * Total element volume or area
+     */
+    double mTotalDomainInitialSize;
+
+    /**
+     * Container for historical total Jacobians
+     */
+    std::vector< Matrix > mInvJ0;
+
+    /**
+     * Container for the total Jacobian determinants
+     */
+    Vector mDetJ0;
+
     ///@}
     ///@name Protected Operators
     ///@{
-
-    SpatialLagrangianUP2DElement() : SpatialLagrangianUP3DElement()
+    TotalLagrangianElement() : LargeDisplacementElement()
     {
     }
 
-
-
-    /**
-     * Initialize Element General Variables
-     */ 
-    void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Calculation of the Green Lagrange Strain Vector
+   /**
+     * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    void CalculateGreenLagrangeStrain(const Matrix& rF,
-					      Vector& rStrainVector);
+    void SetGeneralVariables(GeneralVariables& rVariables,
+			     ConstitutiveLaw::Parameters& rValues,
+			     const int & rPointNumber);
 
     /**
-     * Calculation of the Almansi Strain Vector
+     * Calculate Element Kinematics
      */
-    void CalculateAlmansiStrain(const Matrix& rF,
-				Vector& rStrainVector);
+    void CalculateKinematics(GeneralVariables& rVariables,
+			     const double& rPointNumber);
 
-    /**
-     * Calculation of the Deformation Gradient F
-     */
-    void CalculateDeformationGradient(const Matrix& rDN_DX,
-					      Matrix& rF,
-					      Matrix& DeltaPosition);
 
     /**
      * Calculation of the Deformation Matrix  BL
@@ -182,17 +181,11 @@ protected:
 				    Matrix& rF,
 				    Matrix& rDN_DX);
 
-    /**
-     * Calculation of the Integration Weight
-     */
-    double& CalculateIntegrationWeight(double& rIntegrationWeight);
-
 
     /**
      * Calculation of the Total Mass of the Element
      */
     double& CalculateTotalMass(double& rTotalMass);
-
 
     ///@}
     ///@name Protected  Access
@@ -212,12 +205,18 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+
     ///@}
     ///@name Private Operators
     ///@{
+
+
     ///@}
     ///@name Private Operations
     ///@{
+
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -242,7 +241,7 @@ private:
     ///@{
     ///@}
 
-}; // Class SpatialLagrangianUP2DElement
+}; // Class TotalLagrangianElement
 
 ///@}
 ///@name Type Definitions
@@ -253,4 +252,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SPATIAL_LAGRANGIAN_U_P_2D_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_TOTAL_LAGRANGIAN_ELEMENT_H_INCLUDED  defined 

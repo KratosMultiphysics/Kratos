@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_SMALL_DISPLACEMENT_3D_ELEMENT_H_INCLUDED )
-#define  KRATOS_SMALL_DISPLACEMENT_3D_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED )
+#define  KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -41,14 +41,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Large Displacement Lagrangian element for 3D geometries.
+/// Small Displacement Element for 3D and 2D geometries.
 
 /**
- * Implements a Large Displacement Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 3D
+ * Implements a Small Displacement Lagrangian definition for structural analysis.
+ * This works for arbitrary geometries in 3D and 2D
  */
 
-class SmallDisplacement3DElement
+class SmallDisplacementElement
     : public Element
 {
 public:
@@ -63,8 +63,8 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-    /// Counted pointer of SmallDisplacement3DElement
-    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacement3DElement);
+    /// Counted pointer of SmallDisplacementElement
+    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementElement);
     ///@}
 
 protected:
@@ -89,11 +89,11 @@ protected:
     double  detJ;
     Vector  StrainVector;
     Vector  StressVector;
-    Vector  ElasticLeftCGVector;
     Vector  N;
     Matrix  B;
     Matrix  H;
     Matrix  F;
+    Matrix  F0;
     Matrix  DN_DX;
     Matrix  ConstitutiveMatrix;
     
@@ -133,22 +133,22 @@ public:
     ///@{
 
     /// Default constructors
-    SmallDisplacement3DElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    SmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    SmallDisplacement3DElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    SmallDisplacement3DElement(SmallDisplacement3DElement const& rOther);
+    SmallDisplacementElement(SmallDisplacementElement const& rOther);
 
     /// Destructor.
-    virtual ~SmallDisplacement3DElement();
+    virtual ~SmallDisplacementElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SmallDisplacement3DElement& operator=(SmallDisplacement3DElement const& rOther);
+    SmallDisplacementElement& operator=(SmallDisplacementElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -401,7 +401,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    SmallDisplacement3DElement() : Element()
+    SmallDisplacementElement() : Element()
     {
     }
 
@@ -410,10 +410,10 @@ protected:
      * \f$ K^e = w\,B^T\,D\,B \f$ and
      * \f$ r^e \f$
      */
-    void CalculateElementalSystem(MatrixType& rLeftHandSideMatrix,
-				VectorType& rRightHandSideVector,
-				ProcessInfo& rCurrentProcessInfo,
-				Flags & rCalculationFlags);
+    virtual void CalculateElementalSystem(MatrixType& rLeftHandSideMatrix,
+					  VectorType& rRightHandSideVector,
+					  ProcessInfo& rCurrentProcessInfo,
+					  Flags & rCalculationFlags);
     ///@}
     ///@name Protected Operations
     ///@{
@@ -441,10 +441,10 @@ protected:
      * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B 
      */
 
-    void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-			     GeneralVariables& rVariables,
-			     double& rIntegrationWeight
-			     );
+    virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+				     GeneralVariables& rVariables,
+				     double& rIntegrationWeight
+				     );
 
    /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
@@ -479,9 +479,9 @@ protected:
     /**
      * Initialize System Matrices
      */
-    void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-				  VectorType& rRightHandSideVector,
-				  Flags& rCalculationFlags);
+    virtual void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+					  VectorType& rRightHandSideVector,
+					  Flags& rCalculationFlags);
 
 
  
@@ -618,7 +618,7 @@ private:
     ///@{
     ///@}
 
-}; // Class SmallDisplacement3DElement
+}; // Class SmallDisplacementElement
 
 ///@}
 ///@name Type Definitions
@@ -629,4 +629,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SMALL_DISPLACEMENT_3D_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined 
