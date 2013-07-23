@@ -38,9 +38,7 @@ def AddVariables(model_part, Param):
     model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
     model_part.AddNodalSolutionStepVariable(POISSON_RATIO)
     model_part.AddNodalSolutionStepVariable(LN_OF_RESTITUTION_COEFF)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_COHESION)
     model_part.AddNodalSolutionStepVariable(PARTICLE_FRICTION)
-    model_part.AddNodalSolutionStepVariable(PARTICLE_TENSION)
 
     # ROTATION RELATED PROPERTIES
 
