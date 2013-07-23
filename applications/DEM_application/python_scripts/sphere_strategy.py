@@ -63,6 +63,9 @@ def AddVariables(model_part, Param):
         model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES)
         model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_ROTATE_SPRING_MOMENT)
 
+    if (Var_Translator(Param.LimitCylinderOption)):
+        model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES)
+    
     # FLAGS
     model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
     model_part.AddNodalSolutionStepVariable(ERASE_FLAG)
@@ -104,6 +107,7 @@ class ExplicitStrategy:
         self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)
         self.fix_velocities                 = Var_Translator(Param.FixVelocitiesOption)
         self.limit_surface_option           = Var_Translator(Param.LimitSurfaceOption)
+        self.limit_cylinder_option          = Var_Translator(Param.LimitCylinderOption)        
         self.clean_init_indentation_option  = Var_Translator(Param.CleanIndentationsOption)
         self.homogeneous_material_option    = Var_Translator(Param.HomogeneousMaterialOption)
         self.global_variables_option        = Var_Translator(Param.GlobalVariablesOption)
@@ -141,6 +145,8 @@ class ExplicitStrategy:
         self.surface_point_coor[2]          = Param.SurfacePointCoorZ
         self.surface_friction_angle         = Param.SurfaceFrictionAngle
         self.cylinder_radius                = Param.CylinderRadius
+        self.cylinder_velocity              = Param.CylinderVelocity
+        self.cylinder_friction_angle        = Param.CylinderFrictionAngle
 
         # GLOBAL PHYSICAL ASPECTS
         self.gravity                        = Vector(3)
@@ -295,7 +301,11 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR, self.surface_normal_dir)
         self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR, self.surface_point_coor)
         self.model_part.ProcessInfo.SetValue(SURFACE_FRICC, self.surface_friction_angle)
+        self.model_part.ProcessInfo.SetValue(LIMIT_CYLINDER_OPTION, self.limit_cylinder_option)
         self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS, self.cylinder_radius)
+        self.model_part.ProcessInfo.SetValue(CYLINDER_VELOCITY, self.cylinder_velocity)
+        self.model_part.ProcessInfo.SetValue(CYLINDER_FRICC, self.cylinder_friction_angle)
+
 
         # GLOBAL PHISICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
