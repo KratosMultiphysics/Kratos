@@ -7,7 +7,7 @@
 #include "processes/process.h"
 #include "solving_strategies/schemes/scheme.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_elements/fractional_step.h"
+//#include "custom_elements/fractional_step.h"
 
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme_slip.h"
@@ -224,12 +224,17 @@ public:
         int ierr = BaseType::Check();
         if (ierr != 0) return ierr;
 
+        if(DELTA_TIME.Key() == 0)
+            KRATOS_ERROR(std::runtime_error,"DELTA_TIME Key is 0. Check that the application was correctly registered.","");
+        if(BDF_COEFFICIENTS.Key() == 0)
+            KRATOS_ERROR(std::runtime_error,"BDF_COEFFICIENTS Key is 0. Check that the application was correctly registered.","");
+
         ModelPart& rModelPart = BaseType::GetModelPart();
 
         if ( mTimeOrder == 2 && rModelPart.GetBufferSize() < 3 )
-            KRATOS_ERROR(std::logic_error,"Buffer size too small for fractional step strategy (BDF2), needed 3, got ",rModelPart.GetBufferSize());
+            KRATOS_ERROR(std::invalid_argument,"Buffer size too small for fractional step strategy (BDF2), needed 3, got ",rModelPart.GetBufferSize());
         if ( mTimeOrder == 1 && rModelPart.GetBufferSize() < 2 )
-            KRATOS_ERROR(std::logic_error,"Buffer size too small for fractional step strategy (Backward Euler), needed 2, got ",rModelPart.GetBufferSize());
+            KRATOS_ERROR(std::invalid_argument,"Buffer size too small for fractional step strategy (Backward Euler), needed 2, got ",rModelPart.GetBufferSize());
 
         const ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -360,6 +365,11 @@ public:
     virtual void AddIterationStep(Process::Pointer pNewStep)
     {
         mExtraIterationSteps.push_back(pNewStep);
+    }
+
+    virtual void ClearExtraIterationSteps()
+    {
+        mExtraIterationSteps.clear();
     }
 
     virtual void Clear()
