@@ -76,10 +76,10 @@ namespace Kratos
           max_rotation_moment[2] = 0.0;
 	  
           ComputeNewNeighboursHistoricalData();
-          ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, max_rotation_moment, rCurrentProcessInfo);
+          ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
 
           if (mLimitSurfaceOption){
-              ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, max_rotation_moment, rCurrentProcessInfo); //MSI: eliminate processInfo
+              ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, rCurrentProcessInfo); //MSI: eliminate processInfo
           }
 
           if (drag_force_type == 1){

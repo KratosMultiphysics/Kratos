@@ -532,7 +532,7 @@ namespace Kratos
 
 // ROTATION FORCES
               
-              ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce,InitialRotaMoment,MaxRotaMoment,LocalCoordSystem,other_radius,rContactMoment,neighbour_iterator);
+              ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce,InitialRotaMoment,LocalCoordSystem,other_radius,rContactMoment,neighbour_iterator);
   
 //COMPUTE THE MEAN STRESS TENSOR:
               
