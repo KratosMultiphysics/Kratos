@@ -262,19 +262,6 @@ namespace Kratos
 
     
     /**
-     * Push-Forward the LeftCauchyGreen vector and returns a matrix
-     */
-    Matrix& LeftCauchyGreenPushForward (Matrix& rLeftCauchyGreenMatrix, 
-					Vector & rLeftCauchyGreenVector,
-					const Matrix& rDeformationGradientF);
-
-    /**
-     * Push-Forward the LeftCauchyGreen vector and returns a vector
-     */
-    Vector& LeftCauchyGreenPushForward (Vector & rLeftCauchyGreenVector,
-					const Matrix& rDeformationGradientF);
-    
-    /**
      * Calculates the GreenLagrange strains
      * @param rRightCauchyGreen
      * @param rStrainVector

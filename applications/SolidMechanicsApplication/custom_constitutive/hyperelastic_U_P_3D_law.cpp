@@ -189,6 +189,7 @@ namespace Kratos
 
       //Left Cauchy-Green tensor b
       Matrix TotalDeformationGradientF0  = prod(DeformationGradientF, DeformationGradientF0);
+      TotalDeformationGradientF0         = DeformationGradient3D( TotalDeformationGradientF0 );
       ElasticVariables.CauchyGreenMatrix = prod(TotalDeformationGradientF0,trans(TotalDeformationGradientF0));
 
       if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
@@ -310,6 +311,7 @@ namespace Kratos
         
     //3.-Push-Forward Left Cauchy-Green tensor b to the new configuration
     Matrix TotalDeformationGradientF0  = prod(DeformationGradientF, DeformationGradientF0);
+    TotalDeformationGradientF0         = DeformationGradient3D( TotalDeformationGradientF0 );
     ElasticVariables.CauchyGreenMatrix = prod(TotalDeformationGradientF0,trans(TotalDeformationGradientF0));
 
     //4.-Calculate trace of Left Cauchy-Green tensor b
