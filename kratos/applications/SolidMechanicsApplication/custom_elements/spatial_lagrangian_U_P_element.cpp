@@ -142,12 +142,14 @@ namespace Kratos
   {
 
     //contributions to stiffness matrix calculated on the reference config
-    double Fdet =  rVariables.detF;
+    rVariables.detF0   *= rVariables.detF;
+    double DeterminantF = rVariables.detF;
     rVariables.detF = 1; //in order to simplify updated and spatial lagrangian
       
     LargeDisplacementUPElement::CalculateAndAddLHS( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
-    rVariables.detF = Fdet;
+    rVariables.detF     = DeterminantF;
+    rVariables.detF0   /= rVariables.detF;
     //KRATOS_WATCH(rLeftHandSideMatrix)
   }
 
@@ -158,12 +160,14 @@ namespace Kratos
   void SpatialLagrangianUPElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
   {
     //contribution to external forces
-    double Fdet =  rVariables.detF;
+    rVariables.detF0   *= rVariables.detF;
+    double DeterminantF = rVariables.detF;
     rVariables.detF = 1; //in order to simplify updated and spatial lagrangian
       
     LargeDisplacementUPElement::CalculateAndAddRHS( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
-    rVariables.detF = Fdet;
+    rVariables.detF     = DeterminantF;
+    rVariables.detF0   /= rVariables.detF;
     //KRATOS_WATCH(rRightHandSideVector)
   }
 
@@ -271,7 +275,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     rF = identity_matrix<double> ( dimension );

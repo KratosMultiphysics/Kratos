@@ -5,6 +5,7 @@ CheckForPreviousImport()
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(ACCELERATION);
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(ACCELERATION);
@@ -24,6 +25,7 @@ def AddDofs(model_part):
         node.AddDof(DISPLACEMENT_X,REACTION_X);
         node.AddDof(DISPLACEMENT_Y,REACTION_Y);
         node.AddDof(DISPLACEMENT_Z,REACTION_Z);
+        node.AddDof(PRESSURE,REACTION_PRESSURE);
     print "dofs for the dynamic structural solution added correctly"
 
 class StaticStructuralSolver:
@@ -61,10 +63,12 @@ class StaticStructuralSolver:
         
 
         #creating the solution strategy
-        #self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.MaxNewtonRapshonIterations,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
+        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.MaxNewtonRapshonIterations,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
         
-        builder_and_solver = BlockResidualBasedBuilderAndSolver(self.structure_linear_solver)
-        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,builder_and_solver,self.MaxNewtonRapshonIterations,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
+        #solving with AMG
+        #builder_and_solver = BlockResidualBasedBuilderAndSolver(self.structure_linear_solver)
+        #self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,builder_and_solver,self.MaxNewtonRapshonIterations,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
+
         self.solver.Check();
         #(self.solver).SetReformDofSetAtEachStepFlag(True)
         #(self.solver).SetMoveMeshFlag(True)

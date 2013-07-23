@@ -161,7 +161,12 @@ namespace Kratos
       }
 
       if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
-     
+	
+	//initialize constitutive tensors
+	ConstitutiveMatrix.clear();
+	SplitConstitutiveMatrix.Isochoric  = ConstitutiveMatrix;
+	SplitConstitutiveMatrix.Volumetric = ConstitutiveMatrix;
+	
 	this->CalculateIsochoricConstitutiveMatrix ( ElasticVariables, IsochoricStressVector, SplitConstitutiveMatrix.Isochoric );
 
 	this->CalculateVolumetricConstitutiveMatrix ( ElasticVariables, DomainGeometry, ShapeFunctions, SplitConstitutiveMatrix.Volumetric );
@@ -191,6 +196,15 @@ namespace Kratos
       Matrix TotalDeformationGradientF0  = prod(DeformationGradientF, DeformationGradientF0);
       TotalDeformationGradientF0         = DeformationGradient3D( TotalDeformationGradientF0 );
       ElasticVariables.CauchyGreenMatrix = prod(TotalDeformationGradientF0,trans(TotalDeformationGradientF0));
+
+      //Calculate trace of Left Cauchy-Green tensor b
+      ElasticVariables.traceCG = 0;
+      for( unsigned int i=0; i<3; i++)
+	{
+	  ElasticVariables.traceCG += ElasticVariables.CauchyGreenMatrix( i , i );
+      }
+
+      SplitStressVector.Isochoric = ZeroVector(voigtsize);
 
       if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
 	this->CalculateIsochoricStress( ElasticVariables, StressMeasure_Kirchhoff, SplitStressVector.Isochoric );
@@ -230,6 +244,13 @@ namespace Kratos
 	MathUtils<double>::InvertMatrix( DeformationGradientF, InverseDeformationGradientF, DetInvF);
 
 	ElasticVariables.CauchyGreenMatrix = ElasticVariables.IdentityMatrix;
+
+
+	//initialize constitutive tensors
+	ConstitutiveMatrix.clear();
+	SplitConstitutiveMatrix.Isochoric  = ConstitutiveMatrix;
+	SplitConstitutiveMatrix.Volumetric = ConstitutiveMatrix;
+
 
 	this->CalculateIsochoricConstitutiveMatrix ( ElasticVariables, IsochoricStressVector, InverseDeformationGradientF, SplitConstitutiveMatrix.Isochoric );
 	
@@ -314,6 +335,8 @@ namespace Kratos
     TotalDeformationGradientF0         = DeformationGradient3D( TotalDeformationGradientF0 );
     ElasticVariables.CauchyGreenMatrix = prod(TotalDeformationGradientF0,trans(TotalDeformationGradientF0));
 
+    //std::cout<<" TotalDeformationGradientF0 "<<TotalDeformationGradientF0<<std::endl;
+
     //4.-Calculate trace of Left Cauchy-Green tensor b
     ElasticVariables.traceCG = 0;
     for( unsigned int i=0; i<3; i++)
@@ -347,7 +370,9 @@ namespace Kratos
 
       //Kirchhoff Stress:
       StressVector = SplitStressVector.Isochoric + SplitStressVector.Volumetric;
-	
+      
+      //std::cout<<" StressVector.Isochoric "<<SplitStressVector.Isochoric<<std::endl;
+      //std::cout<<" StressVector.Volumetric "<<SplitStressVector.Volumetric<<std::endl;
 
       if( Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY ) ){    
 	StressVector = SplitStressVector.Isochoric;
@@ -361,7 +386,11 @@ namespace Kratos
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
      
-
+      //initialize constitutive tensors
+      ConstitutiveMatrix.clear();
+      SplitConstitutiveMatrix.Isochoric  = ConstitutiveMatrix;
+      SplitConstitutiveMatrix.Volumetric = ConstitutiveMatrix;
+      
       ElasticVariables.CauchyGreenMatrix = ElasticVariables.IdentityMatrix;
 
       this->CalculateIsochoricConstitutiveMatrix ( ElasticVariables, IsochoricStressVector, SplitConstitutiveMatrix.Isochoric );
@@ -379,7 +408,8 @@ namespace Kratos
       }
     }
 
-    
+
+       
   }
 
 
@@ -608,10 +638,10 @@ namespace Kratos
 
 
   double& HyperElasticUP3DLaw::IsochoricConstitutiveComponent(double & rCabcd,
-								 const MaterialResponseVariables & rElasticVariables,
-								 const Matrix & rIsoStressMatrix,
-								 const unsigned int& a, const unsigned int& b, 
-								 const unsigned int& c, const unsigned int& d)
+							      const MaterialResponseVariables & rElasticVariables,
+							      const Matrix & rIsoStressMatrix,
+							      const unsigned int& a, const unsigned int& b, 
+							      const unsigned int& c, const unsigned int& d)
   {
 	  
     //Isochoric part of the hyperelastic constitutive tensor component: (J²-1)/2  -  (ln(J)/J)    

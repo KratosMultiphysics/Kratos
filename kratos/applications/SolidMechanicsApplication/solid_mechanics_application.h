@@ -117,7 +117,7 @@ namespace Kratos
   //nodal dofs
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT );
   KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_ROTATION );
-
+  KRATOS_DEFINE_VARIABLE(double, REACTION_PRESSURE );
 
   //flags
   KRATOS_DEFINE_FLAG( FLUID );
@@ -347,7 +347,7 @@ namespace Kratos
     const UpdatedLagrangianElement mUpdatedLagrangianElement3D20N;
     const UpdatedLagrangianElement mUpdatedLagrangianElement3D27N;
 
-    //const UpdatedLagrangianUPElement mUpdatedLagrangianUPElement2D3N;
+    const UpdatedLagrangianUPElement mUpdatedLagrangianUPElement2D3N;
     
     //spatial lagrangian
     const SpatialLagrangianElement mSpatialLagrangianElement2D3N;
@@ -363,7 +363,7 @@ namespace Kratos
     const SpatialLagrangianElement mSpatialLagrangianElement3D20N;
     const SpatialLagrangianElement mSpatialLagrangianElement3D27N;
 
-    //const SpatialLagrangianUPElement mSpatialLagrangianUPElement2D3N;
+    const SpatialLagrangianUPElement mSpatialLagrangianUPElement2D3N;
 
     //conditions
     const PointLoad2DCondition          mPointLoad2DCondition;

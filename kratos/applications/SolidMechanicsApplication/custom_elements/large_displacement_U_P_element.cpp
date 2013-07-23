@@ -308,16 +308,16 @@ namespace Kratos
   //************************************************************************************
 
    void LargeDisplacementUPElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-									GeneralVariables& rVariables,
-									Vector& rVolumeForce,
-									double& rIntegrationWeight)
+								  GeneralVariables& rVariables,
+								  Vector& rVolumeForce,
+								  double& rIntegrationWeight)
 								    
   {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    //VectorType Fh=rRightHandSideVector;
+    VectorType Fh=rRightHandSideVector;
 
     double Fext=0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -356,7 +356,7 @@ namespace Kratos
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    //VectorType Fh=rRightHandSideVector;
+    VectorType Fh=rRightHandSideVector;
 
     Vector InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
 
@@ -375,8 +375,9 @@ namespace Kratos
     }
 
     // std::cout<<std::endl;
-    // //std::cout<<" Stress "<<rVariables.StressVector<<std::endl;
+    // std::cout<<" Stress "<<rVariables.StressVector<<std::endl;
     // std::cout<<" Fint "<<rRightHandSideVector-Fh<<std::endl;
+
     KRATOS_CATCH( "" )
       }
   
@@ -430,9 +431,9 @@ namespace Kratos
       }
 
 
-    // std::cout<<std::endl;
-    // std::cout<<" auxiliar " <<auxiliar<<" F0 "<<rVariables.detF0<<std::endl;
-    // std::cout<<" Fpres "<<rRightHandSideVector-Fh<<std::endl;
+     // std::cout<<std::endl;
+     // std::cout<<" auxiliar " <<auxiliar<<" F0 "<<rVariables.detF0<<std::endl;
+     // std::cout<<" Fpres "<<rRightHandSideVector-Fh<<std::endl;
 
     KRATOS_CATCH( "" )
       }
@@ -490,8 +491,8 @@ namespace Kratos
       }
 
 
-    // std::cout<<std::endl;
-    // std::cout<<" FpStab "<<rRightHandSideVector-Fh<<std::endl;
+     // std::cout<<std::endl;
+     // std::cout<<" FpStab "<<rRightHandSideVector-Fh<<std::endl;
 
     KRATOS_CATCH( "" )
       }

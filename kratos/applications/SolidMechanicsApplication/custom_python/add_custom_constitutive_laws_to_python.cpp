@@ -73,6 +73,10 @@ namespace Kratos
 	  init<>() )
 	;
 
+     class_< HyperElasticUP3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+	( "HyperElasticUP3DLaw",
+	  init<>() )
+	;
 
      class_< LinearElastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
 	( "LinearElastic3DLaw",
@@ -92,6 +96,11 @@ namespace Kratos
 
       class_< HyperElasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
 	( "HyperElasticPlaneStrain2DLaw",
+	  init<>() )
+	;
+
+      class_< HyperElasticUPPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+	( "HyperElasticUPPlaneStrain2DLaw",
 	  init<>() )
 	;
 
