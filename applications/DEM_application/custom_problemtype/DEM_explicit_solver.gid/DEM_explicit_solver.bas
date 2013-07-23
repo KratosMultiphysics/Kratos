@@ -208,23 +208,6 @@ Begin NodalData POISSON_RATIO
 *end elems 
 End NodalData
 
-
-Begin NodalData PARTICLE_COHESION
-*loop elems *all
-*if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
-*elemsconec(1) 0 *elemsmatprop(Cohesion)
-*endif
-*end elems 
-End NodalData
-
-Begin NodalData PARTICLE_TENSION
-*loop elems *all
-*if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
-*elemsconec(1) 0 *elemsmatprop(Tension)
-*endif
-*end elems 
-End NodalData
-
 Begin NodalData PARTICLE_FRICTION
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
@@ -253,7 +236,6 @@ Begin NodalData PARTICLE_ROTATION_DAMP_RATIO
 End NodalData
 *endif
 
-
 Begin NodalData LN_OF_RESTITUTION_COEFF
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
@@ -266,7 +248,6 @@ Begin NodalData LN_OF_RESTITUTION_COEFF
 *end elems 
 End NodalData
 
-
 Begin NodalData PARTICLE_MATERIAL
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
@@ -276,18 +257,3 @@ Begin NodalData PARTICLE_MATERIAL
 End NodalData
 
 
-*#Begin NodalData PARTICLE_STATIC_FRICTION_COEF
-*#*loop elems *all
-*#*if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
-*#*elemsconec(1) 0 *elemsmatprop(Static_friction_coef)
-*#*endif
-*#*end elems 
-*#End NodalData
-
-*#Begin NodalData PARTICLE_DYNAMIC_FRICTION_COEF
-*#*loop elems *all
-*#*if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
-*#*elemsconec(1) 0 *elemsmatprop(Dynamic_friction_coef)
-*#*endif
-*#*end elems 
-*#End NodalData
