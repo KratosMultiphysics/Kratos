@@ -700,7 +700,7 @@ namespace Kratos
               // ROTATION FORCES
 
               if (mRotationOption){
-                  ComputeMoments(LocalElasticContactForce, GlobalElasticContactForce, InitialRotaMoment, MaxRotaMoment, LocalCoordSystem, other_radius, rContactMoment, neighbour_iterator);
+                  ComputeMoments(LocalElasticContactForce, GlobalElasticContactForce, InitialRotaMoment, LocalCoordSystem, other_radius, rContactMoment, neighbour_iterator);
               }
 
               i_neighbour_count++;
