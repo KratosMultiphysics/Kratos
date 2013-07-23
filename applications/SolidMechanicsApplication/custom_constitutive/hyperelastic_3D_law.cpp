@@ -422,8 +422,8 @@ namespace Kratos
     StressVector       /= detF0;
     ConstitutiveMatrix /= detF0;
   
-    // std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
-    // std::cout<<" Stress "<<StressVector<<std::endl;
+    //std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
+    //std::cout<<" Stress "<<StressVector<<std::endl;
 
   }
 

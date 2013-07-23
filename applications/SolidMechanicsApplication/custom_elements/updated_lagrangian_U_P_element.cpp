@@ -116,11 +116,13 @@ namespace Kratos
   {
 
     //contributions to stiffness matrix calculated on the reference config
+    rVariables.detF0 *= rVariables.detF;
 
     CalculatePushForwardDN_DX( rVariables ); //to be compatible with the updated lagrangian configuration
 
     LargeDisplacementUPElement::CalculateAndAddLHS( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
+    rVariables.detF0 /= rVariables.detF;
     //KRATOS_WATCH(rLeftHandSideMatrix)
   }
 
@@ -132,9 +134,11 @@ namespace Kratos
   {
 
     //contribution to external forces
+    rVariables.detF0 *= rVariables.detF;
 
     LargeDisplacementUPElement::CalculateAndAddRHS( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
     
+    rVariables.detF0 /= rVariables.detF;
     //KRATOS_WATCH(rRightHandSideVector)
   }
 

@@ -104,6 +104,8 @@ namespace Kratos
   //nodal dofs
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT );
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_ROTATION );
+  KRATOS_CREATE_VARIABLE( double, REACTION_PRESSURE );
+
 
   //global flags
   KRATOS_CREATE_FLAG( FLUID,         16 );
@@ -166,6 +168,7 @@ namespace Kratos
     mUpdatedLagrangianElement3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) ),
     mUpdatedLagrangianElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
     mUpdatedLagrangianElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
+    mUpdatedLagrangianUPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
 
     mSpatialLagrangianElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mSpatialLagrangianElement2D4N( 0, Element::GeometryType::Pointer( new Quadrilateral2D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
@@ -178,6 +181,7 @@ namespace Kratos
     mSpatialLagrangianElement3D15N( 0, Element::GeometryType::Pointer( new Prism3D15 <Node<3> >( Element::GeometryType::PointsArrayType( 15, Node<3>() ) ) ) ),
     mSpatialLagrangianElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
     mSpatialLagrangianElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
+    mSpatialLagrangianUPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
 
     mPointLoad2DCondition( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mPointLoad3DCondition( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
@@ -249,7 +253,7 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianElement3D20N", mUpdatedLagrangianElement3D20N )
     KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianElement3D27N", mUpdatedLagrangianElement3D27N )
 
-      //KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPElement2D3N", mUpdatedLagrangianUPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "UpdatedLagrangianUPElement2D3N", mUpdatedLagrangianUPElement2D3N )
 
     //Register spatial lagrangian
     KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement2D3N", mSpatialLagrangianElement2D3N )
@@ -264,7 +268,7 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement3D20N", mSpatialLagrangianElement3D20N )
     KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement3D27N", mSpatialLagrangianElement3D27N )
 
-      //KRATOS_REGISTER_ELEMENT( "SpatialLagrangianUPElement2D3N", mSpatialLagrangianUPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "SpatialLagrangianUPElement2D3N", mSpatialLagrangianUPElement2D3N )
 
     //Register Conditions
  
@@ -341,6 +345,7 @@ namespace Kratos
     //nodal dofs
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT );
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_ROTATION     );
+    KRATOS_REGISTER_VARIABLE( REACTION_PRESSURE );
 
     //flags
     KRATOS_REGISTER_FLAG( FLUID );
