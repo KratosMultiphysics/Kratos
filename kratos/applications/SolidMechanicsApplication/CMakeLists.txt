@@ -21,24 +21,18 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_plane_stress_2D_law.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_3D_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/isotropic_shell_element.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_3D_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_3D_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_2D_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_3D_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_2D_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spatial_lagrangian_3D_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spatial_lagrangian_2D_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_3D_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_2D_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_element.cpp
+ 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/total_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spatial_lagrangian_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_element.cpp
 
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_U_P_3D_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spatial_lagrangian_U_P_3D_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spatial_lagrangian_U_P_2D_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_P_3D_element.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_P_2D_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_U_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/spatial_lagrangian_U_P_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_P_element.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_2D_condition.cpp

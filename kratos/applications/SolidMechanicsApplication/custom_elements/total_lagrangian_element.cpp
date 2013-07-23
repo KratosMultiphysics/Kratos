@@ -12,7 +12,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/total_lagrangian_3D_element.hpp"
+#include "custom_elements/total_lagrangian_element.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "solid_mechanics_application.h"
@@ -25,8 +25,8 @@ namespace Kratos
   //******************************CONSTRUCTOR*******************************************
   //************************************************************************************
 
-  TotalLagrangian3DElement::TotalLagrangian3DElement( IndexType NewId, GeometryType::Pointer pGeometry )
-    : LargeDisplacement3DElement( NewId, pGeometry )
+  TotalLagrangianElement::TotalLagrangianElement( IndexType NewId, GeometryType::Pointer pGeometry )
+    : LargeDisplacementElement( NewId, pGeometry )
   {
     //DO NOT ADD DOFS HERE!!!
   }
@@ -35,8 +35,8 @@ namespace Kratos
   //******************************CONSTRUCTOR*******************************************
   //************************************************************************************
 
-  TotalLagrangian3DElement::TotalLagrangian3DElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-    : LargeDisplacement3DElement( NewId, pGeometry, pProperties )
+  TotalLagrangianElement::TotalLagrangianElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+    : LargeDisplacementElement( NewId, pGeometry, pProperties )
   {
     //DO NOT ADD DOFS HERE!!!
   }
@@ -45,8 +45,8 @@ namespace Kratos
   //******************************COPY CONSTRUCTOR**************************************
   //************************************************************************************
 
-  TotalLagrangian3DElement::TotalLagrangian3DElement( TotalLagrangian3DElement const& rOther)
-    :LargeDisplacement3DElement(rOther)
+  TotalLagrangianElement::TotalLagrangianElement( TotalLagrangianElement const& rOther)
+    :LargeDisplacementElement(rOther)
     ,mTotalDomainInitialSize(rOther.mTotalDomainInitialSize)
     ,mInvJ0(rOther.mInvJ0)
     ,mDetJ0(rOther.mDetJ0)
@@ -57,9 +57,9 @@ namespace Kratos
   //*******************************ASSIGMENT OPERATOR***********************************
   //************************************************************************************
 
-  TotalLagrangian3DElement&  TotalLagrangian3DElement::operator=(TotalLagrangian3DElement const& rOther)
+  TotalLagrangianElement&  TotalLagrangianElement::operator=(TotalLagrangianElement const& rOther)
   {
-    LargeDisplacement3DElement::operator=(rOther);
+    LargeDisplacementElement::operator=(rOther);
 
     mInvJ0.clear();
     mInvJ0.resize( rOther.mInvJ0.size());
@@ -79,16 +79,16 @@ namespace Kratos
   //*********************************OPERATIONS*****************************************
   //************************************************************************************
 
-  Element::Pointer TotalLagrangian3DElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+  Element::Pointer TotalLagrangianElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
   {
-    return Element::Pointer( new TotalLagrangian3DElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Element::Pointer( new TotalLagrangianElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
   }
 
 
   //*******************************DESTRUCTOR*******************************************
   //************************************************************************************
 
-  TotalLagrangian3DElement::~TotalLagrangian3DElement()
+  TotalLagrangianElement::~TotalLagrangianElement()
   {
   }
 
@@ -99,11 +99,11 @@ namespace Kratos
   //************************************************************************************
 
 
-  void TotalLagrangian3DElement::Initialize()
+  void TotalLagrangianElement::Initialize()
   {
     KRATOS_TRY
 
-    LargeDisplacement3DElement::Initialize();
+    LargeDisplacementElement::Initialize();
 
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
@@ -144,11 +144,11 @@ namespace Kratos
  //************************************************************************************
   //************************************************************************************
 
-  void TotalLagrangian3DElement::SetGeneralVariables(GeneralVariables& rVariables,
+  void TotalLagrangianElement::SetGeneralVariables(GeneralVariables& rVariables,
 						     ConstitutiveLaw::Parameters& rValues,
 						     const int & rPointNumber)
   {
-    LargeDisplacement3DElement::SetGeneralVariables(rVariables,rValues,rPointNumber);
+    LargeDisplacementElement::SetGeneralVariables(rVariables,rValues,rPointNumber);
 
     //Set extra options for the contitutive law
     Flags &ConstitutiveLawOptions=rValues.GetOptions();
@@ -160,12 +160,14 @@ namespace Kratos
   //************************************************************************************
 
 
-  void TotalLagrangian3DElement::CalculateKinematics(GeneralVariables& rVariables,
+  void TotalLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
 						     const double& rPointNumber)
 
   {
     KRATOS_TRY
       
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
@@ -184,7 +186,7 @@ namespace Kratos
     //Determinant of the Deformation Gradient F0
     // (in this element F = F0, then the F0 is set to the identity for coherence in the constitutive law)
     rVariables.detF0 = 1;
-    rVariables.ElasticLeftCGVector = ZeroVector(rVariables.ElasticLeftCGVector.size());
+    rVariables.F0    = identity_matrix<double> ( dimension );
 
     //Set Shape Functions Values for this integration point
     rVariables.N=row( Ncontainer, rPointNumber);
@@ -201,38 +203,62 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void TotalLagrangian3DElement::CalculateDeformationMatrix(Matrix& rB,
+  void TotalLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
 							    Matrix& rF,
 							    Matrix& rDN_DX)
   {
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
- 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	unsigned int index = 3 * i;
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+     
+    if( dimension == 2 ){
 
-	rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
-	rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
-	rB( 0, index + 2 ) = rF( 2, 0 ) * rDN_DX( i, 0 );
-	rB( 1, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
-	rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
-	rB( 1, index + 2 ) = rF( 2, 1 ) * rDN_DX( i, 1 );
-	rB( 2, index + 0 ) = rF( 0, 2 ) * rDN_DX( i, 2 );
-	rB( 2, index + 1 ) = rF( 1, 2 ) * rDN_DX( i, 2 );
-	rB( 2, index + 2 ) = rF( 2, 2 ) * rDN_DX( i, 2 );
-	rB( 3, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
-	rB( 3, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
-	rB( 3, index + 2 ) = rF( 2, 0 ) * rDN_DX( i, 1 ) + rF( 2, 1 ) * rDN_DX( i, 0 );
-	rB( 4, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 2 ) + rF( 0, 2 ) * rDN_DX( i, 1 );
-	rB( 4, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 2 ) + rF( 1, 2 ) * rDN_DX( i, 1 );
-	rB( 4, index + 2 ) = rF( 2, 1 ) * rDN_DX( i, 2 ) + rF( 2, 2 ) * rDN_DX( i, 1 );
-	rB( 5, index + 0 ) = rF( 0, 2 ) * rDN_DX( i, 0 ) + rF( 0, 0 ) * rDN_DX( i, 2 );
-	rB( 5, index + 1 ) = rF( 1, 2 ) * rDN_DX( i, 0 ) + rF( 1, 0 ) * rDN_DX( i, 2 );
-	rB( 5, index + 2 ) = rF( 2, 2 ) * rDN_DX( i, 0 ) + rF( 2, 0 ) * rDN_DX( i, 2 );
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  unsigned int index = 2 * i;
+
+	  rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
+	  rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
+	  rB( 1, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
+	  rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
+	  rB( 2, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
+	  rB( 2, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
+	  
+	}
+
+    }
+    else if( dimension == 3 ){
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  unsigned int index = 3 * i;
+
+	  rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
+	  rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
+	  rB( 0, index + 2 ) = rF( 2, 0 ) * rDN_DX( i, 0 );
+	  rB( 1, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
+	  rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
+	  rB( 1, index + 2 ) = rF( 2, 1 ) * rDN_DX( i, 1 );
+	  rB( 2, index + 0 ) = rF( 0, 2 ) * rDN_DX( i, 2 );
+	  rB( 2, index + 1 ) = rF( 1, 2 ) * rDN_DX( i, 2 );
+	  rB( 2, index + 2 ) = rF( 2, 2 ) * rDN_DX( i, 2 );
+	  rB( 3, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
+	  rB( 3, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
+	  rB( 3, index + 2 ) = rF( 2, 0 ) * rDN_DX( i, 1 ) + rF( 2, 1 ) * rDN_DX( i, 0 );
+	  rB( 4, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 2 ) + rF( 0, 2 ) * rDN_DX( i, 1 );
+	  rB( 4, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 2 ) + rF( 1, 2 ) * rDN_DX( i, 1 );
+	  rB( 4, index + 2 ) = rF( 2, 1 ) * rDN_DX( i, 2 ) + rF( 2, 2 ) * rDN_DX( i, 1 );
+	  rB( 5, index + 0 ) = rF( 0, 2 ) * rDN_DX( i, 0 ) + rF( 0, 0 ) * rDN_DX( i, 2 );
+	  rB( 5, index + 1 ) = rF( 1, 2 ) * rDN_DX( i, 0 ) + rF( 1, 0 ) * rDN_DX( i, 2 );
+	  rB( 5, index + 2 ) = rF( 2, 2 ) * rDN_DX( i, 0 ) + rF( 2, 0 ) * rDN_DX( i, 2 );
 	
+	}
 
-      }
+    }
+    else{
+
+      KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+
+    }
 
     KRATOS_CATCH( "" )
       }
@@ -241,11 +267,16 @@ namespace Kratos
   //************************************CALCULATE TOTAL MASS****************************
   //************************************************************************************
 
-  double& TotalLagrangian3DElement::CalculateTotalMass( double& rTotalMass )
+  double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass )
   {
     KRATOS_TRY
 
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
     rTotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY];
+
+    if( dimension == 2 )
+      rTotalMass *= GetProperties()[THICKNESS];
 
     return rTotalMass;
 
@@ -258,17 +289,17 @@ namespace Kratos
 
 
 
-  void TotalLagrangian3DElement::save( Serializer& rSerializer ) const
+  void TotalLagrangianElement::save( Serializer& rSerializer ) const
   {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacement3DElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement );
     rSerializer.save("mTotalDomainInitialSize",mTotalDomainInitialSize);
     rSerializer.save("InvJ0",mInvJ0);
     rSerializer.save("DetJ0",mDetJ0);
    }
 
-  void TotalLagrangian3DElement::load( Serializer& rSerializer )
+  void TotalLagrangianElement::load( Serializer& rSerializer )
   {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacement3DElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement );
     rSerializer.load("mTotalDomainInitialSize",mTotalDomainInitialSize);
     rSerializer.load("InvJ0",mInvJ0);
     rSerializer.load("DetJ0",mDetJ0);

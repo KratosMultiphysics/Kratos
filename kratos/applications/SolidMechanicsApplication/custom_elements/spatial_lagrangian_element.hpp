@@ -6,15 +6,15 @@
 //
 //
 
-#if !defined(KRATOS_SPATIAL_LAGRANGIAN_3D_ELEMENT_H_INCLUDED )
-#define  KRATOS_SPATIAL_LAGRANGIAN_3D_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_SPATIAL_LAGRANGIAN_ELEMENT_H_INCLUDED )
+#define  KRATOS_SPATIAL_LAGRANGIAN_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/large_displacement_3D_element.hpp"
+#include "custom_elements/large_displacement_element.hpp"
 
 
 namespace Kratos
@@ -34,15 +34,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Spatial Lagrangian element for 3D geometries.
+/// Spatial Lagrangian Element for 3D and 2D geometries.
 
 /**
  * Implements a spatial Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 3D
+ * This works for arbitrary geometries in 3D and 2D
  */
 
-class SpatialLagrangian3DElement
-    : public LargeDisplacement3DElement
+class SpatialLagrangianElement
+    : public LargeDisplacementElement
 {
 public:
 
@@ -55,29 +55,29 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    /// Counted pointer of SpatialLagrangian3DElement
-    KRATOS_CLASS_POINTER_DEFINITION(SpatialLagrangian3DElement);
+    /// Counted pointer of SpatialLagrangianElement
+    KRATOS_CLASS_POINTER_DEFINITION(SpatialLagrangianElement);
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    SpatialLagrangian3DElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    SpatialLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    SpatialLagrangian3DElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    SpatialLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    SpatialLagrangian3DElement(SpatialLagrangian3DElement const& rOther);
+    SpatialLagrangianElement(SpatialLagrangianElement const& rOther);
 
     /// Destructor.
-    virtual ~SpatialLagrangian3DElement();
+    virtual ~SpatialLagrangianElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SpatialLagrangian3DElement& operator=(SpatialLagrangian3DElement const& rOther);
+    SpatialLagrangianElement& operator=(SpatialLagrangianElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -140,7 +140,7 @@ protected:
     /**
      * Container for historical total elastic deformation measure
      */
-    std::vector< Vector > mElasticLeftCauchyGreenVector;
+    std::vector< Matrix > mDeformationGradientF0;
 
     /**
      * Container for the total deformation gradient determinants
@@ -150,7 +150,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    SpatialLagrangian3DElement() : LargeDisplacement3DElement()
+    SpatialLagrangianElement() : LargeDisplacementElement()
     {
     }
 
@@ -160,18 +160,18 @@ protected:
     virtual void InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
-   /**
+    /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    void SetGeneralVariables(GeneralVariables& rVariables,
-			     ConstitutiveLaw::Parameters& rValues,
-			     const int & rPointNumber);
+    virtual void SetGeneralVariables(GeneralVariables& rVariables,
+				     ConstitutiveLaw::Parameters& rValues,
+				     const int & rPointNumber);
 
     /**
      * Calculate Element Kinematics
      */
-    void CalculateKinematics(GeneralVariables& rVariables,
-			     const double& rPointNumber);
+    virtual void CalculateKinematics(GeneralVariables& rVariables,
+				     const double& rPointNumber);
 
     
     /**
@@ -182,9 +182,9 @@ protected:
     /**
      * Calculation of the Deformation Gradient F
      */
-    virtual void CalculateDeformationGradient(const Matrix& rDN_DX,
-					      Matrix& rF,
-					      Matrix& DeltaPosition);
+    void CalculateDeformationGradient(const Matrix& rDN_DX,
+				      Matrix& rF,
+				      Matrix& DeltaPosition);
 
     /**
      * Calculation of the Deformation Matrix  BL
@@ -246,7 +246,7 @@ private:
     ///@{
     ///@}
 
-}; // Class SpatialLagrangian3DElement
+}; // Class SpatialLagrangianElement
 
 ///@}
 ///@name Type Definitions
@@ -257,4 +257,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SPATIAL_LAGRANGIAN_3D_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_SPATIAL_LAGRANGIAN_ELEMENT_H_INCLUDED  defined 

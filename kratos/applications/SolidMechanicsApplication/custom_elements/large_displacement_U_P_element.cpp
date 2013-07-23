@@ -12,7 +12,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/large_displacement_U_P_3D_element.hpp"
+#include "custom_elements/large_displacement_U_P_element.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "solid_mechanics_application.h"
@@ -24,8 +24,8 @@ namespace Kratos
   //******************************CONSTRUCTOR*******************************************
   //************************************************************************************
 
-  LargeDisplacementUP3DElement::LargeDisplacementUP3DElement( IndexType NewId, GeometryType::Pointer pGeometry )
-    : LargeDisplacement3DElement( NewId, pGeometry )
+  LargeDisplacementUPElement::LargeDisplacementUPElement( IndexType NewId, GeometryType::Pointer pGeometry )
+    : LargeDisplacementElement( NewId, pGeometry )
   {
     //DO NOT ADD DOFS HERE!!!
   }
@@ -34,8 +34,8 @@ namespace Kratos
   //******************************CONSTRUCTOR*******************************************
   //************************************************************************************
 
-  LargeDisplacementUP3DElement::LargeDisplacementUP3DElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-    : LargeDisplacement3DElement( NewId, pGeometry, pProperties )
+  LargeDisplacementUPElement::LargeDisplacementUPElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+    : LargeDisplacementElement( NewId, pGeometry, pProperties )
   {
   }
 
@@ -43,8 +43,8 @@ namespace Kratos
   //******************************COPY CONSTRUCTOR**************************************
   //************************************************************************************
 
-  LargeDisplacementUP3DElement::LargeDisplacementUP3DElement( LargeDisplacementUP3DElement const& rOther)
-    :LargeDisplacement3DElement(rOther)
+  LargeDisplacementUPElement::LargeDisplacementUPElement( LargeDisplacementUPElement const& rOther)
+    :LargeDisplacementElement(rOther)
   {
   }
 
@@ -52,9 +52,9 @@ namespace Kratos
   //*******************************ASSIGMENT OPERATOR***********************************
   //************************************************************************************
 
-  LargeDisplacementUP3DElement&  LargeDisplacementUP3DElement::operator=(LargeDisplacementUP3DElement const& rOther)
+  LargeDisplacementUPElement&  LargeDisplacementUPElement::operator=(LargeDisplacementUPElement const& rOther)
   {
-    LargeDisplacement3DElement::operator=(rOther);
+    LargeDisplacementElement::operator=(rOther);
 
     return *this;
   }
@@ -63,16 +63,16 @@ namespace Kratos
   //*********************************OPERATIONS*****************************************
   //************************************************************************************
 
-  Element::Pointer LargeDisplacementUP3DElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+  Element::Pointer LargeDisplacementUPElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
   {
-    return Element::Pointer( new LargeDisplacementUP3DElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Element::Pointer( new LargeDisplacementUPElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
   }
 
 
   //*******************************DESTRUCTOR*******************************************
   //************************************************************************************
 
-  LargeDisplacementUP3DElement::~LargeDisplacementUP3DElement()
+  LargeDisplacementUPElement::~LargeDisplacementUPElement()
   {
   }
 
@@ -83,15 +83,20 @@ namespace Kratos
 
 
 
-  void LargeDisplacementUP3DElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+  void LargeDisplacementUPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
   {
     rElementalDofList.resize( 0 );
+
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
       {
 	rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
 	rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
-	rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Z ) );
+
+	if( dimension == 3 )
+	  rElementalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Z ) );
+
 	rElementalDofList.push_back( GetGeometry()[i].pGetDof( PRESSURE ));
       }
   }
@@ -100,21 +105,28 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementUP3DElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+  void LargeDisplacementUPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
   {
-    int number_of_nodes = GetGeometry().size();
-    unsigned int element_size = number_of_nodes * 3 + number_of_nodes;
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    unsigned int element_size          = number_of_nodes * dimension + number_of_nodes;
 
     if ( rResult.size() != element_size )
       rResult.resize( element_size, false );
 
-    for ( int i = 0; i < number_of_nodes; i++ )
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-	int index = i * 3;
+	int index = i * dimension;
 	rResult[index]     = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
 	rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
-	rResult[index + 2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
-	rResult[index + 3] = GetGeometry()[i].GetDof( PRESSURE ).EquationId();
+	if( dimension == 3){
+	  rResult[index + 2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
+	  rResult[index + 3] = GetGeometry()[i].GetDof( PRESSURE ).EquationId();
+	}
+	else{
+	  rResult[index + 2] = GetGeometry()[i].GetDof( PRESSURE ).EquationId();
+	}
+
       }
 
   }
@@ -122,7 +134,7 @@ namespace Kratos
   //*********************************DISPLACEMENT***************************************
   //************************************************************************************
 
-  void LargeDisplacementUP3DElement::GetValuesVector( Vector& rValues, int Step )
+  void LargeDisplacementUPElement::GetValuesVector( Vector& rValues, int Step )
   {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -149,7 +161,7 @@ namespace Kratos
   //************************************VELOCITY****************************************
   //************************************************************************************
 
-  void LargeDisplacementUP3DElement::GetFirstDerivativesVector( Vector& rValues, int Step )
+  void LargeDisplacementUPElement::GetFirstDerivativesVector( Vector& rValues, int Step )
   {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -174,7 +186,7 @@ namespace Kratos
   //*********************************ACCELERATION***************************************
   //************************************************************************************
 
-  void LargeDisplacementUP3DElement::GetSecondDerivativesVector( Vector& rValues, int Step )
+  void LargeDisplacementUPElement::GetSecondDerivativesVector( Vector& rValues, int Step )
   {
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -203,7 +215,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void LargeDisplacementUP3DElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+  void LargeDisplacementUPElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
 							VectorType& rRightHandSideVector,
 							Flags& rCalculationFlags)
 
@@ -215,7 +227,7 @@ namespace Kratos
     //resizing as needed the LHS
     unsigned int MatSize = number_of_nodes * dimension + number_of_nodes;
       
-    if ( rCalculationFlags.Is(LargeDisplacement3DElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+    if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
       {
 	if ( rLeftHandSideMatrix.size1() != MatSize )
 	  rLeftHandSideMatrix.resize( MatSize, MatSize, false );
@@ -225,7 +237,7 @@ namespace Kratos
       
       
     //resizing as needed the RHS
-    if ( rCalculationFlags.Is(LargeDisplacement3DElement::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
+    if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
       {
 	if ( rRightHandSideVector.size() != MatSize )
 	  rRightHandSideVector.resize( MatSize, false );
@@ -239,7 +251,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementUP3DElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+  void LargeDisplacementUPElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
   {
 
     //contributions to stiffness matrix calculated on the reference config
@@ -271,7 +283,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementUP3DElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+  void LargeDisplacementUPElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
   {
 
     //contribution to external forces
@@ -295,7 +307,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-   void LargeDisplacementUP3DElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
+   void LargeDisplacementUPElement::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
 									GeneralVariables& rVariables,
 									Vector& rVolumeForce,
 									double& rIntegrationWeight)
@@ -334,7 +346,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-   void LargeDisplacementUP3DElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+   void LargeDisplacementUPElement::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
 									GeneralVariables & rVariables,
 									double& rIntegrationWeight
 									)
@@ -372,7 +384,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
   
-   void LargeDisplacementUP3DElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
+   void LargeDisplacementUPElement::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
 									     GeneralVariables & rVariables,
 									     double& rIntegrationWeight)
   {
@@ -430,7 +442,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-   void LargeDisplacementUP3DElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
+   void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
 									     GeneralVariables & rVariables,
 										 double& rIntegrationWeight)
   {
@@ -490,7 +502,7 @@ namespace Kratos
  //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementUP3DElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
+  void LargeDisplacementUPElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
 							    GeneralVariables& rVariables,
 							    double& rIntegrationWeight)                                                       
   {
@@ -536,7 +548,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementUP3DElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+  void LargeDisplacementUPElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 							GeneralVariables& rVariables,
 							double& rIntegrationWeight)
     
@@ -586,7 +598,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementUP3DElement::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
+  void LargeDisplacementUPElement::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
 							  GeneralVariables& rVariables,
 							  double& rIntegrationWeight)
   {
@@ -621,7 +633,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementUP3DElement::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
+  void LargeDisplacementUPElement::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
 							GeneralVariables& rVariables,
 							double& rIntegrationWeight)
     
@@ -669,7 +681,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementUP3DElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
+  void LargeDisplacementUPElement::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
 							  GeneralVariables& rVariables,
 							  double& rIntegrationWeight)
   {
@@ -716,7 +728,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementUP3DElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
+  void LargeDisplacementUPElement::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
 							      GeneralVariables & rVariables,
 							      double& rIntegrationWeight)
   {
@@ -781,13 +793,13 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementUP3DElement::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
+  void LargeDisplacementUPElement::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
 
     //lumped
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * dimension + number_of_nodes;
 
     if ( rMassMatrix.size1() != MatSize )
@@ -825,11 +837,12 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void LargeDisplacementUP3DElement::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
+  void LargeDisplacementUPElement::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
-      unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     //resizing as needed the LHS
     unsigned int MatSize = number_of_nodes * dimension + number_of_nodes;
@@ -846,13 +859,13 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  int  LargeDisplacementUP3DElement::Check( const ProcessInfo& rCurrentProcessInfo )
+  int  LargeDisplacementUPElement::Check( const ProcessInfo& rCurrentProcessInfo )
   {
     KRATOS_TRY
       
     int correct = 0;
       
-    correct = LargeDisplacement3DElement::Check(rCurrentProcessInfo);
+    correct = LargeDisplacementElement::Check(rCurrentProcessInfo);
 
     //verify that the variables are correctly initialized
 
@@ -868,14 +881,14 @@ namespace Kratos
   //************************************************************************************
 
 
-  void LargeDisplacementUP3DElement::save( Serializer& rSerializer ) const
+  void LargeDisplacementUPElement::save( Serializer& rSerializer ) const
   {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacement3DElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement );
    }
 
-  void LargeDisplacementUP3DElement::load( Serializer& rSerializer )
+  void LargeDisplacementUPElement::load( Serializer& rSerializer )
   {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacement3DElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement );
   }
 
 

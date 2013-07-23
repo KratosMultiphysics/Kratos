@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_LARGE_DISPLACEMENT_3D_ELEMENT_H_INCLUDED )
-#define  KRATOS_LARGE_DISPLACEMENT_3D_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_LARGE_DISPLACEMENT_ELEMENT_H_INCLUDED )
+#define  KRATOS_LARGE_DISPLACEMENT_ELEMENT_H_INCLUDED
 
 // System includes
 
@@ -41,14 +41,14 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Large Displacement Lagrangian element for 3D geometries.
+/// Large Displacement Lagrangian Element for 3D and 2D geometries. (base class)
 
 /**
  * Implements a Large Displacement Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 3D
+ * This works for arbitrary geometries in 3D and 2D (base class)
  */
 
-class LargeDisplacement3DElement
+class LargeDisplacementElement
     : public Element
 {
 public:
@@ -64,8 +64,8 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
  
-    /// Counted pointer of LargeDisplacement3DElement
-    KRATOS_CLASS_POINTER_DEFINITION(LargeDisplacement3DElement);
+    /// Counted pointer of LargeDisplacementElement
+    KRATOS_CLASS_POINTER_DEFINITION(LargeDisplacementElement);
     ///@}
 
 protected:
@@ -90,10 +90,10 @@ protected:
     double  detJ;
     Vector  StrainVector;
     Vector  StressVector;
-    Vector  ElasticLeftCGVector;
     Vector  N;
     Matrix  B;
     Matrix  F;
+    Matrix  F0;
     Matrix  DN_DX;
     Matrix  ConstitutiveMatrix;
     
@@ -132,22 +132,22 @@ public:
     ///@{
 
     /// Default constructors
-    LargeDisplacement3DElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    LargeDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    LargeDisplacement3DElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    LargeDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    LargeDisplacement3DElement(LargeDisplacement3DElement const& rOther);
+    LargeDisplacementElement(LargeDisplacementElement const& rOther);
 
     /// Destructor.
-    virtual ~LargeDisplacement3DElement();
+    virtual ~LargeDisplacementElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    LargeDisplacement3DElement& operator=(LargeDisplacement3DElement const& rOther);
+    LargeDisplacementElement& operator=(LargeDisplacementElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -399,7 +399,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    LargeDisplacement3DElement() : Element()
+    LargeDisplacementElement() : Element()
     {
     }
 
@@ -505,7 +505,7 @@ protected:
     /**
      * Clear Nodal Forces
      */
-    virtual void ClearNodalForces ();
+    void ClearNodalForces ();
 
 
     /**
@@ -624,7 +624,7 @@ private:
     ///@{
     ///@}
 
-}; // Class LargeDisplacement3DElement
+}; // Class LargeDisplacementElement
 
 ///@}
 ///@name Type Definitions

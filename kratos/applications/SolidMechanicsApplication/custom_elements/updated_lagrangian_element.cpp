@@ -12,7 +12,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/updated_lagrangian_3D_element.hpp"
+#include "custom_elements/updated_lagrangian_element.hpp"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "solid_mechanics_application.h"
@@ -25,8 +25,8 @@ namespace Kratos
   //******************************CONSTRUCTOR*******************************************
   //************************************************************************************
 
-  UpdatedLagrangian3DElement::UpdatedLagrangian3DElement( IndexType NewId, GeometryType::Pointer pGeometry )
-    : SpatialLagrangian3DElement( NewId, pGeometry )
+  UpdatedLagrangianElement::UpdatedLagrangianElement( IndexType NewId, GeometryType::Pointer pGeometry )
+    : SpatialLagrangianElement( NewId, pGeometry )
   {
     //DO NOT ADD DOFS HERE!!!
   }
@@ -35,8 +35,8 @@ namespace Kratos
   //******************************CONSTRUCTOR*******************************************
   //************************************************************************************
 
-  UpdatedLagrangian3DElement::UpdatedLagrangian3DElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-    : SpatialLagrangian3DElement( NewId, pGeometry, pProperties )
+  UpdatedLagrangianElement::UpdatedLagrangianElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+    : SpatialLagrangianElement( NewId, pGeometry, pProperties )
   {
   }
 
@@ -44,8 +44,8 @@ namespace Kratos
   //******************************COPY CONSTRUCTOR**************************************
   //************************************************************************************
 
-  UpdatedLagrangian3DElement::UpdatedLagrangian3DElement( UpdatedLagrangian3DElement const& rOther)
-    :SpatialLagrangian3DElement(rOther)
+  UpdatedLagrangianElement::UpdatedLagrangianElement( UpdatedLagrangianElement const& rOther)
+    :SpatialLagrangianElement(rOther)
   {
   }
 
@@ -53,9 +53,9 @@ namespace Kratos
   //*******************************ASSIGMENT OPERATOR***********************************
   //************************************************************************************
 
-  UpdatedLagrangian3DElement&  UpdatedLagrangian3DElement::operator=(UpdatedLagrangian3DElement const& rOther)
+  UpdatedLagrangianElement&  UpdatedLagrangianElement::operator=(UpdatedLagrangianElement const& rOther)
   {
-    SpatialLagrangian3DElement::operator=(rOther);
+    SpatialLagrangianElement::operator=(rOther);
 
     return *this;
   }
@@ -64,16 +64,16 @@ namespace Kratos
   //*********************************OPERATIONS*****************************************
   //************************************************************************************
 
-  Element::Pointer UpdatedLagrangian3DElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+  Element::Pointer UpdatedLagrangianElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
   {
-    return Element::Pointer( new UpdatedLagrangian3DElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
+    return Element::Pointer( new UpdatedLagrangianElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
   }
 
 
   //*******************************DESTRUCTOR*******************************************
   //************************************************************************************
 
-  UpdatedLagrangian3DElement::~UpdatedLagrangian3DElement()
+  UpdatedLagrangianElement::~UpdatedLagrangianElement()
   {
   }
 
@@ -83,9 +83,9 @@ namespace Kratos
   //************************************************************************************
   
 
-  void UpdatedLagrangian3DElement::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+  void UpdatedLagrangianElement::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
-    LargeDisplacement3DElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
+    LargeDisplacementElement::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
 
     //Calculate Delta Position
     rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
@@ -95,11 +95,11 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void UpdatedLagrangian3DElement::SetGeneralVariables(GeneralVariables& rVariables,
+  void UpdatedLagrangianElement::SetGeneralVariables(GeneralVariables& rVariables,
 						       ConstitutiveLaw::Parameters& rValues,
 						       const int & rPointNumber)
   {
-    LargeDisplacement3DElement::SetGeneralVariables(rVariables,rValues,rPointNumber);
+    LargeDisplacementElement::SetGeneralVariables(rVariables,rValues,rPointNumber);
 
     //Set extra options for the contitutive law
     Flags &ConstitutiveLawOptions=rValues.GetOptions();
@@ -111,7 +111,7 @@ namespace Kratos
   //************************************************************************************
 
 
-  void UpdatedLagrangian3DElement::CalculateKinematics(GeneralVariables& rVariables,
+  void UpdatedLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
 						     const double& rPointNumber)
 
   {
@@ -135,7 +135,7 @@ namespace Kratos
 
     //Determinant of the Deformation Gradient F0
     rVariables.detF0 = mDeterminantF0[rPointNumber];
-    rVariables.ElasticLeftCGVector = mElasticLeftCauchyGreenVector[rPointNumber];
+    rVariables.F0    = mDeformationGradientF0[rPointNumber];
 
     //Set Shape Functions Values for this integration point
     rVariables.N=row( Ncontainer, rPointNumber);
@@ -151,37 +151,62 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void UpdatedLagrangian3DElement::CalculateDeformationMatrix(Matrix& rB,
-							      Matrix& rF,
-							      Matrix& rDN_DX)
+  void UpdatedLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
+							    Matrix& rF,
+							    Matrix& rDN_DX)
   {
     KRATOS_TRY
+
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
- 
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {
-	unsigned int index = 3 * i;
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-	rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
-	rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
-	rB( 0, index + 2 ) = rF( 2, 0 ) * rDN_DX( i, 0 );
-	rB( 1, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
-	rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
-	rB( 1, index + 2 ) = rF( 2, 1 ) * rDN_DX( i, 1 );
-	rB( 2, index + 0 ) = rF( 0, 2 ) * rDN_DX( i, 2 );
-	rB( 2, index + 1 ) = rF( 1, 2 ) * rDN_DX( i, 2 );
-	rB( 2, index + 2 ) = rF( 2, 2 ) * rDN_DX( i, 2 );
-	rB( 3, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
-	rB( 3, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
-	rB( 3, index + 2 ) = rF( 2, 0 ) * rDN_DX( i, 1 ) + rF( 2, 1 ) * rDN_DX( i, 0 );
-	rB( 4, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 2 ) + rF( 0, 2 ) * rDN_DX( i, 1 );
-	rB( 4, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 2 ) + rF( 1, 2 ) * rDN_DX( i, 1 );
-	rB( 4, index + 2 ) = rF( 2, 1 ) * rDN_DX( i, 2 ) + rF( 2, 2 ) * rDN_DX( i, 1 );
-	rB( 5, index + 0 ) = rF( 0, 2 ) * rDN_DX( i, 0 ) + rF( 0, 0 ) * rDN_DX( i, 2 );
-	rB( 5, index + 1 ) = rF( 1, 2 ) * rDN_DX( i, 0 ) + rF( 1, 0 ) * rDN_DX( i, 2 );
-	rB( 5, index + 2 ) = rF( 2, 2 ) * rDN_DX( i, 0 ) + rF( 2, 0 ) * rDN_DX( i, 2 );
+    if( dimension == 2 ){
 
-      }
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  unsigned int index = 2 * i;
+
+	  rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
+	  rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
+	  rB( 1, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
+	  rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
+	  rB( 2, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
+	  rB( 2, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
+
+	}
+    }
+    else if( dimension == 3 ){
+     
+      for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	{
+	  unsigned int index = 3 * i;
+
+	  rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
+	  rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
+	  rB( 0, index + 2 ) = rF( 2, 0 ) * rDN_DX( i, 0 );
+	  rB( 1, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
+	  rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
+	  rB( 1, index + 2 ) = rF( 2, 1 ) * rDN_DX( i, 1 );
+	  rB( 2, index + 0 ) = rF( 0, 2 ) * rDN_DX( i, 2 );
+	  rB( 2, index + 1 ) = rF( 1, 2 ) * rDN_DX( i, 2 );
+	  rB( 2, index + 2 ) = rF( 2, 2 ) * rDN_DX( i, 2 );
+	  rB( 3, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
+	  rB( 3, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
+	  rB( 3, index + 2 ) = rF( 2, 0 ) * rDN_DX( i, 1 ) + rF( 2, 1 ) * rDN_DX( i, 0 );
+	  rB( 4, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 2 ) + rF( 0, 2 ) * rDN_DX( i, 1 );
+	  rB( 4, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 2 ) + rF( 1, 2 ) * rDN_DX( i, 1 );
+	  rB( 4, index + 2 ) = rF( 2, 1 ) * rDN_DX( i, 2 ) + rF( 2, 2 ) * rDN_DX( i, 1 );
+	  rB( 5, index + 0 ) = rF( 0, 2 ) * rDN_DX( i, 0 ) + rF( 0, 0 ) * rDN_DX( i, 2 );
+	  rB( 5, index + 1 ) = rF( 1, 2 ) * rDN_DX( i, 0 ) + rF( 1, 0 ) * rDN_DX( i, 2 );
+	  rB( 5, index + 2 ) = rF( 2, 2 ) * rDN_DX( i, 0 ) + rF( 2, 0 ) * rDN_DX( i, 2 );
+
+	}
+    }
+    else{
+
+      KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+
+    }
 
     KRATOS_CATCH( "" )
       }
@@ -193,15 +218,15 @@ namespace Kratos
 
 
 
-  void UpdatedLagrangian3DElement::save( Serializer& rSerializer ) const
+  void UpdatedLagrangianElement::save( Serializer& rSerializer ) const
   {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SpatialLagrangian3DElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SpatialLagrangianElement );
 
    }
 
-  void UpdatedLagrangian3DElement::load( Serializer& rSerializer )
+  void UpdatedLagrangianElement::load( Serializer& rSerializer )
   {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SpatialLagrangian3DElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SpatialLagrangianElement );
 
   }
 

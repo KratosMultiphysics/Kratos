@@ -190,48 +190,6 @@ namespace Kratos
   }
 
 
-  //***************************DEFORMATION TENSOR PUSH-FORWARD**************************
-  //************************************************************************************
-
-  Matrix& HyperElastic3DLaw::LeftCauchyGreenPushForward (Matrix& rLeftCauchyGreenMatrix, 
-							 Vector & rLeftCauchyGreenVector,
-							 const Matrix& rDeformationGradientF)
-  {
-
-    rLeftCauchyGreenMatrix = MathUtils<double>::VectorToSymmetricTensor( rLeftCauchyGreenVector );
-
-    Matrix DeformationGradientF3D = rDeformationGradientF;
-    DeformationGradientF3D = DeformationGradient3D(DeformationGradientF3D);
-    
-    ContraVariantPushForward( rLeftCauchyGreenMatrix, DeformationGradientF3D );
-   
-    return rLeftCauchyGreenMatrix;
-  }
-
-
-
-  //***************************DEFORMATION VECTOR PUSH-FORWARD**************************
-  //************************************************************************************
-
-  Vector& HyperElastic3DLaw::LeftCauchyGreenPushForward (Vector & rLeftCauchyGreenVector,
-							 const Matrix& rDeformationGradientF)
-  {
-
-    Matrix LeftCauchyGreenMatrix = MathUtils<double>::VectorToSymmetricTensor( rLeftCauchyGreenVector );
-
-    Matrix DeformationGradientF3D = rDeformationGradientF;
-    DeformationGradientF3D = DeformationGradient3D(DeformationGradientF3D);
-
-    ContraVariantPushForward( LeftCauchyGreenMatrix, DeformationGradientF3D );
-
-    rLeftCauchyGreenVector = MathUtils<double>::SymmetricTensorToVector( LeftCauchyGreenMatrix, rLeftCauchyGreenVector.size() );
-
-    return rLeftCauchyGreenVector;
-    
-  }
-
-
-
   //*****************************MATERIAL RESPONSES*************************************
   //************************************************************************************
 
@@ -251,8 +209,8 @@ namespace Kratos
     const Matrix& DeformationGradientF    = rValues.GetDeformationGradientF();
     const double& DeterminantF            = rValues.GetDeterminantF(); 
 
-    Vector& ElasticLeftCauchyGreenVector  = rValues.GetElasticLeftCauchyGreenVector();
     Vector& StrainVector                  = rValues.GetStrainVector();
+    Matrix& DeformationGradientF0         = rValues.GetDeformationGradientF0();
     double& DeterminantF0                 = rValues.GetDeterminantF0(); 
 
     Vector& StressVector                  = rValues.GetStressVector();
@@ -276,14 +234,14 @@ namespace Kratos
     if( Options.Is( ConstitutiveLaw::INITIAL_CONFIGURATION ) ){
 
       //2.-Total Deformation Gradient
-      Matrix DeformationGradientF0 = DeformationGradientF;
-      DeformationGradientF0        = DeformationGradient3D( DeformationGradientF0 );
+      Matrix TotalDeformationGradientF0  = DeformationGradientF;
+      TotalDeformationGradientF0         = DeformationGradient3D( TotalDeformationGradientF0 );
 
       //3.-Determinant of the Total Deformation Gradient
       ElasticVariables.DeterminantF0 = DeterminantF0 * DeterminantF;
    
       //4.-Right Cauchy Green
-      Matrix RightCauchyGreen = prod(trans(DeformationGradientF0),DeformationGradientF0);
+      Matrix RightCauchyGreen = prod(trans(TotalDeformationGradientF0),TotalDeformationGradientF0);
 
       //5.-Inverse of the Right Cauchy-Green tensor C: (stored in the CauchyGreenMatrix)
       double trace_C = 0;
@@ -319,7 +277,8 @@ namespace Kratos
       if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
 
 	//Left Cauchy-Green tensor b
-	ElasticVariables.CauchyGreenMatrix = LeftCauchyGreenPushForward( ElasticVariables.CauchyGreenMatrix, ElasticLeftCauchyGreenVector, DeformationGradientF );
+	Matrix TotalDeformationGradientF0  = prod(DeformationGradientF, DeformationGradientF0);
+	ElasticVariables.CauchyGreenMatrix = prod(TotalDeformationGradientF0,trans(TotalDeformationGradientF0));
 
 	//Almansi Strain:
 	if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
@@ -390,8 +349,8 @@ namespace Kratos
     const Matrix&   DeformationGradientF  = rValues.GetDeformationGradientF();
     const double&   DeterminantF          = rValues.GetDeterminantF(); 
 
-    Vector& ElasticLeftCauchyGreenVector  = rValues.GetElasticLeftCauchyGreenVector();
     Vector& StrainVector                  = rValues.GetStrainVector();
+    Matrix& DeformationGradientF0         = rValues.GetDeformationGradientF0();
     double& DeterminantF0                 = rValues.GetDeterminantF0(); 
 
     Vector& StressVector                  = rValues.GetStressVector();
@@ -414,7 +373,8 @@ namespace Kratos
     ElasticVariables.DeterminantF0 = DeterminantF0 * DeterminantF;
         
     //3.-Push-Forward Left Cauchy-Green tensor b to the new configuration
-    ElasticVariables.CauchyGreenMatrix = LeftCauchyGreenPushForward( ElasticVariables.CauchyGreenMatrix, ElasticLeftCauchyGreenVector, DeformationGradientF );
+    Matrix TotalDeformationGradientF0  = prod(DeformationGradientF, DeformationGradientF0);
+    ElasticVariables.CauchyGreenMatrix = prod(TotalDeformationGradientF0,trans(TotalDeformationGradientF0));
     
     //4.-Almansi Strain:
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
@@ -475,7 +435,7 @@ namespace Kratos
     this->CalculateMaterialResponsePK2 (rValues);
   
     Vector& StressVector                   =rValues.GetStressVector();
-    Vector& ElasticLeftCauchyGreenVector   =rValues.GetElasticLeftCauchyGreenVector();
+    Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
     double& DeterminantF0                  =rValues.GetDeterminantF0();
     const Matrix& DeformationGradientF     =rValues.GetDeformationGradientF();
     const double& DeterminantF             =rValues.GetDeterminantF();
@@ -484,8 +444,8 @@ namespace Kratos
     TransformStresses(StressVector,DeformationGradientF,DeterminantF,StressMeasure_PK2,StressMeasure_Cauchy);  //Cauchy Stress
 
     //2.-Update Internal Variables
-    ElasticLeftCauchyGreenVector = LeftCauchyGreenPushForward( ElasticLeftCauchyGreenVector, DeformationGradientF );
-    DeterminantF0               *= DeterminantF;
+    DeformationGradientF0  =  prod(DeformationGradientF, DeformationGradientF0);
+    DeterminantF0         *=  DeterminantF;
   }
 
   //************************************************************************************
@@ -498,7 +458,7 @@ namespace Kratos
     this->CalculateMaterialResponsePK1 (rValues);
 
     Vector& StressVector                   =rValues.GetStressVector();
-    Vector& ElasticLeftCauchyGreenVector   =rValues.GetElasticLeftCauchyGreenVector();
+    Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
     double& DeterminantF0                  =rValues.GetDeterminantF0();
     const Matrix& DeformationGradientF     =rValues.GetDeformationGradientF();
     const double& DeterminantF             =rValues.GetDeterminantF();
@@ -507,8 +467,8 @@ namespace Kratos
     TransformStresses(StressVector,DeformationGradientF,DeterminantF,StressMeasure_PK1,StressMeasure_Cauchy);  //increment of Cauchy Stress
 
     //2.-Update Internal Variables
-    ElasticLeftCauchyGreenVector = LeftCauchyGreenPushForward( ElasticLeftCauchyGreenVector, DeformationGradientF );
-    DeterminantF0               *= DeterminantF;
+    DeformationGradientF0  =  prod(DeformationGradientF, DeformationGradientF0);
+    DeterminantF0         *=  DeterminantF;
 
   }
 
@@ -522,7 +482,7 @@ namespace Kratos
     this->CalculateMaterialResponseKirchhoff (rValues);
   
     Vector& StressVector                   =rValues.GetStressVector();
-    Vector& ElasticLeftCauchyGreenVector   =rValues.GetElasticLeftCauchyGreenVector();
+    Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
     double& DeterminantF0                  =rValues.GetDeterminantF0();
     const Matrix& DeformationGradientF     =rValues.GetDeformationGradientF();
     const double& DeterminantF             =rValues.GetDeterminantF();
@@ -531,8 +491,9 @@ namespace Kratos
     TransformStresses(StressVector,DeformationGradientF,DeterminantF,StressMeasure_Kirchhoff,StressMeasure_Cauchy);  //increment of Cauchy Stress
 
     //2.-Update Internal Variables
-    ElasticLeftCauchyGreenVector = LeftCauchyGreenPushForward( ElasticLeftCauchyGreenVector, DeformationGradientF );
-    DeterminantF0               *= DeterminantF;
+    DeformationGradientF0  =  prod(DeformationGradientF, DeformationGradientF0);
+    DeterminantF0         *=  DeterminantF;
+
   }
 
 
@@ -542,17 +503,16 @@ namespace Kratos
   void HyperElastic3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
   {
 
-   
     this->CalculateMaterialResponseCauchy (rValues);
   
-    Vector& ElasticLeftCauchyGreenVector   =rValues.GetElasticLeftCauchyGreenVector();
+    Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
     double& DeterminantF0                  =rValues.GetDeterminantF0();
     const Matrix& DeformationGradientF     =rValues.GetDeformationGradientF();
     const double& DeterminantF             =rValues.GetDeterminantF();
 
     //2.-Update Internal Variables
-    ElasticLeftCauchyGreenVector = LeftCauchyGreenPushForward( ElasticLeftCauchyGreenVector, DeformationGradientF );
-    DeterminantF0               *= DeterminantF;
+    DeformationGradientF0  =  prod(DeformationGradientF, DeformationGradientF0);
+    DeterminantF0         *=  DeterminantF;
   }
 
 

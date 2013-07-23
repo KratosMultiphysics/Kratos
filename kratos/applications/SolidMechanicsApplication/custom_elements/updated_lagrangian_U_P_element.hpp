@@ -6,15 +6,16 @@
 //
 //
 
-#if !defined(KRATOS_TOTAL_LAGRANGIAN_2D_ELEMENT_H_INCLUDED )
-#define  KRATOS_TOTAL_LAGRANGIAN_2D_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED )
+#define  KRATOS_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/total_lagrangian_3D_element.hpp"
+#include "custom_elements/spatial_lagrangian_U_P_element.hpp"
+
 
 namespace Kratos
 {
@@ -33,15 +34,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Total Lagrangian element for 3D geometries.
+/// Updated Lagrangian U-P Element for 3D and 2D geometries. Linear Triangles and Tetrahedra
 
 /**
- * Implements a total Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 3D
+ * Implements a Large Displacement Lagrangian definition for structural analysis.
+ * This works for arbitrary geometries in 3D and 2D
  */
 
-class TotalLagrangian2DElement
-    : public TotalLagrangian3DElement
+class UpdatedLagrangianUPElement
+    : public SpatialLagrangianUPElement
 {
 public:
 
@@ -51,32 +52,35 @@ public:
     typedef ConstitutiveLaw ConstitutiveLawType;
     ///Pointer type for constitutive laws
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+    ///StressMeasure from constitutive laws
+    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
+ 
+    /// Counted pointer of UpdatedLagrangianUPElement
+    KRATOS_CLASS_POINTER_DEFINITION(UpdatedLagrangianUPElement);
 
-    /// Counted pointer of TotalLagrangian2DElement
-    KRATOS_CLASS_POINTER_DEFINITION(TotalLagrangian2DElement);
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    TotalLagrangian2DElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    UpdatedLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    TotalLagrangian2DElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    UpdatedLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    TotalLagrangian2DElement(TotalLagrangian2DElement const& rOther);
+    UpdatedLagrangianUPElement(UpdatedLagrangianUPElement const& rOther);
 
     /// Destructor.
-    virtual ~TotalLagrangian2DElement();
+    virtual ~UpdatedLagrangianUPElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    TotalLagrangian2DElement& operator=(TotalLagrangian2DElement const& rOther);
+    UpdatedLagrangianUPElement& operator=(UpdatedLagrangianUPElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -94,21 +98,8 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
-    //************* GETTING METHODS
+    //************* STARTING - ENDING  METHODS
 
-    /**
-     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
-     */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Sets on rResult the ID's of the element degrees of freedom
-     */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-
-
-    //************************************************************************************
-    //************************************************************************************
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -116,7 +107,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    //int Check(const ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -141,35 +132,54 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+
     ///@}
     ///@name Protected Operators
     ///@{
-    TotalLagrangian2DElement() : TotalLagrangian3DElement()
+    UpdatedLagrangianUPElement() : SpatialLagrangianUPElement()
     {
     }
+
     ///@}
     ///@name Protected Operations
     ///@{
 
+
+    /**
+     * Calculation and addition of the matrices of the LHS 
+     */
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
+			    GeneralVariables& rVariables, 
+			    double& rIntegrationWeight);
+  
+    /**
+     * Calculation and addition of the vectors of the RHS 
+     */
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector, 
+			    GeneralVariables& rVariables, 
+			    Vector& rVolumeForce, 
+			    double& rIntegrationWeight);
+
     /**
      * Initialize Element General Variables
      */ 
-    void InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
     /**
-     * Calculation of the Green Lagrange Strain Vector
+     * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    void CalculateGreenLagrangeStrain(const Matrix& rF,
-					      Vector& rStrainVector);
+    void SetGeneralVariables  (GeneralVariables& rVariables,
+			       ConstitutiveLaw::Parameters& rValues,
+			       const int & rPointNumber);
 
     /**
-     * Calculation of the Almansi Strain Vector
+     * Calculate Element Kinematics
      */
-    void CalculateAlmansiStrain(const Matrix& rF,
-				Vector& rStrainVector);
+    void CalculateKinematics(GeneralVariables& rVariables,
+			     const double& rPointNumber);
 
-
+    
     /**
      * Calculation of the Deformation Matrix  BL
      */
@@ -177,21 +187,13 @@ protected:
 				    Matrix& rF,
 				    Matrix& rDN_DX);
 
-    /**
-     * Calculation of the Integration Weight
-     */
-    double& CalculateIntegrationWeight(double& rIntegrationWeight);
-
 
     /**
-     * Calculation of the Total Mass of the Element
+     * Calculation of the DN_DX in the updated configuration
      */
-    double& CalculateTotalMass(double& rTotalMass);
+    void CalculatePushForwardDN_DX(GeneralVariables& rVariables);
 
-
-
-
-    ///@}
+     ///@}
     ///@name Protected  Access
     ///@{
     ///@}
@@ -210,6 +212,7 @@ private:
     ///@name Member Variables
     ///@{
 
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -219,7 +222,7 @@ private:
     ///@name Private Operations
     ///@{
 
-
+   
     ///@}
     ///@name Private  Access
     ///@{
@@ -244,7 +247,7 @@ private:
     ///@{
     ///@}
 
-}; // Class TotalLagrangian2DElement
+}; // Class UpdatedLagrangianUPElement
 
 ///@}
 ///@name Type Definitions
@@ -255,4 +258,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_2D_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_UPDATED_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED  defined 

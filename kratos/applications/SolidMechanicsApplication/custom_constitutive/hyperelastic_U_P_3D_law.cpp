@@ -83,8 +83,8 @@ namespace Kratos
     const GeometryType&  DomainGeometry   = rValues.GetElementGeometry ();
     const Vector&        ShapeFunctions   = rValues.GetShapeFunctionsValues ();
 
-    Vector& ElasticLeftCauchyGreenVector  = rValues.GetElasticLeftCauchyGreenVector();
     Vector& StrainVector                  = rValues.GetStrainVector();
+    Matrix& DeformationGradientF0         = rValues.GetDeformationGradientF0();
     double& DeterminantF0                 = rValues.GetDeterminantF0(); 
 
     Vector& StressVector                  = rValues.GetStressVector();
@@ -114,14 +114,14 @@ namespace Kratos
     if( Options.Is( ConstitutiveLaw::INITIAL_CONFIGURATION ) ){
 
       //2.-Total Deformation Gradient
-      Matrix DeformationGradientF0 = DeformationGradientF;
-      DeformationGradientF0        = DeformationGradient3D( DeformationGradientF0 );
+      Matrix TotalDeformationGradientF0  = DeformationGradientF;
+      TotalDeformationGradientF0         = DeformationGradient3D( TotalDeformationGradientF0 );
 
       //3.-Determinant of the Total Deformation Gradient
       ElasticVariables.DeterminantF0 = DeterminantF0 * DeterminantF;
    
       //4.-Right Cauchy Green
-      Matrix RightCauchyGreen = prod(trans(DeformationGradientF0),DeformationGradientF0);
+      Matrix RightCauchyGreen = prod(trans(TotalDeformationGradientF0),TotalDeformationGradientF0);
 
       //5.-Inverse of the Right Cauchy-Green tensor C: (stored in the CauchyGreenMatrix)
       ElasticVariables.traceCG = 0;
@@ -188,7 +188,8 @@ namespace Kratos
       ElasticVariables.DeterminantF0 = DeterminantF0 * DeterminantF;
 
       //Left Cauchy-Green tensor b
-      ElasticVariables.CauchyGreenMatrix = LeftCauchyGreenPushForward( ElasticVariables.CauchyGreenMatrix, ElasticLeftCauchyGreenVector, DeformationGradientF );
+      Matrix TotalDeformationGradientF0  = prod(DeformationGradientF, DeformationGradientF0);
+      ElasticVariables.CauchyGreenMatrix = prod(TotalDeformationGradientF0,trans(TotalDeformationGradientF0));
 
       if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
 	this->CalculateIsochoricStress( ElasticVariables, StressMeasure_Kirchhoff, SplitStressVector.Isochoric );
@@ -277,8 +278,8 @@ namespace Kratos
     const GeometryType&  DomainGeometry   = rValues.GetElementGeometry ();
     const Vector&        ShapeFunctions   = rValues.GetShapeFunctionsValues ();
 
-    Vector& ElasticLeftCauchyGreenVector  = rValues.GetElasticLeftCauchyGreenVector();
     Vector& StrainVector                  = rValues.GetStrainVector();
+    Matrix& DeformationGradientF0         = rValues.GetDeformationGradientF0();
     double& DeterminantF0                 = rValues.GetDeterminantF0(); 
 
     Vector& StressVector                  = rValues.GetStressVector();
@@ -308,7 +309,8 @@ namespace Kratos
     ElasticVariables.DeterminantF0 = DeterminantF0 * DeterminantF;
         
     //3.-Push-Forward Left Cauchy-Green tensor b to the new configuration
-    ElasticVariables.CauchyGreenMatrix = LeftCauchyGreenPushForward( ElasticVariables.CauchyGreenMatrix, ElasticLeftCauchyGreenVector, DeformationGradientF );
+    Matrix TotalDeformationGradientF0  = prod(DeformationGradientF, DeformationGradientF0);
+    ElasticVariables.CauchyGreenMatrix = prod(TotalDeformationGradientF0,trans(TotalDeformationGradientF0));
 
     //4.-Calculate trace of Left Cauchy-Green tensor b
     ElasticVariables.traceCG = 0;
