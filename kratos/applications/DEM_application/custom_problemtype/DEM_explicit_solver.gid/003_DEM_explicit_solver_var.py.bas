@@ -71,8 +71,12 @@ SurfacePointCoorY                = *GenData(Surface_Point_Coor_Y)
 *format "%10.5e"
 SurfacePointCoorZ                = *GenData(Surface_Point_Coor_Z)
 SurfaceFrictionAngle             = *GenData(Surface_Friction_Angle)
+LimitCylinderOption              = "*GenData(Limit_Cylinder)"
 *format "%10.5e"
 CylinderRadius                   = *GenData(Cylinder_Radius)
+*format "%10.5e"
+CylinderVelocity                 = *GenData(Cylinder_Velocity)
+CylinderFrictionAngle            = *GenData(Cylinder_Friction_Angle)
 
 # Time Discretization Settings
 
