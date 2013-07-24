@@ -38,6 +38,8 @@
 #include "custom_elements/beam_element.hpp"
 #include "custom_elements/isotropic_shell_element.hpp"
 #include "custom_elements/small_displacement_element.hpp"
+#include "custom_elements/axisym_small_displacement_element.hpp"
+
 #include "custom_elements/total_lagrangian_element.hpp"
 #include "custom_elements/spatial_lagrangian_element.hpp"
 #include "custom_elements/updated_lagrangian_element.hpp"
@@ -57,6 +59,7 @@
 
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_axisym_2D_law.hpp"
 
 #include "containers/flags.h"
 #include "includes/variables.h"
@@ -323,6 +326,12 @@ namespace Kratos
     const SmallDisplacementElement mSmallDisplacementElement3D20N;
     const SmallDisplacementElement mSmallDisplacementElement3D27N;
 
+    const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D3N;
+    const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D4N;
+    const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D6N;
+    const AxisymSmallDisplacementElement mAxisymSmallDisplacementElement2D8N;
+
+
     //total lagrangian
     const TotalLagrangianElement mTotalLagrangianElement2D3N;
     const TotalLagrangianElement mTotalLagrangianElement2D4N;
@@ -397,7 +406,7 @@ namespace Kratos
 
     const LinearElasticPlaneStrain2DLaw    mLinearElasticPlaneStrain2DLaw;
     const LinearElasticPlaneStress2DLaw    mLinearElasticPlaneStress2DLaw;
-
+    const LinearElasticAxisym2DLaw              mLinearElasticAxisym2DLaw;
     ///@} 
     ///@name Private Operators
     ///@{ 

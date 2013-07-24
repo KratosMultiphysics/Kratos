@@ -210,6 +210,29 @@ namespace Kratos
   }
 
 
+
+  //************************************CALCULATE TOTAL MASS****************************
+  //************************************************************************************
+
+  double& AxisymSpatialLagrangianUPElement::CalculateTotalMass( double& rTotalMass )
+  {
+    KRATOS_TRY
+
+    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( GeometryData::GI_GAUSS_1 );
+    const unsigned int PointNumber = 0;
+    Vector N = row(Ncontainer , PointNumber);
+
+    double CurrentRadius = 0;
+    double ReferenceRadius = 0;
+    CalculateRadius (CurrentRadius, ReferenceRadius, N);
+
+    rTotalMass = GetGeometry().DomainSize() * GetProperties()[DENSITY] * 2.0 * 3.141592654 * CurrentRadius;
+
+    return rTotalMass;
+
+    KRATOS_CATCH( "" )
+  }
+
   //************************************************************************************
   //************************************************************************************
 
@@ -269,7 +292,7 @@ namespace Kratos
     rVariables.F0    = mDeformationGradientF0[rPointNumber];
 
     //Compute the deformation matrix B
-    CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX, rVariables.N, rVariables.CurrentRadius);
+    CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX, rVariables.N, rVariables.CurrentRadius);
 
 
     KRATOS_CATCH( "" )
@@ -282,7 +305,7 @@ namespace Kratos
 
   void AxisymSpatialLagrangianUPElement::CalculateRadius(double & rCurrentRadius,
 							 double & rReferenceRadius,
-							 Vector& rN)
+							 const Vector& rN)
     
 
   {
@@ -371,7 +394,6 @@ namespace Kratos
 
 
   void AxisymSpatialLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
-								    Matrix& rF,
 								    Matrix& rDN_DX,
 								    Vector& rN,
 								    double & rCurrentRadius)

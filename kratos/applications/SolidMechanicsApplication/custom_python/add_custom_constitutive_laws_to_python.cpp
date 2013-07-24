@@ -38,7 +38,7 @@
 #include "custom_constitutive/hyperelastic_U_P_axisym_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
-
+#include "custom_constitutive/linear_elastic_axisym_2D_law.hpp"
 
 
 namespace Kratos
@@ -92,6 +92,11 @@ namespace Kratos
 
      class_< LinearElasticPlaneStress2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
 	( "LinearElasticPlaneStress2DLaw",
+	  init<>() )
+	;
+
+     class_< LinearElasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+	( "LinearElasticAxisym2DLaw",
 	  init<>() )
 	;
 

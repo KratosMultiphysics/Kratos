@@ -6,15 +6,15 @@
 //
 //
 
-#if !defined(KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED )
-#define  KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_AXISYM_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED )
+#define  KRATOS_AXISYM_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/large_displacement_U_P_element.hpp"
+#include "custom_elements/small_displacement_element.hpp"
 
 
 namespace Kratos
@@ -41,8 +41,8 @@ namespace Kratos
  * This works for arbitrary geometries in 3D and 2D
  */
 
-class AxisymSpatialLagrangianUPElement
-    : public LargeDisplacementUPElement
+class AxisymSmallDisplacementElement
+    : public SmallDisplacementElement
 {
 public:
 
@@ -57,30 +57,30 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
  
-    /// Counted pointer of AxisymSpatialLagrangianUPElement
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymSpatialLagrangianUPElement);
+    /// Counted pointer of AxisymSmallDisplacementElement
+    KRATOS_CLASS_POINTER_DEFINITION(AxisymSmallDisplacementElement);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    AxisymSpatialLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    AxisymSmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    AxisymSpatialLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    AxisymSmallDisplacementElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    AxisymSpatialLagrangianUPElement(AxisymSpatialLagrangianUPElement const& rOther);
+    AxisymSmallDisplacementElement(AxisymSmallDisplacementElement const& rOther);
 
     /// Destructor.
-    virtual ~AxisymSpatialLagrangianUPElement();
+    virtual ~AxisymSmallDisplacementElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    AxisymSpatialLagrangianUPElement& operator=(AxisymSpatialLagrangianUPElement const& rOther);
+    AxisymSmallDisplacementElement& operator=(AxisymSmallDisplacementElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -100,11 +100,6 @@ public:
 
    //************* STARTING - ENDING  METHODS
 
-    /**
-      * Called to initialize the element.
-      * Must be called before any calculation is done
-      */
-    void Initialize();
 
     //************************************************************************************
     //************************************************************************************
@@ -140,20 +135,10 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    /**
-     * Container for historical total elastic deformation measure
-     */
-    std::vector< Matrix > mDeformationGradientF0;
-
-    /**
-     * Container for the total deformation gradient determinants
-     */
-    Vector mDeterminantF0;
-
     ///@}
     ///@name Protected Operators
     ///@{
-    AxisymSpatialLagrangianUPElement() : LargeDisplacementUPElement()
+    AxisymSmallDisplacementElement() : SmallDisplacementElement()
     {
     }
 
@@ -166,18 +151,18 @@ protected:
      * Calculation and addition of the matrices of the LHS 
      */
 
-    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-				    GeneralVariables& rVariables, 
-				    double& rIntegrationWeight);
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
+			    GeneralVariables& rVariables, 
+			    double& rIntegrationWeight);
   
     /**
      * Calculation and addition of the vectors of the RHS 
      */
 
-    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, 
-				    GeneralVariables& rVariables, 
-				    Vector& rVolumeForce, 
-				    double& rIntegrationWeight);
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector, 
+			    GeneralVariables& rVariables, 
+			    Vector& rVolumeForce, 
+			    double& rIntegrationWeight);
 
     /**
      * Calculation of the Total Mass of the Element
@@ -186,90 +171,23 @@ protected:
 
 
     /**
-     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
-     */
-    virtual void CalculateAndAddKuug(MatrixType& rK,
-				     GeneralVariables & rVariables,
-				     double& rIntegrationWeight
-				     );
-
- 
-    /**
-     * Calculation of the Kup matrix
-     */
-    virtual void CalculateAndAddKup (MatrixType& rK,
-				     GeneralVariables & rVariables,
-				     double& rIntegrationWeight
-				     );
-
-    /**
-     * Calculation of the Kpu matrix
-     */
-    virtual void CalculateAndAddKpu(MatrixType& rK,
-				    GeneralVariables & rVariables,
-				    double& rIntegrationWeight
-				    );
-
-    /**
-     * Calculation of the Kpp matrix
-     */
-    virtual void CalculateAndAddKpp(MatrixType& rK,
-				    GeneralVariables & rVariables,
-				    double& rIntegrationWeight
-				    );
-
-   /**
-     * Calculation of the Kpp Stabilization Term matrix
-     */
-    virtual void CalculateAndAddKppStab(MatrixType& rK,
-					GeneralVariables & rVariables,
-					double& rIntegrationWeight
-					);
-
-
-    /**
-     * Calculation of the Internal Forces due to Pressure-Balance
-     */
-    virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-					       GeneralVariables & rVariables,
-					       double& rIntegrationWeight
-					       );
-
-
-    /**
-     * Calculation of the Internal Forces due to Pressure-Balance
-     */
-    virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-					   GeneralVariables & rVariables,
-					   double& rIntegrationWeight
-					   );
-
-    /**
      * Initialize Element General Variables
      */ 
-    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
-
-    /**
-     * Set Variables of the Element to the Parameters of the Constitutive Law
-     */
-    virtual void SetGeneralVariables(GeneralVariables& rVariables,
-				     ConstitutiveLaw::Parameters& rValues,
-				     const int & rPointNumber);
 
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables,
-				     const double& rPointNumber);
+    void CalculateKinematics(GeneralVariables& rVariables,
+			     const double& rPointNumber);
 
 
     /**
      * Calculate Radius in the current and deformed geometry
      */
-    void CalculateRadius(double & rCurrentRadius,
-			 double & rReferenceRadius,
+    void CalculateRadius(double & rRadius,
 			 const Vector& rN);
 
     /**
@@ -282,25 +200,26 @@ protected:
 				      double & rReferenceRadius);
 
     /**
+     * Calculation of the Displacement Gradient H
+     */
+    void CalculateDisplacementGradient(Matrix& rH,
+				       const Matrix& rDN_DX,
+				       const Vector & rN,
+				       const double & rRadius);
+
+    /**
      * Calculation of the Deformation Matrix  BL
      */
-    virtual void CalculateDeformationMatrix(Matrix& rB,
-					    Matrix& rDN_DX,
-					    Vector& rN,
-					    double & rCurrentRadius);
+    void CalculateDeformationMatrix(Matrix& rB,
+				    const Matrix& rDN_DX,
+				    const Vector& rN,
+				    const double & rRadius);
 
     /**
-     * Calculation of the Green Lagrange Strain Vector
+     * Calculation of the Infinitesimal Strain Vector
      */
-    void CalculateGreenLagrangeStrain(const Matrix& rF,
+    void CalculateInfinitesimalStrain(const Matrix& rH,
 				      Vector& rStrainVector);
-
-    /**
-     * Calculation of the Almansi Strain Vector
-     */
-    void CalculateAlmansiStrain(const Matrix& rF,
-				Vector& rStrainVector);
-
 
 
      ///@}
@@ -357,7 +276,7 @@ private:
     ///@{
     ///@}
 
-}; // Class AxisymSpatialLagrangianUPElement
+}; // Class AxisymSmallDisplacementElement
 
 ///@}
 ///@name Type Definitions
@@ -368,4 +287,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_SMALL_DISPLACEMENT_ELEMENT_H_INCLUDED  defined 
