@@ -201,10 +201,10 @@ public:
     static void
     extension_def(Class& cl)
     {
-        //cl
-        //	.def("append", &base_append)
+        cl
+            .def("append", &append)
         //	.def("extend", &base_extend)
-        //	;
+            ;
     }
 
     static data_type get_item(TContainerType& container, index_type i)
@@ -292,7 +292,7 @@ public:
     static void
     append(TContainerType& container, pointer v)
     {
-        container.insert(container.begin(),v);
+        container.insert(container.end(),v);
     }
 
     //template <class Iter>
