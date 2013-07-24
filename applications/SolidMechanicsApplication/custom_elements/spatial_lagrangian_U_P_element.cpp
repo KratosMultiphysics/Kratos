@@ -103,8 +103,11 @@ namespace Kratos
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     //Resize historic deformation gradient
-    mDeformationGradientF0.resize( integration_points_number );
-    mDeterminantF0.resize( integration_points_number, false );
+    if ( mDeformationGradientF0.size() != integration_points_number )
+      mDeformationGradientF0.resize( integration_points_number );
+
+    if ( mDeterminantF0.size() != integration_points_number )
+      mDeterminantF0.resize( integration_points_number, false );
     
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {

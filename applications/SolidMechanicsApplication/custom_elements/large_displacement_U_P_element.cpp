@@ -116,9 +116,10 @@ namespace Kratos
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-	int index = i * dimension;
+	int index = i * dimension + i;
 	rResult[index]     = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
 	rResult[index + 1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
+
 	if( dimension == 3){
 	  rResult[index + 2] = GetGeometry()[i].GetDof( DISPLACEMENT_Z ).EquationId();
 	  rResult[index + 3] = GetGeometry()[i].GetDof( PRESSURE ).EquationId();
@@ -142,17 +143,20 @@ namespace Kratos
 
     if ( rValues.size() != element_size ) rValues.resize( element_size, false );
 
-    unsigned int j = 0;
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-	unsigned int index = i * dimension;
-	array_1d<double, 3>& Displacement = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT, Step );
-	for ( j = 0; j < Displacement.size(); j++ )
-	  {
-	    rValues[ index + j ] = Displacement[j];
-	  }
+	unsigned int index = i * dimension + i;
+	rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
+        rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
 
-       	rValues[ index + j ] = GetGeometry()[i].GetSolutionStepValue( PRESSURE, Step );
+        if ( dimension == 3 ){
+	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+	  rValues[index + 3] = GetGeometry()[i].GetSolutionStepValue( PRESSURE, Step );
+        }
+        else{
+	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( PRESSURE, Step );
+        }
 	
       }
   }
@@ -169,17 +173,18 @@ namespace Kratos
 
     if ( rValues.size() != element_size ) rValues.resize( element_size, false );
 
-    unsigned int j = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-	unsigned int index = i * dimension;
-	array_1d<double, 3>& Velocity = GetGeometry()[i].GetSolutionStepValue( VELOCITY, Step );
-	for ( j = 0; j < Velocity.size(); j++ )
-	  {
-	    rValues[ index + j ] = Velocity[j];
-	  }
-
-	rValues[ index + j ] = 0;
+        unsigned int index = i * dimension + i;
+        rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
+        rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
+        if ( dimension == 3 ){
+	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
+	  rValues[index + 3] = 0;
+        }
+        else{
+	  rValues[index + 2] = 0;
+        }
       }
   }
 
@@ -194,17 +199,20 @@ namespace Kratos
 
     if ( rValues.size() != element_size ) rValues.resize( element_size, false );
 
-    unsigned int j = 0;
+
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
-	unsigned int index = i * dimension;
-	array_1d<double, 3>& Acceleration = GetGeometry()[i].GetSolutionStepValue( ACCELERATION, Step );
-	for ( j = 0; j < Acceleration.size(); j++ )
-	  {
-	    rValues[ index + j ] = Acceleration[j];
-	  }
+        unsigned int index = i * dimension + i;
+        rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
+        rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
 
-	rValues[ index + j ] = 0;
+        if ( dimension == 3 ){        
+	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
+	  rValues[index + 3] = 0;
+        }
+        else{
+	  rValues[index + 2] = 0;
+        }
       }
 
   }
@@ -216,8 +224,8 @@ namespace Kratos
 
 
   void LargeDisplacementUPElement::InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-							VectorType& rRightHandSideVector,
-							Flags& rCalculationFlags)
+							    VectorType& rRightHandSideVector,
+							    Flags& rCalculationFlags)
 
   {
 
@@ -317,7 +325,7 @@ namespace Kratos
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    VectorType Fh=rRightHandSideVector;
+    // VectorType Fh=rRightHandSideVector;
 
     double Fext=0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
@@ -356,7 +364,7 @@ namespace Kratos
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    VectorType Fh=rRightHandSideVector;
+    // VectorType Fh=rRightHandSideVector;
 
     Vector InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
 
@@ -396,7 +404,7 @@ namespace Kratos
 
     unsigned int indexp = dimension;
 
-    VectorType Fh=rRightHandSideVector;
+    // VectorType Fh=rRightHandSideVector;
 
     double BulkModulus= GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
 
@@ -454,7 +462,7 @@ namespace Kratos
 
     unsigned int indexp = dimension;
 
-    VectorType Fh=rRightHandSideVector;
+    // VectorType Fh=rRightHandSideVector;
 
     double AlphaStabilization = 4.0; //GetProperties()[STABILIZATION];
 
@@ -516,7 +524,7 @@ namespace Kratos
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    MatrixType Kh=rLeftHandSideMatrix;
+    // MatrixType Kh=rLeftHandSideMatrix;
 
     unsigned int indexi = 0;
     unsigned int indexj  = 0;
@@ -567,7 +575,7 @@ namespace Kratos
     Matrix Kuu = zero_matrix<double> (size);
     MathUtils<double>::ExpandAndAddReducedMatrix( Kuu, ReducedKg, dimension );
 
-    MatrixType Kh=rLeftHandSideMatrix;
+    // MatrixType Kh=rLeftHandSideMatrix;
 
     //assemble into rLeftHandSideMatrix the geometric uu contribution:
     unsigned int indexi = 0;
@@ -608,7 +616,7 @@ namespace Kratos
       const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    MatrixType Kh=rLeftHandSideMatrix;
+    // MatrixType Kh=rLeftHandSideMatrix;
     //contributions to stiffness matrix calculated on the reference configuration
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
@@ -646,7 +654,7 @@ namespace Kratos
       const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    MatrixType Kh=rLeftHandSideMatrix;
+    // MatrixType Kh=rLeftHandSideMatrix;
 
     //contributions to stiffness matrix calculated on the reference configuration
     unsigned int indexp = dimension;
@@ -694,7 +702,7 @@ namespace Kratos
 
     double BulkModulus= GetProperties()[YOUNG_MODULUS]/(3*(1-2*GetProperties()[POISSON_RATIO]));
 
-    MatrixType Kh=rLeftHandSideMatrix;
+    // MatrixType Kh=rLeftHandSideMatrix;
 
     //contributions to stiffness matrix calculated on the reference configuration
     unsigned int indexpi = dimension;
@@ -740,7 +748,7 @@ namespace Kratos
       const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    MatrixType Kh=rLeftHandSideMatrix;
+    // MatrixType Kh=rLeftHandSideMatrix;
 
     //contributions to stiffness matrix calculated on the reference configuration
     unsigned int indexpi = dimension;

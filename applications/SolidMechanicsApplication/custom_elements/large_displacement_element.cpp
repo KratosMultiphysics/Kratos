@@ -165,11 +165,12 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	unsigned int index = i * dimension;
-	array_1d<double, 3>& Displacement = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT, Step );
-	for ( unsigned int j = 0; j < Displacement.size(); j++ )
-	  {
-	    rValues[ index + j ] = Displacement[j];
-	  }
+	rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
+        rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
+
+        if ( dimension == 3 )
+	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+	
       }
   }
 
@@ -188,11 +189,11 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	unsigned int index = i * dimension;
-	array_1d<double, 3>& Velocity = GetGeometry()[i].GetSolutionStepValue( VELOCITY, Step );
-	for ( unsigned int j = 0; j < Velocity.size(); j++ )
-	  {
-	    rValues[ index + j ] = Velocity[j];
-	  }
+	rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
+        rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
+
+        if ( dimension == 3 )
+	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
       }
   }
 
@@ -210,11 +211,11 @@ namespace Kratos
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
       {
 	unsigned int index = i * dimension;
-	array_1d<double, 3>& Acceleration = GetGeometry()[i].GetSolutionStepValue( ACCELERATION, Step );
-	for ( unsigned int j = 0; j < Acceleration.size(); j++ )
-	  {
-	    rValues[ index + j ] = Acceleration[j];
-	  }
+	rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
+        rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
+
+        if ( dimension == 3 )
+	  rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
       }
 
   }
@@ -430,7 +431,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+      const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
 
     //Constitutive Law initialisation
     if ( mConstitutiveLawVector.size() != integration_points.size() )
