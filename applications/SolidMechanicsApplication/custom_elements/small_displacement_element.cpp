@@ -269,7 +269,7 @@ namespace Kratos
 							    std::vector<double>& rValues,
 							    const ProcessInfo& rCurrentProcessInfo )
   {
-    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber();
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rValues.size() != integration_points_number )
       rValues.resize( integration_points_number );
@@ -291,7 +291,7 @@ namespace Kratos
 	  {
 	    mConstitutiveLawVector.resize(rValues.size());
 
-	    if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber() )
+	    if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod  ) )
 	      KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() );
 	  }
      
@@ -307,7 +307,7 @@ namespace Kratos
 	  {
 	    mConstitutiveLawVector.resize(rValues.size());
 
-	    if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber() )
+	    if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod  ) )
 	      KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() );
 	  }
      
@@ -1304,7 +1304,7 @@ namespace Kratos
 
     KRATOS_TRY
 
-    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber();
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
       rOutput.resize( integration_points_number, false );
@@ -1356,7 +1356,7 @@ namespace Kratos
 
     KRATOS_TRY
 
-    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber();
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
       rOutput.resize( integration_points_number );
@@ -1441,7 +1441,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber();
+      const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     
     if ( rOutput.size() != integration_points_number )
       rOutput.resize( integration_points_number );

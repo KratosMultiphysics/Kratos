@@ -28,6 +28,7 @@
 //conditions
 #include "custom_conditions/point_moment_3D_condition.hpp"
 #include "custom_conditions/point_load_2D_condition.hpp"
+#include "custom_conditions/point_load_axisym_2D_condition.hpp"
 #include "custom_conditions/point_load_3D_condition.hpp"
 #include "custom_conditions/line_load_2D_condition.hpp"
 #include "custom_conditions/line_load_3D_condition.hpp"
@@ -43,6 +44,7 @@
 
 #include "custom_elements/spatial_lagrangian_U_P_element.hpp"
 #include "custom_elements/updated_lagrangian_U_P_element.hpp"
+#include "custom_elements/axisym_spatial_lagrangian_U_P_element.hpp"
 
 //constitutive laws
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
@@ -51,6 +53,8 @@
 
 #include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_U_P_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_U_P_axisym_2D_law.hpp"
+
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 
@@ -363,12 +367,14 @@ namespace Kratos
     const SpatialLagrangianElement mSpatialLagrangianElement3D20N;
     const SpatialLagrangianElement mSpatialLagrangianElement3D27N;
 
-    const SpatialLagrangianUPElement mSpatialLagrangianUPElement2D3N;
+    const SpatialLagrangianUPElement             mSpatialLagrangianUPElement2D3N;
+    const AxisymSpatialLagrangianUPElement mAxisymSpatialLagrangianUPElement2D3N;
 
     //conditions
-    const PointLoad2DCondition          mPointLoad2DCondition;
-    const PointLoad3DCondition          mPointLoad3DCondition;
-    const PointMoment3DCondition      mPointMoment3DCondition;
+    const PointLoad2DCondition              mPointLoad2DCondition;
+    const PointLoadAxisym2DCondition  mPointLoadAxisym2DCondition;
+    const PointLoad3DCondition              mPointLoad3DCondition;
+    const PointMoment3DCondition          mPointMoment3DCondition;
 
     const LineLoad3DCondition          mLineLoadCondition3D2N;
     const LineLoad2DCondition          mLineLoadCondition2D2N;
@@ -387,6 +393,8 @@ namespace Kratos
 
     const HyperElasticPlaneStrain2DLaw      mHyperElasticPlaneStrain2DLaw;
     const HyperElasticUPPlaneStrain2DLaw  mHyperElasticUPPlaneStrain2DLaw;
+    const HyperElasticUPAxisym2DLaw            mHyperElasticUPAxisym2DLaw;
+
     const LinearElasticPlaneStrain2DLaw    mLinearElasticPlaneStrain2DLaw;
     const LinearElasticPlaneStress2DLaw    mLinearElasticPlaneStress2DLaw;
 

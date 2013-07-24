@@ -99,7 +99,7 @@ namespace Kratos
 
     LargeDisplacementUPElement::Initialize();
 
-    SizeType integration_points_number = GetGeometry().IntegrationPointsNumber();
+    SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     //Resize historic deformation gradient
@@ -238,43 +238,12 @@ namespace Kratos
       }
 
 
-
-  //*************************COMPUTE DELTA POSITION*************************************
-  //************************************************************************************
-
-
-  Matrix& SpatialLagrangianUPElement::CalculateDeltaPosition(Matrix & DeltaPosition)
-  {
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
-    DeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
-   
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {	    
-	array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-	array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-	    	    
-	for ( unsigned int j = 0; j < dimension; j++ )
-	  {	    
-	    DeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
-	  }
-      }
-
-    return DeltaPosition;
-
-    KRATOS_CATCH( "" )
-      }
-
-
   //*************************COMPUTE DEFORMATION GRADIENT*******************************
   //************************************************************************************
 
   void SpatialLagrangianUPElement::CalculateDeformationGradient(const Matrix& rDN_DX,
 								     Matrix& rF,
-								     Matrix& DeltaPosition)
+								     Matrix& rDeltaPosition)
   {
     KRATOS_TRY
 
@@ -287,10 +256,10 @@ namespace Kratos
       
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
-	  rF ( 0 , 0 ) += DeltaPosition(i,0)*rDN_DX ( i , 0 );
-	  rF ( 0 , 1 ) += DeltaPosition(i,0)*rDN_DX ( i , 1 );
-	  rF ( 1 , 0 ) += DeltaPosition(i,1)*rDN_DX ( i , 0 );
-	  rF ( 1 , 1 ) += DeltaPosition(i,1)*rDN_DX ( i , 1 );
+	  rF ( 0 , 0 ) += rDeltaPosition(i,0)*rDN_DX ( i , 0 );
+	  rF ( 0 , 1 ) += rDeltaPosition(i,0)*rDN_DX ( i , 1 );
+	  rF ( 1 , 0 ) += rDeltaPosition(i,1)*rDN_DX ( i , 0 );
+	  rF ( 1 , 1 ) += rDeltaPosition(i,1)*rDN_DX ( i , 1 );
 	}
 
     }
@@ -299,15 +268,15 @@ namespace Kratos
       for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	{
 
-	  rF ( 0 , 0 ) += DeltaPosition(i,0)*rDN_DX ( i , 0 );
-	  rF ( 0 , 1 ) += DeltaPosition(i,0)*rDN_DX ( i , 1 );
-	  rF ( 0 , 2 ) += DeltaPosition(i,0)*rDN_DX ( i , 2 );
-	  rF ( 1 , 0 ) += DeltaPosition(i,1)*rDN_DX ( i , 0 );
-	  rF ( 1 , 1 ) += DeltaPosition(i,1)*rDN_DX ( i , 1 );
-	  rF ( 1 , 2 ) += DeltaPosition(i,1)*rDN_DX ( i , 2 );
-	  rF ( 2 , 0 ) += DeltaPosition(i,2)*rDN_DX ( i , 0 );
-	  rF ( 2 , 1 ) += DeltaPosition(i,2)*rDN_DX ( i , 1 );
-	  rF ( 2 , 2 ) += DeltaPosition(i,2)*rDN_DX ( i , 2 );
+	  rF ( 0 , 0 ) += rDeltaPosition(i,0)*rDN_DX ( i , 0 );
+	  rF ( 0 , 1 ) += rDeltaPosition(i,0)*rDN_DX ( i , 1 );
+	  rF ( 0 , 2 ) += rDeltaPosition(i,0)*rDN_DX ( i , 2 );
+	  rF ( 1 , 0 ) += rDeltaPosition(i,1)*rDN_DX ( i , 0 );
+	  rF ( 1 , 1 ) += rDeltaPosition(i,1)*rDN_DX ( i , 1 );
+	  rF ( 1 , 2 ) += rDeltaPosition(i,1)*rDN_DX ( i , 2 );
+	  rF ( 2 , 0 ) += rDeltaPosition(i,2)*rDN_DX ( i , 0 );
+	  rF ( 2 , 1 ) += rDeltaPosition(i,2)*rDN_DX ( i , 1 );
+	  rF ( 2 , 2 ) += rDeltaPosition(i,2)*rDN_DX ( i , 2 );
 	}
 
     }

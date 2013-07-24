@@ -35,6 +35,7 @@
 #include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_U_P_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_U_P_axisym_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 
@@ -103,6 +104,12 @@ namespace Kratos
 	( "HyperElasticUPPlaneStrain2DLaw",
 	  init<>() )
 	;
+
+      class_< HyperElasticUPAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+	( "HyperElasticUPAxisym2DLaw",
+	  init<>() )
+	;
+
 
     }
     
