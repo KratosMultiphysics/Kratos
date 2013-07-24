@@ -435,7 +435,7 @@ proc ::wkcf::WritePuntualLoads {AppId cloadtid kwordlist} {
         
         switch -exact -- $ndime {
             "2D" {
-                set pointforcekword "PointForce2DCondition"
+                set pointforcekword "PointLoad2DCondition"
                 foreach item [list $Fx $Fy $Mz] {
                     if {$item !="0"} {
                         set usepointforce "Yes"
@@ -444,7 +444,7 @@ proc ::wkcf::WritePuntualLoads {AppId cloadtid kwordlist} {
                 }
             }
             "3D" {
-                set pointforcekword "PointForce3DCondition"
+                set pointforcekword "PointLoad3DCondition"
                 foreach item [list $Fx $Fy $Fz $Mx $My $Mz] {
                     if {$item !="0"} {
                         set usepointforce "Yes"
