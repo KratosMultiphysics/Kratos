@@ -61,6 +61,9 @@ public:
     PointLoadAxisym2DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
     PointLoadAxisym2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
+    /// Copy constructor
+    PointLoadAxisym2DCondition( PointLoadAxisym2DCondition const& rOther);
+
     /// Destructor.
     virtual ~PointLoadAxisym2DCondition();
 

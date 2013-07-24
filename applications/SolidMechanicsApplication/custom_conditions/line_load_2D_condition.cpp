@@ -36,15 +36,29 @@ LineLoad2DCondition::LineLoad2DCondition( IndexType NewId, GeometryType::Pointer
   //DO NOT ADD DOFS HERE!!!
 }
 
+
+//************************************************************************************
+//************************************************************************************
+LineLoad2DCondition::LineLoad2DCondition(  LineLoad2DCondition const& rOther )
+  : Condition(rOther)
+{
+
+}
+
+//************************************************************************************
+//************************************************************************************
+
 Condition::Pointer LineLoad2DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const
 {
     return Condition::Pointer( new LineLoad2DCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
+//************************************************************************************
+//************************************************************************************
+
 LineLoad2DCondition::~LineLoad2DCondition()
 {
 }
-
 
 //************************************************************************************
 //************************************************************************************

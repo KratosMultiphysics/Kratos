@@ -633,10 +633,10 @@ namespace Kratos
     //contributions to stiffness matrix calculated on the reference config
     
     // operation performed: add Km to the rLefsHandSideMatrix
-    CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight ); 
+    this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight ); 
     
     // operation performed: add Kg to the rLefsHandSideMatrix
-    CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
     
 
     //KRATOS_WATCH(rLeftHandSideMatrix)
@@ -652,10 +652,10 @@ namespace Kratos
     //contribution to external forces
 
     // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-    CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+    this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
     // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-    CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
+    this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
 	    
     //KRATOS_WATCH(rRightHandSideVector)
   }

@@ -20,7 +20,7 @@
 namespace Kratos
 {
   /**
-   * Defines a hyperelastic isotropic constitutive law in 2D Neohookean Model 
+   * Defines a hyperelastic isotropic constitutive law in 2D Neohookean Model (Plane Strain)
    * With stress split in an isochoric and volumetric parts
    * This material law is defined by the parameters:
    * 1) YOUNG MODULUS 

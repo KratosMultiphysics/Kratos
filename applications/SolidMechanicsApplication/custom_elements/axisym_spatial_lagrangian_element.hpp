@@ -6,15 +6,15 @@
 //
 //
 
-#if !defined(KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED )
-#define  KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_AXISYM_SPATIAL_LAGRANGIAN_ELEMENT_H_INCLUDED )
+#define  KRATOS_AXISYM_SPATIAL_LAGRANGIAN_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/large_displacement_U_P_element.hpp"
+#include "custom_elements/large_displacement_element.hpp"
 
 
 namespace Kratos
@@ -34,15 +34,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Axisym Spatial Lagrangian U-P Element for 2D geometries. For Linear Triangles
+/// Axisym Spatial Lagrangian Element 2D geometries.
 
 /**
  * Implements a Large Displacement Lagrangian definition for structural analysis.
  * This works for arbitrary geometries in 2D
  */
 
-class AxisymSpatialLagrangianUPElement
-    : public LargeDisplacementUPElement
+class AxisymSpatialLagrangianElement
+    : public LargeDisplacementElement
 {
 public:
 
@@ -57,30 +57,30 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
  
-    /// Counted pointer of AxisymSpatialLagrangianUPElement
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymSpatialLagrangianUPElement);
+    /// Counted pointer of AxisymSpatialLagrangianElement
+    KRATOS_CLASS_POINTER_DEFINITION(AxisymSpatialLagrangianElement);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    AxisymSpatialLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    AxisymSpatialLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    AxisymSpatialLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    AxisymSpatialLagrangianElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    AxisymSpatialLagrangianUPElement(AxisymSpatialLagrangianUPElement const& rOther);
+    AxisymSpatialLagrangianElement(AxisymSpatialLagrangianElement const& rOther);
 
     /// Destructor.
-    virtual ~AxisymSpatialLagrangianUPElement();
+    virtual ~AxisymSpatialLagrangianElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    AxisymSpatialLagrangianUPElement& operator=(AxisymSpatialLagrangianUPElement const& rOther);
+    AxisymSpatialLagrangianElement& operator=(AxisymSpatialLagrangianElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -153,7 +153,7 @@ protected:
     ///@}
     ///@name Protected Operators
     ///@{
-    AxisymSpatialLagrangianUPElement() : LargeDisplacementUPElement()
+    AxisymSpatialLagrangianElement() : LargeDisplacementElement()
     {
     }
 
@@ -194,55 +194,6 @@ protected:
 				     );
 
  
-    /**
-     * Calculation of the Kup matrix
-     */
-    virtual void CalculateAndAddKup (MatrixType& rK,
-				     GeneralVariables & rVariables,
-				     double& rIntegrationWeight
-				     );
-
-    /**
-     * Calculation of the Kpu matrix
-     */
-    virtual void CalculateAndAddKpu(MatrixType& rK,
-				    GeneralVariables & rVariables,
-				    double& rIntegrationWeight
-				    );
-
-    /**
-     * Calculation of the Kpp matrix
-     */
-    virtual void CalculateAndAddKpp(MatrixType& rK,
-				    GeneralVariables & rVariables,
-				    double& rIntegrationWeight
-				    );
-
-   /**
-     * Calculation of the Kpp Stabilization Term matrix
-     */
-    virtual void CalculateAndAddKppStab(MatrixType& rK,
-					GeneralVariables & rVariables,
-					double& rIntegrationWeight
-					);
-
-
-    /**
-     * Calculation of the Internal Forces due to Pressure-Balance
-     */
-    virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-					       GeneralVariables & rVariables,
-					       double& rIntegrationWeight
-					       );
-
-
-    /**
-     * Calculation of the Internal Forces due to Pressure-Balance
-     */
-    virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-					   GeneralVariables & rVariables,
-					   double& rIntegrationWeight
-					   );
 
     /**
      * Initialize Element General Variables
@@ -357,7 +308,7 @@ private:
     ///@{
     ///@}
 
-}; // Class AxisymSpatialLagrangianUPElement
+}; // Class AxisymSpatialLagrangianElement
 
 ///@}
 ///@name Type Definitions
@@ -368,4 +319,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_SPATIAL_LAGRANGIAN_ELEMENT_H_INCLUDED  defined 

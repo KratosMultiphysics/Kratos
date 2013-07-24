@@ -20,28 +20,28 @@
 
 namespace Kratos
 {
-//***********************************************************************************
-//***********************************************************************************
-// -------- //
-//  PUBLIC  //
-// -------- //
 
-// Constructor
-LineLoad3DCondition::LineLoad3DCondition()
-{
-}
-
-// Constructor
+//************************************************************************************
+//************************************************************************************
 LineLoad3DCondition::LineLoad3DCondition( IndexType NewId, GeometryType::Pointer pGeometry )
     : Condition( NewId, pGeometry )
 {
 }
 
-// Constructor
+//************************************************************************************
+//************************************************************************************
 LineLoad3DCondition::LineLoad3DCondition( IndexType NewId, GeometryType::Pointer pGeometry,
                           PropertiesType::Pointer pProperties )
     : Condition( NewId, pGeometry, pProperties )
 {
+}
+
+//************************************************************************************
+//************************************************************************************
+LineLoad3DCondition::LineLoad3DCondition(  LineLoad3DCondition const& rOther )
+  : Condition(rOther)
+{
+
 }
 
 //***********************************************************************************
@@ -52,6 +52,7 @@ Condition::Pointer LineLoad3DCondition::Create( IndexType NewId,
 {
     return Condition::Pointer( new LineLoad3DCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
+
 
 //***********************************************************************************
 //***********************************************************************************

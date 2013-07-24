@@ -38,6 +38,13 @@ PointLoad3DCondition::PointLoad3DCondition(IndexType NewId, GeometryType::Pointe
 
 //************************************************************************************
 //************************************************************************************
+PointLoad3DCondition::PointLoad3DCondition( PointLoad3DCondition const& rOther )
+  : Condition(rOther)
+{
+}
+
+//************************************************************************************
+//************************************************************************************
 Condition::Pointer PointLoad3DCondition::Create(IndexType NewId, NodesArrayType
                                         const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
@@ -45,10 +52,11 @@ Condition::Pointer PointLoad3DCondition::Create(IndexType NewId, NodesArrayType
                               GetGeometry().Create(ThisNodes), pProperties));
 }
 
+//************************************************************************************
+//************************************************************************************
 PointLoad3DCondition::~PointLoad3DCondition()
 {
 }
-
 
 //************************************************************************************
 //************************************************************************************

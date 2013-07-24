@@ -6,25 +6,17 @@
 //
 //
 
-#if !defined(KRATOS_LINE_LOAD_2D_CONDITION_H_INCLUDED )
-#define  KRATOS_LINE_LOAD_2D_CONDITION_H_INCLUDED
+#if !defined(KRATOS_LINE_LOAD_AXISYM_2D_CONDITION_H_INCLUDED )
+#define  KRATOS_LINE_LOAD_AXISYM_2D_CONDITION_H_INCLUDED
 
 
 
 // System includes
 
-
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/condition.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
-
+#include "custom_conditions/line_load_2D_condition.hpp"
 
 namespace Kratos
 {
@@ -52,29 +44,30 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class LineLoad2DCondition
-    : public Condition
+class LineLoadAxisym2DCondition
+    : public LineLoad2DCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of LineLoad2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION( LineLoad2DCondition );
+    /// Counted pointer of LineLoadAxisym2DCondition
+    KRATOS_CLASS_POINTER_DEFINITION( LineLoadAxisym2DCondition );
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    LineLoad2DCondition( IndexType NewId, GeometryType::Pointer pGeometry );
-    LineLoad2DCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+    LineLoadAxisym2DCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    LineLoadAxisym2DCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
-    ///Copy constructor
-    LineLoad2DCondition( LineLoad2DCondition const& rOther);
+    /// Copy constructor
+    LineLoadAxisym2DCondition( LineLoadAxisym2DCondition const& rOther);
+
 
     /// Destructor.
-    virtual ~LineLoad2DCondition();
+    virtual ~LineLoadAxisym2DCondition();
 
 
     ///@}
@@ -88,19 +81,6 @@ public:
 
     Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
 
-    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
-
-    void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
-    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-
-    void EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo );
-
-    void GetDofList( DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo );
-
-    void MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo );
-
-    void DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo );
-
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -108,7 +88,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+    //virtual int Check( const ProcessInfo& rCurrentProcessInfo );
     ///@}
     ///@name Access
     ///@{
@@ -129,7 +109,7 @@ public:
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "Line Load 2D Condition #" << Id();
+        rOStream << "Line Load Axisym 2D Condition #" << Id();
     }
 
 
@@ -148,50 +128,31 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    // A protected default constructor necessary for serialization
-    LineLoad2DCondition() {};
 
 
     ///@}
     ///@name Protected Operators
     ///@{
 
-   
+
     ///@}
     ///@name Protected Operations
     ///@{
 
-   virtual void CalculateConditionalSystem( MatrixType& rLeftHandSideMatrix, 
-					     VectorType& rRightHandSideVector,
-					     ProcessInfo& rCurrentProcessInfo,
-					     bool CalculateStiffnessMatrixFlag,
-					     bool CalculateResidualVectorFlag );
-  
-
-    void CalculateAndSubKp(Matrix& rK,
-                           const Matrix& rDN_De,
-                           const Vector& rN,
-                           double rPressure,
-                           double rIntegrationWeight
-                          );
+    void CalculateConditionalSystem( MatrixType& rLeftHandSideMatrix, 
+				     VectorType& rRightHandSideVector,
+				     ProcessInfo& rCurrentProcessInfo,
+				     bool CalculateStiffnessMatrixFlag,
+				     bool CalculateResidualVectorFlag );
 
 
-    void CalculateAndAddFacePressure (Vector& rF,
-                                      const Vector& rN,
-                                      Vector& rNormal,
-                                      double rPressure,
-                                      double rIntegrationWeight );
 
-    void CalculateAndAddLineLoad(Vector& rF,
-                                  const Vector& rN,
-                                  Vector& rForce,
-                                  double rIntegrationWeight );
-
+    void CalculateRadius(double & rCurrentRadius,
+			 double & rReferenceRadius,
+			 const Vector& rN);
     ///@}
     ///@name Protected  Access
     ///@{
@@ -218,11 +179,15 @@ private:
     ///@name Member Variables
     ///@{
 
-
+    /**
+     * Currently selected integration methods
+     */
+    IntegrationMethod mThisIntegrationMethod;
 
     ///@}
     ///@name Private Operators
     ///@{
+
 
     ///@}
     ///@name Private Operations
@@ -244,7 +209,10 @@ private:
 
     friend class Serializer;
 
-     virtual void save( Serializer& rSerializer ) const
+    // A private default constructor necessary for serialization
+    LineLoadAxisym2DCondition() {};
+
+    virtual void save( Serializer& rSerializer ) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
     }
@@ -260,15 +228,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //LineLoad2DCondition& operator=(const LineLoad2DCondition& rOther);
+    //LineLoadAxisym2DCondition& operator=(const LineLoadAxisym2DCondition& rOther);
 
     /// Copy constructor.
-    //LineLoad2DCondition(const LineLoad2DCondition& rOther);
+    //LineLoadAxisym2DCondition(const LineLoadAxisym2DCondition& rOther);
 
 
     ///@}
 
-}; // Class LineLoad2DCondition
+}; // Class LineLoadAxisym2DCondition
 
 ///@}
 
@@ -283,11 +251,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-        LineLoad2DCondition& rThis);
+        LineLoadAxisym2DCondition& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-        const LineLoad2DCondition& rThis)
+        const LineLoadAxisym2DCondition& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;

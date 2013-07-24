@@ -24,35 +24,29 @@ namespace Kratos
 
 //***********************************************************************************
 //***********************************************************************************
-// -------- //
-//  PUBLIC  //
-// -------- //
-
-// Constructor
-
-SurfaceLoad3DCondition::SurfaceLoad3DCondition()
-{
-}
-
-// Constructor
-
 SurfaceLoad3DCondition::SurfaceLoad3DCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry)
 {
   //DO NOT ADD DOFS HERE!!!
 }
 
-// Constructor
-
+//***********************************************************************************
+//***********************************************************************************
 SurfaceLoad3DCondition::SurfaceLoad3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
 {
   //DO NOT ADD DOFS HERE!!!
 }
 
-//***********************************************************************************
-//***********************************************************************************
+//************************************************************************************
+//************************************************************************************
+SurfaceLoad3DCondition::SurfaceLoad3DCondition( SurfaceLoad3DCondition const& rOther )
+  : Condition(rOther)
+{
+}
 
+//***********************************************************************************
+//***********************************************************************************
 Condition::Pointer SurfaceLoad3DCondition::Create(
     IndexType NewId,
     NodesArrayType const& ThisNodes,
@@ -63,8 +57,6 @@ Condition::Pointer SurfaceLoad3DCondition::Create(
 
 //***********************************************************************************
 //***********************************************************************************
-// Destructor
-
 SurfaceLoad3DCondition::~SurfaceLoad3DCondition()
 {
 }

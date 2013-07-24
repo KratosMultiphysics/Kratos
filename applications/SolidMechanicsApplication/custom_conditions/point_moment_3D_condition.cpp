@@ -37,11 +37,22 @@ PointMoment3DCondition::PointMoment3DCondition(IndexType NewId, GeometryType::Po
 {
 }
 
+//************************************************************************************
+//************************************************************************************
+PointMoment3DCondition::PointMoment3DCondition( PointMoment3DCondition const& rOther )
+  : Condition(rOther)
+{
+}
+
+//************************************************************************************
+//************************************************************************************
 Condition::Pointer PointMoment3DCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
     return Condition::Pointer(new PointMoment3DCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
+//************************************************************************************
+//************************************************************************************
 PointMoment3DCondition::~PointMoment3DCondition()
 {
 }

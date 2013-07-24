@@ -38,20 +38,23 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( LineLoad3DCondition );
 
 
-    // Constructor void
-    LineLoad3DCondition();
-
-    // Constructor using an array of nodes
+    /// Default constructor.
     LineLoad3DCondition( IndexType NewId, GeometryType::Pointer pGeometry );
-
-    // Constructor using an array of nodes with properties
     LineLoad3DCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+    ///Copy constructor
+    LineLoad3DCondition( LineLoad3DCondition const& rOther);
 
-    // Destructor
+    /// Destructor
     virtual ~LineLoad3DCondition();
 
+    ///@}
+    ///@name Operators
+    ///@{
 
-    // Name Operations
+
+    ///@}
+    ///@name Operations
+    ///@{
 
     Condition::Pointer Create(
         IndexType NewId,
@@ -104,17 +107,88 @@ public:
      */
     virtual int Check( const ProcessInfo& rCurrentProcessInfo );
 
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
 
 protected:
 
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    // A protected default constructor necessary for serialization
+    LineLoad3DCondition() {};
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+   
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+ 
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
 
 private:
     ///@name Static Member Variables
+    ///@{
 
-    /// privat variables
+
+    ///@}
+    ///@name Member Variables
+    ///@{
 
 
-    // privat name Operations
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
 
 //    void CalculateAll(
 //        MatrixType& rLeftHandSideMatrix,
@@ -158,6 +232,15 @@ private:
 //        double pressure,
 //        double weight,
 //        const ProcessInfo& rCurrentProcessInfo );
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
     ///@}
     ///@name Serialization

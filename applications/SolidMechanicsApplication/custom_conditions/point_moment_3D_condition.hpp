@@ -68,6 +68,9 @@ public:
     PointMoment3DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
     PointMoment3DCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
+    ///Copy constructor
+    PointMoment3DCondition( PointMoment3DCondition const& rOther);
+
     /// Destructor.
     virtual ~PointMoment3DCondition();
 

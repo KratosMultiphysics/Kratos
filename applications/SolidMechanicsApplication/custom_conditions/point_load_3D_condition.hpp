@@ -69,6 +69,9 @@ public:
     PointLoad3DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
     PointLoad3DCondition(IndexType NewId, GeometryType::Pointer pGeometry,PropertiesType::Pointer pProperties);
 
+    ///Copy constructor
+    PointLoad3DCondition( PointLoad3DCondition const& rOther);
+
     /// Destructor.
     virtual ~PointLoad3DCondition();
 
