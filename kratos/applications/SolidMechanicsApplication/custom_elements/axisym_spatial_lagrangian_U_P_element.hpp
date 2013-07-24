@@ -6,15 +6,15 @@
 //
 //
 
-#if !defined(KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED )
-#define  KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED
+#if !defined(KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED )
+#define  KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/large_displacement_element.hpp"
+#include "custom_elements/large_displacement_U_P_element.hpp"
 
 
 namespace Kratos
@@ -34,15 +34,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Large Displacement Lagrangian U-P Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)  
+/// Spatial Lagrangian U-P Element for 3D and 2D geometries. Linear Triangles and Tetrahedra
 
 /**
  * Implements a Large Displacement Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 3D and 2D (base class)
+ * This works for arbitrary geometries in 3D and 2D
  */
 
-class LargeDisplacementUPElement
-    : public LargeDisplacementElement
+class AxisymSpatialLagrangianUPElement
+    : public LargeDisplacementUPElement
 {
 public:
 
@@ -57,30 +57,30 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
  
-    /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_POINTER_DEFINITION(LargeDisplacementUPElement);
-    ///@}
+    /// Counted pointer of AxisymSpatialLagrangianUPElement
+    KRATOS_CLASS_POINTER_DEFINITION(AxisymSpatialLagrangianUPElement);
 
+    ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructors
-    LargeDisplacementUPElement(IndexType NewId, GeometryType::Pointer pGeometry);
+    AxisymSpatialLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    LargeDisplacementUPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    AxisymSpatialLagrangianUPElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    LargeDisplacementUPElement(LargeDisplacementUPElement const& rOther);
+    AxisymSpatialLagrangianUPElement(AxisymSpatialLagrangianUPElement const& rOther);
 
     /// Destructor.
-    virtual ~LargeDisplacementUPElement();
+    virtual ~AxisymSpatialLagrangianUPElement();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    LargeDisplacementUPElement& operator=(LargeDisplacementUPElement const& rOther);
+    AxisymSpatialLagrangianUPElement& operator=(AxisymSpatialLagrangianUPElement const& rOther);
 
     ///@}
     ///@name Operations
@@ -98,54 +98,14 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
-    //************* GETTING METHODS
-
-     /**
-     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
-     */
-    void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
+   //************* STARTING - ENDING  METHODS
 
     /**
-     * Sets on rResult the ID's of the element degrees of freedom
-     */
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
-
-    /**
-     * Sets on rValues the nodal displacements
-     */
-    void GetValuesVector(Vector& rValues, int Step = 0);
-
-    /**
-     * Sets on rValues the nodal velocities
-     */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0);
-
-    /**
-     * Sets on rValues the nodal accelerations
-     */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0);
-
-
-    //************* COMPUTING  METHODS
-
-    /**
-      * this is called during the assembling process in order
-      * to calculate the elemental mass matrix
-      * @param rMassMatrix: the elemental mass matrix
-      * @param rCurrentProcessInfo: the current process info instance
+      * Called to initialize the element.
+      * Must be called before any calculation is done
       */
-    void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo);
+    void Initialize();
 
-    /**
-      * this is called during the assembling process in order
-      * to calculate the elemental damping matrix
-      * @param rDampMatrix: the elemental damping matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
-
-
- 
     //************************************************************************************
     //************************************************************************************
     /**
@@ -155,7 +115,7 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo);
+    //int Check(const ProcessInfo& rCurrentProcessInfo);
 
 
     ///@}
@@ -180,10 +140,20 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    /**
+     * Container for historical total elastic deformation measure
+     */
+    std::vector< Matrix > mDeformationGradientF0;
+
+    /**
+     * Container for the total deformation gradient determinants
+     */
+    Vector mDeterminantF0;
+
     ///@}
     ///@name Protected Operators
     ///@{
-    LargeDisplacementUPElement() : LargeDisplacementElement()
+    AxisymSpatialLagrangianUPElement() : LargeDisplacementUPElement()
     {
     }
 
@@ -208,14 +178,8 @@ protected:
 				    GeneralVariables& rVariables, 
 				    Vector& rVolumeForce, 
 				    double& rIntegrationWeight);
- 
-    /**
-     * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
-     */
-    virtual void CalculateAndAddKuum(MatrixType& rK,
-				     GeneralVariables & rVariables,
-				     double& rIntegrationWeight
-				     );
+
+
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
@@ -225,6 +189,7 @@ protected:
 				     double& rIntegrationWeight
 				     );
 
+ 
     /**
      * Calculation of the Kup matrix
      */
@@ -241,7 +206,6 @@ protected:
 				    double& rIntegrationWeight
 				    );
 
-
     /**
      * Calculation of the Kpp matrix
      */
@@ -250,34 +214,13 @@ protected:
 				    double& rIntegrationWeight
 				    );
 
-
-    /**
+   /**
      * Calculation of the Kpp Stabilization Term matrix
      */
     virtual void CalculateAndAddKppStab(MatrixType& rK,
 					GeneralVariables & rVariables,
 					double& rIntegrationWeight
 					);
-
-
-
-    /**
-     * Calculation of the External Forces Vector. Fe = N * t + N * b
-     */
-    void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-				       GeneralVariables& rVariables,
-				       Vector& rVolumeForce,
-				       double& rIntegrationWeight
-				       );
-
-
-    /**
-      * Calculation of the Internal Forces due to sigma. Fi = B * sigma
-      */
-    void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-				       GeneralVariables & rVariables,
-				       double& rIntegrationWeight
-				       );
 
 
     /**
@@ -297,16 +240,65 @@ protected:
 					   double& rIntegrationWeight
 					   );
 
+    /**
+     * Initialize Element General Variables
+     */ 
+    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+
+
 
     /**
-     * Initialize System Matrices
+     * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-				  VectorType& rRightHandSideVector,
-				  Flags& rCalculationFlags);
+    virtual void SetGeneralVariables(GeneralVariables& rVariables,
+				     ConstitutiveLaw::Parameters& rValues,
+				     const int & rPointNumber);
+
+    /**
+     * Calculate Element Kinematics
+     */
+    virtual void CalculateKinematics(GeneralVariables& rVariables,
+				     const double& rPointNumber);
 
 
-    ///@}
+    /**
+     * Calculate Radius in the current and deformed geometry
+     */
+    void CalculateRadius(double & rCurrentRadius,
+			 double & rReferenceRadius,
+			 Vector& rN);
+
+    /**
+     * Calculation of the Deformation Gradient F
+     */
+    void CalculateDeformationGradient(const Matrix& rDN_DX,
+				      Matrix& rF,
+				      Matrix& rDeltaPosition,
+				      double & rCurrentRadius,
+				      double & rReferenceRadius);
+
+    /**
+     * Calculation of the Deformation Matrix  BL
+     */
+    virtual void CalculateDeformationMatrix(Matrix& rB,
+					    Matrix& rF,
+					    Matrix& rDN_DX,
+					    Vector& rN,
+					    double & rCurrentRadius);
+
+    /**
+     * Calculation of the Green Lagrange Strain Vector
+     */
+    void CalculateGreenLagrangeStrain(const Matrix& rF,
+				      Vector& rStrainVector);
+
+    /**
+     * Calculation of the Almansi Strain Vector
+     */
+    void CalculateAlmansiStrain(const Matrix& rF,
+				Vector& rStrainVector);
+
+     ///@}
     ///@name Protected  Access
     ///@{
     ///@}
@@ -360,7 +352,7 @@ private:
     ///@{
     ///@}
 
-}; // Class LargeDisplacementUPElement
+}; // Class AxisymSpatialLagrangianUPElement
 
 ///@}
 ///@name Type Definitions
@@ -371,4 +363,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_LARGE_DISPLACEMENT_U_P_ELEMENT_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_SPATIAL_LAGRANGIAN_U_P_ELEMENT_H_INCLUDED  defined 

@@ -279,7 +279,7 @@ namespace Kratos
 	  {
 	    mConstitutiveLawVector.resize(rValues.size());
 
-	    if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber() )
+	    if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod ) )
 	      KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() );
 	  }
      
@@ -295,7 +295,7 @@ namespace Kratos
 	  {
 	    mConstitutiveLawVector.resize(rValues.size());
 
-	    if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber() )
+	    if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod ) )
 	      KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() );
 	  }
      
@@ -318,7 +318,7 @@ namespace Kratos
 							    std::vector<double>& rValues,
 							    const ProcessInfo& rCurrentProcessInfo )
   {
-    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber();
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rValues.size() != integration_points_number )
       rValues.resize( integration_points_number );
@@ -995,6 +995,37 @@ namespace Kratos
     KRATOS_CATCH( "" )
       }
 
+
+  //*************************COMPUTE DELTA POSITION*************************************
+  //************************************************************************************
+
+
+  Matrix& LargeDisplacementElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
+  {
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    
+    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+   
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+      {	    
+	array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+	array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+	    	    
+	for ( unsigned int j = 0; j < dimension; j++ )
+	  {	    
+	    rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+	  }
+      }
+
+    return rDeltaPosition;
+
+    KRATOS_CATCH( "" )
+      }
+
+
   //************************************************************************************
   //************************************************************************************
 
@@ -1265,7 +1296,7 @@ namespace Kratos
 
     KRATOS_TRY
 
-    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber();
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
       rOutput.resize( integration_points_number, false );
@@ -1320,7 +1351,7 @@ namespace Kratos
 
     KRATOS_TRY
 
-    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber();
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rOutput.size() != integration_points_number )
       rOutput.resize( integration_points_number );
@@ -1411,7 +1442,7 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber();
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();    
 
     if ( rOutput.size() != integration_points_number )
@@ -1607,8 +1638,8 @@ namespace Kratos
     //verify that the constitutive law has the correct dimension
     if ( dimension == 2 )
       {
-	if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
-	  KRATOS_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() );
+	// if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
+	//   KRATOS_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() );
 
 	if ( THICKNESS.Key() == 0 )
 	  KRATOS_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" );

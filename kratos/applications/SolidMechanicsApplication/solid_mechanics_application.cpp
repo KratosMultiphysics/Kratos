@@ -182,8 +182,10 @@ namespace Kratos
     mSpatialLagrangianElement3D20N( 0, Element::GeometryType::Pointer( new Hexahedra3D20 <Node<3> >( Element::GeometryType::PointsArrayType( 20, Node<3>() ) ) ) ),
     mSpatialLagrangianElement3D27N( 0, Element::GeometryType::Pointer( new Hexahedra3D27 <Node<3> >( Element::GeometryType::PointsArrayType( 27, Node<3>() ) ) ) ),
     mSpatialLagrangianUPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mAxisymSpatialLagrangianUPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
 
     mPointLoad2DCondition( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
+    mPointLoadAxisym2DCondition( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mPointLoad3DCondition( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mPointMoment3DCondition( 0, Element::GeometryType::Pointer( new Point3D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mLineLoadCondition3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
@@ -269,12 +271,14 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT( "SpatialLagrangianElement3D27N", mSpatialLagrangianElement3D27N )
 
     KRATOS_REGISTER_ELEMENT( "SpatialLagrangianUPElement2D3N", mSpatialLagrangianUPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "AxisymSpatialLagrangianUPElement2D3N", mAxisymSpatialLagrangianUPElement2D3N )
 
     //Register Conditions
  
-    KRATOS_REGISTER_CONDITION( "PointLoad2DCondition",     mPointLoad2DCondition )
-    KRATOS_REGISTER_CONDITION( "PointLoad3DCondition",     mPointLoad3DCondition )
-    KRATOS_REGISTER_CONDITION( "PointMoment3DCondition", mPointMoment3DCondition )
+    KRATOS_REGISTER_CONDITION( "PointLoad2DCondition",             mPointLoad2DCondition )
+    KRATOS_REGISTER_CONDITION( "PointLoadAxisym2DCondition", mPointLoadAxisym2DCondition )
+    KRATOS_REGISTER_CONDITION( "PointLoad3DCondition",             mPointLoad3DCondition )
+    KRATOS_REGISTER_CONDITION( "PointMoment3DCondition",         mPointMoment3DCondition )
 
     KRATOS_REGISTER_CONDITION( "LineLoadCondition3D2N",   mLineLoadCondition3D2N )
     KRATOS_REGISTER_CONDITION( "LineLoadCondition2D2N",   mLineLoadCondition2D2N )
@@ -293,6 +297,7 @@ namespace Kratos
     Serializer::Register("LinearElastic3DLaw",mLinearElastic3DLaw); 
     Serializer::Register("HyperElasticPlaneStrain2DLaw",mHyperElasticPlaneStrain2DLaw);
     Serializer::Register("HyperElasticUPPlaneStrain2DLaw",mHyperElasticUPPlaneStrain2DLaw);
+    Serializer::Register("HyperElasticUPAxisym2DLaw",mHyperElasticUPAxisym2DLaw);
     Serializer::Register("LinearElasticPlaneStrain2DLaw",mLinearElasticPlaneStrain2DLaw);
     Serializer::Register("LinearElasticPlaneStress2DLaw",mLinearElasticPlaneStress2DLaw);
 

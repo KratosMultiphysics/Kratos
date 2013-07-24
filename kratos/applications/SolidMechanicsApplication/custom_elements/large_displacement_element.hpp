@@ -84,7 +84,12 @@ protected:
   struct GeneralVariables
   {
     StressMeasureType StressMeasure;
+    
+    //for axisymmetric use only
+    double  CurrentRadius;
+    double  ReferenceRadius;
 
+    //general variables for large displacement use
     double  detF;
     double  detF0;
     double  detJ;
@@ -266,7 +271,7 @@ public:
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize();
+    virtual void Initialize();
 
     /**
      * Called at the beginning of each solution step
@@ -513,6 +518,12 @@ protected:
      */
     virtual void CalculateKinematics(GeneralVariables& rVariables,
 				     const double& rPointNumber);
+
+
+    /**
+     * Calculation of the Deformation Gradient F
+     */
+    Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
 
     /**
      * Correct Precision Errors (for rigid free movements)

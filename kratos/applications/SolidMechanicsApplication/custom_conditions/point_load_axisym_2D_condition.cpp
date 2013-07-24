@@ -14,7 +14,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/point_load_2D_condition.hpp"
+#include "custom_conditions/point_load_axisym_2D_condition.hpp"
 #include "utilities/math_utils.h"
 #include "solid_mechanics_application.h"
 
@@ -22,9 +22,9 @@ namespace Kratos
 {
 //************************************************************************************
 //************************************************************************************
-PointLoad2DCondition::PointLoad2DCondition(IndexType NewId, GeometryType::Pointer
+PointLoadAxisym2DCondition::PointLoadAxisym2DCondition(IndexType NewId, GeometryType::Pointer
                            pGeometry)
-    : Condition(NewId, pGeometry)
+    : PointLoad2DCondition(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
 
@@ -32,18 +32,18 @@ PointLoad2DCondition::PointLoad2DCondition(IndexType NewId, GeometryType::Pointe
 
 //************************************************************************************
 //************************************************************************************
-PointLoad2DCondition::PointLoad2DCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties)
+PointLoadAxisym2DCondition::PointLoadAxisym2DCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+    : PointLoad2DCondition(NewId, pGeometry, pProperties)
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-Condition::Pointer PointLoad2DCondition::Create(IndexType NewId, NodesArrayType
+Condition::Pointer PointLoadAxisym2DCondition::Create(IndexType NewId, NodesArrayType
                                         const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new PointLoad2DCondition(NewId,GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new PointLoadAxisym2DCondition(NewId,GetGeometry().Create(ThisNodes), pProperties));
 }
 
 
@@ -51,14 +51,14 @@ Condition::Pointer PointLoad2DCondition::Create(IndexType NewId, NodesArrayType
 //************************************************************************************
 
 
-PointLoad2DCondition::~PointLoad2DCondition()
+PointLoadAxisym2DCondition::~PointLoadAxisym2DCondition()
 {
 }
 
 
 //************************************************************************************
 //************************************************************************************
-void PointLoad2DCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PointLoadAxisym2DCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     if(rRightHandSideVector.size() != 2)
@@ -66,7 +66,11 @@ void PointLoad2DCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
 
     array_1d<double,3>& force = GetGeometry()[0].GetSolutionStepValue(FORCE);
        
-    double IntegrationWeight = GetProperties()[ THICKNESS ];
+    double CurrentRadius = 0;
+    double ReferenceRadius = 0;
+    CalculateRadius (CurrentRadius,ReferenceRadius);
+
+    double IntegrationWeight = 2.0 * 3.141592654 * CurrentRadius;
     rRightHandSideVector[0] = force[0] * IntegrationWeight;
     rRightHandSideVector[1] = force[1] * IntegrationWeight;
 
@@ -78,7 +82,7 @@ void PointLoad2DCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
 
 //************************************************************************************
 //************************************************************************************
-void PointLoad2DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void PointLoadAxisym2DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -90,9 +94,14 @@ void PointLoad2DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
     if(rRightHandSideVector.size() != 2)
         rRightHandSideVector.resize(2,false);
 
+
     array_1d<double,3>& force = GetGeometry()[0].GetSolutionStepValue(FORCE);
 
-    double IntegrationWeight = GetProperties()[ THICKNESS ];
+    double CurrentRadius = 0;
+    double ReferenceRadius = 0;
+    CalculateRadius (CurrentRadius,ReferenceRadius);
+
+    double IntegrationWeight = 2.0 * 3.141592654 * CurrentRadius;
     rRightHandSideVector[0] = force[0] * IntegrationWeight;
     rRightHandSideVector[1] = force[1] * IntegrationWeight;
 
@@ -103,37 +112,30 @@ void PointLoad2DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
 //************************************************************************************
 //************************************************************************************
-void PointLoad2DCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
-{
-    int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int index;
-    unsigned int dim = 2;
-    rResult.resize(number_of_nodes*dim);
-    for (int i=0; i<number_of_nodes; i++)
-    {
-        index = i*dim;
-        rResult[index] = (GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId());
-        rResult[index+1] = (GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId());
 
-    }
+void PointLoadAxisym2DCondition::CalculateRadius(double & rCurrentRadius,
+						  double & rReferenceRadius)					  
+{
+
+    KRATOS_TRY
+   
+    rCurrentRadius=0;
+    rReferenceRadius=0;
+
+    //Displacement from the reference to the current configuration
+    array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+    array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT,1);
+    array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;  
+    array_1d<double, 3 > & ReferencePosition    = GetGeometry()[0].Coordinates();
+    array_1d<double, 3 > CurrentPosition        = ReferencePosition + DeltaDisplacement;
+	    
+    rCurrentRadius   = CurrentPosition[0];
+    rReferenceRadius = ReferencePosition[0];
+
+    KRATOS_CATCH( "" )
 }
 
-//************************************************************************************
-//************************************************************************************
-void PointLoad2DCondition::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
-{
-    unsigned int dim = 2;
-    ConditionalDofList.resize(GetGeometry().size()*dim);
-    unsigned int index;
-    for (unsigned int i=0; i<GetGeometry().size(); i++)
-    {
 
-        index = i*dim;
-        ConditionalDofList[index] = (GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-        ConditionalDofList[index+1] = (GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-
-    }
-}
 } // Namespace Kratos
 
 

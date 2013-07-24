@@ -102,8 +102,7 @@ namespace Kratos
 
     LargeDisplacementUPElement::Initialize();
 
-    SizeType integration_points_number = GetGeometry().IntegrationPointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    SizeType integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
     //Resize historic deformation gradient
     if ( mDeformationGradientF0.size() != integration_points_number )
@@ -115,8 +114,9 @@ namespace Kratos
     for ( unsigned int PointNumber = 0; PointNumber < integration_points_number; PointNumber++ )
       {
 	mDeterminantF0[PointNumber] = 1;
-	mDeformationGradientF0[PointNumber] = identity_matrix<double> (dimension);
+	mDeformationGradientF0[PointNumber] = identity_matrix<double> (3);
       }
+
 
     KRATOS_CATCH( "" )
   }
@@ -127,30 +127,24 @@ namespace Kratos
   void AxisymSpatialLagrangianUPElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
   {
     const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    unsigned int voigtsize  = 4;
-    if( dimension == 3 ){
-      std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
-    }
- 
     rVariables.detF  = 1;
 
     rVariables.detF0 = 1;
 
-    rVariables.B.resize( voigtsize , number_of_nodes * dimension );
+    rVariables.B.resize( 4 , number_of_nodes * 2 );
   
-    rVariables.F.resize( dimension+1 , dimension+1 );
+    rVariables.F.resize( 3, 3 );
 
-    rVariables.F0.resize( dimension+1 , dimension+1 );
+    rVariables.F0.resize( 3, 3 );
  
-    rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize );
+    rVariables.ConstitutiveMatrix.resize( 4, 4 );
   
-    rVariables.StrainVector.resize( voigtsize );
+    rVariables.StrainVector.resize( 4 );
   
-    rVariables.StressVector.resize( voigtsize );
+    rVariables.StressVector.resize( 4 );
   
-    rVariables.DN_DX.resize( number_of_nodes, dimension );
+    rVariables.DN_DX.resize( number_of_nodes, 2 );
 
     //set variables including all integration points values
 
@@ -181,7 +175,7 @@ namespace Kratos
   void AxisymSpatialLagrangianUPElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
   {
 
-    double IntegrationWeight = rIntegrationWeight * 2 * 3.141592654 * Variables.CurrentRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
     //contributions to stiffness matrix calculated on the reference config
     rVariables.detF0   *= rVariables.detF;
@@ -201,7 +195,8 @@ namespace Kratos
 
   void AxisymSpatialLagrangianUPElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
   {
-    double IntegrationWeight = rIntegrationWeight * 2 * 3.141592654 * Variables.CurrentRadius;
+    double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
+
     //contribution to external forces
     rVariables.detF0   *= rVariables.detF;
     double DeterminantF = rVariables.detF;
@@ -253,6 +248,9 @@ namespace Kratos
     //Compute cartesian derivatives
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
+    //Set Shape Functions Values for this integration point
+    rVariables.N=row( Ncontainer, rPointNumber);
+
     //Calculate IntegrationPoint radius
     CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N);
 
@@ -270,9 +268,6 @@ namespace Kratos
     rVariables.detF0 = mDeterminantF0[rPointNumber];
     rVariables.F0    = mDeformationGradientF0[rPointNumber];
 
-    //Set Shape Functions Values for this integration point
-    rVariables.N=row( Ncontainer, rPointNumber);
-
     //Compute the deformation matrix B
     CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX, rVariables.N, rVariables.CurrentRadius);
 
@@ -280,36 +275,6 @@ namespace Kratos
     KRATOS_CATCH( "" )
       }
 
-
-
-  //*************************COMPUTE DELTA POSITION*************************************
-  //************************************************************************************
-
-
-  Matrix& AxisymSpatialLagrangianUPElement::CalculateDeltaPosition(Matrix & DeltaPosition)
-  {
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
-    DeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
-   
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-      {	    
-	array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-	array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-	    	    
-	for ( unsigned int j = 0; j < dimension; j++ )
-	  {	    
-	    DeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
-	  }
-      }
-
-    return DeltaPosition;
-
-    KRATOS_CATCH( "" )
-      }
 
 
   //*************************COMPUTE AXYSIMMETRIC RADIUS********************************
@@ -361,8 +326,8 @@ namespace Kratos
   //************************************************************************************
 
   void AxisymSpatialLagrangianUPElement::CalculateDeformationGradient(const Matrix& rDN_DX,
-								      Matrix& rF,
-								      Matrix& rDeltaPosition,
+								      Matrix&  rF,
+								      Matrix&  rDeltaPosition,
 								      double & rCurrentRadius,
 								      double & rReferenceRadius)
   {
@@ -450,7 +415,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void AxisymLargeDisplacementUPElement::CalculateGreenLagrangeStrain(const Matrix& rF,
+  void AxisymSpatialLagrangianUPElement::CalculateGreenLagrangeStrain(const Matrix& rF,
 								      Vector& rStrainVector )
   {
     KRATOS_TRY
@@ -464,7 +429,7 @@ namespace Kratos
     if( dimension == 2 ){
 
       //Green Lagrange Strain Calculation
-      if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
+      if ( rStrainVector.size() != 4 ) rStrainVector.resize( 4, false );
 
       rStrainVector[0] = 0.5 * ( C( 0, 0 ) - 1.00 );
 
@@ -492,7 +457,7 @@ namespace Kratos
   //************************************************************************************
   //************************************************************************************
 
-  void AxiSymLargeDisplacementUPElement::CalculateAlmansiStrain(const Matrix& rF,
+  void AxisymSpatialLagrangianUPElement::CalculateAlmansiStrain(const Matrix& rF,
 								Vector& rStrainVector )
   {
     KRATOS_TRY
@@ -510,6 +475,8 @@ namespace Kratos
     if( dimension == 2 ){
 
       //Almansi Strain Calculation
+      if ( rStrainVector.size() != 4 ) rStrainVector.resize( 4, false );
+
       rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
 
       rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );
@@ -622,7 +589,7 @@ namespace Kratos
     //use of this variable for the complete parameter:
     double AlphaStabilization = 4.0; //GetProperties()[STABILIZATION];
 
-    unsigned int integration_points = GetGeometry().IntegrationPointsNumber();
+    unsigned int integration_points = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     if(integration_points == 1)
       AlphaStabilization = 1.0/4.5;
 
@@ -919,7 +886,7 @@ namespace Kratos
     //use of this variable for the complete parameter:
     double AlphaStabilization =4.0; //GetProperties()[STABILIZATION];
 
-    unsigned int integration_points = GetGeometry().IntegrationPointsNumber();
+    unsigned int integration_points = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
     if(integration_points == 1)
       AlphaStabilization = 1.0/4.5;
 	      

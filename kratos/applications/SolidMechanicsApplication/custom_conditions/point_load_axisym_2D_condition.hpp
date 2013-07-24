@@ -6,25 +6,17 @@
 //
 //
 
-#if !defined(KRATOS_POINT_LOAD_2D_CONDITION_H_INCLUDED )
-#define  KRATOS_POINT_LOAD_2D_CONDITION_H_INCLUDED
+#if !defined(KRATOS_POINT_LOAD_AXISYM_2D_CONDITION_H_INCLUDED )
+#define  KRATOS_POINT_LOAD_AXISYM_2D_CONDITION_H_INCLUDED
 
 
 
 // System includes
 
-
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/condition.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
-
+#include "custom_conditions/point_load_2D_condition.hpp"
 
 namespace Kratos
 {
@@ -51,26 +43,26 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class PointLoad2DCondition
-    : public Condition
+class PointLoadAxisym2DCondition
+    : public PointLoad2DCondition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of PointLoad2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION(PointLoad2DCondition);
+    /// Counted pointer of PointLoadAxisym2DCondition
+    KRATOS_CLASS_POINTER_DEFINITION(PointLoadAxisym2DCondition);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PointLoad2DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
-    PointLoad2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    PointLoadAxisym2DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    PointLoadAxisym2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~PointLoad2DCondition();
+    virtual ~PointLoadAxisym2DCondition();
 
 
     ///@}
@@ -90,13 +82,8 @@ public:
 
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo&
                                 rCurrentProcessInfo);
+
     //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo&
-                          rCurrentProcessInfo);
-
-    void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo&
-                    CurrentProcessInfo);
 
     ///@}
     ///@name Access
@@ -133,8 +120,6 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-    // A protected default constructor necessary for serialization
-    PointLoad2DCondition() {};
 
     ///@}
     ///@name Protected member Variables
@@ -149,7 +134,8 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
-
+    void CalculateRadius(double & rCurrentRadius,
+			 double & rReferenceRadius);		
 
     ///@}
     ///@name Protected  Access
@@ -180,14 +166,17 @@ private:
 
     friend class Serializer;
 
+    // A private default constructor necessary for serialization
+    PointLoadAxisym2DCondition() {};
+
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointLoad2DCondition );
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointLoad2DCondition );
     }
 
     ///@}
@@ -214,15 +203,15 @@ private:
     ///@{
 
     /// Assignment operator.
-    //PointLoad2DCondition& operator=(const PointLoad2DCondition& rOther);
+    //PointLoadAxisym2DCondition& operator=(const PointLoadAxisym2DCondition& rOther);
 
     /// Copy constructor.
-    //PointLoad2DCondition(const PointLoad2DCondition& rOther);
+    //PointLoadAxisym2DCondition(const PointLoadAxisym2DCondition& rOther);
 
 
     ///@}
 
-}; // Class PointLoad2DCondition
+}; // Class PointLoadAxisym2DCondition
 
 ///@}
 
@@ -237,11 +226,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-				    PointLoad2DCondition& rThis);
+				    PointLoadAxisym2DCondition& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const PointLoad2DCondition& rThis)
+				    const PointLoadAxisym2DCondition& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -253,7 +242,7 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_LOAD_2D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_POINT_LOAD_AXISYM_2D_CONDITION_H_INCLUDED  defined 
 
 
 

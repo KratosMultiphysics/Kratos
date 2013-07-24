@@ -198,18 +198,13 @@ protected:
     virtual void CalculateKinematics(GeneralVariables& rVariables,
 				     const double& rPointNumber);
 
-    
-    /**
-     * Calculation of the Deformation Gradient F
-     */
-    Matrix& CalculateDeltaPosition(Matrix & DeltaPosition);
-
+   
     /**
      * Calculation of the Deformation Gradient F
      */
     void CalculateDeformationGradient(const Matrix& rDN_DX,
 				      Matrix& rF,
-				      Matrix& DeltaPosition);
+				      Matrix& rDeltaPosition);
 
     /**
      * Calculation of the Deformation Matrix  BL
