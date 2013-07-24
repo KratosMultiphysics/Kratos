@@ -171,7 +171,7 @@ namespace Kratos
 	  
       this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
-      this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );		
+      this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
 
     }
     else if(  Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) && Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){

@@ -454,9 +454,6 @@ namespace Kratos
     rValues.SetStressVector(rVariables.StressVector);
     rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
     rValues.SetShapeFunctionsDevivatives(rVariables.DN_DX);
-  
-    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod );
-    rVariables.N=row(Ncontainer , rPointNumber);
     rValues.SetShapeFunctionsValues(rVariables.N);
     
     if(rVariables.detJ<0)
@@ -590,7 +587,7 @@ namespace Kratos
 	//compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
-        //set standard parameters
+	//set general variables to constitutivelaw parameters
         this->SetGeneralVariables(Variables,Values,PointNumber);
 
 	//compute stresses and constitutive parameters
@@ -790,7 +787,7 @@ namespace Kratos
 	//compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
-        //set standard parameters
+	//set general variables to constitutivelaw parameters
         this->SetGeneralVariables(Variables,Values,PointNumber);
 
         //call the constitutive law to update material variables
@@ -997,8 +994,8 @@ namespace Kratos
   //*************************COMPUTE DISPLACEMENT GRADIENT******************************
   //************************************************************************************
 
-  void SmallDisplacementElement::CalculateDisplacementGradient(const Matrix& rDN_DX,
-								 Matrix& rH)
+  void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH,
+							       const Matrix& rDN_DX)
   {
     KRATOS_TRY
 
@@ -1052,15 +1049,15 @@ namespace Kratos
   //************************************************************************************
 
   void SmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH,
-								 Vector& rStrainVector )
+							      Vector& rStrainVector )
   {
     KRATOS_TRY
 
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     if( dimension == 2 ){
       
-      //Green Lagrange Strain Calculation
+      //Infinitesimal Strain Calculation
       if ( rStrainVector.size() != 3 ) rStrainVector.resize( 3, false );
       
       rStrainVector[0] = rH( 0, 0 );
@@ -1072,7 +1069,7 @@ namespace Kratos
     }
     else if( dimension == 3 ){
 
-      //Green Lagrange Strain Calculation
+      //Infinitesimal Strain Calculation
       if ( rStrainVector.size() != 6 ) rStrainVector.resize( 6, false );
 
       rStrainVector[0] = rH( 0, 0 );
@@ -1104,7 +1101,7 @@ namespace Kratos
   //************************************************************************************
 
   void SmallDisplacementElement::CalculateVelocityGradient(const Matrix& rDN_DX,
-							     Matrix& rDF )
+							   Matrix& rDF )
   {
     KRATOS_TRY
 
@@ -1138,7 +1135,7 @@ namespace Kratos
   //************************************************************************************
 
   void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
-							      Matrix& rDN_DX)
+							    const Matrix& rDN_DX)
   {
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -1329,7 +1326,7 @@ namespace Kratos
 	    //compute element kinematics B, F, DN_DX ...
 	    this->CalculateKinematics(Variables,PointNumber);
 	    
-	    //set standard parameters
+	    //set general variables to constitutivelaw parameters
 	    this->SetGeneralVariables(Variables,Values,PointNumber);
 	    
 	    //call the constitutive law to update material variables
@@ -1384,7 +1381,7 @@ namespace Kratos
 	    //compute element kinematics B, F, DN_DX ...
 	    this->CalculateKinematics(Variables,PointNumber);
 	    
-	    //set standard parameters
+	    //set general variables to constitutivelaw parameters
 	    this->SetGeneralVariables(Variables,Values,PointNumber);
 	    
 	    //call the constitutive law to update material variables
@@ -1508,7 +1505,7 @@ namespace Kratos
 	    //compute element kinematics B, F, DN_DX ...
 	    this->CalculateKinematics(Variables,PointNumber);
 	    
-	    //set standard parameters
+	    //set general variables to constitutivelaw parameters
 	    this->SetGeneralVariables(Variables,Values,PointNumber);
 	    
 	    //call the constitutive law to update material variables
@@ -1639,8 +1636,8 @@ namespace Kratos
     //verify that the constitutive law has the correct dimension
     if ( dimension == 2 )
       {
-	if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
-	  KRATOS_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() );
+	// if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
+	//   KRATOS_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() );
 
 
 	if ( THICKNESS.Key() == 0 )

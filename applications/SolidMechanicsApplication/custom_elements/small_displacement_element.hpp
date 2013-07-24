@@ -84,6 +84,10 @@ protected:
   {
     StressMeasureType StressMeasure;
 
+    //for axisymmetric use only
+    double  Radius;
+
+    //general variables for large displacement use
     double  detF;
     double  detF0;
     double  detJ;
@@ -522,17 +526,17 @@ protected:
 
 
     /**
-     * Calculation of the Green Lagrange Strain Vector
+     * Calculation of the Infinitesimal Strain Vector
      */
     virtual void CalculateInfinitesimalStrain(const Matrix& rH,
 					      Vector& rStrainVector);
 
 
     /**
-     * Calculation of the Deformation Gradient F
+     * Calculation of the Displacement Gradient H
      */
-    virtual void CalculateDisplacementGradient(const Matrix& rDN_DX,
-					       Matrix& rH);
+    void CalculateDisplacementGradient(Matrix& rH,
+				       const Matrix& rDN_DX);
 
 
     /**
@@ -544,8 +548,8 @@ protected:
     /**
      * Calculation of the Deformation Matrix  BL
      */
-    virtual void CalculateDeformationMatrix(Matrix& rB,
-					    Matrix& rDN_DX);
+    void CalculateDeformationMatrix(Matrix& rB,
+				    const Matrix& rDN_DX);
 
     /**
      * Calculation of the Integration Weight

@@ -6,15 +6,15 @@
 //
 //
 
-#if !defined (KRATOS_LINEAR_ELASTIC_PLANE_STRESS_2D_LAW_H_INCLUDED)
-#define  KRATOS_LINEAR_ELASTIC_PLANE_STRESS_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_LINEAR_ELASTIC_AXISYM_2D_LAW_H_INCLUDED)
+#define  KRATOS_LINEAR_ELASTIC_AXISYM_2D_LAW_H_INCLUDED
 
 // System includes 
 
 // External includes 
 
 // Project includes
-#include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_elastic_3D_law.hpp"
 
 namespace Kratos
 {
@@ -27,7 +27,7 @@ namespace Kratos
    * for small and large displacements elasticity.
    */
 
-  class LinearElasticPlaneStress2DLaw : public LinearElasticPlaneStrain2DLaw
+  class LinearElasticAxisym2DLaw : public LinearElastic3DLaw
   {
   public:
     /**
@@ -37,10 +37,10 @@ namespace Kratos
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
     /**
-     * Counted pointer of LinearElasticPlaneStress2DLaw
+     * Counted pointer of LinearElasticAxisym2DLaw
      */
     
-    KRATOS_CLASS_POINTER_DEFINITION(LinearElasticPlaneStress2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(LinearElasticAxisym2DLaw);
     
     /**
      * Life Cycle 
@@ -49,7 +49,7 @@ namespace Kratos
     /**
      * Default constructor.
      */
-    LinearElasticPlaneStress2DLaw();
+    LinearElasticAxisym2DLaw();
 			
     /**
      * Clone function (has to be implemented by any derived class)
@@ -60,25 +60,35 @@ namespace Kratos
     /**
      * Copy constructor.
      */
-    LinearElasticPlaneStress2DLaw (const LinearElasticPlaneStress2DLaw& rOther);
+    LinearElasticAxisym2DLaw (const LinearElasticAxisym2DLaw& rOther);
    
 
     /**
      * Assignment operator.
      */
 
-    //LinearElasticPlaneStress2DLaw& operator=(const LinearElasticPlaneStress2DLaw& rOther);
+    //LinearElasticAxisym2DLaw& operator=(const LinearElasticAxisym2DLaw& rOther);
 
 
     /**
      * Destructor.
      */
-    virtual ~LinearElasticPlaneStress2DLaw();
+    virtual ~LinearElasticAxisym2DLaw();
 			
     /**
      * Operators 
      */
     
+
+    /**
+     * Dimension of the law:
+     */
+    SizeType WorkingSpaceDimension() { return 2; };
+
+    /**
+     * Voigt tensor size:
+     */
+    SizeType GetStrainSize()         { return 4; };
     /**
      * Operations needed by the base class:
      */
@@ -114,7 +124,23 @@ namespace Kratos
     ///@{
     ///@}
 
- 
+    /**
+     * Calculates the GreenLagrange strains
+     * @param rRightCauchyGreen
+     * @param rStrainVector
+     */
+    void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+				       Vector& rStrainVector );
+
+
+    /**
+     * Calculates the Almansi strains
+     * @param rRightCauchyGreen
+     * @param rStrainVector
+     */
+    void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+				 Vector& rStrainVector );
+
     /**
      * calculates the linear elastic constitutive matrix in terms of Young's modulus and
      * Poisson ratio
@@ -172,6 +198,6 @@ namespace Kratos
     }
 
 
-  }; // Class LinearElasticPlaneStress2DLaw 
+  }; // Class LinearElasticAxisym2DLaw 
 }  // namespace Kratos.
-#endif // KRATOS_LINEAR_ELASTIC_PLANE_STRESS_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_LINEAR_ELASTIC_AXISYM_2D_LAW_H_INCLUDED  defined 
