@@ -69,6 +69,10 @@ public:
     PointLoad2DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
     PointLoad2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
+    /// Copy constructor
+    PointLoad2DCondition( PointLoad2DCondition const& rOther);
+
+
     /// Destructor.
     virtual ~PointLoad2DCondition();
 

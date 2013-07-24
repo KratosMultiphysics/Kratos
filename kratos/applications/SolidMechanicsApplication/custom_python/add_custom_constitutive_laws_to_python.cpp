@@ -30,10 +30,12 @@
 
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
+
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_axisym_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_U_P_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_U_P_axisym_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
@@ -102,6 +104,11 @@ namespace Kratos
 
       class_< HyperElasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
 	( "HyperElasticPlaneStrain2DLaw",
+	  init<>() )
+	;
+
+      class_< HyperElasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+	( "HyperElasticAxisym2DLaw",
 	  init<>() )
 	;
 

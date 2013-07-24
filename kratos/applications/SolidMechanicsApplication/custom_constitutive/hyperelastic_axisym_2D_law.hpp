@@ -6,22 +6,21 @@
 //
 //
 
-#if !defined (KRATOS_HYPERELASTIC_U_P_AXISYM_2D_LAW_H_INCLUDED)
-#define  KRATOS_HYPERELASTIC_U_P_AXISYM_2D_LAW_H_INCLUDED
+#if !defined (KRATOS_HYPERELASTIC_AXISYM_2D_LAW_H_INCLUDED)
+#define  KRATOS_HYPERELASTIC_AXISYM_2D_LAW_H_INCLUDED
 
 // System includes 
 
 // External includes 
 
 // Project includes
-#include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_3D_law.hpp"
 
 
 namespace Kratos
 {
   /**
    * Defines a hyperelastic isotropic constitutive law in 2D Neohookean Model (Axisymmetric)
-   * With stress split in an isochoric and volumetric parts
    * This material law is defined by the parameters:
    * 1) YOUNG MODULUS 
    * 2) POISSON RATIO
@@ -29,7 +28,7 @@ namespace Kratos
    * to large displacements elasticity.
    */
 
-  class HyperElasticUPAxisym2DLaw : public HyperElasticUP3DLaw
+  class HyperElasticAxisym2DLaw : public HyperElastic3DLaw
   {
   public:
     /**
@@ -39,10 +38,10 @@ namespace Kratos
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
     /**
-     * Counted pointer of HyperElasticUPAxisym2DLaw
+     * Counted pointer of HyperElasticAxisym2DLaw
      */
     
-    KRATOS_CLASS_POINTER_DEFINITION(HyperElasticUPAxisym2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION(HyperElasticAxisym2DLaw);
     
     /**
      * Life Cycle 
@@ -51,7 +50,7 @@ namespace Kratos
     /**
      * Default constructor.
      */
-    HyperElasticUPAxisym2DLaw();
+    HyperElasticAxisym2DLaw();
 			
     /**
      * Clone function (has to be implemented by any derived class)
@@ -62,20 +61,20 @@ namespace Kratos
     /**
      * Copy constructor.
      */
-    HyperElasticUPAxisym2DLaw (const HyperElasticUPAxisym2DLaw& rOther);
+    HyperElasticAxisym2DLaw (const HyperElasticAxisym2DLaw& rOther);
    
 
     /**
      * Assignment operator.
      */
 
-    //HyperElasticUPAxisym2DLaw& operator=(const HyperElasticUPAxisym2DLaw& rOther);
+    //HyperElasticAxisym2DLaw& operator=(const HyperElasticAxisym2DLaw& rOther);
 
 
     /**
      * Destructor.
      */
-    virtual ~HyperElasticUPAxisym2DLaw();
+    virtual ~HyperElasticAxisym2DLaw();
 			
     /**
      * Operators 
@@ -132,8 +131,8 @@ namespace Kratos
      * @param rRightCauchyGreen
      * @param rStrainVector
      */
-    void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-				       Vector& rStrainVector );
+    virtual void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+					       Vector& rStrainVector );
 
 
     /**
@@ -141,68 +140,31 @@ namespace Kratos
      * @param rRightCauchyGreen
      * @param rStrainVector
      */
-    void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-				 Vector& rStrainVector );
-    
-
+    virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+					 Vector& rStrainVector );
 
 
     /**
-     * Calculates the isochoric constitutive matrix 
+     * Calculates the constitutive matrix 
      * @param rElasticVariables 
-     * @param rIsoStressVector the isochoric stress vector
      * matrix is to be generated for
      * @param rResult Matrix the result (Constitutive Matrix) will be stored in
      */
-    virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-					      const Vector & rIsoStressVector,
-					      Matrix& rConstitutiveMatrix);
+    void CalculateConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
+				      Matrix& rConstitutiveMatrix);
 
 
     /**
-     * Calculates the isochoric constitutive matrix and makes a pull-back
+     * Calculates the constitutive matrix and makes a pull-back
      * @param rElasticVariables 
-     * @param rIsoStressVector the isochoric stress vector
      * @param rInverseDeformationGradientF 
      * matrix is to be generated for
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
-    virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-					      const Vector & rIsoStressVector,
-					      const Matrix & rInverseDeformationGradientF,
-					      Matrix& rConstitutiveMatrix);
-
-
-
-    /**
-     * Calculates the volumetric constitutive matrix 
-     * @param rElasticVariables 
-     * @param rDomainGeometry the element geometry
-     * @param rShapeFunctions the element shape functions
-     * matrix is to be generated for
-     * @param rResult Matrix the result (Constitutive Matrix) will be stored in
-     */
-    virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-					      const GeometryType& rDomainGeometry,
-					      const Vector & rShapeFunctions,
-					      Matrix& rConstitutiveMatrix);
-
-
-    /**
-     * Calculates the volumetric constitutive matrix and makes a pull-back
-     * @param rElasticVariables 
-     * @param rInverseDeformationGradientF 
-     * @param rDomainGeometry the element geometry
-     * @param rShapeFunctions the element shape functions
-     * matrix is to be generated for
-     * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
-     */
-    virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-					      const Matrix & rInverseDeformationGradientF,
-					      const GeometryType& rDomainGeometry,
-					      const Vector & rShapeFunctions,
-					      Matrix& rConstitutiveMatrix);
-
+    void CalculateConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
+				      const Matrix & rInverseDeformationGradientF,
+				      Matrix& rConstitutiveMatrix);
+ 
 		
   private:
 
@@ -235,16 +197,16 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElasticUP3DLaw);
+      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElastic3DLaw);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElasticUP3DLaw);
+      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElastic3DLaw);
     }
 
 
 
-  }; // Class HyperElasticUPAxisym2DLaw 
+  }; // Class HyperElasticAxisym2DLaw 
 }  // namespace Kratos.
-#endif // KRATOS_HYPERELASTIC_U_P_AXISYM_2D_LAW_H_INCLUDED  defined 
+#endif // KRATOS_HYPERELASTIC_AXISYM_2D_LAW_H_INCLUDED  defined 

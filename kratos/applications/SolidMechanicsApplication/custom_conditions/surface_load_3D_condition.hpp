@@ -13,10 +13,8 @@
 
 // System includes
 
-
 // External includes
 #include "boost/smart_ptr.hpp"
-
 
 // Project includes
 #include "includes/define.h"
@@ -33,26 +31,35 @@ class SurfaceLoad3DCondition
     : public Condition
 {
 public:
+    ///@name Type Definitions
+    ///@{
 
     // Counted pointer of SurfaceLoad3DCondition
     KRATOS_CLASS_POINTER_DEFINITION( SurfaceLoad3DCondition );
 
 
-    // Constructor void
-    SurfaceLoad3DCondition();
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-    // Constructor using an array of nodes
+    /// Default constructor.
     SurfaceLoad3DCondition( IndexType NewId, GeometryType::Pointer pGeometry );
-
-    // Constructor using an array of nodes with properties
     SurfaceLoad3DCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
-    // Destructor
+    /// Copy constructor
+    SurfaceLoad3DCondition( SurfaceLoad3DCondition const& rOther);
+
+    /// Destructor
     virtual ~SurfaceLoad3DCondition();
 
+    ///@}
+    ///@name Operators
+    ///@{
 
-    // Name Operations
 
+    ///@}
+    ///@name Operations
+    ///@{
     Condition::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
@@ -104,17 +111,46 @@ public:
      */
     virtual int Check( const ProcessInfo& rCurrentProcessInfo );
 
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
 
 protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    SurfaceLoad3DCondition() {};
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
 
 
-private:
-    ///@name Static Member Variables
-
-    /// privat variables
-
-
-    // privat name Operations
+    ///@}
+    ///@name Protected Operations
+    ///@{
 
     void CalculateConditionalSystem(
         MatrixType& rLeftHandSideMatrix,
@@ -163,6 +199,51 @@ private:
 	const Vector& rN,
 	Vector& rForce,
 	double  rIntegrationWeight );
+  
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
     ///@}
     ///@name Serialization

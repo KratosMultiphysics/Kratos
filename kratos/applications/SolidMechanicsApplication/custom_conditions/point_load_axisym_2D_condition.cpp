@@ -39,6 +39,13 @@ PointLoadAxisym2DCondition::PointLoadAxisym2DCondition(IndexType NewId, Geometry
 
 //************************************************************************************
 //************************************************************************************
+PointLoadAxisym2DCondition::PointLoadAxisym2DCondition(  PointLoadAxisym2DCondition const& rOther )
+  : PointLoad2DCondition(rOther)
+{
+}
+
+//************************************************************************************
+//************************************************************************************
 
 Condition::Pointer PointLoadAxisym2DCondition::Create(IndexType NewId, NodesArrayType
                                         const& ThisNodes,  PropertiesType::Pointer pProperties) const

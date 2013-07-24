@@ -34,11 +34,11 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Spatial Lagrangian U-P Element for 3D and 2D geometries. Linear Triangles and Tetrahedra
+/// Axisym Small Displacements Element for 2D geometries.
 
 /**
- * Implements a Large Displacement Lagrangian definition for structural analysis.
- * This works for arbitrary geometries in 3D and 2D
+ * Implements a Small Displacement definition for structural analysis.
+ * This works for arbitrary geometries in 2D
  */
 
 class AxisymSmallDisplacementElement

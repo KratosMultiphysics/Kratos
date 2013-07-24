@@ -39,6 +39,13 @@ PointLoad2DCondition::PointLoad2DCondition(IndexType NewId, GeometryType::Pointe
 
 //************************************************************************************
 //************************************************************************************
+PointLoad2DCondition::PointLoad2DCondition( PointLoad2DCondition const& rOther )
+  : Condition(rOther)
+{
+}
+
+//************************************************************************************
+//************************************************************************************
 
 Condition::Pointer PointLoad2DCondition::Create(IndexType NewId, NodesArrayType
                                         const& ThisNodes,  PropertiesType::Pointer pProperties) const
