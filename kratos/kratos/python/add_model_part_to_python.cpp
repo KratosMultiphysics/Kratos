@@ -94,6 +94,17 @@ ModelPart::MeshType::Pointer ModelPartGetMesh(ModelPart& rModelPart)
     return rModelPart.pGetMesh();
 }
 
+ModelPart::MeshType::Pointer ModelPartGetMesh2(ModelPart& rModelPart, ModelPart::IndexType MeshIndex)
+{
+    ModelPart::IndexType number_of_meshes = rModelPart.NumberOfMeshes();
+    // adding necessary meshes to the model part.
+    ModelPart::MeshType empty_mesh;
+    for(ModelPart::IndexType i = number_of_meshes ; i < MeshIndex + 1 ; i++)
+        rModelPart.GetMeshes().push_back(empty_mesh.Clone());
+
+    return rModelPart.pGetMesh(MeshIndex);
+}
+
 Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, double x, double y, double z)
 {
     return rModelPart.CreateNewNode(Id, x, y, z);
@@ -290,7 +301,7 @@ void AddModelPartToPython()
 
 
 
-    class_<ModelPart > ("ModelPart")
+    class_<ModelPart, bases<DataValueContainer, Flags> > ("ModelPart")
     .def(init<std::string const&>())
     .def(init<>())
     .add_property("Name", GetModelPartName, SetModelPartName)
@@ -309,6 +320,7 @@ void AddModelPartToPython()
     .def("NumberOfElements", &ModelPart::NumberOfElements)
     .def("NumberOfConditions", &ModelPart::NumberOfConditions)
     .def("GetMesh", ModelPartGetMesh)
+    .def("GetMesh", ModelPartGetMesh2)
     .add_property("Nodes", ModelPartGetNodes1, ModelPartSetNodes1)
     .def("GetNodes", ModelPartGetNodes1)
     .def("SetNodes", ModelPartSetNodes1)
