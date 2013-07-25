@@ -33,7 +33,7 @@
 #include <omp.h>
 #endif
 
-#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
+#define CUSTOMTIMER 1  // ACTIVATES AND DISABLES ::TIMER:::::
 
 #include "boost/smart_ptr.hpp"
 
@@ -188,6 +188,10 @@ namespace Kratos
           }
 
           mInitializeWasPerformed = true;
+          
+           // 5. Finalize Solution Step.
+          FinalizeSolutionStep();
+          
 
           KRATOS_TIMER_STOP("INITIALIZE")
 
@@ -217,7 +221,7 @@ namespace Kratos
 
           // 3. Motion Integration
           KRATOS_TIMER_START("PerformTimeIntegrationOfMotion")
-          PerformTimeIntegrationOfMotion(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
+          PerformTimeIntegrationOfMotion(rCurrentProcessInfo); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
           KRATOS_TIMER_STOP("PerformTimeIntegrationOfMotion")
 
           // 4. Synchronize
@@ -322,13 +326,13 @@ namespace Kratos
           KRATOS_CATCH("")
       }
 
-      void PerformTimeIntegrationOfMotion()
+      virtual void PerformTimeIntegrationOfMotion(ProcessInfo& rCurrentProcessInfo)
       {
           KRATOS_TRY
 
           ModelPart& r_model_part = BaseType::GetModelPart();
 
-          mpScheme->Calculate(r_model_part);
+          GetScheme()->Calculate(r_model_part);
 
           KRATOS_CATCH("")
       }
@@ -556,7 +560,8 @@ namespace Kratos
         }
 
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
-
+        //this->GetSpSearch()->SearchElementsInRadiusExclusive(rModelPart,this->GetRadius(),this->GetResults());
+        
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
         
         #pragma omp parallel for
