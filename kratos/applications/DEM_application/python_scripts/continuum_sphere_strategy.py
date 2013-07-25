@@ -111,16 +111,16 @@ class ExplicitStrategy:
         self.global_variables_option        = Var_Translator(Param.GlobalVariablesOption)
         self.Non_Linear_Option              = Var_Translator(Param.NonLinearNormalElasticOption)
         self.stress_strain_operations       = Var_Translator(Param.StressStrainOperationsOption)
-        self.contact_mesh_option            = Var_Translator(Param.ContactMeshOption)
-        self.concrete_test_option           = Var_Translator(Param.ConcreteTestOption)       
         self.MoveMeshFlag                   = True
         self.delta_option                   = Var_Translator(Param.DeltaOption)
         self.continuum_simulating_option    = Var_Translator(Param.ContinuumOption)
-        self.triaxial_option                = Var_Translator(Param.TriaxialOption)
+        self.contact_mesh_option            = Var_Translator( Var_Translator(Param.ContactMeshOption) & Var_Translator(Param.ContinuumOption) ) 
+        self.concrete_test_option           = Var_Translator( Var_Translator(Param.ConcreteTestOption) & Var_Translator(Param.ContinuumOption) ) 
+        self.triaxial_option                = Var_Translator( Var_Translator(Param.TriaxialOption) & self.concrete_test_option )
         self.search_radius_extension        = 1e-6 #needed for the tangential contacts. Charlie will modify the search. 
         self.amplified_continuum_search_radius_extension    = 1.0;
-        self.automatic_bounding_box_option  = Var_Translator(Param.AutomaticBoundingBoxOption)
-        
+        self.automatic_bounding_box_option  = Var_Translator(Param.AutomaticBoundingBoxOption)              
+
         if (self.delta_option ):
             self.delta_option               = True
             self.search_radius_extension    = Param.SearchRadiusExtension
@@ -220,7 +220,7 @@ class ExplicitStrategy:
         
         # CONCRETE TEST
         if (self.triaxial_option):
-            self.initial_pressure_time        = Param.InitialTime
+            self.initial_pressure_time        = Param.InitialPressureAplicationTime
             self.time_increasing_ratio        = Param.TotalTimePercentAsForceAplTime # (%)
         
         
@@ -237,7 +237,6 @@ class ExplicitStrategy:
         self.delta_time                     = Param.MaxTimeStep
         self.max_delta_time                 = Param.MaxTimeStep
         self.final_time                     = Param.FinalTime
-        self.time_increasing_ratio          = Param.TotalTimePercentAsForceAplTime # Percentage (%)
 
         # RESOLUTION METHODS AND PARAMETERS
 
@@ -260,8 +259,8 @@ class ExplicitStrategy:
         self.creator_destructor.SetLowNode(b_box_low)
         self.creator_destructor.SetHighNode(b_box_high)
 
-        if (self.automatic_bounding_box_option):
-            self.creator_destructor.CalculateSurroundingBoundingBox()
+        #if (self.automatic_bounding_box_option):
+            #self.creator_destructor.CalculateSurroundingBoundingBox()
 
 
         # STRATEGIES
@@ -331,21 +330,19 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
         self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
         self.model_part.ProcessInfo.SetValue(ROTA_DAMP_TYPE, self.rota_damp_id)
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_1, 0) # Reserved for: message when confinement ends.
+        #self.model_part.ProcessInfo.SetValue(INT_DUMMY_1, 0) #currently unused.
 
         # TIME RELATED PARAMETERS
         self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
         self.model_part.ProcessInfo.SetValue(FINAL_SIMULATION_TIME, self.final_time)
-        self.model_part.ProcessInfo.SetValue(TIME_INCREASING_RATIO, self.time_increasing_ratio)
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_7, 0) # int(self.time_step_percentage_fix_velocities * (self.final_time / self.delta_time))) # Reserved for timestep fix_velocities
-
+        
         #CONTINUUM
         
         self.model_part.ProcessInfo.SetValue(SEARCH_RADIUS_EXTENSION, self.search_radius_extension)
         self.model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
         
         self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_option)
-        
+                
         self.model_part.ProcessInfo.SetValue(FAILURE_CRITERION_OPTION, self.failure_criterion_option)
         self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MAX, self.sigma_max)
         self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MIN, self.sigma_min)
@@ -361,7 +358,9 @@ class ExplicitStrategy:
             self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C2, self.C2)
         
         if (self.triaxial_option):
+            self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
             self.model_part.ProcessInfo.SetValue(INITIAL_PRESSURE_TIME, self.initial_pressure_time)
+            self.model_part.ProcessInfo.SetValue(TIME_INCREASING_RATIO, self.time_increasing_ratio)
 
         #OTHERS
         
