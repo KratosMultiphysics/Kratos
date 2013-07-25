@@ -4,7 +4,7 @@ from KratosMultiphysics.DEMApplication import *
 
 def Var_Translator(variable):
 
-    if (variable == "OFF" or variable == "0"):
+    if (variable == "OFF" or variable == "0" or variable == 0):
         variable = 0
     else:
         variable = 1
