@@ -13,6 +13,9 @@ import DEM_explicit_solver_var as Param
 import DEM_procedures
 proc = DEM_procedures.Procedures(Param)
 
+import pressure_script as Press
+
+
 #---------------------MODEL PART KRATOS AND GID.IO ------------------------------------------------------------------
 
 # Defining a model part for the solid part
@@ -154,8 +157,12 @@ if(Param.ConcreteTestOption =="ON"):
     alpha_bot = 3.141592*diameter*diameter*0.25/(xbot_area + 0.70710678*xbotcorner_area)
     alpha_lat = 3.141592*diameter*height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
       
-    proc.ApplyPressure(Pressure,balls_model_part,solver,alpha_top,alpha_bot,alpha_lat)
- 
+    if (self.predefined_skin_option):
+       print "\n", "Predefined Skin by the user, In this case is not correct to apply pressure yet"  ,"\n" 
+            
+    else:
+        Press.ApplyPressure(Pressure, balls_model_part, solver, proc.SKIN, proc.BOT, proc.TOP, proc.LAT, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER, alpha_top, alpha_bot, alpha_lat)
+
 
 if (Param.ConcreteTestOption =="ON"):
   graph_export = open("strain_stress_data.csv",'w');
