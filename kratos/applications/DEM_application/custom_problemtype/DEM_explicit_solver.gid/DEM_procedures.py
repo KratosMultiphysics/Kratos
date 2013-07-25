@@ -1,8 +1,6 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
-import pressure_script as Press
-
 import os
 import matplotlib.pyplot as plt
 from numpy import *
@@ -399,16 +397,7 @@ class Procedures:
         print "End CLASSIC TEST SKIN DETERMINATION", "\n"
                 
         return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area) 
-        
-    def ApplyPressure(self, Pressure, model_part, solver, alpha_top, alpha_bot, alpha_lat):
-        
-        if (self.predefined_skin_option):
-            print "\n", "Predefined Skin by the user, In this case is not correct to apply pressure yet"  ,"\n" 
-            
-        else:
-            Press.ApplyPressure(Pressure, model_part, solver, SKIN, BOT, TOP, LAT, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat)
-
-        
+                
     def MeasureBOT(self, solver):
 
         tol = 2.0
