@@ -149,8 +149,8 @@ namespace Kratos
       void CalculateMomentum(array_1d<double, 3>& rMomentum);
       void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum); 
       virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo); 
-      void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo);
-      void ComputeBallToCylinderContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo);
+      void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, int surface_num, ProcessInfo& rCurrentProcessInfo);
+      void ComputeBallToCylinderContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, int cylinder_num, ProcessInfo& rCurrentProcessInfo);
       //virtual void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
       //virtual void ComputeParticleRotationSpring(   const ProcessInfo& rCurrentProcessInfo);
 
@@ -234,8 +234,10 @@ namespace Kratos
       double mGlobalAuxNormToTang;
       int mLimitSurfaceOption;
       int mLimitCylinderOption;
-      double mCylinderRadius;
       double mCylinderVelocity;
+      double mCylinderAngularVelocity;
+      array_1d<double, 3> mInitialBaseCylinderCentre;
+      array_1d<double, 3> mCylinderAxisDir;      
       int mRotationSpringOption;
       vector<int> mOldNeighbourIds;
       vector< array_1d<double, 3> > mOldNeighbourContactForces;
