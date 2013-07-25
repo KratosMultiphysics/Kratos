@@ -59,12 +59,27 @@ def AddVariables(model_part, Param):
 
     # BOUNDARY SURFACE
 
-    if (Var_Translator(Param.LimitSurfaceOption)):
-        model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES)
-        model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_ROTATE_SPRING_MOMENT)
+    if (Param.LimitSurfaceOption > 0):
+        model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES_1)
+    if (Param.LimitSurfaceOption > 1):        
+        model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES_2)
+    if (Param.LimitSurfaceOption > 2):
+        model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES_3)
+    if (Param.LimitSurfaceOption > 3):
+        model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES_4)
+    if (Param.LimitSurfaceOption > 4):
+        model_part.AddNodalSolutionStepVariable(PARTICLE_SURFACE_CONTACT_FORCES_5)
 
-    if (Var_Translator(Param.LimitCylinderOption)):
-        model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES)
+    if (Param.LimitCylinderOption > 0):
+        model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_1)
+    if (Param.LimitCylinderOption > 1):
+        model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_2)
+    if (Param.LimitCylinderOption > 2):
+        model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_3)
+    if (Param.LimitCylinderOption > 3):
+        model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_4)
+    if (Param.LimitCylinderOption > 4):
+        model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_5)
     
     # FLAGS
     model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
@@ -106,8 +121,8 @@ class ExplicitStrategy:
         self.rotation_option                = Var_Translator(Param.RotationOption)
         self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)
         self.fix_velocities                 = Var_Translator(Param.FixVelocitiesOption)
-        self.limit_surface_option           = Var_Translator(Param.LimitSurfaceOption)
-        self.limit_cylinder_option          = Var_Translator(Param.LimitCylinderOption)        
+        self.limit_surface_option           = Param.LimitSurfaceOption
+        self.limit_cylinder_option          = Param.LimitCylinderOption       
         self.clean_init_indentation_option  = Var_Translator(Param.CleanIndentationsOption)
         self.homogeneous_material_option    = Var_Translator(Param.HomogeneousMaterialOption)
         self.global_variables_option        = Var_Translator(Param.GlobalVariablesOption)
@@ -135,18 +150,82 @@ class ExplicitStrategy:
         self.bottom_corner[0]               = Param.BoundingBoxMinZ
 
         # BOUNDARY
-        self.surface_normal_dir             = Vector(3)
-        self.surface_normal_dir[0]          = Param.SurfaceNormalDirX
-        self.surface_normal_dir[1]          = Param.SurfaceNormalDirY
-        self.surface_normal_dir[2]          = Param.SurfaceNormalDirZ
-        self.surface_point_coor             = Vector(3)
-        self.surface_point_coor[0]          = Param.SurfacePointCoorX
-        self.surface_point_coor[1]          = Param.SurfacePointCoorY
-        self.surface_point_coor[2]          = Param.SurfacePointCoorZ
-        self.surface_friction_angle         = Param.SurfaceFrictionAngle
-        self.cylinder_radius                = Param.CylinderRadius
-        self.cylinder_velocity              = Param.CylinderVelocity
-        self.cylinder_friction_angle        = Param.CylinderFrictionAngle
+        if (Param.LimitSurfaceOption > 0):
+          self.surface_normal_dir_1           = Vector(3)
+          self.surface_normal_dir_1[0]        = Param.SurfaceNormalDirX1
+          self.surface_normal_dir_1[1]        = Param.SurfaceNormalDirY1
+          self.surface_normal_dir_1[2]        = Param.SurfaceNormalDirZ1
+          self.surface_point_coor_1           = Vector(3)
+          self.surface_point_coor_1[0]        = Param.SurfacePointCoorX1
+          self.surface_point_coor_1[1]        = Param.SurfacePointCoorY1
+          self.surface_point_coor_1[2]        = Param.SurfacePointCoorZ1
+          self.surface_friction_angle_1       = Param.SurfaceFrictionAngle1
+        if (Param.LimitSurfaceOption > 1):
+          self.surface_normal_dir_2           = Vector(3)
+          self.surface_normal_dir_2[0]        = Param.SurfaceNormalDirX2
+          self.surface_normal_dir_2[1]        = Param.SurfaceNormalDirY2
+          self.surface_normal_dir_2[2]        = Param.SurfaceNormalDirZ2
+          self.surface_point_coor_2           = Vector(3)
+          self.surface_point_coor_2[0]        = Param.SurfacePointCoorX2
+          self.surface_point_coor_2[1]        = Param.SurfacePointCoorY2
+          self.surface_point_coor_2[2]        = Param.SurfacePointCoorZ2
+          self.surface_friction_angle_2       = Param.SurfaceFrictionAngle2
+        if (Param.LimitSurfaceOption > 2):
+          self.surface_normal_dir_3           = Vector(3)
+          self.surface_normal_dir_3[0]        = Param.SurfaceNormalDirX3
+          self.surface_normal_dir_3[1]        = Param.SurfaceNormalDirY3
+          self.surface_normal_dir_3[2]        = Param.SurfaceNormalDirZ3
+          self.surface_point_coor_3           = Vector(3)
+          self.surface_point_coor_3[0]        = Param.SurfacePointCoorX3
+          self.surface_point_coor_3[1]        = Param.SurfacePointCoorY3
+          self.surface_point_coor_3[2]        = Param.SurfacePointCoorZ3
+          self.surface_friction_angle_3       = Param.SurfaceFrictionAngle3
+        if (Param.LimitSurfaceOption > 3):
+          self.surface_normal_dir_4           = Vector(3)
+          self.surface_normal_dir_4[0]        = Param.SurfaceNormalDirX4
+          self.surface_normal_dir_4[1]        = Param.SurfaceNormalDirY4
+          self.surface_normal_dir_4[2]        = Param.SurfaceNormalDirZ4
+          self.surface_point_coor_4           = Vector(3)
+          self.surface_point_coor_4[0]        = Param.SurfacePointCoorX4
+          self.surface_point_coor_4[1]        = Param.SurfacePointCoorY4
+          self.surface_point_coor_4[2]        = Param.SurfacePointCoorZ4
+          self.surface_friction_angle_4       = Param.SurfaceFrictionAngle4
+        if (Param.LimitSurfaceOption > 4):
+          self.surface_normal_dir_5           = Vector(3)
+          self.surface_normal_dir_5[0]        = Param.SurfaceNormalDirX5
+          self.surface_normal_dir_5[1]        = Param.SurfaceNormalDirY5
+          self.surface_normal_dir_5[2]        = Param.SurfaceNormalDirZ5
+          self.surface_point_coor_5           = Vector(3)
+          self.surface_point_coor_5[0]        = Param.SurfacePointCoorX5
+          self.surface_point_coor_5[1]        = Param.SurfacePointCoorY5
+          self.surface_point_coor_5[2]        = Param.SurfacePointCoorZ5
+          self.surface_friction_angle_5       = Param.SurfaceFrictionAngle5
+          
+        if (Param.LimitCylinderOption > 0):
+          self.cylinder_velocity              = Param.CylinderVelocity
+          self.cylinder_angular_velocity      = Param.CylinderAngularVelocity
+          self.cylinder_initial_base_centre   = Vector(3)
+          self.cylinder_initial_base_centre[0]= Param.CylinderInitialBaseCentreX
+          self.cylinder_initial_base_centre[1]= Param.CylinderInitialBaseCentreY
+          self.cylinder_initial_base_centre[2]= Param.CylinderInitialBaseCentreZ        			
+          self.cylinder_axis_dir              = Vector(3)
+          self.cylinder_axis_dir[0]           = Param.CylinderAxisX
+          self.cylinder_axis_dir[1]           = Param.CylinderAxisY
+          self.cylinder_axis_dir[2]           = Param.CylinderAxisZ
+          self.cylinder_radius_1              = Param.CylinderRadius1
+          self.cylinder_friction_angle_1      = Param.CylinderFrictionAngle1
+        if (Param.LimitCylinderOption > 1):
+          self.cylinder_radius_2              = Param.CylinderRadius2
+          self.cylinder_friction_angle_2      = Param.CylinderFrictionAngle2
+        if (Param.LimitCylinderOption > 2):
+          self.cylinder_radius_3              = Param.CylinderRadius3
+          self.cylinder_friction_angle_3      = Param.CylinderFrictionAngle3
+        if (Param.LimitCylinderOption > 3):
+          self.cylinder_radius_4              = Param.CylinderRadius4
+          self.cylinder_friction_angle_4      = Param.CylinderFrictionAngle4
+        if (Param.LimitCylinderOption > 4):
+          self.cylinder_radius_5              = Param.CylinderRadius5
+          self.cylinder_friction_angle_5      = Param.CylinderFrictionAngle5
 
         # GLOBAL PHYSICAL ASPECTS
         self.gravity                        = Vector(3)
@@ -298,14 +377,47 @@ class ExplicitStrategy:
 
         # BOUNDARY
         self.model_part.ProcessInfo.SetValue(LIMIT_SURFACE_OPTION, self.limit_surface_option)
-        self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR, self.surface_normal_dir)
-        self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR, self.surface_point_coor)
-        self.model_part.ProcessInfo.SetValue(SURFACE_FRICC, self.surface_friction_angle)
+        if (self.limit_surface_option > 0):
+          self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR_1, self.surface_normal_dir_1)
+          self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR_1, self.surface_point_coor_1)
+          self.model_part.ProcessInfo.SetValue(SURFACE_FRICC_1, self.surface_friction_angle_1)
+        if (self.limit_surface_option > 1):
+          self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR_2, self.surface_normal_dir_2)
+          self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR_2, self.surface_point_coor_2)
+          self.model_part.ProcessInfo.SetValue(SURFACE_FRICC_2, self.surface_friction_angle_2)
+        if (self.limit_surface_option > 2):
+          self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR_3, self.surface_normal_dir_3)
+          self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR_3, self.surface_point_coor_3)
+          self.model_part.ProcessInfo.SetValue(SURFACE_FRICC_3, self.surface_friction_angle_3)
+        if (self.limit_surface_option > 3):
+          self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR_4, self.surface_normal_dir_4)
+          self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR_4, self.surface_point_coor_4)
+          self.model_part.ProcessInfo.SetValue(SURFACE_FRICC_4, self.surface_friction_angle_4)
+        if (self.limit_surface_option > 4):
+          self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR_5, self.surface_normal_dir_5)
+          self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR_5, self.surface_point_coor_5)
+          self.model_part.ProcessInfo.SetValue(SURFACE_FRICC_5, self.surface_friction_angle_5)
+          
         self.model_part.ProcessInfo.SetValue(LIMIT_CYLINDER_OPTION, self.limit_cylinder_option)
-        self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS, self.cylinder_radius)
-        self.model_part.ProcessInfo.SetValue(CYLINDER_VELOCITY, self.cylinder_velocity)
-        self.model_part.ProcessInfo.SetValue(CYLINDER_FRICC, self.cylinder_friction_angle)
-
+        if (self.limit_cylinder_option > 0):
+          self.model_part.ProcessInfo.SetValue(CYLINDER_VELOCITY, self.cylinder_velocity)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_ANGULAR_VELOCITY, self.cylinder_angular_velocity)
+          self.model_part.ProcessInfo.SetValue(INITIAL_BASE_CYLINDER_CENTRE, self.cylinder_initial_base_centre)                   			
+          self.model_part.ProcessInfo.SetValue(CYLINDER_AXIS_DIR, self.cylinder_axis_dir)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS_1, self.cylinder_radius_1)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICC_1, self.cylinder_friction_angle_1)
+        if (self.limit_cylinder_option > 1):
+          self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS_2, self.cylinder_radius_2)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICC_2, self.cylinder_friction_angle_2)
+        if (self.limit_cylinder_option > 2):
+          self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS_3, self.cylinder_radius_3)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICC_3, self.cylinder_friction_angle_3)
+        if (self.limit_cylinder_option > 3):
+          self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS_4, self.cylinder_radius_4)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICC_4, self.cylinder_friction_angle_4)
+        if (self.limit_cylinder_option > 4):
+          self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS_5, self.cylinder_radius_5)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICC_5, self.cylinder_friction_angle_5)
 
         # GLOBAL PHISICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
