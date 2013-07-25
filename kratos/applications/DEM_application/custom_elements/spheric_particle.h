@@ -147,7 +147,7 @@ namespace Kratos
       void CalculateKineticEnergy(double& rKineticEnergy);
       void CalculateElasticEnergyOfContacts(double& rElasticEnergy);
       void CalculateMomentum(array_1d<double, 3>& rMomentum);
-      void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum);
+      void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum); 
       virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo); 
       void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo);
       void ComputeBallToCylinderContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo);
@@ -184,8 +184,10 @@ namespace Kratos
                                   ParticleWeakIteratorType neighbour_iterator);
 
       virtual void CustomInitialize( );
-      virtual void CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment);
+      virtual void CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment,
+                                                array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo);
 
+      
       virtual void AddUpForcesAndProject(double LocalCoordSystem[3][3],
                                 VectorArray3Double &GlobalContactForceMatrix,
                                 double LocalContactForce[3],
@@ -237,6 +239,8 @@ namespace Kratos
       int mRotationSpringOption;
       vector<int> mOldNeighbourIds;
       vector< array_1d<double, 3> > mOldNeighbourContactForces;
+      
+      int mTriaxialOption;
       
       //pointers:
       int *mpTimeStep;       
