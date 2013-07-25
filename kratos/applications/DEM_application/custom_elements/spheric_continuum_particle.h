@@ -204,14 +204,17 @@ namespace Kratos
         void ContactAreaWeighting(const ProcessInfo& rCurrentProcessInfo );
         void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );
         
+        virtual void CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment, 
+                                                        array_1d<double, 3>& exterally_applied_force, ProcessInfo& rCurrentProcessInfo);
+     
         
-        virtual void CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment);
         virtual void CustomInitialize();
-              
-        virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo); 
+                                                            
+        virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo); 
         //virtual void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, array_1d<double, 3>& MaxRotaMoment, ProcessInfo& rCurrentProcessInfo);
         //MSIMSI 6 aixo hauria de cridar el del basic o cal ke sigui del continu?
         
+        void ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo);
         
         //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
@@ -233,10 +236,17 @@ namespace Kratos
         double mSymmStressTensor[3][3]; 
         bool mContinuumSimulationOption;
         bool mContactMeshOption;
+
+        double mInitialPressureTime;
+        double mFinalPressureTime;
+        double mFinalSimulationTime;
+        
         int* mpCaseOption;
         int  mFailureId;
    
         int mFailureCriterionOption;
+        
+        int mSwitchPressure;
         
         double mTension;
         double mCohesion;
