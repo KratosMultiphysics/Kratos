@@ -57,26 +57,104 @@ FixVelocitiesOption              = "*GenData(Fix_Velocities_At_Predetermined_Tim
 *format "%10.5e"
 TotalTimePercentageFixVelocities = *GenData(Time_Step_Constrain_DOFs_Percentage)
 TrihedronOption                  = "*GenData(Trihedron_On_Each_Ball)"
-LimitSurfaceOption               = "*GenData(Limit_Surface)"
+LimitSurfaceOption               = *GenData(Limit_Surface)
 *format "%10.5e"
-SurfaceNormalDirX                = *GenData(Surface_Normal_Dir_X)
+SurfaceNormalDirX1               = *GenData(Surface_Normal_Dir_X_1)
 *format "%10.5e"
-SurfaceNormalDirY                = *GenData(Surface_Normal_Dir_Y)
+SurfaceNormalDirY1               = *GenData(Surface_Normal_Dir_Y_1)
 *format "%10.5e"
-SurfaceNormalDirZ                = *GenData(Surface_Normal_Dir_Z)
+SurfaceNormalDirZ1               = *GenData(Surface_Normal_Dir_Z_1)
 *format "%10.5e"
-SurfacePointCoorX                = *GenData(Surface_Point_Coor_X)
+SurfacePointCoorX1               = *GenData(Surface_Point_Coor_X_1)
 *format "%10.5e"
-SurfacePointCoorY                = *GenData(Surface_Point_Coor_Y)
+SurfacePointCoorY1               = *GenData(Surface_Point_Coor_Y_1)
 *format "%10.5e"
-SurfacePointCoorZ                = *GenData(Surface_Point_Coor_Z)
-SurfaceFrictionAngle             = *GenData(Surface_Friction_Angle)
-LimitCylinderOption              = "*GenData(Limit_Cylinder)"
+SurfacePointCoorZ1               = *GenData(Surface_Point_Coor_Z_1)
+SurfaceFrictionAngle1            = *GenData(Surface_Friction_Angle_1)
 *format "%10.5e"
-CylinderRadius                   = *GenData(Cylinder_Radius)
+SurfaceNormalDirX2               = *GenData(Surface_Normal_Dir_X_2)
+*format "%10.5e"
+SurfaceNormalDirY2               = *GenData(Surface_Normal_Dir_Y_2)
+*format "%10.5e"
+SurfaceNormalDirZ2               = *GenData(Surface_Normal_Dir_Z_2)
+*format "%10.5e"
+SurfacePointCoorX2               = *GenData(Surface_Point_Coor_X_2)
+*format "%10.5e"
+SurfacePointCoorY2               = *GenData(Surface_Point_Coor_Y_2)
+*format "%10.5e"
+SurfacePointCoorZ2               = *GenData(Surface_Point_Coor_Z_2)
+SurfaceFrictionAngle2            = *GenData(Surface_Friction_Angle_2)
+*format "%10.5e"
+SurfaceNormalDirX3               = *GenData(Surface_Normal_Dir_X_3)
+*format "%10.5e"
+SurfaceNormalDirY3               = *GenData(Surface_Normal_Dir_Y_3)
+*format "%10.5e"
+SurfaceNormalDirZ3               = *GenData(Surface_Normal_Dir_Z_3)
+*format "%10.5e"
+SurfacePointCoorX3               = *GenData(Surface_Point_Coor_X_3)
+*format "%10.5e"
+SurfacePointCoorY3               = *GenData(Surface_Point_Coor_Y_3)
+*format "%10.5e"
+SurfacePointCoorZ3               = *GenData(Surface_Point_Coor_Z_3)
+SurfaceFrictionAngle3            = *GenData(Surface_Friction_Angle_3)
+*format "%10.5e"
+SurfaceNormalDirX4               = *GenData(Surface_Normal_Dir_X_4)
+*format "%10.5e"
+SurfaceNormalDirY4               = *GenData(Surface_Normal_Dir_Y_4)
+*format "%10.5e"
+SurfaceNormalDirZ4               = *GenData(Surface_Normal_Dir_Z_4)
+*format "%10.5e"
+SurfacePointCoorX4               = *GenData(Surface_Point_Coor_X_4)
+*format "%10.5e"
+SurfacePointCoorY4               = *GenData(Surface_Point_Coor_Y_4)
+*format "%10.5e"
+SurfacePointCoorZ4               = *GenData(Surface_Point_Coor_Z_4)
+SurfaceFrictionAngle4            = *GenData(Surface_Friction_Angle_4)
+*format "%10.5e"
+SurfaceNormalDirX5               = *GenData(Surface_Normal_Dir_X_5)
+*format "%10.5e"
+SurfaceNormalDirY5               = *GenData(Surface_Normal_Dir_Y_5)
+*format "%10.5e"
+SurfaceNormalDirZ5               = *GenData(Surface_Normal_Dir_Z_5)
+*format "%10.5e"
+SurfacePointCoorX5               = *GenData(Surface_Point_Coor_X_5)
+*format "%10.5e"
+SurfacePointCoorY5               = *GenData(Surface_Point_Coor_Y_5)
+*format "%10.5e"
+SurfacePointCoorZ5               = *GenData(Surface_Point_Coor_Z_5)
+SurfaceFrictionAngle5            = *GenData(Surface_Friction_Angle_5)
+LimitCylinderOption              = *GenData(Limit_Cylinder)
 *format "%10.5e"
 CylinderVelocity                 = *GenData(Cylinder_Velocity)
-CylinderFrictionAngle            = *GenData(Cylinder_Friction_Angle)
+*format "%10.5e"
+CylinderAngularVelocity          = *GenData(Cylinder_Angular_Velocity)
+*format "%10.5e"
+CylinderInitialBaseCentreX       = *GenData(Cylinder_Initial_Base_Centre_X)
+*format "%10.5e"
+CylinderInitialBaseCentreY       = *GenData(Cylinder_Initial_Base_Centre_Y)
+*format "%10.5e"
+CylinderInitialBaseCentreZ       = *GenData(Cylinder_Initial_Base_Centre_Z)
+*format "%10.5e"
+CylinderAxisX                    = *GenData(Cylinder_Axis_X)
+*format "%10.5e"
+CylinderAxisY                    = *GenData(Cylinder_Axis_Y)
+*format "%10.5e"
+CylinderAxisZ                    = *GenData(Cylinder_Axis_Z)
+*format "%10.5e"
+CylinderRadius1                  = *GenData(Cylinder_Radius_1)
+CylinderFrictionAngle1           = *GenData(Cylinder_Friction_Angle_1)
+*format "%10.5e"
+CylinderRadius2                  = *GenData(Cylinder_Radius_2)
+CylinderFrictionAngle2           = *GenData(Cylinder_Friction_Angle_2)
+*format "%10.5e"
+CylinderRadius3                  = *GenData(Cylinder_Radius_3)
+CylinderFrictionAngle3           = *GenData(Cylinder_Friction_Angle_3)
+*format "%10.5e"
+CylinderRadius4                  = *GenData(Cylinder_Radius_4)
+CylinderFrictionAngle4           = *GenData(Cylinder_Friction_Angle_4)
+*format "%10.5e"
+CylinderRadius5                  = *GenData(Cylinder_Radius_5)
+CylinderFrictionAngle5           = *GenData(Cylinder_Friction_Angle_5)
 
 # Time Discretization Settings
 
