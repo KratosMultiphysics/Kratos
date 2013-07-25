@@ -82,7 +82,7 @@ def AddDofs(model_part):
 
 def Var_Translator(variable):
 
-    if (variable == "OFF" or variable == "0"):
+    if (variable == "OFF" or variable == "0" or variable == 0):
         variable = 0
     else:
         variable = 1
@@ -117,6 +117,7 @@ class ExplicitStrategy:
         self.contact_mesh_option            = Var_Translator( Var_Translator(Param.ContactMeshOption) & Var_Translator(Param.ContinuumOption) ) 
         self.concrete_test_option           = Var_Translator( Var_Translator(Param.ConcreteTestOption) & Var_Translator(Param.ContinuumOption) ) 
         self.triaxial_option                = Var_Translator( Var_Translator(Param.TriaxialOption) & self.concrete_test_option )
+       
         self.search_radius_extension        = 1e-6 #needed for the tangential contacts. Charlie will modify the search. 
         self.amplified_continuum_search_radius_extension    = 1.0;
         self.automatic_bounding_box_option  = Var_Translator(Param.AutomaticBoundingBoxOption)              
@@ -357,6 +358,8 @@ class ExplicitStrategy:
             self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C1, self.C1)
             self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C2, self.C2)
         
+        
+        print(self.triaxial_option)
         if (self.triaxial_option):
             self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
             self.model_part.ProcessInfo.SetValue(INITIAL_PRESSURE_TIME, self.initial_pressure_time)
