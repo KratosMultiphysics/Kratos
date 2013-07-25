@@ -11,7 +11,7 @@
 
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
 
-#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
+//#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
 
 namespace Kratos
@@ -83,7 +83,9 @@ namespace Kratos
 
           ModelPart& rModelPart            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
-                
+          
+          mFixSwitch = rCurrentProcessInfo[INT_DUMMY_6];
+          
           int NumberOfElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray().end() - rModelPart.GetCommunicator().LocalMesh().ElementsArray().begin();
           
           this->GetResults().resize(NumberOfElements);
@@ -122,17 +124,28 @@ namespace Kratos
           }
          
           // 4. Set Initial Contacts
-           BaseType::InitializeSolutionStep();
+          BaseType::InitializeSolutionStep();
 
-            if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
+          if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
           {   
               this->CreateContactElements();
               this->InitializeContactElements();
-          }    
+          }
+          
+          if( mFixSwitch )
+          {
 
+          FreeVelocities();
+          
+          }  
+          
+          // 5. Finalize Solution Step
+          
+          BaseType::FinalizeSolutionStep();
+          
           KRATOS_CATCH("")
           
-           KRATOS_TIMER_STOP("INITIALIZE")
+          KRATOS_TIMER_STOP("INITIALIZE")
 
       }// Initialize()
 
@@ -167,7 +180,7 @@ namespace Kratos
            
           // 3. Motion Integration
           KRATOS_TIMER_START("PerformTimeIntegrationOfMotion")
-          BaseType::PerformTimeIntegrationOfMotion(); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
+          this->PerformTimeIntegrationOfMotion(rCurrentProcessInfo); 
           KRATOS_TIMER_STOP("PerformTimeIntegrationOfMotion")
           
           // 4. Synchronize  
@@ -195,14 +208,11 @@ namespace Kratos
           KRATOS_TIMER_START("FinalizeSolutionStep")
           BaseType::FinalizeSolutionStep();
           KRATOS_TIMER_STOP("FinalizeSolutionStep")
-          
-          
-      KRATOS_TIMER_STOP("SOLVE")
-          
-          
+   
+          KRATOS_TIMER_STOP("SOLVE")
+
           return 0.00;
-                
-          
+        
           KRATOS_CATCH("") 
           
           
@@ -481,7 +491,128 @@ namespace Kratos
 
       } //Contact_InitializeSolutionStep
      
+   
+     void virtual PerformTimeIntegrationOfMotion(ProcessInfo& rCurrentProcessInfo)
+     {
+        KRATOS_TRY
+
+        ModelPart& r_model_part = BaseType::GetModelPart();
         
+        if (mFixSwitch)
+        {
+        
+          if(  rCurrentProcessInfo[TIME_STEPS] == int(0.01*rCurrentProcessInfo[DOUBLE_DUMMY_3]*rCurrentProcessInfo[FINAL_SIMULATION_TIME]/rCurrentProcessInfo[DELTA_TIME] ) )
+          
+          {
+
+          FixVelocities();
+          mFixSwitch = 0;
+          
+          } 
+        
+        } // mFixSwitch
+        
+        BaseType::GetScheme()->Calculate(r_model_part);
+        
+        KRATOS_CATCH("")
+      }
+   
+ 
+    void FixVelocities()
+    {
+      KRATOS_TRY
+
+      KRATOS_WATCH("")
+      KRATOS_WATCH("Fixing Velocities")
+      
+      ModelPart& r_model_part           = BaseType::GetModelPart();
+      ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+      ElementsArrayType& pElements      = GetElements(r_model_part);
+      
+      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+
+      #pragma omp parallel for
+      for (int k = 0; k < this->GetNumberOfThreads(); k++){
+          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+          typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+          {
+    
+            if(  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 1) 
+            {
+                (it)->GetGeometry()(0)->Fix(VELOCITY_Y);
+                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_TOP];
+                
+            }
+            
+            if(  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2   )   
+            {
+                (it)->GetGeometry()(0)->Fix(VELOCITY_Y);   
+                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_BOT];
+                
+            }
+            
+          } //loop over particles
+
+      }// loop threads OpenMP
+      
+
+      KRATOS_CATCH("")
+
+    }
+      
+    void FreeVelocities()
+    {
+
+      KRATOS_TRY
+
+      KRATOS_WATCH("")
+      KRATOS_WATCH("Fixing Velocities")
+      
+      ModelPart& r_model_part           = BaseType::GetModelPart();
+      ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+      ElementsArrayType& pElements      = GetElements(r_model_part);
+      
+      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+
+      #pragma omp parallel for
+      for (int k = 0; k < this->GetNumberOfThreads(); k++){
+          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+          typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+          {
+                  if (  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 1 ) 
+                  {
+                        
+                      (it)->GetGeometry()(0)->Free(VELOCITY_Y);
+                        rCurrentProcessInfo[FIXED_VEL_TOP] = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y); //cutre way yeah!   
+                        //I only store one value for every ball in the group ID
+                      (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = 0.0;
+
+                  }
+                  
+                  if ( it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2 ) 
+                  {
+                        
+                      (it)->GetGeometry()(0)->Free(VELOCITY_Y);
+                        rCurrentProcessInfo[FIXED_VEL_BOT] = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y); //cutre way yeah!   
+                        //I only store one value for every ball in the group ID
+                        (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = 0.0;
+                        
+                  }
+                  
+            } //loop over particles
+
+        }// loop threads OpenMP
+        
+
+        KRATOS_CATCH("")
+
+    }    
+   
+   
     virtual void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part)
     {  
         /* */
@@ -539,6 +670,7 @@ namespace Kratos
     ModelPart& mcontacts_model_part;
     bool   mdelta_option;
     bool   mcontinuum_simulating_option;
+    int    mFixSwitch;
     
 
   }; // Class ContinuumExplicitSolverStrategy
