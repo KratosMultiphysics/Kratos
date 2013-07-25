@@ -78,8 +78,10 @@ namespace Kratos
           ComputeNewNeighboursHistoricalData();
           ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
 
-          if (mLimitSurfaceOption){
-              ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, rCurrentProcessInfo); //MSI: eliminate processInfo
+          if (mLimitSurfaceOption > 0){
+			  for (int surface_num = 0; surface_num < mLimitSurfaceOption; surface_num++){
+				  ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, surface_num, rCurrentProcessInfo);
+              }
           }
 
           if (drag_force_type == 1){

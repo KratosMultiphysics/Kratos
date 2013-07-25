@@ -106,12 +106,16 @@ namespace Kratos
 
           ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
 
-          if (mLimitSurfaceOption){
-              ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, rCurrentProcessInfo);
+          if (mLimitSurfaceOption > 0){
+			  for (int surface_num = 0; surface_num < mLimitSurfaceOption; surface_num++){
+				  ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, surface_num, rCurrentProcessInfo);
+              }
           }
 
-          if (mLimitCylinderOption){
-              ComputeBallToCylinderContactForce(contact_force, contact_moment, initial_rotation_moment, rCurrentProcessInfo);
+          if (mLimitCylinderOption > 0){
+			  for (int cylinder_num = 0; cylinder_num < mLimitCylinderOption; cylinder_num++){
+				  ComputeBallToCylinderContactForce(contact_force, contact_moment, initial_rotation_moment, cylinder_num, rCurrentProcessInfo);
+              }
           }
           
           CustomCalculateRightHandSide(contact_force, contact_moment, externally_applied_force, rCurrentProcessInfo);
@@ -720,61 +724,92 @@ namespace Kratos
       void SphericParticle::ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce,
                                                              array_1d<double, 3>& rContactMoment,
                                                              array_1d<double, 3>& rInitialRotaMoment,
+                                                             int surface_num,
                                                              ProcessInfo& rCurrentProcessInfo)
       {
           KRATOS_TRY
 
           // CONTACT WITH A PLANE
 
-           if (rCurrentProcessInfo[LIMIT_SURFACE_OPTION] != 0){
-              double dt                            = rCurrentProcessInfo[DELTA_TIME];
+          double dt                            = rCurrentProcessInfo[DELTA_TIME];
 
-             // INITIALIZATIONS
+          // INITIALIZATIONS
 
-             const array_1d<double, 3> vel         = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-             const array_1d<double, 3> delta_displ = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-             const array_1d<double, 3> ang_vel     = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
-             double InitialRotaMoment[3]           = {0.0};
-             double visco_damp_coeff_normal;
-             double visco_damp_coeff_tangential;
+          const array_1d<double, 3> vel         = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+          const array_1d<double, 3> delta_displ = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+          const array_1d<double, 3> ang_vel     = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+          double InitialRotaMoment[3]           = {0.0};
+          double visco_damp_coeff_normal;
+          double visco_damp_coeff_tangential;
 
-             InitialRotaMoment [0] = rInitialRotaMoment [0];
-             InitialRotaMoment [1] = rInitialRotaMoment [1];
-             InitialRotaMoment [2] = rInitialRotaMoment [2];
+          InitialRotaMoment [0] = rInitialRotaMoment [0];
+          InitialRotaMoment [1] = rInitialRotaMoment [1];
+          InitialRotaMoment [2] = rInitialRotaMoment [2];
              
-             // SLIDING
+          // SLIDING
 
-             bool sliding = false;
+          bool sliding = false;
 
-             // BASIC CALCULATIONS
+          // BASIC CALCULATIONS
 
-             const array_1d<double,3>& surface_normal_dir = rCurrentProcessInfo[SURFACE_NORMAL_DIR];
-             const array_1d<double,3>& surface_point_coor = rCurrentProcessInfo[SURFACE_POINT_COOR];
-             array_1d<double, 3> & GlobalSurfContactForce = this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES);
-             array_1d<double, 3> point_coor = this->GetGeometry()(0)->Coordinates();
+          array_1d<double,3> surface_normal_dir = rCurrentProcessInfo[SURFACE_NORMAL_DIR_1];
+          array_1d<double,3> surface_point_coor = rCurrentProcessInfo[SURFACE_POINT_COOR_1];
+          int surface_fricc                     = rCurrentProcessInfo[SURFACE_FRICC_1];          
 
-             //Calculate surface equation
+          if (surface_num == 1){
+              surface_normal_dir = rCurrentProcessInfo[SURFACE_NORMAL_DIR_2];
+              surface_point_coor = rCurrentProcessInfo[SURFACE_POINT_COOR_2];
+              surface_fricc      = rCurrentProcessInfo[SURFACE_FRICC_2];
+		  }
+		  
+          if (surface_num == 2){
+              surface_normal_dir = rCurrentProcessInfo[SURFACE_NORMAL_DIR_3];
+              surface_point_coor = rCurrentProcessInfo[SURFACE_POINT_COOR_3];
+              surface_fricc      = rCurrentProcessInfo[SURFACE_FRICC_3];
+		  }
+		  
+          if (surface_num == 3){
+              surface_normal_dir = rCurrentProcessInfo[SURFACE_NORMAL_DIR_4];
+              surface_point_coor = rCurrentProcessInfo[SURFACE_POINT_COOR_4];
+              surface_fricc      = rCurrentProcessInfo[SURFACE_FRICC_4];
+		  }
 
-             double surface_ecuation[4] = {0.0};
-             surface_ecuation[0] = surface_normal_dir[0];
-             surface_ecuation[1] = surface_normal_dir[1];
-             surface_ecuation[2] = surface_normal_dir[2];
-             surface_ecuation[3] = -(surface_normal_dir[0] * surface_point_coor[0] + surface_normal_dir[1] * surface_point_coor[1] + surface_normal_dir[2] * surface_point_coor[2]);
+          if (surface_num == 4){
+              surface_normal_dir = rCurrentProcessInfo[SURFACE_NORMAL_DIR_5];
+              surface_point_coor = rCurrentProcessInfo[SURFACE_POINT_COOR_5];
+              surface_fricc      = rCurrentProcessInfo[SURFACE_FRICC_5];
+		  }
+          
+          array_1d<double, 3>& GlobalSurfContactForce = this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_1);
+          if (surface_num == 1){GlobalSurfContactForce = this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_2);}
+          if (surface_num == 2){GlobalSurfContactForce = this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_3);}
+          if (surface_num == 3){GlobalSurfContactForce = this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_4);}
+          if (surface_num == 4){GlobalSurfContactForce = this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_5);}
+          
+          array_1d<double, 3> point_coor = this->GetGeometry()(0)->Coordinates();
 
-             // Calculate indentation
+          //Calculate surface equation
 
-             double distance =  fabs (surface_ecuation[0] * point_coor[0]       + surface_ecuation[1] * point_coor[1]       + surface_ecuation[2] * point_coor[2] + surface_ecuation[3])
-                               / sqrt(surface_ecuation[0] * surface_ecuation[0] + surface_ecuation[1] * surface_ecuation[1] + surface_ecuation[2] * surface_ecuation[2]);
+          double surface_ecuation[4] = {0.0};
+          surface_ecuation[0] = surface_normal_dir[0];
+          surface_ecuation[1] = surface_normal_dir[1];
+          surface_ecuation[2] = surface_normal_dir[2];
+          surface_ecuation[3] = -(surface_normal_dir[0] * surface_point_coor[0] + surface_normal_dir[1] * surface_point_coor[1] + surface_normal_dir[2] * surface_point_coor[2]);
 
-             double indentation = mRadius - distance; //M: Here, Initial_delta is expected to be positive if it is embeding and negative if it's separation.
+          // Calculate indentation
 
-             if (indentation <= 0.0){
+          double distance =  fabs (surface_ecuation[0] * point_coor[0]       + surface_ecuation[1] * point_coor[1]       + surface_ecuation[2] * point_coor[2] + surface_ecuation[3])
+                             / sqrt(surface_ecuation[0] * surface_ecuation[0] + surface_ecuation[1] * surface_ecuation[1] + surface_ecuation[2] * surface_ecuation[2]);
+
+          double indentation = mRadius - distance; //M: Here, Initial_delta is expected to be positive if it is embeding and negative if it's separation.
+
+          if (indentation <= 0.0){
                  GlobalSurfContactForce[0] = 0.0;  // 0: first tangential
                  GlobalSurfContactForce[1] = 0.0;  // 1: second tangential
                  GlobalSurfContactForce[2] = 0.0;  // 2: normal force
-             }
+          }
 
-             if (indentation > 0.0){
+          if (indentation > 0.0){
                  // MACRO PARAMETERS
                  double kn = M_PI * 0.5 * mYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                  double kt = kn / (2.0 * (1.0 + mPoisson));
@@ -792,7 +827,7 @@ namespace Kratos
                          historic = fmin(kn, kt);
                      }
 
-                 }
+                 }   
                  double aux_norm_to_tang = sqrt(kt / kn);
 
                  if (mLnOfRestitCoeff > 0.0){
@@ -800,10 +835,10 @@ namespace Kratos
                      visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(mass * kt);
                  }
 
-                 else {
+          else {
                      visco_damp_coeff_normal     = - 2 * mLnOfRestitCoeff * sqrt(mRealMass * kn / (mLnOfRestitCoeff * mLnOfRestitCoeff + M_PI * M_PI));
                      visco_damp_coeff_tangential = visco_damp_coeff_normal * aux_norm_to_tang; //= -(2 * log(restitution_coeff) * sqrt(mass * kt)) / (sqrt((log(restitution_coeff) * log(restitution_coeff)) + (M_PI * M_PI)));
-                 }
+          }
 
                  // FORMING LOCAL CORDINATES
 
@@ -883,7 +918,7 @@ namespace Kratos
                  LocalElasticContactForce[0] += - kt * LocalDeltDisp[0];  // 0: first tangential
                  LocalElasticContactForce[1] += - kt * LocalDeltDisp[1];  // 1: second tangential
 
-                 double dyn_friction_angle =  rCurrentProcessInfo[SURFACE_FRICC] * M_PI / 180;
+                 double dyn_friction_angle =  surface_fricc * M_PI / 180;
                  double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
                  double Frictional_ShearForceMax = tan(dyn_friction_angle) * LocalElasticContactForce[2];
 
@@ -933,9 +968,31 @@ namespace Kratos
 
                  // Saving contact forces
 
-                 this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES)[0] = GlobalElasticContactForce[0];
-                 this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES)[1] = GlobalElasticContactForce[1];
-                 this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES)[2] = GlobalElasticContactForce[2];
+                    if (surface_num == 0){
+                         this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_1)[0] = GlobalElasticContactForce[0];
+                         this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_1)[1] = GlobalElasticContactForce[1];
+                         this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_1)[2] = GlobalElasticContactForce[2];
+			         }
+                     if (surface_num == 1){
+                         this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_2)[0] = GlobalElasticContactForce[0];
+                         this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_2)[1] = GlobalElasticContactForce[1];
+                         this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_2)[2] = GlobalElasticContactForce[2];
+			         }
+                     if (surface_num == 2){
+                         this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_3)[0] = GlobalElasticContactForce[0];
+                         this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_3)[1] = GlobalElasticContactForce[1];
+                         this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_3)[2] = GlobalElasticContactForce[2];
+			         }
+                     if (surface_num == 3){
+                         this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_4)[0] = GlobalElasticContactForce[0];
+                         this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_4)[1] = GlobalElasticContactForce[1];
+                         this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_4)[2] = GlobalElasticContactForce[2];
+			         }
+                     if (surface_num == 4){
+                         this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_5)[0] = GlobalElasticContactForce[0];
+                         this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_5)[1] = GlobalElasticContactForce[1];
+                         this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_5)[2] = GlobalElasticContactForce[2];
+			         }
 
                  if (mRotationOption){
                      double MA[3]                     = {0.0};
@@ -1015,8 +1072,6 @@ namespace Kratos
 
              }  //if (indentation >= 0.0)
 
-         } //if (LIMIT_SURFACE_OPTION)
-
          KRATOS_CATCH("")
       }//ComputeBallToSurfaceContactForce
 
@@ -1026,11 +1081,35 @@ namespace Kratos
       void SphericParticle::ComputeBallToCylinderContactForce(array_1d<double, 3>& rContactForce,
                                                               array_1d<double, 3>& rContactMoment,
                                                               array_1d<double, 3>& rInitialRotaMoment,
+                                                              int cylinder_num,
                                                               ProcessInfo& rCurrentProcessInfo)
       {
           KRATOS_TRY 
           double dt                            = rCurrentProcessInfo[DELTA_TIME];
           int time_step                        = rCurrentProcessInfo[TIME_STEPS];
+
+          double CylinderRadius                = rCurrentProcessInfo[CYLINDER_RADIUS_1];
+          int cylinder_fricc                   = rCurrentProcessInfo[CYLINDER_FRICC_1];          
+
+          if (cylinder_num == 1){
+              CylinderRadius    = rCurrentProcessInfo[CYLINDER_RADIUS_2];
+              cylinder_fricc    = rCurrentProcessInfo[CYLINDER_FRICC_2];
+		  }
+		  
+          if (cylinder_num == 2){
+              CylinderRadius    = rCurrentProcessInfo[CYLINDER_RADIUS_3];
+              cylinder_fricc    = rCurrentProcessInfo[CYLINDER_FRICC_3];
+		  }
+		  
+          if (cylinder_num == 3){
+              CylinderRadius    = rCurrentProcessInfo[CYLINDER_RADIUS_4];
+              cylinder_fricc    = rCurrentProcessInfo[CYLINDER_FRICC_4];
+		  }
+
+          if (cylinder_num == 4){
+              CylinderRadius    = rCurrentProcessInfo[CYLINDER_RADIUS_5];
+              cylinder_fricc    = rCurrentProcessInfo[CYLINDER_FRICC_5];
+		  }
           
           // CONTACT WITH A CYLINDER
 
@@ -1053,15 +1132,50 @@ namespace Kratos
 
              // BASIC CALCULATIONS
 
-             array_1d<double, 3>& GlobalCylinderContactForce = this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES);
-             array_1d<double, 3> point_coor                  = this->GetGeometry()(0)->Coordinates();
+             array_1d<double, 3>& GlobalCylinderContactForce   = this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_1);
+             if (cylinder_num == 1){GlobalCylinderContactForce = this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_2);}
+             if (cylinder_num == 2){GlobalCylinderContactForce = this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_3);}
+             if (cylinder_num == 3){GlobalCylinderContactForce = this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_4);}
+             if (cylinder_num == 4){GlobalCylinderContactForce = this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_5);}
+             
+             array_1d<double, 3> point_coord                   = this->GetGeometry()(0)->Coordinates();
 
-             //Calculate surface equation
+             //Calculate surface equation-> Surface perpendicular to cylinder axis and containing the point centre of the ball
+
+             double cylinder_axis_dir[3] = {0.0};
+             cylinder_axis_dir[0] = mCylinderAxisDir[0];
+             cylinder_axis_dir[1] = mCylinderAxisDir[1];
+             cylinder_axis_dir[2] = mCylinderAxisDir[2];   
+
+             double det_cylinder_axis_dir = sqrt( cylinder_axis_dir[0] + cylinder_axis_dir[0] * cylinder_axis_dir[1] + cylinder_axis_dir[1] * cylinder_axis_dir[2] + cylinder_axis_dir[2] );
+
+             if(det_cylinder_axis_dir != 0.0){
+				 cylinder_axis_dir[0] /= det_cylinder_axis_dir;
+				 cylinder_axis_dir[1] /= det_cylinder_axis_dir;
+				 cylinder_axis_dir[2] /= det_cylinder_axis_dir;
+			 }
+
+             double surface_ecuation[4] = {0.0};
+             surface_ecuation[0] = cylinder_axis_dir[0];
+             surface_ecuation[1] = cylinder_axis_dir[1];
+             surface_ecuation[2] = cylinder_axis_dir[2];
+             surface_ecuation[3] = -(cylinder_axis_dir[0] * point_coord[0] + cylinder_axis_dir[1] * point_coord[1] + cylinder_axis_dir[2] * point_coord[2]);
+
+             //Calculate intersection point between cylinder axis and surface
+             
+             double lambda = -(surface_ecuation[0] * mInitialBaseCylinderCentre[0] + surface_ecuation[1] * mInitialBaseCylinderCentre[1] + surface_ecuation[2] * mInitialBaseCylinderCentre[2] + surface_ecuation[3]) / (surface_ecuation[0] * cylinder_axis_dir[0] + surface_ecuation[1] * cylinder_axis_dir[1] + surface_ecuation[2] * cylinder_axis_dir[2]);
+             
+             double axis_point_coord[3] = {0.0};
+             axis_point_coord[0] = mInitialBaseCylinderCentre[0] + cylinder_axis_dir[0]*lambda;
+             axis_point_coord[1] = mInitialBaseCylinderCentre[1] + cylinder_axis_dir[1]*lambda;
+             axis_point_coord[2] = mInitialBaseCylinderCentre[2] + cylinder_axis_dir[2]*lambda;
+
+             //Calculate normal direction and distance
 
              double contact_normal_dir[3] = {0.0};
-             contact_normal_dir[0] = -point_coor[0];
-             contact_normal_dir[1] = 0.0;
-             contact_normal_dir[2] = -point_coor[2];
+             contact_normal_dir[0] = axis_point_coord[0] - point_coord[0];
+             contact_normal_dir[1] = axis_point_coord[1] - point_coord[1];
+             contact_normal_dir[2] = axis_point_coord[2] - point_coord[2];
 
              double det_normal_vect = sqrt( contact_normal_dir[0] * contact_normal_dir[0] + contact_normal_dir[1] * contact_normal_dir[1] + contact_normal_dir[2] * contact_normal_dir[2] );
 
@@ -1071,50 +1185,53 @@ namespace Kratos
                  GlobalCylinderContactForce[2] = 0.0;  // 2: normal force
              }
              
-             if (det_normal_vect > mCylinderRadius){
+             if (det_normal_vect > CylinderRadius){
                  contact_normal_dir[0] = -contact_normal_dir[0];
                  contact_normal_dir[1] = -contact_normal_dir[1];
                  contact_normal_dir[2] = -contact_normal_dir[2];
 			 }				 
 
              if(det_normal_vect != 0.0){
-                 contact_normal_dir[0] = contact_normal_dir[0]/det_normal_vect;
-                 contact_normal_dir[1] = contact_normal_dir[1]/det_normal_vect;
-                 contact_normal_dir[2] = contact_normal_dir[2]/det_normal_vect;
+				 double contact_normal_dir_unit[3] = {0.0};
+                 contact_normal_dir_unit[0] = contact_normal_dir[0]/det_normal_vect;
+                 contact_normal_dir_unit[1] = contact_normal_dir[1]/det_normal_vect;
+                 contact_normal_dir_unit[2] = contact_normal_dir[2]/det_normal_vect;
                  
                  double sphere_contact_point[3] = {0.0};
-                 sphere_contact_point[0] = point_coor[0] - contact_normal_dir[0] * mRadius;
-                 sphere_contact_point[1] = point_coor[1];
-                 sphere_contact_point[2] = point_coor[2] - contact_normal_dir[2] * mRadius;
+                 
+                 if (det_normal_vect > CylinderRadius){                 
+                     sphere_contact_point[0] = - contact_normal_dir[0] + contact_normal_dir_unit[0] * mRadius;
+                     sphere_contact_point[1] = - contact_normal_dir[1] + contact_normal_dir_unit[1] * mRadius;
+                     sphere_contact_point[2] = - contact_normal_dir[2] + contact_normal_dir_unit[2] * mRadius;
+				 }
+				 
+				 else {
+                     sphere_contact_point[0] = - contact_normal_dir[0] - contact_normal_dir_unit[0] * mRadius;
+                     sphere_contact_point[1] = - contact_normal_dir[1] - contact_normal_dir_unit[1] * mRadius;
+                     sphere_contact_point[2] = - contact_normal_dir[2] - contact_normal_dir_unit[2] * mRadius;
+				 }
 
-                 double sphere_distance = sqrt( sphere_contact_point[0] * sphere_contact_point[0] + sphere_contact_point[2] * sphere_contact_point[2] );
-
-                 double cylinder_ext_point[3] = {0.0};
-                 cylinder_ext_point[0] = -contact_normal_dir[0] * mCylinderRadius;
-                 cylinder_ext_point[1] = point_coor[1];
-                 cylinder_ext_point[2] = -contact_normal_dir[2] * mCylinderRadius;
-
-                 double cylinder_distance = sqrt( cylinder_ext_point[0] * cylinder_ext_point[0] + cylinder_ext_point[2] * cylinder_ext_point[2] );                
+                 double sphere_distance = sqrt( sphere_contact_point[0] * sphere_contact_point[0] + sphere_contact_point[1] * sphere_contact_point[1] + sphere_contact_point[2] * sphere_contact_point[2] );                
                  
                  // Calculate indentation
                  
                  double indentation = 0.0;
 
-                 if (det_normal_vect <= mCylinderRadius){
-                     indentation = sphere_distance - cylinder_distance; //M: Here, Initial_delta is expected to be positive if it is embeding and negative if it's separation.
+                 if (det_normal_vect <= CylinderRadius && det_normal_vect != 0.0){
+                     indentation = sphere_distance - CylinderRadius; //M: Here, Initial_delta is expected to be positive if it is embeding and negative if it's separation.
 			     }
              
-                 if (det_normal_vect > mCylinderRadius){
-                     indentation = cylinder_distance - sphere_distance; //M: Here, Initial_delta is expected to be positive if it is embeding and negative if it's separation.
+                 if (det_normal_vect > CylinderRadius && det_normal_vect != 0.0){
+                     indentation = CylinderRadius - sphere_distance; //M: Here, Initial_delta is expected to be positive if it is embeding and negative if it's separation.
 			     }
 
-                 if (indentation <= 0.0 || point_coor[1] <= (mCylinderVelocity * (dt * time_step - 2))){
+                 if (indentation <= 0.0 /*|| point_coor[1] <= (mCylinderVelocity * (dt * time_step - 2))*/){
                      GlobalCylinderContactForce[0] = 0.0;  // 0: first tangential
                      GlobalCylinderContactForce[1] = 0.0;  // 1: second tangential
                      GlobalCylinderContactForce[2] = 0.0;  // 2: normal force
                  }
 
-                 if (indentation > 0.0 && point_coor[1] > (mCylinderVelocity * (dt * time_step - 2))){
+                 if (indentation > 0.0 /*&& point_coor[1] > (mCylinderVelocity * (dt * time_step - 2))*/){
                      // MACRO PARAMETERS
                      double kn = M_PI * 0.5 * mYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                      double kt = kn / (2.0 * (1.0 + mPoisson));
@@ -1153,22 +1270,22 @@ namespace Kratos
 
                      double LocalCoordSystem[3][3]  = {{0.0}, {0.0}, {0.0}};
                  
-                     GeometryFunctions::ComputeContactLocalCoordSystem(contact_normal_dir, LocalCoordSystem);
+                     GeometryFunctions::ComputeContactLocalCoordSystem(contact_normal_dir_unit, LocalCoordSystem);
 
                      // VELOCITIES AND DISPLACEMENTS
 
                      double DeltDisp[3] = {0.0};
                      double RelVel  [3] = {0.0};
 
-                     RelVel[0] = (vel[0]);
-                     RelVel[1] = (vel[1] - mCylinderVelocity);
-                     RelVel[2] = (vel[2]);
+                     RelVel[0] = (vel[0] - mCylinderVelocity * cylinder_axis_dir[0]);
+                     RelVel[1] = (vel[1] - mCylinderVelocity * cylinder_axis_dir[1]);
+                     RelVel[2] = (vel[2] - mCylinderVelocity * cylinder_axis_dir[2]);
 
                      // DeltDisp in global cordinates
 
-                     DeltDisp[0] = (delta_displ[0]);
-                     DeltDisp[1] = (delta_displ[1] - mCylinderVelocity * dt);
-                     DeltDisp[2] = (delta_displ[2]);
+                     DeltDisp[0] = (delta_displ[0] - mCylinderVelocity * cylinder_axis_dir[0] * dt);
+                     DeltDisp[1] = (delta_displ[1] - mCylinderVelocity * cylinder_axis_dir[1] * dt);
+                     DeltDisp[2] = (delta_displ[2] - mCylinderVelocity * cylinder_axis_dir[2] * dt);
 
                      if (mRotationOption){
                          double velA[3]      = {0.0};
@@ -1184,6 +1301,20 @@ namespace Kratos
                          DeltDisp[1] += dRotaDisp[1] * dt;
                          DeltDisp[2] += dRotaDisp[2] * dt;
                      }// if (mRotationOption)
+                     
+                     if (mCylinderAngularVelocity != 0.0){
+						 double cylinder_angular_velocity[3] = {0.0};
+						 cylinder_angular_velocity[0] = mCylinderAngularVelocity * cylinder_axis_dir[0];
+						 cylinder_angular_velocity[1] = mCylinderAngularVelocity * cylinder_axis_dir[1];
+						 cylinder_angular_velocity[2] = mCylinderAngularVelocity * cylinder_axis_dir[2];
+						 
+						 double vel_cyl[3]      = {0.0};
+						 GeometryFunctions::CrossProduct(cylinder_angular_velocity, contact_normal_dir_unit, vel_cyl);
+                         
+                         DeltDisp[0] -= vel_cyl[0] * CylinderRadius * dt;
+                         DeltDisp[1] -= vel_cyl[1] * CylinderRadius * dt;
+                         DeltDisp[2] -= vel_cyl[2] * CylinderRadius * dt;						 
+					 }
 
                      double LocalDeltDisp[3]             = {0.0};
                      double LocalElasticContactForce[3]  = {0.0};
@@ -1218,7 +1349,7 @@ namespace Kratos
                      LocalElasticContactForce[0] += - kt * LocalDeltDisp[0];  // 0: first tangential
                      LocalElasticContactForce[1] += - kt * LocalDeltDisp[1];  // 1: second tangential
 
-                     double dyn_friction_angle =  rCurrentProcessInfo[CYLINDER_FRICC] * M_PI / 180;
+                     double dyn_friction_angle =  cylinder_fricc * M_PI / 180;
                      double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
                      double Frictional_ShearForceMax = tan(dyn_friction_angle) * LocalElasticContactForce[2];
 
@@ -1267,10 +1398,32 @@ namespace Kratos
                      rContactForce[2] += GlobalContactForce[2];
 
                      // Saving contact forces
-
-                     this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES)[0] = GlobalElasticContactForce[0];
-                     this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES)[1] = GlobalElasticContactForce[1];
-                     this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES)[2] = GlobalElasticContactForce[2];
+                     
+                     if (cylinder_num == 0){
+                         this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_1)[0] = GlobalElasticContactForce[0];
+                         this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_1)[1] = GlobalElasticContactForce[1];
+                         this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_1)[2] = GlobalElasticContactForce[2];
+			         }
+                     if (cylinder_num == 1){
+                         this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_2)[0] = GlobalElasticContactForce[0];
+                         this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_2)[1] = GlobalElasticContactForce[1];
+                         this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_2)[2] = GlobalElasticContactForce[2];
+			         }
+                     if (cylinder_num == 2){
+                         this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_3)[0] = GlobalElasticContactForce[0];
+                         this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_3)[1] = GlobalElasticContactForce[1];
+                         this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_3)[2] = GlobalElasticContactForce[2];
+			         }
+                     if (cylinder_num == 3){
+                         this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_4)[0] = GlobalElasticContactForce[0];
+                         this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_4)[1] = GlobalElasticContactForce[1];
+                         this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_4)[2] = GlobalElasticContactForce[2];
+			         }
+                     if (cylinder_num == 4){
+                         this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_5)[0] = GlobalElasticContactForce[0];
+                         this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_5)[1] = GlobalElasticContactForce[1];
+                         this->GetValue(PARTICLE_CYLINDER_CONTACT_FORCES_5)[2] = GlobalElasticContactForce[2];
+			         }
 
                      if (mRotationOption){
                          double MA[3]                     = {0.0};
@@ -1511,12 +1664,19 @@ namespace Kratos
               mGlobalKn                 = rCurrentProcessInfo[GLOBAL_KN];
               mGlobalKt                 = rCurrentProcessInfo[GLOBAL_KT];
               mLimitSurfaceOption       = rCurrentProcessInfo[LIMIT_SURFACE_OPTION];
-              mLimitCylinderOption      = rCurrentProcessInfo[LIMIT_CYLINDER_OPTION];              
+              mLimitCylinderOption      = rCurrentProcessInfo[LIMIT_CYLINDER_OPTION];
               
-              mpTimeStep                 =  &(rCurrentProcessInfo[TIME_STEPS]); // reference.
+              mpTimeStep                =  &(rCurrentProcessInfo[TIME_STEPS]); // reference.
 
               if (mRotationOption){
                   mRollingFriction      = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
+              }
+
+              if (mLimitCylinderOption){
+                  mCylinderVelocity          = rCurrentProcessInfo[CYLINDER_VELOCITY];
+                  mCylinderAngularVelocity   = rCurrentProcessInfo[CYLINDER_ANGULAR_VELOCITY];
+                  mInitialBaseCylinderCentre = rCurrentProcessInfo[INITIAL_BASE_CYLINDER_CENTRE];
+                  mCylinderAxisDir           = rCurrentProcessInfo[CYLINDER_AXIS_DIR];
               }
 
               if (mGlobalKn == 0.0){
@@ -1525,11 +1685,6 @@ namespace Kratos
 
               else {
                   mGlobalAuxNormToTang  = sqrt(mGlobalKt / mGlobalKn);
-              }
-              
-              if (mLimitCylinderOption){
-				  mCylinderRadius      = rCurrentProcessInfo[CYLINDER_RADIUS];
-                  mCylinderVelocity    = rCurrentProcessInfo[CYLINDER_VELOCITY];
               }
 
           }
