@@ -116,48 +116,22 @@ namespace Kratos
 			  
 	  } //SwitchCase
 	  
-	  inline array_1d<double,3> LinearTimeIncreasingFunction(array_1d<double,3> external_total_applied_force, double initial_time, double current_time, double final_time, int& dummy_switch)
-	  {
-				
-		array_1d<double,3> applied_force;
+	  inline array_1d<double,3> LinearTimeIncreasingFunction(array_1d<double,3> external_total_applied_force, double initial_time, 
+                                                             double current_time, double final_time)
+
+	  {			
+		array_1d<double,3> externally_applied_force_now = external_total_applied_force*current_time/final_time - initial_time*external_total_applied_force/(final_time - initial_time);
+	
+		return externally_applied_force_now;
 		
-		if ( final_time <= 1e-10 )
-		
-		{
-		  KRATOS_WATCH("WARNING: SIMULATION TIME TO CLOSE TO ZERO")
-		}
-		
-		
-		if ( final_time > 1e-10 && current_time < final_time )
-		
-		{
-		  applied_force = external_total_applied_force*current_time/final_time - initial_time*external_total_applied_force/(final_time - initial_time);
-		}
-		
-		if ( current_time >= final_time )
-		
-		{
-		  applied_force = external_total_applied_force;
-		  
-		  if(dummy_switch==0)
-		  {
-			
-			KRATOS_WATCH("Confinement application finished at time :")
-			KRATOS_WATCH(current_time)
-			dummy_switch = 1;
-		  }
-		  
-		  
-		}
-		
-		
-		return applied_force;
-		
-	  }
+	  }// inline array_1d<double,3> LinearTimeIncreasingFunction
  
 	  
 	  
-    }
-}
+    }//namespace AuxiliaryFunctions
+
+  
+}//namespace Kratos
+
 #endif	/* _KRATOSAUXILIARYFUNCTIONS_H */
 
