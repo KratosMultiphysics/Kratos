@@ -84,9 +84,8 @@ namespace Kratos
 
           const array_1d<double, 3>& gravity  = rCurrentProcessInfo[GRAVITY];
 
-          //array_1d<double, 3>& applied_force  = this->GetGeometry()[0].GetSolutionStepValue(APPLIED_FORCE); //MSI: canviar nom a USER_DEFINED_FORCE
-
           array_1d<double, 3> contact_force;
+          array_1d<double, 3> externally_applied_force;
           array_1d<double, 3> contact_moment;
           array_1d<double, 3> initial_rotation_moment;
           
@@ -115,11 +114,12 @@ namespace Kratos
               ComputeBallToCylinderContactForce(contact_force, contact_moment, initial_rotation_moment, rCurrentProcessInfo);
           }
           
-          CustomCalculateRightHandSide(contact_force, contact_moment);
+          CustomCalculateRightHandSide(contact_force, contact_moment, externally_applied_force, rCurrentProcessInfo);
 
-          rRightHandSideVector[0] = contact_force[0] + mRealMass * gravity[0];// + applied_force[0];
-          rRightHandSideVector[1] = contact_force[1] + mRealMass * gravity[1];// + applied_force[1];
-          rRightHandSideVector[2] = contact_force[2] + mRealMass * gravity[2];// + applied_force[2];
+
+          rRightHandSideVector[0] = contact_force[0] + mRealMass * gravity[0] + externally_applied_force[0];
+          rRightHandSideVector[1] = contact_force[1] + mRealMass * gravity[1] + externally_applied_force[1];
+          rRightHandSideVector[2] = contact_force[2] + mRealMass * gravity[2] + externally_applied_force[2];
           rRightHandSideVector[3] = contact_moment[0];
           rRightHandSideVector[4] = contact_moment[1];
           rRightHandSideVector[5] = contact_moment[2];
@@ -511,7 +511,7 @@ namespace Kratos
 
           ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);
           //vector<double>& r_VectorContactInitialDelta  = this->GetValue(PARTICLE_CONTACT_DELTA);  //MSI: must be changed in the same fashion as contactforces
-
+        
           double dt = rCurrentProcessInfo[DELTA_TIME];
           double dt_i = 1 / dt;
 
@@ -1416,7 +1416,8 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment){}
+      void SphericParticle::CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment, 
+                                                         array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo){}
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
