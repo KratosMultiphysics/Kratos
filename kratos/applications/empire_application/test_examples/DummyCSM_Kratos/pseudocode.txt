@@ -1,0 +1,87 @@
+/*
+ * ================================================
+ * Pseudo code of the server (EMPEROR)
+ * ================================================
+ */
+int main() {
+	// Stage 1: receive meshes ...
+	receiveMeshFrom("dummyCSM", "myMesh1");
+	receiveMeshFrom("Kratos", "myMesh1");
+	// Stage 2: do co-simulation ...
+	for (int i=0; i<numberOfTimeSteps; i++) {// time step loop
+		//  ...
+		while (!isConvergent) { // iterative coupling loop
+			//  ...
+			receiveDataFieldFrom("dummyCSM", "myMesh1", "displacements");
+			sendDataFieldTo("Kratos", "myMesh1", "displacements");
+			//  ...
+			//  ...
+			receiveDataFieldFrom("Kratos", "myMesh1", "tractionsElem");
+			sendDataFieldTo("dummyCSM", "myMesh1", "forces");
+			//  ...
+			sendConvergenceSignalTo(dummyCSM, isConvergent);
+			sendConvergenceSignalTo(Kratos, isConvergent);
+		}
+	}
+	//  ...
+	return;
+}
+
+
+
+/*
+ * ================================================
+ * Pseudo code of the client code (dummyCSM)
+ * ================================================
+ */
+int main() {
+	// Stage 1: send meshes ...
+	sendMeshToServer("myMesh1")
+	// Stage 2: do co-simulation ...
+	for (int i=0; i<numberOfTimeSteps; i++) {// time step loop
+		//  ...
+		while (!isConvergent) { // iterative coupling loop
+			//  ...
+			sendDataFieldToServer("myMesh1", "displacements");
+			//  ...
+			//  ...
+			receiveDataFieldFromServer("myMesh1", "forces");
+			//  ...
+			isConvergent = receiveConvergenceSignalFromServer();
+		}
+	}
+	//  ...
+	return;
+}
+
+
+
+/*
+ * ================================================
+ * Pseudo code of the client code (Kratos)
+ * ================================================
+ */
+int main() {
+	// Stage 1: send meshes ...
+	sendMeshToServer("myMesh1")
+	// Stage 2: do co-simulation ...
+	for (int i=0; i<numberOfTimeSteps; i++) {// time step loop
+		//  ...
+		while (!isConvergent) { // iterative coupling loop
+			//  ...
+			receiveDataFieldFromServer("myMesh1", "displacements");
+			//  ...
+			//  ...
+			sendDataFieldToServer("myMesh1", "tractionsElem");
+			//  ...
+			isConvergent = receiveConvergenceSignalFromServer();
+		}
+	}
+	//  ...
+	return;
+}
+
+
+
+
+
