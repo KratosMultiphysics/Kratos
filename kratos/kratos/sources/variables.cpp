@@ -275,8 +275,9 @@ KRATOS_CREATE_VARIABLE( double, LAGRANGE_TEMPERATURE )
 KRATOS_CREATE_VARIABLE( double,  IS_INLET )
 
 
-//for ALE application TO BE REMOVED
+//for ALE application
 KRATOS_CREATE_VARIABLE( double, IS_INTERFACE )
+KRATOS_CREATE_VARIABLE( double, AUX_MESH_VAR )
 
 //for electric_application
 KRATOS_CREATE_VARIABLE( double, ELECTRIC_POTENTIAL )
@@ -773,10 +774,11 @@ void KratosApplication::RegisterVariables()
     KRATOS_REGISTER_VARIABLE( IS_INLET )
 
 
-    //for ALE application TO BE REMOVED
+    //for ALE application
     KRATOS_REGISTER_VARIABLE( IS_INTERFACE )
     KRATOS_REGISTER_VARIABLE( IS_VISITED )
     KRATOS_REGISTER_VARIABLE( IS_EROSIONABLE )
+    KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR )
 
 
     //for electric_application
