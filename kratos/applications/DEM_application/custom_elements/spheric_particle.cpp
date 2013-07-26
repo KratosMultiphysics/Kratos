@@ -1680,12 +1680,19 @@ namespace Kratos
               mElasticityType           = rCurrentProcessInfo[FORCE_CALCULATION_TYPE];
               mRotationOption           = rCurrentProcessInfo[ROTATION_OPTION]; //M:  it's 1/0, should be a boolean
               mRotationDampType         = rCurrentProcessInfo[ROTA_DAMP_TYPE];
-              mGlobalVariablesOption    = rCurrentProcessInfo[GLOBAL_VARIABLES_OPTION]; //M:  it's 1/0, should be a boolean
+              
               mCriticalTimeOption       = rCurrentProcessInfo[CRITICAL_TIME_OPTION];
               mUniformMaterialOption    = rCurrentProcessInfo[UNIFORM_MATERIAL_OPTION];
               mMagicFactor              = rCurrentProcessInfo[DEM_MAGIC_FACTOR];
-              mGlobalKn                 = rCurrentProcessInfo[GLOBAL_KN];
-              mGlobalKt                 = rCurrentProcessInfo[GLOBAL_KT];
+              
+              mGlobalVariablesOption    = rCurrentProcessInfo[GLOBAL_VARIABLES_OPTION]; //M:  it's 1/0, should be a boolean
+              
+              if(mGlobalVariablesOption)
+              {
+                mGlobalKn                 = rCurrentProcessInfo[GLOBAL_KN];
+                mGlobalKt                 = rCurrentProcessInfo[GLOBAL_KT];
+              }
+              
               mLimitSurfaceOption       = rCurrentProcessInfo[LIMIT_SURFACE_OPTION];
               mLimitCylinderOption      = rCurrentProcessInfo[LIMIT_CYLINDER_OPTION];
               
