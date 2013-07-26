@@ -1224,14 +1224,29 @@ namespace Kratos
                  if (det_normal_vect > CylinderRadius && det_normal_vect != 0.0){
                      indentation = CylinderRadius - sphere_distance; //M: Here, Initial_delta is expected to be positive if it is embeding and negative if it's separation.
 			     }
+			     
+                 // Calculate cylinder outlet
+                 
+                 double outlet_point_coord[3] = {0.0};
+                 outlet_point_coord[0] = mInitialBaseCylinderCentre[0] + (cylinder_axis_dir[0] * mCylinderVelocity * dt * time_step);
+                 outlet_point_coord[1] = mInitialBaseCylinderCentre[1] + (cylinder_axis_dir[1] * mCylinderVelocity * dt * time_step);
+                 outlet_point_coord[2] = mInitialBaseCylinderCentre[2] + (cylinder_axis_dir[2] * mCylinderVelocity * dt * time_step);
+                 
+                 double cylinder_outlet_surface_ecuation[4] = {0.0};
+                 cylinder_outlet_surface_ecuation[0] = cylinder_axis_dir[0];
+                 cylinder_outlet_surface_ecuation[1] = cylinder_axis_dir[1];
+                 cylinder_outlet_surface_ecuation[2] = cylinder_axis_dir[2];
+                 cylinder_outlet_surface_ecuation[3] = -(cylinder_axis_dir[0] * outlet_point_coord[0] + cylinder_axis_dir[1] * outlet_point_coord[1] + cylinder_axis_dir[2] * outlet_point_coord[2]);
+                 
+                 double position_ball_outlet = cylinder_outlet_surface_ecuation[0] * point_coord[0] + cylinder_outlet_surface_ecuation[1] * point_coord[1] + cylinder_outlet_surface_ecuation[2] * point_coord[2] + cylinder_outlet_surface_ecuation[3];                 			     
 
-                 if (indentation <= 0.0 /*|| point_coor[1] <= (mCylinderVelocity * (dt * time_step - 2))*/){
+                 if (indentation <= 0.0 || position_ball_outlet <= 0.0){
                      GlobalCylinderContactForce[0] = 0.0;  // 0: first tangential
                      GlobalCylinderContactForce[1] = 0.0;  // 1: second tangential
                      GlobalCylinderContactForce[2] = 0.0;  // 2: normal force
                  }
 
-                 if (indentation > 0.0 /*&& point_coor[1] > (mCylinderVelocity * (dt * time_step - 2))*/){
+                 if (indentation > 0.0 && position_ball_outlet > 0.0){
                      // MACRO PARAMETERS
                      double kn = M_PI * 0.5 * mYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
                      double kt = kn / (2.0 * (1.0 + mPoisson));
