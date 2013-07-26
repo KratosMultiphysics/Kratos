@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -34,7 +34,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Large Displacement Lagrangian U-P Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)  
+/// Large Displacement Lagrangian U-P Element for 3D and 2D geometries. Linear Triangles and Tetrahedra (base class)
 
 /**
  * Implements a Large Displacement Lagrangian definition for structural analysis.
@@ -56,7 +56,7 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
- 
+
     /// Counted pointer of LargeDisplacementUPElement
     KRATOS_CLASS_POINTER_DEFINITION(LargeDisplacementUPElement);
     ///@}
@@ -100,9 +100,9 @@ public:
 
     //************* GETTING METHODS
 
-     /**
-     * Sets on rElementalDofList the degrees of freedom of the considered element geometry
-     */
+    /**
+    * Sets on rElementalDofList the degrees of freedom of the considered element geometry
+    */
     void GetDofList(DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo);
 
     /**
@@ -145,7 +145,7 @@ public:
     void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
 
 
- 
+
     //************************************************************************************
     //************************************************************************************
     /**
@@ -193,71 +193,71 @@ protected:
 
 
     /**
-     * Calculation and addition of the matrices of the LHS 
+     * Calculation and addition of the matrices of the LHS
      */
 
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-				    GeneralVariables& rVariables, 
-				    double& rIntegrationWeight);
-  
+                                    GeneralVariables& rVariables,
+                                    double& rIntegrationWeight);
+
     /**
-     * Calculation and addition of the vectors of the RHS 
+     * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, 
-				    GeneralVariables& rVariables, 
-				    Vector& rVolumeForce, 
-				    double& rIntegrationWeight);
- 
+    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                                    GeneralVariables& rVariables,
+                                    Vector& rVolumeForce,
+                                    double& rIntegrationWeight);
+
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * D * B
      */
     virtual void CalculateAndAddKuum(MatrixType& rK,
-				     GeneralVariables & rVariables,
-				     double& rIntegrationWeight
-				     );
+                                     GeneralVariables & rVariables,
+                                     double& rIntegrationWeight
+                                    );
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     virtual void CalculateAndAddKuug(MatrixType& rK,
-				     GeneralVariables & rVariables,
-				     double& rIntegrationWeight
-				     );
+                                     GeneralVariables & rVariables,
+                                     double& rIntegrationWeight
+                                    );
 
     /**
      * Calculation of the Kup matrix
      */
     virtual void CalculateAndAddKup (MatrixType& rK,
-				     GeneralVariables & rVariables,
-				     double& rIntegrationWeight
-				     );
+                                     GeneralVariables & rVariables,
+                                     double& rIntegrationWeight
+                                    );
 
     /**
      * Calculation of the Kpu matrix
      */
     virtual void CalculateAndAddKpu(MatrixType& rK,
-				    GeneralVariables & rVariables,
-				    double& rIntegrationWeight
-				    );
+                                    GeneralVariables & rVariables,
+                                    double& rIntegrationWeight
+                                   );
 
 
     /**
      * Calculation of the Kpp matrix
      */
     virtual void CalculateAndAddKpp(MatrixType& rK,
-				    GeneralVariables & rVariables,
-				    double& rIntegrationWeight
-				    );
+                                    GeneralVariables & rVariables,
+                                    double& rIntegrationWeight
+                                   );
 
 
     /**
      * Calculation of the Kpp Stabilization Term matrix
      */
     virtual void CalculateAndAddKppStab(MatrixType& rK,
-					GeneralVariables & rVariables,
-					double& rIntegrationWeight
-					);
+                                        GeneralVariables & rVariables,
+                                        double& rIntegrationWeight
+                                       );
 
 
 
@@ -265,45 +265,45 @@ protected:
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-				       GeneralVariables& rVariables,
-				       Vector& rVolumeForce,
-				       double& rIntegrationWeight
-				       );
+                                       GeneralVariables& rVariables,
+                                       Vector& rVolumeForce,
+                                       double& rIntegrationWeight
+                                      );
 
 
     /**
       * Calculation of the Internal Forces due to sigma. Fi = B * sigma
       */
     void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-				       GeneralVariables & rVariables,
-				       double& rIntegrationWeight
-				       );
+                                       GeneralVariables & rVariables,
+                                       double& rIntegrationWeight
+                                      );
 
 
     /**
      * Calculation of the Internal Forces due to Pressure-Balance
      */
     virtual void CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-					       GeneralVariables & rVariables,
-					       double& rIntegrationWeight
-					       );
+            GeneralVariables & rVariables,
+            double& rIntegrationWeight
+                                              );
 
 
     /**
      * Calculation of the Internal Forces due to Pressure-Balance
      */
     virtual void CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-					   GeneralVariables & rVariables,
-					   double& rIntegrationWeight
-					   );
+            GeneralVariables & rVariables,
+            double& rIntegrationWeight
+                                                  );
 
 
     /**
      * Initialize System Matrices
      */
     void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-				  VectorType& rRightHandSideVector,
-				  Flags& rCalculationFlags);
+                                  VectorType& rRightHandSideVector,
+                                  Flags& rCalculationFlags);
 
 
     ///@}

@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -56,7 +56,7 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
- 
+
     /// Counted pointer of AxisymSmallDisplacementElement
     KRATOS_CLASS_POINTER_DEFINITION(AxisymSmallDisplacementElement);
 
@@ -98,7 +98,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
-   //************* STARTING - ENDING  METHODS
+    //************* STARTING - ENDING  METHODS
 
 
     //************************************************************************************
@@ -148,21 +148,21 @@ protected:
 
 
     /**
-     * Calculation and addition of the matrices of the LHS 
+     * Calculation and addition of the matrices of the LHS
      */
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-			    GeneralVariables& rVariables, 
-			    double& rIntegrationWeight);
-  
+                            GeneralVariables& rVariables,
+                            double& rIntegrationWeight);
+
     /**
-     * Calculation and addition of the vectors of the RHS 
+     * Calculation and addition of the vectors of the RHS
      */
 
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, 
-			    GeneralVariables& rVariables, 
-			    Vector& rVolumeForce, 
-			    double& rIntegrationWeight);
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                            GeneralVariables& rVariables,
+                            Vector& rVolumeForce,
+                            double& rIntegrationWeight);
 
     /**
      * Calculation of the Total Mass of the Element
@@ -172,7 +172,7 @@ protected:
 
     /**
      * Initialize Element General Variables
-     */ 
+     */
     void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
@@ -181,48 +181,48 @@ protected:
      * Calculate Element Kinematics
      */
     void CalculateKinematics(GeneralVariables& rVariables,
-			     const double& rPointNumber);
+                             const double& rPointNumber);
 
 
     /**
      * Calculate Radius in the current and deformed geometry
      */
     void CalculateRadius(double & rRadius,
-			 const Vector& rN);
+                         const Vector& rN);
 
     /**
      * Calculation of the Deformation Gradient F
      */
     void CalculateDeformationGradient(const Matrix& rDN_DX,
-				      Matrix& rF,
-				      Matrix& rDeltaPosition,
-				      double & rCurrentRadius,
-				      double & rReferenceRadius);
+                                      Matrix& rF,
+                                      Matrix& rDeltaPosition,
+                                      double & rCurrentRadius,
+                                      double & rReferenceRadius);
 
     /**
      * Calculation of the Displacement Gradient H
      */
     void CalculateDisplacementGradient(Matrix& rH,
-				       const Matrix& rDN_DX,
-				       const Vector & rN,
-				       const double & rRadius);
+                                       const Matrix& rDN_DX,
+                                       const Vector & rN,
+                                       const double & rRadius);
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
     void CalculateDeformationMatrix(Matrix& rB,
-				    const Matrix& rDN_DX,
-				    const Vector& rN,
-				    const double & rRadius);
+                                    const Matrix& rDN_DX,
+                                    const Vector& rN,
+                                    const double & rRadius);
 
     /**
      * Calculation of the Infinitesimal Strain Vector
      */
     void CalculateInfinitesimalStrain(const Matrix& rH,
-				      Vector& rStrainVector);
+                                      Vector& rStrainVector);
 
 
-     ///@}
+    ///@}
     ///@name Protected  Access
     ///@{
     ///@}

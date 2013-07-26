@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -25,7 +25,7 @@ namespace Kratos
 LineLoadAxisym2DCondition::LineLoadAxisym2DCondition( IndexType NewId, GeometryType::Pointer pGeometry )
     : LineLoad2DCondition( NewId, pGeometry )
 {
-  //DO NOT ADD DOFS HERE!!!
+    //DO NOT ADD DOFS HERE!!!
 }
 
 //************************************************************************************
@@ -33,16 +33,16 @@ LineLoadAxisym2DCondition::LineLoadAxisym2DCondition( IndexType NewId, GeometryT
 LineLoadAxisym2DCondition::LineLoadAxisym2DCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
     : LineLoad2DCondition( NewId, pGeometry, pProperties )
 {
-  //DO NOT ADD DOFS HERE!!!
-  mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+    //DO NOT ADD DOFS HERE!!!
+    mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
 }
 
 
 //************************************************************************************
 //************************************************************************************
 LineLoadAxisym2DCondition::LineLoadAxisym2DCondition(  LineLoadAxisym2DCondition const& rOther )
-  : LineLoad2DCondition(rOther)
-  , mThisIntegrationMethod(rOther.mThisIntegrationMethod)
+    : LineLoad2DCondition(rOther)
+    , mThisIntegrationMethod(rOther.mThisIntegrationMethod)
 {
 }
 
@@ -64,11 +64,11 @@ LineLoadAxisym2DCondition::~LineLoadAxisym2DCondition()
 
 //************************************************************************************
 //************************************************************************************
-void LineLoadAxisym2DCondition::CalculateConditionalSystem( MatrixType& rLeftHandSideMatrix, 
-						       VectorType& rRightHandSideVector,
-						       ProcessInfo& rCurrentProcessInfo,
-						       bool CalculateStiffnessMatrixFlag,
-						       bool CalculateResidualVectorFlag )
+void LineLoadAxisym2DCondition::CalculateConditionalSystem( MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        bool CalculateStiffnessMatrixFlag,
+        bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
 
@@ -117,7 +117,7 @@ void LineLoadAxisym2DCondition::CalculateConditionalSystem( MatrixType& rLeftHan
     {
         PressureOnNodes[i] = PressureCondition;
         PressureOnNodes[i]+= GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) - GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
-	
+
     }
 
     //FORCE CONDITION:
@@ -143,13 +143,13 @@ void LineLoadAxisym2DCondition::CalculateConditionalSystem( MatrixType& rLeftHan
         TangentVector[0] =  J[PointNumber]( 0, 0 ); // x_1,e
         TangentVector[1] =  J[PointNumber]( 1, 0 ); // x_2,e
 
-	//Calculate IntegrationPoint radius
-	Vector N=row(Ncontainer , PointNumber);
-	CalculateRadius (CurrentRadius, ReferenceRadius, N);
+        //Calculate IntegrationPoint radius
+        Vector N=row(Ncontainer , PointNumber);
+        CalculateRadius (CurrentRadius, ReferenceRadius, N);
 
         double IntegrationWeight = integration_points[PointNumber].Weight() * norm_2(TangentVector);
 
- 	if ( dimension == 2 ) IntegrationWeight *= 2 * 3.141592654 * CurrentRadius;
+        if ( dimension == 2 ) IntegrationWeight *= 2 * 3.141592654 * CurrentRadius;
 
         //calculating normal
         NormalVector[0] = -J[PointNumber]( 1, 0 ); //-x_2,e
@@ -157,7 +157,7 @@ void LineLoadAxisym2DCondition::CalculateConditionalSystem( MatrixType& rLeftHan
 
         //calculating the pressure and force on the gauss point
         double gauss_pressure = 0.00;
-	Vector ForceLoad = ZeroVector(dimension);
+        Vector ForceLoad = ZeroVector(dimension);
 
         for ( unsigned int ii = 0; ii < number_of_nodes; ii++ )
         {
@@ -197,47 +197,47 @@ void LineLoadAxisym2DCondition::CalculateConditionalSystem( MatrixType& rLeftHan
 //***********************************************************************
 //***********************************************************************
 
-  void LineLoadAxisym2DCondition::CalculateRadius(double & rCurrentRadius,
-						  double & rReferenceRadius,
-						  const Vector& rN)
-							  
+void LineLoadAxisym2DCondition::CalculateRadius(double & rCurrentRadius,
+        double & rReferenceRadius,
+        const Vector& rN)
 
-  {
+
+{
 
     KRATOS_TRY
 
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
+
     rCurrentRadius=0;
     rReferenceRadius=0;
 
     if ( dimension == 2 )
-      {	
+    {
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	  {
+        {
             //Displacement from the reference to the current configuration
             array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
-            array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;  
-	    array_1d<double, 3 > & ReferencePosition    = GetGeometry()[i].Coordinates();
-	    array_1d<double, 3 > CurrentPosition        = ReferencePosition + DeltaDisplacement;
-	    
-	    rCurrentRadius   += CurrentPosition[0]*rN[i];
-	    rReferenceRadius += ReferencePosition[0]*rN[i];
+            array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;
+            array_1d<double, 3 > & ReferencePosition    = GetGeometry()[i].Coordinates();
+            array_1d<double, 3 > CurrentPosition        = ReferencePosition + DeltaDisplacement;
+
+            rCurrentRadius   += CurrentPosition[0]*rN[i];
+            rReferenceRadius += ReferencePosition[0]*rN[i];
             //std::cout<<" node "<<i<<" -> DeltaDisplacement : "<<DeltaDisplacement<<std::endl;
-	  }
-      }
+        }
+    }
 
 
     if ( dimension == 3 )
-      {
-	std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
-      }
+    {
+        std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
+    }
 
     KRATOS_CATCH( "" )
-      }
+}
 
 
 

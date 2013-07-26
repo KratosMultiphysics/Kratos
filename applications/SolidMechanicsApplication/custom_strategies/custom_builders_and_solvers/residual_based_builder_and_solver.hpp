@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -137,13 +137,13 @@ public:
 
         //getting the elements from the model
         ElementsArrayType& pElements = r_model_part.Elements();
-	
-	//std::cout<<" Elements "<<r_model_part.NumberOfElements()<<std::endl;
+
+        //std::cout<<" Elements "<<r_model_part.NumberOfElements()<<std::endl;
 
         //getting the array of the conditions
         ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
 
-	//std::cout<<" Conditions "<<r_model_part.NumberOfConditions()<<std::endl;
+        //std::cout<<" Conditions "<<r_model_part.NumberOfConditions()<<std::endl;
 
         //resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
@@ -157,7 +157,7 @@ public:
         Element::EquationIdVectorType EquationId;
 
         //double StartTime = GetTickCount();
-	
+
         // assemble all elements
 #ifndef _OPENMP
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
@@ -727,9 +727,9 @@ public:
 
         BaseType::mDofSetIsInitialized = true;
         if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
-	  {
+        {
             std::cout << "finished setting up the dofs" << std::endl;
-	  }
+        }
 
         KRATOS_CATCH("");
     }
@@ -881,7 +881,7 @@ public:
         // KRATOS_WATCH(*BaseType::mpReactionsVector);
         //updating variables
         TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
-	int num=1;
+        int num=1;
         for (it2 = BaseType::mDofSet.ptr_begin(); it2 != BaseType::mDofSet.ptr_end(); ++it2)
         {
             if ((*it2)->IsFixed())
@@ -892,7 +892,7 @@ public:
                 KRATOS_WATCH(ReactionsVector[i]);*/
                 (*it2)->GetSolutionStepReactionValue() = ReactionsVector[i];
             }
-	    num++;
+            num++;
         }
     }
 

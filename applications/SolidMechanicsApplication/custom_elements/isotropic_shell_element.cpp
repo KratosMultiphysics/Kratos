@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -128,7 +128,7 @@ void IsotropicShellElement::CalculateMembraneB( boost::numeric::ublas::bounded_m
         const double& y12,
         const double& y23,
         const double& y31
-                                       )
+                                              )
 {
     KRATOS_TRY
 
@@ -299,15 +299,15 @@ void IsotropicShellElement::CalculateMembraneB( boost::numeric::ublas::bounded_m
 //************************************************************************************
 //************************************************************************************
 void IsotropicShellElement::CalculateBendingB( boost::numeric::ublas::bounded_matrix<double,9,3>& Bb,
-                                        const double& loc2,
-                                        const double& loc3,
-                                        const double& x12,
-                                        const double& x23,
-                                        const double& x31,
-                                        const double& y12,
-                                        const double& y23,
-                                        const double& y31
-                                      )
+        const double& loc2,
+        const double& loc3,
+        const double& x12,
+        const double& x23,
+        const double& x31,
+        const double& y12,
+        const double& y23,
+        const double& y31
+                                             )
 {
     KRATOS_TRY
 
@@ -1781,8 +1781,8 @@ void IsotropicShellElement::CalculatePureBendingDisplacement(
 //************************************************************************************
 //************************************************************************************
 void IsotropicShellElement::InvertMatrix(const boost::numeric::ublas::bounded_matrix<double,3,3>& InputMatrix,
-                                  boost::numeric::ublas::bounded_matrix<double,3,3>& InvertedMatrix,
-                                  double& InputMatrixDet)
+        boost::numeric::ublas::bounded_matrix<double,3,3>& InvertedMatrix,
+        double& InputMatrixDet)
 {
     KRATOS_TRY
     if(InvertedMatrix.size1() != 3 || InvertedMatrix.size2() != 3)

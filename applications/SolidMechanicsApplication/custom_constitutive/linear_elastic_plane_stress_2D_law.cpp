@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -21,53 +21,53 @@
 namespace Kratos
 {
 
-  //******************************CONSTRUCTOR*******************************************
-  //************************************************************************************
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
 
-  LinearElasticPlaneStress2DLaw::LinearElasticPlaneStress2DLaw()
-  : LinearElasticPlaneStrain2DLaw()
-  {
-  }
+LinearElasticPlaneStress2DLaw::LinearElasticPlaneStress2DLaw()
+    : LinearElasticPlaneStrain2DLaw()
+{
+}
 
-  //******************************COPY CONSTRUCTOR**************************************
-  //************************************************************************************
+//******************************COPY CONSTRUCTOR**************************************
+//************************************************************************************
 
-  LinearElasticPlaneStress2DLaw::LinearElasticPlaneStress2DLaw(const LinearElasticPlaneStress2DLaw& rOther)
-  : LinearElasticPlaneStrain2DLaw()
-  {
-  }
-  
-  //********************************CLONE***********************************************
-  //************************************************************************************
+LinearElasticPlaneStress2DLaw::LinearElasticPlaneStress2DLaw(const LinearElasticPlaneStress2DLaw& rOther)
+    : LinearElasticPlaneStrain2DLaw()
+{
+}
 
-  ConstitutiveLaw::Pointer LinearElasticPlaneStress2DLaw::Clone() const
-  {
+//********************************CLONE***********************************************
+//************************************************************************************
+
+ConstitutiveLaw::Pointer LinearElasticPlaneStress2DLaw::Clone() const
+{
     LinearElasticPlaneStress2DLaw::Pointer p_clone(new LinearElasticPlaneStress2DLaw(*this));
     return p_clone;
-  }
-  
-  //*******************************DESTRUCTOR*******************************************
-  //************************************************************************************
+}
 
-  LinearElasticPlaneStress2DLaw::~LinearElasticPlaneStress2DLaw()
-  {
-  }
+//*******************************DESTRUCTOR*******************************************
+//************************************************************************************
 
-
-  //************* COMPUTING  METHODS
-  //************************************************************************************
-  //************************************************************************************
+LinearElasticPlaneStress2DLaw::~LinearElasticPlaneStress2DLaw()
+{
+}
 
 
+//************* COMPUTING  METHODS
+//************************************************************************************
+//************************************************************************************
 
-    //***********************COMPUTE ALGORITHMIC CONSTITUTIVE MATRIX**********************
-  //************************************************************************************
 
 
-  void LinearElasticPlaneStress2DLaw::CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, 
-							const double &rYoungModulus, 
-							const double &rPoissonCoefficient )
-  {
+//***********************COMPUTE ALGORITHMIC CONSTITUTIVE MATRIX**********************
+//************************************************************************************
+
+
+void LinearElasticPlaneStress2DLaw::CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix,
+        const double &rYoungModulus,
+        const double &rPoissonCoefficient )
+{
     rConstitutiveMatrix.clear();
 
     //plane stress constitutive matrix:
@@ -78,10 +78,10 @@ namespace Kratos
 
     rConstitutiveMatrix ( 0 , 1 ) = rConstitutiveMatrix ( 0 , 0 )*rPoissonCoefficient;
     rConstitutiveMatrix ( 1 , 0 ) = rConstitutiveMatrix ( 0 , 1 );
-  }
+}
 
 
-  
 
-    
+
+
 } // Namespace Kratos

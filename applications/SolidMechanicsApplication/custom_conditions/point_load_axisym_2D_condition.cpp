@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -23,7 +23,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 PointLoadAxisym2DCondition::PointLoadAxisym2DCondition(IndexType NewId, GeometryType::Pointer
-                           pGeometry)
+        pGeometry)
     : PointLoad2DCondition(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
@@ -40,7 +40,7 @@ PointLoadAxisym2DCondition::PointLoadAxisym2DCondition(IndexType NewId, Geometry
 //************************************************************************************
 //************************************************************************************
 PointLoadAxisym2DCondition::PointLoadAxisym2DCondition(  PointLoadAxisym2DCondition const& rOther )
-  : PointLoad2DCondition(rOther)
+    : PointLoad2DCondition(rOther)
 {
 }
 
@@ -48,7 +48,7 @@ PointLoadAxisym2DCondition::PointLoadAxisym2DCondition(  PointLoadAxisym2DCondit
 //************************************************************************************
 
 Condition::Pointer PointLoadAxisym2DCondition::Create(IndexType NewId, NodesArrayType
-                                        const& ThisNodes,  PropertiesType::Pointer pProperties) const
+        const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
     return Condition::Pointer(new PointLoadAxisym2DCondition(NewId,GetGeometry().Create(ThisNodes), pProperties));
 }
@@ -72,7 +72,7 @@ void PointLoadAxisym2DCondition::CalculateRightHandSide(VectorType& rRightHandSi
         rRightHandSideVector.resize(2,false);
 
     array_1d<double,3>& force = GetGeometry()[0].GetSolutionStepValue(FORCE);
-       
+
     double CurrentRadius = 0;
     double ReferenceRadius = 0;
     CalculateRadius (CurrentRadius,ReferenceRadius);
@@ -121,21 +121,21 @@ void PointLoadAxisym2DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideM
 //************************************************************************************
 
 void PointLoadAxisym2DCondition::CalculateRadius(double & rCurrentRadius,
-						  double & rReferenceRadius)					  
+        double & rReferenceRadius)
 {
 
     KRATOS_TRY
-   
+
     rCurrentRadius=0;
     rReferenceRadius=0;
 
     //Displacement from the reference to the current configuration
     array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
     array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT,1);
-    array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;  
+    array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;
     array_1d<double, 3 > & ReferencePosition    = GetGeometry()[0].Coordinates();
     array_1d<double, 3 > CurrentPosition        = ReferencePosition + DeltaDisplacement;
-	    
+
     rCurrentRadius   = CurrentPosition[0];
     rReferenceRadius = ReferencePosition[0];
 

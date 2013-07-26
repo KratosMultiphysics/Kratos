@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -103,7 +103,7 @@ public:
     ///@{
 
     /// Turn back information as a string.
-  //      virtual String Info() const;
+    //      virtual String Info() const;
 
     /// Print information about this object.
 //      virtual void PrintInfo(std::ostream& rOStream) const;
@@ -138,7 +138,7 @@ protected:
     ///@name Protected Operations
     ///@{
     void CalculateRadius(double & rCurrentRadius,
-			 double & rReferenceRadius);		
+                         double & rReferenceRadius);
 
     ///@}
     ///@name Protected  Access

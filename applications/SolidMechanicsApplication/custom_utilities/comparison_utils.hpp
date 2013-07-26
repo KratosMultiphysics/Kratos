@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -59,11 +59,11 @@ public:
 
     /** Constructor.
      */
-    ComparisonUtils(){};
-  
+    ComparisonUtils() {};
+
     /** Destructor.
      */
-    ~ComparisonUtils(){};
+    ~ComparisonUtils() {};
 
     /** Operators.
      */
@@ -79,55 +79,57 @@ public:
     double CalculateVonMises(const Vector& StressVector)
     {
         KRATOS_TRY
-	  
+
         double tolerance  = 1e-10;
-	double zero       = 1e-10;
-	double NormStress = 0.00;
+        double zero       = 1e-10;
+        double NormStress = 0.00;
 
 
-	Matrix StressTensor    = MathUtils<double>::StressVectorToTensor(StressVector);
+        Matrix StressTensor    = MathUtils<double>::StressVectorToTensor(StressVector);
 
-	CheckZeroDiagonalComponents (StressTensor);
+        CheckZeroDiagonalComponents (StressTensor);
 
-	Vector PrincipalStress = ZeroVector(3);
+        Vector PrincipalStress = ZeroVector(3);
 
-	NormStress =SD_MathUtils<double>::NormTensor(StressTensor);
+        NormStress =SD_MathUtils<double>::NormTensor(StressTensor);
 
- 	Vector MainStresses;
+        Vector MainStresses;
 
-	bool main_tensor = CheckPrincipalStresses( StressTensor );
+        bool main_tensor = CheckPrincipalStresses( StressTensor );
 
-	if(!main_tensor){
+        if(!main_tensor)
+        {
 
-	  if(NormStress>1e-6)
-	    {
-	      MainStresses = SD_MathUtils<double>::EigenValues(StressTensor,tolerance,zero);
-	    }
-	  else
-	    {
-	      MainStresses = ZeroVector(3);
-	    }
+            if(NormStress>1e-6)
+            {
+                MainStresses = SD_MathUtils<double>::EigenValues(StressTensor,tolerance,zero);
+            }
+            else
+            {
+                MainStresses = ZeroVector(3);
+            }
 
-	}
-	else{
-	  MainStresses = ZeroVector(3);
-	  for(unsigned int i=0; i<StressTensor.size1(); i++)
-	    MainStresses[i]=StressTensor(i,i);
-	}
-	
+        }
+        else
+        {
+            MainStresses = ZeroVector(3);
+            for(unsigned int i=0; i<StressTensor.size1(); i++)
+                MainStresses[i]=StressTensor(i,i);
+        }
 
-	for(unsigned int i=0; i<MainStresses.size(); i++)
-	  PrincipalStress[i]=MainStresses[i];
 
-	double SigmaEquivalent =  (0.5)*((PrincipalStress[0]-PrincipalStress[1])*(PrincipalStress[0]-PrincipalStress[1]) +
-					 (PrincipalStress[1]-PrincipalStress[2])*(PrincipalStress[1]-PrincipalStress[2]) +
-					 (PrincipalStress[2]-PrincipalStress[0])*(PrincipalStress[2]-PrincipalStress[0]));
+        for(unsigned int i=0; i<MainStresses.size(); i++)
+            PrincipalStress[i]=MainStresses[i];
 
-	SigmaEquivalent = sqrt(SigmaEquivalent);
+        double SigmaEquivalent =  (0.5)*((PrincipalStress[0]-PrincipalStress[1])*(PrincipalStress[0]-PrincipalStress[1]) +
+                                         (PrincipalStress[1]-PrincipalStress[2])*(PrincipalStress[1]-PrincipalStress[2]) +
+                                         (PrincipalStress[2]-PrincipalStress[0])*(PrincipalStress[2]-PrincipalStress[0]));
 
-	//std::cout<<" SigmaEquivalent "<<SigmaEquivalent<<" StressVector "<<StressVector<<std::endl;
+        SigmaEquivalent = sqrt(SigmaEquivalent);
 
-	return SigmaEquivalent;
+        //std::cout<<" SigmaEquivalent "<<SigmaEquivalent<<" StressVector "<<StressVector<<std::endl;
+
+        return SigmaEquivalent;
 
         KRATOS_CATCH("")
 
@@ -138,33 +140,34 @@ public:
     void  CheckZeroDiagonalComponents (Matrix& StressTensor)
     {
         // No null diagonal terms are accepted in the eigenvalue calculation
-      for(unsigned int i=0; i<StressTensor.size1(); i++)
-	{
-	  if (fabs(StressTensor(i,i))<1e-10)
-	    {
-	      StressTensor(i,i) = 1e-10;
-	    }
-	}
+        for(unsigned int i=0; i<StressTensor.size1(); i++)
+        {
+            if (fabs(StressTensor(i,i))<1e-10)
+            {
+                StressTensor(i,i) = 1e-10;
+            }
+        }
     }
 
     bool  CheckPrincipalStresses (Matrix& StressTensor)
     {
-      // No null diagonal terms are accepted in the eigenvalue calculation
-      bool main = true;
-      for(unsigned int i=0; i<StressTensor.size1(); i++)
-	{
-	  for(unsigned int j=0; j<StressTensor.size2(); j++)
-	    {
-	      if(i!=j){
-		if (fabs(StressTensor(i,j))>1e-10)
-		  {
-		    main = false;
-		  }
-	      }
-	    }
-	}
+        // No null diagonal terms are accepted in the eigenvalue calculation
+        bool main = true;
+        for(unsigned int i=0; i<StressTensor.size1(); i++)
+        {
+            for(unsigned int j=0; j<StressTensor.size2(); j++)
+            {
+                if(i!=j)
+                {
+                    if (fabs(StressTensor(i,j))>1e-10)
+                    {
+                        main = false;
+                    }
+                }
+            }
+        }
 
-      return main;
+        return main;
     }
 
 

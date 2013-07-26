@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -27,7 +27,7 @@ namespace Kratos
 SurfaceLoad3DCondition::SurfaceLoad3DCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : Condition(NewId, pGeometry)
 {
-  //DO NOT ADD DOFS HERE!!!
+    //DO NOT ADD DOFS HERE!!!
 }
 
 //***********************************************************************************
@@ -35,13 +35,13 @@ SurfaceLoad3DCondition::SurfaceLoad3DCondition(IndexType NewId, GeometryType::Po
 SurfaceLoad3DCondition::SurfaceLoad3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
 {
-  //DO NOT ADD DOFS HERE!!!
+    //DO NOT ADD DOFS HERE!!!
 }
 
 //************************************************************************************
 //************************************************************************************
 SurfaceLoad3DCondition::SurfaceLoad3DCondition( SurfaceLoad3DCondition const& rOther )
-  : Condition(rOther)
+    : Condition(rOther)
 {
 }
 
@@ -338,9 +338,9 @@ void SurfaceLoad3DCondition::ExpandReducedMatrix(
         rowindex = i * 3;
         for (unsigned int j = 0; j < size; j++)
         {
-	  colindex = j * 3;
-	  for (unsigned int ii = 0; ii < 3; ii++)
-	    Destination(rowindex + ii, colindex + ii) += ReducedMatrix(i, j);
+            colindex = j * 3;
+            for (unsigned int ii = 0; ii < 3; ii++)
+                Destination(rowindex + ii, colindex + ii) += ReducedMatrix(i, j);
         }
     }
 
@@ -386,16 +386,16 @@ void SurfaceLoad3DCondition::CalculateAndAddFacePressure(
     unsigned int index = 0;
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-	array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
+        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
         index = dimension * i;
         double  DiscretePressure = rPressure * rN[i] * rIntegrationWeight;
         rF[index]     += DiscretePressure * rNormal[0];
         rF[index + 1] += DiscretePressure * rNormal[1];
         rF[index + 2] += DiscretePressure * rNormal[2];
 
-	ExternalForce[0] += DiscretePressure * rNormal[0];
-	ExternalForce[1] += DiscretePressure * rNormal[1];
-	ExternalForce[2] += DiscretePressure * rNormal[2];
+        ExternalForce[0] += DiscretePressure * rNormal[0];
+        ExternalForce[1] += DiscretePressure * rNormal[1];
+        ExternalForce[2] += DiscretePressure * rNormal[2];
     }
 
     KRATOS_CATCH("")
@@ -406,9 +406,9 @@ void SurfaceLoad3DCondition::CalculateAndAddFacePressure(
 //***********************************************************************
 
 void SurfaceLoad3DCondition::CalculateAndAddSurfaceLoad(Vector& rF,
-						    const Vector& rN,
-						    Vector& rForce,
-						    double  rIntegrationWeight )
+        const Vector& rN,
+        Vector& rForce,
+        double  rIntegrationWeight )
 {
 
     KRATOS_TRY
@@ -421,13 +421,13 @@ void SurfaceLoad3DCondition::CalculateAndAddSurfaceLoad(Vector& rF,
     {
         index = dimension * i;
 
-	array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
+        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
 
         for ( unsigned int idim = 0; idim < number_of_nodes; idim++ )
         {
             rF[index+idim] += rN[i] * rForce[idim] * rIntegrationWeight;
 
-	    ExternalForce[idim] += rN[i] * rForce[idim] * rIntegrationWeight;   
+            ExternalForce[idim] += rN[i] * rForce[idim] * rIntegrationWeight;
         }
     }
 
@@ -438,10 +438,10 @@ void SurfaceLoad3DCondition::CalculateAndAddSurfaceLoad(Vector& rF,
 //***********************************************************************************
 
 void SurfaceLoad3DCondition::CalculateConditionalSystem(MatrixType& rLeftHandSideMatrix,
-						      VectorType& rRightHandSideVector,
-						      const ProcessInfo& rCurrentProcessInfo,
-						      bool CalculateStiffnessMatrixFlag,
-						      bool CalculateResidualVectorFlag)
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        bool CalculateStiffnessMatrixFlag,
+        bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
 
@@ -482,8 +482,8 @@ void SurfaceLoad3DCondition::CalculateConditionalSystem(MatrixType& rLeftHandSid
 
     for (unsigned int i = 0; i < PressureOnNodes.size(); i++)
     {
-      PressureOnNodes[i] = PressureCondition;
-      PressureOnNodes[i]+= GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) - GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
+        PressureOnNodes[i] = PressureCondition;
+        PressureOnNodes[i]+= GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) - GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
     }
 
 
@@ -516,16 +516,16 @@ void SurfaceLoad3DCondition::CalculateConditionalSystem(MatrixType& rLeftHandSid
 
         // calculating the pressure and force on the gauss point
         double gauss_pressure = 0.00;
-	Vector ForceLoad = ZeroVector(dimension);
+        Vector ForceLoad = ZeroVector(dimension);
 
         for (unsigned int ii = 0; ii < number_of_nodes; ii++)
-	  {
-	    gauss_pressure += Ncontainer(PointNumber, ii) * PressureOnNodes[ii];
-	    for ( unsigned int j = 0; j < dimension; j++ )
-	      {
+        {
+            gauss_pressure += Ncontainer(PointNumber, ii) * PressureOnNodes[ii];
+            for ( unsigned int j = 0; j < dimension; j++ )
+            {
                 ForceLoad[j] += Ncontainer( PointNumber, ii ) * ForceArray[ii][j];
-	      }
-	  }
+            }
+        }
 
         // LEFT HAND SIDE MATRIX
         if (CalculateStiffnessMatrixFlag == true)
@@ -539,11 +539,11 @@ void SurfaceLoad3DCondition::CalculateConditionalSystem(MatrixType& rLeftHandSid
         {
             if (gauss_pressure != 0.00)
                 CalculateAndAddFacePressure(rRightHandSideVector, row(Ncontainer, PointNumber),
-                                              NormalVector, gauss_pressure, IntegrationWeight);
-	    
-	    if (norm_2(ForceLoad) != 0.00)
-	      CalculateAndAddSurfaceLoad(rRightHandSideVector, row(Ncontainer, PointNumber),
-					   ForceLoad, IntegrationWeight);
+                                            NormalVector, gauss_pressure, IntegrationWeight);
+
+            if (norm_2(ForceLoad) != 0.00)
+                CalculateAndAddSurfaceLoad(rRightHandSideVector, row(Ncontainer, PointNumber),
+                                           ForceLoad, IntegrationWeight);
         }
     }
 

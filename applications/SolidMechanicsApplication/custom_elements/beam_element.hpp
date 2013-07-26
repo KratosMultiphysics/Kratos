@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -29,36 +29,36 @@
 
 namespace Kratos
 {
-  ///@name Kratos Globals
-  ///@{
-  ///@}
-  ///@name Type Definitions
-  ///@{
-  ///@}
-  ///@name  Enum's
-  ///@{
-  ///@}
-  ///@name  Functions
-  ///@{
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+///@name Kratos Globals
+///@{
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name  Enum's
+///@{
+///@}
+///@name  Functions
+///@{
+///@}
+///@name Kratos Classes
+///@{
 
-  /// Beam Element for 3D space dimension
+/// Beam Element for 3D space dimension
 
-  /**
-   * Implements a Small Displacement definition for structural analysis.
-   * This works for line geometries in 3D :: it must be extended to 2D and large displacement
-   */
+/**
+ * Implements a Small Displacement definition for structural analysis.
+ * This works for line geometries in 3D :: it must be extended to 2D and large displacement
+ */
 
-  class BeamElement
+class BeamElement
     :public Element
-  {
+{
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
 
-  private:
+private:
     ///@name Static Member Variables
 
 
@@ -87,7 +87,7 @@ namespace Kratos
     void CalculateDistrubuitedBodyForce(const int Direction, Vector& Load);
 
 
-  public:
+public:
 
 
 
@@ -128,9 +128,9 @@ namespace Kratos
     void CalculateLHS(Matrix& rLeftHandSideMatrix);
 
     void CalculateElementalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-				  ProcessInfo& rCurrentProcessInfo,
-				  bool CalculateStiffnessMatrixFlag,
-				  bool CalculateResidualVectorFlag);
+                                  ProcessInfo& rCurrentProcessInfo,
+                                  bool CalculateStiffnessMatrixFlag,
+                                  bool CalculateResidualVectorFlag);
 
     void  GetFirstDerivativesVector(Vector& values, int Step);
     void  GetSecondDerivativesVector(Vector& values, int Step);
@@ -156,7 +156,7 @@ namespace Kratos
      */
     int Check(const ProcessInfo& rCurrentProcessInfo);
 
-  private:
+private:
     ///@}
     ///@name Serialization
     ///@{
@@ -169,18 +169,18 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     }
 
     virtual void load(Serializer& rSerializer)
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
     }
 
 
 
 
-  }; // Class BeamElement
+}; // Class BeamElement
 
 } // Namespace Kratos.
 

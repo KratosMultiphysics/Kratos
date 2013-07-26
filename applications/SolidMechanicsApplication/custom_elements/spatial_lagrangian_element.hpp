@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -95,7 +95,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
-   //************* STARTING - ENDING  METHODS
+    //************* STARTING - ENDING  METHODS
 
     /**
       * Called to initialize the element.
@@ -156,7 +156,7 @@ protected:
 
     /**
      * Initialize Element General Variables
-     */ 
+     */
     virtual void InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
@@ -164,28 +164,28 @@ protected:
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
-				     ConstitutiveLaw::Parameters& rValues,
-				     const int & rPointNumber);
+                                     ConstitutiveLaw::Parameters& rValues,
+                                     const int & rPointNumber);
 
     /**
      * Calculate Element Kinematics
      */
     virtual void CalculateKinematics(GeneralVariables& rVariables,
-				     const double& rPointNumber);
+                                     const double& rPointNumber);
 
     /**
      * Calculation of the Deformation Gradient F
      */
     void CalculateDeformationGradient(const Matrix& rDN_DX,
-				      Matrix& rF,
-				      Matrix& rDeltaPosition);
+                                      Matrix& rF,
+                                      Matrix& rDeltaPosition);
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
     virtual void CalculateDeformationMatrix(Matrix& rB,
-					    Matrix& rF,
-					    Matrix& rDN_DX);
+                                            Matrix& rF,
+                                            Matrix& rDN_DX);
 
     ///@}
     ///@name Protected  Access

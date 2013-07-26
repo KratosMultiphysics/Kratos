@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -9,27 +9,27 @@
 #if !defined (KRATOS_LINEAR_ELASTIC_AXISYM_2D_LAW_H_INCLUDED)
 #define  KRATOS_LINEAR_ELASTIC_AXISYM_2D_LAW_H_INCLUDED
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 
 // Project includes
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
 
 namespace Kratos
 {
-  /**
-   * Defines a linear isotropic constitutive law in 2D (Plane Stress)
-   * This material law is defined by the parameters:
-   * 1) YOUNG MODULUS 
-   * 2) POISSON RATIO
-   * As there are no further parameters the functionality is valid
-   * for small and large displacements elasticity.
-   */
+/**
+ * Defines a linear isotropic constitutive law in 2D (Plane Stress)
+ * This material law is defined by the parameters:
+ * 1) YOUNG MODULUS
+ * 2) POISSON RATIO
+ * As there are no further parameters the functionality is valid
+ * for small and large displacements elasticity.
+ */
 
-  class LinearElasticAxisym2DLaw : public LinearElastic3DLaw
-  {
-  public:
+class LinearElasticAxisym2DLaw : public LinearElastic3DLaw
+{
+public:
     /**
      * Type Definitions
      */
@@ -39,29 +39,29 @@ namespace Kratos
     /**
      * Counted pointer of LinearElasticAxisym2DLaw
      */
-    
+
     KRATOS_CLASS_POINTER_DEFINITION(LinearElasticAxisym2DLaw);
-    
+
     /**
-     * Life Cycle 
+     * Life Cycle
      */
 
     /**
      * Default constructor.
      */
     LinearElasticAxisym2DLaw();
-			
+
     /**
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
     ConstitutiveLaw::Pointer Clone() const;
-    
+
     /**
      * Copy constructor.
      */
     LinearElasticAxisym2DLaw (const LinearElasticAxisym2DLaw& rOther);
-   
+
 
     /**
      * Assignment operator.
@@ -74,28 +74,34 @@ namespace Kratos
      * Destructor.
      */
     virtual ~LinearElasticAxisym2DLaw();
-			
+
     /**
-     * Operators 
+     * Operators
      */
-    
+
 
     /**
      * Dimension of the law:
      */
-    SizeType WorkingSpaceDimension() { return 2; };
+    SizeType WorkingSpaceDimension()
+    {
+        return 2;
+    };
 
     /**
      * Voigt tensor size:
      */
-    SizeType GetStrainSize()         { return 4; };
+    SizeType GetStrainSize()
+    {
+        return 4;
+    };
     /**
      * Operations needed by the base class:
      */
 
-     /**
-     * Input and output
-     */
+    /**
+    * Input and output
+    */
     /**
      * Turn back information as a string.
      */
@@ -108,8 +114,8 @@ namespace Kratos
      * Print object's data.
      */
     //virtual void PrintData(std::ostream& rOStream) const;
-		
-  protected:
+
+protected:
 
     ///@name Protected static Member Variables
     ///@{
@@ -130,7 +136,7 @@ namespace Kratos
      * @param rStrainVector
      */
     void CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-				       Vector& rStrainVector );
+                                       Vector& rStrainVector );
 
 
     /**
@@ -139,7 +145,7 @@ namespace Kratos
      * @param rStrainVector
      */
     void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-				 Vector& rStrainVector );
+                                 Vector& rStrainVector );
 
     /**
      * calculates the linear elastic constitutive matrix in terms of Young's modulus and
@@ -150,13 +156,13 @@ namespace Kratos
      */
 
 
-    void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, 
-				       const double &rYoungModulus, 
-				       const double &rPoissonCoefficient );
+    void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix,
+                                       const double &rYoungModulus,
+                                       const double &rPoissonCoefficient );
 
-    
-	
-  private:
+
+
+private:
 
 
     ///@name Static Member Variables
@@ -176,7 +182,7 @@ namespace Kratos
     ///@{
     ///@}
 
- 	       
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -189,15 +195,15 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearElastic3DLaw);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearElastic3DLaw);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearElastic3DLaw);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearElastic3DLaw);
     }
 
 
-  }; // Class LinearElasticAxisym2DLaw 
+}; // Class LinearElasticAxisym2DLaw
 }  // namespace Kratos.
 #endif // KRATOS_LINEAR_ELASTIC_AXISYM_2D_LAW_H_INCLUDED  defined 

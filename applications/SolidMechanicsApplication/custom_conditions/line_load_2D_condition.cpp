@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -25,7 +25,7 @@ namespace Kratos
 LineLoad2DCondition::LineLoad2DCondition( IndexType NewId, GeometryType::Pointer pGeometry )
     : Condition( NewId, pGeometry )
 {
-  //DO NOT ADD DOFS HERE!!!
+    //DO NOT ADD DOFS HERE!!!
 }
 
 //************************************************************************************
@@ -33,14 +33,14 @@ LineLoad2DCondition::LineLoad2DCondition( IndexType NewId, GeometryType::Pointer
 LineLoad2DCondition::LineLoad2DCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties )
     : Condition( NewId, pGeometry, pProperties )
 {
-  //DO NOT ADD DOFS HERE!!!
+    //DO NOT ADD DOFS HERE!!!
 }
 
 
 //************************************************************************************
 //************************************************************************************
 LineLoad2DCondition::LineLoad2DCondition(  LineLoad2DCondition const& rOther )
-  : Condition(rOther)
+    : Condition(rOther)
 {
 
 }
@@ -88,11 +88,11 @@ void LineLoad2DCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 
 //************************************************************************************
 //************************************************************************************
-void LineLoad2DCondition::CalculateConditionalSystem( MatrixType& rLeftHandSideMatrix, 
-						       VectorType& rRightHandSideVector,
-						       ProcessInfo& rCurrentProcessInfo,
-						       bool CalculateStiffnessMatrixFlag,
-						       bool CalculateResidualVectorFlag )
+void LineLoad2DCondition::CalculateConditionalSystem( MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo,
+        bool CalculateStiffnessMatrixFlag,
+        bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
 
@@ -141,7 +141,7 @@ void LineLoad2DCondition::CalculateConditionalSystem( MatrixType& rLeftHandSideM
     {
         PressureOnNodes[i] = PressureCondition;
         PressureOnNodes[i]+= GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) - GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
-	
+
     }
 
     //FORCE CONDITION:
@@ -173,7 +173,7 @@ void LineLoad2DCondition::CalculateConditionalSystem( MatrixType& rLeftHandSideM
 
         //calculating the pressure and force on the gauss point
         double gauss_pressure = 0.00;
-	Vector ForceLoad = ZeroVector(dimension);
+        Vector ForceLoad = ZeroVector(dimension);
 
         for ( unsigned int ii = 0; ii < number_of_nodes; ii++ )
         {
@@ -212,11 +212,11 @@ void LineLoad2DCondition::CalculateConditionalSystem( MatrixType& rLeftHandSideM
 //***********************************************************************
 //***********************************************************************
 void LineLoad2DCondition::CalculateAndSubKp( Matrix& rK,
-					      const Matrix& rDN_De,
-					      const Vector& rN,
-					      double rPressure,
-					      double rIntegrationWeight
-					      )
+        const Matrix& rDN_De,
+        const Vector& rN,
+        double rPressure,
+        double rIntegrationWeight
+                                           )
 {
     KRATOS_TRY
 
@@ -263,7 +263,7 @@ void LineLoad2DCondition::CalculateAndAddFacePressure(Vector& rF,
         double rPressure,
         double rIntegrationWeight )
 {
-  
+
     KRATOS_TRY
 
     unsigned int number_of_nodes = GetGeometry().size();
@@ -271,15 +271,15 @@ void LineLoad2DCondition::CalculateAndAddFacePressure(Vector& rF,
     unsigned int index = 0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-	array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
+        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
 
         index = dimension * i;
         double DiscretePressure = rPressure * rN[i] * rIntegrationWeight;
         rF[index]   += DiscretePressure * rNormal[0];
         rF[index+1] += DiscretePressure * rNormal[1];
-	
-	ExternalForce[0] +=DiscretePressure * rNormal[0];
-	ExternalForce[1] +=DiscretePressure * rNormal[1];
+
+        ExternalForce[0] +=DiscretePressure * rNormal[0];
+        ExternalForce[1] +=DiscretePressure * rNormal[1];
 
     }
 
@@ -292,9 +292,9 @@ void LineLoad2DCondition::CalculateAndAddFacePressure(Vector& rF,
 //***********************************************************************
 
 void LineLoad2DCondition::CalculateAndAddLineLoad(Vector& rF,
-						    const Vector& rN,
-						    Vector& rForce,
-						    double  rIntegrationWeight )
+        const Vector& rN,
+        Vector& rForce,
+        double  rIntegrationWeight )
 {
 
     KRATOS_TRY
@@ -307,18 +307,18 @@ void LineLoad2DCondition::CalculateAndAddLineLoad(Vector& rF,
     {
         index = dimension * i;
 
-	array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
+        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
 
         for ( unsigned int idim = 0; idim < number_of_nodes; idim++ )
         {
             rF[index+idim] += rN[i] * rForce[idim] * rIntegrationWeight;
 
-	    ExternalForce[idim] += rN[i] * rForce[idim] * rIntegrationWeight;   
+            ExternalForce[idim] += rN[i] * rForce[idim] * rIntegrationWeight;
         }
     }
 
     KRATOS_CATCH("")
- 
+
 }
 
 
@@ -330,7 +330,7 @@ void LineLoad2DCondition::EquationIdVector( EquationIdVectorType& rResult, Proce
     const unsigned int dimension  = 2;
 
     unsigned int conditiondimension = number_of_nodes*dimension;
- 
+
     if ( rResult.size() != conditiondimension )
         rResult.resize( conditiondimension, false );
 
@@ -342,9 +342,9 @@ void LineLoad2DCondition::EquationIdVector( EquationIdVectorType& rResult, Proce
         rResult[index+1] =  GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
     }
 
-   // std::cout<<" ID "<<this->Id()<<std::endl;
-   // for(unsigned int i=0; i<rResult.size(); i++)
-   // 	std::cout<<" face2d Equation Id "<<rResult[i]<<std::endl;
+    // std::cout<<" ID "<<this->Id()<<std::endl;
+    // for(unsigned int i=0; i<rResult.size(); i++)
+    // 	std::cout<<" face2d Equation Id "<<rResult[i]<<std::endl;
 }
 
 //************************************************************************************
@@ -354,8 +354,8 @@ void LineLoad2DCondition::GetDofList( DofsVectorType& rConditionalDofList, Proce
     rConditionalDofList.resize( 0 );
     for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
     {
-      rConditionalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
-      rConditionalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
+        rConditionalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
+        rConditionalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
     }
 }
 

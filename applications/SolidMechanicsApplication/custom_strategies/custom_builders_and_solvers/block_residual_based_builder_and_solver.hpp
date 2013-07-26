@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -330,7 +330,7 @@ public:
             KRATOS_WATCH("finished parallel building");
         }
 
-		
+
         //                        //ensure that all the threads are syncronized here
         //                        #pragma omp barrier
 #endif
@@ -356,7 +356,7 @@ public:
         //getting the array of the conditions
         ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
 
- 
+
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 
@@ -413,7 +413,7 @@ public:
 
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
- 
+
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 
@@ -564,13 +564,13 @@ public:
             std::cout << "RHS vector = " << b << std::endl;
         }
 
-       double start_solve = OpenMPUtils::GetCurrentTime();
+        double start_solve = OpenMPUtils::GetCurrentTime();
         Timer::Start("Solve");
 
         SystemSolveWithPhysics(A, Dx, b, r_model_part);
 
         Timer::Stop("Solve");
-	double stop_solve = OpenMPUtils::GetCurrentTime();
+        double stop_solve = OpenMPUtils::GetCurrentTime();
         if (this->GetEchoLevel() >=1 && r_model_part.GetCommunicator().MyPID() == 0)
             std::cout << "system solve time: " << stop_solve - start_solve << std::endl;
 
@@ -766,7 +766,7 @@ public:
         int free_id = 0;
 
         for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-                dof_iterator->SetEquationId(free_id++);
+            dof_iterator->SetEquationId(free_id++);
 
         BaseType::mEquationSystemSize = BaseType::mDofSet.size();
 
@@ -884,12 +884,12 @@ public:
             if ((*it2)->IsFixed())
             {
                 i = (*it2)->EquationId();
-                
-                 (*it2)->GetSolutionStepReactionValue() = b[i];
+
+                (*it2)->GetSolutionStepReactionValue() = b[i];
             }
         }
-		
-		KRATOS_WATCH(__LINE__)
+
+        KRATOS_WATCH(__LINE__)
     }
 
     //**************************************************************************
@@ -902,13 +902,13 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b)
     {
-		vector<unsigned int> scaling_factors (A.size1());
-		
-		int i=0;
-		for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
-			if(dof_iterator->IsFixed()) scaling_factors[i++] = 0;
-			else scaling_factors[i++] = 1;
-		
+        vector<unsigned int> scaling_factors (A.size1());
+
+        int i=0;
+        for (typename DofsArrayType::iterator dof_iterator = BaseType::mDofSet.begin(); dof_iterator != BaseType::mDofSet.end(); ++dof_iterator)
+            if(dof_iterator->IsFixed()) scaling_factors[i++] = 0;
+            else scaling_factors[i++] = 1;
+
         double* Avalues = A.value_data().begin();
         std::size_t* Arow_indices = A.index1_data().begin();
         std::size_t* Acol_indices = A.index2_data().begin();
@@ -919,23 +919,23 @@ public:
             std::size_t col_begin = Arow_indices[k];
             std::size_t col_end = Arow_indices[k+1];
             double k_factor = scaling_factors[k];
-			if(k_factor == 0)
-			{
-				for (std::size_t j=col_begin; j<col_end; j++)
-				{
+            if(k_factor == 0)
+            {
+                for (std::size_t j=col_begin; j<col_end; j++)
+                {
                     if( static_cast<int>(Acol_indices[j]) != k ) Avalues[j] = 0.0;
-				}
-				b[k] = 0.0; 
-			}
-			else
-			{
-				for (std::size_t j=col_begin; j<col_end; j++)
-				{
-					if(scaling_factors[ Acol_indices[j] ] == 0 ) Avalues[j] = 0.0; 
-				}
-			}
+                }
+                b[k] = 0.0;
+            }
+            else
+            {
+                for (std::size_t j=col_begin; j<col_end; j++)
+                {
+                    if(scaling_factors[ Acol_indices[j] ] == 0 ) Avalues[j] = 0.0;
+                }
+            }
 
-			
+
         }
     }
 
@@ -1132,14 +1132,14 @@ protected:
         {
             unsigned int i_global = EquationId[i_local];
 
-                for (unsigned int j_local = 0; j_local < local_size; j_local++)
-                {
-                    unsigned int j_global = EquationId[j_local];
-                    
-                        A(i_global, j_global) += LHS_Contribution(i_local, j_local);
-                }
+            for (unsigned int j_local = 0; j_local < local_size; j_local++)
+            {
+                unsigned int j_global = EquationId[j_local];
+
+                A(i_global, j_global) += LHS_Contribution(i_local, j_local);
             }
-        
+        }
+
     }
 
 
@@ -1155,15 +1155,15 @@ protected:
         unsigned int local_size = RHS_Contribution.size();
 
 
-            for (unsigned int i_local = 0; i_local < local_size; i_local++)
-            {
-                unsigned int i_global = EquationId[i_local];
+        for (unsigned int i_local = 0; i_local < local_size; i_local++)
+        {
+            unsigned int i_global = EquationId[i_local];
 
-                    // ASSEMBLING THE SYSTEM VECTOR
-                    b[i_global] += RHS_Contribution[i_local];
-                
-            }
-			
+            // ASSEMBLING THE SYSTEM VECTOR
+            b[i_global] += RHS_Contribution[i_local];
+
+        }
+
 
     }
 
@@ -1223,13 +1223,13 @@ private:
         {
             unsigned int i_global = EquationId[i_local];
 
-                for (unsigned int j_local = 0; j_local < local_size; j_local++)
-                {
-                    int j_global = EquationId[j_local];
+            for (unsigned int j_local = 0; j_local < local_size; j_local++)
+            {
+                int j_global = EquationId[j_local];
 
-                    A(i_global, j_global) += LHS_Contribution(i_local, j_local);
-                }
-            
+                A(i_global, j_global) += LHS_Contribution(i_local, j_local);
+            }
+
         }
     }
 
@@ -1283,21 +1283,21 @@ private:
             unsigned int i_global = EquationId[i_local];
 
 
-                omp_set_lock(&lock_array[i_global]);
+            omp_set_lock(&lock_array[i_global]);
 
-                b[i_global] += RHS_Contribution(i_local);
-                for (unsigned int j_local = 0; j_local < local_size; j_local++)
-                {
-                    unsigned int j_global = EquationId[j_local];
+            b[i_global] += RHS_Contribution(i_local);
+            for (unsigned int j_local = 0; j_local < local_size; j_local++)
+            {
+                unsigned int j_global = EquationId[j_local];
 
-                        A(i_global, j_global) += LHS_Contribution(i_local, j_local);
-                    
-                }
+                A(i_global, j_global) += LHS_Contribution(i_local, j_local);
 
-                omp_unset_lock(&lock_array[i_global]);
+            }
+
+            omp_unset_lock(&lock_array[i_global]);
 
 
-            
+
             //note that computation of reactions is not performed here!
         }
     }

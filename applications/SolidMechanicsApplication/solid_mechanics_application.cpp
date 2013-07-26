@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -10,7 +10,7 @@
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -53,82 +53,82 @@
 
 namespace Kratos
 {
-  //Create Variables
+//Create Variables
 
-  //geometrical 
-  KRATOS_CREATE_VARIABLE( double, AREA );
-  KRATOS_CREATE_VARIABLE( double, IX );
-  KRATOS_CREATE_VARIABLE( double, IY );
-  KRATOS_CREATE_VARIABLE( double, IZ );
-  KRATOS_CREATE_VARIABLE( double, CROSS_AREA );
-  KRATOS_CREATE_VARIABLE( Matrix , GEOMETRIC_STIFFNESS );
+//geometrical
+KRATOS_CREATE_VARIABLE( double, AREA );
+KRATOS_CREATE_VARIABLE( double, IX );
+KRATOS_CREATE_VARIABLE( double, IY );
+KRATOS_CREATE_VARIABLE( double, IZ );
+KRATOS_CREATE_VARIABLE( double, CROSS_AREA );
+KRATOS_CREATE_VARIABLE( Matrix , GEOMETRIC_STIFFNESS );
 
-  //constitutive law	
-  KRATOS_CREATE_VARIABLE(std::string, CONSTITUTIVE_LAW_NAME );
-  KRATOS_CREATE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER );
+//constitutive law
+KRATOS_CREATE_VARIABLE(std::string, CONSTITUTIVE_LAW_NAME );
+KRATOS_CREATE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER );
 
-  KRATOS_CREATE_VARIABLE(Matrix, CONSTITUTIVE_MATRIX );
-  KRATOS_CREATE_VARIABLE(Matrix, DEFORMATION_GRADIENT );
-  KRATOS_CREATE_VARIABLE(double, DETERMINANT_F );
-  KRATOS_CREATE_VARIABLE(bool ,  AXISYMMETRIC_LAW  );
+KRATOS_CREATE_VARIABLE(Matrix, CONSTITUTIVE_MATRIX );
+KRATOS_CREATE_VARIABLE(Matrix, DEFORMATION_GRADIENT );
+KRATOS_CREATE_VARIABLE(double, DETERMINANT_F );
+KRATOS_CREATE_VARIABLE(bool ,  AXISYMMETRIC_LAW  );
 
-  //material : hyperelastic_plastic
-  KRATOS_CREATE_VARIABLE(double, NORM_ISOCHORIC_STRESS );
-  KRATOS_CREATE_VARIABLE(double, PLASTIC_STRAIN ); 
-  KRATOS_CREATE_VARIABLE(double, DELTA_PLASTIC_STRAIN ); 
-  KRATOS_CREATE_VARIABLE(double, PLASTIC_POWER );
-  KRATOS_CREATE_VARIABLE(double, KINEMATIC_HARDENING );
+//material : hyperelastic_plastic
+KRATOS_CREATE_VARIABLE(double, NORM_ISOCHORIC_STRESS );
+KRATOS_CREATE_VARIABLE(double, PLASTIC_STRAIN );
+KRATOS_CREATE_VARIABLE(double, DELTA_PLASTIC_STRAIN );
+KRATOS_CREATE_VARIABLE(double, PLASTIC_POWER );
+KRATOS_CREATE_VARIABLE(double, KINEMATIC_HARDENING );
 
-  KRATOS_CREATE_VARIABLE(double, HARDENING_EXPONENT );
-  KRATOS_CREATE_VARIABLE(double, REFERENCE_HARDENING );
-  KRATOS_CREATE_VARIABLE(double, INFINITY_HARDENING );
+KRATOS_CREATE_VARIABLE(double, HARDENING_EXPONENT );
+KRATOS_CREATE_VARIABLE(double, REFERENCE_HARDENING );
+KRATOS_CREATE_VARIABLE(double, INFINITY_HARDENING );
 
- //element
-  //KRATOS_CREATE_VARIABLE(Matrix, CAUCHY_STRESS_TENSOR );
-  //KRATOS_CREATE_VARIABLE(Matrix, PK2_STRESS_TENSOR );
-  KRATOS_CREATE_VARIABLE(Vector, CAUCHY_STRESS_VECTOR );
-  KRATOS_CREATE_VARIABLE(Vector, PK2_STRESS_VECTOR );
+//element
+//KRATOS_CREATE_VARIABLE(Matrix, CAUCHY_STRESS_TENSOR );
+//KRATOS_CREATE_VARIABLE(Matrix, PK2_STRESS_TENSOR );
+KRATOS_CREATE_VARIABLE(Vector, CAUCHY_STRESS_VECTOR );
+KRATOS_CREATE_VARIABLE(Vector, PK2_STRESS_VECTOR );
 
-  //KRATOS_CREATE_VARIABLE(Matrix, GREEN_LAGRANGE_STRAIN_TENSOR );
-  KRATOS_CREATE_VARIABLE(Matrix, ALMANSI_STRAIN_TENSOR );
-  KRATOS_CREATE_VARIABLE(Vector, GREEN_LAGRANGE_STRAIN_VECTOR );
-  KRATOS_CREATE_VARIABLE(Vector, ALMANSI_STRAIN_VECTOR );
+//KRATOS_CREATE_VARIABLE(Matrix, GREEN_LAGRANGE_STRAIN_TENSOR );
+KRATOS_CREATE_VARIABLE(Matrix, ALMANSI_STRAIN_TENSOR );
+KRATOS_CREATE_VARIABLE(Vector, GREEN_LAGRANGE_STRAIN_VECTOR );
+KRATOS_CREATE_VARIABLE(Vector, ALMANSI_STRAIN_VECTOR );
 
-  KRATOS_CREATE_VARIABLE(double, VON_MISES_STRESS );
+KRATOS_CREATE_VARIABLE(double, VON_MISES_STRESS );
 
-  //mechanical
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FORCE_INTERNAL );
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FORCE_EXTERNAL );
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FORCE_DYNAMIC );
+//mechanical
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FORCE_INTERNAL );
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FORCE_EXTERNAL );
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( FORCE_DYNAMIC );
 
-  //nodal dofs
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT );
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_ROTATION );
-  KRATOS_CREATE_VARIABLE( double, REACTION_PRESSURE );
-
-
-  //global flags
-  KRATOS_CREATE_FLAG( FLUID,         16 );
-  KRATOS_CREATE_FLAG( STRUCTURE,     17 );
-  KRATOS_CREATE_FLAG( SOLID,         18 );
-  KRATOS_CREATE_FLAG( RIGID,         19 );
-  KRATOS_CREATE_FLAG( CONTACT,       20 );
-  
-  
-  KRATOS_CREATE_FLAG( BOUNDARY,      21 );
-  KRATOS_CREATE_FLAG( FREE_SURFACE,  22 );    
-  
-  KRATOS_CREATE_FLAG( INTERFACE,     23 );
-  
-  KRATOS_CREATE_FLAG( ENGAGED,       24 );
-  KRATOS_CREATE_FLAG( ISOLATED,      25 );
-  
-  KRATOS_CREATE_FLAG( REFINE,        26 );
-  KRATOS_CREATE_FLAG( INSERTED,      27 );
-  KRATOS_CREATE_FLAG( RELEASE,       28 );
+//nodal dofs
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT );
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_ROTATION );
+KRATOS_CREATE_VARIABLE( double, REACTION_PRESSURE );
 
 
-  KratosSolidMechanicsApplication::KratosSolidMechanicsApplication():
+//global flags
+KRATOS_CREATE_FLAG( FLUID,         16 );
+KRATOS_CREATE_FLAG( STRUCTURE,     17 );
+KRATOS_CREATE_FLAG( SOLID,         18 );
+KRATOS_CREATE_FLAG( RIGID,         19 );
+KRATOS_CREATE_FLAG( CONTACT,       20 );
+
+
+KRATOS_CREATE_FLAG( BOUNDARY,      21 );
+KRATOS_CREATE_FLAG( FREE_SURFACE,  22 );
+
+KRATOS_CREATE_FLAG( INTERFACE,     23 );
+
+KRATOS_CREATE_FLAG( ENGAGED,       24 );
+KRATOS_CREATE_FLAG( ISOLATED,      25 );
+
+KRATOS_CREATE_FLAG( REFINE,        26 );
+KRATOS_CREATE_FLAG( INSERTED,      27 );
+KRATOS_CREATE_FLAG( RELEASE,       28 );
+
+
+KratosSolidMechanicsApplication::KratosSolidMechanicsApplication():
     mBeamElement3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
 
     mIsotropicShellElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -201,28 +201,28 @@ namespace Kratos
     mLineLoadAxisymCondition2D2N( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mLineLoadCondition3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mSurfaceLoadCondition3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mSurfaceLoadCondition3D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
     mSurfaceLoadCondition3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+    mSurfaceLoadCondition3D6N( 0, Element::GeometryType::Pointer( new Triangle2D6 <Node<3> >( Element::GeometryType::PointsArrayType( 6, Node<3>() ) ) ) ),
     mSurfaceLoadCondition3D8N( 0, Element::GeometryType::Pointer( new Quadrilateral3D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mSurfaceLoadCondition3D9N( 0, Element::GeometryType::Pointer( new Quadrilateral3D9 <Node<3> >( Element::GeometryType::PointsArrayType( 9, Node<3>() ) ) ) )
 
-  {}
-  
-  void KratosSolidMechanicsApplication::Register()
-  {
+{}
+
+void KratosSolidMechanicsApplication::Register()
+{
     // calling base class register to register Kratos components
     KratosApplication::Register();
     std::cout << "Initializing KratosSolidMechanicsApplication... " << std::endl;
-    
+
     //Register Elements
 
     //Register beams
 
     KRATOS_REGISTER_ELEMENT( "BeamElement3D2N",     mBeamElement3D2N )
-      
+
     //Register shells
 
-    KRATOS_REGISTER_ELEMENT( "IsotropicShellElement3D3N",  mIsotropicShellElement3D3N )    
+    KRATOS_REGISTER_ELEMENT( "IsotropicShellElement3D3N",  mIsotropicShellElement3D3N )
 
     //Register solids
 
@@ -289,12 +289,12 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT( "AxisymSpatialLagrangianElement2D4N", mAxisymSpatialLagrangianElement2D4N )
     KRATOS_REGISTER_ELEMENT( "AxisymSpatialLagrangianElement2D6N", mAxisymSpatialLagrangianElement2D6N )
     KRATOS_REGISTER_ELEMENT( "AxisymSpatialLagrangianElement2D8N", mAxisymSpatialLagrangianElement2D8N )
- 
+
     KRATOS_REGISTER_ELEMENT( "SpatialLagrangianUPElement2D3N", mSpatialLagrangianUPElement2D3N )
     KRATOS_REGISTER_ELEMENT( "AxisymSpatialLagrangianUPElement2D3N", mAxisymSpatialLagrangianUPElement2D3N )
 
     //Register Conditions
- 
+
     KRATOS_REGISTER_CONDITION( "PointLoad2DCondition",             mPointLoad2DCondition )
     KRATOS_REGISTER_CONDITION( "PointLoadAxisym2DCondition", mPointLoadAxisym2DCondition )
     KRATOS_REGISTER_CONDITION( "PointLoad3DCondition",             mPointLoad3DCondition )
@@ -305,17 +305,17 @@ namespace Kratos
     KRATOS_REGISTER_CONDITION( "LineLoadCondition3D2N",   mLineLoadCondition3D2N )
 
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D3N", mSurfaceLoadCondition3D3N )
-    KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D6N", mSurfaceLoadCondition3D6N )
-    KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D4N", mSurfaceLoadCondition3D4N )
+    KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D4N", mSurfaceLoadCondition3D6N )
+    KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D6N", mSurfaceLoadCondition3D4N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D8N", mSurfaceLoadCondition3D8N )
     KRATOS_REGISTER_CONDITION( "SurfaceLoadCondition3D9N", mSurfaceLoadCondition3D9N )
- 
 
-   //Register Constitutive Laws
+
+    //Register Constitutive Laws
 
     Serializer::Register("HyperElastic3DLaw",mHyperElastic3DLaw);
-    Serializer::Register("HyperElasticUP3DLaw",mHyperElasticUP3DLaw);  
-    Serializer::Register("LinearElastic3DLaw",mLinearElastic3DLaw); 
+    Serializer::Register("HyperElasticUP3DLaw",mHyperElasticUP3DLaw);
+    Serializer::Register("LinearElastic3DLaw",mLinearElastic3DLaw);
     Serializer::Register("HyperElasticPlaneStrain2DLaw",mHyperElasticPlaneStrain2DLaw);
     Serializer::Register("HyperElasticAxisym2DLaw",mHyperElasticAxisym2DLaw);
     Serializer::Register("HyperElasticUPPlaneStrain2DLaw",mHyperElasticUPPlaneStrain2DLaw);
@@ -326,8 +326,8 @@ namespace Kratos
 
 
     //Register Variables
-    
-    //geometrical 
+
+    //geometrical
     KRATOS_REGISTER_VARIABLE( AREA );
     KRATOS_REGISTER_VARIABLE( IX );
     KRATOS_REGISTER_VARIABLE( IY );
@@ -335,14 +335,14 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( CROSS_AREA );
     KRATOS_REGISTER_VARIABLE( GEOMETRIC_STIFFNESS );
 
-    //constitutive law	
+    //constitutive law
     KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_NAME );
     KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_LAW_POINTER );
     KRATOS_REGISTER_VARIABLE( CONSTITUTIVE_MATRIX );
     KRATOS_REGISTER_VARIABLE( DEFORMATION_GRADIENT );
     KRATOS_REGISTER_VARIABLE( DETERMINANT_F );
     KRATOS_REGISTER_VARIABLE( AXISYMMETRIC_LAW );
-    
+
     //material : hyperelastic_plastic
     KRATOS_REGISTER_VARIABLE( NORM_ISOCHORIC_STRESS );
     KRATOS_REGISTER_VARIABLE( PLASTIC_STRAIN );
@@ -381,21 +381,21 @@ namespace Kratos
     KRATOS_REGISTER_FLAG( SOLID );
     KRATOS_REGISTER_FLAG( RIGID );
     KRATOS_REGISTER_FLAG( CONTACT );
-    
+
     KRATOS_REGISTER_FLAG( BOUNDARY );
-    KRATOS_REGISTER_FLAG( FREE_SURFACE );    
-    
+    KRATOS_REGISTER_FLAG( FREE_SURFACE );
+
     KRATOS_REGISTER_FLAG( INTERFACE );
-    
+
     KRATOS_REGISTER_FLAG( ENGAGED );
     KRATOS_REGISTER_FLAG( ISOLATED );
-    
+
     KRATOS_REGISTER_FLAG( REFINE );
     KRATOS_REGISTER_FLAG( INSERTED );
     KRATOS_REGISTER_FLAG( RELEASE );
-        
-  }
-  
+
+}
+
 }  // namespace Kratos.
 
 

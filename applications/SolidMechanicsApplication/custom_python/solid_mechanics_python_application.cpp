@@ -1,66 +1,66 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
 
-// System includes 
+// System includes
 #if defined(KRATOS_PYTHON)
-// External includes 
+// External includes
 #include <boost/python.hpp>
 
 
-// Project includes 
+// Project includes
 #include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_conditions_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
- 
+
 #include "solid_mechanics_application.h"
 
 namespace Kratos
 {
 
-  namespace Python
-  {
+namespace Python
+{
 
-    using namespace boost::python;
+using namespace boost::python;
 
 
-  
-    BOOST_PYTHON_MODULE(KratosSolidMechanicsApplication)
-    {
 
-      class_<KratosSolidMechanicsApplication, 
-	     KratosSolidMechanicsApplication::Pointer, 
-	     bases<KratosApplication>, boost::noncopyable >("KratosSolidMechanicsApplication")
-	  ;
+BOOST_PYTHON_MODULE(KratosSolidMechanicsApplication)
+{
 
-      AddCustomConditionsToPython(); 
-      AddCustomUtilitiesToPython();
-      AddCustomStrategiesToPython();
-      AddCustomConstitutiveLawsToPython();
-      
-      //registering variables in python ( if must to be seen from python )
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( FORCE_INTERNAL );
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( FORCE_EXTERNAL);
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( FORCE_DYNAMIC );
+    class_<KratosSolidMechanicsApplication,
+           KratosSolidMechanicsApplication::Pointer,
+           bases<KratosApplication>, boost::noncopyable >("KratosSolidMechanicsApplication")
+           ;
 
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( IMPOSED_DISPLACEMENT );
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( REACTION_PRESSURE );
+    AddCustomConditionsToPython();
+    AddCustomUtilitiesToPython();
+    AddCustomStrategiesToPython();
+    AddCustomConstitutiveLawsToPython();
 
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( VON_MISES_STRESS );
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( PLASTIC_STRAIN );
-      KRATOS_REGISTER_IN_PYTHON_VARIABLE( DELTA_PLASTIC_STRAIN );
+    //registering variables in python ( if must to be seen from python )
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( FORCE_INTERNAL );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( FORCE_EXTERNAL);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( FORCE_DYNAMIC );
 
-    }
-  
-  
-  }  // namespace Python.
-  
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( IMPOSED_DISPLACEMENT );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( REACTION_PRESSURE );
+
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( VON_MISES_STRESS );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PLASTIC_STRAIN );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DELTA_PLASTIC_STRAIN );
+
+}
+
+
+}  // namespace Python.
+
 }  // namespace Kratos.
 
 #endif // KRATOS_PYTHON defined

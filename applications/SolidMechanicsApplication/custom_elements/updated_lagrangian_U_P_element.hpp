@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -56,7 +56,7 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
- 
+
     /// Counted pointer of UpdatedLagrangianUPElement
     KRATOS_CLASS_POINTER_DEFINITION(UpdatedLagrangianUPElement);
 
@@ -146,23 +146,23 @@ protected:
 
 
     /**
-     * Calculation and addition of the matrices of the LHS 
+     * Calculation and addition of the matrices of the LHS
      */
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-			    GeneralVariables& rVariables, 
-			    double& rIntegrationWeight);
-  
+                            GeneralVariables& rVariables,
+                            double& rIntegrationWeight);
+
     /**
-     * Calculation and addition of the vectors of the RHS 
+     * Calculation and addition of the vectors of the RHS
      */
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, 
-			    GeneralVariables& rVariables, 
-			    Vector& rVolumeForce, 
-			    double& rIntegrationWeight);
+    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                            GeneralVariables& rVariables,
+                            Vector& rVolumeForce,
+                            double& rIntegrationWeight);
 
     /**
      * Initialize Element General Variables
-     */ 
+     */
     void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
@@ -170,22 +170,22 @@ protected:
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
     void SetGeneralVariables  (GeneralVariables& rVariables,
-			       ConstitutiveLaw::Parameters& rValues,
-			       const int & rPointNumber);
+                               ConstitutiveLaw::Parameters& rValues,
+                               const int & rPointNumber);
 
     /**
      * Calculate Element Kinematics
      */
     void CalculateKinematics(GeneralVariables& rVariables,
-			     const double& rPointNumber);
+                             const double& rPointNumber);
 
-    
+
     /**
      * Calculation of the Deformation Matrix  BL
      */
     void CalculateDeformationMatrix(Matrix& rB,
-				    Matrix& rF,
-				    Matrix& rDN_DX);
+                                    Matrix& rF,
+                                    Matrix& rDN_DX);
 
 
     /**
@@ -193,7 +193,7 @@ protected:
      */
     void CalculatePushForwardDN_DX(GeneralVariables& rVariables);
 
-     ///@}
+    ///@}
     ///@name Protected  Access
     ///@{
     ///@}
@@ -222,7 +222,7 @@ private:
     ///@name Private Operations
     ///@{
 
-   
+
     ///@}
     ///@name Private  Access
     ///@{

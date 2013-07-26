@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -21,68 +21,68 @@
 namespace Kratos
 {
 
-  //******************************CONSTRUCTOR*******************************************
-  //************************************************************************************
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
 
-  LinearElasticPlaneStrain2DLaw::LinearElasticPlaneStrain2DLaw()
-  : LinearElastic3DLaw()
-  {
-  }
+LinearElasticPlaneStrain2DLaw::LinearElasticPlaneStrain2DLaw()
+    : LinearElastic3DLaw()
+{
+}
 
-  //******************************COPY CONSTRUCTOR**************************************
-  //************************************************************************************
+//******************************COPY CONSTRUCTOR**************************************
+//************************************************************************************
 
-  LinearElasticPlaneStrain2DLaw::LinearElasticPlaneStrain2DLaw(const LinearElasticPlaneStrain2DLaw& rOther)
-  : LinearElastic3DLaw()
-  {
-  }
-  
-  //********************************CLONE***********************************************
-  //************************************************************************************
+LinearElasticPlaneStrain2DLaw::LinearElasticPlaneStrain2DLaw(const LinearElasticPlaneStrain2DLaw& rOther)
+    : LinearElastic3DLaw()
+{
+}
 
-  ConstitutiveLaw::Pointer LinearElasticPlaneStrain2DLaw::Clone() const
-  {
+//********************************CLONE***********************************************
+//************************************************************************************
+
+ConstitutiveLaw::Pointer LinearElasticPlaneStrain2DLaw::Clone() const
+{
     LinearElasticPlaneStrain2DLaw::Pointer p_clone(new LinearElasticPlaneStrain2DLaw(*this));
     return p_clone;
-  }
-  
-  //*******************************DESTRUCTOR*******************************************
-  //************************************************************************************
+}
 
-  LinearElasticPlaneStrain2DLaw::~LinearElasticPlaneStrain2DLaw()
-  {
-  }
+//*******************************DESTRUCTOR*******************************************
+//************************************************************************************
 
-
-  //************* COMPUTING  METHODS
-  //************************************************************************************
-  //************************************************************************************
+LinearElasticPlaneStrain2DLaw::~LinearElasticPlaneStrain2DLaw()
+{
+}
 
 
-  //***********************COMPUTE TOTAL STRAIN*****************************************
-  //************************************************************************************
+//************* COMPUTING  METHODS
+//************************************************************************************
+//************************************************************************************
 
-  void LinearElasticPlaneStrain2DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-							Vector& rStrainVector )
-  {
+
+//***********************COMPUTE TOTAL STRAIN*****************************************
+//************************************************************************************
+
+void LinearElasticPlaneStrain2DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+        Vector& rStrainVector )
+{
 
     //E= 0.5*(FT*F-1)
     rStrainVector[0] = 0.5 * ( rRightCauchyGreen( 0, 0 ) - 1.00 );
     rStrainVector[1] = 0.5 * ( rRightCauchyGreen( 1, 1 ) - 1.00 );
     rStrainVector[2] = rRightCauchyGreen( 0, 1 );
 
-  }
+}
 
 
 
-  //***********************COMPUTE TOTAL STRAIN*****************************************
-  //************************************************************************************
+//***********************COMPUTE TOTAL STRAIN*****************************************
+//************************************************************************************
 
-  void LinearElasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-						  Vector& rStrainVector )
-  {
+void LinearElasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+        Vector& rStrainVector )
+{
 
-    // e= 0.5*(1-invbT*invb)   
+    // e= 0.5*(1-invbT*invb)
     Matrix InverseLeftCauchyGreen ( 2 , 2 );
     double det_b=0;
     MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
@@ -93,18 +93,18 @@ namespace Kratos
     rStrainVector[2] = -InverseLeftCauchyGreen( 0, 1 );
 
 
-  }
+}
 
 
 
-  //***********************COMPUTE ALGORITHMIC CONSTITUTIVE MATRIX**********************
-  //************************************************************************************
+//***********************COMPUTE ALGORITHMIC CONSTITUTIVE MATRIX**********************
+//************************************************************************************
 
 
-  void LinearElasticPlaneStrain2DLaw::CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, 
-							const double &rYoungModulus, 
-							const double &rPoissonCoefficient )
-  {
+void LinearElasticPlaneStrain2DLaw::CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix,
+        const double &rYoungModulus,
+        const double &rPoissonCoefficient )
+{
     rConstitutiveMatrix.clear();
 
     //plane strain constitutive matrix:
@@ -115,10 +115,10 @@ namespace Kratos
 
     rConstitutiveMatrix ( 0 , 1 ) = rConstitutiveMatrix ( 0 , 0 )*rPoissonCoefficient/(1.0-rPoissonCoefficient);
     rConstitutiveMatrix ( 1 , 0 ) = rConstitutiveMatrix ( 0 , 1 );
-  }
+}
 
 
-  
+
 
 
 } // Namespace Kratos

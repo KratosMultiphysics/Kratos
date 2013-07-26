@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -23,7 +23,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 PointLoad3DCondition::PointLoad3DCondition(IndexType NewId, GeometryType::Pointer
-                           pGeometry)
+        pGeometry)
     : Condition(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
@@ -39,14 +39,14 @@ PointLoad3DCondition::PointLoad3DCondition(IndexType NewId, GeometryType::Pointe
 //************************************************************************************
 //************************************************************************************
 PointLoad3DCondition::PointLoad3DCondition( PointLoad3DCondition const& rOther )
-  : Condition(rOther)
+    : Condition(rOther)
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 Condition::Pointer PointLoad3DCondition::Create(IndexType NewId, NodesArrayType
-                                        const& ThisNodes,  PropertiesType::Pointer pProperties) const
+        const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
     return Condition::Pointer(new PointLoad3DCondition(NewId,
                               GetGeometry().Create(ThisNodes), pProperties));

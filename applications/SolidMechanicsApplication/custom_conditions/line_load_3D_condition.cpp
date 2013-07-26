@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -31,7 +31,7 @@ LineLoad3DCondition::LineLoad3DCondition( IndexType NewId, GeometryType::Pointer
 //************************************************************************************
 //************************************************************************************
 LineLoad3DCondition::LineLoad3DCondition( IndexType NewId, GeometryType::Pointer pGeometry,
-                          PropertiesType::Pointer pProperties )
+        PropertiesType::Pointer pProperties )
     : Condition( NewId, pGeometry, pProperties )
 {
 }
@@ -39,7 +39,7 @@ LineLoad3DCondition::LineLoad3DCondition( IndexType NewId, GeometryType::Pointer
 //************************************************************************************
 //************************************************************************************
 LineLoad3DCondition::LineLoad3DCondition(  LineLoad3DCondition const& rOther )
-  : Condition(rOther)
+    : Condition(rOther)
 {
 
 }
@@ -47,8 +47,8 @@ LineLoad3DCondition::LineLoad3DCondition(  LineLoad3DCondition const& rOther )
 //***********************************************************************************
 //***********************************************************************************
 Condition::Pointer LineLoad3DCondition::Create( IndexType NewId,
-                                        NodesArrayType const& ThisNodes,
-                                        PropertiesType::Pointer pProperties ) const
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties ) const
 {
     return Condition::Pointer( new LineLoad3DCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
@@ -64,7 +64,7 @@ LineLoad3DCondition::~LineLoad3DCondition()
 //***********************************************************************************
 //***********************************************************************************
 void LineLoad3DCondition::EquationIdVector( EquationIdVectorType& rResult,
-                                    ProcessInfo& rCurrentProcessInfo )
+        ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     unsigned int number_of_nodes = GetGeometry().size();
@@ -87,7 +87,7 @@ void LineLoad3DCondition::EquationIdVector( EquationIdVectorType& rResult,
 //***********************************************************************************
 //***********************************************************************************
 void LineLoad3DCondition::GetDofList( DofsVectorType& ElementalDofList,
-                              ProcessInfo& rCurrentProcessInfo )
+                                      ProcessInfo& rCurrentProcessInfo )
 {
     ElementalDofList.resize( 0 );
 
@@ -114,7 +114,7 @@ void LineLoad3DCondition::CalculateRightHandSide( VectorType& rRightHandSideVect
     if ( rRightHandSideVector.size() != MatSize )
         rRightHandSideVector.resize( MatSize, false );
 
-        rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+    rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
 
     //reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points =
@@ -135,7 +135,7 @@ void LineLoad3DCondition::CalculateRightHandSide( VectorType& rRightHandSideVect
 
             for ( unsigned int idim = 0; idim < dimension; idim++ )
             {
-	      FaceLoad( idim ) += LoadArray( idim ) * Ncontainer( PointNumber, n );
+                FaceLoad( idim ) += LoadArray( idim ) * Ncontainer( PointNumber, n );
             }
         }
 
@@ -145,29 +145,29 @@ void LineLoad3DCondition::CalculateRightHandSide( VectorType& rRightHandSideVect
 
 
         // RIGHT HAND SIDE VECTOR
-	for ( unsigned int m = 0; m < GetGeometry().size(); m++ )
-	  {
-	    array_1d<double, 3 > & ExternalForce = GetGeometry()[m].FastGetSolutionStepValue(FORCE_EXTERNAL);
+        for ( unsigned int m = 0; m < GetGeometry().size(); m++ )
+        {
+            array_1d<double, 3 > & ExternalForce = GetGeometry()[m].FastGetSolutionStepValue(FORCE_EXTERNAL);
 
-	    index = dimension * m;
+            index = dimension * m;
 
-	    for ( unsigned int idim = 0; idim < dimension; idim++ )
-	      {
-		rRightHandSideVector( index + idim ) += Ncontainer( PointNumber, m ) * FaceLoad( idim ) * IntegrationWeight;
+            for ( unsigned int idim = 0; idim < dimension; idim++ )
+            {
+                rRightHandSideVector( index + idim ) += Ncontainer( PointNumber, m ) * FaceLoad( idim ) * IntegrationWeight;
 
-		ExternalForce[idim] += Ncontainer( PointNumber, m ) * FaceLoad( idim ) * IntegrationWeight;   
-	      }
-	  }
+                ExternalForce[idim] += Ncontainer( PointNumber, m ) * FaceLoad( idim ) * IntegrationWeight;
+            }
+        }
     }
-    
+
     KRATOS_CATCH( "" )
 }
 
 //***********************************************************************************
 //***********************************************************************************
 void LineLoad3DCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
-                                        VectorType& rRightHandSideVector,
-                                        ProcessInfo& rCurrentProcessInfo )
+        VectorType& rRightHandSideVector,
+        ProcessInfo& rCurrentProcessInfo )
 {
 
     rLeftHandSideMatrix = ZeroMatrix( 6, 6 );
@@ -177,7 +177,7 @@ void LineLoad3DCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix,
 //***********************************************************************************
 //***********************************************************************************
 void LineLoad3DCondition::MassMatrix( MatrixType& rMassMatrix,
-                              ProcessInfo& rCurrentProcessInfo )
+                                      ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     rMassMatrix.resize( 0, 0, false );
@@ -187,7 +187,7 @@ void LineLoad3DCondition::MassMatrix( MatrixType& rMassMatrix,
 //***********************************************************************************
 //***********************************************************************************
 void LineLoad3DCondition::DampMatrix( MatrixType& rDampMatrix,
-                              ProcessInfo& rCurrentProcessInfo )
+                                      ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
     rDampMatrix.resize( 0, 0, false );
