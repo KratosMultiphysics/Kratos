@@ -320,6 +320,9 @@ void LargeDisplacementElement::GetValueOnIntegrationPoints( const Variable<doubl
 {
     const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
+    if ( rVariable == VON_MISES_STRESS )
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+
     if ( rValues.size() != integration_points_number )
         rValues.resize( integration_points_number );
 
@@ -1304,7 +1307,7 @@ void LargeDisplacementElement::DampMatrix( MatrixType& rDampMatrix, ProcessInfo&
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo )
+void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY
@@ -1624,8 +1627,8 @@ int  LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     if ( DENSITY.Key() == 0 )
         KRATOS_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" );
 
-    if ( BODY_FORCE.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
+    // if ( BODY_FORCE.Key() == 0 )
+    //     KRATOS_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
 
     //verify that the dofs exist
     for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
@@ -1644,10 +1647,10 @@ int  LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     }
 
     //Verify that the body force is defined
-    if ( this->GetProperties().Has( BODY_FORCE ) == false )
-    {
-        KRATOS_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id() )
-    }
+    // if ( this->GetProperties().Has( BODY_FORCE ) == false )
+    // {
+    //     KRATOS_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id() )
+    // }
 
     //verify that the constitutive law has the correct dimension
     if ( dimension == 2 )

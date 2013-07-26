@@ -860,7 +860,8 @@ void IsotropicShellElement::AddBodyForce(
     KRATOS_TRY
 
     array_1d<double,3> bf;
-    noalias(bf) = GetProperties()[BODY_FORCE];
+    //must be changed to be taken from VOLUME_ACCELERATION JMC 26-7-2013
+    //noalias(bf) = GetProperties()[BODY_FORCE];
     const double& density = GetProperties()[DENSITY];
 
     bf *= (density * h * 0.333333333333333333) * Area;
@@ -978,7 +979,7 @@ void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<Matrix >
 }
 
 
-void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<double >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
+void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -1961,8 +1962,8 @@ int  IsotropicShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_ERROR(std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered","");
     if(DENSITY.Key() == 0)
         KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered","");
-    if(BODY_FORCE.Key() == 0)
-        KRATOS_ERROR(std::invalid_argument,"BODY_FORCE has Key zero! (check if the application is correctly registered","");
+    // if(BODY_FORCE.Key() == 0)
+        // KRATOS_ERROR(std::invalid_argument,"BODY_FORCE has Key zero! (check if the application is correctly registered","");
     if(THICKNESS.Key() == 0)
         KRATOS_ERROR(std::invalid_argument,"THICKNESS has Key zero! (check if the application is correctly registered","");
 
@@ -1980,8 +1981,8 @@ int  IsotropicShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
     }
 
     //Verify that the body force is defined
-    if (this->GetProperties().Has(BODY_FORCE)==false)
-        KRATOS_ERROR(std::logic_error,"BODY_FORCE not provided for property ",this->GetProperties().Id())
+    // if (this->GetProperties().Has(BODY_FORCE)==false)
+    //     KRATOS_ERROR(std::logic_error,"BODY_FORCE not provided for property ",this->GetProperties().Id())
 
         if (this->GetProperties().Has(THICKNESS)==false)
             KRATOS_ERROR(std::logic_error,"THICKNESS not provided for element ",this->Id());

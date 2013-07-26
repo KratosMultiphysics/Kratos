@@ -79,6 +79,11 @@ namespace Kratos
 
 //Define Variables
 
+//solution
+KRATOS_DEFINE_VARIABLE(int, WRITE_ID );
+KRATOS_DEFINE_VARIABLE(double, PREVIOUS_DELTA_TIME );
+
+
 //geometrical
 KRATOS_DEFINE_VARIABLE( double, AREA );
 KRATOS_DEFINE_VARIABLE( double, IX );
@@ -398,8 +403,8 @@ private:
     const LineLoad3DCondition              mLineLoadCondition3D2N;
 
     const SurfaceLoad3DCondition    mSurfaceLoadCondition3D3N;
-    const SurfaceLoad3DCondition    mSurfaceLoadCondition3D6N;
     const SurfaceLoad3DCondition    mSurfaceLoadCondition3D4N;
+    const SurfaceLoad3DCondition    mSurfaceLoadCondition3D6N;
     const SurfaceLoad3DCondition    mSurfaceLoadCondition3D8N;
     const SurfaceLoad3DCondition    mSurfaceLoadCondition3D9N;
 

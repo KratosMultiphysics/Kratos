@@ -113,7 +113,7 @@ SmallDisplacementElement::IntegrationMethod SmallDisplacementElement::GetIntegra
 void SmallDisplacementElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
 {
     rElementalDofList.resize( 0 );
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension  = GetGeometry().WorkingSpaceDimension();
 
     for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
     {
@@ -270,6 +270,9 @@ void SmallDisplacementElement::GetValueOnIntegrationPoints( const Variable<doubl
         const ProcessInfo& rCurrentProcessInfo )
 {
     const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+
+    if ( rVariable == VON_MISES_STRESS )
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
     if ( rValues.size() != integration_points_number )
         rValues.resize( integration_points_number );
@@ -978,11 +981,11 @@ void SmallDisplacementElement::CalculateKinematics(GeneralVariables& rVariables,
     Matrix InvJ;
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
-    //Compute cartesian derivatives
+   //Compute cartesian derivatives
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
 
     //Displacement Gradient H
-    this->CalculateDisplacementGradient (rVariables.DN_DX, rVariables.H);
+    this->CalculateDisplacementGradient( rVariables.H, rVariables.DN_DX );
 
     //Set Shape Functions Values for this integration point
     rVariables.N=row( Ncontainer, rPointNumber);
@@ -990,6 +993,7 @@ void SmallDisplacementElement::CalculateKinematics(GeneralVariables& rVariables,
     //Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B,rVariables.DN_DX);
 
+ 
     //Compute infinitessimal strain
     this->CalculateInfinitesimalStrain(rVariables.H,rVariables.StrainVector);
 
@@ -1146,7 +1150,6 @@ void SmallDisplacementElement::CalculateVelocityGradient(const Matrix& rDN_DX,
 
 //************************************************************************************
 //************************************************************************************
-
 void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
         const Matrix& rDN_DX)
 {
@@ -1155,7 +1158,7 @@ void SmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     rB.clear();
-
+    
     if( dimension == 2 )
     {
 
@@ -1312,7 +1315,7 @@ void SmallDisplacementElement::DampMatrix( MatrixType& rDampMatrix, ProcessInfo&
 //************************************************************************************
 //************************************************************************************
 
-void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo )
+void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
 
     KRATOS_TRY
@@ -1625,8 +1628,8 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     if ( DENSITY.Key() == 0 )
         KRATOS_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" );
 
-    if ( BODY_FORCE.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
+    // if ( BODY_FORCE.Key() == 0 )
+    //     KRATOS_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
 
     //verify that the dofs exist
     for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
@@ -1645,10 +1648,10 @@ int  SmallDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     }
 
     //Verify that the body force is defined
-    if ( this->GetProperties().Has( BODY_FORCE ) == false )
-    {
-        KRATOS_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id() )
-    }
+    // if ( this->GetProperties().Has( BODY_FORCE ) == false )
+    // {
+    //     KRATOS_ERROR( std::logic_error, "BODY_FORCE not provided for property ", this->GetProperties().Id() )
+    // }
 
     //verify that the constitutive law has the correct dimension
     if ( dimension == 2 )
