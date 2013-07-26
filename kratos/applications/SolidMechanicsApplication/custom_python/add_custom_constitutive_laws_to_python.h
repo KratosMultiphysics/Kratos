@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -25,13 +25,13 @@
 namespace Kratos
 {
 
-  namespace Python
-  {
+namespace Python
+{
 
-    void  AddCustomConstitutiveLawsToPython();
-    void  AddCustomPropertiesToPython();
+void  AddCustomConstitutiveLawsToPython();
+void  AddCustomPropertiesToPython();
 
-  }  // namespace Python.
+}  // namespace Python.
 
 }  // namespace Kratos.
 

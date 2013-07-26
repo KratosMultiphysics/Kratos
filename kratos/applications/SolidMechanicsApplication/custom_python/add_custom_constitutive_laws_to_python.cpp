@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -46,84 +46,84 @@
 namespace Kratos
 {
 
-  namespace Python
-  {
+namespace Python
+{
 
-    using namespace boost::python;
+using namespace boost::python;
 
-    typedef Properties::Pointer                    PropertiesPointer;
-    typedef Mesh<Node<3>, Properties, Element, Condition>   MeshType;
+typedef Properties::Pointer                    PropertiesPointer;
+typedef Mesh<Node<3>, Properties, Element, Condition>   MeshType;
 
-    typedef ConstitutiveLaw                  ConstitutiveLawBaseType;
-    typedef ConstitutiveLaw::Pointer          ConstitutiveLawPointer;
-    typedef std::vector<ConstitutiveLaw::Pointer> MaterialsContainer;
+typedef ConstitutiveLaw                  ConstitutiveLawBaseType;
+typedef ConstitutiveLaw::Pointer          ConstitutiveLawPointer;
+typedef std::vector<ConstitutiveLaw::Pointer> MaterialsContainer;
 
-    void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
-				      ConstitutiveLawPointer ThisConstitutiveLaw )
-    {
-      ThisMaterialsContainer.push_back( ThisConstitutiveLaw );
-    }
+void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
+                                  ConstitutiveLawPointer ThisConstitutiveLaw )
+{
+    ThisMaterialsContainer.push_back( ThisConstitutiveLaw );
+}
 
-    void  AddCustomConstitutiveLawsToPython()
-    {
-      class_< MaterialsContainer >( "MaterialsContainer", init<>() )
-	.def( "PushBack", Push_Back_Constitutive_Laws )
-	;
-
-
-      class_< HyperElastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-	( "HyperElastic3DLaw",
-	  init<>() )
-	;
-
-     class_< HyperElasticUP3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-	( "HyperElasticUP3DLaw",
-	  init<>() )
-	;
-
-     class_< LinearElastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-	( "LinearElastic3DLaw",
-	  init<>() )
-	;
+void  AddCustomConstitutiveLawsToPython()
+{
+    class_< MaterialsContainer >( "MaterialsContainer", init<>() )
+    .def( "PushBack", Push_Back_Constitutive_Laws )
+    ;
 
 
-     class_< LinearElasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-	( "LinearElasticPlaneStrain2DLaw",
-	  init<>() )
-	;
+    class_< HyperElastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElastic3DLaw",
+      init<>() )
+    ;
 
-     class_< LinearElasticPlaneStress2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-	( "LinearElasticPlaneStress2DLaw",
-	  init<>() )
-	;
+    class_< HyperElasticUP3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticUP3DLaw",
+      init<>() )
+    ;
 
-     class_< LinearElasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-	( "LinearElasticAxisym2DLaw",
-	  init<>() )
-	;
-
-      class_< HyperElasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-	( "HyperElasticPlaneStrain2DLaw",
-	  init<>() )
-	;
-
-      class_< HyperElasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-	( "HyperElasticAxisym2DLaw",
-	  init<>() )
-	;
-
-      class_< HyperElasticUPPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-	( "HyperElasticUPPlaneStrain2DLaw",
-	  init<>() )
-	;
-
-      class_< HyperElasticUPAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-	( "HyperElasticUPAxisym2DLaw",
-	  init<>() )
-	;
+    class_< LinearElastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "LinearElastic3DLaw",
+      init<>() )
+    ;
 
 
-    }
-    
-  }  // namespace Python.
+    class_< LinearElasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "LinearElasticPlaneStrain2DLaw",
+      init<>() )
+    ;
+
+    class_< LinearElasticPlaneStress2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "LinearElasticPlaneStress2DLaw",
+      init<>() )
+    ;
+
+    class_< LinearElasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "LinearElasticAxisym2DLaw",
+      init<>() )
+    ;
+
+    class_< HyperElasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticPlaneStrain2DLaw",
+      init<>() )
+    ;
+
+    class_< HyperElasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticAxisym2DLaw",
+      init<>() )
+    ;
+
+    class_< HyperElasticUPPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticUPPlaneStrain2DLaw",
+      init<>() )
+    ;
+
+    class_< HyperElasticUPAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticUPAxisym2DLaw",
+      init<>() )
+    ;
+
+
+}
+
+}  // namespace Python.
 }  // namespace Kratos.

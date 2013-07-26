@@ -1,6 +1,6 @@
-//    
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -13,10 +13,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -25,210 +25,210 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class HardeningLaw
-    {
-    public:
-      ///@name Type Definitions
-      ///@{
-      
-      /// Pointer definition of HardeningLaw
-      KRATOS_CLASS_POINTER_DEFINITION(HardeningLaw);
-  
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      HardeningLaw();
+///@name Kratos Globals
+///@{
 
-      /// Destructor.
-      virtual ~HardeningLaw();
-      
+///@}
+///@name Type Definitions
+///@{
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
-      
-      
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+///@}
+///@name  Enum's
+///@{
 
-      /// Turn back information as a string.
-      virtual std::string Info() const;
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
+///@}
+///@name  Functions
+///@{
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
-    protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-      double& CalculateIsotropicHardening(double &IsotropicHardening, double & alpha);
+///@}
+///@name Kratos Classes
+///@{
 
-      double& CalculateKinematicHardening(double &KinematicHardening, double & alpha);
+/// Short class definition.
+/** Detail class definition.
+*/
+class HardeningLaw
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of HardeningLaw
+    KRATOS_CLASS_POINTER_DEFINITION(HardeningLaw);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    HardeningLaw();
+
+    /// Destructor.
+    virtual ~HardeningLaw();
 
 
-      double& CalculateIsotropicHardeningDerivative(double &DeltaIsotropicHardening, double & alpha);
+    ///@}
+    ///@name Operators
+    ///@{
 
-      double& CalculateKinematicHardeningDerivative(double &DeltaKinematicHardening, double & alpha);
-        
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
-    private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-      HardeningLaw& operator=(HardeningLaw const& rOther);
 
-      /// Copy constructor.
-      HardeningLaw(HardeningLaw const& rOther);
+    ///@}
+    ///@name Operations
+    ///@{
 
-        
-      ///@}    
-        
-    }; // Class HardeningLaw 
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream, 
-				    HardeningLaw& rThis);
+    ///@}
+    ///@name Access
+    ///@{
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const HardeningLaw& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
 
-      return rOStream;
-    }
-  ///@}
+    ///@}
+    ///@name Inquiry
+    ///@{
 
-  ///@} addtogroup block
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const;
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const;
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const;
+
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    double& CalculateIsotropicHardening(double &IsotropicHardening, double & alpha);
+
+    double& CalculateKinematicHardening(double &KinematicHardening, double & alpha);
+
+
+    double& CalculateIsotropicHardeningDerivative(double &DeltaIsotropicHardening, double & alpha);
+
+    double& CalculateKinematicHardeningDerivative(double &DeltaKinematicHardening, double & alpha);
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+    /// Assignment operator.
+    HardeningLaw& operator=(HardeningLaw const& rOther);
+
+    /// Copy constructor.
+    HardeningLaw(HardeningLaw const& rOther);
+
+
+    ///@}
+
+}; // Class HardeningLaw
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+inline std::istream& operator >> (std::istream& rIStream,
+                                  HardeningLaw& rThis);
+
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const HardeningLaw& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+///@} addtogroup block
 
 }  // namespace Kratos.
 

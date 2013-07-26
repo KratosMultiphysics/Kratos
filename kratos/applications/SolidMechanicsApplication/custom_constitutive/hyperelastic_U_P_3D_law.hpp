@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -9,9 +9,9 @@
 #if !defined (KRATOS_HYPERELASTIC_U_P_3D_LAW_H_INCLUDED)
 #define  KRATOS_HYPERELASTIC_U_P_3D_LAW_H_INCLUDED
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 
 // Project includes
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
@@ -19,37 +19,37 @@
 
 namespace Kratos
 {
-  /**
-   * Defines a hyperelastic isotropic constitutive law in 3D Neohookean Model 
-   * With stress split in an isochoric and volumetric parts
-   * This material law is defined by the parameters:
-   * 1) YOUNG MODULUS 
-   * 2) POISSON RATIO
-   * As there are no further parameters the functionality is limited 
-   * to large displacements elasticity.
-   */
+/**
+ * Defines a hyperelastic isotropic constitutive law in 3D Neohookean Model
+ * With stress split in an isochoric and volumetric parts
+ * This material law is defined by the parameters:
+ * 1) YOUNG MODULUS
+ * 2) POISSON RATIO
+ * As there are no further parameters the functionality is limited
+ * to large displacements elasticity.
+ */
 
-  class HyperElasticUP3DLaw : public HyperElastic3DLaw
-  {
-  protected:
+class HyperElasticUP3DLaw : public HyperElastic3DLaw
+{
+protected:
 
     /**
      * Parameters to be used in the volumetric and deviatoric split
      */
     struct VectorSplit
     {
-      Vector  Isochoric;
-      Vector  Volumetric;
+        Vector  Isochoric;
+        Vector  Volumetric;
     };
 
     struct MatrixSplit
     {
-      Matrix  Isochoric;
-      Matrix  Volumetric;
+        Matrix  Isochoric;
+        Matrix  Volumetric;
     };
 
 
-  public:
+public:
     /**
      * Type Definitions
      */
@@ -59,24 +59,24 @@ namespace Kratos
     /**
      * Counted pointer of HyperElasticUP3DLaw
      */
-    
+
     KRATOS_CLASS_POINTER_DEFINITION(HyperElasticUP3DLaw);
-    
+
     /**
-     * Life Cycle 
+     * Life Cycle
      */
 
     /**
      * Default constructor.
      */
     HyperElasticUP3DLaw();
-			
-    
+
+
     /**
      * Copy constructor.
      */
     HyperElasticUP3DLaw (const HyperElasticUP3DLaw& rOther);
-   
+
 
     /**
      * Assignment operator.
@@ -94,11 +94,11 @@ namespace Kratos
      * Destructor.
      */
     virtual ~HyperElasticUP3DLaw();
-			
+
     /**
-     * Operators 
+     * Operators
      */
-    
+
     /**
      * Operations needed by the base class:
      */
@@ -106,7 +106,7 @@ namespace Kratos
     /**
      * Computes the material response:
      * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues 
+     * @param rValues
      * @see   Parameters
      */
     void CalculateMaterialResponsePK2 (Parameters & rValues);
@@ -114,7 +114,7 @@ namespace Kratos
     /**
      * Computes the material response:
      * Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues 
+     * @param rValues
      * @see   Parameters
      */
     void CalculateMaterialResponseKirchhoff (Parameters & rValues);
@@ -145,8 +145,8 @@ namespace Kratos
      * Print object's data.
      */
     //virtual void PrintData(std::ostream& rOStream) const;
-		
-  protected:
+
+protected:
 
     ///@name Protected static Member Variables
     ///@{
@@ -168,139 +168,139 @@ namespace Kratos
      * @param rPressure the calculated pressure to be returned
      */
     double& CalculateDomainPressure (const GeometryType& rDomainGeometry,
-				     const Vector & rShapeFunctions, 
-				     double & rPressure);
+                                     const Vector & rShapeFunctions,
+                                     double & rPressure);
 
 
     /**
-     * Calculates the isochoric constitutive matrix 
-     * @param rElasticVariables 
+     * Calculates the isochoric constitutive matrix
+     * @param rElasticVariables
      * @param rIsoStressVector the isochoric stress vector
      * matrix is to be generated for
      * @param rResult Matrix the result (Constitutive Matrix) will be stored in
      */
     virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-						       const Vector & rIsoStressVector,
-						       Matrix& rConstitutiveMatrix);
+            const Vector & rIsoStressVector,
+            Matrix& rConstitutiveMatrix);
 
 
     /**
      * Calculates the isochoric constitutive matrix and makes a pull-back
-     * @param rElasticVariables 
+     * @param rElasticVariables
      * @param rIsoStressVector the isochoric stress vector
-     * @param rInverseDeformationGradientF 
+     * @param rInverseDeformationGradientF
      * matrix is to be generated for
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
     virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-						       const Vector & rIsoStressVector,
-						       const Matrix & rInverseDeformationGradientF,
-						       Matrix& rConstitutiveMatrix);
+            const Vector & rIsoStressVector,
+            const Matrix & rInverseDeformationGradientF,
+            Matrix& rConstitutiveMatrix);
 
 
     /**
      * Constitutive isochoric component
      */
 
-    double& IsochoricConstitutiveComponent( double & rCabcd, 
-				   const MaterialResponseVariables& rElasticVariables,
-				   const Matrix & rIsoStressMatrix,
-				   const unsigned int& a, const unsigned int& b,
-				   const unsigned int& c, const unsigned int& d);
+    double& IsochoricConstitutiveComponent( double & rCabcd,
+                                            const MaterialResponseVariables& rElasticVariables,
+                                            const Matrix & rIsoStressMatrix,
+                                            const unsigned int& a, const unsigned int& b,
+                                            const unsigned int& c, const unsigned int& d);
 
     /**
      * Constitutive isochoric component pull-back
      */
 
     double& IsochoricConstitutiveComponent( double & rCabcd,
-				   const MaterialResponseVariables& rElasticVariables,
-				   const Matrix & rIsoStressMatrix,
-				   const Matrix & rInverseDeformationGradientF,
-				   const unsigned int& a, const unsigned int& b, 
-				   const unsigned int& c, const unsigned int& d);
-    
+                                            const MaterialResponseVariables& rElasticVariables,
+                                            const Matrix & rIsoStressMatrix,
+                                            const Matrix & rInverseDeformationGradientF,
+                                            const unsigned int& a, const unsigned int& b,
+                                            const unsigned int& c, const unsigned int& d);
+
 
 
     /**
-     * Calculates the volumetric constitutive matrix 
-     * @param rElasticVariables 
+     * Calculates the volumetric constitutive matrix
+     * @param rElasticVariables
      * @param rDomainGeometry the element geometry
      * @param rShapeFunctions the element shape functions
      * matrix is to be generated for
      * @param rResult Matrix the result (Constitutive Matrix) will be stored in
      */
     virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-							const GeometryType& rDomainGeometry,
-							const Vector & rShapeFunctions,
-							Matrix& rConstitutiveMatrix);
+            const GeometryType& rDomainGeometry,
+            const Vector & rShapeFunctions,
+            Matrix& rConstitutiveMatrix);
 
 
     /**
      * Calculates the volumetric constitutive matrix and makes a pull-back
-     * @param rElasticVariables 
-     * @param rInverseDeformationGradientF 
+     * @param rElasticVariables
+     * @param rInverseDeformationGradientF
      * @param rDomainGeometry the element geometry
      * @param rShapeFunctions the element shape functions
      * matrix is to be generated for
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
     virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-							const Matrix & rInverseDeformationGradientF,
-							const GeometryType& rDomainGeometry,
-							const Vector & rShapeFunctions,
-							Matrix& rConstitutiveMatrix);
+            const Matrix & rInverseDeformationGradientF,
+            const GeometryType& rDomainGeometry,
+            const Vector & rShapeFunctions,
+            Matrix& rConstitutiveMatrix);
 
 
     /**
      * Constitutive volumetric component
      */
 
-    double& VolumetricConstitutiveComponent( double & rCabcd, 
-				   const MaterialResponseVariables& rElasticVariables,
-				   const double & rPressure,
-				   const unsigned int& a, const unsigned int& b,
-				   const unsigned int& c, const unsigned int& d);
+    double& VolumetricConstitutiveComponent( double & rCabcd,
+            const MaterialResponseVariables& rElasticVariables,
+            const double & rPressure,
+            const unsigned int& a, const unsigned int& b,
+            const unsigned int& c, const unsigned int& d);
 
     /**
      * Constitutive volumetric component pull-back
      */
 
     double& VolumetricConstitutiveComponent( double & rCabcd,
-				   const MaterialResponseVariables& rElasticVariables,
-				   const Matrix & rInverseDeformationGradientF,
-				   const double & rPressure,
-				   const unsigned int& a, const unsigned int& b, 
-				   const unsigned int& c, const unsigned int& d);
+            const MaterialResponseVariables& rElasticVariables,
+            const Matrix & rInverseDeformationGradientF,
+            const double & rPressure,
+            const unsigned int& a, const unsigned int& b,
+            const unsigned int& c, const unsigned int& d);
 
- 
+
 
     /**
      * Calculates the isochoric stress vector
-     * @param rElasticVariables 
+     * @param rElasticVariables
      * matrix is to be generated for
      * @param rStressMeasure measure of stress to be calculated
      * @param rIsoStressVector vector where the stress result is stored
      */
     virtual void CalculateIsochoricStress( const MaterialResponseVariables & rElasticVariables,
-					   StressMeasure rStressMeasure,
-					   Vector& rIsoStressVector);
+                                           StressMeasure rStressMeasure,
+                                           Vector& rIsoStressVector);
 
     /**
      * Calculates the volumetric stress vector
-     * @param rElasticVariables 
+     * @param rElasticVariables
      * @param rDomainGeometry the element geometry
      * @param rShapeFunctions the element shape functions
      * @param rVolStressVector vector where the stress result is stored
      */
     virtual void CalculateVolumetricStress( const MaterialResponseVariables & rElasticVariables,
-					    const GeometryType& rDomainGeometry,
-					    const Vector & rShapeFunctions,
-					    Vector& rVolStressVector );
+                                            const GeometryType& rDomainGeometry,
+                                            const Vector & rShapeFunctions,
+                                            Vector& rVolStressVector );
 
 
 
-		
-  private:
+
+private:
 
     ///@name Static Member Variables
     ///@{
@@ -324,7 +324,7 @@ namespace Kratos
     ///@{
     ///@}
 
- 
+
     ///@}
     ///@name Serialization
     ///@{
@@ -332,16 +332,16 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElastic3DLaw);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElastic3DLaw);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElastic3DLaw);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElastic3DLaw);
     }
 
 
 
-  }; // Class HyperElasticUP3DLaw 
+}; // Class HyperElasticUP3DLaw
 }  // namespace Kratos.
 #endif // KRATOS_HYPERELASTIC_U_P_3D_LAW_H_INCLUDED  defined 

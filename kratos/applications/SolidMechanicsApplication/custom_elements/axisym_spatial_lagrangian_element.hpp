@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -56,7 +56,7 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
- 
+
     /// Counted pointer of AxisymSpatialLagrangianElement
     KRATOS_CLASS_POINTER_DEFINITION(AxisymSpatialLagrangianElement);
 
@@ -98,7 +98,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
-   //************* STARTING - ENDING  METHODS
+    //************* STARTING - ENDING  METHODS
 
     /**
       * Called to initialize the element.
@@ -163,21 +163,21 @@ protected:
 
 
     /**
-     * Calculation and addition of the matrices of the LHS 
+     * Calculation and addition of the matrices of the LHS
      */
 
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-				    GeneralVariables& rVariables, 
-				    double& rIntegrationWeight);
-  
+                                    GeneralVariables& rVariables,
+                                    double& rIntegrationWeight);
+
     /**
-     * Calculation and addition of the vectors of the RHS 
+     * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, 
-				    GeneralVariables& rVariables, 
-				    Vector& rVolumeForce, 
-				    double& rIntegrationWeight);
+    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                                    GeneralVariables& rVariables,
+                                    Vector& rVolumeForce,
+                                    double& rIntegrationWeight);
 
     /**
      * Calculation of the Total Mass of the Element
@@ -189,15 +189,15 @@ protected:
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     virtual void CalculateAndAddKuug(MatrixType& rK,
-				     GeneralVariables & rVariables,
-				     double& rIntegrationWeight
-				     );
+                                     GeneralVariables & rVariables,
+                                     double& rIntegrationWeight
+                                    );
 
- 
+
 
     /**
      * Initialize Element General Variables
-     */ 
+     */
     virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
@@ -206,55 +206,55 @@ protected:
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
-				     ConstitutiveLaw::Parameters& rValues,
-				     const int & rPointNumber);
+                                     ConstitutiveLaw::Parameters& rValues,
+                                     const int & rPointNumber);
 
     /**
      * Calculate Element Kinematics
      */
     virtual void CalculateKinematics(GeneralVariables& rVariables,
-				     const double& rPointNumber);
+                                     const double& rPointNumber);
 
 
     /**
      * Calculate Radius in the current and deformed geometry
      */
     void CalculateRadius(double & rCurrentRadius,
-			 double & rReferenceRadius,
-			 const Vector& rN);
+                         double & rReferenceRadius,
+                         const Vector& rN);
 
     /**
      * Calculation of the Deformation Gradient F
      */
     void CalculateDeformationGradient(const Matrix& rDN_DX,
-				      Matrix& rF,
-				      Matrix& rDeltaPosition,
-				      double & rCurrentRadius,
-				      double & rReferenceRadius);
+                                      Matrix& rF,
+                                      Matrix& rDeltaPosition,
+                                      double & rCurrentRadius,
+                                      double & rReferenceRadius);
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
     virtual void CalculateDeformationMatrix(Matrix& rB,
-					    Matrix& rDN_DX,
-					    Vector& rN,
-					    double & rCurrentRadius);
+                                            Matrix& rDN_DX,
+                                            Vector& rN,
+                                            double & rCurrentRadius);
 
     /**
      * Calculation of the Green Lagrange Strain Vector
      */
     void CalculateGreenLagrangeStrain(const Matrix& rF,
-				      Vector& rStrainVector);
+                                      Vector& rStrainVector);
 
     /**
      * Calculation of the Almansi Strain Vector
      */
     void CalculateAlmansiStrain(const Matrix& rF,
-				Vector& rStrainVector);
+                                Vector& rStrainVector);
 
 
 
-     ///@}
+    ///@}
     ///@name Protected  Access
     ///@{
     ///@}

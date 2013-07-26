@@ -1,6 +1,6 @@
-//    
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -13,10 +13,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -25,228 +25,228 @@
 
 namespace Kratos
 {
-  ///@addtogroup ApplicationNameApplication
-  ///@{
+///@addtogroup ApplicationNameApplication
+///@{
 
-  ///@name Kratos Globals
-  ///@{ 
-  
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
-  
-  ///@} 
-  ///@name  Enum's
-  ///@{
-      
-  ///@}
-  ///@name  Functions 
-  ///@{
-      
-  ///@}
-  ///@name Kratos Classes
-  ///@{
-  
-  /// Short class definition.
-  /** Detail class definition.
-  */
-  class YieldCriterion
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+*/
+class YieldCriterion
+{
+protected:
+
+    struct InternalVariables
     {
-    protected:
+        Matrix ElasticLeftCauchyGreen;
+        double EquivalentPlasticStrain;
+        double DeltaPlasticStrain;
+        double PlasticDissipation;
 
-      struct InternalVariables
-      {
-	Matrix ElasticLeftCauchyGreen;
-	double EquivalentPlasticStrain;
-	double DeltaPlasticStrain;
-	double PlasticDissipation;
-	
-	void clear ()
-	{
-	  ElasticLeftCauchyGreen.clear();
-	  EquivalentPlasticStrain = 0;
-	  DeltaPlasticStrain = 0;
-	  PlasticDissipation = 0;
-	}
-	
+        void clear ()
+        {
+            ElasticLeftCauchyGreen.clear();
+            EquivalentPlasticStrain = 0;
+            DeltaPlasticStrain = 0;
+            PlasticDissipation = 0;
+        }
+
 
     public:
-      ///@name Type Definitions
-      ///@{
-     
-      /// Pointer definition of YieldCriterion
-      KRATOS_CLASS_POINTER_DEFINITION(YieldCriterion);
-  
-      ///@}
-      ///@name Life Cycle 
-      ///@{ 
-      
-      /// Default constructor.
-      YieldCriterion();
+        ///@name Type Definitions
+        ///@{
 
-      /// Destructor.
-      virtual ~YieldCriterion();
-      
+        /// Pointer definition of YieldCriterion
+        KRATOS_CLASS_POINTER_DEFINITION(YieldCriterion);
 
-      ///@}
-      ///@name Operators 
-      ///@{
-      
-      
-      ///@}
-      ///@name Operations
-      ///@{
-      
-      
-      ///@}
-      ///@name Access
-      ///@{ 
-      
-      
-      ///@}
-      ///@name Inquiry
-      ///@{
-      
-      
-      ///@}      
-      ///@name Input and output
-      ///@{
+        ///@}
+        ///@name Life Cycle
+        ///@{
 
-      /// Turn back information as a string.
-      virtual std::string Info() const;
-      
-      /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const;
+        /// Default constructor.
+        YieldCriterion();
 
-      /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const;
-      
-            
-      ///@}      
-      ///@name Friends
-      ///@{
-      
-            
-      ///@}
-      
+        /// Destructor.
+        virtual ~YieldCriterion();
+
+
+        ///@}
+        ///@name Operators
+        ///@{
+
+
+        ///@}
+        ///@name Operations
+        ///@{
+
+
+        ///@}
+        ///@name Access
+        ///@{
+
+
+        ///@}
+        ///@name Inquiry
+        ///@{
+
+
+        ///@}
+        ///@name Input and output
+        ///@{
+
+        /// Turn back information as a string.
+        virtual std::string Info() const;
+
+        /// Print information about this object.
+        virtual void PrintInfo(std::ostream& rOStream) const;
+
+        /// Print object's data.
+        virtual void PrintData(std::ostream& rOStream) const;
+
+
+        ///@}
+        ///@name Friends
+        ///@{
+
+
+        ///@}
+
     protected:
-      ///@name Protected static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Protected Operations
-      ///@{ 
-        
-      bool CalculateYieldCondition(InternalVariables& Variables, RuleParameters& Parameters);
-        
-      bool CalculateConsistencyCondition(InternalVariables& Variables, RuleParameters& Parameters);
+        ///@name Protected static Member Variables
+        ///@{
 
-      void UpdateElasticState (InternalVariables& Variables);
-      
 
-      void UpdatePlasticState (InternalVariables& Variables);
+        ///@}
+        ///@name Protected member Variables
+        ///@{
 
-      ///@} 
-      ///@name Protected  Access 
-      ///@{ 
-        
-        
-      ///@}      
-      ///@name Protected Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Protected LifeCycle 
-      ///@{ 
-      
-            
-      ///@}
-      
+
+        ///@}
+        ///@name Protected Operators
+        ///@{
+
+
+        ///@}
+        ///@name Protected Operations
+        ///@{
+
+        bool CalculateYieldCondition(InternalVariables& Variables, RuleParameters& Parameters);
+
+        bool CalculateConsistencyCondition(InternalVariables& Variables, RuleParameters& Parameters);
+
+        void UpdateElasticState (InternalVariables& Variables);
+
+
+        void UpdatePlasticState (InternalVariables& Variables);
+
+        ///@}
+        ///@name Protected  Access
+        ///@{
+
+
+        ///@}
+        ///@name Protected Inquiry
+        ///@{
+
+
+        ///@}
+        ///@name Protected LifeCycle
+        ///@{
+
+
+        ///@}
+
     private:
-      ///@name Static Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Member Variables 
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operators
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private Operations
-      ///@{ 
-        
-        
-      ///@} 
-      ///@name Private  Access 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Private Inquiry 
-      ///@{ 
-        
-        
-      ///@}    
-      ///@name Un accessible methods 
-      ///@{ 
-      
-      /// Assignment operator.
-      YieldCriterion& operator=(YieldCriterion const& rOther);
+        ///@name Static Member Variables
+        ///@{
 
-      /// Copy constructor.
-      YieldCriterion(YieldCriterion const& rOther);
 
-        
-      ///@}    
-        
-    }; // Class YieldCriterion 
+        ///@}
+        ///@name Member Variables
+        ///@{
 
-  ///@} 
-  
-  ///@name Type Definitions       
-  ///@{ 
-  
-  
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
-        
- 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream, 
-				    YieldCriterion& rThis);
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream, 
-				    const YieldCriterion& rThis)
+        ///@}
+        ///@name Private Operators
+        ///@{
+
+
+        ///@}
+        ///@name Private Operations
+        ///@{
+
+
+        ///@}
+        ///@name Private  Access
+        ///@{
+
+
+        ///@}
+        ///@name Private Inquiry
+        ///@{
+
+
+        ///@}
+        ///@name Un accessible methods
+        ///@{
+
+        /// Assignment operator.
+        YieldCriterion& operator=(YieldCriterion const& rOther);
+
+        /// Copy constructor.
+        YieldCriterion(YieldCriterion const& rOther);
+
+
+        ///@}
+
+    }; // Class YieldCriterion
+
+    ///@}
+
+    ///@name Type Definitions
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+
+    /// input stream function
+    inline std::istream& operator >> (std::istream& rIStream,
+                                      YieldCriterion& rThis);
+
+    /// output stream function
+    inline std::ostream& operator << (std::ostream& rOStream,
+                                      const YieldCriterion& rThis)
     {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
+        rThis.PrintInfo(rOStream);
+        rOStream << std::endl;
+        rThis.PrintData(rOStream);
 
-      return rOStream;
+        return rOStream;
     }
-  ///@}
+    ///@}
 
-  ///@} addtogroup block
+    ///@} addtogroup block
 
 }  // namespace Kratos.
 

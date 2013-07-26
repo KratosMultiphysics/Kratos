@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -161,17 +161,17 @@ protected:
     ///@name Protected Operators
     ///@{
 
-   
+
     ///@}
     ///@name Protected Operations
     ///@{
 
-   virtual void CalculateConditionalSystem( MatrixType& rLeftHandSideMatrix, 
-					     VectorType& rRightHandSideVector,
-					     ProcessInfo& rCurrentProcessInfo,
-					     bool CalculateStiffnessMatrixFlag,
-					     bool CalculateResidualVectorFlag );
-  
+    virtual void CalculateConditionalSystem( MatrixType& rLeftHandSideMatrix,
+            VectorType& rRightHandSideVector,
+            ProcessInfo& rCurrentProcessInfo,
+            bool CalculateStiffnessMatrixFlag,
+            bool CalculateResidualVectorFlag );
+
 
     void CalculateAndSubKp(Matrix& rK,
                            const Matrix& rDN_De,
@@ -188,9 +188,9 @@ protected:
                                       double rIntegrationWeight );
 
     void CalculateAndAddLineLoad(Vector& rF,
-                                  const Vector& rN,
-                                  Vector& rForce,
-                                  double rIntegrationWeight );
+                                 const Vector& rN,
+                                 Vector& rForce,
+                                 double rIntegrationWeight );
 
     ///@}
     ///@name Protected  Access
@@ -244,7 +244,7 @@ private:
 
     friend class Serializer;
 
-     virtual void save( Serializer& rSerializer ) const
+    virtual void save( Serializer& rSerializer ) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
     }

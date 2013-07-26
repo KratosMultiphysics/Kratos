@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -63,72 +63,84 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
- 
+
     /// Counted pointer of LargeDisplacementElement
     KRATOS_CLASS_POINTER_DEFINITION(LargeDisplacementElement);
     ///@}
 
 protected:
- 
-  /**
-   * Flags related to the element computation
-   */
-
-  KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
-  KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-
-  /**
-   * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
-   */
-
-  struct GeneralVariables
-  {
-    StressMeasureType StressMeasure;
-    
-    //for axisymmetric use only
-    double  CurrentRadius;
-    double  ReferenceRadius;
-
-    //general variables for large displacement use
-    double  detF;
-    double  detF0;
-    double  detJ;
-    Vector  StrainVector;
-    Vector  StressVector;
-    Vector  N;
-    Matrix  B;
-    Matrix  F;
-    Matrix  F0;
-    Matrix  DN_DX;
-    Matrix  ConstitutiveMatrix;
-    
-    //variables including all integration points
-    const GeometryType::ShapeFunctionsGradientsType* pDN_De;
-    GeometryType::JacobiansType J;
-    GeometryType::JacobiansType j;
-    const Matrix* pNcontainer;
-    Matrix  DeltaPosition;
-
 
     /**
-     * sets the value of a specified pointer variable
+     * Flags related to the element computation
      */
 
-    void SetShapeFunctionsGradients(const GeometryType::ShapeFunctionsGradientsType &rDN_De)  {pDN_De=&rDN_De;};
-    
-    void SetShapeFunctions(const Matrix& rNcontainer)  {pNcontainer=&rNcontainer;};
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
 
-    
     /**
-     * returns the value of a specified pointer variable
-     */ 
+     * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
+     */
 
-    const GeometryType::ShapeFunctionsGradientsType& GetShapeFunctionsGradients()  {return *pDN_De;};
+    struct GeneralVariables
+    {
+        StressMeasureType StressMeasure;
 
-    const Matrix& GetShapeFunctions()  {return *pNcontainer;};
+        //for axisymmetric use only
+        double  CurrentRadius;
+        double  ReferenceRadius;
 
-    
-  };
+        //general variables for large displacement use
+        double  detF;
+        double  detF0;
+        double  detJ;
+        Vector  StrainVector;
+        Vector  StressVector;
+        Vector  N;
+        Matrix  B;
+        Matrix  F;
+        Matrix  F0;
+        Matrix  DN_DX;
+        Matrix  ConstitutiveMatrix;
+
+        //variables including all integration points
+        const GeometryType::ShapeFunctionsGradientsType* pDN_De;
+        GeometryType::JacobiansType J;
+        GeometryType::JacobiansType j;
+        const Matrix* pNcontainer;
+        Matrix  DeltaPosition;
+
+
+        /**
+         * sets the value of a specified pointer variable
+         */
+
+        void SetShapeFunctionsGradients(const GeometryType::ShapeFunctionsGradientsType &rDN_De)
+        {
+            pDN_De=&rDN_De;
+        };
+
+        void SetShapeFunctions(const Matrix& rNcontainer)
+        {
+            pNcontainer=&rNcontainer;
+        };
+
+
+        /**
+         * returns the value of a specified pointer variable
+         */
+
+        const GeometryType::ShapeFunctionsGradientsType& GetShapeFunctionsGradients()
+        {
+            return *pDN_De;
+        };
+
+        const Matrix& GetShapeFunctions()
+        {
+            return *pNcontainer;
+        };
+
+
+    };
 
 public:
 
@@ -233,14 +245,14 @@ public:
      */
     void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
-     /**
-     * Set a Constitutive Law Value
-     */
-     void SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-				       std::vector<ConstitutiveLaw::Pointer>& rValues,
-				       const ProcessInfo& rCurrentProcessInfo );
+    /**
+    * Set a Constitutive Law Value
+    */
+    void SetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
+                                      std::vector<ConstitutiveLaw::Pointer>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo );
 
- 
+
     //GET:
     /**
      * Get on rVariable a double Value from the Element Constitutive Law
@@ -261,8 +273,8 @@ public:
      * Get a Constitutive Law Value
      */
     void GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
-				      std::vector<ConstitutiveLaw::Pointer>& rValues,
-				      const ProcessInfo& rCurrentProcessInfo );
+                                      std::vector<ConstitutiveLaw::Pointer>& rValues,
+                                      const ProcessInfo& rCurrentProcessInfo );
 
 
     //************* STARTING - ENDING  METHODS
@@ -414,75 +426,75 @@ protected:
      * \f$ r^e \f$
      */
     virtual void CalculateElementalSystem(MatrixType& rLeftHandSideMatrix,
-					  VectorType& rRightHandSideVector,
-					  ProcessInfo& rCurrentProcessInfo,
-					  Flags & rCalculationFlags);
+                                          VectorType& rRightHandSideVector,
+                                          ProcessInfo& rCurrentProcessInfo,
+                                          Flags & rCalculationFlags);
     ///@}
     ///@name Protected Operations
     ///@{
 
 
     /**
-     * Calculation and addition of the matrices of the LHS 
+     * Calculation and addition of the matrices of the LHS
      */
 
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-				    GeneralVariables& rVariables, 
-				    double& rIntegrationWeight);
-  
+                                    GeneralVariables& rVariables,
+                                    double& rIntegrationWeight);
+
     /**
-     * Calculation and addition of the vectors of the RHS 
+     * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, 
-				    GeneralVariables& rVariables, 
-				    Vector& rVolumeForce, 
-				    double& rIntegrationWeight);
-  
+    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                                    GeneralVariables& rVariables,
+                                    Vector& rVolumeForce,
+                                    double& rIntegrationWeight);
+
 
     /**
-     * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B 
+     * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
      */
 
     virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-				     GeneralVariables& rVariables,
-				     double& rIntegrationWeight
-				     );
+                                     GeneralVariables& rVariables,
+                                     double& rIntegrationWeight
+                                    );
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-				     GeneralVariables& rVariables,
-				     double& rIntegrationWeight
-				     );
+                                     GeneralVariables& rVariables,
+                                     double& rIntegrationWeight
+                                    );
 
 
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-						      GeneralVariables& rVariables,
-						      Vector& rVolumeForce,
-						      double& rIntegrationWeight
-						      );
+            GeneralVariables& rVariables,
+            Vector& rVolumeForce,
+            double& rIntegrationWeight
+                                              );
 
 
     /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-						      GeneralVariables & rVariables,
-						      double& rIntegrationWeight
-						      );
+            GeneralVariables & rVariables,
+            double& rIntegrationWeight
+                                              );
 
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
-				       ConstitutiveLaw::Parameters& rValues,
-				       const int & rPointNumber);
+                                     ConstitutiveLaw::Parameters& rValues,
+                                     const int & rPointNumber);
 
 
 
@@ -490,11 +502,11 @@ protected:
      * Initialize System Matrices
      */
     virtual void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-					  VectorType& rRightHandSideVector,
-					  Flags& rCalculationFlags);
+                                          VectorType& rRightHandSideVector,
+                                          Flags& rCalculationFlags);
 
 
- 
+
     /**
      * Initialize Material Properties on the Constitutive Law
      */
@@ -517,7 +529,7 @@ protected:
      * Calculate Element Kinematics
      */
     virtual void CalculateKinematics(GeneralVariables& rVariables,
-				     const double& rPointNumber);
+                                     const double& rPointNumber);
 
 
     /**
@@ -533,7 +545,7 @@ protected:
 
     /**
      * Initialize Element General Variables
-     */ 
+     */
     virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
@@ -541,13 +553,13 @@ protected:
      * Calculation of the Green Lagrange Strain Vector
      */
     virtual void CalculateGreenLagrangeStrain(const Matrix& rF,
-					      Vector& rStrainVector);
+            Vector& rStrainVector);
 
     /**
      * Calculation of the Almansi Strain Vector
      */
     virtual void CalculateAlmansiStrain(const Matrix& rF,
-					Vector& rStrainVector);
+                                        Vector& rStrainVector);
 
 
 
@@ -555,14 +567,14 @@ protected:
      * Calculation of the Velocity Gradient
      */
     void CalculateVelocityGradient(const Matrix& rDN_DX,
-				   Matrix& rDF );
-   
+                                   Matrix& rDF );
+
     /**
      * Calculation of the Deformation Matrix  BL
      */
     virtual void CalculateDeformationMatrix(Matrix& rB,
-					    Matrix& rF,
-					    Matrix& rDN_DX);
+                                            Matrix& rF,
+                                            Matrix& rDN_DX);
 
     /**
      * Calculation of the Integration Weight

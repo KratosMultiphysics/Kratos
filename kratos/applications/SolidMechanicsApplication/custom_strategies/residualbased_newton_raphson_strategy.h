@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -442,7 +442,7 @@ public:
             std::stringstream matrix_market_name;
             matrix_market_name << "A_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number << ".mm";
             TSparseSpace::WriteMatrixMarketMatrix((char*) (matrix_market_name.str()).c_str(), mA, false);
-	    
+
             std::stringstream matrix_market_vectname;
             matrix_market_vectname << "b_" << BaseType::GetModelPart().GetProcessInfo()[TIME] << "_" << iteration_number << ".mm.rhs";
             TSparseSpace::WriteMatrixMarketVector((char*) (matrix_market_vectname.str()).c_str(), mb);
@@ -556,11 +556,11 @@ public:
 
         //recalculate residual if needed
         // (note that some convergence criteria need it to be recalculated)
-		// NOTE:
-		// The following part will be commented because it is time consuming
-		// and there is no obvious reason to be here. If someone need this
-		// part please notify the community via mailing list before uncommenting it.
-		// Pooyan.
+        // NOTE:
+        // The following part will be commented because it is time consuming
+        // and there is no obvious reason to be here. If someone need this
+        // part please notify the community via mailing list before uncommenting it.
+        // Pooyan.
         //if (ResidualIsUpdated == false)
         //{
         //    TSparseSpace::SetToZero(mb);

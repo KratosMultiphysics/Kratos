@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -56,7 +56,7 @@ public:
     typedef ConstitutiveLawType::StressMeasure StressMeasureType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
- 
+
     /// Counted pointer of SpatialLagrangianUPElement
     KRATOS_CLASS_POINTER_DEFINITION(SpatialLagrangianUPElement);
 
@@ -98,7 +98,7 @@ public:
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
-   //************* STARTING - ENDING  METHODS
+    //************* STARTING - ENDING  METHODS
 
     /**
       * Called to initialize the element.
@@ -163,57 +163,57 @@ protected:
 
 
     /**
-     * Calculation and addition of the matrices of the LHS 
+     * Calculation and addition of the matrices of the LHS
      */
 
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
-				    GeneralVariables& rVariables, 
-				    double& rIntegrationWeight);
-  
+                                    GeneralVariables& rVariables,
+                                    double& rIntegrationWeight);
+
     /**
-     * Calculation and addition of the vectors of the RHS 
+     * Calculation and addition of the vectors of the RHS
      */
 
-    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, 
-				    GeneralVariables& rVariables, 
-				    Vector& rVolumeForce, 
-				    double& rIntegrationWeight);
+    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+                                    GeneralVariables& rVariables,
+                                    Vector& rVolumeForce,
+                                    double& rIntegrationWeight);
 
     /**
      * Initialize Element General Variables
-     */ 
+     */
     virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
-   /**
-     * Set Variables of the Element to the Parameters of the Constitutive Law
-     */
+    /**
+      * Set Variables of the Element to the Parameters of the Constitutive Law
+      */
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
-				     ConstitutiveLaw::Parameters& rValues,
-				     const int & rPointNumber);
+                                     ConstitutiveLaw::Parameters& rValues,
+                                     const int & rPointNumber);
 
     /**
      * Calculate Element Kinematics
      */
     virtual void CalculateKinematics(GeneralVariables& rVariables,
-				     const double& rPointNumber);
+                                     const double& rPointNumber);
 
-   
+
     /**
      * Calculation of the Deformation Gradient F
      */
     void CalculateDeformationGradient(const Matrix& rDN_DX,
-				      Matrix& rF,
-				      Matrix& rDeltaPosition);
+                                      Matrix& rF,
+                                      Matrix& rDeltaPosition);
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
     virtual void CalculateDeformationMatrix(Matrix& rB,
-					    Matrix& rF,
-					    Matrix& rDN_DX);
+                                            Matrix& rF,
+                                            Matrix& rDN_DX);
 
-     ///@}
+    ///@}
     ///@name Protected  Access
     ///@{
     ///@}

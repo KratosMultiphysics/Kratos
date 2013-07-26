@@ -1,18 +1,18 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
 //
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
-#include <boost/timer.hpp> 
+#include <boost/timer.hpp>
 
 
 // Project includes
@@ -46,124 +46,124 @@
 namespace Kratos
 {
 
-  namespace Python
-  {		
-    using namespace boost::python;
+namespace Python
+{
+using namespace boost::python;
 
-    void  AddCustomStrategiesToPython()
-    {
-      typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-      typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
+void  AddCustomStrategiesToPython()
+{
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
 
-      //base types
-      typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-      typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-      typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-      typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
+    //base types
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
 
-      typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-
-
-      //custom types
-      typedef ResidualBasedStaticScheme< SparseSpaceType, LocalSpaceType > ResidualBasedStaticSchemeType;
-      typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
-      typedef ResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakSchemeType;
-
-      typedef ResidualBasedRotationBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationBossakSchemeType;
+    typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
 
 
-      //********************************************************************
-      //*************************STRATEGY CLASSES***************************
-      //********************************************************************
+    //custom types
+    typedef ResidualBasedStaticScheme< SparseSpaceType, LocalSpaceType > ResidualBasedStaticSchemeType;
+    typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
+    typedef ResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakSchemeType;
 
-      // class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
-      // 	      bases< BaseSolvingStrategyType >,  boost::noncopyable >
-      // ("TestStrategy", 
-      //  init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
-      // .def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
-      // ;
-    
-
-      //********************************************************************
-      //*************************BUILDER AND SOLVER*************************
-      //********************************************************************
-      
-      // Residual Based Builder and Solver
-      typedef ResidualBasedBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBuilderAndSolverType;
-      
-      class_< ResidualBasedBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > ("ResidualBasedBuilderAndSolver", init< LinearSolverType::Pointer > ());
-
-     
-      // Block Residual Based Builder and Solver
-      typedef BlockResidualBasedBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BlockResidualBasedBuilderAndSolverType;
-      class_< BlockResidualBasedBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > ("BlockResidualBasedBuilderAndSolver", init< LinearSolverType::Pointer > ());
+    typedef ResidualBasedRotationBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationBossakSchemeType;
 
 
-      //********************************************************************
-      //*************************SHCHEME CLASSES****************************
-      //********************************************************************
+    //********************************************************************
+    //*************************STRATEGY CLASSES***************************
+    //********************************************************************
 
-      class_< ResidualBasedStaticSchemeType,
-	      bases< BaseSchemeType >, boost::noncopyable >
-	(
-	 "ResidualBasedStaticScheme", init< >() )
-
-	 .def("Initialize", &ResidualBasedStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-
-	;
-
-      class_< ResidualBasedNewmarkSchemeType,
-	      bases< BaseSchemeType >, boost::noncopyable >
-	(
-	 "ResidualBasedNewmarkScheme", init< double >() )
-
-	 .def("Initialize", &ResidualBasedNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-
-	;
+    // class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+    // 	      bases< BaseSolvingStrategyType >,  boost::noncopyable >
+    // ("TestStrategy",
+    //  init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
+    // .def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
+    // ;
 
 
+    //********************************************************************
+    //*************************BUILDER AND SOLVER*************************
+    //********************************************************************
 
-      class_< ResidualBasedBossakSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
-	(
-	 "ResidualBasedBossakScheme", init< double , double >() )
+    // Residual Based Builder and Solver
+    typedef ResidualBasedBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBuilderAndSolverType;
 
-	 .def("Initialize", &ResidualBasedBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-	;
-    
-  
-      class_< ResidualBasedRotationBossakSchemeType,
-	      bases< BaseSchemeType >,  boost::noncopyable >
-	(
-	 "ResidualBasedRotationBossakScheme", init< double , double >() )
-
-	 .def("Initialize", &ResidualBasedRotationBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-	;
+    class_< ResidualBasedBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > ("ResidualBasedBuilderAndSolver", init< LinearSolverType::Pointer > ());
 
 
-      //********************************************************************
-      //*******************CONVERGENCE CRITERIA CLASSES*********************
-      //********************************************************************
+    // Block Residual Based Builder and Solver
+    typedef BlockResidualBasedBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BlockResidualBasedBuilderAndSolverType;
+    class_< BlockResidualBasedBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > ("BlockResidualBasedBuilderAndSolver", init< LinearSolverType::Pointer > ());
 
 
-      class_< DisplacementConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ,
-	      bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
-	(
-	 "DisplacementConvergenceCriteria", init<double, double >()
-	 );
+    //********************************************************************
+    //*************************SHCHEME CLASSES****************************
+    //********************************************************************
 
-   
+    class_< ResidualBasedStaticSchemeType,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+                "ResidualBasedStaticScheme", init< >() )
 
-     class_< ResidualConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ,
-	      bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
-	(
-	 "ResidualConvergenceCriteria", init<double, double >()
-	 );
+            .def("Initialize", &ResidualBasedStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+
+            ;
+
+    class_< ResidualBasedNewmarkSchemeType,
+            bases< BaseSchemeType >, boost::noncopyable >
+            (
+                "ResidualBasedNewmarkScheme", init< double >() )
+
+            .def("Initialize", &ResidualBasedNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+
+            ;
 
 
-    }
 
-  }  // namespace Python.
+    class_< ResidualBasedBossakSchemeType,
+            bases< BaseSchemeType >,  boost::noncopyable >
+            (
+                "ResidualBasedBossakScheme", init< double , double >() )
+
+            .def("Initialize", &ResidualBasedBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            ;
+
+
+    class_< ResidualBasedRotationBossakSchemeType,
+            bases< BaseSchemeType >,  boost::noncopyable >
+            (
+                "ResidualBasedRotationBossakScheme", init< double , double >() )
+
+            .def("Initialize", &ResidualBasedRotationBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            ;
+
+
+    //********************************************************************
+    //*******************CONVERGENCE CRITERIA CLASSES*********************
+    //********************************************************************
+
+
+    class_< DisplacementConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ,
+            bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
+            (
+                "DisplacementConvergenceCriteria", init<double, double >()
+            );
+
+
+
+    class_< ResidualConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ,
+            bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
+            (
+                "ResidualConvergenceCriteria", init<double, double >()
+            );
+
+
+}
+
+}  // namespace Python.
 
 } // Namespace Kratos
 

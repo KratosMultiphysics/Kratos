@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -13,10 +13,10 @@
 
 // System includes
 #include <string>
-#include <iostream> 
+#include <iostream>
 
 
-// External includes 
+// External includes
 
 
 // Project includes
@@ -70,130 +70,130 @@
 
 namespace Kratos
 {
-  ///@name Type	Definitions
-  ///@{
+///@name Type	Definitions
+///@{
 
-  ///@name Kratos Globals
-  ///@{ 
-
-
-  //Define Variables
-
-  //geometrical 
-  KRATOS_DEFINE_VARIABLE( double, AREA );
-  KRATOS_DEFINE_VARIABLE( double, IX );
-  KRATOS_DEFINE_VARIABLE( double, IY );
-  KRATOS_DEFINE_VARIABLE( double, IZ );
-  KRATOS_DEFINE_VARIABLE( double, CROSS_AREA );
-  KRATOS_DEFINE_VARIABLE( Matrix , GEOMETRIC_STIFFNESS );
-
-  //constitutive law   
-  KRATOS_DEFINE_VARIABLE(std::string, CONSTITUTIVE_LAW_NAME );
-  KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER );
-  KRATOS_DEFINE_VARIABLE(Matrix, CONSTITUTIVE_MATRIX );
-  KRATOS_DEFINE_VARIABLE(Matrix, DEFORMATION_GRADIENT );
-  KRATOS_DEFINE_VARIABLE(double, DETERMINANT_F );
-  KRATOS_DEFINE_VARIABLE(bool,   AXISYMMETRIC_LAW  );
-
-  //material : hyperelastic_plastic
-  KRATOS_DEFINE_VARIABLE(double, NORM_ISOCHORIC_STRESS );
-  KRATOS_DEFINE_VARIABLE(double, PLASTIC_STRAIN );
-  KRATOS_DEFINE_VARIABLE(double, DELTA_PLASTIC_STRAIN );
-  KRATOS_DEFINE_VARIABLE(double, PLASTIC_POWER );
-  KRATOS_DEFINE_VARIABLE(double, KINEMATIC_HARDENING );
-  KRATOS_DEFINE_VARIABLE(double, HARDENING_EXPONENT );
-  KRATOS_DEFINE_VARIABLE(double, REFERENCE_HARDENING );
-  KRATOS_DEFINE_VARIABLE(double, INFINITY_HARDENING );
-
-  //element
-  //KRATOS_DEFINE_VARIABLE(Matrix, CAUCHY_STRESS_TENSOR );
-  //KRATOS_DEFINE_VARIABLE(Matrix, PK2_STRESS_TENSOR );
-  KRATOS_DEFINE_VARIABLE(Vector, CAUCHY_STRESS_VECTOR );
-  KRATOS_DEFINE_VARIABLE(Vector, PK2_STRESS_VECTOR );
-
-  //KRATOS_DEFINE_VARIABLE(Matrix, GREEN_LAGRANGE_STRAIN_TENSOR );
-  KRATOS_DEFINE_VARIABLE(Matrix, ALMANSI_STRAIN_TENSOR );
-  KRATOS_DEFINE_VARIABLE(Vector, GREEN_LAGRANGE_STRAIN_VECTOR );
-  KRATOS_DEFINE_VARIABLE(Vector, ALMANSI_STRAIN_VECTOR );
-
-  KRATOS_DEFINE_VARIABLE(double, VON_MISES_STRESS );
+///@name Kratos Globals
+///@{
 
 
-  //mechanical
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( FORCE_INTERNAL );
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( FORCE_EXTERNAL );
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( FORCE_DYNAMIC );
+//Define Variables
 
-  //nodal dofs
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT );
-  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_ROTATION );
-  KRATOS_DEFINE_VARIABLE(double, REACTION_PRESSURE );
+//geometrical
+KRATOS_DEFINE_VARIABLE( double, AREA );
+KRATOS_DEFINE_VARIABLE( double, IX );
+KRATOS_DEFINE_VARIABLE( double, IY );
+KRATOS_DEFINE_VARIABLE( double, IZ );
+KRATOS_DEFINE_VARIABLE( double, CROSS_AREA );
+KRATOS_DEFINE_VARIABLE( Matrix , GEOMETRIC_STIFFNESS );
 
-  //flags
-  KRATOS_DEFINE_FLAG( FLUID );
-  KRATOS_DEFINE_FLAG( STRUCTURE );
-  KRATOS_DEFINE_FLAG( SOLID );
-  KRATOS_DEFINE_FLAG( RIGID );
-  KRATOS_DEFINE_FLAG( CONTACT );
-    
-  KRATOS_DEFINE_FLAG( BOUNDARY );
-  KRATOS_DEFINE_FLAG( FREE_SURFACE );    
-   
-  KRATOS_DEFINE_FLAG( INTERFACE );
-    
-  KRATOS_DEFINE_FLAG( ENGAGED );
-  KRATOS_DEFINE_FLAG( ISOLATED );
-    
-  KRATOS_DEFINE_FLAG( REFINE );
-  KRATOS_DEFINE_FLAG( INSERTED );
-  KRATOS_DEFINE_FLAG( RELEASE );
+//constitutive law
+KRATOS_DEFINE_VARIABLE(std::string, CONSTITUTIVE_LAW_NAME );
+KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW_POINTER );
+KRATOS_DEFINE_VARIABLE(Matrix, CONSTITUTIVE_MATRIX );
+KRATOS_DEFINE_VARIABLE(Matrix, DEFORMATION_GRADIENT );
+KRATOS_DEFINE_VARIABLE(double, DETERMINANT_F );
+KRATOS_DEFINE_VARIABLE(bool,   AXISYMMETRIC_LAW  );
+
+//material : hyperelastic_plastic
+KRATOS_DEFINE_VARIABLE(double, NORM_ISOCHORIC_STRESS );
+KRATOS_DEFINE_VARIABLE(double, PLASTIC_STRAIN );
+KRATOS_DEFINE_VARIABLE(double, DELTA_PLASTIC_STRAIN );
+KRATOS_DEFINE_VARIABLE(double, PLASTIC_POWER );
+KRATOS_DEFINE_VARIABLE(double, KINEMATIC_HARDENING );
+KRATOS_DEFINE_VARIABLE(double, HARDENING_EXPONENT );
+KRATOS_DEFINE_VARIABLE(double, REFERENCE_HARDENING );
+KRATOS_DEFINE_VARIABLE(double, INFINITY_HARDENING );
+
+//element
+//KRATOS_DEFINE_VARIABLE(Matrix, CAUCHY_STRESS_TENSOR );
+//KRATOS_DEFINE_VARIABLE(Matrix, PK2_STRESS_TENSOR );
+KRATOS_DEFINE_VARIABLE(Vector, CAUCHY_STRESS_VECTOR );
+KRATOS_DEFINE_VARIABLE(Vector, PK2_STRESS_VECTOR );
+
+//KRATOS_DEFINE_VARIABLE(Matrix, GREEN_LAGRANGE_STRAIN_TENSOR );
+KRATOS_DEFINE_VARIABLE(Matrix, ALMANSI_STRAIN_TENSOR );
+KRATOS_DEFINE_VARIABLE(Vector, GREEN_LAGRANGE_STRAIN_VECTOR );
+KRATOS_DEFINE_VARIABLE(Vector, ALMANSI_STRAIN_VECTOR );
+
+KRATOS_DEFINE_VARIABLE(double, VON_MISES_STRESS );
 
 
-  ///@} 
-  ///@name Type Definitions
-  ///@{ 
+//mechanical
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( FORCE_INTERNAL );
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( FORCE_EXTERNAL );
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( FORCE_DYNAMIC );
 
-  ///@} 
-  ///@name  Enum's
-  ///@{
+//nodal dofs
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_DISPLACEMENT );
+KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS( IMPOSED_ROTATION );
+KRATOS_DEFINE_VARIABLE(double, REACTION_PRESSURE );
 
-  ///@}
-  ///@name  Functions 
-  ///@{
+//flags
+KRATOS_DEFINE_FLAG( FLUID );
+KRATOS_DEFINE_FLAG( STRUCTURE );
+KRATOS_DEFINE_FLAG( SOLID );
+KRATOS_DEFINE_FLAG( RIGID );
+KRATOS_DEFINE_FLAG( CONTACT );
 
-  ///@}
-  ///@name Kratos Classes
-  ///@{
+KRATOS_DEFINE_FLAG( BOUNDARY );
+KRATOS_DEFINE_FLAG( FREE_SURFACE );
 
-  /// Short class definition.
-  /** Detail class definition.
-   */
-  class KratosSolidMechanicsApplication : public KratosApplication
-  {
-  public:
+KRATOS_DEFINE_FLAG( INTERFACE );
+
+KRATOS_DEFINE_FLAG( ENGAGED );
+KRATOS_DEFINE_FLAG( ISOLATED );
+
+KRATOS_DEFINE_FLAG( REFINE );
+KRATOS_DEFINE_FLAG( INSERTED );
+KRATOS_DEFINE_FLAG( RELEASE );
+
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+ */
+class KratosSolidMechanicsApplication : public KratosApplication
+{
+public:
 
 
     ///@name Type Definitions
     ///@{
-		
+
 
     /// Pointer definition of KratosSolidMechanicsApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosSolidMechanicsApplication);
 
 
     ///@}
-    ///@name Life Cycle 
-    ///@{ 
+    ///@name Life Cycle
+    ///@{
 
     /// Default constructor.
     KratosSolidMechanicsApplication();
 
     /// Destructor.
-    virtual ~KratosSolidMechanicsApplication(){}
+    virtual ~KratosSolidMechanicsApplication() {}
 
 
     ///@}
-    ///@name Operators 
+    ///@name Operators
     ///@{
 
 
@@ -207,7 +207,7 @@ namespace Kratos
 
     ///@}
     ///@name Access
-    ///@{ 
+    ///@{
 
 
     ///@}
@@ -215,94 +215,94 @@ namespace Kratos
     ///@{
 
 
-    ///@}      
+    ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
     virtual std::string Info() const
-      {
-	return "KratosSolidMechanicsApplication";
-      }
+    {
+        return "KratosSolidMechanicsApplication";
+    }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-      rOStream << Info();
-      PrintData(rOStream);
+        rOStream << Info();
+        PrintData(rOStream);
     }
 
     ///// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-      KRATOS_WATCH("in my application");
-      KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
-      rOStream << "Variables:" << std::endl;
-      KratosComponents<VariableData>().PrintData(rOStream);
-      rOStream << std::endl;
-      rOStream << "Elements:" << std::endl;
-      KratosComponents<Element>().PrintData(rOStream);
-      rOStream << std::endl;
-      rOStream << "Conditions:" << std::endl;
-      KratosComponents<Condition>().PrintData(rOStream);
+        KRATOS_WATCH("in my application");
+        KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() );
+        rOStream << "Variables:" << std::endl;
+        KratosComponents<VariableData>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Elements:" << std::endl;
+        KratosComponents<Element>().PrintData(rOStream);
+        rOStream << std::endl;
+        rOStream << "Conditions:" << std::endl;
+        KratosComponents<Condition>().PrintData(rOStream);
     }
 
 
-    ///@}      
+    ///@}
     ///@name Friends
     ///@{
 
 
     ///@}
 
-  protected:
-    ///@name Protected static Member Variables 
-    ///@{ 
+protected:
+    ///@name Protected static Member Variables
+    ///@{
 
 
-    ///@} 
-    ///@name Protected member Variables 
-    ///@{ 
+    ///@}
+    ///@name Protected member Variables
+    ///@{
 
 
-    ///@} 
+    ///@}
     ///@name Protected Operators
-    ///@{ 
+    ///@{
 
 
-    ///@} 
+    ///@}
     ///@name Protected Operations
-    ///@{ 
+    ///@{
 
 
-    ///@} 
-    ///@name Protected  Access 
-    ///@{ 
+    ///@}
+    ///@name Protected  Access
+    ///@{
 
 
-    ///@}      
-    ///@name Protected Inquiry 
-    ///@{ 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
 
 
-    ///@}    
-    ///@name Protected LifeCycle 
-    ///@{ 
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
 
 
     ///@}
 
-  private:
-    ///@name Static Member Variables 
-    ///@{ 
+private:
+    ///@name Static Member Variables
+    ///@{
 
 
 
-    //       static const ApplicationCondition  msApplicationCondition; 
+    //       static const ApplicationCondition  msApplicationCondition;
 
-    ///@} 
-    ///@name Member Variables 
-    ///@{ 
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     //beams
 
@@ -313,8 +313,8 @@ namespace Kratos
 
     const IsotropicShellElement  mIsotropicShellElement3D3N;
 
-    //solid 
-    
+    //solid
+
     //small displacement
     const SmallDisplacementElement mSmallDisplacementElement2D3N;
     const SmallDisplacementElement mSmallDisplacementElement2D4N;
@@ -364,7 +364,7 @@ namespace Kratos
     const UpdatedLagrangianElement mUpdatedLagrangianElement3D27N;
 
     const UpdatedLagrangianUPElement mUpdatedLagrangianUPElement2D3N;
-    
+
     //spatial lagrangian
     const SpatialLagrangianElement mSpatialLagrangianElement2D3N;
     const SpatialLagrangianElement mSpatialLagrangianElement2D4N;
@@ -404,7 +404,7 @@ namespace Kratos
     const SurfaceLoad3DCondition    mSurfaceLoadCondition3D9N;
 
 
-    //constitutive laws 
+    //constitutive laws
     const HyperElastic3DLaw                            mHyperElastic3DLaw;
     const HyperElasticUP3DLaw                        mHyperElasticUP3DLaw;
     const LinearElastic3DLaw                          mLinearElastic3DLaw;
@@ -417,29 +417,29 @@ namespace Kratos
     const LinearElasticPlaneStrain2DLaw    mLinearElasticPlaneStrain2DLaw;
     const LinearElasticPlaneStress2DLaw    mLinearElasticPlaneStress2DLaw;
     const LinearElasticAxisym2DLaw              mLinearElasticAxisym2DLaw;
-    ///@} 
+    ///@}
     ///@name Private Operators
-    ///@{ 
+    ///@{
 
 
-    ///@} 
+    ///@}
     ///@name Private Operations
-    ///@{ 
+    ///@{
 
 
-    ///@} 
-    ///@name Private  Access 
-    ///@{ 
+    ///@}
+    ///@name Private  Access
+    ///@{
 
 
-    ///@}    
-    ///@name Private Inquiry 
-    ///@{ 
+    ///@}
+    ///@name Private Inquiry
+    ///@{
 
 
-    ///@}    
-    ///@name Un accessible methods 
-    ///@{ 
+    ///@}
+    ///@name Un accessible methods
+    ///@{
 
     /// Assignment operator.
     KratosSolidMechanicsApplication& operator=(KratosSolidMechanicsApplication const& rOther);
@@ -448,22 +448,22 @@ namespace Kratos
     KratosSolidMechanicsApplication(KratosSolidMechanicsApplication const& rOther);
 
 
-    ///@}    
+    ///@}
 
-  }; // Class KratosSolidMechanicsApplication 
+}; // Class KratosSolidMechanicsApplication
 
-  ///@} 
-
-
-  ///@name Type Definitions       
-  ///@{ 
+///@}
 
 
-  ///@} 
-  ///@name Input and output 
-  ///@{ 
+///@name Type Definitions
+///@{
 
-  ///@} 
+
+///@}
+///@name Input and output
+///@{
+
+///@}
 
 
 }  // namespace Kratos.

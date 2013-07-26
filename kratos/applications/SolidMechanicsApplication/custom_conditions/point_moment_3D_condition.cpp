@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -40,7 +40,7 @@ PointMoment3DCondition::PointMoment3DCondition(IndexType NewId, GeometryType::Po
 //************************************************************************************
 //************************************************************************************
 PointMoment3DCondition::PointMoment3DCondition( PointMoment3DCondition const& rOther )
-  : Condition(rOther)
+    : Condition(rOther)
 {
 }
 

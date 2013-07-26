@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -81,7 +81,7 @@ public:
     /** Constructor.
     */
     DisplacementConvergenceCriteria(TDataType NewRatioTolerance,
-			     TDataType AlwaysConvergedNorm)
+                                    TDataType AlwaysConvergedNorm)
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
     {
         mRatioTolerance = NewRatioTolerance;
@@ -101,7 +101,7 @@ public:
     /*@{ */
 
     /*Criterias that need to be called after getting the solution */
-    
+
     bool PostCriteria(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
@@ -112,43 +112,46 @@ public:
     {
         if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
         {
-	    TDataType disp_norm       = 0;
-	    TDataType delta_disp_norm = 0;
-	    TDataType ratio           = 0;
+            TDataType disp_norm       = 0;
+            TDataType delta_disp_norm = 0;
+            TDataType ratio           = 0;
 
             CalculateDispNorms(rDofSet,Dx,disp_norm,delta_disp_norm);
-	    
-	    
-	    if(delta_disp_norm/disp_norm !=1 && disp_norm!=0)
-		ratio=delta_disp_norm/disp_norm;
 
-	    if(disp_norm < mAlwaysConvergedNorm && delta_disp_norm<=disp_norm)
-		ratio=mRatioTolerance;
-		
-	    std::cout << "delta_disp_norm = " << delta_disp_norm << ";  disp_norm = " << disp_norm << std::endl;
-   
-	    std::cout << "DISP_TOTAL :: ratio = --" << ratio << "-- ;  Expected ratio = " << mRatioTolerance <<" Absolute tol reached = " << disp_norm << std::endl;
 
-	    if ( ratio <= mRatioTolerance)
+            if(delta_disp_norm/disp_norm !=1 && disp_norm!=0)
+                ratio=delta_disp_norm/disp_norm;
+
+            if(disp_norm < mAlwaysConvergedNorm && delta_disp_norm<=disp_norm)
+                ratio=mRatioTolerance;
+
+            std::cout << "delta_disp_norm = " << delta_disp_norm << ";  disp_norm = " << disp_norm << std::endl;
+
+            std::cout << "DISP_TOTAL :: ratio = --" << ratio << "-- ;  Expected ratio = " << mRatioTolerance <<" Absolute tol reached = " << disp_norm << std::endl;
+
+            if ( ratio <= mRatioTolerance)
             {
                 KRATOS_WATCH("convergence is achieved")
                 return true;
             }
-            else{
-		if( int(delta_disp_norm-int(disp_norm))==0 && int(ratio)==1)
-		{
-		    KRATOS_WATCH("convergence is achieved : - no movement - ")
-		    return true;
-		}
-		else{
-		    return false;
-		}
+            else
+            {
+                if( int(delta_disp_norm-int(disp_norm))==0 && int(ratio)==1)
+                {
+                    KRATOS_WATCH("convergence is achieved : - no movement - ")
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
             }
-	}
-	else{ //nothing is moving
+        }
+        else  //nothing is moving
+        {
 
-	    return true;
-	}
+            return true;
+        }
 
     }
 
@@ -255,7 +258,7 @@ private:
     /**@name Private Operators*/
     /*@{ */
 
-    
+
     void CalculateDispNorms(DofsArrayType& rDofSet,const TSystemVectorType& Dx,TDataType& disp_norm,TDataType& delta_disp_norm)
     {
         for(typename DofsArrayType::iterator i_dof = rDofSet.begin() ; i_dof != rDofSet.end() ; ++i_dof)
@@ -263,17 +266,17 @@ private:
             if(i_dof->IsFree())
             {
 
-		if (i_dof->GetVariable() == DISPLACEMENT_X || i_dof->GetVariable() == DISPLACEMENT_Y || i_dof->GetVariable() == DISPLACEMENT_Z)
-		{
-		    //here we do: d_n+1^it-d_n
-		    delta_disp_norm += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
-		    disp_norm       += pow( i_dof->GetSolutionStepValue() - i_dof->GetSolutionStepValue(1) , 2);
-		}
-	    }
-	}
-	
-	delta_disp_norm = sqrt(delta_disp_norm);
-	disp_norm = sqrt(disp_norm+1e-20);   //to avoid 0
+                if (i_dof->GetVariable() == DISPLACEMENT_X || i_dof->GetVariable() == DISPLACEMENT_Y || i_dof->GetVariable() == DISPLACEMENT_Z)
+                {
+                    //here we do: d_n+1^it-d_n
+                    delta_disp_norm += Dx[i_dof->EquationId()] * Dx[i_dof->EquationId()];
+                    disp_norm       += pow( i_dof->GetSolutionStepValue() - i_dof->GetSolutionStepValue(1) , 2);
+                }
+            }
+        }
+
+        delta_disp_norm = sqrt(delta_disp_norm);
+        disp_norm = sqrt(disp_norm+1e-20);   //to avoid 0
     }
 
     /*@} */

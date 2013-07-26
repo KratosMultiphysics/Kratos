@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -20,87 +20,87 @@
 
 namespace Kratos
 {
- 
 
-  //******************************CONSTRUCTOR*******************************************
-  //************************************************************************************
 
-  TotalLagrangianElement::TotalLagrangianElement( IndexType NewId, GeometryType::Pointer pGeometry )
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
+
+TotalLagrangianElement::TotalLagrangianElement( IndexType NewId, GeometryType::Pointer pGeometry )
     : LargeDisplacementElement( NewId, pGeometry )
-  {
+{
     //DO NOT ADD DOFS HERE!!!
-  }
+}
 
 
-  //******************************CONSTRUCTOR*******************************************
-  //************************************************************************************
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
 
-  TotalLagrangianElement::TotalLagrangianElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+TotalLagrangianElement::TotalLagrangianElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : LargeDisplacementElement( NewId, pGeometry, pProperties )
-  {
+{
     //DO NOT ADD DOFS HERE!!!
-  }
+}
 
 
-  //******************************COPY CONSTRUCTOR**************************************
-  //************************************************************************************
+//******************************COPY CONSTRUCTOR**************************************
+//************************************************************************************
 
-  TotalLagrangianElement::TotalLagrangianElement( TotalLagrangianElement const& rOther)
+TotalLagrangianElement::TotalLagrangianElement( TotalLagrangianElement const& rOther)
     :LargeDisplacementElement(rOther)
     ,mTotalDomainInitialSize(rOther.mTotalDomainInitialSize)
     ,mInvJ0(rOther.mInvJ0)
     ,mDetJ0(rOther.mDetJ0)
-  {
-  }
+{
+}
 
 
-  //*******************************ASSIGMENT OPERATOR***********************************
-  //************************************************************************************
+//*******************************ASSIGMENT OPERATOR***********************************
+//************************************************************************************
 
-  TotalLagrangianElement&  TotalLagrangianElement::operator=(TotalLagrangianElement const& rOther)
-  {
+TotalLagrangianElement&  TotalLagrangianElement::operator=(TotalLagrangianElement const& rOther)
+{
     LargeDisplacementElement::operator=(rOther);
 
     mInvJ0.clear();
     mInvJ0.resize( rOther.mInvJ0.size());
 
     for(unsigned int i=0; i<<mConstitutiveLawVector.size(); i++)
-      {
-  	mInvJ0[i]=rOther.mInvJ0[i];
-      }
+    {
+        mInvJ0[i]=rOther.mInvJ0[i];
+    }
 
     mTotalDomainInitialSize = rOther.mTotalDomainInitialSize;
     mDetJ0 = rOther.mDetJ0;
 
     return *this;
-  }
+}
 
 
-  //*********************************OPERATIONS*****************************************
-  //************************************************************************************
+//*********************************OPERATIONS*****************************************
+//************************************************************************************
 
-  Element::Pointer TotalLagrangianElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
-  {
+Element::Pointer TotalLagrangianElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+{
     return Element::Pointer( new TotalLagrangianElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
-  }
+}
 
 
-  //*******************************DESTRUCTOR*******************************************
-  //************************************************************************************
+//*******************************DESTRUCTOR*******************************************
+//************************************************************************************
 
-  TotalLagrangianElement::~TotalLagrangianElement()
-  {
-  }
-
-
-
-  //************* STARTING - ENDING  METHODS
-  //************************************************************************************
-  //************************************************************************************
+TotalLagrangianElement::~TotalLagrangianElement()
+{
+}
 
 
-  void TotalLagrangianElement::Initialize()
-  {
+
+//************* STARTING - ENDING  METHODS
+//************************************************************************************
+//************************************************************************************
+
+
+void TotalLagrangianElement::Initialize()
+{
     KRATOS_TRY
 
     LargeDisplacementElement::Initialize();
@@ -120,52 +120,52 @@ namespace Kratos
     //calculating the inverse J0
 
     for ( unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++ )
-      {
-	//getting informations for integration
-	double IntegrationWeight = integration_points[PointNumber].Weight();
+    {
+        //getting informations for integration
+        double IntegrationWeight = integration_points[PointNumber].Weight();
 
-	//calculating and storing inverse of the jacobian and the parameters needed
-	MathUtils<double>::InvertMatrix( J0[PointNumber], mInvJ0[PointNumber], mDetJ0[PointNumber] );
+        //calculating and storing inverse of the jacobian and the parameters needed
+        MathUtils<double>::InvertMatrix( J0[PointNumber], mInvJ0[PointNumber], mDetJ0[PointNumber] );
 
-	//calculating the total area
-	mTotalDomainInitialSize += mDetJ0[PointNumber] * IntegrationWeight;
-      }
+        //calculating the total area
+        mTotalDomainInitialSize += mDetJ0[PointNumber] * IntegrationWeight;
+    }
 
 
     KRATOS_CATCH( "" )
-  }
+}
 
 
 
-  //************* COMPUTING  METHODS
-  //************************************************************************************
-  //************************************************************************************
+//************* COMPUTING  METHODS
+//************************************************************************************
+//************************************************************************************
 
- //************************************************************************************
-  //************************************************************************************
+//************************************************************************************
+//************************************************************************************
 
-  void TotalLagrangianElement::SetGeneralVariables(GeneralVariables& rVariables,
-						     ConstitutiveLaw::Parameters& rValues,
-						     const int & rPointNumber)
-  {
+void TotalLagrangianElement::SetGeneralVariables(GeneralVariables& rVariables,
+        ConstitutiveLaw::Parameters& rValues,
+        const int & rPointNumber)
+{
     LargeDisplacementElement::SetGeneralVariables(rVariables,rValues,rPointNumber);
 
     //Set extra options for the contitutive law
     Flags &ConstitutiveLawOptions=rValues.GetOptions();
     ConstitutiveLawOptions.Set(ConstitutiveLaw::INITIAL_CONFIGURATION);
 
-  }
+}
 
-  //*********************************COMPUTE KINEMATICS*********************************
-  //************************************************************************************
+//*********************************COMPUTE KINEMATICS*********************************
+//************************************************************************************
 
 
-  void TotalLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
-						     const double& rPointNumber)
+void TotalLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
+        const double& rPointNumber)
 
-  {
+{
     KRATOS_TRY
-      
+
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
@@ -173,7 +173,7 @@ namespace Kratos
 
     //Parent to reference configuration
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
-   
+
     //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], mInvJ0[rPointNumber] );
 
@@ -196,79 +196,82 @@ namespace Kratos
 
 
     KRATOS_CATCH( "" )
-      }
+}
 
 
 
-  //************************************************************************************
-  //************************************************************************************
+//************************************************************************************
+//************************************************************************************
 
-  void TotalLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
-							    Matrix& rF,
-							    Matrix& rDN_DX)
-  {
+void TotalLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
+        Matrix& rF,
+        Matrix& rDN_DX)
+{
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-     
-    if( dimension == 2 ){
 
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	{
-	  unsigned int index = 2 * i;
+    if( dimension == 2 )
+    {
 
-	  rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
-	  rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
-	  rB( 1, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
-	  rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
-	  rB( 2, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
-	  rB( 2, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
-	  
-	}
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            unsigned int index = 2 * i;
 
-    }
-    else if( dimension == 3 ){
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	{
-	  unsigned int index = 3 * i;
+            rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
+            rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
+            rB( 1, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
+            rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
+            rB( 2, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
+            rB( 2, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
 
-	  rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
-	  rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
-	  rB( 0, index + 2 ) = rF( 2, 0 ) * rDN_DX( i, 0 );
-	  rB( 1, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
-	  rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
-	  rB( 1, index + 2 ) = rF( 2, 1 ) * rDN_DX( i, 1 );
-	  rB( 2, index + 0 ) = rF( 0, 2 ) * rDN_DX( i, 2 );
-	  rB( 2, index + 1 ) = rF( 1, 2 ) * rDN_DX( i, 2 );
-	  rB( 2, index + 2 ) = rF( 2, 2 ) * rDN_DX( i, 2 );
-	  rB( 3, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
-	  rB( 3, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
-	  rB( 3, index + 2 ) = rF( 2, 0 ) * rDN_DX( i, 1 ) + rF( 2, 1 ) * rDN_DX( i, 0 );
-	  rB( 4, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 2 ) + rF( 0, 2 ) * rDN_DX( i, 1 );
-	  rB( 4, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 2 ) + rF( 1, 2 ) * rDN_DX( i, 1 );
-	  rB( 4, index + 2 ) = rF( 2, 1 ) * rDN_DX( i, 2 ) + rF( 2, 2 ) * rDN_DX( i, 1 );
-	  rB( 5, index + 0 ) = rF( 0, 2 ) * rDN_DX( i, 0 ) + rF( 0, 0 ) * rDN_DX( i, 2 );
-	  rB( 5, index + 1 ) = rF( 1, 2 ) * rDN_DX( i, 0 ) + rF( 1, 0 ) * rDN_DX( i, 2 );
-	  rB( 5, index + 2 ) = rF( 2, 2 ) * rDN_DX( i, 0 ) + rF( 2, 0 ) * rDN_DX( i, 2 );
-	
-	}
+        }
 
     }
-    else{
+    else if( dimension == 3 )
+    {
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            unsigned int index = 3 * i;
 
-      KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+            rB( 0, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 0 );
+            rB( 0, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 0 );
+            rB( 0, index + 2 ) = rF( 2, 0 ) * rDN_DX( i, 0 );
+            rB( 1, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 1 );
+            rB( 1, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 1 );
+            rB( 1, index + 2 ) = rF( 2, 1 ) * rDN_DX( i, 1 );
+            rB( 2, index + 0 ) = rF( 0, 2 ) * rDN_DX( i, 2 );
+            rB( 2, index + 1 ) = rF( 1, 2 ) * rDN_DX( i, 2 );
+            rB( 2, index + 2 ) = rF( 2, 2 ) * rDN_DX( i, 2 );
+            rB( 3, index + 0 ) = rF( 0, 0 ) * rDN_DX( i, 1 ) + rF( 0, 1 ) * rDN_DX( i, 0 );
+            rB( 3, index + 1 ) = rF( 1, 0 ) * rDN_DX( i, 1 ) + rF( 1, 1 ) * rDN_DX( i, 0 );
+            rB( 3, index + 2 ) = rF( 2, 0 ) * rDN_DX( i, 1 ) + rF( 2, 1 ) * rDN_DX( i, 0 );
+            rB( 4, index + 0 ) = rF( 0, 1 ) * rDN_DX( i, 2 ) + rF( 0, 2 ) * rDN_DX( i, 1 );
+            rB( 4, index + 1 ) = rF( 1, 1 ) * rDN_DX( i, 2 ) + rF( 1, 2 ) * rDN_DX( i, 1 );
+            rB( 4, index + 2 ) = rF( 2, 1 ) * rDN_DX( i, 2 ) + rF( 2, 2 ) * rDN_DX( i, 1 );
+            rB( 5, index + 0 ) = rF( 0, 2 ) * rDN_DX( i, 0 ) + rF( 0, 0 ) * rDN_DX( i, 2 );
+            rB( 5, index + 1 ) = rF( 1, 2 ) * rDN_DX( i, 0 ) + rF( 1, 0 ) * rDN_DX( i, 2 );
+            rB( 5, index + 2 ) = rF( 2, 2 ) * rDN_DX( i, 0 ) + rF( 2, 0 ) * rDN_DX( i, 2 );
+
+        }
+
+    }
+    else
+    {
+
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
 
     }
 
     KRATOS_CATCH( "" )
-      }
+}
 
 
-  //************************************CALCULATE TOTAL MASS****************************
-  //************************************************************************************
+//************************************CALCULATE TOTAL MASS****************************
+//************************************************************************************
 
-  double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass )
-  {
+double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass )
+{
     KRATOS_TRY
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
@@ -276,35 +279,35 @@ namespace Kratos
     rTotalMass = mTotalDomainInitialSize * GetProperties()[DENSITY];
 
     if( dimension == 2 )
-      rTotalMass *= GetProperties()[THICKNESS];
+        rTotalMass *= GetProperties()[THICKNESS];
 
     return rTotalMass;
 
     KRATOS_CATCH( "" )
-  }
+}
 
 
-  //************************************************************************************
-  //************************************************************************************
+//************************************************************************************
+//************************************************************************************
 
 
 
-  void TotalLagrangianElement::save( Serializer& rSerializer ) const
-  {
+void TotalLagrangianElement::save( Serializer& rSerializer ) const
+{
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement );
     rSerializer.save("mTotalDomainInitialSize",mTotalDomainInitialSize);
     rSerializer.save("InvJ0",mInvJ0);
     rSerializer.save("DetJ0",mDetJ0);
-   }
+}
 
-  void TotalLagrangianElement::load( Serializer& rSerializer )
-  {
+void TotalLagrangianElement::load( Serializer& rSerializer )
+{
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement );
     rSerializer.load("mTotalDomainInitialSize",mTotalDomainInitialSize);
     rSerializer.load("InvJ0",mInvJ0);
     rSerializer.load("DetJ0",mDetJ0);
 
-  }
+}
 
 
 } // Namespace Kratos

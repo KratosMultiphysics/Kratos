@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -21,65 +21,65 @@
 namespace Kratos
 {
 
-  //******************************CONSTRUCTOR*******************************************
-  //************************************************************************************
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
 
-  AxisymSmallDisplacementElement::AxisymSmallDisplacementElement( IndexType NewId, GeometryType::Pointer pGeometry )
+AxisymSmallDisplacementElement::AxisymSmallDisplacementElement( IndexType NewId, GeometryType::Pointer pGeometry )
     : SmallDisplacementElement( NewId, pGeometry )
-  {
+{
     //DO NOT ADD DOFS HERE!!!
-  }
+}
 
 
-  //******************************CONSTRUCTOR*******************************************
-  //************************************************************************************
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
 
-  AxisymSmallDisplacementElement::AxisymSmallDisplacementElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+AxisymSmallDisplacementElement::AxisymSmallDisplacementElement( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : SmallDisplacementElement( NewId, pGeometry, pProperties )
-  {
+{
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
     //mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
     //mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
-  }
+}
 
 
-  //******************************COPY CONSTRUCTOR**************************************
-  //************************************************************************************
+//******************************COPY CONSTRUCTOR**************************************
+//************************************************************************************
 
-  AxisymSmallDisplacementElement::AxisymSmallDisplacementElement( AxisymSmallDisplacementElement const& rOther)
+AxisymSmallDisplacementElement::AxisymSmallDisplacementElement( AxisymSmallDisplacementElement const& rOther)
     :SmallDisplacementElement(rOther)
-  {
-  }
+{
+}
 
 
 
-  //*********************************OPERATIONS*****************************************
-  //************************************************************************************
+//*********************************OPERATIONS*****************************************
+//************************************************************************************
 
-  Element::Pointer AxisymSmallDisplacementElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
-  {
+Element::Pointer AxisymSmallDisplacementElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
+{
     return Element::Pointer( new AxisymSmallDisplacementElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
-  }
+}
 
 
-  //*******************************DESTRUCTOR*******************************************
-  //************************************************************************************
+//*******************************DESTRUCTOR*******************************************
+//************************************************************************************
 
-  AxisymSmallDisplacementElement::~AxisymSmallDisplacementElement()
-  {
-  }
-
-
-  //************* STARTING - ENDING  METHODS
-  //************************************************************************************
-  //************************************************************************************
+AxisymSmallDisplacementElement::~AxisymSmallDisplacementElement()
+{
+}
 
 
-  //************************************************************************************
-  //************************************************************************************
+//************* STARTING - ENDING  METHODS
+//************************************************************************************
+//************************************************************************************
 
-  void AxisymSmallDisplacementElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
-  {
+
+//************************************************************************************
+//************************************************************************************
+
+void AxisymSmallDisplacementElement::InitializeGeneralVariables (GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+{
     const unsigned int number_of_nodes = GetGeometry().size();
 
     rVariables.detF  = 1;
@@ -87,20 +87,20 @@ namespace Kratos
     rVariables.detF0 = 1;
 
     rVariables.B.resize( 4 , number_of_nodes * 2 );
-  
+
     rVariables.F.resize( 3, 3 );
 
     rVariables.F0.resize( 3, 3 );
- 
+
     rVariables.ConstitutiveMatrix.resize( 4, 4 );
-  
+
     rVariables.StrainVector.resize( 4 );
-  
+
     rVariables.StressVector.resize( 4 );
-  
+
     rVariables.DN_DX.resize( number_of_nodes, 2 );
 
-    //needed parameters for consistency with the general constitutive law: small displacements 
+    //needed parameters for consistency with the general constitutive law: small displacements
     rVariables.detF0 = 1;
     rVariables.detF  = 1;
     rVariables.F     = identity_matrix<double>(3);
@@ -111,22 +111,22 @@ namespace Kratos
 
     //reading shape functions
     rVariables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
- 
+
     //reading shape functions local gradients
     rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
-    
+
     //calculating the jacobian from cartesian coordinates to parent coordinates for all integration points
     rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod );
 
-  }
+}
 
 
-  //************* COMPUTING  METHODS
-  //************************************************************************************
-  //************************************************************************************
+//************* COMPUTING  METHODS
+//************************************************************************************
+//************************************************************************************
 
-  void AxisymSmallDisplacementElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
-  {
+void AxisymSmallDisplacementElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+{
 
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.Radius / GetProperties()[THICKNESS];
 
@@ -134,28 +134,28 @@ namespace Kratos
     SmallDisplacementElement::CalculateAndAddLHS( rLeftHandSideMatrix, rVariables, IntegrationWeight );
 
     //KRATOS_WATCH(rLeftHandSideMatrix)
-  }
+}
 
 
-  //************************************************************************************
-  //************************************************************************************
+//************************************************************************************
+//************************************************************************************
 
-  void AxisymSmallDisplacementElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
-  {
+void AxisymSmallDisplacementElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+{
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.Radius / GetProperties()[THICKNESS];
 
     //contribution to external forces
     SmallDisplacementElement::CalculateAndAddRHS( rRightHandSideVector, rVariables, rVolumeForce, IntegrationWeight );
 
     //KRATOS_WATCH(rRightHandSideVector)
-  }
+}
 
 
-  //************************************CALCULATE TOTAL MASS****************************
-  //************************************************************************************
+//************************************CALCULATE TOTAL MASS****************************
+//************************************************************************************
 
-  double& AxisymSmallDisplacementElement::CalculateTotalMass( double& rTotalMass )
-  {
+double& AxisymSmallDisplacementElement::CalculateTotalMass( double& rTotalMass )
+{
     KRATOS_TRY
 
     const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues( GeometryData::GI_GAUSS_1 );
@@ -170,24 +170,24 @@ namespace Kratos
     return rTotalMass;
 
     KRATOS_CATCH( "" )
-  }
+}
 
-  //*********************************COMPUTE KINEMATICS*********************************
-  //************************************************************************************
+//*********************************COMPUTE KINEMATICS*********************************
+//************************************************************************************
 
 
-  void AxisymSmallDisplacementElement::CalculateKinematics(GeneralVariables& rVariables,
-							     const double& rPointNumber)
+void AxisymSmallDisplacementElement::CalculateKinematics(GeneralVariables& rVariables,
+        const double& rPointNumber)
 
-  {
+{
     KRATOS_TRY
-      
+
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
     //Parent to reference configuration
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
-    
+
     //Calculating the inverse of the jacobian and the parameters needed
     Matrix InvJ;
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
@@ -212,54 +212,54 @@ namespace Kratos
 
 
     KRATOS_CATCH( "" )
-      }
+}
 
 
-  //*************************COMPUTE AXYSIMMETRIC RADIUS********************************
-  //************************************************************************************
+//*************************COMPUTE AXYSIMMETRIC RADIUS********************************
+//************************************************************************************
 
-  void AxisymSmallDisplacementElement::CalculateRadius(double & rRadius,
-						       const Vector& rN)
-    
+void AxisymSmallDisplacementElement::CalculateRadius(double & rRadius,
+        const Vector& rN)
 
-  {
-  
+
+{
+
     KRATOS_TRY
-    
+
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
 
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    
+
     rRadius=0;
 
     if ( dimension == 2 )
-      {	
+    {
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	  {
-	    array_1d<double, 3 > & ReferencePosition    = GetGeometry()[i].Coordinates();
-	    
-	    rRadius   += ReferencePosition[0]*rN[i];
-    	  }
-      }
+        {
+            array_1d<double, 3 > & ReferencePosition    = GetGeometry()[i].Coordinates();
+
+            rRadius   += ReferencePosition[0]*rN[i];
+        }
+    }
 
 
     if ( dimension == 3 )
-      {
-	std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
-      }
+    {
+        std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
+    }
 
     KRATOS_CATCH( "" )
-      }
+}
 
-  //*************************COMPUTE DISPLACEMENT GRADIENT******************************
-  //************************************************************************************
+//*************************COMPUTE DISPLACEMENT GRADIENT******************************
+//************************************************************************************
 
-  void AxisymSmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH,
-								     const Matrix& rDN_DX,
-								     const Vector & rN,
-								     const double & rRadius)
-							       
-  {
+void AxisymSmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH,
+        const Matrix& rDN_DX,
+        const Vector & rN,
+        const double & rRadius)
+
+{
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
@@ -268,135 +268,144 @@ namespace Kratos
 
     rH = zero_matrix<double> ( 3 );
 
-    if( dimension == 2 ){
+    if( dimension == 2 )
+    {
 
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	{
-	
-	  array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
 
-	  rH ( 0 , 0 ) += Displacement[0]*rDN_DX ( i , 0 );
-	  rH ( 0 , 1 ) += Displacement[0]*rDN_DX ( i , 1 );
-	  rH ( 1 , 0 ) += Displacement[1]*rDN_DX ( i , 0 );
-	  rH ( 1 , 1 ) += Displacement[1]*rDN_DX ( i , 1 );
-	  rH ( 2 , 2 ) += rN[i]*Displacement[0]/rRadius;
+            array_1d<double, 3 > & Displacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
-	}
+            rH ( 0 , 0 ) += Displacement[0]*rDN_DX ( i , 0 );
+            rH ( 0 , 1 ) += Displacement[0]*rDN_DX ( i , 1 );
+            rH ( 1 , 0 ) += Displacement[1]*rDN_DX ( i , 0 );
+            rH ( 1 , 1 ) += Displacement[1]*rDN_DX ( i , 1 );
+            rH ( 2 , 2 ) += rN[i]*Displacement[0]/rRadius;
+
+        }
 
 
     }
-    else if( dimension == 3 ){
-	
-      	std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
-    }
-    else{
+    else if( dimension == 3 )
+    {
 
-      KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
+    }
+    else
+    {
+
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
 
     }
 
     KRATOS_CATCH( "" )
-      }
+}
 
 
-  //************************************************************************************
-  //************************************************************************************
+//************************************************************************************
+//************************************************************************************
 
 
-  void AxisymSmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
-								  const Matrix& rDN_DX,
-								  const Vector& rN,
-								  const double & rRadius)
-  {
+void AxisymSmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
+        const Matrix& rDN_DX,
+        const Vector& rN,
+        const double & rRadius)
+{
     KRATOS_TRY
 
-      const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-     
+
     rB.clear(); //set all components to zero
-    
-    if( dimension == 2 ){
 
-      for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	{
-	  unsigned int index = 2 * i;
+    if( dimension == 2 )
+    {
 
-	  rB( 0, index + 0 ) = rDN_DX( i, 0 );
-	  rB( 1, index + 1 ) = rDN_DX( i, 1 );
-	  rB( 2, index + 0 ) = rN[i]/rRadius;
-	  rB( 3, index + 0 ) = rDN_DX( i, 1 );
-	  rB( 3, index + 1 ) = rDN_DX( i, 0 );
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            unsigned int index = 2 * i;
 
-	}
+            rB( 0, index + 0 ) = rDN_DX( i, 0 );
+            rB( 1, index + 1 ) = rDN_DX( i, 1 );
+            rB( 2, index + 0 ) = rN[i]/rRadius;
+            rB( 3, index + 0 ) = rDN_DX( i, 1 );
+            rB( 3, index + 1 ) = rDN_DX( i, 0 );
 
-    }
-    else if( dimension == 3 ){
-    
-      std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
+        }
 
     }
-    else{
+    else if( dimension == 3 )
+    {
 
-      KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
+
+    }
+    else
+    {
+
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
 
     }
 
     KRATOS_CATCH( "" )
-      }
+}
 
 
-  //************************************************************************************
-  //************************************************************************************
+//************************************************************************************
+//************************************************************************************
 
-  void AxisymSmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH,
-								    Vector& rStrainVector )
-  {
+void AxisymSmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& rH,
+        Vector& rStrainVector )
+{
     KRATOS_TRY
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    if( dimension == 2 ){
-      
-      //Infinitesimal Strain Calculation
-      if ( rStrainVector.size() != 4 ) rStrainVector.resize( 4, false );
-      
-      rStrainVector[0] = rH( 0, 0 );
-      
-      rStrainVector[1] = rH( 1, 1 );
+    if( dimension == 2 )
+    {
 
-      rStrainVector[2] = rH( 2, 2 );
-      
-      rStrainVector[3] = (rH( 0, 1 ) + rH( 1, 0 )); // xy
+        //Infinitesimal Strain Calculation
+        if ( rStrainVector.size() != 4 ) rStrainVector.resize( 4, false );
 
-    }
-    else if( dimension == 3 ){
+        rStrainVector[0] = rH( 0, 0 );
 
-      std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
+        rStrainVector[1] = rH( 1, 1 );
+
+        rStrainVector[2] = rH( 2, 2 );
+
+        rStrainVector[3] = (rH( 0, 1 ) + rH( 1, 0 )); // xy
 
     }
-    else{
+    else if( dimension == 3 )
+    {
 
-      KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
+
+    }
+    else
+    {
+
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
 
     }
 
     KRATOS_CATCH( "" )
 
-      }
+}
 
 
 
 //************************************************************************************
 //************************************************************************************
-  void AxisymSmallDisplacementElement::save( Serializer& rSerializer ) const
-  {
+void AxisymSmallDisplacementElement::save( Serializer& rSerializer ) const
+{
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallDisplacementElement );
-  }
+}
 
-  void AxisymSmallDisplacementElement::load( Serializer& rSerializer )
-  {
+void AxisymSmallDisplacementElement::load( Serializer& rSerializer )
+{
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallDisplacementElement );
-  }
+}
 
 
 } // Namespace Kratos

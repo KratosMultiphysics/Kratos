@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -9,27 +9,27 @@
 #if !defined (KRATOS_LINEAR_ELASTIC_3D_LAW_H_INCLUDED)
 #define  KRATOS_LINEAR_ELASTIC_3D_LAW_H_INCLUDED
 
-// System includes 
+// System includes
 
-// External includes 
+// External includes
 
 // Project includes
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 
 namespace Kratos
 {
-  /**
-   * Defines a linear isotropic constitutive law in 2D (Plane Strain)
-   * This material law is defined by the parameters:
-   * 1) YOUNG MODULUS 
-   * 2) POISSON RATIO
-   * As there are no further parameters the functionality is valid
-   * for small and large displacements elasticity.
-   */
+/**
+ * Defines a linear isotropic constitutive law in 2D (Plane Strain)
+ * This material law is defined by the parameters:
+ * 1) YOUNG MODULUS
+ * 2) POISSON RATIO
+ * As there are no further parameters the functionality is valid
+ * for small and large displacements elasticity.
+ */
 
-  class LinearElastic3DLaw : public HyperElastic3DLaw
-  {
-  public:
+class LinearElastic3DLaw : public HyperElastic3DLaw
+{
+public:
     /**
      * Type Definitions
      */
@@ -39,29 +39,29 @@ namespace Kratos
     /**
      * Counted pointer of LinearElastic3DLaw
      */
-    
+
     KRATOS_CLASS_POINTER_DEFINITION(LinearElastic3DLaw);
-    
+
     /**
-     * Life Cycle 
+     * Life Cycle
      */
 
     /**
      * Default constructor.
      */
     LinearElastic3DLaw();
-			
+
     /**
      * Clone function (has to be implemented by any derived class)
      * @return a pointer to a new instance of this constitutive law
      */
     ConstitutiveLaw::Pointer Clone() const;
-    
+
     /**
      * Copy constructor.
      */
     LinearElastic3DLaw (const LinearElastic3DLaw& rOther);
-   
+
 
     /**
      * Assignment operator.
@@ -74,20 +74,20 @@ namespace Kratos
      * Destructor.
      */
     virtual ~LinearElastic3DLaw();
-			
+
     /**
-     * Operators 
+     * Operators
      */
-    
+
     /**
      * Operations needed by the base class:
      */
 
- 
+
     /**
      * Computes the material response:
      * PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues 
+     * @param rValues
      * @see   Parameters
      */
     void CalculateMaterialResponsePK2 (Parameters & rValues);
@@ -95,11 +95,11 @@ namespace Kratos
     /**
      * Computes the material response:
      * Kirchhoff stresses and algorithmic ConstitutiveMatrix
-     * @param rValues 
+     * @param rValues
      * @see   Parameters
      */
     void CalculateMaterialResponseKirchhoff (Parameters & rValues);
-  
+
     /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
@@ -126,8 +126,8 @@ namespace Kratos
      * Print object's data.
      */
     //virtual void PrintData(std::ostream& rOStream) const;
-		
-  protected:
+
+protected:
 
     ///@name Protected static Member Variables
     ///@{
@@ -150,10 +150,10 @@ namespace Kratos
      * @param rStressVector the stress vector corresponding to the deformation
      */
     virtual void CalculateStress( const Vector &rStrainVector,
-				  const Matrix &rConstitutiveMatrix,
-				  Vector& rStressVector);
+                                  const Matrix &rConstitutiveMatrix,
+                                  Vector& rStressVector);
 
-	       
+
     /**
      * calculates the linear elastic constitutive matrix in terms of Young's modulus and
      * Poisson ratio
@@ -163,20 +163,20 @@ namespace Kratos
      */
 
 
-    virtual void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix, 
-					       const double &rYoungModulus, 
-					       const double &rPoissonCoefficient );
+    virtual void CalculateLinearElasticMatrix( Matrix& rConstitutiveMatrix,
+            const double &rYoungModulus,
+            const double &rPoissonCoefficient );
 
-   /**
-     * This function is designed to be called when before the material response
-     * to check if all needed parameters for the constitutive are initialized 
-     * @param Parameters
-     * @return
-     */
+    /**
+      * This function is designed to be called when before the material response
+      * to check if all needed parameters for the constitutive are initialized
+      * @param Parameters
+      * @return
+      */
     bool CheckParameters(Parameters& rValues);
 
-	
-  private:
+
+private:
 
 
     ///@name Static Member Variables
@@ -195,7 +195,7 @@ namespace Kratos
     ///@name Private Operations
     ///@{
     ///@}
-   
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -208,15 +208,15 @@ namespace Kratos
 
     virtual void save(Serializer& rSerializer) const
     {
-      KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElastic3DLaw);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElastic3DLaw);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-      KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElastic3DLaw);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElastic3DLaw);
     }
 
 
-  }; // Class LinearElastic3DLaw 
+}; // Class LinearElastic3DLaw
 }  // namespace Kratos.
 #endif // KRATOS_LINEAR_ELASTIC_3D_LAW_H_INCLUDED  defined 

@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -142,17 +142,17 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void CalculateConditionalSystem( MatrixType& rLeftHandSideMatrix, 
-				     VectorType& rRightHandSideVector,
-				     ProcessInfo& rCurrentProcessInfo,
-				     bool CalculateStiffnessMatrixFlag,
-				     bool CalculateResidualVectorFlag );
+    void CalculateConditionalSystem( MatrixType& rLeftHandSideMatrix,
+                                     VectorType& rRightHandSideVector,
+                                     ProcessInfo& rCurrentProcessInfo,
+                                     bool CalculateStiffnessMatrixFlag,
+                                     bool CalculateResidualVectorFlag );
 
 
 
     void CalculateRadius(double & rCurrentRadius,
-			 double & rReferenceRadius,
-			 const Vector& rN);
+                         double & rReferenceRadius,
+                         const Vector& rN);
     ///@}
     ///@name Protected  Access
     ///@{

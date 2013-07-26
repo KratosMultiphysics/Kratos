@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -188,18 +188,18 @@ protected:
         Matrix& ReducedMatrix );
 
     void CalculateAndAddFacePressure(
-	VectorType& rF,
-	const Vector& rN,
-	const array_1d<double, 3 > & rNormal,
-	double rPressure,
-	double rIntegrationWeight);
+        VectorType& rF,
+        const Vector& rN,
+        const array_1d<double, 3 > & rNormal,
+        double rPressure,
+        double rIntegrationWeight);
 
     void CalculateAndAddSurfaceLoad(
-	Vector& rF,
-	const Vector& rN,
-	Vector& rForce,
-	double  rIntegrationWeight );
-  
+        Vector& rF,
+        const Vector& rN,
+        Vector& rForce,
+        double  rIntegrationWeight );
+
     ///@}
     ///@name Protected  Access
     ///@{

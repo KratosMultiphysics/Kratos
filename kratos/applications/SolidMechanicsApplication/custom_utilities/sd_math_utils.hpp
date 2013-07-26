@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -144,8 +144,8 @@ public:
         HelpA=A;
 
         bool is_converged=false;
-	unsigned int max_iters = 10;
-	unsigned int iter = 0;
+        unsigned int max_iters = 10;
+        unsigned int iter = 0;
 
         while(is_converged == false && iter<max_iters )
         {
@@ -194,7 +194,7 @@ public:
             if(delta < zero || (delta/abs) < tolerance)
                 is_converged=true;
 
-	    iter++;
+            iter++;
         }
 
 

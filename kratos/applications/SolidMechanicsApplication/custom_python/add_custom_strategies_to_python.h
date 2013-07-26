@@ -1,6 +1,6 @@
-//   
-//   Project Name:        KratosSolidMechanicsApplication $      
-//   Last modified by:    $Author:            JMCarbonell $ 
+//
+//   Project Name:        KratosSolidMechanicsApplication $
+//   Last modified by:    $Author:            JMCarbonell $
 //   Date:                $Date:                July 2013 $
 //   Revision:            $Revision:                  0.0 $
 //
@@ -11,10 +11,10 @@
 
 
 
-// System includes 
+// System includes
 
 
-// External includes 
+// External includes
 #include "boost/smart_ptr.hpp"
 
 
@@ -25,16 +25,16 @@
 namespace Kratos
 {
 
-  namespace Python
-  {
+namespace Python
+{
 
-    void  AddCustomStrategiesToPython();
-    /* { */
-    /*   using namespace boost::python; */
-    /* } */
+void  AddCustomStrategiesToPython();
+/* { */
+/*   using namespace boost::python; */
+/* } */
 
-  }  // namespace Python.
-  
+}  // namespace Python.
+
 }  // namespace Kratos.
 
 #endif // KRATOS_ADD_CUSTOM_STRATEGIES_TO_PYTHON_H_INCLUDED  defined 
