@@ -33,7 +33,6 @@ namespace Kratos
 ///@{
 
 // Variables definition
-// 	KRATOS_DEFINE_VARIABLE( bool, IS_INACTIVE );
 
 ///@}
 ///@name Type Definitions
