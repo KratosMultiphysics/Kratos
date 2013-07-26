@@ -67,6 +67,7 @@
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver_periodic.h"
 #include "custom_strategies/builder_and_solvers/trilinos_pressure_splitting_builder_and_solver.h"
 #include "custom_strategies/strategies/trilinos_convdiff_strategy.h"
+#include "custom_strategies/strategies/trilinos_laplacian_meshmoving_strategy.h"
 
 //linear solvers
 // #include "linear_solvers/linear_solver.h"
@@ -90,7 +91,6 @@
 
 #include "FluidDynamicsApplication/custom_strategies/strategies/fs_strategy.h"
 #include "FluidDynamicsApplication/custom_utilities/solver_settings.h"
-
 
 namespace Kratos
 {
@@ -500,6 +500,20 @@ void AddStrategies()
             .def("AddIterationStep",&TrilinosFSStrategy::AddIterationStep)
             .def("ClearExtraIterationSteps",&TrilinosFSStrategy::ClearExtraIterationSteps)
             ;
+
+    // Laplacian Mesh Moving ********************************************************************************************
+    typedef TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector> TrilinosSparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> TrilinosLocalSpaceType;
+
+    typedef LinearSolver<TrilinosSparseSpaceType, TrilinosLocalSpaceType > TrilinosLinearSolverType;
+
+    class_< TrilinosLaplacianMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, boost::noncopyable >
+            ("TrilinosLaplacianMeshMovingStrategy", init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, int, int, bool >() )
+            .def("MoveNodes",&TrilinosLaplacianMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::MoveNodes)
+            .def("Solve", &TrilinosLaplacianMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Solve )
+            .def("SetEchoLevel", &TrilinosLaplacianMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SetEchoLevel )
+            ;
+    //********************************************************************************************
 
 }
 
