@@ -70,6 +70,7 @@ SurfacePointCoorX1               = *GenData(Surface_Point_Coor_X_1)
 SurfacePointCoorY1               = *GenData(Surface_Point_Coor_Y_1)
 *format "%10.5e"
 SurfacePointCoorZ1               = *GenData(Surface_Point_Coor_Z_1)
+*format "%10.5e"
 SurfaceFrictionAngle1            = *GenData(Surface_Friction_Angle_1)
 *format "%10.5e"
 SurfaceNormalDirX2               = *GenData(Surface_Normal_Dir_X_2)
@@ -83,6 +84,7 @@ SurfacePointCoorX2               = *GenData(Surface_Point_Coor_X_2)
 SurfacePointCoorY2               = *GenData(Surface_Point_Coor_Y_2)
 *format "%10.5e"
 SurfacePointCoorZ2               = *GenData(Surface_Point_Coor_Z_2)
+*format "%10.5e"
 SurfaceFrictionAngle2            = *GenData(Surface_Friction_Angle_2)
 *format "%10.5e"
 SurfaceNormalDirX3               = *GenData(Surface_Normal_Dir_X_3)
@@ -96,6 +98,7 @@ SurfacePointCoorX3               = *GenData(Surface_Point_Coor_X_3)
 SurfacePointCoorY3               = *GenData(Surface_Point_Coor_Y_3)
 *format "%10.5e"
 SurfacePointCoorZ3               = *GenData(Surface_Point_Coor_Z_3)
+*format "%10.5e"
 SurfaceFrictionAngle3            = *GenData(Surface_Friction_Angle_3)
 *format "%10.5e"
 SurfaceNormalDirX4               = *GenData(Surface_Normal_Dir_X_4)
@@ -109,6 +112,7 @@ SurfacePointCoorX4               = *GenData(Surface_Point_Coor_X_4)
 SurfacePointCoorY4               = *GenData(Surface_Point_Coor_Y_4)
 *format "%10.5e"
 SurfacePointCoorZ4               = *GenData(Surface_Point_Coor_Z_4)
+*format "%10.5e"
 SurfaceFrictionAngle4            = *GenData(Surface_Friction_Angle_4)
 *format "%10.5e"
 SurfaceNormalDirX5               = *GenData(Surface_Normal_Dir_X_5)
@@ -122,6 +126,7 @@ SurfacePointCoorX5               = *GenData(Surface_Point_Coor_X_5)
 SurfacePointCoorY5               = *GenData(Surface_Point_Coor_Y_5)
 *format "%10.5e"
 SurfacePointCoorZ5               = *GenData(Surface_Point_Coor_Z_5)
+*format "%10.5e"
 SurfaceFrictionAngle5            = *GenData(Surface_Friction_Angle_5)
 LimitCylinderOption              = *GenData(Limit_Cylinder)
 *format "%10.5e"
@@ -142,18 +147,23 @@ CylinderAxisY                    = *GenData(Cylinder_Axis_Y)
 CylinderAxisZ                    = *GenData(Cylinder_Axis_Z)
 *format "%10.5e"
 CylinderRadius1                  = *GenData(Cylinder_Radius_1)
+*format "%10.5e"
 CylinderFrictionAngle1           = *GenData(Cylinder_Friction_Angle_1)
 *format "%10.5e"
 CylinderRadius2                  = *GenData(Cylinder_Radius_2)
+*format "%10.5e"
 CylinderFrictionAngle2           = *GenData(Cylinder_Friction_Angle_2)
 *format "%10.5e"
 CylinderRadius3                  = *GenData(Cylinder_Radius_3)
+*format "%10.5e"
 CylinderFrictionAngle3           = *GenData(Cylinder_Friction_Angle_3)
 *format "%10.5e"
 CylinderRadius4                  = *GenData(Cylinder_Radius_4)
+*format "%10.5e"
 CylinderFrictionAngle4           = *GenData(Cylinder_Friction_Angle_4)
 *format "%10.5e"
 CylinderRadius5                  = *GenData(Cylinder_Radius_5)
+*format "%10.5e"
 CylinderFrictionAngle5           = *GenData(Cylinder_Friction_Angle_5)
 
 # Time Discretization Settings
