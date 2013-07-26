@@ -754,7 +754,7 @@ namespace Kratos
 
           array_1d<double,3> surface_normal_dir = rCurrentProcessInfo[SURFACE_NORMAL_DIR_1];
           array_1d<double,3> surface_point_coor = rCurrentProcessInfo[SURFACE_POINT_COOR_1];
-          int surface_fricc                     = rCurrentProcessInfo[SURFACE_FRICC_1];          
+          double surface_fricc                     = rCurrentProcessInfo[SURFACE_FRICC_1];          
 
           if (surface_num == 1){
               surface_normal_dir = rCurrentProcessInfo[SURFACE_NORMAL_DIR_2];
@@ -917,10 +917,10 @@ namespace Kratos
 
                  LocalElasticContactForce[0] += - kt * LocalDeltDisp[0];  // 0: first tangential
                  LocalElasticContactForce[1] += - kt * LocalDeltDisp[1];  // 1: second tangential
-
+                 
                  double dyn_friction_angle =  surface_fricc * M_PI / 180;
                  double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
-                 double Frictional_ShearForceMax = tan(dyn_friction_angle) * LocalElasticContactForce[2];
+                 double Frictional_ShearForceMax = tan(dyn_friction_angle) * LocalElasticContactForce[2];                
 
                  if (Frictional_ShearForceMax < 0.0){
                      Frictional_ShearForceMax = 0.0;
@@ -1089,7 +1089,7 @@ namespace Kratos
           int time_step                        = rCurrentProcessInfo[TIME_STEPS];
 
           double CylinderRadius                = rCurrentProcessInfo[CYLINDER_RADIUS_1];
-          int cylinder_fricc                   = rCurrentProcessInfo[CYLINDER_FRICC_1];          
+          double cylinder_fricc                   = rCurrentProcessInfo[CYLINDER_FRICC_1];          
 
           if (cylinder_num == 1){
               CylinderRadius    = rCurrentProcessInfo[CYLINDER_RADIUS_2];
