@@ -60,6 +60,9 @@ BOOST_PYTHON_MODULE(KratosTrilinosApplication)
     AddCustomUtilitiesToPython();
     AddTrilinosCommunicatorToPython();
 // 	AddFirst();
+
+    //registering variables in python
+
 }
 
 
