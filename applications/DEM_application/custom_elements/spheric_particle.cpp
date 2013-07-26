@@ -1311,9 +1311,17 @@ namespace Kratos
 						 double vel_cyl[3]      = {0.0};
 						 GeometryFunctions::CrossProduct(cylinder_angular_velocity, contact_normal_dir_unit, vel_cyl);
                          
-                         DeltDisp[0] -= vel_cyl[0] * CylinderRadius * dt;
-                         DeltDisp[1] -= vel_cyl[1] * CylinderRadius * dt;
-                         DeltDisp[2] -= vel_cyl[2] * CylinderRadius * dt;						 
+                         if (det_normal_vect > CylinderRadius){                 
+                             DeltDisp[0] -= vel_cyl[0] * CylinderRadius * dt;
+                             DeltDisp[1] -= vel_cyl[1] * CylinderRadius * dt;
+                             DeltDisp[2] -= vel_cyl[2] * CylinderRadius * dt;
+				         }
+				 
+				         else {
+                             DeltDisp[0] += vel_cyl[0] * CylinderRadius * dt;
+                             DeltDisp[1] += vel_cyl[1] * CylinderRadius * dt;
+                             DeltDisp[2] += vel_cyl[2] * CylinderRadius * dt;
+				         }                         
 					 }
 
                      double LocalDeltDisp[3]             = {0.0};
