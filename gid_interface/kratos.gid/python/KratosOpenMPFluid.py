@@ -458,8 +458,6 @@ graph_printer = point_graph_printer.PrintGraphPrinter(output_nodes_list, fluid_m
 
 # Stepping and time settings
 Dt = ProjectParameters.Dt 
-full_Dt = Dt 
-initial_Dt = 0.001 * full_Dt #0.05 #0.01
 Nsteps  = ProjectParameters.nsteps
 final_time = ProjectParameters.max_time
 output_time = ProjectParameters.output_time
@@ -470,11 +468,6 @@ step = 0
 
 while(time <= final_time):
 
-    if(step < 3):
-        Dt = initial_Dt
-    else:
-        Dt = full_Dt
-        
     time = time + Dt
     step = step + 1
     fluid_model_part.CloneTimeStep(time)

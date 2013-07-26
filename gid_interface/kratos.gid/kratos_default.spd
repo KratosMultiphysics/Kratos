@@ -180,7 +180,7 @@
                 <Item id="TimeOrder" pid="Time order" dv="2" fluidAppr="Eulerian" fluidSolvTyp="ElementBased,EdgeBased" ivalues="1,2" values="1,2" help=""/>
                 <Item id="LaplacianForm" pid="Laplacian form" state="hidden" dv="Discrete" fluidAppr="Eulerian" fluidSolvTyp="ElementBased,EdgeBased" ivalues="Continuous,Discrete,DiscreteWithDt" values="Continuous,Discrete,Discrete with dt" help=""/>
                 <Item id="DynamicTau" pid="Use dt in stabilization" dv="0.01" fluidAppr="Eulerian" CBState="normal" values="1.0,0.1,0.01,0.001,0.0" help=""/>
-                <Item id="OssSwitch" pid="Use orthogonal subscales" dv="0" ivalues="0,1" values="0,1" fluidAppr="Eulerian"  help=""/> 
+                <Item id="OssSwitch" pid="Use orthogonal subscales" dv="1" ivalues="0,1" values="0,1" fluidAppr="Eulerian"  help=""/> 
                 <Item id="RedistanceFrequency" pid="Redistance frequency" fluidAppr="Eulerian" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" dv="5" help="Redistance frequency"/>
                 <Item id="ExtrapolationLayers" pid="Extrapolation layers" fluidAppr="Eulerian" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" dv="10" help="Extrapolation layers"/>
                 <Item id="StabdtPressureFactor" pid="Stabilized dt pressure factor" fluidAppr="Eulerian" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" dv="1.0" help="Stabilized dt pressure factor"/>
