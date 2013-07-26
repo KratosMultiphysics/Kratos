@@ -55,6 +55,10 @@ namespace Kratos
 {
 //Create Variables
 
+//solution
+KRATOS_CREATE_VARIABLE(int, WRITE_ID );
+KRATOS_CREATE_VARIABLE(double, PREVIOUS_DELTA_TIME );
+
 //geometrical
 KRATOS_CREATE_VARIABLE( double, AREA );
 KRATOS_CREATE_VARIABLE( double, IX );
@@ -326,6 +330,11 @@ void KratosSolidMechanicsApplication::Register()
 
 
     //Register Variables
+
+    //solution
+    KRATOS_REGISTER_VARIABLE( WRITE_ID );
+    KRATOS_REGISTER_VARIABLE( PREVIOUS_DELTA_TIME );
+ 
 
     //geometrical
     KRATOS_REGISTER_VARIABLE( AREA );

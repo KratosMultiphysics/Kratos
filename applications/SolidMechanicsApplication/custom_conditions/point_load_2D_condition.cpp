@@ -73,7 +73,7 @@ void PointLoad2DCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
 
     array_1d<double,3>& force = GetGeometry()[0].GetSolutionStepValue(FORCE);
 
-    double IntegrationWeight = GetProperties()[ THICKNESS ];
+    double IntegrationWeight = 1; //GetProperties()[ THICKNESS ];
     rRightHandSideVector[0] = force[0] * IntegrationWeight;
     rRightHandSideVector[1] = force[1] * IntegrationWeight;
 
@@ -99,11 +99,11 @@ void PointLoad2DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
     array_1d<double,3>& force = GetGeometry()[0].GetSolutionStepValue(FORCE);
 
-    double IntegrationWeight = GetProperties()[ THICKNESS ];
+    double IntegrationWeight = 1; //GetProperties()[ THICKNESS ];
     rRightHandSideVector[0] = force[0] * IntegrationWeight;
     rRightHandSideVector[1] = force[1] * IntegrationWeight;
 
-
+    std::cout<<" Calc condition "<<rRightHandSideVector<<std::endl;
     KRATOS_CATCH("")
 }
 
