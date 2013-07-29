@@ -294,7 +294,8 @@ public:
 
     typename BaseType::Pointer Create( PointsArrayType const& ThisPoints ) const
     {
-        return typename BaseType::Pointer( new Line2D3( ThisPoints ) );
+      // line 3 conectivities order 1-3-2
+      return typename BaseType::Pointer( new Line2D3( ThisPoints ) );
     }
 
     virtual boost::shared_ptr< Geometry< Point<3> > > Clone() const
@@ -318,8 +319,8 @@ public:
     {
         rResult.resize( 3, false );
         rResult[0] = 0.25;
-        rResult[1] = 0.5;
-        rResult[2] = 0.25;
+        rResult[2] = 0.5;
+        rResult[1] = 0.25;
         return rResult;
     }
 
@@ -341,7 +342,7 @@ public:
     */
     virtual double Length() const
     {
-        double lenght = pow( BaseType::GetPoint( 0 ).X() - BaseType::GetPoint( 2 ).X(), 2 ) + pow( BaseType::GetPoint( 0 ).Y() - BaseType::GetPoint( 2 ).Y(), 2 );
+        double lenght = pow( BaseType::GetPoint( 0 ).X() - BaseType::GetPoint( 1 ).X(), 2 ) + pow( BaseType::GetPoint( 0 ).Y() - BaseType::GetPoint( 1 ).Y(), 2 );
         return sqrt( lenght );
     }
 
@@ -437,10 +438,16 @@ public:
             {
                 jacobian( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
                 jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
+
+		
             }
 
             rResult[pnt] = jacobian;
+
+	    
         }//end of loop over all integration points
+
+	
 
         return rResult;
     }
@@ -487,7 +494,7 @@ public:
             for ( unsigned  int i = 0; i < this->PointsNumber(); i++ )
             {
                 jacobian( 0, 0 ) += ( this->GetPoint( i ).X() + DeltaPosition(i,0) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-                jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() + DeltaPosition(i,1)) * ( shape_functions_gradients[pnt]( i, 0 ) );
+                jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() + DeltaPosition(i,1) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
             }
 
             rResult[pnt] = jacobian;
@@ -694,9 +701,9 @@ public:
         case 0:
             return( 0.5*( rPoint[0] - 1.0 )*rPoint[0] );
         case 1:
-            return( 1.0 -rPoint[0]*rPoint[0] );
+	    return( 0.5*( rPoint[0] + 1.0 )*rPoint[0] );
         case 2:
-            return( 0.5*( rPoint[0] + 1.0 )*rPoint[0] );
+	    return( 1.0 -rPoint[0]*rPoint[0] );
         default:
             KRATOS_ERROR( std::logic_error,
                           "Wrong index of shape function!" ,
@@ -814,8 +821,8 @@ public:
         rResult.resize( 3, 1 );
         noalias( rResult ) = ZeroMatrix( 3, 1 );
         rResult( 0, 0 ) = rPoint[0] - 0.5;
-        rResult( 1, 0 ) = -2.0 * rPoint[0];
-        rResult( 2, 0 ) = rPoint[0] + 0.5;
+        rResult( 2, 0 ) = -2.0 * rPoint[0];
+        rResult( 1, 0 ) = rPoint[0] + 0.5;
         return( rResult );
     }
 
@@ -829,8 +836,8 @@ public:
         rResult.resize( 3, 1 );
         noalias( rResult ) = ZeroMatrix( 3, 1 );
         rResult( 0, 0 ) = -1.0;
-        rResult( 1, 0 ) =  0.0;
-        rResult( 2, 0 ) =  1.0;
+        rResult( 2, 0 ) =  0.0;
+        rResult( 1, 0 ) =  1.0;
         return rResult;
     }
 
@@ -848,8 +855,8 @@ public:
         noalias( rResult ) = ZeroMatrix( 3, 1 );
 
         rResult( 0, 0 ) = rPoint[0] - 0.5;
-        rResult( 1, 0 ) = -2.0 * rPoint[0];
-        rResult( 2, 0 ) = rPoint[0] + 0.5;
+        rResult( 2, 0 ) = -2.0 * rPoint[0];
+        rResult( 1, 0 ) = rPoint[0] + 0.5;
         return rResult;
     }
 
@@ -946,8 +953,8 @@ private:
         {
             double e = IntegrationPoints[it_gp].X();
             N( it_gp, 0 ) = 0.5 * ( e - 1 ) * e;
-            N( it_gp, 1 ) = 1.0 - e * e;
-            N( it_gp, 2 ) = 0.5 * ( 1 + e ) * e;
+            N( it_gp, 2 ) = 1.0 - e * e;
+            N( it_gp, 1 ) = 0.5 * ( 1 + e ) * e;
         }
 
         return N;
@@ -965,8 +972,8 @@ private:
         {
             double e = IntegrationPoints[it_gp].X();
             DN_De[it_gp]( 0, 0 ) = e - 0.5;
-            DN_De[it_gp]( 1, 0 ) = -2.0 * e;
-            DN_De[it_gp]( 2, 0 ) = e + 0.5;
+            DN_De[it_gp]( 2, 0 ) = -2.0 * e;
+            DN_De[it_gp]( 1, 0 ) = e + 0.5;
         }
 
         return DN_De;
