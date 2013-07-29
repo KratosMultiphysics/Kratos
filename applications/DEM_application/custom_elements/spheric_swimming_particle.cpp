@@ -59,7 +59,6 @@ namespace Kratos
           array_1d<double, 3> contact_force;
           array_1d<double, 3> contact_moment;
           array_1d<double, 3> initial_rotation_moment;
-          array_1d<double, 3> max_rotation_moment;
           array_1d<double, 3> elastic_force;
 
           contact_force[0]  = 0.0;
@@ -71,9 +70,6 @@ namespace Kratos
           initial_rotation_moment[0]  = 0.0;
           initial_rotation_moment[1]  = 0.0;
           initial_rotation_moment[2]  = 0.0;
-          max_rotation_moment[0] = 0.0;
-          max_rotation_moment[1] = 0.0;
-          max_rotation_moment[2] = 0.0;
 	  
           ComputeNewNeighboursHistoricalData();
           ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
