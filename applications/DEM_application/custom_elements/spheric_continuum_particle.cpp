@@ -1108,17 +1108,18 @@ namespace Kratos
       
     }//calculate Output vector.
       
-      
-   
-     void SphericContinuumParticle::CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment, 
-                                                        array_1d<double, 3>& exterally_applied_force, ProcessInfo& rCurrentProcessInfo)
-     {
+         
+     void SphericContinuumParticle::ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment,
+                                                            array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo)
+    {
+          const array_1d<double,3>& gravity         = rCurrentProcessInfo[GRAVITY];
+
           if(mTriaxialOption && mSkinSphere) //could be applified to selected particles.
           {
             
-            ComputePressureForces(exterally_applied_force, rCurrentProcessInfo);
+            ComputePressureForces(additionally_applied_force, rCurrentProcessInfo);
             
-            KRATOS_WATCH(exterally_applied_force)
+            KRATOS_WATCH(additionally_applied_force)
             
           }
         
@@ -1129,6 +1130,9 @@ namespace Kratos
           }
           
           //CharacteristicParticleFailureId(rCurrentProcessInfo);
+          additionally_applied_force[0] += mRealMass * gravity[0];
+          additionally_applied_force[1] += mRealMass * gravity[1];
+          additionally_applied_force[2] += mRealMass * gravity[2];
       }
  
       void SphericContinuumParticle::CustomInitialize()

@@ -82,51 +82,39 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          const array_1d<double, 3>& gravity  = rCurrentProcessInfo[GRAVITY];
-
           array_1d<double, 3> contact_force;
-          array_1d<double, 3> externally_applied_force;
           array_1d<double, 3> contact_moment;
-          array_1d<double, 3> initial_rotation_moment;
-          
+          array_1d<double, 3> additionally_applied_force;
+          array_1d<double, 3> additionally_applied_moment;
+          array_1d<double, 3> initial_rotation_moment;     
           array_1d<double, 3>& elastic_force = this->GetGeometry()[0].GetSolutionStepValue(ELASTIC_FORCES);
-          elastic_force.clear();
-
-          contact_force[0]  = 0.0;
-          contact_force[1]  = 0.0;
-          contact_force[2]  = 0.0;
-          contact_moment[0] = 0.0;
-          contact_moment[1] = 0.0;
-          contact_moment[2] = 0.0;
-          initial_rotation_moment[0]  = 0.0;
-          initial_rotation_moment[1]  = 0.0;
-          initial_rotation_moment[2]  = 0.0;  
 
           ComputeNewNeighboursHistoricalData();
 
           ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
 
           if (mLimitSurfaceOption > 0){
-			  for (int surface_num = 0; surface_num < mLimitSurfaceOption; surface_num++){
-				  ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, surface_num, rCurrentProcessInfo);
+
+              for (int surface_num = 0; surface_num < mLimitSurfaceOption; surface_num++){
+                  ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, surface_num, rCurrentProcessInfo);
               }
           }
 
           if (mLimitCylinderOption > 0){
-			  for (int cylinder_num = 0; cylinder_num < mLimitCylinderOption; cylinder_num++){
-				  ComputeBallToCylinderContactForce(contact_force, contact_moment, initial_rotation_moment, cylinder_num, rCurrentProcessInfo);
+
+              for (int cylinder_num = 0; cylinder_num < mLimitCylinderOption; cylinder_num++){
+                  ComputeBallToCylinderContactForce(contact_force, contact_moment, initial_rotation_moment, cylinder_num, rCurrentProcessInfo);
               }
           }
           
-          CustomCalculateRightHandSide(contact_force, contact_moment, externally_applied_force, rCurrentProcessInfo);
+          ComputeAdditionalForces(contact_force, contact_moment, additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo);
 
-
-          rRightHandSideVector[0] = contact_force[0] + mRealMass * gravity[0] + externally_applied_force[0];
-          rRightHandSideVector[1] = contact_force[1] + mRealMass * gravity[1] + externally_applied_force[1];
-          rRightHandSideVector[2] = contact_force[2] + mRealMass * gravity[2] + externally_applied_force[2];
-          rRightHandSideVector[3] = contact_moment[0];
-          rRightHandSideVector[4] = contact_moment[1];
-          rRightHandSideVector[5] = contact_moment[2];
+          rRightHandSideVector[0] = contact_force[0] + additionally_applied_force[0];
+          rRightHandSideVector[1] = contact_force[1] + additionally_applied_force[1];
+          rRightHandSideVector[2] = contact_force[2] + additionally_applied_force[2];
+          rRightHandSideVector[3] = contact_moment[0] + additionally_applied_moment[0];
+          rRightHandSideVector[4] = contact_moment[1] + additionally_applied_moment[0];
+          rRightHandSideVector[5] = contact_moment[2] + additionally_applied_moment[0];
 
           KRATOS_CATCH( "" )
       }
@@ -510,16 +498,22 @@ namespace Kratos
                                                           ProcessInfo& rCurrentProcessInfo)
       {
           KRATOS_TRY
-          
-          // PROCESS INFO
+
+
+
+          rContactForce.clear();
+          rContactMoment.clear();
+          rElasticForce.clear();
+          rInitialRotaMoment.clear();
 
           ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);
-          //vector<double>& r_VectorContactInitialDelta  = this->GetValue(PARTICLE_CONTACT_DELTA);  //MSI: must be changed in the same fashion as contactforces
-        
+
+          // PROCESS INFO
+
           double dt = rCurrentProcessInfo[DELTA_TIME];
           double dt_i = 1 / dt;
 
-          //INITIALIZATIONS
+
 
           const array_1d<double, 3>& vel         = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
           const array_1d<double, 3>& delta_displ = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -629,15 +623,15 @@ namespace Kratos
 
               }
 
-              if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0){
+              if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0){ // Limit expressions when the restitution coefficient tends to 0. Variable lnRestitCoeff is set to 1.0 (instead of minus infinite) by the problem type.
                   equiv_visco_damp_coeff_normal       = 2 * sqrt(equiv_mass * kn);
-                  equiv_visco_damp_coeff_tangential   = equiv_visco_damp_coeff_normal * aux_norm_to_tang; // 2 * sqrt(equiv_mass * kt);
               }
 
               else {
-                  equiv_visco_damp_coeff_normal       = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + M_PI * M_PI));
-                  equiv_visco_damp_coeff_tangential   = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
+                  equiv_visco_damp_coeff_normal       = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + M_PI * M_PI));                 
               }
+
+              equiv_visco_damp_coeff_tangential   = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
 
               EvaluateDeltaDisplacement(DeltDisp, RelVel, NormalDir, OldNormalDir, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator);
 
@@ -1592,8 +1586,17 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment, 
-                                                         array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo){}
+      void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment,
+                                                      array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& rCurrentProcessInfo)
+      {
+
+        const array_1d<double,3>& gravity = rCurrentProcessInfo[GRAVITY];
+
+        externally_applied_force[0] = mRealMass * gravity[0];
+        externally_applied_force[1] = mRealMass * gravity[1];
+        externally_applied_force[2] = mRealMass * gravity[2];
+
+      }
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************

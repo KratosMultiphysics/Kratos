@@ -70,9 +70,9 @@ namespace Kratos
 
       /// Default constructor.
 
-      SphericSwimmingParticle( IndexType NewId, GeometryType::Pointer pGeometry );
-      SphericSwimmingParticle( IndexType NewId, NodesArrayType const& ThisNodes);
-      SphericSwimmingParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+      SphericSwimmingParticle(IndexType NewId, GeometryType::Pointer pGeometry);
+      SphericSwimmingParticle(IndexType NewId, NodesArrayType const& ThisNodes);
+      SphericSwimmingParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
       Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
@@ -88,7 +88,6 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
-      void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo);
 
       ///@}
       ///@name Access
@@ -129,7 +128,7 @@ namespace Kratos
     protected:
 
         SphericSwimmingParticle();
-
+        void ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment, array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo);
         void ComputeFluidForcesOnParticle(ProcessInfo& rCurrentProcessInfo);
         double CalculateDragCoeffFromSphericity(const double Reynolds, double Sphericity, int DragModifierType);
         void CalculateDragCoefficient(int NonNewtonianOption, const double Reynolds, const double Sphericity, double& rDrag_coeff, int DragModifierType);
