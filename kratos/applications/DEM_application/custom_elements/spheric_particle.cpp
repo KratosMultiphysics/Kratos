@@ -56,14 +56,12 @@ namespace Kratos
           mPoisson                  = GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
           mTgOfFrictionAngle        = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
           mLnOfRestitCoeff          = GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-          double& export_id         = GetGeometry()(0)->FastGetSolutionStepValue(EXPORT_ID);
           double& density           = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
           double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
           double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
           double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
           double& erase_flag        = GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
 
-          export_id                 = GetGeometry()(0)->Id();
           erase_flag                = 0.0;
           mass                      = 4.0 / 3.0 * M_PI * density * mRadius * mRadius * mRadius;
           sqrt_of_mass              = sqrt(mass);
@@ -1580,7 +1578,7 @@ namespace Kratos
 
       void SphericParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo){
         
-          if (rCurrentProcessInfo[INT_DUMMY_8] == 1){
+          if (rCurrentProcessInfo[PRINT_GROUP_ID] == 1){
               this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_GROUP_ID) = double(this->GetGeometry()[0].FastGetSolutionStepValue(GROUP_ID));
           }
     
@@ -1673,7 +1671,7 @@ namespace Kratos
 
           if (!mInitializedVariablesFlag){
 
-              if (rCurrentProcessInfo[INT_DUMMY_3] == 1){
+              if (rCurrentProcessInfo[PRINT_EXPORT_ID] == 1){
                   this->GetGeometry()(0)->FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
               }
                           
@@ -1790,10 +1788,6 @@ namespace Kratos
 
              }
 
-          }
-
-          else if (rVariable == EXPORT_ID){
-              Output = GetGeometry()(0)->FastGetSolutionStepValue(EXPORT_ID);
           }
 
           else if (rVariable == MAX_INDENTATION){
