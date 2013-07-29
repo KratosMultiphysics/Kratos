@@ -399,7 +399,9 @@ private:
     const PointMoment3DCondition          mPointMoment3DCondition;
 
     const LineLoad2DCondition              mLineLoadCondition2D2N;
+    const LineLoad2DCondition              mLineLoadCondition2D3N;
     const LineLoadAxisym2DCondition  mLineLoadAxisymCondition2D2N;
+    const LineLoadAxisym2DCondition  mLineLoadAxisymCondition2D3N;
     const LineLoad3DCondition              mLineLoadCondition3D2N;
 
     const SurfaceLoad3DCondition    mSurfaceLoadCondition3D3N;

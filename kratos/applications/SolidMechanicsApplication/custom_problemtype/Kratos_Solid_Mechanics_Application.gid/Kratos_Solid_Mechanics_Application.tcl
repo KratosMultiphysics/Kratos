@@ -20,7 +20,7 @@ proc InitGIDProject {dir} {
 	GiDMenu::InsertOption "Kratos Solid Mechanics Application" [list "Updated Lagrangian Elements"] 3 PRE "GidOpenConditions \"Updated Lagrangian Elements\"" "" ""
 	GiDMenu::InsertOption "Kratos Solid Mechanics Application" [list "Spatial Lagrangian Elements"] 4 PRE "GidOpenConditions \"Spatial Lagrangian Elements\"" "" ""
 	GiDMenu::InsertOption "Kratos Solid Mechanics Application" [list "Axisymmetric Elements"] 5 PRE "GidOpenConditions \"Axisymmetric Elements\"" "" ""
-	GiDMenu::InsertOption "Kratos Solid Mechanics Application" [list "UP Elements"] 6 PRE "GidOpenConditions \"UP Elements\"" "" ""
+	GiDMenu::InsertOption "Kratos Solid Mechanics Application" [list "Mixed U-P Elements"] 6 PRE "GidOpenConditions \"Mixed U-P Elements\"" "" ""
 	GiDMenu::InsertOption "Kratos Solid Mechanics Application" [list "Conditions"] 7 PRE "GidOpenConditions \"Conditions\"" "" ""
 	GiDMenu::InsertOption "Kratos Solid Mechanics Application" [list "Materials"] 8 PRE "GidOpenMaterials \"Materials\"" "" ""
 	GiDMenu::InsertOption "Kratos Solid Mechanics Application" [list "Problem Parameters"] 9 PRE "GidOpenProblemData \"Problem_Parameters\"" "" ""
