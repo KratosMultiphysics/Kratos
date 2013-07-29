@@ -175,8 +175,6 @@ namespace Kratos
 
       void SphericContinuumParticle::ContactAreaWeighting(const ProcessInfo& rCurrentProcessInfo) //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
       { 
-     
-          int skin_sphere     = this->GetValue(SKIN_SPHERE);
 
           double alpha = 1.0;
           double external_sphere_area = 4*M_PI*mRadius*mRadius;  
@@ -207,7 +205,7 @@ namespace Kratos
           } //for every neighbour
        
        
-          if(!skin_sphere)
+          if(!mSkinSphere)
           {
           
             AuxiliaryFunctions::CalculateAlphaFactor(cont_ini_neighbours_size, external_sphere_area, mtotal_equiv_area, alpha); 
@@ -831,6 +829,8 @@ namespace Kratos
          
          if (!mInitializedVariablesFlag){
          
+         
+         mSkinSphere = this->GetValue(SKIN_SPHERE);
            
          mFinalSimulationTime = rCurrentProcessInfo[FINAL_SIMULATION_TIME];
          
@@ -870,7 +870,7 @@ namespace Kratos
             
           }
           
-         mSwitchPressure = 0; 
+         mSwitchPressure = &(rCurrentProcessInfo[SWITCH_PRESSURE]); 
          mInitializedVariablesFlag = 1;
            
         }// if (!mInitializedVariablesFlag)
@@ -886,24 +886,24 @@ namespace Kratos
 
           //this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_PARTICLE_FAILURE_ID) = double(this->GetValue(PARTICLE_FAILURE_ID)); //temporarily unused
           
-       
-          if(rCurrentProcessInfo[INT_DUMMY_3]==1) //ok
-          {
-            this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
-          }
   
-          if(rCurrentProcessInfo[INT_DUMMY_4]==1) //ok
+          if(rCurrentProcessInfo[PRINT_SKIN_SPHERE]==1)
           {
             
-            this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(this->GetValue(SKIN_SPHERE));  
+            this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(mSkinSphere);  
             
+          }
+          
+          if (rCurrentProcessInfo[PRINT_GROUP_ID] == 1)
+          {
+              this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_GROUP_ID) = double(this->GetGeometry()[0].FastGetSolutionStepValue(GROUP_ID));
           }
           
          
         
           //this->GetGeometry()[0].FastGetSolutionStepValue(NUM_OF_NEIGH) = this->GetValue(NEIGHBOUR_ELEMENTS).size();
          /*
-          if( mContactMeshOption ==1 && rCurrentProcessInfo[INT_DUMMY_9] )
+          if( mContactMeshOption ==1 && rCurrentProcessInfo[STRESS_STRAIN_OPTION] )
           {
       
           this->GetGeometry()[0].FastGetSolutionStepValue(DEM_STRESS_XX) =  mStressTensor[0][0];
@@ -918,7 +918,7 @@ namespace Kratos
           
           }
           */
-           if(rCurrentProcessInfo[INT_DUMMY_10]==1)
+           if(rCurrentProcessInfo[PRINT_RADIAL_DISPLACEMENT]==1)
           {
             
             double X = this->GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X);
@@ -1113,11 +1113,12 @@ namespace Kratos
      void SphericContinuumParticle::CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment, 
                                                         array_1d<double, 3>& exterally_applied_force, ProcessInfo& rCurrentProcessInfo)
      {
-          
-          if(mTriaxialOption)
+          if(mTriaxialOption && mSkinSphere) //could be applified to selected particles.
           {
             
             ComputePressureForces(exterally_applied_force, rCurrentProcessInfo);
+            
+            KRATOS_WATCH(exterally_applied_force)
             
           }
         
@@ -1351,14 +1352,14 @@ namespace Kratos
         
         //CONTACT AREA
         
-          if ( ( *mpTimeStep==0 ) && ( this->GetValue(SKIN_SPHERE)==0 ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==0 ) )
+          if ( ( *mpTimeStep==0 ) && (!mSkinSphere ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==0 ) )
               {
                                             
                 lock_p_weak->GetValue(MEAN_CONTACT_AREA)   += 0.5*corrected_area;
 
               }
               
-              else if ( ( *mpTimeStep==0 ) && ( this->GetValue(SKIN_SPHERE)==1 ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==1 ) )
+              else if ( ( *mpTimeStep==0 ) && ( mSkinSphere ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==1 ) )
               {
           
                 lock_p_weak->GetValue(MEAN_CONTACT_AREA)   += 0.5*corrected_area;
@@ -1367,7 +1368,7 @@ namespace Kratos
               
                       
               
-              else if ( ( *mpTimeStep==0 ) && ( this->GetValue(SKIN_SPHERE)==0 ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==1 ) )
+              else if ( ( *mpTimeStep==0 ) && ( !mSkinSphere ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==1 ) )
               {
               
               lock_p_weak->GetValue(MEAN_CONTACT_AREA)   = corrected_area;
@@ -1394,7 +1395,7 @@ namespace Kratos
        **/
       void SphericContinuumParticle::ComputeStressStrain(double mStressTensor[3][3],ProcessInfo& rCurrentProcessInfo)
       {
-          if(rCurrentProcessInfo[INT_DUMMY_9] == 1) // if stress_strain_options ON 
+          if(rCurrentProcessInfo[STRESS_STRAIN_OPTION] == 1) // if stress_strain_options ON 
           {
               double& Representative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);
           
@@ -1441,7 +1442,7 @@ namespace Kratos
                                                                     const double &corrected_area,
                                                                     ParticleWeakIteratorType neighbour_iterator, ProcessInfo& rCurrentProcessInfo)
       {
-          if(rCurrentProcessInfo[INT_DUMMY_9]==1) //TODO: Change this with class members or flags
+          if(rCurrentProcessInfo[STRESS_STRAIN_OPTION]==1) //TODO: Change this with class members or flags
           {
               double gap                  = distance - radius_sum;
             
@@ -1532,19 +1533,25 @@ namespace Kratos
         {
           
         externally_applied_force = AuxiliaryFunctions::LinearTimeIncreasingFunction(total_externally_applied_force,mInitialPressureTime,current_time,mFinalPressureTime);
+        
+        if(mSkinSphere)
+        {
           
+          
+        }
+        
         }
         
         else
         {
           externally_applied_force = total_externally_applied_force;
           
-          if(mSwitchPressure==0)
+          if(*mSwitchPressure==0)
           {
             
             KRATOS_WATCH("Confinement application finished at time :")
             KRATOS_WATCH(current_time)
-            mSwitchPressure = 1;
+            *mSwitchPressure = 1;
           }  
         }
         
