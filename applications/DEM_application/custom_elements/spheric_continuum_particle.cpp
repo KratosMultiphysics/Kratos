@@ -205,7 +205,7 @@ namespace Kratos
           } //for every neighbour
        
        
-          if(!mSkinSphere)
+          if(!*mSkinSphere)
           {
           
             AuxiliaryFunctions::CalculateAlphaFactor(cont_ini_neighbours_size, external_sphere_area, mtotal_equiv_area, alpha); 
@@ -830,7 +830,7 @@ namespace Kratos
          if (!mInitializedVariablesFlag){
          
          
-         mSkinSphere = this->GetValue(SKIN_SPHERE);
+         mSkinSphere = &(this->GetValue(SKIN_SPHERE));
            
          mFinalSimulationTime = rCurrentProcessInfo[FINAL_SIMULATION_TIME];
          
@@ -890,7 +890,7 @@ namespace Kratos
           if(rCurrentProcessInfo[PRINT_SKIN_SPHERE]==1)
           {
             
-            this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(mSkinSphere);  
+            this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_SKIN_SPHERE) = double(*mSkinSphere);  
             
           }
           
@@ -1108,18 +1108,18 @@ namespace Kratos
       
     }//calculate Output vector.
       
+
          
      void SphericContinuumParticle::ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment,
                                                             array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo)
     {
           const array_1d<double,3>& gravity         = rCurrentProcessInfo[GRAVITY];
 
-          if(mTriaxialOption && mSkinSphere) //could be applified to selected particles.
+
+          if(mTriaxialOption && *mSkinSphere) //could be applified to selected particles.
           {
             
             ComputePressureForces(additionally_applied_force, rCurrentProcessInfo);
-            
-            KRATOS_WATCH(additionally_applied_force)
             
           }
         
@@ -1356,14 +1356,14 @@ namespace Kratos
         
         //CONTACT AREA
         
-          if ( ( *mpTimeStep==0 ) && (!mSkinSphere ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==0 ) )
+          if ( ( *mpTimeStep==0 ) && (!*mSkinSphere ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==0 ) )
               {
                                             
                 lock_p_weak->GetValue(MEAN_CONTACT_AREA)   += 0.5*corrected_area;
 
               }
               
-              else if ( ( *mpTimeStep==0 ) && ( mSkinSphere ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==1 ) )
+              else if ( ( *mpTimeStep==0 ) && ( *mSkinSphere ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==1 ) )
               {
           
                 lock_p_weak->GetValue(MEAN_CONTACT_AREA)   += 0.5*corrected_area;
@@ -1372,7 +1372,7 @@ namespace Kratos
               
                       
               
-              else if ( ( *mpTimeStep==0 ) && ( !mSkinSphere ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==1 ) )
+              else if ( ( *mpTimeStep==0 ) && ( !*mSkinSphere ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==1 ) )
               {
               
               lock_p_weak->GetValue(MEAN_CONTACT_AREA)   = corrected_area;
@@ -1537,13 +1537,7 @@ namespace Kratos
         {
           
         externally_applied_force = AuxiliaryFunctions::LinearTimeIncreasingFunction(total_externally_applied_force,mInitialPressureTime,current_time,mFinalPressureTime);
-        
-        if(mSkinSphere)
-        {
-          
-          
-        }
-        
+   
         }
         
         else
