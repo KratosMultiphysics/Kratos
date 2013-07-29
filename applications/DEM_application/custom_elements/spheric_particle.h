@@ -218,6 +218,10 @@ namespace Kratos
       int mCriticalTimeOption;
       int mUniformMaterialOption;
       int mInitializedVariablesFlag;
+      int mLimitSurfaceOption;
+      int mLimitCylinderOption;
+      int mRotationSpringOption;
+      int mTriaxialOption;
       double mRadius;
       double mRealMass;
       double mSqrtOfRealMass;
@@ -232,17 +236,12 @@ namespace Kratos
       double mGlobalKn;
       double mGlobalKt;
       double mGlobalAuxNormToTang;
-      int mLimitSurfaceOption;
-      int mLimitCylinderOption;
       double mCylinderVelocity;
       double mCylinderAngularVelocity;
       array_1d<double, 3> mInitialBaseCylinderCentre;
       array_1d<double, 3> mCylinderAxisDir;      
-      int mRotationSpringOption;
       vector<int> mOldNeighbourIds;
       vector< array_1d<double, 3> > mOldNeighbourContactForces;
-      
-      int mTriaxialOption;
       
       //pointers:
       int *mpTimeStep;       
