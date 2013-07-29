@@ -154,6 +154,16 @@ namespace Kratos
       //virtual void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
       //virtual void ComputeParticleRotationSpring(   const ProcessInfo& rCurrentProcessInfo);
 
+      virtual void CalculateEquivalentConstitutiveParameters(array_1d<double, 3>& other_to_me_vect,
+                                                             const double& other_radius,
+                                                             const double& radius_sum,
+                                                             double& kn,
+                                                             double& kt,
+                                                             double& equiv_visco_damp_coeff_normal,
+                                                             double& equiv_visco_damp_coeff_tangential,
+                                                             double& equiv_tg_of_fri_ang,
+                                                             ParticleWeakIteratorType neighbour_iterator);
+
       virtual void EvaluateDeltaDisplacement(double DeltDisp[3],
                                 double RelVel[3],
                                 double NormalDir[3],
@@ -165,7 +175,9 @@ namespace Kratos
                                 const array_1d<double, 3> &delta_displ,
                                 ParticleWeakIteratorType neighbour_iterator);
       
-      virtual void NormalForceCalculation(double LocalElasticContactForce[3],double kn, double indentation, int mElasticityType);
+      virtual void NormalForceCalculation(double LocalElasticContactForce[3], double kn, double indentation);
+
+      virtual void TangentialForceCalculation(double LocalElasticContactForce[3], double LocalDeltDisp[3], const double& kt, const double& equiv_tg_of_fri_ang, bool& sliding);
 
       virtual void DisplacementDueToRotation(double DeltDesp[3],
                                 double OldNormalDir[3],
@@ -184,12 +196,11 @@ namespace Kratos
                                   ParticleWeakIteratorType neighbour_iterator);
 
       virtual void CustomInitialize();
-      virtual void ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment,
-                                             array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& rCurrentProcessInfo);
 
-      
+      virtual void ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment,
+                                           array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& rCurrentProcessInfo);
+
       virtual void AddUpForcesAndProject(double LocalCoordSystem[3][3],
-                                VectorArray3Double &GlobalContactForceMatrix,
                                 double LocalContactForce[3],
                                 double LocalElasticContactForce[3],
                                 double GlobalContactForce[3],

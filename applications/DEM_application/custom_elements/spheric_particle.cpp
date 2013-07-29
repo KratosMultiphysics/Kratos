@@ -116,9 +116,9 @@ namespace Kratos
           
           ComputeAdditionalForces(contact_force, contact_moment, additionally_applied_force, additionally_applied_moment, rCurrentProcessInfo);
 
-          rRightHandSideVector[0] = contact_force[0] + additionally_applied_force[0];
-          rRightHandSideVector[1] = contact_force[1] + additionally_applied_force[1];
-          rRightHandSideVector[2] = contact_force[2] + additionally_applied_force[2];
+          rRightHandSideVector[0] = contact_force[0]  + additionally_applied_force[0];
+          rRightHandSideVector[1] = contact_force[1]  + additionally_applied_force[1];
+          rRightHandSideVector[2] = contact_force[2]  + additionally_applied_force[2];
           rRightHandSideVector[3] = contact_moment[0] + additionally_applied_moment[0];
           rRightHandSideVector[4] = contact_moment[1] + additionally_applied_moment[0];
           rRightHandSideVector[5] = contact_moment[2] + additionally_applied_moment[0];
@@ -446,7 +446,7 @@ namespace Kratos
 
               if (equiv_rolling_friction_coeff != 0.0){
                   double MaxRotaMoment[3]      = {0.0};
-				  double CoordSystemMoment1[3] = {0.0};
+                  double CoordSystemMoment1[3] = {0.0};
                   double CoordSystemMoment2[3] = {0.0};
                   double MR[3]                 = {0.0};
 
@@ -477,15 +477,15 @@ namespace Kratos
                   double MR_max = sqrt(MaxRotaMoment[0] * MaxRotaMoment[0] + MaxRotaMoment[1] * MaxRotaMoment[1] + MaxRotaMoment[2] * MaxRotaMoment[2]);
 
                   if (MR_max > MR_now){
-                       RotaMoment[0]    += MR[0] * equiv_rolling_friction_coeff;
-                       RotaMoment[1]    += MR[1] * equiv_rolling_friction_coeff;
-                       RotaMoment[2]    += MR[2] * equiv_rolling_friction_coeff;
+                       RotaMoment[0] += MR[0] * equiv_rolling_friction_coeff;
+                       RotaMoment[1] += MR[1] * equiv_rolling_friction_coeff;
+                       RotaMoment[2] += MR[2] * equiv_rolling_friction_coeff;
                    }
 
                    else {
-                       RotaMoment[0]     = - InitialRotaMoment[0];
-                       RotaMoment[1]     = - InitialRotaMoment[1];
-                       RotaMoment[2]     = - InitialRotaMoment[2];
+                       RotaMoment[0] = - InitialRotaMoment[0];
+                       RotaMoment[1] = - InitialRotaMoment[1];
+                       RotaMoment[2] = - InitialRotaMoment[2];
                    }
 
                } // if (equiv_rolling_friction_coeff != 0.0)
@@ -508,12 +508,10 @@ namespace Kratos
 
           ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);
 
-          // PROCESS INFO
+          // KINEMATICS
 
           double dt = rCurrentProcessInfo[DELTA_TIME];
           double dt_i = 1 / dt;
-
-
 
           const array_1d<double, 3>& vel         = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
           const array_1d<double, 3>& delta_displ = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -531,107 +529,34 @@ namespace Kratos
               InitialRotaMoment[2]               = RotaAcc[2] * mMomentOfInertia;
           }
 
-          //LOOP OVER NEIGHBOURS BEGINS
+          // LOOP OVER NEIGHBOURS BEGINS
 
           size_t i_neighbour_count = 0;
 
           for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin();
               neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
 
-              // BASIC CALCULATIONS
-
-              array_1d<double, 3> other_to_me_vect    = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
-              const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-              const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
-              const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-              const double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
-
-              double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
-              double radius_sum                       = mRadius + other_radius;
-              double radius_sum_i                     = 1 / radius_sum;
-              double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;
-              double indentation                      = radius_sum - distance;
-              double equiv_area                       = 0.25 * M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
-              double equiv_mass                       = mSqrtOfRealMass * other_sqrt_of_mass;
-
-              double equiv_visco_damp_coeff_normal;
-              double equiv_visco_damp_coeff_tangential;
-              double equiv_ln_of_restit_coeff;
+              array_1d<double, 3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
+              const double &other_radius           = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+              double distance                      = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
+              double radius_sum                    = mRadius + other_radius;
+              double indentation                   = radius_sum - distance;
               double kn;
               double kt;
-              double aux_norm_to_tang;
+              double equiv_visco_damp_coeff_normal;
+              double equiv_visco_damp_coeff_tangential;
               double equiv_tg_of_fri_ang;
 
-              double DeltDisp[3]                      = {0.0};
-              double RelVel[3]                        = {0.0};
+              CalculateEquivalentConstitutiveParameters(other_to_me_vect, other_radius, radius_sum, kn, kt, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, equiv_tg_of_fri_ang, neighbour_iterator);
 
-              double NormalDir[3]                     = {0.0};
-              double OldNormalDir[3]                  = {0.0};
-
-              double LocalCoordSystem[3][3]           = {{0.0}, {0.0}, {0.0}};
-              double OldLocalCoordSystem[3][3]        = {{0.0}, {0.0}, {0.0}};
-
-              bool sliding = false;
-
-              // Globally defined parameters
-
-              if (mGlobalVariablesOption){
-                  kn                                  = mGlobalKn;
-                  kt                                  = mGlobalKt;
-                  aux_norm_to_tang                    = mGlobalAuxNormToTang;
-                  equiv_ln_of_restit_coeff            = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
-                  equiv_tg_of_fri_ang                 = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
-              }
-
-              else {
-                  double equiv_young;
-                  double equiv_poisson;
-                  double corrected_area               = equiv_area;
-
-                  if (mUniformMaterialOption){
-                      equiv_young                     = mYoung;
-                      equiv_poisson                   = mPoisson;
-                      equiv_ln_of_restit_coeff        = mLnOfRestitCoeff;
-                      equiv_tg_of_fri_ang             = mTgOfFrictionAngle;
-                  }
-
-                  else {
-                      // Getting neighbour properties
-
-                      const double &other_young       = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-                      const double &other_poisson     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
-
-                      equiv_young                     = 2 * mYoung * other_young / (mYoung + other_young);
-                      equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
-                      equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
-                      equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
-                  }
-
-                  kn                                  = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-                  kt                                  = kn / (2.0 + equiv_poisson + equiv_poisson);
-                  aux_norm_to_tang                    = sqrt(kt / kn);
-              }
-
-              // Historical minimun K for the critical time
-
-              if (mCriticalTimeOption){
-                  double historic = rCurrentProcessInfo[HISTORICAL_MIN_K];
-
-                  if ((kn < historic) || (kt < historic)){
-                      historic = fmin(kn, kt);
-                  }
-
-              }
-
-              if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0){ // Limit expressions when the restitution coefficient tends to 0. Variable lnRestitCoeff is set to 1.0 (instead of minus infinite) by the problem type.
-                  equiv_visco_damp_coeff_normal       = 2 * sqrt(equiv_mass * kn);
-              }
-
-              else {
-                  equiv_visco_damp_coeff_normal       = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + M_PI * M_PI));                 
-              }
-
-              equiv_visco_damp_coeff_tangential   = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
+              double DeltDisp[3]                       = {0.0};
+              double LocalDeltDisp[3]                  = {0.0};
+              double RelVel[3]                         = {0.0};
+              double LocalRelVel[3]                    = {0.0};
+              double NormalDir[3]                      = {0.0};
+              double OldNormalDir[3]                   = {0.0};
+              double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
+              double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
 
               EvaluateDeltaDisplacement(DeltDisp, RelVel, NormalDir, OldNormalDir, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator);
 
@@ -639,18 +564,17 @@ namespace Kratos
                   DisplacementDueToRotation(DeltDisp, OldNormalDir, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
               }
 
-              double LocalDeltDisp[3]               = {0.0};
-              double LocalElasticContactForce[3]    = {0.0};
-              double GlobalElasticContactForce[3]   = {0.0};
-              double LocalRelVel[3]                 = {0.0};
+              double LocalElasticContactForce[3]       = {0.0};
+              double GlobalElasticContactForce[3]      = {0.0};
 
-              GlobalElasticContactForce[0]          = mOldNeighbourContactForces[i_neighbour_count][0];   //M:aqui tenim guardades les del neighbour calculator.
-              GlobalElasticContactForce[1]          = mOldNeighbourContactForces[i_neighbour_count][1];
-              GlobalElasticContactForce[2]          = mOldNeighbourContactForces[i_neighbour_count][2];
 
               GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce); //we recover this way the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
               GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, DeltDisp, LocalDeltDisp);
               GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, RelVel, LocalRelVel);
+
+              GlobalElasticContactForce[0]             = mOldNeighbourContactForces[i_neighbour_count][0];   //M:aqui tenim guardades les del neighbour calculator.
+              GlobalElasticContactForce[1]             = mOldNeighbourContactForces[i_neighbour_count][1];
+              GlobalElasticContactForce[2]             = mOldNeighbourContactForces[i_neighbour_count][2];
 
               double ViscoDampingLocalContactForce[3]  = {0.0};
               double LocalContactForce[3]              = {0.0};
@@ -659,30 +583,17 @@ namespace Kratos
 
               // TRANSLATION FORCES
 
+              bool sliding = false;
+
               if (indentation > 0.0){
 
                   // NORMAL FORCE
 
-                  NormalForceCalculation(LocalElasticContactForce, kn, indentation, mElasticityType);
+                  NormalForceCalculation(LocalElasticContactForce, kn, indentation);
 
                   // TANGENTIAL FORCE. Incremental calculation. YADE develops a complicated "absolute method"
 
-                  LocalElasticContactForce[0] += - kt * LocalDeltDisp[0];  // 0: first tangential
-                  LocalElasticContactForce[1] += - kt * LocalDeltDisp[1];  // 1: second tangential
-
-                  double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
-                  double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
-
-                  if (Frictional_ShearForceMax < 0.0){
-                      Frictional_ShearForceMax = 0.0;
-                  }
-
-                  if ((ShearForceNow > Frictional_ShearForceMax) && (ShearForceNow != 0.0)){
-                      double ShearForceNowMaxRatio = Frictional_ShearForceMax / ShearForceNow;
-                      LocalElasticContactForce[0] = ShearForceNowMaxRatio * LocalElasticContactForce[0];
-                      LocalElasticContactForce[1] = ShearForceNowMaxRatio * LocalElasticContactForce[1];
-                      sliding = true;
-                  }
+                  TangentialForceCalculation(LocalElasticContactForce, LocalDeltDisp, kt, equiv_tg_of_fri_ang, sliding);
 
                   // VISCODAMPING (applyied locally)
 
@@ -691,9 +602,7 @@ namespace Kratos
 
               // Transforming to global forces and adding up
 
-
-              AddUpForcesAndProject(LocalCoordSystem, mOldNeighbourContactForces, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce,
-                                    ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce, rContactForce, rElasticForce, i_neighbour_count);
+              AddUpForcesAndProject(LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce, rContactForce, rElasticForce, i_neighbour_count);
 
               // ROTATION FORCES
 
@@ -1079,11 +988,12 @@ namespace Kratos
                                                               ProcessInfo& rCurrentProcessInfo)
       {
           KRATOS_TRY 
-          double dt                            = rCurrentProcessInfo[DELTA_TIME];
-          int time_step                        = rCurrentProcessInfo[TIME_STEPS];
 
-          double CylinderRadius                = rCurrentProcessInfo[CYLINDER_RADIUS_1];
-          double cylinder_fricc                   = rCurrentProcessInfo[CYLINDER_FRICC_1];          
+          double dt             = rCurrentProcessInfo[DELTA_TIME];
+          int time_step         = rCurrentProcessInfo[TIME_STEPS];
+
+          double CylinderRadius = rCurrentProcessInfo[CYLINDER_RADIUS_1];
+          double cylinder_fricc = rCurrentProcessInfo[CYLINDER_FRICC_1];
 
           if (cylinder_num == 1){
               CylinderRadius    = rCurrentProcessInfo[CYLINDER_RADIUS_2];
@@ -1586,6 +1496,80 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
+      void SphericParticle::CalculateEquivalentConstitutiveParameters(array_1d<double, 3>& other_to_me_vect,
+                                                                      const double& other_radius,
+                                                                      const double& radius_sum,
+                                                                      double& kn,
+                                                                      double& kt,
+                                                                      double& equiv_visco_damp_coeff_normal,
+                                                                      double& equiv_visco_damp_coeff_tangential,
+                                                                      double& equiv_tg_of_fri_ang,
+                                                                      ParticleWeakIteratorType neighbour_iterator)
+      {
+        const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
+        const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
+        const double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
+
+        double radius_sum_i                     = 1 / radius_sum;
+        double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;
+        double equiv_area                       = 0.25 * M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
+        double equiv_mass                       = mSqrtOfRealMass * other_sqrt_of_mass;
+        double equiv_ln_of_restit_coeff;
+        double aux_norm_to_tang;
+
+        // Globally defined parameters
+
+        if (mGlobalVariablesOption){
+            kn                                  = mGlobalKn;
+            kt                                  = mGlobalKt;
+            aux_norm_to_tang                    = mGlobalAuxNormToTang;
+            equiv_ln_of_restit_coeff            = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
+            equiv_tg_of_fri_ang                 = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+        }
+
+        else {
+            double equiv_young;
+            double equiv_poisson;
+            double corrected_area               = equiv_area;
+
+            if (mUniformMaterialOption){
+                equiv_young                     = mYoung;
+                equiv_poisson                   = mPoisson;
+                equiv_ln_of_restit_coeff        = mLnOfRestitCoeff;
+                equiv_tg_of_fri_ang             = mTgOfFrictionAngle;
+            }
+
+            else {
+
+                const double &other_young       = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+                const double &other_poisson     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+
+                equiv_young                     = 2 * mYoung * other_young / (mYoung + other_young);
+                equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
+                equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
+                equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+            }
+
+            kn                                  = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+            kt                                  = kn / (2.0 + equiv_poisson + equiv_poisson);
+            aux_norm_to_tang                    = sqrt(kt / kn);
+        }
+
+        if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0){ // Limit expressions when the restitution coefficient tends to 0. Variable lnRestitCoeff is set to 1.0 (instead of minus infinite) by the problem type.
+            equiv_visco_damp_coeff_normal = 2 * sqrt(equiv_mass * kn);
+        }
+
+        else {
+            equiv_visco_damp_coeff_normal = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + M_PI * M_PI));
+        }
+
+        equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
+
+      }
+
+      //**************************************************************************************************************************************************
+      //**************************************************************************************************************************************************
+
       void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment,
                                                       array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& rCurrentProcessInfo)
       {
@@ -1630,7 +1614,6 @@ namespace Kratos
       //**************************************************************************************************************************************************
 
       void SphericParticle::AddUpForcesAndProject(double LocalCoordSystem[3][3],
-                                 VectorArray3Double &mOldNeighbourContactForces,
                                  double LocalContactForce[3],
                                  double LocalElasticContactForce[3],
                                  double GlobalContactForce[3],
@@ -1679,28 +1662,27 @@ namespace Kratos
               }
                           
 
-              mDampType                 = rCurrentProcessInfo[DAMP_TYPE];
-              mElasticityType           = rCurrentProcessInfo[FORCE_CALCULATION_TYPE];
-              mRotationOption           = rCurrentProcessInfo[ROTATION_OPTION]; //M:  it's 1/0, should be a boolean
-              mRotationDampType         = rCurrentProcessInfo[ROTA_DAMP_TYPE];
-              mGlobalVariablesOption    = rCurrentProcessInfo[GLOBAL_VARIABLES_OPTION];
-              mCriticalTimeOption       = rCurrentProcessInfo[CRITICAL_TIME_OPTION];
-              mUniformMaterialOption    = rCurrentProcessInfo[UNIFORM_MATERIAL_OPTION];
-              mMagicFactor              = rCurrentProcessInfo[DEM_MAGIC_FACTOR];
+              mDampType                      = rCurrentProcessInfo[DAMP_TYPE];
+              mElasticityType                = rCurrentProcessInfo[FORCE_CALCULATION_TYPE];
+              mRotationOption                = rCurrentProcessInfo[ROTATION_OPTION]; //M:  it's 1/0, should be a boolean
+              mRotationDampType              = rCurrentProcessInfo[ROTA_DAMP_TYPE];
+              mGlobalVariablesOption         = rCurrentProcessInfo[GLOBAL_VARIABLES_OPTION];
+              mCriticalTimeOption            = rCurrentProcessInfo[CRITICAL_TIME_OPTION];
+              mUniformMaterialOption         = rCurrentProcessInfo[UNIFORM_MATERIAL_OPTION];
+              mMagicFactor                   = rCurrentProcessInfo[DEM_MAGIC_FACTOR];
 
-              if(mGlobalVariablesOption)
-              {
-                mGlobalKn                 = rCurrentProcessInfo[GLOBAL_KN];
-                mGlobalKt                 = rCurrentProcessInfo[GLOBAL_KT];
+              if (mGlobalVariablesOption){
+                  mGlobalKn                  = rCurrentProcessInfo[GLOBAL_KN];
+                  mGlobalKt                  = rCurrentProcessInfo[GLOBAL_KT];
               }
               
-              mLimitSurfaceOption       = rCurrentProcessInfo[LIMIT_SURFACE_OPTION];
-              mLimitCylinderOption      = rCurrentProcessInfo[LIMIT_CYLINDER_OPTION];
+              mLimitSurfaceOption            = rCurrentProcessInfo[LIMIT_SURFACE_OPTION];
+              mLimitCylinderOption           = rCurrentProcessInfo[LIMIT_CYLINDER_OPTION];
               
-              mpTimeStep                =  &(rCurrentProcessInfo[TIME_STEPS]); // reference.
+              mpTimeStep                     =  &(rCurrentProcessInfo[TIME_STEPS]); // reference.
 
               if (mRotationOption){
-                  mRollingFriction      = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
+                  mRollingFriction           = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
               }
 
               if (mLimitCylinderOption){
@@ -1711,11 +1693,11 @@ namespace Kratos
               }
 
               if (mGlobalKn == 0.0){
-                  mGlobalAuxNormToTang  = 0.0;
+                  mGlobalAuxNormToTang       = 0.0;
               }
 
               else {
-                  mGlobalAuxNormToTang  = sqrt(mGlobalKt / mGlobalKn);
+                  mGlobalAuxNormToTang       = sqrt(mGlobalKt / mGlobalKn);
               }
 
           }
@@ -1725,30 +1707,57 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
       
-       void SphericParticle::NormalForceCalculation(double LocalElasticContactForce[3], double kn, double indentation, int mElasticityType)
+      void SphericParticle::NormalForceCalculation(double LocalElasticContactForce[3], double kn, double indentation)
               
-              {
-                 switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
-                      case 0:
-                          LocalElasticContactForce[2] = kn * indentation;
+      {
 
-                      break;
+         switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
+              case 0:
+                  LocalElasticContactForce[2] = kn * indentation;
 
-                      case 1:
+              break;
 
-                          LocalElasticContactForce[2] = kn * pow(indentation, 1.5);
+              case 1:
 
-                      break;
+                  LocalElasticContactForce[2] = kn * pow(indentation, 1.5);
 
-                      default:
+              break;
 
-                          LocalElasticContactForce[2] = kn * indentation;
+              default:
 
-                      break;
+                  LocalElasticContactForce[2] = kn * indentation;
 
-                  }//switch
-              } //NormalForceCalculation
+              break;
+
+          }//switch
+
+      } //NormalForceCalculation
       
+      //**************************************************************************************************************************************************
+      //**************************************************************************************************************************************************
+
+      void SphericParticle::TangentialForceCalculation(double LocalElasticContactForce[3], double LocalDeltDisp[3], const double& kt, const double& equiv_tg_of_fri_ang, bool& sliding)
+      {
+
+        LocalElasticContactForce[0] += - kt * LocalDeltDisp[0];  // 0: first tangential
+        LocalElasticContactForce[1] += - kt * LocalDeltDisp[1];  // 1: second tangential
+
+        double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
+        double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
+
+        if (Frictional_ShearForceMax < 0.0){
+            Frictional_ShearForceMax = 0.0;
+        }
+
+        if ((ShearForceNow > Frictional_ShearForceMax) && (ShearForceNow != 0.0)){
+            double ShearForceNowMaxRatio = Frictional_ShearForceMax / ShearForceNow;
+            LocalElasticContactForce[0] = ShearForceNowMaxRatio * LocalElasticContactForce[0];
+            LocalElasticContactForce[1] = ShearForceNowMaxRatio * LocalElasticContactForce[1];
+            sliding = true;
+        }
+
+      }
+
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 

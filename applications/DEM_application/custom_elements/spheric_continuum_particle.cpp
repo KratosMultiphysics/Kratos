@@ -450,7 +450,7 @@ namespace Kratos
             {                                                                                                
               
               //Normal Forces
-              NormalForceCalculation(LocalElasticContactForce,kn,indentation,mElasticityType);
+              NormalForceCalculation(LocalElasticContactForce,kn,indentation);
                               
               //Nonlinear...() MSI #C4
               
@@ -514,7 +514,7 @@ namespace Kratos
             double GlobalContactForce[3] =                {0.0};
             
               
-            AddUpForcesAndProject(LocalCoordSystem,mOldNeighbourContactForces,LocalContactForce,LocalElasticContactForce,GlobalContactForce,
+            AddUpForcesAndProject(LocalCoordSystem, LocalContactForce,LocalElasticContactForce,GlobalContactForce,
                                   GlobalElasticContactForce,ViscoDampingLocalContactForce,ViscoDampingGlobalContactForce,rContactForce,rElasticForce,
                                   i_neighbour_count);
 
