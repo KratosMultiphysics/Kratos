@@ -153,7 +153,6 @@ void LineLoad2DCondition::CalculateConditionalSystem( MatrixType& rLeftHandSideM
     }
 
 
-
     Vector NormalVector  = ZeroVector( 2 ); //normal direction (not normalized)
     Vector TangentVector = ZeroVector( 2 ); //normal direction (not normalized)
 
@@ -164,12 +163,14 @@ void LineLoad2DCondition::CalculateConditionalSystem( MatrixType& rLeftHandSideM
         TangentVector[1] =  J[PointNumber]( 1, 0 ); // x_2,e
 
         double IntegrationWeight = integration_points[PointNumber].Weight() * norm_2(TangentVector);
+	//double IntegrationWeight = integration_points[PointNumber].Weight() * 0.5 * GetGeometry().Length();
 
         if ( dimension == 2 ) IntegrationWeight *= GetProperties()[THICKNESS];
 
         //calculating normal
         NormalVector[0] = -J[PointNumber]( 1, 0 ); //-x_2,e
         NormalVector[1] =  J[PointNumber]( 0, 0 ); // x_1,e
+	NormalVector/= norm_2(NormalVector);
 
         //calculating the pressure and force on the gauss point
         double gauss_pressure = 0.00;
@@ -182,7 +183,8 @@ void LineLoad2DCondition::CalculateConditionalSystem( MatrixType& rLeftHandSideM
             for ( unsigned int j = 0; j < dimension; j++ )
             {
                 ForceLoad[j] += Ncontainer( PointNumber, ii ) * ForceArray[ii][j];
-            }
+	    }
+	    
         }
 
         if ( CalculateStiffnessMatrixFlag == true )
@@ -300,22 +302,27 @@ void LineLoad2DCondition::CalculateAndAddLineLoad(Vector& rF,
     KRATOS_TRY
 
     unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension  = 2;
+    const unsigned int dimension = 2;
     unsigned int index = 0;
+
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         index = dimension * i;
 
-        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
+        array_1d<double, 3 >& ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
 
-        for ( unsigned int idim = 0; idim < number_of_nodes; idim++ )
+
+        for ( unsigned int idim = 0; idim < dimension; idim++ )
         {
             rF[index+idim] += rN[i] * rForce[idim] * rIntegrationWeight;
 
             ExternalForce[idim] += rN[i] * rForce[idim] * rIntegrationWeight;
         }
+	
     }
+
+    
 
     KRATOS_CATCH("")
 
@@ -326,8 +333,8 @@ void LineLoad2DCondition::CalculateAndAddLineLoad(Vector& rF,
 //************************************************************************************
 void LineLoad2DCondition::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo )
 {
-    int number_of_nodes     = GetGeometry().PointsNumber(); //=Geometry().size();
-    const unsigned int dimension  = 2;
+    int number_of_nodes = GetGeometry().PointsNumber(); //=Geometry().size();
+    const unsigned int dimension = 2;
 
     unsigned int conditiondimension = number_of_nodes*dimension;
 
@@ -338,13 +345,9 @@ void LineLoad2DCondition::EquationIdVector( EquationIdVectorType& rResult, Proce
     for ( int i = 0; i < number_of_nodes; i++ )
     {
         index = i * dimension;
-        rResult[index]   =  GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
-        rResult[index+1] =  GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
+        rResult[index]   = GetGeometry()[i].GetDof( DISPLACEMENT_X ).EquationId();
+        rResult[index+1] = GetGeometry()[i].GetDof( DISPLACEMENT_Y ).EquationId();
     }
-
-    // std::cout<<" ID "<<this->Id()<<std::endl;
-    // for(unsigned int i=0; i<rResult.size(); i++)
-    // 	std::cout<<" face2d Equation Id "<<rResult[i]<<std::endl;
 }
 
 //************************************************************************************
@@ -357,6 +360,7 @@ void LineLoad2DCondition::GetDofList( DofsVectorType& rConditionalDofList, Proce
         rConditionalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_X ) );
         rConditionalDofList.push_back( GetGeometry()[i].pGetDof( DISPLACEMENT_Y ) );
     }
+
 }
 
 //************************************************************************************

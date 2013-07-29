@@ -869,7 +869,7 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
-BOOK: UP Elements
+BOOK: Mixed U-P Elements
 
 CONDITION: surface_SpatialLagrangianUPElement2D3N
 CONDTYPE: over surfaces
@@ -934,7 +934,7 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
-CONDITION: line_LineLoad2DCondition
+CONDITION: line_LineLoadCondition2D2N
 CONDTYPE: over lines
 CONDMESHTYPE: over face elements
 QUESTION: Automatic
@@ -942,7 +942,7 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
-CONDITION: line_LineLoadAxisym2DCondition
+CONDITION: line_LineLoadCondition2D3N
 CONDTYPE: over lines
 CONDMESHTYPE: over face elements
 QUESTION: Automatic
@@ -950,7 +950,23 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
-CONDITION: surface_SurfaceLoad3DCondition3D3N
+CONDITION: line_LineLoadAxisymCondition2D2N
+CONDTYPE: over lines
+CONDMESHTYPE: over face elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: line_LineLoadAxisymCondition2D3N
+CONDTYPE: over lines
+CONDMESHTYPE: over face elements
+QUESTION: Automatic
+VALUE: 0
+STATE: HIDDEN
+END CONDITION
+
+CONDITION: surface_SurfaceLoadCondition3D3N
 CONDTYPE: over surfaces
 CONDMESHTYPE: over face elements
 QUESTION: Automatic
@@ -958,7 +974,7 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
-CONDITION: surface_SurfaceLoad3DCondition3D4N
+CONDITION: surface_SurfaceLoadCondition3D4N
 CONDTYPE: over surfaces
 CONDMESHTYPE: over face elements
 QUESTION: Automatic
@@ -966,7 +982,7 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
-CONDITION: surface_SurfaceLoad3DCondition3D6N
+CONDITION: surface_SurfaceLoadCondition3D6N
 CONDTYPE: over surfaces
 CONDMESHTYPE: over face elements
 QUESTION: Automatic
@@ -974,7 +990,7 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
-CONDITION: surface_SurfaceLoad3DCondition3D8N
+CONDITION: surface_SurfaceLoadCondition3D8N
 CONDTYPE: over surfaces
 CONDMESHTYPE: over face elements
 QUESTION: Automatic
@@ -982,7 +998,7 @@ VALUE: 0
 STATE: HIDDEN
 END CONDITION
 
-CONDITION: surface_SurfaceLoad3DCondition3D9N
+CONDITION: surface_SurfaceLoadCondition3D9N
 CONDTYPE: over surfaces
 CONDMESHTYPE: over face elements
 QUESTION: Automatic

@@ -316,59 +316,30 @@ def SetProblemType():
 ######################--LINEAR SOLVER DEFINITION START--#########
 #define the linear solver
 def SetLinearSolver():
-  if(general_variables.LinearSolver == "SkylineLUFactorization"):
-    time_step_solver.solid_linear_solver  =  SkylineLUFactorizationSolver()
-  elif(general_variables.LinearSolver == "SuperLUSolver"):
-    time_step_solver.solid_linear_solver  =  SuperLUSolver()
-  elif(general_variables.LinearSolver == "BiCGStab_ILU0"):
-    pILUPrecond = ILU0Preconditioner() 
-    LST  = general_variables.Linear_Solver_Tolerance
-    LSMI = general_variables.Linear_Solver_Max_Iteration 
-    time_step_solver.solid_linear_solver  =  BICGSTABSolver(LST,int(LSMI), pILUPrecond)
-  elif(general_variables.LinearSolver == "GMRESSolver"):
-    pILUPrecond = ILU0Preconditioner() 
-    LST  = general_variables.Linear_Solver_Tolerance
-    LSMI = general_variables.Linear_Solver_Max_Iteration 
-    time_step_solver.solid_linear_solver  =  GMRESSolver(LST,int(LSMI), pILUPrecond)
-  elif(general_variables.LinearSolver == "BiCGStab_DIAG"):
-    pDiagPrecond = DiagonalPreconditioner()
-    LST  = general_variables.Linear_Solver_Tolerance
-    LSMI = general_variables.Linear_Solver_Max_Iteration  
-    time_step_solver.solid_linear_solver  =  BICGSTABSolver(LST,int(LSMI),pDiagPrecond)
-  elif(general_variables.LinearSolver == "ParallelMKLPardisoSolver"):
-    time_step_solver.solid_linear_solver =  ParallelMKLPardisoSolver()
-  elif(general_variables.LinearSolver == "Pastix_Direct"):
-    #new solvers: Riccardo 06-05-2013
-    gmres_size = 50
-    ilu_level_of_fill = 3
-    #tol = 1e-7
-    tol = general_variables.Linear_Solver_Tolerance
-    verbosity = 0
-    is_symmetric = False
-    time_step_solver.solid_linear_solver = PastixSolver(verbosity,is_symmetric)
-  elif(general_variables.LinearSolver == "Pastix_ILU"):
-    gmres_size = 50
-    ilu_level_of_fill = 3
-    #tol = 1e-7
-    tol = general_variables.Linear_Solver_Tolerance
-    verbosity = 0
-    is_symmetric = False
-    time_step_solver.solid_linear_solver = PastixSolver(tol,gmres_size,ilu_level_of_fill,verbosity,is_symmetric) 
-  elif(general_variables.LinearSolver == "AMG_ILU0"):
-    #new solvers: Riccardo 01-04-2013
-    gmres_size = 50	
-    #tol = 1e-7
-    tol = general_variables.Linear_Solver_Tolerance
-    verbosity = 0
-    time_step_solver.solid_linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.GMRES,tol,200,verbosity,gmres_size)    
-  elif(general_variables.LinearSolver == "AMG_DJ"):
-    gmres_size = 50	
-    #tol = 1e-7
-    tol = general_variables.Linear_Solver_Tolerance
-    verbosity = 0
-    time_step_solver.solid_linear_solver = AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI,AMGCLIterativeSolverType.BICGSTAB,tol,200,verbosity,gmres_size)   
 
+  class linear_solver_config:
+    solver_type = general_variables.LinearSolver
+    scaling = False
+    tolerance = general_variables.Linear_Solver_Tolerance #1e-7
+    max_iteration = general_variables.Linear_Solver_Max_Iteration  #300     
+    verbosity = 0
+    is_symmetric = False  
+    #pastix iterative
+    gmres_krylov_space_dimension = 100
+    ilu_level_of_fill = 3 #5
+    #GMRES CG
+    preconditioner_type = "None"
+    #Deflated conjugate gradient
+    assume_constant_structure = True
+    max_reduced_size = 1000
+    #AMG
+    smoother_type = "ILU0" #"DAMPED_JACOBI"
+    krylov_type = "GMRES"
 
+  import linear_solver_factory
+
+  time_step_solver = linear_solver_factory.ConstructSolver(linear_solver_config)
+    
 #Inside of the solver:
 #builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
 #classical call

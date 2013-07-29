@@ -33,13 +33,13 @@ public:
 
     typedef MathUtils<TDataType> MathUtilsType;
 
-    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor; // dos opciones: un tensor de segundo orden y/o un vector que almacena un vector
+    typedef boost::numeric::ublas::vector<Vector> Second_Order_Tensor;
 
     typedef boost::numeric::ublas::vector<Second_Order_Tensor> Third_Order_Tensor;
 
     typedef boost::numeric::ublas::vector<boost::numeric::ublas::vector<Matrix> > Fourth_Order_Tensor;
 
-    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; // Acumulo un tensor de 2 orden en una matriz.
+    typedef matrix<Second_Order_Tensor> Matrix_Second_Tensor; 
 
 
     /**
@@ -1243,7 +1243,7 @@ public:
     }
 
     /**
-    * Performs clipping on the two polygons clipping_points and subjected_points (the technique used i
+    * Performs clipping on the two polygons clipping_points and subjected_points (the technique used is
     * Sutherland-Hodgman clipping) and returns the overlapping polygon result_points. The method works
     * in 3D. Both polygons have to be convex, but they can be slightly perturbated in 3D space, this
     * allows for performing clipping on two interpolated interfaces

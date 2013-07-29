@@ -1039,9 +1039,9 @@ End Elements
 
 *# Point Element Blocks
 
-*Set cond line_LineLoad2DCondition *OverFaceElements *CanRepeat
+*Set cond line_LineLoadCondition2D2N *OverFaceElements *CanRepeat
 *if(CondNumEntities > 0)
-Begin Conditions LineLoad2DCondition
+Begin Conditions LineLoadCondition2D2N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var icond=operation(icond+1)
@@ -1052,9 +1052,9 @@ Begin Conditions LineLoad2DCondition
 End Conditions
 
 *endif
-*Set cond line_LineLoadAxisym2DCondition *OverFaceElements *CanRepeat
+*Set cond line_LineLoadCondition2D3N *OverFaceElements *CanRepeat
 *if(CondNumEntities > 0)
-Begin Conditions LineLoadAxisym2DCondition
+Begin Conditions LineLoadCondition2D3N
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var icond=operation(icond+1)
@@ -1065,7 +1065,33 @@ Begin Conditions LineLoadAxisym2DCondition
 End Conditions
 
 *endif
-*Set cond surface_SurfaceLoad3DCondition3D3N *OverFaceElements *CanRepeat
+*Set cond line_LineLoadAxisymCondition2D2N *OverFaceElements *CanRepeat
+*if(CondNumEntities > 0)
+Begin Conditions LineLoadAxisymCondition2D2N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var icond=operation(icond+1)
+*format "%i%i"
+*Tcl( setCondId *ElemsNum *CondElemFace ) *ElemsMat *GlobalNodes*\
+
+*end elems
+End Conditions
+
+*endif
+*Set cond line_LineLoadAxisymCondition2D3N *OverFaceElements *CanRepeat
+*if(CondNumEntities > 0)
+Begin Conditions LineLoadAxisymCondition2D3N
+*#// id prop_id	 n1	n2	n3	...
+*loop elems *OnlyInCond
+*set var icond=operation(icond+1)
+*format "%i%i"
+*Tcl( setCondId *ElemsNum *CondElemFace ) *ElemsMat *GlobalNodes*\
+
+*end elems
+End Conditions
+
+*endif
+*Set cond surface_SurfaceLoadCondition3D3N *OverFaceElements *CanRepeat
 *if(CondNumEntities > 0)
 Begin Conditions SurfaceLoad3DCondition3D3N
 *#// id prop_id	 n1	n2	n3	...
@@ -1078,7 +1104,7 @@ Begin Conditions SurfaceLoad3DCondition3D3N
 End Conditions
 
 *endif
-*Set cond surface_SurfaceLoad3DCondition3D4N *OverFaceElements *CanRepeat
+*Set cond surface_SurfaceLoadCondition3D4N *OverFaceElements *CanRepeat
 *if(CondNumEntities > 0)
 Begin Conditions SurfaceLoad3DCondition3D4N
 *#// id prop_id	 n1	n2	n3	...
@@ -1091,7 +1117,7 @@ Begin Conditions SurfaceLoad3DCondition3D4N
 End Conditions
 
 *endif
-*Set cond surface_SurfaceLoad3DCondition3D6N *OverFaceElements *CanRepeat
+*Set cond surface_SurfaceLoadCondition3D6N *OverFaceElements *CanRepeat
 *if(CondNumEntities > 0)
 Begin Conditions SurfaceLoad3DCondition3D6N
 *#// id prop_id	 n1	n2	n3	...
@@ -1104,7 +1130,7 @@ Begin Conditions SurfaceLoad3DCondition3D6N
 End Conditions
 
 *endif
-*Set cond surface_SurfaceLoad3DCondition3D8N *OverFaceElements *CanRepeat
+*Set cond surface_SurfaceLoadCondition3D8N *OverFaceElements *CanRepeat
 *if(CondNumEntities > 0)
 Begin Conditions SurfaceLoad3DCondition3D8N
 *#// id prop_id	 n1	n2	n3	...
@@ -1117,7 +1143,7 @@ Begin Conditions SurfaceLoad3DCondition3D8N
 End Conditions
 
 *endif
-*Set cond surface_SurfaceLoad3DCondition3D9N *OverFaceElements *CanRepeat
+*Set cond surface_SurfaceLoadCondition3D9N *OverFaceElements *CanRepeat
 *if(CondNumEntities > 0)
 Begin Conditions SurfaceLoad3DCondition3D9N
 *#// id prop_id	 n1	n2	n3	...
