@@ -44,15 +44,16 @@ namespace Kratos
       /// Destructor.
       SphericSwimmingParticle::~SphericSwimmingParticle(){}
 
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
 
+    //**************************************************************************************************************************************************
+    //**************************************************************************************************************************************************
 
       void SphericSwimmingParticle::ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment,
                                                             array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo)
       {
           KRATOS_TRY
 
+              KRATOS_WATCH("caca")
           const int drag_force_type                 = 1;//rCurrentProcessInfo[DRAG_FORCE_TYPE];
           const array_1d<double,3>& gravity         = rCurrentProcessInfo[GRAVITY];
           array_1d<double,3>& drag_force            = GetGeometry()(0)->FastGetSolutionStepValue(DRAG_FORCE);

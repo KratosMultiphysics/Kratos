@@ -89,6 +89,13 @@ namespace Kratos
           array_1d<double, 3> initial_rotation_moment;     
           array_1d<double, 3>& elastic_force = this->GetGeometry()[0].GetSolutionStepValue(ELASTIC_FORCES);
 
+          contact_force.clear();
+          contact_moment.clear();
+          additionally_applied_force.clear();
+          additionally_applied_moment.clear();
+          initial_rotation_moment.clear();
+          elastic_force.clear();
+
           ComputeNewNeighboursHistoricalData();
 
           ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
@@ -498,13 +505,6 @@ namespace Kratos
                                                           ProcessInfo& rCurrentProcessInfo)
       {
           KRATOS_TRY
-
-
-
-          rContactForce.clear();
-          rContactMoment.clear();
-          rElasticForce.clear();
-          rInitialRotaMoment.clear();
 
           ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);
 
