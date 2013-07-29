@@ -143,15 +143,7 @@ class ExplicitStrategy:
         self.domain_size                    = Param.Dimension
 
         # BOUNDARY
-        self.surface_normal_dir             = Vector(3)
-        self.surface_normal_dir[0]          = Param.SurfaceNormalDirX
-        self.surface_normal_dir[1]          = Param.SurfaceNormalDirY
-        self.surface_normal_dir[2]          = Param.SurfaceNormalDirZ
-        self.surface_point_coor             = Vector(3)
-        self.surface_point_coor[0]          = Param.SurfacePointCoorX
-        self.surface_point_coor[1]          = Param.SurfacePointCoorY
-        self.surface_point_coor[2]          = Param.SurfacePointCoorZ
-        self.surface_friction_angle         = Param.SurfaceFrictionAngle
+        #not defined
 
 
         # GLOBAL PHISICAL ASPECTS
@@ -293,7 +285,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
         self.model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, self.activate_search)
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_6, self.fix_velocities) #reserved for fix_velocities
+        self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities)
         self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_option)
         self.model_part.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_option)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
@@ -305,11 +297,8 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);
         
         # BOUNDARY
-        self.model_part.ProcessInfo.SetValue(LIMIT_SURFACE_OPTION, self.limit_surface_option)
-        self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR, self.surface_normal_dir)
-        self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR, self.surface_point_coor)
-        self.model_part.ProcessInfo.SetValue(SURFACE_FRICC, self.surface_friction_angle)
-
+        #not defined
+        
         # GLOBAL PHISICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
         self.model_part.ProcessInfo.SetValue(DEM_MAGIC_FACTOR, self.magic_factor)
@@ -324,14 +313,14 @@ class ExplicitStrategy:
             self.model_part.ProcessInfo.SetValue(GLOBAL_KT, self.global_kt)
 
         # PRINTING VARIABLES
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_10, self.print_radial_displacement)#reserved for ON OFF print RADIAL_DISPLACEMENT
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_8, self.print_group_id) # Reserved for: Export Print Group ID
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_3, self.print_export_id) # Reserved for: Export Id
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_4, self.print_export_skin_sphere) # Reserved for: Export Print Skin sphere
+        self.model_part.ProcessInfo.SetValue(PRINT_RADIAL_DISPLACEMENT, self.print_radial_displacement)
+        self.model_part.ProcessInfo.SetValue(PRINT_GROUP_ID, self.print_group_id)
+        self.model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id) 
+        self.model_part.ProcessInfo.SetValue(PRINT_SKIN_SPHERE, self.print_export_skin_sphere) 
         self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
         self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
         self.model_part.ProcessInfo.SetValue(ROTA_DAMP_TYPE, self.rota_damp_id)
-        #self.model_part.ProcessInfo.SetValue(INT_DUMMY_1, 0) #currently unused.
+       
 
         # TIME RELATED PARAMETERS
         self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
@@ -358,12 +347,11 @@ class ExplicitStrategy:
             self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C1, self.C1)
             self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C2, self.C2)
         
-        
-        print(self.triaxial_option)
         if (self.triaxial_option):
             self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
             self.model_part.ProcessInfo.SetValue(INITIAL_PRESSURE_TIME, self.initial_pressure_time)
             self.model_part.ProcessInfo.SetValue(TIME_INCREASING_RATIO, self.time_increasing_ratio)
+            self.model_part.ProcessInfo.SetValue(SWITCH_PRESSURE,0)
 
         #OTHERS
         
