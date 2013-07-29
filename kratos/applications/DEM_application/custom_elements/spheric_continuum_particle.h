@@ -243,10 +243,11 @@ namespace Kratos
         
         int* mpCaseOption;
         int  mFailureId;
+        int  mSkinSphere;
    
         int mFailureCriterionOption;
         
-        int mSwitchPressure;
+        int* mSwitchPressure;
         
         double mTension;
         double mCohesion;
