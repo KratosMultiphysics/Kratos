@@ -14,7 +14,7 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/hyperelastic_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
 
 #include "solid_mechanics_application.h"
 
@@ -24,34 +24,38 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-Plasticity3DLaw::Plasticity3DLaw()
+HyperElasticPlastic3DLaw::HyperElasticPlastic3DLaw()
     : ConstitutiveLaw()
 {
-  mInternalVariables.clear(); 
+
 }
 
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-Plasticity3DLaw::Plasticity3DLaw(const Plasticity3DLaw& rOther)
+HyperElasticPlastic3DLaw::HyperElasticPlastic3DLaw(const HyperElasticPlastic3DLaw& rOther)
     : ConstitutiveLaw()
-  ,mInternalVariables(rOther.mInternalVariables)
+	,mElasticLeftCauchyGreen(rOther.mElasticLeftCauchyGreen)
+	,mpFlowRule(rOther.mpFlowRule)
+	,mpHardeningLaw(rOther.mpHardeningLaw)
 {
+
+	mpYieldCriterion =  rOther.mpYieldCriterion.clone();
 }
 
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer Plasticity3DLaw::Clone() const
+ConstitutiveLaw::Pointer HyperElasticPlastic3DLaw::Clone() const
 {
-    Plasticity3DLaw::Pointer p_clone(new Plasticity3DLaw(*this));
+    HyperElasticPlastic3DLaw::Pointer p_clone(new HyperElasticPlastic3DLaw(*this));
     return p_clone;
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-Plasticity3DLaw::~Plasticity3DLaw()
+HyperElasticPlastic3DLaw::~HyperElasticPlastic3DLaw()
 {
 }
 
@@ -62,17 +66,17 @@ Plasticity3DLaw::~Plasticity3DLaw()
 //***********************HAS : DOUBLE - VECTOR - MATRIX*******************************
 //************************************************************************************
 
-bool Plasticity3DLaw::Has( const Variable<double>& rThisVariable )
+bool HyperElasticPlastic3DLaw::Has( const Variable<double>& rThisVariable )
 {
     return false;
 }
 
-bool Plasticity3DLaw::Has( const Variable<Vector>& rThisVariable )
+bool HyperElasticPlastic3DLaw::Has( const Variable<Vector>& rThisVariable )
 {
     return false;
 }
 
-bool Plasticity3DLaw::Has( const Variable<Matrix>& rThisVariable )
+bool HyperElasticPlastic3DLaw::Has( const Variable<Matrix>& rThisVariable )
 {
     return false;
 }
@@ -81,17 +85,17 @@ bool Plasticity3DLaw::Has( const Variable<Matrix>& rThisVariable )
 //***********************GET VALUE: DOUBLE - VECTOR - MATRIX**************************
 //************************************************************************************
 
-double& Plasticity3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
+double& HyperElasticPlastic3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
     return( rValue );
 }
 
-Vector& Plasticity3DLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
+Vector& HyperElasticPlastic3DLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
 {
     return( rValue );
 }
 
-Matrix& Plasticity3DLaw::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
+Matrix& HyperElasticPlastic3DLaw::GetValue( const Variable<Matrix>& rThisVariable, Matrix& rValue )
 {
     return( rValue );
 }
@@ -101,19 +105,19 @@ Matrix& Plasticity3DLaw::GetValue( const Variable<Matrix>& rThisVariable, Matrix
 //************************************************************************************
 
 
-void Plasticity3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
+void HyperElasticPlastic3DLaw::SetValue( const Variable<double>& rThisVariable, const double& rValue,
                                   const ProcessInfo& rCurrentProcessInfo )
 {
 
 }
 
-void Plasticity3DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
+void HyperElasticPlastic3DLaw::SetValue( const Variable<Vector>& rThisVariable, const Vector& rValue,
                                   const ProcessInfo& rCurrentProcessInfo )
 {
 
 }
 
-void Plasticity3DLaw::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
+void HyperElasticPlastic3DLaw::SetValue( const Variable<Matrix>& rThisVariable, const Matrix& rValue,
                                   const ProcessInfo& rCurrentProcessInfo )
 {
 
@@ -126,10 +130,12 @@ void Plasticity3DLaw::SetValue( const Variable<Matrix>& rThisVariable, const Mat
 //************************************************************************************
 
 
-void Plasticity3DLaw::InitializeMaterial( const Properties& props,
+void HyperElasticPlastic3DLaw::InitializeMaterial( const Properties& props,
         const GeometryType& geom,
         const Vector& ShapeFunctionsValues )
 {
+
+	mpFlowRule.InitializeMaterial( mpYieldCriterion, mpHardeningLaw, props );
 
 }
 
@@ -137,7 +143,7 @@ void Plasticity3DLaw::InitializeMaterial( const Properties& props,
 //************************************************************************************
 
 
-void Plasticity3DLaw::InitializeSolutionStep( const Properties& props,
+void HyperElasticPlastic3DLaw::InitializeSolutionStep( const Properties& props,
         const GeometryType& geom, //this is just to give the array of nodes
         const Vector& ShapeFunctionsValues,
         const ProcessInfo& CurrentProcessInfo)
@@ -149,7 +155,7 @@ void Plasticity3DLaw::InitializeSolutionStep( const Properties& props,
 //************************************************************************************
 
 
-void Plasticity3DLaw::FinalizeSolutionStep( const Properties& props,
+void HyperElasticPlastic3DLaw::FinalizeSolutionStep( const Properties& props,
         const GeometryType& geom, //this is just to give the array of nodes
         const Vector& ShapeFunctionsValues,
         const ProcessInfo& CurrentProcessInfo)
@@ -163,7 +169,7 @@ void Plasticity3DLaw::FinalizeSolutionStep( const Properties& props,
 //************************************************************************************
 //************************************************************************************
 
-Matrix& Plasticity3DLaw::DeformationGradient3D (Matrix & Matrix2D)
+Matrix& HyperElasticPlastic3DLaw::DeformationGradient3D (Matrix & Matrix2D)
 {
     //Takes a matrix 2x2 and transforms it to a 3x3 adding a 3rd row and a 3rd column with a 1 in the diagonal
 
@@ -197,7 +203,7 @@ Matrix& Plasticity3DLaw::DeformationGradient3D (Matrix & Matrix2D)
 //************************************************************************************
 
 
-void  Plasticity3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
+void  HyperElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 {
 
     //-----------------------------//
@@ -329,7 +335,7 @@ void  Plasticity3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 //************************************************************************************
 
 
-void Plasticity3DLaw::CalculateMaterialResponsePK1 (Parameters& rValues)
+void HyperElasticPlastic3DLaw::CalculateMaterialResponsePK1 (Parameters& rValues)
 {
     this->CalculateMaterialResponsePK2 (rValues);
 
@@ -344,7 +350,7 @@ void Plasticity3DLaw::CalculateMaterialResponsePK1 (Parameters& rValues)
 //************************************************************************************
 
 
-void Plasticity3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
+void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 {
 
     //-----------------------------//
@@ -372,6 +378,11 @@ void Plasticity3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
     MaterialResponseVariables ElasticVariables;
     ElasticVariables.IdentityMatrix = identity_matrix<double> ( 3 );
 
+    // Initialize Splited Parts: Isochoric and Volumetric stresses and constitutive tensors
+    double voigtsize = StressVector.size();
+    VectorSplit SplitStressVector;
+    MatrixSplit SplitConstitutiveMatrix;
+
     //1.- Lame constants
     const double& YoungModulus       = MaterialProperties[YOUNG_MODULUS];
     const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
@@ -382,37 +393,101 @@ void Plasticity3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
     //2.-Determinant of the Total Deformation Gradient
     ElasticVariables.DeterminantF0 = DeterminantF0 * DeterminantF;
 
-    //3.-Compute DeformationGradient bar
-    //ElasticVariables.J_pow13 = pow(ElasticVariables.DeterminantF0,1.0/3.0);
+    //3.-Compute DeformationGradient_bar
+    ElasticVariables.J_pow13 = pow(DeterminantF,1.0/3.0);
+   
+    DeformationGradientFbar /= ElasticVariables.J_pow13;
 
-    //3.-Push-Forward Left Cauchy-Green tensor b to the new configuration
-    Matrix TotalDeformationGradientF0bar = prod(DeformationGradientF, DeformationGradientF0);
-    TotalDeformationGradientF0bar        = DeformationGradient3D( TotalDeformationGradientF0 );
 
-    ElasticVariables.CauchyGreenMatrix = prod(TotalDeformationGradientF0,trans(TotalDeformationGradientF0));
+    //4.-Left Cauchy-Green tensor b_bar to the new configuration
+    ElasticVariables.CauchyGreenMatrix = prod(mElasticLeftCauchyGreen,trans(DeformationGradientFbar));
+    ElasticVariables.CauchyGreenMatrix = prod(DeformationGradientFbar,ElasticVariables.CauchyGreenMatrix);
 
+    //5.-Calculate trace of Left Cauchy-Green tensor b_bar
+    ElasticVariables.traceCG = 0;
+    for( unsigned int i=0; i<3; i++)
+    {
+       ElasticVariables.traceCG += ElasticVariables.CauchyGreenMatrix( i , i );
+    }
+	    
     //4.-Almansi Strain:
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
     {
         // e= 0.5*(1-invbT*invb)
         this->CalculateAlmansiStrain(ElasticVariables.CauchyGreenMatrix,StrainVector);
+	// correct b_bar to b
+	double J_pow23 = pow(ElasticVariables.DeterminantF0,2.0/3.0);
+	StrainVector /= (J_pow23*J_pow23);
     }
 
-    // std::cout<<" DeformationMatrix F "<<DeformationGradientF<<" Determinant F "<<DeterminantF<<std::endl;
-    // std::cout<<" DeterminantF0 "<<ElasticVariables.DeterminantF0<<" ElasticLeftCGMatrix "<<ElasticVariables.CauchyGreenMatrix<<std::endl;
+ 
+    //5.-Calculate Total Kirchhoff stress
+    SplitStressVector.Isochoric = ZeroVector(voigtsize);
 
-    //5.-Calculate Total PK2 stress
+    if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+        this->CalculateIsochoricStress( ElasticVariables, StressMeasure_Kirchhoff, SplitStressVector.Isochoric );
+
+    Vector IsochoricStressVector = SplitStressVector.Isochoric;
 
     //OPTION 1:
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
-        this->CalculateStress( ElasticVariables, StressMeasure_Kirchhoff, StressVector );
+    {
+
+        SplitStressVector.Volumetric = ZeroVector(voigtsize);
+
+        ElasticVariables.CauchyGreenMatrix = ElasticVariables.IdentityMatrix;
+
+        this->CalculateVolumetricStress ( ElasticVariables, DomainGeometry, ShapeFunctions, SplitStressVector.Volumetric );
+
+        //Kirchhoff Stress:
+        StressVector = SplitStressVector.Isochoric + SplitStressVector.Volumetric;
+
+        //std::cout<<" StressVector.Isochoric "<<SplitStressVector.Isochoric<<std::endl;
+        //std::cout<<" StressVector.Volumetric "<<SplitStressVector.Volumetric<<std::endl;
+
+        if( Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY ) )
+        {
+            StressVector = SplitStressVector.Isochoric;
+        }
+        else if( Options.Is(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY ) )
+        {
+            StressVector = SplitStressVector.Volumetric;
+        }
+
+    }
+
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
 
+        //initialize constitutive tensors
+        ConstitutiveMatrix.clear();
+        SplitConstitutiveMatrix.Isochoric  = ConstitutiveMatrix;
+        SplitConstitutiveMatrix.Volumetric = ConstitutiveMatrix;
+	SplitConstitutiveMatrix.Plastic    = ConstitutiveMatrix;
+
         ElasticVariables.CauchyGreenMatrix = ElasticVariables.IdentityMatrix;
-        this->CalculateConstitutiveMatrix ( ElasticVariables, ConstitutiveMatrix );
+
+        this->CalculateIsochoricConstitutiveMatrix ( ElasticVariables, IsochoricStressVector, SplitConstitutiveMatrix.Isochoric );
+
+        this->CalculateVolumetricConstitutiveMatrix ( ElasticVariables, DomainGeometry, ShapeFunctions, SplitConstitutiveMatrix.Volumetric );
+
+	this->CalculatePlasticConstitutiveMatrix ( ElasticVariables, InternalVariables, SplitConstitutiveMatrix.Plastic );
+
+        //if( Options.Is(ConstitutiveLaw::TOTAL_TENSOR ) )
+        ConstitutiveMatrix = SplitConstitutiveMatrix.Isochoric + SplitConstitutiveMatrix.Volumetric + SplitConstitutiveMatrix.Plastic;
+
+        if( Options.Is(ConstitutiveLaw::ISOCHORIC_TENSOR_ONLY ) )
+        {
+            ConstitutiveMatrix = SplitConstitutiveMatrix.Isochoric + SplitConstitutiveMatrix.Plastic;
+        }
+        else if( Options.Is(ConstitutiveLaw::VOLUMETRIC_TENSOR_ONLY ) )
+        {
+            ConstitutiveMatrix = SplitConstitutiveMatrix.Volumetric;
+        }
     }
+
+
 
 }
 
@@ -420,7 +495,7 @@ void Plasticity3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void Plasticity3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
+void HyperElasticPlastic3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 {
 
     this->CalculateMaterialResponseKirchhoff (rValues);
@@ -445,7 +520,7 @@ void Plasticity3DLaw::CalculateMaterialResponseCauchy (Parameters& rValues)
 //***********************************UPDATE*******************************************
 //************************************************************************************
 
-void Plasticity3DLaw::FinalizeMaterialResponsePK2 (Parameters& rValues)
+void HyperElasticPlastic3DLaw::FinalizeMaterialResponsePK2 (Parameters& rValues)
 {
 
     this->CalculateMaterialResponsePK2 (rValues);
@@ -468,7 +543,7 @@ void Plasticity3DLaw::FinalizeMaterialResponsePK2 (Parameters& rValues)
 //************************************************************************************
 
 
-void Plasticity3DLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
+void HyperElasticPlastic3DLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
 {
 
     this->CalculateMaterialResponsePK1 (rValues);
@@ -492,7 +567,7 @@ void Plasticity3DLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
 //************************************************************************************
 
 
-void Plasticity3DLaw::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
+void HyperElasticPlastic3DLaw::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
 {
 
     this->CalculateMaterialResponseKirchhoff (rValues);
@@ -516,7 +591,7 @@ void Plasticity3DLaw::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
 //************************************************************************************
 //************************************************************************************
 
-void Plasticity3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
+void HyperElasticPlastic3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
 {
 
     this->CalculateMaterialResponseCauchy (rValues);
@@ -532,70 +607,32 @@ void Plasticity3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
 }
 
 
-
-//***********************COMPUTE TOTAL STRAIN*****************************************
+//******************************* COMPUTE ISOCHORIC STRESS  **************************
 //************************************************************************************
 
-void Plasticity3DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
-        Vector& rStrainVector )
+
+
+void HyperElasticPlastic3DLaw::CalculateIsochoricStress( const MaterialResponseVariables & rElasticVariables,
+							 const Properties& rProperties,
+							 StressMeasure rStressMeasure,
+							 Vector& rIsoStressVector )
 {
 
-    //E= 0.5*(FT*F-1)
-    rStrainVector[0] = 0.5 * ( rRightCauchyGreen( 0, 0 ) - 1.00 );
-    rStrainVector[1] = 0.5 * ( rRightCauchyGreen( 1, 1 ) - 1.00 );
-    rStrainVector[2] = 0.5 * ( rRightCauchyGreen( 2, 2 ) - 1.00 );
-    rStrainVector[3] = rRightCauchyGreen( 0, 1 ); // xy
-    rStrainVector[4] = rRightCauchyGreen( 1, 2 ); // yz
-    rStrainVector[5] = rRightCauchyGreen( 0, 2 ); // xz
+    //1.-Identity build
+    Matrix IsoStressMatrix ( 3, 3 );
 
-}
-
-
-
-//***********************COMPUTE TOTAL STRAIN*****************************************
-//************************************************************************************
-
-void Plasticity3DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
-        Vector& rStrainVector )
-{
-
-    // e= 0.5*(1-invbT*invb)
-
-    //Calculating the inverse of the jacobian
-    Matrix InverseLeftCauchyGreen ( 3, 3 );
-    double det_b=0;
-    MathUtils<double>::InvertMatrix( rLeftCauchyGreen, InverseLeftCauchyGreen, det_b);
-
-    rStrainVector[0] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 0, 0 ) );
-    rStrainVector[1] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 1, 1 ) );
-    rStrainVector[2] = 0.5 * (  1.00 - InverseLeftCauchyGreen( 2, 2 ) );
-    rStrainVector[3] = - InverseLeftCauchyGreen( 0, 1 ); // xy
-    rStrainVector[4] = - InverseLeftCauchyGreen( 1, 2 ); // yz
-    rStrainVector[5] = - InverseLeftCauchyGreen( 0, 2 ); // xz
-}
-
-//***********************COMPUTE TOTAL STRESS PK2*************************************
-//************************************************************************************
-
-void Plasticity3DLaw::CalculateStress( const MaterialResponseVariables & rElasticVariables,
-        StressMeasure rStressMeasure,
-        Vector& rStressVector )
-{
-
-    //1.- Temporary and selected law
-    Matrix StressMatrix( 3, 3 );
-
-    double auxiliar = (std::log(rElasticVariables.DeterminantF0)); //(ln(J))
-    //double auxiliar = 0.5*(rdetF0*rdetF0-1); //(J²-1)/2
+    //note.- rElasticVariables.traceCG is "traceCG_bar"
 
     if(rStressMeasure == StressMeasure_PK2)
     {
 
         //rElasticVariables.CauchyGreenMatrix is InverseRightCauchyGreen
 
-        //2.-2nd Piola Kirchhoff Stress Matrix
-        StressMatrix  = rElasticVariables.LameLambda * auxiliar * rElasticVariables.CauchyGreenMatrix;
-        StressMatrix += rElasticVariables.LameMu * ( rElasticVariables.IdentityMatrix - rElasticVariables.CauchyGreenMatrix );
+        //2.-Isochoric part of the 2nd Piola Kirchhoff Stress Matrix
+        IsoStressMatrix  = (rElasticVariables.IdentityMatrix - (rElasticVariables.traceCG/3.0)*rElasticVariables.CauchyGreenMatrix );
+        IsoStressMatrix *= rElasticVariables.LameMu;
+
+        //std::cout<<" PK2 "<<std::endl;
     }
 
     if(rStressMeasure == StressMeasure_Kirchhoff)
@@ -603,144 +640,271 @@ void Plasticity3DLaw::CalculateStress( const MaterialResponseVariables & rElasti
 
         //rElasticVariables.CauchyGreenMatrix is LeftCauchyGreen
 
-        //2.-Kirchhoff Stress Matrix
-        StressMatrix  = rElasticVariables.LameLambda * auxiliar * rElasticVariables.IdentityMatrix;
+        //2.-Isochoric part of the Kirchhoff Stress Matrix
+        IsoStressMatrix  = (rElasticVariables.CauchyGreenMatrix - (rElasticVariables.traceCG/3.0)*rElasticVariables.IdentityMatrix );
+        IsoStressMatrix *= rElasticVariables.LameMu;
 
-        StressMatrix += rElasticVariables.LameMu * ( rElasticVariables.CauchyGreenMatrix - rElasticVariables.IdentityMatrix );
-    }
-
-    rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
-
-}
-
-
-//***********************COMPUTE ALGORITHMIC CONSTITUTIVE MATRIX**********************
-//************************************************************************************
-
-void Plasticity3DLaw::CalculateConstitutiveMatrix ( const MaterialResponseVariables& rElasticVariables,
-        Matrix& rConstitutiveMatrix)
-{
-
-    rConstitutiveMatrix.clear();
-
-    static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
-
-    for(unsigned int i=0; i<6; i++)
-    {
-        for(unsigned int j=0; j<6; j++)
-        {
-            rConstitutiveMatrix( i, j ) = ConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables,
-                                          msIndexVoigt3D[i][0], msIndexVoigt3D[i][1], msIndexVoigt3D[j][0], msIndexVoigt3D[j][1]);
-        }
+        //std::cout<<" Kirchooff "<<std::endl;
 
     }
 
+    rElasticVariables.Plasticity = mpFlowRule.CalculateReturnMapping( IsoStressMatrix, rElasticVariables.traceCG );
+
+    
+    rIsoStressVector = MathUtils<double>::StressTensorToVector(IsoStressMatrix,rIsoStressVector.size());
 
 }
 
-
-//**************COMPUTE ALGORITHMIC CONSTITUTIVE MATRIX PULL-BACK*********************
+//******************************* COMPUTE DOMAIN PRESSURE  ***************************
 //************************************************************************************
 
-void Plasticity3DLaw::CalculateConstitutiveMatrix ( const MaterialResponseVariables& rElasticVariables,
-        const Matrix & rInverseDeformationGradientF,
-        Matrix& rConstitutiveMatrix)
+
+double &  HyperElasticPlastic3DLaw::CalculateDomainPressure (const MaterialResponseVariables & rElasticVariables,
+							double & rPressure)
 {
 
-    rConstitutiveMatrix.clear();
+    double BulkModulus = rElasticVariables.LameLambda + (2.0/3.0) * rElasticVariables.LameMu;
 
-    static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
+    double auxiliar = 0;
+    
+    //(J²-1)/2
+    //auxiliar =  0.5*(rElasticVariables.DeterminantF0*rElasticVariables.DeterminantF0-1);
+    
+    //(ln(J))
+    auxiliar =  std::log(rElasticVariables.DeterminantF0);
 
-    for(unsigned int i=0; i<6; i++)
-    {
-        for(unsigned int j=0; j<6; j++)
-        {
-            rConstitutiveMatrix( i, j ) = ConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rInverseDeformationGradientF,
-                                          msIndexVoigt3D[i][0], msIndexVoigt3D[i][1], msIndexVoigt3D[j][0], msIndexVoigt3D[j][1]);
-        }
+    rPressure = BulkModulus *  auxiliar;
 
-    }
-
+    return rPressure;
 }
 
-
-//***********************CONSTITUTIVE MATRIX COMPONENTS*******************************
+//************************* COMPUTE DOMAIN PRESSURE FACTORS***************************
 //************************************************************************************
 
-
-double& Plasticity3DLaw::ConstitutiveComponent(double & rCabcd,
-        const MaterialResponseVariables& rElasticVariables,
-        const unsigned int& a, const unsigned int& b,
-        const unsigned int& c, const unsigned int& d)
+Vector&  HyperElasticPlastic3DLaw::CalculateDomainPressureFactors (const MaterialResponseVariables & rElasticVariables,
+							      Vector & rFactors)
+							      
 {
+
+    double BulkModulus = rElasticVariables.LameLambda + (2.0/3.0) * rElasticVariables.LameMu;
+
+    if(rFactors.size()!=3) rFactors.resize(3);
 
     //(J²-1)/2
-    //double auxiliar1 =  rdetF0*rdetF0;
-    //double auxiliar2 =  (rdetF0*rdetF0-1);
+    // rFactor[0] =  rElasticVariables.DeterminantF0*rElasticVariables.DeterminantF0;
+    // rFactor[1] =  (rElasticVariables.DeterminantF0*rElasticVariables.DeterminantF0-1);
+    // rFactor[2] =  BulkModulus;
 
     //(ln(J))
-    double auxiliar1 =  1.0/rElasticVariables.DeterminantF0;
-    double auxiliar2 =  (2.0*std::log(rElasticVariables.DeterminantF0));
+    rFactor[0] =  1.0;
+    rFactor[1] =  (2.0*std::log(rElasticVariables.DeterminantF0));
+    rFactor[2] =  BulkModulus;
 
-
-    //1.Elastic constitutive tensor component:
-    rCabcd =(rElasticVariables.LameLambda*auxiliar1*rElasticVariables.CauchyGreenMatrix(a,b)*rElasticVariables.CauchyGreenMatrix(c,d));
-    rCabcd+=((2*rElasticVariables.LameMu-rElasticVariables.LameLambda*auxiliar2)*0.5*(rElasticVariables.CauchyGreenMatrix(a,c)*rElasticVariables.CauchyGreenMatrix(b,d)+rElasticVariables.CauchyGreenMatrix(a,d)*rElasticVariables.CauchyGreenMatrix(b,c)));
-
-    return rCabcd;
+    return rFactors;
 }
 
 
 
-//***********************CONSTITUTIVE MATRIX COMPONENTS PULL-BACK*********************
+//******************************* COMPUTE VOLUMETRIC STRESS  *************************
+//************************************************************************************
+
+void HyperElasticPlastic3DLaw::CalculateVolumetricStress(const MaterialResponseVariables & rElasticVariables,
+        const GeometryType& rDomainGeometry,
+        const Vector & rShapeFunctions,
+        Vector& rVolStressVector )
+{
+
+    //1.- Declaration
+    Matrix VolStressMatrix ( 3 , 3 );
+
+    double Pressure = 0;
+
+    Pressure = CalculateDomainPressure (rElasticVariables, Pressure);
+
+    //2.- Volumetric part of the Kirchhoff StressMatrix from nodal pressures
+    VolStressMatrix = rElasticVariables.DeterminantF0 * Pressure * rElasticVariables.CauchyGreenMatrix;
+
+
+    rVolStressVector = MathUtils<double>::StressTensorToVector(VolStressMatrix,rVolStressVector.size());
+
+}
+
+//***********************COMPUTE ISOCHORIC CONSTITUTIVE MATRIX************************
+//************************************************************************************
+
+void HyperElasticPlastic3DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
+        const Vector & rIsoStressVector,
+        Matrix& rConstitutiveMatrix)
+{
+
+    rConstitutiveMatrix.clear();
+
+    Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rIsoStressVector );
+
+    static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
+
+
+    for(unsigned int i=0; i<6; i++)
+    {
+        for(unsigned int j=0; j<6; j++)
+        {
+            rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, IsoStressMatrix,
+                                          msIndexVoigt3D[i][0], msIndexVoigt3D[i][1], msIndexVoigt3D[j][0], msIndexVoigt3D[j][1]);
+        }
+
+    }
+
+
+}
+
+//***********************COMPUTE VOLUMETRIC CONSTITUTIVE MATRIX***********************
 //************************************************************************************
 
 
-double& Plasticity3DLaw::ConstitutiveComponent(double & rCabcd,
-        const MaterialResponseVariables& rElasticVariables,
-        const Matrix & rInverseDeformationGradientF,
-        const unsigned int& a, const unsigned int& b,
-        const unsigned int& c, const unsigned int& d)
-
+void HyperElasticPlastic3DLaw::CalculateVolumetricConstitutiveMatrix ( const MaterialResponseVariables & rElasticVariables,
+								  Matrix& rConstitutiveMatrix)
 {
 
-    rCabcd = 0;
-    double Cijkl=0;
+    rConstitutiveMatrix.clear();
 
-    unsigned int dimension = rInverseDeformationGradientF.size1();
+    Vector Factors = ZeroVector(3);
+    Factors = CalculateDomainPressureFactors( rElasticVariables, Factors );
 
-    //Cabcd
-    for(unsigned int j=0; j<dimension; j++)
+    static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
+
+    for(unsigned int i=0; i<6; i++)
     {
-        for(unsigned int l=0; l<dimension; l++)
+        for(unsigned int j=0; j<6; j++)
         {
-            for(unsigned int k=0; k<dimension; k++)
-            {
-                for(unsigned int i=0; i<dimension; i++)
-                {
-                    //Cijkl
-                    rCabcd +=rInverseDeformationGradientF(a,i)*rInverseDeformationGradientF(b,j)*rInverseDeformationGradientF(c,k)*rInverseDeformationGradientF(d,l)*ConstitutiveComponent(Cijkl,rElasticVariables,i,j,k,l);
-                }
-            }
+            rConstitutiveMatrix( i, j ) = VolumetricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, Factors,
+                                          msIndexVoigt3D[i][0], msIndexVoigt3D[i][1], msIndexVoigt3D[j][0], msIndexVoigt3D[j][1]);
         }
+
     }
 
-    return rCabcd;
 
 }
 
+
+//***********************COMPUTE PLASTIC CONSTITUTIVE MATRIX**************************
+//************************************************************************************
+
+void HyperElasticPlastic3DLaw::CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
+        const Vector & rIsoStressVector,
+        Matrix& rConstitutiveMatrix)
+{
+
+    rConstitutiveMatrix.clear();
+
+    Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rIsoStressVector );
+
+    FlowRule::PlasticFactors ScalingFactors;
+    mpFlowRule.CalculateScalingFactors( IsoStressMatrix, rElasticVariables.traceCG, ScalingFactors );
+
+    static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
+
+    for(unsigned int i=0; i<6; i++)
+    {
+        for(unsigned int j=0; j<6; j++)
+        {
+		rConstitutiveMatrix( i, j ) = PlasticConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, IsoStressMatrix, ScalingFactors,
+                                          msIndexVoigt3D[i][0], msIndexVoigt3D[i][1], msIndexVoigt3D[j][0], msIndexVoigt3D[j][1]);
+        }
+
+    }
+
+
+}
+    
+//********************CONSTITUTIVE MATRIX ISOCHORIC COMPONENT*************************
+//************************************************************************************
+
+
+double& HyperElasticPlastic3DLaw::IsochoricConstitutiveComponent(double & rCabcd,
+        const MaterialResponseVariables & rElasticVariables,
+        const Matrix & rIsoStressMatrix,
+        const unsigned int& a, const unsigned int& b,
+        const unsigned int& c, const unsigned int& d)
+{
+
+    //Isochoric part of the hyperelastic constitutive tensor component: (J²-1)/2  -  (ln(J)/J)
+
+    rCabcd  = (1.0/3.0)*(rElasticVariables.CauchyGreenMatrix(a,b)*rElasticVariables.CauchyGreenMatrix(c,d));
+    rCabcd -= (0.5*(rElasticVariables.CauchyGreenMatrix(a,c)*rElasticVariables.CauchyGreenMatrix(b,d)+rElasticVariables.CauchyGreenMatrix(a,d)*rElasticVariables.CauchyGreenMatrix(b,c)));
+    
+    rCabcd *= rElasticVariables.traceCG * rElasticVariables.LameMu;
+    
+    rCabcd += (rElasticVariables.CauchyGreenMatrix(c,d)*rIsoStressMatrix(a,b) + rIsoStressMatrix(c,d)*rElasticVariables.CauchyGreenMatrix(a,b));
+    rCabcd *= (-2.0/3.0);
+
+    return rCabcd;
+}
+
+
+//********************CONSTITUTIVE MATRIX VOLUMETRIC COMPONENT************************
+//************************************************************************************
+
+
+double& HyperElasticPlastic3DLaw::VolumetricConstitutiveComponent(double & rCabcd,
+        const MaterialResponseVariables & rElasticVariables,
+        const Vector & rFactors,
+        const unsigned int& a, const unsigned int& b,
+        const unsigned int& c, const unsigned int& d)
+{
+
+    //Volumetric part of the hyperelastic constitutive tensor component: (J²-1)/2  -  (ln(J)/J)
+
+    //1.Volumetric Elastic constitutive tensor component:
+    rCabcd  = rFactors[0]*(rElasticVariables.CauchyGreenMatrix(a,b)*rElasticVariables.CauchyGreenMatrix(c,d));
+    rCabcd -= rFactors[1]*(0.5*(rElasticVariables.CauchyGreenMatrix(a,c)*rElasticVariables.CauchyGreenMatrix(b,d)+rElasticVariables.CauchyGreenMatrix(a,d)*rElasticVariables.CauchyGreenMatrix(b,c)));
+    rCabcd *= rFactors[2];
+    
+
+    return rCabcd;
+}
+
+
+//********************CONSTITUTIVE MATRIX ISOCHORIC COMPONENT*************************
+//************************************************************************************
+
+
+double& HyperElasticPlastic3DLaw::PlasticConstitutiveComponent(double & rCabcd,
+        const MaterialResponseVariables & rElasticVariables,
+        const Matrix & rIsoStressMatrix,
+        const FlowRule::PlasticFactors & rScalingFactors,					
+        const unsigned int& a, const unsigned int& b,
+        const unsigned int& c, const unsigned int& d)
+{
+
+    //Isochoric part of the hyperelastic constitutive tensor component: (J²-1)/2  -  (ln(J)/J)
+
+    rCabcd  = (1.0/3.0)*(rElasticVariables.CauchyGreenMatrix(a,b)*rElasticVariables.CauchyGreenMatrix(c,d));
+    rCabcd -= (0.5*(rElasticVariables.CauchyGreenMatrix(a,c)*rElasticVariables.CauchyGreenMatrix(b,d)+rElasticVariables.CauchyGreenMatrix(a,d)*rElasticVariables.CauchyGreenMatrix(b,c)));
+    
+    rCabcd *= rElasticVariables.traceCG * rElasticVariables.LameMu;
+
+    rCabcd += (rElasticVariables.CauchyGreenMatrix(c,d)*rIsoStressMatrix(a,b) + rIsoStressMatrix(c,d)*rElasticVariables.CauchyGreenMatrix(a,b));
+
+    rCabcd *= (-2.0/3.0) * ( (-1) * rScalingFactors.Beta1 );
+    
+    Cabcd  -= rScalingFactors.Beta3 * 2.0 * (rElasticVariables.LameMu * (rElasticVariables.traceCG/3.0)) * ( rScalingFactors.Normal(a,b) * rScalingFactors.Normal(c,d) );
+
+    Cabcd  -= rScalingFactors.Beta4 * 2.0 * (rElasticVariables.LameMu * (rElasticVariables.traceCG/3.0)) * ( rScalingFactors.Normal(a,b) * rScalingFactors.Dev_Normal(c,d) );
+
+    return rCabcd;
+}
 
 //******************CHECK CONSISTENCY IN THE CONSTITUTIVE LAW*************************
 //************************************************************************************
 
-bool Plasticity3DLaw::CheckParameters(Parameters& rValues)
+bool HyperElasticPlastic3DLaw::CheckParameters(Parameters& rValues)
 {
     return rValues.CheckAllParameters();
 }
 
 
 
-int Plasticity3DLaw::Check(const Properties& rProperties,
+int HyperElasticPlastic3DLaw::Check(const Properties& rProperties,
                              const GeometryType& rGeometry,
                              const ProcessInfo& rCurrentProcessInfo)
 {

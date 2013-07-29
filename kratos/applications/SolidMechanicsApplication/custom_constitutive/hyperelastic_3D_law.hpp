@@ -40,6 +40,7 @@ protected:
         double LameLambda;
 
         //kinematic properties
+        double J_pow13;
         double DeterminantF0;
         double traceCG;           //LeftCauchyGreen or RightCauchyGreen
         Matrix CauchyGreenMatrix; //LeftCauchyGreen or InverseRightCauchyGreen
