@@ -77,14 +77,18 @@ namespace Kratos
       {
         
          KRATOS_TIMER_START("INITIALIZE")
-          KRATOS_WATCH("---------------------CONTINUUM EXPLICIT SOLVER STRATEGY-------------------------------")
+         
+         KRATOS_WATCH("---------------------CONTINUUM EXPLICIT SOLVER STRATEGY-------------------------------")
                
           KRATOS_TRY
 
           ModelPart& rModelPart            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
           
-          mFixSwitch = rCurrentProcessInfo[INT_DUMMY_6];
+          mFixSwitch = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];
+          mStepFixVel = rCurrentProcessInfo[STEP_FIX_VELOCITIES];
+    
+          KRATOS_WATCH(rCurrentProcessInfo[STEP_FIX_VELOCITIES])
           
           int NumberOfElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray().end() - rModelPart.GetCommunicator().LocalMesh().ElementsArray().begin();
           
@@ -165,9 +169,9 @@ namespace Kratos
 
           //STRATEGY:
           // 1. Here we initialize member variables that depend on the rCurrentProcessInfo
-          KRATOS_TIMER_START("InitializeSolutionStep")
-          BaseType::InitializeSolutionStep();
-          KRATOS_TIMER_STOP("InitializeSolutionStep")
+          //KRATOS_TIMER_START("InitializeSolutionStep")
+          //BaseType::InitializeSolutionStep();
+          //KRATOS_TIMER_STOP("InitializeSolutionStep")
           
           KRATOS_TIMER_START("Contact_InitializeSolutionStep")
           this->Contact_InitializeSolutionStep();
@@ -191,6 +195,7 @@ namespace Kratos
 
           // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box
           KRATOS_TIMER_START("SearchNeighbours")
+          
           if (rCurrentProcessInfo[ACTIVATE_SEARCH] == 1){
 
               if ((time_step + 1)%this->GetNStepSearch() == 0 && time_step > 0){
@@ -199,7 +204,7 @@ namespace Kratos
                       BaseType::BoundingBoxUtility();
                   }
 
-                   this->SearchNeighbours(rModelPart); //the amplification factor has benn modified after the first search.
+                   this->SearchNeighbours(rModelPart); //the amplification factor has been modified after the first search.
               }
 
           }
@@ -500,8 +505,8 @@ namespace Kratos
         
         if (mFixSwitch)
         {
-        
-          if(  rCurrentProcessInfo[TIME_STEPS] == int(0.01*rCurrentProcessInfo[DOUBLE_DUMMY_3]*rCurrentProcessInfo[FINAL_SIMULATION_TIME]/rCurrentProcessInfo[DELTA_TIME] ) )
+          
+          if(  rCurrentProcessInfo[TIME_STEPS] == mStepFixVel  )
           
           {
 
@@ -568,7 +573,7 @@ namespace Kratos
       KRATOS_TRY
 
       KRATOS_WATCH("")
-      KRATOS_WATCH("Fixing Velocities")
+      KRATOS_WATCH("Freeing Velocities")
       
       ModelPart& r_model_part           = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
@@ -671,7 +676,8 @@ namespace Kratos
     bool   mdelta_option;
     bool   mcontinuum_simulating_option;
     int    mFixSwitch;
-    
+    int    mStepFixVel;
+
 
   }; // Class ContinuumExplicitSolverStrategy
 
