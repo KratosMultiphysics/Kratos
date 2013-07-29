@@ -48,7 +48,8 @@ namespace Kratos
     //**************************************************************************************************************************************************
 
 
-      void SphericSwimmingParticle::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+      void SphericSwimmingParticle::ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment,
+                                                            array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo)
       {
           KRATOS_TRY
 
@@ -56,29 +57,6 @@ namespace Kratos
           const array_1d<double,3>& gravity         = rCurrentProcessInfo[GRAVITY];
           array_1d<double,3>& drag_force            = GetGeometry()(0)->FastGetSolutionStepValue(DRAG_FORCE);
           array_1d<double,3>& buoyancy              = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);
-          array_1d<double, 3> contact_force;
-          array_1d<double, 3> contact_moment;
-          array_1d<double, 3> initial_rotation_moment;
-          array_1d<double, 3> elastic_force;
-
-          contact_force[0]  = 0.0;
-          contact_force[1]  = 0.0;
-          contact_force[2]  = 0.0;
-          contact_moment[0] = 0.0;
-          contact_moment[1] = 0.0;
-          contact_moment[2] = 0.0;
-          initial_rotation_moment[0]  = 0.0;
-          initial_rotation_moment[1]  = 0.0;
-          initial_rotation_moment[2]  = 0.0;
-	  
-          ComputeNewNeighboursHistoricalData();
-          ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
-
-          if (mLimitSurfaceOption > 0){
-			  for (int surface_num = 0; surface_num < mLimitSurfaceOption; surface_num++){
-				  ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, surface_num, rCurrentProcessInfo);
-              }
-          }
 
           if (drag_force_type == 1){
               ComputeFluidForcesOnParticle(rCurrentProcessInfo);
@@ -88,12 +66,9 @@ namespace Kratos
               ComputeWeatherfordFluidForcesOnParticle(rCurrentProcessInfo);
           }
 
-          rRightHandSideVector[0] = contact_force[0] + buoyancy[0] + drag_force[0] + mRealMass * gravity[0];
-          rRightHandSideVector[1] = contact_force[1] + buoyancy[1] + drag_force[1] + mRealMass * gravity[1];
-          rRightHandSideVector[2] = contact_force[2] + buoyancy[2] + drag_force[2] + mRealMass * gravity[2];
-          rRightHandSideVector[3] = contact_moment[0];
-          rRightHandSideVector[4] = contact_moment[1];
-          rRightHandSideVector[5] = contact_moment[2];
+          additionally_applied_force[0] = buoyancy[0] + drag_force[0] + mRealMass * gravity[0];
+          additionally_applied_force[1] = buoyancy[1] + drag_force[1] + mRealMass * gravity[1];
+          additionally_applied_force[2] = buoyancy[2] + drag_force[2] + mRealMass * gravity[2];
 
           KRATOS_CATCH( "" )
       }

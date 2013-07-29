@@ -183,9 +183,9 @@ namespace Kratos
                                   array_1d<double, 3>& rContactMoment,
                                   ParticleWeakIteratorType neighbour_iterator);
 
-      virtual void CustomInitialize( );
-      virtual void CustomCalculateRightHandSide(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment,
-                                                array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo);
+      virtual void CustomInitialize();
+      virtual void ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment,
+                                             array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, ProcessInfo& rCurrentProcessInfo);
 
       
       virtual void AddUpForcesAndProject(double LocalCoordSystem[3][3],
