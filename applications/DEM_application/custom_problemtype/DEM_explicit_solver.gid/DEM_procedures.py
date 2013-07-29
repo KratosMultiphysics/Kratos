@@ -523,7 +523,7 @@ class Procedures:
         if (self.print_velocity):
             gid_io.WriteNodalResults(VELOCITY, export_model_part.Nodes, time, 0)  
         if (self.print_applied_forces):
-            gid_io.WriteNodalResults(APPLIED_FORCE, export_model_part.Nodes, time, 0)       
+            gid_io.WriteNodalResults(EXTERNAL_APPLIED_FORCE, export_model_part.Nodes, time, 0)       
         if (self.print_total_forces):     
             gid_io.WriteNodalResults(TOTAL_FORCES, export_model_part.Nodes, time, 0)    
         if (self.print_damp_forces):
