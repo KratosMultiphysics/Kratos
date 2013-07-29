@@ -11,10 +11,11 @@ from KratosMultiphysics.StructuralApplication import *
 
 class ULFDEMStrategy:
 
-    def __init__ (self, ProblemParameters):
+    def __init__ (self, creator_destructor, problem_parameters):
 
-        self.param = ProblemParameters
-        self.ImportStrategies()
+        self.param               = problem_parameters
+        self.creator_destructor  = creator_destructor
+        self.ImportStrategies()             
 
     def ImportStrategies(self):
 
@@ -63,7 +64,7 @@ class ULFDEMStrategy:
         self.fluid.AddDofs(FluidModelPart, self.param.compute_reactions)
 
     def DEMStrategy(self, ParticlesModelPart):
-        DEM_solver = self.DEM.ExplicitStrategy(ParticlesModelPart, self.param)
+        DEM_solver = self.DEM.ExplicitStrategy(ParticlesModelPart, self.particle_destructor, self.param)
 
         return DEM_solver
 
@@ -100,6 +101,6 @@ class ULFDEMStrategy:
                 node.SetSolutionStepValue(DENSITY, 0, self.param.density)
 
         fluid_solver.alpha_shape = self.param.alpha_shape
-        fluid_solver.echo_level = 2
+        fluid_solver.echo_level  = 2
 
         return fluid_solver
