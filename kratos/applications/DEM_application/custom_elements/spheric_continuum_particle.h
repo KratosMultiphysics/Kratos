@@ -239,7 +239,7 @@ namespace Kratos
         
         int* mpCaseOption;
         int  mFailureId;
-        int  mSkinSphere;
+        int*  mSkinSphere;
    
         int mFailureCriterionOption;
         
