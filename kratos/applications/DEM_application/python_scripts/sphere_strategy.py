@@ -362,7 +362,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_6, self.fix_velocities)
+        self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities)
         self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_option)
         self.model_part.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_option)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
@@ -438,14 +438,13 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
         self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
         self.model_part.ProcessInfo.SetValue(ROTA_DAMP_TYPE, self.rota_damp_id)
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_10, self.print_radial_displacement)#reserved for ON OFF print RADIAL_DISPLACEMENT
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_8, self.print_group_id) # Reserved for: Export Print Group ID
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_3, self.print_export_id) # Reserved for: Export Id
+        self.model_part.ProcessInfo.SetValue(PRINT_RADIAL_DISPLACEMENT, self.print_radial_displacement)
+        self.model_part.ProcessInfo.SetValue(PRINT_GROUP_ID, self.print_group_id) 
+        self.model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id) 
 
         # TIME RELATED PARAMETERS
         self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
         self.model_part.ProcessInfo.SetValue(FINAL_SIMULATION_TIME, self.final_time)
-        self.model_part.ProcessInfo.SetValue(INT_DUMMY_7, 0) # int(self.time_step_percentage_fix_velocities * (self.final_time / self.delta_time))) # Reserved for timestep fix_velocities
 
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
