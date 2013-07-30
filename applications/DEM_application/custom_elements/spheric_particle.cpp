@@ -564,22 +564,20 @@ namespace Kratos
                   DisplacementDueToRotation(DeltDisp, OldNormalDir, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
               }
 
+              double LocalContactForce[3]              = {0.0};
+              double GlobalContactForce[3]             = {0.0};
               double LocalElasticContactForce[3]       = {0.0};
               double GlobalElasticContactForce[3]      = {0.0};
+              double ViscoDampingLocalContactForce[3]  = {0.0};
+              double ViscoDampingGlobalContactForce[3] = {0.0};
 
-
-              GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce); //we recover this way the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
-              GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, DeltDisp, LocalDeltDisp);
-              GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, RelVel, LocalRelVel);
-
-              GlobalElasticContactForce[0]             = mOldNeighbourContactForces[i_neighbour_count][0];   //M:aqui tenim guardades les del neighbour calculator.
+              GlobalElasticContactForce[0]             = mOldNeighbourContactForces[i_neighbour_count][0];
               GlobalElasticContactForce[1]             = mOldNeighbourContactForces[i_neighbour_count][1];
               GlobalElasticContactForce[2]             = mOldNeighbourContactForces[i_neighbour_count][2];
 
-              double ViscoDampingLocalContactForce[3]  = {0.0};
-              double LocalContactForce[3]              = {0.0};
-              double ViscoDampingGlobalContactForce[3] = {0.0};
-              double GlobalContactForce[3]             = {0.0};
+              GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, GlobalElasticContactForce, LocalElasticContactForce); // Here we recover the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
+              GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, DeltDisp, LocalDeltDisp);
+              GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, RelVel, LocalRelVel);
 
               // TRANSLATION FORCES
 
