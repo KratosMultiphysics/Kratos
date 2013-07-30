@@ -202,30 +202,70 @@ class ExplicitStrategy:
           self.surface_friction_angle_5       = Param.SurfaceFrictionAngle5
           
         if (Param.LimitCylinderOption > 0):
-          self.cylinder_velocity              = Param.CylinderVelocity
-          self.cylinder_angular_velocity      = Param.CylinderAngularVelocity
-          self.cylinder_initial_base_centre   = Vector(3)
-          self.cylinder_initial_base_centre[0]= Param.CylinderInitialBaseCentreX
-          self.cylinder_initial_base_centre[1]= Param.CylinderInitialBaseCentreY
-          self.cylinder_initial_base_centre[2]= Param.CylinderInitialBaseCentreZ        			
-          self.cylinder_axis_dir              = Vector(3)
-          self.cylinder_axis_dir[0]           = Param.CylinderAxisX
-          self.cylinder_axis_dir[1]           = Param.CylinderAxisY
-          self.cylinder_axis_dir[2]           = Param.CylinderAxisZ
-          self.cylinder_radius_1              = Param.CylinderRadius1
-          self.cylinder_friction_angle_1      = Param.CylinderFrictionAngle1
+          self.cylinder_axis_dir_1              = Vector(3)
+          self.cylinder_axis_dir_1[0]           = Param.CylinderAxisX1
+          self.cylinder_axis_dir_1[1]           = Param.CylinderAxisY1
+          self.cylinder_axis_dir_1[2]           = Param.CylinderAxisZ1
+          self.cylinder_initial_base_centre_1   = Vector(3)
+          self.cylinder_initial_base_centre_1[0]= Param.CylinderInitialBaseCentreX1
+          self.cylinder_initial_base_centre_1[1]= Param.CylinderInitialBaseCentreY1
+          self.cylinder_initial_base_centre_1[2]= Param.CylinderInitialBaseCentreZ1
+          self.cylinder_radius_1                = Param.CylinderRadius1                   			
+          self.cylinder_velocity_1              = Param.CylinderVelocity1
+          self.cylinder_angular_velocity_1      = Param.CylinderAngularVelocity1
+          self.cylinder_friction_angle_1        = Param.CylinderFrictionAngle1
         if (Param.LimitCylinderOption > 1):
-          self.cylinder_radius_2              = Param.CylinderRadius2
-          self.cylinder_friction_angle_2      = Param.CylinderFrictionAngle2
+          self.cylinder_axis_dir_2              = Vector(3)
+          self.cylinder_axis_dir_2[0]           = Param.CylinderAxisX2
+          self.cylinder_axis_dir_2[1]           = Param.CylinderAxisY2
+          self.cylinder_axis_dir_2[2]           = Param.CylinderAxisZ2
+          self.cylinder_initial_base_centre_2   = Vector(3)
+          self.cylinder_initial_base_centre_2[0]= Param.CylinderInitialBaseCentreX2
+          self.cylinder_initial_base_centre_2[1]= Param.CylinderInitialBaseCentreY2
+          self.cylinder_initial_base_centre_2[2]= Param.CylinderInitialBaseCentreZ2
+          self.cylinder_radius_2                = Param.CylinderRadius2                   			
+          self.cylinder_velocity_2              = Param.CylinderVelocity2
+          self.cylinder_angular_velocity_2      = Param.CylinderAngularVelocity2
+          self.cylinder_friction_angle_2        = Param.CylinderFrictionAngle2
         if (Param.LimitCylinderOption > 2):
-          self.cylinder_radius_3              = Param.CylinderRadius3
-          self.cylinder_friction_angle_3      = Param.CylinderFrictionAngle3
+          self.cylinder_axis_dir_3              = Vector(3)
+          self.cylinder_axis_dir_3[0]           = Param.CylinderAxisX3
+          self.cylinder_axis_dir_3[1]           = Param.CylinderAxisY3
+          self.cylinder_axis_dir_3[2]           = Param.CylinderAxisZ3
+          self.cylinder_initial_base_centre_3   = Vector(3)
+          self.cylinder_initial_base_centre_3[0]= Param.CylinderInitialBaseCentreX3
+          self.cylinder_initial_base_centre_3[1]= Param.CylinderInitialBaseCentreY3
+          self.cylinder_initial_base_centre_3[2]= Param.CylinderInitialBaseCentreZ3
+          self.cylinder_radius_3                = Param.CylinderRadius3                   			
+          self.cylinder_velocity_3              = Param.CylinderVelocity3
+          self.cylinder_angular_velocity_3      = Param.CylinderAngularVelocity3
+          self.cylinder_friction_angle_3        = Param.CylinderFrictionAngle3
         if (Param.LimitCylinderOption > 3):
-          self.cylinder_radius_4              = Param.CylinderRadius4
-          self.cylinder_friction_angle_4      = Param.CylinderFrictionAngle4
+          self.cylinder_axis_dir_4              = Vector(3)
+          self.cylinder_axis_dir_4[0]           = Param.CylinderAxisX4
+          self.cylinder_axis_dir_4[1]           = Param.CylinderAxisY4
+          self.cylinder_axis_dir_4[2]           = Param.CylinderAxisZ4
+          self.cylinder_initial_base_centre_4   = Vector(3)
+          self.cylinder_initial_base_centre_4[0]= Param.CylinderInitialBaseCentreX4
+          self.cylinder_initial_base_centre_4[1]= Param.CylinderInitialBaseCentreY4
+          self.cylinder_initial_base_centre_4[2]= Param.CylinderInitialBaseCentreZ4
+          self.cylinder_radius_4                = Param.CylinderRadius4                   			
+          self.cylinder_velocity_4              = Param.CylinderVelocity4
+          self.cylinder_angular_velocity_4      = Param.CylinderAngularVelocity4
+          self.cylinder_friction_angle_4        = Param.CylinderFrictionAngle4
         if (Param.LimitCylinderOption > 4):
-          self.cylinder_radius_5              = Param.CylinderRadius5
-          self.cylinder_friction_angle_5      = Param.CylinderFrictionAngle5
+          self.cylinder_axis_dir_5              = Vector(3)
+          self.cylinder_axis_dir_5[0]           = Param.CylinderAxisX5
+          self.cylinder_axis_dir_5[1]           = Param.CylinderAxisY5
+          self.cylinder_axis_dir_5[2]           = Param.CylinderAxisZ5
+          self.cylinder_initial_base_centre_5   = Vector(3)
+          self.cylinder_initial_base_centre_5[0]= Param.CylinderInitialBaseCentreX5
+          self.cylinder_initial_base_centre_5[1]= Param.CylinderInitialBaseCentreY5
+          self.cylinder_initial_base_centre_5[2]= Param.CylinderInitialBaseCentreZ5
+          self.cylinder_radius_5                = Param.CylinderRadius5                   			
+          self.cylinder_velocity_5              = Param.CylinderVelocity5
+          self.cylinder_angular_velocity_5      = Param.CylinderAngularVelocity5
+          self.cylinder_friction_angle_5        = Param.CylinderFrictionAngle5
 
         # GLOBAL PHYSICAL ASPECTS
         self.gravity                        = Vector(3)
@@ -380,44 +420,60 @@ class ExplicitStrategy:
         if (self.limit_surface_option > 0):
           self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR_1, self.surface_normal_dir_1)
           self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR_1, self.surface_point_coor_1)
-          self.model_part.ProcessInfo.SetValue(SURFACE_FRICC_1, self.surface_friction_angle_1)
+          self.model_part.ProcessInfo.SetValue(SURFACE_FRICTION_1, self.surface_friction_angle_1)
         if (self.limit_surface_option > 1):
           self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR_2, self.surface_normal_dir_2)
           self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR_2, self.surface_point_coor_2)
-          self.model_part.ProcessInfo.SetValue(SURFACE_FRICC_2, self.surface_friction_angle_2)
+          self.model_part.ProcessInfo.SetValue(SURFACE_FRICTION_2, self.surface_friction_angle_2)
         if (self.limit_surface_option > 2):
           self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR_3, self.surface_normal_dir_3)
           self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR_3, self.surface_point_coor_3)
-          self.model_part.ProcessInfo.SetValue(SURFACE_FRICC_3, self.surface_friction_angle_3)
+          self.model_part.ProcessInfo.SetValue(SURFACE_FRICTION_3, self.surface_friction_angle_3)
         if (self.limit_surface_option > 3):
           self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR_4, self.surface_normal_dir_4)
           self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR_4, self.surface_point_coor_4)
-          self.model_part.ProcessInfo.SetValue(SURFACE_FRICC_4, self.surface_friction_angle_4)
+          self.model_part.ProcessInfo.SetValue(SURFACE_FRICTION_4, self.surface_friction_angle_4)
         if (self.limit_surface_option > 4):
           self.model_part.ProcessInfo.SetValue(SURFACE_NORMAL_DIR_5, self.surface_normal_dir_5)
           self.model_part.ProcessInfo.SetValue(SURFACE_POINT_COOR_5, self.surface_point_coor_5)
-          self.model_part.ProcessInfo.SetValue(SURFACE_FRICC_5, self.surface_friction_angle_5)
+          self.model_part.ProcessInfo.SetValue(SURFACE_FRICTION_5, self.surface_friction_angle_5)
           
         self.model_part.ProcessInfo.SetValue(LIMIT_CYLINDER_OPTION, self.limit_cylinder_option)
         if (self.limit_cylinder_option > 0):
-          self.model_part.ProcessInfo.SetValue(CYLINDER_VELOCITY, self.cylinder_velocity)
-          self.model_part.ProcessInfo.SetValue(CYLINDER_ANGULAR_VELOCITY, self.cylinder_angular_velocity)
-          self.model_part.ProcessInfo.SetValue(INITIAL_BASE_CYLINDER_CENTRE, self.cylinder_initial_base_centre)                   			
-          self.model_part.ProcessInfo.SetValue(CYLINDER_AXIS_DIR, self.cylinder_axis_dir)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_AXIS_DIR_1, self.cylinder_axis_dir_1)
+          self.model_part.ProcessInfo.SetValue(INITIAL_BASE_CYLINDER_CENTRE_1, self.cylinder_initial_base_centre_1)
           self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS_1, self.cylinder_radius_1)
-          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICC_1, self.cylinder_friction_angle_1)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_VELOCITY_1, self.cylinder_velocity_1)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_ANGULAR_VELOCITY_1, self.cylinder_angular_velocity_1)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICTION_1, self.cylinder_friction_angle_1)
         if (self.limit_cylinder_option > 1):
+          self.model_part.ProcessInfo.SetValue(CYLINDER_AXIS_DIR_2, self.cylinder_axis_dir_2)
+          self.model_part.ProcessInfo.SetValue(INITIAL_BASE_CYLINDER_CENTRE_2, self.cylinder_initial_base_centre_2)
           self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS_2, self.cylinder_radius_2)
-          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICC_2, self.cylinder_friction_angle_2)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_VELOCITY_2, self.cylinder_velocity_2)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_ANGULAR_VELOCITY_2, self.cylinder_angular_velocity_2)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICTION_2, self.cylinder_friction_angle_2)
         if (self.limit_cylinder_option > 2):
+          self.model_part.ProcessInfo.SetValue(CYLINDER_AXIS_DIR_3, self.cylinder_axis_dir_3)
+          self.model_part.ProcessInfo.SetValue(INITIAL_BASE_CYLINDER_CENTRE_3, self.cylinder_initial_base_centre_3)
           self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS_3, self.cylinder_radius_3)
-          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICC_3, self.cylinder_friction_angle_3)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_VELOCITY_3, self.cylinder_velocity_3)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_ANGULAR_VELOCITY_3, self.cylinder_angular_velocity_3)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICTION_3, self.cylinder_friction_angle_3)
         if (self.limit_cylinder_option > 3):
+          self.model_part.ProcessInfo.SetValue(CYLINDER_AXIS_DIR_4, self.cylinder_axis_dir_4)
+          self.model_part.ProcessInfo.SetValue(INITIAL_BASE_CYLINDER_CENTRE_4, self.cylinder_initial_base_centre_4)
           self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS_4, self.cylinder_radius_4)
-          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICC_4, self.cylinder_friction_angle_4)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_VELOCITY_4, self.cylinder_velocity_4)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_ANGULAR_VELOCITY_4, self.cylinder_angular_velocity_4)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICTION_4, self.cylinder_friction_angle_4)
         if (self.limit_cylinder_option > 4):
+          self.model_part.ProcessInfo.SetValue(CYLINDER_AXIS_DIR_5, self.cylinder_axis_dir_5)
+          self.model_part.ProcessInfo.SetValue(INITIAL_BASE_CYLINDER_CENTRE_5, self.cylinder_initial_base_centre_5)
           self.model_part.ProcessInfo.SetValue(CYLINDER_RADIUS_5, self.cylinder_radius_5)
-          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICC_5, self.cylinder_friction_angle_5)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_VELOCITY_5, self.cylinder_velocity_5)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_ANGULAR_VELOCITY_5, self.cylinder_angular_velocity_5)
+          self.model_part.ProcessInfo.SetValue(CYLINDER_FRICTION_5, self.cylinder_friction_angle_5)
 
         # GLOBAL PHISICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
