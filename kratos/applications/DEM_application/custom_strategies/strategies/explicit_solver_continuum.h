@@ -86,6 +86,8 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
           
           mFixSwitch = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];
+          
+          KRATOS_WATCH(mFixSwitch)
           mStepFixVel = rCurrentProcessInfo[STEP_FIX_VELOCITIES];
     
           KRATOS_WATCH(rCurrentProcessInfo[STEP_FIX_VELOCITIES])
@@ -544,15 +546,19 @@ namespace Kratos
           for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
           {
     
-            if(  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 1) 
+            if(  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 1) //top
+              
+              
             {
+              
                 (it)->GetGeometry()(0)->Fix(VELOCITY_Y);
                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_TOP];
-                
+       
             }
             
-            if(  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2   )   
+            if(  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2   )   //bot 
             {
+              
                 (it)->GetGeometry()(0)->Fix(VELOCITY_Y);   
                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_BOT];
                 
@@ -588,17 +594,17 @@ namespace Kratos
 
           for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
           {
-                  if (  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 1 ) 
+                  if (  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 1 ) //top
                   {
                         
-                      (it)->GetGeometry()(0)->Free(VELOCITY_Y);
+                      (it)->GetGeometry()(0)->Free(VELOCITY_Y); 
                         rCurrentProcessInfo[FIXED_VEL_TOP] = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y); //cutre way yeah!   
                         //I only store one value for every ball in the group ID
                       (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = 0.0;
 
                   }
                   
-                  if ( it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2 ) 
+                  if ( it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2 ) //bot
                   {
                         
                       (it)->GetGeometry()(0)->Free(VELOCITY_Y);
