@@ -134,9 +134,8 @@ void HyperElasticPlastic3DLaw::InitializeMaterial( const Properties& props,
         const GeometryType& geom,
         const Vector& ShapeFunctionsValues )
 {
-
-	mpFlowRule.InitializeMaterial( mpYieldCriterion, mpHardeningLaw, props );
-
+  mpFlowRule.InitializeMaterial( mpYieldCriterion, mpHardeningLaw, props );
+  mElasticLeftCauchyGreen = identity_matrix<double> (3);
 }
 
 //************************************************************************************
@@ -361,6 +360,7 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
 
+    const ProcessInfo&  CurProcessInfo    = rValues.GetProcessInfo();
     const Properties& MaterialProperties  = rValues.GetMaterialProperties();
     const Matrix&   DeformationGradientF  = rValues.GetDeformationGradientF();
     const double&   DeterminantF          = rValues.GetDeterminantF();
@@ -377,6 +377,9 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     //0.- Initialize parameters
     MaterialResponseVariables ElasticVariables;
     ElasticVariables.IdentityMatrix = identity_matrix<double> ( 3 );
+
+    FlowRule::RadialReturnVariables ReturnMappingVariables;
+    ReturnMappingVariables.TimeStep = CurProcessInfo[DELTA_TIME];
 
     // Initialize Splited Parts: Isochoric and Volumetric stresses and constitutive tensors
     double voigtsize = StressVector.size();
@@ -409,7 +412,9 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     {
        ElasticVariables.traceCG += ElasticVariables.CauchyGreenMatrix( i , i );
     }
-	    
+
+    ReturnMappingVariables.LameMu_bar = ElasticVariables.LameMu * ( ElasticVariables.traceCG / 3.0  );
+
     //4.-Almansi Strain:
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
     {
@@ -425,7 +430,7 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     SplitStressVector.Isochoric = ZeroVector(voigtsize);
 
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
-        this->CalculateIsochoricStress( ElasticVariables, StressMeasure_Kirchhoff, SplitStressVector.Isochoric );
+      this->CalculateIsochoricStress( ElasticVariables, ReturnMappingVariables, StressMeasure_Kirchhoff, SplitStressVector.Isochoric );
 
     Vector IsochoricStressVector = SplitStressVector.Isochoric;
 
@@ -472,7 +477,7 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
 
         this->CalculateVolumetricConstitutiveMatrix ( ElasticVariables, DomainGeometry, ShapeFunctions, SplitConstitutiveMatrix.Volumetric );
 
-	this->CalculatePlasticConstitutiveMatrix ( ElasticVariables, InternalVariables, SplitConstitutiveMatrix.Plastic );
+	this->CalculatePlasticConstitutiveMatrix ( ElasticVariables, ReturnMappingVariables, SplitConstitutiveMatrix.Plastic );
 
         //if( Options.Is(ConstitutiveLaw::TOTAL_TENSOR ) )
         ConstitutiveMatrix = SplitConstitutiveMatrix.Isochoric + SplitConstitutiveMatrix.Volumetric + SplitConstitutiveMatrix.Plastic;
@@ -488,6 +493,14 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     }
 
 
+
+    if( Options.Is( ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE ) )
+    {
+      mpFlowRule->UpdateInternalVariables ( ReturnMappingVariables );
+
+      mElasticLeftCauchyGreen  = ( SplitStressVector.Isochoric * ( 1.0 / ElasticVariables.LameMu ) );
+      mElasticLeftCauchyGreen += ( ElasticVariables.traceCG/3.0) * ElasticVariables.IdentityMatrix );
+    }
 
 }
 
@@ -522,8 +535,9 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseCauchy (Parameters& rVal
 
 void HyperElasticPlastic3DLaw::FinalizeMaterialResponsePK2 (Parameters& rValues)
 {
-
+    rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
     this->CalculateMaterialResponsePK2 (rValues);
+    rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 
     Vector& StressVector                   =rValues.GetStressVector();
     Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
@@ -545,8 +559,9 @@ void HyperElasticPlastic3DLaw::FinalizeMaterialResponsePK2 (Parameters& rValues)
 
 void HyperElasticPlastic3DLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
 {
-
+    rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
     this->CalculateMaterialResponsePK1 (rValues);
+    rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 
     Vector& StressVector                   =rValues.GetStressVector();
     Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
@@ -569,8 +584,11 @@ void HyperElasticPlastic3DLaw::FinalizeMaterialResponsePK1 (Parameters& rValues)
 
 void HyperElasticPlastic3DLaw::FinalizeMaterialResponseKirchhoff (Parameters& rValues)
 {
+    Flags &Options=rValues.GetOptions();
 
+    rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
     this->CalculateMaterialResponseKirchhoff (rValues);
+    rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 
     Vector& StressVector                   =rValues.GetStressVector();
     Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
@@ -593,8 +611,9 @@ void HyperElasticPlastic3DLaw::FinalizeMaterialResponseKirchhoff (Parameters& rV
 
 void HyperElasticPlastic3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValues)
 {
-
+    rValues.Set(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
     this->CalculateMaterialResponseCauchy (rValues);
+    rValues.Reset(ConstitutiveLaw::FINALIZE_MATERIAL_RESPONSE);
 
     Matrix& DeformationGradientF0          =rValues.GetDeformationGradientF0();
     double& DeterminantF0                  =rValues.GetDeterminantF0();

@@ -6,22 +6,17 @@
 //
 //
 
-#if !defined(KRATOS_HARDENING_LAW_H_INCLUDED )
-#define  KRATOS_HARDENING_LAW_H_INCLUDED
+#if !defined(KRATOSNON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED )
+#define  KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED
 
 
 
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/properties.h"
-
+#include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
 
 namespace Kratos
 {
@@ -50,31 +45,32 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class HardeningLaw
+class NonLinearIsotropicKinematicHardeningLaw 
+	: public HardeningLaw
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of HardeningLaw
-    KRATOS_CLASS_POINTER_DEFINITION(HardeningLaw);
+    /// Pointer definition of NonLinearIsotropicKinematicHardeningLaw
+    KRATOS_CLASS_POINTER_DEFINITION(NonLinearIsotropicKinematicHardeningLaw);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    HardeningLaw();
+    NonLinearIsotropicKinematicHardeningLaw();
+
 
     /// Copy constructor.
-    HardeningLaw(HardeningLaw const& rOther);
+    NonLinearIsotropicKinematicHardeningLaw(NonLinearIsotropicKinematicHardeningLaw const& rOther);
 
     /// Assignment operator.
-    HardeningLaw& operator=(HardeningLaw const& rOther);
+    NonLinearIsotropicKinematicHardeningLaw& operator=(NonLinearIsotropicKinematicHardeningLaw const& rOther);
 
     /// Destructor.
-   virtual ~HardeningLaw() {};
-
+    ~NonLinearIsotropicKinematicHardeningLaw();
 
     ///@}
     ///@name Operators
@@ -84,29 +80,18 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    void InitializeMaterial (const Properties& rProperties)
-	{
-		mpProperties = &rProperties;
-	}
 
-
-    Properties& GetProperties()
-	{
-		return *mpProperties;
-	}
-
-    virtual double& CalculateHardening(double &Hardening, double & rAlpha){};
+    double& CalculateHardening(double &Hardening, double & rAlpha);
   
-    virtual double& CalculateIsotropicHardening(double &IsotropicHardening, double & rAlpha){};
+    double& CalculateIsotropicHardening(double &IsotropicHardening, double & rAlpha);
 
-    virtual double& CalculateKinematicHardening(double &KinematicHardening, double & rAlpha){};
+    double& CalculateKinematicHardening(double &KinematicHardening, double & rAlpha);
 
+    double& CalculateDeltaHardening(double &DeltaHardening, double & rAlpha);
 
-    virtual double& CalculateDeltaHardening(double &DeltaHardening, double & rAlpha){};
+    double& CalculateDeltaIsotropicHardening(double &DeltaIsotropicHardening, double & rAlpha);
 
-    virtual double& CalculateDeltaIsotropicHardening(double &DeltaIsotropicHardening, double & rAlpha){};
-
-    virtual double& CalculateDeltaKinematicHardening(double &DeltaKinematicHardening, double & rAlpha){};
+    double& CalculateDeltaKinematicHardening(double &DeltaKinematicHardening, double & rAlpha);
 
     ///@}
     ///@name Access
@@ -123,13 +108,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const;
 
 
     ///@}
@@ -148,7 +133,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    const Properties* mpProperties;
      
     ///@}
     ///@name Protected Operators
@@ -186,7 +170,12 @@ private:
     ///@name Member Variables
     ///@{
 
+    /**
+     * Pure isotropic hardening Theta=1;  pure kinematic hardening Theta= 0; combined isotropic-kinematic 0<Theta<1
+     */
 
+    double mTheta; 
+	
     ///@}
     ///@name Private Operators
     ///@{
@@ -201,7 +190,6 @@ private:
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Serialization
     ///@{
@@ -209,15 +197,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    virtual void save(Serializer& rSerializer) const
-    {
-	    rSerializer.save("Properties",mpProperties);
-    };
+    virtual void save(Serializer& rSerializer) const;
 
-    virtual void load(Serializer& rSerializer)
-    {
-	    rSerializer.load("Properties",mpProperties);
-    };
+    virtual void load(Serializer& rSerializer);
 
     ///@}
     ///@name Private Inquiry
@@ -228,9 +210,10 @@ private:
     ///@name Un accessible methods
     ///@{
 
+
     ///@}
 
-}; // Class HardeningLaw
+}; // Class NonLinearIsotropicKinematicHardeningLaw
 
 ///@}
 
@@ -245,11 +228,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  HardeningLaw& rThis);
+                                  NonLinearIsotropicKinematicHardeningLaw& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const HardeningLaw& rThis)
+                                  const NonLinearIsotropicKinematicHardeningLaw& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -263,6 +246,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_HARDENING_LAW_H_INCLUDED  defined 
+#endif // KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED  defined 
 
 
