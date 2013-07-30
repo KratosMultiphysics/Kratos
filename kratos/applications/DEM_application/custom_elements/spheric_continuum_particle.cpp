@@ -1795,7 +1795,7 @@ namespace Kratos
             
    
    //#C6 : initalizesolutionstep del volume strain stress tensor...  
-         /*
+         
           double& Representative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);
          
           Representative_Volume = 0.0;
@@ -1810,8 +1810,8 @@ namespace Kratos
               }
           
            }
-        */ //MSIMSI
+         //MSIMSI
            
-
+*/
       
                    
