@@ -129,6 +129,21 @@ if (Param.PredefinedSkinOption == "ON" ):
  
 print 'Initializing Problem....'
 
+dt = Param.MaxTimeStep
+
+total_steps_expected = int(Param.FinalTime / dt)
+
+print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n' )
+
+step_to_fix_velocities = 0
+
+if (Param.FixVelocitiesOption == 'ON'):
+  step_to_fix_velocities = 0.01*Param.TotalTimePercentageFixVelocities*total_steps_expected
+  print("QUAN HI HAGI CRITICAL TIME STEP... SHA DE MODIFICAR EL TOTAL STEP I EL FIXING..")
+
+balls_model_part.ProcessInfo.SetValue(STEP_FIX_VELOCITIES,int(step_to_fix_velocities))
+
+
 solver.Initialize()
 
 # Initialization of physics monitor and of the initial position of the center of mass
@@ -139,9 +154,12 @@ solver.Initialize()
 print 'Initialitzation Complete' + '\n'
 
 if(Param.ConcreteTestOption =="ON"):
-  (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = proc.ListDefinition(balls_model_part,solver)  # defines the lists where we measure forces
- 
   
+  if(Param.PredefinedSkinOption == "ON" ):
+    print "ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF"
+    
+  (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = proc.ListDefinition(balls_model_part,solver)  # defines the lists where we measure forces
+
   (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = proc.SkinAndPressure(balls_model_part,solver,Param) # defines the skin and areas
 
   strain=0.0; total_stress = 0.0; first_time_entry = 1
@@ -156,14 +174,14 @@ if(Param.ConcreteTestOption =="ON"):
     alpha_top = 3.141592*diameter*diameter*0.25/(xtop_area + 0.70710678*xtopcorner_area)
     alpha_bot = 3.141592*diameter*diameter*0.25/(xbot_area + 0.70710678*xbotcorner_area)
     alpha_lat = 3.141592*diameter*height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
-      
-    if (self.predefined_skin_option):
-       print "\n", "Predefined Skin by the user, In this case is not correct to apply pressure yet"  ,"\n" 
-            
-    else:
-        Press.ApplyPressure(Pressure, balls_model_part, solver, proc.SKIN, proc.BOT, proc.TOP, proc.LAT, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER, alpha_top, alpha_bot, alpha_lat)
 
-
+    Press.ApplyPressure(Pressure, balls_model_part, solver, proc.SKIN, proc.BOT, proc.TOP, proc.LAT, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER, alpha_top, alpha_bot, alpha_lat)
+ 
+print(alpha_bot)
+print(alpha_top)
+print(alpha_lat)
+ 
+ 
 if (Param.ConcreteTestOption =="ON"):
   graph_export = open("strain_stress_data.csv",'w');
 
@@ -182,7 +200,12 @@ if(Param.ContinuumOption =="ON" and Param.ConcreteTestOption =="ON"):
 #
   print ('Initial Height of the Model: ' + str(ini_height)+'\n')
 
+
+dt1 = dt
 dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
+
+if(dt != dt1):
+  print("sha canviat el pas de temps, corregeix lo de fix vel")
 
 step                   = 0 
 time                   = 0.0 
@@ -220,9 +243,10 @@ os.chdir(main_path)
 
 print ('Main loop starts at instant: ' + str(initial_pr_time) + '\n')
 
-total_steps_expected = int(Param.FinalTime / dt)
 
 print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n' )
+
+
 
 while (time < Param.FinalTime):
  
@@ -233,6 +257,7 @@ while (time < Param.FinalTime):
 
     #########################_SOLVE_#########################################4
     os.chdir(main_path) 
+    
     solver.Solve()
     #########################TIME CONTROL######################################4
    
@@ -267,10 +292,8 @@ while (time < Param.FinalTime):
     
     total_force = 0.0
 
-    if (Param.FixVelocitiesOption == 'OFF'):
-        TimePercentageFixVelocities = 0.0
 
-    if( Param.ContinuumOption =="ON" and ( time >= 0.01*TimePercentageFixVelocities*Param.FinalTime) and Param.ConcreteTestOption =="ON"):
+    if( Param.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and Param.ConcreteTestOption =="ON"):
      
       if(first_time_entry):
         (Y_mean_bot,counter_bot) = proc.MeasureBOT(solver)
