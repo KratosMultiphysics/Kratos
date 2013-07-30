@@ -7,24 +7,6 @@ from numpy import *
 
 #from KratosMultiphysics.mpi import * #CARLOS
 
-# GLOBAL VARIABLES OF THE SCRIPT
-#Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
-    
-sup_layer_fm      = list()
-inf_layer_fm      = list()
-sup_plate_fm      = list()
-inf_plate_fm      = list()
-special_selection = list()
-others            = list()    
-SKIN              = list()  
-LAT               = list()
-BOT               = list()
-TOP               = list()
-XLAT              = list()  #only lat, not the corner ones
-XTOP              = list()  #only top, not corner ones...
-XBOT              = list()
-XTOPCORNER        = list()
-XBOTCORNER        = list()
 
 def Var_Translator(variable):
 
@@ -110,6 +92,26 @@ class GranulometryUtils:
 class Procedures:
     
     def __init__(self, param):
+      
+        # GLOBAL VARIABLES OF THE SCRIPT
+        #Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
+          
+        self.sup_layer_fm      = list()
+        self.inf_layer_fm      = list()
+        self.sup_plate_fm      = list()
+        self.inf_plate_fm      = list()
+        self.special_selection = list()
+        self.others            = list()    
+        self.SKIN              = list()  
+        self.LAT               = list()
+        self.BOT               = list()
+        self.TOP               = list()
+        self.XLAT              = list()  #only lat, not the corner ones
+        self.XTOP              = list()  #only top, not corner ones...
+        self.XBOT              = list()
+        self.XTOPCORNER        = list()
+        self.XBOTCORNER        = list()
+      
         
         # Initialization of member variables
 
@@ -244,19 +246,19 @@ class Procedures:
 
         for node in model_part.Nodes:
             if (node.GetSolutionStepValue(GROUP_ID) == 1):      #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
-                sup_layer_fm.append(node)
+                self.sup_layer_fm.append(node)
             elif (node.GetSolutionStepValue(GROUP_ID) == 2):    #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
-                inf_layer_fm.append(node)
+                self.inf_layer_fm.append(node)
             elif (node.GetSolutionStepValue(GROUP_ID) == 3):    #reserved for auxiliar strain-stress measurement plate (superior)
-                sup_plate_fm.append(node)
+                self.sup_plate_fm.append(node)
             elif (node.GetSolutionStepValue(GROUP_ID) == 4):    #reserved for auxiliar strain-stress measurement plate (inferior)
-                inf_plate_fm.append(node)
+                self.inf_plate_fm.append(node)
             elif (node.GetSolutionStepValue(GROUP_ID) == 5):
-                special_selection.append(node)
+                self.special_selection.append(node)
             else:
-                others.append(node)
+                self.others.append(node)
 
-        return (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm)
+        return (self.sup_layer_fm, self.inf_layer_fm, self.sup_plate_fm, self.inf_plate_fm)
 
 
     def GiDSolverTransfer(self, model_part, solver, param):
@@ -305,7 +307,7 @@ class Procedures:
         solver.time_step_percentage_fix_velocities = self.time_percentage_fix_velocities
         
         return Pressure
-        
+       
     def SkinAndPressure(self, model_part,solver, param):
         
         #SKIN DETERMINATION
@@ -332,67 +334,63 @@ class Procedures:
         
         for element in model_part.Elements:
         
-            element.SetValue(SKIN_SPHERE, 0)
-    
-            if (self.predefined_skin_option):
-        
-                node = element.GetNode(0)
-                r = node.GetSolutionStepValue(RADIUS,0)
-                x = node.X
-                y = node.Y
-                z = node.Z
-                node_group = node.GetSolutionStepValue(GROUP_ID,0)
-                cross_section = 3.141592 * r * r
+          element.SetValue(SKIN_SPHERE, 0)
 
-                #if( (node_group!=2) and (node_group!=4) ):
+          node = element.GetNode(0)
+          r = node.GetSolutionStepValue(RADIUS,0)
+          x = node.X
+          y = node.Y
+          z = node.Z
+          node_group = node.GetSolutionStepValue(GROUP_ID,0)
+          cross_section = 3.141592 * r * r
+
+          if ((x * x + z * z) >= ((d / 2 - eps * r) * (d / 2 - eps * r))): 
+      
+              element.SetValue(SKIN_SPHERE, 1)     
+              self.LAT.append(node)
+              
+              if ((y > eps * r) and (y < (h - eps * r))):
+          
+                  self.SKIN.append(element)           
+                  self.XLAT.append(node)
+  
+                  xlat_area = xlat_area + cross_section
+      
+          if ((y <= eps * r) or (y >= (h - eps * r))): 
+
+              element.SetValue(SKIN_SPHERE, 1)            
+              self.SKIN.append(element)
             
-                if ((x * x + z * z) >= ((d / 2 - eps * r) * (d / 2 - eps * r))): 
-            
-                    element.SetValue(SKIN_SPHERE, 1)     
-                    LAT.append(node)
-                    
-                    if ((y > eps * r) and (y < (h - eps * r))):
-                
-                        SKIN.append(element)           
-                        XLAT.append(node)
-                
-                    xlat_area = xlat_area + cross_section
-            
-                if ((y <= eps * r) or (y >= (h - eps * r))): 
+              if (y <= eps * r):
 
-                    element.SetValue(SKIN_SPHERE, 1)            
-                    SKIN.append(element)
-                
-                    if (y <= eps * r):
+                  self.BOT.append(node)
 
-                        BOT.append(node)
+              elif (y >= (h - eps * r)):
 
-                    elif (y >= (h - eps * r)):
+                  self.TOP.append(node)
 
-                        TOP.append(node)
+              if ((x * x + z * z) >= (( d / 2 - eps * r) * (d / 2 - eps * r))) :
+          
+                  if (y > h / 2):
 
-                    if ((x * x + z * z) >= (( d / 2 - eps * r) * (d / 2 - eps * r))) :
-                
-                        if (y > h / 2):
+                      self.XTOPCORNER.append(node)                     
+                      xtopcorner_area = xtopcorner_area + cross_section
+                                              
+                  else:
 
-                            XTOPCORNER.append(node)                     
-                            xtopcorner_area = xtopcorner_area + cross_section
-                        
-                        else:
+                      self.XBOTCORNER.append(node)
+                      xbotcorner_area = xbotcorner_area + cross_section
+              else:
 
-                            XBOTCORNER.append(node)
-                            xbotcorner_area = xbotcorner_area + cross_section
-                    else:
-
-                        if (y <= eps * r):
-                        
-                            XBOT.append(node)
-                            xbot_area = xbot_area + cross_section
-                        
-                        elif (y >= (h - eps * r)):
-                            
-                            XTOP.append(node)
-                            xtop_area = xtop_area + cross_section
+                  if (y <= eps * r):
+                  
+                      self.XBOT.append(node)
+                      xbot_area = xbot_area + cross_section
+                  
+                  elif (y >= (h - eps * r)):
+                      
+                      self.XTOP.append(node)
+                      xtop_area = xtop_area + cross_section
 
         print "End CLASSIC TEST SKIN DETERMINATION", "\n"
                 
@@ -404,7 +402,7 @@ class Procedures:
         y_mean = 0.0
         counter = 0.0
         
-        for node in BOT:
+        for node in self.BOT:
             r = node.GetSolutionStepValue(RADIUS, 0)
             y = node.Y        
             y_mean += (y - r) * r
@@ -418,7 +416,7 @@ class Procedures:
         y_mean = 0.0
         counter = 0.0
         
-        for node in TOP:
+        for node in self.TOP:
           r = node.GetSolutionStepValue(RADIUS, 0)
           y = node.Y
         
@@ -606,113 +604,18 @@ class Procedures:
       
         for node in model_part.Nodes:
           if (node.GetSolutionStepValue(GROUP_ID)==1):      #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
-            sup_layer_fm.append(node)
+            self.sup_layer_fm.append(node)
           elif (node.GetSolutionStepValue(GROUP_ID)==2):    #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
-            inf_layer_fm.append(node)
+            self.inf_layer_fm.append(node)
           elif (node.GetSolutionStepValue(GROUP_ID)==3):    #reserved for auxiliar strain-stress measurement plate (superior)
-            sup_plate_fm.append(node)
+            self.sup_plate_fm.append(node)
           elif (node.GetSolutionStepValue(GROUP_ID)==4):    #reserved for auxiliar strain-stress measurement plate (inferior)
-            inf_plate_fm.append(node)
+            self.inf_plate_fm.append(node)
           elif (node.GetSolutionStepValue(GROUP_ID)==5):
-            special_selection.append(node)
+            self.special_selection.append(node)
           else:
-            others.append(node)
+            self.others.append(node)
           
-        return (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm)
+        return (self.sup_layer_fm, self.inf_layer_fm, self.sup_plate_fm, self.inf_plate_fm)
         
-    def SkinAndPressure(self,model_part,solver, param):
-           
-        #SKIN DETERMINATION
-
-        Pressure = param.ConfinementPressure*1e6 #Mpa
-        total_cross_section = 0.0
-
-        #Cylinder dimensions
-
-        h   = 0.3
-        d   = 0.15
-        eps = 2.0
-
-        surface = 2*(3.141592*d*d*0.25)+(3.141592*d*h)
-
-        top_pressure = 0.0
-        bot_pressure = 0.0
-
-        xlat_area = 0.0
-        xbot_area = 0.0
-        xtop_area = 0.0
-        xbotcorner_area = 0.0
-        xtopcorner_area = 0.0
-
-        for element in model_part.Elements:  
-      
-          #if ( self.predefined_skin_option == "OFF" ):
-
-            element.SetValue(SKIN_SPHERE,0)
-            
-            node = element.GetNode(0)
-            r = node.GetSolutionStepValue(RADIUS,0)
-            x = node.X
-            y = node.Y
-            z = node.Z
-            node_group = node.GetSolutionStepValue(GROUP_ID,0)
-            cross_section = 3.141592*r*r
-
-            #if( (node_group!=2) and (node_group!=4) ):
-          
-            if ( (x*x+z*z)>=((d/2-eps*r)*(d/2-eps*r)) ): 
-          
-                element.SetValue(SKIN_SPHERE,1)     
-
-                LAT.append(node)
-                
-                if ( (y>eps*r ) and (y<(h-eps*r)) ) :
-            
-                  SKIN.append(element)
-            
-                  XLAT.append(node)
-              
-                  xlat_area = xlat_area + cross_section
-        
-            if ( (y<=eps*r ) or (y>=(h-eps*r)) ): 
-
-                  element.SetValue(SKIN_SPHERE,1)
-            
-                  SKIN.append(element)
-            
-                  if ( y<=eps*r ):
-
-                      BOT.append(node)
-
-                  elif ( y>=(h-eps*r) ):
-
-                      TOP.append(node)
-
-                  if ( (x*x+z*z) >= ((d/2-eps*r)*(d/2-eps*r) ) ) :
-            
-                      if ( y>h/2 ):
-
-                          XTOPCORNER.append(node)
-                          
-                          xtopcorner_area = xtopcorner_area + cross_section
-                    
-                      else:
-
-                          XBOTCORNER.append(node)
-                          xbotcorner_area = xbotcorner_area + cross_section
-                  else:
-
-                      if ( y<=eps*r ):
-                    
-                          XBOT.append(node)
-                          xbot_area = xbot_area + cross_section
-                    
-                      elif ( y>=(h-eps*r) ):
-                        
-                          XTOP.append(node)
-                          xtop_area = xtop_area + cross_section
-
-        print "End CLASSIC TEST SKIN DETERMINATION", "\n"
-                  
-        return (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area)
-        
+   
