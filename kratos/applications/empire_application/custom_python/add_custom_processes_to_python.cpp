@@ -58,11 +58,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
-#include "custom_python/add_custom_processes_to_python.h"
-#include "custom_processes/test_process.h"
-
-
 #include "includes/node.h"
+#include "custom_python/add_custom_processes_to_python.h"
+#include "custom_processes/ale_wrapper_process.h"
+
 
 namespace Kratos
 {
@@ -75,10 +74,12 @@ void  AddCustomProcessesToPython()
 {
     using namespace boost::python;
 
-    class_<TestProcess, bases<Process> >("TestProcess", init<ModelPart&>())
-    .def("TestMemberFunction", &TestProcess::TestMemberFunction)
+    class_<ALEWrapperProcess, bases<Process> >("ALEWrapperProcess", init<ModelPart&,ModelPart&>())
+    .def("ExtractInterface", &ALEWrapperProcess::ExtractInterface)
+    .def("AssignDisplacementsToModelPart", &ALEWrapperProcess::AssignDisplacementsToModelPart)
+    .def("ExtractForcesFromModelPart", &ALEWrapperProcess::ExtractForcesFromModelPart)
+    .def("ExtractMeshInfo", &ALEWrapperProcess::ExtractMeshInfo)
     ;
-   
 }
 
 
