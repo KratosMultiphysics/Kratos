@@ -533,14 +533,13 @@ namespace Kratos
 
           size_t i_neighbour_count = 0;
 
-          for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin();
-              neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
+          for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
 
-              array_1d<double, 3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
-              const double &other_radius           = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-              double distance                      = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
-              double radius_sum                    = mRadius + other_radius;
-              double indentation                   = radius_sum - distance;
+              array_1d<double, 3> other_to_me_vect     = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
+              const double &other_radius               = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+              double distance                          = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
+              double radius_sum                        = mRadius + other_radius;
+              double indentation                       = radius_sum - distance;
               double kn;
               double kt;
               double equiv_visco_damp_coeff_normal;
