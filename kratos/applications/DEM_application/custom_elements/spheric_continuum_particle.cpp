@@ -1122,8 +1122,7 @@ namespace Kratos
             ComputePressureForces(additionally_applied_force, rCurrentProcessInfo);
             
           }
-        
-        
+                
           if( mRotationOption != 0 && mRotationSpringOption != 0 )
           {
               //ComputeParticleRotationSpring(); MSI: #C2
