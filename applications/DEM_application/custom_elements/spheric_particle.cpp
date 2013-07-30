@@ -430,7 +430,7 @@ namespace Kratos
 
           // ROLLING FRICTION
 
-          if (mRotationDampType == 2){  // rolling friccion type
+          if (mRotationDampType == 2){  // rolling friction type
               double rolling_friction_coeff            = mRollingFriction * mRadius;
               double equiv_rolling_friction_coeff;
 
@@ -654,30 +654,30 @@ namespace Kratos
 
           array_1d<double,3> surface_normal_dir = rCurrentProcessInfo[SURFACE_NORMAL_DIR_1];
           array_1d<double,3> surface_point_coor = rCurrentProcessInfo[SURFACE_POINT_COOR_1];
-          double surface_fricc                     = rCurrentProcessInfo[SURFACE_FRICC_1];          
+          double surface_friction               = rCurrentProcessInfo[SURFACE_FRICTION_1];          
 
           if (surface_num == 1){
               surface_normal_dir = rCurrentProcessInfo[SURFACE_NORMAL_DIR_2];
               surface_point_coor = rCurrentProcessInfo[SURFACE_POINT_COOR_2];
-              surface_fricc      = rCurrentProcessInfo[SURFACE_FRICC_2];
+              surface_friction   = rCurrentProcessInfo[SURFACE_FRICTION_2];
 		  }
 		  
           if (surface_num == 2){
               surface_normal_dir = rCurrentProcessInfo[SURFACE_NORMAL_DIR_3];
               surface_point_coor = rCurrentProcessInfo[SURFACE_POINT_COOR_3];
-              surface_fricc      = rCurrentProcessInfo[SURFACE_FRICC_3];
+              surface_friction   = rCurrentProcessInfo[SURFACE_FRICTION_3];
 		  }
 		  
           if (surface_num == 3){
               surface_normal_dir = rCurrentProcessInfo[SURFACE_NORMAL_DIR_4];
               surface_point_coor = rCurrentProcessInfo[SURFACE_POINT_COOR_4];
-              surface_fricc      = rCurrentProcessInfo[SURFACE_FRICC_4];
+              surface_friction   = rCurrentProcessInfo[SURFACE_FRICTION_4];
 		  }
 
           if (surface_num == 4){
               surface_normal_dir = rCurrentProcessInfo[SURFACE_NORMAL_DIR_5];
               surface_point_coor = rCurrentProcessInfo[SURFACE_POINT_COOR_5];
-              surface_fricc      = rCurrentProcessInfo[SURFACE_FRICC_5];
+              surface_friction   = rCurrentProcessInfo[SURFACE_FRICTION_5];
 		  }
           
           array_1d<double, 3>& GlobalSurfContactForce = this->GetValue(PARTICLE_SURFACE_CONTACT_FORCES_1);
@@ -818,7 +818,7 @@ namespace Kratos
                  LocalElasticContactForce[0] += - kt * LocalDeltDisp[0];  // 0: first tangential
                  LocalElasticContactForce[1] += - kt * LocalDeltDisp[1];  // 1: second tangential
                  
-                 double dyn_friction_angle =  surface_fricc * M_PI / 180;
+                 double dyn_friction_angle =  surface_friction * M_PI / 180;
                  double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
                  double Frictional_ShearForceMax = tan(dyn_friction_angle) * LocalElasticContactForce[2];                
 
@@ -842,7 +842,7 @@ namespace Kratos
                          ViscoDampingLocalContactForce[2] = - visco_damp_coeff_normal * LocalRelVel[2];
                      }
 
-                     if (sliding == false && (mDampType == 1 || mDampType == 11)){ //only applied when no sliding to help to the regularized friccion law or the spring convergence
+                     if (sliding == false && (mDampType == 1 || mDampType == 11)){ //only applied when no sliding to help to the regularized friction law or the spring convergence
                          ViscoDampingLocalContactForce[0] = - visco_damp_coeff_tangential * LocalRelVel[0];
                          ViscoDampingLocalContactForce[1] = - visco_damp_coeff_tangential * LocalRelVel[1];
                      }
@@ -908,7 +908,7 @@ namespace Kratos
                      RotaMoment[1] -= MA[1] * mRadius;
                      RotaMoment[2] -= MA[2] * mRadius;
 
-                     if (mRotationDampType == 2){  // Rolling friccion type
+                     if (mRotationDampType == 2){  // Rolling friction type
                          double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
                          double rolling_friction_coeff       = rolling_friction * mRadius;
 
@@ -989,27 +989,47 @@ namespace Kratos
           double dt             = rCurrentProcessInfo[DELTA_TIME];
           int time_step         = rCurrentProcessInfo[TIME_STEPS];
 
-          double CylinderRadius = rCurrentProcessInfo[CYLINDER_RADIUS_1];
-          double cylinder_fricc = rCurrentProcessInfo[CYLINDER_FRICC_1];
+          array_1d<double,3> CylinderAxisDir           = rCurrentProcessInfo[CYLINDER_AXIS_DIR_1];
+          array_1d<double,3> InitialBaseCylinderCentre = rCurrentProcessInfo[INITIAL_BASE_CYLINDER_CENTRE_1];
+          double CylinderRadius                        = rCurrentProcessInfo[CYLINDER_RADIUS_1];
+		  double CylinderVelocity                      = rCurrentProcessInfo[CYLINDER_VELOCITY_1];
+          double CylinderAngularVelocity               = rCurrentProcessInfo[CYLINDER_ANGULAR_VELOCITY_1];          
+          double CylinderFriction                      = rCurrentProcessInfo[CYLINDER_FRICTION_1];          
 
           if (cylinder_num == 1){
-              CylinderRadius    = rCurrentProcessInfo[CYLINDER_RADIUS_2];
-              cylinder_fricc    = rCurrentProcessInfo[CYLINDER_FRICC_2];
+			  CylinderAxisDir           = rCurrentProcessInfo[CYLINDER_AXIS_DIR_2];
+			  InitialBaseCylinderCentre = rCurrentProcessInfo[INITIAL_BASE_CYLINDER_CENTRE_2];
+              CylinderRadius            = rCurrentProcessInfo[CYLINDER_RADIUS_2];
+              CylinderVelocity          = rCurrentProcessInfo[CYLINDER_VELOCITY_2];
+              CylinderAngularVelocity   = rCurrentProcessInfo[CYLINDER_ANGULAR_VELOCITY_2];
+              CylinderFriction          = rCurrentProcessInfo[CYLINDER_FRICTION_2];
 		  }
 		  
           if (cylinder_num == 2){
-              CylinderRadius    = rCurrentProcessInfo[CYLINDER_RADIUS_3];
-              cylinder_fricc    = rCurrentProcessInfo[CYLINDER_FRICC_3];
+			  CylinderAxisDir           = rCurrentProcessInfo[CYLINDER_AXIS_DIR_3];
+			  InitialBaseCylinderCentre = rCurrentProcessInfo[INITIAL_BASE_CYLINDER_CENTRE_3];
+              CylinderRadius            = rCurrentProcessInfo[CYLINDER_RADIUS_3];
+              CylinderVelocity          = rCurrentProcessInfo[CYLINDER_VELOCITY_3];
+              CylinderAngularVelocity   = rCurrentProcessInfo[CYLINDER_ANGULAR_VELOCITY_3];
+              CylinderFriction          = rCurrentProcessInfo[CYLINDER_FRICTION_3];
 		  }
 		  
           if (cylinder_num == 3){
-              CylinderRadius    = rCurrentProcessInfo[CYLINDER_RADIUS_4];
-              cylinder_fricc    = rCurrentProcessInfo[CYLINDER_FRICC_4];
+			  CylinderAxisDir           = rCurrentProcessInfo[CYLINDER_AXIS_DIR_4];
+			  InitialBaseCylinderCentre = rCurrentProcessInfo[INITIAL_BASE_CYLINDER_CENTRE_4];
+              CylinderRadius            = rCurrentProcessInfo[CYLINDER_RADIUS_4];
+              CylinderVelocity          = rCurrentProcessInfo[CYLINDER_VELOCITY_4];
+              CylinderAngularVelocity   = rCurrentProcessInfo[CYLINDER_ANGULAR_VELOCITY_4];
+              CylinderFriction          = rCurrentProcessInfo[CYLINDER_FRICTION_4];
 		  }
 
           if (cylinder_num == 4){
-              CylinderRadius    = rCurrentProcessInfo[CYLINDER_RADIUS_5];
-              cylinder_fricc    = rCurrentProcessInfo[CYLINDER_FRICC_5];
+			  CylinderAxisDir           = rCurrentProcessInfo[CYLINDER_AXIS_DIR_5];
+			  InitialBaseCylinderCentre = rCurrentProcessInfo[INITIAL_BASE_CYLINDER_CENTRE_5];
+              CylinderRadius            = rCurrentProcessInfo[CYLINDER_RADIUS_5];
+              CylinderVelocity          = rCurrentProcessInfo[CYLINDER_VELOCITY_5];
+              CylinderAngularVelocity   = rCurrentProcessInfo[CYLINDER_ANGULAR_VELOCITY_5];
+              CylinderFriction          = rCurrentProcessInfo[CYLINDER_FRICTION_5];
 		  }
           
           // CONTACT WITH A CYLINDER
@@ -1044,9 +1064,9 @@ namespace Kratos
              //Calculate surface equation-> Surface perpendicular to cylinder axis and containing the point centre of the ball
 
              double cylinder_axis_dir[3] = {0.0};
-             cylinder_axis_dir[0] = mCylinderAxisDir[0];
-             cylinder_axis_dir[1] = mCylinderAxisDir[1];
-             cylinder_axis_dir[2] = mCylinderAxisDir[2];   
+             cylinder_axis_dir[0] = CylinderAxisDir[0];
+             cylinder_axis_dir[1] = CylinderAxisDir[1];
+             cylinder_axis_dir[2] = CylinderAxisDir[2];   
 
              double det_cylinder_axis_dir = sqrt( cylinder_axis_dir[0] + cylinder_axis_dir[0] * cylinder_axis_dir[1] + cylinder_axis_dir[1] * cylinder_axis_dir[2] + cylinder_axis_dir[2] );
 
@@ -1064,12 +1084,12 @@ namespace Kratos
 
              //Calculate intersection point between cylinder axis and surface
              
-             double lambda = -(surface_ecuation[0] * mInitialBaseCylinderCentre[0] + surface_ecuation[1] * mInitialBaseCylinderCentre[1] + surface_ecuation[2] * mInitialBaseCylinderCentre[2] + surface_ecuation[3]) / (surface_ecuation[0] * cylinder_axis_dir[0] + surface_ecuation[1] * cylinder_axis_dir[1] + surface_ecuation[2] * cylinder_axis_dir[2]);
+             double lambda = -(surface_ecuation[0] * InitialBaseCylinderCentre[0] + surface_ecuation[1] * InitialBaseCylinderCentre[1] + surface_ecuation[2] * InitialBaseCylinderCentre[2] + surface_ecuation[3]) / (surface_ecuation[0] * cylinder_axis_dir[0] + surface_ecuation[1] * cylinder_axis_dir[1] + surface_ecuation[2] * cylinder_axis_dir[2]);
              
              double axis_point_coord[3] = {0.0};
-             axis_point_coord[0] = mInitialBaseCylinderCentre[0] + cylinder_axis_dir[0]*lambda;
-             axis_point_coord[1] = mInitialBaseCylinderCentre[1] + cylinder_axis_dir[1]*lambda;
-             axis_point_coord[2] = mInitialBaseCylinderCentre[2] + cylinder_axis_dir[2]*lambda;
+             axis_point_coord[0] = InitialBaseCylinderCentre[0] + cylinder_axis_dir[0]*lambda;
+             axis_point_coord[1] = InitialBaseCylinderCentre[1] + cylinder_axis_dir[1]*lambda;
+             axis_point_coord[2] = InitialBaseCylinderCentre[2] + cylinder_axis_dir[2]*lambda;
 
              //Calculate normal direction and distance
 
@@ -1129,9 +1149,9 @@ namespace Kratos
                  // Calculate cylinder outlet
                  
                  double outlet_point_coord[3] = {0.0};
-                 outlet_point_coord[0] = mInitialBaseCylinderCentre[0] + (cylinder_axis_dir[0] * mCylinderVelocity * dt * time_step);
-                 outlet_point_coord[1] = mInitialBaseCylinderCentre[1] + (cylinder_axis_dir[1] * mCylinderVelocity * dt * time_step);
-                 outlet_point_coord[2] = mInitialBaseCylinderCentre[2] + (cylinder_axis_dir[2] * mCylinderVelocity * dt * time_step);
+                 outlet_point_coord[0] = InitialBaseCylinderCentre[0] + (cylinder_axis_dir[0] * CylinderVelocity * dt * time_step);
+                 outlet_point_coord[1] = InitialBaseCylinderCentre[1] + (cylinder_axis_dir[1] * CylinderVelocity * dt * time_step);
+                 outlet_point_coord[2] = InitialBaseCylinderCentre[2] + (cylinder_axis_dir[2] * CylinderVelocity * dt * time_step);
                  
                  double cylinder_outlet_surface_ecuation[4] = {0.0};
                  cylinder_outlet_surface_ecuation[0] = cylinder_axis_dir[0];
@@ -1193,15 +1213,15 @@ namespace Kratos
                      double DeltDisp[3] = {0.0};
                      double RelVel  [3] = {0.0};
 
-                     RelVel[0] = (vel[0] - mCylinderVelocity * cylinder_axis_dir[0]);
-                     RelVel[1] = (vel[1] - mCylinderVelocity * cylinder_axis_dir[1]);
-                     RelVel[2] = (vel[2] - mCylinderVelocity * cylinder_axis_dir[2]);
+                     RelVel[0] = (vel[0] - CylinderVelocity * cylinder_axis_dir[0]);
+                     RelVel[1] = (vel[1] - CylinderVelocity * cylinder_axis_dir[1]);
+                     RelVel[2] = (vel[2] - CylinderVelocity * cylinder_axis_dir[2]);
 
                      // DeltDisp in global cordinates
 
-                     DeltDisp[0] = (delta_displ[0] - mCylinderVelocity * cylinder_axis_dir[0] * dt);
-                     DeltDisp[1] = (delta_displ[1] - mCylinderVelocity * cylinder_axis_dir[1] * dt);
-                     DeltDisp[2] = (delta_displ[2] - mCylinderVelocity * cylinder_axis_dir[2] * dt);
+                     DeltDisp[0] = (delta_displ[0] - CylinderVelocity * cylinder_axis_dir[0] * dt);
+                     DeltDisp[1] = (delta_displ[1] - CylinderVelocity * cylinder_axis_dir[1] * dt);
+                     DeltDisp[2] = (delta_displ[2] - CylinderVelocity * cylinder_axis_dir[2] * dt);
 
                      if (mRotationOption){
                          double velA[3]      = {0.0};
@@ -1218,11 +1238,11 @@ namespace Kratos
                          DeltDisp[2] += dRotaDisp[2] * dt;
                      }// if (mRotationOption)
                      
-                     if (mCylinderAngularVelocity != 0.0){
+                     if (CylinderAngularVelocity != 0.0){
 						 double cylinder_angular_velocity[3] = {0.0};
-						 cylinder_angular_velocity[0] = mCylinderAngularVelocity * cylinder_axis_dir[0];
-						 cylinder_angular_velocity[1] = mCylinderAngularVelocity * cylinder_axis_dir[1];
-						 cylinder_angular_velocity[2] = mCylinderAngularVelocity * cylinder_axis_dir[2];
+						 cylinder_angular_velocity[0] = CylinderAngularVelocity * cylinder_axis_dir[0];
+						 cylinder_angular_velocity[1] = CylinderAngularVelocity * cylinder_axis_dir[1];
+						 cylinder_angular_velocity[2] = CylinderAngularVelocity * cylinder_axis_dir[2];
 						 
 						 double vel_cyl[3]      = {0.0};
 						 GeometryFunctions::CrossProduct(cylinder_angular_velocity, contact_normal_dir_unit, vel_cyl);
@@ -1273,7 +1293,7 @@ namespace Kratos
                      LocalElasticContactForce[0] += - kt * LocalDeltDisp[0];  // 0: first tangential
                      LocalElasticContactForce[1] += - kt * LocalDeltDisp[1];  // 1: second tangential
 
-                     double dyn_friction_angle =  cylinder_fricc * M_PI / 180;
+                     double dyn_friction_angle =  CylinderFriction * M_PI / 180;
                      double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0] + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
                      double Frictional_ShearForceMax = tan(dyn_friction_angle) * LocalElasticContactForce[2];
 
@@ -1297,7 +1317,7 @@ namespace Kratos
                              ViscoDampingLocalContactForce[2] = - visco_damp_coeff_normal * LocalRelVel[2];
                          }
 
-                         if (sliding == false && (mDampType == 1 || mDampType == 11)){ //only applied when no sliding to help to the regularized friccion law or the spring convergence
+                         if (sliding == false && (mDampType == 1 || mDampType == 11)){ //only applied when no sliding to help to the regularized friction law or the spring convergence
                              ViscoDampingLocalContactForce[0] = - visco_damp_coeff_tangential * LocalRelVel[0];
                              ViscoDampingLocalContactForce[1] = - visco_damp_coeff_tangential * LocalRelVel[1];
                          }
@@ -1363,7 +1383,7 @@ namespace Kratos
                          RotaMoment[1] -= MA[1] * mRadius;
                          RotaMoment[2] -= MA[2] * mRadius;
 
-                         if (mRotationDampType == 2){  // Rolling friccion type
+                         if (mRotationDampType == 2){  // Rolling friction type
                              double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
                              double rolling_friction_coeff       = rolling_friction * mRadius;
 
@@ -1600,7 +1620,7 @@ namespace Kratos
                   ViscoDampingLocalContactForce[2] = - equiv_visco_damp_coeff_normal * LocalRelVel[2];
               }
 
-              if (sliding == false && (mDampType == 1 || mDampType == 11)){ //only applied when no sliding to help to the regularized friccion law or the spring convergence
+              if (sliding == false && (mDampType == 1 || mDampType == 11)){ //only applied when no sliding to help to the regularized friction law or the spring convergence
                   ViscoDampingLocalContactForce[0] = - equiv_visco_damp_coeff_tangential * LocalRelVel[0];
                   ViscoDampingLocalContactForce[1] = - equiv_visco_damp_coeff_tangential * LocalRelVel[1];
               }
@@ -1680,13 +1700,6 @@ namespace Kratos
 
               if (mRotationOption){
                   mRollingFriction           = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
-              }
-
-              if (mLimitCylinderOption){
-                  mCylinderVelocity          = rCurrentProcessInfo[CYLINDER_VELOCITY];
-                  mCylinderAngularVelocity   = rCurrentProcessInfo[CYLINDER_ANGULAR_VELOCITY];
-                  mInitialBaseCylinderCentre = rCurrentProcessInfo[INITIAL_BASE_CYLINDER_CENTRE];
-                  mCylinderAxisDir           = rCurrentProcessInfo[CYLINDER_AXIS_DIR];
               }
 
               if (mGlobalKn == 0.0){

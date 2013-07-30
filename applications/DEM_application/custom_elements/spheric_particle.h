@@ -247,10 +247,6 @@ namespace Kratos
       double mGlobalKn;
       double mGlobalKt;
       double mGlobalAuxNormToTang;
-      double mCylinderVelocity;
-      double mCylinderAngularVelocity;
-      array_1d<double, 3> mInitialBaseCylinderCentre;
-      array_1d<double, 3> mCylinderAxisDir;      
       vector<int> mOldNeighbourIds;
       vector< array_1d<double, 3> > mOldNeighbourContactForces;
       
