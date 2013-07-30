@@ -6,24 +6,17 @@
 //
 //
 
-#if !defined(KRATOS_YIELD_CRITERION_H_INCLUDED )
-#define  KRATOS_YIELD_CRITERION_H_INCLUDED
+#if !defined(KRATOS_MISES_HUBER_YIELD_CRITERION_H_INCLUDED )
+#define  KRATOS_MISES_HUBER_YIELD_CRITERION_H_INCLUDED
 
 
 
 // System includes
-#include <string>
-#include <iostream>
-
 
 // External includes
 
-
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/properties.h"
-#include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
+#include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
 
 namespace Kratos
 {
@@ -52,42 +45,32 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class YieldCriterion
+class MisesHuberYieldCriterion
+	: public YieldCriterion
 {
     public:
         ///@name Type Definitions
         ///@{
 
-        /// Pointer definition of YieldCriterion
-        KRATOS_CLASS_POINTER_DEFINITION(YieldCriterion);
+        /// Pointer definition of MisesHuberYieldCriterion
+        KRATOS_CLASS_POINTER_DEFINITION(MisesHuberYieldCriterion);
 
         ///@}
         ///@name Life Cycle
         ///@{
 
         /// Default constructor.
-        YieldCriterion()
-	{
-		KRATOS_ERROR(std::logic_error, "calling the default constructor in YieldCriterion ... illegal operation!!","");
-	};
+        MisesHuberYieldCriterion();
 
         /// Copy constructor.
-        YieldCriterion(YieldCriterion const& rOther)
-	:mpHardeningLaw(rOther.mpHardeningLaw)
-	{
-
-	};
+        MisesHuberYieldCriterion(MisesHuberYieldCriterion const& rOther);
 
         /// Assignment operator.
-        YieldCriterion& operator=(YieldCriterion const& rOther)
-	{
-		mpHardeningLaw = rOther.mpHardeningLaw;
-		return *this;
-	}
+        MisesHuberYieldCriterion& operator=(MisesHuberYieldCriterion const& rOther);
 
 
         /// Destructor.
-        virtual ~YieldCriterion() {};
+        virtual ~MisesHuberYieldCriterion();
 
 
         ///@}
@@ -98,26 +81,10 @@ class YieldCriterion
         ///@}
         ///@name Operations
         ///@{
-	void InitializeMaterial (const HardeningLaw& rHardeningLaw)
-	{
-		mpHardeningLaw = &rHardeningLaw;
-	}
 
+        double& CalculateYieldCondition(double & rStateFunction, double& rNormStress, double& rAlpha);
 
-        virtual double& CalculateYieldCondition(double & rStateFunction, double& rNormStress, double& rAlpha)
-	{
-		KRATOS_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!","");
-
-		return rStateFunction;
-	};
-
-        virtual double& CalculateYieldCondition(double & rStateFunction, Matrix& rStressMatrix, double& rAlpha)
-	{
-		KRATOS_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!","");
-
-		return rStateFunction;
-	};
-
+        double& CalculateYieldCondition(double & rStateFunction, Matrix& rStressMatrix, double& rAlpha);
 
         ///@}
         ///@name Access
@@ -159,7 +126,6 @@ class YieldCriterion
         ///@name Protected member Variables
         ///@{
 	
-	HardeningLaw* mpHardening;
 	
         ///@}
         ///@name Protected Operators
@@ -196,7 +162,7 @@ class YieldCriterion
         ///@}
         ///@name Member Variables
         ///@{
-	
+
 
         ///@}
         ///@name Private Operators
@@ -220,13 +186,9 @@ class YieldCriterion
 
 	// A private default constructor necessary for serialization
 
-	virtual void save(Serializer& rSerializer) const
-	{
-	};
+	virtual void save(Serializer& rSerializer) const;
 
-	virtual void load(Serializer& rSerializer)
-	{
-	};
+	virtual void load(Serializer& rSerializer);
 
         ///@}
         ///@name Private Inquiry
@@ -239,7 +201,7 @@ class YieldCriterion
 
         ///@}
 
-    }; // Class YieldCriterion
+    }; // Class MisesHuberYieldCriterion
 
     ///@}
 
@@ -254,11 +216,11 @@ class YieldCriterion
 
     /// input stream function
     inline std::istream& operator >> (std::istream& rIStream,
-                                      YieldCriterion& rThis);
+                                      MisesHuberYieldCriterion& rThis);
 
     /// output stream function
     inline std::ostream& operator << (std::ostream& rOStream,
-                                      const YieldCriterion& rThis)
+                                      const MisesHuberYieldCriterion& rThis)
     {
         rThis.PrintInfo(rOStream);
         rOStream << std::endl;
@@ -272,6 +234,6 @@ class YieldCriterion
 
 }  // namespace Kratos.
 
-#endif // KRATOS_YIELD_CRITERION_H_INCLUDED  defined 
+#endif // KRATOS_MISES_HUBER_YIELD_CRITERION_H_INCLUDED  defined 
 
 
