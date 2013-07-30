@@ -130,39 +130,103 @@ SurfacePointCoorZ5               = *GenData(Surface_Point_Coor_Z_5)
 SurfaceFrictionAngle5            = *GenData(Surface_Friction_Angle_5)
 LimitCylinderOption              = *GenData(Limit_Cylinder)
 *format "%10.5e"
-CylinderVelocity                 = *GenData(Cylinder_Velocity)
+CylinderAxisX1                   = *GenData(Cylinder_Axis_X_1)
 *format "%10.5e"
-CylinderAngularVelocity          = *GenData(Cylinder_Angular_Velocity)
+CylinderAxisY1                   = *GenData(Cylinder_Axis_Y_1)
 *format "%10.5e"
-CylinderInitialBaseCentreX       = *GenData(Cylinder_Initial_Base_Centre_X)
+CylinderAxisZ1                   = *GenData(Cylinder_Axis_Z_1)
 *format "%10.5e"
-CylinderInitialBaseCentreY       = *GenData(Cylinder_Initial_Base_Centre_Y)
+CylinderInitialBaseCentreX1      = *GenData(Cylinder_Initial_Base_Centre_X_1)
 *format "%10.5e"
-CylinderInitialBaseCentreZ       = *GenData(Cylinder_Initial_Base_Centre_Z)
+CylinderInitialBaseCentreY1      = *GenData(Cylinder_Initial_Base_Centre_Y_1)
 *format "%10.5e"
-CylinderAxisX                    = *GenData(Cylinder_Axis_X)
-*format "%10.5e"
-CylinderAxisY                    = *GenData(Cylinder_Axis_Y)
-*format "%10.5e"
-CylinderAxisZ                    = *GenData(Cylinder_Axis_Z)
+CylinderInitialBaseCentreZ1      = *GenData(Cylinder_Initial_Base_Centre_Z_1)
 *format "%10.5e"
 CylinderRadius1                  = *GenData(Cylinder_Radius_1)
 *format "%10.5e"
+CylinderVelocity1                = *GenData(Cylinder_Velocity_1)
+*format "%10.5e"
+CylinderAngularVelocity1         = *GenData(Cylinder_Angular_Velocity_1)
+*format "%10.5e"
 CylinderFrictionAngle1           = *GenData(Cylinder_Friction_Angle_1)
+*format "%10.5e"
+CylinderAxisX2                   = *GenData(Cylinder_Axis_X_2)
+*format "%10.5e"
+CylinderAxisY2                   = *GenData(Cylinder_Axis_Y_2)
+*format "%10.5e"
+CylinderAxisZ2                   = *GenData(Cylinder_Axis_Z_2)
+*format "%10.5e"
+CylinderInitialBaseCentreX2      = *GenData(Cylinder_Initial_Base_Centre_X_2)
+*format "%10.5e"
+CylinderInitialBaseCentreY2      = *GenData(Cylinder_Initial_Base_Centre_Y_2)
+*format "%10.5e"
+CylinderInitialBaseCentreZ2      = *GenData(Cylinder_Initial_Base_Centre_Z_2)
 *format "%10.5e"
 CylinderRadius2                  = *GenData(Cylinder_Radius_2)
 *format "%10.5e"
+CylinderVelocity2                = *GenData(Cylinder_Velocity_2)
+*format "%10.5e"
+CylinderAngularVelocity2         = *GenData(Cylinder_Angular_Velocity_2)
+*format "%10.5e"
 CylinderFrictionAngle2           = *GenData(Cylinder_Friction_Angle_2)
+*format "%10.5e"
+CylinderAxisX3                   = *GenData(Cylinder_Axis_X_3)
+*format "%10.5e"
+CylinderAxisY3                   = *GenData(Cylinder_Axis_Y_3)
+*format "%10.5e"
+CylinderAxisZ3                   = *GenData(Cylinder_Axis_Z_3)
+*format "%10.5e"
+CylinderInitialBaseCentreX3      = *GenData(Cylinder_Initial_Base_Centre_X_3)
+*format "%10.5e"
+CylinderInitialBaseCentreY3      = *GenData(Cylinder_Initial_Base_Centre_Y_3)
+*format "%10.5e"
+CylinderInitialBaseCentreZ3      = *GenData(Cylinder_Initial_Base_Centre_Z_3)
 *format "%10.5e"
 CylinderRadius3                  = *GenData(Cylinder_Radius_3)
 *format "%10.5e"
+CylinderVelocity3                = *GenData(Cylinder_Velocity_3)
+*format "%10.5e"
+CylinderAngularVelocity3         = *GenData(Cylinder_Angular_Velocity_3)
+*format "%10.5e"
 CylinderFrictionAngle3           = *GenData(Cylinder_Friction_Angle_3)
+*format "%10.5e"
+CylinderAxisX4                   = *GenData(Cylinder_Axis_X_4)
+*format "%10.5e"
+CylinderAxisY4                   = *GenData(Cylinder_Axis_Y_4)
+*format "%10.5e"
+CylinderAxisZ4                   = *GenData(Cylinder_Axis_Z_4)
+*format "%10.5e"
+CylinderInitialBaseCentreX4      = *GenData(Cylinder_Initial_Base_Centre_X_4)
+*format "%10.5e"
+CylinderInitialBaseCentreY4      = *GenData(Cylinder_Initial_Base_Centre_Y_4)
+*format "%10.5e"
+CylinderInitialBaseCentreZ4      = *GenData(Cylinder_Initial_Base_Centre_Z_4)
 *format "%10.5e"
 CylinderRadius4                  = *GenData(Cylinder_Radius_4)
 *format "%10.5e"
+CylinderVelocity4                = *GenData(Cylinder_Velocity_4)
+*format "%10.5e"
+CylinderAngularVelocity4         = *GenData(Cylinder_Angular_Velocity_4)
+*format "%10.5e"
 CylinderFrictionAngle4           = *GenData(Cylinder_Friction_Angle_4)
 *format "%10.5e"
+CylinderAxisX5                   = *GenData(Cylinder_Axis_X_5)
+*format "%10.5e"
+CylinderAxisY5                   = *GenData(Cylinder_Axis_Y_5)
+*format "%10.5e"
+CylinderAxisZ5                   = *GenData(Cylinder_Axis_Z_5)
+*format "%10.5e"
+CylinderInitialBaseCentreX5      = *GenData(Cylinder_Initial_Base_Centre_X_5)
+*format "%10.5e"
+CylinderInitialBaseCentreY5      = *GenData(Cylinder_Initial_Base_Centre_Y_5)
+*format "%10.5e"
+CylinderInitialBaseCentreZ5      = *GenData(Cylinder_Initial_Base_Centre_Z_5)
+*format "%10.5e"
 CylinderRadius5                  = *GenData(Cylinder_Radius_5)
+*format "%10.5e"
+CylinderVelocity5                = *GenData(Cylinder_Velocity_5)
+*format "%10.5e"
+CylinderAngularVelocity5         = *GenData(Cylinder_Angular_Velocity_5)
 *format "%10.5e"
 CylinderFrictionAngle5           = *GenData(Cylinder_Friction_Angle_5)
 
