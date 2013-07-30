@@ -5,46 +5,51 @@ import os
 from ctypes import *
 CheckForPreviousImport()
 
-# guelle
-
 class EmpireWrapper:
 
     def __init__(self,fluid_model_part):
-        self.interfaceDisplacementU = (c_double * 7)(0)
         self.isConvergent = 0
-	self.size = 7
         self.libempire_api = cdll.LoadLibrary(os.environ['EMPIRE_API_LIBSO_ON_MACHINE'])
-	self.ale_wrapper_process = ALEWrapperProcess(fluid_model_part)	
+	self.interface_model_part = ModelPart("InterfaceModelPart");   
+	self.ale_wrapper_process = ALEWrapperProcess(fluid_model_part,self.interface_model_part)	
+
+    def initialize(self):
+	self.ale_wrapper_process.ExtractInterface()
+	print "extracted interface"
 
     def recvDisplacement(self): 
-        self.libempire_api.EMPIRE_API_recvSignal_double("interfaceDisplacementU", self.size, self.interfaceDisplacementU)
+	size = self.interface_model_part.GetNodes().Size() * 3
+	c_displacements = (c_double * size)(0)	
+	self.libempire_api.EMPIRE_API_recvDataField("defaultField", size, c_displacements)
 
-        print "Received Displacement:"
-        print 'Received interfaceDisplacementU: {}'.format(self.interfaceDisplacementU[3])
+	#self.ale_wrapper_process.AssignDisplacementsToModelPart( disp )
 
     def sendForces(self):
-        #self.interfaceForceY[0] = 200
-	forces_X = []
-	forces_Y = []
-	forces_Z = []
-	self.ale_wrapper_process.ExtractForcesFromModelPart( forces_X , forces_Y , forces_Z )
+	forces = []
+	self.ale_wrapper_process.ExtractForcesFromModelPart( forces )
 
-	interfaceForceY = (c_double * len(forces_X))(*forces_X)
-        self.libempire_api.EMPIRE_API_sendSignal_double("interfaceForceY", self.size, interfaceForceY)
-        #print 'Sent interfaceForceY: {}'.format(interfaceForceY[0])
+	c_forces = (c_double * len(forces))(*forces)
+	c_size = len(c_forces)
+	self.libempire_api.EMPIRE_API_sendDataField("defaultField", c_size , c_forces)
 
     def sendMesh(self):
+	numNodes 	= []
+	numElems 	= []
+	nodes 		= []
+	nodeIDs 	= []
+	numNodesPerElem = []
+	elems 		= []
 
- 	#* \param[in] numNodes number of nodes
- 	#* \param[in] numElems number of elements
- 	#* \param[in] nodes coordinates of all nodes
- 	#* \param[in] nodeIDs IDs of all nodes
- 	#* \param[in] numNodesPerElem number of nodes per element
- 	#* \param[in] elems connectivity table of all elements
-	print "send Mesh"
-	#FillArrays(fluid_model_part,structure_model_part,numNodes,numElems,nodes,nodeIDs,numNodesPerElem,elems)
+	self.ale_wrapper_process.ExtractMeshInfo(numNodes,numElems,nodes,nodeIDs,numNodesPerElem,elems)
 
-	#self.libempire_api.EMPIRE_API_sendMesh(int numNodes, int numElems, double *nodes, int *nodeIDs,int *numNodesPerElem, int *elems)
+	c_numNodes = (c_int * len(numNodes))(*numNodes)
+	c_numElems = (c_int * len(numElems))(*numElems)
+	c_nodes = (c_double * len(nodes))(*nodes)
+	c_nodeIDs = (c_int * len(nodeIDs))(*nodeIDs)
+	c_numNodesPerElem = (c_int * len(numNodesPerElem))(*numNodesPerElem)
+	c_elems = (c_int * len(elems))(*elems)	
+
+	self.libempire_api.EMPIRE_API_sendMesh("defaultMesh",c_numNodes[0], c_numElems[0], c_nodes, c_nodeIDs, c_numNodesPerElem, c_elems)
 
     def recvConvergenceSignal(self):
 	self.isConvergent = self.libempire_api.EMPIRE_API_recvConvergenceSignal()
