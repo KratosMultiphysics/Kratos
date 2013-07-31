@@ -138,7 +138,7 @@ namespace Kratos
                   ;
                     
           class_<DemSearchType, bases<SpatialSearch>, boost::noncopyable>
-                    ("OMP_DEMSearch", init< >())
+                    ("OMP_DEMSearch", init<>())
                     ;
         
           typedef ExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType > ExplicitSolverStrategyType;

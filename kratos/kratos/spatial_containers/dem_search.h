@@ -75,41 +75,79 @@ class DEMSearch : public SpatialSearch
       ///@{
         
       void SearchElementsInRadiusExclusive (
-          ModelPart& rModelPart,
+          ElementsContainerType const& StructureElements,
           ElementsContainerType const& InputElements,
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
       {     
-          static_cast<TDerived*>(this)->SearchElementsInRadiusExclusiveImplementation(rModelPart,InputElements,Radius,rResults,rResultsDistance);
+          static_cast<TDerived*>(this)->SearchElementsInRadiusExclusiveImplementation(StructureElements,InputElements,Radius,rResults,rResultsDistance);
       }
       
       void SearchElementsInRadiusInclusive (
-          ModelPart& rModelPart,
+          ElementsContainerType const& StructureElements,
           ElementsContainerType const& InputElements,
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
       {     
-          static_cast<TDerived*>(this)->SearchElementsInRadiusInclusiveImplementation(rModelPart,InputElements,Radius,rResults,rResultsDistance);
+          static_cast<TDerived*>(this)->SearchElementsInRadiusInclusiveImplementation(StructureElements,InputElements,Radius,rResults,rResultsDistance);
       }
       
       void SearchElementsInRadiusExclusive (
-          ModelPart& rModelPart,
+          ElementsContainerType const& StructureElements,
           ElementsContainerType const& InputElements,
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults )
       {     
-          static_cast<TDerived*>(this)->SearchElementsInRadiusExclusiveImplementation(rModelPart,InputElements,Radius,rResults);
+          static_cast<TDerived*>(this)->SearchElementsInRadiusExclusiveImplementation(StructureElements,InputElements,Radius,rResults);
       }
       
       void SearchElementsInRadiusInclusive (
-          ModelPart& rModelPart,
+          ElementsContainerType const& StructureElements,
           ElementsContainerType const& InputElements,
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults )
       {     
-          static_cast<TDerived*>(this)->SearchElementsInRadiusInclusiveImplementation(rModelPart,InputElements,Radius,rResults);
+          static_cast<TDerived*>(this)->SearchElementsInRadiusInclusiveImplementation(StructureElements,InputElements,Radius,rResults);
+      }
+      
+      void SearchNodesInRadiusExclusive (
+          NodesContainerType const& StructureNodes,
+          NodesContainerType const& InputNodes,
+          const RadiusArrayType & Radius,
+          VectorResultNodesContainerType& rResults,
+          VectorDistanceType& rResultsDistance )
+      {
+          static_cast<TDerived*>(this)->SearchNodesInRadiusExclusiveImplementation(StructureNodes,InputNodes,Radius,rResults,rResultsDistance);
+      }
+      
+      void SearchNodesInRadiusInclusive (
+          NodesContainerType const& StructureNodes,
+          NodesContainerType const& InputNodes,
+          const RadiusArrayType & Radius,
+          VectorResultNodesContainerType& rResults,
+          VectorDistanceType& rResultsDistance )
+      {
+          static_cast<TDerived*>(this)->SearchNodesInRadiusInclusiveImplementation(StructureNodes,InputNodes,Radius,rResults,rResultsDistance);
+      }
+      
+      void SearchNodesInRadiusExclusive (
+          NodesContainerType const& StructureNodes,
+          NodesContainerType const& InputNodes,
+          const RadiusArrayType & Radius,
+          VectorResultNodesContainerType& rResults )
+      {
+          static_cast<TDerived*>(this)->SearchNodesInRadiusExclusiveImplementation(StructureNodes,InputNodes,Radius,rResults);
+      }
+      
+      void SearchNodesInRadiusInclusive (
+          NodesContainerType const& StructureNodes,
+          NodesContainerType const& InputNodes,
+          const RadiusArrayType & Radius,
+          VectorResultNodesContainerType& rResults )
+      {
+          static_cast<TDerived*>(this)->SearchNodesInRadiusInclusiveImplementation(StructureNodes,InputNodes,Radius,rResults);
       }
         
       ///@}
