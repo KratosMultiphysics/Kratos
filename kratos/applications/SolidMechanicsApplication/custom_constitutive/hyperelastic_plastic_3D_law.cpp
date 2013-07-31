@@ -432,7 +432,6 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
       this->CalculateIsochoricStress( ElasticVariables, ReturnMappingVariables, StressMeasure_Kirchhoff, SplitStressVector.Isochoric );
 
-    Vector IsochoricStressVector = SplitStressVector.Isochoric;
 
     //OPTION 1:
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
@@ -473,7 +472,7 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
 
         ElasticVariables.CauchyGreenMatrix = ElasticVariables.IdentityMatrix;
 
-        this->CalculateIsochoricConstitutiveMatrix ( ElasticVariables, IsochoricStressVector, SplitConstitutiveMatrix.Isochoric );
+        this->CalculateIsochoricConstitutiveMatrix ( ElasticVariables, ReturnMappingVariables.TrialIsoStressVector, SplitConstitutiveMatrix.Isochoric );
 
         this->CalculateVolumetricConstitutiveMatrix ( ElasticVariables, DomainGeometry, ShapeFunctions, SplitConstitutiveMatrix.Volumetric );
 
@@ -632,7 +631,7 @@ void HyperElasticPlastic3DLaw::FinalizeMaterialResponseCauchy (Parameters& rValu
 
 
 void HyperElasticPlastic3DLaw::CalculateIsochoricStress( const MaterialResponseVariables & rElasticVariables,
-							 const Properties& rProperties,
+							 FlowRule::RadialReturnVariables & rReturnMappingVariables,
 							 StressMeasure rStressMeasure,
 							 Vector& rIsoStressVector )
 {
@@ -667,7 +666,10 @@ void HyperElasticPlastic3DLaw::CalculateIsochoricStress( const MaterialResponseV
 
     }
 
-    rElasticVariables.Plasticity = mpFlowRule.CalculateReturnMapping( IsoStressMatrix, rElasticVariables.traceCG );
+    rReturnMappingVariables.TrialIsoStressVector = MathUtils<double>::StressTensorToVector(IsoStressMatrix,rIsoStressVector.size());
+
+
+    rElasticVariables.Plasticity = mpFlowRule.CalculateReturnMapping( rReturnMappingVariables, IsoStressMatrix );
 
     
     rIsoStressVector = MathUtils<double>::StressTensorToVector(IsoStressMatrix,rIsoStressVector.size());
@@ -809,8 +811,8 @@ void HyperElasticPlastic3DLaw::CalculateVolumetricConstitutiveMatrix ( const Mat
 //************************************************************************************
 
 void HyperElasticPlastic3DLaw::CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
-        const Vector & rIsoStressVector,
-        Matrix& rConstitutiveMatrix)
+								   FlowRule::RadialReturnVariables & rReturnMappingVariables,
+								   Matrix& rConstitutiveMatrix)
 {
 
     rConstitutiveMatrix.clear();
@@ -818,7 +820,7 @@ void HyperElasticPlastic3DLaw::CalculatePlasticConstitutiveMatrix (const Materia
     Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rIsoStressVector );
 
     FlowRule::PlasticFactors ScalingFactors;
-    mpFlowRule.CalculateScalingFactors( IsoStressMatrix, rElasticVariables.traceCG, ScalingFactors );
+    mpFlowRule.CalculateScalingFactors( rReturnMappingVariables, ScalingFactors );
 
     static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
 

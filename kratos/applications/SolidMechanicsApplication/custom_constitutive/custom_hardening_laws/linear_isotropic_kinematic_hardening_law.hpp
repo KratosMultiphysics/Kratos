@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOSNON_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED )
-#define  KRATOS_NON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED
+#if !defined(KRATOSNON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED )
+#define  KRATOS_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED
 
 
 
@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/non_linear_isotropic_kinematic_hardening_law.hpp"
 
 namespace Kratos
 {
@@ -45,32 +45,32 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class NonLinearIsotropicKinematicHardeningLaw 
-	: public HardeningLaw
+class LinearIsotropicKinematicHardeningLaw 
+	: public NonLinearIsotropicKinematicHardeningLaw
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of NonLinearIsotropicKinematicHardeningLaw
-    KRATOS_CLASS_POINTER_DEFINITION(NonLinearIsotropicKinematicHardeningLaw);
+    /// Pointer definition of LinearIsotropicKinematicHardeningLaw
+    KRATOS_CLASS_POINTER_DEFINITION(LinearIsotropicKinematicHardeningLaw);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    NonLinearIsotropicKinematicHardeningLaw();
+    LinearIsotropicKinematicHardeningLaw();
 
 
     /// Copy constructor.
-    NonLinearIsotropicKinematicHardeningLaw(NonLinearIsotropicKinematicHardeningLaw const& rOther);
+    LinearIsotropicKinematicHardeningLaw(LinearIsotropicKinematicHardeningLaw const& rOther);
 
     /// Assignment operator.
-    NonLinearIsotropicKinematicHardeningLaw& operator=(NonLinearIsotropicKinematicHardeningLaw const& rOther);
+    LinearIsotropicKinematicHardeningLaw& operator=(LinearIsotropicKinematicHardeningLaw const& rOther);
 
     /// Destructor.
-    ~NonLinearIsotropicKinematicHardeningLaw();
+    ~LinearIsotropicKinematicHardeningLaw();
 
     ///@}
     ///@name Operators
@@ -81,17 +81,15 @@ public:
     ///@name Operations
     ///@{
 
-    virtual double& CalculateHardening(double &Hardening, const double & rAlpha);
-  
-    virtual double& CalculateIsotropicHardening(double &IsotropicHardening, const double & rAlpha);
+    double& CalculateHardening(double &Hardening, const double & rAlpha);
+	
+    double& CalculateIsotropicHardening(double &IsotropicHardening, const double & rAlpha);
 
-    double& CalculateKinematicHardening(double &KinematicHardening, const double & rAlpha);
 
-    virtual double& CalculateDeltaHardening(double &DeltaHardening, const double & rAlpha);
+    double& CalculateDeltaHardening(double &DeltaHardening, const double & rAlpha);
 
-    virtual double& CalculateDeltaIsotropicHardening(double &DeltaIsotropicHardening, const double & rAlpha);
+    double& CalculateDeltaIsotropicHardening(double &DeltaIsotropicHardening, const double & rAlpha);
 
-    double& CalculateDeltaKinematicHardening(double &DeltaKinematicHardening, const double & rAlpha);
 
     ///@}
     ///@name Access
@@ -170,11 +168,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    /**
-     * Pure isotropic hardening Theta=1;  pure kinematic hardening Theta= 0; combined isotropic-kinematic 0<Theta<1
-     */
-
-    double mTheta; 
 	
     ///@}
     ///@name Private Operators
@@ -213,7 +206,7 @@ private:
 
     ///@}
 
-}; // Class NonLinearIsotropicKinematicHardeningLaw
+}; // Class LinearIsotropicKinematicHardeningLaw
 
 ///@}
 
@@ -228,11 +221,11 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  NonLinearIsotropicKinematicHardeningLaw& rThis);
+                                  LinearIsotropicKinematicHardeningLaw& rThis);
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const NonLinearIsotropicKinematicHardeningLaw& rThis)
+                                  const LinearIsotropicKinematicHardeningLaw& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

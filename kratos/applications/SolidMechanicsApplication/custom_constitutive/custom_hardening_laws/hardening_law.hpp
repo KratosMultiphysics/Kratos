@@ -95,18 +95,18 @@ public:
 		return *mpProperties;
 	}
 
-    virtual double& CalculateHardening(double &Hardening, double & rAlpha){};
+    virtual double& CalculateHardening(double &Hardening, const double & rAlpha){};
   
-    virtual double& CalculateIsotropicHardening(double &IsotropicHardening, double & rAlpha){};
+    virtual double& CalculateIsotropicHardening(double &IsotropicHardening, const double & rAlpha){};
 
-    virtual double& CalculateKinematicHardening(double &KinematicHardening, double & rAlpha){};
+    virtual double& CalculateKinematicHardening(double &KinematicHardening, const double & rAlpha){};
 
 
-    virtual double& CalculateDeltaHardening(double &DeltaHardening, double & rAlpha){};
+    virtual double& CalculateDeltaHardening(double &DeltaHardening, const double & rAlpha){};
 
-    virtual double& CalculateDeltaIsotropicHardening(double &DeltaIsotropicHardening, double & rAlpha){};
+    virtual double& CalculateDeltaIsotropicHardening(double &DeltaIsotropicHardening, const double & rAlpha){};
 
-    virtual double& CalculateDeltaKinematicHardening(double &DeltaKinematicHardening, double & rAlpha){};
+    virtual double& CalculateDeltaKinematicHardening(double &DeltaKinematicHardening, const double & rAlpha){};
 
     ///@}
     ///@name Access

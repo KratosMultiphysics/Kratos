@@ -82,10 +82,14 @@ class MisesHuberYieldCriterion
         ///@name Operations
         ///@{
 
-        double& CalculateYieldCondition(double & rStateFunction, double& rNormStress, double& rAlpha);
+        double& CalculateYieldCondition(double & rStateFunction, const double& rNormStress, const double& rAlpha);
 
-        double& CalculateYieldCondition(double & rStateFunction, Matrix& rStressMatrix, double& rAlpha);
+        double& CalculateYieldCondition(double & rStateFunction, const Matrix& rStressMatrix, const double& rAlpha);
 
+
+	double& CalculateStateFunction(double & rStateFunction,const double& rNormStress, const &DeltaGamma, const double& LameMu_bar, const double& rAlpha, const double& rAlphaOld);
+
+	double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const double& LameMu_bar, const double& rAlpha);
         ///@}
         ///@name Access
         ///@{

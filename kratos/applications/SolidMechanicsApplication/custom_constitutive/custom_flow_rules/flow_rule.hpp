@@ -73,6 +73,8 @@ namespace Kratos
 
     struct RadialReturnVariables
     {
+      Vector TrialIsoStressVector;
+
       double NormIsochoricStress;
       double TrialStateFunction;
 
@@ -166,7 +168,7 @@ namespace Kratos
     };
 
 
-    virtual void CalculateScalingFactors(RadialReturnVariables& rReturnMappingVariables, const Matrix & rIsoStressMatrix, PlasticFactors& rScalingFactors )
+    virtual void CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors )
     {
 	    KRATOS_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
     };
