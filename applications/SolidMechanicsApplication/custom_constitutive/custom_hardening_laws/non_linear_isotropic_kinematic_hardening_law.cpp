@@ -69,7 +69,7 @@ NonLinearIsotropicKinematicHardeningLaw::~NonLinearIsotropicKinematicHardeningLa
 //*******************************CALCULATE TOTAL HARDENING****************************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateHardening(double &Hardening, double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateHardening(double &Hardening,const double & rAlpha)
 {
 	
 	//linear hardening properties
@@ -94,7 +94,7 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateHardening(double &Hard
 //*******************************CALCULATE ISOTROPIC HARDENING************************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateIsotropicHardening(double &IsotropicHardening, double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateIsotropicHardening(double &IsotropicHardening,const double & rAlpha)
 {
 
 	//linear hardening properties
@@ -120,7 +120,7 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateIsotropicHardening(dou
 //*******************************CALCULATE KINEMATIC HARDENING************************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateKinematicHardening(double &KinematicHardening, double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateKinematicHardening(double &KinematicHardening,const double & rAlpha)
 {
 	//linear hardening properties
 	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING];
@@ -136,7 +136,7 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateKinematicHardening(dou
 //*******************************CALCULATE HARDENING DERIVATIVE***********************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaHardening(double &DeltaHardening, double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaHardening(double &DeltaHardening,const double & rAlpha)
 {
       	//linear hardening properties
 	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING];
@@ -158,7 +158,7 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaHardening(double 
 //***************************CALCULATE ISOTROPIC HARDENING DERIVATIVE*****************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaIsotropicHardening(double &DeltaIsotropicHardening, double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaIsotropicHardening(double &DeltaIsotropicHardening,const double & rAlpha)
 {
        	//linear hardening properties
 	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING];
@@ -182,7 +182,7 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaIsotropicHardenin
 //***************************CALCULATE KINEMATIC HARDENING DERIVATIVE*****************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaKinematicHardening(double &DeltaKinematicHardening, double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaKinematicHardening(double &DeltaKinematicHardening,const double & rAlpha)
 {
 	DeltaKinematicHardening = 0;
 

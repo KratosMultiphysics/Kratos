@@ -104,20 +104,34 @@ class YieldCriterion
 	}
 
 
-        virtual double& CalculateYieldCondition(double & rStateFunction, double& rNormStress, double& rAlpha)
+        virtual double& CalculateYieldCondition(double & rStateFunction, const double& rNormStress, const double& rAlpha)
 	{
 		KRATOS_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!","");
 
 		return rStateFunction;
 	};
 
-        virtual double& CalculateYieldCondition(double & rStateFunction, Matrix& rStressMatrix, double& rAlpha)
+        virtual double& CalculateYieldCondition(double & rStateFunction, const Matrix& rStressMatrix, const double& rAlpha)
 	{
 		KRATOS_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!","");
 
 		return rStateFunction;
 	};
 
+
+	double& CalculateStateFunction(double & rStateFunction,const double& rNormStress, const &DeltaGamma, const double& LameMu_bar, const double& rAlpha, const double& rAlphaOld)
+	{
+		KRATOS_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!","");
+
+		return rStateFunction;
+	};
+
+	double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const double& LameMu_bar, const double& rAlpha)
+	{
+		KRATOS_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!","");
+
+		return rStateFunction;
+	};
 
         ///@}
         ///@name Access

@@ -286,6 +286,7 @@ protected:
      * @param rIsoStressVector vector where the stress result is stored
      */
     virtual void CalculateIsochoricStress( const MaterialResponseVariables & rElasticVariables,
+					   FlowRule::RadialReturnVariables & rReturnMappingVariables,
                                            StressMeasure rStressMeasure,
                                            Vector& rIsoStressVector);
 

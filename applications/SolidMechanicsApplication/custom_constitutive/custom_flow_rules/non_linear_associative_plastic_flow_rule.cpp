@@ -25,7 +25,7 @@ namespace Kratos
 //*******************************CONSTRUCTOR******************************************
 //************************************************************************************
 
-AssociativePlasticFlowRule::AssociativePlasticFlowRule()
+NonLinearAssociativePlasticFlowRule::NonLinearAssociativePlasticFlowRule()
 	:FlowRule()
 {
    
@@ -35,7 +35,7 @@ AssociativePlasticFlowRule::AssociativePlasticFlowRule()
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
 
-AssociativePlasticFlowRule& AssociativePlasticFlowRule::operator=(AssociativePlasticFlowRule const& rOther)
+NonLinearAssociativePlasticFlowRule& NonLinearAssociativePlasticFlowRule::operator=(NonLinearAssociativePlasticFlowRule const& rOther)
 {
    FlowRule::operator=(rOther);
    return *this;
@@ -44,8 +44,8 @@ AssociativePlasticFlowRule& AssociativePlasticFlowRule::operator=(AssociativePla
 //*******************************COPY CONSTRUCTOR*************************************
 //************************************************************************************
 
-AssociativePlasticFlowRule::AssociativePlasticFlowRule(AssociativePlasticFlowRule const& rOther)
-	:HardeningLaw(rOther)
+NonLinearAssociativePlasticFlowRule::NonLinearAssociativePlasticFlowRule(NonLinearAssociativePlasticFlowRule const& rOther)
+	:FlowRule(rOther)
 {
 
 }
@@ -54,7 +54,7 @@ AssociativePlasticFlowRule::AssociativePlasticFlowRule(AssociativePlasticFlowRul
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 
-AssociativePlasticFlowRule::~AssociativePlasticFlowRule()
+NonLinearAssociativePlasticFlowRule::~NonLinearAssociativePlasticFlowRule()
 {
 }
 
@@ -64,7 +64,7 @@ AssociativePlasticFlowRule::~AssociativePlasticFlowRule()
 //***************************CALCULATE STRESS NORM ***********************************
 //************************************************************************************
 
-double& AssociativePlasticFlowRule::CalculateNormStress ( Matrix & rStressMatrix, double& rNormStress )
+double& NonLinearAssociativePlasticFlowRule::CalculateNormStress ( Matrix & rStressMatrix, double& rNormStress )
 {
 	  
 	rNormStress = sqrt(rStressMatrix( 0 , 0 )*rStressMatrix( 0 , 0 )+
@@ -81,7 +81,7 @@ double& AssociativePlasticFlowRule::CalculateNormStress ( Matrix & rStressMatrix
 //************************************************************************************
 
 
-bool AssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix )
+bool NonLinearAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix )
 {
 	  
 	//0.- Initialize Variables
@@ -121,31 +121,24 @@ bool AssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVariables& 
 //************************************************************************************
 
 
-bool AssociativePlasticFlowRule::CalculateConstistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables )
+bool NonLinearAssociativePlasticFlowRule::CalculateConstistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables )
 {
 	//Set convergence parameters
 	unsigned int iter    = 0;
 	double Tolerance     = 1e-5;
 	double MaxIterations = 50;
 
-	//Initialize Parameters used in the determination of the Delta Plastic Strain
-	double KinematicHardening = 0;
-	double IsotropicHardening = 0;
-
-	double DeltaKinematicHardening = 0;
-	double DeltaIsotropicHardening = 0;
-
 	//start
 	double DeltaStateFunction = 0;
 	rReturnMappingVariables.DeltaGamma    = 0;
 
 	double StateFunction                  = rReturnMappingVariables.TrialStateFunction;
-	double InitialEquivalentPlasticStrain = rPlasticVariables.EquivalentPlasticStrain ;
+	double InitialEquivalentPlasticStrain = rPlasticVariables.EquivalentPlasticStrain;
    
 	while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
 	{
 		//Calculate Delta State Function:
-		DeltaStateFunction = mpYieldCriterion->CalculateStateFunction( DeltaStateFunction, rReturnMappingVariables.LameMu_bar, rPlasticVariables.EquivalentPlasticStrain );
+		DeltaStateFunction = mpYieldCriterion->CalculateDeltaStateFunction( DeltaStateFunction, rReturnMappingVariables.LameMu_bar, rPlasticVariables.EquivalentPlasticStrain );
 
 		//Calculate DeltaGamma:
 		DeltaDeltaGamma  = StateFunction/DeltaStateFunction;
@@ -172,7 +165,7 @@ bool AssociativePlasticFlowRule::CalculateConstistencyCondition( RadialReturnVar
 //***************************UPDATE STRESS CONFIGURATION *****************************
 //************************************************************************************
 
-void AssociativePlasticFlowRule::UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix )
+void NonLinearAssociativePlasticFlowRule::UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix )
 {
 	//Back Stress update
         
@@ -191,7 +184,7 @@ void AssociativePlasticFlowRule::UpdateConfiguration( RadialReturnVariables& rRe
 //***************************UPDATE INTERNAL VARIABLES********************************
 //************************************************************************************
 
-bool AssociativePlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables )
+bool NonLinearAssociativePlasticFlowRule::UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables )
 {
 	
 	//mInternalVariables.EquivalentPlasticStrainOld  = PlasticVariables.EquivalentPlasticStrain;
@@ -208,24 +201,15 @@ bool AssociativePlasticFlowRule::UpdateInternalVariables( RadialReturnVariables&
 //**************CALCULATE SCALING FACTORS FOR THE ELASTO PLASTIC MODULI***************
 //************************************************************************************
 
-void AssociativePlasticFlowRule::CalculateScalingFactors( RadialReturnVariables& rReturnMappingVariables, const Matrix & rIsoStressMatrix, PlasticFactors& rScalingFactors )
+void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors )
 {
 	
 	//1.-Identity build
 	Matrix IdentityMatrix  = identity_matrix<double> (3);
 
-	//3.-Particular Parameters
-	double YieldStress           =  GetProperties()[YIELD_STRESS];
-	double KinematicHardening    =  GetProperties()[KINEMATIC_HARDENING];
-	double Delta                 =  GetProperties()[HARDENING_EXPONENT];
-	double K_reference           =  GetProperties()[REFERENCE_HARDENING];
-	double K_infinity            =  GetProperties()[INFINITY_HARDENING];
-
-	const double& YoungModulus       = GetProperties()[YOUNG_MODULUS];
-	const double& PoissonCoefficient = GetProperties()[POISSON_RATIO];
 		
-	//1.-Auxiliar matrices
-	rScalingFactors.Normal      = rIsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
+	//2.-Auxiliar matrices
+	rScalingFactors.Normal      = rReturnMappingVariables.TrialIsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
 
 	Matrix Norm_Normal          = prod( rScalingFactors.Normal, trans(rScalingFactors.Normal) );
 	double Trace_Norm_Normal    = Norm_Normal( 0, 0 ) + Norm_Normal( 1, 1 ) + Norm_Normal( 2, 2 );
@@ -234,7 +218,7 @@ void AssociativePlasticFlowRule::CalculateScalingFactors( RadialReturnVariables&
 	rScalingFactors.Dev_Normal -= (1.0/3.0) * Trace_Norm_Normal * IdentityMatrix;
 
 
-	//2.-Auxiliar constants
+	//3.-Auxiliar constants
 	double EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrain + sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
 	double DeltaHardening = 0;
 	DeltaHardening = mpHardeningLaw->CalculateDeltaHardening( DeltaHardening, EquivalentPlasticStrain );
@@ -253,12 +237,12 @@ void AssociativePlasticFlowRule::CalculateScalingFactors( RadialReturnVariables&
 
 
 
-void AssociativePlasticFlowRule::save( Serializer& rSerializer ) const
+void NonLinearAssociativePlasticFlowRule::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FlowRule );
 }
 
-void AssociativePlasticFlowRule::load( Serializer& rSerializer )
+void NonLinearAssociativePlasticFlowRule::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FlowRule );
 }
