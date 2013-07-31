@@ -245,7 +245,7 @@ namespace Kratos
         double mInitialPressureTime;
         double mFinalPressureTime;
         double mFinalSimulationTime;
-        
+     
         int* mpCaseOption;
         int  mFailureId;
         int*  mSkinSphere;
@@ -276,6 +276,7 @@ namespace Kratos
         vector<int> mIniNeighbourFailureId;
         vector<int> mNeighbourFailureId;
         vector<int> mMapping_New_Ini;
+        Vector mHistDist;
         
        
                    
