@@ -337,7 +337,8 @@ namespace Kratos
             double equiv_radius                   = 2 * mRadius * other_radius * radius_sum_i;
             
             double initial_delta                  = mNeighbourDelta[i_neighbour_count]; //*
-            double indentation                    = (radius_sum - initial_delta) - distance;   //#1
+            double initial_dist                   = (radius_sum - initial_delta);
+            double indentation                    = initial_dist - distance;   //#1
             double equiv_area                     = 0.25*M_PI * equiv_radius * equiv_radius; //#2 
             double corrected_area                 = equiv_area;
             double equiv_mass                     = mSqrtOfRealMass * other_sqrt_of_mass;
@@ -445,15 +446,96 @@ namespace Kratos
             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, RelVel, LocalRelVel);
             
             /* Translational Forces */
-          
+
             if  (indentation > 0.0 || (mNeighbourFailureId[i_neighbour_count] == 0) )//*  //#3
             {                                                                                                
               
               //Normal Forces
+
+
+//              if(mElasticityType < 2)
+//              {
+//                    NormalForceCalculation(LocalElasticContactForce,kn,indentation,mElasticityType);
+//              }
+
+//              else if(mElasticityType==3)
+//              {
+//                   double current_def            = (initial_dist - distance)/initial_dist ;
+//                   double kn1                    = kn;
+//                   double kn2                    = kn1 * mGamma3 + kn1 * mGamma1 * exp(mGamma2 * (current_def - mMaxDef));
+//                          if (kn2 > kn1) {
+//                              kn2                = kn1;
+//                          };
+//                   double max_dist               = initial_dist * (1 - mMaxDef);
+
+//                  NonlinearNormalForceCalculation (LocalElasticContactForce, kn1, kn2, distance, max_dist, initial_dist);
+//              }
+
+
+
+
+
+
+              else if(mElasticityType==3)
+              {
+                  double current_def            = (initial_dist - distance)/initial_dist ;
+                  double kn1                    = kn;
+                  double kn2                    = kn1 * mGamma3 + kn1 * mGamma1 * exp(mGamma2 * (current_def - mMaxDef));
+                         if (kn2 > kn1) {
+                             kn2                = kn1;
+                         };
+                  double max_dist               = initial_dist * (1 - mMaxDef);
+                  double hist_dist              = hist_swap;
+                  double kn_plas                = kn1;  // modificable en el futuro con un input
+
+                  LocalElasticContactForce[2] = kn1 * (initial_dist - distance); // = kn1 * indentation; fuerza en parte lineal
+
+                  if (distance < hist_dist) // vemos si esta en carga, comparando la distancia actual entre particulas con la maxima historica
+                  {
+                      hist_swap = distance;
+                      if( distance < max_dist )  //  se supera el limite para le cambio de pendiente.
+                      {
+                          NonlinearNormalForceCalculation (LocalElasticContactForce, kn1, kn2, distance, max_dist, initial_dist);
+                      }
+                      else
+                      {
+                          LocalElasticContactForce[2] = kn1 * (initial_dist - distance); // fuerza en parte lineal
+                      }
+                   }
+                   double hist_fn = LocalElasticContactForce[2]; //guardamos el maximo historico de fuerza fn
+                   else  // esta en descarga, la distancia entre particulas aumenta respecto la historica, current_dist > hist_dist
+                   {
+                      if (hist_fn > 0 );   //  fuerza normal esta en el rango de compresion de la curva
+                      {
+                          plast_dist = max_dist; // initial_dist*(1-plast_def) distancia associada al valor de plast_def impuesto, por ahora coincide con el cambio de pendiente
+                          if (plast_dist > hist_dist ) // mientras se este por encima de la maxima historica, estamos en plasticidad.
+                          {
+                              fn = hist_fn + kn_plas*(hist_dist - distance); // en descarga: 500 - kn_plas(10 - 12). en carga 500 - kn(10 - 11) pero con distance > hist_distance
+                          }
+                          else  // esta en descarga pero no en la zona plastica, descarga por la linea elastica
+                          {
+                              if( distance < max_dist )  // se supera el limite para le cambio de pendiente, mientras plast_dist=max_dist nunca pasara, nunca descargara por kn2
+                              {
+                                  NonlinearNormalForceCalculation (LocalElasticContactForce, kn1, kn2, distance, max_dist, initial_dist);
+                              }
+                              else // descarga por la primera rama elastica
+                              {
+                                  LocalElasticContactForce[2] = kn1 * (initial_dist - distance); // fuerza en parte lineal
+                              }
+                          }
+                      }
+                   }
+
+               }
+
+              // MSI #C4
+
+
               NormalForceCalculation(LocalElasticContactForce,kn,indentation);
                               
               //Nonlinear...() MSI #C4
               
+
               //Tangential Forces   #4
               LocalElasticContactForce[0] += - kt * LocalDeltDisp[0];  // 0: first tangential
               LocalElasticContactForce[1] += - kt * LocalDeltDisp[1];  // 1: second tangential
@@ -547,6 +629,13 @@ namespace Kratos
             
         
       }//ComputeBallToBallContactForce
+
+
+      void SphericContinuumParticle::NonlinearNormalForceCalculation(double LocalElasticContactForce[3], double kn1, double kn2, double distance, double max_dist, double initial_dist)
+      {
+
+          LocalElasticContactForce[2] = kn1 * (initial_dist - max_dist) + kn2 * (max_dist - distance);
+      }
 
     
       void SphericContinuumParticle::ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo )
@@ -829,9 +918,20 @@ namespace Kratos
          
          if (!mInitializedVariablesFlag){
          
+
+
+
+         mGamma1 = rCurrentProcessInfo[DONZE_G1];
+         mGamma2 = rCurrentProcessInfo[DONZE_G2];
+         mGamma3 = rCurrentProcessInfo[DONZE_G3];
+         mMaxDef = rCurrentProcessInfo[DONZE_MAX_DEF];
+
+
+
          
          mSkinSphere = &(this->GetValue(SKIN_SPHERE));
            
+
          mFinalSimulationTime = rCurrentProcessInfo[FINAL_SIMULATION_TIME];
          
          mContinuumGroup        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);             
