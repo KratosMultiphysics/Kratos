@@ -287,8 +287,6 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          //M: aixo es una xapuza
-
           ModelPart& r_model_part             = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
@@ -311,6 +309,7 @@ namespace Kratos
                   Element::GeometryType& geom = it->GetGeometry();
 
                   (it)->CalculateRightHandSide(rhs_elem, rCurrentProcessInfo);
+
                   array_1d<double,3>& applied_force  = geom(0)->FastGetSolutionStepValue(TOTAL_FORCES);
                   array_1d<double,3>& applied_moment = geom(0)->FastGetSolutionStepValue(PARTICLE_MOMENT);
 
