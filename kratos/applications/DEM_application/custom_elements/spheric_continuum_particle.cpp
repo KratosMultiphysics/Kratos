@@ -453,29 +453,13 @@ namespace Kratos
               //Normal Forces
 
 
-//              if(mElasticityType < 2)
-//              {
-//                    NormalForceCalculation(LocalElasticContactForce,kn,indentation,mElasticityType);
-//              }
+             if(mElasticityType < 2)
+             {
+                   NormalForceCalculation(LocalElasticContactForce,kn,indentation);
 
-//              else if(mElasticityType==3)
-//              {
-//                   double current_def            = (initial_dist - distance)/initial_dist ;
-//                   double kn1                    = kn;
-//                   double kn2                    = kn1 * mGamma3 + kn1 * mGamma1 * exp(mGamma2 * (current_def - mMaxDef));
-//                          if (kn2 > kn1) {
-//                              kn2                = kn1;
-//                          };
-//                   double max_dist               = initial_dist * (1 - mMaxDef);
+             }
 
-//                  NonlinearNormalForceCalculation (LocalElasticContactForce, kn1, kn2, distance, max_dist, initial_dist);
-//              }
-
-
-
-
-
-
+/*
               else if(mElasticityType==3)
               {
                   double current_def            = (initial_dist - distance)/initial_dist ;
@@ -485,17 +469,19 @@ namespace Kratos
                              kn2                = kn1;
                          };
                   double max_dist               = initial_dist * (1 - mMaxDef);
-                  double hist_dist              = hist_swap;
+                  
+                  initial_dist
                   double kn_plas                = kn1;  // modificable en el futuro con un input
 
                   LocalElasticContactForce[2] = kn1 * (initial_dist - distance); // = kn1 * indentation; fuerza en parte lineal
 
-                  if (distance < hist_dist) // vemos si esta en carga, comparando la distancia actual entre particulas con la maxima historica
+                  if (distance < mHistDist) // vemos si esta en carga, comparando la distancia actual entre particulas con la maxima historica
                   {
-                      hist_swap = distance;
+                      mHistDist = distance;
+                      
                       if( distance < max_dist )  //  se supera el limite para le cambio de pendiente.
                       {
-                          NonlinearNormalForceCalculation (LocalElasticContactForce, kn1, kn2, distance, max_dist, initial_dist);
+                          NonlinearNormalForceCalculation (LocalElasticContactForce, kn1, kn2, distance, max_dist, initial_dist);                       
                       }
                       else
                       {
@@ -503,14 +489,14 @@ namespace Kratos
                       }
                    }
                    double hist_fn = LocalElasticContactForce[2]; //guardamos el maximo historico de fuerza fn
-                   else  // esta en descarga, la distancia entre particulas aumenta respecto la historica, current_dist > hist_dist
+                   else  // esta en descarga, la distancia entre particulas aumenta respecto la historica, current_dist > mHistDist
                    {
                       if (hist_fn > 0 );   //  fuerza normal esta en el rango de compresion de la curva
                       {
                           plast_dist = max_dist; // initial_dist*(1-plast_def) distancia associada al valor de plast_def impuesto, por ahora coincide con el cambio de pendiente
-                          if (plast_dist > hist_dist ) // mientras se este por encima de la maxima historica, estamos en plasticidad.
+                          if (plast_dist > mHistDist ) // mientras se este por encima de la maxima historica, estamos en plasticidad.
                           {
-                              fn = hist_fn + kn_plas*(hist_dist - distance); // en descarga: 500 - kn_plas(10 - 12). en carga 500 - kn(10 - 11) pero con distance > hist_distance
+                              fn = hist_fn + kn_plas*(mHistDist - distance); // en descarga: 500 - kn_plas(10 - 12). en carga 500 - kn(10 - 11) pero con distance > mHistDistance
                           }
                           else  // esta en descarga pero no en la zona plastica, descarga por la linea elastica
                           {
@@ -527,11 +513,8 @@ namespace Kratos
                    }
 
                }
-
+*/
               // MSI #C4
-
-
-              NormalForceCalculation(LocalElasticContactForce,kn,indentation);
                               
               //Nonlinear...() MSI #C4
               
@@ -1243,6 +1226,7 @@ namespace Kratos
           double& mRepresentative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);   
           
           mRepresentative_Volume = 0.0;
+          
       
       }
 
