@@ -741,48 +741,79 @@ public:
         #endif*/
         return true;
     }
-    
-    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<NodeType> >& SendObjects, std::vector<std::vector<NodeType> >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+        
+    virtual bool AsyncSendAndReceive(std::vector<std::vector<ElementType::Pointer> >& SendObjects, std::vector<std::vector<ElementType::Pointer> >& RecvObjects, int * msgSendSize, int * msgRecvSize)
     {
+        /*#if defined(KRATOS_USING_MPI )
+                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
+        #endif*/
         return true;
     }
     
-    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<ElementType> >& SendObjects, std::vector<std::vector<ElementType> >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    virtual bool AsyncSendAndReceive(std::vector<std::vector<NodeType::Pointer> >& SendObjects, std::vector<std::vector<NodeType::Pointer> >& RecvObjects, int * msgSendSize, int * msgRecvSize)
     {
+        /*#if defined(KRATOS_USING_MPI )
+                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
+        #endif*/
         return true;
     }
     
-    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<ConditionType> >& SendObjects, std::vector<std::vector<ConditionType> >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    virtual bool AsyncSendAndReceive(std::vector<std::vector<ConditionType::Pointer> >& SendObjects, std::vector<std::vector<ConditionType::Pointer> >& RecvObjects, int * msgSendSize, int * msgRecvSize)
     {
+        /*#if defined(KRATOS_USING_MPI )
+                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
+        #endif*/
         return true;
     }
     
-    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<boost::shared_ptr<NodeType> > >& SendObjects, std::vector<std::vector<boost::shared_ptr<NodeType> > >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    virtual bool TransferModelElements(ModelPart& mModelPart)
     {
+        /*#if defined(KRATOS_USING_MPI )
+                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
+        #endif*/
         return true;
     }
     
-    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<boost::shared_ptr<ElementType> > >& SendObjects, std::vector<std::vector<boost::shared_ptr<ElementType> > >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    virtual bool TransferModelNodes(ModelPart& mModelPart)
     {
+        /*#if defined(KRATOS_USING_MPI )
+                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
+        #endif*/
         return true;
     }
     
-    virtual bool AsyncSendAndReceiveNodes(std::vector<std::vector<boost::shared_ptr<ConditionType> > >& SendObjects, std::vector<std::vector<boost::shared_ptr<ConditionType> > >& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    virtual bool TransferModelConditions(ModelPart& mModelPart)
     {
+        /*#if defined(KRATOS_USING_MPI )
+                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
+        #endif*/
         return true;
     }
     
-    virtual bool TransferObjects(ModelPart& mModelPart)
+    virtual bool TransferModelElements(ModelPart& mModelPart,std::vector<PointerVector<ElementType> > &SendObjects,std::vector<PointerVector<ElementType> > &RecvObjects) 
     {
+        /*#if defined(KRATOS_USING_MPI )
+                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
+        #endif*/
         return true;
     }
     
-    virtual bool TransferObjects(ModelPart& mModelPart,std::vector<std::vector<ElementType::Pointer> > &SendObjects,std::vector<std::vector<ElementType::Pointer> > &RecvObjects) 
+    virtual bool TransferModelNodes(ModelPart& mModelPart,std::vector<PointerVector<NodeType> > &SendObjects,std::vector<PointerVector<NodeType> > &RecvObjects) 
     {
+        /*#if defined(KRATOS_USING_MPI )
+                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
+        #endif*/
         return true;
     }
     
-
+    virtual bool TransferModelConditions(ModelPart& mModelPart,std::vector<PointerVector<ConditionType> > &SendObjects,std::vector<PointerVector<ConditionType> > &RecvObjects) 
+    {
+        /*#if defined(KRATOS_USING_MPI )
+                std::cout << "WARNING: Using serial communicator with MPI defined. Use ModelPart::SetCommunicator to set its communicator to MPICommunicator" << std::endl;
+        #endif*/
+        return true;
+    }
+    
     ///@}
     ///@name Access
     ///@{

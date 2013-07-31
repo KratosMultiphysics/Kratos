@@ -76,9 +76,13 @@ namespace Kratos
                     
             class_<MpiUtilitiesType, boost::noncopyable>
                     ("MpiUtilities", init<>())
-                    .def("Repart",          &MpiUtilitiesType::ParallelPartitioning)
-                    .def("TransferObjects", &MpiUtilitiesType::TransferObjects)
-                    .def("CompactIds",      &MpiUtilitiesType::CompactIds)
+                    .def("Repart",                  &MpiUtilitiesType::ParallelPartitioning)
+                    .def("TransferModelElements",   &MpiUtilitiesType::TransferModelElements)
+                    .def("TransferModelNodes",      &MpiUtilitiesType::TransferModelNodes)
+                    .def("CalculateModelNewIds",    &MpiUtilitiesType::CalculateModelNewIds)
+                    .def("CalculateElementsNewId",  &MpiUtilitiesType::CalculateElementsNewId)
+                    .def("CalculateNodesNewId",     &MpiUtilitiesType::CalculateNodesNewId)
+                    .def("CalculateConditionsNewId",&MpiUtilitiesType::CalculateConditionsNewId)
                     ;
         }
 

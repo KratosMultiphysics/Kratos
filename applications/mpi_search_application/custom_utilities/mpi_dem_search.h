@@ -80,19 +80,21 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       ///@{
         
       void SearchElementsInRadiusExclusiveImplementation (
-          ModelPart& rModelPart,
-          ElementsContainerType rElements,
+          ElementsContainerType const& rStructureElements,
+          ElementsContainerType const& rElements,
           const RadiusArrayType & Radius, 
           VectorResultElementsContainerType& rResults, 
           VectorDistanceType& rResultsDistance )
       {     
           KRATOS_TRY
           
+          //TODO: Temporal compile fix. Commincator should be a member class from now on.
+          ModelPart rModelPart;
           Clean_Modelpart(rModelPart);
-        
+
           // Get the data
-          ElementsContainerType::ContainerType& elements_array      = rElements.GetContainer();
-          ElementsContainerType::ContainerType& elements_ModelPart  = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
+          ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
+          ElementsContainerType::ContainerType& elements_ModelPart = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
          
           int NumberOfSearchElements = elements_array.size();
           int NumberOfModelPElements = elements_ModelPart.size();
@@ -110,7 +112,7 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
               rResultsDistance[particle_pointer_it-elements_array.begin()].resize(NumberOfModelPElements);
           }
           
-          bins.SearchObjectsMpi(rModelPart,elements_array,NumberOfSearchElements,Radius,rResults,rResultsDistance,NumberOfResults,NumberOfModelPElements,rModelPart.pGetCommunicator());
+//           bins.SearchObjectsMpi(rModelPart,elements_array,NumberOfSearchElements,Radius,rResults,rResultsDistance,NumberOfResults,NumberOfModelPElements,rModelPart.pGetCommunicator());
             
           for(int i = 0; i < NumberOfSearchElements; i++)
           {
@@ -139,9 +141,9 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       }
       
      void SearchElementsInRadiusInclusiveImplementation (
-          ModelPart& rModelPart,
-          ElementsContainerType rElements,
-          const RadiusArrayType& Radius, 
+          ElementsContainerType const& rStructureElements,
+          ElementsContainerType const& rElements,
+          const RadiusArrayType & Radius, 
           VectorResultElementsContainerType& rResults, 
           VectorDistanceType& rResultsDistance )
       {     
@@ -149,8 +151,8 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       }
 
       void SearchElementsInRadiusExclusiveImplementation (
-          ModelPart& rModelPart,
-          ElementsContainerType rElements,
+          ElementsContainerType const& rStructureElements,
+          ElementsContainerType const& rElements,
           const RadiusArrayType & Radius, 
           VectorResultElementsContainerType& rResults )
       {     
@@ -158,23 +160,53 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       }
       
       void SearchElementsInRadiusInclusiveImplementation (
-          ModelPart& rModelPart,
-          ElementsContainerType rElements,
-          const RadiusArrayType& Radius, 
+          ElementsContainerType const& rStructureElements,
+          ElementsContainerType const& rElements,
+          const RadiusArrayType & Radius, 
           VectorResultElementsContainerType& rResults )
       {     
     
       }
-      
-//       void SearchNodesInRadiusExclusiveImplementation (
-//           ModelPart& rModelPart,
-//           NodesContainerType rNodes,
-//           const RadiusArrayType & Radius, 
-//           VectorResultNodesContainerType& rResults, 
-//           VectorDistanceType& rResultsDistance )
-//       {     
-//       }
         
+        
+      void SearchNodesInRadiusExclusiveImplementation (
+          NodesContainerType const& rStructureNodes,
+          NodesContainerType const& rNodes,
+          const RadiusArrayType & Radius, 
+          VectorResultNodesContainerType& rResults, 
+          VectorDistanceType& rResultsDistance )
+      {     
+
+      }
+      
+      void SearchNodesInRadiusInclusiveImplementation (
+          NodesContainerType const& rStructureNodes,
+          NodesContainerType const& rNodes,
+          const RadiusArrayType & Radius, 
+          VectorResultNodesContainerType& rResults, 
+          VectorDistanceType& rResultsDistance )
+      {     
+
+      }
+      
+      void SearchNodesInRadiusExclusiveImplementation (
+          NodesContainerType const& rStructureNodes,
+          NodesContainerType const& rNodes,
+          const RadiusArrayType & Radius, 
+          VectorResultNodesContainerType& rResults )
+      {     
+
+      }
+      
+      void SearchNodesInRadiusInclusiveImplementation (
+          NodesContainerType const& rStructureNodes,
+          NodesContainerType const& rNodes,
+          const RadiusArrayType & Radius, 
+          VectorResultNodesContainerType& rResults )
+      {     
+        
+      }
+      
       ///@}
       ///@name Access
       ///@{ 

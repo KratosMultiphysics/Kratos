@@ -1,0 +1,344 @@
+#ifndef DEM_SEARCH_UTILITIES_H
+#define DEM_SEARCH_UTILITIES_H
+
+// /* External includes */
+
+// System includes
+
+// Project includes
+#include "utilities/timer.h"
+#include "custom_utilities/create_and_destroy.h"
+
+#include "custom_elements/spheric_swimming_particle.h"
+#include "custom_elements/Particle_Contact_Element.h"
+
+#include "includes/variables.h"
+#include "DEM_application.h"
+
+/* System includes */
+#include <limits>
+#include <iostream>
+#include <iomanip>
+#include <iostream>
+
+/* External includes */
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+#include "boost/smart_ptr.hpp"
+
+/* Project includes */
+#include "includes/define.h"
+#include "utilities/openmp_utils.h"
+
+#include "includes/model_part.h"
+
+/* Search */
+#include "spatial_containers/spatial_search.h"
+
+namespace Kratos
+{
+
+  class DemSearchUtilities
+  {
+    public:
+     
+      typedef SpatialSearch::ElementsContainerType              ElementsArrayType;
+      typedef SpatialSearch::NodesContainerType                 NodesArrayType;
+      
+      typedef SpatialSearch::NodesContainerType::ContainerType  NodesContainerType;
+    
+      typedef SpatialSearch::VectorDistanceType                 VectorDistanceType;
+      typedef SpatialSearch::VectorResultElementsContainerType  VectorResultElementsContainerType;
+      typedef SpatialSearch::VectorResultNodesContainerType     VectorResultNodesContainerType;
+      
+      typedef std::vector<double>                               RadiusArrayType;
+
+      KRATOS_CLASS_POINTER_DEFINITION(DemSearchUtilities);
+
+      /// Default constructor.
+
+      DemSearchUtilities(typename SpatialSearch::Pointer pSpatialSearch)
+      {
+          mSpatialSearch = pSpatialSearch;
+      }
+
+      /// Destructor.
+
+      virtual ~DemSearchUtilities(){}
+      
+      //************************************************************************
+      // Elemental Distance Calcualtion                      
+      //************************************************************************
+      
+      //TO BE IMPLEMENTED
+
+      //************************************************************************
+      // Nodal Distance Calcualtion                      
+      //************************************************************************
+      
+      /**
+       * Calcualtes the distance between the nodes in "rSearchModelPart" and their neighbous in "rBinsModelPart"
+       * @param rSearchModelPart: Modelpart containing all nodes to be searched
+       * @param rBinsModelPart: List of nodes containing all nodes suitable of being neigbours
+       * @param SearchRadius: List contaning the search radius for each node
+       * @param ResultDistances: List of distances for each neighbour of each node in "rSearchModelPart"    
+       */
+      template<class TVariableType>
+      void SearchNodeNeigboursDistances(ModelPart& rSearchModelPart, ModelPart& rBinsModelPart, const TVariableType& rDistanceVar)
+      {
+          KRATOS_TRY
+          
+          NodesArrayType& rSearchNodes  = rSearchModelPart.GetCommunicator().LocalMesh().Nodes();
+          NodesArrayType& rBinsNodes    = rBinsModelPart.GetCommunicator().LocalMesh().Nodes();
+          
+          SearchNodeNeigboursDistances(rSearchNodes,rBinsNodes,rDistanceVar);
+          
+          KRATOS_CATCH("")
+      }
+
+      /**
+       * Calcualtes the distance between the nodes in "rSearchModelPart" and their neighbous in "rBinsNodes"
+       * @param rSearchModelPart: Modelpart containing all nodes to be searched
+       * @param rBinsNodes: List of nodes containing all nodes suitable of being neigbours
+       * @param SearchRadius: List contaning the search radius for each node
+       * @param ResultDistances: List of distances for each neighbour of each node in "rSearchModelPart"    
+       */
+      template<class TVariableType>
+      void SearchNodeNeigboursDistances(ModelPart& rSearchModelPart, NodesArrayType& rBinsNodes, const TVariableType& rDistanceVar)
+      {
+          KRATOS_TRY
+          
+          NodesArrayType& rSearchNodes  = rSearchModelPart.GetCommunicator().LocalMesh().Nodes();
+          
+          SearchNodeNeigboursDistances(rSearchNodes,rBinsNodes,rDistanceVar);
+          
+          KRATOS_CATCH("")
+      }
+
+      /**
+       * Calcualtes the distance between the nodes in "rSearchNodes" and their neighbous in "rBinsModelPart"
+       * @param rSearchNodes: Modelpart containing all nodes to be searched
+       * @param rBinsModelPart: List of nodes containing all nodes suitable of being neigbours
+       * @param SearchRadius: List contaning the search radius for each node
+       * @param ResultDistances: List of distances for each neighbour of each node in "rSearchModelPart"    
+       */      
+      template<class TVariableType> 
+      void SearchNodeNeigboursDistances(NodesArrayType& rSearchNodes, ModelPart& rBinsModelPart, const TVariableType& rDistanceVar)
+      {
+          KRATOS_TRY
+          
+          NodesArrayType& rBinsNodes    = rBinsModelPart.GetCommunicator().LocalMesh().Nodes();
+          
+          SearchNodeNeigboursDistances(rSearchNodes,rBinsNodes,rDistanceVar);
+          
+          KRATOS_CATCH("")
+      }
+   
+      /**
+       * Calcualtes the distance between the nodes in "rSearchNodes" and their neighbous in "rBinsNodes"
+       * This function contains the implementation.
+       * @param rSearchNodes: Modelpart containing all nodes to be searched
+       * @param rBinsNodes: List of nodes containing all nodes suitable of being neigbours
+       * @param SearchRadius: List contaning the search radius for each node
+       * @param ResultDistances: List of distances for each neighbour of each node in "rSearchModelPart"    
+       */      
+      template<class TVariableType>
+      void SearchNodeNeigboursDistances(NodesArrayType& rSearchNodes, NodesArrayType& rBinsNodes, const TVariableType& rDistanceVar)
+      {
+          KRATOS_TRY
+          
+          std::size_t node_size = rSearchNodes.size();
+          
+          mResultsDistances.resize(node_size);
+          mSearchRadius.resize(node_size);
+          mNodesResults.resize(node_size);
+     
+          for (NodesArrayType::iterator it = rSearchNodes.begin(); it != rSearchNodes.end(); ++it)
+          {
+              mSearchRadius[it-rSearchNodes.begin()] = it->GetSolutionStepValue(RADIUS);
+          }
+
+          mSpatialSearch->SearchNodesInRadiusExclusive(rSearchNodes,rBinsNodes,mSearchRadius,mNodesResults,mResultsDistances);
+          
+          for(std::size_t i = 0; i < node_size; i++)
+          {
+              double minDist = 0;
+                  
+              if(mResultsDistances[i].size())
+              {
+                  minDist = mResultsDistances[i][0];
+                      
+                  for(std::size_t j = 0; j < mResultsDistances[i].size() ; j++)
+                  {
+                      mResultsDistances[i][j] -= mNodesResults[i][j]->GetSolutionStepValue(RADIUS);
+                      minDist = minDist < mResultsDistances[i][j] ? minDist : mResultsDistances[i][j];
+                  }
+              }
+                  
+              NodesArrayType::iterator it = rSearchNodes.begin() + i;
+              it->GetSolutionStepValue(rDistanceVar) = minDist;
+          }
+          
+          KRATOS_CATCH("")
+      }
+
+      //************************************************************************
+      // Condition Distance Calculation                      
+      //************************************************************************
+      
+      //TO BE IMPLEMENTED
+
+      ///@}
+      ///@name Access
+      ///@{
+        
+
+      ///@}
+      ///@name Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Input and output
+      ///@{
+
+      virtual std::string Info() const
+      {
+          return "";
+      }
+
+      /// Print information about this object.
+
+      virtual void PrintInfo(std::ostream& rOStream) const
+      {
+      }
+
+      /// Print object's data.
+
+      virtual void PrintData(std::ostream& rOStream) const
+      {
+      }
+
+
+      ///@}
+      ///@name Friends
+      ///@{
+        
+      ///@}
+
+    protected:
+      
+      ///@name Protected static Member rVariables
+      ///@{
+      RadiusArrayType                   mSearchRadius;
+        
+      VectorResultNodesContainerType    mNodesResults;
+      VectorDistanceType                mResultsDistances;
+        
+      typename SpatialSearch::Pointer   mSpatialSearch;
+        
+      vector<unsigned int>              mPartition;
+
+      ///@}
+      ///@name Protected member rVariables
+      ///@{
+
+
+      ///@}
+      ///@name Protected Operators
+      ///@{
+
+
+      ///@}
+      ///@name Protected Operations
+      ///@{
+
+
+      ///@}
+      ///@name Protected  Access
+      ///@{
+
+
+      ///@}
+      ///@name Protected Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Protected LifeCycle
+      ///@{
+
+      ///@}
+
+    private:
+
+
+      ///@name Static Member rVariables
+      ///@{
+
+
+      ///@}
+      ///@name Member rVariables
+      ///@{
+
+
+      ///@}
+      ///@name Private Operators
+      ///@{
+
+      ///@}
+      ///@name Private Operations
+      ///@{
+
+
+      ///@}
+      ///@name Private  Access
+      ///@{
+
+
+      ///@}
+      ///@name Private Inquiry
+      ///@{
+
+
+      ///@}
+      ///@name Un accessible methods
+      ///@{
+
+      /// Assignment operator.
+      DemSearchUtilities & operator=(DemSearchUtilities const& rOther);
+
+
+      ///@}
+
+  }; // Class DemSearchUtilities
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// output stream function
+//  template<std::size_t TDim>
+//  inline std::ostream& operator << (std::ostream& rOStream)
+//  {
+//      rThis.PrintInfo(rOStream);
+//      rOStream << std::endl;
+//      rThis.PrintData(rOStream);
+//
+//      return rOStream;
+//  }
+///@}
+
+
+} // namespace Kratos.
+
+#endif // DEM_SEARCH_UTILITIES_H

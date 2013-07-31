@@ -35,6 +35,17 @@
 /* Search */
 #include "custom_utilities/lloyd_parallel_partitioner.h"
 
+#define CUSTOMTIMER 1
+
+/* Timer defines */
+#ifdef CUSTOMTIMER
+#define KRATOS_TIMER_START(t) Timer::Start(t);
+#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
+#else
+#define KRATOS_TIMER_START(t)
+#define KRATOS_TIMER_STOP(t)
+#endif
+
 namespace Kratos
 {
   ///@addtogroup ApplicationNameApplication
@@ -72,12 +83,15 @@ namespace Kratos
       /// Pointer definition of MpiUtilities
       KRATOS_CLASS_POINTER_DEFINITION(MpiUtilities);
       
-      typedef MpiDiscreteParticleConfigure < 3 >                Configure;
+      typedef SpatialSearch                                         SearchType;
+      typedef MpiDiscreteParticleConfigure<3>                       Configure;
 
-      typedef Configure::ElementsContainerType::ContainerType   ElementsContainerType;
-      typedef Configure::PointerType                            PointerType;
-      typedef Configure::IteratorType                           IteratorType;
-      typedef Configure::ResultIteratorType                     ResultIteratorType;
+      typedef SearchType::ElementsContainerType::ContainerType      ElementsContainerType;
+      typedef SearchType::NodesContainerType::ContainerType         NodesContainerType;
+      typedef SearchType::ConditionsContainerType::ContainerType    ConditionsContainerType;
+      
+//       typedef ElementsContainerType::value_type                     ElementPointerType;
+//       typedef SearchType::IteratorType                              IteratorType;
 
       
       ///@}
@@ -96,11 +110,20 @@ namespace Kratos
       /// Destructor.
       virtual ~MpiUtilities(){}
       
-      void TransferObjects(ModelPart& rModelPart)
+      void TransferModelElements(ModelPart& rModelPart)
       {
           KRATOS_TRY
           
-          rModelPart.GetCommunicator().TransferObjects(rModelPart);
+          rModelPart.GetCommunicator().TransferModelElements(rModelPart);
+          
+          KRATOS_CATCH("")
+      }
+      
+      void TransferModelNodes(ModelPart& rModelPart)
+      {
+          KRATOS_TRY
+          
+          rModelPart.GetCommunicator().TransferModelNodes(rModelPart);
           
           KRATOS_CATCH("")
       }
@@ -108,6 +131,8 @@ namespace Kratos
       void ParallelPartitioning(ModelPart& rModelPart, bool extension_option, int CalculateBoundry)
       {
           KRATOS_TRY
+          
+          KRATOS_TIMER_START("PART")
                     
           ElementsContainerType& pLocalElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
 
@@ -118,7 +143,7 @@ namespace Kratos
           
           static double MaxNodeRadius = 0.0f;
           if(MaxNodeRadius == 0.0f) //TODO
-              for (IteratorType particle_pointer_it = pLocalElements.begin(); particle_pointer_it != pLocalElements.end(); ++particle_pointer_it)
+              for (ElementsContainerType::iterator particle_pointer_it = pLocalElements.begin(); particle_pointer_it != pLocalElements.end(); ++particle_pointer_it)
               {
                   double NodeRaidus = (1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
                   MaxNodeRadius = NodeRaidus > MaxNodeRadius ? NodeRaidus : MaxNodeRadius;
@@ -127,25 +152,80 @@ namespace Kratos
           LloydParallelPartitioner<Configure> partitioner;
           partitioner.LloydsBasedParitioner(rModelPart,MaxNodeRadius,CalculateBoundry);
           
+          KRATOS_TIMER_STOP("PART")
+          
+          Timer::SetOuputFile("TimesPartitioner");
+          Timer::PrintTimingInformation();
+          
           KRATOS_CATCH("")
       }
+      
+      void CalculateModelNewIds(ModelPart& mModelPart, int offset)
+      {
+          CalculateElementsNewId(mModelPart,offset);
+          CalculateNodesNewId(mModelPart,offset);
+          CalculateConditionsNewId(mModelPart,offset);
+      }
     
-      void CompactIds(ModelPart& mContactsModelPart)
+      void CalculateElementsNewId(ModelPart& mModelPart, int offset)
       {
           KRATOS_TRY
         
-          int contacts_model_part_size = mContactsModelPart.GetCommunicator().LocalMesh().Elements().size();
+          int element_size = mModelPart.GetCommunicator().LocalMesh().Elements().size();
           int iteratorId = -1;
         
-          Configure::ReduceIds(contacts_model_part_size,iteratorId);
+          Configure::ReduceIds(element_size,offset,iteratorId);
           
           if(iteratorId == -1)
-              std::cout << "Something went wrong :(" << std::endl;
+              std::cout << "Invalid starting Id" << std::endl;
           
-          for (IteratorType it = mContactsModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin(); it != mContactsModelPart.GetCommunicator().LocalMesh().Elements().ptr_end(); ++it)
-          {
+          for (ElementsContainerType::iterator it = mModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin(); it != mModelPart.GetCommunicator().LocalMesh().Elements().ptr_end(); ++it)
               (*it)->SetId(iteratorId++);
+          
+          KRATOS_CATCH("")
+      }
+      
+      void CalculateNodesNewId(ModelPart& mModelPart, int offset)
+      {
+          KRATOS_TRY
+        
+          int nodes_size = mModelPart.GetCommunicator().LocalMesh().Nodes().size();
+          int iteratorId = -1;
+          
+          Configure::ReduceIds(nodes_size,offset,iteratorId);
+          
+          if(iteratorId == -1)
+              std::cout << "Invalid starting Id" << std::endl;
+          
+          std::cout << "STARTING NODE ID: " << iteratorId << std::endl;
+          std::cout << "ENDING   NODE ID: " << iteratorId + nodes_size << std::endl;
+
+          for (NodesContainerType::iterator it = mModelPart.GetCommunicator().LocalMesh().Nodes().ptr_begin(); it != mModelPart.GetCommunicator().LocalMesh().Nodes().ptr_end(); ++it)
+          {
+//             std::cout << (*it)->Id() << "\t-->\t" << iteratorId << std::endl;
+              (*it)->SetId(iteratorId);
+              iteratorId++;
           }
+          
+          std::cout << "New ids assigned" << std::endl;
+          
+          KRATOS_CATCH("")
+      }
+      
+      void CalculateConditionsNewId(ModelPart& mModelPart, int offset)
+      {
+          KRATOS_TRY
+        
+          int conditions_size = mModelPart.GetCommunicator().LocalMesh().Conditions().size();
+          int iteratorId = -1;
+        
+          Configure::ReduceIds(conditions_size,offset,iteratorId);
+          
+          if(iteratorId == -1)
+              std::cout << "Invalid starting Id" << std::endl;
+          
+          for (ConditionsContainerType::iterator it = mModelPart.GetCommunicator().LocalMesh().Conditions().ptr_begin(); it != mModelPart.GetCommunicator().LocalMesh().Conditions().ptr_end(); ++it)
+              (*it)->SetId(iteratorId++);
           
           KRATOS_CATCH("")
       }

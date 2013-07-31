@@ -70,7 +70,7 @@ public:
 
       //******************************************************************************************************************
 
-      static inline void ReduceIds(int& total_elements, int& first_element)
+      static inline void ReduceIds(int& total_elements,const int& offset, int& first_element)
       {
           int mpi_rank;
           int mpi_size;
@@ -82,9 +82,9 @@ public:
           
           MPI_Allgather(&total_elements,1,MPI_INT,&reduceArray[1],1,MPI_INT,MPI_COMM_WORLD);
           
-          reduceArray[0] = 1;
+          reduceArray[0] = 1 + offset;
           for(int i = 1; i <= mpi_size; i++)
-              reduceArray[i] += reduceArray[i-1];
+              reduceArray[i] += reduceArray[i-1] + 1;
           
           first_element = reduceArray[mpi_rank];
       }
@@ -98,7 +98,7 @@ public:
                                              int * msgSendSize,
                                              int * msgRecvSize)
       {
-          Communicator->AsyncSendAndReceiveNodes(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
+          Communicator->AsyncSendAndReceive(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
       }
     
       /* This method implements exactly the same functionality as the one included in the communicator.

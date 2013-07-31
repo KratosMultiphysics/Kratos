@@ -20,6 +20,7 @@
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "spatial_containers/dem_search.h"
 #include "discrete_particle_configure.h"
+#include "node_configure.h"
 
 // External includes
 
@@ -66,13 +67,21 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
         COND2NODE = 128,
         COND2COND = 256
       };
+      
+      enum SearchMode {
+        INCLUSIVE = 1,
+        EXCLUSIVE = 2
+      };
     
       /// Pointer definition of OMP_DEMSearch
       KRATOS_CLASS_POINTER_DEFINITION(OMP_DEMSearch);
       
-      //typedef SpatialSearch                 BaseType;
-      typedef DiscreteParticleConfigure<3>  Configure;
-      typedef BinsObjectDynamic<Configure>  BinsType;
+      //Configure Types
+      typedef DiscreteParticleConfigure<3>              ElementConfigureType;   //Element
+      typedef NodeConfigure<3>                          NodeConfigureType;      //Node
+      
+      typedef BinsObjectDynamic<ElementConfigureType>   BinsType;
+      typedef BinsObjectDynamic<NodeConfigureType>      NodeBinsType;
      
       ///@}
       ///@name Life Cycle 
@@ -95,222 +104,257 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       ///@{
         
       void SearchElementsInRadiusExclusiveImplementation (
-          ModelPart& rModelPart,
-          ElementsContainerType rElements,
+          ElementsContainerType const& rStructureElements,
+          ElementsContainerType const& rElements,
           const RadiusArrayType & Radius, 
           VectorResultElementsContainerType& rResults, 
           VectorDistanceType& rResultsDistance )
       {     
           KRATOS_TRY
-
-          ElementsContainerType::ContainerType& elements_array     = rElements.GetContainer();
-          ElementsContainerType::ContainerType& elements_ModelPart = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
           
-          int MaxNumberOfElements = elements_ModelPart.size();
+          int MaxNumberOfElements = rStructureElements.size();
+          
+          ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
+          ElementsContainerType::ContainerType& elements_ModelPart = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
         
           BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());
           
-          #pragma omp parallel
-          {
-              ResultElementsContainerType   localResults(MaxNumberOfElements);
-              DistanceType                  localResultsDistances(MaxNumberOfElements);
-              std::size_t                   NumberOfResults = 0;
-              
-              //NOTE: This is a mistake? V-- It should be elements_array.size():
-              #pragma omp for
-              for(int i = 0; i < MaxNumberOfElements; i++)
-              {
-                  ResultIteratorType     ResultsPointer          = localResults.begin();
-                  DistanceType::iterator ResultsDistancesPointer = localResultsDistances.begin();
-                
-                  NumberOfResults = bins.SearchObjectsInRadiusInner(elements_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
-                      
-                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
-                  rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
-              }
-          }
+          SearchInRadiusWithDistanceWrapper(bins,elements_array,Radius,rResults,rResultsDistance,MaxNumberOfElements,EXCLUSIVE);
           
           KRATOS_CATCH("")
       }
       
       void SearchElementsInRadiusInclusiveImplementation (
-          ModelPart& rModelPart,
-          ElementsContainerType rElements,
+          ElementsContainerType const& rStructureElements,
+          ElementsContainerType const& rElements,
           const RadiusArrayType& Radius, 
           VectorResultElementsContainerType& rResults, 
           VectorDistanceType& rResultsDistance )
       {     
           KRATOS_TRY
-
-          ElementsContainerType::ContainerType& elements_array     = rElements.GetContainer();
-          ElementsContainerType::ContainerType& elements_ModelPart = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
           
-          int MaxNumberOfElements = elements_ModelPart.size();
+          int MaxNumberOfElements = rStructureElements.size();
+          
+          ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
+          ElementsContainerType::ContainerType& elements_ModelPart = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
         
           BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());
           
-          #pragma omp parallel
-          {
-              ResultElementsContainerType   localResults(MaxNumberOfElements);
-              DistanceType                  localResultsDistances(MaxNumberOfElements);
-              std::size_t                   NumberOfResults = 0;
-              
-              //NOTE: This is a mistake? V-- It should be elements_array.size():
-              #pragma omp for
-              for(int i = 0; i < MaxNumberOfElements; i++)
-              {
-                  ResultIteratorType     ResultsPointer          = localResults.begin();
-                  DistanceType::iterator ResultsDistancesPointer = localResultsDistances.begin();
-                
-                  NumberOfResults = bins.SearchObjectsInRadius(elements_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
-                      
-                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
-                  rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
-              }
-          }
+          SearchInRadiusWithDistanceWrapper(bins,elements_array,Radius,rResults,rResultsDistance,MaxNumberOfElements,INCLUSIVE);
           
           KRATOS_CATCH("")        
       }
 
       void SearchElementsInRadiusExclusiveImplementation (
-          ModelPart& rModelPart,
-          ElementsContainerType rElements,
+          ElementsContainerType const& rStructureElements,
+          ElementsContainerType const& rElements,
           const RadiusArrayType & Radius, 
           VectorResultElementsContainerType& rResults )
       {     
           KRATOS_TRY
-
-          ElementsContainerType::ContainerType& elements_array     = rElements.GetContainer();
-          ElementsContainerType::ContainerType& elements_ModelPart = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
           
-          int MaxNumberOfElements = elements_ModelPart.size();
+          int MaxNumberOfElements = rStructureElements.size();
+          
+          ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
+          ElementsContainerType::ContainerType& elements_ModelPart = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
         
           BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());
           
-          #pragma omp parallel
-          {
-              ResultElementsContainerType   localResults(MaxNumberOfElements);
-              std::size_t                   NumberOfResults = 0;
-              
-              //NOTE: This is a mistake? V-- It should be elements_array.size():
-              #pragma omp for
-              for(int i = 0; i < MaxNumberOfElements; i++)
-              {
-                  ResultIteratorType     ResultsPointer          = localResults.begin();
-
-                  NumberOfResults = bins.SearchObjectsInRadiusInner(elements_array[i],Radius[i],ResultsPointer,MaxNumberOfElements);
-                      
-                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
-              }
-          }
+          SearchInRadiusWrapper(bins,elements_array,Radius,rResults,MaxNumberOfElements,EXCLUSIVE);
           
           KRATOS_CATCH("")
       }
       
       void SearchElementsInRadiusInclusiveImplementation (
-          ModelPart& rModelPart,
-          ElementsContainerType rElements,
-          const RadiusArrayType& Radius, 
+          ElementsContainerType const& rStructureElements,
+          ElementsContainerType const& rElements,
+          const RadiusArrayType & Radius, 
           VectorResultElementsContainerType& rResults )
       {     
           KRATOS_TRY
-
-          ElementsContainerType::ContainerType& elements_array     = rElements.GetContainer();
-          ElementsContainerType::ContainerType& elements_ModelPart = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
           
-          int MaxNumberOfElements = elements_ModelPart.size();
+          int MaxNumberOfElements = rStructureElements.size();
+          
+          ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
+          ElementsContainerType::ContainerType& elements_ModelPart = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
         
           BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());
           
-          #pragma omp parallel
-          {
-              ResultElementsContainerType   localResults(MaxNumberOfElements);
-              std::size_t                   NumberOfResults = 0;
-              
-              //NOTE: This is a mistake? V-- It should be elements_array.size():
-              #pragma omp for
-              for(int i = 0; i < MaxNumberOfElements; i++)
-              {
-                  ResultIteratorType     ResultsPointer          = localResults.begin();
-
-                  NumberOfResults = bins.SearchObjectsInRadius(elements_array[i],Radius[i],ResultsPointer,MaxNumberOfElements);
-                      
-                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
-              }
-          }
+          SearchInRadiusWrapper(bins,elements_array,Radius,rResults,MaxNumberOfElements,INCLUSIVE);
           
           KRATOS_CATCH("")        
       }
+
+      void SearchNodesInRadiusExclusiveImplementation (
+          NodesContainerType const& rStructureNodes,
+          NodesContainerType const& rNodes,
+          const RadiusArrayType & Radius, 
+          VectorResultNodesContainerType& rResults, 
+          VectorDistanceType& rResultsDistance )
+      {     
+          KRATOS_TRY
+          
+          int MaxNumberOfNodes = rStructureNodes.size();
+          
+          NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
+          NodesContainerType::ContainerType& nodes_ModelPart = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
+        
+          NodeBinsType bins(nodes_ModelPart.begin(), nodes_ModelPart.end());
+          
+          SearchInRadiusWithDistanceWrapper(bins,nodes_array,Radius,rResults,rResultsDistance,MaxNumberOfNodes,EXCLUSIVE);
+          
+          KRATOS_CATCH("")
+      }
       
-//       void SearchElementsAndConditionsInRadiusExclusiveImplementation(
-//           ModelPart& rModelPart,
-//           ElementsContainerType rElements,
-//           ConditionsContainerType rConditions,
-//           const RadiusArrayType& Radius,
-//           const unsigned int& Flags, 
-//           VectorResultElementsContainerType& rElementsResults,
-//           VectorResultConditionsContainerType& rConditionsResults,
-//           VectorDistanceType& rElementsResultsDistance,
-//           VectorDistanceType& rConditionsResultsDistance
-//       )
-//       {
-//           KRATOS_TRY
-//           
-//           // Checking the falgs in order to decide which bins are going to be generated
-//           if(Flags & ( ELEM2ELEM | NODE2ELEM | COND2ELEM ) )
-//           {
-//               // Initialize Element based Bins
-//               ElementsContainerType::ContainerType& elements_ModelPart  = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
-//               BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());
-//               
-//               int MaxNumberOfElements = elements_ModelPart.size();
-//               
-//               // Performing every search over the element bins
-//               if(Flags & ELEM2ELEM) // Element vs Element
-//               {
-//                   ElementsContainerType::ContainerType& elements_array = rElements.GetContainer();
-// //                   InRadiusInnerWrapper(bins,elements_array,Radius,rElementsResults,rElementsResultsDistance,MaxNumberOfElements);
-//               }
-//               if(Flags & COND2ELEM) // Condition - Element
-//               {
-//                   ConditionsContainerType::ContainerType& conditions_array = rConditions.GetContainer();
-// //                   InRadiusInnerWrapper(bins,conditions_array,Radius,rConditionsResults,rConditionsResultsDistance,MaxNumberOfElements);
-//               }
-//           }
-//           
-//           KRATOS_CATCH("")  
-//       }
+      void SearchNodesInRadiusInclusiveImplementation (
+          NodesContainerType const& rStructureNodes,
+          NodesContainerType const& rNodes,
+          const RadiusArrayType & Radius, 
+          VectorResultNodesContainerType& rResults, 
+          VectorDistanceType& rResultsDistance )
+      {     
+          KRATOS_TRY
+          
+          int MaxNumberOfNodes = rStructureNodes.size();
       
-//       template<class BinsType, class SearchObjectType, class ResultObjectType>
-//       void InRadiusInnerWrapper(BinsType& bins, 
-//                                 SearchObjectType& searchObjects,
-//                                 const RadiusArrayType& Radius,
-//                                 ResultObjectType& rResults, 
-//                                 VectorDistanceType& rResultsDistance,
-//                                 const int MaxNumberOfElements)
-//       {
-//           #pragma omp parallel
-//           {
-//               typename ResultObjectType::value_type     localResults(MaxNumberOfElements);
-//               DistanceType                              localResultsDistances(MaxNumberOfElements);
-//               std::size_t                               NumberOfResults = 0;
-//               
-//               #pragma omp parallel for
-//               for(int i = 0; i < searchObjects.size(); i++)
-//               {
-//                   typename SearchObjectType::iterator     ResultsPointer          = localResults.begin();
-//                   DistanceType::iterator ResultsDistancesPointer = localResultsDistances.begin();
-//                 
-//                   Configure::PointerType value = searchObjects[i]; 
-//                   NumberOfResults = bins.SearchObjectsInRadius(value,Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
-//                   
-//                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
-//                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
-//               }
-//           }
-//       }
+          NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
+          NodesContainerType::ContainerType& nodes_ModelPart = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
+        
+          NodeBinsType bins(nodes_ModelPart.begin(), nodes_ModelPart.end());
+          
+          SearchInRadiusWithDistanceWrapper(bins,nodes_array,Radius,rResults,rResultsDistance,MaxNumberOfNodes,INCLUSIVE);
+          
+          KRATOS_CATCH("")
+      }
       
+      void SearchNodesInRadiusExclusiveImplementation (
+          NodesContainerType const& rStructureNodes,
+          NodesContainerType const& rNodes,
+          const RadiusArrayType & Radius, 
+          VectorResultNodesContainerType& rResults )
+      {     
+          KRATOS_TRY
+          
+          int MaxNumberOfNodes = rStructureNodes.size();
+          
+          NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
+          NodesContainerType::ContainerType& nodes_ModelPart = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
+        
+          NodeBinsType bins(nodes_ModelPart.begin(), nodes_ModelPart.end());
+          
+          SearchInRadiusWrapper(bins,nodes_array,Radius,rResults,MaxNumberOfNodes,EXCLUSIVE);
+          
+          KRATOS_CATCH("")
+      }
       
+      void SearchNodesInRadiusInclusiveImplementation (
+          NodesContainerType const& rStructureNodes,
+          NodesContainerType const& rNodes,
+          const RadiusArrayType & Radius, 
+          VectorResultNodesContainerType& rResults )
+      {     
+          KRATOS_TRY
+          
+          int MaxNumberOfNodes = rStructureNodes.size();
+          
+          NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
+          NodesContainerType::ContainerType& nodes_ModelPart = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
+        
+          NodeBinsType bins(nodes_ModelPart.begin(), nodes_ModelPart.end());
+          
+          SearchInRadiusWrapper(bins,nodes_array,Radius,rResults,MaxNumberOfNodes,INCLUSIVE);
+          
+          KRATOS_CATCH("")
+      }
+      
+      template<class BinsType, class SearchObjectType, class ResultObjectType>
+      void SearchInRadiusWrapper(BinsType& bins, 
+                                 SearchObjectType& searchObjects,
+                                 const RadiusArrayType& Radius,
+                                 ResultObjectType& rResults, 
+                                 const int MaxNumberOfElements,
+                                 int SearchModeFlag
+                                 )
+      {
+          #pragma omp parallel
+          {
+              typename ResultObjectType::value_type     localResults(MaxNumberOfElements);
+              std::size_t                               NumberOfResults = 0;
+              
+              if(SearchModeFlag & EXCLUSIVE)
+              {
+                  #pragma omp parallel for
+                  for(std::size_t i = 0; i < searchObjects.size(); i++)
+                  {
+                      typename SearchObjectType::iterator ResultsPointer    = localResults.begin();
+                    
+                      NumberOfResults = bins.SearchObjectsInRadius(searchObjects[i],Radius[i],ResultsPointer,MaxNumberOfElements);
+                      
+                      rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);     
+                  }
+              }
+              else if (SearchModeFlag & INCLUSIVE)
+              {
+                  #pragma omp parallel for
+                  for(std::size_t i = 0; i < searchObjects.size(); i++)
+                  {
+                      typename SearchObjectType::iterator ResultsPointer    = localResults.begin();
+                    
+                      NumberOfResults = bins.SearchObjectsInRadiusInner(searchObjects[i],Radius[i],ResultsPointer,MaxNumberOfElements);
+                      
+                      rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);    
+                  }  
+              }
+          }
+      }
+      
+      template<class BinsType, class SearchObjectType, class ResultObjectType>
+      void SearchInRadiusWithDistanceWrapper(BinsType& bins, 
+                                             SearchObjectType& searchObjects,
+                                             const RadiusArrayType& Radius,
+                                             ResultObjectType& rResults, 
+                                             VectorDistanceType& rResultsDistance,
+                                             const int MaxNumberOfElements,
+                                             int SearchModeFlag
+                                             )
+      {
+          #pragma omp parallel
+          {
+              typename ResultObjectType::value_type     localResults(MaxNumberOfElements);
+              DistanceType                              localResultsDistances(MaxNumberOfElements);
+              std::size_t                               NumberOfResults = 0;
+              
+              if(SearchModeFlag & EXCLUSIVE)
+              {
+                  #pragma omp parallel for
+                  for(std::size_t i = 0; i < searchObjects.size(); i++)
+                  {
+                      typename SearchObjectType::iterator ResultsPointer    = localResults.begin();
+                      DistanceType::iterator ResultsDistancesPointer        = localResultsDistances.begin();
+                    
+                      NumberOfResults = bins.SearchObjectsInRadius(searchObjects[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+                      
+                      rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
+                      rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
+                  }
+              }
+              else if (SearchModeFlag & INCLUSIVE)
+              {
+                  #pragma omp parallel for
+                  for(std::size_t i = 0; i < searchObjects.size(); i++)
+                  {
+                      typename SearchObjectType::iterator ResultsPointer    = localResults.begin();
+                      DistanceType::iterator ResultsDistancesPointer        = localResultsDistances.begin();
+                    
+                      NumberOfResults = bins.SearchObjectsInRadiusInner(searchObjects[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+                      
+                      rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
+                      rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
+                  }  
+              }
+          }
+      }
+            
       ///@}
       ///@name Access
       ///@{ 
