@@ -102,6 +102,9 @@ namespace Kratos
       void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
       void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
       
+      virtual void NonlinearNormalForceCalculation(double LocalElasticContactForce[3], double kn1, double kn2, double distance, double max_dist, double initial_dist) ;
+
+
       virtual void EvaluateFailureCriteria(double LocalElasticContactForce[3], double ShearForceNow, double corrected_area, int i_neighbour_count, double& contact_sigma, double& contact_tau, double& failure_criterion_state, bool& sliding, int mapping);
       
       virtual void CalculateOnContactElements(ParticleWeakIteratorType neighbour_iterator, size_t i_neighbour_count, int mapping, double LocalElasticContactForce[3], 
@@ -227,6 +230,12 @@ namespace Kratos
              
         
         //member variables DEM_CONTINUUM
+
+
+        double mGamma1;
+        double mGamma2;
+        double mGamma3;
+        double mMaxDef;
         
         double mStressTensor[3][3]; 
         double mSymmStressTensor[3][3]; 
