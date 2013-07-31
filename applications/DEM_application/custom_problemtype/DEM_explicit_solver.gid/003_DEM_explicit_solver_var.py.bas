@@ -259,7 +259,7 @@ SigmaMax                         = *GenData(Sigma_Max)
 SigmaMin                         = *GenData(Sigma_Min)
 *format "%10.5e"
 InternalFriction                 = *GenData(Internal_Friction)
-NonLinearNormalElasticOption     = "*GenData(Non_Linear_Normal_Elastic_Model)"
+
 *format "%10.5e"
 C1                               = *GenData(C_1)
 *format "%10.5e"
@@ -268,6 +268,15 @@ N1                               = *GenData(N_1)
 C2                               = *GenData(C_2)
 *format "%10.5e"
 N2                               = *GenData(N_2)
+*format "%10.5e"
+G1                               = *GenData(Gamma_1)
+*format "%10.5e"
+G2                               = *GenData(Gamma_2)
+*format "%10.5e"
+G3                               = *GenData(Gamma_3)
+*format "%10.5e"
+MaxDef                           = *GenData(Max_Deformation)
+
 RotationalSpringOption           = "*GenData(Rotation_Spring)"
 RotaDampingType                  = "*GenData(Rota_Damp_Type)"
 
