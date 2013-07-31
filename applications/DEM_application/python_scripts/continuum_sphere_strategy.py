@@ -129,7 +129,6 @@ class ExplicitStrategy:
         self.clean_init_indentation_option  = Var_Translator(Param.CleanIndentationsOption)
         self.homogeneous_material_option    = Var_Translator(Param.HomogeneousMaterialOption)
         self.global_variables_option        = Var_Translator(Param.GlobalVariablesOption)
-        self.Non_Linear_Option              = Var_Translator(Param.NonLinearNormalElasticOption)
         self.stress_strain_operations       = Var_Translator(Param.StressStrainOperationsOption)
         self.MoveMeshFlag                   = True
         self.delta_option                   = Var_Translator(Param.DeltaOption)
@@ -304,12 +303,21 @@ class ExplicitStrategy:
             self.force_calculation_type_id  = 0
         elif (Param.NormalForceCalculationType == "Hertz"):
             self.force_calculation_type_id  = 1
+        elif (Param.NormalForceCalculationType == "NonLinearPieceWise"):
+            self.force_calculation_type_id  = 2
+        elif (Param.NormalForceCalculationType == "NonLinearDonze"):
+            self.force_calculation_type_id  = 3
 
-        if (self.Non_Linear_Option):
+        if (self.force_calculation_type_id ==2):
             self.C1                         = Param.C1
             self.C2                         = Param.C2
             self.N1                         = Param.N1
             self.N2                         = Param.N2
+        if (self.force_calculation_type_id ==3):
+            self.DonzeG1                   = Param.G1
+            self.DonzeG2                   = Param.G2
+            self.DonzeG3                   = Param.G3
+            self.DonzeMaxDef               = Param.MaxDef
 
         if (Param.NormalDampingType == "ViscDamp"):
 
@@ -530,14 +538,18 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MIN, self.sigma_min)
         self.model_part.ProcessInfo.SetValue(CONTACT_TAU_ZERO, self.tau_zero)
         self.model_part.ProcessInfo.SetValue(CONTACT_INTERNAL_FRICC, self.internal_fricc)
-        
-        self.model_part.ProcessInfo.SetValue(NON_LINEAR_OPTION, self.Non_Linear_Option)
-        
-        if (self.Non_Linear_Option):
+                
+        if (self.force_calculation_type_id == 2):
             self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N1, self.N1)
             self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N2, self.N2)
             self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C1, self.C1)
             self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C2, self.C2)
+
+        if (self.force_calculation_type_id == 3):
+            self.model_part.ProcessInfo.SetValue(DONZE_G1, self.DonzeG1)
+            self.model_part.ProcessInfo.SetValue(DONZE_G2, self.DonzeG2)
+            self.model_part.ProcessInfo.SetValue(DONZE_G3, self.DonzeG3)
+            self.model_part.ProcessInfo.SetValue(DONZE_MAX_DEF, self.DonzeMaxDef)
         
         if (self.triaxial_option):
             self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
