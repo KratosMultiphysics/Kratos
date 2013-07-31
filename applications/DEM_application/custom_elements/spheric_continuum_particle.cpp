@@ -1545,10 +1545,15 @@ namespace Kratos
           
           if(*mSwitchPressure==0)
           {
+            if (omp_get_thread_num()==0)
+            { KRATOS_WATCH("Confinement application finished at time :")   
+                         
+              KRATOS_WATCH(current_time) 
             
-            KRATOS_WATCH("Confinement application finished at time :")
-            KRATOS_WATCH(current_time)
-            *mSwitchPressure = 1;
+              *mSwitchPressure = 1;
+            }
+            
+            
           }  
         }
         
