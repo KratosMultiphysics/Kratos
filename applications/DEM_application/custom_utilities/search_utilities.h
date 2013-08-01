@@ -30,6 +30,8 @@ namespace Kratos
   {
     public:
      
+      typedef SpatialSearch::Pointer                            SpatialSearchPtrType;
+      
       typedef SpatialSearch::ElementsContainerType              ElementsArrayType;
       typedef SpatialSearch::NodesContainerType                 NodesArrayType;
       
@@ -45,7 +47,7 @@ namespace Kratos
 
       /// Default constructor.
 
-      DemSearchUtilities(typename SpatialSearch::Pointer pSpatialSearch)
+      DemSearchUtilities(SpatialSearchPtrType pSpatialSearch)
       {
           mSpatialSearch = pSpatialSearch;
       }
@@ -223,7 +225,7 @@ namespace Kratos
       VectorResultNodesContainerType    mNodesResults;
       VectorDistanceType                mResultsDistances;
         
-      typename SpatialSearch::Pointer   mSpatialSearch;
+      SpatialSearchPtrType              mSpatialSearch;
         
       vector<unsigned int>              mPartition;
 
