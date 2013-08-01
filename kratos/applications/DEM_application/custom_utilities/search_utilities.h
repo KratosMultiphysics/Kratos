@@ -74,14 +74,14 @@ namespace Kratos
        * @param ResultDistances: List of distances for each neighbour of each node in "rSearchModelPart"    
        */
       template<class TVariableType>
-      void SearchNodeNeigboursDistances(ModelPart& rSearchModelPart, ModelPart& rBinsModelPart, const TVariableType& rSearchRadiusVar, const TVariableType& rDistanceVar)
+      void SearchNodeNeigboursDistances(ModelPart& rSearchModelPart, ModelPart& rBinsModelPart, const double& rSearchRadius, const TVariableType& rDistanceVar)
       {
           KRATOS_TRY
           
           NodesArrayType& rSearchNodes  = rSearchModelPart.GetCommunicator().LocalMesh().Nodes();
           NodesArrayType& rBinsNodes    = rBinsModelPart.GetCommunicator().LocalMesh().Nodes();
           
-          SearchNodeNeigboursDistances(rSearchNodes,rBinsNodes,rSearchRadiusVar,rDistanceVar);
+          SearchNodeNeigboursDistances(rSearchNodes,rBinsNodes,rSearchRadius,rDistanceVar);
           
           KRATOS_CATCH("")
       }
@@ -94,13 +94,13 @@ namespace Kratos
        * @param ResultDistances: List of distances for each neighbour of each node in "rSearchModelPart"    
        */
       template<class TVariableType>
-      void SearchNodeNeigboursDistances(ModelPart& rSearchModelPart, NodesArrayType& rBinsNodes, const TVariableType& rSearchRadiusVar, const TVariableType& rDistanceVar)
+      void SearchNodeNeigboursDistances(ModelPart& rSearchModelPart, NodesArrayType& rBinsNodes, const double& rSearchRadius, const TVariableType& rDistanceVar)
       {
           KRATOS_TRY
           
           NodesArrayType& rSearchNodes  = rSearchModelPart.GetCommunicator().LocalMesh().Nodes();
           
-          SearchNodeNeigboursDistances(rSearchNodes,rBinsNodes,rSearchRadiusVar,rDistanceVar);
+          SearchNodeNeigboursDistances(rSearchNodes,rBinsNodes,rSearchRadius,rDistanceVar);
           
           KRATOS_CATCH("")
       }
@@ -113,13 +113,13 @@ namespace Kratos
        * @param ResultDistances: List of distances for each neighbour of each node in "rSearchModelPart"    
        */      
       template<class TVariableType> 
-      void SearchNodeNeigboursDistances(NodesArrayType& rSearchNodes, ModelPart& rBinsModelPart, const TVariableType& rSearchRadiusVar, const TVariableType& rDistanceVar)
+      void SearchNodeNeigboursDistances(NodesArrayType& rSearchNodes, ModelPart& rBinsModelPart, const double& rSearchRadius, const TVariableType& rDistanceVar)
       {
           KRATOS_TRY
           
           NodesArrayType& rBinsNodes    = rBinsModelPart.GetCommunicator().LocalMesh().Nodes();
           
-          SearchNodeNeigboursDistances(rSearchNodes,rBinsNodes,rSearchRadiusVar,rDistanceVar);
+          SearchNodeNeigboursDistances(rSearchNodes,rBinsNodes,rSearchRadius,rDistanceVar);
           
           KRATOS_CATCH("")
       }
@@ -133,7 +133,7 @@ namespace Kratos
        * @param ResultDistances: List of distances for each neighbour of each node in "rSearchModelPart"    
        */      
       template<class TVariableType>
-      void SearchNodeNeigboursDistances(NodesArrayType& rSearchNodes, NodesArrayType& rBinsNodes, const TVariableType& rSearchRadiusVar, const TVariableType& rDistanceVar)
+      void SearchNodeNeigboursDistances(NodesArrayType& rSearchNodes, NodesArrayType& rBinsNodes, const double& rSearchRadius, const TVariableType& rDistanceVar)
       {
           KRATOS_TRY
           
@@ -145,7 +145,7 @@ namespace Kratos
      
           for (NodesArrayType::iterator it = rSearchNodes.begin(); it != rSearchNodes.end(); ++it)
           {
-              mSearchRadius[it-rSearchNodes.begin()] = it->GetSolutionStepValue(rSearchRadiusVar);
+              mSearchRadius[it-rSearchNodes.begin()] = rSearchRadius;
           }
 
           mSpatialSearch->SearchNodesInRadiusExclusive(rSearchNodes,rBinsNodes,mSearchRadius,mNodesResults,mResultsDistances);
