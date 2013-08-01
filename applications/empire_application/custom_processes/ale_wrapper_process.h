@@ -91,10 +91,13 @@ public:
 
     void ExtractInterface()
     {
-        // Add interface nodes to mesh no. 1 of fluid model part
-        for(ModelPart::NodeIterator i_node =  mr_model_part.NodesBegin() ;
-                                    i_node != mr_model_part.NodesEnd() ;
-                                    i_node++)
+        KRATOS_TRY
+
+        // Add interface nodes (nodes of fluid model part with flag IS_INTERFACE)
+        // to interface model part
+        for( ModelPart::NodeIterator i_node =  mr_model_part.NodesBegin() ;
+                                     i_node != mr_model_part.NodesEnd() ;
+                                     i_node++ )
         {
             if( i_node->FastGetSolutionStepValue(IS_INTERFACE) == 1.0 )
             {
@@ -102,10 +105,10 @@ public:
             }
         }
 
-        // Generate triangular Conditions from original interface conditions
+        // Add interface conditions
         for ( ModelPart::ConditionIterator i_condition =  mr_model_part.ConditionsBegin();
                                            i_condition != mr_model_part.ConditionsEnd();
-                                           i_condition++)
+                                           i_condition++ )
         {
             if ( ((*i_condition).GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
                  ((*i_condition).GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
@@ -114,15 +117,17 @@ public:
                 mr_interface_part.Conditions().push_back( *(i_condition.base()) );
             }
         }
+
+        KRATOS_CATCH("")
     }
 
     void ExtractForcesFromModelPart( boost::python::list& reactions )
     {
         KRATOS_TRY
 
-        for(ModelPart::NodeIterator i_node =  mr_interface_part.NodesBegin() ;
-                                    i_node != mr_interface_part.NodesEnd() ;
-                                    i_node++)
+        for( ModelPart::NodeIterator i_node =  mr_interface_part.NodesBegin() ;
+                                     i_node != mr_interface_part.NodesEnd() ;
+                                     i_node++ )
         {
                 double reactionX = i_node->GetSolutionStepValue(REACTION_X);
                 double reactionY = i_node->GetSolutionStepValue(REACTION_Y);
@@ -136,10 +141,12 @@ public:
         KRATOS_CATCH("")
     }
 
-    void ExtractMeshInfo(boost::python::list& numNodes, boost::python::list& numElems,
-                         boost::python::list& nodes, boost::python::list& nodeIDs,
-                         boost::python::list& numNodesPerElem, boost::python::list& elems)
+    void ExtractMeshInfo( boost::python::list& numNodes, boost::python::list& numElems,
+                          boost::python::list& nodes, boost::python::list& nodeIDs,
+                          boost::python::list& numNodesPerElem, boost::python::list& elems )
     {
+        KRATOS_TRY
+
         numNodes.append(mr_interface_part.NodesArray().size());
         numElems.append(mr_interface_part.ConditionsArray().size());
 
@@ -178,6 +185,8 @@ public:
             elems.append(nodeID_2);
             elems.append(nodeID_3);
         }
+
+        KRATOS_CATCH("")
     }
 
 

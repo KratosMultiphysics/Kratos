@@ -9,9 +9,7 @@ set( KRATOS_EMPIRE_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/empire_application.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/empire_python_application.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/your_new_element.cpp
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/your_new_element_2d.h
