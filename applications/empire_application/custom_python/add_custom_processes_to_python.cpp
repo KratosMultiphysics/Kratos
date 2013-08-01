@@ -54,7 +54,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // External includes
 #include <boost/python.hpp>
 
-
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
@@ -76,7 +75,6 @@ void  AddCustomProcessesToPython()
 
     class_<ALEWrapperProcess, bases<Process> >("ALEWrapperProcess", init<ModelPart&,ModelPart&>())
     .def("ExtractInterface", &ALEWrapperProcess::ExtractInterface)
-    .def("AssignDisplacementsToModelPart", &ALEWrapperProcess::AssignDisplacementsToModelPart)
     .def("ExtractForcesFromModelPart", &ALEWrapperProcess::ExtractForcesFromModelPart)
     .def("ExtractMeshInfo", &ALEWrapperProcess::ExtractMeshInfo)
     ;
