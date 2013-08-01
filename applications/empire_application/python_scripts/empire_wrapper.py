@@ -8,10 +8,9 @@ CheckForPreviousImport()
 class EmpireWrapper:
 
     def __init__(self,fluid_model_part):
-        self.isConvergent = 0
-        self.libempire_api = cdll.LoadLibrary(os.environ['EMPIRE_API_LIBSO_ON_MACHINE'])
+        self.libempire_api 	  = cdll.LoadLibrary(os.environ['EMPIRE_API_LIBSO_ON_MACHINE'])
 	self.interface_model_part = ModelPart("InterfaceModelPart");   
-	self.ale_wrapper_process = ALEWrapperProcess(fluid_model_part,self.interface_model_part)	
+	self.ale_wrapper_process  = ALEWrapperProcess(fluid_model_part,self.interface_model_part)	
 
     def initialize(self):
 	self.ale_wrapper_process.ExtractInterface()
@@ -21,12 +20,19 @@ class EmpireWrapper:
 	size = self.interface_model_part.GetNodes().Size() * 3
 	c_displacements = (c_double * size)(0)	
 	self.libempire_api.EMPIRE_API_recvDataField("defaultField", size, c_displacements)
-
-	#self.ale_wrapper_process.AssignDisplacementsToModelPart( disp )
+	
+	disp = Vector(3)
+	i = 0
+	for nodes in self.interface_model_part.GetNodes():
+		disp = [c_displacements[3*i+0],c_displacements[3*i+1],c_displacements[3*i+2]]	
+		nodes.SetSolutionStepValue(DISPLACEMENT,disp)
+		print nodes.GetSolutionStepValue(DISPLACEMENT)
+		i = i + 1
 
     def sendForces(self):
 	forces = []
 	self.ale_wrapper_process.ExtractForcesFromModelPart( forces )
+	print forces
 
 	c_forces = (c_double * len(forces))(*forces)
 	c_size = len(c_forces)
@@ -52,5 +58,5 @@ class EmpireWrapper:
 	self.libempire_api.EMPIRE_API_sendMesh("defaultMesh",c_numNodes[0], c_numElems[0], c_nodes, c_nodeIDs, c_numNodesPerElem, c_elems)
 
     def recvConvergenceSignal(self):
-	self.isConvergent = self.libempire_api.EMPIRE_API_recvConvergenceSignal()
-	return self.isConvergent
+	isConvergent = self.libempire_api.EMPIRE_API_recvConvergenceSignal()
+	return isConvergent
