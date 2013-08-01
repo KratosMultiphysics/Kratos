@@ -60,8 +60,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes 
 #include "includes/define.h"
 #include "empire_application.h"
-#include "custom_python/add_custom_strategies_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 
  
@@ -83,8 +81,6 @@ namespace Python
 			  bases<KratosApplication>, boost::noncopyable >("KratosEmpireApplication")
 			;
 
-	AddCustomStrategiesToPython();
-	AddCustomUtilitiesToPython();
 	AddCustomProcessesToPython();
 
 	//registering variables in python
