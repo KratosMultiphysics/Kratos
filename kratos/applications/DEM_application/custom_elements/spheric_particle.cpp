@@ -1691,6 +1691,14 @@ namespace Kratos
               if (mGlobalVariablesOption){
                   mGlobalKn                  = rCurrentProcessInfo[GLOBAL_KN];
                   mGlobalKt                  = rCurrentProcessInfo[GLOBAL_KT];
+                  
+                  if (mGlobalKn == 0.0){
+                      mGlobalAuxNormToTang       = 0.0;
+                  }
+
+                  else{
+                      mGlobalAuxNormToTang       = sqrt(mGlobalKt / mGlobalKn);
+                  }
               }
               
               mLimitSurfaceOption            = rCurrentProcessInfo[LIMIT_SURFACE_OPTION];
@@ -1700,15 +1708,7 @@ namespace Kratos
 
               if (mRotationOption){
                   mRollingFriction           = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
-              }
-
-              if (mGlobalKn == 0.0){
-                  mGlobalAuxNormToTang       = 0.0;
-              }
-
-              else {
-                  mGlobalAuxNormToTang       = sqrt(mGlobalKt / mGlobalKn);
-              }
+              }           
 
           }
 
