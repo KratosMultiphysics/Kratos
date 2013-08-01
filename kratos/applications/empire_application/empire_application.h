@@ -23,8 +23,6 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-#include "includes/empire_api.h"
-
 #include "includes/variables.h"
 
 
