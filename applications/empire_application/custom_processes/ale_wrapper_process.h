@@ -9,15 +9,13 @@
 #if !defined(ALE_WRAPPER_PROCESS_INCLUDED )
 #define  ALE_WRAPPER_PROCESS_INCLUDED
 
-
-
 // System includes
-#include <string>
 #include <iostream>
+#include <string>
 #include <algorithm>
 
 // External includes
-
+#include <boost/python.hpp>
 
 // Project includes
 #include "includes/define.h"
@@ -91,7 +89,6 @@ public:
     ///@name Operations
     ///@{
 
-
     void ExtractInterface()
     {
         // Add interface nodes to mesh no. 1 of fluid model part
@@ -117,21 +114,6 @@ public:
                 mr_interface_part.Conditions().push_back( *(i_condition.base()) );
             }
         }
-    }
-
-    void AssignDisplacementsToModelPart( boost::python::list& displacements )
-    {
-        KRATOS_TRY
-
-        for(ModelPart::NodeIterator i_node =  mr_model_part.NodesBegin() ;
-                                    i_node != mr_model_part.NodesEnd() ;
-                                    i_node++)
-        {
-              //double u = displacements[i];
-
-        }
-
-        KRATOS_CATCH("")
     }
 
     void ExtractForcesFromModelPart( boost::python::list& reactions )
