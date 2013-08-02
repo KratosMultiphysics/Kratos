@@ -56,6 +56,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    typedef Properties::Pointer            PropertiesPointer;
+
+
     /// Pointer definition of HardeningLaw
     KRATOS_CLASS_POINTER_DEFINITION(HardeningLaw);
 
@@ -84,9 +87,9 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    void InitializeMaterial (const Properties& rProperties)
+    void InitializeMaterial (PropertiesPointer pProperties)
 	{
-		mpProperties = &rProperties;
+		mpProperties = pProperties;
 	}
 
 
@@ -148,7 +151,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    const Properties* mpProperties;
+    const PropertiesPointer mpProperties;
      
     ///@}
     ///@name Protected Operators

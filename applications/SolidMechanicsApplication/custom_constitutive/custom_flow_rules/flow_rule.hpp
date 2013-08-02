@@ -59,6 +59,11 @@ namespace Kratos
     ///@name Type Definitions
     ///@{
 
+    typedef YieldCriterion::Pointer    YieldCriterionPointer;
+    typedef HardeningLaw::Pointer        HardeningLawPointer;
+    typedef Properties::Pointer            PropertiesPointer;
+
+
     struct PlasticFactors
     {
       double Beta1;
@@ -123,7 +128,7 @@ namespace Kratos
     FlowRule& operator=(FlowRule const& rOther) 
     { 
        mInternalVariables = rOther.mInternalVariables;
-       mpYieldCriterion   = rOther.mpYieldCriterion.Clone();
+       mpYieldCriterion   = rOther.mpYieldCriterion;
        mpHardeningLaw     = rOther.mpHardeningLaw;
        mpProperties       = rOther.mpProperties;
 
@@ -143,16 +148,16 @@ namespace Kratos
     ///@name Operations
     ///@{
     
-    void InitializeMaterial (YieldCriterion & rYieldCriterion, HardeningLaw & rHardeningLaw, const Properties& rProperties)
+    void InitializeMaterial (YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw, const Properties& rProperties)
     {
       mInternalVariables.clear();
 
-      mpYieldCriterion = &rYieldCriterion;
-      mpHardeningLaw   = &rHardeningLaw;
+      mpYieldCriterion = pYieldCriterion;
+      mpHardeningLaw   = pHardeningLaw;
       mpProperties     = &rProperties;
 
-      mpHardeningLaw.InitializeMaterial(rProperties);	
-      mpYieldCriterion.InitializeMaterial(rHardeningLaw);	
+      mpHardeningLaw.InitializeMaterial(mpProperties);	
+      mpYieldCriterion.InitializeMaterial(mpHardeningLaw);	
     };
 
 
@@ -224,9 +229,9 @@ namespace Kratos
     
     InternalVariables   mInternalVariables;
 
-    YieldCriterion*     mpYieldCriterion;
-    HardeningLaw*       mpHardeningLaw;
-    Properties*         mpProperties;
+    YieldCriterionPointer   mpYieldCriterion;
+    HardeningLawPointer       mpHardeningLaw;
+    PropertiesPointer           mpProperties;
 	  
     ///@}
     ///@name Protected Operators

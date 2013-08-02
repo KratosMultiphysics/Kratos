@@ -55,6 +55,12 @@ public:
     typedef ProcessInfo      ProcessInfoType;
     typedef ConstitutiveLaw         BaseType;
     typedef std::size_t             SizeType;
+
+    typedef FlowRule::Pointer                FlowRulePointer;
+    typedef YieldCriterion::Pointer    YieldCriterionPointer;
+    typedef HardeningLaw::Pointer        HardeningLawPointer;
+    typedef Properties::Pointer            PropertiesPointer;
+
     /**
      * Counted pointer of HyperElasticPlastic3DLaw
      */
@@ -70,6 +76,8 @@ public:
      */
     HyperElasticPlastic3DLaw();
 
+
+    HyperElasticPlastic3DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw); 
 
     /**
      * Copy constructor.
@@ -152,10 +160,14 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+  
+    Matrix mElasticLeftCauchyGreen;
+    
+    FlowRulePointer mpFlowRulePointer;
 
-    YieldCriterion mpYieldCriterion;
+    YieldCriterionPointer mpYieldCriterion;
 	
-    HardeningLaw   mpHardeningLaw;
+    HardeningLawPointer   mpHardeningLaw;
 	
     ///@}
     ///@name Protected Operators
@@ -309,6 +321,8 @@ private:
 
     ///@name Static Member Variables
     ///@{
+
+
     ///@}
     ///@name Member Variables
     ///@{
