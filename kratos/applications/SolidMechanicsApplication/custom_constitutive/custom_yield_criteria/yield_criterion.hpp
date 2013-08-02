@@ -57,6 +57,7 @@ class YieldCriterion
     public:
         ///@name Type Definitions
         ///@{
+        typedef HardeningLaw::Pointer        HardeningLawPointer;
 
         /// Pointer definition of YieldCriterion
         KRATOS_CLASS_POINTER_DEFINITION(YieldCriterion);
@@ -98,9 +99,9 @@ class YieldCriterion
         ///@}
         ///@name Operations
         ///@{
-	void InitializeMaterial (const HardeningLaw& rHardeningLaw)
+	void InitializeMaterial (HardeningLawPointer pHardeningLaw)
 	{
-		mpHardeningLaw = &rHardeningLaw;
+		mpHardeningLaw = pHardeningLaw;
 	}
 
 
@@ -173,7 +174,7 @@ class YieldCriterion
         ///@name Protected member Variables
         ///@{
 	
-	HardeningLaw* mpHardening;
+	HardeningLawPointer mpHardening;
 	
         ///@}
         ///@name Protected Operators

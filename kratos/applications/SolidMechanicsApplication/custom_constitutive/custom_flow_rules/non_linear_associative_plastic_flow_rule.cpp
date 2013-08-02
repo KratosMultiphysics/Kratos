@@ -225,7 +225,7 @@ void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialRe
 
 	rScalingFactors.Beta0 = 1.0 + DeltaHardening/(3.0 * rReturnMappingVariables.LameMu_bar);
 		
-	rScalingFactors.Beta1 = 2.0 * LameMu_bar * DeltaGamma / rParameters.NormIsochoricStress;
+	rScalingFactors.Beta1 = 2.0 * rReturnMappingVariables.LameMu_bar * DeltaGamma / rParameters.NormIsochoricStress;
 		
 	rScalingFactors.Beta2 = ( ( 1.0 - ( 1.0 / Beta0 ) ) * (2.0/3.0) * rReturnMappingVariables.NormIsochoricStress * rReturnMappingVariables.DeltaGamma )/(rReturnMappingVariables.LameMu_bar) ;
 		
