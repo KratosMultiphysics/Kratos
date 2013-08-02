@@ -42,6 +42,10 @@
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_axisym_2D_law.hpp"
 
+// #include "custom_constitutive/custom_flow_rules/flow_rule.hpp"
+// #include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
+// #include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
+
 
 namespace Kratos
 {
@@ -51,12 +55,17 @@ namespace Python
 
 using namespace boost::python;
 
+// typedef FlowRule::Pointer                        FlowRulePointer;
+// typedef YieldCriterion::Pointer            YieldCriterionPointer;
+// typedef HardeningLaw::Pointer                HardeningLawPointer;
 typedef Properties::Pointer                    PropertiesPointer;
 typedef Mesh<Node<3>, Properties, Element, Condition>   MeshType;
 
 typedef ConstitutiveLaw                  ConstitutiveLawBaseType;
 typedef ConstitutiveLaw::Pointer          ConstitutiveLawPointer;
 typedef std::vector<ConstitutiveLaw::Pointer> MaterialsContainer;
+
+
 
 void Push_Back_Constitutive_Laws( MaterialsContainer& ThisMaterialsContainer,
                                   ConstitutiveLawPointer ThisConstitutiveLaw )
@@ -121,6 +130,19 @@ void  AddCustomConstitutiveLawsToPython()
     ( "HyperElasticUPAxisym2DLaw",
       init<>() )
     ;
+
+
+    // class_<HyperElasticPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "HyperElasticPlastic2DLaw",
+    //   init<>() )
+    //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    // ;
+
+    // class_<HyperElasticPlasticPlainsStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    // ( "HyperElasticPlastic2DLaw",
+    //   init<>() )
+    //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    // ;
 
 
 }
