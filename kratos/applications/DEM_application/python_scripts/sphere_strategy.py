@@ -126,7 +126,6 @@ class ExplicitStrategy:
         self.clean_init_indentation_option  = Var_Translator(Param.CleanIndentationsOption)
         self.homogeneous_material_option    = Var_Translator(Param.HomogeneousMaterialOption)
         self.global_variables_option        = Var_Translator(Param.GlobalVariablesOption)
-        self.non_linear_option              = Var_Translator(Param.NonLinearNormalElasticOption)
         self.contact_mesh_option            = Var_Translator(Param.ContactMeshOption)
         self.search_radius_extension        = Var_Translator(Param.SearchRadiusExtension)
         self.automatic_bounding_box_option  = Var_Translator(Param.AutomaticBoundingBoxOption)
@@ -290,12 +289,6 @@ class ExplicitStrategy:
         else:
 
             raise 'Specified NormalForceCalculationType is not defined'
-
-        if (self.non_linear_option):
-            self.C1                         = Param.C1
-            self.C2                         = Param.C2
-            self.N1                         = Param.N1
-            self.N2                         = Param.N2
 
         if (Param.NormalDampingType == "ViscDamp"):
 
