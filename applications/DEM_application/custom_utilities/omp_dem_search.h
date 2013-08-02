@@ -21,8 +21,19 @@
 #include "spatial_containers/dem_search.h"
 #include "discrete_particle_configure.h"
 #include "node_configure.h"
+#include "utilities/openmp_utils.h"
 
 // External includes
+
+/* Timer defines */
+#include "utilities/timer.h"
+#ifdef CUSTOMTIMER
+#define KRATOS_TIMER_START(t) Timer::Start(t);
+#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
+#else
+#define KRATOS_TIMER_START(t)
+#define KRATOS_TIMER_STOP(t)
+#endif
 
 namespace Kratos
 {
@@ -118,8 +129,25 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           ElementsContainerType::ContainerType& elements_ModelPart = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
         
           BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());
-          
-          SearchInRadiusWithDistanceWrapper(bins,elements_array,Radius,rResults,rResultsDistance,MaxNumberOfElements,EXCLUSIVE);
+                    
+          #pragma omp parallel
+          {
+              ResultElementsContainerType   localResults(MaxNumberOfElements);
+              DistanceType                  localResultsDistances(MaxNumberOfElements);
+              std::size_t                   NumberOfResults = 0;
+              
+              #pragma omp parallel for
+              for(std::size_t i = 0; i < elements_array.size(); i++)
+              {
+                  ResultElementsContainerType::iterator ResultsPointer          = localResults.begin();
+                  DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
+                
+                  NumberOfResults = bins.SearchObjectsInRadius(elements_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+                  
+                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
+                  rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
+              }
+          }
           
           KRATOS_CATCH("")
       }
@@ -140,7 +168,24 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
         
           BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());
           
-          SearchInRadiusWithDistanceWrapper(bins,elements_array,Radius,rResults,rResultsDistance,MaxNumberOfElements,INCLUSIVE);
+          #pragma omp parallel
+          {
+              ResultElementsContainerType   localResults(MaxNumberOfElements);
+              DistanceType                  localResultsDistances(MaxNumberOfElements);
+              std::size_t                   NumberOfResults = 0;
+              
+              #pragma omp parallel for
+              for(std::size_t i = 0; i < elements_array.size(); i++)
+              {
+                  ResultElementsContainerType::iterator ResultsPointer          = localResults.begin();
+                  DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
+                
+                  NumberOfResults = bins.SearchObjectsInRadiusInner(elements_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+                  
+                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
+                  rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
+              }
+          }
           
           KRATOS_CATCH("")        
       }
@@ -152,6 +197,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           VectorResultElementsContainerType& rResults )
       {     
           KRATOS_TRY
+          KRATOS_TIMER_START("SN-LVLN1")
           
           int MaxNumberOfElements = rStructureElements.size();
           
@@ -160,8 +206,23 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
         
           BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());
           
-          SearchInRadiusWrapper(bins,elements_array,Radius,rResults,MaxNumberOfElements,EXCLUSIVE);
+          #pragma omp parallel
+          {
+              ResultElementsContainerType   localResults(MaxNumberOfElements);
+              std::size_t                   NumberOfResults = 0;
+              
+              #pragma omp for
+              for(std::size_t i = 0; i < elements_array.size(); i++)
+              {
+                  ResultElementsContainerType::iterator ResultsPointer = localResults.begin();
+                
+                  NumberOfResults = bins.SearchObjectsInRadius(elements_array[i],Radius[i],ResultsPointer,MaxNumberOfElements);
+                  
+                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);     
+              }
+          }
           
+          KRATOS_TIMER_STOP("SN-LVLN1")
           KRATOS_CATCH("")
       }
       
@@ -180,7 +241,21 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
         
           BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());
           
-          SearchInRadiusWrapper(bins,elements_array,Radius,rResults,MaxNumberOfElements,INCLUSIVE);
+          #pragma omp parallel
+          {
+              ResultElementsContainerType   localResults(MaxNumberOfElements);
+              std::size_t                   NumberOfResults = 0;
+              
+              #pragma omp parallel for
+              for(std::size_t i = 0; i < elements_array.size(); i++)
+              {
+                  ResultElementsContainerType::iterator ResultsPointer = localResults.begin();
+                        
+                  NumberOfResults = bins.SearchObjectsInRadiusInner(elements_array[i],Radius[i],ResultsPointer,MaxNumberOfElements);
+                          
+                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);    
+              } 
+          }
           
           KRATOS_CATCH("")        
       }
@@ -198,10 +273,27 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           
           NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
           NodesContainerType::ContainerType& nodes_ModelPart = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
-        
+              
           NodeBinsType bins(nodes_ModelPart.begin(), nodes_ModelPart.end());
           
-          SearchInRadiusWithDistanceWrapper(bins,nodes_array,Radius,rResults,rResultsDistance,MaxNumberOfNodes,EXCLUSIVE);
+          #pragma omp parallel
+          {
+              ResultNodesContainerType  localResults(MaxNumberOfNodes);
+              DistanceType              localResultsDistances(MaxNumberOfNodes);
+              std::size_t               NumberOfResults = 0;
+              
+              #pragma omp parallel for
+              for(std::size_t i = 0; i < nodes_array.size(); i++)
+              {
+                  ResultNodesContainerType::iterator    ResultsPointer          = localResults.begin();
+                  DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
+                
+                  NumberOfResults = bins.SearchObjectsInRadius(nodes_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfNodes);
+                  
+                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
+                  rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
+              }
+          }
           
           KRATOS_CATCH("")
       }
@@ -219,10 +311,27 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       
           NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
           NodesContainerType::ContainerType& nodes_ModelPart = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
-        
+          
           NodeBinsType bins(nodes_ModelPart.begin(), nodes_ModelPart.end());
           
-          SearchInRadiusWithDistanceWrapper(bins,nodes_array,Radius,rResults,rResultsDistance,MaxNumberOfNodes,INCLUSIVE);
+          #pragma omp parallel
+          {
+              ResultNodesContainerType  localResults(MaxNumberOfNodes);
+              DistanceType              localResultsDistances(MaxNumberOfNodes);
+              std::size_t               NumberOfResults = 0;
+              
+              #pragma omp parallel for
+              for(std::size_t i = 0; i < nodes_array.size(); i++)
+              {
+                  ResultNodesContainerType::iterator    ResultsPointer          = localResults.begin();
+                  DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
+                
+                  NumberOfResults = bins.SearchObjectsInRadiusInner(nodes_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfNodes);
+                  
+                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
+                  rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
+              }
+          }
           
           KRATOS_CATCH("")
       }
@@ -242,7 +351,21 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
         
           NodeBinsType bins(nodes_ModelPart.begin(), nodes_ModelPart.end());
           
-          SearchInRadiusWrapper(bins,nodes_array,Radius,rResults,MaxNumberOfNodes,EXCLUSIVE);
+          #pragma omp parallel
+          {
+              ResultNodesContainerType  localResults(MaxNumberOfNodes);
+              std::size_t               NumberOfResults = 0;
+              
+              #pragma omp parallel for
+              for(std::size_t i = 0; i < nodes_array.size(); i++)
+              {
+                  ResultNodesContainerType::iterator ResultsPointer    = localResults.begin();
+                
+                  NumberOfResults = bins.SearchObjectsInRadius(nodes_array[i],Radius[i],ResultsPointer,MaxNumberOfNodes);
+                  
+                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);     
+              }
+          }
           
           KRATOS_CATCH("")
       }
@@ -262,97 +385,23 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
         
           NodeBinsType bins(nodes_ModelPart.begin(), nodes_ModelPart.end());
           
-          SearchInRadiusWrapper(bins,nodes_array,Radius,rResults,MaxNumberOfNodes,INCLUSIVE);
+          #pragma omp parallel
+          {
+              ResultNodesContainerType  localResults(MaxNumberOfNodes);
+              std::size_t               NumberOfResults = 0;
+              
+              #pragma omp parallel for
+              for(std::size_t i = 0; i < nodes_array.size(); i++)
+              {
+                  ResultNodesContainerType::iterator ResultsPointer    = localResults.begin();
+                        
+                  NumberOfResults = bins.SearchObjectsInRadiusInner(nodes_array[i],Radius[i],ResultsPointer,MaxNumberOfNodes);
+                          
+                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);    
+              }
+          }
           
           KRATOS_CATCH("")
-      }
-      
-      template<class BinsType, class SearchObjectType, class ResultObjectType>
-      void SearchInRadiusWrapper(BinsType& bins, 
-                                 SearchObjectType& searchObjects,
-                                 const RadiusArrayType& Radius,
-                                 ResultObjectType& rResults, 
-                                 const int MaxNumberOfElements,
-                                 int SearchModeFlag
-                                 )
-      {
-          #pragma omp parallel
-          {
-              typename ResultObjectType::value_type     localResults(MaxNumberOfElements);
-              std::size_t                               NumberOfResults = 0;
-              
-              if(SearchModeFlag & EXCLUSIVE)
-              {
-                  #pragma omp parallel for
-                  for(std::size_t i = 0; i < searchObjects.size(); i++)
-                  {
-                      typename SearchObjectType::iterator ResultsPointer    = localResults.begin();
-                    
-                      NumberOfResults = bins.SearchObjectsInRadius(searchObjects[i],Radius[i],ResultsPointer,MaxNumberOfElements);
-                      
-                      rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);     
-                  }
-              }
-              else if (SearchModeFlag & INCLUSIVE)
-              {
-                  #pragma omp parallel for
-                  for(std::size_t i = 0; i < searchObjects.size(); i++)
-                  {
-                      typename SearchObjectType::iterator ResultsPointer    = localResults.begin();
-                    
-                      NumberOfResults = bins.SearchObjectsInRadiusInner(searchObjects[i],Radius[i],ResultsPointer,MaxNumberOfElements);
-                      
-                      rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);    
-                  }  
-              }
-          }
-      }
-      
-      template<class BinsType, class SearchObjectType, class ResultObjectType>
-      void SearchInRadiusWithDistanceWrapper(BinsType& bins, 
-                                             SearchObjectType& searchObjects,
-                                             const RadiusArrayType& Radius,
-                                             ResultObjectType& rResults, 
-                                             VectorDistanceType& rResultsDistance,
-                                             const int MaxNumberOfElements,
-                                             int SearchModeFlag
-                                             )
-      {
-          #pragma omp parallel
-          {
-              typename ResultObjectType::value_type     localResults(MaxNumberOfElements);
-              DistanceType                              localResultsDistances(MaxNumberOfElements);
-              std::size_t                               NumberOfResults = 0;
-              
-              if(SearchModeFlag & EXCLUSIVE)
-              {
-                  #pragma omp parallel for
-                  for(std::size_t i = 0; i < searchObjects.size(); i++)
-                  {
-                      typename SearchObjectType::iterator ResultsPointer    = localResults.begin();
-                      DistanceType::iterator ResultsDistancesPointer        = localResultsDistances.begin();
-                    
-                      NumberOfResults = bins.SearchObjectsInRadius(searchObjects[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
-                      
-                      rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
-                      rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
-                  }
-              }
-              else if (SearchModeFlag & INCLUSIVE)
-              {
-                  #pragma omp parallel for
-                  for(std::size_t i = 0; i < searchObjects.size(); i++)
-                  {
-                      typename SearchObjectType::iterator ResultsPointer    = localResults.begin();
-                      DistanceType::iterator ResultsDistancesPointer        = localResultsDistances.begin();
-                    
-                      NumberOfResults = bins.SearchObjectsInRadiusInner(searchObjects[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
-                      
-                      rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
-                      rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
-                  }  
-              }
-          }
       }
             
       ///@}
@@ -399,7 +448,8 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
         
       ///@} 
       ///@name Protected member Variables 
-      ///@{ 
+      ///@{
+        
         
         
       ///@} 
