@@ -142,7 +142,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   ResultElementsContainerType::iterator ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
                 
-                  NumberOfResults = bins.SearchObjectsInRadius(elements_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+                  NumberOfResults = bins.SearchObjectsInRadiusInner(elements_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
                   
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
@@ -180,7 +180,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   ResultElementsContainerType::iterator ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
                 
-                  NumberOfResults = bins.SearchObjectsInRadiusInner(elements_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+                  NumberOfResults = bins.SearchObjectsInRadius(elements_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
                   
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
@@ -216,7 +216,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               {
                   ResultElementsContainerType::iterator ResultsPointer = localResults.begin();
                 
-                  NumberOfResults = bins.SearchObjectsInRadius(elements_array[i],Radius[i],ResultsPointer,MaxNumberOfElements);
+                  NumberOfResults = bins.SearchObjectsInRadiusInner(elements_array[i],Radius[i],ResultsPointer,MaxNumberOfElements);
                   
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);     
               }
@@ -251,7 +251,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               {
                   ResultElementsContainerType::iterator ResultsPointer = localResults.begin();
                         
-                  NumberOfResults = bins.SearchObjectsInRadiusInner(elements_array[i],Radius[i],ResultsPointer,MaxNumberOfElements);
+                  NumberOfResults = bins.SearchObjectsInRadius(elements_array[i],Radius[i],ResultsPointer,MaxNumberOfElements);
                           
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);    
               } 
@@ -288,7 +288,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   ResultNodesContainerType::iterator    ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
                 
-                  NumberOfResults = bins.SearchObjectsInRadius(nodes_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfNodes);
+                  NumberOfResults = bins.SearchObjectsInRadiusInner(nodes_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfNodes);
                   
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
@@ -326,7 +326,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   ResultNodesContainerType::iterator    ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
                 
-                  NumberOfResults = bins.SearchObjectsInRadiusInner(nodes_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfNodes);
+                  NumberOfResults = bins.SearchObjectsInRadius(nodes_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfNodes);
                   
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
@@ -361,7 +361,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               {
                   ResultNodesContainerType::iterator ResultsPointer    = localResults.begin();
                 
-                  NumberOfResults = bins.SearchObjectsInRadius(nodes_array[i],Radius[i],ResultsPointer,MaxNumberOfNodes);
+                  NumberOfResults = bins.SearchObjectsInRadiusInner(nodes_array[i],Radius[i],ResultsPointer,MaxNumberOfNodes);
                   
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);     
               }
@@ -395,7 +395,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               {
                   ResultNodesContainerType::iterator ResultsPointer    = localResults.begin();
                         
-                  NumberOfResults = bins.SearchObjectsInRadiusInner(nodes_array[i],Radius[i],ResultsPointer,MaxNumberOfNodes);
+                  NumberOfResults = bins.SearchObjectsInRadius(nodes_array[i],Radius[i],ResultsPointer,MaxNumberOfNodes);
                           
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);    
               }
