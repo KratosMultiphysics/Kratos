@@ -252,6 +252,7 @@ proc InitKratosPT { ptdir } {
 
     # If path to kratos is unknown, ask it to user
     if { $knownpath == 0 } {
+	WarnWin "In order to use this problem-type,\nKratos problem-type must also be present.\nPlease select the folder where it is located."
 	GetKratosPath
     }
 }
