@@ -336,9 +336,9 @@ namespace Kratos
                                                       double OldNormalDir[3],
                                                       double LocalCoordSystem[3][3],
                                                       double OldLocalCoordSystem[3][3],
-                                                      const array_1d<double, 3> &other_to_me_vect,
-                                                      const array_1d<double, 3> &vel,
-                                                      const array_1d<double, 3> &delta_displ,
+                                                      const array_1d<double, 3>& other_to_me_vect,
+                                                      const array_1d<double, 3>& vel,
+                                                      const array_1d<double, 3>& delta_displ,
                                                       ParticleWeakIteratorType neighbour_iterator)
       {
 
@@ -383,9 +383,9 @@ namespace Kratos
       void SphericParticle::DisplacementDueToRotation(double DeltDisp[3],
                                                       double OldNormalDir[3],
                                                       double OldLocalCoordSystem[3][3],
-                                                      const double &other_radius,
-                                                      const double &dt,
-                                                      const array_1d<double, 3> &ang_vel,
+                                                      const double& other_radius,
+                                                      const double& dt,
+                                                      const array_1d<double, 3>& ang_vel,
                                                       ParticleWeakIteratorType neighbour_iterator)
       {
           array_1d<double, 3> other_ang_vel     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
@@ -411,7 +411,7 @@ namespace Kratos
                                            double GlobalElasticContactForce[3],
                                            double InitialRotaMoment[3],
                                            double LocalCoordSystem[3][3],
-                                           const double &other_radius,
+                                           const double& other_radius,
                                            array_1d<double, 3>& rContactMoment,
                                            ParticleWeakIteratorType neighbour_iterator)
       {
