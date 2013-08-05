@@ -167,15 +167,7 @@ public:
         return *mpTransferCoefficientVar;
     }
     
-    void SetSpecificHeatVariable(const Variable<double>& rvar)
-    {
-        mpSpecificHeatVar = &rvar;
-    }
-    const Variable<double>& GetSpecificHeatVariable()
-    {
-        return *mpSpecificHeatVar;
-    }
-
+   
     void SetVelocityVariable(const Variable<array_1d<double,3> >& rvar)
     {
         mpVelocityVar = &rvar;
@@ -183,6 +175,15 @@ public:
     const Variable<array_1d<double,3> >& GetVelocityVariable()
     {
         return *mpVelocityVar;
+    }
+
+    void SetSpecificHeatVariable(const Variable<double>& rvar)
+    {
+        mpSpecificHeatVar = &rvar;
+    }
+    const Variable<double>& GetSpecificHeatVariable()
+    {
+        return *mpSpecificHeatVar;
     }
     ///@}
     ///@name Operations
@@ -203,8 +204,8 @@ public:
         mpProjectionVar = rOther. mpProjectionVar;
         mpConvectionVar = rOther.mpConvectionVar;
         mpMeshVelocityVar = rOther.mpMeshVelocityVar;
-        mpSpecificHeatVar = rOther.mpSpecificHeatVar;
         mpVelocityVar = rOther.mpVelocityVar;
+	mpSpecificHeatVar = rOther.mpSpecificHeatVar;
         mpTransferCoefficientVar = rOther.mpTransferCoefficientVar;
         return *this;
     }
@@ -263,8 +264,8 @@ protected:
     const Variable<array_1d<double,3> >* mpConvectionVar;
     const Variable<array_1d<double,3> >* mpMeshVelocityVar;
     const Variable<double>* mpTransferCoefficientVar;
-    const Variable<double>* mpSpecificHeatVar;
     const Variable<array_1d<double,3> >* mpVelocityVar;
+    const Variable<double>* mpSpecificHeatVar;
     ///@}
     ///@name Protected Operators
     ///@{
@@ -324,8 +325,8 @@ private:
         rSerializer.save("ConvectionVar",mpConvectionVar);
         rSerializer.save("MeshVelocityVar",mpMeshVelocityVar);
         rSerializer.save("TransferCoefficientVar",mpTransferCoefficientVar);
-        rSerializer.save("SpecificHeatVar",mpSpecificHeatVar);
 	rSerializer.save("VelocityVar",mpVelocityVar);
+ 	rSerializer.save("SpecificHeatVar",mpSpecificHeatVar);
 
 // 	  rSerializer.save("",);
     }
@@ -341,8 +342,8 @@ private:
         rSerializer.load("ConvectionVar",mpConvectionVar);
         rSerializer.load("MeshVelocityVar",mpMeshVelocityVar);
         rSerializer.load("TransferCoefficientVar",mpTransferCoefficientVar);
-        rSerializer.load("SpecificHeatVar",mpSpecificHeatVar);
         rSerializer.load("VelocityVar",mpVelocityVar);
+	rSerializer.load("SpecificHeatVar",mpSpecificHeatVar);
 
 
     }
