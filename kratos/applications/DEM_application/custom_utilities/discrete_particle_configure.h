@@ -139,11 +139,13 @@ public:
 
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& Radius)
     {
-        array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry().GetPoint(0) - rObj_2->GetGeometry().GetPoint(0);
+        const Node<3>& node_2 = rObj_2->GetGeometry()[0];
+        array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry()[0];
+        noalias(rObj_2_to_rObj_1) -= node_2;
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
         const double& radius_1 = Radius;
-        const double& radius_2 = rObj_2->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+        const double& radius_2 = node_2.FastGetSolutionStepValue(RADIUS);
         double radius_sum      = radius_1 + radius_2;
         bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
         return intersect;
