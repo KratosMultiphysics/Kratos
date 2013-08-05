@@ -17,6 +17,9 @@ class SolverSettings:
     diffusion_variable= "CONDUCTIVITY"
     surface_source_variable= "FACE_HEAT_FLUX"
     mesh_velocity_variable= "MESH_VELOCITY"
+    velocity_variable= "VELOCITY"
+    specific_heat_variable= "SPECIFIC_HEAT"
+
 
 
     class linear_solver_config: 
@@ -43,6 +46,9 @@ class SolverSettings2:
     diffusion_variable= "CONDUCTIVITY"
     surface_source_variable= "FACE_HEAT_FLUX"
     mesh_velocity_variable= "MESH_VELOCITY"
+    velocity_variable= "VELOCITY"
+    specific_heat_variable= "SPECIFIC_HEAT"
+
 
 
     class linear_solver_config: 
