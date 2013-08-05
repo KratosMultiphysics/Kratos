@@ -7,13 +7,6 @@ domain_size = 2
 ##################################################################
 ## ATTENTION: here the order is important
 
-#including kratos path
-kratos_libs_path = '../../../../libs' ##kratos_root/libs
-kratos_applications_path = '../../../../applications' ##kratos_root/applications
-import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
-
 from KratosMultiphysics import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *
 
