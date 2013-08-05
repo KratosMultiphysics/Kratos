@@ -135,10 +135,9 @@ class SpatialSearch
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
       {     
-          this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().ElementsArray(),
-                                                rModelPart.GetCommunicator().LocalMesh().ElementsArray(), 
+          this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
+                                                rModelPart.GetCommunicator().LocalMesh().Elements(), 
                                                 Radius,rResults,rResultsDistance);
-          
       }
      
       /**
@@ -156,7 +155,7 @@ class SpatialSearch
           VectorResultElementsContainerType& rResults,
           VectorDistanceType& rResultsDistance )
       {     
-          this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().ElementsArray(), 
+          this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), 
                                                 InputElements, 
                                                 Radius,rResults,rResultsDistance);
       }
@@ -177,7 +176,6 @@ class SpatialSearch
           this->SearchElementsInRadiusExclusive(StructureElements,
                                                 StructureElements,
                                                 Radius,rResults,rResultsDistance);
-          
       }
      
       /**
@@ -216,8 +214,8 @@ class SpatialSearch
           VectorResultNodesContainerType& rResults,
           VectorDistanceType& rResultsDistance )
       {     
-          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().ElementsArray(), 
-                                                rModelPart.GetCommunicator().LocalMesh().ElementsArray(), 
+          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), 
+                                                rModelPart.GetCommunicator().LocalMesh().Elements(), 
                                                 Radius,rResults,rResultsDistance);
       }
       
@@ -236,7 +234,7 @@ class SpatialSearch
           VectorResultNodesContainerType& rResults,
           VectorDistanceType& rResultsDistance )
       {     
-          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().ElementsArray(), 
+          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), 
                                                 InputElements, 
                                                 Radius,rResults,rResultsDistance);
       }
@@ -293,10 +291,9 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults )
       {     
-          this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().ElementsArray(),
-                                                rModelPart.GetCommunicator().LocalMesh().ElementsArray(), 
+          this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(),
+                                                rModelPart.GetCommunicator().LocalMesh().Elements(), 
                                                 Radius,rResults);
-          
       }
      
       /**
@@ -312,7 +309,7 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultElementsContainerType& rResults )
       {     
-          this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().ElementsArray(), 
+          this->SearchElementsInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), 
                                                 InputElements, 
                                                 Radius,rResults);
       }
@@ -366,8 +363,8 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults )
       {     
-          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().ElementsArray(), 
-                                                rModelPart.GetCommunicator().LocalMesh().ElementsArray(), 
+          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), 
+                                                rModelPart.GetCommunicator().LocalMesh().Elements(), 
                                                 Radius,rResults);
       }
       
@@ -384,7 +381,7 @@ class SpatialSearch
           const RadiusArrayType & Radius,
           VectorResultNodesContainerType& rResults )
       {     
-          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().ElementsArray(), 
+          this->SearchElementsInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Elements(), 
                                                 InputElements, 
                                                 Radius,rResults);
       }
@@ -439,8 +436,8 @@ class SpatialSearch
           VectorResultNodesContainerType& rResults,
           VectorDistanceType& rResultsDistance ) 
       {
-          this->SearchNodesInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().NodesArray(), 
-                                             rModelPart.GetCommunicator().LocalMesh().NodesArray(), 
+          this->SearchNodesInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(), 
+                                             rModelPart.GetCommunicator().LocalMesh().Nodes(), 
                                              Radius,rResults,rResultsDistance);
       }
       
@@ -459,7 +456,7 @@ class SpatialSearch
           VectorResultNodesContainerType& rResults,
           VectorDistanceType& rResultsDistance )
       {
-          this->SearchNodesInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().NodesArray(), 
+          this->SearchNodesInRadiusExclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(), 
                                              InputNodes,
                                              Radius,rResults,rResultsDistance);
       }
@@ -518,8 +515,8 @@ class SpatialSearch
           VectorResultNodesContainerType& rResults,
           VectorDistanceType& rResultsDistance ) 
       {
-          this->SearchNodesInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().NodesArray(),
-                                             rModelPart.GetCommunicator().LocalMesh().NodesArray(),
+          this->SearchNodesInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(),
+                                             rModelPart.GetCommunicator().LocalMesh().Nodes(),
                                              Radius,rResults,rResultsDistance);
       }
 
@@ -538,7 +535,7 @@ class SpatialSearch
           VectorResultNodesContainerType& rResults,
           VectorDistanceType& rResultsDistance )
       {
-          this->SearchNodesInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().NodesArray(),
+          this->SearchNodesInRadiusInclusive(rModelPart.GetCommunicator().LocalMesh().Nodes(),
                                              InputNodes,
                                              Radius,rResults,rResultsDistance);
       }
@@ -597,7 +594,7 @@ class SpatialSearch
           VectorResultNodesContainerType& rResults,
           VectorDistanceType& rResultsDistance ) 
       {
-          this->SearchConditionsInRadiusExclusive(rModelPart, rModelPart.GetCommunicator().LocalMesh().ConditionsArray(), 
+          this->SearchConditionsInRadiusExclusive(rModelPart, rModelPart.GetCommunicator().LocalMesh().Conditions(), 
                                                   Radius,rResults,rResultsDistance);
       }
 
@@ -637,7 +634,7 @@ class SpatialSearch
           VectorResultNodesContainerType& rResults,
           VectorDistanceType& rResultsDistance ) 
       {
-          this->SearchConditionsInRadiusInclusive(rModelPart, rModelPart.GetCommunicator().LocalMesh().ConditionsArray(), 
+          this->SearchConditionsInRadiusInclusive(rModelPart, rModelPart.GetCommunicator().LocalMesh().Conditions(), 
                                                   Radius,rResults,rResultsDistance);
       }
 
