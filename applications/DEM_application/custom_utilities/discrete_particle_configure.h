@@ -97,7 +97,7 @@ public:
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
     {    
         rHighPoint = rLowPoint  = rObject->GetGeometry().GetPoint(0);
-        double radius = rObject->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+        double radius = rObject->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
 
         for(std::size_t i = 0; i < 3; i++)
         {
@@ -129,8 +129,8 @@ public:
         array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry().GetPoint(0) - rObj_2->GetGeometry().GetPoint(0);
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
-        const double& radius_1 = rObj_1->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-        const double& radius_2 = rObj_2->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+        const double& radius_1 = rObj_1->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+        const double& radius_2 = rObj_2->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
         double radius_sum      = radius_1 + radius_2;
         bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
         return intersect;
@@ -143,7 +143,7 @@ public:
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
         const double& radius_1 = Radius;
-        const double& radius_2 = rObj_2->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+        const double& radius_2 = rObj_2->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
         double radius_sum      = radius_1 + radius_2;
         bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
         return intersect;
@@ -158,7 +158,7 @@ public:
 
         array_1d<double, 3> center_of_particle = rObject->GetGeometry().GetPoint(0);
  
-        const double& radius = rObject->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+        const double& radius = rObject->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
 
         bool intersect = (
           floatle(rLowPoint[0]  - radius,center_of_particle[0]) && 
