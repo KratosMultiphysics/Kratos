@@ -16,12 +16,14 @@ def AddVariables(model_part,config ):
     thermal_settings.SetSurfaceSourceVariable(globals()[config.surface_source_variable])
     thermal_settings.SetMeshVelocityVariable(globals()[config.mesh_velocity_variable])
     thermal_settings.SetProjectionVariable(globals()[config.projection_variable])
+    thermal_settings.SetSpecificHeatVariable(globals()[config.specific_heat_variable])	
+    thermal_settings.SetVelocityVariable(globals()[config.velocity_variable])
     ##########################################################
 
-    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-    model_part.AddNodalSolutionStepVariable(VELOCITY);
+#    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    #model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(NODAL_AREA);
-    model_part.AddNodalSolutionStepVariable(SPECIFIC_HEAT);
+#    model_part.AddNodalSolutionStepVariable(SPECIFIC_HEAT);
     model_part.AddNodalSolutionStepVariable(CONVECTION_COEFFICIENT);
     
     model_part.AddNodalSolutionStepVariable(thermal_settings.GetUnknownVariable());
@@ -31,7 +33,8 @@ def AddVariables(model_part,config ):
     model_part.AddNodalSolutionStepVariable(thermal_settings.GetSurfaceSourceVariable()); 
     model_part.AddNodalSolutionStepVariable(thermal_settings.GetMeshVelocityVariable());
     model_part.AddNodalSolutionStepVariable(thermal_settings.GetProjectionVariable());
-    
+    model_part.AddNodalSolutionStepVariable(thermal_settings.GetSpecificHeatVariable());
+    model_part.AddNodalSolutionStepVariable(thermal_settings.GetVelocityVariable());
     
 
 def AddDofs(model_part,config):
@@ -62,6 +65,9 @@ class ConvectionDiffusionSolver:
         self.thermal_settings.SetSurfaceSourceVariable(globals()[self.settings.surface_source_variable])
         self.thermal_settings.SetMeshVelocityVariable(globals()[self.settings.mesh_velocity_variable])
         self.thermal_settings.SetProjectionVariable(globals()[self.settings.projection_variable])
+	self.thermal_settings.SetSpecificHeatVariable(globals()[self.settings.specific_heat_variable])
+        self.thermal_settings.SetVelocityVariable(globals()[self.settings.velocity_variable])
+
 
         
         #neighbour search
@@ -99,6 +105,9 @@ class ConvectionDiffusionSolver:
         self.thermal_settings.SetSurfaceSourceVariable(globals()[self.settings.surface_source_variable])
         self.thermal_settings.SetMeshVelocityVariable(globals()[self.settings.mesh_velocity_variable])
         self.thermal_settings.SetProjectionVariable(globals()[self.settings.projection_variable])
+        self.thermal_settings.SetSpecificHeatVariable(globals()[self.settings.specific_heat_variable])
+        self.thermal_settings.SetVelocityVariable(globals()[self.settings.velocity_variable])
+
 
 	(self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.thermal_settings)
         
