@@ -127,7 +127,6 @@ class ExplicitStrategy:
         self.homogeneous_material_option    = Var_Translator(Param.HomogeneousMaterialOption)
         self.global_variables_option        = Var_Translator(Param.GlobalVariablesOption)
         self.contact_mesh_option            = Var_Translator(Param.ContactMeshOption)
-        self.search_radius_extension        = Var_Translator(Param.SearchRadiusExtension)
         self.automatic_bounding_box_option  = Var_Translator(Param.AutomaticBoundingBoxOption)
         self.move_mesh_flag                 = True
         self.deactivate_search              = 0
@@ -367,6 +366,7 @@ class ExplicitStrategy:
             self.creator_destructor.CalculateSurroundingBoundingBox(self.model_part, self.enlargement_factor)
 
         # STRATEGIES
+        self.search_radius_extension        = SearchRadiusExtension
         self.search_strategy                = OMP_DEMSearch()
 
         if (Param.IntegrationScheme == 'forward_euler'):
