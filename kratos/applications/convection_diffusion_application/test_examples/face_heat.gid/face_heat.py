@@ -7,14 +7,6 @@ domain_size = 2
 ##################################################################
 ## ATTENTION: here the order is important
 
-#including kratos path
-kratos_libs_path = '../../../../libs' ##kratos_root/libs
-kratos_applications_path = '../../../../applications' ##kratos_root/applications
-import sys
-sys.path.append(kratos_libs_path)
-sys.path.append(kratos_applications_path)
-
-print "before importing kratos"
 from KratosMultiphysics import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *
 
@@ -69,6 +61,10 @@ for node in model_part.Nodes:
     node.SetSolutionStepValue(DENSITY,0,density);
     node.SetSolutionStepValue(SPECIFIC_HEAT,0,specific_heat);
     node.SetSolutionStepValue(TEMPERATURE,0,temperature);
+    node.SetSolutionStepValue(VELOCITY_X,0,0.0);
+    node.SetSolutionStepValue(VELOCITY_Y,0,0.0);
+
+
 
 model_part.Properties[0][EMISSIVITY] = 0.0
 model_part.Properties[0][AMBIENT_TEMPERATURE] = 0.0
@@ -91,20 +87,21 @@ time = ProjectParameters.Start_time
 
 out = 0
 step = 0
-
+output_step=1
 Nsteps=3000
 for step in range(0,Nsteps):
     time = Dt*step
     model_part.CloneTimeStep(time)
-
+    
     #solving the fluid problem
     if(step > 3):
         conv_diff_solver.Solve()
+        
 
     #print the results
     if(out == output_step):
         gid_io.WriteNodalResults(TEMPERATURE,model_part.Nodes,time,0)
-        gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,time,0)
         gid_io.WriteNodalResults(TEMP_CONV_PROJ,model_part.Nodes,time,0)
         gid_io.WriteNodalResults(FACE_HEAT_FLUX,model_part.Nodes,time,0)
         out = 0
