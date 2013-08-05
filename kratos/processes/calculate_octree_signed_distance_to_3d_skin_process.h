@@ -66,6 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/spatial_containers_configure.h"
 #include "utilities/timer.h"
 #include "utilities/math_utils.h"
+#include "utilities/geometry_utilities.h"
 
 
 namespace Kratos
@@ -79,8 +80,15 @@ public:
     class CellNodeData
     {
         double mDistance;
+        double mCoordinates[3];
+        std::size_t mId;
     public:
         double& Distance(){return mDistance;}
+        double& X() {return mCoordinates[0];}
+        double& Y() {return mCoordinates[1];}
+        double& Z() {return mCoordinates[2];}
+        double& Coordinate(int i) {return mCoordinates[i-1];}
+        std::size_t& Id(){return mId;}
     };
 
 
@@ -145,8 +153,6 @@ public:
     static void DeleteData(data_type* data) {
         delete data;
     }
-///******************************************************************************************************************
-///******************************************************************************************************************
 
     static inline void CalculateBoundingBox(const PointerType& rObject, PointType& rLowPoint, PointType& rHighPoint)
     {
@@ -161,9 +167,6 @@ public:
             }
         }
     }
-
-///******************************************************************************************************************
-///******************************************************************************************************************
 
     static inline void GetBoundingBox(const PointerType rObject, double* rLowPoint, double* rHighPoint)
     {
@@ -184,9 +187,6 @@ public:
         }
     }
 
-///******************************************************************************************************************
-///******************************************************************************************************************
-
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2)
     {
         Element::GeometryType& geom_1 = rObj_1->GetGeometry();
@@ -195,13 +195,25 @@ public:
 
     }
 
-
-///******************************************************************************************************************
-///******************************************************************************************************************
-
-    static inline bool  IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
+    static inline bool IntersectionBox(const PointerType& rObject,  const PointType& rLowPoint, const PointType& rHighPoint)
     {
         return rObject->GetGeometry().HasIntersection(rLowPoint, rHighPoint);
+    }
+    
+    static inline bool IsIntersected(const PointerType& rObject, const double& tolerance, const double rLowPoint[], const double rHighPoint[])
+    {
+        Kratos::Element::GeometryType& geom_1 = rObject->GetGeometry();
+        
+        Kratos::Point<3,double> rLowPointTolerance;
+        Kratos::Point<3,double> rHighPointTolerance;
+        
+        for(std::size_t i = 0; i<3; i++)
+        {
+            rLowPointTolerance[i]  =  rLowPoint[i] * 1+tolerance;
+            rHighPointTolerance[i] =  rHighPoint[i] * 1+tolerance;
+        }
+        
+        return  geom_1.HasIntersection(rLowPointTolerance,rHighPointTolerance);
     }
 
 
@@ -316,76 +328,49 @@ private:
       ///@{
 
       virtual void Execute()
-	{
-            KRATOS_TRY
+      {
+          KRATOS_TRY
 
-            std::cout << "Generating the Octree..." << std::endl;
-            GenerateOctree();
-            std::cout << "Generating the Octree finished" << std::endl;
+          std::cout << "Generating the Octree..." << std::endl;
+          GenerateOctree();
+          std::cout << "Generating the Octree finished" << std::endl;
 
-            GenerateCellNodalData();
+          GenerateCellNodalData();
 
-//            std::vector<int> v;
+          CalculateDistance();
+          CalculateDistance2();
 
-//                    for(ModelPart::NodeIterator i_node = mrBodyModelPart.NodesBegin() ; i_node != mrBodyModelPart.NodesEnd() ; i_node++)
-//                    {
-//                        v.push_back( i_node->Id() % 5000);
-//                    }
+          std::ofstream mesh_file1("octree1.post.msh");
+          std::ofstream res_file("octree1.post.res");
 
-//                    KRATOS_WATCH(v.size())
-//            Timer::Start("test");
-//            std::sort(v.begin(), v.end());
-//            std::vector<int>::iterator i = std::unique(v.begin(),v.end());
-//            v.erase(i,v.end());
-//            Timer::Stop("test");
-//            KRATOS_WATCH(v.size());
+          Timer::Start("Writing Gid conform Mesh");
 
+          PrintGiDMesh(mesh_file1);
+          PrintGiDResults(res_file);
+//           mOctree.PrintGiDMeshNew(mesh_file1);
 
+          Timer::Stop("Writing Gid conform Mesh");
 
+          KRATOS_WATCH(mrBodyModelPart);
 
-
-            CalculateDistance();
-            CalculateDistance2();
-
-//            double coord[3] = {0.4375, 0.57812, 0.5};
-//            double distance = DistancePositionInSpace(coord);
-//            KRATOS_WATCH(distance);
-
-
-
-            //mrSkinModelPart.GetCommunicator().AssembleCurrentData(DISTANCE);
-
-            std::ofstream mesh_file1("octree1.post.msh");
-            std::ofstream res_file("octree1.post.res");
-
-            Timer::Start("Writing Gid conform Mesh");
-
-            PrintGiDMesh(mesh_file1);
-            PrintGiDResults(res_file);
-            //octree.PrintGiDMeshNew(mesh_file2);
-
-            Timer::Stop("Writing Gid conform Mesh");
-
-            KRATOS_WATCH(mrBodyModelPart);
-
-       	    KRATOS_CATCH("");
-	}
-      
+          KRATOS_CATCH("");
+      }
 
       void GenerateOctree()
       {
           Timer::Start("Generating Octree");
 
-
-          //mOctree.RefineWithUniformSize(0.0625);
           for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin() ; i_node != mrSkinModelPart.NodesEnd() ; i_node++)
           {
               double temp_point[3];
+              
               temp_point[0] = i_node->Coordinate(1);
               temp_point[1] = i_node->Coordinate(2);
               temp_point[2] = i_node->Coordinate(3);
+              
               mOctree.Insert(temp_point);
           }
+          
           mOctree.Constrain2To1();
 
           for(ModelPart::ElementIterator i_element = mrSkinModelPart.ElementsBegin() ; i_element != mrSkinModelPart.ElementsEnd() ; i_element++)
@@ -401,7 +386,6 @@ private:
 
       }
 
-
       void GenerateCellNodalData()
       {
           Timer::Start("Generating Cell Nodal Data");
@@ -414,34 +398,71 @@ private:
               *(all_leaves[i]->pGetDataPointer()) = ConfigurationType::AllocateData();
           }
 
+          std::size_t last_id = mrBodyModelPart.NumberOfNodes() + 1;
           for (std::size_t i = 0; i < all_leaves.size(); i++)
           {
                 CellType* cell = all_leaves[i];
-                GenerateCellNode(cell);
+                GenerateCellNode(cell,last_id);
           }
 
           Timer::Stop("Generating Cell Nodal Data");
 
       }
 
-      void GenerateCellNode(CellType* pCell)
+      void GenerateCellNode(CellType* pCell, std::size_t& LastId)
       {
         for (int i_pos=0; i_pos < 8; i_pos++) // position 8 is for center
         {
-            ConfigurationType::data_type* p_node = (*(pCell->pGetData()))[i_pos];
+            ConfigurationType::CellNodeData* p_node = (*(pCell->pGetData()))[i_pos];
             if(p_node == 0)
             {
-
-                (*(pCell->pGetData()))[i_pos] = new ConfigurationType::data_type;
-
+                CellType::key_type keys[3];
+                pCell->GetKey(i_pos,keys);
+                
+                double new_point[3];
+                
+                (*(pCell->pGetData()))[i_pos] = new ConfigurationType::CellNodeData;
+                (*(pCell->pGetData()))[i_pos]->Id() = LastId++;
+                
+                (*(pCell->pGetData()))[i_pos]->X() = pCell->GetCoordinate(keys[0]);
+                (*(pCell->pGetData()))[i_pos]->Y() = pCell->GetCoordinate(keys[1]);
+                (*(pCell->pGetData()))[i_pos]->Z() = pCell->GetCoordinate(keys[2]);
+                
+                mOctreeNodes.push_back((*(pCell->pGetData()))[i_pos]);
+                
                 SetNodeInNeighbours(pCell,i_pos,(*(pCell->pGetData()))[i_pos]);
             }
 
         }
       }
+      
+//       void GenerateCellNode(CellType* pCell, std::size_t& LastId)
+//       {
+//         for (int i_pos=0; i_pos < 8; i_pos++) // position 8 is for center
+//         {
+//             Node<3>* p_node = (*(pCell->pGetData()))[i_pos];
+//             if(p_node == 0)
+//             {
+//                 CellType::key_type keys[3];
+//                 pCell->GetKey(i_pos,keys);
+// 
+//                 double new_point[3];
+// 
+//                 new_point[0] = pCell->GetCoordinate(keys[0]);
+//                 new_point[1] = pCell->GetCoordinate(keys[1]);
+//                 new_point[2] = pCell->GetCoordinate(keys[2]);
+//                 
+// 
+//                 (*(pCell->pGetData()))[i_pos] = (mrBodyModelPart.CreateNewNode(++LastId, new_point[0], new_point[1], new_point[2])).get();
+// 
+//                 SetNodeInNeighbours(pCell,i_pos,(*(pCell->pGetData()))[i_pos]);
+//             }
+// 
+//         }
+//       }
 
-     void SetNodeInNeighbours(CellType* pCell, int Position, Node<3>* pNode)
-{
+      void SetNodeInNeighbours(CellType* pCell, int Position, ConfigurationType::CellNodeData* pNode)
+      {
             CellType::key_type point_key[3];
             pCell->GetKey(Position, point_key);
             
@@ -463,7 +484,6 @@ private:
                 }
             }
       }
-
 
       void CalculateDistance()
       {
@@ -491,7 +511,6 @@ private:
           Timer::Stop("Calculate Distances");
 
       }
-
 
       void CalculateDistance2()
       {
@@ -529,65 +548,65 @@ private:
 
       void CalculateDistance(Node<3>& rNode, int i_direction)
       {
-          double coords[3] = {rNode.X(), rNode.Y(), rNode.Z()};
-         // KRATOS_WATCH_3(coords);
-
-             //This function must color the positions in space defined by 'coords'.
-            //coords is of dimension (3) normalized in (0,1)^3 space
-
-            typedef Element::GeometryType triangle_type;
-            typedef std::vector<std::pair<double, triangle_type*> > intersections_container_type;
-
-            intersections_container_type intersections;
-            std::vector<Node<3>*> nodes_array;
-
-
-            const double epsilon = 1e-12;
-
-            double distance = 1.0;
-
-            // Creating the ray
-            double ray[3] = {coords[0], coords[1], coords[2]};
-            ray[i_direction] = 0; // starting from the lower extreme
-
-//            KRATOS_WATCH_3(ray)
-            GetIntersectionsAndNodes(ray, i_direction, intersections, nodes_array);
-//            KRATOS_WATCH(nodes_array.size())
-            for (int i_node = 0; i_node < nodes_array.size() ; i_node++)
-            {
-                double coord = nodes_array[i_node]->Coordinate(i_direction+1);
-   //             KRATOS_WATCH(intersections.size());
-
-                int ray_color= 1;
-                std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
-                while (i_intersection != intersections.end()) {
-                    double d = coord - i_intersection->first;
-                    if (d > epsilon) {
-
-                        ray_color = -ray_color;
-                        distance = d;
-                    } else if (d > -epsilon) {//interface
-                        distance = 0.00;
-                        break;
-                    } else {
-                        if(distance > -d)
-                            distance = -d;
-                        break;
-                    }
-
-                    i_intersection++;
-                }
-
-                distance *= ray_color;
-
-                double& node_distance = nodes_array[i_node]->GetSolutionStepValue(DISTANCE);
-                if(fabs(distance) < fabs(node_distance))
-                    node_distance = distance;
-                else if (distance*node_distance < 0.00) // assigning the correct sign
-                    node_distance = -node_distance;
-
-
-            }
+//           double coords[3] = {rNode.X(), rNode.Y(), rNode.Z()};
+//          // KRATOS_WATCH_3(coords);
+// 
+//              //This function must color the positions in space defined by 'coords'.
+//             //coords is of dimension (3) normalized in (0,1)^3 space
+// 
+//             typedef Element::GeometryType triangle_type;
+//             typedef std::vector<std::pair<double, triangle_type*> > intersections_container_type;
+// 
+//             intersections_container_type intersections;
+//             std::vector<Node<3>*> nodes_array;
+// 
+// 
+//             const double epsilon = 1e-12;
+// 
+//             double distance = 1.0;
+// 
+//             // Creating the ray
+//             double ray[3] = {coords[0], coords[1], coords[2]};
+//             ray[i_direction] = 0; // starting from the lower extreme
+// 
+// //            KRATOS_WATCH_3(ray)
+//             GetIntersectionsAndNodes(ray, i_direction, intersections, nodes_array);
+// //            KRATOS_WATCH(nodes_array.size())
+//             for (int i_node = 0; i_node < nodes_array.size() ; i_node++)
+//             {
+//                 double coord = nodes_array[i_node]->Coordinate(i_direction+1);
+//    //             KRATOS_WATCH(intersections.size());
+// 
+//                 int ray_color= 1;
+//                 std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
+//                 while (i_intersection != intersections.end()) {
+//                     double d = coord - i_intersection->first;
+//                     if (d > epsilon) {
+// 
+//                         ray_color = -ray_color;
+//                         distance = d;
+//                     } else if (d > -epsilon) {//interface
+//                         distance = 0.00;
+//                         break;
+//                     } else {
+//                         if(distance > -d)
+//                             distance = -d;
+//                         break;
+//                     }
+// 
+//                     i_intersection++;
+//                 }
+// 
+//                 distance *= ray_color;
+// 
+//                 double& node_distance = nodes_array[i_node]->GetSolutionStepValue(DISTANCE);
+//                 if(fabs(distance) < fabs(node_distance))
+//                     node_distance = distance;
+//                 else if (distance*node_distance < 0.00) // assigning the correct sign
+//                     node_distance = -node_distance;
+// 
+// 
+//             }
      }
 
       void CalculateNotEmptyLeavesDistance(CellType* pCell)
@@ -613,9 +632,9 @@ private:
 
                 double cell_point[3];
 
-                cell_point[0] = pCell->GetCoordinate(keys[0]);
-                cell_point[1] = pCell->GetCoordinate(keys[1]);
-                cell_point[2] = pCell->GetCoordinate(keys[2]);
+                //cell_point[0] = pCell->GetCoordinate(keys[0]);
+                //cell_point[1] = pCell->GetCoordinate(keys[1]);
+                //cell_point[2] = pCell->GetCoordinate(keys[2]);
 
                 double d = GeometryUtils::PointDistanceToTriangle3D((*i_object)->GetGeometry()[0], (*i_object)->GetGeometry()[1], (*i_object)->GetGeometry()[2], Point<3>(cell_point[0], cell_point[1], cell_point[2]));
 
@@ -623,7 +642,7 @@ private:
                     distance = d;
             }
 
-            double& node_distance = (*(pCell->pGetData()))[i_pos]->GetSolutionStepValue(DISTANCE);
+            double& node_distance = (*(pCell->pGetData()))[i_pos]->Distance();
             if(distance < node_distance)
                 node_distance = distance;
 
@@ -717,283 +736,283 @@ private:
         }
 
 
-  void GetIntersectionsAndNodes(double* ray, int direction, std::vector<std::pair<double,Element::GeometryType*> >& intersections, std::vector<Node<3>*>& rNodesArray)
-  {
-    //This function passes the ray through the model and gives the hit point to all objects in its way
-    //ray is of dimension (3) normalized in (0,1)^3 space
-    // direction can be 0,1,2 which are x,y and z respectively
+      void GetIntersectionsAndNodes(double* ray, int direction, std::vector<std::pair<double,Element::GeometryType*> >& intersections, std::vector<Node<3>*>& rNodesArray)
+      {
+    //     //This function passes the ray through the model and gives the hit point to all objects in its way
+    //     //ray is of dimension (3) normalized in (0,1)^3 space
+    //     // direction can be 0,1,2 which are x,y and z respectively
+    // 
+    //     const double epsilon = 1.00e-12;
+    // 
+    //     // first clearing the intersections points vector
+    //     intersections.clear();
+    // 
+    //     OctreeType* octree = &mOctree;
+    // 
+    //     OctreeType::key_type ray_key[3] = {octree->Key(ray[0]), octree->Key(ray[1]), octree->Key(ray[2])}; //ASK_TOKEN
+    //     OctreeType::key_type cell_key[3];
+    // 
+    //     // getting the entrance cell from lower extreme
+    //     ray_key[direction] = 0;
+    //     OctreeType::cell_type* cell = octree->pGetCell(ray_key);
+    // 
+    //     while (cell) {
+    //         std::size_t position = cell->GetLocalPosition(ray_key); // Is this the local position!?!?!?!
+    //         OctreeType::key_type node_key[3];
+    //         cell->GetKey(position, node_key);
+    //         if((node_key[0] == ray_key[0]) && (node_key[1] == ray_key[1]) && (node_key[2] == ray_key[2]))
+    //         {
+    //             if(cell->pGetData())
+    //             {
+    //                 if(cell->pGetData()->size() > position)
+    //                 {
+    //                     Node<3>* p_node = (*cell->pGetData())[position];
+    //                     if(p_node)
+    //                     {
+    //                         //KRATOS_WATCH(p_node->Id())
+    //                         rNodesArray.push_back(p_node);
+    //                     }
+    //                 }
+    //                 else
+    //                     KRATOS_WATCH(cell->pGetData()->size())
+    //             }
+    //         }
+    // 
+    // 
+    // //        std::cout << ".";
+    //       GetCellIntersections(cell, ray, ray_key, direction, intersections);
+    // 
+    //       // Add the cell's middle node if existed
+    // //      cell->GetKey(8, cell_key); // 8 is the central position
+    // //      ray_key[direction]=cell_key[direction]; // positioning the ray in the middle of cell in its direction
+    // 
+    // //      position = cell->GetLocalPosition(ray_key);
+    // //      if(position < 27) // principal nodes
+    // //      {
+    // //          if(cell->pGetData())
+    // //          {
+    // //              if(cell->pGetData()->size() > position)
+    // //              {
+    // //                  Node<3>* p_node = (*cell->pGetData())[position];
+    // //                  if(p_node)
+    // //                  {
+    // //                      //KRATOS_WATCH(p_node->Id())
+    // //                      rNodesArray.push_back(p_node);
+    // //                  }
+    // //              }
+    // //              else
+    // //                  KRATOS_WATCH(cell->pGetData()->size())
+    // //          }
+    // //      }
+    // //      else
+    // //      {
+    // //          KRATOS_WATCH(position);
+    // //          KRATOS_WATCH(*cell);
+    // //      }
+    // 
+    // 
+    //       // go to the next cell
+    //       if (cell->GetNeighbourKey(1 + direction * 2, cell_key)) {
+    //         ray_key[direction] = cell_key[direction];
+    //         cell = octree->pGetCell(ray_key);
+    //         ray_key[direction] -= 1 ;//the key returned by GetNeighbourKey is inside the cell (minkey +1), to ensure that the corresponding
+    //         //cell get in pGetCell is the right one.
+    // #ifdef _DEBUG
+    //         Octree_Pooyan::key_type min_key[3];
+    //         cell->GetMinKey(min_key[0],min_key[1],min_key[2]);
+    //         Octree_Pooyan::key_type tmp;
+    //         tmp= min_key[direction];
+    //         assert(ray_key[direction]==tmp);
+    // #endif
+    //       } else
+    //         cell = NULL;
+    //     }
+    // 
+    // 
+    // 
+    //  //   KRATOS_WATCH(rNodesArray.size());
+    //     // now eliminating the repeated objects
+    //     if (!intersections.empty()) {
+    //       //sort
+    //       std::sort(intersections.begin(), intersections.end());
+    //       // unique
+    //       std::vector<std::pair<double, Element::GeometryType*> >::iterator i_begin = intersections.begin();
+    //       std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
+    //       while (++i_begin != intersections.end()) {
+    //           // considering the very near points as the same points
+    //           if (fabs(i_begin->first - i_intersection->first) > epsilon) // if the hit points are far enough they are not the same
+    //             *(++i_intersection) = *i_begin;
+    //       }
+    //       intersections.resize((++i_intersection) - intersections.begin());
+    // 
+    //     }
+      }
 
-    const double epsilon = 1.00e-12;
+      void GetIntersections(double* ray, int direction, std::vector<std::pair<double,Element::GeometryType*> >& intersections)
+      {
+    //     //This function passes the ray through the model and gives the hit point to all objects in its way
+    //     //ray is of dimension (3) normalized in (0,1)^3 space
+    //     // direction can be 0,1,2 which are x,y and z respectively
+    // 
+    //     const double epsilon = 1.00e-12;
+    // 
+    //     // first clearing the intersections points vector
+    //     intersections.clear();
+    // 
+    //     OctreeType* octree = &mOctree;
+    // 
+    //     OctreeType::key_type ray_key[3] = {octree->Key(ray[0]), octree->Key(ray[1]), octree->Key(ray[2])};
+    //     OctreeType::key_type cell_key[3];
+    // 
+    //     // getting the entrance cell from lower extreme
+    //     OctreeType::cell_type* cell = octree->pGetCell(ray_key);
+    // 
+    //     while (cell) {
+    // //        std::cout << ".";
+    //       GetCellIntersections(cell, ray, ray_key, direction, intersections);
+    //       // go to the next cell
+    //       if (cell->GetNeighbourKey(1 + direction * 2, cell_key)) {
+    //         ray_key[direction] = cell_key[direction];
+    //         cell = octree->pGetCell(ray_key);
+    //         ray_key[direction] -= 1 ;//the key returned by GetNeighbourKey is inside the cell (minkey +1), to ensure that the corresponding
+    //         //cell get in pGetCell is the right one.
+    // #ifdef _DEBUG
+    //         Octree_Pooyan::key_type min_key[3];
+    //         cell->GetMinKey(min_key[0],min_key[1],min_key[2]);
+    //         Octree_Pooyan::key_type tmp;
+    //         tmp= min_key[direction];
+    //         assert(ray_key[direction]==tmp);
+    // #endif
+    //       } else
+    //         cell = NULL;
+    //     }
+    // 
+    // 
+    //     // now eliminating the repeated objects
+    //     if (!intersections.empty()) {
+    //       //sort
+    //       std::sort(intersections.begin(), intersections.end());
+    //       // unique
+    //       std::vector<std::pair<double, Element::GeometryType*> >::iterator i_begin = intersections.begin();
+    //       std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
+    //       while (++i_begin != intersections.end()) {
+    //           // considering the very near points as the same points
+    //           if (fabs(i_begin->first - i_intersection->first) > epsilon) // if the hit points are far enough they are not the same
+    //             *(++i_intersection) = *i_begin;
+    //       }
+    //       intersections.resize((++i_intersection) - intersections.begin());
+    // 
+    //     }
+      }
 
-    // first clearing the intersections points vector
-    intersections.clear();
+      int GetCellIntersections(OctreeType::cell_type* cell, double* ray,
+        OctreeType::key_type* ray_key, int direction,
+        std::vector<std::pair<double, Element::GeometryType*> >& intersections)  {
+    //       //This function passes the ray through the cell and gives the hit point to all objects in its way
+    //       //ray is of dimension (3) normalized in (0,1)^3 space
+    //       // direction can be 0,1,2 which are x,y and z respectively
+    // 
+    //       typedef Element::GeometryType triangle_type;
+    //       typedef OctreeType::cell_type::object_container_type object_container_type;
+    // 
+    //       object_container_type* objects = (cell->pGetObjects());
+    // 
+    //       // There are no intersection in empty cells
+    //       if (objects->empty())
+    //         return 0;
+    // 
+    // //      std::cout << "X";
+    //       // calculating the two extreme of the ray segment inside the cell
+    //       double ray_point1[3] = {ray[0], ray[1], ray[2]};
+    //       double ray_point2[3] = {ray[0], ray[1], ray[2]};
+    //       ray_point1[direction] = cell->GetCoordinate(ray_key[direction]);
+    //       ray_point2[direction] = ray_point1[direction] + cell->GetSize();
+    // 
+    //       for (object_container_type::iterator i_object = objects->begin(); i_object != objects->end(); i_object++) {
+    //         double intersection[3]={0.00,0.00,0.00};
+    // 
+    //         int is_intersected = IntersectionTriangleSegment((*i_object)->GetGeometry(), ray_point1, ray_point2, intersection); // This intersection has to be optimized for axis aligned rays
+    // 
+    //         if (is_intersected == 1) // There is an intersection but not coplanar
+    //           intersections.push_back(std::pair<double, Element::GeometryType*>(intersection[direction], &((*i_object)->GetGeometry())));
+    //         //else if(is_intersected == 2) // coplanar case
+    //       }
+    // 
+    //       return 0;
+      }
 
-    OctreeType* octree = &mOctree;
+      int IntersectionTriangleSegment(Element::GeometryType& rGeometry, double* RayPoint1, double* RayPoint2, double* IntersectionPoint)
+      {
+          // This is the adaption of the implemnetation provided in:
+          // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
 
-    OctreeType::key_type ray_key[3] = {octree->Key(ray[0]), octree->Key(ray[1]), octree->Key(ray[2])};
-    OctreeType::key_type cell_key[3];
+          const double epsilon = 1.00e-12;
 
-    // getting the entrance cell from lower extreme
-    ray_key[direction] = 0;
-    OctreeType::cell_type* cell = octree->pGetCell(ray_key);
+        array_1d<double,3>    u, v, n;             // triangle vectors
+        array_1d<double,3>    dir, w0, w;          // ray vectors
+        double     r, a, b;             // params to calc ray-plane intersect
 
-    while (cell) {
-        std::size_t position = cell->GetLocalPosition(ray_key); // Is this the local position!?!?!?!
-        OctreeType::key_type node_key[3];
-        cell->GetKey(position, node_key);
-        if((node_key[0] == ray_key[0]) && (node_key[1] == ray_key[1]) && (node_key[2] == ray_key[2]))
+
+        // get triangle edge vectors and plane normal
+        u = rGeometry[1] - rGeometry[0];
+        v = rGeometry[2] - rGeometry[0];
+        
+        MathUtils<double>::CrossProduct(n, u, v);             // cross product
+        
+        if (norm_2(n) == 0)            // triangle is degenerate
+            return -1;                 // do not deal with this case
+
+        for(int i = 0 ; i < 3 ; i++)
         {
-            if(cell->pGetData())
-            {
-                if(cell->pGetData()->size() > position)
-                {
-                    Node<3>* p_node = (*cell->pGetData())[position];
-                    if(p_node)
-                    {
-                        //KRATOS_WATCH(p_node->Id())
-                        rNodesArray.push_back(p_node);
-                    }
-                }
-                else
-                    KRATOS_WATCH(cell->pGetData()->size())
-            }
+            dir[i] = RayPoint2[i] - RayPoint1[i];             // ray direction vector
+            w0[i] = RayPoint1[i] - rGeometry[0][i];
         }
 
+        a = -inner_prod(n,w0);
+        b = inner_prod(n,dir);
 
-//        std::cout << ".";
-      GetCellIntersections(cell, ray, ray_key, direction, intersections);
+        if (fabs(b) < epsilon) {     // ray is parallel to triangle plane
+            if (a == 0)                // ray lies in triangle plane
+                return 2;
+            else return 0;             // ray disjoint from plane
+        }
 
-      // Add the cell's middle node if existed
-//      cell->GetKey(8, cell_key); // 8 is the central position
-//      ray_key[direction]=cell_key[direction]; // positioning the ray in the middle of cell in its direction
+        // get intersect point of ray with triangle plane
+        r = a / b;
+        if (r < 0.0)                   // ray goes away from triangle
+            return 0;                  // => no intersect
+        // for a segment, also test if (r > 1.0) => no intersect
 
-//      position = cell->GetLocalPosition(ray_key);
-//      if(position < 27) // principal nodes
-//      {
-//          if(cell->pGetData())
-//          {
-//              if(cell->pGetData()->size() > position)
-//              {
-//                  Node<3>* p_node = (*cell->pGetData())[position];
-//                  if(p_node)
-//                  {
-//                      //KRATOS_WATCH(p_node->Id())
-//                      rNodesArray.push_back(p_node);
-//                  }
-//              }
-//              else
-//                  KRATOS_WATCH(cell->pGetData()->size())
-//          }
-//      }
-//      else
-//      {
-//          KRATOS_WATCH(position);
-//          KRATOS_WATCH(*cell);
-//      }
+        for(int i = 0 ; i < 3 ; i++)
+          IntersectionPoint[i]  = RayPoint1[i] + r * dir[i];           // intersect point of ray and plane
+
+        // is I inside T?
+        double    uu, uv, vv, wu, wv, D;
+        uu = inner_prod(u,u);
+        uv = inner_prod(u,v);
+        vv = inner_prod(v,v);
 
 
-      // go to the next cell
-      if (cell->GetNeighbourKey(1 + direction * 2, cell_key)) {
-        ray_key[direction] = cell_key[direction];
-        cell = octree->pGetCell(ray_key);
-        ray_key[direction] -= 1 ;//the key returned by GetNeighbourKey is inside the cell (minkey +1), to ensure that the corresponding
-        //cell get in pGetCell is the right one.
-#ifdef _DEBUG
-        Octree_Pooyan::key_type min_key[3];
-        cell->GetMinKey(min_key[0],min_key[1],min_key[2]);
-        Octree_Pooyan::key_type tmp;
-        tmp= min_key[direction];
-        assert(ray_key[direction]==tmp);
-#endif
-      } else
-        cell = NULL;
-    }
+        for(int i = 0 ; i < 3 ; i++)
+            w[i] = IntersectionPoint[i] - rGeometry[0][i];
 
 
+        wu = inner_prod(w,u);
+        wv = inner_prod(w,v);
+        D = uv * uv - uu * vv;
 
- //   KRATOS_WATCH(rNodesArray.size());
-    // now eliminating the repeated objects
-    if (!intersections.empty()) {
-      //sort
-      std::sort(intersections.begin(), intersections.end());
-      // unique
-      std::vector<std::pair<double, Element::GeometryType*> >::iterator i_begin = intersections.begin();
-      std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
-      while (++i_begin != intersections.end()) {
-          // considering the very near points as the same points
-          if (fabs(i_begin->first - i_intersection->first) > epsilon) // if the hit points are far enough they are not the same
-            *(++i_intersection) = *i_begin;
+        // get and test parametric coords
+        double s, t;
+        s = (uv * wv - vv * wu) / D;
+        if (s < 0.0 - epsilon || s > 1.0 + epsilon)        // I is outside T
+            return 0;
+        t = (uv * wu - uu * wv) / D;
+        if (t < 0.0 - epsilon || (s + t) > 1.0 + epsilon)  // I is outside T
+            return 0;
+
+        return 1;                      // I is in T
+
       }
-      intersections.resize((++i_intersection) - intersections.begin());
-
-    }
-  }
-
-  void GetIntersections(double* ray, int direction, std::vector<std::pair<double,Element::GeometryType*> >& intersections)
-  {
-    //This function passes the ray through the model and gives the hit point to all objects in its way
-    //ray is of dimension (3) normalized in (0,1)^3 space
-    // direction can be 0,1,2 which are x,y and z respectively
-
-    const double epsilon = 1.00e-12;
-
-    // first clearing the intersections points vector
-    intersections.clear();
-
-    OctreeType* octree = &mOctree;
-
-    OctreeType::key_type ray_key[3] = {octree->Key(ray[0]), octree->Key(ray[1]), octree->Key(ray[2])};
-    OctreeType::key_type cell_key[3];
-
-    // getting the entrance cell from lower extreme
-    OctreeType::cell_type* cell = octree->pGetCell(ray_key);
-
-    while (cell) {
-//        std::cout << ".";
-      GetCellIntersections(cell, ray, ray_key, direction, intersections);
-      // go to the next cell
-      if (cell->GetNeighbourKey(1 + direction * 2, cell_key)) {
-        ray_key[direction] = cell_key[direction];
-        cell = octree->pGetCell(ray_key);
-        ray_key[direction] -= 1 ;//the key returned by GetNeighbourKey is inside the cell (minkey +1), to ensure that the corresponding
-        //cell get in pGetCell is the right one.
-#ifdef _DEBUG
-        Octree_Pooyan::key_type min_key[3];
-        cell->GetMinKey(min_key[0],min_key[1],min_key[2]);
-        Octree_Pooyan::key_type tmp;
-        tmp= min_key[direction];
-        assert(ray_key[direction]==tmp);
-#endif
-      } else
-        cell = NULL;
-    }
-
-
-    // now eliminating the repeated objects
-    if (!intersections.empty()) {
-      //sort
-      std::sort(intersections.begin(), intersections.end());
-      // unique
-      std::vector<std::pair<double, Element::GeometryType*> >::iterator i_begin = intersections.begin();
-      std::vector<std::pair<double, Element::GeometryType*> >::iterator i_intersection = intersections.begin();
-      while (++i_begin != intersections.end()) {
-          // considering the very near points as the same points
-          if (fabs(i_begin->first - i_intersection->first) > epsilon) // if the hit points are far enough they are not the same
-            *(++i_intersection) = *i_begin;
-      }
-      intersections.resize((++i_intersection) - intersections.begin());
-
-    }
-  }
-
-  int GetCellIntersections(OctreeType::cell_type* cell, double* ray,
-    OctreeType::key_type* ray_key, int direction,
-    std::vector<std::pair<double, Element::GeometryType*> >& intersections)  {
-      //This function passes the ray through the cell and gives the hit point to all objects in its way
-      //ray is of dimension (3) normalized in (0,1)^3 space
-      // direction can be 0,1,2 which are x,y and z respectively
-
-      typedef Element::GeometryType triangle_type;
-      typedef OctreeType::cell_type::object_container_type object_container_type;
-
-      object_container_type* objects = (cell->pGetObjects());
-
-      // There are no intersection in empty cells
-      if (objects->empty())
-        return 0;
-
-//      std::cout << "X";
-      // calculating the two extreme of the ray segment inside the cell
-      double ray_point1[3] = {ray[0], ray[1], ray[2]};
-      double ray_point2[3] = {ray[0], ray[1], ray[2]};
-      ray_point1[direction] = cell->GetCoordinate(ray_key[direction]);
-      ray_point2[direction] = ray_point1[direction] + cell->GetSize();
-
-      for (object_container_type::iterator i_object = objects->begin(); i_object != objects->end(); i_object++) {
-        double intersection[3]={0.00,0.00,0.00};
-
-        int is_intersected = IntersectionTriangleSegment((*i_object)->GetGeometry(), ray_point1, ray_point2, intersection); // This intersection has to be optimized for axis aligned rays
-
-        if (is_intersected == 1) // There is an intersection but not coplanar
-          intersections.push_back(std::pair<double, Element::GeometryType*>(intersection[direction], &((*i_object)->GetGeometry())));
-        //else if(is_intersected == 2) // coplanar case
-      }
-
-      return 0;
-  }
-
-  int IntersectionTriangleSegment(Element::GeometryType& rGeometry, double* RayPoint1, double* RayPoint2, double* IntersectionPoint)
-  {
-      // This is the adaption of the implemnetation provided in:
-      // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
-
-      const double epsilon = 1.00e-12;
-
-    array_1d<double,3>    u, v, n;             // triangle vectors
-    array_1d<double,3>    dir, w0, w;          // ray vectors
-    double     r, a, b;             // params to calc ray-plane intersect
-
-
-    // get triangle edge vectors and plane normal
-    u = rGeometry[1] - rGeometry[0];
-    v = rGeometry[2] - rGeometry[0];
-    
-    MathUtils<double>::CrossProduct(n, u, v);             // cross product
-    
-    if (norm_2(n) == 0)            // triangle is degenerate
-        return -1;                 // do not deal with this case
-
-    for(int i = 0 ; i < 3 ; i++)
-    {
-        dir[i] = RayPoint2[i] - RayPoint1[i];             // ray direction vector
-        w0[i] = RayPoint1[i] - rGeometry[0][i];
-    }
-
-    a = -inner_prod(n,w0);
-    b = inner_prod(n,dir);
-
-    if (fabs(b) < epsilon) {     // ray is parallel to triangle plane
-        if (a == 0)                // ray lies in triangle plane
-            return 2;
-        else return 0;             // ray disjoint from plane
-    }
-
-    // get intersect point of ray with triangle plane
-    r = a / b;
-    if (r < 0.0)                   // ray goes away from triangle
-        return 0;                  // => no intersect
-    // for a segment, also test if (r > 1.0) => no intersect
-
-    for(int i = 0 ; i < 3 ; i++)
-       IntersectionPoint[i]  = RayPoint1[i] + r * dir[i];           // intersect point of ray and plane
-
-    // is I inside T?
-    double    uu, uv, vv, wu, wv, D;
-    uu = inner_prod(u,u);
-    uv = inner_prod(u,v);
-    vv = inner_prod(v,v);
-
-
-    for(int i = 0 ; i < 3 ; i++)
-        w[i] = IntersectionPoint[i] - rGeometry[0][i];
-
-
-    wu = inner_prod(w,u);
-    wv = inner_prod(w,v);
-    D = uv * uv - uu * vv;
-
-    // get and test parametric coords
-    double s, t;
-    s = (uv * wv - vv * wu) / D;
-    if (s < 0.0 - epsilon || s > 1.0 + epsilon)        // I is outside T
-        return 0;
-    t = (uv * wu - uu * wv) / D;
-    if (t < 0.0 - epsilon || (s + t) > 1.0 + epsilon)  // I is outside T
-        return 0;
-
-    return 1;                      // I is in T
-
-  }
 
 
 
@@ -1037,29 +1056,33 @@ private:
             rOStream << "MESH \"leaves\" dimension 3 ElemType Hexahedra Nnode 8" << std::endl;
             rOStream << "# color 96 96 96" << std::endl;
             rOStream << "Coordinates" << std::endl;
-            rOStream << "# node number coordinate_x coordinate_y coordinate_z  " << std::endl;
+            rOStream << "# node_number coordinate_x coordinate_y coordinate_z  " << std::endl;
 
-          for(ModelPart::NodeIterator i_node = mrBodyModelPart.NodesBegin() ; i_node != mrBodyModelPart.NodesEnd() ; i_node++)
-          {
-              rOStream << i_node->Id() << "  " << i_node->Coordinate(1) << "  " << i_node->Coordinate(2) << "  " << i_node->Coordinate(3) << std::endl;
-              //mOctree.Insert(temp_point);
-          }
+            for(DistanceSpatialContainersConfigure::data_type::const_iterator i_node = mOctreeNodes.begin() ; i_node != mOctreeNodes.end() ; i_node++)
+            {
+                rOStream << (*i_node)->Id() << "  " << (*i_node)->Coordinate(1) << "  " << (*i_node)->Coordinate(2) << "  " << (*i_node)->Coordinate(3) << std::endl;
+            }
+            
             std::cout << "Nodes written..." << std::endl;
             rOStream << "end coordinates" << std::endl;
             rOStream << "Elements" << std::endl;
-            rOStream << "# element node_1 node_2 node_3 material_number" << std::endl;
+            rOStream << "# element n1 n2 n3 n4 n5 n6 n7 n8" << std::endl;
 
-            for (std::size_t i = 0; i < leaves.size(); i++) {
+            for (std::size_t i = 0; i < leaves.size(); i++) 
+            {
                 if ((leaves[i]->pGetData()))
-                {
-                    std::vector<Node<3>*>& nodes = (*(leaves[i]->pGetData()));
+                { 
+                    DistanceSpatialContainersConfigure::data_type& nodes = (*(leaves[i]->pGetData()));
 
+//                     std::cout << "Leave - Level: "  << nodes[0]->Id() << " " << nodes[1]->Id() << " " << nodes[2]->Id() << " etc... " << std::endl;
+                    
                     rOStream << i + 1;
                     for(int j = 0 ; j < 8 ; j++)
                         rOStream << "  " << nodes[j]->Id();
                     rOStream << std::endl;
                 }
             }
+            
             rOStream << "end elements" << std::endl;
 
         }
@@ -1135,11 +1158,13 @@ private:
       ///@} 
       ///@name Member Variables 
       ///@{ 
-	ModelPart& mrSkinModelPart;
-        ModelPart& mrBodyModelPart;
-
-        OctreeType mOctree;
         
+      ModelPart& mrSkinModelPart;
+      ModelPart& mrBodyModelPart;
+      
+      DistanceSpatialContainersConfigure::data_type mOctreeNodes;
+
+      OctreeType mOctree;  
         
       ///@} 
       ///@name Private Operators
