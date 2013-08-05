@@ -143,7 +143,7 @@ class ExplicitStrategy:
 
         if (self.delta_option ):
             self.delta_option               = True
-            self.search_radius_extension    = Param.SearchRadiusExtension
+            self.search_radius_extension    = SearchRadiusExtension
 
         if (Var_Translator(Param.ContinuumOption)):
             self.amplified_continuum_search_radius_extension = Param.AmplifiedSearchRadiusExtension;
