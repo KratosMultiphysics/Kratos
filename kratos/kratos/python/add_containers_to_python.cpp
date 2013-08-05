@@ -235,50 +235,50 @@ void  AddContainersToPython()
 
 
     class_<Flags, Flags::Pointer>("Flags",init<>())
-            .def(init<Flags>())
-            .def("Is", &Flags::Is)
-            .def("IsNot", &Flags::IsNot)
-            .def("Set", FlagsSet1)
-            .def("Set", FlagsSet2)
-            .def("IsDefined", &Flags::IsDefined)
-            .def("IsNotDefined", &Flags::IsNotDefined)
-            .def("Reset", &Flags::Reset)
-            .def("Flip", &Flags::Flip)
-            .def("Clear", &Flags::Clear)
-            .def("__or__", FlagsOr)
-            .def("__and__", FlagsOr) // this is not an error, the and and or are considered both as add. Pooyan.
-            .def( self_ns::str( self ) )
-            ;
-
+      .def(init<Flags>())
+      .def("Is", &Flags::Is)
+      .def("IsNot", &Flags::IsNot)
+      .def("Set", FlagsSet1)
+      .def("Set", FlagsSet2)
+      .def("IsDefined", &Flags::IsDefined)
+      .def("IsNotDefined", &Flags::IsNotDefined)
+      .def("Reset", &Flags::Reset)
+      .def("Flip", &Flags::Flip)
+      .def("Clear", &Flags::Clear)
+      .def("__or__", FlagsOr)
+      .def("__and__", FlagsOr) // this is not an error, the and and or are considered both as add. Pooyan.
+      .def( self_ns::str( self ) )
+      ;
+    
     KRATOS_REGISTER_IN_PYTHON_FLAG(STRUCTURE);
     KRATOS_REGISTER_IN_PYTHON_FLAG(FLUID);
     KRATOS_REGISTER_IN_PYTHON_FLAG(INLET);
     KRATOS_REGISTER_IN_PYTHON_FLAG(OUTLET);
     KRATOS_REGISTER_IN_PYTHON_FLAG(VISITED);
-
-
-			KRATOS_REGISTER_IN_PYTHON_VARIABLE(ELEMENTAL_DISTANCES);
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( OSS_SWITCH )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( DYNAMIC_TAU )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( ERASE_FLAG )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( NL_ITERATION_NUMBER )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( FRACTIONAL_STEP )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( TIME )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( TIME_STEPS )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( START_TIME )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( END_TIME )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( DELTA_TIME )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( TEMPERATURE )
-	    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TEMPERATURE_OLD_IT )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( PRESSURE )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( DENSITY )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( VISCOSITY )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( KINEMATIC_VISCOSITY)
-	    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DYNAMIC_VISCOSITY)
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( VISCOSITY_AIR )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( VISCOSITY_WATER )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( ERROR_RATIO )
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( TAU )
+    
+    
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(ELEMENTAL_DISTANCES);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( OSS_SWITCH );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DYNAMIC_TAU );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( ERASE_FLAG );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( NL_ITERATION_NUMBER );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( FRACTIONAL_STEP );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TIME );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TIME_STEPS );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( START_TIME );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( END_TIME );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DELTA_TIME );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TEMPERATURE );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TEMPERATURE_OLD_IT );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( PRESSURE );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DENSITY );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( VISCOSITY );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( KINEMATIC_VISCOSITY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( DYNAMIC_VISCOSITY);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( VISCOSITY_AIR );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( VISCOSITY_WATER );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( ERROR_RATIO );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( TAU );
 
 
 
@@ -320,7 +320,7 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( RHS_AIR )
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(WEIGHT_FATHER_NODES)
-            KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTERNAL_ENERGY )           
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( INTERNAL_ENERGY )           
 
     //for structural application TO BE REMOVED
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( CONSTITUTIVE_LAW )
@@ -569,14 +569,14 @@ void  AddContainersToPython()
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( MATERIAL)
     KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(VELOCITIES)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( TEMPERATURES)
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOLID_FRACTION)
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOLID_FRACTION_RATE)
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE( LATENT_HEAT)
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOLID_TEMPERATURE );
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE( FLUID_TEMPERATURE ); 
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE( AMBIENT_TEMPERATURE );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOLID_FRACTION)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOLID_FRACTION_RATE)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( LATENT_HEAT)
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( SOLID_TEMPERATURE );
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( FLUID_TEMPERATURE ); 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( AMBIENT_TEMPERATURE );
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( FLUID_DENSITY_PROJECTED ); 
-	KRATOS_REGISTER_IN_PYTHON_VARIABLE( Y_WALL ); 
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE( Y_WALL ); 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( IS_SLIP )
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( WET_VOLUME);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE( CUTTED_AREA); 
@@ -629,18 +629,24 @@ void  AddContainersToPython()
     .def("SetProjectionVariable",&ConvectionDiffusionSettings::SetProjectionVariable)
     .def("SetMeshVelocityVariable",&ConvectionDiffusionSettings::SetMeshVelocityVariable)
     .def("SetConvectionVariable",&ConvectionDiffusionSettings::SetConvectionVariable)
-    .def("SetTransferCoefficientVariable",&ConvectionDiffusionSettings::SetTransferCoefficientVariable)    
+    .def("SetTransferCoefficientVariable",&ConvectionDiffusionSettings::SetTransferCoefficientVariable)
+    .def("SetSpecificHeatVariable",&ConvectionDiffusionSettings::SetSpecificHeatVariable)
+    .def("SetVelocityVariable",&ConvectionDiffusionSettings::SetVelocityVariable)
+
+
     .def("GetDensityVariable",&ConvectionDiffusionSettings::GetDensityVariable, return_internal_reference<>() )
     .def("GetDiffusionVariable",&ConvectionDiffusionSettings::GetDiffusionVariable, return_internal_reference<>() )
     .def("GetUnknownVariable",&ConvectionDiffusionSettings::GetUnknownVariable, return_internal_reference<>() )
     .def("GetVolumeSourceVariable",&ConvectionDiffusionSettings::GetVolumeSourceVariable, return_internal_reference<>() )
     .def("GetSurfaceSourceVariable",&ConvectionDiffusionSettings::GetSurfaceSourceVariable, return_internal_reference<>() )
-    //.def("GetSurfaceSourceVariable",&ConvectionDiffusionSettings::GetSurfaceSourceVariable, return_internal_reference<>() )
     .def("GetProjectionVariable",&ConvectionDiffusionSettings::GetProjectionVariable, return_internal_reference<>() )
     .def("GetMeshVelocityVariable",&ConvectionDiffusionSettings::GetMeshVelocityVariable, return_internal_reference<>() )
     .def("GetConvectionVariable",&ConvectionDiffusionSettings::GetConvectionVariable, return_internal_reference<>() )
+    .def("GetSpecificHeatVariable",&ConvectionDiffusionSettings::GetSpecificHeatVariable, return_internal_reference<>() )
+    .def("GetVelocityVariable",&ConvectionDiffusionSettings::GetVelocityVariable, return_internal_reference<>() )
     .def("GetTransferCoefficientVariable",&ConvectionDiffusionSettings::GetTransferCoefficientVariable, return_internal_reference<>())        
     ;
+
     class_< RadiationSettings, RadiationSettings::Pointer, boost::noncopyable >	("RadiationSettings", init<	>() )
     .def("SetDensityVariable",&RadiationSettings::SetDensityVariable)
     .def("SetDiffusionVariable",&RadiationSettings::SetDiffusionVariable)
