@@ -129,7 +129,7 @@ void Artery1Dto3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
             array_1d<double,2> wave_velocity;
             array_1d<double,2> artery_property;
             array_1d<double,2> coef;
-	    array_1d<double,2> beta;
+            array_1d<double,2> beta;
 
 	    //copy to node 1 from 0
 	    GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS) = GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
@@ -146,18 +146,20 @@ void Artery1Dto3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
             //loop on nodes
             for (unsigned int i=0; i<2; i++)
             {
-		const double E = GetGeometry()[i].FastGetSolutionStepValue(YOUNG_MODULUS);
-		const double nu =GetGeometry()[i].FastGetSolutionStepValue(POISSON_RATIO);
-		const double H0 =GetGeometry()[i].FastGetSolutionStepValue(THICKNESS);
-		beta[i] = E*H0*1.77245385/(1.0-nu*nu);
+                //const double E = GetGeometry()[i].FastGetSolutionStepValue(YOUNG_MODULUS);
+                //const double nu =GetGeometry()[i].FastGetSolutionStepValue(POISSON_RATIO);
+                //const double H0 =GetGeometry()[i].FastGetSolutionStepValue(THICKNESS);
+                //beta[i] = E*H0*1.77245385/(1.0-nu*nu);
 
                 Node<3>& r_node = GetGeometry()[i];
+                beta[i] = r_node.FastGetSolutionStepValue(BETA);
+                coef[i] = r_node.FastGetSolutionStepValue(C0);
                 area[i] = r_node.FastGetSolutionStepValue(NODAL_AREA);
                 flow[i] = r_node.FastGetSolutionStepValue(FLOW);
                 artery_property[i]=beta[i]/GetGeometry()[i].GetValue(NODAL_AREA);
-                coef[i] = sqrt(beta[i]/(2*density * GetGeometry()[i].GetValue(NODAL_AREA)));
+                //coef[i] = sqrt(beta[i]/(2*density * GetGeometry()[i].GetValue(NODAL_AREA)));
             }
- 	    flow[1] = flow[0];
+            flow[1] = flow[0];
             wave_velocity[0] = (flow[0] / area[0]) + 4.00 * sqrt(beta[0] / (2.00 * density * GetGeometry()[0].GetValue(NODAL_AREA))) * pow(area[0],0.25);
             wave_velocity[1] = (flow[1] / area[1]) - 4.00 * sqrt(beta[1] / (2.00 * density * GetGeometry()[0].GetValue(NODAL_AREA))) * pow(area[1],0.25);
 

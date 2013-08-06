@@ -138,9 +138,9 @@ void ArteryOutletFreeCondition::CalculateRightHandSide(VectorType& rRightHandSid
     if(Tipo_outlet == 1) {
         //const double flow1 = GetGeometry()[0].FastGetSolutionStepValue(FLOW); // NOTE: HERE we have to put the corrected value
         const double flow1 = GetGeometry()[1].FastGetSolutionStepValue(FLOW); // Edu
-        const double flow2 = GetGeometry()[1].FastGetSolutionStepValue(FLOW);
-        const double flow = 2* flow1 - flow2;
-        double A0 = GetGeometry()[1].GetValue(NODAL_AREA);
+        const double flow2 = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
+        const double flow = 2* flow2 - flow1;
+        double A0 = GetGeometry()[0].GetValue(NODAL_AREA);
         const double C = beta*sqrt(A*A*A)/(3.0*density*A0);
         rRightHandSideVector[0] = 0; //-flow;
         //double temp = -(C + coriolis_coefficient*flow*flow/(A1));
@@ -232,6 +232,7 @@ double ArteryOutletFreeCondition::UpdateArea(double Beta, double Density)
         std::cout << "ERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR" << std::endl;
         KRATOS_WATCH(x);
         KRATOS_WATCH(GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA));
+        KRATOS_ERROR(std::logic_error,"artery_outlet_conditions", "");
     }
 
     return A;

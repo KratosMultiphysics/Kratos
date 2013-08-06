@@ -11,12 +11,11 @@ class TransferTools:
     def __init__( self, model_part_1d, model_part_3d ):
 	self.model_part_1d = model_part_1d
 	self.model_part_3d = model_part_3d
-	self.fin = open("areasIN.txt","w")
-	self.fout = open("areasOUT.txt","w")
-	self.fout2 = open("areasOUT_2.txt","w")
-	self.press=open("press.txt","w")
-	self.flow=open("flow.txt","w")
-	
+	#self.fin = open("areasIN.txt","w")
+	#self.fout = open("areasOUT.txt","w")
+	#self.fout2 = open("areasOUT_2.txt","w")
+	#self.press=open("press.txt","w")
+	#self.flow=open("flow.txt","w")	
 	#self.f1d = open("1d.txt","w")
         #self.f3d = open("3d.txt","w")
     
@@ -38,11 +37,11 @@ class TransferTools:
 	self.flow_3d_out = 0.0
 	self.flow_1d_out = 0.0
 	self.flow_1d_in2 = 0.0
-	self.fin.write("EMPIEZO\n")
-	self.fout.write("EMPIEZO\n")
-	self.fout2.write("EMPIEZO\n")
-	self.press.write("EMPIEZO\n")
-	self.flow.write("EMPIEZO|n")
+	#self.fin.write("EMPIEZO\n")
+	#self.fout.write("EMPIEZO\n")
+	#self.fout2.write("EMPIEZO\n")
+	#self.press.write("EMPIEZO\n")
+	#self.flow.write("EMPIEZO|n")
 	
 	#self.f3d.write("EMPIEZO\n")
 	inicial = 1
@@ -198,7 +197,7 @@ class TransferTools:
 
     def Initial_Contitions (self):
       initial_pressure=0      	
-      print "Inicializo 3D"
+      #print "Inicializo 3D"
       
       for i in range(0,len(self.inlets_1d)):
         inlet_nodes_1d = self.inlets_1d[i]
@@ -222,7 +221,7 @@ class TransferTools:
 	      a = math.sqrt(n[0]**2 +  n[1]**2 + n[2]**2)
 	      orientation = directions[k]
 	      node.SetSolutionStepValue(VELOCITY, 0, directions[k]*vel1d)
-	      node.SetSolutionStepValue(PRESSURE, 0, pressinlet3D)
+	      #node.SetSolutionStepValue(PRESSURE, 0, pressinlet3D)
 	      k = k+1
       #raw_input()    
 	
@@ -250,14 +249,14 @@ class TransferTools:
 	  print "Q", inlet_nodes_1d[0].GetSolutionStepValue(FLOW)
 	  #print "velocity1D", inlet_nodes_1d[0].GetSolutionStepValue(FLOW)/inlet_nodes_1d[0].GetValue(NODAL_AREA)
 	  #self.fin.write("Areas inlets ") 
-	  self.fin.write(str(inlet_nodes_1d[0].GetValue(NODAL_AREA)))
-	  self.fin.write(" ")
-	  self.fin.write(str(inlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA)))
-	  self.fin.write(" ")
-	  self.fin.write(str(area3d))
-	  self.fin.write(" ")
-	  self.fin.write(str(inlet_nodes_1d[0].GetValue(NODAL_AREA)-area3d))
-	  self.fin.write("\n")
+	  #self.fin.write(str(inlet_nodes_1d[0].GetValue(NODAL_AREA)))
+	  #self.fin.write(" ")
+	  #self.fin.write(str(inlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA)))
+	  #self.fin.write(" ")
+	  #self.fin.write(str(area3d))
+	  #self.fin.write(" ")
+	  #self.fin.write(str(inlet_nodes_1d[0].GetValue(NODAL_AREA)-area3d))
+	  #self.fin.write("\n")
 	  
 	  #self.press.write(str(outlet_nodes_1d[0].Id)+"-->  ")
 	  #self.press.write(str(press))
@@ -293,18 +292,19 @@ class TransferTools:
 	  
 	#raw_input()
 	
-      print "Acabo de inlets"
+      #print "Acabo de inlets"
       #raw_input()
             
-      print "EMPIEZO de outlets"
+      #print "EMPIEZO de outlets"
       #raw_input()
       for i in range(0,len(self.outlets_1d)):
 	#print "HOLA!"
 	#raw_input()
 	outlet_nodes_1d = self.outlets_1d[i]
 	pressinlet3D =  outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)
-	print "3D-1D: outlet_nodes_1d[0].Id::::::>>>> ",outlet_nodes_1d[0].Id
-        print "pressinlet3D ",pressinlet3D
+	#pressinlet3D = 0 
+	#print "3D-1D: outlet_nodes_1d[0].Id::::::>>>> ",outlet_nodes_1d[0].Id
+        #print "pressinlet3D ",pressinlet3D
 	#raw_input()
 	##double beta = E0*thickness0*1.77245385/(1.0-nu0*nu0);	
 	beta = ((outlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS) * outlet_nodes_1d[0].GetSolutionStepValue(THICKNESS) * math.sqrt(math.pi))/(1-(outlet_nodes_1d[0].GetSolutionStepValue(POISSON_RATIO)*outlet_nodes_1d[0].GetSolutionStepValue(POISSON_RATIO))))
@@ -324,21 +324,17 @@ class TransferTools:
 	#print "in Transfer1D_to_3D(EDU)",press  
 	#print "beta", beta
 	##raw_input()
-	
-	 
-
-	print "press ",press
-	press = pressinlet3D
+	#print "press ",press
+	#press = pressinlet3D
 	#press = -10.0
 	#raw_input()
 	#print "in Transfer Area 1D_to_3D :::::>>>>", A 
 	##Edu
 	##press = beta/A0*(math.sqrt(A) - math.sqrt(A0))
-	print "in Transfer1D_to_3D(EDU)",press  	  	 
-        print "--trasferencia al 3D"
-        self.press.write(str(outlet_nodes_1d[0].Id)+"-->  ")
-        self.press.write(str(press))
-	self.press.write("\n")
+	#print "--trasferencia al 3D"
+        #self.press.write(str(outlet_nodes_1d[0].Id)+"-->  ")
+        #self.press.write(str(press))
+	#self.press.write("\n")
         #raw_input()
 	for i in range(0,len(self.outlets_3d)):
 	  outlet_nodes_3d = self.outlets_3d[i]
@@ -347,31 +343,32 @@ class TransferTools:
 	  print "Area1D--->", outlet_nodes_1d[0].GetValue(NODAL_AREA)
 	  print "Area3d--->", area3d
 	  #inlet_nodes_1d = self.outlets_1d[i]
-	  print "diferencia de Areas en el outles 1d--3d:::::", outlet_nodes_1d[0].GetValue(NODAL_AREA)-area3d
-	  self.fout.write(str(outlet_nodes_1d[0].GetValue(NODAL_AREA)))
-	  self.fout.write(" ")
-	  self.fout.write(str(outlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA)))
-	  self.fout.write(" ")	  
-	  self.fout.write(str(area3d))
-	  self.fout.write(" ")	  
-	  self.fout.write(str(outlet_nodes_1d[0].GetValue(NODAL_AREA)-area3d))
-	  self.fout.write("\n")
+	  print "1d-3d Areas Diference--->", outlet_nodes_1d[0].GetValue(NODAL_AREA)-area3d
+	  #self.fout.write(str(outlet_nodes_1d[0].GetValue(NODAL_AREA)))
+	  #self.fout.write(" ")
+	  #self.fout.write(str(outlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA)))
+	  #self.fout.write(" ")	  
+	  #self.fout.write(str(area3d))
+	  #self.fout.write(" ")	  
+	  #self.fout.write(str(outlet_nodes_1d[0].GetValue(NODAL_AREA)-area3d))
+	  #self.fout.write("\n")
 	  #for node in outlet_nodes_3d:
 	  #print node.Id	 
-	  #for node in inlet_nodes_3d:
-	    #node.SetSolutionStepValue(PRESSURE, 0, pressinlet3D)
-	    #print "pressure  1d to 3D ::::::> ", pressinlet3D
 	  for node in outlet_nodes_3d:
-	    old_pressure = node.GetSolutionStepValue(PRESSURE,1)
-	    effective_press = 0.5*(press+old_pressure)
-	    node.SetSolutionStepValue( PRESSURE, 0, effective_press)
-	    #node.SetSolutionStepValue( PRESSURE, 0, press)
+	    node.SetSolutionStepValue(PRESSURE, 0, pressinlet3D)
+	    #print "pressure  1d to 3D ::::::> ", pressinlet3D
+	  #ModificacionEdu
+	  #for node in outlet_nodes_3d:
+	    #old_pressure = node.GetSolutionStepValue(PRESSURE,1)
+	    #effective_press = 0.5*(press+old_pressure)
+	    #node.SetSolutionStepValue( PRESSURE, 0, effective_press)
+	    ##node.SetSolutionStepValue( PRESSURE, 0, press)
 	    #print "node", node.Id
 	    #node.SetSolutionStepValue( PRESSURE, 1, press)
 	#raw_input()	
       
       
-      print "Acabo de outles"
+      #print "Acabo de outles"
       #raw_input()    
 
     def Transfer3D_to_1D( self ):
@@ -379,6 +376,7 @@ class TransferTools:
 	  inlet_nodes_1d = self.inlets_1d[i]
 	  inlet_nodes_3d = self.inlets_3d[i]
 	  area3d = self.inlet_areas_3d[i]
+	  outlet_nodes_1d = self.outlets_1d[i]
 	  press_3d = 0.0
 	  counter = 0.0
 	  for node in inlet_nodes_3d:
@@ -387,11 +385,9 @@ class TransferTools:
 	  
 	  avg_press = press_3d/counter
 	  
-	  #avg_press = -10.0
-	  
-	  print "Trasfer inlet average PRESSURE outlet 3D to 1D :::::>>>>> ",avg_press
-	  print "Aui....inlet_nodes_1d[0].Id::::::>>>> ",inlet_nodes_1d[0].Id
-	  inlet_nodes_1d[0].SetSolutionStepValue(PRESSURE ,0, avg_press)
+	  #print "Trasfer inlet average PRESSURE outlet 3D to 1D :::::>>>>> ",avg_press
+	  #print "Inlet_nodes_1d[0].Id::::::>>>> ",inlet_nodes_1d[0].Id
+	  #inlet_nodes_1d[0].SetSolutionStepValue(PRESSURE ,0, avg_press)
 	  #raw_input()
 	  
 	  #TODO: make it to read from the input
@@ -401,8 +397,6 @@ class TransferTools:
 	  beta = inlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS) * inlet_nodes_1d[0].GetSolutionStepValue(THICKNESS) * math.sqrt(math.pi)
 	  A0 = inlet_nodes_1d[0].GetValue(NODAL_AREA)
 	  #print beta
-	  #print A0
-	  #print "---"
 	  #beta = model_part1D.Nodes[63].GetSolutionStepValue(YOUNG_MODULUS) * model_part1D.Nodes[63].GetSolutionStepValue(THICKNESS) * math.sqrt(math.pi)
 	  #A0 = model_part1D.Nodes[63].GetValue(NODAL_AREA)
 	  #print beta
@@ -411,22 +405,22 @@ class TransferTools:
 	  #print "beta,", beta
 	  A =  (avg_press*A0/beta + math.sqrt(A0))**2   #A0*(avg_press/beta + 1)**2
 	  print "in Transfer AREA 3D_to_1D----->", A
-	  self.fout2.write(str(inlet_nodes_1d[0].GetValue(NODAL_AREA)))
-	  self.fout2.write(" ")
-	  self.fout2.write(str(inlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA)))
-	  self.fout2.write(" ")	  
-	  self.fout2.write(str(area3d))
-	  self.fout2.write(" ")	  
-	  self.fout2.write(str(inlet_nodes_1d[0].GetValue(NODAL_AREA)-area3d))
-	  self.fout2.write("\n")
+	  #self.fout2.write(str(inlet_nodes_1d[0].GetValue(NODAL_AREA)))
+	  #self.fout2.write(" ")
+	  #self.fout2.write(str(inlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA)))
+	  #self.fout2.write(" ")	  
+	  #self.fout2.write(str(area3d))
+	  #self.fout2.write(" ")	  
+	  #self.fout2.write(str(inlet_nodes_1d[0].GetValue(NODAL_AREA)-area3d))
+	  #self.fout2.write("\n")
 	  
-	  self.press.write(str(inlet_nodes_1d[0].Id)+"-->  ")
-	  self.press.write(str(avg_press))
-	  self.press.write("\n")
+	  #self.press.write(str(inlet_nodes_1d[0].Id)+"-->  ")
+	  #self.press.write(str(avg_press))
+	  #self.press.write("\n")	
+	  A0 = outlet_nodes_1d[0].GetValue(NODAL_AREA)
+	  outlet_nodes_1d[0].SetSolutionStepValue(NODAL_AREA ,0, A0)
+	  inlet_nodes_1d[0].SetSolutionStepValue(NODAL_AREA ,0, A0)
 	  
-	  
-	  
-	  inlet_nodes_1d[0].SetSolutionStepValue(NODAL_AREA ,0, A)
 	  #Ultimo cambio Edu
 	  #inlet_nodes_1d[0].SetSolutionStepValue(NODAL_AREA ,0, area3d)
 	  #print "inlet A (on node 23) ",A
@@ -479,7 +473,7 @@ class TransferTools:
 	  #flow=2*flow-outlet_nodes_1d[0].GetSolutionStepValue(FLOW, 1)	
 	  #print "con Riemman",-flow
       	  outlet_nodes_1d[0].SetSolutionStepValue(FLOW, 0, -flow)
-      	  print outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)      	  
+      	  #print outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)      	  
       
       #raw_input()
       

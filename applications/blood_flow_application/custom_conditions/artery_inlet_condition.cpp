@@ -114,58 +114,59 @@ void ArteryInletCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
 
 
     //double h_int = rCurrentProcessInfo[DELTA_TIME];
-
     // get data as needed
     // EDU:: ESTA TOMANDO LAS PROPIEDADES DEL ELEMENTO 1 (COMO ESTA DEFINIDO EN EL MPDA)
     // const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
-    const double density = GetProperties()[DENSITY];
     // EDU:: AQUI YA TOMA LOS VALORES CON EL UPDATE PARA LOS SIGUIENTE PASOS DE TIEMPO
-    const double E = GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
-    const double nu = GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
+    //const double E = GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
+    //const double nu = GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
     //const double pi = 3.14159265;
     const double coriolis_coefficient = 1.1;
     //const double kr_coefficient = 1.0;
-
+    const double density = GetProperties()[DENSITY];
     //const double kinematic_viscosity = dynamic_viscosity/density;
-    const double H0 = GetGeometry()[0].FastGetSolutionStepValue(THICKNESS);;
-    const double beta = E*H0*1.77245385/(1.0-nu*nu);
-
-    const double& A = UpdateArea(beta, density);
-
+    //const double H0 = GetGeometry()[0].FastGetSolutionStepValue(THICKNESS);;
+    //const double beta = E*H0*1.77245385/(1.0-nu*nu);
+    const double beta =GetGeometry()[0].FastGetSolutionStepValue(BETA);
+    const double A1 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
+    const double A0 = GetGeometry()[0].GetValue(NODAL_AREA);
+    //const double& A = UpdateArea(beta,A1);
+    const double A = A1; // No hago update del area
     const double& flow = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
+    //flow = 2*flow -
     //const double flow3 = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
     //const double& flow5 = GetGeometry()[0].GetSolutionStepValue(FLOW);
-    const double C = beta/(3.0*density*GetGeometry()[0].GetValue(NODAL_AREA))*sqrt(A*A*A);
+    const double C = beta/(3.0*density*A0*sqrt(A*A*A));
     //const double flow2 = GetGeometry()[0].GetValue(FLOW,0);
     //const double flow4 = GetGeometry()[0].GetValue(FLOW,1);
     //const int kk =GetProperties().Id();
-    //KRATOS_WATCH(kk);
+    //KRATOS_WATCH(GetGeometry()[0].Id())
 
     //std::cout << "inlet: " << std::endl;
     //KRATOS_WATCH(flow);
     //KRATOS_WATCH(flow2);
     //KRATOS_WATCH(flow3);
-     //KRATOS_WATCH(flow4);
+    //KRATOS_WATCH(flow4);
     //KRATOS_WATCH(flow5);
-//    KRATOS_WATCH(A);
-
+    //KRATOS_WATCH(A);
     rRightHandSideVector[0] = flow;
     //double temp = C + coriolis_coefficient*flow*flow/(A);
     rRightHandSideVector[1] = C + (coriolis_coefficient*flow*flow/(A));
-
+    //TODO:CHEQUEAR EL TERMINO DE LA MASA y el SIGNO
+    // RHS = RHS + FR/MASA
     KRATOS_CATCH("")
 }
 
 
-double ArteryInletCondition::UpdateArea(double Beta, double Density)
+double ArteryInletCondition::UpdateArea(double Beta, double A)
 {
 
     KRATOS_TRY
 
     const int max_iteration = 100;
-    double& A = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
     const double flow =  GetGeometry()[0].FastGetSolutionStepValue(FLOW);
-    const double par2 = sqrt(Beta / (2.00*Density*GetGeometry()[0].GetValue(NODAL_AREA)));
+    const double density = GetProperties()[DENSITY];
+    const double par2 = sqrt(Beta / (2.00*density*GetGeometry()[0].GetValue(NODAL_AREA)));
     const double w1 = (flow / A) - 4.00*par2*pow(A,0.25);
 
     //std::cout << "FLOWWWWWWW ::::::: Artery_Inlet" << std::endl;
