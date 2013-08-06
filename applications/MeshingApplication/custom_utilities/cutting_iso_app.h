@@ -187,6 +187,7 @@ public:
     void AddModelPartElements(ModelPart& mr_model_part, ModelPart& mr_new_model_part, int number )
     {
         ModelPart& this_model_part = mr_model_part;
+        NodesArrayType::iterator it_begin_node_old = this_model_part.Nodes().ptr_begin();
         ModelPart& new_model_part = mr_new_model_part;
 
         KRATOS_WATCH("Adding Skin Conditions to the new model part, added in layer:")
@@ -241,7 +242,8 @@ public:
             Geometry<Node<3> >&geom = i_element->GetGeometry(); //current element(nodes, etc)
             for(unsigned int i = 0; i < i_element->GetGeometry().size() ; i++)         //looping the nodes
             {
-                int position = (geom[i].Id()) - 1; //the id of the node minus one is the position in the Condition_Node array (position0 = node1)
+				int position = this_model_part.Nodes().find(geom[i].Id()) - it_begin_node_old;
+                //int position = (geom[i].Id()) - 1; //the id of the node minus one is the position in the Condition_Node array (position0 = node1)
                 tetrahedra_nodes[i]=Element_Nodes[position]; // saving the i nodeId
             } //nodes id saved. now we have to create the element.
 
