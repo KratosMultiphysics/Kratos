@@ -64,6 +64,13 @@ REQUIRED LIBRARIES:
   by adding at the beginning of your configuration script (or in your .bashrc)
 
            export BOOST_ROOT=/path/to/your/boost
+ 
+  It has been reported that under some circumstances CMake is unable to correctly detect boost directory. 
+  If it is the case the user should tell manualy to cmake where the boost installation is by adding 
+  this lines to the configure file:
+  
+        -DBoost_NO_BOOST_CMAKE=TRUE
+        -DBOOST_LIBRARYDIR:PATH="/path/to/your/boost/lib"
 	
   Python library: this library is normally included in the python-dev package and needs to be present as a shared-library (.so or .dll).
   If more than one library is present in the system, the user can control which one to link to by (for example) setting
