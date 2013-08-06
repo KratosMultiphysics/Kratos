@@ -33,7 +33,7 @@ def DoRemoval(model_part):
     for elem in model_part.Elements:
       print 'properties.id', elem.Properties.Id
       if(elem.Properties.Id == prop_id):
-	print 'hola3'
+	#print 'hola3'
 	elem.SetValue(ERASE_FLAG,True)
 	print "..................", elem.Id
 	for node in elem.GetNodes():
@@ -49,7 +49,8 @@ def DoRemoval(model_part):
     flag_id = config.inlets_1d[i][0]
     prop_id = config.inlets_1d[i][1]    
     #print "prop_id", prop_id
-    print GetNodeBefore(full_nodes_table.table, prop_id)
+    #print GetNodeBefore(full_nodes_table.table, prop_id)
+    #raw_input()
     node_before = model_part.Nodes[ GetNodeBefore(full_nodes_table.table, prop_id) ]
     node_begin = model_part.Nodes[ GetNodeBegin(full_nodes_table.table, prop_id) ]
     node_before.SetValue(ERASE_FLAG,True)
@@ -58,7 +59,7 @@ def DoRemoval(model_part):
     nodes_to_preserve.append(node_begin)
     nodes_to_preserve.append(node_before)
     
-  #mark for erasal nodes after outler
+  #mark for erasal nodes after outlet
   for i in range(0,len(config.outlets_1d)):
     print "nodes after outlet"
     flag_id = config.outlets_1d[i][0]
@@ -133,7 +134,6 @@ def ComputePressure( model_part1D ):
   initial_pressure=0 
   for node in model_part1D.Nodes:
     #print node.Id
-  
     beta = (node.GetSolutionStepValue(YOUNG_MODULUS) * node.GetSolutionStepValue(THICKNESS) * math.sqrt(math.pi))/(1.0-(node.GetSolutionStepValue(POISSON_RATIO)*node.GetSolutionStepValue(POISSON_RATIO)))
     A=node.GetSolutionStepValue(NODAL_AREA)
     A0 = node.GetValue(NODAL_AREA)

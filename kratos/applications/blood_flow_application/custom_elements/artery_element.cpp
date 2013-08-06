@@ -114,43 +114,39 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
     
     double h_int = rCurrentProcessInfo[DELTA_TIME];
     
-    // To be removed!!!!!!!!!!!!! Pooyan.
-    //h_int = 0.001;
-    //mL = 0.001;
-    
-    	    const double A0_actual = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
+        const double A0_actual = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
 	    const double A1_actual = GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA);
 	     
 	     if((A0_actual == 0.00) || (A1_actual== 0.00))
 	     {
-// 	       	KRATOS_WATCH("------sssssssssssssssssssssssssss-----------");
-// 	       	KRATOS_WATCH("----");
-	        KRATOS_WATCH(A0_actual);
-		KRATOS_WATCH(A1_actual);
-		KRATOS_WATCH(GetProperties().Id());
-	        std::cout << "this element is" << this->Id() <<std::endl;
-		KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, Please check your model", "");
+            //KRATOS_WATCH("------sssssssssssssssssssssssssss-----------");
+            //KRATOS_WATCH("----");
+            KRATOS_WATCH(A0_actual);
+            KRATOS_WATCH(A1_actual);
+            KRATOS_WATCH(GetProperties().Id());
+                std::cout << "this element is" << this->Id() <<std::endl;
+            KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, Please check your model", "");
 	     }
 	        
             //const int kk =GetProperties().Id();
-	    //KRATOS_WATCH("-----------------")
+       //KRATOS_WATCH(h_int)
             //KRATOS_WATCH(A0_actual);
-    
-    
-    
+        
     //get data as needed
     const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
     const double density = GetProperties()[DENSITY];
-    const double E = 0.5*(GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS) + GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS));
-    const double nu =0.5*(GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO) + GetGeometry()[1].FastGetSolutionStepValue(POISSON_RATIO));
+    //const double E = 0.5*(GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS) + GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS));
+    //const double nu =0.5*(GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO) + GetGeometry()[1].FastGetSolutionStepValue(POISSON_RATIO));
+    //const double H0=GetGeometry()[0].FastGetSolutionStepValue(THICKNESS);
+
     const double pi = 3.14159265;
     const double coriolis_coefficient = 1.1;
     //const double kr_coefficient = 1.0;
-    const double kr_coefficient = 8.0*pi*dynamic_viscosity;
+    const double kr_coefficient = 8.0*pi* (dynamic_viscosity/density);
 
     //const double kinematic_viscosity = dynamic_viscosity/density;
-    const double H0 = 0.5*(GetGeometry()[0].FastGetSolutionStepValue(THICKNESS) + GetGeometry()[1].FastGetSolutionStepValue(THICKNESS));;
-    const double beta = E*H0*1.77245385/(1.0-nu*nu);
+    //const double H0 = 0.5*(GetGeometry()[0].FastGetSolutionStepValue(THICKNESS) + GetGeometry()[1].FastGetSolutionStepValue(THICKNESS));;
+    //const double beta = E*H0*1.77245385/(1.0-nu*nu);
 
 
     std::vector< array_1d<double,2> > Fj(2);
@@ -165,14 +161,15 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
     
     M2(0,0) = 0.333333333333333333333333; M2(0,1) = 0.166666666666666666666667; 
     M2(1,0) = 0.166666666666666666666667; M2(1,1) = 0.333333333333333333333333; 
-    M2 *= mL;
+    M2 = M2* abs(mL);
   //std::cout << "this element is" << this->Id() <<std::endl;
     //loop on nodes
     for (unsigned int i=0; i<2; i++)
     {
         const double& A = GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA);
+        const double beta=GetGeometry()[i].FastGetSolutionStepValue(BETA);
         const double C = beta*sqrt(A*A*A)/(3.0*density*GetGeometry()[i].GetValue(NODAL_AREA));
-        //KRATOS_WATCH(C);
+        //KRATOS_WATCH(C);GetValue
         //KRATOS_WATCH(beta);
         //KRATOS_WATCH(mL);
         const double flow = GetGeometry()[i].FastGetSolutionStepValue(FLOW);
@@ -186,18 +183,18 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
         Fj[i][1] = C + ((coriolis_coefficient*flow*flow)/A);
 
         Sj[i][0] = 0.0;
-        Sj[i][1] = -kr_coefficient*flow/(A);
+        Sj[i][1] = (-kr_coefficient*flow)/(A);
 
 //KRATOS_WATCH(Fj[i]);
 //KRATOS_WATCH(Sj[i]);
         Hj[i](0,0)   = 0.0;
         Hj[i](0,1)   = 1.0;
-        Hj[i](1,0)   = -coriolis_coefficient*pow(flow/A,2) + (beta* sqrt(A))/(2.0*density*GetGeometry()[i].GetValue(NODAL_AREA));
+        Hj[i](1,0)   = (-coriolis_coefficient*pow(flow/A,2)) + ((beta* sqrt(A))/(2.0*density*GetGeometry()[i].GetValue(NODAL_AREA)));
         Hj[i](1,1)   = 2.0*coriolis_coefficient*(flow/A);
 //KRATOS_WATCH(Hj[i]);
-        Suj[i](0,0)   = 0.0;
+        Suj[i](0,0) = 0.0;
         Suj[i](0,1) = 0.0;
-        Suj[i](1,0)   = kr_coefficient*flow/(A*A);;
+        Suj[i](1,0) = kr_coefficient*flow/(A*A);;
         Suj[i](1,1) = -kr_coefficient/A;
 //KRATOS_WATCH(Suj[i]);	
     }
@@ -227,18 +224,19 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
   // KRATOS_WATCH(Sw);
     for (unsigned int j=0; j<2; j++)
     {
-	for (unsigned int i=0; i<2; i++)
-	{
-	  Fw(i,j) = h_int*0.5*Fw(i,j) + Fj[j][i];
-	  Sw(i,j) = h_int*0.5*Sw(i,j) + Sj[j][i];
-	}
-   }
-   
+        for (unsigned int i=0; i<2; i++)
+        {
+          //Hemos guardado esto transpuesto (arriba esta al reves)
+          Fw(i,j) = (h_int*0.5*Fw(i,j)) + Fj[j][i];
+          Sw(i,j) = (h_int*0.5*Sw(i,j)) + Sj[j][i];
+        }
+    }
+
 //KRATOS_WATCH(Fw);
 //KRATOS_WATCH(Sw);
     boost::numeric::ublas::bounded_matrix<double, 2,2 > F2ord;
     boost::numeric::ublas::bounded_matrix<double, 2,2 > S2ord;
-    
+
     noalias(aaa) = prod( Hj[0],Fder);
     F2ord(0,0) = aaa[0]; F2ord(1,0) = aaa[1]; 
     noalias(aaa) = prod( Hj[1],Fder);
@@ -288,12 +286,13 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
     
     for (unsigned int i=0; i<2; i++)
     {
-       rhs[0] = Fw(i,0) + Sw(i,0) - (h_int*0.5)*(F2ord(i,0) + S2ord(i,0));
-       rhs[1] = Fw(i,1) + Sw(i,1) - (h_int*0.5)*(F2ord(i,1) + S2ord(i,1));
-// KRATOS_WATCH(rhs);
+       rhs[0] = (Fw(i,0) + Sw(i,0)) - ((h_int*0.5)*(F2ord(i,0)) + S2ord(i,0));
+       rhs[1] = (Fw(i,1) + Sw(i,1)) - ((h_int*0.5)*(F2ord(i,1)) + S2ord(i,1));
+       //KRATOS_WATCH(rhs);
+       //KRATOS_WATCH(GetProperties().Id());
+       //std::cout << "this element is" << this->Id() <<std::endl;
        rRightHandSideVector[i] = rhs[0];
-       rRightHandSideVector[i+2] = rhs[1];
-      
+       rRightHandSideVector[i+2] = rhs[1];         
     }
 //    if(Id() == 1)
 //    {
@@ -314,7 +313,8 @@ void ArteryElement::Initialize()
     KRATOS_TRY
     const double pi = 3.14159265;
     double radius = GetProperties()[RADIUS];
-    array_1d<double,2> A0; 
+    array_1d<double,2> A0;
+    array_1d<double,2> c0;
     const double r0 =  radius; //GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
     A0[0] = pi*r0*r0;
 
@@ -326,14 +326,27 @@ void ArteryElement::Initialize()
     const double E = GetProperties()[YOUNG_MODULUS];
     const double nu = GetProperties()[POISSON_RATIO];
     const double pressure = GetProperties()[PRESSURE];
+    const double blood_density = GetProperties()[DENSITY];
     
     double beta=E*H0*1.77245385/(1.0-nu*nu);
-    
+
     //compute the lenght of the element
     array_1d<double,3> lvec = GetGeometry()[1].Coordinates();
     lvec -= GetGeometry()[0].Coordinates();
 
     mL = norm_2(lvec);
+
+    c0[0]=sqrt(beta/(2*blood_density*A0[0]));
+    c0[1]=sqrt(beta/(2*blood_density*A0[1]));
+
+//    if(c0[0] == 0.00 || c0[1] == 0.00)
+//     {
+//       KRATOS_WATCH(c0[0]);
+//       KRATOS_WATCH(c0[1]);
+//       KRATOS_WATCH(GetProperties().Id());
+//       KRATOS_WATCH(this->Id());
+//       KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, in boundary 1-2 conditions used:son", "");
+//     }
 
     //save area to the nodes. as well as its nodal mass
     GetGeometry()[0].SetLock();
@@ -344,10 +357,26 @@ void ArteryElement::Initialize()
     GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS) = E;
     GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO) = nu;
     GetGeometry()[0].FastGetSolutionStepValue(BETA) = beta;
-    GetGeometry()[0].FastGetSolutionStepValue(PRESSURE) = pressure;    
-    GetGeometry()[0].GetValue(NODAL_AREA) = A0[0];//here we store the initial area    
-    GetGeometry()[0].GetValue(PRESSURE) = pressure;//here we store the initial area    
+    GetGeometry()[0].FastGetSolutionStepValue(PRESSURE) = pressure;
+    GetGeometry()[0].FastGetSolutionStepValue(C0) = c0[0];
+    GetGeometry()[0].GetValue(NODAL_AREA) = A0[0];//here we store the initial area
+    GetGeometry()[0].GetValue(PRESSURE) = pressure;//here we store the initial area
     GetGeometry()[0].UnSetLock();
+    //KRATOS_WATCH(GetGeometry()[0].Id())
+    //KRATOS_WATCH(GetGeometry()[0].FastGetSolutionStepValue(NODAL_MASS))
+//    if(GetGeometry()[0].FastGetSolutionStepValue(C0) == 0.00)
+//    {
+//       KRATOS_WATCH(GetProperties().Id());
+//       KRATOS_WATCH(blood_density);
+//       KRATOS_WATCH(c0[0]);
+//       KRATOS_WATCH(c0[1]);
+//       KRATOS_WATCH(beta);
+//       KRATOS_WATCH(A0[0]);
+//       KRATOS_WATCH(A0[1]);
+//        KRATOS_WATCH(GetProperties().Id());
+//        KRATOS_WATCH(this->Id());
+//        KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, in boundary 1-2 conditions used:son", "");
+//    }
 
     GetGeometry()[1].SetLock();
     GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS) += 0.5*mL;
@@ -358,9 +387,20 @@ void ArteryElement::Initialize()
     GetGeometry()[1].FastGetSolutionStepValue(POISSON_RATIO) = nu;
     GetGeometry()[1].FastGetSolutionStepValue(PRESSURE) = pressure;
     GetGeometry()[1].FastGetSolutionStepValue(BETA) = beta;
+    GetGeometry()[1].FastGetSolutionStepValue(C0) = c0[1];
     GetGeometry()[1].GetValue(NODAL_AREA) = A0[1]; //here we store the initial area
-    GetGeometry()[1].GetValue(PRESSURE) = pressure;//here we store the initial area    
+    GetGeometry()[1].GetValue(PRESSURE) = pressure;//here we store the initial area
     GetGeometry()[1].UnSetLock();
+    //KRATOS_WATCH(GetGeometry()[1].Id())
+    //KRATOS_WATCH(GetGeometry()[1].FastGetSolutionStepValue(NODAL_MASS))
+            //KRATOS_WATCH("ddddd32d32")
+//    if(GetGeometry()[1].FastGetSolutionStepValue(C0) == 0.00)
+//     {
+       //KRATOS_WATCH(c0[1]);
+//       KRATOS_WATCH(GetProperties().Id());
+//       KRATOS_WATCH(this->Id());
+//       KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, in boundary 1-2 conditions used:son", "");
+//     }
 
      //const double kk= GetGeometry()[0].FastGetSolutionStepValue(FLOW);
      //const double kkk=GetGeometry()[1].FastGetSolutionStepValue(FLOW);

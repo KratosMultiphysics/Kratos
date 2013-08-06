@@ -81,6 +81,7 @@ public:
         //const ProcessInfo& CurrentProcessInfo = ThisModelPart.GetProcessInfo();
 
         //reset the acceleration on the nodes
+        //std::cout << "ini:------------------------------------------------------------------ ";
         ModelPart::NodesContainerType& rNodes = ThisModelPart.Nodes();
         for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
@@ -110,42 +111,24 @@ public:
     {
         KRATOS_TRY;
 
-        double dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
+        //double total_time=ThisModelPart.GetProcessInfo()[TIME];
 
         InitializeWorkArray( ThisModelPart );
 
         //step1
         //std::cout << "PASO AL SIGUIENTE PASO:::::: ";
         //std::cout << std::endl;
-        //KRATOS_WATCH(dt)
+        //KRATOS_WATCH("1")
+        //if (total_time > 0.0140)
+            //KRATOS_WATCH ("");
+
+        CheckSolution (ThisModelPart, 1);
+        //KRATOS_WATCH("2")
         ComputeRHS( ThisModelPart );
-        for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
-        {
-            double nodal_mass = in->GetSolutionStepValue(NODAL_MASS);
-
-            array_1d<double,3> aux = in->FastGetSolutionStepValue(RHS);
-            aux /= nodal_mass;
-            aux *= dt;
-
-            //int id = in->Id();
-            const double& nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
-            const double& nodal_flow = in->FastGetSolutionStepValue(FLOW);
-            //double lhs1=aux[0] / nodal_mass;
-            //double lhs2=aux[1] / nodal_mass;
-
-            //NODAL_AREA is never prescribed
-            if(in->IsFixed(NODAL_AREA) == false)
-                in->FastGetSolutionStepValue(NODAL_AREA) += aux[0] ;
-
-            //FLOW
-            if(in->IsFixed(FLOW) == false)
-                in->FastGetSolutionStepValue(FLOW) += aux[1];
-//           nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
-//           nodal_flow = in->FastGetSolutionStepValue(FLOW);
-
-            in->FastGetSolutionStepValue(VELOCITY_X) = nodal_flow / nodal_area;
-        }
-
+        //KRATOS_WATCH("3")
+        ComputeRHS_Actualize( ThisModelPart );
+        //KRATOS_WATCH("4")
+        CheckSolution (ThisModelPart, 2);
         KRATOS_CATCH("")
     }
 
@@ -153,7 +136,7 @@ public:
     {
         KRATOS_TRY
         double delta_time = 1.00e12;
-        double Umax=0.0;
+        //double Umax=0.0;
         double element_dt=0.0;
 
 // 	for(ModelPart::NodesContainerType::iterator i_node=ThisModelPart.NodesBegin(); i_node != ThisModelPart.NodesEnd(); i_node++)
@@ -291,7 +274,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    double ComputePressure(ModelPart& ThisModelPart)
+    void ComputePressure(ModelPart& ThisModelPart)
     {
 
         KRATOS_TRY
@@ -331,20 +314,18 @@ public:
             //double E0 = in->GetSolutionStepValue(YOUNG_MODULUS);
             //double nu0 = in->GetSolutionStepValue(POISSON_RATIO);
             //double thickness0 = in->GetSolutionStepValue(THICKNESS);
-            double beta = in->GetSolutionStepValue(BETA);
+            double beta = in->FastGetSolutionStepValue(BETA);
             //double beta = E0*thickness0*1.77245385/(1.0-nu0*nu0);
-
             double nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
             //double nodal_flow = in->FastGetSolutionStepValue(FLOW);
-
             //KRATOS_WATCH(original_area);
-// 	    KRATOS_WATCH(nu0);
-//     	    KRATOS_WATCH(thickness0);
-// 	    KRATOS_WATCH(beta);
-            //KRATOS_WATCH("-------------------------------------------------");
-            //KRATOS_WATCH(nodal_area);
-// 	    KRATOS_WATCH("-------------------------------------------------");
-// 	    KRATOS_WATCH(kkk);
+            // 	    KRATOS_WATCH(nu0);
+            //     	    KRATOS_WATCH(thickness0);
+            // 	    KRATOS_WATCH(beta);
+                        //KRATOS_WATCH("-------------------------------------------------");
+                        //KRATOS_WATCH(nodal_area);
+            // 	    KRATOS_WATCH("-------------------------------------------------");
+            // 	    KRATOS_WATCH(kkk);
 
 
 
@@ -372,62 +353,108 @@ private:
             noalias(in->FastGetSolutionStepValue(RHS)) = ZeroVector(3);
         }
 
-        //compute the projection (first step
+        //compute the projection (first step)
         Vector rhs_el(4);
+        //KRATOS_WATCH(rhs_el)
 
+        //ELEMENTOS
+        for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
+                i!=ThisModelPart.ElementsEnd(); i++)
+        {
+            i->CalculateRightHandSide(rhs_el,CurrentProcessInfo);
+            //KRATOS_WATCH(rhs_el)
+            //int id = i->Id();
+            //KRATOS_WATCH (id);
+            Geometry< Node<3> >& geom = i->GetGeometry();
+            for(unsigned int j=0; j<geom.size(); j++)
+            {
+                int base = 2*j;
+                array_1d<double,3>& rhs_node = geom[j].FastGetSolutionStepValue(RHS);
+                //nodal_mass[j] = geom[j].FastGetSolutionStepValue(NODAL_MASS);
+                //double nodal_mass = geom[j].GetSolutionStepValue(NODAL_MASS);
+                 //std::cout << "old: ";KRATOS_WATCH(rhs_node)
+                 //rhs_el[base] = rhs_el[base]/nodal_mass[0];
+                 //rhs_el[base+1] = rhs_el[base]/nodal_mass[1];
+                 //KRATOS_WATCH(rhs_el)
+                 rhs_node[0] += rhs_el[base];  ///nodal_mass[0];
+                 rhs_node[1] += rhs_el[base+1]; ///nodal_mass[1];
+                 //KRATOS_WATCH(rhs_node)
+            }
+        }
+
+        //KRATOS_WATCH("----------------BOUNDARIES--------------------------------------------")
+        //CONDICIONES DE CONTORNO
         for(ModelPart::ConditionsContainerType::iterator i = ThisModelPart.ConditionsBegin();
                 i!=ThisModelPart.ConditionsEnd(); i++)
         {
             //KRATOS_WATCH(*i)
             i->CalculateRightHandSide(rhs_el,CurrentProcessInfo);
-
             Geometry< Node<3> >& geom = i->GetGeometry();
-
-// 	    KRATOS_WATCH(geom);
+            //array_1d<double,2> nodal_mass;
+            //int id = i->Id();
+            //KRATOS_WATCH (id);
             for(unsigned int j=0; j<geom.size(); j++)
             {
                 int base = 2*j;
                 array_1d<double,3>& rhs_node = geom[j].FastGetSolutionStepValue(RHS);
-
-                rhs_node[0] += rhs_el[base];
-                rhs_node[1] += rhs_el[base+1];
+                //KRATOS_WATCH(geom[j])
+                //nodal_mass[j] = geom[j].FastGetSolutionStepValue(NODAL_MASS);
+                //double nodal_mass = geom[j].GetSolutionStepValue(NODAL_MASS);
+                //std::cout << "old: ";KRATOS_WATCH(rhs_node)
+                //rhs_el[base] = rhs_el[base]/nodal_mass[0];
+                //rhs_el[base+1] = rhs_el[base]/nodal_mass[1];
+                //KRATOS_WATCH(rhs_el)
+                rhs_node[0] += rhs_el[base];  ///nodal_mass[0];
+                rhs_node[1] += rhs_el[base+1]; ///nodal_mass[1];
+                //KRATOS_WATCH(rhs_node)
             }
         }
-
-        for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
-                i!=ThisModelPart.ElementsEnd(); i++)
-        {
-            i->CalculateRightHandSide(rhs_el,CurrentProcessInfo);
-
-// 	    KRATOS_WATCH(i->Id())
-//
-// 	    KRATOS_WATCH(rhs_el);
-
-
-            Geometry< Node<3> >& geom = i->GetGeometry();
-
-// 	    KRATOS_WATCH(geom);
-            for(unsigned int j=0; j<geom.size(); j++)
-            {
-                int base = 2*j;
-                array_1d<double,3>& rhs_node = geom[j].FastGetSolutionStepValue(RHS);
-
-                rhs_node[0] += rhs_el[base];
-                rhs_node[1] += rhs_el[base+1];
-// 	       KRATOS_WATCH(rhs_node)
-            }
-        }
-
-//    std::cout << "RHS : ";
-//    for(ModelPart::NodeIterator i = ThisModelPart.NodesBegin() ; i != ThisModelPart.NodesEnd() ; i++)
-//    {
-//        std::cout << i->FastGetSolutionStepValue(RHS)[0] / i->FastGetSolutionStepValue(NODAL_MASS) << " , " << i->FastGetSolutionStepValue(RHS)[1] / i->FastGetSolutionStepValue(NODAL_MASS) << ", ";
-//    }
-
-//    std::cout << std::endl;
 
         KRATOS_CATCH("")
     }
+
+    void ComputeRHS_Actualize(ModelPart& ThisModelPart)
+    {
+        KRATOS_TRY;
+        double dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
+        for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
+        {
+            double nodal_mass = in->FastGetSolutionStepValue(NODAL_MASS);
+            //KRATOS_WATCH (nodal_mass)
+            //array_1d<double,3>& pepe = in->FastGetSolutionStepValue(RHS);
+            array_1d<double,3> aux = in->FastGetSolutionStepValue(RHS);
+            aux /= nodal_mass;
+            aux *= dt;
+
+            //KRATOS_WATCH (pepe)
+            //int id = in->Id();
+            //KRATOS_WATCH (id);
+            double& nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
+            double& nodal_flow = in->FastGetSolutionStepValue(FLOW);
+            //double lhs1=aux[0] / nodal_mass;
+            //double lhs2=aux[1] / nodal_mass;
+            //KRATOS_WATCH(nodal_area)
+            //NODAL_AREA is never prescribed
+            if(in->IsFixed(NODAL_AREA) == false)
+                nodal_area += aux[0] ;
+                //KRATOS_WATCH(nodal_area)
+
+            //FLOW
+            //KRATOS_WATCH(nodal_flow)
+            if(in->IsFixed(FLOW) == false)
+                nodal_flow += aux[1];
+                //KRATOS_WATCH(nodal_flow)
+    //           nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
+    //           nodal_flow = in->FastGetSolutionStepValue(FLOW);
+
+            //in->FastGetSolutionStepValue(VELOCITY_X) = nodal_flow / nodal_area;
+
+            //KRATOS_WATCH(nodal_area)
+            //KRATOS_WATCH(FLOW)
+        }
+        KRATOS_CATCH("")
+    }
+
 
     void InitializeWorkArray( ModelPart& ThisModelPart )
     {
@@ -436,7 +463,6 @@ private:
         for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
             array_1d<double,3>& work = in->FastGetSolutionStepValue(WORK);
-
             work[0] = in->FastGetSolutionStepValue(NODAL_AREA,1);
             work[1] = in->FastGetSolutionStepValue(FLOW,1);
         }
@@ -444,57 +470,78 @@ private:
     }
 
 
-    void ActualizeWorkArray(ModelPart& ThisModelPart, double dt)
+//    void ActualizeWorkArray(ModelPart& ThisModelPart, double dt)
+//    {
+//        //
+//        ModelPart::NodesContainerType& rNodes = ThisModelPart.Nodes();
+//        for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+//        {
+//            noalias(in->FastGetSolutionStepValue(WORK)) += dt * in->FastGetSolutionStepValue(RHS);
+//        }
+
+//    }
+
+//    //takes in account BC
+//    void ActualizeSolution(ModelPart& ThisModelPart, double dt)
+//    {
+//        array_1d<double,3> aux;
+//        ModelPart::NodesContainerType& rNodes = ThisModelPart.Nodes();
+//        KRATOS_WATCH("-------------------------------------------------->>>>>>>>>>>>>>>>>>>><<<<");
+//        //set to the value at the beginning of the step
+//        for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+//        {
+//            if(in->IsFixed(NODAL_AREA) == false)
+//                in->FastGetSolutionStepValue(NODAL_AREA) = in->FastGetSolutionStepValue(NODAL_AREA,1);
+
+//            //FLOW
+//            if(in->IsFixed(FLOW) == false)
+//                in->FastGetSolutionStepValue(FLOW) = in->FastGetSolutionStepValue(FLOW,1);
+//        }
+
+//        //update the solution
+
+//        for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+//        {
+//            double nodal_mass = in->GetSolutionStepValue(NODAL_MASS);
+//            aux = in->FastGetSolutionStepValue(RHS);
+//            aux *= dt;
+//            // double nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
+//            //double nodal_flow = in->FastGetSolutionStepValue(FLOW);
+
+//            if(in->IsFixed(NODAL_AREA) == false)
+//                in->FastGetSolutionStepValue(NODAL_AREA) += aux[0] / nodal_mass;
+
+//            //FLOW
+//            if(in->IsFixed(FLOW) == false)
+//                in->FastGetSolutionStepValue(FLOW) += aux[1] / nodal_mass;
+
+//            //nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
+//            //nodal_flow = in->FastGetSolutionStepValue(FLOW);
+//        }
+
+//    }
+
+    void CheckSolution(ModelPart& ThisModelPart, int edu)
     {
-        //
-        ModelPart::NodesContainerType& rNodes = ThisModelPart.Nodes();
-        for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
+        KRATOS_TRY;
+        for(ModelPart::ElementsContainerType::iterator i_element = ThisModelPart.ElementsBegin(); i_element !=ThisModelPart.ElementsEnd(); i_element++)
         {
-            noalias(in->FastGetSolutionStepValue(WORK)) += dt * in->FastGetSolutionStepValue(RHS);
+            const double A0_actual = i_element->GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
+            const double A1_actual = i_element->GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA);
+            if((A0_actual == 0.00) || (A1_actual== 0.00))
+             {
+                KRATOS_WATCH(A0_actual);
+                KRATOS_WATCH(A1_actual);
+                KRATOS_WATCH(i_element->GetGeometry()[0]);
+                KRATOS_WATCH(i_element->GetGeometry()[1]);
+                KRATOS_WATCH(i_element->GetProperties().Id());
+                KRATOS_WATCH(edu)
+                //std::cout << "this element is" << this->i_element->Id() <<std::endl;
+                KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, Please check your model", "");
+             }
         }
-
+        KRATOS_CATCH("")
     }
-
-    //takes in account BC
-    void ActualizeSolution(ModelPart& ThisModelPart, double dt)
-    {
-        array_1d<double,3> aux;
-        ModelPart::NodesContainerType& rNodes = ThisModelPart.Nodes();
-
-        //set to the value at the beginning of the step
-        for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-        {
-            if(in->IsFixed(NODAL_AREA) == false)
-                in->FastGetSolutionStepValue(NODAL_AREA) = in->FastGetSolutionStepValue(NODAL_AREA,1);
-
-            //FLOW
-            if(in->IsFixed(FLOW) == false)
-                in->FastGetSolutionStepValue(FLOW) = in->FastGetSolutionStepValue(FLOW,1);
-        }
-
-        //update the solution
-
-        for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
-        {
-            double nodal_mass = in->GetSolutionStepValue(NODAL_MASS);
-            aux = in->FastGetSolutionStepValue(RHS);
-            aux *= dt;
-            // double nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
-            //double nodal_flow = in->FastGetSolutionStepValue(FLOW);
-
-            if(in->IsFixed(NODAL_AREA) == false)
-                in->FastGetSolutionStepValue(NODAL_AREA) += aux[0] / nodal_mass;
-
-            //FLOW
-            if(in->IsFixed(FLOW) == false)
-                in->FastGetSolutionStepValue(FLOW) += aux[1] / nodal_mass;
-
-            //nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
-            //nodal_flow = in->FastGetSolutionStepValue(FLOW);
-        }
-
-    }
-
 };
 
 }  // namespace Kratos.

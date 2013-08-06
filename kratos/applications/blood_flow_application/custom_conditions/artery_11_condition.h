@@ -194,14 +194,15 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
+    //double mL;
     ///@}
     ///@name Member Variables
     ///@{
 
     array_1d<double,3> mInitialArea;
-	double mH0;
-        double mBeta;    
+        double mH0;
+        double mBeta;
+        //double mC0;
 
     ///@}
     ///@name Private Operators
