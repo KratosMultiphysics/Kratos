@@ -164,7 +164,7 @@
             <Item id="UseAutomaticDeltaTime" pid="Automatic delta time" fluidSolvTyp="ElementBased,Monolithic" fluidAppr="Eulerian" class="deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the Delta time option to be used"/>
             <Item id="DeltaTime" deltatimetype="Fixed" pid="Delta time" dv="0.001" help=""/>
             <Item id="TargetCFL" pid="Target CFL" deltatimetype="Automatic" dv="5.0" help=""/>
-            <Item id="DivergenceCleareanceStep" pid="Divergence cleareance step" dv="0" fluidAppr="Eulerian" fluidType="Incompressible" help="Define the divergence cleareance step value"/>
+            <Item id="DivergenceCleareanceStep" pid="Divergence cleareance step" dv="50" fluidAppr="Eulerian" fluidType="Incompressible" help="Define the divergence cleareance step value"/>
             <Item id="MaxVart" pid="Max Dt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Max time variation"/>
             <Item id="MinVart" pid="Min Dt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Min time variation"/>
             <Item id="PFEMBodyForceGravity" pid="Gravity value" dv="9.81" fluidAppr="PFEM-Lagrangian" help="Gravity value"/>
