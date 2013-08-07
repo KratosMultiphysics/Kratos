@@ -1146,8 +1146,8 @@ namespace Kratos {
                 cell->GetMaxPointNormalized(cell_max_point);
 
                 // I have to put this in no normailzed part. Pooyan.
-                ScaleBackToOriginalCoordinate(cell_min_point);
-                ScaleBackToOriginalCoordinate(cell_max_point);
+//                 ScaleBackToOriginalCoordinate(cell_min_point);
+//                 ScaleBackToOriginalCoordinate(cell_max_point);
 
                 const int is_intersected = /*configuration_type::*/IsIntersected(object,tolerance, cell_min_point, cell_max_point);
                 if(is_intersected)
@@ -1299,7 +1299,7 @@ namespace Kratos {
 
 
 
-       inline bool  IsIntersected(const Element::Pointer rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
+       inline bool  IsIntersected(typename cell_type::pointer_type rObject, double Tolerance, const double* rLowPoint, const double* rHighPoint)
     {
         Point<3,double> low_point(rLowPoint[0] - Tolerance, rLowPoint[1] - Tolerance, rLowPoint[2] - Tolerance);
         Point<3,double> high_point(rHighPoint[0] + Tolerance, rHighPoint[1] + Tolerance, rHighPoint[2] + Tolerance);
@@ -1823,7 +1823,7 @@ namespace Kratos {
             for (std::size_t i = 0; i < leaves.size(); i++) {
                 cell_type* leaf = leaves[i];
                 for (std::size_t i_point = 0; i_point < 8; i_point++) {
-                    std::size_t node_id = (*(leaf->pGetData()))[i_point];
+                    std::size_t node_id = (*(leaf->pGetData()))[i_point]->Id();
                     if (node_id > node_number) {
                         key_type point_key[3];
                         leaf->GetKey(i_point, point_key);
@@ -1846,7 +1846,7 @@ namespace Kratos {
                 cell_type* leaf = leaves[i];
                 rOStream << i + 1 << "  ";
                 for (std::size_t i_point = 0; i_point < 8; i_point++)
-                    rOStream << (*(leaf->pGetData()))[i_point] << "  ";
+                    rOStream << (*(leaf->pGetData()))[i_point]->Id() << "  ";
 
                 rOStream << std::endl;
             }
