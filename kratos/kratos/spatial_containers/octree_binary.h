@@ -1133,7 +1133,7 @@ namespace Kratos {
                   double low[3];
                   double high[3];
                   child->GetMinPointNormalized(low);
-                  child->GetMinPointNormalized(high);
+                  child->GetMaxPointNormalized(high);
                   if (Collides(min_coord, max_coord, low, high))
                     cells_stack.push_back(child);
                 }
@@ -1143,7 +1143,7 @@ namespace Kratos {
                 double cell_max_point[3];
 
                 cell->GetMinPointNormalized(cell_min_point);
-                cell->GetMinPointNormalized(cell_max_point);
+                cell->GetMaxPointNormalized(cell_max_point);
 
                 // I have to put this in no normailzed part. Pooyan.
                 ScaleBackToOriginalCoordinate(cell_min_point);
