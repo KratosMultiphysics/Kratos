@@ -177,9 +177,9 @@ if(Param.ConcreteTestOption =="ON"):
 
     Press.ApplyPressure(Pressure, balls_model_part, solver, proc.SKIN, proc.BOT, proc.TOP, proc.LAT, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER, alpha_top, alpha_bot, alpha_lat)
  
-print(alpha_bot)
-print(alpha_top)
-print(alpha_lat)
+    print(alpha_bot)
+    print(alpha_top)
+    print(alpha_lat)
  
  
 if (Param.ConcreteTestOption =="ON"):
