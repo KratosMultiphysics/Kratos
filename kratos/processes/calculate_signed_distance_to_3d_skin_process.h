@@ -362,7 +362,8 @@ private:
 
           DistanceFluidStructure();
 
-            GenerateNodes();
+            //GenerateNodes();
+            CalculateDistance2(); // I have to change this. Pooyan.
 
 
 
@@ -370,7 +371,7 @@ private:
 
 
 //            CalculateDistance();
-            CalculateDistance();
+//            CalculateDistance2();
 
 //            double coord[3] = {0.4375, 0.57812, 0.5};
 //            double distance = DistancePositionInSpace(coord);
@@ -380,18 +381,20 @@ private:
 
             //mrSkinModelPart.GetCommunicator().AssembleCurrentData(DISTANCE);
 
-            std::ofstream mesh_file1("octree1.post.msh");
-            std::ofstream res_file("octree1.post.res");
+//            std::ofstream mesh_file1("octree1.post.msh");
+//            std::ofstream res_file("octree1.post.res");
 
-            Timer::Start("Writing Gid conform Mesh");
+//            Timer::Start("Writing Gid conform Mesh");
 
-            PrintGiDMesh(mesh_file1);
-            PrintGiDResults(res_file);
+//            PrintGiDMesh(mesh_file1);
+//            PrintGiDResults(res_file);
             //octree.PrintGiDMeshNew(mesh_file2);
 
-            Timer::Stop("Writing Gid conform Mesh");
+//            Timer::Stop("Writing Gid conform Mesh");
 
-            KRATOS_WATCH(mrBodyModelPart);
+//            KRATOS_WATCH(mrBodyModelPart);
+
+            //delete octree. TODO: Carlos
 
        	    KRATOS_CATCH("");
 	}
@@ -1114,7 +1117,7 @@ private:
           }
 
 
-          mOctree.Constrain2To1(); // To be removed. Pooyan.
+          //mOctree.Constrain2To1(); // To be removed. Pooyan.
 
           for(ModelPart::ElementIterator i_element = mrSkinModelPart.ElementsBegin() ; i_element != mrSkinModelPart.ElementsEnd() ; i_element++)
           {
@@ -1207,32 +1210,76 @@ private:
       }
 
 
-//      void CalculateDistance2()
-//      {
-//          Timer::Start("Calculate Distances2");
-//          ModelPart::NodesContainerType::ContainerType& nodes = mrBodyModelPart.NodesArray();
-//          int nodes_size = nodes.size();
-//          // first of all we reset the node distance to 1.00 which is the maximum distnace in our normalized space.
+     void CalculateDistance2()
+     {
+         Timer::Start("Calculate Distances2");
+         ModelPart::NodesContainerType::ContainerType& nodes = mrFluidModelPart.NodesArray();
+         int nodes_size = nodes.size();
+//         // first of all we reset the node distance to 1.00 which is the maximum distnace in our normalized space.
 //#pragma omp parallel for firstprivate(nodes_size)
-//          for(int i = 0 ; i < nodes_size ; i++)
-//              nodes[i]->GetSolutionStepValue(DISTANCE) = 1.00;
+//         for(int i = 0 ; i < nodes_size ; i++)
+//             nodes[i]->GetSolutionStepValue(DISTANCE) = 1.00;
 
-//            std::vector<CellType*> leaves;
+           std::vector<CellType*> leaves;
 
-//          mOctree.GetAllLeavesVector(leaves);
-//          int leaves_size = leaves.size();
+         mOctree.GetAllLeavesVector(leaves);
+         int leaves_size = leaves.size();
 
-//          for(int i = 0 ; i < leaves_size ; i++)
-//              CalculateNotEmptyLeavesDistance(leaves[i]);
+//         for(int i = 0 ; i < leaves_size ; i++)
+//             CalculateNotEmptyLeavesDistance(leaves[i]);
+
+#pragma omp parallel for firstprivate(nodes_size)
+         for(int i = 0 ; i < nodes_size ; i++)
+         {
+             CalculateNodeDistance(*(nodes[i]));
+         }
+         Timer::Stop("Calculate Distances2");
+
+     }
+//     void CalculateDistance3()
+//     {
+//         Timer::Start("Calculate Distances2");
+//         ModelPart::NodesContainerType::ContainerType& nodes = mrFluidModelPart.NodesArray();
+//         int nodes_size = nodes.size();
+////         // first of all we reset the node distance to 1.00 which is the maximum distnace in our normalized space.
+//#pragma omp parallel for firstprivate(nodes_size)
+//         for(int i = 0 ; i < nodes_size ; i++)
+//             nodes[i]->GetSolutionStepValue(DISTANCE) = 1.00;
+
+//           std::vector<CellType*> leaves;
+
+//         mOctree.GetAllLeavesVector(leaves);
+//         int leaves_size = leaves.size();
+
+//         for(int i = 0 ; i < leaves_size ; i++)
+//             CalculateNotEmptyLeavesDistance(leaves[i]);
 
 //#pragma omp parallel for firstprivate(nodes_size)
-//          for(int i = 0 ; i < nodes_size ; i++)
-//          {
-//              CalculateNodeDistance(*(nodes[i]));
-//          }
-//          Timer::Stop("Calculate Distances2");
+//         for(int i = 0 ; i < nodes_size ; i++)
+//         {
+//             CalculateNodeDistance(*(nodes[i]));
+//         }
+//         Timer::Stop("Calculate Distances2");
 
-//      }
+//     }
+//     void CalculateDistance4()
+//     {
+//         Timer::Start("Calculate Distances3");
+//         ModelPart::NodesContainerType::ContainerType& nodes = mrFluidModelPart.NodesArray();
+//         int nodes_size = nodes.size();
+//           std::vector<CellType*> leaves;
+
+//         mOctree.GetAllLeavesVector(leaves);
+//         int leaves_size = leaves.size();
+
+//#pragma omp parallel for firstprivate(nodes_size)
+//         for(int i = 0 ; i < nodes_size ; i++)
+//         {
+//             CalculateNodeDistanceFromCell(*(nodes[i]));
+//         }
+//         Timer::Stop("Calculate Distances3");
+
+//     }
 
 
       void CalculateDistance()
@@ -1375,11 +1422,11 @@ private:
       }
 
 
-      void CalculateNodeDistance(CellNodeDataType& rNode)
+      void CalculateNodeDistance(Node<3>& rNode)
       {
           double coord[3] = {rNode.X(), rNode.Y(), rNode.Z()};
           double distance = DistancePositionInSpace(coord);
-          double& node_distance = rNode.Distance();
+          double& node_distance =  rNode.GetSolutionStepValue(DISTANCE);
 
           //const double epsilon = 1.00e-12;
           if(fabs(node_distance) > fabs(distance))
@@ -1387,6 +1434,29 @@ private:
           else if (distance*node_distance < 0.00) // assigning the correct sign
               node_distance = -node_distance;
       }
+
+//      void CalculateNodeDistanceFromCell(Node<3>& rNode)
+//      {
+//          OctreeType::key_type node_key[3] = {octree->CalcKeyNormalized(rNode.X()), octree->CalcKeyNormalized(rNode.Y()), octree->CalcKeyNormalized(rNode.Z())};
+//          OctreeType::cell_type* pcell = octree->pGetCell(node_key);
+
+//          object_container_type* objects = (pCell->pGetObjects());
+
+//          // We interpolate the cell distances for the node in empty cells
+//          if (objects->empty())
+//          {
+
+//          }
+
+//          double distance = DistancePositionInSpace(coord);
+//          double& node_distance =  rNode.GetSolutionStepValue(DISTANCE);
+
+//          //const double epsilon = 1.00e-12;
+//          if(fabs(node_distance) > fabs(distance))
+//            node_distance = distance;
+//          else if (distance*node_distance < 0.00) // assigning the correct sign
+//              node_distance = -node_distance;
+//      }
 
       double DistancePositionInSpace(double* coords)
       {
