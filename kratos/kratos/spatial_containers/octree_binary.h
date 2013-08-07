@@ -82,7 +82,7 @@ namespace Kratos {
             DIMENSION = cell_type::DIMENSION,
             MAX_LEVEL = cell_type::MAX_LEVEL,
             ROOT_LEVEL = cell_type::ROOT_LEVEL,
-            MIN_LEVEL = cell_type::MIN_LEVEL
+            MIN_LEVEL = cell_type::MIN_LEVEL // must be greater iqual to 2
         };
 
         ///@}
@@ -1023,8 +1023,8 @@ namespace Kratos {
                   cell_type* child=cell->pGetChild(i);
                   double low[3];
                   double high[3];
-                  child->GetMinPoint(low);
-                  child->GetMaxPoint(high);
+                  child->GetMinPointNormalized(low);
+                  child->GetMaxPointNormalized(high);
                   if (Collides(min_coord, max_coord, low, high))
                     cells_stack.push_back(child);
                 }
@@ -1033,14 +1033,14 @@ namespace Kratos {
                 double cell_min_point[3];
                 double cell_max_point[3];
 
-                cell->GetMinPoint(cell_min_point);
-                cell->GetMaxPoint(cell_max_point);
+                cell->GetMinPointNormalized(cell_min_point);
+                cell->GetMaxPointNormalized(cell_max_point);
 
                 // I have to put this in no normailzed part. Pooyan.
 //                ScaleBackToOriginalCoordinate(cell_min_point);
 //                ScaleBackToOriginalCoordinate(cell_max_point);
 
-                const int is_intersected = configuration_type::IsIntersected(object,tolerance, cell_min_point, cell_max_point);
+                const int is_intersected = /*configuration_type::*/IsIntersected(object,tolerance, cell_min_point, cell_max_point);
                 if(is_intersected)
                   cell->Insert(object);
 
