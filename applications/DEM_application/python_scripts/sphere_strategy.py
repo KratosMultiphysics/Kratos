@@ -366,7 +366,7 @@ class ExplicitStrategy:
             self.creator_destructor.CalculateSurroundingBoundingBox(self.model_part, self.enlargement_factor)
 
         # STRATEGIES
-        self.search_radius_extension        = SearchRadiusExtension
+        self.search_radius_extension        = Param.SearchRadiusExtension
         self.search_strategy                = OMP_DEMSearch()
 
         if (Param.IntegrationScheme == 'forward_euler'):
@@ -480,7 +480,7 @@ class ExplicitStrategy:
             self.model_part.ProcessInfo.SetValue(GLOBAL_KT, self.global_kt)
 
         # SEARCH-RELATED
-        self.model_part.ProcessInfo.SetValue(SEARCH_RADIUS_EXTENSION, self.search_radius_extension)
+        #self.model_part.ProcessInfo.SetValue(SEARCH_RADIUS_EXTENSION, self.search_radius_extension)
 
         # PRINTING VARIABLES
         
