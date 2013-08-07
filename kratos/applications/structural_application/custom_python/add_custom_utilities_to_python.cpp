@@ -91,6 +91,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "custom_utilities/mark_element_for_refinement.h"
 #include "custom_utilities/disconnect_utility.h"
 #include "processes/calculate_signed_distance_to_3d_skin_process.h"
+#include "processes/calculate_signed_distance_to_3d_condition_skin_process.h"
+// #include "processes/calculate_octree_signed_distance_to_3d_skin_process.h"
 
 namespace Kratos
 {
@@ -336,6 +338,14 @@ void  AddCustomUtilitiesToPython()
     class_<CalculateSignedDistanceTo3DSkinProcess > ( "CalculateSignedDistanceTo3DSkinProcess", init<ModelPart&, ModelPart&>())
     .def( "Execute", &CalculateSignedDistanceTo3DSkinProcess::Execute )
     ;
+    
+    class_<CalculateSignedDistanceTo3DConditionSkinProcess > ( "CalculateSignedDistanceTo3DConditionSkinProcess", init<ModelPart&, ModelPart&>())
+    .def( "Execute", &CalculateSignedDistanceTo3DConditionSkinProcess::Execute )
+    ;
+    
+//     class_<CalculateSignedDistanceTo3DSkinProcess > ( "CalculateSignedDistanceTo3DSkinProcess", init<ModelPart&>())
+//     .def( "Execute", &CalculateSignedDistanceTo3DSkinProcess::Execute )
+//     ;
 
 }
 }  // namespace Python.
