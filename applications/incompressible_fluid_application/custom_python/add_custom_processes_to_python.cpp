@@ -60,7 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/process.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_processes/save_conditions_process.h"
-//#include "custom_processes/merge_model_parts_process.h"
+#include "custom_processes/save_lagrangian_surface_process.h"
 #include "custom_processes/merge_in_one_model_parts_process.h"
 #include "custom_processes/save_shell_model_part_process.h"
 #include "custom_processes/save_flag_model_part_process.h"  
@@ -101,9 +101,9 @@ void  AddCustomProcessesToPython()
     class_<SaveShellModelPartProcess, bases<Process> >("SaveShellModelPartProcess", init<>())
     .def("SaveShellModelPart", &SaveShellModelPartProcess::SaveStructure)
     ;
-//	   class_<MergeModelPartsProcess, bases<Process> >("MergeModelPartsProcess", init<> ())
-//		   .def("MergeParts", &MergeModelPartsProcess::MergeParts)
-//		 ;
+    class_<SaveLagrangianSurfaceProcess, bases<Process> >("SaveLagrangianSurfaceProcess", init<> ())
+    .def("SaveSurfaceConditions", &SaveLagrangianSurfaceProcess::SaveSurfaceConditions)
+    ;
     class_<MergeInOneModelPartsProcess, bases<Process> >("MergeInOneModelPartsProcess", init<> ())
     .def("MergeParts", &MergeInOneModelPartsProcess::MergeParts)
     .def("ResetId", &MergeInOneModelPartsProcess::ResetId)
