@@ -47,6 +47,9 @@ def AddDofs(model_part,config):
     
     for node in model_part.Nodes:
         node.AddDof(thermal_settings.GetUnknownVariable());
+    print "aqui"	
+    print thermal_settings.GetUnknownVariable()
+    
 
     print "variables for the convection diffusion solver added correctly"
 
@@ -55,20 +58,21 @@ class ConvectionDiffusionSolver:
     
     def __init__(self,model_part,domain_size,my_settings):
 
-        #neighbour search
 	self.settings = my_settings
-        self.thermal_settings = ConvectionDiffusionSettings()
-        self.thermal_settings = ConvectionDiffusionSettings()
-        self.thermal_settings.SetUnknownVariable(globals()[self.settings.unknown_variable])
-        self.thermal_settings.SetDensityVariable(globals()[self.settings.density_variable])	
-        self.thermal_settings.SetDiffusionVariable(globals()[self.settings.diffusion_variable])
-        self.thermal_settings.SetVolumeSourceVariable(globals()[self.settings.volume_source_variable])
-        self.thermal_settings.SetSurfaceSourceVariable(globals()[self.settings.surface_source_variable])
-        self.thermal_settings.SetMeshVelocityVariable(globals()[self.settings.mesh_velocity_variable])
-        self.thermal_settings.SetProjectionVariable(globals()[self.settings.projection_variable])
-        self.thermal_settings.SetVelocityVariable(globals()[self.settings.velocity_variable])
-        self.thermal_settings.SetSpecificHeatVariable(globals()[self.settings.specific_heat_variable])
+        #self.thermal_settings = ConvectionDiffusionSettings()
+        #self.thermal_settings.SetUnknownVariable(globals()[self.settings.unknown_variable])
+        #self.thermal_settings.SetDensityVariable(globals()[self.settings.density_variable])	
+        #self.thermal_settings.SetDiffusionVariable(globals()[self.settings.diffusion_variable])
+        #self.thermal_settings.SetVolumeSourceVariable(globals()[self.settings.volume_source_variable])
+        #self.thermal_settings.SetSurfaceSourceVariable(globals()[self.settings.surface_source_variable])
+        #self.thermal_settings.SetMeshVelocityVariable(globals()[self.settings.mesh_velocity_variable])
+        #self.thermal_settings.SetProjectionVariable(globals()[self.settings.projection_variable])
+        #self.thermal_settings.SetVelocityVariable(globals()[self.settings.velocity_variable])
+        #self.thermal_settings.SetSpecificHeatVariable(globals()[self.settings.specific_heat_variable])
 
+	print "julio marcelo marti"
+        print self.settings.unknown_variable
+	
 
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
@@ -95,7 +99,7 @@ class ConvectionDiffusionSolver:
 	
         (self.neighbour_search).Execute()
         self.model_part.ProcessInfo
-
+	self.thermal_settings = ConvectionDiffusionSettings()
         self.thermal_settings.SetUnknownVariable(globals()[self.settings.unknown_variable])
 	self.thermal_settings.SetDensityVariable(globals()[self.settings.density_variable])	
         self.thermal_settings.SetDiffusionVariable(globals()[self.settings.diffusion_variable])
@@ -106,7 +110,7 @@ class ConvectionDiffusionSolver:
         self.thermal_settings.SetSpecificHeatVariable(globals()[self.settings.specific_heat_variable])
         self.thermal_settings.SetVelocityVariable(globals()[self.settings.velocity_variable])
 
-
+	print self.settings.unknown_variable
 
 	(self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.thermal_settings)
         self.solver = ResidualBasedConvectionDiffusionStrategyNonLinear			           (self.model_part,self.linear_solver,self.ReformDofAtEachIteration,self.time_order,self.max_iter,self.toll)   
@@ -117,8 +121,21 @@ class ConvectionDiffusionSolver:
    
     def Solve(self):
         if(self.ReformDofAtEachIteration == True):
-            (self.neighbour_search).Execute()        
-        #(self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings)
+            (self.neighbour_search).Execute()     
+
+
+	self.thermal_settings = ConvectionDiffusionSettings()
+        self.thermal_settings.SetUnknownVariable(globals()[self.settings.unknown_variable])
+	self.thermal_settings.SetDensityVariable(globals()[self.settings.density_variable])	
+        self.thermal_settings.SetDiffusionVariable(globals()[self.settings.diffusion_variable])
+        self.thermal_settings.SetVolumeSourceVariable(globals()[self.settings.volume_source_variable])
+        self.thermal_settings.SetSurfaceSourceVariable(globals()[self.settings.surface_source_variable])
+        self.thermal_settings.SetMeshVelocityVariable(globals()[self.settings.mesh_velocity_variable])
+        self.thermal_settings.SetProjectionVariable(globals()[self.settings.projection_variable])
+        self.thermal_settings.SetSpecificHeatVariable(globals()[self.settings.specific_heat_variable])
+        self.thermal_settings.SetVelocityVariable(globals()[self.settings.velocity_variable])
+   
+        (self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.thermal_settings)
         (self.solver).Solve()
 
         if(self.ReformDofAtEachIteration == True):
