@@ -118,7 +118,21 @@ class ConvectionDiffusionSolver:
    
     def Solve(self):
         if(self.ReformDofAtEachIteration == True):
-            (self.neighbour_search).Execute()        
+            (self.neighbour_search).Execute()  
+	
+	self.thermal_settings = ConvectionDiffusionSettings()
+        self.thermal_settings.SetUnknownVariable(globals()[self.settings.unknown_variable])
+	self.thermal_settings.SetDensityVariable(globals()[self.settings.density_variable])	
+        self.thermal_settings.SetDiffusionVariable(globals()[self.settings.diffusion_variable])
+        self.thermal_settings.SetVolumeSourceVariable(globals()[self.settings.volume_source_variable])
+        self.thermal_settings.SetSurfaceSourceVariable(globals()[self.settings.surface_source_variable])
+        self.thermal_settings.SetMeshVelocityVariable(globals()[self.settings.mesh_velocity_variable])
+        self.thermal_settings.SetProjectionVariable(globals()[self.settings.projection_variable])
+        self.thermal_settings.SetSpecificHeatVariable(globals()[self.settings.specific_heat_variable])
+        self.thermal_settings.SetVelocityVariable(globals()[self.settings.velocity_variable])
+   
+        (self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.thermal_settings)
+      
         #(self.model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,self.settings)
         (self.solver).Solve()
 
