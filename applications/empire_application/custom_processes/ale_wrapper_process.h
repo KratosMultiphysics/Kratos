@@ -110,18 +110,42 @@ public:
                                            i_condition != mr_model_part.ConditionsEnd();
                                            i_condition++ )
         {
-            if ( ((*i_condition).GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
-                 ((*i_condition).GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
-                 ((*i_condition).GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE) == 1.0))
+            int size = (*i_condition).GetGeometry().size();
+
+            if(size == 2) // interface conditions are lines (2D fluid mesh)
             {
-                mr_interface_part.Conditions().push_back( *(i_condition.base()) );
+                if ( ((*i_condition).GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
+                     ((*i_condition).GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE) == 1.0))
+                {
+                    mr_interface_part.Conditions().push_back( *(i_condition.base()) );
+                }
             }
+            else if(size == 3) // interface conditions are triangles (3D fluid mesh)
+            {
+                if ( ((*i_condition).GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
+                     ((*i_condition).GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
+                     ((*i_condition).GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE) == 1.0))
+                {
+                    // NECESSARY FOR CANTILEVER EXAMPLE
+                    //
+                    double Y0 = (*i_condition).GetGeometry()[0].Y();
+                    double Y1 = (*i_condition).GetGeometry()[1].Y();
+                    double Y2 = (*i_condition).GetGeometry()[2].Y();
+
+                    if(Y0 > 0 || Y1 > 0 || Y2 > 0 )
+                    {
+                        mr_interface_part.Conditions().push_back( *(i_condition.base()) );
+                    }
+                    //
+                }
+            }
+
         }
 
         KRATOS_CATCH("")
     }
 
-    void ExtractForcesFromModelPart( boost::python::list& reactions )
+    void ExtractPressureFromModelPart( boost::python::list& pressure )
     {
         KRATOS_TRY
 
@@ -129,17 +153,34 @@ public:
                                      i_node != mr_interface_part.NodesEnd() ;
                                      i_node++ )
         {
-                double reactionX = i_node->GetSolutionStepValue(REACTION_X);
-                double reactionY = i_node->GetSolutionStepValue(REACTION_Y);
-                double reactionZ = i_node->GetSolutionStepValue(REACTION_Z);
+                double p = i_node->GetSolutionStepValue(PRESSURE);
 
-                reactions.append(reactionX);
-                reactions.append(reactionY);
-                reactions.append(reactionZ);
+                pressure.append(p);
         }
 
         KRATOS_CATCH("")
     }
+
+    // ##############################################################################
+    // Function required for Kratos-Kratos-FSI
+    void ExtractDisplacementsFromModelPart( boost::python::list& displacements )
+    {
+        KRATOS_TRY
+
+        for( ModelPart::NodeIterator i_node =  mr_interface_part.NodesBegin() ;
+                                     i_node != mr_interface_part.NodesEnd() ;
+                                     i_node++ )
+        {
+                array_1d<double,3> vect_disp = i_node->GetSolutionStepValue(DISPLACEMENT);
+
+                displacements.append(vect_disp[0]);
+                displacements.append(vect_disp[1]);
+                displacements.append(vect_disp[2]);
+        }
+
+        KRATOS_CATCH("")
+    }
+    // ##############################################################################
 
     void ExtractMeshInfo( boost::python::list& numNodes, boost::python::list& numElems,
                           boost::python::list& nodes, boost::python::list& nodeIDs,
@@ -147,8 +188,8 @@ public:
     {
         KRATOS_TRY
 
-        numNodes.append(mr_interface_part.NodesArray().size());
-        numElems.append(mr_interface_part.ConditionsArray().size());
+        unsigned int nodesCounter = 0;
+        unsigned int elemsCounter = 0;
 
         // loop over all fluid nodes
         for ( ModelPart::NodesContainerType::iterator i_fluidNode =  mr_interface_part.NodesBegin();
@@ -164,27 +205,46 @@ public:
             nodes.append(node_Y);
             nodes.append(node_Z);
 
+            nodesCounter++;
+
             // Fill the nodeIDs vector with the nodal IDs
             nodeIDs.append(i_fluidNode->Id());
         }
-
-        const unsigned int nodesPerElem = 3;
 
         // loop over all fluid elements
         for( ModelPart::ConditionsContainerType::iterator i_fluidCondition =  mr_interface_part.ConditionsBegin();
                                                           i_fluidCondition != mr_interface_part.ConditionsEnd();
                                                           i_fluidCondition++)
         {
+            unsigned int nodesPerElem = i_fluidCondition->GetGeometry().size();
             numNodesPerElem.append(nodesPerElem);
 
-            unsigned int nodeID_1 = i_fluidCondition->GetGeometry()[0].Id();
-            unsigned int nodeID_2 = i_fluidCondition->GetGeometry()[1].Id();
-            unsigned int nodeID_3 = i_fluidCondition->GetGeometry()[2].Id();
+            if( nodesPerElem == 2 ) // interface conditions are lines (2D fluid mesh)
+            {
+                unsigned int nodeID_1 = i_fluidCondition->GetGeometry()[0].Id();
+                unsigned int nodeID_2 = i_fluidCondition->GetGeometry()[1].Id();
 
-            elems.append(nodeID_1);
-            elems.append(nodeID_2);
-            elems.append(nodeID_3);
+                elems.append(nodeID_1);
+                elems.append(nodeID_2);
+
+                elemsCounter++;
+            }
+            else if( nodesPerElem == 3 ) // interface conditions are triangles (3D fluid mesh)
+            {
+                unsigned int nodeID_1 = i_fluidCondition->GetGeometry()[0].Id();
+                unsigned int nodeID_2 = i_fluidCondition->GetGeometry()[1].Id();
+                unsigned int nodeID_3 = i_fluidCondition->GetGeometry()[2].Id();
+
+                elems.append(nodeID_1);
+                elems.append(nodeID_2);
+                elems.append(nodeID_3);
+
+                elemsCounter++;
+            }
         }
+
+        numNodes.append(nodesCounter);
+        numElems.append(elemsCounter);
 
         KRATOS_CATCH("")
     }
