@@ -1,6 +1,7 @@
 #importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.TrilinosApplication import *
+from KratosMultiphysics.MetisApplication import *
 from KratosMultiphysics.mpi import *
 CheckForPreviousImport()
 
