@@ -75,8 +75,9 @@ void  AddCustomProcessesToPython()
 
     class_<ALEWrapperProcess, bases<Process> >("ALEWrapperProcess", init<ModelPart&,ModelPart&>())
     .def("ExtractInterface", &ALEWrapperProcess::ExtractInterface)
-    .def("ExtractForcesFromModelPart", &ALEWrapperProcess::ExtractForcesFromModelPart)
+    .def("ExtractPressureFromModelPart", &ALEWrapperProcess::ExtractPressureFromModelPart)
     .def("ExtractMeshInfo", &ALEWrapperProcess::ExtractMeshInfo)
+    .def("ExtractDisplacementsFromModelPart", &ALEWrapperProcess::ExtractDisplacementsFromModelPart)
     ;
 }
 
