@@ -412,12 +412,36 @@ private:
 
     void GenerateMeshPart(int dimension)
     {
+        // Initialize auxiliary model part storing the mesh elements
         mpMeshModelPart = ModelPart::Pointer( new ModelPart("MeshPart",1) );
-        //initializing mesh nodes
-        mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
-        //mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
 
-        //creating mesh elements
+        // Initializing mesh nodes
+        mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
+
+        // construct a new auxiliary model part
+        mpMeshModelPart.GetNodalSolutionStepVariablesList() = BaseType::GetModelPart().GetNodalSolutionStepVariablesList();
+        mpMeshModelPart.SetBufferSize(BaseType::GetModelPart().GetBufferSize());
+        mpMeshModelPart.SetNodes(BaseType::GetModelPart().pNodes());
+        mpMeshModelPart.SetProcessInfo(BaseType::GetModelPart().pGetProcessInfo());
+        mpMeshModelPart.SetProperties(BaseType::GetModelPart().pProperties());
+
+        // Create a communicator for the new model part and copy the partition information about nodes.
+        Communicator& rReferenceComm = BaseType::GetModelPart().GetCommunicator();
+        typename Communicator::Pointer pMeshMPIComm = typename Communicator::Pointer( new MPICommunicator( &(BaseType::GetModelPart().GetNodalSolutionStepVariablesList()) ) );
+        pMeshMPIComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() ) ;
+        pMeshMPIComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
+        pMeshMPIComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
+        pMeshMPIComm->InterfaceMesh().SetNodes( rReferenceComm.InterfaceMesh().pNodes() );
+        pMeshMPIComm->GhostMesh().SetNodes( rReferenceComm.GhostMesh().pNodes() );
+        for (unsigned int i = 0; i < rReferenceComm.GetNumberOfColors(); i++)
+        {
+            pMeshMPIComm->pInterfaceMesh(i)->SetNodes( rReferenceComm.pInterfaceMesh(i)->pNodes() );
+            pMeshMPIComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
+            pMeshMPIComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
+        }
+        mpMeshModelPart.SetCommunicator( pMeshMPIComm );
+
+        // creating mesh elements
         ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
         Element::Pointer pElem;
 
@@ -431,6 +455,7 @@ private:
                                              (*it).pGetProperties() ) );
                 MeshElems.push_back(pElem);
             }
+
         if(dimension == 3)
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
@@ -441,9 +466,14 @@ private:
                                              (*it).pGetProperties() ) );
                 MeshElems.push_back(pElem);
             }
-//KRATOS_WATCH((mpMeshModelPart->Elements()).size());
-//KRATOS_WATCH((mpMeshModelPart->Nodes()).size());
-//KRATOS_WATCH(mpMeshModelPart->GetMesh());
+
+        // Create a communicator for the new model part
+        ParallelFillCommunicator CommunicatorGeneration( mpMeshModelPart );
+        CommunicatorGeneration.Execute();
+
+        //KRATOS_WATCH((mpMeshModelPart->Elements()).size());
+        //KRATOS_WATCH((mpMeshModelPart->Nodes()).size());
+        //KRATOS_WATCH(mpMeshModelPart->GetMesh());
     }
 
     void ReGenerateMeshPart()
