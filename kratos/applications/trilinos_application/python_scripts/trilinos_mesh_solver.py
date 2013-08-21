@@ -55,7 +55,7 @@ class TrilinosMeshSolver:
         
         self.solver = TrilinosLaplacianMeshMovingStrategy(self.Comm,self.model_part,self.linear_solver,self.domain_size, self.time_order,self.reform_dof_at_every_step)
         (self.solver).SetEchoLevel(0)
-        print "finished imoving the mesh"
+        print "finished moving the mesh"
 
                  
    
