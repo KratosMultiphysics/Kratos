@@ -13,14 +13,14 @@
 
 /* System includes */
 
-
 /* External includes */
 #include "boost/smart_ptr.hpp"
-
 
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "includes/communicator.h"
+#include "includes/mpi_communicator.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "../ALEapplication/ale_application.h"
@@ -30,6 +30,7 @@
 /* Trilinos includes */
 #include "custom_strategies/builder_and_solvers/trilinos_block_builder_and_solver.h"
 #include "custom_strategies/schemes/trilinos_residualbased_incrementalupdate_static_scheme.h"
+#include "custom_utilities/parallel_fill_communicator.h"
 
 namespace Kratos
 {
@@ -188,7 +189,7 @@ public:
     {
         KRATOS_TRY
 
-        ReGenerateMeshPart();
+        // ReGenerateMeshPart(); // Double check with Riccardo whether this function is necessary in an MPI context
 
         ProcessInfo& rCurrentProcessInfo = (mpMeshModelPart)->GetProcessInfo();
 
@@ -418,12 +419,12 @@ private:
         // Initializing mesh nodes
         mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
 
-        // construct a new auxiliary model part
-        mpMeshModelPart.GetNodalSolutionStepVariablesList() = BaseType::GetModelPart().GetNodalSolutionStepVariablesList();
-        mpMeshModelPart.SetBufferSize(BaseType::GetModelPart().GetBufferSize());
-        mpMeshModelPart.SetNodes(BaseType::GetModelPart().pNodes());
-        mpMeshModelPart.SetProcessInfo(BaseType::GetModelPart().pGetProcessInfo());
-        mpMeshModelPart.SetProperties(BaseType::GetModelPart().pProperties());
+        // setup new auxiliary model part
+        mpMeshModelPart->GetNodalSolutionStepVariablesList() = BaseType::GetModelPart().GetNodalSolutionStepVariablesList();
+        mpMeshModelPart->SetBufferSize(BaseType::GetModelPart().GetBufferSize());
+        mpMeshModelPart->SetNodes(BaseType::GetModelPart().pNodes());
+        mpMeshModelPart->SetProcessInfo(BaseType::GetModelPart().pGetProcessInfo());
+        mpMeshModelPart->SetProperties(BaseType::GetModelPart().pProperties());
 
         // Create a communicator for the new model part and copy the partition information about nodes.
         Communicator& rReferenceComm = BaseType::GetModelPart().GetCommunicator();
@@ -433,13 +434,15 @@ private:
         pMeshMPIComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
         pMeshMPIComm->InterfaceMesh().SetNodes( rReferenceComm.InterfaceMesh().pNodes() );
         pMeshMPIComm->GhostMesh().SetNodes( rReferenceComm.GhostMesh().pNodes() );
+
+        // Setup communication plan
         for (unsigned int i = 0; i < rReferenceComm.GetNumberOfColors(); i++)
         {
             pMeshMPIComm->pInterfaceMesh(i)->SetNodes( rReferenceComm.pInterfaceMesh(i)->pNodes() );
             pMeshMPIComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
             pMeshMPIComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
         }
-        mpMeshModelPart.SetCommunicator( pMeshMPIComm );
+        mpMeshModelPart->SetCommunicator( pMeshMPIComm );
 
         // creating mesh elements
         ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
@@ -467,8 +470,8 @@ private:
                 MeshElems.push_back(pElem);
             }
 
-        // Create a communicator for the new model part
-        ParallelFillCommunicator CommunicatorGeneration( mpMeshModelPart );
+        // Optimize communicaton plan
+        ParallelFillCommunicator CommunicatorGeneration( *mpMeshModelPart );
         CommunicatorGeneration.Execute();
 
         //KRATOS_WATCH((mpMeshModelPart->Elements()).size());
@@ -480,9 +483,34 @@ private:
     {
         std::cout << "regenerating elements for the mesh motion scheme" << std::endl;
 
-        //initializing mesh nodes
+        //reinitializing new auxiliary model part
         mpMeshModelPart->Nodes().clear();
         mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
+
+        // setup new auxiliary model part
+        mpMeshModelPart->GetNodalSolutionStepVariablesList() = BaseType::GetModelPart().GetNodalSolutionStepVariablesList();
+        mpMeshModelPart->SetBufferSize(BaseType::GetModelPart().GetBufferSize());
+        mpMeshModelPart->SetNodes(BaseType::GetModelPart().pNodes());
+        mpMeshModelPart->SetProcessInfo(BaseType::GetModelPart().pGetProcessInfo());
+        mpMeshModelPart->SetProperties(BaseType::GetModelPart().pProperties());
+
+        // Create a communicator for the new model part and copy the partition information about nodes.
+        Communicator& rReferenceComm = BaseType::GetModelPart().GetCommunicator();
+        typename Communicator::Pointer pMeshMPIComm = typename Communicator::Pointer( new MPICommunicator( &(BaseType::GetModelPart().GetNodalSolutionStepVariablesList()) ) );
+        pMeshMPIComm->SetNumberOfColors( rReferenceComm.GetNumberOfColors() ) ;
+        pMeshMPIComm->NeighbourIndices() = rReferenceComm.NeighbourIndices();
+        pMeshMPIComm->LocalMesh().SetNodes( rReferenceComm.LocalMesh().pNodes() );
+        pMeshMPIComm->InterfaceMesh().SetNodes( rReferenceComm.InterfaceMesh().pNodes() );
+        pMeshMPIComm->GhostMesh().SetNodes( rReferenceComm.GhostMesh().pNodes() );
+
+        // Setup communication plan
+        for (unsigned int i = 0; i < rReferenceComm.GetNumberOfColors(); i++)
+        {
+            pMeshMPIComm->pInterfaceMesh(i)->SetNodes( rReferenceComm.pInterfaceMesh(i)->pNodes() );
+            pMeshMPIComm->pLocalMesh(i)->SetNodes( rReferenceComm.pLocalMesh(i)->pNodes() );
+            pMeshMPIComm->pGhostMesh(i)->SetNodes( rReferenceComm.pGhostMesh(i)->pNodes() );
+        }
+        mpMeshModelPart->SetCommunicator( pMeshMPIComm );
 
         //creating mesh elements
         ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
@@ -511,8 +539,11 @@ private:
                                              (*it).pGetProperties() ) );
                 MeshElems.push_back(pElem);
             }
-
         KRATOS_WATCH(MeshElems.size());
+
+        // Optimize communicaton plan
+        ParallelFillCommunicator CommunicatorGeneration( *mpMeshModelPart );
+        CommunicatorGeneration.Execute();
     }
 
     /*@} */
