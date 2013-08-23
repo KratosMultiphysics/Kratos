@@ -509,7 +509,7 @@ protected:
 
 //            // Compute projections (for stabilization)
 //            rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
-//            this->ComputeSplitOssProjections();
+//            this->ComputeSplitOssProjections(rModelPart);
 
 //            // Additional steps // Moved to end of step
 //            for (std::vector<Process::Pointer>::iterator iExtraSteps = mExtraIterationSteps.begin();
@@ -532,8 +532,7 @@ protected:
 
         // Compute projections (for stabilization)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,4);
-        this->ComputeSplitOssProjections();
-        this->PeriodicConditionProjectionCorrection(rModelPart);
+        this->ComputeSplitOssProjections(rModelPart);
 
         // 2. Pressure solution (store pressure variation in PRESSURE_OLD_IT)
         rModelPart.GetProcessInfo().SetValue(FRACTIONAL_STEP,5);
@@ -660,10 +659,8 @@ protected:
     }
 
 
-    void ComputeSplitOssProjections()
+    void ComputeSplitOssProjections(ModelPart& rModelPart)
     {
-        ModelPart& rModelPart = BaseType::GetModelPart();
-
         const array_1d<double,3> Zero(3,0.0);
 
         array_1d<double,3> Out(3,0.0);
@@ -700,6 +697,8 @@ protected:
         rModelPart.GetCommunicator().AssembleCurrentData(DIVPROJ);
         rModelPart.GetCommunicator().AssembleCurrentData(NODAL_AREA);
 
+        // If there are periodic conditions, add contributions from both sides to the periodic nodes
+        this->PeriodicConditionProjectionCorrection(rModelPart);
 
 #pragma omp parallel
         {
@@ -840,7 +839,7 @@ protected:
      */
      void PeriodicConditionProjectionCorrection(ModelPart& rModelPart)
      {
-         if ( (rModelPart.GetCommunicator().TotalProcesses() > 1) &&  (mrPeriodicIdVar.Key() != 0) )
+         if (mrPeriodicIdVar.Key() != 0)
          {
              for (typename ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++ )
              {
@@ -899,7 +898,7 @@ protected:
 
      void PeriodicConditionVelocityCorrection(ModelPart& rModelPart)
      {
-         if ( (rModelPart.GetCommunicator().TotalProcesses() > 1) &&  (mrPeriodicIdVar.Key() != 0) )
+         if (mrPeriodicIdVar.Key() != 0)
          {
              for (typename ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++ )
              {
