@@ -128,22 +128,7 @@ void LaplacianMeshMovingElem2D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     const array_1d<double,3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT);
     const array_1d<double,3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT);
 
-    // ######################################## test
-
-    double D = 1;
-
-    for(int i=0; i<msDN_DX.size1() ;i++)
-        for(int j=0; j<msDN_DX.size1() ;j++)
-            msDN_DX(i,j) = D*msDN_DX(i,j) ;
-
-
     noalias(rLeftHandSideMatrix) = prod(msDN_DX,trans(msDN_DX));
-
-    // ###############################
-
-
-
-    //noalias(rLeftHandSideMatrix) = prod(msDN_DX,trans(msDN_DX));
 
     //dirichlet contribution
     ms_temp_vec_np[0] = disp0[ComponentIndex];
