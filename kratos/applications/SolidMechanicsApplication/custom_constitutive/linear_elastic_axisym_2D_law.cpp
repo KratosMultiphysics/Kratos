@@ -33,7 +33,7 @@ LinearElasticAxisym2DLaw::LinearElasticAxisym2DLaw()
 //************************************************************************************
 
 LinearElasticAxisym2DLaw::LinearElasticAxisym2DLaw(const LinearElasticAxisym2DLaw& rOther)
-    : LinearElastic3DLaw()
+    : LinearElastic3DLaw(rOther)
 {
 }
 

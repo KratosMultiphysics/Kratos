@@ -31,6 +31,22 @@
 //Application includes
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
+//hardening laws
+#include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/non_linear_isotropic_kinematic_hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/linear_isotropic_kinematic_hardening_law.hpp"
+
+//yield criteria
+#include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
+#include "custom_constitutive/custom_yield_criteria/mises_huber_yield_criterion.hpp"
+
+//flow rules
+#include "custom_constitutive/custom_flow_rules/flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/linear_associative_plastic_flow_rule.hpp"
+
+
+//constitutive laws
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/linear_elastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
@@ -42,9 +58,11 @@
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_axisym_2D_law.hpp"
 
-// #include "custom_constitutive/custom_flow_rules/flow_rule.hpp"
-// #include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
-// #include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_U_P_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_J2_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_J2_plane_strain_2D_law.hpp"
 
 
 namespace Kratos
@@ -55,9 +73,9 @@ namespace Python
 
 using namespace boost::python;
 
-// typedef FlowRule::Pointer                        FlowRulePointer;
-// typedef YieldCriterion::Pointer            YieldCriterionPointer;
-// typedef HardeningLaw::Pointer                HardeningLawPointer;
+typedef FlowRule::Pointer                        FlowRulePointer;
+typedef YieldCriterion::Pointer            YieldCriterionPointer;
+typedef HardeningLaw::Pointer                HardeningLawPointer;
 typedef Properties::Pointer                    PropertiesPointer;
 typedef Mesh<Node<3>, Properties, Element, Condition>   MeshType;
 
@@ -131,20 +149,33 @@ void  AddCustomConstitutiveLawsToPython()
       init<>() )
     ;
 
+    class_<HyperElasticPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticPlastic3DLaw",
+      init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
 
-    // class_<HyperElasticPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    // ( "HyperElasticPlastic2DLaw",
-    //   init<>() )
-    //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    // ;
+    class_<HyperElasticPlasticUP3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticPlasticUP3DLaw",
+      init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
 
-    // class_<HyperElasticPlasticPlainsStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    // ( "HyperElasticPlastic2DLaw",
-    //   init<>() )
-    //   .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
-    // ;
+    class_<HyperElasticPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticPlastic2DLaw",
+      init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
 
+    class_<HyperElasticPlasticJ23DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticPlasticJ23DLaw",
+      init<>() )
+    ;
 
+    class_<HyperElasticPlasticJ2PlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticPlasticJ2PlaneStrain2DLaw",
+      init<>() )
+    ;
 }
 
 }  // namespace Python.

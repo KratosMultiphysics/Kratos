@@ -3,7 +3,7 @@
 *set var icond=0
 *# Define a condition index, which will be used to enforce that condition numbering begins from 1 
 Begin ModelPartData
-//  VARIABLE_NAME value
+//VARIABLE_NAME value
 End ModelPartData
 
 Begin Properties 0
@@ -27,7 +27,33 @@ End Properties
 
 *endif
 *end materials
+*loop materials
+*if(strcmp(MatProp(Type),"Plastic")==0)
+*format "%i"
+Begin Properties  *MatNum
+CONSTITUTIVE_LAW_NAME *MatProp(CONSTITUTIVE_LAW_NAME)
+*format "%10.5e"
+DENSITY *MatProp(DENSITY,real)
+*format "%10.5e"
+YOUNG_MODULUS *MatProp(YOUNG_MODULUS,real)
+*format "%10.5e"
+POISSON_RATIO *MatProp(POISSON_RATIO,real)
+*format "%10.5e"
+YIELD_STRESS *MatProp(YIELD_STRESS,real)
+*format "%10.5e"
+KINEMATIC_HARDENING *MatProp(KINEMATIC_HARDENING,real)
+*format "%10.5e"
+HARDENING_EXPONENT *MatProp(HARDENING_EXPONENT,real)
+*format "%10.5e"
+REFERENCE_HARDENING *MatProp(REFERENCE_HARDENING,real)
+*format "%10.5e"
+INFINITY_HARDENING *MatProp(INFINITY_HARDENING,real)
+*format "%10.5e"
+THICKNESS *MatProp(THICKNESS,real)
+End Properties
 
+*endif
+*end materials
 *# Property blocks
 
 Begin Nodes
@@ -1037,7 +1063,7 @@ End Elements
 *endif
 *# Element blocks
 
-*# Point Element Blocks
+*# Point Condition Blocks
 
 *Set cond line_LineLoadCondition2D2N *OverFaceElements *CanRepeat
 *if(CondNumEntities > 0)
@@ -1156,6 +1182,7 @@ Begin Conditions SurfaceLoad3DCondition3D9N
 End Conditions
 
 *endif
+
 *# Condition Blocks
 
 *Set cond point_PointLoad3DCondition *nodes
@@ -1378,7 +1405,7 @@ End NodalData
 
 *endif
 *endif
-*Add cond point_FORCE *nodes
+*Set cond point_FORCE *nodes
 *if(CondNumEntities > 0)
 *# Check if some node has its X value set
 *set var Xset=0
@@ -1437,9 +1464,7 @@ End NodalData
 
 *endif
 *endif
-
-*Set cond volume_POSITIVE_FACE_PRESSURE *nodes
-*Add cond surface_POSITIVE_FACE_PRESSURE *nodes
+*Set cond surface_POSITIVE_FACE_PRESSURE *nodes
 *Add cond line_POSITIVE_FACE_PRESSURE *nodes
 *if(CondNumEntities > 0)
 Begin NodalData POSITIVE_FACE_PRESSURE

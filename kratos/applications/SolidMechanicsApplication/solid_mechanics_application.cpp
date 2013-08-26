@@ -49,6 +49,10 @@
 #include "includes/condition.h"
 #include "includes/variables.h"
 
+// #include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
+// #include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
+// #include "custom_constitutive/custom_flow_rules/flow_rule.hpp"
+
 #include "solid_mechanics_application.h"
 
 namespace Kratos
@@ -331,6 +335,12 @@ void KratosSolidMechanicsApplication::Register()
     Serializer::Register("LinearElasticPlaneStrain2DLaw",mLinearElasticPlaneStrain2DLaw);
     Serializer::Register("LinearElasticPlaneStress2DLaw",mLinearElasticPlaneStress2DLaw);
     Serializer::Register("LinearElasticAxisym2DLaw",mLinearElasticAxisym2DLaw);
+
+    Serializer::Register("HyperElasticPlastic3DLaw",mHyperElasticPlastic3DLaw);
+    Serializer::Register("HyperElasticPlasticUP3DLaw",mHyperElasticPlastic3DLaw);
+    Serializer::Register("HyperElasticPlasticJ23DLaw",mHyperElasticPlasticJ23DLaw);
+    Serializer::Register("HyperElasticPlasticPlaneStrain2DLaw",mHyperElasticPlasticPlaneStrain2DLaw);
+    Serializer::Register("HyperElasticPlasticJ2PlaneStrain2DLaw",mHyperElasticPlasticJ2PlaneStrain2DLaw);
 
 
     //Register Variables

@@ -69,6 +69,34 @@ Element::Pointer LargeDisplacementUPElement::Create( IndexType NewId, NodesArray
 }
 
 
+//************************************CLONE*******************************************
+//************************************************************************************
+
+Element::Pointer LargeDisplacementUPElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+{
+
+    KRATOS_ERROR(std::logic_error, "calling the default constructor for a large displacement 3D element ... illegal operation!!","");
+
+    LargeDisplacementUPElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+    //-----------//
+
+    NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
+
+
+    if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
+      {
+	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
+	
+	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
+	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+      }
+    
+       
+    return Element::Pointer( new LargeDisplacementUPElement(NewElement) );
+}
+
+
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 

@@ -15,9 +15,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/properties.h"
-#include "custom_constitutive/custom_flow_rules/associative_plastic_flow_rule.hpp"
-
 #include "solid_mechanics_application.h"
+#include "custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.hpp"
 
 namespace Kratos
 {
@@ -26,7 +25,6 @@ namespace Kratos
 //************************************************************************************
 
 NonLinearAssociativePlasticFlowRule::NonLinearAssociativePlasticFlowRule()
-	:FlowRule()
 {
    
 }
@@ -73,7 +71,6 @@ double& NonLinearAssociativePlasticFlowRule::CalculateNormStress ( Matrix & rStr
 			   2.0 * rStressMatrix( 0 , 1 )*rStressMatrix( 0 , 1 ) );
 
 	return rNormStress;
-
 }
 
 
@@ -89,29 +86,29 @@ bool NonLinearAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVa
 	InternalVariables PlasticVariables = mInternalVariables;
 		
 	//1.-Isochoric stress norm
-	rReturnMappingVariables.NormIsochoricStress = CalculateNormStress( rIsoStressMatrix, ReturnMappingVariables.NormIsochoricStress );
+	rReturnMappingVariables.NormIsochoricStress = CalculateNormStress( rIsoStressMatrix, rReturnMappingVariables.NormIsochoricStress );
 
 	//2.- Check yield condition
-	rReturnMappingVariables.TrialStateFunction = YieldCriterion->CheckYieldCondition( PlasticVariables, rReturnMappingVariables.NormIsochoricStress, rIsoStressMatrix )
+	rReturnMappingVariables.TrialStateFunction = mpYieldCriterion->CalculateYieldCondition( rReturnMappingVariables.TrialStateFunction, rReturnMappingVariables.NormIsochoricStress, PlasticVariables.EquivalentPlasticStrain);
 
-		if( TrialStateFunction > 0 )
-		{
-			rPlasticVariables.DeltaPlasticStrain = 0;
-			Plasticity = false;
-		}
+		if( rReturnMappingVariables.TrialStateFunction <= 0 )
+		  {
+		    PlasticVariables.DeltaPlasticStrain = 0;
+		    Plasticity = false;
+		  }
 		else
-		{
-			bool converged = this->CalculateConsistencyCondition( PlasticVariables );
+		  {
+		    bool converged = this->CalculateConsistencyCondition( rReturnMappingVariables, PlasticVariables );
 
-			if(!converged)
-				std::cout<<" ConstitutiveLaw did not converge "<<std::endl;
+		    if(!converged)
+		      std::cout<<" ConstitutiveLaw did not converge "<<std::endl;
 
-			//3.- Update back stress, plastic strain and stress
-			this->UpdateConfiguration( rReturnMappingVariables, rIsoStressMatrix );
+		    //3.- Update back stress, plastic strain and stress
+		    this->UpdateConfiguration( rReturnMappingVariables, rIsoStressMatrix );
 
 	
-			Plasticity = true;
-		}
+		    Plasticity = true;
+		  }
 
 
 	return Plasticity;
@@ -121,7 +118,7 @@ bool NonLinearAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVa
 //************************************************************************************
 
 
-bool NonLinearAssociativePlasticFlowRule::CalculateConstistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables )
+bool NonLinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables )
 {
 	//Set convergence parameters
 	unsigned int iter    = 0;
@@ -129,6 +126,7 @@ bool NonLinearAssociativePlasticFlowRule::CalculateConstistencyCondition( Radial
 	double MaxIterations = 50;
 
 	//start
+	double DeltaDeltaGamma    = 0;
 	double DeltaStateFunction = 0;
 	rReturnMappingVariables.DeltaGamma    = 0;
 
@@ -157,7 +155,8 @@ bool NonLinearAssociativePlasticFlowRule::CalculateConstistencyCondition( Radial
 	   
 
 	if(iter>MaxIterations)
-		return false;
+	  return false;
+
 
 	return true;	
 }
@@ -169,6 +168,8 @@ void NonLinearAssociativePlasticFlowRule::UpdateConfiguration( RadialReturnVaria
 {
 	//Back Stress update
         
+        //std::cout<< " ElasticIsoStress "<<rIsoStressMatrix<<std::endl;
+
 	//Plastic Strain Update
 
 	//Stress Update: 
@@ -179,6 +180,7 @@ void NonLinearAssociativePlasticFlowRule::UpdateConfiguration( RadialReturnVaria
 	rIsoStressMatrix -= ( Normal * Auxiliar );
 
 
+	//std::cout<< " PlasticIsoStress "<<rIsoStressMatrix<<std::endl;
 }
 
 //***************************UPDATE INTERNAL VARIABLES********************************
@@ -195,6 +197,7 @@ bool NonLinearAssociativePlasticFlowRule::UpdateInternalVariables( RadialReturnV
 
 	mInternalVariables.DeltaPlasticStrain         *= ( 1.0/rReturnMappingVariables.TimeStep );
  	
+	return true;
 }
 
 
@@ -209,7 +212,8 @@ void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialRe
 
 		
 	//2.-Auxiliar matrices
-	rScalingFactors.Normal      = rReturnMappingVariables.TrialIsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
+	Matrix IsoStressMatrix      = MathUtils<double>::StressVectorToTensor( rReturnMappingVariables.TrialIsoStressVector );
+	rScalingFactors.Normal      = IsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
 
 	Matrix Norm_Normal          = prod( rScalingFactors.Normal, trans(rScalingFactors.Normal) );
 	double Trace_Norm_Normal    = Norm_Normal( 0, 0 ) + Norm_Normal( 1, 1 ) + Norm_Normal( 2, 2 );
@@ -225,14 +229,15 @@ void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialRe
 
 	rScalingFactors.Beta0 = 1.0 + DeltaHardening/(3.0 * rReturnMappingVariables.LameMu_bar);
 		
-	rScalingFactors.Beta1 = 2.0 * rReturnMappingVariables.LameMu_bar * DeltaGamma / rParameters.NormIsochoricStress;
+	rScalingFactors.Beta1 = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma / rReturnMappingVariables.NormIsochoricStress;
 		
-	rScalingFactors.Beta2 = ( ( 1.0 - ( 1.0 / Beta0 ) ) * (2.0/3.0) * rReturnMappingVariables.NormIsochoricStress * rReturnMappingVariables.DeltaGamma )/(rReturnMappingVariables.LameMu_bar) ;
+	rScalingFactors.Beta2 = ( ( 1.0 - ( 1.0 / rScalingFactors.Beta0 ) ) * (2.0/3.0) * rReturnMappingVariables.NormIsochoricStress * rReturnMappingVariables.DeltaGamma )/(rReturnMappingVariables.LameMu_bar) ;
 		
-	rScalingFactors.Beta3 = ( ( 1.0 / Beta0 ) - Beta1 + Beta2 );
+	rScalingFactors.Beta3 = ( ( 1.0 / rScalingFactors.Beta0 ) - rScalingFactors.Beta1 + rScalingFactors.Beta2 );
 		
-	rScalingFactors.Beta4 = ( ( 1.0 / Beta0 ) - Beta1 ) * rReturnMappingVariables.NormIsochoricStress / ( rReturnMappingVariables.LameMu_bar ) ;
+	rScalingFactors.Beta4 = ( ( 1.0 / rScalingFactors.Beta0 ) - rScalingFactors.Beta1 ) * rReturnMappingVariables.NormIsochoricStress / ( rReturnMappingVariables.LameMu_bar ) ;
 	
+	//std::cout<<"FACTORS:: Beta0 "<<rScalingFactors.Beta0<<" Beta 1 "<<rScalingFactors.Beta1<<" Beta2 "<<rScalingFactors.Beta2<<" Beta 3 "<<rScalingFactors.Beta3<<" Beta4 "<<rScalingFactors.Beta4<<std::endl;
 };
 
 

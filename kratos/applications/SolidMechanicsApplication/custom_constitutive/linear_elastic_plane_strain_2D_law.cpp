@@ -33,7 +33,7 @@ LinearElasticPlaneStrain2DLaw::LinearElasticPlaneStrain2DLaw()
 //************************************************************************************
 
 LinearElasticPlaneStrain2DLaw::LinearElasticPlaneStrain2DLaw(const LinearElasticPlaneStrain2DLaw& rOther)
-    : LinearElastic3DLaw()
+    : LinearElastic3DLaw(rOther)
 {
 }
 

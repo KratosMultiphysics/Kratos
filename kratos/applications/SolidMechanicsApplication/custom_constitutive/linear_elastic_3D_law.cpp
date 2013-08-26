@@ -33,7 +33,7 @@ LinearElastic3DLaw::LinearElastic3DLaw()
 //************************************************************************************
 
 LinearElastic3DLaw::LinearElastic3DLaw(const LinearElastic3DLaw& rOther)
-    : HyperElastic3DLaw()
+    : HyperElastic3DLaw(rOther)
 {
 }
 

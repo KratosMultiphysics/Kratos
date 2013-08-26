@@ -6,7 +6,7 @@
 //
 //
 
-#if !defined(KRATOSNON_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED )
+#if !defined(KRATOS_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED )
 #define  KRATOS_LINEAR_ISOTROPIC_KINEMATIC_HARDENING_LAW_H_INCLUDED
 
 
@@ -81,14 +81,14 @@ public:
     ///@name Operations
     ///@{
 
-    double& CalculateHardening(double &Hardening, const double & rAlpha);
+    double& CalculateHardening(double &rHardening, const double & rAlpha);
 	
-    double& CalculateIsotropicHardening(double &IsotropicHardening, const double & rAlpha);
+    double& CalculateIsotropicHardening(double &rIsotropicHardening, const double & rAlpha);
 
 
-    double& CalculateDeltaHardening(double &DeltaHardening, const double & rAlpha);
+    double& CalculateDeltaHardening(double &rDeltaHardening, const double & rAlpha);
 
-    double& CalculateDeltaIsotropicHardening(double &DeltaIsotropicHardening, const double & rAlpha);
+    double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const double & rAlpha);
 
 
     ///@}
@@ -106,13 +106,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const;
+    // std::string Info() const;
 
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const;
+    // /// Print information about this object.
+    // void PrintInfo(std::ostream& rOStream) const;
 
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const;
+    // /// Print object's data.
+    // void PrintData(std::ostream& rOStream) const;
 
 
     ///@}
@@ -219,20 +219,20 @@ private:
 ///@{
 
 
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  LinearIsotropicKinematicHardeningLaw& rThis);
+// /// input stream function
+// inline std::istream& operator >> (std::istream& rIStream,
+//                                   LinearIsotropicKinematicHardeningLaw& rThis);
 
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const LinearIsotropicKinematicHardeningLaw& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
+// /// output stream function
+// inline std::ostream& operator << (std::ostream& rOStream,
+//                                   const LinearIsotropicKinematicHardeningLaw& rThis)
+// {
+//     rThis.PrintInfo(rOStream);
+//     rOStream << std::endl;
+//     rThis.PrintData(rOStream);
 
-    return rOStream;
-}
+//     return rOStream;
+// }
 ///@}
 
 ///@} addtogroup block

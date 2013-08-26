@@ -24,8 +24,8 @@ QUESTION: Python_file
 VALUE: script.py
 TKWIDGET: TkwidgetFilePath
 TITLE:Solver
-QUESTION: Linear_Solver#CB#(Skyline LU factorization,Conjugate gradient,Deflated Conjugate gradient,Super LU,SuperLUIterativeSolver,PastixDirect,PastixIterative,AMGCL,GMRES,BiConjugate gradient stabilized)
-VALUE: SkylineLUFactorization
+QUESTION: Linear_Solver#CB#(Skyline_LU_factorization,Conjugate_gradient,Deflated_Conjugate_gradient,Super_LU,SuperLUIterativeSolver,PastixDirect,PastixIterative,AMGCL,GMRES,BiConjugate_gradient_stabilized)
+VALUE: Skyline_LU_factorization
 QUESTION: Linear_Solver_Tolerance
 VALUE: 1E-9
 QUESTION: Linear_Solver_Max_Iteration

@@ -207,11 +207,11 @@ else:
 #including phyton solver type
 if(general_variables.SolverType == "StaticSolver"): 
   print " Static Solver "
-  import solid_mechanics_general_solver as general_solver
+  import solid_mechanics_main_solver as general_solver
   dynamicstype = 0; 
 elif(general_variables.SolverType == "DynamicSolver"):
   print " Dynamic Solver "
-  import solid_mechanics_general_solver as general_solver
+  import solid_mechanics_main_solver as general_solver
   dynamicstype = 1;
 
 #including solver type variables
@@ -282,8 +282,11 @@ def SetConstitutiveLaw():
       elif(ConstitutiveLawName == "HyperElasticAxisymUP"):
         prop.SetValue(CONSTITUTIVE_LAW, HyperElasticUPAxisym2DLaw() )
         print "Hyper Elastic UP Axisym 2D model selected"
+      elif(ConstitutiveLawName == "HyperElasticPlasticJ2PlaneStrain"):
+        prop.SetValue(CONSTITUTIVE_LAW, HyperElasticPlasticJ2PlaneStrain2DLaw() )
+        print "Hyper Elastic Plastic J2 Plane Strain 2D model selected"
       else:
-        print "ERROR: CONSTITUTIVE_LAW not defined properly"
+        print "ERROR: CONSTITUTIVE_LAW 2D not defined properly"
       
   else:
     for prop in model_part.Properties:
@@ -297,6 +300,12 @@ def SetConstitutiveLaw():
       elif(ConstitutiveLawName == "HyperElasticUP"):
         prop.SetValue(CONSTITUTIVE_LAW, HyperElasticUP3DLaw() )
         print "Hyperelastic UP 3D model selected"
+      elif(ConstitutiveLawName == "HyperElasticPlasticJ2"):
+        prop.SetValue(CONSTITUTIVE_LAW, HyperElasticPlasticJ23DLaw() )
+        print "Hyper Elastic Plastic J2 3D model selected"
+      else:
+        print "ERROR: CONSTITUTIVE_LAW 3D not defined properly"
+
 
 
 #set constitutive law (must be put in another python file)
@@ -390,11 +399,14 @@ def PrintResults(model_part,time,initial_time,step):
   if(general_variables.ProblemType == "Mechanical"):
     gid_io.WriteNodalResults(DISPLACEMENT,model_part.Nodes,gid_time,0)
     gid_io.WriteNodalResults(PRESSURE,model_part.Nodes,gid_time,0)
+    gid_io.WriteNodalResults(REACTION,model_part.Nodes,gid_time,0)
+    gid_io.WriteNodalResults(FORCE_EXTERNAL,model_part.Nodes,gid_time,0)
+
     gid_io.PrintOnGaussPoints(CAUCHY_STRESS_TENSOR,model_part,gid_time)
     gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_TENSOR,model_part,gid_time)
     gid_io.PrintOnGaussPoints(VON_MISES_STRESS,model_part,gid_time)
-    gid_io.WriteNodalResults(REACTION,model_part.Nodes,gid_time,0)
-    gid_io.WriteNodalResults(FORCE_EXTERNAL,model_part.Nodes,gid_time,0)
+    gid_io.PrintOnGaussPoints(PLASTIC_STRAIN,model_part,gid_time)
+    gid_io.PrintOnGaussPoints(DELTA_PLASTIC_STRAIN,model_part,gid_time)
 
     if(general_variables.SolverType == "DynamicSolver"):
       gid_io.WriteNodalResults(VELOCITY,model_part.Nodes,gid_time,0)
@@ -681,7 +693,7 @@ for step in range(isteps,nsteps):
 ##########################--FINALIZE--############################
 ##################################################################
 
-print "Analysis Completed "
+print "Analysis Finalized "
 gid_io.FinalizeResults()
 
 ############################--END--###############################

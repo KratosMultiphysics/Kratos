@@ -66,6 +66,7 @@ namespace Kratos
 
     struct PlasticFactors
     {
+      double Beta0;
       double Beta1;
       double Beta2;
       double Beta3;
@@ -83,24 +84,59 @@ namespace Kratos
       double NormIsochoricStress;
       double TrialStateFunction;
 
-      dobule DeltaGamma;
-      dobule DeltaBeta;
+      double DeltaGamma;
+      double DeltaBeta;
 
       double LameMu_bar;
-      dobule TimeStep;
-    }
+      double TimeStep;
+
+    public:
+      
+      void clear()
+        {
+	  NormIsochoricStress = 0;
+	  TrialStateFunction  = 0;
+
+	  DeltaGamma = 0;
+	  DeltaBeta  = 0;
+
+	  LameMu_bar = 0;
+	  TimeStep   = 0;
+	}
+      
+    };
 
     struct InternalVariables
     {
         double EquivalentPlasticStrain;
         double DeltaPlasticStrain;
         
-        void clear ()
+    public:
+
+        void clear()
         {
 	  EquivalentPlasticStrain = 0;
 	  DeltaPlasticStrain = 0;
 	}
-    }
+
+    private:
+
+      friend class Serializer;
+
+      // A private default constructor necessary for serialization
+      
+      void save(Serializer& rSerializer) const
+      {
+	rSerializer.save("EquivalentPlasticStrain",EquivalentPlasticStrain);
+	rSerializer.save("DeltaPlasticStrain",DeltaPlasticStrain);
+      };
+
+      void load(Serializer& rSerializer)
+      {
+	rSerializer.load("EquivalenPlasticStrain",EquivalentPlasticStrain);
+	rSerializer.save("DeltaPlasticStrain",DeltaPlasticStrain);
+      };
+    };
 
     /// Pointer definition of FlowRule
       KRATOS_CLASS_POINTER_DEFINITION(FlowRule);
@@ -112,7 +148,7 @@ namespace Kratos
     /// Default constructor.
     FlowRule()
     {
-       KRATOS_ERROR(std::logic_error, "calling the default constructor in FlowRule ... illegal operation!!","");
+      //KRATOS_ERROR(std::logic_error, "calling the default constructor in FlowRule ... illegal operation!!","");
     };
 
     /// Copy constructor.
@@ -150,26 +186,33 @@ namespace Kratos
     
     void InitializeMaterial (YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw, const Properties& rProperties)
     {
-      mInternalVariables.clear();
-
+      
       mpYieldCriterion = pYieldCriterion;
       mpHardeningLaw   = pHardeningLaw;
       mpProperties     = &rProperties;
 
-      mpHardeningLaw.InitializeMaterial(mpProperties);	
-      mpYieldCriterion.InitializeMaterial(mpHardeningLaw);	
+      mpHardeningLaw->InitializeMaterial(rProperties);	
+      mpYieldCriterion->InitializeMaterial(mpHardeningLaw);	
+
+      mInternalVariables.clear();
     };
 
 
-    Properties & GetProperties()
+    const Properties & GetProperties()
     {
       return *mpProperties;
     };
 	
+    const InternalVariables & GetInternalVariables()
+    {
+      return mInternalVariables;
+    };
+	
 
-    virtual void CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix )
+    virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix )
     {
 	    KRATOS_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
+	    return 0;
     };
 
 
@@ -201,14 +244,14 @@ namespace Kratos
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-    virtual std::string Info() const;
+    // /// Turn back information as a string.
+    // virtual std::string Info() const;
 
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    // /// Print information about this object.
+    // virtual void PrintInfo(std::ostream& rOStream) const;
 
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    // /// Print object's data.
+    // virtual void PrintData(std::ostream& rOStream) const;
 
 
     ///@}
@@ -231,7 +274,8 @@ namespace Kratos
 
     YieldCriterionPointer   mpYieldCriterion;
     HardeningLawPointer       mpHardeningLaw;
-    PropertiesPointer           mpProperties;
+
+    const Properties*           mpProperties;
 	  
     ///@}
     ///@name Protected Operators
@@ -244,7 +288,7 @@ namespace Kratos
 
     virtual double& CalculateNormStress ( Matrix & rStressMatrix, double& rNormStress )
     {
-	    return 0;
+	    return rNormStress;
     };
 
      virtual bool CalculateConstistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables )
@@ -316,7 +360,7 @@ namespace Kratos
 	    rSerializer.save("InternalVariables",mInternalVariables);
 	    rSerializer.save("YieldCriterion",mpYieldCriterion);
 	    rSerializer.save("HardeningLaw",mpHardeningLaw);
-	    rSerializer.save("Properties",mpProperties);
+	    //rSerializer.save("Properties",mpProperties);
     };
 
     virtual void load(Serializer& rSerializer)
@@ -324,7 +368,7 @@ namespace Kratos
 	    rSerializer.load("InternalVariables",mInternalVariables);
 	    rSerializer.load("YieldCriterion",mpYieldCriterion);
 	    rSerializer.load("HardeningLaw",mpHardeningLaw);
-	    rSerializer.load("Properties",mpProperties);
+	    //rSerializer.load("Properties",mpProperties);
     };
 
     ///@}
@@ -352,20 +396,20 @@ namespace Kratos
   ///@{
 
 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    FlowRule& rThis);
+  // /// input stream function
+  // inline std::istream& operator >> (std::istream& rIStream,
+  // 				    FlowRule& rThis);
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const FlowRule& rThis)
-  {
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
+  // /// output stream function
+  // inline std::ostream& operator << (std::ostream& rOStream,
+  // 				    const FlowRule& rThis)
+  // {
+  //   rThis.PrintInfo(rOStream);
+  //   rOStream << std::endl;
+  //   rThis.PrintData(rOStream);
 
-    return rOStream;
-  }
+  //   return rOStream;
+  // }
   ///@}
 
   ///@} addtogroup block

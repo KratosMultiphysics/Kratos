@@ -80,7 +80,7 @@ namespace Kratos
     ///@name Operations
     ///@{
     
-    void CalculateScalingFactors( RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors );
+    //void CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors );
 
     ///@}
     ///@name Access
@@ -96,14 +96,14 @@ namespace Kratos
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-    virtual std::string Info() const;
+    // /// Turn back information as a string.
+    // virtual std::string Info() const;
 
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    // /// Print information about this object.
+    // virtual void PrintInfo(std::ostream& rOStream) const;
 
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    // /// Print object's data.
+    // virtual void PrintData(std::ostream& rOStream) const;
 
 
     ///@}
@@ -132,7 +132,7 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    bool CalculateConstistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
+    bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
 
 
     ///@}
@@ -212,20 +212,20 @@ namespace Kratos
   ///@{
 
 
-  /// input stream function
-  inline std::istream& operator >> (std::istream& rIStream,
-				    LinearAssociativePlasticFlowRule& rThis);
+  // /// input stream function
+  // inline std::istream& operator >> (std::istream& rIStream,
+  // 				    LinearAssociativePlasticFlowRule& rThis);
 
-  /// output stream function
-  inline std::ostream& operator << (std::ostream& rOStream,
-				    const LinearAssociativePlasticFlowRule& rThis)
-  {
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
+  // /// output stream function
+  // inline std::ostream& operator << (std::ostream& rOStream,
+  // 				    const LinearAssociativePlasticFlowRule& rThis)
+  // {
+  //   rThis.PrintInfo(rOStream);
+  //   rOStream << std::endl;
+  //   rThis.PrintData(rOStream);
 
-    return rOStream;
-  }
+  //   return rOStream;
+  // }
   ///@}
 
   ///@} addtogroup block

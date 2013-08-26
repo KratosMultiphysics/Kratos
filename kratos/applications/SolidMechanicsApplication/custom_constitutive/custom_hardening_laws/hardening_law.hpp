@@ -67,16 +67,16 @@ public:
     ///@{
 
     /// Default constructor.
-    HardeningLaw();
+    HardeningLaw(){};
 
     /// Copy constructor.
-    HardeningLaw(HardeningLaw const& rOther);
+    HardeningLaw(HardeningLaw const& rOther){};
 
     /// Assignment operator.
-    HardeningLaw& operator=(HardeningLaw const& rOther);
+    HardeningLaw& operator=(HardeningLaw const& rOther){return *this;};
 
     /// Destructor.
-   virtual ~HardeningLaw() {};
+    virtual ~HardeningLaw() {};
 
 
     ///@}
@@ -87,29 +87,29 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    void InitializeMaterial (PropertiesPointer pProperties)
+    void InitializeMaterial (const Properties& rProperties)
 	{
-		mpProperties = pProperties;
+		mpProperties = &rProperties;
 	}
 
 
-    Properties& GetProperties()
+    const Properties& GetProperties()
 	{
 		return *mpProperties;
 	}
 
-    virtual double& CalculateHardening(double &Hardening, const double & rAlpha){};
+  virtual double& CalculateHardening(double &rHardening, const double & rAlpha){ return rHardening; };
   
-    virtual double& CalculateIsotropicHardening(double &IsotropicHardening, const double & rAlpha){};
+  virtual double& CalculateIsotropicHardening(double &rIsotropicHardening, const double & rAlpha){ return rIsotropicHardening; };
 
-    virtual double& CalculateKinematicHardening(double &KinematicHardening, const double & rAlpha){};
+  virtual double& CalculateKinematicHardening(double &rKinematicHardening, const double & rAlpha){ return rKinematicHardening; };
 
 
-    virtual double& CalculateDeltaHardening(double &DeltaHardening, const double & rAlpha){};
+  virtual double& CalculateDeltaHardening(double &rDeltaHardening, const double & rAlpha){ return rDeltaHardening; };
 
-    virtual double& CalculateDeltaIsotropicHardening(double &DeltaIsotropicHardening, const double & rAlpha){};
+  virtual double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const double & rAlpha){ return rDeltaIsotropicHardening; };
 
-    virtual double& CalculateDeltaKinematicHardening(double &DeltaKinematicHardening, const double & rAlpha){};
+  virtual double& CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening, const double & rAlpha){ return rDeltaKinematicHardening; };
 
     ///@}
     ///@name Access
@@ -125,14 +125,14 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-    virtual std::string Info() const;
+    // /// Turn back information as a string.
+    // virtual std::string Info() const;
 
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    // /// Print information about this object.
+    // virtual void PrintInfo(std::ostream& rOStream) const;
 
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    // /// Print object's data.
+    // virtual void PrintData(std::ostream& rOStream) const; 
 
 
     ///@}
@@ -151,7 +151,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    const PropertiesPointer mpProperties;
+    const Properties* mpProperties;
      
     ///@}
     ///@name Protected Operators
@@ -214,12 +214,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-	    rSerializer.save("Properties",mpProperties);
+      //rSerializer.save("Properties",mpProperties);
     };
 
     virtual void load(Serializer& rSerializer)
     {
-	    rSerializer.load("Properties",mpProperties);
+      //rSerializer.load("Properties",mpProperties);
     };
 
     ///@}
@@ -246,20 +246,20 @@ private:
 ///@{
 
 
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  HardeningLaw& rThis);
+// /// input stream function
+// inline std::istream& operator >> (std::istream& rIStream,
+//                                   HardeningLaw& rThis);
 
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const HardeningLaw& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
+// /// output stream function
+// inline std::ostream& operator << (std::ostream& rOStream,
+//                                   const HardeningLaw& rThis)
+// {
+//     rThis.PrintInfo(rOStream);
+//     rOStream << std::endl;
+//     rThis.PrintData(rOStream);
 
-    return rOStream;
-}
+//     return rOStream;
+// }
 ///@}
 
 ///@} addtogroup block

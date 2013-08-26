@@ -91,6 +91,33 @@ Element::Pointer LargeDisplacementElement::Create( IndexType NewId, NodesArrayTy
     return Element::Pointer( new LargeDisplacementElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
 }
 
+//************************************CLONE*******************************************
+//************************************************************************************
+
+Element::Pointer LargeDisplacementElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+{
+
+    KRATOS_ERROR(std::logic_error, "calling the default constructor for a large displacement 3D element ... illegal operation!!","");
+
+    LargeDisplacementElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+    //-----------//
+
+    NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
+
+
+    if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
+      {
+	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
+	
+	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
+	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+      }
+    
+       
+    return Element::Pointer( new LargeDisplacementElement(NewElement) );
+}
+
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
@@ -220,6 +247,8 @@ void LargeDisplacementElement::GetSecondDerivativesVector( Vector& rValues, int 
 
 }
 
+//************************************************************************************
+//************************************************************************************
 
 //*********************************SET DOUBLE VALUE***********************************
 //************************************************************************************

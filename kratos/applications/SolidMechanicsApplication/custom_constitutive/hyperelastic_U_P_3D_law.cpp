@@ -34,7 +34,7 @@ HyperElasticUP3DLaw::HyperElasticUP3DLaw()
 //************************************************************************************
 
 HyperElasticUP3DLaw::HyperElasticUP3DLaw(const HyperElasticUP3DLaw& rOther)
-    : HyperElastic3DLaw()
+    : HyperElastic3DLaw(rOther)
 {
 }
 

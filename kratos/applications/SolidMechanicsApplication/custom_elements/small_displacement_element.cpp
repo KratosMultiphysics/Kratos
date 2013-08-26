@@ -90,6 +90,31 @@ Element::Pointer SmallDisplacementElement::Create( IndexType NewId, NodesArrayTy
 }
 
 
+//************************************CLONE*******************************************
+//************************************************************************************
+
+Element::Pointer SmallDisplacementElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+{
+
+    SmallDisplacementElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+    //-----------//
+
+    NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
+
+    if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
+      {
+	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
+	
+	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
+	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+      }
+    
+       
+    return Element::Pointer( new SmallDisplacementElement(NewElement) );
+}
+
+
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
