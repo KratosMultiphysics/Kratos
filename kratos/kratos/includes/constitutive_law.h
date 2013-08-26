@@ -121,7 +121,9 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( INITIAL_CONFIGURATION );
     KRATOS_DEFINE_LOCAL_FLAG( LAST_KNOWN_CONFIGURATION );
     KRATOS_DEFINE_LOCAL_FLAG( FINAL_CONFIGURATION );
-
+    
+    KRATOS_DEFINE_LOCAL_FLAG( FINALIZE_MATERIAL_RESPONSE );
+    
     KRATOS_DEFINE_LOCAL_FLAG( AXISYMMETRIC );
 
     /**
@@ -328,6 +330,9 @@ public:
       /**
        * sets the value of a specified variable
        */
+
+      void Set                             (Flags ThisFlag)                           {mOptions.Set(ThisFlag);};
+      void Reset                           (Flags ThisFlag)                           {mOptions.Reset(ThisFlag);};
 
       void SetOptions                      (const Flags&  rOptions)                   {mOptions=rOptions;};
       void SetDeterminantF                 (const double& rDeterminantF)              {mDeterminantF=rDeterminantF;};

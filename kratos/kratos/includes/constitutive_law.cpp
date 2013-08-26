@@ -27,8 +27,10 @@ namespace Kratos
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INITIAL_CONFIGURATION,       6 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, LAST_KNOWN_CONFIGURATION,    7 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINAL_CONFIGURATION,         8 );
+
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINALIZE_MATERIAL_RESPONSE,  9 );
   
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, AXISYMMETRIC,                9 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, AXISYMMETRIC,               10 );
 
 
     /**

@@ -208,6 +208,7 @@ mpGeometry(pGeometry), mpProperties(new PropertiesType)
     {
     }
 
+
     /// Destructor.
 
     virtual ~Element()
@@ -247,6 +248,22 @@ mpGeometry(pGeometry), mpProperties(new PropertiesType)
         KRATOS_CATCH("");
     }
 
+
+
+    /**
+     * creates a new element pointer and clones the previous element data
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    virtual Pointer Clone (IndexType NewId, NodesArrayType const& ThisNodes) const
+    {
+        KRATOS_TRY
+	std::cout<<" Call base class element Clone "<<std::endl;
+        return Element::Pointer(new Element(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
+        KRATOS_CATCH("");
+    }
     /**
      * is called to initialize the element.
      * Must be called before any calculation is done!
@@ -806,7 +823,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    /** A pointer to data related to this node. */
+    /** A pointer to data related to this element. */
     DataValueContainer mData;
 
     /**
