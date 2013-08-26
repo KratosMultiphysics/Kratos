@@ -2,6 +2,7 @@
 import sys
 
 Import_SolidMechanicsApplication = False
+Import_PfemSolidMechanicsApplication = False
 Import_ALEApplication = False
 Import_IncompressibleFluidApplication = False
 Import_StructuralApplication = False
@@ -34,6 +35,7 @@ Import_WindTurbineApplication = False
 
 print "Applications Available:"
 print "Import_SolidMechanicsApplication: False"
+print "Import_PfemSolidMechanicsApplication: False"
 print "Import_ALEApplication: False"
 print "Import_IncompressibleFluidApplication: False"
 print "Import_StructuralApplication: False"
@@ -71,7 +73,8 @@ def ImportApplications(kernel, applications_path=application_directory ):
     ##########################################################################
     ##importing the applications
     print "Applications Available:"
-    print "Import_SolidMechanicsApplication: "+str(Import_SolidMechanicsApplication) 
+    print "Import_SolidMechanicsApplication: "+str(Import_SolidMechanicsApplication)
+    print "Import_PfemSolidMechanicsApplication: "+str(Import_PfemSolidMechanicsApplication)
     print "Import_ALEApplication: "+str(Import_ALEApplication)
     print "Import_IncompressibleFluidApplication: "+str(Import_IncompressibleFluidApplication)
     print "Import_StructuralApplication: "+str(Import_StructuralApplication)
@@ -108,6 +111,15 @@ def ImportApplications(kernel, applications_path=application_directory ):
         structural_application = KratosSolidMechanicsApplication()
         kernel.AddApplication(solid_mechanics_application)
         print "KratosSolidMechanicsApplication Succesfully imported"
+
+    if(Import_PfemSolidMechanicsApplication == True):
+        print "importing KratosPfemSolidMechanicsApplication ..."
+        sys.path.append(applications_path + '/PfemSolidMechanicsApplication/python_scripts') 
+        sys.path.append(applications_path + '/PfemSolidMechanicsApplication/Linux') 
+        from KratosPfemSolidMechanicsApplication import *
+        structural_application = KratosPfemSolidMechanicsApplication()
+        kernel.AddApplication(pfem_solid_mechanics_application)
+        print "KratosPfemSolidMechanicsApplication Succesfully imported"
 
     if(Import_ALEApplication == True):
         print "importing KratosALEApplication ..."
@@ -287,6 +299,7 @@ def ImportApplications(kernel, applications_path=application_directory ):
         pod_application = KratosPodApplication()
         kernel.AddApplication(pod_application)
         print "KratosPodApplication sucessfully imported"
+
     if(Import_LevelSetApplication == True):
         print "importing KratosPodApplication ..."
         sys.path.append(applications_path + '/LevelSetApplication/python_scripts')
@@ -294,6 +307,7 @@ def ImportApplications(kernel, applications_path=application_directory ):
         levelset_application = KratosLevelSetApplication()
         kernel.AddApplication(levelset_application)
         print "KratosLevelSetApplication sucessfully imported"
+
     if(Import_FluidDynamicsApplication == True):
         print "importing KratosFluidDynamicsApplication ..."
         sys.path.append(applications_path + '/FluidDynamicsApplication/python_scripts')
@@ -355,6 +369,8 @@ def ImportApplications(kernel, applications_path=application_directory ):
     kernel.Initialize()
     if(Import_SolidMechanicsApplication == True):
         kernel.InitializeApplication(solid_mechanics_application);
+    if(Import_PfemSolidMechanicsApplication == True):
+        kernel.InitializeApplication(pfem_solid_mechanics_application);
     if(Import_ALEApplication == True):
         kernel.InitializeApplication(ale_app);
     if(Import_IncompressibleFluidApplication == True):
