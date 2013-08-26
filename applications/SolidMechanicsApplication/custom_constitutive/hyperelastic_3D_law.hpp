@@ -285,6 +285,7 @@ protected:
     virtual void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
                                          Vector& rStrainVector );
 
+
     /**
      * Calculates the constitutive matrix
      * @param rElasticVariables

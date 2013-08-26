@@ -33,7 +33,7 @@ HyperElasticAxisym2DLaw::HyperElasticAxisym2DLaw()
 //************************************************************************************
 
 HyperElasticAxisym2DLaw::HyperElasticAxisym2DLaw(const HyperElasticAxisym2DLaw& rOther)
-    : HyperElastic3DLaw()
+    : HyperElastic3DLaw(rOther)
 {
 }
 
@@ -104,7 +104,7 @@ void HyperElasticAxisym2DLaw::CalculateConstitutiveMatrix (const MaterialRespons
 
     rConstitutiveMatrix.clear();
 
-    static const unsigned int msIndexVoigt2D [8][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
+    static const unsigned int msIndexVoigt2D [4][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
 
     for(unsigned int i=0; i<4; i++)
     {
@@ -130,7 +130,7 @@ void HyperElasticAxisym2DLaw::CalculateConstitutiveMatrix (const MaterialRespons
 
     rConstitutiveMatrix.clear();
 
-    static const unsigned int msIndexVoigt2D [8][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
+    static const unsigned int msIndexVoigt2D [4][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
 
     for(unsigned int i=0; i<4; i++)
     {

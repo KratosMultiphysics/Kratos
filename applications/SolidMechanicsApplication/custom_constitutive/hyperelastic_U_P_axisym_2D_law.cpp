@@ -34,7 +34,7 @@ HyperElasticUPAxisym2DLaw::HyperElasticUPAxisym2DLaw()
 //************************************************************************************
 
 HyperElasticUPAxisym2DLaw::HyperElasticUPAxisym2DLaw(const HyperElasticUPAxisym2DLaw& rOther)
-    : HyperElasticUP3DLaw()
+    : HyperElasticUP3DLaw(rOther)
 {
 }
 
@@ -107,7 +107,7 @@ void HyperElasticUPAxisym2DLaw::CalculateIsochoricConstitutiveMatrix (const Mate
 
     Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rIsoStressVector );
 
-    static const unsigned int msIndexVoigt2D [8][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
+    static const unsigned int msIndexVoigt2D [4][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
 
     for(unsigned int i=0; i<4; i++)
     {
@@ -137,7 +137,7 @@ void HyperElasticUPAxisym2DLaw::CalculateVolumetricConstitutiveMatrix (const Mat
     double Pressure = 0;
     Pressure = CalculateDomainPressure ( rDomainGeometry, rShapeFunctions, Pressure);
 
-    static const unsigned int msIndexVoigt2D [8][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
+    static const unsigned int msIndexVoigt2D [4][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
 
     for(unsigned int i=0; i<4; i++)
     {
@@ -166,7 +166,7 @@ void HyperElasticUPAxisym2DLaw::CalculateIsochoricConstitutiveMatrix (const Mate
 
     Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rIsoStressVector );
 
-    static const unsigned int msIndexVoigt2D [8][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
+    static const unsigned int msIndexVoigt2D [4][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
 
 
     for(unsigned int i=0; i<4; i++)
@@ -197,7 +197,7 @@ void HyperElasticUPAxisym2DLaw::CalculateVolumetricConstitutiveMatrix (const Mat
     double Pressure = 0;
     Pressure = CalculateDomainPressure ( rDomainGeometry, rShapeFunctions, Pressure);
 
-    static const unsigned int msIndexVoigt2D [8][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
+    static const unsigned int msIndexVoigt2D [4][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
 
     for(unsigned int i=0; i<4; i++)
     {

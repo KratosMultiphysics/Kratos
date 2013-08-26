@@ -34,7 +34,7 @@ HyperElastic3DLaw::HyperElastic3DLaw()
 //************************************************************************************
 
 HyperElastic3DLaw::HyperElastic3DLaw(const HyperElastic3DLaw& rOther)
-    : ConstitutiveLaw()
+    : ConstitutiveLaw(rOther)
 {
 }
 

@@ -50,6 +50,17 @@
 #include "custom_elements/updated_lagrangian_U_P_element.hpp"
 #include "custom_elements/axisym_spatial_lagrangian_U_P_element.hpp"
 
+//flow rules
+#include "custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.hpp"
+#include "custom_constitutive/custom_flow_rules/linear_associative_plastic_flow_rule.hpp"
+
+//yield criteria
+#include "custom_constitutive/custom_yield_criteria/mises_huber_yield_criterion.hpp"
+
+//hardening laws
+#include "custom_constitutive/custom_hardening_laws/non_linear_isotropic_kinematic_hardening_law.hpp"
+#include "custom_constitutive/custom_hardening_laws/linear_isotropic_kinematic_hardening_law.hpp"
+
 //constitutive laws
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
@@ -63,6 +74,15 @@
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_axisym_2D_law.hpp"
+
+#include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_U_P_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_J2_3D_law.hpp"
+
+#include "custom_constitutive/hyperelastic_plastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_J2_plane_strain_2D_law.hpp"
+
+
 
 #include "containers/flags.h"
 #include "includes/variables.h"
@@ -424,6 +444,15 @@ private:
     const LinearElasticPlaneStrain2DLaw    mLinearElasticPlaneStrain2DLaw;
     const LinearElasticPlaneStress2DLaw    mLinearElasticPlaneStress2DLaw;
     const LinearElasticAxisym2DLaw              mLinearElasticAxisym2DLaw;
+
+    const HyperElasticPlastic3DLaw              mHyperElasticPlastic3DLaw;
+    const HyperElasticPlasticUP3DLaw          mHyperElasticPlasticUP3DLaw;
+    const HyperElasticPlasticJ23DLaw          mHyperElasticPlasticJ23DLaw;
+
+    const HyperElasticPlasticPlaneStrain2DLaw       mHyperElasticPlasticPlaneStrain2DLaw;
+    const HyperElasticPlasticJ2PlaneStrain2DLaw   mHyperElasticPlasticJ2PlaneStrain2DLaw;
+
+
     ///@}
     ///@name Private Operators
     ///@{

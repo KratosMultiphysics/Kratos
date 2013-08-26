@@ -174,13 +174,23 @@ public:
      * @return current integration method selected
      */
     /**
-     * creates a new total lagrangian updated element pointer
+     * creates a new element pointer
      * @param NewId: the ID of the new element
      * @param ThisNodes: the nodes of the new element
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+
+    /**
+     * clones the selected element variables, creating a new one
+     * @param NewId: the ID of the new element
+     * @param ThisNodes: the nodes of the new element
+     * @param pProperties: the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+
 
     //************* GETTING METHODS
 
@@ -233,7 +243,7 @@ public:
     /**
      * Set a double  Value on the Element Constitutive Law
      */
-    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Set a Vector Value on the Element Constitutive Law
@@ -257,7 +267,7 @@ public:
     /**
      * Get on rVariable a double Value from the Element Constitutive Law
      */
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
+    virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Get on rVariable a Vector Value from the Element Constitutive Law
@@ -275,6 +285,7 @@ public:
     void GetValueOnIntegrationPoints( const Variable<ConstitutiveLaw::Pointer>& rVariable,
                                       std::vector<ConstitutiveLaw::Pointer>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo );
+
 
 
     //************* STARTING - ENDING  METHODS
@@ -391,6 +402,25 @@ public:
     ///@}
     ///@name Input and output
     ///@{
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "Large Displacement Element #" << Id();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "Large Displacement Element #" << Id();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+      GetGeometry().PrintData(rOStream);
+    }
     ///@}
     ///@name Friends
     ///@{
@@ -407,6 +437,7 @@ protected:
      * Currently selected integration methods
      */
     IntegrationMethod mThisIntegrationMethod;
+
     /**
      * Container for constitutive law instances on each integration point
      */

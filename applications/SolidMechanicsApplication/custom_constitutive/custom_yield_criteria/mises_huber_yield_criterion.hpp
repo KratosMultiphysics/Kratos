@@ -87,9 +87,9 @@ class MisesHuberYieldCriterion
         double& CalculateYieldCondition(double & rStateFunction, const Matrix& rStressMatrix, const double& rAlpha);
 
 
-	double& CalculateStateFunction(double & rStateFunction,const double& rNormStress, const &DeltaGamma, const double& LameMu_bar, const double& rAlpha, const double& rAlphaOld);
+	double& CalculateStateFunction(double & rStateFunction,const double& rNormStress, const double& rDeltaGamma, const double& rLameMu_bar, const double& rAlpha, const double& rAlphaOld);
 
-	double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const double& LameMu_bar, const double& rAlpha);
+	double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const double& rLameMu_bar, const double& rAlpha);
         ///@}
         ///@name Access
         ///@{
@@ -104,14 +104,14 @@ class MisesHuberYieldCriterion
         ///@name Input and output
         ///@{
 
-        /// Turn back information as a string.
-        virtual std::string Info() const;
+        // /// Turn back information as a string.
+        // virtual std::string Info() const;
 
-        /// Print information about this object.
-        virtual void PrintInfo(std::ostream& rOStream) const;
+        // /// Print information about this object.
+        // virtual void PrintInfo(std::ostream& rOStream) const;
 
-        /// Print object's data.
-        virtual void PrintData(std::ostream& rOStream) const;
+        // /// Print object's data.
+        // virtual void PrintData(std::ostream& rOStream) const;
 
 
         ///@}
@@ -218,20 +218,20 @@ class MisesHuberYieldCriterion
     ///@{
 
 
-    /// input stream function
-    inline std::istream& operator >> (std::istream& rIStream,
-                                      MisesHuberYieldCriterion& rThis);
+    // /// input stream function
+    // inline std::istream& operator >> (std::istream& rIStream,
+    //                                   MisesHuberYieldCriterion& rThis);
 
-    /// output stream function
-    inline std::ostream& operator << (std::ostream& rOStream,
-                                      const MisesHuberYieldCriterion& rThis)
-    {
-        rThis.PrintInfo(rOStream);
-        rOStream << std::endl;
-        rThis.PrintData(rOStream);
+    // /// output stream function
+    // inline std::ostream& operator << (std::ostream& rOStream,
+    //                                   const MisesHuberYieldCriterion& rThis)
+    // {
+    //     rThis.PrintInfo(rOStream);
+    //     rOStream << std::endl;
+    //     rThis.PrintData(rOStream);
 
-        return rOStream;
-    }
+    //     return rOStream;
+    // }
     ///@}
 
     ///@} addtogroup block

@@ -84,6 +84,50 @@ Element::Pointer TotalLagrangianElement::Create( IndexType NewId, NodesArrayType
     return Element::Pointer( new TotalLagrangianElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
 }
 
+//************************************CLONE*******************************************
+//************************************************************************************
+
+Element::Pointer TotalLagrangianElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+{
+
+    TotalLagrangianElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+    //-----------//
+
+    NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
+
+    if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
+      {
+	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
+	
+	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
+	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+      }
+    
+
+    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+      {
+	NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
+      }
+
+
+    //-----------//
+
+    if ( NewElement.mInvJ0.size() != mInvJ0.size() )
+      NewElement.mInvJ0.resize(mInvJ0.size());
+
+    for(unsigned int i=0; i<<mInvJ0.size(); i++)
+    {
+        NewElement.mInvJ0[i] = mInvJ0[i];
+    }
+
+    NewElement.mTotalDomainInitialSize = mTotalDomainInitialSize;
+    NewElement.mDetJ0 = mDetJ0;
+
+        
+    return Element::Pointer( new TotalLagrangianElement(NewElement) );
+}
+
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************

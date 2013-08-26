@@ -69,7 +69,7 @@ class YieldCriterion
         /// Default constructor.
         YieldCriterion()
 	{
-		KRATOS_ERROR(std::logic_error, "calling the default constructor in YieldCriterion ... illegal operation!!","");
+	  //KRATOS_ERROR(std::logic_error, "calling the default constructor in YieldCriterion ... illegal operation!!","");
 	};
 
         /// Copy constructor.
@@ -120,18 +120,18 @@ class YieldCriterion
 	};
 
 
-	double& CalculateStateFunction(double & rStateFunction,const double& rNormStress, const &DeltaGamma, const double& LameMu_bar, const double& rAlpha, const double& rAlphaOld)
+	virtual double& CalculateStateFunction(double & rStateFunction,const double& rNormStress, const double & rDeltaGamma, const double& rLameMu_bar, const double& rAlpha, const double& rAlphaOld)
 	{
 		KRATOS_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!","");
 
 		return rStateFunction;
 	};
 
-	double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const double& LameMu_bar, const double& rAlpha)
+	virtual double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const double& rLameMu_bar, const double& rAlpha)
 	{
 		KRATOS_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!","");
 
-		return rStateFunction;
+		return rDeltaStateFunction;
 	};
 
         ///@}
@@ -148,14 +148,14 @@ class YieldCriterion
         ///@name Input and output
         ///@{
 
-        /// Turn back information as a string.
-        virtual std::string Info() const;
+        // /// Turn back information as a string.
+        // virtual std::string Info() const;
 
-        /// Print information about this object.
-        virtual void PrintInfo(std::ostream& rOStream) const;
+        // /// Print information about this object.
+        // virtual void PrintInfo(std::ostream& rOStream) const;
 
-        /// Print object's data.
-        virtual void PrintData(std::ostream& rOStream) const;
+        // /// Print object's data.
+        // virtual void PrintData(std::ostream& rOStream) const;
 
 
         ///@}
@@ -174,7 +174,7 @@ class YieldCriterion
         ///@name Protected member Variables
         ///@{
 	
-	HardeningLawPointer mpHardening;
+	HardeningLawPointer mpHardeningLaw;
 	
         ///@}
         ///@name Protected Operators
@@ -267,20 +267,20 @@ class YieldCriterion
     ///@{
 
 
-    /// input stream function
-    inline std::istream& operator >> (std::istream& rIStream,
-                                      YieldCriterion& rThis);
+    // /// input stream function
+    // inline std::istream& operator >> (std::istream& rIStream,
+    //                                   YieldCriterion& rThis);
 
-    /// output stream function
-    inline std::ostream& operator << (std::ostream& rOStream,
-                                      const YieldCriterion& rThis)
-    {
-        rThis.PrintInfo(rOStream);
-        rOStream << std::endl;
-        rThis.PrintData(rOStream);
+    // /// output stream function
+    // inline std::ostream& operator << (std::ostream& rOStream,
+    //                                   const YieldCriterion& rThis)
+    // {
+    //     rThis.PrintInfo(rOStream);
+    //     rOStream << std::endl;
+    //     rThis.PrintData(rOStream);
 
-        return rOStream;
-    }
+    //     return rOStream;
+    // }
     ///@}
 
     ///@} addtogroup block

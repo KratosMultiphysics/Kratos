@@ -15,9 +15,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/properties.h"
-#include "custom_constitutive/custom_flow_rules/linear_associative_plastic_flow_rule.hpp"
-
 #include "solid_mechanics_application.h"
+#include "custom_constitutive/custom_flow_rules/linear_associative_plastic_flow_rule.hpp"
 
 namespace Kratos
 {
@@ -65,7 +64,7 @@ LinearAssociativePlasticFlowRule::~LinearAssociativePlasticFlowRule()
 //************************************************************************************
 
 
-bool LinearAssociativePlasticFlowRule::CalculateConstistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables )
+bool LinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables )
 {
 	//start
 	double DeltaStateFunction = 0;
@@ -83,6 +82,8 @@ bool LinearAssociativePlasticFlowRule::CalculateConstistencyCondition( RadialRet
 	rPlasticVariables.DeltaPlasticStrain       = sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
 	rPlasticVariables.EquivalentPlasticStrain += rPlasticVariables.DeltaPlasticStrain;
 	       
+	//std::cout<<" Strain Rate "<<rPlasticVariables.DeltaPlasticStrain<<std::endl;
+
 	return true;	
 }
 
@@ -90,35 +91,38 @@ bool LinearAssociativePlasticFlowRule::CalculateConstistencyCondition( RadialRet
 //**************CALCULATE SCALING FACTORS FOR THE ELASTO PLASTIC MODULI***************
 //************************************************************************************
 
-void LinearAssociativePlasticFlowRule::CalculateScalingFactors( RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors )
-{
+// void LinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors )
+// {
 	
-	//1.-Identity build
-	Matrix IdentityMatrix  = identity_matrix<double> (3);
+// 	//1.-Identity build
+// 	Matrix IdentityMatrix  = identity_matrix<double> (3);
 
-	//2.-Auxiliar matrices
-	rScalingFactors.Normal      = rReturnMappingVariables.TrialIsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
-
-
-	rScalingFactors.Dev_Normal  = zero_matrix<double> (3);
+// 	//2.-Auxiliar matrices
+// 	Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rReturnMappingVariables.TrialIsoStressVector );
+// 	rScalingFactors.Normal      = IsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
 
 
-	//3.-Auxiliar constants
-	double EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrain + sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
-	double DeltaHardening = 0;
-	DeltaHardening = mpHardeningLaw->CalculateDeltaHardening( DeltaHardening, EquivalentPlasticStrain );
+// 	rScalingFactors.Dev_Normal  = zero_matrix<double> (3);
 
-	rScalingFactors.Beta0 = 1.0 + DeltaHardening/(3.0 * rReturnMappingVariables.LameMu_bar);
+
+// 	//3.-Auxiliar constants
+// 	double EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrain + sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
+// 	double DeltaHardening = 0;
+// 	DeltaHardening = mpHardeningLaw->CalculateDeltaHardening( DeltaHardening, EquivalentPlasticStrain );
+
+// 	rScalingFactors.Beta0 = 1.0 + DeltaHardening/(3.0 * rReturnMappingVariables.LameMu_bar);
 		
-	rScalingFactors.Beta1 = 1.0 - ( 2.0 * LameMu_bar * DeltaGamma / rParameters.NormIsochoricStress );
+// 	rScalingFactors.Beta1 = 1.0 - ( 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma / rReturnMappingVariables.NormIsochoricStress );
 		
-	rScalingFactors.Beta2 = 0;
+// 	rScalingFactors.Beta2 = 0;
 		
-	rScalingFactors.Beta3 = ( ( 1.0 / Beta0 ) - ( 1 - Beta1 ) );
+// 	rScalingFactors.Beta3 = ( ( 1.0 / rScalingFactors.Beta0 ) - ( 1 - rScalingFactors.Beta1 ) );
 		
-	rScalingFactors.Beta4 = 0;
+// 	rScalingFactors.Beta4 = 0;
 	
-};
+// 	std::cout<<"LINEAR:: Beta0 "<<rScalingFactors.Beta0<<" Beta 1 "<<rScalingFactors.Beta1<<" Beta2 "<<rScalingFactors.Beta2<<" Beta 3 "<<rScalingFactors.Beta3<<" Beta4 "<<rScalingFactors.Beta4<<std::endl;
+
+// };
 
 
 

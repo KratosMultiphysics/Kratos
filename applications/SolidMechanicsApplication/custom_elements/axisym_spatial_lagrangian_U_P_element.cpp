@@ -84,6 +84,49 @@ Element::Pointer AxisymSpatialLagrangianUPElement::Create( IndexType NewId, Node
 }
 
 
+//************************************CLONE*******************************************
+//************************************************************************************
+
+Element::Pointer AxisymSpatialLagrangianUPElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+{
+
+    AxisymSpatialLagrangianUPElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+
+    //-----------//
+
+    NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
+
+    if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
+      {
+	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
+	
+	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
+	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+      }
+    
+
+    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+      {
+	NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
+      }
+
+    //-----------//
+
+    if ( NewElement.mDeformationGradientF0.size() != mDeformationGradientF0.size() )
+      NewElement.mDeformationGradientF0.resize(mDeformationGradientF0.size());
+
+    for(unsigned int i=0; i<<mDeformationGradientF0.size(); i++)
+    {
+        NewElement.mDeformationGradientF0[i] = mDeformationGradientF0[i];
+    }
+
+    NewElement.mDeterminantF0 = mDeterminantF0;
+
+        
+    return Element::Pointer( new AxisymSpatialLagrangianUPElement(NewElement) );
+}
+
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
@@ -91,6 +134,71 @@ AxisymSpatialLagrangianUPElement::~AxisymSpatialLagrangianUPElement()
 {
 }
 
+//************************************************************************************
+//************************************************************************************
+
+
+//*********************************SET DOUBLE VALUE***********************************
+//************************************************************************************
+
+void AxisymSpatialLagrangianUPElement::SetValueOnIntegrationPoints( const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo )
+{
+
+  if (rVariable == DETERMINANT_F){
+
+    const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+
+    
+    for ( unsigned int PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
+      {
+	mDeterminantF0[PointNumber] = rValues[PointNumber];
+      }
+
+  }
+  else{
+
+    LargeDisplacementElement::SetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+
+  }
+
+
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+//**********************************GET DOUBLE VALUE**********************************
+//************************************************************************************
+
+
+void AxisymSpatialLagrangianUPElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo )
+{
+
+  if (rVariable == DETERMINANT_F){
+
+    const unsigned int& integration_points_number = mConstitutiveLawVector.size();
+
+    if ( rValues.size() != integration_points_number )
+      rValues.resize( integration_points_number );
+    
+    for ( unsigned int PointNumber = 0;  PointNumber < integration_points_number; PointNumber++ )
+      {
+	rValues[PointNumber] = mDeterminantF0[PointNumber];
+      }
+
+  }
+  else{
+
+    LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+
+  }
+
+}
 
 //************* STARTING - ENDING  METHODS
 //************************************************************************************

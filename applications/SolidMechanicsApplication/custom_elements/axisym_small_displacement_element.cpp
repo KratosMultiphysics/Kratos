@@ -52,7 +52,6 @@ AxisymSmallDisplacementElement::AxisymSmallDisplacementElement( AxisymSmallDispl
 }
 
 
-
 //*********************************OPERATIONS*****************************************
 //************************************************************************************
 
@@ -61,6 +60,30 @@ Element::Pointer AxisymSmallDisplacementElement::Create( IndexType NewId, NodesA
     return Element::Pointer( new AxisymSmallDisplacementElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
 }
 
+
+//************************************CLONE*******************************************
+//************************************************************************************
+
+Element::Pointer AxisymSmallDisplacementElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+{
+
+    AxisymSmallDisplacementElement NewElement ( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+    //-----------//
+
+    NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
+
+    if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
+      {
+	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
+	
+	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
+	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+      }
+    
+       
+    return Element::Pointer( new AxisymSmallDisplacementElement(NewElement) );
+}
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************

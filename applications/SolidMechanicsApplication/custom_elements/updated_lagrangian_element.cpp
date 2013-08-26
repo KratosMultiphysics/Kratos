@@ -50,6 +50,7 @@ UpdatedLagrangianElement::UpdatedLagrangianElement( UpdatedLagrangianElement con
 }
 
 
+
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
 
@@ -69,6 +70,51 @@ Element::Pointer UpdatedLagrangianElement::Create( IndexType NewId, NodesArrayTy
     return Element::Pointer( new UpdatedLagrangianElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
 }
 
+
+//************************************CLONE*******************************************
+//************************************************************************************
+
+Element::Pointer UpdatedLagrangianElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+{
+
+    UpdatedLagrangianElement NewElement(NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+
+    //-----------//
+
+    NewElement.mThisIntegrationMethod = mThisIntegrationMethod;
+
+    if ( NewElement.mConstitutiveLawVector.size() != mConstitutiveLawVector.size() )
+      {
+	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
+	
+	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
+	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+      }
+    
+
+    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+      {
+	NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
+      }
+
+
+    //-----------//
+
+
+    if ( NewElement.mDeformationGradientF0.size() != mDeformationGradientF0.size() )
+      NewElement.mDeformationGradientF0.resize(mDeformationGradientF0.size());
+
+    for(unsigned int i=0; i<<mDeformationGradientF0.size(); i++)
+    {
+        NewElement.mDeformationGradientF0[i] = mDeformationGradientF0[i];
+    }
+
+    NewElement.mDeterminantF0 = mDeterminantF0;
+
+        
+    return Element::Pointer( new UpdatedLagrangianElement(NewElement) );
+}
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************

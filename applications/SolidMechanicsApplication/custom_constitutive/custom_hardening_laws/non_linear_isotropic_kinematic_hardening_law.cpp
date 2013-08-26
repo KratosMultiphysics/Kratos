@@ -15,9 +15,8 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/properties.h"
-#include "custom_constitutive/custom_hardening_laws/non_linear_isotropic_kinematic_hardening_law.hpp"
-
 #include "solid_mechanics_application.h"
+#include "custom_constitutive/custom_hardening_laws/non_linear_isotropic_kinematic_hardening_law.hpp"
 
 namespace Kratos
 {
@@ -69,7 +68,7 @@ NonLinearIsotropicKinematicHardeningLaw::~NonLinearIsotropicKinematicHardeningLa
 //*******************************CALCULATE TOTAL HARDENING****************************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateHardening(double &Hardening,const double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateHardening(double &rHardening,const double & rAlpha)
 {
 	
 	//linear hardening properties
@@ -82,19 +81,19 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateHardening(double &Hard
 	const double& Delta                 =  GetProperties()[HARDENING_EXPONENT];
 
 	//Linear Hardening law:
-	Hardening  = YieldStress + mTheta *  KinematicHardeningConstant;
+	rHardening  = YieldStress + mTheta *  KinematicHardeningConstant;
 	
 	//Exponential Saturation:
-	Hardening += (K_infinity-K_reference) * (1.0 - exp( (-1.0) * Delta * rAlpha ) );
+	rHardening += (K_infinity-K_reference) * (1.0 - exp( (-1.0) * Delta * rAlpha ) );
 	
-	return Hardening;
+	return rHardening;
 
 }
   
 //*******************************CALCULATE ISOTROPIC HARDENING************************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateIsotropicHardening(double &IsotropicHardening,const double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateIsotropicHardening(double &rIsotropicHardening,const double & rAlpha)
 {
 
 	//linear hardening properties
@@ -107,12 +106,12 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateIsotropicHardening(dou
 	const double& Delta                 =  GetProperties()[HARDENING_EXPONENT];
 
 	//Linear Hardening law: (mTheta = 1)
-	IsotropicHardening  = YieldStress + KinematicHardeningConstant;
+	rIsotropicHardening  = YieldStress + KinematicHardeningConstant;
 	
 	//Exponential Saturation:
-	IsotropicHardening += (K_infinity-K_reference) * (1.0 - exp( (-1.0) * Delta * rAlpha ) );
+	rIsotropicHardening += (K_infinity-K_reference) * (1.0 - exp( (-1.0) * Delta * rAlpha ) );
 	
-	return IsotropicHardening;	
+	return rIsotropicHardening;	
 
 
 }
@@ -120,15 +119,15 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateIsotropicHardening(dou
 //*******************************CALCULATE KINEMATIC HARDENING************************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateKinematicHardening(double &KinematicHardening,const double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateKinematicHardening(double &rKinematicHardening,const double & rAlpha)
 {
 	//linear hardening properties
 	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING];
 	
 	//Linear Hardening law:
-	KinematicHardening  = (1.0 - mTheta) * KinematicHardeningConstant;
+	rKinematicHardening  = (1.0 - mTheta) * KinematicHardeningConstant;
 	
-	return KinematicHardening;
+	return rKinematicHardening;
 }
 
 
@@ -136,7 +135,7 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateKinematicHardening(dou
 //*******************************CALCULATE HARDENING DERIVATIVE***********************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaHardening(double &DeltaHardening,const double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaHardening(double &rDeltaHardening,const double & rAlpha)
 {
       	//linear hardening properties
 	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING];
@@ -147,18 +146,18 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaHardening(double 
 	const double& Delta                 =  GetProperties()[HARDENING_EXPONENT];
 
 	//Linear Hardening law: (mTheta = 1)
-	DeltaHardening  = mTheta * KinematicHardeningConstant;
+	rDeltaHardening  = mTheta * KinematicHardeningConstant;
 	
 	//Exponential Saturation:
-	DeltaHardening += Delta * (K_infinity-K_reference) * ( exp( (-1.0) * Delta * rAlpha ) );
+	rDeltaHardening += Delta * (K_infinity-K_reference) * ( exp( (-1.0) * Delta * rAlpha ) );
 	
-	return DeltaHardening;	
+	return rDeltaHardening;	
 }
 
 //***************************CALCULATE ISOTROPIC HARDENING DERIVATIVE*****************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaIsotropicHardening(double &DeltaIsotropicHardening,const double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening,const double & rAlpha)
 {
        	//linear hardening properties
 	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING];
@@ -169,12 +168,12 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaIsotropicHardenin
 	const double& Delta                 =  GetProperties()[HARDENING_EXPONENT];
 
 	//Linear Hardening law: (mTheta = 1)
-	DeltaIsotropicHardening  = KinematicHardeningConstant;
+	rDeltaIsotropicHardening  = KinematicHardeningConstant;
 	
 	//Exponential Saturation:
-	DeltaIsotropicHardening += Delta * (K_infinity-K_reference) * ( exp( (-1.0) * Delta * rAlpha ) );
+	rDeltaIsotropicHardening += Delta * (K_infinity-K_reference) * ( exp( (-1.0) * Delta * rAlpha ) );
 	
-	return DeltaIsotropicHardening;	
+	return rDeltaIsotropicHardening;	
 
 }
 
@@ -182,11 +181,11 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaIsotropicHardenin
 //***************************CALCULATE KINEMATIC HARDENING DERIVATIVE*****************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaKinematicHardening(double &DeltaKinematicHardening,const double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening,const double & rAlpha)
 {
-	DeltaKinematicHardening = 0;
+	rDeltaKinematicHardening = 0;
 
-	return DeltakinematicHardening;
+	return rDeltaKinematicHardening;
 }
 
 

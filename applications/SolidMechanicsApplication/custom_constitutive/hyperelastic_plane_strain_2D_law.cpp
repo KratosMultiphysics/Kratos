@@ -33,7 +33,7 @@ HyperElasticPlaneStrain2DLaw::HyperElasticPlaneStrain2DLaw()
 //************************************************************************************
 
 HyperElasticPlaneStrain2DLaw::HyperElasticPlaneStrain2DLaw(const HyperElasticPlaneStrain2DLaw& rOther)
-    : HyperElastic3DLaw()
+    : HyperElastic3DLaw(rOther)
 {
 }
 
@@ -102,7 +102,7 @@ void HyperElasticPlaneStrain2DLaw::CalculateConstitutiveMatrix (const MaterialRe
 
     rConstitutiveMatrix.clear();
 
-    static const unsigned int msIndexVoigt2D [6][2] = { {0, 0}, {1, 1}, {0, 1} };
+    static const unsigned int msIndexVoigt2D [3][2] = { {0, 0}, {1, 1}, {0, 1} };
 
     for(unsigned int i=0; i<3; i++)
     {
@@ -128,7 +128,7 @@ void HyperElasticPlaneStrain2DLaw::CalculateConstitutiveMatrix (const MaterialRe
 
     rConstitutiveMatrix.clear();
 
-    static const unsigned int msIndexVoigt2D [6][2] = { {0, 0}, {1, 1}, {0, 1} };
+    static const unsigned int msIndexVoigt2D [3][2] = { {0, 0}, {1, 1}, {0, 1} };
 
     for(unsigned int i=0; i<3; i++)
     {

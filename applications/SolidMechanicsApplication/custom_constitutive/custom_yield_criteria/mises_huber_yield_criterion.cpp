@@ -14,9 +14,8 @@
 
 // Project includes
 #include "includes/define.h"
-#include "custom_constitutive/custom_yield_criteria/mises_huber_yield_criterion.hpp"
-
 #include "solid_mechanics_application.h"
+#include "custom_constitutive/custom_yield_criteria/mises_huber_yield_criterion.hpp"
 
 namespace Kratos
 {
@@ -96,7 +95,7 @@ double& MisesHuberYieldCriterion::CalculateYieldCondition(double & rStateFunctio
 //***************************CALCULATE STATE FUNCTION ********************************
 //************************************************************************************
 
-double& MisesHuberYieldCriterion::CalculateStateFunction(double & rStateFunction,const double& rNormStress, const &DeltaGamma, const double& LameMu_bar, const double& rAlpha, const double& rAlphaOld)
+double& MisesHuberYieldCriterion::CalculateStateFunction(double & rStateFunction,const double& rNormStress, const double& rDeltaGamma, const double& rLameMu_bar, const double& rAlpha, const double& rAlphaOld)
 {
 	double InitialKinematicHardening = 0;
 	double KinematicHardening = 0;
@@ -108,7 +107,7 @@ double& MisesHuberYieldCriterion::CalculateStateFunction(double & rStateFunction
 
 	IsotropicHardening = mpHardeningLaw->CalculateIsotropicHardening(IsotropicHardening,rAlpha);		
 
-	rStateFunction = rNormStress - 2.0 * LameMu_bar * DeltaGamma - sqrt(2.0/3.0) * ( IsotropicHardening + ( KinematicHardening - InitialKinematicHardening ));
+	rStateFunction = rNormStress - 2.0 * rLameMu_bar * rDeltaGamma - sqrt(2.0/3.0) * ( IsotropicHardening + ( KinematicHardening - InitialKinematicHardening ));
 		
 	return rStateFunction;
 };
@@ -117,25 +116,25 @@ double& MisesHuberYieldCriterion::CalculateStateFunction(double & rStateFunction
 //***************************CALCULATE STATE FUNCTION ********************************
 //************************************************************************************
 
-double& MisesHuberYieldCriterion::CalculateDeltaStateFunction(double & rDeltaStateFunction, const double& LameMu_bar, const double& rAlpha)
+double& MisesHuberYieldCriterion::CalculateDeltaStateFunction(double & rDeltaStateFunction, const double& rLameMu_bar, const double& rAlpha)
 {
 
 	double DeltaKinematicHardening = 0;
 	double DeltaIsotropicHardening = 0;
 
 
-	DeltaKinematicHardening = mpHardeningLaw->CalculateDeltaKinematicHardening(KinematicHardening,rAlpha);
+	DeltaKinematicHardening = mpHardeningLaw->CalculateDeltaKinematicHardening(DeltaKinematicHardening,rAlpha);
 
-	DeltaIsotropicHardening = mpHardeningLaw->CalculateDeltaIsotropicHardening(IsotropicHardening,rAlpha);		
+	DeltaIsotropicHardening = mpHardeningLaw->CalculateDeltaIsotropicHardening(DeltaIsotropicHardening,rAlpha);		
 
-	rDeltaStateFunction = 2.0 * LameMu_bar + (2.0/3.0) * (DeltaKinematicHardening + DeltaIsotropicHardening);
+	rDeltaStateFunction = 2.0 * rLameMu_bar + (2.0/3.0) * (DeltaKinematicHardening + DeltaIsotropicHardening);
 		
 	return rDeltaStateFunction;
 };
 
 void MisesHuberYieldCriterion::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, YiedlCriterion );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, YieldCriterion );
 }
 
 void MisesHuberYieldCriterion::load( Serializer& rSerializer )
