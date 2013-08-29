@@ -133,7 +133,7 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     //calculating viscosity
     ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
-    //         const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
+             const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
     //        const Variable<double>& rSourceVar = my_settings->GetVolumeSourceVariable();
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
     const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
@@ -146,8 +146,16 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     const array_1d<double, 3 > & v = GetGeometry()[0].FastGetSolutionStepValue(rConvVar); //VELOCITY
     const array_1d<double, 3 > & w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); //
 
+	double density = rCurrentProcessInfo[DENSITY];
+	double air_density = GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
+	double node_distance = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
+	int gravity_switch = 	rCurrentProcessInfo[IS_GRAVITY_FILLING];
+	double vel_fac = 1.0;
+	if (node_distance > 0.0 && gravity_switch == 1)
+		vel_fac = 1.0/density;
+
     for (unsigned int j = 0; j < dim; j++)
-        ms_vel_gauss[j] = v[j] - w[j];
+        ms_vel_gauss[j] = vel_fac * (v[j] - w[j]);
 
     for (unsigned int i = 1; i < nodes_number; i++)
     {
@@ -155,10 +163,17 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
         //             specific_heat += GetGeometry()[i].FastGetSolutionStepValue(SPECIFIC_HEAT);
         //             heat_source += GetGeometry()[i].FastGetSolutionStepValue(rSourceVar);
 
+		density =  rCurrentProcessInfo[DENSITY];
+		node_distance = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
+		air_density = GetGeometry()[i].FastGetSolutionStepValue(rDensityVar);
+		vel_fac = 1.0;
+		if (node_distance > 0.0 && gravity_switch == 1)
+			vel_fac = 1.0/density;
+
         const array_1d<double, 3 > & v = GetGeometry()[i].FastGetSolutionStepValue(rConvVar);
         const array_1d<double, 3 > & w = GetGeometry()[i].FastGetSolutionStepValue(rMeshVelocityVar);
         for (unsigned int j = 0; j < dim; j++)
-            ms_vel_gauss[j] += v[j] - w[j];
+            ms_vel_gauss[j] += vel_fac * (v[j] - w[j]);
 
     }
     //         density *= lumping_factor;
@@ -219,9 +234,9 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     double h = pow(12.0 * Volume, 0.333333333333333333333);
     h = 0.666666667 * h * 1.732;
 
-    //double Kiso = 0.5*0.7*h*fabs(res)/(norm_2(grad_g) + 1e-12);
-//        noalias(rLeftHandSideMatrix) += Kiso * prod(DN_DX,trans(DN_DX));
-
+//    double Kiso = 0.5*0.7*h*fabs(res)/(norm_2(grad_g) + 1e-12);
+////        noalias(rLeftHandSideMatrix) += Kiso * prod(DN_DX,trans(DN_DX));
+//
 //     double kaniso = Kiso/(inner_prod(ms_vel_gauss,ms_vel_gauss)+1e-12);
 //     boost::numeric::ublas::bounded_matrix<double, 3, 3 > aux33 = Kiso*IdentityMatrix(3, 3);
 //     noalias(aux33) -= kaniso*outer_prod(ms_vel_gauss,ms_vel_gauss);
