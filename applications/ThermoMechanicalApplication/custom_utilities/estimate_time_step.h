@@ -208,6 +208,49 @@ namespace Kratos
 	   
 	   if(global_is_solidified == 0)
 	   {
+         //pre solidification Dt
+        int is_hot = CheckMaxTemperature(ThisModelPart);
+		if( is_hot == 1 ){
+			KRATOS_WATCH("<<<<<<<<<<<<<<<<<<<<pre solidification Dt>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+			double max_presolodification_delta_tem = 10.0;
+			int node_size = ThisModelPart.Nodes().size();
+			double max_delta_temp = 0.0;
+			for (int ii = 0; ii < node_size; ii++)
+			   {
+					 ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+
+			 double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
+			 double old_temp = it->FastGetSolutionStepValue(TEMPERATURE,1);	
+			 current_temp -= old_temp;
+		 
+			 if( current_temp > max_delta_temp)
+			   max_delta_temp = current_temp;
+			 
+			   }
+	       
+			ThisModelPart.GetCommunicator().MaxAll(max_delta_temp);
+	   
+			if( max_delta_temp > 0.0 ){
+			  double new_delta_time = max_presolodification_delta_tem / max_delta_temp;
+			  new_delta_time *= current_dt; 
+
+			  if( new_delta_time > dt_max)
+			new_delta_time = dt_max;
+			  else if( new_delta_time < dt_min)
+			new_delta_time = dt_min;
+
+		      
+			  return new_delta_time;
+			}
+			else 
+			{
+			  return current_dt;
+			}
+
+		}
+		else//solidification Dt
+		{
+
 	    double current_solidified_volume = 0.0;
 	    double old_solidified_volume = 0.0;
 	    double tot_vol = 0.0;
@@ -269,12 +312,14 @@ namespace Kratos
 	      else{
 	
 		return current_dt;}
-	    }
+		}
+	   }
 	    
 	   }
 	   //coling delta_t
 	   else
 	   {
+        double cooling_dt_max = 30.0*dt_max;
 	    int node_size = ThisModelPart.Nodes().size();
 	    double max_delta_temp = 0.0;
 	    for (int ii = 0; ii < node_size; ii++)
@@ -296,8 +341,8 @@ namespace Kratos
 	      double new_delta_time = max_cooling_delta_temp / max_delta_temp;
 	      new_delta_time *= current_dt; 
 
-	      if( new_delta_time > dt_max)
-		new_delta_time = dt_max;
+	      if( new_delta_time > cooling_dt_max)
+		new_delta_time = cooling_dt_max;
 	      else if( new_delta_time < dt_min)
 		new_delta_time = dt_min;
 
@@ -416,8 +461,32 @@ namespace Kratos
 		return ((wave_dt>max_Dt) ? max_Dt : wave_dt);
 	    KRATOS_CATCH("")	
 	  }	
+
 	private:
 
+	 int CheckMaxTemperature(ModelPart& ThisModelPart)
+	 {
+	    double last_temp = ThisModelPart.GetTable(3).Data().back().first;
+		double is_hot_point = 0.0;
+		int node_size = ThisModelPart.Nodes().size();
+
+		for (int ii = 0; ii < node_size; ii++)
+			{
+			 ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+
+			 double current_temp = it->FastGetSolutionStepValue(TEMPERATURE);
+		 
+			if( current_temp > last_temp)
+			  is_hot_point = 1.0;
+			 
+			}
+	       
+		ThisModelPart.GetCommunicator().MaxAll(is_hot_point);
+
+		return (is_hot_point==1.0)? 1 : 0;
+
+
+	 }
 
 	};
 
