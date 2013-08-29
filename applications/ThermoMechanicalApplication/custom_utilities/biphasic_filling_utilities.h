@@ -293,6 +293,8 @@ class BiphasicFillingUtilities
 		 ThisModelPart.GetProcessInfo()[CUTTED_AREA] =cutted_area ;
 		 ThisModelPart.GetProcessInfo()[WET_VOLUME] = wet_volume;
 
+	     //volume loss is just corrected
+		 if(volume_difference > 0.0){
 #pragma omp parallel for firstprivate(node_size)		
 		for (int ii = 0; ii < node_size; ii++)
 		{
@@ -301,7 +303,7 @@ class BiphasicFillingUtilities
 		  
 		  it->FastGetSolutionStepValue(DISTANCE) -= volume_difference;
 		  
-		}
+		}}
 std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet volume: " << wet_volume << " percent: "<< wet_volume/fabs(Net_volume)<< " Area: "<< cutted_area << std::endl;
 	      KRATOS_CATCH("")
 	    }
