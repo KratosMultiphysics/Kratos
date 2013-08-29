@@ -17,7 +17,7 @@ distance_settings.SetConvectionVariable(VELOCITY)
 distance_settings.SetMeshVelocityVariable(MESH_VELOCITY)
 #distance_settings.SetVolumeSourceVariable(HEAT_FLUX)
 #distance_settings.SetDiffusionVariable(ARRHENIUSAUX)
-#distance_settings.SetDensityVariable(AUX_INDEX) # For level set solver rho and C are assigned to 1
+distance_settings.SetDensityVariable(DISTANCE) # For level set solver rho and C are assigned to 1
 
 def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -47,7 +47,9 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(LAST_AIR)
     model_part.AddNodalSolutionStepVariable(NODAL_MASS)   
     model_part.AddNodalSolutionStepVariable(NODAL_PAUX)   
-    model_part.AddNodalSolutionStepVariable(Y_WALL)      
+    model_part.AddNodalSolutionStepVariable(Y_WALL)
+    model_part.AddNodalSolutionStepVariable(FILLTIME)
+    model_part.AddNodalSolutionStepVariable(MAX_VEL)
     #model_part.AddNodalSolutionStepVariable(WET_VOLUME)     
     #variables needed for the distance solver
     levelset_solver.AddVariables(model_part,distance_settings)
@@ -72,7 +74,7 @@ class MonolithicSolver:
         self.model_part = model_part
         self.domain_size = domain_size
 
-        self.alpha = -0.3
+        self.alpha = -0.0
         self.move_mesh_strategy = 0
         self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched( self.alpha,self.move_mesh_strategy,self.domain_size )
         #self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
@@ -84,7 +86,7 @@ class MonolithicSolver:
 
         #pPrecond = DiagonalPreconditioner()
 ##        pPrecond = ILU0Preconditioner()
-        #self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+         #self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
         
 	#gmres_size = 30
 	#ilu_level_of_fill = 2
@@ -95,9 +97,9 @@ class MonolithicSolver:
         
         #new solvers
 	self.gmres_size = 50
-	self.tol = 1e-5
+	self.tol = 1e-3
 	self.verbosity = 0
-	self.linear_solver = AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI,AMGCLIterativeSolverType.BICGSTAB,self.tol,200,self.verbosity,self.gmres_size)         
+	self.linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.GMRES,self.tol,50,self.verbosity,self.gmres_size)         
 
         #definition of the convergence criteria
         self.rel_vel_tol = 1e-5
@@ -121,6 +123,7 @@ class MonolithicSolver:
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = False
         self.volume_correction = True
+        self.vol_cr_step = 2
     
 ##        print "Construction monolithic solver finished"
         
@@ -140,7 +143,7 @@ class MonolithicSolver:
 
         #constructing the convection solver for the distance
         self.level_set_solver = levelset_solver.Solver(self.level_set_model_part,domain_size,distance_settings)
-        self.level_set_solver.max_iterations = 8
+        self.level_set_solver.max_iter = 8
         
         ################################################
         #properties of the two fluids
@@ -176,6 +179,11 @@ class MonolithicSolver:
 
 	##volume correction
 	self.volume_correction_switch = True
+
+	##element size
+	self.maxmin=[]
+	ParticleLevelSetUtils3D().FindMaxMinEdgeSize(self.level_set_model_part,self.maxmin)
+	print self.maxmin
     #######################################################################	
     def ApplyFluidProperties(self):
         #apply density
@@ -183,7 +191,7 @@ class MonolithicSolver:
         #mu1 = self.mu
         #mu2 = 0.01*self.mu/self.rho2
         mu2 = mu1
-        
+        print "sssssssss ", mu1
         BiphasicFillingUtilities().ApplyFluidProperties(self.model_part,mu1,self.rho1,mu2,self.rho2)
 ##        for node in self.model_part.Nodes:
 ##            dist = node.GetSolutionStepValue(DISTANCE)
@@ -210,8 +218,8 @@ class MonolithicSolver:
 
         # LEvel_set solver initialization
         self.level_set_solver.dynamic_tau =self.dynamic_tau_levelset
-##        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
-        self.redistance_utils.CalculateInterfacePreservingDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
+        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
+        #self.redistance_utils.CalculateInterfacePreservingDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
         self.level_set_solver.linear_solver = AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.GMRES,self.tol,200,self.verbosity,self.gmres_size)
         self.level_set_solver.Initialize()
 
@@ -243,8 +251,8 @@ class MonolithicSolver:
     #######################################################################   
     def DoRedistance(self):	
 	#redistance if required
-        #self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
-        self.redistance_utils.CalculateInterfacePreservingDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
+        self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
+        #self.redistance_utils.CalculateInterfacePreservingDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
     
      #######################################################################   
     def ConvectDistance(self):
@@ -252,7 +260,7 @@ class MonolithicSolver:
         (self.level_set_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,distance_settings)
         (self.level_set_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,self.dynamic_tau_levelset)#self.dynamic_tau
 	(self.level_set_solver).Solve()
-	BiphasicFillingUtilities().DistanceFarRegionCorrection(self.model_part,  self.max_distance)
+	BiphasicFillingUtilities().DistanceFarRegionCorrection(self.model_part,  self.CFL)
      #######################################################################                 
       #######################################################################      
     def Solve(self,step):
@@ -271,10 +279,9 @@ class MonolithicSolver:
         Timer.Start("DoRedistance")
         if(self.internal_step_counter >= self.next_redistance):
 	  self.DoRedistance()
-	  #BiphasicFillingUtilities().DistanceFarRegionCorrection(self.model_part,  self.max_distance)	  
 	  self.next_redistance = self.internal_step_counter + self.redistance_frequency	  
         Timer.Stop("DoRedistance")
-        if(self.volume_correction_switch == True and step>10):
+        if(self.volume_correction_switch == True and step>self.vol_cr_step):
             net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
             BiphasicFillingUtilities().VolumeCorrection(self.model_part, net_volume)
         Timer.Start("ApplyFluidProperties")
