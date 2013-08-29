@@ -241,7 +241,7 @@ public:
 		      ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;		
 		      ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;	
 
-			  ind->FastGetSolutionStepValue(rTransferCoef) = 1.0;
+			  //ind->FastGetSolutionStepValue(rTransferCoef) = 1.0;
 			 // ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;
 		    }
 			
@@ -322,7 +322,7 @@ public:
 		ind->FastGetSolutionStepValue(SOLID_FRACTION) = 1.0;
 		ind->FastGetSolutionStepValue(SOLID_FRACTION_RATE) = 0.0;		
 		ind->FastGetSolutionStepValue(rDiffusionVar) = 1.0;
-	    ind->FastGetSolutionStepValue(rTransferCoef) = 1.0;
+	    //ind->FastGetSolutionStepValue(rTransferCoef) = 1.0;
 	    //ind->FastGetSolutionStepValue(rUnknownVar) = amb_temp;
 		}
 			
