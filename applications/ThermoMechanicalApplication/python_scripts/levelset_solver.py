@@ -13,7 +13,7 @@ def AddVariables(model_part,settings):
     model_part.AddNodalSolutionStepVariable(settings.GetConvectionVariable());  
     #model_part.AddNodalSolutionStepVariable(SPECIFIC_HEAT);
     #model_part.AddNodalSolutionStepVariable(settings.GetVolumeSourceVariable());
-    #model_part.AddNodalSolutionStepVariable(settings.GetDensityVariable());
+    model_part.AddNodalSolutionStepVariable(settings.GetDensityVariable());
     #model_part.AddNodalSolutionStepVariable(settings.GetDiffusionVariable());   
     #model_part.AddNodalSolutionStepVariable(HTC);    
     #model_part.AddNodalSolutionStepVariable(DISTANCE);     
