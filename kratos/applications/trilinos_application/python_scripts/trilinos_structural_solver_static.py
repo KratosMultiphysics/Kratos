@@ -78,12 +78,14 @@ class StaticStructuralSolver:
 ##        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part, self.time_scheme,self.structure_linear_solver, self.conv_criteria,  p_builder,self.max_iterations, self.CalculateReactionFlag,self.ReformDofSetAtEachStep, self.MoveMeshFlag)
         import trilinos_strategy_python
         self.solver = trilinos_strategy_python.SolvingStrategyPython(self.buildertype,self.model_part,self.time_scheme,self.structure_linear_solver,self.conv_criteria,self.CalculateReactionFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag,self.Comm,self.guess_row_size)
-        
+        self.solver.max_iter = self.max_iterations
  
                  
     #######################################################################   
     def Solve(self):
         (self.solver).Solve()
+        
+        
 
     #######################################################################   
     def SetEchoLevel(self,level):
