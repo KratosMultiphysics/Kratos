@@ -66,6 +66,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/geometry_utilities.h"
 //#include <omp.h>
 
+//#define SYMM_FORM
+
 namespace Kratos
 {
 //************************************************************************************
@@ -237,19 +239,33 @@ void SigmaUElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
 	nodal_disc_stress_vector[igauss].resize(StrainSize,false);
 	noalias(nodal_disc_stress_vector[igauss]) = prod(identity,discontinuous_strain);
 
+#ifndef SYMM_FORM
         //compute block 11
         for(unsigned int k=0; k<StrainSize; k++)
             for(unsigned int l=0; l<StrainSize; l++)
                 block11(igauss*StrainSize+k,igauss*StrainSize+l) += mArea0*weight*identity(k,l);
-
+#else
+        //compute block 11
+        for(unsigned int k=0; k<StrainSize; k++)
+            for(unsigned int l=0; l<StrainSize; l++)
+                block11(igauss*StrainSize+k,igauss*StrainSize+l) += mArea0*weight*C(k,l);
+		
+#endif
 	//compute s-u block (12)
         noalias(block12_aux) = mArea0*weight * prod(C,B);
 
+#ifndef SYMM_FORM
         //write block12_aux into block12
         for(unsigned int k=0; k<StrainSize; k++)
             for(unsigned int l=0; l<dim*nnodes; l++)
                 block12(igauss*StrainSize+k,l) = mArea0*weight*B(k,l);
-	    
+#else
+        //write block12_aux into block12
+        for(unsigned int k=0; k<StrainSize; k++)
+            for(unsigned int l=0; l<dim*nnodes; l++)
+                block12(igauss*StrainSize+k,l) = block12_aux(k,l);
+		
+#endif	    
         //write block12_aux into block12
         for(unsigned int k=0; k<StrainSize; k++)
             for(unsigned int l=0; l<dim*nnodes; l++)
@@ -353,8 +369,11 @@ void SigmaUElement::CalculateAll(MatrixType& rLeftHandSideMatrix,
         const double coeff = mArea0*weight*(1.0-tau);
         for(unsigned int l=0; l<StrainSize; l++)
         {
-
+#ifndef SYMM_FORM
             rRightHandSideVector[i_sigma_block_start+l] = coeff*(nodal_eps_vector[i][l] - discontinuous_strain[l] /*stress_discontinuous[l]*/ );
+#else
+	    rRightHandSideVector[i_sigma_block_start+l] = coeff*(stresses_vector[i][l] - stress_discontinuous[l] /*stress_discontinuous[l]*/ );    
+#endif
         }
 
         for(unsigned int l=0; l<dim; l++)
