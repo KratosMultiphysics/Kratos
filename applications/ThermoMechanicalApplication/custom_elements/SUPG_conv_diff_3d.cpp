@@ -232,10 +232,10 @@ void SUPGConvDiff3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, Vecto
     
     //add shock capturing 
     double art_visc = 0.0;
+    //CalculateArtifitialViscosity(art_visc, DN_DX, ms_vel_gauss,rUnknownVar,Volume,conductivity_scaled);
+    //noalias(rLeftHandSideMatrix) += art_visc * density * specific_heat  * Laplacian_Matrix;	    
     CalculateArtifitialViscosity(art_visc, DN_DX, ms_vel_gauss,rUnknownVar,Volume,conductivity_scaled);
-
-    noalias(rLeftHandSideMatrix) += art_visc * density * specific_heat  * Laplacian_Matrix;	    
-
+    noalias(rLeftHandSideMatrix) += art_visc * density * specific_heat * Laplacian_Matrix;	 
 
     //subtracting the dirichlet term
     // RHS -= LHS*temperatures
@@ -377,12 +377,13 @@ void SUPGConvDiff3D::CalculateArtifitialViscosity(double& art_visc,
 	  if(Peclet_parallel == 0.0)
 		 alpha = 0.0;
 	  else
-		 alpha = 3.0 - 1.0/Peclet_parallel;
+		 alpha =1.0 - 1.0/Peclet_parallel;
 	  
 	  if (alpha < 0.0)
 	       alpha = 0.0;
 	  
-	  art_visc = 100.0*0.5 * alpha * ele_length * a_parallel;
+	  //art_visc = 100.0*0.5 * alpha * ele_length * a_parallel;
+	  art_visc =  0.5 *  alpha * ele_length * a_parallel;
 	  
 	}
 	
