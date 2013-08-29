@@ -46,6 +46,8 @@ Kratos::Variable<double> SOLIDIF_MODULUS( "SOLIDIF MODULUS" );
 Kratos::Variable<double> FILLTIME( "FILLTIME (s)" );
 //KRATOS_CREATE_VARIABLE(double, FILLTIME );
 KRATOS_CREATE_VARIABLE(double, MACRO_POROSITY )    
+Kratos::Variable<double> MAX_VEL( "MAX_VEL (m/s)" );
+KRATOS_CREATE_VARIABLE(int, IS_GRAVITY_FILLING)
 
 KratosThermoMechanicalApplication::KratosThermoMechanicalApplication():
 // 		mElem2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
@@ -90,6 +92,8 @@ void KratosThermoMechanicalApplication::Register()
     KRATOS_REGISTER_VARIABLE(SOLIDIF_MODULUS)
     KRATOS_REGISTER_VARIABLE(MACRO_POROSITY)
     KRATOS_REGISTER_VARIABLE(FILLTIME)
+	KRATOS_REGISTER_VARIABLE(MAX_VEL)
+	KRATOS_REGISTER_VARIABLE(IS_GRAVITY_FILLING)
 // 		KRATOS_REGISTER_VARIABLE( AUX_MESH_VAR )
 // 		KRATOS_REGISTER_VARIABLE(IS_INTERFACE);
 // 		KRATOS_REGISTER_VARIABLE(NODAL_AREA);
