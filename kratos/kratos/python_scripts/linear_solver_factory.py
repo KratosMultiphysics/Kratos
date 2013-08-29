@@ -96,11 +96,28 @@ def ConstructSolver( configuration ):
 	import KratosMultiphysics.ExternalSolversApplication
 	tol = configuration.tolerance
 	max_it = configuration.max_iteration
-	restart = configuration.gmres_krylov_space_dimension
-	DropTol = configuration.DropTol
-	FillTol = configuration.FillTol
-	ilu_level_of_fill = configuration.ilu_level_of_fill
+	
+	if( hasattr(configuration,"gmres_krylov_space_dimension") ): restart = configuration.gmres_krylov_space_dimension
+	else: 
+            print "WARNING: restart not specitifed, setting it to the number of iterations"
+            restart = max_it
+	
+	if( hasattr(configuration,"DropTol") ): DropTol = configuration.DropTol
+	else:
+            print "WARNING: DropTol not specified, setting it to 1e-4"
+            DropTol = 1e-4
+	
+	if( hasattr(configuration,"FillTol") ): FillTol = configuration.FillTol
+	else:
+            print "WARNING: FillTol not specified, setting it to 1e-2"
+            FillTol = 1e-2
+	
+	if( hasattr(configuration,"ilu_level_of_fill") ): ilu_level_of_fill = configuration.ilu_level_of_fill
+	else: 
+            print "WARNING: level of fill not specified, setting it to 10"
+            ilu_level_of_fill=10
 	linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUIterativeSolver(tol,max_it,restart,DropTol,FillTol,ilu_level_of_fill)
+		
     #######################################################################################
     elif(solver_type == "PastixDirect"):  
 	import KratosMultiphysics.ExternalSolversApplication
@@ -136,30 +153,36 @@ def ConstructSolver( configuration ):
 	verbosity = 0
 	if hasattr(configuration, 'verbosity'):
 	    verbosity = configuration.verbosity
-	    
-	smoother_type  	= configuration.smoother_type #options are DAMPED_JACOBI, ILU0, SPAI
-		
-	if(smoother_type == "ILU0"): 
-	    amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.ILU0
-	elif(smoother_type == "DAMPED_JACOBI"): 
-	    amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.DAMPED_JACOBI
-	elif(smoother_type == "SPAI0"): 
-	    amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.SPAI0
-	else:
-	    print "ERROR: smoother_type shall be one of ILU0, DAMPED_JACOBI, SPAI0"
-	    return None
+	  
+	if hasattr(configuration, 'smoother_type'):
+          smoother_type  	= configuration.smoother_type #options are DAMPED_JACOBI, ILU0, SPAI		
+          if(smoother_type == "ILU0"): 
+              amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.ILU0
+          elif(smoother_type == "DAMPED_JACOBI"): 
+              amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.DAMPED_JACOBI
+          elif(smoother_type == "SPAI0"): 
+              amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.SPAI0
+          else:
+              print "ERROR: smoother_type shall be one of ILU0, DAMPED_JACOBI, SPAI0"
+              return None
+        else:
+          print "WARNING: smoother_type not prescribed for AMGCL solver, setting it to ILU0"
+          amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.ILU0
 
-	krylov_type    	= configuration.krylov_type #options are GMRES, BICGSTAB, CG
-	if(krylov_type == "GMRES"): 
-	    amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.GMRES
-	elif(krylov_type == "BICGSTAB"): 
-	    amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.BICGSTAB
-	elif(krylov_type == "CG"): 
-	    amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.CG
-	else:
-	    print "ERROR: krylov_type shall be one of GMRES, BICGSTAB, CG"
-	    return None
-
+        if hasattr(configuration, 'krylov_type'):
+          krylov_type    	= configuration.krylov_type #options are GMRES, BICGSTAB, CG
+          if(krylov_type == "GMRES"): 
+              amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.GMRES
+          elif(krylov_type == "BICGSTAB"): 
+              amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.BICGSTAB
+          elif(krylov_type == "CG"): 
+              amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.CG
+          else:
+              print "ERROR: krylov_type shall be one of GMRES, BICGSTAB, CG"
+              return None
+        else:
+              print "WARNING: krylov_type not prescribed for AMGCL solver, setting it to GMRES"
+              amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.GMRES
 	
 	if hasattr(configuration, 'gmres_krylov_space_dimension'):
 	    m = configuration.gmres_krylov_space_dimension
