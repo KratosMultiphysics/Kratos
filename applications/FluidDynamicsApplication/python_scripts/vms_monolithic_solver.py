@@ -207,23 +207,23 @@ class MonolithicSolver:
 def CreateSolver( model_part, config ):
     fluid_solver = MonolithicSolver( model_part, config.domain_size )
     
-    fluid_solver.alpha = config.alpha
+    if( hasattr(config,"alpha") ): fluid_solver.alpha = config.alpha
     
     # definition of the convergence criteria
-    self.rel_vel_tol = config.rel_vel_tol
-    self.abs_vel_tol = config.abs_vel_tol
-    self.rel_pres_tol = config.rel_pres_tol
-    self.abs_pres_tol = config.abs_pres_tol
-    self.dynamic_tau = config.dynamic_tau
-    self.oss_switch = config.oss_switch
-    self.max_iter = config.max_iter
-    self.echo_level = config.echo_level
-    self.compute_reactions = config.compute_reactions
-    self.ReformDofSetAtEachStep = config.ReformDofSetAtEachStep
-    self.use_spalart_allmaras = config.use_spalart_allmaras
-    self.use_des = config.use_des
+    if( hasattr(config,"velocity_relative_tolerance") ): fluid_solver.rel_vel_tol = config.velocity_relative_tolerance
+    if( hasattr(config,"velocity_absolute_tolerance") ): fluid_solver.abs_vel_tol = config.velocity_absolute_tolerance
+    if( hasattr(config,"pressure_relative_tolerance") ): fluid_solver.rel_pres_tol = config.pressure_relative_tolerance
+    if( hasattr(config,"pressure_absolute_tolerance") ): fluid_solver.abs_pres_tol = config.pressure_absolute_tolerance
+    if( hasattr(config,"dynamic_tau") ): fluid_solver.dynamic_tau = config.dynamic_tau
+    if( hasattr(config,"oss_switch") ): fluid_solver.oss_switch = config.oss_switch
+    if( hasattr(config,"max_iteration") ): fluid_solver.max_iter = config.max_iteration
+    if( hasattr(config,"echo_level") ): fluid_solver.echo_level = config.echo_level
+    if( hasattr(config,"compute_reactions") ): fluid_solver.compute_reactions = config.compute_reactions
+    if( hasattr(config,"ReformDofSetAtEachStep") ): fluid_solver.ReformDofSetAtEachStep = config.ReformDofSetAtEachStep
+    if( hasattr(config,"use_spalart_allmaras") ): fluid_solver.use_spalart_allmaras = config.use_spalart_allmaras
+    if( hasattr(config,"use_des") ): fluid_solver.use_des = config.use_des
         
     import linear_solver_factory
-    self.linear_solver =  linear_solver_factory.ConstructSolver(solver_settings_2.linear_solver_config)
+    if( hasattr(config,"linear_solver_config") ): fluid_solver.linear_solver =  linear_solver_factory.ConstructSolver(config.linear_solver_config)
     
     return fluid_solver
