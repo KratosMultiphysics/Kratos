@@ -131,11 +131,14 @@ namespace Kratos
 				 else if(distance < min_distance)
 					 min_distance = distance;
 
-				 /*if(distance <= 0.0 && slip_flag == 10.0){
-					double nd_temp = i_node->FastGetSolutionStepValue(TEMPERATURE);
-					if(nd_temp < min_mat_temp)
-						min_mat_temp = nd_temp;
-				 }*/
+				 //save max_vel in each node
+				 if(distance<0.0){
+				 const  array_1d<double, 3 > node_vel = i_node->FastGetSolutionStepValue(VELOCITY);
+				 double& max_vel = i_node->FastGetSolutionStepValue(MAX_VEL);
+				 double nomr_vel = norm_2(node_vel);
+				 if( nomr_vel> max_vel )
+					 max_vel = nomr_vel;
+				 }
 
 			 }
 
