@@ -99,7 +99,7 @@ LaplacianMeshMovingElem3D::~LaplacianMeshMovingElem3D()
 void LaplacianMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    unsigned int number_of_points = 3;
+    unsigned int number_of_points = GetGeometry().PointsNumber();
 
     if(rLeftHandSideMatrix.size1() != number_of_points)
         rLeftHandSideMatrix.resize(number_of_points,number_of_points);
@@ -122,7 +122,7 @@ void LaplacianMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     const array_1d<double,3>& disp0 = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
     const array_1d<double,3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT);
     const array_1d<double,3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT);
-    const array_1d<double,3>& disp3 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT);
+    const array_1d<double,3>& disp3 = GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT);
 
     //dirichlet contribution
     ms_temp_vec_np[0] = disp0[ComponentIndex];
