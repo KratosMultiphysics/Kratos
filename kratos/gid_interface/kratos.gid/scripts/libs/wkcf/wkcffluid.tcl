@@ -59,7 +59,7 @@ proc ::wkcf::WritePropertyAtNodes {AppId} {
 
     # For debug
     if {!$::wkcf::pflag} {
-        set inittime [clock seconds]
+	set inittime [clock seconds]
     }
 
     set cproperty "dv"
@@ -79,44 +79,44 @@ proc ::wkcf::WritePropertyAtNodes {AppId} {
     # Check for all defined kratos elements
     if {$flag} {
 	
-        # Write viscosity and density for each node identifier
-        set Density 0.0; set Viscosity 0.0; set BulkMod 0.0
-        lassign [::wkcf::GetDensityViscosityValues $AppId] Density Viscosity BulkMod
-        # WarnWinText "Density:$Density Viscosity:$Viscosity"
+	# Write viscosity and density for each node identifier
+	set Density 0.0; set Viscosity 0.0; set BulkMod 0.0
+	lassign [::wkcf::GetDensityViscosityValues $AppId] Density Viscosity BulkMod
+	# WarnWinText "Density:$Density Viscosity:$Viscosity"
 
-        set kxpath "Materials"
-        set cpropid "0"        
+	set kxpath "Materials"
+	set cpropid "0"        
 
-        # Write the group nodal properties
-        foreach celemid $dprops($AppId,AllKElemId) {
-            # Check for all defined group identifier for this element
-            if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
-                # For all defined group identifier for this element
-                foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {		    
-                    # Write viscosity value for this group
-                    if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
-                        set vkword [::xmlutils::getKKWord $kxpath "Viscosity" "kkword"]
-                        GiD_File fprintf $filechannel "%s" "Begin NodalData $vkword \/\/ GUI group identifier: $cgroupid"
-                        foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                            GiD_File fprintf $filechannel "%10i %4i %4s" $node_id $cpropid $Viscosity
-                        }
-                        GiD_File fprintf $filechannel "%s " "End NodalData"
-                        GiD_File fprintf $filechannel ""
-                    }
+	# Write the group nodal properties
+	foreach celemid $dprops($AppId,AllKElemId) {
+	    # Check for all defined group identifier for this element
+	    if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
+		# For all defined group identifier for this element
+		foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {                    
+		    # Write viscosity value for this group
+		    if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
+		        set vkword [::xmlutils::getKKWord $kxpath "Viscosity" "kkword"]
+		        GiD_File fprintf $filechannel "%s" "Begin NodalData $vkword \/\/ GUI group identifier: $cgroupid"
+		        foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		            GiD_File fprintf $filechannel "%10i %4i %4s" $node_id $cpropid $Viscosity
+		        }
+		        GiD_File fprintf $filechannel "%s " "End NodalData"
+		        GiD_File fprintf $filechannel ""
+		    }
 
-                    # Write density value for this group
-                    if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
-                        set vkword [::xmlutils::getKKWord $kxpath "Density" "kkword"]
-                        GiD_File fprintf $filechannel "%s" "Begin NodalData $vkword \/\/ GUI group identifier: $cgroupid"
-                        foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                            GiD_File fprintf $filechannel "%10i %4i %4s" $node_id $cpropid $Density
-                        }
-                        GiD_File fprintf $filechannel "%s" "End NodalData"
-                        GiD_File fprintf $filechannel "%s" ""
-                    }
-                }
-            }
-        }
+		    # Write density value for this group
+		    if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
+		        set vkword [::xmlutils::getKKWord $kxpath "Density" "kkword"]
+		        GiD_File fprintf $filechannel "%s" "Begin NodalData $vkword \/\/ GUI group identifier: $cgroupid"
+		        foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		            GiD_File fprintf $filechannel "%10i %4i %4s" $node_id $cpropid $Density
+		        }
+		        GiD_File fprintf $filechannel "%s" "End NodalData"
+		        GiD_File fprintf $filechannel "%s" ""
+		    }
+		}
+	    }
+	}
     }
 
     # Try to write the levelset properties
@@ -125,59 +125,59 @@ proc ::wkcf::WritePropertyAtNodes {AppId} {
   
     # For free surface
     if {$FreeSurface =="Yes"} {
-        if {[info exists dprops($AppId,AllPorousZonesTypeId)] && [llength $dprops($AppId,AllPorousZonesTypeId)]} {
-            # Get the application root identifier    
-            set rootdataid $AppId
-            set cpropid "0"       
-            set cxpath "$rootdataid//c.SolutionStrategy//c.[list ${contid}]//i.UseErgunEquation"
-            set UseErgunEquation [::xmlutils::setXml $cxpath $cproperty]
-            # wa "UseErgunEquation:$UseErgunEquation"
+	if {[info exists dprops($AppId,AllPorousZonesTypeId)] && [llength $dprops($AppId,AllPorousZonesTypeId)]} {
+	    # Get the application root identifier    
+	    set rootdataid $AppId
+	    set cpropid "0"       
+	    set cxpath "$rootdataid//c.SolutionStrategy//c.[list ${contid}]//i.UseErgunEquation"
+	    set UseErgunEquation [::xmlutils::setXml $cxpath $cproperty]
+	    # wa "UseErgunEquation:$UseErgunEquation"
 
-            # Write the group nodal properties
-            foreach czonetypeid $dprops($AppId,AllPorousZonesTypeId) {
-                set cproplist [list]
-                if {(($czonetypeid eq "ErgunEquationNo") && ($UseErgunEquation eq "No"))} {
-                    set cproplist [list "PorosityValue" "LinearDarcyCoefficient" "NonLinearDarcyCoefficient"]
-                } elseif {(($czonetypeid eq "ErgunEquationYes") && ($UseErgunEquation eq "Yes"))} {
-                    set cproplist [list "PorosityValue" "DiameterValue"]
-                }
-                if {![llength $cproplist]} {
-                    continue
-                }
-                # wa "czonetypeid:$czonetypeid cproplist:$cproplist"
-                # Check for all defined group identifier for this zone type
-                if {([info exists dprops($AppId,$contid,$czonetypeid,AllGroupId)]) && ([llength $dprops($AppId,$contid,$czonetypeid,AllGroupId)])} {
-                    # For all defined group identifier for this zone type
-                    foreach cgroupid $dprops($AppId,$contid,$czonetypeid,AllGroupId) {
-                        # wa "cgroupid:$cgroupid"
-                        if {[info exists dprops($AppId,$contid,$czonetypeid,$cgroupid,GProps)] && [llength $dprops($AppId,$contid,$czonetypeid,$cgroupid,GProps)]} {
-                            foreach pid $cproplist pvalue $dprops($AppId,$contid,$czonetypeid,$cgroupid,GProps) {
-                                # wa "pid:$pid pvalue:$pvalue"
-                                # Write the current variable value for this group
-                                if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
-                                    set vkword [::xmlutils::getKKWord $kxpath "$pid" "kkword"]
-                                    # wa "vkword:$vkword"
-                                    GiD_File fprintf $filechannel "%s" "Begin NodalData $vkword \/\/ GUI group identifier: $cgroupid"
-                                    foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                                        GiD_File fprintf $filechannel "%10i %4i %s" $node_id $cpropid $pvalue
-                                    }
-                                    GiD_File fprintf $filechannel "%s" "End NodalData"
-                                    GiD_File fprintf $filechannel "%s" ""
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+	    # Write the group nodal properties
+	    foreach czonetypeid $dprops($AppId,AllPorousZonesTypeId) {
+		set cproplist [list]
+		if {(($czonetypeid eq "ErgunEquationNo") && ($UseErgunEquation eq "No"))} {
+		    set cproplist [list "PorosityValue" "LinearDarcyCoefficient" "NonLinearDarcyCoefficient"]
+		} elseif {(($czonetypeid eq "ErgunEquationYes") && ($UseErgunEquation eq "Yes"))} {
+		    set cproplist [list "PorosityValue" "DiameterValue"]
+		}
+		if {![llength $cproplist]} {
+		    continue
+		}
+		# wa "czonetypeid:$czonetypeid cproplist:$cproplist"
+		# Check for all defined group identifier for this zone type
+		if {([info exists dprops($AppId,$contid,$czonetypeid,AllGroupId)]) && ([llength $dprops($AppId,$contid,$czonetypeid,AllGroupId)])} {
+		    # For all defined group identifier for this zone type
+		    foreach cgroupid $dprops($AppId,$contid,$czonetypeid,AllGroupId) {
+		        # wa "cgroupid:$cgroupid"
+		        if {[info exists dprops($AppId,$contid,$czonetypeid,$cgroupid,GProps)] && [llength $dprops($AppId,$contid,$czonetypeid,$cgroupid,GProps)]} {
+		            foreach pid $cproplist pvalue $dprops($AppId,$contid,$czonetypeid,$cgroupid,GProps) {
+		                # wa "pid:$pid pvalue:$pvalue"
+		                # Write the current variable value for this group
+		                if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
+		                    set vkword [::xmlutils::getKKWord $kxpath "$pid" "kkword"]
+		                    # wa "vkword:$vkword"
+		                    GiD_File fprintf $filechannel "%s" "Begin NodalData $vkword \/\/ GUI group identifier: $cgroupid"
+		                    foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		                        GiD_File fprintf $filechannel "%10i %4i %s" $node_id $cpropid $pvalue
+		                    }
+		                    GiD_File fprintf $filechannel "%s" "End NodalData"
+		                    GiD_File fprintf $filechannel "%s" ""
+		                }
+		            }
+		        }
+		    }
+		}
+	    }
+	}
     }
 
     # For debug
     if {!$::wkcf::pflag} {
-        set endtime [clock seconds]
-        set ttime [expr $endtime-$inittime]
-        # WarnWinText "endtime:$endtime ttime:$ttime"
-        WarnWinText "Write property at nodes: [::KUtils::Duration $ttime]"
+	set endtime [clock seconds]
+	set ttime [expr $endtime-$inittime]
+	# WarnWinText "endtime:$endtime ttime:$ttime"
+	WarnWinText "Write property at nodes: [::KUtils::Duration $ttime]"
     }
 }
 
@@ -190,37 +190,37 @@ proc ::wkcf::GetDensityViscosityValues {AppId} {
     # wa "flag:$flag"
     
     if {$flag} {
-        set cproplist [list "Density" "Viscosity" "BulkModulus"]
-        foreach PropertyId $dprops($AppId,GKProps,AllPropertyId) {
-            # Get the material identifier for this property 
-            set MatId $dprops($AppId,Property,$PropertyId,MatId) 
-            # Get the group identifier
-            set GroupId $dprops($AppId,Property,$PropertyId,GroupId)
-            # Get all material properties
-            set mpxpath "[::KMat::findMaterialParent $MatId]//m.[list ${MatId}]"
-            # WarnWinText "mpxpath:$mpxpath"
-            # Get the material properties
-            foreach pid $cproplist {
-            if {$pid =="Density"} {
-                set xpath "c.General"
-                # Get the current value for this properties
-                set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
-                set Density [GiD_FormatReal "%10.5e" $cvalue]
-            } elseif {$pid =="Viscosity"} {
-                set xpath "c.Fluid"
-                # Get the current value for this properties
-                set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
-                set Viscosity [GiD_FormatReal "%10.5e" $cvalue]
-            } elseif {$pid =="BulkModulus"} {
-                set xpath "c.Fluid"
-                # Get the current value for this properties
-                set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
-                set BulkMod [GiD_FormatReal "%10.5e" $cvalue]
-            }
-            }
-            # Only the first property
-            break 
-        }
+	set cproplist [list "Density" "Viscosity" "BulkModulus"]
+	foreach PropertyId $dprops($AppId,GKProps,AllPropertyId) {
+	    # Get the material identifier for this property 
+	    set MatId $dprops($AppId,Property,$PropertyId,MatId) 
+	    # Get the group identifier
+	    set GroupId $dprops($AppId,Property,$PropertyId,GroupId)
+	    # Get all material properties
+	    set mpxpath "[::KMat::findMaterialParent $MatId]//m.[list ${MatId}]"
+	    # WarnWinText "mpxpath:$mpxpath"
+	    # Get the material properties
+	    foreach pid $cproplist {
+	    if {$pid =="Density"} {
+		set xpath "c.General"
+		# Get the current value for this properties
+		set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
+		set Density [GiD_FormatReal "%10.5e" $cvalue]
+	    } elseif {$pid =="Viscosity"} {
+		set xpath "c.Fluid"
+		# Get the current value for this properties
+		set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
+		set Viscosity [GiD_FormatReal "%10.5e" $cvalue]
+	    } elseif {$pid =="BulkModulus"} {
+		set xpath "c.Fluid"
+		# Get the current value for this properties
+		set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
+		set BulkMod [GiD_FormatReal "%10.5e" $cvalue]
+	    }
+	    }
+	    # Only the first property
+	    break 
+	}
     }
     return [list $Density $Viscosity $BulkMod]
 }
@@ -233,10 +233,10 @@ proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist flagvariablelist kwor
     # WarnWinText "inletvelglist:$inletvelglist\nnoslipglist:$noslipglist\nflagvariablelist:$flagvariablelist\nkwordlist:$kwordlist"
    
     if {([llength $inletvelglist]) || ([llength $noslipglist])} {
-        # For debug
-        if {!$::wkcf::pflag} {
-            set inittime [clock seconds]
-        }
+	# For debug
+	if {!$::wkcf::pflag} {
+	    set inittime [clock seconds]
+	}
 
     # Map Inlet-NoSlip => Use no-slip values at share nodes
     set icondid "InletVelocity"; set nscondid "No-Slip"
@@ -246,270 +246,270 @@ proc ::wkcf::WriteFluidBC {AppId inletvelglist noslipglist flagvariablelist kwor
     set zitem [lindex $kwordlist 2]
     
     if {[llength $noslipglist]} {
-        # Write all no-slip condition
-        
-        # For each group in the no-slip condition
-        foreach nsgroupid $noslipglist {
-            lassign $dprops($AppId,BC,$nscondid,$nsgroupid,GProps) nsx nsxval nsy nsyval nsz nszval
+	# Write all no-slip condition
+	
+	# For each group in the no-slip condition
+	foreach nsgroupid $noslipglist {
+	    lassign $dprops($AppId,BC,$nscondid,$nsgroupid,GProps) nsx nsxval nsy nsyval nsz nszval
 
-            # X component
-            if {$nsx} {
-                if { [GiD_EntitiesGroups get $nsgroupid nodes -count] } {
-                    GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem \/\/ No-slip condition GUI group identifier: $nsgroupid"
-                    foreach node_id [GiD_EntitiesGroups get $nsgroupid nodes] {
-                        GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $nsxval
-                    }
-                    GiD_File fprintf $filechannel "%s" "End NodalData"
-                    GiD_File fprintf $filechannel ""
-                }
-            }
-            
-            # Y component
-            if {$nsy} {
-                if { [GiD_EntitiesGroups get $nsgroupid nodes -count] } {
-                    GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem \/\/ No-slip condition GUI group identifier: $nsgroupid"
-                    foreach node_id [GiD_EntitiesGroups get $nsgroupid nodes] {
-                        GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $nsyval
-                    }
-                    GiD_File fprintf $filechannel "%s" "End NodalData"
-                    GiD_File fprintf $filechannel ""
-                }
-            }
-            
-            # Z component
-            if {$ndime =="3D"} {
-                if {$nsz} {
-                    if { [GiD_EntitiesGroups get $nsgroupid nodes -count] } {
-                    GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem \/\/ No-slip condition GUI group identifier: $nsgroupid"
-                    foreach node_id [GiD_EntitiesGroups get $nsgroupid nodes] {
-                        GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $nszval
-                    }
-                    GiD_File fprintf $filechannel "%s" "End NodalData"
-                    GiD_File fprintf $filechannel ""
-                }
-                }
-            }
-        }
+	    # X component
+	    if {$nsx} {
+		if { [GiD_EntitiesGroups get $nsgroupid nodes -count] } {
+		    GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem \/\/ No-slip condition GUI group identifier: $nsgroupid"
+		    foreach node_id [GiD_EntitiesGroups get $nsgroupid nodes] {
+		        GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $nsxval
+		    }
+		    GiD_File fprintf $filechannel "%s" "End NodalData"
+		    GiD_File fprintf $filechannel ""
+		}
+	    }
+	    
+	    # Y component
+	    if {$nsy} {
+		if { [GiD_EntitiesGroups get $nsgroupid nodes -count] } {
+		    GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem \/\/ No-slip condition GUI group identifier: $nsgroupid"
+		    foreach node_id [GiD_EntitiesGroups get $nsgroupid nodes] {
+		        GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $nsyval
+		    }
+		    GiD_File fprintf $filechannel "%s" "End NodalData"
+		    GiD_File fprintf $filechannel ""
+		}
+	    }
+	    
+	    # Z component
+	    if {$ndime =="3D"} {
+		if {$nsz} {
+		    if { [GiD_EntitiesGroups get $nsgroupid nodes -count] } {
+		    GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem \/\/ No-slip condition GUI group identifier: $nsgroupid"
+		    foreach node_id [GiD_EntitiesGroups get $nsgroupid nodes] {
+		        GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $nszval
+		    }
+		    GiD_File fprintf $filechannel "%s" "End NodalData"
+		    GiD_File fprintf $filechannel ""
+		}
+		}
+	    }
+	}
     }
     
     # Use first the inlet
     if {([llength $inletvelglist]) && ([llength $noslipglist])} {
-        # Check to match node identifier
-        set condmatch [dict create]
-        # For each group in the no-slip condition
-        foreach nsgroupid $noslipglist {
-            lassign $dprops($AppId,BC,$nscondid,$nsgroupid,GProps) cx cxval cy cyval cz czval
-            # wa "nsgroupid:$nsgroupid cx:$cx cxval:$cxval cy:$cy cyval:$cyval cz:$cz czval:$czval"
-            if {[GiD_EntitiesGroups get $nsgroupid nodes -count] } {
-                # For each node in the no-slip bc update the condmatch 
-                foreach nsnodeid [GiD_EntitiesGroups get $nsgroupid nodes] {
-                    dict set condmatch $nsnodeid [list $cx $cy $cz]
-                }
-            }
-        }
-        
-        # For all inlet velocity group identifier
-        set ixcomp ""; set iycomp ""; set izcomp ""
-        foreach igroupid $inletvelglist {
-            lassign $dprops($AppId,BC,$icondid,$igroupid,GProps) ix ixval iy iyval iz izval
+	# Check to match node identifier
+	set condmatch [dict create]
+	# For each group in the no-slip condition
+	foreach nsgroupid $noslipglist {
+	    lassign $dprops($AppId,BC,$nscondid,$nsgroupid,GProps) cx cxval cy cyval cz czval
+	    # wa "nsgroupid:$nsgroupid cx:$cx cxval:$cxval cy:$cy cyval:$cyval cz:$cz czval:$czval"
+	    if {[GiD_EntitiesGroups get $nsgroupid nodes -count] } {
+		# For each node in the no-slip bc update the condmatch 
+		foreach nsnodeid [GiD_EntitiesGroups get $nsgroupid nodes] {
+		    dict set condmatch $nsnodeid [list $cx $cy $cz]
+		}
+	    }
+	}
+	
+	# For all inlet velocity group identifier
+	set ixcomp ""; set iycomp ""; set izcomp ""
+	foreach igroupid $inletvelglist {
+	    lassign $dprops($AppId,BC,$icondid,$igroupid,GProps) ix ixval iy iyval iz izval
 	    # wa "igroupid:$igroupid ix:$ix iy:$iy iz:$iz"
-            # Set the inlet format dictionary
-            if {[GiD_EntitiesGroups get $igroupid nodes -count]} {
-                # 3D problems
-                if {$ndime =="3D"} {
-                    # For each node in the inlet bc ckeck to write this node
-                    foreach inodeid [GiD_EntitiesGroups get $igroupid nodes] {
-                        # WarnWinText "inodeid:$inodeid"
-                        # Check that this node identifier exists in the dictionary
-                        if {[dict exists $condmatch $inodeid]} {
-                            # Get the properties
-                            lassign [dict get $condmatch $inodeid] nsx nsy nsz
-                            # X component => Check x flag
-                            if {($ix) && ($nsx=="0")} {
-                                # Write this node identifier
-                                append ixcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $ixval]\n"
-                            }
-                            # Y component => Check y flag
-                            if {($iy) && ($nsy=="0")} {
-                                # Write this node identifier
-                                append iycomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $iyval]\n"
-                            }
-                            # Z component => Check z flag
-                            if {($iz) && ($nsz=="0")} {
-                                # Write this node identifier
-                                append izcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $izval]\n"
-                            }
-                        } else {
-                            # Write this node identifier
-                            # X component => Check x flag
-                            if {$ix} {
-                                # Write this node identifier
-                                append ixcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $ixval]\n"
-                            }
-                            # Y component => Check y flag
-                            if {$iy} {
-                                # Write this node identifier
-                                append iycomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $iyval]\n"
-                            }
-                            # Z component => Check z flag
-                            if {$iz} {
-                                # Write this node identifier
-                                append izcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $izval]\n"
-                            }
-                        }
-                    }
-                    # Write this group identifier
-                    if {[string length $ixcomp]} {
-                        GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
-                        GiD_File fprintf $filechannel "%s" $ixcomp
-                        GiD_File fprintf $filechannel "%s" "End NodalData"
-                        GiD_File fprintf $filechannel ""
-                    }
-                    if {[string length $iycomp]} {
-                        GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
-                        GiD_File fprintf $filechannel "%s" $iycomp
-                        GiD_File fprintf $filechannel "%s" "End NodalData"
-                        GiD_File fprintf $filechannel ""
-                    }
-                    if {[string length $izcomp]} {
-                        GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
-                        GiD_File fprintf $filechannel "%s" $izcomp
-                        GiD_File fprintf $filechannel "%s" "End NodalData"
-                        GiD_File fprintf $filechannel ""
-                    }
-                    
-                } elseif {$ndime =="2D"} {
-                    # For each node in the inlet bc ckeck to write this node
-                    foreach inodeid [GiD_EntitiesGroups get $igroupid nodes] {
-			# WarnWinText "inodeid:$inodeid"
-                        # Check that this node identifier exists in the dictionary
-                        if {[dict exists $condmatch $inodeid]} {
-                            # Get the properties
-                            lassign [dict get $condmatch $inodeid] nsx nsy nsz
-                            # X component => Check x flag
-                            if {($ix) && ($nsx=="0")} {
-                                # Write this node identifier
-                                lappend ixcomp $inodeid $cpropid $ixval
-                            }
-                            # Y component => Check y flag
-                            if {($iy) && ($nsy=="0")} {
-                                # Write this node identifier
-                                lappend iycomp $inodeid $cpropid $iyval
-                            }
-                        } else {
-                            # Write this node identifier
-                            # X component => Check x flag
-                            if {$ix} {
-                                # Write this node identifier
-                                lappend ixcomp $inodeid $cpropid $ixval
-                            }
-                            # Y component => Check y flag
-                            if {$iy} {
-                                # Write this node identifier
-                                lappend iycomp $inodeid $cpropid $iyval
-                            }
-                        }
-                    }
+	    # Set the inlet format dictionary
+	    if {[GiD_EntitiesGroups get $igroupid nodes -count]} {
+		# 3D problems
+		if {$ndime =="3D"} {
+		    # For each node in the inlet bc ckeck to write this node
+		    foreach inodeid [GiD_EntitiesGroups get $igroupid nodes] {
+		        # WarnWinText "inodeid:$inodeid"
+		        # Check that this node identifier exists in the dictionary
+		        if {[dict exists $condmatch $inodeid]} {
+		            # Get the properties
+		            lassign [dict get $condmatch $inodeid] nsx nsy nsz
+		            # X component => Check x flag
+		            if {($ix) && ($nsx=="0")} {
+		                # Write this node identifier
+		                append ixcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $ixval]\n"
+		            }
+		            # Y component => Check y flag
+		            if {($iy) && ($nsy=="0")} {
+		                # Write this node identifier
+		                append iycomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $iyval]\n"
+		            }
+		            # Z component => Check z flag
+		            if {($iz) && ($nsz=="0")} {
+		                # Write this node identifier
+		                append izcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $izval]\n"
+		            }
+		        } else {
+		            # Write this node identifier
+		            # X component => Check x flag
+		            if {$ix} {
+		                # Write this node identifier
+		                append ixcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $ixval]\n"
+		            }
+		            # Y component => Check y flag
+		            if {$iy} {
+		                # Write this node identifier
+		                append iycomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $iyval]\n"
+		            }
+		            # Z component => Check z flag
+		            if {$iz} {
+		                # Write this node identifier
+		                append izcomp "[format "%8i%8i" $inodeid $cpropid]   [GiD_FormatReal "%10.5e" $izval]\n"
+		            }
+		        }
+		    }
+		    # Write this group identifier
+		    if {[string length $ixcomp]} {
+		        GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
+		        GiD_File fprintf $filechannel "%s" $ixcomp
+		        GiD_File fprintf $filechannel "%s" "End NodalData"
+		        GiD_File fprintf $filechannel ""
+		    }
+		    if {[string length $iycomp]} {
+		        GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
+		        GiD_File fprintf $filechannel "%s" $iycomp
+		        GiD_File fprintf $filechannel "%s" "End NodalData"
+		        GiD_File fprintf $filechannel ""
+		    }
+		    if {[string length $izcomp]} {
+		        GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
+		        GiD_File fprintf $filechannel "%s" $izcomp
+		        GiD_File fprintf $filechannel "%s" "End NodalData"
+		        GiD_File fprintf $filechannel ""
+		    }
+		    
+		} elseif {$ndime =="2D"} {
+		    # For each node in the inlet bc ckeck to write this node
+		    foreach inodeid [GiD_EntitiesGroups get $igroupid nodes] {
+		        # WarnWinText "inodeid:$inodeid"
+		        # Check that this node identifier exists in the dictionary
+		        if {[dict exists $condmatch $inodeid]} {
+		            # Get the properties
+		            lassign [dict get $condmatch $inodeid] nsx nsy nsz
+		            # X component => Check x flag
+		            if {($ix) && ($nsx=="0")} {
+		                # Write this node identifier
+		                lappend ixcomp $inodeid $cpropid $ixval
+		            }
+		            # Y component => Check y flag
+		            if {($iy) && ($nsy=="0")} {
+		                # Write this node identifier
+		                lappend iycomp $inodeid $cpropid $iyval
+		            }
+		        } else {
+		            # Write this node identifier
+		            # X component => Check x flag
+		            if {$ix} {
+		                # Write this node identifier
+		                lappend ixcomp $inodeid $cpropid $ixval
+		            }
+		            # Y component => Check y flag
+		            if {$iy} {
+		                # Write this node identifier
+		                lappend iycomp $inodeid $cpropid $iyval
+		            }
+		        }
+		    }
 		    # wa "ixcomp:$ixcomp iycomp:$iycomp"
-                    # Write this group identifier
-                    if {[string length $ixcomp]} {
-                        GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
-                        foreach { inodeid cpropid ixval } $ixcomp {
-			    GiD_File fprintf $filechannel "%8i %8i %10.5e" $inodeid $cpropid $ixval
-                        }
-                        GiD_File fprintf $filechannel "%s" "End NodalData"
-                        GiD_File fprintf $filechannel ""
-                    }
-                    if {[string length $iycomp]} {
-                        GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
-                        foreach { inodeid cpropid iyval } $iycomp {
-                            GiD_File fprintf $filechannel "%8i %8i %10.5e" $inodeid $cpropid $iyval
-                        }
-                        GiD_File fprintf $filechannel "%s" "End NodalData"
-                        GiD_File fprintf $filechannel ""
-                    }
-                }
-            }
-            # Reset ixcomp, iycomp and zcomp
-            set ixcomp ""; set iycomp ""; set izcomp ""
-        }
-        
-        # unset dictionary variable
-        unset condmatch
+		    # Write this group identifier
+		    if {[string length $ixcomp]} {
+		        GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
+		        foreach { inodeid cpropid ixval } $ixcomp {
+		            GiD_File fprintf $filechannel "%8i %8i %10.5e" $inodeid $cpropid $ixval
+		        }
+		        GiD_File fprintf $filechannel "%s" "End NodalData"
+		        GiD_File fprintf $filechannel ""
+		    }
+		    if {[string length $iycomp]} {
+		        GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
+		        foreach { inodeid cpropid iyval } $iycomp {
+		            GiD_File fprintf $filechannel "%8i %8i %10.5e" $inodeid $cpropid $iyval
+		        }
+		        GiD_File fprintf $filechannel "%s" "End NodalData"
+		        GiD_File fprintf $filechannel ""
+		    }
+		}
+	    }
+	    # Reset ixcomp, iycomp and zcomp
+	    set ixcomp ""; set iycomp ""; set izcomp ""
+	}
+	
+	# unset dictionary variable
+	unset condmatch
 
     } else {
-        # Write the inlet boundary condition properties
+	# Write the inlet boundary condition properties
 
-        # For each group in the inlet condition
-        foreach igroupid $inletvelglist {
-            lassign $dprops($AppId,BC,$icondid,$igroupid,GProps) ix ixval iy iyval iz izval
+	# For each group in the inlet condition
+	foreach igroupid $inletvelglist {
+	    lassign $dprops($AppId,BC,$icondid,$igroupid,GProps) ix ixval iy iyval iz izval
 
-            # X component
-            if {$ix} {
-                if { [GiD_EntitiesGroups get $igroupid nodes -count] } {
-                    GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
-                    foreach node_id [GiD_EntitiesGroups get $igroupid nodes] {
-                        GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $ixval
-                    }
-                    GiD_File fprintf $filechannel "%s" "End NodalData"
-                    GiD_File fprintf $filechannel "%s" ""
-                }
-            }
-            
-            # Y component
-            if {$iy} {
-                if { [GiD_EntitiesGroups get $igroupid nodes -count] } {
-                    GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
-                    foreach node_id [GiD_EntitiesGroups get $igroupid nodes] {
-                        GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $iyval
-                    }
-                    GiD_File fprintf $filechannel "%s" "End NodalData"
-                    GiD_File fprintf $filechannel "%s" ""
-                }
-            }
-            
-            # Z component
-            if {$ndime =="3D"} {
-                if {$iz} {
-                    if { [GiD_EntitiesGroups get $igroupid nodes -count] } {
-                        GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
-                        foreach node_id [GiD_EntitiesGroups get $igroupid nodes] {
-                            GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $izval
-                        }
-                        GiD_File fprintf $filechannel "%s" "End NodalData"
-                        GiD_File fprintf $filechannel "%s" ""
-                    }
-                }
-            }
-        }
+	    # X component
+	    if {$ix} {
+		if { [GiD_EntitiesGroups get $igroupid nodes -count] } {
+		    GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
+		    foreach node_id [GiD_EntitiesGroups get $igroupid nodes] {
+		        GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $ixval
+		    }
+		    GiD_File fprintf $filechannel "%s" "End NodalData"
+		    GiD_File fprintf $filechannel "%s" ""
+		}
+	    }
+	    
+	    # Y component
+	    if {$iy} {
+		if { [GiD_EntitiesGroups get $igroupid nodes -count] } {
+		    GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
+		    foreach node_id [GiD_EntitiesGroups get $igroupid nodes] {
+		        GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $iyval
+		    }
+		    GiD_File fprintf $filechannel "%s" "End NodalData"
+		    GiD_File fprintf $filechannel "%s" ""
+		}
+	    }
+	    
+	    # Z component
+	    if {$ndime =="3D"} {
+		if {$iz} {
+		    if { [GiD_EntitiesGroups get $igroupid nodes -count] } {
+		        GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem \/\/ Inlet velocity condition GUI group identifier: $igroupid"
+		        foreach node_id [GiD_EntitiesGroups get $igroupid nodes] {
+		            GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $izval
+		        }
+		        GiD_File fprintf $filechannel "%s" "End NodalData"
+		        GiD_File fprintf $filechannel "%s" ""
+		    }
+		}
+	    }
+	}
     }
 
-        # For debug
-        if {!$::wkcf::pflag} {
-            set endtime [clock seconds]
-            set ttime [expr $endtime-$inittime]
-            # WarnWinText "endtime:$endtime ttime:$ttime"
-            WarnWinText "Write fluid inlet-no-slip boundary conditions: [::KUtils::Duration $ttime]"
-                }
-                
-            }
+	# For debug
+	if {!$::wkcf::pflag} {
+	    set endtime [clock seconds]
+	    set ttime [expr $endtime-$inittime]
+	    # WarnWinText "endtime:$endtime ttime:$ttime"
+	    WarnWinText "Write fluid inlet-no-slip boundary conditions: [::KUtils::Duration $ttime]"
+		}
+		
+	    }
     
     # Write Flag-variable and is_boundary nodal data conditions
     if {[llength $flagvariablelist]} {
-        
+	
 	# For debug
-        if {!$::wkcf::pflag} {
-            set inittime [clock seconds]
-            }
-        ::wkcf::WriteFluidFlagVariableBC $AppId $flagvariablelist
-        
+	if {!$::wkcf::pflag} {
+	    set inittime [clock seconds]
+	    }
+	::wkcf::WriteFluidFlagVariableBC $AppId $flagvariablelist
+	
 	# For debug
-        if {!$::wkcf::pflag} {
-            set endtime [clock seconds]
-            set ttime [expr $endtime-$inittime]
-            # WarnWinText "endtime:$endtime ttime:$ttime"
-            WarnWinText "Write fluid flag variable boundary conditions: [::KUtils::Duration $ttime]"
-        }
+	if {!$::wkcf::pflag} {
+	    set endtime [clock seconds]
+	    set ttime [expr $endtime-$inittime]
+	    # WarnWinText "endtime:$endtime ttime:$ttime"
+	    WarnWinText "Write fluid flag variable boundary conditions: [::KUtils::Duration $ttime]"
+	}
     }
 }
 
@@ -531,73 +531,73 @@ proc ::wkcf::WriteFluidPFEMWallBC {AppId ccondid kwordlist} {
     
     # For each group in the inlet condition
     foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
-        # wa "cgroupid:$cgroupid"
-        # Get the condition properties
-        lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) ixval iyval izval ixval2 iyval2 izval2
+	# wa "cgroupid:$cgroupid"
+	# Get the condition properties
+	lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) ixval iyval izval ixval2 iyval2 izval2
 
-        # X Linear Velocity
-        if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
-            GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem \/\/ PFEM Linear velocity condition GUI group identifier: $cgroupid"
-            foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $ixval
-            }
-            GiD_File fprintf $filechannel "End NodalData"
-            GiD_File fprintf $filechannel ""
-        }
-        
-        # Y Linear Velocity
-        if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
-            GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem \/\/ PFEM Linear velocity condition GUI group identifier: $cgroupid"
-            foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $iyval
-            }
-            GiD_File fprintf $filechannel "End NodalData"
-            GiD_File fprintf $filechannel ""
-        }
-        
-        # Z Linear Velocity
-        if {$ndime =="3D"} {
-            if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
-                GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem \/\/ PFEM Linear velocity condition GUI group identifier: $cgroupid"
-                foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                    GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $izval
-                }
-                GiD_File fprintf $filechannel "End NodalData"
-                GiD_File fprintf $filechannel ""
-            }
-        }
-        
-        # X Angular Velocity
-        if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
-            GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem2 \/\/ PFEM Angular velocity condition GUI group identifier: $cgroupid"
-            foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $ixval2
-            }
-            GiD_File fprintf $filechannel "End NodalData"
-            GiD_File fprintf $filechannel ""
-        }
-        
-        # Y Angular Velocity
-        if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
-            GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem2 \/\/ PFEM Angular velocity condition GUI group identifier: $cgroupid"
-            foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $iyval2
-            }
-            GiD_File fprintf $filechannel "End NodalData"
-            GiD_File fprintf $filechannel ""
-        }
-        
-        # Z Angular Velocity
-        if {$ndime =="3D"} {
-            if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
-                GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem2 \/\/ PFEM Angular velocity condition GUI group identifier: $cgroupid"
-                foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                    GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $izval2
-                }
-                GiD_File fprintf $filechannel "End NodalData"
-                GiD_File fprintf $filechannel ""
-            }
-        }
+	# X Linear Velocity
+	if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
+	    GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem \/\/ PFEM Linear velocity condition GUI group identifier: $cgroupid"
+	    foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $ixval
+	    }
+	    GiD_File fprintf $filechannel "End NodalData"
+	    GiD_File fprintf $filechannel ""
+	}
+	
+	# Y Linear Velocity
+	if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
+	    GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem \/\/ PFEM Linear velocity condition GUI group identifier: $cgroupid"
+	    foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $iyval
+	    }
+	    GiD_File fprintf $filechannel "End NodalData"
+	    GiD_File fprintf $filechannel ""
+	}
+	
+	# Z Linear Velocity
+	if {$ndime =="3D"} {
+	    if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
+		GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem \/\/ PFEM Linear velocity condition GUI group identifier: $cgroupid"
+		foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		    GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $izval
+		}
+		GiD_File fprintf $filechannel "End NodalData"
+		GiD_File fprintf $filechannel ""
+	    }
+	}
+	
+	# X Angular Velocity
+	if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
+	    GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem2 \/\/ PFEM Angular velocity condition GUI group identifier: $cgroupid"
+	    foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $ixval2
+	    }
+	    GiD_File fprintf $filechannel "End NodalData"
+	    GiD_File fprintf $filechannel ""
+	}
+	
+	# Y Angular Velocity
+	if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
+	    GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem2 \/\/ PFEM Angular velocity condition GUI group identifier: $cgroupid"
+	    foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $iyval2
+	    }
+	    GiD_File fprintf $filechannel "End NodalData"
+	    GiD_File fprintf $filechannel ""
+	}
+	
+	# Z Angular Velocity
+	if {$ndime =="3D"} {
+	    if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
+		GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem2 \/\/ PFEM Angular velocity condition GUI group identifier: $cgroupid"
+		foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		    GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $izval2
+		}
+		GiD_File fprintf $filechannel "End NodalData"
+		GiD_File fprintf $filechannel ""
+	    }
+	}
     }
 }
 
@@ -613,47 +613,47 @@ proc ::wkcf::WriteFluidPFEMInletBC {AppId ccondid kwordlist} {
 
     # For each group in the inlet condition
     foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
-        # wa "cgroupid:$cgroupid"
-        # Get the condition properties
-        lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) ixvar ixval iyvar iyval izvar izval
-        # msg "x: $ixvar $ixval y: $iyvar $iyval z: $izvar $izval"
-        # X Linear Velocity
-        if {$ixvar} {
-            if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
-                GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem \/\/ PFEM Inlet velocity condition GUI group identifier: $cgroupid"
-                foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                    GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $ixval
-                }
-                GiD_File fprintf $filechannel "End NodalData"
-                GiD_File fprintf $filechannel ""
-            }
-        }
-        
-        # Y Linear Velocity
-        if {$iyvar} {
-            if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
-                GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem \/\/ PFEM Inlet velocity condition GUI group identifier: $cgroupid"
-                foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                    GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $iyval
-                }
-                GiD_File fprintf $filechannel "End NodalData"
-                GiD_File fprintf $filechannel ""
-            }
-        }
-        
-        # Z Linear Velocity
-        if {$ndime =="3D"} {
-            if {$izvar} {
-                if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
-                    GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem \/\/ PFEM Inlet velocity condition GUI group identifier: $cgroupid"
-                    foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                        GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $izval
-                    }
-                    GiD_File fprintf $filechannel "End NodalData"
-                    GiD_File fprintf $filechannel ""
-                }
-            }
-        }
+	# wa "cgroupid:$cgroupid"
+	# Get the condition properties
+	lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) ixvar ixval iyvar iyval izvar izval
+	# msg "x: $ixvar $ixval y: $iyvar $iyval z: $izvar $izval"
+	# X Linear Velocity
+	if {$ixvar} {
+	    if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
+		GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem \/\/ PFEM Inlet velocity condition GUI group identifier: $cgroupid"
+		foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		    GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $ixval
+		}
+		GiD_File fprintf $filechannel "End NodalData"
+		GiD_File fprintf $filechannel ""
+	    }
+	}
+	
+	# Y Linear Velocity
+	if {$iyvar} {
+	    if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
+		GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem \/\/ PFEM Inlet velocity condition GUI group identifier: $cgroupid"
+		foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		    GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $iyval
+		}
+		GiD_File fprintf $filechannel "End NodalData"
+		GiD_File fprintf $filechannel ""
+	    }
+	}
+	
+	# Z Linear Velocity
+	if {$ndime =="3D"} {
+	    if {$izvar} {
+		if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
+		    GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem \/\/ PFEM Inlet velocity condition GUI group identifier: $cgroupid"
+		    foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		        GiD_File fprintf $filechannel "%10i %8i %10.5e" $node_id $cpropid $izval
+		    }
+		    GiD_File fprintf $filechannel "End NodalData"
+		    GiD_File fprintf $filechannel ""
+		}
+	    }
+	}
     }
 }
 
@@ -678,73 +678,73 @@ proc ::wkcf::WriteFluidFlagVariableBC {AppId flagvariablelist} {
     set flagvar2 [dict create]
     
     foreach cgroupid $flagvariablelist {
-        lassign $dprops($AppId,BC,$flagvarcondid,$cgroupid,GProps) flagval
-        # WarnWinText "cgroupid:$cgroupid flagval:$flagval"
+	lassign $dprops($AppId,BC,$flagvarcondid,$cgroupid,GProps) flagval
+	# WarnWinText "cgroupid:$cgroupid flagval:$flagval"
 
-        if {$flagval=="2"} {
-            # Write this group identifier
-            set flag1 1
+	if {$flagval=="2"} {
+	    # Write this group identifier
+	    set flag1 1
 
-            # Flag-Variable
-            if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
-                GiD_File fprintf $filechannel "%s" "Begin NodalData $fvitem \/\/ Flag-Variable condition GUI group identifier: $cgroupid"
-                foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                    GiD_File fprintf $filechannel "%10i %8i %8i" $node_id $cpropid $flagval
-                    # Update the flagvar2 dictionary
-                    dict set flagvar2 $nodeid $cgroupid
-                }
-                GiD_File fprintf $filechannel "%s" "End NodalData"
-                GiD_File fprintf $filechannel ""
-            }
+	    # Flag-Variable
+	    if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
+		GiD_File fprintf $filechannel "%s" "Begin NodalData $fvitem \/\/ Flag-Variable condition GUI group identifier: $cgroupid"
+		foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		    GiD_File fprintf $filechannel "%10i %8i %8i" $node_id $cpropid $flagval
+		    # Update the flagvar2 dictionary
+		    dict set flagvar2 $nodeid $cgroupid
+		}
+		GiD_File fprintf $filechannel "%s" "End NodalData"
+		GiD_File fprintf $filechannel ""
+	    }
 
-            # is_boundary
-            if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
-                GiD_File fprintf $filechannel "%s" "Begin NodalData $isbitem \/\/ is_boundary associated with Flag-Variable condition GUI group identifier: $cgroupid"
-                foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                    GiD_File fprintf $filechannel "%10i %8i %8i" $node_id $cpropid $isbcpropid
-                }
-                GiD_File fprintf $filechannel "%s" "End NodalData"
-                GiD_File fprintf $filechannel ""
-            }
-        }
+	    # is_boundary
+	    if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
+		GiD_File fprintf $filechannel "%s" "Begin NodalData $isbitem \/\/ is_boundary associated with Flag-Variable condition GUI group identifier: $cgroupid"
+		foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		    GiD_File fprintf $filechannel "%10i %8i %8i" $node_id $cpropid $isbcpropid
+		}
+		GiD_File fprintf $filechannel "%s" "End NodalData"
+		GiD_File fprintf $filechannel ""
+	    }
+	}
     }
 
     # Write all group with flag-variable equal to 1
     if {$flag1} {
-        set fvcomp ""; set isbcomp ""
-        # For each group in the flag-variable condition
-        foreach cgroupid $flagvariablelist {
-            lassign $dprops($AppId,BC,$flagvarcondid,$cgroupid,GProps) flagval
-            # WarnWinText "cgroupid:$cgroupid GProps:$GProps"
-            
-            if {$flagval=="1"} {
-                if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
-                    foreach nodeid [GiD_EntitiesGroups get $cgroupid nodes] {
-                        if {![dict exists $flagvar2 $nodeid]} {
-                            append fvcomp "[format "%10i%8i%8i" $nodeid $cpropid $flagval]\n"
-                            append isbcomp "[format "%10i%8i%8i" $nodeid $cpropid $isbcpropid]\n"
-                        }
-                    }
-                    # Write this group identifier
-                    # Flag-Variable
-                    if {[string length $fvcomp]} {
-                        GiD_File fprintf $filechannel "%s" "Begin NodalData $fvitem \/\/ Flag-Variable condition GUI group identifier: $cgroupid"
-                        GiD_File fprintf $filechannel "%s" "[string trimright ${fvcomp}]"
-                        GiD_File fprintf $filechannel "%s" "End NodalData"
-                        GiD_File fprintf $filechannel ""
-                    }
-                    # is_boundary
-                    if {[string length $isbcomp]} {
-                        GiD_File fprintf $filechannel "%s" "Begin NodalData $isbitem \/\/ is_boundary associated with Flag-Variable condition GUI group identifier: $cgroupid"
-                        GiD_File fprintf $filechannel "%s" "[string trimright ${isbcomp}]"
-                        GiD_File fprintf $filechannel "%s" "End NodalData"
-                        GiD_File fprintf $filechannel ""
-                    }
-                    # Reset components
-                    set fvcomp ""; set isbcomp ""
-                }
-            }
-        }
+	set fvcomp ""; set isbcomp ""
+	# For each group in the flag-variable condition
+	foreach cgroupid $flagvariablelist {
+	    lassign $dprops($AppId,BC,$flagvarcondid,$cgroupid,GProps) flagval
+	    # WarnWinText "cgroupid:$cgroupid GProps:$GProps"
+	    
+	    if {$flagval=="1"} {
+		if { [GiD_EntitiesGroups get $cgroupid nodes -count] } {
+		    foreach nodeid [GiD_EntitiesGroups get $cgroupid nodes] {
+		        if {![dict exists $flagvar2 $nodeid]} {
+		            append fvcomp "[format "%10i%8i%8i" $nodeid $cpropid $flagval]\n"
+		            append isbcomp "[format "%10i%8i%8i" $nodeid $cpropid $isbcpropid]\n"
+		        }
+		    }
+		    # Write this group identifier
+		    # Flag-Variable
+		    if {[string length $fvcomp]} {
+		        GiD_File fprintf $filechannel "%s" "Begin NodalData $fvitem \/\/ Flag-Variable condition GUI group identifier: $cgroupid"
+		        GiD_File fprintf $filechannel "%s" "[string trimright ${fvcomp}]"
+		        GiD_File fprintf $filechannel "%s" "End NodalData"
+		        GiD_File fprintf $filechannel ""
+		    }
+		    # is_boundary
+		    if {[string length $isbcomp]} {
+		        GiD_File fprintf $filechannel "%s" "Begin NodalData $isbitem \/\/ is_boundary associated with Flag-Variable condition GUI group identifier: $cgroupid"
+		        GiD_File fprintf $filechannel "%s" "[string trimright ${isbcomp}]"
+		        GiD_File fprintf $filechannel "%s" "End NodalData"
+		        GiD_File fprintf $filechannel ""
+		    }
+		    # Reset components
+		    set fvcomp ""; set isbcomp ""
+		}
+	    }
+	}
     }
    
     # unset the dict for all nodes with flag equal to 2
@@ -760,7 +760,7 @@ proc ::wkcf::WriteFluidIsSlipWallLawBC {AppId ccondid kwordlist } {
     # wa "AppId:$AppId ccondid:$ccondid kwordlist:$kwordlist"
     # For debug
     if {!$::wkcf::pflag} {
-        set inittime [clock seconds]
+	set inittime [clock seconds]
     }
     # Set the keyword values
     set isstructurekw [lindex $kwordlist 0]
@@ -774,26 +774,26 @@ proc ::wkcf::WriteFluidIsSlipWallLawBC {AppId ccondid kwordlist } {
     # For all defined group identifier inside this condition type
     foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
 	# wa "cgroupid:$cgroupid"
-        # Get the condition properties
-        lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) activateval ConstantValue
+	# Get the condition properties
+	lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) activateval ConstantValue
 	# wa "activateval:$activateval ConstantValue:$ConstantValue"
-        if {$ndime == "2D"} {
-            set GiDElemType "Linear"
-            if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
-                set dprops($AppId,UseSlipConditions) 1
-                GiD_File fprintf $filechannel "%s" "Begin ConditionalData $isstructurekw // GUI $ccondid condition group identifier: $cgroupid"
+	if {$ndime == "2D"} {
+	    set GiDElemType "Linear"
+	    if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
+		set dprops($AppId,UseSlipConditions) 1
+		GiD_File fprintf $filechannel "%s" "Begin ConditionalData $isstructurekw // GUI $ccondid condition group identifier: $cgroupid"
 		foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
 		    # set nodes [lrange [GiD_Mesh get element $elem_id] 3 end] 
-                    # wa "elemid:$elem_id cfixval:$cfixval nodei:$nodei nodej:$nodej"
-                    if {[dict exists $ctbclink $elem_id]} {
-                    # Check that exists this element in the dictionary with the condition indentifier links
-                        set condid [dict get $ctbclink $elem_id]
-                        GiD_File fprintf $filechannel "%10d %10d" $condid $activateval
-                    }
-                }
-                GiD_File fprintf $filechannel "%s" "End ConditionalData"
-                GiD_File fprintf $filechannel "%s" ""
-                
+		    # wa "elemid:$elem_id cfixval:$cfixval nodei:$nodei nodej:$nodej"
+		    if {[dict exists $ctbclink $elem_id]} {
+		    # Check that exists this element in the dictionary with the condition indentifier links
+		        set condid [dict get $ctbclink $elem_id]
+		        GiD_File fprintf $filechannel "%10d %10d" $condid $activateval
+		    }
+		}
+		GiD_File fprintf $filechannel "%s" "End ConditionalData"
+		GiD_File fprintf $filechannel "%s" ""
+		
 		# Write wall_y values
 		GiD_File fprintf $filechannel "%s" " Begin NodalData $isywallkw // GUI $ccondid condition group identifier: $cgroupid"
 		foreach nodeid [GiD_EntitiesGroups get $cgroupid nodes] {
@@ -803,25 +803,25 @@ proc ::wkcf::WriteFluidIsSlipWallLawBC {AppId ccondid kwordlist } {
 		GiD_File fprintf $filechannel "" 
 	
 	    }
-        } elseif {$ndime == "3D"} {
-            set GiDElemType "Triangle"
-            if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
-                set dprops($AppId,UseSlipConditions) 1
-                GiD_File fprintf $filechannel "%s" "Begin ConditionalData $isstructurekw // GUI $ccondid condition group identifier: $cgroupid"
+	} elseif {$ndime == "3D"} {
+	    set GiDElemType "Triangle"
+	    if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
+		set dprops($AppId,UseSlipConditions) 1
+		GiD_File fprintf $filechannel "%s" "Begin ConditionalData $isstructurekw // GUI $ccondid condition group identifier: $cgroupid"
 		foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
-                    #set nodes [lrange [GiD_Mesh get element $elem_id] 3 end] 
-                    # wa "elemid:$elem_id nodei:[lindex $nodes 0] nodej:[lindex $nodes 1] nodek:[lindex $nodes 2]"
-                    # Check that exists this element in the dictionary with the condition indentifier links
-                    # wa [dict keys $ctbclink]
-                    if {[dict exists $ctbclink $elem_id]} {
-                        set condid [dict get $ctbclink $elem_id]
-                        # msg "$condid $activateval"
-                        GiD_File fprintf $filechannel "%10d %10d" $condid $activateval
-                    }
-                }
-                GiD_File fprintf $filechannel "End ConditionalData"
-                GiD_File fprintf $filechannel ""
-                
+		    #set nodes [lrange [GiD_Mesh get element $elem_id] 3 end] 
+		    # wa "elemid:$elem_id nodei:[lindex $nodes 0] nodej:[lindex $nodes 1] nodek:[lindex $nodes 2]"
+		    # Check that exists this element in the dictionary with the condition indentifier links
+		    # wa [dict keys $ctbclink]
+		    if {[dict exists $ctbclink $elem_id]} {
+		        set condid [dict get $ctbclink $elem_id]
+		        # msg "$condid $activateval"
+		        GiD_File fprintf $filechannel "%10d %10d" $condid $activateval
+		    }
+		}
+		GiD_File fprintf $filechannel "End ConditionalData"
+		GiD_File fprintf $filechannel ""
+		
 		# Write wall_y values
 		GiD_File fprintf $filechannel "%s" " Begin NodalData $isywallkw // GUI $ccondid condition group identifier: $cgroupid"
 		foreach nodeid [GiD_EntitiesGroups get $cgroupid nodes] {
@@ -831,15 +831,15 @@ proc ::wkcf::WriteFluidIsSlipWallLawBC {AppId ccondid kwordlist } {
 		GiD_File fprintf $filechannel "%s" "End NodalData"
 		GiD_File fprintf $filechannel ""
 	    } 
-        }
+	}
     }
 
     # For debug
     if {!$::wkcf::pflag} {
-        set endtime [clock seconds]
-        set ttime [expr $endtime-$inittime]
-        # WarnWinText "endtime:$endtime ttime:$ttime"
-        WarnWinText "Write fluid wall law/is-slip boundary conditions: [::KUtils::Duration $ttime]"
+	set endtime [clock seconds]
+	set ttime [expr $endtime-$inittime]
+	# WarnWinText "endtime:$endtime ttime:$ttime"
+	WarnWinText "Write fluid wall law/is-slip boundary conditions: [::KUtils::Duration $ttime]"
     }
 }
 
@@ -850,33 +850,33 @@ proc ::wkcf::WriteFluidDistanceBC {AppId ccondid kwordlist} {
     
     # For debug
     if {!$::wkcf::pflag} {
-        set inittime [clock seconds]
+	set inittime [clock seconds]
 }
 
 
     set cpropid "0"       
     # For all defined group identifier inside this condition type
     foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
-        # wa "cgroupid:$cgroupid"
-        # Get the condition properties
-        lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) cvalue
-        # wa "cvalue:$cvalue"
-        if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
-            GiD_File fprintf $filechannel "%s" "Begin NodalData $kwordlist // GUI distance condition group identifier: $cgroupid"
-            foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-                GiD_File fprintf $filechannel "%10i %5i %10.5f" $node_id $cpropid $cvalue
-            }
-            GiD_File fprintf $filechannel "%s" "End NodalData"
-            GiD_File fprintf $filechannel ""
-        }
+	# wa "cgroupid:$cgroupid"
+	# Get the condition properties
+	lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) cvalue
+	# wa "cvalue:$cvalue"
+	if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
+	    GiD_File fprintf $filechannel "%s" "Begin NodalData $kwordlist // GUI distance condition group identifier: $cgroupid"
+	    foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		GiD_File fprintf $filechannel "%10i %5i %10.5f" $node_id $cpropid $cvalue
+	    }
+	    GiD_File fprintf $filechannel "%s" "End NodalData"
+	    GiD_File fprintf $filechannel ""
+	}
     }
 
     # For debug
     if {!$::wkcf::pflag} {
-        set endtime [clock seconds]
-        set ttime [expr $endtime-$inittime]
-        # WarnWinText "endtime:$endtime ttime:$ttime"
-        WarnWinText "Write fluid distance boundary conditions: [::KUtils::Duration $ttime]"
+	set endtime [clock seconds]
+	set ttime [expr $endtime-$inittime]
+	# WarnWinText "endtime:$endtime ttime:$ttime"
+	WarnWinText "Write fluid distance boundary conditions: [::KUtils::Duration $ttime]"
     }
 }
 
@@ -886,36 +886,36 @@ proc ::wkcf::WriteOutLetPressureBC {AppId ccondid kwordlist} {
 
     # For debug
     if {!$::wkcf::pflag} {
-        set inittime [clock seconds]
+	set inittime [clock seconds]
     }
     
     set kitem [lindex $kwordlist 0]
     
     # For all defined group identifier inside this condition type
     foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
-        # Get the condition properties
-        lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) fixval pval
-        # WarnWinText "fixval:$fixval pval:$pval"
-        
-        set nodes [GiD_EntitiesGroups get $cgroupid nodes]
-        # Fix x
-        if {$fixval =="1"} {
-            
-            GiD_File fprintf $filechannel "%s" "Begin NodalData $kitem"
-            foreach nodeid $nodes {
-                GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fixval $pval
-            }
-            GiD_File fprintf $filechannel "End NodalData"
-            GiD_File fprintf $filechannel "" 
-        }
+	# Get the condition properties
+	lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) fixval pval
+	# WarnWinText "fixval:$fixval pval:$pval"
+	
+	set nodes [GiD_EntitiesGroups get $cgroupid nodes]
+	# Fix x
+	if {$fixval =="1"} {
+	    
+	    GiD_File fprintf $filechannel "%s" "Begin NodalData $kitem"
+	    foreach nodeid $nodes {
+		GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fixval $pval
+	    }
+	    GiD_File fprintf $filechannel "End NodalData"
+	    GiD_File fprintf $filechannel "" 
+	}
     }
 
     # For debug
     if {!$::wkcf::pflag} {
-        set endtime [clock seconds]
-        set ttime [expr $endtime-$inittime]
-        # WarnWinText "endtime:$endtime ttime:$ttime"
-        WarnWinText "Write fluid wall law boundary conditions: [::KUtils::Duration $ttime]"
+	set endtime [clock seconds]
+	set ttime [expr $endtime-$inittime]
+	# WarnWinText "endtime:$endtime ttime:$ttime"
+	WarnWinText "Write fluid wall law boundary conditions: [::KUtils::Duration $ttime]"
     }
 }
 
@@ -927,19 +927,512 @@ proc ::wkcf::WriteFluidProjectParameters {AppId fileid PDir} {
     set cxpath "$rootid//c.AnalysisData//i.FluidApproach"
     set FluidApproach [::xmlutils::setXml $cxpath "dv"]
     if {$FluidApproach == "Eulerian"} {
-        ::wkcf::WriteEulerianFluidProjectParameters $AppId $fileid $PDir
+	::wkcf::WriteEulerianFluidProjectParameters $AppId $fileid $PDir
     } elseif {$FluidApproach == "PFEM-Lagrangian"} {
-        ::wkcf::WritePFEMLagrangianFluidProjectParameters $AppId $fileid $PDir
+	::wkcf::WritePFEMLagrangianFluidProjectParameters $AppId $fileid $PDir
     }
 }
 
 proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
     variable ndime; variable dprops
-    
+    set trailing_spaces  ""
     # Write fluid solver method
     # 0 => Old format
     # 1 => New format
-    set wfsmethod 0
+    set wfsmethod 1
+    set rootid "$AppId"
+    
+    # Kratos key word xpath
+    set kxpath "Applications/$rootid"
+    
+    set domain_size 2
+    if {$ndime =="2D"} {
+	set domain_size 2
+    } elseif {$ndime =="3D"} {
+	set domain_size 3
+    }
+    
+    # Domain size
+    puts $fileid "domain_size = $domain_size"
+    puts $fileid ""
+    
+    # Get others properties
+    set cproperty "dv"
+    
+    # Fluid type
+    set cxpath "$rootid//c.AnalysisData//i.FluidType"
+    set FluidType [::xmlutils::setXml $cxpath $cproperty]
+    
+    # WarnWinText "FluidType:$FluidType"
+    if {$FluidType =="Compressible"} {
+	
+    } elseif {$FluidType =="Incompressible"} {
+	
+	# Free surface
+	set cxpath "$rootid//c.AnalysisData//i.FreeSurface"
+	set FreeSurface [::xmlutils::setXml $cxpath $cproperty]
+	# WarnWinText "FreeSurface:$FreeSurface"
+	if {$FreeSurface =="No"} {
+	    # Solver type
+	    set cxpath "$rootid//c.AnalysisData//i.SolverType"
+	    set SolverType [::xmlutils::setXml $cxpath $cproperty]
+	    # WarnWinText "SolverType:$SolverType"
+	    # Get the kratos keyword
+	    set ckword [::xmlutils::getKKWord $kxpath $SolverType]
+	    # WarnWinText "ckword:$ckword"
+		set trailing_spaces  "    "
+		# Fluid solver configuration
+		puts $fileid ""
+		puts $fileid "# Fluid solver configuration"
+		puts $fileid "class FluidSolverConfiguration:"
+		switch -exact -- $SolverType {
+		    "ElementBased" { 
+		        puts $fileid "${trailing_spaces}solver_type =  \"vms_fractional_step_solver\"" 
+		    }
+		    "Monolithic" { 
+		        puts $fileid "${trailing_spaces}solver_type =  \"vms_monolithic_solver\"" 
+		    }
+		}
+		
+		puts $fileid "    domain_size = $domain_size"
+		
+		# Get the turbulence properties
+		set cxpath "$rootid//c.AnalysisData//i.TurbulenceModel"
+		set TurbulenceModel [::xmlutils::setXml $cxpath $cproperty]
+		# WarnWinText "TurbulenceModel:$TurbulenceModel"
+		if {$TurbulenceModel eq "Off"} {
+		    puts $fileid "${trailing_spaces}TurbulenceModel = \"None\""
+		} elseif {$TurbulenceModel eq "Smagorinsky-Lilly"} {
+		    puts $fileid "${trailing_spaces}TurbulenceModel = \"$TurbulenceModel\""
+		    # Get the smagorinsky-lilly constant
+		    set cxpath "$rootid//c.AnalysisData//i.SmagorinskyConstant"
+		    set SmagorinskyConstant [::xmlutils::setXml $cxpath $cproperty]
+		    # WarnWinText "SmagorinskyConstant:$SmagorinskyConstant"
+		    puts $fileid "${trailing_spaces}SmagorinskyConstant = $SmagorinskyConstant"
+		} elseif {$TurbulenceModel eq "Spalart-Allmaras"} {
+		    puts $fileid "${trailing_spaces}TurbulenceModel = \"$TurbulenceModel\""
+		# Get the value of the turbulence viscosity
+                    set cxpath "$rootid//c.AnalysisData//i.TurbulentViscosity"
+                    set TurbulentViscosity [::xmlutils::setXml $cxpath $cproperty]
+                    # wa "TurbulentViscosity:$TurbulentViscosity"
+                    puts $fileid "${trailing_spaces}TurbulentViscosity = $TurbulentViscosity"
+                    
+                    # Try to get the group-mesh link  
+                    # SA_wall_group_ids = [1, 5, 3]
+                    # Get the values
+                    set basexpath "$rootid//c.AnalysisData//c.Spalart-AllmarasGroupId${ndime}"
+                    set gproplist [::xmlutils::setXmlContainerIds $basexpath]
+                    # wa "gproplist:$gproplist"
+                    if {[llength $gproplist]} {
+                        set meshidlist [list]
+                        foreach cgroupid $gproplist {
+                            # Get the group properties
+                            set cxpath "${basexpath}//c.[list ${cgroupid}]//c.MainProperties"
+                            set allgprop [::xmlutils::setXmlContainerPairs $cxpath "" "dv"]
+                            # wa "allgprop:$allgprop"
+                            if {[llength $allgprop]} {
+                                set Activate [lindex $allgprop 0 1]
+                                # wa "Activate:$Activate"
+                                if {$Activate} {
+                                    if {[info exists dprops($AppId,Mesh,$cgroupid,MeshIdGroup)]} {
+                                        set MeshIdGroup $dprops($AppId,Mesh,$cgroupid,MeshIdGroup)
+                                        # wa "MeshIdGroup:$MeshIdGroup"
+                                        if {$MeshIdGroup !=""} {
+                                            append meshidlist "$MeshIdGroup,"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        # wa "meshidlist:$meshidlist"
+                        set findcomma [string last "," $meshidlist]
+                        if {$findcomma !="-1"} {
+                            set meshidlist [string range $meshidlist 0 end-1]
+                            append meshidlist "\]"
+                            set endmeshidlist "\[${meshidlist}"
+                            puts $fileid "SA_wall_group_ids = $endmeshidlist"
+                        }
+                    }
+                }
+		
+		# Monolithic,PressureSplitting,ElementBased,EdgeBased
+		puts $fileid ""
+		switch -exact -- $SolverType {
+		    "ElementBased" {
+		        # Fractional step options => ElementBased                
+		        # Solution strategy
+		        # Linear solvers
+		        # Velocity
+		        ::wkcf::WriteFluidSolvers $rootid $fileid "Velocity" $wfsmethod $trailing_spaces "velocity_linear_solver_config"
+		        # Pressure
+		        ::wkcf::WriteFluidSolvers $rootid $fileid "Pressure" $wfsmethod $trailing_spaces "pressure_linear_solver_config" 
+
+                        puts $fileid "$trailing_spaces"
+                        puts $fileid "${trailing_spaces}#convergence criteria settings"
+                        set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.RelativeVelocityTolerance"
+                        set cvalue [::xmlutils::setXml $cxpath $cproperty]
+                        puts $fileid "${trailing_spaces}vel_toll = $cvalue"
+
+                        set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.RelativePressureTolerance"
+                        set cvalue [::xmlutils::setXml $cxpath $cproperty]
+                        puts $fileid "${trailing_spaces}press_toll = $cvalue"		    
+                    }
+		    "PressureSplitting" {
+		        # Pressure splitting
+		        # Solution strategy
+		        # Linear solvers
+		        # Velocity
+		        ::wkcf::WriteFluidSolvers $rootid $fileid "Velocity" $wfsmethod $trailing_spaces 
+		        puts $fileid ""
+		        # Pressure
+		        ::wkcf::WriteFluidSolvers $rootid $fileid "Pressure" $wfsmethod $trailing_spaces
+		    }
+		    "Monolithic" {
+		        # Monolithic
+		        
+		        # Solution strategy
+		        # Linear solvers
+		        # Velocity
+		        ::wkcf::WriteFluidSolvers $rootid $fileid "Monolithic" $wfsmethod $trailing_spaces "linear_solver_config" 
+                        # Write relative and absolute tolerances
+                        puts $fileid "$trailing_spaces"
+                        puts $fileid "${trailing_spaces}#convergence criteria settings"
+                        set ctlist [list "RelativeVelocityTolerance" "AbsoluteVelocityTolerance" "RelativePressureTolerance" "AbsolutePressureTolerance"]
+                        foreach cv $ctlist {
+                            set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.[list ${cv}]"
+                            set cvalue [::xmlutils::setXml $cxpath $cproperty]
+                            set ckword [::xmlutils::getKKWord $kxpath $cv]
+                            puts $fileid "${trailing_spaces}$ckword = $cvalue"
+                        }
+		    }
+		    
+		    
+		}
+  
+	    
+	    
+	    
+	    
+	    
+
+		
+# 		# Get the turbulence properties
+# 		set cxpath "$rootid//c.AnalysisData//i.TurbulenceModel"
+# 		set TurbulenceModel [::xmlutils::setXml $cxpath $cproperty]
+# 		# WarnWinText "TurbulenceModel:$TurbulenceModel"
+# 		if {$TurbulenceModel eq "Off"} {
+# 		    puts $fileid "TurbulenceModel = \"None\""
+# 		} elseif {$TurbulenceModel eq "Smagorinsky-Lilly"} {
+# 		    puts $fileid "TurbulenceModel = \"$TurbulenceModel\""
+# 		    # Get the smagorinsky-lilly constant
+# 		    set cxpath "$rootid//c.AnalysisData//i.SmagorinskyConstant"
+# 		    set SmagorinskyConstant [::xmlutils::setXml $cxpath $cproperty]
+# 		    # WarnWinText "SmagorinskyConstant:$SmagorinskyConstant"
+# 		    puts $fileid "SmagorinskyConstant = $SmagorinskyConstant"
+# 		} elseif {$TurbulenceModel eq "Spalart-Allmaras"} {
+# 		    puts $fileid "TurbulenceModel = \"$TurbulenceModel\""
+# 		    # Get the value of the turbulence viscosity
+# 		    set cxpath "$rootid//c.AnalysisData//i.TurbulentViscosity"
+# 		    set TurbulentViscosity [::xmlutils::setXml $cxpath $cproperty]
+# 		    # wa "TurbulentViscosity:$TurbulentViscosity"
+# 		    puts $fileid "TurbulentViscosity = $TurbulentViscosity"
+# 		    
+# 		    # Try to get the group-mesh link  
+# 		    # SA_wall_group_ids = [1, 5, 3]
+# 		    # Get the values
+# 		    set basexpath "$rootid//c.AnalysisData//c.Spalart-AllmarasGroupId${ndime}"
+# 		    set gproplist [::xmlutils::setXmlContainerIds $basexpath]
+# 		    # wa "gproplist:$gproplist"
+# 		    if {[llength $gproplist]} {
+# 		        set meshidlist [list]
+# 		        foreach cgroupid $gproplist {
+# 		            # Get the group properties
+# 		            set cxpath "${basexpath}//c.[list ${cgroupid}]//c.MainProperties"
+# 		            set allgprop [::xmlutils::setXmlContainerPairs $cxpath "" "dv"]
+# 		            # wa "allgprop:$allgprop"
+# 		            if {[llength $allgprop]} {
+# 		                set Activate [lindex $allgprop 0 1]
+# 		                # wa "Activate:$Activate"
+# 		                if {$Activate} {
+# 		                    if {[info exists dprops($AppId,Mesh,$cgroupid,MeshIdGroup)]} {
+# 		                        set MeshIdGroup $dprops($AppId,Mesh,$cgroupid,MeshIdGroup)
+# 		                        # wa "MeshIdGroup:$MeshIdGroup"
+# 		                        if {$MeshIdGroup !=""} {
+# 		                            append meshidlist "$MeshIdGroup,"
+# 		                        }
+# 		                    }
+# 		                }
+# 		            }
+# 		        }
+# 		        # wa "meshidlist:$meshidlist"
+# 		        set findcomma [string last "," $meshidlist]
+# 		        if {$findcomma !="-1"} {
+# 		            set meshidlist [string range $meshidlist 0 end-1]
+# 		            append meshidlist "\]"
+# 		            set endmeshidlist "\[${meshidlist}"
+# 		            puts $fileid "SA_wall_group_ids = $endmeshidlist"
+# 		        }
+# 		    }
+# 		}
+	    
+	    
+
+
+            # Use ortogonal subscales => OssSwitch
+            puts $fileid "${trailing_spaces}"
+            puts $fileid "${trailing_spaces}#other solver settings"
+            set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.OssSwitch"
+            set OssSwitch [::xmlutils::setXml $cxpath $cproperty]
+            puts $fileid "${trailing_spaces}oss_switch = $OssSwitch"
+            
+            # Calculate reactions
+            set cxpath "$rootid//c.Results//c.OnNodes//i.Reactions"
+            set Reactions [::xmlutils::setXml $cxpath $cproperty]
+            if {$Reactions =="Yes"} {
+                puts $fileid "${trailing_spaces}compute_reactions = True"
+            } else {
+                puts $fileid "${trailing_spaces}compute_reactions = False"
+            }
+	    
+	    
+	    # Time order
+	    set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.TimeOrder"
+	    set TimeOrder [::xmlutils::setXml $cxpath $cproperty]
+	    puts $fileid "${trailing_spaces}time_order = $TimeOrder"
+	    
+	    # Predictor corrector
+	    set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.PredictorCorrector"
+	    set PredictorCorrector [::xmlutils::setXml $cxpath $cproperty]
+	    puts $fileid "${trailing_spaces}predictor_corrector = $PredictorCorrector"
+
+            # Use dt in stabilization => DynamicTau
+            set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.DynamicTau"
+            set DynamicTau [::xmlutils::setXml $cxpath $cproperty]
+            puts $fileid "${trailing_spaces}dynamic_tau = $DynamicTau"
+	    
+	    if {$SolverType in [list "ElementBased" "EdgeBased"]} {
+		# Maximum velocity iterations
+		set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.MaximumVelocityIterations"
+		set MaximumVelocityIterations [::xmlutils::setXml $cxpath $cproperty]
+		puts $fileid "${trailing_spaces}max_vel_its = $MaximumVelocityIterations"
+		
+		# Maximum pressure iterations
+		set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.MaximumPressureIterations"
+		set MaximumPressureIterations [::xmlutils::setXml $cxpath $cproperty]
+		puts $fileid "${trailing_spaces}max_press_its = $MaximumPressureIterations"
+		
+	    } elseif {$SolverType in [list "Monolithic" "PressureSplitting"]} {
+		# Maximum iterations
+		set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.MaximumIterations"
+		set MaximumIterations [::xmlutils::setXml $cxpath $cproperty]
+		puts $fileid "${trailing_spaces}max_iteration = $MaximumIterations"
+		
+	    }
+	    
+	    # Laplacian form
+	    set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.LaplacianForm"
+	    set LaplacianForm [::xmlutils::setXml $cxpath $cproperty]
+	    # Get the kratos keyword
+	    set ckword [::xmlutils::getKKWord $kxpath $LaplacianForm]
+	    if {$SolverType eq "ElementBased"} {
+		# Set the default value
+		puts $fileid "${trailing_spaces}laplacian_form = 1"
+	    } else {
+		puts $fileid "${trailing_spaces}laplacian_form = $ckword"
+	    }
+	    
+	} else {
+	    # Solver type for free surface
+	    set cxpath "$rootid//c.AnalysisData//i.SolverTypeFreeSurf"
+	    set SolverTypeFreeSurf [::xmlutils::setXml $cxpath $cproperty]
+	    # WarnWinText "SolverTypeFreeSurf:$SolverTypeFreeSurf"
+	    
+	    # Check for use OpenMP
+	    # Kratos key word xpath
+	    set kxpath "Applications/$rootid"
+	    set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
+	    set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
+	    
+	    if {$ParallelSolutionType eq "OpenMP"} {
+		# Write some project parameters used in the level set solver
+		set pidlist [list "RedistanceFrequency" "ExtrapolationLayers" "StabdtPressureFactor" "StabdtConvectionFactor" "WallLawY" "SafetyFactor" "NumberOfInitialSteps"]
+		foreach cvar $pidlist {
+		    set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.[list ${cvar}]"
+		    set cvarvalue [::xmlutils::setXml $cxpath $cproperty]
+		    set ckword [::xmlutils::getKKWord $kxpath $cvar]
+		    puts $fileid "$ckword = $cvarvalue"
+		}
+		
+		# Write the body force properties
+		set contid "LevelSetBodyForce"
+		set cxpath "$rootid//c.SolutionStrategy//c.[list ${contid}]//i.GravityValue"
+		set GravityValue [::xmlutils::setXml $cxpath $cproperty]
+		set cxpath "$rootid//c.SolutionStrategy//c.[list ${contid}]//i.Cx"
+		set Cx [::xmlutils::setXml $cxpath $cproperty]
+		set cxpath "$rootid//c.SolutionStrategy//c.[list ${contid}]//i.Cy"
+		set Cy [::xmlutils::setXml $cxpath $cproperty]
+		set cxpath "$rootid//c.SolutionStrategy//c.[list ${contid}]//i.Cz"
+		set Cz [::xmlutils::setXml $cxpath $cproperty]
+		# wa "GravityValue:$GravityValue Cx:$Cx Cy:$Cy Cz:$Cz"
+		set kwordlist [list "body_force_x" "body_force_y" "body_force_z"]
+		set valuelist [list [expr $GravityValue*$Cx] [expr $GravityValue*$Cy] [expr $GravityValue*$Cz]]
+		foreach ckword $kwordlist cvalue $valuelist {
+		    puts $fileid "$ckword = $cvalue"
+		}
+		
+		# Porous zone properties
+		set contid "PorousZones"
+		set cxpath "$rootid//c.SolutionStrategy//c.[list ${contid}]//i.UseErgunEquation"
+		set UseErgunEquation [::xmlutils::setXml $cxpath $cproperty]
+		if {$UseErgunEquation eq "Yes"} {
+		    puts $fileid "UseErgun = True "
+		} else {
+		    puts $fileid "UseErgun = False "
+		}
+		
+		# Material properties (Density and viscosity)
+		set Density 0.0; set Viscosity 0.0; set BulkMod 0.0
+		lassign [::wkcf::GetDensityViscosityValues $AppId] Density Viscosity BulkMod
+		# wa "Density:$Density Viscosity:$Viscosity"
+		puts $fileid "Density = $Density "
+		puts $fileid "Viscosity = $Viscosity "
+	    }
+	}
+    }
+    
+    puts $fileid ""
+    # Start time
+    set cxpath "$rootid//c.SolutionStrategy//i.StartTime"
+    set StartTime [::xmlutils::setXml $cxpath $cproperty]
+    # End time
+    set cxpath "$rootid//c.SolutionStrategy//i.EndTime"
+    set EndTime [::xmlutils::setXml $cxpath $cproperty]
+    # Delta time
+    set cxpath "$rootid//c.SolutionStrategy//i.DeltaTime"
+    set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
+    
+    # For use automatic delta time
+    puts $fileid "#general problem settings"
+    set cxpath "$rootid//c.SolutionStrategy//i.UseAutomaticDeltaTime"
+    set UseAutomaticDeltaTime [::xmlutils::setXml $cxpath $cproperty]
+    puts $fileid "AutomaticDeltaTime = \"$UseAutomaticDeltaTime\""
+    
+    # Get the divergence clearance step
+    set cxpath "$rootid//c.SolutionStrategy//i.DivergenceCleareanceStep"
+    set DivergenceCleareanceStep [::xmlutils::setXml $cxpath $cproperty]
+    # Get the kratos keyword
+    set DivergenceCleareanceStepKW [::xmlutils::getKKWord $kxpath "DivergenceCleareanceStep"]
+    # wa "DivergenceCleareanceStepKW:$DivergenceCleareanceStepKW DivergenceCleareanceStep:$DivergenceCleareanceStep"
+    puts $fileid "$DivergenceCleareanceStepKW = $DivergenceCleareanceStep"
+    
+    # WarnWinText "StartTime:$StartTime EndTime:$EndTime DeltaTime:$DeltaTime"
+    puts $fileid "Dt = $DeltaTime"
+    puts $fileid "Start_time = $StartTime"
+    puts $fileid "max_time = $EndTime"
+    set nsteps [expr int(double($EndTime-$StartTime)/double($DeltaTime))]
+    puts $fileid "nsteps = $nsteps"
+    
+    puts $fileid ""
+
+    
+
+    
+    # Check for use slip conditions
+    if {[info exists dprops($AppId,UseSlipConditions)]} {
+	if {$dprops($AppId,UseSlipConditions)} {
+	    puts $fileid "Use_slip_conditions = True"
+	}
+    }
+    
+    # Write the group dictionary
+    set arrinfo [array get dprops $AppId,Mesh,*,MeshIdGroup]
+    if {[llength $arrinfo]} {
+	puts $fileid ""
+	puts $fileid "groups_dictionary = \{"
+	foreach {name val} $arrinfo {
+	    set lastchar [string last "h," $name] 
+	    set firstchar [string first ",MeshIdGroup" $name] 
+	    set groupid "[string range $name [expr $lastchar+2] [expr $firstchar-1]]"
+	    # wa "name:$name val:$val lastchar:$lastchar firstchar:$firstchar groupid:$groupid"
+	    if {$val !=""} {
+		puts $fileid "        \"$groupid\" : $val," 
+	    }
+	}
+	puts $fileid "                   \}"
+    }
+    
+
+    puts $fileid "#output settings"
+    # Output step 
+    set cxpath "$rootid//c.Results//i.OutputDeltaTime"
+    set OutputDeltaTime [::xmlutils::setXml $cxpath $cproperty]
+    puts $fileid "output_time = $OutputDeltaTime"
+    # WarnWinText "OutputDeltaTime:$OutputDeltaTime"
+    set output_step [expr int($OutputDeltaTime/double($DeltaTime))]
+    # WarnWinText "output_step:$output_step"
+    puts $fileid "output_step = $output_step"
+    
+    # For results
+    if {$ndime =="3D"} {
+	#  For volumen output
+	set cxpath "$rootid//c.Results//i.VolumeOutput"
+	set VolumeOutput [::xmlutils::setXml $cxpath $cproperty]
+	if {$VolumeOutput eq "Yes"} {
+	    puts $fileid "VolumeOutput = True"
+	} else {
+	    puts $fileid "VolumeOutput = False"
+	}
+    } else {
+	# Set the default value for 2D
+	puts $fileid "VolumeOutput = True"
+    }
+    
+    # On nodes results
+    set cnrlist [list "Velocity" "Pressure" "Reactions" "Distance"]
+    # set cnrlist [list "Velocity" "Pressure" "Reactions"]
+    set nodal_results "nodal_results=\["
+    foreach cnr $cnrlist {
+	set cxpath "$rootid//c.Results//c.OnNodes//i.[list ${cnr}]"
+	set cproperty "dv"
+	set cvalue [::xmlutils::setXml $cxpath $cproperty]
+	if {$cvalue =="Yes"} {
+	    set cnkr [::xmlutils::getKKWord $kxpath $cnr]
+	    append nodal_results "\"$cnkr\","
+	}
+    }
+    set findcomma [string last "," $nodal_results]
+    if {$findcomma !="-1"} {
+	set nodal_results [string range $nodal_results 0 end-1]
+	append nodal_results "\]" 
+	puts $fileid "$nodal_results"
+    }
+    
+    # Set gauss_points_results to empty
+    puts $fileid "gauss_points_results=\[\]"
+    
+    # WarnWinText "nodal_results:$nodal_results"
+    
+    # GiD post mode variables
+    ::wkcf::WriteGiDPostMode $AppId $fileid 
+    
+    puts $fileid ""
+    set PName [::KUtils::GetPaths "PName"]
+    puts $fileid "problem_name=\"${PName}${AppId}\"" 
+    puts $fileid "problem_path=\"$PDir\"" 
+    
+    # Get the kratos path 
+    set cxpath "GeneralApplicationData//c.ProjectConfiguration//i.KratosPath"
+    set cproperty "dv"
+    set KratosPath [::xmlutils::setXml $cxpath $cproperty]
+    set KratosPath [file native $KratosPath]
+    
+    # Write the kratos path
+    puts $fileid "kratos_path=\"${KratosPath}\"" 
+}
+
+proc ::wkcf::WritePFEMLagrangianFluidProjectParameters {AppId fileid PDir} {
+    variable ndime; variable dprops
+    
     set rootid "$AppId"
     
     # Kratos key word xpath
@@ -968,526 +1461,100 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
 
     } elseif {$FluidType =="Incompressible"} {
 
-        # Free surface
-        set cxpath "$rootid//c.AnalysisData//i.FreeSurface"
-        set FreeSurface [::xmlutils::setXml $cxpath $cproperty]
-        # WarnWinText "FreeSurface:$FreeSurface"
-        if {$FreeSurface =="No"} {
-            # Solver type
-            set cxpath "$rootid//c.AnalysisData//i.SolverType"
-            set SolverType [::xmlutils::setXml $cxpath $cproperty]
-            # WarnWinText "SolverType:$SolverType"
-            # Get the kratos keyword
-            set ckword [::xmlutils::getKKWord $kxpath $SolverType]
-            # WarnWinText "ckword:$ckword"
-            if {$wfsmethod=="0"} {
-                puts $fileid "SolverType = \"$ckword\""
-            }
+	# FSI
+	puts $fileid "FSI = 0.00000e+00"        
+	
+	# Compute Reactions
+	puts $fileid "compute_reactions = 0.00000e+00"
+	
+	# Dt
+	set cxpath "$rootid//c.SolutionStrategy//i.DeltaTime"
+	set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "Dt = $DeltaTime"
+	
+	# max_time
+	set cxpath "$rootid//c.SolutionStrategy//i.EndTime"
+	set EndTime [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "max_time = $EndTime"
+	
+	# Output Step
+	set cxpath "$rootid//c.Results//i.OutputDeltaTime"
+	set OutStep [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "output_step = $OutStep"
+	
+	# Alpha Shape
+	puts $fileid "alpha_shape = 1.60000e+00"
+	
+	# Erase Nodes
+	puts $fileid "erase_nodes = 1.00000e+00"
+	
+	# Adaptive Refinement
+	puts $fileid "adaptive_refinement = 1.00000e+00"
+	
+	# Delete Nodes Close to Wall
+	puts $fileid "delete_nodes_close_to_wall = 1.00000e+00"
 
-            # Monolithic,PressureSplitting,ElementBased,EdgeBased
-            puts $fileid ""
-            switch -exact -- $SolverType {
-            "ElementBased" {
-                # Fractional step options => ElementBased                
-                # Solution strategy
-                # Linear solvers
-                # Velocity
-                ::wkcf::WriteFluidSolvers $rootid $fileid "Velocity"
-                puts $fileid ""
-                # Pressure
-                ::wkcf::WriteFluidSolvers $rootid $fileid "Pressure"                 
-            }
-            "PressureSplitting" {
-                # Pressure splitting
-                # Solution strategy
-                # Linear solvers
-                # Velocity
-                ::wkcf::WriteFluidSolvers $rootid $fileid "Velocity"
-                puts $fileid ""
-                # Pressure
-                ::wkcf::WriteFluidSolvers $rootid $fileid "Pressure"
-            }
-            "Monolithic" {
-                # Monolithic
+	# Material properties (Density, viscosity and Bulk Modulus)
+	set Density 0.0; set Viscosity 0.0; set BulkMod 0.0
+	lassign [::wkcf::GetDensityViscosityValues $AppId] Density Viscosity BulkMod
+	# wa "Density:$Density Viscosity:$Viscosity BulkModulus:$BulkMod"
+	puts $fileid "density = $Density "
+	puts $fileid "viscosity = $Viscosity "
+	puts $fileid "bulk_modulus = $BulkMod "
+	
+	# Gravity
+	set cxpath "$rootid//c.SolutionStrategy//i.PFEMBodyForceGravity"
+	set Gravity [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "with_gravity = $Gravity"
+	
+	# Bounding Box
+	set cxpath "$rootid//c.SolutionStrategy//c.Advanced//c.Boundingbox//i.MinX"
+	set B1X [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "bounding_box_corner1_x = $B1X"
+	set cxpath "$rootid//c.SolutionStrategy//c.Advanced//c.Boundingbox//i.MinY"
+	set B1Y [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "bounding_box_corner1_y = $B1X"
+	set cxpath "$rootid//c.SolutionStrategy//c.Advanced//c.Boundingbox//i.MinZ"
+	set B1Z [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "bounding_box_corner1_z = $B1X"
+	set cxpath "$rootid//c.SolutionStrategy//c.Advanced//c.Boundingbox//i.MaxX"
+	set B2X [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "bounding_box_corner2_x = $B2X"
+	set cxpath "$rootid//c.SolutionStrategy//c.Advanced//c.Boundingbox//i.MaxY"
+	set B2Y [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "bounding_box_corner2_y = $B2Y"
+	set cxpath "$rootid//c.SolutionStrategy//c.Advanced//c.Boundingbox//i.MaxZ"
+	set B2Z [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "bounding_box_corner2_z = $B2Z"
+	
+	# Lagrangian Nodes Inlet
+	puts $fileid "lagrangian_nodes_inlet = 0.00000e+00"   
 
-                # Solution strategy
-                # Linear solvers
-                # Velocity
-                ::wkcf::WriteFluidSolvers $rootid $fileid "Monolithic"
-                puts $fileid ""
-            }
-            }
-            
-            if {$wfsmethod} {
-                # Fluid solver configuration
-                puts $fileid ""
-                puts $fileid "# Fluid solver configuration"
-                puts $fileid "class FluidSolverConfiguration:"
-                puts $fileid "    is_active = True"
-                puts $fileid "    use_defaults = True"
-                puts $fileid "    solving_strategy_type =  \"$ckword\""
-                puts $fileid "    velocity_solver_parameters = FluidVelocityLinearSolverConfiguration()"
-                puts $fileid "    pressure_solver_parameters = FluidPressureLinearSolverConfiguration()"
-                
-                # Get the turbulence properties
-                set cxpath "$rootid//c.AnalysisData//i.TurbulenceModel"
-                set TurbulenceModel [::xmlutils::setXml $cxpath $cproperty]
-                # WarnWinText "TurbulenceModel:$TurbulenceModel"
-                if {$TurbulenceModel eq "Off"} {
-                    puts $fileid "    TurbulenceModel = \"None\""
-                } elseif {$TurbulenceModel eq "Smagorinsky-Lilly"} {
-                    puts $fileid "    TurbulenceModel = \"$TurbulenceModel\""
-                    # Get the smagorinsky-lilly constant
-                    set cxpath "$rootid//c.AnalysisData//i.SmagorinskyConstant"
-                    set SmagorinskyConstant [::xmlutils::setXml $cxpath $cproperty]
-                    # WarnWinText "SmagorinskyConstant:$SmagorinskyConstant"
-                    puts $fileid "    SmagorinskyConstant = $SmagorinskyConstant"
-                } elseif {$TurbulenceModel eq "Spalart-Allmaras"} {
-                    puts $fileid "    TurbulenceModel = \"$TurbulenceModel\""
-                }
+	# Incompressible Modified FracStep
+	puts $fileid "SolverType = \"Incompressible_Modified_FracStep\""   
+		
+	puts $fileid ""
+	
+	# Comment
+	puts $fileid "# Declare Python Variables"   
+	
+	puts $fileid ""
+	set PName [::KUtils::GetPaths "PName"]
+	puts $fileid "problem_name=\"${PName}${AppId}\"" 
+	puts $fileid "problem_path=\"$PDir\"" 
 
-            } else {
+	# Get the kratos path 
+	set cxpath "GeneralApplicationData//c.ProjectConfiguration//i.KratosPath"
+	set cproperty "dv"
+	set KratosPath [::xmlutils::setXml $cxpath $cproperty]
+	set KratosPath [file native $KratosPath]
 
-                # Get the turbulence properties
-                set cxpath "$rootid//c.AnalysisData//i.TurbulenceModel"
-                set TurbulenceModel [::xmlutils::setXml $cxpath $cproperty]
-                # WarnWinText "TurbulenceModel:$TurbulenceModel"
-                if {$TurbulenceModel eq "Off"} {
-                    puts $fileid "TurbulenceModel = \"None\""
-                } elseif {$TurbulenceModel eq "Smagorinsky-Lilly"} {
-                    puts $fileid "TurbulenceModel = \"$TurbulenceModel\""
-                    # Get the smagorinsky-lilly constant
-                    set cxpath "$rootid//c.AnalysisData//i.SmagorinskyConstant"
-                    set SmagorinskyConstant [::xmlutils::setXml $cxpath $cproperty]
-                    # WarnWinText "SmagorinskyConstant:$SmagorinskyConstant"
-                    puts $fileid "SmagorinskyConstant = $SmagorinskyConstant"
-                } elseif {$TurbulenceModel eq "Spalart-Allmaras"} {
-                    puts $fileid "TurbulenceModel = \"$TurbulenceModel\""
-                    # Get the value of the turbulence viscosity
-                    set cxpath "$rootid//c.AnalysisData//i.TurbulentViscosity"
-                    set TurbulentViscosity [::xmlutils::setXml $cxpath $cproperty]
-                    # wa "TurbulentViscosity:$TurbulentViscosity"
-                    puts $fileid "TurbulentViscosity = $TurbulentViscosity"
-                    
-                    # Try to get the group-mesh link  
-                    # SA_wall_group_ids = [1, 5, 3]
-                    # Get the values
-                    set basexpath "$rootid//c.AnalysisData//c.Spalart-AllmarasGroupId${ndime}"
-                    set gproplist [::xmlutils::setXmlContainerIds $basexpath]
-                    # wa "gproplist:$gproplist"
-                    if {[llength $gproplist]} {
-                        set meshidlist [list]
-                        foreach cgroupid $gproplist {
-                            # Get the group properties
-                            set cxpath "${basexpath}//c.[list ${cgroupid}]//c.MainProperties"
-                            set allgprop [::xmlutils::setXmlContainerPairs $cxpath "" "dv"]
-                            # wa "allgprop:$allgprop"
-                            if {[llength $allgprop]} {
-                            set Activate [lindex $allgprop 0 1]
-                            # wa "Activate:$Activate"
-                            if {$Activate} {
-                                if {[info exists dprops($AppId,Mesh,$cgroupid,MeshIdGroup)]} {
-                                set MeshIdGroup $dprops($AppId,Mesh,$cgroupid,MeshIdGroup)
-                                # wa "MeshIdGroup:$MeshIdGroup"
-                                if {$MeshIdGroup !=""} {
-                                    append meshidlist "$MeshIdGroup,"
-                                }
-                                }
-                            }
-                            }
-                        }
-                        # wa "meshidlist:$meshidlist"
-                        set findcomma [string last "," $meshidlist]
-                        if {$findcomma !="-1"} {
-                            set meshidlist [string range $meshidlist 0 end-1]
-                            append meshidlist "\]"
-                            set endmeshidlist "\[${meshidlist}"
-                            puts $fileid "SA_wall_group_ids = $endmeshidlist"
-                        }
-                    }
-                }
-            }
-
-            # Write relative and absolute tolerances
-            puts $fileid ""
-            set ctlist [list "RelativeVelocityTolerance" "AbsoluteVelocityTolerance" "RelativePressureTolerance" "AbsolutePressureTolerance"]
-            foreach cv $ctlist {
-                set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.[list ${cv}]"
-                set cvalue [::xmlutils::setXml $cxpath $cproperty]
-                set ckword [::xmlutils::getKKWord $kxpath $cv]
-                puts $fileid "$ckword = $cvalue"
-            }
-            
-            puts $fileid ""  
-            # Time order
-            set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.TimeOrder"
-            set TimeOrder [::xmlutils::setXml $cxpath $cproperty]
-            puts $fileid "time_order = $TimeOrder"
-
-            # Predictor corrector
-            set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.PredictorCorrector"
-            set PredictorCorrector [::xmlutils::setXml $cxpath $cproperty]
-            puts $fileid "predictor_corrector = $PredictorCorrector"
-            
-            if {$SolverType in [list "ElementBased" "EdgeBased"]} {
-                # Maximum velocity iterations
-                set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.MaximumVelocityIterations"
-                set MaximumVelocityIterations [::xmlutils::setXml $cxpath $cproperty]
-                puts $fileid "max_vel_its = $MaximumVelocityIterations"
-                
-                # Maximum pressure iterations
-                set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.MaximumPressureIterations"
-                set MaximumPressureIterations [::xmlutils::setXml $cxpath $cproperty]
-                puts $fileid "max_press_its = $MaximumPressureIterations"
-
-            } elseif {$SolverType in [list "Monolithic" "PressureSplitting"]} {
-                # Maximum iterations
-                set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.MaximumIterations"
-                set MaximumIterations [::xmlutils::setXml $cxpath $cproperty]
-                puts $fileid "max_iterations = $MaximumIterations"
-
-            }
-
-            # Laplacian form
-            set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.LaplacianForm"
-            set LaplacianForm [::xmlutils::setXml $cxpath $cproperty]
-            # Get the kratos keyword
-            set ckword [::xmlutils::getKKWord $kxpath $LaplacianForm]
-            if {$SolverType eq "ElementBased"} {
-                # Set the default value
-                puts $fileid "laplacian_form = 1"
-            } else {
-                puts $fileid "laplacian_form = $ckword"
-            }
-            
-        } else {
-            # Solver type for free surface
-            set cxpath "$rootid//c.AnalysisData//i.SolverTypeFreeSurf"
-            set SolverTypeFreeSurf [::xmlutils::setXml $cxpath $cproperty]
-            # WarnWinText "SolverTypeFreeSurf:$SolverTypeFreeSurf"
-
-            # Check for use OpenMP
-            # Kratos key word xpath
-            set kxpath "Applications/$rootid"
-            set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
-            set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
-            
-            if {$ParallelSolutionType eq "OpenMP"} {
-            # Write some project parameters used in the level set solver
-            set pidlist [list "RedistanceFrequency" "ExtrapolationLayers" "StabdtPressureFactor" "StabdtConvectionFactor" "WallLawY" "SafetyFactor" "NumberOfInitialSteps"]
-            foreach cvar $pidlist {
-                set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.[list ${cvar}]"
-                set cvarvalue [::xmlutils::setXml $cxpath $cproperty]
-                set ckword [::xmlutils::getKKWord $kxpath $cvar]
-                puts $fileid "$ckword = $cvarvalue"
-            }
-
-            # Write the body force properties
-            set contid "LevelSetBodyForce"
-            set cxpath "$rootid//c.SolutionStrategy//c.[list ${contid}]//i.GravityValue"
-            set GravityValue [::xmlutils::setXml $cxpath $cproperty]
-            set cxpath "$rootid//c.SolutionStrategy//c.[list ${contid}]//i.Cx"
-            set Cx [::xmlutils::setXml $cxpath $cproperty]
-            set cxpath "$rootid//c.SolutionStrategy//c.[list ${contid}]//i.Cy"
-            set Cy [::xmlutils::setXml $cxpath $cproperty]
-            set cxpath "$rootid//c.SolutionStrategy//c.[list ${contid}]//i.Cz"
-            set Cz [::xmlutils::setXml $cxpath $cproperty]
-            # wa "GravityValue:$GravityValue Cx:$Cx Cy:$Cy Cz:$Cz"
-            set kwordlist [list "body_force_x" "body_force_y" "body_force_z"]
-            set valuelist [list [expr $GravityValue*$Cx] [expr $GravityValue*$Cy] [expr $GravityValue*$Cz]]
-            foreach ckword $kwordlist cvalue $valuelist {
-                puts $fileid "$ckword = $cvalue"
-            }
-
-            # Porous zone properties
-            set contid "PorousZones"
-            set cxpath "$rootid//c.SolutionStrategy//c.[list ${contid}]//i.UseErgunEquation"
-            set UseErgunEquation [::xmlutils::setXml $cxpath $cproperty]
-            if {$UseErgunEquation eq "Yes"} {
-                puts $fileid "UseErgun = True "
-            } else {
-                puts $fileid "UseErgun = False "
-            }
-
-            # Material properties (Density and viscosity)
-            set Density 0.0; set Viscosity 0.0; set BulkMod 0.0
-            lassign [::wkcf::GetDensityViscosityValues $AppId] Density Viscosity BulkMod
-            # wa "Density:$Density Viscosity:$Viscosity"
-            puts $fileid "Density = $Density "
-            puts $fileid "Viscosity = $Viscosity "
-            }
-        }
-    }
-
-    puts $fileid ""
-    # Start time
-    set cxpath "$rootid//c.SolutionStrategy//i.StartTime"
-    set StartTime [::xmlutils::setXml $cxpath $cproperty]
-    # End time
-    set cxpath "$rootid//c.SolutionStrategy//i.EndTime"
-    set EndTime [::xmlutils::setXml $cxpath $cproperty]
-    # Delta time
-    set cxpath "$rootid//c.SolutionStrategy//i.DeltaTime"
-    set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
-    
-    # For use automatic delta time
-    set cxpath "$rootid//c.SolutionStrategy//i.UseAutomaticDeltaTime"
-    set UseAutomaticDeltaTime [::xmlutils::setXml $cxpath $cproperty]
-    puts $fileid "AutomaticDeltaTime = \"$UseAutomaticDeltaTime\""
-
-    # Get the divergence clearance step
-    set cxpath "$rootid//c.SolutionStrategy//i.DivergenceCleareanceStep"
-    set DivergenceCleareanceStep [::xmlutils::setXml $cxpath $cproperty]
-    # Get the kratos keyword
-    set DivergenceCleareanceStepKW [::xmlutils::getKKWord $kxpath "DivergenceCleareanceStep"]
-    # wa "DivergenceCleareanceStepKW:$DivergenceCleareanceStepKW DivergenceCleareanceStep:$DivergenceCleareanceStep"
-    puts $fileid "$DivergenceCleareanceStepKW = $DivergenceCleareanceStep"
-
-    # WarnWinText "StartTime:$StartTime EndTime:$EndTime DeltaTime:$DeltaTime"
-    puts $fileid "Dt = $DeltaTime"
-    puts $fileid "Start_time = $StartTime"
-    puts $fileid "max_time = $EndTime"
-    set nsteps [expr int(double($EndTime-$StartTime)/double($DeltaTime))]
-    puts $fileid "nsteps = $nsteps"
-
-    puts $fileid ""
-    # Use dt in stabilization => DynamicTau
-    set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.DynamicTau"
-    set DynamicTau [::xmlutils::setXml $cxpath $cproperty]
-    puts $fileid "use_dt_in_stabilization = $DynamicTau"
-    
-    # Use ortogonal subscales => OssSwitch
-    set cxpath "$rootid//c.SolutionStrategy//c.Advanced//i.OssSwitch"
-    set OssSwitch [::xmlutils::setXml $cxpath $cproperty]
-    puts $fileid "use_orthogonal_subscales = $OssSwitch"
-    
-    # Calculate reactions
-    set cxpath "$rootid//c.Results//c.OnNodes//i.Reactions"
-    set Reactions [::xmlutils::setXml $cxpath $cproperty]
-    if {$Reactions =="Yes"} {
-        puts $fileid "Calculate_reactions = True"
-    } else {
-        puts $fileid "Calculate_reactions = False"
-    }
-
-    # Check for use slip conditions
-    if {[info exists dprops($AppId,UseSlipConditions)]} {
-        if {$dprops($AppId,UseSlipConditions)} {
-            puts $fileid "Use_slip_conditions = True"
-        }
-    }
-
-    # Write the group dictionary
-    set arrinfo [array get dprops $AppId,Mesh,*,MeshIdGroup]
-    if {[llength $arrinfo]} {
-        puts $fileid ""
-        puts $fileid "groups_dictionary = \{"
-        foreach {name val} $arrinfo {
-            set lastchar [string last "h," $name] 
-            set firstchar [string first ",MeshIdGroup" $name] 
-            set groupid "[string range $name [expr $lastchar+2] [expr $firstchar-1]]"
-            # wa "name:$name val:$val lastchar:$lastchar firstchar:$firstchar groupid:$groupid"
-            if {$val !=""} {
-                puts $fileid "        \"$groupid\" : $val," 
-            }
-        }
-        puts $fileid "                   \}"
-    }
-
-    puts $fileid ""
-    # Output step 
-    set cxpath "$rootid//c.Results//i.OutputDeltaTime"
-    set OutputDeltaTime [::xmlutils::setXml $cxpath $cproperty]
-    puts $fileid "output_time = $OutputDeltaTime"
-    # WarnWinText "OutputDeltaTime:$OutputDeltaTime"
-    set output_step [expr int($OutputDeltaTime/double($DeltaTime))]
-    # WarnWinText "output_step:$output_step"
-    puts $fileid "output_step = $output_step"
-
-    # For results
-    if {$ndime =="3D"} {
-	#  For volumen output
-        set cxpath "$rootid//c.Results//i.VolumeOutput"
-        set VolumeOutput [::xmlutils::setXml $cxpath $cproperty]
-        if {$VolumeOutput eq "Yes"} {
-            puts $fileid "VolumeOutput = True"
-        } else {
-            puts $fileid "VolumeOutput = False"
-        }
-    } else {
-        # Set the default value for 2D
-        puts $fileid "VolumeOutput = True"
-    }
-
-    puts $fileid ""
-    # On nodes results
-    set cnrlist [list "Velocity" "Pressure" "Reactions" "Distance"]
-    # set cnrlist [list "Velocity" "Pressure" "Reactions"]
-    set nodal_results "nodal_results=\["
-    foreach cnr $cnrlist {
-        set cxpath "$rootid//c.Results//c.OnNodes//i.[list ${cnr}]"
-        set cproperty "dv"
-        set cvalue [::xmlutils::setXml $cxpath $cproperty]
-        if {$cvalue =="Yes"} {
-            set cnkr [::xmlutils::getKKWord $kxpath $cnr]
-            append nodal_results "\"$cnkr\","
-        }
-    }
-    set findcomma [string last "," $nodal_results]
-    if {$findcomma !="-1"} {
-        set nodal_results [string range $nodal_results 0 end-1]
-        append nodal_results "\]" 
-        puts $fileid "$nodal_results"
-    }
-
-    # Set gauss_points_results to empty
-    puts $fileid "gauss_points_results=\[\]"
-
-    # WarnWinText "nodal_results:$nodal_results"
-    
-    # GiD post mode variables
-    ::wkcf::WriteGiDPostMode $AppId $fileid 
-
-    puts $fileid ""
-    set PName [::KUtils::GetPaths "PName"]
-    puts $fileid "problem_name=\"${PName}${AppId}\"" 
-    puts $fileid "problem_path=\"$PDir\"" 
-    
-    # Get the kratos path 
-    set cxpath "GeneralApplicationData//c.ProjectConfiguration//i.KratosPath"
-    set cproperty "dv"
-    set KratosPath [::xmlutils::setXml $cxpath $cproperty]
-    set KratosPath [file native $KratosPath]
-
-    # Write the kratos path
-    puts $fileid "kratos_path=\"${KratosPath}\"" 
-}
-
-proc ::wkcf::WritePFEMLagrangianFluidProjectParameters {AppId fileid PDir} {
-    variable ndime; variable dprops
-    
-    set rootid "$AppId"
-    
-    # Kratos key word xpath
-    set kxpath "Applications/$rootid"
-
-    set domain_size 2
-    if {$ndime =="2D"} {
-        set domain_size 2
-    } elseif {$ndime =="3D"} {
-        set domain_size 3
-    }
-   
-    # Domain size
-    puts $fileid "domain_size = $domain_size"
-    puts $fileid ""
-
-    # Get others properties
-    set cproperty "dv"
-    
-    # Fluid type
-    set cxpath "$rootid//c.AnalysisData//i.FluidType"
-    set FluidType [::xmlutils::setXml $cxpath $cproperty]
-    
-    # WarnWinText "FluidType:$FluidType"
-    if {$FluidType =="Compressible"} {
-
-    } elseif {$FluidType =="Incompressible"} {
-
-        # FSI
-        puts $fileid "FSI = 0.00000e+00"        
-        
-        # Compute Reactions
-        puts $fileid "compute_reactions = 0.00000e+00"
-        
-        # Dt
-        set cxpath "$rootid//c.SolutionStrategy//i.DeltaTime"
-        set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
-        puts $fileid "Dt = $DeltaTime"
-        
-        # max_time
-        set cxpath "$rootid//c.SolutionStrategy//i.EndTime"
-        set EndTime [::xmlutils::setXml $cxpath $cproperty]
-        puts $fileid "max_time = $EndTime"
-        
-        # Output Step
-        set cxpath "$rootid//c.Results//i.OutputDeltaTime"
-        set OutStep [::xmlutils::setXml $cxpath $cproperty]
-        puts $fileid "output_step = $OutStep"
-        
-        # Alpha Shape
-        puts $fileid "alpha_shape = 1.60000e+00"
-        
-        # Erase Nodes
-        puts $fileid "erase_nodes = 1.00000e+00"
-        
-        # Adaptive Refinement
-        puts $fileid "adaptive_refinement = 1.00000e+00"
-        
-        # Delete Nodes Close to Wall
-        puts $fileid "delete_nodes_close_to_wall = 1.00000e+00"
-
-        # Material properties (Density, viscosity and Bulk Modulus)
-        set Density 0.0; set Viscosity 0.0; set BulkMod 0.0
-        lassign [::wkcf::GetDensityViscosityValues $AppId] Density Viscosity BulkMod
-        # wa "Density:$Density Viscosity:$Viscosity BulkModulus:$BulkMod"
-        puts $fileid "density = $Density "
-        puts $fileid "viscosity = $Viscosity "
-        puts $fileid "bulk_modulus = $BulkMod "
-        
-        # Gravity
-        set cxpath "$rootid//c.SolutionStrategy//i.PFEMBodyForceGravity"
-        set Gravity [::xmlutils::setXml $cxpath $cproperty]
-        puts $fileid "with_gravity = $Gravity"
-        
-        # Bounding Box
-        set cxpath "$rootid//c.SolutionStrategy//c.Advanced//c.Boundingbox//i.MinX"
-        set B1X [::xmlutils::setXml $cxpath $cproperty]
-        puts $fileid "bounding_box_corner1_x = $B1X"
-        set cxpath "$rootid//c.SolutionStrategy//c.Advanced//c.Boundingbox//i.MinY"
-        set B1Y [::xmlutils::setXml $cxpath $cproperty]
-        puts $fileid "bounding_box_corner1_y = $B1X"
-        set cxpath "$rootid//c.SolutionStrategy//c.Advanced//c.Boundingbox//i.MinZ"
-        set B1Z [::xmlutils::setXml $cxpath $cproperty]
-        puts $fileid "bounding_box_corner1_z = $B1X"
-        set cxpath "$rootid//c.SolutionStrategy//c.Advanced//c.Boundingbox//i.MaxX"
-        set B2X [::xmlutils::setXml $cxpath $cproperty]
-        puts $fileid "bounding_box_corner2_x = $B2X"
-        set cxpath "$rootid//c.SolutionStrategy//c.Advanced//c.Boundingbox//i.MaxY"
-        set B2Y [::xmlutils::setXml $cxpath $cproperty]
-        puts $fileid "bounding_box_corner2_y = $B2Y"
-        set cxpath "$rootid//c.SolutionStrategy//c.Advanced//c.Boundingbox//i.MaxZ"
-        set B2Z [::xmlutils::setXml $cxpath $cproperty]
-        puts $fileid "bounding_box_corner2_z = $B2Z"
-        
-        # Lagrangian Nodes Inlet
-        puts $fileid "lagrangian_nodes_inlet = 0.00000e+00"   
-
-        # Incompressible Modified FracStep
-        puts $fileid "SolverType = \"Incompressible_Modified_FracStep\""   
-                
-        puts $fileid ""
-        
-        # Comment
-        puts $fileid "# Declare Python Variables"   
-        
-        puts $fileid ""
-        set PName [::KUtils::GetPaths "PName"]
-        puts $fileid "problem_name=\"${PName}${AppId}\"" 
-        puts $fileid "problem_path=\"$PDir\"" 
-
-        # Get the kratos path 
-        set cxpath "GeneralApplicationData//c.ProjectConfiguration//i.KratosPath"
-        set cproperty "dv"
-        set KratosPath [::xmlutils::setXml $cxpath $cproperty]
-        set KratosPath [file native $KratosPath]
-
-        # Write the kratos path
-        puts $fileid "kratos_path=\"${KratosPath}\"" 
+	# Write the kratos path
+	puts $fileid "kratos_path=\"${KratosPath}\"" 
     }
 }
 
-proc ::wkcf::WriteFluidSolvers {rootid fileid vartype {wfsmethod 0}} {
+proc ::wkcf::WriteFluidSolvers {rootid fileid vartype wfsmethod trailing_spaces config_name} {
     # Write fluid velocity and pressure solvers
     
     # Kratos key word xpath
@@ -1495,12 +1562,11 @@ proc ::wkcf::WriteFluidSolvers {rootid fileid vartype {wfsmethod 0}} {
     # Set default value xml variable
     set cproperty "dv"
 
-    puts $fileid "# $vartype solver"
 
-    if {$wfsmethod} {
+	puts $fileid "    # $vartype solver"
 	# Define the class
-	puts $fileid "class Fluid${vartype}LinearSolverConfiguration:"
-    }
+	puts $fileid "    class ${config_name}:"
+
 
     set cxpath "$rootid//c.SolutionStrategy//i.[list ${vartype}]LinearSolverType"
     set LinearSolverType [::xmlutils::setXml $cxpath $cproperty]
@@ -1511,11 +1577,9 @@ proc ::wkcf::WriteFluidSolvers {rootid fileid vartype {wfsmethod 0}} {
 	# WarnWinText "DirectSolverType:$DirectSolverType"
 	set cDirectSolverType [::xmlutils::getKKWord $kxpath $DirectSolverType]
 	
-	if {$wfsmethod} {
-	    puts $fileid "    solver_type = \"$cDirectSolverType\""
-	} else {
-	    puts $fileid "${vartype}_Linear_Solver = \"$cDirectSolverType\""
-	}
+	    puts $fileid "${trailing_spaces}    solver_type = \"$cDirectSolverType\""
+	    puts $fileid "${trailing_spaces}    scaling = False"
+
 	
     } elseif {$LinearSolverType =="Iterative"} {
 	
@@ -1538,18 +1602,12 @@ proc ::wkcf::WriteFluidSolvers {rootid fileid vartype {wfsmethod 0}} {
 	# Preconditioner
 	set precond [::xmlutils::getKKWord $kxpath $PreconditionerType]
 	
-	if {$wfsmethod} {
-	    puts $fileid "    solver_type = \"$lsolver\""
-	    puts $fileid "    tolerance = $Tolerance"
-	    puts $fileid "    max_iterations = $MaximumIteration"
-	    puts $fileid "    preconditioner = \"$precond\""
-	    puts $fileid "    use_scaling = True"
-	} else {
-	    puts $fileid "${vartype}_Linear_Solver = \"$lsolver\""
-	    puts $fileid "${vartype}_Iterative_Tolerance = $Tolerance"
-	    puts $fileid "${vartype}_Solver_Max_Iteration = $MaximumIteration"
-	    puts $fileid "${vartype}_Preconditioner_type = \"$precond\""
-	}
+	    puts $fileid "${trailing_spaces}    solver_type = \"$lsolver\""
+	    puts $fileid "${trailing_spaces}    tolerance = $Tolerance"
+	    puts $fileid "${trailing_spaces}    max_iteration = $MaximumIteration"
+	    puts $fileid "${trailing_spaces}    preconditioner = \"$precond\""
+	    puts $fileid "${trailing_spaces}    scaling = False"
+
     }
 }
 
@@ -1680,7 +1738,7 @@ proc ::wkcf::WriteCutAndGraph {AppId} {
 	    if {(([info exists dprops($AppId,Mesh,$cdpid,MeshIdGroup)]) && ($dprops($AppId,Mesh,$cdpid,MeshIdGroup) !=""))} { 
 		# Get the mesh identifier
 		set MeshIdGroup $dprops($AppId,Mesh,$cdpid,MeshIdGroup)
-	    	
+		    
 		# Get the file identifier
 		set filename [lindex $alldragprop 0 1]
 		
