@@ -1,5 +1,6 @@
 import os
 from KratosMultiphysics import *
+from KratosMultiphysics.MeshingApplication import *
 CheckForPreviousImport()
 
 class GiDOutput(object):
@@ -81,11 +82,7 @@ class GiDOutput(object):
 
         # Initialize cut data
         self.cut_model_part = None
-        if not self.volume_output:
-            self.cut_model_part = ModelPart("CutPart")
-            self.cut_app = CuttingApplication()
-            self.cut_app.FindSmallestEdge()
-            self.cut_number = 0
+        self.cut_number = 0
         
         # Get a name for the GiD list file
         # if the model folder is model.gid, the list file should be called model.post.lst
@@ -98,6 +95,11 @@ class GiDOutput(object):
             raise Exception("GiD IO Error: define_cuts was called for a problem set up to print volume output.")
         elif self.cut_number > 0:
             raise Exception("GiD IO Error: define_cuts was called twice. Please provide all cuts in a single list.")
+
+        if self.cut_model_part is None:
+            self.cut_model_part = ModelPart("CutPart")
+            self.cut_app = Cutting_Application()
+            self.cut_app.FindSmallestEdge(model_part)
 
         for cut_data in cut_list:
             self.cut_number += 1
@@ -158,6 +160,11 @@ class GiDOutput(object):
     def write_results(self,label,model_part,nodal_variables,gp_variables):
         #label = str(label) #it should be a C double
         out_model_part = self.get_out_model_part(model_part)
+
+        # update cut data if necessary
+        if not self.volume_output:
+            self.cut_app.UpdateCutData(out_model_part,model_part)
+
         if self.multi_file == MultiFileFlag.MultipleFiles:
             self._write_mesh(label,out_model_part)
             self._initialize_results(label,out_model_part)
