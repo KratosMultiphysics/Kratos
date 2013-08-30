@@ -111,6 +111,7 @@
       <Item id="Discrete" kkword="2" />
       <Item id="DiscreteWithDt" kkword="3" />
       <Item id="MixedUP" kkword="MixedUP" />
+      <Item id="AMGCL" kkword="AMGCL" />
       <Item id="SuperLUIterativeSolver"
       kkword="SuperLUIterativeSolver" />
       <Item id="DivergenceCleareanceStep"
