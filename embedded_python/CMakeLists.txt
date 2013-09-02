@@ -14,7 +14,7 @@ set( EMBEDDED_PYTHON_SOURCES
 
 ###############################################################
 add_executable(runkratos ${EMBEDDED_PYTHON_SOURCES} )
-target_link_libraries(runkratos  ${PYTHON_LIBRARIES})
+target_link_libraries(runkratos ${EXTRA_LINK_LIBS} ${PYTHON_LIBRARIES})
 install(TARGETS runkratos DESTINATION . )
 
 message("python libraries to be installed are: " ${PYTHON_LIBRARIES} )
