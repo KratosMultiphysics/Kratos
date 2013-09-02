@@ -19,10 +19,10 @@ def PrintResults(model_part):
         gid_io.PrintOnGaussPoints(variables_dictionary[variable_name],model_part,time)
         
     if(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
-	gid_io.WriteNodalResults(VISCOSITY,model_part.Nodes,time,0)
-	#gid_io.WriteNodalResults(MOLECULAR_VISCOSITY,model_part.Nodes,time,0)
-	#gid_io.WriteNodalResults(TURBULENT_VISCOSITY,model_part.Nodes,time,0)
-	#gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,time,0)
+        gid_io.WriteNodalResults(VISCOSITY,model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(MOLECULAR_VISCOSITY,model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(TURBULENT_VISCOSITY,model_part.Nodes,time,0)
+        #gid_io.WriteNodalResults(DISTANCE,model_part.Nodes,time,0)
 
 
 ##################################################################
@@ -99,9 +99,9 @@ else:
 
 if(ProjectParameters.VolumeOutput == True):
     if ProjectParameters.GiDWriteConditionsFlag == True:
-	write_conditions = WriteConditionsFlag.WriteConditions
+        write_conditions = WriteConditionsFlag.WriteConditions
     else:
-	write_conditions = WriteConditionsFlag.WriteElementsOnly
+        write_conditions = WriteConditionsFlag.WriteElementsOnly
 else:
     write_conditions = WriteConditionsFlag.WriteConditions
 
@@ -255,10 +255,10 @@ elif "monolithic_solver_eulerian": # single coupled solver
         monolithic_linear_solver = SuperLUSolver()
     elif ProjectParameters.Monolithic_Linear_Solver == "MixedUP":
         velocity_linear_solver = SuperLUIterativeSolver()
-	pressure_linear_solver = ScalingSolver( BICGSTABSolver(1e-3, 500) , True)
-	m = 5
-	max_it = m
-	monolithic_linear_solver = MixedUPLinearSolver(velocity_linear_solver,pressure_linear_solver,1e-6,max_it,m)
+        pressure_linear_solver = ScalingSolver( BICGSTABSolver(1e-3, 500) , True)
+        m = 5
+        max_it = m
+        monolithic_linear_solver = MixedUPLinearSolver(velocity_linear_solver,pressure_linear_solver,1e-6,max_it,m)
     elif ProjectParameters.Monolithic_Linear_Solver == "SuperLUIterativeSolver":    
         monolithic_linear_solver = ScalingSolver( SuperLUIterativeSolver() , True )
     elif ProjectParameters.Monolithic_Linear_Solver == "Parallel MKL Pardiso":
@@ -318,18 +318,18 @@ elif(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
       visc = node.GetSolutionStepValue(VISCOSITY)
       node.SetSolutionStepValue(MOLECULAR_VISCOSITY,0,visc);
       if(node.IsFixed(VELOCITY_X)):
-	  node.Fix(TURBULENT_VISCOSITY)
-	  
-	  
+          node.Fix(TURBULENT_VISCOSITY)
+          
+          
     ##select nodes on the wall
     wall_nodes = []
     for i in ProjectParameters.SA_wall_group_ids:
        nodes = fluid_model_part.GetNodes(i) ##get the nodes of the wall for SA.
        for node in nodes:
-	  wall_nodes.append(node)
-	  node.SetSolutionStepValue(TURBULENT_VISCOSITY,0,0.0);
-	  node.Fix(TURBULENT_VISCOSITY)
-	  
+          wall_nodes.append(node)
+          node.SetSolutionStepValue(TURBULENT_VISCOSITY,0,0.0);
+          node.Fix(TURBULENT_VISCOSITY)
+          
     DES = False
     fluid_solver.ActivateSpalartAllmaras(wall_nodes,DES)
        
@@ -346,29 +346,29 @@ cut_model_part = ModelPart("CutPart");
 if(ProjectParameters.VolumeOutput == True):
     ###mesh to be printed (single mesh case)
     if ProjectParameters.GiDMultiFileFlag == "Single":
-	mesh_name = 0.0
-	gid_io.InitializeMesh( mesh_name )
-	gid_io.WriteMesh( fluid_model_part.GetMesh() )
-	gid_io.FinalizeMesh()
+        mesh_name = 0.0
+        gid_io.InitializeMesh( mesh_name )
+        gid_io.WriteMesh( fluid_model_part.GetMesh() )
+        gid_io.FinalizeMesh()
 
-	gid_io.InitializeResults(mesh_name,(fluid_model_part).GetMesh())
-	Multifile = False
+        gid_io.InitializeResults(mesh_name,(fluid_model_part).GetMesh())
+        Multifile = False
 
-	# Write .post.list file (GiD postprocess list)
-	f = open(ProjectParameters.problem_name+'.post.lst','w')
-	f.write('Single\n')
-	if ProjectParameters.GiDPostMode == "Binary":
-	    f.write(ProjectParameters.problem_name+'.post.bin\n')
-	elif ProjectParameters.GiDPostMode == "Ascii":
-	    f.write(ProjectParameters.problem_name+'_0.post.msh\n')
-	f.close()
-	
+        # Write .post.list file (GiD postprocess list)
+        f = open(ProjectParameters.problem_name+'.post.lst','w')
+        f.write('Single\n')
+        if ProjectParameters.GiDPostMode == "Binary":
+            f.write(ProjectParameters.problem_name+'.post.bin\n')
+        elif ProjectParameters.GiDPostMode == "Ascii":
+            f.write(ProjectParameters.problem_name+'_0.post.msh\n')
+        f.close()
+        
     else: #  ProjectParameters.GiDMultiFileFlag == "Multiples":
-	Multifile = True
+        Multifile = True
 
-	# Initialize .post.list file (GiD postprocess list)
-	f = open(ProjectParameters.problem_name+'.post.lst','w')
-	f.write('Multiple\n')
+        # Initialize .post.list file (GiD postprocess list)
+        f = open(ProjectParameters.problem_name+'.post.lst','w')
+        f.write('Multiple\n')
 else:
     #generate the cuts
     Cut_App = Cutting_Application();
@@ -393,29 +393,29 @@ else:
     
     ###mesh to be printed (single mesh case)
     if ProjectParameters.GiDMultiFileFlag == "Single":
-	mesh_name = 0.0
-	gid_io.InitializeMesh( mesh_name )
-	gid_io.WriteMesh( cut_model_part.GetMesh() )
-	gid_io.FinalizeMesh()
+        mesh_name = 0.0
+        gid_io.InitializeMesh( mesh_name )
+        gid_io.WriteMesh( cut_model_part.GetMesh() )
+        gid_io.FinalizeMesh()
 
-	gid_io.InitializeResults(mesh_name,(cut_model_part).GetMesh())
-	Multifile = False
+        gid_io.InitializeResults(mesh_name,(cut_model_part).GetMesh())
+        Multifile = False
 
-	# Write .post.list file (GiD postprocess list)
-	f = open(ProjectParameters.problem_name+'.post.lst','w')
-	f.write('Single\n')
-	if ProjectParameters.GiDPostMode == "Binary":
-	    f.write(ProjectParameters.problem_name+'.post.bin\n')
-	elif ProjectParameters.GiDPostMode == "Ascii":
-	    f.write(ProjectParameters.problem_name+'_0.post.msh\n')
-	f.close()
-	
+        # Write .post.list file (GiD postprocess list)
+        f = open(ProjectParameters.problem_name+'.post.lst','w')
+        f.write('Single\n')
+        if ProjectParameters.GiDPostMode == "Binary":
+            f.write(ProjectParameters.problem_name+'.post.bin\n')
+        elif ProjectParameters.GiDPostMode == "Ascii":
+            f.write(ProjectParameters.problem_name+'_0.post.msh\n')
+        f.close()
+        
     else: #  ProjectParameters.GiDMultiFileFlag == "Multiples":
-	Multifile = True
+        Multifile = True
 
-	# Initialize .post.list file (GiD postprocess list)
-	f = open(ProjectParameters.problem_name+'.post.lst','w')
-	f.write('Multiple\n')    
+        # Initialize .post.list file (GiD postprocess list)
+        f = open(ProjectParameters.problem_name+'.post.lst','w')
+        f.write('Multiple\n')    
     
 #######################################33
 #######################################33
@@ -441,19 +441,19 @@ def PrintDrag(drag_list,drag_file_output_list,fluid_model_part,time):
       drag = Vector(3);
       drag[0]=0.0; drag[1]=0.0; drag[2]=0.0;
       for node in nodes:
-	reaction = node.GetSolutionStepValue(REACTION,0)
-	drag[0] += reaction[0]
-	drag[1] += reaction[1]
-	drag[2] += reaction[2]
-	
-	
+        reaction = node.GetSolutionStepValue(REACTION,0)
+        drag[0] += reaction[0]
+        drag[1] += reaction[1]
+        drag[2] += reaction[2]
+        
+        
       if (benchmarking.InBenchmarkingMode()):
-	  if (benchmarking.InBuildReferenceMode()):
-	      benchmarking.Output(drag,"drag",1e-9,1e-3)
-	  else:
-	      benchmarking.Output(drag,"drag",1e-9,1e-3)
+          if (benchmarking.InBuildReferenceMode()):
+              benchmarking.Output(drag,"drag",1e-9,1e-3)
+          else:
+              benchmarking.Output(drag,"drag",1e-9,1e-3)
 
-	
+        
       output = str(time) + " " + str(drag[0]) +  " " + str(drag[1]) +  " " + str(drag[2]) + "\n"
       #print drag_file_output_list[i]
       #print output
@@ -501,54 +501,54 @@ while(time <= final_time):
         fluid_solver.Solve()
         
         if(step < 4):
-	  for k in range(0,ProjectParameters.divergence_cleareance_step):
-	      print "DOING DIVERGENCE CLEAREANCE"
-	      buffer_size = fluid_model_part.GetBufferSize()
-	      for i in range(0,buffer_size):
-		for node in fluid_model_part.Nodes:
-		  vel = node.GetSolutionStepValue(VELOCITY)
-		  node.SetSolutionStepValue(VELOCITY,i,vel)
-		  node.SetSolutionStepValue(PRESSURE,i,0.0)	  
-		if(SolverType == "monolithic_solver_eulerian"):
-		  zero_vector = Vector(3)
-		  zero_vector[0] = 0.0; zero_vector[1] = 0.0; zero_vector[2] = 0.0;
-		  for node in fluid_model_part.Nodes:
-		    node.SetSolutionStepValue(ACCELERATION,i,zero_vector)
-		if(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
-		    for node in fluid_model_part.Nodes:
-		      visc = node.GetSolutionStepValue(VISCOSITY)
-		      node.SetSolutionStepValue(VISCOSITY,i,visc)
-		    
-	      fluid_solver.Solve()
+          for k in range(0,ProjectParameters.divergence_cleareance_step):
+              print "DOING DIVERGENCE CLEAREANCE"
+              buffer_size = fluid_model_part.GetBufferSize()
+              for i in range(0,buffer_size):
+                for node in fluid_model_part.Nodes:
+                  vel = node.GetSolutionStepValue(VELOCITY)
+                  node.SetSolutionStepValue(VELOCITY,i,vel)
+                  node.SetSolutionStepValue(PRESSURE,i,0.0)       
+                if(SolverType == "monolithic_solver_eulerian"):
+                  zero_vector = Vector(3)
+                  zero_vector[0] = 0.0; zero_vector[1] = 0.0; zero_vector[2] = 0.0;
+                  for node in fluid_model_part.Nodes:
+                    node.SetSolutionStepValue(ACCELERATION,i,zero_vector)
+                if(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
+                    for node in fluid_model_part.Nodes:
+                      visc = node.GetSolutionStepValue(VISCOSITY)
+                      node.SetSolutionStepValue(VISCOSITY,i,visc)
+                    
+              fluid_solver.Solve()
         
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list,drag_file_output_list,fluid_model_part,time)
 
     if(output_time <= out):
-	if(ProjectParameters.VolumeOutput == True):
-	    if Multifile:
-		gid_io.InitializeMesh( time )
-		gid_io.WriteMesh( fluid_model_part.GetMesh() )
-		gid_io.FinalizeMesh()
+        if(ProjectParameters.VolumeOutput == True):
+            if Multifile:
+                gid_io.InitializeMesh( time )
+                gid_io.WriteMesh( fluid_model_part.GetMesh() )
+                gid_io.FinalizeMesh()
 
-		gid_io.InitializeResults(time,(fluid_model_part).GetMesh())
-	    
-	    PrintResults(fluid_model_part)
-	    out = 0
-	else:
-	    cut_model_part.CloneTimeStep(time)
-	    Cut_App.UpdateCutData(cut_model_part,fluid_model_part)
-	    
-	    if Multifile:
-		gid_io.InitializeMesh( time )
-		gid_io.WriteMesh( cut_model_part.GetMesh() )
-		gid_io.FinalizeMesh()
+                gid_io.InitializeResults(time,(fluid_model_part).GetMesh())
+            
+            PrintResults(fluid_model_part)
+            out = 0
+        else:
+            cut_model_part.CloneTimeStep(time)
+            Cut_App.UpdateCutData(cut_model_part,fluid_model_part)
+            
+            if Multifile:
+                gid_io.InitializeMesh( time )
+                gid_io.WriteMesh( cut_model_part.GetMesh() )
+                gid_io.FinalizeMesh()
 
-		gid_io.InitializeResults(time,(cut_model_part).GetMesh())
-	    
-	    PrintResults(cut_model_part)
-	    
-	    out = 0	    
+                gid_io.InitializeResults(time,(cut_model_part).GetMesh())
+            
+            PrintResults(cut_model_part)
+            
+            out = 0         
 
         if Multifile:
             gid_io.FinalizeResults()
