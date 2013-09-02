@@ -38,8 +38,6 @@ THE SOFTWARE.
 #include <cmath>
 #include <cassert>
 
-#include <boost/typeof/typeof.hpp>
-
 #ifdef _OPENMP
 #  include <omp.h>
 #endif
@@ -238,9 +236,9 @@ transpose(const spmat &A) {
     const index_t m   = matrix_cols(A);
     const index_t nnz = matrix_nonzeros(A);
 
-    BOOST_AUTO(Arow, matrix_outer_index(A));
-    BOOST_AUTO(Acol, matrix_inner_index(A));
-    BOOST_AUTO(Aval, matrix_values(A));
+    const index_t *Arow = matrix_outer_index(A);
+    const index_t *Acol = matrix_inner_index(A);
+    const value_t *Aval = matrix_values(A);
 
     matrix<value_t, index_t> T(m, n, nnz);
 
@@ -279,13 +277,13 @@ prod(const spmat1 &A, const spmat2 &B) {
     const index_t n   = matrix_rows(A);
     const index_t m   = matrix_cols(B);
 
-    BOOST_AUTO(Arow, matrix_outer_index(A));
-    BOOST_AUTO(Acol, matrix_inner_index(A));
-    BOOST_AUTO(Aval, matrix_values(A));
+    const index_t *Arow = matrix_outer_index(A);
+    const index_t *Acol = matrix_inner_index(A);
+    const value_t *Aval = matrix_values(A);
 
-    BOOST_AUTO(Brow, matrix_outer_index(B));
-    BOOST_AUTO(Bcol, matrix_inner_index(B));
-    BOOST_AUTO(Bval, matrix_values(B));
+    const index_t *Brow = matrix_outer_index(B);
+    const index_t *Bcol = matrix_inner_index(B);
+    const value_t *Bval = matrix_values(B);
 
     matrix<value_t, index_t> C(n, m);
 
@@ -440,9 +438,9 @@ inverse(const spmat &A) {
     assert(n == sparse::matrix_cols(A)
             && "Inverse of a non-square matrix does not make sense");
 
-    BOOST_AUTO(Arow, matrix_outer_index(A));
-    BOOST_AUTO(Acol, matrix_inner_index(A));
-    BOOST_AUTO(Aval, matrix_values(A));
+    const index_t *Arow = matrix_outer_index(A);
+    const index_t *Acol = matrix_inner_index(A);
+    const value_t *Aval = matrix_values(A);
 
     matrix<
         typename matrix_value<spmat>::type,
@@ -479,9 +477,9 @@ diagonal(const spmat &A) {
     assert(n == sparse::matrix_cols(A)
             && "Diagonal of a non-square matrix is not well-defined");
 
-    BOOST_AUTO(Arow, matrix_outer_index(A));
-    BOOST_AUTO(Acol, matrix_inner_index(A));
-    BOOST_AUTO(Aval, matrix_values(A));
+    const index_t *Arow = matrix_outer_index(A);
+    const index_t *Acol = matrix_inner_index(A);
+    const value_t *Aval = matrix_values(A);
 
     std::vector<value_t> dia(n);
 
@@ -525,9 +523,9 @@ void sort_rows(spmat &A) {
 
     const index_t n = sparse::matrix_rows(A);
 
-    BOOST_AUTO(Arow, matrix_outer_index(A));
-    BOOST_AUTO(Acol, matrix_inner_index(A));
-    BOOST_AUTO(Aval, matrix_values(A));
+    index_t *Arow = matrix_outer_index(A);
+    index_t *Acol = matrix_inner_index(A);
+    value_t *Aval = matrix_values(A);
 
 #pragma omp parallel for schedule(dynamic, 1024)
     for(index_t i = 0; i < n; ++i) {

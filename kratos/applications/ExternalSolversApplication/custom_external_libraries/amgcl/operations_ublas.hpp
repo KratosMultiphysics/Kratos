@@ -38,7 +38,6 @@ THE SOFTWARE.
 #include <boost/numeric/ublas/operation_sparse.hpp>
 #include <boost/numeric/ublas/operation.hpp>
 
-#include <boost/typeof/typeof.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/type_traits/is_arithmetic.hpp>
 
@@ -107,9 +106,9 @@ void residual(
 {
     const ptrdiff_t n = A.size1();
 
-    BOOST_AUTO(Arow, A.index1_data().begin());
-    BOOST_AUTO(Acol, A.index2_data().begin());
-    BOOST_AUTO(Aval, A.value_data().begin());
+    const size_t *Arow = A.index1_data().begin();
+    const size_t *Acol = A.index2_data().begin();
+    const real   *Aval = A.value_data().begin();
 
 #pragma omp parallel for schedule(dynamic, 1024)
     for(ptrdiff_t i = 0; i < n; ++i) {
@@ -131,9 +130,9 @@ void axpy(
 {
     const ptrdiff_t n = A.size1();
 
-    BOOST_AUTO(Arow, A.index1_data().begin());
-    BOOST_AUTO(Acol, A.index2_data().begin());
-    BOOST_AUTO(Aval, A.value_data().begin());
+    const size_t *Arow = A.index1_data().begin();
+    const size_t *Acol = A.index2_data().begin();
+    const real   *Aval = A.value_data().begin();
 
 #pragma omp parallel for schedule(dynamic, 1024)
     for(ptrdiff_t i = 0; i < n; ++i) {

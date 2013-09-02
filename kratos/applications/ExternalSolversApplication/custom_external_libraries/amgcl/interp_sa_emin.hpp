@@ -36,8 +36,6 @@ THE SOFTWARE.
 #include <functional>
 #include <cassert>
 
-#include <boost/typeof/typeof.hpp>
-
 #include <amgcl/spmat.hpp>
 #include <amgcl/aggr_connect.hpp>
 #include <amgcl/tictoc.hpp>
@@ -118,8 +116,8 @@ interp(const sparse::matrix<value_t, index_t> &A, const params &prm) {
         // Build reduced matrix, find connections and aggregates with it,
         // restore the vectors to full size.
 
-        BOOST_AUTO(S_aggr, aggr::pointwise_coarsening<aggr_type>(
-                    A, prm.eps_strong, prm.dof_per_node));
+        std::pair<std::vector<char>, std::vector<index_t> > S_aggr = aggr::pointwise_coarsening<aggr_type>(
+                    A, prm.eps_strong, prm.dof_per_node);
         S.swap(S_aggr.first);
         aggr.swap(S_aggr.second);
     }

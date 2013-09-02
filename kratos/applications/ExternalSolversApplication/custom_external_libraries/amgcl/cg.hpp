@@ -36,6 +36,7 @@ THE SOFTWARE.
 #include <utility>
 
 #include <amgcl/common.hpp>
+#include <amgcl/tictoc.hpp>
 
 namespace amgcl {
 
@@ -64,6 +65,7 @@ template <class matrix, class vector, class precond>
 std::pair< int, typename value_type<vector>::type >
 solve(const matrix &A, const vector &rhs, const precond &P, vector &x, cg_tag prm = cg_tag())
 {
+    TIC("solver");
     typedef typename value_type<vector>::type value_t;
 
     const size_t n = x.size();
@@ -85,7 +87,9 @@ solve(const matrix &A, const vector &rhs, const precond &P, vector &x, cg_tag pr
     for(; (res = norm(r) / norm_of_rhs) > prm.tol && iter < prm.maxiter; ++iter)
     {
         clear(s);
+        TOC("solver");
         P.apply(r, s);
+        TIC("solver");
 
         rho2 = rho1;
         rho1 = inner_prod(r, s);
@@ -103,6 +107,7 @@ solve(const matrix &A, const vector &rhs, const precond &P, vector &x, cg_tag pr
         r -= alpha * q;
     }
 
+    TOC("solver");
     return std::make_pair(iter, res);
 }
 

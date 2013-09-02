@@ -37,6 +37,7 @@ THE SOFTWARE.
 #include <stdexcept>
 
 #include <amgcl/common.hpp>
+#include <amgcl/tictoc.hpp>
 
 namespace amgcl {
 
@@ -60,6 +61,7 @@ template <class matrix, class vector, class precond>
 std::pair< int, typename value_type<vector>::type >
 solve(const matrix &A, const vector &rhs, const precond &P, vector &x, bicg_tag prm = bicg_tag())
 {
+    TIC("solver");
     typedef typename value_type<vector>::type value_t;
 
     const size_t n = x.size();
@@ -96,7 +98,9 @@ solve(const matrix &A, const vector &rhs, const precond &P, vector &x, bicg_tag 
             p = r;
 
         clear(ph);
+        TOC("solver");
         P.apply(p, ph);
+        TIC("solver");
 
         axpy(A, ph, v);
 
@@ -108,7 +112,9 @@ solve(const matrix &A, const vector &rhs, const precond &P, vector &x, bicg_tag 
             x += alpha * ph;
         } else {
             clear(sh);
+            TOC("solver");
             P.apply(s, sh);
+            TIC("solver");
 
             axpy(A, sh, t);
 
@@ -124,6 +130,7 @@ solve(const matrix &A, const vector &rhs, const precond &P, vector &x, bicg_tag 
         }
     }
 
+    TOC("solver");
     return std::make_pair(iter, res);
 }
 

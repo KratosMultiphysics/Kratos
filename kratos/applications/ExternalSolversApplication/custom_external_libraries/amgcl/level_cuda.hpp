@@ -36,7 +36,6 @@ THE SOFTWARE.
 
 #include <boost/static_assert.hpp>
 #include <boost/smart_ptr/scoped_ptr.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <boost/type_traits/is_same.hpp>
 
 #include <thrust/device_vector.h>
@@ -92,9 +91,9 @@ class cuda_matrix<value_type, GPU_MATRIX_HYB> {
 
             check(cusparseCreateHybMat(&mat), "cusparseCreateHybMat failed");
 
-            BOOST_AUTO(Arow, sparse::matrix_outer_index(A));
-            BOOST_AUTO(Acol, sparse::matrix_inner_index(A));
-            BOOST_AUTO(Aval, sparse::matrix_values(A));
+            const index_t *Arow = sparse::matrix_outer_index(A);
+            const index_t *Acol = sparse::matrix_inner_index(A);
+            const value_t *Aval = sparse::matrix_values(A);
 
             convert_to_hybrid(
                     thrust::device_vector<int>    (Arow, Arow + rows + 1),
@@ -366,7 +365,7 @@ struct cuda_damped_jacobi {
 
         template <class spmat>
         instance(const spmat &A) : dia(sparse::matrix_rows(A)) {
-            BOOST_AUTO(d, sparse::diagonal(A));
+            std::vector<value_t> d = sparse::diagonal(A);
             thrust::copy(d.begin(), d.end(), dia.begin());
         }
 
@@ -411,7 +410,7 @@ struct cuda_spai0 {
 
         template <class spmat>
         instance(const spmat &A) : M(sparse::matrix_rows(A)) {
-            BOOST_AUTO(m, spai::level0(A));
+            std::vector<value_t> m = spai::level0(A);
             thrust::copy(m.begin(), m.end(), M.begin());
         }
 

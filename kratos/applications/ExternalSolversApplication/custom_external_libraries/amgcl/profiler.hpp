@@ -38,7 +38,7 @@ THE SOFTWARE.
 #include <stack>
 
 #include <boost/chrono.hpp>
-#include <boost/typeof/typeof.hpp>
+#include <boost/io/ios_state.hpp>
 
 
 namespace amgcl {
@@ -78,31 +78,35 @@ class profiler {
 
         /// Stops named timer.
         double toc(const std::string& /*name*/) {
-            BOOST_AUTO(top, stack.top());
+            profile_unit *top = stack.top();
             stack.pop();
 
-            double delta = boost::chrono::duration<double>(
-                    clock::now() - top->start_time).count();
-
+            double delta = seconds(top->start_time, clock::now());
             top->length += delta;
-
             return delta;
         }
 
     private:
+        static double seconds(typename clock::time_point begin, typename clock::time_point end) {
+            return static_cast<double>(clock::duration::period::num)
+                * typename clock::duration(end - begin).count()
+                / clock::duration::period::den;
+
+        }
+
         struct profile_unit {
             profile_unit() : length(0) {}
 
             double children_time() const {
                 double s = 0;
-                for(BOOST_AUTO(c, children.begin()); c != children.end(); c++)
+                for(typename std::map<std::string, profile_unit>::const_iterator c = children.begin(); c != children.end(); c++)
                     s += c->second.length;
                 return s;
             }
 
             size_t total_width(const std::string &name, int level) const {
                 size_t w = name.size() + level;
-                for(BOOST_AUTO(c, children.begin()); c != children.end(); c++)
+                for(typename std::map<std::string, profile_unit>::const_iterator c = children.begin(); c != children.end(); c++)
                     w = std::max(w, c->second.total_width(c->first, level + SHIFT_WIDTH));
                 return w;
             }
@@ -125,7 +129,7 @@ class profiler {
                     }
                 }
 
-                for(BOOST_AUTO(c, children.begin()); c != children.end(); c++)
+                for(typename std::map<std::string, profile_unit>::const_iterator c = children.begin(); c != children.end(); c++)
                     c->second.print(out, c->first, level + SHIFT_WIDTH, total, width);
             }
 
@@ -142,7 +146,7 @@ class profiler {
                     << endl;
             }
 
-            boost::chrono::time_point<clock> start_time;
+            typename clock::time_point start_time;
 
             double length;
 
@@ -157,16 +161,10 @@ class profiler {
             if (stack.top() != &root)
                 out << "Warning! Profile is incomplete." << std::endl;
 
-            root.length += boost::chrono::duration<double>(
-                    clock::now() - root.start_time).count();
+            root.length += seconds(root.start_time, clock::now());
 
-            BOOST_AUTO(ff, out.flags());
-            BOOST_AUTO(pp, out.precision());
-
+            boost::io::ios_all_saver stream_state(out);
             root.print(out, name, 0, root.length, root.total_width(name, 0));
-
-            out.flags(ff);
-            out.precision(pp);
         }
 
         /// Sends formatted profiling data to an output stream.

@@ -141,7 +141,8 @@ struct gmres_data {
         : M(M), H(M * (M + 1)), s(M + 1), cs(M + 1), sn(M + 1), y(M + 1),
           r(n), w(n), v(M + 1)
     {
-        for(BOOST_AUTO(vp, v.begin()); vp != v.end(); ++vp) vp->resize(n);
+        for(typename std::vector<Vector>::iterator vp = v.begin(); vp != v.end(); ++vp)
+            vp->resize(n);
     }
 
     void update(Vector &x, int k) {

@@ -33,7 +33,6 @@ THE SOFTWARE.
 
 
 #include <boost/smart_ptr/scoped_ptr.hpp>
-#include <boost/typeof/typeof.hpp>
 
 #include <amgcl/common.hpp>
 #include <amgcl/level_params.hpp>

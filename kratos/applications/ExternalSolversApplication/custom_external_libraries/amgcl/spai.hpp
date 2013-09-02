@@ -47,9 +47,9 @@ level0(const spmat &A) {
 
     const index_t n = sparse::matrix_rows(A);
 
-    BOOST_AUTO(Arow, sparse::matrix_outer_index(A));
-    BOOST_AUTO(Acol, sparse::matrix_inner_index(A));
-    BOOST_AUTO(Aval, sparse::matrix_values(A));
+    const index_t *Arow = sparse::matrix_outer_index(A);
+    const index_t *Acol = sparse::matrix_inner_index(A);
+    const value_t *Aval = sparse::matrix_values(A);
 
     std::vector<value_t> m(n);
 
