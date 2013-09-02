@@ -108,12 +108,12 @@ class LevelSetSolver:
         self.specific_heat2 = 1.0
         
         #common properties for the two fluids
-	self.mu   = 1.0e-3
-	self.ambient_temperature = 293.15 #note that temperatures should be given in Kelvins
+        self.mu   = 1.0e-3
+        self.ambient_temperature = 293.15 #note that temperatures should be given in Kelvins
         self.mould_temperature = self.ambient_temperature
-	self.inlet_temperature = 800.0
-	self.convection_coefficient = 0.0
-	self.emissivity = 0.0
+        self.inlet_temperature = 800.0
+        self.convection_coefficient = 0.0
+        self.emissivity = 0.0
         ################################################
 
         if(self.domain_size == 2):
@@ -122,7 +122,7 @@ class LevelSetSolver:
             self.redistance_utils = ParallelDistanceCalculator3D()
 
         self.max_levels = 50
-	self.redistance_frequency = 1
+        self.redistance_frequency = 1
         self.max_edge_size = self.redistance_utils.FindMaximumEdgeSize(self.convection_model_part)
         self.max_distance = self.max_edge_size * 3.0;
 
@@ -139,50 +139,50 @@ class LevelSetSolver:
         self.dynamic_tau = 1.00
         
         self.divergence_clearance_performed = True #setting to true it will not perform it
-	
-	##create utility to estimate Dt
-	self.dt_estimator = EstimateDt3D(self.model_part)
-	
-	#utility to set to zero variables
-	self.variable_utils = VariableUtils()
-	
-	self.internal_step_counter = 0
-	
+        
+        ##create utility to estimate Dt
+        self.dt_estimator = EstimateDt3D(self.model_part)
+        
+        #utility to set to zero variables
+        self.variable_utils = VariableUtils()
+        
+        self.internal_step_counter = 0
+        
     def EchoSettings(self):
-	print " "
-	print "*******************************************"
-	print "settings currently used : "
-	print "*******************************************"
-	print "rho negative domain (rho1)                        = ",self.rho1
-	print "rho positive domain (rho2)                        = ",self.rho2
-	print "mu                                                = ",self.mu
-	print " "
-	print "FLUID SOLVER SETTINGS : "
-	print "vel_criteria                                      =",self.vel_criteria
-	print "vel_abs_criteria                                  =",self.vel_abs_criteria
-	print "press_criteria                                    =",self.press_criteria
-	print "press_abs_criteria                                =",self.press_abs_criteria
-	print "max_ns_iterations                                 =",self.max_ns_iterations
-	print "redistance_frequency                              =",self.redistance_frequency
-	print " "
-	print "THERMAL SOLVER SETTINGS : "  
-	print "conductivity negative domain (conductivity1)      = ",self.conductivity1
-	print "conductivity positive domain (conductivity2)      = ",self.conductivity2
-	print "specific_heat negative domain (specific_heat1)    = ",self.specific_heat1
-	print "specific_heat positive domain (specific_heat2)    = ",self.specific_heat2
-	print "inlet temperature                                 = ",self.inlet_temperature
-	print "ambient_temperature                               = ",self.ambient_temperature
-	print "mould_temperature                                 = ",self.mould_temperature
-	print "convection_coefficient                            = ",self.convection_coefficient
-	print "emissivity                                        = ",self.emissivity
-	print " "
-	print "TABLES USED : "
-	print "...pooyan please fill this ...!!!!!!!!!!!!!! "
-	print " "
-	print "*******************************************"
-	print " "
+        print " "
+        print "*******************************************"
+        print "settings currently used : "
+        print "*******************************************"
+        print "rho negative domain (rho1)                        = ",self.rho1
+        print "rho positive domain (rho2)                        = ",self.rho2
+        print "mu                                                = ",self.mu
+        print " "
+        print "FLUID SOLVER SETTINGS : "
+        print "vel_criteria                                      =",self.vel_criteria
+        print "vel_abs_criteria                                  =",self.vel_abs_criteria
+        print "press_criteria                                    =",self.press_criteria
+        print "press_abs_criteria                                =",self.press_abs_criteria
+        print "max_ns_iterations                                 =",self.max_ns_iterations
+        print "redistance_frequency                              =",self.redistance_frequency
+        print " "
+        print "THERMAL SOLVER SETTINGS : "  
+        print "conductivity negative domain (conductivity1)      = ",self.conductivity1
+        print "conductivity positive domain (conductivity2)      = ",self.conductivity2
+        print "specific_heat negative domain (specific_heat1)    = ",self.specific_heat1
+        print "specific_heat positive domain (specific_heat2)    = ",self.specific_heat2
+        print "inlet temperature                                 = ",self.inlet_temperature
+        print "ambient_temperature                               = ",self.ambient_temperature
+        print "mould_temperature                                 = ",self.mould_temperature
+        print "convection_coefficient                            = ",self.convection_coefficient
+        print "emissivity                                        = ",self.emissivity
+        print " "
+        print "TABLES USED : "
+        print "...pooyan please fill this ...!!!!!!!!!!!!!! "
+        print " "
+        print "*******************************************"
+        print " "
 
-	
+        
     def ApplyFluidProperties(self):
         #apply density
         mu1 = self.mu/self.rho1
@@ -195,9 +195,9 @@ class LevelSetSolver:
             else:
                 node.SetSolutionStepValue(DENSITY,0,self.rho2)
                 node.SetSolutionStepValue(VISCOSITY,0,mu2)
-	
-	
-	
+        
+        
+        
     def Initialize(self):
         self.EchoSettings()
       
@@ -219,25 +219,25 @@ class LevelSetSolver:
         
         ##CHAPUZA to set the non historical value of IS_STRUCTURE correctly... to be improved
         for condition in self.model_part.Conditions:
-	    if condition.GetValue(IS_STRUCTURE) == 1.0:
-	      for node in condition.GetNodes():
-		node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
-	self.model_part.GetCommunicator().AssembleCurrentData(IS_STRUCTURE)
+            if condition.GetValue(IS_STRUCTURE) == 1.0:
+              for node in condition.GetNodes():
+                node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
+        self.model_part.GetCommunicator().AssembleCurrentData(IS_STRUCTURE)
 
-	for node in self.model_part.Nodes:
-	  if node.GetSolutionStepValue(IS_STRUCTURE,0) != 0.0:
-	    node.SetValue(IS_STRUCTURE,1.0)
-	    node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
+        for node in self.model_part.Nodes:
+          if node.GetSolutionStepValue(IS_STRUCTURE,0) != 0.0:
+            node.SetValue(IS_STRUCTURE,1.0)
+            node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
         
         ##compute normals "correctly"
         self.normal_calculator = NormalCalculationUtils()
-	self.normal_calculator.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
-	
-	#(BodyNormalCalculationUtils()).CalculateBodyNormals(self.model_part,self.domain_size)
+        self.normal_calculator.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
+        
+        #(BodyNormalCalculationUtils()).CalculateBodyNormals(self.model_part,self.domain_size)
         
         #for node in self.model_part.Nodes:
-	   #normal = node.GetSolutionStepValue(NORMAL,0)
-	   #node.SetValue(NORMAL,normal)
+           #normal = node.GetSolutionStepValue(NORMAL,0)
+           #node.SetValue(NORMAL,normal)
             
 
         self.thermal_solver.SetEchoLevel(0)
@@ -247,34 +247,34 @@ class LevelSetSolver:
         
         #set the temperature to the mould temperature
         for node in self.model_part.Nodes:
-	  node.SetSolutionStepValue(TEMPERATURE,0,self.mould_temperature)
-	  node.SetSolutionStepValue(TEMPERATURE,1,self.mould_temperature)
+          node.SetSolutionStepValue(TEMPERATURE,0,self.mould_temperature)
+          node.SetSolutionStepValue(TEMPERATURE,1,self.mould_temperature)
 
         #build a list of inlet nodes
         self.inlet_nodes = []
         for node in self.model_part.Nodes:
-	  #set to inlet temperature all of the nodes with fixed velocity
-	  if(node.IsFixed(VELOCITY_X) and node.IsFixed(VELOCITY_Y) and node.IsFixed(VELOCITY_Z) ):
-	    self.inlet_nodes.append(node)
-	    node.Fix(TEMPERATURE)
-	    node.SetSolutionStepValue(TEMPERATURE,0,self.inlet_temperature)
-	    node.SetSolutionStepValue(TEMPERATURE,1,self.inlet_temperature)
-	  
-	  #also set to inlet temperature all of the nodes which fall within the negative areo of the domain
-	  if(node.GetSolutionStepValue(DISTANCE) < 0.0):
-	    node.SetSolutionStepValue(TEMPERATURE,0,self.inlet_temperature)
-	    node.SetSolutionStepValue(TEMPERATURE,1,self.inlet_temperature)
+          #set to inlet temperature all of the nodes with fixed velocity
+          if(node.IsFixed(VELOCITY_X) and node.IsFixed(VELOCITY_Y) and node.IsFixed(VELOCITY_Z) ):
+            self.inlet_nodes.append(node)
+            node.Fix(TEMPERATURE)
+            node.SetSolutionStepValue(TEMPERATURE,0,self.inlet_temperature)
+            node.SetSolutionStepValue(TEMPERATURE,1,self.inlet_temperature)
+          
+          #also set to inlet temperature all of the nodes which fall within the negative areo of the domain
+          if(node.GetSolutionStepValue(DISTANCE) < 0.0):
+            node.SetSolutionStepValue(TEMPERATURE,0,self.inlet_temperature)
+            node.SetSolutionStepValue(TEMPERATURE,1,self.inlet_temperature)
 
         self.ApplyFluidProperties()
         
 #        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
-	    
-	    
-	#set the thermal properties to the appropriate values
-	for prop in self.thermal_model_part.Properties:
-	  prop.SetValue(AMBIENT_TEMPERATURE,self.ambient_temperature)
-	  prop.SetValue(EMISSIVITY,self.emissivity)
-	  prop.SetValue(CONVECTION_COEFFICIENT,self.convection_coefficient)
+            
+            
+        #set the thermal properties to the appropriate values
+        for prop in self.thermal_model_part.Properties:
+          prop.SetValue(AMBIENT_TEMPERATURE,self.ambient_temperature)
+          prop.SetValue(EMISSIVITY,self.emissivity)
+          prop.SetValue(CONVECTION_COEFFICIENT,self.convection_coefficient)
  
 #        self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau);
 
@@ -287,33 +287,33 @@ class LevelSetSolver:
         #do a redistance
         self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
         
-	for node in self.model_part.Nodes:
-	    node.SetSolutionStepValue(TEMPERATURE,0,self.rho1)
-	    
-	  
-	(self.fluid_solver).Solve()
-	
-	zero = Vector(3)
-	zero[0] = 0.0
-	zero[1] = 0.0
-	zero[2] = 0.0
-	
-	for node in self.model_part.Nodes:
-	    #old_pressure = node.GetSolutionStepValue(PRESSURE,1)
-	    #node.SetSolutionStepValue(PRESSURE,0,old_pressure)
-	    
-	    node.SetSolutionStepValue(ACCELERATION,0,zero)
-	    
-	    vel = node.GetSolutionStepValue(VELOCITY)
-	    node.SetSolutionStepValue(VELOCITY,1,vel)
-	    
-	
+        for node in self.model_part.Nodes:
+            node.SetSolutionStepValue(TEMPERATURE,0,self.rho1)
+            
+          
+        (self.fluid_solver).Solve()
+        
+        zero = Vector(3)
+        zero[0] = 0.0
+        zero[1] = 0.0
+        zero[2] = 0.0
+        
+        for node in self.model_part.Nodes:
+            #old_pressure = node.GetSolutionStepValue(PRESSURE,1)
+            #node.SetSolutionStepValue(PRESSURE,0,old_pressure)
+            
+            node.SetSolutionStepValue(ACCELERATION,0,zero)
+            
+            vel = node.GetSolutionStepValue(VELOCITY)
+            node.SetSolutionStepValue(VELOCITY,1,vel)
+            
+        
     def DoRedistance(self):
-	#redistance if required
+        #redistance if required
         print "beginning recalculation of distances"
         self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,self.max_levels,self.max_distance)
 
-	print "finished recalculation of distances"
+        print "finished recalculation of distances"
             
     def ConvectDistance(self):
         print "beginning convection step for the distance function"
@@ -321,10 +321,10 @@ class LevelSetSolver:
         self.convection_model_part.ProcessInfo = self.model_part.ProcessInfo
         (self.convection_model_part.ProcessInfo).SetValue(CONVECTION_DIFFUSION_SETTINGS,distance_settings)
         (self.convection_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,self.dynamic_tau)
-	
-	(self.convection_solver).Solve()
+        
+        (self.convection_solver).Solve()
         print "finished convection step for the distance function"
-	
+        
     def ComputeThermalSolution(self):
         print "beginning thermal solution"
 
@@ -340,8 +340,8 @@ class LevelSetSolver:
             else:
                 node.SetSolutionStepValue(CONDUCTIVITY,0,self.conductivity2)
                 node.SetSolutionStepValue(SPECIFIC_HEAT,0,self.specific_heat2)
-	
-	(self.thermal_solver).Solve()
+        
+        (self.thermal_solver).Solve()
 
         #get rid of overshoots and undershoots
         for node in self.thermal_model_part.Nodes:
@@ -354,13 +354,13 @@ class LevelSetSolver:
         print "finished thermal solution"
             
     def ComputeFluidSolution(self):
-	#snap distance to grid
+        #snap distance to grid
         #eps = 1e-3*self.max_edge_size;
         #for node in self.model_part.Nodes:
-	    #dist = node.GetSolutionStepValue(DISTANCE)
-	    #node.SetValue(DISTANCE,dist)
-	    #if(abs(dist) < eps):
-	      #node.SetSolutionStepValue(DISTANCE,0,0.0)
+            #dist = node.GetSolutionStepValue(DISTANCE)
+            #node.SetValue(DISTANCE,dist)
+            #if(abs(dist) < eps):
+              #node.SetSolutionStepValue(DISTANCE,0,0.0)
 
         #apply density
 #        mu1 = self.mu/self.rho1
@@ -382,30 +382,30 @@ class LevelSetSolver:
         (self.convection_model_part.ProcessInfo).SetValue(DYNAMIC_TAU,self.dynamic_tau)
         (self.fluid_solver).Solve()
 
-	print "Solution Step finished"
+        print "Solution Step finished"
             
         #for node in self.model_part.Nodes:
-	    #dist = node.GetValue(DISTANCE)
-	    #if(abs(dist) < eps):
-	      #node.SetSolutionStepValue(DISTANCE,0,dist)
+            #dist = node.GetValue(DISTANCE)
+            #if(abs(dist) < eps):
+              #node.SetSolutionStepValue(DISTANCE,0,dist)
             
         
       
-	
+        
     def Solve(self):
        
-	#at the beginning of the calculations do a div clearance step
-	if(self.divergence_clearance_performed == False):
-	    self.DoDivergenceClearance()
-	    self.divergence_clearance_performed = True
+        #at the beginning of the calculations do a div clearance step
+        if(self.divergence_clearance_performed == False):
+            self.DoDivergenceClearance()
+            self.divergence_clearance_performed = True
             
         #convect distance function
         self.ConvectDistance()
 
         #recompute distance function as needed
         if(self.internal_step_counter >= self.next_redistance):
-	  self.DoRedistance()
-	  self.next_redistance = self.internal_step_counter + self.redistance_frequency
+          self.DoRedistance()
+          self.next_redistance = self.internal_step_counter + self.redistance_frequency
 
         #compute temperature distribution    
         self.ComputeThermalSolution()
@@ -418,5 +418,5 @@ class LevelSetSolver:
         
     def GetSolverIterations(self):
        return (self.fluid_solver).solver.iterations_last_solution
-	
+        
 
