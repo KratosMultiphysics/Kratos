@@ -148,11 +148,11 @@ Calculation of the reactions involves a cost very similiar to the calculation of
 
 */
 template<class TSparseSpace,
-class TDenseSpace,
-class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
->
+         class TDenseSpace,
+         class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
+         >
 class TrilinosResidualBasedEliminationBuilderAndSolver
-        : public BuilderAndSolver< TSparseSpace,TDenseSpace, TLinearSolver  >
+    : public BuilderAndSolver< TSparseSpace,TDenseSpace, TLinearSolver  >
 {
 public:
     /**@name Type Definitions */
@@ -198,8 +198,8 @@ public:
         Epetra_MpiComm& Comm,
         int guess_row_size,
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
-            : BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewLinearSystemSolver)
-            , mrComm(Comm),mguess_row_size(guess_row_size)
+        : BuilderAndSolver< TSparseSpace,TDenseSpace,TLinearSolver >(pNewLinearSystemSolver)
+        , mrComm(Comm),mguess_row_size(guess_row_size)
     {
 
 
@@ -386,7 +386,7 @@ public:
             if (this->GetEchoLevel()>1)
                 if (mrComm.MyPID() == 0) KRATOS_WATCH("entering in the solver");
 
-            BaseType::mpLinearSystemSolver->Solve(A,Dx,b);
+            this->mpLinearSystemSolver->Solve(A,Dx,b);
 
         }
         else
@@ -591,40 +591,40 @@ public:
         //arrays for communication
         int nprocessors;
         MPI_Comm_size(MPI_COMM_WORLD, &nprocessors);
-		
-		
+
+
         std::vector< std::vector<unsigned int> > local_gids(nprocessors);
         std::vector< std::vector<unsigned int> > local_ndofs(nprocessors);
         std::vector< std::vector<unsigned int> > local_keys(nprocessors);
         std::vector< std::vector<unsigned int> > remote_gids(nprocessors);
         std::vector< std::vector<unsigned int> > remote_ndofs(nprocessors);
         std::vector< std::vector<unsigned int> > remote_keys(nprocessors);
-		std::vector< int > aux_index(nprocessors,-1);
+        std::vector< int > aux_index(nprocessors,-1);
 
         //here we prepare to send the dofs as we computed them (for the nodes that we DO NOT OWN)
-		//the idea is to gather the correct list of dofs on the processor that owns the corresponding nodes
+        //the idea is to gather the correct list of dofs on the processor that owns the corresponding nodes
         int previous_node_id = -1; //impossible id
         int i=-1;
         for (typename DofsArrayType::iterator dof_iterator = Doftemp.begin(); dof_iterator != Doftemp.end(); ++dof_iterator)
         {
-                int partition_index = dof_iterator->GetSolutionStepValue(PARTITION_INDEX);
-				if(partition_index != rank)
-				{
-					if (previous_node_id != static_cast<int>(dof_iterator->Id()) || previous_node_id != static_cast<int>(dof_iterator->Id()))
-					{
+            int partition_index = dof_iterator->GetSolutionStepValue(PARTITION_INDEX);
+            if(partition_index != rank)
+            {
+                if (previous_node_id != static_cast<int>(dof_iterator->Id()) || previous_node_id != static_cast<int>(dof_iterator->Id()))
+                {
 
-						previous_node_id = dof_iterator->Id();
-						local_gids[partition_index].push_back(previous_node_id);
-						local_ndofs[partition_index].push_back(1);
-						local_keys[partition_index].push_back(dof_iterator->GetVariable().Key());
-						aux_index[partition_index]+=1;
-					}
-					else
-					{
-						local_ndofs[partition_index][aux_index[partition_index]] += 1;
-						local_keys[partition_index].push_back(dof_iterator->GetVariable().Key());
-					}
-				}
+                    previous_node_id = dof_iterator->Id();
+                    local_gids[partition_index].push_back(previous_node_id);
+                    local_ndofs[partition_index].push_back(1);
+                    local_keys[partition_index].push_back(dof_iterator->GetVariable().Key());
+                    aux_index[partition_index]+=1;
+                }
+                else
+                {
+                    local_ndofs[partition_index][aux_index[partition_index]] += 1;
+                    local_keys[partition_index].push_back(dof_iterator->GetVariable().Key());
+                }
+            }
         }
 
         //now send our local ndofs to the other processors using coloring
@@ -666,11 +666,11 @@ public:
             {
                 int counter = 0;
                 ModelPart::NodesContainerType::iterator it = r_model_part.Nodes().find(remote_gids[i_color][i]);
-				if(it == r_model_part.NodesEnd()) 
-				{
-					std::cout << "rank = "<< rank << " while communicating with " << i_color << std::endl;
-					KRATOS_ERROR(std::logic_error,"attempting to find an inexisting  node with id",remote_gids[i_color][i] )
-				}
+                if(it == r_model_part.NodesEnd())
+                {
+                    std::cout << "rank = "<< rank << " while communicating with " << i_color << std::endl;
+                    KRATOS_ERROR(std::logic_error,"attempting to find an inexisting  node with id",remote_gids[i_color][i] )
+                }
                 for (unsigned int idof=0; idof<remote_ndofs[i_color][i]; idof++) //loop over the dofs we received for node i
                 {
                     unsigned int key = remote_keys[i_color][counter++];
@@ -679,58 +679,61 @@ public:
                     for (i_dof = it->GetDofs().begin() ; i_dof !=  it->GetDofs().end() ; i_dof++)
                         if (i_dof->GetVariable().Key() == key)
                             break;
-					if(i_dof == it->GetDofs().end())
-						KRATOS_ERROR(std::logic_error,"dof not found",*i_dof);
+                    if(i_dof == it->GetDofs().end())
+                        KRATOS_ERROR(std::logic_error,"dof not found",*i_dof);
 
                     Doftemp.push_back(*i_dof.base());
 
-                } 
+                }
             }
         }
         Doftemp.Unique();
-		
-		for (int i_color = 0; i_color < nprocessors; i_color++)
-		{
-			        local_gids[i_color].resize(0);  local_gids[i_color].clear();
-					local_ndofs[i_color].resize(0); local_ndofs[i_color].clear();
-					local_keys[i_color].resize(0);  local_keys[i_color].clear();
-		}
+
+        for (int i_color = 0; i_color < nprocessors; i_color++)
+        {
+            local_gids[i_color].resize(0);
+            local_gids[i_color].clear();
+            local_ndofs[i_color].resize(0);
+            local_ndofs[i_color].clear();
+            local_keys[i_color].resize(0);
+            local_keys[i_color].clear();
+        }
 
         //now we are sure that for the nodes we own the dofs are ok, so we repeat the operation (but this time just with the nodes we own)
         //here we prepare to scatter the dofs which belong to the nodes we own to all of the subdomains.
-		//This is slightly involved since we only know which nodes have to be sent color b colort
-		for (unsigned int i_color = 0; i_color < r_model_part.GetCommunicator().NeighbourIndices().size(); i_color++)
+        //This is slightly involved since we only know which nodes have to be sent color b colort
+        for (unsigned int i_color = 0; i_color < r_model_part.GetCommunicator().NeighbourIndices().size(); i_color++)
         {
-			int destination = r_model_part.GetCommunicator().NeighbourIndices()[i_color];
+            int destination = r_model_part.GetCommunicator().NeighbourIndices()[i_color];
             if (destination >= 0)
             {
-				previous_node_id = -1; //impossible id
-				i=-1;
-				
-				ModelPart::NodesContainerType rLocalInterfaceNodes = r_model_part.GetCommunicator().LocalMesh(i_color).Nodes();
-				
-				for (typename DofsArrayType::iterator dof_iterator = Doftemp.begin(); dof_iterator != Doftemp.end(); ++dof_iterator)
-				{
-						if (previous_node_id != static_cast<int>(dof_iterator->Id()) )
-						{
-							if(rLocalInterfaceNodes.find(dof_iterator->Id()) !=  rLocalInterfaceNodes.end() )
-							{
-								previous_node_id = dof_iterator->Id();
-								local_gids[destination].push_back(previous_node_id);
-								local_ndofs[destination].push_back(1);
-								local_keys[destination].push_back(dof_iterator->GetVariable().Key());
-								i = i+1;
-							}
-						}
-						else
-						{
-							local_ndofs[destination][i] += 1;
-							local_keys[destination].push_back(dof_iterator->GetVariable().Key());
-						}
-					}
-				
-			}
-		}
+                previous_node_id = -1; //impossible id
+                i=-1;
+
+                ModelPart::NodesContainerType rLocalInterfaceNodes = r_model_part.GetCommunicator().LocalMesh(i_color).Nodes();
+
+                for (typename DofsArrayType::iterator dof_iterator = Doftemp.begin(); dof_iterator != Doftemp.end(); ++dof_iterator)
+                {
+                    if (previous_node_id != static_cast<int>(dof_iterator->Id()) )
+                    {
+                        if(rLocalInterfaceNodes.find(dof_iterator->Id()) !=  rLocalInterfaceNodes.end() )
+                        {
+                            previous_node_id = dof_iterator->Id();
+                            local_gids[destination].push_back(previous_node_id);
+                            local_ndofs[destination].push_back(1);
+                            local_keys[destination].push_back(dof_iterator->GetVariable().Key());
+                            i = i+1;
+                        }
+                    }
+                    else
+                    {
+                        local_ndofs[destination][i] += 1;
+                        local_keys[destination].push_back(dof_iterator->GetVariable().Key());
+                    }
+                }
+
+            }
+        }
         //now send our local ndofs to the other processors using coloring
         for (unsigned int i_color = 0; i_color < r_model_part.GetCommunicator().NeighbourIndices().size(); i_color++)
         {
@@ -773,11 +776,11 @@ public:
             {
                 int counter = 0;
                 ModelPart::NodesContainerType::iterator it = r_model_part.Nodes().find(remote_gids[i_color][i]);
-				if(it == r_model_part.NodesEnd()) 
-				{
-					std::cout << "rank = "<< rank << " while communicating with " << i_color << std::endl;
-					KRATOS_ERROR(std::logic_error,"attempting to find an inexisting  node with id",remote_gids[i_color][i] )
-				}
+                if(it == r_model_part.NodesEnd())
+                {
+                    std::cout << "rank = "<< rank << " while communicating with " << i_color << std::endl;
+                    KRATOS_ERROR(std::logic_error,"attempting to find an inexisting  node with id",remote_gids[i_color][i] )
+                }
                 for (unsigned int idof=0; idof<remote_ndofs[i_color][i]; idof++)
                 {
                     unsigned int key = remote_keys[i_color][counter++];
@@ -794,7 +797,7 @@ public:
         }
 
         //add the remote dofs to the dof list and do a final "unique"
-		Doftemp.Unique();
+        Doftemp.Unique();
 
         BaseType::mDofSet = Doftemp;
 
@@ -1337,6 +1340,7 @@ public:
     {
         this->mDofSet = DofsArrayType();
         //this->mReactionsVector = TSystemVectorType();
+        this->mpLinearSystemSolver->Clear();
 
         if (this->GetEchoLevel()>0)
         {
