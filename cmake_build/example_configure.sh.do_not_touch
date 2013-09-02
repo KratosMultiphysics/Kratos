@@ -19,6 +19,8 @@ clear
 
 #you may want to decomment this the first time you compile
 rm CMakeCache.txt
+rm *.cmake
+rm -rf CMakeFiles\
 
 cmake ..  									\
 -DCMAKE_C_COMPILER=/usr/bin/gcc								\
