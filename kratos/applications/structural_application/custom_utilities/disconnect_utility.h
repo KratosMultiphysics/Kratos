@@ -293,8 +293,8 @@ private:
         NodesArrayType& pNodes        = model_part.Nodes();
         unsigned int New_Id           = pNodes.size();
         NodesArrayType New_pNodes;
-        NodesArrayType::iterator i_begin =  pNodes.begin();
-        NodesArrayType::iterator i_end   =  pNodes.end();
+        //NodesArrayType::iterator i_begin =  pNodes.begin();
+        //NodesArrayType::iterator i_end   =  pNodes.end();
         const int dis    =  pNodes.end() -  pNodes.begin();
         std::size_t i    = 0;
         ModelPart::NodeIterator inode = model_part.Nodes().begin() + i;
