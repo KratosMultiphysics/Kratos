@@ -1301,7 +1301,7 @@ public:
         //KRATOS_WATCH(h*time_step)
 
         int n_lag_nodes=0;
-        int i=0;
+	//        int i=0;
         for(ModelPart::NodesContainerType::iterator i_node = fluid_model_part.NodesBegin(); i_node!=fluid_model_part.NodesEnd(); i_node++)
         {
             if (i_node->FastGetSolutionStepValue(IS_LAGRANGIAN_INLET)==1.0)
@@ -1344,7 +1344,7 @@ public:
 
             }
 
-            i=0;
+	    // i=0;
 
             for(ModelPart::NodesContainerType::iterator i_node = lagrangian_inlet_model_part.NodesBegin(); i_node!=lagrangian_inlet_model_part.NodesEnd(); i_node++)
             {
