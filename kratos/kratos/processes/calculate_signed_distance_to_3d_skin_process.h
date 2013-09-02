@@ -100,7 +100,7 @@ public:
 
     enum { Dimension = 3,
            DIMENSION = 3,
-           MAX_LEVEL = 4,
+           MAX_LEVEL = 12,
            MIN_LEVEL = 2    // this cannot be less than 2!!!
          };
 
@@ -406,7 +406,6 @@ private:
       {
           // Initialize nodal distances each node in the domain to 1.0
           InitializeDistances();
-
           // Initialize index table to define line Edges of fluid element
           bounded_matrix<unsigned int,6,2> TetEdgeIndexTable;
           SetIndexTable(TetEdgeIndexTable);
@@ -416,6 +415,7 @@ private:
                                           i_fluidElement != mrFluidModelPart.ElementsEnd();
                                           i_fluidElement++)
           {
+
               CalcNodalDistancesOfTetNodes( i_fluidElement , TetEdgeIndexTable );
           }
       }
@@ -478,19 +478,24 @@ private:
           std::vector<OctreeType::cell_type*> leaves;
           std::vector<TetEdgeStruct>          IntersectedTetEdges;
           unsigned int NumberIntersectionsOnTetCorner = 0;
-
+	  
           // Get leaves of octree intersecting with fluid element
           mOctree.GetIntersectedLeaves(*(i_fluidElement).base(),leaves);
 
           // Loop over all 6 line Edges of the tetrahedra
           for(unsigned int i_tetEdge = 0; i_tetEdge < 6; i_tetEdge++)
           {
-              IdentifyIntersectionNodes( i_fluidElement , i_tetEdge , leaves , IntersectedTetEdges ,
+
+	      IdentifyIntersectionNodes( i_fluidElement , i_tetEdge , leaves , IntersectedTetEdges ,
                                          NumberIntersectionsOnTetCorner , TetEdgeIndexTable );  
-          }
+
+	    
+	  }
 
           if(IntersectedTetEdges.size() > 0)
               CalcNodalDistanceTo3DSkin( IntersectedTetEdges , i_fluidElement , NumberIntersectionsOnTetCorner );
+
+	
       }
 
       ///******************************************************************************************************************
@@ -525,7 +530,6 @@ private:
               // loop over all structural elements within each octree cell
               for(object_container_type::iterator i_StructElement = struct_elem->begin(); i_StructElement != struct_elem->end(); i_StructElement++)
               {
-
                   if( StructuralElementNotYetConsidered( (*i_StructElement)->Id() , IntersectingStructElemID ) )
                   {
 
