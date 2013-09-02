@@ -8,7 +8,7 @@ from KratosMultiphysics.TrilinosApplication import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
-def AddVariables(model_part):
+def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(FRACT_VEL);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
@@ -35,7 +35,7 @@ def AddVariables(model_part):
     if mpi.rank == 0:
         print "variables for the trilinos fractional step solver added correctly"
 
-def AddDofs(model_part):
+def AddDofs(model_part, config=None):
   
     for node in model_part.Nodes:
         #adding dofs
@@ -136,7 +136,7 @@ class IncompressibleFluidSolver:
         #self.pressure_linear_solver =  AztecSolver(pressure_aztec_parameters,pressure_preconditioner_type,pressure_preconditioner_parameters,pressure_linear_tol,pressure_nit_max,pressure_overlap_level);
         
         import PressureMultiLevelSolver
-	self.pressure_linear_solver =  PressureMultiLevelSolver.MultilevelLinearSolver(pressure_linear_tol,pressure_nit_max)
+        self.pressure_linear_solver =  PressureMultiLevelSolver.MultilevelLinearSolver(pressure_linear_tol,pressure_nit_max)
         #self.pressure_linear_solver.SetScalingType(AztecScalingType.LeftScaling) 
         
         
@@ -338,8 +338,8 @@ class IncompressibleFluidSolver:
 
 
     def ActivateSpalartAllmaras(self,wall_nodes,DES,CDES=1.0):
-	self.wall_nodes  = wall_nodes
-	self.use_spalart_allmaras = True
+        self.wall_nodes  = wall_nodes
+        self.use_spalart_allmaras = True
         #for node in wall_nodes:
             #node.SetValue(IS_VISITED,1.0)
 
@@ -383,3 +383,38 @@ class IncompressibleFluidSolver:
         for elem in self.model_part.Elements:
             elem.SetValue(C_SMAGORINSKY,C)        
 
+#################################################################################################
+#################################################################################################   
+def CreateSolver( model_part, config ):
+    fluid_solver = IncompressibleFluidSolver( model_part, config.domain_size )
+      
+    ##default settings 
+    fluid_solver.vel_toll = config.vel_toll
+    if( hasattr(config,"vel_toll") ): fluid_solver.vel_toll = config.vel_toll
+    if( hasattr(config,"press_toll") ): fluid_solver.press_toll = config.press_toll
+    if( hasattr(config,"max_vel_its") ): fluid_solver.max_vel_its = config.max_vel_its
+    if( hasattr(config,"max_press_its") ): fluid_solver.max_press_its = config.max_press_its
+    if( hasattr(config,"time_order") ): fluid_solver.time_order = config.time_order
+    if( hasattr(config,"compute_reactions") ): fluid_solver.compute_reactions = config.compute_reactions
+    if( hasattr(config,"ReformDofAtEachIteration") ): fluid_solver.ReformDofAtEachIteration = config.ReformDofAtEachIteration
+    if( hasattr(config,"predictor_corrector") ): fluid_solver.predictor_corrector = config.predictor_corrector
+    if( hasattr(config,"echo_level") ): fluid_solver.echo_level = config.echo_level
+    if( hasattr(config,"dynamic_tau") ): fluid_solver.dynamic_tau = config.dynamic_tau
+
+    #linear solver settings
+    import trilinos_linear_solver_factory
+    if( hasattr(config,"pressure_linear_solver_config") ): fluid_solver.pressure_linear_solver =  trilinos_linear_solver_factory.ConstructSolver(config.pressure_linear_solver_config)
+    if( hasattr(config,"velocity_linear_solver_config") ): fluid_solver.velocity_linear_solver =  trilinos_linear_solver_factory.ConstructSolver(config.velocity_linear_solver_config)
+    
+    #RANS or DES settings
+    if( hasattr(config,"use_spalart_allmaras") ): fluid_solver.use_spalart_allmaras = config.use_spalart_allmaras
+    if( hasattr(config,"use_des") ): fluid_solver.use_des = config.use_des
+    if( hasattr(config,"use_spalart_allmaras")  and config.use_spalart_allmaras == True):
+        if( hasattr(config,"wall_nodes") ):
+            fluid_solver.wall_nodes = config.wall_nodes
+        else:
+            print "ATTENTION: attempting to use SpalartAllmaras without prescribig the wall position. please set the variable \"wall_nodes\" within the "
+            print "config class to an appropriate list or deactivate the turbulence model"
+            
+    
+    return fluid_solver
