@@ -1063,7 +1063,7 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
                             set meshidlist [string range $meshidlist 0 end-1]
                             append meshidlist "\]"
                             set endmeshidlist "\[${meshidlist}"
-                            puts $fileid "SA_wall_group_ids = $endmeshidlist"
+                            puts $fileid "${trailing_spaces}SA_wall_group_ids = $endmeshidlist"
                         }
                     }
                 }
