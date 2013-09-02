@@ -12,7 +12,7 @@ def PrintResults(nodes):
     for variable_name in ProjectParameters.gauss_points_results:
         gid_io.PrintOnGaussPoints(variables_dictionary[variable_name],model_part,time)
                 
-    if(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
+    if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
 	gid_io.WriteNodalResults(VISCOSITY,nodes,time,0)
     gid_io.Flush()
     mpi.world.barrier()
@@ -50,18 +50,20 @@ if "REACTION" in ProjectParameters.nodal_results:
 if "DISTANCE" in ProjectParameters.nodal_results:
     fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
 
-#############################################
+##################################################################
+##################################################################
 ##importing the solvers needed
-SolverType = ProjectParameters.SolverType
-if(SolverType == "FractionalStep"):
-    import trilinos_vms_fs_fluid_solver as solver
-    solver.AddVariables(fluid_model_part)
-elif(SolverType == "monolithic_solver_eulerian"):
-    import trilinos_vms_monolithic_solver as solver
-    solver.AddVariables(fluid_model_part)
-else:
-    raise NameError("solver type not supported: options are FractionalStep  - monolithic_solver_eulerian")
-if(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
+SolverSettings = ProjectParameters.FluidSolverConfiguration
+solver_constructor = __import__(SolverSettings.solver_type)
+
+##################################################################
+##################################################################
+##importing variables
+solver_constructor.AddVariables( fluid_model_part, SolverSettings)
+  
+  
+  
+if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
   fluid_model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
   fluid_model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY);
   fluid_model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
@@ -128,56 +130,32 @@ fluid_model_part.SetBufferSize(3)
 
 
 ##adding dofs
-if(SolverType == "FractionalStep"):
-    solver.AddDofs(fluid_model_part)
-elif(SolverType == "monolithic_solver_eulerian"):
-    solver.AddDofs(fluid_model_part)
-elif(SolverType == "monolithic_solver_eulerian_compressible"):
-    solver.AddDofs(fluid_model_part)
+solver_constructor.AddDofs( fluid_model_part, SolverSettings)
     
-if(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
+if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
     for node in fluid_model_part.Nodes:
        node.AddDof(TURBULENT_VISCOSITY)
        
 # If Lalplacian form = 2, free all pressure Dofs
-laplacian_form = ProjectParameters.laplacian_form 
-if(laplacian_form >= 2):
-    for node in fluid_model_part.Nodes:
-        node.Free(PRESSURE)
+#laplacian_form = ProjectParameters.FluidSolverConfiguration.laplacian_form 
+#if(laplacian_form >= 2):
+    #for node in fluid_model_part.Nodes:
+        #node.Free(PRESSURE)
 
 #copy Y_WALL
 for node in fluid_model_part.Nodes:
     y = node.GetSolutionStepValue(Y_WALL,0)
     node.SetValue(Y_WALL,y)
 
-dynamic_tau = ProjectParameters.use_dt_in_stabilization
-oss_switch = ProjectParameters.use_orthogonal_subscales
-#creating the solvers
-#fluid solver
-if(SolverType == "FractionalStep"):
-    fluid_solver = solver.IncompressibleFluidSolver(fluid_model_part,domain_size)
-    fluid_solver.max_val_its = ProjectParameters.max_vel_its
-    fluid_solver.max_press_its = ProjectParameters.max_press_its
-    fluid_solver.predictor_corrector = ProjectParameters.predictor_corrector            
-    fluid_solver.vel_toll = ProjectParameters.velocity_relative_tolerance
-    fluid_solver.press_toll = ProjectParameters.pressure_relative_tolerance
-    fluid_solver.dynamic_tau = float(dynamic_tau)
-    fluid_solver.compute_reactions = ProjectParameters.Calculate_reactions
-elif(SolverType == "monolithic_solver_eulerian"): 
-    fluid_solver = solver.MonolithicSolver(fluid_model_part,domain_size)
-    fluid_solver.oss_switch = int(oss_switch)
-    fluid_solver.dynamic_tau = float(dynamic_tau)
-    fluid_solver.rel_vel_tol = ProjectParameters.velocity_relative_tolerance
-    fluid_solver.abs_vel_tol = ProjectParameters.velocity_absolute_tolerance
-    fluid_solver.rel_pres_tol = ProjectParameters.pressure_relative_tolerance
-    fluid_solver.abs_pres_tol = ProjectParameters.pressure_absolute_tolerance
-    fluid_solver.max_iter = ProjectParameters.max_iterations
-    fluid_solver.compute_reactions = ProjectParameters.Calculate_reactions
+##################################################################
+##################################################################
+##Creating the fluid solver
+fluid_solver = solver_constructor.CreateSolver( fluid_model_part, SolverSettings)
 
 ##activate turbulence model
-if(ProjectParameters.TurbulenceModel == "Smagorinsky-Lilly"):
+if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Smagorinsky-Lilly"):
     fluid_solver.ActivateSmagorinsky(ProjectParameters.SmagorinskyConstant)
-elif(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
+elif(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
     ##apply the initial turbulent viscosity on all of the nodes
     turb_visc = ProjectParameters.TurbulentViscosity
     for node in fluid_model_part.Nodes:
@@ -379,10 +357,10 @@ while(time <= final_time):
 		    vel = node.GetSolutionStepValue(VELOCITY)
 		    node.SetSolutionStepValue(VELOCITY,i,vel)
 		    node.SetSolutionStepValue(PRESSURE,i,0.0)		    
-		  if(SolverType == "monolithic_solver_eulerian"):
+		  if(SolverSettings.solver_type == "trilinos_vms_monolithic_solver"):
 		    for node in fluid_model_part.Nodes:
 		      node.SetSolutionStepValue(ACCELERATION,i,zero_vector)
-		  if(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
+		  if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
 		    for node in fluid_model_part.Nodes:
 		      visc = node.GetSolutionStepValue(VISCOSITY)
 		      node.SetSolutionStepValue(VISCOSITY,i,visc)

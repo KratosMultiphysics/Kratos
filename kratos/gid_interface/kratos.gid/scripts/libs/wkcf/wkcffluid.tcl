@@ -976,6 +976,10 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
 	    # Solver type
 	    set cxpath "$rootid//c.AnalysisData//i.SolverType"
 	    set SolverType [::xmlutils::setXml $cxpath $cproperty]
+
+            set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
+            set parallel_type [::xmlutils::setXml $cxpath $cproperty]
+
 	    # WarnWinText "SolverType:$SolverType"
 	    # Get the kratos keyword
 	    set ckword [::xmlutils::getKKWord $kxpath $SolverType]
@@ -987,10 +991,19 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
 		puts $fileid "class FluidSolverConfiguration:"
 		switch -exact -- $SolverType {
 		    "ElementBased" { 
-		        puts $fileid "${trailing_spaces}solver_type =  \"vms_fractional_step_solver\"" 
+
+                        if { ${parallel_type} == "OpenMP" } {
+                          puts $fileid "${trailing_spaces}solver_type =  \"vms_fractional_step_solver\"" 
+                        } else {
+                          puts $fileid "${trailing_spaces}solver_type =  \"trilinos_vms_fs_fluid_solver\"" 
+                        }
 		    }
 		    "Monolithic" { 
-		        puts $fileid "${trailing_spaces}solver_type =  \"vms_monolithic_solver\"" 
+                        if { ${parallel_type} == "OpenMP" } {
+                          puts $fileid "${trailing_spaces}solver_type =  \"vms_monolithic_solver\"" 
+                        } else {
+                          puts $fileid "${trailing_spaces}solver_type =  \"trilinos_vms_monolithic_solver\"" 
+                        }
 		    }
 		}
 		
