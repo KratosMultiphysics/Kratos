@@ -31,156 +31,10 @@ THE SOFTWARE.
  * \brief  Generic algebraic multigrid framework.
  */
 
-/**
-\mainpage amgcl Generic algebraic multigrid framework.
-
-amgcl is a simple and generic algebraic
-<a href="http://en.wikipedia.org/wiki/Multigrid_method">multigrid</a> (AMG)
-hierarchy builder (and a work in progress).  The constructed hierarchy may be
-used as a standalone solver or as a preconditioner with some iterative solver.
-Several \ref iterative "iterative solvers" are provided, and it is also
-possible to use generic solvers from other libraries, e.g.
-<a href="http://viennacl.sourceforge.net">ViennaCL</a>.
-
-The setup phase is completely CPU-based. The constructed levels of AMG
-hierarchy may be stored and used through several \ref levels "backends". This
-allows for transparent acceleration of the solution phase with help of OpenCL,
-CUDA, or OpenMP technologies.  See
-<a href="https://github.com/ddemidov/amgcl/blob/master/examples/vexcl.cpp">examples/vexcl.cpp</a>,
-<a href="https://github.com/ddemidov/amgcl/blob/master/examples/viennacl.cpp">examples/viennacl.cpp</a> and
-<a href="https://github.com/ddemidov/amgcl/blob/master/examples/eigen.cpp">examples/eigen.cpp</a>
-for examples of
-using amgcl with
-<a href="https://github.com/ddemidov/vexcl">VexCL</a>,
-<a href="http://viennacl.sourceforge.net">ViennaCL</a>, or
-CPU backends.
-
-\section overview Overview
-
-You can use amgcl to solve large sparse system of linear equations in three
-simple steps: first, you have to select method components (this is a compile
-time decision); second, the AMG hierarchy has to be constructed from a system
-matrix; and third, the hierarchy is used to solve the equation system for a
-given right-hand side.
-
-The list of interpolation schemes and available backends may be found in
-\ref interpolation "Interpolation" and \ref levels "Level Storage Backends" 
-modules.  The aggregation and smoothed-aggregation interpolation schemes use
-less memory and are set up faster than classic interpolation, but their
-convergence rate is slower. They are well suited for GPU-accelerated backends,
-where the cost of the setup phase is much more important.
-
-\code
-// First, we need to include relevant headers. Each header basically
-// corresponds to an AMG component. Let's say we want to use conjugate gradient
-// method preconditioned with smoothed aggregation AMG with VexCL backend:
-
-// This is generic hierarchy builder.
-#include <amgcl/amgcl.hpp>
-// It will use the following components:
-
-// Interpolation scheme based on smoothed aggregation.
-#include <amgcl/interp_smoothed_aggr.hpp>
-// Aggregates will be constructed with plain aggregation:
-#include <amgcl/aggr_plain.hpp>
-// VexCL will be used as a backend:
-#include <amgcl/level_vexcl.hpp>
-// The definition of conjugate gradient method:
-#include <amgcl/cg.hpp>
-
-int main() {
-    // VexCL context initialization (let's use all GPUs that support double precision):
-    vex::Context ctx( vex::Filter::Type(CL_DEVICE_TYPE_GPU) && vex::Filter::DoublePrecision );
-
-    // Here, the system matrix and right-hand side are somehow constructed. The
-    // system matrix data is stored in compressed row storage format in vectors
-    // row, col, and val.
-    int size;
-    std::vector<int>    row, col;
-    std::vector<double> val, rhs;
-
-    // We wrap the matrix data into amgcl-compatible type.
-    // No data is copied here:
-    auto A = amgcl::sparse::map(size, size, row.data(), col.data(), val.data());
-
-    // The AMG builder type. Note the use of damped Jacobi relaxation (smoothing) on each level.
-    typedef amgcl::solver<
-        double, int,
-        amgcl::interp::smoothed_aggregation<amgcl::aggr::plain>,
-        amgcl::level::vexcl<amgcl::relax::damped_jacobi>
-    > AMG;
-
-    // The parameters. Most of the parameters have some reasonable defaults.
-    // VexCL backend needs to know what context to use:
-    AMG::params prm;
-    prm.level.ctx = &ctx;
-
-    // Here we construct the hierarchy:
-    AMG amg(A, prm);
-
-    // Now let's solve the system of equations. We need to transfer matrix,
-    // right-hand side, and initial approximation to GPUs. The matrix part may
-    // be omitted though, since AMG already has it as part of the hierarchy:
-    std::vector<double> x(size, 0.0);
-
-    vex::vector<double> f(ctx.queue(), rhs);
-    vex::vector<double> u(ctx.queue(), x);
-
-    // Call AMG-preconditioned CG method:
-    auto cnv = amgcl::solve(amg.top_matrix(), f, amg, u, amgcl::cg_tag());
-
-    std::cout << "Iterations: " << std::get<0>(cnv) << std::endl
-              << "Error:      " << std::get<1>(cnv) << std::endl;
-
-    // Copy the solution back to host:
-    vex::copy(u, x);
-}
-\endcode
-
-The following command line would compile the example:
-\verbatim
-g++ -o example -std=c++0x -O3 -fopenmp example.cpp -I<path/to/vexcl> -I<path/to/amgcl> -lOpenCL -lboost_chrono
-\endverbatim
-
-The C++11 support is enabled here (by -std=c++0x flag) because it is required
-by VexCL library. amgcl relies on Boost instead. Also note the use of
-`-fopenmp` switch. It enables an OpenMP-based parallelization of the setup
-stage.
-
-
-\section install Installation
-
-The library is header-only, so there is nothing to compile or link to. You just
-need to copy amgcl folder somewhere and tell your compiler to scan it for
-include files.
-
-\section references References
- -# \anchor Trottenberg_2001 <em>U. Trottenberg, C. Oosterlee, A. Shuller,</em>
-    Multigrid, Academic Press, London, 2001.
- -# \anchor Stuben_1999 <em>K. Stuben,</em> Algebraic multigrid (AMG): an
-    introduction with applications, Journal of Computational and Applied
-     Mathematics,  2001, Vol. 128, Pp. 281-309.
- -# \anchor Vanek_1996 <em>P. Vanek, J. Mandel, M. Brezina,</em> Algebraic multigrid
-    by smoothed aggregation for second and fourth order elliptic problems,
-    Computing 56, 1996, Pp. 179-196.
- -# \anchor Notay_2008 <em>Y. Notay, P. Vassilevski,</em> Recursive
-    Krylov-based multigrid cycles, Numer. Linear Algebra Appl. 2008; 15:473-487.
- -# \anchor Templates_1994 <em>R. Barrett, M. Berry,
-    T. F. Chan et al.</em> Templates for the Solution of Linear Systems:
-    Building Blocks for Iterative Methods, 2nd Edition, SIAM, Philadelphia, PA,
-    1994.
- -# \anchor spai_2002 <em>O. Broeker, M. Grote,</em> Sparse approximate inverse
-    smoothers for geometric and algebraic multigrid, Applied Numerical
-    Mathematics, Volume 41, Issue 1, April 2002, Pages 61–80.
- -# \anchor Sala_2008 <em>M. Sala, R. Tuminaro,</em> A new Petrov-Galerkin
-    smoothed aggregation preconditioner for nonsymmetric linear systems.
-    SIAM J. Sci. Comput. 2008, Vol. 31, No.1, pp. 143-166.
-*/
-
 #include <iostream>
 #include <iomanip>
 #include <utility>
-#include <list>
+#include <list> 
 
 #if(BOOST_VERSION > 104900)
   #include <boost/static_assert.hpp>
@@ -190,13 +44,12 @@ include files.
       something;
   #endif
 #endif
-  
 
 #include <boost/static_assert.hpp>
 #include <boost/smart_ptr/shared_ptr.hpp>
 #include <boost/smart_ptr/make_shared.hpp>
-#include <boost/typeof/typeof.hpp>
 #include <boost/type_traits/is_signed.hpp>
+#include <boost/io/ios_state.hpp>
 
 #include <amgcl/spmat.hpp>
 #include <amgcl/tictoc.hpp>
@@ -351,12 +204,11 @@ class solver {
 
         /// Output some general information about the AMG hierarchy.
         std::ostream& print(std::ostream &os) const {
-            BOOST_AUTO(ff, os.flags());
-            BOOST_AUTO(pp, os.precision());
+            boost::io::ios_all_saver stream_state(os);
 
             index_t sum_dof = 0;
             index_t sum_nnz = 0;
-            for(BOOST_AUTO(lvl, hier.begin()); lvl != hier.end(); ++lvl) {
+            for(typename std::list< boost::shared_ptr<level_type> >::const_iterator lvl = hier.begin(); lvl != hier.end(); ++lvl) {
                 sum_dof += (*lvl)->size();
                 sum_nnz += (*lvl)->nonzeros();
             }
@@ -370,7 +222,7 @@ class solver {
                << "---------------------------------\n";
 
             index_t depth = 0;
-            for(BOOST_AUTO(lvl, hier.begin()); lvl != hier.end(); ++lvl, ++depth)
+            for(typename std::list< boost::shared_ptr<level_type> >::const_iterator lvl = hier.begin(); lvl != hier.end(); ++lvl, ++depth)
                 os << std::setw(5)  << depth
                    << std::setw(13) << (*lvl)->size()
                    << std::setw(15) << (*lvl)->nonzeros() << " ("
@@ -378,8 +230,6 @@ class solver {
                    << 100.0 * (*lvl)->nonzeros() / sum_nnz
                    << "%)" << std::endl;
 
-            os.flags(ff);
-            os.precision(pp);
             return os;
         }
 
@@ -404,7 +254,7 @@ class solver {
                 TIC("construct level");
 
                 TIC("interp");
-                BOOST_AUTO(PR, interp_t::interp(A, prm.interp));
+                std::pair<sparse::matrix<value_t, index_t>, sparse::matrix<value_t, index_t> > PR = interp_t::interp(A, prm.interp);
                 matrix &P = PR.first;
                 matrix &R = PR.second;
                 TOC("interp");

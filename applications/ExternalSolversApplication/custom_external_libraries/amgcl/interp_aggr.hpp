@@ -112,8 +112,8 @@ interp(const sparse::matrix<value_t, index_t> &A, const params &prm) {
         // Build reduced matrix, find connections and aggregates with it,
         // restore the vectors to full size.
 
-        BOOST_AUTO(S_aggr, aggr::pointwise_coarsening<aggr_type>(
-                    A, prm.eps_strong, prm.dof_per_node));
+        std::pair<std::vector<char>, std::vector<index_t> > S_aggr = aggr::pointwise_coarsening<aggr_type>(
+                    A, prm.eps_strong, prm.dof_per_node);
         aggr.swap(S_aggr.second);
     }
 
@@ -159,14 +159,15 @@ struct aggregated_operator {
     static spmat apply(const spmat &R, const spmat &A, const spmat &P,
             const Params &prm)
     {
+        typedef typename sparse::matrix_index<spmat>::type index_t;
         typedef typename sparse::matrix_value<spmat>::type value_t;
 
         // For now this s just a Galerking operator with possible
         // over-interpolation.
-        BOOST_AUTO(a, sparse::prod(sparse::prod(R, A), P));
+        sparse::matrix<value_t, index_t> a = sparse::prod(sparse::prod(R, A), P);
 
         if (prm.over_interp > 1.0f)
-            for(BOOST_AUTO(v, a.val.begin()); v != a.val.end(); ++v)
+            for(typename std::vector<value_t>::iterator v = a.val.begin(); v != a.val.end(); ++v)
                 *v /= prm.over_interp;
 
         return a;

@@ -54,13 +54,13 @@ std::vector<char> connect(const spmat &A, float eps_strong) {
 
     const index_t n = sparse::matrix_rows(A);
 
-    BOOST_AUTO(Arow, sparse::matrix_outer_index(A));
-    BOOST_AUTO(Acol, sparse::matrix_inner_index(A));
-    BOOST_AUTO(Aval, sparse::matrix_values(A));
+    const index_t *Arow = sparse::matrix_outer_index(A);
+    const index_t *Acol = sparse::matrix_inner_index(A);
+    const value_t *Aval = sparse::matrix_values(A);
 
     std::vector<char> S(sparse::matrix_nonzeros(A));
 
-    BOOST_AUTO(dia, sparse::diagonal(A));
+    std::vector<value_t> dia = sparse::diagonal(A);
 
     value_t eps2 = eps_strong * eps_strong;
 
@@ -100,9 +100,9 @@ pointwise_matrix(const spmat &A, unsigned dof_per_node) {
     const index_t nc = n / dof_per_node;
     const index_t mc = m / dof_per_node;
 
-    BOOST_AUTO(Arow, sparse::matrix_outer_index(A));
-    BOOST_AUTO(Acol, sparse::matrix_inner_index(A));
-    BOOST_AUTO(Aval, sparse::matrix_values(A));
+    const index_t *Arow = sparse::matrix_outer_index(A);
+    const index_t *Acol = sparse::matrix_inner_index(A);
+    const value_t *Aval = sparse::matrix_values(A);
 
     sparse::matrix<value_t, index_t> B(nc, mc);
     std::fill(B.row.begin(), B.row.end(), static_cast<index_t>(0));
@@ -188,11 +188,11 @@ pointwise_coarsening(const spmat &A, float eps_strong, unsigned dof_per_node) {
     std::vector<index_t> &aggr = S_aggr.second;
 
     TIC("reduce matrix");
-    BOOST_AUTO(Ap, pointwise_matrix(A, dof_per_node));
+    sparse::matrix<value_t, index_t> Ap = pointwise_matrix(A, dof_per_node);
     TOC("reduce matrix");
 
     TIC("connections");
-    BOOST_AUTO(Sp, connect(Ap, eps_strong));
+    std::vector<char> Sp = connect(Ap, eps_strong);
 
     S.resize(sparse::matrix_nonzeros(A));
 
@@ -234,7 +234,7 @@ pointwise_coarsening(const spmat &A, float eps_strong, unsigned dof_per_node) {
     TOC("connections");
 
     TIC("aggregates");
-    BOOST_AUTO(aggr_p, aggr_type::aggregates(Ap, Sp));
+    std::vector<index_t> aggr_p = aggr_type::aggregates(Ap, Sp);
 
     aggr.resize(n);
     for(index_t i = 0, ip = 0; ip < Ap.rows; ++ip)

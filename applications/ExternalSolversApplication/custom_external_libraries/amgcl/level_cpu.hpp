@@ -34,12 +34,12 @@ THE SOFTWARE.
 #include <vector>
 
 #include <boost/array.hpp>
-#include <boost/typeof/typeof.hpp>
 
 #include <amgcl/common.hpp>
 #include <amgcl/level_params.hpp>
 #include <amgcl/spmat.hpp>
 #include <amgcl/spai.hpp>
+#include <amgcl/tictoc.hpp>
 
 namespace amgcl {
 
@@ -68,9 +68,9 @@ struct cpu_damped_jacobi {
         void apply_pre(const spmat &A, const vector1 &rhs, vector2 &x, vector3 &tmp, const params &prm) const {
             const index_t n = sparse::matrix_rows(A);
 
-            BOOST_AUTO(Arow, sparse::matrix_outer_index(A));
-            BOOST_AUTO(Acol, sparse::matrix_inner_index(A));
-            BOOST_AUTO(Aval, sparse::matrix_values(A));
+            const index_t *Arow = sparse::matrix_outer_index(A);
+            const index_t *Acol = sparse::matrix_inner_index(A);
+            const value_t *Aval = sparse::matrix_values(A);
 
 #pragma omp parallel for schedule(dynamic, 1024)
             for(index_t i = 0; i < n; ++i) {
@@ -137,9 +137,9 @@ struct cpu_gauss_seidel {
         void apply_pre(const spmat &A, const vector1 &rhs, vector2 &x, vector3& /*tmp*/, const params&) const {
             const index_t n = sparse::matrix_rows(A);
 
-            BOOST_AUTO(Arow, sparse::matrix_outer_index(A));
-            BOOST_AUTO(Acol, sparse::matrix_inner_index(A));
-            BOOST_AUTO(Aval, sparse::matrix_values(A));
+            const index_t *Arow = sparse::matrix_outer_index(A);
+            const index_t *Acol = sparse::matrix_inner_index(A);
+            const value_t *Aval = sparse::matrix_values(A);
 
             for(index_t i = 0; i < n; ++i) {
                 GS_INNER_LOOP;
@@ -150,9 +150,9 @@ struct cpu_gauss_seidel {
         void apply_post(const spmat &A, const vector1 &rhs, vector2 &x, vector3& /*tmp*/, const params&) const {
             const index_t n = A.rows;
 
-            BOOST_AUTO(Arow, sparse::matrix_outer_index(A));
-            BOOST_AUTO(Acol, sparse::matrix_inner_index(A));
-            BOOST_AUTO(Aval, sparse::matrix_values(A));
+            const index_t *Arow = sparse::matrix_outer_index(A);
+            const index_t *Acol = sparse::matrix_inner_index(A);
+            const value_t *Aval = sparse::matrix_values(A);
 
             for(index_t i = n - 1; i >= 0; --i) {
                 GS_INNER_LOOP;
@@ -179,9 +179,9 @@ struct cpu_ilu0 {
 
             const index_t n = sparse::matrix_rows(A);
 
-            BOOST_AUTO(Arow, sparse::matrix_outer_index(A));
-            BOOST_AUTO(Acol, sparse::matrix_inner_index(A));
-            BOOST_AUTO(Aval, sparse::matrix_values(A));
+            const index_t *Arow = sparse::matrix_outer_index(A);
+            const index_t *Acol = sparse::matrix_inner_index(A);
+            const value_t *Aval = sparse::matrix_values(A);
 
             luval.assign(Aval, Aval + Arow[n]);
 
@@ -230,9 +230,9 @@ struct cpu_ilu0 {
         void apply_pre(const spmat &A, const vector1 &rhs, vector2 &x, vector3 &tmp, const params &prm) const {
             const index_t n = sparse::matrix_rows(A);
 
-            BOOST_AUTO(Arow, sparse::matrix_outer_index(A));
-            BOOST_AUTO(Acol, sparse::matrix_inner_index(A));
-            BOOST_AUTO(Aval, sparse::matrix_values(A));
+            const index_t *Arow = sparse::matrix_outer_index(A);
+            const index_t *Acol = sparse::matrix_inner_index(A);
+            const value_t *Aval = sparse::matrix_values(A);
 
 #pragma omp parallel for schedule(dynamic, 1024)
             for(index_t i = 0; i < n; i++) {
@@ -281,9 +281,9 @@ struct cpu_spai0 {
         void apply_pre(const spmat &A, const vector1 &rhs, vector2 &x, vector3 &tmp, const params&) const {
             const index_t n = sparse::matrix_rows(A);
 
-            BOOST_AUTO(Arow, sparse::matrix_outer_index(A));
-            BOOST_AUTO(Acol, sparse::matrix_inner_index(A));
-            BOOST_AUTO(Aval, sparse::matrix_values(A));
+            const index_t *Arow = sparse::matrix_outer_index(A);
+            const index_t *Acol = sparse::matrix_inner_index(A);
+            const value_t *Aval = sparse::matrix_values(A);
 
 #pragma omp parallel for schedule(dynamic, 1024)
             for(index_t i = 0; i < n; i++) {
@@ -356,8 +356,7 @@ class instance {
                 f.resize(A.rows);
 
                 if (prm.kcycle && nlevel % prm.kcycle == 0)
-                    for(BOOST_AUTO(v, cg.begin()); v != cg.end(); ++v)
-                        v->resize(A.rows);
+                    for(size_t i = 0; i < cg.size(); ++i) cg[i].resize(A.rows);
             }
 
             t.resize(A.rows);
@@ -380,6 +379,7 @@ class instance {
         // Compute residual value.
         template <class vector1, class vector2>
         value_t resid(const vector1 &rhs, vector2 &x) const {
+            TIC("residual");
             const index_t n = A.rows;
             value_t norm = 0;
 
@@ -393,6 +393,7 @@ class instance {
                 norm += temp * temp;
             }
 
+            TOC("residual");
             return sqrt(norm);
         }
 
@@ -413,10 +414,13 @@ class instance {
                 const index_t nc = nxt->A.rows;
 
                 for(unsigned j = 0; j < prm.ncycle; ++j) {
+                    TIC("relax");
                     for(unsigned i = 0; i < prm.npre; ++i)
                         lvl->relax.apply_pre(lvl->A, rhs, x, lvl->t, prm.relax);
+                    TOC("relax");
 
                     //lvl->t = rhs - lvl->A * x;
+                    TIC("residual");
 #pragma omp parallel for schedule(dynamic, 1024)
                     for(index_t i = 0; i < n; ++i) {
                         value_t temp = rhs[i];
@@ -426,8 +430,10 @@ class instance {
 
                         lvl->t[i] = temp;
                     }
+                    TOC("residual");
 
                     //nxt->f = lvl->R * lvl->t;
+                    TIC("restrict");
 #pragma omp parallel for schedule(dynamic, 1024)
                     for(index_t i = 0; i < nc; ++i) {
                         value_t temp = 0;
@@ -437,6 +443,7 @@ class instance {
 
                         nxt->f[i] = temp;
                     }
+                    TOC("restrict");
 
                     std::fill(nxt->u.begin(), nxt->u.end(), static_cast<value_t>(0));
 
@@ -446,6 +453,7 @@ class instance {
                         kcycle(pnxt, end, prm, nxt->f, nxt->u);
 
                     //x += lvl->P * nxt->u;
+                    TIC("prolongate");
 #pragma omp parallel for schedule(dynamic, 1024)
                     for(index_t i = 0; i < n; ++i) {
                         value_t temp = 0;
@@ -455,17 +463,23 @@ class instance {
 
                         x[i] += temp;
                     }
+                    TOC("prolongate");
 
+                    TIC("relax");
                     for(unsigned i = 0; i < prm.npost; ++i)
                         lvl->relax.apply_post(lvl->A, rhs, x, lvl->t, prm.relax);
+                    TOC("relax");
                 }
             } else {
+                TIC("coarse");
+#pragma omp parallel for
                 for(index_t i = 0; i < n; ++i) {
                     value_t temp = 0;
                     for(index_t j = lvl->Ai.row[i], e = lvl->Ai.row[i + 1]; j < e; ++j)
                         temp += lvl->Ai.val[j] * rhs[lvl->Ai.col[j]];
                     x[i] = temp;
                 }
+                TOC("coarse");
             }
         }
 
@@ -493,6 +507,7 @@ class instance {
                     std::fill(&s[0], &s[0] + n, static_cast<value_t>(0));
                     cycle(plvl, end, prm, r, s);
 
+                    TIC("kcycle");
                     rho2 = rho1;
                     rho1 = lvl->inner_prod(r, s);
 
@@ -523,14 +538,18 @@ class instance {
                         x[i] += alpha * p[i];
                         r[i] -= alpha * q[i];
                     }
+                    TOC("kcycle");
                 }
             } else {
+                TIC("coarse");
+#pragma omp parallel for
                 for(index_t i = 0; i < n; ++i) {
                     value_t temp = 0;
                     for(index_t j = lvl->Ai.row[i], e = lvl->Ai.row[i + 1]; j < e; ++j)
                         temp += lvl->Ai.val[j] * rhs[lvl->Ai.col[j]];
                     x[i] = temp;
                 }
+                TOC("coarse");
             }
         }
 

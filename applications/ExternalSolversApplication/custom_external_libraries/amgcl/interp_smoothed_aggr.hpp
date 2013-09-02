@@ -34,8 +34,6 @@ THE SOFTWARE.
 #include <vector>
 #include <algorithm>
 
-#include <boost/typeof/typeof.hpp>
-
 #include <amgcl/spmat.hpp>
 #include <amgcl/aggr_connect.hpp>
 #include <amgcl/tictoc.hpp>
@@ -132,8 +130,8 @@ interp(const sparse::matrix<value_t, index_t> &A, const params &prm) {
         // Build reduced matrix, find connections and aggregates with it,
         // restore the vectors to full size.
 
-        BOOST_AUTO(S_aggr, aggr::pointwise_coarsening<aggr_type>(
-                    A, prm.eps_strong, prm.dof_per_node));
+        std::pair<std::vector<char>, std::vector<index_t> > S_aggr = aggr::pointwise_coarsening<aggr_type>(
+                    A, prm.eps_strong, prm.dof_per_node);
         S.swap(S_aggr.first);
         aggr.swap(S_aggr.second);
     }
@@ -157,9 +155,9 @@ interp(const sparse::matrix<value_t, index_t> &A, const params &prm) {
     P.resize(n, nc);
     std::fill(P.row.begin(), P.row.end(), static_cast<index_t>(0));
 
-    BOOST_AUTO(Arow, sparse::matrix_outer_index(A));
-    BOOST_AUTO(Acol, sparse::matrix_inner_index(A));
-    BOOST_AUTO(Aval, sparse::matrix_values(A));
+    const index_t *Arow = sparse::matrix_outer_index(A);
+    const index_t *Acol = sparse::matrix_inner_index(A);
+    const value_t *Aval = sparse::matrix_values(A);
 
 
 #pragma omp parallel
