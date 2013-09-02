@@ -53,10 +53,10 @@ class EdgeBasedLevelSetSolver:
         (self.neighbour_search).Execute()
 
 #        pDiagPrecond = DiagonalPreconditioner()
-#        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
+        self.pressure_linear_solver =  1 #BICGSTABSolver(1e-3, 5000,pDiagPrecond)
 
 #        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000)
-        self.pressure_linear_solver =  CGSolver(1e-3, 5000)
+        #self.pressure_linear_solver =  CGSolver(1e-3, 5000)
 
         
         self.tot_solve_time = 0.0
@@ -108,6 +108,7 @@ class EdgeBasedLevelSetSolver:
 ##        (self.fluid_solver).UpdateFixedVelocityValues()
         (self.fluid_solver).SolveStep1();
         t1 = timer.time()
+        print self.pressure_linear_solver
         (self.fluid_solver).SolveStep2(self.pressure_linear_solver);
         t2 = timer.time()
         (self.fluid_solver).SolveStep3();
