@@ -462,7 +462,7 @@ namespace Kratos
 				boost::timer adding_elems;
 			//add preserved elements to the kratos
 			Properties::Pointer properties = rModelPart.GetMesh().pGetProperties(property_id);
-			ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin();
+			//ModelPart::NodesContainerType::iterator nodes_begin = rModelPart.NodesBegin();
 			(rModelPart.Elements()).reserve(tet.numberoftetrahedra);
 
 			for (int iii = 0; iii< tet.numberoftetrahedra; iii++)
