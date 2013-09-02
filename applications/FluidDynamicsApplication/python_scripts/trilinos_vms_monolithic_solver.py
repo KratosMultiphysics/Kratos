@@ -9,7 +9,7 @@ from KratosMultiphysics.TrilinosApplication import *
 CheckForPreviousImport()
 
 
-def AddVariables(model_part):
+def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(VELOCITY);
     model_part.AddNodalSolutionStepVariable(ACCELERATION);
     model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
@@ -38,7 +38,7 @@ def AddVariables(model_part):
 
     print "variables for the MONOLITHIC_SOLVER_EULERIAN added correctly"
         
-def AddDofs(model_part):
+def AddDofs(model_part, config=None):
     for node in model_part.Nodes:
         #adding dofs
         node.AddDof(VELOCITY_X,REACTION_X);
@@ -98,19 +98,19 @@ class MonolithicSolver:
       
         ##CHAPUZA to set the non historical value of IS_STRUCTURE correctly... to be improved
         for condition in self.model_part.Conditions:
-	    if condition.GetValue(IS_STRUCTURE) == 1.0:
-	      for node in condition.GetNodes():
-		node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
-	self.model_part.GetCommunicator().AssembleCurrentData(IS_STRUCTURE)
-	mpi.world.barrier()
-	for node in self.model_part.Nodes:
-	  if node.GetSolutionStepValue(IS_STRUCTURE,0) != 0.0:
-	    node.SetValue(IS_STRUCTURE,1.0)
-	    node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
+            if condition.GetValue(IS_STRUCTURE) == 1.0:
+              for node in condition.GetNodes():
+                node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
+        self.model_part.GetCommunicator().AssembleCurrentData(IS_STRUCTURE)
+        mpi.world.barrier()
+        for node in self.model_part.Nodes:
+          if node.GetSolutionStepValue(IS_STRUCTURE,0) != 0.0:
+            node.SetValue(IS_STRUCTURE,1.0)
+            node.SetSolutionStepValue(IS_STRUCTURE,0,1.0)
         
         ##compute normals "correctly"
         self.normal_calculator = NormalCalculationUtils()
-	self.normal_calculator.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
+        self.normal_calculator.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
 
         # If Spalart-Allmaras: Initialize Spalart-Allmaras solver
         if self.use_spalart_allmaras == True:
@@ -171,10 +171,10 @@ class MonolithicSolver:
         self.solver.max_iter = self.max_iter
 
         (self.solver).SetEchoLevel(self.echo_level)
-	                     
+                             
     #######################################################################   
     def Solve(self):
-	(self.solver).Solve()
+        (self.solver).Solve()
        
 
     #######################################################################   
@@ -192,6 +192,31 @@ class MonolithicSolver:
         
     ########################################################################
     def ActivateSpalartAllmaras(self,wall_nodes,DES,CDES=1.0):
-	self.wall_nodes  = wall_nodes
-	self.use_spalart_allmaras = True
+        self.wall_nodes  = wall_nodes
+        self.use_spalart_allmaras = True
 
+#################################################################################################
+################################################################################################# 
+def CreateSolver( model_part, config ):
+    fluid_solver = MonolithicSolver( model_part, config.domain_size )
+    
+    if( hasattr(config,"alpha") ): fluid_solver.alpha = config.alpha
+    
+    # definition of the convergence criteria
+    if( hasattr(config,"velocity_relative_tolerance") ): fluid_solver.rel_vel_tol = config.velocity_relative_tolerance
+    if( hasattr(config,"velocity_absolute_tolerance") ): fluid_solver.abs_vel_tol = config.velocity_absolute_tolerance
+    if( hasattr(config,"pressure_relative_tolerance") ): fluid_solver.rel_pres_tol = config.pressure_relative_tolerance
+    if( hasattr(config,"pressure_absolute_tolerance") ): fluid_solver.abs_pres_tol = config.pressure_absolute_tolerance
+    if( hasattr(config,"dynamic_tau") ): fluid_solver.dynamic_tau = config.dynamic_tau
+    if( hasattr(config,"oss_switch") ): fluid_solver.oss_switch = config.oss_switch
+    if( hasattr(config,"max_iteration") ): fluid_solver.max_iter = config.max_iteration
+    if( hasattr(config,"echo_level") ): fluid_solver.echo_level = config.echo_level
+    if( hasattr(config,"compute_reactions") ): fluid_solver.compute_reactions = config.compute_reactions
+    if( hasattr(config,"ReformDofSetAtEachStep") ): fluid_solver.ReformDofSetAtEachStep = config.ReformDofSetAtEachStep
+    if( hasattr(config,"use_spalart_allmaras") ): fluid_solver.use_spalart_allmaras = config.use_spalart_allmaras
+    if( hasattr(config,"use_des") ): fluid_solver.use_des = config.use_des
+        
+    import trilinos_linear_solver_factory
+    if( hasattr(config,"linear_solver_config") ): fluid_solver.linear_solver =  trilinos_linear_solver_factory.ConstructSolver(config.linear_solver_config)
+    
+    return fluid_solver
