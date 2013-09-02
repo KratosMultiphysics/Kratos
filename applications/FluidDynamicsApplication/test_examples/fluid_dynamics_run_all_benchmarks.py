@@ -7,17 +7,17 @@ import benchmarking
 
 
 def Run():
-	Msg = ""
-	Text = "== Fluid Dynamics ==========\n"
+        Msg = ""
+        Text = "== Fluid Dynamics ==========\n"
 
         ###############################################################################
-	#VMS2D element test
-	
-	Text += "VMS2D element test: "
-	os.chdir("vms2d_test")	
-	sys.path.append(os.getcwd())
+        #VMS2D element test
+        
+        Text += "VMS2D element test: "
+        os.chdir("vms2d_test")  
+        sys.path.append(os.getcwd())
 
-	print "running the vms2d_test benchmark test..."
+        print "running the vms2d_test benchmark test..."
         Msg = benchmarking.RunBenchmark("script_elemtest.py", "vms2d_test_ref.txt")
 
         if (Msg == True):
@@ -30,17 +30,17 @@ def Run():
             print "VMS2D element test FAILED"
 
 
-	os.chdir("..")
+        os.chdir("..")
         ###############################################################################
-	# parabolic flow in a trapezoidal domain: test VMS2D OSS implementation
-	
+        # parabolic flow in a trapezoidal domain: test VMS2D OSS implementation
+        
         Text += "Parabolic flow OSS test: "
-	
-        os.chdir("oss_trapezoid")	
-	sys.path.append(os.getcwd())
+        
+        os.chdir("oss_trapezoid")       
+        sys.path.append(os.getcwd())
 
         import trapezoid_benchmark
-	Msg = trapezoid_benchmark.Run()
+        Msg = trapezoid_benchmark.Run()
 
         if (Msg == True):
             Text += "OK\n"
@@ -52,17 +52,17 @@ def Run():
             print "oss_trapezoid test FAILED"
 
 
-	os.chdir("..")
+        os.chdir("..")
         ###############################################################################
         # slip condition and wall law (MonolithicWallCondition2D + ResidualBasedVelocityBossakSchemeTurbulent)
-	
+        
         Text += "Slip condition and wall law test: "
-	
-        os.chdir("slip_test")	
-	sys.path.append(os.getcwd())
+        
+        os.chdir("slip_test")   
+        sys.path.append(os.getcwd())
 
         import slip_test_benchmark
-	Msg = slip_test_benchmark.Run()
+        Msg = slip_test_benchmark.Run()
 
         if (Msg == True):
             Text += "OK\n"
@@ -74,17 +74,17 @@ def Run():
             print "slip condition test FAILED"
 
 
-	os.chdir("..")
+        os.chdir("..")
         ###############################################################################
         # fractional step 2D cavity
-	
+        
         Text += "Fractional step element test: 2D cavity flow: "
-	
-        os.chdir("fs_cavity")	
-	sys.path.append(os.getcwd())
+        
+        os.chdir("fs_cavity")   
+        sys.path.append(os.getcwd())
 
         import fs_cavity_verify_benchmark
-	Msg = fs_cavity_verify_benchmark.Run()
+        Msg = fs_cavity_verify_benchmark.Run()
 
         if (Msg == True):
             Text += "OK\n"
@@ -96,17 +96,17 @@ def Run():
             print "Fractional step 2D cavity test FAILED"
 
 
-	os.chdir("..")
+        os.chdir("..")
         ###############################################################################
         # test of cylinder with slip BC, wall law and outlet close to the cylinder
-	
+        
         Text += "test of cylinder with slip BC, wall law and outlet close to the cylinder: "
-	
-        os.chdir("cyl_bench")	
-	sys.path.append(os.getcwd())
+        
+        os.chdir("cyl_bench")   
+        sys.path.append(os.getcwd())
 
-	import cyl_verify_benchmark
-	Msg = cyl_verify_benchmark.Run()
+        import cyl_verify_benchmark
+        Msg = cyl_verify_benchmark.Run()
 
         if (Msg == True):
             Text += "OK\n"
@@ -118,16 +118,16 @@ def Run():
             print "cylinder with slip BC, wall law and outlet test FAILED"
 
 
-	os.chdir("..")
+        os.chdir("..")
 
-	# Add other examples here
+        # Add other examples here
 
 
 
         ################################################################
         print "resume of all of the examples for the Fluid Dynamics application :"
         print Text
-	return Text
+        return Text
 
 if __name__=='__main__':
   Run();
