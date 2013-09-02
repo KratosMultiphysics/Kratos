@@ -39,7 +39,7 @@ groups_dictionary = {
                    }
 
 output_time = 0.1
-output_step = 100
+output_step = 1 #100
 VolumeOutput = True
 
 nodal_results=["VELOCITY","PRESSURE","REACTION"]
