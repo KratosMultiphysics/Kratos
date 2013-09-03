@@ -34,11 +34,6 @@ class TrilinosMeshSolver:
         self.domain_size = domain_size
         self.reform_dof_at_every_step = reform_dof_at_every_step
         
-        #neighbour search
-        number_of_avg_elems = 10
-        number_of_avg_nodes = 10
-        self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
-        
         #assignation of parameters to be used
         self.time_order = 1
 
@@ -51,9 +46,7 @@ class TrilinosMeshSolver:
         pressure_linear_tol = 1
         self.linear_solver = PressureMultiLevelSolver.MultilevelLinearSolver(pressure_linear_tol,pressure_nit_max)
 
-    def Initialize(self):
-        (self.neighbour_search).Execute()
-        
+    def Initialize(self):       
         self.solver = TrilinosLaplacianMeshMovingStrategy(self.Comm,self.model_part,self.linear_solver,self.domain_size, self.time_order,self.reform_dof_at_every_step)
         (self.solver).SetEchoLevel(0)
         print "finished moving the mesh"
@@ -61,9 +54,6 @@ class TrilinosMeshSolver:
                  
    
     def Solve(self):
-        if(self.reform_dof_at_every_step == True):
-            (self.neighbour_search).Execute()
-
         (self.solver).Solve()
 
     def MoveNodes(self):
