@@ -27,7 +27,15 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(NORMAL)
     model_part.AddNodalSolutionStepVariable(Y_WALL)
 
-    print "variables for the MONOLITHIC_SOLVER_EULERIAN added correctly"
+    if config is not None:
+        if hasattr(config,"TurbulenceModel"):
+            if config.TurbulenceModel == "Spalart-Allmaras":
+                model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
+                model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY);
+                model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
+                model_part.AddNodalSolutionStepVariable(DISTANCE)
+
+    print "variables for the vms monolithic solver added correctly"
 
 
 def AddDofs(model_part, config=None):
@@ -38,7 +46,13 @@ def AddDofs(model_part, config=None):
         node.AddDof(VELOCITY_Z, REACTION_Z)
         node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)
 
-    print "dofs for the monolithic solver added correctly"
+    if config is not None:
+        if hasattr(config,"TurbulenceModel"):
+            if config.TurbulenceModel == "Spalart-Allmaras":
+                for node in model_part.Nodes:
+                    node.AddDof(TURBULENT_VISCOSITY)
+
+    print "dofs for the vms monolithic solver added correctly"
 
 
 class MonolithicSolver:
@@ -88,6 +102,11 @@ class MonolithicSolver:
         self.use_slip_conditions = False
 
         self.turbulence_model = None
+        self.use_spalart_allmaras = False
+        self.use_des = False
+        self.Cdes = 1.0
+        self.wall_nodes = list()
+        self.spalart_allmaras_linear_solver = None
 
 	print "Construction monolithic solver finished"
 
@@ -110,13 +129,17 @@ class MonolithicSolver:
                 if cond.GetValue(IS_STRUCTURE) != 0.0:
                     for node in cond.GetNodes():
                         node.SetValue(IS_STRUCTURE, 1.0)
+        
+        # Turbulence model
+        if self.use_spalart_allmaras:
+            self.activate_spalart_allmaras()
 
         # creating the solution strategy
         self.conv_criteria = VelPrCriteria(self.rel_vel_tol, self.abs_vel_tol,
                                            self.rel_pres_tol, self.abs_pres_tol)
 # self.conv_criteria = UPCriteria(self.rel_vel_tol,self.abs_vel_tol,
 # self.rel_pres_tol,self.abs_pres_tol)
-        if self.turbulence_model == None:
+        if self.turbulence_model is None:
             self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeTurbulent\
                 (self.alpha, self.move_mesh_strategy,
                  self.domain_size)
@@ -143,10 +166,12 @@ class MonolithicSolver:
 # print "Initialization monolithic solver finished"
     #
     def Solve(self):
-        if(self.ReformDofSetAtEachStep == True):
-            if self.use_slip_conditions == True:
+        if self.ReformDofSetAtEachStep:
+            if self.use_slip_conditions:
                 self.normal_util.CalculateOnSimplex(
                     self.model_part, self.domain_size, IS_STRUCTURE)
+            if self.use_spalart_allmaras:
+                self.neighbour_search.Execute()
 
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau)
         self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch)
@@ -162,44 +187,51 @@ class MonolithicSolver:
         (self.solver).Clear()
 
     #
-    def ActivateSmagorinsky(self, C):
+    def activate_smagorinsky(self, C):
         for elem in self.model_part.Elements:
             elem.SetValue(C_SMAGORINSKY, C)
 
     #
-    def ActivateSpalartAllmaras(self, wall_nodes, DES=False, CDES=1.0):
+    def activate_spalart_allmaras(self):
 
+        # Spalart-Allmaras initialization
+        for node in self.wall_nodes:
+            node.SetValue(IS_VISITED,1.0)
+            node.SetSolutionStepValue(DISTANCE,0,0.0)
+
+        distance_calculator = BodyDistanceCalculationUtils()
+        if self.domain_size == 2:
+            distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE,100.0)
+        else:
+            distance_calculator.CalculateDistances3D(self.model_part.Elements,DISTANCE,100.0)
+
+        # Spalart-Allmaras uses the componentwise builder and solver, which
+        # requires a neighbour search
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
-        neighbour_search = FindNodalNeighboursProcess(
+        self.neighbour_search = FindNodalNeighboursProcess(
             self.model_part, number_of_avg_elems, number_of_avg_nodes)
-        neighbour_search.Execute()
-
-        for node in wall_nodes:
-            node.SetValue(IS_VISITED, 1.0)
-            node.SetSolutionStepValue(DISTANCE, 0, 0.0)
-
-        # Compute distance function
-        distance_calculator = BodyDistanceCalculationUtils()
-        if(self.domain_size == 2):
-            distance_calculator.CalculateDistances2D(
-                self.model_part.Elements, DISTANCE, 100.0)
-        elif(self.domain_size == 3):
-            distance_calculator.CalculateDistances3D(
-                self.model_part.Elements, DISTANCE, 100.0)
+        self.neighbour_search.Execute()
 
         non_linear_tol = 0.001
         max_it = 10
         reform_dofset = self.ReformDofSetAtEachStep
-        time_order = 2
-        pPrecond = DiagonalPreconditioner()
-        turbulence_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
+        time_order = 2 
+
+        if self.spalart_allmaras_linear_solver is None:
+            pPrecond = DiagonalPreconditioner()
+            self.spalart_allmaras_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
 
         self.turbulence_model = SpalartAllmarasTurbulenceModel(
-            self.model_part, turbulence_linear_solver, self.domain_size, non_linear_tol, max_it, reform_dofset, time_order)
-        if DES:
-            self.turbulence_model.ActivateDES(CDES)
-
+                                          self.model_part,
+                                          self.spalart_allmaras_linear_solver,
+                                          self.domain_size,
+                                          non_linear_tol,
+                                          max_it,
+                                          reform_dofset,
+                                          time_order)
+        if self.use_des:
+            self.turbulence_model.ActivateDES(self.Cdes)
             
        
 #################################################################################################
@@ -220,8 +252,17 @@ def CreateSolver( model_part, config ):
     if( hasattr(config,"echo_level") ): fluid_solver.echo_level = config.echo_level
     if( hasattr(config,"compute_reactions") ): fluid_solver.compute_reactions = config.compute_reactions
     if( hasattr(config,"ReformDofSetAtEachStep") ): fluid_solver.ReformDofSetAtEachStep = config.ReformDofSetAtEachStep
-    if( hasattr(config,"use_spalart_allmaras") ): fluid_solver.use_spalart_allmaras = config.use_spalart_allmaras
-    if( hasattr(config,"use_des") ): fluid_solver.use_des = config.use_des
+    if hasattr(config,"TurbulenceModel") :
+        if config.TurbulenceModel == "Spalart-Allmaras":
+            fluid_solver.use_spalart_allmaras = True
+        elif config.TurbulenceModel == "Smagorinsky-Lilly":
+            if hasattr(config,"SmagorinskyConstant"):
+                fluid_solver.activate_smagorinsky(config.SmagorinskyConstant)
+            else:
+                msg = """Fluid solver error: Smagorinsky model requested, but
+                         the value for the Smagorinsky constant is
+                         undefined."""
+                raise Exception(msg)
         
     import linear_solver_factory
     if( hasattr(config,"linear_solver_config") ): fluid_solver.linear_solver =  linear_solver_factory.ConstructSolver(config.linear_solver_config)

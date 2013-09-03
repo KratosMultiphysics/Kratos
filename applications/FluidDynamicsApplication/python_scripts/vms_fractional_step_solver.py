@@ -27,10 +27,14 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(REACTION)
     model_part.AddNodalSolutionStepVariable(Y_WALL)
     model_part.AddNodalSolutionStepVariable(NORMAL)
-    model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY)
-    model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY)
-    model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
-    model_part.AddNodalSolutionStepVariable(DISTANCE)
+
+    if config is not None:
+        if hasattr(config,"TurbulenceModel"):
+            if config.TurbulenceModel == "Spalart-Allmaras":
+                model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
+                model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY);
+                model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
+                model_part.AddNodalSolutionStepVariable(DISTANCE)
     print "variables for the vms fluid solver added correctly"
 
 
@@ -43,8 +47,13 @@ def AddDofs(model_part, config=None):
         node.AddDof(VELOCITY_Y)
         node.AddDof(VELOCITY_Z)
 
-    print "dofs for the vms fluid solver added correctly"
+    if config is not None:
+        if hasattr(config,"TurbulenceModel"):
+            if config.TurbulenceModel == "Spalart-Allmaras":
+                for node in model_part.Nodes:
+                    node.AddDof(TURBULENT_VISCOSITY)
 
+    print "dofs for the vms fluid solver added correctly"
 
 class IncompressibleFluidSolver:
 
@@ -60,9 +69,9 @@ class IncompressibleFluidSolver:
         self.domain_size = domain_size
 
         # assignation of parameters to be used
-        self.vel_toll = 1e-20
+        self.vel_toll = 1e-6
         # 0.001
-        self.press_toll = 1e-7  # 0.001;
+        self.press_toll = 1e-3  # 0.001;
         self.max_vel_its = 6
         self.max_press_its = 3
         self.time_order = 2
@@ -96,9 +105,12 @@ class IncompressibleFluidSolver:
         self.compute_reactions = False
 
         self.use_slip_conditions = False
+        
         self.use_spalart_allmaras = False
-        self.wall_nodes = list()
         self.use_des = False
+        self.Cdes = 1.0
+        self.wall_nodes = list()
+        self.spalart_allmaras_linear_solver = None
 
     def Initialize(self):
         # Componentwise Builder and solver uses neighbours to set DofSet
@@ -285,38 +297,10 @@ class IncompressibleFluidSolver:
             DENSITY, "DENSITY", self.model_part.Nodes, restart_file)
         restart_file.close()
 
-    def ActivateSmagorinsky(self, C):
+    def activate_smagorinsky(self, C):
         for elem in self.model_part.Elements:
             elem.SetValue(C_SMAGORINSKY, C)
 
-    def ActivateSpalartAllmaras(self, wall_nodes, DES, CDES=1.0):
-        self.use_spalart_allmaras = True
-        self.wall_nodes = wall_nodes
-        # import KratosMultiphysics.FluidDynamicsApplication as KCFD
-        # for node in wall_nodes:
-            # node.SetValue(IS_VISITED,1.0)
-
-        # distance_calculator = BodyDistanceCalculationUtils()
-        # distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE,100.0)
-
-        # non_linear_tol = 0.001
-        # max_it = 10
-        # reform_dofset = self.ReformDofAtEachIteration
-        # time_order = self.time_order
-        # pPrecond = DiagonalPreconditioner()
-        # turbulence_linear_solver =  BICGSTABSolver(1e-20, 5000,pPrecond)
-        # turbulence_model = KCFD.SpalartAllmarasTurbulenceModel(self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order);
-# turbulence_model.AdaptForFractionalStep()
-        # if(DES==True):
-            # turbulence_model.ActivateDES(CDES);
-
-        # self.solver.AddIterationStep(turbulence_model);
-        
-        
-        
-        
-        
-        
         
        
 #################################################################################################
@@ -343,15 +327,17 @@ def CreateSolver( model_part, config ):
     if( hasattr(config,"velocity_linear_solver_config") ): fluid_solver.velocity_linear_solver =  linear_solver_factory.ConstructSolver(config.velocity_linear_solver_config)
 
     #RANS or DES settings
-    if( hasattr(config,"use_spalart_allmaras") ): fluid_solver.use_spalart_allmaras = config.use_spalart_allmaras
-    if( hasattr(config,"use_des") ): fluid_solver.use_des = config.use_des
-    if( hasattr(config,"use_spalart_allmaras")  and config.use_spalart_allmaras == True):
-	if( hasattr(config,"wall_nodes") ):
-	    fluid_solver.wall_nodes = config.wall_nodes
-	else:
-	    print "ATTENTION: attempting to use SpalartAllmaras without prescribig the wall position. please set the variable \"wall_nodes\" within the "
-	    print "config class to an appropriate list or deactivate the turbulence model"
-	    
+    if hasattr(config,"TurbulenceModel") :
+        if config.TurbulenceModel == "Spalart-Allmaras":
+            fluid_solver.use_spalart_allmaras = True
+        elif config.TurbulenceModel == "Smagorinsky-Lilly":
+            if hasattr(config,"SmagorinskyConstant"):
+                fluid_solver.activate_smagorinsky(config.SmagorinskyConstant)
+            else:
+                msg = """Fluid solver error: Smagorinsky model requested, but
+                         the value for the Smagorinsky constant is
+                         undefined."""
+                raise Exception(msg)
     
     return fluid_solver
     
