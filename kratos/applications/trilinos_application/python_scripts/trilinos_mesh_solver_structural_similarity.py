@@ -13,6 +13,7 @@ def AddVariables(model_part):
     if mpi.rank == 0:
         print "variables for the mesh solver added correctly"
 
+
 def AddDofs(model_part):
     for node in model_part.Nodes:        
         node.AddDof(DISPLACEMENT_X);
@@ -51,8 +52,10 @@ class TrilinosMeshSolverStructuralSimilarity:
         (self.solver).SetEchoLevel(0)
         print "finished moving the mesh"
 
+
     def Solve(self):
         (self.solver).Solve()
+
 
     def MoveNodes(self):
         (self.solver).MoveNodes()
