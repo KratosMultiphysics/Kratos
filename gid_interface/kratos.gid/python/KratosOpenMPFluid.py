@@ -47,12 +47,6 @@ solver_constructor = __import__(SolverSettings.solver_type)
 ##importing variables
 solver_constructor.AddVariables( fluid_model_part, SolverSettings)
 
-if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
-  fluid_model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
-  fluid_model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY);
-  fluid_model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
-  fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
-  
 #introducing input file name
 input_file_name = ProjectParameters.problem_name
 
@@ -64,10 +58,6 @@ model_part_io_fluid.ReadModelPart(fluid_model_part)
 fluid_model_part.SetBufferSize(3)
 
 solver_constructor.AddDofs( fluid_model_part, SolverSettings)
-
-if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
-    for node in fluid_model_part.Nodes:
-       node.AddDof(TURBULENT_VISCOSITY)
        
 # If Lalplacian form = 2, free all pressure Dofs
 #laplacian_form = ProjectParameters.laplacian_form 
@@ -86,30 +76,26 @@ for node in fluid_model_part.Nodes:
 fluid_solver = solver_constructor.CreateSolver( fluid_model_part, SolverSettings)
 
 ##activate turbulence model
-if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Smagorinsky-Lilly"):
-    fluid_solver.ActivateSmagorinsky(ProjectParameters.SmagorinskyConstant)
-elif(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
+if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
     ##apply the initial turbulent viscosity on all of the nodes
-    turb_visc = ProjectParameters.TurbulentViscosity
+    turb_visc = SolverSettings.TurbulentViscosity
     for node in fluid_model_part.Nodes:
-      node.SetSolutionStepValue(TURBULENT_VISCOSITY,0,turb_visc);
-      visc = node.GetSolutionStepValue(VISCOSITY)
-      node.SetSolutionStepValue(MOLECULAR_VISCOSITY,0,visc);
-      if(node.IsFixed(VELOCITY_X)):
-	  node.Fix(TURBULENT_VISCOSITY)
-	  
+        node.SetSolutionStepValue(TURBULENT_VISCOSITY,0,turb_visc)
+        visc = node.GetSolutionStepValue(VISCOSITY)
+        node.SetSolutionStepValue(MOLECULAR_VISCOSITY,0,visc);
+        if (node.IsFixed(VELOCITY_X) and node.GetSolutionStepValue(VELOCITY_X,0) != 0.0) or \
+           (node.IsFixed(VELOCITY_Y) and node.GetSolutionStepValue(VELOCITY_Y,0) != 0.0) or \
+           (node.IsFixed(VELOCITY_Z) and node.GetSolutionStepValue(VELOCITY_Z,0) != 0.0):
+            node.Fix(TURBULENT_VISCOSITY)
 	  
     ##select nodes on the wall
-    wall_nodes = []
-    for i in ProjectParameters.SA_wall_group_ids:
-       nodes = fluid_model_part.GetNodes(i) ##get the nodes of the wall for SA.
-       for node in nodes:
-	  wall_nodes.append(node)
-	  node.SetSolutionStepValue(TURBULENT_VISCOSITY,0,0.0);
-	  node.Fix(TURBULENT_VISCOSITY)
-	  
-    DES = False
-    fluid_solver.ActivateSpalartAllmaras(wall_nodes,DES)
+    fluid_solver.wall_nodes = []
+    for i in SolverSettings.SA_wall_group_ids:
+        nodes = fluid_model_part.GetNodes(i) ##get the nodes of the wall for SA.
+        for node in nodes:
+            fluid_solver.wall_nodes.append(node)
+            node.SetSolutionStepValue(TURBULENT_VISCOSITY,0,0.0);
+            node.Fix(TURBULENT_VISCOSITY)
        
 
 fluid_solver.Initialize()     
@@ -214,11 +200,10 @@ while(time <= final_time):
 		  zero_vector[0] = 0.0; zero_vector[1] = 0.0; zero_vector[2] = 0.0;
 		  for node in fluid_model_part.Nodes:
 		    node.SetSolutionStepValue(ACCELERATION,i,zero_vector)
-		if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
-		    for node in fluid_model_part.Nodes:
-		      visc = node.GetSolutionStepValue(VISCOSITY)
-		      node.SetSolutionStepValue(VISCOSITY,i,visc)
-		    
+          if(SolverSettings.TurbulenceModel == "Spalart-Allmaras"):
+              for node in fluid_model_part.Nodes:
+                  visc = node.GetSolutionStepValue(VISCOSITY)
+                  node.SetSolutionStepValue(VISCOSITY,i,visc)
 	      fluid_solver.Solve()
         
         graph_printer.PrintGraphs(time)
