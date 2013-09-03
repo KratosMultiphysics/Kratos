@@ -176,12 +176,7 @@ if(Param.ConcreteTestOption =="ON"):
     alpha_lat = 3.141592*diameter*height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
 
     Press.ApplyPressure(Pressure, balls_model_part, solver, proc.SKIN, proc.BOT, proc.TOP, proc.LAT, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER, alpha_top, alpha_bot, alpha_lat)
- 
-    print(alpha_bot)
-    print(alpha_top)
-    print(alpha_lat)
- 
- 
+
 if (Param.ConcreteTestOption =="ON"):
   graph_export = open("strain_stress_data.csv",'w');
 
