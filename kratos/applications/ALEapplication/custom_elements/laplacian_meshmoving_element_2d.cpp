@@ -66,9 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
-array_1d<double,3> msN;
-array_1d<double,3> ms_temp_vec_np;
+
 //************************************************************************************
 //************************************************************************************
 LaplacianMeshMovingElem2D::LaplacianMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry)
