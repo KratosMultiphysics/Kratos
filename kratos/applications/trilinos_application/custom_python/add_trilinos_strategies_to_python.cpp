@@ -69,6 +69,7 @@
 #include "custom_strategies/strategies/trilinos_convdiff_strategy.h"
 #include "custom_strategies/strategies/trilinos_laplacian_meshmoving_strategy.h"
 #include "custom_strategies/strategies/trilinos_structural_meshmoving_strategy.h"
+#include "custom_strategies/strategies/trilinos_laplacian_componentwise_meshmoving_strategy.h"
 
 //linear solvers
 // #include "linear_solvers/linear_solver.h"
@@ -520,6 +521,13 @@ void AddStrategies()
             .def("MoveNodes",&TrilinosStructuralMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::MoveNodes)
             .def("Solve", &TrilinosStructuralMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Solve )
             .def("SetEchoLevel", &TrilinosStructuralMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SetEchoLevel )
+            ;
+
+    class_< TrilinosLaplacianComponentwiseMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >, boost::noncopyable >
+            ("TrilinosLaplacianComponentwiseMeshMovingStrategy", init<Epetra_MpiComm&, ModelPart&, TrilinosLinearSolverType::Pointer, int, int, bool >() )
+            .def("MoveNodes",&TrilinosLaplacianComponentwiseMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::MoveNodes)
+            .def("Solve", &TrilinosLaplacianComponentwiseMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::Solve )
+            .def("SetEchoLevel", &TrilinosLaplacianComponentwiseMeshMovingStrategy< TrilinosSparseSpaceType, TrilinosLocalSpaceType, TrilinosLinearSolverType >::SetEchoLevel )
             ;
     //********************************************************************************************
 
