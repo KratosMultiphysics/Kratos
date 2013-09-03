@@ -13,7 +13,6 @@ def AddDofs(model_part):
     for node in model_part.Nodes:
         #adding dofs
         node.AddDof(AUX_MESH_VAR);
-
     print "variables for the mesh solver added correctly"
 
 
@@ -21,6 +20,7 @@ class MeshSolver:
     
     def __init__(self,model_part,domain_size,reform_dof_at_every_step):
 
+        self.time_order = 2
         self.model_part = model_part
         self.domain_size = domain_size
         self.reform_dof_at_every_step = reform_dof_at_every_step
@@ -38,7 +38,7 @@ class MeshSolver:
         self.linear_solver =  BICGSTABSolver(1e-9, 300)
         #self.linear_solver =  DeflatedCGSolver(1e-6, 3000, True,1000)
         #self.linear_solver = ScalingSolver( DeflatedCGSolver(1e-6, 3000, 1000) , True)
-#        self.linear_solver = ScalingSolver( DeflatedCGSolver(1e-6, 3000, True,1000) , True)
+        #self.linear_solver = ScalingSolver( DeflatedCGSolver(1e-6, 3000, True,1000) , True)
 
     def Initialize(self):
         (self.neighbour_search).Execute()
@@ -47,13 +47,13 @@ class MeshSolver:
         (self.solver).SetEchoLevel(0)
         print "finished moving the mesh"
 
-                 
-   
+
     def Solve(self):
         if(self.reform_dof_at_every_step == True):
             (self.neighbour_search).Execute()
 
         (self.solver).Solve()
+
 
     def MoveNodes(self):
         (self.solver).MoveNodes()
