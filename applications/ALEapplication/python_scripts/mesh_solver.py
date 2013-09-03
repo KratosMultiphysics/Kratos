@@ -34,17 +34,18 @@ class MeshSolver:
         self.time_order = 1
         
         #definition of the solvers
-        #pILUPrecond = ILU0Preconditioner()
-        #self.linear_solver =  BICGSTABSolver(1e-3, 300,pILUPrecond)
-        
-        self.linear_solver = ScalingSolver( DeflatedCGSolver(1e-6, 3000, True,1000) , True)
+        pILUPrecond = ILU0Preconditioner()
+        self.linear_solver =  BICGSTABSolver(1e-9, 300)
+        #self.linear_solver =  DeflatedCGSolver(1e-6, 3000, True,1000)
+        #self.linear_solver = ScalingSolver( DeflatedCGSolver(1e-6, 3000, 1000) , True)
+#        self.linear_solver = ScalingSolver( DeflatedCGSolver(1e-6, 3000, True,1000) , True)
 
     def Initialize(self):
         (self.neighbour_search).Execute()
         
         self.solver = LaplacianMeshMovingStrategy(self.model_part,self.linear_solver,self.domain_size, self.time_order,self.reform_dof_at_every_step)   
         (self.solver).SetEchoLevel(0)
-        print "finished imoving the mesh"
+        print "finished moving the mesh"
 
                  
    
