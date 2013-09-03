@@ -70,6 +70,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/strategies/solving_strategy.h"
 
 #include "custom_strategies/strategies/laplacian_meshmoving_strategy.h"
+#include "custom_strategies/strategies/structural_meshmoving_strategy.h"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -101,6 +102,12 @@ void  AddCustomStrategiesToPython()
             .def("MoveNodes",&LaplacianMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
             ;
 
+    class_< StructuralMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+            bases< BaseSolvingStrategyType >,  boost::noncopyable >
+            ("StructuralMeshMovingStrategy",
+             init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
+            .def("MoveNodes",&StructuralMeshMovingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
+            ;
 }
 
 }  // namespace Python.
