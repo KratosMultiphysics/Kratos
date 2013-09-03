@@ -27,10 +27,15 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(REACTION)
     model_part.AddNodalSolutionStepVariable(NORMAL)
     model_part.AddNodalSolutionStepVariable(Y_WALL);
-    model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY)
-    model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY)
-    model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
-    model_part.AddNodalSolutionStepVariable(DISTANCE)
+    model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
+
+    if config is not None:
+        if hasattr(config,"TurbulenceModel"):
+            if config.TurbulenceModel == "Spalart-Allmaras":
+                model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
+                model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY);
+                model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
+                model_part.AddNodalSolutionStepVariable(DISTANCE)
     mpi.world.barrier()
     if mpi.rank == 0:
         print "variables for the trilinos fractional step solver added correctly"
@@ -43,8 +48,14 @@ def AddDofs(model_part, config=None):
         node.AddDof(VELOCITY_X,REACTION_X);
         node.AddDof(VELOCITY_Y,REACTION_Y);
         node.AddDof(VELOCITY_Z,REACTION_Z);
-    mpi.world.barrier()
 
+    if config is not None:
+        if hasattr(config,"TurbulenceModel"):
+            if config.TurbulenceModel == "Spalart-Allmaras":
+                for node in model_part.Nodes:
+                    node.AddDof(TURBULENT_VISCOSITY)
+
+    mpi.world.barrier()
     if mpi.rank == 0:
         print "dofs for the trilinos fractional step solver added correctly"
 
@@ -85,79 +96,25 @@ class IncompressibleFluidSolver:
 
 
 ##        ########################################################
-        #defining the linear solver
-        velocity_aztec_parameters = ParameterList()
-        velocity_aztec_parameters.set("AZ_solver","AZ_bicgstab");
-        velocity_aztec_parameters.set("AZ_kspace",100);
-        velocity_aztec_parameters.set("AZ_output","AZ_none");
-       #velocity_aztec_parameters.set("AZ_output",32);
-
-##        preconditioner_type = "Amesos"
-##        preconditioner_parameters = ParameterList()
-##        preconditioner_parameters.set("amesos: solver type", "Amesos_Klu");
-##        preconditioner_type = "Ifpack_PointRelaxation"
-##        preconditioner_parameters = ParameterList()
-##        preconditioner_parameters.set("relaxation: type", "Jacobi");
-
-##        preconditioner_type = "ILU"
-##        preconditioner_parameters = ParameterList()
-##        overlap_level = 1
-##        nit_max = 1000
-##        tol = 1e-6
-
-        velocity_preconditioner_type = "ILU"
-        velocity_preconditioner_parameters = ParameterList()
-        velocity_overlap_level = 0
-        velocity_nit_max = 1000
+        velocity_nit_max = 100
         velocity_linear_tol = 1e-6
+        
+        import MonolithicMultiLevelSolver
+        self.velocity_linear_solver = MonolithicMultiLevelSolver.LinearSolver(velocity_linear_tol,velocity_nit_max)
        
-
-        
-        self.velocity_linear_solver =  AztecSolver(velocity_aztec_parameters,velocity_preconditioner_type,velocity_preconditioner_parameters,velocity_linear_tol,velocity_nit_max,velocity_overlap_level);
-        #self.velocity_linear_solver.SetScalingType(AztecScalingType.NoScaling)
-        #self.pressure_linear_solver.SetScalingType(AztecScalingType.NoScaling) 
-        self.velocity_linear_solver.SetScalingType(AztecScalingType.LeftScaling)
-        #self.velocity_linear_solver.SetScalingType(AztecScalingType.SymmetricScaling)
-        #self.pressure_linear_solver.SetScalingType(AztecScalingType.SymmetricScaling) 
-        
-
-        pressure_nit_max = 1000
+        pressure_nit_max = 100
         pressure_linear_tol = 1e-6
-        
-        #pressure_aztec_parameters = ParameterList()
-        #pressure_aztec_parameters.set("AZ_solver","AZ_bicgstab");
-        ##pressure_preconditioner_type = "IC"
-        #pressure_preconditioner_type = "ILU"
-        ##pressure_preconditioner_type = "AZ_none"
-        #pressure_aztec_parameters.set("AZ_output",32);
-        ##pressure_aztec_parameters.set("AZ_output","AZ_none");
-        #pressure_preconditioner_parameters = ParameterList()
-        #pressure_overlap_level = 0
-        #self.pressure_linear_solver =  AztecSolver(pressure_aztec_parameters,pressure_preconditioner_type,pressure_preconditioner_parameters,pressure_linear_tol,pressure_nit_max,pressure_overlap_level);
-        
+ 
         import PressureMultiLevelSolver
         self.pressure_linear_solver =  PressureMultiLevelSolver.MultilevelLinearSolver(pressure_linear_tol,pressure_nit_max)
-        #self.pressure_linear_solver.SetScalingType(AztecScalingType.LeftScaling) 
-        
-        
-        
-        ##handling slip condition
-##        self.slip_conditions_initialized = False
-##        self.create_slip_conditions = GenerateSlipConditionProcess(self.model_part,domain_size)
 
         self.use_slip_conditions = False
+
         self.use_spalart_allmaras = False
         self.use_des = False
-
-##        ##############################################################
-
-##        vel_solver_parameters = ParameterList()
-##        self.velocity_linear_solver =  AmesosSolver("Superludist",vel_solver_parameters);
-##
-##        press_solver_parameters = ParameterList()
-##        self.pressure_linear_solver =  AmesosSolver("Superludist",press_solver_parameters);
-
-
+        self.Cdes = 1.0
+        self.wall_nodes = list()
+        self.spalart_allmaras_linear_solver = None
 
     def Initialize(self):
         (self.neighbour_search).Execute()
@@ -183,39 +140,16 @@ class IncompressibleFluidSolver:
             self.normal_util = NormalCalculationUtils()
             self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE)
         
-#        self.solver = ResidualBasedFluidStrategyCoupled(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.compute_reactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)   
-#        print "in python: okkio using Coupled Strategy"
-#        self.solver = ResidualBasedFluidStrategy(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.compute_reactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)
-
-        
-##        print self.Comm
-
         MoveMeshFlag = False
-##        solver_configuration = TrilinosFractionalStepConfiguration(self.Comm,self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.domain_size,self.laplacian_form,self.use_dt_in_stabilization )
 
-##        print "solver configuration created correctly"
-##        self.solver = TrilinosFractionalStepStrategy( self.model_part, solver_configuration, self.ReformDofAtEachIteration, self.vel_toll, self.press_toll, self.max_vel_its, self.max_press_its, self.time_order, self.domain_size,self.predictor_corrector)
-
-##        self.solver = TrilinosFSStrategy(self.model_part,
-##                                         self.velocity_linear_solver,
-##                                         self.pressure_linear_solver,
-##                                         MoveMeshFlag,
-##                                         self.ReformDofAtEachIteration,
-##                                         self.vel_toll,
-##                                         self.press_toll,
-##                                         self.max_vel_its,
-##                                         self.max_press_its,
-##                                         self.time_order,
-##                                         self.domain_size,
-##                                         self.predictor_corrector)
-
-        self.solver_settings = TrilinosFractionalStepSettings(self.Comm,
+        self.solver_settings = TrilinosFractionalStepSettingsPeriodic(self.Comm,
                                               self.model_part,
                                               self.domain_size,
                                               self.time_order,
                                               self.use_slip_conditions,
                                               MoveMeshFlag,
-                                              self.ReformDofAtEachIteration)
+                                              self.ReformDofAtEachIteration,
+                                              PATCH_INDEX)
 
         self.solver_settings.SetStrategy(TrilinosStrategyLabel.Velocity,
                                          self.velocity_linear_solver,
@@ -239,26 +173,46 @@ class IncompressibleFluidSolver:
 
             max_levels = 100
             max_distance = 1000
-            self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,max_levels,max_distance)
+            self.redistance_utils.CalculateDistancesLagrangianSurface(self.model_part,DISTANCE,NODAL_AREA,max_levels,max_distance)
+
+            # Note: For some reason CalculateDistancesLagrangianSurface is setting distance=max_dist on reference nodes... undoing this change here
+            for node in self.wall_nodes:
+                 node.SetValue(IS_VISITED,1.0)
+                 node.SetSolutionStepValue(DISTANCE,0,0.0)
 
             non_linear_tol = 0.001
             max_it = 10
             reform_dofset = self.ReformDofAtEachIteration
             time_order = self.time_order
 
-            turb_aztec_parameters = ParameterList()
-            turb_aztec_parameters.set("AZ_solver","AZ_gmres");
-            turb_aztec_parameters.set("AZ_kspace",100);
-            turb_aztec_parameters.set("AZ_output","AZ_none");
+            if self.spalart_allmaras_linear_solver is None:
+                turb_aztec_parameters = ParameterList()
+                turb_aztec_parameters.set("AZ_solver","AZ_gmres")
+                turb_aztec_parameters.set("AZ_kspace",100)
+                turb_aztec_parameters.set("AZ_output","AZ_none")
+            
+                turb_preconditioner_type = "ILU"
+                turb_preconditioner_parameters = ParameterList()
+                turb_overlap_level = 0
+                turb_nit_max = 1000
+                turb_linear_tol = 1e-9
 
-            turb_preconditioner_type = "ILU"
-            turb_preconditioner_parameters = ParameterList()
-            turb_overlap_level = 0
-            turb_nit_max = 1000
-            turb_linear_tol = 1e-9
+                self.spalart_allmaras_linear_solver =  AztecSolver(turb_aztec_parameters,turb_preconditioner_type,turb_preconditioner_parameters,turb_linear_tol,turb_nit_max,turb_overlap_level)
+                self.spalart_allmaras_linear_solver.SetScalingType(AztecScalingType.LeftScaling)
 
-            turb_linear_solver =  AztecSolver(turb_aztec_parameters,turb_preconditioner_type,turb_preconditioner_parameters,turb_linear_tol,turb_nit_max,turb_overlap_level)
-            turb_linear_solver.SetScalingType(AztecScalingType.LeftScaling)
+
+            turbulence_model = TrilinosSpalartAllmarasTurbulenceModel(
+                                              self.Comm,
+                                              self.model_part,
+                                              self.spalart_allmaras_linear_solver,
+                                              self.domain_size,
+                                              non_linear_tol,
+                                              max_it,
+                                              reform_dofset,
+                                              time_order)
+        
+            if self.use_des:
+                self.turbulence_model.ActivateDES(self.Cdes)
 
             self.solver_settings.SetTurbulenceModel(
                 TrilinosTurbulenceModelLabel.SpalartAllmaras,
@@ -266,11 +220,12 @@ class IncompressibleFluidSolver:
                 non_linear_tol,
                 max_it)
 
-            self.solver_settings.SetEchoLevel(self.echo_level)
+        self.solver_settings.SetEchoLevel(self.echo_level)
 
         self.solver = TrilinosFSStrategy(self.model_part,
                                          self.solver_settings,
-                                         self.predictor_corrector)
+                                         self.predictor_corrector,
+                                         PATCH_INDEX)
 
 
 ##        ##generating the slip conditions
@@ -336,50 +291,8 @@ class IncompressibleFluidSolver:
         
         backupfile.close()
 
-
-    def ActivateSpalartAllmaras(self,wall_nodes,DES,CDES=1.0):
-        self.wall_nodes  = wall_nodes
-        self.use_spalart_allmaras = True
-        #for node in wall_nodes:
-            #node.SetValue(IS_VISITED,1.0)
-
-        #if(self.domain_size == 2):
-            #self.redistance_utils = ParallelDistanceCalculator2D()
-        #else:
-            #self.redistance_utils = ParallelDistanceCalculator3D()
-
-        #max_levels = 100
-        #max_distance = 1000
-        #self.redistance_utils.CalculateDistances(self.model_part,DISTANCE,NODAL_AREA,max_levels,max_distance)
-
-        #non_linear_tol = 0.001
-        #max_it = 10
-        #reform_dofset = self.ReformDofAtEachIteration
-        #time_order = self.time_order
-
-        #turb_aztec_parameters = ParameterList()
-        #turb_aztec_parameters.set("AZ_solver","AZ_gmres");
-        #turb_aztec_parameters.set("AZ_kspace",100);
-        #turb_aztec_parameters.set("AZ_output","AZ_none");
-
-        #turb_preconditioner_type = "ILU"
-        #turb_preconditioner_parameters = ParameterList()
-        #turb_overlap_level = 0
-        #turb_nit_max = 1000
-        #turb_linear_tol = 1e-9
-
-        #turb_linear_solver =  AztecSolver(turb_aztec_parameters,turb_preconditioner_type,turb_preconditioner_parameters,turb_linear_tol,turb_nit_max,turb_overlap_level)
-        #turb_linear_solver.SetScalingType(AztecScalingType.LeftScaling)
-
-        #turbulence_model = TrilinosSpalartAllmarasTurbulenceModel(self.Comm,self.model_part,turb_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order)
-        #turbulence_model.AdaptForFractionalStep()
-        #if(DES==True):
-            #turbulence_model.ActivateDES(CDES);
-
-        #self.solver.AddIterationStep(turbulence_model);
-
     ########################################################################
-    def ActivateSmagorinsky(self,C):
+    def activate_smagorinsky(self,C):
         for elem in self.model_part.Elements:
             elem.SetValue(C_SMAGORINSKY,C)        
 
@@ -407,14 +320,16 @@ def CreateSolver( model_part, config ):
     if( hasattr(config,"velocity_linear_solver_config") ): fluid_solver.velocity_linear_solver =  trilinos_linear_solver_factory.ConstructSolver(config.velocity_linear_solver_config)
     
     #RANS or DES settings
-    if( hasattr(config,"use_spalart_allmaras") ): fluid_solver.use_spalart_allmaras = config.use_spalart_allmaras
-    if( hasattr(config,"use_des") ): fluid_solver.use_des = config.use_des
-    if( hasattr(config,"use_spalart_allmaras")  and config.use_spalart_allmaras == True):
-        if( hasattr(config,"wall_nodes") ):
-            fluid_solver.wall_nodes = config.wall_nodes
-        else:
-            print "ATTENTION: attempting to use SpalartAllmaras without prescribig the wall position. please set the variable \"wall_nodes\" within the "
-            print "config class to an appropriate list or deactivate the turbulence model"
-            
+    if hasattr(config,"TurbulenceModel") :
+        if config.TurbulenceModel == "Spalart-Allmaras":
+            fluid_solver.use_spalart_allmaras = True
+        elif config.TurbulenceModel == "Smagorinsky-Lilly":
+            if hasattr(config,"SmagorinskyConstant"):
+                fluid_solver.activate_smagorinsky(config.SmagorinskyConstant)
+            else:
+                msg = """Fluid solver error: Smagorinsky model requested, but
+                         the value for the Smagorinsky constant is
+                         undefined."""
+                raise Exception(msg)
     
     return fluid_solver
