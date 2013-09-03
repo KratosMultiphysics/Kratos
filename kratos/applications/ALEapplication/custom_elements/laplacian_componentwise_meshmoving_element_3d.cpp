@@ -44,8 +44,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:31 $
+//   Last modified by:    $Author: jwolf $
+//   Date:                $Date: 2013-08-30 10:30:31 $
 //   Revision:            $Revision: 1.2 $
 //
 //
@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/laplacian_meshmoving_element_3d.h"
+#include "custom_elements/laplacian_componentwise_meshmoving_element_3d.h"
 #include "ale_application.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
@@ -68,11 +68,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
-
-
 //************************************************************************************
 //************************************************************************************
-LaplacianMeshMovingElem3D::LaplacianMeshMovingElem3D(IndexType NewId, GeometryType::Pointer pGeometry)
+LaplacianComponentwiseMeshMovingElem3D::LaplacianComponentwiseMeshMovingElem3D(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
@@ -80,23 +78,23 @@ LaplacianMeshMovingElem3D::LaplacianMeshMovingElem3D(IndexType NewId, GeometryTy
 
 //************************************************************************************
 //************************************************************************************
-LaplacianMeshMovingElem3D::LaplacianMeshMovingElem3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+LaplacianComponentwiseMeshMovingElem3D::LaplacianComponentwiseMeshMovingElem3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
 }
 
-Element::Pointer LaplacianMeshMovingElem3D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+Element::Pointer LaplacianComponentwiseMeshMovingElem3D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new LaplacianMeshMovingElem3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new LaplacianComponentwiseMeshMovingElem3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
-LaplacianMeshMovingElem3D::~LaplacianMeshMovingElem3D()
+LaplacianComponentwiseMeshMovingElem3D::~LaplacianComponentwiseMeshMovingElem3D()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void LaplacianComponentwiseMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     unsigned int number_of_points = GetGeometry().PointsNumber();
@@ -178,27 +176,40 @@ void LaplacianMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianMeshMovingElem3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void LaplacianComponentwiseMeshMovingElem3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if(rResult.size() != number_of_nodes)
         rResult.resize(number_of_nodes,false);
 
     for (unsigned int i=0; i<number_of_nodes; i++)
-        rResult[i] = GetGeometry()[i].GetDof(AUX_MESH_VAR).EquationId();
+    {
+        if(CurrentProcessInfo[FRACTIONAL_STEP] == 1)
+            rResult[i] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+        else if(CurrentProcessInfo[FRACTIONAL_STEP] == 2)
+            rResult[i] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+        else if(CurrentProcessInfo[FRACTIONAL_STEP] == 3)
+            rResult[i] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
+    }
 }
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianMeshMovingElem3D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+void LaplacianComponentwiseMeshMovingElem3D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
 {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if(ElementalDofList.size() != number_of_nodes)
         ElementalDofList.resize(number_of_nodes);
 
     for (unsigned int i=0; i<number_of_nodes; i++)
-        ElementalDofList[i] = GetGeometry()[i].pGetDof(AUX_MESH_VAR);
-
+    {
+        if(CurrentProcessInfo[FRACTIONAL_STEP] == 1)
+            ElementalDofList[i] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
+        else if(CurrentProcessInfo[FRACTIONAL_STEP] == 2)
+            ElementalDofList[i] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
+        else if(CurrentProcessInfo[FRACTIONAL_STEP] == 3)
+            ElementalDofList[i] = GetGeometry()[i].pGetDof(DISPLACEMENT_Z);
+    }
 }
 
 

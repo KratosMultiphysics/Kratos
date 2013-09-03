@@ -44,35 +44,31 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-03-06 10:30:31 $
+//   Last modified by:    $Author: jwolf $
+//   Date:                $Date: 2013-08-30 10:30:31 $
 //   Revision:            $Revision: 1.2 $
 //
 //
 
 
 // System includes
-
+#include <math.h>
 
 // External includes
 
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/laplacian_meshmoving_element_3d.h"
+#include "custom_elements/laplacian_componentwise_meshmoving_element_2d.h"
 #include "ale_application.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 
-
 namespace Kratos
 {
-
-
-
 //************************************************************************************
 //************************************************************************************
-LaplacianMeshMovingElem3D::LaplacianMeshMovingElem3D(IndexType NewId, GeometryType::Pointer pGeometry)
+LaplacianComponentwiseMeshMovingElem2D::LaplacianComponentwiseMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry)
     : Element(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
@@ -80,56 +76,61 @@ LaplacianMeshMovingElem3D::LaplacianMeshMovingElem3D(IndexType NewId, GeometryTy
 
 //************************************************************************************
 //************************************************************************************
-LaplacianMeshMovingElem3D::LaplacianMeshMovingElem3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+LaplacianComponentwiseMeshMovingElem2D::LaplacianComponentwiseMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
     : Element(NewId, pGeometry, pProperties)
 {
 }
 
-Element::Pointer LaplacianMeshMovingElem3D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
+Element::Pointer LaplacianComponentwiseMeshMovingElem2D::Create(IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new LaplacianMeshMovingElem3D(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Element::Pointer(new LaplacianComponentwiseMeshMovingElem2D(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
-LaplacianMeshMovingElem3D::~LaplacianMeshMovingElem3D()
+LaplacianComponentwiseMeshMovingElem2D::~LaplacianComponentwiseMeshMovingElem2D()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void LaplacianComponentwiseMeshMovingElem2D::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_ERROR(std::logic_error,  "method not implemented" , "");
+}
+
+
+//************************************************************************************
+//************************************************************************************
+void LaplacianComponentwiseMeshMovingElem2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    unsigned int number_of_points = GetGeometry().PointsNumber();
+    unsigned int number_of_points = 3;
 
     if(rLeftHandSideMatrix.size1() != number_of_points)
-        rLeftHandSideMatrix.resize(number_of_points,number_of_points);
+        rLeftHandSideMatrix.resize(number_of_points,number_of_points,false);
 
     if(rRightHandSideVector.size() != number_of_points)
-        rRightHandSideVector.resize(number_of_points);
+        rRightHandSideVector.resize(number_of_points,false);
 
     unsigned int ComponentIndex = rCurrentProcessInfo[FRACTIONAL_STEP] - 1;
 
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
-    array_1d<double,4> msN;
-    array_1d<double,4> ms_temp_vec_np;
+    boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
+    array_1d<double,3> msN;
+    array_1d<double,3> ms_temp_vec_np;
 
     //getting data for the given geometry
     double Area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);
 
-    noalias(rLeftHandSideMatrix) = prod(msDN_DX,trans(msDN_DX));
-
     const array_1d<double,3>& disp0 = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
     const array_1d<double,3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT);
     const array_1d<double,3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT);
-    const array_1d<double,3>& disp3 = GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT);
+
+    noalias(rLeftHandSideMatrix) = prod(msDN_DX,trans(msDN_DX));
 
     //dirichlet contribution
     ms_temp_vec_np[0] = disp0[ComponentIndex];
     ms_temp_vec_np[1] = disp1[ComponentIndex];
     ms_temp_vec_np[2] = disp2[ComponentIndex];
-    ms_temp_vec_np[3] = disp3[ComponentIndex];
-
     noalias(rRightHandSideVector) = ZeroVector(number_of_points);
     noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,ms_temp_vec_np);
 
@@ -140,9 +141,9 @@ void LaplacianMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     array_1d<double,3> disp;
     array_1d<double,3> grad_u;
     double norm_grad_u;
-    array_1d<double,4> nodal_conductivity;
+    array_1d<double,3> nodal_conductivity;
 
-    for(unsigned int i = 0; i < number_of_points; i++) // loop over the four nodes
+    for(unsigned int i = 0; i < number_of_points; i++) // loop over the three nodes
     {
         disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
@@ -162,8 +163,8 @@ void LaplacianMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     // if exponent < 0: conductivity < 1
     double exponent = 0;
 
-    // conductivity of element is the maximum of the four nodal conductivities
-    double elemental_conductivity = conditioning_factor * std::max(nodal_conductivity[0],std::max(nodal_conductivity[1],std::max(nodal_conductivity[2],nodal_conductivity[3])));
+    // conductivity of element is the maximum of the three nodal conductivities
+    double elemental_conductivity = conditioning_factor * std::max(nodal_conductivity[0],std::max(nodal_conductivity[1],nodal_conductivity[2]));
     double factor = pow(elemental_conductivity,exponent);
 
     // preserve matrices to become ill-conditioned
@@ -178,28 +179,38 @@ void LaplacianMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianMeshMovingElem3D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void LaplacianComponentwiseMeshMovingElem2D::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if(rResult.size() != number_of_nodes)
         rResult.resize(number_of_nodes,false);
 
     for (unsigned int i=0; i<number_of_nodes; i++)
-        rResult[i] = GetGeometry()[i].GetDof(AUX_MESH_VAR).EquationId();
+    {
+        if(CurrentProcessInfo[FRACTIONAL_STEP] == 1)
+            rResult[i] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
+        else if(CurrentProcessInfo[FRACTIONAL_STEP] == 2)
+            rResult[i] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
+    }
 }
 
 //************************************************************************************
 //************************************************************************************
-void LaplacianMeshMovingElem3D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
+void LaplacianComponentwiseMeshMovingElem2D::GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo)
 {
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     if(ElementalDofList.size() != number_of_nodes)
         ElementalDofList.resize(number_of_nodes);
 
     for (unsigned int i=0; i<number_of_nodes; i++)
-        ElementalDofList[i] = GetGeometry()[i].pGetDof(AUX_MESH_VAR);
-
+    {
+        if(CurrentProcessInfo[FRACTIONAL_STEP] == 1)
+            ElementalDofList[i] = GetGeometry()[i].pGetDof(DISPLACEMENT_X);
+        else if(CurrentProcessInfo[FRACTIONAL_STEP] == 2)
+            ElementalDofList[i] = GetGeometry()[i].pGetDof(DISPLACEMENT_Y);
+    }
 }
+
 
 
 } // Namespace Kratos
