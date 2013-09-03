@@ -20,6 +20,7 @@ class MeshSolver:
     
     def __init__(self,model_part,domain_size,reform_dof_at_every_step):
 
+	# Assign parameters
         self.time_order = 2
         self.model_part = model_part
         self.domain_size = domain_size
@@ -29,9 +30,6 @@ class MeshSolver:
         number_of_avg_elems = 10
         number_of_avg_nodes = 10
         self.neighbour_search = FindNodalNeighboursProcess(model_part,number_of_avg_elems,number_of_avg_nodes)
-        
-        #assignation of parameters to be used
-        self.time_order = 1
         
         #definition of the solvers
         pILUPrecond = ILU0Preconditioner()
