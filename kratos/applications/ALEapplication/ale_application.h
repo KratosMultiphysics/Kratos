@@ -26,6 +26,8 @@
 
 #include "custom_elements/laplacian_meshmoving_element_2d.h"
 #include "custom_elements/laplacian_meshmoving_element_3d.h"
+#include "custom_elements/laplacian_componentwise_meshmoving_element_2d.h"
+#include "custom_elements/laplacian_componentwise_meshmoving_element_3d.h"
 #include "custom_elements/structural_meshmoving_element_2d.h"
 #include "custom_elements/structural_meshmoving_element_3d.h"
 
@@ -194,10 +196,12 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    const LaplacianMeshMovingElem2D  mLaplacianMeshMovingElem2D;
+    const LaplacianMeshMovingElem2D   mLaplacianMeshMovingElem2D;
     const LaplacianMeshMovingElem3D   mLaplacianMeshMovingElem3D;
-    const StructuralMeshMovingElem2D   mStructuralMeshMovingElem2D;
-    const StructuralMeshMovingElem3D   mStructuralMeshMovingElem3D;
+    const LaplacianMeshMovingElem2D   mLaplacianComponentwiseMeshMovingElem2D;
+    const LaplacianMeshMovingElem3D   mLaplacianComponentwiseMeshMovingElem3D;
+    const StructuralMeshMovingElem2D  mStructuralMeshMovingElem2D;
+    const StructuralMeshMovingElem3D  mStructuralMeshMovingElem3D;
 
     ///@}
     ///@name Private Operators
