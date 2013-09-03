@@ -1,7 +1,7 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2008-05-06 15:11:09 $
+//   Last Modified by:    $Author: dbaumgaertner $
+//   Date:                $Date: 2013-09-30 15:11:09 $
 //   Revision:            $Revision: 1.3 $
 //
 //
@@ -33,7 +33,9 @@ namespace Kratos
 
 KratosALEApplication::KratosALEApplication():
     mLaplacianMeshMovingElem2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mLaplacianMeshMovingElem3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
+    mLaplacianMeshMovingElem3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mStructuralMeshMovingElem2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mStructuralMeshMovingElem3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
 {}
 
 void KratosALEApplication::Register()
@@ -47,6 +49,8 @@ void KratosALEApplication::Register()
 
     KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElem2D", mLaplacianMeshMovingElem2D);
     KRATOS_REGISTER_ELEMENT("LaplacianMeshMovingElemt3D", mLaplacianMeshMovingElem3D);
+    KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElemt2D", mStructuralMeshMovingElem2D);
+    KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElemt3D", mStructuralMeshMovingElem3D);
 
 }
 

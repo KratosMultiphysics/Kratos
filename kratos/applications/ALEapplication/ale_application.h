@@ -1,7 +1,7 @@
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: rrossi $
-//   Date:                $Date: 2007-01-19 14:12:27 $
+//   Last Modified by:    $Author: dbaumgaertner $
+//   Date:                $Date: 2007-08-30 14:12:27 $
 //   Revision:            $Revision: 1.2 $
 //
 //
@@ -26,6 +26,8 @@
 
 #include "custom_elements/laplacian_meshmoving_element_2d.h"
 #include "custom_elements/laplacian_meshmoving_element_3d.h"
+#include "custom_elements/structural_meshmoving_element_2d.h"
+#include "custom_elements/structural_meshmoving_element_3d.h"
 
 #include "includes/variables.h"
 
@@ -194,7 +196,8 @@ private:
     ///@{
     const LaplacianMeshMovingElem2D  mLaplacianMeshMovingElem2D;
     const LaplacianMeshMovingElem3D   mLaplacianMeshMovingElem3D;
-
+    const StructuralMeshMovingElem2D   mStructuralMeshMovingElem2D;
+    const StructuralMeshMovingElem3D   mStructuralMeshMovingElem3D;
 
     ///@}
     ///@name Private Operators
