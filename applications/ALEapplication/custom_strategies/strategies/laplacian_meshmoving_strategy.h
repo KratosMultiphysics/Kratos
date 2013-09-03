@@ -210,6 +210,7 @@ public:
             if(i->IsFixed(DISPLACEMENT_Z))
                 (i)->Fix(AUX_MESH_VAR);
         }
+
         //X DIRECTION
         rCurrentProcessInfo[FRACTIONAL_STEP] = 1; //laplacian mesh moving type corresponds to -1
         for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin() ;
