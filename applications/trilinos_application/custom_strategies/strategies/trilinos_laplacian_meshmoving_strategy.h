@@ -1,7 +1,7 @@
 /* *********************************************************
 *
-*   Last Modified by:    $Author: pooyan $
-*   Date:                $Date: 2006-11-27 16:07:50 $
+*   Last Modified by:    $Author: dbaumgaertner $
+*   Date:                $Date: 2013-06-27 16:07:50 $
 *   Revision:            $Revision: 1.1.1.1 $
 *
 * ***********************************************************/
@@ -133,21 +133,21 @@ public:
     {
         KRATOS_TRY
 
-        //definitions for trilinos
+        // Passed variables
+        mdimension = dimension;
+        mvel_order = velocity_order;
+        mreform_dof_at_every_step = reform_dof_at_every_step;
+
+        // Definitions for trilinos
         int guess_row_size;
-        //if(mDomainSize == 2) guess_row_size = 15;
         guess_row_size = 15;
 
         bool CalculateReactions = false;
         bool ReformDofAtEachIteration = false;
         bool CalculateNormDxFlag = false;
 
-        //Generating Mesh Part
+        // Generating Mesh Part
         GenerateMeshPart(dimension);
-
-        mdimension = dimension;
-        mvel_order = velocity_order;
-        mreform_dof_at_every_step = reform_dof_at_every_step;
 
         typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
         typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new TrilinosResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,  TDenseSpace >() );
@@ -189,15 +189,16 @@ public:
     {
         KRATOS_TRY
 
-        // ReGenerateMeshPart(); // Double check with Riccardo whether this function is necessary in an MPI context
+        // Mesh has to be regenerated in each solving step
+        ReGenerateMeshPart();
 
         ProcessInfo& rCurrentProcessInfo = (mpMeshModelPart)->GetProcessInfo();
 
-        //updating the time
+        // Updating the time
         rCurrentProcessInfo[TIME] = BaseType::GetModelPart().GetProcessInfo()[TIME];
         rCurrentProcessInfo[DELTA_TIME] = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
-        //Fixing Dofs As Needed
+        // Fixing Dofs As Needed
         for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin() ;
                 i != (*mpMeshModelPart).NodesEnd() ; ++i)
         {
@@ -208,7 +209,7 @@ public:
             if(i->IsFixed(DISPLACEMENT_Z))
                 (i)->Fix(AUX_MESH_VAR);
         }
-        //X DIRECTION
+        // X DIRECTION
         rCurrentProcessInfo[FRACTIONAL_STEP] = 1; //laplacian mesh moving type corresponds to -1
         for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin() ;
                 i != (*mpMeshModelPart).NodesEnd() ; ++i)
@@ -220,7 +221,6 @@ public:
                 i != (*mpMeshModelPart).NodesEnd() ; ++i)
         {
             (i)->GetSolutionStepValue(DISPLACEMENT_X) = (i)->FastGetSolutionStepValue(AUX_MESH_VAR);
-            //KRATOS_WATCH((i)->FastGetSolutionStepValue(DISPLACEMENT_X));
         }
 
         //Y DIRECTION
@@ -257,8 +257,8 @@ public:
             }
         }
 
+		// Update FEM database
         CalculateMeshVelocities();
-
         BaseType::MoveMesh();
 
         //clearing the system if needed
@@ -419,10 +419,9 @@ private:
         // Initializing mesh nodes
         mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
 
-        // setup new auxiliary model part
+        // Setup new auxiliary model part
         mpMeshModelPart->GetNodalSolutionStepVariablesList() = BaseType::GetModelPart().GetNodalSolutionStepVariablesList();
         mpMeshModelPart->SetBufferSize(BaseType::GetModelPart().GetBufferSize());
-        mpMeshModelPart->SetNodes(BaseType::GetModelPart().pNodes());
         mpMeshModelPart->SetProcessInfo(BaseType::GetModelPart().pGetProcessInfo());
         mpMeshModelPart->SetProperties(BaseType::GetModelPart().pProperties());
 
@@ -444,7 +443,7 @@ private:
         }
         mpMeshModelPart->SetCommunicator( pMeshMPIComm );
 
-        // creating mesh elements
+        // Creating mesh elements
         ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
         Element::Pointer pElem;
 
@@ -458,8 +457,7 @@ private:
                                              (*it).pGetProperties() ) );
                 MeshElems.push_back(pElem);
             }
-
-        if(dimension == 3)
+        else if(dimension == 3)
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
@@ -473,26 +471,15 @@ private:
         // Optimize communicaton plan
         ParallelFillCommunicator CommunicatorGeneration( *mpMeshModelPart );
         CommunicatorGeneration.Execute();
-
-        //KRATOS_WATCH((mpMeshModelPart->Elements()).size());
-        //KRATOS_WATCH((mpMeshModelPart->Nodes()).size());
-        //KRATOS_WATCH(mpMeshModelPart->GetMesh());
     }
 
     void ReGenerateMeshPart()
     {
         std::cout << "regenerating elements for the mesh motion scheme" << std::endl;
 
-        //reinitializing new auxiliary model part
+        // Reinitializing new auxiliary model part
         mpMeshModelPart->Nodes().clear();
         mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
-
-        // setup new auxiliary model part
-        mpMeshModelPart->GetNodalSolutionStepVariablesList() = BaseType::GetModelPart().GetNodalSolutionStepVariablesList();
-        mpMeshModelPart->SetBufferSize(BaseType::GetModelPart().GetBufferSize());
-        mpMeshModelPart->SetNodes(BaseType::GetModelPart().pNodes());
-        mpMeshModelPart->SetProcessInfo(BaseType::GetModelPart().pGetProcessInfo());
-        mpMeshModelPart->SetProperties(BaseType::GetModelPart().pProperties());
 
         // Create a communicator for the new model part and copy the partition information about nodes.
         Communicator& rReferenceComm = BaseType::GetModelPart().GetCommunicator();
@@ -512,7 +499,7 @@ private:
         }
         mpMeshModelPart->SetCommunicator( pMeshMPIComm );
 
-        //creating mesh elements
+        // Creating mesh elements
         ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
         Element::Pointer pElem;
 
@@ -520,6 +507,7 @@ private:
         MeshElems.reserve( MeshElems.size() );
 
         if(mdimension == 2)
+
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
@@ -529,7 +517,7 @@ private:
                                              (*it).pGetProperties() ) );
                 MeshElems.push_back(pElem);
             }
-        else
+        else if(mdimension == 3)
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
@@ -539,7 +527,6 @@ private:
                                              (*it).pGetProperties() ) );
                 MeshElems.push_back(pElem);
             }
-        KRATOS_WATCH(MeshElems.size());
 
         // Optimize communicaton plan
         ParallelFillCommunicator CommunicatorGeneration( *mpMeshModelPart );
