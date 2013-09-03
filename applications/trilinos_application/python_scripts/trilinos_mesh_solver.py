@@ -15,7 +15,6 @@ def AddVariables(model_part):
         print "variables for the mesh solver added correctly"
 
 
-
 def AddDofs(model_part):
     for node in model_part.Nodes:
         #adding dofs
@@ -30,12 +29,11 @@ class TrilinosMeshSolver:
     
     def __init__(self,model_part,domain_size,reform_dof_at_every_step):
 
+	# Set parameters
+	self.time_order = 2
         self.model_part = model_part
         self.domain_size = domain_size
         self.reform_dof_at_every_step = reform_dof_at_every_step
-        
-        #assignation of parameters to be used
-        self.time_order = 1
 
         # Create communicator
         self.Comm = CreateCommunicator()
@@ -50,11 +48,11 @@ class TrilinosMeshSolver:
         self.solver = TrilinosLaplacianMeshMovingStrategy(self.Comm,self.model_part,self.linear_solver,self.domain_size, self.time_order,self.reform_dof_at_every_step)
         (self.solver).SetEchoLevel(0)
         print "finished moving the mesh"
-
-                 
+            
    
     def Solve(self):
         (self.solver).Solve()
+
 
     def MoveNodes(self):
         (self.solver).MoveNodes()
