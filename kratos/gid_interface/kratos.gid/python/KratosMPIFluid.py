@@ -4,19 +4,6 @@
 import ProjectParameters
 import define_output
 
-def PrintResults(nodes):
-    if(mpi.rank == 0):
-      print "Writing results. Please run Gid for viewing results of analysis."
-    for variable_name in ProjectParameters.nodal_results:
-        gid_io.WriteNodalResults(variables_dictionary[variable_name],nodes,time,0)
-    for variable_name in ProjectParameters.gauss_points_results:
-        gid_io.PrintOnGaussPoints(variables_dictionary[variable_name],model_part,time)
-                
-    if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
-	gid_io.WriteNodalResults(VISCOSITY,nodes,time,0)
-    gid_io.Flush()
-    mpi.world.barrier()
-
 
 ##################################################################
 ##################################################################
@@ -61,47 +48,10 @@ solver_constructor = __import__(SolverSettings.solver_type)
 ##importing variables
 solver_constructor.AddVariables( fluid_model_part, SolverSettings)
   
-  
-  
-if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
-  fluid_model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
-  fluid_model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY);
-  fluid_model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
-
-  fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
-  
 #introducing input file name
 input_file_name = ProjectParameters.problem_name
 
 #reading the fluid part
-
-# initialize GiD  I/O
-if ProjectParameters.GiDPostMode == "Binary":
-    gid_mode = GiDPostMode.GiD_PostBinary
-elif ProjectParameters.GiDPostMode == "Ascii":
-    gid_mode = GiDPostMode.GiD_PostAscii
-elif ProjectParameters.GiDPostMode == "AsciiZipped":
-    gid_mode = GiDPostMode.GiD_PostAsciiZipped
-else:
-    print "Unknown GiD post mode, assuming Binary"
-    gid_mode = GiDPostMode.GiD_PostBinary
-
-if ProjectParameters.GiDWriteMeshFlag == True:
-    deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
-else:
-    deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
-
-if(ProjectParameters.VolumeOutput == True):
-    if ProjectParameters.GiDWriteConditionsFlag == True:
-	write_conditions = WriteConditionsFlag.WriteConditions
-    else:
-	write_conditions = WriteConditionsFlag.WriteElementsOnly
-else:
-    write_conditions = WriteConditionsFlag.WriteConditions
-
-multifile = MultiFileFlag.MultipleFiles
-    
-gid_io = GidIO(input_file_name,gid_mode,multifile,deformed_mesh_flag, write_conditions)
 model_part_io_fluid = ModelPartIO(input_file_name)
 
 ########################## do parallel reading ######################
@@ -114,8 +64,6 @@ mpi.world.barrier()
 
 MPICommSetup = SetMPICommunicatorProcess(fluid_model_part)
 MPICommSetup.Execute()
-
-(ParallelFillCommunicator(fluid_model_part)).Execute()
 
 my_input_filename = input_file_name + "_" + str(mpi.rank)
 model_part_io_fluid = ModelPartIO(my_input_filename)
@@ -131,16 +79,6 @@ fluid_model_part.SetBufferSize(3)
 
 ##adding dofs
 solver_constructor.AddDofs( fluid_model_part, SolverSettings)
-    
-if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
-    for node in fluid_model_part.Nodes:
-       node.AddDof(TURBULENT_VISCOSITY)
-       
-# If Lalplacian form = 2, free all pressure Dofs
-#laplacian_form = ProjectParameters.FluidSolverConfiguration.laplacian_form 
-#if(laplacian_form >= 2):
-    #for node in fluid_model_part.Nodes:
-        #node.Free(PRESSURE)
 
 #copy Y_WALL
 for node in fluid_model_part.Nodes:
@@ -153,110 +91,49 @@ for node in fluid_model_part.Nodes:
 fluid_solver = solver_constructor.CreateSolver( fluid_model_part, SolverSettings)
 
 ##activate turbulence model
-if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Smagorinsky-Lilly"):
-    fluid_solver.ActivateSmagorinsky(ProjectParameters.SmagorinskyConstant)
-elif(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmaras"):
+if(SolverSettings.TurbulenceModel == "Spalart-Allmaras"):
     ##apply the initial turbulent viscosity on all of the nodes
-    turb_visc = ProjectParameters.TurbulentViscosity
+    turb_visc = SolverSettings.TurbulentViscosity
     for node in fluid_model_part.Nodes:
-      node.SetSolutionStepValue(TURBULENT_VISCOSITY,0,turb_visc);
-      visc = node.GetSolutionStepValue(VISCOSITY)
-      node.SetSolutionStepValue(MOLECULAR_VISCOSITY,0,visc);
-      if(node.IsFixed(VELOCITY_X)):
-	  node.Fix(TURBULENT_VISCOSITY)
+        node.SetSolutionStepValue(TURBULENT_VISCOSITY,0,turb_visc);
+        visc = node.GetSolutionStepValue(VISCOSITY)
+        node.SetSolutionStepValue(MOLECULAR_VISCOSITY,0,visc);
+        if node.IsFixed(VELOCITY_X):
+            node.Fix(TURBULENT_VISCOSITY)
 	  
 	  
     ##select nodes on the wall
-    wall_nodes = []
-    for i in ProjectParameters.SA_wall_group_ids:
+    fluid_solver.wall_nodes = []
+    for i in SolverSettings.SA_wall_group_ids:
        nodes = fluid_model_part.GetNodes(i) ##get the nodes of the wall for SA.
        for node in nodes:
-	  wall_nodes.append(node)
-	  node.SetSolutionStepValue(TURBULENT_VISCOSITY,0,0.0);
-	  node.Fix(TURBULENT_VISCOSITY)
-	  
-    DES = False
-    fluid_solver.ActivateSpalartAllmaras(wall_nodes,DES)
+           fluid_solver.wall_nodes.append(node)
+           node.SetSolutionStepValue(TURBULENT_VISCOSITY,0,0.0);
+           node.Fix(TURBULENT_VISCOSITY)
 
 fluid_solver.Initialize()
 print "fluid solver created"
 
+##################################################################
+##################################################################
 
+# initialize GiD  I/O
+from trilinos_gid_output import TrilinosGiDOutput
+gid_io = TrilinosGiDOutput(input_file_name,
+                           ProjectParameters.VolumeOutput,
+                           ProjectParameters.GiDPostMode,
+                           ProjectParameters.GiDMultiFileFlag,
+                           ProjectParameters.GiDWriteMeshFlag,
+                           ProjectParameters.GiDWriteConditionsFlag)
 
-cut_model_part = ModelPart("CutPart");
-if(ProjectParameters.VolumeOutput == True):
-    mesh_name = mpi.rank
-    gid_io.InitializeMesh( mesh_name )
-    gid_io.WriteMesh( fluid_model_part.GetMesh() )
-    gid_io.FinalizeMesh()
-
-    gid_io.InitializeResults(mesh_name,(fluid_model_part).GetMesh())
-    gid_io.Flush()
-    Multifile = True
-    
-    # Write .post.list file (GiD postprocess list)
-    if(mpi.rank == 0):
-	f = open(ProjectParameters.problem_name+'.post.lst','w')
-	f.write('Merge\n')
-	if ProjectParameters.GiDPostMode == "Binary":
-	    nproc = mpi.size
-	    for i in range(0,nproc):
-	      f.write(ProjectParameters.problem_name+'_'+str(i)+'.post.bin\n')  
-	elif ProjectParameters.GiDPostMode == "Ascii":
-	    nproc = mpi.size
-	    for i in range(0,nproc):
-	      f.write(ProjectParameters.problem_name+'_'+str(i)+'.post.msh\n')
-	f.close()
-	
-else:
-    #generate the cuts
-    Cut_App = TrilinosCuttingApplication(Comm);
-    Cut_App.FindSmallestEdge(fluid_model_part)
-    
-    cut_number = 1
-
+if not ProjectParameters.VolumeOutput:
     cut_list = define_output.DefineCutPlanes()
-    print cut_list
-    print "***************** i am rank ",mpi.rank
-    
-    for item in cut_list:
-       print item
-       n = Vector( item[0] )
-       p = Vector( item[1] )
-       
-       Cut_App.GenerateCut(fluid_model_part,cut_model_part,n,p, cut_number , 0.01)
-       cut_number = cut_number + 1
-       print "generated cut number =",cut_number
-      
-    Cut_App.AddSkinConditions(fluid_model_part,cut_model_part, cut_number)
-    cut_number += 1      
-    
-    ###mesh to be printed (single mesh case)
-    mesh_name = mpi.rank
-    gid_io.InitializeMesh( mesh_name )
-    gid_io.WriteMesh( cut_model_part.GetMesh() )
-    gid_io.FinalizeMesh()
-
-    gid_io.InitializeResults(mesh_name,(cut_model_part).GetMesh())
-    gid_io.Flush()
-    Multifile = True
-    
-    # Write .post.list file (GiD postprocess list)
-    if(mpi.rank == 0):
-	f = open(ProjectParameters.problem_name+'.post.lst','w')
-	f.write('Merge\n')
-	if ProjectParameters.GiDPostMode == "Binary":
-	    nproc = mpi.size
-	    for i in range(0,nproc):
-	      f.write(ProjectParameters.problem_name+'_'+str(i)+'.post.bin\n')  
-	elif ProjectParameters.GiDPostMode == "Ascii":
-	    nproc = mpi.size
-	    for i in range(0,nproc):
-	      f.write(ProjectParameters.problem_name+'_'+str(i)+'.post.msh\n')
-	f.close()  
-    
-#######################################33
-#######################################33
+    gid_io.define_cuts(fluid_model_part,cut_list)
+  
+gid_io.initialize_results(fluid_model_part)
+   
+#######################################
+#######################################
 #define the drag computation list   
 drag_list = define_output.DefineDragList()
 drag_file_output_list = []
@@ -341,8 +218,9 @@ while(time <= final_time):
     step = step + 1
     fluid_model_part.CloneTimeStep(time)
 
-    print "STEP = ", step
-    print "TIME = ", time
+    if mpi.rank == 0:
+        print "STEP = ", step
+        print "TIME = ", time
 
     if(step >= 3):
         fluid_solver.Solve()
@@ -369,27 +247,16 @@ while(time <= final_time):
 
         
         graph_printer.PrintGraphs(time)
+        PrintDrag(drag_list,drag_file_output_list,fluid_model_part,time)
 
     if(output_time <= out):
-	if(ProjectParameters.VolumeOutput == True):
-	    
-	    local_nodes = fluid_model_part.GetCommunicator().LocalMesh().Nodes
-	    PrintResults(local_nodes)
-	    PrintDrag(drag_list,drag_file_output_list,fluid_model_part,time)
-	    gid_io.Flush()
-	    out = 0
-	else:
-	    cut_model_part.CloneTimeStep(time)
-	    Cut_App.UpdateCutData(cut_model_part,fluid_model_part)
-	    	    
-	    PrintResults(cut_model_part.Nodes)
-	    PrintDrag(drag_list,drag_file_output_list,fluid_model_part,time)
-	    
-	    out = 0	    
+        gid_io.write_results(time,fluid_model_part,ProjectParameters.nodal_results,ProjectParameters.gauss_points_results)
+        out = 0
 
     out = out + Dt
 
-gid_io.FinalizeResults()
+gid_io.finalize_results()
     
-          
+for i in drag_file_output_list:
+  i.close();
         
