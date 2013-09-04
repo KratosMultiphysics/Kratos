@@ -129,11 +129,11 @@ if(${TRILINOS_APPLICATION} MATCHES ON )
 endif(${TRILINOS_APPLICATION} MATCHES ON )
 
 if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
-#     if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-# 	enable_language( Fortran )
-#         include(FortranCInterface) 
-# 	FortranCInterface_HEADER(FC.h MACRO_NAMESPACE "FC_")
-#     endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+     if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+ 	enable_language( Fortran )
+         include(FortranCInterface) 
+ 	FortranCInterface_HEADER(FC.h MACRO_NAMESPACE "FC_")
+     endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
    
     #linking to the absolute value of the blas
     find_package(BLAS REQUIRED)
@@ -152,16 +152,16 @@ if(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
 
 	#linking to the absolute value of the lapack
-#     find_package(LAPACK REQUIRED)
-#     message("LAPACK = " ${LAPACK_LIBRARIES})
-#     foreach( l ${LAPACK_LIBRARIES})
-#         GET_FILENAME_COMPONENT(aux ${l} REALPATH)
-# 		set(LAPACK_LIBRARIES_REALPATH ${LAPACK_LIBRARIES_REALPATH} ${aux})
-#     endforeach(l)
-#     set(LAPACK_LIBRARIES ${LAPACK_LIBRARIES_REALPATH} CACHE STRING "exact file of the lapack library" FORCE)
-#     message("LAPACK modified = " ${LAPACK_LIBRARIES})
-#     include_directories(${LAPACK_INCLUDE_DIRS})
-#     link_directories(${LAPACK_LIBRARIES})
+     find_package(LAPACK REQUIRED)
+     message("LAPACK = " ${LAPACK_LIBRARIES})
+     foreach( l ${LAPACK_LIBRARIES})
+         GET_FILENAME_COMPONENT(aux ${l} REALPATH)
+ 		set(LAPACK_LIBRARIES_REALPATH ${LAPACK_LIBRARIES_REALPATH} ${aux})
+     endforeach(l)
+     set(LAPACK_LIBRARIES ${LAPACK_LIBRARIES_REALPATH} CACHE STRING "exact file of the lapack library" FORCE)
+     message("LAPACK modified = " ${LAPACK_LIBRARIES})
+     include_directories(${LAPACK_INCLUDE_DIRS})
+     link_directories(${LAPACK_LIBRARIES})
 
 endif(${BLAS_INCLUDE_NEEDED} MATCHES ON )
 
