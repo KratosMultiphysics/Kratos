@@ -216,7 +216,7 @@ class IncompressibleFluidSolver:
 
             self.solver_settings.SetTurbulenceModel(
                 TrilinosTurbulenceModelLabel.SpalartAllmaras,
-                turb_linear_solver,
+                self.spalart_allmaras_linear_solver,
                 non_linear_tol,
                 max_it)
 
