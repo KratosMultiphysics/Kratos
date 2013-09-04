@@ -142,34 +142,36 @@ void LaplacianMeshMovingElem2D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     array_1d<double,3> disp;
     array_1d<double,3> grad_u;
     double norm_grad_u;
-    array_1d<double,3> nodal_conductivity;
+    double conductivity;
+
+    grad_u[0] = 0;
+    grad_u[1] = 0;
+    grad_u[2] = 0;
 
     for(unsigned int i = 0; i < number_of_points; i++) // loop over the three nodes
     {
         disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
 
-        grad_u[0] = msDN_DX(i,0)*disp[0];
-        grad_u[1] = msDN_DX(i,1)*disp[1];
-        grad_u[2] = msDN_DX(i,2)*disp[2];
-        norm_grad_u = norm_2(grad_u);
-
-        nodal_conductivity[i] = norm_grad_u;
+        grad_u[0] += msDN_DX(i,0)*disp[0];
+        grad_u[1] += msDN_DX(i,1)*disp[1];
+        grad_u[2] += msDN_DX(i,2)*disp[2];
     }
 
-    // factor 100 is for conditioning of matrices
-    double conditioning_factor = 100;
+    norm_grad_u = norm_2(grad_u);
+    conductivity = norm_grad_u;
+
     // exponent is a way to strengthen (exponent > 0) or diminish (exponent < 0) the influence of the conductivity
     // if exponent = 0: conductivity = 1
     // if exponent > 0: conductivity > 1
     // if exponent < 0: conductivity < 1
     double exponent = 0;
 
-    // conductivity of element is the maximum of the three nodal conductivities
-    double elemental_conductivity = conditioning_factor * std::max(nodal_conductivity[0],std::max(nodal_conductivity[1],nodal_conductivity[2]));
-    double factor = pow(elemental_conductivity,exponent);
+    // factor 100 is for conditioning of matrices
+    double conditioning_factor = 100;
+    double factor = conditioning_factor * pow(conductivity,exponent);
 
     // preserve matrices to become ill-conditioned
-    if(elemental_conductivity > 0.001)
+    if(conductivity > 0.001)
     {
         rLeftHandSideMatrix  *= factor;
         rRightHandSideVector *= factor;
