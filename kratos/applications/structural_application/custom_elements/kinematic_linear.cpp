@@ -826,7 +826,7 @@ void KinematicLinear::AddInternalForcesToRHS( Vector& R, const Matrix& B_Operato
 
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
     unsigned int StrainSize = dim * (dim + 1) / 2;
-    double InternalForces[dim];
+    double InternalForces[3];
         
     for ( unsigned int prim = 0; prim < GetGeometry().size(); prim++ )
     {
