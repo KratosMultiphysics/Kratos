@@ -137,22 +137,21 @@ class ExplicitStrategy:
         self.concrete_test_option           = Var_Translator( Var_Translator(Param.ConcreteTestOption) & Var_Translator(Param.ContinuumOption) ) 
         self.triaxial_option                = Var_Translator( Var_Translator(Param.TriaxialOption) & self.concrete_test_option )
        
-        self.search_radius_extension        = 1e-6 #needed for the tangential contacts. Charlie will modify the search. 
+        self.search_radius_extension        = 1e-6 #needed for the tangential contacts. Charlie will modify the search. MSIMSI 3 comproba que ja esta arreglat aixo.
         self.amplified_continuum_search_radius_extension    = 1.0;
         self.automatic_bounding_box_option  = Var_Translator(Param.AutomaticBoundingBoxOption)              
 
         if (self.delta_option ):
-            self.delta_option               = True
             self.search_radius_extension    = Param.SearchRadiusExtension
 
-        if (Var_Translator(Param.ContinuumOption)):
+        if (self.continuum_simulating_option):
             self.amplified_continuum_search_radius_extension = Param.AmplifiedSearchRadiusExtension;
                  
-        if(self.delta_option==True):
+        if(self.delta_option):
           if(self.continuum_simulating_option): self.case_option = 2
           else: self.case_option = 1
-        elif(self.delta_option==False):
-          if(self.continuum_simulating_option == False): self.case_option = 0
+        elif( not self.delta_option ):
+          if( not self.continuum_simulating_option ): self.case_option = 0
           else: self.case_option = 3     
             
         # MODEL
@@ -564,8 +563,10 @@ class ExplicitStrategy:
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
 
+        #self.solver = ContinuumExplicitSolverStrategy(self.model_part, self.contact_model_part, self.max_delta_time, self.n_step_search, self.safety_factor,
+        #                                              self.MoveMeshFlag, self.delta_option, self.continuum_simulating_option, self.creator_destructor, self.time_scheme, self.search_strategy)
         self.solver = ContinuumExplicitSolverStrategy(self.model_part, self.contact_model_part, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                      self.MoveMeshFlag, self.delta_option, self.continuum_simulating_option, self.creator_destructor, self.time_scheme, self.search_strategy)
+                                                      self.MoveMeshFlag, self.creator_destructor, self.time_scheme, self.search_strategy)
   
                                   
         self.solver.Initialize() # Calls the solver Initialized function (initializes all elements and performs other necessary tasks before iterating)
