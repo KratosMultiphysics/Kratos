@@ -168,6 +168,8 @@ namespace Kratos
           this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
 
           // 0. Set search radius
+          
+          KRATOS_WATCH(rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION])
           SetSearchRadius(r_model_part, rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);
 
           // 1. Search Neighbours with tolerance (Not in mpi.)
@@ -558,8 +560,8 @@ namespace Kratos
             i->GetValue(NEIGHBOUR_ELEMENTS).clear();
         }
 
-        mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
-        //this->GetSpSearch()->SearchElementsInRadiusExclusive(rModelPart,this->GetRadius(),this->GetResults());
+        //mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
+        mpSpSearch->SearchElementsInRadiusExclusive(r_model_part,this->GetRadius(),this->GetResults());
         
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
         
