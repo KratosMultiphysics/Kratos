@@ -209,7 +209,7 @@ def ConstructSolver( configuration ):
 	print "PastixIterative (requires ExternalSolversApplication + shall be habilitated at compilation time)"
 	print "Parallel MKL Pardiso (requires MKLSolversApplication)"
 	print "*****************************************************************"
-	err
+	raise RuntimeError(" Wrong Solver Definition ")
     #else:
 	#except LogicError:
     
