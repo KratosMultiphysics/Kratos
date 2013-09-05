@@ -54,15 +54,15 @@ namespace Kratos
                              const double n_step_search,
                              const double safety_factor,
                              const bool MoveMeshFlag,
-                             const bool delta_option,
-                             const bool continuum_simulating_option,
+                             //const bool delta_option,
+                             //const bool continuum_simulating_option,
                              typename ParticleCreatorDestructor::Pointer p_creator_destructor,
                              typename IntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch
       ): ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, max_delta_time, n_step_search, safety_factor, MoveMeshFlag, p_creator_destructor, pScheme, pSpSearch), mcontacts_model_part(contacts_model_part)
       {
-          mdelta_option                 = delta_option;
-          mcontinuum_simulating_option  = continuum_simulating_option;
+          //mdelta_option                 = delta_option;
+          //mcontinuum_simulating_option  = continuum_simulating_option;
           BaseType::GetParticleCreatorDestructor()   = p_creator_destructor;
       }
 
@@ -206,7 +206,7 @@ namespace Kratos
                       BaseType::BoundingBoxUtility();
                   }
 
-                   this->SearchNeighbours(rModelPart); //the amplification factor has been modified after the first search.
+                   BaseType::SearchNeighbours(rModelPart); //the amplification factor has been modified after the first search.
               }
 
           }
@@ -239,7 +239,7 @@ namespace Kratos
             i->GetValue(NEIGHBOUR_ELEMENTS).clear();
         }
 
-        this->GetSpSearch()->SearchElementsInRadiusExclusive(rModelPart,this->GetRadius(),this->GetResults(),this->GetResultsDistances());
+        this->GetSpSearch()->SearchElementsInRadiusExclusive(rModelPart,this->GetRadius(),this->GetResults());
 
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
         
@@ -283,10 +283,10 @@ namespace Kratos
         KRATOS_CATCH("")
     } //search initial neighbours
       
-      void CreateContactElements() //better not to apply OMP paralelization since it is creation of spheres
+    void CreateContactElements() //better not to apply OMP paralelization since it is creation of spheres
     {                
 
-      KRATOS_TRY
+        KRATOS_TRY
        
         typedef Node < 3 > NodeType;
         typedef Geometry<NodeType> GeometryType;
@@ -311,11 +311,13 @@ namespace Kratos
         for (typename ElementsArrayType::ptr_iterator it= pSphereElements.ptr_begin(); it!=pSphereElements.ptr_end(); ++it)
         {
             ParticleWeakVectorType& r_continuum_ini_neighbours = (*it)->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);   
+            
             size_t neighbour_index = 0;
 
             for(ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator = r_continuum_ini_neighbours.ptr_begin();
                 continuum_ini_neighbour_iterator != r_continuum_ini_neighbours.ptr_end(); continuum_ini_neighbour_iterator++)
             {
+                
                 if ( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() || ContactElementsParallelCondition(it,continuum_ini_neighbour_iterator))                           //to avoid repetition
                 {
  
@@ -339,7 +341,7 @@ namespace Kratos
                     
                      //generating the elements
                     
-                    if(ContactElementsParallelCondition(it,continuum_ini_neighbour_iterator))
+                    if(ContactElementsParallelCondition(it,continuum_ini_neighbour_iterator))  //false, only for MPI
                     {
                         ((*continuum_ini_neighbour_iterator).lock())->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).push_back(p_weak);
                         (*it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(neighbour_index) = p_weak;
@@ -347,24 +349,29 @@ namespace Kratos
                         //If ghost element is in a different partition and out local element has lower id add it as local, otherwise as ghost.
                         if( (*it)->Id() < (*continuum_ini_neighbour_iterator).lock()->Id() )
                         {
-      
-             Add_As_Local(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
+                            
+                            Add_As_Local(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
+                                                  
                         }
+                        
                         else
                         {   
         
-               Add_As_Ghost(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
+                            Add_As_Ghost(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
+                        
+                          
                         }
                     }
+                    
                     else 
                     {
                       
-        
-              Add_As_Own(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
+                      Add_As_Own(r_sphere_model_part,mcontacts_model_part,continuum_ini_neighbour_iterator,p_contact_element);
                         
-                             (*it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(neighbour_index) = p_weak;
+                      (*it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(neighbour_index) = p_weak;
                      
                     }
+                    
                     //copiar el weak a la variable nodal punters a barres
                     
                     index_new_ids++;    
@@ -436,35 +443,35 @@ namespace Kratos
     void InitializeContactElements()
     {
      
-     KRATOS_TRY
+      KRATOS_TRY
 
-      //CONTACT MODEL PART
-     
-      ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
-     
-      vector<unsigned int> contact_element_partition;
-
-      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pContactElements.size(), contact_element_partition);
-
-      #pragma omp parallel for
-      for (int k = 0; k < this->GetNumberOfThreads(); k++)
+        //CONTACT MODEL PART
       
-      {
+        ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
+      
+        vector<unsigned int> contact_element_partition;
 
-          typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
-          typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
-          
-          for (typename ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)
-          
-          {
-          
-              (it_contact)->Initialize(); 
-              
-          } //loop over CONTACT ELEMENTS
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pContactElements.size(), contact_element_partition);
 
-      }// loop threads OpenMP
+        #pragma omp parallel for
+        for (int k = 0; k < this->GetNumberOfThreads(); k++)
+        
+        {
 
-    KRATOS_CATCH("")
+            typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
+            typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
+            
+            for (typename ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)
+            
+            {
+            
+                (it_contact)->Initialize(); 
+                
+            } //loop over CONTACT ELEMENTS
+
+        }// loop threads OpenMP
+
+      KRATOS_CATCH("")
         
     }
         
@@ -679,7 +686,7 @@ namespace Kratos
     protected:
     
     ModelPart& mcontacts_model_part;
-    bool   mdelta_option;
+    //bool   mdelta_option;
     bool   mcontinuum_simulating_option;
     int    mFixSwitch;
     int    mStepFixVel;
