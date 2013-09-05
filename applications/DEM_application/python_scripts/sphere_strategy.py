@@ -128,6 +128,7 @@ class ExplicitStrategy:
         self.global_variables_option        = Var_Translator(Param.GlobalVariablesOption)
         self.contact_mesh_option            = Var_Translator(Param.ContactMeshOption)
         self.automatic_bounding_box_option  = Var_Translator(Param.AutomaticBoundingBoxOption)
+        self.delta_option                   = Var_Translator(Param.DeltaOption)
         self.move_mesh_flag                 = True
         self.deactivate_search              = 0
         self.case_option                    = 3
@@ -366,7 +367,12 @@ class ExplicitStrategy:
             self.creator_destructor.CalculateSurroundingBoundingBox(self.model_part, self.enlargement_factor)
 
         # STRATEGIES
-        self.search_radius_extension        = Param.SearchRadiusExtension
+        
+        self.search_radius_extension        = 0.0 
+ 
+        if (self.delta_option ):
+            self.search_radius_extension    = Param.SearchRadiusExtension
+
         self.search_strategy                = OMP_DEMSearch()
 
         if (Param.IntegrationScheme == 'forward_euler'):
@@ -480,7 +486,7 @@ class ExplicitStrategy:
             self.model_part.ProcessInfo.SetValue(GLOBAL_KT, self.global_kt)
 
         # SEARCH-RELATED
-        #self.model_part.ProcessInfo.SetValue(SEARCH_RADIUS_EXTENSION, self.search_radius_extension)
+        self.model_part.ProcessInfo.SetValue(SEARCH_RADIUS_EXTENSION, self.search_radius_extension)
 
         # PRINTING VARIABLES
         
