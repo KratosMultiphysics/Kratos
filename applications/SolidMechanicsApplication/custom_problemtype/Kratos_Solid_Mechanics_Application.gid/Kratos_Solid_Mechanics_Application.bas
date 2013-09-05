@@ -1344,8 +1344,7 @@ End NodalData
 
 *endif
 *endif
-*Set cond volume_FACE_LOAD *nodes
-*Add cond surface_FACE_LOAD *nodes
+*Set cond surface_FACE_LOAD *nodes
 *Add cond line_FACE_LOAD *nodes
 *if(CondNumEntities > 0)
 *# Check if some node has its X value set
