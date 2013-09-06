@@ -121,7 +121,8 @@ namespace Kratos
                   
                   double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
                   aux = delta_t / mass;
-                  
+                  //KRATOS_WATCH(delta_t)
+                  //KRATOS_WATCH(mass)
                   if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
                   {
                       aux = (1 - virtual_mass_coeff)* (delta_t / mass);
