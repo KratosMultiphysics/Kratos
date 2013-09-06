@@ -143,8 +143,9 @@ if (Param.FixVelocitiesOption == 'ON'):
 
 balls_model_part.ProcessInfo.SetValue(STEP_FIX_VELOCITIES,int(step_to_fix_velocities))
 
-
+print(Pressure)
 solver.Initialize()
+print(Pressure)
 
 # Initialization of physics monitor and of the initial position of the center of mass
 
@@ -160,7 +161,7 @@ if(Param.ConcreteTestOption =="ON"):
     
   (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = proc.ListDefinition(balls_model_part,solver)  # defines the lists where we measure forces
 
-  (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = proc.SkinAndPressure(balls_model_part,solver,Param) # defines the skin and areas
+  (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = proc.CylinderSkinDetermination(balls_model_part,solver,Param) # defines the skin and areas
 
   strain=0.0; total_stress = 0.0; first_time_entry = 1
   # for the graph plotting    
