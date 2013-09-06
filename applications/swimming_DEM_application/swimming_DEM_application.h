@@ -26,12 +26,10 @@
 
 namespace Kratos
 {
-    /* Define In Global variables.h
-        KRATOS_DEFINE_VARIABLE(double,  DELTA_TIME);
-        KRATOS_DEFINE_VARIABLE(Vector,     PARTICLE_ROTATE_SPRING_FAILURE_TYPE)
-        typedef vector<array_1d<double,3> > VectorArray3Double;
-        KRATOS_DEFINE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
-     */
+  //
+  KRATOS_DEFINE_VARIABLE(double, AUX_DOUBLE_VAR) //SALVA
+  //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_GRADIENT) //SALVA
+  //
     
 
 class KratosSwimmingDEMApplication : public KratosApplication

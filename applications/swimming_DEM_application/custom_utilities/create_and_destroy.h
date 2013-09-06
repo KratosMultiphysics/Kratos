@@ -21,6 +21,21 @@
 //Database includes
 #include "custom_utilities/discrete_particle_configure.h"
 #include "discrete_particle_configure.h"
+//SALVA_BEGINNING
+// Project includes
+#include "includes/define.h"
+#include "../../DEM_application/custom_elements/discrete_element.h"
+#include "../../DEM_application/custom_elements/spheric_swimming_particle.h"
+#
+#include "includes/define.h"
+//#include "custom_elements/spheric_swimming_particle.h"
+#include "custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
+#include "../../DEM_application/DEM_application.h"
+
+#include "../../DEM_application/custom_elements/spheric_particle.h"
+#
+//SALVA_ENDING
 //const double prox_tol = 0.00000000001;
 namespace Kratos
 {
@@ -45,7 +60,91 @@ public:
     virtual ~Particle_Creator_Destructor() {};
 
     /// Default constructor.
+    
+    //SALVA
+    
+    /*void NodeCreator(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node) {
+              
+      pnew_node = r_modelpart.CreateNewNode(10000, 1.0, 1.5, 0.0); //CASE TUBE09
+      //CASE TUBE03 pnew_node = r_modelpart.CreateNewNode(10000, 0.2, 1.0, 0.0);
+      pnew_node->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
+      pnew_node->FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(RADIUS) = 0.05;
+      pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY) = 1000;
+      //pnew_node->FastGetSolutionStepValue(NODAL_MASS) = 1.0; //SALVA_FALTABA?
+      pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS) = 1000;
+      pnew_node->FastGetSolutionStepValue(POISSON_RATIO) = 0.5;
+      pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = 1;
+          
+    }*/
+    
+    void NodeCreator(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, double bx, double cy, double dz) {
+              
+      pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);
+      pnew_node->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
+      pnew_node->FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(RADIUS) = 0.05;
+      pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY) = 1000;
+      pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS) = 100000;
+      pnew_node->FastGetSolutionStepValue(POISSON_RATIO) = 0.5;
+      pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = 1;
+          
+    }
+    
+    /*void ElementCreator(ModelPart& r_modelpart) {
 
+      KRATOS_WATCH("Hola")
+
+      Node < 3 > ::Pointer pnew_node;
+      
+      NodeCreator(r_modelpart, pnew_node);
+      
+      Geometry< Node < 3 > >::PointsArrayType nodelist;
+      
+      nodelist.push_back(pnew_node);
+
+      Element::Pointer p_swimming_particle = Element::Pointer(new SphericSwimmingParticle(11000, nodelist)); //POOYAN
+      
+      r_modelpart.Elements().push_back(p_swimming_particle); //POOYAN
+      
+      //SphericSwimmingParticle swimming_particle(11000, nodelist); //SALVA
+            
+      //r_modelpart.Elements().push_back(swimming_particle); //SALVA
+          
+}*/
+
+    void ElementCreator(ModelPart& r_modelpart, int r_Elem_Id, int r_Id, double r_x, double r_y, double r_z) {
+
+      Node < 3 > ::Pointer pnew_node;
+      
+      /*int Id=10000;
+      double x= 1.0;
+      double y= 1.5;*/
+      
+      NodeCreator(r_modelpart, pnew_node, r_Id, r_x, r_y, r_z);
+      
+      Geometry< Node < 3 > >::PointsArrayType nodelist;
+      
+      nodelist.push_back(pnew_node);
+
+      Element::Pointer p_swimming_particle = Element::Pointer(new SphericSwimmingParticle(r_Elem_Id, nodelist)); //POOYAN
+      
+      r_modelpart.Elements().push_back(p_swimming_particle); //POOYAN
+           
+}
+
+    void PrintingTest() {}
+
+    //SALVA
+    
     void CalculateSurroundingBoundingBox( ModelPart& r_model_part, double scale_factor)
     {
 

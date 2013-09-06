@@ -9,6 +9,19 @@ class IOTools:
 
         self.param = Param
 
+    def PrintParticlesResults(resultsname,time,model_part):
+        outstring = "Particles_"+resultsname+".csv" 
+        outputfile = open(outstring, 'a')
+        variables_dictionary = {"PRESSURE" : PRESSURE,
+                                "VELOCITY" : VELOCITY,
+                                "BUOYANCY" : BUOYANCY,
+                                "DRAG_FORCE" : DRAG_FORCE,
+                                "MU" : MU}
+
+        for node in model_part.Nodes:
+            Results_value=node.GetSolutionStepValue(variables_dictionary[resultsname])
+            outputfile.write(str(time)+" "+str(Results_value[0])+" "+str(Results_value[1])+" "+str(Results_value[2])+"\n")
+
     def CreateProblemDirectories(self, main_path, dir_names):
 
         directories = []
@@ -92,6 +105,7 @@ class ProjectionModule:
     def UpdateDatabase(self, HMin):
 
         if (self.dimension == 3):
+            #print "dimension= ", self.dimension
             self.bin_of_objects_fluid.UpdateSearchDatabase()
 
         else:
