@@ -10,7 +10,7 @@ from numpy import *
 
 def Var_Translator(variable):
 
-    if (variable == "OFF" or variable == "0"):
+    if (variable == "OFF" or variable == "0" or variable == 0):
         variable = 0
     else:
         variable = 1
@@ -308,11 +308,9 @@ class Procedures:
         
         return Pressure
        
-    def SkinAndPressure(self, model_part,solver, param):
+    def CylinderSkinDetermination(self, model_part,solver, param):
         
         #SKIN DETERMINATION
-
-        Pressure = param.ConfinementPressure * 1e6 #Mpa
         total_cross_section = 0.0
 
         #Cylinder dimensions
@@ -322,9 +320,6 @@ class Procedures:
         eps = 2.0
 
         surface = 2 * (3.141592 * d * d * 0.25) + (3.141592 * d * h)
-
-        top_pressure = 0.0
-        bot_pressure = 0.0
 
         xlat_area = 0.0
         xbot_area = 0.0
@@ -392,7 +387,7 @@ class Procedures:
                       self.XTOP.append(node)
                       xtop_area = xtop_area + cross_section
 
-        print "End CLASSIC TEST SKIN DETERMINATION", "\n"
+        print "End 30x15 Cylinder Skin Determination", "\n"
                 
         return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area) 
                 
