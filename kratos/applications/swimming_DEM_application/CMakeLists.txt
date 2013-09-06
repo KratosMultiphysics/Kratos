@@ -15,7 +15,8 @@ set( KRATOS_SWIMMING_DEM_APPLICATION_SOURCES
 ###############################################################
 ## define library Kratos which defines the basic python interface
 add_library(KratosSwimmingDEMApplication SHARED ${KRATOS_SWIMMING_DEM_APPLICATION_SOURCES})
-target_link_libraries(KratosSwimmingDEMApplication KratosCore )
+target_link_libraries(KratosSwimmingDEMApplication KratosCore KratosDEMApplication)
+#target_link_libraries(KratosDEMApplication KratosCore)
 set_target_properties(KratosSwimmingDEMApplication PROPERTIES PREFIX "")
 install(TARGETS KratosSwimmingDEMApplication DESTINATION libs )
 

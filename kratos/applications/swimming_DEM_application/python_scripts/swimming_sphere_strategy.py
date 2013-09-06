@@ -1,6 +1,7 @@
 import sys
 sys.path.insert(0, '../../DEM_application/python_scripts')
 sys.path.insert(0, '../../ULFapplication/python_scripts')
+
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
@@ -88,19 +89,3 @@ class ULFDEMStrategy:
 
         elif (self.param.SolverType == "Quasi_Inc_Constant_Pressure"):
             fluid_solver = self.fluid.ULF_FSISolver(FluidModelPart, StructureModelPart, CombinedModelPart, self.param.compute_reactions, BoxCorner1, BoxCorner2, self.param.domain_size, self.param.adaptive_refinement)
-
-            for node in FluidModelPart.Nodes:
-                node.SetSolutionStepValue(BULK_MODULUS, 0, self.param.bulk_modulus)
-                node.SetSolutionStepValue(DENSITY, 0, self.param.density)
-
-        elif (self.param.SolverType == "Quasi_Inc_Linear_Pressure"):
-            fluid_solver = self.fluid.ULF_FSISolver(OutFile, FluidModelPart, StructureModelPart, CombinedModelPart, self.param.compute_reactions, BoxCorner1, BoxCorner2, self.param.domain_size, self.param.adaptive_refinement, self.param.bulk_modulus, self.param.density)
-
-            for node in FluidModelPart.Nodes:
-                node.SetSolutionStepValue(BULK_MODULUS, 0, self.param.bulk_modulus)
-                node.SetSolutionStepValue(DENSITY, 0, self.param.density)
-
-        fluid_solver.alpha_shape = self.param.alpha_shape
-        fluid_solver.echo_level  = 2
-
-        return fluid_solver
