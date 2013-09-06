@@ -1566,7 +1566,7 @@ namespace Kratos
                 equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
                 equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
             }
-
+            
             kn                                  = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
             kt                                  = kn / (2.0 + equiv_poisson + equiv_poisson);
             aux_norm_to_tang                    = sqrt(kt / kn);
@@ -1730,7 +1730,8 @@ namespace Kratos
               case 1:
 
                   LocalElasticContactForce[2] = kn * pow(indentation, 1.5);
-
+                  
+                 
               break;
 
               default:
