@@ -35,6 +35,7 @@
 #endif
 
 //......................
+//std::cout<<print...<<std::endl;
 
 namespace Kratos
 {
@@ -365,7 +366,7 @@ namespace Kratos
             
             int mapping = mMapping_New_Ini[i_neighbour_count]; //*
                   
-            if(mContactMeshOption==1 && (mapping !=-1))
+            if(mContinuumSimulationOption==1 && (mapping !=-1))
             {
               corrected_area = mcont_ini_neigh_area[mapping];                            
             }
@@ -401,10 +402,11 @@ namespace Kratos
             }
 
             else {
-              
+
                 kn                                = mMagicFactor * equiv_young * corrected_area * radius_sum_i;
                 kt                                = kn / (2.0 + equiv_poisson + equiv_poisson);
                 aux_norm_to_tang                  = sqrt(kt / kn);
+
             }
           
             if (mCriticalTimeOption){
