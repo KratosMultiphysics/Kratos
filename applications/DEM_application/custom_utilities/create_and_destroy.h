@@ -23,7 +23,17 @@
 #include "discrete_particle_configure.h"
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/discrete_element.h"
+#include "../custom_elements/discrete_element.h"
+#include "../custom_elements/spheric_particle.h"
+#include "../custom_elements/spheric_swimming_particle.h"
+#
+#include "includes/define.h"
+#include "custom_utilities/GeometryFunctions.h"
+#include "custom_utilities/AuxiliaryFunctions.h"
+#include "../DEM_application.h"
+
+#
+//SALVA_ENDING
 //const double prox_tol = 0.00000000001;
 namespace Kratos
 {
@@ -54,10 +64,53 @@ public:
       mLowPoint[2]  = -10e18;
     }
 
-    /// Destructor.
-    virtual ~ParticleCreatorDestructor(){}
+    //Particle_Creator_Destructor() {};
 
-    void CalculateSurroundingBoundingBox(ModelPart& r_model_part, double scale_factor)
+    /// Destructor.
+
+    virtual ~ParticleCreatorDestructor() {};
+
+    
+    void NodeCreator(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, double bx, double cy, double dz) {
+              
+      pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);
+      pnew_node->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
+      pnew_node->FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(RADIUS) = 0.05;
+      pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY) = 1000;
+      pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS) = 10000;
+      pnew_node->FastGetSolutionStepValue(POISSON_RATIO) = 0.5;
+      pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = 1;
+          
+    }
+
+
+    void ElementCreator(ModelPart& r_modelpart, int r_Elem_Id, int r_Id, double r_x, double r_y, double r_z)
+    {
+
+      Node < 3 > ::Pointer pnew_node;
+      
+      NodeCreator(r_modelpart, pnew_node, r_Id, r_x, r_y, r_z);
+      
+      Geometry< Node < 3 > >::PointsArrayType nodelist;
+      
+      nodelist.push_back(pnew_node);
+
+      Element::Pointer p_swimming_particle = Element::Pointer(new SphericSwimmingParticle(r_Elem_Id, nodelist)); //POOYAN
+      
+      r_modelpart.Elements().push_back(p_swimming_particle); //POOYAN
+           
+    }
+
+    void PrintingTest() {}
+
+    //SALVA
+    
+    void CalculateSurroundingBoundingBox( ModelPart& r_model_part, double scale_factor)
     {
         KRATOS_TRY
 
@@ -93,7 +146,7 @@ public:
 
         mStrictDiameter = norm_2(mStrictHighPoint - mStrictLowPoint);
         mDiameter       = norm_2(mHighPoint - mLowPoint);
-
+        
         KRATOS_CATCH("")
          
     }
