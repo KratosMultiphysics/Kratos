@@ -214,35 +214,29 @@ namespace Kratos
           // 1. Here we initialize member variables that depend on the rCurrentProcessInfo
           KRATOS_TIMER_START("InitializeSolutionStep")
           InitializeSolutionStep();
-          KRATOS_TIMER_STOP("InitializeSolutionStep")
-
+                
           // 2. Get and Calculate the forces
           KRATOS_TIMER_START("GetForce")
           GetForce();
-          KRATOS_TIMER_STOP("GetForce")
-
+                    
           // 3. Motion Integration
           KRATOS_TIMER_START("PerformTimeIntegrationOfMotion")
           PerformTimeIntegrationOfMotion(rCurrentProcessInfo); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
-          KRATOS_TIMER_STOP("PerformTimeIntegrationOfMotion")
-
+                              
           // 4. Synchronize
           KRATOS_TIMER_START("SynchronizeSolidMesh")
           SynchronizeSolidMesh(r_model_part);
-          KRATOS_TIMER_STOP("SynchronizeSolidMesh")
-
-          // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box
-          KRATOS_TIMER_START("SearchNeighbours")
-
+                  
+          // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box                   
+          
           if ((time_step + 1) % mNStepSearch == 0 && time_step > 0){
-
               if (this->GetBoundingBoxOption()){
-                  BoundingBoxUtility();
+		BoundingBoxUtility();
               }
 
               SearchNeighbours(r_model_part);
           }
-
+          
           KRATOS_TIMER_STOP("SearchNeighbours")
 
           FinalizeSolutionStep();
@@ -555,10 +549,12 @@ namespace Kratos
 
         ModelPart& r_model_part               = BaseType::GetModelPart();
         ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
-
+        
         for (SpatialSearch::ElementsContainerType::iterator i = pElements.begin(); i != pElements.end(); i++){
             i->GetValue(NEIGHBOUR_ELEMENTS).clear();
         }
+        
+        
 
         //mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part,this->GetRadius(),this->GetResults());
