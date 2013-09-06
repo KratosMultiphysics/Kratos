@@ -53,11 +53,35 @@ namespace Kratos
       {
           KRATOS_TRY
 
-              KRATOS_WATCH("caca")
           const int drag_force_type                 = 1;//rCurrentProcessInfo[DRAG_FORCE_TYPE];
           const array_1d<double,3>& gravity         = rCurrentProcessInfo[GRAVITY];
           array_1d<double,3>& drag_force            = GetGeometry()(0)->FastGetSolutionStepValue(DRAG_FORCE);
           array_1d<double,3>& buoyancy              = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);
+
+          /*contact_force[0]  = 0.0;
+          contact_force[1]  = 0.0;
+          contact_force[2]  = 0.0;
+          contact_moment[0] = 0.0;
+          contact_moment[1] = 0.0;
+          contact_moment[2] = 0.0;
+          initial_rotation_moment[0]  = 0.0;
+          initial_rotation_moment[1]  = 0.0;
+          initial_rotation_moment[2]  = 0.0;
+	  
+          ComputeNewNeighboursHistoricalData();
+          ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
+          
+          if (mLimitSurfaceOption > 0){
+			  for (int surface_num = 0; surface_num < mLimitSurfaceOption; surface_num++){
+				  ComputeBallToSurfaceContactForce(contact_force, contact_moment, initial_rotation_moment, surface_num, rCurrentProcessInfo);
+              }
+          }
+          
+          if (mLimitCylinderOption > 0){
+			  for (int cylinder_num = 0; cylinder_num < mLimitCylinderOption; cylinder_num++){
+				  ComputeBallToCylinderContactForce(contact_force, contact_moment, initial_rotation_moment, cylinder_num, rCurrentProcessInfo);
+              }
+	      }*/
 
           if (drag_force_type == 1){
               ComputeFluidForcesOnParticle(rCurrentProcessInfo);
@@ -66,7 +90,7 @@ namespace Kratos
           else {
               ComputeWeatherfordFluidForcesOnParticle(rCurrentProcessInfo);
           }
-
+          
           additionally_applied_force[0] = buoyancy[0] + drag_force[0] + mRealMass * gravity[0];
           additionally_applied_force[1] = buoyancy[1] + drag_force[1] + mRealMass * gravity[1];
           additionally_applied_force[2] = buoyancy[2] + drag_force[2] + mRealMass * gravity[2];
@@ -94,6 +118,7 @@ namespace Kratos
 
                 if (fluid_density > 0.0000000000001){
                     drag_force = (0.235 * M_PI) * (fluid_density * mRadius * mRadius) * MathUtils<double>::Norm3(fluid_vel - particle_vel) * (fluid_vel - particle_vel);
+		    //KRATOS_WATCH(drag_force) //SALVA
                 }
 
                 else {
@@ -102,6 +127,7 @@ namespace Kratos
                 }
 
                 buoyancy = - pressure_grad * volume;
+                //KRATOS_WATCH(buoyancy) //SALVA
             }
 
             else {
