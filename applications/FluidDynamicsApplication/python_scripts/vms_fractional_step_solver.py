@@ -27,6 +27,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(REACTION)
     model_part.AddNodalSolutionStepVariable(Y_WALL)
     model_part.AddNodalSolutionStepVariable(NORMAL)
+    model_part.AddNodalSolutionStepVariable(PATCH_INDEX) #Stokes needs it (in case periodic conditions are required)
 
     if config is not None:
         if hasattr(config,"TurbulenceModel"):
@@ -112,6 +113,8 @@ class IncompressibleFluidSolver:
         self.wall_nodes = list()
         self.spalart_allmaras_linear_solver = None
 
+        self.divergence_clearance_steps = 0
+
     def Initialize(self):
         # Componentwise Builder and solver uses neighbours to set DofSet
         # (used both for PRESSURE and TURBULENT_VISCOSITY)
@@ -187,14 +190,16 @@ class IncompressibleFluidSolver:
         if self.use_spalart_allmaras:
             for node in self.wall_nodes:
                 node.SetValue(IS_VISITED, 1.0)
+                node.SetSolutionStepValue(DISTANCE,0,0.0)
 
-            distance_calculator = BodyDistanceCalculationUtils()
             if(self.domain_size == 2):
-                distance_calculator.CalculateDistances2D(
-                    self.model_part.Elements, DISTANCE, 100.0)
+                self.redistance_utils = ParallelDistanceCalculator2D()
             else:
-                distance_calculator.CalculateDistances3D(
-                    self.model_part.Elements, DISTANCE, 100.0)
+                self.redistance_utils = ParallelDistanceCalculator3D()
+            
+            max_levels = 100
+            max_distance = 1000
+            self.redistance_utils.CalculateDistancesLagrangianSurface(self.model_part,DISTANCE,NODAL_AREA,max_levels,max_distance)
 
             sa_non_linear_tol = 0.001
             sa_max_it = 10
@@ -233,20 +238,37 @@ class IncompressibleFluidSolver:
                 self.normal_util.CalculateOnSimplex(
                     self.model_part, self.domain_size, IS_STRUCTURE)
 
-# if(self.slip_conditions_initialized == False):
-# self.create_slip_conditions.Execute()
-# (self.solver).SetSlipProcess(self.create_slip_conditions);
-# self.slip_conditions_initialized = True
+        if self.divergence_clearance_steps > 0:
+            # initialize with a Stokes solution step
+            try:
+                import KratosMultiphysics.ExternalSolversApplication as kes
+                #smoother_type = kes.AMGLCSmoother.ILU0
+                smoother_type = kes.AMGCLSmoother.DAMPED_JACOBI
+                #solver_type = kes.AMGCLSolver.BICGSTAB
+                solver_type = kes.AMGCLIterativeSolverType.CG
+                gmres_size = 50
+                max_iter = 200
+                tol = 1e-7
+                verbosity = 0
+                stokes_linear_solver = kes.AMGCLSolver(smoother_type,solver_type,tol,max_iter,verbosity,gmres_size)
+            except:
+                pPrecond = DiagonalPreconditioner()
+                stokes_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
+            stokes_process = StokesInitializationProcess(self.model_part,stokes_linear_solver,self.domain_size,PATCH_INDEX)
+            # copy periodic conditions to Stokes problem
+            stokes_process.SetConditions(self.model_part.Conditions)
+            # execute Stokes process
+            stokes_process.Execute()
 
-#        print "just before solve"
-#        print self.model_part.ProcessInfo.GetValue(TIME)
+            for node in self.model_part.Nodes:
+                node.SetSolutionStepValue(PRESSURE,0,0.0)
+
+            self.divergence_clearance_steps = 0
+            
         (self.solver).Solve()
 
         if(self.compute_reactions == True):
             self.solver.CalculateReactions()  # REACTION)
-
-# (self.create_slip_conditions).SetNormalVelocityToZero()
-# (self.create_slip_conditions).ApplyEdgeConstraints()
 
     def Clear(self):
         (self.solver).Clear()
@@ -325,6 +347,7 @@ def CreateSolver( model_part, config ):
     import linear_solver_factory
     if( hasattr(config,"pressure_linear_solver_config") ): fluid_solver.pressure_linear_solver =  linear_solver_factory.ConstructSolver(config.pressure_linear_solver_config)
     if( hasattr(config,"velocity_linear_solver_config") ): fluid_solver.velocity_linear_solver =  linear_solver_factory.ConstructSolver(config.velocity_linear_solver_config)
+    if( hasattr(config,"divergence_cleareance_step") ): fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
 
     #RANS or DES settings
     if hasattr(config,"TurbulenceModel") :

@@ -186,26 +186,6 @@ while(time <= final_time):
     if(step >= 3):
         fluid_solver.Solve()
         
-        if(step < 4):
-	  for k in range(0,ProjectParameters.divergence_cleareance_step):
-	      print "DOING DIVERGENCE CLEAREANCE"
-	      buffer_size = fluid_model_part.GetBufferSize()
-	      for i in range(0,buffer_size):
-		for node in fluid_model_part.Nodes:
-		  vel = node.GetSolutionStepValue(VELOCITY)
-		  node.SetSolutionStepValue(VELOCITY,i,vel)
-		  node.SetSolutionStepValue(PRESSURE,i,0.0)	  
-		if(SolverSettings.solver_type == "vms_monolithic_solver"):
-		  zero_vector = Vector(3)
-		  zero_vector[0] = 0.0; zero_vector[1] = 0.0; zero_vector[2] = 0.0;
-		  for node in fluid_model_part.Nodes:
-		    node.SetSolutionStepValue(ACCELERATION,i,zero_vector)
-          if(SolverSettings.TurbulenceModel == "Spalart-Allmaras"):
-              for node in fluid_model_part.Nodes:
-                  visc = node.GetSolutionStepValue(VISCOSITY)
-                  node.SetSolutionStepValue(VISCOSITY,i,visc)
-	      fluid_solver.Solve()
-        
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list,drag_file_output_list,fluid_model_part,time)
 
