@@ -159,7 +159,8 @@ void SpalartAllmaras::CalculateLocalSystem(MatrixType &rLeftHandSideMatrix, Vect
     // Choose between DES or URANS operation
     bool UseRealDistance = true;
     double Distance = 0.0;
-    double Cdes = rCurrentProcessInfo[C_DES];
+    const ProcessInfo& rConstProcInfo = static_cast<const ProcessInfo&>(rCurrentProcessInfo);
+    double Cdes = rConstProcInfo[C_DES];
     if ( Cdes != 0.0)
     {
         Distance = this->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE);
@@ -383,18 +384,22 @@ void SpalartAllmaras::AddModelTerms(MatrixType &rLHS,
                                     const double Weight)
 {
     // Constants of the Spalart-Allmaras model
-    const double sigma = 2.0 / 3.0; // Prandtl number
-    const double kappa = 0.41; // Von Karman's constant
+    const double sigma = 2.0 / 3.0; // Prandtl number for problem variable
+    //const double kappa = 0.41; // Von Karman's constant
+    const double kappa_2 = 0.41*0.41;
     const double cb1 = 0.1355; // Production coefficient
     const double cb2 = 0.6220; // Coefficient for non-consistent diffusion
-    const double cw1 = cb1 / (kappa*kappa) + (1.0 + cb2) / sigma; // Destruction coefficient
+    const double cw1 = cb1 / (kappa_2) + (1.0 + cb2) / sigma; // Destruction coefficient
     const double cw2 = 0.3; // Used to compute fw in destruction term
-    const double cw3 = 2.0; // Used to compute fw in destruction term
+    //const double cw3 = 2.0; // Used to compute fw in destruction term
+    const double cw3_6 = 64.0; // Sixth power of cw3
 
     // Constants for variable transformation (eddy viscosity -> transported variable)
-    const double cv1_cube = 7.1 * 7.1 * 7.1;
+    // const double cv1 = 7.1;
+    const double cv1_3 = 7.1 * 7.1 * 7.1;
     const double Xi = LastEddyViscosity / MolecularViscosity;
-    const double fv1 = (Xi * Xi * Xi) / (Xi * Xi * Xi + cv1_cube);
+    const double Xi_3 = Xi*Xi*Xi;
+    const double fv1 = Xi_3 / (Xi_3 + cv1_3);
     const double fv2 = 1.0 - Xi / (1.0 + Xi * fv1);
 
     // Modified strain rate (using rotation correction)
@@ -406,16 +411,16 @@ void SpalartAllmaras::AddModelTerms(MatrixType &rLHS,
     double S = NormOmega;
     if(NormS < NormOmega)
         S += Cprod * (NormS-NormOmega);
-    double S_hat = S + ( fv2 * LastEddyViscosity / (kappa*kappa * Distance*Distance) );
+    double S_hat = S + ( fv2 * LastEddyViscosity / (kappa_2 * Distance*Distance) );
     // Numerical control on S_hat
     if (S_hat < 0.3 * NormOmega)
         S_hat = 0.3 * NormOmega;
 
     // Destruction function
-    double r = LastEddyViscosity / (S_hat * kappa*kappa * Distance*Distance);
+    double r = LastEddyViscosity / (S_hat * kappa_2 * Distance*Distance);
     if (r > 10.0) r = 10.0; // Numerical control in r
     const double g = r + cw2 * (pow(r,6) - r);
-    const double fw = g * pow( (1.0+pow(cw3,6)) / ( pow(g,6) + pow(cw3,6) ) , 1.0/6.0);
+    const double fw = g * pow( (1.0+cw3_6) / ( pow(g,6) + cw3_6 ) , 1.0/6.0);
 
     // Geometric constants
     const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
@@ -467,7 +472,7 @@ void SpalartAllmaras::AddStabilization(MatrixType &rLHS,
         for (SizeType i = 0; i < NumNodes; i++)
         {
             rLHS(i,j) += Weight * Tau * UGradN[i] * UGradN[j];
-            rRHS[i] += Weight * Tau * UGradN[i] * N[j] * NodalProjection;
+            rRHS[i] -= Weight * Tau * UGradN[i] * N[j] * NodalProjection;
         }
     }
 }

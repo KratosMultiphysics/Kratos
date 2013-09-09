@@ -221,14 +221,13 @@ public:
             }
             else
             {
-                const double cv1 = 7.1;
+                const double cv1_3 = 7.1*7.1*71;
 
                 double xi = turbulent_viscosity / molecular_viscosity;
-                double fv1 = (xi * xi * xi) / (xi * xi * xi + cv1 * cv1 * cv1);
+                double xi_3 = xi*xi*xi;
+                double fv1 = xi_3 / (xi_3 + cv1_3);
 
                 double viscosity = fv1 * turbulent_viscosity + molecular_viscosity;
-                //                KRATOS_WATCH(viscosity)
-                //                KRATOS_WATCH(turbulent_viscosity)
                 i->FastGetSolutionStepValue(VISCOSITY) = viscosity;
             }
         }
