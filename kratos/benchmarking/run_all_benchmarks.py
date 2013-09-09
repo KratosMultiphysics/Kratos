@@ -11,7 +11,7 @@ ApplicationsRoot = KratosRoot + "applications/"
 Text = "Status of Kratos examples:\n\n"
 os.chdir(ApplicationsRoot)
 
-# Structural application                                                                                                                                                                           
+# Structural application
 os.chdir(ApplicationsRoot + "structural_application/test_examples")
 import structural_benchmarks
 Text += structural_benchmarks.Run()
@@ -38,7 +38,7 @@ os.chdir(ApplicationsRoot + "FSIapplication/test_examples")
 import FSI_benchmarks
 Text += FSI_benchmarks.Run()
 
-### PFEM application
+# PFEM application
 ##os.chdir(ApplicationsRoot + "PFEMapplication/test_exemples")
 ##import pfem_benchmarks
 ##Text += pfem_benchmarks.Run()
@@ -65,9 +65,9 @@ Text += DEM_benchmarks.Run()
 
 # Add other directories here
 
-#print Text
+# print Text
 os.chdir(CurrentDir)
-outputfile = open("benchmarking_output.txt","w")
+outputfile = open("benchmarking_output.txt", "w")
 outputfile.write(Text)
 
 

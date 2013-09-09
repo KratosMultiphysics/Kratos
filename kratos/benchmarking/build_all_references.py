@@ -12,7 +12,7 @@ os.chdir(ApplicationsRoot)
 
 # PFEM
 os.chdir(ApplicationsRoot + "PFEMapplication/test_exemples")
-#os.chdir("PFEMapplication/test_examples")
+# os.chdir("PFEMapplication/test_examples")
 
 import pfem_build_references
 
