@@ -1188,7 +1188,12 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
 # 		    }
 # 		}
 	    
-	    
+            # Get the divergence clearance step
+            set cxpath "$rootid//c.SolutionStrategy//i.DivergenceCleareanceStep"
+            set DivergenceCleareanceStep [::xmlutils::setXml $cxpath $cproperty]
+            # Get the kratos keyword
+            set DivergenceCleareanceStepKW [::xmlutils::getKKWord $kxpath "DivergenceCleareanceStep"]
+            puts $fileid "${trailing_spaces}$DivergenceCleareanceStepKW = $DivergenceCleareanceStep"	    
 
 
             # Use ortogonal subscales => OssSwitch
@@ -1330,13 +1335,7 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
     set UseAutomaticDeltaTime [::xmlutils::setXml $cxpath $cproperty]
     puts $fileid "AutomaticDeltaTime = \"$UseAutomaticDeltaTime\""
     
-    # Get the divergence clearance step
-    set cxpath "$rootid//c.SolutionStrategy//i.DivergenceCleareanceStep"
-    set DivergenceCleareanceStep [::xmlutils::setXml $cxpath $cproperty]
-    # Get the kratos keyword
-    set DivergenceCleareanceStepKW [::xmlutils::getKKWord $kxpath "DivergenceCleareanceStep"]
-    # wa "DivergenceCleareanceStepKW:$DivergenceCleareanceStepKW DivergenceCleareanceStep:$DivergenceCleareanceStep"
-    puts $fileid "$DivergenceCleareanceStepKW = $DivergenceCleareanceStep"
+
     
     # WarnWinText "StartTime:$StartTime EndTime:$EndTime DeltaTime:$DeltaTime"
     puts $fileid "Dt = $DeltaTime"
