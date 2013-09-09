@@ -13,7 +13,7 @@ else
     # do not add the ':'
     export LD_LIBRARY_PATH="$3/kratos":"$3/kratos/libs"
 fi
-
+  
 export OMP_NUM_THREADS=*GenData(number_of_processors)
 
 mv "$2/$1-3.dat" "$2/${problemtype_name}_var.py"
