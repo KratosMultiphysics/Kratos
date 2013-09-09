@@ -157,8 +157,6 @@ public:
     void FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo );
 
     void InitializeSolutionStep( ProcessInfo& CurrentProcessInfo );
-    
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
 
     void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable, std::vector<Matrix>& rValues, const ProcessInfo& rCurrentProcessInfo );
 
