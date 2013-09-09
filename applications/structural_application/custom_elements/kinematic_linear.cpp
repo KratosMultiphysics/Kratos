@@ -544,17 +544,6 @@ void KinematicLinear::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
     }
 }
 
-void KinematicLinear::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
-{
-    //reset all resistant forces at node
-    for ( unsigned int i = 0; i < GetGeometry().size(); i++ )
-    {
-        GetGeometry()[i].GetSolutionStepValue( REACTION_X ) = 0.0;
-        GetGeometry()[i].GetSolutionStepValue( REACTION_Y ) = 0.0;
-        GetGeometry()[i].GetSolutionStepValue( REACTION_Z ) = 0.0;
-    }
-}
-    
 void KinematicLinear::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
@@ -809,47 +798,20 @@ void KinematicLinear::AddInternalForcesToRHS( Vector& R, const Matrix& B_Operato
 {
     KRATOS_TRY
     
-//    unsigned int dim = GetGeometry().WorkingSpaceDimension();
-
-//    for ( unsigned int prim = 0; prim < GetGeometry().size(); prim++ )
-//    {
-//        for ( unsigned int i = 0; i < dim; i++ )
-//        {
-//            for ( unsigned int gamma = 0; gamma < 6; gamma++ )
-//            {
-//                R( prim*dim + i ) += ( -1 ) * ( B_Operator( gamma, prim * 3 + i ) * StressVector( gamma ) *
-//                                                detJ * Weight );
-//            }
-//        }
-//    }
-////         noalias(R) -= detJ*Weight* prod(trans(B_Operator),StressVector);
-
     unsigned int dim = GetGeometry().WorkingSpaceDimension();
-    unsigned int StrainSize = dim * (dim + 1) / 2;
-    double InternalForces[3];
-        
+
     for ( unsigned int prim = 0; prim < GetGeometry().size(); prim++ )
     {
         for ( unsigned int i = 0; i < dim; i++ )
         {
-            InternalForces[i] = 0.0;
-            for ( unsigned int gamma = 0; gamma < StrainSize; gamma++ )
+            for ( unsigned int gamma = 0; gamma < 6; gamma++ )
             {
-                InternalForces[i] += B_Operator( gamma, prim * dim + i ) * StressVector( gamma ) * detJ * Weight;
+                R( prim*dim + i ) += ( -1 ) * ( B_Operator( gamma, prim * 3 + i ) * StressVector( gamma ) *
+                                                detJ * Weight );
             }
-                
-            R( prim * dim + i ) -= InternalForces[i];
-                
-            if( i == 0 )
-                GetGeometry()[prim].GetSolutionStepValue( REACTION_X ) += InternalForces[i];
-                
-            if( i == 1 )
-                GetGeometry()[prim].GetSolutionStepValue( REACTION_Y ) += InternalForces[i];
-                    
-            if( i == 2 )
-                GetGeometry()[prim].GetSolutionStepValue( REACTION_Z ) += InternalForces[i];
         }
     }
+//         noalias(R) -= detJ*Weight* prod(trans(B_Operator),StressVector);
 
     KRATOS_CATCH( "" )
 }
