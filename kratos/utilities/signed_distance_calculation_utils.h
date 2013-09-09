@@ -177,7 +177,7 @@ public:
         boost::numeric::ublas::bounded_matrix<double,TDim+1,TDim> DN_DX;
         array_1d<double,TDim+1> N, distances;
         array_1d<double,TDim> grad_d;
-        array_1d<double,3> coord_on_0;
+        array_1d<double,3> coord_on_0(3,0.0);
         array_1d<double,3> temp;
         boost::numeric::ublas::bounded_matrix<double, TDim, TDim> free_surface_points;
 
