@@ -112,6 +112,8 @@ class MonolithicSolver:
         self.spalart_allmaras_linear_solver = None
         self.turbulence_model = None
 
+        self.divergence_clearance_steps = 0
+
         
     #######################################################################
     def Initialize(self):
@@ -165,6 +167,17 @@ class MonolithicSolver:
     #######################################################################   
     def Solve(self):
         (self.solver).Solve()
+        if self.divergence_clearance_steps > 0:
+            self.divergence_clearance_steps -= 1
+            for node in self.model_part:
+                node.SetSolutionStepValue(PRESSURE,0,0.0)
+                node.SetSolutionStepValue(ACCELERATION_X,0,0.0)
+                node.SetSolutionStepValue(ACCELERATION_Y,0,0.0)
+                node.SetSolutionStepValue(ACCELERATION_Z,0,0.0)
+            if self.use_spalart_allmaras:
+                for node in self.model_part:
+                    visc = node.GetSolutionStepValue(MOLECULAR_VISCOSITY,0)
+                    node.SetSolutionStepValue(VISCOSITY,0,visc)
        
 
     #######################################################################   
@@ -190,15 +203,10 @@ class MonolithicSolver:
             self.redistance_utils = ParallelDistanceCalculator2D()
         else:
             self.redistance_utils = ParallelDistanceCalculator3D()
-
+            
         max_levels = 100
         max_distance = 1000
         self.redistance_utils.CalculateDistancesLagrangianSurface(self.model_part,DISTANCE,NODAL_AREA,max_levels,max_distance)
-
-        # Note: For some reason CalculateDistancesLagrangianSurface is setting distance=max_dist on reference nodes... undoing this change here
-        for node in self.wall_nodes:
-            node.SetValue(IS_VISITED,1.0)
-            node.SetSolutionStepValue(DISTANCE,0,0.0)
 
         non_linear_tol = 0.001
         max_it = 10
@@ -253,6 +261,7 @@ def CreateSolver( model_part, config ):
     if( hasattr(config,"echo_level") ): fluid_solver.echo_level = config.echo_level
     if( hasattr(config,"compute_reactions") ): fluid_solver.compute_reactions = config.compute_reactions
     if( hasattr(config,"ReformDofSetAtEachStep") ): fluid_solver.ReformDofSetAtEachStep = config.ReformDofSetAtEachStep
+    if( hasattr(config,"divergence_clearance_step") ): fluid_solver.divergence_clearance_steps = config.divergence_clearance_step
         
     import trilinos_linear_solver_factory
     if( hasattr(config,"linear_solver_config") ): fluid_solver.linear_solver =  trilinos_linear_solver_factory.ConstructSolver(config.linear_solver_config)

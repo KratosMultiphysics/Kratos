@@ -116,6 +116,8 @@ class IncompressibleFluidSolver:
         self.wall_nodes = list()
         self.spalart_allmaras_linear_solver = None
 
+        self.divergence_clearance_steps = 0
+
     def Initialize(self):
         (self.neighbour_search).Execute()
         
@@ -174,11 +176,6 @@ class IncompressibleFluidSolver:
             max_levels = 100
             max_distance = 1000
             self.redistance_utils.CalculateDistancesLagrangianSurface(self.model_part,DISTANCE,NODAL_AREA,max_levels,max_distance)
-
-            # Note: For some reason CalculateDistancesLagrangianSurface is setting distance=max_dist on reference nodes... undoing this change here
-            for node in self.wall_nodes:
-                 node.SetValue(IS_VISITED,1.0)
-                 node.SetSolutionStepValue(DISTANCE,0,0.0)
 
             non_linear_tol = 0.001
             max_it = 10
@@ -249,23 +246,20 @@ class IncompressibleFluidSolver:
 ##            self.create_slip_conditions.Execute()
 ##            #(self.solver).SetSlipProcess(self.create_slip_conditions);
 ##            self.slip_conditions_initialized = True
-
+        
         (self.solver).Solve()
 
         if(self.compute_reactions == True):
             self.solver.CalculateReactions()
-        #(self.solver).ApplyFractionalVelocityFixity()
-        #(self.solver).InitializeFractionalStep(self.step, self.time_order);
-        #(self.solver).InitializeProjections(self.step,self.projections_are_initialized);
-        #self.projections_are_initialized = True;
-
-        #(self.solver).AssignInitialStepValues();
-
-        #(self.solver).SolveStep1(self.vel_toll,self.max_vel_its)
-        #(self.solver).SolveStep2();
-        #(self.solver).ActOnLonelyNodes();
-        #(self.solver).SolveStep3();
-        #(self.solver).SolveStep4();
+            
+        if self.divergence_clearance_steps > 0:
+            self.divergence_clearance_steps -= 1
+            for node in self.model_part:
+                node.SetSolutionStepValue(PRESSURE,0,0.0)
+            if self.use_spalart_allmaras:
+                for node in self.model_part:
+                    visc = node.GetSolutionStepValue(MOLECULAR_VISCOSITY,0)
+                    node.SetSolutionStepValue(VISCOSITY,0,visc)
 
     def Clear(self):
         (self.solver).Clear()
@@ -318,6 +312,7 @@ def CreateSolver( model_part, config ):
     import trilinos_linear_solver_factory
     if( hasattr(config,"pressure_linear_solver_config") ): fluid_solver.pressure_linear_solver =  trilinos_linear_solver_factory.ConstructSolver(config.pressure_linear_solver_config)
     if( hasattr(config,"velocity_linear_solver_config") ): fluid_solver.velocity_linear_solver =  trilinos_linear_solver_factory.ConstructSolver(config.velocity_linear_solver_config)
+    if( hasattr(config,"divergence_clearance_step") ): fluid_solver.divergence_clearance_steps = config.divergence_clearance_step
     
     #RANS or DES settings
     if hasattr(config,"TurbulenceModel") :
