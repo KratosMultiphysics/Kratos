@@ -154,17 +154,39 @@ public:
 
         //check that variables needed are in the model part
         if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rDistanceVar)) )
-            KRATOS_ERROR(std::logic_error,"distance Variable is not in the model part","")
-            if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
-                KRATOS_ERROR(std::logic_error,"Area Variable is not in the model part","")
+            KRATOS_ERROR(std::logic_error,"distance Variable is not in the model part","");
+        if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(rAreaVar)) )
+            KRATOS_ERROR(std::logic_error,"Area Variable is not in the model part","");
 
-                if(is_distributed == true)
-                    if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
-                        KRATOS_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","")
+        if(is_distributed == true)
+            if(!(rModelPart.NodesBegin()->SolutionStepsDataHas(PARTITION_INDEX)) )
+                KRATOS_ERROR(std::logic_error,"PARTITION_INDEX Variable is not in the model part","");
 
                         array_1d<double,TDim+1> visited;
         const int elem_size = rModelPart.Elements().size();
         const int node_size = rModelPart.Nodes().size();
+
+        // set to zero the distance
+        #pragma omp parallel for
+        for(int i = 0; i<node_size; i++)
+        {
+            ModelPart::NodesContainerType::iterator it=rModelPart.NodesBegin()+i;
+            double& area = it->FastGetSolutionStepValue(rAreaVar);
+            area = 0.0;
+            double& is_visited = it->GetValue(IS_VISITED);
+            double& distance = it->FastGetSolutionStepValue(rDistanceVar);
+            it->GetValue(rDistanceVar) = it->FastGetSolutionStepValue(rDistanceVar);
+            if(is_visited != 1.0)
+            {
+                distance = 0.0;
+            }
+            else
+                area = 1.0;
+//            else if(dist < 0.0)
+//                    KRATOS_ERROR(std::logic_error,"ATTENTION: prescribed distance function set to a number smaller than 0!!","");
+
+
+        }
 
         array_1d<double,TDim+1> N;
         boost::numeric::ublas::bounded_matrix <double, TDim+1,TDim> DN_DX;
@@ -250,16 +272,14 @@ public:
             const double area = it->FastGetSolutionStepValue(rAreaVar);
             double& dist = it->FastGetSolutionStepValue(rDistanceVar);
 
-            if(dist < 0.0)
-                KRATOS_ERROR(std::logic_error,"IMPOSSIBLE negative distance found !!","");
 
             if(dist > max_distance || area <1e-20)
                 dist = max_distance;
 
-            if(it->GetValue(IS_FLUID) == 1.0)
-                dist = -fabs(dist);
-            else
-                dist = fabs(dist);
+//            if(it->GetValue(IS_FLUID) == 1.0)
+//                dist = -fabs(dist);
+//            else
+//                dist = fabs(dist);
         }
 
         KRATOS_CATCH("")
