@@ -106,10 +106,10 @@ class MonolithicSolver:
     def Initialize(self):
 
         # time scheme
-        if self.turbulence_model == None:
+        if self.turbulence_model is None:
             self.time_scheme = GearScheme()
         else:
-            self.time_scheme = GearSheme(self.turbulence_model)
+            self.time_scheme = GearScheme(self.turbulence_model)
 
         #creating the solution strategy
         self.conv_criteria = VelPrCriteria(self.rel_vel_tol,self.abs_vel_tol,\
