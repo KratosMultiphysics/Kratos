@@ -3,6 +3,8 @@ import sys
 import inspect
 import kratos_globals
 
+from kratos_utilities import *
+
 # this adds the libs/ and applications/ folders to sys.path
 import KratosLoader
 
