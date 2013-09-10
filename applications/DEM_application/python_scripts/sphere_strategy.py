@@ -16,6 +16,7 @@ def AddVariables(model_part, Param):
     # KINEMATIC
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(RADIAL_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
     model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
