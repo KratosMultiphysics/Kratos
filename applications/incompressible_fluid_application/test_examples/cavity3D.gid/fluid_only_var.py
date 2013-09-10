@@ -11,6 +11,6 @@ use_oss = 0
 dynamic_tau = 1.0
 # Declare Python Variables
 
-problem_name="cavity3D"
-problem_path="/home/rrossi/kratos/applications/incompressible_fluid_application/test_examples/cavity3D.gid"
-kratos_path="/home/rrossi/kratos"
+problem_name = "cavity3D"
+problem_path = "/home/rrossi/kratos/applications/incompressible_fluid_application/test_examples/cavity3D.gid"
+kratos_path = "/home/rrossi/kratos"

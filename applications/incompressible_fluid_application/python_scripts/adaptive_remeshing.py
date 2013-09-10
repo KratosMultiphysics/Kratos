@@ -1,11 +1,13 @@
-#importing the Kratos Library
+# importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.MeshingApplication import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
+
 class AdaptiveRemeshing:
+
     """ This class allows refining the problem mesh at run time.
 
         It will split all elements where some error estimate surpasses a given
@@ -17,7 +19,7 @@ class AdaptiveRemeshing:
         variable (in that case, call RefineOnErrorRatio instead).
     """
 
-    def __init__(self,model_part,domain_size,solver,do_swap=True):
+    def __init__(self, model_part, domain_size, solver, do_swap=True):
         """ Constructor for AdaptiveRemeshing.
             model_part ModelPart containing the mesh to be refined
             domain_size Spatial dimension (2 or 3)
@@ -45,24 +47,25 @@ class AdaptiveRemeshing:
         # Neigbour search tool instance
         AvgElemNum = 10
         AvgNodeNum = 10
-        self.nodal_neighbour_search = FindNodalNeighboursProcess(model_part,\
-                                                                 AvgElemNum,\
+        self.nodal_neighbour_search = FindNodalNeighboursProcess(model_part,
+                                                                 AvgElemNum,
                                                                  AvgNodeNum)
 
         # Find neighbours
         self.nodal_neighbour_search.Execute()
 
-    def EstimateTimeStep(self,CFL,max_dt):
+    def EstimateTimeStep(self, CFL, max_dt):
         """ Return the maximum time step for which the Courant number is
             lesser or equal to CFL.
 
             The max_dt parameter is an upper bound for situations with low
             velocities.
         """
-        NewDt = self.time_estimator.EstimateDt(CFL,max_dt)
+        NewDt = self.time_estimator.EstimateDt(CFL, max_dt)
         return NewDt
 
-    def RefineOnErrorRatio(self,refine_var,refine_tol,min_area,max_refinements):
+    def RefineOnErrorRatio(
+            self, refine_var, refine_tol, min_area, max_refinements):
         """ Refine all elements where the refine_var variable value is greater
             than refine_tol.
 
@@ -78,27 +81,27 @@ class AdaptiveRemeshing:
         self.fluid_solver.solver.Clear()
 
         # Identify refinement candidates
-        self.refinement_utilities.MarkForRefinement(refine_var,\
-                                                    self.model_part,\
-                                                    self.domain_size,\
-                                                    refine_tol,\
-                                                    min_area,\
+        self.refinement_utilities.MarkForRefinement(refine_var,
+                                                    self.model_part,
+                                                    self.domain_size,
+                                                    refine_tol,
+                                                    min_area,
                                                     max_refinements)
 
         # Refine
         refine_on_reference = True
         interpolate_internal_variables = False
-        self.refinement_process.LocalRefineMesh(refine_on_reference,\
+        self.refinement_process.LocalRefineMesh(refine_on_reference,
                                                 interpolate_internal_variables)
 
         # In 2D, swap edges to improve mesh quality
-        if (self.domain_size == 2 and self.do_swap==True):
+        if (self.domain_size == 2 and self.do_swap):
             self.swapping_process.ReGenerateMesh(self.model_part)
 
         # Update neigbours
         self.nodal_neighbour_search.Execute()
 
-    def RefineOnSubscaleError(self,refine_tol,min_area,max_refinements):
+    def RefineOnSubscaleError(self, refine_tol, min_area, max_refinements):
         """ Refine elements using an error estimate based on the subscales.
 
             Equivalent to RefineErrorRatio, but specific for VMS2D and VMS3D
@@ -112,5 +115,8 @@ class AdaptiveRemeshing:
         """
 
         self.refinement_utilities.SubscaleErrorEstimate(self.model_part)
-        self.RefineOnErrorRatio(ERROR_RATIO,refine_tol,min_area,max_refinements)
-        
+        self.RefineOnErrorRatio(
+            ERROR_RATIO,
+            refine_tol,
+            min_area,
+            max_refinements)

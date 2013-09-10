@@ -17,6 +17,6 @@ number_of_inital_steps = 1
 initial_time_step = 0.0001
 # Declare Python Variables
 
-problem_name="mass_conservation"
-problem_path="."
-kratos_path="../../../../"
+problem_name = "mass_conservation"
+problem_path = "."
+kratos_path = "../../../../"

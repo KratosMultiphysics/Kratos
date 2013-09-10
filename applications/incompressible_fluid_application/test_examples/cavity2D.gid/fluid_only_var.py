@@ -12,6 +12,6 @@ use_oss = 0
 dynamic_tau = 0.001
 # Declare Python Variables
 
-problem_name="cavity2D"
-problem_path="."
-kratos_path="../../../.."
+problem_name = "cavity2D"
+problem_path = "."
+kratos_path = "../../../.."

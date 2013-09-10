@@ -1,17 +1,19 @@
 import sys
-kratos_benchmarking_path = '../../../../benchmarking' 
+kratos_benchmarking_path = '../../../../benchmarking'
 sys.path.append(kratos_benchmarking_path)
 import benchmarking
 
 Text = " "
 
-################################################################
+#
 # StillWater_Elembased_halfPorous
 
 print "Running StillWater_Elembased_halfPorous..."
-Msg = benchmarking.RunBenchmark("StillWater_Elembased_halfPorous_script.py", "StillWater_Elembased_halfPorous_ref.txt")	
+Msg = benchmarking.RunBenchmark(
+    "StillWater_Elembased_halfPorous_script.py",
+    "StillWater_Elembased_halfPorous_ref.txt")
 
-if (Msg == True):
+if (Msg):
         Text += "OK\n"
         print "StillWater_Elembased_halfPorous example succesful"
 else:

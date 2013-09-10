@@ -11,6 +11,6 @@ use_oss = 0
 dynamic_tau = 1
 # Declare Python Variables
 
-problem_name="CavityMonolithic3D"
-problem_path="/home/kazem/kratos/applications/incompressible_fluid_application/test_examples/CavityMonolithic3D.gid"
-kratos_path="/home/kazem/kratos"
+problem_name = "CavityMonolithic3D"
+problem_path = "/home/kazem/kratos/applications/incompressible_fluid_application/test_examples/CavityMonolithic3D.gid"
+kratos_path = "/home/kazem/kratos"
