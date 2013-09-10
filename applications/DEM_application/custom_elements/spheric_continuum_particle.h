@@ -214,6 +214,7 @@ namespace Kratos
         //MSIMSI 6 aixo hauria de cridar el del basic o cal ke sigui del continu?
         
         void ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo);
+        void StepWiseForceCalculation(double LocalElasticContactForce[3], double kn, double indentation, double corrected_area );
         
         //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
@@ -278,8 +279,12 @@ namespace Kratos
         vector<int> mMapping_New_Ini;
         Vector mHistDist;
         
-       
-                   
+        //Non-linear
+         double mN1;
+         double mN2;
+         double mC1;
+         double mC2;
+                            
         
         //FOR DEM_FEM APP
         
