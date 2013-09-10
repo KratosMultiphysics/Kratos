@@ -29,10 +29,10 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
 
     if config is not None:
-        if hasattr(config,"TurbulenceModel"):
+        if hasattr(config, "TurbulenceModel"):
             if config.TurbulenceModel == "Spalart-Allmaras":
-                model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
-                model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY);
+                model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY)
+                model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY)
                 model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
                 model_part.AddNodalSolutionStepVariable(DISTANCE)
 
@@ -48,7 +48,7 @@ def AddDofs(model_part, config=None):
         node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)
 
     if config is not None:
-        if hasattr(config,"TurbulenceModel"):
+        if hasattr(config, "TurbulenceModel"):
             if config.TurbulenceModel == "Spalart-Allmaras":
                 for node in model_part.Nodes:
                     node.AddDof(TURBULENT_VISCOSITY)
@@ -111,7 +111,7 @@ class MonolithicSolver:
 
         self.divergence_clearance_steps = 0
 
-	print "Construction monolithic solver finished"
+        print "Construction monolithic solver finished"
 
     #
     def Initialize(self):
@@ -123,7 +123,7 @@ class MonolithicSolver:
                     break
 
         # if we use slip conditions, calculate normals on the boundary
-        if self.use_slip_conditions == True:
+        if self.use_slip_conditions:
             self.normal_util = NormalCalculationUtils()
             self.normal_util.CalculateOnSimplex(
                 self.model_part, self.domain_size, IS_STRUCTURE)
@@ -132,7 +132,7 @@ class MonolithicSolver:
                 if cond.GetValue(IS_STRUCTURE) != 0.0:
                     for node in cond.GetNodes():
                         node.SetValue(IS_STRUCTURE, 1.0)
-        
+
         # Turbulence model
         if self.use_spalart_allmaras:
             self.activate_spalart_allmaras()
@@ -171,6 +171,7 @@ class MonolithicSolver:
     def Solve(self):
 
         if self.divergence_clearance_steps > 0:
+            print "Calculating divergence-free initial condition"
             # initialize with a Stokes solution step
             try:
                 import KratosMultiphysics.ExternalSolversApplication as kes
@@ -180,26 +181,37 @@ class MonolithicSolver:
                 max_iter = 200
                 tol = 1e-7
                 verbosity = 0
-                stokes_linear_solver = kes.AMGCLSolver(smoother_type,solver_type,tol,max_iter,verbosity,gmres_size)
+                stokes_linear_solver = kes.AMGCLSolver(
+                    smoother_type,
+                    solver_type,
+                    tol,
+                    max_iter,
+                    verbosity,
+                    gmres_size)
             except:
                 pPrecond = DiagonalPreconditioner()
                 stokes_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
-            stokes_process = StokesInitializationProcess(self.model_part,stokes_linear_solver,self.domain_size,PATCH_INDEX)
+            stokes_process = StokesInitializationProcess(
+                self.model_part,
+                stokes_linear_solver,
+                self.domain_size,
+                PATCH_INDEX)
             # copy periodic conditions to Stokes problem
             stokes_process.SetConditions(self.model_part.Conditions)
             # execute Stokes process
             stokes_process.Execute()
 
             for node in self.model_part.Nodes:
-                node.SetSolutionStepValue(PRESSURE,0,0.0)
-                node.SetSolutionStepValue(ACCELERATION_X,0,0.0)
-                node.SetSolutionStepValue(ACCELERATION_Y,0,0.0)
-                node.SetSolutionStepValue(ACCELERATION_Z,0,0.0)
+                node.SetSolutionStepValue(PRESSURE, 0, 0.0)
+                node.SetSolutionStepValue(ACCELERATION_X, 0, 0.0)
+                node.SetSolutionStepValue(ACCELERATION_Y, 0, 0.0)
+                node.SetSolutionStepValue(ACCELERATION_Z, 0, 0.0)
 #                vel = node.GetSolutionStepValue(VELOCITY)
 #                for i in range(0,2):
 #                    node.SetSolutionStepValue(VELOCITY,i,vel)
 
             self.divergence_clearance_steps = 0
+            print "Finished divergence clearance"
 
         if self.ReformDofSetAtEachStep:
             if self.use_slip_conditions:
@@ -209,7 +221,6 @@ class MonolithicSolver:
                 self.neighbour_search.Execute()
 
         (self.solver).Solve()
-
 
     #
     def SetEchoLevel(self, level):
@@ -229,17 +240,22 @@ class MonolithicSolver:
 
         # Spalart-Allmaras initialization
         for node in self.wall_nodes:
-            node.SetValue(IS_VISITED,1.0)
-            node.SetSolutionStepValue(DISTANCE,0,0.0)
+            node.SetValue(IS_VISITED, 1.0)
+            node.SetSolutionStepValue(DISTANCE, 0, 0.0)
 
         if(self.domain_size == 2):
             self.redistance_utils = ParallelDistanceCalculator2D()
         else:
             self.redistance_utils = ParallelDistanceCalculator3D()
-            
+
         max_levels = 100
         max_distance = 1000
-        self.redistance_utils.CalculateDistancesLagrangianSurface(self.model_part,DISTANCE,NODAL_AREA,max_levels,max_distance)
+        self.redistance_utils.CalculateDistancesLagrangianSurface(
+            self.model_part,
+            DISTANCE,
+            NODAL_AREA,
+            max_levels,
+            max_distance)
 
         # Spalart-Allmaras uses the componentwise builder and solver, which
         # requires a neighbour search
@@ -252,56 +268,71 @@ class MonolithicSolver:
         non_linear_tol = 0.001
         max_it = 10
         reform_dofset = self.ReformDofSetAtEachStep
-        time_order = 2 
+        time_order = 2
 
         if self.spalart_allmaras_linear_solver is None:
             pPrecond = DiagonalPreconditioner()
-            self.spalart_allmaras_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
+            self.spalart_allmaras_linear_solver = BICGSTABSolver(
+                1e-9, 5000, pPrecond)
 
         self.turbulence_model = SpalartAllmarasTurbulenceModel(
-                                          self.model_part,
-                                          self.spalart_allmaras_linear_solver,
-                                          self.domain_size,
-                                          non_linear_tol,
-                                          max_it,
-                                          reform_dofset,
-                                          time_order)
+            self.model_part,
+            self.spalart_allmaras_linear_solver,
+            self.domain_size,
+            non_linear_tol,
+            max_it,
+            reform_dofset,
+            time_order)
         if self.use_des:
             self.turbulence_model.ActivateDES(self.Cdes)
-            
-       
-#################################################################################################
-################################################################################################# 
-def CreateSolver( model_part, config ):
-    fluid_solver = MonolithicSolver( model_part, config.domain_size )
-    
-    if( hasattr(config,"alpha") ): fluid_solver.alpha = config.alpha
-    
+
+
+#
+#
+def CreateSolver(model_part, config):
+    fluid_solver = MonolithicSolver(model_part, config.domain_size)
+
+    if(hasattr(config, "alpha")):
+        fluid_solver.alpha = config.alpha
+
     # definition of the convergence criteria
-    if( hasattr(config,"velocity_relative_tolerance") ): fluid_solver.rel_vel_tol = config.velocity_relative_tolerance
-    if( hasattr(config,"velocity_absolute_tolerance") ): fluid_solver.abs_vel_tol = config.velocity_absolute_tolerance
-    if( hasattr(config,"pressure_relative_tolerance") ): fluid_solver.rel_pres_tol = config.pressure_relative_tolerance
-    if( hasattr(config,"pressure_absolute_tolerance") ): fluid_solver.abs_pres_tol = config.pressure_absolute_tolerance
-    if( hasattr(config,"dynamic_tau") ): fluid_solver.dynamic_tau = config.dynamic_tau
-    if( hasattr(config,"oss_switch") ): fluid_solver.oss_switch = config.oss_switch
-    if( hasattr(config,"max_iteration") ): fluid_solver.max_iter = config.max_iteration
-    if( hasattr(config,"echo_level") ): fluid_solver.echo_level = config.echo_level
-    if( hasattr(config,"compute_reactions") ): fluid_solver.compute_reactions = config.compute_reactions
-    if( hasattr(config,"ReformDofSetAtEachStep") ): fluid_solver.ReformDofSetAtEachStep = config.ReformDofSetAtEachStep
-    if( hasattr(config,"divergence_cleareance_step") ): fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
-    if hasattr(config,"TurbulenceModel") :
+    if(hasattr(config, "velocity_relative_tolerance")):
+        fluid_solver.rel_vel_tol = config.velocity_relative_tolerance
+    if(hasattr(config, "velocity_absolute_tolerance")):
+        fluid_solver.abs_vel_tol = config.velocity_absolute_tolerance
+    if(hasattr(config, "pressure_relative_tolerance")):
+        fluid_solver.rel_pres_tol = config.pressure_relative_tolerance
+    if(hasattr(config, "pressure_absolute_tolerance")):
+        fluid_solver.abs_pres_tol = config.pressure_absolute_tolerance
+    if(hasattr(config, "dynamic_tau")):
+        fluid_solver.dynamic_tau = config.dynamic_tau
+    if(hasattr(config, "oss_switch")):
+        fluid_solver.oss_switch = config.oss_switch
+    if(hasattr(config, "max_iteration")):
+        fluid_solver.max_iter = config.max_iteration
+    if(hasattr(config, "echo_level")):
+        fluid_solver.echo_level = config.echo_level
+    if(hasattr(config, "compute_reactions")):
+        fluid_solver.compute_reactions = config.compute_reactions
+    if(hasattr(config, "ReformDofSetAtEachStep")):
+        fluid_solver.ReformDofSetAtEachStep = config.ReformDofSetAtEachStep
+    if(hasattr(config, "divergence_cleareance_step")):
+        fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
+    if hasattr(config, "TurbulenceModel"):
         if config.TurbulenceModel == "Spalart-Allmaras":
             fluid_solver.use_spalart_allmaras = True
         elif config.TurbulenceModel == "Smagorinsky-Lilly":
-            if hasattr(config,"SmagorinskyConstant"):
+            if hasattr(config, "SmagorinskyConstant"):
                 fluid_solver.activate_smagorinsky(config.SmagorinskyConstant)
             else:
                 msg = """Fluid solver error: Smagorinsky model requested, but
                          the value for the Smagorinsky constant is
                          undefined."""
                 raise Exception(msg)
-        
+
     import linear_solver_factory
-    if( hasattr(config,"linear_solver_config") ): fluid_solver.linear_solver =  linear_solver_factory.ConstructSolver(config.linear_solver_config)
-    
+    if(hasattr(config, "linear_solver_config")):
+        fluid_solver.linear_solver = linear_solver_factory.ConstructSolver(
+            config.linear_solver_config)
+
     return fluid_solver

@@ -27,13 +27,14 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(REACTION)
     model_part.AddNodalSolutionStepVariable(Y_WALL)
     model_part.AddNodalSolutionStepVariable(NORMAL)
-    model_part.AddNodalSolutionStepVariable(PATCH_INDEX) #Stokes needs it (in case periodic conditions are required)
+    #Stokes needs it (in case periodic conditions are required)
+    model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
 
     if config is not None:
-        if hasattr(config,"TurbulenceModel"):
+        if hasattr(config, "TurbulenceModel"):
             if config.TurbulenceModel == "Spalart-Allmaras":
-                model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY);
-                model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY);
+                model_part.AddNodalSolutionStepVariable(TURBULENT_VISCOSITY)
+                model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY)
                 model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
                 model_part.AddNodalSolutionStepVariable(DISTANCE)
     print "variables for the vms fluid solver added correctly"
@@ -49,12 +50,13 @@ def AddDofs(model_part, config=None):
         node.AddDof(VELOCITY_Z)
 
     if config is not None:
-        if hasattr(config,"TurbulenceModel"):
+        if hasattr(config, "TurbulenceModel"):
             if config.TurbulenceModel == "Spalart-Allmaras":
                 for node in model_part.Nodes:
                     node.AddDof(TURBULENT_VISCOSITY)
 
     print "dofs for the vms fluid solver added correctly"
+
 
 class IncompressibleFluidSolver:
 
@@ -106,7 +108,7 @@ class IncompressibleFluidSolver:
         self.compute_reactions = False
 
         self.use_slip_conditions = False
-        
+
         self.use_spalart_allmaras = False
         self.use_des = False
         self.Cdes = 1.0
@@ -152,7 +154,7 @@ class IncompressibleFluidSolver:
                     break
 
         # if we use slip conditions, calculate normals on the boundary
-        if self.use_slip_conditions == True:
+        if self.use_slip_conditions:
             self.normal_util = NormalCalculationUtils()
             self.normal_util.CalculateOnSimplex(
                 self.model_part, self.domain_size, IS_STRUCTURE)
@@ -190,16 +192,21 @@ class IncompressibleFluidSolver:
         if self.use_spalart_allmaras:
             for node in self.wall_nodes:
                 node.SetValue(IS_VISITED, 1.0)
-                node.SetSolutionStepValue(DISTANCE,0,0.0)
+                node.SetSolutionStepValue(DISTANCE, 0, 0.0)
 
             if(self.domain_size == 2):
                 self.redistance_utils = ParallelDistanceCalculator2D()
             else:
                 self.redistance_utils = ParallelDistanceCalculator3D()
-            
+
             max_levels = 100
             max_distance = 1000
-            self.redistance_utils.CalculateDistancesLagrangianSurface(self.model_part,DISTANCE,NODAL_AREA,max_levels,max_distance)
+            self.redistance_utils.CalculateDistancesLagrangianSurface(
+                self.model_part,
+                DISTANCE,
+                NODAL_AREA,
+                max_levels,
+                max_distance)
 
             sa_non_linear_tol = 0.001
             sa_max_it = 10
@@ -230,15 +237,16 @@ class IncompressibleFluidSolver:
         print "finished initialization of the fluid strategy"
 
     def Solve(self):
-        if(self.ReformDofAtEachIteration == True):
+        if(self.ReformDofAtEachIteration):
 # self.solver.ApplyFractionalVelocityFixity()
             (self.neighbour_search).Execute()
 # self.slip_conditions_initialized = False
-            if self.use_slip_conditions == True:
+            if self.use_slip_conditions:
                 self.normal_util.CalculateOnSimplex(
                     self.model_part, self.domain_size, IS_STRUCTURE)
 
         if self.divergence_clearance_steps > 0:
+            print "Calculating divergence-free initial condition"
             # initialize with a Stokes solution step
             try:
                 import KratosMultiphysics.ExternalSolversApplication as kes
@@ -250,24 +258,35 @@ class IncompressibleFluidSolver:
                 max_iter = 200
                 tol = 1e-7
                 verbosity = 0
-                stokes_linear_solver = kes.AMGCLSolver(smoother_type,solver_type,tol,max_iter,verbosity,gmres_size)
+                stokes_linear_solver = kes.AMGCLSolver(
+                    smoother_type,
+                    solver_type,
+                    tol,
+                    max_iter,
+                    verbosity,
+                    gmres_size)
             except:
                 pPrecond = DiagonalPreconditioner()
                 stokes_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
-            stokes_process = StokesInitializationProcess(self.model_part,stokes_linear_solver,self.domain_size,PATCH_INDEX)
+            stokes_process = StokesInitializationProcess(
+                self.model_part,
+                stokes_linear_solver,
+                self.domain_size,
+                PATCH_INDEX)
             # copy periodic conditions to Stokes problem
             stokes_process.SetConditions(self.model_part.Conditions)
             # execute Stokes process
             stokes_process.Execute()
 
             for node in self.model_part.Nodes:
-                node.SetSolutionStepValue(PRESSURE,0,0.0)
+                node.SetSolutionStepValue(PRESSURE, 0, 0.0)
 
             self.divergence_clearance_steps = 0
-            
+            print "Finished divergence clearance"
+
         (self.solver).Solve()
 
-        if(self.compute_reactions == True):
+        if(self.compute_reactions):
             self.solver.CalculateReactions()  # REACTION)
 
     def Clear(self):
@@ -323,44 +342,57 @@ class IncompressibleFluidSolver:
         for elem in self.model_part.Elements:
             elem.SetValue(C_SMAGORINSKY, C)
 
-        
-       
-#################################################################################################
-#################################################################################################   
-def CreateSolver( model_part, config ):
-    fluid_solver = IncompressibleFluidSolver( model_part, config.domain_size )
-      
-    ##default settings 
+
+#
+#
+def CreateSolver(model_part, config):
+    fluid_solver = IncompressibleFluidSolver(model_part, config.domain_size)
+
+    # default settings
     fluid_solver.vel_toll = config.vel_toll
-    if( hasattr(config,"vel_toll") ): fluid_solver.vel_toll = config.vel_toll
-    if( hasattr(config,"press_toll") ): fluid_solver.press_toll = config.press_toll
-    if( hasattr(config,"max_vel_its") ): fluid_solver.max_vel_its = config.max_vel_its
-    if( hasattr(config,"max_press_its") ): fluid_solver.max_press_its = config.max_press_its
-    if( hasattr(config,"time_order") ): fluid_solver.time_order = config.time_order
-    if( hasattr(config,"compute_reactions") ): fluid_solver.compute_reactions = config.compute_reactions
-    if( hasattr(config,"ReformDofAtEachIteration") ): fluid_solver.ReformDofAtEachIteration = config.ReformDofAtEachIteration
-    if( hasattr(config,"predictor_corrector") ): fluid_solver.predictor_corrector = config.predictor_corrector
-    if( hasattr(config,"echo_level") ): fluid_solver.echo_level = config.echo_level
-    if( hasattr(config,"dynamic_tau") ): fluid_solver.dynamic_tau = config.dynamic_tau
+    if(hasattr(config, "vel_toll")):
+        fluid_solver.vel_toll = config.vel_toll
+    if(hasattr(config, "press_toll")):
+        fluid_solver.press_toll = config.press_toll
+    if(hasattr(config, "max_vel_its")):
+        fluid_solver.max_vel_its = config.max_vel_its
+    if(hasattr(config, "max_press_its")):
+        fluid_solver.max_press_its = config.max_press_its
+    if(hasattr(config, "time_order")):
+        fluid_solver.time_order = config.time_order
+    if(hasattr(config, "compute_reactions")):
+        fluid_solver.compute_reactions = config.compute_reactions
+    if(hasattr(config, "ReformDofAtEachIteration")):
+        fluid_solver.ReformDofAtEachIteration = config.ReformDofAtEachIteration
+    if(hasattr(config, "predictor_corrector")):
+        fluid_solver.predictor_corrector = config.predictor_corrector
+    if(hasattr(config, "echo_level")):
+        fluid_solver.echo_level = config.echo_level
+    if(hasattr(config, "dynamic_tau")):
+        fluid_solver.dynamic_tau = config.dynamic_tau
 
-    #linear solver settings
+    # linear solver settings
     import linear_solver_factory
-    if( hasattr(config,"pressure_linear_solver_config") ): fluid_solver.pressure_linear_solver =  linear_solver_factory.ConstructSolver(config.pressure_linear_solver_config)
-    if( hasattr(config,"velocity_linear_solver_config") ): fluid_solver.velocity_linear_solver =  linear_solver_factory.ConstructSolver(config.velocity_linear_solver_config)
-    if( hasattr(config,"divergence_cleareance_step") ): fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
+    if(hasattr(config, "pressure_linear_solver_config")):
+        fluid_solver.pressure_linear_solver = linear_solver_factory.ConstructSolver(
+            config.pressure_linear_solver_config)
+    if(hasattr(config, "velocity_linear_solver_config")):
+        fluid_solver.velocity_linear_solver = linear_solver_factory.ConstructSolver(
+            config.velocity_linear_solver_config)
+    if(hasattr(config, "divergence_cleareance_step")):
+        fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
 
-    #RANS or DES settings
-    if hasattr(config,"TurbulenceModel") :
+    # RANS or DES settings
+    if hasattr(config, "TurbulenceModel"):
         if config.TurbulenceModel == "Spalart-Allmaras":
             fluid_solver.use_spalart_allmaras = True
         elif config.TurbulenceModel == "Smagorinsky-Lilly":
-            if hasattr(config,"SmagorinskyConstant"):
+            if hasattr(config, "SmagorinskyConstant"):
                 fluid_solver.activate_smagorinsky(config.SmagorinskyConstant)
             else:
                 msg = """Fluid solver error: Smagorinsky model requested, but
                          the value for the Smagorinsky constant is
                          undefined."""
                 raise Exception(msg)
-    
+
     return fluid_solver
-    
