@@ -16,7 +16,7 @@ def ImportApplication(application,application_name,application_folder,caller):
     #print caller
     #print main_caller
     raise RuntimeError(msg)
-  elif Globals.RequestedApplications.has_key(application_name) == False: # This check is possibly redundant, as Python won't import the same module twice
+  elif application_name not in Globals.RequestedApplications: # This check is possibly redundant, as Python won't import the same module twice
     print "Importing "+application_name
     # Add application to dictionary of registered applications
     Globals.RequestedApplications[application_name] = application
