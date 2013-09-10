@@ -6,6 +6,7 @@ def AddVariables(model_part, Param):
     # KINEMATIC
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(RADIAL_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
     model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
@@ -537,7 +538,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MIN, self.sigma_min)
         self.model_part.ProcessInfo.SetValue(CONTACT_TAU_ZERO, self.tau_zero)
         self.model_part.ProcessInfo.SetValue(CONTACT_INTERNAL_FRICC, self.internal_fricc)
-                
+        
         if (self.force_calculation_type_id == 2):
             self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N1, self.N1)
             self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N2, self.N2)
