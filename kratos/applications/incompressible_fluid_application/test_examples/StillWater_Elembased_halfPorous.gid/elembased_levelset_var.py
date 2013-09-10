@@ -15,6 +15,6 @@ extrapolation_layers = 5
 delta_time_coefficient = 1000
 # Declare Python Variables
 
-problem_name="StillWater_Elembased_halfPorous"
-problem_path="/home/antonia/kratos/applications/incompressible_fluid_application/test_examples/StillWater_Elembased_halfPorous.gid"
-kratos_path="/home/antonia/kratos"
+problem_name = "StillWater_Elembased_halfPorous"
+problem_path = "/home/antonia/kratos/applications/incompressible_fluid_application/test_examples/StillWater_Elembased_halfPorous.gid"
+kratos_path = "/home/antonia/kratos"
