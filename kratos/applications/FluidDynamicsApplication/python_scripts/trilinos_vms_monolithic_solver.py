@@ -166,19 +166,44 @@ class MonolithicSolver:
                              
     #######################################################################   
     def Solve(self):
-        (self.solver).Solve()
         if self.divergence_clearance_steps > 0:
-            self.divergence_clearance_steps -= 1
-            for node in self.model_part:
+            # initialize with a Stokes solution step
+            stokes_aztec_parameters = ParameterList()
+            stokes_aztec_parameters.set("AZ_solver","AZ_gmres")
+            stokes_aztec_parameters.set("AZ_kspace",100)
+            stokes_aztec_parameters.set("AZ_output","AZ_none")
+            
+            stokes_preconditioner_type = "ILU"
+            stokes_preconditioner_parameters = ParameterList()
+            stokes_overlap_level = 0
+            stokes_nit_max = 1000
+            stokes_linear_tol = 1e-9
+
+            stokes_linear_solver =  AztecSolver(stokes_aztec_parameters,
+                                                stokes_preconditioner_type,
+                                                stokes_preconditioner_parameters,
+                                                stokes_linear_tol,
+                                                stokes_nit_max,
+                                                stokes_overlap_level)
+            stokes_linear_solver.SetScalingType(AztecScalingType.LeftScaling)
+            stokes_process = TrilinosStokesInitializationProcess(self.Comm,self.model_part,stokes_linear_solver,self.domain_size,PATCH_INDEX)
+            # copy periodic conditions to Stokes problem
+            stokes_process.SetConditions(self.model_part.Conditions)
+            # execute Stokes process
+            stokes_process.Execute()
+
+            for node in self.model_part.Nodes:
                 node.SetSolutionStepValue(PRESSURE,0,0.0)
                 node.SetSolutionStepValue(ACCELERATION_X,0,0.0)
                 node.SetSolutionStepValue(ACCELERATION_Y,0,0.0)
                 node.SetSolutionStepValue(ACCELERATION_Z,0,0.0)
-            if self.use_spalart_allmaras:
-                for node in self.model_part:
-                    visc = node.GetSolutionStepValue(MOLECULAR_VISCOSITY,0)
-                    node.SetSolutionStepValue(VISCOSITY,0,visc)
-       
+#                vel = node.GetSolutionStepValue(VELOCITY)
+#                for i in range(0,2):
+#                    node.SetSolutionStepValue(VELOCITY,i,vel)
+
+            self.divergence_clearance_steps = 0
+        
+        (self.solver).Solve()
 
     #######################################################################   
     def SetEchoLevel(self,level):
@@ -261,7 +286,7 @@ def CreateSolver( model_part, config ):
     if( hasattr(config,"echo_level") ): fluid_solver.echo_level = config.echo_level
     if( hasattr(config,"compute_reactions") ): fluid_solver.compute_reactions = config.compute_reactions
     if( hasattr(config,"ReformDofSetAtEachStep") ): fluid_solver.ReformDofSetAtEachStep = config.ReformDofSetAtEachStep
-    if( hasattr(config,"divergence_clearance_step") ): fluid_solver.divergence_clearance_steps = config.divergence_clearance_step
+    if( hasattr(config,"divergence_cleareance_step") ): fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
         
     import trilinos_linear_solver_factory
     if( hasattr(config,"linear_solver_config") ): fluid_solver.linear_solver =  trilinos_linear_solver_factory.ConstructSolver(config.linear_solver_config)

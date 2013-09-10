@@ -170,7 +170,7 @@ class MonolithicSolver:
     #
     def Solve(self):
 
-        if False and self.divergence_clearance_steps > 0:
+        if self.divergence_clearance_steps > 0:
             # initialize with a Stokes solution step
             try:
                 import KratosMultiphysics.ExternalSolversApplication as kes

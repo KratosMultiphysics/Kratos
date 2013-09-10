@@ -239,6 +239,37 @@ class IncompressibleFluidSolver:
         
    
     def Solve(self):
+        if self.divergence_clearance_steps > 0:
+            # initialize with a Stokes solution step
+            stokes_aztec_parameters = ParameterList()
+            stokes_aztec_parameters.set("AZ_solver","AZ_gmres")
+            stokes_aztec_parameters.set("AZ_kspace",100)
+            stokes_aztec_parameters.set("AZ_output","AZ_none")
+            
+            stokes_preconditioner_type = "ILU"
+            stokes_preconditioner_parameters = ParameterList()
+            stokes_overlap_level = 0
+            stokes_nit_max = 1000
+            stokes_linear_tol = 1e-9
+
+            stokes_linear_solver =  AztecSolver(stokes_aztec_parameters,
+                                                stokes_preconditioner_type,
+                                                stokes_preconditioner_parameters,
+                                                stokes_linear_tol,
+                                                stokes_nit_max,
+                                                stokes_overlap_level)
+            stokes_linear_solver.SetScalingType(AztecScalingType.LeftScaling)
+            stokes_process = TrilinosStokesInitializationProcess(self.Comm,self.model_part,stokes_linear_solver,self.domain_size,PATCH_INDEX)
+            # copy periodic conditions to Stokes problem
+            stokes_process.SetConditions(self.model_part.Conditions)
+            # execute Stokes process
+            stokes_process.Execute()
+
+            for node in self.model_part.Nodes:
+                node.SetSolutionStepValue(PRESSURE,0,0.0)
+
+            self.divergence_clearance_steps = 0
+
         if(self.ReformDofAtEachIteration == True):
             self.slip_conditions_initialized = False
             (self.neighbour_search).Execute()
@@ -252,14 +283,6 @@ class IncompressibleFluidSolver:
         if(self.compute_reactions == True):
             self.solver.CalculateReactions()
             
-        if self.divergence_clearance_steps > 0:
-            self.divergence_clearance_steps -= 1
-            for node in self.model_part:
-                node.SetSolutionStepValue(PRESSURE,0,0.0)
-            if self.use_spalart_allmaras:
-                for node in self.model_part:
-                    visc = node.GetSolutionStepValue(MOLECULAR_VISCOSITY,0)
-                    node.SetSolutionStepValue(VISCOSITY,0,visc)
 
     def Clear(self):
         (self.solver).Clear()
@@ -312,7 +335,7 @@ def CreateSolver( model_part, config ):
     import trilinos_linear_solver_factory
     if( hasattr(config,"pressure_linear_solver_config") ): fluid_solver.pressure_linear_solver =  trilinos_linear_solver_factory.ConstructSolver(config.pressure_linear_solver_config)
     if( hasattr(config,"velocity_linear_solver_config") ): fluid_solver.velocity_linear_solver =  trilinos_linear_solver_factory.ConstructSolver(config.velocity_linear_solver_config)
-    if( hasattr(config,"divergence_clearance_step") ): fluid_solver.divergence_clearance_steps = config.divergence_clearance_step
+    if( hasattr(config,"divergence_cleareance_step") ): fluid_solver.divergence_clearance_steps = config.divergence_cleareance_step
     
     #RANS or DES settings
     if hasattr(config,"TurbulenceModel") :
