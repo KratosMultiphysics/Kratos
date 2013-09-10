@@ -18,4 +18,4 @@ REM export OMP_NUM_THREADS=%5
 set OMP_NUM_THREADS=%5
 
 REM Run Python using the script KratosOpenMP.py
-%3\\Python27\\python.exe KratosOpenMP.py > "%2\%1.info" 2> "%2\%1.err"
+"%3\\kratos\\runkratos" KratosOpenMP.py > "%2\\%1.info" 2> "%2\\%1.err"
