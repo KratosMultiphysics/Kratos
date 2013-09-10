@@ -240,6 +240,7 @@ endif(DEFINED KRATOS_INSTALL_PREFIX)
 # install core files for the KratosMultiphysics python module
 # note that this does not install KratosLoader.py, as it is different for installation and packaging runs (see next code block)
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/__init__.py" DESTINATION KratosMultiphysics )
+install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_utilities.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/kratos_globals.py" DESTINATION KratosMultiphysics )
 install(FILES "${CMAKE_SOURCE_DIR}/kratos/python_interface/application_importer.py" DESTINATION KratosMultiphysics )
 
