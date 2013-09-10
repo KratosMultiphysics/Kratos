@@ -143,9 +143,7 @@ if (Param.FixVelocitiesOption == 'ON'):
 
 balls_model_part.ProcessInfo.SetValue(STEP_FIX_VELOCITIES,int(step_to_fix_velocities))
 
-print(Pressure)
 solver.Initialize()
-print(Pressure)
 
 # Initialization of physics monitor and of the initial position of the center of mass
 
@@ -321,7 +319,7 @@ while (time < Param.FinalTime):
 
         total_force += force_node_y
         
-      total_stress = total_force/(math.pi*75*75) + (1e-6)*Pressure #Stress in MPa
+      total_stress = total_force/(math.pi*75*75)
       stresslist.append(total_stress)
   
     os.chdir(list_path)    
