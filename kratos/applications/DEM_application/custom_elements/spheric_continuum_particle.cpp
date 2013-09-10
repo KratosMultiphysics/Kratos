@@ -335,7 +335,7 @@ namespace Kratos
                                                           other_to_me_vect[2] * other_to_me_vect[2]);
             double radius_sum                     = mRadius + other_radius;
             double radius_sum_i                   = 1 / radius_sum;
-            double equiv_radius                   = 2 * mRadius * other_radius * radius_sum_i;
+            double equiv_radius                   = 2 * mRadius * other_radius * radius_sum_i; 
             
             double initial_delta                  = mNeighbourDelta[i_neighbour_count]; //*
             double initial_dist                   = (radius_sum - initial_delta);
@@ -403,7 +403,7 @@ namespace Kratos
 
             else {
 
-                kn                                = mMagicFactor * equiv_young * corrected_area * radius_sum_i;
+                kn                                = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //MSIMSI 1: initial gap? aki dividim nomes per suma de radis.
                 kt                                = kn / (2.0 + equiv_poisson + equiv_poisson);
                 aux_norm_to_tang                  = sqrt(kt / kn);
 
@@ -453,14 +453,17 @@ namespace Kratos
             {                                                                                                
               
               //Normal Forces
-
-
+              
              if(mElasticityType < 2)
              {
                    NormalForceCalculation(LocalElasticContactForce,kn,indentation);
 
              }
-
+             
+             else if(mElasticityType==2){
+             
+             StepWiseForceCalculation(LocalElasticContactForce, kn, indentation, corrected_area );
+             }
 /*
               else if(mElasticityType==3)
               {
@@ -961,6 +964,20 @@ namespace Kratos
           
          mSwitchPressure = &(rCurrentProcessInfo[SWITCH_PRESSURE]); 
          mInitializedVariablesFlag = 1;
+         
+         
+         //nonlinear parameters:
+         
+         if(mElasticityType == 2)
+         {
+           
+             mN1 = rCurrentProcessInfo[SLOPE_FRACTION_N1];
+             mN2 = rCurrentProcessInfo[SLOPE_FRACTION_N2];
+             mC1 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C1];
+             mC2 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C2];                                
+           
+         }
+         
            
         }// if (!mInitializedVariablesFlag)
          
@@ -1638,8 +1655,7 @@ namespace Kratos
 			//Debug only
             #pragma omp single
             { 
-				KRATOS_WATCH("Confinement application finished at time :")   
-                KRATOS_WATCH(current_time) 
+				std::cout<<"Confinement application finished at time :   "<<current_time<<std::endl;                   
             }
             
             *mSwitchPressure = 1;
@@ -1649,11 +1665,56 @@ namespace Kratos
      } //SphericContinuumParticle::ComputePressureForces
     
 
+    void SphericContinuumParticle::StepWiseForceCalculation(double LocalElasticContactForce[3], double kn, double indentation, double corrected_area )
+    {
+
+      double kn_b = kn/mN1;
+      double kn_c = kn/mN2;
+
+      double mCompressionLimit_1 = mC1*mCompressionLimit*1e6;
+      double mCompressionLimit_2 = mC2*mCompressionLimit*1e6;
+
+      double sigma_a = (kn * indentation)/(corrected_area);
+      double sigma_b = mCompressionLimit_1 + kn_b*(indentation/corrected_area - mCompressionLimit_1/kn);
+
+                                    
+      if( (indentation >= 0.0) && (sigma_a < mCompressionLimit_1) ) 
+      {
+          LocalElasticContactForce[2]= kn * indentation;
+          
+          if(mContactMeshOption)
+          
+          {
+            //lock_p_weak->GetValue(NON_ELASTIC_STAGE) = 1.0;
+          }
+          
+      }
+
+      else if( (indentation >= 0.0) && (sigma_a >= mCompressionLimit_1) && ( sigma_b < mCompressionLimit_2 ) ) 
+      {
+          LocalElasticContactForce[2]= mCompressionLimit_1*corrected_area + kn_b*(indentation - mCompressionLimit_1*corrected_area/kn);
+            
+          if(mContactMeshOption)
+          
+          {
+          //lock_p_weak->GetValue(NON_ELASTIC_STAGE) = 2.0;
+          
+          }
+      }
+
+      else if ( indentation >= 0.0 ) 
+      {
+          
+          LocalElasticContactForce[2]= mCompressionLimit_2*corrected_area + kn_c*(indentation - corrected_area*(mCompressionLimit_1/kn + mCompressionLimit_2/kn_b - mCompressionLimit_1/kn_b));
+
+      }
+
+      else {LocalElasticContactForce[2]= kn * indentation; }
+    }
+
       
-      
-      
-      void SphericContinuumParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo){}
-      void SphericContinuumParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
+    void SphericContinuumParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo){}
+    void SphericContinuumParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
 
       
 }  // namespace Kratos.
@@ -1829,65 +1890,11 @@ namespace Kratos
     
     
                   
-//#C4 //nonlinear().....        
-                  
-                  
-            /* MSIMSI aixo avans estava dintre de el case 0.
-            if(rCurrentProcessInfo[NON_LINEAR_OPTION])
-                            {
-                             
-                              
-                                if (this->Id() == 1 && *mpTimeStep == 4 ) KRATOS_WATCH( "MUST BE IMPROVED, THE CALCULATION OF STRESS IN THE NON_LINEAR_OPTION ONLY TAKES INTO ACCOUNT THE INDENTATION, IS IT OKAY??" )
-                                  
-                                double kn_b = kn/rCurrentProcessInfo[SLOPE_FRACTION_N1];
-                                double kn_c = kn/rCurrentProcessInfo[SLOPE_FRACTION_N2];
-                                
-                                
-                                double mCompressionLimit_1 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C1]*rCurrentProcessInfo[CONTACT_SIGMA_MAX]*1e6;
-                                double mCompressionLimit_2 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C2]*rCurrentProcessInfo[CONTACT_SIGMA_MAX]*1e6;
-                                
-                                double sigma_a = (kn * indentation)/(corrected_area);
-                             
-                                double sigma_b = mCompressionLimit_1 + kn_b*(indentation/corrected_area - mCompressionLimit_1/kn);
-                                
-                                
-                              
-                                if( (indentation >= 0.0) && (sigma_a < mCompressionLimit_1) ) 
-                                {
-                                    LocalElasticContactForce[2]= kn * indentation;
-                                    
-                                    if(mContactMeshOption)
-                                    
-                                    {
-                                      //lock_p_weak->GetValue(NON_ELASTIC_STAGE) = 1.0;
-                                    }
-                                    
-                                }
-                                
-                                else if( (indentation >= 0.0) && (sigma_a >= mCompressionLimit_1) && ( sigma_b < mCompressionLimit_2 ) ) 
-                                {
-                                    LocalElasticContactForce[2]= mCompressionLimit_1*corrected_area + kn_b*(indentation - mCompressionLimit_1*corrected_area/kn);
-                                     
-                                    if(mContactMeshOption)
-                                    
-                                    {
-                                    //lock_p_weak->GetValue(NON_ELASTIC_STAGE) = 2.0;
-                                    
-                                    }
-                                }
-                                
-                                else if ( indentation >= 0.0 ) 
-                                {
-                                    
-                                    LocalElasticContactForce[2]= mCompressionLimit_2*corrected_area + kn_c*(indentation - corrected_area*(mCompressionLimit_1/kn + mCompressionLimit_2/kn_b - mCompressionLimit_1/kn_b));
-  
-                                }
-                                
-                                else {LocalElasticContactForce[2]= kn * indentation; }
-                            }
+
+         
+    
             
-            
-   
+   /*
    //#C6 : initalizesolutionstep del volume strain stress tensor...  
          
           double& Representative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);
