@@ -1,97 +1,167 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
-from pressure_script import *
-
 import os
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from numpy import *
 
 #from KratosMultiphysics.mpi import * #CARLOS
 
 
-# GLOBAL VARIABLES OF THE SCRIPT
-#Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
-    
-sup_layer_fm      = list()
-inf_layer_fm      = list()
-sup_plate_fm      = list()
-inf_plate_fm      = list()
-special_selection = list()
-others            = list()    
-SKIN              = list()  
-LAT               = list()
-BOT               = list()
-TOP               = list()
-XLAT              = list()  #only lat, not the corner ones
-XTOP              = list()  #only top, not corner ones...
-XBOT              = list()
-XTOPCORNER        = list()
-XBOTCORNER        = list()
-
 def Var_Translator(variable):
 
-    if (variable == "OFF" or variable == "0"):
+    if (variable == "OFF" or variable == "0" or variable == 0):
         variable = 0
     else:
         variable = 1
 
     return variable
 
+class MdpaCreator:
+    def __init__(self, path, param):
+        self.problem_parameters = param
+        self.current_path = path
+
+        # Creating necessary directories
+
+        self.post_mdpas = str(self.current_path) + '/' + str(self.problem_parameters.problem_name) + '_post_mdpas'
+        os.chdir(self.current_path)
+        if not os.path.isdir(self.post_mdpas):
+            os.makedirs(str(self.post_mdpas))
+
+    def WriteMdpa(self, model_part):
+        os.chdir(self.post_mdpas)
+        time = model_part.ProcessInfo.GetValue(TIME)
+        mdpa = open(str(self.problem_parameters.problem_name) + '_post_' + str(time) + '.mdpa', 'w')
+        mdpa.write('\n')
+        mdpa.write('Begin ModelPartData')
+        mdpa.write('\n')
+        mdpa.write('//  VARIABLE_NAME value')
+        mdpa.write('\n')
+        mdpa.write('End ModelPartData')
+        mdpa.write('\n')
+        mdpa.write('\n')
+        mdpa.write('\n')
+        mdpa.write('\n')
+        mdpa.write('Begin Nodes')
+        mdpa.write('\n')
+
+        for node in model_part.Nodes:
+            mdpa.write(str(node.Id) + '   ' + str(node.X) + '  ' + str(node.Y) + '  ' + str(node.Z))
+            mdpa.write('\n')
+
+        mdpa.write('End Nodes')
+        mdpa.write('\n')
+        mdpa.write('\n')
+        mdpa.write('Begin NodalData RADIUS')
+        mdpa.write('\n')
+
+        for node in model_part.Nodes:
+            mdpa.write(str(node.Id) + ' ' + str(0) + ' ' + str(node.GetSolutionStepValue(RADIUS)))
+            mdpa.write('\n')
+
+        mdpa.write('End NodalData')
+        mdpa.write('\n')
+
+class GranulometryUtils:
+
+    def __init__(self, domain_volume, model_part):
+
+        self.balls_model_part = model_part
+        self.physics_calculator = SphericElementGlobalPhysicsCalculator(self.balls_model_part)
+        self.UpdateData(domain_volume)
+
+    def UpdateData(self, domain_volume):
+
+        self.number_of_balls = self.balls_model_part.NumberOfElements(0)
+        self.solid_volume    = self.physics_calculator.CalculateTotalVolume(self.balls_model_part)
+        self.d_50            = self.physics_calculator.CalculateD50(self.balls_model_part)
+        self.balls_per_area  = domain_volume / self.number_of_balls
+        self.voids_volume    = domain_volume - self.solid_volume
+        self.global_porosity = self.voids_volume / domain_volume
+
+    def PrintCurrentData(self):
+
+        print "solid volume: ",        self.solid_volume
+        print "voids volume: ",        self.voids_volume
+        print "D50: ",                 self.d_50
+        print "global porosity: ",     self.global_porosity
+        print "number_of_balls: ",     self.number_of_balls
+        print "balls per area unit: ", self.balls_per_area
+
 class Procedures:
     
-    def __init__(self, Param):
+    def __init__(self, param):
+      
+        # GLOBAL VARIABLES OF THE SCRIPT
+        #Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
+          
+        self.sup_layer_fm      = list()
+        self.inf_layer_fm      = list()
+        self.sup_plate_fm      = list()
+        self.inf_plate_fm      = list()
+        self.special_selection = list()
+        self.others            = list()    
+        self.SKIN              = list()  
+        self.LAT               = list()
+        self.BOT               = list()
+        self.TOP               = list()
+        self.XLAT              = list()  #only lat, not the corner ones
+        self.XTOP              = list()  #only top, not corner ones...
+        self.XBOT              = list()
+        self.XTOPCORNER        = list()
+        self.XBOTCORNER        = list()
+      
         
         # Initialization of member variables
 
         # SIMULATION FLAGS   
         
-        self.rotation_OPTION                     = Var_Translator(Param.RotationOption)
-        self.bounding_box_OPTION                 = Var_Translator(Param.BoundingBoxOption)  #its 1/0 xapuza
-        self.fix_velocities                      = Var_Translator(Param.FixVelocitiesOption)
-        self.triaxial_OPTION                     = Var_Translator(Param.TriaxialOption)
-        self.contact_mesh_OPTION                 = Var_Translator(Param.ContactMeshOption)
+        self.rotation_OPTION                     = Var_Translator(param.RotationOption)
+        self.bounding_box_OPTION                 = Var_Translator(param.BoundingBoxOption)  #its 1/0 xapuza
+        self.fix_velocities                      = Var_Translator(param.FixVelocitiesOption)
+        self.contact_mesh_OPTION                 = Var_Translator( Var_Translator(param.ContactMeshOption) & Var_Translator(param.ContinuumOption) ) 
+        self.triaxial_OPTION                     = Var_Translator( Var_Translator(param.TriaxialOption) & Var_Translator(param.ContinuumOption) ) 
  
         # SIMULATION SETTINGS
         
-        self.bounding_box_enlargement_factor     = Param.BoundingBoxEnlargementFactor
-        self.time_percentage_fix_velocities      = Param.TotalTimePercentageFixVelocities
+        self.bounding_box_enlargement_factor     = param.BoundingBoxEnlargementFactor
+        self.time_percentage_fix_velocities      = param.TotalTimePercentageFixVelocities
        # MODEL
-        self.domain_size                         = Param.Dimension
+        self.domain_size                         = param.Dimension
 
         # PRINTING VARIABLES
   
-        self.print_velocity                      = Var_Translator(Param.PostVelocity)
-        self.print_displacement                  = Var_Translator(Param.PostDisplacement)
-        self.print_radial_displacement           = Var_Translator(Param.PostRadialDisplacement)
-        self.print_rhs                           = Var_Translator(Param.PostRHS)
-        self.print_total_forces                  = Var_Translator(Param.PostTotalForces)
-        self.print_damp_forces                   = Var_Translator(Param.PostDampForces)
-        self.print_applied_forces                = Var_Translator(Param.PostAppliedForces)
-        self.print_radius                        = Var_Translator(Param.PostRadius)
-        self.print_particle_cohesion             = Var_Translator(Param.PostParticleCohesion)
-        self.print_particle_tension              = Var_Translator(Param.PostParticleTension)
-        self.print_group_id                      = Var_Translator(Param.PostGroupId)
-        self.print_export_id                     = Var_Translator(Param.PostExportId)
-        self.print_export_particle_failure_id    = Var_Translator(Param.PostExportParticleFailureId)
-        self.print_export_skin_sphere            = Var_Translator(Param.PostExportSkinSphere)
-        self.print_local_contact_force_low       = Var_Translator(Param.PostLocalContactForceLow)
-        self.print_local_contact_force_high      = Var_Translator(Param.PostLocalContactForceHigh)
-        self.print_failure_criterion_state       = Var_Translator(Param.PostFailureCriterionState)
-        self.print_contact_failure               = Var_Translator(Param.PostContactFailure)
-        self.print_contact_tau                   = Var_Translator(Param.PostContactTau)
-        self.print_contact_sigma                 = Var_Translator(Param.PostContactSigma)
-        self.print_angular_velocity              = Var_Translator(Param.PostAngularVelocity)
-        self.print_particle_moment               = Var_Translator(Param.PostParticleMoment)
-        self.print_euler_angles                  = Var_Translator(Param.PostEulerAngles)
-        self.print_representative_volume         = Var_Translator(Param.PostRepresentativeVolume)
-        self.print_mean_contact_area             = Var_Translator(Param.PostMeanContactArea)
-        self.print_stress_tensor                 = Var_Translator(Param.PostStressTensor)
+        self.print_velocity                      = Var_Translator(param.PostVelocity)
+        self.print_displacement                  = Var_Translator(param.PostDisplacement)
+        self.print_radial_displacement           = Var_Translator(param.PostRadialDisplacement)
+        self.print_total_forces                  = Var_Translator(param.PostTotalForces)
+        self.print_damp_forces                   = Var_Translator(param.PostDampForces)
+        self.print_applied_forces                = Var_Translator(param.PostAppliedForces)
+        self.print_radius                        = Var_Translator(param.PostRadius)
+        self.print_particle_cohesion             = Var_Translator(param.PostParticleCohesion)
+        self.print_particle_tension              = Var_Translator(param.PostParticleTension)
+        self.print_group_id                      = Var_Translator(param.PostGroupId)
+        self.print_export_id                     = Var_Translator(param.PostExportId)
+        self.print_export_particle_failure_id    = Var_Translator(param.PostExportParticleFailureId)
+        self.print_export_skin_sphere            = Var_Translator(param.PostExportSkinSphere)
+        self.print_local_contact_force_low       = Var_Translator(param.PostLocalContactForceLow)
+        self.print_local_contact_force_high      = Var_Translator(param.PostLocalContactForceHigh)
+        self.print_failure_criterion_state       = Var_Translator(param.PostFailureCriterionState)
+        self.print_contact_failure               = Var_Translator(param.PostContactFailure)
+        self.print_contact_tau                   = Var_Translator(param.PostContactTau)
+        self.print_contact_sigma                 = Var_Translator(param.PostContactSigma)
+        self.print_angular_velocity              = Var_Translator(param.PostAngularVelocity)
+        self.print_particle_moment               = Var_Translator(param.PostParticleMoment)
+        self.print_euler_angles                  = Var_Translator(param.PostEulerAngles)
+        self.print_representative_volume         = Var_Translator(param.PostRepresentativeVolume)
+        self.print_mean_contact_area             = Var_Translator(param.PostMeanContactArea)
+        self.print_stress_tensor                 = Var_Translator(param.PostStressTensor)
    
         #FROM CND:
 
-        self.predefined_skin_option              = Var_Translator(Param.PredefinedSkinOption)
-        self.total_volume                        = Param.TotalElementsVolume
+        self.predefined_skin_option              = Var_Translator(param.PredefinedSkinOption)
+        self.total_volume                        = param.TotalElementsVolume
         
     def AddMpiVariables(self, model_part):
         
@@ -127,7 +197,7 @@ class Procedures:
         return model_part_io_solid
         
 
-    def ModelData(self, solid_model_part, solver):
+    def ModelData(self, balls_model_part, solver):
     # Previous Calculations.
 
         Model_Data = open('Model_Data.txt', 'w')
@@ -138,7 +208,7 @@ class Procedures:
         sum_radi    = 0
         sum_squared = 0
 
-        for node in solid_model_part.Nodes:
+        for node in balls_model_part.Nodes:
 
             sum_radi += node.GetSolutionStepValue(RADIUS)
             sum_squared += node.GetSolutionStepValue(RADIUS) ** 2
@@ -156,7 +226,7 @@ class Procedures:
         Model_Data.write("Std Deviation: " + str(std_dev) + '\n')
         Model_Data.write('\n')
 
-        Total_Particles     = len(solid_model_part.Nodes)
+        Total_Particles     = len(balls_model_part.Nodes)
         Total_Contacts      = solver.model_part.ProcessInfo.GetValue(TOTAL_CONTACTS) / 2
         Coordination_Number = 1.0 * (Total_Contacts * 2) / Total_Particles
 
@@ -176,22 +246,22 @@ class Procedures:
 
         for node in model_part.Nodes:
             if (node.GetSolutionStepValue(GROUP_ID) == 1):      #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
-                sup_layer_fm.append(node)
+                self.sup_layer_fm.append(node)
             elif (node.GetSolutionStepValue(GROUP_ID) == 2):    #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
-                inf_layer_fm.append(node)
+                self.inf_layer_fm.append(node)
             elif (node.GetSolutionStepValue(GROUP_ID) == 3):    #reserved for auxiliar strain-stress measurement plate (superior)
-                sup_plate_fm.append(node)
+                self.sup_plate_fm.append(node)
             elif (node.GetSolutionStepValue(GROUP_ID) == 4):    #reserved for auxiliar strain-stress measurement plate (inferior)
-                inf_plate_fm.append(node)
+                self.inf_plate_fm.append(node)
             elif (node.GetSolutionStepValue(GROUP_ID) == 5):
-                special_selection.append(node)
+                self.special_selection.append(node)
             else:
-                others.append(node)
+                self.others.append(node)
 
-        return (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm)
+        return (self.sup_layer_fm, self.inf_layer_fm, self.sup_plate_fm, self.inf_plate_fm)
 
 
-    def GiDSolverTransfer(self, model_part, solver):
+    def GiDSolverTransfer(self, model_part, solver, param):
 
         extra_radius = 0.0
         max_radius = 0.0
@@ -223,7 +293,7 @@ class Procedures:
         solver.enlargement_factor = m_bounding_box_enlargement_factor
         
         if (self.triaxial_OPTION):
-            Pressure = ConfinementPressure * 1e6 #Mpa
+            Pressure = param.ConfinementPressure * 1e6 #Mpa
 
         else:
             Pressure = 0.0
@@ -237,12 +307,10 @@ class Procedures:
         solver.time_step_percentage_fix_velocities = self.time_percentage_fix_velocities
         
         return Pressure
-        
-    def SkinAndPressure(self, model_part,solver):
+       
+    def CylinderSkinDetermination(self, model_part,solver, param):
         
         #SKIN DETERMINATION
-
-        Pressure = ConfinementPressure * 1e6 #Mpa
         total_cross_section = 0.0
 
         #Cylinder dimensions
@@ -253,9 +321,6 @@ class Procedures:
 
         surface = 2 * (3.141592 * d * d * 0.25) + (3.141592 * d * h)
 
-        top_pressure = 0.0
-        bot_pressure = 0.0
-
         xlat_area = 0.0
         xbot_area = 0.0
         xtop_area = 0.0
@@ -264,88 +329,75 @@ class Procedures:
         
         for element in model_part.Elements:
         
-            element.SetValue(SKIN_SPHERE, 0)
-    
-            if (self.predefined_skin_option):
-        
-                node = element.GetNode(0)
-                r = node.GetSolutionStepValue(RADIUS,0)
-                x = node.X
-                y = node.Y
-                z = node.Z
-                node_group = node.GetSolutionStepValue(GROUP_ID,0)
-                cross_section = 3.141592 * r * r
+          element.SetValue(SKIN_SPHERE, 0)
 
-                #if( (node_group!=2) and (node_group!=4) ):
+          node = element.GetNode(0)
+          r = node.GetSolutionStepValue(RADIUS,0)
+          x = node.X
+          y = node.Y
+          z = node.Z
+          node_group = node.GetSolutionStepValue(GROUP_ID,0)
+          cross_section = 3.141592 * r * r
+
+          if ((x * x + z * z) >= ((d / 2 - eps * r) * (d / 2 - eps * r))): 
+      
+              element.SetValue(SKIN_SPHERE, 1)     
+              self.LAT.append(node)
+              
+              if ((y > eps * r) and (y < (h - eps * r))):
+          
+                  self.SKIN.append(element)           
+                  self.XLAT.append(node)
+  
+                  xlat_area = xlat_area + cross_section
+      
+          if ((y <= eps * r) or (y >= (h - eps * r))): 
+
+              element.SetValue(SKIN_SPHERE, 1)            
+              self.SKIN.append(element)
             
-                if ((x * x + z * z) >= ((d / 2 - eps * r) * (d / 2 - eps * r))): 
-            
-                    element.SetValue(SKIN_SPHERE, 1)     
-                    LAT.append(node)
-                    
-                    if ((y > eps * r) and (y < (h - eps * r))):
-                
-                        SKIN.append(element)           
-                        XLAT.append(node)
-                
-                    xlat_area = xlat_area + cross_section
-            
-                if ((y <= eps * r) or (y >= (h - eps * r))): 
+              if (y <= eps * r):
 
-                    element.SetValue(SKIN_SPHERE, 1)            
-                    SKIN.append(element)
-                
-                    if (y <= eps * r):
+                  self.BOT.append(node)
 
-                        BOT.append(node)
+              elif (y >= (h - eps * r)):
 
-                    elif (y >= (h - eps * r)):
+                  self.TOP.append(node)
 
-                        TOP.append(node)
+              if ((x * x + z * z) >= (( d / 2 - eps * r) * (d / 2 - eps * r))) :
+          
+                  if (y > h / 2):
 
-                    if ((x * x + z * z) >= (( d / 2 - eps * r) * (d / 2 - eps * r))) :
-                
-                        if (y > h / 2):
+                      self.XTOPCORNER.append(node)                     
+                      xtopcorner_area = xtopcorner_area + cross_section
+                                              
+                  else:
 
-                            XTOPCORNER.append(node)                     
-                            xtopcorner_area = xtopcorner_area + cross_section
-                        
-                        else:
+                      self.XBOTCORNER.append(node)
+                      xbotcorner_area = xbotcorner_area + cross_section
+              else:
 
-                            XBOTCORNER.append(node)
-                            xbotcorner_area = xbotcorner_area + cross_section
-                    else:
+                  if (y <= eps * r):
+                  
+                      self.XBOT.append(node)
+                      xbot_area = xbot_area + cross_section
+                  
+                  elif (y >= (h - eps * r)):
+                      
+                      self.XTOP.append(node)
+                      xtop_area = xtop_area + cross_section
 
-                        if (y <= eps * r):
-                        
-                            XBOT.append(node)
-                            xbot_area = xbot_area + cross_section
-                        
-                        elif (y >= (h - eps * r)):
-                            
-                            XTOP.append(node)
-                            xtop_area = xtop_area + cross_section
-
-        print "End CLASSIC TEST SKIN DETERMINATION", "\n"
+        print "End 30x15 Cylinder Skin Determination", "\n"
                 
         return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area) 
-        
-    def ApplyPressure(self, Pressure, model_part, solver, alpha_top, alpha_bot, alpha_lat):
-        
-        if (self.predefined_skin_option):
-            print "\n", "Predefined Skin by the user, In this case is not correct to apply pressure yet"  ,"\n" 
-            
-        else:
-            ApplyPressure(Pressure, model_part, solver, SKIN, BOT, TOP, LAT, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat)
-
-        
-    def MeasureBOT(self, BOT,solver):
+                
+    def MeasureBOT(self, solver):
 
         tol = 2.0
         y_mean = 0.0
         counter = 0.0
         
-        for node in BOT:
+        for node in self.BOT:
             r = node.GetSolutionStepValue(RADIUS, 0)
             y = node.Y        
             y_mean += (y - r) * r
@@ -353,18 +405,18 @@ class Procedures:
 
         return (y_mean, counter)      
 
-    def MeasureTOP(TOP,solver):
+    def MeasureTOP(self,solver):
 
         tol = 2.0
         y_mean = 0.0
         counter = 0.0
         
-        for node in TOP:
-            r = node.GetSolutionStepValue(RADIUS, 0)
-            y = node.Y
+        for node in self.TOP:
+          r = node.GetSolutionStepValue(RADIUS, 0)
+          y = node.Y
         
-        y_mean += (y + r) * r
-        counter += r
+          y_mean += (y + r) * r
+          counter += r
 
         return (y_mean,counter)
 
@@ -391,14 +443,14 @@ class Procedures:
 
     # Calculating current values
 
-        mass             = physics_calculator.calculate_total_mass(model_part)
-        center           = physics_calculator.calculate_center_of_mass(model_part)
-        initial_center   = physics_calculator.get_initial_center_of_mass()
-        gravity_energy   = physics_calculator.calculate_gravitational_potential_energy(model_part, initial_center)
-        kinetic_energy   = physics_calculator.calculate_kinetic_energy(model_part)
-        elastic_energy   = physics_calculator.calculate_elastic_energy(model_part)
-        momentum         = physics_calculator.calculate_total_momentum(model_part)
-        angular_momentum = physics_calculator.calculate_total_angular_momentum(model_part)
+        mass             = physics_calculator.CalculateTotalMass(model_part)
+        center           = physics_calculator.CalculateCenterOfMass(model_part)
+        initial_center   = physics_calculator.GetInitialCenterOfMass()
+        gravity_energy   = physics_calculator.CalculateGravitationalPotentialEnergy(model_part, initial_center)
+        kinetic_energy   = physics_calculator.CalculateKineticEnergy(model_part)
+        elastic_energy   = physics_calculator.CalculateElasticEnergy(model_part)
+        momentum         = physics_calculator.CalculateTotalMomentum(model_part)
+        angular_momentum = physics_calculator.CalulateTotalAngularMomentum(model_part)
         total_energy     = gravity_energy + kinetic_energy + elastic_energy
 
     # Filling in the entries values corresponding to the entries names above
@@ -462,11 +514,9 @@ class Procedures:
         if (self.print_radial_displacement):
             gid_io.WriteNodalResults(RADIAL_DISPLACEMENT, export_model_part.Nodes, time, 0)       
         if (self.print_velocity):
-            gid_io.WriteNodalResults(VELOCITY, export_model_part.Nodes, time, 0)
-        if (self.print_rhs):
-            gid_io.WriteNodalResults(RHS, export_model_part.Nodes, time, 0)       
+            gid_io.WriteNodalResults(VELOCITY, export_model_part.Nodes, time, 0)  
         if (self.print_applied_forces):
-            gid_io.WriteNodalResults(APPLIED_FORCE, export_model_part.Nodes, time, 0)       
+            gid_io.WriteNodalResults(EXTERNAL_APPLIED_FORCE, export_model_part.Nodes, time, 0)       
         if (self.print_total_forces):     
             gid_io.WriteNodalResults(TOTAL_FORCES, export_model_part.Nodes, time, 0)    
         if (self.print_damp_forces):
@@ -533,8 +583,8 @@ class Procedures:
         sys.stdout.flush()
         
 # # # DEM CONTINUUM # # #
-        
-    def SetPredefinedSkin(balls_model_part):
+       
+    def SetPredefinedSkin(self,balls_model_part):
    
         for element in balls_model_part.Elements:
               
@@ -543,3 +593,24 @@ class Procedures:
             if (element.GetValue(PREDEFINED_SKIN)>0.0): #PREDEFINED_SKIN is a double
             
               element.SetValue(SKIN_SPHERE,1)
+              
+              
+    def ListDefinition(self,model_part,solver):   # Defining lists (FOR COMPRESSION TESTS) 
+      
+        for node in model_part.Nodes:
+          if (node.GetSolutionStepValue(GROUP_ID)==1):      #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
+            self.sup_layer_fm.append(node)
+          elif (node.GetSolutionStepValue(GROUP_ID)==2):    #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
+            self.inf_layer_fm.append(node)
+          elif (node.GetSolutionStepValue(GROUP_ID)==3):    #reserved for auxiliar strain-stress measurement plate (superior)
+            self.sup_plate_fm.append(node)
+          elif (node.GetSolutionStepValue(GROUP_ID)==4):    #reserved for auxiliar strain-stress measurement plate (inferior)
+            self.inf_plate_fm.append(node)
+          elif (node.GetSolutionStepValue(GROUP_ID)==5):
+            self.special_selection.append(node)
+          else:
+            self.others.append(node)
+          
+        return (self.sup_layer_fm, self.inf_layer_fm, self.sup_plate_fm, self.inf_plate_fm)
+        
+   
