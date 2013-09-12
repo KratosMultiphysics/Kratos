@@ -75,10 +75,15 @@
       <Item id="BeamMoments" kkword="MOMENT" />
       <Item id="BeamForces" kkword="FORCE" />
       <Item id="StressTensor" kkword="CAUCHY_STRESS_TENSOR" />
-      <Item id="SkylineLUFactorization" kkword="SkylineLUFactorization" />
-      <Item id="SuperLU" kkword="SuperLUSolver" />
-      <Item id="ConjugateGradient" kkword="ConjugateGradient" />
-      <Item id="BiConjugateGradientStabilized" kkword="BiConjugateGradientStabilized" />
+      <Item id="SkylineLUFactorization" kkword="Skyline LU factorization" />
+      <Item id="SuperLU" kkword="Super LU" />
+      <Item id="SuperLUIterative" kkword="SuperLUIterativeSolver" />
+      <Item id="ConjugateGradient" kkword="Conjugate gradient" />
+      <Item id="DeflatedCG" kkword="Deflated Conjugate gradient" />
+      <Item id="GMRES" kkword="GMRES" />
+      <Item id="BiConjugateGradientStabilized" kkword="BiConjugate gradient stabilized" />
+      <Item id="PastixDirect" kkword="PastixDirect" />
+      <Item id="PastixIterative" kkword="PastixIterative" />
       <Item id="ParallelMKLPardiso" kkword="MKLPardisoSolver" />
       <Item id="Displacement" kkword="Displacement_Criteria" />
       <Item id="Residual" kkword="Residual_Criteria" />

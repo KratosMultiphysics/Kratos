@@ -41,12 +41,12 @@ if "DISTANCE" in ProjectParameters.nodal_results:
 #
 # importing the solvers needed
 SolverSettings = ProjectParameters.FluidSolverConfiguration
-solver_constructor = __import__(SolverSettings.solver_type)
+solver_module = import_solver(SolverSettings)
 
 #
 #
 # importing variables
-solver_constructor.AddVariables(fluid_model_part, SolverSettings)
+solver_module.AddVariables(fluid_model_part, SolverSettings)
 
 # introducing input file name
 input_file_name = ProjectParameters.problem_name
@@ -58,7 +58,7 @@ model_part_io_fluid.ReadModelPart(fluid_model_part)
 # setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 fluid_model_part.SetBufferSize(3)
 
-solver_constructor.AddDofs(fluid_model_part, SolverSettings)
+solver_module.AddDofs(fluid_model_part, SolverSettings)
 
 # If Lalplacian form = 2, free all pressure Dofs
 #laplacian_form = ProjectParameters.laplacian_form
@@ -74,7 +74,7 @@ for node in fluid_model_part.Nodes:
 #
 #
 # Creating the fluid solver
-fluid_solver = solver_constructor.CreateSolver(
+fluid_solver = solver_module.CreateSolver(
     fluid_model_part, SolverSettings)
 
 # activate turbulence model

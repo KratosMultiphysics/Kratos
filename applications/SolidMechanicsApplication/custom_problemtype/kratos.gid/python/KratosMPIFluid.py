@@ -41,12 +41,12 @@ if "DISTANCE" in ProjectParameters.nodal_results:
 #
 # importing the solvers needed
 SolverSettings = ProjectParameters.FluidSolverConfiguration
-solver_constructor = __import__(SolverSettings.solver_type)
+solver_module = import_solver(SolverSettings.solver_type)
 
 #
 #
 # importing variables
-solver_constructor.AddVariables(fluid_model_part, SolverSettings)
+solver_module.AddVariables(fluid_model_part, SolverSettings)
 
 # introducing input file name
 input_file_name = ProjectParameters.problem_name
@@ -82,7 +82,7 @@ fluid_model_part.SetBufferSize(3)
 
 
 # adding dofs
-solver_constructor.AddDofs(fluid_model_part, SolverSettings)
+solver_module.AddDofs(fluid_model_part, SolverSettings)
 
 # copy Y_WALL
 for node in fluid_model_part.Nodes:
@@ -92,7 +92,7 @@ for node in fluid_model_part.Nodes:
 #
 #
 # Creating the fluid solver
-fluid_solver = solver_constructor.CreateSolver(
+fluid_solver = solver_module.CreateSolver(
     fluid_model_part, SolverSettings)
 
 # activate turbulence model

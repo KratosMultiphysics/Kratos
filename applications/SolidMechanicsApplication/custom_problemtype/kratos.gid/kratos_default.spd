@@ -51,8 +51,8 @@
 	  </Container>
 	  <Container id="LinearSolver" pid="Linear solver" class="Tab" open="0" icon="groupsTreeNew.gif">
 	    <Item id="LinearSolverType" pid="Linear solver type" class="solverType" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
-	    <Item id="DirectSolverType" pid="Direct solver type" solverType="Direct" dv="SkylineLUFactorization" ivalues="SkylineLUFactorization,SuperLU,Pastix" values="Skyline LU factorization,Super LU,PastixDirect" help=""/>
-            <Item id="IterativeSolverType" pid="Iterative solver type" solverType="Iterative" dv="Conjugate gradient" ivalues="CG,Deflated CG,SuperLU,GMRES,BCGS,Pastix,AMGCL" values="Conjugate gradient,Deflated Conjugate gradient,SuperLUIterativeSolver,GMRES,BiConjugate gradient stabilized,PastixIterative,AMGCL" help=""/>
+	    <Item id="DirectSolverType" pid="Direct solver type" solverType="Direct" dv="SkylineLUFactorization" ivalues="SkylineLUFactorization,SuperLU,PastixDirect" values="SkylineLUFactorization,SuperLU,PastixDirect" help=""/>
+            <Item id="IterativeSolverType" pid="Iterative solver type" solverType="Iterative" dv="ConjugateGradient" ivalues="ConjugateGradient,DeflatedCG,SuperLUIterative,GMRES,BCGS,Pastix,AMGCL" values="ConjugateGradient,DeflatedCG,SuperLUIterative,GMRES,BCGS,Pastix,AMGCL" help=""/>
             <Item id="Tolerance" pid="Solver tolerance" solverType="Iterative" dv="1E-6" help=""/>
             <Item id="MaximumIteration" pid="Solver maximum iteration" solverType="Iterative" dv="5000" help=""/>
             <Item id="PreconditionerType" pid="Preconditioner type" state="hidden" solverType="Iterative" dv="ILU0" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
