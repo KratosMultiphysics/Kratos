@@ -54,8 +54,9 @@ proc ::KMProps::cmbElemTypeChange { f fullname {idTemplate ""} } {
 	
 	set dv [::xmlutils::getComboDv $f $fullname "id" $idTemplate]
 	# wa "dv:$dv"
-	
-	set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"
+
+	set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes$::KMProps::nDim'\]"
+	#set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"
 	::xmlutils::getAttribute $KPriv(xmlDocKKW) $xpath dv $dv
 	
 	# We update node Material values based on the new dv
@@ -359,7 +360,8 @@ proc ::KMProps::cmbSelectChange { item T {remove 1} {selectVal "current"} } {
 	::xmlutils::setXml $matFullname dv
 	
 	##Si se cambia el ElementType hay que cambiar el dv de Material Model
-	set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"
+	set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes$::KMProps::nDim'\]"
+	#set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"
 	::xmlutils::getAttribute $::KPriv(xmlDocKKW) $xpath dv "$selCombo"
 	set values [::xmlutils::getXMLValues "$matFullname" "" "" "" "NoElementFilter"]
 	

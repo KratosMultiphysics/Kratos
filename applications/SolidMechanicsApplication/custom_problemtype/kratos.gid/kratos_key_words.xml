@@ -2,23 +2,50 @@
 <Kratos_KWords version="1.0">
   <Applications>
     <StructuralAnalysis>
-      <Item id="TotalLagrangian" kkword="TotalLagrangianElement"
+      <Item id="PlaneStress2D" kkword="SmallDisplacementElement"
       usennode="Yes" />
-      <Item id="TotalLagrangian3D" kkword="TotalLagrangianElement"
+      <Item id="PlaneStrain2D" kkword="SmallDisplacementElement"
       usennode="Yes" />
-      <Item id="CrisfieldTrussElement"
-      kkword="CrisfieldTrussElement" usennode="Yes" />
-      <Item id="BeamElement" kkword="BeamElement" usennode="Yes" />
+      <Item id="Axisymmetric2D" kkword="AxisymSmallDisplacementElement"
+      usennode="Yes" />
+      <Item id="SolidElement3D" kkword="SmallDisplacementElement"
+      usennode="Yes" />
+      <Item id="BeamElement" kkword="BeamElement" 
+      usennode="Yes" />
+      <Item id="CrisfieldTrussElement" kkword="CrisfieldTrussElement"
+      usennode="Yes" />
       <Item id="ShellIsotropic" kkword="IsotropicShellElement"
       usennode="No" />
       <Item id="ShellAnisotropic" kkword="ShellAnisotropic"
       usennode="No" />
-      <Item id="LinearElement" kkword="SmallDisplacementElement"
+      <Item id="Membrane" kkword="MembraneElement"
+      usennode="No" />
+      <Item id="EBST" kkword="EBST3DN" 
+      usennode="No" />
+      <Item id="TotalLagrangian2DPlaneStress" kkword="TotalLagrangianElement"
       usennode="Yes" />
-      <Item id="LinearElement3D" kkword="SmallDisplacementElement"
+      <Item id="TotalLagrangian2DPlaneStrain" kkword="TotalLagrangianElement"
       usennode="Yes" />
-      <Item id="Membrane" kkword="MembraneElement" usennode="No" />
-      <Item id="EBST" kkword="EBST3DN" usennode="No" />
+      <Item id="TotalLagrangian2DAxisymmetric" kkword="AxisymTotalLagrangianElement"
+      usennode="Yes" />
+      <Item id="TotalLagrangian3D" kkword="TotalLagrangianElement"
+      usennode="Yes" />
+      <Item id="UpdatedLagrangian2DPlaneStress" kkword="UpdatedLagrangianElement"
+      usennode="Yes" />
+      <Item id="UpdatedLagrangian2DPlaneStrain" kkword="UpdatedLagrangianElement"
+      usennode="Yes" />
+      <Item id="UpdatedLagrangian2DAxisymmetric" kkword="AxisymUpdatedLagrangianElement"
+      usennode="Yes" />
+      <Item id="UpdatedLagrangian3D" kkword="UpdatedLagrangianElement"
+      usennode="Yes" />
+      <Item id="SpatialLagrangian2DPlaneStress" kkword="SpatialLagrangianElement"
+      usennode="Yes" />
+      <Item id="SpatialLagrangian2DPlaneStrain" kkword="SpatialLagrangianElement"
+      usennode="Yes" />
+      <Item id="SpatialLagrangian2DAxisymmetric" kkword="AxisymSpatialLagrangianElement"
+      usennode="Yes" />
+      <Item id="SpatialLagrangian3D" kkword="SpatialLagrangianElement"
+      usennode="Yes" />
       <Item id="Thickness" kkword="THICKNESS" />
       <Item id="Dx" kkword="DISPLACEMENT_X" />
       <Item id="Dy" kkword="DISPLACEMENT_Y" />
@@ -26,6 +53,9 @@
       <Item id="Rx" kkword="ROTATION_X" />
       <Item id="Ry" kkword="ROTATION_Y" />
       <Item id="Rz" kkword="ROTATION_Z" />
+      <Item id="Gx" kkword="VOLUME_ACCELERATION_X" />
+      <Item id="Gy" kkword="VOLUME_ACCELERATION_Y" />
+      <Item id="Gz" kkword="VOLUME_ACCELERATION_Z" />
       <Item id="Fx" kkword="FORCE_X" />
       <Item id="Fy" kkword="FORCE_Y" />
       <Item id="Fz" kkword="FORCE_Z" />
@@ -35,22 +65,20 @@
       <Item id="BUDFx" kkword="FACE_LOAD_X" />
       <Item id="BUDFy" kkword="FACE_LOAD_Y" />
       <Item id="BUDFz" kkword="FACE_LOAD_Z" />
-      <Item id="PositivePressure"
-      kkword="POSITIVE_FACE_PRESSURE" />
-      <Item id="NegativePressure"
-      kkword="NEGATIVE_FACE_PRESSURE" />
+      <Item id="PositivePressure" kkword="POSITIVE_FACE_PRESSURE" />
+      <Item id="NegativePressure" kkword="NEGATIVE_FACE_PRESSURE" />
       <Item id="Displacements" kkword="DISPLACEMENT" />
       <Item id="Forces" kkword="FORCES_EXTERNAL" />
       <Item id="Reactions" kkword="REACTION" />
-      <Item id="GreenLagrangeStrainTensor"
-      kkword="GREEN_LAGRANGE_STRAIN_TENSOR" />
+      <Item id="StrainTensor" kkword="GREEN_LAGRANGE_STRAIN_TENSOR" />
       <Item id="Rotations" kkword="ROTATION" />
       <Item id="BeamMoments" kkword="MOMENT" />
       <Item id="BeamForces" kkword="FORCE" />
-      <Item id="PK2StressTensor" kkword="PK2_STRESS_TENSOR" />
-      <Item id="SkylineLUFactorization"
-      kkword="SkylineLUFactorization" />
+      <Item id="StressTensor" kkword="CAUCHY_STRESS_TENSOR" />
+      <Item id="SkylineLUFactorization" kkword="SkylineLUFactorization" />
       <Item id="SuperLU" kkword="SuperLUSolver" />
+      <Item id="ConjugateGradient" kkword="ConjugateGradient" />
+      <Item id="BiConjugateGradientStabilized" kkword="BiConjugateGradientStabilized" />
       <Item id="ParallelMKLPardiso" kkword="MKLPardisoSolver" />
       <Item id="Displacement" kkword="Displacement_Criteria" />
       <Item id="Residual" kkword="Residual_Criteria" />
@@ -62,8 +90,7 @@
       <Item id="ILU0" kkword="ILU0" />
       <Item id="GiDPostMode" kkword="GiDPostMode" />
       <Item id="GiDWriteMeshFlag" kkword="GiDWriteMeshFlag" />
-      <Item id="GiDWriteConditionsFlag"
-      kkword="GiDWriteConditionsFlag" />
+      <Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
       <Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
       <Item id="Area" kkword="CROSS_AREA" />
       <Item id="LocalInertia" kkword="LOCAL_INERTIA" />
@@ -111,6 +138,7 @@
       <Item id="Discrete" kkword="2" />
       <Item id="DiscreteWithDt" kkword="3" />
       <Item id="MixedUP" kkword="MixedUP" />
+      <Item id="AMGCL" kkword="AMGCL" />
       <Item id="SuperLUIterativeSolver"
       kkword="SuperLUIterativeSolver" />
       <Item id="DivergenceCleareanceStep"
@@ -228,31 +256,30 @@
   </Materials>
   <ElementCLaws>
     <Item id="ElementTypes" dv="Beam"
-    ivalues="Beam,Membrane,Shell,PlaneStress,PlaneStrain,Solid"
-    values="Beam,Membrane,Shell,PlaneStress,PlaneStrain,Solid" delvalues = "Truss,EBST" />
-    <Item id="MaterialModel" ivalues="Elastic-Isotropic" delvalues = "Elastic-Orthotropic,Elasto-Plastic,Damage"/>
+	  ivalues="Beam,Truss,Plate,Shell,Membrane,Solid,Generic"
+	  values="Beam,Truss,Plate,Shell,Membrane,Solid,Generic" delvalues = "EBST" />
+    <Item id="ElementTypes2D" dv="Beam"
+	  ivalues="Beam,Truss,Plate,Solid,Generic"
+	  values="Beam,Truss,Plate,Solid,Generic" delvalues = "EBST" />
+    <Item id="ElementTypes3D" dv="Beam"
+	  ivalues="Beam,Truss,Shell,Membrane,Solid,Generic"
+	  values="Beam,Truss,Shell,Membrane,Solid,Generic" delvalues = "EBST" />
+    <Item id="MaterialModel" ivalues="Elastic-Isotropic,Elasto-Plastic" delvalues = "Elastic-Orthotropic,Damage"/>
     <Item id="Beam" ivalues="Elastic-Isotropic"
     values="Elastic-Isotropic" />
     <Item id="Truss" ivalues="Elastic-Isotropic"
     values="Elastic-Isotropic" />
     <Item id="Membrane" ivalues="Elastic-Isotropic"
     values="Elastic-Isotropic" />
-    <Item id="Shell"
-    ivalues="Elastic-Isotropic"
+    <Item id="Shell" ivalues="Elastic-Isotropic"
     values="Elastic-Isotropic" delvalues ="Elastic-Anisotropic"/>
     <Item id="EBST"
     ivalues="Elastic-Isotropic,Elasto-Plastic,Damage"
     values="Elastic-Isotropic,Elasto-Plastic,Damage" />
     <Item id="Solid"
-    ivalues="Elastic-Isotropic"
-    values="Elastic-Isotropic" delvalues ="Elastic-Orthotropic,Elasto-Plastic,Damage"/>
-    <Item id="PlaneStress"
-    ivalues="Elastic-Isotropic"
-    values="Elastic-Isotropic" delvalues= "Elastic-Orthotropic,Elasto-Plastic,Damage"/>
-    <Item id="PlaneStrain"
-    ivalues="Elastic-Isotropic"
-    values="Elastic-Isotropic" delvalues = "Elastic-Orthotropic,Elasto-Plastic,Damage"/>
-    <Item id="Thickness2D" elementType="PlaneStress,PlaneStrain" />
+    ivalues="Elastic-Isotropic,Elasto-Plastic"
+    values="Elastic-Isotropic,Elasto-Plastic" delvalues ="Elastic-Orthotropic,Elasto-Plastic,Damage"/>
+    <Item id="Thickness2D" elementType="Plate,Solid" />
     <Item id="Thickness3D" elementType="Shell,Membrane,EBST" />
     <Item id="Area" elementType="Truss,Beam"
     sectionType="UserDefined" />
@@ -311,22 +338,53 @@
     values="80,100,120,140,160,180,200,220,240,260,280,300,320,350,380,400" />
   </ElementCLaws>
   <ElementValidCLaws>
-    <Item id="TotalLagrangian"
-    claws="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage"
+    <Item id="PlaneStress2D"
+    claws="Elastic-Isotropic"
+    active="1" />
+    <Item id="PlaneStrain2D"
+    claws="Elastic-Isotropic"
+    active="1" />
+    <Item id="SolidElement3D"
+    claws="Elastic-Isotropic,Elasto-Plastic"
+    active="1" />
+    <Item id="TotalLagrangian2DPlaneStress"
+    claws="Elastic-Isotropic,Elasto-Plastic"
+    active="1" />
+    <Item id="TotalLagrangian2DPlaneStrain"
+    claws="Elastic-Isotropic,Elasto-Plastic"
     active="1" />
     <Item id="TotalLagrangian3D"
-    claws="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage"
+    claws="Elastic-Isotropic,Elasto-Plastic"
     active="1" />
-    <Item id="CrisfieldTrussElement" claws="Elastic-Isotropic"
+    <Item id="UpdatedLagrangian2DPlaneStress"
+    claws="Elastic-Isotropic,Elasto-Plastic"
     active="1" />
-    <Item id="ShellIsotropic" claws="Elastic-Isotropic"
+    <Item id="UpdatedLagrangian2DPlaneStrain"
+    claws="Elastic-Isotropic,Elasto-Plastic"
     active="1" />
-    <Item id="Membrane" claws="Elastic-Isotropic" active="1" />
-    <Item id="ShellAnisotropic" claws="Elastic-Anisotropic"
+    <Item id="SpatialLagrangian3D"
+    claws="Elastic-Isotropic,Elasto-Plastic"
     active="1" />
-    <Item id="LinearElement" claws="Elastic-Isotropic"
+    <Item id="SpatialLagrangian2DPlaneStress"
+    claws="Elastic-Isotropic,Elasto-Plastic"
     active="1" />
-    <Item id="LinearElement3D" claws="Elastic-Isotropic"
+    <Item id="SpatialLagrangian2DPlaneStrain"
+    claws="Elastic-Isotropic,Elasto-Plastic"
+    active="1" />
+    <Item id="SpatialLagrangian3D"
+    claws="Elastic-Isotropic,Elasto-Plastic"
+    active="1" />
+    <Item id="CrisfieldTrussElement" 
+    claws="Elastic-Isotropic"
+    active="1" />
+    <Item id="ShellIsotropic" 
+    claws="Elastic-Isotropic"
+    active="1" />
+    <Item id="Membrane" 
+    claws="Elastic-Isotropic" 
+    active="1" />
+    <Item id="ShellAnisotropic" 
+    claws="Elastic-Anisotropic"
     active="1" />
     <Item id="EBST"
     claws="Elastic-Isotropic,Elastic-Orthotropic,Elasto-Plastic,Damage"
@@ -337,15 +395,19 @@
     <Item id="Fluid3D" claws="Fluid3D" active="0" />
   </ElementValidCLaws>
   <CLawProperties>
-    <Item id="Isotropic2D" matm="HyperElasticPlaneStrain2DLaw()"
+    <Item id="LinearPlaneStrain2D" matm="LinearElasticPlaneStrain2DLaw()"
     mprops="Density,YoungModulus,PoissonRatio"
     mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
     cprops="Thickness" />
-    <Item id="Isotropic3D" matm="Isotropic3D()"
+    <Item id="LinearPlaneStress2D" matm="LinearElasticPlaneStress2DLaw()"
     mprops="Density,YoungModulus,PoissonRatio"
     mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
     cprops="Thickness" />
-    <Item id="PlaneStrain" matm="HyperElasticPlaneStrain2DLaw()"
+    <Item id="Isotropic2D" matm="LinearElasticPlaneStress2DLaw()"
+    mprops="Density,YoungModulus,PoissonRatio"
+    mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
+    cprops="Thickness" />
+    <Item id="Isotropic3D" matm="LinearElastic3DLaw()"
     mprops="Density,YoungModulus,PoissonRatio"
     mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
     cprops="Thickness" />
