@@ -1480,7 +1480,8 @@ proc ::xmlutils::getXMLValues { fullname {idTemplate ""} {iValues ""} {idTemplat
 		
 	} elseif { $specialList == "ElemType" } {
 
-		set node [$KPriv(xmlDocKKW) selectNodes "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"]
+	        set node [$KPriv(xmlDocKKW) selectNodes "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes$::KMProps::nDim'\]"]
+		#set node [$KPriv(xmlDocKKW) selectNodes "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"]
 		
 		if { $node != "" } {
 		        set comboList [split [$node getAttribute $atrValues ""] ","]
@@ -1514,7 +1515,8 @@ proc ::xmlutils::getXMLValues { fullname {idTemplate ""} {iValues ""} {idTemplat
 		# Caso estándard: accede al valor dv de element type para coger el matModel filtrando por este elementType
 		if { $dvElemFilter == "" } {
 		        # Si el valor no existe, miramos el que hay en el xml KKWORDS
-		        set node [$KPriv(xmlDocKKW) selectNodes "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"]
+		        set node [$KPriv(xmlDocKKW) selectNodes "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes$::KMProps::nDim'\]"]
+		        #set node [$KPriv(xmlDocKKW) selectNodes "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"]
 		        if { $node != "" } {
 		        set dvElemFilter [$node getAttribute dv ""]
 		        }

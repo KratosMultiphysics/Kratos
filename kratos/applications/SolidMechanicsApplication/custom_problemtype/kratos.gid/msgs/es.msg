@@ -253,7 +253,7 @@
 ::msgcat::mcset es Property Propiedad
 ::msgcat::mcset es {Property Name:} {Nombre de la propiedad:}
 ::msgcat::mcset es {Property type} {Tipo de propiedad}
-::msgcat::mcset es Puntual Puntual
+::msgcat::mcset es Point Punto
 ::msgcat::mcset es Quadrilateral Cuadrilátero
 ::msgcat::mcset es Rankine Rankine
 ::msgcat::mcset es Reactions Reacciones

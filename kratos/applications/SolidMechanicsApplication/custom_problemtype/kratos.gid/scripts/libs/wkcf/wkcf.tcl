@@ -241,7 +241,7 @@ proc ::wkcf::SelectPythonScript {} {
 
     if {$StructuralAnalysis =="Yes"} {
 	# Check for use OpenMP
-	set cxpath "$rootdataid//c.SolutionStrategy//i.ParallelSolutionType"
+	set cxpath "$rootdataid//c.SolutionStrategy//c.Parallel//i.ParallelSolutionType"
 	set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
 	# wa "ParallelSolutionType:$ParallelSolutionType"
 	
@@ -253,9 +253,9 @@ proc ::wkcf::SelectPythonScript {} {
 	if {$ParallelSolutionType eq "OpenMP"} {
 	    # OpenMP
 	    if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
-		set ppfilename "KratosOpenMPStructuralDynamic.py"
+		set ppfilename "KratosStructural.py"
 	    } elseif {$SolutionType =="Static"} {
-		set ppfilename "KratosOpenMPStructuralStatic.py"
+		set ppfilename "KratosStructural.py"
 	    }
 	
 	    set fromfname [file native [file join "$PTDir/python" $ppfilename]]
@@ -270,9 +270,9 @@ proc ::wkcf::SelectPythonScript {} {
 	} elseif {$ParallelSolutionType eq "MPI"} {
 	    # MPI
 	    if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
-		set mpifilename "KratosMPIStructuralDynamic.py"
+		set mpifilename "KratosStructural.py"
 	    } elseif {$SolutionType =="Static"} {
-		set mpifilename "KratosMPIStructuralStatic.py"
+		set mpifilename "KratosStructural.py"
 	    }
 	    
 	    set mpifromfname [file native [file join "$PTDir/python" $mpifilename]]
@@ -299,7 +299,7 @@ proc ::wkcf::SelectPythonScript {} {
 	# wa "SolverTypeFreeSurf:$SolverTypeFreeSurf"
 	
 	# Check for use OpenMP
-	set cxpath "$rootdataid//c.SolutionStrategy//i.ParallelSolutionType"
+	set cxpath "$rootdataid//c.SolutionStrategy//c.Parallel//i.ParallelSolutionType"
 	set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
 	
 	if {$ParallelSolutionType eq "OpenMP"} {
@@ -832,7 +832,7 @@ proc ::wkcf::WriteGiDPostMode {AppId fileid} {
             } elseif {$cvalue =="Yes"} {
             set cvalue "False"
             }
-            puts $fileid "$gidrkw = $cvalue"
+            puts $fileid "$gidrkw = \"$cvalue\""
         } else {
             puts $fileid "$gidrkw = \"$cvalue\""
         }

@@ -2154,7 +2154,7 @@
             <priority>0</priority>
         </src>
         <src id="821">
-            <base>Puntual</base>
+            <base>Point</base>
             <position>kratos_default.spd:96;kratos_default.spd:477;kratos_default.spd:478</position>
             <priority>0</priority>
         </src>
@@ -5458,7 +5458,7 @@ Desea borrar la propiedad y todos sus grupos?</base>
                 <date>2013-06-14</date>
             </translate>
             <translate id="821">
-                <base>Puntual</base>
+                <base>Point</base>
                 <tuser>escolano</tuser>
                 <date>2013-06-14</date>
             </translate>

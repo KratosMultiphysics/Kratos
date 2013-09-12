@@ -475,7 +475,8 @@ proc ::KMProps::showThickness { } {
 	set dv $::KMProps::ElemTypeThickness
 	unset ::KMProps::ElemTypeThickness
     } else {
-	set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"
+	set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes$::KMProps::nDim'\]"
+	#set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"
 	set dv [::xmlutils::getAttribute $KPriv(xmlDocKKW) $xpath dv]
     }
     
@@ -527,7 +528,8 @@ proc ::KMProps::ShowPropertyByElementType {propertyid} {
     } else {
 	# Default case
 	# Xpath to all defined element type
-	set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"
+	set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes$::KMProps::nDim'\]"
+	#set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"
 	set dv [::xmlutils::getAttribute $KPriv(xmlDocKKW) $xpath dv]
     } 
     # wa "dv:$dv"
@@ -591,7 +593,8 @@ proc ::KMProps::ShowPropertyBySectionType {propertyid {from CreateFrame}} {
 	    } else {
 		# Default case
 		# Xpath to all defined element type
-		set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"
+		set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes$::KMProps::nDim'\]"
+		#set xpath "Kratos_KWords/ElementCLaws/Item\[@id='ElementTypes'\]"
 		set etypedv [::xmlutils::getAttribute $KPriv(xmlDocKKW) $xpath dv]
 	    } 
 	    
