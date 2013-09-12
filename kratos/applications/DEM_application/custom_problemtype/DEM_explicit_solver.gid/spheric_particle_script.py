@@ -2,16 +2,41 @@ import time as timer
 import os
 import sys
 import math
-import matplotlib
+import matplotlib      ### BENCHMARK ###
 from numpy import *
-from pylab import *
+from pylab import *    ### BENCHMARK ###
+
+### BENCHMARK ###
+### BENCHMARK ###
+### BENCHMARK ###
+### BENCHMARK ###
+### BENCHMARK ###
+
+### BENCHMARK ###
+### BENCHMARK ###
+### BENCHMARK ###
+### BENCHMARK ###
+### BENCHMARK ###
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
+### BENCHMARK ###
 import DEM_explicit_solver_var as Param
 import DEM_procedures
 proc = DEM_procedures.Procedures(Param)
+
+### BENCHMARK ###
+
+### BENCHMARK ###
+### BENCHMARK ###
+### BENCHMARK ###
+### BENCHMARK ###
+### BENCHMARK ###
+### BENCHMARK ###
+### BENCHMARK ###
+### BENCHMARK ###
+### BENCHMARK ###
 
 #---------------------MODEL PART KRATOS AND GID.IO ------------------------------------------------------------------
 
@@ -128,6 +153,11 @@ properties_list = []
 
 print 'Initialitzation Complete' + '\n'
 
+### BENCHMARK ###
+### BENCHMARK ###
+### BENCHMARK ###
+### BENCHMARK ###
+
 dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
 step                   = 0
@@ -221,6 +251,7 @@ while (time < Param.FinalTime):
     time_to_print = time - time_old_print
 
     if (time_to_print >= Param.OutputTimeStep):
+        ### BENCHMARK ###
         os.chdir(data_and_results)
 
         properties_list = proc.MonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
