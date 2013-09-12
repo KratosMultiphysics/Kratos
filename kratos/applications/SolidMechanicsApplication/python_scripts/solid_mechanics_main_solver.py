@@ -1,7 +1,6 @@
 #importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.SolidMechanicsApplication import *
 CheckForPreviousImport()
 
 

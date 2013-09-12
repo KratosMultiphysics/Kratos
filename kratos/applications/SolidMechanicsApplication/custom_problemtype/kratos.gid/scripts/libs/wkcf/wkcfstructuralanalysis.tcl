@@ -1145,9 +1145,11 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.LinearSolverType"
     set LinearSolverType [::xmlutils::setXml $cxpath $cproperty]
     if {$LinearSolverType =="Direct"} {
+
 	# Direct solver type
 	set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.DirectSolverType"
-	set DirectSolverType [::xmlutils::setXml $cxpath $cproperty]
+	set solvertype [::xmlutils::setXml $cxpath $cproperty]
+	set DirectSolverType [::xmlutils::getKKWord $kwxpath $solvertype]
 	puts $fileid "LinearSolver = \"$DirectSolverType\""
 
 	puts $fileid "Linear_Solver_Tolerance = 1.0E-6"
@@ -1158,7 +1160,8 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 
 	# Iterative solver type        
 	set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.IterativeSolverType"
-	set IterativeSolverType [::xmlutils::setXml $cxpath $cproperty]
+	set solvertype [::xmlutils::setXml $cxpath $cproperty]
+	set IterativeSolverType [::xmlutils::getKKWord $kwxpath $solvertype]
         puts $fileid "LinearSolver = \"$IterativeSolverType\""
 
 	# Tolerance
@@ -1369,7 +1372,7 @@ proc ::wkcf::WriteConstitutiveLawsProperties {} {
     puts $fileid "from KratosMultiphysics import *"
     puts $fileid "from KratosMultiphysics.SolidMechanicsApplication import *"
     # Cross section properties
-    puts $fileid "from apply_sections import SetProperties"
+    puts $fileid "from beam_sections_python_utility import SetProperties"
   
 
     puts $fileid "def AssignMaterial(Properties):"
