@@ -79,22 +79,10 @@ Begin NodalData POISSON_RATIO
 2 0 0.5
 End NodalData
 
-
-Begin NodalData PARTICLE_COHESION
-1 0 0
-2 0 0
-End NodalData
-
-Begin NodalData PARTICLE_TENSION
-1 0 0
-2 0 0
-End NodalData
-
 Begin NodalData PARTICLE_FRICTION
 1 0 1.00000e+00
 2 0 1.00000e+00
 End NodalData
-
 
 
 
@@ -103,13 +91,9 @@ Begin NodalData LN_OF_RESTITUTION_COEFF
 2 0 1
 End NodalData
 
-
 Begin NodalData PARTICLE_MATERIAL
 1 0 1
 2 0 1
 End NodalData
-
-Begin ElementalData PREDEFINED_SKIN
-End ElementalData
 
 
