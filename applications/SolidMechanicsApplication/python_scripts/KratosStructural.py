@@ -1,4 +1,4 @@
-# Activate it to import in the gdb path:
+#Activate it to import in the gdb path:
 #import sys
 #sys.path.append('/home/jmaria/kratos')
 #x = raw_input("stopped to allow debug: set breakpoints and press enter to continue");
@@ -35,12 +35,13 @@ import solid_mechanics_main_solver as main_solver
 
 #import the python utilities:
 import restart_python_utility       as restart_utils
-import modeler_python_utility       as modeler_utils
 import print_results_python_utility as gid_utils
 
 import conditions_python_utility    as condition_utils
 import list_files_python_utility    as files_utils
-import graph_plot_python_utility    as plot_utils
+
+#import modeler_python_utility       as modeler_utils
+#import graph_plot_python_utility    as plot_utils
 
 
 
@@ -62,7 +63,8 @@ def StopTimeMeasuring(time_ip,process):
 ######################--SET NUMBER OF THREADS --#################
 def SetParallelSize(num_threads):
   parallel=OpenMPUtils()
-  parallel.SetNumThreads(num_threads); 
+  print "Num Threads = ", num_threads
+  parallel.SetNumThreads(int(num_threads)); 
 ######################--SET NUMBER OF THREADS --#################
 
 #------------------------#--FUNCTIONS END--#--------------------#
@@ -114,23 +116,21 @@ gid_variables            =  WriteConditionsFlag.WriteElementsOnly
 gid_output_mode          =  GiDPostMode.GiD_PostBinary
 gid_files_mode           =  MultiFileFlag.MultipleFiles
 
- "GiDMultiFileFlag"
-
 if(general_variables.GiDWriteMeshFlag == "False"):
   gid_configuration_mode = WriteDeformedMeshFlag.WriteUndeformed
 if(general_variables.GiDWriteConditionsFlag == "True"):
   gid_mesh_write_type    =  WriteConditionsFlag.WriteConditions
 if(general_variables.GiDPostMode == "Ascii"):
   gid_output_mode = GiDPostMode.GiD_PostAscii
-if(general_variables.GiDPMultiFileFlag == "Single"):
-  gid_output_mode = MultiFileFlag.SingleFile
+if(general_variables.GiDMultiFileFlag == "Single"):
+  gid_files_mode = MultiFileFlag.SingleFile
 
 gid_print = gid_utils.PrintResultsUtility(model_part,problem_type,problem_name,gid_output_mode,gid_files_mode)
 
 #set gid print options
-write_particles   =  general_variables.WriteParticles
-write_deformed    =  general_variables.WriteMesh
-write_conditions  =  general_variables.WriteConditions
+write_particles   =  general_variables.GiDWriteParticlesFlag
+write_deformed    =  general_variables.GiDWriteMeshFlag
+write_conditions  =  general_variables.GiDWriteConditionsFlag
 write_frequency   =  general_variables.WriteFrequency
 
 gid_print.SetPrintOptions(write_particles,write_deformed,write_conditions,write_frequency)
@@ -140,22 +140,22 @@ gid_print.SetPrintOptions(write_particles,write_deformed,write_conditions,write_
 
 ######################--PLOT GRAPHS OPTIONS START--###############
 
-plot_active    = general_variables.PlotGraphs
-plot_frequency = general_variables.PlotFrequency
+#plot_active    = general_variables.PlotGraphs
+#plot_frequency = general_variables.PlotFrequency
 
-graph_plot  = plot_utils.GraphPlotUtility(model_part,problem_path,plot_active,plot_frequency);
+#graph_plot  = plot_utils.GraphPlotUtility(model_part,problem_path,plot_active,plot_frequency);
 
-x_var   = "TIME"
-y_var   = "REACTION"
-mesh_id = 1
+#x_var   = "TIME"
+#y_var   = "REACTION"
+#mesh_id = 1
 
 #plot variables on the domain which is remeshed
-for conditions in general_variables.MeshConditions:
-  if(conditions["Remesh"] == 1):
-    mesh_id =int(conditions["Subdomain"])
+#for conditions in general_variables.MeshConditions:
+#  if(conditions["Remesh"] == 1):
+#    mesh_id =int(conditions["Subdomain"])
 
-print " Graph Subdomain ", mesh_id
-graph_plot.SetPlotVariables(x_var,y_var,mesh_id);
+#print " Graph Subdomain ", mesh_id
+#graph_plot.SetPlotVariables(x_var,y_var,mesh_id);
 
 ######################--PLOT GRAPHS OPTIONS END--#################
 
@@ -209,7 +209,8 @@ buffer_size   =  3;
 rotation_dofs =  general_variables.Rotational_Dofs
 
 #--- READ MODEL ------#
-problem_restart.StartModelRead(buffer_size,domain_size,problem_type,rotation_dofs,main_solver,modeler);
+#problem_restart.StartModelRead(buffer_size,domain_size,problem_type,rotation_dofs,main_solver,modeler);
+problem_restart.StartModelRead(buffer_size,domain_size,problem_type,rotation_dofs,main_solver);
 
 #--- PRINT CONTROL ---#
 print model_part
@@ -224,7 +225,7 @@ load_restart = general_variables.LoadRestart
 main_step_solver.Initialize(load_restart)
 
 # initial contact search
-modeler.InitialContactSearch()
+#modeler.InitialContactSearch()
 
 
 #initialize time integration variables
@@ -243,7 +244,8 @@ start_time   = start_steps*time_step;
 
 problem_restart.SetTimeVariables(time_step,steps_number)
 
-problem_restart.InitializeTimeIntegration(gid_print,modeler,graph_plot,conditions);
+#problem_restart.InitializeTimeIntegration(gid_print,modeler,graph_plot,conditions);
+problem_restart.InitializeTimeIntegration(gid_print,conditions);
 
 #redefine loop range of steps after problem_restart
 istep        = problem_restart.step_i
@@ -298,7 +300,7 @@ for step in range(istep,nstep):
     #print restart file
     if( step_printed == True ):
       write_id = model_part.ProcessInfo[WRITE_ID];
-      graph_plot.Plot(write_id)
+      #graph_plot.Plot(write_id)
 
       time=StartTimeMeasuring();
       problem_restart.PrintRestartFile(write_id);

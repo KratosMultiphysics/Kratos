@@ -1,6 +1,7 @@
 #importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
+from materials import *
 CheckForPreviousImport()
 
 class ConstitutiveLawUtility:
@@ -17,7 +18,6 @@ class ConstitutiveLawUtility:
 
     #######################################################################   
     def SetConstitutiveLaw(self):
-        from materials import *
         AssignMaterial(self.model_part.Properties)
 
 

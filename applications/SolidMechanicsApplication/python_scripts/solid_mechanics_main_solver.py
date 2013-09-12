@@ -1,7 +1,7 @@
 #importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.PfemSolidMechanicsApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 CheckForPreviousImport()
 
 
@@ -22,13 +22,13 @@ def AddVariables(model_part):
 
 def AddExtraVariables(model_part):
     AddConditionVariables(model_part);
-    AddRigidWallVariables(model_part);
-    model_part.AddNodalSolutionStepVariable(MEAN_ERROR);
-    model_part.AddNodalSolutionStepVariable(OFFSET);
-    model_part.AddNodalSolutionStepVariable(NODAL_H);    
-    model_part.AddNodalSolutionStepVariable(NORMAL);
-    model_part.AddNodalSolutionStepVariable(FORCE_CONTACT_NORMAL);
-    model_part.AddNodalSolutionStepVariable(FORCE_CONTACT_TANGENT);
+    #AddRigidWallVariables(model_part);
+    #model_part.AddNodalSolutionStepVariable(MEAN_ERROR);
+    #model_part.AddNodalSolutionStepVariable(OFFSET);
+    #model_part.AddNodalSolutionStepVariable(NODAL_H);    
+    #model_part.AddNodalSolutionStepVariable(NORMAL);
+    #model_part.AddNodalSolutionStepVariable(FORCE_CONTACT_NORMAL);
+    #model_part.AddNodalSolutionStepVariable(FORCE_CONTACT_TANGENT);
     
     print "EXTRA VARIABLES ADDED CORRECTLY"
 
