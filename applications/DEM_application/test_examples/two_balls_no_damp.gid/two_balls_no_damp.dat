@@ -1,0 +1,99 @@
+
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+
+
+Begin Properties  1
+End Properties
+
+
+
+Begin Nodes
+1   0.00000e+00  0.00000e+00  0.00000e+00
+2   0.00000e+00  1.00000e+00  0.00000e+00
+End Nodes
+
+Begin Elements SphericParticle3D
+1 1 1
+2 1 2
+End Elements
+
+
+
+Begin NodalData VELOCITY_X
+1 1 0.0
+End NodalData
+
+Begin NodalData VELOCITY_Y
+1 1 0.0
+End NodalData
+
+Begin NodalData VELOCITY_Z
+1 1 0.0
+
+End NodalData
+
+Begin NodalData ANGULAR_VELOCITY_X
+1 1 0.0
+End NodalData
+
+Begin NodalData ANGULAR_VELOCITY_Y
+1 1 0.0
+
+End NodalData
+
+Begin NodalData ANGULAR_VELOCITY_Z
+1 1 0.0
+End NodalData
+
+
+
+Begin NodalData RADIUS
+1 0 3.00000e-01
+2 0 3.00000e-01
+End NodalData
+
+Begin NodalData GROUP_ID
+1 0 1
+End NodalData
+
+Begin NodalData PARTICLE_CONTINUUM
+1 0 0
+2 0 0
+End NodalData
+
+Begin NodalData PARTICLE_DENSITY
+1 0 100
+2 0 100
+End NodalData
+
+Begin NodalData YOUNG_MODULUS
+1 0 2.1e7
+2 0 2.1e7
+End NodalData
+
+Begin NodalData POISSON_RATIO
+1 0 0.5
+2 0 0.5
+End NodalData
+
+Begin NodalData PARTICLE_FRICTION
+1 0 1.00000e+00
+2 0 1.00000e+00
+End NodalData
+
+
+
+Begin NodalData LN_OF_RESTITUTION_COEFF
+1 0 1
+2 0 1
+End NodalData
+
+Begin NodalData PARTICLE_MATERIAL
+1 0 1
+2 0 1
+End NodalData
+
+
