@@ -195,6 +195,33 @@ class RestartUtility:
 
 
     #######################################################################   
+    def StartModelRead(self,buffer_size,domain_size,problem_type,rotation_dofs,main_solver):
+        
+        if(self.load_restart_flag == False):
+            #reading the model 
+            self.model_part_io = ModelPartIO(self.problem_name)
+            self.model_part_io.ReadModelPart(self.model_part)
+
+            #Note: 
+            #the buffer size should be set once the mesh is read for the first time
+
+            #set the buffer size
+            self.model_part.SetBufferSize(buffer_size)
+
+            #set the degrees of freedom
+            main_solver.AddDofs(self.model_part,problem_type,rotation_dofs)
+
+            #set the constitutive law
+            import constitutive_law_python_utility as constitutive_law_utils
+            constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(self.model_part,domain_size);
+            constitutive_law.Initialize();
+
+ 
+        #to ensure the nodal variables initialization in buffer
+        self.start_steps = buffer_size - 1 
+
+
+    #######################################################################   
     def SetTimeVariables(self,time_step,steps_number):
 
         self.step_i       = 0
@@ -231,6 +258,29 @@ class RestartUtility:
 
         #initialize graph plot variables for time integration
         graph_plot.Initialize(self.current_step)
+    
+    #######################################################################   
+    def InitializeTimeIntegration(self,gid_print,conditions):
+
+        #initialize time variables
+        write_id          = 0
+        self.current_step = 0
+              
+
+        if(self.load_restart_flag == True):
+            self.step_i       = self.model_part.ProcessInfo[TIME_STEPS]+1;
+            self.time_step    = self.model_part.ProcessInfo[DELTA_TIME];
+            write_id          = self.model_part.ProcessInfo[WRITE_ID];
+            self.current_step = self.step_i - self.step_n
+        else:
+            self.model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = self.time_step;
+            conditions.Initialize();
+            self.step_i       = 0
+
+            
+        #initialize print results variables for time integration
+        gid_print.Initialize(self.time_start,self.step_n,self.current_step,write_id)
+
     
 
     #######################################################################   

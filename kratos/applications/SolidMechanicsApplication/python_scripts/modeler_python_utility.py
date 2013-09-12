@@ -1,6 +1,6 @@
 #importing the Kratos Library
 from KratosMultiphysics import *
-from KratosMultiphysics.PfemSolidMechanicsApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 CheckForPreviousImport()
 
 class ModelerUtility:
