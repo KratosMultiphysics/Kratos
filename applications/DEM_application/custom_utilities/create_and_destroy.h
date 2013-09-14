@@ -37,7 +37,6 @@
 //const double prox_tol = 0.00000000001;
 namespace Kratos
 {
-
 class ParticleCreatorDestructor
 {
 public:
@@ -109,7 +108,19 @@ public:
     void PrintingTest() {}
 
     //SALVA
-    
+    //MA
+    void ElementCreatorFromExistingNode(ModelPart& r_modelpart, int r_Elem_Id, Node < 3 > ::Pointer pnew_node) {                 
+      
+      Geometry< Node < 3 > >::PointsArrayType nodelist;
+      
+      nodelist.push_back(pnew_node);
+
+      Element::Pointer p_swimming_particle = Element::Pointer(new SphericSwimmingParticle(r_Elem_Id, nodelist)); 
+      
+      r_modelpart.Elements().push_back(p_swimming_particle);          
+}    
+    //MA
+
     void CalculateSurroundingBoundingBox( ModelPart& r_model_part, double scale_factor)
     {
         KRATOS_TRY
@@ -466,6 +477,52 @@ private:
     ///@}
 
 }; // Class ParticleCreatorDestructor
+  //MA
+class DEM_Inlet
+{
+public:        
+    
+    double PartialParticles;    
+        
+    DEM_Inlet() {};
+    /// Destructor.
+
+    virtual ~DEM_Inlet() {};
+        
+    
+    void CreateElementsFromInletMesh( ModelPart& r_modelpart, ModelPart& inlet_modelpart, ParticleCreatorDestructor& creator){
+        
+        for (ModelPart::MeshesContainerType::iterator mesh_it = inlet_modelpart.GetMeshes().begin();
+                                               mesh_it != inlet_modelpart.GetMeshes().end();    ++mesh_it)
+        {
+            int mesh_size=mesh_it->NumberOfNodes();
+            
+            //calculate number of particles to insert from input data
+            int number_of_particles_to_insert = 1;
+            
+            //randomizing mesh
+            srand (time (NULL));        
+            
+            ModelPart::NodesContainerType::ContainerType inserting_nodes(number_of_particles_to_insert); 
+            
+            ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
+            
+            for (int i = 0; i < number_of_particles_to_insert; i++) {
+              int pos = rand() % mesh_size;                            
+              inserting_nodes[i] = all_nodes[pos]; //This only works for pos as real position in the vector if 
+                                                   //we use ModelPart::NodesContainerType::ContainerType 
+                                                   //instead of ModelPart::NodesContainerType
+              all_nodes[pos] = all_nodes[mesh_size-1];
+              mesh_size=mesh_size-1;
+            }
+            
+            for(int i=0; i<number_of_particles_to_insert; i++){
+                creator.ElementCreatorFromExistingNode(r_modelpart, /*r_Elem_Id*/1, inserting_nodes[i]);               
+            }                                           
+        }                
+    }    
+    //MA
+};
 
 ///@}
 
