@@ -540,20 +540,20 @@ namespace Kratos
               //KRATOS_WATCH("Ball2ball entered") //SALVA
               array_1d<double, 3> other_to_me_vect    = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
               const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-              const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
-              const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-              const double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
+              //const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
+              //const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
+              //const double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
 
               double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
               double radius_sum                       = mRadius + other_radius;
-              double radius_sum_i                     = 1 / radius_sum;
-              double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;
+              //double radius_sum_i                     = 1 / radius_sum;
+              //double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;
               double indentation                      = radius_sum - distance;
 	      double kn;
 	      double kt;
               //KRATOS_WATCH(indentation)
-              double equiv_area                       = 0.25 * M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
-              double equiv_mass                       = mSqrtOfRealMass * other_sqrt_of_mass;
+              //double equiv_area                       = 0.25 * M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent radius, corresponding to the case of one ball with radius Requivalent and other = radius 0.
+              //double equiv_mass                       = mSqrtOfRealMass * other_sqrt_of_mass;
 
               double equiv_visco_damp_coeff_normal;
               double equiv_visco_damp_coeff_tangential;
