@@ -66,9 +66,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/geometry.h"
 #include "includes/properties.h"
 #include "includes/process_info.h"
+#include "includes/geometrical_object.h"
 #include "utilities/indexed_object.h"
 #include "containers/flags.h"
-
 #include "containers/weak_pointer_vector.h"
 #include "constitutive_law.h"
 
@@ -103,7 +103,7 @@ namespace Kratos
  * not all of them have to be implemented if they are not needed for
  * the actual problem
  */
-class Element : public IndexedObject, public Flags
+class Element : public GeometricalObject, public Flags
 {
 public:
     ///@name Type Definitions
@@ -111,8 +111,8 @@ public:
     /// Pointer definition of Element
     KRATOS_CLASS_POINTER_DEFINITION(Element);
 
-    ///base type: an IndexedObject that automatically has a unique number
-    typedef IndexedObject BaseType;
+    ///base type: an GeometricalObject that automatically has a unique number
+    typedef GeometricalObject BaseType;
 
     ///definition of node type (default is: Node<3>)
     typedef Node < 3 > NodeType;
@@ -161,9 +161,7 @@ public:
      * Constructor.
      */
     Element(IndexType NewId = 0) : BaseType(NewId),
-        // mpGeometry(new GeometryType(NodesArrayType())),
         Flags(),
-        mpGeometry(), // for serialization the pointer must be null
         mpProperties(new PropertiesType)
     {
     }
@@ -172,9 +170,8 @@ public:
      * Constructor using an array of nodes
      */
     Element(IndexType NewId, const NodesArrayType& ThisNodes) :
-        BaseType(NewId),
+        BaseType(NewId,GeometryType::Pointer(new GeometryType(ThisNodes))),
         Flags(),
-        mpGeometry(new GeometryType(ThisNodes)),
         mpProperties(new PropertiesType)
     {
     }
@@ -183,8 +180,9 @@ public:
      * Constructor using Geometry
      */
     Element(IndexType NewId, GeometryType::Pointer pGeometry) :
-        BaseType(NewId),         Flags(),
-mpGeometry(pGeometry), mpProperties(new PropertiesType)
+        BaseType(NewId,pGeometry),         
+        Flags(),
+        mpProperties(new PropertiesType)
     {
     }
 
@@ -192,9 +190,9 @@ mpGeometry(pGeometry), mpProperties(new PropertiesType)
      * Constructor using Properties
      */
     Element(IndexType NewId, GeometryType::Pointer pGeometry,
-            PropertiesType::Pointer pProperties) : BaseType(NewId),
+            PropertiesType::Pointer pProperties) : 
+        BaseType(NewId,pGeometry),
         Flags(),
-        mpGeometry(pGeometry),
         mpProperties(pProperties)
     {
     }
@@ -203,7 +201,6 @@ mpGeometry(pGeometry), mpProperties(new PropertiesType)
 
     Element(Element const& rOther) : BaseType(rOther),
         Flags(rOther),
-        mpGeometry(rOther.mpGeometry),
         mpProperties(rOther.mpProperties)
     {
     }
@@ -224,7 +221,6 @@ mpGeometry(pGeometry), mpProperties(new PropertiesType)
     {
         BaseType::operator=(rOther);
         Flags::operator =(rOther);
-        mpGeometry = rOther.mpGeometry;
         mpProperties = rOther.mpProperties;
         return *this;
     }
@@ -653,7 +649,7 @@ mpGeometry(pGeometry), mpProperties(new PropertiesType)
      */
     virtual IntegrationMethod GetIntegrationMethod() const
     {
-        return mpGeometry->GetDefaultIntegrationMethod();
+        return pGetGeometry()->GetDefaultIntegrationMethod();
     }
 
     ///@}
@@ -724,26 +720,6 @@ mpGeometry(pGeometry), mpProperties(new PropertiesType)
     ///@name Access
     ///@{
 
-    GeometryType::Pointer pGetGeometry()
-    {
-        return mpGeometry;
-    }
-
-    const GeometryType::Pointer pGetGeometry() const
-    {
-        return mpGeometry;
-    }
-
-    GeometryType& GetGeometry()
-    {
-        return *mpGeometry;
-    }
-
-    GeometryType const& GetGeometry() const
-    {
-        return *mpGeometry;
-    }
-
     PropertiesType::Pointer pGetProperties()
     {
         return mpProperties;
@@ -787,7 +763,7 @@ mpGeometry(pGeometry), mpProperties(new PropertiesType)
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        mpGeometry->PrintData(rOStream);
+        pGetGeometry()->PrintData(rOStream);
     }
     ///@}
     ///@name Friends
@@ -825,11 +801,6 @@ private:
     ///@{
     /** A pointer to data related to this element. */
     DataValueContainer mData;
-
-    /**
-     * pointer to the element's geometry
-     */
-    GeometryType::Pointer mpGeometry;
     
     /**
      * pointer to the element's properties
@@ -851,19 +822,17 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeometricalObject );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
         rSerializer.save("Data", mData);
-        rSerializer.save("Geometry",mpGeometry);
         rSerializer.save("Properties", mpProperties);
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, IndexedObject );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeometricalObject );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
         rSerializer.load("Data", mData);
-        rSerializer.load("Geometry",mpGeometry);
         rSerializer.load("Properties", mpProperties);
     }
 
