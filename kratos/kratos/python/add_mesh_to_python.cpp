@@ -319,6 +319,9 @@ void  AddMeshToPython()
     //.def("HasSecondTimeDerivative", &Dof::HasSecondTimeDerivative)
     //.def(self_ns::str(self))
     //      ;
+    
+    class_<GeometricalObject, GeometricalObject::Pointer, bases<GeometricalObject::BaseType, Flags > >("GeometricalObject", init<int>())
+    ;
 
     class_<Element, Element::Pointer, bases<Element::BaseType, Flags > >("Element", init<int>())
     //.def(init<int, const Point<3>& >())
