@@ -11,7 +11,10 @@ FIND_PACKAGE(Subversion)
 if(Subversion_FOUND)
   include(FindSubversion)
   Subversion_WC_INFO(${PROJECT_SOURCE_DIR} KRATOS_SVN_REVISION)
-  configure_file(kratos_version.h.in "${PROJECT_SOURCE_DIR}/kratos_version.h" @ONLY)
+  configure_file(
+      "${PROJECT_SOURCE_DIR}/kratos_version.h.in"
+      "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_version.h"
+      )
 endif(Subversion_FOUND) 
 
 #set compiler flags
@@ -174,6 +177,9 @@ endif(${METIS_APPLICATION} MATCHES ON )
 if(${TRILINOS_APPLICATION} MATCHES ON )
     set(MPI_NEEDED ON)
 endif(${TRILINOS_APPLICATION} MATCHES ON )
+if(${MPI_SEARCH_APPLICATION} MATCHES ON )
+    set(MPI_NEEDED ON)
+endif(${MPI_SEARCH_APPLICATION} MATCHES ON )
 
 if(${MPI_NEEDED} MATCHES ON )
     find_package(MPI REQUIRED)
