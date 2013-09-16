@@ -115,6 +115,48 @@ public:
     /// Execute method is used to execute the Process algorithms.
     virtual void Execute() {}
 
+    /// this function is designed for being called at the beginning of the computations
+    /// right after reading the model and the groups
+    virtual void ExecuteInitialize()
+    {
+    }
+
+    /// this function is designed for being execute once before the solution loop but after all of the
+    /// solvers where built
+    virtual void ExecuteBeforeSolutionLoop()
+    {
+    }
+
+
+    /// this function will be executed at every time step BEFORE performing the solve phase
+    virtual void ExecuteInitializeSolutionStep()
+    {
+    }
+
+    /// this function will be executed at every time step AFTER performing the solve phase
+    virtual void ExecuteFinalizeSolutionStep()
+    {
+    }
+
+
+    /// this function will be executed at every time step BEFORE  writing the output
+    virtual void ExecuteBeforeOutputStep()
+    {
+    }
+
+
+    /// this function will be executed at every time step AFTER writing the output
+    virtual void ExecuteAfterOutputStep()
+    {
+    }
+
+
+    /// this function is designed for being called at the beginning of the computations
+    /// right after reading the model and the groups
+    virtual void ExecuteFinalize()
+    {
+    }
+
 
     ///@}
     ///@name Access
