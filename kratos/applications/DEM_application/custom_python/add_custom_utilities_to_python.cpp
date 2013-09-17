@@ -86,6 +86,11 @@ void  AddCustomUtilitiesToPython(){
         .def("SetHighNode", &ParticleCreatorDestructor::SetHighNode)
         .def("SetLowNode", &ParticleCreatorDestructor::SetLowNode)
         ;
+      
+      class_<DEM_Inlet, boost::noncopyable >
+        ("DEM_Inlet", init<ModelPart&>())
+        .def("CreateElementsFromInletMesh", &DEM_Inlet::CreateElementsFromInletMesh)        
+        ;
 
      class_<SphericElementGlobalPhysicsCalculator, boost::noncopyable >
         ("SphericElementGlobalPhysicsCalculator", init<ModelPart&>())
