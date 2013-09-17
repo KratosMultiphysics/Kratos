@@ -309,8 +309,8 @@ public:
       * @param NumberOfResults Number of results
       * @param MaxNumberOfResults Maximum number of results returned for each point
       **/
-    void SearchObjectsMpi(ModelPart& r_model_part, ContainerType & ThisObjects, SizeType const& NumberOfObjects, std::vector<double> const& Radius, std::vector<std::vector<PointerType> >& Results,
-          std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults, Communicator::Pointer Communicator)
+    void SearchObjectsMpi(ContainerType & ThisObjects, SizeType const& NumberOfObjects, std::vector<double> const& Radius, std::vector<std::vector<PointerType> >& Results,
+          std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults, Communicator& Communicator)
     {  
         std::vector<std::vector<PointerType> > remoteResults(mpi_size, std::vector<PointerType>(0));
         std::vector<std::vector<PointerType> > SearchPetitions(mpi_size, std::vector<PointerType>(0));
@@ -359,8 +359,13 @@ public:
             TConfigure::CalculateBoundingBox((*object_pointer_it), Low, High, Radius[objectCounter]);
             Box.Set( CalculateCell(Low), CalculateCell(High), mN );
             
-            SearchInRadiusInner((*object_pointer_it), Radius[objectCounter], ResultsPointer, ResultsDistancesPointer, NumberOfResults[objectCounter], MaxNumberOfResults, Box );
+            SearchInRadiusExclusive((*object_pointer_it), Radius[objectCounter], ResultsPointer, ResultsDistancesPointer, NumberOfResults[objectCounter], MaxNumberOfResults, Box );
 
+//             if( (*object_pointer_it)->GetGeometry()(0)->Id() == 19513 )
+//             {
+//                 std::cout << "BINDIN: " << NumberOfResults[objectCounter] << std::endl;
+//             }
+            
             //For each point with results < MaxResults and each process excluding ourself
             if(NumberOfResults[objectCounter] < MaxNumberOfResults) 
             {
@@ -408,12 +413,12 @@ public:
         TConfigure::AsyncSendAndReceive(Communicator,SendObjectToProcess,SearchPetitions,msgSendSize,msgRecvSize);
         TConfigure::AsyncSendAndReceive(SendRadiusToProcess,SearchPetitionsRadius,msgSendSizeRad,msgRecvSizeRad);
                 
-        Communicator::NeighbourIndicesContainerType communicator_ranks = r_model_part.GetCommunicator().NeighbourIndices();
+        Communicator::NeighbourIndicesContainerType communicator_ranks = Communicator.NeighbourIndices();
         
         //Calculate remote points
         for(int i = 0; i < mpi_size; i++) 
         { 
-            int NumberOfRanks = r_model_part.GetCommunicator().GetNumberOfColors();
+            int NumberOfRanks = Communicator.GetNumberOfColors();
             if(i != mpi_rank && msgRecvSize[i])
             {
                 int destination = -1;
@@ -442,12 +447,17 @@ public:
                     TConfigure::CalculateBoundingBox(SearchPetitions[i][j], Low, High, SearchPetitionsRadius[i][j]);
                     Box.Set( CalculateCell(Low), CalculateCell(High), mN );
                     
-                    SearchInRadiusInner(SearchPetitions[i][j], SearchPetitionsRadius[i][j], remoteResultsPointer, ResultsDistancesPointer, thisNumberOfResults, MaxNumberOfResults, Box );
+                    SearchInRadiusExclusive(SearchPetitions[i][j], SearchPetitionsRadius[i][j], remoteResultsPointer, ResultsDistancesPointer, thisNumberOfResults, MaxNumberOfResults, Box );
+                    
+//                     if( SearchPetitions[i][j]->GetGeometry()(0)->Id() == 19513 )
+//                     {
+//                         std::cout << "BINDIN: " << thisNumberOfResults << std::endl;
+//                     }
                     
                     for(ResultIteratorType result_it = TempResults.begin(); result_it != remoteResultsPointer; ++result_it)
                     {     
-                        r_model_part.GetCommunicator().LocalMesh(destination).Elements().push_back((*result_it));
-                        r_model_part.GetCommunicator().LocalMesh(destination).Nodes().push_back((*result_it)->GetGeometry()(0));
+                        Communicator.LocalMesh(destination).Elements().push_back((*result_it));
+                        Communicator.LocalMesh(destination).Nodes().push_back((*result_it)->GetGeometry()(0));
                         
                         remoteResults[i][accum_results] = (*result_it);
                         accum_results++;
@@ -558,7 +568,7 @@ public:
         SizeType NumberOfResults = 0;
         TConfigure::CalculateBoundingBox(ThisObject, Low, High, Radius);
         Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-        SearchInRadiusInner(ThisObject, Radius, Results, ResultDistances, NumberOfResults, MaxNumberOfResults, Box );
+        SearchInRadiusExclusive(ThisObject, Radius, Results, ResultDistances, NumberOfResults, MaxNumberOfResults, Box );
         return NumberOfResults;
     }
 
@@ -1364,7 +1374,7 @@ private:
     // **** THREAD SAFE
 
     // Dimension = 1
-    void SearchInRadiusInner(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
+    void SearchInRadiusExclusive(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
                         SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,1>& Box )
     {
         PointType  MinCell, MaxCell;
@@ -1375,11 +1385,11 @@ private:
 
         for(IndexType I = Box.Axis[0].Begin() ; I <= Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0])
             if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius))
-                mCells[I].SearchObjectsInRaiusInner(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
+                mCells[I].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
     }
 
     // Dimension = 2
-    void SearchInRadiusInner(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
+    void SearchInRadiusExclusive(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
                         SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,2>& Box )
     {
         PointType  MinCell, MaxCell;
@@ -1400,13 +1410,13 @@ private:
             for(IndexType I = II + Box.Axis[0].Begin() ; I <= II + Box.Axis[0].End() ; I += Box.Axis[0].Block, MinCell[0] += mCellSize[0], MaxCell[0] += mCellSize[0] )
             {
                 if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius))
-                    mCells[I].SearchObjectsInRaiusInner(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
+                    mCells[I].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, NumberOfResults, MaxNumberOfResults);
             }
         }
     }
 
     // Dimension = 3
-    void SearchInRadiusInner(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
+    void SearchInRadiusExclusive(PointerType& ThisObject, CoordinateType const& Radius, ResultIteratorType& Result, DistanceIteratorType ResultDistances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults,
                         SearchStructure<IndexType,SizeType,CoordinateType,IteratorType,IteratorIteratorType,3>& Box )
     {
 
@@ -1433,7 +1443,7 @@ private:
                 {
                     if(TConfigure::IntersectionBox(ThisObject, MinCell, MaxCell, Radius))
                     {   
-                        mCells[I].SearchObjectsInRadiusInner(ThisObject, Radius, Result, ResultDistances, NumberOfResults, MaxNumberOfResults);
+                        mCells[I].SearchObjectsInRadiusExclusive(ThisObject, Radius, Result, ResultDistances, NumberOfResults, MaxNumberOfResults);
                     }
                 }
             }

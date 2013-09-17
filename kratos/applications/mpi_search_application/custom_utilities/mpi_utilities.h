@@ -202,7 +202,6 @@ namespace Kratos
 
           for (NodesContainerType::iterator it = mModelPart.GetCommunicator().LocalMesh().Nodes().ptr_begin(); it != mModelPart.GetCommunicator().LocalMesh().Nodes().ptr_end(); ++it)
           {
-//             std::cout << (*it)->Id() << "\t-->\t" << iteratorId << std::endl;
               (*it)->SetId(iteratorId);
               iteratorId++;
           }

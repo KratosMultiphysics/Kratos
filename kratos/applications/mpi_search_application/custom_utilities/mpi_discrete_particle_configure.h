@@ -92,13 +92,13 @@ public:
       /* This method implements exactly the same functionality as the one included in the communicator.
        * The aim of the method is to reimplement the genereic metho in to a specific one */
       template<class TObjectType>                            
-      static inline void AsyncSendAndReceive(Communicator::Pointer Communicator,
+      static inline void AsyncSendAndReceive(Communicator& Communicator,
                                              std::vector<TObjectType>& SendObjects,
                                              std::vector<TObjectType>& RecvObjects,
                                              int * msgSendSize,
                                              int * msgRecvSize)
       {
-          Communicator->AsyncSendAndReceive(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
+          Communicator.AsyncSendAndReceive(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
       }
     
       /* This method implements exactly the same functionality as the one included in the communicator.

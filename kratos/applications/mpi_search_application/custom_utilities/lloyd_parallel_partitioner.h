@@ -360,68 +360,73 @@ public:
                 }
             }
                
-//             (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
-//             (*particle_pointer_it)->GetValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetValue(OSS_SWITCH);
+            (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
+            (*particle_pointer_it)->GetValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetValue(OSS_SWITCH);
         }
-//         
-//         MPI_Barrier(MPI_COMM_WORLD);
-//         
-//         std::cout << "Level2 Marking" << std::endl;
-//         
-//         //Mark elements in boundary (Level-2) (Only last iteration)
-//         std::vector<std::vector<PointerType> > SendMarkObjects(mpi_size, std::vector<PointerType>(0));
-//         std::vector<std::vector<PointerType> > RecvMarkObjects(mpi_size, std::vector<PointerType>(0));
-//       
-//         //Mark neighbours (Level-2)
-//         std::cout << pElements.end()-pElements.begin() << std::endl;
-//         BinsObjectDynamicMpi<Configure> particle_bin(pElements.begin(), pElements.end());
-//         
-//         int NumberOfMarkedElements = pElementsMarked.end() - pElementsMarked.begin();
-//         int MaximumNumberOfResults = 1000;
-//         
-//         std::vector<std::size_t>               NumberOfResults(NumberOfMarkedElements);
-//         std::vector<std::vector<PointerType> > Results(NumberOfMarkedElements, std::vector<PointerType>(MaximumNumberOfResults));
-//         std::vector<std::vector<double> >      ResultsDistances(NumberOfMarkedElements, std::vector<double>(MaximumNumberOfResults));
-//         std::vector<double>                    Radius(NumberOfMarkedElements);
-//         
-//         double new_extension = 1.01;
-//         for (IteratorType particle_pointer_it = pElementsMarked.begin(); particle_pointer_it != pElementsMarked.end(); ++particle_pointer_it)
-//         {    
-//               Radius[particle_pointer_it - pElementsMarked.begin()] = new_extension * ((1.0 +0.3) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS)); //if this is changed, then compobation before adding neighbours must change also.
-//         }
-//         
-//         particle_bin.SearchObjectsMpi(mModelPart,pElementsMarked,NumberOfMarkedElements,Radius,Results,ResultsDistances,NumberOfResults,MaximumNumberOfResults,mModelPart.pGetCommunicator());
-//         
-//         for (IteratorType particle_pointer_it = pElementsMarked.begin(); particle_pointer_it != pElementsMarked.end(); ++particle_pointer_it)
-//         {    
-//             int p_index = particle_pointer_it-pElementsMarked.begin();
-//             
-//             for(unsigned int i = 0; i < NumberOfResults[p_index]; i++)
-//             {
-//                 Results[p_index][i]->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
-//                 SendMarkObjects[Results[p_index][i]->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX)].push_back(Results[p_index][i]);
-//             }
-//         }
-// 
-//         mModelPart.GetCommunicator().TransferObjects(mModelPart,SendMarkObjects,RecvMarkObjects);
-//         
-//         for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
-//         {
-//             for(int j = 0; j < mpi_size; j++)
-//             {
-//                 if(j != mpi_rank)
-//                 {
-//                     for(unsigned int k = 0; k < RecvMarkObjects[j].size(); k++)
-//                     {
-//                         if((*particle_pointer_it)->GetGeometry()(0)->Id() == RecvMarkObjects[j][k]->GetGeometry()(0)->Id())
-//                         {
-//                             (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) |= RecvMarkObjects[j][k]->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
-//                             (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
-//                         }
-//                     }
-//                 }
-//             }
-//         }
+        
+        MPI_Barrier(MPI_COMM_WORLD);
+        
+        std::cout << "Level2 Marking" << std::endl;
+        
+        //Mark elements in boundary (Level-2) (Only last iteration)
+        std::vector<std::vector<PointerType> > SendMarkObjects(mpi_size, std::vector<PointerType>(0));
+        std::vector<std::vector<PointerType> > RecvMarkObjects(mpi_size, std::vector<PointerType>(0));
+      
+        //Mark neighbours (Level-2)
+        std::cout << pElements.end()-pElements.begin() << std::endl;
+        BinsObjectDynamicMpi<Configure> particle_bin(pElements.begin(), pElements.end());
+        
+        int NumberOfMarkedElements = pElementsMarked.end() - pElementsMarked.begin();
+        int MaximumNumberOfResults = 1000;
+        
+        std::vector<std::size_t>               NumberOfResults(NumberOfMarkedElements);
+        std::vector<std::vector<PointerType> > Results(NumberOfMarkedElements, std::vector<PointerType>(MaximumNumberOfResults));
+        std::vector<std::vector<double> >      ResultsDistances(NumberOfMarkedElements, std::vector<double>(MaximumNumberOfResults));
+        std::vector<double>                    Radius(NumberOfMarkedElements);
+        
+        double new_extension = 1.01;
+        for (IteratorType particle_pointer_it = pElementsMarked.begin(); particle_pointer_it != pElementsMarked.end(); ++particle_pointer_it)
+        {    
+              Radius[particle_pointer_it - pElementsMarked.begin()] = new_extension * ((1.0 +0.3) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS)); //if this is changed, then compobation before adding neighbours must change also.
+        }
+        
+        particle_bin.SearchObjectsMpi(pElementsMarked,NumberOfMarkedElements,Radius,Results,ResultsDistances,NumberOfResults,MaximumNumberOfResults,mModelPart.GetCommunicator());
+        
+        for (IteratorType particle_pointer_it = pElementsMarked.begin(); particle_pointer_it != pElementsMarked.end(); ++particle_pointer_it)
+        {    
+            int p_index = particle_pointer_it-pElementsMarked.begin();
+            
+            for(unsigned int i = 0; i < NumberOfResults[p_index]; i++)
+            {
+                Results[p_index][i]->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
+                SendMarkObjects[Results[p_index][i]->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX)].push_back(Results[p_index][i]);
+            }
+        }
+
+//         mModelPart.GetCommunicator().TransferModelElements(mModelPart,SendMarkObjects,RecvMarkObjects);
+        
+        int msgSendSize[mpi_size];
+        int msgRecvSize[mpi_size];
+
+        TConfigure::AsyncSendAndReceive(mModelPart.GetCommunicator(),SendMarkObjects,RecvMarkObjects,msgSendSize,msgRecvSize);
+        
+        for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
+        {
+            for(int j = 0; j < mpi_size; j++)
+            {
+                if(j != mpi_rank)
+                {
+                    for(unsigned int k = 0; k < RecvMarkObjects[j].size(); k++)
+                    {
+                        if((*particle_pointer_it)->GetGeometry()(0)->Id() == RecvMarkObjects[j][k]->GetGeometry()(0)->Id())
+                        {
+                            (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) |= RecvMarkObjects[j][k]->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
+                            (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /// Destructor.

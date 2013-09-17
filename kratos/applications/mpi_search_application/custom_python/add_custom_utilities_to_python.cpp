@@ -71,7 +71,7 @@ namespace Kratos
             typedef MpiUtilities    MpiUtilitiesType;
 
             class_<DemSearchType, bases<SpatialSearch>, boost::noncopyable>
-                    ("MPI_DEMSearch", init< >())
+                    ("MPI_DEMSearch", init< Communicator& >())
                     ;
                     
             class_<MpiUtilitiesType, boost::noncopyable>

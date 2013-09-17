@@ -65,7 +65,8 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       ///@{
       
       /// Default constructor.
-      MPI_DEMSearch(){}
+      MPI_DEMSearch(Communicator& comm) : mCommunicator(comm){
+      }
 
       /// Destructor.
       ~MPI_DEMSearch(){}
@@ -108,12 +109,12 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
           for (IteratorType particle_pointer_it = elements_array.begin();
                 particle_pointer_it != elements_array.end(); ++particle_pointer_it)
           {                   
-              rResults[particle_pointer_it-elements_array.begin()].resize(NumberOfModelPElements);
-              rResultsDistance[particle_pointer_it-elements_array.begin()].resize(NumberOfModelPElements);
+              rResults[particle_pointer_it-elements_array.begin()].resize(20);
+              rResultsDistance[particle_pointer_it-elements_array.begin()].resize(20);
           }
           
-//           bins.SearchObjectsMpi(rModelPart,elements_array,NumberOfSearchElements,Radius,rResults,rResultsDistance,NumberOfResults,NumberOfModelPElements,rModelPart.pGetCommunicator());
-            
+          bins.SearchObjectsMpi(elements_array,NumberOfSearchElements,Radius,rResults,rResultsDistance,NumberOfResults,20,mCommunicator);
+
           for(int i = 0; i < NumberOfSearchElements; i++)
           {
               rResults[i].resize(NumberOfResults[i]);
@@ -122,7 +123,7 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
 
           // Update the modelpart interface and keep the coherence between domains
           int ResultCounter = 0;
-          
+
           for (IteratorType particle_pointer_it = elements_array.begin();
                particle_pointer_it != elements_array.end(); ++particle_pointer_it, ++ResultCounter)
           {                   
@@ -289,7 +290,8 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       ///@} 
       ///@name Member Variables 
       ///@{ 
-        
+            
+      Communicator& mCommunicator;
         
       ///@} 
       ///@name Private Operators
@@ -304,9 +306,9 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       {
           KRATOS_TRY
           
-          Communicator::NeighbourIndicesContainerType communicator_ranks = r_model_part.GetCommunicator().NeighbourIndices();
+          Communicator::NeighbourIndicesContainerType communicator_ranks = mCommunicator.NeighbourIndices();
 
-          unsigned int NumberOfRanks = r_model_part.GetCommunicator().GetNumberOfColors();
+          unsigned int NumberOfRanks = mCommunicator.GetNumberOfColors();
 
           ModelPart::ElementsContainerType    ETempGhost[NumberOfRanks];
           ModelPart::ElementsContainerType    ETempLocal[NumberOfRanks];
@@ -317,10 +319,10 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
 
           for(unsigned int i = 0; i < NumberOfRanks; i++)
           {
-              ETempGhost[i].swap(r_model_part.GetCommunicator().GhostMesh(i).Elements());
-              ETempLocal[i].swap(r_model_part.GetCommunicator().LocalMesh(i).Elements());
-              NTempGhost[i].swap(r_model_part.GetCommunicator().GhostMesh(i).Nodes());
-              NTempLocal[i].swap(r_model_part.GetCommunicator().LocalMesh(i).Nodes());
+              ETempGhost[i].swap(mCommunicator.GhostMesh(i).Elements());
+              ETempLocal[i].swap(mCommunicator.LocalMesh(i).Elements());
+              NTempGhost[i].swap(mCommunicator.GhostMesh(i).Nodes());
+              NTempLocal[i].swap(mCommunicator.LocalMesh(i).Nodes());
           }
 
           //Celan the ghost mesh
@@ -328,8 +330,8 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
           ModelPart::ElementsContainerType  ETempGhostGlobal;
           ModelPart::NodesContainerType     NTempGhostGlobal;
 
-          ETempGhostGlobal.swap(r_model_part.GetCommunicator().GhostMesh().Elements());
-          NTempGhostGlobal.swap(r_model_part.GetCommunicator().GhostMesh().Nodes());
+          ETempGhostGlobal.swap(mCommunicator.GhostMesh().Elements());
+          NTempGhostGlobal.swap(mCommunicator.GhostMesh().Nodes());
           
           KRATOS_CATCH(" ")
       }
@@ -341,11 +343,11 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
           
           #pragma omp critical
           {
-              Communicator::NeighbourIndicesContainerType communicator_ranks = r_model_part.GetCommunicator().NeighbourIndices();
+              Communicator::NeighbourIndicesContainerType communicator_ranks = mCommunicator.NeighbourIndices();
               
-              ElementsContainerType::ContainerType& pGhostElements = r_model_part.GetCommunicator().GhostMesh().ElementsArray();
+              ElementsContainerType::ContainerType& pGhostElements = mCommunicator.GhostMesh().ElementsArray();
               
-              int NumberOfRanks = r_model_part.GetCommunicator().GetNumberOfColors();
+              int NumberOfRanks = mCommunicator.GetNumberOfColors();
               int destination = -1;
               
               bool IsInGhostMesh = false;
@@ -369,15 +371,15 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
                           
                   if(!IsInGhostMesh /*&& !IsInLocalMesh*/)
                   {
-                      r_model_part.GetCommunicator().GhostMesh().Elements().push_back((*neighbour_it));
-                      r_model_part.GetCommunicator().GhostMesh().Nodes().push_back((*neighbour_it)->GetGeometry()(0));
+                      mCommunicator.GhostMesh().Elements().push_back((*neighbour_it));
+                      mCommunicator.GhostMesh().Nodes().push_back((*neighbour_it)->GetGeometry()(0));
                   }
                   
                   IsInGhostMesh = false;
                   //IsInLocalMesh = false;
                 
-                  ElementsContainerType::ContainerType& pMyGhostElements = r_model_part.GetCommunicator().GhostMesh(destination).ElementsArray();
-                  //ContainerType& pMyLocalElements = r_model_part.GetCommunicator().LocalMesh(destination).ElementsArray();
+                  ElementsContainerType::ContainerType& pMyGhostElements = mCommunicator.GhostMesh(destination).ElementsArray();
+                  //ContainerType& pMyLocalElements = mCommunicator.LocalMesh(destination).ElementsArray();
             
                   for(IteratorType element_it = pMyGhostElements.begin(); !IsInGhostMesh && element_it != pMyGhostElements.end(); ++element_it)
                       if((*element_it)->GetGeometry()(0)->Id() == (*neighbour_it)->GetGeometry()(0)->Id())
@@ -391,15 +393,15 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
                   
                   if(!IsInGhostMesh)
                   {   
-                      r_model_part.GetCommunicator().GhostMesh(destination).Elements().push_back((*neighbour_it));
-                      r_model_part.GetCommunicator().GhostMesh(destination).Nodes().push_back((*neighbour_it)->GetGeometry()(0));
+                      mCommunicator.GhostMesh(destination).Elements().push_back((*neighbour_it));
+                      mCommunicator.GhostMesh(destination).Nodes().push_back((*neighbour_it)->GetGeometry()(0));
                   }
                   
                   /*
                   if(!IsInLocalMesh)
                   {
-                      r_model_part.GetCommunicator().LocalMesh(destination).Elements().push_back((*particle_pointer_it));
-                      r_model_part.GetCommunicator().LocalMesh(destination).Nodes().push_back((*particle_pointer_it)->GetGeometry()(0));
+                      mCommunicator.LocalMesh(destination).Elements().push_back((*particle_pointer_it));
+                      mCommunicator.LocalMesh(destination).Nodes().push_back((*particle_pointer_it)->GetGeometry()(0));
                   }
                   */
               }
@@ -412,11 +414,11 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       {
           KRATOS_TRY
           
-          for (unsigned int i = 0; i < r_model_part.GetCommunicator().LocalMeshes().size(); i++)
-              r_model_part.GetCommunicator().LocalMesh(i).Nodes().Unique();
+          for (unsigned int i = 0; i < mCommunicator.LocalMeshes().size(); i++)
+              mCommunicator.LocalMesh(i).Nodes().Unique();
           
-          for (unsigned int i = 0; i < r_model_part.GetCommunicator().GhostMeshes().size(); i++)
-              r_model_part.GetCommunicator().GhostMesh(i).Nodes().Unique();
+          for (unsigned int i = 0; i < mCommunicator.GhostMeshes().size(); i++)
+              mCommunicator.GhostMesh(i).Nodes().Unique();
           
           KRATOS_CATCH(" ")
       }
@@ -443,7 +445,7 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       }
 
       /// Copy constructor.
-      MPI_DEMSearch(MPI_DEMSearch const& rOther)
+      MPI_DEMSearch(MPI_DEMSearch const& rOther) : mCommunicator(rOther.mCommunicator)
       {
           *this = rOther;
       }

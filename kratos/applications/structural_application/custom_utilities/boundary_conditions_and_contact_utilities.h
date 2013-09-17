@@ -318,7 +318,7 @@ public:
                 {
                     //Result[k].clear();
                     //Result[k].reserve(100);
-                    //rBinsObjectDynamic.SearchObjectsInner(*it, Result[k]);
+                    //rBinsObjectDynamic.SearchObjects(*it, Result[k]);
                     begin = Result.begin();
                     NumberOfResults = rBins->SearchObjects(*it, begin, MaxNumberOfResults);
                     //if(Result[k].size()!=0){
@@ -1475,7 +1475,7 @@ public:
                 Result.clear();
                 Result.reserve(100);
                 (*it)->GetValue(IS_TARGET)=true;
-                rBinsObjectDynamic.SearchObjectsInner(*it, Result);
+                rBinsObjectDynamic.SearchObjects(*it, Result);
                 if(Result.size()!=0)
                 {
                     for(ResultIteratorType rthis = Result.begin(); rthis!=Result.end(); ++rthis)
@@ -1678,7 +1678,7 @@ public:
             {
                 Result.clear();
                 Result.reserve(100);
-                rBinsObjectDynamic.SearchObjectsInner(*it, Result);
+                rBinsObjectDynamic.SearchObjects(*it, Result);
                 if(Result.size()!=0)
                 {
                     for(ResultIteratorType rthis = Result.begin(); rthis!=Result.end(); rthis++)
@@ -4275,7 +4275,7 @@ private:
         Segment2D rSegment;
         for(IteratorType it = it_begin; it!=it_end; it++)
         {
-            std::size_t size = rBins.SearchObjectsInner(*it, Result);
+            std::size_t size = rBins.SearchObjects(*it, Result);
 
             if(size!=0)
             {
@@ -4396,7 +4396,7 @@ private:
         for(IteratorType it = it_begin; it!=it_end; it++)
         {
             Result.clear();
-            rBins.SearchObjectsInner(*it, Result); ///SearchAroundObjectsInner(*it, Result); poner el cmentario para 2D
+            rBins.SearchObjects(*it, Result); ///SearchAroundObjectsInner(*it, Result); poner el cmentario para 2D
             if(Result.size()!=0)
             {
                 Element::GeometryType& geom = (*it)->GetGeometry();
@@ -4526,7 +4526,7 @@ private:
             for(IteratorType it =it_begin_1; it!=it_end_1; it++)
                 //for(IteratorType it = it_begin; it!=it_end; it++)
             {
-                rBins.SearchObjectsInner(*it, Result);
+                rBins.SearchObjects(*it, Result);
 
                 if(Result.size()!=0)
                 {

@@ -17,11 +17,17 @@
 #include "includes/define.h"
 
 // Project includes
-#include "spatial_containers/bins_dynamic_objects.h"
 #include "spatial_containers/dem_search.h"
+#include "utilities/openmp_utils.h"
+
+// Configures
 #include "discrete_particle_configure.h"
 #include "node_configure.h"
-#include "utilities/openmp_utils.h"
+#include "geometry_configure.h"
+
+// Search
+#include "spatial_containers/bins_dynamic_objects.h"
+#include "spatial_containers/bins_dynamic.h"
 
 // External includes
 
@@ -66,43 +72,44 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
     public:
       ///@name Type Definitions
       ///@{
-        
-      enum SearchType { 
-        ELEM2ELEM = 1,
-        ELEM2NODE = 2,
-        ELEM2COND = 4,
-        NODE2ELEM = 8,
-        NODE2NODE = 16,
-        NODE2COND = 32,
-        COND2ELEM = 64,
-        COND2NODE = 128,
-        COND2COND = 256
-      };
-      
-      enum SearchMode {
-        INCLUSIVE = 1,
-        EXCLUSIVE = 2
-      };
     
       /// Pointer definition of OMP_DEMSearch
       KRATOS_CLASS_POINTER_DEFINITION(OMP_DEMSearch);
       
+      typedef RadiusPoint<Dimension>                    PointType;
+      typedef PointType*                                PtrPointType;
+      typedef std::vector<PtrPointType>*                PointVector;
+      typedef std::vector<PtrPointType>::iterator       PointIterator;
+      
+      typedef double*                                   DistanceVector;
+      typedef double*                                   DistanceIterator;
+      
       //Configure Types
       typedef DiscreteParticleConfigure<3>              ElementConfigureType;   //Element
       typedef NodeConfigure<3>                          NodeConfigureType;      //Node
+      typedef GeometryConfigure<3>                      GeometryConfigureType;  //Geometry
       
+      //Bin Types
       typedef BinsObjectDynamic<ElementConfigureType>   BinsType;
       typedef BinsObjectDynamic<NodeConfigureType>      NodeBinsType;
+      typedef BinsObjectDynamic<GeometryConfigureType>  GemoetryBinsType; 
+      
+      typedef BinsDynamic<3,PointType,PointVector,PtrPointType,PointIterator,DistanceIterator,PointDistance2<Dimension,PointType> >    PointBins;
      
+      
       ///@}
       ///@name Life Cycle 
       ///@{
       
       /// Default constructor.
-      OMP_DEMSearch(){}
+      OMP_DEMSearch(){
+//           searchPoints = new std::vector<PtrPointType>(0);
+      }
 
       /// Destructor.
-      ~OMP_DEMSearch(){}
+      ~OMP_DEMSearch(){
+//           delete searchPoints;
+      }
       
 
       ///@}
@@ -136,13 +143,13 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               DistanceType                  localResultsDistances(MaxNumberOfElements);
               std::size_t                   NumberOfResults = 0;
               
-              #pragma omp parallel for
+              #pragma omp for
               for(std::size_t i = 0; i < elements_array.size(); i++)
               {
                   ResultElementsContainerType::iterator ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
                 
-                  NumberOfResults = bins.SearchObjectsInRadiusInner(elements_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(elements_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
                   
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
@@ -174,7 +181,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               DistanceType                  localResultsDistances(MaxNumberOfElements);
               std::size_t                   NumberOfResults = 0;
               
-              #pragma omp parallel for
+              #pragma omp for
               for(std::size_t i = 0; i < elements_array.size(); i++)
               {
                   ResultElementsContainerType::iterator ResultsPointer          = localResults.begin();
@@ -189,7 +196,8 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           
           KRATOS_CATCH("")        
       }
-
+      
+      //ELEMENT SEARCH BASED
       void SearchElementsInRadiusExclusiveImplementation (
           ElementsContainerType const& rStructureElements,
           ElementsContainerType const& rElements,
@@ -197,7 +205,6 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           VectorResultElementsContainerType& rResults )
       {     
           KRATOS_TRY
-          KRATOS_TIMER_START("SN-LVLN1")
           
           int MaxNumberOfElements = rStructureElements.size();
           
@@ -215,16 +222,165 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               for(std::size_t i = 0; i < elements_array.size(); i++)
               {
                   ResultElementsContainerType::iterator ResultsPointer = localResults.begin();
-                
-                  NumberOfResults = bins.SearchObjectsInRadiusInner(elements_array[i],Radius[i],ResultsPointer,MaxNumberOfElements);
-                  
-                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);     
-              }
+                        
+                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(elements_array[i],Radius[i],ResultsPointer,MaxNumberOfElements);
+  
+                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);    
+              } 
           }
           
-          KRATOS_TIMER_STOP("SN-LVLN1")
-          KRATOS_CATCH("")
+          KRATOS_CATCH("")        
       }
+
+//       //GEOMETRY SEARCH BASED
+//       void SearchElementsInRadiusExclusiveImplementation (
+//           ElementsContainerType const& rStructureElements,
+//           ElementsContainerType const& rElements,
+//           const RadiusArrayType & Radius, 
+//           VectorResultElementsContainerType& rResults )
+//       {     
+//           KRATOS_TRY
+//           
+//           int MaxNumberOfElements = rStructureElements.size();
+// 
+//           searchPoints->resize(MaxNumberOfElements);
+//           
+//           ElementsContainerType::ContainerType& elements_array = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
+//           
+//           PointIterator PointsBegin = searchPoints->begin();
+//           PointIterator PointsEnd   = searchPoints->end();
+//            
+//           static int a = 1;
+//           if(a)
+//           {
+//               for(ElementsContainerType::ContainerType::iterator i_elem = elements_array.begin(); i_elem != elements_array.end(); i_elem++)
+//               {
+//                   std::size_t index = i_elem - elements_array.begin();
+//                   
+//                   (*searchPoints)[index] = new PointType();
+//               }
+//               a = 0;
+//           }
+//             
+//           for(ElementsContainerType::ContainerType::iterator i_elem = elements_array.begin(); i_elem != elements_array.end(); i_elem++)
+//           {
+//               std::size_t index = i_elem - elements_array.begin();
+// 
+//               (*searchPoints)[index]->Initialize((*i_elem));
+//           }
+// 
+//           PointBins bins(PointsBegin, PointsEnd);
+//           
+//           #pragma omp parallel
+//           {
+//               PointVector localResults = new std::vector<PtrPointType>(MaxNumberOfElements);
+//               double distances[MaxNumberOfElements];
+//               std::size_t                   NumberOfResults = 0;
+//               
+//               #pragma omp for
+//               for(std::size_t i = 0; i < searchPoints->size(); i++)
+//               {
+//                   std::vector<PtrPointType>::iterator ResultsPointer = localResults->begin();
+//                 
+//                   NumberOfResults = bins.SearchInRadius((*(*searchPoints)[i]),Radius[i],ResultsPointer,distances,MaxNumberOfElements);
+// 
+//                   rResults[i].resize(NumberOfResults-1);
+//                   int k = 0;
+//                   
+//                   for(std::size_t j = 0; j < NumberOfResults; j++)
+//                       if((*localResults)[j]->pNaseElem->Id() != (*searchPoints)[i]->pNaseElem->Id())
+//                           rResults[i][k++] = boost::make_shared<ElementType>(*(*localResults)[j]->pNaseElem);
+//               }
+//           }
+// 
+//           KRATOS_CATCH("")
+//       }
+
+//       //POINT SEARCH BASED
+//       void SearchElementsInRadiusExclusiveImplementation (
+//           ElementsContainerType const& rStructureElements,
+//           ElementsContainerType const& rElements,
+//           const RadiusArrayType & Radius, 
+//           VectorResultElementsContainerType& rResults )
+//       {     
+//           KRATOS_TRY
+//           
+//           int MaxNumberOfElements = rStructureElements.size();
+//           
+//           ElementsContainerType::ContainerType& elements_array = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
+//           
+// //           KRATOS_TIMER_START("OMP_DEM_ALLOCATE_MEMORY")
+//           if(searchPoints->size() < MaxNumberOfElements) 
+//           {
+//               //Keep allocating data chunks until the right size is achieved
+//               int old_size = searchPoints->size();
+//               int cur_size = searchPoints->size();
+//               int fnl_size = MaxNumberOfElements;
+//               int chk_size = 1024;                                          //Charlie: To be defined by the user?
+//               
+//               std::cout << "omp_dem_search.h: Not enought space in the result buffer. Allocating memory" << std::endl;
+//               
+//               while(cur_size < fnl_size) cur_size += chk_size;      //Charlie: It can be calculated rather than do it in a while...
+//               
+//               std::cout << "\told buffer size: " << old_size << std::endl;
+//               std::cout << "\tnew buffer size: " << cur_size << std::endl;
+//               
+//               searchPoints->resize(MaxNumberOfElements);
+//               for(ElementsContainerType::ContainerType::iterator i_elem = elements_array.begin() + old_size; i_elem != elements_array.end(); i_elem++)
+//               {
+//                   std::size_t index = i_elem - elements_array.begin();
+//                   
+//                   (*searchPoints)[index] = new PointType();
+//               }
+//           }
+// //           KRATOS_TIMER_STOP("OMP_DEM_ALLOCATE_MEMORY")
+//                    
+//           PointIterator PointsBegin = searchPoints->begin();
+//           PointIterator PointsEnd   = searchPoints->end();
+//             
+// //           KRATOS_TIMER_START("OMP_DEM_INITIALIZE")
+//           for(ElementsContainerType::ContainerType::iterator i_elem = elements_array.begin(); i_elem != elements_array.end(); i_elem++)
+//           {
+//               std::size_t index = i_elem - elements_array.begin();
+// 
+//               (*searchPoints)[index]->Initialize((*i_elem));
+//           }
+// //           KRATOS_TIMER_STOP("OMP_DEM_INITIALIZE")
+// 
+// //           KRATOS_TIMER_START("OMP_DEM_GENERATE_BINS")
+//           PointBins bins(PointsBegin, PointsEnd);
+// //           KRATOS_TIMER_STOP("OMP_DEM_GENERATE_BINS")
+//           
+//           #pragma omp parallel
+//           {
+//               PointVector localResults = new std::vector<PtrPointType>(MaxNumberOfElements);
+//               double distances[MaxNumberOfElements];
+//               std::size_t                   NumberOfResults = 0;
+//               
+//               #pragma omp for
+//               for(std::size_t i = 0; i < searchPoints->size(); i++)
+//               {
+//                   std::vector<PtrPointType>::iterator ResultsPointer = localResults->begin();
+//                 
+// //                   KRATOS_TIMER_START("OMP_DEM_SEARCH")
+//                   NumberOfResults = bins.SearchInRadius((*(*searchPoints)[i]),Radius[i],ResultsPointer,distances,MaxNumberOfElements);
+// //                   KRATOS_TIMER_STOP("OMP_DEM_SEARCH")
+// 
+//                   rResults[i].resize(NumberOfResults-1);
+//                   int k = 0;
+//                   
+// //                   KRATOS_TIMER_START("OMP_DEM_CPY_RES")
+//                   for(std::size_t j = 0; j < NumberOfResults; j++)
+//                       if((*localResults)[j]->pNaseElem->Id() != (*searchPoints)[i]->pNaseElem->Id())
+//                           rResults[i][k++] = boost::make_shared<ElementType>(*(*localResults)[j]->pNaseElem);
+// //                   KRATOS_TIMER_STOP("OMP_DEM_CPY_RES")
+//               }
+//               
+//               delete localResults;
+//           }
+// 
+//           KRATOS_CATCH("")
+//       }
       
       void SearchElementsInRadiusInclusiveImplementation (
           ElementsContainerType const& rStructureElements,
@@ -288,7 +444,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
                   ResultNodesContainerType::iterator    ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
                 
-                  NumberOfResults = bins.SearchObjectsInRadiusInner(nodes_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfNodes);
+                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(nodes_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfNodes);
                   
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
                   rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
@@ -361,7 +517,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               {
                   ResultNodesContainerType::iterator ResultsPointer    = localResults.begin();
                 
-                  NumberOfResults = bins.SearchObjectsInRadiusInner(nodes_array[i],Radius[i],ResultsPointer,MaxNumberOfNodes);
+                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(nodes_array[i],Radius[i],ResultsPointer,MaxNumberOfNodes);
                   
                   rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);     
               }

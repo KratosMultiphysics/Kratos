@@ -40,8 +40,8 @@ namespace Kratos
       ///@{
       
       typedef ModelPart::NodesContainerType NodesArrayType;
-	
-	
+    
+    
       /// Pointer definition of ForwardEulerScheme
       KRATOS_CLASS_POINTER_DEFINITION(ForwardEulerScheme);
   
@@ -57,7 +57,6 @@ namespace Kratos
       
       virtual NodesArrayType& GetNodes(ModelPart& model_part)
       {
-//           return model_part.Nodes(); 
           return model_part.GetCommunicator().LocalMesh().Nodes(); 
       }
       
@@ -96,11 +95,11 @@ namespace Kratos
           //NodesArrayType::iterator it_begin = pNodes.ptr_begin();
           //NodesArrayType::iterator it_end   = pNodes.ptr_end();
 
-		  #ifdef _OPENMP
-		  int number_of_threads = omp_get_max_threads();
-		  #else
-		  int number_of_threads = 1;
-		  #endif
+          #ifdef _OPENMP
+          int number_of_threads = omp_get_max_threads();
+          #else
+          int number_of_threads = 1;
+          #endif
           OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
           
           #pragma omp parallel for firstprivate(aux) shared(delta_t) 
@@ -123,13 +122,14 @@ namespace Kratos
                   aux = delta_t / mass;
                   //KRATOS_WATCH(delta_t)
                   //KRATOS_WATCH(mass)
+                  
                   if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
                   {
                       aux = (1 - virtual_mass_coeff)* (delta_t / mass);
 
                       if (aux<0.0) KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",virtual_mass_coeff)
                   }
-	   
+       
                   if( i->pGetDof(VELOCITY_X)->IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
                   {    
                       vel[0] += aux * force[0];
@@ -191,100 +191,6 @@ namespace Kratos
                   }
               }
           }
-    
-          NodesArrayType& pGNodes = GetGhostNodes(model_part);
-          
-          OpenMPUtils::CreatePartition(number_of_threads, pGNodes.size(), node_partition);
-       
-          #pragma omp parallel for firstprivate(aux) shared(delta_t) 
-          for(int k=0; k<number_of_threads; k++)
-          {
-              NodesArrayType::iterator i_begin=pGNodes.ptr_begin()+node_partition[k];
-              NodesArrayType::iterator i_end=pGNodes.ptr_begin()+node_partition[k+1];
-             
-              for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
-              {      
-                  
-                    array_1d<double, 3 > & displ           = i->FastGetSolutionStepValue(DISPLACEMENT);
-                    array_1d<double, 3 > & coor            = i->Coordinates();
-                    array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
-//                   KRATOS_WATCH("0")
-                  double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
-
-//                   KRATOS_WATCH("1")
-                  array_1d<double, 3 > & vel             = i->FastGetSolutionStepValue(VELOCITY);
-//                   KRATOS_WATCH("2")
-                  array_1d<double, 3 > & delta_displ     = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
-//                   KRATOS_WATCH("3")
-                  array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
-//                   KRATOS_WATCH("4")
-                  aux = delta_t / mass;
-                          
-                  if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
-                  {
-                      aux = (1 - virtual_mass_coeff)* (delta_t / mass);
-
-                      if (aux<0.0) KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",virtual_mass_coeff)
-                  }
-       
-                  if( i->pGetDof(VELOCITY_X)->IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
-                  {    
-                      vel[0] += aux * force[0];
-                 
-                      delta_displ[0] = delta_t * vel[0];             
-                      displ[0] +=  delta_displ[0];
-
-                      coor[0] = initial_coor[0] + displ[0];
-                 
-                  }
-                  else
-                  {
-                      delta_displ[0] = delta_t * vel[0];
-                      displ[0] += delta_displ[0];
-
-                      coor[0] = initial_coor[0] + displ[0];
-                 
-                  }
-                  
-                  if(  i->pGetDof(VELOCITY_Y)->IsFixed() == false  )
-                  {
-                      vel[1] += aux * force[1];
-
-                      delta_displ[1] = delta_t * vel[1];
-                      displ[1] +=  delta_displ[1];
-
-                      coor[1] = initial_coor[1] + displ[1];
-                      
-                  }
-                  else
-                  {
-                      delta_displ[1] = delta_t * vel[1];
-                      displ[1] += delta_displ[1];
-
-                      coor[1] = initial_coor[1] + displ[1];
-                      
-                  }
-                  
-                  if(  i->pGetDof(VELOCITY_Z)->IsFixed() == false  )
-                  {
-                      vel[2] += aux * force[2];
-
-                      delta_displ[2] = delta_t * vel[2];
-                      displ[2] +=  delta_displ[2];
-
-                      coor[2] = initial_coor[2] + displ[2];
-                      
-                  }
-                  else
-                  {
-                      delta_displ[2] = delta_t * vel[2];
-                      displ[2] += delta_displ[2];
-
-                      coor[2] = initial_coor[2] + displ[2];
-                      
-                  }
-              }
-          }
 
           KRATOS_CATCH(" ")
       }
@@ -297,23 +203,23 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
           NodesArrayType& pNodes            = GetNodes(model_part);
 
-	
-	double delta_t =  rCurrentProcessInfo[DELTA_TIME];
+    
+    double delta_t =  rCurrentProcessInfo[DELTA_TIME];
 
         vector<unsigned int> node_partition;
-	//NodesArrayType::iterator it_begin = pNodes.ptr_begin();
-	//NodesArrayType::iterator it_end   = pNodes.ptr_end();
+    //NodesArrayType::iterator it_begin = pNodes.ptr_begin();
+    //NodesArrayType::iterator it_end   = pNodes.ptr_end();
 
-	#ifdef _OPENMP
+    #ifdef _OPENMP
         int number_of_threads = omp_get_max_threads();
     #else
         int number_of_threads = 1;
     #endif
-	OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
+    OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-	#pragma omp parallel for shared(delta_t)
-	for(int k=0; k<number_of_threads; k++)
-	{
+    #pragma omp parallel for shared(delta_t)
+    for(int k=0; k<number_of_threads; k++)
+    {
             NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
             NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
             for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
@@ -410,7 +316,7 @@ namespace Kratos
                 }
                 
                 array_1d<double,3>& EulerAngles       = i->FastGetSolutionStepValue(EULER_ANGLES);    
-	        
+            
                 double test = Orientation_imag[0] * Orientation_imag[1] + Orientation_imag[2] * Orientation_real;
                 
                 if ( test > 0.49999999 )               // singularity at north pole
@@ -439,12 +345,12 @@ namespace Kratos
         KRATOS_CATCH(" ")
         
      }
-	
+    
 
       /// Turn back information as a string.
       virtual std::string Info() const
       {
-	std::stringstream buffer;
+    std::stringstream buffer;
         buffer << "ForwardEulerScheme" ;
         return buffer.str();
       }
@@ -543,7 +449,7 @@ namespace Kratos
       /// Copy constructor.
       ForwardEulerScheme(ForwardEulerScheme const& rOther)
       {
-	*this = rOther;
+    *this = rOther;
       }
 
         
@@ -564,11 +470,11 @@ namespace Kratos
  
   /// input stream function
   inline std::istream& operator >> (std::istream& rIStream, 
-				    ForwardEulerScheme& rThis){return rIStream;}
+                    ForwardEulerScheme& rThis){return rIStream;}
 
   /// output stream function
   inline std::ostream& operator << (std::ostream& rOStream, 
-				    const ForwardEulerScheme& rThis)
+                    const ForwardEulerScheme& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -583,4 +489,3 @@ namespace Kratos
 }  // namespace Kratos.
 
 #endif // KRATOS_FORWARD_EULER_SCHEME_H_INCLUDED  defined 
-

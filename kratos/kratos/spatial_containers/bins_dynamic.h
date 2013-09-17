@@ -404,7 +404,7 @@ public:
     
     //************************************************************************
         
-    void SearchNearestPoint( PointerType const& ThisPoints, SizeType const& NumberOfPoints, IteratorType &Results, std::vector<CoordinateType> ResultsDistances)
+    void SearchNearestPoint( PointType* const& ThisPoints, SizeType const& NumberOfPoints, IteratorType &Results, std::vector<CoordinateType> ResultsDistances)
     {
         #pragma omp parallel for
         for(int k=0; k< NumberOfPoints; k++)
@@ -478,7 +478,7 @@ public:
     }
     
     //************************************************************************
-    
+
     void SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, CoordinateVectorType const& Radius, IteratorVectorType Results,
                          DistanceIteratorVectorType ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults )
     {

@@ -109,7 +109,7 @@ void AddProcessesToPython()
     .def(init<IO&, unsigned int>())
     ;
     
-    class_<MortonDivideInputToPartitionsProcess, bases<Process> >("MortonDivideInputToPartitionsProcess",
+    class_<MortonDivideInputToPartitionsProcess, bases<Process> >("MetisDivideNodalInputToPartitionsProcess",
             init<IO&, unsigned int, unsigned int>())
     .def(init<IO&, unsigned int>())
     ;
