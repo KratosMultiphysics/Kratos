@@ -482,23 +482,50 @@ class DEM_Inlet
 {
 public:        
     
-    double PartialParticles;    
+    Vector PartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
+    ModelPart& InletModelPart; //The model part used to insert elements
+    
+    /// Constructor:               
+    
+    DEM_Inlet(ModelPart& inlet_modelpart): InletModelPart(inlet_modelpart)
+    {                
         
-    DEM_Inlet() {};
+        PartialParticleToInsert.resize(inlet_modelpart.NumberOfMeshes(),false);
+        
+        int mesh_iterator_number=0;   
+        
+        for (ModelPart::MeshesContainerType::iterator mesh_it = inlet_modelpart.GetMeshes().begin();
+                                               mesh_it != inlet_modelpart.GetMeshes().end();    ++mesh_it)
+        {
+         PartialParticleToInsert[mesh_iterator_number]  = 0.0;
+         
+         mesh_iterator_number++;
+        }
+        
+    }
+            
     /// Destructor.
-
     virtual ~DEM_Inlet() {};
         
     
     void CreateElementsFromInletMesh( ModelPart& r_modelpart, ModelPart& inlet_modelpart, ParticleCreatorDestructor& creator){
+        
+        int mesh_iterator_number=0;
         
         for (ModelPart::MeshesContainerType::iterator mesh_it = inlet_modelpart.GetMeshes().begin();
                                                mesh_it != inlet_modelpart.GetMeshes().end();    ++mesh_it)
         {
             int mesh_size=mesh_it->NumberOfNodes();
             
+            double num_part_surface_time=1000; //must be read
+            double delta_t=0.005; // DEM delta_T must be read
+            double surface=0.5; // inlet surface must be read, and probably projected to velocity vector
+            
             //calculate number of particles to insert from input data
-            int number_of_particles_to_insert = 1;
+            double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + PartialParticleToInsert[mesh_iterator_number];
+            PartialParticleToInsert[mesh_iterator_number] = 0.0;
+            int number_of_particles_to_insert = floor(double_number_of_particles_to_insert);
+            PartialParticleToInsert[mesh_iterator_number] = double_number_of_particles_to_insert - number_of_particles_to_insert ;
             
             //randomizing mesh
             srand (time (NULL));        
@@ -518,7 +545,8 @@ public:
             
             for(int i=0; i<number_of_particles_to_insert; i++){
                 creator.ElementCreatorFromExistingNode(r_modelpart, /*r_Elem_Id*/1, inserting_nodes[i]);               
-            }                                           
+            } 
+            mesh_iterator_number++;
         }                
     }    
     //MA
