@@ -136,7 +136,7 @@ void ArteryInletCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
     //flow = 2*flow -
     //const double flow3 = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
     //const double& flow5 = GetGeometry()[0].GetSolutionStepValue(FLOW);
-    const double C = beta/(3.0*density*A0*sqrt(A*A*A));
+    const double C = (beta*sqrt(A*A*A)/(3.0*density*A0));
     //const double flow2 = GetGeometry()[0].GetValue(FLOW,0);
     //const double flow4 = GetGeometry()[0].GetValue(FLOW,1);
     //const int kk =GetProperties().Id();

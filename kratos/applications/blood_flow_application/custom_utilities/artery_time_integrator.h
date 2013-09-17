@@ -122,19 +122,21 @@ public:
         //if (total_time > 0.0140)
             //KRATOS_WATCH ("");
 
-        CheckSolution (ThisModelPart, 1);
+        //CheckSolution (ThisModelPart, 1);
         //KRATOS_WATCH("2")
         ComputeRHS( ThisModelPart );
         //KRATOS_WATCH("3")
         ComputeRHS_Actualize( ThisModelPart );
         //KRATOS_WATCH("4")
-        CheckSolution (ThisModelPart, 2);
+        //CheckSolution (ThisModelPart, 2);
         KRATOS_CATCH("")
     }
 
     double EstimateDeltaTime(ModelPart& ThisModelPart, double CFL, double minLength)
     {
         KRATOS_TRY
+
+			KRATOS_ERROR(std::logic_error,"should not enter in EstimateDeltaTime","");
         double delta_time = 1.00e12;
         //double Umax=0.0;
         double element_dt=0.0;
@@ -248,7 +250,7 @@ public:
             //KRATOS_WATCH(delta_time)
         }
 //
-        KRATOS_WATCH(delta_time)
+        //KRATOS_WATCH(delta_time)
         return delta_time;
 
         //KRATOS_WATCH("DELTA_TIME");
@@ -365,6 +367,11 @@ private:
             //KRATOS_WATCH(rhs_el)
             //int id = i->Id();
             //KRATOS_WATCH (id);
+            i->CalculateRightHandSide(rhs_el,CurrentProcessInfo);
+            //KRATOS_WATCH ('--------------------------------------------');
+
+            //KRATOS_WATCH(rhs_el);
+
             Geometry< Node<3> >& geom = i->GetGeometry();
             for(unsigned int j=0; j<geom.size(); j++)
             {
@@ -375,19 +382,22 @@ private:
                  //std::cout << "old: ";KRATOS_WATCH(rhs_node)
                  //rhs_el[base] = rhs_el[base]/nodal_mass[0];
                  //rhs_el[base+1] = rhs_el[base]/nodal_mass[1];
+                 //KRATOS_WATCH('antes contribution')
+                 //KRATOS_WATCH(rhs_node)
                  //KRATOS_WATCH(rhs_el)
                  rhs_node[0] += rhs_el[base];  ///nodal_mass[0];
                  rhs_node[1] += rhs_el[base+1]; ///nodal_mass[1];
+                 //KRATOS_WATCH('despues contribution')
                  //KRATOS_WATCH(rhs_node)
             }
-        }
+         }
 
-        //KRATOS_WATCH("----------------BOUNDARIES--------------------------------------------")
+      // KRATOS_WATCH("----------------BOUNDARIES--------------------------------------------")
         //CONDICIONES DE CONTORNO
         for(ModelPart::ConditionsContainerType::iterator i = ThisModelPart.ConditionsBegin();
                 i!=ThisModelPart.ConditionsEnd(); i++)
         {
-            //KRATOS_WATCH(*i)
+            //KRATOS_WATCH(i)
             i->CalculateRightHandSide(rhs_el,CurrentProcessInfo);
             Geometry< Node<3> >& geom = i->GetGeometry();
             //array_1d<double,2> nodal_mass;
@@ -397,18 +407,25 @@ private:
             {
                 int base = 2*j;
                 array_1d<double,3>& rhs_node = geom[j].FastGetSolutionStepValue(RHS);
-                //KRATOS_WATCH(geom[j])
+                //KRATOS_WATCH(geom[j]);
                 //nodal_mass[j] = geom[j].FastGetSolutionStepValue(NODAL_MASS);
                 //double nodal_mass = geom[j].GetSolutionStepValue(NODAL_MASS);
-                //std::cout << "old: ";KRATOS_WATCH(rhs_node)
+                //std::cout << "old: ";KRATOS_WATCH(rhs_el[base]);
+                //std::cout << "old: ";KRATOS_WATCH(rhs_el[base+1])
                 //rhs_el[base] = rhs_el[base]/nodal_mass[0];
                 //rhs_el[base+1] = rhs_el[base]/nodal_mass[1];
                 //KRATOS_WATCH(rhs_el)
                 rhs_node[0] += rhs_el[base];  ///nodal_mass[0];
                 rhs_node[1] += rhs_el[base+1]; ///nodal_mass[1];
                 //KRATOS_WATCH(rhs_node)
+                    //KRATOS_WATCH ('CONDITION');
+                    //KRATOS_WATCH (id);
+                    //KRATOS_WATCH(geom[j].FastGetSolutionStepValue(FLOW));
+                    //KRATOS_WATCH(geom[j].FastGetSolutionStepValue(NODAL_AREA));
             }
+
         }
+		//KRATOS_WATCH("----------------FINISHED--------------------------------------------")
 
         KRATOS_CATCH("")
     }
@@ -419,21 +436,31 @@ private:
         double dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
         for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
         {
+            int id = in->Id();
+            //KRATOS_WATCH (id);
             double nodal_mass = in->FastGetSolutionStepValue(NODAL_MASS);
             //KRATOS_WATCH (nodal_mass)
             //array_1d<double,3>& pepe = in->FastGetSolutionStepValue(RHS);
             array_1d<double,3> aux = in->FastGetSolutionStepValue(RHS);
-            aux /= nodal_mass;
+            //KRATOS_WATCH (id);
+            //KRATOS_WATCH (aux);
+            //aux /= nodal_mass;
             aux *= dt;
+            aux /= nodal_mass;
+            //aux *= dt;
 
             //KRATOS_WATCH (pepe)
             //int id = in->Id();
             //KRATOS_WATCH (id);
+            //KRATOS_WATCH (aux);
+
             double& nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
             double& nodal_flow = in->FastGetSolutionStepValue(FLOW);
             //double lhs1=aux[0] / nodal_mass;
             //double lhs2=aux[1] / nodal_mass;
             //KRATOS_WATCH(nodal_area)
+            //KRATOS_WATCH (nodal_area);
+            //KRATOS_WATCH (nodal_flow);
             //NODAL_AREA is never prescribed
             if(in->IsFixed(NODAL_AREA) == false)
                 nodal_area += aux[0] ;
@@ -448,11 +475,17 @@ private:
     //           nodal_flow = in->FastGetSolutionStepValue(FLOW);
 
             //in->FastGetSolutionStepValue(VELOCITY_X) = nodal_flow / nodal_area;
-
+//            if (id == 1 || id == 100 || id == 200 || id == 300 || id == 400 || id == 500)
+//            {
+//                KRATOS_WATCH (id);
+//                KRATOS_WATCH( in->FastGetSolutionStepValue(FLOW));
+//                KRATOS_WATCH( in->FastGetSolutionStepValue(NODAL_AREA));
+//            }
             //KRATOS_WATCH(nodal_area)
             //KRATOS_WATCH(FLOW)
         }
-        KRATOS_CATCH("")
+
+        KRATOS_CATCH("")                
     }
 
 

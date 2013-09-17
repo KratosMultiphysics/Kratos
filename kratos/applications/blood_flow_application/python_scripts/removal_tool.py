@@ -19,11 +19,11 @@ def GetNodeAfter(table,prop):
 def DoRemoval(model_part):
   import config
   import full_nodes_table
-  print "deactivate_list",config.deactivate_list
-  print "list of inlets",config.inlets_1d
-  print "list of outlets",config.outlets_1d
-  print "full nodes table",full_nodes_table.table
-  print model_part
+  # print "deactivate_list",config.deactivate_list
+  # print "list of inlets",config.inlets_1d
+  # print "list of outlets",config.outlets_1d
+  # print "full nodes table",full_nodes_table.table
+  # print model_part
   
   
   #mark for deactivation all of the nodes which are not needed
@@ -31,7 +31,7 @@ def DoRemoval(model_part):
     #print 'prop_id', prop_id
     #raw_input()
     for elem in model_part.Elements:
-      print 'properties.id', elem.Properties.Id
+      # print 'properties.id', elem.Properties.Id
       if(elem.Properties.Id == prop_id):
 	#print 'hola3'
 	elem.SetValue(ERASE_FLAG,True)
