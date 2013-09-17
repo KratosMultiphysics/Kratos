@@ -64,7 +64,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/element_erase_process.h"
 #include "processes/condition_erase_process.h"
 #include "processes/eliminate_isolated_nodes_process.h"
+#include "processes/calculate_signed_distance_to_3d_skin_process.h"
+//#include "processes/calculate_octree_signed_distance_to_3d_skin_process.h"
 #include "includes/node.h"
+
 
 namespace Kratos
 {
@@ -75,8 +78,13 @@ void  AddProcessesToPython()
 {
     using namespace boost::python;
     class_<Process>("Process")
-    .def("Execute",&Process::Execute)
-    .def(self_ns::str(self))
+            .def("ExecuteBeforeSolutionLoop",&Process::ExecuteBeforeSolutionLoop)
+            .def("ExecuteInitializeSolutionStep",&Process::ExecuteInitializeSolutionStep)
+            .def("ExecuteFinalizeSolutionStep",&Process::ExecuteFinalizeSolutionStep)
+            .def("ExecuteBeforeOutputStep",&Process::ExecuteBeforeOutputStep)
+            .def("ExecuteAfterOutputStep",&Process::ExecuteAfterOutputStep)
+            .def("ExecuteFinalize",&Process::ExecuteFinalize)
+            .def(self_ns::str(self))
     ;
 
     class_<FindNodalHProcess, bases<Process> >("FindNodalHProcess",init<ModelPart&>())
@@ -116,6 +124,14 @@ void  AddProcessesToPython()
     class_<EliminateIsolatedNodesProcess, bases<Process> >("EliminateIsolatedNodesProcess",
             init<ModelPart&>())
     ;
+
+    class_<CalculateSignedDistanceTo3DSkinProcess, bases<Process>, boost::noncopyable >("CalculateSignedDistanceTo3DSkinProcess",
+            init<ModelPart&, ModelPart&>())
+    ;
+
+//    class_<CalculateOctreeSignedDistanceTo3DSkinProcess, bases<Process>, boost::noncopyable >("CalculateOctreeSignedDistanceTo3DSkinProcess",
+//            init<ModelPart&, ModelPart&>())
+//    ;
 
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
