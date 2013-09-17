@@ -207,7 +207,7 @@ public:
 //************************************************************************
 //************************************************************************
 
-    void SearchObjectsInner(PointerType& rThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
+    void SearchObjectsExclusive(PointerType& rThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
     {
         for(LocalIteratorType i_object = Begin() ; i_object != End()  && NumberOfResults < MaxNumberOfResults ; i_object++)
         {
@@ -230,7 +230,7 @@ public:
 //************************************************************************
 //************************************************************************
 
-    void SearchObjectsInner(PointerType& rThisObject, ResultContainerType& Result)
+    void SearchObjectsExclusive(PointerType& rThisObject, ResultContainerType& Result)
     {
         for(LocalIteratorType i_object = Begin() ; i_object != End(); i_object++)
         {
@@ -271,7 +271,7 @@ public:
 //************************************************************************
 //************************************************************************
 
-    void SearchObjectsInRadiusInner(PointerType& rThisObject, double const& Radius, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
+    void SearchObjectsInRadiusExclusive(PointerType& rThisObject, double const& Radius, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
     {
         for(LocalIteratorType i_object = Begin() ; i_object != End()  && NumberOfResults < MaxNumberOfResults ; i_object++)
         {
@@ -318,7 +318,7 @@ public:
 //************************************************************************
 //************************************************************************
 
-    void SearchObjectsInRadiusInner(PointerType& rThisObject, double const& Radius, ResultIteratorType& Result, DistanceIteratorType& Distances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
+    void SearchObjectsInRadiusExclusive(PointerType& rThisObject, double const& Radius, ResultIteratorType& Result, DistanceIteratorType& Distances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
     {
         for(LocalIteratorType i_object = Begin() ; i_object != End()  && NumberOfResults < MaxNumberOfResults ; i_object++)
         {

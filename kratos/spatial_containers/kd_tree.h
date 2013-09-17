@@ -656,9 +656,9 @@ public:
         IteratorType right = PointsEnd - 1;
         for(;;)
         {
-            while( (**left)[CuttingDimension] < rCuttingValue ) left++;
-            while( (**right)[CuttingDimension] >= rCuttingValue ) right--;
-            if (left < right) std::swap(*left,*right);
+            while( left  < PointsEnd   && (**left)[CuttingDimension]  <  rCuttingValue ) left++;
+            while( right > PointsBegin && (**right)[CuttingDimension] >= rCuttingValue ) right--;
+            if (left <= right) std::swap(*left,*right);
             else break;
         }
 

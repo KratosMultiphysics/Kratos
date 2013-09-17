@@ -222,7 +222,7 @@ namespace Kratos
           // 3. Motion Integration
           KRATOS_TIMER_START("PerformTimeIntegrationOfMotion")
           PerformTimeIntegrationOfMotion(rCurrentProcessInfo); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
-                              
+          
           // 4. Synchronize
           KRATOS_TIMER_START("SynchronizeSolidMesh")
           SynchronizeSolidMesh(r_model_part);
@@ -231,7 +231,7 @@ namespace Kratos
           
           if ((time_step + 1) % mNStepSearch == 0 && time_step > 0){
               if (this->GetBoundingBoxOption()){
-		BoundingBoxUtility();
+                  BoundingBoxUtility();
               }
 
               SearchNeighbours(r_model_part);
@@ -556,8 +556,8 @@ namespace Kratos
         
         
 
-        //mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
-        mpSpSearch->SearchElementsInRadiusExclusive(r_model_part,this->GetRadius(),this->GetResults());
+        mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
+//         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part,this->GetRadius(),this->GetResults());
         
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
         
