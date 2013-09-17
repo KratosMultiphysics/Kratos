@@ -151,7 +151,7 @@ public:
     }
 
 
-    /// this function is designed for being called at the beginning of the computations
+    /// this function is designed for being called at the end of the computations
     /// right after reading the model and the groups
     virtual void ExecuteFinalize()
     {
