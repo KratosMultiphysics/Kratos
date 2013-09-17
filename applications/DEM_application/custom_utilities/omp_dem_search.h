@@ -75,7 +75,6 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       /// Pointer definition of OMP_DEMSearch
       KRATOS_CLASS_POINTER_DEFINITION(OMP_DEMSearch);
       
-      typedef RadiusPoint<Dimension>                    PointType;
       typedef PointType*                                PtrPointType;
       typedef std::vector<PtrPointType>*                PointVector;
       typedef std::vector<PtrPointType>::iterator       PointIterator;
@@ -90,8 +89,6 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       //Bin Types
       typedef BinsObjectDynamic<ElementConfigureType>   BinsType;
       typedef BinsObjectDynamic<NodeConfigureType>      NodeBinsType;
-      
-      typedef BinsDynamic<3,PointType,PointVector,PtrPointType,PointIterator,DistanceIterator,PointDistance2<Dimension,PointType> >    PointBins;
      
       
       ///@}
@@ -100,12 +97,10 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       
       /// Default constructor.
       OMP_DEMSearch(){
-//           searchPoints = new std::vector<PtrPointType>(0);
       }
 
       /// Destructor.
       ~OMP_DEMSearch(){
-//           delete searchPoints;
       }
       
 
