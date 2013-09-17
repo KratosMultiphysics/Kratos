@@ -78,6 +78,7 @@ void  AddProcessesToPython()
 {
     using namespace boost::python;
     class_<Process>("Process")
+            .def("Execute",&Process::Execute)
             .def("ExecuteBeforeSolutionLoop",&Process::ExecuteBeforeSolutionLoop)
             .def("ExecuteInitializeSolutionStep",&Process::ExecuteInitializeSolutionStep)
             .def("ExecuteFinalizeSolutionStep",&Process::ExecuteFinalizeSolutionStep)
