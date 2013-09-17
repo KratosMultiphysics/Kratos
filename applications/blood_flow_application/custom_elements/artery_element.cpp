@@ -58,6 +58,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_elements/artery_element.h"
 #include "utilities/math_utils.h"
 #include "blood_flow_application.h"
+#include "iostream"
 
 namespace Kratos
 {
@@ -113,6 +114,8 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
         rRightHandSideVector.resize(4,false);
     
     double h_int = rCurrentProcessInfo[DELTA_TIME];
+	//KRATOS_WATCH(this->Id())
+	//KRATOS_WATCH(h_int)
     
         const double A0_actual = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
 	    const double A1_actual = GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA);
@@ -159,16 +162,25 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
     M1(0,0) = -0.5; M1(0,1) = -0.5; 
     M1(1,0) = 0.5; M1(1,1) = 0.5;
     
-    M2(0,0) = 0.333333333333333333333333; M2(0,1) = 0.166666666666666666666667; 
+    //Consistent Matrix type 1
+    M2(0,0) = 0.333333333333333333333333; M2(0,1) = 0.166666666666666666666667;
     M2(1,0) = 0.166666666666666666666667; M2(1,1) = 0.333333333333333333333333; 
-    M2 = M2* abs(mL);
-  //std::cout << "this element is" << this->Id() <<std::endl;
-    //loop on nodes
+
+    //Consistent Matrix type 2
+    //M2(0,0) = 0.5; M2(0,1) = 0;
+    //M2(1,0) = 0; M2(1,1) = 0.5;
+    //std::cout << "this element is" << this->Id() <<std::endl;
+    M2 *= mL; // mL*M2; //fabs(mL);
+    //KRATOS_WATCH(M2);
+    //sleep(2000);
+
+   //getch();
+   //loop on nodes
     for (unsigned int i=0; i<2; i++)
     {
         const double& A = GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA);
         const double beta=GetGeometry()[i].FastGetSolutionStepValue(BETA);
-        const double C = beta*sqrt(A*A*A)/(3.0*density*GetGeometry()[i].GetValue(NODAL_AREA));
+        const double C = (beta*sqrt(A*A*A))/(3.0*density*GetGeometry()[i].GetValue(NODAL_AREA));
         //KRATOS_WATCH(C);GetValue
         //KRATOS_WATCH(beta);
         //KRATOS_WATCH(mL);
@@ -179,30 +191,37 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
 //           KRATOS_WATCH(flow);
 //       }
 
+//KRATOS_WATCH(A);
+//KRATOS_WATCH(beta);
+//KRATOS_WATCH(C);
+
+
         Fj[i][0] = flow;
         Fj[i][1] = C + ((coriolis_coefficient*flow*flow)/A);
 
         Sj[i][0] = 0.0;
         Sj[i][1] = (-kr_coefficient*flow)/(A);
-
-//KRATOS_WATCH(Fj[i]);
-//KRATOS_WATCH(Sj[i]);
+        //KRATOS_WATCH(Fj[i]);
+        //KRATOS_WATCH(Sj[i]);
         Hj[i](0,0)   = 0.0;
         Hj[i](0,1)   = 1.0;
         Hj[i](1,0)   = (-coriolis_coefficient*pow(flow/A,2)) + ((beta* sqrt(A))/(2.0*density*GetGeometry()[i].GetValue(NODAL_AREA)));
         Hj[i](1,1)   = 2.0*coriolis_coefficient*(flow/A);
-//KRATOS_WATCH(Hj[i]);
+        //KRATOS_WATCH(Hj[i]);
         Suj[i](0,0) = 0.0;
         Suj[i](0,1) = 0.0;
         Suj[i](1,0) = kr_coefficient*flow/(A*A);;
         Suj[i](1,1) = -kr_coefficient/A;
-//KRATOS_WATCH(Suj[i]);	
+        //KRATOS_WATCH(Suj[i]);
     }
 
     
     array_1d<double,2> Fder;
+
     Fder[0] = (Fj[1][0] - Fj[0][0]) / mL;
     Fder[1] = (Fj[1][1] - Fj[0][1]) / mL;
+//    if (this->Id() == 500)
+//           KRATOS_WATCH(Fder);
 
     boost::numeric::ublas::bounded_matrix<double, 2,2 > Fw;
     boost::numeric::ublas::bounded_matrix<double, 2,2 > Sw;
@@ -249,7 +268,7 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
  //KRATOS_WATCH(M1);
  //KRATOS_WATCH(M2);
     array_1d<double,2> tmp;
-    array_1d<double,2> aux;
+    //array_1d<double,2> aux;
     for (unsigned int i=0; i<2; i++)
     {
       aaa[0] = Fw(i,0); aaa[1] = Fw(i,1);
@@ -286,8 +305,8 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
     
     for (unsigned int i=0; i<2; i++)
     {
-       rhs[0] = (Fw(i,0) + Sw(i,0)) - ((h_int*0.5)*(F2ord(i,0)) + S2ord(i,0));
-       rhs[1] = (Fw(i,1) + Sw(i,1)) - ((h_int*0.5)*(F2ord(i,1)) + S2ord(i,1));
+       rhs[0] = (Fw(i,0) + Sw(i,0)) - ((h_int*0.5)*((F2ord(i,0)) + S2ord(i,0)));
+       rhs[1] = (Fw(i,1) + Sw(i,1)) - ((h_int*0.5)*((F2ord(i,1)) + S2ord(i,1)));
        //KRATOS_WATCH(rhs);
        //KRATOS_WATCH(GetProperties().Id());
        //std::cout << "this element is" << this->Id() <<std::endl;

@@ -179,15 +179,19 @@ void Artery12Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
             {
                 CalculateFunctional6(f_out, area, InitialArea, flow, artery_property, coef, wave_velocity, density);
                 CalculateJacobian6(jacobian, area, flow, artery_property, coef, wave_velocity, density);
+
                 //KRATOS_WATCH(f_out);
                 //KRATOS_WATCH(jacobian);
 
                 permutation_matrix<double> permutation(6);
                 array_1d<double,6> delta_x = -f_out;
 
-                lu_factorize(jacobian, permutation);
-                lu_substitute(jacobian,permutation, delta_x);
+                //lu_factorize(jacobian, permutation);
+                bool singular = lu_factorize(jacobian, permutation);
+                if(singular)
+                    KRATOS_ERROR(std::logic_error,"singular jacobian found in 12 condition with id",this->Id());
 
+                lu_substitute(jacobian,permutation, delta_x);
                 convergence = norm_2(delta_x);
 
                 area[0] += delta_x[0];
@@ -212,7 +216,7 @@ void Artery12Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
              //double mH0 = GetGeometry()[0].FastGetSolutionStepValue(THICKNESS);
              beta[0] = GetGeometry()[0].FastGetSolutionStepValue(BETA);
              //beta[0] = E*mH0*1.77245385/(1.0-nu*nu);
-             double C = beta[0]*sqrt(A1*A1*A1)/(3.0*density*A0);
+             double C = beta[0]*sqrt(A1*A1*A1)/(3.0*density*A0);                 
              rRightHandSideVector[0] = -flow[0];
              //double temp = (C + coriolis_coefficient*flow[0]*flow[0]/(A1));
              rRightHandSideVector[1] = -(C + (coriolis_coefficient*flow[0]*flow[0]/(A1)));

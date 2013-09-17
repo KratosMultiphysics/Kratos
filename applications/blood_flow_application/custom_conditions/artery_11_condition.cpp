@@ -206,7 +206,7 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
             //flow[1] = flow[0];
             //wave_velocity[0] = (flow[0] / area[0]) + 4.00 * sqrt(beta[0] / (2.00 * density * GetGeometry()[0].GetValue(NODAL_AREA))) * pow(area[0],0.25);
             //wave_velocity[1] = (flow[1] / area[1]) - 4.00 * sqrt(beta[1] / (2.00 * density * GetGeometry()[1].GetValue(NODAL_AREA))) * pow(area[1],0.25);
-	    wave_velocity[0] = (flow[0] / area[0]) + 4.00 * coef(0) * pow(area[0],0.25);
+            wave_velocity[0] = (flow[0] / area[0]) + 4.00 * coef(0) * pow(area[0],0.25);
             wave_velocity[1] = (flow[1] / area[1]) - 4.00 * coef(1) * pow(area[1],0.25);
 
 //KRATOS_WATCH(flow);
@@ -256,7 +256,7 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
                 //KRATOS_WATCH(area);
                 //KRATOS_WATCH(flow);
                 bool singular = lu_factorize(jacobian, permutation);
-		if(singular)
+            if(singular)
 		    KRATOS_ERROR(std::logic_error,"singular jacobian found in 11 condition with id",this->Id());
 		
                 lu_substitute(jacobian,permutation, delta_x);
