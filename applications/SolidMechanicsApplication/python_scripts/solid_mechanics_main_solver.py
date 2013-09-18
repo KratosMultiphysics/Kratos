@@ -89,7 +89,9 @@ class SolidMechanicsSolver:
         self.abs_tol   = 1e-9
         self.max_iters = 30;
 
-        self.mechanical_convergence_criterion = DisplacementCriteria(self.abs_tol,self.abs_tol)
+        #self.mechanical_convergence_criterion  = DisplacementCriteria(self.abs_tol,self.abs_tol)
+        self.mechanical_convergence_criterion  = ResidualCriteria(self.abs_tol,self.abs_tol)
+        #self.mechanical_convergence_criterion = ResidualConvergenceCriteria(self.abs_tol,self.abs_tol)
         #self.mechanical_convergence_criterion = DisplacementConvergenceCriteria(self.abs_tol,self.abs_tol)
   
         #definition of computing flags
