@@ -69,6 +69,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/geometry_utilities.h"
 #include "geometries/triangle_3d_3.h"
 #include "utilities/body_normal_calculation_utils.h"
+#include "processes/calculate_signed_distance_to_3d_skin_process.h"
 
 
 namespace Kratos
@@ -356,28 +357,14 @@ private:
       {
           KRATOS_TRY
 
-            std::cout << "Generating the Octree..." << std::endl;
-            GenerateOctree();
-            std::cout << "Generating the Octree finished" << std::endl;
+                  std::cout << "Generating the Octree..." << std::endl;
+          GenerateOctree();
+          std::cout << "Generating the Octree finished" << std::endl;
 
           DistanceFluidStructure();
 
-            //GenerateNodes();
-            CalculateDistance2(); // I have to change this. Pooyan.
-
-
-
-
-
-
-//            CalculateDistance();
-//            CalculateDistance2();
-
-//            double coord[3] = {0.4375, 0.57812, 0.5};
-//            double distance = DistancePositionInSpace(coord);
-//            KRATOS_WATCH(distance);
-
-
+          //GenerateNodes();
+          CalculateDistance2(); // I have to change this. Pooyan.
 
             //mrSkinModelPart.GetCommunicator().AssembleCurrentData(DISTANCE);
 
@@ -404,9 +391,10 @@ private:
 
       void DistanceFluidStructure()
       {
-          // Initialize nodal distances each node in the domain to 1.0
+          // Initialize elemental distances in the domain
           InitializeDistances();
-          // Initialize index table to define line Edges of fluid element
+
+          // Initialize index table that defines line Edges of fluid element
           bounded_matrix<unsigned int,6,2> TetEdgeIndexTable;
           SetIndexTable(TetEdgeIndexTable);
 
@@ -415,8 +403,79 @@ private:
                                           i_fluidElement != mrFluidModelPart.ElementsEnd();
                                           i_fluidElement++)
           {
+              CalcElementDistances( i_fluidElement , TetEdgeIndexTable );
+          }
 
-              CalcNodalDistancesOfTetNodes( i_fluidElement , TetEdgeIndexTable );
+          /*
+            Finally, each tetrahedral element has 4 distance values. But each node belongs to
+            several elements, such that it is assigned several distance values
+            --> now synchronize these values by finding the minimal distance and assign to each node a minimal nodal distance
+            */
+          AssignMinimalNodalDistance();
+      }
+
+      ///******************************************************************************************************************
+      ///******************************************************************************************************************
+
+      void GenerateSkinModelPart( ModelPart& mrNewSkinModelPart )
+      {
+
+          std::vector< array_1d<double,3> >       nodesMatrix;
+          std::vector< array_1d<unsigned int,3> > elementsMatrix;
+
+          ReproduceStructuralSkinMesh(nodesMatrix,elementsMatrix);
+
+          ModelPart& new_model_part = mrNewSkinModelPart;
+
+          //new_model_part.GetNodalSolutionStepVariablesList() = mrSkinModelPart.GetNodalSolutionStepVariablesList();
+
+          // ######## ADDING NEW NODES #########
+
+          const unsigned int size_nodes = nodesMatrix.size();
+          new_model_part.Nodes().reserve(size_nodes);
+
+          for (unsigned int nodesIndex=0; nodesIndex!=size_nodes; ++nodesIndex)
+          {
+              unsigned int id = nodesIndex + 1;
+              double node_X = nodesMatrix[nodesIndex][0];
+              double node_Y = nodesMatrix[nodesIndex][1];
+              double node_Z = nodesMatrix[nodesIndex][2];
+              Node < 3 >::Pointer pnode = Node < 3 > ::Pointer (new Node < 3 >(id,
+                                                                               node_X,
+                                                                               node_Y,
+                                                                               node_Z));
+              //pnode->SetBufferSize(mrSkinModelPart.NodesBegin()->GetBufferSize());
+              //pnode->X0() = node_X;
+              //pnode->Y0() = node_Y;
+              //pnode->Z0() = node_Z;
+              //pnode->FastGetSolutionStepValue(PARTITION_INDEX)=local_Partition_ov[index];
+              new_model_part.Nodes().push_back(pnode);
+          }
+
+          // ######## ADDING NEW CONDITIONS #########
+          // required information for a new condition: Id, Geometry, Property
+
+          const unsigned int size_conditions = elementsMatrix.size();
+
+          Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
+          Properties::Pointer properties = mrSkinModelPart.GetMesh().pGetProperties(1);
+          new_model_part.Conditions().reserve(size_conditions);
+
+          for (unsigned int condIndex=0; condIndex!=size_conditions; ++condIndex)
+          {
+              unsigned int id = condIndex + 1;
+              unsigned int node1_ID = elementsMatrix[condIndex][0];
+              unsigned int node2_ID = elementsMatrix[condIndex][1];
+              unsigned int node3_ID = elementsMatrix[condIndex][2];
+
+              Triangle3D3<Node < 3 > > triangle(new_model_part.Nodes()(node1_ID),
+                                                new_model_part.Nodes()(node2_ID),
+                                                new_model_part.Nodes()(node3_ID));
+              // Index must take care of the IDs of the other processors --> triangle_id_int + 1 + elements_before + total_existing_elements
+              Condition::Pointer p_condition = rReferenceCondition.Create(id,
+                                                                          triangle,
+                                                                          properties);
+              new_model_part.Conditions().push_back(p_condition);
           }
       }
 
@@ -425,17 +484,18 @@ private:
 
       void InitializeDistances()
       {
+          const double initial_distance = 1.0;
+
           ModelPart::NodesContainerType::ContainerType& nodes = mrFluidModelPart.NodesArray();
 
           // reset the node distance to 1.0 which is the maximum distance in our normalized space.
-          int nodesSize = nodes.size();
-          for(int i = 0 ; i < nodesSize ; i++)
-                  nodes[i]->GetSolutionStepValue(DISTANCE) = 1.0;
+          unsigned int nodesSize = nodes.size();
+          for(unsigned int i = 0 ; i < nodesSize ; i++)
+                  nodes[i]->GetSolutionStepValue(DISTANCE) = initial_distance;
 
           ModelPart::ElementsContainerType::ContainerType& fluid_elements = mrFluidModelPart.ElementsArray();
 
           array_1d<double,4> ElementalDistances;
-          const double initial_distance = 1.0;
           ElementalDistances[0] = initial_distance;
           ElementalDistances[1] = initial_distance;
           ElementalDistances[2] = initial_distance;
@@ -444,10 +504,10 @@ private:
           // reset the elemental distance to 1.0 which is the maximum distance in our normalized space.
           for(unsigned int i = 0 ; i < fluid_elements.size() ; i++)
           {
-              fluid_elements[i]->SetValue(ELEMENTAL_DISTANCES,ElementalDistances);
+              fluid_elements[i]->GetValue(ELEMENTAL_DISTANCES) = ElementalDistances;
               fluid_elements[i]->GetValue(SPLIT_ELEMENT) = false;
           }
-      }      
+      }
 
       ///******************************************************************************************************************
       ///******************************************************************************************************************
@@ -472,30 +532,25 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void CalcNodalDistancesOfTetNodes( ModelPart::ElementsContainerType::iterator& i_fluidElement,
-                                         bounded_matrix<unsigned int,6,2>            TetEdgeIndexTable)
+      void CalcElementDistances( ModelPart::ElementsContainerType::iterator& i_fluidElement,
+                                 bounded_matrix<unsigned int,6,2>            TetEdgeIndexTable )
       {
           std::vector<OctreeType::cell_type*> leaves;
           std::vector<TetEdgeStruct>          IntersectedTetEdges;
           unsigned int NumberIntersectionsOnTetCorner = 0;
-	  
+
           // Get leaves of octree intersecting with fluid element
           mOctree.GetIntersectedLeaves(*(i_fluidElement).base(),leaves);
 
           // Loop over all 6 line Edges of the tetrahedra
           for(unsigned int i_tetEdge = 0; i_tetEdge < 6; i_tetEdge++)
           {
-
-	      IdentifyIntersectionNodes( i_fluidElement , i_tetEdge , leaves , IntersectedTetEdges ,
-                                         NumberIntersectionsOnTetCorner , TetEdgeIndexTable );  
-
-	    
-	  }
+              IdentifyIntersectionNodes( i_fluidElement , i_tetEdge , leaves , IntersectedTetEdges ,
+                                         NumberIntersectionsOnTetCorner , TetEdgeIndexTable );
+          }
 
           if(IntersectedTetEdges.size() > 0)
-              CalcNodalDistanceTo3DSkin( IntersectedTetEdges , i_fluidElement , NumberIntersectionsOnTetCorner );
-
-	
+              CalcDistanceTo3DSkin( IntersectedTetEdges , i_fluidElement , NumberIntersectionsOnTetCorner );
       }
 
       ///******************************************************************************************************************
@@ -506,7 +561,7 @@ private:
                                       std::vector<OctreeType::cell_type*>&          leaves,
                                       std::vector<TetEdgeStruct>&                   IntersectedTetEdges,
                                       unsigned int&                                 NumberIntersectionsOnTetCorner,
-                                      bounded_matrix<unsigned int,6,2>              TetEdgeIndexTable)
+                                      bounded_matrix<unsigned int,6,2>              TetEdgeIndexTable )
       {
           std::vector<unsigned int> IntersectingStructElemID;
           TetEdgeStruct             NewTetEdge;
@@ -530,6 +585,7 @@ private:
               // loop over all structural elements within each octree cell
               for(object_container_type::iterator i_StructElement = struct_elem->begin(); i_StructElement != struct_elem->end(); i_StructElement++)
               {
+
                   if( StructuralElementNotYetConsidered( (*i_StructElement)->Id() , IntersectingStructElemID ) )
                   {
 
@@ -595,7 +651,9 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      bool IsIntersectionNodeOnTetEdge( double* IntersectionPoint , double* EdgeNode1 , double* EdgeNode2 )
+      bool IsIntersectionNodeOnTetEdge( double* IntersectionPoint,
+                                        double* EdgeNode1,
+                                        double* EdgeNode2 )
       {
           // check, if intersection point is located on any edge of the fluid element
           array_1d<double,3> ConnectVectTetNodeIntNode1;
@@ -631,8 +689,8 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      bool IsNewIntersectionNode(IntersectionNodeStruct&    NewIntersectionNode,
-                                 std::vector<TetEdgeStruct> IntersectedTetEdges )
+      bool IsNewIntersectionNode( IntersectionNodeStruct&    NewIntersectionNode,
+                                  std::vector<TetEdgeStruct> IntersectedTetEdges )
       {
           array_1d<double,3> DiffVector;
           double NormDiffVector;
@@ -660,9 +718,9 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      bool IsIntersectionOnCorner(IntersectionNodeStruct& NewIntersectionNode,
-                                  double* EdgeNode1,
-                                  double* EdgeNode2 )
+      bool IsIntersectionOnCorner( IntersectionNodeStruct& NewIntersectionNode,
+                                   double*                 EdgeNode1,
+                                   double*                 EdgeNode2 )
       {
           array_1d<double,3> DiffVector;
           double NormDiffVector;
@@ -689,8 +747,8 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void CalculateNormal3D(Element::GeometryType& rGeometry,
-                             array_1d<double,3>&    rResultNormal)
+      void CalculateNormal3D( Element::GeometryType& rGeometry,
+                              array_1d<double,3>&    rResultNormal )
       {
           array_1d<double,3> v1;
           array_1d<double,3> v2 ;
@@ -710,12 +768,13 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void CalcNodalDistanceTo3DSkin(std::vector<TetEdgeStruct>&                 IntersectedTetEdges,
-                                     ModelPart::ElementsContainerType::iterator& i_fluid_element,
-                                     unsigned int                                NumberIntersectionsOnTetCorner)
-      {          
+      void CalcDistanceTo3DSkin( std::vector<TetEdgeStruct>&                 IntersectedTetEdges,
+                                 ModelPart::ElementsContainerType::iterator& i_fluid_element,
+                                 unsigned int                                NumberIntersectionsOnTetCorner )
+      {
           std::vector<IntersectionNodeStruct> NodesOfApproximatedStructure;
           array_1d<double,4> ElementalDistances;
+
 
           // Reduce all found intersection nodes located on each tetdrahedra edge to just one intersection node by averaging
           ComputeApproximationNodes(IntersectedTetEdges,NodesOfApproximatedStructure);
@@ -748,26 +807,47 @@ private:
               i_fluid_element->GetValue(SPLIT_ELEMENT) = true;
           }
 
-          // In case there is NO intersection with fluid element
+          // In case there is NO intersection with fluid element: assign distances to the element
           if( i_fluid_element->GetValue(SPLIT_ELEMENT) == true )
-              AssignDistancesToElements(i_fluid_element,ElementalDistances);
+              i_fluid_element->GetValue(ELEMENTAL_DISTANCES) = ElementalDistances;
       }
 
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void ComputeApproximationNodes(std::vector<TetEdgeStruct>           IntersectedTetEdges,
-                                     std::vector<IntersectionNodeStruct>& NodesOfApproximatedStructure)
+      void ComputeApproximationNodes( std::vector<TetEdgeStruct>           IntersectedTetEdges,
+                                      std::vector<IntersectionNodeStruct>& NodesOfApproximatedStructure )
       {
           unsigned int NumberIntNodes;
           double sum_X;
           double sum_Y;
           double sum_Z;
 
+          unsigned int NumberCutEdges = IntersectedTetEdges.size();
+          std::vector<unsigned int> IndicesOfDoubleCutEdges;
+          IndicesOfDoubleCutEdges.reserve(NumberCutEdges);
+
           // calculate average of all intersection nodes of each tetrahedra edge
-          for(unsigned int i_TetEdge = 0 ; i_TetEdge < IntersectedTetEdges.size() ; i_TetEdge++)
+          for(unsigned int i_TetEdge = 0 ; i_TetEdge < NumberCutEdges ; i_TetEdge++)
           {
               NumberIntNodes = IntersectedTetEdges[i_TetEdge].IntNodes.size();
+              if(NumberIntNodes == 2)
+              {
+                  IndicesOfDoubleCutEdges.push_back(i_TetEdge);
+              }
+          }
+
+          const unsigned int NumberEdgesDoubleCut = IndicesOfDoubleCutEdges.size();
+          if(NumberEdgesDoubleCut == 1)
+          {
+              // kick these intersection nodes on this edge out of the container
+              unsigned int index = IndicesOfDoubleCutEdges[0];
+              IntersectedTetEdges.erase(IntersectedTetEdges.begin() + index);
+              NumberCutEdges -= 1;
+          }
+
+          for(unsigned int i_TetEdge = 0 ; i_TetEdge < NumberCutEdges ; i_TetEdge++)
+          {
               sum_X = 0;
               sum_Y = 0;
               sum_Z = 0;
@@ -796,7 +876,7 @@ private:
 
       void CalcSignedDistancesToOneIntNode( ModelPart::ElementsContainerType::iterator& i_fluid_element,
                                             std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
-                                            array_1d<double,4>&                         ElementalDistances)
+                                            array_1d<double,4>&                         ElementalDistances )
       {
           const array_1d<double,3>& IntersectionNodeCoord = NodesOfApproximatedStructure[0].Coordinates;
           array_1d<double,3> DistVecTetNode;
@@ -837,7 +917,7 @@ private:
 
       void CalcSignedDistancesToTwoIntNodes( ModelPart::ElementsContainerType::iterator& i_fluid_element,
                                              std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
-                                             array_1d<double,4>&                         ElementalDistances)
+                                             array_1d<double,4>&                         ElementalDistances )
       {
           const array_1d<double,3>& IntersectionNode1Coord = NodesOfApproximatedStructure[0].Coordinates;
           const array_1d<double,3>& IntersectionNode2Coord = NodesOfApproximatedStructure[1].Coordinates;
@@ -893,7 +973,7 @@ private:
       void CalcSignedDistancesToThreeIntNodes( ModelPart::ElementsContainerType::iterator& i_fluid_element,
                                                std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
                                                std::vector<TetEdgeStruct>                  IntersectedTetEdges,
-                                               array_1d<double,4>&                         ElementalDistances)
+                                               array_1d<double,4>&                         ElementalDistances )
       {
           array_1d<unsigned int,3> IndexNodes;
 
@@ -911,86 +991,62 @@ private:
       void CalcSignedDistancesToFourIntNodes( ModelPart::ElementsContainerType::iterator& i_fluid_element,
                                               std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
                                               std::vector<TetEdgeStruct>                  IntersectedTetEdges,
-                                              array_1d<double,4>&                         ElementalDistances)
+                                              array_1d<double,4>&                         ElementalDistances )
       {
           array_1d<unsigned int,3> IndexNodes_T1; // nodes of first triangle
           array_1d<unsigned int,3> IndexNodes_T2; // nodes of second triangle
+          array_1d<unsigned int,3> IndexNodes_T3; // nodes of third triangle
+          array_1d<unsigned int,3> IndexNodes_T4; // nodes of fourth triangle
 
           array_1d<double,4> ElementalDistances_T1;
           array_1d<double,4> ElementalDistances_T2;
+          array_1d<double,4> ElementalDistances_T3;
+          array_1d<double,4> ElementalDistances_T4;
 
           double dist_T1;
           double dist_T2;
+          double dist_T3;
+          double dist_T4;
 
-          // Generate 2 triangles out of the 4 int nodes which form a parallelogram together
-          // Therefor first define arbitrarily a set of 3 nodes which form a triangle and search for the 2 nodes
-          // of the triangle which form the other triangle together with the fourth node
+          // Compute distance for first triangle
           IndexNodes_T1[0] = 0;
           IndexNodes_T1[1] = 1;
           IndexNodes_T1[2] = 2;
-
-          FindIndexNodesOfTriangle2(NodesOfApproximatedStructure,IndexNodes_T2);
-
-          // Compute distance for first triangle
           CalcSignedDistancesToApproxTriangle( i_fluid_element , NodesOfApproximatedStructure , IntersectedTetEdges,
                                                ElementalDistances_T1 , IndexNodes_T1 );
+
           // Compute distance for second triangle
+          IndexNodes_T2[0] = 0;
+          IndexNodes_T2[1] = 1;
+          IndexNodes_T2[2] = 3;
           CalcSignedDistancesToApproxTriangle( i_fluid_element , NodesOfApproximatedStructure , IntersectedTetEdges,
                                                ElementalDistances_T2 , IndexNodes_T2 );
+
+          // Compute distance for third triangle
+          IndexNodes_T3[0] = 0;
+          IndexNodes_T3[1] = 2;
+          IndexNodes_T3[2] = 3;
+          CalcSignedDistancesToApproxTriangle( i_fluid_element , NodesOfApproximatedStructure , IntersectedTetEdges,
+                                               ElementalDistances_T3 , IndexNodes_T3 );
+
+          // Compute distance for fourth triangle
+          IndexNodes_T4[0] = 1;
+          IndexNodes_T4[1] = 2;
+          IndexNodes_T4[2] = 3;
+          CalcSignedDistancesToApproxTriangle( i_fluid_element , NodesOfApproximatedStructure , IntersectedTetEdges,
+                                               ElementalDistances_T4 , IndexNodes_T4 );
 
           // Determine about the minimal distance by considering the distances to both triangles
           for(unsigned int i_TetNode = 0 ; i_TetNode < 4 ; i_TetNode++)
           {
               dist_T1 = ElementalDistances_T1[i_TetNode];
               dist_T2 = ElementalDistances_T2[i_TetNode];
-              if(fabs(dist_T1) < fabs(dist_T2))
-                  ElementalDistances[i_TetNode] = dist_T1;
-              else
-                  ElementalDistances[i_TetNode] = dist_T2;
+              dist_T3 = ElementalDistances_T3[i_TetNode];
+              dist_T4 = ElementalDistances_T4[i_TetNode];
+
+              double minNodalDist = std::min(dist_T1,std::min(dist_T2,std::min(dist_T3,dist_T4)));
+              ElementalDistances[i_TetNode] = minNodalDist;
           }
-      }
-
-      ///******************************************************************************************************************
-      ///******************************************************************************************************************
-
-      void FindIndexNodesOfTriangle2(std::vector<IntersectionNodeStruct> NodesOfApproximatedStructure,
-                                     array_1d<unsigned int,3>&           IndexNodes_T2)
-      {
-          double maxDist = 0;
-          unsigned int indexExcludedNode; // index of the node which is not part of the second triangle
-          array_1d<double,3> TrianglePoint;
-          array_1d<double,3> RemainingPoint;
-          array_1d<double,3> DistVecNode;
-
-          RemainingPoint =  NodesOfApproximatedStructure[3].Coordinates;
-
-          // strategy: these two nodes of the first triangle form a triangle with the 4th node, which are closest to that node
-          // --> look for these nodes with the shortest distance to the remaining node
-          for(unsigned int i_TriangleNode = 0 ; i_TriangleNode < 3 ; i_TriangleNode++)
-          {
-              TrianglePoint = NodesOfApproximatedStructure[i_TriangleNode].Coordinates;
-              DistVecNode[0] = RemainingPoint[0] - TrianglePoint[0];
-              DistVecNode[1] = RemainingPoint[1] - TrianglePoint[1];
-              DistVecNode[2] = RemainingPoint[2] - TrianglePoint[2];
-              if(norm_2(DistVecNode) > maxDist)
-              {
-                  maxDist = norm_2(DistVecNode);
-                  indexExcludedNode = i_TriangleNode;
-              }
-          }
-
-          // assign the "not excluded" nodes to the index vector of the second triangle
-          unsigned int indexCursor = 0;
-          for(unsigned int k = 0 ; k < 3 ; k++)
-          {
-              if(indexExcludedNode != k)
-              {
-                  IndexNodes_T2[indexCursor] = k;
-                  indexCursor += 1;
-              }
-          }
-
-          IndexNodes_T2[2] = 3;
       }
 
       ///******************************************************************************************************************
@@ -1000,7 +1056,7 @@ private:
                                                 std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
                                                 std::vector<TetEdgeStruct>                  IntersectedTetEdges,
                                                 array_1d<double,4>&                         ElementalDistances,
-                                                array_1d<unsigned int,3>                    IndexNodes)
+                                                array_1d<unsigned int,3>                    IndexNodes )
       {
           Geometry< Node<3> >& rFluidGeom = i_fluid_element->GetGeometry();
 
@@ -1037,6 +1093,8 @@ private:
               // Compute distance from tet node to current triangle
               UnsignedDistance = GeometryUtils::PointDistanceToTriangle3D(ApproxTrianglePoint1, ApproxTrianglePoint2 , ApproxTrianglePoint3 , Point<3>(TetNode[0],TetNode[1],TetNode[2]));
 
+//                KRATOS_WATCH(UnsignedDistance);
+
               bool TetNodeIsInsideStructure = true;
               bool TetNodeIsOnStructure = true;
               array_1d <double,3> DistVec;
@@ -1053,6 +1111,7 @@ private:
                       NormalAtIntersectionNode = IntersectedTetEdges[i_TetEdge].IntNodes[i_IntNode].StructElemNormal;
 
                       InnerProduct = inner_prod(DistVec,NormalAtIntersectionNode);
+//                        KRATOS_WATCH(InnerProduct);
 
                       if(InnerProduct > epsilon)
                       {
@@ -1071,39 +1130,364 @@ private:
                   ElementalDistances[i_TetNode] = 0;
               else
                   ElementalDistances[i_TetNode] = +UnsignedDistance;
+
+//                KRATOS_WATCH(ElementalDistances);
           }
       }
 
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void AssignDistancesToElements(ModelPart::ElementsContainerType::iterator& i_fluid_element,
-                                     array_1d<double,4>                          ElementalDistances)
+      void AssignMinimalNodalDistance()
       {
-          Geometry< Node<3> >& rFluidGeom = i_fluid_element->GetGeometry();
-
-          array_1d<double,4> MinElementalDistances;
-
-          for(unsigned int i_TetNode = 0 ; i_TetNode < 4 ; i_TetNode++)
+          // loop over all fluid elements
+          for( ModelPart::ElementIterator i_fluid_element = mrFluidModelPart.ElementsBegin();
+                                          i_fluid_element != mrFluidModelPart.ElementsEnd();
+                                          i_fluid_element++)
           {
-              //Assign distances to the element, if a smaller value could be found
-              if( fabs(ElementalDistances[i_TetNode]) < fabs(i_fluid_element->GetValue(ELEMENTAL_DISTANCES)[i_TetNode]) )
-                  MinElementalDistances[i_TetNode] = ElementalDistances[i_TetNode];
-              else
-                  MinElementalDistances[i_TetNode] = i_fluid_element->GetValue(ELEMENTAL_DISTANCES)[i_TetNode];
+              Geometry< Node<3> >& geom = i_fluid_element->GetGeometry();
+              array_1d<double,4> ElementalDistances = i_fluid_element->GetValue(ELEMENTAL_DISTANCES);
 
-              //Assign distances to the single nodes (for visualization), if a smaller value could be found
-              if( fabs(ElementalDistances[i_TetNode]) < fabs(rFluidGeom[i_TetNode].GetSolutionStepValue(DISTANCE)) )
-                  rFluidGeom[i_TetNode].GetSolutionStepValue(DISTANCE) = ElementalDistances[i_TetNode];
-          }
+              // Assign distances to the single nodes, if a smaller value is found
+              for( unsigned int i_TetNode = 0; i_TetNode < 4; i_TetNode++ )
+              {
+                  double currentNodeDist = geom[i_TetNode].GetSolutionStepValue(DISTANCE);
+                  double nodeInElemDist  = ElementalDistances[i_TetNode];
 
-          i_fluid_element->SetValue(ELEMENTAL_DISTANCES,MinElementalDistances);
+                  if( fabs( nodeInElemDist ) < fabs( currentNodeDist ) )
+                      geom[i_TetNode].GetSolutionStepValue(DISTANCE) = nodeInElemDist; // overwrite nodal distance (which is global)
+              } // loop i_TetNode
+          } // loop i_fluidElement
       }
 
   ///******************************************************************************************************************
   ///******************************************************************************************************************
 
-      
+      void ReproduceStructuralSkinMesh( std::vector< array_1d<double,3> >&       nodesMatrix,
+                                        std::vector< array_1d<unsigned int,3> >& elementsMatrix )
+      {
+          // Extract distance information of intersected elements and generate triangular geometry
+          // in order to visualize in GiD as a mdpa-file
+
+          for(ModelPart::ElementIterator i_fluid_element = mrFluidModelPart.ElementsBegin();
+                                         i_fluid_element != mrFluidModelPart.ElementsEnd();
+                                         i_fluid_element++)
+          {
+              bool split_element = i_fluid_element->GetValue(SPLIT_ELEMENT);
+              if (split_element == true)
+              {
+
+                  Geometry< Node<3> >& geom = i_fluid_element->GetGeometry();
+
+                  array_1d<double,4> distances;
+                  distances[0] = geom[0].GetSolutionStepValue(DISTANCE);
+                  distances[1] = geom[1].GetSolutionStepValue(DISTANCE);
+                  distances[2] = geom[2].GetSolutionStepValue(DISTANCE);
+                  distances[3] = geom[3].GetSolutionStepValue(DISTANCE);
+
+                  // Initialize index table to define line Edges of fluid element
+                  bounded_matrix<unsigned int,6,2> TetEdgeIndexTable;
+                  SetIndexTable(TetEdgeIndexTable);
+
+                  unsigned int numberCutEdges = 0;
+
+                  // First, compute all intersection nodes along the tetrahedra edges
+                  for(unsigned int i_tetEdge = 0; i_tetEdge < 6; i_tetEdge++)
+                  {
+                      // Get nodes of tet edge
+                      unsigned int EdgeStartIndex = TetEdgeIndexTable(i_tetEdge,0);
+                      unsigned int EdgeEndIndex   = TetEdgeIndexTable(i_tetEdge,1);
+
+                      // Edge is cut, if distance values on both nodes have opposite sign
+                      if(distances[EdgeStartIndex]*distances[EdgeEndIndex] < 0)
+                          numberCutEdges++;
+                  }
+
+                  /*
+                  if numberCutEdges == 0: tet is intersected, BUT all nodes are nevertheless located outside of structure
+                                          (think of very thin structures)
+                  if numberCutEdges == 1: 1 node  = 0 (intersected tet corner node) --> NEGLECTED!!
+                  if numberCutEdges == 2: 2 nodes = 0 (intersected tet edge)        --> NEGLECTED!!
+                  if numberCutEdges == 3: 3 nodes with same sign, 1 node with opposite sign  --> 3 intersection nodes
+                  if numberCutEdges == 4: 2 nodes with same sign, 2 nodes with opposite sign --> 4 intersection nodes
+                  */
+
+                  if(numberCutEdges == 3)
+                  {
+                      ReproduceThreeIntNodes(i_fluid_element,distances,nodesMatrix,elementsMatrix);
+                  }
+                  else if(numberCutEdges == 4)
+                  {
+                      ReproduceFourIntNodes(i_fluid_element,distances,nodesMatrix,elementsMatrix);
+                  }
+              }
+          }
+      }
+
+      ///******************************************************************************************************************
+      ///******************************************************************************************************************
+
+      void ReproduceThreeIntNodes( ModelPart::ElementsContainerType::iterator& i_fluid_element,
+                                   array_1d<double,4>                          distances,
+                                   std::vector< array_1d<double,3> >&          nodesMatrix,
+                                   std::vector< array_1d<unsigned int,3> >&    elementsMatrix)
+      {
+          // case: 3 intersection nodes --> write 1 triangle directly
+          unsigned int nextNodeID = nodesMatrix.size()+1;
+          unsigned int ID_Node_A = nextNodeID;
+          unsigned int ID_Node_B = nextNodeID + 1;
+          unsigned int ID_Node_C = nextNodeID + 2;
+
+          array_1d<double,3> intNode_A;
+          array_1d<double,3> intNode_B;
+          array_1d<double,3> intNode_C;
+
+          array_1d<unsigned int,3> triangle;
+
+          // ********* ONE NODE NEGATIVE; REMAINING NODES POSITIVE **********
+          if( distances[0] < 0 && distances[1] > 0 && distances[2] > 0 && distances[3] > 0 )
+          { // node 0 negative, remaining nodes positive
+              CalcIntersectionNode(i_fluid_element,distances,0,1,intNode_A); // Intersection Node A
+              CalcIntersectionNode(i_fluid_element,distances,0,2,intNode_B); // Intersection Node B
+              CalcIntersectionNode(i_fluid_element,distances,0,3,intNode_C); // Intersection Node C
+          }
+          else if( distances[0] > 0 && distances[1] < 0 && distances[2] > 0 && distances[3] > 0 )
+          { // node 1 negative, remaining nodes positive
+              CalcIntersectionNode(i_fluid_element,distances,1,0,intNode_A); // Intersection Node A
+              CalcIntersectionNode(i_fluid_element,distances,1,2,intNode_B); // Intersection Node B
+              CalcIntersectionNode(i_fluid_element,distances,1,3,intNode_C); // Intersection Node C
+          }
+          else if( distances[0] > 0 && distances[1] > 0 && distances[2] < 0 && distances[3] > 0 )
+          { // node 2 negative, remaining nodes positive
+              CalcIntersectionNode(i_fluid_element,distances,2,0,intNode_A); // Intersection Node A
+              CalcIntersectionNode(i_fluid_element,distances,2,1,intNode_B); // Intersection Node B
+              CalcIntersectionNode(i_fluid_element,distances,2,3,intNode_C); // Intersection Node C
+          }
+          else if( distances[0] > 0 && distances[1] > 0 && distances[2] > 0 && distances[3] < 0 )
+          { // node 3 negative, remaining nodes positive
+              CalcIntersectionNode(i_fluid_element,distances,3,0,intNode_A); // Intersection Node A
+              CalcIntersectionNode(i_fluid_element,distances,3,1,intNode_B); // Intersection Node B
+              CalcIntersectionNode(i_fluid_element,distances,3,2,intNode_C); // Intersection Node C
+          }
+          // ********* ONE NODE POSITIVE; REMAINING NODES NEGATIVE **********
+          else if( distances[0] > 0 && distances[1] < 0 && distances[2] < 0 && distances[3] < 0 )
+          { // node 0 positive, remaining nodes negative
+              CalcIntersectionNode(i_fluid_element,distances,1,0,intNode_A); // Intersection Node A
+              CalcIntersectionNode(i_fluid_element,distances,2,0,intNode_B); // Intersection Node B
+              CalcIntersectionNode(i_fluid_element,distances,3,0,intNode_C); // Intersection Node C
+          }
+          else if( distances[0] < 0 && distances[1] > 0 && distances[2] < 0 && distances[3] < 0 )
+          { // node 1 positive, remaining nodes negative
+              CalcIntersectionNode(i_fluid_element,distances,0,1,intNode_A); // Intersection Node A
+              CalcIntersectionNode(i_fluid_element,distances,2,1,intNode_B); // Intersection Node B
+              CalcIntersectionNode(i_fluid_element,distances,3,1,intNode_C); // Intersection Node C
+          }
+          else if( distances[0] < 0 && distances[1] < 0 && distances[2] > 0 && distances[3] < 0 )
+          { // node 2 positive, remaining nodes negative
+              CalcIntersectionNode(i_fluid_element,distances,0,2,intNode_A); // Intersection Node A
+              CalcIntersectionNode(i_fluid_element,distances,1,2,intNode_B); // Intersection Node B
+              CalcIntersectionNode(i_fluid_element,distances,3,2,intNode_C); // Intersection Node C
+          }
+          else if( distances[0] < 0 && distances[1] < 0 && distances[2] < 0 && distances[3] > 0 )
+          { // node 3 positive, remaining nodes negative
+              CalcIntersectionNode(i_fluid_element,distances,0,3,intNode_A); // Intersection Node A
+              CalcIntersectionNode(i_fluid_element,distances,1,3,intNode_B); // Intersection Node B
+              CalcIntersectionNode(i_fluid_element,distances,2,3,intNode_C); // Intersection Node C
+          }
+
+          nodesMatrix.push_back(intNode_A);
+          nodesMatrix.push_back(intNode_B);
+          nodesMatrix.push_back(intNode_C);
+
+          // triangle: ABC
+          triangle[0] = ID_Node_A;
+          triangle[1] = ID_Node_B;
+          triangle[2] = ID_Node_C;
+
+          AdaptIndexingByNormal(i_fluid_element,distances,triangle,nodesMatrix);
+
+          elementsMatrix.push_back(triangle);
+      }
+
+      ///******************************************************************************************************************
+      ///******************************************************************************************************************
+
+      void ReproduceFourIntNodes(  ModelPart::ElementsContainerType::iterator& i_fluid_element,
+                                   array_1d<double,4>                          distances,
+                                   std::vector< array_1d<double,3> >&          nodesMatrix,
+                                   std::vector< array_1d<unsigned int,3> >&    elementsMatrix)
+      {
+          // case: 4 intersection nodes --> write 2 triangles
+          // or more abstractly spoken: search the nodes which form the 2 triangles
+
+          unsigned int nextNodeID = nodesMatrix.size()+1;
+          unsigned int ID_Node_A = nextNodeID;
+          unsigned int ID_Node_B = nextNodeID + 1;
+          unsigned int ID_Node_C = nextNodeID + 2;
+          unsigned int ID_Node_D = nextNodeID + 3;
+
+          array_1d<double,3> intNode_A;
+          array_1d<double,3> intNode_B;
+          array_1d<double,3> intNode_C;
+          array_1d<double,3> intNode_D;
+
+          array_1d<unsigned int,3> triangle1;
+          array_1d<unsigned int,3> triangle2;
+
+          if( distances[0] < 0 )
+          {
+              if( distances[1] < 0 ) // nodes [0,1] negative
+              {
+                  CalcIntersectionNode(i_fluid_element,distances,0,2,intNode_A); // Intersection Node A
+                  CalcIntersectionNode(i_fluid_element,distances,0,3,intNode_B); // Intersection Node B
+                  CalcIntersectionNode(i_fluid_element,distances,1,2,intNode_C); // Intersection Node C
+                  CalcIntersectionNode(i_fluid_element,distances,1,3,intNode_D); // Intersection Node D
+              }
+              else if( distances[2] < 0 ) // nodes [0,2] negative
+              {
+                  CalcIntersectionNode(i_fluid_element,distances,0,1,intNode_A); // Intersection Node A
+                  CalcIntersectionNode(i_fluid_element,distances,0,3,intNode_B); // Intersection Node B
+                  CalcIntersectionNode(i_fluid_element,distances,2,1,intNode_C); // Intersection Node C
+                  CalcIntersectionNode(i_fluid_element,distances,2,3,intNode_D); // Intersection Node D
+              }
+              else if( distances[3] < 0 ) // nodes [0,3] negative
+              {
+                  CalcIntersectionNode(i_fluid_element,distances,0,1,intNode_A); // Intersection Node A
+                  CalcIntersectionNode(i_fluid_element,distances,0,2,intNode_B); // Intersection Node B
+                  CalcIntersectionNode(i_fluid_element,distances,3,1,intNode_C); // Intersection Node C
+                  CalcIntersectionNode(i_fluid_element,distances,3,2,intNode_D); // Intersection Node D
+              }
+          }
+          else if( distances[0] > 0 )
+          {
+              if( distances[1] > 0 ) // nodes [2,3] negative
+              {
+                  CalcIntersectionNode(i_fluid_element,distances,2,0,intNode_A); // Intersection Node A
+                  CalcIntersectionNode(i_fluid_element,distances,2,1,intNode_B); // Intersection Node B
+                  CalcIntersectionNode(i_fluid_element,distances,3,0,intNode_C); // Intersection Node C
+                  CalcIntersectionNode(i_fluid_element,distances,3,1,intNode_D); // Intersection Node D
+              }
+              else if( distances[2] > 0 ) // nodes [1,3] negative
+              {
+                  CalcIntersectionNode(i_fluid_element,distances,1,0,intNode_A); // Intersection Node A
+                  CalcIntersectionNode(i_fluid_element,distances,1,2,intNode_B); // Intersection Node B
+                  CalcIntersectionNode(i_fluid_element,distances,3,0,intNode_C); // Intersection Node C
+                  CalcIntersectionNode(i_fluid_element,distances,3,2,intNode_D); // Intersection Node D
+              }
+              else if( distances[3] > 0 ) // nodes [1,2] negative
+              {
+                  CalcIntersectionNode(i_fluid_element,distances,1,0,intNode_A); // Intersection Node A
+                  CalcIntersectionNode(i_fluid_element,distances,1,3,intNode_B); // Intersection Node B
+                  CalcIntersectionNode(i_fluid_element,distances,2,0,intNode_C); // Intersection Node C
+                  CalcIntersectionNode(i_fluid_element,distances,2,3,intNode_D); // Intersection Node D
+              }
+          }
+
+          // now combine these intersection nodes to 2 triangles
+          // Applying the ordered numbering scheme, the 2 triangles are always
+          // formed out of nodes ABC and BCD
+
+          // triangle 1: ABC
+          triangle1[0] = ID_Node_A;
+          triangle1[1] = ID_Node_B;
+          triangle1[2] = ID_Node_C;
+
+          // triangle 2: BCD
+          triangle2[0] = ID_Node_B;
+          triangle2[1] = ID_Node_C;
+          triangle2[2] = ID_Node_D;
+
+          nodesMatrix.push_back(intNode_A);
+          nodesMatrix.push_back(intNode_B);
+          nodesMatrix.push_back(intNode_C);
+          nodesMatrix.push_back(intNode_D);
+
+          AdaptIndexingByNormal(i_fluid_element,distances,triangle1,nodesMatrix);
+          AdaptIndexingByNormal(i_fluid_element,distances,triangle2,nodesMatrix);
+
+          elementsMatrix.push_back(triangle1);
+          elementsMatrix.push_back(triangle2);
+      }
+
+      ///******************************************************************************************************************
+      ///******************************************************************************************************************
+
+      void CalcIntersectionNode( ModelPart::ElementsContainerType::iterator&  i_fluid_element,
+                                 array_1d<double,4>                           distances,
+                                 unsigned int                                 Index1,
+                                 unsigned int                                 Index2,
+                                 array_1d<double,3> &                         intNodeCoord )
+      {
+          // Interpolate the intersection node given two tet nodes and the distance values
+
+          // tet_edge is intersected --> calculate one triangle node by interpolation
+          Element::GeometryType& geom = i_fluid_element->GetGeometry(); // Nodos del elemento
+          array_1d<double,3> node1 = geom[Index1].Coordinates();
+          array_1d<double,3> node2 = geom[Index2].Coordinates();
+
+          // Compute intersection node by means of linear interpolation
+          double scale = (-distances[Index1] / (distances[Index2] - distances[Index1]));
+          double x_Int = node1[0] + (node2[0] - node1[0]) * scale;
+          double y_Int = node1[1] + (node2[1] - node1[1]) * scale;
+          double z_Int = node1[2] + (node2[2] - node1[2]) * scale;
+
+          intNodeCoord[0] = x_Int;
+          intNodeCoord[1] = y_Int;
+          intNodeCoord[2] = z_Int;
+      }
+
+      ///******************************************************************************************************************
+      ///******************************************************************************************************************
+
+      void AdaptIndexingByNormal( ModelPart::ElementsContainerType::iterator& i_fluid_element,
+                                  array_1d<double,4>                          distances,
+                                  array_1d<unsigned int,3>&                   IDNodesInTri,
+                                  std::vector< array_1d<double,3> >           nodesMatrix )
+      {
+          // Check, if normal of reproduced triangular element points into the direction of a tet node with positive dist,
+          // else adapt nodal indexes of the element
+
+          // First, calculate normal of triangle
+          array_1d<double,3> triEdge12; // vector connecting node 1 and 2 of the reproduced triangle
+          array_1d<double,3> triEdge13; // vector connecting node 1 and 3 of the reproduced triangle
+
+          triEdge12[0] = nodesMatrix[IDNodesInTri[1]-1][0] - nodesMatrix[IDNodesInTri[0]-1][0];
+          triEdge12[1] = nodesMatrix[IDNodesInTri[1]-1][1] - nodesMatrix[IDNodesInTri[0]-1][1];
+          triEdge12[2] = nodesMatrix[IDNodesInTri[1]-1][2] - nodesMatrix[IDNodesInTri[0]-1][2];
+
+          triEdge13[0] = nodesMatrix[IDNodesInTri[2]-1][0] - nodesMatrix[IDNodesInTri[0]-1][0];
+          triEdge13[1] = nodesMatrix[IDNodesInTri[2]-1][1] - nodesMatrix[IDNodesInTri[0]-1][1];
+          triEdge13[2] = nodesMatrix[IDNodesInTri[2]-1][2] - nodesMatrix[IDNodesInTri[0]-1][2];
+
+          // Compute normal by cross product of the triangle edges
+          array_1d<double,3> normalVec;
+          MathUtils<double>::CrossProduct(normalVec,triEdge12,triEdge13);
+          normalVec *= 0.5;
+
+          // Check, if normal vector is pointing into a tetnode with a positive distance value
+          Element::GeometryType& geom = i_fluid_element->GetGeometry();
+          array_1d<double,3> tetNode = geom[0].Coordinates();
+          array_1d<double,3> intNodeTetNodeVec; // Vector connecting the tet node and the first intersection node
+          intNodeTetNodeVec[0] = tetNode[0] - nodesMatrix[IDNodesInTri[0]-1][0];
+          intNodeTetNodeVec[1] = tetNode[1] - nodesMatrix[IDNodesInTri[0]-1][1];
+          intNodeTetNodeVec[2] = tetNode[2] - nodesMatrix[IDNodesInTri[0]-1][2];
+
+          // Determine inner product as measure for the orientation of normal vector relative to tet node 0
+          double InnerProduct = inner_prod(intNodeTetNodeVec,normalVec);
+
+          if((InnerProduct < 0.0 and distances[0] > 0) or (InnerProduct > 0.0 and distances[0] < 0))
+          {
+              // in this case, the normal is NOT pointing towards a tet node with a positive value
+              // --> switch two arbitrary nodes of the triangle
+              // IDNodesInTri[0] = IDNodesInTri[0];
+              unsigned int getIndex1 = IDNodesInTri[1];
+              IDNodesInTri[1] = IDNodesInTri[2];
+              IDNodesInTri[2] = getIndex1;
+          }
+      }
+
+      ///******************************************************************************************************************
+      ///******************************************************************************************************************
 
       void GenerateOctree()
       {
