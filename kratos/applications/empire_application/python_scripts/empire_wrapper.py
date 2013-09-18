@@ -49,16 +49,15 @@ class EmpireWrapper:
 		disp[1] = c_displacements[3*i+1]
 		disp[2] = c_displacements[3*i+2]
 
-		if(nodes.Id == 43298):
-			print "NODE of upper left side of CFD got a displacement of:---------"
-			print disp
-			print "-------------------"
+		if(abs(disp[0]) < 1e-9):
+			disp[0] = 0
+		if(abs(disp[1]) < 1e-9):
+			disp[1] = 0
+		if(abs(disp[2]) < 1e-9):
+			disp[2] = 0
 
 		nodes.SetSolutionStepValue(DISPLACEMENT,0,disp)
 		i = i + 1
-
-	# set the fluid velocity at the interface to be equal to the corresponding mesh velocity
-	self.utilities.CopyVectorVar(MESH_VELOCITY,VELOCITY,(self.interface_model_part).Nodes)
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
@@ -66,11 +65,6 @@ class EmpireWrapper:
 	# extract pressure from interface nodes as result of the CFD simulation
 	pressure = []
 	self.ale_wrapper_process.ExtractPressureFromModelPart( pressure )
-
-	for nodes in (self.interface_model_part).Nodes:
-		if(nodes.Id == 43298):
-			print "NODE of upper left side of CFD calculated a pressure of:---------"
-			print nodes.GetSolutionStepValue(PRESSURE)
 
 	# convert list containg the forces to ctypes
 	c_pressure = (c_double * len(pressure))(*pressure)
@@ -127,12 +121,6 @@ class EmpireWrapper:
 	# assign pressure to nodes of interface for current time step
 	for nodes in (self.interface_model_part).Nodes:
 		pressure[0] = c_pressure[i]
-		
-                if(nodes.Id == 20347):
-			print "NODE of upper left side of CSM got a pressure of:---------"
-			print pressure[0]
-			print "-------------------"
-
 		nodes.SetSolutionStepValue(POSITIVE_FACE_PRESSURE,0,pressure[0]);
 		i = i + 1
     # -------------------------------------------------------------------------------------------------
@@ -142,15 +130,6 @@ class EmpireWrapper:
 	# extract displacements from interface nodes as result of the CFD simulation
 	displacements = []
 	self.ale_wrapper_process.ExtractDisplacementsFromModelPart( displacements )
-
-	for nodes in (self.interface_model_part).Nodes:
-                if(nodes.Id == 20347):
-			print "NODE of upper left side of CSM has calculated a displacement of:---------"
-			disp = Vector(3)
-			disp[0] = nodes.GetSolutionStepValue(DISPLACEMENT_X)
-			disp[1] = nodes.GetSolutionStepValue(DISPLACEMENT_Y)
-			disp[2] = nodes.GetSolutionStepValue(DISPLACEMENT_Z)
-			print disp
 
 	# convert list containg the displacements to ctypes
 	c_displacements = (c_double * len(displacements))(*displacements)
