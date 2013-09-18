@@ -330,7 +330,7 @@ public:
         {         
             (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(INTERNAL_ENERGY) = 9999;
             
-//             (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) = 0; 
+            (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) = 0; 
             (*particle_pointer_it)->GetValue(OSS_SWITCH) = 0;
             
             for(int j = 0; j < mpi_size; j++)
@@ -347,18 +347,22 @@ public:
                 double Radius = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
                 int myRank = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX);
                 
-                if (plane == myRank)
-                    NodeToCutPlaneDist += 1;
+                NodeToCutPlaneDist = fabs(NodeToCutPlaneDist);
                 
-                if(fabs(NodeToCutPlaneDist) <= Radius)
+                if (plane == myRank)
                 {
-                    //Fill the marked element vector
-                    pElementsMarked.push_back((*particle_pointer_it));
-                    
-                    (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) |= ((1 << plane) | (1 << myRank));
-                    (*particle_pointer_it)->GetValue(OSS_SWITCH) |= ((1 << plane) | (1 << myRank));        
+                    if(NodeToCutPlaneDist <= Radius*1.4)
+                    {
+                        //Fill the marked element vector
+                        pElementsMarked.push_back((*particle_pointer_it));
+                        
+                        (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) |= ((1 << plane) | (1 << myRank));
+                        (*particle_pointer_it)->GetValue(OSS_SWITCH) |= ((1 << plane) | (1 << myRank));        
+                    }
                 }
             }
+               
+            //104389  100464 93163 26599 18583 50116 52617
                
             (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
             (*particle_pointer_it)->GetValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetValue(OSS_SWITCH);
@@ -387,7 +391,7 @@ public:
         double new_extension = 1.01;
         for (IteratorType particle_pointer_it = pElementsMarked.begin(); particle_pointer_it != pElementsMarked.end(); ++particle_pointer_it)
         {    
-              Radius[particle_pointer_it - pElementsMarked.begin()] = new_extension * ((1.0 +0.3) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS)); //if this is changed, then compobation before adding neighbours must change also.
+              Radius[particle_pointer_it - pElementsMarked.begin()] = new_extension * ((1.0 +0.5) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS)); //if this is changed, then compobation before adding neighbours must change also.
         }
         
         particle_bin.SearchObjectsMpi(pElementsMarked,NumberOfMarkedElements,Radius,Results,ResultsDistances,NumberOfResults,MaximumNumberOfResults,mModelPart.GetCommunicator());
@@ -402,8 +406,6 @@ public:
                 SendMarkObjects[Results[p_index][i]->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX)].push_back(Results[p_index][i]);
             }
         }
-
-//         mModelPart.GetCommunicator().TransferModelElements(mModelPart,SendMarkObjects,RecvMarkObjects);
         
         int msgSendSize[mpi_size];
         int msgRecvSize[mpi_size];
