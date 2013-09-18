@@ -35,14 +35,14 @@ from KratosMultiphysics.PfemSolidMechanicsApplication import *
 import pfem_solid_mechanics_main_solver as main_solver
 
 #import the python utilities:
-import restart_python_utility       as restart_utils
-import modeler_python_utility       as modeler_utils
-import print_results_python_utility as gid_utils
+import pfem_restart_python_utility       as restart_utils
+import pfem_modeler_python_utility       as modeler_utils
+import pfem_print_results_python_utility as gid_utils
 
-import rigid_wall_python_utility    as wall_utils
-import conditions_python_utility    as condition_utils
-import list_files_python_utility    as files_utils
-import graph_plot_python_utility    as plot_utils
+import pfem_rigid_wall_python_utility    as wall_utils
+import pfem_conditions_python_utility    as condition_utils
+import pfem_list_files_python_utility    as files_utils
+import pfem_graph_plot_python_utility    as plot_utils
 
 
 
