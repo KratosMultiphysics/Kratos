@@ -43,6 +43,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //   Revision:            $Revision: 1.39 $
 //
 //
+// CHANGE LOG:
+//   18 Sep 2013: hbui change the way to read value from node in WriteNodalResults to GetSolutionStepValue for Variable<Matrix> and fix some call for Timer in WriteNodalResults for Variable<bool> and Variable<double>
+
+
 
 #if !defined(KRATOS_GID_IO_BASE_H_INCLUDED)
 #define  KRATOS_GID_IO_BASE_H_INCLUDED
@@ -563,7 +567,7 @@ public:
                             std::size_t SolutionStepNumber)
     {
 
-        Timer::Stop("Writing Results");
+        Timer::Start("Writing Results");
         GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Scalar,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
@@ -587,7 +591,7 @@ public:
                             std::size_t SolutionStepNumber)
     {
 
-        Timer::Stop("Writing Results");
+        Timer::Start("Writing Results");
         GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Scalar,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
@@ -676,9 +680,9 @@ public:
         for (NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
         {
-            //Matrix& tempMatrix = i_node->GetSolutionStepValue(rVariable,
-            //        SolutionStepNumber);
-            Matrix& tempMatrix = i_node->GetValue(rVariable);
+            Matrix& tempMatrix = i_node->GetSolutionStepValue(rVariable,
+                    SolutionStepNumber);
+            //Matrix& tempMatrix = i_node->GetValue(rVariable);
             if (tempMatrix.size1() ==3 && tempMatrix.size2() ==3)
             {
                 GiD_Write3DMatrix(  i_node->Id(), tempMatrix(0,0), tempMatrix(1,1),
