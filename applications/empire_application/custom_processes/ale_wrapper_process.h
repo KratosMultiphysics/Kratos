@@ -126,8 +126,8 @@ public:
                      ((*i_condition).GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE) == 1.0) &&
                      ((*i_condition).GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE) == 1.0))
                 {
-                    // NECESSARY FOR CANTILEVER EXAMPLE
-                    //
+//                    NECESSARY FOR CANTILEVER EXAMPLE
+
                     double Y0 = (*i_condition).GetGeometry()[0].Y();
                     double Y1 = (*i_condition).GetGeometry()[1].Y();
                     double Y2 = (*i_condition).GetGeometry()[2].Y();
@@ -136,7 +136,16 @@ public:
                     {
                         mr_interface_part.Conditions().push_back( *(i_condition.base()) );
                     }
-                    //
+                    // NECESSARY FOR TUREK EXAMPLE
+
+//                    double Z0 = (*i_condition).GetGeometry()[0].Z();
+//                    double Z1 = (*i_condition).GetGeometry()[1].Z();
+//                    double Z2 = (*i_condition).GetGeometry()[2].Z();
+
+//                    if((Z0 < 0 || Z1 < 0 || Z2 < 0) && (Z0 > -0.01 || Z1 > -0.01 || Z2 > -0.01) )
+//                    {
+//                        mr_interface_part.Conditions().push_back( *(i_condition.base()) );
+//                    }
                 }
             }
 
