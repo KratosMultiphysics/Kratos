@@ -1068,9 +1068,9 @@ void SmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH,
             rH ( 1 , 0 ) += Displacement[1]*rDN_DX ( i , 0 );
             rH ( 1 , 1 ) += Displacement[1]*rDN_DX ( i , 1 );
             rH ( 1 , 2 ) += Displacement[1]*rDN_DX ( i , 2 );
-            rH ( 2 , 0 ) += Displacement[0]*rDN_DX ( i , 0 );
-            rH ( 2 , 1 ) += Displacement[0]*rDN_DX ( i , 1 );
-            rH ( 2 , 2 ) += Displacement[0]*rDN_DX ( i , 2 );
+            rH ( 2 , 0 ) += Displacement[2]*rDN_DX ( i , 0 );
+            rH ( 2 , 1 ) += Displacement[2]*rDN_DX ( i , 1 );
+            rH ( 2 , 2 ) += Displacement[2]*rDN_DX ( i , 2 );
         }
     }
     else
