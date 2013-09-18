@@ -1003,13 +1003,6 @@ proc ::wkcf::WriteSurfaceLoad {AppId cloadtid} {
             foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
 		
 		if {$useqelem=="1"} {
- 		    set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
-		    set N1 [lindex $nodes 0]
-		    set N2 [lindex $nodes 1]
-		    set N3 [lindex $nodes 2]
-		    incr sa_icondid
-		    set cf "[format "%4i%4i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3]"
-		} else {
 		    set nodes [lrange [GiD_Mesh get element $elem_id] 6 end]
 		    set N1 [lindex $nodes 0]
 		    set N2 [lindex $nodes 1]
@@ -1019,6 +1012,13 @@ proc ::wkcf::WriteSurfaceLoad {AppId cloadtid} {
 		    set N6 [lindex $nodes 5]
 		    incr sa_icondid
 		    set cf "[format "%4i%4i%8i%8i%8i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3 $N4 $N5 $N6]"
+		} else {
+ 		    set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
+		    set N1 [lindex $nodes 0]
+		    set N2 [lindex $nodes 1]
+		    set N3 [lindex $nodes 2]
+		    incr sa_icondid
+		    set cf "[format "%4i%4i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3]"
 		}
   		GiD_File fprintf $filechannel "%s" "$cf"
             }
@@ -1047,14 +1047,6 @@ proc ::wkcf::WriteSurfaceLoad {AppId cloadtid} {
             foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
 		
 		if {$useqelem=="1"} {
- 		    set nodes [lrange [GiD_Mesh get element $elem_id] 4 end]
-		    set N1 [lindex $nodes 0]
-		    set N2 [lindex $nodes 1]
-		    set N3 [lindex $nodes 2]
-		    set N4 [lindex $nodes 3]
-		    incr sa_icondid
-		    set cf "[format "%4i%4i%8i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3 $N4]"
-		} else {
 		    set nodes [lrange [GiD_Mesh get element $elem_id] 8 end]
 		    set N1 [lindex $nodes 0]
 		    set N2 [lindex $nodes 1]
@@ -1066,6 +1058,15 @@ proc ::wkcf::WriteSurfaceLoad {AppId cloadtid} {
 		    set N8 [lindex $nodes 5]
 		    incr sa_icondid
 		    set cf "[format "%4i%4i%8i%8i%8i%8i%8i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3 $N4 $N5 $N6 $N7 $N8]"
+
+		} else {
+ 		    set nodes [lrange [GiD_Mesh get element $elem_id] 4 end]
+		    set N1 [lindex $nodes 0]
+		    set N2 [lindex $nodes 1]
+		    set N3 [lindex $nodes 2]
+		    set N4 [lindex $nodes 3]
+		    incr sa_icondid
+		    set cf "[format "%4i%4i%8i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3 $N4]"
 		}
   		GiD_File fprintf $filechannel "%s" "$cf"
             }
@@ -1100,7 +1101,7 @@ proc ::wkcf::WriteSurfaceLoad {AppId cloadtid} {
         #</Container>
         
         # WarnWinText "FixPressure:$FixPressure PressureType:$PressureType PressureValue:$PressureValue"
-        if {([GiD_EntitiesGroups get $cgroupid nodes -count]>0))} {
+        if {([GiD_EntitiesGroups get $cgroupid nodes -count]>0)} {
             
             foreach Component {BUDFx BUDFy BUDFz} {
               # Get the current face load component keyword                       
@@ -1169,13 +1170,6 @@ proc ::wkcf::WriteSurfacePressure {AppId cloadtid} {
             foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
 		
 		if {$useqelem=="1"} {
- 		    set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
-		    set N1 [lindex $nodes 0]
-		    set N2 [lindex $nodes 1]
-		    set N3 [lindex $nodes 2]
-		    incr sa_icondid
-		    set cf "[format "%4i%4i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3]"
-		} else {
 		    set nodes [lrange [GiD_Mesh get element $elem_id] 6 end]
 		    set N1 [lindex $nodes 0]
 		    set N2 [lindex $nodes 1]
@@ -1185,6 +1179,14 @@ proc ::wkcf::WriteSurfacePressure {AppId cloadtid} {
 		    set N6 [lindex $nodes 5]
 		    incr sa_icondid
 		    set cf "[format "%4i%4i%8i%8i%8i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3 $N4 $N5 $N6]"
+
+		} else {
+ 		    set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
+		    set N1 [lindex $nodes 0]
+		    set N2 [lindex $nodes 1]
+		    set N3 [lindex $nodes 2]
+		    incr sa_icondid
+		    set cf "[format "%4i%4i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3]"
 		}
   		GiD_File fprintf $filechannel "%s" "$cf"
             }
@@ -1213,14 +1215,6 @@ proc ::wkcf::WriteSurfacePressure {AppId cloadtid} {
             foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
 		
 		if {$useqelem=="1"} {
- 		    set nodes [lrange [GiD_Mesh get element $elem_id] 4 end]
-		    set N1 [lindex $nodes 0]
-		    set N2 [lindex $nodes 1]
-		    set N3 [lindex $nodes 2]
-		    set N4 [lindex $nodes 3]
-		    incr sa_icondid
-		    set cf "[format "%4i%4i%8i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3 $N4]"
-		} else {
 		    set nodes [lrange [GiD_Mesh get element $elem_id] 8 end]
 		    set N1 [lindex $nodes 0]
 		    set N2 [lindex $nodes 1]
@@ -1232,6 +1226,14 @@ proc ::wkcf::WriteSurfacePressure {AppId cloadtid} {
 		    set N8 [lindex $nodes 5]
 		    incr sa_icondid
 		    set cf "[format "%4i%4i%8i%8i%8i%8i%8i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3 $N4 $N5 $N6 $N7 $N8]"
+		} else {
+ 		    set nodes [lrange [GiD_Mesh get element $elem_id] 4 end]
+		    set N1 [lindex $nodes 0]
+		    set N2 [lindex $nodes 1]
+		    set N3 [lindex $nodes 2]
+		    set N4 [lindex $nodes 3]
+		    incr sa_icondid
+		    set cf "[format "%4i%4i%8i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3 $N4]"
 		}
   		GiD_File fprintf $filechannel "%s" "$cf"
             }
