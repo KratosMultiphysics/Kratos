@@ -145,7 +145,7 @@ void  BeamElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
 {
     //calculation flags
     bool CalculateStiffnessMatrixFlag = false;
-    bool CalculateResidualVectorFlag = true;
+    bool CalculateResidualVectorFlag  = true;
     MatrixType temp = Matrix();
 
     CalculateElementalSystem(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag,  CalculateResidualVectorFlag);
@@ -403,7 +403,7 @@ void BeamElement::CalculateLocalMatrix(Matrix& LocalMatrix)
     const double Elasticidad_Cortante	= Youngs /(2.0*(1.0 + Poisson));
 
     const double L	=	 mlength;
-    const double LL   =	 mlength* mlength;
+    const double LL     =	 mlength* mlength;
     const double LLL	=	 mlength* mlength * mlength;
 
     double const EA   =  mArea          * Youngs;
@@ -564,9 +564,10 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
 
 {
     KRATOS_TRY
-    //Creacion de los vectores de cargas externas.
-    // Fuerzas externas Uniformente distriduida. Por lo general es un dato suministrado por el usuario.
-    // Cambiaro de posicion una vez terminado el programa.
+
+    // External force vector calculation
+    // external formces are uniformely distributed. 
+    // must be located somewhere else.
 
     double alpha  =  0.00;
     double signo  =  1.00;
@@ -611,7 +612,7 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
     }
 
 
-    //Fuerza En X
+    //Load X direction
     //***********************************
     if(Weight[0]!=0.00)
     {
@@ -642,18 +643,18 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
         Load[0]= mArea*Weight[0]*sino;         // Carga Axialmente Distribuida.
         Load[1]= mArea*Weight[0]*cose;         // Carga en la Direccion gravedad
 
-        Cargas_X[0]=   Load[0]*mlength/2.00;     // Fuerza en X;
-        Cargas_X[1]=   -(Load[1]*mlength)/2.00;  // Fuerza en Y; graveded
-        Cargas_X[2]=   0.00;														                                             // Fuerza en Z
-        Cargas_X[3]=   0.00;														                                             // Momento Tersor X;
-        Cargas_X[4]=   0.00;														                                             // Momento Y
-        Cargas_X[5]=  -(Load[1])*mlength*mlength/12.00;;										// Momento Z
+        Cargas_X[0]=   Load[0]*mlength/2.00;                 // Load in X;
+        Cargas_X[1]=   -(Load[1]*mlength)/2.00;              // Load in Y; gravity
+        Cargas_X[2]=   0.00;				     // Load in Z
+        Cargas_X[3]=   0.00;		                     // Momentum Torsor X;
+        Cargas_X[4]=   0.00;		                     // Momentum Y
+        Cargas_X[5]=  -(Load[1])*mlength*mlength/12.00;      // Momentum Z
         Cargas_X[6]=   Load[0]*mlength/2.00;
-        Cargas_X[7]=   -(Load[1])*mlength/2.00;
-        Cargas_X[8]=    0.00;
-        Cargas_X[9]=    0.00;
-        Cargas_X[10]=   0.00;
-        Cargas_X[11]=   (Load[1])*mlength*mlength/12.00;
+        Cargas_X[7]=  -(Load[1])*mlength/2.00;
+        Cargas_X[8]=   0.00;
+        Cargas_X[9]=   0.00;
+        Cargas_X[10]=  0.00;
+        Cargas_X[11]=  (Load[1])*mlength*mlength/12.00;
 
         noalias(GlobalBody) = prod(Rotation,Cargas_X);		// Cargas externas en coordenadas globales.
         noalias(LocalBody)  = Cargas_X;
@@ -663,7 +664,7 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
 
 
 
-    //Fuerza En Z
+    //Load Z direction
     //***********************************
     if(Weight[2]!=0.00)
     {
@@ -713,7 +714,7 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
 
     }
 
-    //Fuerza En Y
+    //Load Y direction
     //***********************************
     if(Weight[1]!=0.00)
     {
@@ -901,9 +902,9 @@ void BeamElement::CalculateOnIntegrationPoints( const Variable<array_1d<double,3
     else
         factor = 1; //-1;
 
-    CalculateDistrubuitedBodyForce(1, Load1);
-    CalculateDistrubuitedBodyForce(2, Load2);
-    CalculateDistrubuitedBodyForce(3, Load3);
+    CalculateDistributedBodyForce(1, Load1);
+    CalculateDistributedBodyForce(2, Load2);
+    CalculateDistributedBodyForce(3, Load3);
 
 
     if(rVariable==MOMENT)
@@ -1010,7 +1011,7 @@ void BeamElement::CalculateLocalNodalStress(Vector& Stress)
 
 }
 
-void BeamElement::CalculateDistrubuitedBodyForce(const int Direction, Vector& Load)
+void BeamElement::CalculateDistributedBodyForce(const int Direction, Vector& Load)
 {
 
     array_1d<double, 3> Weight; 

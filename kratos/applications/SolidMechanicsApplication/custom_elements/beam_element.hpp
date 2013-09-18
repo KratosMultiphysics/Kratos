@@ -84,7 +84,7 @@ private:
     double CalculateInternalShear(  const double& Vo, const double& Load, const double& X);
     double CalculateInternalMoment( const double& Mo, const double& Vo,   const double& Load, const double& X);
 
-    void CalculateDistrubuitedBodyForce(const int Direction, Vector& Load);
+    void CalculateDistributedBodyForce(const int Direction, Vector& Load);
 
 
 public:

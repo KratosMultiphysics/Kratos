@@ -319,6 +319,8 @@ void LineLoad2DCondition::CalculateAndAddLineLoad(Vector& rF,
 
             ExternalForce[idim] += rN[i] * rForce[idim] * rIntegrationWeight;
         }
+
+	//std::cout<<" External Force stored in Node: "<<GetGeometry()[i].Id()<<" Force Load "<<rForce<<" norm "<<norm_2(rForce)<<std::endl;
 	
     }
 

@@ -446,15 +446,15 @@ proc kipt::SelectGIDBatFile { directory basename } {
         if {$ParallelSolutionType eq "MPI"} {
             if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
                 if {($::tcl_platform(os) eq "Linux")} {
-                    set batfilename "kratos-structuraldynamic-mpi.unix.bat"
+                    set batfilename "kratos-structural-mpi.unix.bat"
                 } else {
-                    # set batfilename "kratos-structuraldynamic-mpi.win.bat"
+                    # set batfilename "kratos-structural-mpi.win.bat"
                 }
             } elseif {$SolutionType =="Static"} {
                 if {($::tcl_platform(os) eq "Linux")} {
-                    set batfilename "kratos-structuralstatic-mpi.unix.bat"
+                    set batfilename "kratos-structural-mpi.unix.bat"
                 } else {
-                    # set batfilename "kratos-structuralstatic-mpi.win.bat"
+                    # set batfilename "kratos-structural-mpi.win.bat"
                 }
             }
             
@@ -476,15 +476,15 @@ proc kipt::SelectGIDBatFile { directory basename } {
             }
             if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
                 if {($::tcl_platform(os) eq "Linux")} {
-                    set batfilename "kratos-structuraldynamic-openmp.unix.bat"
+                    set batfilename "kratos-structural-openmp.unix.bat"
                 } else {
-                    set batfilename "kratos-structuraldynamic-openmp.win.bat"
+                    set batfilename "kratos-structural-openmp.win.bat"
                 }
             } elseif {$SolutionType =="Static"} {
                 if {($::tcl_platform(os) eq "Linux")} {
-                    set batfilename "kratos-structuralstatic-openmp.unix.bat"
+                    set batfilename "kratos-structural-openmp.unix.bat"
                 } else {
-                    set batfilename "kratos-structuralstatic-openmp.win.bat"
+                    set batfilename "kratos-structural-openmp.win.bat"
                 }
             }
         }
