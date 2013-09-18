@@ -349,7 +349,7 @@ public:
                 
                 NodeToCutPlaneDist = fabs(NodeToCutPlaneDist);
                 
-                if (plane == myRank)
+                if (plane != myRank)
                 {
                     if(NodeToCutPlaneDist <= Radius*1.4)
                     {
