@@ -635,6 +635,7 @@ proc ::wkcf::GetPropertiesData {} {
 		    if {$ndime eq "2D"} {
 		        # 2D case
 		        if {$ptype=="PlaneStrain"} {
+			    set cptype "LinearPlaneStrain2D"
 		            # Get the material properties
 		            ::wkcf::GetMaterialProperties $AppId $propid $MatId $ptype $MatModel 
 
@@ -642,7 +643,7 @@ proc ::wkcf::GetPropertiesData {} {
 		            ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
 
 		        } elseif {$ptype=="PlaneStress"} {
-		            set cptype "Isotropic2D"
+		            set cptype "LinearPlaneStress2D"
 		            # Get the material properties
 		            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
 		            
