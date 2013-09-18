@@ -128,6 +128,7 @@ void  AddProcessesToPython()
 
     class_<CalculateSignedDistanceTo3DSkinProcess, bases<Process>, boost::noncopyable >("CalculateSignedDistanceTo3DSkinProcess",
             init<ModelPart&, ModelPart&>())
+    .def("GenerateSkinModelPart",&CalculateSignedDistanceTo3DSkinProcess::GenerateSkinModelPart)
     ;
 
 //    class_<CalculateOctreeSignedDistanceTo3DSkinProcess, bases<Process>, boost::noncopyable >("CalculateOctreeSignedDistanceTo3DSkinProcess",
