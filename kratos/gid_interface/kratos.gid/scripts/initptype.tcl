@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.3-19/09/13-G. Socorro, modify the proc BeforeMeshGeneration to assign automatically triangle or quadrilateral element to the skin surfaces
 #     1.2-18/06/13-G. Socorro, delete the proc kipt::NewGiDGroups
 #     1.1-22/10/12-J. Garate, Support for new GiD Groups
 #     1.0-08/10/12-J. Garate, Enable/disable kipt::NewGiDGroups
@@ -108,6 +109,7 @@ proc kipt::About { } {
 
 proc kipt::BeforeMeshGeneration { elementsize } {                   
     set ndime "3D"
+  
     # Get the spatial dimension
     set cxpath "GeneralApplicationData//c.Domain//i.SpatialDimension"
     set cproperty "dv"
@@ -131,8 +133,10 @@ proc kipt::BeforeMeshGeneration { elementsize } {
         # Automatically meshing all the boundary lines
         GiD_Process Mescape Meshing MeshCriteria Mesh Lines {*}$blinelist escape         
         # Assign the boundary condition
-        ::wkcf::AssignConditionToGroupGID $entitytype $blinelist $groupid        
-    } elseif { $ndime =="3D" } {        
+        ::wkcf::AssignConditionToGroupGID $entitytype $blinelist $groupid     
+   
+    } elseif { $ndime =="3D" } { 
+       
         # Align the normal
         ::wkcf::AlignSurfNormals Outwards        
         # Reset Automatic Conditions from previous executions 
@@ -141,16 +145,27 @@ proc kipt::BeforeMeshGeneration { elementsize } {
         set groupid "-AKGSkinMesh3D"
         ::wkcf::CleanAutomaticConditionGroupGiD $entitytype $groupid        
         # Find boundaries
-        set bsurfacelist [::wkcf::FindBoundaries $entitytype]        
-        # Assign the triangle element type
-        GiD_Process Mescape Meshing ElemType Triangle $bsurfacelist escape         
-        # Automatically meshing all the boundary surfaces
-        GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces {*}$bsurfacelist escape 
-        
+        set bsurfacelist [::wkcf::FindBoundaries $entitytype]    
+	# Get the surface type list
+	lassign [::wkcf::GetSurfaceTypeList $bsurfacelist] tetrasurf hexasurf
+	# wa "tetrasurf:$tetrasurf hexasurf:$hexasurf"
+	# Triangle
+	if {[llength $tetrasurf]} {
+	    # Assign the triangle element type
+	    GiD_Process Mescape Meshing ElemType Triangle $tetrasurf escape         
+	    # Automatically meshing all the boundary surfaces
+	    GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces {*}$tetrasurf escape 
+        }
+	# Quadrilateral
+	if {[llength $hexasurf]} {
+	    # Assign the triangle element type
+	    GiD_Process Mescape Meshing ElemType Quadrilateral $hexasurf escape         
+	    # Automatically meshing all the boundary surfaces
+	    GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces {*}$hexasurf escape 
+        }
         ::wkcf::AssignConditionToGroupGID $entitytype $bsurfacelist $groupid        
     }
 }  
-
 
 proc kipt::InitGIDProject { dir } {
     
@@ -331,7 +346,7 @@ proc kipt::LoadSourceFiles { dir } {
     }
     # For write calculation file
     lappend lib_paths [file join $dir scripts libs wkcf]
-    lappend lib_filenames {wkcf.tcl wkcfutils.tcl wkcffluid.tcl wkcfstructuralanalysis.tcl wkcfgroups.tcl}
+    lappend lib_filenames {wkcf.tcl wkcfutils.tcl wkcffluid.tcl wkcfstructuralanalysis.tcl wkcfgroups.tcl  wkcfConvectionDiffusion.tcl}
     # Load kegroups
     lappend lib_paths [file join $dir scripts kegroups]
     lappend lib_filenames {kegroups.tcl kGroupEntities.tcl}
