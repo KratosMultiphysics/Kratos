@@ -71,6 +71,15 @@ class RestartUtility:
         filelist1 = [ f for f in os.listdir(self.problem_path) if f.endswith(".bin") ]
         for f in filelist1:
             os.remove(f)
+
+        filelist1_2 = [ f for f in os.listdir(self.problem_path) if f.endswith(".res") ]
+        for f in filelist1_2:
+            os.remove(f)
+
+        filelist1_3 = [ f for f in os.listdir(self.problem_path) if f.endswith(".msh") ]
+        for f in filelist1_3:
+            os.remove(f)
+
             
         #remove previous restart files:
         filelist3 = [ f for f in os.listdir(self.problem_path) if f.endswith(".rest") ]
@@ -81,6 +90,7 @@ class RestartUtility:
         filelist4 = [ f for f in os.listdir(self.problem_path) if f.endswith(".png") ]
         for f in filelist4:
             os.remove(f)
+
 
         #remove previous list files:
         list_files.RemoveListFiles();
