@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #   
+#     1.8- 19/09/13-G. Socorro, modify the proc WriteVolumeAcceleration to write VOLUME_ACCELERATION_* nodal properties
 #     1.7- 25/06/13-A. Melendo, new proc WriteFaceLoads
 #     1.6- 17/06/13-G. Socorro, delete wmethod variable and all relalated procedure (*_m0,*_m1,*_m2) => now we are using only the new GiD groups
 #     1.5- 22/05/13-G. Socorro, correct a bug in the procs WritePointLoads and WriteBeamLoads when write condition 
@@ -205,56 +206,65 @@ proc ::wkcf::WriteVolumeAcceleration {AppId cloadtid kwordlist} {
     if {!$::wkcf::pflag} {
         set inittime [clock seconds]
     }
- 
-    set cprop $dprops($AppId,Loads,$cloadtid,AllGroupId)
-
-    set GravityValue [lindex $cprop 0 1]
-    set Cx [expr [lindex $cprop 1 1] * $GravityValue]
-    set Cy [expr [lindex $cprop 2 1] * $GravityValue]
-    if {$ndime =="3D"} {
-        set Cz [expr [lindex $cprop 3 1] * $GravityValue]        
-    } else {
-	set Cz 0
-    }
     
-
-	GiD_File fprintf $filechannel "%s" " BODY_FORCE \[3\] $vector"
-
-	# VOLUME_ACCELERATION_X
-        set nodes [GiD_EntitiesGroups get $cgroupid nodes]
-        
-        if {[llength $nodes]} {
-            set xitem [lindex $kwordlist 0]
-            GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem"
-            foreach nodeid $nodes {
-                GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fix_x $Cx
-            }
-            GiD_File fprintf $filechannel "End NodalData"
-            GiD_File fprintf $filechannel "" 
-        }
+    # Check for all defined group identifier inside this load type
+    if {([info exists dprops($AppId,Loads,$cloadtid,AllGroupId)]) && ([llength $dprops($AppId,Loads,$cloadtid,AllGroupId)])} {
  
-        # VOLUME_ACCELERATION_Y
-        if {[llength $nodes]} {
-            set yitem [lindex $kwordlist 1]
-            GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem"
-            foreach nodeid $nodes {
-                GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fix_y $Cy
-            }
-            GiD_File fprintf $filechannel "End NodalData"
-            GiD_File fprintf $filechannel "" 
-        }
+	set fix_x 1
+	set fix_y 1
+	set fix_z 1
 
-        # VOULME_ACCELERATION_Z
-        if {($ndime eq "3D") && ([llength $nodes])} {
-            set zitem [lindex $kwordlist 2]
-            GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem"
-            foreach nodeid $nodes {
-                GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fix_z $Cz
-            }
-            GiD_File fprintf $filechannel "End NodalData"
-            GiD_File fprintf $filechannel "" 
-        }
-        
+	foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
+	   
+	    # Get the group properties
+	    set cprop $dprops($AppId,Loads,$cloadtid,$cgroupid,GProps)
+	    # wa "cprop:$cprop"
+	    set GravityValue [lindex $cprop 0 1]
+	    set Cx [expr [lindex $cprop 1 1] * $GravityValue]
+	    set Cy [expr [lindex $cprop 2 1] * $GravityValue]
+	    if {$ndime =="3D"} {
+		set Cz [expr [lindex $cprop 3 1] * $GravityValue]        
+	    } else {
+		set Cz 0
+	    }
+	    
+	    # Get the group entities list
+	    set nodes [GiD_EntitiesGroups get $cgroupid nodes]
+
+	    # VOLUME_ACCELERATION_X
+	    if {[llength $nodes]} {
+		set xitem [lindex $kwordlist 0]
+		GiD_File fprintf $filechannel "%s" "Begin NodalData $xitem"
+		foreach nodeid $nodes {
+		    GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fix_x $Cx
+		}
+		GiD_File fprintf $filechannel "End NodalData"
+		GiD_File fprintf $filechannel "" 
+	    
+    
+		# VOLUME_ACCELERATION_Y
+		set yitem [lindex $kwordlist 1]
+		GiD_File fprintf $filechannel "%s" "Begin NodalData $yitem"
+		foreach nodeid $nodes {
+		    GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fix_y $Cy
+		}
+		GiD_File fprintf $filechannel "End NodalData"
+		GiD_File fprintf $filechannel "" 
+	    
+	    
+		# VOLUME_ACCELERATION_Z
+		if {$ndime eq "3D"} {
+		    set zitem [lindex $kwordlist 2]
+		    GiD_File fprintf $filechannel "%s" "Begin NodalData $zitem"
+		    foreach nodeid $nodes {
+			GiD_File fprintf $filechannel "%10i %4i %10f" $nodeid $fix_z $Cz
+		    }
+		    GiD_File fprintf $filechannel "End NodalData"
+		    GiD_File fprintf $filechannel "" 
+		}
+	    }
+	}
+    }
 }
 
 proc ::wkcf::WritePointLoads {AppId cloadtid kwordlist} {
@@ -1307,7 +1317,7 @@ proc ::wkcf::WriteBodyForceValues {props} {
     } else {
         set vector "\($Cx, $Cy, 0.0\)"
     }
-        GiD_File fprintf $filechannel "%s" " BODY_FORCE \[3\] $vector"
+    GiD_File fprintf $filechannel "%s" " BODY_FORCE \[3\] $vector"
 }
 
 proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
@@ -1359,7 +1369,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 	# Delta time
 	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.DeltaTime"
 	set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
-	puts $fileid "time_step = $DeltaTime"	
+	puts $fileid "time_step = $StartTime"	
 
 	# Number of Steps
 	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.EndTime"
@@ -1369,12 +1379,12 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 	
     } elseif {$SolutionType =="RelaxedDynamic"} {
 
-	puts $fileid "SolverType = \"RelaxedDynamicSolver\""
+	puts $fileid "SolverType = \"DynamicSolver\""
 
 	# Delta time
 	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.DeltaTime"
 	set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
-	puts $fileid "time_step = $DeltaTime"	
+	puts $fileid "time_step = $StartTime"	
 
 	# Number of Steps
 	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.EndTime"
@@ -1566,31 +1576,9 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     puts $fileid ""
     puts $fileid "#Constraints Data"
     puts $fileid "#################################################"
-    # Incremental Load
-    if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
+    puts $fileid "Incremental_Load         = \"False\""
+    puts $fileid "Incremental_Displacement = \"False\""
 
-	set cxpath "$AppId//c.Loads//i.IncrementalLoad"
-	set incremental_load [::xmlutils::setXml $cxpath $cproperty]
-	if {($incremental_load eq "Yes")} {
-	    puts $fileid "Incremental_Load = \"True\""
-	} else {
-	    puts $fileid "Incremental_Load = \"False\""
-	}
-	# Incremental Displacement
-	set cxpath "$AppId//c.Conditions//i.IncrementalMovement"
-	set incremental_movement [::xmlutils::setXml $cxpath $cproperty]
-	if {($incremental_movement eq "Yes")} {
-	    puts $fileid "Incremental_Displacement = \"True\""
-	} else {
-	    puts $fileid "Incremental_Displacement = \"False\""
-	}
-	
-    } else {
-
-	puts $fileid "Incremental_Load = \"False\""
-	puts $fileid "Incremental_Displacement = \"False\""
-
-    }
 
     puts $fileid ""
     puts $fileid "#PostProcess Data"
