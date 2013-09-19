@@ -857,7 +857,7 @@ void LargeDisplacementUPElement::MassMatrix( MatrixType& rMassMatrix, ProcessInf
 
     if ( dimension == 2 ) TotalMass *= GetProperties()[THICKNESS];
 
-    Vector LumpFact;
+    Vector LumpFact = ZeroVector(number_of_nodes);
 
     LumpFact = GetGeometry().LumpingFactors( LumpFact );
 

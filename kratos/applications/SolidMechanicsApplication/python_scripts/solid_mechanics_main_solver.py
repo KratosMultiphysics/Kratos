@@ -93,6 +93,12 @@ class SolidMechanicsSolver:
         self.mechanical_convergence_criterion  = ResidualCriteria(self.abs_tol,self.abs_tol)
         #self.mechanical_convergence_criterion = ResidualConvergenceCriteria(self.abs_tol,self.abs_tol)
         #self.mechanical_convergence_criterion = DisplacementConvergenceCriteria(self.abs_tol,self.abs_tol)
+
+        #definition of the default builder_and_solver: 
+        #for normal execution
+        self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
+        #to conserve matrix blocks AMG solving
+        #self.builder_and_solver = BlockResidualBasedBuilderAndSolver(self.linear_solver)
   
         #definition of computing flags
         self.CalculateReactionsFlag = True
@@ -110,9 +116,16 @@ class SolidMechanicsSolver:
             self.mechanical_scheme = ResidualBasedStaticScheme()
         elif(self.solver_type == 1):
             #definition of time scheme
-            self.damp_factor_f =  0.00; 
-            self.damp_factor_m = -0.01; 
-            self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m,self.solver_type)
+            self.damp_factor_f  =  0.00; 
+            self.damp_factor_m  = -0.01; 
+            self.dynamic_factor =  1;
+            self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m,self.dynamic_factor)
+        elif(self.solver_type == 2):
+            #definition of time scheme
+            self.damp_factor_f  =  0.00; 
+            self.damp_factor_m  = -0.01; 
+            self.dynamic_factor =  0;
+            self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m,self.dynamic_factor)
 
 
         #creating the solution STRATEGY:
@@ -122,7 +135,8 @@ class SolidMechanicsSolver:
             self.ReformDofSetAtEachStep = True
 
         # option 1.- Application Strategy:
-        self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.mechanical_scheme,self.linear_solver,self.mechanical_convergence_criterion,self.max_iters,self.CalculateReactionsFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
+        self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.mechanical_scheme,self.linear_solver,self.mechanical_convergence_criterion,self.builder_and_solver,self.max_iters,self.CalculateReactionsFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag)
+        #self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.mechanical_scheme,self.linear_solver,self.mechanical_convergence_criterion,self.max_iters,self.CalculateReactionsFlag,self.ReformDofSetAtEachStep,self.MoveMeshFlag
 
         # option 2.- Phyton Strategy:
 
@@ -177,13 +191,17 @@ class SolidMechanicsSolver:
         if(problem_type == "Mechanical"):
             self.ComputeMechanicsFlag = True;
         
-        #type of solver (static=0, dynamic=1)
-        if(solver_type == "StaticSolver"): 
+        #type of solver (static=0, dynamic=1, psedo-static=2)
+        if(solver_type == "StaticSolver"):
             print " Static Solver "
             self.solver_type = 0; 
         elif(solver_type == "DynamicSolver"):
             print " Dynamic Solver "
             self.solver_type = 1;
+        elif(solver_type == "RelaxedDynamicSolver"):
+            print " Pseudo-Static Solver "
+            self.solver_type = 2;
+            
             
         #line_search flag and type
         if(line_search_type  == "True"):
@@ -219,8 +237,19 @@ class SolidMechanicsSolver:
         import linear_solver_factory
 
         self.linear_solver = linear_solver_factory.ConstructSolver(linear_solver_config)
-             
+
+        self.SetBuilderAndSolver(linear_solver_type)
                 
+    #######################################################################   
+    def SetBuilderAndSolver(self,linear_solver_type):
+        if(linear_solver_type == "AMGCL"):
+            #to conserve matrix blocks AMG solving
+            self.builder_and_solver = BlockResidualBasedBuilderAndSolver(self.linear_solver)      
+        else:
+            #for normal execution
+            self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
+            
+
     #######################################################################   
     def SetConvergenceCriterion(self,convergence_criterion_type,convergence_tol,absolute_tol,max_iters):
         

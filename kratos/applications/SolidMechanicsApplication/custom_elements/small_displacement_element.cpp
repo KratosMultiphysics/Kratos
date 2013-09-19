@@ -1300,7 +1300,9 @@ void SmallDisplacementElement::MassMatrix( MatrixType& rMassMatrix, ProcessInfo&
     double TotalMass = 0;
     TotalMass = this->CalculateTotalMass(TotalMass);
 
-    Vector LumpFact  = GetGeometry().LumpingFactors( LumpFact );
+    Vector LumpFact = ZeroVector(number_of_nodes);
+
+    LumpFact = GetGeometry().LumpingFactors( LumpFact );
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {

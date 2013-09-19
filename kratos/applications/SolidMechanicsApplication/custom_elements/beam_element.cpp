@@ -787,7 +787,7 @@ void BeamElement::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProce
 
     double TotalMass = mArea*mlength*GetProperties()[DENSITY];
 
-    Vector LumpFact;
+    Vector LumpFact = ZeroVector(NumberOfNodes);
     LumpFact = GetGeometry().LumpingFactors(LumpFact);
 
     for(unsigned int i=0; i<NumberOfNodes; i++)

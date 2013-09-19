@@ -6,12 +6,15 @@ CheckForPreviousImport()
 
 class PrintResultsUtility:
     #######################################################################
-    def __init__(self,model_part,problem_type,problem_name,output_mode,files_mode):
+    def __init__(self,model_part,problem_type,solver_type,problem_name,output_mode,files_mode):
 
         self.model_part = model_part
         
-        #set problem type
+        #set problem type (Mechanical,Thermal,..)
         self.problem_type = problem_type
+
+        #set solver type (Static,Dynamic,...)
+        self.solver_type = solver_type
 
         #set problem name
         self.problem_name = problem_name
@@ -91,22 +94,29 @@ class PrintResultsUtility:
             #initialize results
             self.gid_io.InitializeResults(self.print_id,(self.model_part).GetMesh())
 
-            #initialize mesh
-            self.gid_io.InitializeMesh(self.print_id);
-            
-            #write mesh nodes
-            if(self.write_particles == True):
-                self.gid_io.WriteNodeMesh((self.model_part).GetMesh());
+            print self.gid_files_mode
+            write_mesh = True
+            if( self.gid_files_mode == "SingleFile" ):
+                write_mesh = False
+
+            if(write_mesh == True):
+                #initialize mesh
+                self.gid_io.InitializeMesh(self.print_id);
+
+                #write mesh nodes
+                if(self.write_particles == True):
+                    self.gid_io.WriteNodeMesh((self.model_part).GetMesh());
           
-            #write mesh elements and conditions
-            self.gid_io.WriteMesh((self.model_part).GetMesh());
+                #write mesh elements and conditions
+                self.gid_io.WriteMesh((self.model_part).GetMesh());
             
-            #finalize mesh
-            self.gid_io.FinalizeMesh();
+                #finalize mesh
+                self.gid_io.FinalizeMesh();
 
             #set total time
             total_time=current_time-self.initial_time
 
+            print "Writing Results", self.problem_type
             #print variables
             if(self.problem_type == "Mechanical" or self.problem_type == "ThermoMechanical"):
                 self.gid_io.WriteNodalResults(DISPLACEMENT,self.model_part.Nodes,total_time,0)
@@ -129,7 +139,7 @@ class PrintResultsUtility:
                 #self.gid_io.WriteNodalResults(FORCE_CONTACT_NORMAL,self.model_part.Nodes,total_time,0)
                 #self.gid_io.WriteNodalResults(FORCE_CONTACT_TANGENT,self.model_part.Nodes,total_time,0)
 
-            if(self.problem_type == "DynamicSolver"):
+            if(self.solver_type == "DynamicSolver" ):
                 self.gid_io.WriteNodalResults(VELOCITY,self.model_part.Nodes,total_time,0)
                 self.gid_io.WriteNodalResults(ACCELERATION,self.model_part.Nodes,total_time,0)
         
