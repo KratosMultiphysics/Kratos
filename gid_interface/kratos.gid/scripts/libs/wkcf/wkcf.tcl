@@ -13,6 +13,10 @@
 #
 #    HISTORY:
 #   
+#     7.0- 19/09/13-G. Socorro, modify the proc WriteConditions to write condition for Quadrilateral surface element
+#                               write convection-diffusion conditions
+      6.9- 18/09/13-G. Socorro, start to add the convection-diffusion properties 
+#                               (add the proc WriteConvectionDiffusionPropertyAtNodes and WriteConvectionDiffusionPrescribedTemperatureBC)
 #     6.8- 16/07/13-G. Socorro, modify the proc WriteBoundaryConditions to write the OutletPressure BC as a function of the solver type
 #     6.7- 14/07/13-G. Socorro, modify the proc WriteBoundaryConditions to write walllaw BC
 #     6.6- 18/06/13-G. Socorro, delete the call to the proc WritePythonGroupProperties
@@ -100,6 +104,8 @@ namespace eval ::wkcf:: {
     variable FluidApplication
     # FSI application
     variable FSIApplication
+    # ConvectionDiffusion application
+    variable ConvectionDiffusionApplication
     # Active application list
     variable ActiveAppList
     
@@ -131,16 +137,14 @@ namespace eval ::wkcf:: {
 
 proc ::wkcf::WriteCalculationFiles {filename} {
     variable FluidApplication; variable StructuralAnalysis
-    variable ActiveAppList
-    variable filechannel
-    
+    variable ActiveAppList;    variable filechannel
+    variable ConvectionDiffusionApplication
+
     # Unset some local variables
     ::wkcf::UnsetLocalVariables
     
     # Init some namespace global variables
     ::wkcf::Preprocess
-    
-   
     
     # Write each block of the files *.mdpa
     # Rename the file name => Change .dat by .mdpa
@@ -151,64 +155,69 @@ proc ::wkcf::WriteCalculationFiles {filename} {
         # WarnWinText "filename:$filename"
         
 	# Open the file
-            set filechannel [GiD_File fopen $filename]
-      
+	set filechannel [GiD_File fopen $filename]
+	
         # Write model part data
         ::wkcf::WriteModelPartData $AppId
-
+	
         # Write properties block
         ::wkcf::WriteProperties $AppId
-
+	
         # Write nodes block    
         ::wkcf::WriteNodalCoordinates $AppId
-
+	
         # Write elements block 
         ::wkcf::WriteElementConnectivities $AppId
-
-        # For fluid application
-        if {$AppId == "Fluid"} {
+	
+        # For fluid or convection-diffusion applications
+        if {($AppId == "Fluid")|| ($AppId == "ConvectionDiffusion")} {
             # Write conditions (Condition2D and Condition3D)
             ::wkcf::WriteConditions $AppId  
         }
-
+	
         # Write boundary condition block
-        ::wkcf::WriteBoundaryConditions $AppId
-
-          # For structural analysis application
-          if {$AppId =="StructuralAnalysis"} {
-              # Write load properties block
-              ::wkcf::WriteLoads $AppId
-          }
-  
-          # For fluid application
-          if {$AppId == "Fluid"} {
-              # Write nodal data for density and viscosity            
-              ::wkcf::WritePropertyAtNodes $AppId
-
-              # Write all group properties
-              ::wkcf::WriteGroupMeshProperties $AppId
-
-              # Write the cutting and point history properties
-              ::wkcf::WriteCutAndGraph $AppId
-         }
-
+	::wkcf::WriteBoundaryConditions $AppId
+	
+	# For structural analysis application
+	if {$AppId =="StructuralAnalysis"} {
+	    # Write load properties block
+	    ::wkcf::WriteLoads $AppId
+	}
+	
+	# For fluid application
+	if {$AppId == "Fluid"} {
+	    # Write nodal data for density and viscosity            
+	    ::wkcf::WritePropertyAtNodes $AppId
+	    
+	    # Write all group properties
+	    ::wkcf::WriteGroupMeshProperties $AppId
+	    
+	    # Write the cutting and point history properties
+	    ::wkcf::WriteCutAndGraph $AppId
+	    
+	} elseif {$AppId == "ConvectionDiffusion"} {
+	    
+	    # Write nodal data for mesh velocity and velocity
+	    ::wkcf::WriteConvectionDiffusionPropertyAtNodes $AppId
+	}
+	
 	# Close the file
-              GiD_File fclose $filechannel
-          }
-
-      # Write the project parameters file
-      ::wkcf::WriteProjectParameters
-      
-      
-      # Select python scripts
-      ::wkcf::SelectPythonScript
-      
-      # Write constitutive laws properties
-      if {$StructuralAnalysis=="Yes"} {
-          ::wkcf::WriteConstitutiveLawsProperties
-      }
-
-
+	GiD_File fclose $filechannel
+    }
+    
+    # Write the project parameters file
+    ::wkcf::WriteProjectParameters
+    
+    
+    # Select python scripts
+    ::wkcf::SelectPythonScript
+    
+    # Write constitutive laws properties
+    if {$StructuralAnalysis=="Yes"} {
+	::wkcf::WriteConstitutiveLawsProperties
+    }
+    
+    
     variable wbatfile
     if {$wbatfile} {
         # Write bat file only for the Linux OS
@@ -219,7 +228,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
     
     # Unset some local variables
     ::wkcf::UnsetLocalVariables
-
+    
     
     return 1
 }
@@ -414,8 +423,8 @@ proc ::wkcf::WriteProperties {AppId} {
         GiD_File fprintf $filechannel ""
     }
     
-    # For fluid application
-    if {$AppId =="Fluid"} {
+    # For fluid or convection-diffusion applications
+    if {($AppId =="Fluid")||($AppId =="ConvectionDiffusion")} {
 
         GiD_File fprintf $filechannel "%s" "Begin Properties 0"
         GiD_File fprintf $filechannel "%s" "End Properties"
@@ -658,6 +667,11 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
                         set kwordlist [list "VELOCITY_X" "VELOCITY_Y" "VELOCITY_Z"]
                         ::wkcf::WriteFluidPFEMInletBC $AppId $ccondid $kwordlist
                     }
+		    "PrescribedTemperature" {
+			# Write prescribed temperature condition
+			set kwordlist [list "TEMPERATURE"]
+                        ::wkcf::WriteConvectionDiffusionPrescribedTemperatureBC $AppId $ccondid $kwordlist
+		    }
                 }
             }
         }
@@ -698,24 +712,33 @@ proc ::wkcf::WriteConditions {AppId} {
         # Select the condition identifier
         set ConditionId "Condition"
         set cproperty "dv"
-        set cxpath "$AppId//c.AnalysisData//i.FluidApproach"
-        set FluidApproach [::xmlutils::setXml $cxpath $cproperty]
-        if { $FluidApproach eq "Eulerian" } {
-            # Solver type
-            set cxpath "$AppId//c.AnalysisData//i.SolverType"
-            set SolverType [::xmlutils::setXml $cxpath $cproperty]
-            # WarnWinText "SolverType:$SolverType"
-            switch -exact -- $SolverType {
-                "ElementBased" {
-                    set ConditionId "WallCondition${ndime}"     
-                }
-                "Monolithic" {
-                    set ConditionId "MonolithicWallCondition${ndime}"
-                }
-            }
-        } elseif {$FluidApproach eq "PFEM-Lagrangian"} {
-            set ConditionId "Condition${ndime}"
-        }
+
+	# Select the application type
+	# Fluid
+	if {$AppId == "Fluid"} {
+	    set cxpath "$AppId//c.AnalysisData//i.FluidApproach"
+	    set FluidApproach [::xmlutils::setXml $cxpath $cproperty]
+	    if { $FluidApproach eq "Eulerian" } {
+		# Solver type
+		set cxpath "$AppId//c.AnalysisData//i.SolverType"
+		set SolverType [::xmlutils::setXml $cxpath $cproperty]
+		# WarnWinText "SolverType:$SolverType"
+		switch -exact -- $SolverType {
+		    "ElementBased" {
+			set ConditionId "WallCondition${ndime}"     
+		    }
+		    "Monolithic" {
+			set ConditionId "MonolithicWallCondition${ndime}"
+		    }
+		}
+	    } elseif {$FluidApproach eq "PFEM-Lagrangian"} {
+		set ConditionId "Condition${ndime}"
+	    }
+	} elseif {$AppId == "ConvectionDiffusion"} {
+	    
+	    # Convection diffusion
+	    set ConditionId "ThermalFace${ndime}"  
+	}
         
         if {$ndime =="2D"} {
 	    # 2D
@@ -745,6 +768,7 @@ proc ::wkcf::WriteConditions {AppId} {
 	    # 3D
 	    set cgroupid "-AKGSkinMesh3D"
             set GiDElemType "Triangle"
+	    set usetriangle 0
 
             if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
                 # Write all conditions for 3D case
@@ -759,6 +783,31 @@ proc ::wkcf::WriteConditions {AppId} {
                     set nk [lindex $nodes 2]
                     # msg "$ni $nj $nk $condid"
                     GiD_File fprintf $filechannel "%10d %4d %10d %10d %10d" $condid $fixval $ni $nj $nk
+                    # Update the link between the condition id. and the BC element id
+                    dict set ctbclink $elem_id $condid
+                }
+                GiD_File fprintf $filechannel "%s" "End Conditions"
+                GiD_File fprintf $filechannel ""
+		set usetriangle 1
+            }
+
+	    set GiDElemType "Quadrilateral"
+
+            if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
+                # Write all conditions for 3D case
+                GiD_File fprintf $filechannel "%s" "Begin Conditions $ConditionId"
+		if {!$usetriangle} {
+		    set condid 0
+		}
+                foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
+                    incr condid 1 
+                    set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
+                    set ni [lindex $nodes 0]
+                    set nj [lindex $nodes 1]
+                    set nk [lindex $nodes 2]
+		    set nl [lindex $nodes 3]
+                    # msg "$ni $nj $nk $nl $condid"
+                    GiD_File fprintf $filechannel "%10d %4d %10d %10d %10d %10d" $condid $fixval $ni $nj $nk $nl
                     # Update the link between the condition id. and the BC element id
                     dict set ctbclink $elem_id $condid
                 }
