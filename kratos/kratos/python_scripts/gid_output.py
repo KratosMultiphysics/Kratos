@@ -178,7 +178,7 @@ class GiDOutput(object):
             self._write_gp_results(label,out_model_part,kratos_variable)
 
         if self.multi_file == MultiFileFlag.MultipleFiles:
-            self._finalze_results()
+            self._finalize_results()
 
             with open(self.listfilename,"w") as listfile:
                 self.write_step_to_list(label)
