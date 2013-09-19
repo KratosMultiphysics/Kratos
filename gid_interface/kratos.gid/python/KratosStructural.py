@@ -160,7 +160,10 @@ if(general_variables.GiDPostMode == "Ascii"):
   gid_output_mode = GiDPostMode.GiD_PostAscii
 if(general_variables.GiDMultiFileFlag == "Single"):
   gid_files_mode = MultiFileFlag.SingleFile
-  gid_configuration_mode = WriteDeformedMeshFlag.WriteUndeformed
+
+#Force to Multiple files write if it is not a StaticSolver
+if(solver_type != "StaticSolver" and general_variables.GiDMultiFileFlag == "Single"):
+  gid_files_mode = MultiFileFlag.MultipleFiles
 
 gid_print = gid_utils.PrintResultsUtility(model_part,problem_type,solver_type,problem_name,gid_output_mode,gid_files_mode)
 
