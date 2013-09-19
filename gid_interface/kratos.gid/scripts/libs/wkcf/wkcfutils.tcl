@@ -12,6 +12,8 @@
 #
 #    HISTORY:
 #        
+#     3.7- 19/09/13-G. Socorro, add the proc GetSurfaceTypeList to classify the surface type 
+      3.6- 18/09/13-G. Socorro, add some proc and variable for the convection-diffusion application 
 #     3.5- 14/07/13-G. Socorro, modify the proc GetBoundaryConditionProperties to enable the condition WallLaw
 #     3.4- 17/06/13-G. Socorro, delete wmethod variable => now we are using only the new GiD groups
 #     3.3- 17/05/13-G. Socorro, add the proc SumInertia, modify the proc GetCrossSectionProperties to include the new cross section properties (database)
@@ -81,20 +83,25 @@ proc ::wkcf::Preprocess {} {
     
     # WarnWinText "StructuralAnalysis:$StructuralAnalysis ndime:$ndime"
     
-    # Fuild application
+    # Fluid application
     set cxpath "GeneralApplicationData//c.ApplicationTypes//i.Fluid"
-    set cproperty "dv"
     set FluidApplication [::xmlutils::setXml $cxpath $cproperty]
     
     # WarnWinText "FluidApplication:$FluidApplication"
     
     # FSI application
     set cxpath "GeneralApplicationData//c.ApplicationTypes//i.FluidStructureInteraction"
-    set cproperty "dv"
     set FSIApplication [::xmlutils::setXml $cxpath $cproperty]
     
     # WarnWinText "FSIApplication:$FSIApplication"
     
+    # Convection diffusion
+    variable ConvectionDiffusionApplication
+    set cxpath "GeneralApplicationData//c.ApplicationTypes//i.ConvectionDiffusion"
+    set ConvectionDiffusionApplication [::xmlutils::setXml $cxpath $cproperty]
+
+    # WarnWinText "ConvectionDiffusionApplication:$ConvectionDiffusionApplication"
+
     # Update active application list
     if {$FSIApplication =="Yes"} {
 	set ActiveAppList [list "StructuralAnalysis" "Fluid"]
@@ -102,13 +109,20 @@ proc ::wkcf::Preprocess {} {
 	set StructuralAnalysis "Yes"
 	set FluidApplication "Yes"
     } else {
+	# Only one application is active at the same time
+	# Structural analysis
 	if {$StructuralAnalysis =="Yes"} {
 	    set ActiveAppList [list "StructuralAnalysis"]
-	} else {
-	    if {$FluidApplication =="Yes"} {
-		set ActiveAppList [list "Fluid"]
-	    }
+	} 
+	# Fluid
+	if {$FluidApplication =="Yes"} {
+	    set ActiveAppList [list "Fluid"]
 	}
+	# Convection diffusion
+	if {$ConvectionDiffusionApplication eq "Yes"} {
+	    set ActiveAppList [list "ConvectionDiffusion"]
+	}
+
     }
     
     # WarnWinText "ActiveAppList:$ActiveAppList"
@@ -174,7 +188,7 @@ proc ::wkcf::CreateKratosPropertiesIdentifier {} {
 		if {([info exists dprops($AppId,Loads,$cloadtid,AllGroupId)]) && ([llength $dprops($AppId,Loads,$cloadtid,AllGroupId)]>0)} {
 		    foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
 		        if {$cgroupid ni $dprops($AppId,AllKEGroupId)} {
-		            # Error => In this version all body force must belong to the same an element group
+		            # Error => In this version all body force must belong to the same element group
 		        } else {
 		            set usebforce "Yes"
 		            if {$cgroupid ni $dprops($AppId,AllBodyForceGroupId)} {
@@ -219,8 +233,18 @@ proc ::wkcf::CreateKratosPropertiesIdentifier {} {
     }
     
     # For fluid application
-    if {$FluidApplication =="Yes"} {
+    set AppId ""
+    if {$FluidApplication eq "Yes"} {
 	set AppId "Fluid"
+    }
+
+    # For convection-diffusion application
+    variable ConvectionDiffusionApplication
+    if {$ConvectionDiffusionApplication eq "Yes"} {
+	set AppId "ConvectionDiffusion"
+    }
+    
+    if {$AppId !=""} {
 	# Create the global kratos properties list
 	set dprops($AppId,GKProps,AllPropertyId) $dprops($AppId,AllKPropertyId)
 	# For all defined kratos elements
@@ -454,6 +478,22 @@ proc ::wkcf::GetBoundaryConditionProperties {} {
 		                # msg "$CActive $CValue"
 		            }
 		        }
+			"PrescribedTemperature" {
+		            # Get properties
+			    set cproperty "dv"
+		            foreach ca [list APTemperature] cv [list VPTemperature] {
+		                # Activation
+		                set acxpath "$cxpath//c.[list ${cgroupid}]//c.Activation//i.[list ${ca}]"
+		                # WarnWinText "Activation :acxpath:$acxpath"
+				set CActive [::xmlutils::setXml $acxpath $cproperty]
+		                # Values
+		                set vcxpath "$cxpath//c.[list ${cgroupid}]//c.Values//i.[list ${cv}]"
+		                # WarnWinText "Values :vcxpath:$vcxpath"
+				set CValue [::xmlutils::setXml $vcxpath $cproperty]
+		                lappend proplist $CActive $CValue
+		                # msg "$CActive $CValue"
+		            }
+		        }
 		    }
 		    # WarnWinText "proplist:$proplist"
 		    # Kratos BC to group link
@@ -551,14 +591,19 @@ proc ::wkcf::GetPorousZonesProperties {AppId} {
 proc ::wkcf::GetApplicationRootId {} {
     # Get the application root identifier
     variable FluidApplication;  variable StructuralAnalysis
-    
+    variable ConvectionDiffusionApplication 
+
     # Select the current active application
     if {$StructuralAnalysis =="Yes"} {
-    set rootdataid "StructuralAnalysis"
+	set rootdataid "StructuralAnalysis"
     } else {
-    if {$FluidApplication =="Yes"} {
-	set rootdataid "Fluid"
-    }
+	if {$FluidApplication =="Yes"} {
+	    set rootdataid "Fluid"
+	} else {
+	    if {$ConvectionDiffusionApplication eq "Yes"} {
+		set rootdataid "ConvectionDiffusion"
+	    }
+	}
     }
     return $rootdataid
 }
@@ -1367,6 +1412,48 @@ proc ::wkcf::GetnDimnNode {GiDElemType nDim} {
     }
     set etbf "${nDim}${nid}"
     return $etbf
+}
+
+proc ::wkcf::GetSurfaceTypeList {surfacelist} {
+    
+    # set vollist [GiD_Geometry list volume 1:end]
+    # if {[llength $vollist]} {
+    # 	# Get the element type
+    # 	foreach volid $vollist {
+    # 	    set cvprop [GiD_Info list_entities volumes $volid]
+    # 	    # wa "volid:$volid cvprop:$cvprop"
+    # 	    regexp -nocase {Elemtype=([0-9]*)} $cvprop none voltype
+    # 	    # wa "voltype:$voltype"
+    # 	}
+    # }
+    set tetrasurf [list]
+    set hexasurf [list]
+    foreach surfid $surfacelist {
+	# Check for higher entity
+	set cprop [GiD_Info list_entities -More surfaces $surfid]
+	# wa "surfid:$surfid cprop:$cprop"
+	set isve 0
+	regexp -nocase {higherentity: ([0-9]+)} $cprop none ivhe
+	# wa "ivhe:$ivhe"
+	if {$ivhe} {
+	    set he [regexp -nocase {Higher entities volumes: (.)*} $cprop vol]
+	    # wa "vol:$vol vlist:[lrange $vol 3 end-2]"
+	    if {$he && $vol !=""} {
+		set voltype ""
+		set vlist [lindex [lrange $vol 3 end-2] 0]
+		# wa "vlist:$vlist"
+		set cvprop [GiD_Info list_entities volumes $vlist]
+		regexp -nocase {Elemtype=([0-9]*)} $cvprop none voltype
+		# wa "voltype:$voltype"
+		if {$voltype == 4} {
+		    lappend tetrasurf $surfid
+		} elseif {$voltype == 5} {
+		    lappend hexasurf $surfid
+		}
+	    }
+	}
+    }
+    return [list $tetrasurf $hexasurf]
 }
 
 proc ::wkcf::FindBoundaries {entity} {
