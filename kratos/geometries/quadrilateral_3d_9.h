@@ -378,7 +378,8 @@ public:
      */
     virtual Vector& LumpingFactors( Vector& rResult ) const
     {
-        rResult.resize( 9, false );
+	if(rResult.size() != 9)
+	   rResult.resize( 9, false );
 
         for ( int i = 0; i < 4; i++ ) rResult[i] = 1.00 / 36.00;
 

@@ -358,7 +358,8 @@ public:
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors( Vector& rResult ) const
     {
-        rResult.resize( 8, false );
+	if(rResult.size() != 8)
+           rResult.resize( 8, false );
         std::fill( rResult.begin(), rResult.end(), 1.00 / 8.00 );
         return rResult;
     }
