@@ -1369,7 +1369,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 	# Delta time
 	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.DeltaTime"
 	set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
-	puts $fileid "time_step = $StartTime"	
+	puts $fileid "time_step = $DeltaTime"	
 
 	# Number of Steps
 	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.EndTime"
@@ -1379,12 +1379,12 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 	
     } elseif {$SolutionType =="RelaxedDynamic"} {
 
-	puts $fileid "SolverType = \"DynamicSolver\""
+	puts $fileid "SolverType = \"RelaxedDynamicSolver\""
 
 	# Delta time
 	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.DeltaTime"
 	set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
-	puts $fileid "time_step = $StartTime"	
+	puts $fileid "time_step = $DeltaTime"	
 
 	# Number of Steps
 	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.EndTime"
@@ -1576,9 +1576,31 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     puts $fileid ""
     puts $fileid "#Constraints Data"
     puts $fileid "#################################################"
-    puts $fileid "Incremental_Load         = \"False\""
-    puts $fileid "Incremental_Displacement = \"False\""
+    # Incremental Load
+    if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
 
+	set cxpath "$AppId//c.Loads//i.IncrementalLoad"
+	set incremental_load [::xmlutils::setXml $cxpath $cproperty]
+	if {($incremental_load eq "Yes")} {
+	    puts $fileid "Incremental_Load = \"True\""
+	} else {
+	    puts $fileid "Incremental_Load = \"False\""
+	}
+	# Incremental Displacement
+	set cxpath "$AppId//c.Conditions//i.IncrementalMovement"
+	set incremental_movement [::xmlutils::setXml $cxpath $cproperty]
+	if {($incremental_movement eq "Yes")} {
+	    puts $fileid "Incremental_Displacement = \"True\""
+	} else {
+	    puts $fileid "Incremental_Displacement = \"False\""
+	}
+	
+    } else {
+
+	puts $fileid "Incremental_Load = \"False\""
+	puts $fileid "Incremental_Displacement = \"False\""
+
+    }
 
     puts $fileid ""
     puts $fileid "#PostProcess Data"
