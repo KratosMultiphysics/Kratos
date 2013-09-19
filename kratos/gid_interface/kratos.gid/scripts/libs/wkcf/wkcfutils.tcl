@@ -1534,8 +1534,10 @@ proc ::wkcf::WriteBatFile {AppId} {
 	    puts $f "#    OutputFile: \"$2/$1.info\""
 	    puts $f "#    ErrorFile: \"$2/$1.err\""
 	    puts $f "# Delete previous result file"
-	    puts $f "rm -f \"$2/$1.post.bin\""
-	    puts $f "rm -f \"$2/$1.info\""
+	    puts $f "rm -f -r \"$2/$1*.post.bin\""
+	    puts $f "rm -f -r \"$2/$1*.post.res\""
+	    puts $f "rm -f -r \"$2/$1*.post.msh\""
+	    puts $f "rm -f -r \"$2/$1*.info\""
 	    puts $f "rm -f \"$2/$1.err\""
 	    puts $f "rm -f \"$2/$1.flavia.dat\""
 	    puts $f ""
@@ -1571,7 +1573,10 @@ proc ::wkcf::WriteBatFile {AppId} {
 	    
 	    
 	    puts $f "DEL %2\\%1.info"
-	    puts $f "DEL %2\\%1.post.bin"
+	    puts $f "DEL %2\\%1*.post.bin"
+	    puts $f "DEL %2\\%1*.post.res"
+	    puts $f "DEL %2\\%1*.post.msh"
+	    puts $f "DEL %2\\%1.flavia.dat"
 	    puts $f "DEL %2\\%1.err"
 	    
 	    puts $f "REM Run the python script"
