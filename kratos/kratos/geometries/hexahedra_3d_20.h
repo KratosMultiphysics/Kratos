@@ -405,7 +405,8 @@ public:
     //lumping factors for the calculation of the lumped mass matrix
     virtual Vector& LumpingFactors( Vector& rResult ) const
     {
-        rResult.resize( 20, false );
+	if(rResult.size() != 20)
+           rResult.resize( 20, false );
 
         for ( int i = 0; i < 8; i++ ) rResult[i] = 1.00 / 216.00;
 
