@@ -828,11 +828,11 @@ proc ::wkcf::WriteGiDPostMode {AppId fileid} {
         # WarnWinText "gidr:$gidr cvalue:$cvalue gidrkw:$gidrkw"
         if {($gidr=="GiDWriteMeshFlag") || ($gidr=="GiDWriteConditionsFlag")} {
             if {$cvalue =="Yes"} {
-            set cvalue "True"
-            } elseif {$cvalue =="Yes"} {
-            set cvalue "False"
+              set cvalue True
+            } else {
+              set cvalue False
             }
-            puts $fileid "$gidrkw = \"$cvalue\""
+            puts $fileid "$gidrkw = $cvalue"
         } else {
             puts $fileid "$gidrkw = \"$cvalue\""
         }
