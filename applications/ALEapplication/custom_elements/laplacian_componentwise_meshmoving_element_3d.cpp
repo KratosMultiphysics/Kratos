@@ -97,7 +97,7 @@ LaplacianComponentwiseMeshMovingElem3D::~LaplacianComponentwiseMeshMovingElem3D(
 void LaplacianComponentwiseMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    unsigned int number_of_points = GetGeometry().PointsNumber();
+    unsigned int number_of_points = 4;
 
     if(rLeftHandSideMatrix.size1() != number_of_points)
         rLeftHandSideMatrix.resize(number_of_points,number_of_points);
@@ -115,6 +115,7 @@ void LaplacianComponentwiseMeshMovingElem3D::CalculateLocalSystem(MatrixType& rL
     double Area;
     GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);
 
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_points,number_of_points);
     noalias(rLeftHandSideMatrix) = prod(msDN_DX,trans(msDN_DX));
 
     const array_1d<double,3>& disp0 = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
@@ -164,10 +165,11 @@ void LaplacianComponentwiseMeshMovingElem3D::CalculateLocalSystem(MatrixType& rL
 
     // factor 100 is for conditioning of matrices
     double conditioning_factor = 100;
-    double factor = conditioning_factor * pow(conductivity,exponent);
+    double base = conditioning_factor * conductivity;
+    double factor = pow(base,exponent); // if exponent = 0, then factor = 1 --> no influence on RHS and LHS
 
     // preserve matrices to become ill-conditioned
-    if(conductivity > 0.001)
+    if(conductivity > 100)
     {
         rLeftHandSideMatrix  *= factor;
         rRightHandSideVector *= factor;

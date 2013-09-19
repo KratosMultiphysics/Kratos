@@ -100,7 +100,7 @@ void StructuralMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideM
     KRATOS_TRY
 
     // Inizialize matrices
-    unsigned int number_of_points = GetGeometry().PointsNumber();
+    unsigned int number_of_points = 4;
     const unsigned int mat_size = number_of_points*3;
 
     if(rLeftHandSideMatrix.size1() != mat_size)
@@ -168,6 +168,8 @@ void StructuralMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideM
 
     // Compute lefthand side
     boost::numeric::ublas::bounded_matrix<double,12,6> intermediateMatrix = prod(trans(B),ConstitutiveMatrix);
+
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_points,number_of_points);
     noalias(rLeftHandSideMatrix) = prod(intermediateMatrix,B);
 
     // Compute dirichlet contribution
@@ -182,6 +184,7 @@ void StructuralMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideM
     }
 
     // Compute RS
+    noalias(rRightHandSideVector) = ZeroVector(number_of_points);
     noalias(rRightHandSideVector) = -prod(rLeftHandSideMatrix,ms_temp_vec_np);
 
     //note that no multiplication by area is performed,

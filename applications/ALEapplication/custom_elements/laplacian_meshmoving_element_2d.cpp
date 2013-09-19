@@ -126,6 +126,7 @@ void LaplacianMeshMovingElem2D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     const array_1d<double,3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT);
     const array_1d<double,3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT);
 
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_points,number_of_points);
     noalias(rLeftHandSideMatrix) = prod(msDN_DX,trans(msDN_DX));
 
     //dirichlet contribution
@@ -168,10 +169,11 @@ void LaplacianMeshMovingElem2D::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 
     // factor 100 is for conditioning of matrices
     double conditioning_factor = 100;
-    double factor = conditioning_factor * pow(conductivity,exponent);
+    double base = conditioning_factor * conductivity;
+    double factor = pow(base,exponent); // if exponent = 0, then factor = 1 --> no influence on RHS and LHS
 
     // preserve matrices to become ill-conditioned
-    if(conductivity > 0.001)
+    if(conductivity > 100)
     {
         rLeftHandSideMatrix  *= factor;
         rRightHandSideVector *= factor;
