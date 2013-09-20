@@ -167,7 +167,7 @@ public:
         ModelPart::NodesContainerType front_nodes;
         WeakPointerVector<Node<3> >& r_neighbour_nodes = mNeighbourNodes[iNode->Id() - 1];
 
-		static int counter = 0;
+//		static int counter = 0;
 		bool is_candidate = true;
         for(WeakPointerVector<Node<3> >::iterator i_neighbour_node = r_neighbour_nodes.begin() ; i_neighbour_node != r_neighbour_nodes.end() ; i_neighbour_node++)
         {
@@ -189,7 +189,7 @@ public:
 		
 		if(is_candidate)
 		{
-			std::size_t front_nodes_size = front_nodes.size();
+//			std::size_t front_nodes_size = front_nodes.size();
 			for(ModelPart::NodesContainerType::iterator i_node = front_nodes.begin() ; i_node != front_nodes.end() ; i_node++)
 				for(ModelPart::NodesContainerType::iterator j_node = i_node + 1 ; j_node != front_nodes.end() ; j_node++)
 				{
