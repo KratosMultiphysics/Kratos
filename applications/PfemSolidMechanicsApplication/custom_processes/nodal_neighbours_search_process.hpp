@@ -266,9 +266,9 @@ private:
             WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
             rE.erase(rE.begin(),rE.end() );
 
-	    //set fixed nodes as Nodes<3>::STRUCTURE to not be removed in the meshing 
+	    //set fixed nodes as Nodes<3>::STRUCTURE  to not be removed in the meshing 
 	    Node<3>::DofsContainerType& node_dofs = in->GetDofs();
-	    for(typename Node<3>::DofsContainerType::const_iterator i_dof = node_dofs.begin() ; i_dof != node_dofs.end() ; i_dof++)
+	    for( Node<3>::DofsContainerType::const_iterator i_dof = node_dofs.begin() ; i_dof != node_dofs.end() ; i_dof++)
 	      {
 		if(i_dof->IsFixed()){
 		  in->Set(STRUCTURE);
@@ -452,7 +452,7 @@ private:
             WeakPointerVector<Element >& rNeighElems = in->GetValue(NEIGHBOUR_ELEMENTS);
             rpn = in->Id();
 
-            for (uint sel=0; sel<rNeighElems.size(); sel++)
+            for (unsigned int sel=0; sel<rNeighElems.size(); sel++)
             {
 
                 iel = rNeighElems[sel].Id();
@@ -470,7 +470,7 @@ private:
 
                         if (PSharedN[rpn]!=0)
                         {
-                            for(uint spn=0; spn<=PSharedN[rpn]; spn++)
+                            for(unsigned int spn=0; spn<=PSharedN[rpn]; spn++)
                             {
                                 if (PSurroundN[rpn][spn]!=ipn)
                                 {
@@ -502,7 +502,7 @@ private:
             //std::cout<<" NODE "<<rpn<<" "<<PSharedN[rpn]<<std::endl;
 
 
-            for(uint spn=0; spn<PSharedN[rpn]; spn++)
+            for(unsigned int spn=0; spn<PSharedN[rpn]; spn++)
             {
                 //std::cout<<" ShNodes "<<PSurroundN[rpn][spn]<<std::endl;
                 Element::NodeType::WeakPointer temp = rNodes(PSurroundN[rpn][spn]);

@@ -994,7 +994,7 @@ namespace Kratos
 	      if(nodes_ranks[in+1]==rang_assign){
 		
 		//Rank 0
-		uint shared_node=1;
+		unsigned int shared_node=1;
 		unsigned int NumberOfNeighbours = list_of_neighbor_nodes[in+1].size();	
 		for(unsigned int i = 0; i < NumberOfNeighbours; i++)
 		  {
@@ -1049,7 +1049,7 @@ namespace Kratos
 	      if(nodes_layer[in+1]==layer_assign){
 		
 		//Rank 0
-		uint shared_node=1;
+		unsigned int shared_node=1;
 		unsigned int NumberOfNeighbours = list_of_neighbor_nodes[in+1].size();	
 		for(unsigned int i = 0; i < NumberOfNeighbours; i++)
 		  {
@@ -1132,7 +1132,7 @@ namespace Kratos
 		  P[1] = out.pointlist[in*dimension+1];
 		  P[2] = 0;
 		  
-		  uint shared_node = 1;
+		  unsigned int shared_node = 1;
 		  for(unsigned int i = 0; i < NumberOfNeighbours; i++)
 		    {
 		      shared_node = list_of_neighbor_nodes[in+1][i];

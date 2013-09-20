@@ -3946,7 +3946,7 @@ namespace Kratos
 
 
 		  WeakPointerVector<Node<3> > master_nodes;
-		  master_nodes.push_back(typename Node<3>::WeakPointer( rGeom(lpofa(0,i)) ));
+		  master_nodes.push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ));
 		  p_cond->SetValue(MASTER_NODES, master_nodes );
 		      
 
@@ -3965,7 +3965,7 @@ namespace Kratos
 		  p_cond->SetValue(CAUCHY_STRESS_VECTOR,StressVector);
 		  p_cond->SetValue(DEFORMATION_GRADIENT,DeformationGradient);
 		  p_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
-		  p_cond->GetValue(MASTER_NODES).push_back( typename Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );
+		  p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );
 		}
 
 		//usually one MasterElement and one MasterNode in 2D

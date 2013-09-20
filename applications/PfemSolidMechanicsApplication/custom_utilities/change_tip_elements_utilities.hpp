@@ -468,7 +468,7 @@ public:
 			  {
 			    //usually one MasterElement and one MasterNode in 2D
 			    ic->GetValue(MASTER_ELEMENTS)(0) = ( Element::WeakPointer( *(ie.base()) ) );
-			    ic->GetValue(MASTER_NODES)(0) = ( typename Node<3>::WeakPointer( vertices_1(1) ) );
+			    ic->GetValue(MASTER_NODES)(0) = (  Node<3>::WeakPointer( vertices_1(1) ) );
 	
 			  }
 
@@ -480,7 +480,7 @@ public:
 			  {
 			    //usually one MasterElement and one MasterNode in 2D
 			    ic->GetValue(MASTER_ELEMENTS)(0) = ( Element::WeakPointer( ie->GetValue(NEIGHBOUR_ELEMENTS)(0) ) );
-			    ic->GetValue(MASTER_NODES)(0) = ( typename Node<3>::WeakPointer( vertices_2(0) ) );
+			    ic->GetValue(MASTER_NODES)(0) = (  Node<3>::WeakPointer( vertices_2(0) ) );
 			
 			  }
 
@@ -511,7 +511,7 @@ public:
 			//     {
 			//       //usually one MasterElement and one MasterNode in 2D
 			//       ic->GetValue(MASTER_ELEMENTS)(0) = ( Element::WeakPointer( *(ie.base()) ) );
-			//       ic->GetValue(MASTER_NODES)(0) = ( typename Node<3>::WeakPointer( vertices_1(1) ) );
+			//       ic->GetValue(MASTER_NODES)(0) = (  Node<3>::WeakPointer( vertices_1(1) ) );
 	
 			//     }
 
@@ -523,7 +523,7 @@ public:
 			//     {
 			//       //usually one MasterElement and one MasterNode in 2D
 			//       ic->GetValue(MASTER_ELEMENTS)(0) = ( Element::WeakPointer( ie->GetValue(NEIGHBOUR_ELEMENTS)(0) ) );
-			//       ic->GetValue(MASTER_NODES)(0) = ( typename Node<3>::WeakPointer( vertices_2(0) ) );
+			//       ic->GetValue(MASTER_NODES)(0) = (  Node<3>::WeakPointer( vertices_2(0) ) );
 			
 			//     }
 

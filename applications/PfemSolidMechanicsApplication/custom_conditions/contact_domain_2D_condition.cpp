@@ -3045,7 +3045,7 @@ int  ContactDomain2DCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 void ContactDomain2DCondition::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
-    int IntMethod = int(mThisIntegrationMethod);
+    int IntMethod = (int)mThisIntegrationMethod;
     rSerializer.save("IntegrationMethod",IntMethod);
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.save("MasterGeometry",mpMasterGeometry);

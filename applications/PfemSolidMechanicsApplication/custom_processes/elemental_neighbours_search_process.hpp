@@ -578,7 +578,7 @@ private:
         //Elements Surrounding Elements
         int el;
         #pragma omp parallel for reduction(+:nface) private(el,ipoin,nnofa,jelem,icoun,jpoin,nnofj) firstprivate(lhelp,lpoin)
-        for (el=1; el<int(Ne+1); el++) //ELEMENTS START FROM el=1
+        for (el=1; el<(int)Ne+1; el++) //ELEMENTS START FROM el=1
         {
 
             for (unsigned int nf=0; nf<Nf; nf++) //loop over faces
