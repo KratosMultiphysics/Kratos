@@ -539,24 +539,31 @@ private:
           std::vector<TetEdgeStruct>          IntersectedTetEdges;
           unsigned int NumberIntersectionsOnTetCorner = 0;
 
+          bool to_be_splitted = false;
+
           // Get leaves of octree intersecting with fluid element
           mOctree.GetIntersectedLeaves(*(i_fluidElement).base(),leaves);
 
           // Loop over all 6 line Edges of the tetrahedra
           for(unsigned int i_tetEdge = 0; i_tetEdge < 6; i_tetEdge++)
           {
-              IdentifyIntersectionNodes( i_fluidElement , i_tetEdge , leaves , IntersectedTetEdges ,
-                                         NumberIntersectionsOnTetCorner , TetEdgeIndexTable );
+                to_be_splitted |= IdentifyIntersectionNodes( i_fluidElement , i_tetEdge , leaves , IntersectedTetEdges ,
+                                         NumberIntersectionsOnTetCorner , TetEdgeIndexTable );  
           }
 
           if(IntersectedTetEdges.size() > 0)
               CalcDistanceTo3DSkin( IntersectedTetEdges , i_fluidElement , NumberIntersectionsOnTetCorner );
+
+
+          i_fluidElement->SetValue(SPLIT_ELEMENT,to_be_splitted);
+
+
       }
 
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void IdentifyIntersectionNodes( ModelPart::ElementsContainerType::iterator&   i_fluidElement,
+      bool IdentifyIntersectionNodes( ModelPart::ElementsContainerType::iterator&   i_fluidElement,
                                       unsigned int                                  i_tetEdge,
                                       std::vector<OctreeType::cell_type*>&          leaves,
                                       std::vector<TetEdgeStruct>&                   IntersectedTetEdges,
@@ -627,6 +634,12 @@ private:
           // check, if intersection nodes have been found on the tet edge --> if yes, then add these information to the TetEdgeVector
           if( NewTetEdge.IntNodes.size() > 0 )
               IntersectedTetEdges.push_back(NewTetEdge);
+          bool to_be_splitted = false;
+          // check, if more than 1 intersection nodes have been found this element is a candidate for spliting
+          if( NewTetEdge.IntNodes.size() > 1 )
+              to_be_splitted = true;
+
+          return to_be_splitted;
       }
 
       ///******************************************************************************************************************
@@ -818,7 +831,7 @@ private:
       void ComputeApproximationNodes( std::vector<TetEdgeStruct>           IntersectedTetEdges,
                                       std::vector<IntersectionNodeStruct>& NodesOfApproximatedStructure )
       {
-          unsigned int NumberIntNodes;
+          unsigned int NumberIntNodes = 0;
           double sum_X;
           double sum_Y;
           double sum_Z;
@@ -1534,7 +1547,7 @@ private:
           mOctree.GetAllLeavesVector(all_leaves);
 
 #pragma omp parallel for
-          for (int i = 0; i < all_leaves.size(); i++)
+          for (std::size_t i = 0; i < all_leaves.size(); i++)
           {
               *(all_leaves[i]->pGetDataPointer()) = ConfigurationType::AllocateData();
           }
@@ -1611,7 +1624,7 @@ private:
            std::vector<CellType*> leaves;
 
          mOctree.GetAllLeavesVector(leaves);
-         int leaves_size = leaves.size();
+//         int leaves_size = leaves.size();
 
 //         for(int i = 0 ; i < leaves_size ; i++)
 //             CalculateNotEmptyLeavesDistance(leaves[i]);
