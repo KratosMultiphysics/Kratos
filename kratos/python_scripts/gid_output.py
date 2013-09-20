@@ -130,7 +130,7 @@ class GiDOutput(object):
         self.io.WriteNodalResults(variable,model_part.Nodes,label,0)
 
     def _write_gp_results(self,label,model_part,variable):
-        self.io.PrintOnGaussPoints(variable,model_part,time)
+        self.io.PrintOnGaussPoints(variable,model_part,label)
 
     def _finalize_results(self):
         self.io.FinalizeResults()
