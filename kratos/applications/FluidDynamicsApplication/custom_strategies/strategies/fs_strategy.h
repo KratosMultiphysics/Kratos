@@ -1015,6 +1015,9 @@ private:
     {
         KRATOS_TRY;
 
+        // Check that input parameters are reasonable and sufficient.
+        this->Check();
+
         ModelPart& rModelPart = this->GetModelPart();
 
         mDomainSize = rSolverConfig.GetDomainSize();
