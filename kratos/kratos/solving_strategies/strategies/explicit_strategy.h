@@ -299,7 +299,6 @@ void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 	typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
 	for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
 	{
-		Element::GeometryType& geom = it->GetGeometry();
 		it->InitializeSolutionStep(CurrentProcessInfo);
 	}
 	
@@ -319,7 +318,6 @@ void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
 	typename ElementsArrayType::iterator it_end   = pElements.ptr_end();
 	for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
 	{
-		Element::GeometryType& geom = it->GetGeometry();
 		it->FinalizeSolutionStep(CurrentProcessInfo);
 	}
 	
