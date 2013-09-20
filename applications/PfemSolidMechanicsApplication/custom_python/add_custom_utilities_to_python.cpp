@@ -46,10 +46,10 @@ namespace Kratos
       typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
 
       typedef Scheme< SparseSpaceType, LocalSpaceType >            SchemeType;
-      typedef typename SchemeType::Pointer                  SchemePointerType;
+      typedef SchemeType::Pointer                           SchemePointerType;
 
       typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >                 BuilderAndSolverType;
-      typedef typename BuilderAndSolverType::Pointer                                         BuilderAndSolverPointerType;
+      typedef BuilderAndSolverType::Pointer        BuilderAndSolverPointerType;
       typedef LineSearchCalculationUtilities<SparseSpaceType,LocalSpaceType,LinearSolverType > LineSearchCalculationType;
 
       typedef RigidWallContactCalculationUtilities <SparseSpaceType,LocalSpaceType>                 RigidWallContactType;

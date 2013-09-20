@@ -164,12 +164,12 @@ protected:
         double Tau;
 
         //Penalty method or Lagrangian Multiplyers
-        uint            penalty;
+        unsigned int      penalty;
 
         //friction:
         double          muCoefficient;
-        uint            friction_active;//friction active or inactive
-        uint            friction_on;
+        unsigned int    friction_active;//friction active or inactive
+        unsigned int    friction_on;
 
         //iteration
         int             iteration;
