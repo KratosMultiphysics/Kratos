@@ -1475,7 +1475,7 @@ private:
           // Determine inner product as measure for the orientation of normal vector relative to tet node 0
           double InnerProduct = inner_prod(intNodeTetNodeVec,normalVec);
 
-          if((InnerProduct < 0.0 and distances[0] > 0) or (InnerProduct > 0.0 and distances[0] < 0))
+          if((InnerProduct < 0.0 && distances[0] > 0) || (InnerProduct > 0.0 && distances[0] < 0))
           {
               // in this case, the normal is NOT pointing towards a tet node with a positive value
               // --> switch two arbitrary nodes of the triangle
@@ -1534,7 +1534,7 @@ private:
           mOctree.GetAllLeavesVector(all_leaves);
 
 #pragma omp parallel for
-          for (int i = 0; i < all_leaves.size(); i++)
+          for (unsigned int i = 0; i < all_leaves.size(); i++)
           {
               *(all_leaves[i]->pGetDataPointer()) = ConfigurationType::AllocateData();
           }
