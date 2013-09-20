@@ -15,7 +15,7 @@
 #   
 #     7.0- 19/09/13-G. Socorro, modify the proc WriteConditions to write condition for Quadrilateral surface element
 #                               write convection-diffusion conditions
-      6.9- 18/09/13-G. Socorro, start to add the convection-diffusion properties 
+#     6.9- 18/09/13-G. Socorro, start to add the convection-diffusion properties 
 #                               (add the proc WriteConvectionDiffusionPropertyAtNodes and WriteConvectionDiffusionPrescribedTemperatureBC)
 #     6.8- 16/07/13-G. Socorro, modify the proc WriteBoundaryConditions to write the OutletPressure BC as a function of the solver type
 #     6.7- 14/07/13-G. Socorro, modify the proc WriteBoundaryConditions to write walllaw BC

@@ -346,7 +346,7 @@ proc kipt::LoadSourceFiles { dir } {
     }
     # For write calculation file
     lappend lib_paths [file join $dir scripts libs wkcf]
-    lappend lib_filenames {wkcf.tcl wkcfutils.tcl wkcffluid.tcl wkcfstructuralanalysis.tcl wkcfgroups.tcl  wkcfConvectionDiffusion.tcl}
+    lappend lib_filenames {wkcf.tcl wkcfutils.tcl wkcffluid.tcl wkcfstructuralanalysis.tcl wkcfgroups.tcl  wkcfconvectiondiffusion.tcl}
     # Load kegroups
     lappend lib_paths [file join $dir scripts kegroups]
     lappend lib_filenames {kegroups.tcl kGroupEntities.tcl}
