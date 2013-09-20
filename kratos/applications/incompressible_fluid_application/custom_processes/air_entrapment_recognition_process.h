@@ -115,7 +115,7 @@ public:
 		for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
 			i_node->Set(NOT_VISITED);
 
-        int current_body_id = 1;
+        //int current_body_id = 1;
         for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
         {
             if(i_node->GetSolutionStepValue(DISTANCE) > 0.00)  // if the node is air
