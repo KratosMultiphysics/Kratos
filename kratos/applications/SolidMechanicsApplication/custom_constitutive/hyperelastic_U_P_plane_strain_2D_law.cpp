@@ -125,7 +125,7 @@ void HyperElasticUPPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (const
 
 
 void HyperElasticUPPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
-        const GeometryType& rDomainGeometry,
+        const GeometryType& rElementGeometry,
         const Vector & rShapeFunctions,
         Matrix& rConstitutiveMatrix)
 
@@ -133,7 +133,7 @@ void HyperElasticUPPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix (cons
     rConstitutiveMatrix.clear();
 
     double Pressure = 0;
-    Pressure = CalculateDomainPressure ( rDomainGeometry, rShapeFunctions, Pressure);
+    Pressure = CalculateDomainPressure ( rElementGeometry, rShapeFunctions, Pressure);
 
     static const unsigned int msIndexVoigt2D [3][2] = { {0, 0}, {1, 1}, {0, 1} };
 
@@ -184,7 +184,7 @@ void HyperElasticUPPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (const
 
 void HyperElasticUPPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
         const Matrix & rInverseDeformationGradientF,
-        const GeometryType& rDomainGeometry,
+        const GeometryType& rElementGeometry,
         const Vector & rShapeFunctions,
         Matrix& rConstitutiveMatrix)
 {
@@ -192,7 +192,7 @@ void HyperElasticUPPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix (cons
     rConstitutiveMatrix.clear();
 
     double Pressure = 0;
-    Pressure = CalculateDomainPressure ( rDomainGeometry, rShapeFunctions, Pressure);
+    Pressure = CalculateDomainPressure ( rElementGeometry, rShapeFunctions, Pressure);
 
     static const unsigned int msIndexVoigt2D [3][2] = { {0, 0}, {1, 1}, {0, 1} };
 

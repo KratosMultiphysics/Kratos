@@ -123,12 +123,12 @@ public:
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param props
-     * @param geom
-     * @param CurrentProcessInfo
+     * @param rMaterialProperties
+     * @param rElementGeometry
+     * @param rCurrentProcessInfo
      * @return
      */
-    //int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
+    //int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Input and output
@@ -163,11 +163,11 @@ protected:
 
     /**
      * Calculates the Pressure of the domain (element)
-     * @param rDomainGeometry the element geometry
+     * @param rElementGeometry the element geometry
      * @param rShapeFunctions the element shape functions
      * @param rPressure the calculated pressure to be returned
      */
-    double& CalculateDomainPressure (const GeometryType& rDomainGeometry,
+    double& CalculateDomainPressure (const GeometryType& rElementGeometry,
                                      const Vector & rShapeFunctions,
                                      double & rPressure);
 
@@ -224,13 +224,13 @@ protected:
     /**
      * Calculates the volumetric constitutive matrix
      * @param rElasticVariables
-     * @param rDomainGeometry the element geometry
+     * @param rElementGeometry the element geometry
      * @param rShapeFunctions the element shape functions
      * matrix is to be generated for
      * @param rResult Matrix the result (Constitutive Matrix) will be stored in
      */
     virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-            const GeometryType& rDomainGeometry,
+            const GeometryType& rElementGeometry,
             const Vector & rShapeFunctions,
             Matrix& rConstitutiveMatrix);
 
@@ -239,14 +239,14 @@ protected:
      * Calculates the volumetric constitutive matrix and makes a pull-back
      * @param rElasticVariables
      * @param rInverseDeformationGradientF
-     * @param rDomainGeometry the element geometry
+     * @param rElementGeometry the element geometry
      * @param rShapeFunctions the element shape functions
      * matrix is to be generated for
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
     virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
             const Matrix & rInverseDeformationGradientF,
-            const GeometryType& rDomainGeometry,
+            const GeometryType& rElementGeometry,
             const Vector & rShapeFunctions,
             Matrix& rConstitutiveMatrix);
 
@@ -288,12 +288,12 @@ protected:
     /**
      * Calculates the volumetric stress vector
      * @param rElasticVariables
-     * @param rDomainGeometry the element geometry
+     * @param rElementGeometry the element geometry
      * @param rShapeFunctions the element shape functions
      * @param rVolStressVector vector where the stress result is stored
      */
     virtual void CalculateVolumetricStress( const MaterialResponseVariables & rElasticVariables,
-                                            const GeometryType& rDomainGeometry,
+                                            const GeometryType& rElementGeometry,
                                             const Vector & rShapeFunctions,
                                             Vector& rVolStressVector );
 

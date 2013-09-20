@@ -129,7 +129,7 @@ public:
 
 
     void SetValue( const Variable<double>& rVariable,
-                   const double& Value,
+                   const double& rValue,
                    const ProcessInfo& rCurrentProcessInfo );
     void SetValue( const Variable<Vector>& rThisVariable,
                    const Vector& rValue,
@@ -140,20 +140,20 @@ public:
     /**
      * Material parameters are inizialized
      */
-    void InitializeMaterial( const Properties& props,
-                             const GeometryType& geom,
-                             const Vector& ShapeFunctionsValues );
+    void InitializeMaterial( const Properties& rMaterialProperties,
+                             const GeometryType& rElementGeometry,
+                             const Vector& rShapeFunctionsValues );
 
 
-    void InitializeSolutionStep( const Properties& props,
-                                 const GeometryType& geom, //this is just to give the array of nodes
-                                 const Vector& ShapeFunctionsValues ,
-                                 const ProcessInfo& CurrentProcessInfo);
+    void InitializeSolutionStep( const Properties& rMaterialProperties,
+                                 const GeometryType& rElementGeometry, //this is just to give the array of nodes
+                                 const Vector& rShapeFunctionsValues ,
+                                 const ProcessInfo& rCurrentProcessInfo);
 
-    void FinalizeSolutionStep( const Properties& props,
-                               const GeometryType& geom, //this is just to give the array of nodes
-                               const Vector& ShapeFunctionsValues ,
-                               const ProcessInfo& CurrentProcessInfo);
+    void FinalizeSolutionStep( const Properties& rMaterialProperties,
+                               const GeometryType& rElementGeometry, //this is just to give the array of nodes
+                               const Vector& rShapeFunctionsValues ,
+                               const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Computes the material response:
@@ -225,12 +225,12 @@ public:
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param props
-     * @param geom
-     * @param CurrentProcessInfo
+     * @param rMaterialProperties
+     * @param rElementGeometry
+     * @param rCurrentProcessInfo
      * @return
      */
-    int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
+    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Input and output
@@ -348,6 +348,9 @@ protected:
      */
     virtual bool CheckParameters(Parameters& rValues);
 
+
+    ///@}
+
 private:
 
     ///@name Static Member Variables
@@ -389,6 +392,7 @@ private:
     }
 
 
+    ///@}
 
 }; // Class HyperElastic3DLaw
 }  // namespace Kratos.

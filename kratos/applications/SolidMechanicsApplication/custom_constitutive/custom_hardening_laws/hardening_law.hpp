@@ -87,9 +87,9 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    void InitializeMaterial (const Properties& rProperties)
+    void InitializeMaterial (const Properties& rMaterialProperties)
 	{
-		mpProperties = &rProperties;
+		mpProperties = &rMaterialProperties;
 	}
 
 

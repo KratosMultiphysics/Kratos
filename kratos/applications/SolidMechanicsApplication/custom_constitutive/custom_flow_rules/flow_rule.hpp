@@ -184,14 +184,14 @@ namespace Kratos
     ///@name Operations
     ///@{
     
-    void InitializeMaterial (YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw, const Properties& rProperties)
+    void InitializeMaterial (YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw, const Properties& rMaterialProperties)
     {
       
       mpYieldCriterion = pYieldCriterion;
       mpHardeningLaw   = pHardeningLaw;
-      mpProperties     = &rProperties;
+      mpProperties     = &rMaterialProperties;
 
-      mpHardeningLaw->InitializeMaterial(rProperties);	
+      mpHardeningLaw->InitializeMaterial(rMaterialProperties);	
       mpYieldCriterion->InitializeMaterial(mpHardeningLaw);	
 
       mInternalVariables.clear();

@@ -183,13 +183,13 @@ protected:
     /**
      * Calculates the volumetric constitutive matrix
      * @param rElasticVariables
-     * @param rDomainGeometry the element geometry
+     * @param rElementGeometry the element geometry
      * @param rShapeFunctions the element shape functions
      * matrix is to be generated for
      * @param rResult Matrix the result (Constitutive Matrix) will be stored in
      */
     virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-            const GeometryType& rDomainGeometry,
+            const GeometryType& rElementGeometry,
             const Vector & rShapeFunctions,
             Matrix& rConstitutiveMatrix);
 
@@ -198,14 +198,14 @@ protected:
      * Calculates the volumetric constitutive matrix and makes a pull-back
      * @param rElasticVariables
      * @param rInverseDeformationGradientF
-     * @param rDomainGeometry the element geometry
+     * @param rElementGeometry the element geometry
      * @param rShapeFunctions the element shape functions
      * matrix is to be generated for
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
     virtual void CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
             const Matrix & rInverseDeformationGradientF,
-            const GeometryType& rDomainGeometry,
+            const GeometryType& rElementGeometry,
             const Vector & rShapeFunctions,
             Matrix& rConstitutiveMatrix);
 

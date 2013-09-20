@@ -93,12 +93,12 @@ public:
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
-     * @param props
-     * @param geom
-     * @param CurrentProcessInfo
+     * @param rMaterialProperties
+     * @param rElementGeometry
+     * @param rCurrentProcessInfo
      * @return
      */
-    //int Check(const Properties& rProperties, const GeometryType& rGeometry, const ProcessInfo& rCurrentProcessInfo);
+    //int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry, const ProcessInfo& rCurrentProcessInfo);
 
 
 
@@ -134,7 +134,7 @@ protected:
 
     /**
      * Calculates the Pressure of the domain (element)
-     * @param rDomainGeometry the element geometry
+     * @param rElementGeometry the element geometry
      * @param rShapeFunctions the element shape functions
      * @param rPressure the calculated pressure to be returned
      */
