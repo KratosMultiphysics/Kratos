@@ -13,7 +13,7 @@
 #    HISTORY:
 #        
 #     3.7- 19/09/13-G. Socorro, add the proc GetSurfaceTypeList to classify the surface type 
-      3.6- 18/09/13-G. Socorro, add some proc and variable for the convection-diffusion application 
+#     3.6- 18/09/13-G. Socorro, add some proc and variable for the convection-diffusion application 
 #     3.5- 14/07/13-G. Socorro, modify the proc GetBoundaryConditionProperties to enable the condition WallLaw
 #     3.4- 17/06/13-G. Socorro, delete wmethod variable => now we are using only the new GiD groups
 #     3.3- 17/05/13-G. Socorro, add the proc SumInertia, modify the proc GetCrossSectionProperties to include the new cross section properties (database)
