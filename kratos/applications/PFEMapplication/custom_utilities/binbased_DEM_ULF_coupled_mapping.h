@@ -553,7 +553,7 @@ private:
         {
             //getting the data of the solution step
             array_1d<double,3>& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable , step);
-            const array_1d<double,3>& velocity = (pnode)->FastGetSolutionStepValue(VELOCITY , step);
+            //const array_1d<double,3>& velocity = (pnode)->FastGetSolutionStepValue(VELOCITY , step);
             //Reference or no reference???//CANCELLA
             const array_1d<double,3>& node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable , step);
             const array_1d<double,3>& node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable , step);
