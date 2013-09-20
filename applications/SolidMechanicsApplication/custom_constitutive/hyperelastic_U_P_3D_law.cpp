@@ -481,17 +481,17 @@ void HyperElasticUP3DLaw::CalculateIsochoricStress( const MaterialResponseVariab
 //************************************************************************************
 
 
-double &  HyperElasticUP3DLaw::CalculateDomainPressure (const GeometryType& rDomainGeometry,
+double &  HyperElasticUP3DLaw::CalculateDomainPressure (const GeometryType& rElementGeometry,
         const Vector & rShapeFunctions,
         double & rPressure)
 {
 
-    const unsigned int number_of_nodes = rDomainGeometry.size();
+    const unsigned int number_of_nodes = rElementGeometry.size();
 
     rPressure = 0;
     for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
-        rPressure += rShapeFunctions[j] * rDomainGeometry[j].GetSolutionStepValue(PRESSURE);
+        rPressure += rShapeFunctions[j] * rElementGeometry[j].GetSolutionStepValue(PRESSURE);
     }
 
     return rPressure;
@@ -502,7 +502,7 @@ double &  HyperElasticUP3DLaw::CalculateDomainPressure (const GeometryType& rDom
 //************************************************************************************
 
 void HyperElasticUP3DLaw::CalculateVolumetricStress(const MaterialResponseVariables & rElasticVariables,
-        const GeometryType& rDomainGeometry,
+        const GeometryType& rElementGeometry,
         const Vector & rShapeFunctions,
         Vector& rVolStressVector )
 {
@@ -512,7 +512,7 @@ void HyperElasticUP3DLaw::CalculateVolumetricStress(const MaterialResponseVariab
 
     double Pressure = 0;
 
-    Pressure = CalculateDomainPressure (rDomainGeometry, rShapeFunctions, Pressure);
+    Pressure = CalculateDomainPressure (rElementGeometry, rShapeFunctions, Pressure);
 
     //2.- Volumetric part of the Kirchhoff StressMatrix from nodal pressures
     VolStressMatrix = rElasticVariables.DeterminantF0 * Pressure * rElasticVariables.CauchyGreenMatrix;
@@ -570,7 +570,7 @@ void HyperElasticUP3DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialRe
 
 
 void HyperElasticUP3DLaw::CalculateVolumetricConstitutiveMatrix ( const MaterialResponseVariables & rElasticVariables,
-        const GeometryType& rDomainGeometry,
+        const GeometryType& rElementGeometry,
         const Vector & rShapeFunctions,
         Matrix& rConstitutiveMatrix)
 {
@@ -578,7 +578,7 @@ void HyperElasticUP3DLaw::CalculateVolumetricConstitutiveMatrix ( const Material
     rConstitutiveMatrix.clear();
 
     double Pressure = 0;
-    Pressure = CalculateDomainPressure ( rDomainGeometry, rShapeFunctions, Pressure);
+    Pressure = CalculateDomainPressure ( rElementGeometry, rShapeFunctions, Pressure);
 
     static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
 
@@ -629,7 +629,7 @@ void HyperElasticUP3DLaw::CalculateIsochoricConstitutiveMatrix ( const MaterialR
 
 void HyperElasticUP3DLaw::CalculateVolumetricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
         const Matrix & rInverseDeformationGradientF,
-        const GeometryType& rDomainGeometry,
+        const GeometryType& rElementGeometry,
         const Vector & rShapeFunctions,
         Matrix& rConstitutiveMatrix)
 {
@@ -637,7 +637,7 @@ void HyperElasticUP3DLaw::CalculateVolumetricConstitutiveMatrix (const MaterialR
     rConstitutiveMatrix.clear();
 
     double Pressure = 0;
-    Pressure = CalculateDomainPressure ( rDomainGeometry, rShapeFunctions, Pressure);
+    Pressure = CalculateDomainPressure ( rElementGeometry, rShapeFunctions, Pressure);
 
     static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
 

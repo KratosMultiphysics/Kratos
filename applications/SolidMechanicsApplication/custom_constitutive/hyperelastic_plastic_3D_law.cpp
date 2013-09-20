@@ -154,14 +154,14 @@ void HyperElasticPlastic3DLaw::SetValue( const Variable<Matrix>& rThisVariable, 
 //************************************************************************************
 
 
-void HyperElasticPlastic3DLaw::InitializeMaterial( const Properties& props,
-						   const GeometryType& geom,
-						   const Vector& ShapeFunctionsValues )
+void HyperElasticPlastic3DLaw::InitializeMaterial( const Properties& rMaterialProperties,
+						   const GeometryType& rElementGeometry,
+						   const Vector& rShapeFunctionsValues )
 {
 
   mElasticLeftCauchyGreen = identity_matrix<double> (3);
 
-  mpFlowRule->InitializeMaterial( mpYieldCriterion, mpHardeningLaw, props );
+  mpFlowRule->InitializeMaterial( mpYieldCriterion, mpHardeningLaw, rMaterialProperties );
 
 }
 
@@ -169,10 +169,10 @@ void HyperElasticPlastic3DLaw::InitializeMaterial( const Properties& props,
 //************************************************************************************
 
 
-void HyperElasticPlastic3DLaw::InitializeSolutionStep( const Properties& props,
-        const GeometryType& geom, //this is just to give the array of nodes
-        const Vector& ShapeFunctionsValues,
-        const ProcessInfo& CurrentProcessInfo)
+void HyperElasticPlastic3DLaw::InitializeSolutionStep( const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry, //this is just to give the array of nodes
+        const Vector& rShapeFunctionsValues,
+        const ProcessInfo& rCurrentProcessInfo)
 {
 
 }
@@ -181,10 +181,10 @@ void HyperElasticPlastic3DLaw::InitializeSolutionStep( const Properties& props,
 //************************************************************************************
 
 
-void HyperElasticPlastic3DLaw::FinalizeSolutionStep( const Properties& props,
-        const GeometryType& geom, //this is just to give the array of nodes
-        const Vector& ShapeFunctionsValues,
-        const ProcessInfo& CurrentProcessInfo)
+void HyperElasticPlastic3DLaw::FinalizeSolutionStep( const Properties& rMaterialProperties,
+        const GeometryType& rElementGeometry, //this is just to give the array of nodes
+        const Vector& rShapeFunctionsValues,
+        const ProcessInfo& rCurrentProcessInfo)
 {
 
 }
@@ -1145,22 +1145,22 @@ bool HyperElasticPlastic3DLaw::CheckParameters(Parameters& rValues)
 
 
 
-int HyperElasticPlastic3DLaw::Check(const Properties& rProperties,
-                             const GeometryType& rGeometry,
+int HyperElasticPlastic3DLaw::Check(const Properties& rMaterialProperties,
+                             const GeometryType& rElementGeometry,
                              const ProcessInfo& rCurrentProcessInfo)
 {
 
-    if(YOUNG_MODULUS.Key() == 0 || rProperties[YOUNG_MODULUS]<= 0.00)
+    if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
         KRATOS_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
 
-    const double& nu = rProperties[POISSON_RATIO];
+    const double& nu = rMaterialProperties[POISSON_RATIO];
     const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
 
     if(POISSON_RATIO.Key() == 0 || check==true)
         KRATOS_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
 
 
-    if(DENSITY.Key() == 0 || rProperties[DENSITY]<0.00)
+    if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00)
         KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
 
 
