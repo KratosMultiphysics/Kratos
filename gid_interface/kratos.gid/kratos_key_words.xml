@@ -81,7 +81,7 @@
       <Item id="ConjugateGradient" kkword="Conjugate gradient" />
       <Item id="DeflatedCG" kkword="Deflated Conjugate gradient" />
       <Item id="GMRES" kkword="GMRES" />
-      <Item id="BiConjugateGradientStabilized" kkword="BiConjugate gradient stabilized" />
+      <Item id="BCGS" kkword="BiConjugate gradient stabilized" />
       <Item id="PastixDirect" kkword="PastixDirect" />
       <Item id="PastixIterative" kkword="PastixIterative" />
       <Item id="ParallelMKLPardiso" kkword="MKLPardisoSolver" />
@@ -89,8 +89,6 @@
       <Item id="Residual" kkword="Residual_Criteria" />
       <Item id="DisplacementAndResidual" kkword="And_Criteria" />
       <Item id="DisplacementOrResidual" kkword="Or_Criteria" />
-      <Item id="BiConjugateGradientStabilized" kkword="BiCGStab" />
-      <Item id="ConjugateGradient" kkword="CG" />
       <Item id="Diagonal" kkword="DIAG" />
       <Item id="ILU0" kkword="ILU0" />
       <Item id="GiDPostMode" kkword="GiDPostMode" />
@@ -267,28 +265,18 @@
 	  ivalues="Beam,Shell,Membrane,Solid,Generic"
 	  values="Beam,Shell,Membrane,Solid,Generic" delvalues = "Truss,EBST" />
     <Item id="MaterialModel" ivalues="Elastic-Isotropic,Elasto-Plastic" delvalues = "Elastic-Orthotropic,Damage"/>
-    <Item id="Beam" ivalues="Elastic-Isotropic"
-    values="Elastic-Isotropic" />
-    <Item id="Truss" ivalues="Elastic-Isotropic"
-    values="Elastic-Isotropic" />
-    <Item id="Membrane" ivalues="Elastic-Isotropic"
-    values="Elastic-Isotropic" />
-    <Item id="Shell" ivalues="Elastic-Isotropic"
-    values="Elastic-Isotropic" delvalues ="Elastic-Anisotropic"/>
-    <Item id="EBST"
-    ivalues="Elastic-Isotropic,Elasto-Plastic,Damage"
-    values="Elastic-Isotropic,Elasto-Plastic,Damage" />
-    <Item id="Solid"
-    ivalues="Elastic-Isotropic,Elasto-Plastic"
-    values="Elastic-Isotropic,Elasto-Plastic" delvalues ="Elastic-Orthotropic,Elasto-Plastic,Damage"/>
+    <Item id="Beam"  ivalues="Elastic-Isotropic" values="Elastic-Isotropic" />
+    <Item id="Truss" ivalues="Elastic-Isotropic" values="Elastic-Isotropic" />
+    <Item id="Membrane"  ivalues="Elastic-Isotropic" values="Elastic-Isotropic" />
+    <Item id="Shell" ivalues="Elastic-Isotropic" values="Elastic-Isotropic" delvalues ="Elastic-Anisotropic"/>
+    <Item id="EBST" ivalues="Elastic-Isotropic,Elasto-Plastic,Damage" values="Elastic-Isotropic,Elasto-Plastic,Damage" />
+    <Item id="Solid" ivalues="Elastic-Isotropic,HyperElastic-Plastic" values="Elastic-Isotropic,HyperElastic-Isotropic" 
+	  delvalues ="Elastic-Orthotropic,Elasto-Plastic,Damage"/>
     <Item id="Thickness2D" elementType="Plate,Solid" />
     <Item id="Thickness3D" elementType="Shell,Membrane,EBST" />
-    <Item id="Area" elementType="Truss,Beam"
-    sectionType="UserDefined" />
-    <Item id="InertiaIx" elementType="Beam"
-    sectionType="UserDefined" matrixid="BeamLocalInertia" />
-    <Item id="InertiaIy" elementType="Beam"
-    sectionType="UserDefined" matrixid="BeamLocalInertia" />
+    <Item id="Area" elementType="Truss,Beam" sectionType="UserDefined" />
+    <Item id="InertiaIx" elementType="Beam" sectionType="UserDefined" matrixid="BeamLocalInertia" />
+    <Item id="InertiaIy" elementType="Beam" sectionType="UserDefined" matrixid="BeamLocalInertia" />
     <Item id="RectangularHeight" elementType="Beam"
     sectionType="Rectangular" />
     <Item id="RectangularWidth" elementType="Beam"
@@ -341,40 +329,40 @@
   </ElementCLaws>
   <ElementValidCLaws>
     <Item id="PlaneStress2D"
-    claws="Elastic-Isotropic"
+    claws="Elastic-Isotropic,HyperElastic-Isotropic"
     active="1" />
     <Item id="PlaneStrain2D"
-    claws="Elastic-Isotropic"
+    claws="Elastic-Isotropic,HyperElastic-Isotropic"
     active="1" />
     <Item id="SolidElement3D"
-    claws="Elastic-Isotropic,Elasto-Plastic"
+    claws="Elastic-Isotropic,HyperElastic-Isotropic"
     active="1" />
     <Item id="TotalLagrangian2DPlaneStress"
-    claws="Elastic-Isotropic,Elasto-Plastic"
+    claws="Elastic-Isotropic,HyperElastic-Isotropic"
     active="1" />
     <Item id="TotalLagrangian2DPlaneStrain"
-    claws="Elastic-Isotropic,Elasto-Plastic"
+    claws="Elastic-Isotropic,HyperElastic-Isotropic"
     active="1" />
     <Item id="TotalLagrangian3D"
-    claws="Elastic-Isotropic,Elasto-Plastic"
+    claws="Elastic-Isotropic,HyperElastic-Isotropic"
     active="1" />
     <Item id="UpdatedLagrangian2DPlaneStress"
-    claws="Elastic-Isotropic,Elasto-Plastic"
+    claws="Elastic-Isotropic,HyperElastic-Isotropic"
     active="1" />
     <Item id="UpdatedLagrangian2DPlaneStrain"
-    claws="Elastic-Isotropic,Elasto-Plastic"
+    claws="Elastic-Isotropic,HyperElastic-Isotropic"
     active="1" />
     <Item id="SpatialLagrangian3D"
-    claws="Elastic-Isotropic,Elasto-Plastic"
+    claws="Elastic-Isotropic,HyperElastic-Isotropic"
     active="1" />
     <Item id="SpatialLagrangian2DPlaneStress"
-    claws="Elastic-Isotropic,Elasto-Plastic"
+    claws="Elastic-Isotropic,HyperElastic-Isotropic"
     active="1" />
     <Item id="SpatialLagrangian2DPlaneStrain"
-    claws="Elastic-Isotropic,Elasto-Plastic"
+    claws="Elastic-Isotropic,HyperElastic-Isotropic"
     active="1" />
     <Item id="SpatialLagrangian3D"
-    claws="Elastic-Isotropic,Elasto-Plastic"
+    claws="Elastic-Isotropic,HyperElastic-Isotropic"
     active="1" />
     <Item id="CrisfieldTrussElement" 
     claws="Elastic-Isotropic"
@@ -397,15 +385,24 @@
     <Item id="Fluid3D" claws="Fluid3D" active="0" />
   </ElementValidCLaws>
   <CLawProperties>
-    <Item id="LinearPlaneStrain2D" matm="LinearElasticPlaneStrain2DLaw()"
+    <!-- Linear Elastic Laws -->
+    <Item id="LinearElasticPlaneStrain2D" matm="LinearElasticPlaneStrain2DLaw()"
     mprops="Density,YoungModulus,PoissonRatio"
     mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
     cprops="Thickness" />
-    <Item id="LinearPlaneStress2D" matm="LinearElasticPlaneStress2DLaw()"
+    <Item id="LinearElasticPlaneStress2D" matm="LinearElasticPlaneStress2DLaw()"
     mprops="Density,YoungModulus,PoissonRatio"
     mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
     cprops="Thickness" />
-    <Item id="Isotropic2D" matm="LinearElasticPlaneStress2DLaw()"
+    <Item id="LinearElasticAxisym2D" matm="LinearElasticAxisym2DLaw()"
+    mprops="Density,YoungModulus,PoissonRatio"
+    mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
+    cprops="Thickness" />
+    <Item id="LinearElastic3D" matm="LinearElastic3DLaw()"
+    mprops="Density,YoungModulus,PoissonRatio"
+    mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
+    cprops="Thickness" />
+    <Item id="Isotropic2D" matm="LinearElasticPlaneStrain2DLaw()"
     mprops="Density,YoungModulus,PoissonRatio"
     mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
     cprops="Thickness" />
@@ -413,6 +410,24 @@
     mprops="Density,YoungModulus,PoissonRatio"
     mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
     cprops="Thickness" />
+    <!-- Hyper Elastic Laws -->
+    <Item id="HyperElasticPlaneStrain2D" matm="HyperElasticPlaneStrain2DLaw()"
+    mprops="Density,YoungModulus,PoissonRatio"
+    mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
+    cprops="Thickness" />
+    <Item id="HyperElasticPlaneStress2D" matm="HyperElasticPlaneStress2DLaw()"
+    mprops="Density,YoungModulus,PoissonRatio"
+    mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
+    cprops="Thickness" />
+    <Item id="LinearElasticAxisym2D" matm="HyperElasticAxisym2DLaw()"
+    mprops="Density,YoungModulus,PoissonRatio"
+    mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
+    cprops="Thickness" />
+    <Item id="HyperElastic3D" matm="HyperElastic3DLaw()"
+    mprops="Density,YoungModulus,PoissonRatio"
+    mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
+    cprops="Thickness" />
+    <!-- Damage Laws -->
     <Item id="IsotropicDamage"
     matm="Isotropic_Damage_2D(fluency,behavior,prop)"
     mprops="Density,YoungModulus,PoissonRatio,DTensileFractureEnergy,DCompressiveFractureEnergy,DTensileStrength,DCompressiveStrength"
@@ -429,6 +444,7 @@
     mbivalues="Linear,Exponential"
     mbwritev="LinearSoftening(),ExponentialSoftening()"
     cprops="Thickness" />
+    <!-- Plasticity Laws -->
     <Item id="Plasticity2D"
     matm="Plasticity2D(fluency,behavior,prop)"
     mprops="Density,YoungModulus,PoissonRatio"

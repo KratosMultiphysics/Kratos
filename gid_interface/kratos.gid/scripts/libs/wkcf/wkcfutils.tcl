@@ -679,37 +679,41 @@ proc ::wkcf::GetPropertiesData {} {
 		"Elastic-Isotropic" {
 		    if {$ndime eq "2D"} {
 		        # 2D case
-		        if {$ptype=="PlaneStrain"} {
-			    set cptype "LinearPlaneStrain2D"
-		            # Get the material properties
-		            ::wkcf::GetMaterialProperties $AppId $propid $MatId $ptype $MatModel 
-
-		            # Get the cross section properties
-		            ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
-
-		        } elseif {$ptype=="PlaneStress"} {
-		            set cptype "LinearPlaneStress2D"
-		            # Get the material properties
-		            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
-		            
-		            # Get the cross section properties
-		            ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+			if {$ptype=="Solid"} {
+			    # I need to check if the element is PlaneStrain2D or PlaneStress3D or 
+			    # Axisymmetric2D 
+			    if {$ptype=="PlaneStrain2D"} {
+				set cptype "LinearElasticPlaneStrain2D"
+				# Get the material properties
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $ptype $MatModel 
+				
+				# Get the cross section properties
+				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+				
+			    } elseif {$ptype=="PlaneStress2D"} {
+				set cptype "LinearElasticPlaneStress2D"
+				# Get the material properties
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+				
+			    } elseif {$ptype=="Axisymmetric2D"} {
+				set cptype "LinearElasticAxisymmetric2D"
+				# Get the material properties
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+				
+			    } else { # added here because I need another solution
+				# Confirmar la veracidad!
+				set cptype "LinearElasticPlaneStrain2D"
+				# Get the material properties
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+			    }
 		        } elseif {$ptype=="Beam"} {
-		            set cptype "Isotropic2D"
+		            set cptype "LinearElasticPlaneStrain2D"
 		            # Get the material properties
 		            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
 		            
 		            # Get the cross section properties
 		            ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
-		        } elseif {$ptype=="Solid"} {
-		            # Confirmar la veracidad!
-		            set cptype "Isotropic2D"
-		            # Get the material properties
-		            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
-		            
-		            # Get the cross section properties
-		            ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
-		        }
+		        } 
 		    } elseif {$ndime =="3D"} {
 		        # 3D case
 		        set ltypelist [list "Solid" "Shell" "Membrane" "Beam" "Truss" "EBST"]
@@ -719,8 +723,67 @@ proc ::wkcf::GetPropertiesData {} {
 		                set cptype "Isotropic2D"
 		            } elseif {($ptype eq "Beam") || ($ptype eq "Truss")} {
 		                set cptype "Isotropic2D"
-		            } else {
-		                set cptype "Isotropic3D"
+		            } else { #SolidElement3D
+		                set cptype "LinearElastic3D"
+		            }
+		            
+		            # Get the material properties
+		            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+		            
+		            # Get the cross section properties
+		            ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+		        }
+		    }
+		}
+		"HyperElastic-Isotropic" {
+		    if {$ndime eq "2D"} {
+		        # 2D case
+			if {$ptype=="Solid"} {
+			    # I need to check if the element is PlaneStrain2D or PlaneStress3D or 
+			    # Axisymmetric2D 
+			    if {$ptype=="PlaneStrain2D"} {
+				set cptype "HyperElasticPlaneStrain2D"
+				# Get the material properties
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $ptype $MatModel 
+				
+				# Get the cross section properties
+				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+				
+			    } elseif {$ptype=="PlaneStress2D"} {
+				set cptype "HyperElasticPlaneStress2D"
+				# Get the material properties
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+				
+			    } elseif {$ptype=="Axisymmetric2D"} {
+				set cptype "HyperElasticAxisymmetric2D"
+				# Get the material properties
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+				
+			    } else { # added here because I need another solution
+				# Confirmar la veracidad!
+				set cptype "HyperElasticPlaneStrain2D"
+				# Get the material properties
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+			    }
+		        } elseif {$ptype=="Beam"} {
+		            set cptype "Isotropic2D"
+		            # Get the material properties
+		            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+		            
+		            # Get the cross section properties
+		            ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+		        } 
+		    } elseif {$ndime =="3D"} {
+		        # 3D case
+		        set ltypelist [list "Solid" "Shell" "Membrane" "Beam" "Truss" "EBST"]
+		        # Check that this ptype is in the list
+		        if {$ptype in $ltypelist} {
+		            if {($ptype eq "Shell") || ($ptype eq "Membrane") || ($ptype eq "EBST")} {
+		                set cptype "Isotropic2D"
+		            } elseif {($ptype eq "Beam") || ($ptype eq "Truss")} {
+		                set cptype "Isotropic2D"
+		            } else { #SolidElement3D
+		                set cptype "HyperElastic3D"
 		            }
 		            
 		            # Get the material properties
