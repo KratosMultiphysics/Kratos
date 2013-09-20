@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #   
+#     1.9- 20/09/13-G. Socorro, modify the proc WriteSurfaceLoad to correct a bug when write linear and quadratic quadrilateral elements
 #     1.8- 19/09/13-G. Socorro, modify the proc WriteVolumeAcceleration to write VOLUME_ACCELERATION_* nodal properties
 #     1.7- 25/06/13-A. Melendo, new proc WriteFaceLoads
 #     1.6- 17/06/13-G. Socorro, delete wmethod variable and all relalated procedure (*_m0,*_m1,*_m2) => now we are using only the new GiD groups
@@ -107,7 +108,7 @@ proc ::wkcf::WriteLoads {AppId} {
         set kwxpath "Applications/$AppId"
         # For all defined load identifier
         foreach cloadtid $dprops($AppId,AllLoadTypeId) {
-	    # WarnWinText "cloadtid:$cloadtid"
+	    # wa "cloadtid:$cloadtid"
             # Check for all defined group identifier inside this load type
             if {([info exists dprops($AppId,Loads,$cloadtid,AllGroupId)]) && ([llength $dprops($AppId,Loads,$cloadtid,AllGroupId)])} {
             # Select the load type
@@ -1011,9 +1012,8 @@ proc ::wkcf::WriteSurfaceLoad {AppId cloadtid} {
             # Write SurfaceLoad condition
             GiD_File fprintf $filechannel "%s" "Begin Conditions $SurfaceLoadCondition // GUI face load group identifier: $cgroupid"
             foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
-		
 		if {$useqelem=="1"} {
-		    set nodes [lrange [GiD_Mesh get element $elem_id] 6 end]
+		    set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
 		    set N1 [lindex $nodes 0]
 		    set N2 [lindex $nodes 1]
 		    set N3 [lindex $nodes 2]
@@ -1037,7 +1037,6 @@ proc ::wkcf::WriteSurfaceLoad {AppId cloadtid} {
         }
     }
 
-
     # QUADRILATERAL SURFACE:
 
     # Set the GiD element type
@@ -1048,16 +1047,17 @@ proc ::wkcf::WriteSurfaceLoad {AppId cloadtid} {
     # Set the condition keyword
     set ConditionKeyWord "SurfaceLoadCondition"
     set SurfaceLoadCondition [string trim ${ConditionKeyWord}${etbf}]
+    # wa "SurfaceLoadCondition:$SurfaceLoadCondition"
 
     # For all defined group identifier inside this load type
     foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
+	# wa "cgroupid:$cgroupid"
         if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
             # Write SurfaceLoad condition
             GiD_File fprintf $filechannel "%s" "Begin Conditions $SurfaceLoadCondition // GUI face load group identifier: $cgroupid"
             foreach elem_id [GiD_EntitiesGroups get $cgroupid elements -element_type $GiDElemType] {
-		
 		if {$useqelem=="1"} {
-		    set nodes [lrange [GiD_Mesh get element $elem_id] 8 end]
+		    set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
 		    set N1 [lindex $nodes 0]
 		    set N2 [lindex $nodes 1]
 		    set N3 [lindex $nodes 2]
@@ -1070,7 +1070,7 @@ proc ::wkcf::WriteSurfaceLoad {AppId cloadtid} {
 		    set cf "[format "%4i%4i%8i%8i%8i%8i%8i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3 $N4 $N5 $N6 $N7 $N8]"
 
 		} else {
- 		    set nodes [lrange [GiD_Mesh get element $elem_id] 4 end]
+		    set nodes [lrange [GiD_Mesh get element $elem_id] 3 end]
 		    set N1 [lindex $nodes 0]
 		    set N2 [lindex $nodes 1]
 		    set N3 [lindex $nodes 2]
@@ -1084,7 +1084,7 @@ proc ::wkcf::WriteSurfaceLoad {AppId cloadtid} {
             GiD_File fprintf $filechannel ""
         }
     }
-
+  
     # Write faceforce values for all nodes inside a group identifier 
     foreach cgroupid $dprops($AppId,Loads,$cloadtid,AllGroupId) {
 
