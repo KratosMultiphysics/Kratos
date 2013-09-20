@@ -531,7 +531,7 @@ private:
 
 	
 		    //Check coincident faces-normals
-		    for (uint esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
+		    for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
 		      {
 
 			const array_1d<double,3>& AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
@@ -541,7 +541,7 @@ private:
 			  if (esnod+1<normals_size){
 		
 			    double tooclose=0;
-			    for (uint esn=esnod+1;esn<normals_size;esn++)//loop over node neighbor faces
+			    for (unsigned int esn=esnod+1;esn<normals_size;esn++)//loop over node neighbor faces
 			      {
 		    
 				const array_1d<double,3>& NormalVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esn].GetValue(NORMAL); //conditions
@@ -571,7 +571,7 @@ private:
 
 			      }//end for the esnod for
 		    
-			    for (uint esn=esnod; esn<normals_size;esn++)//loop over node neighbour faces
+			    for (unsigned int esn=esnod; esn<normals_size;esn++)//loop over node neighbour faces
 			      {
 				if(storenorm[esn]==2 && tooclose>0)
 				  storenorm[esn]=(1.0/(tooclose+1));   
@@ -616,7 +616,7 @@ private:
 
 		      if(numnorm==3){ //Definite solution for 3 planes
 
-			for (uint esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
+			for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
 			  {
 			    if(tipnormal[esnod]>=1 && storenorm[esnod]==0){ //tip node correction
 
@@ -635,7 +635,7 @@ private:
 			pronormal.clear();
 
 			//get the positive biggest projection between planes
-			for (uint esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
+			for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
 			  {
 			    maxprojection=0;
 		
@@ -643,7 +643,7 @@ private:
 
 			      const array_1d<double,3>& AuxVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
 
-			      for (uint esn=0;esn<normals_size;esn++)//loop over node neighbor faces to check the most coplanar
+			      for (unsigned int esn=0;esn<normals_size;esn++)//loop over node neighbor faces to check the most coplanar
 				{
 				  if(tipnormal[esn]>=1 && storenorm[esn]!=1 && esnod!=esn){ 
 
@@ -665,7 +665,7 @@ private:
 			// 	    std::cout<<" PROJECTIONS "<<pn<<" pronormal"<<pronormal<<std::endl;
 		  
 			//get the most obtuse normals 
-			for (uint esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
+			for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
 			  {
 		
 			    if(indepnorm<3){
@@ -677,11 +677,11 @@ private:
 				if(storenorm[esnod]!=0) //!=1
 				  AuxVector*=storenorm[esnod];
 		  
-				for (uint esn=esnod+1;esn<normals_size;esn++)//loop over node neighbor faces to check the most coplanar
+				for (unsigned int esn=esnod+1;esn<normals_size;esn++)//loop over node neighbor faces to check the most coplanar
 				  {
 				    if(tipnormal[esn]>=1 && storenorm[esn]!=1){ //tip node correction
 
-				      if(esnod+1==uint(pronormal[esn])){
+					    if(esnod+1==(unsigned int)pronormal[esn]){
 
 					const array_1d<double,3>& NormalVector = nConditions[Ids[(boundary_nodes_begin + pn)->Id()]][esnod].GetValue(NORMAL); //conditions
 				    
@@ -720,7 +720,7 @@ private:
 
 		      if(indepnorm<3){
 
-			for (uint esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
+			for (unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neighbor faces
 			  {
 			    if(indepnorm==3)
 			      break;
@@ -772,7 +772,7 @@ private:
 	  					
 		      Normal=Normal/norm_2(Normal); //normalize normal *this/modulus();
 	  
-		      for(uint esnod=0;esnod<normals_size;esnod++)//loop over node neigbour faces
+		      for(unsigned int esnod=0;esnod<normals_size;esnod++)//loop over node neigbour faces
 			{    
 			  if (storenorm[esnod]!=1){
 		

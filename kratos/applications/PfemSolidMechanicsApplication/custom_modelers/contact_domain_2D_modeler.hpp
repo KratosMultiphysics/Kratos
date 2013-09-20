@@ -52,8 +52,8 @@ protected:
       double  mu_static;
       double  mu_dynamic;
       
-      uint    friction_active;
-      uint    penalty_contact;
+      unsigned int    friction_active;
+      unsigned int    penalty_contact;
     };
 
 public:

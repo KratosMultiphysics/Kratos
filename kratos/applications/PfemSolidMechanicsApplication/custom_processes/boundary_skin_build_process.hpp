@@ -284,7 +284,7 @@ namespace Kratos
 						
 					    if(found){
 					      WeakPointerVector< Node<3> > MasterNodes;
-					      MasterNodes.push_back( typename Node<3>::WeakPointer( rElementGeom(lpofa(0,node)) ) );
+					      MasterNodes.push_back( Node<3>::WeakPointer( rElementGeom(lpofa(0,node)) ) );
 					      ic->SetValue(MASTER_NODES,MasterNodes);
 					    }
 					    else{						 
@@ -604,7 +604,7 @@ namespace Kratos
  
 						//usually one MasterElement and one MasterNode in 2D in 3D can be more than one
 						p_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
-						p_cond->GetValue(MASTER_NODES).push_back( typename Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );
+						p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );
 
 						//std::cout<<" Set preserved condition found "<<id<<std::endl;
 						mr_model_part.Conditions(MeshId).push_back(p_cond);
@@ -771,7 +771,7 @@ namespace Kratos
 
 						//usually one MasterElement and one MasterNode in 2D in 3D can be more than one
 						p_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
-						p_cond->GetValue(MASTER_NODES).push_back( typename Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );
+						p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );
 
 						//std::cout<<" Set preserved condition found "<<id<<std::endl;
 						mr_model_part.Conditions(MeshId).push_back(p_cond);

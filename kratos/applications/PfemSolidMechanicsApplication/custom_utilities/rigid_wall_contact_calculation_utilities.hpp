@@ -261,7 +261,7 @@ namespace Kratos
       ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
       // assemble all conditions
-      for (typename NodesArrayType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
+      for ( NodesArrayType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
 	{
 	  if(nd->Is(BOUNDARY)){
 	  
@@ -552,7 +552,7 @@ namespace Kratos
       //getting the array of the conditions
       NodesArrayType& NodesArray = r_model_part.Nodes();
 
-      for (typename NodesArrayType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
+      for ( typename NodesArrayType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
 	{
 	  ClearNodalForces(*nd);
 	}
