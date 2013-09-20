@@ -104,7 +104,7 @@ public:
         WeakPointerVector< Node < 3 > > new_nodes;
         ModelPart& this_model_part = mr_model_part;
 
-        ElementsArrayType& rElements = this_model_part.Elements();
+        //ElementsArrayType& rElements = this_model_part.Elements();
         //ElementsArrayType::iterator it_begin = rElements.ptr_begin();
         //ElementsArrayType::iterator it_end = rElements.ptr_end();
         PointerVector< Element > New_Elements;
