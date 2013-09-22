@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #        
+#     3.8- 22/09/13-G. Socorro, add the proc GetElementIdFromPropertyId to get the list of element identifier from a property identifier
 #     3.7- 19/09/13-G. Socorro, add the proc GetSurfaceTypeList to classify the surface type 
 #     3.6- 18/09/13-G. Socorro, add some proc and variable for the convection-diffusion application 
 #     3.5- 14/07/13-G. Socorro, modify the proc GetBoundaryConditionProperties to enable the condition WallLaw
@@ -668,6 +669,10 @@ proc ::wkcf::GetPropertiesData {} {
 		set dprops($AppId,Property,$propid,${cspropid}) $cvalue
 	    }
 	    
+	    # Get the list of element that have this propertyid assigned
+	    set ElementIdList [::wkcf::GetElementIdFromPropertyId $AppId $propid]
+	    # wa "ElementIdList:$ElementIdList"
+
 	    # Set fluency and behavior variables
 	    set dprops($AppId,Material,$MatId,UseFluency) "No"
 	    set dprops($AppId,Material,$MatId,Fluency) ""
@@ -1319,7 +1324,7 @@ proc ::wkcf::GetElementProperties {} {
 	set cxpath "$rootdataid//c.Elements"
 	set glist [::xmlutils::setXmlContainerIds $cxpath]
 	set kwxpath "Applications/$rootdataid"
-	# WarnWinText "glist:$glist"
+	WarnWinText "glist:$glist"
 	foreach celemid $glist {
 	    # Get the group identifier defined for this element 
 	    set cxpath "$rootdataid//c.Elements//c.[list ${celemid}]"
@@ -1328,7 +1333,7 @@ proc ::wkcf::GetElementProperties {} {
 		# WarnWinText "cgrouplist:$cgrouplist"
 		foreach cgroupid $cgrouplist {
 		    # Check if this group is in active state
-		    # Get active propery
+		    # Get active property
 		    set cxpath "$rootdataid//c.Elements//c.[list ${celemid}]//c.[list ${cgroupid}]"
 		    set cproperty "active"
 		    set ActiveGroup [::xmlutils::setXml $cxpath $cproperty]
@@ -1401,10 +1406,27 @@ proc ::wkcf::GetElementProperties {} {
 		    } else {
 		        set dprops($AppId,Property,$PropertyId,GroupId) $cgroupid
 		    }
+
+		    # Update the link between the element type and property => if the property exist add to the list
+		    if {[info exists dprops($AppId,Property,$PropertyId,ElementId)]} {
+		        lappend dprops($AppId,Property,$PropertyId,ElementId) $celemid
+		    } else {
+		        set dprops($AppId,Property,$PropertyId,ElementId) $celemid
+		    }
 		}
 	    }
 	}
     }
+}
+
+proc ::wkcf::GetElementIdFromPropertyId {AppId PropertyId} {
+    variable dprops
+
+    set ElementId ""
+    if {[info exists dprops($AppId,Property,$PropertyId,ElementId)]} {
+       set ElementId $dprops($AppId,Property,$PropertyId,ElementId)
+    }
+    return $ElementId
 }
 
 proc ::wkcf::UnsetLocalVariables {} {
