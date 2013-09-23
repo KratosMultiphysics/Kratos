@@ -78,7 +78,6 @@ class IncompressibleFluidSolver:
         self.max_vel_its = 6
         self.max_press_its = 3
         self.time_order = 2
-        self.CalculateReactions = False
         self.ReformDofAtEachIteration = False
         self.CalculateNormDxFlag = True
         self.laplacian_form = 1
