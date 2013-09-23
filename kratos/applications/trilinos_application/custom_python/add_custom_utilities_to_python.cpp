@@ -68,6 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/trilinos_refine_mesh.h"
 #include "custom_utilities/trilinos_fractional_step_settings.h"
 #include "custom_utilities/trilinos_fractional_step_settings_periodic.h"
+#include "custom_utilities/gather_modelpart_utility.h"
 
 namespace Kratos
 {
@@ -172,6 +173,15 @@ void  AddCustomUtilitiesToPython()
     .def("GetStrategy",&TrilinosFSSettingsPeriodicType::pGetStrategy)
     .def("SetEchoLevel",&TrilinosFSSettingsPeriodicType::SetEchoLevel)
     ;
+    
+    
+    class_<GatherModelPartUtility, boost::noncopyable >
+    ("GatherModelPartUtility",
+     init<int, ModelPart&, int , ModelPart&>() )
+     .def("GatherOnMaster",&GatherModelPartUtility::GatherOnMaster)
+    .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<double> )
+     .def("ScatterFromMaster",&GatherModelPartUtility::ScatterFromMaster<array_1d<double,3> > )
+   ;
 
 
 }
