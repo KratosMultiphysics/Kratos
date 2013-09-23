@@ -31,6 +31,12 @@ class GatherModelPartUtility
 {
 public:
 
+    ///This function is designed to obtain data from "origin_model_part.GetMesh(mesh_id)", copy it to a new model part
+    ///and make rank "gather_rank" to have a copy of it. Transferred nodes will be treated as ghost on the gather_rank
+    ///@param gather_rank --> mpi rank to which the model part is gathered
+    ///@param origin_model_part --> model part on which the origin mesh is contained
+    ///@param mesh_id --> id of the mesh which contains the data
+    ///@param destination_model_part --> model part to which we gather the data
     GatherModelPartUtility(int gather_rank, ModelPart& origin_model_part, int mesh_id, ModelPart& destination_model_part)
         :mr_model_part(destination_model_part), mgather_rank(gather_rank)
     {
@@ -82,10 +88,10 @@ public:
                 SendNodes[gather_rank].push_back(*it.base());
         }
         destination_model_part.GetCommunicator().TransferObjects(SendNodes,RecvNodes);
-		for(unsigned int i=0; i<RecvNodes.size(); i++)
+        for(unsigned int i=0; i<RecvNodes.size(); i++)
         {
-			for(ModelPart::NodesContainerType::ContainerType::iterator it = RecvNodes[i].begin(); it != RecvNodes[i].end(); it++)
-				destination_model_part.Nodes().push_back(*it);
+            for(ModelPart::NodesContainerType::ContainerType::iterator it = RecvNodes[i].begin(); it != RecvNodes[i].end(); it++)
+                destination_model_part.Nodes().push_back(*it);
         }
         SendNodes.clear();
         RecvNodes.clear();
@@ -100,10 +106,10 @@ public:
             SendElements[gather_rank].push_back(*it.base());
         }
         destination_model_part.GetCommunicator().TransferObjects(SendElements,RecvElements);
-		for(unsigned int i=0; i<RecvNodes.size(); i++)
+        for(unsigned int i=0; i<RecvNodes.size(); i++)
         {
-			for(ModelPart::ElementsContainerType::ContainerType::iterator it = RecvElements[i].begin(); it != RecvElements[i].end(); it++)
-				destination_model_part.Elements().push_back(*it);
+            for(ModelPart::ElementsContainerType::ContainerType::iterator it = RecvElements[i].begin(); it != RecvElements[i].end(); it++)
+                destination_model_part.Elements().push_back(*it);
         }
         SendElements.clear();
         RecvElements.clear();
@@ -118,12 +124,12 @@ public:
             SendConditions[gather_rank].push_back(*it.base());
         }
         destination_model_part.GetCommunicator().TransferObjects(SendConditions,RecvConditions);
-		for(unsigned int i=0; i<RecvNodes.size(); i++)
+        for(unsigned int i=0; i<RecvNodes.size(); i++)
         {
-			for(ModelPart::ConditionsContainerType::ContainerType::iterator it = RecvConditions[i].begin(); it != RecvConditions[i].end(); it++)
-				destination_model_part.Conditions().push_back(*it);
+            for(ModelPart::ConditionsContainerType::ContainerType::iterator it = RecvConditions[i].begin(); it != RecvConditions[i].end(); it++)
+                destination_model_part.Conditions().push_back(*it);
         }
-		SendConditions.clear();
+        SendConditions.clear();
         RecvConditions.clear();
 
 
@@ -134,48 +140,31 @@ public:
 
         KRATOS_CATCH("")
     }
-	
-	void GatherOnMaster()
-	{
-		KRATOS_TRY
-		mr_model_part.GetCommunicator().SynchronizeNodalSolutionStepsData();
-		KRATOS_CATCH("")
-	}
-	
-/*	void GatherOnMaster(Variable<array_1d<double,3> > const& ThisVariable)
-	{
-		KRATOS_TRY
-		mr_model_part.GetCommunicator().SynchronizeVariable(ThisVariable);
-		KRATOS_CATCH("")
-	}*/
-	template< class TDataType >
-	void ScatterFromMaster(Variable<TDataType>& ThisVariable)
-	{
-		KRATOS_TRY
-		
-		if(mgather_rank != mr_model_part.GetCommunicator().MyPID() )
-		{
-                  for(ModelPart::NodesContainerType::iterator it = mr_model_part.NodesBegin();it != mr_model_part.NodesEnd(); it++)
-					it->FastGetSolutionStepValue(ThisVariable) = ThisVariable.Zero();
-		}
-		mr_model_part.GetCommunicator().AssembleCurrentData(ThisVariable);
-		
-		KRATOS_CATCH("")
-	}
 
-//         void ScatterFromMaster(Variable<array_1d<double,3> > const& ThisVariable)
-//         {
-//                 KRATOS_TRY
-//                 
-//                 if(mgather_rank != mr_model_part.GetCommunicator().MyPID() )
-//                 {
-//                   for(ModelPart::NodesContainerType::iterator it = mr_model_part.NodesBegin();it != mr_model_part.NodesEnd(); it++)
-//                                         it->FastGetSolutionStepValue(ThisVariable) = ZeroVector(3);
-//                 }
-//                 mr_model_part.GetCommunicator().AssembleCurrentData(ThisVariable);
-//                 
-//                 KRATOS_CATCH("")
-//         }
+    void GatherOnMaster()
+    {
+        KRATOS_TRY
+        mr_model_part.GetCommunicator().SynchronizeNodalSolutionStepsData();
+        KRATOS_CATCH("")
+    }
+
+
+
+    template< class TDataType >
+    void ScatterFromMaster(Variable<TDataType>& ThisVariable)
+    {
+        KRATOS_TRY
+
+        if(mgather_rank != mr_model_part.GetCommunicator().MyPID() )
+        {
+            for(ModelPart::NodesContainerType::iterator it = mr_model_part.NodesBegin(); it != mr_model_part.NodesEnd(); it++)
+                it->FastGetSolutionStepValue(ThisVariable) = ThisVariable.Zero();
+        }
+        mr_model_part.GetCommunicator().AssembleCurrentData(ThisVariable);
+
+        KRATOS_CATCH("")
+    }
+
 
     virtual ~GatherModelPartUtility()
     {
