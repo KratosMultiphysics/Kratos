@@ -534,6 +534,11 @@ public:
             
             ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
             
+            if (mesh_size < number_of_particles_to_insert) {
+                number_of_particles_to_insert = mesh_size;
+                KRATOS_WATCH("The number of DEM particles has been reduced to match the number of nodes of the DEM Inlet mesh")
+            }
+            
             for (int i = 0; i < number_of_particles_to_insert; i++) {
               int pos = rand() % mesh_size;                            
               inserting_nodes[i] = all_nodes[pos]; //This only works for pos as real position in the vector if 
