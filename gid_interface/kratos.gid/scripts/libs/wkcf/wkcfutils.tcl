@@ -671,6 +671,8 @@ proc ::wkcf::GetPropertiesData {} {
 	    
 	    # Get the list of element that have this propertyid assigned
 	    set ElementIdList [::wkcf::GetElementIdFromPropertyId $AppId $propid]
+	    # Get the first element of the list
+	    set setype [lindex $ElementIdList 0]
 	    # wa "ElementIdList:$ElementIdList"
 
 	    # Set fluency and behavior variables
@@ -687,7 +689,7 @@ proc ::wkcf::GetPropertiesData {} {
 			if {$ptype=="Solid"} {
 			    # I need to check if the element is PlaneStrain2D or PlaneStress3D or 
 			    # Axisymmetric2D 
-			    if {$ptype=="PlaneStrain2D"} {
+			    if {$setype=="PlaneStrain2D"} {
 				set cptype "LinearElasticPlaneStrain2D"
 				# Get the material properties
 				::wkcf::GetMaterialProperties $AppId $propid $MatId $ptype $MatModel 
@@ -695,12 +697,12 @@ proc ::wkcf::GetPropertiesData {} {
 				# Get the cross section properties
 				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
 				
-			    } elseif {$ptype=="PlaneStress2D"} {
+			    } elseif {$setype=="PlaneStress2D"} {
 				set cptype "LinearElasticPlaneStress2D"
 				# Get the material properties
 				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
 				
-			    } elseif {$ptype=="Axisymmetric2D"} {
+			    } elseif {$setype=="Axisymmetric2D"} {
 				set cptype "LinearElasticAxisymmetric2D"
 				# Get the material properties
 				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
