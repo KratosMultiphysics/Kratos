@@ -66,7 +66,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "spatial_containers/cell.h"
 
 // Application includes
-#include "bins_dynamic_objects_mpi.h"
+#include "custom_utilities/bins_dynamic_objects_mpi.h"
     
 int compareFunction(const void * a, const void * b)
 {
@@ -166,6 +166,11 @@ public:
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     }
     
+    double * MeanPoint;
+    double * Normal;
+    double * Plane;
+    double * Dot;
+    
     //Lloyd based partitioning
     void LloydsBasedParitioner(ModelPart& mModelPart, double MaxNodeRadius, int CalculateBoundry)
     {
@@ -176,10 +181,10 @@ public:
         double SetCentroid[mpi_size*Dimension], SendSetCentroid[mpi_size*Dimension];
         
         //Boundary conditions
-        double MeanPoint[mpi_size*Dimension];
-        double Normal[mpi_size*Dimension];
-        double Plane[mpi_size];
-        double Dot[mpi_size];
+        MeanPoint = new double[mpi_size*Dimension];
+        Normal = new double[mpi_size*Dimension];
+        Plane = new double[mpi_size];
+        Dot = new double[mpi_size];
         
         //Define algorthm iterations (maybe is a good idea pass this as a parameter)
         int NumIterations = 100;
@@ -204,11 +209,8 @@ public:
             Dot[i] = sqrt(Dot[i]);
         }
         
-        //Move Elements
-        mModelPart.GetCommunicator().TransferModelElements(mModelPart);
-        
         //Calculate partitions interfaces
-        CalculatePartitionInterface(mModelPart,Normal,Plane,Dot);
+//         CalculatePartitionInterface(mModelPart,Normal,Plane,Dot);
     }
     
     /**
@@ -318,7 +320,7 @@ public:
         }
     }
         
-    void CalculatePartitionInterface(ModelPart& mModelPart, double Normal[], double Plane[], double Dot[])
+    void CalculatePartitionInterface(ModelPart& mModelPart)
     {
         ContainerType pElements = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
         ContainerType pElementsMarked;
