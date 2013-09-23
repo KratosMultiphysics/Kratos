@@ -1484,8 +1484,8 @@ private:
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
         
-        for(int i = 0; i < mpi_size; i++)
-            std::cout << "Process: " << mpi_rank << " to " << i << " has: " << SendObjects[i].size() << " objects to transfer " << std::endl;  
+/*        for(int i = 0; i < mpi_size; i++)
+            std::cout << "Process: " << mpi_rank << " to " << i << " has: " << SendObjects[i].size() << " objects to transfer " << std::endl;  */
 
         TransferFunction<TObjectType>(SendObjects,RecvObjects);
         
