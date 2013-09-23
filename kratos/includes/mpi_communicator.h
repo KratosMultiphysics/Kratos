@@ -660,48 +660,48 @@ public:
     }
     
     /////////////////////////////////////////////////////////////////////////////
-    
-    virtual bool TransferModelElements(ModelPart& mModelPart)
+         
+    virtual bool TransferObjects(std::vector<NodesContainerType::ContainerType>& SendObjects, std::vector<NodesContainerType::ContainerType>& RecvObjects)
     {
-        TransferModelElementsInternal(mModelPart);
+        AsyncTransferObjects<NodesContainerType::ContainerType>(SendObjects,RecvObjects);
         return true;
     }
     
-    virtual bool TransferModelNodes(ModelPart& mModelPart)
+    virtual bool TransferObjects(std::vector<ElementsContainerType::ContainerType>& SendObjects, std::vector<ElementsContainerType::ContainerType>& RecvObjects)
     {
-        TransferModelNodesInternal(mModelPart);
+        AsyncTransferObjects<ElementsContainerType::ContainerType>(SendObjects,RecvObjects);
         return true;
     }
     
-    virtual bool TransferModelElements(ModelPart& mModelPart, std::vector<ElementsContainerType::ContainerType> &SendObjects, std::vector<ElementsContainerType::ContainerType> &RecvObjects) 
+    virtual bool TransferFunction(std::vector<ElementsContainerType::ContainerType> &SendObjects, std::vector<ElementsContainerType::ContainerType> &RecvObjects) 
     {
-        TransferObjects<ElementsContainerType::ContainerType>(mModelPart,SendObjects,RecvObjects);
+        TransferFunction(SendObjects,RecvObjects);
         return true;
     }
     
-    virtual bool TransferModelNodes(ModelPart& mModelPart, std::vector<NodesContainerType::ContainerType> &SendObjects, std::vector<NodesContainerType::ContainerType> &RecvObjects) 
+    virtual bool TransferFunction(std::vector<NodesContainerType::ContainerType> &SendObjects, std::vector<NodesContainerType::ContainerType> &RecvObjects) 
     {
-        TransferObjects<NodesContainerType::ContainerType>(mModelPart,SendObjects,RecvObjects);
+        TransferFunction(SendObjects,RecvObjects);
         return true;
     }
     
-    virtual bool TransferModelConditions(ModelPart& mModelPart,std::vector<ConditionsContainerType::ContainerType> &SendObjects,std::vector<ConditionsContainerType::ContainerType> &RecvObjects) 
+    virtual bool TransferFunction(std::vector<ConditionsContainerType::ContainerType> &SendObjects,std::vector<ConditionsContainerType::ContainerType> &RecvObjects) 
     {
-        TransferObjects<ConditionsContainerType::ContainerType>(mModelPart,SendObjects,RecvObjects);
+        TransferFunction(SendObjects,RecvObjects);
         return true;
     }
     
-    virtual bool BuildNewPartitions(ModelPart& mModelPart, std::vector<ElementsContainerType::ContainerType> &RecvObjects)
-    {
-        BuildNewElementsPartitions(mModelPart,RecvObjects);
-        return true;
-    }
-    
-    virtual bool BuildNewPartitions(ModelPart& mModelPart, std::vector<NodesContainerType::ContainerType> &RecvObjects)
-    {
-        BuildNewNodesPartitions(mModelPart,RecvObjects);
-        return true;
-    }
+//     virtual bool BuildNewPartitions(std::vector<ElementsContainerType::ContainerType> &RecvObjects)
+//     {
+//         BuildNewElementsPartitions(mModelPart,RecvObjects);
+//         return true;
+//     }
+//     
+//     virtual bool BuildNewPartitions(std::vector<NodesContainerType::ContainerType> &RecvObjects)
+//     {
+//         BuildNewNodesPartitions(mModelPart,RecvObjects);
+//         return true;
+//     }
     
     /////////////////////////////////////////////////////////////////////////////
 
@@ -1475,7 +1475,8 @@ private:
         return true;
     }
     
-    bool TransferModelElementsInternal(ModelPart& mModelPart)
+    template<class TObjectType>
+    bool AsyncTransferObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects)
     {
         int mpi_rank;
         int mpi_size;
@@ -1483,75 +1484,16 @@ private:
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
         
-        std::vector<ElementsContainerType::ContainerType> SendObjects(mpi_size);
-        std::vector<ElementsContainerType::ContainerType> RecvObjects(mpi_size);
-        
         for(int i = 0; i < mpi_size; i++)
-        {
-            SendObjects[i].reserve(LocalMesh().NumberOfElements());
-        }
-        
-        ElementsContainerType::ContainerType& pElements = LocalMesh().ElementsArray();
-        
-        //Fill the buffer with elements to be transfered
-        for (ElementsContainerType::ContainerType::iterator i_element = pElements.begin(); i_element != pElements.end(); ++i_element)
-        {
-            int PartitionIndex = (*i_element)->GetValue(PARTITION_INDEX);
-            
-            if(PartitionIndex != mpi_rank)
-            {
-                SendObjects[PartitionIndex].push_back(*i_element);
-            }
-        }
-        
-        for(int i = 0; i < mpi_size; i++)
-            std::cout << "Process: " << mpi_rank << " to " << i << " has: " << SendObjects[i].size() << " elements to transfer " << pElements.size() << std::endl;  
+            std::cout << "Process: " << mpi_rank << " to " << i << " has: " << SendObjects[i].size() << " objects to transfer " << std::endl;  
 
-        TransferObjects<ElementsContainerType::ContainerType>(mModelPart,SendObjects,RecvObjects);
-        BuildNewElementsPartitions(mModelPart,RecvObjects);
-        
-        return true;
-    }
-    
-    bool TransferModelNodesInternal(ModelPart& mModelPart)
-    {
-        int mpi_rank;
-        int mpi_size;
-        
-        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-        
-        std::vector<NodesContainerType::ContainerType> SendObjects(mpi_size);
-        std::vector<NodesContainerType::ContainerType> RecvObjects(mpi_size);
-        
-        for(int i = 0; i < mpi_size; i++)
-        {
-            SendObjects[i].reserve(LocalMesh().NumberOfNodes());
-        }
-        
-        NodesContainerType::ContainerType& pNodes = LocalMesh().NodesArray();
-        
-        //Fill the buffer with elements to be transfered
-        for (NodesContainerType::ContainerType::iterator i_node = pNodes.begin(); i_node != pNodes.end(); ++i_node)
-        {
-            int PartitionIndex = (*i_node)->GetSolutionStepValue(PARTITION_INDEX);
-            if(PartitionIndex != mpi_rank)
-            {
-                SendObjects[PartitionIndex].push_back(*i_node);
-            }
-        }
-        
-        for(int i = 0; i < mpi_size; i++)
-            std::cout << "Process: " << mpi_rank << " to " << i << " has: " << SendObjects[i].size() << " nodes to transfer " << pNodes.size() << std::endl;  
-        
-        TransferObjects<NodesContainerType::ContainerType>(mModelPart,SendObjects,RecvObjects);
-        BuildNewNodesPartitions(mModelPart,RecvObjects);
+        TransferFunction<TObjectType>(SendObjects,RecvObjects);
         
         return true;
     }
     
     template<class TObjectType>
-    bool TransferObjects(ModelPart& mModelPart,std::vector<TObjectType> &SendObjects,std::vector<TObjectType> &RecvObjects) 
+    bool TransferFunction(std::vector<TObjectType> &SendObjects,std::vector<TObjectType> &RecvObjects) 
     {
         int mpi_rank;
         int mpi_size;
@@ -1569,189 +1511,6 @@ private:
         }
 
         AsyncSendAndReceive(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
-        
-        return true;
-    }
-    
-    bool BuildNewElementsPartitions(ModelPart& mModelPart, std::vector<ElementsContainerType::ContainerType> &RecvObjects)
-    { 
-        int mpi_rank;
-        int mpi_size;
-        
-        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-        
-        ElementsContainerType::ContainerType& ElementsLocal  = LocalMesh().ElementsArray();
-        ElementsContainerType::ContainerType& ElementsGlobal = mModelPart.ElementsArray();
-        
-        NodesContainerType::ContainerType& NodesLocal  = LocalMesh().NodesArray();
-        NodesContainerType::ContainerType& NodesGlobal = mModelPart.NodesArray();
-   
-        ElementsContainerType::ContainerType temp_particles_container_local;
-        ElementsContainerType::ContainerType temp_particles_container_global;
-        
-        NodesContainerType::ContainerType temp_nodes_container_local;
-        NodesContainerType::ContainerType temp_nodes_container_global;
-        
-        temp_particles_container_local.reserve(ElementsLocal.size());
-        temp_particles_container_global.reserve(ElementsGlobal.size());
-        
-        temp_nodes_container_local.reserve(NodesLocal.size());
-        temp_nodes_container_global.reserve(NodesGlobal.size());
-
-        temp_particles_container_local.swap(ElementsLocal);
-        temp_particles_container_global.swap(ElementsGlobal);
-        
-        temp_nodes_container_local.swap(NodesLocal);
-        temp_nodes_container_global.swap(NodesGlobal);
-        
-        // Keep Global elements and nodes from our domain
-        for (ElementsContainerType::ContainerType::iterator i_element = temp_particles_container_global.begin();
-             i_element != temp_particles_container_global.end(); ++i_element)
-        {
-            if((*i_element)->GetValue(PARTITION_INDEX) == mpi_rank)
-            {                 
-                mModelPart.Elements().push_back((*i_element));
-            }
-        }
-        
-        for (NodesContainerType::ContainerType::iterator i_node = temp_nodes_container_global.begin();
-             i_node != temp_nodes_container_global.end(); ++i_node)
-        {
-            if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
-            {                 
-                mModelPart.Nodes().push_back((*i_node));
-            }
-        }
-
-        // Keep Local elements and nodes from our domain
-        for (ElementsContainerType::ContainerType::iterator i_element = temp_particles_container_local.begin();
-             i_element != temp_particles_container_local.end(); ++i_element)
-        {
-            if((*i_element)->GetValue(PARTITION_INDEX) == mpi_rank)
-            {                 
-                LocalMesh().Elements().push_back((*i_element));
-            }
-        }
-        
-        for (NodesContainerType::ContainerType::iterator i_node = temp_nodes_container_local.begin();
-             i_node != temp_nodes_container_local.end(); ++i_node)
-        {
-            if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
-            {                 
-                LocalMesh().Nodes().push_back((*i_node));
-            }
-        }
-
-        // Add new elements and nodes
-        for(int i = 0; i < mpi_size; i++)
-        {   
-            for (ElementsContainerType::ContainerType::iterator i_element = RecvObjects[i].begin();
-             i_element != RecvObjects[i].end(); ++i_element)
-            {
-                if((*i_element)->GetValue(PARTITION_INDEX) == mpi_rank)
-                {                 
-                    mModelPart.Elements().push_back(*i_element);
-                    LocalMesh().Elements().push_back(*i_element);
-                    
-                    for (unsigned int i = 0; i < (*i_element)->GetGeometry().PointsNumber(); i++)
-                    {
-                        ModelPart::NodeType::Pointer pNode = (*i_element)->GetGeometry().pGetPoint(i);
-                        
-                        pNode->GetSolutionStepValue(PARTITION_INDEX) = mpi_rank;
-                        
-                        mModelPart.Nodes().push_back(pNode);
-                        LocalMesh().Nodes().push_back(pNode);
-                    }
-                }
-            }
-        }
-        
-        // Sort both the elements and nodes of the modelpart. Otherwise the results will be unpredictable
-        LocalMesh().Elements().Unique();
-        LocalMesh().Nodes().Unique();
-        
-        for (unsigned int i = 0; i < LocalMeshes().size(); i++)
-        {
-            LocalMesh(i).Elements().Unique();
-            LocalMesh(i).Nodes().Unique();
-        }
-            
-        for (unsigned int i = 0; i < GhostMeshes().size(); i++)
-        {
-            GhostMesh(i).Elements().Unique();
-            GhostMesh(i).Nodes().Unique();
-        }
-        
-        return true;
-    }
-    
-    bool BuildNewNodesPartitions(ModelPart& mModelPart, std::vector<NodesContainerType::ContainerType> &RecvObjects)
-    {
-        int mpi_rank;
-        int mpi_size;
-        
-        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-        
-        NodesContainerType::ContainerType& NodesLocal  = LocalMesh().NodesArray();
-        NodesContainerType::ContainerType& NodesGlobal = mModelPart.NodesArray();
-   
-        NodesContainerType::ContainerType temp_nodes_container_local;
-        NodesContainerType::ContainerType temp_nodes_container_global;
-        
-        temp_nodes_container_local.reserve(NodesLocal.size());
-        temp_nodes_container_global.reserve(NodesGlobal.size());
-
-        temp_nodes_container_local.swap(NodesLocal);
-        temp_nodes_container_global.swap(NodesGlobal);
-        
-        // Keep Global and nodes from our domain
-        for (NodesContainerType::ContainerType::iterator i_node = temp_nodes_container_global.begin();
-             i_node != temp_nodes_container_global.end(); ++i_node)
-        {
-            if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
-            {                 
-                mModelPart.Nodes().push_back((*i_node));
-            }
-        }
-
-        // Keep Local nodes from our domain
-        for (NodesContainerType::ContainerType::iterator i_node = temp_nodes_container_local.begin();
-             i_node != temp_nodes_container_local.end(); ++i_node)
-        {
-            if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
-            {                 
-                LocalMesh().Nodes().push_back((*i_node));
-            }
-        }
-
-        // Add new elements and nodes
-        for(int i = 0; i < mpi_size; i++)
-        {
-            for (NodesContainerType::ContainerType::iterator i_node = RecvObjects[i].begin();
-                i_node != RecvObjects[i].end(); ++i_node)
-            {
-                if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
-                {                 
-                    mModelPart.Nodes().push_back(*i_node);
-                    LocalMesh().Nodes().push_back(*i_node);
-                }
-            }
-        }
-        
-        // Sort both the nodes of the modelpart. Otherwise the results will be unpredictable
-        LocalMesh().Nodes().Unique();
-        
-        for (unsigned int i = 0; i < LocalMeshes().size(); i++)
-        {
-            LocalMesh(i).Nodes().Unique();
-        }
-            
-        for (unsigned int i = 0; i < GhostMeshes().size(); i++)
-        {
-            GhostMesh(i).Nodes().Unique();
-        }
         
         return true;
     }
