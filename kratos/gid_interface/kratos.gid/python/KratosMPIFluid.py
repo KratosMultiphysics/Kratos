@@ -41,7 +41,7 @@ if "DISTANCE" in ProjectParameters.nodal_results:
 #
 # importing the solvers needed
 SolverSettings = ProjectParameters.FluidSolverConfiguration
-solver_module = import_solver(SolverSettings.solver_type)
+solver_module = import_solver(SolverSettings)
 
 #
 #
