@@ -228,9 +228,15 @@
     <Item id="D33" kkword="" />
     <Item id="YieldStress" kkword="YIELD_STRESS" />
     <Item id="IsotropicHardeningModulus"
-    kkword="ISOTROPIC_HARDENING_MODULUS" />
+    kkword="ISOTROPIC_HARDENING" />
     <Item id="KinematicHardeningModulus"
-    kkword="KINEMATIC_HARDENING_MODULUS" />
+    kkword="KINEMATIC_HARDENING" />
+    <Item id="ReferenceHardeningModulus"
+    kkword="REFERENCE_HARDENING" />
+    <Item id="InfinityHardeningModulus"
+    kkword="INFINITY_HARDENING" />
+    <Item id="HardeningExponent"
+    kkword="HARDENING_EXPONENT" />
     <Item id="InternalFrictionAngle"
     kkword="MAX_FRICTION_INTERNAL_ANGLE" />
     <Item id="DilatancyAngle" kkword="MAX_DILATANCY_ANGLE" />
@@ -458,8 +464,6 @@
     mfrwritev="LinearAssociatedPlasticFlowRule(),NonLinearAssociatedPlasticFlowRule()"
     mhardeninglaw="HardeningType"
     mhxpath="c.Structural//c.ElastoPlastic"
-    mhivalues="Isotropic,kinematic,IsotropicKinematic"
-    mhwritev="LinearIsotropicHardening(),LinearKinematicHardening(),LinearIsotropicKinematicHardening()"
     msaturationlaw="SaturationLaw"
     msxpath="c.Structural//c.ElastoPlastic"
     myieldcriterion="YieldCriterion"
@@ -474,8 +478,6 @@
     mfrwritev="LinearAssociatedPlasticFlowRule(),NonLinearAssociatedPlasticFlowRule()"
     mhardeninglaw="HardeningType"
     mhxpath="c.Structural//c.ElastoPlastic"
-    mhivalues="Isotropic,kinematic,IsotropicKinematic"
-    mhwritev="LinearIsotropicHardening(),LinearKinematicHardening(),LinearIsotropicKinematicHardening()"
     msaturationlaw="SaturationLaw"
     msxpath="c.Structural//c.ElastoPlastic"
     myieldcriterion="YieldCriterion"
@@ -490,8 +492,6 @@
     mfrwritev="LinearAssociatedPlasticFlowRule(),NonLinearAssociatedPlasticFlowRule()"
     mhardeninglaw="HardeningType"
     mhxpath="c.Structural//c.ElastoPlastic"
-    mhivalues="Isotropic,kinematic,IsotropicKinematic"
-    mhwritev="LinearIsotropicHardening(),LinearKinematicHardening(),LinearIsotropicKinematicHardening()"
     msaturationlaw="SaturationLaw"
     msxpath="c.Structural//c.ElastoPlastic"
     myieldcriterion="YieldCriterion"
@@ -506,23 +506,49 @@
     mfrwritev="LinearAssociatedPlasticFlowRule(),NonLinearAssociatedPlasticFlowRule()"
     mhardeninglaw="HardeningType"
     mhxpath="c.Structural//c.ElastoPlastic"
-    mhivalues="Isotropic,kinematic,IsotropicKinematic"
-    mhwritev="LinearIsotropicHardening(),LinearKinematicHardening(),LinearIsotropicKinematicHardening()"
     msaturationlaw="SaturationLaw"
     msxpath="c.Structural//c.ElastoPlastic"
     myieldcriterion="YieldCriterion"
     mycxpath="c.Structural//c.ElastoPlastic" cprops="Thickness" />
+    <HardeningLaw>
+      <Item id="AvailableHardeningLaw"
+      ycivalues="Isotropic,Kinematic,IsotropicKinematic"
+      ycwritev="LinearIsotropicHardening(),LinearKinematicHardening(),LinearIsotropicKinematicHardening()" />
+      <Item id="Isotropic"
+      privalues="IsotropicHardeningModulus"
+      prxpath="c.Structural//c.ElastoPlastic" />
+     <Item id="Kinematic"
+      privalues="KinematicHardeningModulus"
+      prxpath="c.Structural//c.ElastoPlastic" />
+      <Item id="IsotropicKinematic"
+      privalues="IsotropicHardeningModulus,KinematicHardeningModulus"
+      prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
+    </HardeningLaw>
     <YieldCriteria>
       <Item id="AvailableYieldCriteria"
       ycivalues="VonMisses,Mohr-Coulomb"
       ycwritev="VonMisesHuberYieldCriterion(),MorhCoulombYieldCriterion()" />
       <Item id="VonMisses"
-      privalues="YieldStress,IsotropicHardeningModulus,KinematicHardeningModulus"
-      prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
+      privalues="YieldStress"
+      prxpath="c.Structural//c.ElastoPlastic" />
       <Item id="Mohr-Coulomb"
       privalues="CompressiveStrength,DilatancyAngle,InternalFrictionAngle"
       prxpath="c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
     </YieldCriteria>
+    <SaturationLaw>
+      <Item id="AvailableSaturationLaws"
+      ycivalues="Non,Linear,Exponential"
+      ycwritev="Non,Linear,Exponential" />
+      <Item id="Non"
+      privalues=""
+      prxpath="" />
+      <Item id="Linear"
+      privalues="ReferenceHardeningModulus,InfinityHardeningModulus"
+      prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
+      <Item id="Exponential"
+      privalues="ExponentialHardening,ReferenceHardeningModulus,InfinityHardeningModulus"
+      prxpath="c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
+    </SaturationLaw>
     <Item id="MState" msivalues="Solid"
     mswritev="Solid" />
   </CLawProperties>
