@@ -660,6 +660,10 @@ private:
         if (pScheme->ElementsAreInitialized() == false)
             pScheme->InitializeElements(BaseType::GetModelPart());
 
+        //Initialize The Conditions - OPERATIONS TO BE DONE ONCE                                                          
+        if (pScheme->ConditionsAreInitialized() == false)
+	  pScheme->InitializeConditions(BaseType::GetModelPart());
+
         if (BaseType::GetEchoLevel() > 2)
             std::cout << "exiting the  Initialize of the ResidualBasedLinearStrategy" << std::endl;
 
