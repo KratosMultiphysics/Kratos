@@ -446,50 +446,84 @@
     mbwritev="LinearSoftening(),ExponentialSoftening()"
     cprops="Thickness" />
     <!-- Plasticity Laws -->
-    <Item id="Plasticity2D"
-    matm="Plasticity2D(fluency,behavior,prop)"
+    <!-- matm="HyperElasticPlastic2DLaw(FlowRule,YieldCriterion,HardeningLaw)" -->
+    <!-- matm="HyperElasticPlastic3DLaw(FlowRule,YieldCriterion,HardeningLaw)" -->
+    <Item id="HyperElasticPlasticPlaneStrain2D"
+    matm="HyperElasticPlasticJ2PlaneStrain2DLaw()"
     mprops="Density,YoungModulus,PoissonRatio"
-    mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
-    mbehavior="SofteningLaw"
-    mbxpath="c.Structural//c.ElastoPlastic"
-    mbivalues="Linear,Exponential"
-    mbwritev="LinearSoftening(),ExponentialSoftening()"
-    myieldcriteria="YieldCriteria"
+    mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"    
+    mflowrule="FlowRule"
+    mfrxpath="c.Structural//c.ElastoPlastic"
+    mfrivalues="Linear,Non-Linear"
+    mfrwritev="LinearAssociatedPlasticFlowRule(),NonLinearAssociatedPlasticFlowRule()"
+    mhardeninglaw="HardeningType"
+    mhxpath="c.Structural//c.ElastoPlastic"
+    mhivalues="Isotropic,kinematic,IsotropicKinematic"
+    mhwritev="LinearIsotropicHardening(),LinearKinematicHardening(),LinearIsotropicKinematicHardening()"
+    msaturationlaw="SaturationLaw"
+    msxpath="c.Structural//c.ElastoPlastic"
+    myieldcriterion="YieldCriterion"
     mycxpath="c.Structural//c.ElastoPlastic" cprops="Thickness" />
-    <Item id="Plasticity3D"
-    matm="Plasticity2D(fluency,behavior,prop)"
+    <Item id="HyperElasticPlasticPlaneStress2D"
+    matm="HyperElasticPlasticJ2PlaneStress2DLaw()"
     mprops="Density,YoungModulus,PoissonRatio"
-    mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"
-    mbehavior="SofteningLaw"
-    mbxpath="c.Structural//c.ElastoPlastic"
-    mbivalues="Linear,Exponential"
-    mbwritev="LinearSoftening(),ExponentialSoftening()"
-    myieldcriteria="YieldCriteria"
+    mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"    
+    mflowrule="FlowRule"
+    mfrxpath="c.Structural//c.ElastoPlastic"
+    mfrivalues="Linear,Non-Linear"
+    mfrwritev="LinearAssociatedPlasticFlowRule(),NonLinearAssociatedPlasticFlowRule()"
+    mhardeninglaw="HardeningType"
+    mhxpath="c.Structural//c.ElastoPlastic"
+    mhivalues="Isotropic,kinematic,IsotropicKinematic"
+    mhwritev="LinearIsotropicHardening(),LinearKinematicHardening(),LinearIsotropicKinematicHardening()"
+    msaturationlaw="SaturationLaw"
+    msxpath="c.Structural//c.ElastoPlastic"
+    myieldcriterion="YieldCriterion"
     mycxpath="c.Structural//c.ElastoPlastic" cprops="Thickness" />
-    <YieldFunctions>
-      <Item id="AvailableYieldFunction"
-      yfivalues="VonMisses,Energy,Mohr-Coulomb,Rankine,DruckerPrager,Tresca"
-      yfwritev="VonMisesYieldFunction,EnergyYieldFunction,ModifiedMorhCoulombYieldFunction,RankineYieldFunction,DruckerPragerYieldFunction,TrescaYieldFunction" />
+    <Item id="HyperElasticPlasticAxisymmetric2D"
+    matm="HyperElasticPlasticJ2Axisymmetric2DLaw()"
+    mprops="Density,YoungModulus,PoissonRatio"
+    mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"    
+    mflowrule="FlowRule"
+    mfrxpath="c.Structural//c.ElastoPlastic"
+    mfrivalues="Linear,Non-Linear"
+    mfrwritev="LinearAssociatedPlasticFlowRule(),NonLinearAssociatedPlasticFlowRule()"
+    mhardeninglaw="HardeningType"
+    mhxpath="c.Structural//c.ElastoPlastic"
+    mhivalues="Isotropic,kinematic,IsotropicKinematic"
+    mhwritev="LinearIsotropicHardening(),LinearKinematicHardening(),LinearIsotropicKinematicHardening()"
+    msaturationlaw="SaturationLaw"
+    msxpath="c.Structural//c.ElastoPlastic"
+    myieldcriterion="YieldCriterion"
+    mycxpath="c.Structural//c.ElastoPlastic" cprops="Thickness" />
+    <Item id="HyperElasticPlastic3D"
+    matm="HyperElasticPlasticJ23DLaw()"
+    mprops="Density,YoungModulus,PoissonRatio"
+    mxpath="c.General,c.Structural//c.Elastic//c.Isotropic,c.Structural//c.Elastic//c.Isotropic"    
+    mflowrule="FlowRule"
+    mfrxpath="c.Structural//c.ElastoPlastic"
+    mfrivalues="Linear,Non-Linear"
+    mfrwritev="LinearAssociatedPlasticFlowRule(),NonLinearAssociatedPlasticFlowRule()"
+    mhardeninglaw="HardeningType"
+    mhxpath="c.Structural//c.ElastoPlastic"
+    mhivalues="Isotropic,kinematic,IsotropicKinematic"
+    mhwritev="LinearIsotropicHardening(),LinearKinematicHardening(),LinearIsotropicKinematicHardening()"
+    msaturationlaw="SaturationLaw"
+    msxpath="c.Structural//c.ElastoPlastic"
+    myieldcriterion="YieldCriterion"
+    mycxpath="c.Structural//c.ElastoPlastic" cprops="Thickness" />
+    <YieldCriteria>
+      <Item id="AvailableYieldCriteria"
+      ycivalues="VonMisses,Mohr-Coulomb"
+      ycwritev="VonMisesHuberYieldCriterion(),MorhCoulombYieldCriterion()" />
       <Item id="VonMisses"
       privalues="YieldStress,IsotropicHardeningModulus,KinematicHardeningModulus"
       prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
-      <Item id="Energy"
-      privalues="TensileFractureEnergy,CompressiveFractureEnergy,TensileStrength,CompressiveStrength"
-      prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
       <Item id="Mohr-Coulomb"
-      privalues="TensileFractureEnergy,CompressiveFractureEnergy,TensileStrength,CompressiveStrength,DilatancyAngle,InternalFrictionAngle"
-      prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
-      <Item id="Rankine"
-      privalues="TensileFractureEnergy,CompressiveFractureEnergy,TensileStrength,CompressiveStrength"
-      prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
-      <Item id="DruckerPrager"
-      privalues="TensileFractureEnergy,CompressiveFractureEnergy,TensileStrength,CompressiveStrength,DilatancyAngle,InternalFrictionAngle"
-      prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
-      <Item id="Tresca"
-      privalues="YieldStress,IsotropicHardeningModulus,KinematicHardeningModulus"
-      prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
-    </YieldFunctions>
-    <Item id="MState" msivalues="Solid,PlaneStrain,PlaneStress"
-    mswritev="Tri_D,Plane_Strain,Plane_Stress" />
+      privalues="CompressiveStrength,DilatancyAngle,InternalFrictionAngle"
+      prxpath="c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
+    </YieldCriteria>
+    <Item id="MState" msivalues="Solid"
+    mswritev="Solid" />
   </CLawProperties>
 </Kratos_KWords>
