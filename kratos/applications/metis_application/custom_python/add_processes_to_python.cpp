@@ -128,6 +128,7 @@ void AddProcessesToPython()
                                                                    init<IO&, unsigned int>())
             .def(init<IO&, unsigned int, int>())
             .def(init<IO&, unsigned int, int, int>())
+            .def(init<IO&, unsigned int, int, int, bool>())
             ;
 
     def("GetRank", GetRank);

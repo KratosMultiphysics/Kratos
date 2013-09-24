@@ -70,16 +70,18 @@ public:
     ///@{
 
     /// Default constructor.
-    MetisDivideHeterogeneousInputProcess(IO& rIO, SizeType NumberOfPartitions, int Dimension = 3,int Verbosity = 0):
+    MetisDivideHeterogeneousInputProcess(IO& rIO, SizeType NumberOfPartitions, int Dimension = 3, int Verbosity = 0, bool SynchronizeConditions = false):
         MetisDivideInputToPartitionsProcess(rIO,NumberOfPartitions,Dimension),
-        mVerbosity(Verbosity)
+	mVerbosity(Verbosity),
+	mSynchronizeConditions(SynchronizeConditions)
     {
     }
 
     /// Copy constructor.
     MetisDivideHeterogeneousInputProcess(MetisDivideHeterogeneousInputProcess const& rOther):
         MetisDivideInputToPartitionsProcess(rOther.mrIO,rOther.mNumberOfPartitions,rOther.mDimension),
-        mVerbosity(rOther.mVerbosity)
+	mVerbosity(rOther.mVerbosity),
+        mSynchronizeConditions(rOther.mSynchronizeConditions)
     {
     }
 
@@ -127,7 +129,10 @@ public:
 
         std::vector<int> ElementPartition;
 
-        PartitionMesh(NodePartition,ElementConnectivities,ElementPartition);
+	if (mSynchronizeConditions)
+	  PartitionElementsSynchronous(NodePartition,ElementConnectivities,ElementPartition);
+	else
+	  PartitionMesh(NodePartition,ElementConnectivities,ElementPartition);
 
         // Partition conditions
         IO::ConnectivitiesContainerType ConditionConnectivities;
@@ -135,7 +140,10 @@ public:
 
         std::vector<int> ConditionPartition;
 
-        PartitionMesh(NodePartition,ConditionConnectivities,ConditionPartition);
+	if (mSynchronizeConditions)
+	  PartitionConditionsSynchronous(NodePartition,ElementPartition,ConditionConnectivities,ElementConnectivities,ConditionPartition);
+	else
+	  PartitionMesh(NodePartition,ConditionConnectivities,ConditionPartition);
 
         // Detect hanging nodes (nodes that belong to a partition where no local elements have them) and send them to another partition.
         // Hanging nodes should be avoided, as they can cause problems when setting the Dofs
@@ -272,6 +280,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    bool mSynchronizeConditions;
 
     int mVerbosity;
 
@@ -420,6 +430,197 @@ private:
         }
 
         PrintDebugData("Mesh Partition",rElemPartition);
+
+    }
+
+    /// Partition the elements such that boundary elements are always assigned the majority partition.
+    void PartitionElementsSynchronous(std::vector<int> const& NodePartition,
+                       const IO::ConnectivitiesContainerType& rElemConnectivities,
+                       std::vector<int>& rElemPartition)
+    {
+        SizeType NumElements = rElemConnectivities.size();
+        std::vector<int> PartitionWeights(BaseType::mNumberOfPartitions,0);
+
+        // initialize ElementPartition
+        rElemPartition.resize(NumElements,-1);
+
+        // Elements where all nodes belong to the same partition always go to that partition
+        IO::ConnectivitiesContainerType::const_iterator itElem = rElemConnectivities.begin();
+        for (std::vector<int>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
+        {
+            int MyPartition = NodePartition[ (*itElem)[0] - 1 ]; // Node Ids start from 1
+            SizeType NeighbourNodes = 1; // Nodes in the same partition
+            for (std::vector<SizeType>::const_iterator itNode = itElem->begin()+1; itNode != itElem->end(); ++itNode)
+            {
+                if ( NodePartition[ *itNode - 1 ] == MyPartition )
+                    ++NeighbourNodes;
+                else
+                    break;
+            }
+
+            if ( NeighbourNodes == itElem->size() )
+            {
+                *itPart = MyPartition;
+                PartitionWeights[MyPartition]++;
+            }
+
+            // Advance to next element in connectivities array
+            itElem++;
+        }
+
+        // Now distribute boundary elements
+        itElem = rElemConnectivities.begin();
+        int MaxWeight = 1.03 * NumElements / BaseType::mNumberOfPartitions;
+        for (std::vector<int>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
+        {
+            if (*itPart == -1) // If element is still unassigned
+            {
+                SizeType FoundNeighbours = 0;
+                SizeType NodesInElem = itElem->size();
+                std::vector<int> NeighbourPartitions(NodesInElem,-1);
+                std::vector<int> NeighbourWeights(NodesInElem,0);
+
+                for (std::vector<SizeType>::const_iterator itNode = itElem->begin(); itNode != itElem->end(); ++itNode)
+                {
+                    // Check if the node's partition was already found in this element
+                    int MyPartition = NodePartition[ *itNode - 1 ]; // This node's partition
+                    SizeType i=0;
+                    for (i = 0; i < FoundNeighbours; i++)
+                    {
+                        if (MyPartition == NeighbourPartitions[i])
+                        {
+                            NeighbourWeights[i]++;
+                            break;
+                        }
+                    }
+
+                    // If this is the first node in this partition, add the partition to the candidate partition list
+                    if (i == FoundNeighbours)
+                    {
+                        NeighbourWeights[i] = 1;
+                        NeighbourPartitions[i] = MyPartition;
+                        FoundNeighbours++;
+                    }
+                }
+
+                // Determine the partition that owns the most nodes, and try to assign the element to that partition
+                int MajorityPartition = NeighbourPartitions[ FindMax(FoundNeighbours,NeighbourWeights) ];
+                {
+                    *itPart = MajorityPartition;
+                    PartitionWeights[MajorityPartition]++;
+                }
+            }
+
+            // Advance to next element in connectivities array
+            itElem++;
+        }
+
+        PrintDebugData("Element Partition",rElemPartition);
+
+    }
+
+    /// Partition the conditions such that the condition is assigned the same partition as its parent element.
+    void PartitionConditionsSynchronous(const std::vector<int>& rNodePartition,
+			     const std::vector<int>& rElemPartition,
+			     const IO::ConnectivitiesContainerType& rCondConnectivities,
+			     const IO::ConnectivitiesContainerType& rElemConnectivities,
+			     std::vector<int>& rCondPartition)
+    {
+      SizeType NumElements = rElemConnectivities.size();
+      SizeType NumConditions = rCondConnectivities.size();
+      std::vector<int> PartitionWeights(BaseType::mNumberOfPartitions,0);
+
+      // initialize CondPartition                                                                                       
+      rCondPartition.resize(NumConditions,-1);
+
+      // make sorted element connectivities array                                                                       
+      IO::ConnectivitiesContainerType ElementsSorted(rElemConnectivities);
+      for (int i=0; i<NumElements; i++)
+	std::sort(ElementsSorted[i].begin(), ElementsSorted[i].end());
+
+      // Conditions where all nodes belong to the same partition always go to that partition                            
+      IO::ConnectivitiesContainerType::const_iterator itCond = rCondConnectivities.begin();
+      for (std::vector<int>::iterator itPart = rCondPartition.begin(); itPart != rCondPartition.end(); itPart++)
+        {
+	  int MyPartition = rNodePartition[ (*itCond)[0] - 1 ]; // Node Ids start from 1                                
+	  SizeType NeighbourNodes = 1; // Nodes in the same partition                                                   
+	  for (std::vector<SizeType>::const_iterator itNode = itCond->begin()+1; itNode != itCond->end(); ++itNode)
+            {
+	      if ( rNodePartition[ *itNode - 1 ] == MyPartition )
+		++NeighbourNodes;
+	      else
+		break;
+            }
+
+	  if ( NeighbourNodes == itCond->size() )
+            {
+	      *itPart = MyPartition;
+	      PartitionWeights[MyPartition]++;
+            }
+
+	  // Advance to next condition in connectivities array                                                          
+	  itCond++;
+        }
+      // Now distribute boundary conditions                                                                             
+      itCond = rCondConnectivities.begin();
+      int MaxWeight = 1.03 * NumConditions / BaseType::mNumberOfPartitions;
+      for (std::vector<int>::iterator itPart = rCondPartition.begin(); itPart != rCondPartition.end(); itPart++)
+        {
+	  if (*itPart == -1) // If condition is still unassigned                                                        
+            {
+	      SizeType FoundNeighbours = 0;
+	      SizeType NodesInCond = itCond->size();
+	      std::vector<int> NeighbourPartitions(NodesInCond,-1);
+	      std::vector<int> NeighbourWeights(NodesInCond,0);
+
+	      for (std::vector<SizeType>::const_iterator itNode = itCond->begin(); itNode != itCond->end(); ++itNode)
+                {
+		  // Check if the node's partition was already found in this condition                                  
+		  int MyPartition = rNodePartition[ *itNode - 1 ]; // This node's partition                             
+		  SizeType i=0;
+		  for (i = 0; i < FoundNeighbours; i++)
+                    {
+		      if (MyPartition == NeighbourPartitions[i])
+                        {
+			  NeighbourWeights[i]++;
+			  break;
+                        }
+                    }
+
+		  // If this is the first node in this partition, add the partition to the candidate partition list     
+		  if (i == FoundNeighbours)
+                    {
+		      NeighbourWeights[i] = 1;
+		      NeighbourPartitions[i] = MyPartition;
+		      FoundNeighbours++;
+                    }
+                }
+	      // Determine the partition that owns the most nodes, and try to assign the condition to that partition    
+	      int MajorityPartition = NeighbourPartitions[ FindMax(FoundNeighbours,NeighbourWeights) ];
+	      {
+		*itPart = MajorityPartition;
+		PartitionWeights[MajorityPartition]++;
+	      }
+
+	      // ensure conditions sharing nodes with an element have same partition as the element                     
+	      IO::ConnectivitiesContainerType::value_type tmp(*itCond);
+	      std::sort(tmp.begin(), tmp.end());
+
+	      for (int i=0; i<NumElements; i++)
+		{
+		  if ( std::includes(ElementsSorted[i].begin(), ElementsSorted[i].end(), tmp.begin(), tmp.end()) )
+		    {
+		      *itPart = rElemPartition[i];
+		      break;
+		    }
+		}
+            }
+
+	  // Advance to next condition in connectivities array                                                          
+	  itCond++;
+        }
+
+      PrintDebugData("Condition Partition",rCondPartition);
 
     }
 
