@@ -748,7 +748,7 @@ proc ::wkcf::GetPropertiesData {} {
 			if {$ptype=="Solid"} {
 			    # I need to check if the element is PlaneStrain2D or PlaneStress3D or 
 			    # Axisymmetric2D 
-			    if {$ptype=="PlaneStrain2D"} {
+			    if {$setype=="PlaneStrain2D"} {
 				set cptype "HyperElasticPlaneStrain2D"
 				# Get the material properties
 				::wkcf::GetMaterialProperties $AppId $propid $MatId $ptype $MatModel 
@@ -756,12 +756,12 @@ proc ::wkcf::GetPropertiesData {} {
 				# Get the cross section properties
 				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
 				
-			    } elseif {$ptype=="PlaneStress2D"} {
+			    } elseif {$setype=="PlaneStress2D"} {
 				set cptype "HyperElasticPlaneStress2D"
 				# Get the material properties
 				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
 				
-			    } elseif {$ptype=="Axisymmetric2D"} {
+			    } elseif {$setype=="Axisymmetric2D"} {
 				set cptype "HyperElasticAxisymmetric2D"
 				# Get the material properties
 				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
