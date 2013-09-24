@@ -705,10 +705,10 @@ public:
         {
             KRATOS_ERROR(std::logic_error, "Element found with Id 0 or negative","")
         }
-        if (this->GetGeometry().Area() < 0)
+        if (this->GetGeometry().Area() <= 0)
         {
             std::cout << "error on element -> " << this->Id() << std::endl;
-            KRATOS_ERROR(std::logic_error, "Area can not be lesser than 0","")
+            KRATOS_ERROR(std::logic_error, "Area cannot be less than or equal to 0","")
         }
         return 0;
 
