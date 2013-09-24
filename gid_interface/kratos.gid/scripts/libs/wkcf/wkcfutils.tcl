@@ -672,7 +672,7 @@ proc ::wkcf::GetPropertiesData {} {
 	    # Get the list of element that have this propertyid assigned
 	    set ElementIdList [::wkcf::GetElementIdFromPropertyId $AppId $propid]
 	    # Get the first element of the list
-	    set setype [lindex $ElementIdList 0]
+	    set etype [lindex $ElementIdList 0]
 	    # wa "ElementIdList:$ElementIdList"
 
 	    # Set fluency and behavior variables
@@ -689,31 +689,42 @@ proc ::wkcf::GetPropertiesData {} {
 			if {$ptype=="Solid"} {
 			    # I need to check if the element is PlaneStrain2D or PlaneStress3D or 
 			    # Axisymmetric2D 
-			    if {$setype=="PlaneStrain2D"} {
+			    if {($etype eq "PlaneStrain2D") || ($etype eq "TotalLagrangian2DPlaneStrain") || ($etype eq "UpdatedLagrangian2DPlaneStrain") || ($etype eq "SpatialLagrangian2DPlaneStrain")} {
 				set cptype "LinearElasticPlaneStrain2D"
 				# Get the material properties
-				::wkcf::GetMaterialProperties $AppId $propid $MatId $ptype $MatModel 
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
 				
 				# Get the cross section properties
 				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
 				
-			    } elseif {$setype=="PlaneStress2D"} {
+			    } elseif {($etype eq "PlaneStress2D") || ($etype eq "TotalLagrangian2DPlaneStress") || ($etype eq "UpdatedLagrangian2DPlaneStress") || ($etype eq "SpatialLagrangian2DPlaneStress")} {
 				set cptype "LinearElasticPlaneStress2D"
 				# Get the material properties
 				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
 				
-			    } elseif {$setype=="Axisymmetric2D"} {
+				# Get the cross section properties
+				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+
+			    } elseif {($etype eq "Axisymmetric2D") || ($etype eq "TotalLagrangian2DAxisymmetric") || ($etype eq "UpdatedLagrangian2DAxisymmetric") || ($etype eq "SpatialLagrangian2DAxisymmetric")} {
 				set cptype "LinearElasticAxisymmetric2D"
 				# Get the material properties
 				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+
+				# Get the cross section properties
+				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+
 				
 			    } else { # added here because I need another solution
 				# Confirmar la veracidad!
 				set cptype "LinearElasticPlaneStrain2D"
 				# Get the material properties
 				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+
+				# Get the cross section properties
+				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+
 			    }
-		        } elseif {$ptype=="Beam"} {
+		        } elseif {$ptype=="BeamElement"} {
 		            set cptype "LinearElasticPlaneStrain2D"
 		            # Get the material properties
 		            ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
@@ -730,7 +741,7 @@ proc ::wkcf::GetPropertiesData {} {
 		                set cptype "Isotropic2D"
 		            } elseif {($ptype eq "Beam") || ($ptype eq "Truss")} {
 		                set cptype "Isotropic2D"
-		            } else { #SolidElement3D
+		            } else { #SolidElement3D, TotalLagrangian3D, UpdatedLagrangian3D, SpatialLagrangian3D
 		                set cptype "LinearElastic3D"
 		            }
 		            
@@ -748,29 +759,43 @@ proc ::wkcf::GetPropertiesData {} {
 			if {$ptype=="Solid"} {
 			    # I need to check if the element is PlaneStrain2D or PlaneStress3D or 
 			    # Axisymmetric2D 
-			    if {$setype=="PlaneStrain2D"} {
+			    if {($etype eq "PlaneStrain2D") || ($etype eq "TotalLagrangian2DPlaneStrain") || ($etype eq "UpdatedLagrangian2DPlaneStrain") || ($etype eq "SpatialLagrangian2DPlaneStrain")} {
 				set cptype "HyperElasticPlaneStrain2D"
+
 				# Get the material properties
-				::wkcf::GetMaterialProperties $AppId $propid $MatId $ptype $MatModel 
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
 				
 				# Get the cross section properties
 				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
 				
-			    } elseif {$setype=="PlaneStress2D"} {
+			    } elseif {($etype eq "PlaneStress2D") || ($etype eq "TotalLagrangian2DPlaneStress") || ($etype eq "UpdatedLagrangian2DPlaneStress") || ($etype eq "SpatialLagrangian2DPlaneStress")} {
 				set cptype "HyperElasticPlaneStress2D"
+
 				# Get the material properties
 				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+
+				# Get the cross section properties
+				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
 				
-			    } elseif {$setype=="Axisymmetric2D"} {
+				
+			    } elseif {($etype eq "Axisymmetric2D") || ($etype eq "TotalLagrangian2DAxisymmetric") || ($etype eq "UpdatedLagrangian2DAxisymmetric") || ($etype eq "SpatialLagrangian2DAxisymmetric")} {
 				set cptype "HyperElasticAxisymmetric2D"
 				# Get the material properties
 				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+
+				# Get the cross section properties
+				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+
 				
 			    } else { # added here because I need another solution
 				# Confirmar la veracidad!
 				set cptype "HyperElasticPlaneStrain2D"
 				# Get the material properties
 				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+
+				# Get the cross section properties
+				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+
 			    }
 		        } elseif {$ptype=="Beam"} {
 		            set cptype "Isotropic2D"
@@ -789,7 +814,7 @@ proc ::wkcf::GetPropertiesData {} {
 		                set cptype "Isotropic2D"
 		            } elseif {($ptype eq "Beam") || ($ptype eq "Truss")} {
 		                set cptype "Isotropic2D"
-		            } else { #SolidElement3D
+		            } else { #SolidElement3D, TotalLagrangian3D, UpdatedLagrangian3D, SpatialLagrangian3D
 		                set cptype "HyperElastic3D"
 		            }
 		            
@@ -1326,7 +1351,7 @@ proc ::wkcf::GetElementProperties {} {
 	set cxpath "$rootdataid//c.Elements"
 	set glist [::xmlutils::setXmlContainerIds $cxpath]
 	set kwxpath "Applications/$rootdataid"
-	WarnWinText "glist:$glist"
+	# WarnWinText "glist:$glist"
 	foreach celemid $glist {
 	    # Get the group identifier defined for this element 
 	    set cxpath "$rootdataid//c.Elements//c.[list ${celemid}]"
