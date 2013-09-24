@@ -826,6 +826,89 @@ proc ::wkcf::GetPropertiesData {} {
 		        }
 		    }
 		}
+		"HyperElastic-Plastic" {
+		    if {$ndime eq "2D"} {
+		        # 2D case
+			if {$ptype=="Solid"} {
+			    # I need to check if the element is PlaneStrain2D or PlaneStress3D or 
+			    # Axisymmetric2D 
+			    if {($etype eq "PlaneStrain2D") || ($etype eq "TotalLagrangian2DPlaneStrain") || ($etype eq "UpdatedLagrangian2DPlaneStrain") || ($etype eq "SpatialLagrangian2DPlaneStrain")} {
+				set cptype "HyperElasticPlasticPlaneStrain2D"
+				# Get the material properties
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+				
+				# Get the material behavior and fluency properties
+				::wkcf::GetPlasticityProperties $AppId $MatId $MatModel $ptype $cptype
+
+				# Get the cross section properties
+				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+
+			    } elseif {($etype eq "PlaneStress2D") || ($etype eq "TotalLagrangian2DPlaneStress") || ($etype eq "UpdatedLagrangian2DPlaneStress") || ($etype eq "SpatialLagrangian2DPlaneStress")} {
+				set cptype "HyperElasticPlasticPlaneStress2D"
+				# Get the material properties
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+				
+				# Get the material behavior and fluency properties
+				::wkcf::GetPlasticityProperties $AppId $MatId $MatModel $ptype $cptype
+
+				# Get the cross section properties
+				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+				
+			    } elseif {($etype eq "Axisymmetric2D") || ($etype eq "TotalLagrangian2DAxisymmetric") || ($etype eq "UpdatedLagrangian2DAxisymmetric") || ($etype eq "SpatialLagrangian2DAxisymmetric")} {
+				set cptype "HyperElasticPlasticAxisymmetric2D"
+				# Get the material properties
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+				
+				# Get the material behavior and fluency properties
+				::wkcf::GetPlasticityProperties $AppId $MatId $MatModel $ptype $cptype
+
+				# Get the cross section properties
+				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+				
+			    } else { # added here because I need another solution
+				# Confirmar la veracidad!
+				set cptype "HyperElasticPlasticPlaneStrain2D"
+				# Get the material properties
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+				
+				# Get the material behavior and fluency properties
+				::wkcf::GetPlasticityProperties $AppId $MatId $MatModel $ptype $cptype
+
+				# Get the cross section properties
+				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+
+			    } elseif {$ptype=="Beam"} {
+				set cptype "Isotropic2D"
+				# Get the material properties
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+				
+				# Get the cross section properties
+				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+			    } 
+			} elseif {$ndime =="3D"} {
+			    # 3D case
+			    set ltypelist [list "Solid" "Shell" "Membrane" "Beam" "Truss" "EBST"]
+			    # Check that this ptype is in the list
+			    if {$ptype in $ltypelist} {
+				if {($ptype eq "Shell") || ($ptype eq "Membrane") || ($ptype eq "EBST")} {
+				    set cptype "Isotropic2D"
+				} elseif {($ptype eq "Beam") || ($ptype eq "Truss")} {
+				    set cptype "Isotropic2D"
+				} else { #SolidElement3D, TotalLagrangian3D, UpdatedLagrangian3D, SpatialLagrangian3D
+				    set cptype "HyperElasticPlastic3D"
+				}
+				
+				# Get the material properties
+				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+				
+				# Get the material behavior and fluency properties
+				::wkcf::GetPlasticityProperties $AppId $MatId $MatModel $ptype $cptype
+				# Get the cross section properties
+				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+			    }
+			}
+		    }
+		}
 		"Elastic-Orthotropic" {
 		    msgS "Elastic-Orthotropic is not implemented yet. Contact the Kratos team."
 		}

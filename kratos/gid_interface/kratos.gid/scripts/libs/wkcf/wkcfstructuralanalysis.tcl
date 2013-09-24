@@ -1725,13 +1725,17 @@ proc ::wkcf::WriteConstitutiveLawsProperties {} {
 	# Get the material identifier for this property 
 	set MatId $dprops($AppId,Property,$PropertyId,MatId)
 	puts $fileid "# GUI material identifier: $MatId"
-	# Check for use fluency
-	if {$dprops($AppId,Material,$MatId,UseFluency) =="Yes"} {
-	    puts $fileid "    fluency = $dprops($AppId,Material,$MatId,Fluency)"
+	# Check for use of the flow rule
+	if {$dprops($AppId,Material,$MatId,UseFlowRule) =="Yes"} {
+	    puts $fileid "    FlowRule = $dprops($AppId,Material,$MatId,FlowRule)"
 	}
-	# Check for use behavior
-	if {$dprops($AppId,Material,$MatId,UseBehavior) =="Yes"} {
-	    puts $fileid "    behavior = $dprops($AppId,Material,$MatId,Behavior)"
+	# Check for use of the hardening law
+	if {$dprops($AppId,Material,$MatId,UseHardeningLaw) =="Yes"} {
+	    puts $fileid "    HardeningLaw = $dprops($AppId,Material,$MatId,HardeningLaw)"
+	}
+	# Check for use of the yield criterion
+	if {$dprops($AppId,Material,$MatId,UseYieldCriterion) =="Yes"} {
+	    puts $fileid "    YieldCriterion = $dprops($AppId,Material,$MatId,YieldCriterion)"
 	}
 	# Write the property identifier
 	puts $fileid "    prop_id = $propid\;"
@@ -1901,4 +1905,110 @@ proc ::wkcf::GetBehaviorFluencyProperties {AppId MatId MatModel cptype ptype} {
 	set dprops($AppId,Material,$MatId,Fluency) "${cyf}(${cstate},PotencialPlastic.Associated)"
     }
     # WarnWinText "dprops($AppId,Material,$MatId,Fluency):$dprops($AppId,Material,$MatId,Fluency)"
+}
+
+
+proc ::wkcf::GetPlasticityProperties {AppId MatId MatModel cptype ptype} {
+    # Get the platicity  material properties
+    variable dprops
+    variable ndime
+
+    # WarnWinText "AppId:$AppId MatId:$MatId cptype:$cptype ptype:$ptype"
+    # Xpath for constitutive laws
+    set clxpath "CLawProperties"
+    # Get all material properties
+    set mpxpath "[::KMat::findMaterialParent $MatId]//m.[list ${MatId}]"
+    # WarnWinText "mpxpath:$mpxpath"
+
+    # Set global FlowRule, HardeningLaw and YieldCriterion
+    set dprops($AppId,Material,$MatId,UseFlowRule) "Yes"
+    set dprops($AppId,Material,$MatId,UseYieldCriterion) "Yes"
+    set dprops($AppId,Material,$MatId,UseHardeningLaw) "Yes"
+
+    # Get the flow rule
+    set mhardeninglaw [::xmlutils::getKKWord $clxpath $ptype "mflowrule"]
+    # Get the hardning law xpath values
+    set mhxpath [::xmlutils::getKKWord $clxpath $ptype "mfrxpath"]
+    # WarnWinText "mflowrule:$mflowrule mfrxpath:$mfrxpath"
+    # Get the current flow rule
+    set cfrvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mfrxpath//p.[list $mhardeninglaw]"] 0 1]
+    # Get the internal flow rule
+    set mfrivalues [split [::xmlutils::getKKWord $clxpath $ptype "mfrivalues"] ,]
+    # Get the writen internal flow rule properties
+    set mfrwritev [split [::xmlutils::getKKWord $clxpath $ptype "mfrwritev"] ,]
+    # WarnWinText "mfrwritev:$mfrwritev mfrivalues:$mfrivalues\n$mpxpath//$mfrxpath//p.[list $mflowrule] cfrvalue:$cfrvalue"
+    foreach mfriv $mfrivalues mfrwv $mfrwritev {
+        if {$mfriv ==$cfrvalue} {
+            set dprops($AppId,Material,$MatId,FlowRule) "$mfrwv"
+            break
+        }
+    }
+    # WarnWinText "dprops($AppId,Material,$MatId,FlowRule):$dprops($AppId,Material,$MatId,FlowRule)"
+
+
+    # Get the hardening law
+    set mhardeninglaw [::xmlutils::getKKWord $clxpath $ptype "mhardeninglaw"]
+    # Get the hardning law xpath values
+    set mhxpath [::xmlutils::getKKWord $clxpath $ptype "mhxpath"]
+    # WarnWinText "mhardeninglaw:$mhardeninglaw mhxpath:$mhxpath"
+    # Get the current hardening law 
+    set chvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mhxpath//p.[list $mhardeninglaw]"] 0 1]
+    # Get the internal hardening properties
+    set mhivalues [split [::xmlutils::getKKWord $clxpath $ptype "mhivalues"] ,]
+    # Get the writen internal hardening properties
+    set mhwritev [split [::xmlutils::getKKWord $clxpath $ptype "mhwritev"] ,]
+    # WarnWinText "mhwritev:$mhwritev mhivalues:$mhivalues\n$mpxpath//$mhxpath//p.[list $mhardeninglaw] chvalue:$chvalue"
+    foreach mhiv $mhivalues mhwv $mhwritev {
+        if {$mhiv ==$chvalue} {
+            set dprops($AppId,Material,$MatId,HardeningLaw) "$mhwv"
+            break
+        }
+    }
+    # WarnWinText "dprops($AppId,Material,$MatId,HardeningLaw):$dprops($AppId,Material,$MatId,HardeningLaw)"
+
+
+    # Get the saturation law
+    set msaturationlaw [::xmlutils::getKKWord $clxpath $ptype "msaturationlaw"]
+    # Get the saturation law xpath values
+    set msxpath [::xmlutils::getKKWord $clxpath $ptype "msxpath"]
+    # WarnWinText "msaturationlaw:$msaturationlaw msxpath:$msxpath"
+    # Get the current hardening law 
+    set csvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$msxpath//p.[list $msaturationlaw]"] 0 1]
+    # Get the internal hardening properties
+    # set msivalues [split [::xmlutils::getKKWord $clxpath $ptype "msivalues"] ,]
+    # Get the writen internal hardening properties
+    # set mswritev [split [::xmlutils::getKKWord $clxpath $ptype "mswritev"] ,]
+    # WarnWinText "mswritev:$mswritev msivalues:$msivalues\n$mpxpath//$msxpath//p.[list $msaturationlaw] csvalue:$shvalue"
+
+
+    
+    if {$MatModel == "HyperElastic-Plastic"} {
+	# HyperElastic-plastic models
+	# Get the yield function properties
+	# Get the yield criteria
+	set ycid "YieldCriteria"
+	set myieldcriterion [::xmlutils::getKKWord "$clxpath" $ptype "myieldcriterion"]
+	# Get the yield criteria xpath values
+	set mycxpath [::xmlutils::getKKWord "$clxpath" $ptype "mycxpath"]
+	# Get the current yield criterion
+	set cycvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mycxpath//p.[list $myieldcriterion]"] 0 1]
+	# WarnWinText "myieldcriterion:$myieldcriterion mycxpath:$mycxpath cycvalue:$cycvalue"
+	# Get the yield criterion options
+	set ycivalues [split [::xmlutils::getKKWord "$clxpath//$ycid" "AvailableYieldCriteria" "ycivalues"] ,]
+	# Get the write yield criterion properties
+	set ycwritev [split [::xmlutils::getKKWord "$clxpath//$ycid" "AvailableYieldCriteria" "ycwritev"] ,]
+	# WarnWinText "ycwritev:$ycwritev ycivalues:$ycivalues"
+	set cyf ""
+	foreach yciv $ycivalues ycwv $ycwritev {
+	    # WarnWinText "yciv:$yciv cycvalue:$cycvalue ycwv:$ycwv" 
+	    if {$yciv ==$cycvalue} {
+            set cyc "$ycwv"
+            break
+	    }
+	}
+	# WarnWinText "cyc:$cyc"
+	
+	set dprops($AppId,Material,$MatId,YieldCriterion) "$cyc"
+    }
+    # WarnWinText "dprops($AppId,Material,$MatId,YieldCriterion):$dprops($AppId,Material,$MatId,YieldCriterion)"
 }
