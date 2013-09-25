@@ -504,7 +504,7 @@ void LargeDisplacementElement::SetGeneralVariables(GeneralVariables& rVariables,
     rValues.SetStrainVector(rVariables.StrainVector);
     rValues.SetStressVector(rVariables.StressVector);
     rValues.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
-    rValues.SetShapeFunctionsDevivatives(rVariables.DN_DX);
+    rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
     rValues.SetShapeFunctionsValues(rVariables.N);
 }
 
