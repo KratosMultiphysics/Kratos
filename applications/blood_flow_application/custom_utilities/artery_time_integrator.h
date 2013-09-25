@@ -136,7 +136,7 @@ public:
     {
         KRATOS_TRY
 
-			KRATOS_ERROR(std::logic_error,"should not enter in EstimateDeltaTime","");
+        //KRATOS_ERROR(std::logic_error,"should not enter in EstimateDeltaTime","");
         double delta_time = 1.00e12;
         //double Umax=0.0;
         double element_dt=0.0;
@@ -251,8 +251,8 @@ public:
         }
 //
         //KRATOS_WATCH(delta_time)
+        delta_time = fabs(delta_time);
         return delta_time;
-
         //KRATOS_WATCH("DELTA_TIME");
         //KRATOS_WATCH(delta_time);
 
@@ -263,6 +263,7 @@ public:
     {
 
         KRATOS_TRY
+        KRATOS_WATCH("Version Arteries Solver 1D :: 1.0")
         double minLength=1e+12;
 
         for(ModelPart::ElementsContainerType::iterator i_element = ThisModelPart.ElementsBegin(); i_element !=ThisModelPart.ElementsEnd(); i_element++)
@@ -276,6 +277,67 @@ public:
         KRATOS_CATCH("")
     }
 
+    double CheckCardiacCovergence (ModelPart& ThisModelPart, double time_cardiac_cycle )
+    {
+
+        KRATOS_TRY
+        bool Check_Convergence=false;
+        double Aux_convergencia=0;
+        double Aux_convergencia2=0;
+        double Aux_convergencia3=0;
+        double Norma_Conver= 0;
+        double Norma=0;
+        double dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
+        double t = ThisModelPart.GetProcessInfo()[TIME];
+        //double total_time = ThisModelPart.GetProcessInfo()[final_time];
+        //KRATOS_WATCH (time_cardiac_cycle);
+        //KRATOS_WATCH (dt);
+        //KRATOS_WATCH (t);
+        //KRATOS_WATCH(fabs((time_cardiac_cycle/3)-t));
+        //KRATOS_WATCH (dt/2);
+
+        if (fabs((time_cardiac_cycle/3)-t) < (dt/2))
+
+        {
+        //PRINT*, "Analisys de Convergencia para el tiempo"
+            for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
+            {
+                //double pressure=initial_pressure+(beta/original_area)*(sqrt(nodal_area)-sqrt(original_area));
+                double pressure = in->FastGetSolutionStepValue(PRESSURE);
+                double pressureold = in->FastGetSolutionStepValue(PRESSURE,1);
+//                double FLOWWW = in->GetSolutionStepValue(FLOW);
+//                KRATOS_WATCH(FLOWWW);
+//                KRATOS_WATCH(pressure);
+//                KRATOS_WATCH(pressureold);
+                Aux_convergencia=Aux_convergencia+((pressure-pressureold)*(pressure-pressureold));
+                Aux_convergencia2=Aux_convergencia2+((pressureold)*(pressureold));
+            }
+            Check_Convergence = true;
+        }
+	
+        if (Check_Convergence == true)
+        {
+            Aux_convergencia3=sqrt(Aux_convergencia/Aux_convergencia2);
+            Norma_Conver= fabs(Norma-Aux_convergencia3);
+            if ( (Aux_convergencia3 < 0.001) && (Norma_Conver < 0.001) )
+            {
+                  time_cardiac_cycle = 10000000; //Solution Converge (this value allow to stop the calculation cyc_num>Num_T)
+            }
+            //KRATOS_WATCH (Aux_convergencia);
+            //KRATOS_WATCH (Aux_convergencia2);
+            KRATOS_WATCH(Norma_Conver);
+            Norma = Aux_convergencia3;
+            Norma_Conver= 0;
+            Aux_convergencia=0;
+            Aux_convergencia2=0;
+            Aux_convergencia3=0;
+            Check_Convergence =false;
+        }
+        return time_cardiac_cycle;
+        KRATOS_CATCH("")
+    }
+
+    
     void ComputePressure(ModelPart& ThisModelPart)
     {
 
@@ -436,7 +498,7 @@ private:
         double dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
         for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
         {
-            int id = in->Id();
+            //int id = in->Id();
             //KRATOS_WATCH (id);
             double nodal_mass = in->FastGetSolutionStepValue(NODAL_MASS);
             //KRATOS_WATCH (nodal_mass)
@@ -554,7 +616,7 @@ private:
 
 //    }
 
-    void CheckSolution(ModelPart& ThisModelPart, int edu)
+    void CheckSolution(ModelPart& ThisModelPart, int Var_Aux)
     {
         KRATOS_TRY;
         for(ModelPart::ElementsContainerType::iterator i_element = ThisModelPart.ElementsBegin(); i_element !=ThisModelPart.ElementsEnd(); i_element++)
@@ -568,7 +630,7 @@ private:
                 KRATOS_WATCH(i_element->GetGeometry()[0]);
                 KRATOS_WATCH(i_element->GetGeometry()[1]);
                 KRATOS_WATCH(i_element->GetProperties().Id());
-                KRATOS_WATCH(edu)
+                KRATOS_WATCH(Var_Aux)
                 //std::cout << "this element is" << this->i_element->Id() <<std::endl;
                 KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, Please check your model", "");
              }
