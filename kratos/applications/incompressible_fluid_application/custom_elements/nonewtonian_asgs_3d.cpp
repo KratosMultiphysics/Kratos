@@ -1135,7 +1135,7 @@ void NoNewtonianASGS3D::AddProjectionForces(VectorType& F, const boost::numeric:
         const array_1d<double, 3 > & vel = GetGeometry()[ii].FastGetSolutionStepValue(VELOCITY);
 
         const array_1d<double, 3 > & mesh_vel = GetGeometry()[ii].FastGetSolutionStepValue(MESH_VELOCITY);
-        array_1d<double, 2 > adv_vel = ZeroVector(2);
+        array_1d<double, 3 > adv_vel = ZeroVector(3);
         adv_vel[0] = vel[0] - mesh_vel[0];
         adv_vel[1] = vel[1] - mesh_vel[1];
         adv_vel[2] = vel[2] - mesh_vel[2];
