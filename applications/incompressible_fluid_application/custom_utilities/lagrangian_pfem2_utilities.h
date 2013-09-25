@@ -282,7 +282,7 @@ public:
 //	    bool erase_el = false;
 	    for(unsigned int i=0; i<geom.size(); i++)
 	    {
-		if(geom[i].GetValue(ERASE_FLAG) == true)
+		if(geom[i].GetValue(ERASE_FLAG))
 		{
 		    it->SetValue(ERASE_FLAG,true);
 		    nerased_el++;

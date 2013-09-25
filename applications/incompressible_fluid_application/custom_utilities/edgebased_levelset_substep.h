@@ -2294,7 +2294,7 @@ public:
             //reference for area normal of the face
             array_1d<double, 3 > & face_normal = cond_it->GetValue (NORMAL);
 	    bool is_inlet_or_outlet = false;
-            if (cond_it->GetValue (IS_STRUCTURE) != true) is_inlet_or_outlet = true;
+            if (cond_it->GetValue (IS_STRUCTURE) == 0) is_inlet_or_outlet = true;
 	    else
 	    {
 	      for (unsigned int if_node = 0; if_node < TDim; if_node++)
@@ -3818,10 +3818,13 @@ private:
 	  //symmetrize and multiply by 2
             grad_vx[0] *= 2.0;
 	    grad_vy[1] *= 2.0;
-            grad_vz[2] *= 2.0;
+			if(TDim > 2)
+		        grad_vz[2] *= 2.0;
             grad_vx[1] += grad_vy[0];
-	  grad_vx[2] += grad_vz[0];
-            grad_vy[2] += grad_vz[1];
+			if(TDim > 2)
+				grad_vx[2] += grad_vz[0];
+			if(TDim > 2)
+	            grad_vy[2] += grad_vz[1];
             grad_vy[0] += grad_vx[1];
             grad_vz[0] += grad_vx[2];
             grad_vz[1] += grad_vy[2];

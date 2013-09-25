@@ -1134,7 +1134,7 @@ public:
             array_1d<double, 3 > & face_normal = cond_it->GetValue(NORMAL);
 
             //slip condition
-            if (cond_it->GetValue(IS_STRUCTURE) == true)
+            if (cond_it->GetValue(IS_STRUCTURE))
                 for (unsigned int if_node = 0; if_node < TDim; if_node++)
                 {
                     unsigned int i_node = static_cast<unsigned int> (face_geometry[if_node].FastGetSolutionStepValue(AUX_INDEX));

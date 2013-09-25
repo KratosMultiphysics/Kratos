@@ -2226,7 +2226,7 @@ KRATOS_WATCH(viscosity)
 
             //inlet or outlet condition
             bool is_inlet_or_outlet = false;
-            if (cond_it->GetValue (IS_STRUCTURE) != true) is_inlet_or_outlet = true;
+            if (cond_it->GetValue (IS_STRUCTURE) == 0) is_inlet_or_outlet = true;
             else
             {
                 for (unsigned int if_node = 0; if_node < TDim; if_node++)
