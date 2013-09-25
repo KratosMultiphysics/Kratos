@@ -429,7 +429,7 @@ private:
 
             //			  std::cout << "node #" << r_node.Id() << " ERASE_FLAG : " << r_node.GetValue(ERASE_FLAG) << std::endl;
 
-            if(r_node.GetValue(ERASE_FLAG) == true)
+            if(r_node.GetValue(ERASE_FLAG))
             {
                 const int node_index = r_node.Id() - 1;
                 const int nearest_node_id = mCollapsingData[i].NearestNodeId;
@@ -501,7 +501,7 @@ private:
         {
             NodeType& r_node = *(nodes_array[i]);
 
-            if(r_node.GetValue(ERASE_FLAG) == true)
+            if(r_node.GetValue(ERASE_FLAG))
             {
                 SetNodalCollapsingData(r_node, rThisModelPart);
             }
@@ -525,7 +525,7 @@ private:
             Geometry<Node<3> >& r_neighbour_element_geometry = elements_array[*i-1]->GetGeometry();
             for( unsigned int i_node = 0 ; i_node < r_neighbour_element_geometry.size(); i_node++)
             {
-                if(r_neighbour_element_geometry[i_node].GetValue(ERASE_FLAG) == false) // can be used for collapse and is not the same node!
+                if(r_neighbour_element_geometry[i_node].GetValue(ERASE_FLAG) == 0) // can be used for collapse and is not the same node!
                 {
                     int other_node_id = r_neighbour_element_geometry[i_node].Id();
                     if(other_node_id == mCollapsingData[node_index].NearestNodeId)
