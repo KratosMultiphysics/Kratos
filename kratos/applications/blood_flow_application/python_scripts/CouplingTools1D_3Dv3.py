@@ -5,6 +5,7 @@ CheckForPreviousImport()
 import math
 import time
 import sys
+import config
 
 class TransferTools:
   
@@ -197,11 +198,10 @@ class TransferTools:
 
     def Initial_Contitions (self):
       initial_pressure=0      	
-      #print "Inicializo 3D"
-      
+      print "Inicializo 3D"   
       for i in range(0,len(self.inlets_1d)):
         inlet_nodes_1d = self.inlets_1d[i]
-        # print "3D-1D: inlet_nodes_1d [0].Id::::::>>>> ",inlet_nodes_1d [0].Id
+        print "3D-1D: inlet_nodes_1d [0].Id::::::>>>> ",inlet_nodes_1d [0].Id
 	for i in range(0,len(self.outlets_1d)):
 	  outlet_nodes_1d = self.outlets_1d[i]
 	  pressinlet3D =  outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)
@@ -222,13 +222,13 @@ class TransferTools:
 	      orientation = directions[k]
 	      node.SetSolutionStepValue(VELOCITY, 0, directions[k]*vel1d)
 	      #node.SetSolutionStepValue(PRESSURE, 0, pressinlet3D)
-	      k = k+1
-      #raw_input()    
+	      k = k+1	
+	raw_input()    
 	
     def Transfer1D_to_3D( self  ):
         #ARCHIVE TO SET :::::::::::::::::::::::::::>>>>>>>>>>>>>> VARIABLES
 	#import config_full
-      	#initial_pressure=config_full.initial_pressure
+      initial_pressure=config.systolic_pressure
       initial_pressure=0
       	
       print "Transfer1D_to_3D"
