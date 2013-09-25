@@ -30,7 +30,7 @@ namespace Kratos
 HyperElasticPlasticJ23DLaw::HyperElasticPlasticJ23DLaw()
     : HyperElasticPlastic3DLaw()
 {
-  mpFlowRule       = FlowRule::Pointer( new LinearAssociativePlasticFlowRule() );
+  mpFlowRule       = FlowRule::Pointer( new LinearAssociativePlasticFlowRule() );g
   mpYieldCriterion = YieldCriterion::Pointer( new MisesHuberYieldCriterion() );
   mpHardeningLaw   = HardeningLaw::Pointer( new NonLinearIsotropicKinematicHardeningLaw() );
 }

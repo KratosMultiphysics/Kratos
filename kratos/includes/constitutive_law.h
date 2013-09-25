@@ -358,7 +358,7 @@ public:
       void SetDeterminantF0                (const double& rDeterminantF0)             {mDeterminantF0=rDeterminantF0;};
  
       void SetShapeFunctionsValues         (const Vector& rShapeFunctionsValues)      {mpShapeFunctionsValues=&rShapeFunctionsValues;};
-      void SetShapeFunctionsDevivatives    (const Matrix& rShapeFunctionsDerivatives) {mpShapeFunctionsDerivatives=&rShapeFunctionsDerivatives;};
+      void SetShapeFunctionsDerivatives    (const Matrix& rShapeFunctionsDerivatives) {mpShapeFunctionsDerivatives=&rShapeFunctionsDerivatives;};
 
       void SetDeformationGradientF         (const Matrix& rDeformationGradientF)      {mpDeformationGradientF=&rDeformationGradientF;};
       void SetDeformationGradientF0        (Matrix& rDeformationGradientF0)           {mpDeformationGradientF0=&rDeformationGradientF0;};

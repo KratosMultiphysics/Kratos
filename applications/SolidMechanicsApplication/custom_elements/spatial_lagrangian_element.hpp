@@ -188,7 +188,7 @@ protected:
     ///@{
 
     /**
-     * Container for historical total elastic deformation measure
+     * Container for historical total elastic deformation measure F0 = dx/dX
      */
     std::vector< Matrix > mDeformationGradientF0;
 
