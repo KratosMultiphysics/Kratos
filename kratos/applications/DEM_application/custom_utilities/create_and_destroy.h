@@ -512,7 +512,7 @@ public:
         
         int mesh_iterator_number=0;
         
-        for (ModelPart::MeshesContainerType::iterator mesh_it = inlet_modelpart.GetMeshes().begin();
+        for (ModelPart::MeshesContainerType::iterator mesh_it = inlet_modelpart.GetMeshes().begin()+1;
                                                mesh_it != inlet_modelpart.GetMeshes().end();    ++mesh_it)
         {
             int mesh_size=mesh_it->NumberOfNodes();
@@ -525,33 +525,33 @@ public:
             double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + PartialParticleToInsert[mesh_iterator_number];
             PartialParticleToInsert[mesh_iterator_number] = 0.0;
             int number_of_particles_to_insert = floor(double_number_of_particles_to_insert);
-            PartialParticleToInsert[mesh_iterator_number] = double_number_of_particles_to_insert - number_of_particles_to_insert ;
-            
-            //randomizing mesh
-            srand (time (NULL));        
-            
-            ModelPart::NodesContainerType::ContainerType inserting_nodes(number_of_particles_to_insert); 
-            
-            ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
-            
-            if (mesh_size < number_of_particles_to_insert) {
-                number_of_particles_to_insert = mesh_size;
-                KRATOS_WATCH("The number of DEM particles has been reduced to match the number of nodes of the DEM Inlet mesh")
-            }
-            
-            for (int i = 0; i < number_of_particles_to_insert; i++) {
-              int pos = rand() % mesh_size;                            
-              inserting_nodes[i] = all_nodes[pos]; //This only works for pos as real position in the vector if 
-                                                   //we use ModelPart::NodesContainerType::ContainerType 
-                                                   //instead of ModelPart::NodesContainerType
-              all_nodes[pos] = all_nodes[mesh_size-1];
-              mesh_size=mesh_size-1;
-            }
-            
-            for(int i=0; i<number_of_particles_to_insert; i++){
-                creator.ElementCreatorFromExistingNode(r_modelpart, /*r_Elem_Id*/1, inserting_nodes[i]);               
-            } 
-            mesh_iterator_number++;
+            PartialParticleToInsert[mesh_iterator_number] = double_number_of_particles_to_insert - number_of_particles_to_insert;
+
+            if (number_of_particles_to_insert) {
+              //randomizing mesh
+               srand(time(NULL));
+               ModelPart::NodesContainerType::ContainerType inserting_nodes(number_of_particles_to_insert);
+               ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
+
+               if (mesh_size < number_of_particles_to_insert) {
+                   number_of_particles_to_insert = mesh_size;
+                   KRATOS_WATCH("The number of DEM particles has been reduced to match the number of nodes of the DEM Inlet mesh")
+               }
+               
+               for (int i = 0; i < number_of_particles_to_insert; i++) {
+                   int pos = rand() % mesh_size;
+                   inserting_nodes[i] = all_nodes[pos]; //This only works for pos as real position in the vector if 
+                   //we use ModelPart::NodesContainerType::ContainerType 
+                   //instead of ModelPart::NodesContainerType
+                   all_nodes[pos] = all_nodes[mesh_size - 1];
+                   mesh_size = mesh_size - 1;
+               }
+
+               for (int i = 0; i < number_of_particles_to_insert; i++) {
+                   creator.ElementCreatorFromExistingNode(r_modelpart, /*r_Elem_Id*/1, inserting_nodes[i]); //velocity, mass, radius?
+               }               
+           } //if (number_of_particles_to_insert)
+           mesh_iterator_number++;
         }                
     }    
     //MA
