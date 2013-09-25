@@ -177,7 +177,7 @@ public:
             array_1d<double, 3 > & face_normal = cond_it->GetValue(NORMAL);
 
             //slip condition
-            if (cond_it->GetValue(IS_STRUCTURE) == true)
+            if (cond_it->GetValue(IS_STRUCTURE))
                 for (int i = 0; i < mdomain_size; i++)
                 {
                     face_geometry[i].GetValue(IS_STRUCTURE) = 1;
