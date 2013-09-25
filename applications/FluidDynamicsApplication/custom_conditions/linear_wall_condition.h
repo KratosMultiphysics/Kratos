@@ -451,7 +451,7 @@ protected:
 // 	 if ( dist*other_dist < 0.0)
 // 	   is_cutted = 1.0;
 // 	}
-	if( this->GetValue(IS_STRUCTURE) == true ){
+	if( this->GetValue(IS_STRUCTURE)){
 	    //compute normal
 	    array_1d<double,3> v1, v2, An;
 	    v1[0] = rGeometry[1].X() - rGeometry[0].X();
