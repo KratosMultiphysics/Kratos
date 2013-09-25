@@ -572,7 +572,7 @@ void  Isotropic_Damage_2D::CalculateMaterialResponse( const Vector& StrainVector
         CalculateStress( StrainVector, StressVector );
     }
 
-    if ( CalculateTangent == true )
+    if ( CalculateTangent )
     {
         CalculateConstitutiveMatrix( StrainVector, AlgorithmicTangent );
     }
