@@ -210,7 +210,7 @@ public:
 	 */
 	bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
 	{
-	    return -1;
+	    return false;
 
 	}
 
