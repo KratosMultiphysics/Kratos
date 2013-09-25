@@ -1547,7 +1547,7 @@ private:
           mOctree.GetAllLeavesVector(all_leaves);
 
 #pragma omp parallel for
-          for (std::size_t i = 0; i < all_leaves.size(); i++)
+          for (int i = 0; i < all_leaves.size(); i++)
           {
               *(all_leaves[i]->pGetDataPointer()) = ConfigurationType::AllocateData();
           }
