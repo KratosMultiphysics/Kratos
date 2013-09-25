@@ -66,7 +66,7 @@ namespace Kratos
     KRATOS_CREATE_FLAG(ISOLATED,        41);
     KRATOS_CREATE_FLAG(MASTER,          40);
     KRATOS_CREATE_FLAG(SLAVE,           39);
-//    KRATOS_CREATE_FLAG(,    38);
+    KRATOS_CREATE_FLAG(INSIDE,          38);
 //    KRATOS_CREATE_FLAG(,       37);
 //    KRATOS_CREATE_FLAG(,     36);
 //    KRATOS_CREATE_FLAG(,       35);
