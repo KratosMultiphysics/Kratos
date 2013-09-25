@@ -473,7 +473,7 @@ public:
         int counter = 0;
         for(int el = 0; el< el_number; el++)
         {
-            if( preserved_list[el] == true )
+            if( preserved_list[el] )
             {
 
                 //saving the compact element list
