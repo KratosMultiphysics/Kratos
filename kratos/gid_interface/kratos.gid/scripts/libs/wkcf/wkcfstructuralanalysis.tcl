@@ -1727,15 +1727,15 @@ proc ::wkcf::WriteConstitutiveLawsProperties {} {
 	puts $fileid "# GUI material identifier: $MatId"
 	# Check for use of the flow rule
 	if {$dprops($AppId,Material,$MatId,UseFlowRule) =="Yes"} {
-	    puts $fileid "    FlowRule = $dprops($AppId,Material,$MatId,FlowRule)"
+	    #puts $fileid "    FlowRule = $dprops($AppId,Material,$MatId,FlowRule)"
 	}
 	# Check for use of the hardening law
 	if {$dprops($AppId,Material,$MatId,UseHardeningLaw) =="Yes"} {
-	    puts $fileid "    HardeningLaw = $dprops($AppId,Material,$MatId,HardeningLaw)"
+	    #puts $fileid "    HardeningLaw = $dprops($AppId,Material,$MatId,HardeningLaw)"
 	}
 	# Check for use of the yield criterion
 	if {$dprops($AppId,Material,$MatId,UseYieldCriterion) =="Yes"} {
-	    puts $fileid "    YieldCriterion = $dprops($AppId,Material,$MatId,YieldCriterion)"
+	    #puts $fileid "    YieldCriterion = $dprops($AppId,Material,$MatId,YieldCriterion)"
 	}
 	# Write the property identifier
 	puts $fileid "    prop_id = $propid\;"
@@ -1933,10 +1933,10 @@ proc ::wkcf::GetPlasticityProperties {AppId MatId MatModel cptype ptype} {
 	# Get the FLOW RULE
 	set mflowrule [::xmlutils::getKKWord $clxpath $ptype "mflowrule"]
 	# Get the hardning law xpath values
-	set mhxpath [::xmlutils::getKKWord $clxpath $ptype "mfrxpath"]
+	set mfrxpath [::xmlutils::getKKWord $clxpath $ptype "mfrxpath"]
 	# WarnWinText "mflowrule:$mflowrule mfrxpath:$mfrxpath"
 	# Get the current flow rule
-	set cfrvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mfrxpath//p.[list $mhardeninglaw]"] 0 1]
+	set cfrvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mfrxpath//p.[list $mflowrule]"] 0 1]
 	# Get the internal flow rule
 	set mfrivalues [split [::xmlutils::getKKWord $clxpath $ptype "mfrivalues"] ,]
 	# Get the writen internal flow rule properties

@@ -876,36 +876,35 @@ proc ::wkcf::GetPropertiesData {} {
 
 				# Get the cross section properties
 				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
-
-			    } elseif {$ptype=="Beam"} {
-				set cptype "Isotropic2D"
-				# Get the material properties
-				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
-				
-				# Get the cross section properties
-				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
-			    } 
-			} elseif {$ndime =="3D"} {
-			    # 3D case
-			    set ltypelist [list "Solid" "Shell" "Membrane" "Beam" "Truss" "EBST"]
-			    # Check that this ptype is in the list
-			    if {$ptype in $ltypelist} {
-				if {($ptype eq "Shell") || ($ptype eq "Membrane") || ($ptype eq "EBST")} {
-				    set cptype "Isotropic2D"
-				} elseif {($ptype eq "Beam") || ($ptype eq "Truss")} {
-				    set cptype "Isotropic2D"
-				} else { #SolidElement3D, TotalLagrangian3D, UpdatedLagrangian3D, SpatialLagrangian3D
-				    set cptype "HyperElasticPlastic3D"
-				}
-				
-				# Get the material properties
-				::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
-				
-				# Get the material behavior and fluency properties
-				::wkcf::GetPlasticityProperties $AppId $MatId $MatModel $ptype $cptype
-				# Get the cross section properties
-				::wkcf::GetCrossSectionProperties $AppId $propid $ptype
 			    }
+			} elseif {$ptype=="Beam"} {
+			    set cptype "Isotropic2D"
+			    # Get the material properties
+			    ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+			    
+			    # Get the cross section properties
+			    ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
+			} 
+		    } elseif {$ndime =="3D"} {
+			# 3D case
+			set ltypelist [list "Solid" "Shell" "Membrane" "Beam" "Truss" "EBST"]
+			# Check that this ptype is in the list
+			if {$ptype in $ltypelist} {
+			    if {($ptype eq "Shell") || ($ptype eq "Membrane") || ($ptype eq "EBST")} {
+				set cptype "Isotropic2D"
+			    } elseif {($ptype eq "Beam") || ($ptype eq "Truss")} {
+				set cptype "Isotropic2D"
+			    } else { #SolidElement3D, TotalLagrangian3D, UpdatedLagrangian3D, SpatialLagrangian3D
+				set cptype "HyperElasticPlastic3D"
+			    }
+			    
+			    # Get the material properties
+			    ::wkcf::GetMaterialProperties $AppId $propid $MatId $cptype $MatModel 
+			    
+			    # Get the material behavior and fluency properties
+			    ::wkcf::GetPlasticityProperties $AppId $MatId $MatModel $ptype $cptype
+			    # Get the cross section properties
+			    ::wkcf::GetCrossSectionProperties $AppId $propid $ptype
 			}
 		    }
 		}

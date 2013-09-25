@@ -512,8 +512,8 @@
     mycxpath="c.Structural//c.ElastoPlastic" cprops="Thickness" />
     <HardeningLaw>
       <Item id="AvailableHardeningLaw"
-      ycivalues="Isotropic,Kinematic,IsotropicKinematic"
-      ycwritev="LinearIsotropicHardening(),LinearKinematicHardening(),LinearIsotropicKinematicHardening()" />
+      mhivalues="Isotropic,Kinematic,IsotropicKinematic"
+      mhwritev="LinearIsotropicHardening(),LinearKinematicHardening(),LinearIsotropicKinematicHardening()" />
       <Item id="Isotropic"
       privalues="IsotropicHardeningModulus"
       prxpath="c.Structural//c.ElastoPlastic" />
@@ -537,8 +537,8 @@
     </YieldCriteria>
     <SaturationLaw>
       <Item id="AvailableSaturationLaws"
-      ycivalues="Non,Linear,Exponential"
-      ycwritev="Non,Linear,Exponential" />
+      msivalues="Non,Linear,Exponential"
+      mswritev="Non,Linear,Exponential" />
       <Item id="Non"
       privalues=""
       prxpath="" />
