@@ -228,13 +228,13 @@
     <Item id="D33" kkword="" />
     <Item id="YieldStress" kkword="YIELD_STRESS" />
     <Item id="IsotropicHardeningModulus"
-    kkword="ISOTROPIC_HARDENING" />
+    kkword="ISOTROPIC_HARDENING_MODULUS" />
     <Item id="KinematicHardeningModulus"
-    kkword="KINEMATIC_HARDENING" />
+    kkword="KINEMATIC_HARDENING_MODULUS" />
     <Item id="ReferenceHardeningModulus"
-    kkword="REFERENCE_HARDENING" />
+    kkword="REFERENCE_HARDENING_MODULUS" />
     <Item id="InfinityHardeningModulus"
-    kkword="INFINITY_HARDENING" />
+    kkword="INFINITY_HARDENING_MODULUS" />
     <Item id="HardeningExponent"
     kkword="HARDENING_EXPONENT" />
     <Item id="InternalFrictionAngle"
