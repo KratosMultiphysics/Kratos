@@ -1,4 +1,6 @@
-#!/bin/bash -i
+#!/bin/bash
+
+source $HOME/.bashrc
 
 write_python_file="*GenData(Python_script_file)"
 file_location="*GenData(Python_file)"
