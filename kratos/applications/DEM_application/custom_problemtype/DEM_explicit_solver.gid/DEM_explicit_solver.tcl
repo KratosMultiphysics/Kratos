@@ -203,21 +203,22 @@ namespace eval ::kaux:: {
 proc InitGIDProject {dir} {
 	# Initialize global variables
 	InitKratosPT $dir
-
-	# Splash image
-	if { [file exists [file join $dir "kratos_splash.png"] ] } then {
+	if { ![GidUtils::AreWindowsDisabled] } {
+	    # Splash image
+	    if { [file exists [file join $dir "kratos_splash.png"] ] } then {
 		kratos_splash $dir 1
+	    }
+	    GiDMenu::Create "DEM explicit solver" PRE
+	    GiDMenu::InsertOption "DEM explicit solver" [list "Nodal Values"] 0 PRE {GidOpenConditions Nodal_Values} "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "Predefined Skin Particles"] 1 PRE {GidOpenConditions Predefined_Skin_Particles} "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "Problem Parameters"] 2 PRE "GidOpenProblemData \"Problem_Parameters\"" "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "Materials"] 3 PRE "GidOpenMaterials \"DEM Materials\"" "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "---"] 4 PRE "" "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "Model Status"] 5 PRE "cond_report" "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "Change Kratos Path"] 6 PRE "GetKratosPath" "" ""
+	    GiDMenu::UpdateMenus
+	    # Custom Menu
 	}
-	GiDMenu::Create "DEM explicit solver" PRE
-	GiDMenu::InsertOption "DEM explicit solver" [list "Nodal Values"] 0 PRE {GidOpenConditions Nodal_Values} "" ""
-	GiDMenu::InsertOption "DEM explicit solver" [list "Predefined Skin Particles"] 1 PRE {GidOpenConditions Predefined_Skin_Particles} "" ""
-	GiDMenu::InsertOption "DEM explicit solver" [list "Problem Parameters"] 2 PRE "GidOpenProblemData \"Problem_Parameters\"" "" ""
-	GiDMenu::InsertOption "DEM explicit solver" [list "Materials"] 3 PRE "GidOpenMaterials \"DEM Materials\"" "" ""
-	GiDMenu::InsertOption "DEM explicit solver" [list "---"] 4 PRE "" "" ""
-	GiDMenu::InsertOption "DEM explicit solver" [list "Model Status"] 5 PRE "cond_report" "" ""
-	GiDMenu::InsertOption "DEM explicit solver" [list "Change Kratos Path"] 6 PRE "GetKratosPath" "" ""
-	GiDMenu::UpdateMenus
-	# Custom Menu
 }
 
 # Pass the path to kratos and the name of the problem to the Python script
@@ -347,12 +348,16 @@ proc BeforeMeshGeneration {elementsize} {
 
 proc AfterMeshGeneration { fail } {
     # After Mesh Generation
-    GidUtils::DisableGraphics
+    if { ![GidUtils::AreWindowsDisabled] } {
+	GidUtils::DisableGraphics
+    }
     DEM::Elements_Substitution
     DEM::Elements_Elimination
     GiD_Process Mescape Meshing EditMesh DelLonelyNods Yes
-    GiD_Process Mescape Meshing MeshView 
-    GidUtils::EnableGraphics    
+    GiD_Process Mescape Meshing MeshView
+    if { ![GidUtils::AreWindowsDisabled] } {
+	GidUtils::EnableGraphics    
+    }
 }
 
 proc BeforeWriteCalcFileGIDProject { file } { 
