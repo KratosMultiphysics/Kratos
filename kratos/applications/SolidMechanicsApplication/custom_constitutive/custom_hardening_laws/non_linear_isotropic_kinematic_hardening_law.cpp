@@ -73,11 +73,11 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateHardening(double &rHar
 	
 	//linear hardening properties
 	const double& YieldStress                 =  GetProperties()[YIELD_STRESS];
-	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING];
+	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
 	
 	//exponential saturation properties
-   	const double& K_reference           =  GetProperties()[REFERENCE_HARDENING];
-	const double& K_infinity            =  GetProperties()[INFINITY_HARDENING];
+   	const double& K_reference           =  GetProperties()[REFERENCE_HARDENING_MODULUS];
+	const double& K_infinity            =  GetProperties()[INFINITY_HARDENING_MODULUS];
 	const double& Delta                 =  GetProperties()[HARDENING_EXPONENT];
 
 	//Linear Hardening law:
@@ -98,11 +98,11 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateIsotropicHardening(dou
 
 	//linear hardening properties
 	const double& YieldStress                 =  GetProperties()[YIELD_STRESS];
-	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING];
+	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
 	
 	//exponential saturation properties
-   	const double& K_reference           =  GetProperties()[REFERENCE_HARDENING];
-	const double& K_infinity            =  GetProperties()[INFINITY_HARDENING];
+   	const double& K_reference           =  GetProperties()[REFERENCE_HARDENING_MODULUS];
+	const double& K_infinity            =  GetProperties()[INFINITY_HARDENING_MODULUS];
 	const double& Delta                 =  GetProperties()[HARDENING_EXPONENT];
 
 	//Linear Hardening law: (mTheta = 1)
@@ -122,7 +122,7 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateIsotropicHardening(dou
 double& NonLinearIsotropicKinematicHardeningLaw::CalculateKinematicHardening(double &rKinematicHardening,const double & rAlpha)
 {
 	//linear hardening properties
-	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING];
+	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
 	
 	//Linear Hardening law:
 	rKinematicHardening  = (1.0 - mTheta) * KinematicHardeningConstant;
@@ -138,11 +138,11 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateKinematicHardening(dou
 double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaHardening(double &rDeltaHardening,const double & rAlpha)
 {
       	//linear hardening properties
-	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING];
+	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
 	
 	//exponential saturation properties
-   	const double& K_reference           =  GetProperties()[REFERENCE_HARDENING];
-	const double& K_infinity            =  GetProperties()[INFINITY_HARDENING];
+   	const double& K_reference           =  GetProperties()[REFERENCE_HARDENING_MODULUS];
+	const double& K_infinity            =  GetProperties()[INFINITY_HARDENING_MODULUS];
 	const double& Delta                 =  GetProperties()[HARDENING_EXPONENT];
 
 	//Linear Hardening law: (mTheta = 1)
@@ -160,11 +160,11 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaHardening(double 
 double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening,const double & rAlpha)
 {
        	//linear hardening properties
-	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING];
+	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
 	
 	//exponential saturation properties
-   	const double& K_reference           =  GetProperties()[REFERENCE_HARDENING];
-	const double& K_infinity            =  GetProperties()[INFINITY_HARDENING];
+   	const double& K_reference           =  GetProperties()[REFERENCE_HARDENING_MODULUS];
+	const double& K_infinity            =  GetProperties()[INFINITY_HARDENING_MODULUS];
 	const double& Delta                 =  GetProperties()[HARDENING_EXPONENT];
 
 	//Linear Hardening law: (mTheta = 1)
