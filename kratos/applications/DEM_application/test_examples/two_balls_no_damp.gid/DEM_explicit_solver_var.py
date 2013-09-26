@@ -232,5 +232,6 @@ TotalElementsVolume              = 2.26195e-01
 
 # Declare Python Variables
 problem_name = 'two_balls_no_damp'
-problem_path = '/home/cimne/kratos/applications/DEM_application/test_examples/two_balls_no_damp.gid'
-kratos_path = '/home/cimne/kratos'
+problem_path = '/home/maceli/kratos/applications/DEM_application/test_examples/two_balls_no_damp.gid'
+kratos_path = '/home/maceli/kratos'
+
