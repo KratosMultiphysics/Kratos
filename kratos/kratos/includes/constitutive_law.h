@@ -82,9 +82,16 @@ public:
         StrainMeasure_Infinitesimal,   //strain measure small displacements
 	StrainMeasure_GreenLagrange,   //strain measure reference configuration
 	StrainMeasure_Almansi,         //strain measure current configuration
+
 	//true strain:
 	StrainMeasure_Hencky_Material, //strain measure reference configuration
-	StrainMeasure_Hencky_Spatial   //strain measure current   configuration
+	StrainMeasure_Hencky_Spatial,  //strain measure current   configuration
+
+	//deformation measures:
+	StrainMeasure_Deformation_Gradient, //deformation gradient as a strain measure
+	StrainMeasure_Right_CauchyGreen,    //right cauchy-green tensor as a strain measure
+	StrainMeasure_Left_CauchyGreen      //left  cauchy-green tensor as a strain measure
+	
     };
 
     enum StressMeasure
@@ -110,7 +117,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ConstitutiveLaw);
 
     /**
-     * Flags related to the constitutive Law
+     * Flags related to the Parameters of the Contitutive Law
      */
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_STRAIN );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_STRESS );
@@ -127,7 +134,45 @@ public:
     
     KRATOS_DEFINE_LOCAL_FLAG( FINALIZE_MATERIAL_RESPONSE );
     
-    KRATOS_DEFINE_LOCAL_FLAG( AXISYMMETRIC );
+
+    /**
+     * Flags related to the Features of the Contitutive Law
+     */
+
+    KRATOS_DEFINE_LOCAL_FLAG( FINITE_STRAINS );
+    KRATOS_DEFINE_LOCAL_FLAG( INFINITESIMAL_STRAINS );
+
+    KRATOS_DEFINE_LOCAL_FLAG( THREE_DIMENSIONAL_LAW );
+    KRATOS_DEFINE_LOCAL_FLAG( PLANE_STRAIN_LAW );
+    KRATOS_DEFINE_LOCAL_FLAG( PLANE_STRESS_LAW );
+    KRATOS_DEFINE_LOCAL_FLAG( AXISYMMETRIC_LAW );
+
+    KRATOS_DEFINE_LOCAL_FLAG( U_P_LAW );
+
+    KRATOS_DEFINE_LOCAL_FLAG( ISOTROPIC );
+    KRATOS_DEFINE_LOCAL_FLAG( ANISOTROPIC );
+    
+
+    struct Features
+    {
+
+    /**
+     * Structure "Features" to be used by the element to get the the constitutive law characteristics*
+     * its variables will be used to check constitutive law and element compatibility
+
+     * @param mOptions        flags  with the current constitutive law characteristics 
+     * @param mStrainSize     double with the strain vector size
+     * @param mStrainMeasures vector with the strain measures accepted by the constitutive law
+
+     */
+
+      Flags                mOptions;
+      double               mStrainSize;
+      double               mSpaceDimension;
+      std::vector< StrainMeasure > mStrainMeasures;
+
+    };
+
 
 
     struct Parameters
@@ -852,6 +897,14 @@ public:
 				     const double &rdetF,
 				     StressMeasure rStressFinal);
       
+
+    /**
+     * This function is designed to be called once to check compatibility with element
+     * @param rFeatures
+     */
+    virtual void GetLawFeatures(Features& rFeatures);
+
+
     /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
