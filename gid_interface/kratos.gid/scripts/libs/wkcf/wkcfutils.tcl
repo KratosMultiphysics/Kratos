@@ -680,6 +680,14 @@ proc ::wkcf::GetPropertiesData {} {
 	    set dprops($AppId,Material,$MatId,Fluency) ""
 	    set dprops($AppId,Material,$MatId,UseBehavior) "No"
 	    set dprops($AppId,Material,$MatId,Behavior) ""
+
+	    set dprops($AppId,Material,$MatId,UseFlowRule) "No"
+	    set dprops($AppId,Material,$MatId,FlowRule) ""
+	    set dprops($AppId,Material,$MatId,UseYieldCriterion) "No"
+	    set dprops($AppId,Material,$MatId,YieldCriterion) ""
+	    set dprops($AppId,Material,$MatId,UseHardeningLaw) "No"
+	    set dprops($AppId,Material,$MatId,HardeningLaw) ""
+
 	    
 	    # Get material properties
 	    switch -exact -- $MatModel {
