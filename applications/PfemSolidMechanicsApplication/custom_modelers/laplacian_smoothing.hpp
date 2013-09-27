@@ -19,6 +19,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/variables.h"
+//#include "includes/kratos_flags.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
 #include "spatial_containers/spatial_containers.h"
@@ -518,7 +519,7 @@ namespace Kratos
 	   
 	  for(int in = 0; in<out.numberofpoints; in++)
 	    {
-	      if(rNodes[in+1].IsNot(BOUNDARY) && rNodes[in+1].IsNot(RELEASE))// && rNodes[in+1].IsNot(STRUCTURE) )
+	      if(rNodes[in+1].IsNot(BOUNDARY) && rNodes[in+1].IsNot(TO_ERASE))// && rNodes[in+1].IsNot(STRUCTURE) )
 		{
 		  unsigned int NumberOfNeighbours = list_of_neighbor_nodes[in+1].size();
 	    	      
@@ -621,7 +622,7 @@ namespace Kratos
 	  
 	  for(NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
 	    {
-	      if( i_node->IsNot(RELEASE) ){
+	      if( i_node->IsNot(TO_ERASE) ){
 		//set new positions:
 		int id =i_node->Id()-1;
 		i_node->X() = out.pointlist[id*dimension];
@@ -698,7 +699,7 @@ namespace Kratos
 		  for( PointIterator it_found = Results.begin(); it_found != Results.begin() + number_of_points_in_radius; it_found++)
 		    {
 
-		      if((*it_found)->IsNot(RELEASE)){
+		      if((*it_found)->IsNot(TO_ERASE)){
 
 			//std::cout<<" Found ID "<<(*it_found)->Id()<<std::endl;
 			bool is_inside = false;
@@ -741,7 +742,7 @@ namespace Kratos
 	  for(NodesContainerType::iterator i_node = rModelPart.NodesBegin(MeshId) ; i_node != rModelPart.NodesEnd(MeshId) ; i_node++)
 	    {
 	      //std::cout<<" ID "<<i_node->Id()<<std::endl;
-	      if(i_node->IsNot(BOUNDARY) && i_node->IsNot(RELEASE)){
+	      if(i_node->IsNot(BOUNDARY) && i_node->IsNot(TO_ERASE)){
 		//recover the original position of the node
 		id = i_node->Id();
 		  

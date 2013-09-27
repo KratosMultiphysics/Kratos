@@ -24,7 +24,7 @@
 #include "includes/constitutive_law.h"
 
 // Core applications
-#include "../SolidMechanicsApplication/solid_mechanics_application.h"
+#include "solid_mechanics_application.h"
 
 //conditions
 #include "custom_conditions/skin_multiple_condition.hpp"
@@ -38,6 +38,7 @@
 //constitutive laws
 #include "containers/flags.h"
 #include "includes/variables.h"
+#include "includes/ublas_interface.h"
 
 
 namespace Kratos
@@ -93,24 +94,6 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, MU_STATIC );
   KRATOS_DEFINE_VARIABLE(double, MU_DYNAMIC );
 
-  //flags
-  /* KRATOS_DEFINE_FLAG( FLUID ); */
-  /* KRATOS_DEFINE_FLAG( STRUCTURE ); */
-  /* KRATOS_DEFINE_FLAG( SOLID ); */
-  /* KRATOS_DEFINE_FLAG( RIGID ); */
-  /* KRATOS_DEFINE_FLAG( CONTACT ); */
-  
-  /* KRATOS_DEFINE_FLAG( BOUNDARY ); */
-  /* KRATOS_DEFINE_FLAG( FREE_SURFACE ); */
-  
-  /* KRATOS_DEFINE_FLAG( INTERFACE ); */
-  
-  /* KRATOS_DEFINE_FLAG( ENGAGED ); */
-  /* KRATOS_DEFINE_FLAG( ISOLATED ); */
-  
-  /* KRATOS_DEFINE_FLAG( REFINE ); */
-  /* KRATOS_DEFINE_FLAG( INSERTED ); */
-  /* KRATOS_DEFINE_FLAG( RELEASE ); */
 
   ///@} 
   ///@name Type Definitions

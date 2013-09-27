@@ -28,13 +28,13 @@
 #include "includes/constitutive_law.h"
 #include "utilities/math_utils.h"
 
-#include "../SolidMechanicsApplication/custom_conditions/point_load_2D_condition.hpp"
-#include "../SolidMechanicsApplication/custom_conditions/point_load_axisym_2D_condition.hpp"
-#include "../SolidMechanicsApplication/custom_conditions/point_load_3D_condition.hpp"
-#include "../SolidMechanicsApplication/custom_conditions/line_load_2D_condition.hpp"
-#include "../SolidMechanicsApplication/custom_conditions/line_load_axisym_2D_condition.hpp"
-#include "../SolidMechanicsApplication/custom_conditions/line_load_3D_condition.hpp"
-#include "../SolidMechanicsApplication/custom_conditions/surface_load_3D_condition.hpp"
+#include "custom_conditions/point_load_2D_condition.hpp"
+#include "custom_conditions/point_load_axisym_2D_condition.hpp"
+#include "custom_conditions/point_load_3D_condition.hpp"
+#include "custom_conditions/line_load_2D_condition.hpp"
+#include "custom_conditions/line_load_axisym_2D_condition.hpp"
+#include "custom_conditions/line_load_3D_condition.hpp"
+#include "custom_conditions/surface_load_3D_condition.hpp"
 #include "custom_conditions/wall_tip_condition.hpp"
 
 

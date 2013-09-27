@@ -23,6 +23,7 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/variables.h"
+//#include "includes/kratos_flags.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
 #include "spatial_containers/spatial_containers.h"
@@ -112,7 +113,7 @@ public:
 	    unsigned int NumberOfVertices =vertices.size();
 	    for(unsigned int i=0; i<NumberOfVertices; i++)
 	      {
-		if(vertices[i].Is(BOUNDARY) && vertices[i].IsNot(RELEASE))
+		if(vertices[i].Is(BOUNDARY) && vertices[i].IsNot(TO_ERASE))
 		  boundary_nodes+=1;
 	      }
 
@@ -585,7 +586,7 @@ public:
 	    for(int pn=0; pn<NumberOfVertices; pn++)
 	      {
 		vertices.push_back(*(nodes_begin + out.trianglelist[el*3+pn]-1).base());
-		if(vertices[pn].Is(BOUNDARY) && vertices[pn].IsNot(RELEASE)){
+		if(vertices[pn].Is(BOUNDARY) && vertices[pn].IsNot(TO_ERASE)){
 		  Normal=vertices[pn].FastGetSolutionStepValue(NORMAL); 
 		  if(norm_2(Normal))
 		    boundary_nodes+=1;

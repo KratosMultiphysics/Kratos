@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_flags.h"
 #include "processes/process.h"
 #include "includes/node.h"
 #include "includes/element.h"

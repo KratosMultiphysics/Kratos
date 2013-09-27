@@ -103,7 +103,7 @@ public:
     int id=1;
     for(ModelPart::NodesContainerType::iterator in = rModelPart.NodesBegin(MeshId) ; in != rModelPart.NodesEnd(MeshId) ; in++)
       {
-	if( in->IsNot(INSERTED) ){// && in->IsNot(STRUCTURE)){ 
+	if( in->IsNot(NEW_ENTITY) ){// && in->IsNot(STRUCTURE)){ 
 
 	  WeakPointerVector<Element >& neighb_elems = in->GetValue(NEIGHBOUR_ELEMENTS);
 		  
@@ -194,7 +194,7 @@ public:
 	for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in!=rModelPart.NodesEnd(MeshId); in++)
 	{
 
-	  if(in->IsNot(INSERTED) ){// && in->IsNot(STRUCTURE)){
+	  if(in->IsNot(NEW_ENTITY) ){// && in->IsNot(STRUCTURE)){
 
 	    PatchArea  = 0;
 	    PatchError = 0;

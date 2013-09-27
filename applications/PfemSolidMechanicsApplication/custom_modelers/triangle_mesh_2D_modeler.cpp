@@ -1430,10 +1430,10 @@ namespace Kratos
 
 		    prescribed_h += (nodes_begin + out.trianglelist[el*3+pn]-1)->FastGetSolutionStepValue(NODAL_H);
 		      
-		    if((nodes_begin + out.trianglelist[el*3+pn]-1)->Is(REFINE))
+		    if((nodes_begin + out.trianglelist[el*3+pn]-1)->Is(TO_REFINE))
 		      count_dissipative+=1;
 
-		    if((nodes_begin + out.trianglelist[el*3+pn]-1)->Is(INSERTED))
+		    if((nodes_begin + out.trianglelist[el*3+pn]-1)->Is(NEW_ENTITY))
 		      count_boundary_inserted+=1;	      
 
 		    if((nodes_begin + out.trianglelist[el*3+pn]-1)->Is(BOUNDARY))
@@ -1976,7 +1976,7 @@ namespace Kratos
       for(ModelPart::NodesContainerType::iterator i_node = rNodes.begin() ; i_node != rNodes.end() ; i_node++)
 	{
 	  if( i_node->IsNot(Modeler::ENGAGED_NODES)  ){
-	    i_node->Set(RELEASE);
+	    i_node->Set(TO_ERASE);
 	    std::cout<<" NODE "<<i_node->Id()<<" RELEASE "<<std::endl;
 	    if( i_node->IsNot(Modeler::ENGAGED_NODES) )
 	      std::cout<<" ---//*******PROBLEMS : "<<i_node->Id()<<" IS BOUNDARY RELEASE "<<std::endl;
@@ -2072,7 +2072,7 @@ namespace Kratos
 		vertices.push_back(*(nodes_begin + out.trianglelist[el*3+pn]-1).base());
 		//vertices.push_back(rModelPart.pGetNode(out.trianglelist[el*3+pn],MeshId));
 		   
-		if(vertices.back().Is(RELEASE))
+		if(vertices.back().Is(TO_ERASE))
 		  std::cout<<" Problem, vertex RELEASED "<<vertices.back().Id()<<std::endl;
 		  
 		//std::cout<<" out.neighborlist "<<out.neighborlist[el*3+pn]<<std::endl;
@@ -2235,7 +2235,7 @@ namespace Kratos
 		int erased_nodes =0;
 		for(unsigned int i = 0; i < rN.size(); i++)
 		  {
-		    if(rN[i].Is(RELEASE))
+		    if(rN[i].Is(TO_ERASE))
 		      erased_nodes += 1;
 		  }
 
@@ -2259,7 +2259,7 @@ namespace Kratos
 		    if(NodalError[nodes_ids[in->Id()]] < 2 && mean_node_radius < radius_factor * rVariables.Refine.critical_radius)
 		      {
 			//std::cout<<"   Energy : node remove ["<<in->Id()<<"] : "<<NodalError[nodes_ids[in->Id()]]<<std::endl;
-			in->Set(RELEASE);
+			in->Set(TO_ERASE);
 			any_node_removed = true;
 			error_remove++;
 		      }
@@ -2331,7 +2331,7 @@ namespace Kratos
 	    for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++)
 	      {
 
-		if( in->IsNot(INSERTED) )
+		if( in->IsNot(NEW_ENTITY) )
 		  {
 		    //radius=rVariables.Refine.size_factor*in->FastGetSolutionStepValue(NODAL_H);
 		    radius= rVariables.Refine.critical_radius * distance_factor;
@@ -2350,19 +2350,19 @@ namespace Kratos
 			    double erased_nodes = 0;
 			    for(PointIterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
 			      {
-				if((*nn)->Is(RELEASE))
+				if((*nn)->Is(TO_ERASE))
 				  erased_nodes += 1;
 			      }
 
 			    if( erased_nodes < 1){ //we release the node if no other nodes neighbours are being erased
-			      in->Set(RELEASE);
+			      in->Set(TO_ERASE);
 			      any_node_removed = true;
 			      inside_nodes_removed++;
 			      //distance_remove++;
 			    }
 
 			  }
-			else if ( (in)->IsNot(STRUCTURE) && rVariables.RefiningOptions.Is(Modeler::REMOVE_ON_BOUNDARY) && (in)->IsNot(RELEASE)) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2(=extra_factor) * h_factor)
+			else if ( (in)->IsNot(STRUCTURE) && rVariables.RefiningOptions.Is(Modeler::REMOVE_ON_BOUNDARY) && (in)->IsNot(TO_ERASE)) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2(=extra_factor) * h_factor)
 			  {
 			    double extra_factor = 0.001; //0.2;
 
@@ -2375,7 +2375,7 @@ namespace Kratos
 				if ( (*nn)->Is(BOUNDARY) && (*nn)->IsNot(CONTACT) && neighbour_distances[k] < (extra_factor*radius) && neighbour_distances[k] > 0.0 )
 				  {
 				    //KRATOS_WATCH( neighbours_distances[k] );
-				    if((*nn)->IsNot(RELEASE)){
+				    if((*nn)->IsNot(TO_ERASE)){
 				      std::cout<<" Removed Boundary Node on Distance ["<<neighbour_distances[k]<<"<"<<extra_factor*radius<<"] "<<std::endl;
 				      counter += 1;
 				    }
@@ -2383,8 +2383,8 @@ namespace Kratos
 				k++;
 			      }
 
-			    if(counter > 0 && in->IsNot(INSERTED) && in->IsNot(CONTACT) ){ //Can be inserted in the boundary refine
-			      in->Set(RELEASE);
+			    if(counter > 0 && in->IsNot(NEW_ENTITY) && in->IsNot(CONTACT) ){ //Can be inserted in the boundary refine
+			      in->Set(TO_ERASE);
 			      any_node_removed = true;
 			      boundary_nodes_removed++;
 			      //distance_remove ++;
@@ -2428,11 +2428,11 @@ namespace Kratos
 
     for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(MeshId); ic!= rModelPart.ConditionsEnd(MeshId); ic++)
       {	 
-	if(ic->IsNot(INSERTED) && ic->IsNot(RELEASE)){
+	if(ic->IsNot(NEW_ENTITY) && ic->IsNot(TO_ERASE)){
 	  Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
 	  for(unsigned int i=0; i<rConditionGeom.size(); i++){
 	    //std::cout<<"["<<ic->Id()<<"] i "<<i<<" condition "<<rConditionGeom[i].Id()<<std::endl;
-	    if(rConditionGeom[i].Is(RELEASE))
+	    if(rConditionGeom[i].Is(TO_ERASE))
 	      std::cout<<" Released node condition: WARNING "<<std::endl;
 
 	    node_shared_conditions[rConditionGeom[i].Id()].push_back(*(ic.base()));	  
@@ -2469,14 +2469,14 @@ namespace Kratos
     for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++)
       {
 
-	if( in->Is(BOUNDARY) && in->IsNot(ENGAGED) && in->IsNot(INSERTED) )
+	if( in->Is(BOUNDARY) && in->IsNot(BLOCKED) && in->IsNot(NEW_ENTITY) )
 	  {
 	    unsigned int nodeId = in->Id();
 
 	    if(node_shared_conditions[nodeId].size()>=2){
 
 	      //std::cout<<" nodeId "<<nodeId<<std::endl;
-	      if(node_shared_conditions[nodeId][0]->IsNot(RELEASE) && node_shared_conditions[nodeId][1]->IsNot(RELEASE)){
+	      if(node_shared_conditions[nodeId][0]->IsNot(TO_ERASE) && node_shared_conditions[nodeId][1]->IsNot(TO_ERASE)){
 		
 		if(node_shared_conditions[nodeId][0]->Id() == in->Id()){
 		  i = 1;
@@ -2531,14 +2531,14 @@ namespace Kratos
 
 		if(remove_S1 || remove_S2){
 		    
-		  node_shared_conditions[nodeId][i]->Set(RELEASE); //release condition [1]
-		  node_shared_conditions[nodeId][j]->Set(RELEASE); //release condition [2]
-		  in->Set(RELEASE);    //release Node1*
+		  node_shared_conditions[nodeId][i]->Set(TO_ERASE); //release condition [1]
+		  node_shared_conditions[nodeId][j]->Set(TO_ERASE); //release condition [2]
+		  in->Set(TO_ERASE);    //release Node1*
 
 		  Condition::Pointer NewCond = node_shared_conditions[nodeId][i];
 		    
-		  Node0.Set(ENGAGED);
-		  Node2.Set(ENGAGED);
+		  Node0.Set(BLOCKED);
+		  Node2.Set(BLOCKED);
 
 		  //create new condition Node0-NodeB
 		  Condition::NodesArrayType face;
@@ -2553,7 +2553,7 @@ namespace Kratos
 		  Condition::Pointer pcond       = NewCond->Create(new_id, face, properties);
 		  // std::cout<<" ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
 
-		  pcond->Set(INSERTED);
+		  pcond->Set(NEW_ENTITY);
 
 		  std::cout<<"  Condition INSERTED (Id: "<<new_id<<") ["<<rConditionGeom1[0].Id()<<", "<<rConditionGeom2[1].Id()<<"] "<<std::endl;
 
@@ -2595,11 +2595,11 @@ namespace Kratos
 		    //Path of neighbour conditions in 2D:   (NodeA) ---[0]--- (Node0) ---[1]--- (Node1*) ---[2]--- (Node2) ---[2]--- (Node2) ---[3]--- (NodeB)
 
 		    //realease positions:
-		    node_shared_conditions[nodeId][i]->Set(RELEASE); //release condition [1]
-		    node_shared_conditions[nodeId][j]->Set(RELEASE); //release condition [2]
+		    node_shared_conditions[nodeId][i]->Set(TO_ERASE); //release condition [1]
+		    node_shared_conditions[nodeId][j]->Set(TO_ERASE); //release condition [2]
 
-		    in->Set(RELEASE);    //release Node1*
-		    Node2.Set(RELEASE);  //release Node2
+		    in->Set(TO_ERASE);    //release Node1*
+		    Node2.Set(TO_ERASE);  //release Node2
 		    
 		    std::cout<<" Node Release i "<<in->Id()<<std::endl;
 		    std::cout<<" Node Release j "<<Node2.Id()<<std::endl;
@@ -2656,7 +2656,7 @@ namespace Kratos
 		    //New conditions profile in 2D:  (NodeA) ---[0]--- (Node0**) ---[3]--- (NodeB)   where (Node0**) is (Node0) in another position
 
 		    Condition::Pointer NewCond = node_shared_conditions[Node2.Id()][i];
-		    NewCond->Set(RELEASE);
+		    NewCond->Set(TO_ERASE);
 		    Geometry< Node<3> >& rConditionGeom3 = NewCond->GetGeometry();
 		    Node<3> & NodeB = rConditionGeom3[1];
 
@@ -2679,7 +2679,7 @@ namespace Kratos
 		    Condition::Pointer pcond       = NewCond->Create(new_id, face, properties);
 		    // std::cout<<" ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
 
-		    pcond->Set(INSERTED);
+		    pcond->Set(NEW_ENTITY);
 
 		    std::cout<<"  Condition INSERTED (Id: "<<new_id<<") ["<<rConditionGeom1[0].Id()<<", "<<rConditionGeom3[1].Id()<<"] "<<std::endl;
 
@@ -2703,7 +2703,7 @@ namespace Kratos
 
     for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++)
       {
-	in->Reset(ENGAGED);
+	in->Reset(BLOCKED);
       }
 	      
     std::cout<<"   Conditions : "<<rModelPart.Conditions(MeshId).size()<<" Removed nodes: "<< removed_nodes<<std::endl;
@@ -2739,7 +2739,7 @@ namespace Kratos
 	    for(unsigned int i = 0; i<rGeom.size(); i++)
 	      {
 		if(rGeom[i].IsNot(BOUNDARY))
-		  rGeom[i].Set(REFINE);
+		  rGeom[i].Set(TO_REFINE);
 	      }
 	  }
 		    
@@ -2842,7 +2842,7 @@ namespace Kratos
 
 		if(condition_found){
 		      
-		  if( MasterCondition->IsNot(RELEASE) ){
+		  if( MasterCondition->IsNot(TO_ERASE) ){
 
 
 		    //The order is determined to set WALL_TIP to the nodes on boundary, independently if they are on active contact or not
@@ -3030,7 +3030,7 @@ namespace Kratos
 			  contact_size++;
 			      
 			std::cout<<"   MasterCondition RELEASED (Id: "<<ContactMasterCondition->Id()<<") "<<std::endl;
-			ContactMasterCondition->Set(RELEASE);
+			ContactMasterCondition->Set(TO_ERASE);
 			list_of_nodes.push_back(new_point);
 			list_of_conditions.push_back(ContactMasterCondition);
 		      }		    
@@ -3093,7 +3093,7 @@ namespace Kratos
 	      Geometry< Node<3> > rConditionGeom;
 	      array_1d<double,3> tip_center;
 
-	      if( ic->IsNot(RELEASE) ){
+	      if( ic->IsNot(TO_ERASE) ){
 
 		// TOOL TIP INSERT;
 		//std::cout<<" Condition "<<ic->Id()<<"("<<ic->GetGeometry()[0].Id()<<", "<<ic->GetGeometry()[1].Id()<<") NOT RELEASE  (number: "<<cond_counter<<") "<<std::endl;
@@ -3300,7 +3300,7 @@ namespace Kratos
 		    if(energy_insert)
 		      exterior_bound++;
 
-		    ic->Set(RELEASE);
+		    ic->Set(TO_ERASE);
 		    list_of_nodes.push_back(new_point);
 		    list_of_conditions.push_back(*(ic.base()));
 
@@ -3402,7 +3402,7 @@ namespace Kratos
 		
 	    //set specific controles values and flags:
 	    pnode->Set(BOUNDARY);
-	    pnode->Set(INSERTED);  //if boundary is rebuild, the flag INSERTED must be set to new conditions too
+	    pnode->Set(NEW_ENTITY);  //if boundary is rebuild, the flag INSERTED must be set to new conditions too
 	    pnode->SetValue(DOMAIN_LABEL,MeshId);
 	    double& nodal_h = pnode->FastGetSolutionStepValue(NODAL_H);
 	    //nodal_h = 0.5*(nodal_h+rVariables.Refine.critical_side); //modify nodal_h for security
@@ -3442,8 +3442,8 @@ namespace Kratos
 	    Condition::Pointer pcond2      = list_of_conditions[i]->Create(id, face2, properties);
 	    // std::cout<<" ID"<<id<<" 2s "<<pcond2->GetGeometry()[0].Id()<<" "<<pcond2->GetGeometry()[1].Id()<<std::endl;
 
-	    pcond1->Set(INSERTED);
-	    pcond2->Set(INSERTED);
+	    pcond1->Set(NEW_ENTITY);
+	    pcond2->Set(NEW_ENTITY);
 
 	    pcond1->SetValue(MASTER_NODES, list_of_conditions[i]->GetValue(MASTER_NODES) );
 	    pcond1->SetValue(NORMAL, list_of_conditions[i]->GetValue(NORMAL) );
@@ -3476,7 +3476,7 @@ namespace Kratos
 		rGeom[i].Reset(WallTipCondition::WALL_TIP);
 	      }
 		
-	    if(ic->IsNot(RELEASE)){
+	    if(ic->IsNot(TO_ERASE)){
 	      //id+=1;
 	      RemoveConditions.push_back(*(ic.base()));
 	      //RemoveConditions.back().SetId(id);
@@ -3770,8 +3770,8 @@ namespace Kratos
     for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(MeshId); ic!= rModelPart.ConditionsEnd(MeshId); ic++)
       {
 	Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
-	if( rConditionGeom[0].Is(RELEASE) || rConditionGeom[1].Is(RELEASE) )
-	  ic->Set(RELEASE);
+	if( rConditionGeom[0].Is(TO_ERASE) || rConditionGeom[1].Is(TO_ERASE) )
+	  ic->Set(TO_ERASE);
 	    
 	ic->SetId(condId);
 	condId++;
@@ -3852,18 +3852,18 @@ namespace Kratos
 		    
 		for(ModelPart::ConditionsContainerType::iterator ic = temporal_conditions.begin(); ic!= temporal_conditions.end(); ic++)
 		  {
-		    if( ic->IsNot(RELEASE) ){
+		    if( ic->IsNot(TO_ERASE) ){
 
 		      if( ic->IsNot(CONTACT) ){
 			  
 			Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
 
 			bool inserted = false;
-			if( rConditionGeom[0].Is(INSERTED) || rConditionGeom[1].Is(INSERTED) )
+			if( rConditionGeom[0].Is(NEW_ENTITY) || rConditionGeom[1].Is(NEW_ENTITY) )
 			  inserted = true;
 
 
-			if(ic->Is(INSERTED))
+			if(ic->Is(NEW_ENTITY))
 			  {
 			    std::cout<<" Inserted Cond "<<ic->Id()<<" nodes "<<rConditionGeom[0].Id()<<" "<<rConditionGeom[1].Id()<<std::endl;
 			    inserted = false;
@@ -3956,8 +3956,8 @@ namespace Kratos
 		  p_cond = rReferenceCondition.Create(id, face, properties);
 		      
 		  //if a condition is created new nodes must be labeled to REFINE
-		  face[0].Set(REFINE);
-		  face[1].Set(REFINE);
+		  face[0].Set(TO_REFINE);
+		  face[1].Set(TO_REFINE);
 
 		  Vector StressVector=ZeroVector(3);
 		  Matrix DeformationGradient=identity_matrix<double>( 2 );
@@ -4004,15 +4004,15 @@ namespace Kratos
 	    }
 
 	  //if a condition is created new nodes must be labeled to REFINE
-	  if( ic->Is(RELEASE) )
+	  if( ic->Is(TO_ERASE) )
 	    condition_not_preserved = true;
 	  // if( face[0].IsNot(BOUNDARY) || face[1].IsNot(BOUNDARY) )
 	  //   node_not_preserved = true;
 
-	  if( face[0].Is(RELEASE) || face[1].Is(RELEASE) )
+	  if( face[0].Is(TO_ERASE) || face[1].Is(TO_ERASE) )
 	    node_not_preserved = true;
 
-	  if( face[0].Is(REFINE) || face[1].Is(REFINE) )
+	  if( face[0].Is(TO_REFINE) || face[1].Is(TO_REFINE) )
 	    node_not_preserved = true;
 	  
 	  if(node_not_preserved == true || condition_not_preserved == true)

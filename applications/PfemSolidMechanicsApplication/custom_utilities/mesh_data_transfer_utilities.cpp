@@ -7,8 +7,8 @@
 //
 
 // Project includes
+#include "includes/kratos_flags.h"
 #include "custom_utilities/mesh_data_transfer_utilities.hpp"
-
 #include "pfem_solid_mechanics_application.h"
 
 namespace Kratos
