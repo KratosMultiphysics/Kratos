@@ -15,7 +15,7 @@
       <Item id="CrisfieldTrussElement" kkword="CrisfieldTrussElement"
       usennode="Yes" />
       <Item id="ShellIsotropic" kkword="IsotropicShellElement"
-      usennode="No" />
+      usennode="Yes" />
       <Item id="ShellAnisotropic" kkword="ShellAnisotropic"
       usennode="No" />
       <Item id="Membrane" kkword="MembraneElement"
