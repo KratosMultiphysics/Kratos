@@ -344,7 +344,7 @@ void ArteryElement::Initialize()
     const double H0 = GetProperties()[THICKNESS];
     const double E = GetProperties()[YOUNG_MODULUS];
     const double nu = GetProperties()[POISSON_RATIO];
-    const double pressure = GetProperties()[PRESSURE];
+    const double pressure = GetProperties()[PRESSURE]; //Initial Pressure (systolic pressure)
     const double blood_density = GetProperties()[DENSITY];
     
     double beta=E*H0*1.77245385/(1.0-nu*nu);

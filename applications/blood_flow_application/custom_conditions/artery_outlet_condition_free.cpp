@@ -205,8 +205,9 @@ double ArteryOutletFreeCondition::UpdateArea(double Beta, double Density)
     KRATOS_TRY
 
     const int max_iteration = 10;
-    const double p_init = GetProperties()[PRESSURE];
-    double& A = GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA);
+//    const double p_init = GetProperties()[PRESSURE];
+    const double p_init = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
+      double& A = GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA);
     const double flow =  GetGeometry()[1].FastGetSolutionStepValue(FLOW);
     double initial_area = GetGeometry()[1].GetValue(NODAL_AREA);
     const double par1 = Beta / initial_area;
