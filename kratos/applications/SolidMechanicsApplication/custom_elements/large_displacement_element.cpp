@@ -1642,7 +1642,20 @@ int  LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
     unsigned int dimension = this->GetGeometry().WorkingSpaceDimension();
 
+    //verify compatibility with the constitutive law
+    ConstitutiveLaw::Features LawFeatures;
+    this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
+    bool correct_strain_measure = false;
+    for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
+    {
+	    if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Deformation_Gradient)
+		    correct_strain_measure = true;
+    }
+
+    if( correct_strain_measure == false )
+	    KRATOS_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Large Displacements " );
+	  
 
     //verify that the variables are correctly initialized
 

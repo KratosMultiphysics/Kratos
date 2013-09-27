@@ -79,6 +79,9 @@ public:
      * Operators
      */
 
+    /**
+     * Operations needed by the base class:
+     */
 
     /**
      * Dimension of the law:
@@ -95,9 +98,13 @@ public:
     {
         return 4;
     };
+
+
     /**
-     * Operations needed by the base class:
+     * This function is designed to be called once to check compatibility with element
+     * @param rFeatures
      */
+    void GetLawFeatures(Features& rFeatures);
 
     /**
     * Input and output

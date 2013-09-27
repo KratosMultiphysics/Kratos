@@ -88,6 +88,15 @@ public:
      */
 
 
+    /**
+     * Operations needed by the base class:
+     */
+
+    /**
+     * This function is designed to be called once to check compatibility with element
+     * @param rFeatures
+     */
+    void GetLawFeatures(Features& rFeatures);
 
     /**
      * This function is designed to be called once to perform all the checks needed
