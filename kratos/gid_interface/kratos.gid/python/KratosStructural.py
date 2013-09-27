@@ -102,7 +102,8 @@ list_files.Initialize(general_variables.file_list);
 load_restart     = general_variables.LoadRestart
 save_restart     = general_variables.SaveRestart
 restart_interval = general_variables.Restart_Interval
-problem_restart.Initialize(load_restart,save_restart,restart_interval,main_solver,list_files);
+rotation_dofs    = general_variables.Rotational_Dofs
+problem_restart.Initialize(load_restart,save_restart,restart_interval,main_solver,list_files,rotation_dofs);
   
 
 ######################--READ AND SET MODEL FILES END--############
@@ -210,7 +211,6 @@ gid_print.SetPrintOptions(write_particles,write_deformed,write_conditions,write_
 
 #read model_part / set buffer_size / set dofs / set constitutive_law
 buffer_size   =  3;
-rotation_dofs =  general_variables.Rotational_Dofs
 
 #--- READ MODEL ------#
 #problem_restart.StartModelRead(buffer_size,domain_size,problem_type,rotation_dofs,main_solver,modeler);
