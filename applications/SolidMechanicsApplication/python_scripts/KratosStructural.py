@@ -102,62 +102,12 @@ list_files.Initialize(general_variables.file_list);
 load_restart     = general_variables.LoadRestart
 save_restart     = general_variables.SaveRestart
 restart_interval = general_variables.Restart_Interval
-problem_restart.Initialize(load_restart,save_restart,restart_interval,main_solver,list_files);
+rotation_dofs    = general_variables.Rotational_Dofs
+problem_restart.Initialize(load_restart,save_restart,restart_interval,main_solver,list_files,rotation_dofs);
   
 
 ######################--READ AND SET MODEL FILES END--############
 
-
-
-######################--GID OUTPUT OPTIONS START--###############
-
-gid_configuration_mode   =  WriteDeformedMeshFlag.WriteDeformed
-gid_variables            =  WriteConditionsFlag.WriteElementsOnly
-gid_output_mode          =  GiDPostMode.GiD_PostBinary
-gid_files_mode           =  MultiFileFlag.MultipleFiles
-
-if(general_variables.GiDWriteMeshFlag == "False"):
-  gid_configuration_mode = WriteDeformedMeshFlag.WriteUndeformed
-if(general_variables.GiDWriteConditionsFlag == "True"):
-  gid_mesh_write_type    =  WriteConditionsFlag.WriteConditions
-if(general_variables.GiDPostMode == "Ascii"):
-  gid_output_mode = GiDPostMode.GiD_PostAscii
-if(general_variables.GiDMultiFileFlag == "Single"):
-  gid_files_mode = MultiFileFlag.SingleFile
-
-gid_print = gid_utils.PrintResultsUtility(model_part,problem_type,problem_name,gid_output_mode,gid_files_mode)
-
-#set gid print options
-write_particles   =  general_variables.GiDWriteParticlesFlag
-write_deformed    =  general_variables.GiDWriteMeshFlag
-write_conditions  =  general_variables.GiDWriteConditionsFlag
-write_frequency   =  general_variables.WriteFrequency
-
-gid_print.SetPrintOptions(write_particles,write_deformed,write_conditions,write_frequency)
-
-######################--GID OUTPUT OPTIONS END--##################
-
-
-######################--PLOT GRAPHS OPTIONS START--###############
-
-#plot_active    = general_variables.PlotGraphs
-#plot_frequency = general_variables.PlotFrequency
-
-#graph_plot  = plot_utils.GraphPlotUtility(model_part,problem_path,plot_active,plot_frequency);
-
-#x_var   = "TIME"
-#y_var   = "REACTION"
-#mesh_id = 1
-
-#plot variables on the domain which is remeshed
-#for conditions in general_variables.MeshConditions:
-#  if(conditions["Remesh"] == 1):
-#    mesh_id =int(conditions["Subdomain"])
-
-#print " Graph Subdomain ", mesh_id
-#graph_plot.SetPlotVariables(x_var,y_var,mesh_id);
-
-######################--PLOT GRAPHS OPTIONS END--#################
 
 ######################--DEFINE MAIN SOLVER START--################
 
@@ -195,6 +145,61 @@ conditions = condition_utils.ConditionsUtility(model_part,domain_size,incr_disp,
 ######################--DEFINE CONDITIONS END--###################
 
 
+
+######################--GID OUTPUT OPTIONS START--###############
+
+gid_configuration_mode   =  WriteDeformedMeshFlag.WriteDeformed
+gid_variables            =  WriteConditionsFlag.WriteElementsOnly
+gid_output_mode          =  GiDPostMode.GiD_PostBinary
+gid_files_mode           =  MultiFileFlag.MultipleFiles
+
+if(general_variables.GiDWriteMeshFlag == "False"):
+  gid_configuration_mode = WriteDeformedMeshFlag.WriteUndeformed
+if(general_variables.GiDWriteConditionsFlag == "True"):
+  gid_mesh_write_type    = WriteConditionsFlag.WriteConditions
+if(general_variables.GiDPostMode == "Ascii"):
+  gid_output_mode = GiDPostMode.GiD_PostAscii
+if(general_variables.GiDMultiFileFlag == "Single"):
+  gid_files_mode = MultiFileFlag.SingleFile
+
+#Force to Multiple files write if it is not a StaticSolver
+if(solver_type != "StaticSolver" and general_variables.GiDMultiFileFlag == "Single"):
+  gid_files_mode = MultiFileFlag.MultipleFiles
+
+gid_print = gid_utils.PrintResultsUtility(model_part,problem_type,solver_type,problem_name,gid_output_mode,gid_files_mode)
+
+#set gid print options
+write_particles   =  general_variables.GiDWriteParticlesFlag
+write_deformed    =  general_variables.GiDWriteMeshFlag
+write_conditions  =  general_variables.GiDWriteConditionsFlag
+write_frequency   =  general_variables.WriteFrequency
+
+gid_print.SetPrintOptions(write_particles,write_deformed,write_conditions,write_frequency)
+
+######################--GID OUTPUT OPTIONS END--##################
+
+
+######################--PLOT GRAPHS OPTIONS START--###############
+
+#plot_active    = general_variables.PlotGraphs
+#plot_frequency = general_variables.PlotFrequency
+
+#graph_plot  = plot_utils.GraphPlotUtility(model_part,problem_path,plot_active,plot_frequency);
+
+#x_var   = "TIME"
+#y_var   = "REACTION"
+#mesh_id = 1
+
+#plot variables on the domain which is remeshed
+#for conditions in general_variables.MeshConditions:
+#  if(conditions["Remesh"] == 1):
+#    mesh_id =int(conditions["Subdomain"])
+
+#print " Graph Subdomain ", mesh_id
+#graph_plot.SetPlotVariables(x_var,y_var,mesh_id);
+
+######################--PLOT GRAPHS OPTIONS END--#################
+
 ######################--CONFIGURATIONS END--######################
 #----------------------------------------------------------------#
 
@@ -206,7 +211,6 @@ conditions = condition_utils.ConditionsUtility(model_part,domain_size,incr_disp,
 
 #read model_part / set buffer_size / set dofs / set constitutive_law
 buffer_size   =  3;
-rotation_dofs =  general_variables.Rotational_Dofs
 
 #--- READ MODEL ------#
 #problem_restart.StartModelRead(buffer_size,domain_size,problem_type,rotation_dofs,main_solver,modeler);
@@ -277,10 +281,10 @@ for step in range(istep,nstep):
   #solving the solid problem
   if(step > start_steps ):
     
-    time=StartTimeMeasuring();
+    clock_time=StartTimeMeasuring();
     #solve time step non-linear system
     main_step_solver.Solve()
-    StopTimeMeasuring(time,"Solving");
+    StopTimeMeasuring(clock_time,"Solving");
 
     #plot graphs
 
@@ -293,18 +297,18 @@ for step in range(istep,nstep):
       
     #print the results at the end of the step
     if(general_variables.WriteResults == "PreMeshing"):
-      time=StartTimeMeasuring();
+      clock_time=StartTimeMeasuring();
       step_printed = gid_print.PrintResults(time,current_step,list_files)
-      StopTimeMeasuring(time,"Write Results");
+      StopTimeMeasuring(clock_time,"Write Results");
        
     #print restart file
     if( step_printed == True ):
       write_id = model_part.ProcessInfo[WRITE_ID];
       #graph_plot.Plot(write_id)
 
-      time=StartTimeMeasuring();
+      clock_time=StartTimeMeasuring();
       problem_restart.PrintRestartFile(write_id);
-      StopTimeMeasuring(time,"Restart");
+      StopTimeMeasuring(clock_time,"Restart");
 
     current_step = current_step + 1
     

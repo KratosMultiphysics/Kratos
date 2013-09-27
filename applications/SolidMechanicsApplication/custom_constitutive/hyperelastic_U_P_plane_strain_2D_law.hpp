@@ -101,6 +101,11 @@ public:
         return 3;
     };
 
+    /**
+     * This function is designed to be called once to check compatibility with element
+     * @param rFeatures
+     */
+    void GetLawFeatures(Features& rFeatures);
 
     /**
     * Input and output

@@ -221,6 +221,13 @@ public:
       */
     void FinalizeMaterialResponseCauchy (Parameters & rValues);
 
+
+    /**
+     * This function is designed to be called once to check compatibility with element
+     * @param rFeatures
+     */
+    void GetLawFeatures(Features& rFeatures);
+
     /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed

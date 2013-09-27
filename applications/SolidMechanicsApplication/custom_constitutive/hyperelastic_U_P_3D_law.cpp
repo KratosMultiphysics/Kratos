@@ -800,6 +800,28 @@ double& HyperElasticUP3DLaw::VolumetricConstitutiveComponent(double & rCabcd,
 }
 
 
+//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
+//************************************************************************************
+
+void HyperElasticUP3DLaw::GetLawFeatures(Features& rFeatures)
+{
+    	//Set the type of law
+	rFeatures.mOptions.Set( THREE_DIMENSIONAL_LAW );
+	rFeatures.mOptions.Set( FINITE_STRAINS );
+	rFeatures.mOptions.Set( ISOTROPIC );
+	rFeatures.mOptions.Set( U_P_LAW );
+
+	//Set strain measure requires by the consitutive law
+	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
+	
+	//Set the strain size
+	rFeatures.mStrainSize = GetStrainSize();
+
+	//Set the spacedimension
+	rFeatures.mSpaceDimension = WorkingSpaceDimension();
+
+}
+
 
 
 

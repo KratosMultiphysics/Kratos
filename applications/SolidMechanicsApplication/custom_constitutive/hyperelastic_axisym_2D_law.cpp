@@ -146,5 +146,27 @@ void HyperElasticAxisym2DLaw::CalculateConstitutiveMatrix (const MaterialRespons
 }
 
 
+//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
+//************************************************************************************
+
+void HyperElasticAxisym2DLaw::GetLawFeatures(Features& rFeatures)
+{
+    	//Set the type of law
+	rFeatures.mOptions.Set( AXISYMMETRIC_LAW );
+	rFeatures.mOptions.Set( FINITE_STRAINS );
+	rFeatures.mOptions.Set( ISOTROPIC );
+
+	//Set strain measure requires by the consitutive law
+	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
+	
+	//Set the strain size
+	rFeatures.mStrainSize = GetStrainSize();
+
+	//Set the spacedimension
+	rFeatures.mSpaceDimension = WorkingSpaceDimension();
+
+}
+
+
 
 } // Namespace Kratos
