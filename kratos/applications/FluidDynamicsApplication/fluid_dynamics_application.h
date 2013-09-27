@@ -90,6 +90,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/fs_periodic_condition.h"
 #include "custom_elements/dpg_vms.h"
 #include "custom_conditions/linear_wall_condition.h"
+#include "custom_elements/fractional_step_bingham.h"
 namespace Kratos
 {
 ///@addtogroup FluidDynamicsApplication
@@ -311,6 +312,11 @@ private:
     const DPGVMS<2> mDPGVMS2D;
     /// 3D instance of the DPGVMS element
     const DPGVMS<3> mDPGVMS3D;
+    
+    /// 2D instance of the fractional step element
+    const FractionalStepBingham<2> mFractionalStepBingham2D;
+    /// 3D instance of the fractional step element
+    const FractionalStepBingham<3> mFractionalStepBingham3D;    
     ///@}
     ///@name Private Operators
     ///@{
