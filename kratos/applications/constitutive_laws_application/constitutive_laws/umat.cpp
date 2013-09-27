@@ -98,7 +98,7 @@ void Umat::InitializeMaterial( const Properties& props,
     STRAN = new double[6];
     DSTRAN = new double[6];
 
-    for ( unsigned int i = 0; i < NTENS[0]; i++ )
+    for ( int i = 0; i < NTENS[0]; i++ )
     {
         STRESS[i] = 0.0 ;
         STRAN[i] = 0.0 ;
@@ -210,7 +210,7 @@ void Umat::CalculateMaterialResponse( const Vector& StrainVector,
     DTIME[0] = CurrentProcessInfo[DELTA_TIME];
     NPT[0] = 0;
 
-    for ( unsigned int i = 0; i < NTENS[0]; i++ )
+    for ( int i = 0; i < NTENS[0]; i++ )
     {
         STRAN[i] = StrainVector[i];
 
