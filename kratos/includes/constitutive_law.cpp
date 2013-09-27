@@ -13,7 +13,7 @@ namespace Kratos
 {
 
     /**
-     * Flags related to the constitutive Law
+     * Flags related to the Parameters of the Contitutive Law
      */
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRAIN,              0 );
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, COMPUTE_STRESS,              1 );
@@ -30,7 +30,21 @@ namespace Kratos
 
     KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINALIZE_MATERIAL_RESPONSE,  9 );
   
-    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, AXISYMMETRIC,               10 );
+
+    /**
+     * Flags related to the Features of the Contitutive Law
+     */
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, FINITE_STRAINS,             10 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, INFINITESIMAL_STRAINS,     11 );
+
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, THREE_DIMENSIONAL_LAW,      12 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, PLANE_STRAIN_LAW,           13 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, PLANE_STRESS_LAW,           14 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, AXISYMMETRIC_LAW,           15 );
+
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, U_P_LAW,                    16 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ISOTROPIC,                  17 );
+    KRATOS_CREATE_LOCAL_FLAG( ConstitutiveLaw, ANISOTROPIC,                18 );
 
 
     /**
@@ -612,7 +626,7 @@ namespace Kratos
 	  break;
 
 	default:
-	  KRATOS_ERROR(std::logic_error,"INITIAL STRAIN NOT DEFINED in StrainTransformation", "");
+	  KRATOS_ERROR(std::logic_error,"Measure of strain NOT DEFINED in Strains Transformation", "");
 	  break;
 	}
 
@@ -953,6 +967,16 @@ namespace Kratos
 
 
     /**
+     * This function is designed to be called once to check compatibility with element
+     * @param rFeatures
+     */
+    void ConstitutiveLaw::GetLawFeatures(Features& rFeatures)
+    {
+
+	KRATOS_ERROR(std::logic_error, "Calling virtual function for GetConstitutiveLawFeatures", "");
+    }
+
+    /**
      * This function is designed to be called once to perform all the checks needed
      * on the input provided. Checks can be "expensive" as the function is designed
      * to catch user's errors.
@@ -962,8 +986,8 @@ namespace Kratos
      * @return
      */
      int ConstitutiveLaw::Check(const Properties& rMaterialProperties,
-                      const GeometryType& rElementGeometry,
-                      const ProcessInfo& rCurrentProcessInfo)
+				const GeometryType& rElementGeometry,
+				const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
 
