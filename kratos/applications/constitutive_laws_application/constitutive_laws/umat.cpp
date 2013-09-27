@@ -120,7 +120,7 @@ void Umat::InitializeMaterial( const Properties& props,
     //choosing right Law and deleting first mdata entry, creating PROPS array:
     MaterialNumber[0] = ( int ) mdata[0];
 
-    for ( unsigned int i = 1; i < NPROPS[0] + 1; i++ )
+    for ( int i = 1; i < NPROPS[0] + 1; i++ )
     {
         PROPS[i-1] = mdata[i];
     }
@@ -223,7 +223,7 @@ void Umat::CalculateMaterialResponse( const Vector& StrainVector,
             DSTRAN[i] = StrainVector[i] - STATEV[i] - STATEV[i+6];
         }
 
-        for ( unsigned int j = 0; j < NTENS[0]; j++ )
+        for ( int j = 0; j < NTENS[0]; j++ )
         {
             DDSDDE[i][j] = 0.0;
         }
@@ -243,7 +243,7 @@ void Umat::CalculateMaterialResponse( const Vector& StrainVector,
     KRATOS_WATCH("after calling umat");
 
     //copy variables back
-    for ( unsigned int i = 0; i < NTENS[0]; i++ )
+    for ( int i = 0; i < NTENS[0]; i++ )
     {
         for ( unsigned int j = 0; j < NTENS[0]; j++ )
         {
