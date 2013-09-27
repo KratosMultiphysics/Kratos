@@ -6,16 +6,13 @@ Kratos
 A General Purpose Software for Multi-Physics Finite Element Analysis
 Version 1.0 (Released on march 05, 2007).
 
-Copyright 2007
-Pooyan Dadvand, Riccardo Rossi, Janosch Stascheit, Felix Nagel 
+Copyright 2013
+Pooyan Dadvand, Riccardo Rossi, Eduardo Soudah
 pooyan@cimne.upc.edu 
 rrossi@cimne.upc.edu
-janosch.stascheit@rub.de
-nagel@sd.rub.de
+esoudah@cimne.upc.edu
 - CIMNE (International Center for Numerical Methods in Engineering),
 Gran Capita' s/n, 08034 Barcelona, Spain
-- Ruhr-University Bochum, Institute for Structural Mechanics, Germany
-
 
 Permission is hereby granted, free  of charge, to any person obtaining
 a  copy  of this  software  and  associated  documentation files  (the
@@ -89,6 +86,7 @@ namespace Python
 	KRATOS_REGISTER_IN_PYTHON_3D_VARIABLE_WITH_COMPONENTS(WORK)
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE(FLOW);
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE(TERMINAL_RESISTANCE);
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(SYSTOLIC_PRESSURE);
 	KRATOS_REGISTER_IN_PYTHON_VARIABLE(BETA);
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(C0);
 

@@ -377,6 +377,7 @@ void ArteryElement::Initialize()
     GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO) = nu;
     GetGeometry()[0].FastGetSolutionStepValue(BETA) = beta;
     GetGeometry()[0].FastGetSolutionStepValue(PRESSURE) = pressure;
+    GetGeometry()[0].FastGetSolutionStepValue(SYSTOLIC_PRESSURE) = pressure;
     GetGeometry()[0].FastGetSolutionStepValue(C0) = c0[0];
     GetGeometry()[0].GetValue(NODAL_AREA) = A0[0];//here we store the initial area
     GetGeometry()[0].GetValue(PRESSURE) = pressure;//here we store the initial area
@@ -405,6 +406,7 @@ void ArteryElement::Initialize()
     GetGeometry()[1].FastGetSolutionStepValue(YOUNG_MODULUS) = E;
     GetGeometry()[1].FastGetSolutionStepValue(POISSON_RATIO) = nu;
     GetGeometry()[1].FastGetSolutionStepValue(PRESSURE) = pressure;
+    GetGeometry()[1].FastGetSolutionStepValue(SYSTOLIC_PRESSURE) = pressure;
     GetGeometry()[1].FastGetSolutionStepValue(BETA) = beta;
     GetGeometry()[1].FastGetSolutionStepValue(C0) = c0[1];
     GetGeometry()[1].GetValue(NODAL_AREA) = A0[1]; //here we store the initial area

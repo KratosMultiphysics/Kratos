@@ -49,8 +49,8 @@ namespace Kratos
 	KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(WORK)
 	KRATOS_DEFINE_VARIABLE(double, BETA)
     KRATOS_DEFINE_VARIABLE(double, C0)
+    KRATOS_DEFINE_VARIABLE(double, SYSTOLIC_PRESSURE)
 //	KRATOS_DEFINE_VARIABLE(double, NODAL_AREA)
-
 
 	///@} 
 	///@name Type Definitions
@@ -240,7 +240,7 @@ namespace Kratos
 		KratosBloodFlowApplication& operator=(KratosBloodFlowApplication const& rOther);
 
 		/// Copy constructor.
-		KratosBloodFlowApplication(KratosBloodFlowApplication const& rOther);
+        KratosBloodFlowApplication(KratosBloodFlowApplication const& rOther);
 
 
 		///@}    
