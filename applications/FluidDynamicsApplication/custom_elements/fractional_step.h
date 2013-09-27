@@ -454,7 +454,7 @@ namespace Kratos
 
         double ElementSize(/*ShapeFunctionDerivativesType& rDN_DX*/);
 
-        double EffectiveViscosity(const ShapeFunctionsType &rN,
+       virtual  double EffectiveViscosity(const ShapeFunctionsType &rN,
                                   const ShapeFunctionDerivativesType &rDN_DX,
                                   double ElemSize,
                                   const ProcessInfo &rCurrentProcessInfo);
