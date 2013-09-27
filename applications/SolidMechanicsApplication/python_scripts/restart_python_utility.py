@@ -44,15 +44,15 @@ class RestartUtility:
         self.current_step = 0
 
     #######################################################################
-    def Initialize(self,load_restart,save_restart,restart_interval,main_solver,list_files):
+    def Initialize(self,load_restart,save_restart,restart_interval,main_solver,list_files,rotation_dofs):
 
          if(load_restart == "True"):
              self.load_restart_flag = True
-             self.serializer.Load("ModelPart",self.model_part)
+             self.serializer.Load("ModelPart",self.model_part,rotation_dofs)
              self.CleanPosteriorFiles(list_files)
          else:
              self.load_restart_flag = False
-             main_solver.AddVariables(self.model_part)
+             main_solver.AddVariables(self.model_part,rotation_dofs)
              self.CleanPreviousFiles(list_files)
             
          if(save_restart == "True"):

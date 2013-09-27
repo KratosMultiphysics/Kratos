@@ -4,7 +4,7 @@ from KratosMultiphysics.SolidMechanicsApplication import *
 CheckForPreviousImport()
 
 
-def AddVariables(model_part):
+def AddVariables(model_part,rotation_dofs):
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(PRESSURE);
     model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -15,12 +15,12 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(FORCE_DYNAMIC);
     model_part.AddNodalSolutionStepVariable(REACTION_PRESSURE);
 
-    AddExtraVariables(model_part);
+    AddExtraVariables(model_part,rotation_dofs);
 
     print "GENERAL VARIABLES ADDED CORRECTLY"
 
-def AddExtraVariables(model_part):
-    AddConditionVariables(model_part);
+def AddExtraVariables(model_part,rotation_dofs):
+    AddConditionVariables(model_part,rotation_dofs);
     #AddRigidWallVariables(model_part);
     #model_part.AddNodalSolutionStepVariable(MEAN_ERROR);
     #model_part.AddNodalSolutionStepVariable(OFFSET);
@@ -31,7 +31,7 @@ def AddExtraVariables(model_part):
     
     print "EXTRA VARIABLES ADDED CORRECTLY"
 
-def AddConditionVariables(model_part):
+def AddConditionVariables(model_part,rotation_dofs):
     #add specific variables for the problem (conditions)
     model_part.AddNodalSolutionStepVariable(IMPOSED_DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
@@ -39,6 +39,9 @@ def AddConditionVariables(model_part):
     model_part.AddNodalSolutionStepVariable(FORCE);
     model_part.AddNodalSolutionStepVariable(FACE_LOAD);
     model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+    if(rotation_dofs == "True"):
+        model_part.AddNodalSolutionStepVariable(ROTATION);
+        model_part.AddNodalSolutionStepVariable(MOMENTUM);
 
     print "CONDITION VARIABLES ADDED CORRECTLY"
 
