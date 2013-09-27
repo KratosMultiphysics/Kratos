@@ -12,7 +12,9 @@
 
 
 // Project includes
+#include "includes/kratos_flags.h"
 #include "custom_utilities/modeler_utilities.hpp"
+
 
 namespace Kratos
 {
@@ -78,7 +80,7 @@ namespace Kratos
 	    PointsArrayType& vertices=i_elem->GetGeometry().Points();
 	    for(unsigned int i=0; i<vertices.size(); i++)
 	      {
-		vertices[i].Set(ENGAGED);
+		vertices[i].Set(BLOCKED);
 	      }
 
 	    (rModelPart.Elements()).push_back(*(i_elem.base()));	
@@ -98,11 +100,11 @@ namespace Kratos
 	  {
 	    //i_node->PrintInfo(std::cout);
 	    //std::cout<<std::endl;
-	    if(i_node->Is(ENGAGED)){
+	    if(i_node->Is(BLOCKED)){
 		
-	      i_node->Reset(INSERTED); //reset here if the node is labeled as insert 
-	      i_node->Reset(REFINE); //reset here if the node is labeled as refine (to not duplicate boundary conditions)
-	      i_node->Reset(ENGAGED); 
+	      i_node->Reset(NEW_ENTITY); //reset here if the node is labeled as insert 
+	      i_node->Reset(TO_REFINE); //reset here if the node is labeled as refine (to not duplicate boundary conditions)
+	      i_node->Reset(BLOCKED); 
 
 	      (rModelPart.Nodes(MeshId)).push_back(*(i_node.base()));
 	      (rModelPart.Nodes()).push_back(*(i_node.base()));	
@@ -134,7 +136,7 @@ namespace Kratos
 
 	for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(MeshId) ; i_cond != rModelPart.ConditionsEnd(MeshId) ; i_cond++)
 	  {
-	    i_cond->Reset(INSERTED); //reset here if the node is inserted
+	    i_cond->Reset(NEW_ENTITY); //reset here if the node is inserted
 	    KeepConditions.push_back(*(i_cond.base()));
 	    KeepConditions.back().SetId(condId);
 	    condId+=1;	
@@ -183,7 +185,7 @@ namespace Kratos
 	    
     for(ModelPart::NodesContainerType::iterator i_node = temporal_nodes.begin() ; i_node != temporal_nodes.end() ; i_node++)
       {
-	if( i_node->IsNot(RELEASE) ){
+	if( i_node->IsNot(TO_ERASE) ){
 	  (rModelPart.Nodes(MeshId)).push_back(*(i_node.base()));	
 	}
 	else{

@@ -71,26 +71,6 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(double, MU_STATIC );
   KRATOS_CREATE_VARIABLE(double, MU_DYNAMIC );
 
-  //global flags
-  // KRATOS_CREATE_FLAG( FLUID,         16 );
-  // KRATOS_CREATE_FLAG( STRUCTURE,     17 );
-  // KRATOS_CREATE_FLAG( SOLID,         18 );
-  // KRATOS_CREATE_FLAG( RIGID,         19 );
-  // KRATOS_CREATE_FLAG( CONTACT,       20 );
-  
-  
-  // KRATOS_CREATE_FLAG( BOUNDARY,      21 );
-  // KRATOS_CREATE_FLAG( FREE_SURFACE,  22 );
-  
-  // KRATOS_CREATE_FLAG( INTERFACE,     23 );
-  
-  // KRATOS_CREATE_FLAG( ENGAGED,       24 );
-  // KRATOS_CREATE_FLAG( ISOLATED,      25 );
-  
-  // KRATOS_CREATE_FLAG( REFINE,        26 );
-  // KRATOS_CREATE_FLAG( INSERTED,      27 );
-  // KRATOS_CREATE_FLAG( RELEASE,       28 );
-
   KratosPfemSolidMechanicsApplication::KratosPfemSolidMechanicsApplication():
     mCondition2D( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mCondition3D( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -170,24 +150,6 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( MU_STATIC );
     KRATOS_REGISTER_VARIABLE( MU_DYNAMIC );
   
-    //flags
-    // KRATOS_REGISTER_FLAG( FLUID );
-    // KRATOS_REGISTER_FLAG( STRUCTURE );
-    // KRATOS_REGISTER_FLAG( SOLID );
-    // KRATOS_REGISTER_FLAG( RIGID );
-    // KRATOS_REGISTER_FLAG( CONTACT );
-
-    // KRATOS_REGISTER_FLAG( BOUNDARY );
-    // KRATOS_REGISTER_FLAG( FREE_SURFACE );
-
-    // KRATOS_REGISTER_FLAG( INTERFACE );
-
-    // KRATOS_REGISTER_FLAG( ENGAGED );
-    // KRATOS_REGISTER_FLAG( ISOLATED );
-
-    // KRATOS_REGISTER_FLAG( REFINE );
-    // KRATOS_REGISTER_FLAG( INSERTED );
-    // KRATOS_REGISTER_FLAG( RELEASE );      
   }
   
 }  // namespace Kratos.

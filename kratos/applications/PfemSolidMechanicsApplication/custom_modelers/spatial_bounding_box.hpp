@@ -16,6 +16,7 @@
 #include <iostream>
 #include <sstream>
 #include <cstddef>
+#include "includes/kratos_flags.h"
 #include "includes/model_part.h"
 #include "pfem_solid_mechanics_application.h"
 
