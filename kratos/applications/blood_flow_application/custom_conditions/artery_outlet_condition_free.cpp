@@ -206,7 +206,7 @@ double ArteryOutletFreeCondition::UpdateArea(double Beta, double Density)
 
     const int max_iteration = 10;
 //    const double p_init = GetProperties()[PRESSURE];
-    const double p_init = GetGeometry()[1].FastGetSolutionStepValue(PRESSURE);
+    const double p_init = GetGeometry()[1].FastGetSolutionStepValue(SYSTOLIC_PRESSURE);
       double& A = GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA);
     const double flow =  GetGeometry()[1].FastGetSolutionStepValue(FLOW);
     double initial_area = GetGeometry()[1].GetValue(NODAL_AREA);

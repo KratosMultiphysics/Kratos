@@ -127,7 +127,10 @@ void ArteryOutletCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
     //const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
     const double density = GetProperties()[DENSITY];
     const double p_venous= GetProperties()[PRESSURE_VENOUS];
-    const double p_init = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
+    const double p_init = GetGeometry()[0].FastGetSolutionStepValue(SYSTOLIC_PRESSURE);
+
+
+    //GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
     //KRATOS_WATCH(p_init)
     //const double initial_area = GetGeometry()[0].GetValue(NODAL_AREA);
     const double A0 = GetGeometry()[0].GetValue(NODAL_AREA);
@@ -194,10 +197,8 @@ double ArteryOutletCondition::UpdateArea(double Beta, double A)
 
     KRATOS_TRY
 
-
     const int max_iteration = 100;
-    const double p_init =GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
-    //KRATOS_WATCH(p_init)
+    const double p_init = GetGeometry()[0].FastGetSolutionStepValue(SYSTOLIC_PRESSURE);
     //const double A0=GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
     const double flow =  GetGeometry()[0].FastGetSolutionStepValue(FLOW);
     const double initial_area = GetGeometry()[0].GetValue(NODAL_AREA);
