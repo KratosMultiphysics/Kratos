@@ -23,8 +23,8 @@ rm *.cmake
 rm -rf CMakeFiles\
 
 cmake ..  									\
--DCMAKE_C_COMPILER=/usr/bin/gcc								\
--DCMAKE_CXX_COMPILER=/usr/bin/g++							\
+-DCMAKE_C_COMPILER=/usr/bin/gcc							\
+-DCMAKE_CXX_COMPILER=/usr/bin/g++						\
 -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} -msse3 " 					\
 -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} -msse3 " 					\
 -DCMAKE_BUILD_TYPE=Release  							\
@@ -37,7 +37,7 @@ cmake ..  									\
 -DFLUID_DYNAMICS_APPLICATION=ON 						\
 -DALE_APPLICATION=ON 								\
 -DFSI_APPLICATION=ON 								\
--DOPENCL_APPLICATION=OFF								\
+-DOPENCL_APPLICATION=OFF							\
 -DMIXED_ELEMENT_APPLICATION=ON							\
 -DMKL_SOLVERS_APPLICATION=OFF							\
 -DMKLSOLVER_INCLUDE_DIR="/opt/intel/Compiler/11.1/072/mkl/include"		\
@@ -47,6 +47,9 @@ cmake ..  									\
 -DTRILINOS_APPLICATION=OFF							\
 -DTRILINOS_ROOT="/home/rrossi/compiled_libraries/trilinos-10.2.0"		\
 -DDEM_APPLICATION=OFF								\
+-DSOLID_MECHANICS_APPLICATION=ON   					        \
+-DPFEM_SOLID_MECHANICS_APPLICATION=OFF 					        \
+-DINSTALL_EMBEDDED_PYTHON=OFF                                                   \
 
 
 
