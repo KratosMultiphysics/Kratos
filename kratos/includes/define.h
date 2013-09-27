@@ -274,21 +274,21 @@ catch(...) { Block KRATOS_ERROR(std::runtime_error, "Unknown error", MoreInfo) }
 #undef KRATOS_DEFINE_FLAG
 #endif
 #define KRATOS_DEFINE_FLAG(name) \
-    extern const Flags name;     \
-    extern const Flags NOT_##name
+    extern const Kratos::Flags name;     \
+    extern const Kratos::Flags NOT_##name
 
 #ifdef KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS
 #undef KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS
 #endif
 #define KRATOS_ADD_FLAG_TO_KRATOS_COMPONENTS(name)                  \
-    KratosComponents<Flags>::Add(#name, name)
+    Kratos::KratosComponents<Kratos::Flags>::Add(#name, name)
 
 #ifdef KRATOS_CREATE_FLAG
 #undef KRATOS_CREATE_FLAG
 #endif
 #define KRATOS_CREATE_FLAG(name, position)                  \
-    const Flags name(Flags::Create(position));              \
-    const Flags NOT_##name(Flags::Create(position, false));
+    const Kratos::Flags name(Kratos::Flags::Create(position));              \
+    const Kratos::Flags NOT_##name(Kratos::Flags::Create(position, false))
 
 #ifdef KRATOS_REGISTER_FLAG
 #undef KRATOS_REGISTER_FLAG
@@ -303,15 +303,15 @@ catch(...) { Block KRATOS_ERROR(std::runtime_error, "Unknown error", MoreInfo) }
 #undef KRATOS_DEFINE_LOCAL_FLAG
 #endif
 #define KRATOS_DEFINE_LOCAL_FLAG(name)		\
-  static const Flags name;			\
-  static const Flags NOT_##name
+  static const Kratos::Flags name;			\
+  static const Kratos::Flags NOT_##name
 
 #ifdef KRATOS_CREATE_LOCAL_FLAG 
 #undef KRATOS_CREATE_LOCAL_FLAG
 #endif
 #define KRATOS_CREATE_LOCAL_FLAG(class_name, name, position)		\
-  const Flags class_name::name(Flags::Create(position));		\
-  const Flags class_name::NOT_##name(Flags::Create(position, false));
+  const Kratos::Flags class_name::name(Kratos::Flags::Create(position));		\
+  const Kratos::Flags class_name::NOT_##name(Kratos::Flags::Create(position, false))
 
 
 
