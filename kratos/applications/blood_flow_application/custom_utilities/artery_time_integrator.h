@@ -319,9 +319,10 @@ public:
         {
             Aux_convergencia3=sqrt(Aux_convergencia/Aux_convergencia2);
             Norma_Conver= fabs(Norma-Aux_convergencia3);
-            if ( (Aux_convergencia3 < 0.001) && (Norma_Conver < 0.001) )
+            if ( (Aux_convergencia3 < 0.01) && (Norma_Conver < 0.01) )
             {
                   time_cardiac_cycle = 10000000; //Solution Converge (this value allow to stop the calculation cyc_num>Num_T)
+                  KRATOS_ERROR(std::runtime_error, "THE MODEL HAS CONVERGED", "");
             }
             //KRATOS_WATCH (Aux_convergencia);
             //KRATOS_WATCH (Aux_convergencia2);
@@ -338,7 +339,7 @@ public:
     }
 
     
-    void ComputePressure(ModelPart& ThisModelPart)
+    void ComputePressure(ModelPart& ThisModelPart, double systolic_pressure)
     {
 
         KRATOS_TRY
@@ -373,7 +374,7 @@ public:
         for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
         {
             double original_area = in->GetValue(NODAL_AREA);
-            double initial_pressure = in->GetValue(PRESSURE); //todas las presiones deben de ser iguales (presion inicial del sistema)
+            //double initial_pressure = in->GetValue(PRESSURE); //sytolic pressure. All nodes must have the same systolic pressure. Read from the config file.
             //KRATOS_WATCH(initial_pressure);
             //double E0 = in->GetSolutionStepValue(YOUNG_MODULUS);
             //double nu0 = in->GetSolutionStepValue(POISSON_RATIO);
@@ -392,11 +393,11 @@ public:
             // 	    KRATOS_WATCH(kkk);
 
 
-
-            double pressure=initial_pressure+(beta/original_area)*(sqrt(nodal_area)-sqrt(original_area));
+            //KRATOS_WATCH(systolic_pressure);
+            double pressure=systolic_pressure+(beta/original_area)*(sqrt(nodal_area)-sqrt(original_area));
             in->FastGetSolutionStepValue(PRESSURE)=pressure;
             //FastSetSolutionStepValue(PRESSURE,0,pressure);
-            //KRATOS_WATCH(pressure);
+
         }
         KRATOS_CATCH("")
     }
