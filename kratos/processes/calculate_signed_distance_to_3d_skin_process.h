@@ -425,17 +425,21 @@ public:
         int number_of_threads = 1;
 #endif
 
+        ModelPart::ElementsContainerType& pElements = mrFluidModelPart.Elements();
+
         vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, mrFluidModelPart.Elements().size(), element_partition);
+        CreatePartition(number_of_threads, pElements.size(), element_partition);
         KRATOS_WATCH(number_of_threads);
         KRATOS_WATCH(element_partition);
 
 #pragma omp parallel for
         for (int k = 0; k < number_of_threads; k++)
         {
-            for(ModelPart::ElementIterator i_fluidElement = mrFluidModelPart.ElementsBegin() + element_partition[k];
-                                           i_fluidElement != mrFluidModelPart.ElementsBegin() + element_partition[k+1];
-                                           i_fluidElement++)
+
+            ModelPart::ElementsContainerType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
+            ModelPart::ElementsContainerType::iterator it_end = pElements.ptr_begin() + element_partition[k+1];
+
+            for(ModelPart::ElementIterator i_fluidElement = it_begin; i_fluidElement != it_end; ++i_fluidElement)
             {
                 const array_1d<double,4> elementalDistances = i_fluidElement->GetValue(ELEMENTAL_DISTANCES);
                 array_1d<double,4> Npos;
@@ -544,17 +548,20 @@ public:
         int number_of_threads = 1;
 #endif
 
+        ModelPart::ElementsContainerType& pElements = mrFluidModelPart.Elements();
+
         vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, mrFluidModelPart.Elements().size(), element_partition);
+        CreatePartition(number_of_threads, pElements.size(), element_partition);
         KRATOS_WATCH(number_of_threads);
         KRATOS_WATCH(element_partition);
 
 #pragma omp parallel for
         for (int k = 0; k < number_of_threads; k++)
         {
-            for(ModelPart::ElementIterator i_fluidElement = mrFluidModelPart.ElementsBegin() + element_partition[k];
-                                           i_fluidElement != mrFluidModelPart.ElementsBegin() + element_partition[k+1];
-                                           i_fluidElement++)
+            ModelPart::ElementsContainerType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
+            ModelPart::ElementsContainerType::iterator it_end = pElements.ptr_begin() + element_partition[k+1];
+
+            for(ModelPart::ElementIterator i_fluidElement = it_begin; i_fluidElement != it_end; ++i_fluidElement)
             {
                 const array_1d<double,4> elementalDistances = i_fluidElement->GetValue(ELEMENTAL_DISTANCES);
 
@@ -605,10 +612,10 @@ public:
                             if(fabs(SumSingleVolumes-Vol) < epsilon)
                             {
                                 // Extract nodal pressures
-                                nodalPressures[0] = F1.FastGetSolutionStepValue(PRESSURE);
-                                nodalPressures[1] = F2.FastGetSolutionStepValue(PRESSURE);
-                                nodalPressures[2] = F3.FastGetSolutionStepValue(PRESSURE);
-                                nodalPressures[3] = F4.FastGetSolutionStepValue(PRESSURE);
+                                nodalPressures[0] = F1.GetSolutionStepValue(PRESSURE);
+                                nodalPressures[1] = F2.GetSolutionStepValue(PRESSURE);
+                                nodalPressures[2] = F3.GetSolutionStepValue(PRESSURE);
+                                nodalPressures[3] = F4.GetSolutionStepValue(PRESSURE);
 
                                 // Compute average of all positive and all negative values
                                 double positiveAverage = 0;
@@ -635,8 +642,10 @@ public:
                                 negativeAverage /=nNeg;
 
                                 // Assign Pressures
-                                S.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE,0) = positiveAverage;
-                                S.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE,0) = negativeAverage;
+                                S.SetLock();
+                                S.GetSolutionStepValue(POSITIVE_FACE_PRESSURE,0) = positiveAverage;
+                                S.GetSolutionStepValue(NEGATIVE_FACE_PRESSURE,0) = negativeAverage;
+                                S.UnSetLock();
                             }
                         }
                     }
@@ -833,19 +842,21 @@ public:
         int number_of_threads = 1;
 #endif
 
+        ModelPart::ElementsContainerType& pElements = mrFluidModelPart.Elements();
+
         vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, mrFluidModelPart.Elements().size(), element_partition);
+        CreatePartition(number_of_threads, pElements.size(), element_partition);
         KRATOS_WATCH(number_of_threads);
         KRATOS_WATCH(element_partition);
 
 #pragma omp parallel for
         for (int k = 0; k < number_of_threads; k++)
         {
-            typename ModelPart::ElementIterator it_begin = mrFluidModelPart.ElementsBegin() + element_partition[k];
-            typename ModelPart::ElementIterator it_end = mrFluidModelPart.ElementsBegin() + element_partition[k + 1];
+            ModelPart::ElementsContainerType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
+            ModelPart::ElementsContainerType::iterator it_end = pElements.ptr_begin() + element_partition[k+1];
 
             // assemble all elements
-            for (typename ModelPart::ElementIterator it = it_begin; it != it_end; ++it)
+            for (ModelPart::ElementIterator it = it_begin; it != it_end; ++it)
             {
                 CalcElementDistances( it , TetEdgeIndexTable );
             }
@@ -2072,51 +2083,57 @@ public:
 
         // loop over all fluid elements
         // this loop is parallelized using openmp
+
 #ifdef _OPENMP
         int number_of_threads = omp_get_max_threads();
 #else
         int number_of_threads = 1;
 #endif
 
+        ModelPart::NodesContainerType& pNodes = mrSkinModelPart.Nodes();
+
         vector<unsigned int> node_partition;
-        CreatePartition(number_of_threads, mrSkinModelPart.Nodes().size(), node_partition);
+        CreatePartition(number_of_threads, pNodes.size(), node_partition);
         KRATOS_WATCH(number_of_threads);
         KRATOS_WATCH(node_partition);
 
 #pragma omp parallel for
         for (int k = 0; k < number_of_threads; k++)
         {
-            for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin() + node_partition[k];
-                                        i_node != mrSkinModelPart.NodesBegin() + node_partition[k+1];
-                                        i_node++)
+            ModelPart::NodesContainerType::iterator it_begin = pNodes.ptr_begin() + node_partition[k];
+            ModelPart::NodesContainerType::iterator it_end = pNodes.ptr_begin() + node_partition[k+1];
+
+            // assemble all nodes
+            for (ModelPart::NodeIterator it = it_begin; it != it_end; ++it)
             {
                 double temp_point[3];
-                temp_point[0] = i_node->Coordinate(1);
-                temp_point[1] = i_node->Coordinate(2);
-                temp_point[2] = i_node->Coordinate(3);
+                temp_point[0] = it->Coordinate(1);
+                temp_point[1] = it->Coordinate(2);
+                temp_point[2] = it->Coordinate(3);
                 mOctree.Insert(temp_point);
             }
         }
 
-
         //mOctree.Constrain2To1(); // To be removed. Pooyan.
 
+        ModelPart::ElementsContainerType& pElements = mrSkinModelPart.Elements();
+
         vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, mrSkinModelPart.Elements().size(), element_partition);
+        CreatePartition(number_of_threads, pElements.size(), element_partition);
         KRATOS_WATCH(number_of_threads);
         KRATOS_WATCH(element_partition);
 
 #pragma omp parallel for
         for (int k = 0; k < number_of_threads; k++)
         {
+            ModelPart::ElementsContainerType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
+            ModelPart::ElementsContainerType::iterator it_end = pElements.ptr_begin() + element_partition[k+1];
 
-            for(ModelPart::ElementIterator  i_element = mrSkinModelPart.ElementsBegin() + element_partition[k];
-                                            i_element != mrSkinModelPart.ElementsBegin() + element_partition[k+1];
-                                            i_element++)
-        {
-            mOctree.Insert(*(i_element).base());
+            for (ModelPart::ElementIterator it = it_begin; it != it_end; ++it)
+            {
+                mOctree.Insert(*(it).base());
+            }
         }
-    }
 
         Timer::Stop("Generating Octree");
 
