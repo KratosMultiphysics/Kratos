@@ -434,7 +434,7 @@ public:
         for (int k = 0; k < number_of_threads; k++)
         {
             for(ModelPart::ElementIterator i_fluidElement = mrFluidModelPart.ElementsBegin() + element_partition[k];
-                                           i_fluidElement != mrFluidModelPart.ElementsEnd() + element_partition[k+1];
+                                           i_fluidElement != mrFluidModelPart.ElementsBegin() + element_partition[k+1];
                                            i_fluidElement++)
             {
                 const array_1d<double,4> elementalDistances = i_fluidElement->GetValue(ELEMENTAL_DISTANCES);
@@ -553,7 +553,7 @@ public:
         for (int k = 0; k < number_of_threads; k++)
         {
             for(ModelPart::ElementIterator i_fluidElement = mrFluidModelPart.ElementsBegin() + element_partition[k];
-                                           i_fluidElement != mrFluidModelPart.ElementsEnd() + element_partition[k+1];
+                                           i_fluidElement != mrFluidModelPart.ElementsBegin() + element_partition[k+1];
                                            i_fluidElement++)
             {
                 const array_1d<double,4> elementalDistances = i_fluidElement->GetValue(ELEMENTAL_DISTANCES);
@@ -2104,9 +2104,9 @@ public:
 #pragma omp parallel for
         for (int k = 0; k < number_of_threads; k++)
         {
-            for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin() +node_partition[k];
-                i_node != mrSkinModelPart.NodesBegin() +node_partition[k+1];
-                i_node++)
+            for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin() + node_partition[k];
+                                        i_node != mrSkinModelPart.NodesBegin() + node_partition[k+1];
+                                        i_node++)
             {
                 double temp_point[3];
                 temp_point[0] = i_node->Coordinate(1);
