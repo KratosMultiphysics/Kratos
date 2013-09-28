@@ -140,13 +140,12 @@ void LaplacianComponentwiseMeshMovingElem2D::CalculateLocalSystem(MatrixType& rL
 
     // consideration of elemental conductivity (the highely-strained elements are assigned to a large conductivity value)
     array_1d<double,3> disp;
-    array_1d<double,3> grad_u;
+    array_1d<double,2> grad_u;
     double norm_grad_u;
     double conductivity;
 
     grad_u[0] = 0;
     grad_u[1] = 0;
-    grad_u[2] = 0;
 
     for(unsigned int i = 0; i < number_of_points; i++) // loop over the three nodes
     {
@@ -154,7 +153,6 @@ void LaplacianComponentwiseMeshMovingElem2D::CalculateLocalSystem(MatrixType& rL
 
         grad_u[0] += msDN_DX(i,0)*disp[0];
         grad_u[1] += msDN_DX(i,1)*disp[1];
-        grad_u[2] += msDN_DX(i,2)*disp[2];
     }
 
     norm_grad_u = norm_2(grad_u);
