@@ -904,7 +904,6 @@ public:
         Properties::Pointer properties = mrSkinModelPart.GetMesh().pGetProperties(1);
         new_model_part.Conditions().reserve(size_conditions);
 
-        //#pragma omp parallel for
         for (unsigned int condIndex=0; condIndex!=size_conditions; ++condIndex)
         {
             unsigned int id = condIndex + 1;
@@ -1683,7 +1682,6 @@ public:
     void AssignMinimalNodalDistance()
     {
         // loop over all fluid elements
-        //#pragma omp parallel for
         for( ModelPart::ElementIterator i_fluid_element = mrFluidModelPart.ElementsBegin();
              i_fluid_element != mrFluidModelPart.ElementsEnd();
              i_fluid_element++)
@@ -1752,49 +1750,34 @@ public:
         // in order to visualize in GiD as a mdpa-file
 
         // loop over all fluid elements
-        // this loop is parallelized using openmp
-#ifdef _OPENMP
-        int number_of_threads = omp_get_max_threads();
-#else
-        int number_of_threads = 1;
-#endif
-
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, mrFluidModelPart.Elements().size(), element_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(element_partition);
-
-#pragma omp parallel for
-        for (int k = 0; k < number_of_threads; k++)
+        for(ModelPart::ElementIterator i_fluid_element = mrFluidModelPart.ElementsBegin();
+            i_fluid_element != mrFluidModelPart.ElementsEnd();
+            i_fluid_element++)
         {
-            for(ModelPart::ElementIterator i_fluid_element = mrFluidModelPart.ElementsBegin() + element_partition[k];
-                                           i_fluid_element != mrFluidModelPart.ElementsBegin() + element_partition[k+1];
-                                           i_fluid_element++)
+            bool split_element = i_fluid_element->GetValue(SPLIT_ELEMENT);
+            if (split_element == true)
             {
-                bool split_element = i_fluid_element->GetValue(SPLIT_ELEMENT);
-                if (split_element == true)
+                array_1d<double,4> distances = i_fluid_element->GetValue(ELEMENTAL_DISTANCES);
+
+                // Initialize index table to define line Edges of fluid element
+                bounded_matrix<unsigned int,6,2> TetEdgeIndexTable;
+                SetIndexTable(TetEdgeIndexTable);
+
+                unsigned int numberCutEdges = 0;
+
+                // First, compute all intersection nodes along the tetrahedra edges
+                for(unsigned int i_tetEdge = 0; i_tetEdge < 6; i_tetEdge++)
                 {
-                    array_1d<double,4> distances = i_fluid_element->GetValue(ELEMENTAL_DISTANCES);
+                    // Get nodes of tet edge
+                    unsigned int EdgeStartIndex = TetEdgeIndexTable(i_tetEdge,0);
+                    unsigned int EdgeEndIndex   = TetEdgeIndexTable(i_tetEdge,1);
 
-                    // Initialize index table to define line Edges of fluid element
-                    bounded_matrix<unsigned int,6,2> TetEdgeIndexTable;
-                    SetIndexTable(TetEdgeIndexTable);
+                    // Edge is cut, if distance values on both nodes have opposite sign
+                    if(distances[EdgeStartIndex]*distances[EdgeEndIndex] < 0)
+                        numberCutEdges++;
+                }
 
-                    unsigned int numberCutEdges = 0;
-
-                    // First, compute all intersection nodes along the tetrahedra edges
-                    for(unsigned int i_tetEdge = 0; i_tetEdge < 6; i_tetEdge++)
-                    {
-                        // Get nodes of tet edge
-                        unsigned int EdgeStartIndex = TetEdgeIndexTable(i_tetEdge,0);
-                        unsigned int EdgeEndIndex   = TetEdgeIndexTable(i_tetEdge,1);
-
-                        // Edge is cut, if distance values on both nodes have opposite sign
-                        if(distances[EdgeStartIndex]*distances[EdgeEndIndex] < 0)
-                            numberCutEdges++;
-                    }
-
-                    /*
+                /*
                   if numberCutEdges == 0: tet is intersected, BUT all nodes are nevertheless located outside of structure
                                           (think of very thin structures)
                   if numberCutEdges == 1: 1 node  = 0 (intersected tet corner node) --> NEGLECTED!!
@@ -1803,14 +1786,13 @@ public:
                   if numberCutEdges == 4: 2 nodes with same sign, 2 nodes with opposite sign --> 4 intersection nodes
                   */
 
-                    if(numberCutEdges == 3)
-                    {
-                        ReproduceThreeIntNodes(i_fluid_element,distances,nodesMatrix,elementsMatrix);
-                    }
-                    else if(numberCutEdges == 4)
-                    {
-                        ReproduceFourIntNodes(i_fluid_element,distances,nodesMatrix,elementsMatrix);
-                    }
+                if(numberCutEdges == 3)
+                {
+                    ReproduceThreeIntNodes(i_fluid_element,distances,nodesMatrix,elementsMatrix);
+                }
+                else if(numberCutEdges == 4)
+                {
+                    ReproduceFourIntNodes(i_fluid_element,distances,nodesMatrix,elementsMatrix);
                 }
             }
         }
