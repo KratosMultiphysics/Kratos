@@ -177,7 +177,7 @@ public:
 			ModelPart::NodesContainerType::iterator inodebegin = current_mesh.NodesBegin();
 			//ModelPart::NodesContainerType::iterator inodeend = mgroup_container(mesh_id).NodesEnd();
 			#pragma omp parallel for
-			for(unsigned int ii=0; ii<current_mesh.Nodes().size(); ii++)
+			for(int ii=0; ii<current_mesh.Nodes().size(); ii++)
 			{
 				ModelPart::NodesContainerType::iterator pnode = inodebegin+ii;
 				pnode->X()=pnode->X0()+translation(0);
