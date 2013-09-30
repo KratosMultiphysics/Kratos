@@ -927,6 +927,22 @@ void IsotropicShellElement::AddBodyForce(
     rRightHandSideVector[13] += bf[1];
     rRightHandSideVector[14] += bf[2];
 
+
+    //get internal forces and store in nodes
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            ExternalForce[j] += bf[j];
+        }
+    }
+
+
     KRATOS_CATCH("");
 
 }

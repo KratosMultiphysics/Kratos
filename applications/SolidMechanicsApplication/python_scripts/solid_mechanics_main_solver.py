@@ -257,7 +257,8 @@ class SolidMechanicsSolver:
     #######################################################################   
     def SetConvergenceCriterion(self,convergence_criterion_type,convergence_tol,absolute_tol,max_iters):
         
-        self.max_iters = max_iters
+        if(max_iters > 1):
+            self.max_iters = max_iters
         #mechanical convergence criteria
         CT = convergence_tol;
         AT = absolute_tol; 
