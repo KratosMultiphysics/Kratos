@@ -945,7 +945,7 @@ public:
         unsigned int nodesSize = nodes.size();
 
         #pragma omp parallel for firstprivate(nodesSize)
-        for(unsigned int i = 0 ; i < nodesSize ; i++)
+        for(int i = 0 ; i < nodesSize ; i++)
             nodes[i]->GetSolutionStepValue(DISTANCE) = initial_distance;
 
         ModelPart::ElementsContainerType::ContainerType& fluid_elements = mrFluidModelPart.ElementsArray();
@@ -961,7 +961,7 @@ public:
         unsigned int elementsSize = fluid_elements.size();
 
         #pragma omp parallel for firstprivate(elementsSize)
-        for(unsigned int i = 0 ; i < elementsSize ; i++)
+        for(int i = 0 ; i < elementsSize ; i++)
         {
             fluid_elements[i]->GetValue(ELEMENTAL_DISTANCES) = ElementalDistances;
             fluid_elements[i]->GetValue(SPLIT_ELEMENT) = false;
@@ -2177,7 +2177,7 @@ public:
         // Determine inner product as measure for the orientation of normal vector relative to tet node 0
         double InnerProduct = inner_prod(intNodeTetNodeVec,normalVec);
 
-        if((InnerProduct < 0.0 and distances[0] > 0) or (InnerProduct > 0.0 and distances[0] < 0))
+        if((InnerProduct < 0.0 && distances[0] > 0) || (InnerProduct > 0.0 && distances[0] < 0))
         {
             // in this case, the normal is NOT pointing towards a tet node with a positive value
             // --> switch two arbitrary nodes of the triangle
@@ -2243,7 +2243,7 @@ public:
         mOctree.GetAllLeavesVector(all_leaves);
 
 #pragma omp parallel for
-        for (unsigned int i = 0; i < all_leaves.size(); i++)
+        for (int i = 0; i < all_leaves.size(); i++)
         {
             *(all_leaves[i]->pGetDataPointer()) = ConfigurationType::AllocateData();
         }
