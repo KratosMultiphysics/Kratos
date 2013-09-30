@@ -462,6 +462,7 @@ public:
             mpSlipProcess->SetNormalVelocityToZero(VELOCITY);
         }
 
+            Timer::Stop("Step4");
 
 
         KRATOS_CATCH("");
@@ -744,6 +745,7 @@ public:
             }
         }
 
+            Timer::Stop("Step3");
 
         KRATOS_CATCH("");
     }

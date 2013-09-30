@@ -644,7 +644,7 @@ public:
 
         double dist_node_point; // node to closest point in the plane
         double dist_neigh_point; //other node of the edge (neighbour) to closest point in the plane
-        double dist_node_neigh; //distance between the two nodes of the edge
+        //double dist_node_neigh; //distance between the two nodes of the edge
         array_1d<double, 3 > temp_dist; //aux segment
         array_1d<double, 3 > node_coord; //
         array_1d<double, 3 > neigh_coord; //
@@ -679,7 +679,7 @@ public:
                         noalias(temp_dist) = neigh_coord;
                         noalias(temp_dist) -= Xp; //temp_dist =node_coord-Xpoint
                         dist_neigh_point = inner_prod(temp_dist, versor); // dist = (xnode-xp)*versor closest point-plane distance
-                        dist_node_neigh = sqrt(pow((node_coord[0] - neigh_coord[0]), 2) + pow((node_coord[1] - neigh_coord[1]), 2) + pow((node_coord[2] - neigh_coord[2]), 2)); // looks ugly, doesn't it? it's supposed to calculate the distance
+                        //dist_node_neigh = sqrt(pow((node_coord[0] - neigh_coord[0]), 2) + pow((node_coord[1] - neigh_coord[1]), 2) + pow((node_coord[2] - neigh_coord[2]), 2)); // looks ugly, doesn't it? it's supposed to calculate the distance
                         //now that we have the two points of the edge defined we can check whether it is cut by the plane or not
                         bool isovernode = false; // if true, then it can't be between the nodes
 
@@ -1013,7 +1013,7 @@ public:
         array_1d<double, 3 > intersection;
         array_1d<double, 3 > temp_dist;
         double dist_node_point;
-        double dist_node_neigh;
+        //double dist_node_neigh;
         double dist_node_intersect;
         double weight;
         boost::numeric::ublas::vector< array_1d<double, 3 > > Coordinate_New_Node;
@@ -1062,7 +1062,7 @@ public:
                     Xp_1 = Xp - Coord_Node_1;
                     Xp_2 = Coord_Node_2 - Coord_Node_1;
                     dist_node_intersect = (inner_prod(versor, Xp_1)) / (inner_prod(versor, Xp_2)); //line-plane interesection, this is a RELATIVE distance. ====>   point= Node1 + (Node2-Node1)*dist_node_intersect
-                    dist_node_neigh = sqrt(pow((Coord_Node_1[0] - Coord_Node_2[0]), 2) + pow((Coord_Node_1[1] - Coord_Node_2[1]), 2) + pow((Coord_Node_1[2] - Coord_Node_2[2]), 2)); // distance between node and neighbour
+                    //dist_node_neigh = sqrt(pow((Coord_Node_1[0] - Coord_Node_2[0]), 2) + pow((Coord_Node_1[1] - Coord_Node_2[1]), 2) + pow((Coord_Node_1[2] - Coord_Node_2[2]), 2)); // distance between node and neighbour
                     if (dist_node_point <= (tolerance)) dist_node_intersect = 0.0; // if it's too close to the first node then we just set the weight as 1
                     weight = (1.0 - dist_node_intersect); // dist_node_neigh;
 
