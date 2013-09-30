@@ -752,7 +752,7 @@ private:
             ++restart;
         }
         err = 1;
-        return 1;
+        return err;
     }
 
     //FUNCTION THAT SOLVES THE SYSTEM WTLW*lambda=WT*r or WTLW*d_lambda=WT*w.. in the first case output=W*lambda, in the second ouput=W*d_lambda
