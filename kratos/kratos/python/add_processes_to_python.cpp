@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/condition_erase_process.h"
 #include "processes/eliminate_isolated_nodes_process.h"
 #include "processes/calculate_signed_distance_to_3d_skin_process.h"
+#include "processes/translation_operation.h"
 #include "includes/node.h"
 
 
@@ -130,6 +131,10 @@ void  AddProcessesToPython()
     .def("GenerateSkinModelPart",&CalculateSignedDistanceTo3DSkinProcess::GenerateSkinModelPart)
     .def("MappingPressureToStructure",&CalculateSignedDistanceTo3DSkinProcess::MappingPressureToStructure)
     .def("AveragePressureToStructure",&CalculateSignedDistanceTo3DSkinProcess::AveragePressureToStructure)
+    ;
+    
+    class_<TranslationOperation, bases<Process> >("TranslationOperation",
+            init<ModelPart&, boost::numeric::ublas::vector<int> ,boost::numeric::ublas::vector<int> ,unsigned int>())
     ;
 
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
