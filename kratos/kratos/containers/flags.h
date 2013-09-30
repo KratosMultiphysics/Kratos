@@ -244,11 +244,6 @@ public:
         mFlags = BlockType();
     }
 
-    void AssignFlags(Flags ThisFlags)
-    {
-        mIsDefined = ThisFlags.mIsDefined;
-        mFlags = ThisFlags.mFlags;
-    }
 
     ///@}
     ///@name Access
