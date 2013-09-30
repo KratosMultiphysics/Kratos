@@ -14,13 +14,13 @@ class EmpireWrapper:
 	self.libempire_api        = libempire_api
 	self.model_part           = model_part 
 	self.interface_model_part = ModelPart("InterfaceModelPart");  
-	self.ale_wrapper_process  = WrapperProcess(self.model_part,self.interface_model_part)
+        self.wrapper_process      = WrapperProcess(self.model_part,self.interface_model_part)
     # -------------------------------------------------------------------------------------------------	
 
     # -------------------------------------------------------------------------------------------------
     # extract interface nodes and conditions from the fluid model part which have a flag "IS_INTERFACE"
     def extractInterface(self):
-	self.ale_wrapper_process.ExtractInterface()
+        self.wrapper_process.ExtractInterface()
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
@@ -64,7 +64,7 @@ class EmpireWrapper:
     def sendPressure(self):
 	# extract pressure from interface nodes as result of the CFD simulation
 	pressure = []
-	self.ale_wrapper_process.ExtractPressureFromModelPart( pressure )
+        self.wrapper_process.ExtractPressureFromModelPart( pressure )
 
 	# convert list containg the forces to ctypes
 	c_pressure = (c_double * len(pressure))(*pressure)
@@ -78,7 +78,7 @@ class EmpireWrapper:
     def sendForces(self):
 	# extract pressure from interface nodes as result of the CFD simulation
 	forces = []
-	self.ale_wrapper_process.ExtractForcesFromModelPart( forces )
+        self.wrapper_process.ExtractForcesFromModelPart( forces )
 
 	# convert list containg the forces to ctypes
 	c_forces = (c_double * len(forces))(*forces)
@@ -98,7 +98,7 @@ class EmpireWrapper:
 	elems 		= []
 
 	# extract interface mesh information
-	self.ale_wrapper_process.ExtractMeshInfo(numNodes,numElems,nodes,nodeIDs,numNodesPerElem,elems)
+        self.wrapper_process.ExtractMeshInfo(numNodes,numElems,nodes,nodeIDs,numNodesPerElem,elems)
 
 	# convert python lists to ctypes required for empire-function call
 	c_numNodes = (c_int * len(numNodes))(*numNodes)
@@ -166,7 +166,7 @@ class EmpireWrapper:
     def sendDisplacements(self):
 	# extract displacements from interface nodes as result of the CFD simulation
 	displacements = []
-	self.ale_wrapper_process.ExtractDisplacementsFromModelPart( displacements )
+        self.wrapper_process.ExtractDisplacementsFromModelPart( displacements )
 
 	# convert list containg the displacements to ctypes
 	c_displacements = (c_double * len(displacements))(*displacements)
