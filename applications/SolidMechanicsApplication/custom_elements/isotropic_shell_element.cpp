@@ -659,7 +659,29 @@ void IsotropicShellElement::CalculateAllMatrices(
     RotateToGlobal(v1,v2,v3,mKloc_system,rLeftHandSideMatrix,rRightHandSideVector);
 
     //adding the body force (which is already given in global coordinates)
-    AddBodyForce(h,A,rRightHandSideVector);
+
+
+    //get internal forces and store in nodes
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        unsigned int indexu  = dimension * i;
+        array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_INTERNAL);
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            InternalForce[j] += rRightHandSideVector [indexu+j];
+        }
+    }
+
+
+    //contribution to external forces
+    Vector VolumeForce = ZeroVector(3);
+    VolumeForce = this->CalculateVolumeForce( VolumeForce );
+
+    AddBodyForce(h,A,VolumeForce,rRightHandSideVector);
 
 // 		//adding pressure force
 // 		const double one_third = 1.00 / 3.00;
@@ -849,22 +871,49 @@ void IsotropicShellElement::RotateToGlobal(
     KRATOS_CATCH("");
 }
 
+//************************************CALCULATE VOLUME ACCELERATION*******************
+//************************************************************************************
+Vector& IsotropicShellElement::CalculateVolumeForce( Vector& rVolumeForce )
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    const double one_nodes = 1.00 / (double)number_of_nodes;
+
+    rVolumeForce = ZeroVector(dimension);
+    for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    {
+        if( GetGeometry()[j].SolutionStepsDataHas(VOLUME_ACCELERATION) ) //temporary, will be checked once at the beginning only
+            rVolumeForce += one_nodes * GetGeometry()[j].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+    }
+
+    rVolumeForce *= GetProperties()[DENSITY];
+
+    return rVolumeForce;
+
+    KRATOS_CATCH( "" )
+}
+
 //************************************************************************************
 //************************************************************************************
 void IsotropicShellElement::AddBodyForce(
     const double& h,
     const double& Area,
+    const Vector& VolumeForce,
     VectorType& rRightHandSideVector
 )
 {
     KRATOS_TRY
 
     array_1d<double,3> bf;
-    //must be changed to be taken from VOLUME_ACCELERATION JMC 26-7-2013
-    //noalias(bf) = GetProperties()[BODY_FORCE];
-    const double& density = GetProperties()[DENSITY];
-
-    bf *= (density * h * 0.333333333333333333) * Area;
+    
+    bf[0] = VolumeForce[0]; 
+    bf[1] = VolumeForce[1];
+    bf[2] = VolumeForce[2];
+    
+    bf *= ( h * 0.333333333333333333) * Area;
 
     rRightHandSideVector[0] += bf[0];
     rRightHandSideVector[1] += bf[1];
@@ -1836,6 +1885,32 @@ void IsotropicShellElement::Initialize()
 
     KRATOS_CATCH("")
 }
+
+
+////************************************************************************************
+////************************************************************************************
+
+void IsotropicShellElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+
+        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
+        array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_INTERNAL);
+        array_1d<double, 3 > & DynamicForce  = GetGeometry()[i].FastGetSolutionStepValue(FORCE_DYNAMIC);
+
+        ExternalForce.clear();
+        InternalForce.clear();
+        DynamicForce.clear();
+
+    }
+
+    KRATOS_CATCH( "" )
+}
+
 
 //************************************************************************************
 //************************************************************************************

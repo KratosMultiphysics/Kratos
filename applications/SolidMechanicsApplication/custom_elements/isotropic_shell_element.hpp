@@ -90,7 +90,7 @@ public:
 
     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
 
-//		void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
+    void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
     void GetValuesVector(Vector& values, int Step);
     void GetFirstDerivativesVector(Vector& values, int Step = 0);
@@ -298,9 +298,14 @@ private:
         ProcessInfo& rCurrentProcessInfo
     );
 
+    Vector& CalculateVolumeForce( 
+	Vector& rVolumeForce 
+    );
+
     void AddBodyForce(
         const double& h,
         const double& Area,
+	const Vector& VolumeForce,
         VectorType& rRightHandSideVector
     );
 

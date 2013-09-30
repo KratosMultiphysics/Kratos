@@ -89,13 +89,14 @@ class SolidMechanicsSolver:
         self.linear_solver = SkylineLUFactorizationSolver()
 
         #definition of the default convergence criterion: -can be set using SetConvergenceCriterion() method-
+        self.rel_tol   = 1e-4
         self.abs_tol   = 1e-9
         self.max_iters = 30;
 
-        #self.mechanical_convergence_criterion  = DisplacementCriteria(self.abs_tol,self.abs_tol)
-        self.mechanical_convergence_criterion  = ResidualCriteria(self.abs_tol,self.abs_tol)
-        #self.mechanical_convergence_criterion = ResidualConvergenceCriteria(self.abs_tol,self.abs_tol)
-        #self.mechanical_convergence_criterion = DisplacementConvergenceCriteria(self.abs_tol,self.abs_tol)
+        #self.mechanical_convergence_criterion  = DisplacementCriteria(self.rel_tol,self.abs_tol)
+        self.mechanical_convergence_criterion  = ResidualCriteria(self.rel_tol,self.abs_tol)
+        #self.mechanical_convergence_criterion = ResidualConvergenceCriteria(self.rel_tol,self.abs_tol)
+        #self.mechanical_convergence_criterion = DisplacementConvergenceCriteria(self.rel_tol,self.abs_tol)
 
         #definition of the default builder_and_solver: 
         #for normal execution
@@ -256,23 +257,23 @@ class SolidMechanicsSolver:
     #######################################################################   
     def SetConvergenceCriterion(self,convergence_criterion_type,convergence_tol,absolute_tol,max_iters):
         
-        self.max_iter = max_iters
+        self.max_iters = max_iters
         #mechanical convergence criteria
         CT = convergence_tol;
         AT = absolute_tol; 
-        if(convergence_criterion_type == "Displacement_Criteria"):
+        if(convergence_criterion_type == "Displacement_criteria"):
             self.mechanical_convergence_criterion  =  DisplacementConvergenceCriteria(CT,AT)
-        elif(convergence_criterion_type == "Residual_Criteria"): 
+        elif(convergence_criterion_type == "Residual_criteria"): 
             self.mechanical_convergence_criterion  =  ResidualConvergenceCriteria(CT,AT)
-        elif(convergence_criterion_type == "And_Criteria"): 
+        elif(convergence_criterion_type == "And_criteria"): 
             Displacement   =   DisplacementConvergenceCriteria(CT,AT)
             Residual       =   ResidualConvergenceCriteria(CT,AT)
             self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
-        elif(convergence_criterion_type == "Or_Criteria"): 
+        elif(convergence_criterion_type == "Or_criteria"): 
             Displacement   =   DisplacementConvergenceCriteria(CT,AT)
             Residual       =   ResidualConvergenceCriteria(CT,AT)
             self.mechanical_convergence_criterion  = OrCriteria(Residual, Displacement)
-        elif(convergence_criterion_type == "Mixed_Criteria"):
+        elif(convergence_criterion_type == "Mixed_criteria"):
             Displacement   =   MixedElementConvergenceCriteria(CT,AT)
             Residual       =   ResidualConvergenceCriteria(CT,AT)
             self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
