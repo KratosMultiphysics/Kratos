@@ -69,7 +69,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/geometry_utilities.h"
 #include "geometries/triangle_3d_3.h"
 #include "utilities/body_normal_calculation_utils.h"
-#include "utilities/math_utils.h"
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
@@ -110,7 +109,7 @@ public:
 
     enum { Dimension = 3,
            DIMENSION = 3,
-           MAX_LEVEL = 12,
+           MAX_LEVEL = 10,
            MIN_LEVEL = 2    // this cannot be less than 2!!!
          };
 
@@ -389,7 +388,7 @@ public:
 
         //          ------------------------------------------------------------------
         //          GenerateNodes();
-        //          CalculateDistance2(); // I have to change this. Pooyan.
+        CalculateDistance2(); // I have to change this. Pooyan.
         //          mrSkinModelPart.GetCommunicator().AssembleCurrentData(DISTANCE);
         //          std::ofstream mesh_file1("octree1.post.msh");
         //          std::ofstream res_file("octree1.post.res");
@@ -944,6 +943,8 @@ public:
 
         // reset the node distance to 1.0 which is the maximum distance in our normalized space.
         unsigned int nodesSize = nodes.size();
+
+        #pragma omp parallel for firstprivate(nodesSize)
         for(unsigned int i = 0 ; i < nodesSize ; i++)
             nodes[i]->GetSolutionStepValue(DISTANCE) = initial_distance;
 
@@ -957,7 +958,10 @@ public:
 
         // reset the elemental distance to 1.0 which is the maximum distance in our normalized space.
         // also initialize the embedded velocity of the fluid element
-        for(unsigned int i = 0 ; i < fluid_elements.size() ; i++)
+        unsigned int elementsSize = fluid_elements.size();
+
+        #pragma omp parallel for firstprivate(elementsSize)
+        for(unsigned int i = 0 ; i < elementsSize ; i++)
         {
             fluid_elements[i]->GetValue(ELEMENTAL_DISTANCES) = ElementalDistances;
             fluid_elements[i]->GetValue(SPLIT_ELEMENT) = false;
@@ -1997,6 +2001,119 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
+    void ReproduceFourIntNodes2(  ModelPart::ElementsContainerType::iterator& i_fluid_element,
+                                 array_1d<double,4>                          distances,
+                                 std::vector< array_1d<double,3> >&          nodesMatrix,
+                                 std::vector< array_1d<unsigned int,3> >&    elementsMatrix)
+    {
+        Element::GeometryType& geom = i_fluid_element->GetGeometry();
+
+        std::vector< Point<3> > edge_points;
+        edge_points.reserve(4);
+
+        for(unsigned int i=0; i<3; i++)
+        {
+            for(unsigned int j=i+1; j<4; j++) // go through the edges 01, 02, 03, 12, 13, 23
+            {
+                double di = distances[i];
+                double dj = distances[j];
+
+                if(di*dj < 0) //edge is cut
+                {
+                    //generate point on edge by linear interpolation
+                    double Ni = fabs(dj) / ( fabs(di) + fabs(dj) );
+                    double Nj = 1.0 - Ni;
+                    Point<3> edge_point(Ni * geom[i] + Nj * geom[j]);
+                    edge_points.push_back(edge_point);
+                }
+            }
+        }
+
+
+//        array_1d<double,3> x21 = x2 - x1;
+//        array_1d<double,3> x31 = x3 - x1;
+//        array_1d<double,3> x21 = x4 - x1;
+
+        array_1d<double,3> x21 = edge_points[1] - edge_points[0];
+        array_1d<double,3> x31 = edge_points[2] - edge_points[0];
+        array_1d<double,3> x41 = edge_points[3] - edge_points[0];
+
+        //define a vector oriented as x21
+        array_1d<double,3> v1 = x21 / norm_2(x21);
+
+        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+        array_1d<double,4> msN;
+        double Area;
+        GeometryUtils::CalculateGeometryData( geom, DN_DX, msN, Area );
+
+        array_1d<double,3> n = prod(trans(DN_DX),distances);
+        n /= norm_2(n);
+
+        array_1d<double,3> v2 = MathUtils<double>::CrossProduct(n,v1);
+
+        array_1d<double,3> angles;
+        angles[0] = 0.0; //angle between x21 and v1
+        angles[1] = atan2( inner_prod(x31,v2), inner_prod(x31,v1) ); //angle between x31 and v1
+        angles[2] = atan2( inner_prod(x41,v2), inner_prod(x41,v1) ); //angle between x31 and v1
+
+        double max_angle = 0.0;
+        double min_angle = 0.0;
+        unsigned int min_pos = 0;
+        unsigned int max_pos = 0;
+        for(unsigned int i=1; i<3; i++)
+        {
+            if(angles[i] < min_angle)
+            {
+                min_pos = i+1; //this is the local index of the edge point which forms the minimal angle
+                min_angle = angles[i];
+            }
+            if(angles[i] > max_angle)
+            {
+                max_pos = i+1; //this is the local index of the edge point which forms the maximal angle
+                max_angle = angles[i];
+            }
+        }
+
+        //find the pos of the center node
+        unsigned int center_pos = 0;
+        for(unsigned int i=2; i<4; i++)
+        {
+            if(i!= min_pos && i!=max_pos){ center_pos = i; }
+        }
+
+        //form a quadrilateral with the edge nodes ordered as:
+        //x_0  x_min_pos x_center_pos x_max_pos
+        array_1d<double,3> node_0 = edge_points[0];
+        array_1d<double,3> node_1 = edge_points[min_pos];
+        array_1d<double,3> node_2 = edge_points[center_pos];
+        array_1d<double,3> node_3 = edge_points[max_pos];
+        nodesMatrix.push_back(node_0);
+        nodesMatrix.push_back(node_1);
+        nodesMatrix.push_back(node_2);
+        nodesMatrix.push_back(node_3);
+
+        //AdaptIndexingByNormal(i_fluid_element,distances,triangle1,nodesMatrix);
+        //AdaptIndexingByNormal(i_fluid_element,distances,triangle2,nodesMatrix);
+
+        array_1d<unsigned int,3> triangle1;
+        array_1d<unsigned int,3> triangle2;
+
+        triangle1[0] = 1;
+        triangle1[1] = center_pos+1;
+        triangle1[2] = max_pos+1;
+
+        triangle2[0] = 1;
+        triangle2[1] = center_pos+1;
+        triangle2[2] = min_pos+1;
+
+        elementsMatrix.push_back(triangle1);
+        elementsMatrix.push_back(triangle2);
+    }
+
+
+    ///******************************************************************************************************************
+    ///******************************************************************************************************************
+
     void CalcIntersectionNode( ModelPart::ElementsContainerType::iterator&  i_fluid_element,
                                array_1d<double,4>                           distances,
                                unsigned int                                 Index1,
@@ -2081,58 +2198,26 @@ public:
 
         //mOctree.RefineWithUniformSize(0.0625);
 
-        // loop over all fluid elements
-        // this loop is parallelized using openmp
-
-#ifdef _OPENMP
-        int number_of_threads = omp_get_max_threads();
-#else
-        int number_of_threads = 1;
-#endif
-
-        ModelPart::NodesContainerType& pNodes = mrSkinModelPart.Nodes();
-
-        vector<unsigned int> node_partition;
-        CreatePartition(number_of_threads, pNodes.size(), node_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(node_partition);
-
-#pragma omp parallel for
-        for (int k = 0; k < number_of_threads; k++)
+        // loop over all structure nodes
+        for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin();
+                                    i_node != mrSkinModelPart.NodesEnd();
+                                    i_node++)
         {
-            ModelPart::NodesContainerType::iterator it_begin = pNodes.ptr_begin() + node_partition[k];
-            ModelPart::NodesContainerType::iterator it_end = pNodes.ptr_begin() + node_partition[k+1];
-
-            // assemble all nodes
-            for (ModelPart::NodeIterator it = it_begin; it != it_end; ++it)
-            {
-                double temp_point[3];
-                temp_point[0] = it->Coordinate(1);
-                temp_point[1] = it->Coordinate(2);
-                temp_point[2] = it->Coordinate(3);
-                mOctree.Insert(temp_point);
-            }
+            double temp_point[3];
+            temp_point[0] = i_node->X();
+            temp_point[1] = i_node->Y();
+            temp_point[2] = i_node->Z();
+            mOctree.Insert(temp_point);
         }
 
         //mOctree.Constrain2To1(); // To be removed. Pooyan.
 
-        ModelPart::ElementsContainerType& pElements = mrSkinModelPart.Elements();
-
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, pElements.size(), element_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(element_partition);
-
-#pragma omp parallel for
-        for (int k = 0; k < number_of_threads; k++)
+        // loop over all structure elements
+        for(ModelPart::ElementIterator i_element = mrSkinModelPart.ElementsBegin();
+                                       i_element != mrSkinModelPart.ElementsEnd();
+                                       i_element++)
         {
-            ModelPart::ElementsContainerType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-            ModelPart::ElementsContainerType::iterator it_end = pElements.ptr_begin() + element_partition[k+1];
-
-            for (ModelPart::ElementIterator it = it_begin; it != it_end; ++it)
-            {
-                mOctree.Insert(*(it).base());
-            }
+            mOctree.Insert(*(i_element).base());
         }
 
         Timer::Stop("Generating Octree");
