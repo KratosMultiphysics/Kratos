@@ -65,7 +65,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/condition_erase_process.h"
 #include "processes/eliminate_isolated_nodes_process.h"
 #include "processes/calculate_signed_distance_to_3d_skin_process.h"
-//#include "processes/calculate_octree_signed_distance_to_3d_skin_process.h"
 #include "includes/node.h"
 
 
@@ -129,11 +128,9 @@ void  AddProcessesToPython()
     class_<CalculateSignedDistanceTo3DSkinProcess, bases<Process>, boost::noncopyable >("CalculateSignedDistanceTo3DSkinProcess",
             init<ModelPart&, ModelPart&>())
     .def("GenerateSkinModelPart",&CalculateSignedDistanceTo3DSkinProcess::GenerateSkinModelPart)
+    .def("MappingPressureToStructure",&CalculateSignedDistanceTo3DSkinProcess::MappingPressureToStructure)
+    .def("AveragePressureToStructure",&CalculateSignedDistanceTo3DSkinProcess::AveragePressureToStructure)
     ;
-
-//    class_<CalculateOctreeSignedDistanceTo3DSkinProcess, bases<Process>, boost::noncopyable >("CalculateOctreeSignedDistanceTo3DSkinProcess",
-//            init<ModelPart&, ModelPart&>())
-//    ;
 
     //typedef PointerVectorSet<Node<3>, IndexedObject> NodesContainerType;
     //typedef PointerVectorSet<Dof<double>, IndexedObject> DofsContainerType;
