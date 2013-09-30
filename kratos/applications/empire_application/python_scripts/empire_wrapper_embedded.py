@@ -90,26 +90,8 @@ class EmpireWrapper:
 
     # -------------------------------------------------------------------------------------------------
     def sendMesh(self):
-	numNodes 	= []
-	numElems 	= []
-	nodes 		= []
 	nodeIDs 	= []
-	numNodesPerElem = []
-	elems 		= []
-
-	# extract interface mesh information
-	self.ale_wrapper_process.ExtractMeshInfo(numNodes,numElems,nodes,nodeIDs,numNodesPerElem,elems)
-
-	# convert python lists to ctypes required for empire-function call
-	c_numNodes = (c_int * len(numNodes))(*numNodes)
-	c_numElems = (c_int * len(numElems))(*numElems)
-	c_nodes = (c_double * len(nodes))(*nodes)
-	c_nodeIDs = (c_int * len(nodeIDs))(*nodeIDs)
-	c_numNodesPerElem = (c_int * len(numNodesPerElem))(*numNodesPerElem)
-	c_elems = (c_int * len(elems))(*elems)
-
-	# send mesh information to empire
-	self.libempire_api.EMPIRE_API_sendMesh("defaultMesh",c_numNodes[0], c_numElems[0], c_nodes, c_nodeIDs, c_numNodesPerElem, c_elems)
+	elements	= []
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
