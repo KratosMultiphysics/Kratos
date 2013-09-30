@@ -143,7 +143,7 @@ public:
         ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
 
 		for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
-			i_node->Set(NOT_SELECTED);
+            i_node->Set(NOT_SELECTED);
 
         for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
         {

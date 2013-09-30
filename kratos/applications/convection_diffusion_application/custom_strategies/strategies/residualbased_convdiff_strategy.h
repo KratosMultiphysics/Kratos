@@ -320,7 +320,7 @@ public:
         const Variable<double>& rProjectionVariable = my_settings->GetProjectionVariable();
         
         //const Variable<double>& rSpecificHeatVar = my_settings->GetSpecificHeatVariable();
-        const Variable<array_1d<double, 3 > >& rVelocityVar = my_settings->GetVelocityVariable();
+        //const Variable<array_1d<double, 3 > >& rVelocityVar = my_settings->GetVelocityVariable();
 
         if (BaseType::GetModelPart().NodesBegin()->SolutionStepsDataHas(rUnknownVar) == false)
             KRATOS_ERROR(std::logic_error, "Add  ----UnknownVar---- variable!!!!!! ERROR", "");

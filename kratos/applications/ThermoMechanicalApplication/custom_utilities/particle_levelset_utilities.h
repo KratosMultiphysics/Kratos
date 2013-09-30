@@ -827,11 +827,11 @@ private:
 		          const int max_num_particle,
 			  const int num_particle)
     {
-        int id;
-        if (rLagrangianModelPart.Nodes().size() != 0)
-            id = (rLagrangianModelPart.NodesEnd() - 1)->Id();
-        else
-            id = 1;      
+//        int id;
+//        if (rLagrangianModelPart.Nodes().size() != 0)
+//            id = (rLagrangianModelPart.NodesEnd() - 1)->Id();
+//        else
+//            id = 1;
         const int nelements = rEulerianModelPart.Elements().size();
 	const int nparticles = rLagrangianModelPart.Nodes().size();
 	
@@ -861,15 +861,15 @@ private:
 	    ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + kk;
 	    
 	    const int ptr_nest = iparticle->GetValue(NL_ITERATION_NUMBER); 
-	    if( num_ptr_in_elem[ptr_nest-1] > max_num_particle ) 		  
+        if( num_ptr_in_elem[ptr_nest-1] > static_cast<unsigned int>(max_num_particle) )
 	      particle_of_element[ptr_nest-1].push_back( *(iparticle.base()) );		
 	}
 	
 	//loop over elements to reoreder the particle radius in over populated elements
         #pragma omp parallel for firstprivate(particle_of_element)    		
-	for( int ii = 0; ii<particle_of_element.size(); ++ii)
+    for( int ii = 0; ii< static_cast<int>(particle_of_element.size()); ++ii)
 	{
-	  if(particle_of_element[ii].size() > max_num_particle)
+      if(particle_of_element[ii].size() > static_cast<unsigned int>(max_num_particle))
 	  {	    
 	    //sort 
 	    std::sort(particle_of_element[ii].begin(), particle_of_element[ii].end(), RadiusCompare() );
@@ -916,7 +916,7 @@ bool operator()(TRefrenceType  ptr_a, TRefrenceType ptr_b)
         else
             id = 1;      
         const int nelements = rEulerianModelPart.Elements().size();
-	const int nparticles = rLagrangianModelPart.Nodes().size();
+//	const int nparticles = rLagrangianModelPart.Nodes().size();
 
 	
 	
@@ -982,7 +982,7 @@ bool operator()(TRefrenceType  ptr_a, TRefrenceType ptr_b)
         else
             id = 1;      
         const int nelements = rEulerianModelPart.Elements().size();
-	const int nparticles = rLagrangianModelPart.Nodes().size();
+//	const int nparticles = rLagrangianModelPart.Nodes().size();
 
 	
 	

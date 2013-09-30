@@ -153,7 +153,7 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
 //        Vector UGradN(NumNodes);
 //        this->EvaluateConvection(UGradN,ConvVel,mDN_DX);
 
-        double DivU;
+        //double DivU;
         //this->EvaluateDivergenceInPoint(DivU,VELOCITY,rDN_DX);
 		array_1d<double,3> ugauss;
 		this->EvaluateInPoint(ugauss,VELOCITY,N);
