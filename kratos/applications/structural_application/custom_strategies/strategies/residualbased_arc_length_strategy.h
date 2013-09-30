@@ -367,7 +367,7 @@ public:
         unsigned int iteration_number=0;
         double Ao    = 0.00;
         double A     = 1.00;
-        double aux   = 0.00;
+        //double aux   = 0.00;
         double miu   = 0.00;
         double g     = 0.00;
 	double toler = 0.0001;
@@ -381,11 +381,11 @@ public:
         bool is_converged       = false;
         
 	
-	bool ResidualIsUpdated = false;
+//	bool ResidualIsUpdated = false;
 
         typename TSchemeType::Pointer pScheme = GetScheme();
         typename TBuilderAndSolverType::Pointer pBuilderAndSolver = GetBuilderAndSolver();
-        ModelPart& r_model_part = BaseType::GetModelPart();
+        //ModelPart& r_model_part = BaseType::GetModelPart();
 
        
 	
@@ -577,7 +577,7 @@ public:
               else if(iteration_number==1 && mstep!=1)   
 		  {
 		    
-		   double aux1  =  TSparseSpace::Dot(mX_old, mX_old);
+//		   double aux1  =  TSparseSpace::Dot(mX_old, mX_old);
 		   double aux2  =  TSparseSpace::Dot(mDelta_pold,mDelta_pold);   //inner_prod(mDelta_pold,mDelta_pold);
 		   Ao           =  aux2/(mlamda_old*mlamda_old);
 		   miu          =  mdelta_l/std::sqrt(aux2 + Ao*mdelta_lamda_old*mdelta_lamda_old);  
@@ -925,7 +925,7 @@ public:
 	
         // Variables vectoriales y matriciles
         TSystemMatrixType& mA            = *mpA;
-        TSystemVectorType& mDx           = *mpDx;
+        //TSystemVectorType& mDx           = *mpDx;
         TSystemVectorType& mb            = *mpb;
         TSystemVectorType& mDelta_p      = *mpDelta_p;
         TSystemVectorType& mDelta_pold   = *mpDelta_pold;
@@ -937,7 +937,7 @@ public:
 	
         // Constantes necesarias para realizar la operacion de Ublas
         double A = 1.00;
-        double B = 1.00;
+        //double B = 1.00;
  
 	//Calculate_Actual_Delta(rDofSet, Delta_p); 
 	

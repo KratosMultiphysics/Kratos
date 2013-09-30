@@ -100,6 +100,17 @@ public:
         }
     }
 
+    /**
+     *
+     * @param rNodes Nodes of the plane we want to apply the wave
+     * @param d Depth of water
+     * @param H height of wave (2 * a)
+     * @param T Period of wave
+     * @param Z0 Level of natural free surface
+     * @param X0 Plane x
+     * @param t current time
+     * @param g gravity
+     */
     void GenerateVolumeWaveXYPlane(ModelPart::NodesContainerType& rNodes, const double d, const double  H, const double  T, const double  Z0, const double X0, const double t, const double g)
     {
 

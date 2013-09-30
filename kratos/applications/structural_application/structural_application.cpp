@@ -437,10 +437,10 @@ KratosStructuralApplication::KratosStructuralApplication():
 
     mNodeTyingLagrange( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mNodeTyingLagrangeZ( 0, Element::GeometryType::Pointer( new Geometry <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mPointPointJointCondition( 0, Node<3>::Pointer(), Node<3>::Pointer() ),
 
     mSlaveContactPoint2D( 0, Element::GeometryType::Pointer( new Point2D <Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mMasterContactFace2D( 0, Element::GeometryType::Pointer( new Line2D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mPointPointJointCondition( 0, Node<3>::Pointer(), Node<3>::Pointer() ),
     mIsotropic3D()
 
 {}

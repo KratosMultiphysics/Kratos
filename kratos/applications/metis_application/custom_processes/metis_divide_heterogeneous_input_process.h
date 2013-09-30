@@ -72,16 +72,16 @@ public:
     /// Default constructor.
     MetisDivideHeterogeneousInputProcess(IO& rIO, SizeType NumberOfPartitions, int Dimension = 3, int Verbosity = 0, bool SynchronizeConditions = false):
         MetisDivideInputToPartitionsProcess(rIO,NumberOfPartitions,Dimension),
-	mVerbosity(Verbosity),
-	mSynchronizeConditions(SynchronizeConditions)
+        mSynchronizeConditions(SynchronizeConditions),
+    mVerbosity(Verbosity)
     {
     }
 
     /// Copy constructor.
     MetisDivideHeterogeneousInputProcess(MetisDivideHeterogeneousInputProcess const& rOther):
         MetisDivideInputToPartitionsProcess(rOther.mrIO,rOther.mNumberOfPartitions,rOther.mDimension),
-	mVerbosity(rOther.mVerbosity),
-        mSynchronizeConditions(rOther.mSynchronizeConditions)
+        mSynchronizeConditions(rOther.mSynchronizeConditions),
+      mVerbosity(rOther.mVerbosity)
     {
     }
 
@@ -470,7 +470,7 @@ private:
 
         // Now distribute boundary elements
         itElem = rElemConnectivities.begin();
-        int MaxWeight = 1.03 * NumElements / BaseType::mNumberOfPartitions;
+        //int MaxWeight = 1.03 * NumElements / BaseType::mNumberOfPartitions;
         for (std::vector<int>::iterator itPart = rElemPartition.begin(); itPart != rElemPartition.end(); itPart++)
         {
             if (*itPart == -1) // If element is still unassigned
@@ -535,7 +535,7 @@ private:
 
       // make sorted element connectivities array                                                                       
       IO::ConnectivitiesContainerType ElementsSorted(rElemConnectivities);
-      for (int i=0; i<NumElements; i++)
+      for (SizeType i=0; i<NumElements; i++)
 	std::sort(ElementsSorted[i].begin(), ElementsSorted[i].end());
 
       // Conditions where all nodes belong to the same partition always go to that partition                            
@@ -563,7 +563,7 @@ private:
         }
       // Now distribute boundary conditions                                                                             
       itCond = rCondConnectivities.begin();
-      int MaxWeight = 1.03 * NumConditions / BaseType::mNumberOfPartitions;
+      //int MaxWeight = 1.03 * NumConditions / BaseType::mNumberOfPartitions;
       for (std::vector<int>::iterator itPart = rCondPartition.begin(); itPart != rCondPartition.end(); itPart++)
         {
 	  if (*itPart == -1) // If condition is still unassigned                                                        
@@ -606,7 +606,7 @@ private:
 	      IO::ConnectivitiesContainerType::value_type tmp(*itCond);
 	      std::sort(tmp.begin(), tmp.end());
 
-	      for (int i=0; i<NumElements; i++)
+          for (SizeType i=0; i<NumElements; i++)
 		{
 		  if ( std::includes(ElementsSorted[i].begin(), ElementsSorted[i].end(), tmp.begin(), tmp.end()) )
 		    {

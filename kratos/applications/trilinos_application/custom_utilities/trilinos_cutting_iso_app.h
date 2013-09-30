@@ -558,7 +558,7 @@ public:
         double neigh_value; //other node of the edge (neighbour) to closest point in the plane
         double diff_node_value;                // difference between the imposed value of the variable and its value in the node
         double diff_neigh_value;; //distance between the two nodes of the edge
-        double diff_node_neigh;
+        //double diff_node_neigh;
         //array_1d<double, 3 > temp_dist; //aux segment
         //array_1d<double, 3 > node_coord; //
         //array_1d<double, 3 > neigh_coord; //
@@ -588,9 +588,9 @@ public:
                     {
                         neigh_value= geom[j].FastGetSolutionStepValue(variable);
                         diff_neigh_value = isovalue - neigh_value;
-                        diff_node_neigh = node_value - neigh_value;
+                        //diff_node_neigh = node_value - neigh_value;
                         //now that we have the two points of the edge defined we can check whether it is cut by the plane or not
-                        bool isovernode = false; // if true, then it can't be between the nodes
+                        //bool isovernode = false; // if true, then it can't be between the nodes
 
                         if (fabs(diff_node_value) < (tolerance)  ) //then our node is part of the plane (this should have been done before the loop on neighbours, but this way it is easier to read .
                         {
@@ -603,7 +603,7 @@ public:
                             if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure --> ln 237", "");
                             ierr = used_nodes_matrix->ReplaceGlobalValues(1, &index_i, 1, &index_i, &true_value);
                             if (ierr < 0) KRATOS_ERROR(std::logic_error, "epetra failure --> ln 237", "");
-                            isovernode = true;
+                            //isovernode = true;
                             number_of_cuts += 2; //since its neighbour wont take this case as a cut, we must save 2 cuts instead of one. (to reach number_of_cuts=6),
                             ++exact_nodes;
                             list_matching_nodes[i] = geom[i].Id();
