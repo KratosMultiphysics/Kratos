@@ -550,14 +550,12 @@ void HyperElasticUP3DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialRe
 
     Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rIsoStressVector );
 
-    static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
-
     for(unsigned int i=0; i<6; i++)
     {
         for(unsigned int j=0; j<6; j++)
         {
             rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, IsoStressMatrix,
-                                          msIndexVoigt3D[i][0], msIndexVoigt3D[i][1], msIndexVoigt3D[j][0], msIndexVoigt3D[j][1]);
+                                          this->msIndexVoigt3D6C[i][0], this->msIndexVoigt3D6C[i][1], this->msIndexVoigt3D6C[j][0], this->msIndexVoigt3D6C[j][1]);
         }
 
     }
@@ -580,14 +578,13 @@ void HyperElasticUP3DLaw::CalculateVolumetricConstitutiveMatrix ( const Material
     double Pressure = 0;
     Pressure = CalculateDomainPressure ( rElementGeometry, rShapeFunctions, Pressure);
 
-    static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
 
     for(unsigned int i=0; i<6; i++)
     {
         for(unsigned int j=0; j<6; j++)
         {
             rConstitutiveMatrix( i, j ) = VolumetricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, Pressure,
-                                          msIndexVoigt3D[i][0], msIndexVoigt3D[i][1], msIndexVoigt3D[j][0], msIndexVoigt3D[j][1]);
+                                          this->msIndexVoigt3D6C[i][0], this->msIndexVoigt3D6C[i][1], this->msIndexVoigt3D6C[j][0], this->msIndexVoigt3D6C[j][1]);
         }
 
     }
@@ -609,14 +606,12 @@ void HyperElasticUP3DLaw::CalculateIsochoricConstitutiveMatrix ( const MaterialR
 
     Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rIsoStressVector );
 
-    static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
-
     for(unsigned int i=0; i<6; i++)
     {
         for(unsigned int j=0; j<6; j++)
         {
             rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, IsoStressMatrix, rInverseDeformationGradientF,
-                                          msIndexVoigt3D[i][0], msIndexVoigt3D[i][1], msIndexVoigt3D[j][0], msIndexVoigt3D[j][1]);
+                                          this->msIndexVoigt3D6C[i][0], this->msIndexVoigt3D6C[i][1], this->msIndexVoigt3D6C[j][0], this->msIndexVoigt3D6C[j][1]);
         }
 
     }
@@ -639,14 +634,13 @@ void HyperElasticUP3DLaw::CalculateVolumetricConstitutiveMatrix (const MaterialR
     double Pressure = 0;
     Pressure = CalculateDomainPressure ( rElementGeometry, rShapeFunctions, Pressure);
 
-    static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
 
     for(unsigned int i=0; i<6; i++)
     {
         for(unsigned int j=0; j<6; j++)
         {
             rConstitutiveMatrix( i, j ) = VolumetricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rInverseDeformationGradientF, Pressure,
-                                          msIndexVoigt3D[i][0], msIndexVoigt3D[i][1], msIndexVoigt3D[j][0], msIndexVoigt3D[j][1]);
+                                          this->msIndexVoigt3D6C[i][0], this->msIndexVoigt3D6C[i][1], this->msIndexVoigt3D6C[j][0], this->msIndexVoigt3D6C[j][1]);
         }
 
     }

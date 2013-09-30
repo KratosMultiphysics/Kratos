@@ -27,7 +27,7 @@ namespace Kratos
 HyperElastic3DLaw::HyperElastic3DLaw()
     : ConstitutiveLaw()
 {
-
+	
 }
 
 //******************************COPY CONSTRUCTOR**************************************
@@ -618,14 +618,12 @@ void HyperElastic3DLaw::CalculateConstitutiveMatrix ( const MaterialResponseVari
 
     rConstitutiveMatrix.clear();
 
-    static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
-
     for(unsigned int i=0; i<6; i++)
     {
         for(unsigned int j=0; j<6; j++)
         {
             rConstitutiveMatrix( i, j ) = ConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables,
-                                          msIndexVoigt3D[i][0], msIndexVoigt3D[i][1], msIndexVoigt3D[j][0], msIndexVoigt3D[j][1]);
+                                          this->msIndexVoigt3D6C[i][0], this->msIndexVoigt3D6C[i][1], this->msIndexVoigt3D6C[j][0], this->msIndexVoigt3D6C[j][1]);
         }
 
     }
@@ -644,14 +642,13 @@ void HyperElastic3DLaw::CalculateConstitutiveMatrix ( const MaterialResponseVari
 
     rConstitutiveMatrix.clear();
 
-    static const unsigned int msIndexVoigt3D [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
 
     for(unsigned int i=0; i<6; i++)
     {
         for(unsigned int j=0; j<6; j++)
         {
             rConstitutiveMatrix( i, j ) = ConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rInverseDeformationGradientF,
-                                          msIndexVoigt3D[i][0], msIndexVoigt3D[i][1], msIndexVoigt3D[j][0], msIndexVoigt3D[j][1]);
+                                          this->msIndexVoigt3D6C[i][0], this->msIndexVoigt3D6C[i][1], this->msIndexVoigt3D6C[j][0], this->msIndexVoigt3D6C[j][1]);
         }
 
     }

@@ -118,14 +118,12 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (
 
     Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rIsoStressVector );
 
-    static const unsigned int msIndexVoigt2D [3][2] = { {0, 0}, {1, 1}, {0, 1} };
-
     for(unsigned int i=0; i<3; i++)
     {
         for(unsigned int j=0; j<3; j++)
         {
             rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, IsoStressMatrix,
-                                          msIndexVoigt2D[i][0], msIndexVoigt2D[i][1], msIndexVoigt2D[j][0], msIndexVoigt2D[j][1]);
+                                          this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
         }
 
     }
@@ -146,14 +144,12 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix 
     Vector Factors = ZeroVector(3);
     Factors = CalculateDomainPressureFactors( rElasticVariables, Factors );
 
-    static const unsigned int msIndexVoigt2D [3][2] = { {0, 0}, {1, 1}, {0, 1} };
-
     for(unsigned int i=0; i<3; i++)
     {
         for(unsigned int j=0; j<3; j++)
         {
             rConstitutiveMatrix( i, j ) = VolumetricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, Factors,
-                                          msIndexVoigt2D[i][0], msIndexVoigt2D[i][1], msIndexVoigt2D[j][0], msIndexVoigt2D[j][1]);
+                                          this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
         }
 
     }
@@ -179,14 +175,12 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculatePlasticConstitutiveMatrix (co
     FlowRule::PlasticFactors ScalingFactors;
     mpFlowRule->CalculateScalingFactors( rReturnMappingVariables, ScalingFactors );
 
-    static const unsigned int msIndexVoigt2D [3][2] = { {0, 0}, {1, 1}, {0, 1} };
-
     for(unsigned int i=0; i<3; i++)
     {
         for(unsigned int j=0; j<3; j++)
         {
 		rConstitutiveMatrix( i, j ) = PlasticConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, IsoStressMatrix, ScalingFactors,
-                                          msIndexVoigt2D[i][0], msIndexVoigt2D[i][1], msIndexVoigt2D[j][0], msIndexVoigt2D[j][1]);
+                                          this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
         }
 
     }
@@ -209,14 +203,12 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (
 
     Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rIsoStressVector );
 
-    static const unsigned int msIndexVoigt2D [3][2] = { {0, 0}, {1, 1}, {0, 1} };
-
     for(unsigned int i=0; i<3; i++)
     {
         for(unsigned int j=0; j<3; j++)
         {
 	  rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rInverseDeformationGradientF, IsoStressMatrix,
-                                          msIndexVoigt2D[i][0], msIndexVoigt2D[i][1], msIndexVoigt2D[j][0], msIndexVoigt2D[j][1]);
+                                          this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
         }
 
     }
@@ -238,14 +230,12 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix 
     Vector Factors = ZeroVector(3);
     Factors = CalculateDomainPressureFactors( rElasticVariables, Factors );
 
-    static const unsigned int msIndexVoigt2D [3][2] = { {0, 0}, {1, 1}, {0, 1} };
-
     for(unsigned int i=0; i<3; i++)
     {
         for(unsigned int j=0; j<3; j++)
         {
 	  rConstitutiveMatrix( i, j ) = VolumetricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rInverseDeformationGradientF, Factors,
-                                          msIndexVoigt2D[i][0], msIndexVoigt2D[i][1], msIndexVoigt2D[j][0], msIndexVoigt2D[j][1]);
+                                          this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
         }
 
     }
@@ -270,14 +260,13 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculatePlasticConstitutiveMatrix (co
     FlowRule::PlasticFactors ScalingFactors;
     mpFlowRule->CalculateScalingFactors( rReturnMappingVariables, ScalingFactors );
 
-    static const unsigned int msIndexVoigt2D [3][2] = { {0, 0}, {1, 1}, {0, 1} };
 
     for(unsigned int i=0; i<3; i++)
     {
         for(unsigned int j=0; j<3; j++)
         {
 	  rConstitutiveMatrix( i, j ) = PlasticConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rInverseDeformationGradientF, IsoStressMatrix, ScalingFactors,
-									   msIndexVoigt2D[i][0], msIndexVoigt2D[i][1], msIndexVoigt2D[j][0], msIndexVoigt2D[j][1]);
+									   this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
         }
 
     }
