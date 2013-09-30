@@ -198,7 +198,7 @@ namespace Kratos
 	  {			
 	    KRATOS_TRY
 	    
-	   const int NumNodes = TDim +1;
+//	   const int NumNodes = TDim +1;
 // 	   is_cold = 0;
 	   
 	   const double current_dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];

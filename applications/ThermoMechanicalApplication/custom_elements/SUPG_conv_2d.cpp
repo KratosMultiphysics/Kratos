@@ -216,9 +216,9 @@ void SUPGConv2D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
         dphi_dt += N[i]*(aux_t[i] - GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar,1));
     res += dt_inv * dphi_dt;
 
-    double h = 2.0 * sqrt(area / 3.00);
+    //double h = 2.0 * sqrt(area / 3.00);
 
-    double Kiso = h*fabs(res)/(norm_2(grad_g) + 1e-12);
+    //double Kiso = h*fabs(res)/(norm_2(grad_g) + 1e-12);
 //        noalias(rLeftHandSideMatrix) += Kiso * prod(DN_DX,trans(DN_DX));
 
 //     double kaniso = Kiso/(inner_prod(ms_vel_gauss,ms_vel_gauss)+1e-12);

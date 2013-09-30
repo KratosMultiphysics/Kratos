@@ -133,7 +133,7 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     //calculating viscosity
     ConvectionDiffusionSettings::Pointer my_settings = rCurrentProcessInfo.GetValue(CONVECTION_DIFFUSION_SETTINGS);
 
-             const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
+             //const Variable<double>& rDensityVar = my_settings->GetDensityVariable();
     //        const Variable<double>& rSourceVar = my_settings->GetVolumeSourceVariable();
     const Variable<double>& rUnknownVar = my_settings->GetUnknownVariable();
     const Variable<array_1d<double, 3 > >& rMeshVelocityVar = my_settings->GetMeshVelocityVariable();
@@ -147,7 +147,7 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
     const array_1d<double, 3 > & w = GetGeometry()[0].FastGetSolutionStepValue(rMeshVelocityVar); //
 
 	double density = rCurrentProcessInfo[DENSITY];
-	double air_density = GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
+    //double air_density = GetGeometry()[0].FastGetSolutionStepValue(rDensityVar);
 	double node_distance = GetGeometry()[0].FastGetSolutionStepValue(rUnknownVar);
 	int gravity_switch = 	rCurrentProcessInfo[IS_GRAVITY_FILLING];
 	double vel_fac = 1.0;
@@ -165,7 +165,7 @@ void SUPGConv3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
 
 		density =  rCurrentProcessInfo[DENSITY];
 		node_distance = GetGeometry()[i].FastGetSolutionStepValue(rUnknownVar);
-		air_density = GetGeometry()[i].FastGetSolutionStepValue(rDensityVar);
+        //air_density = GetGeometry()[i].FastGetSolutionStepValue(rDensityVar);
 		vel_fac = 1.0;
 		if (node_distance > 0.0 && gravity_switch == 1)
 			vel_fac = 1.0/density;
