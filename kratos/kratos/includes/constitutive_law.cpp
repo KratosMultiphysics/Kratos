@@ -11,6 +11,9 @@
 
 namespace Kratos
 {
+    const unsigned int ConstitutiveLaw::msIndexVoigt3D6C [6][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1}, {1, 2}, {0, 2} };
+    const unsigned int ConstitutiveLaw::msIndexVoigt2D4C [4][2] = { {0, 0}, {1, 1}, {2, 2}, {0, 1} };
+    const unsigned int ConstitutiveLaw::msIndexVoigt2D3C [3][2] = { {0, 0}, {1, 1}, {0, 1} };
 
     /**
      * Flags related to the Parameters of the Contitutive Law
