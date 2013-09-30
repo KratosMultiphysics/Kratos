@@ -985,7 +985,15 @@ void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<Matrix >
 // 		boost::numeric::ublas::bounded_matrix<double,3,3> mEb;
     boost::numeric::ublas::bounded_matrix<double,9,3> mBm;
 
-    if(rVariable==PK2_STRESS_TENSOR)
+    if(rVariable==GREEN_LAGRANGE_STRAIN_TENSOR)
+    {
+      Output[0].resize(1,6,false);
+      for(unsigned int ii = 0; ii<6; ii++)
+	Output[0](0,ii) = 0;
+    }
+
+
+    if(rVariable==PK2_STRESS_TENSOR || rVariable==CAUCHY_STRESS_TENSOR)
     {
         //calculate local coordinates and rotation matrix
         array_1d<double,3> v1;
