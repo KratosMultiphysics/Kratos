@@ -102,14 +102,13 @@ void HyperElasticPlaneStrain2DLaw::CalculateConstitutiveMatrix (const MaterialRe
 
     rConstitutiveMatrix.clear();
 
-    static const unsigned int msIndexVoigt2D [3][2] = { {0, 0}, {1, 1}, {0, 1} };
 
     for(unsigned int i=0; i<3; i++)
     {
         for(unsigned int j=0; j<3; j++)
         {
             rConstitutiveMatrix( i, j ) = ConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables,
-                                          msIndexVoigt2D[i][0], msIndexVoigt2D[i][1], msIndexVoigt2D[j][0], msIndexVoigt2D[j][1]);
+                                          this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
         }
 
     }
@@ -128,14 +127,12 @@ void HyperElasticPlaneStrain2DLaw::CalculateConstitutiveMatrix (const MaterialRe
 
     rConstitutiveMatrix.clear();
 
-    static const unsigned int msIndexVoigt2D [3][2] = { {0, 0}, {1, 1}, {0, 1} };
-
     for(unsigned int i=0; i<3; i++)
     {
         for(unsigned int j=0; j<3; j++)
         {
             rConstitutiveMatrix( i, j ) = ConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rInverseDeformationGradientF,
-                                          msIndexVoigt2D[i][0], msIndexVoigt2D[i][1], msIndexVoigt2D[j][0], msIndexVoigt2D[j][1]);
+                                          this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
         }
 
     }
