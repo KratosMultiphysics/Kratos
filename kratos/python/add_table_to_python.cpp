@@ -77,8 +77,10 @@ void  AddTableToPython()
 {
     class_<DoubleTableType, DoubleTableType::Pointer>("PiecewiseLinearTable")
     .def(init<Matrix const&>())
+    .def(init<Variable<double> const&, Variable<double> const&>())
     .def("GetValue", &DoubleTableType::GetValue)
     .def("GetNearestValue", TableGetNearestValue)
+    .def("AddRow", &DoubleTableType::PushBack)
     .def(self_ns::str(self))
     ;
 }
