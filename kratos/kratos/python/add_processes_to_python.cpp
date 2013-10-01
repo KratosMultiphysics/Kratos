@@ -131,7 +131,6 @@ void  AddProcessesToPython()
             init<ModelPart&, ModelPart&>())
     .def("GenerateSkinModelPart",&CalculateSignedDistanceTo3DSkinProcess::GenerateSkinModelPart)
     .def("MappingPressureToStructure",&CalculateSignedDistanceTo3DSkinProcess::MappingPressureToStructure)
-    .def("AveragePressureToStructure",&CalculateSignedDistanceTo3DSkinProcess::AveragePressureToStructure)
     ;
     
     class_<TranslationOperation, bases<Process> >("TranslationOperation",
