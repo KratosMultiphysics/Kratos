@@ -429,7 +429,7 @@ public:
         {
             ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
             Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
-            typename BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();
+            BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();
             Element::Pointer pelement;
 
             bool is_found = node_locator.FindPointOnMesh(p_structure_node->Coordinates(), N, pelement, result_begin, max_results);
