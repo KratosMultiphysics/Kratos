@@ -421,7 +421,7 @@ public:
         //loop over nodes and find the tetra in which it falls, than do interpolation
         array_1d<double, 4 > N;
         const int max_results = 10000;
-        typename BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
+        BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
         const int n_structure_nodes = mrSkinModelPart.Nodes().size();
 
 #pragma omp parallel for firstprivate(results,N)
