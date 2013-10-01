@@ -149,6 +149,8 @@ public:
 			            KRATOS_ERROR(std::logic_error, "Tables of the modelpart are empty", "");
 		if (mgroup_ids.size()==0)
 			KRATOS_ERROR(std::logic_error, "No groups to translate", "");
+		if (mtable_ids.size()<3)
+			KRATOS_ERROR(std::logic_error, "Table's Vector too small!. Must be at least of size 3 for the 3 displacements", "");
 
 		ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 		double time = CurrentProcessInfo[TIME];
