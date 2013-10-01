@@ -68,7 +68,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
 #include "geometries/triangle_3d_3.h"
+#include "geometries/quadrilateral_3d_4.h"
 #include "utilities/body_normal_calculation_utils.h"
+#include "includes/kratos_flags.h"
+#include "utilities/binbased_fast_point_locator.h"
+#include "utilities/binbased_nodes_in_element_locator.h"
+
 
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
@@ -388,7 +393,7 @@ public:
 
         //          ------------------------------------------------------------------
         //          GenerateNodes();
-        CalculateDistance2(); // I have to change this. Pooyan.
+        //CalculateDistance2(); // I have to change this. Pooyan.
         //          mrSkinModelPart.GetCommunicator().AssembleCurrentData(DISTANCE);
         //          std::ofstream mesh_file1("octree1.post.msh");
         //          std::ofstream res_file("octree1.post.res");
@@ -411,243 +416,56 @@ public:
        * face pressure is computed by mapping between the nodal values of the tetrahedra. Afterwards
        * the resulting delta is applied as new nodal pressure.
        */
-    void MappingPressureToStructure(const double conditionVariable)
+    void MappingPressureToStructure(BinBasedFastPointLocator<3>& node_locator)
     {
-        unsigned int aux_var_pos = 0; // to be deleted, just to test with some outputs
-        unsigned int aux_var_neg = 0;
+        //loop over nodes and find the tetra in which it falls, than do interpolation
+        array_1d<double, 4 > N;
+        const int max_results = 10000;
+        typename BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
+        const int n_structure_nodes = mrSkinModelPart.Nodes().size();
 
-        // loop over all fluid elements
-        // this loop is parallelized using openmp
-#ifdef _OPENMP
-        int number_of_threads = omp_get_max_threads();
-#else
-        int number_of_threads = 1;
-#endif
-
-        ModelPart::ElementsContainerType& pElements = mrFluidModelPart.Elements();
-
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, pElements.size(), element_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(element_partition);
-
-#pragma omp parallel for
-        for (int k = 0; k < number_of_threads; k++)
+#pragma omp parallel for firstprivate(results,N)
+        for (int i = 0; i < n_structure_nodes; i++)
         {
+            ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
+            Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
+            typename BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();
+            Element::Pointer pelement;
 
-            ModelPart::ElementsContainerType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-            ModelPart::ElementsContainerType::iterator it_end = pElements.ptr_begin() + element_partition[k+1];
+            bool is_found = node_locator.FindPointOnMesh(p_structure_node->Coordinates(), N, pelement, result_begin, max_results);
 
-            for(ModelPart::ElementIterator i_fluidElement = it_begin; i_fluidElement != it_end; ++i_fluidElement)
+            if (is_found == true)
             {
-                const array_1d<double,4> elementalDistances = i_fluidElement->GetValue(ELEMENTAL_DISTANCES);
-                array_1d<double,4> Npos;
-                array_1d<double,4> Nneg;
-                Geometry< Node<3> >& fluidGeom = i_fluidElement->GetGeometry();
                 array_1d<double,4> nodalPressures;
-                std::vector<OctreeType::cell_type*> leaves;
+                const array_1d<double,4>& elementalDistances = pelement->GetValue(ELEMENTAL_DISTANCES);
 
-                // Get leaves of octree intersecting with fluid element
-                mOctree.GetIntersectedLeaves(*(i_fluidElement).base(),leaves);
+                Geometry<Node<3> >& geom = pelement->GetGeometry();
 
-                // loop over all octree cells which are intersected by the fluid element
-                for(unsigned int i_cell = 0 ; i_cell < leaves.size() ; i_cell++)
+                for(unsigned int i=0; i<geom.size(); i++)
                 {
-                    // Structural element contained in one cell of the octree
-                    object_container_type* struct_elem = (leaves[i_cell]->pGetObjects());
-
-                    // loop over all structural elements within each octree cell
-                    for(object_container_type::iterator i_StructElement = struct_elem->begin(); i_StructElement != struct_elem->end(); i_StructElement++)
-                    {
-                        // check if a node of the structure lies within the tetrahedra
-                        // --> if yes, then do the pressure mapping
-                        Geometry< Node<3> >& structGeom = (*i_StructElement)->GetGeometry();
-
-                        // loop over all nodes of the structural element
-                        for(unsigned int i_structElementNode = 0; i_structElementNode < 3 ; i_structElementNode++)
-                        {
-                            // Comparison of volumes to identify whether a structure points lies inside a tetrahedra or not
-                            double Vol = fluidGeom.Volume();
-                            double Vol1;
-                            double Vol2;
-                            double Vol3;
-                            double Vol4;
-
-                            Node<3>& S = structGeom[i_structElementNode];
-                            Node<3>& F1 = fluidGeom.GetPoint(0);
-                            Node<3>& F2 = fluidGeom.GetPoint(1);
-                            Node<3>& F3 = fluidGeom.GetPoint(2);
-                            Node<3>& F4 = fluidGeom.GetPoint(3);
-
-                            CalculateJacobian(F1,F2,F3,S,Vol1);
-                            CalculateJacobian(F1,F2,S,F4,Vol2);
-                            CalculateJacobian(F1,S,F3,F4,Vol3);
-                            CalculateJacobian(S,F2,F3,F4,Vol4);
-
-                            double SumSingleVolumes = fabs(Vol1) + fabs(Vol2) + fabs(Vol3) + fabs(Vol4);
-
-                            // When computed volumes are equal structure point lies inside
-                            if(fabs(SumSingleVolumes-Vol) < epsilon)
-                            {
-                                // Extract nodal pressures
-                                nodalPressures[0] = F1.FastGetSolutionStepValue(PRESSURE);
-                                nodalPressures[1] = F2.FastGetSolutionStepValue(PRESSURE);
-                                nodalPressures[2] = F3.FastGetSolutionStepValue(PRESSURE);
-                                nodalPressures[3] = F4.FastGetSolutionStepValue(PRESSURE);
-
-                                // Do mapping
-                                ComputeDiscontinuousInterpolation(S,fluidGeom,elementalDistances,Npos,Nneg,conditionVariable);
-
-                                // Compute face pressure
-                                double p_positive_structure = inner_prod(nodalPressures,Npos);
-                                double p_negative_structure = inner_prod(nodalPressures,Nneg);
-
-                                double sum_pos = Npos[0]+Npos[1]+Npos[2]+Npos[3];
-                                double sum_neg = Nneg[0]+Nneg[1]+Nneg[2]+Nneg[3];
-
-                                // Can be removed after implementing a robust radial shape function ////////////////
-                                if((fabs(sum_pos-1) > 0.0001) & (aux_var_pos == 0))
-                                {
-                                    std::cout << "Radial shape functions in the pressure mapping step are violating the partition of unity condition!" << std::endl;
-                                    KRATOS_WATCH(sum_pos);
-                                    aux_var_pos = 1;
-                                }
-
-                                if((fabs(sum_neg-1) > 0.0001) & (aux_var_neg == 0))
-                                {
-                                    std::cout << "Radial shape functions in the pressure mapping step are violating the partition of unity condition!" << std::endl;
-                                    KRATOS_WATCH(sum_neg);
-                                    aux_var_neg = 1;
-                                }
-                                ///////////////////////////////////////////////////////////////////////////////////
-
-                                // Assign ModelPart::ElementIteratorface pressure to structure node
-                                S.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE,0) = p_positive_structure;
-                                S.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE,0) = p_negative_structure;
-                            }
-                        }
-                    }
+                    nodalPressures[i] = geom[i].FastGetSolutionStepValue(PRESSURE);
                 }
-            }
-        }
-    }
 
-    ///******************************************************************************************************************
-    ///******************************************************************************************************************
-    /**
-       *
-       */
-    void AveragePressureToStructure()
-    {
-        // loop over all fluid elements
-        // this loop is parallelized using openmp
-#ifdef _OPENMP
-        int number_of_threads = omp_get_max_threads();
-#else
-        int number_of_threads = 1;
-#endif
-
-        ModelPart::ElementsContainerType& pElements = mrFluidModelPart.Elements();
-
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, pElements.size(), element_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(element_partition);
-
-#pragma omp parallel for
-        for (int k = 0; k < number_of_threads; k++)
-        {
-            ModelPart::ElementsContainerType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-            ModelPart::ElementsContainerType::iterator it_end = pElements.ptr_begin() + element_partition[k+1];
-
-            for(ModelPart::ElementIterator i_fluidElement = it_begin; i_fluidElement != it_end; ++i_fluidElement)
-            {
-                const array_1d<double,4> elementalDistances = i_fluidElement->GetValue(ELEMENTAL_DISTANCES);
-
-                Geometry< Node<3> >& fluidGeom = i_fluidElement->GetGeometry();
-                array_1d<double,4> nodalPressures;
-                std::vector<OctreeType::cell_type*> leaves;
-
-                // Get leaves of octree intersecting with fluid element
-                mOctree.GetIntersectedLeaves(*(i_fluidElement).base(),leaves);
-
-                // loop over all octree cells which are intersected by the fluid element
-                for(unsigned int i_cell = 0 ; i_cell < leaves.size() ; i_cell++)
+                if(pelement->GetValue(SPLIT_ELEMENT)==true)
                 {
-                    // Structural element contained in one cell of the octree
-                    object_container_type* struct_elem = (leaves[i_cell]->pGetObjects());
+                    array_1d<double,4> Npos,Nneg;
 
-                    // loop over all structural elements within each octree cell
-                    for(object_container_type::iterator i_StructElement = struct_elem->begin(); i_StructElement != struct_elem->end(); i_StructElement++)
-                    {
-                        // check if a node of the structure lies within the tetrahedra
-                        // --> if yes, then do the pressure mapping
-                        Geometry< Node<3> >& structGeom = (*i_StructElement)->GetGeometry();
+                    // Do mapping
+                    ComputeDiscontinuousInterpolation((*p_structure_node),pelement->GetGeometry(),elementalDistances,Npos,Nneg);
 
-                        // loop over all nodes of the structural element
-                        for(unsigned int i_structElementNode = 0; i_structElementNode < 3 ; i_structElementNode++)
-                        {
-                            // Comparison of volumes to identify whether a structure points lies inside a tetrahedra or not
-                            double Vol = fluidGeom.Volume();
-                            double Vol1;
-                            double Vol2;
-                            double Vol3;
-                            double Vol4;
+                    // Compute face pressure
+                    double p_positive_structure = inner_prod(nodalPressures,Npos);
+                    double p_negative_structure = inner_prod(nodalPressures,Nneg);
 
-                            Node<3>& S = structGeom[i_structElementNode];
-                            Node<3>& F1 = fluidGeom.GetPoint(0);
-                            Node<3>& F2 = fluidGeom.GetPoint(1);
-                            Node<3>& F3 = fluidGeom.GetPoint(2);
-                            Node<3>& F4 = fluidGeom.GetPoint(3);
-
-                            CalculateJacobian(F1,F2,F3,S,Vol1);
-                            CalculateJacobian(F1,F2,S,F4,Vol2);
-                            CalculateJacobian(F1,S,F3,F4,Vol3);
-                            CalculateJacobian(S,F2,F3,F4,Vol4);
-
-                            double SumSingleVolumes = fabs(Vol1) + fabs(Vol2) + fabs(Vol3) + fabs(Vol4);
-
-                            // When computed volumes are equal structure point lies inside
-                            if(fabs(SumSingleVolumes-Vol) < epsilon)
-                            {
-                                // Extract nodal pressures
-                                nodalPressures[0] = F1.GetSolutionStepValue(PRESSURE);
-                                nodalPressures[1] = F2.GetSolutionStepValue(PRESSURE);
-                                nodalPressures[2] = F3.GetSolutionStepValue(PRESSURE);
-                                nodalPressures[3] = F4.GetSolutionStepValue(PRESSURE);
-
-                                // Compute average of all positive and all negative values
-                                double positiveAverage = 0;
-                                int nPos = 0;
-                                double negativeAverage = 0;
-                                int nNeg = 0;
-
-                                // for output of
-                                for(unsigned int i = 0 ; i<4 ; i++)
-                                {
-                                    if(elementalDistances[i]>=0)
-                                    {
-                                        positiveAverage += nodalPressures[i];
-                                        nPos++;
-                                    }
-                                    else
-                                    {
-                                        negativeAverage += nodalPressures[i];
-                                        nNeg++;
-                                    }
-                                }
-
-                                positiveAverage /=nPos;
-                                negativeAverage /=nNeg;
-
-                                // Assign Pressures
-                                S.SetLock();
-                                S.GetSolutionStepValue(POSITIVE_FACE_PRESSURE,0) = positiveAverage;
-                                S.GetSolutionStepValue(NEGATIVE_FACE_PRESSURE,0) = negativeAverage;
-                                S.UnSetLock();
-                            }
-                        }
-                    }
+                    // Assign ModelPart::ElementIteratorface pressure to structure node
+                    p_structure_node->GetSolutionStepValue(POSITIVE_FACE_PRESSURE) = p_positive_structure;
+                    p_structure_node->GetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = p_negative_structure;
+                }
+                else
+                {
+                    double p = inner_prod(nodalPressures,N);
+                    p_structure_node->GetSolutionStepValue(POSITIVE_FACE_PRESSURE) = p;
+                    p_structure_node->GetSolutionStepValue(NEGATIVE_FACE_PRESSURE) = p;
                 }
             }
         }
@@ -656,37 +474,11 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void CalculateJacobian( Node<3> node0,
-                            Node<3> node1,
-                            Node<3> node2,
-                            Node<3> node3,
-                            double& Volume)
-    {
-        double x10 = node1.X() - node0.X();
-        double y10 = node1.Y() - node0.Y();
-        double z10 = node1.Z() - node0.Z();
-
-        double x20 = node2.X() - node0.X();
-        double y20 = node2.Y() - node0.Y();
-        double z20 = node2.Z() - node0.Z();
-
-        double x30 = node3.X() - node0.X();
-        double y30 = node3.Y() - node0.Y();
-        double z30 = node3.Z() - node0.Z();
-
-        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
-        Volume = detJ*0.1666666666666666666667;
-    }
-
-    ///******************************************************************************************************************
-    ///******************************************************************************************************************
-
-    void ComputeDiscontinuousInterpolation( const Node<3> pNode,
-                                            const Geometry< Node<3> >& geom,
+    void ComputeDiscontinuousInterpolation( const Node<3>& pNode,
+                                            Geometry< Node<3> >& geom,
                                             const array_1d<double,4>& distances,
                                             array_1d<double,4>& Npos,
-                                            array_1d<double,4>& Nneg,
-                                            const double conditionVariable)
+                                            array_1d<double,4>& Nneg)
     {
         //count positives
         int n_positives = 0;
@@ -731,74 +523,107 @@ public:
             }
         }
 
-        //detect a h radius as the maximum distance to another node
-        array_1d<double,3> xmin = pNode.Coordinates();
-        array_1d<double,3> xmax = pNode.Coordinates();
-        for(unsigned int i=0; i<edge_points.size(); i++)
+        if(edge_points.size() == 3)
         {
-            for(unsigned int k=0; k<3; k++)
+            //compute local shape functions (tell how to interpolate from the edge nodes)
+            Vector Nlocal(3);
+
+            //form a quadrilateral with the edge nodes ordered as:
+            //x_0  x_min_pos x_center_pos x_max_pos
+            Triangle3D3< Point<3> > triangle(edge_points[0], edge_points[1], edge_points[2]);
+            //KRATOS_WATCH(quad);
+            array_1d<double,3> local_coords;
+            local_coords = triangle.PointLocalCoordinates(local_coords, pNode);
+
+            for(unsigned int i=0; i<3;i++)
+                Nlocal[i] = triangle.ShapeFunctionValue(i, local_coords );
+
+            noalias(Npos) = ZeroVector(4);
+            noalias(Nneg) = ZeroVector(4);
+            for(unsigned int i=0; i<3; i++)
             {
-                if(xmin[k] < edge_points[i][k]) xmin[k] = edge_points[i][k];
-                if(xmax[k] > edge_points[i][k]) xmax[k] = edge_points[i][k];
+                Npos[ positive_fathers[i] ] += Nlocal[i];
+                Nneg[ negative_fathers[i] ] += Nlocal[i];
             }
         }
-        noalias(xmax) -= xmin; //here i overwrite xmax with the difference
-        double h = norm_2(xmax); // h corresponds to parameter value in the gaussian like shape function for the radial interpolation
 
-        //compute local shape functions by sph interpolation
-        unsigned int ncut_nodes = edge_points.size();
-        Matrix interpolants(ncut_nodes,ncut_nodes,0.0);
-        for(unsigned int i=0; i<ncut_nodes; i++)
-            for(unsigned int j=0; j<ncut_nodes; j++)
+        if(edge_points.size() == 4)
+        {
+            //compute local shape functions (tell how to interpolate from the edge nodes)
+            Vector Nlocal(4);
+
+            //form a quadrilatera with the 4 cut nodes
+            array_1d<double,3> x21 = edge_points[1] - edge_points[0];
+            array_1d<double,3> x31 = edge_points[2] - edge_points[0];
+            array_1d<double,3> x41 = edge_points[3] - edge_points[0];
+
+            //define a vector oriented as x21
+            array_1d<double,3> v1 = x21 / norm_2(x21);
+
+            boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+            array_1d<double,4> msN;
+            double Area;
+            GeometryUtils::CalculateGeometryData( geom, DN_DX, msN, Area );
+
+            array_1d<double,3> n = prod(trans(DN_DX),distances);
+            n /= norm_2(n);
+
+            array_1d<double,3> v2 = MathUtils<double>::CrossProduct(n,v1);
+
+            array_1d<double,3> angles;
+            angles[0] = 0.0; //angle between x21 and v1
+            angles[1] = atan2( inner_prod(x31,v2), inner_prod(x31,v1) ); //angle between x31 and v1
+            angles[2] = atan2( inner_prod(x41,v2), inner_prod(x41,v1) ); //angle between x31 and v1
+
+            double max_angle = 0.0;
+            double min_angle = 0.0;
+            unsigned int min_pos = 1;
+            unsigned int max_pos = 1;
+            for(unsigned int i=1; i<3; i++)
             {
-                interpolants(i,j) = RadialShapeFunctionEvaluation(edge_points[j], edge_points[i], h);
-
-                if(i == j)
+                if(angles[i] < min_angle)
                 {
-                    interpolants(i,j) += conditionVariable;
+                    min_pos = i+1; //this is the local index of the edge point which forms the minimal angle
+                    min_angle = angles[i];
+                }
+                else if(angles[i] > max_angle)
+                {
+                    max_pos = i+1; //this is the local index of the edge point which forms the maximal angle
+                    max_angle = angles[i];
                 }
             }
 
-        // pressure for the computation of the weights is assumed to be one at the intersection nodes
-        Vector f(ncut_nodes);
-        for(unsigned int i = 0; i<ncut_nodes; i++)
-            f[i] = 1;
+            //find the pos of the center node
+            unsigned int center_pos = 0;
+            for(unsigned int i=1; i<4; i++)
+            {
+                if((i!= min_pos) && (i!=max_pos))
+                { center_pos = i; }
+            }
 
-        // Solve equation system
-        Vector weights(ncut_nodes);
+            //form a quadrilateral with the edge nodes ordered as:
+            Quadrilateral3D4< Point<3> > quad = Quadrilateral3D4< Point<3> >(edge_points[0], edge_points[min_pos], edge_points[center_pos], edge_points[max_pos] );
+            //KRATOS_WATCH(quad);
+            array_1d<double,3> local_coords;
+            local_coords = quad.PointLocalCoordinates(local_coords, pNode);
 
-        // create a permutation matrix for the LU-factorization
-        typedef permutation_matrix<std::size_t> pmatrix;
-        pmatrix pm(ncut_nodes);
-        weights = f;
+            array_1d<unsigned int, 4> indices;
+            indices[0] = 0;
+            indices[1] = min_pos;
+            indices[2] = center_pos;
+            indices[3] = max_pos;
 
-        // perform LU-factorization to solve LSE
-        lu_factorize(interpolants, pm);
-        lu_substitute(interpolants, pm, weights);
+            for(unsigned int i=0; i<4;i++)
+                Nlocal[ i ]  = quad.ShapeFunctionValue(i, local_coords );
 
-        //                                KRATOS_WATCH(interpolants)
-        //                                KRATOS_WATCH(weights)
-        //                                Vector test(ncut_nodes);
-        //                                test = prod(interpolants, weights);
-        //                                KRATOS_WATCH(test);
-
-        //compute local shape functions (tell how to interpolate from the edge nodes)
-        Vector Nlocal(ncut_nodes);
-
-        // Projection of structure point to surface
-        for(unsigned int i=0; i<ncut_nodes; i++)
-        {
-            Nlocal[i] = weights[i]*RadialShapeFunctionEvaluation(pNode, edge_points[i], h);
+            noalias(Npos) = ZeroVector(4);
+            noalias(Nneg) = ZeroVector(4);
+            for(unsigned int i=0; i<4; i++)
+            {
+                Npos[ positive_fathers[i] ] += Nlocal[indices[i]];
+                Nneg[ negative_fathers[i] ] += Nlocal[indices[i]];
+            }
         }
-
-        noalias(Npos) = ZeroVector(4);
-        noalias(Nneg) = ZeroVector(4);
-        for(unsigned int i=0; i<ncut_nodes; i++)
-        {
-            Npos[ positive_fathers[i] ] += Nlocal[i];
-            Nneg[ negative_fathers[i] ] += Nlocal[i];
-        }
-
     }
 
     ///******************************************************************************************************************
@@ -944,8 +769,8 @@ public:
         // reset the node distance to 1.0 which is the maximum distance in our normalized space.
         unsigned int nodesSize = nodes.size();
 
-        #pragma omp parallel for firstprivate(nodesSize)
-        for(int i = 0 ; i < nodesSize ; i++)
+#pragma omp parallel for firstprivate(nodesSize)
+        for(unsigned int i = 0 ; i < nodesSize ; i++)
             nodes[i]->GetSolutionStepValue(DISTANCE) = initial_distance;
 
         ModelPart::ElementsContainerType::ContainerType& fluid_elements = mrFluidModelPart.ElementsArray();
@@ -960,8 +785,8 @@ public:
         // also initialize the embedded velocity of the fluid element
         unsigned int elementsSize = fluid_elements.size();
 
-        #pragma omp parallel for firstprivate(elementsSize)
-        for(int i = 0 ; i < elementsSize ; i++)
+#pragma omp parallel for firstprivate(elementsSize)
+        for(unsigned int i = 0 ; i < elementsSize ; i++)
         {
             fluid_elements[i]->GetValue(ELEMENTAL_DISTANCES) = ElementalDistances;
             fluid_elements[i]->GetValue(SPLIT_ELEMENT) = false;
@@ -2001,114 +1826,114 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void ReproduceFourIntNodes2(  ModelPart::ElementsContainerType::iterator& i_fluid_element,
-                                 array_1d<double,4>                          distances,
-                                 std::vector< array_1d<double,3> >&          nodesMatrix,
-                                 std::vector< array_1d<unsigned int,3> >&    elementsMatrix)
-    {
-        Element::GeometryType& geom = i_fluid_element->GetGeometry();
+//    void ReproduceFourIntNodes2(  ModelPart::ElementsContainerType::iterator& i_fluid_element,
+//                                  array_1d<double,4>                          distances,
+//                                  std::vector< array_1d<double,3> >&          nodesMatrix,
+//                                  std::vector< array_1d<unsigned int,3> >&    elementsMatrix)
+//    {
+//        Element::GeometryType& geom = i_fluid_element->GetGeometry();
 
-        std::vector< Point<3> > edge_points;
-        edge_points.reserve(4);
+//        std::vector< Point<3> > edge_points;
+//        edge_points.reserve(4);
 
-        for(unsigned int i=0; i<3; i++)
-        {
-            for(unsigned int j=i+1; j<4; j++) // go through the edges 01, 02, 03, 12, 13, 23
-            {
-                double di = distances[i];
-                double dj = distances[j];
+//        for(unsigned int i=0; i<3; i++)
+//        {
+//            for(unsigned int j=i+1; j<4; j++) // go through the edges 01, 02, 03, 12, 13, 23
+//            {
+//                double di = distances[i];
+//                double dj = distances[j];
 
-                if(di*dj < 0) //edge is cut
-                {
-                    //generate point on edge by linear interpolation
-                    double Ni = fabs(dj) / ( fabs(di) + fabs(dj) );
-                    double Nj = 1.0 - Ni;
-                    Point<3> edge_point(Ni * geom[i] + Nj * geom[j]);
-                    edge_points.push_back(edge_point);
-                }
-            }
-        }
+//                if(di*dj < 0) //edge is cut
+//                {
+//                    //generate point on edge by linear interpolation
+//                    double Ni = fabs(dj) / ( fabs(di) + fabs(dj) );
+//                    double Nj = 1.0 - Ni;
+//                    Point<3> edge_point(Ni * geom[i] + Nj * geom[j]);
+//                    edge_points.push_back(edge_point);
+//                }
+//            }
+//        }
 
 
-//        array_1d<double,3> x21 = x2 - x1;
-//        array_1d<double,3> x31 = x3 - x1;
-//        array_1d<double,3> x21 = x4 - x1;
+//        //        array_1d<double,3> x21 = x2 - x1;
+//        //        array_1d<double,3> x31 = x3 - x1;
+//        //        array_1d<double,3> x21 = x4 - x1;
 
-        array_1d<double,3> x21 = edge_points[1] - edge_points[0];
-        array_1d<double,3> x31 = edge_points[2] - edge_points[0];
-        array_1d<double,3> x41 = edge_points[3] - edge_points[0];
+//        array_1d<double,3> x21 = edge_points[1] - edge_points[0];
+//        array_1d<double,3> x31 = edge_points[2] - edge_points[0];
+//        array_1d<double,3> x41 = edge_points[3] - edge_points[0];
 
-        //define a vector oriented as x21
-        array_1d<double,3> v1 = x21 / norm_2(x21);
+//        //define a vector oriented as x21
+//        array_1d<double,3> v1 = x21 / norm_2(x21);
 
-        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
-        array_1d<double,4> msN;
-        double Area;
-        GeometryUtils::CalculateGeometryData( geom, DN_DX, msN, Area );
+//        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+//        array_1d<double,4> msN;
+//        double Area;
+//        GeometryUtils::CalculateGeometryData( geom, DN_DX, msN, Area );
 
-        array_1d<double,3> n = prod(trans(DN_DX),distances);
-        n /= norm_2(n);
+//        array_1d<double,3> n = prod(trans(DN_DX),distances);
+//        n /= norm_2(n);
 
-        array_1d<double,3> v2 = MathUtils<double>::CrossProduct(n,v1);
+//        array_1d<double,3> v2 = MathUtils<double>::CrossProduct(n,v1);
 
-        array_1d<double,3> angles;
-        angles[0] = 0.0; //angle between x21 and v1
-        angles[1] = atan2( inner_prod(x31,v2), inner_prod(x31,v1) ); //angle between x31 and v1
-        angles[2] = atan2( inner_prod(x41,v2), inner_prod(x41,v1) ); //angle between x31 and v1
+//        array_1d<double,3> angles;
+//        angles[0] = 0.0; //angle between x21 and v1
+//        angles[1] = atan2( inner_prod(x31,v2), inner_prod(x31,v1) ); //angle between x31 and v1
+//        angles[2] = atan2( inner_prod(x41,v2), inner_prod(x41,v1) ); //angle between x31 and v1
 
-        double max_angle = 0.0;
-        double min_angle = 0.0;
-        unsigned int min_pos = 0;
-        unsigned int max_pos = 0;
-        for(unsigned int i=1; i<3; i++)
-        {
-            if(angles[i] < min_angle)
-            {
-                min_pos = i+1; //this is the local index of the edge point which forms the minimal angle
-                min_angle = angles[i];
-            }
-            if(angles[i] > max_angle)
-            {
-                max_pos = i+1; //this is the local index of the edge point which forms the maximal angle
-                max_angle = angles[i];
-            }
-        }
+//        double max_angle = 0.0;
+//        double min_angle = 0.0;
+//        unsigned int min_pos = 0;
+//        unsigned int max_pos = 0;
+//        for(unsigned int i=1; i<3; i++)
+//        {
+//            if(angles[i] < min_angle)
+//            {
+//                min_pos = i+1; //this is the local index of the edge point which forms the minimal angle
+//                min_angle = angles[i];
+//            }
+//            if(angles[i] > max_angle)
+//            {
+//                max_pos = i+1; //this is the local index of the edge point which forms the maximal angle
+//                max_angle = angles[i];
+//            }
+//        }
 
-        //find the pos of the center node
-        unsigned int center_pos = 0;
-        for(unsigned int i=2; i<4; i++)
-        {
-            if(i!= min_pos && i!=max_pos){ center_pos = i; }
-        }
+//        //find the pos of the center node
+//        unsigned int center_pos = 0;
+//        for(unsigned int i=2; i<4; i++)
+//        {
+//            if(i!= min_pos && i!=max_pos){ center_pos = i; }
+//        }
 
-        //form a quadrilateral with the edge nodes ordered as:
-        //x_0  x_min_pos x_center_pos x_max_pos
-        array_1d<double,3> node_0 = edge_points[0];
-        array_1d<double,3> node_1 = edge_points[min_pos];
-        array_1d<double,3> node_2 = edge_points[center_pos];
-        array_1d<double,3> node_3 = edge_points[max_pos];
-        nodesMatrix.push_back(node_0);
-        nodesMatrix.push_back(node_1);
-        nodesMatrix.push_back(node_2);
-        nodesMatrix.push_back(node_3);
+//        //form a quadrilateral with the edge nodes ordered as:
+//        //x_0  x_min_pos x_center_pos x_max_pos
+//        array_1d<double,3> node_0 = edge_points[0];
+//        array_1d<double,3> node_1 = edge_points[min_pos];
+//        array_1d<double,3> node_2 = edge_points[center_pos];
+//        array_1d<double,3> node_3 = edge_points[max_pos];
+//        nodesMatrix.push_back(node_0);
+//        nodesMatrix.push_back(node_1);
+//        nodesMatrix.push_back(node_2);
+//        nodesMatrix.push_back(node_3);
 
-        //AdaptIndexingByNormal(i_fluid_element,distances,triangle1,nodesMatrix);
-        //AdaptIndexingByNormal(i_fluid_element,distances,triangle2,nodesMatrix);
+//        //AdaptIndexingByNormal(i_fluid_element,distances,triangle1,nodesMatrix);
+//        //AdaptIndexingByNormal(i_fluid_element,distances,triangle2,nodesMatrix);
 
-        array_1d<unsigned int,3> triangle1;
-        array_1d<unsigned int,3> triangle2;
+//        array_1d<unsigned int,3> triangle1;
+//        array_1d<unsigned int,3> triangle2;
 
-        triangle1[0] = 1;
-        triangle1[1] = center_pos+1;
-        triangle1[2] = max_pos+1;
+//        triangle1[0] = 1;
+//        triangle1[1] = center_pos+1;
+//        triangle1[2] = max_pos+1;
 
-        triangle2[0] = 1;
-        triangle2[1] = center_pos+1;
-        triangle2[2] = min_pos+1;
+//        triangle2[0] = 1;
+//        triangle2[1] = center_pos+1;
+//        triangle2[2] = min_pos+1;
 
-        elementsMatrix.push_back(triangle1);
-        elementsMatrix.push_back(triangle2);
-    }
+//        elementsMatrix.push_back(triangle1);
+//        elementsMatrix.push_back(triangle2);
+//    }
 
 
     ///******************************************************************************************************************
@@ -2177,7 +2002,7 @@ public:
         // Determine inner product as measure for the orientation of normal vector relative to tet node 0
         double InnerProduct = inner_prod(intNodeTetNodeVec,normalVec);
 
-        if((InnerProduct < 0.0 && distances[0] > 0) || (InnerProduct > 0.0 && distances[0] < 0))
+        if((InnerProduct < 0.0 and distances[0] > 0) or (InnerProduct > 0.0 and distances[0] < 0))
         {
             // in this case, the normal is NOT pointing towards a tet node with a positive value
             // --> switch two arbitrary nodes of the triangle
@@ -2200,8 +2025,8 @@ public:
 
         // loop over all structure nodes
         for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin();
-                                    i_node != mrSkinModelPart.NodesEnd();
-                                    i_node++)
+            i_node != mrSkinModelPart.NodesEnd();
+            i_node++)
         {
             double temp_point[3];
             temp_point[0] = i_node->X();
@@ -2214,8 +2039,8 @@ public:
 
         // loop over all structure elements
         for(ModelPart::ElementIterator i_element = mrSkinModelPart.ElementsBegin();
-                                       i_element != mrSkinModelPart.ElementsEnd();
-                                       i_element++)
+            i_element != mrSkinModelPart.ElementsEnd();
+            i_element++)
         {
             mOctree.Insert(*(i_element).base());
         }
@@ -2243,7 +2068,7 @@ public:
         mOctree.GetAllLeavesVector(all_leaves);
 
 #pragma omp parallel for
-        for (int i = 0; i < all_leaves.size(); i++)
+        for (unsigned int i = 0; i < all_leaves.size(); i++)
         {
             *(all_leaves[i]->pGetDataPointer()) = ConfigurationType::AllocateData();
         }
