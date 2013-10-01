@@ -443,6 +443,26 @@ protected:
                         rNode1.GetValue(DIVPROJ) = DivProj;
                     }
                 }
+                else if (rGeom.PointsNumber() == 4)
+                {
+                    double NodalArea = 0.0;
+                    array_1d<double,3> AdvProj(3,0.0);
+                    double DivProj = 0.0;
+                    for ( unsigned int i = 0; i < 4; i++ )
+                    {
+                        NodalArea += rGeom[i].FastGetSolutionStepValue(NODAL_AREA);
+                        AdvProj += rGeom[i].FastGetSolutionStepValue(ADVPROJ);
+                        DivProj += rGeom[i].FastGetSolutionStepValue(DIVPROJ);
+                    }
+
+                    for ( unsigned int i = 0; i < 4; i++ )
+                    {
+                        rGeom[i].GetValue(NODAL_AREA) = NodalArea;
+                        rGeom[i].GetValue(ADVPROJ) = AdvProj;
+                        rGeom[i].GetValue(DIVPROJ) = DivProj;
+                    }
+
+                }
             }
 
             rModelPart.GetCommunicator().AssembleNonHistoricalData(NODAL_AREA);
