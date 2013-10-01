@@ -182,14 +182,16 @@ public:
 			for(int ii=0; ii<current_mesh.Nodes().size(); ii++)
 			{
 				ModelPart::NodesContainerType::iterator pnode = inodebegin+ii;
+                
+                
 				pnode->X()=pnode->X0()+translation(0);
 				pnode->Y()=pnode->Y0()+translation(1);
 				pnode->Z()=pnode->Z0()+translation(2);
-				if (pnode->Has(DISPLACEMENT_X))
-				{
-					pnode->FastGetSolutionStepValue(DISPLACEMENT_X)=translation(0);
-					pnode->FastGetSolutionStepValue(DISPLACEMENT_Y)=translation(1);
-					pnode->FastGetSolutionStepValue(DISPLACEMENT_Z)=translation(2);
+
+                pnode->FastGetSolutionStepValue(DISPLACEMENT_X)=translation(0);
+                pnode->FastGetSolutionStepValue(DISPLACEMENT_Y)=translation(1);
+                pnode->FastGetSolutionStepValue(DISPLACEMENT_Z)=translation(2);
+
 				}
 			}
 		}
