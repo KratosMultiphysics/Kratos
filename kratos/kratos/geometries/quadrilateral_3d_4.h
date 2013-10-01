@@ -508,118 +508,73 @@ public:
     virtual CoordinatesArrayType& PointLocalCoordinates( CoordinatesArrayType& rResult,
             const CoordinatesArrayType& rPoint )
     {
-        double tol = 1.0e-8;
-        int maxiter = 1000;
-        //check orientation of surface
-        std::vector< unsigned int> orientation( 3 );
-
-        double dummy = this->GetPoint( 0 ).X();
-
-        if ( fabs( this->GetPoint( 1 ).X() - dummy ) <= tol && fabs( this->GetPoint( 2 ).X() - dummy ) <= tol && fabs( this->GetPoint( 3 ).X() - dummy ) <= tol )
-            orientation[0] = 0;
-
-        dummy = this->GetPoint( 0 ).Y();
-
-        if ( fabs( this->GetPoint( 1 ).Y() - dummy ) <= tol && fabs( this->GetPoint( 2 ).Y() - dummy ) <= tol && fabs( this->GetPoint( 3 ).Y() - dummy ) <= tol )
-            orientation[0] = 1;
-
-        dummy = this->GetPoint( 0 ).Z();
-
-        if ( fabs( this->GetPoint( 1 ).Z() - dummy ) <= tol && fabs( this->GetPoint( 2 ).Z() - dummy ) <= tol && fabs( this->GetPoint( 3 ).Z() - dummy ) <= tol )
-            orientation[0] = 2;
-
-        switch ( orientation[0] )
+        boost::numeric::ublas::bounded_matrix<double,3,4> X;
+        boost::numeric::ublas::bounded_matrix<double,3,2> DN;
+        for(unsigned int i=0; i<this->size();i++)
         {
-        case 0:
-            orientation[0] = 1;
-            orientation[1] = 2;
-            orientation[2] = 0;
-            break;
-        case 1:
-            orientation[0] = 0;
-            orientation[1] = 2;
-            orientation[2] = 1;
-            break;
-        case 2:
-            orientation[0] = 0;
-            orientation[1] = 1;
-            orientation[2] = 2;
-            break;
-        default:
-            orientation[0] = 0;
-            orientation[1] = 1;
-            orientation[2] = 2;
+            X(0,i ) = this->GetPoint( i ).X();
+            X(1,i ) = this->GetPoint( i ).Y();
+            X(2,i ) = this->GetPoint( i ).Z();
         }
 
-        Matrix J = ZeroMatrix( 2, 2 );
+        double tol = 1.0e-8;
+        int maxiter = 1000;
 
+        Matrix J = ZeroMatrix( 2, 2 );
         Matrix invJ = ZeroMatrix( 2, 2 );
 
-        if ( rResult.size() != 2 )
-            rResult.resize( 2 );
-
         //starting with xi = 0
-        rResult = ZeroVector( 2 );
-
+        rResult = ZeroVector( 3 );
         Vector DeltaXi = ZeroVector( 2 );
+        array_1d<double,3> CurrentGlobalCoords;
 
-        CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
 
         //Newton iteration:
         for ( int k = 0; k < maxiter; k++ )
         {
-            CurrentGlobalCoords = ZeroVector( 3 );
+            noalias(CurrentGlobalCoords) = ZeroVector( 3 );
             this->GlobalCoordinates( CurrentGlobalCoords, rResult );
+
             noalias( CurrentGlobalCoords ) = rPoint - CurrentGlobalCoords;
 
-            //Caluclate Inverse of Jacobian
-            J.resize( 2, 2 );
+
             //derivatives of shape functions
             Matrix shape_functions_gradients;
-            shape_functions_gradients = ShapeFunctionsLocalGradients(
-                                            shape_functions_gradients, rResult );
+            shape_functions_gradients = ShapeFunctionsLocalGradients(shape_functions_gradients, rResult );
+            noalias(DN) = prod(X,shape_functions_gradients);
 
-            //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
-            //loop over all nodes
-
-            for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-            {
-                Point<3> dummyPoint = this->GetPoint( i );
-                J( 0, 0 ) += ( dummyPoint[orientation[0]] ) * ( shape_functions_gradients( i, 0 ) );
-                J( 0, 1 ) += ( dummyPoint[orientation[0]] ) * ( shape_functions_gradients( i, 1 ) );
-                J( 1, 0 ) += ( dummyPoint[orientation[1]] ) * ( shape_functions_gradients( i, 0 ) );
-                J( 1, 1 ) += ( dummyPoint[orientation[1]] ) * ( shape_functions_gradients( i, 1 ) );
-            }
+            noalias(J) = prod(trans(DN),DN);
+            Vector res = prod(trans(DN),CurrentGlobalCoords);
 
             //deteminant of Jacobian
             double det_j = J( 0, 0 ) * J( 1, 1 ) - J( 0, 1 ) * J( 1, 0 );
 
             //filling matrix
             invJ( 0, 0 ) = ( J( 1, 1 ) ) / ( det_j );
-
             invJ( 1, 0 ) = -( J( 1, 0 ) ) / ( det_j );
-
             invJ( 0, 1 ) = -( J( 0, 1 ) ) / ( det_j );
-
             invJ( 1, 1 ) = ( J( 0, 0 ) ) / ( det_j );
 
 
-            DeltaXi( 0 ) = invJ( 0, 0 ) * CurrentGlobalCoords( orientation[0] ) + invJ( 0, 1 ) * CurrentGlobalCoords( orientation[1] );
+            DeltaXi( 0 ) = invJ( 0, 0 ) * res[0] + invJ( 0, 1 ) * res[1];
+            DeltaXi( 1 ) = invJ( 1, 0 ) * res[0] + invJ( 1, 1 ) * res[1];
 
-            DeltaXi( 1 ) = invJ( 1, 0 ) * CurrentGlobalCoords( orientation[0] ) + invJ( 1, 1 ) * CurrentGlobalCoords( orientation[1] );
+            rResult[0] += DeltaXi[0];
+            rResult[1] += DeltaXi[1];
+            rResult[2] = 0.0;
 
-            noalias( rResult ) += DeltaXi;
-
-            if ( MathUtils<double>::Norm3( DeltaXi ) > 30 )
+            if ( norm_2( DeltaXi ) > 300 )
             {
+                res[0] = 0.0;
+                res[1] = 0.0;
+                res[2] = 0.0;
+                std::cout << "detJ =" << det_j << "DeltaX = " << DeltaXi << " stopping calculation and assigning the baricenter" << std::endl;
                 break;
+                //KRATOS_ERROR(std::logic_error,"computation of local coordinates failed at iteration",k)
             }
 
-            if ( MathUtils<double>::Norm3( DeltaXi ) < tol )
+            if ( norm_2( DeltaXi ) < tol )
             {
-                if ( !( fabs( CurrentGlobalCoords( orientation[2] ) ) <= tol ) )
-                    rResult( 0 ) = 2.0;
-
                 break;
             }
         }
