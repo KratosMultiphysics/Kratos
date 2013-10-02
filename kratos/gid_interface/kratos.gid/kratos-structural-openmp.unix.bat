@@ -28,4 +28,4 @@ fi
 export OMP_NUM_THREADS=$5
 
 # Run Python using the script KratosStructural.py
-#"$3/kratos/runkratos"  KratosStructural.py > "$2/$1.info" 2> "$2/$1.err"
+"$3/kratos/runkratos"  KratosStructural.py > "$2/$1.info" 2> "$2/$1.err"
