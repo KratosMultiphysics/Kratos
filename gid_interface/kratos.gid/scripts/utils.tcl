@@ -189,7 +189,7 @@ proc ::KUtils::ReadResultsFromFiles {appid rtype pmode {what CheckRFiles}} {
 
             # Single file
             if {$pmode =="Ascii"} {
-                set ext "${appid}.post.res"
+                set ext "${appid}_0.post.res"
             } elseif {$pmode =="Binary"} {
                 set ext "${appid}.post.bin"
             }
