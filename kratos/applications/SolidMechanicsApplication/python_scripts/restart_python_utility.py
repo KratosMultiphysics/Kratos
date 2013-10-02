@@ -53,7 +53,7 @@ class RestartUtility:
          else:
              self.load_restart_flag = False
              main_solver.AddVariables(self.model_part,rotation_dofs)
-             self.CleanPreviousFiles(list_files)
+             #self.CleanPreviousFiles(list_files) #remove these files in the problem type script
             
          if(save_restart == "True"):
              self.save_restart_flag = True
