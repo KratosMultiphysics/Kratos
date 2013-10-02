@@ -704,7 +704,9 @@ public:
      */
     virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const
     {
-        rResult.resize( 2, 2 );
+        if(rResult.size1() != 2 || rResult.size2() != 2 )
+	  rResult.resize( 2, 2 );
+
         rResult( 0, 0 ) = -( this->GetPoint( 0 ).X() ) + ( this->GetPoint( 1 ).X() );
         rResult( 1, 0 ) = -( this->GetPoint( 0 ).Y() ) + ( this->GetPoint( 1 ).Y() );
         rResult( 0, 1 ) = -( this->GetPoint( 0 ).X() ) + ( this->GetPoint( 2 ).X() );
@@ -763,7 +765,8 @@ public:
     virtual Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const
     {
         //setting up size of jacobian matrix
-        rResult.resize( 2, 2 );
+        if(rResult.size1() != 2  || rResult.size2() != 2 )
+           rResult.resize( 2, 2 );
         //derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
@@ -798,7 +801,9 @@ public:
      */
     virtual Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const
     {
-        rResult.resize( 2, 2, false);
+        if(rResult.size1() != 2 || rResult.size2() !=2 ) 
+	  rResult.resize( 2, 2, false);
+
         rResult( 0, 0 ) = -( this->GetPoint( 0 ).X() ) + ( this->GetPoint( 1 ).X() );
         rResult( 1, 0 ) = -( this->GetPoint( 0 ).Y() ) + ( this->GetPoint( 1 ).Y() );
         rResult( 0, 1 ) = -( this->GetPoint( 0 ).X() ) + ( this->GetPoint( 2 ).X() );
@@ -1006,7 +1011,8 @@ public:
                           *this );
 
         //setting up result matrix
-        rResult.resize( 2, 2 );
+	if(rResult.size1() != 2 || rResult.size2() != 2 )
+	  rResult.resize( 2, 2 );
 
         //filling matrix
         rResult( 0, 0 ) =  ( tempMatrix( 1, 1 ) ) / ( det_j );
@@ -1052,7 +1058,8 @@ public:
                           *this );
 
         //setting up result matrix
-        rResult.resize( 2, 2 );
+	if(rResult.size1() != 2 || rResult.size2() != 2 )
+	  rResult.resize( 2, 2 );
 
         //filling matrix
         rResult( 0, 0 ) = ( tempMatrix( 1, 1 ) ) / ( det_j );
@@ -1114,7 +1121,8 @@ public:
     //Connectivities of faces required
     virtual void NumberNodesInFaces (boost::numeric::ublas::vector<unsigned int>& NumberNodesInFaces) const
     {
-      NumberNodesInFaces.resize(3);
+      if(NumberNodesInFaces.size() != 3 )
+	NumberNodesInFaces.resize(3);
       // Linear Triangles have elements of 2 nodes as faces
       NumberNodesInFaces[0]=2; 
       NumberNodesInFaces[1]=2; 
@@ -1124,7 +1132,9 @@ public:
     
     virtual void NodesInFaces (boost::numeric::ublas::matrix<unsigned int>& NodesInFaces) const
     {
-      NodesInFaces.resize(3,3);
+      if(NodesInFaces.size1() != 3 || NodesInFaces.size2() != 3)
+	NodesInFaces.resize(3,3);
+
       NodesInFaces(0,0)=0;
       NodesInFaces(1,0)=1;
       NodesInFaces(2,0)=2;//other node
@@ -1458,10 +1468,15 @@ public:
             rResult.swap( temp );
         }
 
-        rResult[0].resize( 2, 2 );
+	if(rResult[0].size1() != 2 || rResult[0].size2() != 2 )
+	  rResult[0].resize( 2, 2 );
 
-        rResult[1].resize( 2, 2 );
-        rResult[2].resize( 2, 2 );
+	if(rResult[1].size1() != 2 || rResult[1].size2() != 2 )
+	  rResult[1].resize( 2, 2 );
+
+	if(rResult[2].size1() != 2 || rResult[2].size2() != 2 )
+	  rResult[2].resize( 2, 2 );
+
         rResult[0]( 0, 0 ) = 0.0;
         rResult[0]( 0, 1 ) = 0.0;
         rResult[0]( 1, 0 ) = 0.0;
