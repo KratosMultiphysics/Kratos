@@ -25,5 +25,7 @@ fi
 # Set the number of threads for OpenMP
 export OMP_NUM_THREADS=$5
 
+export PYTHONPATH="$3/kratos/python27.zip":"$3/kratos":$PYTHONPATH
+
 # Run Python using the script KratosOpenMPFluidLevelSet.py
 "$3/kratos/runkratos" KratosOpenMPFluidLevelSet.py > "$2/$1.info" 2> "$2/$1.err"
