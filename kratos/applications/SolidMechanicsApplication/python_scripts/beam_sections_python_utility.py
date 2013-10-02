@@ -7,7 +7,7 @@ from KratosMultiphysics import *
 def SetProperties(SectionType, SectionData, BeamProperties):
 
     import os
-    csvFile = os.path.dirname(__file__) + '/Profiles.csv'
+    csvFile = os.path.dirname(__file__) + '/beam_profiles.csv'
 
 
     if(SectionType == "IPN") or (SectionType == "IPE") or (SectionType == "HEB") or (SectionType == "HEA") or (SectionType == "HEM") or (SectionType == "UPN"):
