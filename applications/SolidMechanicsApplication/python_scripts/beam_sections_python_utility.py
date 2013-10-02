@@ -1,6 +1,5 @@
-import csv
 from KratosMultiphysics import *
-
+CheckForPreviousImport()
 
 # SectionType: String containing the type of the section: "Square", "IPN", "HEB", ...
 # SectionData: A list containing the data related to section: IPN -> [100], Square -> [h,b] ...
@@ -80,18 +79,27 @@ def SetProperties(SectionType, SectionData, BeamProperties):
     
                 
 
-def searchCVSValues(fileName,shape,size):
-    f = open(fileName, 'rU')
-    f.seek(0)
-    reader = csv.reader(f, delimiter=';')
-    headers = reader.next()
-    result = [line for line in reader if line[0] == shape and line[1] == size]
-    print headers
-    print result
-    result = result[0]
-    result = dict(zip(headers, result))
-    for k in result.keys():
-        print '  ', k, ' : ', result[k]
+def searchCVSValues(properties_filename,shape,size):
+    separator = ";"
+    
+    with open(profiles_filename,"rU") as f:
+        header = f.readline()
+        header = header.rstrip("\n")
+        header = header.split(separator)
+        line = f.readline()
+
+        while line != "":
+            line = line.rstrip("\n")
+            line = line.split(separator)
+            if line[0] == shape and line[1] == size:
+                result = dict(zip(header,line))
+                break
+            line = f.readline()
+
+    if line == "":
+        msg = "Error: section {0} {1} not found in section definition file {2}".format(profile,size,profiles_filename)
+        raise KeyError(msg)
+
     return result
 
 
