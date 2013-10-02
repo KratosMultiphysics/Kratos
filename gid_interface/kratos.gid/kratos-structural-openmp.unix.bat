@@ -24,6 +24,8 @@ else
     export LD_LIBRARY_PATH="$3/kratos":"$3/kratos/libs"
 fi
 
+export PYTHONPATH="$3/kratos/python27.zip":"$3/kratos":$PYTHONPATH
+
 # Set the number of threads for OpenMP
 export OMP_NUM_THREADS=$5
 

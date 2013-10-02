@@ -19,6 +19,8 @@ rm -f "$2/$1.err"
 # Set the number of threads for OpenMP
 export OMP_NUM_THREADS=1
 
+export PYTHONPATH="$3/kratos/python27.zip":"$3/kratos":$PYTHONPATH
+
 # Set mpi paths
 export OPAL_PREFIX="$3/openmpi"
 export PATH="$3/openmpi/bin":$PATH
