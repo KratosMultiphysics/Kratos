@@ -7,12 +7,11 @@ REM Problem directory                 = %3
 REM OutputFile: "%2\%1.info"
 REM ErrorFile: "%2\%1.err"
 
-DEL "%2\%1.post.bin"
-DEL "%2\%1.post.res"
-DEL "%2\%1.post.msh"
+DEL "%2\%1*.post.bin"
+DEL "%2\%1*.post.res"
+DEL "%2\%1*.post.msh"
 DEL "%2\%1.info"
 DEL "%2\%1.err"
-DEL "%2\%1.flavia.dat"
 
 REM Updathe PATH
 set PATH=%3\\kratos;%3\\kratos\\libs;%PATH%

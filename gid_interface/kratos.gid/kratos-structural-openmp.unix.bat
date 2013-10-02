@@ -2,10 +2,12 @@
 # OutputFile: "$2/$1.info"
 # ErrorFile: "$2/$1.err"
 #delete previous result file 
-rm -f "$2/$1*.post.*" 
+
+rm -f "$2/$1"*.post.bin
+rm -f "$2/$1"*.post.res
+rm -f "$2/$1"*.post.msh
 rm -f "$2/$1.info"
 rm -f "$2/$1.err"
-rm -f "$2/$1.flavia.dat"
 
 # include .bashrc if it exists
 if [ -f "$HOME/.bashrc" ]; then
@@ -26,4 +28,4 @@ fi
 export OMP_NUM_THREADS=$5
 
 # Run Python using the script KratosStructural.py
-"$3/kratos/runkratos"  KratosStructural.py > "$2/$1.info" 2> "$2/$1.err"
+#"$3/kratos/runkratos"  KratosStructural.py > "$2/$1.info" 2> "$2/$1.err"
