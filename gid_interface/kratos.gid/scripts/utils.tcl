@@ -168,7 +168,7 @@ proc ::KUtils::ReadResultsFromFiles {appid rtype pmode {what CheckRFiles}} {
     # WarnWinText "fpath:$fpath"
     if {$appid =="Fluid"} {
         # For fluid application load the lst file
-        set ext "${appid}.post.lst"
+        set ext ".post.lst"
         # End file name
         set efn "${fpath}${ext}"
         if {$what =="CheckRFiles"} {
