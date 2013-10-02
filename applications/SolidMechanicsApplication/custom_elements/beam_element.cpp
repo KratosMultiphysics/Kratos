@@ -1224,11 +1224,6 @@ int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
             KRATOS_ERROR(std::logic_error,"INERTIA not provided for this element ",this->Id());
     }
 
-    //Verify that the body force is defined
-    if (this->GetProperties().Has(VOLUME_ACCELERATION)==false)
-    {
-        KRATOS_ERROR(std::logic_error,"VOLUME_ACCELERATION not provided for property ",this->GetProperties().Id())
-    }
 
     return 0;
 
