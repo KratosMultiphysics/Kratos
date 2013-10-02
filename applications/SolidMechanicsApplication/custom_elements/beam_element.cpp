@@ -608,6 +608,8 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
 
     // I have to change this to the more generic version. Pooyan.
     array_1d<double, 3> Weight = -(GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) + GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION)) * 0.50;
+    
+    Weight *= GetProperties()[DENSITY];
 
 
     array_1d<double, 12 > Cargas_X = ZeroVector(12);
@@ -1043,6 +1045,9 @@ void BeamElement::CalculateDistributedBodyForce(const int Direction, Vector& Loa
 
     // I have to change this to the more generic version. Pooyan.
     array_1d<double, 3> Weight = -(GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) + GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION)) * 0.50;
+
+    Weight *= GetProperties()[DENSITY];
+
     Load.resize(2, false);
 
     double alpha  =  0.00;
