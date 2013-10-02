@@ -84,7 +84,11 @@ class RestartUtility:
         #remove previous restart files:
         filelist3 = [ f for f in os.listdir(self.problem_path) if f.endswith(".rest") ]
         for f in filelist3:
-            os.remove(f)
+	    try:
+            	os.remove(f)
+            except WindowsError:
+                pass
+            
             
         #remove previous graph files:
         filelist4 = [ f for f in os.listdir(self.problem_path) if f.endswith(".png") ]
