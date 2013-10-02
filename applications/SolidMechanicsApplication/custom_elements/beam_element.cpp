@@ -607,10 +607,10 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
     double  cose;
 
     // I have to change this to the more generic version. Pooyan.
-    array_1d<double, 3> Weight = -(GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) + GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION)) * 0.50;
+    array_1d<double, 3> Weight = (GetGeometry()[0].FastGetSolutionStepValue(VOLUME_ACCELERATION) + GetGeometry()[1].FastGetSolutionStepValue(VOLUME_ACCELERATION)) * 0.50;
+	double density = GetProperties()[DENSITY];
     
     Weight *= GetProperties()[DENSITY];
-
 
     array_1d<double, 12 > Cargas_X = ZeroVector(12);
     array_1d<double, 12 > Cargas_Y = ZeroVector(12);
@@ -640,6 +640,21 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
         Vector_zero[i] = x_zero[i+3] - x_zero[i];
     }
 
+    array_1d<double,3> weight_load = mArea*density*Weight;
+	
+        GlobalBody[0]=   weight_load[0]*mlength/2.00;                 // Load in X;
+        GlobalBody[1]=   weight_load[1]*mlength/2.00;              // Load in Y; gravity
+        GlobalBody[2]=   weight_load[2]*mlength/2.00;;				     // Load in Z
+        GlobalBody[3]=   0.00;		                     // Momentum Torsor X;
+        GlobalBody[4]=   0.00;		                     // Momentum Y
+        GlobalBody[5]=   0.00; // -(Load[1])*mlength*mlength/12.00;      // Momentum Z
+        GlobalBody[6]=   weight_load[0]*mlength/2.00; 
+        GlobalBody[7]=   weight_load[1]*mlength/2.00; 
+        GlobalBody[8]=   weight_load[2]*mlength/2.00; 
+        GlobalBody[9]=   0.00;
+        GlobalBody[10]=  0.00;
+        GlobalBody[11]=  0.00; //(Load[1])*mlength*mlength/12.00;
+    
 
     //Load X direction
     //***********************************
@@ -685,7 +700,7 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
         Cargas_X[10]=  0.00;
         Cargas_X[11]=  (Load[1])*mlength*mlength/12.00;
 
-        noalias(GlobalBody) = prod(Rotation,Cargas_X);		// Cargas externas en coordenadas globales.
+ //       noalias(GlobalBody) = prod(Rotation,Cargas_X);		// Cargas externas en coordenadas globales.
         noalias(LocalBody)  = Cargas_X;
 
     }
@@ -703,7 +718,7 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
 
         if (Vector_zero[2]<0)
         {
-            signo =-1.00;
+            signo = 1.00;
         }
         if( norm_2(Normal_Loads)==0 || norm_2( Vector_zero)==0  )
         {
@@ -738,7 +753,7 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
         Cargas_Z[10]= (Load[1])*mlength*mlength/12.00;
         Cargas_Z[11]=  0.00;
 
-        noalias(GlobalBody) = prod(Rotation,Cargas_Z);		// Cargas externas en coordenadas globales.
+//        noalias(GlobalBody) = prod(Rotation,Cargas_Z);		// Cargas externas en coordenadas globales.
         noalias(LocalBody)  = Cargas_Z;
 
     }
@@ -790,7 +805,7 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
         Cargas_Y[10]=   0.00;
         Cargas_Y[11]=   (Load[1])*mlength*mlength/12.00;
 
-        noalias(GlobalBody) = prod(Rotation,Cargas_Y);		// Cargas externas en coordenadas globales.
+ //       noalias(GlobalBody) = prod(Rotation,Cargas_Y);		// Cargas externas en coordenadas globales.
         noalias(LocalBody)  = Cargas_Y;
     }
 
