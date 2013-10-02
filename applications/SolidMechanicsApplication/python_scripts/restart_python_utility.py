@@ -68,15 +68,15 @@ class RestartUtility:
     def CleanPreviousFiles(self,list_files):
         print "Start: -remove previous problem files-"
         #remove previous results:
-        filelist1 = [ f for f in os.listdir(self.problem_path) if f.endswith(".bin") ]
+        filelist1 = [ f for f in os.listdir(self.problem_path) if f.endswith("post.bin") ]
         for f in filelist1:
             os.remove(f)
 
-        filelist1_2 = [ f for f in os.listdir(self.problem_path) if f.endswith(".res") ]
+        filelist1_2 = [ f for f in os.listdir(self.problem_path) if f.endswith("post.res") ]
         for f in filelist1_2:
             os.remove(f)
 
-        filelist1_3 = [ f for f in os.listdir(self.problem_path) if f.endswith(".msh") ]
+        filelist1_3 = [ f for f in os.listdir(self.problem_path) if f.endswith("post.msh") ]
         for f in filelist1_3:
             os.remove(f)
 
