@@ -175,8 +175,8 @@ public:
 		rotation(2)=RotationTableC(time);
 		array_1d<double,3> reference_point = ZeroVector(3); //the reference center of coordinates for the rotation.
 		reference_point(0)=ReferenceTableX(time);
-		reference_point(1)=ReferenceTableX(time);
-		reference_point(2)=ReferenceTableX(time);
+		reference_point(1)=ReferenceTableY(time);
+		reference_point(2)=ReferenceTableZ(time);
 
 		boost::numeric::ublas::bounded_matrix<double, 3, 3 > rotation_matrix;
 		const double c1=cos(rotation(0));
