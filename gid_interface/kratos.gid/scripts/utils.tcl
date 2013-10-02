@@ -186,9 +186,10 @@ proc ::KUtils::ReadResultsFromFiles {appid rtype pmode {what CheckRFiles}} {
 
     } else {
         if {$rtype =="Single"} {
+
             # Single file
             if {$pmode =="Ascii"} {
-                set ext "${appid}_0.post.res"
+                set ext "${appid}.post.res"
             } elseif {$pmode =="Binary"} {
                 set ext "${appid}.post.bin"
             }
@@ -212,7 +213,7 @@ proc ::KUtils::ReadResultsFromFiles {appid rtype pmode {what CheckRFiles}} {
             # Get the project name
             set pname [::KUtils::GetPaths "PName"]
             if {$pmode =="Ascii"} {
-                set ext "${appid}_0.post.res"
+                set ext "${appid}.post.res"
                 set fp "${pname}${appid}_*.post.res"
             } elseif {$pmode =="Binary"} {
                 set ext "${appid}.post.bin"
@@ -220,41 +221,53 @@ proc ::KUtils::ReadResultsFromFiles {appid rtype pmode {what CheckRFiles}} {
             }
             
             if {$what =="CheckRFiles"} {
-                cd [::KUtils::GetPaths "PDir"]
-                set flist [glob $fp]
-                # WarnWinText "flist:$flist\n\n"
-                if {[llength $flist]} {
-                    # Check the first file
-                    set checkfname [lindex $flist 0]
-                    if {[file exists $checkfname] == 1} {
-                        return 1
-                    } else {
-                        return 0
-                    }
-                } else {
-                    return 0
-                }
+		
+		set efn "${fpath}${ext}"
+                if {[file exists $efn] == 1} {
+		    return 1
+		} else {
+		    cd [::KUtils::GetPaths "PDir"]
+		    set flist [glob $fp]
+		    # WarnWinText "flist:$flist\n\n"
+		    if {[llength $flist]} {
+			# Check the first file
+			set checkfname [lindex $flist 0]
+			if {[file exists $checkfname] == 1} {
+			    return 1
+			} else {
+			    return 0
+			}
+		    } else {
+			return 0
+		    }
+		}
             } elseif {$what =="ReadRFiles"} {
                 # Get the file list
-                cd [::KUtils::GetPaths "PDir"]
-                set flist [glob $fp]
-                if {[llength $flist]} {
-                    set endflist [list]
-                    foreach fileid $flist {
-                        if {[file exists $fileid] == 1} {
-                            lappend endflist $fileid
-                        }
-                    }
-                    if {[llength $endflist]} {
-                        # Read all file in the GiD postprocess
-                        # Multiple files
-                        GiD_Process MEscape Files ReadMultiple $endflist
-                    }
-                }
-            }
-        }
+                set efn "${fpath}${ext}"
+                if {[file exists $efn] == 1} {
+                    cd [::KUtils::GetPaths "PDir"]
+		    GiD_Process MEscape Files ReadMultiple $ext
+ 	        } else {
+		    cd [::KUtils::GetPaths "PDir"]
+		    set flist [glob $fp]
+		    if {[llength $flist]} {
+			set endflist [list]
+			foreach fileid $flist {
+			    if {[file exists $fileid] == 1} {
+				lappend endflist $fileid
+			    }
+			}
+			if {[llength $endflist]} {
+			    # Read all file in the GiD postprocess
+			    # Multiple files
+			    GiD_Process MEscape Files ReadMultiple $endflist
+			}
+
+		    }   
+		} 
+	    }
+	}
     }
-        
     return $ok
 }
 

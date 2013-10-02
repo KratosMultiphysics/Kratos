@@ -1604,6 +1604,18 @@ proc ::wkcf::GetnDimnNode {GiDElemType nDim} {
 	    } else {
 		set nid "8N"
 	    }
+	} elseif {$GiDElemType =="Triangle"} {
+	    if {$useqelem=="1"} {
+		set nid "6N"
+	    } else {
+		set nid "3N"
+	    }
+	} elseif {$GiDElemType =="Quadrilateral"} {
+	    if {$useqelem=="1"} {
+		set nid "8N"
+	    } else {
+		set nid "4N"
+	    }
 	} elseif {$GiDElemType =="Linear"} {
 	    if {$useqelem=="1"} {
 		set nid "3N"

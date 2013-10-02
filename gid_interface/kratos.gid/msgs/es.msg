@@ -176,7 +176,7 @@
 ::msgcat::mcset es {Min X} {Min X}
 ::msgcat::mcset es {Min Y} {Min Y}
 ::msgcat::mcset es {Min Z} {Min Z}
-::msgcat::mcset es MixedUP Mezclados
+::msgcat::mcset es {GMRES-UP Block} Mezclados
 ::msgcat::mcset es {Model description} {Descripción del modelo}
 ::msgcat::mcset es {Model name} {Nombre del modelo}
 ::msgcat::mcset es {Moment of inertia Ix} {Momento de inercia Ix}

@@ -977,7 +977,7 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
 	    set cxpath "$rootid//c.AnalysisData//i.SolverType"
 	    set SolverType [::xmlutils::setXml $cxpath $cproperty]
 
-            set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
+            set cxpath "$rootid//c.SolutionStrategy//c.ParallelType//i.ParallelSolutionType"
             set parallel_type [::xmlutils::setXml $cxpath $cproperty]
 
 	    # WarnWinText "SolverType:$SolverType"
@@ -1189,7 +1189,7 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
 # 		}
 	    
             # Get the divergence clearance step
-            set cxpath "$rootid//c.SolutionStrategy//i.DivergenceCleareanceStep"
+            set cxpath "$rootid//c.ProblemParameters//i.DivergenceCleareanceStep"
             set DivergenceCleareanceStep [::xmlutils::setXml $cxpath $cproperty]
             # Get the kratos keyword
             set DivergenceCleareanceStepKW [::xmlutils::getKKWord $kxpath "DivergenceCleareanceStep"]
@@ -1268,7 +1268,7 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
 	    # Check for use OpenMP
 	    # Kratos key word xpath
 	    set kxpath "Applications/$rootid"
-	    set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
+	    set cxpath "$rootid//c.SolutionStrategy//c.ParallelType//i.ParallelSolutionType"
 	    set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
 	    
 	    if {$ParallelSolutionType eq "OpenMP"} {
@@ -1320,18 +1320,18 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
     
     puts $fileid ""
     # Start time
-    set cxpath "$rootid//c.SolutionStrategy//i.StartTime"
+    set cxpath "$rootid//c.ProblemParameters//i.StartTime"
     set StartTime [::xmlutils::setXml $cxpath $cproperty]
     # End time
-    set cxpath "$rootid//c.SolutionStrategy//i.EndTime"
+    set cxpath "$rootid//c.ProblemParameters//i.EndTime"
     set EndTime [::xmlutils::setXml $cxpath $cproperty]
     # Delta time
-    set cxpath "$rootid//c.SolutionStrategy//i.DeltaTime"
+    set cxpath "$rootid//c.ProblemParameters//i.DeltaTime"
     set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
     
     # For use automatic delta time
     puts $fileid "#general problem settings"
-    set cxpath "$rootid//c.SolutionStrategy//i.UseAutomaticDeltaTime"
+    set cxpath "$rootid//c.ProblemParameters//i.UseAutomaticDeltaTime"
     set UseAutomaticDeltaTime [::xmlutils::setXml $cxpath $cproperty]
     puts $fileid "AutomaticDeltaTime = \"$UseAutomaticDeltaTime\""
     
@@ -1480,12 +1480,12 @@ proc ::wkcf::WritePFEMLagrangianFluidProjectParameters {AppId fileid PDir} {
 	puts $fileid "compute_reactions = 0.00000e+00"
 	
 	# Dt
-	set cxpath "$rootid//c.SolutionStrategy//i.DeltaTime"
+	set cxpath "$rootid//c.ProblemParameters//i.DeltaTime"
 	set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
 	puts $fileid "Dt = $DeltaTime"
 	
 	# max_time
-	set cxpath "$rootid//c.SolutionStrategy//i.EndTime"
+	set cxpath "$rootid//c.ProblemParameters//i.EndTime"
 	set EndTime [::xmlutils::setXml $cxpath $cproperty]
 	puts $fileid "max_time = $EndTime"
 	
@@ -1515,7 +1515,7 @@ proc ::wkcf::WritePFEMLagrangianFluidProjectParameters {AppId fileid PDir} {
 	puts $fileid "bulk_modulus = $BulkMod "
 	
 	# Gravity
-	set cxpath "$rootid//c.SolutionStrategy//i.PFEMBodyForceGravity"
+	set cxpath "$rootid//c.ProblemParameters//i.PFEMBodyForceGravity"
 	set Gravity [::xmlutils::setXml $cxpath $cproperty]
 	puts $fileid "with_gravity = $Gravity"
 	
@@ -1580,11 +1580,11 @@ proc ::wkcf::WriteFluidSolvers {rootid fileid vartype wfsmethod trailing_spaces 
 	puts $fileid "    class ${config_name}:"
 
 
-    set cxpath "$rootid//c.SolutionStrategy//i.[list ${vartype}]LinearSolverType"
+    set cxpath "$rootid//c.SolutionStrategy//c.SolverTypes//i.[list ${vartype}]LinearSolverType"
     set LinearSolverType [::xmlutils::setXml $cxpath $cproperty]
     if {$LinearSolverType =="Direct"} {
 	# Direct solver type
-	set cxpath "$rootid//c.SolutionStrategy//i.[list ${vartype}]DirectSolverType"
+	set cxpath "$rootid//c.SolutionStrategy//c.SolverTypes//i.[list ${vartype}]DirectSolverType"
 	set DirectSolverType [::xmlutils::setXml $cxpath $cproperty]
 	# WarnWinText "DirectSolverType:$DirectSolverType"
 	set cDirectSolverType [::xmlutils::getKKWord $kxpath $DirectSolverType]
@@ -1596,16 +1596,16 @@ proc ::wkcf::WriteFluidSolvers {rootid fileid vartype wfsmethod trailing_spaces 
     } elseif {$LinearSolverType =="Iterative"} {
 	
 	# Iterative solver type 
-	set cxpath "$rootid//c.SolutionStrategy//i.[list ${vartype}]IterativeSolverType"
+	set cxpath "$rootid//c.SolutionStrategy//c.SolverTypes//i.[list ${vartype}]IterativeSolverType"
 	set IterativeSolverType [::xmlutils::setXml $cxpath $cproperty]
 	# Tolerance
-	set cxpath "$rootid//c.SolutionStrategy//i.[list ${vartype}]ISTolerance"
+	set cxpath "$rootid//c.SolutionStrategy//c.SolverTypes//i.[list ${vartype}]ISTolerance"
 	set Tolerance [::xmlutils::setXml $cxpath $cproperty]
 	# Maximum iteration
-	set cxpath "$rootid//c.SolutionStrategy//i.[list ${vartype}]ISMaximumIteration"
+	set cxpath "$rootid//c.SolutionStrategy//c.SolverTypes//i.[list ${vartype}]ISMaximumIteration"
 	set MaximumIteration [::xmlutils::setXml $cxpath $cproperty]
 	# preconditioner type
-	set cxpath "$rootid//c.SolutionStrategy//i.[list ${vartype}]PreconditionerType"
+	set cxpath "$rootid//c.SolutionStrategy//c.SolverTypes//i.[list ${vartype}]PreconditionerType"
 	set PreconditionerType [::xmlutils::setXml $cxpath $cproperty]
 	# WarnWinText "vartype:$vartype IterativeSolverType:$IterativeSolverType Tolerance:$Tolerance MaximumIteration:$MaximumIteration PreconditionerType:$PreconditionerType"
 	

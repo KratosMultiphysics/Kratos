@@ -45,7 +45,7 @@
             <Item id="AnalysisType" pid="Analysis type" class="analysType" dv="Linear" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" help="Analysis Type"/>
         </Container>
         <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="0" icon="solstrategy.gif">
-	  <Container id="Parallel" pid="Parallel Computing" class="Tab" open="0" icon="groupsTreeNew.gif">
+	  <Container id="Parallel" pid="Parallel type" class="Tab" open="0" icon="groupsTreeNew.gif">
 	    <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
 	    <Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
 	    <Item id="OpenMPNumberOfThreads" pid="Number of threads" dv="2" PSolutionType="OpenMP" help="Number of threads"/>
@@ -158,9 +158,7 @@
             
             <Item id="SolverTypeCompressible" pid="Solver type" class="fluidSolvTyp" freeSurf="No" fluidType="Compressible" dv="FSSE-ElementBased" ivalues="FSSE-ElementBased" values="Fractional step semi-explicit element based" help="Fractional step"/>
             <Item id="SolverType" pid="Solver type" class="fluidSolvTyp" freeSurf="No" fluidType="Incompressible" fluidAppr="Eulerian" dv="ElementBased" ivalues="Monolithic,ElementBased" values="Monolithic,Fractional step" help="SolverType"/>
-            <Item id="SolverTypeFreeSurf" pid="Solver type" class="fluidSolvTyp" freeSurf="Yes" dv="LevelSet" ivalues="LevelSet" values="Fractional step level set" help="SolverType"/>
-            
-            <Item id="EnvironmentTemperature" pid="Environment temperature" fluidAppr="Eulerian" fluidType="Incompressible" dv="0.0" help=""/>
+            <Item id="SolverTypeFreeSurf" pid="Solver type" class="fluidSolvTyp" freeSurf="Yes" dv="LevelSet" ivalues="LevelSet" values="Fractional step level set" help="SolverType"/>           
             <Item id="TurbulenceModel" pid="Turbulence model" class="TurbulenceModelType" fluidType="Incompressible" fluidSolvTyp="Monolithic,ElementBased" ivalues="Off,Smagorinsky-Lilly,Spalart-Allmaras" dv="Off" values="Off,Smagorinsky-Lilly,Spalart-Allmaras" help="Select the active tubulence model"/>        
             <Item id="SmagorinskyConstant" pid="Smagorinsky constant" fluidType="Incompressible" TurbulenceModelType="Smagorinsky-Lilly" dv="0.1" help="The Smagorinsky constant usually has the value: Cs = 0.1 - 0.2 "/>
             <Item id="TurbulentViscosity" pid="Turbulent viscosity" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" dv="0.01" help="Define the turbulent viscosity value"/>
@@ -168,44 +166,37 @@
             <Container id="Spalart-AllmarasGroupId3D" pid="Spalart-Allmaras groups" nDim="3D" GiDEntity="point,line,surface" class="Groups" idTemplate="TurbulenceGroupId" fluidType="Incompressible" TurbulenceModelType="Spalart-Allmaras" icon="groupsTreeNew.gif" help="Select the group identifier" open="0"/>          
         </Container>
         <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="0" dv="fh" values="">
-            <Item id="ParallelSolutionType" pid="Parallelization" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
-            <Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
-            <Item id="OpenMPNumberOfThreads" pid="Number of threads" dv="2" PSolutionType="OpenMP" help="Number of threads"/>
-            <Item id="MonolithicLinearSolverType" pid="Linear solver type" class="monolithicLinearSolvTyp" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
-            <Item id="MonolithicDirectSolverType" pid="Solver" monolithicLinearSolvTyp="Direct" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="SuperLU" ivalues="SuperLU,ParallelMKLPardiso" values="Super LU,Parallel MKL Pardiso" help=""/>
-            <Item id="MonolithicIterativeSolverType" pid="Iterative solver type"  class="monolithiciterativesolvertype" monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="BiConjugateGradientStabilized" ivalues="BiConjugateGradientStabilized,MixedUP,SuperLUIterativeSolver,AMGCL" values="BiConjugate gradient stabilized,MixedUP,SuperLU iterative solver,AMGCL" help="Iterative solver type options"/>
-            <Item id="MonolithicISTolerance" pid="Solver tolerance" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="1E-6" help=""/>
-            <Item id="MonolithicISMaximumIteration" pid="Solver maximum iterations" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="5000" help="Monolithic solver maximum iteration numbers"/>
-            <Item id="MonolithicMixedUPKrylovSpaceDimension" pid="Krylov space dimension" monolithiciterativesolvertype="MixedUP" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="30" help="Mixed UP Krylov space dimension"/>
-            <Item id="MonolithicPreconditionerType" pid="Preconditioner type" monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="Diagonal" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
-            <Item id="VelocityLinearSolverType" pid="Velocity linear solver type" class="velocityLinearSolvTyp" fluidSolvTyp="PressureSplitting,EdgeBased,ElementBased" fluidType="Incompressible" dv="Iterative" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
-            <Item id="VelocityDirectSolverType" pid="Velocity direct solver type" velocityLinearSolvTyp="Direct" fluidSolvTyp="PressureSplitting,EdgeBased,ElementBased" fluidType="Incompressible" dv="SuperLU" ivalues="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" values="Skyline LU factorization,Super LU,Parallel MKL Pardiso" help=""/>
-            <Item id="VelocityIterativeSolverType" pid="Velocity iterative solver type" velocityLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,EdgeBased,ElementBased" fluidType="Incompressible" dv="BiConjugateGradientStabilized" ivalues="ConjugateGradient,BiConjugateGradientStabilized,GMRES,AMGCL" values="Conjugate gradient,BiConjugate gradient stabilized,GMRES,AMGCL" help=""/>
-            <Item id="VelocityISTolerance" pid="Velocity solver tolerance" fluidSolvTyp="PressureSplitting,EdgeBased" velocityLinearSolvTyp="Iterative" dv="1E-6" help=""/>
-            <Item id="VelocityISMaximumIteration" pid="Velocity solver maximum iteration" fluidSolvTyp="PressureSplitting,EdgeBased" velocityLinearSolvTyp="Iterative" dv="5000" help=""/>
-            <Item id="VelocityPreconditionerType" pid="Velocity preconditioner type" velocityLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,EdgeBased" fluidType="Incompressible" dv="ILU0" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
-            <Item id="PressureLinearSolverType" pid="Pressure linear solver type" class="pressureLinearSolvTyp" fluidSolvTyp="PressureSplitting,EdgeBased,ElementBased" fluidType="Incompressible" dv="Iterative" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
-           
-            <Item id="PressureDirectSolverType" pid="Pressure direct solver type" pressureLinearSolvTyp="Direct" fluidSolvTyp="PressureSplitting,EdgeBased,ElementBased" fluidType="Incompressible" dv="SuperLU" ivalues="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" values="Skyline LU factorization,Super LU,Parallel MKL Pardiso" help=""/>
-            
-            <Item id="PressureIterativeSolverType" pid="Pressure iterative solver type" pressureLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,EdgeBased,ElementBased" fluidType="Incompressible" dv="AMGCL" ivalues="ConjugateGradient,BiConjugateGradientStabilized,AMGCL" values="Conjugate gradient,BiConjugate gradient stabilized,AMGCL" help=""/>
-            <Item id="PressureISTolerance" pid="Pressure solver tolerance" pressureLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,EdgeBased" dv="1E-6" help=""/>
-            <Item id="PressureISMaximumIteration" pid="Pressure solver maximum iteration" pressureLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,ElementBased,EdgeBased" dv="5000" help=""/>
-            <Item id="PressurePreconditionerType" pid="Pressure preconditioner type" pressureLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,EdgeBased" fluidType="Incompressible" dv="ILU0" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
-            <Item id="LinearSolverTypeCompressible" pid="Linear solver type" class="linearSolvTyp" fluidType="Compressible" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
-            <Item id="DirectSolverTypeCompressible" pid="Direct solver type" linearSolvTyp="Direct" fluidType="Compressible" dv="SkylineLUFactorization" ivalues="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" values="Skyline LU factorization,Super LU,Parallel MKL Pardiso" help=""/>
-            <Item id="IterativeSolverTypeCompressible" pid="Iterative solver type" linearSolvTyp="Iterative" fluidType="Compressible" dv="ConjugateGradient" ivalues="ConjugateGradient" values="Conjugate gradient" help=""/>
-            <Item id="PreconditionerTypeCompressible" pid="Preconditioner type" linearSolvTyp="Iterative" dv="Diagonal" fluidType="Compressible" ivalues="None,Diagonal" values="None,Diagonal" help=""/>
-            <Item id="StartTime" pid="Start time" dv="0.0" fluidAppr="Eulerian" help=""/>
-            <Item id="EndTime" pid="End time" dv="1" help=""/>
-            <Item id="UseAutomaticDeltaTime" pid="Automatic delta time" fluidSolvTyp="ElementBased,Monolithic" fluidAppr="Eulerian" class="deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the Delta time option to be used"/>
-            <Item id="DeltaTime" deltatimetype="Fixed" pid="Delta time" dv="0.001" help=""/>
-            <Item id="TargetCFL" pid="Target CFL" deltatimetype="Automatic" dv="5.0" help=""/>
-            <Item id="DivergenceCleareanceStep" pid="Divergence cleareance step" dv="50" fluidAppr="Eulerian" fluidType="Incompressible" help="Define the divergence cleareance step value"/>
-            <Item id="MaxVart" pid="Max Dt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Max time variation"/>
-            <Item id="MinVart" pid="Min Dt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Min time variation"/>
-            <Item id="PFEMBodyForceGravity" pid="Gravity value" dv="9.81" fluidAppr="PFEM-Lagrangian" help="Gravity value"/>
-            <Container id="Advanced" pid="Advanced" fluidType="Incompressible" help="" open="0">
+            <Container id="ParallelType" pid="Parallel type" class="Tab" help="Parallel type" open="0" icon="groupsTreeNew.gif">
+                <Item id="ParallelSolutionType" pid="Parallelization" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
+		<Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
+		<Item id="OpenMPNumberOfThreads" pid="Number of threads" dv="2" PSolutionType="OpenMP" help="Number of threads"/>
+	    </Container>
+            <Container id="SolverTypes" pid="Linear solver" class="Tab" help="Solver types" open="0" icon="groupsTreeNew.gif">
+	        <Item id="MonolithicLinearSolverType" pid="Linear solver type" class="monolithicLinearSolvTyp" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
+		<Item id="MonolithicDirectSolverType" pid="Solver" monolithicLinearSolvTyp="Direct" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="SuperLU" ivalues="SuperLU,ParallelMKLPardiso" values="Super LU,Parallel MKL Pardiso" help=""/>
+		<Item id="MonolithicIterativeSolverType" pid="Iterative solver type"  class="monolithiciterativesolvertype" monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="BiConjugateGradientStabilized" ivalues="BiConjugateGradientStabilized,GMRES-UP Block,SuperLUIterativeSolver,AMGCL" values="BiConjugate gradient stabilized,GMRES-UP Block,SuperLU iterative solver,AMGCL" help="Iterative solver type options"/>
+		<Item id="MonolithicISTolerance" pid="Solver tolerance" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="1E-6" help=""/>
+		<Item id="MonolithicISMaximumIteration" pid="Solver maximum iterations" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="5000" help="Monolithic solver maximum iteration numbers"/>
+		<Item id="MonolithicMixedUPKrylovSpaceDimension" pid="Krylov space dimension" monolithiciterativesolvertype="GMRES-UP Block" fluidSolvTyp="Monolithic" monolithicLinearSolvTyp="Iterative" dv="30" help="Mixed UP Krylov space dimension"/>
+		<Item id="MonolithicPreconditionerType" pid="Preconditioner type" monolithicLinearSolvTyp="Iterative" fluidSolvTyp="Monolithic" fluidType="Incompressible" dv="Diagonal" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
+		<Item id="VelocityLinearSolverType" pid="Velocity-Solver type" class="velocityLinearSolvTyp" fluidSolvTyp="PressureSplitting,EdgeBased,ElementBased" fluidType="Incompressible" dv="Iterative" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
+		<Item id="VelocityDirectSolverType" pid="Velocity solver" velocityLinearSolvTyp="Direct" fluidSolvTyp="PressureSplitting,EdgeBased,ElementBased" fluidType="Incompressible" dv="SuperLU" ivalues="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" values="Skyline LU factorization,Super LU,Parallel MKL Pardiso" help=""/>
+		<Item id="VelocityIterativeSolverType" pid="Velocity solver" velocityLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,EdgeBased,ElementBased" fluidType="Incompressible" dv="BiConjugateGradientStabilized" ivalues="ConjugateGradient,BiConjugateGradientStabilized,GMRES,AMGCL" values="Conjugate gradient,BiConjugate gradient stabilized,GMRES,AMGCL" help=""/>
+		<Item id="VelocityISTolerance" pid="Velocity solver tolerance" fluidSolvTyp="PressureSplitting,EdgeBased" velocityLinearSolvTyp="Iterative" dv="1E-6" help=""/>
+		<Item id="VelocityISMaximumIteration" pid="Velocity solver maximum iteration" fluidSolvTyp="PressureSplitting,EdgeBased" velocityLinearSolvTyp="Iterative" dv="5000" help=""/>
+		<Item id="VelocityPreconditionerType" pid="Velocity preconditioner type" velocityLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,EdgeBased" fluidType="Incompressible" dv="ILU0" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
+		<Item id="PressureLinearSolverType" pid="Pressure-Solver type" class="pressureLinearSolvTyp" fluidSolvTyp="PressureSplitting,EdgeBased,ElementBased" fluidType="Incompressible" dv="Iterative" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
+		<Item id="PressureDirectSolverType" pid="Pressure solver" pressureLinearSolvTyp="Direct" fluidSolvTyp="PressureSplitting,EdgeBased,ElementBased" fluidType="Incompressible" dv="SuperLU" ivalues="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" values="Skyline LU factorization,Super LU,Parallel MKL Pardiso" help=""/>
+		<Item id="PressureIterativeSolverType" pid="Pressure solver" pressureLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,EdgeBased,ElementBased" fluidType="Incompressible" dv="AMGCL" ivalues="ConjugateGradient,BiConjugateGradientStabilized,AMGCL" values="Conjugate gradient,BiConjugate gradient stabilized,AMGCL" help=""/>
+		<Item id="PressureISTolerance" pid="Pressure solver tolerance" pressureLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,EdgeBased" dv="1E-6" help=""/>
+		<Item id="PressureISMaximumIteration" pid="Pressure solver maximum iteration" pressureLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,ElementBased,EdgeBased" dv="5000" help=""/>
+		<Item id="PressurePreconditionerType" pid="Pressure preconditioner type" pressureLinearSolvTyp="Iterative" fluidSolvTyp="PressureSplitting,EdgeBased" fluidType="Incompressible" dv="ILU0" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
+		<Item id="LinearSolverTypeCompressible" pid="Linear solver type" class="linearSolvTyp" fluidType="Compressible" dv="Direct" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
+		<Item id="DirectSolverTypeCompressible" pid="Direct solver type" linearSolvTyp="Direct" fluidType="Compressible" dv="SkylineLUFactorization" ivalues="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" values="Skyline LU factorization,Super LU,Parallel MKL Pardiso" help=""/>
+		<Item id="IterativeSolverTypeCompressible" pid="Iterative solver type" linearSolvTyp="Iterative" fluidType="Compressible" dv="ConjugateGradient" ivalues="ConjugateGradient" values="Conjugate gradient" help=""/>
+		<Item id="PreconditionerTypeCompressible" pid="Preconditioner type" linearSolvTyp="Iterative" dv="Diagonal" fluidType="Compressible" ivalues="None,Diagonal" values="None,Diagonal" help=""/>
+	    </Container>
+            <Container id="Advanced" pid="Advanced" fluidType="Incompressible" class="Tab" help="Advanced Solver Parameters" open="0" icon="groupsTreeNew.gif">
                 <Item id="PredictorCorrector" pid="Predictor corrector" fluidAppr="Eulerian" fluidSolvTyp="ElementBased,EdgeBased" dv="False" ivalues="True,False" values="True,False" help=""/>
                 <Item id="RelativeVelocityTolerance" pid="Relative velocity tolerance" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,PressureSplitting,ElementBased,EdgeBased" dv="1E-3" help="Relative velocity tolerance"/>
                 <Item id="AbsoluteVelocityTolerance" pid="Absolute velocity tolerance" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,PressureSplitting" dv="1E-6" help="Absolute velocity tolerance"/>
@@ -246,8 +237,20 @@
                 <Container id="ErgunEquationNo" pid="Zones" class="Groups" ErgunEquationType="No" nDim="3D" GiDEntity="line,surface,volume" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" idTemplate="PorosityDarcy" icon="groupsTreeNew.gif" help="" open="0"/>
                 <Container id="ErgunEquationYes" pid="Zones" class="Groups" ErgunEquationType="Yes" nDim="3D" GiDEntity="line,surface,volume" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" idTemplate="PorosityDiameter" icon="groupsTreeNew.gif" help="" open="0"/>
 	    </Container>
-	  </Container>
-        <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesFluid" icon="propsTreeNew.gif" help="Add a new Property" open="0"/>
+        </Container>
+        <Container id="ProblemParameters" pid="Problem Parameters" help="Problem Parameters" open="0" dv="fh" values="">
+            <Item id="StartTime" pid="Start time" dv="0.0" fluidAppr="Eulerian" help=""/>
+            <Item id="EndTime" pid="End time" dv="1" help=""/>
+            <Item id="UseAutomaticDeltaTime" pid="Automatic delta time" fluidSolvTyp="ElementBased,Monolithic" fluidAppr="Eulerian" class="deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the Delta time option to be used"/>
+            <Item id="DeltaTime" deltatimetype="Fixed" pid="Delta time" dv="0.001" help=""/>
+            <Item id="TargetCFL" pid="Target CFL" deltatimetype="Automatic" dv="5.0" help=""/>
+            <Item id="DivergenceCleareanceStep" pid="Divergence cleareance step" dv="50" fluidAppr="Eulerian" fluidType="Incompressible" help="Define the divergence cleareance step value"/>
+	    <Item id="EnvironmentTemperature" pid="Environment temperature" fluidAppr="Eulerian" fluidType="Incompressible" dv="0.0" help=""/>
+            <Item id="MaxVart" pid="Max Dt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Max time variation"/>
+            <Item id="MinVart" pid="Min Dt" dv="0.0" fluidAppr="PFEM-Lagrangian" state="hidden" help="Min time variation"/>
+            <Item id="PFEMBodyForceGravity" pid="Gravity value" dv="9.81" fluidAppr="PFEM-Lagrangian" help="Gravity value"/>
+        </Container>
+	<Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesFluid" icon="propsTreeNew.gif" help="Add a new Property" open="0"/>
         <Container id="Elements" pid="Elements" help="Elements" open="0">
             <Container id="ASGS2D" pid="ASGS" class="Groups" nDim="2D" GiDEntity="surface"  fluidAppr="Eulerian" fluidSolvTyp="PressureSplitting" idTemplate="Fluid2DElement" icon="groupsTreeNew.gif" help="ASGS" open="0"/>
             <Container id="ASGS3D" pid="ASGS" class="Groups" nDim="3D" GiDEntity="volume"   fluidAppr="Eulerian" fluidSolvTyp="PressureSplitting" idTemplate="Fluid3DElement" icon="groupsTreeNew.gif" help="ASGS" open="0"/>
@@ -493,7 +496,7 @@
         </Template>
         <Template id="PropertiesStruct" icon="propsTree.gif" help="Property">
             <Container id="MainProperties" pid="New property" state="hidden" help="Values">
-                <Item id="ElemType" pid="Property type" dv="Generic" state="normal" GCV="ElemType" help="Element type"/>
+                <Item id="ElemType" pid="Property type" dv="" state="normal" GCV="ElemType" help="Element type"/>
                 <Item id="MatModel" pid="Constitutive law" state="normal" dv="Elastic-Isotropic" GCV="MatModel" help="Material model"/>
                 <Item id="Material" pid="Material" dv="" state="normal" GCV="Materials" help="Material"/>
                 <Item id="Thickness" pid="Thickness" state="normal" dv="1.0" help="Thickness"/>
