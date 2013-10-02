@@ -616,6 +616,8 @@ public:
             for(unsigned int i=0; i<4;i++)
                 Nlocal[ i ]  = quad.ShapeFunctionValue(i, local_coords );
 
+
+
             noalias(Npos) = ZeroVector(4);
             noalias(Nneg) = ZeroVector(4);
             for(unsigned int i=0; i<4; i++)
@@ -695,67 +697,67 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void GenerateSkinModelPart( ModelPart& mrNewSkinModelPart )
-    {
+    //    void GenerateSkinModelPart( ModelPart& mrNewSkinModelPart )
+    //    {
 
-        std::vector< array_1d<double,3> >       nodesMatrix;
-        std::vector< array_1d<unsigned int,3> > elementsMatrix;
+    //        std::vector< array_1d<double,3> >       nodesMatrix;
+    //        std::vector< array_1d<unsigned int,3> > elementsMatrix;
 
-        ReproduceStructuralSkinMesh(nodesMatrix,elementsMatrix);
+    //        ReproduceStructuralSkinMesh(nodesMatrix,elementsMatrix);
 
-        ModelPart& new_model_part = mrNewSkinModelPart;
+    //        ModelPart& new_model_part = mrNewSkinModelPart;
 
-        //new_model_part.GetNodalSolutionStepVariablesList() = mrSkinModelPart.GetNodalSolutionStepVariablesList();
+    //        //new_model_part.GetNodalSolutionStepVariablesList() = mrSkinModelPart.GetNodalSolutionStepVariablesList();
 
-        // ######## ADDING NEW NODES #########
+    //        // ######## ADDING NEW NODES #########
 
-        const unsigned int size_nodes = nodesMatrix.size();
-        new_model_part.Nodes().reserve(size_nodes);
+    //        const unsigned int size_nodes = nodesMatrix.size();
+    //        new_model_part.Nodes().reserve(size_nodes);
 
-        for (unsigned int nodesIndex=0; nodesIndex!=size_nodes; ++nodesIndex)
-        {
-            int id = nodesIndex + 1;
-            double node_X = nodesMatrix[nodesIndex][0];
-            double node_Y = nodesMatrix[nodesIndex][1];
-            double node_Z = nodesMatrix[nodesIndex][2];
-            Node < 3 >::Pointer pnode = Node < 3 > ::Pointer (new Node < 3 >(id,
-                                                                             node_X,
-                                                                             node_Y,
-                                                                             node_Z));
-            //pnode->SetBufferSize(mrSkinModelPart.NodesBegin()->GetBufferSize());
-            //pnode->X0() = node_X;
-            //pnode->Y0() = node_Y;
-            //pnode->Z0() = node_Z;
-            //pnode->FastGetSolutionStepValue(PARTITION_INDEX)=local_Partition_ov[index];
-            new_model_part.Nodes().push_back(pnode);
-        }
+    //        for (unsigned int nodesIndex=0; nodesIndex!=size_nodes; ++nodesIndex)
+    //        {
+    //            int id = nodesIndex + 1;
+    //            double node_X = nodesMatrix[nodesIndex][0];
+    //            double node_Y = nodesMatrix[nodesIndex][1];
+    //            double node_Z = nodesMatrix[nodesIndex][2];
+    //            Node < 3 >::Pointer pnode = Node < 3 > ::Pointer (new Node < 3 >(id,
+    //                                                                             node_X,
+    //                                                                             node_Y,
+    //                                                                             node_Z));
+    //            //pnode->SetBufferSize(mrSkinModelPart.NodesBegin()->GetBufferSize());
+    //            //pnode->X0() = node_X;
+    //            //pnode->Y0() = node_Y;
+    //            //pnode->Z0() = node_Z;
+    //            //pnode->FastGetSolutionStepValue(PARTITION_INDEX)=local_Partition_ov[index];
+    //            new_model_part.Nodes().push_back(pnode);
+    //        }
 
-        // ######## ADDING NEW CONDITIONS #########
-        // required information for a new condition: Id, Geometry, Property
+    //        // ######## ADDING NEW CONDITIONS #########
+    //        // required information for a new condition: Id, Geometry, Property
 
-        const unsigned int size_conditions = elementsMatrix.size();
+    //        const unsigned int size_conditions = elementsMatrix.size();
 
-        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
-        Properties::Pointer properties = mrSkinModelPart.GetMesh().pGetProperties(1);
-        new_model_part.Conditions().reserve(size_conditions);
+    //        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
+    //        Properties::Pointer properties = mrSkinModelPart.GetMesh().pGetProperties(1);
+    //        new_model_part.Conditions().reserve(size_conditions);
 
-        for (unsigned int condIndex=0; condIndex!=size_conditions; ++condIndex)
-        {
-            unsigned int id = condIndex + 1;
-            unsigned int node1_ID = elementsMatrix[condIndex][0];
-            unsigned int node2_ID = elementsMatrix[condIndex][1];
-            unsigned int node3_ID = elementsMatrix[condIndex][2];
+    //        for (unsigned int condIndex=0; condIndex!=size_conditions; ++condIndex)
+    //        {
+    //            unsigned int id = condIndex + 1;
+    //            unsigned int node1_ID = elementsMatrix[condIndex][0];
+    //            unsigned int node2_ID = elementsMatrix[condIndex][1];
+    //            unsigned int node3_ID = elementsMatrix[condIndex][2];
 
-            Triangle3D3<Node < 3 > > triangle(new_model_part.Nodes()(node1_ID),
-                                              new_model_part.Nodes()(node2_ID),
-                                              new_model_part.Nodes()(node3_ID));
-            // Index must take care of the IDs of the other processors --> triangle_id_int + 1 + elements_before + total_existing_elements
-            Condition::Pointer p_condition = rReferenceCondition.Create(id,
-                                                                        triangle,
-                                                                        properties);
-            new_model_part.Conditions().push_back(p_condition);
-        }
-    }
+    //            Triangle3D3<Node < 3 > > triangle(new_model_part.Nodes()(node1_ID),
+    //                                              new_model_part.Nodes()(node2_ID),
+    //                                              new_model_part.Nodes()(node3_ID));
+    //            // Index must take care of the IDs of the other processors --> triangle_id_int + 1 + elements_before + total_existing_elements
+    //            Condition::Pointer p_condition = rReferenceCondition.Create(id,
+    //                                                                        triangle,
+    //                                                                        properties);
+    //            new_model_part.Conditions().push_back(p_condition);
+    //        }
+    //    }
 
     ///******************************************************************************************************************
     ///******************************************************************************************************************
@@ -1583,56 +1585,194 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void ReproduceStructuralSkinMesh( std::vector< array_1d<double,3> >&       nodesMatrix,
-                                      std::vector< array_1d<unsigned int,3> >& elementsMatrix )
-    {
-        // Extract distance information of intersected elements and generate triangular geometry
-        // in order to visualize in GiD as a mdpa-file
+    //    void ReproduceStructuralSkinMesh( std::vector< array_1d<double,3> >&       nodesMatrix,
+    //                                      std::vector< array_1d<unsigned int,3> >& elementsMatrix )
+    //    {
+    //        // Extract distance information of intersected elements and generate triangular geometry
+    //        // in order to visualize in GiD as a mdpa-file
 
-        // loop over all fluid elements
+    //        // loop over all fluid elements
+    //        for(ModelPart::ElementIterator i_fluid_element = mrFluidModelPart.ElementsBegin();
+    //            i_fluid_element != mrFluidModelPart.ElementsEnd();
+    //            i_fluid_element++)
+    //        {
+    //            bool split_element = i_fluid_element->GetValue(SPLIT_ELEMENT);
+    //            if (split_element == true)
+    //            {
+    //                array_1d<double,4> distances = i_fluid_element->GetValue(ELEMENTAL_DISTANCES);
+
+    //                // Initialize index table to define line Edges of fluid element
+    //                bounded_matrix<unsigned int,6,2> TetEdgeIndexTable;
+    //                SetIndexTable(TetEdgeIndexTable);
+
+    //                unsigned int numberCutEdges = 0;
+
+    //                // First, compute all intersection nodes along the tetrahedra edges
+    //                for(unsigned int i_tetEdge = 0; i_tetEdge < 6; i_tetEdge++)
+    //                {
+    //                    // Get nodes of tet edge
+    //                    unsigned int EdgeStartIndex = TetEdgeIndexTable(i_tetEdge,0);
+    //                    unsigned int EdgeEndIndex   = TetEdgeIndexTable(i_tetEdge,1);
+
+    //                    // Edge is cut, if distance values on both nodes have opposite sign
+    //                    if(distances[EdgeStartIndex]*distances[EdgeEndIndex] < 0)
+    //                        numberCutEdges++;
+    //                }
+
+    //                /*
+    //                  if numberCutEdges == 0: tet is intersected, BUT all nodes are nevertheless located outside of structure
+    //                                          (think of very thin structures)
+    //                  if numberCutEdges == 1: 1 node  = 0 (intersected tet corner node) --> NEGLECTED!!
+    //                  if numberCutEdges == 2: 2 nodes = 0 (intersected tet edge)        --> NEGLECTED!!
+    //                  if numberCutEdges == 3: 3 nodes with same sign, 1 node with opposite sign  --> 3 intersection nodes
+    //                  if numberCutEdges == 4: 2 nodes with same sign, 2 nodes with opposite sign --> 4 intersection nodes
+    //                  */
+
+    //                if(numberCutEdges == 3)
+    //                {
+    //                    ReproduceThreeIntNodes(i_fluid_element,distances,nodesMatrix,elementsMatrix);
+    //                }
+    //                else if(numberCutEdges == 4)
+    //                {
+    //                    ReproduceFourIntNodes(i_fluid_element,distances,nodesMatrix,elementsMatrix);
+    //                }
+    //            }
+    //        }
+    //    }
+
+    ///******************************************************************************************************************
+    ///******************************************************************************************************************
+
+    void GenerateSkinModelPart( ModelPart& mrNewSkinModelPart )
+    {
+        unsigned int id_node = 1;
+        unsigned int id_condition = 1;
+
+        mrNewSkinModelPart.Nodes().reserve(mrFluidModelPart.Nodes().size());
+        mrNewSkinModelPart.Conditions().reserve(mrFluidModelPart.Elements().size());
+
         for(ModelPart::ElementIterator i_fluid_element = mrFluidModelPart.ElementsBegin();
             i_fluid_element != mrFluidModelPart.ElementsEnd();
             i_fluid_element++)
         {
-            bool split_element = i_fluid_element->GetValue(SPLIT_ELEMENT);
-            if (split_element == true)
+            bool is_split = i_fluid_element->GetValue(SPLIT_ELEMENT);
+            if(is_split == true)
             {
                 array_1d<double,4> distances = i_fluid_element->GetValue(ELEMENTAL_DISTANCES);
+                Geometry< Node<3> >& geom = i_fluid_element->GetGeometry();
 
-                // Initialize index table to define line Edges of fluid element
-                bounded_matrix<unsigned int,6,2> TetEdgeIndexTable;
-                SetIndexTable(TetEdgeIndexTable);
+                // generate the points on the edges at the zero of the distance function
+                std::vector< Point<3> > edge_points;
+                edge_points.reserve(4);
 
-                unsigned int numberCutEdges = 0;
-
-                // First, compute all intersection nodes along the tetrahedra edges
-                for(unsigned int i_tetEdge = 0; i_tetEdge < 6; i_tetEdge++)
+                // loop over all 6 edges of the tetrahedra
+                for(unsigned int i=0; i<3; i++)
                 {
-                    // Get nodes of tet edge
-                    unsigned int EdgeStartIndex = TetEdgeIndexTable(i_tetEdge,0);
-                    unsigned int EdgeEndIndex   = TetEdgeIndexTable(i_tetEdge,1);
+                    for(unsigned int j=i+1; j<4; j++) // go through the edges 01, 02, 03, 12, 13, 23
+                    {
+                        double di = distances[i];
+                        double dj = distances[j];
 
-                    // Edge is cut, if distance values on both nodes have opposite sign
-                    if(distances[EdgeStartIndex]*distances[EdgeEndIndex] < 0)
-                        numberCutEdges++;
+                        if(di*dj < 0) //edge is cut
+                        {
+                            // generate point on edge by linear interpolation
+                            double Ni = fabs(dj) / ( fabs(di) + fabs(dj) );
+                            double Nj = 1.0 - Ni;
+                            Point<3> edge_point(Ni * geom[i] + Nj * geom[j]);
+                            edge_points.push_back(edge_point);
+                        }
+                    }
                 }
 
-                /*
-                  if numberCutEdges == 0: tet is intersected, BUT all nodes are nevertheless located outside of structure
-                                          (think of very thin structures)
-                  if numberCutEdges == 1: 1 node  = 0 (intersected tet corner node) --> NEGLECTED!!
-                  if numberCutEdges == 2: 2 nodes = 0 (intersected tet edge)        --> NEGLECTED!!
-                  if numberCutEdges == 3: 3 nodes with same sign, 1 node with opposite sign  --> 3 intersection nodes
-                  if numberCutEdges == 4: 2 nodes with same sign, 2 nodes with opposite sign --> 4 intersection nodes
-                  */
-
-                if(numberCutEdges == 3)
+                // three intersection nodes
+                if(edge_points.size() == 3)
                 {
-                    ReproduceThreeIntNodes(i_fluid_element,distances,nodesMatrix,elementsMatrix);
+                    // ######## ADDING NEW NODE #########
+                    Node < 3 >::Pointer pnode1 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[0].X(),edge_points[0].Y(),edge_points[0].Z());
+                    Node < 3 >::Pointer pnode2 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[1].X(),edge_points[1].Y(),edge_points[1].Z());
+                    Node < 3 >::Pointer pnode3 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[2].X(),edge_points[2].Y(),edge_points[2].Z());
+
+                    // ######## ADDING NEW CONDITION #########
+                    //form a triangle
+                    Triangle3D3< Node<3> > triangle(pnode1, pnode2, pnode3);
+
+                    Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
+                    Properties::Pointer properties = mrSkinModelPart.GetMesh().pGetProperties(1);
+                    Condition::Pointer p_condition = rReferenceCondition.Create(id_condition++, triangle, properties);
+
+                    mrNewSkinModelPart.Conditions().push_back(p_condition);
                 }
-                else if(numberCutEdges == 4)
+
+                // four intersection nodes
+                if(edge_points.size() == 4)
                 {
-                    ReproduceFourIntNodes(i_fluid_element,distances,nodesMatrix,elementsMatrix);
+                    //form a quadrilatera with the 4 cut nodes
+                    array_1d<double,3> x21 = edge_points[1] - edge_points[0];
+                    array_1d<double,3> x31 = edge_points[2] - edge_points[0];
+                    array_1d<double,3> x41 = edge_points[3] - edge_points[0];
+
+                    //define a vector oriented as x21
+                    array_1d<double,3> v1 = x21 / norm_2(x21);
+
+                    boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+                    array_1d<double,4> msN;
+                    double Area;
+                    GeometryUtils::CalculateGeometryData( geom, DN_DX, msN, Area );
+
+                    array_1d<double,3> n = prod(trans(DN_DX),distances);
+                    n /= norm_2(n);
+
+                    array_1d<double,3> v2 = MathUtils<double>::CrossProduct(n,v1);
+
+                    array_1d<double,3> angles;
+                    angles[0] = 0.0; //angle between x21 and v1
+                    angles[1] = atan2( inner_prod(x31,v2), inner_prod(x31,v1) ); //angle between x31 and v1
+                    angles[2] = atan2( inner_prod(x41,v2), inner_prod(x41,v1) ); //angle between x31 and v1
+
+                    double max_angle = 0.0;
+                    double min_angle = 0.0;
+                    unsigned int min_pos = 1;
+                    unsigned int max_pos = 1;
+                    for(unsigned int i=1; i<3; i++)
+                    {
+                        if(angles[i] < min_angle)
+                        {
+                            min_pos = i+1; //this is the local index of the edge point which forms the minimal angle
+                            min_angle = angles[i];
+                        }
+                        else if(angles[i] > max_angle)
+                        {
+                            max_pos = i+1; //this is the local index of the edge point which forms the maximal angle
+                            max_angle = angles[i];
+                        }
+                    }
+
+                    //find the pos of the center node
+                    unsigned int center_pos = 0;
+                    for(unsigned int i=1; i<4; i++)
+                    {
+                        if((i!= min_pos) && (i!=max_pos))
+                        { center_pos = i; }
+                    }
+
+                    // ######## ADDING NEW NODE #########
+                    Node < 3 >::Pointer pnode1 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[0].X(),edge_points[0].Y(),edge_points[0].Z());
+                    Node < 3 >::Pointer pnode2 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[min_pos].X(),edge_points[min_pos].Y(),edge_points[min_pos].Z());
+                    Node < 3 >::Pointer pnode3 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[center_pos].X(),edge_points[center_pos].Y(),edge_points[center_pos].Z());
+                    Node < 3 >::Pointer pnode4 = mrNewSkinModelPart.CreateNewNode(id_node++,edge_points[max_pos].X(),edge_points[max_pos].Y(),edge_points[max_pos].Z());
+
+                    // ######## ADDING NEW CONDITION #########
+                    //form two triangles
+                    Triangle3D3< Node<3> > triangle1(pnode1, pnode2, pnode3);
+                    Triangle3D3< Node<3> > triangle2(pnode1, pnode3, pnode4);
+
+                    Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
+                    Properties::Pointer properties = mrSkinModelPart.GetMesh().pGetProperties(1);
+                    Condition::Pointer p_condition1 = rReferenceCondition.Create(id_condition++, triangle1, properties);
+                    Condition::Pointer p_condition2 = rReferenceCondition.Create(id_condition++, triangle2, properties);
+
+                    mrNewSkinModelPart.Conditions().push_back(p_condition1);
+                    mrNewSkinModelPart.Conditions().push_back(p_condition2);
                 }
             }
         }
@@ -1641,377 +1781,264 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void ReproduceThreeIntNodes( ModelPart::ElementsContainerType::iterator& i_fluid_element,
-                                 array_1d<double,4>                          distances,
-                                 std::vector< array_1d<double,3> >&          nodesMatrix,
-                                 std::vector< array_1d<unsigned int,3> >&    elementsMatrix)
-    {
-        // case: 3 intersection nodes --> write 1 triangle directly
-        unsigned int nextNodeID = nodesMatrix.size()+1;
-        unsigned int ID_Node_A = nextNodeID;
-        unsigned int ID_Node_B = nextNodeID + 1;
-        unsigned int ID_Node_C = nextNodeID + 2;
+    //    void ReproduceThreeIntNodes( ModelPart::ElementsContainerType::iterator& i_fluid_element,
+    //                                 array_1d<double,4>                          distances,
+    //                                 std::vector< array_1d<double,3> >&          nodesMatrix,
+    //                                 std::vector< array_1d<unsigned int,3> >&    elementsMatrix)
+    //    {
+    //        // case: 3 intersection nodes --> write 1 triangle directly
+    //        unsigned int nextNodeID = nodesMatrix.size()+1;
+    //        unsigned int ID_Node_A = nextNodeID;
+    //        unsigned int ID_Node_B = nextNodeID + 1;
+    //        unsigned int ID_Node_C = nextNodeID + 2;
 
-        array_1d<double,3> intNode_A;
-        array_1d<double,3> intNode_B;
-        array_1d<double,3> intNode_C;
+    //        array_1d<double,3> intNode_A;
+    //        array_1d<double,3> intNode_B;
+    //        array_1d<double,3> intNode_C;
 
-        array_1d<unsigned int,3> triangle;
+    //        array_1d<unsigned int,3> triangle;
 
-        // ********* ONE NODE NEGATIVE; REMAINING NODES POSITIVE **********
-        if( distances[0] < 0 && distances[1] > 0 && distances[2] > 0 && distances[3] > 0 )
-        { // node 0 negative, remaining nodes positive
-            CalcIntersectionNode(i_fluid_element,distances,0,1,intNode_A); // Intersection Node A
-            CalcIntersectionNode(i_fluid_element,distances,0,2,intNode_B); // Intersection Node B
-            CalcIntersectionNode(i_fluid_element,distances,0,3,intNode_C); // Intersection Node C
-        }
-        else if( distances[0] > 0 && distances[1] < 0 && distances[2] > 0 && distances[3] > 0 )
-        { // node 1 negative, remaining nodes positive
-            CalcIntersectionNode(i_fluid_element,distances,1,0,intNode_A); // Intersection Node A
-            CalcIntersectionNode(i_fluid_element,distances,1,2,intNode_B); // Intersection Node B
-            CalcIntersectionNode(i_fluid_element,distances,1,3,intNode_C); // Intersection Node C
-        }
-        else if( distances[0] > 0 && distances[1] > 0 && distances[2] < 0 && distances[3] > 0 )
-        { // node 2 negative, remaining nodes positive
-            CalcIntersectionNode(i_fluid_element,distances,2,0,intNode_A); // Intersection Node A
-            CalcIntersectionNode(i_fluid_element,distances,2,1,intNode_B); // Intersection Node B
-            CalcIntersectionNode(i_fluid_element,distances,2,3,intNode_C); // Intersection Node C
-        }
-        else if( distances[0] > 0 && distances[1] > 0 && distances[2] > 0 && distances[3] < 0 )
-        { // node 3 negative, remaining nodes positive
-            CalcIntersectionNode(i_fluid_element,distances,3,0,intNode_A); // Intersection Node A
-            CalcIntersectionNode(i_fluid_element,distances,3,1,intNode_B); // Intersection Node B
-            CalcIntersectionNode(i_fluid_element,distances,3,2,intNode_C); // Intersection Node C
-        }
-        // ********* ONE NODE POSITIVE; REMAINING NODES NEGATIVE **********
-        else if( distances[0] > 0 && distances[1] < 0 && distances[2] < 0 && distances[3] < 0 )
-        { // node 0 positive, remaining nodes negative
-            CalcIntersectionNode(i_fluid_element,distances,1,0,intNode_A); // Intersection Node A
-            CalcIntersectionNode(i_fluid_element,distances,2,0,intNode_B); // Intersection Node B
-            CalcIntersectionNode(i_fluid_element,distances,3,0,intNode_C); // Intersection Node C
-        }
-        else if( distances[0] < 0 && distances[1] > 0 && distances[2] < 0 && distances[3] < 0 )
-        { // node 1 positive, remaining nodes negative
-            CalcIntersectionNode(i_fluid_element,distances,0,1,intNode_A); // Intersection Node A
-            CalcIntersectionNode(i_fluid_element,distances,2,1,intNode_B); // Intersection Node B
-            CalcIntersectionNode(i_fluid_element,distances,3,1,intNode_C); // Intersection Node C
-        }
-        else if( distances[0] < 0 && distances[1] < 0 && distances[2] > 0 && distances[3] < 0 )
-        { // node 2 positive, remaining nodes negative
-            CalcIntersectionNode(i_fluid_element,distances,0,2,intNode_A); // Intersection Node A
-            CalcIntersectionNode(i_fluid_element,distances,1,2,intNode_B); // Intersection Node B
-            CalcIntersectionNode(i_fluid_element,distances,3,2,intNode_C); // Intersection Node C
-        }
-        else if( distances[0] < 0 && distances[1] < 0 && distances[2] < 0 && distances[3] > 0 )
-        { // node 3 positive, remaining nodes negative
-            CalcIntersectionNode(i_fluid_element,distances,0,3,intNode_A); // Intersection Node A
-            CalcIntersectionNode(i_fluid_element,distances,1,3,intNode_B); // Intersection Node B
-            CalcIntersectionNode(i_fluid_element,distances,2,3,intNode_C); // Intersection Node C
-        }
+    //        // ********* ONE NODE NEGATIVE; REMAINING NODES POSITIVE **********
+    //        if( distances[0] < 0 && distances[1] > 0 && distances[2] > 0 && distances[3] > 0 )
+    //        { // node 0 negative, remaining nodes positive
+    //            CalcIntersectionNode(i_fluid_element,distances,0,1,intNode_A); // Intersection Node A
+    //            CalcIntersectionNode(i_fluid_element,distances,0,2,intNode_B); // Intersection Node B
+    //            CalcIntersectionNode(i_fluid_element,distances,0,3,intNode_C); // Intersection Node C
+    //        }
+    //        else if( distances[0] > 0 && distances[1] < 0 && distances[2] > 0 && distances[3] > 0 )
+    //        { // node 1 negative, remaining nodes positive
+    //            CalcIntersectionNode(i_fluid_element,distances,1,0,intNode_A); // Intersection Node A
+    //            CalcIntersectionNode(i_fluid_element,distances,1,2,intNode_B); // Intersection Node B
+    //            CalcIntersectionNode(i_fluid_element,distances,1,3,intNode_C); // Intersection Node C
+    //        }
+    //        else if( distances[0] > 0 && distances[1] > 0 && distances[2] < 0 && distances[3] > 0 )
+    //        { // node 2 negative, remaining nodes positive
+    //            CalcIntersectionNode(i_fluid_element,distances,2,0,intNode_A); // Intersection Node A
+    //            CalcIntersectionNode(i_fluid_element,distances,2,1,intNode_B); // Intersection Node B
+    //            CalcIntersectionNode(i_fluid_element,distances,2,3,intNode_C); // Intersection Node C
+    //        }
+    //        else if( distances[0] > 0 && distances[1] > 0 && distances[2] > 0 && distances[3] < 0 )
+    //        { // node 3 negative, remaining nodes positive
+    //            CalcIntersectionNode(i_fluid_element,distances,3,0,intNode_A); // Intersection Node A
+    //            CalcIntersectionNode(i_fluid_element,distances,3,1,intNode_B); // Intersection Node B
+    //            CalcIntersectionNode(i_fluid_element,distances,3,2,intNode_C); // Intersection Node C
+    //        }
+    //        // ********* ONE NODE POSITIVE; REMAINING NODES NEGATIVE **********
+    //        else if( distances[0] > 0 && distances[1] < 0 && distances[2] < 0 && distances[3] < 0 )
+    //        { // node 0 positive, remaining nodes negative
+    //            CalcIntersectionNode(i_fluid_element,distances,1,0,intNode_A); // Intersection Node A
+    //            CalcIntersectionNode(i_fluid_element,distances,2,0,intNode_B); // Intersection Node B
+    //            CalcIntersectionNode(i_fluid_element,distances,3,0,intNode_C); // Intersection Node C
+    //        }
+    //        else if( distances[0] < 0 && distances[1] > 0 && distances[2] < 0 && distances[3] < 0 )
+    //        { // node 1 positive, remaining nodes negative
+    //            CalcIntersectionNode(i_fluid_element,distances,0,1,intNode_A); // Intersection Node A
+    //            CalcIntersectionNode(i_fluid_element,distances,2,1,intNode_B); // Intersection Node B
+    //            CalcIntersectionNode(i_fluid_element,distances,3,1,intNode_C); // Intersection Node C
+    //        }
+    //        else if( distances[0] < 0 && distances[1] < 0 && distances[2] > 0 && distances[3] < 0 )
+    //        { // node 2 positive, remaining nodes negative
+    //            CalcIntersectionNode(i_fluid_element,distances,0,2,intNode_A); // Intersection Node A
+    //            CalcIntersectionNode(i_fluid_element,distances,1,2,intNode_B); // Intersection Node B
+    //            CalcIntersectionNode(i_fluid_element,distances,3,2,intNode_C); // Intersection Node C
+    //        }
+    //        else if( distances[0] < 0 && distances[1] < 0 && distances[2] < 0 && distances[3] > 0 )
+    //        { // node 3 positive, remaining nodes negative
+    //            CalcIntersectionNode(i_fluid_element,distances,0,3,intNode_A); // Intersection Node A
+    //            CalcIntersectionNode(i_fluid_element,distances,1,3,intNode_B); // Intersection Node B
+    //            CalcIntersectionNode(i_fluid_element,distances,2,3,intNode_C); // Intersection Node C
+    //        }
 
-        nodesMatrix.push_back(intNode_A);
-        nodesMatrix.push_back(intNode_B);
-        nodesMatrix.push_back(intNode_C);
+    //        nodesMatrix.push_back(intNode_A);
+    //        nodesMatrix.push_back(intNode_B);
+    //        nodesMatrix.push_back(intNode_C);
 
-        // triangle: ABC
-        triangle[0] = ID_Node_A;
-        triangle[1] = ID_Node_B;
-        triangle[2] = ID_Node_C;
+    //        // triangle: ABC
+    //        triangle[0] = ID_Node_A;
+    //        triangle[1] = ID_Node_B;
+    //        triangle[2] = ID_Node_C;
 
-        AdaptIndexingByNormal(i_fluid_element,distances,triangle,nodesMatrix);
+    //        AdaptIndexingByNormal(i_fluid_element,distances,triangle,nodesMatrix);
 
-        elementsMatrix.push_back(triangle);
-    }
+    //        elementsMatrix.push_back(triangle);
+    //    }
 
-    ///******************************************************************************************************************
-    ///******************************************************************************************************************
+    //    ///******************************************************************************************************************
+    //    ///******************************************************************************************************************
 
-    void ReproduceFourIntNodes(  ModelPart::ElementsContainerType::iterator& i_fluid_element,
-                                 array_1d<double,4>                          distances,
-                                 std::vector< array_1d<double,3> >&          nodesMatrix,
-                                 std::vector< array_1d<unsigned int,3> >&    elementsMatrix)
-    {
-        // case: 4 intersection nodes --> write 2 triangles
-        // or more abstractly spoken: search the nodes which form the 2 triangles
+    //    void ReproduceFourIntNodes(  ModelPart::ElementsContainerType::iterator& i_fluid_element,
+    //                                 array_1d<double,4>                          distances,
+    //                                 std::vector< array_1d<double,3> >&          nodesMatrix,
+    //                                 std::vector< array_1d<unsigned int,3> >&    elementsMatrix)
+    //    {
+    //        // case: 4 intersection nodes --> write 2 triangles
+    //        // or more abstractly spoken: search the nodes which form the 2 triangles
 
-        unsigned int nextNodeID = nodesMatrix.size()+1;
-        unsigned int ID_Node_A = nextNodeID;
-        unsigned int ID_Node_B = nextNodeID + 1;
-        unsigned int ID_Node_C = nextNodeID + 2;
-        unsigned int ID_Node_D = nextNodeID + 3;
+    //        unsigned int nextNodeID = nodesMatrix.size()+1;
+    //        unsigned int ID_Node_A = nextNodeID;
+    //        unsigned int ID_Node_B = nextNodeID + 1;
+    //        unsigned int ID_Node_C = nextNodeID + 2;
+    //        unsigned int ID_Node_D = nextNodeID + 3;
 
-        array_1d<double,3> intNode_A;
-        array_1d<double,3> intNode_B;
-        array_1d<double,3> intNode_C;
-        array_1d<double,3> intNode_D;
+    //        array_1d<double,3> intNode_A;
+    //        array_1d<double,3> intNode_B;
+    //        array_1d<double,3> intNode_C;
+    //        array_1d<double,3> intNode_D;
 
-        array_1d<unsigned int,3> triangle1;
-        array_1d<unsigned int,3> triangle2;
+    //        array_1d<unsigned int,3> triangle1;
+    //        array_1d<unsigned int,3> triangle2;
 
-        if( distances[0] < 0 )
-        {
-            if( distances[1] < 0 ) // nodes [0,1] negative
-            {
-                CalcIntersectionNode(i_fluid_element,distances,0,2,intNode_A); // Intersection Node A
-                CalcIntersectionNode(i_fluid_element,distances,0,3,intNode_B); // Intersection Node B
-                CalcIntersectionNode(i_fluid_element,distances,1,2,intNode_C); // Intersection Node C
-                CalcIntersectionNode(i_fluid_element,distances,1,3,intNode_D); // Intersection Node D
-            }
-            else if( distances[2] < 0 ) // nodes [0,2] negative
-            {
-                CalcIntersectionNode(i_fluid_element,distances,0,1,intNode_A); // Intersection Node A
-                CalcIntersectionNode(i_fluid_element,distances,0,3,intNode_B); // Intersection Node B
-                CalcIntersectionNode(i_fluid_element,distances,2,1,intNode_C); // Intersection Node C
-                CalcIntersectionNode(i_fluid_element,distances,2,3,intNode_D); // Intersection Node D
-            }
-            else if( distances[3] < 0 ) // nodes [0,3] negative
-            {
-                CalcIntersectionNode(i_fluid_element,distances,0,1,intNode_A); // Intersection Node A
-                CalcIntersectionNode(i_fluid_element,distances,0,2,intNode_B); // Intersection Node B
-                CalcIntersectionNode(i_fluid_element,distances,3,1,intNode_C); // Intersection Node C
-                CalcIntersectionNode(i_fluid_element,distances,3,2,intNode_D); // Intersection Node D
-            }
-        }
-        else if( distances[0] > 0 )
-        {
-            if( distances[1] > 0 ) // nodes [2,3] negative
-            {
-                CalcIntersectionNode(i_fluid_element,distances,2,0,intNode_A); // Intersection Node A
-                CalcIntersectionNode(i_fluid_element,distances,2,1,intNode_B); // Intersection Node B
-                CalcIntersectionNode(i_fluid_element,distances,3,0,intNode_C); // Intersection Node C
-                CalcIntersectionNode(i_fluid_element,distances,3,1,intNode_D); // Intersection Node D
-            }
-            else if( distances[2] > 0 ) // nodes [1,3] negative
-            {
-                CalcIntersectionNode(i_fluid_element,distances,1,0,intNode_A); // Intersection Node A
-                CalcIntersectionNode(i_fluid_element,distances,1,2,intNode_B); // Intersection Node B
-                CalcIntersectionNode(i_fluid_element,distances,3,0,intNode_C); // Intersection Node C
-                CalcIntersectionNode(i_fluid_element,distances,3,2,intNode_D); // Intersection Node D
-            }
-            else if( distances[3] > 0 ) // nodes [1,2] negative
-            {
-                CalcIntersectionNode(i_fluid_element,distances,1,0,intNode_A); // Intersection Node A
-                CalcIntersectionNode(i_fluid_element,distances,1,3,intNode_B); // Intersection Node B
-                CalcIntersectionNode(i_fluid_element,distances,2,0,intNode_C); // Intersection Node C
-                CalcIntersectionNode(i_fluid_element,distances,2,3,intNode_D); // Intersection Node D
-            }
-        }
+    //        if( distances[0] < 0 )
+    //        {
+    //            if( distances[1] < 0 ) // nodes [0,1] negative
+    //            {
+    //                CalcIntersectionNode(i_fluid_element,distances,0,2,intNode_A); // Intersection Node A
+    //                CalcIntersectionNode(i_fluid_element,distances,0,3,intNode_B); // Intersection Node B
+    //                CalcIntersectionNode(i_fluid_element,distances,1,2,intNode_C); // Intersection Node C
+    //                CalcIntersectionNode(i_fluid_element,distances,1,3,intNode_D); // Intersection Node D
+    //            }
+    //            else if( distances[2] < 0 ) // nodes [0,2] negative
+    //            {
+    //                CalcIntersectionNode(i_fluid_element,distances,0,1,intNode_A); // Intersection Node A
+    //                CalcIntersectionNode(i_fluid_element,distances,0,3,intNode_B); // Intersection Node B
+    //                CalcIntersectionNode(i_fluid_element,distances,2,1,intNode_C); // Intersection Node C
+    //                CalcIntersectionNode(i_fluid_element,distances,2,3,intNode_D); // Intersection Node D
+    //            }
+    //            else if( distances[3] < 0 ) // nodes [0,3] negative
+    //            {
+    //                CalcIntersectionNode(i_fluid_element,distances,0,1,intNode_A); // Intersection Node A
+    //                CalcIntersectionNode(i_fluid_element,distances,0,2,intNode_B); // Intersection Node B
+    //                CalcIntersectionNode(i_fluid_element,distances,3,1,intNode_C); // Intersection Node C
+    //                CalcIntersectionNode(i_fluid_element,distances,3,2,intNode_D); // Intersection Node D
+    //            }
+    //        }
+    //        else if( distances[0] > 0 )
+    //        {
+    //            if( distances[1] > 0 ) // nodes [2,3] negative
+    //            {
+    //                CalcIntersectionNode(i_fluid_element,distances,2,0,intNode_A); // Intersection Node A
+    //                CalcIntersectionNode(i_fluid_element,distances,2,1,intNode_B); // Intersection Node B
+    //                CalcIntersectionNode(i_fluid_element,distances,3,0,intNode_C); // Intersection Node C
+    //                CalcIntersectionNode(i_fluid_element,distances,3,1,intNode_D); // Intersection Node D
+    //            }
+    //            else if( distances[2] > 0 ) // nodes [1,3] negative
+    //            {
+    //                CalcIntersectionNode(i_fluid_element,distances,1,0,intNode_A); // Intersection Node A
+    //                CalcIntersectionNode(i_fluid_element,distances,1,2,intNode_B); // Intersection Node B
+    //                CalcIntersectionNode(i_fluid_element,distances,3,0,intNode_C); // Intersection Node C
+    //                CalcIntersectionNode(i_fluid_element,distances,3,2,intNode_D); // Intersection Node D
+    //            }
+    //            else if( distances[3] > 0 ) // nodes [1,2] negative
+    //            {
+    //                CalcIntersectionNode(i_fluid_element,distances,1,0,intNode_A); // Intersection Node A
+    //                CalcIntersectionNode(i_fluid_element,distances,1,3,intNode_B); // Intersection Node B
+    //                CalcIntersectionNode(i_fluid_element,distances,2,0,intNode_C); // Intersection Node C
+    //                CalcIntersectionNode(i_fluid_element,distances,2,3,intNode_D); // Intersection Node D
+    //            }
+    //        }
 
-        // now combine these intersection nodes to 2 triangles
-        // Applying the ordered numbering scheme, the 2 triangles are always
-        // formed out of nodes ABC and BCD
+    //        // now combine these intersection nodes to 2 triangles
+    //        // Applying the ordered numbering scheme, the 2 triangles are always
+    //        // formed out of nodes ABC and BCD
 
-        // triangle 1: ABC
-        triangle1[0] = ID_Node_A;
-        triangle1[1] = ID_Node_B;
-        triangle1[2] = ID_Node_C;
+    //        // triangle 1: ABC
+    //        triangle1[0] = ID_Node_A;
+    //        triangle1[1] = ID_Node_B;
+    //        triangle1[2] = ID_Node_C;
 
-        // triangle 2: BCD
-        triangle2[0] = ID_Node_B;
-        triangle2[1] = ID_Node_C;
-        triangle2[2] = ID_Node_D;
+    //        // triangle 2: BCD
+    //        triangle2[0] = ID_Node_B;
+    //        triangle2[1] = ID_Node_C;
+    //        triangle2[2] = ID_Node_D;
 
-        nodesMatrix.push_back(intNode_A);
-        nodesMatrix.push_back(intNode_B);
-        nodesMatrix.push_back(intNode_C);
-        nodesMatrix.push_back(intNode_D);
+    //        nodesMatrix.push_back(intNode_A);
+    //        nodesMatrix.push_back(intNode_B);
+    //        nodesMatrix.push_back(intNode_C);
+    //        nodesMatrix.push_back(intNode_D);
 
-        AdaptIndexingByNormal(i_fluid_element,distances,triangle1,nodesMatrix);
-        AdaptIndexingByNormal(i_fluid_element,distances,triangle2,nodesMatrix);
+    //        AdaptIndexingByNormal(i_fluid_element,distances,triangle1,nodesMatrix);
+    //        AdaptIndexingByNormal(i_fluid_element,distances,triangle2,nodesMatrix);
 
-        elementsMatrix.push_back(triangle1);
-        elementsMatrix.push_back(triangle2);
-    }
-
-    ///******************************************************************************************************************
-    ///******************************************************************************************************************
-
-//    void ReproduceFourIntNodes2(  ModelPart::ElementsContainerType::iterator& i_fluid_element,
-//                                  array_1d<double,4>                          distances,
-//                                  std::vector< array_1d<double,3> >&          nodesMatrix,
-//                                  std::vector< array_1d<unsigned int,3> >&    elementsMatrix)
-//    {
-//        Element::GeometryType& geom = i_fluid_element->GetGeometry();
-
-//        std::vector< Point<3> > edge_points;
-//        edge_points.reserve(4);
-
-//        for(unsigned int i=0; i<3; i++)
-//        {
-//            for(unsigned int j=i+1; j<4; j++) // go through the edges 01, 02, 03, 12, 13, 23
-//            {
-//                double di = distances[i];
-//                double dj = distances[j];
-
-//                if(di*dj < 0) //edge is cut
-//                {
-//                    //generate point on edge by linear interpolation
-//                    double Ni = fabs(dj) / ( fabs(di) + fabs(dj) );
-//                    double Nj = 1.0 - Ni;
-//                    Point<3> edge_point(Ni * geom[i] + Nj * geom[j]);
-//                    edge_points.push_back(edge_point);
-//                }
-//            }
-//        }
-
-
-//        //        array_1d<double,3> x21 = x2 - x1;
-//        //        array_1d<double,3> x31 = x3 - x1;
-//        //        array_1d<double,3> x21 = x4 - x1;
-
-//        array_1d<double,3> x21 = edge_points[1] - edge_points[0];
-//        array_1d<double,3> x31 = edge_points[2] - edge_points[0];
-//        array_1d<double,3> x41 = edge_points[3] - edge_points[0];
-
-//        //define a vector oriented as x21
-//        array_1d<double,3> v1 = x21 / norm_2(x21);
-
-//        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
-//        array_1d<double,4> msN;
-//        double Area;
-//        GeometryUtils::CalculateGeometryData( geom, DN_DX, msN, Area );
-
-//        array_1d<double,3> n = prod(trans(DN_DX),distances);
-//        n /= norm_2(n);
-
-//        array_1d<double,3> v2 = MathUtils<double>::CrossProduct(n,v1);
-
-//        array_1d<double,3> angles;
-//        angles[0] = 0.0; //angle between x21 and v1
-//        angles[1] = atan2( inner_prod(x31,v2), inner_prod(x31,v1) ); //angle between x31 and v1
-//        angles[2] = atan2( inner_prod(x41,v2), inner_prod(x41,v1) ); //angle between x31 and v1
-
-//        double max_angle = 0.0;
-//        double min_angle = 0.0;
-//        unsigned int min_pos = 0;
-//        unsigned int max_pos = 0;
-//        for(unsigned int i=1; i<3; i++)
-//        {
-//            if(angles[i] < min_angle)
-//            {
-//                min_pos = i+1; //this is the local index of the edge point which forms the minimal angle
-//                min_angle = angles[i];
-//            }
-//            if(angles[i] > max_angle)
-//            {
-//                max_pos = i+1; //this is the local index of the edge point which forms the maximal angle
-//                max_angle = angles[i];
-//            }
-//        }
-
-//        //find the pos of the center node
-//        unsigned int center_pos = 0;
-//        for(unsigned int i=2; i<4; i++)
-//        {
-//            if(i!= min_pos && i!=max_pos){ center_pos = i; }
-//        }
-
-//        //form a quadrilateral with the edge nodes ordered as:
-//        //x_0  x_min_pos x_center_pos x_max_pos
-//        array_1d<double,3> node_0 = edge_points[0];
-//        array_1d<double,3> node_1 = edge_points[min_pos];
-//        array_1d<double,3> node_2 = edge_points[center_pos];
-//        array_1d<double,3> node_3 = edge_points[max_pos];
-//        nodesMatrix.push_back(node_0);
-//        nodesMatrix.push_back(node_1);
-//        nodesMatrix.push_back(node_2);
-//        nodesMatrix.push_back(node_3);
-
-//        //AdaptIndexingByNormal(i_fluid_element,distances,triangle1,nodesMatrix);
-//        //AdaptIndexingByNormal(i_fluid_element,distances,triangle2,nodesMatrix);
-
-//        array_1d<unsigned int,3> triangle1;
-//        array_1d<unsigned int,3> triangle2;
-
-//        triangle1[0] = 1;
-//        triangle1[1] = center_pos+1;
-//        triangle1[2] = max_pos+1;
-
-//        triangle2[0] = 1;
-//        triangle2[1] = center_pos+1;
-//        triangle2[2] = min_pos+1;
-
-//        elementsMatrix.push_back(triangle1);
-//        elementsMatrix.push_back(triangle2);
-//    }
-
+    //        elementsMatrix.push_back(triangle1);
+    //        elementsMatrix.push_back(triangle2);
+    //    }
 
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void CalcIntersectionNode( ModelPart::ElementsContainerType::iterator&  i_fluid_element,
-                               array_1d<double,4>                           distances,
-                               unsigned int                                 Index1,
-                               unsigned int                                 Index2,
-                               array_1d<double,3> &                         intNodeCoord )
-    {
-        // Interpolate the intersection node given two tet nodes and the distance values
+    //    void CalcIntersectionNode( ModelPart::ElementsContainerType::iterator&  i_fluid_element,
+    //                               array_1d<double,4>                           distances,
+    //                               unsigned int                                 Index1,
+    //                               unsigned int                                 Index2,
+    //                               array_1d<double,3> &                         intNodeCoord )
+    //    {
+    //        // Interpolate the intersection node given two tet nodes and the distance values
 
-        // tet_edge is intersected --> calculate one triangle node by interpolation
-        Element::GeometryType& geom = i_fluid_element->GetGeometry(); // Nodos del elemento
-        array_1d<double,3> node1 = geom[Index1].Coordinates();
-        array_1d<double,3> node2 = geom[Index2].Coordinates();
+    //        // tet_edge is intersected --> calculate one triangle node by interpolation
+    //        Element::GeometryType& geom = i_fluid_element->GetGeometry(); // Nodos del elemento
+    //        array_1d<double,3> node1 = geom[Index1].Coordinates();
+    //        array_1d<double,3> node2 = geom[Index2].Coordinates();
 
-        // Compute intersection node by means of linear interpolation
-        double scale = (-distances[Index1] / (distances[Index2] - distances[Index1]));
-        double x_Int = node1[0] + (node2[0] - node1[0]) * scale;
-        double y_Int = node1[1] + (node2[1] - node1[1]) * scale;
-        double z_Int = node1[2] + (node2[2] - node1[2]) * scale;
+    //        // Compute intersection node by means of linear interpolation
+    //        double scale = (-distances[Index1] / (distances[Index2] - distances[Index1]));
+    //        double x_Int = node1[0] + (node2[0] - node1[0]) * scale;
+    //        double y_Int = node1[1] + (node2[1] - node1[1]) * scale;
+    //        double z_Int = node1[2] + (node2[2] - node1[2]) * scale;
 
-        intNodeCoord[0] = x_Int;
-        intNodeCoord[1] = y_Int;
-        intNodeCoord[2] = z_Int;
-    }
+    //        intNodeCoord[0] = x_Int;
+    //        intNodeCoord[1] = y_Int;
+    //        intNodeCoord[2] = z_Int;
+    //    }
 
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void AdaptIndexingByNormal( ModelPart::ElementsContainerType::iterator& i_fluid_element,
-                                array_1d<double,4>                          distances,
-                                array_1d<unsigned int,3>&                   IDNodesInTri,
-                                std::vector< array_1d<double,3> >           nodesMatrix )
-    {
-        // Check, if normal of reproduced triangular element points into the direction of a tet node with positive dist,
-        // else adapt nodal indexes of the element
+    //    void AdaptIndexingByNormal( ModelPart::ElementsContainerType::iterator& i_fluid_element,
+    //                                array_1d<double,4>                          distances,
+    //                                array_1d<unsigned int,3>&                   IDNodesInTri,
+    //                                std::vector< array_1d<double,3> >           nodesMatrix )
+    //    {
+    //        // Check, if normal of reproduced triangular element points into the direction of a tet node with positive dist,
+    //        // else adapt nodal indexes of the element
 
-        // First, calculate normal of triangle
-        array_1d<double,3> triEdge12; // vector connecting node 1 and 2 of the reproduced triangle
-        array_1d<double,3> triEdge13; // vector connecting node 1 and 3 of the reproduced triangle
+    //        // First, calculate normal of triangle
+    //        array_1d<double,3> triEdge12; // vector connecting node 1 and 2 of the reproduced triangle
+    //        array_1d<double,3> triEdge13; // vector connecting node 1 and 3 of the reproduced triangle
 
-        triEdge12[0] = nodesMatrix[IDNodesInTri[1]-1][0] - nodesMatrix[IDNodesInTri[0]-1][0];
-        triEdge12[1] = nodesMatrix[IDNodesInTri[1]-1][1] - nodesMatrix[IDNodesInTri[0]-1][1];
-        triEdge12[2] = nodesMatrix[IDNodesInTri[1]-1][2] - nodesMatrix[IDNodesInTri[0]-1][2];
+    //        triEdge12[0] = nodesMatrix[IDNodesInTri[1]-1][0] - nodesMatrix[IDNodesInTri[0]-1][0];
+    //        triEdge12[1] = nodesMatrix[IDNodesInTri[1]-1][1] - nodesMatrix[IDNodesInTri[0]-1][1];
+    //        triEdge12[2] = nodesMatrix[IDNodesInTri[1]-1][2] - nodesMatrix[IDNodesInTri[0]-1][2];
 
-        triEdge13[0] = nodesMatrix[IDNodesInTri[2]-1][0] - nodesMatrix[IDNodesInTri[0]-1][0];
-        triEdge13[1] = nodesMatrix[IDNodesInTri[2]-1][1] - nodesMatrix[IDNodesInTri[0]-1][1];
-        triEdge13[2] = nodesMatrix[IDNodesInTri[2]-1][2] - nodesMatrix[IDNodesInTri[0]-1][2];
+    //        triEdge13[0] = nodesMatrix[IDNodesInTri[2]-1][0] - nodesMatrix[IDNodesInTri[0]-1][0];
+    //        triEdge13[1] = nodesMatrix[IDNodesInTri[2]-1][1] - nodesMatrix[IDNodesInTri[0]-1][1];
+    //        triEdge13[2] = nodesMatrix[IDNodesInTri[2]-1][2] - nodesMatrix[IDNodesInTri[0]-1][2];
 
-        // Compute normal by cross product of the triangle edges
-        array_1d<double,3> normalVec;
-        MathUtils<double>::CrossProduct(normalVec,triEdge12,triEdge13);
-        normalVec *= 0.5;
+    //        // Compute normal by cross product of the triangle edges
+    //        array_1d<double,3> normalVec;
+    //        MathUtils<double>::CrossProduct(normalVec,triEdge12,triEdge13);
+    //        normalVec *= 0.5;
 
-        // Check, if normal vector is pointing into a tetnode with a positive distance value
-        Element::GeometryType& geom = i_fluid_element->GetGeometry();
-        array_1d<double,3> tetNode = geom[0].Coordinates();
-        array_1d<double,3> intNodeTetNodeVec; // Vector connecting the tet node and the first intersection node
-        intNodeTetNodeVec[0] = tetNode[0] - nodesMatrix[IDNodesInTri[0]-1][0];
-        intNodeTetNodeVec[1] = tetNode[1] - nodesMatrix[IDNodesInTri[0]-1][1];
-        intNodeTetNodeVec[2] = tetNode[2] - nodesMatrix[IDNodesInTri[0]-1][2];
+    //        // Check, if normal vector is pointing into a tetnode with a positive distance value
+    //        Element::GeometryType& geom = i_fluid_element->GetGeometry();
+    //        array_1d<double,3> tetNode = geom[0].Coordinates();
+    //        array_1d<double,3> intNodeTetNodeVec; // Vector connecting the tet node and the first intersection node
+    //        intNodeTetNodeVec[0] = tetNode[0] - nodesMatrix[IDNodesInTri[0]-1][0];
+    //        intNodeTetNodeVec[1] = tetNode[1] - nodesMatrix[IDNodesInTri[0]-1][1];
+    //        intNodeTetNodeVec[2] = tetNode[2] - nodesMatrix[IDNodesInTri[0]-1][2];
 
-        // Determine inner product as measure for the orientation of normal vector relative to tet node 0
-        double InnerProduct = inner_prod(intNodeTetNodeVec,normalVec);
+    //        // Determine inner product as measure for the orientation of normal vector relative to tet node 0
+    //        double InnerProduct = inner_prod(intNodeTetNodeVec,normalVec);
 
-        if((InnerProduct < 0.0 and distances[0] > 0) or (InnerProduct > 0.0 and distances[0] < 0))
-        {
-            // in this case, the normal is NOT pointing towards a tet node with a positive value
-            // --> switch two arbitrary nodes of the triangle
-            // IDNodesInTri[0] = IDNodesInTri[0];
-            unsigned int getIndex1 = IDNodesInTri[1];
-            IDNodesInTri[1] = IDNodesInTri[2];
-            IDNodesInTri[2] = getIndex1;
-        }
-    }
+    //        if((InnerProduct < 0.0 && distances[0] > 0) || (InnerProduct > 0.0 && distances[0] < 0))
+    //        {
+    //            // in this case, the normal is NOT pointing towards a tet node with a positive value
+    //            // --> switch two arbitrary nodes of the triangle
+    //            // IDNodesInTri[0] = IDNodesInTri[0];
+    //            unsigned int getIndex1 = IDNodesInTri[1];
+    //            IDNodesInTri[1] = IDNodesInTri[2];
+    //            IDNodesInTri[2] = getIndex1;
+    //        }
+    //    }
 
     ///******************************************************************************************************************
     ///******************************************************************************************************************
