@@ -131,7 +131,7 @@ criterion_type  = general_variables.Convergence_Criteria
 convergence_tol = general_variables.Convergence_Tolerance
 absolute_tol    = general_variables.Absolute_Tolerance
 max_iters       = int(general_variables.Max_Iter)
-main_step_solver.SetConvergenceCriterion(criterion_type,convergence_tol,absolute_tol,max_iters);
+main_step_solver.SetConvergenceCriterion(criterion_type,convergence_tol,absolute_tol,max_iters,rotation_dofs);
 
 ######################--DEFINE MAIN SOLVER END--##################
 
