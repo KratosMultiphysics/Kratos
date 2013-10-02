@@ -82,7 +82,7 @@ def SetProperties(SectionType, SectionData, BeamProperties):
 def searchCVSValues(properties_filename,shape,size):
     separator = ";"
     
-    with open(profiles_filename,"rU") as f:
+    with open(properties_filename,"rU") as f:
         header = f.readline()
         header = header.rstrip("\n")
         header = header.split(separator)
