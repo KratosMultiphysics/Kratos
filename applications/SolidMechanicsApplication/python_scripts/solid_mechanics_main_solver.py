@@ -255,30 +255,48 @@ class SolidMechanicsSolver:
             
 
     #######################################################################   
-    def SetConvergenceCriterion(self,convergence_criterion_type,convergence_tol,absolute_tol,max_iters):
+    def SetConvergenceCriterion(self,convergence_criterion_type,convergence_tol,absolute_tol,max_iters, rotation_dofs):
         
         if(max_iters > 1):
             self.max_iters = max_iters
         #mechanical convergence criteria
         CT = convergence_tol;
         AT = absolute_tol; 
-        if(convergence_criterion_type == "Displacement_criteria"):
-            self.mechanical_convergence_criterion  =  DisplacementConvergenceCriteria(CT,AT)
-        elif(convergence_criterion_type == "Residual_criteria"): 
-            self.mechanical_convergence_criterion  =  ResidualConvergenceCriteria(CT,AT)
-        elif(convergence_criterion_type == "And_criteria"): 
-            Displacement   =   DisplacementConvergenceCriteria(CT,AT)
-            Residual       =   ResidualConvergenceCriteria(CT,AT)
-            self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
-        elif(convergence_criterion_type == "Or_criteria"): 
-            Displacement   =   DisplacementConvergenceCriteria(CT,AT)
-            Residual       =   ResidualConvergenceCriteria(CT,AT)
-            self.mechanical_convergence_criterion  = OrCriteria(Residual, Displacement)
-        elif(convergence_criterion_type == "Mixed_criteria"):
-            Displacement   =   MixedElementConvergenceCriteria(CT,AT)
-            Residual       =   ResidualConvergenceCriteria(CT,AT)
-            self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
 
+        if(rotation_dofs == "True"):
+            if(convergence_criterion_type == "Displacement_criteria"):
+                self.mechanical_convergence_criterion  =  DisplacementCriteria(CT,AT)
+            elif(convergence_criterion_type == "Residual_criteria"):
+                self.mechanical_convergence_criterion  =  ResidualCriteria(CT,AT)
+            elif(convergence_criterion_type == "And_criteria"):
+                Displacement   =   DisplacementCriteria(CT,AT)
+                Residual       =   ResidualCriteria(CT,AT)
+                self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
+            elif(convergence_criterion_type == "Or_criteria"):
+                Displacement   =   DisplacementCriteria(CT,AT)
+                Residual       =   ResidualCriteria(CT,AT)
+                self.mechanical_convergence_criterion  = OrCriteria(Residual, Displacement)
+            elif(convergence_criterion_type == "Mixed_criteria"):
+                Displacement   =   MixedElementCriteria(CT,AT)
+                Residual       =   ResidualCriteria(CT,AT)
+                self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
+        else:
+            if(convergence_criterion_type == "Displacement_criteria"):
+                self.mechanical_convergence_criterion  =  DisplacementConvergenceCriteria(CT,AT)
+            elif(convergence_criterion_type == "Residual_criteria"):
+                self.mechanical_convergence_criterion  =  ResidualConvergenceCriteria(CT,AT)
+            elif(convergence_criterion_type == "And_criteria"):
+                Displacement   =   DisplacementConvergenceCriteria(CT,AT)
+                Residual       =   ResidualConvergenceCriteria(CT,AT)
+                self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
+            elif(convergence_criterion_type == "Or_criteria"):
+                Displacement   =   DisplacementConvergenceCriteria(CT,AT)
+                Residual       =   ResidualConvergenceCriteria(CT,AT)
+                self.mechanical_convergence_criterion  = OrCriteria(Residual, Displacement)
+            elif(convergence_criterion_type == "Mixed_criteria"):
+                Displacement   =   MixedElementConvergenceCriteria(CT,AT)
+                Residual       =   ResidualConvergenceCriteria(CT,AT)
+                self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
 
         #move the mesh as needed
         #if(self.MoveMeshFlag == True):
