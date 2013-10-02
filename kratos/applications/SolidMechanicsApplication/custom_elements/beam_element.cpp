@@ -575,12 +575,7 @@ void BeamElement::CalculateBodyForce(Matrix& Rotation, Vector& LocalBody, Vector
     double  sino;
     double  cose;
 
-    array_1d<double, 3> Weight; 
-    Weight.clear();
-    //must be changed to be taken from VOLUME_ACCELERATION JMC 26-7-2013
-    // Weight[0]        =  GetProperties()[BODY_FORCE](0);
-    // Weight[1]        =  GetProperties()[BODY_FORCE](1);
-    // Weight[2]        =  GetProperties()[BODY_FORCE](2);
+    array_1d<double, 3> Weight = GetProperties()[VOLUME_ACCELERATION];
 
 
     array_1d<double, 12 > Cargas_X = ZeroVector(12);
@@ -1014,13 +1009,8 @@ void BeamElement::CalculateLocalNodalStress(Vector& Stress)
 void BeamElement::CalculateDistributedBodyForce(const int Direction, Vector& Load)
 {
 
-    array_1d<double, 3> Weight; 
-    Weight.clear();
+    array_1d<double, 3> Weight = GetProperties()[VOLUME_ACCELERATION];
     Load.resize(2, false);
-    //must be changed to be taken from VOLUME_ACCELERATION JMC 26-7-2013
-    // Weight[0]        =  GetProperties()[BODY_FORCE](0);
-    // Weight[1]        =  GetProperties()[BODY_FORCE](1);
-    // Weight[2]        =  GetProperties()[BODY_FORCE](2);
 
     double alpha  =  0.00;
     double signo  =  1.00;
@@ -1171,8 +1161,8 @@ int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
         KRATOS_ERROR(std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered","");
     if(DENSITY.Key() == 0)
         KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered","");
-    // if(BODY_FORCE.Key() == 0)
-        // KRATOS_ERROR(std::invalid_argument,"BODY_FORCE has Key zero! (check if the application is correctly registered","");
+     if(VOLUME_ACCELERATION.Key() == 0)
+        // KRATOS_ERROR(std::invalid_argument,"VOLUME_ACCELERATION has Key zero! (check if the application is correctly registered","");
     if(CROSS_AREA.Key() == 0)
         KRATOS_ERROR(std::invalid_argument,"CROSS_AREA has Key zero! (check if the application is correctly registered","");
     if(LOCAL_INERTIA.Key() == 0)
@@ -1204,9 +1194,9 @@ int  BeamElement::Check(const ProcessInfo& rCurrentProcessInfo)
     }
 
     //Verify that the body force is defined
-    if (this->GetProperties().Has(BODY_FORCE)==false)
+    if (this->GetProperties().Has(VOLUME_ACCELERATION)==false)
     {
-        KRATOS_ERROR(std::logic_error,"BODY_FORCE not provided for property ",this->GetProperties().Id())
+        KRATOS_ERROR(std::logic_error,"VOLUME_ACCELERATION not provided for property ",this->GetProperties().Id())
     }
 
     return 0;
