@@ -101,7 +101,7 @@ proc ::kfiles::LoadSPD {filename} {
     } else {
         #Se guarda una copia del archivo original antes de modificarlo
         
-        if { [file tail $filename] == "kratos_default.kmdb" } {
+        if { [file tail $filename_mat] == "kratos_default.kmdb" } {
             # kike: commented, this backup copy is unneeded 
             # (the 'kratos_default.kmdb' file must be opened for read only and then can't be corrupted)
             # and in general will be forbidden to write in the problemtype folder !!
