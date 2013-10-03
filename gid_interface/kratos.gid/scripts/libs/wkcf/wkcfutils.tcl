@@ -1659,7 +1659,7 @@ proc ::wkcf::GetSurfaceTypeList {surfacelist} {
 		set cvprop [GiD_Info list_entities volumes $vlist]
 		regexp -nocase {Elemtype=([0-9]*)} $cvprop none voltype
 		# wa "voltype:$voltype"
-		if {$voltype == 4} {
+		if {$voltype == 4 || $voltype==""} {
 		    lappend tetrasurf $surfid
 		} elseif {$voltype == 5} {
 		    lappend hexasurf $surfid
