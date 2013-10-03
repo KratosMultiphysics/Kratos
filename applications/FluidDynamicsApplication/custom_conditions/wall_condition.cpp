@@ -152,7 +152,7 @@ void WallCondition<3,3>::CalculateNormal(array_1d<double,3>& An )
         v2[2] = pGeometry[2].Z() - pGeometry[0].Z();
 
         MathUtils<double>::CrossProduct(An,v1,v2);
-        An *= 0.5;
+        An *= -0.5;
 
         // 				noalias((it)->GetValue(NORMAL)) = An;
     }
