@@ -169,7 +169,7 @@ namespace Kratos
 
           // 0. Set search radius
           
-          KRATOS_WATCH(rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION])
+          
           SetSearchRadius(r_model_part, rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);
 
           // 1. Search Neighbours with tolerance (Not in mpi.)
@@ -350,7 +350,7 @@ namespace Kratos
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-                  (it)->InitializeSolutionStep(rCurrentProcessInfo); // we use this function to call the set initial contacts and the add continuum contacts.        
+                (it)->InitializeSolutionStep(rCurrentProcessInfo); // we use this function to call the set initial contacts and the add continuum contacts.        
               } // loop over particles
 
           } // loop threads OpenMP
@@ -517,10 +517,12 @@ namespace Kratos
         KRATOS_TRY
 
         ModelPart& r_model_part               = BaseType::GetModelPart();
+         ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
 
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
             this->GetRadius()[particle_pointer_it - pElements.begin()] = (1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
+
         }
 
         KRATOS_CATCH("")
