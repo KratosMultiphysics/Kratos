@@ -43,7 +43,8 @@ namespace Kratos
             Vector[1] = Vector[1] / distance;
             Vector[2] = Vector[2] / distance;
     }
-      static inline void norm( array_1d<double,3>& Vector, double& distance)
+    
+    static inline void norm( array_1d<double,3>& Vector, double& distance)
     {
             distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
             
