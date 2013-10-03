@@ -4,12 +4,16 @@ message("**** configuring KratosEmpireApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
+#dependecies on other application -- TRILINOS specific
+include_directories( ${CMAKE_SOURCE_DIR}/applications/structural_application )
+
 ## generate variables with the sources
 set( KRATOS_EMPIRE_APPLICATION_SOURCES     
         ${CMAKE_CURRENT_SOURCE_DIR}/empire_application.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/empire_python_application.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_processes_to_python.cpp
+        ${CMAKE_SOURCE_DIR}/applications/structural_application/custom_elements/membrane_element.cpp
 
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/your_new_element.cpp
 	#${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/your_new_element_2d.h
