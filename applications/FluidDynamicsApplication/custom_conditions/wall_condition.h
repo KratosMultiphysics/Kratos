@@ -244,7 +244,7 @@ namespace Kratos
                 noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
                 noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-                this->ApplyInflowCondition(rLeftHandSideMatrix,rRightHandSideVector);
+                //this->ApplyInflowCondition(rLeftHandSideMatrix,rRightHandSideVector);
 
                 this->ApplyWallLaw(rLeftHandSideMatrix,rRightHandSideVector);
             }
