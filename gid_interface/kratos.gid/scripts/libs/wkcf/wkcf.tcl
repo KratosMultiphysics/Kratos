@@ -250,7 +250,7 @@ proc ::wkcf::SelectPythonScript {} {
 
     if {$StructuralAnalysis =="Yes"} {
 	# Check for use OpenMP
-	set cxpath "$rootdataid//c.SolutionStrategy//c.Parallel//i.ParallelSolutionType"
+	set cxpath "$rootdataid//c.SolutionStrategy//c.ParallelType//i.ParallelSolutionType"
 	set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
 	# wa "ParallelSolutionType:$ParallelSolutionType"
 	
@@ -308,7 +308,7 @@ proc ::wkcf::SelectPythonScript {} {
 	# wa "SolverTypeFreeSurf:$SolverTypeFreeSurf"
 	
 	# Check for use OpenMP
-	set cxpath "$rootdataid//c.SolutionStrategy//i.ParallelSolutionType"
+	set cxpath "$rootdataid//c.SolutionStrategy//c.ParallelType//i.ParallelSolutionType"
 	set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
 	
 	if {$ParallelSolutionType eq "OpenMP"} {

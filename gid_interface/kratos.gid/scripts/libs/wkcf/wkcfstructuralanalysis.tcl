@@ -1403,11 +1403,11 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     puts $fileid "LineSearch = \"False\""
     
     # Number of threads
-    set cxpath "$AppId//c.SolutionStrategy//c.Parallel//i.ParallelSolutionType"
+    set cxpath "$AppId//c.SolutionStrategy//c.ParallelType//i.ParallelSolutionType"
     set ParallelType [::xmlutils::setXml $cxpath $cproperty]
     if {$ParallelType =="OpenMP"} {
 	# Number of Steps
-	set cxpath "$AppId//c.SolutionStrategy//c.Parallel//i.OpenMPNumberOfThreads"
+	set cxpath "$AppId//c.SolutionStrategy//c.ParallelType//i.OpenMPNumberOfThreads"
 	set NumberOfThreads [::xmlutils::setXml $cxpath $cproperty]
 	puts $fileid "NumberofThreads = $NumberOfThreads"
     } else {

@@ -45,7 +45,7 @@
             <Item id="AnalysisType" pid="Analysis type" class="analysType" dv="Linear" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" help="Analysis Type"/>
         </Container>
         <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="0" icon="solstrategy.gif">
-	  <Container id="Parallel" pid="Parallel type" class="Tab" open="0" icon="groupsTreeNew.gif">
+	  <Container id="ParallelType" pid="Parallel type" class="Tab" open="0" icon="groupsTreeNew.gif">
 	    <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" class="PSolutionType" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
 	    <Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
 	    <Item id="OpenMPNumberOfThreads" pid="Number of threads" dv="2" PSolutionType="OpenMP" help="Number of threads"/>
@@ -306,47 +306,51 @@
     <RootData id="PFEM" pid="PFEM" state="hiddenAll" class="application" icon="aplicationTree.gif" help="PFEM" open="1">
       <Container id="AnalysisData" pid="Analysis data" class="Tab" help="Analysis data" open="0">
         <Item id="FluidType" pid="Fluid type" class="fluidType" dv="Incompressible" ivalues="Compressible,Incompressible" values="Compressible,Incompressible" help="Fluid type"/>
-	    <Item id="FreeSurface" pid="Free surface" class="freeSurf" fluidType="Incompressible" dv="No" ivalues="Yes,No" values="Yes,No" help="Free surface"/>
+	<Item id="FreeSurface" pid="Free surface" class="freeSurf" fluidType="Incompressible" dv="No" ivalues="Yes,No" values="Yes,No" help="Free surface"/>
       </Container>
-        <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="0" dv="fh" values="">
-            <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
-            <Item id="StartTime" pid="Start time" dv="0.0" help=""/>
-            <Item id="EndTime" pid="End time" dv="1" help=""/>
-            <Item id="UseAutomaticDeltaTime" pid="Automatic delta time" class="deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the Delta time option to be used"/>
-            <Item id="DeltaTime" deltatimetype="Fixed" pid="Delta time" dv="0.001" help=""/>
-            <Item id="TargetCFL" pid="Target CFL" deltatimetype="Automatic" dv="5.0" help=""/>
-            <Container id="Advanced" pid="Advanced" fluidType="Incompressible" class="Tab" help="" open="0">
-            <Item id="DynamicTau" pid="Use dt in stabilization" dv="0.01" CBState="normal" values="1.0,0.1,0.01,0.001,0.0" help=""/>
-            <Item id="OssSwitch" pid="Use orthogonal subscales" dv="0" ivalues="0,1" values="0,1" help=""/> 
+      <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="0" dv="fh" values="">
+	<Container id="ParallelType" pid="Parallel type" class="Tab" help="Parallel type" open="0" icon="groupsTreeNew.gif">
+	  <Item id="ParallelSolutionType" pid="Parallel type" dv="OpenMP" ivalues="OpenMP,MPI" values="OpenMP,MPI" help=""/>
+	</Container>
+	<Container id="Advanced" pid="Advanced" fluidType="Incompressible" class="Tab" help="" open="0">
+	  <Item id="DynamicTau" pid="Use dt in stabilization" dv="0.01" CBState="normal" values="1.0,0.1,0.01,0.001,0.0" help=""/>
+	  <Item id="OssSwitch" pid="Use orthogonal subscales" dv="0" ivalues="0,1" values="0,1" help=""/> 
         </Container>
-    </Container>
-  <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesFluid" icon="propsTreeNew.gif" help="Add a new Property" open="0"/>
-        <Container id="Elements" pid="Elements" help="Elements" open="0">
-            <Container id="Fluid2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface"  idTemplate="Fluid2DElement" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
-            <Container id="Fluid3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume" idTemplate="Fluid3DElement" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
-        </Container>
-	<Container id="Conditions" pid="Boundary conditions" help="Boundary conditions" open="0">
-	  <Container id="Is-Slip" pid="Is-Slip" class="Groups" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="0"/>
-	  <Container id="Is-Fluid" pid="Is-Fluid" class="Groups" idTemplate="IsSlip" icon="groupsTreeNew.gif" help="Is fluid" open="0"/>
-	  <Container id="Is-Boundary" pid="Is-Boundary" class="Groups" idTemplate="IsBoundary" icon="groupsTreeNew.gif" help="Is boundary" open="0"/>
-	  </Container>
-        <Container id="Results" pid="Results" help="Results" open="0">
+      </Container>
+      <Container id="ProblemParameters" pid="Problem Parameters" help="Problem Parameters" open="0" dv="fh" values="">
+	<Item id="StartTime" pid="Start time" dv="0.0" help=""/>
+	<Item id="EndTime" pid="End time" dv="1" help=""/>
+	<Item id="UseAutomaticDeltaTime" pid="Automatic delta time" class="deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the Delta time option to be used"/>
+	<Item id="DeltaTime" deltatimetype="Fixed" pid="Delta time" dv="0.001" help=""/>
+	<Item id="TargetCFL" pid="Target CFL" deltatimetype="Automatic" dv="5.0" help=""/>
+      </Container>
+      <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesFluid" icon="propsTreeNew.gif" help="Add a new Property" open="0"/>
+      <Container id="Elements" pid="Elements" help="Elements" open="0">
+	<Container id="Fluid2D" pid="Fluid" class="Groups" nDim="2D" GiDEntity="surface"  idTemplate="Fluid2DElement" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
+	<Container id="Fluid3D" pid="Fluid" class="Groups" nDim="3D" GiDEntity="volume" idTemplate="Fluid3DElement" icon="groupsTreeNew.gif" help="Fluid" open="0"/>
+      </Container>
+      <Container id="Conditions" pid="Boundary conditions" help="Boundary conditions" open="0">
+	<Container id="Is-Slip" pid="Is-Slip" class="Groups" idTemplate="IsSlip" GiDEntity="point,line,surface" icon="groupsTreeNew.gif" help="Slip" open="0"/>
+	<Container id="Is-Fluid" pid="Is-Fluid" class="Groups" idTemplate="IsSlip" icon="groupsTreeNew.gif" help="Is fluid" open="0"/>
+	<Container id="Is-Boundary" pid="Is-Boundary" class="Groups" idTemplate="IsBoundary" icon="groupsTreeNew.gif" help="Is boundary" open="0"/>
+      </Container>
+      <Container id="Results" pid="Results" help="Results" open="0">
         <Item id="VolumeOutput" pid="Volume output" dv="Yes" nDim="3D" class="UseCuts" ivalues="Yes,No" values="Yes,No" help="Volume output"/>
         <Item id="OutputDeltaTime" pid="Output delta time" dv="0.0" help="Output delata time"/>
-	    <Item id="PrintInLayer" pid="Print in layer" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Print in layer"/>
-	    <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="0">
-	      <Item id="Velocity" pid="Velocity" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
-	      <Item id="Pressure" pid="Pressure" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Pressure"/>
-	      <Item id="Reactions" pid="Reactions" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Stresses"/>
-	      <Item id="Distance" pid="Distance" dv="No" ivalues="Yes,No" values="Yes,No" help="Distance"/>
-	    </Container>
-	    <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess options" open="0">
-	      <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
-	      <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="Yes" ivalues="True,False" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
-	      <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="True,False" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
-	      <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" help="Write one GiD result file or multiple files"/>
-	    </Container>
-        </Container>
+	<Item id="PrintInLayer" pid="Print in layer" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Print in layer"/>
+	<Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="0">
+	  <Item id="Velocity" pid="Velocity" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Velocity"/>
+	  <Item id="Pressure" pid="Pressure" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Pressure"/>
+	  <Item id="Reactions" pid="Reactions" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Stresses"/>
+	  <Item id="Distance" pid="Distance" dv="No" ivalues="Yes,No" values="Yes,No" help="Distance"/>
+	</Container>
+	<Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess options" open="0">
+	  <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
+	  <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="Yes" ivalues="True,False" values="Yes,No" help="Write the GiD deformed or undeformed mesh"/>
+	  <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="True,False" values="Yes,No" help="Write the conditions or only element to the GiD result file"/>
+	  <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" help="Write one GiD result file or multiple files"/>
+	</Container>
+      </Container>
     </RootData>
     <RootData id="FluidStructureInteraction" pid="Fluid structure interaction (FSI)" state="hiddenAll" class="application" icon="aplicationTree.gif" help="Fluid structure interaction (FSI)" open="1">
       <Container id="NotAvailable" pid="Not available" dv="res" help="Developing in process"/>
