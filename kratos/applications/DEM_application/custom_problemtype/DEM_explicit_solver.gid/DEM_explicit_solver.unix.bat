@@ -5,6 +5,7 @@
 
 #rm -f "$2/${1}_*.post.bin"
 
+
 rm -f "$2/$1_Post_Files/${1}_*.post.bin"
 rm -f "$2/$1_Neigh_Lists/neigh_list_*"
 rm -f "$2/$1.info"
@@ -20,4 +21,5 @@ chmod 700 "$2/${1}_aux.unix.bat"
 # are linked to different versions of libstdc++.so
 export LD_PRELOAD=libstdc++.so.6
 
+echo PYTHONPATH=$PYTHONPATH >> /tmp/pepito.txt
 ./"${1}_aux.unix.bat" $1 $2 $3
