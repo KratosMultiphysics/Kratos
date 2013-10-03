@@ -47,11 +47,7 @@ balls_model_part = ModelPart("SolidPart");
 
 # Importing the strategy object
 
-if (Param.ElementType == "SphericParticle3D" or Param.ElementType == "CylinderParticle2D"):
-    import sphere_strategy as SolverStrategy
-
-elif (Param.ElementType == "SphericContinuumParticle3D"):
-    import continuum_sphere_strategy as SolverStrategy
+import sphere_strategy as SolverStrategy
 
 SolverStrategy.AddVariables(balls_model_part, Param)
 
@@ -147,7 +143,7 @@ solver.Initialize()
 
 # Initialization of physics monitor and of the initial position of the center of mass
 
-physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
+#physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 
 properties_list = []
 
@@ -254,7 +250,7 @@ while (time < Param.FinalTime):
         ### BENCHMARK ###
         os.chdir(data_and_results)
 
-        properties_list = proc.MonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
+        #properties_list = proc.MonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
 
         if (index_5 == 5):
             multifile_5.write(Param.problem_name + '_' + str(time) + '.post.bin\n')
@@ -308,7 +304,7 @@ while (time < Param.FinalTime):
 
 
 #-----------------------FINALITZATION OPERATIONS--------------------------------------------------------------------------------------
-proc.PlotPhysicalProperties(properties_list, graphs_path)
+#proc.PlotPhysicalProperties(properties_list, graphs_path)
 
 if (Param.Multifile == "single_file"):
     gid_io.FinalizeResults()
