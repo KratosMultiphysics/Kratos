@@ -204,7 +204,11 @@ namespace Kratos
        SphericContinuumParticle();
 
         void SetInitialContacts( ProcessInfo& rCurrentProcessInfo );
-        void ContactAreaWeighting(const ProcessInfo& rCurrentProcessInfo );
+        void NeighNeighMapping( ProcessInfo& rCurrentProcessInfo ); //MSIMSI DEBUG
+        void CheckPairWiseBreaking(); //MSIMSI DEBUG
+        
+        virtual void ContactAreaWeighting2D(const ProcessInfo& rCurrentProcessInfo );
+        void ContactAreaWeighting3D(const ProcessInfo& rCurrentProcessInfo );
         void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );
         
         virtual void CustomInitialize();
@@ -214,7 +218,7 @@ namespace Kratos
         //MSIMSI 6 aixo hauria de cridar el del basic o cal ke sigui del continu?
         
         void ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo);
-        void StepWiseForceCalculation(double LocalElasticContactForce[3], double kn, double indentation, double corrected_area );
+        void PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn, double indentation, double corrected_area, double radius_sum_i, double failure_criterion_state, int i_neighbour_count, double mapping_new_cont);
         
         //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
@@ -232,11 +236,21 @@ namespace Kratos
         
         //member variables DEM_CONTINUUM
 
+        //DEMPACK
+        bool mDempack;
+        double mDempack_damping;
+        vector< array_1d<double, 3> > mHistory;
+        double mNcstr1_el;
+        double mNcstr2_el;
+        double mYoungPlastic;
+        double mPlasticityLimit;
+        double mDamageMaxDisplacementFactor;
 
         double mGamma1;
         double mGamma2;
         double mGamma3;
         double mMaxDef;
+        
         
         double mStressTensor[3][3]; 
         double mSymmStressTensor[3][3]; 
@@ -259,6 +273,7 @@ namespace Kratos
         double mCohesion;
         double mSectionalInertia;
         
+        
         double mTensionLimit;
         double mCompressionLimit;
         double mTauZero;
@@ -266,8 +281,7 @@ namespace Kratos
         double mTanContactInternalFriccion;
         double mSinContactInternalFriccion;
         double mCosContactInternalFriccion;
-                
-        double mtotal_equiv_area;
+
         Vector mcont_ini_neigh_area;
         
         vector<int> mIniNeighbourIds;
@@ -277,6 +291,9 @@ namespace Kratos
         vector<int> mIniNeighbourFailureId;
         vector<int> mNeighbourFailureId;
         vector<int> mMapping_New_Ini;
+        vector<int> mMapping_New_Cont;
+        vector<int> mIniNeighbourToIniContinuum;
+        
         Vector mHistDist;
         
         //Non-linear
