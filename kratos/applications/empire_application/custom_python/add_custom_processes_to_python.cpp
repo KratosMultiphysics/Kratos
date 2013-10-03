@@ -59,7 +59,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "processes/process.h"
 #include "includes/node.h"
 #include "custom_python/add_custom_processes_to_python.h"
-#include "custom_processes/ale_wrapper_process.h"
+#include "custom_processes/wrapper_process.h"
 
 
 namespace Kratos
@@ -73,11 +73,12 @@ void  AddCustomProcessesToPython()
 {
     using namespace boost::python;
 
-    class_<ALEWrapperProcess, bases<Process> >("ALEWrapperProcess", init<ModelPart&,ModelPart&>())
-    .def("ExtractInterface", &ALEWrapperProcess::ExtractInterface)
-    .def("ExtractPressureFromModelPart", &ALEWrapperProcess::ExtractPressureFromModelPart)
-    .def("ExtractMeshInfo", &ALEWrapperProcess::ExtractMeshInfo)
-    .def("ExtractDisplacementsFromModelPart", &ALEWrapperProcess::ExtractDisplacementsFromModelPart)
+    class_<WrapperProcess, bases<Process> >("WrapperProcess", init<ModelPart&,ModelPart&>())
+    .def("ExtractInterface", &WrapperProcess::ExtractInterface)
+    .def("ExtractPressureFromModelPart", &WrapperProcess::ExtractPressureFromModelPart)
+    .def("ExtractMeshInfo", &WrapperProcess::ExtractMeshInfo)
+    .def("ExtractDisplacementsFromModelPart", &WrapperProcess::ExtractDisplacementsFromModelPart)
+    .def("CreateEmbeddedInterfacePart", &WrapperProcess::CreateEmbeddedInterfacePart)
     ;
 }
 
