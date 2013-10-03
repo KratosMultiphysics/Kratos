@@ -51,6 +51,7 @@ namespace Kratos
       {
           KRATOS_TRY
 
+          mDimension                = 3;
           mRadius                   = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
           mYoung                    = GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);         
           mPoisson                  = GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
@@ -1685,9 +1686,9 @@ namespace Kratos
           
           if (!mInitializedVariablesFlag){
 
-              if (rCurrentProcessInfo[PRINT_EXPORT_ID] == 1){
-                  this->GetGeometry()(0)->FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
-              }
+               if (rCurrentProcessInfo[PRINT_EXPORT_ID] == 1){
+                   this->GetGeometry()(0)->FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
+               }
                           
 
               mDampType                      = rCurrentProcessInfo[DAMP_TYPE];
