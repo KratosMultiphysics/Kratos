@@ -1,9 +1,9 @@
 # import libraries
+from ctypes import *
+import os
 from KratosMultiphysics import *
 from KratosMultiphysics.EmpireApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
-from ctypes import *
-import os
 
 CheckForPreviousImport()
 
@@ -16,12 +16,6 @@ class EmpireWrapper:
 	self.interface_model_part = ModelPart("InterfaceModelPart");  
         self.wrapper_process      = WrapperProcess(self.model_part,self.interface_model_part)
     # -------------------------------------------------------------------------------------------------	
-
-    # -------------------------------------------------------------------------------------------------
-    # extract interface nodes and conditions from the fluid model part which have a flag "IS_INTERFACE"
-    def extractInterface(self):
-        self.wrapper_process.ExtractInterface()
-    # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
     # convert char* to python-compatible string
@@ -89,63 +83,82 @@ class EmpireWrapper:
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
-    def sendMesh(self):
-    numNodes        = []
-    numElems        = []
-    nodes 	    = []
-    nodeIDs         = []
-    numNodesPerElem = []
-    elements        = []
+    def sendInteraceMesh(self):
+	numNodes        = []
+	numElems        = []
+	nodeCoordinates = []
+	nodeIDs         = []
+	numNodesPerElem = []
+	elements        = []
+	sizes		= []
 
-    # Extract mesh data from model part
-    self.wrapper_process.ExtractMeshInfo(numNodes,numElems,nodes,nodeIDs,numNodesPerElem,elements)
+        # extract interface nodes and conditions from the fluid model part which have a flag "IS_INTERFACE"
+        self.wrapper_process.ExtractInterface()
 
-    # receive number of nodes of structure mesh
-    size_nodeIDs = self.interface_model_part.GetNodes().Size()
-    size_elements = size_nodeIDs*3
-    c_size_nodeIDs = (c_double * 1)(*size_nodeIDs)
-    libempire_api.EMPIRE_API_sendSignal_double("StructureInterface_NodeIDs_Size", 1, c_size_nodeIDs)
+	# Extract interface mesh info from above extracted interface
+	self.wrapper_process.ExtractMeshInfo(numNodes,numElems,nodeCoordinates,nodeIDs,numNodesPerElem,elements)
+	
+	print "------------------------------------------------------------------------"
+	print "Size of the nodeIDS-Array to be sent to the fluid: ", numNodes[0]
+	print "Size of the nodeCoordinates-Array to be sent to the fluid: ", numNodes[0]*3
+	print "Size of the elements-Array to be sent to the fluid: ", numElems[0]*3
+	print "------------------------------------------------------------------------"
 
-    print "the size is: " , size_nodeIDs
+	# receive number of nodes of structure mesh (EMPIRE communication requrires the following data formatting)
+	sizes.append(numNodes[0])
+	sizes.append(numElems[0])
 
-    c_nodeIDs = (c_double * len(nodeIDs))(*nodeIDs)
-    c_elements = (c_double * len(elements))(*elements)
+	c_sizes = (c_double * 2)(*sizes)
+	self.libempire_api.EMPIRE_API_sendSignal_double("Interface_SizeInfo", 2, c_sizes)
 
-    # send mesh
-    self.libempire_api.EMPIRE_API_sendSignal_double("StructureInterface_NodeIDs", size_nodeIDs , c_nodeIDs)
-    self.libempire_api.EMPIRE_API_sendSignal_double("StructureInterface_Elements", size_elements , c_elements)
+	c_nodeIDs         = (c_double * numNodes[0])(*nodeIDs)
+	c_nodeCoordinates = (c_double * (numNodes[0]*3))(*nodeCoordinates)
+	c_elements        = (c_double * (numElems[0]*3))(*elements)
+
+	# send mesh
+	self.libempire_api.EMPIRE_API_sendSignal_double("Interface_NodeIDs", numNodes[0] , c_nodeIDs)
+	self.libempire_api.EMPIRE_API_sendSignal_double("Interface_NodeCoordinates", numNodes[0]*3 , c_nodeCoordinates)
+	self.libempire_api.EMPIRE_API_sendSignal_double("Interface_Elements", (numElems[0]*3) , c_elements)
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
-    def recvMesh(self):
-        nodeIDs         = []
-        numNodesPerElem = []
+    def recvInterfaceMesh(self):
+	nodeIDs		= []        
+	nodeCoordinates = []
         elements        = []
-        size_nodeIDs    = []
+	numNodes        = []
+	numElems        = []
+	sizes		= []
+	c_sizes		= []
 
         # receive number of nodes of structure mesh
-        c_size_nodeIDs = (c_double * 1)(*size_nodeIDs)
-        libempire_api.EMPIRE_API_recvSignal_double("StructureInterface_NodeIDs_Size", 1, size_nodeIDs)
+        c_sizes = (c_double * 2)(*sizes)
+        self.libempire_api.EMPIRE_API_recvSignal_double("Interface_SizeInfo", 2, c_sizes)
 
-        size_nodeIDs = c_size_nodeIDs[0]
-        size_elements = size_nodeIDs*3
+	# Save size information (EMPIRE communication requrires the following data formatting)
+	numNodes.append(int(c_sizes[0]))
+        numElems.append(int(c_sizes[1]))
 
-        print "the size is: " , size_nodeIDs
-
-        c_nodeIDs = (c_double * size_nodeIDs)(*nodeIDs)
-        c_elements = (c_double * size_elements)(*elements)
+	c_nodeIDs         = (c_double * numNodes[0])(*nodeIDs)
+        c_nodeCoordinates = (c_double * (numNodes[0]*3))(*nodeCoordinates)
+        c_elements        = (c_double * (numElems[0]*3))(*elements)
 
         # receive mesh data from empire
-        libempire_api.EMPIRE_API_recvSignal_double("StructureInterface_NodeIDs", size_nodeIDs, c_nodeIDs)
-        libempire_api.EMPIRE_API_recvSignal_double("StructureInterface_Elements", size_nodeIDs*3, c_elements)
+	# Note: EMPIREs send and recvSignal only processes doubles, i.e. also the ids will be seen as doubles --> conversion to int later
+	self.libempire_api.EMPIRE_API_recvSignal_double("Interface_NodeIDs", numNodes[0], c_nodeIDs)        
+	self.libempire_api.EMPIRE_API_recvSignal_double("Interface_NodeCoordinates", (numNodes[0]*3), c_nodeCoordinates)
+        self.libempire_api.EMPIRE_API_recvSignal_double("Interface_Elements", (numElems[0]*3), c_elements)
 
         # create python list to work with in c++
-        for i in range(0,size_elements):
-                nodeIDs.append(c_elements)
-                elements.append(c_elements)
+        for i in range(0,numNodes[0]):
+                nodeIDs.append(int(c_nodeIDs[i]))
+        for i in range(0,numNodes[0]*3):
+                nodeCoordinates.append(c_nodeCoordinates[i])
+	for i in range(0,(numElems[0]*3)):
+		elements.append(int(c_elements[i]))
 
         # create interface part with the received mesh information
-        CreateEmbeddedStructurePart(nodeIDs, elements)
+        self.wrapper_process.CreateEmbeddedInterfacePart(nodeIDs, nodeCoordinates, elements)
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
@@ -166,12 +179,11 @@ class EmpireWrapper:
 	# receive pressure from empire	
 	self.libempire_api.EMPIRE_API_recvDataField("defaultField", size, c_pressure)
 
-	pressure = Vector(1)
 	i = 0
 	# assign pressure to nodes of interface for current time step
 	for nodes in (self.interface_model_part).Nodes:
-		pressure[0] = c_pressure[i]
-		nodes.SetSolutionStepValue(POSITIVE_FACE_PRESSURE,0,pressure[0]);
+		pressure = c_pressure[i]
+		nodes.SetSolutionStepValue(POSITIVE_FACE_PRESSURE,0,pressure);
 		i = i + 1
     # -------------------------------------------------------------------------------------------------
 
