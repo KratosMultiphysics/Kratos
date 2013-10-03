@@ -27,20 +27,20 @@ namespace Kratos
      // using namespace GeometryFunctions;
 
       CylinderParticle::CylinderParticle()
-      : DiscreteElement(){mInitializedVariablesFlag = 0;}
+      : SphericParticle(){mInitializedVariablesFlag = 0;}
 
       CylinderParticle::CylinderParticle(IndexType NewId, GeometryType::Pointer pGeometry)
-      : DiscreteElement(NewId, pGeometry){mInitializedVariablesFlag = 0;}
+      : SphericParticle(NewId, pGeometry){mInitializedVariablesFlag = 0;}
 
       CylinderParticle::CylinderParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-      : DiscreteElement(NewId, pGeometry, pProperties){mInitializedVariablesFlag = 0;}
+      : SphericParticle(NewId, pGeometry, pProperties){mInitializedVariablesFlag = 0;}
 
       CylinderParticle::CylinderParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-      : DiscreteElement(NewId, ThisNodes){mInitializedVariablesFlag = 0;}
+      : SphericParticle(NewId, ThisNodes){mInitializedVariablesFlag = 0;}
 
       Element::Pointer CylinderParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
-           return DiscreteElement::Pointer(new CylinderParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
+           return SphericParticle::Pointer(new CylinderParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
 
       }
 
@@ -51,6 +51,7 @@ namespace Kratos
       {
           KRATOS_TRY
 
+          mDimension                = 2;
           mRadius                   = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
           mYoung                    = GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);         
           mPoisson                  = GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
@@ -601,7 +602,8 @@ namespace Kratos
                                                              ProcessInfo& rCurrentProcessInfo)
       {
           KRATOS_TRY
-
+          KRATOS_WATCH("NOT AVAILABLE")
+/*
           // CONTACT WITH A PLANE
 
            if (rCurrentProcessInfo[LIMIT_SURFACE_OPTION] != 0){
@@ -893,8 +895,10 @@ namespace Kratos
              }  //if (indentation >= 0.0)
 
          } //if (LIMIT_SURFACE_OPTION)
-
+*/
          KRATOS_CATCH("")
+         
+         
       }//ComputeBallToSurfaceContactForce
 
       //**************************************************************************************************************************************************
@@ -1031,9 +1035,9 @@ namespace Kratos
 
           if (!mInitializedVariablesFlag){
 
-              if (rCurrentProcessInfo[INT_DUMMY_3] == 1){
-                  this->GetGeometry()(0)->FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
-              }
+               if (rCurrentProcessInfo[PRINT_EXPORT_ID] == 1){
+                   this->GetGeometry()(0)->FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
+               }
 
               mDampType                 = rCurrentProcessInfo[DAMP_TYPE];
               mElasticityType           = rCurrentProcessInfo[FORCE_CALCULATION_TYPE];
