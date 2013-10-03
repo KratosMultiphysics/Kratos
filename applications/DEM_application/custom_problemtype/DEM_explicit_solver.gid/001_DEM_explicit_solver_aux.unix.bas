@@ -9,12 +9,12 @@ problemtype_name="*Tcl(GiD_Info Project ProblemType)"
 # gid redefines LD_LIBRARY_PATH to its own libs directory
 # and maintains OLD_LD_LIBRARY_PATH with previous settings
 # therefore, we use the OLD_LD_LIBRARY_PATH and prepend the path to the kratos libs
-if [ "$OLD_LD_LIBRARY_PATH" != "" ]; then
-    export LD_LIBRARY_PATH="$3/kratos":"$3/kratos/libs":$OLD_LD_LIBRARY_PATH
-else
-    # do not add the ':'
-    export LD_LIBRARY_PATH="$3/kratos":"$3/kratos/libs"
-fi
+#if [ "$OLD_LD_LIBRARY_PATH" != "" ]; then
+#    export LD_LIBRARY_PATH="$3/kratos":"$3/kratos/libs":$OLD_LD_LIBRARY_PATH
+#else
+#    # do not add the ':'
+#    export LD_LIBRARY_PATH="$3/kratos":"$3/kratos/libs"
+#fi
 
 export OMP_NUM_THREADS=*GenData(number_of_processors)
 
