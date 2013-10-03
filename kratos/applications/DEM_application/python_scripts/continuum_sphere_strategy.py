@@ -132,8 +132,12 @@ class ExplicitStrategy:
         self.global_variables_option        = Var_Translator(Param.GlobalVariablesOption)
         self.stress_strain_operations       = Var_Translator(Param.StressStrainOperationsOption)
         self.MoveMeshFlag                   = True
+        
         self.delta_option                   = Var_Translator(Param.DeltaOption)
+        print(Param.DeltaOption)
+        
         self.continuum_simulating_option    = Var_Translator(Param.ContinuumOption)
+        self.dempack_option                 = Var_Translator(Param.Dempack)
         self.contact_mesh_option            = Var_Translator( Var_Translator(Param.ContactMeshOption) & Var_Translator(Param.ContinuumOption) ) 
         self.concrete_test_option           = Var_Translator( Var_Translator(Param.ConcreteTestOption) & Var_Translator(Param.ContinuumOption) ) 
         self.triaxial_option                = Var_Translator( Var_Translator(Param.TriaxialOption) & self.concrete_test_option )
@@ -154,7 +158,9 @@ class ExplicitStrategy:
         elif( not self.delta_option ):
           if( not self.continuum_simulating_option ): self.case_option = 0
           else: self.case_option = 3     
-            
+
+        self.dempack_damping = Param.DempackDamping
+                    
         # MODEL
         self.model_part                     = model_part
         self.contact_model_part             = ModelPart("ContactModelPart") #funcio kratos
@@ -303,7 +309,7 @@ class ExplicitStrategy:
             self.force_calculation_type_id  = 0
         elif (Param.NormalForceCalculationType == "Hertz"):
             self.force_calculation_type_id  = 1
-        elif (Param.NormalForceCalculationType == "NonLinearPieceWise"):
+        elif (Param.NormalForceCalculationType == "PlasticityAndDamage1D"):
             self.force_calculation_type_id  = 2
         elif (Param.NormalForceCalculationType == "NonLinearDonze"):
             self.force_calculation_type_id  = 3
@@ -313,11 +319,15 @@ class ExplicitStrategy:
             self.C2                         = Param.C2
             self.N1                         = Param.N1
             self.N2                         = Param.N2
+            self.plastic_young_modulus_ratio= Param.PlasticYoungModulusRatio
+            self.plastic_yield_stress       = Param.PlasticYieldStress
+            self.damage_deformation_factor  = Param.DamageDeformationFactor
+
         if (self.force_calculation_type_id ==3):
-            self.DonzeG1                   = Param.G1
-            self.DonzeG2                   = Param.G2
-            self.DonzeG3                   = Param.G3
-            self.DonzeMaxDef               = Param.MaxDef
+            self.donze_g1                   = Param.G1
+            self.donze_g2                   = Param.G2
+            self.donze_g3                   = Param.G3
+            self.donze_max_def              = Param.MaxDef
 
         if (Param.NormalDampingType == "ViscDamp"):
 
@@ -427,6 +437,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
+        self.model_part.ProcessInfo.SetValue(DEMPACK_OPTION, self.dempack_option)
         self.model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, self.activate_search)
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities)
         self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_option)
@@ -532,24 +543,30 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
         
         self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_option)
-                
+
         self.model_part.ProcessInfo.SetValue(FAILURE_CRITERION_OPTION, self.failure_criterion_option)
         self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MAX, self.sigma_max)
         self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MIN, self.sigma_min)
         self.model_part.ProcessInfo.SetValue(CONTACT_TAU_ZERO, self.tau_zero)
         self.model_part.ProcessInfo.SetValue(CONTACT_INTERNAL_FRICC, self.internal_fricc)
+
+        self.model_part.ProcessInfo.SetValue(DEMPACK_DAMPING, self.dempack_damping)
         
         if (self.force_calculation_type_id == 2):
             self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N1, self.N1)
             self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N2, self.N2)
             self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C1, self.C1)
             self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C2, self.C2)
+            self.model_part.ProcessInfo.SetValue(YOUNG_MODULUS_PLASTIC, self.plastic_young_modulus_ratio)
+            self.model_part.ProcessInfo.SetValue(PLASTIC_YIELD_STRESS, self.plastic_yield_stress)
+            self.model_part.ProcessInfo.SetValue(DAMAGE_FACTOR, self.damage_deformation_factor)
+           
 
         if (self.force_calculation_type_id == 3):
-            self.model_part.ProcessInfo.SetValue(DONZE_G1, self.DonzeG1)
-            self.model_part.ProcessInfo.SetValue(DONZE_G2, self.DonzeG2)
-            self.model_part.ProcessInfo.SetValue(DONZE_G3, self.DonzeG3)
-            self.model_part.ProcessInfo.SetValue(DONZE_MAX_DEF, self.DonzeMaxDef)
+            self.model_part.ProcessInfo.SetValue(DONZE_G1, self.donze_g1)
+            self.model_part.ProcessInfo.SetValue(DONZE_G2, self.donze_g2)
+            self.model_part.ProcessInfo.SetValue(DONZE_G3, self.donze_g3)
+            self.model_part.ProcessInfo.SetValue(DONZE_MAX_DEF, self.donze_max_def)
         
         if (self.triaxial_option):
             self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
