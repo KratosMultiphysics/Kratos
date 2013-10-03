@@ -1801,12 +1801,12 @@ proc ::wkcf::WriteBatFile {AppId} {
     # Kratos key word xpath
     set kxpath "Applications/$rootid"
     set cproperty "dv"
-    set cxpath "$rootid//c.SolutionStrategy//i.ParallelSolutionType"
+    set cxpath "$rootid//c.SolutionStrategy//c.ParallelType//i.ParallelSolutionType"
     set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
 
     if {$ParallelSolutionType eq "MPI"} {
 	#  Get the number of processors
-	set cxpath "$rootid//c.SolutionStrategy//i.MPINumberOfProcessors"
+	set cxpath "$rootid//c.SolutionStrategy//c.ParallelType//i.MPINumberOfProcessors"
 	set MPINumberOfProcessors [::xmlutils::setXml $cxpath $cproperty]
 	# wa "MPINumberOfProcessors:$MPINumberOfProcessors"
 	

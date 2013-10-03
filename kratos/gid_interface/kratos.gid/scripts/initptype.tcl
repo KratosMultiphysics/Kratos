@@ -451,7 +451,7 @@ proc kipt::SelectGIDBatFile { directory basename } {
         # Kratos key word xpath
         set kxpath "Applications/$rootid"
         # Get the parallel solution type
-        set cxpath "$rootid//c.SolutionStrategy//c.Parallel//i.ParallelSolutionType"
+        set cxpath "$rootid//c.SolutionStrategy//c.ParallelType//i.ParallelSolutionType"
         set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
         
         # Solution type
@@ -474,7 +474,7 @@ proc kipt::SelectGIDBatFile { directory basename } {
             }
             
             #  Get the number of processors
-            set cxpath "$rootid//c.SolutionStrategy//c.Parallel//i.MPINumberOfProcessors"
+            set cxpath "$rootid//c.SolutionStrategy//c.ParallelType//i.MPINumberOfProcessors"
             set MPINumberOfProcessors [::xmlutils::setXml $cxpath $cproperty]
             if {$MPINumberOfProcessors>0} {
                 # Calculate arguments
@@ -483,7 +483,7 @@ proc kipt::SelectGIDBatFile { directory basename } {
         } else {
             # OpenMP
             #  Get the number of threads
-            set cxpath "$rootid//c.SolutionStrategy//c.Parallel//i.OpenMPNumberOfThreads"
+            set cxpath "$rootid//c.SolutionStrategy//c.ParallelType//i.OpenMPNumberOfThreads"
             set OpenMPNumberOfThreads [::xmlutils::setXml $cxpath $cproperty]
             if {$OpenMPNumberOfThreads>0} {
                 # Calculate arguments
