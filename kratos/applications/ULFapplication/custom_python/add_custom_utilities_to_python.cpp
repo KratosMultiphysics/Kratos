@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/ulf_utilities.h"
 #include "custom_utilities/nist_utilities.h"
+#include "custom_utilities/assign_point_neumann_conditions.h"
 
 namespace Kratos
 {
@@ -120,6 +121,10 @@ void  AddCustomUtilitiesToPython()
     .def("GenerateModelPart",GenerateModelPart)
     .def("ApplyInitialTemperature",&NistUtils::ApplyInitialTemperature)
     .def("FindFluidLevel",&NistUtils::FindFluidLevel)
+    ;
+
+   class_<AssignPointNeumannConditions > ("AssignPointNeumannConditions", init<>())
+    .def("AssignPointNeumannConditions3D", &AssignPointNeumannConditions::AssignPointNeumannConditions3D)
     ;
 
 }
