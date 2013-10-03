@@ -24,6 +24,7 @@
 #include "includes/element.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_3d_3.h"
+#include "../structural_application/custom_elements/membrane_element.h"
 
 namespace Kratos
 {
@@ -215,56 +216,60 @@ public:
 
     // ##############################################################################
 
-    void CreateEmbeddedStructurePart( boost::python::list nodes , boost::python::list connectivity )
+    void CreateEmbeddedInterfacePart( boost::python::list nodeIDs ,
+                                      boost::python::list nodes,
+                                      boost::python::list connectivity )
     {
         KRATOS_TRY
 
         ModelPart& new_model_part = mr_interface_part;
 
-        // ######## ADDING NEW NODES #########
-
-        const unsigned int size_nodes = boost::python::len(nodes) / 3;
+        // Adding new nodes
+        const unsigned int size_nodes = boost::python::len(nodeIDs);
         new_model_part.Nodes().reserve(size_nodes);
 
         for (unsigned int nodesIndex=0; nodesIndex!=size_nodes; ++nodesIndex)
         {
-            unsigned int id = nodesIndex*3 + 1;
-            boost::python::extract<double> node_X( nodes[id] );
-            boost::python::extract<double> node_Y( nodes[id+1] );
-            boost::python::extract<double> node_Z( nodes[id+2] );
+            boost::python::extract<double> node_X( nodes[3*nodesIndex] );
+            boost::python::extract<double> node_Y( nodes[3*nodesIndex+1] );
+            boost::python::extract<double> node_Z( nodes[3*nodesIndex+2] );
+            boost::python::extract<unsigned int> nodeID( nodeIDs[nodesIndex] );
 
-            Node < 3 >::Pointer pnode = Node < 3 > ::Pointer (new Node < 3 >(id,
-                                                                             node_X,
-                                                                             node_Y,
-                                                                             node_Z));
-            new_model_part.Nodes().push_back(pnode);
+            new_model_part.CreateNewNode(nodeID,node_X,node_Y,node_Z);
         }
 
-        // ######## ADDING NEW CONDITIONS #########
-        // required information for a new condition: Id, Geometry, Property
-        const unsigned int size_conditions = boost::python::len(connectivity) / 3;
+        // Adding new Elements
 
-        Condition const& rReferenceCondition = KratosComponents<Condition>::Get("Condition3D");
-        Properties::Pointer properties = mr_model_part.GetMesh().pGetProperties(1);
-        new_model_part.Conditions().reserve(size_conditions);
+        // required information for a new element: Id, Geometry
+        const unsigned int size_elements = boost::python::len(connectivity) / 3;
+        new_model_part.Elements().reserve(size_elements);
 
-        //#pragma omp parallel for
-        for (unsigned int condIndex=0; condIndex!=size_conditions; ++condIndex)
+        // Push back elements
+        for (unsigned int elemIndex=0; elemIndex!=size_elements; ++elemIndex)
         {
-            unsigned int id = condIndex*3 + 1;
+            boost::python::extract<unsigned int> node1_ID( connectivity[3*elemIndex] );
+            boost::python::extract<unsigned int> node2_ID( connectivity[3*elemIndex+1] );
+            boost::python::extract<unsigned int> node3_ID( connectivity[3*elemIndex+2] );
 
-            boost::python::extract<unsigned int> node1_ID( connectivity[id] );
-            boost::python::extract<unsigned int> node2_ID( connectivity[id+1] );
-            boost::python::extract<unsigned int> node3_ID( connectivity[id+2] );
+            // Create new geometry
+            Geometry<Node < 3 > >::Pointer pInterfaceGeom;
 
-            Triangle3D3<Node < 3 > > triangle(new_model_part.Nodes()(node1_ID),
-                                              new_model_part.Nodes()(node2_ID),
-                                              new_model_part.Nodes()(node3_ID));
-            // Index must take care of the IDs of the other processors --> triangle_id_int + 1 + elements_before + total_existing_elements
-            Condition::Pointer p_condition = rReferenceCondition.Create(id,
-                                                                        triangle,
-                                                                        properties);
-            new_model_part.Conditions().push_back(p_condition);
+            Node < 3 > point1 = new_model_part.Nodes()[node1_ID];
+            Node < 3 > point2 = new_model_part.Nodes()[node2_ID];
+            Node < 3 > point3 = new_model_part.Nodes()[node3_ID];
+
+            Node < 3 > ::Pointer pnode1 = Node < 3 > ::Pointer(new Node<3>(node1_ID, point1[0], point1[1], point1[2] ));
+            Node < 3 > ::Pointer pnode2 = Node < 3 > ::Pointer(new Node<3>(node2_ID, point2[0], point2[1], point2[2] ));
+            Node < 3 > ::Pointer pnode3 = Node < 3 > ::Pointer(new Node<3>(node3_ID, point3[0], point3[1], point3[2] ));
+
+            pInterfaceGeom = Geometry<Node < 3 > >::Pointer(new Triangle3D3< Node<3> >(pnode1,pnode2,pnode3));
+
+            // Create and insert new element
+            unsigned int elemID = elemIndex + 1;
+            Element::Pointer pElement = Element::Pointer(new MembraneElement(
+                                                            elemID,
+                                                            pInterfaceGeom ) );
+            new_model_part.Elements().push_back(pElement);
         }
 
         KRATOS_CATCH("")
