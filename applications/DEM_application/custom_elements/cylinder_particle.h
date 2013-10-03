@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "discrete_element.h"
+#include "spheric_particle.h"
 
 
 
@@ -53,7 +54,7 @@ namespace Kratos
   /// Short class definition.
   /** Detail class definition.
   */
-  class CylinderParticle : public DiscreteElement
+  class CylinderParticle : public SphericParticle
     {
     public:
 
@@ -314,12 +315,12 @@ namespace Kratos
 
       virtual void save(Serializer& rSerializer) const
       {
-          KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DiscreteElement );
+          KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SphericParticle );
       }
 
       virtual void load(Serializer& rSerializer)
       {
-          KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, DiscreteElement );
+          KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SphericParticle );
       }
 
       /*
