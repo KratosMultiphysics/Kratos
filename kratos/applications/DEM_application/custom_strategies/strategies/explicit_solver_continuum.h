@@ -119,14 +119,17 @@ namespace Kratos
           
           //the search radius is modified for the next steps.
         
-          double amplification = rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION];
-          
-          ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
-          for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
+          if(rCurrentProcessInfo[DELTA_OPTION])
           {
-           
-              this->GetRadius()[particle_pointer_it - pElements.begin()] *= (amplification); 
-             
+            double amplification = rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION];
+            
+            ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
+            for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
+            {
+            
+                this->GetRadius()[particle_pointer_it - pElements.begin()] *= (amplification);       
+              
+            }
           }
          
           // 4. Set Initial Contacts
@@ -215,6 +218,11 @@ namespace Kratos
           KRATOS_TIMER_START("FinalizeSolutionStep")
           BaseType::FinalizeSolutionStep();
           KRATOS_TIMER_STOP("FinalizeSolutionStep")
+          
+          //DEBUG OPERATIONS
+          
+          this->CheckPairWiseBreaking();
+          
    
           KRATOS_TIMER_STOP("SOLVE")
 
@@ -287,7 +295,7 @@ namespace Kratos
     {                
 
         KRATOS_TRY
-       
+
         typedef Node < 3 > NodeType;
         typedef Geometry<NodeType> GeometryType;
 
@@ -629,6 +637,42 @@ namespace Kratos
         KRATOS_CATCH("")
 
     }    
+   
+   
+   void CheckPairWiseBreaking()
+     {
+          KRATOS_TRY
+
+          // SPHERE MODEL PART
+
+          ModelPart& r_model_part             = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+          ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
+
+          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+
+          double dummy = 0.0;
+          
+          #pragma omp parallel for
+          for (int k = 0; k < this->GetNumberOfThreads(); k++){
+              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+              for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+                    
+                       
+                    
+                    it->Calculate(DUMMY_DEBUG_DOUBLE, dummy , rCurrentProcessInfo);
+                    
+              } // loop over particles
+
+          } // loop threads OpenMP
+
+        KRATOS_CATCH("")
+      }
+   
+   
+   
    
    
     virtual void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part)
