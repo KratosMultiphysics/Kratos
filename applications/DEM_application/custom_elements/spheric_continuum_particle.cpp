@@ -74,13 +74,12 @@ namespace Kratos
             * These 3 classes do NOT coincide at t=0!
 
           */
-                               
-            
+
             // DEFINING THE REFERENCES TO THE MAIN PARAMETERS
 
             ParticleWeakVectorType& mrNeighbours                  = this->GetValue(NEIGHBOUR_ELEMENTS);            
             ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
-             vector<int>& r_continuum_ini_neighbours_ids          = this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS);
+            vector<int>& r_continuum_ini_neighbours_ids          = this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS);
             
             r_continuum_ini_neighbours.clear();
             r_continuum_ini_neighbours_ids.clear();
@@ -88,11 +87,14 @@ namespace Kratos
             size_t ini_size = 0;
             size_t continuum_ini_size =0;
 
+                       
             //default
             mFailureId=1;
 
+            size_t cont_ini_mapping_index= 0;
+            
             //SAVING THE INICIAL NEIGHBOURS, THE DELTAS AND THE FAILURE ID
-                  
+                              
             for(ParticleWeakIteratorType_ptr ineighbour = mrNeighbours.ptr_begin();  //loop over the temp neighbours and store into a initial_neighbours vector.
             ineighbour != mrNeighbours.ptr_end(); ineighbour++)
             {
@@ -114,7 +116,8 @@ namespace Kratos
                 {
                     ini_size++;
                     
-                    mIniNeighbourIds.resize(ini_size);         
+                    mIniNeighbourIds.resize(ini_size); 
+                    mIniNeighbourToIniContinuum.resize(ini_size);
                     mIniNeighbourDelta.resize(ini_size);
                     mIniNeighbourFailureId.resize(ini_size);           
                     mMapping_New_Ini.resize(ini_size); 
@@ -123,7 +126,10 @@ namespace Kratos
                     mIniNeighbourDelta[ini_size - 1]        = 0.0;
                     mIniNeighbourFailureId[ini_size - 1]    = 1;
                     mMapping_New_Ini[ini_size - 1]          = ini_size - 1;
-                                 
+                    
+                    mIniNeighbourToIniContinuum[ini_size-1] = -1; //-1 is initial but not continuum.             
+                    
+                    
                     if (mDeltaOption == true)
                     {            
                         mIniNeighbourDelta[ini_size - 1]    = initial_delta;
@@ -137,16 +143,30 @@ namespace Kratos
                         if ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) )
                         {
                             
+                            mIniNeighbourToIniContinuum[ini_size-1] = cont_ini_mapping_index;
+                        
                             mIniNeighbourFailureId[ini_size - 1]=0;
                            
-                            mFailureId=0; // if a cohesive contact exist, the FailureId becomes 0.          
+                            mFailureId=0; // if a cohesive contact exist, the FailureId becomes 0. 
+                            
                             continuum_ini_size++;
+                            cont_ini_mapping_index++;
                                 
                             r_continuum_ini_neighbours.push_back(*ineighbour);
                               
-                            r_continuum_ini_neighbours_ids.resize(continuum_ini_size);                               
-                            r_continuum_ini_neighbours_ids[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();   
-                                                          
+                            r_continuum_ini_neighbours_ids.resize(continuum_ini_size);
+                            
+                            mMapping_New_Cont.resize(continuum_ini_size);
+                            mMapping_New_Cont[continuum_ini_size - 1] = -1;
+                            
+                            mHistory.resize(continuum_ini_size);
+                            
+                            mHistory[continuum_ini_size - 1][0] = 0.0;
+                            mHistory[continuum_ini_size - 1][1] = 0.0;
+                            mHistory[continuum_ini_size - 1][2] = 0.0;
+                            
+                            r_continuum_ini_neighbours_ids[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();
+                                                                                    
                            if(mContactMeshOption)
                             {
 
@@ -166,21 +186,90 @@ namespace Kratos
             if (mContinuumSimulationOption == true)
             {
               
-                ContactAreaWeighting(rCurrentProcessInfo);
+                if(mDimension == 3)
+                {
+                  ContactAreaWeighting3D(rCurrentProcessInfo);
+                }
+                else if (mDimension ==2)
+                {
                   
+                  ContactAreaWeighting2D(rCurrentProcessInfo);
+                  
+                }  
+    
             } 
             
          
         }//SetInitialContacts
- 
+        
+        void SphericContinuumParticle::NeighNeighMapping( ProcessInfo& rCurrentProcessInfo  ) 
+        {
+          
+        ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
 
-      void SphericContinuumParticle::ContactAreaWeighting(const ProcessInfo& rCurrentProcessInfo) //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
+        int my_id = this->Id();
+        
+        vector<int> my_index_from_my_neigh;
+        
+        my_index_from_my_neigh.resize(r_continuum_ini_neighbours.size());
+        
+        KRATOS_WATCH("   ")
+        KRATOS_WATCH(this->Id())
+                 
+        int cont_ini_neighbour_counter = 0;
+                
+        for(ParticleWeakIteratorType cont_ini_neighbour_iterator = r_continuum_ini_neighbours.begin();
+            cont_ini_neighbour_iterator != r_continuum_ini_neighbours.end(); cont_ini_neighbour_iterator++)
+        {
+             
+              KRATOS_WATCH(cont_ini_neighbour_iterator->Id())
+              
+          
+              ParticleWeakVectorType& r_continuum_ini_neighbours_of_my_continuum_ini_neighbour    = cont_ini_neighbour_iterator->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
+
+              //KRATOS_WATCH(r_continuum_ini_neighbours_of_my_continuum_ini_neighbour.size())
+              /*
+              int index_me_from_my_neigh = 0;
+              
+                for(ParticleWeakIteratorType cont_ini_neighbour_of_my_cont_ini_neigh_iterator = r_continuum_ini_neighbours_of_my_continuum_ini_neighbour.begin();
+                  cont_ini_neighbour_of_my_cont_ini_neigh_iterator != r_continuum_ini_neighbours_of_my_continuum_ini_neighbour.end(); cont_ini_neighbour_of_my_cont_ini_neigh_iterator++)
+              {
+          
+                if( cont_ini_neighbour_of_my_cont_ini_neigh_iterator->Id() == my_id)
+                {
+                                  
+                my_index_from_my_neigh[cont_ini_neighbour_counter] = index_me_from_my_neigh;
+                                
+                break;  
+                }
+                
+                index_me_from_my_neigh++;
+               
+              } //neighbours of my neighbour
+             */ 
+        } //my neighbours      
+        
+        
+        //checks:
+        //loop veins ini cont
+          //vei->trencat?
+          
+          //vei->vei(jo)->trencat?
+        
+        
+        
+        KRATOS_WATCH(my_index_from_my_neigh)
+        
+        
+      }// 
+      
+      void SphericContinuumParticle::ContactAreaWeighting3D(const ProcessInfo& rCurrentProcessInfo) //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
       { 
 
           double alpha = 1.0;
           double external_sphere_area = 4*M_PI*mRadius*mRadius;  
           
-          mtotal_equiv_area = 0.0;
+          double total_equiv_area = 0.0;
 
           ParticleWeakVectorType r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
           int cont_ini_neighbours_size                         = r_continuum_ini_neighbours.size();
@@ -197,7 +286,7 @@ namespace Kratos
               double other_radius     = ini_cont_neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
               double equiv_radius     = 2*mRadius * other_radius / (mRadius + other_radius);        
               double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the efective mRadius.
-              mtotal_equiv_area       += equiv_area;
+              total_equiv_area       += equiv_area;
           
               mcont_ini_neigh_area[index] = equiv_area; //*
               index++; //*
@@ -205,81 +294,83 @@ namespace Kratos
               
           } //for every neighbour
        
-       
-          if(!*mSkinSphere)
-          {
-          
-            AuxiliaryFunctions::CalculateAlphaFactor(cont_ini_neighbours_size, external_sphere_area, mtotal_equiv_area, alpha); 
-            
-            size_t not_skin_index = 0;
-        
-            for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
-                ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
-                
-                {      
-                    mcont_ini_neigh_area[not_skin_index] = alpha*mcont_ini_neigh_area[not_skin_index];
-                    not_skin_index++;  
-                    
-                } //for every neighbour
-
-          }
-          
-          else //skin sphere //AIXO HAURIA DE CANVIAR PER L'AREA COPIADA BONA DEL VEI KE NO ES 
-          {
-          
-               
-              size_t skin_index = 0; 
-              
-              for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
-                ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
-                
+            if (cont_ini_neighbours_size >= 4) //more than 3 neigbours. 
+            {
+                if(!*mSkinSphere)
                 {
-                     if(ini_cont_neighbour_iterator->GetValue(SKIN_SPHERE))
-                     {
-                        alpha            = 1.0*(1.40727)*(external_sphere_area/mtotal_equiv_area)*((double(cont_ini_neighbours_size))/11);
-                        mcont_ini_neigh_area[skin_index] = alpha*mcont_ini_neigh_area[skin_index];
-                     }
-                     
-                     else
-                     {
-                        
-                       double neigh_area = 0.0;
-                       Vector vector_neigh_area;
-                       
-                       ParticleWeakVectorType r_cont_neigh_of_my_cont_neigh = ini_cont_neighbour_iterator->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);  
-                         
-                       size_t skin_skin_index = 0;
-                         
-                       for(ParticleWeakIteratorType r_cont_neigh_of_my_cont_neigh_iterator = r_cont_neigh_of_my_cont_neigh.begin();            //MSIMSI 99: if there would be more loop on the neighbours of my neighbours would be nice to have a mapping to avoid this on the solve loop
-                           r_cont_neigh_of_my_cont_neigh_iterator != r_cont_neigh_of_my_cont_neigh.end(); r_cont_neigh_of_my_cont_neigh_iterator++)
                 
+                  AuxiliaryFunctions::CalculateAlphaFactor3D(cont_ini_neighbours_size, external_sphere_area, total_equiv_area, alpha); 
+                  
+                  size_t not_skin_index = 0;
+              
+                  for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
+                      ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
+                      
+                      {      
+                          mcont_ini_neigh_area[not_skin_index] = alpha*mcont_ini_neigh_area[not_skin_index];
+                          not_skin_index++;  
+                          
+                      } //for every neighbour
+
+                }
+                
+                else //skin sphere 
+                {
+                
+                    
+                    size_t skin_index = 0; 
+                    
+                    for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
+                      ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
+                      
+                      {
+                          if(ini_cont_neighbour_iterator->GetValue(SKIN_SPHERE))
+                          {
+                              alpha            = 1.0*(1.40727)*(external_sphere_area/total_equiv_area)*((double(cont_ini_neighbours_size))/11);
+                              mcont_ini_neigh_area[skin_index] = alpha*mcont_ini_neigh_area[skin_index];
+                          }
+                          
+                          else
                           {
                               
-                            if(r_cont_neigh_of_my_cont_neigh_iterator->Id() == this->Id() )  //MSIMSI 99:Pooyan, would be better mId than this->Id()?
-                            {
- 
-                              r_cont_neigh_of_my_cont_neigh_iterator->Calculate(DEM_AREA_VECTOR,vector_neigh_area,rCurrentProcessInfo);
-                              neigh_area = vector_neigh_area[skin_skin_index];
-                               
-                              break;
-                            }
-                                                            
-                            skin_skin_index++;
-                          }//loop of the cont neighs of my cont neighbour.
-  
-  
-                        mcont_ini_neigh_area[skin_index] = neigh_area;
-  
-                     }//not skin neighbours of skin particles
-            
-                skin_index++;
-                
-                }//loop on cont neighs       
-                
-          }//skin particles.
+                            double neigh_area = 0.0;
+                            Vector vector_neigh_area;
+                            
+                            ParticleWeakVectorType r_cont_neigh_of_my_cont_neigh = ini_cont_neighbour_iterator->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);  
+                              
+                            size_t skin_skin_index = 0;
+                              
+                            for(ParticleWeakIteratorType r_cont_neigh_of_my_cont_neigh_iterator = r_cont_neigh_of_my_cont_neigh.begin();            //MSIMSI 99: if there would be more loop on the neighbours of my neighbours would be nice to have a mapping to avoid this on the solve loop
+                                r_cont_neigh_of_my_cont_neigh_iterator != r_cont_neigh_of_my_cont_neigh.end(); r_cont_neigh_of_my_cont_neigh_iterator++)
+                      
+                                {
+                                    
+                                  if(r_cont_neigh_of_my_cont_neigh_iterator->Id() == this->Id() )
+                                  {
+      
+                                    r_cont_neigh_of_my_cont_neigh_iterator->Calculate(DEM_AREA_VECTOR,vector_neigh_area,rCurrentProcessInfo);
+                                    neigh_area = vector_neigh_area[skin_skin_index];
+                                    
+                                    break;
+                                  }
+                                                                  
+                                  skin_skin_index++;
+                                }//loop of the cont neighs of my cont neighbour.
+        
+        
+                              mcont_ini_neigh_area[skin_index] = neigh_area;
+        
+                          }//not skin neighbours of skin particles
+                  
+                      skin_index++;
+                      
+                      }//loop on cont neighs       
+                      
+                }//skin particles.
+            }//if more than 3 neighbours
    
       } //Contact Area Weighting
-      
+    
       
       /**
        * Calculates all particle's ball-to-ball forces based on its neighbours
@@ -320,7 +411,7 @@ namespace Kratos
         }        
 
         size_t i_neighbour_count = 0;
-                
+
         for(ParticleWeakIteratorType neighbour_iterator = mrNeighbours.begin();
             neighbour_iterator != mrNeighbours.end(); neighbour_iterator++)
         {
@@ -341,7 +432,7 @@ namespace Kratos
             double initial_dist                   = (radius_sum - initial_delta);
             double indentation                    = initial_dist - distance;   //#1
             double equiv_area                     = 0.25*M_PI * equiv_radius * equiv_radius; //#2 
-            double corrected_area                 = equiv_area;
+            double calculation_area               = equiv_area;
             double equiv_mass                     = mSqrtOfRealMass * other_sqrt_of_mass;
 
             double equiv_young;
@@ -349,8 +440,8 @@ namespace Kratos
             double equiv_visco_damp_coeff_normal;
             double equiv_visco_damp_coeff_tangential;
             double equiv_ln_of_restit_coeff;
-            double kn;
-            double kt;
+            double kn_el;
+            double kt_el;
             double equiv_tg_of_fri_ang;
 
             double DeltDisp[3]                    = {0.0};
@@ -364,13 +455,14 @@ namespace Kratos
 
             bool sliding = false;
             
-            int mapping = mMapping_New_Ini[i_neighbour_count]; //*
-                  
-            if(mContinuumSimulationOption==1 && (mapping !=-1))
-            {
-              corrected_area = mcont_ini_neigh_area[mapping];                            
-            }
+            int mapping_new_ini = mMapping_New_Ini[i_neighbour_count]; //*
+            int mapping_new_cont =mMapping_New_Cont[i_neighbour_count];
             
+            double contact_tau = 0.0;
+            double contact_sigma = 0.0;
+            double failure_criterion_state = 0.0;   
+          
+
             if (mUniformMaterialOption){
                 equiv_radius                      = mRadius;
                 equiv_young                       = mYoung;
@@ -396,37 +488,70 @@ namespace Kratos
                 double aux_norm_to_tang;
                 
             if (mGlobalVariablesOption){
-                kn                                = mGlobalKn;
-                kt                                = mGlobalKt;
-                aux_norm_to_tang                  = mGlobalAuxNormToTang;
+              
+                kn_el                                = mGlobalKn;
+                kt_el                                = mGlobalKt;
+                aux_norm_to_tang                     = mGlobalAuxNormToTang;
             }
 
-            else {
+            else if(mDempack){
+                
+                double rad_squared = mRadius * other_radius;
+                
+                calculation_area = 4.0*M_PI*(rad_squared*rad_squared)*radius_sum_i*radius_sum_i;
+                
+                double equiv_shear = equiv_young/(2*(1+equiv_poisson));
+                kn_el = equiv_young*calculation_area*radius_sum_i;
+                kt_el = equiv_shear*calculation_area*radius_sum_i;
+              
+            }
+            
+            else
+            {
 
-                kn                                = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //MSIMSI 1: initial gap? aki dividim nomes per suma de radis.
-                kt                                = kn / (2.0 + equiv_poisson + equiv_poisson);
-                aux_norm_to_tang                  = sqrt(kt / kn);
+                if(mContinuumSimulationOption==1 && (mapping_new_ini !=-1))
+                {
+                  calculation_area = mcont_ini_neigh_area[mapping_new_ini];                            
+                }
+              
+                kn_el              = mMagicFactor * equiv_young * calculation_area * radius_sum_i; //MSIMSI 1: initial gap? aki dividim nomes per suma de radis.
+                kt_el              = kn_el / (2.0 + equiv_poisson + equiv_poisson);
+                aux_norm_to_tang   = sqrt(kt_el / kn_el);
 
             }
           
             if (mCriticalTimeOption){
                 double historic = rCurrentProcessInfo[HISTORICAL_MIN_K];
 
-                if ((kn < historic) || (kt < historic)){
-                    historic = fmin(kn, kt);
+                if ((kn_el < historic) || (kt_el < historic)){
+                    historic = fmin(kn_el, kt_el);
                 }
 
             }
 
-            if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0){
-                equiv_visco_damp_coeff_normal     = 2 * sqrt(equiv_mass * kn);
-                equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; 
+            //DAMPING:
+            
+            if(mDempack){
+            
+            equiv_visco_damp_coeff_normal     = mDempack_damping*2.0*sqrt(kn_el/(mRealMass+other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
+            equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal; // dempack no l'utilitza...
+              
             }
+              
+            else{ //KDEM
+            
+              if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0){
+                    
+                  equiv_visco_damp_coeff_normal     = 2 * sqrt(equiv_mass * kn_el);
+                  equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; 
+              }
 
-            else {
-                equiv_visco_damp_coeff_normal     = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + M_PI * M_PI));
-
-                equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; 
+              else {
+                  
+                  equiv_visco_damp_coeff_normal     = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn_el / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + M_PI * M_PI));
+                  equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; 
+              }
+              
             }
 
             EvaluateDeltaDisplacement(DeltDisp, RelVel, NormalDir, OldNormalDir, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator);
@@ -437,6 +562,7 @@ namespace Kratos
             double LocalElasticContactForce[3]  = {0.0}; // 0: first tangential, // 1: second tangential, // 2: normal force
             double GlobalElasticContactForce[3] = {0.0};
             double LocalRelVel[3] = {0.0};
+            double ViscoDampingLocalContactForce[3]    = {0.0};
 
             GlobalElasticContactForce[0] = mOldNeighbourContactForces[i_neighbour_count][0];  
             GlobalElasticContactForce[1] = mOldNeighbourContactForces[i_neighbour_count][1];
@@ -448,136 +574,106 @@ namespace Kratos
             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, RelVel, LocalRelVel);
             
             /* Translational Forces */
+            
+            //Tangential Forces   #4
 
+
+            LocalElasticContactForce[0] += - kt_el * LocalDeltDisp[0];  // 0: first tangential
+            LocalElasticContactForce[1] += - kt_el * LocalDeltDisp[1];  // 1: second tangential
+                              
+            double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
+                                    +   LocalElasticContactForce[1] * LocalElasticContactForce[1]); 
+        
+            double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
+            
+            if (Frictional_ShearForceMax < 0.0)
+            {
+              Frictional_ShearForceMax = 0.0;
+              
+            }
+            
+               
             if  (indentation > 0.0 || (mNeighbourFailureId[i_neighbour_count] == 0) )//*  //#3
             {                                                                                                
               
-              //Normal Forces
-              
-             if(mElasticityType < 2)
-             {
-                   NormalForceCalculation(LocalElasticContactForce,kn,indentation);
-
-             }
-             
-             else if(mElasticityType==2){
-             
-             StepWiseForceCalculation(LocalElasticContactForce, kn, indentation, corrected_area );
-             }
-/*
-              else if(mElasticityType==3)
-              {
-                  double current_def            = (initial_dist - distance)/initial_dist ;
-                  double kn1                    = kn;
-                  double kn2                    = kn1 * mGamma3 + kn1 * mGamma1 * exp(mGamma2 * (current_def - mMaxDef));
-                         if (kn2 > kn1) {
-                             kn2                = kn1;
-                         };
-                  double max_dist               = initial_dist * (1 - mMaxDef);
-                  
-                  initial_dist
-                  double kn_plas                = kn1;  // modificable en el futuro con un input
-
-                  LocalElasticContactForce[2] = kn1 * (initial_dist - distance); // = kn1 * indentation; fuerza en parte lineal
-
-                  if (distance < mHistDist) // vemos si esta en carga, comparando la distancia actual entre particulas con la maxima historica
-                  {
-                      mHistDist = distance;
-                      
-                      if( distance < max_dist )  //  se supera el limite para le cambio de pendiente.
-                      {
-                          NonlinearNormalForceCalculation (LocalElasticContactForce, kn1, kn2, distance, max_dist, initial_dist);                       
-                      }
-                      else
-                      {
-                          LocalElasticContactForce[2] = kn1 * (initial_dist - distance); // fuerza en parte lineal
-                      }
-                   }
-                   double hist_fn = LocalElasticContactForce[2]; //guardamos el maximo historico de fuerza fn
-                   else  // esta en descarga, la distancia entre particulas aumenta respecto la historica, current_dist > mHistDist
-                   {
-                      if (hist_fn > 0 );   //  fuerza normal esta en el rango de compresion de la curva
-                      {
-                          plast_dist = max_dist; // initial_dist*(1-plast_def) distancia associada al valor de plast_def impuesto, por ahora coincide con el cambio de pendiente
-                          if (plast_dist > mHistDist ) // mientras se este por encima de la maxima historica, estamos en plasticidad.
-                          {
-                              fn = hist_fn + kn_plas*(mHistDist - distance); // en descarga: 500 - kn_plas(10 - 12). en carga 500 - kn(10 - 11) pero con distance > mHistDistance
-                          }
-                          else  // esta en descarga pero no en la zona plastica, descarga por la linea elastica
-                          {
-                              if( distance < max_dist )  // se supera el limite para le cambio de pendiente, mientras plast_dist=max_dist nunca pasara, nunca descargara por kn2
-                              {
-                                  NonlinearNormalForceCalculation (LocalElasticContactForce, kn1, kn2, distance, max_dist, initial_dist);
-                              }
-                              else // descarga por la primera rama elastica
-                              {
-                                  LocalElasticContactForce[2] = kn1 * (initial_dist - distance); // fuerza en parte lineal
-                              }
-                          }
-                      }
-                   }
-
-               }
-*/
-              // MSI #C4
-                              
-              //Nonlinear...() MSI #C4
-              
-
-              //Tangential Forces   #4
-              LocalElasticContactForce[0] += - kt * LocalDeltDisp[0];  // 0: first tangential
-              LocalElasticContactForce[1] += - kt * LocalDeltDisp[1];  // 1: second tangential
-              
-            }
-
-            /* Evaluating Failure for the continuum contacts */
-            
-              double failure_criterion_state = 0.0;   
-      
-              double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
-                                    +      LocalElasticContactForce[1] * LocalElasticContactForce[1]); 
-              
-              double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
-              
-              if (Frictional_ShearForceMax < 0.0){
-                    Frictional_ShearForceMax = 0.0;
-                  }
-              
-              if ( mNeighbourFailureId[i_neighbour_count] != 0 ) //*
+                //Normal Forces
+                
+                if(mElasticityType < 2)
                 {
-                    failure_criterion_state = 1.0;
-                                                          
-                    if( (ShearForceNow >  Frictional_ShearForceMax) && (ShearForceNow != 0.0) ) 
+                      NormalForceCalculation(LocalElasticContactForce,kn_el,indentation);
+
+                }
+                
+                else if(mElasticityType==2){
+                
+               
+                    if (mapping_new_cont!=-1)
                     {
-                        LocalElasticContactForce[0] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[0];
-                        LocalElasticContactForce[1] = (Frictional_ShearForceMax / ShearForceNow )* LocalElasticContactForce[1];
-                        sliding = true;
-                                    
+                    
+                  
+                      
+                      PlasticityAndDamage1D(LocalElasticContactForce, kn_el, indentation, calculation_area,radius_sum_i, failure_criterion_state, i_neighbour_count,mapping_new_cont );
+                    
+                      
                     }
                     
+                    else
+                    
+                    {
+                      NormalForceCalculation(LocalElasticContactForce,kn_el,indentation);
+                      
+                    }
+                    
+                }//plasticity and damage for the initial continuum contacts only.
+
+            } //if compression or cohesive contact
+               
+
+              /* Evaluating Failure for the continuum contacts */
+          
+                
+                if(mNeighbourFailureId[i_neighbour_count] == 0)
+                {                
+                  /*
+                  mNeighbourFailureId[i_neighbour_count] = 2; //shear in compression
+                  mNeighbourFailureId[i_neighbour_count] = 3;  //shear failure tension
+                  mNeighbourFailureId[i_neighbour_count] = 4; //tension failure
+                  mNeighbourFailureId[i_neighbour_count] = 12; //both shear and tension
+                  */
+                  EvaluateFailureCriteria(LocalElasticContactForce,ShearForceNow,calculation_area,i_neighbour_count,contact_sigma,contact_tau, failure_criterion_state, sliding, mapping_new_ini);
+ 
                 }
-            
-            if(corrected_area <1e-09) {KRATOS_WATCH(corrected_area) KRATOS_WATCH(this->Id())} // MSIMSI 10
+                
+                /* Tangential Friction for broken bonds */  //dempack and kdem do the same.
+                
+                if ( mNeighbourFailureId[i_neighbour_count] != 0 ) //*   //degut als canvis de DEMPACK hi ha hagut una modificació, ara despres de trencar es fa akest maping de maxima tangencial que és correcte!
+                {
+                  failure_criterion_state = 1.0;
+                                                        
+                  if( (ShearForceNow >  Frictional_ShearForceMax) && (ShearForceNow != 0.0) ) 
+                  {
+                      LocalElasticContactForce[0] = (Frictional_ShearForceMax / ShearForceNow) * LocalElasticContactForce[0];
+                      LocalElasticContactForce[1] = (Frictional_ShearForceMax / ShearForceNow )* LocalElasticContactForce[1];
+                      sliding = true;
+                                  
+                  }
+                  
+                }
 
-            double contact_tau = 0.0;
-            double contact_sigma = 0.0;
+                   
+               /* Viscodamping (applyied locally)*/ 
 
-            if(mNeighbourFailureId[i_neighbour_count] == 0)
-            {                
-              EvaluateFailureCriteria(LocalElasticContactForce,ShearForceNow,corrected_area,i_neighbour_count,contact_sigma,contact_tau, failure_criterion_state, sliding, mapping);
-            }
-      
-            // VISCODAMPING (applyied locally)
+                  if  (indentation > 0.0 || (mNeighbourFailureId[i_neighbour_count] == 0) )//*  //#3
+                  {  
+                    
+                  CalculateViscoDamping(LocalRelVel,ViscoDampingLocalContactForce,indentation,equiv_visco_damp_coeff_normal,equiv_visco_damp_coeff_tangential,sliding);
+                  
+                  }
+                
             
-            double ViscoDampingLocalContactForce[3]    = {0.0};
-
-            if  (indentation > 0.0 || (mNeighbourFailureId[i_neighbour_count] == 0) )//*  //#3
-            {  
             
-            CalculateViscoDamping(LocalRelVel,ViscoDampingLocalContactForce,indentation,equiv_visco_damp_coeff_normal,equiv_visco_damp_coeff_tangential,sliding);
             
-            }
-  
+            
             // Transforming to global forces and adding up
             double LocalContactForce[3] =                 {0.0};
             double ViscoDampingGlobalContactForce[3] =    {0.0}; 
@@ -593,13 +689,13 @@ namespace Kratos
             
             ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce,InitialRotaMoment,LocalCoordSystem,other_radius,rContactMoment,neighbour_iterator);
             
-            //StressTensorOperations(mStressTensor,GlobalElasticContactForce,other_to_me_vect,distance,radius_sum,corrected_area,neighbour_iterator,rCurrentProcessInfo); //MSISI 10
+            //StressTensorOperations(mStressTensor,GlobalElasticContactForce,other_to_me_vect,distance,radius_sum,calculation_area,neighbour_iterator,rCurrentProcessInfo); //MSISI 10
   
-            if(mContactMeshOption==1 && (mapping !=-1)) 
+            if(mContactMeshOption==1 && (mapping_new_ini !=-1)) 
             {
 
-              CalculateOnContactElements( neighbour_iterator ,i_neighbour_count, mapping, LocalElasticContactForce, corrected_area, contact_sigma, contact_tau, failure_criterion_state);
-  
+              CalculateOnContactElements( neighbour_iterator ,i_neighbour_count, mapping_new_ini, LocalElasticContactForce, calculation_area, contact_sigma, contact_tau, failure_criterion_state);
+
             }
 
             i_neighbour_count++;
@@ -775,7 +871,7 @@ namespace Kratos
                 double equiv_poisson    = 2* mPoisson * other_poisson / (mPoisson + other_poisson);
                 //double equiv_young      = 2 * young * other_young / (young + other_young);
                 //bool is_continuum       = false;
-                  double corrected_area = equiv_area;
+                  double calculation_area = equiv_area;
                   
                   bool found = false;
                   
@@ -789,7 +885,7 @@ namespace Kratos
 
                                 Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(index_area)).lock();
 
-                                corrected_area = lock_p_weak->GetValue(MEAN_CONTACT_AREA);
+                                calculation_area = lock_p_weak->GetValue(MEAN_CONTACT_AREA);
 
                                   array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
                 
@@ -835,7 +931,7 @@ namespace Kratos
                                     
                                 }
                                 
-                                double Normal_Contact_Contribution = -1.0*corrected_area*equiv_poisson*(stress_projection[0]+stress_projection[1]); 
+                                double Normal_Contact_Contribution = -1.0*calculation_area*equiv_poisson*(stress_projection[0]+stress_projection[1]); 
                                 
                                 //storing the value in the bar and doing the mean
                               
@@ -901,17 +997,24 @@ namespace Kratos
   
     
 
-      void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+      void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) //Note: this function is only called once by now in the continuum strategy
       { 
-        
+   
            MemberDeclarationFirstStep(rCurrentProcessInfo);
            
          //DEM_CONTINUUM
          
          if (!mInitializedVariablesFlag){
-         
 
+           
+         if(mDempack)
+         {
+           
+           mDempack_damping = rCurrentProcessInfo[DEMPACK_DAMPING]; 
 
+          }
+           
+           
 
          mGamma1 = rCurrentProcessInfo[DONZE_G1];
          mGamma2 = rCurrentProcessInfo[DONZE_G2];
@@ -919,8 +1022,6 @@ namespace Kratos
          mMaxDef = rCurrentProcessInfo[DONZE_MAX_DEF];
 
 
-
-         
          mSkinSphere = &(this->GetValue(SKIN_SPHERE));
            
 
@@ -959,6 +1060,7 @@ namespace Kratos
           {
             
             SetInitialContacts( rCurrentProcessInfo);
+            //NeighNeighMapping( rCurrentProcessInfo);//MSIMSI DEBUG
             
           }
           
@@ -971,10 +1073,13 @@ namespace Kratos
          if(mElasticityType == 2)
          {
            
-             mN1 = rCurrentProcessInfo[SLOPE_FRACTION_N1];
-             mN2 = rCurrentProcessInfo[SLOPE_FRACTION_N2];
-             mC1 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C1];
-             mC2 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C2];                                
+            mN1 = rCurrentProcessInfo[SLOPE_FRACTION_N1];
+            mN2 = rCurrentProcessInfo[SLOPE_FRACTION_N2];
+            mC1 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C1];
+            mC2 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C2]; 
+            mYoungPlastic = rCurrentProcessInfo[YOUNG_MODULUS_PLASTIC];
+            mPlasticityLimit = rCurrentProcessInfo[PLASTIC_YIELD_STRESS];
+            mDamageMaxDisplacementFactor = rCurrentProcessInfo[DAMAGE_FACTOR];
            
          }
          
@@ -1054,6 +1159,7 @@ namespace Kratos
        vector<int>                  temp_neighbours_failure_id;
        vector<array_1d<double, 3> > temp_neighbours_contact_forces;
        vector<int>                  temp_neighbours_mapping;
+       vector<int>                  temp_cont_neighbours_mapping;
 
        array_1d<double, 3> vector_of_zeros;
        vector_of_zeros[0]                   = 0.0;
@@ -1066,10 +1172,11 @@ namespace Kratos
 
          //neigh_added = false;
           
-          double                ini_delta       = 0.0;
-          int                   failure_id      = 1;
-          array_1d<double, 3>   neigh_forces    = vector_of_zeros;
-          double                mapping            = -1;    
+          double                ini_delta           = 0.0;
+          int                   failure_id          = 1;
+          array_1d<double, 3>   neigh_forces        = vector_of_zeros;
+          double                mapping_new_ini     = -1;  
+          double                mapping_new_cont    = -1;
 
           //Loop Over Initial Neighbours
 
@@ -1081,7 +1188,8 @@ namespace Kratos
                 
                 ini_delta  = mIniNeighbourDelta[k];
                 failure_id = mIniNeighbourFailureId[k];
-                mapping = k; 
+                mapping_new_ini = k; 
+                mapping_new_cont = mIniNeighbourToIniContinuum[k];
                 
                 break;
               }
@@ -1119,9 +1227,12 @@ namespace Kratos
                 temp_neighbours_failure_id.resize(size);
                 temp_neighbours_contact_forces.resize(size);
                 temp_neighbours_mapping.resize(size);
+                temp_cont_neighbours_mapping.resize(size);
                 
                 temp_neighbours_ids[neighbour_counter]              = static_cast<int>((*i).lock()->Id());
-                temp_neighbours_mapping[neighbour_counter]          = mapping;
+                temp_neighbours_mapping[neighbour_counter]          = mapping_new_ini;
+                temp_cont_neighbours_mapping[neighbour_counter]     = mapping_new_cont;
+                
                 temp_neighbours_delta[neighbour_counter]            = ini_delta;
                 temp_neighbours_failure_id[neighbour_counter]       = failure_id;
                 temp_neighbours_contact_forces[neighbour_counter]   = neigh_forces;
@@ -1133,6 +1244,7 @@ namespace Kratos
         }
         
         mMapping_New_Ini.swap(temp_neighbours_mapping);
+        mMapping_New_Cont.swap(temp_cont_neighbours_mapping);
         mOldNeighbourIds.swap(temp_neighbours_ids);
         mNeighbourDelta.swap(temp_neighbours_delta);
         mNeighbourFailureId.swap(temp_neighbours_failure_id);
@@ -1196,6 +1308,12 @@ namespace Kratos
             
           } //EULER_ANGLES
           
+          if (rVariable == DUMMY_DEBUG_DOUBLE) //Dummy variable for debugging  MSIMSI DEBUG
+          {
+            
+            CheckPairWiseBreaking();
+          
+          }
 
       }//calculate
       
@@ -1254,15 +1372,15 @@ namespace Kratos
       }
 
       
-      void SphericContinuumParticle::EvaluateFailureCriteria(double LocalElasticContactForce[3],double ShearForceNow,double corrected_area, int i_neighbour_count,double& contact_sigma, double& contact_tau,double& failure_criterion_state, bool& sliding, int mapping)
+      void SphericContinuumParticle::EvaluateFailureCriteria(double LocalElasticContactForce[3],double ShearForceNow,double calculation_area, int i_neighbour_count,double& contact_sigma, double& contact_tau,double& failure_criterion_state, bool& sliding, int mapping_new_ini)
       {             
 
              //(1) MOHR-COULOMB FAILURE: (we don't consider rotational spring!!!!! here) need to be thought.
       
               if (mFailureCriterionOption==1)  //MOHR-COULOMB
               {   
-                  contact_tau = ShearForceNow/(corrected_area);
-                  contact_sigma = LocalElasticContactForce[2]/(corrected_area);
+                  contact_tau = ShearForceNow/(calculation_area);
+                  contact_sigma = LocalElasticContactForce[2]/(calculation_area);
 
                   double sigma_max, sigma_min;
 
@@ -1297,7 +1415,8 @@ namespace Kratos
                       //breaks
 
                       mNeighbourFailureId[i_neighbour_count] = 5; //mohr coulomb   
-                      mIniNeighbourFailureId[ mapping ] = 5;
+                      mIniNeighbourFailureId[ mapping_new_ini ] = 5;
+                      failure_criterion_state = 1.0;
                       sliding = true ;
 
                   }
@@ -1306,15 +1425,13 @@ namespace Kratos
               } //MOHR-COULOMB
         
               ///(2) UNCOUPLED FRACTURE
-        
-              ///vam decidir amb miguel angel de no fer el mapping de les shear fins al pas seguent.. esta correcte? afecta quan trenca?
-
-       
-              if (mFailureCriterionOption==2)//UNCOUPLED FRACTURE
+                      
+              if (mFailureCriterionOption==2)//UNCOUPLED FRACTURE and DEMPACK
               {    
-       
-                  contact_tau = ShearForceNow/(corrected_area);
-                  contact_sigma = LocalElasticContactForce[2]/(corrected_area);
+ 
+                  contact_tau = ShearForceNow/(calculation_area);
+                  
+                  contact_sigma = LocalElasticContactForce[2]/(calculation_area);
 
                   //double mTauZero = 0.5*sqrt(mCompressionLimit*mTensionLimit); 
                                
@@ -1326,40 +1443,48 @@ namespace Kratos
                                             
                       if(contact_tau>tau_strength)
                       {
-                          mNeighbourFailureId[i_neighbour_count] = 2;
-                          mIniNeighbourFailureId[ mapping ] = 2;
-                          
+                          mNeighbourFailureId[i_neighbour_count] = 2; //shear in compression
+                          mIniNeighbourFailureId[ mapping_new_ini ] = 2;
+                          failure_criterion_state = 1.0;
                           sliding = true;
                       }
                   } //positive sigmas
                   
                   else //negative sigmas
                   {
-                      double tau_strength = mTauZero;
-            
-                      failure_criterion_state = GeometryFunctions::max(contact_tau/tau_strength, -contact_sigma/mTensionLimit) ;
+  
+                        double tau_strength = mTauZero;
 
-                      if(contact_tau > tau_strength)
-                      {
-                          mNeighbourFailureId[i_neighbour_count] = 3;  //shear failure
-                          mIniNeighbourFailureId[ mapping ] = 3;
-                          sliding = true;
-              
-                          if(contact_sigma<-mTensionLimit)
-                          {
-                              mNeighbourFailureId[i_neighbour_count] = 12;
-                              mIniNeighbourFailureId[ mapping ] = 12;
-                          } //both shear and tension
-              
-                      }
-                   
-                      else if(contact_sigma<-mTensionLimit)
-                      {
-                          mNeighbourFailureId[i_neighbour_count] = 4; //tension failure
-                          mIniNeighbourFailureId[ mapping ] = 4;
-                          sliding = true;
-                           
-                      }
+                        failure_criterion_state = GeometryFunctions::max(contact_tau/tau_strength, -contact_sigma/mTensionLimit) ;
+                        
+                        if(contact_tau > tau_strength)
+                        {
+                            mNeighbourFailureId[i_neighbour_count] = 3;  //shear failure tension
+                            mIniNeighbourFailureId[ mapping_new_ini ] = 3;
+                            sliding = true;
+                            failure_criterion_state = 1.0;
+                      
+                          //Amb Dempack la fractura tracció és el limit del dany i es mira al calcul de forces...
+                          
+                            /*
+                            if(contact_sigma<-mTensionLimit)
+                            {
+                                mNeighbourFailureId[i_neighbour_count] = 12; //both shear and tension
+                                mIniNeighbourFailureId[ mapping_new_ini ] = 12;
+                                failure_criterion_state = 1.0;
+                            } //both shear and tension
+                            */
+                        }
+                      /*
+                        else if (contact_sigma<-mTensionLimit)
+                        {
+                            mNeighbourFailureId[i_neighbour_count] = 4; //tension failure
+                            mIniNeighbourFailureId[ mapping_new_ini ] = 4;
+                            sliding = true;
+                            failure_criterion_state = 1.0;
+                            
+                        }
+                     */
                       
                   } //negative values of sigma              
           
@@ -1386,13 +1511,13 @@ namespace Kratos
       */
       }
       
-      void SphericContinuumParticle::CalculateOnContactElements(ParticleWeakIteratorType neighbour_iterator, size_t i_neighbour_count, int mapping, double LocalElasticContactForce[3], 
-                                                          double corrected_area, double  contact_sigma, double  contact_tau, double failure_criterion_state)
+      void SphericContinuumParticle::CalculateOnContactElements(ParticleWeakIteratorType neighbour_iterator, size_t i_neighbour_count, int mapping_new_ini, double LocalElasticContactForce[3], 
+                                                          double calculation_area, double  contact_sigma, double  contact_tau, double failure_criterion_state)
       {
    
        //obtaining pointer to contact element.
 
-       Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(mapping)).lock();
+       Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(mapping_new_ini)).lock();
                       
        if( this->Id() < neighbour_iterator->Id() )  // if id pequeña
         {
@@ -1408,7 +1533,7 @@ namespace Kratos
             
             if(*mpTimeStep==0)
             {
-            lock_p_weak->GetValue(LOCAL_CONTACT_AREA_LOW) = corrected_area;
+            lock_p_weak->GetValue(LOCAL_CONTACT_AREA_LOW) = calculation_area;
             
             }
             
@@ -1420,19 +1545,12 @@ namespace Kratos
             //UNIQUE VALUES
             
             //1) failure
-                lock_p_weak->GetValue(CONTACT_FAILURE) = (mNeighbourFailureId[i_neighbour_count]);                                        
-                      
-                if(failure_criterion_state<=1.0)
-                {
-                    lock_p_weak->GetValue(FAILURE_CRITERION_STATE) = failure_criterion_state;
-                   
-                }
-                
-                else
-                {
-                    //KRATOS_WATCH (failure_criterion_state )
-                }   
-                                
+            lock_p_weak->GetValue(CONTACT_FAILURE) = (mNeighbourFailureId[i_neighbour_count]);                                        
+            lock_p_weak->GetValue(FAILURE_CRITERION_STATE) = failure_criterion_state;
+              
+        
+            
+                  
         } // if Target Id < Neigh Id
         else   
         {
@@ -1447,7 +1565,7 @@ namespace Kratos
             if(*mpTimeStep==0)
             {
 
-            lock_p_weak->GetValue(LOCAL_CONTACT_AREA_HIGH) = corrected_area;
+            lock_p_weak->GetValue(LOCAL_CONTACT_AREA_HIGH) = calculation_area;
 
             }
             
@@ -1465,14 +1583,14 @@ namespace Kratos
           if ( ( *mpTimeStep==0 ) && (!*mSkinSphere ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==0 ) )
               {
                                             
-                lock_p_weak->GetValue(MEAN_CONTACT_AREA)   += 0.5*corrected_area;
+                lock_p_weak->GetValue(MEAN_CONTACT_AREA)   += 0.5*calculation_area;
 
               }
               
               else if ( ( *mpTimeStep==0 ) && ( *mSkinSphere ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==1 ) )
               {
           
-                lock_p_weak->GetValue(MEAN_CONTACT_AREA)   += 0.5*corrected_area;
+                lock_p_weak->GetValue(MEAN_CONTACT_AREA)   += 0.5*calculation_area;
                                             
               }
               
@@ -1481,7 +1599,7 @@ namespace Kratos
               else if ( ( *mpTimeStep==0 ) && ( !*mSkinSphere ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==1 ) )
               {
               
-              lock_p_weak->GetValue(MEAN_CONTACT_AREA)   = corrected_area;
+              lock_p_weak->GetValue(MEAN_CONTACT_AREA)   = calculation_area;
                 
               }
     
@@ -1540,7 +1658,7 @@ namespace Kratos
        * @param other_to_me_vect NO_SE_QUE_ES
        * @param distance distance with the neighbour
        * @param radius_sum neighbour's radius plus our radius
-       * @param corrected_area cirrected contact area between particles
+       * @param calculation_area cirrected contact area between particles
        * @param Representative_Volume NO_SE_QUE_ES
        * @param neighbour_iterator neighbour pointer
        **/
@@ -1549,7 +1667,7 @@ namespace Kratos
                                                                     array_1d<double,3> &other_to_me_vect,
                                                                     const double &distance,
                                                                     const double &radius_sum,
-                                                                    const double &corrected_area,
+                                                                    const double &calculation_area,
                                                                     ParticleWeakIteratorType neighbour_iterator, ProcessInfo& rCurrentProcessInfo)
       {
           if(rCurrentProcessInfo[STRESS_STRAIN_OPTION]==1) //TODO: Change this with class members or flags
@@ -1567,12 +1685,12 @@ namespace Kratos
               double target_radius               = this->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
               array_1d<double,3> x_centroid      = (target_radius + 0.5*gap) * normal_vector_on_contact;
             
-              //KRATOS_WATCH(kn)
+              //KRATOS_WATCH(kn_el)
               double result_product = GeometryFunctions::DotProduct(x_centroid,normal_vector_on_contact);
             
               double& Representative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);
           
-              Representative_Volume = Representative_Volume + 0.33333333333333 * (result_product * corrected_area);
+              Representative_Volume = Representative_Volume + 0.33333333333333 * (result_product * calculation_area);
             
               for (int i=0; i<3; i++)
               {
@@ -1665,53 +1783,190 @@ namespace Kratos
      } //SphericContinuumParticle::ComputePressureForces
     
 
-    void SphericContinuumParticle::StepWiseForceCalculation(double LocalElasticContactForce[3], double kn, double indentation, double corrected_area )
+    void SphericContinuumParticle::PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn_el, double indentation, double calculation_area, double radius_sum_i, double failure_criterion_state, int i_neighbour_count, double mapping_new_cont )
     {
 
-      double kn_b = kn/mN1;
-      double kn_c = kn/mN2;
+      //VARIABLES
+      
+      // a guardar:
+  
+      double kn_b = kn_el/mN1;
+      double kn_c = kn_el/mN2;
+      double kp_el = mYoungPlastic*kn_el;
 
-      double mCompressionLimit_1 = mC1*mCompressionLimit*1e6;
-      double mCompressionLimit_2 = mC2*mCompressionLimit*1e6;
+      double mCompressionLimit_1 = mC1*mCompressionLimit;
+      double mCompressionLimit_2 = mC2*mCompressionLimit;
+      
+      double mYields_el = mPlasticityLimit*mCompressionLimit*calculation_area;
+        
+      double mNcstr1_el = mCompressionLimit_1*calculation_area;
+      double mNcstr2_el = mCompressionLimit_2*calculation_area;
+      double mNtstr_el  = mTensionLimit*calculation_area;
+      
+      double sigma_a = (kn_el * indentation)/(calculation_area);
+      double sigma_b = mCompressionLimit_1 + kn_b*(indentation/calculation_area - mCompressionLimit_1/kn_el);
 
-      double sigma_a = (kn * indentation)/(corrected_area);
-      double sigma_b = mCompressionLimit_1 + kn_b*(indentation/corrected_area - mCompressionLimit_1/kn);
+      double u_max = mHistory[mapping_new_cont][0];
+      
+      double& fn = LocalElasticContactForce[2];
 
-                                    
-      if( (indentation >= 0.0) && (sigma_a < mCompressionLimit_1) ) 
-      {
-          LocalElasticContactForce[2]= kn * indentation;
-          
-          if(mContactMeshOption)
-          
-          {
-            //lock_p_weak->GetValue(NON_ELASTIC_STAGE) = 1.0;
-          }
-          
-      }
-
-      else if( (indentation >= 0.0) && (sigma_a >= mCompressionLimit_1) && ( sigma_b < mCompressionLimit_2 ) ) 
-      {
-          LocalElasticContactForce[2]= mCompressionLimit_1*corrected_area + kn_b*(indentation - mCompressionLimit_1*corrected_area/kn);
             
-          if(mContactMeshOption)
+      //COMPRESSIÓN
+      
+      if( indentation >= 0.0 )
+      {
+        
+          fn = kn_el * indentation;
           
+          double u_ela1 = mNcstr1_el/kn_el;;
+          double u_ela2 = u_ela1 + (mNcstr2_el-mNcstr1_el)/(kn_b);
+
+          if ( ( indentation > u_max ) || (*mpTimeStep <= 1) )//en càrrega màxima
+            
           {
-          //lock_p_weak->GetValue(NON_ELASTIC_STAGE) = 2.0;
+
+            mHistory[mapping_new_cont][0]  = indentation;             // Guarda el treshold del màxim desplaçament
+            
+            if (indentation > u_ela2) //3r tram
+            {
+              
+              fn = mNcstr2_el + ( indentation - u_ela2 )*kn_c;
+              
+            }
+            else
+            {    
+              if( indentation > u_ela1) //2n tram
+              {
+                fn = mNcstr1_el + (indentation - u_ela1)*kn_b;
+              
+              }
+              
+            }
+          
+          mHistory[mapping_new_cont][1] = fn; //actualitzar la força màxima a compressió.
           
           }
-      }
-
-      else if ( indentation >= 0.0 ) 
-      {
           
-          LocalElasticContactForce[2]= mCompressionLimit_2*corrected_area + kn_c*(indentation - corrected_area*(mCompressionLimit_1/kn + mCompressionLimit_2/kn_b - mCompressionLimit_1/kn_b));
+          else //Per sota del màxim.
+          {
 
+              if(mHistory[mapping_new_cont][1] > 0.0)  //Màxim en compressió. 
+              {
+ 
+                  double u_plas;        //MSIMSI 2 akesta operació de saber quant val la u_plastica es fa cada pas de temps i en realitat es fixe sempre.
+
+                  if(mYields_el <= mNcstr1_el) //si el punt de plastificació està en la primera rama elastica.
+                  {
+                      u_plas = mYields_el/kn_el;
+
+                  }
+                  else
+                  {  
+                    if(mYields_el <= mNcstr2_el) //si està en la segona...
+                    {
+                        u_plas = mNcstr1_el/kn_el + (mYields_el-mNcstr1_el)/(kn_b);
+
+                    }
+                    else //en la tercera...
+                    {
+
+                      u_plas = mNcstr1_el/kn_el + (mNcstr2_el-mNcstr1_el)/(kn_b) + (mYields_el-mNcstr2_el)/(kn_c);
+                    }
+                    
+                  }
+
+                  
+                  if ( u_plas < u_max ) //si nosaltres estem per sota del maxim pero ja estem plastificant 
+                  {
+                    fn = mHistory[mapping_new_cont][1] - kp_el*(u_max - indentation); // Esta en zona de descarga plastica (pot estar en carga/descarga)
+                  
+                    
+                    
+                  }
+                  else                                   // Esta en zona descarga elastica, ens despreocupem de la plasticitat
+                  {
+
+                    if ( indentation > u_ela2)  //en la 3a ramma
+                    {
+                      fn = mNcstr2_el + (indentation - u_ela2)*kn_c;
+                      
+                    }
+                    
+                    else
+                    {
+                      if(indentation > u_ela1)  //en la 2a rama
+                      {
+                        fn = mNcstr1_el + (indentation-u_ela1)*kn_b;
+                      }
+            
+                    }
+            
+                  }
+
+              } //si tenim precàrrega en compressió.
+              
+          }//Per sota del màxim.
+
+
+      } //Compression
+              
+
+      else //tension
+      {
+        fn = kn_el * indentation; 
+        
+        double u1 = mNtstr_el / kn_el;
+
+        double u2 = u1*(1+ mDamageMaxDisplacementFactor);
+ 
+          if(fabs(indentation) > u2)                  // FULL DAMAGE 
+          {
+            mNeighbourFailureId[i_neighbour_count] = 4; //tension failure
+            failure_criterion_state = 1;
+            fn = 0.0;
+          }
+          else
+          {
+            if (fabs(indentation) > u1)  
+            {
+              double u_frac = (fabs(indentation) - u1)/(u2 - u1);
+              failure_criterion_state = fabs(indentation)/u2;
+              
+              if (u_frac > mHistory[mapping_new_cont][2])  
+              {
+                mHistory[mapping_new_cont][2] = u_frac;
+              }
+              
+            }
+            
+            fn = indentation * kn_el*(1 -  mHistory[mapping_new_cont][2]);  // normal adhesive force (gap +)
+            
+          }
+      
+        }//Tension
+      
+    }//PlasticityAndDamage1D
+
+      
+      
+     void SphericContinuumParticle::CheckPairWiseBreaking()  //MSIMSI DEBUG
+     
+      {              
+      
+        //MSIMSI DEBUG
       }
-
-      else {LocalElasticContactForce[2]= kn * indentation; }
-    }
-
+      
+     
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       
     void SphericContinuumParticle::Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo){}
     void SphericContinuumParticle::Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo){}
@@ -1760,7 +2015,7 @@ namespace Kratos
 //           for(ParticleWeakIteratorType ineighbour = mrNeighbours.begin(); ineighbour != mrNeighbours.end(); ineighbour++)
 //           {
 // 
-//               //if(mIfInitalContact[i_neighbour_count] == 1 && mRotaSpringFailureType[i_neighbour_count] == 0) ///M.S:NEWWWW, IF THE SPRING BRAKES... NO MORE CONTRIBUION.
+//               //if(mIfInitalContact[i_neighbour_count] == 1 && mRotaSpringFailureType[i_neighbour_count] == 0) ///M.S:NEWWWW,  if THE SPRING BRAKES... NO MORE CONTRIBUION.
 //               //if( mRotaSpringFailureType[i_neighbour_count] == 0) //M.S: CAL FICAR A INITIALIZE QUE SIGUI 1 I DESPRES INITIAL CONTACTS POSAR 0 SI NECESITEN, IGUAL QUE FAILURE NORMAL.
 //               //mmm.. what about the other failure types? if a contact is broken due to shear or tensile, it cant be a bending
 //               {
@@ -1783,8 +2038,8 @@ namespace Kratos
 //                   double equiv_poisson    = (mPoisson + other_poisson) * 0.5 ;
 //                   double equiv_young      = (mYoung  + other_young)  * 0.5;
 // 
-//                   double kn               = mMagicFactor*equiv_young * equiv_area / (2.0 * equiv_radius);
-//                   double ks               = kn / (2.0 * (1.0 + equiv_poisson));
+//                   double kn_el               = mMagicFactor*equiv_young * equiv_area / (2.0 * equiv_radius);
+//                   double ks               = kn_el / (2.0 * (1.0 + equiv_poisson));
 // 
 //                   array_1d<double,3> other_to_me_vect = GetGeometry()(0)->Coordinates() - ineighbour->GetGeometry()(0)->Coordinates();
 // 
@@ -1831,9 +2086,9 @@ namespace Kratos
 //                   double Inertia_J = Inertia_I * 2.0;
 // 
 // 
-//                   LocalRotaSpringMoment[0] +=  - Inertia_I * LocalDeltRotaDisp[0] * kn / equiv_area;
+//                   LocalRotaSpringMoment[0] +=  - Inertia_I * LocalDeltRotaDisp[0] * kn_el / equiv_area;
 // 
-//                   LocalRotaSpringMoment[1] +=  - Inertia_I * LocalDeltRotaDisp[1] * kn / equiv_area;
+//                   LocalRotaSpringMoment[1] +=  - Inertia_I * LocalDeltRotaDisp[1] * kn_el / equiv_area;
 // 
 //                   LocalRotaSpringMoment[2] +=  - Inertia_J * LocalDeltRotaDisp[2] * ks / equiv_area;
 // 
@@ -1914,5 +2169,62 @@ namespace Kratos
          //MSIMSI
            
 */
+   
+   /* // MSI #C4
+              else if(mElasticityType==3)
+              {
+                  double current_def            = (initial_dist - distance)/initial_dist ;
+                  double kn1                    = kn_el;
+                  double kn2                    = kn1 * mGamma3 + kn1 * mGamma1 * exp(mGamma2 * (current_def - mMaxDef));
+                         if (kn2 > kn1) {
+                             kn2                = kn1;
+                         };
+                  double max_dist               = initial_dist * (1 - mMaxDef);
+                  
+                  initial_dist
+                  double kn_plas                = kn1;  // modificable en el futuro con un input
+
+                  LocalElasticContactForce[2] = kn1 * (initial_dist - distance); // = kn1 * indentation; fuerza en parte lineal
+
+                  if (distance < mHistDist) // vemos si esta en carga, comparando la distancia actual entre particulas con la maxima historica
+                  {
+                      mHistDist = distance;
+                      
+                      if( distance < max_dist )  //  se supera el limite para le cambio de pendiente.
+                      {
+                          NonlinearNormalForceCalculation (LocalElasticContactForce, kn1, kn2, distance, max_dist, initial_dist);                       
+                      }
+                      else
+                      {
+                          LocalElasticContactForce[2] = kn1 * (initial_dist - distance); // fuerza en parte lineal
+                      }
+                   }
+                   double hist_fn = LocalElasticContactForce[2]; //guardamos el maximo historico de fuerza fn
+                   else  // esta en descarga, la distancia entre particulas aumenta respecto la historica, current_dist > mHistDist
+                   {
+                      if (hist_fn > 0 );   //  fuerza normal esta en el rango de compresion de la curva
+                      {
+                          plast_dist = max_dist; // initial_dist*(1-plast_def) distancia associada al valor de plast_def impuesto, por ahora coincide con el cambio de pendiente
+                          if (plast_dist > mHistDist ) // mientras se este por encima de la maxima historica, estamos en plasticidad.
+                          {
+                              fn = hist_fn + kn_el_plas*(mHistDist - distance); // en descarga: 500 - kn_plas(10 - 12). en carga 500 - kn_el(10 - 11) pero con distance > mHistDistance
+                          }
+                          else  // esta en descarga pero no en la zona plastica, descarga por la linea elastica
+                          {
+                              if( distance < max_dist )  // se supera el limite para le cambio de pendiente, mientras plast_dist=max_dist nunca pasara, nunca descargara por kn2
+                              {
+                                  NonlinearNormalForceCalculation (LocalElasticContactForce, kn1, kn2, distance, max_dist, initial_dist);
+                              }
+                              else // descarga por la primera rama elastica
+                              {
+                                  LocalElasticContactForce[2] = kn1 * (initial_dist - distance); // fuerza en parte lineal
+                              }
+                          }
+                      }
+                   }
+
+               }
+*/
+              
       
                    
