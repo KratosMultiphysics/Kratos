@@ -4,6 +4,7 @@ ContinuumOption                  = "*GenData(Continuum)"
 RotationOption                   = "*GenData(Rotation)"
 HomogeneousMaterialOption        = "*GenData(Homogeneous_Material)"
 ElementType                      = "*GenData(DEM_Element_Type)"
+Dempack                          = "*GenData(Dempack)"
 
 # Meshing Settings
 
@@ -252,6 +253,8 @@ NormalDampingType                = "*GenData(Normal_Contact_Damp)"
 TangentialDampingType            = "*GenData(Tangential_Contact_Damp)"
 FailureCriterionType             = "*GenData(Failure_Criterion)"
 *format "%10.5e"
+DempackDamping                   = *GenData(Dempack_Damping)
+*format "%10.5e"
 TauZero                          = *GenData(Tau_Zero)
 *format "%10.5e"
 SigmaMax                         = *GenData(Sigma_Max)
@@ -268,6 +271,12 @@ N1                               = *GenData(N_1)
 C2                               = *GenData(C_2)
 *format "%10.5e"
 N2                               = *GenData(N_2)
+*format "%10.5e"
+PlasticYoungModulusRatio         = *GenData(Plastic_Young_Modulus_Ratio)
+*format "%10.5e"
+PlasticYieldStress               = *GenData(Plastic_Yield_Stress)
+*format "%10.5e"
+DamageDeformationFactor          = *GenData(Damage_Deformation_Factor)
 *format "%10.5e"
 G1                               = *GenData(Gamma_1)
 *format "%10.5e"
