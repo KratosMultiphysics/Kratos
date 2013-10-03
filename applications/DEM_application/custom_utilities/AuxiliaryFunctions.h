@@ -17,7 +17,7 @@ namespace Kratos
     namespace AuxiliaryFunctions
     {
 
-	  static inline void CalculateAlphaFactor(int n_neighbours, double external_sphere_area, double total_equiv_area , double& alpha)
+	  static inline void CalculateAlphaFactor3D(int n_neighbours, double external_sphere_area, double total_equiv_area , double& alpha)
 	  {
 
 		  double external_polyhedron_area = 0.0;
@@ -83,6 +83,59 @@ namespace Kratos
 		  alpha    = external_polyhedron_area/total_equiv_area;
 			
 	  }//CalculateAlphaFactor
+	  
+	  static inline void CalculateAlphaFactor2D(int n_neighbours, double external_sphere_perimeter, double total_equiv_perimeter , double& alpha)
+      {
+
+          double external_polyhedron_perimeter = 0.0;
+          
+          switch (n_neighbours)
+          {
+            case 3:
+                external_polyhedron_perimeter = 1.65399*external_sphere_perimeter;
+                break;
+            case 4:
+                external_polyhedron_perimeter = 1.27324*external_sphere_perimeter;
+                break;
+            case 5:
+                external_polyhedron_perimeter = 1.15633*external_sphere_perimeter;
+                break;
+            case 6:
+                external_polyhedron_perimeter = 1.10266*external_sphere_perimeter;
+                break;
+            case 7:
+                external_polyhedron_perimeter = 1.07303*external_sphere_perimeter;
+                break;
+            case 8:
+                external_polyhedron_perimeter = 1.05479*external_sphere_perimeter;
+                break;
+            case 9:
+                external_polyhedron_perimeter = 1.04270*external_sphere_perimeter;
+                break;
+            case 10:
+                external_polyhedron_perimeter = 1.03425*external_sphere_perimeter;
+                break;
+            case 11:
+                external_polyhedron_perimeter = 1.02811*external_sphere_perimeter;
+                break;
+            case 12:
+                external_polyhedron_perimeter = 1.02349*external_sphere_perimeter;
+                break;
+            case 13:
+                external_polyhedron_perimeter = 1.01993*external_sphere_perimeter;
+                break;
+            case 14:
+                external_polyhedron_perimeter = 1.01713*external_sphere_perimeter;
+                break;
+         
+            default:
+                external_polyhedron_perimeter = 1.0*external_sphere_perimeter;
+                break;
+          }//switch (n_neighbours)
+            
+          alpha    = external_polyhedron_perimeter/total_equiv_perimeter;
+            
+      }//CalculateAlphaFactor
 	  
 	  
 	  static inline void SwitchCase(int case_opt, bool& delta_OPTION, bool& continuum_simulation_OPTION)
