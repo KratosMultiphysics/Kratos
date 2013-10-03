@@ -219,7 +219,7 @@ namespace Kratos
                                                   bool sliding);
 
 
-
+      int mDimension;
       bool mDeltaOption;
       int mDampType;
       int mElasticityType;
