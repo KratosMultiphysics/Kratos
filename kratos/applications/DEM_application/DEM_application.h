@@ -25,6 +25,8 @@
 
 
 #include "includes/variables.h"
+#include "custom_elements/cylinder_particle.h"
+#include "custom_elements/cylinder_continuum_particle.h"
 #include "custom_elements/spheric_particle.h"
 #include "custom_elements/spheric_continuum_particle.h"
 #include "custom_elements/spheric_swimming_particle.h"
@@ -59,20 +61,26 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(int, SWITCH_PRESSURE)
   KRATOS_DEFINE_VARIABLE(int, FIX_VELOCITIES_FLAG)
   KRATOS_DEFINE_VARIABLE(int, STRESS_STRAIN_OPTION)
+  KRATOS_DEFINE_VARIABLE(double,DUMMY_DEBUG_DOUBLE)
+  KRATOS_DEFINE_VARIABLE(int, DUMMY_DEBUG_INT)
+    
 
   // *************** Continuum only BEGIN *************
   KRATOS_DEFINE_VARIABLE(Vector, DEM_AREA_VECTOR)
   KRATOS_DEFINE_VARIABLE(bool, DELTA_OPTION)
   KRATOS_DEFINE_VARIABLE(int, CASE_OPTION)
+  KRATOS_DEFINE_VARIABLE(int, DEMPACK_OPTION)
   KRATOS_DEFINE_VARIABLE(int, SKIN_SPHERE)
+  KRATOS_DEFINE_VARIABLE(double, PARTICLE_COHESION)
+  KRATOS_DEFINE_VARIABLE(double, PARTICLE_TENSION)
+  
   KRATOS_DEFINE_VARIABLE(int, ROTATION_SPRING_OPTION)
   KRATOS_DEFINE_VARIABLE(int, CONTACT_MESH_OPTION)
   KRATOS_DEFINE_VARIABLE(int, FAILURE_CRITERION_OPTION)
   KRATOS_DEFINE_VARIABLE(int, CONCRETE_TEST_OPTION)
   KRATOS_DEFINE_VARIABLE(int, PARTICLE_CONTINUUM)
-  KRATOS_DEFINE_VARIABLE(double, PARTICLE_COHESION)
-  KRATOS_DEFINE_VARIABLE(double, PARTICLE_TENSION)
   KRATOS_DEFINE_VARIABLE(int, plot_OPTIONS)
+  KRATOS_DEFINE_VARIABLE(double, DEMPACK_DAMPING)
   KRATOS_DEFINE_VARIABLE(double, SURFACE_FRICTION_1)
   KRATOS_DEFINE_VARIABLE(double, SURFACE_FRICTION_2)
   KRATOS_DEFINE_VARIABLE(double, SURFACE_FRICTION_3)
@@ -160,6 +168,9 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(double, SLOPE_FRACTION_N2)
   KRATOS_DEFINE_VARIABLE(double, SLOPE_LIMIT_COEFF_C1)
   KRATOS_DEFINE_VARIABLE(double, SLOPE_LIMIT_COEFF_C2)
+  KRATOS_DEFINE_VARIABLE(double, YOUNG_MODULUS_PLASTIC)
+  KRATOS_DEFINE_VARIABLE(double, PLASTIC_YIELD_STRESS)
+  KRATOS_DEFINE_VARIABLE(double, DAMAGE_FACTOR)
   KRATOS_DEFINE_VARIABLE(double, DONZE_G1)
   KRATOS_DEFINE_VARIABLE(double, DONZE_G2)
   KRATOS_DEFINE_VARIABLE(double, DONZE_G3)
@@ -451,7 +462,8 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    //const SphericParticle mSphericParticle2D;
+    const CylinderParticle mCylinderParticle2D;
+    const CylinderContinuumParticle mCylinderContinuumParticle2D;
     const SphericParticle mSphericParticle3D;
     const SphericContinuumParticle mSphericContinuumParticle3D;
     const SphericSwimmingParticle mSphericSwimmingParticle3D;
