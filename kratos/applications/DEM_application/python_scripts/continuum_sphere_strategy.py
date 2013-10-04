@@ -134,7 +134,6 @@ class ExplicitStrategy:
         self.MoveMeshFlag                   = True
         
         self.delta_option                   = Var_Translator(Param.DeltaOption)
-        print(Param.DeltaOption)
         
         self.continuum_simulating_option    = Var_Translator(Param.ContinuumOption)
         self.dempack_option                 = Var_Translator(Param.Dempack)
