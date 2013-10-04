@@ -37,7 +37,7 @@ class DEM_Inlet_Process:
     def ExecuteInitializeSolutionStep(self):
 	if(self.echo_level > 0):
 		print "Inserting new DEM elements..."  
-	self.inlet.CreateElementsFromInletMesh(self.solid_model_part,self.inlet_model_part,self.creator)   
+	self.inlet.CreateElementsFromInletMesh(self.solid_model_part,self.inlet_model_part,self.creator)          
 	print "Finished ExecuteInitializeSolutionStep for Class",self.PrintInfo()
       
     #this function will be executed at every time step AFTER performing the solve phase
