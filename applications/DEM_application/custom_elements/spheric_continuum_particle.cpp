@@ -535,13 +535,13 @@ namespace Kratos
             
             equiv_visco_damp_coeff_normal     = mDempack_damping*2.0*sqrt(kn_el/(mRealMass+other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
             equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal; // dempack no l'utilitza...
-              
+            
             }
               
             else{ //KDEM
             
               if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0){
-                    
+                  
                   equiv_visco_damp_coeff_normal     = 2 * sqrt(equiv_mass * kn_el);
                   equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang; 
               }
@@ -553,7 +553,8 @@ namespace Kratos
               }
               
             }
-
+            
+            
             EvaluateDeltaDisplacement(DeltDisp, RelVel, NormalDir, OldNormalDir, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator);
 
             DisplacementDueToRotation(DeltDisp, OldNormalDir, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
@@ -670,10 +671,7 @@ namespace Kratos
                   
                   }
                 
-            
-            
-            
-            
+           
             // Transforming to global forces and adding up
             double LocalContactForce[3] =                 {0.0};
             double ViscoDampingGlobalContactForce[3] =    {0.0}; 
@@ -1006,7 +1004,8 @@ namespace Kratos
          
          if (!mInitializedVariablesFlag){
 
-           
+         mDempack = rCurrentProcessInfo[DEMPACK_OPTION]; 
+         
          if(mDempack)
          {
            
