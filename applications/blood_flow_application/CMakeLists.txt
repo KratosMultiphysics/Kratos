@@ -1,6 +1,6 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-message("**** configuring KratosBloodFlowApplication ****")
+ message("**** configuring KratosBloodFlowApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
