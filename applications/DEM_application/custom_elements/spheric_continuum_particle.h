@@ -237,7 +237,7 @@ namespace Kratos
         //member variables DEM_CONTINUUM
 
         //DEMPACK
-        bool mDempack;
+        int mDempack;
         double mDempack_damping;
         vector< array_1d<double, 3> > mHistory;
         double mNcstr1_el;
