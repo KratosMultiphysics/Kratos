@@ -16,11 +16,13 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "includes/kratos_flags.h"
 #include "utilities/timer.h"
 
 //Database includes
 #include "custom_utilities/discrete_particle_configure.h"
 #include "discrete_particle_configure.h"
+
 // Project includes
 #include "includes/define.h"
 #include "../custom_elements/discrete_element.h"
@@ -86,6 +88,26 @@ public:
       pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = 1;
           
     }
+    void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, double bx, double cy, double dz
+                                        /*double& radius,  double & sphericity,  double& density,  
+                                        double& rest_coeff, double& fric_angle,
+                                        double& roll_fric,  double& rot_damp_ratio,  int& color,
+                                        double& velX,  double& velY,  double& velZ*/) {
+              
+      /*pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);
+      pnew_node->FastGetSolutionStepValue(VELOCITY_X) = velX;
+      pnew_node->FastGetSolutionStepValue(VELOCITY_Y) = velY;
+      pnew_node->FastGetSolutionStepValue(VELOCITY_Z) = velZ;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(RADIUS) = radius;
+      pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY) = density;
+      pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS) = 10000;
+      pnew_node->FastGetSolutionStepValue(POISSON_RATIO) = 0.25;
+      pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = color;*/
+          
+    }
 
 
     void ElementCreator(ModelPart& r_modelpart, int r_Elem_Id, int r_Id, double r_x, double r_y, double r_z)
@@ -99,9 +121,9 @@ public:
       
       nodelist.push_back(pnew_node);
 
-      Element::Pointer p_swimming_particle = Element::Pointer(new SphericSwimmingParticle(r_Elem_Id, nodelist)); //POOYAN
+      Element::Pointer p_swimming_particle = Element::Pointer(new SphericSwimmingParticle(r_Elem_Id, nodelist)); 
       
-      r_modelpart.Elements().push_back(p_swimming_particle); //POOYAN
+      r_modelpart.Elements().push_back(p_swimming_particle); 
            
     }
 
@@ -109,13 +131,29 @@ public:
 
     //SALVA
     //MA
-    void ElementCreatorFromExistingNode(ModelPart& r_modelpart, int r_Elem_Id, Node < 3 > ::Pointer pnew_node) {                 
+    void ElementCreatorFromExistingReferenceNode(ModelPart& r_modelpart, int r_Elem_Id, Node < 3 > ::Pointer reference_node
+                                        /*double& radius,  double & sphericity,  double& density,  
+                                        double& rest_coeff, double& fric_angle,
+                                        double& roll_fric,  double& rot_damp_ratio,  int& color,
+                                        double& velX,  double& velY,  double& velZ*/ ) {          
+        
+      Node < 3 > ::Pointer pnew_node;
+      
+      NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node->X(), reference_node->Y(), reference_node->Z() //THE ID IS WRONG
+                                        /*radius, sphericity, density,  
+                                        rest_coeff, fric_angle,
+                                        roll_fric, rot_damp_ratio, color,
+                                        velX,  velY, velZ  */); 
       
       Geometry< Node < 3 > >::PointsArrayType nodelist;
       
-      nodelist.push_back(pnew_node);
+      nodelist.push_back(pnew_node);                                        
 
       Element::Pointer p_swimming_particle = Element::Pointer(new SphericSwimmingParticle(r_Elem_Id, nodelist)); 
+      
+      p_swimming_particle->Set(NEW_ENTITY);
+      
+      pnew_node->Set(NEW_ENTITY);
       
       r_modelpart.Elements().push_back(p_swimming_particle);          
 }    
@@ -508,7 +546,14 @@ public:
     virtual ~DEM_Inlet() {};
         
     
-    void CreateElementsFromInletMesh( ModelPart& r_modelpart, ModelPart& inlet_modelpart, ParticleCreatorDestructor& creator){
+    void CreateElementsFromInletMesh( ModelPart& r_modelpart, ModelPart& inlet_modelpart, ParticleCreatorDestructor& creator
+                                        /*double& radius,  double & sphericity,  double& density,  
+                                        double& rest_coeff, double& fric_angle,
+                                        double& roll_fric,  double& rot_damp_ratio,  int& color,
+                                        double& velX,  double& velY,  double& velZ,
+                                        double& num_parts, double& inlet_start, double& inlet_stop, double& inlet_surface*/){
+        
+  //      if(r_modelpart.GetProcessInfo()[TIME]< inlet_start  || r_modelpart.GetProcessInfo()[TIME]< inlet_start) return;
         
         int mesh_iterator_number=0;
         
@@ -517,13 +562,12 @@ public:
         {
             int mesh_size=mesh_it->NumberOfNodes();
             
-            double num_part_surface_time=1000; //must be read
-            double delta_t=0.005; // DEM delta_T must be read
-            double surface=0.5; // inlet surface must be read, and probably projected to velocity vector
+            double num_part_surface_time=  1; //num_parts; ////////////////////////////////
+            double delta_t=  r_modelpart.GetProcessInfo()[DELTA_TIME]; // FLUID DELTA_T CAN BE USED ALSO
+            double surface=  1.0;//inlet_surface; // this should probably be projected to velocity vector
             
             //calculate number of particles to insert from input data
-            double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + PartialParticleToInsert[mesh_iterator_number];
-            PartialParticleToInsert[mesh_iterator_number] = 0.0;
+            double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + PartialParticleToInsert[mesh_iterator_number];            
             int number_of_particles_to_insert = floor(double_number_of_particles_to_insert);
             PartialParticleToInsert[mesh_iterator_number] = double_number_of_particles_to_insert - number_of_particles_to_insert;
 
@@ -532,23 +576,33 @@ public:
                srand(time(NULL));
                ModelPart::NodesContainerType::ContainerType inserting_nodes(number_of_particles_to_insert);
                ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
+               ModelPart::NodesContainerType::ContainerType valid_nodes = mesh_it->NodesArray();
+               int valid_nodes_length=0;
+               
+               for (int i = 0; i < mesh_size; i++){
+                   if( all_nodes[i]->IsNot(ACTIVE) ) { valid_nodes[valid_nodes_length]=all_nodes[i];   valid_nodes_length++;  }
+               }
 
-               if (mesh_size < number_of_particles_to_insert) {
-                   number_of_particles_to_insert = mesh_size;
-                   KRATOS_WATCH("The number of DEM particles has been reduced to match the number of nodes of the DEM Inlet mesh")
+               if (valid_nodes_length < number_of_particles_to_insert) {
+                   number_of_particles_to_insert = valid_nodes_length;
+                   std::cout<<"The number of DEM particles has been reduced to match the available number of nodes of the DEM Inlet mesh"<<std::endl<<std::flush;
                }
                
                for (int i = 0; i < number_of_particles_to_insert; i++) {
-                   int pos = rand() % mesh_size;
-                   inserting_nodes[i] = all_nodes[pos]; //This only works for pos as real position in the vector if 
+                   int pos = rand() % valid_nodes_length;
+                   inserting_nodes[i] = valid_nodes[pos]; //This only works for pos as real position in the vector if 
                    //we use ModelPart::NodesContainerType::ContainerType 
                    //instead of ModelPart::NodesContainerType
-                   all_nodes[pos] = all_nodes[mesh_size - 1];
-                   mesh_size = mesh_size - 1;
+                   valid_nodes[pos] = valid_nodes[valid_nodes_length - 1];
+                   valid_nodes_length = valid_nodes_length - 1;
                }
 
                for (int i = 0; i < number_of_particles_to_insert; i++) {
-                   creator.ElementCreatorFromExistingNode(r_modelpart, /*r_Elem_Id*/1, inserting_nodes[i]); //velocity, mass, radius?
+                   creator.ElementCreatorFromExistingReferenceNode(r_modelpart, /*r_Elem_Id*/1, inserting_nodes[i]);                                       
+                                                                   /*radius, sphericity, density,  
+                                                                   rest_coeff, fric_angle,
+                                                                   roll_fric, rot_damp_ratio, color,
+                                                                   velX, velY, velZ );  */
                }               
            } //if (number_of_particles_to_insert)
            mesh_iterator_number++;
