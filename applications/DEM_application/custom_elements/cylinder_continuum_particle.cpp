@@ -51,10 +51,7 @@ namespace Kratos
       void CylinderContinuumParticle::Initialize()
       {
           KRATOS_TRY
-          
-          
-          KRATOS_WATCH("HELLO MY DEAR FRIENDS")
-          
+
           mDimension                = 2;
           mRadius                   = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
           mYoung                    = GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);         
@@ -122,9 +119,11 @@ namespace Kratos
           rRightHandSideVector[0] = contact_force[0]  + additionally_applied_force[0];
           rRightHandSideVector[1] = contact_force[1]  + additionally_applied_force[1];
           rRightHandSideVector[2] = contact_force[2]  + additionally_applied_force[2];
+          //rRightHandSideVector[2] = contact_force[2]  + additionally_applied_force[2];
           rRightHandSideVector[3] = contact_moment[0] + additionally_applied_moment[0];
           rRightHandSideVector[4] = contact_moment[1] + additionally_applied_moment[0];
           rRightHandSideVector[5] = contact_moment[2] + additionally_applied_moment[0];
+          //rRightHandSideVector[5] = contact_moment[2] + additionally_applied_moment[0];
 
           KRATOS_CATCH( "" )
       }
