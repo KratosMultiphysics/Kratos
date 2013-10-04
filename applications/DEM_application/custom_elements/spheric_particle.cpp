@@ -561,7 +561,7 @@ namespace Kratos
               double equiv_tg_of_fri_ang;
 
               CalculateEquivalentConstitutiveParameters(other_to_me_vect, other_radius, radius_sum, kn, kt, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, equiv_tg_of_fri_ang, neighbour_iterator);
-
+              
               double DeltDisp[3]                       = {0.0};
               double LocalDeltDisp[3]                  = {0.0};
               double RelVel[3]                         = {0.0};
@@ -608,7 +608,7 @@ namespace Kratos
 
                   CalculateViscoDamping(LocalRelVel, ViscoDampingLocalContactForce, indentation, equiv_visco_damp_coeff_normal, equiv_visco_damp_coeff_tangential, sliding);
               }
-
+              
               // Transforming to global forces and adding up
 
               AddUpForcesAndProject(LocalCoordSystem, LocalContactForce, LocalElasticContactForce, GlobalContactForce, GlobalElasticContactForce, ViscoDampingLocalContactForce, ViscoDampingGlobalContactForce, rContactForce, rElasticForce, i_neighbour_count);
@@ -1584,11 +1584,14 @@ namespace Kratos
             aux_norm_to_tang                    = sqrt(kt / kn);
         }
 
+        
         if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0){ // Limit expressions when the restitution coefficient tends to 0. Variable lnRestitCoeff is set to 1.0 (instead of minus infinite) by the problem type.
             equiv_visco_damp_coeff_normal = 2 * sqrt(equiv_mass * kn);
+
         }
 
         else {
+
             equiv_visco_damp_coeff_normal = - 2 * equiv_ln_of_restit_coeff * sqrt(equiv_mass * kn / (equiv_ln_of_restit_coeff * equiv_ln_of_restit_coeff + M_PI * M_PI));
         }
 
