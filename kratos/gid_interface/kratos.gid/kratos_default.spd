@@ -368,7 +368,7 @@
             </Container>
         </Template>
 	<Template id="ShellElement" icon="groupsTree.gif" help="Isotropic shell formulation">
-            <Container id="Properties" pid="Isotropic shell" state="hidden" help="Properties">
+            <Container id="Properties" pid="Element Properties" state="hidden" help="Properties">
                 <Item id="ElementType" pid="Element type" dv="Triangle" ivalues="Triangle" values="Triangle" help="Element Type"/>
                 <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
             </Container>
@@ -392,7 +392,7 @@
             </Container>
         </Template>
 	<Template id="MembraneElement" icon="groupsTree.gif" help="Membrane element">
-            <Container id="Properties" pid="Properties" state="hidden" help="Properties">
+            <Container id="Properties" pid="Element Properties" state="hidden" help="Properties">
                 <Item id="ElementType" pid="Element type" dv="Triangle" ivalues="Triangle" values="Triangle" help="Element Type"/>
                 <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
             </Container>
