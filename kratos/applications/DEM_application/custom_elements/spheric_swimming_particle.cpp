@@ -240,7 +240,7 @@ namespace Kratos
 
             const double& particle_density          = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
             double viscosity                        = 10e-5; //GetGeometry()(0)->FastGetSolutionStepValue(VISCOSITY_PROJECTED);
-            double sphericity                       = 1.0; //GetGeometry()(0)->FastGetSolutionStepValue(SPHERICITY);
+            double sphericity                       = 1.0; //GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_SPHERICITY);
 
             int non_newtonian_OPTION                = 0; //rCurrentProcessInfo[NON_NEWTONIAN_OPTION];
             int manually_imposed_drag_law_OPTION    = 0; //rCurrentProcessInfo[MANUALLY_IMPOSED_DRAG_LAW_OPTION];
