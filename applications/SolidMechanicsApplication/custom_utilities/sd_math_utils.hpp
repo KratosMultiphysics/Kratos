@@ -93,6 +93,8 @@ public:
             return true;
         }
 
+        if(p < 0) return false; //in this case the square roots below will be negative. This substitutes with better efficiency lines 107-110
+        
         solution(0)=
             -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))+PI/3.0)
             -b/(3*a);
@@ -103,10 +105,10 @@ public:
             -sqrt(-4.0/3.0*p)*cos(1.0/3.0*acos(-q/2.0*sqrt(-27.0/(p*p*p)))-PI/3.0)
             -b/(3*a);
 
-        if(std::isnan<double>(solution(0)) || std::isnan<double>(solution(1))|| std::isnan<double>(solution(2)))
-        {
-            return false;
-        }
+//        if(std::isnan<double>(solution(0)) || std::isnan<double>(solution(1))|| std::isnan<double>(solution(2)))
+//        {
+//            return false;
+//        }
 
         return true;
     }

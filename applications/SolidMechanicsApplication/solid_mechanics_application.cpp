@@ -179,7 +179,8 @@ KratosSolidMechanicsApplication::KratosSolidMechanicsApplication():
     mAxisymSpatialLagrangianElement2D8N( 0, Element::GeometryType::Pointer( new Quadrilateral2D8 <Node<3> >( Element::GeometryType::PointsArrayType( 8, Node<3>() ) ) ) ),
     mSpatialLagrangianUPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mAxisymSpatialLagrangianUPElement2D3N( 0, Element::GeometryType::Pointer( new Triangle2D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-
+    mMembraneElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    
     mPointLoad2DCondition( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mPointLoadAxisym2DCondition( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
     mPointLoad3DCondition( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >( Condition::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
@@ -281,6 +282,7 @@ void KratosSolidMechanicsApplication::Register()
 
     KRATOS_REGISTER_ELEMENT( "SpatialLagrangianUPElement2D3N", mSpatialLagrangianUPElement2D3N )
     KRATOS_REGISTER_ELEMENT( "AxisymSpatialLagrangianUPElement2D3N", mAxisymSpatialLagrangianUPElement2D3N )
+    KRATOS_REGISTER_ELEMENT( "MembraneElement3D3N", mMembraneElement3D3N )
 
     //Register Conditions
 
