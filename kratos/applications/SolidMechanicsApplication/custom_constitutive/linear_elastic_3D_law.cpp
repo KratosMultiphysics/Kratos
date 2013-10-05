@@ -69,13 +69,12 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
     //-----------------------------//
 
     //a.-Check if the constitutive parameters are passed correctly to the law calculation
-    CheckParameters(rValues);
+    //CheckParameters(rValues);
 
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
 
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
-    const Matrix& DeformationGradientF    = rValues.GetDeformationGradientF();
+	const Properties& MaterialProperties  = rValues.GetMaterialProperties();    
 
     Vector& StrainVector                  = rValues.GetStrainVector();
     Vector& StressVector                  = rValues.GetStressVector();
@@ -89,7 +88,10 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
     if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
     {
-        //2.-Total Deformation Gradient
+		//only needed 
+		const Matrix& DeformationGradientF    = rValues.GetDeformationGradientF();
+		
+		//2.-Total Deformation Gradient
         Matrix TotalDeformationGradientF0 = DeformationGradientF;
 
         //4.-Right Cauchy Green

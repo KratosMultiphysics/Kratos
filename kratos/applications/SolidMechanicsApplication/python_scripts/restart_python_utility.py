@@ -2,6 +2,7 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
 CheckForPreviousImport()
+import os
 
 class RestartUtility:
     #######################################################################
@@ -23,7 +24,7 @@ class RestartUtility:
         self.restart_step = restart_step
 
         #set restart path
-        self.restart_path = self.problem_path + "/" + self.problem_name + "_" + str(restart_step)
+        self.restart_path = os.path.join(self.problem_path,self.problem_name + "_" + str(restart_step))
        
         #set serializer 
         self.serializer = Serializer(self.restart_path,SERIALIZER_NO_TRACE)
@@ -155,7 +156,8 @@ class RestartUtility:
     def PrintRestartFile(self,write_id):
 
         if( self.save_restart_flag == True and self.step_to_restart == self.restart_interval ): 
-            self.restart_path= self.problem_path + "/" + self.problem_name + "_" + str(write_id-1)
+			self.restart_path = os.path.join(self.problem_path,self.problem_name + "_" + str(write_id-1))
+            #self.restart_path= self.problem_path + "/" + self.problem_name + "_" + str(write_id-1)
             #self.serializer = Serializer(self.restart_path,SERIALIZER_TRACE_ALL);
             #self.serializer = Serializer(self.restart_path,SERIALIZER_TRACE_ERROR);
             self.serializer = Serializer(self.restart_path,SERIALIZER_NO_TRACE);        

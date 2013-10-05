@@ -61,6 +61,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_axisym_2D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_3D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_3D_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
 )
 
 ###############################################################

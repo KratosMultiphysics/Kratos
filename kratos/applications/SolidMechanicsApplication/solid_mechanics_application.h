@@ -49,6 +49,7 @@
 #include "custom_elements/spatial_lagrangian_U_P_element.hpp"
 #include "custom_elements/updated_lagrangian_U_P_element.hpp"
 #include "custom_elements/axisym_spatial_lagrangian_U_P_element.hpp"
+#include "custom_elements/membrane_element.hpp"
 
 //flow rules
 #include "custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.hpp"
@@ -392,7 +393,9 @@ private:
 
     const SpatialLagrangianUPElement             mSpatialLagrangianUPElement2D3N;
     const AxisymSpatialLagrangianUPElement mAxisymSpatialLagrangianUPElement2D3N;
-
+	
+	const MembraneElement mMembraneElement3D3N;
+    
     //conditions
     const PointLoad2DCondition              mPointLoad2DCondition;
     const PointLoadAxisym2DCondition  mPointLoadAxisym2DCondition;
