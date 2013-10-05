@@ -88,11 +88,7 @@ public:
       pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = 1;
           
     }
-    void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, double bx, double cy, double dz
-                                        /*double& radius,  double & sphericity,  double& density,  
-                                        double& rest_coeff, double& fric_angle,
-                                        double& roll_fric,  double& rot_damp_ratio,  int& color,
-                                        double& velX,  double& velY,  double& velZ*/) {
+    void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, double bx, double cy, double dz ) {
               
       /*pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);
       pnew_node->FastGetSolutionStepValue(VELOCITY_X) = velX;
@@ -131,11 +127,7 @@ public:
 
     //SALVA
     //MA
-    void ElementCreatorFromExistingReferenceNode(ModelPart& r_modelpart, int r_Elem_Id, Node < 3 > ::Pointer reference_node
-                                        /*double& radius,  double & sphericity,  double& density,  
-                                        double& rest_coeff, double& fric_angle,
-                                        double& roll_fric,  double& rot_damp_ratio,  int& color,
-                                        double& velX,  double& velY,  double& velZ*/ ) {          
+    void ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart, int r_Elem_Id, Node < 3 > ::Pointer reference_node, Properties& params) {          
         
       Node < 3 > ::Pointer pnew_node;
       
@@ -538,28 +530,44 @@ public:
          PartialParticleToInsert[mesh_iterator_number]  = 0.0;
          
          mesh_iterator_number++;
-        }
+        }                
         
     }
             
     /// Destructor.
     virtual ~DEM_Inlet() {};
+    
+    void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator){
+        int r_Elem_Id=100; ///This Id must be set!!!
+        int mesh_number=0;
+        for (ModelPart::MeshesContainerType::iterator mesh_it = InletModelPart.GetMeshes().begin()+1;
+                                               mesh_it != InletModelPart.GetMeshes().end();    ++mesh_it)
+        {
+            mesh_number++;
+            int mesh_size=mesh_it->NumberOfNodes();                                                                      
+            ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
+            //for (ModelPart::NodesContainerType::iterator node_it = all_nodes.begin();
+                                                        //node_it != all_nodes.end(); node_it++){
+            //for (ModelPart::NodesContainerType::iterator node_it = mesh_it->NodesBegin(); node_it != mesh_it->NodesEnd(); node_it++){ 
+            for (int i = 0; i < mesh_size; i++){                
+                creator.ElementCreatorWithPhysicalParameters(r_modelpart, r_Elem_Id, all_nodes[i],InletModelPart.GetProperties(mesh_number));
+                
+            }
+        }
+                                               
+    }
         
     
-    void CreateElementsFromInletMesh( ModelPart& r_modelpart, ModelPart& inlet_modelpart, ParticleCreatorDestructor& creator
-                                        /*double& radius,  double & sphericity,  double& density,  
-                                        double& rest_coeff, double& fric_angle,
-                                        double& roll_fric,  double& rot_damp_ratio,  int& color,
-                                        double& velX,  double& velY,  double& velZ,
-                                        double& num_parts, double& inlet_start, double& inlet_stop, double& inlet_surface*/){
+    void CreateElementsFromInletMesh( ModelPart& r_modelpart, ModelPart& inlet_modelpart, ParticleCreatorDestructor& creator ){
         
   //      if(r_modelpart.GetProcessInfo()[TIME]< inlet_start  || r_modelpart.GetProcessInfo()[TIME]< inlet_start) return;
         
         int mesh_iterator_number=0;
-        
+        int mesh_number=0;
         for (ModelPart::MeshesContainerType::iterator mesh_it = inlet_modelpart.GetMeshes().begin()+1;
                                                mesh_it != inlet_modelpart.GetMeshes().end();    ++mesh_it)
         {
+            mesh_number++;
             int mesh_size=mesh_it->NumberOfNodes();
             
             double num_part_surface_time=  1; //num_parts; ////////////////////////////////
@@ -598,11 +606,7 @@ public:
                }
 
                for (int i = 0; i < number_of_particles_to_insert; i++) {
-                   creator.ElementCreatorFromExistingReferenceNode(r_modelpart, /*r_Elem_Id*/1, inserting_nodes[i]);                                       
-                                                                   /*radius, sphericity, density,  
-                                                                   rest_coeff, fric_angle,
-                                                                   roll_fric, rot_damp_ratio, color,
-                                                                   velX, velY, velZ );  */
+                   creator.ElementCreatorWithPhysicalParameters(r_modelpart, /*r_Elem_Id*/1, inserting_nodes[i],InletModelPart.GetProperties(mesh_number));                                                                                                          
                }               
            } //if (number_of_particles_to_insert)
            mesh_iterator_number++;
