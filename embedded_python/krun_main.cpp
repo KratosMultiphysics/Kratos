@@ -29,12 +29,21 @@ PyList_Insert(sysPath,0, PyString_FromString("python27.zip"));
   //}
 
   PyObject* PyFileObject = PyFile_FromString(argv[1], "r");
-  PyRun_SimpleFile(PyFile_AsFile(PyFileObject), argv[1]);
+  int error_code = PyRun_SimpleFile(PyFile_AsFile(PyFileObject), argv[1]);
+  
   //PyRun_SimpleFile (fp, argv[1]);
 
   Py_Finalize();
   //fclose( fp);
 
-  std::cout << "KRATOS TERMINATED CORRECTLY" << std::endl;
-  return 0;
+  if(error_code != 0) 
+  {
+	  std::cout << "KRATOS TERMINATED WITH ERROR" << std::endl;
+	  return 1;
+  }
+  else
+  {
+		std::cout << "KRATOS TERMINATED CORRECTLY" << std::endl;
+		return 0;
+  }
 }
