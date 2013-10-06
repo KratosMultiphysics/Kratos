@@ -675,7 +675,7 @@ public:
         unsigned int nodesSize = nodes.size();
 
 #pragma omp parallel for firstprivate(nodesSize)
-        for(int i = 0 ; i < nodesSize ; i++)
+        for(unsigned int i = 0 ; i < nodesSize ; i++)
             nodes[i]->GetSolutionStepValue(DISTANCE) = initial_distance;
 
         ModelPart::ElementsContainerType::ContainerType& fluid_elements = mrFluidModelPart.ElementsArray();
@@ -691,7 +691,7 @@ public:
         unsigned int elementsSize = fluid_elements.size();
 
 #pragma omp parallel for firstprivate(elementsSize)
-        for(int i = 0 ; i < elementsSize ; i++)
+        for(unsigned int i = 0 ; i < elementsSize ; i++)
         {
             fluid_elements[i]->GetValue(ELEMENTAL_DISTANCES) = ElementalDistances;
             fluid_elements[i]->GetValue(SPLIT_ELEMENT) = false;
@@ -910,7 +910,7 @@ public:
     ///******************************************************************************************************************
 
     bool IsNewIntersectionNode( IntersectionNodeStruct&    NewIntersectionNode,
-                                std::vector<TetEdgeStruct> IntersectedTetEdges )
+                                std::vector<TetEdgeStruct>& IntersectedTetEdges )
     {
         array_1d<double,3> DiffVector;
         double NormDiffVector = 0;
@@ -1033,7 +1033,7 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void ComputeApproximationNodes( std::vector<TetEdgeStruct>           IntersectedTetEdges,
+    void ComputeApproximationNodes( std::vector<TetEdgeStruct>&          IntersectedTetEdges,
                                     std::vector<IntersectionNodeStruct>& NodesOfApproximatedStructure )
     {
         unsigned int NumberIntNodes = 0;
@@ -1055,6 +1055,7 @@ public:
             }
         }
 
+        // For odd number of double cut edges --> kick the double cut edges out
         const unsigned int NumberEdgesDoubleCut = IndicesOfDoubleCutEdges.size();
         if(NumberEdgesDoubleCut == 1)
         {
@@ -1064,6 +1065,7 @@ public:
             NumberCutEdges -= 1;
         }
 
+        // For the remaining edges bild the average if an edge is double cut and the approximate surface
         for(unsigned int i_TetEdge = 0 ; i_TetEdge < NumberCutEdges ; i_TetEdge++)
         {
             sum_X = 0;
@@ -1082,8 +1084,7 @@ public:
             NewApproximationNode.Coordinates[1] = sum_Y / NumberIntNodes;
             NewApproximationNode.Coordinates[2] = sum_Z / NumberIntNodes;
 
-            if(IntersectedTetEdges.size() <= 2)
-                NewApproximationNode.StructElemNormal = IntersectedTetEdges[i_TetEdge].IntNodes[0].StructElemNormal;
+            NewApproximationNode.StructElemNormal = IntersectedTetEdges[i_TetEdge].IntNodes[0].StructElemNormal;
 
             NewApproximationNode.EdgeNode1 = IntersectedTetEdges[i_TetEdge].IntNodes[0].EdgeNode1;
             NewApproximationNode.EdgeNode2 = IntersectedTetEdges[i_TetEdge].IntNodes[0].EdgeNode2;
@@ -1192,9 +1193,9 @@ public:
     ///******************************************************************************************************************
 
     void CalcSignedDistancesToThreeIntNodes( ModelPart::ElementsContainerType::iterator& i_fluid_element,
-                                             std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
-                                             std::vector<TetEdgeStruct>                  IntersectedTetEdges,
-                                             array_1d<double,4>&                         ElementalDistances )
+                                             std::vector<IntersectionNodeStruct>&         NodesOfApproximatedStructure,
+                                             std::vector<TetEdgeStruct>&                  IntersectedTetEdges,
+                                             array_1d<double,4>&                          ElementalDistances )
     {
         Geometry< Node<3> >& rFluidGeom = i_fluid_element->GetGeometry();
 
@@ -1208,6 +1209,23 @@ public:
         array_1d<double,3> Normal;
         CalculateNormal3D(P1,P2,P3,Normal);
 
+        // Check wheter orientation of normal is in direction of the normal of the intersecting structure
+        // Note: The normal of the approx. surface can be max. 90deg to every surrounding normal of the structure at the intersection nodes
+        array_1d<double,3> NormalAtOneIntersectionNode;
+        NormalAtOneIntersectionNode = NodesOfApproximatedStructure[0].StructElemNormal;
+
+        bool NormalWrongOriented = false;
+
+        if(inner_prod(NormalAtOneIntersectionNode,Normal)<0)
+            NormalWrongOriented = true;
+
+        if(NormalWrongOriented)
+        {
+            Normal *=-1;
+            KRATOS_WATCH("NormalWrongOriented3");
+        }
+
+        // Start distance computation for all tet-nodes
         for(unsigned int i_TetNode = 0 ; i_TetNode < 4 ; i_TetNode++)
         {
             array_1d<double,3> TetNode;
@@ -1309,6 +1327,22 @@ public:
         // the normal equals to the eigenvector which corresponds to the minimal eigenvalue
         for(unsigned int i=0;i<3; i++) N_mean[i] = V(min_pos,i);
         N_mean /= norm_2(N_mean);
+
+        // Check wheter orientation of normal is in direction of the normal of the intersecting structure
+        // Note: The normal of the approx. surface can be max. 90deg to every surrounding normal of the structure at the intersection nodes
+        array_1d<double,3> NormalAtOneIntersectionNode;
+        NormalAtOneIntersectionNode = NodesOfApproximatedStructure[0].StructElemNormal;
+
+        bool NormalWrongOriented = false;
+
+        if(inner_prod(NormalAtOneIntersectionNode,N_mean)<0)
+            NormalWrongOriented = true;
+
+        if(NormalWrongOriented)
+        {
+            N_mean *=-1;
+            KRATOS_WATCH("NormalWrongOriented4");
+        }
 
         // Determine about the minimal distance by considering the distances to both triangles
         double UnsignedDistance;
@@ -1678,7 +1712,7 @@ public:
         mOctree.GetAllLeavesVector(all_leaves);
 
 #pragma omp parallel for
-        for (int i = 0; i < all_leaves.size(); i++)
+        for (unsigned int i = 0; i < all_leaves.size(); i++)
         {
             *(all_leaves[i]->pGetDataPointer()) = ConfigurationType::AllocateData();
         }
