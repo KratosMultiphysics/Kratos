@@ -1220,10 +1220,7 @@ public:
             NormalWrongOriented = true;
 
         if(NormalWrongOriented)
-        {
             Normal *=-1;
-            KRATOS_WATCH("NormalWrongOriented3");
-        }
 
         // Start distance computation for all tet-nodes
         for(unsigned int i_TetNode = 0 ; i_TetNode < 4 ; i_TetNode++)
@@ -1339,10 +1336,7 @@ public:
             NormalWrongOriented = true;
 
         if(NormalWrongOriented)
-        {
             N_mean *=-1;
-            KRATOS_WATCH("NormalWrongOriented4");
-        }
 
         // Determine about the minimal distance by considering the distances to both triangles
         double UnsignedDistance;
