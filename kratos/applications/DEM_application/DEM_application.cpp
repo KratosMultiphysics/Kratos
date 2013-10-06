@@ -177,7 +177,7 @@ namespace Kratos
   // GEOMETRIC PARAMETERS
 
   // *************** Swimming only BEGIN *************
-  KRATOS_CREATE_VARIABLE(double, SPHERICITY)
+  KRATOS_CREATE_VARIABLE(double, PARTICLE_SPHERICITY)
   // *************** Swimming only END ***************
 
   KRATOS_CREATE_VARIABLE(double, MAX_INDENTATION)
@@ -191,6 +191,11 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(Vector, PARTICLE_CONTACT_DELTA)
   KRATOS_CREATE_VARIABLE(VectorArray3Double, ARROW_POINT)
   // *************** Continuum only END ***************
+
+  //INLET VARIABLES
+  KRATOS_CREATE_VARIABLE(double, INLET_START_TIME)
+  KRATOS_CREATE_VARIABLE(double, INLET_STOP_TIME)
+  KRATOS_CREATE_VARIABLE(double, INLET_NUMBER_OF_PARTICLES)
 
   // KINEMATICS
 
@@ -499,7 +504,7 @@ namespace Kratos
     // GEOMETRIC PARAMETERS
 
     // *************** Swimming only BEGIN *************
-    KRATOS_REGISTER_VARIABLE(SPHERICITY)
+    KRATOS_REGISTER_VARIABLE(PARTICLE_SPHERICITY)
     // *************** Swimming only END ***************
 
     KRATOS_REGISTER_VARIABLE(MAX_INDENTATION)
@@ -514,6 +519,11 @@ namespace Kratos
 
     KRATOS_REGISTER_VARIABLE(ARROW_POINT)
     // *************** Continuum only END ***************
+
+    //INLET VARIABLES
+    KRATOS_REGISTER_VARIABLE(INLET_START_TIME)
+    KRATOS_REGISTER_VARIABLE(INLET_STOP_TIME)
+    KRATOS_REGISTER_VARIABLE(INLET_NUMBER_OF_PARTICLES)
 
     // KINEMATICS
 
