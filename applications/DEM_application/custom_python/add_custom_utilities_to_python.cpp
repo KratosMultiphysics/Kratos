@@ -90,6 +90,7 @@ void  AddCustomUtilitiesToPython(){
       class_<DEM_Inlet, boost::noncopyable >
         ("DEM_Inlet", init<ModelPart&>())
         .def("CreateElementsFromInletMesh", &DEM_Inlet::CreateElementsFromInletMesh)        
+        .def("InitializeDEM_Inlet", &DEM_Inlet::InitializeDEM_Inlet) 
         ;
 
      class_<SphericElementGlobalPhysicsCalculator, boost::noncopyable >
