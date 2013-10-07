@@ -900,7 +900,7 @@ void LargeDisplacementElement::CalculateAndAddExternalForces(VectorType& rRightH
         int index = dimension * i;
 
         array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
-
+	GetGeometry()[i].SetLock();
         Fext = 0;
         for ( unsigned int j = 0; j < dimension; j++ )
         {
@@ -908,6 +908,7 @@ void LargeDisplacementElement::CalculateAndAddExternalForces(VectorType& rRightH
             rRightHandSideVector[index + j] += Fext;
             ExternalForce[j] +=Fext;
         }
+	GetGeometry()[i].UnSetLock();
     }
 
     KRATOS_CATCH( "" )
@@ -934,11 +935,14 @@ void LargeDisplacementElement::CalculateAndAddInternalForces(VectorType& rRightH
     {
         unsigned int indexu  = dimension * i;
         array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_INTERNAL);
+	GetGeometry()[i].SetLock();
 
         for ( unsigned int j = 0; j < dimension; j++ )
         {
             InternalForce[j] -= InternalForces [indexu+j];
         }
+
+	GetGeometry()[i].UnSetLock();
     }
 
     // std::cout<<std::endl;
@@ -1004,9 +1008,11 @@ void LargeDisplacementElement::ClearNodalForces()
         array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_INTERNAL);
         array_1d<double, 3 > & DynamicForce  = GetGeometry()[i].FastGetSolutionStepValue(FORCE_DYNAMIC);
 
+	GetGeometry()[i].SetLock();
         ExternalForce.clear();
         InternalForce.clear();
         DynamicForce.clear();
+	GetGeometry()[i].UnSetLock();
 
     }
 

@@ -72,7 +72,9 @@ void PointLoad3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
     rRightHandSideVector[2] = force[2];
 
     array_1d<double, 3 > & ExternalForce = GetGeometry()[0].FastGetSolutionStepValue(FORCE_EXTERNAL);
+    GetGeometry()[0].SetLock();
     ExternalForce+=force;
+    GetGeometry()[0].UnSetLock();
 
 
     KRATOS_CATCH("")

@@ -370,6 +370,7 @@ void LargeDisplacementUPElement::CalculateAndAddExternalForces(VectorType& rRigh
 
         array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
 
+	GetGeometry()[i].SetLock();
         Fext = 0;
         for ( unsigned int j = 0; j < dimension; j++ )
         {
@@ -377,6 +378,7 @@ void LargeDisplacementUPElement::CalculateAndAddExternalForces(VectorType& rRigh
             rRightHandSideVector[indexup + j] += Fext;
             ExternalForce[j] +=Fext;
         }
+	GetGeometry()[i].UnSetLock();
     }
 
 
@@ -411,11 +413,15 @@ void LargeDisplacementUPElement::CalculateAndAddInternalForces(VectorType& rRigh
 
         array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_INTERNAL);
 
+	GetGeometry()[i].SetLock();
+
         for ( unsigned int j = 0; j < dimension; j++ )
         {
             rRightHandSideVector[indexup + j] -= InternalForces[indexu + j];
             InternalForce[j] -= InternalForces[indexu + j];
         }
+
+	GetGeometry()[i].UnSetLock();
     }
 
     // std::cout<<std::endl;

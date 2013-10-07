@@ -393,9 +393,11 @@ void SurfaceLoad3DCondition::CalculateAndAddFacePressure(
         rF[index + 1] += DiscretePressure * rNormal[1];
         rF[index + 2] += DiscretePressure * rNormal[2];
 
+	GetGeometry()[i].SetLock();
         ExternalForce[0] += DiscretePressure * rNormal[0];
         ExternalForce[1] += DiscretePressure * rNormal[1];
         ExternalForce[2] += DiscretePressure * rNormal[2];
+	GetGeometry()[i].UnSetLock();
     }
 
     KRATOS_CATCH("")
@@ -423,12 +425,14 @@ void SurfaceLoad3DCondition::CalculateAndAddSurfaceLoad(Vector& rF,
 
         array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
 
+	GetGeometry()[i].SetLock();
         for ( unsigned int idim = 0; idim < number_of_nodes; idim++ )
         {
             rF[index+idim] += rN[i] * rForce[idim] * rIntegrationWeight;
 
             ExternalForce[idim] += rN[i] * rForce[idim] * rIntegrationWeight;
         }
+	GetGeometry()[i].UnSetLock();
     }
 
     KRATOS_CATCH("")
