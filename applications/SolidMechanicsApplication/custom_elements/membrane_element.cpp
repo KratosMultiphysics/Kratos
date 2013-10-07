@@ -347,7 +347,7 @@ void MembraneElement::CalculateOnIntegrationPoints(
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-        Matrix dummy = ZeroMatrix( 6,6 ); //TODO: this shall not be needed
+        Matrix dummy = ZeroMatrix( 3,3 ); //TODO: this shall not be needed
         //             Variables.detF  = MathUtils<double>::Det(rVariables.F); ??????????????
 // 			rValues.SetDeterminantF0(rVariables.detF0); ????????????????????
 // 			rValues.SetDeformationGradientF0(rVariables.F0); ??????????????????
