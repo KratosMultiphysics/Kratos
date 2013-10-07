@@ -88,20 +88,22 @@ public:
       pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = 1;
           
     }
-    void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, double bx, double cy, double dz ) {
-              
-      /*pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);
-      pnew_node->FastGetSolutionStepValue(VELOCITY_X) = velX;
-      pnew_node->FastGetSolutionStepValue(VELOCITY_Y) = velY;
-      pnew_node->FastGetSolutionStepValue(VELOCITY_Z) = velZ;
+    void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, double bx, double cy, double dz , Properties& params) {
+
+        
+      pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);      //ACTUAL node creation and addition to model part
+
+      pnew_node->FastGetSolutionStepValue(RADIUS) = params[RADIUS];
+      pnew_node->FastGetSolutionStepValue(VELOCITY_X) = params[VELOCITY][0];
+      pnew_node->FastGetSolutionStepValue(VELOCITY_Y) = params[VELOCITY][1];
+      pnew_node->FastGetSolutionStepValue(VELOCITY_Z) = params[VELOCITY][2];
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
-      pnew_node->FastGetSolutionStepValue(RADIUS) = radius;
-      pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY) = density;
-      pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS) = 10000;
-      pnew_node->FastGetSolutionStepValue(POISSON_RATIO) = 0.25;
-      pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = color;*/
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;      
+      pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY) = params[DENSITY];
+      pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS) = params[YOUNG_MODULUS];
+      pnew_node->FastGetSolutionStepValue(POISSON_RATIO) = params[POISSON_RATIO];
+      pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
           
     }
 
@@ -135,7 +137,7 @@ public:
                                         /*radius, sphericity, density,  
                                         rest_coeff, fric_angle,
                                         roll_fric, rot_damp_ratio, color,
-                                        velX,  velY, velZ  */); 
+                                        velX,  velY, velZ  */, params); 
       
       Geometry< Node < 3 > >::PointsArrayType nodelist;
       
@@ -205,18 +207,18 @@ public:
         ModelPart::NodesContainerType& rNodes               = r_model_part.Nodes();
 
         Configure::ElementsContainerType temp_particles_container;
-        ModelPart::NodesContainerType temp_nodes_container;
+        //ModelPart::NodesContainerType temp_nodes_container;
 
         //Copy the elements and clear the element container
         temp_particles_container.reserve(pElements->size());
-        temp_nodes_container.reserve(pNodes->size());
+        //temp_nodes_container.reserve(pNodes->size());
         
         temp_particles_container.swap(rElements);
-        temp_nodes_container.swap(rNodes);
+        //temp_nodes_container.swap(rNodes);
 
         //Add the ones inside the bounding box
-        for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin();
-                particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it){
+
+        for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin(); particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it){
 
             bool erase_flag = (0.5 < ((*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG)));
 
@@ -226,9 +228,9 @@ public:
                for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++){ //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
                    ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
                    (rNodes).push_back(pNode);
-               }
+		   }
 
-            }
+	    }            
 
         }
 
@@ -543,19 +545,23 @@ public:
         for (ModelPart::MeshesContainerType::iterator mesh_it = InletModelPart.GetMeshes().begin()+1;
                                                mesh_it != InletModelPart.GetMeshes().end();    ++mesh_it)
         {
+            
             mesh_number++;
-            int mesh_size=mesh_it->NumberOfNodes();                                                                      
+            int mesh_size=mesh_it->NumberOfNodes();
             ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
-            //for (ModelPart::NodesContainerType::iterator node_it = all_nodes.begin();
-                                                        //node_it != all_nodes.end(); node_it++){
-            //for (ModelPart::NodesContainerType::iterator node_it = mesh_it->NodesBegin(); node_it != mesh_it->NodesEnd(); node_it++){ 
+            
+            //I create a parallel set of properties (temporarily) to assign the same conditions but 0,0,0 velocity
+            Properties mesh_properties_null_vel = InletModelPart.GetProperties(mesh_number);
+            mesh_properties_null_vel[VELOCITY][0]=0.0;
+            mesh_properties_null_vel[VELOCITY][1]=0.0;
+            mesh_properties_null_vel[VELOCITY][2]=0.0;
+                                              
             for (int i = 0; i < mesh_size; i++){                
-                creator.ElementCreatorWithPhysicalParameters(r_modelpart, r_Elem_Id, all_nodes[i],InletModelPart.GetProperties(mesh_number));
-                
+                creator.ElementCreatorWithPhysicalParameters(r_modelpart,   r_Elem_Id, all_nodes[i],  mesh_properties_null_vel);                
             }
-        }
-                                               
-    }
+            
+        } //for mesh_it                                               
+    } //InitializeDEM_Inlet
         
     
     void CreateElementsFromInletMesh( ModelPart& r_modelpart, ModelPart& inlet_modelpart, ParticleCreatorDestructor& creator ){
