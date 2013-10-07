@@ -19,7 +19,7 @@
       <Item id="ShellAnisotropic" kkword="ShellAnisotropic"
       usennode="No" />
       <Item id="Membrane" kkword="MembraneElement"
-      usennode="No" />
+      usennode="Yes" />
       <Item id="EBST" kkword="EBST3DN" 
       usennode="No" />
       <Item id="TotalLagrangian2DPlaneStress" kkword="TotalLagrangianElement"
@@ -268,8 +268,8 @@
 	  ivalues="Solid,Generic"
 	  values="Solid,Generic" delvalues = "Beam,Truss,Plate,EBST" />
     <Item id="ElementTypes3D" dv="Beam"
-	  ivalues="Beam,Shell,Solid,Generic"
-	  values="Beam,Shell,Solid,Generic" delvalues = "Membrane,Truss,EBST" />
+	  ivalues="Beam,Shell,Membrane,Solid,Generic"
+	  values="Beam,Shell,Membrane,Solid,Generic" delvalues = "Truss,EBST" />
     <Item id="MaterialModel" ivalues="Elastic-Isotropic,HyperElastic-Isotropic,HyperElastic-Plastic" delvalues = "Elastic-Orthotropic,Damage"/>
     <Item id="Beam"  ivalues="Elastic-Isotropic" values="Elastic-Isotropic" />
     <Item id="Truss" ivalues="Elastic-Isotropic" values="Elastic-Isotropic" />
