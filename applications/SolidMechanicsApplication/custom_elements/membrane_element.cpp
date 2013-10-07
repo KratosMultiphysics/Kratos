@@ -347,7 +347,7 @@ void MembraneElement::CalculateOnIntegrationPoints(
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-        Matrix dummy = ZeroMatrix( 0, 0 );
+        Matrix dummy = ZeroMatrix( 6,6 ); //TODO: this shall not be needed
         //             Variables.detF  = MathUtils<double>::Det(rVariables.F); ??????????????
 // 			rValues.SetDeterminantF0(rVariables.detF0); ????????????????????
 // 			rValues.SetDeformationGradientF0(rVariables.F0); ??????????????????
@@ -359,9 +359,6 @@ void MembraneElement::CalculateOnIntegrationPoints(
         //rValues.SetShapeFunctionsDerivatives(rVariables.DN_DX);
         Values.SetShapeFunctionsValues( row( GetGeometry().ShapeFunctionsValues(), PointNumber ) );
         mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values,ConstitutiveLaw::StressMeasure_PK2 );
-
-
-
 
 //             Matrix dummy = ZeroMatrix( 0, 0 );
 //             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(
@@ -397,7 +394,6 @@ void MembraneElement::CalculateOnIntegrationPoints(
             for ( unsigned int ii = 0; ii < 6; ii++ )
                 Output[PointNumber]( 0, ii ) = mStressesVector[PointNumber][ii];
         }
-        // VM
         else if(rVariable==CAUCHY_STRESS_TENSOR)  // to compute Cauchy_Stress
         {
             if(Output[PointNumber].size2() != 6)
@@ -405,10 +401,11 @@ void MembraneElement::CalculateOnIntegrationPoints(
 
             boost::numeric::ublas::bounded_matrix<double, 2, 2> F;
             noalias(F)=tmp; //VM
-            Vector CauchyStressVector( 3 );
+            Vector CauchyStressVector = StressVector;
             double detF = MathUtils<double>::Det(F);
+            
 
-            mConstitutiveLawVector[PointNumber]->TransformPK2Stresses(StressVector,F,detF,ConstitutiveLaw::StressMeasure_Cauchy);
+            mConstitutiveLawVector[PointNumber]->TransformPK2Stresses(CauchyStressVector,F,detF,ConstitutiveLaw::StressMeasure_Cauchy);
 //				mConstitutiveLawVector[PointNumber]->CalculateCauchyStresses(CauchyStressVector, F, StressVector, StrainVector); // VM para calculo cauchy
 
             noalias(mCauchyStressesVector[PointNumber])= ZeroVector(6);
@@ -416,9 +413,13 @@ void MembraneElement::CalculateOnIntegrationPoints(
 
             for(unsigned int ii = 0; ii<6; ii++)
                 Output[PointNumber](0,ii) = mCauchyStressesVector[PointNumber][ii];
-            ////KRATOS_WATCH(Output[PointNumber]);
+            
         }
-        // VM
+        else
+        {
+                Output[PointNumber] = mConstitutiveLawVector[PointNumber]->GetValue( rVariable, Output[PointNumber] );
+        }
+
 
     }
 
