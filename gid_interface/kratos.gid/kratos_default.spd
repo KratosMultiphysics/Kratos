@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.16">
+<Kratos_Data version="1.2.17">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -40,7 +40,7 @@
     <RootData id="StructuralAnalysis" pid="Structural simulation" state="normal" class="application" icon="aplicationTree.gif" help="Structural simulation" open="1">
         <Container id="AnalysisData" pid="Analysis type" class="Tab" help="Analysis Data" open="0">
 	    <Item id="StructuralType" pid="Structural type" state="normal" class="strucType" dv="Generic" GCV="ElemType" help="Structural Element type"/>
-	    <Item id="KinematicType" pid="Kinematic type" state="normal" strucType="Solid,Generic" class="kinemType" dv="SmallDisplacements" ivalues="SmallDisplacements,LargeDisplacements" values="SmallDisplacements,LargeDisplacements" help="Kinematic Element type"/>
+	    <Item id="KinematicType" pid="Kinematic type" state="normal" class="kinemType" dv="SmallDisplacements" ivalues="SmallDisplacements,LargeDisplacements" values="SmallDisplacements,LargeDisplacements" help="Kinematic Element type"/>
 	    <Item id="SolutionType" pid="Solution type" class="soluType" dv="Static" ivalues="Static,Dynamic,RelaxedDynamic" values="Static,Dynamic,RelaxedDynamic" help="Solution type"/>
             <Item id="AnalysisType" pid="Analysis type" class="analysType" dv="Linear" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" help="Analysis Type"/>
         </Container>
