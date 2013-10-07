@@ -547,7 +547,47 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
                     set fullname [DecodeName [$T item tag names $item]]
                     ::xmlutils::setXml "$fullname" dv "write" "Incompressible"
                 } 
-            } 
+            } elseif { $var == "strucType" } {
+		if { $selCombo == "Beam" } {
+		    # Check the special case of kinematic type
+		    set xpath "StructuralAnalysis//c.AnalysisData//i.KinematicType"
+		    set KinematicType [::xmlutils::setXml "$xpath" dv]
+		    # wa "KinematicType:$KinematicType"
+		    if { $KinematicType == "LargeDisplacements" } {
+			set txt [= "Beam structural type can not be used with the large displacements formulation in this version"]  
+			WarnWin "$txt."
+			::xmlutils::setXml "$xpath" dv "write" "SmallDisplacements"
+		    }
+                } elseif { $selCombo == "Shell" } {
+		    # Check the special case of kinematic type
+		    set xpath "StructuralAnalysis//c.AnalysisData//i.KinematicType"
+		    set KinematicType [::xmlutils::setXml "$xpath" dv]
+		    # wa "KinematicType:$KinematicType"
+		    if { $KinematicType == "LargeDisplacements" } {
+			set txt [= "Shell structural type can not be used with the large displacements formulation in this version"]  
+			WarnWin "$txt."
+			::xmlutils::setXml "$xpath" dv "write" "SmallDisplacements"
+		    }
+                }
+	    } elseif { $var == "kinemType" } {
+		if { $selCombo == "LargeDisplacements" } {
+		    # Check the special case of kinematic type
+		    set xpath "StructuralAnalysis//c.AnalysisData//i.StructuralType"
+		    set StructuralType [::xmlutils::setXml "$xpath" dv]
+		    # wa "StructuralType:$StructuralType"
+		    if { $StructuralType == "Beam" } {
+			set txt [= "The large displacements formulation can not be used with the beam structural type in this version"]  
+			WarnWin "$txt."
+			set xpath "StructuralAnalysis//c.AnalysisData//i.KinematicType"
+			::xmlutils::setXml "$xpath" dv "write" "SmallDisplacements"
+		    } elseif { $StructuralType == "Shell" } {
+			set txt [= "The large displacements formulation can not be used with the shell structural type in this version"]  
+			WarnWin "$txt."
+			set xpath "StructuralAnalysis//c.AnalysisData//i.KinematicType"
+			::xmlutils::setXml "$xpath" dv "write" "SmallDisplacements"
+		    }
+                }
+	    } 
         }
     }
     return ""
