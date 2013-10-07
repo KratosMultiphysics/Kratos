@@ -122,10 +122,11 @@ class PrintResultsUtility:
                 self.gid_io.WriteNodalResults(DISPLACEMENT,self.model_part.Nodes,total_time,0)
                 #self.gid_io.WriteNodalResults(PRESSURE,self.model_part.Nodes,total_time,0)
                 self.gid_io.WriteNodalResults(REACTION,self.model_part.Nodes,total_time,0)
-                
+                print "line125"
                 self.gid_io.PrintOnGaussPoints(CAUCHY_STRESS_TENSOR,self.model_part,total_time)
+                print "line126"
                 self.gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_TENSOR,self.model_part,total_time)
-                
+                print "line128"
                 self.gid_io.PrintOnGaussPoints(VON_MISES_STRESS,self.model_part,total_time)
                 #self.gid_io.PrintOnGaussPoints(PLASTIC_STRAIN,self.model_part,total_time)
                 #self.gid_io.PrintOnGaussPoints(DELTA_PLASTIC_STRAIN,self.model_part,total_time)
@@ -140,6 +141,7 @@ class PrintResultsUtility:
                 #self.gid_io.WriteNodalResults(FORCE_CONTACT_TANGENT,self.model_part.Nodes,total_time,0)
 
             if(self.solver_type == "DynamicSolver" ):
+                print "line143"
                 self.gid_io.WriteNodalResults(VELOCITY,self.model_part.Nodes,total_time,0)
                 self.gid_io.WriteNodalResults(ACCELERATION,self.model_part.Nodes,total_time,0)
         

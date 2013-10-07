@@ -36,6 +36,7 @@
 #include "custom_strategies/custom_schemes/residual_based_newmark_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_bossak_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_rotation_bossak_scheme.hpp"
+#include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 
 
 //linear solvers
@@ -70,6 +71,7 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakSchemeType;
 
     typedef ResidualBasedRotationBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationBossakSchemeType;
+    typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
 
 
     //********************************************************************
@@ -141,6 +143,14 @@ void  AddCustomStrategiesToPython()
             ;
 
 
+
+    class_< ResidualBasedRelaxationSchemeType,
+            bases< BaseSchemeType >,  boost::noncopyable >
+            (
+                "ResidualBasedRelaxationScheme", init< double , double >() )
+
+            .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            ;
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
