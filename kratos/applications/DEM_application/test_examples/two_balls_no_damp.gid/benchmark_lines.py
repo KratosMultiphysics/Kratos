@@ -1,5 +1,3 @@
-#import matplotlib                                                                            ### BENCHMARK ###
-#from pylab import *                                                                          ### BENCHMARK ###
 #including kratos path                                                                        ### BENCHMARK ###
 kratos_path = '../../../..'                                                                   ### BENCHMARK ###
 kratos_libs_path = '../../../../libs' ##kratos_root/libs                                      ### BENCHMARK ###
