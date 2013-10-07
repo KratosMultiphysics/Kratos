@@ -225,10 +225,10 @@ public:
             if (!erase_flag){
                (rElements).push_back(*particle_pointer_it); //adding the elements
                
-               for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++){ //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
+               /*for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++){ //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
                    ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
                    (rNodes).push_back(pNode);
-		   }
+		   }*/
 
 	    }            
 
