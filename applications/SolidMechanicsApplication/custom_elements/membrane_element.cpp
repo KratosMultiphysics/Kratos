@@ -922,6 +922,7 @@ void MembraneElement::CalculateAndAdd_BodyForce(
 
     unsigned int number_of_nodes = this->GetGeometry().size();
     const double density = this->GetProperties()[DENSITY];
+    
 
     noalias(BodyForce) = ZeroVector(3);
     for(unsigned int i=0; i<number_of_nodes; i++)

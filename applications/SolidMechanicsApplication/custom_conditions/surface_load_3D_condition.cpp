@@ -381,7 +381,7 @@ void SurfaceLoad3DCondition::CalculateAndAddFacePressure(
     KRATOS_TRY
 
     unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension  = 2;
+    const unsigned int dimension  = 3;
 
     unsigned int index = 0;
     for (unsigned int i = 0; i < number_of_nodes; i++)
@@ -517,6 +517,8 @@ void SurfaceLoad3DCondition::CalculateConditionalSystem(MatrixType& rLeftHandSid
         gn[2] = J[PointNumber](2, 1);
 
         CrossProduct(NormalVector, ge, gn);
+        NormalVector /= norm_2(NormalVector);
+//         KRATOS_WATCH(NormalVector);
 
         // calculating the pressure and force on the gauss point
         double gauss_pressure = 0.00;

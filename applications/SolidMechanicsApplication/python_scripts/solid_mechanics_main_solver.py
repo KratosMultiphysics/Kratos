@@ -130,6 +130,8 @@ class SolidMechanicsSolver:
             self.damp_factor_m  = -0.01; 
             self.dynamic_factor =  0;
             self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m,self.dynamic_factor)
+        elif(self.solver_type == 3):
+            self.mechanical_scheme = ResidualBasedRelaxationScheme(-0.3,10.0)
 
 
         #creating the solution STRATEGY:
@@ -205,6 +207,9 @@ class SolidMechanicsSolver:
         elif(solver_type == "RelaxedDynamicSolver"):
             print " Pseudo-Static Solver "
             self.solver_type = 2;
+        elif(solver_type == "RelaxationSolver"):
+            print " Relaxation Solver "
+            self.solver_type = 3;
             
             
         #line_search flag and type
