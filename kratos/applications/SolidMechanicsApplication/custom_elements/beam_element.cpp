@@ -103,9 +103,11 @@ void BeamElement::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
         array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_INTERNAL);
         array_1d<double, 3 > & DynamicForce  = GetGeometry()[i].FastGetSolutionStepValue(FORCE_DYNAMIC);
 
+	GetGeometry()[i].SetLock();
         ExternalForce.clear();
         InternalForce.clear();
         DynamicForce.clear();
+	GetGeometry()[i].UnSetLock();
 
     }
 

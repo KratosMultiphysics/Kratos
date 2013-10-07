@@ -150,13 +150,14 @@ void LineLoad3DCondition::CalculateRightHandSide( VectorType& rRightHandSideVect
             array_1d<double, 3 > & ExternalForce = GetGeometry()[m].FastGetSolutionStepValue(FORCE_EXTERNAL);
 
             index = dimension * m;
-
+	    GetGeometry()[m].SetLock();
             for ( unsigned int idim = 0; idim < dimension; idim++ )
             {
                 rRightHandSideVector( index + idim ) += Ncontainer( PointNumber, m ) * FaceLoad( idim ) * IntegrationWeight;
 
                 ExternalForce[idim] += Ncontainer( PointNumber, m ) * FaceLoad( idim ) * IntegrationWeight;
             }
+	    GetGeometry()[m].UnSetLock();
         }
     }
 

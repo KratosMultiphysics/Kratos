@@ -280,8 +280,10 @@ void LineLoad2DCondition::CalculateAndAddFacePressure(Vector& rF,
         rF[index]   += DiscretePressure * rNormal[0];
         rF[index+1] += DiscretePressure * rNormal[1];
 
+	GetGeometry()[i].SetLock();
         ExternalForce[0] +=DiscretePressure * rNormal[0];
         ExternalForce[1] +=DiscretePressure * rNormal[1];
+	GetGeometry()[i].UnSetLock();
 
     }
 
@@ -312,14 +314,14 @@ void LineLoad2DCondition::CalculateAndAddLineLoad(Vector& rF,
 
         array_1d<double, 3 >& ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
 
-
+	GetGeometry()[i].SetLock();
         for ( unsigned int idim = 0; idim < dimension; idim++ )
         {
             rF[index+idim] += rN[i] * rForce[idim] * rIntegrationWeight;
 
             ExternalForce[idim] += rN[i] * rForce[idim] * rIntegrationWeight;
         }
-
+	GetGeometry()[i].UnSetLock();
 	//std::cout<<" External Force stored in Node: "<<GetGeometry()[i].Id()<<" Force Load "<<rForce<<" norm "<<norm_2(rForce)<<std::endl;
 	
     }
