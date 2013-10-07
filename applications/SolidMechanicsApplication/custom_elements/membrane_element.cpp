@@ -345,7 +345,7 @@ void MembraneElement::CalculateOnIntegrationPoints(
         ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, false);
         Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
-        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
         Matrix dummy = ZeroMatrix( 0, 0 );
         //             Variables.detF  = MathUtils<double>::Det(rVariables.F); ??????????????
@@ -981,7 +981,7 @@ void MembraneElement::CalculateAll(
 
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int MatSize = number_of_nodes * 3;
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    //const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
     Values.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRAIN, false);
@@ -1237,12 +1237,6 @@ int  MembraneElement::Check( const ProcessInfo& rCurrentProcessInfo )
     if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
     {
         KRATOS_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() );
-    }
-
-    //Verify that the body force is defined
-    if ( this->GetProperties().Has( VOLUME_ACCELERATION ) == false )
-    {
-        KRATOS_ERROR( std::logic_error, "VOLUMETRIC_ACCELERATION not provided for property ", this->GetProperties().Id() )
     }
 
     //verify that the constitutive law has the correct dimension
