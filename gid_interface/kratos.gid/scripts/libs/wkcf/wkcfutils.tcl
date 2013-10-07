@@ -746,9 +746,9 @@ proc ::wkcf::GetPropertiesData {} {
 		        # Check that this ptype is in the list
 		        if {$ptype in $ltypelist} {
 		            if {($ptype eq "Shell") || ($ptype eq "Membrane") || ($ptype eq "EBST")} {
-		                set cptype "Isotropic2D"
-		            } elseif {($ptype eq "Beam") || ($ptype eq "Truss")} {
-		                set cptype "Isotropic2D"
+		                set cptype "LinearElasticPlaneStress2D"
+			    } elseif {($ptype eq "Beam") || ($ptype eq "Truss")} {
+				set cptype "Isotropic2D"
 		            } else { #SolidElement3D, TotalLagrangian3D, UpdatedLagrangian3D, SpatialLagrangian3D
 		                set cptype "LinearElastic3D"
 		            }
@@ -819,7 +819,7 @@ proc ::wkcf::GetPropertiesData {} {
 		        # Check that this ptype is in the list
 		        if {$ptype in $ltypelist} {
 		            if {($ptype eq "Shell") || ($ptype eq "Membrane") || ($ptype eq "EBST")} {
-		                set cptype "Isotropic2D"
+		                set cptype "LinearElasticPlaneStress2D"
 		            } elseif {($ptype eq "Beam") || ($ptype eq "Truss")} {
 		                set cptype "Isotropic2D"
 		            } else { #SolidElement3D, TotalLagrangian3D, UpdatedLagrangian3D, SpatialLagrangian3D
