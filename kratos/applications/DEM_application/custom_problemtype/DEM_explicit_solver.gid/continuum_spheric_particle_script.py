@@ -2,9 +2,7 @@ import time as timer
 import os
 import sys
 import math
-import matplotlib
 from numpy import *
-from pylab import *  
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
@@ -267,7 +265,7 @@ while (time < Param.FinalTime):
         
         prev_time = (timer.time() - initial_real_time)
   
-    if ((timer.time() - initial_real_time > 60) and first_print == True):    
+    if ((timer.time() - initial_real_time > 60) and first_print == True and step != 0):    
         first_print = False    
         estimated_sim_duration = 60 * (total_steps_expected / step) # seconds
     
