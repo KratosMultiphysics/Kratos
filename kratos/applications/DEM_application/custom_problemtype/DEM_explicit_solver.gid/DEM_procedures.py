@@ -2,7 +2,6 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
 import os
-import matplotlib.pyplot as plt
 from numpy import *
 
 #from KratosMultiphysics.mpi import * #CARLOS
@@ -468,44 +467,44 @@ class Procedures:
 
         return properties_list
 
-    def PlotPhysicalProperties(self, properties_list, path):
+    #def PlotPhysicalProperties(self, properties_list, path):
 
-    # This function creates one graph for each physical property.
-    # properties_list[0][0] = 'time'
-    # properties_list[0][j] = 'property_j'
-    # properties_list[i][j] = value of property_j at time properties_list[i][0]
+    ## This function creates one graph for each physical property.
+    ## properties_list[0][0] = 'time'
+    ## properties_list[0][j] = 'property_j'
+    ## properties_list[i][j] = value of property_j at time properties_list[i][0]
 
-        n_measures     = len(properties_list)
-        entries        = properties_list[0]
-        n_entries      = len(entries)
-        time_vect      = []
-        os.chdir(path)
+        #n_measures     = len(properties_list)
+        #entries        = properties_list[0]
+        #n_entries      = len(entries)
+        #time_vect      = []
+        #os.chdir(path)
 
-        for j in range(1, n_measures):
-            time_vect.append(properties_list[j][0])
+        #for j in range(1, n_measures):
+            #time_vect.append(properties_list[j][0])
 
-        for i in range(1, n_entries):
-            prop_vect_i = []
+        #for i in range(1, n_entries):
+            #prop_vect_i = []
 
-            for j in range(1, n_measures):
-                prop_i_j = properties_list[j][i]
+            #for j in range(1, n_measures):
+                #prop_i_j = properties_list[j][i]
 
-                if (hasattr(prop_i_j, '__getitem__')): # Checking if it is an iterable object (a vector). If yes, take the modulus
-                    mod_prop_i_j = 0.0
+                #if (hasattr(prop_i_j, '__getitem__')): # Checking if it is an iterable object (a vector). If yes, take the modulus
+                    #mod_prop_i_j = 0.0
 
-                    for k in range(len(prop_i_j)):
-                        mod_prop_i_j += prop_i_j[k] * prop_i_j[k]
+                    #for k in range(len(prop_i_j)):
+                        #mod_prop_i_j += prop_i_j[k] * prop_i_j[k]
 
-                    prop_i_j = sqrt(mod_prop_i_j) # Euclidean norm
+                    #prop_i_j = sqrt(mod_prop_i_j) # Euclidean norm
 
-                prop_vect_i.append(prop_i_j)
+                #prop_vect_i.append(prop_i_j)
 
-            plt.figure(i)
-            plot = plt.plot(time_vect, prop_vect_i)
-            plt.xlabel(entries[0])
-            plt.ylabel(entries[i])
-            plt.title('Evolution of ' + entries[i] + ' in time')
-            plt.savefig(entries[i] + '.pdf')
+            #plt.figure(i)
+            #plot = plt.plot(time_vect, prop_vect_i)
+            #plt.xlabel(entries[0])
+            #plt.ylabel(entries[i])
+            #plt.title('Evolution of ' + entries[i] + ' in time')
+            #plt.savefig(entries[i] + '.pdf')
 
     def PrintingVariables(self, gid_io,export_model_part,time):
     
