@@ -29,12 +29,9 @@ from KratosMultiphysics import *
 #including Applications paths
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
-  
-#import the python solver:
-import solid_mechanics_main_solver as main_solver
 
 #import the python utilities:
-import restart_python_utility       as restart_utils
+import restart_utility              as restart_utils
 import print_results_python_utility as gid_utils
 
 import conditions_python_utility    as condition_utils
@@ -86,6 +83,18 @@ model_part = ModelPart("SolidDomain");
 #defining the model size to scale
 length_scale = 1.0
 
+######################--DEFINE MAIN SOLVER START--################
+
+SolverSettings = general_variables.SolverSettings
+
+#import solver file
+solver_constructor = __import__(SolverSettings.solver_type)
+
+#construct the solver
+main_step_solver   = solver_constructor.CreateSolver( model_part, SolverSettings) 
+
+######################--DEFINE MAIN SOLVER END--##################
+
 
 ######################--READ AND SET MODEL FILES--###############
 
@@ -102,38 +111,11 @@ list_files.Initialize(general_variables.file_list);
 load_restart     = general_variables.LoadRestart
 save_restart     = general_variables.SaveRestart
 restart_interval = general_variables.Restart_Interval
-rotation_dofs    = general_variables.Rotational_Dofs
-problem_restart.Initialize(load_restart,save_restart,restart_interval,main_solver,list_files,rotation_dofs);
-  
 
+problem_restart.Initialize(load_restart,save_restart,restart_interval,list_files);
+  
 ######################--READ AND SET MODEL FILES END--############
 
-
-######################--DEFINE MAIN SOLVER START--################
-
-#set time integration solver
-echo_level = int(general_variables.echo_level)
-main_step_solver = main_solver.SolidMechanicsSolver(model_part,domain_size,echo_level) 
-
-#defining the problem type
-solver_type  = general_variables.SolverType
-line_search  = general_variables.LineSearch
-main_step_solver.SetProblemType(problem_type,solver_type,line_search);
-
-#defining the linear solver
-linear_solver_type = general_variables.LinearSolver
-solver_tolerance   = general_variables.Linear_Solver_Tolerance
-max_iters          = general_variables.Linear_Solver_Max_Iteration
-main_step_solver.SetLinearSolver(linear_solver_type,solver_tolerance,max_iters);
-
-#defining the convergence criterion
-criterion_type  = general_variables.Convergence_Criteria
-convergence_tol = general_variables.Convergence_Tolerance
-absolute_tol    = general_variables.Absolute_Tolerance
-max_iters       = int(general_variables.Max_Iter)
-main_step_solver.SetConvergenceCriterion(criterion_type,convergence_tol,absolute_tol,max_iters,rotation_dofs);
-
-######################--DEFINE MAIN SOLVER END--##################
 
 
 ######################--DEFINE CONDITIONS START--#################
@@ -163,10 +145,11 @@ if(general_variables.GiDMultiFileFlag == "Single"):
   gid_files_mode = MultiFileFlag.SingleFile
 
 #Force to Multiple files write if it is not a StaticSolver
-if(solver_type != "StaticSolver" and general_variables.GiDMultiFileFlag == "Single"):
+
+if(SolverSettings.scheme_type != "StaticSolver" and general_variables.GiDMultiFileFlag == "Single"):
   gid_files_mode = MultiFileFlag.MultipleFiles
 
-gid_print = gid_utils.PrintResultsUtility(model_part,problem_type,solver_type,problem_name,gid_output_mode,gid_files_mode)
+gid_print = gid_utils.PrintResultsUtility(model_part,problem_type,SolverSettings.solver_type,problem_name,gid_output_mode,gid_files_mode)
 
 #set gid print options
 write_particles   =  general_variables.GiDWriteParticlesFlag
@@ -208,13 +191,42 @@ gid_print.SetPrintOptions(write_particles,write_deformed,write_conditions,write_
 #########################--START SOLUTION--######################
 #################################################################
 
+#set buffer size
+buffer_size = 3;
 
-#read model_part / set buffer_size / set dofs / set constitutive_law
-buffer_size   =  3;
+#define problem variables:
+solver_constructor.AddVariables( model_part, SolverSettings)
+
 
 #--- READ MODEL ------#
-#problem_restart.StartModelRead(buffer_size,domain_size,problem_type,rotation_dofs,main_solver,modeler);
-problem_restart.StartModelRead(buffer_size,domain_size,problem_type,rotation_dofs,main_solver);
+if(load_restart == "False"):
+  #reading the model 
+  model_part_io = ModelPartIO(problem_name)
+  model_part_io.ReadModelPart(model_part)
+  
+  #set the buffer size
+  model_part.SetBufferSize(buffer_size)
+  #Note: the buffer size should be set once the mesh is read for the first time
+
+  #set the degrees of freedom
+  solver_constructor.AddDofs(model_part, SolverSettings)
+
+  #set the constitutive law
+  import constitutive_law_python_utility as constitutive_law_utils
+
+  constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part,domain_size);
+  constitutive_law.Initialize();
+
+
+#set mesh searches and modeler
+# modeler.InitializeDomains();
+
+#if(load_restart == "False"):
+  #find nodal h
+  #modeler.SearchNodalH();
+
+#set writing numeration
+problem_restart.SetStartSteps(buffer_size);
 
 #--- PRINT CONTROL ---#
 print model_part
@@ -225,8 +237,8 @@ print model_part.Properties
 ##################################################################
 
 # solver initialize
-load_restart = general_variables.LoadRestart 
-main_step_solver.Initialize(load_restart)
+main_step_solver.Initialize()
+main_step_solver.SetRestart(load_restart)
 
 # initial contact search
 #modeler.InitialContactSearch()
@@ -246,10 +258,7 @@ nstep        = int(general_variables.nsteps) + buffer_size
 start_steps  = buffer_size-1
 start_time   = start_steps*time_step;
 
-problem_restart.SetTimeVariables(time_step,steps_number)
-
-#problem_restart.InitializeTimeIntegration(gid_print,modeler,graph_plot,conditions);
-problem_restart.InitializeTimeIntegration(gid_print,conditions);
+problem_restart.InitializeTimeIntegration(time_step,steps_number);
 
 #redefine loop range of steps after problem_restart
 istep        = problem_restart.step_i
@@ -257,9 +266,22 @@ nstep        = problem_restart.step_n
 time_step    = problem_restart.TimeStep()
 current_step = problem_restart.current_step
 
+#initialize print results variables for time integration
+write_id = model_part.ProcessInfo[WRITE_ID];
+gid_print.Initialize(start_time,nstep,current_step,write_id)
+
+if(load_restart == "False"):
+  conditions.Initialize();
+
+#initialize mesh modeling variables for time integration
+#modeler.Initialize(current_step,current_step)
+
+#initialize graph plot variables for time integration
+#graph_plot.Initialize(current_step)
+
+
 #######################--TIME INTEGRATION--#######################
 ##################################################################
-
   
 #writing the initial mesh
 #gid_print.PrintInitialMesh()
