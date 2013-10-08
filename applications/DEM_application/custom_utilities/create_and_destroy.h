@@ -93,18 +93,38 @@ public:
         
       pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);      //ACTUAL node creation and addition to model part
 
-      pnew_node->FastGetSolutionStepValue(RADIUS) = params[RADIUS];
+      pnew_node->FastGetSolutionStepValue(RADIUS) = params[RADIUS];      
+      pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY) = params[DENSITY];
+      pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS) = params[YOUNG_MODULUS];
+      pnew_node->FastGetSolutionStepValue(POISSON_RATIO) = params[POISSON_RATIO];
+      pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
       pnew_node->FastGetSolutionStepValue(VELOCITY_X) = params[VELOCITY][0];
       pnew_node->FastGetSolutionStepValue(VELOCITY_Y) = params[VELOCITY][1];
       pnew_node->FastGetSolutionStepValue(VELOCITY_Z) = params[VELOCITY][2];
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;      
-      pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY) = params[DENSITY];
-      pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS) = params[YOUNG_MODULUS];
-      pnew_node->FastGetSolutionStepValue(POISSON_RATIO) = params[POISSON_RATIO];
-      pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
-          
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;   
+      
+      ///DOFS
+      pnew_node->AddDof(DISPLACEMENT_X, REACTION_X);
+      pnew_node->AddDof(DISPLACEMENT_Y, REACTION_Y);
+      pnew_node->AddDof(DISPLACEMENT_Z, REACTION_Z);
+      pnew_node->AddDof(VELOCITY_X,REACTION_X);
+      pnew_node->AddDof(VELOCITY_Y,REACTION_Y);
+      pnew_node->AddDof(VELOCITY_Z,REACTION_Z);
+      pnew_node->AddDof(ANGULAR_VELOCITY_X,REACTION_X);
+      pnew_node->AddDof(ANGULAR_VELOCITY_Y,REACTION_Y);
+      pnew_node->AddDof(ANGULAR_VELOCITY_Z,REACTION_Z);
+      
+      pnew_node->pGetDof(VELOCITY_X)->FixDof();
+      pnew_node->pGetDof(VELOCITY_Y)->FixDof();
+      pnew_node->pGetDof(VELOCITY_Z)->FixDof();      
+      pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
+      pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
+      pnew_node->pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
+      pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
+      
+      
     }
 
 
@@ -129,7 +149,7 @@ public:
 
     //SALVA
     //MA
-    void ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart, int r_Elem_Id, Node < 3 > ::Pointer reference_node, Properties& params) {          
+    void ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart, int r_Elem_Id, Node < 3 > ::Pointer reference_node, Properties& params, bool block=false) {          
         
       Node < 3 > ::Pointer pnew_node;
       
@@ -146,8 +166,10 @@ public:
       Element::Pointer p_swimming_particle = Element::Pointer(new SphericSwimmingParticle(r_Elem_Id, nodelist)); 
       
       p_swimming_particle->Set(NEW_ENTITY);
+      if(block) p_swimming_particle->Set(BLOCKED);
       
       pnew_node->Set(NEW_ENTITY);
+      if(block) pnew_node->Set(BLOCKED);
       
       r_modelpart.Elements().push_back(p_swimming_particle);          
 }    
@@ -204,7 +226,7 @@ public:
         ModelPart::NodesContainerType::Pointer pNodes       = r_model_part.pNodes();
 
         Configure::ElementsContainerType& rElements         = r_model_part.Elements();
-        ModelPart::NodesContainerType& rNodes               = r_model_part.Nodes();
+        //ModelPart::NodesContainerType& rNodes               = r_model_part.Nodes();
 
         Configure::ElementsContainerType temp_particles_container;
         //ModelPart::NodesContainerType temp_nodes_container;
@@ -540,7 +562,10 @@ public:
     virtual ~DEM_Inlet() {};
     
     void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator){
-        int r_Elem_Id=100; ///This Id must be set!!!
+        uint max_Id=0; 
+	for (ModelPart::NodesContainerType::iterator node_it = r_modelpart.NodesBegin(); node_it != r_modelpart.NodesEnd(); node_it++){
+	  if( node_it->Id() > max_Id) max_Id = node_it->Id();
+	}
         int mesh_number=0;
         for (ModelPart::MeshesContainerType::iterator mesh_it = InletModelPart.GetMeshes().begin()+1;
                                                mesh_it != InletModelPart.GetMeshes().end();    ++mesh_it)
@@ -557,7 +582,8 @@ public:
             mesh_properties_null_vel[VELOCITY][2]=0.0;
                                               
             for (int i = 0; i < mesh_size; i++){                
-                creator.ElementCreatorWithPhysicalParameters(r_modelpart,   r_Elem_Id, all_nodes[i],  mesh_properties_null_vel);                
+                creator.ElementCreatorWithPhysicalParameters(r_modelpart,   max_Id+1, all_nodes[i],  mesh_properties_null_vel,false); 
+		max_Id++;
             }
             
         } //for mesh_it                                               
@@ -565,25 +591,31 @@ public:
         
     
     void CreateElementsFromInletMesh( ModelPart& r_modelpart, ModelPart& inlet_modelpart, ParticleCreatorDestructor& creator ){
-        
-  //      if(r_modelpart.GetProcessInfo()[TIME]< inlet_start  || r_modelpart.GetProcessInfo()[TIME]< inlet_start) return;
-        
-        int mesh_iterator_number=0;
+                        
+        uint max_Id=0; 
+	for (ModelPart::NodesContainerType::iterator node_it = r_modelpart.NodesBegin(); node_it != r_modelpart.NodesEnd(); node_it++){
+	  if( node_it->Id() > max_Id) max_Id = node_it->Id();
+	}
+                
         int mesh_number=0;
         for (ModelPart::MeshesContainerType::iterator mesh_it = inlet_modelpart.GetMeshes().begin()+1;
                                                mesh_it != inlet_modelpart.GetMeshes().end();    ++mesh_it)
-        {
+        {            
             mesh_number++;
+
+            if(r_modelpart.GetProcessInfo()[TIME] <  InletModelPart.GetProperties(mesh_number)[INLET_START_TIME]  || 
+                    r_modelpart.GetProcessInfo()[TIME] >  InletModelPart.GetProperties(mesh_number)[INLET_STOP_TIME]) continue;                        
+
             int mesh_size=mesh_it->NumberOfNodes();
             
-            double num_part_surface_time=  1; //num_parts; ////////////////////////////////
+            double num_part_surface_time=  InletModelPart.GetProperties(mesh_number)[INLET_NUMBER_OF_PARTICLES]; 
             double delta_t=  r_modelpart.GetProcessInfo()[DELTA_TIME]; // FLUID DELTA_T CAN BE USED ALSO
             double surface=  1.0;//inlet_surface; // this should probably be projected to velocity vector
             
             //calculate number of particles to insert from input data
-            double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + PartialParticleToInsert[mesh_iterator_number];            
+            double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + PartialParticleToInsert[mesh_number-1];            
             int number_of_particles_to_insert = floor(double_number_of_particles_to_insert);
-            PartialParticleToInsert[mesh_iterator_number] = double_number_of_particles_to_insert - number_of_particles_to_insert;
+            PartialParticleToInsert[mesh_number-1] = double_number_of_particles_to_insert - number_of_particles_to_insert;
 
             if (number_of_particles_to_insert) {
               //randomizing mesh
@@ -594,7 +626,7 @@ public:
                int valid_nodes_length=0;
                
                for (int i = 0; i < mesh_size; i++){
-                   if( all_nodes[i]->IsNot(ACTIVE) ) { valid_nodes[valid_nodes_length]=all_nodes[i];   valid_nodes_length++;  }
+                   if( all_nodes[i]->IsNot(BLOCKED) ) { valid_nodes[valid_nodes_length]=all_nodes[i];   valid_nodes_length++;  } // (push_back)
                }
 
                if (valid_nodes_length < number_of_particles_to_insert) {
@@ -612,11 +644,12 @@ public:
                }
 
                for (int i = 0; i < number_of_particles_to_insert; i++) {
-                   creator.ElementCreatorWithPhysicalParameters(r_modelpart, /*r_Elem_Id*/1, inserting_nodes[i],InletModelPart.GetProperties(mesh_number));                                                                                                          
+                   creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, inserting_nodes[i],InletModelPart.GetProperties(mesh_number),true);
+                   max_Id++;
                }               
            } //if (number_of_particles_to_insert)
-           mesh_iterator_number++;
-        }                
+            
+        } // for mesh_it
     }    
     //MA
 };
