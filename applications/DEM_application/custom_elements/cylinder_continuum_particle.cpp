@@ -190,44 +190,11 @@ namespace Kratos
                   ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
                   
                   {
-                      if(ini_cont_neighbour_iterator->GetValue(SKIN_SPHERE))
-                      {
+
                           alpha            = 1.0*(1.10266)*(sphere_perimeter/total_equiv_perimeter)*((double(cont_ini_neighbours_size))/6); // 6 is mean coordination number.
                           mcont_ini_neigh_area[skin_index] = alpha*mcont_ini_neigh_area[skin_index];
-                      }
-                      
-                      else
-                      {
-                          
-                        double neigh_face = 0.0;
-                        Vector vector_neigh_face;
-                        
-                        ParticleWeakVectorType r_cont_neigh_of_my_cont_neigh = ini_cont_neighbour_iterator->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);  
-                          
-                        size_t skin_skin_index = 0;
-                          
-                        for(ParticleWeakIteratorType r_cont_neigh_of_my_cont_neigh_iterator = r_cont_neigh_of_my_cont_neigh.begin();            //MSIMSI 99: if there would be more loop on the neighbours of my neighbours would be nice to have a mapping to avoid this on the solve loop
-                            r_cont_neigh_of_my_cont_neigh_iterator != r_cont_neigh_of_my_cont_neigh.end(); r_cont_neigh_of_my_cont_neigh_iterator++)
-                  
-                            {
-                                
-                              if(r_cont_neigh_of_my_cont_neigh_iterator->Id() == this->Id() )
-                              {
-  
-                                r_cont_neigh_of_my_cont_neigh_iterator->Calculate(DEM_AREA_VECTOR,vector_neigh_face,rCurrentProcessInfo);
-                                neigh_face = vector_neigh_face[skin_skin_index];
-                                
-                                break;
-                              }
-                                                              
-                              skin_skin_index++;
-                            }//loop of the cont neighs of my cont neighbour.
-    
-    
-                          mcont_ini_neigh_area[skin_index] = neigh_face; //remember that area in 2D is face length times 1.0.
-    
-                      }//not skin neighbours of skin particles
-              
+     
+                    
                   skin_index++;
                   
                   }//loop on cont neighs       
