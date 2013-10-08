@@ -78,8 +78,8 @@ public:
         //send everything to node with id "gather_rank"
 
         //transfer nodes --> NOTE THAT WE ALSO TRANSFER RANK 0 to RANK 0!!
-        std::vector< ModelPart::NodesContainerType::ContainerType > SendNodes(mpi_size);
-        std::vector< ModelPart::NodesContainerType::ContainerType > RecvNodes(mpi_size);
+        std::vector< ModelPart::NodesContainerType > SendNodes(mpi_size);
+        std::vector< ModelPart::NodesContainerType > RecvNodes(mpi_size);
         SendNodes[gather_rank].reserve(destination_model_part.Nodes().size());
         for(ModelPart::NodesContainerType::iterator it = destination_model_part.NodesBegin();
                 it != destination_model_part.NodesEnd(); it++)
@@ -90,15 +90,15 @@ public:
         destination_model_part.GetCommunicator().TransferObjects(SendNodes,RecvNodes);
         for(unsigned int i=0; i<RecvNodes.size(); i++)
         {
-            for(ModelPart::NodesContainerType::ContainerType::iterator it = RecvNodes[i].begin(); it != RecvNodes[i].end(); it++)
+            for(ModelPart::NodesContainerType::iterator it = RecvNodes[i].begin(); it != RecvNodes[i].end(); it++)
                 destination_model_part.Nodes().push_back(*it);
         }
         SendNodes.clear();
         RecvNodes.clear();
 
         //transfer elements
-        std::vector<ModelPart::ElementsContainerType::ContainerType > SendElements(mpi_size);
-        std::vector<ModelPart::ElementsContainerType::ContainerType > RecvElements(mpi_size);
+        std::vector<ModelPart::ElementsContainerType > SendElements(mpi_size);
+        std::vector<ModelPart::ElementsContainerType > RecvElements(mpi_size);
         SendElements[gather_rank].reserve(destination_model_part.Elements().size());
         for(ModelPart::ElementsContainerType::iterator it = destination_model_part.ElementsBegin();
                 it != destination_model_part.ElementsEnd(); it++)
@@ -108,15 +108,15 @@ public:
         destination_model_part.GetCommunicator().TransferObjects(SendElements,RecvElements);
         for(unsigned int i=0; i<RecvNodes.size(); i++)
         {
-            for(ModelPart::ElementsContainerType::ContainerType::iterator it = RecvElements[i].begin(); it != RecvElements[i].end(); it++)
+            for(ModelPart::ElementsContainerType::iterator it = RecvElements[i].begin(); it != RecvElements[i].end(); it++)
                 destination_model_part.Elements().push_back(*it);
         }
         SendElements.clear();
         RecvElements.clear();
 
         //transfer conditions
-        std::vector< ModelPart::ConditionsContainerType::ContainerType > SendConditions(mpi_size);
-        std::vector< ModelPart::ConditionsContainerType::ContainerType > RecvConditions(mpi_size);
+        std::vector< ModelPart::ConditionsContainerType > SendConditions(mpi_size);
+        std::vector< ModelPart::ConditionsContainerType > RecvConditions(mpi_size);
         SendConditions[gather_rank].reserve(destination_model_part.Conditions().size());
         for(ModelPart::ConditionsContainerType::iterator it = destination_model_part.ConditionsBegin();
                 it != destination_model_part.ConditionsEnd(); it++)
@@ -126,7 +126,7 @@ public:
         destination_model_part.GetCommunicator().TransferObjects(SendConditions,RecvConditions);
         for(unsigned int i=0; i<RecvNodes.size(); i++)
         {
-            for(ModelPart::ConditionsContainerType::ContainerType::iterator it = RecvConditions[i].begin(); it != RecvConditions[i].end(); it++)
+            for(ModelPart::ConditionsContainerType::iterator it = RecvConditions[i].begin(); it != RecvConditions[i].end(); it++)
                 destination_model_part.Conditions().push_back(*it);
         }
         SendConditions.clear();
