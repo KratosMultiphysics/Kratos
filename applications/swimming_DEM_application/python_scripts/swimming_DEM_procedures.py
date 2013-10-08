@@ -112,9 +112,9 @@ class ProjectionModule:
 
             self.bin_of_objects_fluid.UpdateSearchDatabaseAssignedSize(HMin)
 
-    def ProjectFromFluid(self):
+    def ProjectFromFluid(self, alpha):
 
-        self.projector.InterpolationFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
+        self.projector.InterpolationFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid, alpha)
 
     def ProjectFromParticles(self):
 
