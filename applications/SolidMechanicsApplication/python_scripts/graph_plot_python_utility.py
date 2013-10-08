@@ -158,7 +158,8 @@ class GraphPlotUtility:
             xlim(x_limits.min,x_limits.max)
             ylim(y_min,y_max)
 
-            figure_name = str(self.problempath)+"/"+str(self.graph_name)+"_"+str(write_id)
+            figure_name = os.path.join(self.problem_path,self.graph_name + "_" + str(write_id))
+            #figure_name = str(self.problempath)+"/"+str(self.graph_name)+"_"+str(write_id)
             savefig(figure_name)
 
             self.plot_step = 0;

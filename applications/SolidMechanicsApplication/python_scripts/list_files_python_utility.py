@@ -43,7 +43,8 @@ class ListFilesUtility:
             for rfile in range(0,total_files):
                 for f in os.listdir(problem_path):
                     if(f.endswith("_"+str(rfile)+".post.bin")):
-                        problempath= self.problem_path + "/" + self.problem_name + "_1.post.lst"
+                        problempath = os.path.join(self.problem_path, self.problem_name + "_1.post.lst" )
+                        #problempath= self.problem_path + "/" + self.problem_name + "_1.post.lst"
                         if(os.path.exists(problempath) == False):
                             listfile = open(problempath,"a")
                             problemname = "Multiple\n"
@@ -62,7 +63,8 @@ class ListFilesUtility:
                         num_list_files = len(self.file_list) 
                         for lfile in range(0,num_list_files):
                             if( self.file_list[lfile] == self.listprint[lfile] ):
-                                problempath= self.problem_path + "/" + self.problem_name + "_"+ str(self.file_list[lfile]) + ".post.lst"
+                                problempath = os.path.join(self.problem_path, self.problem_name + "_" + str(self.file_list[lfile]) + ".post.lst")
+                                #problempath= self.problem_path + "/" + self.problem_name + "_" + str(self.file_list[lfile]) + ".post.lst"
                                 if(os.path.exists(problempath) == False):
                                     listfile = open(problempath,"a")
                                     problemname = "Multiple\n" 
@@ -96,7 +98,8 @@ class ListFilesUtility:
 
          #print list files:
          if(self.print_lists == True):
-             problempath= self.problem_path + "/" + self.problem_name + "_1.post.lst"
+             problempath = os.path.join(self.problem_path, self.problem_name + "_1.post.lst")
+             #problempath= self.problem_path + "/" + self.problem_name + "_1.post.lst"
              if(os.path.exists(problempath) == False):
                  listfile = open(problempath,"a")
                  #if(current_step == 0 and general_variables.LoadRestart == "False"):
@@ -115,7 +118,8 @@ class ListFilesUtility:
              num_list_files = len(self.file_list) 
              for lfile in range(0,num_list_files):
                  if( general_variables.file_list[lfile] == listprint[lfile] ):
-                     problempath= self.problem_path + "/" + self.problem_name + "_"+ str(self.file_list[lfile]) + ".post.lst"
+                     problempath = os.path.join(self.problem_path, self.problem_name + "_" + str(self.file_list[lfile]) + ".post.lst")
+                     #problempath= self.problem_path + "/" + self.problem_name + "_" + str(self.file_list[lfile]) + ".post.lst"
                      if(os.path.exists(problempath) == False):
                          listfile = open(problempath,"a")
                          #if(header_in_list[lfile] == True and general_variables.LoadRestart == "False"):

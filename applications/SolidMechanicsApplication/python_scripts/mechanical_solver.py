@@ -1,0 +1,302 @@
+# importing the Kratos Library
+from KratosMultiphysics import *
+from KratosMultiphysics.SolidMechanicsApplication import *
+# check that KratosMultiphysics was imported in the main script
+CheckForPreviousImport()
+
+
+def AddVariables(model_part, config=None):
+    #add displacements
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    #add dynamic variables
+    model_part.AddNodalSolutionStepVariable(VELOCITY)
+    model_part.AddNodalSolutionStepVariable(ACCELERATION)
+    #add reactions for the displacements
+    model_part.AddNodalSolutionStepVariable(REACTION)
+    #add nodal force variables
+    model_part.AddNodalSolutionStepVariable(FORCE_INTERNAL);
+    model_part.AddNodalSolutionStepVariable(FORCE_EXTERNAL);
+    model_part.AddNodalSolutionStepVariable(FORCE_DYNAMIC);
+    #add specific variables for the problem conditions
+    model_part.AddNodalSolutionStepVariable(IMPOSED_DISPLACEMENT);
+    model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE);
+    model_part.AddNodalSolutionStepVariable(FORCE);
+    model_part.AddNodalSolutionStepVariable(FACE_LOAD);
+    model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+
+    if config is not None:
+        if hasattr(config, "RotationDofs"):
+            if config.RotationDofs == True:
+                #add specific variables for the problem (rotation dofs)
+                model_part.AddNodalSolutionStepVariable(ROTATION);
+                model_part.AddNodalSolutionStepVariable(MOMENTUM);
+        if hasattr(config, "PressureDofs"):
+            if config.PressureDofs == True:
+                #add specific variables for the problem (pressure dofs)
+                model_part.AddNodalSolutionStepVariable(PRESSURE)
+                model_part.AddNodalSolutionStepVariable(REACTION_PRESSURE);
+        if hasattr(config, "RigidWalls"):
+            if config.RigidWalls == True:
+                #add specific variables for the problem (rigid walls)
+                model_part.AddNodalSolutionStepVariable(RIGID_WALL);
+                model_part.AddNodalSolutionStepVariable(WALL_TIP_RADIUS);
+                model_part.AddNodalSolutionStepVariable(WALL_REFERENCE_POINT);
+                model_part.AddNodalSolutionStepVariable(WALL_VELOCITY);
+
+
+    print "variables for the structural solver added correctly"
+
+
+def AddDofs(model_part, config=None):
+    for node in model_part.Nodes:
+        # adding dofs
+        node.AddDof(DISPLACEMENT_X,REACTION_X);
+        node.AddDof(DISPLACEMENT_Y,REACTION_Y);
+        node.AddDof(DISPLACEMENT_Z,REACTION_Z);
+
+    if config is not None:
+        if hasattr(config, "RotationDofs"):
+            if config.RotationDofs == True:
+                for node in model_part.Nodes:
+                    node.AddDof(ROTATION_X,MOMENTUM_X);
+                    node.AddDof(ROTATION_Y,MOMENTUM_Y);
+                    node.AddDof(ROTATION_Z,MOMENTUM_Z);
+        if hasattr(config, "PressureDofs"):
+            if config.PressureDofs == True:
+                for node in model_part.Nodes:
+                    node.AddDof(PRESSURE,REACTION_PRESSURE);
+                                  
+
+    print "dofs for the structural solver added correctly"
+
+
+class StructuralSolver:
+    #
+    def __init__(self, model_part, domain_size):
+
+        # default settings
+        self.echo_level  = 0
+        self.model_part  = model_part
+        self.domain_size = domain_size
+
+        self.pressure_dofs = False
+        self.rotation_dofs = False
+        
+        # definition of the solvers
+        self.scheme_type = "Dynamic"
+
+        try:
+            from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
+            self.linear_solver = SuperLUIterativeSolver()
+        except:
+            self.linear_solver = SkylineLUFactorizationSolver()
+
+
+        # definition of the convergence criteria
+        self.rel_disp_tol  = 1e-4
+        self.abs_disp_tol  = 1e-9
+        self.rel_res_tol   = 1e-4
+        self.abs_res_tol   = 1e-9
+        self.max_iters     = 30
+
+        self.convergence_criterion_type = "Residual_criteria"
+        self.mechanical_convergence_criterion  = ResidualCriteria(self.rel_res_tol,self.abs_res_tol)
+        #self.mechanical_convergence_criterion = DisplacementCriteria(self.rel_disp_tol,self.abs_disp_tol)
+        #self.mechanical_convergence_criterion = ResidualConvergenceCriteria(self.rel_res_tol,self.abs_res_tol)
+        #self.mechanical_convergence_criterion = DisplacementConvergenceCriteria(self.rel_disp_tol,self.abs_disp_tol)
+
+        #definition of the default builder_and_solver:   
+        self.block_builder = False    
+        self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
+        
+        #definition of computing flags
+        self.compute_reactions = True
+        self.line_search       = False
+        self.reform_step_dofs  = True
+
+        #definition of the (x(n+1) = x(n)+dx)
+        self.move_mesh_flag    = True
+
+        print "Construction structural solver finished"
+
+    #
+    def Initialize(self):
+
+        #creating the solution scheme:
+        self.SetSolutionScheme()
+        
+        #creating the builder and solver:
+        if(self.block_builder == True):
+            #to keep matrix blocks in builder
+            self.builder_and_solver = BlockResidualBasedBuilderAndSolver(self.linear_solver)
+
+        #creating the convergence criterion:
+        self.SetConvergenceCriterion()
+
+        # creating the solution strategy
+        
+        self.reform_step_dofs = False;
+        # option 1.- Application Strategy:    
+        self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion,self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
+
+        # option 2.- Phyton Strategy: (import solid_mechanics_python_strategy)
+
+        (self.mechanical_solver).SetEchoLevel(self.echo_level)
+
+        # check if everything is assigned correctly
+        self.Check();
+               
+
+        print "Initialization mechanical solver finished"
+
+    #  
+    def Solve(self):
+        print " MECHANICAL SOLUTION START "
+        (self.mechanical_solver).Solve()
+        print " MECHANICAL SOLUTION PERFORMED "
+
+    #
+    def SetEchoLevel(self, level):
+        self.echo_level = level
+        (self.mechanical_solver).SetEchoLevel(level)
+
+    #
+    def SetRestart(self, load_restart):
+        # check if is a restart file is loaded
+        if(load_restart == "True"):
+            # set solver as initialized if is a run which is restarted
+            self.mechanical_solver.SetInitialized()
+
+    #
+    def Clear(self):
+        (self.solver).Clear()
+
+    #
+    def Check(self):
+        self.builder_and_solver.Check(self.model_part)
+        self.mechanical_scheme.Check(self.model_part)
+        self.mechanical_convergence_criterion.Check(self.model_part)
+        self.mechanical_solver.Check();
+
+    #
+    def SetSolutionScheme(self):
+
+       #type of solver (static,dynamic,quasi-static,pseudo-dynamic)
+        if(self.scheme_type == "StaticSolver"): 
+            self.mechanical_scheme = ResidualBasedStaticScheme()
+        elif(self.scheme_type == "DynamicSolver"):
+            #definition of time scheme
+            self.damp_factor_f  =  0.00; 
+            self.damp_factor_m  = -0.01; 
+            self.dynamic_factor =  1;
+            self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m,self.dynamic_factor)
+        elif(self.scheme_type == "QuasiStaticSolver"):
+            #definition of time scheme
+            self.damp_factor_f  =  0.00; 
+            self.damp_factor_m  = -0.01; 
+            self.dynamic_factor =  0; #quasi-static
+            self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m,self.dynamic_factor)
+        elif(self.scheme_type == "PseudoDynamicSolver"):
+            #definition of time scheme
+            self.damp_factor_f  = -0.3; 
+            self.damp_factor_m  = 10.0; 
+            self.mechanical_scheme = ResidualBasedRelaxationScheme(self.damp_factor_m,self.dynamic_factor)
+
+    #
+    def SetConvergenceCriterion(self):
+        
+        #mechanical convergence criteria
+        D_RT = self.rel_disp_tol;
+        D_AT = self.abs_disp_tol; 
+        R_RT = self.rel_res_tol;
+        R_AT = self.abs_res_tol; 
+
+
+        if(self.rotation_dofs == True):
+            if(self.convergence_criterion_type == "Displacement_criteria"):
+                self.mechanical_convergence_criterion  =  DisplacementCriteria(D_RT,D_AT)
+            elif(self.convergence_criterion_type == "Residual_criteria"):
+                self.mechanical_convergence_criterion  =  ResidualCriteria(R_RT,R_AT)
+            elif(self.convergence_criterion_type == "And_criteria"):
+                Displacement   =   DisplacementCriteria(D_RT,D_AT)
+                Residual       =   ResidualCriteria(R_RT,R_AT)
+                self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
+            elif(self.convergence_criterion_type == "Or_criteria"):
+                Displacement   =   DisplacementCriteria(D_RT,D_AT)
+                Residual       =   ResidualCriteria(R_RT,R_AT)
+                self.mechanical_convergence_criterion  = OrCriteria(Residual, Displacement)
+            elif(self.convergence_criterion_type == "Mixed_criteria"):
+                Displacement   =   MixedElementCriteria(D_RT,D_AT)
+                Residual       =   ResidualCriteria(R_RT,R_AT)
+                self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
+        else:
+            if(self.convergence_criterion_type == "Displacement_criteria"):
+                self.mechanical_convergence_criterion  =  DisplacementConvergenceCriteria(D_RT,D_AT)
+            elif(self.convergence_criterion_type == "Residual_criteria"):
+                self.mechanical_convergence_criterion  =  ResidualConvergenceCriteria(R_RT,R_AT)
+            elif(self.convergence_criterion_type == "And_criteria"):
+                Displacement   =   DisplacementConvergenceCriteria(D_RT,D_AT)
+                Residual       =   ResidualConvergenceCriteria(R_RT,R_AT)
+                self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
+            elif(self.convergence_criterion_type == "Or_criteria"):
+                Displacement   =   DisplacementConvergenceCriteria(D_RT,D_AT)
+                Residual       =   ResidualConvergenceCriteria(R_RT,R_AT)
+                self.mechanical_convergence_criterion  = OrCriteria(Residual, Displacement)
+            elif(self.convergence_criterion_type == "Mixed_criteria"):
+                Displacement   =   MixedElementConvergenceCriteria(D_RT,D_AT)
+                Residual       =   ResidualConvergenceCriteria(R_RT,R_AT)
+                self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
+
+
+#
+#
+def CreateSolver(model_part, config):
+
+    structural_solver = StructuralSolver(model_part, config.domain_size)
+
+    # definition of the convergence criteria
+    if(hasattr(config, "convergenge_criterion")):
+        structural_solver.convergence_criterion_type = config.convergence_criterion
+    if(hasattr(config, "displacement_relative_tolerance")):
+        structural_solver.rel_disp_tol = config.displacement_relative_tolerance
+    if(hasattr(config, "displacement_absolute_tolerance")):
+        structural_solver.abs_disp_tol = config.displacement_absolute_tolerance
+    if(hasattr(config, "residual_relative_tolerance")):
+        structural_solver.rel_res_tol = config.residual_relative_tolerance
+    if(hasattr(config, "residual_absolute_tolerance")):
+        structural_solver.abs_res_tol = config.residual_absolute_tolerance
+    if(hasattr(config, "max_iteration")):
+        structural_solver.max_iters = config.max_iteration
+
+    # definition of the global solver type
+    if(hasattr(config, "scheme_type")):
+        structural_solver.scheme_type = config.scheme_type
+ 
+    # definition of the solver parameters
+    if(hasattr(config, "compute_reactions")):
+        structural_solver.compute_reactions = config.compute_reactions #bool
+    if(hasattr(config, "ReformDofSetAtEachStep")):
+        structural_solver.reform_step_dofs = config.ReformDofSetAtEachStep #bool
+    if(hasattr(config, "RotationDofs")):
+        structural_solver.rotation_dofs = config.RotationDofs #bool
+    if(hasattr(config, "PressureDofs")):
+        structural_solver.pressure_dofs = config.PressureDofs #bool
+    if(hasattr(config, "line_search")):
+        structural_solver.line_search = config.line_search #bool
+
+    # definition of the echo level
+    if(hasattr(config, "echo_level")):
+        structural_solver.echo_level = config.echo_level
+
+    # definition of the linear solver
+    import linear_solver_factory
+    if(hasattr(config, "linear_solver_config")):
+        structural_solver.linear_solver = linear_solver_factory.ConstructSolver(config.linear_solver_config)
+
+        if(config.linear_solver_config.solver_type == "AMGCL"):
+            structural_solver.block_builder = True
+        else:
+            structural_solver.block_builder = False
+
+    return structural_solver
