@@ -59,11 +59,12 @@ public:
 
     typedef SearchType::PointType                                   PointType;
     typedef SearchType::ElementsContainerType::ContainerType        ContainerType;
-    typedef SearchType::ElementsContainerType                       ElementsContainerType;  // * Comentar -> Create_and_destroy.h
+    typedef SearchType::ElementsContainerType                       ElementsContainerType;
     
     typedef SearchType::ElementType                                 ElementType;
     typedef ContainerType::value_type                               PointerType;
     typedef ContainerType::iterator                                 IteratorType;
+    typedef ElementsContainerType::iterator                         ElementIteratorType;
     
     typedef SearchType::ElementsContainerType::ContainerType        ResultContainerType;
 //     typedef SearchType::ResultDistanceType::ContainerType             ResultDistanceType;
@@ -81,7 +82,8 @@ public:
     ///@{
 
     DiscreteParticleConfigure(){};
-    virtual ~DiscreteParticleConfigure(){}
+    virtual ~DiscreteParticleConfigure(){
+	}
 
     ///@}
     ///@name Operators
@@ -136,18 +138,16 @@ public:
         return intersect;
     }
 
-
     static inline bool Intersection(const PointerType& rObj_1, const PointerType& rObj_2, const double& Radius)
     {
-        const Node<3>& node_2 = rObj_2->GetGeometry()[0];
-        array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry()[0];
-        noalias(rObj_2_to_rObj_1) -= node_2;
+        array_1d<double, 3> rObj_2_to_rObj_1 = rObj_1->GetGeometry().GetPoint(0) - rObj_2->GetGeometry().GetPoint(0);
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
-
+        
         const double& radius_1 = Radius;
-        const double& radius_2 = node_2.FastGetSolutionStepValue(RADIUS);
+        const double& radius_2 = rObj_2->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
         double radius_sum      = radius_1 + radius_2;
         bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
+
         return intersect;
     }
 
@@ -336,7 +336,7 @@ private:
 
         return rOStream;
         }
-        
+
     ///@}
 
 }   // namespace Kratos.
