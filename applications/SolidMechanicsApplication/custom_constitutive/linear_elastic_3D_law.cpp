@@ -78,7 +78,6 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
     Vector& StrainVector                  = rValues.GetStrainVector();
     Vector& StressVector                  = rValues.GetStressVector();
-    Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
 
     //-----------------------------//
 
@@ -107,15 +106,25 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
     {
+      if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
+      	
+	Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
+	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+	this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
 
-        this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+      }
+      else {
 
-        this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
-
+	Matrix ConstitutiveMatrix = ZeroMatrix(3);
+	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+	this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+      }
+      
     }
     else if(  Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) && Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
 
+	Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
         this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
     }
@@ -171,18 +180,33 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
 
     //7.-Calculate total Kirchhoff stress
 
-    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
-    {
+    if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ){
+      
+      if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ){
+	
+	Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
 
-        this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+      
+	this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
 
-        this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
-
+      }
+      else {
+	
+	Matrix ConstitutiveMatrix = ZeroMatrix(3);
+	
+	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+      
+	this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
+      
+      }
+      
     }
     else if(  Options.IsNot( ConstitutiveLaw::COMPUTE_STRESS ) && Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
 
-        this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
+      Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
+      this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 
     }
 
