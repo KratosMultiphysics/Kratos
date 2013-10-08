@@ -205,63 +205,65 @@ namespace Kratos
         void SphericContinuumParticle::NeighNeighMapping( ProcessInfo& rCurrentProcessInfo  ) 
         {
           
-        ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
-
-        int my_id = this->Id();
-        
-        vector<int> my_index_from_my_neigh;
-        
-        my_index_from_my_neigh.resize(r_continuum_ini_neighbours.size());
-        
-        KRATOS_WATCH("   ")
-        KRATOS_WATCH(this->Id())
-                 
-        int cont_ini_neighbour_counter = 0;
-                
-        for(ParticleWeakIteratorType cont_ini_neighbour_iterator = r_continuum_ini_neighbours.begin();
-            cont_ini_neighbour_iterator != r_continuum_ini_neighbours.end(); cont_ini_neighbour_iterator++)
-        {
-             
-              KRATOS_WATCH(cont_ini_neighbour_iterator->Id())
-              
-          
-              ParticleWeakVectorType& r_continuum_ini_neighbours_of_my_continuum_ini_neighbour    = cont_ini_neighbour_iterator->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
-
-              //KRATOS_WATCH(r_continuum_ini_neighbours_of_my_continuum_ini_neighbour.size())
-              /*
-              int index_me_from_my_neigh = 0;
-              
-                for(ParticleWeakIteratorType cont_ini_neighbour_of_my_cont_ini_neigh_iterator = r_continuum_ini_neighbours_of_my_continuum_ini_neighbour.begin();
-                  cont_ini_neighbour_of_my_cont_ini_neigh_iterator != r_continuum_ini_neighbours_of_my_continuum_ini_neighbour.end(); cont_ini_neighbour_of_my_cont_ini_neigh_iterator++)
-              {
-          
-                if( cont_ini_neighbour_of_my_cont_ini_neigh_iterator->Id() == my_id)
-                {
-                                  
-                my_index_from_my_neigh[cont_ini_neighbour_counter] = index_me_from_my_neigh;
-                                
-                break;  
-                }
-                
-                index_me_from_my_neigh++;
-               
-              } //neighbours of my neighbour
-             */ 
-        } //my neighbours      
-        
-        
-        //checks:
-        //loop veins ini cont
-          //vei->trencat?
-          
-          //vei->vei(jo)->trencat?
-        
-        
-        
-        KRATOS_WATCH(my_index_from_my_neigh)
-        
+//         ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
+// 
+//         int my_id = this->Id();
+//         
+//         vector<int> my_index_from_my_neigh;
+//         
+//         my_index_from_my_neigh.resize(r_continuum_ini_neighbours.size());
+//         
+//         KRATOS_WATCH("   ")
+//         KRATOS_WATCH(this->Id())
+//                  
+//         int cont_ini_neighbour_counter = 0;
+//                 
+//         for(ParticleWeakIteratorType cont_ini_neighbour_iterator = r_continuum_ini_neighbours.begin();
+//             cont_ini_neighbour_iterator != r_continuum_ini_neighbours.end(); cont_ini_neighbour_iterator++)
+//         {
+//              
+//               KRATOS_WATCH(cont_ini_neighbour_iterator->Id())
+//               
+//           
+//               ParticleWeakVectorType& r_continuum_ini_neighbours_of_my_continuum_ini_neighbour    = cont_ini_neighbour_iterator->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
+// 
+//               //KRATOS_WATCH(r_continuum_ini_neighbours_of_my_continuum_ini_neighbour.size())
+//               /*
+//               int index_me_from_my_neigh = 0;
+//               
+//                 for(ParticleWeakIteratorType cont_ini_neighbour_of_my_cont_ini_neigh_iterator = r_continuum_ini_neighbours_of_my_continuum_ini_neighbour.begin();
+//                   cont_ini_neighbour_of_my_cont_ini_neigh_iterator != r_continuum_ini_neighbours_of_my_continuum_ini_neighbour.end(); cont_ini_neighbour_of_my_cont_ini_neigh_iterator++)
+//               {
+//           
+//                 if( cont_ini_neighbour_of_my_cont_ini_neigh_iterator->Id() == my_id)
+//                 {
+//                                   
+//                 my_index_from_my_neigh[cont_ini_neighbour_counter] = index_me_from_my_neigh;
+//                                 
+//                 break;  
+//                 }
+//                 
+//                 index_me_from_my_neigh++;
+//                
+//               } //neighbours of my neighbour
+//              */ 
+//         } //my neighbours      
+//         
+//         
+//         //checks:
+//         //loop veins ini cont
+//           //vei->trencat?
+//           
+//           //vei->vei(jo)->trencat?
+//         
+//         
+//         
+//         KRATOS_WATCH(my_index_from_my_neigh)
+//         
         
       }// 
+      
+
       
       void SphericContinuumParticle::ContactAreaWeighting3D(const ProcessInfo& rCurrentProcessInfo) //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
       { 
@@ -316,62 +318,27 @@ namespace Kratos
                 
                 else //skin sphere 
                 {
-                
-                    
-                    size_t skin_index = 0; 
-                    
-                    for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
+                  
+                  size_t skin_index = 0;
+              
+                  for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
                       ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
                       
-                      {
-                          if(ini_cont_neighbour_iterator->GetValue(SKIN_SPHERE))
-                          {
-                              alpha            = 1.0*(1.40727)*(external_sphere_area/total_equiv_area)*((double(cont_ini_neighbours_size))/11);
-                              mcont_ini_neigh_area[skin_index] = alpha*mcont_ini_neigh_area[skin_index];
-                          }
-                          
-                          else
-                          {
-                              
-                            double neigh_area = 0.0;
-                            Vector vector_neigh_area;
-                            
-                            ParticleWeakVectorType r_cont_neigh_of_my_cont_neigh = ini_cont_neighbour_iterator->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);  
-                              
-                            size_t skin_skin_index = 0;
-                              
-                            for(ParticleWeakIteratorType r_cont_neigh_of_my_cont_neigh_iterator = r_cont_neigh_of_my_cont_neigh.begin();            //MSIMSI 99: if there would be more loop on the neighbours of my neighbours would be nice to have a mapping to avoid this on the solve loop
-                                r_cont_neigh_of_my_cont_neigh_iterator != r_cont_neigh_of_my_cont_neigh.end(); r_cont_neigh_of_my_cont_neigh_iterator++)
-                      
-                                {
-                                    
-                                  if(r_cont_neigh_of_my_cont_neigh_iterator->Id() == this->Id() )
-                                  {
-      
-                                    r_cont_neigh_of_my_cont_neigh_iterator->Calculate(DEM_AREA_VECTOR,vector_neigh_area,rCurrentProcessInfo);
-                                    neigh_area = vector_neigh_area[skin_skin_index];
-                                    
-                                    break;
-                                  }
-                                                                  
-                                  skin_skin_index++;
-                                }//loop of the cont neighs of my cont neighbour.
-        
-        
-                              mcont_ini_neigh_area[skin_index] = neigh_area;
-        
-                          }//not skin neighbours of skin particles
+                      {  
+                  
+                      alpha  = 1.0*(1.40727)*(external_sphere_area/total_equiv_area)*((double(cont_ini_neighbours_size))/11);
+                      mcont_ini_neigh_area[skin_index] = alpha*mcont_ini_neigh_area[skin_index];
                   
                       skin_index++;
-                      
-                      }//loop on cont neighs       
-                      
+                      }
+                    
                 }//skin particles.
+              
             }//if more than 3 neighbours
    
-      } //Contact Area Weighting
-    
-      
+      } //Contact Area Weighting           
+                              
+   
       /**
        * Calculates all particle's ball-to-ball forces based on its neighbours
        * @param rContactForce
@@ -485,7 +452,7 @@ namespace Kratos
             }
 
             // Globally defined parameters
-                double aux_norm_to_tang;
+                double aux_norm_to_tang = 0.0;
                 
             if (mGlobalVariablesOption){
               
@@ -692,7 +659,7 @@ namespace Kratos
             if(mContactMeshOption==1 && (mapping_new_ini !=-1)) 
             {
 
-              CalculateOnContactElements( neighbour_iterator ,i_neighbour_count, mapping_new_ini, LocalElasticContactForce, calculation_area, contact_sigma, contact_tau, failure_criterion_state);
+              CalculateOnContactElements( neighbour_iterator ,i_neighbour_count, mapping_new_ini, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state);
 
             }
 
@@ -1011,10 +978,8 @@ namespace Kratos
            
            mDempack_damping = rCurrentProcessInfo[DEMPACK_DAMPING]; 
 
-          }
+         }
            
-           
-
          mGamma1 = rCurrentProcessInfo[DONZE_G1];
          mGamma2 = rCurrentProcessInfo[DONZE_G2];
          mGamma3 = rCurrentProcessInfo[DONZE_G3];
@@ -1028,7 +993,6 @@ namespace Kratos
          
          mContinuumGroup        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);             
 
-         
          mpCaseOption                   = &(rCurrentProcessInfo[CASE_OPTION]);   //NOTE: pointer
          
          mContactMeshOption             = rCurrentProcessInfo[CONTACT_MESH_OPTION];
@@ -1254,66 +1218,141 @@ namespace Kratos
    
       void SphericContinuumParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
       {
-          //KRATOS_WATCH(rVariable)
+        //KRATOS_WATCH(rVariable)
+        
+        KRATOS_TRY
 
-          if (rVariable == DELTA_TIME)
-          {
+        if (rVariable == DELTA_TIME)
+        {
 
-              double coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
+            double coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
 
-              if (coeff>1.0)
-              {
-                  KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",coeff)
-              }
+            if (coeff>1.0)
+            {
+                KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",coeff)
+            }
 
-              else if ((coeff==1.0) && (rCurrentProcessInfo[VIRTUAL_MASS_OPTION]))
-              {
-                  Output = 9.0E09;
-              }
+            else if ((coeff==1.0) && (rCurrentProcessInfo[VIRTUAL_MASS_OPTION]))
+            {
+                Output = 9.0E09;
+            }
 
-              else
-              {
+            else
+            {
 
-                  if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
-                  {
-                      mRealMass = mRealMass/(1-coeff);
-                  }
+                if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
+                {
+                    mRealMass = mRealMass/(1-coeff);
+                }
 
-                  double K = mYoung * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); //M. Error, should be the same that the local definition.
+                double K = mYoung * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); //M. Error, should be the same that the local definition.
 
-                  if (rCurrentProcessInfo[GLOBAL_VARIABLES_OPTION]==1)
-                      K = rCurrentProcessInfo[GLOBAL_KN];
+                if (rCurrentProcessInfo[GLOBAL_VARIABLES_OPTION]==1)
+                    K = rCurrentProcessInfo[GLOBAL_KN];
 
-                  Output = 0.34 * sqrt( mRealMass / K);
+                Output = 0.34 * sqrt( mRealMass / K);
 
-                  if(rCurrentProcessInfo[ROTATION_OPTION] == 1)
-                  {
-                      Output = Output * 0.5; //factor for critical time step when rotation is allowed.
-                  }
-              }
+                if(rCurrentProcessInfo[ROTATION_OPTION] == 1)
+                {
+                    Output = Output * 0.5; //factor for critical time step when rotation is allowed.
+                }
+            }
+            
+        }//CRITICAL DELTA CALCULATION
+
+        if (rVariable == PARTICLE_ROTATION_DAMP_RATIO)
+        {
+            //ApplyLocalMomentsDamping( rCurrentProcessInfo ); MSIMSI
+        } //DAMPING
+
+        if (rVariable == DEM_STRESS_XX)  //operations with the stress_strain tensors
+        {
+          
+            SymmetrizeTensor( rCurrentProcessInfo );
+            
+          
+        } //EULER_ANGLES
+        
+        if (rVariable == DUMMY_DEBUG_DOUBLE) //Dummy variable for debugging  MSIMSI DEBUG
+        {
+          
+          CheckPairWiseBreaking();
+        
+        }
+        
+        if (rVariable == MEAN_CONTACT_AREA)
+        {
+
+            int my_id = this->Id();
+            bool im_skin = bool(this->GetValue(SKIN_SPHERE));
+            ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
+            
+            size_t cont_neigh_index = 0; 
+            
+            for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();
+              ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
               
-          }//CRITICAL DELTA CALCULATION
+            {
+              
+                  Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(cont_neigh_index)).lock();
+                 
+                  if(!rCurrentProcessInfo[AREA_CALCULATED_FLAG])
+                  {
+                  
+                    bool neigh_is_skin = bool(ini_cont_neighbour_iterator->GetValue(SKIN_SPHERE));
+                    
+                    int neigh_id = ini_cont_neighbour_iterator->Id();
+                                        
+                    if ( (im_skin && neigh_is_skin) || ( !im_skin && !neigh_is_skin ) )
+                    {
+                                             
+                      if( my_id < neigh_id )
+                        {
 
-          if (rVariable == PARTICLE_ROTATION_DAMP_RATIO)
-          {
-              //ApplyLocalMomentsDamping( rCurrentProcessInfo ); MSIMSI
-          } //DAMPING
+                          lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_LOW) = mcont_ini_neigh_area[cont_neigh_index];
+                                                    
+                        } // if my id < neigh id
+                        
+                        else
+                        {
 
-          if (rVariable == DEM_STRESS_XX)  //operations with the stress_strain tensors
-          {
+                          lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_HIGH) = mcont_ini_neigh_area[cont_neigh_index];
+                          
+                        }
+                        
+                      
+                    } //both skin or both inner.
+                    
+                    else if( !im_skin && neigh_is_skin ) //we will store both the same only comming from the inner to the skin.
+                    {
+                      
+                
+                      lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_HIGH) = mcont_ini_neigh_area[cont_neigh_index];
+                      lock_p_weak -> GetValue(LOCAL_CONTACT_AREA_LOW) = mcont_ini_neigh_area[cont_neigh_index];
+                      
+                                          
+                    } //neigh skin
+
+                      
+                }//if(first_time)
+                
+                else //last operation
+                {
+                  
+                  mcont_ini_neigh_area[cont_neigh_index] = lock_p_weak->GetValue(MEAN_CONTACT_AREA);
+                
+                }
+                
+                cont_neigh_index++;
             
-              SymmetrizeTensor( rCurrentProcessInfo );
-             
-            
-          } //EULER_ANGLES
+            }//loop neigh.
           
-          if (rVariable == DUMMY_DEBUG_DOUBLE) //Dummy variable for debugging  MSIMSI DEBUG
-          {
-            
-            CheckPairWiseBreaking();
           
-          }
-
+        } //MEAN_CONTACT_AREA
+          
+     
+      KRATOS_CATCH("")
+      
       }//calculate
       
            
@@ -1511,14 +1550,14 @@ namespace Kratos
       }
       
       void SphericContinuumParticle::CalculateOnContactElements(ParticleWeakIteratorType neighbour_iterator, size_t i_neighbour_count, int mapping_new_ini, double LocalElasticContactForce[3], 
-                                                          double calculation_area, double  contact_sigma, double  contact_tau, double failure_criterion_state)
+                                                          double  contact_sigma, double  contact_tau, double failure_criterion_state)
       {
-   
+      KRATOS_TRY
        //obtaining pointer to contact element.
 
        Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(mapping_new_ini)).lock();
-                      
-       if( this->Id() < neighbour_iterator->Id() )  // if id pequeña
+                  
+       if( this->Id() < neighbour_iterator->Id() )  // Since areas are the same, the values are the same and we only store from lower ids.
         {
             //COPY VARIABLES LOW
                                         
@@ -1526,24 +1565,14 @@ namespace Kratos
                 
             //HIGH-LOW variables
                   
-            lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_LOW)[0] = LocalElasticContactForce[0];
-            lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_LOW)[1] = LocalElasticContactForce[1];
-            lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_LOW)[2] = LocalElasticContactForce[2];
-            
-            if(*mpTimeStep==0)
-            {
-            lock_p_weak->GetValue(LOCAL_CONTACT_AREA_LOW) = calculation_area;
-            
-            }
-            
-            //COMBINED MEAN          
+            lock_p_weak->GetValue(LOCAL_CONTACT_FORCE)[0] = LocalElasticContactForce[0];
+            lock_p_weak->GetValue(LOCAL_CONTACT_FORCE)[1] = LocalElasticContactForce[1];
+            lock_p_weak->GetValue(LOCAL_CONTACT_FORCE)[2] = LocalElasticContactForce[2];
+                   
   
-            lock_p_weak->GetValue(CONTACT_SIGMA) += 0.5*contact_sigma;
-            lock_p_weak->GetValue(CONTACT_TAU)   += 0.5*contact_tau;
-                                                                      
-            //UNIQUE VALUES
-            
-            //1) failure
+            lock_p_weak->GetValue(CONTACT_SIGMA) = contact_sigma;
+            lock_p_weak->GetValue(CONTACT_TAU)   = contact_tau;
+
             lock_p_weak->GetValue(CONTACT_FAILURE) = (mNeighbourFailureId[i_neighbour_count]);                                        
             lock_p_weak->GetValue(FAILURE_CRITERION_STATE) = failure_criterion_state;
               
@@ -1551,64 +1580,32 @@ namespace Kratos
             
                   
         } // if Target Id < Neigh Id
-        else   
-        {
-            //COPY VARIABLES HIGH 
-                  
-            //HIGH-LOW variables
-                  
-            lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[0] = LocalElasticContactForce[0];
-            lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[1] = LocalElasticContactForce[1];
-            lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[2] = LocalElasticContactForce[2];
-            
-            if(*mpTimeStep==0)
-            {
-
-            lock_p_weak->GetValue(LOCAL_CONTACT_AREA_HIGH) = calculation_area;
-
-            }
-            
-                                                  
-            //COMBINED MEAN       
-  
-            lock_p_weak->GetValue(CONTACT_SIGMA)                += 0.5*contact_sigma;
-            lock_p_weak->GetValue(CONTACT_TAU)                  += 0.5*contact_tau;
-            
-                                  
-        }
+//         else   
+//         {
+//             //COPY VARIABLES HIGH 
+//                   
+//             //HIGH-LOW variables
+//                   
+//             lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[0] = LocalElasticContactForce[0];
+//             lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[1] = LocalElasticContactForce[1];
+//             lock_p_weak->GetValue(LOCAL_CONTACT_FORCE_HIGH)[2] = LocalElasticContactForce[2];
+//                                                   
+//             //COMBINED MEAN       
+//   
+//             lock_p_weak->GetValue(CONTACT_TAU)                  = contact_sigma;
+//             
+//                                   
+//         }
         
-        //CONTACT AREA
-        
-          if ( ( *mpTimeStep==0 ) && (!*mSkinSphere ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==0 ) )
-              {
-                                            
-                lock_p_weak->GetValue(MEAN_CONTACT_AREA)   += 0.5*calculation_area;
 
-              }
-              
-              else if ( ( *mpTimeStep==0 ) && ( *mSkinSphere ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==1 ) )
-              {
-          
-                lock_p_weak->GetValue(MEAN_CONTACT_AREA)   += 0.5*calculation_area;
-                                            
-              }
-              
-                      
-              
-              else if ( ( *mpTimeStep==0 ) && ( !*mSkinSphere ) && ( neighbour_iterator->GetValue(SKIN_SPHERE)==1 ) )
-              {
-              
-              lock_p_weak->GetValue(MEAN_CONTACT_AREA)   = calculation_area;
-                
-              }
-    
         ///////////////////////////////////////////////////////////////////////////////////////////////      
         //QUESTION!::: M.S.I.     
         //what happens with the initial continuum contacs that now are not found becouse they are broken....
         //should be assured that they become 0 when they break and this value keeps.
         ///////////////////////////////////////////////////////////////////////////////////////////////
 
-
+      KRATOS_CATCH("")
+      
       }//CalculateOnContactElements
       
       
@@ -1802,8 +1799,8 @@ namespace Kratos
       double mNcstr2_el = mCompressionLimit_2*calculation_area;
       double mNtstr_el  = mTensionLimit*calculation_area;
       
-      double sigma_a = (kn_el * indentation)/(calculation_area);
-      double sigma_b = mCompressionLimit_1 + kn_b*(indentation/calculation_area - mCompressionLimit_1/kn_el);
+      //double sigma_a = (kn_el * indentation)/(calculation_area);
+      //double sigma_b = mCompressionLimit_1 + kn_b*(indentation/calculation_area - mCompressionLimit_1/kn_el);
 
       double u_max = mHistory[mapping_new_cont][0];
       
