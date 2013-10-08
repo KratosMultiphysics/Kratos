@@ -141,15 +141,6 @@ if (Param.FixVelocitiesOption == 'ON'):
 
 balls_model_part.ProcessInfo.SetValue(STEP_FIX_VELOCITIES,int(step_to_fix_velocities))
 
-solver.Initialize()
-
-# Initialization of physics monitor and of the initial position of the center of mass
-
-#physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
-#properties_list = []
-
-print 'Initialitzation Complete' + '\n'
-
 if(Param.ConcreteTestOption =="ON"):
   
   if(Param.PredefinedSkinOption == "ON" ):
@@ -173,6 +164,15 @@ if(Param.ConcreteTestOption =="ON"):
     alpha_lat = 3.141592*diameter*height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
 
     Press.ApplyPressure(Pressure, balls_model_part, solver, proc.SKIN, proc.BOT, proc.TOP, proc.LAT, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER, alpha_top, alpha_bot, alpha_lat)
+
+solver.Initialize()
+
+# Initialization of physics monitor and of the initial position of the center of mass
+
+#physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
+#properties_list = []
+
+print 'Initialitzation Complete' + '\n'
 
 if (Param.ConcreteTestOption =="ON"):
   graph_export = open("strain_stress_data.csv",'w');
