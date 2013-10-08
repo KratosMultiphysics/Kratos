@@ -1139,6 +1139,11 @@ void KratosApplication::RegisterVariables()
     Serializer::Register( "Hexahedra3D27", Hexahedra3D27Prototype );
 
     Serializer::Register( "Node3D", Node<3>() );
+    
+    Serializer::Register( "GeometricalObject", GeometricalObject() );
+    Serializer::Register( "Element", Element() );
+    Serializer::Register( "Condition", Condition() );
+    
     Serializer::Register( "Properties", Properties() );
 
     // Registering the flags

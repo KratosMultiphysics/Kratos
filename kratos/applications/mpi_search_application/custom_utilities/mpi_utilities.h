@@ -72,12 +72,12 @@ namespace Kratos
       /// Pointer definition of MpiUtilities
       KRATOS_CLASS_POINTER_DEFINITION(MpiUtilities);
       
-      typedef SpatialSearch                                         SearchType;
-      typedef MpiDiscreteParticleConfigure<3>                       Configure;
+      typedef SpatialSearch                          SearchType;
+      typedef MpiDiscreteParticleConfigure<3>        Configure;
 
-      typedef SearchType::ElementsContainerType::ContainerType      ElementsContainerType;
-      typedef SearchType::NodesContainerType::ContainerType         NodesContainerType;
-      typedef SearchType::ConditionsContainerType::ContainerType    ConditionsContainerType;
+      typedef SearchType::ElementsContainerType      ElementsContainerType;
+      typedef SearchType::NodesContainerType         NodesContainerType;
+      typedef SearchType::ConditionsContainerType    ConditionsContainerType;
 
       
       ///@}
@@ -96,8 +96,39 @@ namespace Kratos
       /// Destructor.
       virtual ~MpiUtilities(){}
       
-            
-      void TransferModelNodes(ModelPart& rModelPart)
+      /** 
+       *    Migrate Scheme:
+       * 
+       *                            X(i) stands for: 
+       *                    Object X has PARTITION_INDEX = i
+       * 
+       *    Initial ModelParts                  Final ModelParts                 
+       *    in each process                     in each process
+       * 
+       *    Process-0      Process-1            Process-0      Process-1
+       *    +----------+   +----------+         +----------+   +----------+
+       *    |  A(0)    |   |  D(0)    |         |  A(0)    |   |  B(1)    |
+       *    |  B(1)    |   |  E(1)    |         |  D(0)    |   |  E(1)    |
+       *    |  C(2)    |   |  F(2)    |         |  J(0)    |   |  G(1)    |
+       *    |          |   |          |         |          |   |  K(1)    |
+       *    +----------+   +----------+         +----------+   +----------+
+       * 
+       *    Process-2      Process-3            Process-2      Process-3
+       *    +----------+   +----------+         +----------+   +----------+
+       *    |  G(1)    |   |  J(0)    |         |  C(2)    |   |  I(3)    |
+       *    |  H(2)    |   |  K(1)    |         |  F(2)    |   |  L(3)    |
+       *    |  I(3)    |   |  L(2)    |         |  H(2)    |   |          |
+       *    |          |   |  M(3)    |         |  L(2)    |   |          |
+       *    +----------+   +----------+         +----------+   +----------+
+       * 
+      **/      
+      
+      /**
+       * Transfer all nodes in a given ModelPart to the partition indicated by the PARTITION_INDEX variable of
+       * every node in that ModelPart
+       * @param Modelpart: Input ModelPart
+       **/
+      void MigrateNodes(ModelPart& rModelPart)
       {
           KRATOS_TRY
           
@@ -115,10 +146,10 @@ namespace Kratos
               SendObjects[i].reserve(rModelPart.GetCommunicator().LocalMesh().NumberOfNodes());
           }
           
-          NodesContainerType& pNodes = rModelPart.GetCommunicator().LocalMesh().NodesArray();
+          NodesContainerType::ContainerType& pNodes = rModelPart.GetCommunicator().LocalMesh().NodesArray();
           
           //Fill the buffer with elements to be transfered
-          for (NodesContainerType::iterator i_node = pNodes.begin(); i_node != pNodes.end(); ++i_node)
+          for (NodesContainerType::ContainerType::iterator i_node = pNodes.begin(); i_node != pNodes.end(); ++i_node)
           {
               int PartitionIndex = (*i_node)->GetSolutionStepValue(PARTITION_INDEX);
               if(PartitionIndex != mpi_rank)
@@ -133,7 +164,12 @@ namespace Kratos
           KRATOS_CATCH("")
       }
       
-      void TransferModelElements(ModelPart& rModelPart)
+      /**
+      * Transfer all elemens and nodes in a given ModelPart to the partition indicated by the PARTITION_INDEX variable of
+      * every element in that ModelPart
+      * @param Modelpart: Input ModelPart
+      **/
+      void MigrateElements(ModelPart& rModelPart)
       {
           KRATOS_TRY
           
@@ -151,10 +187,10 @@ namespace Kratos
               SendObjects[i].reserve(rModelPart.GetCommunicator().LocalMesh().NumberOfElements());
           }
           
-          ElementsContainerType& pElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
+          ElementsContainerType::ContainerType& pElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
           
           //Fill the buffer with elements to be transfered
-          for (ElementsContainerType::iterator i_element = pElements.begin(); i_element != pElements.end(); ++i_element)
+          for (ElementsContainerType::ContainerType::iterator i_element = pElements.begin(); i_element != pElements.end(); ++i_element)
           {
               int PartitionIndex = (*i_element)->GetValue(PARTITION_INDEX);
               
@@ -165,8 +201,7 @@ namespace Kratos
           }
           
           rModelPart.GetCommunicator().TransferObjects(SendObjects,RecvObjects);
-          BuildNewElementsPartitions(rModelPart,RecvObjects);
-          
+          BuildNewElementsPartitions(rModelPart,RecvObjects); 
           KRATOS_CATCH("")
       }
     
@@ -174,7 +209,7 @@ namespace Kratos
       {
           KRATOS_TRY
                     
-          ElementsContainerType& pLocalElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
+          ElementsContainerType::ContainerType& pLocalElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray();
 
           ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
           
@@ -183,7 +218,7 @@ namespace Kratos
           
           static double MaxNodeRadius = 0.0f;
           if(MaxNodeRadius == 0.0f) //TODO
-              for (ElementsContainerType::iterator particle_pointer_it = pLocalElements.begin(); particle_pointer_it != pLocalElements.end(); ++particle_pointer_it)
+              for (ElementsContainerType::ContainerType::iterator particle_pointer_it = pLocalElements.begin(); particle_pointer_it != pLocalElements.end(); ++particle_pointer_it)
               {
                   double NodeRaidus = (1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
                   MaxNodeRadius = NodeRaidus > MaxNodeRadius ? NodeRaidus : MaxNodeRadius;
@@ -191,7 +226,9 @@ namespace Kratos
           
           LloydParallelPartitioner<Configure> partitioner;
           partitioner.LloydsBasedParitioner(rModelPart,MaxNodeRadius,CalculateBoundry);
-          TransferModelElements(rModelPart);
+          
+          MigrateElements(rModelPart);
+      
           partitioner.CalculatePartitionInterface(rModelPart);
           
           Timer::SetOuputFile("TimesPartitioner");
@@ -219,7 +256,7 @@ namespace Kratos
           if(iteratorId == -1)
               std::cout << "Invalid starting Id" << std::endl;
           
-          for (ElementsContainerType::iterator it = mModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin(); it != mModelPart.GetCommunicator().LocalMesh().Elements().ptr_end(); ++it)
+          for (ElementsContainerType::ContainerType::iterator it = mModelPart.GetCommunicator().LocalMesh().Elements().ptr_begin(); it != mModelPart.GetCommunicator().LocalMesh().Elements().ptr_end(); ++it)
               (*it)->SetId(iteratorId++);
           
           KRATOS_CATCH("")
@@ -240,7 +277,7 @@ namespace Kratos
           std::cout << "STARTING NODE ID: " << iteratorId << std::endl;
           std::cout << "ENDING   NODE ID: " << iteratorId + nodes_size << std::endl;
 
-          for (NodesContainerType::iterator it = mModelPart.GetCommunicator().LocalMesh().Nodes().ptr_begin(); it != mModelPart.GetCommunicator().LocalMesh().Nodes().ptr_end(); ++it)
+          for (NodesContainerType::ContainerType::iterator it = mModelPart.GetCommunicator().LocalMesh().Nodes().ptr_begin(); it != mModelPart.GetCommunicator().LocalMesh().Nodes().ptr_end(); ++it)
           {
               (*it)->SetId(iteratorId);
               iteratorId++;
@@ -263,7 +300,7 @@ namespace Kratos
           if(iteratorId == -1)
               std::cout << "Invalid starting Id" << std::endl;
           
-          for (ConditionsContainerType::iterator it = mModelPart.GetCommunicator().LocalMesh().Conditions().ptr_begin(); it != mModelPart.GetCommunicator().LocalMesh().Conditions().ptr_end(); ++it)
+          for (ConditionsContainerType::ContainerType::iterator it = mModelPart.GetCommunicator().LocalMesh().Conditions().ptr_begin(); it != mModelPart.GetCommunicator().LocalMesh().Conditions().ptr_end(); ++it)
               (*it)->SetId(iteratorId++);
           
           KRATOS_CATCH("")
@@ -277,17 +314,17 @@ namespace Kratos
           MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
           MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
           
-          ElementsContainerType& ElementsLocal  = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
-          ElementsContainerType& ElementsGlobal = mModelPart.ElementsArray();
+          ElementsContainerType::ContainerType& ElementsLocal  = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
+          ElementsContainerType::ContainerType& ElementsGlobal = mModelPart.ElementsArray();
           
-          ElementsContainerType temp_particles_container_local;
-          ElementsContainerType temp_particles_container_global;
+          ElementsContainerType::ContainerType temp_particles_container_local;
+          ElementsContainerType::ContainerType temp_particles_container_global;
           
-          NodesContainerType& NodesLocal  = mModelPart.GetCommunicator().LocalMesh().NodesArray();
-          NodesContainerType& NodesGlobal = mModelPart.NodesArray();
+          NodesContainerType::ContainerType& NodesLocal  = mModelPart.GetCommunicator().LocalMesh().NodesArray();
+          NodesContainerType::ContainerType& NodesGlobal = mModelPart.NodesArray();
           
-          NodesContainerType temp_nodes_container_local;
-          NodesContainerType temp_nodes_container_global;
+          NodesContainerType::ContainerType temp_nodes_container_local;
+          NodesContainerType::ContainerType temp_nodes_container_global;
           
           temp_particles_container_local.reserve(ElementsLocal.size());
           temp_particles_container_global.reserve(ElementsGlobal.size());
@@ -302,7 +339,7 @@ namespace Kratos
           temp_nodes_container_global.swap(NodesGlobal);
           
           // Keep Global elements and nodes from our domain
-          for (ElementsContainerType::iterator i_element = temp_particles_container_global.begin();
+          for (ElementsContainerType::ContainerType::iterator i_element = temp_particles_container_global.begin();
               i_element != temp_particles_container_global.end(); ++i_element)
           {
               if((*i_element)->GetValue(PARTITION_INDEX) == mpi_rank)
@@ -311,7 +348,7 @@ namespace Kratos
               }
           }
           
-          for (NodesContainerType::iterator i_node = temp_nodes_container_global.begin();
+          for (NodesContainerType::ContainerType::iterator i_node = temp_nodes_container_global.begin();
               i_node != temp_nodes_container_global.end(); ++i_node)
           {
               if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
@@ -321,7 +358,7 @@ namespace Kratos
           }
 
           // Keep Local elements and nodes from our domain
-          for (ElementsContainerType::iterator i_element = temp_particles_container_local.begin();
+          for (ElementsContainerType::ContainerType::iterator i_element = temp_particles_container_local.begin();
               i_element != temp_particles_container_local.end(); ++i_element)
           {
               if((*i_element)->GetValue(PARTITION_INDEX) == mpi_rank)
@@ -330,7 +367,7 @@ namespace Kratos
               }
           }
           
-          for (NodesContainerType::iterator i_node = temp_nodes_container_local.begin();
+          for (NodesContainerType::ContainerType::iterator i_node = temp_nodes_container_local.begin();
               i_node != temp_nodes_container_local.end(); ++i_node)
           {
               if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
@@ -338,21 +375,22 @@ namespace Kratos
                   mModelPart.GetCommunicator().LocalMesh().Nodes().push_back((*i_node));
               }
           }
-
+              
           // Add new elements and nodes
           for(int i = 0; i < mpi_size; i++)
           {   
               for (ElementsContainerType::iterator i_element = RecvObjects[i].begin();
               i_element != RecvObjects[i].end(); ++i_element)
               {
-                  if((*i_element)->GetValue(PARTITION_INDEX) == mpi_rank)
+                
+                  if(i_element->GetValue(PARTITION_INDEX) == mpi_rank)
                   {                 
-                      mModelPart.Elements().push_back(*i_element);
-                      mModelPart.GetCommunicator().LocalMesh().Elements().push_back(*i_element);
+                      mModelPart.Elements().push_back(*i_element.base());
+                      mModelPart.GetCommunicator().LocalMesh().Elements().push_back(*i_element.base());
                       
-                      for (unsigned int i = 0; i < (*i_element)->GetGeometry().PointsNumber(); i++)
+                      for (unsigned int i = 0; i < i_element->GetGeometry().PointsNumber(); i++)
                       {
-                          ModelPart::NodeType::Pointer pNode = (*i_element)->GetGeometry().pGetPoint(i);
+                          ModelPart::NodeType::Pointer pNode = i_element->GetGeometry().pGetPoint(i);
                           
                           pNode->GetSolutionStepValue(PARTITION_INDEX) = mpi_rank;
                           
@@ -390,11 +428,11 @@ namespace Kratos
           MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
           MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
           
-          NodesContainerType& NodesLocal  = mModelPart.GetCommunicator().LocalMesh().NodesArray();
-          NodesContainerType& NodesGlobal = mModelPart.NodesArray();
+          NodesContainerType::ContainerType& NodesLocal  = mModelPart.GetCommunicator().LocalMesh().NodesArray();
+          NodesContainerType::ContainerType& NodesGlobal = mModelPart.NodesArray();
     
-          NodesContainerType temp_nodes_container_local;
-          NodesContainerType temp_nodes_container_global;
+          NodesContainerType::ContainerType temp_nodes_container_local;
+          NodesContainerType::ContainerType temp_nodes_container_global;
           
           temp_nodes_container_local.reserve(NodesLocal.size());
           temp_nodes_container_global.reserve(NodesGlobal.size());
@@ -403,7 +441,7 @@ namespace Kratos
           temp_nodes_container_global.swap(NodesGlobal);
           
           // Keep Global and nodes from our domain
-          for (NodesContainerType::iterator i_node = temp_nodes_container_global.begin();
+          for (NodesContainerType::ContainerType::iterator i_node = temp_nodes_container_global.begin();
               i_node != temp_nodes_container_global.end(); ++i_node)
           {
               if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
@@ -413,7 +451,7 @@ namespace Kratos
           }
 
           // Keep Local nodes from our domain
-          for (NodesContainerType::iterator i_node = temp_nodes_container_local.begin();
+          for (NodesContainerType::ContainerType::iterator i_node = temp_nodes_container_local.begin();
               i_node != temp_nodes_container_local.end(); ++i_node)
           {
               if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
@@ -428,7 +466,7 @@ namespace Kratos
               for (NodesContainerType::iterator i_node = RecvObjects[i].begin();
                   i_node != RecvObjects[i].end(); ++i_node)
               {
-                  if((*i_node)->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
+                  if(i_node->GetSolutionStepValue(PARTITION_INDEX) == mpi_rank)
                   {                 
                       mModelPart.Nodes().push_back(*i_node);
                       mModelPart.GetCommunicator().LocalMesh().Nodes().push_back(*i_node);

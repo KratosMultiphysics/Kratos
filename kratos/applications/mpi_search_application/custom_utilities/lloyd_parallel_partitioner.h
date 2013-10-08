@@ -120,6 +120,7 @@ public:
     typedef typename ContainerType::iterator               IteratorType;
     typedef typename Configure::DistanceIteratorType       DistanceIteratorType;
     typedef typename Configure::ResultContainerType        ResultContainerType;
+    typedef typename Configure::ElementsContainerType       ElementsContainerType;
 //     typedef typename Configure::ResultPointerType          ResultPointerType;
     typedef typename Configure::ResultIteratorType         ResultIteratorType;
     typedef typename Configure::PointerContactType         PointerContactType;
@@ -375,8 +376,8 @@ public:
         std::cout << "Level2 Marking" << std::endl;
         
         //Mark elements in boundary (Level-2) (Only last iteration)
-        std::vector<std::vector<PointerType> > SendMarkObjects(mpi_size, std::vector<PointerType>(0));
-        std::vector<std::vector<PointerType> > RecvMarkObjects(mpi_size, std::vector<PointerType>(0));
+        std::vector<ElementsContainerType> SendMarkObjects(mpi_size);
+        std::vector<ElementsContainerType> RecvMarkObjects(mpi_size);
       
         //Mark neighbours (Level-2)
         std::cout << pElements.end()-pElements.begin() << std::endl;
@@ -408,11 +409,8 @@ public:
                 SendMarkObjects[Results[p_index][i]->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX)].push_back(Results[p_index][i]);
             }
         }
-        
-        int msgSendSize[mpi_size];
-        int msgRecvSize[mpi_size];
 
-        TConfigure::AsyncSendAndReceive(mModelPart.GetCommunicator(),SendMarkObjects,RecvMarkObjects,msgSendSize,msgRecvSize);
+        TConfigure::TransferObjects(mModelPart.GetCommunicator(),SendMarkObjects,RecvMarkObjects);
         
         for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
         {
@@ -422,9 +420,9 @@ public:
                 {
                     for(unsigned int k = 0; k < RecvMarkObjects[j].size(); k++)
                     {
-                        if((*particle_pointer_it)->GetGeometry()(0)->Id() == RecvMarkObjects[j][k]->GetGeometry()(0)->Id())
+                        if((*particle_pointer_it)->GetGeometry()(0)->Id() == (RecvMarkObjects[j].GetContainer())[k]->GetGeometry()(0)->Id())
                         {
-                            (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) |= RecvMarkObjects[j][k]->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
+                            (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) |= (RecvMarkObjects[j].GetContainer())[k]->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
                             (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
                         }
                     }

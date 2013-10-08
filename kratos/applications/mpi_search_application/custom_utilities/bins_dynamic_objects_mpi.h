@@ -67,7 +67,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <omp.h>
 #endif
 
-
 namespace Kratos
 {
 
@@ -106,7 +105,6 @@ public:
     //Point
     typedef TConfigure                                      Configure;
     typedef typename TConfigure::PointType                  PointType;
-    //typedef typename TConfigure::ResultNumberIteratorType   ResultNumberIteratorType;
     
     //Container
     typedef typename TConfigure::PointerType                PointerType;
@@ -114,10 +112,9 @@ public:
     typedef typename TConfigure::IteratorType               IteratorType;
     typedef typename TConfigure::DistanceIteratorType       DistanceIteratorType;
     typedef typename TConfigure::ResultContainerType        ResultContainerType;
-//     typedef typename TConfigure::ResultPointerType          ResultPointerType;
+    typedef typename TConfigure::ElementsContainerType      ElementsContainerType;
     typedef typename TConfigure::ResultIteratorType         ResultIteratorType;
     typedef typename TConfigure::PointerContactType         PointerContactType;
-//     typedef typename TConfigure::PointerTypeIterator        PointerTypeIterator;
 
     //Search Structures
     typedef Cell<Configure> CellType;
@@ -309,13 +306,14 @@ public:
       * @param NumberOfResults Number of results
       * @param MaxNumberOfResults Maximum number of results returned for each point
       **/
-    void SearchObjectsMpi(ContainerType & ThisObjects, SizeType const& NumberOfObjects, std::vector<double> const& Radius, std::vector<std::vector<PointerType> >& Results,
+    void SearchObjectsMpi(const ElementsContainerType & ThisObjects, SizeType const& NumberOfObjects, std::vector<double> const& Radius, std::vector<std::vector<PointerType> >& Results,
           std::vector<std::vector<double> >& ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults, Communicator& Communicator)
     {  
-        std::vector<std::vector<PointerType> > remoteResults(mpi_size, std::vector<PointerType>(0));
-        std::vector<std::vector<PointerType> > SearchPetitions(mpi_size, std::vector<PointerType>(0));
-        std::vector<std::vector<PointerType> > SearchResults(mpi_size, std::vector<PointerType>(0));
-        std::vector<std::vector<PointerType> > SendObjectToProcess(mpi_size, std::vector<PointerType>(0));
+        std::vector<ElementsContainerType> remoteResults(mpi_size);
+        std::vector<ElementsContainerType> SearchPetitions(mpi_size);
+        std::vector<ElementsContainerType> SearchResults(mpi_size);
+        std::vector<ElementsContainerType> SendObjectToProcess(mpi_size);
+        
         std::vector<std::vector<double>      > SendRadiusToProcess(mpi_size, std::vector<double>(0));
         std::vector<std::vector<double>      > SearchPetitionsRadius(mpi_size, std::vector<double>(0));
         std::vector<std::vector<double>      > SendResultsPerPoint(mpi_size, std::vector<double>(0));
@@ -328,9 +326,6 @@ public:
 
         std::vector<bool> SendPoint(NumberOfObjects*mpi_size);
 
-        int msgSendSize[mpi_size];
-        int msgRecvSize[mpi_size];
-        
         int msgSendSizeRad[mpi_size];
         int msgRecvSizeRad[mpi_size];
 
@@ -340,12 +335,11 @@ public:
         for(int i = 0; i < mpi_size; i++)
         {                   
             NumberOfSendPoints[i] = 0;
-            msgSendSize[i] = 0;
             msgSendSizeRad[i] = 0;
         }
-
-        IteratorType it_begin = ThisObjects.begin();
-        IteratorType it_end   = ThisObjects.end();
+        
+        IteratorType it_begin = const_cast<typename ElementsContainerType::ContainerType& >(ThisObjects.GetContainer()).begin();
+        IteratorType it_end   = const_cast<typename ElementsContainerType::ContainerType& >(ThisObjects.GetContainer()).end();
         
         int objectCounter = 0;
 
@@ -356,16 +350,13 @@ public:
 
             NumberOfResults[objectCounter] = 0;
             
+//             const PointerType ObjectPointer = &(*object_pointer_it);
+            
             TConfigure::CalculateBoundingBox((*object_pointer_it), Low, High, Radius[objectCounter]);
             Box.Set( CalculateCell(Low), CalculateCell(High), mN );
             
             SearchInRadiusExclusive((*object_pointer_it), Radius[objectCounter], ResultsPointer, ResultsDistancesPointer, NumberOfResults[objectCounter], MaxNumberOfResults, Box );
 
-//             if( (*object_pointer_it)->GetGeometry()(0)->Id() == 19513 )
-//             {
-//                 std::cout << "BINDIN: " << NumberOfResults[objectCounter] << std::endl;
-//             }
-            
             //For each point with results < MaxResults and each process excluding ourself
             if(NumberOfResults[objectCounter] < MaxNumberOfResults) 
             {
@@ -392,16 +383,17 @@ public:
             {
                 int k = 0;
                 
-                SendObjectToProcess[i].resize(NumberOfSendPoints[i]);
+                SendObjectToProcess[i].reserve(NumberOfSendPoints[i]);
                 SendRadiusToProcess[i].resize(NumberOfSendPoints[i]);
                 
                 for(size_t j = 0; j < NumberOfObjects; j++)
                 {
                     if(SendPoint[i*NumberOfObjects+j])
                     {
-                        IteratorType itrObject = ThisObjects.begin() + j;
-                      
-                        SendObjectToProcess[i][k] = (*itrObject);
+//                         IteratorType itrObject = ThisObjects.begin() + j;
+                        IteratorType itrObject = const_cast<typename ElementsContainerType::ContainerType& >(ThisObjects.GetContainer()).begin() + j;
+
+                        (SendObjectToProcess[i]).push_back(*itrObject);
                         SendRadiusToProcess[i][k] = Radius[j];
                         
                         k++;
@@ -410,16 +402,16 @@ public:
             }
         }
 
-        TConfigure::AsyncSendAndReceive(Communicator,SendObjectToProcess,SearchPetitions,msgSendSize,msgRecvSize);
-        TConfigure::AsyncSendAndReceive(SendRadiusToProcess,SearchPetitionsRadius,msgSendSizeRad,msgRecvSizeRad);
-                
+        TConfigure::TransferObjects(Communicator,SendObjectToProcess,SearchPetitions);
+        TConfigure::TransferObjects(SendRadiusToProcess,SearchPetitionsRadius);
+
         Communicator::NeighbourIndicesContainerType communicator_ranks = Communicator.NeighbourIndices();
         
         //Calculate remote points
         for(int i = 0; i < mpi_size; i++) 
         { 
             int NumberOfRanks = Communicator.GetNumberOfColors();
-            if(i != mpi_rank && msgRecvSize[i])
+            if(i != mpi_rank)
             {
                 int destination = -1;
 
@@ -430,50 +422,45 @@ public:
                 int accum_results = 0;
                 
                 NumberOfRecvPoints[i] = SearchPetitions[i].size();
-                remoteResults[i].resize((MaxNumberOfResults+1)*NumberOfRecvPoints[i]);
+                remoteResults[i].reserve((MaxNumberOfResults+1)*NumberOfRecvPoints[i]);
                 SendResultsPerPoint[i].resize(SearchPetitionsRadius[i].size());
                 
                 std::vector<double> TempResultsDistances(MaxNumberOfResults);
 
                 for(int j = 0; j < NumberOfRecvPoints[i]; j++) 
-                {
+                {   
                     DistanceIteratorType ResultsDistancesPointer = TempResultsDistances.begin(); //Useless
                     ResultContainerType  TempResults(MaxNumberOfResults);
                     ResultIteratorType   remoteResultsPointer = TempResults.begin();
                     
                     SizeType thisNumberOfResults = 0;
                     *ResultsDistancesPointer = 0;
-                    
-                    TConfigure::CalculateBoundingBox(SearchPetitions[i][j], Low, High, SearchPetitionsRadius[i][j]);
+
+                    TConfigure::CalculateBoundingBox((SearchPetitions[i].GetContainer())[j], Low, High, SearchPetitionsRadius[i][j]);
+
                     Box.Set( CalculateCell(Low), CalculateCell(High), mN );
-                    
-                    SearchInRadiusExclusive(SearchPetitions[i][j], SearchPetitionsRadius[i][j], remoteResultsPointer, ResultsDistancesPointer, thisNumberOfResults, MaxNumberOfResults, Box );
-                    
-//                     if( SearchPetitions[i][j]->GetGeometry()(0)->Id() == 19513 )
-//                     {
-//                         std::cout << "BINDIN: " << thisNumberOfResults << std::endl;
-//                     }
-                    
+
+                    SearchInRadiusExclusive((SearchPetitions[i].GetContainer())[j], SearchPetitionsRadius[i][j], remoteResultsPointer, ResultsDistancesPointer, thisNumberOfResults, MaxNumberOfResults, Box );
+
                     for(ResultIteratorType result_it = TempResults.begin(); result_it != remoteResultsPointer; ++result_it)
                     {     
                         Communicator.LocalMesh(destination).Elements().push_back((*result_it));
                         Communicator.LocalMesh(destination).Nodes().push_back((*result_it)->GetGeometry()(0));
                         
-                        remoteResults[i][accum_results] = (*result_it);
+                        (remoteResults[i].GetContainer()).push_back(*result_it);
                         accum_results++;
                     }
-                    
+
                     SendResultsPerPoint[i][j] = thisNumberOfResults;
                 }
 
-                remoteResults[i].resize(accum_results);
                 NumberOfSendPoints[i] = accum_results;
             }
         }
-        
-        TConfigure::AsyncSendAndReceive(Communicator,remoteResults,SearchResults,msgSendSize,msgRecvSize);
-        TConfigure::AsyncSendAndReceive(SendResultsPerPoint,RecvResultsPerPoint,msgSendSizeRad,msgRecvSizeRad);
-        
+
+        TConfigure::TransferObjects(Communicator,remoteResults,SearchResults);
+        TConfigure::TransferObjects(SendResultsPerPoint,RecvResultsPerPoint);
+
         for(int i = 0; i < mpi_size; i++) //for all ranks
         {
             if(i != mpi_rank) //not being myself
@@ -488,10 +475,10 @@ public:
                         for(size_t k = 0; k < RecvResultsPerPoint[i][ParticleCounter]; k++)
                         {
                             double dist;
-                            IteratorType itrObject = ThisObjects.begin() + j;
+                            IteratorType itrObject = const_cast<typename ElementsContainerType::ContainerType& >(ThisObjects.GetContainer()).begin() + j;
                                                           
-                            Results[j][NumberOfResults[j]] = SearchResults[i][ResultCounter];
-                            TConfigure::Distance((*itrObject),SearchResults[i][ResultCounter],dist);
+                            Results[j][NumberOfResults[j]] = (SearchResults[i].GetContainer())[ResultCounter];
+                            TConfigure::Distance((*itrObject),(SearchResults[i].GetContainer())[ResultCounter],dist);
                             ResultsDistances[j][NumberOfResults[j]] = dist;         
                             NumberOfResults[j]++;
                             
@@ -502,16 +489,13 @@ public:
                 }
             }
         }
-        
+
         objectCounter = 0;
         for (IteratorType object_pointer_it = it_begin; object_pointer_it != it_end; ++object_pointer_it)  
         { 
             Results[objectCounter].resize(NumberOfResults[objectCounter]);
             objectCounter++;
         }
-        
-        
-//         std::cout << "BinsDynamicMpi: Result process performed" << std::endl;
     }
 
 //************************************************************************
