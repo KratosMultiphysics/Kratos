@@ -517,7 +517,6 @@ namespace Kratos
         KRATOS_TRY
 
         ModelPart& r_model_part               = BaseType::GetModelPart();
-        //ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
 
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
