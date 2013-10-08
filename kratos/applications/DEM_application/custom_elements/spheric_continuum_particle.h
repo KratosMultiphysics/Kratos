@@ -108,7 +108,7 @@ namespace Kratos
       virtual void EvaluateFailureCriteria(double LocalElasticContactForce[3], double ShearForceNow, double corrected_area, int i_neighbour_count, double& contact_sigma, double& contact_tau, double& failure_criterion_state, bool& sliding, int mapping);
       
       virtual void CalculateOnContactElements(ParticleWeakIteratorType neighbour_iterator, size_t i_neighbour_count, int mapping, double LocalElasticContactForce[3], 
-                                             double corrected_area, double contact_sigma, double contact_tau, double failure_criterion_state);
+                                              double contact_sigma, double contact_tau, double failure_criterion_state);
 
       virtual void ComputeStressStrain(   double mStressTensor[3][3],
                                           ProcessInfo& rCurrentProcessInfo);
