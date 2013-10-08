@@ -118,8 +118,8 @@ public:
         ModelPart& rDEM_ModelPart,
 // 			Variable<TDataType>& rOriginVariable ,
 // 			Variable<TDataType>& rDestinationVariable,
-        BinBasedFastPointLocator<TDim>& bin_of_objects_fluid
-    )
+        BinBasedFastPointLocator<TDim>& bin_of_objects_fluid,
+        double alpha)
     {
 
         KRATOS_TRY
@@ -158,14 +158,11 @@ public:
                 {
 
                     //Interpolate(  el_it,  N, *it_found , rOriginVariable , rDestinationVariable  );
-                    Interpolate(  pelement,  N, pparticle, DENSITY , FLUID_DENSITY_PROJECTED  );
-                    Interpolate(  pelement,  N, pparticle, VELOCITY , FLUID_VEL_PROJECTED  );
-                    Interpolate(  pelement,  N, pparticle, PRESSURE_GRADIENT , PRESSURE_GRAD_PROJECTED  );
-                    Interpolate(  pelement,  N, pparticle, VISCOSITY , FLUID_VISCOSITY_PROJECTED  );
+                    Interpolate(pelement, N, pparticle, DENSITY, FLUID_DENSITY_PROJECTED, alpha);
+                    Interpolate(pelement, N, pparticle, VELOCITY, FLUID_VEL_PROJECTED, alpha);
+                    Interpolate(pelement, N, pparticle, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED, alpha);
+                    Interpolate(pelement, N, pparticle, VISCOSITY, FLUID_VISCOSITY_PROJECTED, alpha);
 
-
-                }
-                else{
 
                 }
             }
@@ -583,7 +580,8 @@ private:
         const array_1d<double,4>& N,
         Node<3>::Pointer pnode,
         Variable<array_1d<double,3> >& rOriginVariable,
-        Variable<array_1d<double,3> >& rDestinationVariable)
+        Variable<array_1d<double,3> >& rDestinationVariable,
+        double alpha)
  {
             // 		  	KRATOS_ERROR(std::logic_error,"INTERPOLATE ARRAY 3D","")
 
@@ -591,16 +589,27 @@ private:
             Geometry< Node < 3 > >& geom = el_it->GetGeometry();
 
             //getting the data of the solution step
-            array_1d<double, 3 > & step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
+            array_1d<double, 3 > & step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, alpha);
+            //
             const array_1d<double, 3 > & node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable, 0);
             const array_1d<double, 3 > & node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable, 0);
             const array_1d<double, 3 > & node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable, 0);
             const array_1d<double, 3 > & node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable, 0);
-
-            //copying this data in the position of the vector we are interested in
-            for (unsigned int j = 0; j < TDim; j++) {
-                step_data[j] = N[0] * node0_data[j] + N[1] * node1_data[j] + N[2] * node2_data[j] + N[3] * node3_data[j];
+            //
+            const array_1d<double, 3 > & node0_data_prev = geom[0].FastGetSolutionStepValue(rOriginVariable, 1);
+            const array_1d<double, 3 > & node1_data_prev = geom[1].FastGetSolutionStepValue(rOriginVariable, 1);
+            const array_1d<double, 3 > & node2_data_prev = geom[2].FastGetSolutionStepValue(rOriginVariable, 1);
+            const array_1d<double, 3 > & node3_data_prev = geom[3].FastGetSolutionStepValue(rOriginVariable, 1);
+            //
+            for (unsigned int j = 0; j < TDim; j++) {                                                                                       
+                step_data[j] = alpha * (N[0] * node0_data[j] + N[1] * node1_data[j] + N[2] * node2_data[j] + N[3] * node3_data[j]) +        
+            (1.0 - alpha) * (N[0] * node0_data_prev[j] + N[1] * node1_data_prev[j] + N[2] * node2_data_prev[j] + N[3] * node3_data_prev[j]);
             }
+            //
+            //copying this data in the position of the vector we are interested in
+            /*for (unsigned int j = 0; j < TDim; j++) {                                                                  
+                step_data[j] = N[0] * node0_data[j] + N[1] * node1_data[j] + N[2] * node2_data[j] + N[3] * node3_data[j];
+            }*/                                                                                                           
             // 			pnode->GetValue(IS_VISITED) = 1.0;
 
         }
@@ -638,7 +647,8 @@ private:
         const array_1d<double,4>& N,
         Node<3>::Pointer pnode,
         Variable<double>& rOriginVariable,
-        Variable<double>& rDestinationVariable)
+        Variable<double>& rDestinationVariable,
+        double alpha)
 {
             //Geometry element of the rOrigin_ModelPart
             Geometry< Node < 3 > >& geom = el_it->GetGeometry();
@@ -646,15 +656,25 @@ private:
 
 
             //getting the data of the solution step
-            double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
+            double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, alpha);
+            //
             const double node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable, 0);
             const double node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable, 0);
             const double node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable, 0);
             const double node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable, 0);
-
+            //
+            const double node0_data_prev = geom[0].FastGetSolutionStepValue(rOriginVariable, 1);
+            const double node1_data_prev = geom[1].FastGetSolutionStepValue(rOriginVariable, 1);
+            const double node2_data_prev = geom[2].FastGetSolutionStepValue(rOriginVariable, 1);
+            const double node3_data_prev = geom[3].FastGetSolutionStepValue(rOriginVariable, 1);
+            //
+            step_data = alpha * (N[0] * node0_data + N[1] * node1_data + N[2] * node2_data + N[3] * node3_data) +
+            (1.0 - alpha) * (N[0] * node0_data_prev + N[1] * node1_data_prev + N[2] * node2_data_prev + N[3] * node3_data_prev);
+            //
+                       
             //copying this data in the position of the vector we are interested in
 
-            step_data = N[0] * node0_data + N[1] * node1_data + N[2] * node2_data + N[3] * node3_data;
+            //step_data = N[0] * node0_data + N[1] * node1_data + N[2] * node2_data + N[3] * node3_data;
             // 				KRATOS_WATCH(step_data)
 
             // 			pnode->GetValue(IS_VISITED) = 1.0;
