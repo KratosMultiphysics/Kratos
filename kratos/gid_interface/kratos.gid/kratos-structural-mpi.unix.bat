@@ -26,4 +26,4 @@ export OPAL_PREFIX="$3/openmpi"
 export PATH="$3/openmpi/bin":$PATH
 export LD_LIBRARY_PATH="$3/openmpi/lib":$LD_LIBRARY_PATH
 
-"$3/openmpi/bin/mpirun" -np $5 "$3/kratos/runkratos" KratosStructural.py >"$2/$1.info" 2>"$2/$1.err"
+"$3/openmpi/bin/mpirun" -np $5 "$3/kratos/runkratos" KratosStructuralOpenMP.py >"$2/$1.info" 2>"$2/$1.err"

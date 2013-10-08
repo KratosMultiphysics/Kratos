@@ -261,10 +261,10 @@ proc ::wkcf::SelectPythonScript {} {
 	
 	if {$ParallelSolutionType eq "OpenMP"} {
 	    # OpenMP
-	    if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
-		set ppfilename "KratosStructural.py"
+	    if {($SolutionType =="Dynamic")||($SolutionType =="Quasi-Static")||($SolutionType =="Pseudo-Dynamic")} {
+		set ppfilename "KratosStructuralOpenMP.py"
 	    } elseif {$SolutionType =="Static"} {
-		set ppfilename "KratosStructural.py"
+		set ppfilename "KratosStructuralOpenMP.py"
 	    }
 	
 	    set fromfname [file native [file join "$PTDir/python" $ppfilename]]
@@ -278,10 +278,10 @@ proc ::wkcf::SelectPythonScript {} {
 	
 	} elseif {$ParallelSolutionType eq "MPI"} {
 	    # MPI
-	    if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
-		set mpifilename "KratosStructural.py"
+	    if {($SolutionType =="Dynamic")||($SolutionType =="Quasi-Static")||($SolutionType =="Pseudo-Dynamic")} {
+		set mpifilename "KratosStructuralOpenMP.py"
 	    } elseif {$SolutionType =="Static"} {
-		set mpifilename "KratosStructural.py"
+		set mpifilename "KratosStructuralOpenMP.py"
 	    }
 	    
 	    set mpifromfname [file native [file join "$PTDir/python" $mpifilename]]

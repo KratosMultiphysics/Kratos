@@ -573,8 +573,10 @@ Desea borrar la propiedad y todos sus grupos?}
 ::msgcat::mcset es {Mixed UP Krylov space dimension} {Mixed Up Krylov dimensión espacial}
 ::msgcat::mcset es {No Slip} {No Slip}
 ::msgcat::mcset es No-Slip No-Slip
-::msgcat::mcset es {Relaxed dynamic} {Dinámica relajada}
-::msgcat::mcset es RelaxedDynamic {Dinámica relajada}
+::msgcat::mcset es {Pseudo-Dynamic} {Dinámica relajada}
+::msgcat::mcset es Pseudo-Dynamic {Dinámica relajada}
+::msgcat::mcset es {Quasi-Static} {Quasi estático}
+::msgcat::mcset es Quasi-Static {Quasi estático}
 ::msgcat::mcset es Residual Residual
 ::msgcat::mcset es {Residual absolute tolerance} {Tolerancia absoluta Residual}
 ::msgcat::mcset es {Residual convergence tolerance} {Tolerancia de convergencia Residual}

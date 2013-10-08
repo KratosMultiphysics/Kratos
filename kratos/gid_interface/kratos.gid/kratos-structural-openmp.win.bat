@@ -20,5 +20,5 @@ REM Set the number of threads for OpenMP
 REM export OMP_NUM_THREADS=%5
 set OMP_NUM_THREADS=%5
 
-REM Run Python using the script KratosStructural.py
-%3\\kratos\\runkratos.exe KratosStructural.py > "%2\%1.info" 2> "%2\%1.err"
+REM Run Python using the script KratosStructuralOpenMP.py
+%3\\kratos\\runkratos.exe KratosStructuralOpenMP.py > "%2\%1.info" 2> "%2\%1.err"
