@@ -144,8 +144,7 @@ class Procedures:
         self.print_export_id                     = Var_Translator(param.PostExportId)
         self.print_export_particle_failure_id    = Var_Translator(param.PostExportParticleFailureId)
         self.print_export_skin_sphere            = Var_Translator(param.PostExportSkinSphere)
-        self.print_local_contact_force_low       = Var_Translator(param.PostLocalContactForceLow)
-        self.print_local_contact_force_high      = Var_Translator(param.PostLocalContactForceHigh)
+        self.print_local_contact_force           = Var_Translator(param.PostLocalContactForce)
         self.print_failure_criterion_state       = Var_Translator(param.PostFailureCriterionState)
         self.print_contact_failure               = Var_Translator(param.PostContactFailure)
         self.print_contact_tau                   = Var_Translator(param.PostContactTau)
@@ -552,10 +551,8 @@ class Procedures:
         #gid_io.WriteNodalResults(INTERNAL_ENERGY, export_model_part.Nodes, time, 0)
 
         if (self.contact_mesh_OPTION): ##xapuza
-            if (self.print_local_contact_force_low):
-                gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_LOW, export_model_part, time)
-            if (self.print_local_contact_force_high):
-                gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE_HIGH, export_model_part, time)
+            if (self.print_local_contact_force):
+                gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE, export_model_part, time)
             if (self.print_mean_contact_area): 
                 gid_io.PrintOnGaussPoints(MEAN_CONTACT_AREA, export_model_part, time)
             if (self.print_contact_failure): 
@@ -566,8 +563,7 @@ class Procedures:
                 gid_io.PrintOnGaussPoints(CONTACT_TAU, export_model_part, time)
             if (self.print_contact_sigma):
                 gid_io.PrintOnGaussPoints(CONTACT_SIGMA, export_model_part, time)
-                gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_HIGH, export_model_part, time)
-                gid_io.PrintOnGaussPoints(LOCAL_CONTACT_AREA_LOW, export_model_part, time)
+
         #gid_io.PrintOnGaussPoints(NON_ELASTIC_STAGE,export_model_part,time)    
 
         if (self.rotation_OPTION): ##xapuza
