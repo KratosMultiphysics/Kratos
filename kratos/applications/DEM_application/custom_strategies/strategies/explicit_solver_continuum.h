@@ -11,7 +11,7 @@
 
 #include "custom_strategies/strategies/explicit_solver_strategy.h"
 
-//#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
+#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
 
 namespace Kratos
@@ -76,21 +76,18 @@ namespace Kratos
       virtual void Initialize()
       {
         
-         KRATOS_TIMER_START("INITIALIZE")
+        KRATOS_TRY
+        
+        KRATOS_TIMER_START("INITIALIZE")
          
-         KRATOS_WATCH("---------------------CONTINUUM EXPLICIT SOLVER STRATEGY-------------------------------")
-               
-          KRATOS_TRY
-
+         std::cout << "---------------------CONTINUUM EXPLICIT SOLVER STRATEGY-------------------------------" << std::endl;
+          
           ModelPart& rModelPart            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
           
           mFixSwitch = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];
-          
-          KRATOS_WATCH(mFixSwitch)
+
           mStepFixVel = rCurrentProcessInfo[STEP_FIX_VELOCITIES];
-    
-          KRATOS_WATCH(rCurrentProcessInfo[STEP_FIX_VELOCITIES])
           
           int NumberOfElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray().end() - rModelPart.GetCommunicator().LocalMesh().ElementsArray().begin();
           
@@ -134,11 +131,17 @@ namespace Kratos
          
           // 4. Set Initial Contacts
           BaseType::InitializeSolutionStep();
-
+          
           if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
+            
           {   
+              
               this->CreateContactElements();
               this->InitializeContactElements();
+              this->Particle_Area_Calculate(); //first time;
+              rCurrentProcessInfo[AREA_CALCULATED_FLAG] = true;
+              this->Contact_Calculate_Area();
+              this->Particle_Area_Calculate(); //2nd time
           }
           
           if( mFixSwitch )
@@ -221,9 +224,15 @@ namespace Kratos
           
           //DEBUG OPERATIONS
           
-          this->CheckPairWiseBreaking();
+          //this->CheckPairWiseBreaking();
           
-   
+        /*      
+           if(time_step == 1000)
+           {
+             this->Contact_Debug();
+           }
+          */
+          
           KRATOS_TIMER_STOP("SOLVE")
 
           return 0.00;
@@ -319,7 +328,7 @@ namespace Kratos
         for (typename ElementsArrayType::ptr_iterator it= pSphereElements.ptr_begin(); it!=pSphereElements.ptr_end(); ++it)
         {
             ParticleWeakVectorType& r_continuum_ini_neighbours = (*it)->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);   
-            
+
             size_t neighbour_index = 0;
 
             for(ParticleWeakIteratorType_ptr continuum_ini_neighbour_iterator = r_continuum_ini_neighbours.ptr_begin();
@@ -512,6 +521,72 @@ namespace Kratos
           }// loop threads OpenMP
 
       } //Contact_InitializeSolutionStep
+      
+    void Contact_Calculate_Area()
+    {
+       
+      ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
+      
+      ProcessInfo& rCurrentProcessInfo  = mcontacts_model_part.GetProcessInfo();
+      
+      double Output = 0.0;
+      
+          vector<unsigned int> contact_element_partition;
+          
+          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pContactElements.size(), contact_element_partition);
+
+          #pragma omp parallel for //private(index)
+          
+          for(int k=0; k<this->GetNumberOfThreads(); k++)
+
+          {
+              typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
+              typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
+              
+              for (typename ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)               
+              {
+
+                (it_contact)->Calculate(MEAN_CONTACT_AREA,Output,rCurrentProcessInfo); 
+
+              } //loop over CONTACT ELEMENTS
+
+          }// loop threads OpenMP
+
+      } //Contact_calculate_Area
+      
+      void Contact_Debug()
+    {
+       
+      ElementsArrayType& pContactElements = GetAllElements(mcontacts_model_part);
+      
+      ProcessInfo& rCurrentProcessInfo  = mcontacts_model_part.GetProcessInfo();
+      
+      double Output = 0.0;
+      
+          vector<unsigned int> contact_element_partition;
+          
+          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pContactElements.size(), contact_element_partition);
+
+          #pragma omp parallel for //private(index)
+          
+          for(int k=0; k<this->GetNumberOfThreads(); k++)
+
+          {
+              typename ElementsArrayType::iterator it_contact_begin=pContactElements.ptr_begin()+contact_element_partition[k];
+              typename ElementsArrayType::iterator it_contact_end=pContactElements.ptr_begin()+contact_element_partition[k+1];
+              
+              for (typename ElementsArrayType::iterator it_contact= it_contact_begin; it_contact!=it_contact_end; ++it_contact)               
+              {
+
+                (it_contact)->Calculate(DUMMY_DEBUG_DOUBLE,Output,rCurrentProcessInfo); 
+
+              } //loop over CONTACT ELEMENTS
+
+          }// loop threads OpenMP
+
+      } //Contact_InitializeSolutionStep
+      
+      
      
    
      void virtual PerformTimeIntegrationOfMotion(ProcessInfo& rCurrentProcessInfo)
@@ -539,6 +614,38 @@ namespace Kratos
         KRATOS_CATCH("")
       }
    
+ 
+ 
+    void Particle_Area_Calculate()
+    {
+           
+      KRATOS_TRY
+
+      ModelPart& r_model_part           = BaseType::GetModelPart();
+      ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+      ElementsArrayType& pElements      = GetElements(r_model_part);
+      
+      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+      
+      double Output = 0.0;
+      
+      #pragma omp parallel for
+      for (int k = 0; k < this->GetNumberOfThreads(); k++){
+          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+          typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+          {
+            
+              (it)->Calculate(MEAN_CONTACT_AREA,Output,rCurrentProcessInfo); 
+            
+          } //loop over particles
+
+      }// loop threads OpenMP
+      
+      KRATOS_CATCH("")
+
+    } //ConsistentAreaRecovering
  
     void FixVelocities()
     {
@@ -660,9 +767,7 @@ namespace Kratos
 
               for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                     
-                       
-                    
-                    it->Calculate(DUMMY_DEBUG_DOUBLE, dummy , rCurrentProcessInfo);
+                     it->Calculate(DUMMY_DEBUG_DOUBLE, dummy , rCurrentProcessInfo);
                     
               } // loop over particles
 
@@ -671,9 +776,7 @@ namespace Kratos
         KRATOS_CATCH("")
       }
    
-   
-   
-   
+
    
     virtual void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part)
     {  
