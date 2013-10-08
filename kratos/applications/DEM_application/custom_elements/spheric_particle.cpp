@@ -20,6 +20,7 @@
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "DEM_application.h"
+#include "includes/kratos_flags.h"
 
 
 namespace Kratos
@@ -537,8 +538,9 @@ namespace Kratos
 
           for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
 
-              // BASIC CALCULATIONS
-              //KRATOS_WATCH("Ball2ball entered") //SALVA
+              if( this->Is(NEW_ENTITY) && neighbour_iterator->Is(NEW_ENTITY)) continue;
+              
+              // BASIC CALCULATIONS              
               array_1d<double, 3> other_to_me_vect    = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
               const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
               //const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
