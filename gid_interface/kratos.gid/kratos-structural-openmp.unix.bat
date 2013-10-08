@@ -29,5 +29,5 @@ export PYTHONPATH="$3/kratos/python27.zip":"$3/kratos":$PYTHONPATH
 # Set the number of threads for OpenMP
 export OMP_NUM_THREADS=$5
 
-# Run Python using the script KratosStructural.py
-"$3/kratos/runkratos"  KratosStructural.py > "$2/$1.info" 2> "$2/$1.err"
+# Run Python using the script KratosStructuralOpenMP.py
+"$3/kratos/runkratos"  KratosStructuralOpenMP.py > "$2/$1.info" 2> "$2/$1.err"

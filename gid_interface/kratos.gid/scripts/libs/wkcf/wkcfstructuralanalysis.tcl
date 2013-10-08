@@ -595,7 +595,7 @@ proc ::wkcf::WriteLinePressureLoad {AppId cloadtid} {
     }
 
     # Kratos key word xpath
-    set kxpath "Applications/$AppId"
+    set kwxpath "Applications/$AppId"
     # Set the GiD element type
     set GiDElemType "Linear"
     # Set dimension and number of nodes
@@ -653,7 +653,7 @@ proc ::wkcf::WriteLinePressureLoad {AppId cloadtid} {
 	if {([GiD_EntitiesGroups get $cgroupid nodes -count]>0)} {
 	    # Get the current pressure keyword 
 	    set kwid "${PressureType}Pressure"
-	    set ckword [::xmlutils::getKKWord $kxpath $kwid]
+	    set ckword [::xmlutils::getKKWord $kwxpath $kwid]
 	    # WarnWinText "ckword:$ckword"
 	    
 	    if {$PressureValue !="0.0"} {
@@ -890,7 +890,7 @@ proc ::wkcf::WriteLinePressureLoadAxisym {AppId cloadtid} {
     }
 
     # Kratos key word xpath
-    set kxpath "Applications/$AppId"
+    set kwxpath "Applications/$AppId"
     # Set the GiD element type
     set GiDElemType "Linear"
     # Set dimension and number of nodes
@@ -948,7 +948,7 @@ proc ::wkcf::WriteLinePressureLoadAxisym {AppId cloadtid} {
 	if {([GiD_EntitiesGroups get $cgroupid nodes -count]>0)} {
 	    # Get the current pressure keyword 
 	    set kwid "${PressureType}Pressure"
-	    set ckword [::xmlutils::getKKWord $kxpath $kwid]
+	    set ckword [::xmlutils::getKKWord $kwxpath $kwid]
 	    # WarnWinText "ckword:$ckword"
 	    
 	    if {$PressureValue !="0.0"} {
@@ -990,7 +990,7 @@ proc ::wkcf::WriteSurfaceLoad {AppId cloadtid} {
     }
 
     # Kratos key word xpath
-    set kxpath "Applications/$AppId"
+    set kwxpath "Applications/$AppId"
 
     # TRIANGULAR SURFACE:
 
@@ -1116,7 +1116,7 @@ proc ::wkcf::WriteSurfaceLoad {AppId cloadtid} {
 	    foreach Component {BUDFx BUDFy BUDFz} {
 	      # Get the current face load component keyword                       
 	      set kwid "$Component"
-	      set ckword [::xmlutils::getKKWord $kxpath $kwid]              
+	      set ckword [::xmlutils::getKKWord $kwxpath $kwid]              
 	      if {[set $Component] !="0.0"} {
 		# Set the real pressure value
 		# set PressureValue [expr double($PressureValue)/$ngroupnodes]
@@ -1156,7 +1156,7 @@ proc ::wkcf::WriteSurfacePressure {AppId cloadtid} {
     }
 
     # Kratos key word xpath
-    set kxpath "Applications/$AppId"
+    set kwxpath "Applications/$AppId"
 
     # TRIANGULAR SURFACE:
 
@@ -1270,7 +1270,7 @@ proc ::wkcf::WriteSurfacePressure {AppId cloadtid} {
 	if {([GiD_EntitiesGroups get $cgroupid nodes -count]>0)&&($ndime=="3D")} {
 	    # Get the current pressure keyword 
 	    set kwid "${PressureType}Pressure"
-	    set ckword [::xmlutils::getKKWord $kxpath $kwid]
+	    set ckword [::xmlutils::getKKWord $kwxpath $kwid]
 	    # WarnWinText "ckword:$ckword"
 	    
 	    if {$PressureValue !="0.0"} {
@@ -1342,6 +1342,125 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     puts $fileid "#################################################"
     puts $fileid "ProblemType = \"Mechanical\""
 
+
+    # Check for use shell elements
+    set usenbst "No"
+    set useshells "No"
+    set usebeams "No"
+
+    set shelllist [list "ShellIsotropic" "ShellAnisotropic" "EBST"]
+    set beamlist  [list "BeamElement"]
+
+    if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
+	# For all defined kratos elements        
+	foreach celemid $dprops($AppId,AllKElemId) {
+	    if {$celemid in $shelllist} {
+		set useshells "Yes"
+		if {$celemid == "EBST"} {
+		    set usenbst "Yes"
+		    break
+		}
+	    } elseif {$celemid in $beamlist} {
+		set usebeams "Yes"
+	    }
+	}
+    }
+
+    set trailing_spaces  "    "
+    # Structural solver configuration ********************** 
+    puts $fileid ""
+    puts $fileid "# Structural solver configuration"
+    puts $fileid "class SolverSettings:"
+    puts $fileid "${trailing_spaces}solver_type = \"mechanical_solver\""    
+    puts $fileid "${trailing_spaces}domain_size = $domain_size"
+
+    if {($useshells eq "Yes")||($usebeams eq "Yes")} {
+	puts $fileid "${trailing_spaces}RotationDofs = True"
+    } else {
+	puts $fileid "${trailing_spaces}RotationDofs = False"
+    }
+    puts $fileid "${trailing_spaces}PressureDofs = False"
+
+    puts $fileid "${trailing_spaces}ReformDofSetAtEachStep = True"
+    puts $fileid "${trailing_spaces}compute_reactions = True"
+    puts $fileid "${trailing_spaces}line_search  = False"
+
+    # Solution type
+    set cxpath "$AppId//c.AnalysisData//i.SolutionType"
+    set cproperty "dv"
+    set SolutionType [::xmlutils::setXml $cxpath $cproperty]
+    # WarnWinText "SolverType:$SolutionType"
+    if {$SolutionType =="Dynamic"} {
+	puts $fileid "${trailing_spaces}scheme_type = \"DynamicSolver\""
+    } elseif {$SolutionType =="Quasi-Static"} {
+	puts $fileid "${trailing_spaces}scheme_type = \"QuasiStaticSolver\""
+    } elseif {$SolutionType =="Pseudo-Dynamic"} {
+	puts $fileid "${trailing_spaces}scheme_type = \"PseudoDynamicSolver\""
+    } elseif {$SolutionType =="Static"} {
+	puts $fileid "${trailing_spaces}scheme_type = \"StaticSolver\""
+    }
+    # Analysis type
+    set cxpath "$AppId//c.AnalysisData//i.AnalysisType"
+    set AnalysisType [::xmlutils::setXml $cxpath $cproperty]
+    # WarnWinText "AnalysisType:$AnalysisType"
+    if {$AnalysisType =="Non-Linear"} {
+	# Convergence criteria
+	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.ConvergenceCriteria"
+	set ConvergenceCriteria [::xmlutils::setXml $cxpath $cproperty]
+	# Residual convergence tolerance
+	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.ResidualConvergenceTolerance"
+	set ResidualConvergenceTolerance [::xmlutils::setXml $cxpath $cproperty]
+	# Residual absolute tolerance
+	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.ResidualAbsoluteTolerance"
+	set ResidualAbsoluteTolerance [::xmlutils::setXml $cxpath $cproperty]
+	# Displacement convergence tolerance
+	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.DisplacementConvergenceTolerance"
+	set DisplacementConvergenceTolerance [::xmlutils::setXml $cxpath $cproperty]
+	# Displacement absolute tolerance
+	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.DisplacementAbsoluteTolerance"
+	set DisplacementAbsoluteTolerance [::xmlutils::setXml $cxpath $cproperty]
+	# Maximum iterations
+	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.MaximumIterations"
+	set MaximumIterations [::xmlutils::setXml $cxpath $cproperty]
+
+	switch -exact -- $ConvergenceCriteria {
+	    "Displacement" {
+		puts $fileid "${trailing_spaces}convergence_criterion = \"Displacement_criteria\""
+	    }
+	    "Residual" {
+		puts $fileid "${trailing_spaces}convergence_criterion = \"Residual_criteria\""
+	    }
+	    "DisplacementAndResidual" {
+		puts $fileid "${trailing_spaces}convergence_criterion = \"And_criteria\""
+	    }
+	    "DisplacementOrResidual" {
+		puts $fileid "${trailing_spaces}convergence_criterion = \"Or_criteria\""
+	    }
+	}
+	puts $fileid "${trailing_spaces}displacement_relative_tolerance = $DisplacementConvergenceTolerance"
+	puts $fileid "${trailing_spaces}displacement_absolute_tolerance = $DisplacementAbsoluteTolerance"
+	puts $fileid "${trailing_spaces}residual_relative_tolerance = $ResidualConvergenceTolerance"
+	puts $fileid "${trailing_spaces}residual_absolute_tolerance = $ResidualAbsoluteTolerance"
+	puts $fileid "${trailing_spaces}max_iteration = $MaximumIterations"
+
+	# WarnWinText "SolutionMethod:$SolutionMethod ConvergenceCriteria:$ConvergenceCriteria ConvergenceTolerance:$ConvergenceTolerance AbsoluteTolerance:$AbsoluteTolerance MaximumIterations:$MaximumIterations"
+	#END NON LINEAR
+    } elseif {$AnalysisType =="Linear"} {
+
+	puts $fileid "${trailing_spaces}convergence_criterion = \"Residual_criteria\""
+	puts $fileid "${trailing_spaces}displacement_relative_tolerance = 1.0E-4"
+	puts $fileid "${trailing_spaces}displacement_absolute_tolerance = 1.0E-9"
+	puts $fileid "${trailing_spaces}residual_relative_tolerance = 1.0E-4"
+	puts $fileid "${trailing_spaces}residual_absolute_tolerance = 1.0E-9"
+	puts $fileid "${trailing_spaces}max_iteration = 10"
+    }
+
+    set rootid "$AppId"
+    ::wkcf::WriteLinearSolver $rootid $fileid $trailing_spaces "linear_solver_config"
+   
+    # Structural solver configuration ********************** 
+
+
     # Solution method
     set cxpath "$AppId//c.AnalysisData//i.AnalysisType"
     set cproperty "dv"
@@ -1377,9 +1496,24 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 	set NumberOfSteps [expr int(double($EndTime)/double($DeltaTime))]
 	puts $fileid "nsteps    = $NumberOfSteps"
 	
-    } elseif {$SolutionType =="RelaxedDynamic"} {
+    } elseif {$SolutionType =="Quasi-Static"} {
 
-	puts $fileid "SolverType = \"RelaxedDynamicSolver\""
+	puts $fileid "SolverType = \"QuasiStaticSolver\""
+
+	# Delta time
+	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.DeltaTime"
+	set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "time_step = $DeltaTime"        
+
+	# Number of Steps
+	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.EndTime"
+	set EndTime [::xmlutils::setXml $cxpath $cproperty]
+	set NumberOfSteps [expr int(double($EndTime)/double($DeltaTime))]
+	puts $fileid "nsteps    = $NumberOfSteps"
+
+    } elseif {$SolutionType =="PseudoDynamic"} {
+
+	puts $fileid "SolverType = \"PseudoDynamicSolver\""
 
 	# Delta time
 	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.DeltaTime"
@@ -1414,30 +1548,6 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 	puts $fileid "NumberofThreads = 1"
     }
 
-
-
-    # Check for use shell elements
-    set usenbst "No"
-    set useshells "No"
-    set usebeams "No"
-
-    set shelllist [list "ShellIsotropic" "ShellAnisotropic" "EBST"]
-    set beamlist  [list "BeamElement"]
-
-    if {([info exists dprops($AppId,AllKElemId)]) && ($dprops($AppId,AllKElemId)>0)} {
-	# For all defined kratos elements        
-	foreach celemid $dprops($AppId,AllKElemId) {
-	    if {$celemid in $shelllist} {
-		set useshells "Yes"
-		if {$celemid == "EBST"} {
-		    set usenbst "Yes"
-		    break
-		}
-	    } elseif {$celemid in $beamlist} {
-		set usebeams "Yes"
-	    }
-	}
-    }
 
     #puts $fileid "FindNodalNeighbours = \"False\""
 
@@ -1570,14 +1680,14 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 	puts $fileid "Convergence_Criteria  = \"Residual_criteria\""
 	puts $fileid "Convergence_Tolerance = 1.0E-4"
 	puts $fileid "Absolute_Tolerance    = 1.0E-9"
-	puts $fileid "Max_Iter = 1"
+	puts $fileid "Max_Iter = 10"
     }
 
     puts $fileid ""
     puts $fileid "#Constraints Data"
     puts $fileid "#################################################"
     # Incremental Load
-    if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
+    if {($SolutionType =="Dynamic")||($SolutionType =="Quasi-Static")||($SolutionType =="Pseudo-Dynamic")} {
 
 	set cxpath "$AppId//c.Loads//i.IncrementalLoad"
 	set incremental_load [::xmlutils::setXml $cxpath $cproperty]
@@ -1683,6 +1793,70 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     # Write the kratos path
     # puts $fileid "kratos_path=\"${KratosPath}\"" 
 	
+}
+
+proc ::wkcf::WriteLinearSolver {rootid fileid trailing_spaces config_name} {
+    # Write linear solver with a config_name
+    
+    # Kratos key word xpath
+    set kwxpath "Applications/$rootid"
+    # Set default value xml variable
+    set cproperty "dv"
+
+    puts $fileid "    class ${config_name}:"
+
+    # Linear Solver type
+    set cxpath "$rootid//c.SolutionStrategy//c.LinearSolver//i.LinearSolverType"
+    set LinearSolverType [::xmlutils::setXml $cxpath $cproperty]
+    if {$LinearSolverType =="Direct"} {
+
+	# Direct solver type
+	set cxpath "$rootid//c.SolutionStrategy//c.LinearSolver//i.DirectSolverType"
+	set solvertype [::xmlutils::setXml $cxpath $cproperty]
+	set DirectSolverType [::xmlutils::getKKWord $kwxpath $solvertype]
+	puts $fileid "${trailing_spaces}    solver_type = \"$DirectSolverType\""
+	puts $fileid "${trailing_spaces}    scaling = False"
+
+    } elseif {$LinearSolverType =="Iterative"} {
+	
+	# Iterative solver type
+	set cxpath "$rootid//c.SolutionStrategy//c.LinearSolver//i.IterativeSolverType"
+	set solvertype [::xmlutils::setXml $cxpath $cproperty]
+	set IterativeSolverType [::xmlutils::getKKWord $kwxpath $solvertype]
+	# Tolerance
+	set cxpath "$rootid//c.SolutionStrategy//c.LinearSolver//i.Tolerance"
+	set Tolerance [::xmlutils::setXml $cxpath $cproperty]
+
+	# Maximum iteration
+	set cxpath "$rootid//c.SolutionStrategy//c.LinearSolver//i.MaximumIteration"
+	set MaximumIteration [::xmlutils::setXml $cxpath $cproperty]
+   
+	puts $fileid "${trailing_spaces}    solver_type = \"$IterativeSolverType\""
+	puts $fileid "${trailing_spaces}    tolerance = $Tolerance"
+	puts $fileid "${trailing_spaces}    max_iteration = $MaximumIteration"
+	puts $fileid "${trailing_spaces}    preconditioner_type = \"$precond\""
+	puts $fileid "${trailing_spaces}    scaling = False"
+	puts $fileid "${trailing_spaces}    verbosity = 0"
+
+
+        puts $fileid "${trailing_spaces}    #Pastix Iterative Solver:"
+        puts $fileid "${trailing_spaces}    gmres_krylov_space_dimension = 100"
+        puts $fileid "${trailing_spaces}    ilu_level_of_fill            = 3"
+
+        puts $fileid "${trailing_spaces}    #GMRES or CG:"
+	puts $fileid "${trailing_spaces}    preconditioner_type          = \"None\""
+
+        puts $fileid "${trailing_spaces}    #Deflated CG:"
+	puts $fileid "${trailing_spaces}    assume_constant_structure    = True"
+        puts $fileid "${trailing_spaces}    max_reduced_size             = 1000"
+
+        puts $fileid "${trailing_spaces}    #AMG: (requires block_builder)"
+        puts $fileid "${trailing_spaces}    smoother_type  = \"ILU0\" #\"DAMPED_JACOBI\""
+	puts $fileid "${trailing_spaces}    krylov_type    = \"GMRES\""
+	
+    }
+
+    puts $fileid ""
 }
 
 proc ::wkcf::WriteConstitutiveLawsProperties {} {

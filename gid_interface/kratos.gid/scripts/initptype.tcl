@@ -489,7 +489,7 @@ proc kipt::SelectGIDBatFile { directory basename } {
                 # Calculate arguments
                 set args "$OpenMPNumberOfThreads"
             }
-            if {($SolutionType =="Dynamic")||($SolutionType =="RelaxedDynamic")} {
+            if {($SolutionType =="Dynamic")||($SolutionType =="Quasi-Static")||($SolutionType =="Pseudo-Dynamic")} {
                 if {($::tcl_platform(os) eq "Linux")} {
                     set batfilename "kratos-structural-openmp.unix.bat"
                 } else {
