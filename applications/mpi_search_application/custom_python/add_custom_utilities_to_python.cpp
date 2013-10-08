@@ -54,7 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/bins_dynamic_objects_mpi.h"
 #include "custom_utilities/mpi_discrete_particle_configure.h"
 #include "custom_utilities/mpi_dem_search.h"
-#include "custom_utilities/mpi_utilities.h"
+#include "custom_utilities/mpi_utilities.h" 
 
 // Linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -77,8 +77,8 @@ namespace Kratos
             class_<MpiUtilitiesType, boost::noncopyable>
                     ("MpiUtilities", init<>())
                     .def("Repart",                  &MpiUtilitiesType::ParallelPartitioning)
-                    .def("TransferModelElements",   &MpiUtilitiesType::TransferModelElements)
-                    .def("TransferModelNodes",      &MpiUtilitiesType::TransferModelNodes)
+                    .def("TransferModelElements",   &MpiUtilitiesType::MigrateElements)
+                    .def("TransferModelNodes",      &MpiUtilitiesType::MigrateNodes)
                     .def("CalculateModelNewIds",    &MpiUtilitiesType::CalculateModelNewIds)
                     .def("CalculateElementsNewId",  &MpiUtilitiesType::CalculateElementsNewId)
                     .def("CalculateNodesNewId",     &MpiUtilitiesType::CalculateNodesNewId)

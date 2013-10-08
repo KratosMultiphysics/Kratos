@@ -92,24 +92,21 @@ public:
       /* This method implements exactly the same functionality as the one included in the communicator.
        * The aim of the method is to reimplement the genereic metho in to a specific one */
       template<class TObjectType>                            
-      static inline void AsyncSendAndReceive(Communicator& Communicator,
-                                             std::vector<TObjectType>& SendObjects,
-                                             std::vector<TObjectType>& RecvObjects,
-                                             int * msgSendSize,
-                                             int * msgRecvSize)
+      static inline void TransferObjects(Communicator& Communicator,
+                                         TObjectType& SendObjects,
+                                         TObjectType& RecvObjects)
       {
-          Communicator.AsyncSendAndReceive(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
+          Communicator.TransferObjects(SendObjects,RecvObjects);
       }
-    
+      
       /* This method implements exactly the same functionality as the one included in the communicator.
        * The aim of the method is to reimplement the genereic metho in to a specific one */
       template<class TObjectType>
-      static inline void AsyncSendAndReceive(std::vector<TObjectType>& SendObjects,
-                                             std::vector<TObjectType>& RecvObjects,
-                                             int * msgSendSize,
-                                             int * msgRecvSize)                                       
+      static inline void TransferObjects(std::vector<TObjectType>& SendObjects,
+                                         std::vector<TObjectType>& RecvObjects)                                       
       {
-        
+          // TODO: REWRITE ALL THIS CODE
+          
           int mpi_rank;
           int mpi_size;
       
@@ -118,6 +115,15 @@ public:
   
           std::stringstream * serializer_buffer;
           std::vector<std::string> buffer(mpi_size);
+          
+          int msgSendSize[mpi_size];
+          int msgRecvSize[mpi_size];
+        
+          for(int i = 0; i < mpi_size; i++)
+          {
+              msgSendSize[i] = 0;
+              msgRecvSize[i] = 0;
+          }
         
           for(int i = 0; i < mpi_size; i++)
           {

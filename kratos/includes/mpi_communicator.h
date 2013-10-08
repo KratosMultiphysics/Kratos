@@ -640,68 +640,39 @@ public:
     }
 
     /////////////////////////////////////////////////////////////////////////////
-    
-    virtual bool AsyncSendAndReceive(std::vector<NodesContainerType::ContainerType>& SendObjects, std::vector<NodesContainerType::ContainerType>& RecvObjects, int * msgSendSize, int * msgRecvSize)
-    {   
-        AsyncSendAndReceiveObjects<NodesContainerType::ContainerType>(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
-        return true;
-    }
-    
-    virtual bool AsyncSendAndReceive(std::vector<ElementsContainerType::ContainerType>& SendObjects, std::vector<ElementsContainerType::ContainerType>& RecvObjects, int * msgSendSize, int * msgRecvSize)
-    {
-        AsyncSendAndReceiveObjects<ElementsContainerType::ContainerType>(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
-        return true;
-    }
-    
-    virtual bool AsyncSendAndReceive(std::vector<ConditionsContainerType::ContainerType>& SendObjects, std::vector<ConditionsContainerType::ContainerType>& RecvObjects, int * msgSendSize, int * msgRecvSize)
-    {
-        AsyncSendAndReceiveObjects<ConditionsContainerType::ContainerType>(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
-        return true;
-    }
-    
-    /////////////////////////////////////////////////////////////////////////////
          
-    virtual bool TransferObjects(std::vector<NodesContainerType::ContainerType>& SendObjects, std::vector<NodesContainerType::ContainerType>& RecvObjects)
+    /**
+     * Transfer objects from a given process to a destination process
+     * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
+     * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+     **/
+    virtual bool TransferObjects(std::vector<NodesContainerType>& SendObjects, std::vector<NodesContainerType>& RecvObjects)
     {
-        AsyncTransferObjects<NodesContainerType::ContainerType>(SendObjects,RecvObjects);
+        AsyncSendAndReceiveObjects<NodesContainerType>(SendObjects,RecvObjects);
         return true;
     }
     
-    virtual bool TransferObjects(std::vector<ElementsContainerType::ContainerType>& SendObjects, std::vector<ElementsContainerType::ContainerType>& RecvObjects)
+    /**
+    * Transfer objects from a given process to a destination process
+    * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
+    * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+    **/
+    virtual bool TransferObjects(std::vector<ElementsContainerType>& SendObjects, std::vector<ElementsContainerType>& RecvObjects)
     {
-        AsyncTransferObjects<ElementsContainerType::ContainerType>(SendObjects,RecvObjects);
+        AsyncSendAndReceiveObjects<ElementsContainerType>(SendObjects,RecvObjects);
         return true;
     }
     
-    virtual bool TransferFunction(std::vector<ElementsContainerType::ContainerType> &SendObjects, std::vector<ElementsContainerType::ContainerType> &RecvObjects) 
+    /**
+    * Transfer objects from a given process to a destination process
+    * @param SendObjects: list of objects to be send.      SendObjects[i] -> Objects to   process i
+    * @param RecvObjects: list of objects to be received.  RecvObjects[i] -> objects from process i
+    **/
+    virtual bool TransferObjects(std::vector<ConditionsContainerType>& SendObjects, std::vector<ConditionsContainerType>& RecvObjects)
     {
-        TransferFunction(SendObjects,RecvObjects);
+        AsyncSendAndReceiveObjects<ConditionsContainerType>(SendObjects,RecvObjects);
         return true;
     }
-    
-    virtual bool TransferFunction(std::vector<NodesContainerType::ContainerType> &SendObjects, std::vector<NodesContainerType::ContainerType> &RecvObjects) 
-    {
-        TransferFunction(SendObjects,RecvObjects);
-        return true;
-    }
-    
-    virtual bool TransferFunction(std::vector<ConditionsContainerType::ContainerType> &SendObjects,std::vector<ConditionsContainerType::ContainerType> &RecvObjects) 
-    {
-        TransferFunction(SendObjects,RecvObjects);
-        return true;
-    }
-    
-//     virtual bool BuildNewPartitions(std::vector<ElementsContainerType::ContainerType> &RecvObjects)
-//     {
-//         BuildNewElementsPartitions(mModelPart,RecvObjects);
-//         return true;
-//     }
-//     
-//     virtual bool BuildNewPartitions(std::vector<NodesContainerType::ContainerType> &RecvObjects)
-//     {
-//         BuildNewNodesPartitions(mModelPart,RecvObjects);
-//         return true;
-//     }
     
     /////////////////////////////////////////////////////////////////////////////
 
@@ -1356,7 +1327,7 @@ private:
     }
     
     template<class TObjectType>
-    bool AsyncSendAndReceiveObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects, int * msgSendSize, int * msgRecvSize)
+    bool AsyncSendAndReceiveObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects)
     { 
         int mpi_rank;
         int mpi_size;
@@ -1370,8 +1341,17 @@ private:
         
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+        
+        int msgSendSize[mpi_size];
+        int msgRecvSize[mpi_size];
 
         std::vector<std::string> buffer(mpi_size);
+        
+        for(int i = 0; i < mpi_size; i++)
+        {
+            msgSendSize[i] = 0;
+            msgRecvSize[i] = 0;
+        }
         
         for(int i = 0; i < mpi_size; i++)
         {
@@ -1382,7 +1362,7 @@ private:
                 
                 t0 = OpenMPUtils::GetCurrentTime();
                 particleSerializer.save("VariableList",mVariables_list);
-                particleSerializer.save("Object",SendObjects[i]);
+                particleSerializer.save("Object",SendObjects[i].GetContainer());
                 t1 = OpenMPUtils::GetCurrentTime();
                 
                 total_time += (t1-t0);
@@ -1449,7 +1429,7 @@ private:
                 
                 t0 = OpenMPUtils::GetCurrentTime();
                 particleSerializer.load("VariableList",mVariables_list);
-                particleSerializer.load("Object",RecvObjects[i]);
+                particleSerializer.load("Object",RecvObjects[i].GetContainer());
                 t1 = OpenMPUtils::GetCurrentTime();
                 
                 total_time += (t1-t0);
@@ -1471,46 +1451,6 @@ private:
         }
         t1 = OpenMPUtils::GetCurrentTime();
         write_time += (t1-t0);
-        
-        return true;
-    }
-    
-    template<class TObjectType>
-    bool AsyncTransferObjects(std::vector<TObjectType>& SendObjects, std::vector<TObjectType>& RecvObjects)
-    {
-        int mpi_rank;
-        int mpi_size;
-        
-        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-        
-/*        for(int i = 0; i < mpi_size; i++)
-            std::cout << "Process: " << mpi_rank << " to " << i << " has: " << SendObjects[i].size() << " objects to transfer " << std::endl;  */
-
-        TransferFunction<TObjectType>(SendObjects,RecvObjects);
-        
-        return true;
-    }
-    
-    template<class TObjectType>
-    bool TransferFunction(std::vector<TObjectType> &SendObjects,std::vector<TObjectType> &RecvObjects) 
-    {
-        int mpi_rank;
-        int mpi_size;
-        
-        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
-        
-        int msgSendSize[mpi_size];
-        int msgRecvSize[mpi_size];
-        
-        for(int i = 0; i < mpi_size; i++)
-        {
-            msgSendSize[i] = 0;
-            msgRecvSize[i] = 0;
-        }
-
-        AsyncSendAndReceive(SendObjects,RecvObjects,msgSendSize,msgRecvSize);
         
         return true;
     }
