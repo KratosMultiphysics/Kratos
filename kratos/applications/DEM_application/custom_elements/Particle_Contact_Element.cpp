@@ -110,6 +110,14 @@ void Particle_Contact_Element::Initialize()
     
     this->GetValue(LOW_POISSON_FORCE) = 0.0;  
     this->GetValue(HIGH_POISSON_FORCE) = 0.0; 
+    this->GetValue(MEAN_CONTACT_AREA) = 0.0;    
+    this->GetValue(LOCAL_CONTACT_AREA_LOW) = 0.0;
+    this->GetValue(LOCAL_CONTACT_AREA_HIGH) = 0.0;
+    this->GetValue(FAILURE_CRITERION_STATE) = 0.0;
+    this->GetValue(LOCAL_CONTACT_FORCE)[0] = 0.0;
+    this->GetValue(LOCAL_CONTACT_FORCE)[1] = 0.0;
+    this->GetValue(LOCAL_CONTACT_FORCE)[2] = 0.0;
+
    
     KRATOS_CATCH( "" )
 }
@@ -119,7 +127,7 @@ void Particle_Contact_Element::GetValueOnIntegrationPoints( const Variable<array
 {
     
     
-    if(rVariable == LOCAL_CONTACT_FORCE_LOW)   //3D VARIABLE WITH COMPONENTS
+    if(rVariable == LOCAL_CONTACT_FORCE)   //3D VARIABLE WITH COMPONENTS
     {
        
         
@@ -136,19 +144,7 @@ void Particle_Contact_Element::GetValueOnIntegrationPoints( const Variable<array
         
     }
     
-     if(rVariable == LOCAL_CONTACT_FORCE_HIGH)   //3D VARIABLE WITH COMPONENTS
-    {
-        rOutput.resize(1);
-        const Particle_Contact_Element* const_this = static_cast< const Particle_Contact_Element* >(this); 
-        rOutput[0][0] = const_this->GetValue(rVariable)[0];
-        rOutput[0][1] = const_this->GetValue(rVariable)[1];
-        rOutput[0][2] = const_this->GetValue(rVariable)[2];
-        
-        //mlocalcontactforcelow[0] = const_this->GetValue(rVariable)[0];
-        //mlocalcontactforcelow[1] = const_this->GetValue(rVariable)[1];
-        //mlocalcontactforcelow[2] = const_this->GetValue(rVariable)[2];
-        
-    }
+
 }
 
  
@@ -209,19 +205,10 @@ void Particle_Contact_Element::InitializeSolutionStep( ProcessInfo& CurrentProce
     if (this->GetValue(FAILURE_CRITERION_STATE)<1.0)
     {this->GetValue(FAILURE_CRITERION_STATE) = 0.0;}
         
-    
-    this->GetValue(LOCAL_CONTACT_FORCE_LOW)[0] = 0.0; //i keep low and high here becouse somehow we need to correct the error someday with a correction maybe
-    this->GetValue(LOCAL_CONTACT_FORCE_LOW)[1] = 0.0;
-    this->GetValue(LOCAL_CONTACT_FORCE_LOW)[2] = 0.0;
-    
-    this->GetValue(LOCAL_CONTACT_FORCE_HIGH)[0] = 0.0;
-    this->GetValue(LOCAL_CONTACT_FORCE_HIGH)[1] = 0.0;
-    this->GetValue(LOCAL_CONTACT_FORCE_HIGH)[2] = 0.0;
-    
-	//this->GetValue(LOCAL_CONTACT_AREA_LOW) = 0.0;
-    //this->GetValue(LOCAL_CONTACT_AREA_HIGH) = 0.0;
-    //this->GetValue(MEAN_CONTACT_AREA) = 0.0;
-   
+    this->GetValue(LOCAL_CONTACT_FORCE)[0] = 0.0;
+    this->GetValue(LOCAL_CONTACT_FORCE)[1] = 0.0;
+    this->GetValue(LOCAL_CONTACT_FORCE)[2] = 0.0;
+
 }
 
 ////************************************************************************************
@@ -234,6 +221,26 @@ void Particle_Contact_Element::FinalizeSolutionStep( ProcessInfo& rCurrentProces
 
 void Particle_Contact_Element::Calculate( const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo )
 { 
+  if (rVariable == MEAN_CONTACT_AREA)
+  {
+ 
+    this-> GetValue(MEAN_CONTACT_AREA) = 0.5* this-> GetValue(LOCAL_CONTACT_AREA_LOW) + 0.5* this-> GetValue(LOCAL_CONTACT_AREA_HIGH);
+
+  }
+  
+  if (rVariable == DUMMY_DEBUG_DOUBLE)
+  {
+    
+    /*
+    if(this->GetValue(CONTACT_SIGMA) != 0.0)
+    {
+     //KRATOS_WATCH( ( this->GetValue(CONTACT_SIGMA) - this->GetValue(CONTACT_TAU) ) /(this->GetValue(CONTACT_SIGMA) ) )
+    }
+    */
+   // KRATOS_WATCH( (this->GetValue(LOCAL_CONTACT_FORCE_HIGH)[2]-this->GetValue(LOCAL_CONTACT_FORCE_LOW)[2])/this->GetValue(LOCAL_CONTACT_FORCE_HIGH)[2]  )
+    
+  }
+  
 }
 
 
