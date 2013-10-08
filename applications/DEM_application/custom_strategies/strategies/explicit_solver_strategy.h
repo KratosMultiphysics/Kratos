@@ -33,7 +33,7 @@
 #include <omp.h>
 #endif
 
-#define CUSTOMTIMER 1  // ACTIVATES AND DISABLES ::TIMER:::::
+#define CUSTOMTIMER 0  // ACTIVATES AND DISABLES ::TIMER:::::
 
 #include "boost/smart_ptr.hpp"
 
