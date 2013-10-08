@@ -207,6 +207,12 @@ namespace Kratos
           KRATOS_TIMER_START("BEGIN")
           ModelPart& r_model_part            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
+          
+          int NumberOfElements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
+
+          this->GetResults().resize(NumberOfElements);
+          this->GetResultsDistances().resize(NumberOfElements);
+          this->GetRadius().resize(NumberOfElements);
 
           int time_step = rCurrentProcessInfo[TIME_STEPS];
           KRATOS_TIMER_STOP("BEGIN")
