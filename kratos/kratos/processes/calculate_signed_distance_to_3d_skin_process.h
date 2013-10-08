@@ -675,7 +675,7 @@ public:
         unsigned int nodesSize = nodes.size();
 
 #pragma omp parallel for firstprivate(nodesSize)
-        for(unsigned int i = 0 ; i < nodesSize ; i++)
+        for(int i = 0 ; i < nodesSize ; i++)
             nodes[i]->GetSolutionStepValue(DISTANCE) = initial_distance;
 
         ModelPart::ElementsContainerType::ContainerType& fluid_elements = mrFluidModelPart.ElementsArray();
@@ -691,7 +691,7 @@ public:
         unsigned int elementsSize = fluid_elements.size();
 
 #pragma omp parallel for firstprivate(elementsSize)
-        for(unsigned int i = 0 ; i < elementsSize ; i++)
+        for(int i = 0 ; i < elementsSize ; i++)
         {
             fluid_elements[i]->GetValue(ELEMENTAL_DISTANCES) = ElementalDistances;
             fluid_elements[i]->GetValue(SPLIT_ELEMENT) = false;
@@ -1706,7 +1706,7 @@ public:
         mOctree.GetAllLeavesVector(all_leaves);
 
 #pragma omp parallel for
-        for (unsigned int i = 0; i < all_leaves.size(); i++)
+        for (int i = 0; i < all_leaves.size(); i++)
         {
             *(all_leaves[i]->pGetDataPointer()) = ConfigurationType::AllocateData();
         }
