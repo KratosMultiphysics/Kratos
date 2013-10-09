@@ -132,14 +132,15 @@ namespace Kratos
       ): BaseType(r_model_part, move_mesh_flag)
       {
 
-          mElementsAreInitialized      = false;
-          mInitializeWasPerformed      = false;
-          mpParticleCreatorDestructor  = p_creator_destructor;
-          mpScheme                     = pScheme;
-          mpSpSearch                   = pSpSearch;
-          mMaxTimeStep                 = max_delta_time;
-          mNStepSearch                 = n_step_search;
-          mSafetyFactor                = safety_factor;
+          mElementsAreInitialized        = false;
+          mInitializeWasPerformed        = false;
+          mpParticleCreatorDestructor    = p_creator_destructor;
+          mpScheme                       = pScheme;
+          mpSpSearch                     = pSpSearch;
+          mMaxTimeStep                   = max_delta_time;
+          mNStepSearch                   = n_step_search;
+          mSafetyFactor                  = safety_factor;
+          mNumberOfElementsOldRadiusList = 0;
       }
 
       /// Destructor.
@@ -158,18 +159,16 @@ namespace Kratos
           ModelPart& r_model_part            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
 
-          int NumberOfElements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
+          int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
 
-          this->GetResults().resize(NumberOfElements);
-          this->GetResultsDistances().resize(NumberOfElements);
-          this->GetRadius().resize(NumberOfElements);
+          this->GetResults().resize(number_of_elements);
+          this->GetResultsDistances().resize(number_of_elements);          
 
           // Omp initializations
           this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
 
           // 0. Set search radius
-          
-          
+                    
           SetSearchRadius(r_model_part, rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);
 
           // 1. Search Neighbours with tolerance (Not in mpi.)
@@ -206,14 +205,14 @@ namespace Kratos
 
           KRATOS_TIMER_START("BEGIN")
           ModelPart& r_model_part            = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
-          
+          ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();                    
+
           int NumberOfElements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
 
           this->GetResults().resize(NumberOfElements);
           this->GetResultsDistances().resize(NumberOfElements);
-          this->GetRadius().resize(NumberOfElements);
-
+          this->GetRadius().resize(NumberOfElements);          
+          
           int time_step = rCurrentProcessInfo[TIME_STEPS];
           KRATOS_TIMER_STOP("BEGIN")
           
@@ -348,6 +347,10 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
 
+          
+          //GetRadius() UPDATE!!  
+          SetSearchRadius(r_model_part, rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);                    
+          
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
           #pragma omp parallel for
@@ -524,6 +527,13 @@ namespace Kratos
 
         ModelPart& r_model_part               = BaseType::GetModelPart();
         ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
+        
+        int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
+        
+        if(mNumberOfElementsOldRadiusList == number_of_elements) return;
+        else mNumberOfElementsOldRadiusList = number_of_elements;
+        
+        this->GetRadius().resize(number_of_elements);
 
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
             this->GetRadius()[particle_pointer_it - pElements.begin()] = (1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
@@ -556,11 +566,14 @@ namespace Kratos
 
         ModelPart& r_model_part               = BaseType::GetModelPart();
         ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
+
+        int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
+
+        if(!number_of_elements) return;
         
         for (SpatialSearch::ElementsContainerType::iterator i = pElements.begin(); i != pElements.end(); i++){
             i->GetValue(NEIGHBOUR_ELEMENTS).clear();
-        }
-        
+        }        
         
 
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
@@ -712,6 +725,7 @@ namespace Kratos
     int                                          mNStepSearch;
     int                                          mBoundingBoxOption;
     int                                          mNumberOfThreads;
+    int                                          mNumberOfElementsOldRadiusList;
 
     double                                       mMaxTimeStep;
     double                                       mSafetyFactor;
