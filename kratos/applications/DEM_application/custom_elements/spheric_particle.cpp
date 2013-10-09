@@ -41,9 +41,9 @@ namespace Kratos
 
       Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
-           return DiscreteElement::Pointer(new SphericParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
+           return Element::Pointer(new SphericParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
 
-      }
+      }      
 
       /// Destructor.
       SphericParticle::~SphericParticle(){}
