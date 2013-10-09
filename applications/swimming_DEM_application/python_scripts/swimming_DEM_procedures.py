@@ -105,11 +105,9 @@ class ProjectionModule:
     def UpdateDatabase(self, HMin):
 
         if (self.dimension == 3):
-            #print "dimension= ", self.dimension
             self.bin_of_objects_fluid.UpdateSearchDatabase()
 
         else:
-
             self.bin_of_objects_fluid.UpdateSearchDatabaseAssignedSize(HMin)
 
     def ProjectFromFluid(self, alpha):
