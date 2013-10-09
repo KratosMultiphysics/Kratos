@@ -77,7 +77,8 @@ namespace Kratos
       SphericParticle( IndexType NewId, NodesArrayType const& ThisNodes);
       SphericParticle( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;      
+      
 
       /// Destructor.
       virtual ~SphericParticle();
