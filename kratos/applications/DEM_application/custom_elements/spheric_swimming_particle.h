@@ -74,7 +74,7 @@ namespace Kratos
       SphericSwimmingParticle(IndexType NewId, NodesArrayType const& ThisNodes);
       SphericSwimmingParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
-      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+      Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;      
 
       /// Destructor.
       virtual ~SphericSwimmingParticle();
