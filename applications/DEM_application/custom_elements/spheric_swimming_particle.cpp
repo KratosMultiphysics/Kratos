@@ -38,8 +38,8 @@ namespace Kratos
 
       Element::Pointer SphericSwimmingParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
-         return DiscreteElement::Pointer(new SphericSwimmingParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
-      }
+         return Element::Pointer(new SphericSwimmingParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
+      }     
 
       /// Destructor.
       SphericSwimmingParticle::~SphericSwimmingParticle(){}
