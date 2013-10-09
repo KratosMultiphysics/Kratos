@@ -32,7 +32,7 @@ from KratosMultiphysics.SolidMechanicsApplication import *
 
 #import the python utilities:
 import restart_utility              as restart_utils
-import print_results_python_utility as gid_utils
+import gid_output_python_utility    as gid_utils
 
 import conditions_python_utility    as condition_utils
 import list_files_python_utility    as files_utils
@@ -45,7 +45,7 @@ import list_files_python_utility    as files_utils
 #------------------------#--FUNCTIONS START--#------------------#
 #---------------------------------------------------------------#
 
-######################--PRINTING TIME START --###################
+######################--TIME MONITORING START--##################
 def StartTimeMeasuring():
   # measure process time
   time_ip = clock()
@@ -55,7 +55,7 @@ def StopTimeMeasuring(time_ip,process):
   # measure process time
   time_fp = clock()
   print  process," [ spent time = ",time_fp - time_ip,"] "
-######################--PRINTING TIME END --#####################
+######################--TIME MONITORING END --###################
 
 ######################--SET NUMBER OF THREADS --#################
 def SetParallelSize(num_threads):
@@ -106,13 +106,6 @@ problem_restart  = restart_utils.RestartUtility(model_part,problem_path,problem_
 print_lists      = general_variables.PrintLists
 list_files       = files_utils.ListFilesUtility(problem_path,problem_name,print_lists);
 list_files.Initialize(general_variables.file_list);
-
-#initialize problem : load restart or initial start
-load_restart     = general_variables.LoadRestart
-save_restart     = general_variables.SaveRestart
-restart_interval = general_variables.Restart_Interval
-
-problem_restart.Initialize(load_restart,save_restart,restart_interval,list_files);
   
 ######################--READ AND SET MODEL FILES END--############
 
@@ -130,34 +123,8 @@ conditions = condition_utils.ConditionsUtility(model_part,domain_size,incr_disp,
 
 ######################--GID OUTPUT OPTIONS START--###############
 
-gid_configuration_mode   =  WriteDeformedMeshFlag.WriteDeformed
-gid_variables            =  WriteConditionsFlag.WriteElementsOnly
-gid_output_mode          =  GiDPostMode.GiD_PostBinary
-gid_files_mode           =  MultiFileFlag.MultipleFiles
-
-if(general_variables.GiDWriteMeshFlag == "False"):
-  gid_configuration_mode = WriteDeformedMeshFlag.WriteUndeformed
-if(general_variables.GiDWriteConditionsFlag == "True"):
-  gid_mesh_write_type    = WriteConditionsFlag.WriteConditions
-if(general_variables.GiDPostMode == "Ascii"):
-  gid_output_mode = GiDPostMode.GiD_PostAscii
-if(general_variables.GiDMultiFileFlag == "Single"):
-  gid_files_mode = MultiFileFlag.SingleFile
-
-#Force to Multiple files write if it is not a StaticSolver
-
-if(SolverSettings.scheme_type != "StaticSolver" and general_variables.GiDMultiFileFlag == "Single"):
-  gid_files_mode = MultiFileFlag.MultipleFiles
-
-gid_print = gid_utils.PrintResultsUtility(model_part,problem_type,SolverSettings.solver_type,problem_name,gid_output_mode,gid_files_mode)
-
 #set gid print options
-write_particles   =  general_variables.GiDWriteParticlesFlag
-write_deformed    =  general_variables.GiDWriteMeshFlag
-write_conditions  =  general_variables.GiDWriteConditionsFlag
-write_frequency   =  general_variables.WriteFrequency
-
-gid_print.SetPrintOptions(write_particles,write_deformed,write_conditions,write_frequency)
+gid_print = gid_utils.GidOutputUtility(problem_name, general_variables.GidOutputConfiguration)
 
 ######################--GID OUTPUT OPTIONS END--##################
 
@@ -190,6 +157,14 @@ gid_print.SetPrintOptions(write_particles,write_deformed,write_conditions,write_
 
 #########################--START SOLUTION--######################
 #################################################################
+
+#initialize problem : load restart or initial start
+load_restart     = general_variables.LoadRestart
+save_restart     = general_variables.SaveRestart
+restart_interval = general_variables.Restart_Interval
+
+problem_restart.Initialize(load_restart,save_restart,restart_interval,list_files);
+
 
 #set buffer size
 buffer_size = 3;
@@ -283,8 +258,8 @@ if(load_restart == "False"):
 #######################--TIME INTEGRATION--#######################
 ##################################################################
   
-#writing the initial mesh
-#gid_print.PrintInitialMesh()
+#writing a single file
+gid_print.initialize_results(model_part)
 
 
 for step in range(istep,nstep):
@@ -320,7 +295,9 @@ for step in range(istep,nstep):
     #print the results at the end of the step
     if(general_variables.WriteResults == "PreMeshing"):
       clock_time=StartTimeMeasuring();
-      step_printed = gid_print.PrintResults(time,current_step,list_files)
+      step_printed = gid_print.write_results(model_part,general_variables.nodal_results,general_variables.gauss_points_results,time,current_step)
+      if( step_printed == True ):
+        list_files.PrintListFiles(current_step);
       StopTimeMeasuring(clock_time,"Write Results");
        
     #print restart file
@@ -336,6 +313,9 @@ for step in range(istep,nstep):
     
 ##########################--FINALIZE--############################
 ##################################################################
+
+#writing a single file
+gid_print.finalize_results()
 
 print "Analysis Finalized "
 
