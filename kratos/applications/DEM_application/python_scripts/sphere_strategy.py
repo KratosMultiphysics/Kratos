@@ -407,7 +407,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_option)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
         self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
-        self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option);
+        self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option);        
 
         # TOTAL NUMBER OF INITIALIZED ELEMENTS
         self.model_part.ProcessInfo.SetValue(NUM_PARTICLES_INITIALIZED, 0);
