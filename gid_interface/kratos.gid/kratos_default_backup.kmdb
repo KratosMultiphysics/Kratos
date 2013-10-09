@@ -62,7 +62,7 @@
                         </Container>
                     </Container>
                     <Container id="ElastoPlastic" pid="Plasticity" icon="prop.gif" class="normal" help="General" open="0">
-		        <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMisses" ivalues="VonMisses" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
+		        <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMises" ivalues="VonMises" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
 			<Property id="YieldStress" pid="Yield Stress" value="0.450e3" unit=" " icon="prop.gif" help="Helptext" open="0"/>
 		        <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                         <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
@@ -168,7 +168,7 @@
                         </Container>
                     </Container>
                     <Container id="ElastoPlastic" pid="Plasticity" icon="prop.gif" class="normal" help="General" open="0">
-		        <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMisses" ivalues="VonMisses" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
+		        <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMises" ivalues="VonMises" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
 			<Property id="YieldStress" pid="Yield Stress" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
 		        <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                         <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
@@ -276,7 +276,7 @@
                         </Container>
                     </Container>
                     <Container id="ElastoPlastic" pid="Plasticity" icon="prop.gif" class="normal" help="General" open="0">
-		        <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMisses" ivalues="VonMisses" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
+		        <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMises" ivalues="VonMises" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
 			<Property id="YieldStress" pid="Yield Stress" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
 		        <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                         <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
@@ -382,7 +382,7 @@
                         </Container>
                     </Container>
                     <Container id="ElastoPlastic" pid="Plasticity" icon="prop.gif" class="normal" help="General" open="0">
-		        <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMisses" ivalues="VonMisses" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
+		        <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMises" ivalues="VonMises" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
 			<Property id="YieldStress" pid="Yield Stress" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
 		        <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                         <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
@@ -491,7 +491,7 @@
                         </Container>
                     </Container>
                     <Container id="ElastoPlastic" pid="Plasticity" icon="prop.gif" class="normal" help="General" open="0">
-		        <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMisses" ivalues="VonMisses" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
+		        <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMises" ivalues="VonMises" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
 			<Property id="YieldStress" pid="Yield Stress" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
 		        <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                         <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
@@ -606,7 +606,7 @@
                     </Container>
                 </Container>
 		<Container id="ElastoPlastic" pid="Plasticity" icon="prop.gif" class="normal" help="General" open="0">
-		        <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMisses" ivalues="VonMisses" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
+		        <Property id="YieldCriterion" pid="Yield criterion" class="YieldCriteria" value="VonMises" ivalues="VonMises" values="Von-Mises" delvalues="Energy,Mohr-Coulomb,Rankine,Drucker-Prager,Tresca"  unit=" " icon="prop.gif" help="Helptext" open="0"/>
 			<Property id="YieldStress" pid="Yield Stress" value="0" unit=" " icon="prop.gif" help="Helptext" open="0"/>
 		        <Property id="InternalFrictionAngle" pid="Internal friction angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                         <Property id="DilatancyAngle" pid="Dilatancy angle" YieldCriteria="Mohr-Coulomb,DruckerPrager" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>

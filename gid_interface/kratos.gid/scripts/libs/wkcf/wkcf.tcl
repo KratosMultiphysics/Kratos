@@ -866,7 +866,7 @@ proc ::wkcf::WriteGiDPostMode {AppId fileid} {
     set kwxpath "Applications/$AppId"
     
     # Gid results
-    set gidrlist [list "GiDPostMode" "GiDWriteMeshFlag" "GiDWriteConditionsFlag" "GiDMultiFileFlag"]
+    set gidrlist [list "GiDPostMode" "GiDWriteMeshFlag" "GiDWriteConditionsFlag" "GiDWriteParticlesFlag" "GiDMultiFileFlag"]
     foreach gidr $gidrlist {
         # Get the value
         set cxpath "$AppId//c.Results//c.GiDOptions//i.[list ${gidr}]"
@@ -875,7 +875,7 @@ proc ::wkcf::WriteGiDPostMode {AppId fileid} {
         # Get the kratos keyword
         set gidrkw [::xmlutils::getKKWord $kwxpath $gidr]
         # WarnWinText "gidr:$gidr cvalue:$cvalue gidrkw:$gidrkw"
-        if {($gidr=="GiDWriteMeshFlag") || ($gidr=="GiDWriteConditionsFlag")} {
+        if {($gidr=="GiDWriteMeshFlag") || ($gidr=="GiDWriteConditionsFlag") || ($gidr=="GiDWriteParticlesFlag")} {
             if {$cvalue =="Yes"} {
               set cvalue True
             } else {
