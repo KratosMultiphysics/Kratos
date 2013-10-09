@@ -24,20 +24,22 @@ import swimming_DEM_procedures as SwimProc
 # PROJECT PARAMETERS TO BE PUT IN PROBLEMTYPE
 ProjectParameters.ProjectionModuleOption      = 1
 ProjectParameters.PrintParticlesResultsOption = 0
-ProjectParameters.ProjectFromParticlesOption  = 0
+ProjectParameters.ProjectFromParticlesOption  = 1
 ProjectParameters.CreateParticlesOption       = 0
+ProjectParameters.CalculatePorosity           = 1
 ProjectParameters.Interaction_start_time      = 0.01
-ProjectParameters.DEM_nodal_results           = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED"]
-ProjectParameters.mixed_nodal_results         = ["VELOCITY", "DISPLACEMENT"]
-ProjectParameters.gravity_x                   = 0.00000e+00 #S
-ProjectParameters.gravity_y                   = 0.0 #-9.81 #0.00000e+00 #S
-ProjectParameters.gravity_z                   = -9.81000e+00 #S
+ProjectParameters.gravity_x                   = 0.00000e+00
+ProjectParameters.gravity_y                   = 0.0
+ProjectParameters.gravity_z                   = -9.81000e+00
 DEM_parameters.GravityX                       = ProjectParameters.gravity_x
 DEM_parameters.GravityY                       = ProjectParameters.gravity_y
 DEM_parameters.GravityZ                       = ProjectParameters.gravity_z
-ProjectParameters.plastic_viscosity           = 0.000014 #S It is divided by the density
-ProjectParameters.smoothing_parameter_m       = 0.035 #S
-ProjectParameters.yield_stress_value          = 10.0 #S
+ProjectParameters.plastic_viscosity           = 0.000014 #It is divided by the density
+ProjectParameters.smoothing_parameter_m       = 0.035
+ProjectParameters.yield_stress_value          = 10.0
+ProjectParameters.DEM_nodal_results           = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED"]
+ProjectParameters.mixed_nodal_results         = ["VELOCITY", "DISPLACEMENT"]
+ProjectParameters.nodal_results.append("SOLID_FRACTION")
 
 for var in ProjectParameters.mixed_nodal_results:
 
@@ -92,6 +94,7 @@ model_part_io_fluid.ReadModelPart(fluid_model_part)
 fluid_model_part.AddNodalSolutionStepVariable(PRESSURE_GRADIENT)
 fluid_model_part.AddNodalSolutionStepVariable(AUX_DOUBLE_VAR)
 fluid_model_part.AddNodalSolutionStepVariable(DRAG_REACTION)
+fluid_model_part.AddNodalSolutionStepVariable(SOLID_FRACTION)
 
 # Defining a model part for the balls part
 my_timer = Timer()
@@ -263,7 +266,7 @@ out = 0
 step = 0
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 full_Dt = Dt
-initial_Dt = 0.001 * full_Dt #0.05 #0.01
+initial_Dt = 0.001 * full_Dt
 
 # creating projection modeule for the fluid-DEM coupling and initial projection
 h_min = 0.01
@@ -283,64 +286,36 @@ for node in fluid_model_part.Nodes:
     node.SetSolutionStepValue(BODY_FORCE_X, 0, ProjectParameters.gravity_x)
     node.SetSolutionStepValue(BODY_FORCE_Y, 0, ProjectParameters.gravity_y)
     node.SetSolutionStepValue(BODY_FORCE_Z, 0, ProjectParameters.gravity_z)
-#
-######### These numbers should come from the problem type
-#
-#
-#CALLING THE NODE CREATOR FUNCTION...
-#
+
 creator_destructor = ParticleCreatorDestructor()
-
-#def my_range_x(start, end, step):
-#    while start <= end:
-#        yield start
-#        start += step
-#
-def my_range_x(start, end, step):
-    while start <= end:
-        yield start
-        start += step
-#
-#for i in my_range_x(0, 330, 30):
-#    for y in my_range_y(0.6, 1.0, 0.4):
-#        creator_destructor.elementcreator(balls_model_part,int(20000+200000*x/y),int(10000+100000*x/y),x,y)
-#        print x,y
-#
-#1
-#if (2<3):
-if (ProjectParameters.CreateParticlesOption ):
-    for i in my_range_x(0, 340, 20):
-        print i
-        creator_destructor.ElementCreator(balls_model_part, 10000+i, 60000+10*i, 1.25 * math.sin(i * math.pi / 180), 1.25 * math.cos(i * math.pi/ 180), 2.0)
-#for x in my_range_x(0.4, 1.6, 0.2):
-#    for y in my_range_y(0.8, 1.3, 0.4):
-#        creator_destructor.elementcreator(balls_model_part,int(20000+200000*x/y),int(10000+100000*x/y),x,y)
-#        print x,y
-#
-#Z=2.0
-#Z=1.5
-
-#for node in balls_model_part.Nodes:
-#    print node.Id
-#for element in balls_model_part.Elements:
-#    print element.Id
 
 #balls_model_part.SetBufferSize(3)
 DEM_solver = SolverStrategy.ExplicitStrategy(balls_model_part, creator_destructor, DEM_parameters)
 DEM_proc.GiDSolverTransfer(balls_model_part, DEM_solver, DEM_parameters)
 DEM_solver.Initialize()
 
+def my_time_dem(time_dem_initial, time_final, Dt_DEM):
+    while time_dem_initial < time_final:
+        yield time_dem_initial
+        time_dem_initial += Dt_DEM
+
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 while(time <= final_time):
+    
+    if(step < 3):
+        Dt = initial_Dt
 
-    time = time + Dt
-    step = step + 1
+    else:
+        Dt = full_Dt
+        
+    step     = step + 1
+    time     = time + Dt
+    time_dem = time
     fluid_model_part.CloneTimeStep(time)
-    balls_model_part.CloneTimeStep(time) #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-    print "STEP = ", step
-    print "TIME = ", time
-    balls_model_part.ProcessInfo[TIME_STEPS] = step #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+
+    if(step < 3):
+        balls_model_part.CloneTimeStep(time)
 
     if(step >= 3):
         
@@ -350,10 +325,22 @@ while(time <= final_time):
         interaction_calculator.pressuregradientcalculator(fluid_model_part)
 
         if (time > ProjectParameters.Interaction_start_time):
+            time_final = time + Dt
+            Dt_DEM     = DEM_parameters.MaxTimeStep
+                    
+            for time_dem in my_time_dem(time, time_final, Dt_DEM):
+
+                if (ProjectParameters.ProjectionModuleOption):
+                    alpha = (time_dem - time) / Dt
+                    projection_module.ProjectFromFluid(alpha)
+                
+                balls_model_part.CloneTimeStep(time_dem)
+                DEM_solver.Solve()
 
             if (ProjectParameters.ProjectionModuleOption):
-                projection_module.ProjectFromFluid()
-            print "........................................SOLVING DEM"
+                alpha = (time_dem - time) / Dt
+                projection_module.ProjectFromFluid(alpha)
+                
             DEM_solver.Solve()
 
             if (ProjectParameters.ProjectionModuleOption):
@@ -363,9 +350,9 @@ while(time <= final_time):
                     projection_module.ProjectFromParticles()
 
         if (ProjectParameters.PrintParticlesResultsOption):
-            print_particles_results=PrintParticlesResults("DRAG_FORCE",time,balls_model_part)
-            print_particles_results=PrintParticlesResults("BUOYANCY",time,balls_model_part)
-            print_particles_results=PrintParticlesResults("VELOCITY",time,balls_model_part)
+            print_particles_results = PrintParticlesResults("DRAG_FORCE", time, balls_model_part)
+            print_particles_results = PrintParticlesResults("BUOYANCY", time, balls_model_part)
+            print_particles_results = PrintParticlesResults("VELOCITY", time, balls_model_part)
 
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
