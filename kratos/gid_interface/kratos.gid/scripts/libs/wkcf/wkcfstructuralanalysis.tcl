@@ -1326,7 +1326,9 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 
     # kratos key word xpath
     set kwxpath "Applications/$AppId"
-    
+   
+    set cproperty "dv"
+ 
     set domain_size 2
     if {$ndime =="2D"} {
 	set domain_size 2
@@ -1340,8 +1342,20 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     puts $fileid ""
     puts $fileid "#Problem Data"
     puts $fileid "#################################################"
+    puts $fileid ""
     puts $fileid "ProblemType = \"Mechanical\""
 
+    # Number of threads
+    set cxpath "$AppId//c.SolutionStrategy//c.ParallelType//i.ParallelSolutionType"
+    set ParallelType [::xmlutils::setXml $cxpath $cproperty]
+    if {$ParallelType =="OpenMP"} {
+	# Number of Steps
+	set cxpath "$AppId//c.SolutionStrategy//c.ParallelType//i.OpenMPNumberOfThreads"
+	set NumberOfThreads [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "NumberofThreads = $NumberOfThreads"
+    } else {
+	puts $fileid "NumberofThreads = 1"
+    }
 
     # Check for use shell elements
     set usenbst "No"
@@ -1366,10 +1380,85 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 	}
     }
 
+
+    # Solution method
+    set cxpath "$AppId//c.AnalysisData//i.AnalysisType"
+    set AnalysisType [::xmlutils::setXml $cxpath $cproperty]
+    if {$AnalysisType =="Non-Linear"} {
+
+	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.SolutionMethod"
+	set SolutionMethod [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "Solution_method = \"$SolutionMethod\""
+
+    } else {
+
+	puts $fileid "Solution_method = \"Newton-Raphson\""
+    }
+   
+
+    # Solution type
+    set cxpath "$AppId//c.AnalysisData//i.SolutionType"
+    set SolutionType [::xmlutils::setXml $cxpath $cproperty]
+    # WarnWinText "SolverType:$SolutionType"
+    if {$SolutionType =="Dynamic"} {
+
+	puts $fileid "SolverType = \"DynamicSolver\""
+
+	# Delta time
+	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.DeltaTime"
+	set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "time_step = $DeltaTime"        
+
+	# Number of Steps
+	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.EndTime"
+	set EndTime [::xmlutils::setXml $cxpath $cproperty]
+	set NumberOfSteps [expr int(double($EndTime)/double($DeltaTime))]
+	puts $fileid "nsteps    = $NumberOfSteps"
+	
+    } elseif {$SolutionType =="Quasi-Static"} {
+
+	puts $fileid "SolverType = \"QuasiStaticSolver\""
+
+	# Delta time
+	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.DeltaTime"
+	set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "time_step = $DeltaTime"        
+
+	# Number of Steps
+	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.EndTime"
+	set EndTime [::xmlutils::setXml $cxpath $cproperty]
+	set NumberOfSteps [expr int(double($EndTime)/double($DeltaTime))]
+	puts $fileid "nsteps    = $NumberOfSteps"
+
+    } elseif {$SolutionType =="PseudoDynamic"} {
+
+	puts $fileid "SolverType = \"PseudoDynamicSolver\""
+
+	# Delta time
+	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.DeltaTime"
+	set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
+	puts $fileid "time_step = $DeltaTime"        
+
+	# Number of Steps
+	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.EndTime"
+	set EndTime [::xmlutils::setXml $cxpath $cproperty]
+	set NumberOfSteps [expr int(double($EndTime)/double($DeltaTime))]
+	puts $fileid "nsteps    = $NumberOfSteps"
+
+    } elseif {$SolutionType =="Static"} {
+	puts $fileid "SolverType = \"StaticSolver\""
+	puts $fileid "time_step = 1"        
+	puts $fileid "nsteps    = 1"
+
+    }
+
+    puts $fileid ""
+    puts $fileid "#Solver Data"
+    puts $fileid "#################################################"
+
     set trailing_spaces  "    "
     # Structural solver configuration ********************** 
     puts $fileid ""
-    puts $fileid "# Structural solver configuration"
     puts $fileid "class SolverSettings:"
     puts $fileid "${trailing_spaces}solver_type = \"mechanical_solver\""    
     puts $fileid "${trailing_spaces}domain_size = $domain_size"
@@ -1461,231 +1550,145 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     # Structural solver configuration ********************** 
 
 
-    # Solution method
-    set cxpath "$AppId//c.AnalysisData//i.AnalysisType"
-    set cproperty "dv"
-    set AnalysisType [::xmlutils::setXml $cxpath $cproperty]
-    if {$AnalysisType =="Non-Linear"} {
+    # puts $fileid "LineSearch = \"False\""
+    # #puts $fileid "FindNodalNeighbours = \"False\""
 
-	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.SolutionMethod"
-	set SolutionMethod [::xmlutils::setXml $cxpath $cproperty]
-	puts $fileid "Solution_method = \"$SolutionMethod\""
+    # if {$usenbst =="Yes"} {
+    # 	#puts $fileid "FindElementalNeighbours = \"True\""
+    # } else {
+    # 	#puts $fileid "FindElementalNeighbours = \"False\""
+    # }
+    # if {($useshells eq "Yes")||($usebeams eq "Yes")} {
+    # 	puts $fileid "Rotational_Dofs = \"True\""
+    # } else {
+    # 	puts $fileid "Rotational_Dofs = \"False\""
+    # }
 
-    } else {
 
-	puts $fileid "Solution_method = \"Newton-Raphson\""
-    }
-   
 
-    # Solution type
-    set cxpath "$AppId//c.AnalysisData//i.SolutionType"
-    set SolutionType [::xmlutils::setXml $cxpath $cproperty]
-    # WarnWinText "SolverType:$SolutionType"
-    if {$SolutionType =="Dynamic"} {
+    # puts $fileid ""
+    # puts $fileid "#Solver Data"
+    # puts $fileid "#################################################"
 
-	puts $fileid "SolverType = \"DynamicSolver\""
+    # # Linear Solver type
 
-	# Delta time
-	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.DeltaTime"
-	set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
-	puts $fileid "time_step = $DeltaTime"        
+    # set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.LinearSolverType"
+    # set LinearSolverType [::xmlutils::setXml $cxpath $cproperty]
+    # if {$LinearSolverType =="Direct"} {
 
-	# Number of Steps
-	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.EndTime"
-	set EndTime [::xmlutils::setXml $cxpath $cproperty]
-	set NumberOfSteps [expr int(double($EndTime)/double($DeltaTime))]
-	puts $fileid "nsteps    = $NumberOfSteps"
+    # 	# Direct solver type
+    # 	set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.DirectSolverType"
+    # 	set solvertype [::xmlutils::setXml $cxpath $cproperty]
+    # 	set DirectSolverType [::xmlutils::getKKWord $kwxpath $solvertype]
+    # 	puts $fileid "LinearSolver = \"$DirectSolverType\""
+
+    # 	puts $fileid "Linear_Solver_Tolerance = 1.0E-6"
+    # 	puts $fileid "Linear_Solver_Max_Iteration = 5000"
+
+
+    # } elseif {$LinearSolverType =="Iterative"} {
+
+    # 	# Iterative solver type        
+    # 	set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.IterativeSolverType"
+    # 	set solvertype [::xmlutils::setXml $cxpath $cproperty]
+    # 	set IterativeSolverType [::xmlutils::getKKWord $kwxpath $solvertype]
+    # 	puts $fileid "LinearSolver = \"$IterativeSolverType\""
+
+    # 	# Tolerance
+    # 	set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.Tolerance"
+    # 	set Tolerance [::xmlutils::setXml $cxpath $cproperty]
+    # 	puts $fileid "Linear_Solver_Tolerance = $Tolerance"
 	
-    } elseif {$SolutionType =="Quasi-Static"} {
-
-	puts $fileid "SolverType = \"QuasiStaticSolver\""
-
-	# Delta time
-	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.DeltaTime"
-	set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
-	puts $fileid "time_step = $DeltaTime"        
-
-	# Number of Steps
-	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.EndTime"
-	set EndTime [::xmlutils::setXml $cxpath $cproperty]
-	set NumberOfSteps [expr int(double($EndTime)/double($DeltaTime))]
-	puts $fileid "nsteps    = $NumberOfSteps"
-
-    } elseif {$SolutionType =="PseudoDynamic"} {
-
-	puts $fileid "SolverType = \"PseudoDynamicSolver\""
-
-	# Delta time
-	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.DeltaTime"
-	set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
-	puts $fileid "time_step = $DeltaTime"        
-
-	# Number of Steps
-	set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.EndTime"
-	set EndTime [::xmlutils::setXml $cxpath $cproperty]
-	set NumberOfSteps [expr int(double($EndTime)/double($DeltaTime))]
-	puts $fileid "nsteps    = $NumberOfSteps"
-
-    } elseif {$SolutionType =="Static"} {
-	puts $fileid "SolverType = \"StaticSolver\""
-	puts $fileid "time_step = 1"        
-	puts $fileid "nsteps    = 1"
-
-    }
-
-
-    puts $fileid "LineSearch = \"False\""
-    
-    # Number of threads
-    set cxpath "$AppId//c.SolutionStrategy//c.ParallelType//i.ParallelSolutionType"
-    set ParallelType [::xmlutils::setXml $cxpath $cproperty]
-    if {$ParallelType =="OpenMP"} {
-	# Number of Steps
-	set cxpath "$AppId//c.SolutionStrategy//c.ParallelType//i.OpenMPNumberOfThreads"
-	set NumberOfThreads [::xmlutils::setXml $cxpath $cproperty]
-	puts $fileid "NumberofThreads = $NumberOfThreads"
-    } else {
-	puts $fileid "NumberofThreads = 1"
-    }
-
-
-    #puts $fileid "FindNodalNeighbours = \"False\""
-
-    if {$usenbst =="Yes"} {
-	#puts $fileid "FindElementalNeighbours = \"True\""
-    } else {
-	#puts $fileid "FindElementalNeighbours = \"False\""
-    }
-    if {($useshells eq "Yes")||($usebeams eq "Yes")} {
-	puts $fileid "Rotational_Dofs = \"True\""
-    } else {
-	puts $fileid "Rotational_Dofs = \"False\""
-    }
-
-
-
-    puts $fileid ""
-    puts $fileid "#Solver Data"
-    puts $fileid "#################################################"
-
-    # Linear Solver type
-
-    set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.LinearSolverType"
-    set LinearSolverType [::xmlutils::setXml $cxpath $cproperty]
-    if {$LinearSolverType =="Direct"} {
-
-	# Direct solver type
-	set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.DirectSolverType"
-	set solvertype [::xmlutils::setXml $cxpath $cproperty]
-	set DirectSolverType [::xmlutils::getKKWord $kwxpath $solvertype]
-	puts $fileid "LinearSolver = \"$DirectSolverType\""
-
-	puts $fileid "Linear_Solver_Tolerance = 1.0E-6"
-	puts $fileid "Linear_Solver_Max_Iteration = 5000"
-
-
-    } elseif {$LinearSolverType =="Iterative"} {
-
-	# Iterative solver type        
-	set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.IterativeSolverType"
-	set solvertype [::xmlutils::setXml $cxpath $cproperty]
-	set IterativeSolverType [::xmlutils::getKKWord $kwxpath $solvertype]
-	puts $fileid "LinearSolver = \"$IterativeSolverType\""
-
-	# Tolerance
-	set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.Tolerance"
-	set Tolerance [::xmlutils::setXml $cxpath $cproperty]
-	puts $fileid "Linear_Solver_Tolerance = $Tolerance"
-	
-	# Maximum iteration
-	set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.MaximumIteration"
-	set MaximumIteration [::xmlutils::setXml $cxpath $cproperty]
+    # 	# Maximum iteration
+    # 	set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.MaximumIteration"
+    # 	set MaximumIteration [::xmlutils::setXml $cxpath $cproperty]
    
-	puts $fileid "Linear_Solver_Max_Iteration = $MaximumIteration"
+    # 	puts $fileid "Linear_Solver_Max_Iteration = $MaximumIteration"
 
-    }
+    # }
 
 
     
-    # Analysis type
-    set cxpath "$AppId//c.AnalysisData//i.AnalysisType"
-    set cproperty "dv"
-    set AnalysisType [::xmlutils::setXml $cxpath $cproperty]
-    # WarnWinText "AnalysisType:$AnalysisType"
-    if {$AnalysisType =="Non-Linear"} {
-	# Convergence criteria
-	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.ConvergenceCriteria"
-	set ConvergenceCriteria [::xmlutils::setXml $cxpath $cproperty]
-	# Residual convergence tolerance
-	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.ResidualConvergenceTolerance"
-	set ResidualConvergenceTolerance [::xmlutils::setXml $cxpath $cproperty]
-	# Residual absolute tolerance
-	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.ResidualAbsoluteTolerance"
-	set ResidualAbsoluteTolerance [::xmlutils::setXml $cxpath $cproperty]
-	# Displacement convergence tolerance
-	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.DisplacementConvergenceTolerance"
-	set DisplacementConvergenceTolerance [::xmlutils::setXml $cxpath $cproperty]
-	# Displacement absolute tolerance
-	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.DisplacementAbsoluteTolerance"
-	set DisplacementAbsoluteTolerance [::xmlutils::setXml $cxpath $cproperty]
-	# Maximum iterations
-	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.MaximumIterations"
-	set MaximumIterations [::xmlutils::setXml $cxpath $cproperty]
+    # # Analysis type
+    # set cxpath "$AppId//c.AnalysisData//i.AnalysisType"
+    # set cproperty "dv"
+    # set AnalysisType [::xmlutils::setXml $cxpath $cproperty]
+    # # WarnWinText "AnalysisType:$AnalysisType"
+    # if {$AnalysisType =="Non-Linear"} {
+    # 	# Convergence criteria
+    # 	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.ConvergenceCriteria"
+    # 	set ConvergenceCriteria [::xmlutils::setXml $cxpath $cproperty]
+    # 	# Residual convergence tolerance
+    # 	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.ResidualConvergenceTolerance"
+    # 	set ResidualConvergenceTolerance [::xmlutils::setXml $cxpath $cproperty]
+    # 	# Residual absolute tolerance
+    # 	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.ResidualAbsoluteTolerance"
+    # 	set ResidualAbsoluteTolerance [::xmlutils::setXml $cxpath $cproperty]
+    # 	# Displacement convergence tolerance
+    # 	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.DisplacementConvergenceTolerance"
+    # 	set DisplacementConvergenceTolerance [::xmlutils::setXml $cxpath $cproperty]
+    # 	# Displacement absolute tolerance
+    # 	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.DisplacementAbsoluteTolerance"
+    # 	set DisplacementAbsoluteTolerance [::xmlutils::setXml $cxpath $cproperty]
+    # 	# Maximum iterations
+    # 	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.MaximumIterations"
+    # 	set MaximumIterations [::xmlutils::setXml $cxpath $cproperty]
 
-	switch -exact -- $ConvergenceCriteria {
-	    "Displacement" {
-		puts $fileid "Convergence_Criteria = \"Displacement_criteria\""
-		puts $fileid "Convergence_Tolerance = $DisplacementConvergenceTolerance"
-		puts $fileid "Absolute_Tolerance = $DisplacementAbsoluteTolerance"
-		# puts $fileid "Displacement_Convergence_Tolerance = $DisplacementConvergenceTolerance"
-		# puts $fileid "Displacement_Absolute_Tolerance = $DisplacementAbsoluteTolerance"
-		# puts $fileid "Residual_Convergence_Tolerance = $ResidualConvergenceTolerance"
-		# puts $fileid "Residual_Absolute_Tolerance = $ResidualAbsoluteTolerance"
-	    }
-	    "Residual" {
-		puts $fileid "Convergence_Criteria = \"Residual_criteria\""
-		puts $fileid "Convergence_Tolerance = $ResidualConvergenceTolerance"
-		puts $fileid "Absolute_Tolerance = $ResidualAbsoluteTolerance"
-		# puts $fileid "Residual_Convergence_Tolerance = $ResidualConvergenceTolerance"
-		# puts $fileid "Residual_Absolute_Tolerance = $ResidualAbsoluteTolerance"
-		# puts $fileid "Displacement_Convergence_Tolerance = $DisplacementConvergenceTolerance"
-		# puts $fileid "Displacement_Absolute_Tolerance = $DisplacementAbsoluteTolerance"
-	    }
-	    "DisplacementAndResidual" {
-		puts $fileid "Convergence_Criteria = \"And_criteria\""
-		puts $fileid "Convergence_Tolerance = $ResidualConvergenceTolerance"
-		puts $fileid "Absolute_Tolerance = $ResidualAbsoluteTolerance"
-		# puts $fileid "Residual_Convergence_Tolerance = $ResidualConvergenceTolerance"
-		# puts $fileid "Residual_Absolute_Tolerance = $ResidualAbsoluteTolerance"
-		# puts $fileid "Displacement_Convergence_Tolerance = $DisplacementConvergenceTolerance"
-		# puts $fileid "Displacement_Absolute_Tolerance = $DisplacementAbsoluteTolerance"
-	    }
-	    "DisplacementOrResidual" {
-		puts $fileid "Convergence_Criteria = \"Or_criteria\""
-		puts $fileid "Convergence_Tolerance = $ResidualConvergenceTolerance"
-		puts $fileid "Absolute_Tolerance = $ResidualAbsoluteTolerance"
-		# puts $fileid "Residual_Convergence_Tolerance = $ResidualConvergenceTolerance"
-		# puts $fileid "Residual_Absolute_Tolerance = $ResidualAbsoluteTolerance"
-		# puts $fileid "Displacement_Convergence_Tolerance = $DisplacementConvergenceTolerance"
-		# puts $fileid "Displacement_Absolute_Tolerance = $DisplacementAbsoluteTolerance"
-	    }
-	}
-	puts $fileid "Max_Iter = $MaximumIterations"
+    # 	switch -exact -- $ConvergenceCriteria {
+    # 	    "Displacement" {
+    # 		puts $fileid "Convergence_Criteria = \"Displacement_criteria\""
+    # 		puts $fileid "Convergence_Tolerance = $DisplacementConvergenceTolerance"
+    # 		puts $fileid "Absolute_Tolerance = $DisplacementAbsoluteTolerance"
+    # 		# puts $fileid "Displacement_Convergence_Tolerance = $DisplacementConvergenceTolerance"
+    # 		# puts $fileid "Displacement_Absolute_Tolerance = $DisplacementAbsoluteTolerance"
+    # 		# puts $fileid "Residual_Convergence_Tolerance = $ResidualConvergenceTolerance"
+    # 		# puts $fileid "Residual_Absolute_Tolerance = $ResidualAbsoluteTolerance"
+    # 	    }
+    # 	    "Residual" {
+    # 		puts $fileid "Convergence_Criteria = \"Residual_criteria\""
+    # 		puts $fileid "Convergence_Tolerance = $ResidualConvergenceTolerance"
+    # 		puts $fileid "Absolute_Tolerance = $ResidualAbsoluteTolerance"
+    # 		# puts $fileid "Residual_Convergence_Tolerance = $ResidualConvergenceTolerance"
+    # 		# puts $fileid "Residual_Absolute_Tolerance = $ResidualAbsoluteTolerance"
+    # 		# puts $fileid "Displacement_Convergence_Tolerance = $DisplacementConvergenceTolerance"
+    # 		# puts $fileid "Displacement_Absolute_Tolerance = $DisplacementAbsoluteTolerance"
+    # 	    }
+    # 	    "DisplacementAndResidual" {
+    # 		puts $fileid "Convergence_Criteria = \"And_criteria\""
+    # 		puts $fileid "Convergence_Tolerance = $ResidualConvergenceTolerance"
+    # 		puts $fileid "Absolute_Tolerance = $ResidualAbsoluteTolerance"
+    # 		# puts $fileid "Residual_Convergence_Tolerance = $ResidualConvergenceTolerance"
+    # 		# puts $fileid "Residual_Absolute_Tolerance = $ResidualAbsoluteTolerance"
+    # 		# puts $fileid "Displacement_Convergence_Tolerance = $DisplacementConvergenceTolerance"
+    # 		# puts $fileid "Displacement_Absolute_Tolerance = $DisplacementAbsoluteTolerance"
+    # 	    }
+    # 	    "DisplacementOrResidual" {
+    # 		puts $fileid "Convergence_Criteria = \"Or_criteria\""
+    # 		puts $fileid "Convergence_Tolerance = $ResidualConvergenceTolerance"
+    # 		puts $fileid "Absolute_Tolerance = $ResidualAbsoluteTolerance"
+    # 		# puts $fileid "Residual_Convergence_Tolerance = $ResidualConvergenceTolerance"
+    # 		# puts $fileid "Residual_Absolute_Tolerance = $ResidualAbsoluteTolerance"
+    # 		# puts $fileid "Displacement_Convergence_Tolerance = $DisplacementConvergenceTolerance"
+    # 		# puts $fileid "Displacement_Absolute_Tolerance = $DisplacementAbsoluteTolerance"
+    # 	    }
+    # 	}
+    # 	puts $fileid "Max_Iter = $MaximumIterations"
 
 
-	# WarnWinText "SolutionMethod:$SolutionMethod ConvergenceCriteria:$ConvergenceCriteria ConvergenceTolerance:$ConvergenceTolerance AbsoluteTolerance:$AbsoluteTolerance MaximumIterations:$MaximumIterations"
-	#END NON LINEAR
-    } elseif {$AnalysisType =="Linear"} {
+    # 	# WarnWinText "SolutionMethod:$SolutionMethod ConvergenceCriteria:$ConvergenceCriteria ConvergenceTolerance:$ConvergenceTolerance AbsoluteTolerance:$AbsoluteTolerance MaximumIterations:$MaximumIterations"
+    # 	#END NON LINEAR
+    # } elseif {$AnalysisType =="Linear"} {
 
-	puts $fileid "Convergence_Criteria  = \"Residual_criteria\""
-	puts $fileid "Convergence_Tolerance = 1.0E-4"
-	puts $fileid "Absolute_Tolerance    = 1.0E-9"
-	puts $fileid "Max_Iter = 10"
-    }
+    # 	puts $fileid "Convergence_Criteria  = \"Residual_criteria\""
+    # 	puts $fileid "Convergence_Tolerance = 1.0E-4"
+    # 	puts $fileid "Absolute_Tolerance    = 1.0E-9"
+    # 	puts $fileid "Max_Iter = 10"
+    # }
 
     puts $fileid ""
     puts $fileid "#Constraints Data"
     puts $fileid "#################################################"
+    puts $fileid ""
     # Incremental Load
     if {($SolutionType =="Dynamic")||($SolutionType =="Quasi-Static")||($SolutionType =="Pseudo-Dynamic")} {
 
@@ -1715,13 +1718,11 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     puts $fileid ""
     puts $fileid "#PostProcess Data"
     puts $fileid "#################################################"
-
-    puts $fileid "echo_level = 1"
-    
+    puts $fileid ""   
     # For results
  
     # On nodes results
-    set cnrlist [list "Displacements" "Rotations" "Reactions" "Loads"]
+    set cnrlist [list "Displacements" "Velocities" "Accelerations" "Rotations" "Reactions" "Forces"]
     set nodal_results "nodal_results=\["
     foreach cnr $cnrlist {
 	set cxpath "$AppId//c.Results//c.OnNodes//i.[list ${cnr}]"
@@ -1741,7 +1742,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     # WarnWinText "nodal_results:$nodal_results"
 
     # On Gauss point results
-    set cgrlist [list "StrainTensor" "StressTensor" "VonMisses" "BeamMoments" "BeamForces"]
+    set cgrlist [list "StrainTensor" "StressTensor" "VonMises" "BeamMoments" "BeamForces"]
     set gauss_points_results "gauss_points_results=\["
     foreach cgr $cgrlist {
 	set cxpath "$AppId//c.Results//c.OnGaussPoints//i.[list ${cgr}]"
@@ -1761,16 +1762,23 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     # WarnWinText "gauss_points_results:$gauss_points_results"
 
     # GiD post mode variables
-    ::wkcf::WriteGiDPostMode $AppId $fileid 
-
-    puts $fileid "GiDWriteParticlesFlag = \"False\""
+    #::wkcf::WriteGiDPostMode $AppId $fileid 
+    ::wkcf::WriteGiDPostModeNew $AppId $fileid 
+    puts $fileid "${trailing_spaces}GiDWriteFrequency = 1"
+    puts $fileid ""
     puts $fileid "WriteResults = \"PreMeshing\""
-    puts $fileid "WriteFrequency = 1"
+    puts $fileid "echo_level = 1"
+    puts $fileid ""
+    puts $fileid "# graph_options"
     puts $fileid "PlotGraphs = \"False\"" 
     puts $fileid "PlotFrequency = 0 " 
+    puts $fileid ""
+    puts $fileid "# list options"
     puts $fileid "PrintLists = \"False\""
     puts $fileid "number_of_lists = 0"
     puts $fileid "file_list = \[\] "
+    puts $fileid ""
+    puts $fileid "# restart options"
     puts $fileid "SaveRestart = \"False\""
     puts $fileid "Restart_Interval = 0"
     puts $fileid "LoadRestart = \"False\""
@@ -1794,6 +1802,43 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     # puts $fileid "kratos_path=\"${KratosPath}\"" 
 	
 }
+
+
+
+proc ::wkcf::WriteGiDPostModeNew {AppId fileid} {
+    # Write the GiD post mode variables for each applications
+    
+    # kratos key word xpath
+    set kwxpath "Applications/$AppId"
+
+    puts $fileid ""
+    set trailing_spaces  "    "
+    puts $fileid "# GiD output configuration"
+    puts $fileid "class GidOutputConfiguration:"
+     # Gid results
+    set gidrlist [list "GiDPostMode" "GiDWriteMeshFlag" "GiDWriteConditionsFlag" "GiDWriteParticlesFlag" "GiDMultiFileFlag"]
+    foreach gidr $gidrlist {
+        # Get the value
+        set cxpath "$AppId//c.Results//c.GiDOptions//i.[list ${gidr}]"
+        set cproperty "dv"
+        set cvalue [::xmlutils::setXml $cxpath $cproperty]
+        # Get the kratos keyword
+        set gidrkw [::xmlutils::getKKWord $kwxpath $gidr]
+        # WarnWinText "gidr:$gidr cvalue:$cvalue gidrkw:$gidrkw"
+        if {($gidr=="GiDWriteMeshFlag") || ($gidr=="GiDWriteConditionsFlag") || ($gidr=="GiDWriteParticlesFlag")} {
+            if {$cvalue =="Yes"} {
+              set cvalue True
+            } else {
+              set cvalue False
+            }
+            puts $fileid "${trailing_spaces}$gidrkw = $cvalue"
+        } else {
+            puts $fileid "${trailing_spaces}$gidrkw = \"$cvalue\""
+        }
+    }
+}
+
+
 
 proc ::wkcf::WriteLinearSolver {rootid fileid trailing_spaces config_name} {
     # Write linear solver with a config_name
@@ -1834,7 +1879,6 @@ proc ::wkcf::WriteLinearSolver {rootid fileid trailing_spaces config_name} {
 	puts $fileid "${trailing_spaces}    solver_type = \"$IterativeSolverType\""
 	puts $fileid "${trailing_spaces}    tolerance = $Tolerance"
 	puts $fileid "${trailing_spaces}    max_iteration = $MaximumIteration"
-	puts $fileid "${trailing_spaces}    preconditioner_type = \"$precond\""
 	puts $fileid "${trailing_spaces}    scaling = False"
 	puts $fileid "${trailing_spaces}    verbosity = 0"
 

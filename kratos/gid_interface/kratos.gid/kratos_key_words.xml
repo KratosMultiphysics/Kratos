@@ -68,12 +68,15 @@
       <Item id="PositivePressure" kkword="POSITIVE_FACE_PRESSURE" />
       <Item id="NegativePressure" kkword="NEGATIVE_FACE_PRESSURE" />
       <Item id="Displacements" kkword="DISPLACEMENT" />
-      <Item id="Forces" kkword="FORCES_EXTERNAL" />
+      <Item id="Velocities" kkword="VELOCITY" />
+      <Item id="Accelerations" kkword="ACCELERATION" />
+      <Item id="Forces" kkword="FORCE_EXTERNAL" />
       <Item id="Reactions" kkword="REACTION" />
       <Item id="StrainTensor" kkword="GREEN_LAGRANGE_STRAIN_TENSOR" />
       <Item id="Rotations" kkword="ROTATION" />
       <Item id="BeamMoments" kkword="MOMENT" />
       <Item id="BeamForces" kkword="FORCE" />
+      <Item id="VonMises" kkword="VON_MISES_STRESS" />
       <Item id="StressTensor" kkword="CAUCHY_STRESS_TENSOR" />
       <Item id="SkylineLUFactorization" kkword="Skyline LU factorization" />
       <Item id="SuperLU" kkword="Super LU" />
@@ -94,6 +97,7 @@
       <Item id="GiDPostMode" kkword="GiDPostMode" />
       <Item id="GiDWriteMeshFlag" kkword="GiDWriteMeshFlag" />
       <Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
+      <Item id="GiDWriteParticlesFlag" kkword="GiDWriteParticlesFlag" />
       <Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
       <Item id="Area" kkword="CROSS_AREA" />
       <Item id="LocalInertia" kkword="LOCAL_INERTIA" />
@@ -526,9 +530,9 @@
     </HardeningLaw>
     <YieldCriteria>
       <Item id="AvailableYieldCriteria"
-      ycivalues="VonMisses,Mohr-Coulomb"
+      ycivalues="VonMises,Mohr-Coulomb"
       ycwritev="VonMisesHuberYieldCriterion(),MorhCoulombYieldCriterion()" />
-      <Item id="VonMisses"
+      <Item id="VonMises"
       privalues="YieldStress"
       prxpath="c.Structural//c.ElastoPlastic" />
       <Item id="Mohr-Coulomb"
