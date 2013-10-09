@@ -121,7 +121,6 @@ namespace Kratos
       }
       */
       
-
       ///@}
       ///@name Operators 
       ///@{
