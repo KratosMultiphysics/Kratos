@@ -215,6 +215,7 @@ public:
                 node_it != rFluid_ModelPart.NodesEnd(); ++node_it)
         {
             ClearVariables(node_it, DRAG_REACTION);
+            ClearVariables(node_it, SOLID_FRACTION);
         }
 
 
@@ -241,6 +242,13 @@ public:
                     }
                     else {
                         Transfer(pelement, N, pparticle, DRAG_REACTION, DRAG_FORCE);
+                        Geometry< Node<3> >& geom = pelement->GetGeometry();
+                        double element_volume_inv     = 1 / CalculateVol(geom[0][0], geom[0][1], geom[0][2],
+                                                                 geom[1][0], geom[1][1], geom[1][2],
+                                                                 geom[2][0], geom[2][1], geom[2][2],
+                                                                 geom[3][0], geom[3][1], geom[3][2]);
+
+                        CalculateNodalSolidFraction(pelement, N, element_volume_inv, pparticle);
                     }
                 }
             }
@@ -751,6 +759,34 @@ private:
 // 			pnode->GetValue(IS_VISITED) = 1.0;
 
     }
+
+    void CalculateNodalSolidFraction(Element::Pointer el_it, const array_1d<double,4>& N, double elem_volume_inv, Node<3>::Pointer pnode)
+
+    {
+        //Geometry element of the rOrigin_ModelPart
+        Geometry< Node<3> >& geom = el_it->GetGeometry();
+
+        //getting the data of the solution step
+        double& radius                 = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
+        double particle_volume         = 1.33333333333333333333 * M_PI * radius * radius * radius;
+        double solid_frac_contribution = particle_volume * elem_volume_inv;
+        double& node0_data = geom[0].FastGetSolutionStepValue(SOLID_FRACTION, 0);
+        double& node1_data = geom[1].FastGetSolutionStepValue(SOLID_FRACTION, 0);
+        double& node2_data = geom[2].FastGetSolutionStepValue(SOLID_FRACTION, 0);
+        double& node3_data = geom[3].FastGetSolutionStepValue(SOLID_FRACTION, 0);
+
+        //copying this data in the position of the vector we are interested in
+        for (unsigned int j= 0; j< TDim; j++)
+        {
+            node0_data += N[0] * solid_frac_contribution;
+            node1_data += N[1] * solid_frac_contribution;
+            node2_data += N[2] * solid_frac_contribution;
+            node3_data += N[3] * solid_frac_contribution;
+        }
+
+    }
+
+
     inline void Clear(ModelPart::NodesContainerType::iterator node_it,  int step_data_size )
     {
         unsigned int buffer_size = node_it->GetBufferSize();
