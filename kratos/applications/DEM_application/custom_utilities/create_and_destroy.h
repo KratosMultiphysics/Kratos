@@ -94,7 +94,7 @@ public:
       pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);      //ACTUAL node creation and addition to model part
 
       pnew_node->FastGetSolutionStepValue(RADIUS) = params[RADIUS];      
-      pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY) = params[DENSITY];
+      pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY) = params[PARTICLE_DENSITY];
       pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS) = params[YOUNG_MODULUS];
       pnew_node->FastGetSolutionStepValue(POISSON_RATIO) = params[POISSON_RATIO];
       pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
@@ -103,7 +103,7 @@ public:
       pnew_node->FastGetSolutionStepValue(VELOCITY_Z) = params[VELOCITY][2];
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;   
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;                                 
       
       ///DOFS
       pnew_node->AddDof(DISPLACEMENT_X, REACTION_X);
@@ -118,8 +118,7 @@ public:
       
       pnew_node->pGetDof(VELOCITY_X)->FixDof();
       pnew_node->pGetDof(VELOCITY_Y)->FixDof();
-      pnew_node->pGetDof(VELOCITY_Z)->FixDof();      
-      pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
+      pnew_node->pGetDof(VELOCITY_Z)->FixDof();           
       pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
       pnew_node->pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
       pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
@@ -139,9 +138,9 @@ public:
       
       nodelist.push_back(pnew_node);
 
-      Element::Pointer p_swimming_particle = Element::Pointer(new SphericSwimmingParticle(r_Elem_Id, nodelist)); 
+      Element::Pointer p_particle = Element::Pointer(new /*SphericSwimmingParticle*/SphericParticle(r_Elem_Id, nodelist)); 
       
-      r_modelpart.Elements().push_back(p_swimming_particle); 
+      r_modelpart.Elements().push_back(p_particle); 
            
     }
 
@@ -149,29 +148,32 @@ public:
 
     //SALVA
     //MA
-    void ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart, int r_Elem_Id, Node < 3 > ::Pointer reference_node, Properties& params, bool block=false) {          
+    //template <class DEMElementType>
+    void ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart, int r_Elem_Id, Node < 3 > ::Pointer reference_node, 
+                                              Properties & r_params, const Element& r_reference_element, bool block=false) {          
         
       Node < 3 > ::Pointer pnew_node;
       
-      NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node->X(), reference_node->Y(), reference_node->Z() //THE ID IS WRONG
-                                        /*radius, sphericity, density,  
-                                        rest_coeff, fric_angle,
-                                        roll_fric, rot_damp_ratio, color,
-                                        velX,  velY, velZ  */, params); 
+      
+      NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node->X(), reference_node->Y(), reference_node->Z(), r_params); 
       
       Geometry< Node < 3 > >::PointsArrayType nodelist;
       
       nodelist.push_back(pnew_node);                                        
 
-      Element::Pointer p_swimming_particle = Element::Pointer(new SphericSwimmingParticle(r_Elem_Id, nodelist)); 
+      //Element::Pointer p_particle = Element::Pointer(new /*SphericSwimmingParticle*/DEMElementType(r_Elem_Id, nodelist)); 
       
-      p_swimming_particle->Set(NEW_ENTITY);
-      if(block) p_swimming_particle->Set(BLOCKED);
+      Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_modelpart.pGetProperties(0));
+      
+      p_particle->Set(NEW_ENTITY);
+      if(block) p_particle->Set(BLOCKED);
       
       pnew_node->Set(NEW_ENTITY);
-      if(block) pnew_node->Set(BLOCKED);
+      if(block) pnew_node->Set(BLOCKED);     
       
-      r_modelpart.Elements().push_back(p_swimming_particle);          
+      p_particle->Initialize();
+      
+      r_modelpart.Elements().push_back(p_particle);          
 }    
     //MA
 
@@ -222,39 +224,43 @@ public:
         KRATOS_TRY
 
         //Type definitions
-        Configure::ElementsContainerType::Pointer pElements = r_model_part.pElements();
-        ModelPart::NodesContainerType::Pointer pNodes       = r_model_part.pNodes();
+        typedef ModelPart::ElementsContainerType                          ElementsArrayType;
+        typedef ElementsArrayType::iterator                               ElementsIterator;
+        //Configure::ElementsContainerType::Pointer pElements = r_model_part.pElements();
+        //ModelPart::NodesContainerType::Pointer pNodes       = r_model_part.pNodes();
 
-        Configure::ElementsContainerType& rElements         = r_model_part.Elements();
+        ElementsArrayType& rElements                          = r_model_part.Elements();
         //ModelPart::NodesContainerType& rNodes               = r_model_part.Nodes();
 
-        Configure::ElementsContainerType temp_particles_container;
+        ElementsArrayType temp_particles_container;
         //ModelPart::NodesContainerType temp_nodes_container;
 
         //Copy the elements and clear the element container
-        temp_particles_container.reserve(pElements->size());
+        //temp_particles_container.reserve(pElements->size());
+        ////////////////////////temp_particles_container.reserve(rElements.size());
         //temp_nodes_container.reserve(pNodes->size());
         
-        temp_particles_container.swap(rElements);
+        ///////////////////////temp_particles_container.swap(rElements);
         //temp_nodes_container.swap(rNodes);
 
         //Add the ones inside the bounding box
 
-        for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin(); particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it){
-
+        /*for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin(); particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it){
             bool erase_flag = (0.5 < ((*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG)));
-
             if (!erase_flag){
-               (rElements).push_back(*particle_pointer_it); //adding the elements
-               
-               /*for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++){ //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
-                   ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
-                   (rNodes).push_back(pNode);
-		   }*/
-
+               (rElements).push_back(*particle_pointer_it); //adding the elements                              
 	    }            
 
+        }*/
+        
+        for (ElementsIterator particle_pointer_it = r_model_part.ElementsBegin(); particle_pointer_it != r_model_part.ElementsEnd(); ++particle_pointer_it){
+            bool erase_flag = (0.5 < particle_pointer_it->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG));
+            
+            if (!erase_flag){
+               temp_particles_container.push_back(*(particle_pointer_it.base())); //adding the elements                              
+	    }
         }
+        temp_particles_container.swap(rElements);
 
         KRATOS_CATCH("")
     }
@@ -536,8 +542,13 @@ class DEM_Inlet
 {
 public:        
     
+    typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+    typedef WeakPointerVector<Element> ParticleWeakVectorType; 
+    
+    
     Vector PartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
     ModelPart& InletModelPart; //The model part used to insert elements
+    bool mFirstTime;
     
     /// Constructor:               
     
@@ -556,11 +567,12 @@ public:
          mesh_iterator_number++;
         }                
         
+        mFirstTime=true;
     }
             
     /// Destructor.
     virtual ~DEM_Inlet() {};
-    
+        
     void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator){
         uint max_Id=0; 
 	for (ModelPart::NodesContainerType::iterator node_it = r_modelpart.NodesBegin(); node_it != r_modelpart.NodesEnd(); node_it++){
@@ -580,22 +592,65 @@ public:
             mesh_properties_null_vel[VELOCITY][0]=0.0;
             mesh_properties_null_vel[VELOCITY][1]=0.0;
             mesh_properties_null_vel[VELOCITY][2]=0.0;
-                                              
+            
+            const std::string ElementNameString = std::string("SphericParticle3D");
+               
+            const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
+            
             for (int i = 0; i < mesh_size; i++){                
-                creator.ElementCreatorWithPhysicalParameters(r_modelpart,   max_Id+1, all_nodes[i],  mesh_properties_null_vel,false); 
+                creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, all_nodes[i], mesh_properties_null_vel, r_reference_element, true); 
 		max_Id++;
             }
             
         } //for mesh_it                                               
     } //InitializeDEM_Inlet
         
+    void DettachElementsAndFindMaxId(ModelPart& r_modelpart, uint& max_Id){        
+        
+	for (ModelPart::NodesContainerType::iterator node_it = r_modelpart.NodesBegin(); node_it != r_modelpart.NodesEnd(); node_it++){
+            
+	  if( node_it->Id() > max_Id) max_Id = node_it->Id(); 
+                   
+          if( node_it->IsNot(NEW_ENTITY) ) continue;
+          
+          if(mFirstTime) continue; 
+          
+          bool still_touching=false;
+          
+          ParticleWeakVectorType& rNeighbours    = node_it->GetValue(NEIGHBOUR_ELEMENTS);
+          for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
+              if(neighbour_iterator->Is(BLOCKED)) {
+                  still_touching=true;
+                  break;
+              }
+          }
+          
+          if(!still_touching){ 
+	    if(node_it->IsNot(BLOCKED)){//The ball must be free'd
+	      node_it->pGetDof(VELOCITY_X)->FreeDof();              
+	      node_it->pGetDof(VELOCITY_Y)->FreeDof();
+	      node_it->pGetDof(VELOCITY_Z)->FreeDof();      
+	      node_it->pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
+	      node_it->pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
+	      node_it->pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
+	      node_it->pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
+	    }
+	    else{
+	      //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.             
+	      node_it->Set(ACTIVE,false);
+	    }
+          }
+          
+	} //loop nodes
+        
+        mFirstTime=false;
+        
+    } //DettachElements
     
     void CreateElementsFromInletMesh( ModelPart& r_modelpart, ModelPart& inlet_modelpart, ParticleCreatorDestructor& creator ){
                         
         uint max_Id=0; 
-	for (ModelPart::NodesContainerType::iterator node_it = r_modelpart.NodesBegin(); node_it != r_modelpart.NodesEnd(); node_it++){
-	  if( node_it->Id() > max_Id) max_Id = node_it->Id();
-	}
+        DettachElementsAndFindMaxId(r_modelpart, max_Id);                
                 
         int mesh_number=0;
         for (ModelPart::MeshesContainerType::iterator mesh_it = inlet_modelpart.GetMeshes().begin()+1;
@@ -609,7 +664,7 @@ public:
             int mesh_size=mesh_it->NumberOfNodes();
             
             double num_part_surface_time=  InletModelPart.GetProperties(mesh_number)[INLET_NUMBER_OF_PARTICLES]; 
-            double delta_t=  r_modelpart.GetProcessInfo()[DELTA_TIME]; // FLUID DELTA_T CAN BE USED ALSO
+            double delta_t=  r_modelpart.GetProcessInfo()[DELTA_TIME]; // FLUID DELTA_T CAN BE USED ALSO, it will depend on how often we call this function
             double surface=  1.0;//inlet_surface; // this should probably be projected to velocity vector
             
             //calculate number of particles to insert from input data
@@ -626,12 +681,15 @@ public:
                int valid_nodes_length=0;
                
                for (int i = 0; i < mesh_size; i++){
-                   if( all_nodes[i]->IsNot(BLOCKED) ) { valid_nodes[valid_nodes_length]=all_nodes[i];   valid_nodes_length++;  } // (push_back)
+                   if( all_nodes[i]->IsNot(ACTIVE) ) { 
+		     valid_nodes[valid_nodes_length]=all_nodes[i];   
+		     valid_nodes_length++; 
+		   } // (push_back) //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
                }
 
                if (valid_nodes_length < number_of_particles_to_insert) {
                    number_of_particles_to_insert = valid_nodes_length;
-                   std::cout<<"The number of DEM particles has been reduced to match the available number of nodes of the DEM Inlet mesh"<<std::endl<<std::flush;
+                   //std::cout<<"The number of DEM particles has been reduced to match the available number of nodes of the DEM Inlet mesh"<<std::endl<<std::flush;
                }
                
                for (int i = 0; i < number_of_particles_to_insert; i++) {
@@ -642,15 +700,25 @@ public:
                    valid_nodes[pos] = valid_nodes[valid_nodes_length - 1];
                    valid_nodes_length = valid_nodes_length - 1;
                }
-
+               
+               const std::string ElementNameString = std::string("SphericParticle3D");
+               
+               const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
+               
                for (int i = 0; i < number_of_particles_to_insert; i++) {
-                   creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, inserting_nodes[i],InletModelPart.GetProperties(mesh_number),true);
+                   creator.ElementCreatorWithPhysicalParameters(r_modelpart, max_Id+1, inserting_nodes[i], InletModelPart.GetProperties(mesh_number), r_reference_element, false);
+                   inserting_nodes[i]->Set(ACTIVE); //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted. 
                    max_Id++;
-               }               
+               }                                                                   
+               
            } //if (number_of_particles_to_insert)
             
         } // for mesh_it
-    }    
+    }    //CreateElementsFromInletMesh
+    
+    
+    
+    
     //MA
 };
 
