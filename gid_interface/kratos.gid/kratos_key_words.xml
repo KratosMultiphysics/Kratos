@@ -185,8 +185,36 @@
       <Item id="OutletPressureFractionalStep" kkword="PRESSURE" />
       <Item id="OutletPressureMonolithic" kkword="EXTERNAL_PRESSURE" />
     </Fluid>
-    <ConvectionDiffusion></ConvectionDiffusion>
+    <ConvectionDiffusion>
+      <Item id="ConvDiff2D" kkword="ConvDiff2D" usennode="No" />
+      <Item id="ConvDiff3D" kkword="ConvDiff3D" usennode="No" />
+      <Item id="MeshVelocity" kkword="MESH_VELOCITY" />
+      <Item id="Velocity" kkword="VELOCITY" />
+      <Item id="Density" kkword="DENSITY" />
+      <Item id="Conductivity" kkword="CONDUCTIVITY" />
+      <Item id="SpecificHeat" kkword="SPECIFIC_HEAT" />
+      <Item id="GiDPostMode" kkword="GiDPostMode" />
+      <Item id="GiDWriteMeshFlag" kkword="GiDWriteMeshFlag" />
+      <Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
+      <Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
+    </ConvectionDiffusion>
     <FluidStructureInteraction></FluidStructureInteraction>
+    <DEM>
+      <Item id="Density" kkword="PARTICLE_DENSITY" />
+      <Item id="YoungModulus" kkword="YOUNG_MODULUS" />
+      <Item id="PoissonRatio" kkword="POISSON_RATIO" />
+      <Item id="ParticleDiameter" kkword="RADIUS" />
+      <Item id="ParticleSphericity" kkword="PARTICLE_SPHERICITY" />
+      <Item id="ParticleFrictionAngle" kkword="PARTICLE_FRICTION" />
+      <Item id="RestitutionCoefficient" kkword="RESTITUTION_COEFF" />
+      <Item id="RollingFriction" kkword="ROLLING_FRICTION" />
+      <Item id="RotationalDampingRatio" kkword="PARTICLE_ROTATION_DAMP_RATIO" />
+      <Item id="Color" kkword="PARTICLE_MATERIAL" />
+      <Item id="NumberOfParticles" kkword="INLET_NUMBER_OF_PARTICLES" />
+      <Item id="InletStartTime" kkword="INLET_START_TIME" />
+      <Item id="InletStopTime" kkword="INLET_STOP_TIME" />
+      <Item id="VelocityModulus" kkword="VELOCITY" />
+    </DEM>
   </Applications>
   <Materials>
     <Item id="Description" kkword="" />
@@ -243,6 +271,7 @@
     kkword="HARDENING_EXPONENT" />
     <Item id="InternalFrictionAngle"
     kkword="MAX_FRICTION_INTERNAL_ANGLE" />
+    <Item id="ImplicitIteration" kkword="IMPLICITERATION" />
     <Item id="DilatancyAngle" kkword="MAX_DILATANCY_ANGLE" />
     <Item id="TensileStrength" kkword="FT" />
     <Item id="CompressiveStrength" kkword="FC" />
@@ -537,22 +566,29 @@
       prxpath="c.Structural//c.ElastoPlastic" />
       <Item id="Mohr-Coulomb"
       privalues="CompressiveStrength,DilatancyAngle,InternalFrictionAngle"
-      prxpath="c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
+      prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
     </YieldCriteria>
     <SaturationLaw>
       <Item id="AvailableSaturationLaws"
-      msivalues="Non,Linear,Exponential"
-      mswritev="Non,Linear,Exponential" />
-      <Item id="Non"
-      privalues=""
-      prxpath="" />
+      msivalues="None,Linear,Exponential"
+      mswritev="None,Linear,Exponential" />
+      <Item id="None" privalues="" prxpath="" />
       <Item id="Linear"
       privalues="ReferenceHardeningModulus,InfinityHardeningModulus"
       prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
       <Item id="Exponential"
-      privalues="ExponentialHardening,ReferenceHardeningModulus,InfinityHardeningModulus"
-      prxpath="c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
+      privalues="HardeningExponent,ReferenceHardeningModulus,InfinityHardeningModulus"
+      prxpath="c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic,c.Structural//c.ElastoPlastic" />
     </SaturationLaw>
+    <FlowRule>
+      <Item id="AvailableFlowRules"
+      msivalues="Linear,Non-Linear"
+      mswritev="Linear,Non-Linear" />
+      <Item id="Linear" privalues="" prxpath="" />
+      <Item id="Non-Linear"
+      privalues="ImplicitIteration"
+      prxpath="c.Structural//c.ElastoPlastic" />
+    </FlowRule>
     <Item id="MState" msivalues="Solid"
     mswritev="Solid" />
   </CLawProperties>
