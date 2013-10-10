@@ -289,10 +289,10 @@ proc ::KMProps::DoubleClickTree { x y T {item ""}} {
 	    return ""
 	}
     }
-    #msg $item
+    # msg $item
     set fullname [DecodeName [$T item tag names $item]]
     set idFull [string map { "." "" "//" ""} $fullname]
-    
+    # wa "fullname:$fullname idFull:$idFull"
     if { [::xmlutils::setXml $fullname state] == "disabled" } {
 	return ""
     }
@@ -308,7 +308,7 @@ proc ::KMProps::DoubleClickTree { x y T {item ""}} {
     
     set id [::xmlutils::setXml $fullname id]
     set dv [::xmlutils::setXml $fullname dv]
-    
+    # wa "id:$id dv:$dv"
     # Eliminamos el anterior combo, si aun está visible
     if {([llength $lastSelected]) && ([lindex $lastSelected 0] == $item)} { 
 	::KMProps::cmbSelectChange [lindex $lastSelected 0] $T 1 "anterior"
@@ -333,7 +333,7 @@ proc ::KMProps::DoubleClickTree { x y T {item ""}} {
 	
 	set ClassType [::xmlutils::setXml $fullname class]
 	set idTemplate [::xmlutils::setXml $fullname idTemplate]
-	# wa "ClassType:$ClassType idTemplate:$idTemplate"
+	# wa "ClassType:$ClassType idTemplate:$idTemplate fullname:$fullname"
 	
 	if {$ClassType == "Groups"} {
 	    # Comprobamos si en esta asignación de Grupos necesitarán propiedades
@@ -540,7 +540,7 @@ proc ::KMProps::InsertNewProp { node id T {parent ""} {parentitem root} {childs 
 	set fullname $id
     }
     
-    
+    # wa "fullname:$fullname"
     if { $childs } {
 	
 	set item [$T item create -button yes -tags [EncodeName $fullname] -open $open]
