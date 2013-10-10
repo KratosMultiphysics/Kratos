@@ -12,6 +12,7 @@
 #
 #	HISTORY:
 #
+#   2.0- 03/10/13-G. Socorro, modify some proc to enable DEM materials
 #   1.9- 17/07/13-G. Socorro, modify the proc FillTreeMat to take into account the current state of the property (normal,hidden or disabled)
 #   1.8- 15/07/13-G. Socorro, create a local variable createframeafteredit to disable/enable the bottom frame creation after rename a material
 #   1.7- 15/07/13-G. Socorro, update the proc insertXml and insertXmlCopy
@@ -1187,7 +1188,7 @@ proc ::KMat::CreateNewMaterial { {T ""} {name ""} } {
 	    return ""
 	}
     }
-
+    # wa "name:$name"
     ::KMat::insertXml "$path" $name 1 Generic
     
     ::KMat::refreshTree $T
@@ -1343,11 +1344,17 @@ proc ::KMat::insertXml { path id state type } {
 	set maticon "red.gif"		
     } elseif { $path == "Composite" } {
 	set maticon "green.gif"		
+    } elseif { $path == "DEMMaterial" } {
+	set maticon "grey.gif"		
     }
 
+    set CurrentTemplateId "NewMaterial"
+    if {$path == "DEMMaterial"} {
+	set CurrentTemplateId "NewDEMMaterial"
+    }
     set attributesArray [list id=\'$id\' pid=\'$id\' icon=\'$maticon\' help=\'$id\' open=\'1\']
     # wa "attributesArray:$attributesArray"
-    ::xmlutils::copyTemplate $::KMat::xml $xpath $templatePath "NewMaterial" "Material" $attributesArray 
+    ::xmlutils::copyTemplate $::KMat::xml $xpath $templatePath $CurrentTemplateId "Material" $attributesArray 
 
     set xmlArray [::xmlutils::replaceTemplate $::KMat::xml $xpath]
     
@@ -1840,11 +1847,12 @@ proc ::KMat::findMaterialParent { matid } {
     global KPriv
 
     set nodes [$::KMat::xml selectNodes "/Kratos_KMat_DB/Materials/MaterialGroup\[@id\]"]
-    
+    # wa "nodes:$nodes"
     foreach node $nodes {			  
 	set nodes2 [$node childNodes]
 	foreach node2 $nodes2 {  
 	    set aux [$node2 getAttribute id ""]
+	    # wa "aux:$aux matid:$matid"
 	    if { $aux == $matid} {
 		set parent [$node getAttribute id ""]
 		return $parent
@@ -1904,7 +1912,17 @@ proc ::KMat::getMaterials {{application ""}} {
 	    }
 	} elseif {$application == "ConvectionDiffusion"} {
 	    foreach node $nodes {		
-		if { [$node getAttribute id ""] == "Plastic"} {
+		if { [$node getAttribute id ""] == "Metal" || [$node getAttribute id ""] == "Composite"} {
+		    set nodes2 [$node childNodes]
+		    foreach node2 $nodes2 {  
+			set aux [$node2 getAttribute id ""]
+			lappend KPriv(materialsList) $aux				
+		    }		
+		}
+	    }
+	} elseif {$application == "DEM"} {
+	    foreach node $nodes {		
+		if { [$node getAttribute id ""] == "DEMMaterial"} {
 		    set nodes2 [$node childNodes]
 		    foreach node2 $nodes2 {  
 			set aux [$node2 getAttribute id ""]
