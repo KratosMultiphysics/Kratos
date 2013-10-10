@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #   
+#     2.0- 10/10/13-G. Socorro, modify the GetBehaviorFluencyProperties to get the new keyword from kratos_key_words.xml file
 #     1.9- 20/09/13-G. Socorro, modify the proc WriteSurfaceLoad to correct a bug when write linear and quadratic quadrilateral elements
 #     1.8- 19/09/13-G. Socorro, modify the proc WriteVolumeAcceleration to write VOLUME_ACCELERATION_* nodal properties
 #     1.7- 25/06/13-A. Melendo, new proc WriteFaceLoads
@@ -2098,7 +2099,7 @@ proc ::wkcf::GetBehaviorFluencyProperties {AppId MatId MatModel cptype ptype} {
 	# WarnWinText "cstate:$cstate"
 	# Get the yield function properties
 	# Get the yield criteria
-	set yfid "YieldFunctions"
+	set yfid "YieldCriteria"
 	set myieldcriteria [::xmlutils::getKKWord "$clxpath" $ptype "myieldcriteria"]
 	# Get the yield criteria xpath values
 	set mycxpath [::xmlutils::getKKWord "$clxpath" $ptype "mycxpath"]
@@ -2193,12 +2194,13 @@ proc ::wkcf::GetPlasticityProperties {AppId MatId MatModel cptype ptype} {
 	    }
 	}
 	# WarnWinText "chl:$chl"
-	
-	set dprops($AppId,Material,$MatId,HardeningLaw) "$chl"
-
-
+	if {$chl !=""} {
+	    set dprops($AppId,Material,$MatId,HardeningLaw) "$chl"
+	    
+	    # Update material properties
+ 
+	}
 	# WarnWinText "dprops($AppId,Material,$MatId,HardeningLaw):$dprops($AppId,Material,$MatId,HardeningLaw)"
-
 
 	# Get the SATURATION LAW
 	set cslid "SaturationLaw"
@@ -2210,13 +2212,13 @@ proc ::wkcf::GetPlasticityProperties {AppId MatId MatModel cptype ptype} {
 	set csvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$msxpath//p.[list $msaturationlaw]"] 0 1]
 	# WarnWinText "msaturationlaw:$msaturationlaw msxpath:$msxpath csvalue:$csvalue"
 	# Get the yield criterion options
-	set msivalues [split [::xmlutils::getKKWord "$clxpath//$cslid" "AvailableSaturationLaw" "msivalues"] ,]
+	set msivalues [split [::xmlutils::getKKWord "$clxpath//$cslid" "AvailableSaturationLaws" "msivalues"] ,]
 	# Get the write yield criterion properties
-	set mswritev [split [::xmlutils::getKKWord "$clxpath//$cslid" "AvailableSaturationLaw" "mswritev"] ,]
+	set mswritev [split [::xmlutils::getKKWord "$clxpath//$cslid" "AvailableSaturationLaws" "mswritev"] ,]
 	# WarnWinText "mswritev:$mswritev mhivalues:$msivalues\n$mpxpath//$msxpath//p.[list $msaturationlaw] csvalue:$csvalue"
 	set csl ""
 	foreach msiv $msivalues mswv $mswritev {
-	    # WarnWinText "msiv:$msiv msivalue:$msivalue mswv:$mswv"             
+	    # WarnWinText "msiv:$msiv msivalue:$msiv mswv:$mswv"             
 	    if {$msiv ==$csvalue} {
 		set csl "$mswv"
 		break
