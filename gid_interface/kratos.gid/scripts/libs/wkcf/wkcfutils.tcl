@@ -12,6 +12,11 @@
 #
 #    HISTORY:
 #        
+#     4.0- 10/10/13-G. Socorro, create a new proc GetMaterialPropertiesFromAttributes to get some material properties using
+#                                the container CLawProperties in the kratos_key_words.xml file
+#                               - Modify the proc GetMaterialProperties to write the the properties of the material model "HyperElastic-Plastic" 
+#                               - Add some utilities proc and variable for Convection-Diffusion and DEM applications
+#     3.9- 03/10/13-G. Socorro, correct a bug in the proc GetSurfaceTypeList (special case of default element type for volumes)
 #     3.8- 22/09/13-G. Socorro, add the proc GetElementIdFromPropertyId to get the list of element identifier from a property identifier
 #     3.7- 19/09/13-G. Socorro, add the proc GetSurfaceTypeList to classify the surface type 
 #     3.6- 18/09/13-G. Socorro, add some proc and variable for the convection-diffusion application 
@@ -63,8 +68,7 @@ proc ::wkcf::Preprocess {} {
     variable gidetype; variable useqelem
     variable dprops;   variable FluidApplication
     variable FSIApplication; variable ActiveAppList
-    variable pflag
-    
+        
     # Check for use quadratic elements
     set useqelem [GiD_Info Project Quadratic]
     # WarnWinText "useqelem:$useqelem"
@@ -96,6 +100,13 @@ proc ::wkcf::Preprocess {} {
     
     # WarnWinText "FSIApplication:$FSIApplication"
     
+    # DEM application
+    variable DEMApplication
+    set cxpath "GeneralApplicationData//c.ApplicationTypes//i.DEM"
+    set DEMApplication [::xmlutils::setXml $cxpath $cproperty]
+    
+    # WarnWinText "DEMApplication:$DEMApplication"
+
     # Convection diffusion
     variable ConvectionDiffusionApplication
     set cxpath "GeneralApplicationData//c.ApplicationTypes//i.ConvectionDiffusion"
@@ -123,20 +134,33 @@ proc ::wkcf::Preprocess {} {
 	if {$ConvectionDiffusionApplication eq "Yes"} {
 	    set ActiveAppList [list "ConvectionDiffusion"]
 	}
-
+	# DEM application
+	if {$DEMApplication eq "Yes"} {
+	    set ActiveAppList [list "DEM"]
+	}
     }
     
     # WarnWinText "ActiveAppList:$ActiveAppList"
     
+    # Debug/Release variable [0 => Debug, 1 => Release] Timers
+    variable pflag
+    set pflag 1
+
     # Get the element properties
     ::wkcf::GetElementProperties
-   
-    # Get properties data
-    ::wkcf::GetPropertiesData
-   
+  
+    # DEM application
+    if {$DEMApplication eq "Yes"} {
+	# Get the mapping between group and mesh
+	::wkcf::GetInletGroupMeshProperties "DEM"
+    } else {
+	# Get properties data
+	::wkcf::GetPropertiesData
+    }
+  
     # Get boundary condition properties
     ::wkcf::GetBoundaryConditionProperties
-    
+   
     if {$FluidApplication =="Yes"} {
 	set AppId "Fluid"
 	set cproperty "dv"
@@ -154,16 +178,14 @@ proc ::wkcf::Preprocess {} {
 	# Get load properties
 	::wkcf::GetLoadProperties
     }
-    
+  
     # Create the kratos global properties identifier
     ::wkcf::CreateKratosPropertiesIdentifier
-
+  
+  
     # To write the bat file
     variable wbatfile
     set wbatfile 0
-
-    # Debug/Release variable [0 => Debug, 1 => Release] Timers
-    set pflag 1
 
     # Conditions to BC link
     variable ctbclink
@@ -495,6 +517,16 @@ proc ::wkcf::GetBoundaryConditionProperties {} {
 		                # msg "$CActive $CValue"
 		            }
 		        }
+			"HeatFlux" {
+		            # Get properties
+		            foreach citem [list "VHeatFlux"] {
+		                # set xpath
+		                set pcxpath "$cxpath//c.[list ${cgroupid}]//c.MainProperties//i.[list ${citem}]"
+		                set cproperty "dv"
+		                set CValue [::xmlutils::setXml $pcxpath $cproperty]
+		                lappend proplist $CValue
+		            }
+		        }
 		    }
 		    # WarnWinText "proplist:$proplist"
 		    # Kratos BC to group link
@@ -592,20 +624,19 @@ proc ::wkcf::GetPorousZonesProperties {AppId} {
 proc ::wkcf::GetApplicationRootId {} {
     # Get the application root identifier
     variable FluidApplication;  variable StructuralAnalysis
-    variable ConvectionDiffusionApplication 
+    variable ConvectionDiffusionApplication; variable DEMApplication
 
     # Select the current active application
     if {$StructuralAnalysis =="Yes"} {
 	set rootdataid "StructuralAnalysis"
-    } else {
-	if {$FluidApplication =="Yes"} {
+    } elseif {$FluidApplication =="Yes"} {
 	    set rootdataid "Fluid"
-	} else {
-	    if {$ConvectionDiffusionApplication eq "Yes"} {
-		set rootdataid "ConvectionDiffusion"
-	    }
-	}
+    } elseif {$ConvectionDiffusionApplication eq "Yes"} {
+	set rootdataid "ConvectionDiffusion"
+    } elseif {$DEMApplication eq "Yes"} {
+	set rootdataid "DEM"
     }
+
     return $rootdataid
 }
 
@@ -688,7 +719,6 @@ proc ::wkcf::GetPropertiesData {} {
 	    set dprops($AppId,Material,$MatId,UseHardeningLaw) "No"
 	    set dprops($AppId,Material,$MatId,HardeningLaw) ""
 
-	    
 	    # Get material properties
 	    switch -exact -- $MatModel {
 		"Elastic-Isotropic" {
@@ -1045,21 +1075,23 @@ proc ::wkcf::GetMaterialProperties {AppId propid MatId ptype CMatModel} {
     foreach pid $mprops xpath $mxpath {
 	# Get the kratos key word
 	set kkword [::xmlutils::getKKWord $matxpath $pid "kkword"] 
-	# WarnWinText "pid:$pid kkword:$kkword"
+	# wa "pid:$pid kkword:$kkword"
 	# Get the current value for this properties
 	# WarnWinText "xpath:$mpxpath//$xpath//p.[list $pid]"
 	set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
+	# wa "cvalue:$cvalue"
 	if {($kkword !="") && ($cvalue !="")} {
 	    lappend matplist [list $kkword $cvalue]
 	}
     }
     
     # Add others properties for specific constitutive models
-    if {$CMatModel == "Elasto-Plastic"} {
+    if {$CMatModel == "HyperElastic-Plastic"} {
 	# Get the yield function properties
-	set yfid "YieldFunctions"
+	set yfid "YieldCriteria"
 	# Get the yield criteria
-	set myieldcriteria [::xmlutils::getKKWord $clxpath $ptype "myieldcriteria"]
+	set myieldcriteria [::xmlutils::getKKWord $clxpath $ptype "myieldcriterion"]
+	# wa "clxpath:$clxpath ptype:$ptype"
 	# Get the yield criteria xpath values
 	set mycxpath [::xmlutils::getKKWord $clxpath $ptype "mycxpath"]
 	# Get the current yield criteria
@@ -1067,31 +1099,100 @@ proc ::wkcf::GetMaterialProperties {AppId propid MatId ptype CMatModel} {
 	# WarnWinText "myieldcriteria:$myieldcriteria mycxpath:$mycxpath cycvalue:$cycvalue"
 	# Get the yield function options
 	set cyf ""
-	set yfivalues [split [::xmlutils::getKKWord "$clxpath//$yfid" "AvailableYieldFunction" "yfivalues"] ,]
+	set yfivalues [split [::xmlutils::getKKWord "$clxpath//$yfid" "AvailableYieldCriteria" "ycivalues"] ,]
+	# wa "yfivalues:$yfivalues"
 	foreach yfiv $yfivalues {
 	    if {$yfiv ==$cycvalue} {
 		set cyf "$yfiv"
 		break
 	    }
 	}
-	# WarnWinText "cyf:$cyf"
+	# wa "cyf:$cyf"
 	# Get other properties for the specific yield function
 	if {$cyf !=""} {
-	    # Get the yield function parameters
-	    set privalues [split [::xmlutils::getKKWord "$clxpath//$yfid" "$cyf" "privalues"] ,]
-	    # Get the write yield function parameters 
-	    set prxpath [split [::xmlutils::getKKWord "$clxpath//$yfid" "$cyf" "prxpath"] ,]
-	    # WarnWinText "$clxpath//$cyf prxpath:$prxpath privalues:$privalues"
-	    foreach pid $privalues xpath $prxpath {
-		# Get the kratos key word
-		set kkword [::xmlutils::getKKWord $matxpath $pid "kkword"] 
-		# WarnWinText "pid:$pid kkword:$kkword"
-		# Get the current value for this properties
-		# WarnWinText "xpath:$mpxpath//$xpath//p.[list $pid]"
-		set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
-		if {($kkword !="") && ($cvalue !="")} {
-		    lappend matplist [list $kkword $cvalue]
-		}
+	    set cprop [::wkcf::GetMaterialPropertiesFromAttributes $AppId $mpxpath $yfid $cyf]
+	    if {[llength $cprop]} {
+		set matplist [concat $matplist $cprop]
+	    }
+	}
+	
+	# Get the HARDENING LAW
+	set hlid "HardeningLaw"
+	set mhardeninglaw [::xmlutils::getKKWord $clxpath $ptype "mhardeninglaw"]
+	# Get the hardning law xpath values
+	set mhxpath [::xmlutils::getKKWord $clxpath $ptype "mhxpath"]
+	# WarnWinText "mhardeninglaw:$mhardeninglaw mhxpath:$mhxpath"
+	# Get the current hardening law 
+	set chvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mhxpath//p.[list $mhardeninglaw]"] 0 1]
+
+	# WarnWinText "mhardeninglaw:$mhardeninglaw mhxpath:$mhxpath chvalue:$chvalue"
+	# Get the yield criterion options
+	set mhivalues [split [::xmlutils::getKKWord "$clxpath//$hlid" "AvailableHardeningLaw" "mhivalues"] ,]
+	set chl ""
+	foreach mhiv $mhivalues {
+	    # WarnWinText "mhiv:$mhiv" 
+	    if {$mhiv ==$chvalue} {
+		set chl "$mhiv"
+		break
+	    }
+	}
+	# WarnWinText "chl:$chl"
+	if {$chl !=""} {
+	    set cprop [::wkcf::GetMaterialPropertiesFromAttributes $AppId $mpxpath $hlid $chl]
+	    if {[llength $cprop]} {
+		set matplist [concat $matplist $cprop]
+	    }
+	}
+
+	# Get the SATURATION LAW
+	set cslid "SaturationLaw"
+	set msaturationlaw [::xmlutils::getKKWord $clxpath $ptype "msaturationlaw"]
+	# Get the saturation law xpath values
+	set msxpath [::xmlutils::getKKWord $clxpath $ptype "msxpath"]
+	# WarnWinText "msaturationlaw:$msaturationlaw msxpath:$msxpath"
+	# Get the current saturation law 
+	set csvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$msxpath//p.[list $msaturationlaw]"] 0 1]
+	# WarnWinText "msaturationlaw:$msaturationlaw msxpath:$msxpath csvalue:$csvalue"
+	# Get the saturation lawoptions
+	set msivalues [split [::xmlutils::getKKWord "$clxpath//$cslid" "AvailableSaturationLaws" "msivalues"] ,]
+	set csl ""
+	foreach msiv $msivalues {
+	    # wa "msiv:$msiv "             
+	    if {$msiv ==$csvalue} {
+		set csl "$msiv"
+		break
+	    }
+	}
+	# wa "csl:$csl"
+	if {$chl !=""} {
+	    set cprop [::wkcf::GetMaterialPropertiesFromAttributes $AppId $mpxpath $cslid $csl]
+	    if {[llength $cprop]} {
+		set matplist [concat $matplist $cprop]
+	    }
+	}
+
+	# Get the FLOW RULE
+	set mflowrule [::xmlutils::getKKWord $clxpath $ptype "mflowrule"]
+	# Get the flow rule xpath values
+	set mfrxpath [::xmlutils::getKKWord $clxpath $ptype "mfrxpath"]
+	# WarnWinText "mflowrule:$mflowrule mfrxpath:$mfrxpath"
+	# Get the current flow rule
+	set cfrvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$mfrxpath//p.[list $mflowrule]"] 0 1]
+	# Get the internal flow rule
+	set msivalues [split [::xmlutils::getKKWord "$clxpath//$mflowrule" "AvailableFlowRules" "msivalues"] ,]
+	# WarnWinText "msivalues:$msivalues\n$mpxpath//$mfrxpath//p.[list $mflowrule] cfrvalue:$cfrvalue"
+	set frl ""
+	foreach mfriv $msivalues {
+	    if {$mfriv ==$cfrvalue} {
+		set frl "$mfriv"
+		break
+	    }
+	}
+	# wa "frl:$frl"
+	if {$frl !=""} {
+	    set cprop [::wkcf::GetMaterialPropertiesFromAttributes $AppId $mpxpath $mflowrule $frl]
+	    if {[llength $cprop]} {
+		set matplist [concat $matplist $cprop]
 	    }
 	}
     }
@@ -1099,6 +1200,40 @@ proc ::wkcf::GetMaterialProperties {AppId propid MatId ptype CMatModel} {
     # wa "matplist:$matplist"
     set dprops($AppId,Material,$MatId,Props) $matplist
  
+}
+
+proc ::wkcf::GetMaterialPropertiesFromAttributes {AppId mpxpath containerid attributeid} {
+    # Get other material properties (constitutive laws)
+    
+    set matplist [list]
+    
+    # Xpath for constitutive laws
+    set clxpath "CLawProperties"
+    
+    # Xpath for materials
+    set matxpath "Materials"
+
+    # Set the kratos model keyword base xpath
+    set kmxpath "Applications//$AppId"
+    
+    # Get the property internal values
+    set privalues [split [::xmlutils::getKKWord "$clxpath//$containerid" "$attributeid" "privalues"] ,]
+    # Get the write yield function parameters 
+    set prxpath [split [::xmlutils::getKKWord "$clxpath//$containerid" "$attributeid" "prxpath"] ,]
+    # WarnWinText "$clxpath//$containerid prxpath:$prxpath privalues:$privalues"
+    foreach pid $privalues xpath $prxpath {
+	# Get the kratos key word
+	set kkword [::xmlutils::getKKWord $matxpath $pid "kkword"] 
+	# WarnWinText "pid:$pid kkword:$kkword"
+	# Get the current value for this properties
+	# WarnWinText "xpath:$mpxpath//$xpath//p.[list $pid]"
+	set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
+	# wa "cvalue:$cvalue"
+	if {($kkword !="") && ($cvalue !="")} {
+	    lappend matplist [list $kkword $cvalue]
+	}
+    }
+    return $matplist
 }
 
 proc ::wkcf::SumInertia {InertiaIx InertiaIy} {
@@ -1547,7 +1682,7 @@ proc ::wkcf::GetElementIdFromPropertyId {AppId PropertyId} {
 }
 
 proc ::wkcf::UnsetLocalVariables {} {
-    variable dprops;    variable AppId
+    variable dprops; variable AppId
     variable ctbclink
   
     if {[info exists AppId]} {
@@ -1559,6 +1694,10 @@ proc ::wkcf::UnsetLocalVariables {} {
  
     if {[info exists ctbclink]} {
 	unset ctbclink
+    }
+    variable ActiveAppList
+    if {[info exists ActiveAppList]} {
+	unset ActiveAppList
     }
 }
 
@@ -1657,9 +1796,10 @@ proc ::wkcf::GetSurfaceTypeList {surfacelist} {
 		set vlist [lindex [lrange $vol 3 end-2] 0]
 		# wa "vlist:$vlist"
 		set cvprop [GiD_Info list_entities volumes $vlist]
+		# wa "cvprop:$cvprop"
 		regexp -nocase {Elemtype=([0-9]*)} $cvprop none voltype
 		# wa "voltype:$voltype"
-		if {$voltype == 4 || $voltype==""} {
+		if {($voltype == 4) || ($voltype=="")} {
 		    lappend tetrasurf $surfid
 		} elseif {$voltype == 5} {
 		    lappend hexasurf $surfid
