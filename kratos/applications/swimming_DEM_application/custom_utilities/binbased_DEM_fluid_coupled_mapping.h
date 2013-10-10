@@ -188,6 +188,62 @@ public:
     }
 
 
+    void InterpolateFromNewestFluidMesh(
+        ModelPart& rFluid_ModelPart ,
+        ModelPart& rDEM_ModelPart,
+        BinBasedFastPointLocator<TDim>& bin_of_objects_fluid
+        )
+    {
+
+        KRATOS_TRY
+        //KRATOS_WATCH("Interpolate From Fluid Mesh*************************************")
+        //Clear all the variables to be mapped
+        for (ModelPart::NodesContainerType::iterator node_it = rDEM_ModelPart.NodesBegin();
+                node_it != rDEM_ModelPart.NodesEnd(); ++node_it)
+        {
+            ClearVariables(node_it, FLUID_VEL_PROJECTED);
+            ClearVariables(node_it, PRESSURE_GRAD_PROJECTED);
+            ClearVariables(node_it, FLUID_DENSITY_PROJECTED);
+            ClearVariables(node_it, FLUID_VISCOSITY_PROJECTED);
+        }
+
+        array_1d<double, TDim + 1 > N;
+        const int max_results = 10000;
+        typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
+        const int nparticles = rDEM_ModelPart.Nodes().size();
+        int contadorcito = 0;
+
+        #pragma omp parallel for firstprivate(results, N)
+        for (int i = 0; i < nparticles; i++)
+        {
+            ModelPart::NodesContainerType::iterator iparticle = rDEM_ModelPart.NodesBegin() + i;
+            Node < 3 > ::Pointer pparticle = *(iparticle.base());
+
+            if (pparticle->IsFixed(VELOCITY_X) == false){
+                contadorcito++;
+                typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
+                Element::Pointer pelement;
+                // look for the fluid element in which the DEM node falls into
+                bool is_found = bin_of_objects_fluid.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+                //interpolate the variables
+                //KRATOS_WATCH(pparticle->Coordinates());
+
+                if (is_found == true)
+                {
+
+                    //Interpolate(el_it,  N, *it_found , rOriginVariable , rDestinationVariable);
+                    Interpolate(pelement, N, pparticle, DENSITY, FLUID_DENSITY_PROJECTED);
+                    Interpolate(pelement, N, pparticle, VELOCITY, FLUID_VEL_PROJECTED);
+                    Interpolate(pelement, N, pparticle, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED);
+                    Interpolate(pelement, N, pparticle, VISCOSITY, FLUID_VISCOSITY_PROJECTED);
+
+                }
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
 
     /// Interpolate form the DEM  to the fluid mesh
     /**
@@ -583,6 +639,31 @@ private:
     }
 
     //projecting an array1D 3Dversion
+
+    void Interpolate(
+        Element::Pointer el_it,
+        const array_1d<double,4>& N,
+        Node<3>::Pointer pnode,
+        Variable<array_1d<double,3> >& rOriginVariable,
+        Variable<array_1d<double,3> >& rDestinationVariable)
+    {
+            //Geometry element of the rOrigin_ModelPart
+            Geometry< Node < 3 > >& geom = el_it->GetGeometry();
+
+            //getting the data of the solution step
+            array_1d<double, 3 > & step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable);
+
+            const array_1d<double, 3 > & node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable);
+            const array_1d<double, 3 > & node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable);
+            const array_1d<double, 3 > & node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable);
+            const array_1d<double, 3 > & node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable);
+
+            for (unsigned int j = 0; j < TDim; j++) {
+                step_data[j] = N[0] * node0_data[j] + N[1] * node1_data[j] + N[2] * node2_data[j] + N[3] * node3_data[j];
+            }
+
+     }
+
     void Interpolate(
         Element::Pointer el_it,
         const array_1d<double,4>& N,
@@ -621,6 +702,7 @@ private:
             // 			pnode->GetValue(IS_VISITED) = 1.0;
 
         }
+
         //projecting a scalar 2Dversion
     void Interpolate(
         Element::Pointer el_it,
@@ -649,7 +731,28 @@ private:
             // // 			pnode->GetValue(IS_VISITED) = 1.0;
 
     }
+
     //projecting a scalar 3Dversion
+    void Interpolate(
+        Element::Pointer el_it,
+        const array_1d<double,4>& N,
+        Node<3>::Pointer pnode,
+        Variable<double>& rOriginVariable,
+        Variable<double>& rDestinationVariable)
+    {
+            //Geometry element of the rOrigin_ModelPart
+            Geometry< Node < 3 > >& geom = el_it->GetGeometry();
+
+            //getting the data of the solution step
+            double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable);
+            const double node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable);
+            const double node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable);
+            const double node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable);
+            const double node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable);
+            step_data = N[0] * node0_data + N[1] * node1_data + N[2] * node2_data + N[3] * node3_data;
+
+    }
+
     void Interpolate(
         Element::Pointer el_it,
         const array_1d<double,4>& N,
