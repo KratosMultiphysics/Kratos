@@ -88,10 +88,22 @@ public:
       pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = 1;
           
     }
-    void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, double bx, double cy, double dz , Properties& params) {
+    void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, Node < 3 > ::Pointer & reference_node , Properties& params, bool initial=false) {
 
         
-      pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);      //ACTUAL node creation and addition to model part
+      double bx= reference_node->X();
+      double cy= reference_node->Y();
+      double dz= reference_node->Z();
+      
+      if(initial) {
+          pnew_node = reference_node;
+          r_modelpart.AddNode(pnew_node);   // The same node is added to r_modelpart (the calculation model part)
+          pnew_node->SetId(aId);
+      }
+      else{
+          pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);      //ACTUAL node creation and addition to model part
+
+      }
 
       pnew_node->FastGetSolutionStepValue(RADIUS) = params[RADIUS];      
       pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY) = params[PARTICLE_DENSITY];
@@ -150,12 +162,11 @@ public:
     //MA
     //template <class DEMElementType>
     void ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart, int r_Elem_Id, Node < 3 > ::Pointer reference_node, 
-                                              Properties & r_params, const Element& r_reference_element, bool block=false) {          
+                                              Properties & r_params, const Element& r_reference_element, bool initial=false) {          
         
       Node < 3 > ::Pointer pnew_node;
-      
-      
-      NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node->X(), reference_node->Y(), reference_node->Z(), r_params); 
+            
+      NodeCreatorWithPhysicalParameters(r_modelpart, pnew_node, r_Elem_Id, reference_node, r_params, initial); 
       
       Geometry< Node < 3 > >::PointsArrayType nodelist;
       
@@ -165,12 +176,14 @@ public:
       
       Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_modelpart.pGetProperties(0));
       
-      p_particle->Set(NEW_ENTITY);
-      if(block) p_particle->Set(BLOCKED);
-      
+      p_particle->Set(NEW_ENTITY);            
       pnew_node->Set(NEW_ENTITY);
-      if(block) pnew_node->Set(BLOCKED);     
       
+      if(initial) {
+          p_particle->Set(BLOCKED);
+          pnew_node->Set(BLOCKED);  
+      }
+               
       p_particle->Initialize();
       
       r_modelpart.Elements().push_back(p_particle);          
@@ -227,40 +240,37 @@ public:
         typedef ModelPart::ElementsContainerType                          ElementsArrayType;
         typedef ElementsArrayType::iterator                               ElementsIterator;
         //Configure::ElementsContainerType::Pointer pElements = r_model_part.pElements();
-        //ModelPart::NodesContainerType::Pointer pNodes       = r_model_part.pNodes();
+        ModelPart::NodesContainerType::Pointer pNodes       = r_model_part.pNodes();
 
         ElementsArrayType& rElements                          = r_model_part.Elements();
-        //ModelPart::NodesContainerType& rNodes               = r_model_part.Nodes();
+        ModelPart::NodesContainerType& rNodes               = r_model_part.Nodes();
 
         ElementsArrayType temp_particles_container;
-        //ModelPart::NodesContainerType temp_nodes_container;
+        ModelPart::NodesContainerType temp_nodes_container;
 
         //Copy the elements and clear the element container
         //temp_particles_container.reserve(pElements->size());
-        ////////////////////////temp_particles_container.reserve(rElements.size());
-        //temp_nodes_container.reserve(pNodes->size());
+        temp_particles_container.reserve(rElements.size());
+        temp_nodes_container.reserve(pNodes->size());
         
-        ///////////////////////temp_particles_container.swap(rElements);
-        //temp_nodes_container.swap(rNodes);
+        temp_particles_container.swap(rElements);
+        temp_nodes_container.swap(rNodes);
 
         //Add the ones inside the bounding box
-
-        /*for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin(); particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it){
-            bool erase_flag = (0.5 < ((*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG)));
-            if (!erase_flag){
-               (rElements).push_back(*particle_pointer_it); //adding the elements                              
-	    }            
-
-        }*/
-        
-        for (ElementsIterator particle_pointer_it = r_model_part.ElementsBegin(); particle_pointer_it != r_model_part.ElementsEnd(); ++particle_pointer_it){
-            bool erase_flag = (0.5 < particle_pointer_it->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG));
+KRATOS_WATCH(rElements.size())
+                    KRATOS_WATCH(temp_particles_container.size())
+        for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin(); particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it){	  
             
-            if (!erase_flag){
-               temp_particles_container.push_back(*(particle_pointer_it.base())); //adding the elements                              
-	    }
-        }
-        temp_particles_container.swap(rElements);
+	  if( !(*particle_pointer_it)->GetGeometry()(0)->Is(TO_ERASE) ) {
+	    (rElements).push_back(*particle_pointer_it); //adding the elements 
+            for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++){ //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
+                ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
+                (rNodes).push_back(pNode);
+            }
+
+	  }  	  
+	  
+        }                           
 
         KRATOS_CATCH("")
     }
@@ -283,12 +293,14 @@ public:
               particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
 
           const double& i_value     = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(rVariable);
-          double& erase_flag        = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
-          bool include              = (erase_flag < 0.5);
+          //double& erase_flag        = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
+          bool include=true;             // = (erase_flag < 0.5);
 
           include = include && ((i_value <= value - fabs(tol)) || (i_value >= value + fabs(tol)));
 
-          erase_flag = include ? 0.0 : 1.0;
+          //erase_flag = include ? 0.0 : 1.0;
+          if(include) 
+              (*particle_pointer_it)->GetGeometry()(0)->Set(TO_ERASE);
 
       }
 
@@ -308,12 +320,14 @@ public:
 
           array_1d<double, 3 >& i_var = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(rVariable);
           double i_value              = sqrt(i_var[0] * i_var[0] + i_var[1] * i_var[1] + i_var[2] * i_var[2]);
-          double& erase_flag          = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
-          bool include                = (erase_flag < 0.5);
+          //double& erase_flag          = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
+          bool include=true;              //  = (erase_flag < 0.5);
 
           include = include && ((i_value <= value - fabs(tol)) || (i_value >= value + fabs(tol)));
 
-          erase_flag = include ? 0.0 : 1.0;
+          //erase_flag = include ? 0.0 : 1.0;
+          if(include) 
+              (*particle_pointer_it)->GetGeometry()(0)->Set(TO_ERASE);
 
       }
 
@@ -331,15 +345,16 @@ public:
       for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
               particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
 
-          double& erase_flag        = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
+          //double& erase_flag        = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
           array_1d<double, 3 > coor = (*particle_pointer_it)->GetGeometry()(0)->Coordinates();
-          bool include              = (erase_flag < 0.5);
+          bool include=true;             // = (erase_flag < 0.5);
 
           for (unsigned int i = 0; i < 3; i++){
               include = include && (coor[i] >= low_point[i]) && (coor[i] <= high_point[i]);
           }
-
-          erase_flag = include ? 0.0 : 1.0;
+          
+          if(!include) 
+              (*particle_pointer_it)->GetGeometry()(0)->Set(TO_ERASE);          
 
       }
 
@@ -544,6 +559,7 @@ public:
     
     typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
     typedef WeakPointerVector<Element> ParticleWeakVectorType; 
+    typedef ModelPart::ElementsContainerType                          ElementsArrayType;
     
     
     Vector PartialParticleToInsert; //array of doubles, must be resized in the constructor to the number of meshes
@@ -605,24 +621,28 @@ public:
         } //for mesh_it                                               
     } //InitializeDEM_Inlet
         
-    void DettachElementsAndFindMaxId(ModelPart& r_modelpart, uint& max_Id){        
-        
-	for (ModelPart::NodesContainerType::iterator node_it = r_modelpart.NodesBegin(); node_it != r_modelpart.NodesEnd(); node_it++){
+    void DettachElementsAndFindMaxId(ModelPart& r_modelpart, uint& max_Id){    
+                     
+        for (ElementsArrayType::iterator elem_it = r_modelpart.ElementsBegin(); elem_it != r_modelpart.ElementsEnd(); ++elem_it){
+          
+          Node < 3 > ::Pointer node_it = elem_it->GetGeometry()(0);                  
             
 	  if( node_it->Id() > max_Id) max_Id = node_it->Id(); 
                    
           if( node_it->IsNot(NEW_ENTITY) ) continue;
           
-          if(mFirstTime) continue; 
+          //if(mFirstTime) continue; //mFirstTime refers to the first real insertion, not to the Initialization.
           
           bool still_touching=false;
           
-          ParticleWeakVectorType& rNeighbours    = node_it->GetValue(NEIGHBOUR_ELEMENTS);
+          ParticleWeakVectorType& rNeighbours    = elem_it->GetValue(NEIGHBOUR_ELEMENTS);
           for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
-              if(neighbour_iterator->Is(BLOCKED)) {
+              Node < 3 > ::Pointer neighbour_node = neighbour_iterator->GetGeometry()(0); 
+              if( (node_it->IsNot(BLOCKED) && neighbour_node->Is(BLOCKED)) || (neighbour_node->IsNot(BLOCKED) && node_it->Is(BLOCKED)) ) {
                   still_touching=true;
                   break;
               }
+              
           }
           
           if(!still_touching){ 
@@ -630,14 +650,16 @@ public:
 	      node_it->pGetDof(VELOCITY_X)->FreeDof();              
 	      node_it->pGetDof(VELOCITY_Y)->FreeDof();
 	      node_it->pGetDof(VELOCITY_Z)->FreeDof();      
-	      node_it->pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
-	      node_it->pGetDof(ANGULAR_VELOCITY_X)->FreeDof();
+	      node_it->pGetDof(ANGULAR_VELOCITY_X)->FreeDof();	      
 	      node_it->pGetDof(ANGULAR_VELOCITY_Y)->FreeDof();
 	      node_it->pGetDof(ANGULAR_VELOCITY_Z)->FreeDof();
+	      elem_it->Set(NEW_ENTITY,0);
+              node_it->Set(NEW_ENTITY,0);
 	    }
 	    else{
 	      //Inlet BLOCKED nodes are ACTIVE when injecting, but once they are not in contact with other balls, ACTIVE can be reseted.             
 	      node_it->Set(ACTIVE,false);
+	      elem_it->Set(ACTIVE,false);
 	    }
           }
           
@@ -674,7 +696,7 @@ public:
 
             if (number_of_particles_to_insert) {
               //randomizing mesh
-               srand(time(NULL));
+               srand( time(NULL)*r_modelpart.GetProcessInfo()[TIME_STEPS] );
                ModelPart::NodesContainerType::ContainerType inserting_nodes(number_of_particles_to_insert);
                ModelPart::NodesContainerType::ContainerType all_nodes = mesh_it->NodesArray();
                ModelPart::NodesContainerType::ContainerType valid_nodes = mesh_it->NodesArray();
@@ -693,7 +715,8 @@ public:
                }
                
                for (int i = 0; i < number_of_particles_to_insert; i++) {
-                   int pos = rand() % valid_nodes_length;
+		   int pos = rand() % valid_nodes_length;
+		   //int pos = i;
                    inserting_nodes[i] = valid_nodes[pos]; //This only works for pos as real position in the vector if 
                    //we use ModelPart::NodesContainerType::ContainerType 
                    //instead of ModelPart::NodesContainerType
