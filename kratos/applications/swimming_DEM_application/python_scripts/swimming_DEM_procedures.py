@@ -114,6 +114,10 @@ class ProjectionModule:
 
         self.projector.InterpolationFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid, alpha)
 
+    def ProjectFromNewestFluid(self):
+
+        self.projector.InterpolateFromNewestFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid)
+
     def ProjectFromParticles(self):
 
         self.projector.InterpolationFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.n_particles_in_depth, self.bin_of_objects_fluid)
