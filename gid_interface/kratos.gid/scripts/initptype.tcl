@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.4-09/10/13-G. Socorro, add two new script file wkcfconvectiondiffusion.tcl wkcfdem.tcl
 #     1.3-19/09/13-G. Socorro, modify the proc BeforeMeshGeneration to assign automatically triangle or quadrilateral element to the skin surfaces
 #     1.2-18/06/13-G. Socorro, delete the proc kipt::NewGiDGroups
 #     1.1-22/10/12-J. Garate, Support for new GiD Groups
@@ -109,7 +110,7 @@ proc kipt::About { } {
 
 proc kipt::BeforeMeshGeneration { elementsize } {                   
     set ndime "3D"
-  
+   
     # Get the spatial dimension
     set cxpath "GeneralApplicationData//c.Domain//i.SpatialDimension"
     set cproperty "dv"
@@ -136,7 +137,7 @@ proc kipt::BeforeMeshGeneration { elementsize } {
         ::wkcf::AssignConditionToGroupGID $entitytype $blinelist $groupid     
    
     } elseif { $ndime =="3D" } { 
-       
+      
         # Align the normal
         ::wkcf::AlignSurfNormals Outwards        
         # Reset Automatic Conditions from previous executions 
@@ -145,7 +146,9 @@ proc kipt::BeforeMeshGeneration { elementsize } {
         set groupid "-AKGSkinMesh3D"
         ::wkcf::CleanAutomaticConditionGroupGiD $entitytype $groupid        
         # Find boundaries
-        set bsurfacelist [::wkcf::FindBoundaries $entitytype]    
+        set bsurfacelist [::wkcf::FindBoundaries $entitytype] 
+	# wa "bsurfacelist:$bsurfacelist" 
+
 	# Get the surface type list
 	lassign [::wkcf::GetSurfaceTypeList $bsurfacelist] tetrasurf hexasurf
 	# wa "tetrasurf:$tetrasurf hexasurf:$hexasurf"
@@ -346,7 +349,7 @@ proc kipt::LoadSourceFiles { dir } {
     }
     # For write calculation file
     lappend lib_paths [file join $dir scripts libs wkcf]
-    lappend lib_filenames {wkcf.tcl wkcfutils.tcl wkcffluid.tcl wkcfstructuralanalysis.tcl wkcfgroups.tcl  wkcfconvectiondiffusion.tcl}
+    lappend lib_filenames {wkcf.tcl wkcfutils.tcl wkcffluid.tcl wkcfstructuralanalysis.tcl wkcfgroups.tcl wkcfconvectiondiffusion.tcl wkcfdem.tcl}
     # Load kegroups
     lappend lib_paths [file join $dir scripts kegroups]
     lappend lib_filenames {kegroups.tcl kGroupEntities.tcl}
