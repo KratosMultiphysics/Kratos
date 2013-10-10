@@ -62,6 +62,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "custom_utilities/custom_functions.h"
 #include "custom_utilities/binbased_DEM_fluid_coupled_mapping.h" //S
+#include "custom_utilities/volume_averaging_tool.h"
 
 
 namespace Kratos{
@@ -86,7 +87,8 @@ using namespace boost::python;
         ;
  
     class_<BinBasedDEMFluidCoupledMapping < 3 > >("BinBasedDEMFluidCoupledMapping3D", init< >())
-        .def("InterpolationFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolationFromFluidMesh)    
+        .def("InterpolationFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolationFromFluidMesh)
+        .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolateFromNewestFluidMesh)
         .def("InterpolationFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolationFromDEMMesh)  
         ;
     }
