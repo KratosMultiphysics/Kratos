@@ -105,17 +105,21 @@ public:
 
       }
 
-      pnew_node->FastGetSolutionStepValue(RADIUS) = params[RADIUS];      
-      pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY) = params[PARTICLE_DENSITY];
-      pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS) = params[YOUNG_MODULUS];
-      pnew_node->FastGetSolutionStepValue(POISSON_RATIO) = params[POISSON_RATIO];
-      pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = params[PARTICLE_MATERIAL];
-      pnew_node->FastGetSolutionStepValue(VELOCITY_X) = params[VELOCITY][0];
-      pnew_node->FastGetSolutionStepValue(VELOCITY_Y) = params[VELOCITY][1];
-      pnew_node->FastGetSolutionStepValue(VELOCITY_Z) = params[VELOCITY][2];
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;                                 
+      pnew_node->GetSolutionStepValue(RADIUS) = params[RADIUS];      
+      pnew_node->GetSolutionStepValue(PARTICLE_DENSITY) = params[PARTICLE_DENSITY];
+      pnew_node->GetSolutionStepValue(YOUNG_MODULUS) = params[YOUNG_MODULUS];
+      pnew_node->GetSolutionStepValue(POISSON_RATIO) = params[POISSON_RATIO];
+      pnew_node->GetSolutionStepValue(PARTICLE_FRICTION) = params[PARTICLE_FRICTION];
+      //pnew_node->GetSolutionStepValue(LN_OF_RESTITUTION_COEFF) = log(params[RESTITUTION_COEFF]);
+      pnew_node->GetSolutionStepValue(ROLLING_FRICTION) = params[ROLLING_FRICTION];
+      pnew_node->GetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO) = params[PARTICLE_ROTATION_DAMP_RATIO];
+      pnew_node->GetSolutionStepValue(PARTICLE_SPHERICITY) = params[PARTICLE_SPHERICITY];       
+      pnew_node->GetSolutionStepValue(VELOCITY_X) = params[VELOCITY][0];
+      pnew_node->GetSolutionStepValue(VELOCITY_Y) = params[VELOCITY][1];
+      pnew_node->GetSolutionStepValue(VELOCITY_Z) = params[VELOCITY][2];
+      pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
+      pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_Y) = 0.0;
+      pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_Z) = 0.0;                                 
       
       ///DOFS
       pnew_node->AddDof(DISPLACEMENT_X, REACTION_X);
@@ -170,9 +174,7 @@ public:
       
       Geometry< Node < 3 > >::PointsArrayType nodelist;
       
-      nodelist.push_back(pnew_node);                                        
-
-      //Element::Pointer p_particle = Element::Pointer(new /*SphericSwimmingParticle*/DEMElementType(r_Elem_Id, nodelist)); 
+      nodelist.push_back(pnew_node);                                              
       
       Element::Pointer p_particle = r_reference_element.Create(r_Elem_Id, nodelist, r_modelpart.pGetProperties(0));
       
@@ -667,7 +669,7 @@ public:
         
     } //DettachElements
     
-    void CreateElementsFromInletMesh( ModelPart& r_modelpart, ModelPart& inlet_modelpart, ParticleCreatorDestructor& creator ){
+    void CreateElementsFromInletMesh( ModelPart& r_modelpart, ModelPart& inlet_modelpart, ParticleCreatorDestructor& creator, const std::string& ElementNameString){
                         
         uint max_Id=0; 
         DettachElementsAndFindMaxId(r_modelpart, max_Id);                
@@ -722,7 +724,7 @@ public:
                    valid_nodes_length = valid_nodes_length - 1;
                }
                
-               const std::string ElementNameString = std::string("SphericParticle3D");
+               //const std::string ElementNameString = std::string("SphericParticle3D");
                
                const Element& r_reference_element = KratosComponents<Element>::Get(ElementNameString);
                
