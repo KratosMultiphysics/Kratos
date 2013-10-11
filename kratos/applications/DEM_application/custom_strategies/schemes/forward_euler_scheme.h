@@ -102,7 +102,7 @@ namespace Kratos
           #endif
           OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
           
-          #pragma omp parallel for firstprivate(aux) shared(delta_t) 
+	  #pragma omp parallel for firstprivate(aux) shared(delta_t) 
           for(int k=0; k<number_of_threads; k++)
           {
               NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
@@ -119,9 +119,7 @@ namespace Kratos
                   
                   
                   double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
-                  aux = delta_t / mass;
-                  //KRATOS_WATCH(delta_t)
-                  //KRATOS_WATCH(mass)
+                  aux = delta_t / mass;                  
                   
                   if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
                   {
