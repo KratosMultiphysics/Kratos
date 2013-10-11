@@ -237,8 +237,7 @@ namespace Kratos
           if ((time_step + 1) % mNStepSearch == 0 && time_step > 0){
               if (this->GetBoundingBoxOption()){
                   BoundingBoxUtility();
-              }
-
+              }              
               SearchNeighbours(r_model_part);
           }
           
