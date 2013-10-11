@@ -314,9 +314,8 @@ while(time <= final_time):
         Dt = full_Dt
         
     step     = step + 1
-    time     = time + Dt
     time_dem = time
-
+    time     = time + Dt
     fluid_model_part.CloneTimeStep(time)
 
     if(step < 3):
@@ -326,7 +325,6 @@ while(time <= final_time):
         
         fluid_solver.Solve()
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-
         if (time > ProjectParameters.Interaction_start_time):
             time_final = time + Dt
             Dt_DEM     = DEM_parameters.MaxTimeStep
@@ -334,12 +332,12 @@ while(time <= final_time):
             if (ProjectParameters.ProjectionModuleOption):
                 interaction_calculator = custom_functions_calculator()
                 interaction_calculator.pressuregradientcalculator(fluid_model_part)
-                projection_module.ProjectFromNewestFluid()
+                projection_module.ProjectFromFluid((time_dem + Dt - time) / Dt)
                     
-            for time_dem in my_time_dem(time, time_final, Dt_DEM):
+            for time_dem in my_time_dem(time_dem, time_final, Dt_DEM):
 
                 if (ProjectParameters.ProjectAtEverySubStepOption):
-                    projection_module.ProjectFromNewestFluid()
+                    projection_module.ProjectFromFluid((time_dem + Dt - time) / Dt)
                 
                 balls_model_part.CloneTimeStep(time_dem)
                 DEM_solver.Solve()
@@ -355,11 +353,18 @@ while(time <= final_time):
             print_particles_results = PrintParticlesResults("VELOCITY", time, balls_model_part)
 
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
     if(output_time <= out):
         ParticleUtils2D().VisualizationModelPart(mixed_model_part, fluid_model_part, balls_model_part)
+#       gid_io.write_results(  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+#           time,               # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+#           fluid_model_part,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+#           ProjectParameters.nodal_results,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+#           ProjectParameters.gauss_points_results)    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+
 # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
         swimming_DEM_gid_io.write_swimming_DEM_results(
             time,
@@ -371,12 +376,6 @@ while(time <= final_time):
             ProjectParameters.mixed_nodal_results,
             ProjectParameters.gauss_points_results)
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-
-#       gid_io.write_results(  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-#           time,               # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-#           fluid_model_part,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-#           ProjectParameters.nodal_results,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-#           ProjectParameters.gauss_points_results)    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
         out = 0
 
