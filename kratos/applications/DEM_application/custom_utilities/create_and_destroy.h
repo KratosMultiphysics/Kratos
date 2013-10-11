@@ -257,8 +257,6 @@ public:
         temp_nodes_container.swap(rNodes);
 
         //Add the ones inside the bounding box
-KRATOS_WATCH(rElements.size())
-                    KRATOS_WATCH(temp_particles_container.size())
         for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin(); particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it){	  
             
 	  if( !(*particle_pointer_it)->GetGeometry()(0)->Is(TO_ERASE) ) {
