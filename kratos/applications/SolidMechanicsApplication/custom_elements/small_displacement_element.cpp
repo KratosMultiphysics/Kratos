@@ -594,7 +594,7 @@ void SmallDisplacementElement::InitializeSystemMatrices(MatrixType& rLeftHandSid
 void SmallDisplacementElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo,
-        Flags& rCalculationOptions)
+        Flags& rCalculationFlags)
 {
     KRATOS_TRY
 
@@ -635,14 +635,14 @@ void SmallDisplacementElement::CalculateElementalSystem( MatrixType& rLeftHandSi
 
         //if ( dimension == 2 ) IntegrationWeight *= GetProperties()[THICKNESS];
 
-        if ( rCalculationOptions.Is(SmallDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+        if ( rCalculationFlags.Is(SmallDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
             //contributions to stiffness matrix calculated on the reference config
             this->CalculateAndAddLHS ( rLeftHandSideMatrix, Variables, IntegrationWeight );
 
         }
 
-        if ( rCalculationOptions.Is(SmallDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+        if ( rCalculationFlags.Is(SmallDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
             //contribution to external forces
             VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables.N );
@@ -1385,7 +1385,7 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
             this->SetGeneralVariables(Variables,Values,PointNumber);
 
             //call the constitutive law to update material variables
-            mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponseCauchy (Values);
+            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy (Values);
 
             ComparisonUtils EquivalentStress;
             rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(Variables.StressVector);

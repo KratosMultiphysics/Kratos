@@ -85,10 +85,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
-     */
+
     /**
      * creates a new total lagrangian updated element pointer
      * @param NewId: the ID of the new element
@@ -148,7 +145,6 @@ public:
     ///@}
     ///@name Access
     ///@{
-
     ///@}
     ///@name Inquiry
     ///@{

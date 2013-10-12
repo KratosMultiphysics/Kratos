@@ -508,27 +508,6 @@ public:
         ProcessInfo CurrentProcessInfo= r_model_part.GetProcessInfo();
 
 
-        //Set Particular Element and Condition Flags:
-
-        //-----------//
-        //Getting the Elements
-        // ElementsArrayType& pElements = r_model_part.Elements();
-
-        // std::cout<<"[ Elements : "<<r_model_part.NumberOfElements()<<" ] "<<std::endl;
-
-        // for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
-        //   {
-        //     (*it)->Set(ThermalMechanicalElement::MECHANICAL_SOLUTION);
-        //   }
-
-        //Getting the Conditions
-        // ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
-        // for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
-        //   {
-        //     (*it)->Set(ThermalMechanicalContactCondition::MECHANICAL_SOLUTION);
-        //   }
-        //-----------//
-
         Scheme<TSparseSpace,TDenseSpace>::InitializeSolutionStep(r_model_part,A,Dx,b);
 
 

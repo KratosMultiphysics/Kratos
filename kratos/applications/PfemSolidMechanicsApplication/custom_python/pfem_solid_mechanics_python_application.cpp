@@ -17,7 +17,6 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_custom_conditions_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_modelers_to_python.h"
  
@@ -39,7 +38,6 @@ namespace Kratos
 	     bases<KratosApplication>, boost::noncopyable >("KratosPfemSolidMechanicsApplication")
 	  ;
 
-      AddCustomConditionsToPython(); 
       AddCustomProcessesToPython();
       AddCustomUtilitiesToPython();
       AddCustomStrategiesToPython();

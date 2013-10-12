@@ -15,12 +15,17 @@
 
 // Project includes
 #include "includes/define.h"
+
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_3d_3.h"
+
 #include "geometries/tetrahedra_3d_4.h"
+
 #include "geometries/line_2d.h"
+
 #include "geometries/point_2d.h"
 #include "geometries/point_3d.h"
+
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/variables.h"

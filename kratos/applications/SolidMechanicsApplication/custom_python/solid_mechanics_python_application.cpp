@@ -16,7 +16,6 @@
 #include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
-#include "custom_python/add_custom_conditions_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 
 #include "solid_mechanics_application.h"
@@ -39,7 +38,6 @@ BOOST_PYTHON_MODULE(KratosSolidMechanicsApplication)
            bases<KratosApplication>, boost::noncopyable >("KratosSolidMechanicsApplication")
            ;
 
-    AddCustomConditionsToPython();
     AddCustomUtilitiesToPython();
     AddCustomStrategiesToPython();
     AddCustomConstitutiveLawsToPython();
