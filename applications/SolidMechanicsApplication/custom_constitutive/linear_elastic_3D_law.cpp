@@ -157,7 +157,6 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
 
     Vector& StrainVector                  = rValues.GetStrainVector();
     Vector& StressVector                  = rValues.GetStressVector();
-    Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
 
     //-----------------------------//
 

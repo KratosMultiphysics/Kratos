@@ -595,9 +595,9 @@ void LargeDisplacementElement::InitializeSystemMatrices(MatrixType& rLeftHandSid
 //************************************************************************************
 
 void LargeDisplacementElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo,
-        Flags& rCalculationOptions)
+							 VectorType& rRightHandSideVector,
+							 ProcessInfo& rCurrentProcessInfo,
+							 Flags& rCalculationFlags)
 {
     KRATOS_TRY
 
@@ -639,13 +639,13 @@ void LargeDisplacementElement::CalculateElementalSystem( MatrixType& rLeftHandSi
 
         //if ( dimension == 2 ) IntegrationWeight *= GetProperties()[THICKNESS];
 
-        if ( rCalculationOptions.Is(LargeDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+        if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
             //contributions to stiffness matrix calculated on the reference config
             this->CalculateAndAddLHS ( rLeftHandSideMatrix, Variables, IntegrationWeight );
         }
 
-        if ( rCalculationOptions.Is(LargeDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+        if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
             //contribution to external forces
             VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables.N );
@@ -808,6 +808,7 @@ void LargeDisplacementElement::FinalizeNonLinearIteration( ProcessInfo& rCurrent
 
 void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
+    KRATOS_TRY
 
     //create and initialize element variables:
     GeneralVariables Variables;
@@ -833,7 +834,7 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
         this->SetGeneralVariables(Variables,Values,PointNumber);
 
         //call the constitutive law to update material variables
-        mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponse(Values,Variables.StressMeasure);
+        mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponse(Values, Variables.StressMeasure);
 
         //call the constitutive law to finalize the solution step
         mConstitutiveLawVector[PointNumber]->FinalizeSolutionStep( GetProperties(),
@@ -841,6 +842,8 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
                 Variables.N,
                 rCurrentProcessInfo );
     }
+
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -1381,7 +1384,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
             this->SetGeneralVariables(Variables,Values,PointNumber);
 
             //call the constitutive law to update material variables
-            mConstitutiveLawVector[PointNumber]->FinalizeMaterialResponseCauchy (Values);
+            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy (Values);
 
             ComparisonUtils EquivalentStress;
             rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(Variables.StressVector);

@@ -299,11 +299,11 @@ void SpatialLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
     //Current Deformation Gradient
-    this->CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition);
+    this->CalculateDeformationGradient ( rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition );
 
     //Calculating the inverse of the jacobian and the parameters needed
     Matrix Invj;
-    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ ); //overwrites detJ
 
     //Compute cartesian derivatives
     rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
