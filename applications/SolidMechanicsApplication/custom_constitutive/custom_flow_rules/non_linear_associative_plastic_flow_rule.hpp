@@ -146,6 +146,9 @@ namespace Kratos
 
     void UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );	  
 
+
+    void CalculateThermalDissipation( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
+
     ///@}
     ///@name Protected  Access
     ///@{

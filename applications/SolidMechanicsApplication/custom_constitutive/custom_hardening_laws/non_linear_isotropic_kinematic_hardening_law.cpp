@@ -68,20 +68,25 @@ NonLinearIsotropicKinematicHardeningLaw::~NonLinearIsotropicKinematicHardeningLa
 //*******************************CALCULATE TOTAL HARDENING****************************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateHardening(double &rHardening,const double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateHardening(double &rHardening, const double &rAlpha, double rTemperature)
 {
-	
-	//linear hardening properties
-	const double& YieldStress                 =  GetProperties()[YIELD_STRESS];
-	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
+        //linear hardening properties
+	double  YieldStress                 =  GetProperties()[YIELD_STRESS];
+	double  KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
 	
 	//exponential saturation properties
-   	const double& K_reference           =  GetProperties()[REFERENCE_HARDENING_MODULUS];
-	const double& K_infinity            =  GetProperties()[INFINITY_HARDENING_MODULUS];
-	const double& Delta                 =  GetProperties()[HARDENING_EXPONENT];
+   	double  K_reference           =  GetProperties()[REFERENCE_HARDENING_MODULUS];
+	double  K_infinity            =  GetProperties()[INFINITY_HARDENING_MODULUS];
+	const double& Delta           =  GetProperties()[HARDENING_EXPONENT];
+
+	YieldStress                *= this->CalculateThermalReferenceEffect(rTemperature);
+	K_reference                *= this->CalculateThermalReferenceEffect(rTemperature);
+
+	K_infinity                 *= this->CalculateThermalCurrentEffect(rTemperature);
+	KinematicHardeningConstant *= this->CalculateThermalCurrentEffect(rTemperature);
 
 	//Linear Hardening law:
-	rHardening  = YieldStress + mTheta *  KinematicHardeningConstant;
+	rHardening  = YieldStress + mTheta *  KinematicHardeningConstant * rAlpha;
 	
 	//Exponential Saturation:
 	rHardening += (K_infinity-K_reference) * (1.0 - exp( (-1.0) * Delta * rAlpha ) );
@@ -93,20 +98,28 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateHardening(double &rHar
 //*******************************CALCULATE ISOTROPIC HARDENING************************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateIsotropicHardening(double &rIsotropicHardening,const double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateIsotropicHardening(double &rIsotropicHardening, const double &rAlpha, double rTemperature)
 {
 
-	//linear hardening properties
-	const double& YieldStress                 =  GetProperties()[YIELD_STRESS];
-	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
+        //linear hardening properties
+	double  YieldStress                 =  GetProperties()[YIELD_STRESS];
+	double  KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
 	
 	//exponential saturation properties
-   	const double& K_reference           =  GetProperties()[REFERENCE_HARDENING_MODULUS];
-	const double& K_infinity            =  GetProperties()[INFINITY_HARDENING_MODULUS];
-	const double& Delta                 =  GetProperties()[HARDENING_EXPONENT];
+   	double  K_reference           =  GetProperties()[REFERENCE_HARDENING_MODULUS];
+	double  K_infinity            =  GetProperties()[INFINITY_HARDENING_MODULUS];
+	const double& Delta           =  GetProperties()[HARDENING_EXPONENT];
+
+
+	YieldStress                *= this->CalculateThermalReferenceEffect(rTemperature);
+	K_reference                *= this->CalculateThermalReferenceEffect(rTemperature);
+
+	K_infinity                 *= this->CalculateThermalCurrentEffect(rTemperature);
+	KinematicHardeningConstant *= this->CalculateThermalCurrentEffect(rTemperature);
+
 
 	//Linear Hardening law: (mTheta = 1)
-	rIsotropicHardening  = YieldStress + KinematicHardeningConstant;
+	rIsotropicHardening  = YieldStress + mTheta * KinematicHardeningConstant * rAlpha;
 	
 	//Exponential Saturation:
 	rIsotropicHardening += (K_infinity-K_reference) * (1.0 - exp( (-1.0) * Delta * rAlpha ) );
@@ -119,11 +132,14 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateIsotropicHardening(dou
 //*******************************CALCULATE KINEMATIC HARDENING************************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateKinematicHardening(double &rKinematicHardening,const double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateKinematicHardening(double &rKinematicHardening, const double &rAlpha, double rTemperature)
 {
-	//linear hardening properties
-	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
-	
+
+      	//linear hardening properties
+	double  KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
+
+	KinematicHardeningConstant *= this->CalculateThermalCurrentEffect(rTemperature);
+
 	//Linear Hardening law:
 	rKinematicHardening  = (1.0 - mTheta) * KinematicHardeningConstant;
 	
@@ -135,15 +151,21 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateKinematicHardening(dou
 //*******************************CALCULATE HARDENING DERIVATIVE***********************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaHardening(double &rDeltaHardening,const double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaHardening(double &rDeltaHardening, const double &rAlpha, double rTemperature)
 {
-      	//linear hardening properties
-	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
+       	//linear hardening properties
+	double  KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
 	
 	//exponential saturation properties
-   	const double& K_reference           =  GetProperties()[REFERENCE_HARDENING_MODULUS];
-	const double& K_infinity            =  GetProperties()[INFINITY_HARDENING_MODULUS];
-	const double& Delta                 =  GetProperties()[HARDENING_EXPONENT];
+   	double  K_reference           =  GetProperties()[REFERENCE_HARDENING_MODULUS];
+	double  K_infinity            =  GetProperties()[INFINITY_HARDENING_MODULUS];
+	const double& Delta           =  GetProperties()[HARDENING_EXPONENT];
+
+	K_reference                *= this->CalculateThermalReferenceEffect(rTemperature);
+
+	K_infinity                 *= this->CalculateThermalCurrentEffect(rTemperature);
+	KinematicHardeningConstant *= this->CalculateThermalCurrentEffect(rTemperature);
+
 
 	//Linear Hardening law: (mTheta = 1)
 	rDeltaHardening  = mTheta * KinematicHardeningConstant;
@@ -157,18 +179,24 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaHardening(double 
 //***************************CALCULATE ISOTROPIC HARDENING DERIVATIVE*****************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening,const double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const double &rAlpha, double rTemperature)
 {
        	//linear hardening properties
-	const double& KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
+	double  KinematicHardeningConstant  =  GetProperties()[KINEMATIC_HARDENING_MODULUS];
 	
 	//exponential saturation properties
-   	const double& K_reference           =  GetProperties()[REFERENCE_HARDENING_MODULUS];
-	const double& K_infinity            =  GetProperties()[INFINITY_HARDENING_MODULUS];
-	const double& Delta                 =  GetProperties()[HARDENING_EXPONENT];
+   	double  K_reference           =  GetProperties()[REFERENCE_HARDENING_MODULUS];
+	double  K_infinity            =  GetProperties()[INFINITY_HARDENING_MODULUS];
+	const double& Delta           =  GetProperties()[HARDENING_EXPONENT];
+
+
+	K_reference                *= this->CalculateThermalReferenceEffect(rTemperature);
+	K_infinity                 *= this->CalculateThermalCurrentEffect(rTemperature);
+	KinematicHardeningConstant *= this->CalculateThermalCurrentEffect(rTemperature);
+
 
 	//Linear Hardening law: (mTheta = 1)
-	rDeltaIsotropicHardening  = KinematicHardeningConstant;
+	rDeltaIsotropicHardening  = mTheta * KinematicHardeningConstant;
 	
 	//Exponential Saturation:
 	rDeltaIsotropicHardening += Delta * (K_infinity-K_reference) * ( exp( (-1.0) * Delta * rAlpha ) );
@@ -181,11 +209,29 @@ double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaIsotropicHardenin
 //***************************CALCULATE KINEMATIC HARDENING DERIVATIVE*****************
 //************************************************************************************
 
-double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening,const double & rAlpha)
+double& NonLinearIsotropicKinematicHardeningLaw::CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening, const double &rAlpha, double rTemperature)
 {
 	rDeltaKinematicHardening = 0;
 
 	return rDeltaKinematicHardening;
+}
+
+
+//***************************CALCULATE TEMPERATURE EVOLUTION PROPERTIES***************
+//************************************************************************************
+
+
+double NonLinearIsotropicKinematicHardeningLaw::CalculateThermalReferenceEffect(const double &rTemperature)
+{
+  return 1;
+}
+
+//***************************CALCULATE TEMPERATURE EVOLUTION PROPERTIES***************
+//************************************************************************************
+
+double NonLinearIsotropicKinematicHardeningLaw::CalculateThermalCurrentEffect(const double &rTemperature)
+{
+  return 1;
 }
 
 

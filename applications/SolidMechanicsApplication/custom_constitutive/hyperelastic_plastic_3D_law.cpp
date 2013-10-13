@@ -21,7 +21,7 @@
 namespace Kratos
 {
 
-//******************************CONSTRUCTOR*******************************************
+  //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
 HyperElasticPlastic3DLaw::HyperElasticPlastic3DLaw()
@@ -60,7 +60,7 @@ HyperElasticPlastic3DLaw::HyperElasticPlastic3DLaw(const HyperElasticPlastic3DLa
 
 ConstitutiveLaw::Pointer HyperElasticPlastic3DLaw::Clone() const
 {
-    HyperElasticPlastic3DLaw::Pointer p_clone(new HyperElasticPlastic3DLaw(*this));
+    ConstitutiveLaw::Pointer p_clone(new HyperElasticPlastic3DLaw(*this));
     return p_clone;
 }
 
@@ -80,6 +80,9 @@ HyperElasticPlastic3DLaw::~HyperElasticPlastic3DLaw()
 
 bool HyperElasticPlastic3DLaw::Has( const Variable<double>& rThisVariable )
 {
+  // if(rThisVariable == DELTA_PLASTIC_DISSIPATION || rThisVariable == PLASTIC_DISSIPATION )
+  //   return true;
+  
     return false;
 }
 
@@ -110,6 +113,19 @@ double& HyperElasticPlastic3DLaw::GetValue( const Variable<double>& rThisVariabl
       const FlowRule::InternalVariables& InternalVariables = mpFlowRule->GetInternalVariables();
       rValue=InternalVariables.DeltaPlasticStrain;
     }
+
+
+  // if (rThisVariable==PLASTIC_DISSIPATION)
+  //   {
+  //     const FlowRule::ThermalVariables& ThermalVariables = mpFlowRule->GetThermalVariables();
+  //     rValue=ThermalVariables.PlasticDissipation;
+  //   }
+  
+  // if (rThisVariable==DELTA_PLASTIC_DISSIPATION)
+  //   {
+  //     const FlowRule::ThermalVariables& ThermalVariables = mpFlowRule->GetThermalVariables();
+  //     rValue=ThermalVariables.DeltaPlasticDissipation;
+  //   }
 
   return( rValue );
 }
@@ -683,6 +699,10 @@ void HyperElasticPlastic3DLaw::CalculateIsochoricStress( MaterialResponseVariabl
 
     }
 
+    
+    //thermal effects:
+    rReturnMappingVariables.Temperature = this->CalculateDomainTemperature(rElasticVariables, rReturnMappingVariables.Temperature);
+
     rReturnMappingVariables.TrialIsoStressVector = MathUtils<double>::StressTensorToVector( rIsoStressMatrix, rIsoStressVector.size() );
 
     //std::cout<<" TrialIsoStressVector "<<rReturnMappingVariables.TrialIsoStressVector<<std::endl;
@@ -694,6 +714,33 @@ void HyperElasticPlastic3DLaw::CalculateIsochoricStress( MaterialResponseVariabl
     //std::cout<<" PLASTICITY "<<rElasticVariables.Plasticity<<" rIsoStressVector "<<rIsoStressVector<<std::endl;
 
 }
+
+//******************************* COMPUTE DOMAIN TEMPERATURE  ************************
+//************************************************************************************
+
+
+double &  HyperElasticPlastic3DLaw::CalculateDomainTemperature (const MaterialResponseVariables & rElasticVariables,
+								double & rTemperature)
+{
+  
+    //1.-Temperature from nodes
+    // const GeomteryType& DomainGeometry = rElasticVariables.GetElementGeometry();
+    // const Vector& ShapeFunctionsValues = rElasticVariables.GetShapeFunctionsValues();
+    // const unsigned int number_of_nodes = DomainGeometry.size();
+    
+    // rTemperature=0;
+       
+    // for ( unsigned int j = 0; j < number_of_nodes; j++ )
+    //   {
+    // 	rTemperature += ShapeFunctionsValues[j] * DomainGeometry[j].GetSolutionStepValue(TEMPERATURE);
+    //   }
+
+    //2.-Temperature not included
+    rTemperature = 0;
+
+    return rTemperature;
+}
+
 
 //******************************* COMPUTE DOMAIN PRESSURE  ***************************
 //************************************************************************************

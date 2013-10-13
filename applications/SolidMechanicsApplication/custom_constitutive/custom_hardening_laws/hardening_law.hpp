@@ -98,18 +98,25 @@ public:
 		return *mpProperties;
 	}
 
-  virtual double& CalculateHardening(double &rHardening, const double & rAlpha){ return rHardening; };
+
+    virtual double& CalculateHardening(double &rHardening, const double & rAlpha, double rTemperature = 0){ return rHardening; };
   
-  virtual double& CalculateIsotropicHardening(double &rIsotropicHardening, const double & rAlpha){ return rIsotropicHardening; };
+    virtual double& CalculateIsotropicHardening(double &rIsotropicHardening, const double & rAlpha, double rTemperature = 0){ return rIsotropicHardening; };
 
-  virtual double& CalculateKinematicHardening(double &rKinematicHardening, const double & rAlpha){ return rKinematicHardening; };
+    virtual double& CalculateKinematicHardening(double &rKinematicHardening, const double & rAlpha, double rTemperature = 0){ return rKinematicHardening; };
 
 
-  virtual double& CalculateDeltaHardening(double &rDeltaHardening, const double & rAlpha){ return rDeltaHardening; };
+    virtual double& CalculateDeltaHardening(double &rDeltaHardening, const double & rAlpha, double rTemperature = 0){ return rDeltaHardening; };
 
-  virtual double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const double & rAlpha){ return rDeltaIsotropicHardening; };
+    virtual double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const double & rAlpha, double rTemperature = 0){ return rDeltaIsotropicHardening; };
 
-  virtual double& CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening, const double & rAlpha){ return rDeltaKinematicHardening; };
+    virtual double& CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening, const double & rAlpha, double rTemperature = 0){ return rDeltaKinematicHardening; };
+
+    virtual double& CalculateDeltaThermalHardening(double &rDeltaThermalHardening, const double &rAlpha){ return rDeltaThermalHardening; };
+
+    virtual double CalculateThermalReferenceEffect(const double &rTemperature){ return 1; };
+
+    virtual double CalculateThermalCurrentEffect(const double &rTemperature){ return 1; };
 
     ///@}
     ///@name Access
