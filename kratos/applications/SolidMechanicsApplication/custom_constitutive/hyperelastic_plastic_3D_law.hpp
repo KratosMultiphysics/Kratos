@@ -507,7 +507,14 @@ protected:
                                             Vector& rVolStressVector );
 
 
-
+    /**
+     * Calculates the Temperature of the domain (element)
+     * @param rElementGeometry the element geometry
+     * @param rShapeFunctions the element shape functions
+     * @param rTemperature the calculated temperature to be returned
+     */
+    virtual double& CalculateDomainTemperature (const MaterialResponseVariables & rElasticVariables,
+                                     double & rTemperature);
     /**
      * Calculates the Pressure of the domain (element)
      * @param rElementGeometry the element geometry
@@ -538,29 +545,18 @@ private:
 
     ///@name Static Member Variables
     ///@{
-
-
     ///@}
     ///@name Member Variables
     ///@{
-
-
     ///@}
     ///@name Private Operators
     ///@{
-
-
     ///@}
     ///@name Private Operations
     ///@{
-
-
     ///@}
     ///@name Private  Access
     ///@{
-    ///@}
-
-
     ///@}
     ///@name Serialization
     ///@{

@@ -90,6 +90,9 @@ namespace Kratos
       double LameMu_bar;
       double TimeStep;
 
+      double Temperature;
+      bool   Implex;
+
     public:
       
       void clear()
@@ -97,11 +100,14 @@ namespace Kratos
 	  NormIsochoricStress = 0;
 	  TrialStateFunction  = 0;
 
-	  DeltaGamma = 0;
-	  DeltaBeta  = 0;
+	  DeltaGamma  = 0;
+	  DeltaBeta   = 0;
 
-	  LameMu_bar = 0;
-	  TimeStep   = 0;
+	  LameMu_bar  = 0;
+	  TimeStep    = 0;
+	  Temperature = 0;
+
+	  Implex      = false;
 	}
       
     };
@@ -138,6 +144,21 @@ namespace Kratos
       };
     };
 
+    struct ThermalVariables
+    {
+      double PlasticDissipation;
+      double DeltaPlasticDissipation;
+
+    public:
+
+        void clear()
+        {
+	  PlasticDissipation = 0;
+	  DeltaPlasticDissipation = 0;
+	}
+
+    };
+
     /// Pointer definition of FlowRule
       KRATOS_CLASS_POINTER_DEFINITION(FlowRule);
 
@@ -164,6 +185,7 @@ namespace Kratos
     FlowRule& operator=(FlowRule const& rOther) 
     { 
        mInternalVariables = rOther.mInternalVariables;
+       mThermalVariables  = rOther.mThermalVariables;
        mpYieldCriterion   = rOther.mpYieldCriterion;
        mpHardeningLaw     = rOther.mpHardeningLaw;
        mpProperties       = rOther.mpProperties;
@@ -195,6 +217,7 @@ namespace Kratos
       mpYieldCriterion->InitializeMaterial(mpHardeningLaw);	
 
       mInternalVariables.clear();
+      mThermalVariables.clear();
     };
 
 
@@ -208,6 +231,11 @@ namespace Kratos
       return mInternalVariables;
     };
 	
+
+    const ThermalVariables & GetThermalVariables()
+    {
+      return mThermalVariables;
+    };
 
     virtual bool CalculateReturnMapping( RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix )
     {
@@ -271,6 +299,7 @@ namespace Kratos
     ///@{
     
     InternalVariables   mInternalVariables;
+    ThermalVariables    mThermalVariables;
 
     YieldCriterionPointer   mpYieldCriterion;
     HardeningLawPointer       mpHardeningLaw;

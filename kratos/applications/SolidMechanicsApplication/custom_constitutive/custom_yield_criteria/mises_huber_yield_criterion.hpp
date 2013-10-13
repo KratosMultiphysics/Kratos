@@ -82,14 +82,19 @@ class MisesHuberYieldCriterion
         ///@name Operations
         ///@{
 
-        double& CalculateYieldCondition(double & rStateFunction, const double& rNormStress, const double& rAlpha);
+        double& CalculateYieldCondition(double & rStateFunction, const double& rNormStress, const double& rAlpha, double rTemperature = 0);
 
-        double& CalculateYieldCondition(double & rStateFunction, const Matrix& rStressMatrix, const double& rAlpha);
+        double& CalculateYieldCondition(double & rStateFunction, const Matrix& rStressMatrix, const double& rAlpha, double rTemperature = 0);
 
 
-	double& CalculateStateFunction(double & rStateFunction,const double& rNormStress, const double& rDeltaGamma, const double& rLameMu_bar, const double& rAlpha, const double& rAlphaOld);
+	double& CalculateStateFunction(double & rStateFunction,const double& rNormStress, const double& rDeltaGamma, const double& rLameMu_bar, const double& rAlpha, const double& rAlphaOld, double rTemperature = 0);
 
-	double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const double& rLameMu_bar, const double& rAlpha);
+	double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const double& rLameMu_bar, const double& rAlpha, double rTemperature = 0);
+
+        double& CalculatePlasticDissipation(double & rPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rAlpha, const double &rTemperature);
+
+        double& CalculateDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rLameMu_bar, const double& rAlpha, const double &rTemperature);
+          
         ///@}
         ///@name Access
         ///@{
