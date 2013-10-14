@@ -285,7 +285,7 @@ void SurfaceLoad3DCondition::CalculateAndSubKp(
             SubtractMatrix(K, Kij, RowIndex, ColIndex);
         }
     }
-
+    
     KRATOS_CATCH("")
 }
 
@@ -386,7 +386,7 @@ void SurfaceLoad3DCondition::CalculateAndAddFacePressure(
     unsigned int index = 0;
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
+        
         index = dimension * i;
         double  DiscretePressure = rPressure * rN[i] * rIntegrationWeight;
         rF[index]     += DiscretePressure * rNormal[0];
@@ -394,6 +394,7 @@ void SurfaceLoad3DCondition::CalculateAndAddFacePressure(
         rF[index + 2] += DiscretePressure * rNormal[2];
 
 	GetGeometry()[i].SetLock();
+        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
         ExternalForce[0] += DiscretePressure * rNormal[0];
         ExternalForce[1] += DiscretePressure * rNormal[1];
         ExternalForce[2] += DiscretePressure * rNormal[2];
@@ -426,7 +427,7 @@ void SurfaceLoad3DCondition::CalculateAndAddSurfaceLoad(Vector& rF,
         array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
 
 	GetGeometry()[i].SetLock();
-        for ( unsigned int idim = 0; idim < number_of_nodes; idim++ )
+        for ( unsigned int idim = 0; idim < dimension; idim++ )
         {
             rF[index+idim] += rN[i] * rForce[idim] * rIntegrationWeight;
 
@@ -517,7 +518,7 @@ void SurfaceLoad3DCondition::CalculateConditionalSystem(MatrixType& rLeftHandSid
         gn[2] = J[PointNumber](2, 1);
 
         CrossProduct(NormalVector, ge, gn);
-       // NormalVector /= norm_2(NormalVector);
+        //NormalVector /= norm_2(NormalVector);
 //         KRATOS_WATCH(NormalVector);
 
         // calculating the pressure and force on the gauss point
@@ -552,7 +553,7 @@ void SurfaceLoad3DCondition::CalculateConditionalSystem(MatrixType& rLeftHandSid
                                            ForceLoad, IntegrationWeight);
         }
     }
-
+//     std::cout << this->Id() << rRightHandSideVector << std::endl;
 
     KRATOS_CATCH("")
 }
