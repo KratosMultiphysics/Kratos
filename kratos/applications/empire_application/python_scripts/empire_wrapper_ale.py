@@ -148,13 +148,13 @@ class EmpireWrapper:
 	# receive pressure from empire	
 	self.libempire_api.EMPIRE_API_recvDataField("defaultField", size, c_forces)
 
-	pressure = Vector(3)
+	forces = Vector(3)
 	i = 0
 	# assign pressure to nodes of interface for current time step
 	for nodes in (self.interface_model_part).Nodes:
-		forces[0] = c_pressure[3*i+0]
-		forces[1] = c_pressure[3*i+1]
-		forces[2] = c_pressure[3*i+2]
+		forces[0] = c_forces[3*i+0]
+		forces[1] = c_forces[3*i+1]
+		forces[2] = c_forces[3*i+2]
 		nodes.SetSolutionStepValue(FORCE,0,forces);
 		i = i + 1
 
