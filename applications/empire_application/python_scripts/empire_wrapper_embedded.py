@@ -14,6 +14,10 @@ class EmpireWrapper:
 	self.libempire_api        = libempire_api
 	self.model_part           = model_part 
 	self.interface_model_part = ModelPart("InterfaceModelPart");  
+	self.interface_model_part.AddNodalSolutionStepVariable(VELOCITY)
+	self.interface_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+	self.interface_model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
+	self.interface_model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE);
         self.wrapper_process      = WrapperProcess(self.model_part,self.interface_model_part)
     # -------------------------------------------------------------------------------------------------	
 
@@ -27,19 +31,25 @@ class EmpireWrapper:
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
-    def recvDisplacement(self): 
+    def recvDisplacements(self): 
 	# initialize vector storing the displacements
 	size = self.interface_model_part.GetNodes().Size() * 3
 	c_displacements = (c_double * size)(0)
 
-	# receive displacements from empire	
-	self.libempire_api.EMPIRE_API_recvDataField("defaultField", size, c_displacements)
+	# receive displacements from empire
+        self.libempire_api.EMPIRE_API_recvSignal_double("displacements", size, c_displacements)
 
+        # extract delta_t from fluid model part to calculate the updated velocity
+        delta_T = self.model_part.ProcessInfo[DELTA_TIME]
+        
 	disp = Vector(3)
+	disp_old = Vector(3)
+	vel = Vector(3)
+	vel_old = Vector(3)
 	i = 0
 	# assign displacements to nodes of interface for current time step
 	for nodes in (self.interface_model_part).Nodes:
-		disp[0] = c_displacements[3*i+0]
+		disp[0] = c_displacements[3*i]
 		disp[1] = c_displacements[3*i+1]
 		disp[2] = c_displacements[3*i+2]
 
@@ -51,21 +61,35 @@ class EmpireWrapper:
 			disp[2] = 0
 
 		nodes.SetSolutionStepValue(DISPLACEMENT,0,disp)
+		
+		disp_old = nodes.GetSolutionStepValue(DISPLACEMENT,1)
+		vel_old = nodes.GetSolutionStepValue(VELOCITY,1)
+		
+		vel[0] = vel_old[0] + (disp[0]-disp_old[0]) / delta_T
+		vel[1] = vel_old[1] + (disp[1]-disp_old[1]) / delta_T
+		vel[2] = vel_old[2] + (disp[2]-disp_old[2]) / delta_T
+		
+		nodes.SetSolutionStepValue(VELOCITY,0,vel)
+		
 		i = i + 1
     # -------------------------------------------------------------------------------------------------
-
+    
     # -------------------------------------------------------------------------------------------------
     def sendPressure(self):
 	# extract pressure from interface nodes as result of the CFD simulation
 	pressure = []
-        self.wrapper_process.ExtractPressureFromModelPart( pressure )
+        self.wrapper_process.ExtractPressureFromEmbeddedModelPart( pressure )
+
+	# List pressure has the format: Node1.POSITIVE_FACE_PRESSURE, Node1.NEGATIVE_FACE_PRESSURE, 
+	#				Node2.POSITIVE_FACE_PRESSURE, Node2.NEGATIVE_FACE_PRESSURE, 
+	# such that array has size node_size * 2
 
 	# convert list containg the forces to ctypes
 	c_pressure = (c_double * len(pressure))(*pressure)
 	c_size = len(c_pressure)
 
 	# send pressure to empire
-	self.libempire_api.EMPIRE_API_sendDataField("defaultField", c_size , c_pressure)
+	self.libempire_api.EMPIRE_API_sendSignal_double("pressure", c_size , c_pressure)
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
@@ -79,11 +103,11 @@ class EmpireWrapper:
 	c_size = len(c_forces)
 
 	# send pressure to empire
-	self.libempire_api.EMPIRE_API_sendDataField("defaultField", c_size , c_forces)
+	self.libempire_api.EMPIRE_API_sendSignal_double("force", c_size , c_forces)
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
-    def sendInteraceMesh(self):
+    def sendInterfaceMesh(self):
 	numNodes        = []
 	numElems        = []
 	nodeCoordinates = []
@@ -177,13 +201,14 @@ class EmpireWrapper:
 	c_pressure = (c_double * size)(0)
 
 	# receive pressure from empire	
-	self.libempire_api.EMPIRE_API_recvDataField("defaultField", size, c_pressure)
+	self.libempire_api.EMPIRE_API_recvSignal_double("pressure", size, c_pressure)
 
 	i = 0
 	# assign pressure to nodes of interface for current time step
 	for nodes in (self.interface_model_part).Nodes:
 		pressure = c_pressure[i]
 		nodes.SetSolutionStepValue(POSITIVE_FACE_PRESSURE,0,pressure);
+		nodes.SetSolutionStepValue(NEGATIVE_FACE_PRESSURE,0,0);
 		i = i + 1
     # -------------------------------------------------------------------------------------------------
 
@@ -194,15 +219,15 @@ class EmpireWrapper:
 	c_forces = (c_double * size)(0)
 
 	# receive pressure from empire	
-	self.libempire_api.EMPIRE_API_recvDataField("defaultField", size, c_forces)
+        self.libempire_api.EMPIRE_API_recvSignal_double("force", size, c_forces)
 
-	pressure = Vector(3)
+	forces = Vector(3)
 	i = 0
 	# assign pressure to nodes of interface for current time step
 	for nodes in (self.interface_model_part).Nodes:
-		forces[0] = c_pressure[3*i+0]
-		forces[1] = c_pressure[3*i+1]
-		forces[2] = c_pressure[3*i+2]
+		forces[0] = c_forces[3*i]
+		forces[1] = c_forces[3*i+1]
+		forces[2] = c_forces[3*i+2]
 		nodes.SetSolutionStepValue(FORCE,0,forces);
 		i = i + 1
 
@@ -221,6 +246,7 @@ class EmpireWrapper:
 	c_size = len(c_displacements)
 
 	# send displacements to empire
-	self.libempire_api.EMPIRE_API_sendDataField("defaultField", c_size , c_displacements)
+	self.libempire_api.EMPIRE_API_sendSignal_double("displacements", c_size , c_displacements)
     # -------------------------------------------------------------------------------------------------
+   
 #######################################################################################################

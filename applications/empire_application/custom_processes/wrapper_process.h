@@ -70,7 +70,8 @@ public:
 
     /// Default constructor.
     WrapperProcess(ModelPart& model_part, ModelPart& interface_part)
-        : mr_model_part(model_part), mr_interface_part(interface_part)
+        : mr_model_part(model_part),
+          mr_interface_part(interface_part)
     {
     }
 
@@ -127,23 +128,23 @@ public:
                      ((*i_condition).GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE) == 1.0))
                 {
 //                    NECESSARY FOR CANTILEVER EXAMPLE
-                    double Y0 = (*i_condition).GetGeometry()[0].Y();
-                    double Y1 = (*i_condition).GetGeometry()[1].Y();
-                    double Y2 = (*i_condition).GetGeometry()[2].Y();
+//                    double Y0 = (*i_condition).GetGeometry()[0].Y();
+//                    double Y1 = (*i_condition).GetGeometry()[1].Y();
+//                    double Y2 = (*i_condition).GetGeometry()[2].Y();
 
-                    if(Y0 > 0 || Y1 > 0 || Y2 > 0 )
-                    {
-                        mr_interface_part.Conditions().push_back( *(i_condition.base()) );
-                    }
-                    // NECESSARY FOR TUREK EXAMPLE
-//                    double Z0 = (*i_condition).GetGeometry()[0].Z();
-//                    double Z1 = (*i_condition).GetGeometry()[1].Z();
-//                    double Z2 = (*i_condition).GetGeometry()[2].Z();
-
-//                    if((Z0 < 0 || Z1 < 0 || Z2 < 0) && (Z0 > -0.01 || Z1 > -0.01 || Z2 > -0.01) )
+//                    if(Y0 > 0 || Y1 > 0 || Y2 > 0 )
 //                    {
 //                        mr_interface_part.Conditions().push_back( *(i_condition.base()) );
 //                    }
+                    // NECESSARY FOR TUREK EXAMPLE
+                    double Z0 = (*i_condition).GetGeometry()[0].Z();
+                    double Z1 = (*i_condition).GetGeometry()[1].Z();
+                    double Z2 = (*i_condition).GetGeometry()[2].Z();
+
+                    if((Z0 < 0 || Z1 < 0 || Z2 < 0) && (Z0 > -0.01 || Z1 > -0.01 || Z2 > -0.01) )
+                    {
+                        mr_interface_part.Conditions().push_back( *(i_condition.base()) );
+                    }
                 }
             }
 
@@ -167,6 +168,27 @@ public:
 
         KRATOS_CATCH("")
     }
+
+    void ExtractPressureFromEmbeddedModelPart( boost::python::list& pressure )
+    {
+        KRATOS_TRY
+
+        for( ModelPart::NodeIterator i_node =  mr_interface_part.NodesBegin() ;
+                                     i_node != mr_interface_part.NodesEnd() ;
+                                     i_node++ )
+        {
+                double p_pos = i_node->GetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                double p_neg = i_node->GetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+
+                double p_diff = p_pos - p_neg;
+
+                pressure.append(p_diff);
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    // ##############################################################################
 
     void ExtractForcesFromModelPart( boost::python::list& forces )
     {
@@ -222,11 +244,11 @@ public:
     {
         KRATOS_TRY
 
-        ModelPart& new_model_part = mr_interface_part;
+        //ModelPart& mr_interface_part;
 
         // Adding new nodes
         const unsigned int size_nodes = boost::python::len(nodeIDs);
-        new_model_part.Nodes().reserve(size_nodes);
+        mr_interface_part.Nodes().reserve(size_nodes);
 
         for (unsigned int nodesIndex=0; nodesIndex!=size_nodes; ++nodesIndex)
         {
@@ -234,15 +256,26 @@ public:
             boost::python::extract<double> node_Y( nodes[3*nodesIndex+1] );
             boost::python::extract<double> node_Z( nodes[3*nodesIndex+2] );
             boost::python::extract<unsigned int> nodeID( nodeIDs[nodesIndex] );
+            // ######## ADDING NEW NODE #########
+            Node < 3 >::Pointer pnode = mr_interface_part.CreateNewNode(nodeID,node_X,node_Y,node_Z);
+            array_1d<double,3> vel;
+            vel[0] = 0;
+            vel[1] = 0;
+            vel[2] = 0;
+            pnode->GetSolutionStepValue(VELOCITY) = vel;
 
-            new_model_part.CreateNewNode(nodeID,node_X,node_Y,node_Z);
+            array_1d<double,3> disp;
+            disp[0] = 0;
+            disp[1] = 0;
+            disp[2] = 0;
+            pnode->GetSolutionStepValue(DISPLACEMENT) = disp;
         }
 
         // Adding new Elements
 
         // required information for a new element: Id, Geometry
         const unsigned int size_elements = boost::python::len(connectivity) / 3;
-        new_model_part.Elements().reserve(size_elements);
+        mr_interface_part.Elements().reserve(size_elements);
 
         // Push back elements
         for (unsigned int elemIndex=0; elemIndex!=size_elements; ++elemIndex)
@@ -254,22 +287,23 @@ public:
             // Create new geometry
             Geometry<Node < 3 > >::Pointer pInterfaceGeom;
 
-            Node < 3 > point1 = new_model_part.Nodes()[node1_ID];
-            Node < 3 > point2 = new_model_part.Nodes()[node2_ID];
-            Node < 3 > point3 = new_model_part.Nodes()[node3_ID];
+            Node < 3 >& point1 = mr_interface_part.Nodes()[node1_ID];
+            Node < 3 >& point2 = mr_interface_part.Nodes()[node2_ID];
+            Node < 3 >& point3 = mr_interface_part.Nodes()[node3_ID];
 
-            Node < 3 > ::Pointer pnode1 = Node < 3 > ::Pointer(new Node<3>(node1_ID, point1[0], point1[1], point1[2] ));
-            Node < 3 > ::Pointer pnode2 = Node < 3 > ::Pointer(new Node<3>(node2_ID, point2[0], point2[1], point2[2] ));
-            Node < 3 > ::Pointer pnode3 = Node < 3 > ::Pointer(new Node<3>(node3_ID, point3[0], point3[1], point3[2] ));
+            //Node < 3 > ::Pointer pnode1 = Node < 3 > ::Pointer(new Node<3>(node1_ID, point1[0], point1[1], point1[2] ));
+            //Node < 3 > ::Pointer pnode2 = Node < 3 > ::Pointer(new Node<3>(node2_ID, point2[0], point2[1], point2[2] ));
+            //Node < 3 > ::Pointer pnode3 = Node < 3 > ::Pointer(new Node<3>(node3_ID, point3[0], point3[1], point3[2] ));
 
-            pInterfaceGeom = Geometry<Node < 3 > >::Pointer(new Triangle3D3< Node<3> >(pnode1,pnode2,pnode3));
+            pInterfaceGeom = Geometry<Node < 3 > >::Pointer(new Triangle3D3< Node<3> >(point1,point2,point3));
 
             // Create and insert new element
             unsigned int elemID = elemIndex + 1;
             Element::Pointer pElement = Element::Pointer(new MembraneElement(
                                                             elemID,
                                                             pInterfaceGeom ) );
-            new_model_part.Elements().push_back(pElement);
+
+            mr_interface_part.Elements().push_back(pElement);
         }
 
         KRATOS_CATCH("")
@@ -287,13 +321,13 @@ public:
         unsigned int elemsCounter = 0;
 
         // loop over all fluid nodes
-        for ( ModelPart::NodesContainerType::iterator i_fluidNode =  mr_interface_part.NodesBegin();
-                                                      i_fluidNode != mr_interface_part.NodesEnd();
-                                                      ++i_fluidNode )
+        for ( ModelPart::NodesContainerType::iterator i_Node =  mr_interface_part.NodesBegin();
+                                                      i_Node != mr_interface_part.NodesEnd();
+                                                      ++i_Node )
         {
-            double node_X = i_fluidNode->Coordinates()[0];
-            double node_Y = i_fluidNode->Coordinates()[1];
-            double node_Z = i_fluidNode->Coordinates()[2];
+            double node_X = i_Node->Coordinates()[0];
+            double node_Y = i_Node->Coordinates()[1];
+            double node_Z = i_Node->Coordinates()[2];
 
             // Fill the nodes vector with nodal coordinates
             nodes.append(node_X);
@@ -303,21 +337,21 @@ public:
             nodesCounter++;
 
             // Fill the nodeIDs vector with the nodal IDs
-            nodeIDs.append(i_fluidNode->Id());
+            nodeIDs.append(i_Node->Id());
         }
 
         // loop over all fluid elements
-        for( ModelPart::ConditionsContainerType::iterator i_fluidCondition =  mr_interface_part.ConditionsBegin();
-                                                          i_fluidCondition != mr_interface_part.ConditionsEnd();
-                                                          i_fluidCondition++)
+        for( ModelPart::ConditionsContainerType::iterator i_Condition =  mr_interface_part.ConditionsBegin();
+                                                          i_Condition != mr_interface_part.ConditionsEnd();
+                                                          i_Condition++)
         {
-            unsigned int nodesPerElem = i_fluidCondition->GetGeometry().size();
+            unsigned int nodesPerElem = i_Condition->GetGeometry().size();
             numNodesPerElem.append(nodesPerElem);
 
             if( nodesPerElem == 2 ) // interface conditions are lines (2D fluid mesh)
             {
-                unsigned int nodeID_1 = i_fluidCondition->GetGeometry()[0].Id();
-                unsigned int nodeID_2 = i_fluidCondition->GetGeometry()[1].Id();
+                unsigned int nodeID_1 = i_Condition->GetGeometry()[0].Id();
+                unsigned int nodeID_2 = i_Condition->GetGeometry()[1].Id();
 
                 elems.append(nodeID_1);
                 elems.append(nodeID_2);
@@ -326,9 +360,9 @@ public:
             }
             else if( nodesPerElem == 3 ) // interface conditions are triangles (3D fluid mesh)
             {
-                unsigned int nodeID_1 = i_fluidCondition->GetGeometry()[0].Id();
-                unsigned int nodeID_2 = i_fluidCondition->GetGeometry()[1].Id();
-                unsigned int nodeID_3 = i_fluidCondition->GetGeometry()[2].Id();
+                unsigned int nodeID_1 = i_Condition->GetGeometry()[0].Id();
+                unsigned int nodeID_2 = i_Condition->GetGeometry()[1].Id();
+                unsigned int nodeID_3 = i_Condition->GetGeometry()[2].Id();
 
                 elems.append(nodeID_1);
                 elems.append(nodeID_2);
