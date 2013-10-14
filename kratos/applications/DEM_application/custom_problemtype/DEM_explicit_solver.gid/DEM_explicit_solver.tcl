@@ -348,14 +348,15 @@ proc BeforeMeshGeneration {elementsize} {
 
 proc AfterMeshGeneration { fail } {
     # After Mesh Generation
-    if { ![GidUtils::AreWindowsDisabled] } {
+    set without_window [GidUtils::AreWindowsDisabled]  ;#batch mode
+    if { !$without_window } {
 	GidUtils::DisableGraphics
     }
     DEM::Elements_Substitution
     DEM::Elements_Elimination
     GiD_Process Mescape Meshing EditMesh DelLonelyNods Yes
     GiD_Process Mescape Meshing MeshView
-    if { ![GidUtils::AreWindowsDisabled] } {
+    if { !$without_window } {
 	GidUtils::EnableGraphics    
     }
 }
