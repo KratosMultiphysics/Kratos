@@ -74,7 +74,7 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
     //b.- Get Values to compute the constitutive law:
     Flags &Options=rValues.GetOptions();
 
-	const Properties& MaterialProperties  = rValues.GetMaterialProperties();    
+    const Properties& MaterialProperties  = rValues.GetMaterialProperties();    
 
     Vector& StrainVector                  = rValues.GetStrainVector();
     Vector& StressVector                  = rValues.GetStressVector();
@@ -115,7 +115,7 @@ void  LinearElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
       }
       else {
 
-	Matrix ConstitutiveMatrix = ZeroMatrix(3);
+	Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() );
 	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
 	this->CalculateStress( StrainVector, ConstitutiveMatrix, StressVector );
       }
@@ -192,7 +192,7 @@ void LinearElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues
       }
       else {
 	
-	Matrix ConstitutiveMatrix = ZeroMatrix(3);
+	Matrix ConstitutiveMatrix = ZeroMatrix( StrainVector.size() );
 	
 	this->CalculateLinearElasticMatrix( ConstitutiveMatrix, YoungModulus, PoissonCoefficient );
       
