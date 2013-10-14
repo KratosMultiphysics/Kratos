@@ -1431,7 +1431,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
 	set NumberOfSteps [expr int(double($EndTime)/double($DeltaTime))]
 	puts $fileid "nsteps    = $NumberOfSteps"
 
-    } elseif {$SolutionType =="PseudoDynamic"} {
+    } elseif {$SolutionType =="Pseudo-Dynamic"} {
 
 	puts $fileid "SolverType = \"PseudoDynamicSolver\""
 
