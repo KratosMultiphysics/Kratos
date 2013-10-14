@@ -723,10 +723,35 @@ namespace Kratos
                  GlobalSurfContactForce[2] = 0.0;  // 2: normal force
           }
 
-          if (indentation > 0.0){
-                 // MACRO PARAMETERS
-                 double kn = M_PI * 0.5 * mYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-                 double kt = kn / (2.0 * (1.0 + mPoisson));
+          if (indentation > 0.0 && point_coor[1] <= 0.25){
+                     // MACRO PARAMETERS
+
+                     double kn;
+                     double kt;
+                     double equiv_young;
+
+                     switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
+                
+                         case 0:
+                             kn = M_PI * 0.5 * mYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                             kt = kn / (2.0 * (1.0 + mPoisson));
+                        
+                         break;
+
+                         case 1:
+                             equiv_young = mYoung / (1- mPoisson * mPoisson);
+                             kn                 = (4/3) * equiv_young * sqrt(mRadius);
+                             kt                 = 2.0 * kn * (1 - mPoisson * mPoisson) / ((2.0 - mPoisson) * (1 + mPoisson));               
+                 
+                         break;
+
+                         default:
+                             kn = M_PI * 0.5 * mYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                             kt = kn / (2.0 * (1.0 + mPoisson));
+
+                         break;
+
+                     }//switch
 
                  if (mGlobalVariablesOption){ //globally defined parameters
                      kn = mGlobalKn;
@@ -1183,8 +1208,35 @@ namespace Kratos
 
                  if (indentation > 0.0 && position_ball_outlet > 0.0){
                      // MACRO PARAMETERS
-                     double kn = M_PI * 0.5 * mYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-                     double kt = kn / (2.0 * (1.0 + mPoisson));
+
+                     double kn;
+                     double kt;
+                     double equiv_young;
+                     double effective_radius;
+
+                     switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
+                
+                         case 0:
+                             kn = M_PI * 0.5 * mYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                             kt = kn / (2.0 * (1.0 + mPoisson));
+                        
+                         break;
+
+                         case 1:
+                             equiv_young      = mYoung / (1- mPoisson * mPoisson);
+                             effective_radius = mRadius * CylinderRadius / (CylinderRadius - mRadius);
+                             kn                      = (4/3) * equiv_young * sqrt(effective_radius);
+                             kt                      = 2.0 * kn * (1 - mPoisson * mPoisson) / ((2.0 - mPoisson) * (1 + mPoisson));               
+                 
+                         break;
+
+                         default:
+                             kn = M_PI * 0.5 * mYoung * mRadius; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                             kt = kn / (2.0 * (1.0 + mPoisson));
+
+                         break;
+
+                     }//switch
                     
                      if (mGlobalVariablesOption){ //globally defined parameters
                          kn = mGlobalKn;
@@ -1568,22 +1620,59 @@ namespace Kratos
                 equiv_poisson                   = mPoisson;
                 equiv_ln_of_restit_coeff        = mLnOfRestitCoeff;
                 equiv_tg_of_fri_ang             = mTgOfFrictionAngle;
+                
+                kn                                  = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                kt                                  = kn / (2.0 + equiv_poisson + equiv_poisson);
+                aux_norm_to_tang                    = sqrt(kt / kn);
             }
 
             else {
 
                 const double &other_young       = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
                 const double &other_poisson     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+                double effective_radius         = 0.5 * equiv_radius;
 
-                equiv_young                     = 2 * mYoung * other_young / (mYoung + other_young);
-                equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
-                equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
-                equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+                switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
+                
+                    case 0:
+                        equiv_young                     = 2 * mYoung * other_young / (mYoung + other_young);
+                        equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
+                        equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
+                        equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+
+                        kn                              = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                        kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);
+                        aux_norm_to_tang                = sqrt(kt / kn);
+                        
+                    break;
+
+                    case 1:
+                        equiv_young                     = mYoung * other_young / (other_young * (1- mPoisson * mPoisson) + mYoung * (1- other_poisson * other_poisson));
+                        equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
+                        equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
+                        equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+
+                        kn                              = (4/3) * equiv_young * sqrt(effective_radius);
+                        kt                              = 2.0 * kn * (1 - equiv_poisson * equiv_poisson) / ((2.0 - equiv_poisson) * (1 + equiv_poisson));
+                        aux_norm_to_tang                = sqrt(kt / kn);                
+                 
+                    break;
+
+                    default:
+                        equiv_young                     = 2 * mYoung * other_young / (mYoung + other_young);
+                        equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
+                        equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
+                        equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+
+                        kn                              = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                        kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);
+                        aux_norm_to_tang                = sqrt(kt / kn);
+                    break;
+
+                }//switch
+
             }
             
-            kn                                  = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-            kt                                  = kn / (2.0 + equiv_poisson + equiv_poisson);
-            aux_norm_to_tang                    = sqrt(kt / kn);
         }
 
         
