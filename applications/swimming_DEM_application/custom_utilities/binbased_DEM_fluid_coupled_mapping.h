@@ -672,13 +672,12 @@ private:
         Variable<array_1d<double,3> >& rDestinationVariable,
         double alpha)
  {
-            // 		  	KRATOS_ERROR(std::logic_error,"INTERPOLATE ARRAY 3D","")
 
             //Geometry element of the rOrigin_ModelPart
             Geometry< Node < 3 > >& geom = el_it->GetGeometry();
 
             //getting the data of the solution step
-            array_1d<double, 3 > & step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, alpha);
+            array_1d<double, 3 > & step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
             //
             const array_1d<double, 3 > & node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable, 0);
             const array_1d<double, 3 > & node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable, 0);
@@ -691,15 +690,9 @@ private:
             const array_1d<double, 3 > & node3_data_prev = geom[3].FastGetSolutionStepValue(rOriginVariable, 1);
             //
             for (unsigned int j = 0; j < TDim; j++) {                                                                                       
-                step_data[j] = alpha * (N[0] * node0_data[j] + N[1] * node1_data[j] + N[2] * node2_data[j] + N[3] * node3_data[j]) +        
-            (1.0 - alpha) * (N[0] * node0_data_prev[j] + N[1] * node1_data_prev[j] + N[2] * node2_data_prev[j] + N[3] * node3_data_prev[j]);
+                step_data[j] = alpha * (N[0] * node0_data[j]      + N[1] * node1_data[j]      + N[2] * node2_data[j]      + N[3] * node3_data[j]) +
+                       (1.0 - alpha) * (N[0] * node0_data_prev[j] + N[1] * node1_data_prev[j] + N[2] * node2_data_prev[j] + N[3] * node3_data_prev[j]);
             }
-            //
-            //copying this data in the position of the vector we are interested in
-            /*for (unsigned int j = 0; j < TDim; j++) {                                                                  
-                step_data[j] = N[0] * node0_data[j] + N[1] * node1_data[j] + N[2] * node2_data[j] + N[3] * node3_data[j];
-            }*/                                                                                                           
-            // 			pnode->GetValue(IS_VISITED) = 1.0;
 
         }
 
@@ -767,7 +760,7 @@ private:
 
 
             //getting the data of the solution step
-            double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, alpha);
+            double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
             //
             const double node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable, 0);
             const double node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable, 0);
