@@ -292,6 +292,7 @@ namespace Kratos
         ///@}
         ///@name Protected member Variables
         ///@{
+		array_1d<double,(TDim-1)*3 > medge_areas;
 
 
         ///@}
