@@ -517,7 +517,7 @@ void SurfaceLoad3DCondition::CalculateConditionalSystem(MatrixType& rLeftHandSid
         gn[2] = J[PointNumber](2, 1);
 
         CrossProduct(NormalVector, ge, gn);
-        NormalVector /= norm_2(NormalVector);
+       // NormalVector /= norm_2(NormalVector);
 //         KRATOS_WATCH(NormalVector);
 
         // calculating the pressure and force on the gauss point
