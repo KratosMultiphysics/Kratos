@@ -112,7 +112,9 @@ public:
         array_1d<double,(3+1)>& rDistances, array_1d<double,(3*(3-1))>& rVolumes,
         boost::numeric::ublas::bounded_matrix<double, 3*(3-1), (3+1) >& rShapeFunctionValues,
         array_1d<double,(3*(3-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue,
-        boost::numeric::ublas::bounded_matrix<double,3*(3-1), (3+1)>& Nenriched)
+        boost::numeric::ublas::bounded_matrix<double,3*(3-1), (3+1)>& Nenriched,
+		array_1d<double,6>& edge_areas
+		)
     {
         KRATOS_TRY
 
@@ -379,6 +381,7 @@ public:
             int nint; //number of internal nodes
             int t[56];
             TetrahedraSplit::Split_Tetrahedra(edge_ids, t, &nel, &n_splitted_edges, &nint);
+            array_1d<double,4> local_subtet_indices;
 
 
 
@@ -387,14 +390,23 @@ public:
 
 
             //now obtain the tetras and compute their center coordinates and volume
+			noalias(edge_areas) = ZeroVector(6);
             array_1d<double, 3 > center_position;
             for (int i = 0; i < nel; i++)
             {
                 int i0, i1, i2, i3; //indices of the subtetrahedra
-                TetrahedraSplit::TetrahedraGetNewConnectivityGID(i, t, split_edge, &i0, &i1, &i2, &i3);
-
-
+                TetrahedraSplit::TetrahedraGetNewConnectivityGID(i, t, split_edge, &i0, &i1, &i2, &i3);              
                 double sub_volume = ComputeSubTetraVolumeAndCenter(aux_coordinates, center_position, i0, i1, i2, i3);
+                
+                
+                local_subtet_indices[0] = t[i*4];
+                local_subtet_indices[1] = t[i*4+1];
+                local_subtet_indices[2] = t[i*4+2];
+                local_subtet_indices[3] = t[i*4+3];
+                
+                AddToEdgeAreas<3>(edge_areas,exact_distance,local_subtet_indices,sub_volume);
+                
+                
 
                 boost::numeric::ublas::bounded_matrix<double, 4, 3 > coord_subdomain; //used to pass arguments when we must calculate areas, shape functions, etc
                 boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX_subdomain; //used to retrieve derivatives
@@ -543,9 +555,13 @@ public:
 
 
     //2D
-    static int CalculateDiscontinuousShapeFunctions(boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rPoints, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX,
+    static int CalculateDiscontinuousShapeFunctions(
+			boost::numeric::ublas::bounded_matrix<double,(2+1), 2 >& rPoints, boost::numeric::ublas::bounded_matrix<double, (2+1), 2 >& DN_DX,
             array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, boost::numeric::ublas::bounded_matrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues,
-            array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, boost::numeric::ublas::bounded_matrix<double,3*(2-1), (2+1)>& Nenriched) //, //and information about the interfase:
+            array_1d<double,(3*(2-1))>& rPartitionsSign, 
+			std::vector<Matrix>& rGradientsValue, 
+			boost::numeric::ublas::bounded_matrix<double,3*(2-1), (2+1)>& Nenriched,
+			array_1d<double,3>& edge_areas) //, //and information about the interfase:
     // array_1d<double,(3)>& face_gauss_N, array_1d<double,(3)>& face_gauss_Nenriched, double& face_Area, array_1d<double,(3)>& face_n ,unsigned int& type_of_cut)
     {
         KRATOS_TRY
@@ -1328,6 +1344,39 @@ private:
         return 0.5 * ((x1 - x0)*(y2 - y0)- (y1 - y0)*(x2 - x0));
     }
 
+    template <int TDim>
+    static void AddToEdgeAreas(array_1d<double, (TDim-1)*3 >& edge_areas, 
+                        const array_1d<double, TDim+1 >& exact_distance,
+                        const array_1d<double, TDim+1 >& indices,
+                        const double sub_volume)
+    {
+        //check if the element has 3 "nodes" on the cut surface and if the remaining one is positive
+        //to do so, remember that edge nodes are marked with an id greater than 3
+        unsigned int ncut=0, pos=0, positive_pos=0;
+        for(unsigned int i=0; i<TDim+1; i++)
+        {
+            if(indices[i] > TDim) ncut++;
+            else if(exact_distance[indices[i]] > 0)
+            {
+                positive_pos = indices[i];
+                pos++;
+            }
+        }
+               
+        if(ncut == TDim && pos==1) //cut face with a positive node!!
+        {
+            double edge_area = sub_volume*3.0/fabs(exact_distance[positive_pos]);
+            edge_area /= static_cast<double>(TDim);
+            for(unsigned int i=0; i<TDim+1; i++)
+            {
+                if( indices[i] > TDim)
+                {
+                    int edge_index = indices[i] - TDim - 1;
+                    edge_areas[edge_index] += edge_area;
+                }
+             }
+        }
+    }
 
 };
 
