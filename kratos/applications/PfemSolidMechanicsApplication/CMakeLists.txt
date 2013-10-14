@@ -4,16 +4,17 @@ message("**** configuring KratosPfemSolidMechanicsApplication ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../SolidMechanicsApplication )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../MeshingApplication )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../MeshingApplication/custom_external_libraries/triangle )
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../MeshingApplication/custom_external_libraries/tetgen/tetgen1.4.3 )
 ##include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite )
 ##include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite/src/util )
 ##include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite/src/malla )
 ##include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt )
 
 ##add subdirectories for compilation of dependent libraries
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
+##add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/triangle)
+##add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetgen/tetgen1.4.3 )
 ##add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/msuite)
 ##add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/custom_external_libraries/tetMeshOpt)
 
@@ -47,8 +48,9 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 ## define library Kratos which defines the basic python interface
 add_library(KratosPfemSolidMechanicsApplication SHARED ${KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES})
 #####***target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore)
-target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore KratosSolidMechanicsApplication triangle tetgen)
-##*#*target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore triangle tetgen)
+target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore KratosSolidMechanicsApplication KratosMeshingApplication triangle tetgen)
+##target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore KratosSolidMechanicsApplication triangle tetgen)
+##target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore triangle tetgen)
 ##target_link_libraries(KratosPfemSolidMechanicsApplication KratosCore triangle tetgen msuite tetMeshOpt)
 set_target_properties(KratosPfemSolidMechanicsApplication PROPERTIES PREFIX "")
 install(TARGETS KratosPfemSolidMechanicsApplication DESTINATION libs )
