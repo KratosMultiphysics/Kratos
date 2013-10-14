@@ -1,4 +1,5 @@
 #include "fractional_step_discontinuous.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos {
 
@@ -199,6 +200,52 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
             rRightHandSideVector[i] += GaussWeight * RHSi;
         }
     }
+	
+	//
+	bool split_element = this->GetValue(SPLIT_ELEMENT);
+	if (split_element == true)
+	{
+		const array_1d<double,3>& vel = this->GetValue(EMBEDDED_VELOCITY);
+		const Vector& distances = this->GetValue(ELEMENTAL_DISTANCES);
+			
+		double Volume_tot;
+		boost::numeric::ublas::bounded_matrix<double, 4, 3 > DN_DXcontinuous;
+		array_1d<double, 4 > Ncontinuous;
+		GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DXcontinuous, Ncontinuous, Volume_tot);
+		
+		array_1d<double,TDim> grad_d = prod(trans(DN_DXcontinuous),distances);
+		grad_d /= norm_2(grad_d);
+
+		double vn = grad_d[0]*vel[0];
+		for(unsigned int i=1; i<TDim; i++) vn+=grad_d[i]*vel[i];
+		
+		//KRATOS_WATCH(medge_areas);
+
+		//loop on edges
+		unsigned int edge_counter = 0.0;
+		for(unsigned int i=0; i<TDim; i++)
+		{
+			for(unsigned int j=i+1; j<TDim+1; j++)
+			{
+				const double aux = medge_areas[edge_counter]*vn;
+				if( distances[i]*distances[j] < 0.0) //cut edge
+				{           
+					if(distances[i] > 0)
+					{
+						rRightHandSideVector[i] += aux;
+						rRightHandSideVector[j] -= aux;
+					}
+					else
+					{
+						rRightHandSideVector[i] -= aux;
+						rRightHandSideVector[j] += aux;
+					}
+				}
+				edge_counter++;
+			}
+		}
+
+	}
 }
 
 
@@ -431,8 +478,8 @@ void FractionalStepDiscontinuous<TDim>::CalculateGeometryData(ShapeFunctionDeriv
 			}
 
 			for (unsigned int i = 0; i < 3*(TDim-1); i++) gauss_gradients[i].resize(TDim+1, TDim, false);  //2 values of the 2 shape functions, and derivates in (xy) direction).
-			unsigned int ndivisions= DiscontinuousShapeFunctionsUtilities::CalculateDiscontinuousShapeFunctions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
-			
+			unsigned int ndivisions= DiscontinuousShapeFunctionsUtilities::CalculateDiscontinuousShapeFunctions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,medge_areas);
+
 			if(rGaussWeights.size() != ndivisions)
 				rGaussWeights.resize(ndivisions,false);
 			if(rNContainer.size1() != ndivisions || rNContainer.size2() != TDim+1)	
