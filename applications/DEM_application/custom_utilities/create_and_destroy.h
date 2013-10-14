@@ -233,6 +233,21 @@ public:
          
     }
 
+    void CreateBallsFromCentersModelPart(ModelPart& balls_model_part, ModelPart& centers_model_part, double radius)
+    {
+      int Elem_Id = balls_model_part.Nodes().size();
+      for(ModelPart::NodesContainerType::iterator inode = centers_model_part.NodesBegin(); inode != centers_model_part.NodesEnd();
+           inode++)
+       {
+          Node<3>::Pointer pnode = *(inode.base());
+          Geometry< Node < 3 > >::PointsArrayType nodelist;
+          nodelist.push_back(pnode);
+          Element::Pointer particle = Element::Pointer(new SphericSwimmingParticle(Elem_Id, nodelist));
+          particle->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS) = radius;
+          balls_model_part.Elements().push_back(particle);
+          Elem_Id ++;
+       }
+    }
     void DestroyParticles(ModelPart& r_model_part)
     {
 
