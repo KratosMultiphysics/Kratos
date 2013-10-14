@@ -201,7 +201,7 @@ class StructuralSolver:
             #definition of time scheme
             self.damp_factor_f  = -0.3; 
             self.damp_factor_m  = 10.0; 
-            self.mechanical_scheme = ResidualBasedRelaxationScheme(self.damp_factor_m,self.dynamic_factor)
+            self.mechanical_scheme = ResidualBasedRelaxationScheme(self.damp_factor_f,self.damp_factor_m)
 
     #
     def SetConvergenceCriterion(self):
