@@ -37,7 +37,6 @@ fi
 cp "$3/script_mpi.py" "$2/"
 cp "$3/spheric_particle_script.py" "$2/"
 cp "$3/continuum_spheric_particle_script.py" "$2/"
-cp "$3/DEM_procedures.py" "$2/"
 cp "$3/pressure_script.py" "$2/"
 
 echo "Running on: " >& "$2/$1.info"
