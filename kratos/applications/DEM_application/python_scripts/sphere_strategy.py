@@ -54,6 +54,7 @@ def AddVariables(model_part, Param):
     model_part.AddNodalSolutionStepVariable(PARTICLE_CONTINUUM)  # Continuum group
     model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
     model_part.AddNodalSolutionStepVariable(MAX_INDENTATION)
+    model_part.AddNodalSolutionStepVariable(PARTICLE_SPHERICITY)  #MA: this is added temporarily until inlet becomes a process
 
     # LOCAL AXIS
     model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
