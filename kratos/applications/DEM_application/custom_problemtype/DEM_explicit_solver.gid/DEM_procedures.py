@@ -580,13 +580,11 @@ class Procedures:
 # # # DEM CONTINUUM # # #
        
     def SetPredefinedSkin(self,balls_model_part):
-   
-        for element in balls_model_part.Elements:
-              
-            element.SetValue(SKIN_SPHERE,0)   
         
-            if (element.GetValue(PREDEFINED_SKIN)>0.0): #PREDEFINED_SKIN is a double
-            
+        for element in balls_model_part.Elements:
+
+            if (element.GetNode(0).GetSolutionStepValue(PREDEFINED_SKIN)>0.0): #PREDEFINED_SKIN is a double
+
               element.SetValue(SKIN_SPHERE,1)
               
               
