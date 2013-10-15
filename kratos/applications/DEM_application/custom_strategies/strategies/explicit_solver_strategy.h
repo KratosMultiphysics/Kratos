@@ -153,9 +153,7 @@ namespace Kratos
       virtual void Initialize()
       {
           KRATOS_TRY
-          
-          KRATOS_TIMER_START("INITIALIZE")
-          
+
           ModelPart& r_model_part            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();
 
@@ -192,8 +190,6 @@ namespace Kratos
           
            // 5. Finalize Solution Step.
           FinalizeSolutionStep();
-          
-          KRATOS_TIMER_STOP("INITIALIZE")
 
       KRATOS_CATCH("")
       }// Initialize()
@@ -202,7 +198,6 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          KRATOS_TIMER_START("BEGIN")
           ModelPart& r_model_part            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();                    
 
@@ -213,22 +208,17 @@ namespace Kratos
           this->GetRadius().resize(NumberOfElements);          
           
           int time_step = rCurrentProcessInfo[TIME_STEPS];
-          KRATOS_TIMER_STOP("BEGIN")
           
           // 1. Here we initialize member variables that depend on the rCurrentProcessInfo
-          KRATOS_TIMER_START("InitializeSolutionStep")
           InitializeSolutionStep();
                 
           // 2. Get and Calculate the forces
-          KRATOS_TIMER_START("GetForce")
           GetForce();
                     
           // 3. Motion Integration
-          KRATOS_TIMER_START("PerformTimeIntegrationOfMotion")
           PerformTimeIntegrationOfMotion(rCurrentProcessInfo); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
           
           // 4. Synchronize
-          KRATOS_TIMER_START("SynchronizeSolidMesh")
           SynchronizeSolidMesh(r_model_part);
                   
           // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box                   
@@ -240,8 +230,6 @@ namespace Kratos
               SearchNeighbours(r_model_part);
           }
           
-          KRATOS_TIMER_STOP("SearchNeighbours")
-
           FinalizeSolutionStep();
 
           return 0.00;
@@ -309,12 +297,12 @@ namespace Kratos
 
                   (it)->CalculateRightHandSide(rhs_elem, rCurrentProcessInfo);
 
-                  array_1d<double,3>& applied_force  = geom(0)->FastGetSolutionStepValue(TOTAL_FORCES);
-                  array_1d<double,3>& applied_moment = geom(0)->FastGetSolutionStepValue(PARTICLE_MOMENT);
+                  array_1d<double,3>& total_forces  = geom(0)->FastGetSolutionStepValue(TOTAL_FORCES);
+                  array_1d<double,3>& total_moment = geom(0)->FastGetSolutionStepValue(PARTICLE_MOMENT);
 
                   for (int i = 0; i < 3; i++){
-                      applied_force[i]  = rhs_elem[i];
-                      applied_moment[i] = rhs_elem[3 + i];
+                      total_forces[i] = rhs_elem[i];
+                      total_moment[i] = rhs_elem[3 + i];
                   }
 
               } //loop over particles
