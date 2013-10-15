@@ -28,7 +28,7 @@ ProjectParameters.ProjectFromParticlesOption  = 1
 ProjectParameters.ProjectAtEverySubStepOption = 1
 ProjectParameters.CreateParticlesOption       = 0
 ProjectParameters.CalculatePorosity           = 1
-ProjectParameters.Interaction_start_time      = 0.0
+ProjectParameters.Interaction_start_time      = 0.01
 ProjectParameters.gravity_x                   = 0.00000e+00
 ProjectParameters.gravity_y                   = 0.0
 ProjectParameters.gravity_z                   = -9.81000e+00
@@ -83,10 +83,6 @@ solver_module = import_solver(SolverSettings)
 #
 # importing variables
 solver_module.AddVariables(fluid_model_part, SolverSettings)
-fluid_model_part.AddNodalSolutionStepVariable(PRESSURE_GRADIENT)
-fluid_model_part.AddNodalSolutionStepVariable(AUX_DOUBLE_VAR)
-fluid_model_part.AddNodalSolutionStepVariable(DRAG_REACTION)
-fluid_model_part.AddNodalSolutionStepVariable(SOLID_FRACTION)
 
 # introducing input file name
 input_file_name = ProjectParameters.problem_name
@@ -96,18 +92,16 @@ model_part_io_fluid = ModelPartIO(input_file_name)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-
+fluid_model_part.AddNodalSolutionStepVariable(PRESSURE_GRADIENT)
+fluid_model_part.AddNodalSolutionStepVariable(AUX_DOUBLE_VAR)
+fluid_model_part.AddNodalSolutionStepVariable(DRAG_REACTION)
+fluid_model_part.AddNodalSolutionStepVariable(SOLID_FRACTION)
 
 # Defining a model part for the balls part
 my_timer = Timer()
 
 balls_model_part = ModelPart("SolidPart")
 
-# Defining a model part for the mixed part
-mixed_model_part = ModelPart("MixedPart")
-
-import sphere_strategy as SolverStrategy
-SolverStrategy.AddVariables(balls_model_part, DEM_parameters)
 # HYDRODYNAMICS
 balls_model_part.AddNodalSolutionStepVariable(FLUID_VEL_PROJECTED)
 balls_model_part.AddNodalSolutionStepVariable(FLUID_DENSITY_PROJECTED)
@@ -118,6 +112,11 @@ balls_model_part.AddNodalSolutionStepVariable(FLUID_VISCOSITY_PROJECTED)
 balls_model_part.AddNodalSolutionStepVariable(DRAG_FORCE)
 balls_model_part.AddNodalSolutionStepVariable(BUOYANCY)
 
+# Defining a model part for the mixed part
+mixed_model_part = ModelPart("MixedPart")
+
+import sphere_strategy as SolverStrategy
+SolverStrategy.AddVariables(balls_model_part, DEM_parameters)
 
 # reading the balls model part
 model_part_io_solid = ModelPartIO(DEM_parameters.problem_name)
@@ -366,8 +365,8 @@ while(time <= final_time):
             Dt_DEM     = DEM_parameters.MaxTimeStep
 
             if (ProjectParameters.ProjectionModuleOption):
-                interaction_calculator = custom_functions_calculator()
-                interaction_calculator.pressuregradientcalculator(fluid_model_part)
+                interaction_calculator = CustomFunctionsCalculator()
+                interaction_calculator.PressureGradientCalculator(fluid_model_part)
                 projection_module.ProjectFromFluid((time_dem + Dt - time) / Dt)
                     
             print "Solving DEM...(" , balls_model_part.NumberOfElements(0) , " elements)"        
