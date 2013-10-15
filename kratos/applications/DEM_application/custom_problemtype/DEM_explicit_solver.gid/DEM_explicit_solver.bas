@@ -257,3 +257,15 @@ Begin NodalData PARTICLE_MATERIAL
 End NodalData
 
 
+*Set cond volume_SET_SKIN_MANUALLY *elems
+*Add cond surface_SET_SKIN_MANUALLY *elems
+
+Begin NodalData PREDEFINED_SKIN
+*loop elems *OnlyInCond
+*if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
+*elemsconec(1) 0 *cond(PREDEFINED_SKIN)
+*endif
+*end elems 
+End NodalData
+
+
