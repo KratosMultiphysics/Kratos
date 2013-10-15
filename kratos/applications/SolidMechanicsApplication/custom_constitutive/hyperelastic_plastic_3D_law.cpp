@@ -345,9 +345,16 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     ElasticVariables.SetShapeFunctionsValues(ShapeFunctions);
 
     FlowRule::RadialReturnVariables ReturnMappingVariables;
-    ReturnMappingVariables.clear();
-    ReturnMappingVariables.TimeStep = CurProcessInfo[DELTA_TIME];
+    ReturnMappingVariables.initialize(); //it has to be called at the start
 
+    // Initialize variables from the process information
+    ReturnMappingVariables.TimeStep = CurProcessInfo[DELTA_TIME];
+    
+    if(CurProcessInfo[IMPLEX] == 1)	
+      ReturnMappingVariables.Control.ImplexActive = true;
+    else
+      ReturnMappingVariables.Control.ImplexActive = false;
+      
     // Initialize Splited Parts: Isochoric and Volumetric stresses and constitutive tensors
     double voigtsize = StressVector.size();
     VectorSplit SplitStressVector;
@@ -434,6 +441,9 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
 
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
+      
+        if( ReturnMappingVariables.Control.ReturnMappingComputed == false )
+	  KRATOS_ERROR(std::logic_error, " ReturnMappingCall was not performed  ...error in the constitutive calculation...","");
 
         //initialize constitutive tensors
         ConstitutiveMatrix.clear();
@@ -454,8 +464,9 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
 	  this->CalculateIsochoricConstitutiveMatrix  ( ElasticVariables, InverseDeformationGradientF, ReturnMappingVariables.TrialIsoStressVector, SplitConstitutiveMatrix.Isochoric );
 	  
 	  this->CalculateVolumetricConstitutiveMatrix ( ElasticVariables, InverseDeformationGradientF, SplitConstitutiveMatrix.Volumetric );
+
 	  
-	  if( ElasticVariables.Plasticity == true )
+	  if( ReturnMappingVariables.Control.PlasticRegion == true )
 	    this->CalculatePlasticConstitutiveMatrix  ( ElasticVariables, InverseDeformationGradientF, ReturnMappingVariables, SplitConstitutiveMatrix.Plastic );
 
 	}
@@ -465,14 +476,14 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
 	  
 	  this->CalculateVolumetricConstitutiveMatrix ( ElasticVariables, SplitConstitutiveMatrix.Volumetric );
 	  
-	  if( ElasticVariables.Plasticity == true )
+	  if( ReturnMappingVariables.Control.PlasticRegion == true )
 	    this->CalculatePlasticConstitutiveMatrix  ( ElasticVariables, ReturnMappingVariables, SplitConstitutiveMatrix.Plastic );
 	  
 	}
 
 	//std::cout<< " Isochoric Constitutive "<<SplitConstitutiveMatrix.Isochoric<<std::endl;
 	//std::cout<< " Volumetic Constitutive "<<SplitConstitutiveMatrix.Volumetric<<std::endl;
-	// if( ElasticVariables.Plasticity == true )
+	// if( rReturnMappingVariables.Control.PlasticRegion == true )
 	//   std::cout<< " Plastic Constitutive   "<<SplitConstitutiveMatrix.Plastic<<std::endl;
 	
 
@@ -707,7 +718,7 @@ void HyperElasticPlastic3DLaw::CalculateIsochoricStress( MaterialResponseVariabl
 
     //std::cout<<" TrialIsoStressVector "<<rReturnMappingVariables.TrialIsoStressVector<<std::endl;
 
-    rElasticVariables.Plasticity = mpFlowRule->CalculateReturnMapping( rReturnMappingVariables, rIsoStressMatrix );
+    mpFlowRule->CalculateReturnMapping( rReturnMappingVariables, rIsoStressMatrix );
     
     rIsoStressVector = MathUtils<double>::StressTensorToVector( rIsoStressMatrix, rIsoStressVector.size() );
 
