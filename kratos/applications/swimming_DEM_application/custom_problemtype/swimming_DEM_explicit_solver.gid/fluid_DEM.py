@@ -27,20 +27,30 @@ ProjectParameters.PrintParticlesResultsOption = 0
 ProjectParameters.ProjectFromParticlesOption  = 1
 ProjectParameters.ProjectAtEverySubStepOption = 1
 ProjectParameters.CreateParticlesOption       = 0
+ProjectParameters.InletOption                 = 0
 ProjectParameters.CalculatePorosity           = 1
 ProjectParameters.Interaction_start_time      = 0.01
 ProjectParameters.gravity_x                   = 0.00000e+00
 ProjectParameters.gravity_y                   = 0.0
 ProjectParameters.gravity_z                   = -9.81000e+00
-DEM_parameters.GravityX                       = ProjectParameters.gravity_x
-DEM_parameters.GravityY                       = ProjectParameters.gravity_y
-DEM_parameters.GravityZ                       = ProjectParameters.gravity_z
 ProjectParameters.plastic_viscosity           = 0.000014 #It is divided by the density
 ProjectParameters.smoothing_parameter_m       = 0.035
 ProjectParameters.yield_stress_value          = 10.0
 ProjectParameters.DEM_nodal_results           = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED"]
 ProjectParameters.mixed_nodal_results         = ["VELOCITY", "DISPLACEMENT"]
+ProjectParameters.CouplingSchemeType          = "updated_fluid" # "updated_fluid" or "updated_DEM"
+
+
+# Changes on PROJECT PARAMETERS for the sake of consistency
+
 ProjectParameters.nodal_results.append("SOLID_FRACTION")
+
+ProjectParameters.ProjectFromParticlesOption  *= ProjectParameters.ProjectionModuleOption
+ProjectParameters.ProjectAtEverySubStepOption *= ProjectParameters.ProjectionModuleOption
+
+DEM_parameters.GravityX                       = ProjectParameters.gravity_x
+DEM_parameters.GravityY                       = ProjectParameters.gravity_y
+DEM_parameters.GravityZ                       = ProjectParameters.gravity_z
 
 for var in ProjectParameters.mixed_nodal_results:
 
@@ -178,8 +188,6 @@ if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmar
 
 fluid_solver.Initialize()
 print "fluid solver created"
-#
-#
 
 # initialize GiD  I/O
 from gid_output import GiDOutput
@@ -278,6 +286,7 @@ n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume))
 if (ProjectParameters.ProjectionModuleOption):
     projection_module = SwimProc.ProjectionModule(fluid_model_part, balls_model_part, domain_size, n_particles_in_depth)
     projection_module.UpdateDatabase(h_min)
+    interaction_calculator = CustomFunctionsCalculator()
 
 fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, ProjectParameters.yield_stress_value )
 fluid_model_part.ProcessInfo.SetValue(M, ProjectParameters.smoothing_parameter_m)
@@ -290,50 +299,50 @@ for node in fluid_model_part.Nodes:
 
 creator_destructor = ParticleCreatorDestructor()
 
-#balls_model_part.SetBufferSize(3)
+# balls_model_part.SetBufferSize(3)
 DEM_solver = SolverStrategy.ExplicitStrategy(balls_model_part, creator_destructor, DEM_parameters)
 DEM_proc.GiDSolverTransfer(balls_model_part, DEM_solver, DEM_parameters)
 
-
-
 # Defining a model part for the DEM inlet  #############################################################MA
 
-DEM_inlet_model_part = ModelPart("DEMInletPart") #MA
-DEM_Inlet_filename=DEM_parameters.problem_name+"_Inlet" #MA
-#DEM_Inlet_filename="1DEM_Inlet" #MA
-SolverStrategy.AddVariables(DEM_inlet_model_part, DEM_parameters) #MA
-# HYDRODYNAMICS
-DEM_inlet_model_part.AddNodalSolutionStepVariable(FLUID_VEL_PROJECTED) #MA
-DEM_inlet_model_part.AddNodalSolutionStepVariable(FLUID_DENSITY_PROJECTED) #MA
-DEM_inlet_model_part.AddNodalSolutionStepVariable(PRESSURE_GRAD_PROJECTED) #MA
-DEM_inlet_model_part.AddNodalSolutionStepVariable(FLUID_VISCOSITY_PROJECTED) #MA
-# FORCES
-DEM_inlet_model_part.AddNodalSolutionStepVariable(DRAG_FORCE) #MA
-DEM_inlet_model_part.AddNodalSolutionStepVariable(BUOYANCY) #MA
+if (ProjectParameters.InletOption):
+    DEM_inlet_model_part = ModelPart("DEMInletPart")
+    DEM_Inlet_filename = DEM_parameters.problem_name + "_Inlet"
+    SolverStrategy.AddVariables(DEM_inlet_model_part, DEM_parameters)
+    # HYDRODYNAMICS
+    DEM_inlet_model_part.AddNodalSolutionStepVariable(FLUID_VEL_PROJECTED)
+    DEM_inlet_model_part.AddNodalSolutionStepVariable(FLUID_DENSITY_PROJECTED)
+    DEM_inlet_model_part.AddNodalSolutionStepVariable(PRESSURE_GRAD_PROJECTED)
+    DEM_inlet_model_part.AddNodalSolutionStepVariable(FLUID_VISCOSITY_PROJECTED)
+    # FORCES
+    DEM_inlet_model_part.AddNodalSolutionStepVariable(DRAG_FORCE)
+    DEM_inlet_model_part.AddNodalSolutionStepVariable(BUOYANCY)
 
+    model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
+    model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
+    DEM_inlet_model_part.SetBufferSize(2)
+    SolverStrategy.AddDofs(DEM_inlet_model_part)
+    DEM_inlet_parameters = DEM_inlet_model_part.Properties
+    DEM_inlet = DEM_Inlet(DEM_inlet_model_part) # constructor for an Inlet
+    DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor)
 
-model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename) #MA
-model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part) #MA
-DEM_inlet_model_part.SetBufferSize(2) #MA
-SolverStrategy.AddDofs(DEM_inlet_model_part)
-DEM_inlet_parameters = DEM_inlet_model_part.Properties  #MA
-DEM_inlet = DEM_Inlet(DEM_inlet_model_part) #MA Constructor for an Inlet
-DEM_inlet.InitializeDEM_Inlet(balls_model_part,creator_destructor) #MA
-DEM_step = 0   # MA #this variable is necessary to get a good random insertion of particles
-########################################################################################################MA
-
-
-
-
-DEM_solver.Initialize()
-
-def my_time_dem(time_dem_initial, time_final, Dt_DEM):
+def yield_DEM_time(time_dem_initial, time_final, Dt_DEM, scheme_type):
 
     while time_dem_initial < time_final:
+
+        if (scheme_type == "updated_DEM"):
+            time_dem_initial += Dt_DEM
+
         yield time_dem_initial
-        time_dem_initial += Dt_DEM
+
+        if (scheme_type == "updated_fluid"):
+            time_dem_initial += Dt_DEM
 
     yield time_final
+
+DEM_step = 0 # this variable is necessary to get a good random insertion of particles
+DEM_solver.Initialize()
+Dt_DEM = DEM_parameters.MaxTimeStep
 
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
@@ -348,51 +357,53 @@ while(time <= final_time):
     print "\n" , "TIME = " , time 
      
     step     = step + 1
-    time_dem = time
-    time     = time + Dt
-    fluid_model_part.CloneTimeStep(time)
 
-    if(step < 3):
-        balls_model_part.CloneTimeStep(time)
+    time_dem = time
+
+    if (ProjectParameters.CouplingSchemeType == "updated_DEM"):
+        time_dem += Dt
+
+    time = time + Dt
+    fluid_model_part.CloneTimeStep(time)
 
     if(step >= 3):
         
-        print "Solving Fluid... (" , fluid_model_part.NumberOfElements(0) , " elements)"
+        print "Solving Fluid... (", fluid_model_part.NumberOfElements(0), " elements)"
         fluid_solver.Solve()
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-        if (time > ProjectParameters.Interaction_start_time):
-            time_final = time
-            Dt_DEM     = DEM_parameters.MaxTimeStep
 
-            if (ProjectParameters.ProjectionModuleOption):
-                interaction_calculator = CustomFunctionsCalculator()
-                interaction_calculator.PressureGradientCalculator(fluid_model_part)
-                projection_module.ProjectFromFluid((time_dem + Dt - time) / Dt)
+        if (time >= ProjectParameters.Interaction_start_time and ProjectParameters.ProjectionModuleOption):
+            interaction_calculator.CalculatePressureGradient(fluid_model_part)
                     
-            print "Solving DEM...(" , balls_model_part.NumberOfElements(0) , " elements)"        
-            for time_dem in my_time_dem(time_dem, time_final, Dt_DEM):
+        print "Solving DEM...(", balls_model_part.NumberOfElements(0), " elements)"
+            
+    for time_dem in yield_DEM_time(time_dem, time, Dt_DEM, ProjectParameters.CouplingSchemeType):
 				
-                #print "DEM time = " , time_dem
-                DEM_step = DEM_step + 1 #MA
-                balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step #MA
+        DEM_step = DEM_step + 1
+        balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
                 
-                if (ProjectParameters.ProjectionModuleOption and ProjectParameters.ProjectAtEverySubStepOption):
-                    projection_module.ProjectFromFluid((time_dem + Dt - time) / Dt)
+        if (time >= ProjectParameters.Interaction_start_time and ProjectParameters.ProjectAtEverySubStepOption):
+
+            if (ProjectParameters.CouplingSchemeType == "updated_DEM"):
+                projection_module.ProjectFromNewestFluid()
+
+            else:
+                projection_module.ProjectFromFluid((time_dem + Dt - time) / Dt)
                 
-                balls_model_part.CloneTimeStep(time_dem)
-                DEM_solver.Solve()
-                DEM_inlet.CreateElementsFromInletMesh( balls_model_part, DEM_inlet_model_part, creator_destructor, "SphericSwimmingParticle3D" ) #MA #After solving, to make sure that neighbours are already set.
-    # options are: "SphericParticle3D" , "SphericSwimmingParticle3D" 
+        balls_model_part.CloneTimeStep(time_dem)
+        DEM_solver.Solve()
 
-            if (ProjectParameters.ProjectionModuleOption):
+        if (ProjectParameters.InletOption):
+            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, "SphericSwimmingParticle3D") #After solving, to make sure that neighbours are already set.
+            # options are: "SphericParticle3D", "SphericSwimmingParticle3D"
 
-                if (ProjectParameters.ProjectFromParticlesOption):
-                    projection_module.ProjectFromParticles()
+    if (time >= ProjectParameters.Interaction_start_time and ProjectParameters.ProjectFromParticlesOption):
+        projection_module.ProjectFromParticles()
 
-        if (ProjectParameters.PrintParticlesResultsOption):
-            print_particles_results = PrintParticlesResults("DRAG_FORCE", time, balls_model_part)
-            print_particles_results = PrintParticlesResults("BUOYANCY", time, balls_model_part)
-            print_particles_results = PrintParticlesResults("VELOCITY", time, balls_model_part)
+    if (ProjectParameters.PrintParticlesResultsOption):
+        print_particles_results = PrintParticlesResults("DRAG_FORCE", time, balls_model_part)
+        print_particles_results = PrintParticlesResults("BUOYANCY", time, balls_model_part)
+        print_particles_results = PrintParticlesResults("VELOCITY", time, balls_model_part)
 
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
@@ -401,12 +412,6 @@ while(time <= final_time):
 
     if(output_time <= out):
         ParticleUtils2D().VisualizationModelPart(mixed_model_part, fluid_model_part, balls_model_part)
-#       gid_io.write_results(  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-#           time,               # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-#           fluid_model_part,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-#           ProjectParameters.nodal_results,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-#           ProjectParameters.gauss_points_results)    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-
 # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
         swimming_DEM_gid_io.write_swimming_DEM_results(
             time,
@@ -418,6 +423,12 @@ while(time <= final_time):
             ProjectParameters.mixed_nodal_results,
             ProjectParameters.gauss_points_results)
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
+#       gid_io.write_results(  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+#           time,               # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+#           fluid_model_part,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+#           ProjectParameters.nodal_results,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+#           ProjectParameters.gauss_points_results)    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
         out = 0
 
