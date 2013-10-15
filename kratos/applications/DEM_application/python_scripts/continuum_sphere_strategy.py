@@ -80,6 +80,7 @@ def AddVariables(model_part, Param):
       model_part.AddNodalSolutionStepVariable(EXPORT_ID)
     if (Var_Translator(Param.PredefinedSkinOption) | Var_Translator(Param.ConcreteTestOption) ):
       model_part.AddNodalSolutionStepVariable(EXPORT_SKIN_SPHERE)
+      model_part.AddNodalSolutionStepVariable(PREDEFINED_SKIN)
     if (Var_Translator(Param.PostGroupId)):
       model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
 
@@ -515,8 +516,7 @@ class ExplicitStrategy:
 
         # GLOBAL MATERIAL PROPERTIES
 
-        if(self.homogeneous_material_option):
-            self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
+        self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
      
         if (self.global_variables_option):
             self.model_part.ProcessInfo.SetValue(GLOBAL_KN, self.global_kn)
