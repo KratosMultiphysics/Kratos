@@ -28,7 +28,7 @@ ProjectParameters.ProjectFromParticlesOption  = 1
 ProjectParameters.ProjectAtEverySubStepOption = 1
 ProjectParameters.CreateParticlesOption       = 0
 ProjectParameters.CalculatePorosity           = 1
-ProjectParameters.Interaction_start_time      = 0.01
+ProjectParameters.Interaction_start_time      = 0.0
 ProjectParameters.gravity_x                   = 0.00000e+00
 ProjectParameters.gravity_y                   = 0.0
 ProjectParameters.gravity_z                   = -9.81000e+00
@@ -83,6 +83,10 @@ solver_module = import_solver(SolverSettings)
 #
 # importing variables
 solver_module.AddVariables(fluid_model_part, SolverSettings)
+fluid_model_part.AddNodalSolutionStepVariable(PRESSURE_GRADIENT)
+fluid_model_part.AddNodalSolutionStepVariable(AUX_DOUBLE_VAR)
+fluid_model_part.AddNodalSolutionStepVariable(DRAG_REACTION)
+fluid_model_part.AddNodalSolutionStepVariable(SOLID_FRACTION)
 
 # introducing input file name
 input_file_name = ProjectParameters.problem_name
@@ -92,16 +96,18 @@ model_part_io_fluid = ModelPartIO(input_file_name)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-fluid_model_part.AddNodalSolutionStepVariable(PRESSURE_GRADIENT)
-fluid_model_part.AddNodalSolutionStepVariable(AUX_DOUBLE_VAR)
-fluid_model_part.AddNodalSolutionStepVariable(DRAG_REACTION)
-fluid_model_part.AddNodalSolutionStepVariable(SOLID_FRACTION)
+
 
 # Defining a model part for the balls part
 my_timer = Timer()
 
 balls_model_part = ModelPart("SolidPart")
 
+# Defining a model part for the mixed part
+mixed_model_part = ModelPart("MixedPart")
+
+import sphere_strategy as SolverStrategy
+SolverStrategy.AddVariables(balls_model_part, DEM_parameters)
 # HYDRODYNAMICS
 balls_model_part.AddNodalSolutionStepVariable(FLUID_VEL_PROJECTED)
 balls_model_part.AddNodalSolutionStepVariable(FLUID_DENSITY_PROJECTED)
@@ -112,11 +118,6 @@ balls_model_part.AddNodalSolutionStepVariable(FLUID_VISCOSITY_PROJECTED)
 balls_model_part.AddNodalSolutionStepVariable(DRAG_FORCE)
 balls_model_part.AddNodalSolutionStepVariable(BUOYANCY)
 
-# Defining a model part for the mixed part
-mixed_model_part = ModelPart("MixedPart")
-
-import sphere_strategy as SolverStrategy
-SolverStrategy.AddVariables(balls_model_part, DEM_parameters)
 
 # reading the balls model part
 model_part_io_solid = ModelPartIO(DEM_parameters.problem_name)
@@ -293,6 +294,38 @@ creator_destructor = ParticleCreatorDestructor()
 #balls_model_part.SetBufferSize(3)
 DEM_solver = SolverStrategy.ExplicitStrategy(balls_model_part, creator_destructor, DEM_parameters)
 DEM_proc.GiDSolverTransfer(balls_model_part, DEM_solver, DEM_parameters)
+
+
+
+# Defining a model part for the DEM inlet  #############################################################MA
+
+DEM_inlet_model_part = ModelPart("DEMInletPart") #MA
+DEM_Inlet_filename=DEM_parameters.problem_name+"_Inlet" #MA
+#DEM_Inlet_filename="1DEM_Inlet" #MA
+SolverStrategy.AddVariables(DEM_inlet_model_part, DEM_parameters) #MA
+# HYDRODYNAMICS
+DEM_inlet_model_part.AddNodalSolutionStepVariable(FLUID_VEL_PROJECTED) #MA
+DEM_inlet_model_part.AddNodalSolutionStepVariable(FLUID_DENSITY_PROJECTED) #MA
+DEM_inlet_model_part.AddNodalSolutionStepVariable(PRESSURE_GRAD_PROJECTED) #MA
+DEM_inlet_model_part.AddNodalSolutionStepVariable(FLUID_VISCOSITY_PROJECTED) #MA
+# FORCES
+DEM_inlet_model_part.AddNodalSolutionStepVariable(DRAG_FORCE) #MA
+DEM_inlet_model_part.AddNodalSolutionStepVariable(BUOYANCY) #MA
+
+
+model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename) #MA
+model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part) #MA
+DEM_inlet_model_part.SetBufferSize(2) #MA
+SolverStrategy.AddDofs(DEM_inlet_model_part)
+DEM_inlet_parameters = DEM_inlet_model_part.Properties  #MA
+DEM_inlet = DEM_Inlet(DEM_inlet_model_part) #MA Constructor for an Inlet
+DEM_inlet.InitializeDEM_Inlet(balls_model_part,creator_destructor) #MA
+DEM_step = 0   # MA #this variable is necessary to get a good random insertion of particles
+########################################################################################################MA
+
+
+
+
 DEM_solver.Initialize()
 
 def my_time_dem(time_dem_initial, time_final, Dt_DEM):
@@ -313,6 +346,8 @@ while(time <= final_time):
     else:
         Dt = full_Dt
         
+    print "\n" , "TIME = " , time 
+     
     step     = step + 1
     time_dem = time
     time     = time + Dt
@@ -323,10 +358,11 @@ while(time <= final_time):
 
     if(step >= 3):
         
+        print "Solving Fluid... (" , fluid_model_part.NumberOfElements(0) , " elements)"
         fluid_solver.Solve()
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
         if (time > ProjectParameters.Interaction_start_time):
-            time_final = time + Dt
+            time_final = time
             Dt_DEM     = DEM_parameters.MaxTimeStep
 
             if (ProjectParameters.ProjectionModuleOption):
@@ -334,13 +370,20 @@ while(time <= final_time):
                 interaction_calculator.pressuregradientcalculator(fluid_model_part)
                 projection_module.ProjectFromFluid((time_dem + Dt - time) / Dt)
                     
+            print "Solving DEM...(" , balls_model_part.NumberOfElements(0) , " elements)"        
             for time_dem in my_time_dem(time_dem, time_final, Dt_DEM):
-
-                if (ProjectParameters.ProjectAtEverySubStepOption):
+				
+                #print "DEM time = " , time_dem
+                DEM_step = DEM_step + 1 #MA
+                balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step #MA
+                
+                if (ProjectParameters.ProjectionModuleOption and ProjectParameters.ProjectAtEverySubStepOption):
                     projection_module.ProjectFromFluid((time_dem + Dt - time) / Dt)
                 
                 balls_model_part.CloneTimeStep(time_dem)
                 DEM_solver.Solve()
+                DEM_inlet.CreateElementsFromInletMesh( balls_model_part, DEM_inlet_model_part, creator_destructor, "SphericSwimmingParticle3D" ) #MA #After solving, to make sure that neighbours are already set.
+    # options are: "SphericParticle3D" , "SphericSwimmingParticle3D" 
 
             if (ProjectParameters.ProjectionModuleOption):
 
