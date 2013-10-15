@@ -206,6 +206,7 @@ namespace Kratos
         void SetInitialContacts( ProcessInfo& rCurrentProcessInfo );
         void NeighNeighMapping( ProcessInfo& rCurrentProcessInfo ); //MSIMSI DEBUG
         void CheckPairWiseBreaking(); //MSIMSI DEBUG
+        double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG
         
         virtual void ContactAreaWeighting2D(const ProcessInfo& rCurrentProcessInfo );
         void ContactAreaWeighting3D(const ProcessInfo& rCurrentProcessInfo );
