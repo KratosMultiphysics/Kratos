@@ -118,7 +118,7 @@ public:
       pnew_node->GetSolutionStepValue(PARTICLE_SPHERICITY) = params[PARTICLE_SPHERICITY];       
       pnew_node->GetSolutionStepValue(VELOCITY_X) = params[VELOCITY][0];//*cos(r_modelpart.GetProcessInfo()[TIME] * 2.0 * M_PI /2.0);
       pnew_node->GetSolutionStepValue(VELOCITY_Y) = params[VELOCITY][1];
-      pnew_node->GetSolutionStepValue(VELOCITY_Z) = params[VELOCITY][2];
+      pnew_node->GetSolutionStepValue(VELOCITY_Z) = params[VELOCITY][2];      
       pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
       pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_Y) = 0.0;
       pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_Z) = 0.0;                                 
@@ -710,7 +710,7 @@ public:
             double double_number_of_particles_to_insert = num_part_surface_time * delta_t * surface + PartialParticleToInsert[mesh_number-1];            
             int number_of_particles_to_insert = floor(double_number_of_particles_to_insert);
             PartialParticleToInsert[mesh_number-1] = double_number_of_particles_to_insert - number_of_particles_to_insert;
-
+            
             if (number_of_particles_to_insert) {
               //randomizing mesh
                srand( time(NULL)*r_modelpart.GetProcessInfo()[TIME_STEPS] );
