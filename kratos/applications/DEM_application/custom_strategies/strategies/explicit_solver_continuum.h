@@ -190,9 +190,8 @@ namespace Kratos
           BaseType::GetForce();
           //KRATOS_TIMER_STOP("GetForce")
           
-         this->GlobalDamping();
-          
-           
+         //this->GlobalDamping();
+                     
           // 3. Motion Integration
           //KRATOS_TIMER_START("PerformTimeIntegrationOfMotion")
           this->PerformTimeIntegrationOfMotion(rCurrentProcessInfo); 
