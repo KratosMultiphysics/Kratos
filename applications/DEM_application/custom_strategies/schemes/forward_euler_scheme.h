@@ -65,8 +65,6 @@ namespace Kratos
           return model_part.GetCommunicator().GhostMesh().Nodes(); 
       }
       
-      /// Its the same to do a loop`in nodes or element??? Need to be compared.  
-      /// Need to check if the velocity or the dispalcement are the degree of freedon. Talk to M. Celigueta
       void Calculate(ModelPart& model_part)
       {
           ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
@@ -102,7 +100,7 @@ namespace Kratos
           #endif
           OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
           
-	  #pragma omp parallel for firstprivate(aux) shared(delta_t) 
+          #pragma omp parallel for firstprivate(aux) shared(delta_t) 
           for(int k=0; k<number_of_threads; k++)
           {
               NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
@@ -117,14 +115,12 @@ namespace Kratos
                   array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
                   array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
                   
-                  
                   double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
-                  aux = delta_t / mass;                  
-                  
+                  aux = delta_t / mass;
+
                   if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
                   {
                       aux = (1 - virtual_mass_coeff)* (delta_t / mass);
-
                       if (aux<0.0) KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",virtual_mass_coeff)
                   }
        
@@ -137,55 +133,64 @@ namespace Kratos
                       delta_displ[0] = delta_t * vel[0];
 
                       coor[0] = initial_coor[0] + displ[0];
-                      if((fabs(vel[0])<1)){
-                     }
+
 
                   }
                   else
                   {
-                      delta_displ[0] = delta_t * vel[0];
+                      
                       displ[0] += delta_displ[0];
+                      
+                      delta_displ[0] = delta_t * vel[0];
 
                       coor[0] = initial_coor[0] + displ[0];
                  
                   }
                   
-                  if(  i->pGetDof(VELOCITY_Y)->IsFixed() == false  )
-                  {
+                  if( i->pGetDof(VELOCITY_Y)->IsFixed() == false ) 
+                  {    
                       vel[1] += aux * force[1];
 
-                      delta_displ[1] = delta_t * vel[1];
                       displ[1] +=  delta_displ[1];
 
+                      delta_displ[1] = delta_t * vel[1];
+
                       coor[1] = initial_coor[1] + displ[1];
-                      
+
+
                   }
                   else
                   {
-                      delta_displ[1] = delta_t * vel[1];
+                      
                       displ[1] += delta_displ[1];
+                      
+                      delta_displ[1] = delta_t * vel[1];
 
                       coor[1] = initial_coor[1] + displ[1];
-                      
+                 
                   }
                   
-                  if(  i->pGetDof(VELOCITY_Z)->IsFixed() == false  )
-                  {
+                    if( i->pGetDof(VELOCITY_Z)->IsFixed() == false ) 
+                  {    
                       vel[2] += aux * force[2];
 
-                      delta_displ[2] = delta_t * vel[2];
                       displ[2] +=  delta_displ[2];
 
+                      delta_displ[2] = delta_t * vel[2];
+
                       coor[2] = initial_coor[2] + displ[2];
-                      
+
+
                   }
                   else
                   {
-                      delta_displ[2] = delta_t * vel[2];
+                      
                       displ[2] += delta_displ[2];
+                      
+                      delta_displ[2] = delta_t * vel[2];
 
                       coor[2] = initial_coor[2] + displ[2];
-                      
+                 
                   }
               }
           }
@@ -254,16 +259,10 @@ namespace Kratos
                                   RotaAcc = RotaAcc * ( 1 - coeff );
                          }
                        
-                         //double RotaVelOld = AngularVel[iterator];
-                         //double RotaVelNew = RotaVelOld + RotaAcc * delta_t;
-                         AngularVel[iterator] += RotaAcc * delta_t;
-                         //AngularVel[iterator]  = 0.5 * (RotaVelOld + RotaVelNew);
-                         //AngularVel[iterator]  = RotaVelNew;                         
-                        
                          delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t;
                          
-                         //delta_rotation_displ[iterator] = AngularVel[iterator] * delta_t / M_PI * 180.0; //degree
-                               
+                         AngularVel[iterator] += RotaAcc * delta_t;
+                         
                          Rota_Displace[iterator] +=  delta_rotation_displ[iterator];                         
                     }                   
 
@@ -271,8 +270,7 @@ namespace Kratos
                     {
 
                         delta_rotation_displ[iterator]= 0.0;
-                        
-                       
+                                           
                         /*
                        *
                        *
@@ -288,8 +286,7 @@ namespace Kratos
                 
                 //double RotationAngle;
           
-                //GeometryFunctions::norm(Rota_Displace,RotationAngle);
-                
+
                 double theta[3] = {0.0};
                 
                 theta[0] = Rota_Displace[0] * 0.5;
