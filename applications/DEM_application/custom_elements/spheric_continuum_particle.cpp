@@ -326,7 +326,7 @@ namespace Kratos
                       
                       {  
                   
-                      alpha  = 1.0*(1.40727)*(external_sphere_area/total_equiv_area)*((double(cont_ini_neighbours_size))/11);
+                      alpha  = 2.0*(1.40727)*(external_sphere_area/total_equiv_area)*((double(cont_ini_neighbours_size))/11);
                       mcont_ini_neigh_area[skin_index] = alpha*mcont_ini_neigh_area[skin_index];
                   
                       skin_index++;
@@ -466,6 +466,7 @@ namespace Kratos
                 double rad_squared = mRadius * other_radius;
                 
                 calculation_area = 4.0*M_PI*(rad_squared*rad_squared)*radius_sum_i*radius_sum_i;
+                
                 
                 double equiv_shear = equiv_young/(2*(1+equiv_poisson));
                 kn_el = equiv_young*calculation_area*radius_sum_i;
@@ -1349,6 +1350,57 @@ namespace Kratos
           
           
         } //MEAN_CONTACT_AREA
+        
+        if (rVariable == LOCAL_CONTACT_AREA_HIGH)
+        {
+            
+            Output = AreaDebugging( rCurrentProcessInfo);
+        }
+          
+         if (rVariable == DEMPACK_DAMPING)
+        {
+          
+            double alpha = 0.9;
+            
+            array_1d<double, 3>& total_force = this->GetGeometry()(0)->FastGetSolutionStepValue(TOTAL_FORCES);
+            array_1d<double, 3>& velocity = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+            
+            int i;
+
+            double factor;
+            
+//             //if ( this->GetGeometry()(0)->pGetDof(VELOCITY_Y)->IsFixed() == false )
+//             {
+//                 for (i = 1; i<=3; i++)
+//                 {
+//                   
+//                   factor = 0.1*fabs((velocity[i])/0.05);
+//                   
+//                   if(factor >=1) {factor = 0.95;}
+//                   
+//                   total_force[i] = (1-factor)*total_force[i]; 
+//                   
+//                 }
+//               
+//             }
+//             
+            
+            
+            
+            
+            /*
+            for (i = 1; i<=3; i++)
+            {
+              
+              if(
+              array_1d<double, 3>& velocity = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+             //total_force[i] = total_force[i] - alpha*fabs(total_force[i])*GeometryFunctions::sign(velocity[i]);
+       
+                         
+            }*/
+        } 
+          
+          
           
      
       KRATOS_CATCH("")
@@ -1504,17 +1556,17 @@ namespace Kratos
                       
                           //Amb Dempack la fractura tracció és el limit del dany i es mira al calcul de forces...
                           
-                            /*
-                            if(contact_sigma<-mTensionLimit)
+                            
+                            if(contact_sigma<-mTensionLimit && mElasticityType<2)
                             {
                                 mNeighbourFailureId[i_neighbour_count] = 12; //both shear and tension
                                 mIniNeighbourFailureId[ mapping_new_ini ] = 12;
                                 failure_criterion_state = 1.0;
                             } //both shear and tension
-                            */
+                            
                         }
-                      /*
-                        else if (contact_sigma<-mTensionLimit)
+                      
+                        else if (contact_sigma<-mTensionLimit && mElasticityType<2)
                         {
                             mNeighbourFailureId[i_neighbour_count] = 4; //tension failure
                             mIniNeighbourFailureId[ mapping_new_ini ] = 4;
@@ -1522,7 +1574,7 @@ namespace Kratos
                             failure_criterion_state = 1.0;
                             
                         }
-                     */
+                     
                       
                   } //negative values of sigma              
           
@@ -1952,9 +2004,51 @@ namespace Kratos
         //MSIMSI DEBUG
       }
       
+       double SphericContinuumParticle::AreaDebugging(const ProcessInfo& rCurrentProcessInfo)  //MSIMSI DEBUG
      
+      { 
+         //DEBUG MEDICIÓ
+           
+          double area_vertical_centre = 0.0;
+          
+          if (this->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)==5)
+                
+          {
+          
+           size_t i_neighbour_count = 0;
+
+           ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
+            
+           
+            for(ParticleWeakIteratorType neighbour_iterator = r_continuum_ini_neighbours.begin();
+              neighbour_iterator != r_continuum_ini_neighbours.end(); neighbour_iterator++)
+            {
+            
+                if ( neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(GROUP_ID) != 5 )
+                  
+                {
+                    
+                                  
+                  array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
+                  array_1d<double,3> normal_vector_on_contact =  -1 * other_to_me_vect; //outwards     
+                            
+                  double Dummy_Dummy = 0.0;
+                  GeometryFunctions::norm(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module
+                                      
+                  area_vertical_centre += mcont_ini_neigh_area[i_neighbour_count]*fabs(normal_vector_on_contact[1]); //X(0), Y(1), Z(2)
+                  
+                }                   
+                
+                i_neighbour_count++;
+                
+            }  // loop neigh
       
-      
+          }  //group_id == 5
+          
+          
+          return area_vertical_centre;
+
+      } //AreaDebugging
       
       
       
