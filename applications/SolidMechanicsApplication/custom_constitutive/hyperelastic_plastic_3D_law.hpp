@@ -35,7 +35,6 @@ protected:
 
     struct MaterialResponseVariables
     {
-        bool  Plasticity;
 
         //general material properties
         double LameMu;

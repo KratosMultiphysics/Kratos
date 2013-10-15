@@ -64,6 +64,25 @@ namespace Kratos
     typedef Properties::Pointer            PropertiesPointer;
 
 
+    struct ProcessVariables
+    {
+
+      bool ImplexActive;
+
+      bool PlasticRegion;
+      bool ReturnMappingComputed;
+
+    public:
+      
+      void initialize()
+      {
+	ImplexActive  = false;
+	PlasticRegion = false;
+	ReturnMappingComputed = false;
+      };
+
+    };
+
     struct PlasticFactors
     {
       double Beta0;
@@ -91,7 +110,8 @@ namespace Kratos
       double TimeStep;
 
       double Temperature;
-      bool   Implex;
+
+      ProcessVariables Control;
 
     public:
       
@@ -106,16 +126,25 @@ namespace Kratos
 	  LameMu_bar  = 0;
 	  TimeStep    = 0;
 	  Temperature = 0;
-
-	  Implex      = false;
 	}
       
+
+      void initialize()
+        {
+	  Control.initialize();
+	  clear();
+	}
+
     };
 
     struct InternalVariables
     {
         double EquivalentPlasticStrain;
         double DeltaPlasticStrain;
+
+        //needed in IMPLEX calculation
+        double EquivalentPlasticStrainOld;
+
         
     public:
 
@@ -123,6 +152,7 @@ namespace Kratos
         {
 	  EquivalentPlasticStrain = 0;
 	  DeltaPlasticStrain = 0;
+	  EquivalentPlasticStrainOld = 0;
 	}
 
     private:
@@ -135,12 +165,14 @@ namespace Kratos
       {
 	rSerializer.save("EquivalentPlasticStrain",EquivalentPlasticStrain);
 	rSerializer.save("DeltaPlasticStrain",DeltaPlasticStrain);
+	rSerializer.save("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
       };
 
       void load(Serializer& rSerializer)
       {
 	rSerializer.load("EquivalenPlasticStrain",EquivalentPlasticStrain);
 	rSerializer.save("DeltaPlasticStrain",DeltaPlasticStrain);
+	rSerializer.load("EquivalenPlasticStrainOld",EquivalentPlasticStrainOld);
       };
     };
 
@@ -243,7 +275,7 @@ namespace Kratos
 	    return 0;
     };
 
-
+ 
     virtual void CalculateScalingFactors(const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors )
     {
 	    KRATOS_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
@@ -317,22 +349,11 @@ namespace Kratos
 
     virtual double& CalculateNormStress ( Matrix & rStressMatrix, double& rNormStress )
     {
+            KRATOS_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
+
 	    return rNormStress;
     };
 
-     virtual bool CalculateConstistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables )
-    {
-	    KRATOS_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
-
-	    return 0;
-    };
-
-
-    virtual void UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix )
-    {
-	    KRATOS_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
-
-    };
 
 
     ///@}

@@ -149,6 +149,14 @@ namespace Kratos
 
     void CalculateThermalDissipation( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
 
+
+    //implex protected methods
+
+    void CalculateImplexReturnMapping( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, Matrix& rIsoStressMatrix );
+ 
+    void CalculateImplexThermalDissipation( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
+
+
     ///@}
     ///@name Protected  Access
     ///@{
