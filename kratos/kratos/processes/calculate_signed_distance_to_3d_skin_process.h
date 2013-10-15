@@ -621,6 +621,8 @@ public:
 
     void DistanceFluidStructure()
     {
+        std::cout << "Start calculating elemental distances..." << std::endl;
+
         // Initialize elemental distances in the domain
         Initialize();
 
@@ -640,8 +642,6 @@ public:
 
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, pElements.size(), element_partition);
-        KRATOS_WATCH(number_of_threads);
-        KRATOS_WATCH(element_partition);
 
 #pragma omp parallel for
         for (int k = 0; k < number_of_threads; k++)
@@ -660,6 +660,8 @@ public:
         // several elements, such that it is assigned several distance values
         // --> now synchronize these values by finding the minimal distance and assign to each node a minimal nodal distance
         AssignMinimalNodalDistance();
+
+        std::cout << "Finished calculating elemental distances..." << std::endl;
     }
 
     ///******************************************************************************************************************
@@ -672,7 +674,7 @@ public:
         ModelPart::NodesContainerType::ContainerType& nodes = mrFluidModelPart.NodesArray();
 
         // reset the node distance to 1.0 which is the maximum distance in our normalized space.
-        unsigned int nodesSize = nodes.size();
+        int nodesSize = nodes.size();
 
 #pragma omp parallel for firstprivate(nodesSize)
         for(int i = 0 ; i < nodesSize ; i++)
@@ -688,7 +690,7 @@ public:
 
         // reset the elemental distance to 1.0 which is the maximum distance in our normalized space.
         // also initialize the embedded velocity of the fluid element
-        unsigned int elementsSize = fluid_elements.size();
+        int elementsSize = fluid_elements.size();
 
 #pragma omp parallel for firstprivate(elementsSize)
         for(int i = 0 ; i < elementsSize ; i++)
@@ -1705,15 +1707,17 @@ public:
         std::vector<OctreeType::cell_type*> all_leaves;
         mOctree.GetAllLeavesVector(all_leaves);
 
+        int leaves_size = all_leaves.size();
+
 #pragma omp parallel for
-        for (int i = 0; i < all_leaves.size(); i++)
+        for (int i = 0; i < leaves_size; i++)
         {
             *(all_leaves[i]->pGetDataPointer()) = ConfigurationType::AllocateData();
         }
 
 
         std::size_t last_id = mrBodyModelPart.NumberOfNodes() + 1;
-        KRATOS_WATCH(all_leaves.size());
+        KRATOS_WATCH(leaves_size);
         for (std::size_t i = 0; i < all_leaves.size(); i++)
         {
             KRATOS_WATCH(i)
