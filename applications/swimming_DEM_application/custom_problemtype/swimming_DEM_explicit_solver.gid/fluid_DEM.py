@@ -36,6 +36,7 @@ ProjectParameters.gravity_z                   = -9.81000e+00
 ProjectParameters.plastic_viscosity           = 0.000014 #It is divided by the density
 ProjectParameters.smoothing_parameter_m       = 0.035
 ProjectParameters.yield_stress_value          = 10.0
+ProjectParameters.max_solid_fraction          = 0.6
 ProjectParameters.DEM_nodal_results           = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED"]
 ProjectParameters.mixed_nodal_results         = ["VELOCITY", "DISPLACEMENT"]
 ProjectParameters.CouplingSchemeType          = "updated_fluid" # "updated_fluid" or "updated_DEM"
@@ -284,11 +285,11 @@ fluid_volume = 10
 n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume))
 
 if (ProjectParameters.ProjectionModuleOption):
-    projection_module = SwimProc.ProjectionModule(fluid_model_part, balls_model_part, domain_size, n_particles_in_depth)
+    projection_module = SwimProc.ProjectionModule(fluid_model_part, balls_model_part, domain_size, n_particles_in_depth, ProjectParameters.max_solid_fraction)
     projection_module.UpdateDatabase(h_min)
     interaction_calculator = CustomFunctionsCalculator()
 
-fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, ProjectParameters.yield_stress_value )
+fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, ProjectParameters.yield_stress_value)
 fluid_model_part.ProcessInfo.SetValue(M, ProjectParameters.smoothing_parameter_m)
 
 for node in fluid_model_part.Nodes:
@@ -375,7 +376,7 @@ while(time <= final_time):
         if (time >= ProjectParameters.Interaction_start_time and ProjectParameters.ProjectionModuleOption):
             interaction_calculator.CalculatePressureGradient(fluid_model_part)
                     
-        print "Solving DEM...(", balls_model_part.NumberOfElements(0), " elements)"
+    print "Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)"
             
     for time_dem in yield_DEM_time(time_dem, time, Dt_DEM, ProjectParameters.CouplingSchemeType):
 				
