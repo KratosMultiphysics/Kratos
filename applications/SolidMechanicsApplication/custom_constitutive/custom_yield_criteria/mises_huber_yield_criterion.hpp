@@ -94,6 +94,12 @@ class MisesHuberYieldCriterion
         double& CalculatePlasticDissipation(double & rPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rAlpha, const double &rTemperature);
 
         double& CalculateDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rLameMu_bar, const double& rAlpha, const double &rTemperature);
+
+
+        double& CalculateImplexPlasticDissipation(double & rPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rAlpha, const double &rTemperature);
+
+        double& CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rLameMu_bar, const double& rAlpha, const double &rTemperature);
+
           
         ///@}
         ///@name Access

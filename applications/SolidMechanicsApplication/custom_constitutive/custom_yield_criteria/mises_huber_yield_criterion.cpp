@@ -153,6 +153,25 @@ double& MisesHuberYieldCriterion::CalculateDeltaPlasticDissipation(double & rDel
 };
 
 
+//***************************CALCULATE PLASTIC DISSIPATION****************************
+//************************************************************************************
+
+double& MisesHuberYieldCriterion::CalculateImplexPlasticDissipation(double & rPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rAlpha, const double& rTemperature)
+{
+	rPlasticDissipation = 0;
+	return rPlasticDissipation;
+};
+
+
+//**********************CALCULATE DELTA PLASTIC DISSIPATION***************************
+//************************************************************************************
+
+double& MisesHuberYieldCriterion::CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rLameMu_bar, const double& rAlpha, const double& rTemperature)
+{
+	rDeltaPlasticDissipation = 0;
+	return rDeltaPlasticDissipation;
+};
+
 void MisesHuberYieldCriterion::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, YieldCriterion );
