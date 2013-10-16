@@ -212,7 +212,6 @@ class StructuralSolver:
         R_RT = self.rel_res_tol;
         R_AT = self.abs_res_tol; 
 
-
         if(self.rotation_dofs == True):
             if(self.convergence_criterion_type == "Displacement_criteria"):
                 self.mechanical_convergence_criterion  =  DisplacementCriteria(D_RT,D_AT)
@@ -231,6 +230,9 @@ class StructuralSolver:
                 Residual       =   ResidualCriteria(R_RT,R_AT)
                 self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
         else:
+
+            print " CONVERGENCE CRITERION (solid) : ",self.convergence_criterion_type
+
             if(self.convergence_criterion_type == "Displacement_criteria"):
                 self.mechanical_convergence_criterion  =  DisplacementConvergenceCriteria(D_RT,D_AT)
             elif(self.convergence_criterion_type == "Residual_criteria"):
@@ -244,8 +246,8 @@ class StructuralSolver:
                 Residual       =   ResidualConvergenceCriteria(R_RT,R_AT)
                 self.mechanical_convergence_criterion  = OrCriteria(Residual, Displacement)
             elif(self.convergence_criterion_type == "Mixed_criteria"):
-                Displacement   =   MixedElementConvergenceCriteria(D_RT,D_AT)
-                Residual       =   ResidualConvergenceCriteria(R_RT,R_AT)
+                Displacement   =   MixedElementConvergeCriteria(D_RT,D_AT)
+                Residual       =   ResidualCriteria(R_RT,R_AT)
                 self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
 
 
@@ -256,7 +258,7 @@ def CreateSolver(model_part, config):
     structural_solver = StructuralSolver(model_part, config.domain_size)
 
     # definition of the convergence criteria
-    if(hasattr(config, "convergenge_criterion")):
+    if(hasattr(config, "convergence_criterion")):
         structural_solver.convergence_criterion_type = config.convergence_criterion
     if(hasattr(config, "displacement_relative_tolerance")):
         structural_solver.rel_disp_tol = config.displacement_relative_tolerance
