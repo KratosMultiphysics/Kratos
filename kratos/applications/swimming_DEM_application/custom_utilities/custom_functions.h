@@ -78,8 +78,8 @@ namespace Kratos
 
         Area = 0.5 * detJ;
     }
-//SALVA_ENDING
-class Custom_Functions_Calculator
+
+class CustomFunctionsCalculator
 {
 public:
 
@@ -90,49 +90,42 @@ public:
         typedef Configure::IteratorType                     ParticleIterator;
 
 
-    KRATOS_CLASS_POINTER_DEFINITION(Custom_Functions_Calculator);
+    KRATOS_CLASS_POINTER_DEFINITION(CustomFunctionsCalculator);
 
   
-    Custom_Functions_Calculator() {};
+    CustomFunctionsCalculator() {};
     /// Calculator
 
-    virtual ~Custom_Functions_Calculator() {};
+    virtual ~CustomFunctionsCalculator() {};
 
     /// Default calculator
     
-    //SALVA_BEGINNING
-    //void PressureGradientCalculator(){};//SALVA
-    //assume TDim = dimension
-    void PressureGradientCalculator(ModelPart& r_model_part) {
+    void CalculatePressureGradient(ModelPart& r_model_part) {
+
             for (ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++) {
                 inode->FastGetSolutionStepValue(AUX_DOUBLE_VAR) = 0.0;
                 noalias(inode->FastGetSolutionStepValue(PRESSURE_GRADIENT)) = ZeroVector(3);
-                //KRATOS_WATCH("lele1") //SALVA
             }
-            const std::size_t TDim=3;
+            const std::size_t TDim = 3;
             array_1d <double, TDim + 1 > elemental_pressures;
             array_1d <double, TDim> grad;
             array_1d <double, TDim + 1 > N; //Shape functions vector//
             boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
-            //KRATOS_WATCH("lele2") //SALVA
+
             for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++) {
                 //compute shape function derivatives
                 Geometry< Node < 3 > >& geom = ielem->GetGeometry();
                 double Volume;
-                //KRATOS_WATCH("lele3") //SALVA
-                //KRATOS_WATCH(geom.size()) //SALVA
-                if (geom.size()==4)
+
+                if (geom.size() == 4)
                     GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Volume);
                 else 
                     CalculateGeometryData2D(geom, DN_DX, N, Volume);
                     
-                //KRATOS_WATCH("lele4") //SALVA
                 //get the pressure gradients;
                 
                 for (unsigned int i = 0; i < geom.size(); i++)
                     elemental_pressures[i] = geom[i].FastGetSolutionStepValue(PRESSURE);
-                    //double lele=elemental_pressures[i]; //SALVA
-                    //KRATOS_WATCH("lele5") //SALVA
 
                 noalias(grad) = prod(trans(DN_DX), elemental_pressures);
                 double nodal_area = Volume / static_cast<double>(geom.size());
@@ -151,11 +144,7 @@ public:
             }
         }
 
-        //SALVA_ENDING*/
-
-
-
-    }; // Class Custom_Functions_Calculator
+    }; // Class CustomFunctionsCalculator
 
 
 } // namespace Kratos.
