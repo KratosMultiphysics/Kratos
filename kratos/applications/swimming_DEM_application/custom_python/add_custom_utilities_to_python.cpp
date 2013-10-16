@@ -76,9 +76,9 @@ typedef std::vector<array_1d<double, 3 > >::iterator ComponentIteratorType;
 void  AddCustomUtilitiesToPython(){
 using namespace boost::python;
     
-    class_<Custom_Functions_Calculator, boost::noncopyable >
-        ("custom_functions_calculator", init<>())
-        .def("pressuregradientcalculator", &Custom_Functions_Calculator::PressureGradientCalculator)
+    class_<CustomFunctionsCalculator, boost::noncopyable >
+        ("CustomFunctionsCalculator", init<>())
+        .def("CalculatePressureGradient", &CustomFunctionsCalculator::CalculatePressureGradient)
         ; 
     
     class_<BinBasedDEMFluidCoupledMapping < 2 > >("BinBasedDEMFluidCoupledMapping2D", init< >())   
