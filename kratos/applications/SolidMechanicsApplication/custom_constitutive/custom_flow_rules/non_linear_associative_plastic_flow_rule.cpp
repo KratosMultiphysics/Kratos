@@ -215,15 +215,16 @@ void NonLinearAssociativePlasticFlowRule::CalculateImplexReturnMapping( RadialRe
 
 void NonLinearAssociativePlasticFlowRule::CalculateThermalDissipation( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables )
 {
-       // ------- //
 
-      //Thermal step variables:
+      //1.- Thermal Dissipation:
  
       mThermalVariables.PlasticDissipation = mpYieldCriterion->CalculatePlasticDissipation( mThermalVariables.PlasticDissipation, rReturnMappingVariables.DeltaGamma, rReturnMappingVariables.TimeStep, rPlasticVariables.EquivalentPlasticStrain, rReturnMappingVariables.Temperature );
   
+
+      //2.- Thermal Dissipation Increment:
+
       mThermalVariables.DeltaPlasticDissipation = mpYieldCriterion->CalculateDeltaPlasticDissipation( mThermalVariables.DeltaPlasticDissipation, rReturnMappingVariables.DeltaGamma, rReturnMappingVariables.TimeStep, rReturnMappingVariables.LameMu_bar, rPlasticVariables.EquivalentPlasticStrain, rReturnMappingVariables.Temperature );
 		    		    
-      // ------- //
   
 }
 
@@ -234,9 +235,13 @@ void NonLinearAssociativePlasticFlowRule::CalculateThermalDissipation( RadialRet
 void NonLinearAssociativePlasticFlowRule::CalculateImplexThermalDissipation( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables )
 {
  
-    //mThermalVariables.PlasticDissipation = mpYieldCriterion->CalculatePlasticDissipation( mThermalVariables.PlasticDissipation, rReturnMappingVariables.DeltaGamma, rReturnMappingVariables.TimeStep, rPlasticVariables.EquivalentPlasticStrain, rReturnMappingVariables.Temperature );
+      //1.- Thermal Dissipation:
+	
+      mThermalVariables.PlasticDissipation = mpYieldCriterion->CalculateImplexPlasticDissipation( mThermalVariables.PlasticDissipation, rReturnMappingVariables.DeltaGamma, rReturnMappingVariables.TimeStep, rPlasticVariables.EquivalentPlasticStrain, rReturnMappingVariables.Temperature );
   
-    //mThermalVariables.DeltaPlasticDissipation = mpYieldCriterion->CalculateDeltaPlasticDissipation( mThermalVariables.DeltaPlasticDissipation, rReturnMappingVariables.DeltaGamma, rReturnMappingVariables.TimeStep, rReturnMappingVariables.LameMu_bar, rPlasticVariables.EquivalentPlasticStrain, rReturnMappingVariables.Temperature );
+      //2.- Thermal Dissipation Increment:
+      
+      mThermalVariables.DeltaPlasticDissipation = mpYieldCriterion->CalculateImplexDeltaPlasticDissipation( mThermalVariables.DeltaPlasticDissipation, rReturnMappingVariables.DeltaGamma, rReturnMappingVariables.TimeStep, rReturnMappingVariables.LameMu_bar, rPlasticVariables.EquivalentPlasticStrain, rReturnMappingVariables.Temperature );
 
 
    

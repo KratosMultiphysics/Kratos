@@ -150,6 +150,22 @@ class YieldCriterion
 		return rDeltaPlasticDissipation;
 	};
 
+
+        virtual double& CalculateImplexPlasticDissipation(double & rPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rAlpha, const double& rTemperature)
+	{
+		KRATOS_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!","");
+
+		return rPlasticDissipation;
+	};
+
+
+        virtual double& CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rLameMu_bar, const double& rAlpha, const double& rTemperature)
+	{
+		KRATOS_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!","");
+
+		return rDeltaPlasticDissipation;
+	};
+
         ///@}
         ///@name Access
         ///@{
