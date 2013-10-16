@@ -1,4 +1,5 @@
 from KratosMultiphysics import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 CheckForPreviousImport()
 
 # SectionType: String containing the type of the section: "Square", "IPN", "HEB", ...
@@ -17,12 +18,14 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         SectionProperties = searchCVSValues(csvFile,SectionType,size_profile)
  #       print SectionProperties
         inertia = Matrix(2,2)
+	cross_area = float(SectionProperties["A(m2)"])
         inertia[0,0] = float(SectionProperties["Iz(m4)"])
         inertia[0,1] = float(SectionProperties["Iz(m4)"]) # we have to set this correctly
         inertia[1,0] = float(SectionProperties["Iz(m4)"]) # we have to set this correctly
         inertia[1,1] = float(SectionProperties["Iy(m4)"])
         print ("inertia", inertia)
         BeamProperties.SetValue(LOCAL_INERTIA, inertia)
+        BeamProperties.SetValue(CROSS_AREA, cross_area)
         return BeamProperties
 
     
@@ -47,6 +50,8 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         inertia[1,1] = circular_inertia
         print ("inertia", inertia)
         BeamProperties.SetValue(LOCAL_INERTIA, inertia)
+        BeamProperties.SetValue(CROSS_AREA, circular_area)
+        return BeamProperties
 
 
         
@@ -75,6 +80,8 @@ def SetProperties(SectionType, SectionData, BeamProperties):
         inertia[1,1] = square_inertia_y
         print ("inertia", inertia)
         BeamProperties.SetValue(LOCAL_INERTIA, inertia)
+        BeamProperties.SetValue(CROSS_AREA, square_area)
+        return BeamProperties
 
     
                 
