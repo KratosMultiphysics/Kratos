@@ -140,8 +140,8 @@
                 <Item id="StrainTensor" pid="Green-Lagrange Strain tensor" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Green Lagrange strain tensor"/>
                 <Item id="StressTensor" pid="Cauchy stress tensor" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Cauchy stress tensor"/>
                 <Item id="VonMises" pid="VonMises" dv="No" strucType="Solid,General" ivalues="Yes,No" values="Yes,No" help="Von Mises Criterion"/>
-		<Item id="BeamMoments" pid="Beam moments" dv="No" strucType="Beam" ivalues="Yes,No" values="Yes,No" help="Beam moments"/>
-		<Item id="BeamForces" pid="Beam forces" dv="No" strucType="Beam" ivalues="Yes,No" values="Yes,No" help="Beam forces"/>
+		<Item id="BeamMoments" pid="Beam moments" dv="No" strucType="Beam,Generic" ivalues="Yes,No" values="Yes,No" help="Beam moments"/>
+		<Item id="BeamForces" pid="Beam forces" dv="No" strucType="Beam,Generic" ivalues="Yes,No" values="Yes,No" help="Beam forces"/>
 	    </Container>
 	    <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess options" open="0">
 	      <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>

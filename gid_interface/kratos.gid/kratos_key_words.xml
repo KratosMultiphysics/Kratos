@@ -297,7 +297,7 @@
     <Item id="ElectricalPermitivity" kkword="" />
   </Materials>
   <ElementCLaws>
-    <Item id="ElementTypes2D" dv="Beam"
+    <Item id="ElementTypes2D" dv="Solid"
 	  ivalues="Solid,Generic"
 	  values="Solid,Generic" delvalues = "Beam,Truss,Plate,EBST" />
     <Item id="ElementTypes3D" dv="Beam"
