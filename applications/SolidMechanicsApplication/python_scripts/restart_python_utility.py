@@ -26,8 +26,8 @@ class RestartUtility:
         #set restart path
         self.restart_path = os.path.join(self.problem_path,self.problem_name + "_" + str(restart_step))
        
-        #set serializer 
-        self.serializer = Serializer(self.restart_path,SERIALIZER_NO_TRACE)
+        #set serializer . Commented due to the error in windows. Pooyan.
+        #self.serializer = Serializer(self.restart_path,SERIALIZER_NO_TRACE)
         #self.serializer = Serializer(self.restart_path,SERIALIZER_TRACE_ERROR)
 
         #save restart variables
