@@ -205,7 +205,7 @@ problem_restart.SetStartSteps(buffer_size);
 
 #--- PRINT CONTROL ---#
 print model_part
-print model_part.Properties
+print model_part.Properties[1]
 
 
 #########################--INITIALIZE--###########################
