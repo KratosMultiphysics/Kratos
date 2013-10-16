@@ -1065,8 +1065,8 @@ proc ::wkcf::WriteSurfaceLoad {AppId cloadtid} {
 		    set N4 [lindex $nodes 3]
 		    set N5 [lindex $nodes 4]
 		    set N6 [lindex $nodes 5]
-		    set N7 [lindex $nodes 5]
-		    set N8 [lindex $nodes 5]
+		    set N7 [lindex $nodes 6]
+		    set N8 [lindex $nodes 7]
 		    incr sa_icondid
 		    set cf "[format "%4i%4i%8i%8i%8i%8i%8i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3 $N4 $N5 $N6 $N7 $N8]"
 
@@ -1233,8 +1233,8 @@ proc ::wkcf::WriteSurfacePressure {AppId cloadtid} {
 		    set N4 [lindex $nodes 3]
 		    set N5 [lindex $nodes 4]
 		    set N6 [lindex $nodes 5]
-		    set N7 [lindex $nodes 5]
-		    set N8 [lindex $nodes 5]
+		    set N7 [lindex $nodes 6]
+		    set N8 [lindex $nodes 7]
 		    incr sa_icondid
 		    set cf "[format "%4i%4i%8i%8i%8i%8i%8i%8i%8i%8i" $sa_icondid $RefPropId $N1 $N2 $N3 $N4 $N5 $N6 $N7 $N8]"
 		} else {

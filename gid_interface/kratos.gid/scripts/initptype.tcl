@@ -161,7 +161,7 @@ proc kipt::BeforeMeshGeneration { elementsize } {
         }
 	# Quadrilateral
 	if {[llength $hexasurf]} {
-	    # Assign the triangle element type
+	    # Assign the quadrilateral element type
 	    GiD_Process Mescape Meshing ElemType Quadrilateral $hexasurf escape         
 	    # Automatically meshing all the boundary surfaces
 	    GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces {*}$hexasurf escape 
