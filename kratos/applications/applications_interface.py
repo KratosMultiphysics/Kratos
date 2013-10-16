@@ -108,7 +108,7 @@ def ImportApplications(kernel, applications_path=application_directory ):
         sys.path.append(applications_path + '/SolidMechanicsApplication/python_scripts') 
         sys.path.append(applications_path + '/SolidMechanicsApplication/Linux') 
         from KratosSolidMechanicsApplication import *
-        structural_application = KratosSolidMechanicsApplication()
+        solid_mechanics_application = KratosSolidMechanicsApplication()
         kernel.AddApplication(solid_mechanics_application)
         print "KratosSolidMechanicsApplication Succesfully imported"
 
@@ -117,7 +117,7 @@ def ImportApplications(kernel, applications_path=application_directory ):
         sys.path.append(applications_path + '/PfemSolidMechanicsApplication/python_scripts') 
         sys.path.append(applications_path + '/PfemSolidMechanicsApplication/Linux') 
         from KratosPfemSolidMechanicsApplication import *
-        structural_application = KratosPfemSolidMechanicsApplication()
+        pfem_solid_mechanics_application = KratosPfemSolidMechanicsApplication()
         kernel.AddApplication(pfem_solid_mechanics_application)
         print "KratosPfemSolidMechanicsApplication Succesfully imported"
 
