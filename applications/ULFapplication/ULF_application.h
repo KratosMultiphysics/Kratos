@@ -214,12 +214,9 @@ private:
     //
     const UlfFrac2D mUlfFrac2D;
     const UlfFrac3D mUlfFrac3D;
-<<<<<<< .mine
     const UlfFrac2DSwimming mUlfFrac2DSwimming;
     const UlfFrac3DSwimming mUlfFrac3DSwimming;
-=======
     const PointNeumann3D  mPointNeumann3D;
->>>>>>> .r8169
 
 
     ///@}
