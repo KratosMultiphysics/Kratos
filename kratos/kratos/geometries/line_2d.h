@@ -436,8 +436,8 @@ public:
     virtual JacobiansType& Jacobian(JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const
     {
         Matrix jacobian(2,1);
-        jacobian(0,0)=(BaseType::GetPoint(1).X() + DeltaPosition(1,0) - BaseType::GetPoint(0).X() + DeltaPosition(0,0))*0.5;	//on the Gauss points (J is	constant at	each element)
-        jacobian(1,0)=(BaseType::GetPoint(1).Y() + DeltaPosition(1,1) - BaseType::GetPoint(0).Y() + DeltaPosition(0,1))*0.5;
+        jacobian(0,0)=(BaseType::GetPoint(1).X() - DeltaPosition(1,0) - BaseType::GetPoint(0).X() - DeltaPosition(0,0))*0.5;	//on the Gauss points (J is	constant at	each element)
+        jacobian(1,0)=(BaseType::GetPoint(1).Y() - DeltaPosition(1,1) - BaseType::GetPoint(0).Y() - DeltaPosition(0,1))*0.5;
 
         if(rResult.size() != BaseType::IntegrationPointsNumber(ThisMethod))
         {

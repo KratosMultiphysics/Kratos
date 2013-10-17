@@ -559,20 +559,20 @@ public:
 				     Matrix & DeltaPosition) const
     {
         Matrix jacobian(3,3);
-        double x0 = this->Points()[0].X() + DeltaPosition(0,0);
-        double x1 = this->Points()[1].X() + DeltaPosition(1,0);
-        double x2 = this->Points()[2].X() + DeltaPosition(2,0);
-        double x3 = this->Points()[3].X() + DeltaPosition(3,0);
+        double x0 = this->Points()[0].X() - DeltaPosition(0,0);
+        double x1 = this->Points()[1].X() - DeltaPosition(1,0);
+        double x2 = this->Points()[2].X() - DeltaPosition(2,0);
+        double x3 = this->Points()[3].X() - DeltaPosition(3,0);
 
-        double y0 = this->Points()[0].Y() + DeltaPosition(0,1);
-        double y1 = this->Points()[1].Y() + DeltaPosition(1,1);
-        double y2 = this->Points()[2].Y() + DeltaPosition(2,1);
-        double y3 = this->Points()[3].Y() + DeltaPosition(3,1);
+        double y0 = this->Points()[0].Y() - DeltaPosition(0,1);
+        double y1 = this->Points()[1].Y() - DeltaPosition(1,1);
+        double y2 = this->Points()[2].Y() - DeltaPosition(2,1);
+        double y3 = this->Points()[3].Y() - DeltaPosition(3,1);
 
-        double z0 = this->Points()[0].Z() + DeltaPosition(0,2);
-        double z1 = this->Points()[1].Z() + DeltaPosition(1,2);
-        double z2 = this->Points()[2].Z() + DeltaPosition(2,2);
-        double z3 = this->Points()[3].Z() + DeltaPosition(3,2);
+        double z0 = this->Points()[0].Z() - DeltaPosition(0,2);
+        double z1 = this->Points()[1].Z() - DeltaPosition(1,2);
+        double z2 = this->Points()[2].Z() - DeltaPosition(2,2);
+        double z3 = this->Points()[3].Z() - DeltaPosition(3,2);
 
         //calculation of the jacobian
         jacobian(0,0) = x1-x0;
