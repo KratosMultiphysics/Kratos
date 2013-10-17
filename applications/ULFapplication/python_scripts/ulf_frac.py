@@ -17,6 +17,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE);
     model_part.AddNodalSolutionStepVariable(VAUX);
     model_part.AddNodalSolutionStepVariable(NODAL_MASS);
+    model_part.AddNodalSolutionStepVariable(DRAG_REACTION);
         
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -37,6 +38,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(BULK_MODULUS);
     model_part.AddNodalSolutionStepVariable(NODAL_H);
     model_part.AddNodalSolutionStepVariable(NORMAL);
+    model_part.AddNodalSolutionStepVariable(PRESSURE_GRADIENT);
 
 def AddDofs(model_part, compute_reactions):
     if (compute_reactions==0):
