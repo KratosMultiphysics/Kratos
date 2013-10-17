@@ -114,6 +114,9 @@ void  AddCustomUtilitiesToPython()
     .def ("RestoreLagInletNodalH", &UlfUtils::RestoreNodalHAtLagInlet)
     .def ("SetLagInletNodalH", &UlfUtils::SetNodalHAtLagInlet)
     .def ("DeleteFreeSurfaceNodesBladder", &UlfUtils::DeleteFreeSurfaceNodesBladder)
+    .def ("SaveNodalArea", &UlfUtils::SaveNodalArea)
+    .def ("ClearNodalPressureGrad", &UlfUtils::ClearNodalPressureGrad)
+    .def ("CalculateNodalPressureGrad", &UlfUtils::CalculateNodalPressureGrad)
 
     ;
 
