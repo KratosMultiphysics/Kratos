@@ -632,10 +632,10 @@ public:
     virtual JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const
     {
         Matrix jacobian( 2, 2 );
-        jacobian( 0, 0 ) = -( this->GetPoint( 0 ).X() + DeltaPosition(0,0) ) + ( this->GetPoint( 1 ).X() + DeltaPosition(1,0) );
-        jacobian( 1, 0 ) = -( this->GetPoint( 0 ).Y() + DeltaPosition(0,1) ) + ( this->GetPoint( 1 ).Y() + DeltaPosition(1,1) );
-        jacobian( 0, 1 ) = -( this->GetPoint( 0 ).X() + DeltaPosition(0,0) ) + ( this->GetPoint( 2 ).X() + DeltaPosition(2,0) );
-        jacobian( 1, 1 ) = -( this->GetPoint( 0 ).Y() + DeltaPosition(0,1) ) + ( this->GetPoint( 2 ).Y() + DeltaPosition(2,1) );
+        jacobian( 0, 0 ) = -( this->GetPoint( 0 ).X() - DeltaPosition(0,0) ) + ( this->GetPoint( 1 ).X() - DeltaPosition(1,0) );
+        jacobian( 1, 0 ) = -( this->GetPoint( 0 ).Y() - DeltaPosition(0,1) ) + ( this->GetPoint( 1 ).Y() - DeltaPosition(1,1) );
+        jacobian( 0, 1 ) = -( this->GetPoint( 0 ).X() - DeltaPosition(0,0) ) + ( this->GetPoint( 2 ).X() - DeltaPosition(2,0) );
+        jacobian( 1, 1 ) = -( this->GetPoint( 0 ).Y() - DeltaPosition(0,1) ) + ( this->GetPoint( 2 ).Y() - DeltaPosition(2,1) );
 
         if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
         {
@@ -672,10 +672,10 @@ public:
 
             for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
             {
-                jacobian( 0, 0 ) += ( this->GetPoint( i ).X() + DeltaPosition(i,0) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-                jacobian( 0, 1 ) += ( this->GetPoint( i ).X() + DeltaPosition(i,0) ) * ( shape_functions_gradients[pnt]( i, 1 ) );
-                jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() + DeltaPosition(i,1) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-                jacobian( 1, 1 ) += ( this->GetPoint( i ).Y() + DeltaPosition(i,1) ) * ( shape_functions_gradients[pnt]( i, 1 ) );
+                jacobian( 0, 0 ) += ( this->GetPoint( i ).X() - DeltaPosition(i,0) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
+                jacobian( 0, 1 ) += ( this->GetPoint( i ).X() - DeltaPosition(i,0) ) * ( shape_functions_gradients[pnt]( i, 1 ) );
+                jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() - DeltaPosition(i,1) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
+                jacobian( 1, 1 ) += ( this->GetPoint( i ).Y() - DeltaPosition(i,1) ) * ( shape_functions_gradients[pnt]( i, 1 ) );
             }
 
             rResult[pnt] = jacobian;
@@ -777,10 +777,10 @@ public:
 
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
 	  {
-	    rResult( 0, 0 ) += ( this->GetPoint( i ).X() + DeltaPosition(i,0) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
-	    rResult( 0, 1 ) += ( this->GetPoint( i ).X() + DeltaPosition(i,0) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
-	    rResult( 1, 0 ) += ( this->GetPoint( i ).Y() + DeltaPosition(i,1) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
-	    rResult( 1, 1 ) += ( this->GetPoint( i ).Y() + DeltaPosition(i,1) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
+	    rResult( 0, 0 ) += ( this->GetPoint( i ).X() - DeltaPosition(i,0) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
+	    rResult( 0, 1 ) += ( this->GetPoint( i ).X() - DeltaPosition(i,0) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
+	    rResult( 1, 0 ) += ( this->GetPoint( i ).Y() - DeltaPosition(i,1) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
+	    rResult( 1, 1 ) += ( this->GetPoint( i ).Y() - DeltaPosition(i,1) ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
 	  }
 
         return rResult;

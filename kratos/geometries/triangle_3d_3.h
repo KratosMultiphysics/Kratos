@@ -623,12 +623,12 @@ public:
 				     Matrix & DeltaPosition ) const
     {
         Matrix jacobian( 3, 2 );
-        jacobian( 0, 0 ) = -( BaseType::GetPoint( 0 ).X() + DeltaPosition(0,0) ) + ( BaseType::GetPoint( 1 ).X() + DeltaPosition(1,0) ); //on the Gauss points (J is constant at each element)
-        jacobian( 1, 0 ) = -( BaseType::GetPoint( 0 ).Y() + DeltaPosition(0,1) ) + ( BaseType::GetPoint( 1 ).Y() + DeltaPosition(1,1) );
-        jacobian( 2, 0 ) = -( BaseType::GetPoint( 0 ).Z() + DeltaPosition(0,2) ) + ( BaseType::GetPoint( 1 ).Z() + DeltaPosition(1,2) );
-        jacobian( 0, 1 ) = -( BaseType::GetPoint( 0 ).X() + DeltaPosition(0,0) ) + ( BaseType::GetPoint( 2 ).X() + DeltaPosition(2,0) );
-        jacobian( 1, 1 ) = -( BaseType::GetPoint( 0 ).Y() + DeltaPosition(0,1) ) + ( BaseType::GetPoint( 2 ).Y() + DeltaPosition(2,1) );
-        jacobian( 2, 1 ) = -( BaseType::GetPoint( 0 ).Z() + DeltaPosition(0,2) ) + ( BaseType::GetPoint( 2 ).Z() + DeltaPosition(2,2) );
+        jacobian( 0, 0 ) = -( BaseType::GetPoint( 0 ).X() - DeltaPosition(0,0) ) + ( BaseType::GetPoint( 1 ).X() - DeltaPosition(1,0) ); //on the Gauss points (J is constant at each element)
+        jacobian( 1, 0 ) = -( BaseType::GetPoint( 0 ).Y() - DeltaPosition(0,1) ) + ( BaseType::GetPoint( 1 ).Y() - DeltaPosition(1,1) );
+        jacobian( 2, 0 ) = -( BaseType::GetPoint( 0 ).Z() - DeltaPosition(0,2) ) + ( BaseType::GetPoint( 1 ).Z() - DeltaPosition(1,2) );
+        jacobian( 0, 1 ) = -( BaseType::GetPoint( 0 ).X() - DeltaPosition(0,0) ) + ( BaseType::GetPoint( 2 ).X() - DeltaPosition(2,0) );
+        jacobian( 1, 1 ) = -( BaseType::GetPoint( 0 ).Y() - DeltaPosition(0,1) ) + ( BaseType::GetPoint( 2 ).Y() - DeltaPosition(2,1) );
+        jacobian( 2, 1 ) = -( BaseType::GetPoint( 0 ).Z() - DeltaPosition(0,2) ) + ( BaseType::GetPoint( 2 ).Z() - DeltaPosition(2,2) );
 
         if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
         {
