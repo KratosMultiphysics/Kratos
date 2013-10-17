@@ -191,7 +191,7 @@ namespace Kratos
                   
                   {
 
-                          alpha            = 1.0*(1.10266)*(sphere_perimeter/total_equiv_perimeter)*((double(cont_ini_neighbours_size))/6); // 6 is mean coordination number.
+                          alpha            = 2.0*(1.10266)*(sphere_perimeter/total_equiv_perimeter)*((double(cont_ini_neighbours_size))/6); // 6 is mean coordination number.
                           mcont_ini_neigh_area[skin_index] = alpha*mcont_ini_neigh_area[skin_index];
      
                     
