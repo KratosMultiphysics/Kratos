@@ -81,12 +81,12 @@ using namespace boost::python;
         .def("CalculatePressureGradient", &CustomFunctionsCalculator::CalculatePressureGradient)
         ; 
     
-    class_<BinBasedDEMFluidCoupledMapping < 2 > >("BinBasedDEMFluidCoupledMapping2D", init< >())   
+    class_<BinBasedDEMFluidCoupledMapping < 2 > >("BinBasedDEMFluidCoupledMapping2D", init<double>())
         .def("InterpolationFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 2 > ::InterpolationFromFluidMesh)
         .def("InterpolationFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 2 > ::InterpolationFromDEMMesh)
         ;
  
-    class_<BinBasedDEMFluidCoupledMapping < 3 > >("BinBasedDEMFluidCoupledMapping3D", init< >())
+    class_<BinBasedDEMFluidCoupledMapping < 3 > >("BinBasedDEMFluidCoupledMapping3D", init<double>())
         .def("InterpolationFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolationFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolateFromNewestFluidMesh)
         .def("InterpolationFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolationFromDEMMesh)  
