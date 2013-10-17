@@ -197,7 +197,8 @@ public:
     void CalculateSurroundingBoundingBox( ModelPart& r_model_part, double scale_factor)
     {
         KRATOS_TRY
-
+        if (r_model_part.NumberOfElements(0) == 0 )
+            KRATOS_ERROR(std::logic_error,  "The Bounding Box cannot be calculated automatically when there are no elements. Kratos stops." , "");
         //Type definitions
         Configure::ElementsContainerType::Pointer pElements = r_model_part.pElements();
         Configure::ElementsContainerType Elements           = r_model_part.Elements();
