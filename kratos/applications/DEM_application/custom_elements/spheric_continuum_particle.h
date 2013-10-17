@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "spheric_particle.h"
+#include "containers/vector_component_adaptor.h"
 
 
 
@@ -247,6 +248,8 @@ namespace Kratos
         double mPlasticityLimit;
         double mDamageMaxDisplacementFactor;
 
+        int *mpActivateSearch;
+               
         double mGamma1;
         double mGamma2;
         double mGamma3;
