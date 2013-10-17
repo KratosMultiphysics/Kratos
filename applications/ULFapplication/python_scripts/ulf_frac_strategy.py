@@ -160,6 +160,7 @@ class ULFFracStrategyPython:
         self.max_iter=40;
         global_iteration_number=1
         while(it < self.max_iter and converged == False and inverted_elements == False):
+	        #(UlfUtils).ClearNodalPressureGrad(self.fluid_model_part)
             #verify convergence
             converged = self.convergence_criteria.PreCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
 
@@ -183,7 +184,7 @@ class ULFFracStrategyPython:
             
             #JUST TO TRY!!!!!!!!!!!!! NOT DOING ANYTHING SPECIAL IF ELEMENTS ARE INVERTED
 	    inverted_elements = False
-            
+            #(UlfUtils).CalculateNodalPressureGrad(self.fluid_model_part)
             #update iteration count
             it = it + 1
             
