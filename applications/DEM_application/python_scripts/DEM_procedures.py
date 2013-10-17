@@ -117,7 +117,7 @@ class Procedures:
         # SIMULATION FLAGS   
         
         self.rotation_OPTION                     = Var_Translator(param.RotationOption)
-        self.bounding_box_OPTION                 = Var_Translator(param.BoundingBoxOption)  #its 1/0 xapuza
+        self.bounding_box_OPTION                 = Var_Translator(param.BoundingBoxOption)  
         self.fix_velocities                      = Var_Translator(param.FixVelocitiesOption)
         self.contact_mesh_OPTION                 = Var_Translator( Var_Translator(param.ContactMeshOption) & Var_Translator(param.ContinuumOption) ) 
         self.triaxial_OPTION                     = Var_Translator( Var_Translator(param.TriaxialOption) & Var_Translator(param.ContinuumOption) ) 
@@ -131,35 +131,36 @@ class Procedures:
 
         # PRINTING VARIABLES
   
+        self.print_radius                        = Var_Translator(param.PostRadius)
         self.print_velocity                      = Var_Translator(param.PostVelocity)
+        self.print_angular_velocity              = Var_Translator(param.PostAngularVelocity)
         self.print_displacement                  = Var_Translator(param.PostDisplacement)
         self.print_radial_displacement           = Var_Translator(param.PostRadialDisplacement)
         self.print_total_forces                  = Var_Translator(param.PostTotalForces)
         self.print_damp_forces                   = Var_Translator(param.PostDampForces)
         self.print_applied_forces                = Var_Translator(param.PostAppliedForces)
-        self.print_radius                        = Var_Translator(param.PostRadius)
+        self.print_particle_moment               = Var_Translator(param.PostParticleMoment)
         self.print_particle_cohesion             = Var_Translator(param.PostParticleCohesion)
         self.print_particle_tension              = Var_Translator(param.PostParticleTension)
+        self.print_euler_angles                  = Var_Translator(param.PostEulerAngles)
         self.print_group_id                      = Var_Translator(param.PostGroupId)
         self.print_export_id                     = Var_Translator(param.PostExportId) 
-        self.print_export_particle_failure_id    = Var_Translator(param.PostExportParticleFailureId)
-        self.print_export_skin_sphere            = Var_Translator(param.PostExportSkinSphere)
-        self.print_local_contact_force           = Var_Translator(param.PostLocalContactForce)
-        self.print_failure_criterion_state       = Var_Translator(param.PostFailureCriterionState)
-        self.print_contact_failure               = Var_Translator(param.PostContactFailure)
-        self.print_contact_tau                   = Var_Translator(param.PostContactTau)
-        self.print_contact_sigma                 = Var_Translator(param.PostContactSigma)
-        self.print_angular_velocity              = Var_Translator(param.PostAngularVelocity)
-        self.print_particle_moment               = Var_Translator(param.PostParticleMoment)
-        self.print_euler_angles                  = Var_Translator(param.PostEulerAngles)
-        self.print_representative_volume         = Var_Translator(param.PostRepresentativeVolume)
-        self.print_mean_contact_area             = Var_Translator(param.PostMeanContactArea)
-        self.print_stress_tensor                 = Var_Translator(param.PostStressTensor)
-   
-        #FROM CND:
-
-        self.predefined_skin_option              = Var_Translator(param.PredefinedSkinOption)
+        
         self.total_volume                        = param.TotalElementsVolume
+        
+        if ( Var_Translator(param.ContinuumOption) ):
+          self.print_export_particle_failure_id    = Var_Translator(param.PostExportParticleFailureId)
+          self.print_export_skin_sphere            = Var_Translator(param.PostExportSkinSphere)
+          self.print_local_contact_force           = Var_Translator(param.PostLocalContactForce)
+          self.print_failure_criterion_state       = Var_Translator(param.PostFailureCriterionState)
+          self.print_contact_failure               = Var_Translator(param.PostContactFailure)
+          self.print_contact_tau                   = Var_Translator(param.PostContactTau)
+          self.print_contact_sigma                 = Var_Translator(param.PostContactSigma)
+          self.print_representative_volume         = Var_Translator(param.PostRepresentativeVolume)
+          self.print_mean_contact_area             = Var_Translator(param.PostMeanContactArea)
+          self.print_stress_tensor                 = Var_Translator(param.PostStressTensor)
+          self.predefined_skin_option              = Var_Translator(param.PredefinedSkinOption)        
+        
         
     def AddMpiVariables(self, model_part):
         
