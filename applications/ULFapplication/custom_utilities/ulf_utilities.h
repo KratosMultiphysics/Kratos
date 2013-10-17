@@ -1559,6 +1559,42 @@ public:
 
         KRATOS_CATCH("");
     }
+   void ClearNodalPressureGrad(ModelPart& ThisModelPart)
+    {
+
+        KRATOS_TRY
+
+        //set to zero the nodal area
+        for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin();
+                in!=ThisModelPart.NodesEnd(); in++)
+        {
+            array_1d<double,3>& pressure_grad = in->FastGetSolutionStepValue(PRESSURE_GRADIENT);
+            pressure_grad[0] = 0.0;
+            pressure_grad[1] = 0.0;
+            pressure_grad[2] = 0.0;
+            
+        }
+        KRATOS_CATCH("");
+  
+   }
+    void CalculateNodalPressureGrad(ModelPart& ThisModelPart)
+    {
+
+        KRATOS_TRY
+
+        //set to zero the nodal area
+        for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin();
+                in!=ThisModelPart.NodesEnd(); in++)
+        {
+            const double& area = in->FastGetSolutionStepValue(NODAL_AREA);
+            array_1d<double,3>& pressure_grad = in->FastGetSolutionStepValue(PRESSURE_GRADIENT);
+            pressure_grad /= area;
+            
+        }
+        KRATOS_CATCH("");
+  
+   }    
+
 
 private:
 
