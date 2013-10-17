@@ -93,6 +93,7 @@ protected:
         double  detF;
         double  detF0;
         double  detJ;
+        double  DomainSize;
         Vector  StrainVector;
         Vector  StressVector;
         Vector  N;
@@ -578,6 +579,12 @@ protected:
      * Initialize Element General Variables
      */
     virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+
+
+   /**
+     * Finalize Element Internal Variables
+     */
+    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber);
 
 
     /**

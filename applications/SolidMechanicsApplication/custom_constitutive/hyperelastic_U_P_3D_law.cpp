@@ -268,8 +268,6 @@ void  HyperElasticUP3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
             this->CalculateVolumetricConstitutiveMatrix ( ElasticVariables, InverseDeformationGradientF, DomainGeometry, ShapeFunctions, SplitConstitutiveMatrix.Volumetric );
 
-            SplitConstitutiveMatrix.Isochoric  *= DeterminantF;
-            SplitConstitutiveMatrix.Volumetric *= DeterminantF;
 
             //if( Options.Is(ConstitutiveLaw::TOTAL_TENSOR ) )
             ConstitutiveMatrix = SplitConstitutiveMatrix.Isochoric + SplitConstitutiveMatrix.Volumetric;

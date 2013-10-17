@@ -363,6 +363,8 @@ void LargeDisplacementUPElement::CalculateAndAddExternalForces(VectorType& rRigh
 
     // VectorType Fh=rRightHandSideVector;
 
+    double DomainSize = (rVariables.DomainSize / rVariables.detJ );
+
     double Fext=0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -374,7 +376,7 @@ void LargeDisplacementUPElement::CalculateAndAddExternalForces(VectorType& rRigh
         Fext = 0;
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-            Fext = rIntegrationWeight * rVariables.N[i] * rVolumeForce[j];
+            Fext = rIntegrationWeight * rVariables.N[i] * rVolumeForce[j] * DomainSize;
             rRightHandSideVector[indexup + j] += Fext;
             ExternalForce[j] +=Fext;
         }

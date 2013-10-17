@@ -212,25 +212,32 @@ void TotalLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
+    //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+    
+    //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
     //Parent to reference configuration
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_PK2;
 
-    //Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
+    //Calculating the cartesian derivatives [dN/dx_n] = [dN/d£][d£/dx_0]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], mInvJ0[rPointNumber] );
 
-    //Deformation Gradient F
-    noalias( rVariables.F ) = prod( rVariables.J[rPointNumber], mInvJ0[rPointNumber] );
+    //Deformation Gradient F [dx_n+1/dx_0] = [dx_n+1/d£] [d£/dx_n]
+    noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], mInvJ0[rPointNumber] );
 
     //Jacobian Determinant for the isoparametric and numerical integration
     rVariables.detJ = mDetJ0[rPointNumber];
+
+    //Step domain size
+    rVariables.DomainSize = rVariables.detJ;
 
     //Determinant of the Deformation Gradient F0
     // (in this element F = F0, then the F0 is set to the identity for coherence in the constitutive law)
     rVariables.detF0 = 1;
     rVariables.F0    = identity_matrix<double> ( dimension );
+
 
     //Set Shape Functions Values for this integration point
     rVariables.N=row( Ncontainer, rPointNumber);
@@ -254,6 +261,8 @@ void TotalLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
     KRATOS_TRY
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    rB.clear(); //set all components to zero
 
     if( dimension == 2 )
     {
@@ -330,10 +339,8 @@ double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass )
     KRATOS_CATCH( "" )
 }
 
-
 //************************************************************************************
 //************************************************************************************
-
 
 
 void TotalLagrangianElement::save( Serializer& rSerializer ) const

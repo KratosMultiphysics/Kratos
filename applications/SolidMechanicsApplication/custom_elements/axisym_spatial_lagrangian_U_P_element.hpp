@@ -278,13 +278,18 @@ protected:
     virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
-
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
     virtual void SetGeneralVariables(GeneralVariables& rVariables,
                                      ConstitutiveLaw::Parameters& rValues,
                                      const int & rPointNumber);
+
+
+    /**
+     * Finalize Element Internal Variables
+     */
+    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber );
 
     /**
      * Calculate Element Kinematics

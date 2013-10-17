@@ -248,12 +248,20 @@ void SpatialLagrangianElement::InitializeGeneralVariables (GeneralVariables& rVa
 
     //set variables including all integration points values
 
-    //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points
-    rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod, rVariables.DeltaPosition );
-
+    //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
+    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
 }
 
+////************************************************************************************
+////************************************************************************************
+
+void SpatialLagrangianElement::FinalizeStepVariables( GeneralVariables & rVariables, const double& rPointNumber )
+{ 
+    //update internal (historical) variables
+    mDeterminantF0[rPointNumber]         = rVariables.detF0 ;
+    mDeformationGradientF0[rPointNumber] = rVariables.F0;
+};
 
 //************* COMPUTING  METHODS
 //************************************************************************************
@@ -285,27 +293,36 @@ void SpatialLagrangianElement::CalculateKinematics(GeneralVariables& rVariables,
 {
     KRATOS_TRY
 
+    //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+
+    //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
     //Parent to reference configuration
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
-    //Calculating the inverse of the jacobian and the parameters needed
+    //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
-    //Compute cartesian derivatives
+    //Step domain size
+    rVariables.DomainSize = rVariables.detJ;
+
+    //Compute cartesian derivatives [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
-    //Current Deformation Gradient
-    this->CalculateDeformationGradient ( rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition );
+    // Current Deformation Gradient [dx_n+1/dx_n]
+    // this->CalculateDeformationGradient ( rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition );
 
-    //Calculating the inverse of the jacobian and the parameters needed
+    //Deformation Gradient F [dx_n+1/dx_n] to be updated
+    noalias( rVariables.F ) = prod( rVariables.j[rPointNumber], InvJ );
+
+    //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
     Matrix Invj;
     MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ ); //overwrites detJ
 
-    //Compute cartesian derivatives
+    //Compute cartesian derivatives [dN/dx_n+1]
     rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
     //Determinant of the Deformation Gradient F0
