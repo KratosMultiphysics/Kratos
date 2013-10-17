@@ -256,8 +256,8 @@ namespace Kratos
                 array_1d<double, 3 > & RotaMoment             = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
                 array_1d<double, 3 > & delta_rotation_displ   = i->FastGetSolutionStepValue(DELTA_ROTA_DISPLACEMENT);
                 array_1d<double, 3 > & Rota_Displace          = i->FastGetSolutionStepValue(PARTICLE_ROTATION_ANGLE);
-                double & Orientation_real                     = i->FastGetSolutionStepValue(ORIENTATION_REAL); 
-                array_1d<double, 3 > & Orientation_imag       = i->FastGetSolutionStepValue(ORIENTATION_IMAG);                
+                //double & Orientation_real                     = i->FastGetSolutionStepValue(ORIENTATION_REAL); 
+                //array_1d<double, 3 > & Orientation_imag       = i->FastGetSolutionStepValue(ORIENTATION_IMAG);                
                 
                 bool If_Fix_Rotation[3] = {false, false, false};
                 If_Fix_Rotation[0] = i->pGetDof(ANGULAR_VELOCITY_X)->IsFixed();
