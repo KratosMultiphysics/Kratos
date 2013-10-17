@@ -264,6 +264,11 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
             this->CalculateStress( ElasticVariables, StressMeasure_PK2, StressVector );
         }
 
+	// std::cout<<" PK2_stress "<<StressVector<<std::endl;
+	// Vector StressVectorCauchy = StressVector;
+	// TransformStresses(StressVectorCauchy, TotalDeformationGradientF0, ElasticVariables.DeterminantF0, StressMeasure_PK2, StressMeasure_Cauchy); 
+	// std::cout<<" Cauchy_stress "<<StressVectorCauchy<<std::endl;
+
         if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
         {
 
@@ -298,7 +303,17 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
             this->CalculateStress( ElasticVariables, StressMeasure_Kirchhoff, StressVector );
 
+	    // Vector StressVectorCauchy = StressVector;
+	    // TransformStresses(StressVectorCauchy, DeformationGradientF, DeterminantF, StressMeasure_Kirchhoff, StressMeasure_Cauchy); 
+	    // Vector StressVectorPK2 = StressVectorCauchy;
+	    // TransformStresses(StressVectorPK2, TotalDeformationGradientF0, ElasticVariables.DeterminantF0, StressMeasure_Cauchy, StressMeasure_PK2); 
+	    // std::cout<<" PK2_stress "<<StressVectorPK2<<std::endl;
+	    // std::cout<<" Cauchy_stress "<<StressVectorCauchy<<std::endl;
+
+
             TransformStresses(StressVector, DeformationGradientF, DeterminantF, StressMeasure_Kirchhoff, StressMeasure_PK2); //2nd PK Stress in the last known configuration
+
+
         }
 
         if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
@@ -310,9 +325,8 @@ void  HyperElastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValues)
 
             ElasticVariables.CauchyGreenMatrix = ElasticVariables.IdentityMatrix;
 
-            this->CalculateConstitutiveMatrix ( ElasticVariables, InverseDeformationGradientF, ConstitutiveMatrix );
+	    this->CalculateConstitutiveMatrix ( ElasticVariables, InverseDeformationGradientF, ConstitutiveMatrix );
 
-            ConstitutiveMatrix *= DeterminantF;
         }
 
     }
@@ -402,12 +416,22 @@ void HyperElastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& rValues)
     if( Options.Is( ConstitutiveLaw::COMPUTE_STRESS ) )
         this->CalculateStress( ElasticVariables, StressMeasure_Kirchhoff, StressVector );
 
+    
+    // Vector StressVectorPK2    = StressVector;
+    // Vector StressVectorCauchy = StressVector;
+    // TransformStresses(StressVectorCauchy, TotalDeformationGradientF0, ElasticVariables.DeterminantF0, StressMeasure_Kirchhoff, StressMeasure_Cauchy); 
+    // TransformStresses(StressVectorPK2, TotalDeformationGradientF0, ElasticVariables.DeterminantF0, StressMeasure_Kirchhoff, StressMeasure_PK2); 
+
+    // std::cout<<" PK2_stress "<<StressVectorPK2<<std::endl;
+    // std::cout<<" Cauchy_stress "<<StressVectorCauchy<<std::endl;
+
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
 
         ElasticVariables.CauchyGreenMatrix = ElasticVariables.IdentityMatrix;
         this->CalculateConstitutiveMatrix ( ElasticVariables, ConstitutiveMatrix );
     }
+
 
 }
 
@@ -591,6 +615,7 @@ void HyperElastic3DLaw::CalculateStress( const MaterialResponseVariables & rElas
         //2.-2nd Piola Kirchhoff Stress Matrix
         StressMatrix  = rElasticVariables.LameLambda * auxiliar * rElasticVariables.CauchyGreenMatrix;
         StressMatrix += rElasticVariables.LameMu * ( rElasticVariables.IdentityMatrix - rElasticVariables.CauchyGreenMatrix );
+
     }
 
     if(rStressMeasure == StressMeasure_Kirchhoff)
@@ -602,7 +627,8 @@ void HyperElastic3DLaw::CalculateStress( const MaterialResponseVariables & rElas
         StressMatrix  = rElasticVariables.LameLambda * auxiliar * rElasticVariables.IdentityMatrix;
 
         StressMatrix += rElasticVariables.LameMu * ( rElasticVariables.CauchyGreenMatrix - rElasticVariables.IdentityMatrix );
-    }
+
+   }
 
     rStressVector = MathUtils<double>::StressTensorToVector( StressMatrix, rStressVector.size() );
 

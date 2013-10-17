@@ -214,6 +214,12 @@ protected:
     virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
 
 
+   /**
+     * Finalize Element Internal Variables
+     */
+    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber);
+
+
     /**
       * Set Variables of the Element to the Parameters of the Constitutive Law
       */

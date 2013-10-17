@@ -527,6 +527,8 @@ void LargeDisplacementElement::InitializeGeneralVariables (GeneralVariables& rVa
 
     rVariables.detF0 = 1;
 
+    rVariables.DomainSize = 1;
+
     rVariables.B.resize( voigtsize , number_of_nodes * dimension );
 
     rVariables.F.resize( dimension, dimension );
@@ -549,8 +551,8 @@ void LargeDisplacementElement::InitializeGeneralVariables (GeneralVariables& rVa
     //reading shape functions local gradients
     rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
 
-    //calculating the jacobian from cartesian coordinates to parent coordinates for all integration points
-    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod );
+    //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
+    rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
 }
 
@@ -636,7 +638,6 @@ void LargeDisplacementElement::CalculateElementalSystem( MatrixType& rLeftHandSi
         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
-
         //if ( dimension == 2 ) IntegrationWeight *= GetProperties()[THICKNESS];
 
         if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
@@ -654,6 +655,33 @@ void LargeDisplacementElement::CalculateElementalSystem( MatrixType& rLeftHandSi
 
         }
 
+
+	// std::cout<<" Element: "<<this->Id()<<std::endl;
+	// unsigned int number_of_nodes = GetGeometry().PointsNumber();
+	// for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	//   {
+	//     GeometryType::PointsArrayType CurrentPosition  = GetGeometry().Points();
+	//     std::cout<<" Current  Position  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentPosition<<std::endl;
+	//   }
+	// for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	//   {
+	//     array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+	//     std::cout<<" Previous Displacement  node["<<GetGeometry()[i].Id()<<"]: "<<PreviousDisplacement<<std::endl;
+	//   }
+
+	// for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	//   {
+	//     array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+	//     std::cout<<" Current  Displacement  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentDisplacement<<std::endl;
+	//   }
+	// std::cout<<" Stress "<<Variables.StressVector<<std::endl;
+	// std::cout<<" Strain "<<Variables.StrainVector<<std::endl;
+	// std::cout<<" F  "<<Variables.F<<std::endl;
+	// std::cout<<" F0 "<<Variables.F0<<std::endl;
+	// std::cout<<" ConstitutiveMatrix "<<Variables.ConstitutiveMatrix<<std::endl;
+	// std::cout<<" K "<<rLeftHandSideMatrix<<std::endl;
+	// std::cout<<" f "<<rRightHandSideVector<<std::endl;
+	
 
 
     }
@@ -699,7 +727,7 @@ void LargeDisplacementElement::CalculateAndAddRHS(VectorType& rRightHandSideVect
     //KRATOS_WATCH(rRightHandSideVector)
 }
 
-//************************************************************************************
+//***********************************************************************************
 //************************************************************************************
 
 double& LargeDisplacementElement::CalculateIntegrationWeight(double& rIntegrationWeight)
@@ -841,10 +869,23 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
                 GetGeometry(),
                 Variables.N,
                 rCurrentProcessInfo );
+
+	//call the element internal variables update
+	this->FinalizeStepVariables(Variables,rCurrentProcessInfo);
     }
 
     KRATOS_CATCH( "" )
 }
+
+
+
+////************************************************************************************
+////************************************************************************************
+
+void LargeDisplacementElement::FinalizeStepVariables( GeneralVariables & rVariables, const double& rPointNumber )
+{
+
+};
 
 //************************************************************************************
 //************************************************************************************
@@ -897,6 +938,8 @@ void LargeDisplacementElement::CalculateAndAddExternalForces(VectorType& rRightH
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
+    double DomainSize = (rVariables.DomainSize / rVariables.detJ );
+
     double Fext=0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -907,12 +950,13 @@ void LargeDisplacementElement::CalculateAndAddExternalForces(VectorType& rRightH
         Fext = 0;
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-            Fext = rIntegrationWeight * rVariables.N[i] * rVolumeForce[j];
-            rRightHandSideVector[index + j] += Fext;
+            Fext = rIntegrationWeight * rVariables.N[i] * rVolumeForce[j] * DomainSize;
+	    rRightHandSideVector[index + j] += Fext;
             ExternalForce[j] +=Fext;
         }
 	GetGeometry()[i].UnSetLock();
     }
+
 
     KRATOS_CATCH( "" )
 }

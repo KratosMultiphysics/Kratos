@@ -545,9 +545,15 @@ void SmallDisplacementElement::InitializeGeneralVariables (GeneralVariables & rV
     //reading shape functions local gradients
     rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
 
-    //calculating the jacobian from cartesian coordinates to parent coordinates for all integration points
-    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod );
+    //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
+    rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
+
+    //Calculate Delta Position
+    rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+
+    //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
+    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
 }
 
@@ -887,6 +893,8 @@ void SmallDisplacementElement::CalculateAndAddExternalForces(VectorType& rRightH
     unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
+    double DomainSize = (rVariables.DomainSize / rVariables.detJ );
+
     double Fext=0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -898,7 +906,7 @@ void SmallDisplacementElement::CalculateAndAddExternalForces(VectorType& rRightH
         Fext = 0;
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-            Fext = rIntegrationWeight * rVariables.N[i] * rVolumeForce[j];
+	  Fext = rIntegrationWeight * rVariables.N[i] * rVolumeForce[j] * DomainSize;
             rRightHandSideVector[index + j] += Fext;
             ExternalForce[j] +=Fext;
         }
@@ -1008,17 +1016,22 @@ void SmallDisplacementElement::CalculateKinematics(GeneralVariables& rVariables,
 {
     KRATOS_TRY
 
+    //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+    //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
-    //Calculating the inverse of the jacobian and the parameters needed
+    //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
-   //Compute cartesian derivatives
+    //Step domain size
+    rVariables.DomainSize = rVariables.detJ;
+
+   //Compute cartesian derivatives  [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
 
-    //Displacement Gradient H
+    //Displacement Gradient H  [dU/dx_n]
     this->CalculateDisplacementGradient( rVariables.H, rVariables.DN_DX );
 
     //Set Shape Functions Values for this integration point
@@ -1031,6 +1044,36 @@ void SmallDisplacementElement::CalculateKinematics(GeneralVariables& rVariables,
     //Compute infinitessimal strain
     this->CalculateInfinitesimalStrain(rVariables.H,rVariables.StrainVector);
 
+
+    KRATOS_CATCH( "" )
+}
+
+
+//*************************COMPUTE DELTA POSITION*************************************
+//************************************************************************************
+
+
+Matrix& SmallDisplacementElement::CalculateDeltaPosition(Matrix & rDeltaPosition)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+        }
+    }
+
+    return rDeltaPosition;
 
     KRATOS_CATCH( "" )
 }

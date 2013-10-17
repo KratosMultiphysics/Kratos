@@ -217,6 +217,13 @@ protected:
                                      ConstitutiveLaw::Parameters& rValues,
                                      const int & rPointNumber);
 
+
+    /**
+     * Finalize Element Internal Variables
+     */
+    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const double& rPointNumber );
+
+
     /**
      * Calculate Element Kinematics
      */

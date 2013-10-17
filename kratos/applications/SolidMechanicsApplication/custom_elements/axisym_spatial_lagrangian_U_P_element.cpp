@@ -240,6 +240,8 @@ void AxisymSpatialLagrangianUPElement::InitializeGeneralVariables (GeneralVariab
 
     rVariables.detF0 = 1;
 
+    rVariables.DomainSize = 1;
+
     rVariables.B.resize( 4 , number_of_nodes * 2 );
 
     rVariables.F.resize( 3, 3 );
@@ -262,18 +264,28 @@ void AxisymSpatialLagrangianUPElement::InitializeGeneralVariables (GeneralVariab
     //reading shape functions local gradients
     rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
 
-    //calculating the jacobian from cartesian coordinates to parent coordinates for all integration points
-    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod );
+    //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
+    rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
 
     //Calculate Delta Position
     rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
 
-    //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points
-    rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod, rVariables.DeltaPosition );
+    //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
+    rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
 
 
 }
+
+////************************************************************************************
+////************************************************************************************
+
+void AxisymSpatialLagrangianUPElement::FinalizeStepVariables( GeneralVariables & rVariables, const double& rPointNumber )
+{ 
+    //update internal (historical) variables
+    mDeterminantF0[rPointNumber]         = rVariables.detF0 ;
+    mDeformationGradientF0[rPointNumber] = rVariables.F0;
+};
 
 
 //************* COMPUTING  METHODS
@@ -366,17 +378,22 @@ void AxisymSpatialLagrangianUPElement::CalculateKinematics(GeneralVariables& rVa
 {
     KRATOS_TRY
 
+    //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
+    //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
     //Parent to reference configuration
     rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
 
-    //Calculating the inverse of the jacobian and the parameters needed
+    //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
     Matrix InvJ;
     MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
-    //Compute cartesian derivatives
+    //Step domain size
+    rVariables.DomainSize = rVariables.detJ;
+
+    //Compute cartesian derivatives [dN/dx_n]
     noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber], InvJ );
 
     //Set Shape Functions Values for this integration point
@@ -385,14 +402,14 @@ void AxisymSpatialLagrangianUPElement::CalculateKinematics(GeneralVariables& rVa
     //Calculate IntegrationPoint radius
     CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N);
 
-    //Current Deformation Gradient
+    //Current Deformation Gradient [dx_n+1/dx_n]
     CalculateDeformationGradient (rVariables.DN_DX, rVariables.F, rVariables.DeltaPosition, rVariables.CurrentRadius, rVariables.ReferenceRadius);
 
-    //Calculating the inverse of the jacobian and the parameters needed
+    //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
     Matrix Invj;
     MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ); //overwrites detJ
 
-    //Compute cartesian derivatives
+    //Compute cartesian derivatives [dN/dx_n+1]
     rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
     //Determinant of the Deformation Gradient F0

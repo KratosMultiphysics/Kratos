@@ -91,6 +91,7 @@ protected:
         double  detF;
         double  detF0;
         double  detJ;
+        double  DomainSize;
         Vector  StrainVector;
         Vector  StressVector;
         Vector  N;
@@ -533,6 +534,13 @@ protected:
      */
     virtual void CalculateKinematics(GeneralVariables& rVariables,
                                      const double& rPointNumber);
+
+
+    /**
+     * Calculation of the Deformation Gradient F
+     */
+    Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
+
 
     /**
      * Correct Precision Errors (for rigid free movements)

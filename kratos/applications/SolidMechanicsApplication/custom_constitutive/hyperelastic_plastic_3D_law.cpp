@@ -256,7 +256,7 @@ void  HyperElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValue
   Vector& StrainVector               = rValues.GetStrainVector();
   const Matrix& DeformationGradientF = rValues.GetDeformationGradientF();
   const double& DeterminantF         = rValues.GetDeterminantF();
-  Matrix& ConstitutiveMatrix         = rValues.GetConstitutiveMatrix();
+  //Matrix& ConstitutiveMatrix         = rValues.GetConstitutiveMatrix();
 
   //2.-Green-Lagrange Strain:
   if(Options.Is( ConstitutiveLaw::COMPUTE_STRAIN ))
@@ -271,17 +271,16 @@ void  HyperElasticPlastic3DLaw::CalculateMaterialResponsePK2 (Parameters& rValue
     }
 
   //4.-Calculate PK2 constitutive tensor
-  if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
-    {
-      //the tensor is be calculated automatically in the initial configuration 
+  //if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
+  //{
+      //the tensor is calculated automatically in the initial configuration 
       //because the Options are checked before the Constitutive Matrix calculation
 
       /* Options.Is( ConstitutiveLaw::INITIAL_CONFIGURATION ) || 
 	 Options.Is( ConstitutiveLaw::LAST_KNOWN_CONFIGURATION ) || 
 	 Options.Is( ConstitutiveLaw::FINAL_CONFIGURATION ) */
 
-      ConstitutiveMatrix *= DeterminantF;
-    }
+  //}
 
 
    // std::cout<<" Constitutive "<<ConstitutiveMatrix<<std::endl;
