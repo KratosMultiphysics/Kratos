@@ -215,7 +215,10 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
+    // A private default constructor necessary for serialization
+    UlfFrac2D() : Element()
+    {
+    }
 
     ///@}
 
@@ -247,11 +250,6 @@ private:
     ///@name Serialization
     ///@{
     friend class Serializer;
-
-    // A private default constructor necessary for serialization
-    UlfFrac2D() : Element()
-    {
-    }
 
     virtual void save(Serializer& rSerializer) const
     {
