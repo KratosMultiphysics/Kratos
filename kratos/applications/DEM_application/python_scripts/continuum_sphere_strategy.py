@@ -117,14 +117,14 @@ class ExplicitStrategy:
         # Initialization of member variables
 
         # SIMULATION FLAGS        
-        self.virtual_mass_option            = Var_Translator(Param.VirtualMassOption)  #its 1/0 xapuza
-        self.critical_time_option           = Var_Translator(Param.AutoReductionOfTimeStepOption)  #its 1/0 xapuza
+        self.virtual_mass_option            = Var_Translator(Param.VirtualMassOption)  
+        self.critical_time_option           = Var_Translator(Param.AutoReductionOfTimeStepOption)   
         self.case_option                    = 3  #aixo es una xapuza fins que pooyan permeti bools a pyton o tinguis flags.
         self.trihedron_option               = Var_Translator(Param.TrihedronOption)
         self.rotation_option                = Var_Translator(Param.RotationOption)
-        self.rotation_spring_option         = Var_Translator(Param.RotationalSpringOption)  #its 1/0 xapuza
-        self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)  #its 1/0 xapuza
-        self.activate_search                = 1  #its 1/0 xapuza
+        self.rotation_spring_option         = Var_Translator(Param.RotationalSpringOption)  
+        self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)  
+        self.activate_search                = 0 
         self.fix_velocities                 = Var_Translator(Param.FixVelocitiesOption)
         self.limit_surface_option           = Param.LimitSurfaceOption
         self.limit_cylinder_option          = Param.LimitCylinderOption       
@@ -438,7 +438,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
         self.model_part.ProcessInfo.SetValue(DEMPACK_OPTION, self.dempack_option)
-        self.model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, self.activate_search)
+        self.model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, 0)
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities)
         self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_option)
         self.model_part.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_option)
