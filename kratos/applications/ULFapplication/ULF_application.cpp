@@ -50,8 +50,10 @@ KratosULFApplication::KratosULFApplication():
     mUpdatedLagrangianFluid3Dinc(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     //new one - mix of frac step and ulf_inc
     mUlfFrac2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-   mUlfFrac3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
-   mPointNeumann3D(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>()))))
+    mUlfFrac3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mUlfFrac2DSwimming(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mUlfFrac3DSwimming(0, Element::GeometryType::Pointer(new Tetrahedra3D4 <Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
+    mPointNeumann3D(0, Element::GeometryType::Pointer(new Point3D <Node<3> >(Element::GeometryType::PointsArrayType(1, Node<3>()))))
 {}
 
 
@@ -83,6 +85,8 @@ void KratosULFApplication::Register()
     //
     KRATOS_REGISTER_ELEMENT("UlfFrac2D", mUlfFrac2D);
     KRATOS_REGISTER_ELEMENT("UlfFrac3D", mUlfFrac3D);
+    KRATOS_REGISTER_ELEMENT("UlfFrac2DSwimming", mUlfFrac2DSwimming);
+    KRATOS_REGISTER_ELEMENT("UlfFrac3DSwimming", mUlfFrac3DSwimming);
     KRATOS_REGISTER_CONDITION("PointNeumann3D", mPointNeumann3D);
 }
 
