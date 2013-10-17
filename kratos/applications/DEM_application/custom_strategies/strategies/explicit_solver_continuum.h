@@ -98,6 +98,8 @@ namespace Kratos
           // Omp initializations
           this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
      
+          rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR].resize(this->GetNumberOfThreads());
+          
           // 0. Set search radius
           BaseType::SetSearchRadius(rModelPart,rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);
           
@@ -189,8 +191,8 @@ namespace Kratos
           //KRATOS_TIMER_START("GetForce")
           BaseType::GetForce();
           //KRATOS_TIMER_STOP("GetForce")
-          
-         //this->GlobalDamping();
+
+          //this->GlobalDamping();
                      
           // 3. Motion Integration
           //KRATOS_TIMER_START("PerformTimeIntegrationOfMotion")
@@ -201,12 +203,27 @@ namespace Kratos
           //KRATOS_TIMER_START("SynchronizeSolidMesh")
           BaseType::SynchronizeSolidMesh(rModelPart);
           //KRATOS_TIMER_STOP("SynchronizeSolidMesh")
-          
+
+          if(rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
+          {
+            
+            for (int i = 0; i<OpenMPUtils::GetNumThreads(); i++)
+            {
+              if(rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR][i]==1)
+              {
+                rCurrentProcessInfo[ACTIVATE_SEARCH]=1;
+                
+                std::cout << "From now on, the search is activated becouse some failure occurred " <<std::endl;
+                
+              }
+              
+            }
+          }
 
           // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box
           //KRATOS_TIMER_START("SearchNeighbours")
           
-          if (rCurrentProcessInfo[ACTIVATE_SEARCH] == 1){
+          else{
 
               if ((time_step + 1)%this->GetNStepSearch() == 0 && time_step > 0){
 
