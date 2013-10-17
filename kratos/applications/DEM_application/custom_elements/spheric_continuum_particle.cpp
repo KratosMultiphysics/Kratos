@@ -20,6 +20,7 @@
 #include "custom_utilities/GeometryFunctions.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "DEM_application.h"
+#include "utilities/openmp_utils.h"
 
 //TIMER....................
 #include "utilities/timer.h"
@@ -612,6 +613,35 @@ namespace Kratos
                   EvaluateFailureCriteria(LocalElasticContactForce,ShearForceNow,calculation_area,i_neighbour_count,contact_sigma,contact_tau, failure_criterion_state, sliding, mapping_new_ini);
  
                 }
+                   
+                if(*mpActivateSearch == 0)
+                {
+                    if(mNeighbourFailureId[i_neighbour_count]!=0)
+                    {
+                        rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR][OpenMPUtils::ThisThread()]=1;
+                    }
+                  
+                }
+                
+                       /*   MSIMSI 10 Activar la busqueda quan un peti. 
+          if(mNeighbourFailureId[i_neighbour_count] != 0 && rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
+          {
+              rCurrentProcessInfo.SetValue(ACTIVATE_SEARCH, 1);
+
+              KRATOS_WATCH(" ")
+              KRATOS_WATCH("-------->From now on, searching neighbours, some contacs have failed<-------")
+              KRATOS_WATCH("Time step:")
+              KRATOS_WATCH(*mpTimeStep)
+              KRATOS_WATCH("Particle_1")
+              KRATOS_WATCH(this->Id())
+              KRATOS_WATCH("Particle_2")
+              KRATOS_WATCH(neighbour_iterator->Id())      
+              KRATOS_WATCH(" ")
+          
+
+           }
+      */
+                
                 
                 /* Tangential Friction for broken bonds */  //dempack and kdem do the same.
                 
@@ -980,7 +1010,9 @@ namespace Kratos
            mDempack_damping = rCurrentProcessInfo[DEMPACK_DAMPING]; 
 
          }
-           
+         
+         mpActivateSearch = &(rCurrentProcessInfo[ACTIVATE_SEARCH]);
+
          mGamma1 = rCurrentProcessInfo[DONZE_G1];
          mGamma2 = rCurrentProcessInfo[DONZE_G2];
          mGamma3 = rCurrentProcessInfo[DONZE_G3];
@@ -1360,30 +1392,30 @@ namespace Kratos
          if (rVariable == DEMPACK_DAMPING)
         {
           
-            double alpha = 0.9;
-            
-            array_1d<double, 3>& total_force = this->GetGeometry()(0)->FastGetSolutionStepValue(TOTAL_FORCES);
-            array_1d<double, 3>& velocity = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-            
-            int i;
-
-            double factor;
-            
-//             //if ( this->GetGeometry()(0)->pGetDof(VELOCITY_Y)->IsFixed() == false )
-//             {
-//                 for (i = 1; i<=3; i++)
-//                 {
-//                   
-//                   factor = 0.1*fabs((velocity[i])/0.05);
-//                   
-//                   if(factor >=1) {factor = 0.95;}
-//                   
-//                   total_force[i] = (1-factor)*total_force[i]; 
-//                   
-//                 }
-//               
-//             }
+//             double alpha = 0.9;
 //             
+//             array_1d<double, 3>& total_force = this->GetGeometry()(0)->FastGetSolutionStepValue(TOTAL_FORCES);
+//             array_1d<double, 3>& velocity = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+//             
+//             int i;
+// 
+//             double factor;
+            
+// //             //if ( this->GetGeometry()(0)->pGetDof(VELOCITY_Y)->IsFixed() == false )
+// //             {
+// //                 for (i = 1; i<=3; i++)
+// //                 {
+// //                   
+// //                   factor = 0.1*fabs((velocity[i])/0.05);
+// //                   
+// //                   if(factor >=1) {factor = 0.95;}
+// //                   
+// //                   total_force[i] = (1-factor)*total_force[i]; 
+// //                   
+// //                 }
+// //               
+// //             }
+// //             
             
             
             
@@ -1581,24 +1613,6 @@ namespace Kratos
               } //UNCOUPLED FRACTURE
               
     
-        /*   MSIMSI 10 Activar la busqueda quan un peti. 
-          if(mNeighbourFailureId[i_neighbour_count] != 0 && rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
-          {
-              rCurrentProcessInfo.SetValue(ACTIVATE_SEARCH, 1);
-
-              KRATOS_WATCH(" ")
-              KRATOS_WATCH("-------->From now on, searching neighbours, some contacs have failed<-------")
-              KRATOS_WATCH("Time step:")
-              KRATOS_WATCH(*mpTimeStep)
-              KRATOS_WATCH("Particle_1")
-              KRATOS_WATCH(this->Id())
-              KRATOS_WATCH("Particle_2")
-              KRATOS_WATCH(neighbour_iterator->Id())      
-              KRATOS_WATCH(" ")
-          
-
-           }
-      */
       }
       
       void SphericContinuumParticle::CalculateOnContactElements(ParticleWeakIteratorType neighbour_iterator, size_t i_neighbour_count, int mapping_new_ini, double LocalElasticContactForce[3], 
