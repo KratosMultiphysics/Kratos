@@ -32,6 +32,8 @@
 #include "custom_elements/updated_lagrangian_fluid3D_inc.h"
 #include "custom_elements/ulf_frac2d.h"
 #include "custom_elements/ulf_frac3d.h"
+#include "custom_elements/ulf_frac2d_swimming.h"
+#include "custom_elements/ulf_frac3d_swimming.h"
 #include "custom_conditions/Point_Neumann3D.h"
 namespace Kratos
 {
@@ -212,7 +214,12 @@ private:
     //
     const UlfFrac2D mUlfFrac2D;
     const UlfFrac3D mUlfFrac3D;
+<<<<<<< .mine
+    const UlfFrac2DSwimming mUlfFrac2DSwimming;
+    const UlfFrac3DSwimming mUlfFrac3DSwimming;
+=======
     const PointNeumann3D  mPointNeumann3D;
+>>>>>>> .r8169
 
 
     ///@}
