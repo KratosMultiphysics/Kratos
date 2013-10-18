@@ -753,13 +753,10 @@ public:
      */
     void InitializeMesh( double name )
     {
-		KRATOS_WATCH("line756");
         if ( mUseMultiFile == MultipleFiles )
         {
-			KRATOS_WATCH("line759");
             if ( mMode == GiD_PostAscii && ! mMeshFileOpen )
             {
-				KRATOS_WATCH("line762");
                 std::stringstream file_name;
                 file_name << std::setprecision(12) << mMeshFileName << "_" << name << ".post.msh";
                 mMeshFile = GiD_fOpenPostMeshFile( (char *)(file_name.str()).c_str(), mMode);
@@ -767,14 +764,11 @@ public:
             }
             if ( mMode == GiD_PostBinary && ! mResultFileOpen )
             {
-				KRATOS_WATCH("line770");
                 std::stringstream file_name;
                 file_name << std::setprecision(12) << mResultFileName << "_" << name << ".post.bin";
                 if ( ! mResultFileOpen )
                 {
-					KRATOS_WATCH("line775");
                     mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
-					KRATOS_WATCH("line777");
                     mResultFileOpen = true;
                 }
 				mMeshFile = mResultFile;
@@ -782,7 +776,6 @@ public:
         }
         if ( mUseMultiFile == SingleFile )
         {
-			KRATOS_WATCH("line783");
             if ( mMode == GiD_PostBinary && ! mResultFileOpen )
             {
                 std::stringstream file_name;
