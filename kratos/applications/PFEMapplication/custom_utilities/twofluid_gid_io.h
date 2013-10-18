@@ -113,14 +113,14 @@ public:
         else return false;
         KRATOS_CATCH("")
     }
-
-    void PrintResults( Variable<double> rVariable, ModelPart& r_model_part,
+	
+    void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part,
                        double SolutionTag, unsigned int value_index = 0 )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints();
-            GiD_BeginResult( (char*)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
+            WriteGaussPoints(ResultFile);
+            GiD_fBeginResult( ResultFile, (char*)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
                              GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
             std::vector<double> ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 )
@@ -133,7 +133,7 @@ public:
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];
-                        GiD_WriteScalar( it->Id(), ValuesOnIntPoint[index] );
+                        GiD_fWriteScalar(ResultFile, it->Id(), ValuesOnIntPoint[index] );
                     }
                 }
             }
@@ -147,21 +147,21 @@ public:
                     for(unsigned int i=0; i<mIndexContainer.size(); i++)
                     {
                         int index = mIndexContainer[i];
-                        GiD_WriteScalar( it->Id(), ValuesOnIntPoint[index] );
+                        GiD_fWriteScalar(ResultFile, it->Id(), ValuesOnIntPoint[index] );
                     }
                 }
             }
-            GiD_EndResult();
+            GiD_fEndResult(ResultFile);
         }
     }
 
-    void PrintResults( Variable<Vector> rVariable, ModelPart& r_model_part,
+    void PrintResults( GiD_FILE ResultFile, Variable<Vector> rVariable, ModelPart& r_model_part,
                        double SolutionTag, unsigned int value_index = 0 )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints();
-            GiD_BeginResult( (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
+            WriteGaussPoints(ResultFile );
+            GiD_fBeginResult( ResultFile, (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
                              GiD_Vector, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
             std::vector<Vector> ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 )
@@ -175,7 +175,7 @@ public:
                     {
                         int index = mIndexContainer[i];
                         if( ValuesOnIntPoint[0].size() == 3 )
-                            GiD_WriteVector( it->Id(), ValuesOnIntPoint[index][0],
+                            GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
                                              ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
                     }
                 }
@@ -191,22 +191,22 @@ public:
                     {
                         int index = mIndexContainer[i];
                         if( ValuesOnIntPoint[0].size() == 3 )
-                            GiD_WriteVector( it->Id(), ValuesOnIntPoint[index][0],
+                            GiD_fWriteVector( ResultFile, it->Id(), ValuesOnIntPoint[index][0],
                                              ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
                     }
                 }
             }
-            GiD_EndResult();
+            GiD_fEndResult(ResultFile);
         }
     }
 
-    void PrintResults( Variable<Matrix> rVariable, ModelPart& r_model_part,
+    void PrintResults( GiD_FILE ResultFile, Variable<Matrix> rVariable, ModelPart& r_model_part,
                        double SolutionTag, unsigned int value_index = 0 )
     {
         if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
         {
-            WriteGaussPoints();
-            GiD_BeginResult( (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
+            WriteGaussPoints(ResultFile);
+            GiD_fBeginResult(ResultFile, (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
                              GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
             std::vector<Matrix> ValuesOnIntPoint(mSize);
             if( mMeshElements.size() != 0 )
@@ -221,13 +221,13 @@ public:
                         int index = mIndexContainer[i];
                         if(ValuesOnIntPoint[index].size1() ==3
                                 && ValuesOnIntPoint[index].size2() ==3)
-                            GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
+                            GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
                                                ValuesOnIntPoint[index](1,1), ValuesOnIntPoint[index](2,2),
                                                ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](1,2),
                                                ValuesOnIntPoint[index](0,2) );
                         if(ValuesOnIntPoint[index].size1() ==1
                                 && ValuesOnIntPoint[index].size2() ==6)
-                            GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
+                            GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
                                                ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
                                                ValuesOnIntPoint[index](0,3), ValuesOnIntPoint[index](0,4),
                                                ValuesOnIntPoint[index](0,5) );
@@ -246,24 +246,24 @@ public:
                         int index = mIndexContainer[i];
                         if(ValuesOnIntPoint[index].size1() ==3
                                 && ValuesOnIntPoint[index].size2() ==3)
-                            GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
+                            GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
                                                ValuesOnIntPoint[index](1,1), ValuesOnIntPoint[index](2,2),
                                                ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](1,2),
                                                ValuesOnIntPoint[index](0,2) );
                         if(ValuesOnIntPoint[index].size1() ==1
                                 && ValuesOnIntPoint[index].size2() ==6)
-                            GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
+                            GiD_fWrite3DMatrix( ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
                                                ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
                                                ValuesOnIntPoint[index](0,3), ValuesOnIntPoint[index](0,4),
                                                ValuesOnIntPoint[index](0,5) );
                     }
                 }
             }
-            GiD_EndResult();
+            GiD_fEndResult(ResultFile);
         }
     }
 
-    void PrintResults( Variable<array_1d<double, 3> > rVariable, ModelPart& r_model_part,
+    void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double, 3> > rVariable, ModelPart& r_model_part,
                        double SolutionTag, int value_index = 0 )
     {
     }
@@ -275,32 +275,32 @@ public:
     }
 
 protected:
-    void WriteGaussPoints()
+    void WriteGaussPoints(GiD_FILE ResultFile)
     {
         //setting up gauss points
         if( mGidElementFamily == GiD_Tetrahedra && mSize == 5 )
         {
-            GiD_BeginGaussPoint( mGPTitle, GiD_Tetrahedra, NULL, 4, 0, 0 );
-            GiD_WriteGaussPoint3D( 1.0/6.0, 1.0/6.0, 1.0/6.0 );
-            GiD_WriteGaussPoint3D( 1.0/2.0, 1.0/6.0, 1.0/6.0 );
-            GiD_WriteGaussPoint3D( 1.0/6.0, 1.0/2.0, 1.0/6.0 );
-            GiD_WriteGaussPoint3D( 1.0/6.0, 1.0/6.0, 1.0/2.0 );
-            GiD_EndGaussPoint();
+            GiD_fBeginGaussPoint( ResultFile, mGPTitle, GiD_Tetrahedra, NULL, 4, 0, 0 );
+            GiD_fWriteGaussPoint3D( ResultFile, 1.0/6.0, 1.0/6.0, 1.0/6.0 );
+            GiD_fWriteGaussPoint3D( ResultFile, 1.0/2.0, 1.0/6.0, 1.0/6.0 );
+            GiD_fWriteGaussPoint3D( ResultFile, 1.0/6.0, 1.0/2.0, 1.0/6.0 );
+            GiD_fWriteGaussPoint3D( ResultFile, 1.0/6.0, 1.0/6.0, 1.0/2.0 );
+            GiD_fEndGaussPoint(ResultFile);
         }
         else if( mGidElementFamily == GiD_Tetrahedra && mSize == 10 )
         {
-            GiD_BeginGaussPoint("tet10_element_gp", GiD_Tetrahedra, NULL, 4, 0, 0);
-            GiD_WriteGaussPoint3D( 1.0/14.0, 1.0/14.0, 1.0/14.0 );
-            GiD_WriteGaussPoint3D( 11.0/14.0, 1.0/14.0, 1.0/14.0 );
-            GiD_WriteGaussPoint3D( 1.0/14.0, 11.0/14.0, 1.0/14.0 );
-            GiD_WriteGaussPoint3D( 1.0/14.0, 1.0/14.0, 11.0/14.0 );
-            GiD_EndGaussPoint();
+            GiD_fBeginGaussPoint(ResultFile, "tet10_element_gp", GiD_Tetrahedra, NULL, 4, 0, 0);
+            GiD_fWriteGaussPoint3D(ResultFile,  1.0/14.0, 1.0/14.0, 1.0/14.0 );
+            GiD_fWriteGaussPoint3D(ResultFile,  11.0/14.0, 1.0/14.0, 1.0/14.0 );
+            GiD_fWriteGaussPoint3D(ResultFile,  1.0/14.0, 11.0/14.0, 1.0/14.0 );
+            GiD_fWriteGaussPoint3D(ResultFile,  1.0/14.0, 1.0/14.0, 11.0/14.0 );
+            GiD_fEndGaussPoint(ResultFile);
         }
         else
         {
-            GiD_BeginGaussPoint(mGPTitle, mGidElementFamily, NULL,
+            GiD_fBeginGaussPoint(ResultFile, mGPTitle, mGidElementFamily, NULL,
                                 mSize, 0, 1);
-            GiD_EndGaussPoint();
+            GiD_fEndGaussPoint(ResultFile);
         }
     }
 
@@ -371,7 +371,7 @@ public:
         }
     }
 
-    void WriteMesh(bool deformed)
+    void WriteMesh(GiD_FILE MeshFile,  bool deformed)
     {
         KRATOS_TRY
         if( mMeshElements.size() != 0 )
@@ -379,32 +379,32 @@ public:
             if( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
             {
                 std::cout << "writing a 2D mesh" << std::endl;
-                GiD_BeginMesh( "Volume mesh", GiD_2D, mGidElementType,
+                GiD_fBeginMesh(MeshFile,  "Volume mesh", GiD_2D, mGidElementType,
                                mMeshElements.begin()->GetGeometry().size() );
             }
             else if( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 3 )
             {
                 std::cout << "writing a 3D two_fluid mesh" << std::endl;
-                GiD_BeginMesh( "Volume mesh", GiD_3D, mGidElementType,
+                GiD_fBeginMesh(MeshFile,  "Volume mesh", GiD_3D, mGidElementType,
                                mMeshElements.begin()->GetGeometry().size() );
             }
             else
                 KRATOS_ERROR(std::logic_error,"check working space dimension of model","");
             //printing nodes
-            GiD_BeginCoordinates();
+            GiD_fBeginCoordinates(MeshFile );
             for( ModelPart::NodesContainerType::iterator it = mMeshNodes.begin();
                     it != mMeshNodes.end(); ++it )
             {
                 if( deformed )
-                    GiD_WriteCoordinates( (it)->Id(), (it)->X(),
+                    GiD_fWriteCoordinates(MeshFile,  (it)->Id(), (it)->X(),
                                           (it)->Y(), (it)->Z());
                 else
-                    GiD_WriteCoordinates( (it)->Id(), (it)->X0(),
+                    GiD_fWriteCoordinates(MeshFile,  (it)->Id(), (it)->X0(),
                                           (it)->Y0(), (it)->Z0());
             }
-            GiD_EndCoordinates();
+            GiD_fEndCoordinates(MeshFile );
             //printing elements
-            GiD_BeginElements();
+            GiD_fBeginElements(MeshFile );
             int* nodes_id = new int[mMeshElements.begin()->GetGeometry().size()+1];
             for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
                     it != mMeshElements.end(); ++it )
@@ -447,11 +447,11 @@ public:
 
                 nodes_id[(it)->GetGeometry().size()]= color;
 
-                GiD_WriteElementMat((it)->Id(), nodes_id);
+                GiD_fWriteElementMat(MeshFile, (it)->Id(), nodes_id);
             }
             delete [] nodes_id;
-            GiD_EndElements();
-            GiD_EndMesh();
+            GiD_fEndElements(MeshFile );
+            GiD_fEndMesh(MeshFile );
         }
         if( mMeshConditions.size() != 0 )
         {
@@ -460,16 +460,16 @@ public:
             if( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 3 )
             {
                 std::cout << "writing a 3D mesh of the faces" << std::endl;
-                GiD_BeginMesh( "Surface Structure Mesh", GiD_3D, GiD_Triangle,  3);
+                GiD_fBeginMesh(MeshFile,  "Surface Structure Mesh", GiD_3D, GiD_Triangle,  3);
             }
             else
                 KRATOS_ERROR(std::logic_error,"Check your space dimensions","");
             //printing nodes
-            GiD_BeginCoordinates();
+            GiD_fBeginCoordinates(MeshFile );
 
-            GiD_EndCoordinates();
+            GiD_fEndCoordinates(MeshFile );
             //printing elements
-            GiD_BeginElements();
+            GiD_fBeginElements(MeshFile );
             //for every face of tetrahedron we create a list of its nodes
             int* nodes_id = new int[4];
 
@@ -491,13 +491,13 @@ public:
                 if (n_str==int(it->GetGeometry().size()))// && n_free_surf!=it->GetGeometry().size())
                 {
                     nodes_id[3]=3;
-                    GiD_WriteElementMat((it)->Id(), nodes_id);
+                    GiD_fWriteElementMat(MeshFile, (it)->Id(), nodes_id);
                 }
 
             }
             delete [] nodes_id;
-            GiD_EndElements();
-            GiD_EndMesh();
+            GiD_fEndElements(MeshFile);
+            GiD_fEndMesh(MeshFile);
         }
         if( mMeshConditions.size() != 0 )
         {
@@ -505,18 +505,18 @@ public:
             if( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 3 )
             {
                 std::cout << "writing a 3D mesh of the faces" << std::endl;
-                GiD_BeginMesh( "Surface Fluid Mesh", GiD_3D, GiD_Triangle,  3);
+                GiD_fBeginMesh(MeshFile,  "Surface Fluid Mesh", GiD_3D, GiD_Triangle,  3);
             }
             else
                 KRATOS_ERROR(std::logic_error,"Check your space dimensions","");
 
             //now writing the fluid surface mesh
             //printing nodes
-            GiD_BeginCoordinates();
+            GiD_fBeginCoordinates(MeshFile);
 
-            GiD_EndCoordinates();
+            GiD_fEndCoordinates(MeshFile);
             //printing elements
-            GiD_BeginElements();
+            GiD_fBeginElements(MeshFile);
             //for every face of tetrahedron we create a list of its nodes
             //int* nodes_id = new int[4];
 
@@ -545,13 +545,13 @@ public:
                 {
                     //the color of water
                     nodes_id[3]=6;
-                    GiD_WriteElementMat((it)->Id(), nodes_id);
+                    GiD_fWriteElementMat(MeshFile, (it)->Id(), nodes_id);
                 }
 
             }
             delete [] nodes_id;
-            GiD_EndElements();
-            GiD_EndMesh();
+            GiD_fEndElements(MeshFile);
+            GiD_fEndMesh(MeshFile);
         }
 
         KRATOS_CATCH("")
@@ -570,7 +570,8 @@ public:
     }
 
 
-private:
+	private:
+
     ///member variables
     GeometryData::KratosGeometryType mGeometryType;
     GiD_ElementType mGidElementType;

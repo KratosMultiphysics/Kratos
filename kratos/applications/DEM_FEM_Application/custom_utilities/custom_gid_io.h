@@ -83,7 +83,7 @@ namespace Kratos
             :BaseType( gp_title, geometryFamily, gid_element_type, number_of_integration_points,
                        index_container){}
             
-            virtual void PrintResults( Variable<double> rVariable, ModelPart& r_model_part, 
+            virtual void PrintResults( GiD_FILE ResultFile, Variable<double> rVariable, ModelPart& r_model_part, 
                                        double SolutionTag, unsigned int parameter_index )
             {
                 if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
@@ -91,17 +91,17 @@ namespace Kratos
                     WriteGaussPoints();
                     if(rVariable == SATURATION)
                     {
-                        GiD_BeginRangeTable("saturation");
-                        GiD_WriteMinRange( 0.0001, "unsaturated" );
-                        GiD_WriteRange( 0.0001, 0.9999, "partially saturated" );
-                        GiD_WriteMaxRange(0.9999, "saturated");
-                        GiD_EndRangeTable();
-                        GiD_BeginResult( (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
+                        GiD_fBeginRangeTable("saturation");
+                        GiD_fWriteMinRange( 0.0001, "unsaturated" );
+                        GiD_fWriteRange( 0.0001, 0.9999, "partially saturated" );
+                        GiD_fWriteMaxRange(0.9999, "saturated");
+                        GiD_fEndRangeTable();
+                        GiD_fBeginResult( (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
                                             GiD_Scalar, GiD_OnGaussPoints, mGPTitle,
                                             "saturation", 0, NULL );
                     }
                     else
-                        GiD_BeginResult( (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
+                        GiD_fBeginResult( (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
                                             GiD_Scalar, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
                     std::vector<double> ValuesOnIntPoint(mSize);
                     if( mMeshElements.size() != 0 )
@@ -116,7 +116,7 @@ namespace Kratos
                                 for(unsigned int i=0; i<mIndexContainer.size(); i++)
                                 {
                                     int index = mIndexContainer[i];
-                                    GiD_WriteScalar( it->Id(), ValuesOnIntPoint[index] );
+                                    GiD_fWriteScalar( it->Id(), ValuesOnIntPoint[index] );
                                 }
                             }
                         }
@@ -133,22 +133,22 @@ namespace Kratos
                                 for(unsigned int i=0; i<mIndexContainer.size(); i++)
                                 {
                                     int index = mIndexContainer[i];
-                                    GiD_WriteScalar( it->Id(), ValuesOnIntPoint[index] );
+                                    GiD_fWriteScalar( it->Id(), ValuesOnIntPoint[index] );
                                 }
                             }
                         }
                     }
-                    GiD_EndResult();
+                    GiD_fEndResult();
                 }
             }
             
-            virtual void PrintResults( Variable<array_1d<double, 3> > rVariable, ModelPart& r_model_part, double
+            virtual void PrintResults( GiD_FILE ResultFile, Variable<array_1d<double, 3> > rVariable, ModelPart& r_model_part, double
                     SolutionTag, unsigned int parameter_index )
             {
                 if( mMeshConditions.size() != 0 )
                 {
-                    WriteGaussPoints();
-                    GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos", 
+                    WriteGaussPoints(ResultFile);
+                    GiD_fBeginResult( (char*)(rVariable.Name().c_str()), "Kratos", 
                                       SolutionTag, GiD_Vector, 
                                       GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
                     std::vector<array_1d<double,3> > ValuesOnIntPoint(mSize);
@@ -163,16 +163,16 @@ namespace Kratos
                                     r_model_part.GetProcessInfo() );
                             for(unsigned int i=0; i<mIndexContainer.size(); i++)
                             {
-                                GiD_WriteVector( it->Id(), ValuesOnIntPoint[i][0],
+                                GiD_fWriteVector( it->Id(), ValuesOnIntPoint[i][0],
                                         ValuesOnIntPoint[i][1], ValuesOnIntPoint[i][2] );
                             }
                         }
                     }
-                    GiD_EndResult();
+                    GiD_fEndResult();
                 }
             }
             
-            virtual void PrintResults( Variable<Vector> rVariable, ModelPart& r_model_part, 
+            virtual void PrintResults( GiD_FILE ResultFile,Variable<Vector> rVariable, ModelPart& r_model_part, 
                                double SolutionTag, unsigned int parameter_index )
             {
                 if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
@@ -180,18 +180,18 @@ namespace Kratos
                     WriteGaussPoints();
                     
                     if( rVariable == INSITU_STRESS )
-                        GiD_BeginResult( (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
+                        GiD_fBeginResult( (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
                                           GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
                     else if( (rVariable == MATERIAL_PARAMETERS) || (rVariable == INTERNAL_VARIABLES) )
                     {
                         std::stringstream param_index;
                         param_index << parameter_index;
-                        GiD_BeginResult( (char *)(rVariable.Name() + param_index.str() ).c_str(),
+                        GiD_fBeginResult( (char *)(rVariable.Name() + param_index.str() ).c_str(),
                                           "Kratos", SolutionTag, GiD_Scalar, GiD_OnGaussPoints,
                                           mGPTitle, NULL, 0, NULL );
                     }
                     else
-                        GiD_BeginResult( (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
+                        GiD_fBeginResult( (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
                                       GiD_Vector, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
                     std::vector<Vector> ValuesOnIntPoint(mSize);
                     if( mMeshElements.size() != 0 )
@@ -209,7 +209,7 @@ namespace Kratos
                                     if( rVariable == INSITU_STRESS )
                                     {
                                         if(ValuesOnIntPoint[i].size() ==6 )
-                                            GiD_Write3DMatrix( it->Id(),
+                                            GiD_fWrite3DMatrix( it->Id(),
                                                 ValuesOnIntPoint[index](0),
                                                 ValuesOnIntPoint[index](1), 
                                                 ValuesOnIntPoint[index](2),
@@ -223,11 +223,11 @@ namespace Kratos
                                         double value = 0.0;
                                         if( ValuesOnIntPoint[index].size() > parameter_index )
                                             value = ValuesOnIntPoint[index][parameter_index];
-                                        GiD_WriteScalar( it->Id(), value );
+                                        GiD_fWriteScalar( it->Id(), value );
                                     }
                                     else
                                         if( ValuesOnIntPoint[0].size() == 3 )
-                                            GiD_WriteVector( it->Id(), ValuesOnIntPoint[index][0],
+                                            GiD_fWriteVector( it->Id(), ValuesOnIntPoint[index][0],
                                             ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2] );
                                 }
                             }
@@ -248,7 +248,7 @@ namespace Kratos
                                     if( rVariable == INSITU_STRESS )
                                     {
                                         if(ValuesOnIntPoint[i].size() ==6 )
-                                            GiD_Write3DMatrix( it->Id(),
+                                            GiD_fWrite3DMatrix( it->Id(),
                                                 ValuesOnIntPoint[index](0),
                                                 ValuesOnIntPoint[index](1),
                                                 ValuesOnIntPoint[index](2),
@@ -262,11 +262,11 @@ namespace Kratos
                                         double value = 0.0;
                                         if( ValuesOnIntPoint[index].size() > parameter_index )
                                             value = ValuesOnIntPoint[index][parameter_index];
-                                        GiD_WriteScalar( it->Id(), value );
+                                        GiD_fWriteScalar( it->Id(), value );
                                     }
                                     else
                                         if( ValuesOnIntPoint[0].size() == 3 )
-                                            GiD_WriteVector( it->Id(), ValuesOnIntPoint[index][0],
+                                            GiD_fWriteVector( it->Id(), ValuesOnIntPoint[index][0],
                                             ValuesOnIntPoint[index][1], ValuesOnIntPoint[index][2]
                                                            );
                                 
@@ -274,17 +274,17 @@ namespace Kratos
                             }
                         }
                     }
-                    GiD_EndResult();
+                    GiD_fEndResult();
                 }
             }
             
-            virtual void PrintResults( Variable<Matrix> rVariable, ModelPart& r_model_part, 
+            virtual void PrintResults( GiD_FILE ResultFile, Variable<Matrix> rVariable, ModelPart& r_model_part, 
                                        double SolutionTag, unsigned int parameter_index )
             {
                 if( mMeshElements.size() != 0 || mMeshConditions.size() != 0 )
                 {
                     WriteGaussPoints();
-                    GiD_BeginResult( (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
+                    GiD_fBeginResult(ResultFile,  (char *)(rVariable.Name()).c_str(), "Kratos", SolutionTag,
                                       GiD_Matrix, GiD_OnGaussPoints, mGPTitle, NULL, 0, NULL );
                     std::vector<Matrix> ValuesOnIntPoint(mSize);
                     if( mMeshElements.size() != 0 )
@@ -301,7 +301,7 @@ namespace Kratos
                                     int index = mIndexContainer[i];
                                     if(ValuesOnIntPoint[index].size1() ==3 
                                        && ValuesOnIntPoint[index].size2() ==3)
-                                        GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
+                                        GiD_fWrite3DMatrix(ResultFile,  it->Id(), ValuesOnIntPoint[index](0,0),
                                             ValuesOnIntPoint[index](1,1),
                                             ValuesOnIntPoint[index](2,2),
                                             ValuesOnIntPoint[index](0,1),
@@ -309,7 +309,7 @@ namespace Kratos
                                             ValuesOnIntPoint[index](0,2) );
                                     if(ValuesOnIntPoint[index].size1() ==1 
                                        && ValuesOnIntPoint[index].size2() ==6)
-                                        GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
+                                        GiD_fWrite3DMatrix(ResultFile,  it->Id(), ValuesOnIntPoint[index](0,0),
                                             ValuesOnIntPoint[index](0,1),
                                             ValuesOnIntPoint[index](0,2),
                                             ValuesOnIntPoint[index](0,3),
@@ -317,7 +317,7 @@ namespace Kratos
                                             ValuesOnIntPoint[index](0,5) );
                                    if(ValuesOnIntPoint[index].size1() == 1
                                       && ValuesOnIntPoint[index].size2() == 3)
-                                       GiD_Write2DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
+                                       GiD_fWrite2DMatrix(ResultFile,  it->Id(), ValuesOnIntPoint[index](0,0),
                                            ValuesOnIntPoint[index](0,1),
                                            ValuesOnIntPoint[index](0,2) );
                                 }
@@ -338,25 +338,25 @@ namespace Kratos
                                     int index = mIndexContainer[i];
                                     if(ValuesOnIntPoint[index].size1() ==3 
                                        && ValuesOnIntPoint[index].size2() ==3)
-                                        GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
+                                        GiD_fWrite3DMatrix(ResultFile,  it->Id(), ValuesOnIntPoint[index](0,0),
                                         ValuesOnIntPoint[index](1,1), ValuesOnIntPoint[index](2,2),
                                         ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](1,2),
                                         ValuesOnIntPoint[index](0,2) );
                                     if(ValuesOnIntPoint[index].size1() ==1 
                                        && ValuesOnIntPoint[index].size2() ==6)
-                                        GiD_Write3DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
+                                        GiD_fWrite3DMatrix(ResultFile,  it->Id(), ValuesOnIntPoint[index](0,0),
                                         ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2),
                                         ValuesOnIntPoint[index](0,3), ValuesOnIntPoint[index](0,4),
                                         ValuesOnIntPoint[index](0,5) );
                                     if(ValuesOnIntPoint[index].size1() == 1
                                        && ValuesOnIntPoint[index].size2() == 3)
-                                        GiD_Write2DMatrix( it->Id(), ValuesOnIntPoint[index](0,0),
+                                        GiD_fWrite2DMatrix(ResultFile, it->Id(), ValuesOnIntPoint[index](0,0),
                                         ValuesOnIntPoint[index](0,1), ValuesOnIntPoint[index](0,2) );
                                 }
                             }
                         }
                     }
-                    GiD_EndResult();
+                    GiD_fEndResult(ResultFile);
                 }
             }
 
