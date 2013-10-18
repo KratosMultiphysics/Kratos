@@ -215,7 +215,7 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    // A private default constructor necessary for serialization
+    // A protected default constructor necessary for serialization
     UlfFrac2D() : Element()
     {
     }
