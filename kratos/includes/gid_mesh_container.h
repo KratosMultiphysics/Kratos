@@ -120,7 +120,7 @@ public:
             mMeshNodes.Unique();
         }
     }
-    void WriteMesh (bool deformed)
+    void WriteMesh (GiD_FILE MeshFile, bool deformed)
     {
         KRATOS_TRY
 
@@ -158,35 +158,35 @@ public:
                     if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
                     {
                         std::cout << " -print element 2D mesh: layer ["<<current_layer<<"]-"<<std::endl;
-                        GiD_BeginMesh ( (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType,mMeshElements.begin()->GetGeometry().size() );
+                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType,mMeshElements.begin()->GetGeometry().size() );
                     }
                     else if ( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 3 )
                     {
                         std::cout << " -print element 3D mesh: layer ["<<current_layer<<"]-"<<std::endl;
-                        GiD_BeginMesh ( (char *) (current_layer_name.str() ).c_str(), GiD_3D, mGidElementType,mMeshElements.begin()->GetGeometry().size() );
+                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_3D, mGidElementType,mMeshElements.begin()->GetGeometry().size() );
                     }
                     else
                         KRATOS_ERROR (std::logic_error,"check working space dimension of model","");
                     //printing nodes
                     if(nodes_written == false)
                     {
-                        GiD_BeginCoordinates();
+                        GiD_fBeginCoordinates(MeshFile);
                         for ( ModelPart::NodesContainerType::iterator it = mMeshNodes.begin();
                                 it != mMeshNodes.end(); ++it )
                         {
                             if ( deformed )
-                                GiD_WriteCoordinates ( (it)->Id(), (it)->X(),
+                                GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X(),
                                                        (it)->Y(), (it)->Z() );
                             else
-                                GiD_WriteCoordinates ( (it)->Id(), (it)->X0(),
+                                GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X0(),
                                                        (it)->Y0(), (it)->Z0() );
                         }
-                        GiD_EndCoordinates();
+                        GiD_fEndCoordinates(MeshFile);
 
                         nodes_written = true;
                     }
                     //printing elements
-                    GiD_BeginElements();
+                    GiD_fBeginElements(MeshFile);
                     int* nodes_id = new int[mMeshElements.begin()->GetGeometry().size() ];
                     for ( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
                             it != mMeshElements.end(); ++it )
@@ -216,18 +216,18 @@ public:
                         {
                             if ( ! it->GetValue ( IS_INACTIVE )  && (it)->GetProperties().Id()==current_layer )
                             {
-                                GiD_WriteElement ( (it)->Id(), nodes_id);
+                                GiD_fWriteElement ( MeshFile, (it)->Id(), nodes_id);
                             }
                         }
                         else
                         {
                             if ((it)->GetProperties().Id()==current_layer)
-                                GiD_WriteElement ( (it)->Id(), nodes_id);
+                                GiD_fWriteElement ( MeshFile, (it)->Id(), nodes_id);
                         }
                     }
                     delete [] nodes_id;
-                    GiD_EndElements();
-                    GiD_EndMesh();
+                    GiD_fEndElements(MeshFile);
+                    GiD_fEndMesh(MeshFile);
                 }
             }
             std::cout << "end printing elements" <<std::endl;
@@ -263,13 +263,13 @@ public:
                     if ( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
                     {
                         std::cout << " -print condition 2D mesh: layer ["<<current_layer<<"]-"<<std::endl;
-                        GiD_BeginMesh ( (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType,
+                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_2D, mGidElementType,
                                         mMeshConditions.begin()->GetGeometry().size() );
                     }
                     else if ( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 3 )
                     {
                         std::cout << " -print condition 3D mesh: layer ["<<current_layer<<"]-"<<std::endl;
-                        GiD_BeginMesh ( (char *) (current_layer_name.str() ).c_str(), GiD_3D, mGidElementType,
+                        GiD_fBeginMesh ( MeshFile, (char *) (current_layer_name.str() ).c_str(), GiD_3D, mGidElementType,
                                         mMeshConditions.begin()->GetGeometry().size() );
                     }
                     else
@@ -277,22 +277,22 @@ public:
                     //printing nodes
                     if(nodes_written == false)
                     {
-                        GiD_BeginCoordinates();
+                        GiD_fBeginCoordinates(MeshFile);
                         for ( ModelPart::NodesContainerType::iterator it = mMeshNodes.begin();
                                 it != mMeshNodes.end(); ++it )
                         {
                             if ( deformed )
-                                GiD_WriteCoordinates ( (it)->Id(), (it)->X(),
+                                GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X(),
                                                        (it)->Y(), (it)->Z() );
                             else
-                                GiD_WriteCoordinates ( (it)->Id(), (it)->X0(),
+                                GiD_fWriteCoordinates ( MeshFile, (it)->Id(), (it)->X0(),
                                                        (it)->Y0(), (it)->Z0() );
                         }
-                        GiD_EndCoordinates();
+                        GiD_fEndCoordinates(MeshFile);
                         nodes_written = true;
                     }
                     //printing elements
-                    GiD_BeginElements();
+                    GiD_fBeginElements(MeshFile);
                     int* nodes_id = new int[mMeshConditions.begin()->GetGeometry().size() ];
                     for ( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin(  );
                             it != mMeshConditions.end(); ++it )
@@ -316,18 +316,18 @@ public:
                         {
                             if ( ! it->GetValue ( IS_INACTIVE ) && (it)->GetProperties().Id()==current_layer )
                             {
-                                GiD_WriteElement ( (it)->Id(), nodes_id);
+                                GiD_fWriteElement ( MeshFile, (it)->Id(), nodes_id);
                             }
                         }
                         else
                         {
                             if ((it)->GetProperties().Id()==current_layer)
-                                GiD_WriteElement ( (it)->Id(), nodes_id);
+                                GiD_fWriteElement ( MeshFile, (it)->Id(), nodes_id);
                         }
                     }
                     delete [] nodes_id;
-                    GiD_EndElements();
-                    GiD_EndMesh();
+                    GiD_fEndElements(MeshFile);
+                    GiD_fEndMesh(MeshFile);
                 }
             }
             std::cout << "end printing conditions" <<std::endl;

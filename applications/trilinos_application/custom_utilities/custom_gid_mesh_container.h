@@ -87,7 +87,7 @@ public:
                               GiD_ElementType elementType, const char* mesh_title )
         : GidMeshContainer( geometryType, elementType, mesh_title ) {}
 
-    void WriteMesh(bool deformed)
+    void WriteMesh(GiD_FILE MeshFile, bool deformed)
     {
         KRATOS_TRY
         if( mMeshElements.size() != 0 )
@@ -95,32 +95,32 @@ public:
             if( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
             {
                 std::cout << "writing a 2D mesh" << std::endl;
-                GiD_BeginMesh( mMeshTitle, GiD_2D, mGidElementType,
+                GiD_fBeginMesh( MeshFile, mMeshTitle, GiD_2D, mGidElementType,
                                mMeshElements.begin()->GetGeometry().size() );
             }
             else if( mMeshElements.begin()->GetGeometry().WorkingSpaceDimension() == 3 )
             {
                 std::cout << "writing a 3D mesh" << std::endl;
-                GiD_BeginMesh( mMeshTitle, GiD_3D, mGidElementType,
+                GiD_fBeginMesh( MeshFile, mMeshTitle, GiD_3D, mGidElementType,
                                mMeshElements.begin()->GetGeometry().size() );
             }
             else
                 KRATOS_ERROR(std::logic_error,"check working space dimension of model","");
             //printing nodes
-            GiD_BeginCoordinates();
+            GiD_fBeginCoordinates(MeshFile);
             for( ModelPart::NodesContainerType::iterator it = mMeshNodes.begin();
                     it != mMeshNodes.end(); ++it )
             {
                 if( deformed )
-                    GiD_WriteCoordinates( (it)->Id(), (it)->X(),
+                    GiD_fWriteCoordinates( MeshFile,(it)->Id(), (it)->X(),
                                           (it)->Y(), (it)->Z());
                 else
-                    GiD_WriteCoordinates( (it)->Id(), (it)->X0(),
+                    GiD_fWriteCoordinates( MeshFile,(it)->Id(), (it)->X0(),
                                           (it)->Y0(), (it)->Z0());
             }
-            GiD_EndCoordinates();
+            GiD_fEndCoordinates(MeshFile);
             //printing elements
-            GiD_BeginElements();
+            GiD_fBeginElements(MeshFile);
             int* nodes_id = new int[mMeshElements.begin()->GetGeometry().size()+1];
             for( ModelPart::ElementsContainerType::iterator it = mMeshElements.begin();
                     it != mMeshElements.end(); ++it )
@@ -149,12 +149,12 @@ public:
                         nodes_id[2] = (it)->GetGeometry()[1].Id();
                     }
                     nodes_id[(it)->GetGeometry().size()]= (it)->GetProperties().Id();
-                    GiD_WriteElementMat((it)->Id(), nodes_id);
+                    GiD_fWriteElementMat(MeshFile,(it)->Id(), nodes_id);
                 }
             }
             delete [] nodes_id;
-            GiD_EndElements();
-            GiD_EndMesh();
+            GiD_fEndElements(MeshFile);
+            GiD_fEndMesh(MeshFile);
         }
 
         if( mMeshConditions.size() != 0 )
@@ -162,32 +162,32 @@ public:
             if( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 2 )
             {
                 std::cout << "writing a 2D mesh" << std::endl;
-                GiD_BeginMesh( mMeshTitle, GiD_2D, mGidElementType,
+                GiD_fBeginMesh( MeshFile,mMeshTitle, GiD_2D, mGidElementType,
                                mMeshConditions.begin()->GetGeometry().size() );
             }
             else if( mMeshConditions.begin()->GetGeometry().WorkingSpaceDimension() == 3 )
             {
                 std::cout << "writing a 3D mesh" << std::endl;
-                GiD_BeginMesh( mMeshTitle, GiD_3D, mGidElementType,
+                GiD_fBeginMesh( MeshFile,mMeshTitle, GiD_3D, mGidElementType,
                                mMeshConditions.begin()->GetGeometry().size() );
             }
             else
                 KRATOS_ERROR(std::logic_error,"check working space dimension of model","");
             //printing nodes
-            GiD_BeginCoordinates();
+            GiD_fBeginCoordinates(MeshFile);
             for( ModelPart::NodesContainerType::iterator it = mMeshNodes.begin();
                     it != mMeshNodes.end(); ++it )
             {
                 if( deformed )
-                    GiD_WriteCoordinates( (it)->Id(), (it)->X(),
+                    GiD_fWriteCoordinates( MeshFile,(it)->Id(), (it)->X(),
                                           (it)->Y(), (it)->Z());
                 else
-                    GiD_WriteCoordinates( (it)->Id(), (it)->X0(),
+                    GiD_fWriteCoordinates( MeshFile,(it)->Id(), (it)->X0(),
                                           (it)->Y0(), (it)->Z0());
             }
-            GiD_EndCoordinates();
+            GiD_fEndCoordinates(MeshFile);
             //printing elements
-            GiD_BeginElements();
+            GiD_fBeginElements(MeshFile);
             int* nodes_id = new int[mMeshConditions.begin()->GetGeometry().size()+1];
             for( ModelPart::ConditionsContainerType::iterator it = mMeshConditions.begin(	);
                     it != mMeshConditions.end(); ++it )
@@ -209,12 +209,12 @@ public:
                         nodes_id[19] = (it)->GetGeometry()[15].Id();
                     }
                     nodes_id[(it)->GetGeometry().size()]= (it)->GetProperties().Id();
-                    GiD_WriteElementMat((it)->Id(), nodes_id);
+                    GiD_fWriteElementMat(MeshFile,(it)->Id(), nodes_id);
                 }
             }
             delete [] nodes_id;
-            GiD_EndElements();
-            GiD_EndMesh();
+            GiD_fEndElements(MeshFile);
+            GiD_fEndMesh(MeshFile);
         }
         KRATOS_CATCH("")
     }

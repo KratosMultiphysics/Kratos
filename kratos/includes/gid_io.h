@@ -169,7 +169,7 @@ public:
 
         if ( mResultFileOpen )
         {
-            GiD_ClosePostResultFile();
+            GiD_fClosePostResultFile( mResultFile );
             mResultFileOpen = false;
         }
     }
@@ -462,7 +462,7 @@ public:
     void  CloseResultFile()
     {
         if ( mResultFileOpen )
-            GiD_ClosePostResultFile();
+            GiD_fClosePostResultFile( mResultFile );
     }
 
     /**
@@ -470,7 +470,7 @@ public:
      */
     void Flush()
     {
-        GiD_FlushPostFile();
+        GiD_fFlushPostFile( mResultFile );
     }
 
     /**
@@ -510,30 +510,43 @@ public:
         {
             std::stringstream file_name;
             file_name << mResultFileName << "_" << name << ".post.res";
-            GiD_OpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
+            mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
             mResultFileOpen = true;
+            
         }
         //initializing gauss points containers
         if ( mWriteConditions != WriteConditionsOnly )
         {
             for ( MeshType::ElementIterator element_iterator = rThisMesh.ElementsBegin();
                     element_iterator != rThisMesh.ElementsEnd(); ++element_iterator )
+            {            
                 for ( typename std::vector<TGaussPointContainer>::iterator it =
                             mGidGaussPointContainers.begin();
                         it != mGidGaussPointContainers.end(); it++ )
+                {                      
+
                     if ( it->AddElement( element_iterator ) )
                         break;
+                }
+            }
         }
 
         if ( mWriteConditions == WriteConditions || mWriteConditions == WriteConditionsOnly )
             for ( MeshType::ConditionsContainerType::iterator conditions_iterator =
                         rThisMesh.ConditionsBegin(); conditions_iterator
                     != rThisMesh.ConditionsEnd(); conditions_iterator++ )
+            {
                 for ( typename std::vector<TGaussPointContainer>::iterator it =
                             mGidGaussPointContainers.begin();
                         it != mGidGaussPointContainers.end(); it++ )
+                {                      
+
                     if ( it->AddCondition( conditions_iterator ) )
                         break;
+                }
+            }
+                    
+                    
     }
 
     /**
@@ -544,7 +557,7 @@ public:
     {
         if ( mUseMultiFile == MultipleFiles || mMode == GiD_PostAscii )
         {
-            GiD_ClosePostResultFile();
+            GiD_fClosePostResultFile( mResultFile );
             mResultFileOpen = false;
         }
         //resetting gauss point containers
@@ -568,14 +581,14 @@ public:
     {
 
         Timer::Start("Writing Results");
-        GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos",
+        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Scalar,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
         for ( NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
-            GiD_WriteScalar( i_node->Id(), i_node->GetSolutionStepValue(rVariable,
+            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
                              SolutionStepNumber) );
-        GiD_EndResult();
+        GiD_fEndResult(mResultFile);
 
         Timer::Stop("Writing Results");
 
@@ -592,14 +605,14 @@ public:
     {
 
         Timer::Start("Writing Results");
-        GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos",
+        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Scalar,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
         for ( NodesContainerType::iterator i_node = rNodes.begin();
                 i_node != rNodes.end() ; ++i_node)
-            GiD_WriteScalar( i_node->Id(), i_node->GetSolutionStepValue(rVariable,
+            GiD_fWriteScalar( mResultFile, i_node->Id(), i_node->GetSolutionStepValue(rVariable,
                              SolutionStepNumber) );
-        GiD_EndResult();
+        GiD_fEndResult(mResultFile);
 
         Timer::Stop("Writing Results");
 
@@ -616,7 +629,7 @@ public:
 
         Timer::Start("Writing Results");
 
-        GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos",
+        GiD_fBeginResult(mResultFile,(char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Vector,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
         for (NodesContainerType::iterator i_node = rNodes.begin();
@@ -624,9 +637,9 @@ public:
         {
             array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
                                         SolutionStepNumber );
-            GiD_WriteVector( i_node->Id(), temp[0], temp[1], temp[2] );
+            GiD_fWriteVector( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
         }
-        GiD_EndResult();
+        GiD_fEndResult(mResultFile);
 
         Timer::Stop("Writing Results");
 
@@ -644,7 +657,7 @@ public:
 
         Timer::Start("Writing Results");
 
-        GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos",
+        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Matrix,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
         for (NodesContainerType::iterator i_node = rNodes.begin();
@@ -653,12 +666,12 @@ public:
             Vector& tempVector = i_node->GetSolutionStepValue(rVariable,
                                  SolutionStepNumber);
             if (tempVector.size() ==3 )
-                GiD_WriteVector(  i_node->Id(), tempVector(0), tempVector(1), tempVector(2) );
+                GiD_fWriteVector(mResultFile, i_node->Id(), tempVector(0), tempVector(1), tempVector(2) );
             else if (tempVector.size() == 6 )
-                GiD_Write3DMatrix(  i_node->Id(), tempVector(0), tempVector(1), tempVector(2),
+                GiD_fWrite3DMatrix( mResultFile, i_node->Id(), tempVector(0), tempVector(1), tempVector(2),
                                     tempVector(3), tempVector(4), tempVector(5) );
         }
-        GiD_EndResult();
+        GiD_fEndResult(mResultFile);
 
         Timer::Stop("Writing Results");
 
@@ -674,7 +687,7 @@ public:
 
         Timer::Start("Writing Results");
 
-        GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos",
+        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_Matrix,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
         for (NodesContainerType::iterator i_node = rNodes.begin();
@@ -685,7 +698,7 @@ public:
             //Matrix& tempMatrix = i_node->GetValue(rVariable);
             if (tempMatrix.size1() ==3 && tempMatrix.size2() ==3)
             {
-                GiD_Write3DMatrix(  i_node->Id(), tempMatrix(0,0), tempMatrix(1,1),
+                GiD_fWrite3DMatrix( mResultFile,  i_node->Id(), tempMatrix(0,0), tempMatrix(1,1),
                                     tempMatrix(2,2), tempMatrix(0,1), tempMatrix(1,2),
                                     tempMatrix(0,2) );
             }
@@ -693,18 +706,18 @@ public:
             else if (tempMatrix.size1() ==1 && tempMatrix.size2() ==3)
             {
 
-                GiD_Write3DMatrix( i_node->Id(), tempMatrix(0,0), tempMatrix(0,1), 0.00,
+                GiD_fWrite3DMatrix( mResultFile, i_node->Id(), tempMatrix(0,0), tempMatrix(0,1), 0.00,
                                    tempMatrix(0,2), 0.00, 0.00);
             }
             else if (tempMatrix.size1() ==1 && tempMatrix.size2() ==6)
             {
-                GiD_Write3DMatrix( i_node->Id(), tempMatrix(0,0), tempMatrix(0,1), tempMatrix(0,2),
+                GiD_fWrite3DMatrix( mResultFile, i_node->Id(), tempMatrix(0,0), tempMatrix(0,1), tempMatrix(0,2),
                                    tempMatrix(0,3), tempMatrix(0,4), tempMatrix(0,5) );
             }
             //i_node->GetValue(rVariable) = tempMatrix;
 
         }
-        GiD_EndResult();
+        GiD_fEndResult(mResultFile);
 
         Timer::Stop("Writing Results");
 
@@ -717,7 +730,7 @@ public:
 
         Timer::Start("Writing Results");
 
-        GiD_BeginResult( (char*)(rVariable.Name().c_str()), "Kratos",
+        GiD_fBeginResult( mResultFile, (char*)(rVariable.Name().c_str()), "Kratos",
                          SolutionTag, GiD_LocalAxes,
                          GiD_OnNodes, NULL, NULL, 0, NULL );
 
@@ -726,9 +739,9 @@ public:
         {
             array_1d<double, 3>& temp = i_node->GetSolutionStepValue( rVariable,
                                         SolutionStepNumber );
-            GiD_WriteLocalAxes( i_node->Id(), temp[0], temp[1], temp[2] );
+            GiD_fWriteLocalAxes( mResultFile, i_node->Id(), temp[0], temp[1], temp[2] );
         }
-        GiD_EndResult();
+        GiD_fEndResult(mResultFile);
 
         Timer::Stop("Writing Results");
 
@@ -740,45 +753,55 @@ public:
      */
     void InitializeMesh( double name )
     {
+		KRATOS_WATCH("line756");
         if ( mUseMultiFile == MultipleFiles )
         {
+			KRATOS_WATCH("line759");
             if ( mMode == GiD_PostAscii && ! mMeshFileOpen )
             {
+				KRATOS_WATCH("line762");
                 std::stringstream file_name;
                 file_name << std::setprecision(12) << mMeshFileName << "_" << name << ".post.msh";
-                GiD_OpenPostMeshFile( (char *)(file_name.str()).c_str(), mMode);
+                mMeshFile = GiD_fOpenPostMeshFile( (char *)(file_name.str()).c_str(), mMode);
                 mMeshFileOpen = true;
             }
             if ( mMode == GiD_PostBinary && ! mResultFileOpen )
             {
+				KRATOS_WATCH("line770");
                 std::stringstream file_name;
                 file_name << std::setprecision(12) << mResultFileName << "_" << name << ".post.bin";
                 if ( ! mResultFileOpen )
                 {
-                    GiD_OpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
+					KRATOS_WATCH("line775");
+                    mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
+					KRATOS_WATCH("line777");
                     mResultFileOpen = true;
                 }
+				mMeshFile = mResultFile;
             }
         }
         if ( mUseMultiFile == SingleFile )
         {
+			KRATOS_WATCH("line783");
             if ( mMode == GiD_PostBinary && ! mResultFileOpen )
             {
                 std::stringstream file_name;
                 file_name << mResultFileName << ".post.bin";
-                if ( GiD_OpenPostResultFile((char*)(file_name.str()).c_str(), mMode) )
+				mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
+                if ( mResultFile == 0) //error handler can not be zero
                 {
                     std::stringstream buffer;
                     buffer << "error opening results file:" << "/" <<  mResultFileName   << "/";
                     KRATOS_ERROR(std::runtime_error, buffer.str(), "");
                 }
                 mResultFileOpen = true;
+				mMeshFile = mResultFile;
             }
             if ( mMode == GiD_PostAscii && ! mMeshFileOpen )
             {
                 std::stringstream file_name;
                 file_name << mMeshFileName << "_" << name << ".post.msh";
-                GiD_OpenPostMeshFile( (char *)(file_name.str()).c_str(), mMode);
+                mMeshFile = GiD_fOpenPostMeshFile( (char *)(file_name.str()).c_str(), mMode);
                 mMeshFileOpen = true;
             }
 
@@ -792,12 +815,12 @@ public:
     {
         if ( mUseMultiFile == MultipleFiles && mMode == GiD_PostAscii )
         {
-            GiD_ClosePostMeshFile();
+            GiD_fClosePostMeshFile(mMeshFile);
             mMeshFileOpen = false;
         }
         if ( mUseMultiFile == SingleFile && mMode == GiD_PostAscii )
         {
-            GiD_ClosePostMeshFile();
+            GiD_fClosePostMeshFile(mMeshFile);
             mMeshFileOpen = false;
         }
     }
@@ -816,24 +839,24 @@ public:
 
         Timer::Start("Writing Mesh");
 
-        GiD_BeginMesh("Kratos Mesh",GiD_3D,GiD_Point,1);
-        GiD_BeginCoordinates();
+        GiD_fBeginMesh(mMeshFile,  "Kratos Mesh",GiD_3D,GiD_Point,1);
+        GiD_fBeginCoordinates(mMeshFile);
         for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
                 ++node_iterator)
         {
             if ( mWriteDeformed == WriteUndeformed )
-                GiD_WriteCoordinates( node_iterator->Id(), node_iterator->X0(),
+                GiD_fWriteCoordinates(mMeshFile, node_iterator->Id(), node_iterator->X0(),
                                       node_iterator->Y0(), node_iterator->Z0() );
             else if ( mWriteDeformed == WriteDeformed )
-                GiD_WriteCoordinates( node_iterator->Id(), node_iterator->X(),
+                GiD_fWriteCoordinates(mMeshFile, node_iterator->Id(), node_iterator->X(),
                                       node_iterator->Y(), node_iterator->Z() );
             else
                 KRATOS_ERROR( std::logic_error,"undefined WriteDeformedMeshFlag","" );
         }
-        GiD_EndCoordinates();
+        GiD_fEndCoordinates(mMeshFile);
         int nodes_id[1];
-        GiD_BeginElements();
+        GiD_fBeginElements(mMeshFile);
 
 //         mNodeList.clear();
 
@@ -842,11 +865,11 @@ public:
                 ++node_iterator)
         {
             nodes_id[0] = node_iterator->Id();
-            GiD_WriteElement(node_iterator->Id(), nodes_id);
+            GiD_fWriteElement(mMeshFile,node_iterator->Id(), nodes_id);
 //             mNodeList.push_back(*node_iterator);
         }
-        GiD_EndElements();
-        GiD_EndMesh();
+        GiD_fEndElements(mMeshFile);
+        GiD_fEndMesh(mMeshFile);
 
 //         mNodeList.Unique();
 
@@ -861,24 +884,24 @@ public:
 
         Timer::Start("Writing Mesh");
 
-        GiD_BeginMesh("Kratos Mesh",GiD_3D,GiD_Sphere,1);
-        GiD_BeginCoordinates();
+        GiD_fBeginMesh(mMeshFile, "Kratos Mesh",GiD_3D,GiD_Sphere,1);
+        GiD_fBeginCoordinates(mMeshFile);
         for ( MeshType::NodeIterator node_iterator = rThisMesh.NodesBegin();
                 node_iterator != rThisMesh.NodesEnd();
                 ++node_iterator)
         {
             if ( mWriteDeformed == WriteUndeformed )
-                GiD_WriteCoordinates( node_iterator->Id(), node_iterator->X0(),
+                GiD_fWriteCoordinates( mMeshFile, node_iterator->Id(), node_iterator->X0(),
                                       node_iterator->Y0(), node_iterator->Z0() );
             else if ( mWriteDeformed == WriteDeformed )
-                GiD_WriteCoordinates( node_iterator->Id(), node_iterator->X(),
+                GiD_fWriteCoordinates( mMeshFile, node_iterator->Id(), node_iterator->X(),
                                       node_iterator->Y(), node_iterator->Z() );
             else
                 KRATOS_ERROR( std::logic_error,"undefined WriteDeformedMeshFlag","" );
         }
-        GiD_EndCoordinates();
+        GiD_fEndCoordinates( mMeshFile );
         int nodes_id[1];
-        GiD_BeginElements();
+        GiD_fBeginElements( mMeshFile );
 
 //         mNodeList.clear();
 
@@ -887,11 +910,11 @@ public:
                 ++node_iterator)
         {
             nodes_id[0] = node_iterator->Id();
-            GiD_WriteSphereMat(node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(RADIUS), node_iterator->FastGetSolutionStepValue(PARTICLE_MATERIAL));
+            GiD_fWriteSphereMat(mMeshFile, node_iterator->Id(), nodes_id[0], node_iterator->FastGetSolutionStepValue(RADIUS), node_iterator->FastGetSolutionStepValue(PARTICLE_MATERIAL));
 //             mNodeList.push_back(*node_iterator);
         }
-        GiD_EndElements();
-        GiD_EndMesh();
+        GiD_fEndElements( mMeshFile );
+        GiD_fEndMesh( mMeshFile);
 
 //         mNodeList.Unique();
 
@@ -939,9 +962,9 @@ public:
         {
             it->FinalizeMeshCreation();
             if ( mWriteDeformed == WriteDeformed )
-                it->WriteMesh(true);
+                it->WriteMesh(mMeshFile,true);
             else if ( mWriteDeformed == WriteUndeformed )
-                it->WriteMesh(false);
+                it->WriteMesh(mMeshFile,false);
             else
                 KRATOS_ERROR( std::logic_error, "undefined WriteDeformedMeshFlag" , "" );
 
@@ -982,7 +1005,8 @@ public:
                     mGidGaussPointContainers.begin();
                 it != mGidGaussPointContainers.end(); it++ )
         {
-            it->PrintResults( rVariable, r_model_part, SolutionTag, value_index );
+
+            it->PrintResults( mResultFile, rVariable, r_model_part, SolutionTag, value_index );
         }
 
         Timer::Stop("Writing Results");
@@ -1005,7 +1029,7 @@ public:
                     mGidGaussPointContainers.begin();
                 it != mGidGaussPointContainers.end(); it++ )
         {
-            it->PrintResults( rVariable, r_model_part, SolutionTag, value_index );
+            it->PrintResults(  mResultFile, rVariable, r_model_part, SolutionTag, value_index );
         }
 
         Timer::Stop("Writing Results");
@@ -1028,7 +1052,7 @@ public:
                     mGidGaussPointContainers.begin();
                 it != mGidGaussPointContainers.end(); it++ )
         {
-            it->PrintResults( rVariable, r_model_part, SolutionTag, value_index );
+            it->PrintResults(  mResultFile, rVariable, r_model_part, SolutionTag, value_index );
 
         }
 
@@ -1051,7 +1075,8 @@ public:
                     mGidGaussPointContainers.begin();
                 it != mGidGaussPointContainers.end(); it++ )
         {
-            it->PrintResults( rVariable, r_model_part, SolutionTag, value_index );
+         
+            it->PrintResults(  mResultFile, rVariable, r_model_part, SolutionTag, value_index );
         }
 
         Timer::Stop("Writing Results");
@@ -1065,6 +1090,9 @@ protected:
      */
     std::string mResultFileName;
     std::string mMeshFileName;
+    
+    GiD_FILE mMeshFile;
+    GiD_FILE mResultFile;
 
     /**
      * Flags
