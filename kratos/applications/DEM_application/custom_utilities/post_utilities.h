@@ -48,7 +48,7 @@ public:
 
     virtual ~PostUtilities() {};
     
-    void VelocityTrap(ModelPart& rModelPart, const array_1d<double, 3> low_point, const array_1d<double, 3> high_point, const std::string& ElementNameString){
+    array_1d<double, 3> VelocityTrap(ModelPart& rModelPart, const array_1d<double, 3> low_point, const array_1d<double, 3> high_point){
         
           ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
 
@@ -81,9 +81,16 @@ public:
 
           } //parallel for
               
-          velocity_X /= number_of_elements;
-          velocity_Y /= number_of_elements;
-          velocity_Z /= number_of_elements;
+          if (number_of_elements){
+              velocity_X /= number_of_elements;
+              velocity_Y /= number_of_elements;
+              velocity_Z /= number_of_elements;
+          }
+          array_1d<double, 3> velocity; 
+          velocity[0]= velocity_X;
+          velocity[1]= velocity_Y;
+          velocity[2]= velocity_Z;
+          return velocity;
         
     }//VelocityTrap
     
