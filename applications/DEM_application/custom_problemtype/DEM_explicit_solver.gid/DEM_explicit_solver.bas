@@ -37,8 +37,7 @@ End Elements
 *Set cond volume_CONDITIONS *elems
 *Add cond surface_CONDITIONS *elems
 *Add cond line_CONDITIONS *elems
-
-*#Add cond point_VELOCITY *nodes
+*#Add cond group_CONDITIONS *elems
 
 *if(CondNumEntities > 0)
 *# Check if some node has its X value set
