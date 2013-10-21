@@ -30,8 +30,11 @@
 #include "custom_conditions/skin_multiple_condition.hpp"
 #include "custom_conditions/wall_tip_condition.hpp"
 
-#include "custom_conditions/contact_domain_2D_condition.hpp"
-#include "custom_conditions/axisym_contact_domain_2D_condition.hpp"
+#include "custom_conditions/contact_domain_condition.hpp"
+#include "custom_conditions/contact_domain_LM_2D_condition.hpp"
+#include "custom_conditions/contact_domain_penalty_2D_condition.hpp"
+#include "custom_conditions/axisym_contact_domain_LM_2D_condition.hpp"
+#include "custom_conditions/axisym_contact_domain_penalty_2D_condition.hpp"
 
 //elements
 
@@ -91,6 +94,7 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(bool, PENALTY_CONTACT );
   KRATOS_DEFINE_VARIABLE(bool, FRICTION_ACTIVE );
   KRATOS_DEFINE_VARIABLE(double, TAU_STAB );
+  KRATOS_DEFINE_VARIABLE(double, PENALTY_PARAMETER );
   KRATOS_DEFINE_VARIABLE(double, MU_STATIC );
   KRATOS_DEFINE_VARIABLE(double, MU_DYNAMIC );
 
@@ -259,9 +263,12 @@ namespace Kratos
     const WallTipCondition mWallTipCondition2D;
     const WallTipCondition mWallTipCondition3D;
 
-    const ContactDomain2DCondition   mContactDomain2DCondition;
+    const ContactDomainLM2DCondition   mContactDomainLM2DCondition;
+    const ContactDomainPenalty2DCondition   mContactDomainPenalty2DCondition;
 
-    const AxisymContactDomain2DCondition    mAxisymContactDomain2DCondition;
+    const AxisymContactDomainLM2DCondition    mAxisymContactDomainLM2DCondition;
+    const AxisymContactDomainLM2DCondition    mAxisymContactDomainPenalty2DCondition;
+
     ///@} 
     ///@name Private Operators
     ///@{ 

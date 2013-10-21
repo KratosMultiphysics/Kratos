@@ -19,13 +19,15 @@
 
 
 // Project includes
+#include "utilities/math_utils.h"
 #include "includes/define.h"
-#include "includes/condition.h"
+#include "includes/element.h"
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 
+#include "includes/condition.h"
 
 namespace Kratos
 {
@@ -63,6 +65,13 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
     ///Tensor order 1 definition
     typedef array_1d<double, 3>    VectorType;
+    ///NodeType
+    typedef Node < 3 > NodeType;
+    ///Geometry Type
+    typedef Geometry<NodeType> GeometryType;
+    ///Element Type
+    typedef Element::ElementType ElementType;
+
 
 protected:
 
@@ -82,45 +91,36 @@ protected:
 
     typedef struct
     {
-        double Normal;        //Projection of the Traction Vector on the current normal
-        double Tangent;       //Projection of the Traction Vector on the current tangent
-	   
-    } Tensil;
-
-
-    typedef struct
-    {
         VectorType Normal;        //normal direction
         VectorType Tangent;       //tangent direction
 	   
     } SurfaceVector;
 
 
+    typedef struct
+    {
+        double Normal;        //normal component 
+        double Tangent;       //tangent component
+        	   
+    } SurfaceScalar;
+
 
     typedef struct
     {
         Flags           Options;               //calculation options
 
-        //Iteration counter:
-        int             IterationCounter;      //the number of the step iteration
-
         //Geometrical gaps:
-        double          NormalGap;             //normal gap
-        double          TangentialGap;         //tangential gap
+        SurfaceScalar   CurrentGap;             //normal and tangential gap
 
-        double          PreStepNormalGap;      //effective normal gap in previous time step configuration
-        double          PreStepTangentialGap;  //effective tangential gap in previous time step configuration
-	double          TangentialGapSign;     //sign or direction of the tangential gap
-
-        //The stabilization parameter and penalty parameter
-        double          StabilizationTau;
-	double          PenaltyParameter;
+        //The stabilization factor or penalty factor
+        double          ContactFactor;
 
         //Friction:
         double          FrictionCoefficient;   //total friction coeffitient mu
+	double          TangentialGapSign;     //sign or direction of the tangential gap
 
-        double          NormalMultiplier;      //Lagrange Multipliyer normal
-        double          TangentialMultipler;   //Lagrange Multipliyer tangential
+        SurfaceScalar   Multiplier;            //Lagrange Multipliyer normal and tangent
+        SurfaceScalar   Penalty;               //Penalty Parameter normal and tangent
 
 
         //variables of the contact element 2D
@@ -132,17 +132,13 @@ protected:
         std::vector<Vector >       Tsigma;
 
         //Geometric variables
-        SurfaceVector        PreStepSurface;    
-        SurfaceVector        ReferenceSurface;
         SurfaceVector        CurrentSurface;    
 
         std::vector<BaseLengths>   CurrentBase;    //Current Base Lengths variables
         std::vector<BaseLengths>   ReferenceBase;  //Reference Base Lengths variables
 
         //Resultant mechanical tractions
-        VectorType           TractionVector;       //Traction Vector in the reference configuration
-        Tensil               CurrentTensil;        //Tangential and Normal traction Vectors
-
+        SurfaceScalar              CurrentTensil;  //Tangential and Normal modulus of the traction vector components
       
 
     } ContactParameters;
@@ -159,13 +155,101 @@ protected:
         Matrix  DN_DX;
         Matrix  ConstitutiveMatrix;
 
-        ContactParameters Contact;
+	ContactParameters Contact;
+	    
+        //Axisymmetric
+        double  CurrentRadius;
+        double  ReferenceRadius;
 
-        std::vector<unsigned int> order;
+	//variables including all integration points
+        const GeometryType::ShapeFunctionsGradientsType* pDN_De;
+	const Matrix* pNcontainer;
+
+        GeometryType::JacobiansType j;
+	    
+        /**
+         * sets the value of a specified pointer variable
+	 */
+
+        void SetShapeFunctionsGradients(const GeometryType::ShapeFunctionsGradientsType &rDN_De)
+        {
+            pDN_De=&rDN_De;
+        };
+
+        void SetShapeFunctions(const Matrix& rNcontainer)
+        {
+            pNcontainer=&rNcontainer;
+        };
+
+	    
+	/**
+         * returns the value of a specified pointer variable
+         */
+
+	const GeometryType::ShapeFunctionsGradientsType& GetShapeFunctionsGradients()
+        {
+            return *pDN_De;
+        };
+
+        const Matrix& GetShapeFunctions()
+        {
+            return *pNcontainer;
+        };   
+
+    } GeneralVariables;
+
+
+    typedef struct
+    {
+        //Iteration counter:
+        int             IterationCounter;      //the number of the step iteration
+
+        //The stabilization parameter and penalty parameter
+        double          StabilizationFactor;
+	double          PenaltyFactor;
+
+        //Geometrical gaps:
+        SurfaceScalar        PreStepGap;             //effective normal and tangential gap in previous time step configuration
+
+	//Geometric variables
+        SurfaceVector        PreStepSurface;    
+        SurfaceVector        ReferenceSurface;
+
+        //Contact condition conectivities
         std::vector<unsigned int> nodes;
+	std::vector<unsigned int> order;
         std::vector<unsigned int> slaves;
 
+        //Resultant mechanical tractions
+	VectorType           TractionVector;       //Traction Vector in the reference configuration
+
+	//Pointer Variables
+        GeometryType*         mpMasterGeometry;
+        ElementType*          mpMasterElement;
+        Condition*            mpMasterCondition;
+        NodeType*             mpMasterNode;
+
+	/**
+         * sets the value of a specified pointer variable
+	 */
+
+	void SetMasterGeometry  (GeometryType& rGeometry){ mpMasterGeometry = &rGeometry; } 
+        void SetMasterElement   (ElementType& rElement){ mpMasterElement = &rElement; } 
+        void SetMasterCondition (ConditionType& rCondition){ mpMasterCondition = &rCondition; } 
+        void SetMasterNode      (NodeType& rNode){ mpMasterNode = &rNode; } 
+
+	/**
+         * returns the value of a specified pointer variable
+         */
+
+        GeometryType& GetMasterGeometry()   { return (*mpMasterGeometry); } 
+	ElementType& GetMasterElement()     { return (*mpMasterElement); } 
+	ConditionType& GetMasterCondition() { return (*mpMasterCondition); } 
+	NodeType& GetMasterNode()           { return (*mpMasterNode); } 
+
+
     } ContactVariables;
+
 
 
 
@@ -174,9 +258,12 @@ public:
     /// Counted pointer of ContactDomainCondition
     KRATOS_CLASS_POINTER_DEFINITION(ContactDomainCondition);
 
-    KRATOS_DEFINE_LOCAL_FLAG( PENALTY );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
+    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
+
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_FRICTION_FORCES );
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_FRICTION_STIFFNESS );
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -186,6 +273,7 @@ public:
     ContactDomainCondition() : Condition() {};
 
     ContactDomainCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+ 
     ContactDomainCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
@@ -264,6 +352,10 @@ public:
      */
 
     //SET
+    /**
+     * Set a Vector Value on the Condition Constitutive Law
+     */
+    void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
     /**
      * Set a Vector Value on the Condition Constitutive Law
      */
@@ -365,8 +457,6 @@ public:
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
 
-    void Calculate(const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo);
-
     //************************************************************************************
     //************************************************************************************
     /**
@@ -411,35 +501,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    /**
-     * Calculates the elemental contributions
-     * \f$ K^e = w\,B^T\,D\,B \f$ and
-     * \f$ r^e \f$
-     */
-    virtual void CalculateConditionalSystem(MatrixType& rLeftHandSideMatrix,
-                                            VectorType& rRightHandSideVector,
-                                            ProcessInfo& rCurrentProcessInfo,
-                                            bool CalculateStiffnessMatrixFlag,
-                                            bool CalculateResidualVectorFlag);
-    ///@}
-    ///@name Protected Operations
-    ///@{
-    ///@}
-    ///@name Protected  Access
-    ///@{
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
-private:
     /**
      * Currently selected integration methods
      */
@@ -453,175 +514,216 @@ private:
     /**
      * Variables stored in the element during the computation
      */
-
-    GeometryType::Pointer mpMasterGeometry;
-    ContactVariables      mVariables;
+   
+    ContactVariables      mContactVariables;
 
     ///@}
-    ///@name Private Operators
+    ///@name Protected Operators
     ///@{
+
+    /**
+     * Calculation of the Contact Master Nodes and Mechanical variables
+     */
+    virtual void SetMasterGeometry()
+	{
+		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
+
+	};
+
+
+    /**
+     * Calculate Tau stabilization or Penalty factor
+     */
+    virtual void CalculateContactFactor(ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
+
+	};
+
+    /**
+     * Calculation of the Contact Previous Gap
+     */
+    virtual void CalculatePreviousGap()
+	{
+		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
+
+	};
 
 
     /**
      * Initialize Variables
      */
-    void InitializeVariables ();
-
-
+    virtual void InitializeGeneralVariables (GeneralVariables& rVariables, 
+					     const ProcessInfo& rCurrentProcessInfo);
+	
+    /**
+     * Calculates condition contributions
+     * \f$ K^e = w\,B^T\,D\,B \f$ and
+     * \f$ r^e \f$
+     */
+    virtual void CalculateConditionalSystem(MatrixType& rLeftHandSideMatrix,
+                                            VectorType& rRightHandSideVector,
+                                            ProcessInfo& rCurrentProcessInfo,
+                                            Flags& rCalculationFlags);
     /**
      * Clear Nodal Forces
      */
     void ClearNodalForces ();
 
+    /**
+     * Clear Nodal Forces on Master Element
+     */
+    void ClearMasterElementNodalForces(ElementType& rMasterElement);
+
 
     /**
-     * Initialize System Matrices
+     * Set Master element information on integration points to Contact element information
      */
-    void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
-				  VectorType& rRightHandSideVector,
-				  bool CalculateStiffnessMatrixFlag,
-				  bool CalculateResidualVectorFlag );
-
-    /**
-     * Calculate Tau stabilization
-     */
-    void CalculateTauStab(ProcessInfo& rCurrentProcessInfo);
-
+    void SetContactIntegrationVariable (Vector & rContactVariable, 
+					std::vector<Vector> & rMasterVariables, 
+					const unsigned int& rPointNumber );
 
     /**
      * Calculate Condition Kinematics
      */
-    void CalculateKinematics(const double& rPointNumber,ProcessInfo& rCurrentProcessInfo);
+    virtual void CalculateKinematics(GeneralVariables& rVariables, 
+				     ProcessInfo& rCurrentProcessInfo, 
+				     const unsigned int& rPointNumber);
+
+    /**
+     * Calculation of the Contact Multipliers or Penalty Factors
+     */
+    virtual void CalculateExplicitFactors(GeneralVariables& rVariables,
+					  ProcessInfo& rCurrentProcessInfo)
+	{
+		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
+
+	};
+    /**
+     * Tangent Matrix construction methods:
+     */
+    virtual void CalculateDomainShapeN(GeneralVariables& rVariables)
+	{
+		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
+
+	};
 
 
     /**
-     * Calculation of the Deformation Gradient F
+     *  Parameters for friction law Tangent:
      */
-    void CalculateDeformationGradient(const Matrix& rDN_DX,
-                                      Matrix& rF);
+    virtual VectorType & CalculateCurrentTangent(VectorType & rTangent);
 
 
     /**
-     * Calculation of the Contact Master Nodes and Mechanical variables
+     *  Parameters for friction law Relative Tangent Velocity:
      */
-    void SetMasterGeometry();
+    virtual void CalculateRelativeVelocity(GeneralVariables& rVariables,
+					   VectorType & TangentVelocity);
 
     /**
-     * Calculation of the Contact Previous Gap
+     *  Parameters for friction law Relative Tangent Displacement:
      */
-    void CalcPreviousGap();
+    virtual void CalculateRelativeDisplacement(GeneralVariables& rVariables,
+					       VectorType & TangentDisplacement);
 
-    /**
-     * Calculation of the Contact Multipliers
-     */
-    void CalcMultipliers(ProcessInfo& rCurrentProcessInfo);
-
-    void CalcPenaltyParameters(ProcessInfo& rCurrentProcessInfo);
-
-
-    /**
-     * Util methods:
-     */
-
-  
-    inline void  CalcBaseDistances (BaseLengths& Base,VectorType& P1,VectorType& P2,VectorType& PS,VectorType& Normal);
-
-    inline VectorType & ComputeFaceNormal(VectorType &Normal, VectorType& P1, VectorType &P2);
-
-    inline VectorType & ComputeFaceTangent(VectorType &Tangent ,VectorType& P1, VectorType &P2);
-
-    inline VectorType & CalcCurrentTangent( VectorType &Tangent );
-
-    inline VectorType & ComputeFaceTangent(VectorType &Tangent ,VectorType& Normal);
-
-    inline bool CheckFictiousContacts();
-    inline bool CalculatePosition(const double x0, const double y0,
-				  const double x1, const double y1,
-				  const double x2, const double y2,
-				  const double xc, const double yc);
-
-    inline bool CalculateObtuseAngle(const double x0, const double y0,
-				     const double x1, const double y1,
-				     const double xc, const double yc);
-
-
-    inline double CalculateVol(const double x0, const double y0,
-			       const double x1, const double y1,
-			       const double x2, const double y2);
-  
 
     /**
      * Friction Parameters:
      */
-    inline void CalcRelativeVelocity     (VectorType & TangentVelocity);
+    virtual void CalculateFrictionCoefficient(GeneralVariables& rVariables,
+					      const VectorType & TangentVelocity);
 
-    inline void CalcRelativeDisplacement (VectorType & TangentDisplacement);
 
-    void CalcFrictionCoefficient (const VectorType & TangentVelocity);
+    /**
+     * Calculate Integration Weight:
+     */
+    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
 
-//************************************************************************************
-//************************************************************************************
+
+    /**
+     * Initialize System Matrices
+     */
+    virtual void InitializeSystemMatrices(MatrixType& rLeftHandSideMatrix,
+					  VectorType& rRightHandSideVector,
+					  Flags& rCalculationFlags);
+
+
+    /**
+     * Calculate LHS
+     */
+    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, 
+				    GeneralVariables& rVariables, 
+				    double& rIntegrationWeight);
+
+    /**
+     * Calculate RHS
+     */
+    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+				    GeneralVariables& rVariables, 
+				    double& rIntegrationWeight);
+
 
     /**
      * Calculation of the Material Stiffness Matrix. Km = BT * D * B
      */
-    void CalculateAndAddKm(MatrixType& rK,
-                           double& rIntegrationWeight
-                          );
+    virtual void CalculateAndAddKm(MatrixType& rLeftHandSideMatrix,
+				   GeneralVariables& rVariables,
+				   double& rIntegrationWeight);
+	    
+    /**
+     * Calculation of the Material Stiffness Matrix by components
+     */
+    virtual void CalcContactStiffness (double &Kcont,GeneralVariables& rVariables,
+				       unsigned int& ndi,unsigned int& ndj,
+				       unsigned int& idir,unsigned int& jdir)
+	{
+		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
 
-    void CalculateAndAddPenaltyKm(MatrixType& rK,
-                           double& rIntegrationWeight
-                          );
-
+	};
 
     /**
      * Calculation of the Internal Forces Vector. Fi = B * sigma
      */
-    void CalculateAndAddContactForces(VectorType& rRightHandSideVector,
-				      double& rIntegrationWeight
-                                      );
-
-    void CalculateAndAddContactPenaltyForces(VectorType& rRightHandSideVector,
-				      double& rIntegrationWeight
-				     );
+    virtual void CalculateAndAddContactForces(VectorType& rRightHandSideVector,
+					      GeneralVariables& rVariables,
+					      double& rIntegrationWeight);
 
 
 
     /**
-     * Tangent construction methods:
+     * Normal Force construction by components
      */
-    void CalcDomainShapeN();
+    virtual void CalculateNormalForce       (double &F,GeneralVariables& rVariables,
+					     unsigned int& ndi,unsigned int& idir)
+	{
+		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
 
-    void FSigmaP(std::vector<Vector > &SigmaP, VectorType& AuxVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr);
-
-    void FSigmaPnd(std::vector<Vector > &SigmaP, VectorType& AuxVector,unsigned int &ndi,unsigned int &ndj);
-
-    void CalcContactStiffness (double &Kcont,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir);
-
-    void CalcContactPenaltyStiffness (double &Kcont,unsigned int& ndi,unsigned int& ndj,unsigned int& idir,unsigned int& jdir);
-  
-
+	};
     /**
-     * Force construction methods:
+     * Tangent Stick Force construction by components
      */
-    inline void CalcNormalForce       (double &F,unsigned int& ndi,unsigned int& idir);
-    inline void CalcTangentStickForce (double &F,unsigned int& ndi,unsigned int& idir);
-    inline void CalcTangentSlipForce  (double &F,unsigned int& ndi,unsigned int& idir);
+    virtual void CalculateTangentStickForce (double &F,GeneralVariables& rVariables,
+					     unsigned int& ndi,unsigned int& idir)
+	{
+		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
 
+	};
+    /**
+     * Tangent Slip Force construction by components
+     */
+    virtual void CalculateTangentSlipForce  (double &F,GeneralVariables& rVariables,
+					     unsigned int& ndi,unsigned int& idir)
+	{
+		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
 
-     inline void CalcNormalPenaltyForce       (double &F,unsigned int& ndi,unsigned int& idir);
-     inline void CalcTangentStickPenaltyForce (double &F,unsigned int& ndi,unsigned int& idir);
-     inline void CalcTangentSlipPenaltyForce  (double &F,unsigned int& ndi,unsigned int& idir);
+	};
     ///@}
-    ///@name Private Operations
+    ///@name Protected Operations
     ///@{
-
-
     ///@}
-    ///@name Private  Access
+    ///@name Protected  Access
     ///@{
-    ///@}
-
     ///@}
     ///@name Serialization
     ///@{
@@ -631,7 +733,34 @@ private:
 
     virtual void load(Serializer& rSerializer);
 
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+    ///@}
 
+private:
+
+    ///@name Private static Member Variables
+    ///@{
+    ///@}
+    ///@name Private member Variables
+    ///@{
+    ///@}
+    ///@name Private Operators
+    ///@{
+    ///@}
+    ///@name Private Operations
+    ///@{
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
+    ///@name Serialization
+    ///@{
+    ///@}
     ///@name Private Inquiry
     ///@{
     ///@}
