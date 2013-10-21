@@ -327,7 +327,7 @@ namespace Kratos
                       
                       {  
                   
-                      alpha  = 2.0*(1.40727)*(external_sphere_area/total_equiv_area)*((double(cont_ini_neighbours_size))/11);
+                      alpha  = 1.3*(1.40727)*(external_sphere_area/total_equiv_area)*((double(cont_ini_neighbours_size))/11);
                       mcont_ini_neigh_area[skin_index] = alpha*mcont_ini_neigh_area[skin_index];
                   
                       skin_index++;
@@ -454,12 +454,13 @@ namespace Kratos
 
             // Globally defined parameters
                 double aux_norm_to_tang = 0.0;
-                
+
             if (mGlobalVariablesOption){
               
                 kn_el                                = mGlobalKn;
                 kt_el                                = mGlobalKt;
                 aux_norm_to_tang                     = mGlobalAuxNormToTang;
+
             }
 
             else if(mDempack){
@@ -473,6 +474,7 @@ namespace Kratos
                 kn_el = equiv_young*calculation_area*radius_sum_i;
                 kt_el = equiv_shear*calculation_area*radius_sum_i;
               
+
             }
             
             else
@@ -484,8 +486,9 @@ namespace Kratos
                 }
               
                 kn_el              = mMagicFactor * equiv_young * calculation_area * radius_sum_i; //MSIMSI 1: initial gap? aki dividim nomes per suma de radis.
-                kt_el              = kn_el / (2.0 + equiv_poisson + equiv_poisson);
+                kt_el              = kn_el;// / (2.0 + equiv_poisson + equiv_poisson);
                 aux_norm_to_tang   = sqrt(kt_el / kn_el);
+
 
             }
           
@@ -679,7 +682,8 @@ namespace Kratos
             AddUpForcesAndProject(LocalCoordSystem, LocalContactForce,LocalElasticContactForce,GlobalContactForce,
                                   GlobalElasticContactForce,ViscoDampingLocalContactForce,ViscoDampingGlobalContactForce,rContactForce,rElasticForce,
                                   i_neighbour_count);
-
+            
+     
             //AddPoissonContribution(LocalCoordSystem, GlobalContactForce, GlobalElasticContactForce, ViscoDampingGlobalContactForce, rContactForce, damp_forces); //MSIMSI 10
 
             
@@ -1791,15 +1795,7 @@ namespace Kratos
           rContactForce[0] += GlobalContactForce[0] + GlobalContactPoissonForce[0];
           rContactForce[1] += GlobalContactForce[1] + GlobalContactPoissonForce[1];
           rContactForce[2] += GlobalContactForce[2] + GlobalContactPoissonForce[2];
-          
-          //array_1d<double,3>& elastiqueueueueueue; 
-          //elastiqueueueueueue[0] += GlobalElasticContactForce[0]; //
-          //elastiqueueueueueue[1] += GlobalElasticContactForce[1];
-          //elastiqueueueueueue[2] += GlobalElasticContactForce[2];           //MSI: si vols exportar les forces elastiques les has de repondre
-
-          //damp_forces[0] += ViscoDampingGlobalContactForce[0];
-          //damp_forces[1] += ViscoDampingGlobalContactForce[1];            //MSI: si les vols guardar... pos ho has dactivar
-          //damp_forces[2] += ViscoDampingGlobalContactForce[2];          
+       
       }     
       
       
@@ -2028,7 +2024,8 @@ namespace Kratos
           if (this->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)==5)
                 
           {
-          
+
+            
            size_t i_neighbour_count = 0;
 
            ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
@@ -2048,9 +2045,10 @@ namespace Kratos
                             
                   double Dummy_Dummy = 0.0;
                   GeometryFunctions::norm(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module
-                                      
-                  area_vertical_centre += mcont_ini_neigh_area[i_neighbour_count]*fabs(normal_vector_on_contact[1]); //X(0), Y(1), Z(2)
+                        
                   
+                  area_vertical_centre += mcont_ini_neigh_area[i_neighbour_count]*fabs(normal_vector_on_contact[1]); //X(0), Y(1), Z(2)
+
                 }                   
                 
                 i_neighbour_count++;
@@ -2065,7 +2063,7 @@ namespace Kratos
       } //AreaDebugging
       
       
-      
+    
       
       
       
