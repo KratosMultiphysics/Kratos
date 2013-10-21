@@ -8,6 +8,7 @@
 // Project includes
 #include "utilities/timer.h"
 #include "custom_utilities/create_and_destroy.h"
+#include "custom_utilities/GeometryFunctions.h"
 
 #include "custom_elements/spheric_swimming_particle.h"
 #include "custom_elements/Particle_Contact_Element.h"
@@ -93,6 +94,108 @@ public:
           return velocity;
         
     }//VelocityTrap
+    
+    
+    
+    double QuasiStaticAdimensionalNumber(ModelPart& rParticlesModelPart,ModelPart& rContactModelPart, ProcessInfo& rCurrentProcessInfo ){
+        
+        double adimensional_value = 0.0;
+
+        ElementsArrayType& pParticleElements        = rParticlesModelPart.GetCommunicator().LocalMesh().Elements();
+        
+
+        OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pParticleElements.size(), this->GetElementPartition());          
+  
+        array_1d<double,3> particle_forces;
+
+        
+        const array_1d<double,3>& gravity         = rCurrentProcessInfo[GRAVITY];
+        
+        double total_force = 0.0;
+        
+        //#pragma omp parallel for
+        #pragma omp parallel for reduction(+:total_force)
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+            ElementsArrayType::iterator it_begin = pParticleElements.ptr_begin() + this->GetElementPartition()[k];
+            ElementsArrayType::iterator it_end   = pParticleElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+              
+                             
+              Element::GeometryType& geom = it->GetGeometry();
+              
+              if( geom(0)->pGetDof(VELOCITY_X)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Y)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Z)->IsFixed() == false)
+              {
+                
+                particle_forces  = geom(0)->FastGetSolutionStepValue(TOTAL_FORCES);
+                double mass = geom(0)->FastGetSolutionStepValue(NODAL_MASS);
+                
+                
+                particle_forces[0] += mass * gravity[0];
+                particle_forces[1] += mass * gravity[1];
+                particle_forces[2] += mass * gravity[2];
+
+                double module = 0.0;
+                GeometryFunctions::module(particle_forces, module);
+                
+                
+                total_force += module;
+                
+              } //if
+              
+            }//balls
+            
+        }//paralel
+          
+          
+        ElementsArrayType& pContactElements        = rContactModelPart.GetCommunicator().LocalMesh().Elements();
+
+        OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pContactElements.size(), this->GetElementPartition());          
+  
+        array_1d<double,3> contact_forces;
+        double total_elastic_force = 0.0;
+        
+        //#pragma omp parallel for
+        #pragma omp parallel for reduction(+:total_elastic_force)
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+            ElementsArrayType::iterator it_begin = pContactElements.ptr_begin() + this->GetElementPartition()[k];
+            ElementsArrayType::iterator it_end   = pContactElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+              
+             
+                             
+              Element::GeometryType& geom = it->GetGeometry();
+              
+              if( geom(0)->pGetDof(VELOCITY_X)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Y)->IsFixed() == false && geom(0)->pGetDof(VELOCITY_Z)->IsFixed() == false && 
+                  geom(1)->pGetDof(VELOCITY_X)->IsFixed() == false && geom(1)->pGetDof(VELOCITY_Y)->IsFixed() == false && geom(1)->pGetDof(VELOCITY_Z)->IsFixed() == false)
+              {
+                
+   
+                contact_forces  = it->GetValue(LOCAL_CONTACT_FORCE);
+                
+                double module = 0.0;
+                GeometryFunctions::module(contact_forces, module);
+                total_elastic_force += module;
+                
+              }
+              
+            } 
+ 
+        }
+   
+        if(total_elastic_force != 0.0)
+        {
+        adimensional_value =  total_force/total_elastic_force;   
+        }
+        else
+        {
+           KRATOS_ERROR(std::runtime_error,"There are no elastic forces= ", total_elastic_force)
+        }
+  
+        return adimensional_value;
+        
+    }//QuasiStaticAdimensionalNumber
     
     vector<unsigned int>&    GetElementPartition(){return (mElementPartition);};
     
