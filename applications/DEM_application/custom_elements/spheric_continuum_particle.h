@@ -65,7 +65,7 @@ namespace Kratos
       /// Pointer definition of SphericContinuumParticle
       KRATOS_CLASS_POINTER_DEFINITION(SphericContinuumParticle);
 
-      typedef WeakPointerVector<Element> ParticleWeakVectorType;  //M: l'he afegit jo.. esta be akesta?
+      typedef WeakPointerVector<Element> ParticleWeakVectorType;
       typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
       typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
       
