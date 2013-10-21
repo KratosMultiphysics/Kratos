@@ -65,6 +65,11 @@ namespace Kratos
             }
 
       }
+      
+      static inline void module( array_1d<double,3> Vector, double& distance)
+    {
+            distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
+      }
 
     static inline void VectorGlobal2Local(double LocalCoordSystem[3][3], double GlobalVector[3], double LocalVector[3])
     {
