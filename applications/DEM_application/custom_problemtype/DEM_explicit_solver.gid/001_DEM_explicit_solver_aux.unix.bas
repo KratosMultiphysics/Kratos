@@ -28,16 +28,13 @@ then
 elif [ $write_python_file = "Copy_From" ]
 then
  cp "$file_location" "$2/script.py"
- cp "$file_location" "$2/script.py"
  cp "$file_location" "$2/spheric_particle_script.py"
  cp "$file_location" "$2/continuum_spheric_particle_script.py"
 
 fi
 
-cp "$3/script_mpi.py" "$2/"
-cp "$3/spheric_particle_script.py" "$2/"
-cp "$3/continuum_spheric_particle_script.py" "$2/"
 cp "$3/pressure_script.py" "$2/"
+cp "$3/load_graf.dem" "$2/"
 
 echo "Running on: " >& "$2/$1.info"
 echo $OMP_NUM_THREADS >& "$2/$1.info"
