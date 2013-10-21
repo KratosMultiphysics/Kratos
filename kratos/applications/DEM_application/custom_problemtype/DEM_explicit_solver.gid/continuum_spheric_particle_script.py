@@ -13,7 +13,6 @@ proc = DEM_procedures.Procedures(Param)
 
 import pressure_script as Press
 
-
 #---------------------MODEL PART KRATOS AND GID.IO ------------------------------------------------------------------
 
 # Defining a model part for the solid part
@@ -141,20 +140,23 @@ if (Param.FixVelocitiesOption == 'ON'):
 
 balls_model_part.ProcessInfo.SetValue(STEP_FIX_VELOCITIES,int(step_to_fix_velocities))
 
+if( (Param.ContinuumOption == "ON")  and ( (Param.GraphOption =="ON") or (Param.ConcreteTestOption =="ON")) ):
+  
+    (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = proc.ListDefinition(balls_model_part,solver)  # defines the lists where we measure forces
+
+    strain=0.0; total_stress = 0.0; first_time_entry = 1
+    # for the graph plotting    
+    velocity_node_y = 0.0
+    height = 0.3
+    diameter = 0.15
+  
+
 if(Param.ConcreteTestOption =="ON"):
   
   if(Param.PredefinedSkinOption == "ON" ):
     print "ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF"
-    
-  (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = proc.ListDefinition(balls_model_part,solver)  # defines the lists where we measure forces
 
   (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = proc.CylinderSkinDetermination(balls_model_part,solver,Param) # defines the skin and areas
-
-  strain=0.0; total_stress = 0.0; first_time_entry = 1
-  # for the graph plotting    
-  velocity_node_y = 0.0
-  height = 0.3
-  diameter = 0.15
   
   if ( (Param.TriaxialOption == "ON") and (Pressure != 0.0) ):
 
@@ -174,21 +176,26 @@ solver.Initialize()
 
 print 'Initialitzation Complete' + '\n'
 
-if (Param.ConcreteTestOption =="ON"):
+if (Param.GraphOption =="ON"):
   graph_export = open("strain_stress_data.csv",'w');
+  if (Param.PoissonMeasure =="ON"):
+    graph_export_poisson = open("poisson.csv",'w');
 
 #Adding stress and strain lists
 strainlist=[]; strainlist.append(0.0)
 stresslist=[]; stresslist.append(0.0)
 
-if(Param.ContinuumOption =="ON" and Param.ConcreteTestOption =="ON"):
+if(Param.ContinuumOption =="ON" and Param.GraphOption =="ON"):
   
-  (Y_mean_bot,counter_bot) = proc.MeasureBOT(solver)
-  (Y_mean_top,counter_top) = proc.MeasureTOP(solver)
-  
-  ini_height = Y_mean_top/counter_top - Y_mean_bot/counter_bot
+  #measuring height:
+
+  mean_top = PreUtilities(balls_model_part).MeasureTopHeigh(balls_model_part)
+  mean_bot = PreUtilities(balls_model_part).MeasureBotHeigh(balls_model_part)
+
+  ini_height = mean_top - mean_bot
   
   height = ini_height
+
 #
   print ('Initial Height of the Model: ' + str(ini_height)+'\n')
 
@@ -238,7 +245,33 @@ print ('Main loop starts at instant: ' + str(initial_pr_time) + '\n')
 
 print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n' )
 
+left_nodes = list()
+right_nodes = list()
 
+xleft_weight  = 0.0         
+xright_weight  = 0.0
+
+left_counter = 0.0
+right_counter = 0.0
+
+if(Param.PoissonMeasure == "ON"):
+        
+      for node in balls_model_part.Nodes:
+        
+        if (node.GetSolutionStepValue(GROUP_ID)==4):
+          
+           left_nodes.append(node)
+           xleft_weight = +(node.X0 - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+           left_counter = +node.GetSolutionStepValue(RADIUS)
+           
+        elif(node.GetSolutionStepValue(GROUP_ID)==8):
+          
+           right_nodes.append(node)
+           xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+           right_counter = +node.GetSolutionStepValue(RADIUS)
+           
+      width_ini = xright_weight/right_counter - xleft_weight/left_counter
+        
 
 while (time < Param.FinalTime):
  
@@ -261,6 +294,9 @@ while (time < Param.FinalTime):
         print 'Real time calculation: ' + str(timer.time() - initial_real_time)
         print 'Percentage Completed: '  + str(percentage) + ' %'
         print "TIME STEP = "            + str(step) + '\n'
+        monitoring = PostUtilities().QuasiStaticAdimensionalNumber(balls_model_part,contact_model_part,balls_model_part.ProcessInfo)
+        print "The quasi-static-adimensional-number is:  "            + str(monitoring) + '\n'
+        print "The measured stiffness is:  "            + str(total_stress/strain/1e6) + "Mpa" + '\n'
         sys.stdout.flush()
         
         prev_time = (timer.time() - initial_real_time)
@@ -285,14 +321,16 @@ while (time < Param.FinalTime):
     total_force = 0.0
 
 
-    if( Param.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and Param.ConcreteTestOption =="ON"):
+    if( Param.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and Param.GraphOption =="ON"):
      
       if(first_time_entry):
-        (Y_mean_bot,counter_bot) = proc.MeasureBOT(solver)
-        (Y_mean_top,counter_top) = proc.MeasureTOP(solver)
- 
-        ini_height2 = Y_mean_top/counter_top - Y_mean_bot/counter_bot
-         
+        #measuring height:
+
+        mean_top = PreUtilities(balls_model_part).MeasureTopHeigh(balls_model_part)
+        mean_bot = PreUtilities(balls_model_part).MeasureBotHeigh(balls_model_part)
+
+        ini_height2 = mean_top - mean_bot
+
         print 'Current Height after confinement: ' + str(ini_height2) + '\n'
         print 'Axial strain due to the confinement: ' + str( 100*(ini_height2-ini_height)/ini_height ) + ' %' +'\n'
         height = ini_height2
@@ -308,18 +346,38 @@ while (time < Param.FinalTime):
       strain += -2*velocity_node_y*dt/height
 
       strainlist.append(strain)
-
       for node in sup_layer_fm:
-      
+
         force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES,0)[0]
         force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES,0)[1]
         force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES,0)[2]
-
-        total_force += force_node_y
         
-      total_stress = total_force/(math.pi*75*75)
-      stresslist.append(total_stress)
-  
+        total_force += force_node_y
+
+      total_stress = total_force/(Param.MeasuringSurface*1000000)
+      
+      if(Param.PoissonMeasure == "ON"):
+                  
+        xleft_weight  = 0.0         
+        xright_weight  = 0.0
+
+        left_counter = 0.0
+        right_counter = 0.0
+
+        for node in left_nodes:
+          
+          xleft_weight = +(node.X - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+          left_counter = +node.GetSolutionStepValue(RADIUS)
+          
+        for node in right_nodes:
+          
+          xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+          right_counter = +node.GetSolutionStepValue(RADIUS)
+        
+        width_now = xright_weight/right_counter - xleft_weight/left_counter
+
+        measured_poisson =  ((width_now-width_ini)/width_ini)/strain
+        #print( (width_now/0.05)/strain )
     os.chdir(list_path)    
     multifile.write(Param.problem_name + '_' + str(time) + '.post.bin\n')   
     os.chdir(main_path)
@@ -380,8 +438,11 @@ while (time < Param.FinalTime):
               
         time_old_print = time
     
-    if (Param.ConcreteTestOption =="ON"):
+    if (Param.GraphOption =="ON"):
       graph_export.write(str(strain)+"  "+str(total_stress)+'\n')
+      if (Param.PoissonMeasure =="ON"):
+        graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
+      
          
     step += 1
 #-------------------------------------------------------------------------------------------------------------------------------------
