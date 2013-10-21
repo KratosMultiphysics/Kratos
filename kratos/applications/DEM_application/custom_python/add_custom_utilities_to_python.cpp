@@ -58,7 +58,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/create_and_destroy.h"
 #include "custom_utilities/calculate_global_physical_properties.h"
+#include "custom_utilities/pre_utilities.h"
 #include "custom_utilities/post_utilities.h"
+
 
 
 namespace Kratos{
@@ -72,6 +74,7 @@ typedef std::vector<array_1d<double, 3 > >::iterator ComponentIteratorType;
 
 void  AddCustomUtilitiesToPython(){
     using namespace boost::python;
+    
       class_<ParticleCreatorDestructor, boost::noncopyable >
         ("ParticleCreatorDestructor", init<>())
         .def("NodeCreator", &ParticleCreatorDestructor::NodeCreator)
@@ -106,10 +109,19 @@ void  AddCustomUtilitiesToPython(){
         .def("CalculateTotalMomentum", &SphericElementGlobalPhysicsCalculator::CalculateTotalMomentum)
         .def("CalulateTotalAngularMomentum", &SphericElementGlobalPhysicsCalculator::CalulateTotalAngularMomentum)
         ;
+
+      class_<PreUtilities, boost::noncopyable >
+        ("PreUtilities", init<ModelPart&>())
+        .def("MeasureTopHeigh", &PreUtilities::MeasureTopHeight)        
+        .def("MeasureBotHeigh", &PreUtilities::MeasureBotHeight) 
+        ;
+
      class_<PostUtilities, boost::noncopyable >
         ("PostUtilities", init<>())
-        .def("VelocityTrap", &PostUtilities::VelocityTrap)        
+        .def("VelocityTrap", &PostUtilities::VelocityTrap)
+        .def("QuasiStaticAdimensionalNumber", &PostUtilities::QuasiStaticAdimensionalNumber)     
         ;
+
   
     }
 }  // namespace Python.
