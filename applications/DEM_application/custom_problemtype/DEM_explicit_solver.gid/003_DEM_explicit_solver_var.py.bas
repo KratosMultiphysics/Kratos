@@ -334,6 +334,12 @@ GlobalFrictionAngle              = *GenData(Global_FRI_ANG)
 StressStrainOperationsOption     = "*GenData(Stress_Strain_Operations)"
 ContactMeshOption                = "*GenData(Contact_Mesh)"
 ConcreteTestOption               = "*GenData(Concrete_Test)"
+GraphOption                      = "*GenData(Graph_Option)"
+PoissonMeasure                   = "*GenData(Poisson_Measure)"
+*format "%10.5e"
+MeasuringSurface                 = *GenData(Measuring_Surface)
+*format "%10.5e"
+MeasuringWidth                   = *GenData(Measuring_Width)
 RealTimeGraphOption              = "*GenData(Real_Time_Graph)"
 TriaxialOption                   = "*GenData(Triaxial_Option)"
 *format "%10.5e"
