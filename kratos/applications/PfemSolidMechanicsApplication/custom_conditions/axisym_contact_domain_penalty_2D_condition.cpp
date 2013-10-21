@@ -1,0 +1,297 @@
+//
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Last modified by:    $Author:                JMCarbonell $
+//   Date:                $Date:                    July 2013 $
+//   Revision:            $Revision:                      0.0 $
+//
+//
+
+// System includes
+
+// External includes
+
+// Project includes
+#include "includes/kratos_flags.h"
+#include "custom_conditions/axisym_contact_domain_penalty_2D_condition.hpp"
+
+#include "pfem_solid_mechanics_application.h"
+
+
+namespace Kratos
+{
+
+
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
+
+AxisymContactDomainPenalty2DCondition::AxisymContactDomainPenalty2DCondition( IndexType NewId, GeometryType::Pointer pGeometry )
+    : ContactDomainPenalty2DCondition( NewId, pGeometry )
+{
+    //DO NOT ADD DOFS HERE!!!
+}
+
+
+//******************************CONSTRUCTOR*******************************************
+//************************************************************************************
+
+AxisymContactDomainPenalty2DCondition::AxisymContactDomainPenalty2DCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+    : ContactDomainPenalty2DCondition( NewId, pGeometry, pProperties )
+{
+    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+}
+
+
+//******************************COPY CONSTRUCTOR**************************************
+//************************************************************************************
+
+AxisymContactDomainPenalty2DCondition::AxisymContactDomainPenalty2DCondition( AxisymContactDomainPenalty2DCondition const& rOther)
+    :ContactDomainPenalty2DCondition(rOther)
+{
+}
+
+
+//*******************************ASSIGMENT OPERATOR***********************************
+//************************************************************************************
+
+AxisymContactDomainPenalty2DCondition&  AxisymContactDomainPenalty2DCondition::operator=(AxisymContactDomainPenalty2DCondition const& rOther)
+{
+    ContactDomainPenalty2DCondition::operator=(rOther);
+
+    return *this;
+}
+
+
+//*********************************OPERATIONS*****************************************
+//************************************************************************************
+
+Condition::Pointer AxisymContactDomainPenalty2DCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+{
+    return Condition::Pointer(new AxisymContactDomainPenalty2DCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+}
+
+
+//*******************************DESTRUCTOR*******************************************
+//************************************************************************************
+
+
+AxisymContactDomainPenalty2DCondition::~AxisymContactDomainPenalty2DCondition()
+{
+}
+
+
+//************* COMPUTING  METHODS
+//************************************************************************************
+//************************************************************************************
+
+
+//************************************************************************************
+//************************************************************************************
+
+void AxisymContactDomainPenalty2DCondition::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+{
+    GeometryType & MasterGeometry = mContactVariables.GetMasterGeometry();
+
+    const unsigned int number_of_nodes = MasterGeometry.size();
+    const unsigned int dimension       = MasterGeometry.WorkingSpaceDimension();
+
+    unsigned int voigtsize = 4;
+
+    rVariables.F.resize( dimension, dimension );
+
+    rVariables.ConstitutiveMatrix.resize( voigtsize, voigtsize );
+
+    rVariables.StressVector.resize( voigtsize );
+
+    rVariables.DN_DX.resize( number_of_nodes, dimension );
+
+    //set variables including all integration points values
+
+    //reading shape functions
+    rVariables.SetShapeFunctions(GetGeometry().ShapeFunctionsValues( mThisIntegrationMethod ));
+
+    //reading shape functions local gradients
+    rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
+
+    //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
+    rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
+
+}
+
+//***********************************************************************
+//***********************************************************************
+void AxisymContactDomainPenalty2DCondition::CalculateRadius(double & rCurrentRadius,
+						       double & rReferenceRadius,
+						       const Vector& rN)
+							  
+
+{
+
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    
+    rCurrentRadius=0;
+    rReferenceRadius=0;
+
+    if ( dimension == 2 )
+    {	
+        for ( unsigned int i = 0; i < number_of_nodes; i++ )
+        {
+            //Displacement from the reference to the current configuration
+            array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+            array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;  
+	    array_1d<double, 3 > & ReferencePosition    = GetGeometry()[i].Coordinates();
+	    array_1d<double, 3 > CurrentPosition        = ReferencePosition + DeltaDisplacement;
+	    
+	    rCurrentRadius   += CurrentPosition[0]*rN[i];
+	    rReferenceRadius += ReferencePosition[0]*rN[i];
+            //std::cout<<" node "<<i<<" -> DeltaDisplacement : "<<DeltaDisplacement<<std::endl;
+        }
+    }
+
+
+    if ( dimension == 3 )
+    {
+      std::cout<<" AXISYMMETRIC case and 3D is not possible "<<std::endl;
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+
+//*********************************COMPUTE KINEMATICS*********************************
+//************************************************************************************
+
+
+void AxisymContactDomainPenalty2DCondition::CalculateKinematics( GeneralVariables& rVariables, ProcessInfo& rCurrentProcessInfo, const unsigned int& rPointNumber )
+{
+    KRATOS_TRY
+
+
+    ElementType&  MasterElement  = mContactVariables.GetMasterElement();
+    GeometryType& MasterGeometry = mContactVariables.GetMasterGeometry();
+      
+    //Get the parent coodinates derivative [dN/d£]
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = MasterGeometry.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
+
+    //Get integration points number
+    unsigned int integration_points_number = MasterGeometry.IntegrationPointsNumber( MasterElement.GetIntegrationMethod() );
+
+    unsigned int voigtsize = 4;
+    int dimension = GetGeometry().WorkingSpaceDimension();
+
+    //Get the shape functions for the order of the integration method [N]
+    const Matrix& Ncontainer = rVariables.GetShapeFunctions();
+
+    //Set Shape Functions Values for this integration point
+    rVariables.N=row( Ncontainer, rPointNumber);
+
+
+    //Calculate radius
+    rVariables.CurrentRadius = 0;
+    rVariables.ReferenceRadius = 0;
+    CalculateRadius( rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N );
+
+    //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
+    Matrix Invj;
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ );
+
+    //Compute cartesian derivatives
+    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , Invj );   
+
+
+    //Get Current DeformationGradient
+    std::vector<Matrix> DeformationGradientVector ( integration_points_number );
+    DeformationGradientVector[rPointNumber]=identity_matrix<double>( dimension );
+    MasterElement.GetValueOnIntegrationPoints(DEFORMATION_GRADIENT,DeformationGradientVector,rCurrentProcessInfo);
+    rVariables.F = DeformationGradientVector[rPointNumber];
+
+    rVariables.detF = MathUtils<double>::Det(rVariables.F);
+
+    //Get Current Stress
+    std::vector<Vector> StressVector ( integration_points_number );
+    StressVector[rPointNumber]=ZeroVector(voigtsize);
+    MasterElement.GetValueOnIntegrationPoints(PK2_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
+    
+    SetContactIntegrationVariable( rVariables.StressVector, StressVector, rPointNumber );
+
+
+    //std::cout<<" StressVector "<<rVariables.StressVector<<std::endl;
+    
+    //Get Current Strain
+    std::vector<Matrix> StrainTensor ( integration_points_number );
+    StrainTensor[rPointNumber]=ZeroMatrix(dimension,dimension);
+    MasterElement.GetValueOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_TENSOR,StrainTensor,rCurrentProcessInfo);
+    std::vector<Vector> StrainVector ( integration_points_number );
+    for(unsigned int i=1; i<integration_points_number; i++)
+    {
+	    StrainVector[i] = MathUtils<double>::StrainTensorToVector( StrainTensor[i], voigtsize );
+    }
+
+    SetContactIntegrationVariable( rVariables.StrainVector, StrainVector, rPointNumber );
+
+
+    //Get Current Constitutive Matrix
+    std::vector<Matrix> ConstitutiveMatrix(mConstitutiveLawVector.size());   
+    MasterElement.CalculateOnIntegrationPoints(CONSTITUTIVE_MATRIX,ConstitutiveMatrix,rCurrentProcessInfo);
+
+    rVariables.ConstitutiveMatrix = ConstitutiveMatrix[rPointNumber];
+
+    //Calculate Explicit Lagrange Multipliers or Penalty Factors
+    this->CalculateExplicitFactors( rVariables, rCurrentProcessInfo );
+
+
+    KRATOS_CATCH( "" )
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void AxisymContactDomainPenalty2DCondition::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+{
+
+  double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
+
+  //contributions to stiffness matrix calculated on the reference config
+  this->CalculateAndAddKm( rLeftHandSideMatrix, rVariables, IntegrationWeight );
+
+  //KRATOS_WATCH(rLeftHandSideMatrix)
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void AxisymContactDomainPenalty2DCondition::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight)
+{
+  double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
+
+  //contribution to contact forces
+  this->CalculateAndAddContactForces(rRightHandSideVector, rVariables, IntegrationWeight);
+
+  //KRATOS_WATCH(rRightHandSideVector)
+}
+
+//************************************************************************************
+//************************************************************************************
+
+
+void AxisymContactDomainPenalty2DCondition::save( Serializer& rSerializer ) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ContactDomainPenalty2DCondition );
+}
+
+void AxisymContactDomainPenalty2DCondition::load( Serializer& rSerializer )
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ContactDomainPenalty2DCondition );
+}
+
+
+
+} // Namespace Kratos
+
+
