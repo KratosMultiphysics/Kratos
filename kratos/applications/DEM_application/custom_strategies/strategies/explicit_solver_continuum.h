@@ -133,6 +133,7 @@ namespace Kratos
          
           // 4. Set Initial Contacts
           BaseType::InitializeSolutionStep();
+
           
           if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
             
@@ -212,12 +213,12 @@ namespace Kratos
               if(rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR][i]==1)
               {
                 rCurrentProcessInfo[ACTIVATE_SEARCH]=1;
+                std::cout << "From now on, the search is activated becouse some failure occurred " <<std::endl;   
+                break;
                 
-                std::cout << "From now on, the search is activated becouse some failure occurred " <<std::endl;
-                
-              }
-              
-            }
+               }
+             }
+             
           }
 
           // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box
@@ -248,13 +249,21 @@ namespace Kratos
           if(time_step == 2)
           {
             
-            double area_total = 0.0;
+            std::vector<double> total_area_vector (this->GetNumberOfThreads());
             
-            this->AreaDebugging(area_total);
+            double total_area = 0.0;
             
-            KRATOS_WATCH("                 ")
-            KRATOS_WATCH(area_total)
-            KRATOS_WATCH("                 ")
+            this->AreaDebugging(total_area_vector);
+
+            for (int i=0 ; i<this->GetNumberOfThreads(); i++)
+            {
+              total_area += total_area_vector[i];
+              
+            //std::cout<<"The total measured area is: "<<total_area_vector[OpenMPUtils::ThisThread()]<<std::endl;
+            }
+            
+            std::cout<<"The total measured area is: "<<total_area<<std::endl;
+            std::cout<<" "<<std::endl;
           }
           
           /*      
@@ -836,7 +845,7 @@ namespace Kratos
         KRATOS_CATCH("")
       }
       
-      void AreaDebugging(double& total_area)
+      void AreaDebugging(std::vector<double>& total_area_vector)
         {
             KRATOS_TRY
 
@@ -844,14 +853,13 @@ namespace Kratos
 
             ModelPart& r_model_part             = BaseType::GetModelPart();
             ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+            
             rCurrentProcessInfo[AREA_VERTICAL_CENTRE] = 0.0;
             
             ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
 
             OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
-            
-            
             #pragma omp parallel for
             for (int k = 0; k < this->GetNumberOfThreads(); k++){
                 typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
@@ -860,10 +868,10 @@ namespace Kratos
                 for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
                       
                         double partial_area = 0.0;
-                        
+
                         it->Calculate(LOCAL_CONTACT_AREA_HIGH, partial_area , rCurrentProcessInfo);
                         
-                        total_area += partial_area;
+                        total_area_vector[OpenMPUtils::ThisThread()] += partial_area;
                         
                       
                 } // loop over particles
