@@ -97,7 +97,7 @@ namespace Kratos
 		    StressVector=ZeroVector(StrainSize);
 		    DeformationGradient=identity_matrix<double>( dimension );
 
-		    if(ic->Is(CONTACT) && ic->Is(ContactDomain2DCondition::ACTIVE)){
+		    if(ic->Is(CONTACT) && ic->Is(ACTIVE)){
 		      
 		      //std::cout<<" Transfer: Cond: "<<ic->Id()<<" is Active "<<std::endl;
 
