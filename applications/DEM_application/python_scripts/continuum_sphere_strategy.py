@@ -598,4 +598,3 @@ class ExplicitStrategy:
     def Solve(self):
         (self.solver).Solve()
 
-    #######################################################################
