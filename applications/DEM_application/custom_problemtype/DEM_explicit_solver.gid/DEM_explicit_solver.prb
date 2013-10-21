@@ -445,6 +445,17 @@ VALUE: OFF
 DEPENDENCIES: (OFF,HIDE,Triaxial_Option,#CURRENT#,HIDE,Real_Time_Graph,#CURRENT#,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Initial_Pressure_Aplication_Time,#CURRENT#,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#,HIDE,RADIAL_DISPLACEMENT,#CURRENT#)(ON,RESTORE,Triaxial_Option,#CURRENT#,RESTORE,Real_Time_Graph,#CURRENT#,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#)
 QUESTION: Real_Time_Graph#CB#(ON,OFF)
 VALUE: OFF
+QUESTION: Graph_Option#CB#(ON,OFF)
+VALUE: ON
+DEPENDENCIES: (OFF,HIDE,Measuring_Surface,#CURRENT#,HIDE,Measuring_Width,#CURRENT#,HIDE,Poisson_Measure,#CURRENT#)(ON,RESTORE,Measuring_Surface,#CURRENT#,RESTORE,Measuring_Width,#CURRENT#,RESTORE,Poisson_Measure,#CURRENT#)
+QUESTION: Measuring_Surface
+HELP:in meters
+VALUE: 0.01767145868
+QUESTION: Poisson_Measure#CB#(ON,OFF)
+VALUE: ON
+QUESTION: Measuring_Width
+HELP:in meters
+VALUE: 0.05
 QUESTION: Triaxial_Option#CB#(ON,OFF)
 VALUE: OFF
 DEPENDENCIES: (OFF,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Initial_Pressure_Aplication_Time,#CURRENT#,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#)(ON,RESTORE,Confinement_Pressure,#CURRENT#,RESTORE,Initial_Pressure_Aplication_Time,#CURRENT#,RESTORE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#)
