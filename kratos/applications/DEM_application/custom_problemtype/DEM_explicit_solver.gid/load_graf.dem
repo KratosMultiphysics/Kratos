@@ -1,0 +1,47 @@
+
+set terminal pngcairo size 1200,900 enhanced font 'Verdana,10'
+
+set style line 1 lc rgb '#8b1a0e' pt 1 ps 1 lt 1 lw 2 # --- red
+set style line 2 lc rgb '#5e9c36' pt 6 ps 1 lt 1 lw 2 # --- green
+
+set style line 11 lc rgb '#808080' lt 1
+set border 3 back ls 11
+set tics nomirror
+
+set style line 12 lc rgb '#808080' lt 0 lw 1
+set grid back ls 12
+
+set output 'UCS.png'
+
+
+set boxwidth 0.8 absolute
+set style fill   solid 1.00 border
+
+set key inside right top vertical Right noreverse noenhanced autotitles columnhead nobox
+set key noinvert samplen 1 spacing 1 width 0 height 0 
+set xtics border in scale 0,0 nomirror norotate  offset character 0, 0, 0  
+set xtics  norangelimit font ",8"
+set xtics   ()
+set ytics border in scale 0,0 mirror norotate  offset character 0, 0, 0  
+set ytics autofreq  norangelimit font ",8"
+
+
+
+set xlabel '{/Helvetica-Italic Vertical Strain  }'
+set ylabel '{/Helvetica-Italic Vertical Stress X-axis (MPa)}'
+
+#set yrange [ 0.00000 : 800000. ] noreverse nowriteback
+#set lmargin  3
+#set bmargin  0
+#set rmargin  3
+#set tmargin  0
+set xrange [0:0.002]
+#set yrange [0:0.00032]
+
+
+set title "Kratos Strain-Stress plot"
+
+plot   'strain_stress_data.csv'  every 100 with lines lc 7  title 'KRATOS'      
+
+        
+reset
