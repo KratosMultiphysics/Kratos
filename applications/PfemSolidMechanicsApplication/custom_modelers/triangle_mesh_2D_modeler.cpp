@@ -153,7 +153,7 @@ namespace Kratos
 	//std::cout<<" MeshId "<<MeshId<<" remesh "<<mVariables[MeshId].remesh<<std::endl;
 
 	if(mVariables[MeshId].remesh)
-	  rModelPart.GetMesh(MeshId).Set(Modeler::REMESH );
+	  rModelPart.GetMesh(MeshId).Set( Modeler::REMESH );
 	else
 	  rModelPart.GetMesh(MeshId).Reset( Modeler::REMESH );
 
@@ -205,7 +205,7 @@ namespace Kratos
 
 
     MeshDataTransferUtilities    MeshDataTransfer;
-    LaplacianSmoothing  MeshLocation(rModelPart);
+    LaplacianSmoothing   MeshGeometricSmooth(rModelPart);
 
 	
     bool remesh_performed=false;
@@ -332,7 +332,7 @@ namespace Kratos
       for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
 	{
 	  if(mVariables[MeshId].mesh_smoothing){
-	    //MeshLocation.ApplyMeshSmoothing(rModelPart,LaplacianSmoothing::SMOOTH_ALL,MeshId);
+	    //MeshGeometricSmooth.ApplyMeshSmoothing(rModelPart,LaplacianSmoothing::SMOOTH_ALL,MeshId);
 	  }
 		  
 	  if(mVariables[MeshId].jacobi_smoothing ){
@@ -2167,8 +2167,8 @@ namespace Kratos
     //5) Laplacian Smoothing
     //if(rVariables.smoothing && rVariables.remesh){
     if(rVariables.mesh_smoothing){
-      LaplacianSmoothing  MeshLocation(rModelPart);
-      MeshLocation.ApplyMeshSmoothing(rModelPart,rVariables.PreservedElements,out,list_of_element_vertices,MeshId);
+      LaplacianSmoothing  MeshGeometricSmooth(rModelPart);
+      MeshGeometricSmooth.ApplyMeshSmoothing(rModelPart,rVariables.PreservedElements,out,list_of_element_vertices,MeshId);
     }
     //*******************************************************************
 
