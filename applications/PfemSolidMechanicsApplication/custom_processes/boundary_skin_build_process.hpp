@@ -529,7 +529,7 @@ namespace Kratos
 			for(ModelPart::ElementsContainerType::iterator ie = mr_model_part.ElementsBegin(MeshId); ie != mr_model_part.ElementsEnd(MeshId); ie++)
 			{
 	  
-				/*each face is opposite to the corresponding node number so
+				/*each face is opposite to the corresponding node number in 2D so
 				  0 ----- 1 2
 				  1 ----- 2 0
 				  2 ----- 0 1
@@ -546,7 +546,8 @@ namespace Kratos
 				rGeom.NodesInFaces(lpofa);   
 	    
 				//unsigned int size=rGeom.size();
-	      
+
+				//loop on neighbour elements of an element
 				unsigned int i=0;
 				for(WeakPointerVector< Element >::iterator ne = rE.begin(); ne!=rE.end(); ne++)
 				{
@@ -561,53 +562,60 @@ namespace Kratos
 	
 						//Get the correct ReferenceCondition
 						Condition::Pointer pBoundaryCondition;
-						bool cond=false;
+						bool condition_found = false;
+						bool point_condition = false;
 
 						
 						for(ModelPart::ConditionsContainerType::iterator ic = m_conditions.begin(); ic!= m_conditions.end(); ic++)
 						{
 							Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
-			
+							
 							if( FindCondition(rConditionGeom,rGeom,lpofa,i) ){
-			  
 							    pBoundaryCondition = (*(ic.base())); //accessing boost::shared_ptr  get() to obtain the raw pointer
 							    PreservedConditions[ic->Id()-1] += 1;
-							    cond =true;
+							    condition_found = true;
+							    if( rConditionGeom.PointsNumber() == 1 )
+  								point_condition = true;						
 							    break;
 							}
+																	
 						}
 
-						//Generate condition
-						Condition::NodesArrayType face;
-						face.reserve(sizei);
-						for(int j=1; j<sizei; j++)
-						{
-							face.push_back(rGeom(lpofa(j,i)));
-						}
+						if( !point_condition ){
+
+							//Generate condition
+							Condition::NodesArrayType face;
+							face.reserve(sizei);
+							for(int j=1; j<sizei; j++)
+							{
+								face.push_back(rGeom(lpofa(j,i)));
+							}
 				    
-						id +=1;
+							id +=1;
 
-						Condition::GeometryType::Pointer vertices = Condition::GeometryType::Pointer(new Geometry< Node<3> >(face) );
-						Condition::Pointer p_cond;
-						if(cond)
-						{
-							p_cond = pBoundaryCondition->Create(id, face, properties);
-						}
-						else
-						{
-						  //							pBoundaryCondition = new Condition(id,vertices);
-						  p_cond =  Condition::Pointer(new Condition(id,vertices,properties) ); //pBoundaryCondition->Create(id, vertices, properties);
-							//	delete pBoundaryCondition;
+							Condition::GeometryType::Pointer vertices = Condition::GeometryType::Pointer(new Geometry< Node<3> >(face) );
+							Condition::Pointer p_cond;
+							if(condition_found)
+							{
+								p_cond = pBoundaryCondition->Create(id, face, properties);
+							}
+							else
+							{
+								//							pBoundaryCondition = new Condition(id,vertices);
+								p_cond =  Condition::Pointer(new Condition(id,vertices,properties) ); //pBoundaryCondition->Create(id, vertices, properties);
+								//	delete pBoundaryCondition;
 
-							//p_cond = mr_reference_condition.Create(id, face, properties);
-						}
+								//p_cond = mr_reference_condition.Create(id, face, properties);
+							}
  
-						//usually one MasterElement and one MasterNode in 2D in 3D can be more than one
-						p_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
-						p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );
+							//usually one MasterElement and one MasterNode in 2D in 3D can be more than one
+							p_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
+							p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );
 
-						//std::cout<<" Set preserved condition found "<<id<<std::endl;
-						mr_model_part.Conditions(MeshId).push_back(p_cond);
+							//std::cout<<" Set preserved condition found "<<id<<std::endl;
+							mr_model_part.Conditions(MeshId).push_back(p_cond);
+
+						}
 
 					}
 					
@@ -706,11 +714,11 @@ namespace Kratos
 			for(ModelPart::ElementsContainerType::iterator ie = mr_model_part.ElementsBegin(MeshId); ie != mr_model_part.ElementsEnd(MeshId); ie++)
 			{
 	  
-				/*each face is opposite to the corresponding node number so
+				/*each face is opposite to the corresponding node number so in 2D (triangles):
 				  0 ----- 1 2
 				  1 ----- 2 0
 				  2 ----- 0 1
-				*/
+				*/ 
 
 				//finding boundaries and creating the "skin"
 				//
@@ -724,6 +732,7 @@ namespace Kratos
 	    
 				//unsigned int size=rGeom.size();
 	      
+				//loop on neighbour elements of an element
 				unsigned int i=0;
 				for(WeakPointerVector< Element >::iterator ne = rE.begin(); ne!=rE.end(); ne++)
 				{
@@ -752,7 +761,7 @@ namespace Kratos
  
 						//Get the correct ReferenceCondition
 						Condition::Pointer pBoundaryCondition;
-						//bool cond=false;
+						bool point_condition = false;
 						
 						for(ModelPart::ConditionsContainerType::iterator ic = m_conditions.begin(); ic!= m_conditions.end(); ic++)
 						  {
@@ -764,15 +773,19 @@ namespace Kratos
 						      pBoundaryCondition = (*(ic.base())); 
 						      p_cond->SetCondition(pBoundaryCondition);
 						      PreservedConditions[ic->Id()-1] += 1;
+
+						      if( rConditionGeom.PointsNumber() == 1 )
+							      point_condition = true;						
+
 						    }
 
 						  }
 
-
-						//usually one MasterElement and one MasterNode in 2D in 3D can be more than one
-						p_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
-						p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );
-
+						if( !point_condition ){
+						    //usually one MasterElement and one MasterNode in 2D; in 3D can be more than one -> it has to be extended to 3D
+						    p_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
+						    p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );
+						}
 						//std::cout<<" Set preserved condition found "<<id<<std::endl;
 						mr_model_part.Conditions(MeshId).push_back(p_cond);
 
