@@ -3801,7 +3801,7 @@ namespace Kratos
 	int Id=ie->Id() -1 ;
 
 	ModelPart::ElementsContainerType::iterator el_neighb;
-	/*each face is opposite to the corresponding node number so
+	/*each face is opposite to the corresponding node number so in 2D
 	  0 ----- 1 2
 	  1 ----- 2 0
 	  2 ----- 0 1
@@ -3847,7 +3847,8 @@ namespace Kratos
 	
 		//Get the correct ReferenceCondition
 		Condition::Pointer pBoundaryCondition;
-		bool cond=false;
+		bool condition_found = false;
+		bool point_condition = false; 
 
 		    
 		for(ModelPart::ConditionsContainerType::iterator ic = temporal_conditions.begin(); ic!= temporal_conditions.end(); ic++)
@@ -3881,7 +3882,9 @@ namespace Kratos
 				
 			      pBoundaryCondition = (*(ic.base())); //accessing boost::shared_ptr  get() to obtain the raw pointer
 			      PreservedConditions[ic->Id()-1] += 1; //add each time is used
-			      cond=true;
+			      if( rConditionGeom.PointsNumber() == 1 )
+ 			          point_condition = true;	
+			      condition_found=true;
 			    }
 			  }
 			    
@@ -3897,7 +3900,9 @@ namespace Kratos
 				
 			      pBoundaryCondition = (*(ic.base())); //accessing boost::shared_ptr  get() to obtain the raw pointer
 			      PreservedConditions[ic->Id()-1] += 1; //add each time is used
-			      cond=true;
+			      if( rConditionGeom.PointsNumber() == 1 )
+ 			          point_condition = true;	
+			      condition_found=true;
 			    }	
 			  }			
 
@@ -3917,12 +3922,11 @@ namespace Kratos
 		    }
 			  
 
-		    if(cond==true){
+		    if(condition_found==true){
 		      // std::cout<<" Condition Found:  "<<ic->Id()<<" ("<<ic->GetGeometry()[0].Id()<<", "<<ic->GetGeometry()[1].Id()<<") == ("<<rGeom[lpofa(1,i)].Id()<<" "<<rGeom[lpofa(2,i)].Id()<<") ->  Used : "<<PreservedConditions[ic->Id()-1]<<" times "<<std::endl;
 		      break;
 		    }
 		  }
-
 
 		//Generate condition
 		Condition::NodesArrayType face;
@@ -3934,21 +3938,21 @@ namespace Kratos
 		//std::cout<<" id "<<id<<std::endl;
 
 		Condition::Pointer p_cond;
-		if(cond){
+		if(condition_found){
 		  p_cond = pBoundaryCondition->Create(id, face, properties);
 		      
 		  p_cond->Data() =pBoundaryCondition->Data();
 
+		  if( !point_condition ){
+		      WeakPointerVector<Element > master_elems;
+		      master_elems.push_back(Element::WeakPointer( *(ie.base()) ));
+		      p_cond->SetValue(MASTER_ELEMENTS, master_elems );
 		      
-		  WeakPointerVector<Element > master_elems;
-		  master_elems.push_back(Element::WeakPointer( *(ie.base()) ));
-		  p_cond->SetValue(MASTER_ELEMENTS, master_elems );
-
-
-		  WeakPointerVector<Node<3> > master_nodes;
-		  master_nodes.push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ));
-		  p_cond->SetValue(MASTER_NODES, master_nodes );
 		      
+		      WeakPointerVector<Node<3> > master_nodes;
+		      master_nodes.push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ));
+		      p_cond->SetValue(MASTER_NODES, master_nodes );
+		  }    
 
 		}
 		else{
@@ -3969,7 +3973,7 @@ namespace Kratos
 		}
 
 		//usually one MasterElement and one MasterNode in 2D
-
+		
 
 		rModelPart.Conditions(MeshId).push_back(p_cond);
 
