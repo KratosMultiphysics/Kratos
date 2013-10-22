@@ -115,7 +115,7 @@ class StructuralSolver:
         self.line_search       = False
         self.reform_step_dofs  = True
 
-        #definition of the (x(n+1) = x(n)+dx)
+        #definition of the (x_n+1 = x_n+dx) in each iteration -> strategy base class includes de MoveMesh method
         self.move_mesh_flag    = True
 
         print "Construction structural solver finished"
