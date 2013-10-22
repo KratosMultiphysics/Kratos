@@ -398,6 +398,10 @@ while(time <= final_time):
             DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, "SphericSwimmingParticle3D") #After solving, to make sure that neighbours are already set.
             # options are: "SphericParticle3D", "SphericSwimmingParticle3D"
 
+        #if (DEM_parameters.VelocityTrapOption):
+        #    PostUtils = DEMProc.PostUtils(DEM_parameters, balls_model_part)  
+        #    PostUtils.VelocityTrap("Average_Velocity")  
+
     if (time >= ProjectParameters.Interaction_start_time and ProjectParameters.ProjectFromParticlesOption):
         projection_module.ProjectFromParticles()
 
