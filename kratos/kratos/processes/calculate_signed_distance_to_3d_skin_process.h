@@ -175,6 +175,7 @@ public:
     {
         rHighPoint = rObject->GetGeometry().GetPoint(0);
         rLowPoint  = rObject->GetGeometry().GetPoint(0);
+        
         for (unsigned int point = 0; point<rObject->GetGeometry().PointsNumber(); point++)
         {
             for(std::size_t i = 0; i<3; i++)
@@ -307,7 +308,7 @@ public:
     typedef DistanceSpatialContainersConfigure ConfigurationType;
     typedef OctreeBinaryCell<ConfigurationType> CellType;
     typedef OctreeBinary<CellType> OctreeType;
-    typedef DistanceSpatialContainersConfigure::cell_node_data_type CellNodeDataType;
+    typedef ConfigurationType::cell_node_data_type CellNodeDataType;
     typedef Point<3, double> PointType;  /// always the point 3D
     typedef OctreeType::cell_type::object_container_type object_container_type;
     typedef struct{
@@ -363,17 +364,17 @@ public:
         DistanceFluidStructure();
 
         //          ------------------------------------------------------------------
-        //          GenerateNodes();
-        //CalculateDistance2(); // I have to change this. Pooyan.
-        //          mrSkinModelPart.GetCommunicator().AssembleCurrentData(DISTANCE);
-        //          std::ofstream mesh_file1("octree1.post.msh");
-        //          std::ofstream res_file("octree1.post.res");
-        //          Timer::Start("Writing Gid conform Mesh");
-        //          PrintGiDMesh(mesh_file1);
-        //          PrintGiDResults(res_file);
-        //          octree.PrintGiDMeshNew(mesh_file2);
-        //          Timer::Stop("Writing Gid conform Mesh");
-        //          delete octree. TODO: Carlos
+        //         GenerateNodes();
+        //         CalculateDistance2(); // I have to change this. Pooyan.
+        //         mrSkinModelPart.GetCommunicator().AssembleCurrentData(DISTANCE);
+        //         std::ofstream mesh_file1("octree1.post.msh");
+        //         std::ofstream res_file("octree1.post.res");
+        //         Timer::Start("Writing Gid conform Mesh");
+        //         PrintGiDMesh(mesh_file1);
+        //         PrintGiDResults(res_file);
+        //         octree.PrintGiDMeshNew(mesh_file2);
+        //         Timer::Stop("Writing Gid conform Mesh");
+        //         delete octree. TODO: Carlos
         //          ------------------------------------------------------------------
 
         KRATOS_CATCH("");
@@ -823,12 +824,12 @@ public:
                                 }
                                 else // CONSIDER ONLY THE EDGES THAT ARE CUT "NOT AT THE VERTEX" -->
                                 {
-                                    array_1d<double,3> emb_vel = (*i_StructElement)->GetGeometry()[0].GetSolutionStepValue(VELOCITY);
-                                    emb_vel += (*i_StructElement)->GetGeometry()[1].GetSolutionStepValue(VELOCITY);
-                                    emb_vel += (*i_StructElement)->GetGeometry()[2].GetSolutionStepValue(VELOCITY);
-
-                                    i_fluidElement->GetValue(EMBEDDED_VELOCITY) += emb_vel/3;
-                                    intersection_counter++;
+//                                     array_1d<double,3> emb_vel = (*i_StructElement)->GetGeometry()[0].GetSolutionStepValue(VELOCITY);
+//                                     emb_vel += (*i_StructElement)->GetGeometry()[1].GetSolutionStepValue(VELOCITY);
+//                                     emb_vel += (*i_StructElement)->GetGeometry()[2].GetSolutionStepValue(VELOCITY);
+// 
+//                                     i_fluidElement->GetValue(EMBEDDED_VELOCITY) += emb_vel/3;
+//                                     intersection_counter++;
                                 }
 
                                 if(NumberIntersectionsOnTetCorner < 2)
@@ -1660,10 +1661,34 @@ public:
     {
         Timer::Start("Generating Octree");
         std::cout << "Generating the Octree..." << std::endl;
+        
+        // Setting the boundingbox for non-normalized coordinates
+        const int dimension = 3;
+        
+        double boundingBox_low[3],boundingBox_high[3];
+        
+        for(int i = 0; i < dimension; i++)
+        {
+            boundingBox_low[i]  = mrSkinModelPart.NodesBegin()->Coordinates()[i];
+            boundingBox_high[i] = mrSkinModelPart.NodesBegin()->Coordinates()[i];
+        }
+        
+        for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin();
+            i_node != mrSkinModelPart.NodesEnd();
+            i_node++)
+        {
+            for(int i = 0; i < dimension; i++)
+            {
+                if(i_node->Coordinates()[i] < boundingBox_low[i])  boundingBox_low[i]  = i_node->Coordinates()[i];
+                if(i_node->Coordinates()[i] > boundingBox_high[i]) boundingBox_high[i] = i_node->Coordinates()[i];
+            }
+        }
 
+        mOctree.SetBoundingBox(boundingBox_low,boundingBox_high);
         //mOctree.RefineWithUniformSize(0.0625);
 
         // loop over all structure nodes
+
         for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin();
             i_node != mrSkinModelPart.NodesEnd();
             i_node++)
@@ -1672,6 +1697,7 @@ public:
             temp_point[0] = i_node->X();
             temp_point[1] = i_node->Y();
             temp_point[2] = i_node->Z();
+            
             mOctree.Insert(temp_point);
         }
 
