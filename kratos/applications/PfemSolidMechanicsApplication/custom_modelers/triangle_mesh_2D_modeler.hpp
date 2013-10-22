@@ -337,6 +337,7 @@ protected:
     std::vector<MeshingVariables> mVariables;
 
     ModelerUtilities mModelerUtilities;
+
     MeshDataTransferUtilities mMeshDataTransferUtilities;
 
     ///@}
