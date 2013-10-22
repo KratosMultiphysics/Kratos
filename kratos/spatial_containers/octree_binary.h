@@ -92,6 +92,7 @@ namespace Kratos {
         /// Default constructor.
 
         OctreeBinary() : root_(new cell_type), number_of_cells_(CHILDREN_NUMBER + 1), number_of_leaves_(1), levels_(0) {
+
             for(int i = 0 ; i < DIMENSION ; i++)
             {
                 mScaleFactor[i] = 1.00;
@@ -111,6 +112,15 @@ namespace Kratos {
 
         virtual ~OctreeBinary() {
             delete root_;
+        }
+        
+        void SetBoundingBox(const coordinate_type * Low, const coordinate_type * High)
+        {
+            for(int i = 0 ; i < DIMENSION ; i++)
+            {
+                mScaleFactor[i] = 1/(High[i] - Low[i]);
+                mOffset[i] = -Low[i];
+            }
         }
 
         double CalcSizeNormalized(const cell_type* cell) const {
@@ -1146,8 +1156,8 @@ namespace Kratos {
                 cell->GetMaxPointNormalized(cell_max_point);
 
                 // I have to put this in no normailzed part. Pooyan.
-//                 ScaleBackToOriginalCoordinate(cell_min_point);
-//                 ScaleBackToOriginalCoordinate(cell_max_point);
+                ScaleBackToOriginalCoordinate(cell_min_point);
+                ScaleBackToOriginalCoordinate(cell_max_point);
 
                 const int is_intersected = /*configuration_type::*/IsIntersected(object,tolerance, cell_min_point, cell_max_point);
                 if(is_intersected)
@@ -1778,7 +1788,8 @@ namespace Kratos {
                 cell_type* cell = leaves[i];
                 double min_point[3];
                 cell->GetMinPoint(min_point);
-                double cell_size = cell->GetSize();
+                
+                double cell_size = cell->CalcSize();
 
                 for (std::size_t j = 0; j < 2; j++)
                     for (std::size_t k = 0; k < 2; k++)
