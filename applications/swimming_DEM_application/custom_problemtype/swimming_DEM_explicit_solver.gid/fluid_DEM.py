@@ -440,7 +440,9 @@ while(time <= final_time):
     out = out + Dt
 
 #gid_io.finalize_results()  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-swimming_DEM_.finalize_results()
-
+swimming_DEM_gid_io.finalize_results()
+#
+print "CALCULATION FINISHED. THE SIMULATION ENDED SUCCESSFULLY."
+#
 for i in drag_file_output_list:
     i.close()
