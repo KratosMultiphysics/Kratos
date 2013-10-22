@@ -529,7 +529,7 @@ namespace Kratos
 			for(ModelPart::ElementsContainerType::iterator ie = mr_model_part.ElementsBegin(MeshId); ie != mr_model_part.ElementsEnd(MeshId); ie++)
 			{
 	  
-				/*each face is opposite to the corresponding node number in 2D so
+				/*each face is opposite to the corresponding node number so in 2D
 				  0 ----- 1 2
 				  1 ----- 2 0
 				  2 ----- 0 1
