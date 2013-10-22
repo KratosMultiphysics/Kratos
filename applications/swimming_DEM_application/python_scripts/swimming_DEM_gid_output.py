@@ -24,6 +24,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
     def initialize_swimming_DEM_results(self,DEM_model_part,mixed_model_part):
         
         if self.multi_file == MultiFileFlag.SingleFile:
+            print "Singlefile option is not available for the swimming DEM application!"
             mesh_name = 0.0
             self.io.InitializeMesh(mesh_name)
             self.io.WriteMesh(mixed_model_part.GetMesh())
@@ -72,9 +73,9 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
             kratos_variable = globals()[var]
             self._write_nodal_results(label,mixed_model_part,kratos_variable) 
             
-        #for var in fluid_gp_variables:
-         #   kratos_variable = globals()[var]
-         #   self._write_gp_results(label,fluid_model_part,kratos_variable)
+        for var in fluid_gp_variables:
+            kratos_variable = globals()[var]
+            self._write_gp_results(label,fluid_model_part,kratos_variable)
 
         if self.multi_file == MultiFileFlag.MultipleFiles:
             self._finalize_results()
