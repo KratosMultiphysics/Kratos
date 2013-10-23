@@ -147,6 +147,7 @@ class Procedures:
         self.rotation_OPTION                     = Var_Translator(param.RotationOption)
         self.bounding_box_OPTION                 = Var_Translator(param.BoundingBoxOption)  
         self.fix_velocities                      = Var_Translator(param.FixVelocitiesOption)
+        self.continuum_OPTION                    = Var_Translator(param.ContinuumOption)
         self.contact_mesh_OPTION                 = Var_Translator( Var_Translator(param.ContactMeshOption) & Var_Translator(param.ContinuumOption) ) 
         self.triaxial_OPTION                     = Var_Translator( Var_Translator(param.TriaxialOption) & Var_Translator(param.ContinuumOption) ) 
  
@@ -265,27 +266,6 @@ class Procedures:
         Model_Data.write("Volume Elements: " + str(total_volume) + '\n')
 
         Model_Data.close()
-
-
-    def ListDefinition(self, model_part, solver):
-
-    # Defining lists (FOR COMPRESSION TESTS)
-
-        for node in model_part.Nodes:
-            if (node.GetSolutionStepValue(GROUP_ID) == 1):      #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
-                self.sup_layer_fm.append(node)
-            elif (node.GetSolutionStepValue(GROUP_ID) == 2):    #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
-                self.inf_layer_fm.append(node)
-            elif (node.GetSolutionStepValue(GROUP_ID) == 3):    #reserved for auxiliar strain-stress measurement plate (superior)
-                self.sup_plate_fm.append(node)
-            elif (node.GetSolutionStepValue(GROUP_ID) == 4):    #reserved for auxiliar strain-stress measurement plate (inferior)
-                self.inf_plate_fm.append(node)
-            elif (node.GetSolutionStepValue(GROUP_ID) == 5):
-                self.special_selection.append(node)
-            else:
-                self.others.append(node)
-
-        return (self.sup_layer_fm, self.inf_layer_fm, self.sup_plate_fm, self.inf_plate_fm)
 
 
     def GiDSolverTransfer(self, model_part, solver, param):
@@ -558,23 +538,26 @@ class Procedures:
             gid_io.WriteNodalResults(EXPORT_GROUP_ID, export_model_part.Nodes, time, 0)
         if (self.print_export_id):
             gid_io.WriteNodalResults(EXPORT_ID, export_model_part.Nodes, time, 0)
-        if (self.print_export_particle_failure_id):
-            gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, export_model_part.Nodes, time, 0)
-        if (self.print_export_skin_sphere):
-            gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, export_model_part.Nodes, time, 0)
-        if (self.print_stress_tensor):
-            gid_io.WriteNodalResults(DEM_STRESS_XX, export_model_part.Nodes, time, 0)
-            gid_io.WriteNodalResults(DEM_STRESS_XY, export_model_part.Nodes, time, 0)
-            gid_io.WriteNodalResults(DEM_STRESS_XZ, export_model_part.Nodes, time, 0)
-            gid_io.WriteNodalResults(DEM_STRESS_YX, export_model_part.Nodes, time, 0)
-            gid_io.WriteNodalResults(DEM_STRESS_YY, export_model_part.Nodes, time, 0)
-            gid_io.WriteNodalResults(DEM_STRESS_YZ, export_model_part.Nodes, time, 0)
-            gid_io.WriteNodalResults(DEM_STRESS_ZX, export_model_part.Nodes, time, 0)
-            gid_io.WriteNodalResults(DEM_STRESS_ZY, export_model_part.Nodes, time, 0)
-            gid_io.WriteNodalResults(DEM_STRESS_ZZ, export_model_part.Nodes, time, 0)
-        if (self.print_representative_volume):
-            gid_io.WriteNodalResults(REPRESENTATIVE_VOLUME, export_model_part.Nodes, time, 0)
-        
+
+        if ( self.continuum_OPTION  ):
+          
+          if (self.print_export_particle_failure_id):
+              gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, export_model_part.Nodes, time, 0)
+          if (self.print_export_skin_sphere):
+              gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, export_model_part.Nodes, time, 0)
+          if (self.print_stress_tensor):
+              gid_io.WriteNodalResults(DEM_STRESS_XX, export_model_part.Nodes, time, 0)
+              gid_io.WriteNodalResults(DEM_STRESS_XY, export_model_part.Nodes, time, 0)
+              gid_io.WriteNodalResults(DEM_STRESS_XZ, export_model_part.Nodes, time, 0)
+              gid_io.WriteNodalResults(DEM_STRESS_YX, export_model_part.Nodes, time, 0)
+              gid_io.WriteNodalResults(DEM_STRESS_YY, export_model_part.Nodes, time, 0)
+              gid_io.WriteNodalResults(DEM_STRESS_YZ, export_model_part.Nodes, time, 0)
+              gid_io.WriteNodalResults(DEM_STRESS_ZX, export_model_part.Nodes, time, 0)
+              gid_io.WriteNodalResults(DEM_STRESS_ZY, export_model_part.Nodes, time, 0)
+              gid_io.WriteNodalResults(DEM_STRESS_ZZ, export_model_part.Nodes, time, 0)
+          if (self.print_representative_volume):
+              gid_io.WriteNodalResults(REPRESENTATIVE_VOLUME, export_model_part.Nodes, time, 0)
+          
         #Aixo sempre per que si no hi ha manera de debugar
         #gid_io.WriteNodalResults(PARTITION_INDEX, export_model_part.Nodes, time, 0)
         #gid_io.WriteNodalResults(INTERNAL_ENERGY, export_model_part.Nodes, time, 0)
@@ -617,22 +600,21 @@ class Procedures:
               element.SetValue(SKIN_SPHERE,1)
               
               
-    def ListDefinition(self,model_part,solver):   # Defining lists (FOR COMPRESSION TESTS) 
-      
-        for node in model_part.Nodes:
-          if (node.GetSolutionStepValue(GROUP_ID)==1):      #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
-            self.sup_layer_fm.append(node)
-          elif (node.GetSolutionStepValue(GROUP_ID)==2):    #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
-            self.inf_layer_fm.append(node)
-          elif (node.GetSolutionStepValue(GROUP_ID)==3):    #reserved for auxiliar strain-stress measurement plate (superior)
-            self.sup_plate_fm.append(node)
-          elif (node.GetSolutionStepValue(GROUP_ID)==4):    #reserved for auxiliar strain-stress measurement plate (inferior)
-            self.inf_plate_fm.append(node)
-          elif (node.GetSolutionStepValue(GROUP_ID)==5):
-            self.special_selection.append(node)
+    def ListDefinition(self, model_part, solver):
+
+  # Defining lists (FOR COMPRESSION TESTS)
+      for node in model_part.Nodes:
+          if (node.GetSolutionStepValue(GROUP_ID) == 1):      #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
+              self.sup_layer_fm.append(node)
+          elif (node.GetSolutionStepValue(GROUP_ID) == 2):    #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
+              self.inf_layer_fm.append(node)
+          elif (node.GetSolutionStepValue(GROUP_ID) == 3):    #reserved for auxiliar strain-stress measurement plate (superior)
+              self.sup_plate_fm.append(node)
+          elif (node.GetSolutionStepValue(GROUP_ID) == 4):    #reserved for auxiliar strain-stress measurement plate (inferior)
+              self.inf_plate_fm.append(node)
+          elif (node.GetSolutionStepValue(GROUP_ID) == 5):
+              self.special_selection.append(node)
           else:
-            self.others.append(node)
-          
-        return (self.sup_layer_fm, self.inf_layer_fm, self.sup_plate_fm, self.inf_plate_fm)
-        
-   
+              self.others.append(node)
+
+      return (self.sup_layer_fm, self.inf_layer_fm, self.sup_plate_fm, self.inf_plate_fm)
