@@ -81,7 +81,7 @@ namespace Kratos
         //KRATOS_TIMER_START("INITIALIZE")
          
          std::cout << "---------------------CONTINUUM EXPLICIT SOLVER STRATEGY-------------------------------" << std::endl;
-          
+
           ModelPart& rModelPart            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
           
@@ -100,15 +100,27 @@ namespace Kratos
      
           rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR].resize(this->GetNumberOfThreads());
           
+          if(1>4)//rCurrentProcessInfo[DEMPACK_OPTION])
+          {
+
+          this->SetDempackSearchRadius(rModelPart,rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);  
+            
+          }
+          
+          else
+          {
+
           // 0. Set search radius
           BaseType::SetSearchRadius(rModelPart,rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);
           
+          }
           // 1. Search Neighbours with tolerance (Not in mpi.)
           this->GetBoundingBoxOption()     = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
 
           // 2. Initializing elements and perform the repartition
           if (this->GetElementsAreInitialized() == false){
-              BaseType::InitializeElements();
+
+            BaseType::InitializeElements();
           }
   
           this->GetInitializeWasPerformed() = true;
@@ -320,8 +332,18 @@ namespace Kratos
                                                               other_to_me_vect[1] * other_to_me_vect[1] +
                                                               other_to_me_vect[2] * other_to_me_vect[2]);
 
-                   double neighbour_search_radius           = (1.0 + extension) * neigh_radius;
-                                                                       
+                   double neighbour_search_radius;
+                   
+                   if(1>4)//rCurrentProcessInfo[DEMPACK_OPTION])
+                   {
+                     neighbour_search_radius = extension + neigh_radius;   
+                   }
+                  
+                  else 
+                  {
+                    neighbour_search_radius = (1.0 + extension) * neigh_radius;  
+                  }
+                  
                     if( (distance - particle_radius) < neighbour_search_radius )
                     {
                         
@@ -464,7 +486,7 @@ namespace Kratos
                             index = iii; //we keep the last iii of the iteration and this is the one to do pushback         
                             break; 
                         }
-                    } // for each ini continuum neighbour's ini continuum neigbour.
+                    } // for each ini continuum neighbour's ini continuum neighbour.
 
                     if (index == -1)
                     {
@@ -718,10 +740,10 @@ namespace Kratos
  
     void FixVelocities()
     {
+      
       KRATOS_TRY
 
-      KRATOS_WATCH("")
-      KRATOS_WATCH("Fixing Velocities")
+      std::cout<<"Fixing Velocities"<<std::endl;
       
       ModelPart& r_model_part           = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
@@ -742,16 +764,17 @@ namespace Kratos
               
             {
               
-                (it)->GetGeometry()(0)->Fix(VELOCITY_Y);
                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_TOP];
-       
+                (it)->GetGeometry()(0)->Fix(VELOCITY_Y);
+ 
             }
             
             if(  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2   )   //bot 
             {
               
-                (it)->GetGeometry()(0)->Fix(VELOCITY_Y);   
                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_BOT];
+                (it)->GetGeometry()(0)->Fix(VELOCITY_Y);   
+                
                 
             }
             
@@ -769,8 +792,7 @@ namespace Kratos
 
       KRATOS_TRY
 
-      KRATOS_WATCH("")
-      KRATOS_WATCH("Freeing Velocities")
+      std::cout<<"Free Velocities"<<std::endl;
       
       ModelPart& r_model_part           = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
@@ -882,7 +904,28 @@ namespace Kratos
         }
       
 
-   
+    void SetDempackSearchRadius(ModelPart& r_model_part, double radiusExtend)
+    {
+        KRATOS_TRY
+
+        ModelPart& r_model_part               = BaseType::GetModelPart();
+        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
+        
+        int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
+        
+        if(this->GetNumberOfElementsOldRadiusList() == number_of_elements) return;
+        else this->GetNumberOfElementsOldRadiusList() = number_of_elements;
+        
+        this->GetRadius().resize(number_of_elements);
+
+        for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
+            this->GetRadius()[particle_pointer_it - pElements.begin()] = particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS) + radiusExtend;
+
+        }
+
+        KRATOS_CATCH("")
+    }
+
    
    
    
