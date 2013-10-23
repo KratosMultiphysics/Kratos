@@ -286,60 +286,65 @@ namespace Kratos
                 
                 //double RotationAngle;
           
+                if(rCurrentProcessInfo[TRIHEDRON_OPTION])
+                {
+                    double theta[3] = {0.0};
+                    
+                    theta[0] = Rota_Displace[0] * 0.5;
+                    theta[1] = Rota_Displace[1] * 0.5;
+                    theta[2] = Rota_Displace[2] * 0.5;                
 
-                double theta[3] = {0.0};
+                    double thetaMag = sqrt(theta[0] * theta[0] + theta[1] * theta[1] + theta[2] * theta[2]);
+                    if(thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < DBL_EPSILON)  //Taylor: low angle
+                    {
+                        Orientation_real = 1 + thetaMag * thetaMag / 2;
+                        Orientation_imag[0] = theta[0] * ( 1 - thetaMag * thetaMag / 6 );
+                        Orientation_imag[1] = theta[1] * ( 1 - thetaMag * thetaMag / 6 );
+                        Orientation_imag[2] = theta[2] * ( 1 - thetaMag * thetaMag / 6 );
+                    }
+                    
+                    else
+                    {
+                        Orientation_real = cos (thetaMag);
+                        Orientation_imag[0] = (theta[0] / thetaMag) * sin (thetaMag);
+                        Orientation_imag[1] = (theta[1] / thetaMag) * sin (thetaMag);
+                        Orientation_imag[2] = (theta[2] / thetaMag) * sin (thetaMag);
+                    }
+                    
+                    array_1d<double,3>& EulerAngles       = i->FastGetSolutionStepValue(EULER_ANGLES);    
                 
-                theta[0] = Rota_Displace[0] * 0.5;
-                theta[1] = Rota_Displace[1] * 0.5;
-                theta[2] = Rota_Displace[2] * 0.5;                
+                    double test = Orientation_imag[0] * Orientation_imag[1] + Orientation_imag[2] * Orientation_real;
+                    
+                    if ( test > 0.49999999 )               // singularity at north pole
+                    {
+                        EulerAngles[0] = 2 * atan2 ( Orientation_imag[0] , Orientation_real );
+                        EulerAngles[1] = pi;
+                        EulerAngles[2] = 0.0;
+                    }
+                    
+                    else if (test < -0.49999999 )          // singularity at south pole
+                    {                 
+                        EulerAngles[0] = -2 * atan2 ( Orientation_imag[0] , Orientation_real );
+                        EulerAngles[1] = -pi;
+                        EulerAngles[2] = 0.0;
+                    }
 
-                double thetaMag = sqrt(theta[0] * theta[0] + theta[1] * theta[1] + theta[2] * theta[2]);
-                if(thetaMag * thetaMag * thetaMag * thetaMag / 24.0 < DBL_EPSILON)  //Taylor: low angle
-                {
-                    Orientation_real = 1 + thetaMag * thetaMag / 2;
-                    Orientation_imag[0] = theta[0] * ( 1 - thetaMag * thetaMag / 6 );
-                    Orientation_imag[1] = theta[1] * ( 1 - thetaMag * thetaMag / 6 );
-                    Orientation_imag[2] = theta[2] * ( 1 - thetaMag * thetaMag / 6 );
-                }
+                    else                
+                    {
+                        EulerAngles[0] = atan2( 2 * Orientation_real * Orientation_imag[0] + 2 * Orientation_imag[1] * Orientation_imag[2] , 1 - 2 * Orientation_imag[0] * Orientation_imag[0] - 2 * Orientation_imag[1] * Orientation_imag[1] );
+                        EulerAngles[1] = asin ( 2 * Orientation_real * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[0] );
+                        EulerAngles[2] = -atan2( 2 * Orientation_real * Orientation_imag[2] + 2 * Orientation_imag[0] * Orientation_imag[1] , 1 - 2 * Orientation_imag[1] * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[2] );
+                    }
+                    
+                  }// Trihedron Option
                 
-                else
-                {
-                    Orientation_real = cos (thetaMag);
-                    Orientation_imag[0] = (theta[0] / thetaMag) * sin (thetaMag);
-                    Orientation_imag[1] = (theta[1] / thetaMag) * sin (thetaMag);
-                    Orientation_imag[2] = (theta[2] / thetaMag) * sin (thetaMag);
-                }
+                }//for Node
                 
-                array_1d<double,3>& EulerAngles       = i->FastGetSolutionStepValue(EULER_ANGLES);    
-            
-                double test = Orientation_imag[0] * Orientation_imag[1] + Orientation_imag[2] * Orientation_real;
-                
-                if ( test > 0.49999999 )               // singularity at north pole
-                {
-                    EulerAngles[0] = 2 * atan2 ( Orientation_imag[0] , Orientation_real );
-                    EulerAngles[1] = pi;
-                    EulerAngles[2] = 0.0;
-                }
-                
-                else if (test < -0.49999999 )          // singularity at south pole
-                {                 
-                    EulerAngles[0] = -2 * atan2 ( Orientation_imag[0] , Orientation_real );
-                    EulerAngles[1] = -pi;
-                    EulerAngles[2] = 0.0;
-                }
-
-                else                
-                {
-                    EulerAngles[0] = atan2( 2 * Orientation_real * Orientation_imag[0] + 2 * Orientation_imag[1] * Orientation_imag[2] , 1 - 2 * Orientation_imag[0] * Orientation_imag[0] - 2 * Orientation_imag[1] * Orientation_imag[1] );
-                    EulerAngles[1] = asin ( 2 * Orientation_real * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[0] );
-                    EulerAngles[2] = -atan2( 2 * Orientation_real * Orientation_imag[2] + 2 * Orientation_imag[0] * Orientation_imag[1] , 1 - 2 * Orientation_imag[1] * Orientation_imag[1] - 2 * Orientation_imag[2] * Orientation_imag[2] );
-                }
-              }
-            }
+            }//for OMP
         
         KRATOS_CATCH(" ")
         
-     }
+     }//rotational_motion
     
 
       /// Turn back information as a string.
@@ -365,6 +370,7 @@ namespace Kratos
       ///@}
       
     protected:
+
       ///@name Protected static Member Variables 
       ///@{ 
         
