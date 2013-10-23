@@ -294,9 +294,12 @@ while (time < Param.FinalTime):
         print 'Real time calculation: ' + str(timer.time() - initial_real_time)
         print 'Percentage Completed: '  + str(percentage) + ' %'
         print "TIME STEP = "            + str(step) + '\n'
-        monitoring = PostUtilities().QuasiStaticAdimensionalNumber(balls_model_part,contact_model_part,balls_model_part.ProcessInfo)
-        print "The quasi-static-adimensional-number is:  "            + str(monitoring) + '\n'
-        print "The measured stiffness is:  "            + str(total_stress/strain/1e6) + "Mpa" + '\n'
+        
+        if( Param.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and Param.GraphOption =="ON"):        
+            monitoring = PostUtilities().QuasiStaticAdimensionalNumber(balls_model_part,contact_model_part,balls_model_part.ProcessInfo)
+            print "The quasi-static-adimensional-number is:  "            + str(monitoring) + '\n'
+            print "The measured stiffness is:  "            + str(total_stress/strain/1e6) + "Mpa" + '\n'
+            
         sys.stdout.flush()
         
         prev_time = (timer.time() - initial_real_time)
