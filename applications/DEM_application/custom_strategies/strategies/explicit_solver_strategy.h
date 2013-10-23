@@ -183,7 +183,9 @@ namespace Kratos
 
           // 4. Initializing elements and perform the repartition
           if (!mElementsAreInitialized){
-              InitializeElements();
+
+            InitializeElements();
+              
           }
 
           mInitializeWasPerformed = true;
@@ -345,7 +347,8 @@ namespace Kratos
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-                (it)->InitializeSolutionStep(rCurrentProcessInfo); // we use this function to call the set initial contacts and the add continuum contacts.        
+                (it)->InitializeSolutionStep(rCurrentProcessInfo); 
+                
               } // loop over particles
 
           } // loop threads OpenMP
@@ -476,10 +479,7 @@ namespace Kratos
         KRATOS_TRY
 
         ModelPart& r_model_part               = BaseType::GetModelPart();
-        ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
-
-        int trihedron_OPTION = rCurrentProcessInfo[TRIHEDRON_OPTION];
 
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
@@ -491,12 +491,6 @@ namespace Kratos
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
             //  Element::GeometryType& geom = it->GetGeometry(); ///WARNING: COMMENTED AVOIDING WARNING COMPILATION
                 (it)->Initialize();
-              // 4. Set the Local Initial Axes for the trihedron Option
-
-                if (trihedron_OPTION == 1){
-                  double dummy = 0.0;
-                  (it)->Calculate(DUMMY_LOCAL_AXES, dummy, rCurrentProcessInfo);
-                }
 
             }
 
@@ -690,6 +684,8 @@ namespace Kratos
 
     double&                                      GetMaxTimeStep(){return (mMaxTimeStep);}
     double&                                      GetSafetyFactor(){return (mSafetyFactor);}
+    
+    int&                                         GetNumberOfElementsOldRadiusList(){return (mNumberOfElementsOldRadiusList);}
 
     vector<unsigned int>&                        GetElementPartition(){return (mElementPartition);}
 
