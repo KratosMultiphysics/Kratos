@@ -260,6 +260,7 @@ namespace Kratos
         double mSymmStressTensor[3][3]; 
         bool mContinuumSimulationOption;
         bool mContactMeshOption;
+        int mTriaxialOption;
 
         double mInitialPressureTime;
         double mFinalPressureTime;
