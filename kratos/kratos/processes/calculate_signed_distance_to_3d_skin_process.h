@@ -17,7 +17,7 @@ a  copy  of this  software  and  associated  documentation files  (the
 without limitation  the rights to  use, copy, modify,  merge, publish,
 distribute,  sublicense and/or  sell copies  of the  Software,  and to
 permit persons to whom the Software  is furnished to do so, subject to
-the following condition:
+the following Element:
 
 Distribution of this code for  any  commercial purpose  is permissible
 ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
@@ -359,22 +359,22 @@ public:
     {
         KRATOS_TRY
 
-        GenerateOctree();
+                GenerateOctree();
 
         DistanceFluidStructure();
 
         //          ------------------------------------------------------------------
-        //         GenerateNodes();
-        //         CalculateDistance2(); // I have to change this. Pooyan.
-        //         mrSkinModelPart.GetCommunicator().AssembleCurrentData(DISTANCE);
-        //         std::ofstream mesh_file1("octree1.post.msh");
-        //         std::ofstream res_file("octree1.post.res");
-        //         Timer::Start("Writing Gid conform Mesh");
-        //         PrintGiDMesh(mesh_file1);
-        //         PrintGiDResults(res_file);
-        //         octree.PrintGiDMeshNew(mesh_file2);
-        //         Timer::Stop("Writing Gid conform Mesh");
-        //         delete octree. TODO: Carlos
+        //          GenerateNodes();
+        //CalculateDistance2(); // I have to change this. Pooyan.
+        //          mrSkinModelPart.GetCommunicator().AssembleCurrentData(DISTANCE);
+        //          std::ofstream mesh_file1("octree1.post.msh");
+        //          std::ofstream res_file("octree1.post.res");
+        //          Timer::Start("Writing Gid conform Mesh");
+        //          PrintGiDMesh(mesh_file1);
+        //          PrintGiDResults(res_file);
+        //          octree.PrintGiDMeshNew(mesh_file2);
+        //          Timer::Stop("Writing Gid conform Mesh");
+        //          delete octree. TODO: Carlos
         //          ------------------------------------------------------------------
 
         KRATOS_CATCH("");
@@ -402,28 +402,28 @@ public:
             ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
             Node < 3 > ::Pointer p_structure_node = *(iparticle.base());
             BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();
-            Element::Pointer pelement;
+            Element::Pointer pElement;
 
-            bool is_found = node_locator.FindPointOnMesh(p_structure_node->Coordinates(), N, pelement, result_begin, max_results);
+            bool is_found = node_locator.FindPointOnMesh(p_structure_node->Coordinates(), N, pElement, result_begin, max_results);
 
             if (is_found == true)
             {
                 array_1d<double,4> nodalPressures;
-                const array_1d<double,4>& elementalDistances = pelement->GetValue(ELEMENTAL_DISTANCES);
+                const array_1d<double,4>& ElementalDistances = pElement->GetValue(ELEMENTAL_DISTANCES);
 
-                Geometry<Node<3> >& geom = pelement->GetGeometry();
+                Geometry<Node<3> >& geom = pElement->GetGeometry();
 
                 for(unsigned int i=0; i<geom.size(); i++)
                 {
                     nodalPressures[i] = geom[i].FastGetSolutionStepValue(PRESSURE);
                 }
 
-                if(pelement->GetValue(SPLIT_ELEMENT)==true)
+                if(pElement->GetValue(SPLIT_ELEMENT)==true)
                 {
                     array_1d<double,4> Npos,Nneg;
 
                     // Do mapping
-                    ComputeDiscontinuousInterpolation((*p_structure_node),pelement->GetGeometry(),elementalDistances,Npos,Nneg);
+                    ComputeDiscontinuousInterpolation((*p_structure_node),pElement->GetGeometry(),ElementalDistances,Npos,Nneg);
 
                     // Compute face pressure
                     double p_positive_structure = inner_prod(nodalPressures,Npos);
@@ -600,38 +600,38 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-//    double RadialShapeFunctionEvaluation(const Point<3> edge_point_j,
-//                                         const Point<3> edge_point_i,
-//                                         const double h)
-//    {
-//        // choose Gaussian radial base function
-//        array_1d<double,3> radial_vector;
+    //    double RadialShapeFunctionEvaluation(const Point<3> edge_point_j,
+    //                                         const Point<3> edge_point_i,
+    //                                         const double h)
+    //    {
+    //        // choose Gaussian radial base function
+    //        array_1d<double,3> radial_vector;
 
-//        radial_vector[0] = edge_point_i[0] - edge_point_j[0];
-//        radial_vector[1] = edge_point_i[1] - edge_point_j[1];
-//        radial_vector[2] = edge_point_i[2] - edge_point_j[2];
+    //        radial_vector[0] = edge_point_i[0] - edge_point_j[0];
+    //        radial_vector[1] = edge_point_i[1] - edge_point_j[1];
+    //        radial_vector[2] = edge_point_i[2] - edge_point_j[2];
 
-//        const double r = norm_2(radial_vector);
+    //        const double r = norm_2(radial_vector);
 
-//        double phi = exp(-(r*r)/(2*h*h));
-//        return phi;
-//    }
+    //        double phi = exp(-(r*r)/(2*h*h));
+    //        return phi;
+    //    }
 
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
     void DistanceFluidStructure()
     {
-        std::cout << "Start calculating elemental distances..." << std::endl;
+        std::cout << "Start calculating Elemental distances..." << std::endl;
 
-        // Initialize elemental distances in the domain
+        // Initialize Elemental distances in the domain
         Initialize();
 
-        // Initialize index table that defines line Edges of fluid element
+        // Initialize index table that defines line Edges of fluid Element
         bounded_matrix<unsigned int,6,2> TetEdgeIndexTable;
         SetIndexTable(TetEdgeIndexTable);
 
-        // loop over all fluid elements
+        // loop over all fluid Elements
         // this loop is parallelized using openmp
 #ifdef _OPENMP
         int number_of_threads = omp_get_max_threads();
@@ -641,28 +641,28 @@ public:
 
         ModelPart::ElementsContainerType& pElements = mrFluidModelPart.Elements();
 
-        vector<unsigned int> element_partition;
-        CreatePartition(number_of_threads, pElements.size(), element_partition);
+        vector<unsigned int> Element_partition;
+        CreatePartition(number_of_threads, pElements.size(), Element_partition);
 
 #pragma omp parallel for
         for (int k = 0; k < number_of_threads; k++)
         {
-            ModelPart::ElementsContainerType::iterator it_begin = pElements.ptr_begin() + element_partition[k];
-            ModelPart::ElementsContainerType::iterator it_end = pElements.ptr_begin() + element_partition[k+1];
+            ModelPart::ElementsContainerType::iterator it_begin = pElements.ptr_begin() + Element_partition[k];
+            ModelPart::ElementsContainerType::iterator it_end = pElements.ptr_begin() + Element_partition[k+1];
 
-            // assemble all elements
+            // assemble all Elements
             for (ModelPart::ElementIterator it = it_begin; it != it_end; ++it)
             {
                 CalcElementDistances( it , TetEdgeIndexTable );
             }
         }
 
-        // Finally, each tetrahedral element has 4 distance values. But each node belongs to
-        // several elements, such that it is assigned several distance values
+        // Finally, each tetrahedral Element has 4 distance values. But each node belongs to
+        // several Elements, such that it is assigned several distance values
         // --> now synchronize these values by finding the minimal distance and assign to each node a minimal nodal distance
         AssignMinimalNodalDistance();
 
-        std::cout << "Finished calculating elemental distances..." << std::endl;
+        std::cout << "Finished calculating Elemental distances..." << std::endl;
     }
 
     ///******************************************************************************************************************
@@ -681,7 +681,7 @@ public:
         for(int i = 0 ; i < nodesSize ; i++)
             nodes[i]->GetSolutionStepValue(DISTANCE) = initial_distance;
 
-        ModelPart::ElementsContainerType::ContainerType& fluid_elements = mrFluidModelPart.ElementsArray();
+        ModelPart::ElementsContainerType::ContainerType& fluid_Elements = mrFluidModelPart.ElementsArray();
 
         array_1d<double,4> ElementalDistances;
         ElementalDistances[0] = initial_distance;
@@ -689,16 +689,16 @@ public:
         ElementalDistances[2] = initial_distance;
         ElementalDistances[3] = initial_distance;
 
-        // reset the elemental distance to 1.0 which is the maximum distance in our normalized space.
-        // also initialize the embedded velocity of the fluid element
-        int elementsSize = fluid_elements.size();
+        // reset the Elemental distance to 1.0 which is the maximum distance in our normalized space.
+        // also initialize the embedded velocity of the fluid Element
+        int ElementsSize = fluid_Elements.size();
 
-#pragma omp parallel for firstprivate(elementsSize)
-        for(int i = 0 ; i < elementsSize ; i++)
+#pragma omp parallel for firstprivate(ElementsSize)
+        for(int i = 0 ; i < ElementsSize ; i++)
         {
-            fluid_elements[i]->GetValue(ELEMENTAL_DISTANCES) = ElementalDistances;
-            fluid_elements[i]->GetValue(SPLIT_ELEMENT) = false;
-            fluid_elements[i]->GetValue(EMBEDDED_VELOCITY)=ZeroVector(3);
+            fluid_Elements[i]->GetValue(ELEMENTAL_DISTANCES) = ElementalDistances;
+            fluid_Elements[i]->GetValue(SPLIT_ELEMENT) = false;
+            fluid_Elements[i]->GetValue(EMBEDDED_VELOCITY)=ZeroVector(3);
         }
 
     }
@@ -708,7 +708,7 @@ public:
 
     void SetIndexTable( bounded_matrix<unsigned int,6,2>& TetEdgeIndexTable )
     {
-        // Initialize index table to define line Edges of fluid element
+        // Initialize index table to define line Edges of fluid Element
         TetEdgeIndexTable(0,0) = 0;
         TetEdgeIndexTable(0,1) = 1;
         TetEdgeIndexTable(1,0) = 0;
@@ -733,7 +733,7 @@ public:
         std::vector<TetEdgeStruct>          IntersectedTetEdges;
         unsigned int NumberIntersectionsOnTetCorner = 0;
 
-        // Get leaves of octree intersecting with fluid element
+        // Get leaves of octree intersecting with fluid Element
         mOctree.GetIntersectedLeaves(*(i_fluidElement).base(),leaves);
 
         int intersection_counter = 0;
@@ -768,6 +768,7 @@ public:
     {
         std::vector<unsigned int> IntersectingStructElemID;
         TetEdgeStruct             NewTetEdge;
+        unsigned int              NumberIntersectionsOnTetCornerCurrentEdge = 0;
 
         // Get nodes of line Edge
         unsigned int EdgeStartIndex = TetEdgeIndexTable(i_tetEdge,0);
@@ -779,20 +780,20 @@ public:
         double EdgeNode1[3] = {P1.X() , P1.Y() , P1.Z()};
         double EdgeNode2[3] = {P2.X() , P2.Y() , P2.Z()};
 
-        // loop over all octree cells which are intersected by the fluid element
+        // loop over all octree cells which are intersected by the fluid Element
         for(unsigned int i_cell = 0 ; i_cell < leaves.size() ; i_cell++)
         {
-            // Structural element contained in one cell of the octree
+            // Structural Element contained in one cell of the octree
             object_container_type* struct_elem = (leaves[i_cell]->pGetObjects());
 
-            // loop over all structural elements within each octree cell
+            // loop over all structural Elements within each octree cell
             for(object_container_type::iterator i_StructElement = struct_elem->begin(); i_StructElement != struct_elem->end(); i_StructElement++)
             {
 
                 if( StructuralElementNotYetConsidered( (*i_StructElement)->Id() , IntersectingStructElemID ) )
                 {
 
-                    // Calculate and associate intersection point to the current fluid element
+                    // Calculate and associate intersection point to the current fluid Element
                     double IntersectionPoint[3] = {0.0 , 0.0 , 0.0};
                     int TetEdgeHasIntersections = IntersectionTriangleSegment( (*i_StructElement)->GetGeometry() , EdgeNode1 , EdgeNode2 , IntersectionPoint );
 
@@ -805,13 +806,11 @@ public:
                         NewIntersectionNode.Coordinates[1] = IntersectionPoint[1];
                         NewIntersectionNode.Coordinates[2] = IntersectionPoint[2];
 
-                        if ( IsNewIntersectionNode( NewIntersectionNode , IntersectedTetEdges ) )
+                        if( IsIntersectionNodeOnTetEdge( IntersectionPoint , EdgeNode1 , EdgeNode2 ) )
                         {
-
-                            if( IsIntersectionNodeOnTetEdge( IntersectionPoint , EdgeNode1 , EdgeNode2 ) )
+                            if ( IsNewIntersectionNode( NewIntersectionNode , IntersectedTetEdges ) )
                             {
-
-                                // Calculate normal of the structural element at the position of the intersection point
+                                // Calculate normal of the structural Element at the position of the intersection point
                                 CalculateNormal3D((*i_StructElement)->GetGeometry()[0],
                                                   (*i_StructElement)->GetGeometry()[1],
                                                   (*i_StructElement)->GetGeometry()[2],
@@ -820,21 +819,31 @@ public:
                                 // check, how many intersection nodes are located on corner points of the tetrahedra
                                 if ( IsIntersectionOnCorner( NewIntersectionNode , EdgeNode1 , EdgeNode2) )
                                 {
-                                    NumberIntersectionsOnTetCorner++;
-                                }
-                                else // CONSIDER ONLY THE EDGES THAT ARE CUT "NOT AT THE VERTEX" -->
-                                {
-//                                     array_1d<double,3> emb_vel = (*i_StructElement)->GetGeometry()[0].GetSolutionStepValue(VELOCITY);
-//                                     emb_vel += (*i_StructElement)->GetGeometry()[1].GetSolutionStepValue(VELOCITY);
-//                                     emb_vel += (*i_StructElement)->GetGeometry()[2].GetSolutionStepValue(VELOCITY);
-// 
-//                                     i_fluidElement->GetValue(EMBEDDED_VELOCITY) += emb_vel/3;
-//                                     intersection_counter++;
-                                }
+                                    NumberIntersectionsOnTetCornerCurrentEdge++;
 
-                                if(NumberIntersectionsOnTetCorner < 2)
+                                    // only allow one intersection node on a tet edge
+                                    if(NumberIntersectionsOnTetCornerCurrentEdge < 2)
+                                    {
+                                        // add the new intersection point to the list of intersection points of the fluid Element
+                                        NewIntersectionNode.EdgeNode1 = EdgeStartIndex;
+                                        NewIntersectionNode.EdgeNode2 = EdgeEndIndex;
+                                        NewTetEdge.IntNodes.push_back(NewIntersectionNode);
+
+                                        // if tet edge belonging to this intersection point is not already marked as "IntersectedTetEdge" --> put it into the respective container
+                                        // when a second intersection node is found, then it is not necessary to push_back again
+                                        if( NewTetEdge.IntNodes.size() == 1 )
+                                            IntersectedTetEdges.push_back(NewTetEdge);
+                                    }
+
+                                    // this corner intersection node is only considered once for each tet edge
+                                    if(NumberIntersectionsOnTetCornerCurrentEdge==1)
+                                    {
+                                        NumberIntersectionsOnTetCorner++;
+                                    }
+                                }
+                                else
                                 {
-                                    // add the new intersection point to the list of intersection points of the fluid element
+                                    // add the new intersection point to the list of intersection points of the fluid Element
                                     NewIntersectionNode.EdgeNode1 = EdgeStartIndex;
                                     NewIntersectionNode.EdgeNode2 = EdgeEndIndex;
                                     NewTetEdge.IntNodes.push_back(NewIntersectionNode);
@@ -843,6 +852,14 @@ public:
                                     // when a second intersection node is found, then it is not necessary to push_back again
                                     if( NewTetEdge.IntNodes.size() == 1 )
                                         IntersectedTetEdges.push_back(NewTetEdge);
+
+                                    // velocity mapping structure --> fluid
+                                    array_1d<double,3> emb_vel = (*i_StructElement)->GetGeometry()[0].GetSolutionStepValue(VELOCITY);
+                                    emb_vel += (*i_StructElement)->GetGeometry()[1].GetSolutionStepValue(VELOCITY);
+                                    emb_vel += (*i_StructElement)->GetGeometry()[2].GetSolutionStepValue(VELOCITY);
+
+                                    i_fluidElement->GetValue(EMBEDDED_VELOCITY) += emb_vel/3;
+                                    intersection_counter++;
                                 }
                             }
                         }
@@ -858,14 +875,14 @@ public:
     bool StructuralElementNotYetConsidered( unsigned int                IDCurrentStructElem,
                                             std::vector<unsigned int>&  IntersectingStructElemID )
     {
-        // check if the structural element was already considered as intersecting element
+        // check if the structural Element was already considered as intersecting Element
         for(unsigned int k = 0 ; k < IntersectingStructElemID.size() ; k++)
         {
             if( IDCurrentStructElem == IntersectingStructElemID[k] )
                 return false;
         }
 
-        // if structural element has not been considered in another octree, which also intersects the fluid element
+        // if structural Element has not been considered in another octree, which also intersects the fluid Element
         // add the new object ID to the vector
         IntersectingStructElemID.push_back( IDCurrentStructElem );
         return true;
@@ -878,7 +895,7 @@ public:
                                       double* EdgeNode1,
                                       double* EdgeNode2 )
     {
-        // check, if intersection point is located on any edge of the fluid element
+        // check, if intersection point is located on any edge of the fluid Element
         array_1d<double,3> ConnectVectTetNodeIntNode1;
         array_1d<double,3> ConnectVectTetNodeIntNode2;
         array_1d<double,3> EdgeVector;
@@ -987,7 +1004,7 @@ public:
     ///******************************************************************************************************************
 
     void CalcDistanceTo3DSkin( std::vector<TetEdgeStruct>&                 IntersectedTetEdges,
-                               ModelPart::ElementsContainerType::iterator& i_fluid_element,
+                               ModelPart::ElementsContainerType::iterator& i_fluid_Element,
                                unsigned int                                NumberIntersectionsOnTetCorner )
     {
         std::vector<IntersectionNodeStruct> NodesOfApproximatedStructure;
@@ -999,38 +1016,38 @@ public:
         // Intersection with one corner point
         if( NodesOfApproximatedStructure.size() == 1 && NumberIntersectionsOnTetCorner == 1 )
         {
-            CalcSignedDistancesToOneIntNode(i_fluid_element,NodesOfApproximatedStructure,ElementalDistances);
-            i_fluid_element->GetValue(SPLIT_ELEMENT) = true;
+            CalcSignedDistancesToOneIntNode(i_fluid_Element,NodesOfApproximatedStructure,ElementalDistances);
+            i_fluid_Element->GetValue(SPLIT_ELEMENT) = true;
         }
 
         // Intersection with two corner points / one tetrahedra edge
         if( NodesOfApproximatedStructure.size() == 2 && NumberIntersectionsOnTetCorner == 2 )
         {
-            CalcSignedDistancesToTwoIntNodes(i_fluid_element,NodesOfApproximatedStructure,ElementalDistances);
-            i_fluid_element->GetValue(SPLIT_ELEMENT) = true;
+            CalcSignedDistancesToTwoIntNodes(i_fluid_Element,NodesOfApproximatedStructure,ElementalDistances);
+            i_fluid_Element->GetValue(SPLIT_ELEMENT) = true;
         }
 
         // Intersection with three tetrahedra edges
         if( NodesOfApproximatedStructure.size() == 3 )
         {
-            CalcSignedDistancesToThreeIntNodes(i_fluid_element,NodesOfApproximatedStructure,IntersectedTetEdges,ElementalDistances);
-            i_fluid_element->GetValue(SPLIT_ELEMENT) = true;
+            CalcSignedDistancesToThreeIntNodes(i_fluid_Element,NodesOfApproximatedStructure,IntersectedTetEdges,ElementalDistances);
+            i_fluid_Element->GetValue(SPLIT_ELEMENT) = true;
         }
 
         // Intersection with more than three tetrahedra edges
         if( NodesOfApproximatedStructure.size() > 3 )
         {
-            CalcSignedDistancesToMoreThanThreeIntNodes(i_fluid_element,NodesOfApproximatedStructure,IntersectedTetEdges,ElementalDistances);
-            i_fluid_element->GetValue(SPLIT_ELEMENT) = true;
+            CalcSignedDistancesToMoreThanThreeIntNodes(i_fluid_Element,NodesOfApproximatedStructure,IntersectedTetEdges,ElementalDistances);
+            i_fluid_Element->GetValue(SPLIT_ELEMENT) = true;
         }
 
-        // Postprocessing treatment of elemental distances
-        if( i_fluid_element->GetValue(SPLIT_ELEMENT) == true )
-            AvoidZeroDistances(i_fluid_element, ElementalDistances);
+        // Postprocessing treatment of Elemental distances
+        if( i_fluid_Element->GetValue(SPLIT_ELEMENT) == true )
+            AvoidZeroDistances(i_fluid_Element, ElementalDistances);
 
-        // In case there is intersection with fluid element: assign distances to the element
-        if( i_fluid_element->GetValue(SPLIT_ELEMENT) == true )
-            i_fluid_element->GetValue(ELEMENTAL_DISTANCES) = ElementalDistances;
+        // In case there is intersection with fluid Element: assign distances to the Element
+        if( i_fluid_Element->GetValue(SPLIT_ELEMENT) == true )
+            i_fluid_Element->GetValue(ELEMENTAL_DISTANCES) = ElementalDistances;
     }
 
     ///******************************************************************************************************************
@@ -1099,108 +1116,74 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void CalcSignedDistancesToOneIntNode( ModelPart::ElementsContainerType::iterator& i_fluid_element,
+    void CalcSignedDistancesToOneIntNode( ModelPart::ElementsContainerType::iterator& i_fluid_Element,
                                           std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
                                           array_1d<double,4>&                         ElementalDistances )
     {
-        const array_1d<double,3>& IntersectionNodeCoord = NodesOfApproximatedStructure[0].Coordinates;
-        array_1d<double,3> DistVecTetNode;
-        array_1d<double,3> TetNode;
-        array_1d<double,3> NormalAtIntersectionNode;
-        double             NormDistTetNode;
-        double             InnerProduct;
+        Geometry< Node<3> >& rFluidGeom = i_fluid_Element->GetGeometry();
 
-        Geometry< Node<3> >& rFluidGeom = i_fluid_element->GetGeometry();
+        Point<3>  P1;
+        P1.Coordinates() = NodesOfApproximatedStructure[0].Coordinates;
 
+        array_1d<double,3>&  Normal = NodesOfApproximatedStructure[0].StructElemNormal;
+
+        // Compute distance values for all tet-nodes
         for(unsigned int i_TetNode = 0 ; i_TetNode < 4 ; i_TetNode++)
         {
-            // Get coordinates of the fluid elmenent nodes
-            TetNode  = rFluidGeom[i_TetNode].Coordinates();
-
-            // Compute unsigned distance
-            DistVecTetNode[0] = TetNode[0] - IntersectionNodeCoord[0];
-            DistVecTetNode[1] = TetNode[1] - IntersectionNodeCoord[1];
-            DistVecTetNode[2] = TetNode[2] - IntersectionNodeCoord[2];
-            NormDistTetNode = norm_2( DistVecTetNode );
-
-            // Get normal at intersection
-            NormalAtIntersectionNode = NodesOfApproximatedStructure[0].StructElemNormal;
-            InnerProduct = inner_prod(DistVecTetNode,NormalAtIntersectionNode);
-
-            // Assign distances as nodal solution values
-            if(InnerProduct>epsilon)
-                ElementalDistances[i_TetNode] = NormDistTetNode;
-            else if(InnerProduct>-epsilon)
-                ElementalDistances[i_TetNode] = 0;
-            else
-                ElementalDistances[i_TetNode] = -NormDistTetNode;
+            ElementalDistances[i_TetNode] = PointDistanceToPlane(P1, Normal, rFluidGeom[i_TetNode]);
         }
     }
 
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void CalcSignedDistancesToTwoIntNodes( ModelPart::ElementsContainerType::iterator& i_fluid_element,
+    void CalcSignedDistancesToTwoIntNodes( ModelPart::ElementsContainerType::iterator& i_fluid_Element,
                                            std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
                                            array_1d<double,4>&                         ElementalDistances )
     {
-        const array_1d<double,3>& IntersectionNode1Coord = NodesOfApproximatedStructure[0].Coordinates;
-        const array_1d<double,3>& IntersectionNode2Coord = NodesOfApproximatedStructure[1].Coordinates;
-        array_1d<double,3> TetNode;
-        array_1d<double,3> DistVecTetNode;
-        array_1d<double,3> NormalAtIntersectionNode1;
-        array_1d<double,3> NormalAtIntersectionNode2;
-        array_1d<double,3> ResNormal;
-        double             InnerProduct;
-        double             NormDistTetNode;
+        Geometry< Node<3> >& rFluidGeom = i_fluid_Element->GetGeometry();
 
-        const Point<3> LinePoint1 = Point<3>(IntersectionNode1Coord[0] , IntersectionNode1Coord[1] , IntersectionNode1Coord[2]);
-        const Point<3> LinePoint2 = Point<3>(IntersectionNode2Coord[0] , IntersectionNode2Coord[1] , IntersectionNode2Coord[2]);
+        Point<3>  P1;
+        P1.Coordinates() = NodesOfApproximatedStructure[0].Coordinates;
 
-        Geometry< Node<3> >& rFluidGeom = i_fluid_element->GetGeometry();
+        // Get normal at intersections, average them and check direction of distances
+        array_1d<double,3> NormalAtIntersectionNode1 = NodesOfApproximatedStructure[0].StructElemNormal;
+        array_1d<double,3> NormalAtIntersectionNode2 = NodesOfApproximatedStructure[1].StructElemNormal;
 
+        // Compute normal of surface plane
+        array_1d<double,3> Normal;
+        Normal[0] = 0.5*(NormalAtIntersectionNode1[0] + NormalAtIntersectionNode2[0]);
+        Normal[1] = 0.5*(NormalAtIntersectionNode1[1] + NormalAtIntersectionNode2[1]);
+        Normal[2] = 0.5*(NormalAtIntersectionNode1[2] + NormalAtIntersectionNode2[2]);
+
+        // Check whether orientation of normal is in direction of the normal of the intersecting structure
+        // Note: The normal of the approx. surface can be max. 90deg to every surrounding normal of the structure at the intersection nodes
+        const array_1d<double,3> NormalAtOneIntersectionNode = NodesOfApproximatedStructure[0].StructElemNormal;
+
+        bool NormalWrongOriented = false;
+        if(inner_prod(NormalAtOneIntersectionNode,Normal)<0)
+            NormalWrongOriented = true;
+
+        // switch direction of normal
+        if(NormalWrongOriented)
+            Normal *=-1;
+
+        // Compute distance values for all tet-nodes
         for(unsigned int i_TetNode = 0 ; i_TetNode < 4 ; i_TetNode++)
         {
-            // Get coordinates of the fluid element nodes
-            TetNode  = rFluidGeom(i_TetNode)->Coordinates();
-
-            // Compute distance to point
-            NormDistTetNode = GeometryUtils::PointDistanceToLineSegment3D(LinePoint1, LinePoint2 , Point<3>(TetNode[0],TetNode[1],TetNode[2]));
-
-            // Compute unsigned distance vector by assuming the mean position vector of the two intersection points
-            DistVecTetNode[0] = TetNode[0] - IntersectionNode1Coord[0];
-            DistVecTetNode[1] = TetNode[1] - IntersectionNode1Coord[1];
-            DistVecTetNode[2] = TetNode[2] - IntersectionNode1Coord[2];
-
-            // Get normal at intersections, average them and check direction of distances
-            NormalAtIntersectionNode1 = NodesOfApproximatedStructure[0].StructElemNormal;
-            NormalAtIntersectionNode2 = NodesOfApproximatedStructure[1].StructElemNormal;
-
-            // Compute unsigned distance
-            ResNormal[0] = 0.5*(NormalAtIntersectionNode1[0] + NormalAtIntersectionNode2[0]);
-            ResNormal[1] = 0.5*(NormalAtIntersectionNode1[1] + NormalAtIntersectionNode2[1]);
-            ResNormal[2] = 0.5*(NormalAtIntersectionNode1[2] + NormalAtIntersectionNode2[2]);
-            InnerProduct = inner_prod(DistVecTetNode,ResNormal);
-
-            // Assign distances as nodal solution values
-            if(InnerProduct>epsilon)
-                ElementalDistances[i_TetNode] = NormDistTetNode;
-            else if(InnerProduct>-epsilon)
-                ElementalDistances[i_TetNode] = 0;
-            else
-                ElementalDistances[i_TetNode] = -NormDistTetNode;
+            ElementalDistances[i_TetNode] = PointDistanceToPlane(P1, Normal, rFluidGeom[i_TetNode]);
         }
     }
 
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void CalcSignedDistancesToThreeIntNodes( ModelPart::ElementsContainerType::iterator& i_fluid_element,
+    void CalcSignedDistancesToThreeIntNodes( ModelPart::ElementsContainerType::iterator& i_fluid_Element,
                                              std::vector<IntersectionNodeStruct>&         NodesOfApproximatedStructure,
                                              std::vector<TetEdgeStruct>&                  IntersectedTetEdges,
                                              array_1d<double,4>&                          ElementalDistances )
     {
-        Geometry< Node<3> >& rFluidGeom = i_fluid_element->GetGeometry();
+        Geometry< Node<3> >& rFluidGeom = i_fluid_Element->GetGeometry();
 
         Point<3> P1;
         Point<3> P2;
@@ -1209,81 +1192,33 @@ public:
         P1.Coordinates() = NodesOfApproximatedStructure[0].Coordinates;
         P2.Coordinates() = NodesOfApproximatedStructure[1].Coordinates;
         P3.Coordinates() = NodesOfApproximatedStructure[2].Coordinates;
+
         array_1d<double,3> Normal;
         CalculateNormal3D(P1,P2,P3,Normal);
 
-        // Check wheter orientation of normal is in direction of the normal of the intersecting structure
+        // Check whether orientation of normal is in direction of the normal of the intersecting structure
         // Note: The normal of the approx. surface can be max. 90deg to every surrounding normal of the structure at the intersection nodes
-        array_1d<double,3> NormalAtOneIntersectionNode;
-        NormalAtOneIntersectionNode = NodesOfApproximatedStructure[0].StructElemNormal;
+        const array_1d<double,3> NormalAtOneIntersectionNode = NodesOfApproximatedStructure[0].StructElemNormal;
 
         bool NormalWrongOriented = false;
-
         if(inner_prod(NormalAtOneIntersectionNode,Normal)<0)
             NormalWrongOriented = true;
 
+        // switch direction of normal
         if(NormalWrongOriented)
             Normal *=-1;
 
-        // Start distance computation for all tet-nodes
+        // Compute distance values for all tet-nodes
         for(unsigned int i_TetNode = 0 ; i_TetNode < 4 ; i_TetNode++)
         {
-            array_1d<double,3> TetNode;
-            array_1d<double,3> IntersectionNode1Coord;
-            array_1d<double,3> IntersectionNode2Coord;
-            array_1d<double,3> IntersectionNode3Coord;
-            Point<3>           ApproxTrianglePoint1;
-            Point<3>           ApproxTrianglePoint2;
-            Point<3>           ApproxTrianglePoint3;
-            double             UnsignedDistance;
-            double             InnerProduct;
-
-            // Get coordinates of the fluid element nodes
-            TetNode = rFluidGeom(i_TetNode)->Coordinates();
-
-            IntersectionNode1Coord = NodesOfApproximatedStructure[0].Coordinates;
-            IntersectionNode2Coord = NodesOfApproximatedStructure[1].Coordinates;
-            IntersectionNode3Coord = NodesOfApproximatedStructure[2].Coordinates;
-
-            ApproxTrianglePoint1 = Point<3>(IntersectionNode1Coord[0] , IntersectionNode1Coord[1] , IntersectionNode1Coord[2]);
-            ApproxTrianglePoint2 = Point<3>(IntersectionNode2Coord[0] , IntersectionNode2Coord[1] , IntersectionNode2Coord[2]);
-            ApproxTrianglePoint3 = Point<3>(IntersectionNode3Coord[0] , IntersectionNode3Coord[1] , IntersectionNode3Coord[2]);
-
-            // Compute distance from tet node to current triangle
-            UnsignedDistance = PointDistanceToTriangle3DPlane(ApproxTrianglePoint1, ApproxTrianglePoint2 , ApproxTrianglePoint3 , rFluidGeom[i_TetNode]);
-
-            bool TetNodeIsInsideStructure = true;
-            bool TetNodeIsOnStructure = true;
-            array_1d <double,3> DistVec;
-
-            DistVec[0] = TetNode[0] - IntersectionNode1Coord[0];
-            DistVec[1] = TetNode[1] - IntersectionNode1Coord[1];
-            DistVec[2] = TetNode[2] - IntersectionNode1Coord[2];
-
-            InnerProduct = inner_prod(DistVec,Normal);
-
-            if(InnerProduct > epsilon)
-            {
-                TetNodeIsInsideStructure = false;
-                TetNodeIsOnStructure = false;
-            }
-            else if (InnerProduct < -epsilon)
-                TetNodeIsOnStructure = false;
-
-            // Assign distances as nodal solution values ( + = outside of structure, - = inside structure)
-            if( TetNodeIsInsideStructure == true )
-                ElementalDistances[i_TetNode] = -UnsignedDistance;
-            else if( TetNodeIsOnStructure == true )
-                ElementalDistances[i_TetNode] = 0;
-            else
-                ElementalDistances[i_TetNode] = +UnsignedDistance;
+            ElementalDistances[i_TetNode] = PointDistanceToPlane(P1, Normal, rFluidGeom[i_TetNode] );
         }
     }
 
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void CalcSignedDistancesToMoreThanThreeIntNodes(  ModelPart::ElementsContainerType::iterator& i_fluid_element,
+    void CalcSignedDistancesToMoreThanThreeIntNodes(  ModelPart::ElementsContainerType::iterator& i_fluid_Element,
                                                       std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
                                                       std::vector<TetEdgeStruct>                  IntersectedTetEdges,
                                                       array_1d<double,4>&                         ElementalDistances )
@@ -1291,13 +1226,13 @@ public:
         unsigned int numberCutEdges = NodesOfApproximatedStructure.size();
 
         // Compute average of the intersection nodes which is a node on the plane we look for
-        Point<3> r_mean;
+        Point<3> P_mean;
         for(unsigned int k=0; k<numberCutEdges; k++)
             for(unsigned int i=0; i<3; i++)
-                r_mean.Coordinates()[i] += NodesOfApproximatedStructure[k].Coordinates[i];
+                P_mean.Coordinates()[i] += NodesOfApproximatedStructure[k].Coordinates[i];
 
         for(unsigned int i=0; i<3; i++)
-            r_mean.Coordinates()[i] /= numberCutEdges;
+            P_mean.Coordinates()[i] /= numberCutEdges;
 
         // Compute average of normals and areas
         array_1d<double,3> N_mean;
@@ -1305,7 +1240,7 @@ public:
         Matrix coordinates(numberCutEdges,3);
         for(unsigned int i=0; i<numberCutEdges; i++)
             for(unsigned int j=0; j<3; j++)
-                coordinates(i,j) = NodesOfApproximatedStructure[i].Coordinates[j] - r_mean[j];
+                coordinates(i,j) = NodesOfApproximatedStructure[i].Coordinates[j] - P_mean[j];
 
         Matrix A = prod(trans(coordinates),coordinates);
         Matrix V(3,3);
@@ -1328,96 +1263,24 @@ public:
         for(unsigned int i=0;i<3; i++) N_mean[i] = V(min_pos,i);
         N_mean /= norm_2(N_mean);
 
-        // Check wheter orientation of normal is in direction of the normal of the intersecting structure
+        // Check whether orientation of normal is in direction of the normal of the intersecting structure
         // Note: The normal of the approx. surface can be max. 90deg to every surrounding normal of the structure at the intersection nodes
         array_1d<double,3> NormalAtOneIntersectionNode;
         NormalAtOneIntersectionNode = NodesOfApproximatedStructure[0].StructElemNormal;
 
         bool NormalWrongOriented = false;
-
         if(inner_prod(NormalAtOneIntersectionNode,N_mean)<0)
             NormalWrongOriented = true;
 
+        // switch direction of normal
         if(NormalWrongOriented)
             N_mean *=-1;
 
         // Determine about the minimal distance by considering the distances to both triangles
-        double UnsignedDistance;
-        array_1d<double,3> TetNode;
-
         for(unsigned int i_TetNode = 0 ; i_TetNode < 4 ; i_TetNode++)
         {
-            TetNode = i_fluid_element->GetGeometry()[i_TetNode].Coordinates();
-
-            // Calculate Distance
-            UnsignedDistance = PointDistanceTo3DPlane(r_mean, N_mean, i_fluid_element->GetGeometry()[i_TetNode] );
-
-            // Assign sings according to closest normals
-            bool TetNodeIsInsideStructure = true;
-            bool TetNodeIsOnStructure = true;
-            array_1d <double,3> DistVec;
-
-            DistVec[0] = TetNode[0] - r_mean[0];
-            DistVec[1] = TetNode[1] - r_mean[1];
-            DistVec[2] = TetNode[2] - r_mean[2];
-
-            double InnerProduct = inner_prod(DistVec,N_mean);
-            if(InnerProduct > epsilon)
-            {
-                TetNodeIsInsideStructure = false;
-                TetNodeIsOnStructure = false;
-            }
-            else if (InnerProduct < -epsilon)
-                TetNodeIsOnStructure = false;
-
-            // Assign distances as nodal solution values ( + = outside of structure, - = inside structure)
-            if( TetNodeIsInsideStructure == true )
-                ElementalDistances[i_TetNode] = -UnsignedDistance;
-            else if( TetNodeIsOnStructure == true )
-                ElementalDistances[i_TetNode] = 0;
-            else
-                ElementalDistances[i_TetNode] = +UnsignedDistance;
+            ElementalDistances[i_TetNode] = PointDistanceToPlane(P_mean, N_mean, i_fluid_Element->GetGeometry()[i_TetNode] );
         }
-    }
-
-    ///******************************************************************************************************************
-    ///******************************************************************************************************************
-
-    /**
-       * This function calculates the distance of a 3D point to a plane spanned by a 3D triangle
-       * Copyright 2001 softSurfer, 2012 Dan Sunday; Source: http://geomalgorithms.com/a04-_planes.html
-       * @param TrianglePoint1 First point of triangle
-       * @param TrianglePoint2 Second point of triangle
-       * @param TrianglePoint3 Third point of triangle
-       * @param ToPoint The point which distance is required
-       * @return The distance between the point and the plane spanned by the 3D triangle
-       */
-    double PointDistanceToTriangle3DPlane( Point<3>& TrianglePoint1,
-                                           Point<3>& TrianglePoint2,
-                                           Point<3>& TrianglePoint3,
-                                           Point<3>& ToPoint)
-    {
-        // Compute normal of triangle
-        array_1d<double,3> normalTriangle;
-        CalculateNormal3D(TrianglePoint1,
-                          TrianglePoint2,
-                          TrianglePoint3,
-                          normalTriangle);
-
-        // calculate vector pointing from a node in the plane (e.g. triangle point 1) to the considered node ToPoint
-        array_1d<double,3> planeToPointVec = ToPoint - TrianglePoint1;
-
-        // projection of node on the plane
-        const double sn = -inner_prod(normalTriangle,planeToPointVec);
-        const double sd = inner_prod(normalTriangle,normalTriangle);
-        const double sb = sn / sd;
-
-        // project node onto the plane
-        //const array_1d<double,3> PointProjectedOnPlane = ToPoint + sb * normalTriangle;
-        const array_1d<double,3> ProjectedPointToPoint = sb * normalTriangle;
-        const double DistanceToPlane = norm_2(ProjectedPointToPoint);
-
-        return DistanceToPlane;
     }
 
     ///******************************************************************************************************************
@@ -1430,21 +1293,20 @@ public:
        * @param ToPoint The point which distance is required
        * @return The distance between the point and the plane spanned by the 3D triangle
        */
-    double PointDistanceTo3DPlane( Point<3>&            planeBasePoint,
-                                   array_1d<double, 3>& planeNormal,
-                                   Point<3>&            ToPoint)
+    double PointDistanceToPlane( Point<3>&            planeBasePoint,
+                                 array_1d<double, 3>& planeNormal,
+                                 Point<3>&            ToPoint)
     {
         // calculate vector pointing from a node in the plane (e.g. triangle point 1) to the considered node ToPoint
         array_1d<double,3> planeToPointVec = ToPoint - planeBasePoint;
 
         // projection of node on the plane
-        const double sn = -inner_prod(planeNormal,planeToPointVec);
+        const double sn = inner_prod(planeToPointVec,planeNormal);
         const double sd = inner_prod(planeNormal,planeNormal);
-        const double sb = sn / sd;
+        double DistanceToPlane = sn / sqrt(sd);
 
-        // project node onto the plane
-        const array_1d<double,3> ProjectedPointToPoint = sb * planeNormal;
-        const double DistanceToPlane = norm_2(ProjectedPointToPoint);
+        if( fabs(DistanceToPlane) < epsilon )
+            DistanceToPlane = 0;
 
         return DistanceToPlane;
     }
@@ -1453,17 +1315,17 @@ public:
     ///******************************************************************************************************************
 
     /**
-       * This function calculates the minimal distances of a node considering all neighboring elements
+       * This function calculates the minimal distances of a node considering all neighboring Elements
        */
     void AssignMinimalNodalDistance()
     {
-        // loop over all fluid elements
-        for( ModelPart::ElementIterator i_fluid_element = mrFluidModelPart.ElementsBegin();
-             i_fluid_element != mrFluidModelPart.ElementsEnd();
-             i_fluid_element++)
+        // loop over all fluid Elements
+        for( ModelPart::ElementIterator i_fluid_Element = mrFluidModelPart.ElementsBegin();
+             i_fluid_Element != mrFluidModelPart.ElementsEnd();
+             i_fluid_Element++)
         {
-            Geometry< Node<3> >& geom = i_fluid_element->GetGeometry();
-            array_1d<double,4> ElementalDistances = i_fluid_element->GetValue(ELEMENTAL_DISTANCES);
+            Geometry< Node<3> >& geom = i_fluid_Element->GetGeometry();
+            array_1d<double,4> ElementalDistances = i_fluid_Element->GetValue(ELEMENTAL_DISTANCES);
 
             // Assign distances to the single nodes, if a smaller value is found
             for( unsigned int i_TetNode = 0; i_TetNode < 4; i_TetNode++ )
@@ -1484,10 +1346,10 @@ public:
        * If structure directly passes through the corner point of a tetrahedra (leading to zero distances
        * in the respective node), then a small distance value (different from zero) will be stored for
        * that point. This is necessary since the embedded solver cannot handle zero distances.
-       * @param element            current element which was cut by the structure (flag SPLIT_ELEMENT is set to one)
-       * @param ElementalDistances elemental distances calculated by the intersection pattern
+       * @param Element            current Element which was cut by the structure (flag SPLIT_ELEMENT is set to one)
+       * @param ElementalDistances Elemental distances calculated by the intersection pattern
        */
-    void AvoidZeroDistances( ModelPart::ElementsContainerType::iterator& element,
+    void AvoidZeroDistances( ModelPart::ElementsContainerType::iterator& Element,
                              array_1d<double,4>&                         ElementalDistances)
     {
         // Assign a distance limit
@@ -1503,7 +1365,7 @@ public:
             }
         }
 
-        // Check, if this approach changes the split-flag (might be, that element is not cut anymore if node with zero distance gets a positive limit distance value
+        // Check, if this approach changes the split-flag (might be, that Element is not cut anymore if node with zero distance gets a positive limit distance value
         unsigned int numberNodesPositiveDistance = 0;
         for(unsigned int i_node = 0; i_node < 4; i_node++)
         {
@@ -1511,9 +1373,9 @@ public:
                 numberNodesPositiveDistance++;
         }
 
-        // element is not set
+        // Element is not set
         if(numberNodesPositiveDistance == 4 && distChangedToLimit == true)
-            element->GetValue(SPLIT_ELEMENT) = false;
+            Element->GetValue(SPLIT_ELEMENT) = false;
     }
 
     ///******************************************************************************************************************
@@ -2462,7 +2324,7 @@ public:
         std::cout << "Nodes written..." << std::endl;
         rOStream << "end coordinates" << std::endl;
         rOStream << "Elements" << std::endl;
-        rOStream << "# element node_1 node_2 node_3 material_number" << std::endl;
+        rOStream << "# Element node_1 node_2 node_3 material_number" << std::endl;
 
         for (std::size_t i = 0; i < leaves.size(); i++) {
             if ((leaves[i]->pGetData()))
@@ -2475,7 +2337,7 @@ public:
                 rOStream << std::endl;
             }
         }
-        rOStream << "end elements" << std::endl;
+        rOStream << "end Elements" << std::endl;
 
     }
 
