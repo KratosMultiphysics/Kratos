@@ -51,14 +51,23 @@ public:
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-    ///Tensor order 1 definition
-    typedef array_1d<double, 3>    VectorType;
+
     ///NodeType
     typedef Node < 3 > NodeType;
     ///Geometry Type
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
     typedef Element::ElementType ElementType;
+	
+
+    ///Tensor order 1 definition
+    typedef ContactDomainUtilities::VectorType   VectorType;
+    ///SurfaceVector
+    typedef ContactDomainUtilities::SurfaceVector SurfaceVector;
+    ///SurfaceScalar
+    typedef ContactDomainUtilities::SurfaceScalar SurfaceScalar;
+    ///BaseLengths
+    typedef ContactDomainUtilities::BaseLengths     BaseLengths;
 
 
     /// Counted pointer of AxisymContactDomainLM2DCondition

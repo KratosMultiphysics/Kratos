@@ -186,7 +186,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     //std::cout<<" Got Normal ["<<this->Id()<<"] "<<mContactVariables.ReferenceSurface.Normal<<std::endl;
 
     //Set Reference Tangent
-    mContactVariables.ReferenceSurface.Tangent=ComputeFaceTangent(mContactVariables.ReferenceSurface.Tangent,mContactVariables.ReferenceSurface.Normal);
+    mContactVariables.ReferenceSurface.Tangent=mContactUtilities.CalculateFaceTangent(mContactVariables.ReferenceSurface.Tangent,mContactVariables.ReferenceSurface.Normal);
 
     //4.- Compute Effective Gaps: (g^eff=g_n3+2*Tau*tn=2*Tau*Multiplier.Normal)
 
@@ -248,7 +248,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     VectorType P2  =  GetGeometry()[node2].Coordinates() - (GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,2) );
 
     //Compute Previous Normal
-    mContactVariables.PreStepSurface.Normal=ComputeFaceNormal(mContactVariables.PreStepSurface.Normal,P1,P2);
+    mContactVariables.PreStepSurface.Normal=mContactUtilities.CalculateFaceNormal(mContactVariables.PreStepSurface.Normal,P1,P2);
 
     //std::cout<<" Pre Normal ["<<this->Id()<<"] "<<mContactVariables.PreStepSurface.Normal<<std::endl;
 
@@ -263,7 +263,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     }
 
     //Set Previous Tangent
-    mContactVariables.PreStepSurface.Tangent=ComputeFaceTangent(mContactVariables.PreStepSurface.Tangent,mContactVariables.PreStepSurface.Normal);
+    mContactVariables.PreStepSurface.Tangent=mContactUtilities.CalculateFaceTangent(mContactVariables.PreStepSurface.Tangent,mContactVariables.PreStepSurface.Normal);
   
     //Traction vector
     mContactVariables.TractionVector=prod(StressMatrix3D,mContactVariables.PreStepSurface.Normal);
@@ -276,7 +276,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
 
     //A_n-1, B_n-1, L_n-1:
     BaseLengths PreviousBase;
-    CalcBaseDistances(PreviousBase,P1,P2,PS,mContactVariables.PreStepSurface.Normal);
+    mContactUtilities.CalculateBaseDistances(PreviousBase,P1,P2,PS,mContactVariables.PreStepSurface.Normal);
 
     //std::cout<<" L :"<<PreviousBase.L<<" A :"<<PreviousBase.A<<" B :"<<PreviousBase.B<<std::endl;
 
@@ -467,7 +467,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     VectorType P2  =  GetGeometry()[node2].Coordinates() + ( GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) );
 
     //compute the current normal vector
-    rVariables.Contact.CurrentSurface.Normal=ComputeFaceNormal(rVariables.Contact.CurrentSurface.Normal,P1,P2);
+    rVariables.Contact.CurrentSurface.Normal=mContactUtilities.CalculateFaceNormal(rVariables.Contact.CurrentSurface.Normal,P1,P2);
 
     //std::cout<<" Current Normal "<<rVariables.Contact.CurrentSurface.Normal<<std::endl;
 
@@ -481,8 +481,8 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 
 
     //compute the current tangent vector
-    //rVariables.Contact.CurrentSurface.Tangent=ComputeFaceTangent(rVariables.Contact.CurrentSurface.Tangent,P1,P2);
-    rVariables.Contact.CurrentSurface.Tangent=ComputeFaceTangent(rVariables.Contact.CurrentSurface.Tangent,rVariables.Contact.CurrentSurface.Normal);
+    //rVariables.Contact.CurrentSurface.Tangent=mContactUtilities.CalculateFaceTangent(rVariables.Contact.CurrentSurface.Tangent,P1,P2);
+    rVariables.Contact.CurrentSurface.Tangent=mContactUtilities.CalculateFaceTangent(rVariables.Contact.CurrentSurface.Tangent,rVariables.Contact.CurrentSurface.Normal);
 
 
 
@@ -511,7 +511,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     rVariables.Contact.CurrentBase.resize(1);
 
     //a, b, l:
-    CalcBaseDistances (rVariables.Contact.CurrentBase[0],P1,P2,PS,rVariables.Contact.CurrentSurface.Normal);
+    mContactUtilities.CalculateBaseDistances (rVariables.Contact.CurrentBase[0],P1,P2,PS,rVariables.Contact.CurrentSurface.Normal);
 
     //Write Current Positions:
     // std::cout<<" Current position node 1 "<<P1<<std::endl;
@@ -525,7 +525,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     P1 =  GetGeometry()[node1].Coordinates();
     P2 =  GetGeometry()[node2].Coordinates();
 
-    CalcBaseDistances (rVariables.Contact.ReferenceBase[0],P1,P2,PS,mContactVariables.ReferenceSurface.Normal);
+    mContactUtilities.CalculateBaseDistances (rVariables.Contact.ReferenceBase[0],P1,P2,PS,mContactVariables.ReferenceSurface.Normal);
 
 
     //complete the computation of the stabilization gap
@@ -941,7 +941,7 @@ void ContactDomainLM2DCondition::CalculateNormalForce (double &F,GeneralVariable
 void ContactDomainLM2DCondition::CalculateTangentStickForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
 {
 
-	if( rVariables.Contact.Options.Is(COMPUTE_FRICTION_FORCES) )
+	if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
 	{
 		F=rVariables.Contact.Multiplier.Tangent*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]);
 	}
@@ -958,7 +958,7 @@ void ContactDomainLM2DCondition::CalculateTangentStickForce (double &F,GeneralVa
 void ContactDomainLM2DCondition::CalculateTangentSlipForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
 {
 
-	if( rVariables.Contact.Options.Is(COMPUTE_FRICTION_FORCES) )
+	if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
 	{
 		F=rVariables.Contact.Multiplier.Normal*(rVariables.Contact.FrictionCoefficient*rVariables.Contact.TangentialGapSign)*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]);
 
@@ -1000,7 +1000,7 @@ void ContactDomainLM2DCondition::CalcContactStiffness (double &Kcont,GeneralVari
     if(rVariables.Contact.Options.Is(NOT_SLIP))
     {
 	//std::cout<<" + stick ";
-        if(rVariables.Contact.Options.Is(COMPUTE_FRICTION_STIFFNESS))
+        if(rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS))
         {
 	    //std::cout<<"(mu_on)";
             //KI:
@@ -1017,7 +1017,7 @@ void ContactDomainLM2DCondition::CalcContactStiffness (double &Kcont,GeneralVari
     {
         //Slip contact contribution:
 	//std::cout<<" + slip ";
-        if(rVariables.Contact.Options.Is(COMPUTE_FRICTION_STIFFNESS))
+        if(rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS))
         {
 	    //std::cout<<"(mu_on)";
             //KI:
@@ -1036,190 +1036,24 @@ void ContactDomainLM2DCondition::CalcContactStiffness (double &Kcont,GeneralVari
 }
 
 
-//****************************COMPUTE 2D GEOMETRIC VARIABLES**************************
+//************************************************************************************
 //************************************************************************************
 
-void ContactDomainLM2DCondition:: CalcBaseDistances (BaseLengths& Base,VectorType& P1,VectorType& P2,VectorType& PS,VectorType& Normal)
+
+ContactDomainUtilities::VectorType & ContactDomainLM2DCondition::CalculateCurrentTangent ( VectorType &rTangent )
 {
 
-    Base.L=norm_2(P2-P1);
+	unsigned int node1=mContactVariables.nodes[0];
+	unsigned int node2=mContactVariables.nodes[1];
 
-
-    //if the normal points from the side to the slave node:
-    VectorType Projection= PS-P1;
-    Projection-=Normal*(inner_prod(Projection,Normal));
-    Projection+=P1;
-
-    double sign=1;
-    VectorType Pro1 = Projection-P1; 
-    VectorType Pro2 = P2-P1;
-
-    if(double(inner_prod(Pro2,Pro1))<0)
-        sign*=(-1);
-
-    //signed distance to node 1
-    Base.B= sign*norm_2(P1-Projection);
-
-    sign=1;
-    Pro1 = Projection-P2;
-    Pro2 = P1-P2;
-    if(inner_prod(Pro2,Pro1)<0)
-        sign*=(-1);
-
-    //signed distance to node 2
-    Base.A= sign*norm_2(P2-Projection);
-
-}
-
-
-//************************************************************************************
-//************************************************************************************
-ContactDomainLM2DCondition::VectorType & ContactDomainLM2DCondition::ComputeFaceNormal(VectorType &Normal, VectorType& P1, VectorType &P2)
-{
-
-    Normal.clear();
-    Normal[0] =    P2[1] - P1[1];
-    Normal[1] = - (P2[0] - P1[0]);
-    Normal[2] =    0.00;
-
-    if(norm_2(Normal)!=0)
-	Normal/=norm_2(Normal);
-
-    return Normal;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-
-ContactDomainLM2DCondition::VectorType & ContactDomainLM2DCondition::ComputeFaceTangent(VectorType &Tangent ,VectorType& P1, VectorType &P2)
-{
-
-    Tangent.clear();
-    Tangent[0] =    (P2[0] - P1[0]);
-    Tangent[1] =   -(P2[1] - P1[1]);
-    Tangent[2] =    0.00;
-
-    if(norm_2(Tangent)!=0)
-	Tangent/=norm_2(Tangent);
-
-    return Tangent;
-
-}
-
-
-
-//************************************************************************************
-//************************************************************************************
-
-
-ContactDomainLM2DCondition::VectorType & ContactDomainLM2DCondition::CalculateCurrentTangent ( VectorType &rTangent )
-{
-
-  unsigned int node1=mContactVariables.nodes[0];
-  unsigned int node2=mContactVariables.nodes[1];
-
-  VectorType P1  =  GetGeometry()[node1].Coordinates() + ( GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) );
-  VectorType P2  =  GetGeometry()[node2].Coordinates() + ( GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) );
+	VectorType P1  =  GetGeometry()[node1].Coordinates() + ( GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) );
+	VectorType P2  =  GetGeometry()[node2].Coordinates() + ( GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) );
   
-  //Set Reference Tangent
-  rTangent=ComputeFaceTangent(rTangent,P1,P2);
+	//Set Reference Tangent
+	rTangent=mContactUtilities.CalculateFaceTangent(rTangent,P1,P2);
   
-  return rTangent;
+	return rTangent;
 
-}
-
-//************************************************************************************
-//************************************************************************************
-
-
-ContactDomainLM2DCondition::VectorType & ContactDomainLM2DCondition::ComputeFaceTangent(VectorType &Tangent ,VectorType& Normal)
-{
-
-    Tangent.clear();
-    Tangent[0] =  - Normal[1];
-    Tangent[1] =    Normal[0];
-    Tangent[2] =    0.00;
-
-    if(norm_2(Tangent)!=0)
-	Tangent/=norm_2(Tangent);
-
-    return Tangent;
-
-}
-
-//************************************************************************************
-//************************************************************************************
-
-inline double ContactDomainLM2DCondition::CalculateVol(const double x0, const double y0,
-						     const double x1, const double y1,
-						     const double x2, const double y2)
-{
-  return 0.5*( (x1-x0)*(y2-y0)- (y1-y0)*(x2-x0) );
-}
-
-//************************************************************************************
-//************************************************************************************
-
-inline bool ContactDomainLM2DCondition::CalculatePosition(const double x0, const double y0,
-							const double x1, const double y1,
-							const double x2, const double y2,
-							const double xc, const double yc)
-{
-  double area = CalculateVol(x0,y0,x1,y1,x2,y2);
-
-  //std::cout<<" Area "<<area<<std::endl;
-	    
-  if(area < 1e-15)
-    {
-      //KRATOS_ERROR(std::logic_error,"element with zero area found","");
-      std::cout<<"element with zero area found: "<<area<<" position ("<<x0<<", "<<y0<<") ("<<x1<<", "<<y1<<") ("<<x2<<", "<<y2<<") "<<std::endl;
-    }
-
-  VectorType N;
-
-  N[0] = CalculateVol(x1,y1,x2,y2,xc,yc)  / area;
-  N[1] = CalculateVol(x2,y2,x0,y0,xc,yc)  / area;
-  N[2] = CalculateVol(x0,y0,x1,y1,xc,yc)  / area;
-
-  double tol = 1e-3;
-  double upper_limit = 1.0+tol;
-  double lower_limit = -tol;
-
-  if(N[0] >= lower_limit && N[1] >= lower_limit && N[2] >= lower_limit && N[0] <= upper_limit && N[1] <= upper_limit && N[2] <= upper_limit) //if the xc yc is inside the triangle
-    return true;
-
-  return false;
-}
-
-//************************************************************************************
-//************************************************************************************
-
-inline bool ContactDomainLM2DCondition::CalculateObtuseAngle(const double x0, const double y0,
-							   const double x1, const double y1,
-							   const double xc, const double yc)
-{
-
-  double side0 = sqrt( (x0-x1)*(x0-x1) + (y0-y1)*(y0-y1) ); //master side
-  double side1 = sqrt( (x0-xc)*(x0-xc) + (y0-yc)*(y0-yc) );
-  double side2 = sqrt( (xc-x1)*(xc-x1) + (yc-y1)*(yc-y1) );
-
-  double cos_angle = 0; 
-  double aux       = (2*side1*side0);
-  if(aux!=0)
-    cos_angle = ((side1*side1) + (side0*side0) - (side2*side2)) / aux;
-
-  if(cos_angle<(-0.1))
-    return true;
-
-  aux       = (2*side2*side0);
-  if(aux!=0)
-    cos_angle = ((side2*side2) + (side0*side0) - (side1*side1)) / aux;
-
-  if(cos_angle<(-0.1))
-    return true;
-
-  return false;
 }
 
 //************************************************************************************
@@ -1272,10 +1106,10 @@ inline bool ContactDomainLM2DCondition::CheckFictiousContacts(GeneralVariables& 
     {
       GeometryType::PointsArrayType& vertices=rNeighbours_n1[i].GetGeometry().Points();
   
-      is_inside_a = CalculatePosition( vertices[0].X(), vertices[0].Y(),
-				       vertices[1].X(), vertices[1].Y(),
-				       vertices[2].X(), vertices[2].Y(),
-				       Sx1, Sy1);
+      is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
+							       vertices[1].X(), vertices[1].Y(),
+							       vertices[2].X(), vertices[2].Y(),
+							       Sx1, Sy1);
 
       if(is_inside_a)
 	break;
@@ -1287,10 +1121,10 @@ inline bool ContactDomainLM2DCondition::CheckFictiousContacts(GeneralVariables& 
       {
 	GeometryType::PointsArrayType& vertices=rNeighbours_n2[i].GetGeometry().Points();
       
-	is_inside_a = CalculatePosition( vertices[0].X(), vertices[0].Y(),
-					 vertices[1].X(), vertices[1].Y(),
-					 vertices[2].X(), vertices[2].Y(),
-					 Sx1, Sy1);
+	is_inside_a = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
+								 vertices[1].X(), vertices[1].Y(),
+								 vertices[2].X(), vertices[2].Y(),
+								 Sx1, Sy1);
       
 	if(is_inside_a)
 	  break;
@@ -1305,10 +1139,10 @@ inline bool ContactDomainLM2DCondition::CheckFictiousContacts(GeneralVariables& 
     {
       GeometryType::PointsArrayType& vertices=rNeighbours_n1[i].GetGeometry().Points();
   
-      is_inside_b = CalculatePosition( vertices[0].X(), vertices[0].Y(),
-				       vertices[1].X(), vertices[1].Y(),
-				       vertices[2].X(), vertices[2].Y(),
-				       Mx1, My1);
+      is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
+							       vertices[1].X(), vertices[1].Y(),
+							       vertices[2].X(), vertices[2].Y(),
+							       Mx1, My1);
 
       if(is_inside_b)
 	break;
@@ -1321,10 +1155,10 @@ inline bool ContactDomainLM2DCondition::CheckFictiousContacts(GeneralVariables& 
       {
 	GeometryType::PointsArrayType& vertices=rNeighbours_n2[i].GetGeometry().Points();
       
-	is_inside_b = CalculatePosition( vertices[0].X(), vertices[0].Y(),
-					 vertices[1].X(), vertices[1].Y(),
-					 vertices[2].X(), vertices[2].Y(),
-					 Mx1, My1);
+	is_inside_b = mContactUtilities.CalculatePosition( vertices[0].X(), vertices[0].Y(),
+								 vertices[1].X(), vertices[1].Y(),
+								 vertices[2].X(), vertices[2].Y(),
+								 Mx1, My1);
       
 	if(is_inside_b)
 	  break;
@@ -1343,9 +1177,9 @@ inline bool ContactDomainLM2DCondition::CheckFictiousContacts(GeneralVariables& 
     VectorType P1  =  GetGeometry()[node1].Coordinates() + ( GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) );
     VectorType P2  =  GetGeometry()[node2].Coordinates() + ( GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) );
 
-    bool is_obtuse = CalculateObtuseAngle( P1[0], P1[1],
-					   P2[0], P2[1],
-					   PS[0], PS[1] );
+    bool is_obtuse = mContactUtilities.CalculateObtuseAngle( P1[0], P1[1],
+							     P2[0], P2[1],
+							     PS[0], PS[1] );
 
     if(!is_obtuse){
       real_contact=true;

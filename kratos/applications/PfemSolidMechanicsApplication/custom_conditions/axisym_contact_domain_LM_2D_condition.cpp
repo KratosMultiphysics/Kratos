@@ -118,8 +118,9 @@ void AxisymContactDomainLM2DCondition::InitializeGeneralVariables (GeneralVariab
 
 }
 
-//***********************************************************************
-//***********************************************************************
+//*********************************COMPUTE RADIUS*************************************
+//************************************************************************************
+
 void AxisymContactDomainLM2DCondition::CalculateRadius(double & rCurrentRadius,
 						       double & rReferenceRadius,
 						       const Vector& rN)

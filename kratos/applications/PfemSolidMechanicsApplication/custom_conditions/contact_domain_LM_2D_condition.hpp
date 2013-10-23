@@ -51,14 +51,23 @@ public:
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-    ///Tensor order 1 definition
-    typedef array_1d<double, 3>    VectorType;
+
     ///NodeType
     typedef Node < 3 > NodeType;
     ///Geometry Type
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
     typedef Element::ElementType ElementType;
+	
+
+    ///Tensor order 1 definition
+    typedef ContactDomainUtilities::VectorType   VectorType;
+    ///SurfaceVector
+    typedef ContactDomainUtilities::SurfaceVector SurfaceVector;
+    ///SurfaceScalar
+    typedef ContactDomainUtilities::SurfaceScalar SurfaceScalar;
+    ///BaseLengths
+    typedef ContactDomainUtilities::BaseLengths     BaseLengths;
 
 
     /// Counted pointer of ContactDomainLM2DCondition
@@ -221,39 +230,9 @@ protected:
     ///@name Protected Operations
     ///@{
 
- 
-    /**
-     * Util geometrical methods:
-     */
-
-    VectorType & CalculateCurrentTangent( VectorType &rTangent );
-
-
-    void  CalcBaseDistances (BaseLengths& Base,VectorType& P1,VectorType& P2,VectorType& PS,VectorType& Normal);
-
-    VectorType & ComputeFaceNormal(VectorType &Normal, VectorType& P1, VectorType &P2);
-
-    VectorType & ComputeFaceTangent(VectorType &Tangent ,VectorType& P1, VectorType &P2);
-   
-    VectorType & ComputeFaceTangent(VectorType &Tangent ,VectorType& Normal);
-
     inline bool CheckFictiousContacts(GeneralVariables& rVariables);
 
-    inline bool CalculatePosition(const double x0, const double y0,
-				  const double x1, const double y1,
-				  const double x2, const double y2,
-				  const double xc, const double yc);
-
-    inline bool CalculateObtuseAngle(const double x0, const double y0,
-				     const double x1, const double y1,
-				     const double xc, const double yc);
-
-
-    inline double CalculateVol(const double x0, const double y0,
-			       const double x1, const double y1,
-			       const double x2, const double y2);
-  
-
+    VectorType& CalculateCurrentTangent(VectorType &rTangent);
 
     void FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, VectorType& AuxVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr);
 

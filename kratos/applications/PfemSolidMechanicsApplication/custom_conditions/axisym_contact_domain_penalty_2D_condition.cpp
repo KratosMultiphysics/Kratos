@@ -117,8 +117,9 @@ void AxisymContactDomainPenalty2DCondition::InitializeGeneralVariables (GeneralV
 
 }
 
-//***********************************************************************
-//***********************************************************************
+//*********************************COMPUTE RADIUS*************************************
+//************************************************************************************
+
 void AxisymContactDomainPenalty2DCondition::CalculateRadius(double & rCurrentRadius,
 						       double & rReferenceRadius,
 						       const Vector& rN)
