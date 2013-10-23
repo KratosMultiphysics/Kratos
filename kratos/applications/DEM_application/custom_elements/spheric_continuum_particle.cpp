@@ -1056,7 +1056,7 @@ namespace Kratos
          mCompressionLimit              = rCurrentProcessInfo[CONTACT_SIGMA_MAX]*1e6;
          mTauZero                       = rCurrentProcessInfo[CONTACT_TAU_ZERO]*1e6;           
          
-         if( (*mpCaseOption!=0) )
+         if( *mpCaseOption !=0 ) 
           {
             
             SetInitialContacts( rCurrentProcessInfo);
