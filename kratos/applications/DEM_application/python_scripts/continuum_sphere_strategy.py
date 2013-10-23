@@ -120,7 +120,7 @@ class ExplicitStrategy:
         self.virtual_mass_option            = Var_Translator(Param.VirtualMassOption)  
         self.critical_time_option           = Var_Translator(Param.AutoReductionOfTimeStepOption)   
         self.case_option                    = 3  #aixo es una xapuza fins que pooyan permeti bools a pyton o tinguis flags.
-        self.trihedron_option               = Var_Translator(Param.TrihedronOption)
+        self.trihedron_option               = Var_Translator(Param.PostEulerAngles)
         self.rotation_option                = Var_Translator(Param.RotationOption)
         self.rotation_spring_option         = Var_Translator(Param.RotationalSpringOption)  
         self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)  
@@ -141,7 +141,6 @@ class ExplicitStrategy:
         self.contact_mesh_option            = Var_Translator( Var_Translator(Param.ContactMeshOption) & Var_Translator(Param.ContinuumOption) ) 
         self.concrete_test_option           = Var_Translator( Var_Translator(Param.ConcreteTestOption) & Var_Translator(Param.ContinuumOption) ) 
         self.triaxial_option                = Var_Translator( Var_Translator(Param.TriaxialOption) & self.concrete_test_option )
-       
         self.search_radius_extension        = 1e-6 #needed for the tangential contacts. Charlie will modify the search. MSIMSI 3 comproba que ja esta arreglat aixo.
         self.amplified_continuum_search_radius_extension    = 1.0;
         self.automatic_bounding_box_option  = Var_Translator(Param.AutomaticBoundingBoxOption)              
