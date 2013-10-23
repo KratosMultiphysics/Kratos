@@ -19,8 +19,8 @@ QUESTION: DEM_Element_Type#CB#(SphericParticle3D,SphericContinuumParticle3D,Sphe
 VALUE: SphericParticle3D
 QUESTION: Rotation#CB#(ON,OFF)
 VALUE: OFF
-DEPENDENCIES: (OFF,HIDE,Rotation_Spring,#CURRENT#,HIDE,Trihedron_On_Each_Ball,#CURRENT#,HIDE,Rota_Damp_Type,#CURRENT#,HIDE,ANGULAR_VELOCITY,#CURRENT#,HIDE,PARTICLE_MOMENT,#CURRENT#,HIDE,EULER_ANGLES,#CURRENT#,HIDE,General_Rolling_Friction,#CURRENT#,HIDE,General_Rota_Damp_Ratio,#CURRENT#,HIDE,Rotation_Spring,#CURRENT#,HIDE,Rota_Damp_Type,#CURRENT#,HIDE,Trihedron_On_Each_Ball,#CURRENT#)
-DEPENDENCIES: (ON,RESTORE,Rotation_Spring,#CURRENT#,RESTORE,Trihedron_On_Each_Ball,#CURRENT#,RESTORE,Rota_Damp_Type,#CURRENT#,RESTORE,ANGULAR_VELOCITY,#CURRENT#,RESTORE,PARTICLE_MOMENT,#CURRENT#,RESTORE,EULER_ANGLES,#CURRENT#,RESTORE,General_Rolling_Friction,#CURRENT#,RESTORE,General_Rota_Damp_Ratio,#CURRENT#,RESTORE,Rotation_Spring,#CURRENT#,RESTORE,Rota_Damp_Type,#CURRENT#,RESTORE,Trihedron_On_Each_Ball,#CURRENT#)
+DEPENDENCIES: (OFF,HIDE,Rotation_Spring,#CURRENT#,HIDE,Rota_Damp_Type,#CURRENT#,HIDE,ANGULAR_VELOCITY,#CURRENT#,HIDE,PARTICLE_MOMENT,#CURRENT#,HIDE,EULER_ANGLES,#CURRENT#,HIDE,General_Rolling_Friction,#CURRENT#,HIDE,General_Rota_Damp_Ratio,#CURRENT#,HIDE,Rotation_Spring,#CURRENT#,HIDE,Rota_Damp_Type,#CURRENT#)
+DEPENDENCIES: (ON,RESTORE,Rotation_Spring,#CURRENT#,RESTORE,Rota_Damp_Type,#CURRENT#,RESTORE,ANGULAR_VELOCITY,#CURRENT#,RESTORE,PARTICLE_MOMENT,#CURRENT#,RESTORE,EULER_ANGLES,#CURRENT#,RESTORE,General_Rolling_Friction,#CURRENT#,RESTORE,General_Rota_Damp_Ratio,#CURRENT#,RESTORE,Rotation_Spring,#CURRENT#,RESTORE,Rota_Damp_Type,#CURRENT#)
 QUESTION: Homogeneous_Material#CB#(ON,OFF)
 VALUE: OFF
 DEPENDENCIES: (OFF,TITLESTATE,Global_Material_Parameters,hidden)
@@ -110,8 +110,6 @@ HELP: It avoids fixing velocity at the initial timestep but at a predefined one.
 QUESTION: Time_Step_Constrain_DOFs_Percentage
 VALUE: 1.0
 HELP: The constraints (applied conditions on velocity) apply at a percentual of the total time steps.
-QUESTION: Trihedron_On_Each_Ball#CB#(ON,OFF)
-VALUE: OFF
 QUESTION: Limit_Surface#CB#(0,1,2,3,4,5)
 VALUE: 0
 QUESTION: Surface_Normal_Dir_X_1
