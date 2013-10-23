@@ -119,7 +119,7 @@ class ExplicitStrategy:
         # SIMULATION FLAGS        
         self.virtual_mass_option            = Var_Translator(Param.VirtualMassOption)
         self.critical_time_option           = Var_Translator(Param.AutoReductionOfTimeStepOption)
-        self.trihedron_option               = Var_Translator(Param.TrihedronOption)
+        self.trihedron_option               = Var_Translator(Param.PostEulerAngles)
         self.rotation_option                = Var_Translator(Param.RotationOption)
         self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)
         self.fix_velocities                 = Var_Translator(Param.FixVelocitiesOption)
