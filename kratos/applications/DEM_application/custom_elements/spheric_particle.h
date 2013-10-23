@@ -233,7 +233,6 @@ namespace Kratos
       int mLimitSurfaceOption;
       int mLimitCylinderOption;
       int mRotationSpringOption;
-      int mTriaxialOption;
       double mRadius;
       double mRealMass;
       double mSqrtOfRealMass;
