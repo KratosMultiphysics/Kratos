@@ -57,7 +57,6 @@ AmplifiedSearchRadiusExtension   = *GenData(Amplified_Continuum_Search_Radius_Ex
 FixVelocitiesOption              = "*GenData(Fix_Velocities_At_Predetermined_Time)"
 *format "%10.5e"
 TotalTimePercentageFixVelocities = *GenData(Time_Step_Constrain_DOFs_Percentage)
-TrihedronOption                  = "*GenData(Trihedron_On_Each_Ball)"
 LimitSurfaceOption               = *GenData(Limit_Surface)
 *format "%10.5e"
 SurfaceNormalDirX1               = *GenData(Surface_Normal_Dir_X_1)
