@@ -22,12 +22,6 @@
 namespace Kratos
 {
 
-  KRATOS_CREATE_LOCAL_FLAG( ContactDomainCondition, COMPUTE_RHS_VECTOR,               0 );
-  KRATOS_CREATE_LOCAL_FLAG( ContactDomainCondition, COMPUTE_LHS_MATRIX,               1 );
-
-  KRATOS_CREATE_LOCAL_FLAG( ContactDomainCondition, COMPUTE_FRICTION_FORCES,          2 );
-  KRATOS_CREATE_LOCAL_FLAG( ContactDomainCondition, COMPUTE_FRICTION_STIFFNESS,       3 );
-
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
@@ -410,7 +404,8 @@ void ContactDomainCondition::Initialize()
 {
     KRATOS_TRY
 
- 
+	    std::cout<<" The position update on the iteration requires a modification in the condition "<<std::endl;
+
     KRATOS_CATCH( "" )
 }
 
@@ -645,8 +640,8 @@ void ContactDomainCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatr
 
     //calculation flags
     Flags CalculationFlags;
-    CalculationFlags.Set(ContactDomainCondition::COMPUTE_LHS_MATRIX);
-    CalculationFlags.Set(ContactDomainCondition::COMPUTE_RHS_VECTOR);
+    CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX);
+    CalculationFlags.Set(ContactDomainUtilities::COMPUTE_RHS_VECTOR);
 
 
     //Initialize sizes for the system components:
@@ -665,7 +660,7 @@ void ContactDomainCondition::CalculateRightHandSide( VectorType& rRightHandSideV
 {
     //calculation flags
     Flags CalculationFlags;
-    CalculationFlags.Set(ContactDomainCondition::COMPUTE_RHS_VECTOR);
+    CalculationFlags.Set(ContactDomainUtilities::COMPUTE_RHS_VECTOR);
 
     MatrixType LeftHandSideMatrix = Matrix();
 
@@ -686,7 +681,7 @@ void ContactDomainCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMat
 {
     //calculation flags
     Flags CalculationFlags;
-    CalculationFlags.Set(ContactDomainCondition::COMPUTE_LHS_MATRIX);
+    CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX);
 
     VectorType RightHandSideVector = Vector();
 
@@ -712,7 +707,7 @@ void ContactDomainCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideM
   //resizing as needed the LHS
   unsigned int mat_size = (number_of_nodes + 1) * dimension;
 
-  if ( rCalculationFlags.Is(ContactDomainCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+  if ( rCalculationFlags.Is(ContactDomainUtilities::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
     {
       if ( rLeftHandSideMatrix.size1() != mat_size )
 	rLeftHandSideMatrix.resize( mat_size, mat_size, false );
@@ -722,7 +717,7 @@ void ContactDomainCondition::InitializeSystemMatrices(MatrixType& rLeftHandSideM
 
 
   //resizing as needed the RHS
-  if ( rCalculationFlags.Is(ContactDomainCondition::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
+  if ( rCalculationFlags.Is(ContactDomainUtilities::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
     {
       if ( rRightHandSideVector.size() != mat_size )
 	rRightHandSideVector.resize( mat_size, false );
@@ -774,18 +769,6 @@ void ContactDomainCondition::InitializeGeneralVariables (GeneralVariables& rVari
 //************************************************************************************
 //************************************************************************************
 
-
-ContactDomainCondition::VectorType & ContactDomainCondition::CalculateCurrentTangent ( VectorType &rTangent )
-{
-
-  KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
-  return rTangent;
-
-}
-
-//************************************************************************************
-//************************************************************************************
-
 void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVariables, VectorType & TangentVelocity)
 {
     //if current tangent is not previously computed, do it here.
@@ -809,7 +792,7 @@ void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVaria
         //Displacement from the reference to the current configuration
         CurrentVelocity  = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
         if(i!=slave)
-            CurrentVelocity *=(-0.5);
+	    CurrentVelocity *=(-1)*(1.0/double(number_of_nodes - 1));
 
         TangentVelocity+=CurrentVelocity;
     }
@@ -848,7 +831,7 @@ void ContactDomainCondition::CalculateRelativeDisplacement (GeneralVariables& rV
         //Displacement from the reference to the current configuration
         CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
         if(i!=slave)
-            CurrentDisplacement *=(-0.5);
+	    CurrentDisplacement *=(-1)*(1.0/double(number_of_nodes - 1));
 
         TangentDisplacement+=CurrentDisplacement;
     }
@@ -908,7 +891,7 @@ void ContactDomainCondition::CalculateFrictionCoefficient (GeneralVariables& rVa
 
     //Activate or deactivate friction (simulation type)
 
-    if( rVariables.Contact.Options.IsNot(COMPUTE_FRICTION_FORCES) ){
+    if( rVariables.Contact.Options.IsNot(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) ){
 	    rVariables.Contact.FrictionCoefficient = 0;
     }
 
@@ -936,9 +919,9 @@ void ContactDomainCondition::CalculateConditionalSystem( MatrixType& rLeftHandSi
     //Initialize friction parameter
     Variables.Contact.FrictionCoefficient   =0;
 
-    Variables.Contact.Options.Set(COMPUTE_FRICTION_STIFFNESS);
+    Variables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS);
     if( GetProperties()[FRICTION_ACTIVE] == 1 )
-	    Variables.Contact.Options.Set(COMPUTE_FRICTION_FORCES);
+	    Variables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_FORCES);
 
     //Tangent velocity and stablish friction parameter
     VectorType TangentVelocity (3,0.0);
@@ -962,15 +945,15 @@ void ContactDomainCondition::CalculateConditionalSystem( MatrixType& rLeftHandSi
 
         if(Variables.Contact.Options.Is(ACTIVE))
         {
-	  rCalculationFlags.Set(ContactDomainCondition::COMPUTE_LHS_MATRIX,true); //take a look on strategy and impose it
+	  rCalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX,true); //take a look on strategy and impose it
 
-	  if ( rCalculationFlags.Is(ContactDomainCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+	  if ( rCalculationFlags.Is(ContactDomainUtilities::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
 	    {
 	      //contributions to stiffness matrix calculated on the reference config
 	      this->CalculateAndAddLHS ( rLeftHandSideMatrix, Variables, IntegrationWeight );
 	    }
 
-	  if ( rCalculationFlags.Is(ContactDomainCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+	  if ( rCalculationFlags.Is(ContactDomainUtilities::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
 	    {
 	      //contribution to contact forces
 	      this->CalculateAndAddRHS ( rRightHandSideVector, Variables, IntegrationWeight );
@@ -1343,22 +1326,25 @@ int  ContactDomainCondition::Check( const ProcessInfo& rCurrentProcessInfo )
     KRATOS_CATCH( "" );
 }
 
+//Note: in the restart the contact mesh is generated from the begining
 
 void ContactDomainCondition::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
-    int IntMethod = (int)mThisIntegrationMethod;
-    rSerializer.save("IntegrationMethod",IntMethod);
-    rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
+    // int IntMethod = (int)mThisIntegrationMethod;
+    // rSerializer.save("IntegrationMethod",IntMethod);
+    // rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
+    // rSerializer.save("ContactVariables",mContactVariables);
 }
 
 void ContactDomainCondition::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
-    int IntMethod;
-    rSerializer.load("IntegrationMethod",IntMethod);
-    mThisIntegrationMethod = IntegrationMethod(IntMethod);
-    rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
+    // int IntMethod;
+    // rSerializer.load("IntegrationMethod",IntMethod);
+    // mThisIntegrationMethod = IntegrationMethod(IntMethod);
+    // rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
+    // rSerializer.load("ContactVariables",mContactVariables);
 }
 
 

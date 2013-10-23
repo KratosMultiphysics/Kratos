@@ -26,8 +26,9 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-
 #include "includes/condition.h"
+
+#include "custom_utilities/contact_domain_utilities.hpp"
 
 namespace Kratos
 {
@@ -63,14 +64,24 @@ public:
     typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
-    ///Tensor order 1 definition
-    typedef array_1d<double, 3>    VectorType;
+
     ///NodeType
     typedef Node < 3 > NodeType;
     ///Geometry Type
     typedef Geometry<NodeType> GeometryType;
     ///Element Type
     typedef Element::ElementType ElementType;
+	
+
+    ///Tensor order 1 definition
+    typedef ContactDomainUtilities::VectorType   VectorType;
+    ///SurfaceVector
+    typedef ContactDomainUtilities::SurfaceVector SurfaceVector;
+    ///SurfaceScalar
+    typedef ContactDomainUtilities::SurfaceScalar SurfaceScalar;
+    ///BaseLengths
+    typedef ContactDomainUtilities::BaseLengths     BaseLengths;
+
 
 
 protected:
@@ -78,32 +89,6 @@ protected:
     /**
      * Parameters to be used in the Condition as they are. Direct interface to Parameters Struct
      */
-
-
-    typedef struct
-    {
-        double L;    //base side lentgh
-        double A;    //distance 2-3
-        double B;    //distance 1-2
-
-    } BaseLengths;
-
-
-    typedef struct
-    {
-        VectorType Normal;        //normal direction
-        VectorType Tangent;       //tangent direction
-	   
-    } SurfaceVector;
-
-
-    typedef struct
-    {
-        double Normal;        //normal component 
-        double Tangent;       //tangent component
-        	   
-    } SurfaceScalar;
-
 
     typedef struct
     {
@@ -201,6 +186,7 @@ protected:
 
     typedef struct
     {
+
         //Iteration counter:
         int             IterationCounter;      //the number of the step iteration
 
@@ -258,11 +244,6 @@ public:
     /// Counted pointer of ContactDomainCondition
     KRATOS_CLASS_POINTER_DEFINITION(ContactDomainCondition);
 
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_FRICTION_FORCES );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_FRICTION_STIFFNESS );
 
     ///@}
     ///@name Life Cycle
@@ -353,7 +334,7 @@ public:
 
     //SET
     /**
-     * Set a Vector Value on the Condition Constitutive Law
+     * Set a double Value on the Condition Constitutive Law
      */
     void SetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo);
     /**
@@ -514,8 +495,12 @@ protected:
     /**
      * Variables stored in the element during the computation
      */
-   
     ContactVariables      mContactVariables;
+
+    /**
+     * Contact Domain Utilities 
+     */
+    ContactDomainUtilities  mContactUtilities;
 
     ///@}
     ///@name Protected Operators
@@ -558,8 +543,6 @@ protected:
 	
     /**
      * Calculates condition contributions
-     * \f$ K^e = w\,B^T\,D\,B \f$ and
-     * \f$ r^e \f$
      */
     virtual void CalculateConditionalSystem(MatrixType& rLeftHandSideMatrix,
                                             VectorType& rRightHandSideVector,
@@ -609,11 +592,6 @@ protected:
 	};
 
 
-    /**
-     *  Parameters for friction law Tangent:
-     */
-    virtual VectorType & CalculateCurrentTangent(VectorType & rTangent);
-
 
     /**
      *  Parameters for friction law Relative Tangent Velocity:
@@ -626,6 +604,15 @@ protected:
      */
     virtual void CalculateRelativeDisplacement(GeneralVariables& rVariables,
 					       VectorType & TangentDisplacement);
+
+    /**
+     * Calculate current tangent vector
+     */
+    virtual VectorType & CalculateCurrentTangent(VectorType &rTangent)
+	{
+		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
+
+	};
 
 
     /**
@@ -718,6 +705,8 @@ protected:
 		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" );
 
 	};
+
+
     ///@}
     ///@name Protected Operations
     ///@{

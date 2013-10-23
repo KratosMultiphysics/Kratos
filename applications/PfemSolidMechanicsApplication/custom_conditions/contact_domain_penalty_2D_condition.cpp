@@ -156,7 +156,7 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
     VectorType P2  =  GetGeometry()[node2].Coordinates() + ( GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) );
 
     //compute the current normal vector
-    rVariables.Contact.CurrentSurface.Normal=ComputeFaceNormal(rVariables.Contact.CurrentSurface.Normal,P1,P2);
+    rVariables.Contact.CurrentSurface.Normal=mContactUtilities.CalculateFaceNormal(rVariables.Contact.CurrentSurface.Normal,P1,P2);
 
     //std::cout<<" Current Normal "<<rVariables.Contact.CurrentSurface.Normal<<std::endl;
 
@@ -170,8 +170,8 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
 
 
     //compute the current tangent vector
-    //rVariables.Contact.CurrentSurface.Tangent=ComputeFaceTangent(rVariables.Contact.CurrentSurface.Tangent,P1,P2);
-    rVariables.Contact.CurrentSurface.Tangent = this->ComputeFaceTangent(rVariables.Contact.CurrentSurface.Tangent, rVariables.Contact.CurrentSurface.Normal);
+    //rVariables.Contact.CurrentSurface.Tangent=mContactUtilities.CalculateFaceTangent(rVariables.Contact.CurrentSurface.Tangent,P1,P2);
+    rVariables.Contact.CurrentSurface.Tangent = mContactUtilities.CalculateFaceTangent(rVariables.Contact.CurrentSurface.Tangent, rVariables.Contact.CurrentSurface.Normal);
 
 
 
@@ -192,7 +192,7 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
     rVariables.Contact.CurrentBase.resize(1);
 
     //a, b, l:
-    CalcBaseDistances (rVariables.Contact.CurrentBase[0],P1,P2,PS,rVariables.Contact.CurrentSurface.Normal);
+    mContactUtilities.CalculateBaseDistances (rVariables.Contact.CurrentBase[0],P1,P2,PS,rVariables.Contact.CurrentSurface.Normal);
 
     //Write Current Positions:
     // std::cout<<" Current position node 1 "<<P1<<std::endl;
@@ -206,7 +206,7 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
     P1 =  GetGeometry()[node1].Coordinates();
     P2 =  GetGeometry()[node2].Coordinates();
 
-    CalcBaseDistances (rVariables.Contact.ReferenceBase[0],P1,P2,PS,mContactVariables.ReferenceSurface.Normal);
+    mContactUtilities.CalculateBaseDistances (rVariables.Contact.ReferenceBase[0],P1,P2,PS,mContactVariables.ReferenceSurface.Normal);
 
 
     //complete the computation of the stabilization gap
@@ -305,8 +305,8 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
         //     rVariables.Contact.Options.Set(SLIP,true);  //contact slip  case active
 	//     rCurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS] += 1;
         // }
-	rVariables.Contact.Options.Set(COMPUTE_FRICTION_STIFFNESS); 
-	rVariables.Contact.Options.Set(COMPUTE_FRICTION_FORCES);
+	rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS); 
+	rVariables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_FORCES);
 	//rCurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] += 1;
 
     }
@@ -351,7 +351,7 @@ void ContactDomainPenalty2DCondition::CalculateNormalForce (double &F,GeneralVar
 void ContactDomainPenalty2DCondition::CalculateTangentStickForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
 {
 
-	if( rVariables.Contact.Options.Is(COMPUTE_FRICTION_FORCES) )
+	if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
 	{
 		F=rVariables.Contact.Penalty.Tangent*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]);
 	}
@@ -368,7 +368,7 @@ void ContactDomainPenalty2DCondition::CalculateTangentStickForce (double &F,Gene
 void ContactDomainPenalty2DCondition::CalculateTangentSlipForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
 {
 
-	if( rVariables.Contact.Options.Is(COMPUTE_FRICTION_FORCES) )
+	if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
 	{
 		F=rVariables.Contact.Penalty.Normal*(rVariables.Contact.FrictionCoefficient*rVariables.Contact.TangentialGapSign)*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]);
 
@@ -410,7 +410,7 @@ void ContactDomainPenalty2DCondition::CalcContactStiffness (double &Kcont,Genera
     // if(rVariables.Contact.Options.Is(NOT_SLIP))
     // {
     // 	//std::cout<<" + stick ";
-    //     if(rVariables.Contact.Options.Is(COMPUTE_FRICTION_STIFFNESS))
+    //     if(rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS))
     //     {
     // 	    //std::cout<<"(mu_on)";
     //         //KI:
@@ -427,7 +427,7 @@ void ContactDomainPenalty2DCondition::CalcContactStiffness (double &Kcont,Genera
     // {
     //     //Slip contact contribution:
     // 	//std::cout<<" + slip ";
-    //     if(rVariables.Contact.Options.Is(COMPUTE_FRICTION_STIFFNESS))
+    //     if(rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_STIFFNESS))
     //     {
     // 	    //std::cout<<"(mu_on)";
     //         //KI:

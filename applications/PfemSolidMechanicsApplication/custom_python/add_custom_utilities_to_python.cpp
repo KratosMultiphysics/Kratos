@@ -28,6 +28,7 @@
 #include "custom_utilities/rigid_wall_contact_calculation_utilities.hpp"
 #include "custom_utilities/line_search_calculation_utilities.hpp"
 #include "custom_utilities/modeler_utilities.hpp"
+#include "custom_utilities/contact_domain_utilities.hpp"
 
 namespace Kratos
 {
