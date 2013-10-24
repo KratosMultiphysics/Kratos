@@ -138,6 +138,10 @@ balls_model_part.SetBufferSize(3)
 
 # adding nodal degrees of freedom
 SolverStrategy.AddDofs(balls_model_part)
+
+balls_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, 1)  # 1 for standard, any other for Weatherford
+balls_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, 3)  # 2 for Hayder and 3 for CHIEN
+
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 # setting up the buffer size: SHOULD BE DONE AFTER READING!!!
