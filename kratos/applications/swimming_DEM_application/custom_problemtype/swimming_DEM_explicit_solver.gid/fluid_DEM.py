@@ -400,7 +400,7 @@ while(time <= final_time):
 
         #if (DEM_parameters.VelocityTrapOption):
         #    PostUtils = DEMProc.PostUtils(DEM_parameters, balls_model_part)  
-        #    PostUtils.VelocityTrap("Average_Velocity")  
+        #    PostUtils.VelocityTrap("Average_Velocity", time_dem)  
 
     if (time >= ProjectParameters.Interaction_start_time and ProjectParameters.ProjectFromParticlesOption):
         projection_module.ProjectFromParticles()
