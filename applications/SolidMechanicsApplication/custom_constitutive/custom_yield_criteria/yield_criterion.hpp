@@ -55,6 +55,40 @@ namespace Kratos
 class YieldCriterion
 {
     public:
+
+	struct Parameters
+	{
+  	  const double*  mpStressNorm;
+	  const double*  mpDeltaGamma;
+	  const double*  mpLameMu_bar;
+
+	  const double*  mpAlpha;
+	  const double*  mpAlphaOld;
+
+	  const double*  mpTimeStep;
+  	  const double*  mpTemperature;	
+
+          //Set Parameters
+	  void SetStressNorm  (const double& rStressNorm)  { mpStressNorm = &rStressNorm;   };
+          void SetDeltaGamma  (const double& rDeltaGamma)  { mpDeltaGamma = &rDeltaGamma;   };
+          void SetLameMu_bar  (const double& rLameMu_bar)  { mpLameMu_bar = &rLameMu_bar;   };
+          void SetAlpha       (const double& rAlpha)       { mpAlpha = &rAlpha;             };
+          void SetAlphaOld    (const double& rAlphaOld)    { mpAlphaOld = &rAlphaOld;       };
+          void SetTimeStep    (const double& rTimeStep)    { mpTimeStep = &rTimeStep;       };
+          void SetTemperature (const double& rTemperature) { mpTemperature = &rTemperature; };
+
+	  //Get Parameters
+  	  const double& GetStressNorm  () { return *mpStressNorm;  };
+          const double& GetDeltaGamma  () { return *mpDeltaGamma;  };
+          const double& GetLameMu_bar  () { return *mpLameMu_bar;  };
+          const double& GetAlpha       () { return *mpAlpha;       };
+          const double& GetAlphaOld    () { return *mpAlphaOld;    };
+          const double& GetTimeStep    () { return *mpTimeStep;    };
+	  const double& GetTemperature () { return *mpTemperature; };
+
+	};
+	
+
         ///@name Type Definitions
         ///@{
         typedef HardeningLaw::Pointer        HardeningLawPointer;
@@ -105,7 +139,7 @@ class YieldCriterion
 	}
 
 
-        virtual double& CalculateYieldCondition(double & rStateFunction, const double& rNormStress, const double& rAlpha, double rTemperature = 0)
+        virtual double& CalculateYieldCondition(double & rStateFunction, const double& rStressNorm, const double& rAlpha, double rTemperature = 0)
 	{
 		KRATOS_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!","");
 
@@ -120,14 +154,28 @@ class YieldCriterion
 	};
 
 
-        virtual double& CalculateStateFunction(double & rStateFunction,const double& rNormStress, const double & rDeltaGamma, const double& rLameMu_bar, const double& rAlpha, const double& rAlphaOld, double rTemperature = 0)
+        virtual double& CalculateStateFunction(double & rStateFunction,const double& rStressNorm, const double & rDeltaGamma, const double& rLameMu_bar, const double& rAlpha, const double& rAlphaOld, double TimeStep = 1, double rTemperature = 0)
 	{
 		KRATOS_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!","");
 
 		return rStateFunction;
 	};
 
-        virtual double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const double& rLameMu_bar, const double& rAlpha, double rTemperature = 0)
+        virtual double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const double& rLameMu_bar, const double& rAlpha, double TimeStep = 1, double rTemperature = 0)
+	{
+		KRATOS_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!","");
+
+		return rDeltaStateFunction;
+	};
+
+        virtual double& CalculateStateFunction(double & rStateFunction, const Parameters& rVariables)
+	{
+		KRATOS_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!","");
+
+		return rStateFunction;
+	};
+
+        virtual double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const Parameters& rVariables)
 	{
 		KRATOS_ERROR(std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!","");
 

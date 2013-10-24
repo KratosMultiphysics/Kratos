@@ -62,15 +62,15 @@ NonLinearAssociativePlasticFlowRule::~NonLinearAssociativePlasticFlowRule()
 //***************************CALCULATE STRESS NORM ***********************************
 //************************************************************************************
 
-double& NonLinearAssociativePlasticFlowRule::CalculateNormStress ( Matrix & rStressMatrix, double& rNormStress )
+double& NonLinearAssociativePlasticFlowRule::CalculateStressNorm ( Matrix & rStressMatrix, double& rStressNorm )
 {
 	  
-	rNormStress = sqrt(rStressMatrix( 0 , 0 )*rStressMatrix( 0 , 0 )+
+	rStressNorm = sqrt(rStressMatrix( 0 , 0 )*rStressMatrix( 0 , 0 )+
 			   rStressMatrix( 1 , 1 )*rStressMatrix( 1 , 1 )+
 			   rStressMatrix( 2 , 2 )*rStressMatrix( 2 , 2 )+
 			   2.0 * rStressMatrix( 0 , 1 )*rStressMatrix( 0 , 1 ) );
 
-	return rNormStress;
+	return rStressNorm;
 }
 
 
@@ -86,7 +86,7 @@ bool NonLinearAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVa
 	InternalVariables PlasticVariables = mInternalVariables;
 		
 	//1.-Isochoric stress norm
-	rReturnMappingVariables.NormIsochoricStress = CalculateNormStress( rIsoStressMatrix, rReturnMappingVariables.NormIsochoricStress );
+	rReturnMappingVariables.NormIsochoricStress = CalculateStressNorm( rIsoStressMatrix, rReturnMappingVariables.NormIsochoricStress );
 
 	//2.- Check yield condition
 	rReturnMappingVariables.TrialStateFunction = mpYieldCriterion->CalculateYieldCondition( rReturnMappingVariables.TrialStateFunction, rReturnMappingVariables.NormIsochoricStress, PlasticVariables.EquivalentPlasticStrain, rReturnMappingVariables.Temperature);
@@ -156,7 +156,7 @@ bool NonLinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialR
 	while ( fabs(StateFunction)>=Tolerance && iter<=MaxIterations)
 	{
 		//Calculate Delta State Function:
-		DeltaStateFunction = mpYieldCriterion->CalculateDeltaStateFunction( DeltaStateFunction, rReturnMappingVariables.LameMu_bar, rPlasticVariables.EquivalentPlasticStrain, rReturnMappingVariables.Temperature );
+		DeltaStateFunction = mpYieldCriterion->CalculateDeltaStateFunction( DeltaStateFunction, rReturnMappingVariables.LameMu_bar, rPlasticVariables.EquivalentPlasticStrain, rReturnMappingVariables.TimeStep, rReturnMappingVariables.Temperature );
 
 		//Calculate DeltaGamma:
 		DeltaDeltaGamma  = StateFunction/DeltaStateFunction;
@@ -167,7 +167,7 @@ bool NonLinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialR
 		rPlasticVariables.EquivalentPlasticStrain  = InitialEquivalentPlasticStrain + rPlasticVariables.DeltaPlasticStrain;
 	       
 		//Calculate State Function:
-		StateFunction = mpYieldCriterion->CalculateStateFunction( StateFunction, rReturnMappingVariables.NormIsochoricStress, rReturnMappingVariables.DeltaGamma, rReturnMappingVariables.LameMu_bar, rPlasticVariables.EquivalentPlasticStrain, InitialEquivalentPlasticStrain, rReturnMappingVariables.Temperature );
+		StateFunction = mpYieldCriterion->CalculateStateFunction( StateFunction, rReturnMappingVariables.NormIsochoricStress, rReturnMappingVariables.DeltaGamma, rReturnMappingVariables.LameMu_bar, rPlasticVariables.EquivalentPlasticStrain, InitialEquivalentPlasticStrain, rReturnMappingVariables.TimeStep, rReturnMappingVariables.Temperature );
 		
 
 		iter++;
@@ -180,6 +180,7 @@ bool NonLinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialR
 
 	return true;	
 }
+
 
 
 //***************************CALCULATE IMPLEX RETURN MAPPING**************************
