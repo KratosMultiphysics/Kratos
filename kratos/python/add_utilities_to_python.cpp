@@ -123,7 +123,8 @@ namespace Kratos
                     .def("CalculateOnSimplex", CalcOnSimplex_ModelPart)
                     .def("CalculateOnSimplex", CalcOnSimplexWithDoubleVar)
                     .def("CalculateOnSimplex", CalcOnSimplexWithIntVar)
-                    .def("CalculateOnSimplex", CalcOnSimplexWithDoubleVarAlpha)                    
+                    .def("CalculateOnSimplex", CalcOnSimplexWithDoubleVarAlpha)   
+                    .def("SwapNormals", &NormalCalculationUtils::SwapNormals)
 //                    .def("CalculateOnSimplex", CalcOnSimplexWithArrayVar)
                     ;
 
