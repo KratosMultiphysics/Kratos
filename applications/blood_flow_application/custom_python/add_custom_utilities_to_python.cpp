@@ -74,12 +74,10 @@ namespace Python
   {
       Condition::GeometryType::PointsArrayType plist_of_nodes;
       plist_of_nodes.push_back(pnode1);
-      plist_of_nodes.push_back(pnode2);
-      
+      plist_of_nodes.push_back(pnode2);      
       //Condition::GeometryType::Pointer pgeom = new Line3D2<Node<3> >( pnode1, pnode2 );
       Properties::Pointer properties = model_part.GetMesh().pGetProperties(1);
-      Condition::Pointer pnew_cond = (KratosComponents<Condition>::Get(ConditionName)).Create(cond_id, plist_of_nodes, properties );
-      
+      Condition::Pointer pnew_cond = (KratosComponents<Condition>::Get(ConditionName)).Create(cond_id, plist_of_nodes, properties );      
       model_part.AddCondition( pnew_cond );
   }
   

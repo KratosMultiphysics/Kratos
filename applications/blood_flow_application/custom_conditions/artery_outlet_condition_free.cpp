@@ -112,7 +112,7 @@ void ArteryOutletFreeCondition::CalculateRightHandSide(VectorType& rRightHandSid
     if (rRightHandSideVector.size() != 4)
         rRightHandSideVector.resize(4,false);
 
-    const int Tipo_outlet = 1;
+    const int Tipo_outlet = 2;
     //double h_int = rCurrentProcessInfo[DELTA_TIME];
 
     //get data as needed

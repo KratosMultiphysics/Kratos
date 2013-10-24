@@ -55,7 +55,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
-#include "custom_conditions/artery_inlet_condition.h"
+#include "custom_conditions/Artery1Dto3DCondition.h"
 #include "utilities/math_utils.h"
 #include "blood_flow_application.h"
 #include "boost/numeric/ublas/lu.hpp"
@@ -66,7 +66,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-ArteryInletCondition::ArteryInletCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+Artery1Dto3DCondition::Artery1Dto3DCondition(IndexType NewId, GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
@@ -75,27 +75,27 @@ ArteryInletCondition::ArteryInletCondition(IndexType NewId, GeometryType::Pointe
 //************************************************************************************
 //************************************************************************************
 
-ArteryInletCondition::ArteryInletCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+Artery1Dto3DCondition::Artery1Dto3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Condition(NewId, pGeometry, pProperties)
 {
 }
 
-Condition::Pointer ArteryInletCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+Condition::Pointer Artery1Dto3DCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
 
-    return Condition::Pointer(new ArteryInletCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new Artery1Dto3DCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
     KRATOS_CATCH("");
 }
 
-ArteryInletCondition::~ArteryInletCondition()
+Artery1Dto3DCondition::~Artery1Dto3DCondition()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void ArteryInletCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void Artery1Dto3DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     KRATOS_ERROR(std::logic_error, "method not implemented (it does not make sense to computer the system matrix for an explicit condition", "");
@@ -104,7 +104,7 @@ void ArteryInletCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
 //************************************************************************************
 //************************************************************************************
-void ArteryInletCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void Artery1Dto3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -158,7 +158,7 @@ void ArteryInletCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
 }
 
 
-double ArteryInletCondition::UpdateArea(double Beta, double A)
+double Artery1Dto3DCondition::UpdateArea(double Beta, double A)
 {
 
     KRATOS_TRY
@@ -200,7 +200,7 @@ double ArteryInletCondition::UpdateArea(double Beta, double A)
 
 //************************************************************************************
 //************************************************************************************
-void ArteryInletCondition::Initialize()
+void Artery1Dto3DCondition::Initialize()
 {
     KRATOS_TRY
 
@@ -212,7 +212,7 @@ void ArteryInletCondition::Initialize()
 // this subroutine calculates the nodal contributions for the explicit steps of the
 // fractional step procedure
 
-void ArteryInletCondition::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void Artery1Dto3DCondition::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -222,7 +222,7 @@ void ArteryInletCondition::InitializeSolutionStep(ProcessInfo& CurrentProcessInf
 //************************************************************************************
 //************************************************************************************
 
-void ArteryInletCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void Artery1Dto3DCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_ERROR(std::logic_error, "method not implemented (it does not make sense for an explicit condition", "");
 }
@@ -230,7 +230,7 @@ void ArteryInletCondition::EquationIdVector(EquationIdVectorType& rResult, Proce
 //************************************************************************************
 //************************************************************************************
 
-void ArteryInletCondition::GetDofList(DofsVectorType& ConditionalDofList, ProcessInfo& CurrentProcessInfo)
+void Artery1Dto3DCondition::GetDofList(DofsVectorType& ConditionalDofList, ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_ERROR(std::logic_error, "method not implemented (it does not make sense for an explicit condition", "");
 }
@@ -238,7 +238,7 @@ void ArteryInletCondition::GetDofList(DofsVectorType& ConditionalDofList, Proces
 
 //************************************************************************************
 //************************************************************************************
-void ArteryInletCondition::Calculate(const Variable<double >& rVariable,
+void Artery1Dto3DCondition::Calculate(const Variable<double >& rVariable,
                               double& Output,
                               const ProcessInfo& rCurrentProcessInfo)
 {
@@ -253,7 +253,7 @@ void ArteryInletCondition::Calculate(const Variable<double >& rVariable,
 
 }
 
-int ArteryInletCondition::Check(const ProcessInfo& rCurrentProcessInfo)
+int Artery1Dto3DCondition::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -271,6 +271,7 @@ int ArteryInletCondition::Check(const ProcessInfo& rCurrentProcessInfo)
 }
 
 } // Namespace Kratos
+
 
 
 

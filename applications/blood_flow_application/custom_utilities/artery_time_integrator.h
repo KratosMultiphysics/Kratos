@@ -98,10 +98,9 @@ public:
         }
 
         //compute the projection (first step)::
-        for(ModelPart::ConditionIterator i = ThisModelPart.ConditionsBegin();
-                // DESDE AQUI VOY a::  Artery12Condition::Initialize()
-                i!=ThisModelPart.ConditionsEnd(); i++)
+        for(ModelPart::ConditionIterator i = ThisModelPart.ConditionsBegin();i!=ThisModelPart.ConditionsEnd(); i++)
         {
+            // DESDE AQUI VOY a::  Artery12Condition::Initialize()
             i->Initialize();
         }
     }

@@ -1,4 +1,4 @@
-//   
+//
 //   Project Name:        Kratos       
 //   Last Modified by:    $Author:  $
 //   Date:                $Date:  $
@@ -202,7 +202,7 @@ namespace Kratos
         const ArteryElement mArteryElement;
         const Artery11Condition mArtery11Condition;
         const Artery1Dto3DCondition mArtery1Dto3DCondition;
-	const Artery1Dto3DCondition mArtery3Dto1DCondition;
+        const Artery3Dto1DCondition mArtery3Dto1DCondition;
         const Artery12Condition mArtery12Condition;
         const ArteryInletCondition mArteryInletCondition;
         const ArteryOutletCondition mArteryOutletCondition;
