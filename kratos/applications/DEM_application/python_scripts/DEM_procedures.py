@@ -95,26 +95,28 @@ class PostUtils:
 		self.param = param
 		self.balls_model_part = balls_model_part
 
-    def VelocityTrap(self, file_name):
-		
-        average_velocity = Array3()
-        low_point = Array3()
+    def VelocityTrap(self, file_name, time_dem):
+	
+        if ( self.param.VelocityTrapOption ):	
+          average_velocity = Array3()
+          low_point = Array3()
         
-        low_point[0]= self.param.VelocityTrapLowX
-        low_point[1]= self.param.VelocityTrapLowY
-        low_point[2]= self.param.VelocityTrapLowZ
-        high_point = Array3()
-        high_point[0]= self.param.VelocityTrapHighX
-        high_point[1]= self.param.VelocityTrapHighY
-        high_point[2]= self.param.VelocityTrapHighZ
+          low_point[0]= self.param.VelocityTrapMinX
+          low_point[1]= self.param.VelocityTrapMinY
+          low_point[2]= self.param.VelocityTrapMinZ
+          high_point = Array3()
+          high_point[0]= self.param.VelocityTrapMaxX
+          high_point[1]= self.param.VelocityTrapMaxY
+          high_point[2]= self.param.VelocityTrapMaxZ
         
-        post_utilities = PostUtilities() 
-        average_velocity = post_utilities.VelocityTrap(self.balls_model_part, low_point, high_point)
-        print "Average velocity in Velocity Trap is ", average_velocity , "m/s"
-        f = open(file_name, 'a')
-        tmp = str(average_velocity[0])  + "   " + str(average_velocity[1])  + "   " + str(average_velocity[2])  + "\n"
-        f.write(tmp)
-        f.flush()
+          post_utilities = PostUtilities() 
+          average_velocity = post_utilities.VelocityTrap(self.balls_model_part, low_point, high_point)
+          #print "Average velocity in Velocity Trap is ", average_velocity , "m/s"
+          f = open(file_name, 'a')
+          tmp = str(time_dem) + "   " + str(average_velocity[0])  + "   " + str(average_velocity[1])  + "   " + str(average_velocity[2])  + "\n"
+          f.write(tmp)
+          f.flush()
+          f.close()
 
 class Procedures:
     
