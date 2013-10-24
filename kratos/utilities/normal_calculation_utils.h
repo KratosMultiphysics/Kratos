@@ -204,6 +204,21 @@ public:
         this->CalculateOnSimplex(rModelPart.Conditions(),Dimension);
         rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
     }
+    
+    
+    /**this function swaps the normal of all of the conditions in a model part
+	 * This is done by swapping the two first nodes in the geometry and is thus appropriate for simplicial elements
+	 * @param rModelPart ModelPart of the problem. Must have a set of conditions defining the "skin" of the domain
+	 */    
+    void SwapNormals(ModelPart& rModelPart)
+	{
+		KRATOS_TRY
+		for(ModelPart::ConditionsContainerType::iterator it=rModelPart.ConditionsBegin(); it!=rModelPart.ConditionsEnd(); it++)
+		{
+			it->GetGeometry()(0).swap(it->GetGeometry()(1));
+		}
+		KRATOS_CATCH("")
+	}
 
     /// Calculates the area normal (vector oriented as the normal with a dimension proportional to the area) using only nodes marked with a flag variable.
     /** This function is equivalent to other implementations of CalculateOnSimplex, but instead of using all conditions in the array, it only uses
