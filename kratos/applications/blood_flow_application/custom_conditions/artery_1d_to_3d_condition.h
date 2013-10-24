@@ -76,7 +76,7 @@ public:
     ///@}
     ///@name Operators
     ///@{
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+ Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
@@ -93,8 +93,9 @@ public:
     void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
     int Check(const ProcessInfo& rCurrentProcessInfo);
-	
-	void Initialize();
+
+    void Initialize();
+
 
 
     ///@}
@@ -194,7 +195,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-
+    double mL;
     ///@}
     ///@name Member Variables
     ///@{
@@ -203,12 +204,44 @@ private:
 // 	double mH0;
 //         double mBeta;
 
+    array_1d<double,3> mInitialArea;
+            double mH0;
+            double mBeta;
+
 
     ///@}
     ///@name Private Operators
     ///@{
 	Artery1Dto3DCondition() : Condition(){}
 
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+void CalculateFunctional(array_1d<double,3>& rFunctional,
+                         array_1d<double, 2> const& Area,
+                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
+                         array_1d<double, 2> const& WaveVelocity,
+                         double BloodDensity);
+
+void CalculateJacobian(Matrix& rJacobian,
+                         array_1d<double, 2> const& Area,
+                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
+                         array_1d<double, 2> const& WaveVelocity,
+                         double BloodDensity);
+
+
+void CalculateFunctional4(array_1d<double,4>& rFunctional,
+                         array_1d<double, 2> const& Area,
+                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
+                         array_1d<double, 2> const& WaveVelocity,
+                         double BloodDensity);
+
+void CalculateJacobian4(Matrix& rJacobian,
+                         array_1d<double, 2> const& Area,
+                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
+                         array_1d<double, 2> const& WaveVelocity,
+                         double BloodDensity);
 
     ///@}
     ///@name Private Operations
@@ -225,19 +258,17 @@ private:
 //                          array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
 //                          array_1d<double, 2> const& WaveVelocity,
 //                          double BloodDensity);
+//void CalculateFunctional4(array_1d<double,4>& rFunctional,
+//                         array_1d<double, 2> const& Area,
+//                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
+//                         array_1d<double, 2> const& WaveVelocity,
+//                         double BloodDensity);
 
-
-void CalculateFunctional4(array_1d<double,4>& rFunctional,
-                         array_1d<double, 2> const& Area,
-                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
-                         array_1d<double, 2> const& WaveVelocity,
-                         double BloodDensity);
-
-void CalculateJacobian4(Matrix& rJacobian,
-                         array_1d<double, 2> const& Area,
-                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
-                         array_1d<double, 2> const& WaveVelocity,
-                         double BloodDensity);
+//void CalculateJacobian4(Matrix& rJacobian,
+//                         array_1d<double, 2> const& Area,
+//                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
+//                         array_1d<double, 2> const& WaveVelocity,
+//                         double BloodDensity);
 
     ///@}
     ///@name Private  Access

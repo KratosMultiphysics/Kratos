@@ -88,7 +88,6 @@ public:
 
     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-
     void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
     int Check(const ProcessInfo& rCurrentProcessInfo);

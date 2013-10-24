@@ -7,8 +7,8 @@
 //
 
 
-#if !defined(KRATOS_ARTERY_INLET_CONDITION_H_INCLUDED )
-#define  KRATOS_ARTERY_INLET_CONDITION_H_INCLUDED
+#if !defined(KRATOS_ARTERY_1D_to_3D_CONDITION_H_INCLUDED )
+#define  KRATOS_ARTERY_1D_to_3D_CONDITION_H_INCLUDED
 
 
 
@@ -51,14 +51,14 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class ArteryInletCondition : public Condition
+class Artery1Dto3DCondition : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of ArteryInletCondition
-    KRATOS_CLASS_POINTER_DEFINITION(ArteryInletCondition);
+    /// Pointer definition of Artery1Dto3DCondition
+    KRATOS_CLASS_POINTER_DEFINITION(Artery1Dto3DCondition);
 
     ///@}
     ///@name Life Cycle
@@ -66,11 +66,11 @@ public:
 
 
     /// Default constructor.
-    ArteryInletCondition(IndexType NewId, GeometryType::Pointer pGeometry);
-    ArteryInletCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    Artery1Dto3DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    Artery1Dto3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~ArteryInletCondition();
+    virtual ~Artery1Dto3DCondition();
 
 
     ///@}
@@ -88,11 +88,12 @@ public:
 
     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
+
     void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
     int Check(const ProcessInfo& rCurrentProcessInfo);
-	
-	void Initialize();
+
+    void Initialize();
 
 
     ///@}
@@ -108,12 +109,12 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
-	
-	     ///@}
+
+         ///@}
      ///@name Serialization
-     ///@{	
-	
-		friend class Serializer;     
+     ///@{
+
+        friend class Serializer;
 
         virtual void save(Serializer& rSerializer) const
         {
@@ -133,7 +134,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "ArteryInletCondition #";
+        return "Artery1Dto3DCondition #";
     }
 
     /// Print information about this object.
@@ -198,14 +199,14 @@ private:
     ///@{
 
     array_1d<double,1> mInitialArea;
-	double mH0;
+    double mH0;
         double mBeta;
 
 
     ///@}
     ///@name Private Operators
     ///@{
-    ArteryInletCondition() : Condition(){}
+    Artery1Dto3DCondition() : Condition(){}
 
 
     ///@}
@@ -230,15 +231,15 @@ private:
     ///@{
 
     /// Assignment operator.
- //   ArteryInletCondition& operator=(ArteryInletCondition const& rOther) {};
+ //   Artery1Dto3DCondition& operator=(Artery1Dto3DCondition const& rOther) {};
 
     /// Copy constructor.
-//    ArteryInletCondition(ArteryInletCondition const& rOther) {};
+//    Artery1Dto3DCondition(Artery1Dto3DCondition const& rOther) {};
 
 
     ///@}
 
-}; // Class ArteryInletCondition
+}; // Class Artery1Dto3DCondition
 
 ///@}
 
@@ -253,14 +254,14 @@ private:
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  ArteryInletCondition& rThis)
+                                  Artery1Dto3DCondition& rThis)
 {
     return rIStream;
 };
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ArteryInletCondition& rThis)
+                                  const Artery1Dto3DCondition& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -275,5 +276,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }  // namespace Kratos.
 
 #endif // KRATOS_ARTERY_INLET_CONDITION_H_INCLUDED  defined
-
-
