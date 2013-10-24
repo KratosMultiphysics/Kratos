@@ -232,26 +232,26 @@ class Procedures:
 
         #mean radius, and standard deviation:
 
-        i           = 0
-        sum_radi    = 0
-        sum_squared = 0
+        i           = 0.0
+        sum_radi    = 0.0
+        sum_squared = 0.0
 
         for node in balls_model_part.Nodes:
 
             sum_radi += node.GetSolutionStepValue(RADIUS)
-            sum_squared += node.GetSolutionStepValue(RADIUS) ** 2
-            i += 1
+            sum_squared += node.GetSolutionStepValue(RADIUS) ** 2.0
+            i += 1.0
 
         mean = sum_radi / i
-        var = sum_squared / i - mean ** 2
-        
-        if (abs(var) < 1e-05):
-            var = 0
-            
+        var = sum_squared / i - mean ** 2.0
+
         std_dev = var ** 0.5
 
+        rel_std_dev = std_dev / mean
+        
         Model_Data.write("Radius Mean: "   + str(mean) + '\n')
         Model_Data.write("Std Deviation: " + str(std_dev) + '\n')
+        Model_Data.write("Relative Std Deviation: " + str(rel_std_dev) + '\n')
         Model_Data.write('\n')
 
         Total_Particles     = len(balls_model_part.Nodes)
@@ -263,7 +263,7 @@ class Procedures:
         Model_Data.write("Coordination Number NC: "    + str(Coordination_Number) + '\n')
         Model_Data.write('\n')
 
-        Model_Data.write("Volume Elements: " + str(total_volume) + '\n')
+        #Model_Data.write("Volume Elements: " + str(total_volume) + '\n')
 
         Model_Data.close()
 
