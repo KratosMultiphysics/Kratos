@@ -53,7 +53,7 @@ namespace Kratos
       {
           KRATOS_TRY
 
-          const int drag_force_type                 = 1;//rCurrentProcessInfo[DRAG_FORCE_TYPE];
+          const int drag_force_type                 = rCurrentProcessInfo[DRAG_FORCE_TYPE];
           const array_1d<double,3>& gravity         = rCurrentProcessInfo[GRAVITY];
           array_1d<double,3>& drag_force            = GetGeometry()(0)->FastGetSolutionStepValue(DRAG_FORCE);
           array_1d<double,3>& buoyancy              = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);
@@ -201,7 +201,7 @@ namespace Kratos
 
       void SphericSwimmingParticle::ComputeReynoldsNumber(int NonNewtonianOption, double rNormOfSlipVel, double FluidDensity, double rViscosity, double& rReynolds)
       {
-          rReynolds = 2 * mRadius * FluidDensity * rNormOfSlipVel / rViscosity;
+          rReynolds = 2 * mRadius * FluidDensity * rNormOfSlipVel / rViscosity; //dynamic viscosity was received
 
           if (!NonNewtonianOption && rReynolds < 0.01){
               rReynolds = 0.01;
@@ -239,12 +239,12 @@ namespace Kratos
             array_1d<double,3>& buoyancy            = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);
 
             const double& particle_density          = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
-            double viscosity                        = 10e-5; //GetGeometry()(0)->FastGetSolutionStepValue(VISCOSITY_PROJECTED);
-            double sphericity                       = 1.0; //GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_SPHERICITY);
+            double viscosity                        = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
+            double sphericity                       = GetGeometry()(0)->GetSolutionStepValue(PARTICLE_SPHERICITY);
 
             int non_newtonian_OPTION                = 0; //rCurrentProcessInfo[NON_NEWTONIAN_OPTION];
             int manually_imposed_drag_law_OPTION    = 0; //rCurrentProcessInfo[MANUALLY_IMPOSED_DRAG_LAW_OPTION];
-            int drag_modifier_type                  = 0; //rCurrentProcessInfo[DRAG_MODIFIER_TYPE];
+            int drag_modifier_type                  = rCurrentProcessInfo[DRAG_MODIFIER_TYPE]; //2 for Hayder and 3 for CHIEN
             double gel_strength                     = 1.0; //rCurrentProcessInfo[GEL_STRENGTH];
             double power_law_n                      = 0.02; //rCurrentProcessInfo[POWER_LAW_N];
             double power_law_K                      = 0.02; //rCurrentProcessInfo[POWER_LAW_K];
@@ -258,6 +258,7 @@ namespace Kratos
                 const array_1d<double,3>& particle_vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
                 const double& fluid_density            = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
                 double volume                          = (1.333333333333333 * M_PI) * (mRadius * mRadius * mRadius);
+                double dynamic_viscosity               = viscosity * fluid_density;
 
                 if (fluid_density > 0.0000000000001){
                     double norm_of_slip_vel            = MathUtils<double>::Norm3(fluid_vel - particle_vel);
@@ -271,7 +272,7 @@ namespace Kratos
                     double reynolds;
 
                     if (!non_newtonian_OPTION){ //Newtonian
-                        ComputeReynoldsNumber(non_newtonian_OPTION, norm_of_slip_vel, fluid_density, viscosity, reynolds);
+                        ComputeReynoldsNumber(non_newtonian_OPTION, norm_of_slip_vel, fluid_density, dynamic_viscosity, reynolds);
                         CalculateDragCoefficient(non_newtonian_OPTION, reynolds, sphericity, drag_coeff, drag_modifier_type);
                         drag_force = 0.5 * fluid_density * area * drag_coeff * norm_of_slip_vel * (fluid_vel - particle_vel);
                     }
