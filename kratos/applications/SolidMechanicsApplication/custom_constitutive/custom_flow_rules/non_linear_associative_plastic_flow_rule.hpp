@@ -138,7 +138,7 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    double& CalculateNormStress ( Matrix & rStressMatrix, double& rNormStress );
+    double& CalculateStressNorm ( Matrix & rStressMatrix, double& rStressNorm );
 
 	  
     virtual bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );

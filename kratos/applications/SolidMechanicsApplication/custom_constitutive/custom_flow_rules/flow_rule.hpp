@@ -67,10 +67,14 @@ namespace Kratos
     struct ProcessVariables
     {
 
+      //it has to be changed to a flags variable
       bool ImplexActive;
 
       bool PlasticRegion;
+
       bool ReturnMappingComputed;
+
+      bool PlasticStrainRateBehaviour;
 
     public:
       
@@ -79,6 +83,7 @@ namespace Kratos
 	ImplexActive  = false;
 	PlasticRegion = false;
 	ReturnMappingComputed = false;
+	PlasticStrainRateBehaviour = false;
       };
 
     };
@@ -347,11 +352,11 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    virtual double& CalculateNormStress ( Matrix & rStressMatrix, double& rNormStress )
+    virtual double& CalculateStressNorm ( Matrix & rStressMatrix, double& rStressNorm )
     {
             KRATOS_ERROR(std::logic_error, "calling the base class function in FlowRule ... illegal operation!!","");
 
-	    return rNormStress;
+	    return rStressNorm;
     };
 
 
