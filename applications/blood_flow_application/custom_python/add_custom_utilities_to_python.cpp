@@ -76,7 +76,7 @@ namespace Python
       plist_of_nodes.push_back(pnode1);
       plist_of_nodes.push_back(pnode2);      
       //Condition::GeometryType::Pointer pgeom = new Line3D2<Node<3> >( pnode1, pnode2 );
-      Properties::Pointer properties = model_part.GetMesh().pGetProperties(1);
+      Properties::Pointer properties = model_part.GetMesh().pGetProperties(prop_id);
       Condition::Pointer pnew_cond = (KratosComponents<Condition>::Get(ConditionName)).Create(cond_id, plist_of_nodes, properties );      
       model_part.AddCondition( pnew_cond );
   }
@@ -87,7 +87,7 @@ namespace Python
       plist_of_nodes.push_back(pnode1);
       
       //Condition::GeometryType::Pointer pgeom = new Line3D2<Node<3> >( pnode1, pnode2 );
-      Properties::Pointer properties = model_part.GetMesh().pGetProperties(1);
+      Properties::Pointer properties = model_part.GetMesh().pGetProperties(prop_id);
       Condition::Pointer pnew_cond = (KratosComponents<Condition>::Get(ConditionName)).Create(cond_id, plist_of_nodes, properties );
       
       model_part.AddCondition( pnew_cond );

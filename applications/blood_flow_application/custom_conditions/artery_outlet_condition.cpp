@@ -208,27 +208,27 @@ double ArteryOutletCondition::UpdateArea(double Beta, double A)
     const double terminal_resistence = GetProperties()[TERMINAL_RESISTANCE];
     const double p_venous=GetProperties()[PRESSURE_VENOUS];
     const double w1 = (flow / A) + (4.00*c0*pow(A,0.25));
-//KRATOS_WATCH(flow)
-//KRATOS_WATCH(GetGeometry()[0].FastGetSolutionStepValue(FLOW,1))
-//KRATOS_WATCH(A)
-//KRATOS_WATCH(GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA,1))
-//KRATOS_WATCH(c0)
+// KRATOS_WATCH(flow)
+// KRATOS_WATCH(GetGeometry()[0].FastGetSolutionStepValue(FLOW,1))
+// KRATOS_WATCH(A)
+// KRATOS_WATCH(GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA,1))
+// KRATOS_WATCH(c0)
     //const double p_init = 10640.00;
     //std::cout << "ENTRDA" << std::endl;
     double x = A;
     for(int i = 0 ; i < max_iteration ; i++)
     {
-//KRATOS_WATCH(x)
-//KRATOS_WATCH(GetGeometry()[0].Id())
-//KRATOS_WATCH(GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA))
-//KRATOS_WATCH(terminal_resistence)
-//KRATOS_WATCH(w1)
-//KRATOS_WATCH(p_init)
-//KRATOS_WATCH(initial_area)
-//KRATOS_WATCH(par1)
-//KRATOS_WATCH((-4.00 * c0 * pow(x, 1.25) * terminal_resistence))
-//KRATOS_WATCH((w1 * x * terminal_resistence))
-//KRATOS_WATCH((par1 * (sqrt(x) - sqrt(initial_area) )))
+// KRATOS_WATCH(x)
+// KRATOS_WATCH(GetGeometry()[0].Id())
+// KRATOS_WATCH(GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA))
+// KRATOS_WATCH(terminal_resistence)
+// KRATOS_WATCH(w1)
+// KRATOS_WATCH(p_init)
+// KRATOS_WATCH(initial_area)
+// KRATOS_WATCH(par1)
+// KRATOS_WATCH((-4.00 * c0 * pow(x, 1.25) * terminal_resistence))
+// KRATOS_WATCH((w1 * x * terminal_resistence))
+// KRATOS_WATCH((par1 * (sqrt(x) - sqrt(initial_area) )))
         double f = (-4.00 * c0 * pow(x, 1.25) * terminal_resistence) + (w1 * x * terminal_resistence) - (par1 * (sqrt(x) - sqrt(initial_area))) - p_init + p_venous;
         double df= (-5.00 * c0 * pow(x, 0.25) * terminal_resistence) + (w1 * terminal_resistence) - (par1 * 0.5*pow(x, -0.5));
 //KRATOS_WATCH(f)
@@ -261,7 +261,7 @@ double ArteryOutletCondition::UpdateArea(double Beta, double A)
         KRATOS_WATCH(A);
         KRATOS_WATCH(GetProperties().Id());
         KRATOS_WATCH(this->Id());
-        KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, Please check your inlet boundary conditions used", "");
+        KRATOS_ERROR(std::runtime_error, "Zero Nodal area found, Please check your outlet boundary conditions used", "");
     }
     //std::cout << "SALIDA" << std::endl;
     //KRATOS_WATCH(A);
