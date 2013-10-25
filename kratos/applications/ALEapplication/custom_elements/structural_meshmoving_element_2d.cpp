@@ -158,8 +158,13 @@ void StructuralMeshMovingElem2D::CalculateLocalSystem(MatrixType& rLeftHandSideM
         // Insert derivatives in B
         B ( 0 , 3*i ) = D_X;
         B ( 1 , 3*i+1 ) = D_Y;
+        B ( 2 , 3*i+2 ) = 0;
         B ( 3 , 3*i ) = D_Y;
         B ( 3 , 3*i+1 ) = D_X;
+        B ( 4 , 3*i+1 ) = 0;
+        B ( 4 , 3*i+2 ) = D_Y;
+        B ( 5 , 3*i ) = 0;
+        B ( 5 , 3*i+2 ) = D_X;
     }
 
     // Compute lefthand side
