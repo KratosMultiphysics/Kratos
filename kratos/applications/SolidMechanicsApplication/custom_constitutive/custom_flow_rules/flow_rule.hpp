@@ -64,29 +64,11 @@ namespace Kratos
     typedef Properties::Pointer            PropertiesPointer;
 
 
-    struct ProcessVariables
-    {
+    KRATOS_DEFINE_LOCAL_FLAG( IMPLEX_ACTIVE );
+    KRATOS_DEFINE_LOCAL_FLAG( PLASTIC_REGION );
+    KRATOS_DEFINE_LOCAL_FLAG( PLASTIC_RATE_REGION );
+    KRATOS_DEFINE_LOCAL_FLAG( RETURN_MAPPING_COMPUTED );
 
-      //it has to be changed to a flags variable
-      bool ImplexActive;
-
-      bool PlasticRegion;
-
-      bool ReturnMappingComputed;
-
-      bool PlasticStrainRateBehaviour;
-
-    public:
-      
-      void initialize()
-      {
-	ImplexActive  = false;
-	PlasticRegion = false;
-	ReturnMappingComputed = false;
-	PlasticStrainRateBehaviour = false;
-      };
-
-    };
 
     struct PlasticFactors
     {
@@ -103,7 +85,7 @@ namespace Kratos
 
     struct RadialReturnVariables
     {
-      Vector TrialIsoStressVector;
+      Flags  Options;
 
       double NormIsochoricStress;
       double TrialStateFunction;
@@ -112,12 +94,13 @@ namespace Kratos
       double DeltaBeta;
 
       double LameMu_bar;
-      double TimeStep;
+      double DeltaTime;
 
       double Temperature;
 
-      ProcessVariables Control;
-
+      Vector TrialIsoStressVector;
+	    
+	    
     public:
       
       void clear()
@@ -129,14 +112,18 @@ namespace Kratos
 	  DeltaBeta   = 0;
 
 	  LameMu_bar  = 0;
-	  TimeStep    = 0;
+	  DeltaTime   = 1;
 	  Temperature = 0;
 	}
       
 
       void initialize()
         {
-	  Control.initialize();
+	  Options.Set(IMPLEX_ACTIVE,false);
+          Options.Set(PLASTIC_REGION,false);
+          Options.Set(PLASTIC_RATE_REGION,false);
+          Options.Set(RETURN_MAPPING_COMPUTED,false);
+
 	  clear();
 	}
 

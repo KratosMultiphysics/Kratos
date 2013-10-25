@@ -64,7 +64,7 @@ LinearAssociativePlasticFlowRule::~LinearAssociativePlasticFlowRule()
 //************************************************************************************
 
 
-bool LinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables )
+bool LinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters )
 {
 	//start
 	double DeltaStateFunction = 0;
@@ -73,7 +73,7 @@ bool LinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialRetu
 	double StateFunction                  = rReturnMappingVariables.TrialStateFunction;
    
 	//Calculate Delta State Function:
-	DeltaStateFunction = mpYieldCriterion->CalculateDeltaStateFunction( DeltaStateFunction, rReturnMappingVariables.LameMu_bar, rPlasticVariables.EquivalentPlasticStrain );
+	DeltaStateFunction = mpYieldCriterion->CalculateDeltaStateFunction( DeltaStateFunction, rCriterionParameters );
 
 	//Calculate DeltaGamma:
 	rReturnMappingVariables.DeltaGamma = StateFunction/DeltaStateFunction;
@@ -108,7 +108,11 @@ bool LinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialRetu
 // 	//3.-Auxiliar constants
 // 	double EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrain + sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
 // 	double DeltaHardening = 0;
-// 	DeltaHardening = mpHardeningLaw->CalculateDeltaHardening( DeltaHardening, EquivalentPlasticStrain );
+	// HardeningLaw::Parameters HardeningParameters;
+	// HardeningParamters.SetTemperature(rReturnMappingVariables.Temperature);
+	// HardeningParamters.SetEquivalentPlasticStrain(EquivalentPlasticStrain);
+
+	// DeltaHardening = mpHardeningLaw->CalculateDeltaHardening( DeltaHardening, HardeningParameters );
 
 // 	rScalingFactors.Beta0 = 1.0 + DeltaHardening/(3.0 * rReturnMappingVariables.LameMu_bar);
 		

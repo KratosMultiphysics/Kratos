@@ -17,6 +17,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_yield_criteria/mises_huber_yield_criterion.cpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/non_linear_associative_plastic_flow_rule.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/linear_associative_plastic_flow_rule.cpp
 

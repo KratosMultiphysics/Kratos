@@ -53,6 +53,43 @@ namespace Kratos
 class HardeningLaw
 {
 public:
+
+	struct Parameters
+	{
+  	  double         mRateFactor;
+
+  	  const double*  mpDeltaGamma;
+	  const double*  mpLameMu_bar;
+
+	  const double*  mpDeltaTime;
+  	  const double*  mpTemperature;	
+
+	  const double*  mpEquivalentPlasticStrain;
+	  const double*  mpEquivalentPlasticStrainOld;		
+
+          //Set Parameters
+          void SetRateFactor  (double rRateFactor)         { mRateFactor = rRateFactor;   };	
+          void SetDeltaGamma  (const double& rDeltaGamma)  { mpDeltaGamma = &rDeltaGamma;   };
+          void SetLameMu_bar  (const double& rLameMu_bar)  { mpLameMu_bar = &rLameMu_bar;   };
+          void SetDeltaTime   (const double& rDeltaTime)   { mpDeltaTime = &rDeltaTime;     };
+          void SetTemperature (const double& rTemperature) { mpTemperature = &rTemperature; };
+
+	  void SetEquivalentPlasticStrain    (const double& rEquivalentPlasticStrain)    { mpEquivalentPlasticStrain = &rEquivalentPlasticStrain;       };
+          void SetEquivalentPlasticStrainOld (const double& rEquivalentPlasticStrainOld) { mpEquivalentPlasticStrainOld = &rEquivalentPlasticStrainOld; };
+
+	  //Get Parameters
+ 	  double& GetRateFactor        ()       { return  mRateFactor;   };
+          const double& GetDeltaGamma  () const { return *mpDeltaGamma;  };
+          const double& GetLameMu_bar  () const { return *mpLameMu_bar;  };
+          const double& GetDeltaTime   () const { return *mpDeltaTime;   };
+	  const double& GetTemperature () const { return *mpTemperature; };
+
+          const double& GetEquivalentPlasticStrain       () const { return *mpEquivalentPlasticStrain;       };
+          const double& GetEquivalentPlasticStrainOld    () const { return *mpEquivalentPlasticStrainOld;    };
+
+	};
+
+
     ///@name Type Definitions
     ///@{
 
@@ -99,24 +136,20 @@ public:
 	}
 
 
-    virtual double& CalculateHardening(double &rHardening, const double & rAlpha, double rTemperature = 0){ return rHardening; };
+    virtual double& CalculateHardening(double &rHardening, const Parameters& rValues){ return rHardening; };
   
-    virtual double& CalculateIsotropicHardening(double &rIsotropicHardening, const double & rAlpha, double rTemperature = 0){ return rIsotropicHardening; };
+    virtual double& CalculateIsotropicHardening(double &rIsotropicHardening, const Parameters& rValues){ return rIsotropicHardening; };
 
-    virtual double& CalculateKinematicHardening(double &rKinematicHardening, const double & rAlpha, double rTemperature = 0){ return rKinematicHardening; };
+    virtual double& CalculateKinematicHardening(double &rKinematicHardening, const Parameters& rValues){ return rKinematicHardening; };
 
 
-    virtual double& CalculateDeltaHardening(double &rDeltaHardening, const double & rAlpha, double rTemperature = 0){ return rDeltaHardening; };
+    virtual double& CalculateDeltaHardening(double &rDeltaHardening, const Parameters& rValues){ return rDeltaHardening; };
 
-    virtual double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const double & rAlpha, double rTemperature = 0){ return rDeltaIsotropicHardening; };
+    virtual double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const Parameters& rValues){ return rDeltaIsotropicHardening; };
 
-    virtual double& CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening, const double & rAlpha, double rTemperature = 0){ return rDeltaKinematicHardening; };
+    virtual double& CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening, const Parameters& rValues){ return rDeltaKinematicHardening; };
 
-    virtual double& CalculateDeltaThermalHardening(double &rDeltaThermalHardening, const double &rAlpha){ return rDeltaThermalHardening; };
-
-    virtual double CalculateThermalReferenceEffect(const double &rTemperature){ return 1; };
-
-    virtual double CalculateThermalCurrentEffect(const double &rTemperature){ return 1; };
+    virtual double& CalculateDeltaThermalHardening(double &rDeltaThermalHardening, const Parameters& rValues){ return rDeltaThermalHardening; };
 
     ///@}
     ///@name Access
@@ -164,6 +197,9 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    virtual double CalculateThermalReferenceEffect(const double &rTemperature){ return 1; };
+
+    virtual double CalculateThermalCurrentEffect(const double &rTemperature){ return 1; };
 
     ///@}
     ///@name Protected Operations

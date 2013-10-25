@@ -62,11 +62,15 @@ MisesHuberYieldCriterion::~MisesHuberYieldCriterion()
 //***************************CALCULATE YIELD CONDITION********************************
 //************************************************************************************
 
-double& MisesHuberYieldCriterion::CalculateYieldCondition(double & rStateFunction, const double& rStressNorm, const double& rAlpha, double rTemperature)
+double& MisesHuberYieldCriterion::CalculateYieldCondition(double & rStateFunction, const Parameters& rValues)
 {
 	double Hardening = 0;
 
-	Hardening = mpHardeningLaw->CalculateHardening(Hardening, rAlpha, rTemperature);
+	const double& rStressNorm = rValues.GetStressNorm();
+
+	const HardeningLaw::Parameters& rHardeningParameters = rValues.GetHardeningParameters();
+	
+	Hardening = mpHardeningLaw->CalculateHardening(Hardening, rHardeningParameters);
 		
 	rStateFunction = rStressNorm - sqrt(2.0/3.0) * Hardening;
 		
@@ -74,40 +78,24 @@ double& MisesHuberYieldCriterion::CalculateYieldCondition(double & rStateFunctio
 };
 
 
-//***************************CALCULATE YIELD CONDITION********************************
-//************************************************************************************
-
-
-double& MisesHuberYieldCriterion::CalculateYieldCondition(double & rStateFunction, const Matrix& rStressMatrix, const double& rAlpha, double rTemperature)
-{
-	double	StressNorm = sqrt(rStressMatrix( 0 , 0 )*rStressMatrix( 0 , 0 )+
-				  rStressMatrix( 1 , 1 )*rStressMatrix( 1 , 1 )+
-				  rStressMatrix( 2 , 2 )*rStressMatrix( 2 , 2 )+
-				  2.0 * rStressMatrix( 0 , 1 )*rStressMatrix( 0 , 1 ) );
-
-	rStateFunction = this->CalculateYieldCondition( rStateFunction, StressNorm, rAlpha, rTemperature );
-
-	return rStateFunction;
-};
-
-
-
 //***************************CALCULATE STATE FUNCTION ********************************
 //************************************************************************************
 
-double& MisesHuberYieldCriterion::CalculateStateFunction(double & rStateFunction,const double& rStressNorm, const double& rDeltaGamma, const double& rLameMu_bar, const double& rAlpha, const double& rAlphaOld, double TimeStep, double rTemperature)
+double& MisesHuberYieldCriterion::CalculateStateFunction(double & rStateFunction, const Parameters& rValues)
 {
-	double InitialKinematicHardening = 0;
-	double KinematicHardening = 0;
-	double IsotropicHardening = 0;
 
-	InitialKinematicHardening = mpHardeningLaw->CalculateKinematicHardening(InitialKinematicHardening, rAlphaOld, rTemperature );
-	
-	KinematicHardening = mpHardeningLaw->CalculateKinematicHardening(KinematicHardening, rAlpha, rTemperature);
+	const double& rStressNorm = rValues.GetStressNorm();
+	const double& rLameMu_bar = rValues.GetLameMu_bar();
+	const double& rDeltaGamma = rValues.GetDeltaGamma();
 
-	IsotropicHardening = mpHardeningLaw->CalculateIsotropicHardening(IsotropicHardening, rAlpha, rTemperature);		
+	const HardeningLaw::Parameters& rHardeningParameters = rValues.GetHardeningParameters();
 
-	rStateFunction = rStressNorm - 2.0 * rLameMu_bar * rDeltaGamma - sqrt(2.0/3.0) * ( IsotropicHardening + ( KinematicHardening - InitialKinematicHardening ));
+
+	double Hardening = 0;
+		
+	Hardening = mpHardeningLaw->CalculateHardening( Hardening, rHardeningParameters );
+
+	rStateFunction = rStressNorm - 2.0 * rLameMu_bar * rDeltaGamma - sqrt(2.0/3.0) * ( Hardening );
 		
 	return rStateFunction;
 };
@@ -116,18 +104,18 @@ double& MisesHuberYieldCriterion::CalculateStateFunction(double & rStateFunction
 //***************************CALCULATE STATE FUNCTION ********************************
 //************************************************************************************
 
-double& MisesHuberYieldCriterion::CalculateDeltaStateFunction(double & rDeltaStateFunction, const double& rLameMu_bar, const double& rAlpha, double TimeStep, double rTemperature)
+double& MisesHuberYieldCriterion::CalculateDeltaStateFunction(double & rDeltaStateFunction, const Parameters& rValues)
 {
+	const double& rLameMu_bar = rValues.GetLameMu_bar();
 
-	double DeltaKinematicHardening = 0;
-	double DeltaIsotropicHardening = 0;
+	const HardeningLaw::Parameters& rHardeningParameters = rValues.GetHardeningParameters();
+
+	double DeltaHardening = 0;
+
+	DeltaHardening = mpHardeningLaw->CalculateDeltaHardening( DeltaHardening, rHardeningParameters );
 
 
-	DeltaKinematicHardening = mpHardeningLaw->CalculateDeltaKinematicHardening(DeltaKinematicHardening, rAlpha, rTemperature);
-
-	DeltaIsotropicHardening = mpHardeningLaw->CalculateDeltaIsotropicHardening(DeltaIsotropicHardening, rAlpha, rTemperature);		
-
-	rDeltaStateFunction = 2.0 * rLameMu_bar + (2.0/3.0) * (DeltaKinematicHardening + DeltaIsotropicHardening);
+	rDeltaStateFunction = 2.0 * rLameMu_bar + (2.0/3.0) * DeltaHardening;
 		
 	return rDeltaStateFunction;
 };
@@ -136,7 +124,7 @@ double& MisesHuberYieldCriterion::CalculateDeltaStateFunction(double & rDeltaSta
 //***************************CALCULATE PLASTIC DISSIPATION****************************
 //************************************************************************************
 
-double& MisesHuberYieldCriterion::CalculatePlasticDissipation(double & rPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rAlpha, const double& rTemperature)
+double& MisesHuberYieldCriterion::CalculatePlasticDissipation(double & rPlasticDissipation, const Parameters& rValues)
 {
 	rPlasticDissipation = 0;
 	return rPlasticDissipation;
@@ -146,7 +134,7 @@ double& MisesHuberYieldCriterion::CalculatePlasticDissipation(double & rPlasticD
 //**********************CALCULATE DELTA PLASTIC DISSIPATION***************************
 //************************************************************************************
 
-double& MisesHuberYieldCriterion::CalculateDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rLameMu_bar, const double& rAlpha, const double& rTemperature)
+double& MisesHuberYieldCriterion::CalculateDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues)
 {
 	rDeltaPlasticDissipation = 0;
 	return rDeltaPlasticDissipation;
@@ -156,7 +144,7 @@ double& MisesHuberYieldCriterion::CalculateDeltaPlasticDissipation(double & rDel
 //***************************CALCULATE PLASTIC DISSIPATION****************************
 //************************************************************************************
 
-double& MisesHuberYieldCriterion::CalculateImplexPlasticDissipation(double & rPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rAlpha, const double& rTemperature)
+double& MisesHuberYieldCriterion::CalculateImplexPlasticDissipation(double & rPlasticDissipation, const Parameters& rValues)
 {
 	rPlasticDissipation = 0;
 	return rPlasticDissipation;
@@ -166,11 +154,16 @@ double& MisesHuberYieldCriterion::CalculateImplexPlasticDissipation(double & rPl
 //**********************CALCULATE DELTA PLASTIC DISSIPATION***************************
 //************************************************************************************
 
-double& MisesHuberYieldCriterion::CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rLameMu_bar, const double& rAlpha, const double& rTemperature)
+double& MisesHuberYieldCriterion::CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues)
 {
 	rDeltaPlasticDissipation = 0;
 	return rDeltaPlasticDissipation;
 };
+
+
+
+//************************************************************************************
+//************************************************************************************
 
 void MisesHuberYieldCriterion::save( Serializer& rSerializer ) const
 {

@@ -132,7 +132,7 @@ namespace Kratos
     ///@name Protected Operations
     ///@{
 
-    bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
+    bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters );
 
 
     ///@}
