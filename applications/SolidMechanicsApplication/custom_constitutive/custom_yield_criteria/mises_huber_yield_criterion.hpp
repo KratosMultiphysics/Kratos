@@ -82,23 +82,22 @@ class MisesHuberYieldCriterion
         ///@name Operations
         ///@{
 
-        double& CalculateYieldCondition(double & rStateFunction, const double& rStressNorm, const double& rAlpha, double rTemperature = 0);
-
-        double& CalculateYieldCondition(double & rStateFunction, const Matrix& rStressMatrix, const double& rAlpha, double rTemperature = 0);
+        double& CalculateYieldCondition(double & rStateFunction, const Parameters& rValues);
 
 
-	double& CalculateStateFunction(double & rStateFunction,const double& rStressNorm, const double& rDeltaGamma, const double& rLameMu_bar, const double& rAlpha, const double& rAlphaOld, double TimeStep = 1, double rTemperature = 0);
+	double& CalculateStateFunction(double & rStateFunction, const Parameters& rValues);
 
-	double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const double& rLameMu_bar, const double& rAlpha, double TimeStep = 1, double rTemperature = 0);
-
-        double& CalculatePlasticDissipation(double & rPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rAlpha, const double &rTemperature);
-
-        double& CalculateDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rLameMu_bar, const double& rAlpha, const double &rTemperature);
+	double& CalculateDeltaStateFunction(double & rDeltaStateFunction, const Parameters& rValues);
 
 
-        double& CalculateImplexPlasticDissipation(double & rPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rAlpha, const double &rTemperature);
+        double& CalculatePlasticDissipation(double & rPlasticDissipation, const Parameters& rValues);
 
-        double& CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const double& rDeltaGamma, const double& rDeltaTime, const double& rLameMu_bar, const double& rAlpha, const double &rTemperature);
+        double& CalculateDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues);
+
+
+        double& CalculateImplexPlasticDissipation(double & rPlasticDissipation, const Parameters& rValues);
+
+        double& CalculateImplexDeltaPlasticDissipation(double & rDeltaPlasticDissipation, const Parameters& rValues);
 
           
         ///@}

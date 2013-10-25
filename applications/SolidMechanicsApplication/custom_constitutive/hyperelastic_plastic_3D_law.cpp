@@ -347,12 +347,12 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     ReturnMappingVariables.initialize(); //it has to be called at the start
 
     // Initialize variables from the process information
-    ReturnMappingVariables.TimeStep = CurProcessInfo[DELTA_TIME];
+    ReturnMappingVariables.DeltaTime = CurProcessInfo[DELTA_TIME];
     
     if(CurProcessInfo[IMPLEX] == 1)	
-      ReturnMappingVariables.Control.ImplexActive = true;
+      ReturnMappingVariables.Options.Set(FlowRule::IMPLEX_ACTIVE,true);
     else
-      ReturnMappingVariables.Control.ImplexActive = false;
+      ReturnMappingVariables.Options.Set(FlowRule::IMPLEX_ACTIVE,false);
       
     // Initialize Splited Parts: Isochoric and Volumetric stresses and constitutive tensors
     double voigtsize = StressVector.size();
@@ -441,7 +441,7 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
     if( Options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
       
-        if( ReturnMappingVariables.Control.ReturnMappingComputed == false )
+        if( ReturnMappingVariables.Options.Is(FlowRule::NOT_RETURN_MAPPING_COMPUTED) )
 	  KRATOS_ERROR(std::logic_error, " ReturnMappingCall was not performed  ...error in the constitutive calculation...","");
 
         //initialize constitutive tensors
@@ -465,7 +465,7 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
 	  this->CalculateVolumetricConstitutiveMatrix ( ElasticVariables, InverseDeformationGradientF, SplitConstitutiveMatrix.Volumetric );
 
 	  
-	  if( ReturnMappingVariables.Control.PlasticRegion == true )
+	  if( ReturnMappingVariables.Options.Is(FlowRule::PLASTIC_REGION) )
 	    this->CalculatePlasticConstitutiveMatrix  ( ElasticVariables, InverseDeformationGradientF, ReturnMappingVariables, SplitConstitutiveMatrix.Plastic );
 
 	}
@@ -475,14 +475,14 @@ void HyperElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Parameters& r
 	  
 	  this->CalculateVolumetricConstitutiveMatrix ( ElasticVariables, SplitConstitutiveMatrix.Volumetric );
 	  
-	  if( ReturnMappingVariables.Control.PlasticRegion == true )
+	  if( ReturnMappingVariables.Options.Is(FlowRule::PLASTIC_REGION) )
 	    this->CalculatePlasticConstitutiveMatrix  ( ElasticVariables, ReturnMappingVariables, SplitConstitutiveMatrix.Plastic );
 	  
 	}
 
 	//std::cout<< " Isochoric Constitutive "<<SplitConstitutiveMatrix.Isochoric<<std::endl;
 	//std::cout<< " Volumetic Constitutive "<<SplitConstitutiveMatrix.Volumetric<<std::endl;
-	// if( rReturnMappingVariables.Control.PlasticRegion == true )
+	// if( rReturnMappingVariables.Options.Is(PLASTIC_REGION) )
 	//   std::cout<< " Plastic Constitutive   "<<SplitConstitutiveMatrix.Plastic<<std::endl;
 	
 

@@ -81,14 +81,12 @@ public:
     ///@name Operations
     ///@{
 
-    double& CalculateHardening(double &rHardening, const double &rAlpha, double rTemperature = 0);
 	
-    double& CalculateIsotropicHardening(double &rIsotropicHardening, const double &rAlpha, double rTemperature = 0);
+    double& CalculateIsotropicHardening(double &rIsotropicHardening, const Parameters& rValues);
 
+    double& CalculateDeltaHardening(double &rDeltaHardening, const Parameters& rValues);
 
-    double& CalculateDeltaHardening(double &rDeltaHardening, const double &rAlpha, double rTemperature = 0);
-
-    double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const double &rAlpha, double rTemperature = 0);
+    double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const Parameters& rValues);
 
 
     ///@}

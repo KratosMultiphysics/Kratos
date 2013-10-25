@@ -82,7 +82,6 @@ namespace Kratos
     
     bool CalculateReturnMapping(  RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix );
 
-
     virtual void CalculateScalingFactors( const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors );
 
     virtual bool UpdateInternalVariables( RadialReturnVariables& rReturnMappingVariables );
@@ -141,20 +140,23 @@ namespace Kratos
     double& CalculateStressNorm ( Matrix & rStressMatrix, double& rStressNorm );
 
 	  
-    virtual bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
+    virtual void SetCriterionParameters( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters );
+
+
+    virtual bool CalculateConsistencyCondition( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters);
 
 
     void UpdateConfiguration( RadialReturnVariables& rReturnMappingVariables, Matrix & rIsoStressMatrix );	  
 
 
-    void CalculateThermalDissipation( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
+    void CalculateThermalDissipation( YieldCriterion::Parameters& rCriterionParameters );
 
 
     //implex protected methods
 
-    void CalculateImplexReturnMapping( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, Matrix& rIsoStressMatrix );
+    void CalculateImplexReturnMapping( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters, Matrix& rIsoStressMatrix );
  
-    void CalculateImplexThermalDissipation( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables );
+    void CalculateImplexThermalDissipation( YieldCriterion::Parameters& rCriterionParameters );
 
 
     ///@}

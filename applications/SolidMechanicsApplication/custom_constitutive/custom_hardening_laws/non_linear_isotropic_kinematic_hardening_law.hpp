@@ -81,21 +81,18 @@ public:
     ///@name Operations
     ///@{
 
-    virtual double& CalculateHardening(double &rHardening, const double &rAlpha, double rTemperature = 0);
+    virtual double& CalculateHardening(double &rHardening, const Parameters& rValues);
   
-    virtual double& CalculateIsotropicHardening(double &rIsotropicHardening, const double &rAlpha, double rTemperature = 0);
+    virtual double& CalculateIsotropicHardening(double &rIsotropicHardening, const Parameters& rValues);
 
-    virtual double& CalculateKinematicHardening(double &rKinematicHardening, const double &rAlpha, double rTemperature = 0);
+    virtual double& CalculateKinematicHardening(double &rKinematicHardening, const Parameters& rValues);
 
-    virtual double& CalculateDeltaHardening(double &rDeltaHardening, const double &rAlpha, double rTemperature = 0);
+    virtual double& CalculateDeltaHardening(double &rDeltaHardening, const Parameters& rValues);
 
-    virtual double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const double &rAlpha, double rTemperature = 0);
+    virtual double& CalculateDeltaIsotropicHardening(double &rDeltaIsotropicHardening, const Parameters& rValues);
 
-    virtual double& CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening, const double &rAlpha, double rTemperature = 0);
+    virtual double& CalculateDeltaKinematicHardening(double &rDeltaKinematicHardening, const Parameters& rValues);
 
-    virtual double CalculateThermalReferenceEffect(const double &rTemperature);
-
-    virtual double CalculateThermalCurrentEffect(const double &rTemperature);
 
     ///@}
     ///@name Access
@@ -149,6 +146,9 @@ protected:
     ///@name Protected Operators
     ///@{
 
+    virtual double CalculateThermalReferenceEffect(const double &rTemperature);
+
+    virtual double CalculateThermalCurrentEffect(const double &rTemperature);
 
     ///@}
     ///@name Protected Operations
