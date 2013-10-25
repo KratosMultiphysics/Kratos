@@ -135,44 +135,54 @@ void LaplacianComponentwiseMeshMovingElem3D::CalculateLocalSystem(MatrixType& rL
     //note that no multiplication by area is performed,
     //this makes smaller elements more rigid and minimizes the mesh deformation
 
-    // consideration of elemental conductivity (the highely-strained elements are assigned to a large conductivity value)
-    array_1d<double,3> disp;
-    array_1d<double,3> grad_u;
-    double norm_grad_u;
-    double conductivity;
-
-    grad_u[0] = 0;
-    grad_u[1] = 0;
-    grad_u[2] = 0;
-
-    for(unsigned int i = 0; i < number_of_points; i++) // loop over the three nodes
-    {
-        disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
-
-        grad_u[0] += msDN_DX(i,0)*disp[0];
-        grad_u[1] += msDN_DX(i,1)*disp[1];
-        grad_u[2] += msDN_DX(i,2)*disp[2];
-    }
-
-    norm_grad_u = norm_2(grad_u);
-    conductivity = norm_grad_u;
-
-    // exponent is a way to strengthen (exponent > 0) or diminish (exponent < 0) the influence of the conductivity
-    // if exponent = 0: conductivity = 1
-    // if exponent > 0: conductivity > 1
-    // if exponent < 0: conductivity < 1
-    double exponent = 0;
-
-    // factor 100 is for conditioning of matrices
-    double conditioning_factor = 100;
-    double base = conditioning_factor * conductivity;
-    double factor = pow(base,exponent); // if exponent = 0, then factor = 1 --> no influence on RHS and LHS
+    // switchValue to turn of / on conductivity settigns
+    // 1 = on  (LHS and RHS are multiplied by conductivity)
+    // 0 = off (no all elements are considered to have a conductivity of 1)
+    double switchValue = 0;
 
     // preserve matrices to become ill-conditioned
-    if(conductivity > 100)
+    if(switchValue != 0)
     {
-        rLeftHandSideMatrix  *= factor;
-        rRightHandSideVector *= factor;
+
+        // consideration of elemental conductivity (the highely-strained elements are assigned to a large conductivity value)
+        array_1d<double,3> disp;
+        array_1d<double,3> grad_u;
+        double norm_grad_u;
+        double conductivity;
+
+        Matrix grad(3,3,0.0);
+        grad_u[0] = 0;
+        grad_u[1] = 0;
+        grad_u[2] = 0;
+
+        // compute strains
+        for(unsigned int i = 0; i < number_of_points; i++) // loop over the three nodes
+        {
+            disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+
+            grad(0,0) += msDN_DX(i,0)*disp[0];
+            grad(1,0) += msDN_DX(i,1)*disp[0];
+            grad(2,0) += msDN_DX(i,2)*disp[0];
+
+            grad(0,1) += msDN_DX(i,0)*disp[1];
+            grad(1,1) += msDN_DX(i,1)*disp[1];
+            grad(2,1) += msDN_DX(i,2)*disp[1];
+
+            grad(0,2) += msDN_DX(i,0)*disp[2];
+            grad(1,2) += msDN_DX(i,1)*disp[2];
+            grad(2,2) += msDN_DX(i,2)*disp[2];
+        }
+
+        Matrix eps = grad;
+        eps += trans(grad);
+        eps *= 0.5;
+
+        // Apply conductivity according norm of strains
+        norm_grad_u = norm_frobenius(eps);
+        conductivity = 1+norm_grad_u*1000;
+
+        rLeftHandSideMatrix  *= conductivity;
+        rRightHandSideVector *= conductivity;
     }
 
     KRATOS_CATCH("");
