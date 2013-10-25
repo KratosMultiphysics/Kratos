@@ -45,10 +45,10 @@ pthread_mutex_t lock;
 
 int GiD_HashInit()
 {
-  printf("ENTER: GiD_HashInit\n");
+  //printf("ENTER: GiD_HashInit\n");
   if (fd_pool)
     {
-    printf("LEAVE: GiD_HashInit Already inited\n"); 
+    //printf("LEAVE: GiD_HashInit Already inited\n"); 
     return 0;
     }
   _INIT_MUTEX_;
@@ -58,10 +58,10 @@ int GiD_HashInit()
   if (!hashTable) {
     hashTable = gid_hcreate(16);
     assert(hashTable);
-    printf("LEAVE: GiD_HashInit %p\n", hashTable);  
+    //printf("LEAVE: GiD_HashInit %p\n", hashTable);  
     return 0;
   }
-  printf("LEAVE: GiD_HashInit\n");  
+  //printf("LEAVE: GiD_HashInit\n");  
   return -1;
 
 }
