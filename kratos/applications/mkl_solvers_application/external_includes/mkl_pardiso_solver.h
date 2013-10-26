@@ -71,7 +71,8 @@ extern "C"
 #include "includes/ublas_interface.h"
 
 #include <boost/numeric/bindings/traits/sparse_traits.hpp>
-
+#include <boost/numeric/bindings/traits/matrix_traits.hpp>
+#include <boost/numeric/bindings/traits/vector_traits.hpp>
 #include <boost/numeric/bindings/traits/ublas_matrix.hpp>
 #include <boost/numeric/bindings/traits/ublas_sparse.hpp>
 #include <boost/numeric/bindings/traits/ublas_vector.hpp>
@@ -203,8 +204,9 @@ public:
         iparm[0] = 1; /* No solver default */
         iparm[1] = 2; /* Fill-in reordering from METIS */
         /* Numbers of processors, value of OMP_NUM_THREADS */
-        iparm[2] = OpenMPUtils::GetNumThreads(); //omp_get_max_threads();
-//                 std::cout << "number of threads: " << iparm[2] << std::endl;
+//        iparm[2] = OpenMPUtils::GetNumThreads(); //omp_get_max_threads();
+        iparm[2] = OpenMPUtils::GetNumProcs(); //omp_get_num_procs();
+        std::cout << "Number of threads/procs (for MKL): " << iparm[2] << std::endl;
         if( mRefinements > 0 )
             iparm[3] = 1; /* iterative-direct algorithm */
         else
@@ -319,8 +321,202 @@ public:
      */
     bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
     {
-        KRATOS_ERROR(std::logic_error,"ERROR: This solver can be used for single RHS only", "");
-        return false;
+        double start_solver = OpenMPUtils::GetCurrentTime();
+        typedef boost::numeric::bindings::traits::sparse_matrix_traits<SparseMatrixType> matraits;
+        typedef boost::numeric::bindings::traits::matrix_traits<DenseMatrixType> mbtraits;
+        typedef typename matraits::value_type val_t;
+
+        MKL_INT n = matraits::size1 (rA);
+        assert (n == matraits::size2 (rA));
+        assert (n == mbtraits::size1 (rB));
+        assert (n == mbtraits::size1 (rX));
+
+        /**
+         * nonzeros in rA
+         */
+        double* a = matraits::value_storage(rA);
+
+        /**
+         * manual index vector generation
+         */
+        MKL_INT *index1_vector = new (std::nothrow) MKL_INT[rA.index1_data().size()];
+        MKL_INT *index2_vector = new (std::nothrow) MKL_INT[rA.index2_data().size()];
+        std::cout << "Size of the problem: " << n << std::endl;
+        std::cout << "Size of index1_vector: " << rA.index1_data().size() << std::endl;
+        std::cout << "Size of index2_vector: " << rA.index2_data().size() << std::endl;
+//                 std::cout << "pardiso_solver: line 156" << std::endl;
+        for(unsigned int i = 0; i < rA.index1_data().size(); i++ )
+        {
+            index1_vector[i] = (MKL_INT)(rA.index1_data()[i])+1;
+        }
+//                 std::cout << "pardiso_solver: line 161" << std::endl;
+        for(unsigned int i = 0; i < rA.index2_data().size(); i++ )
+        {
+            index2_vector[i] = (MKL_INT)(rA.index2_data()[i])+1;
+        }
+        /**
+         *  Matrix type flag:
+         * 1    real and structurally symmetric
+         * 2    real and symmetic positive definite
+         * -2   real and symmetric indefinite
+         * 3    complex and structurally symmetric
+         * 4    complex and Hermitian positive definite
+         * -4   complex and Hermitian indefinite
+         * 6    complex and symmetic
+         * 11   real and nonsymmetric
+         * 13   complex and nonsymmetric
+         */
+        MKL_INT mtype = 11;
+        MKL_INT nrhs = mbtraits::size2(rB); /* Number of right hand sides. */
+
+        /* RHS and solution vectors. */
+        DenseMatrixType Bt = trans(rB);
+        DenseMatrixType Xt = ZeroMatrix(nrhs, n);
+        double *b = mbtraits::storage(Bt);
+        double *x = mbtraits::storage(Xt);
+
+        // inefficient copy
+//        double b[nrhs * n];
+//        double x[nrhs * n];
+//        for(int i = 0; i < nrhs; ++i)
+//        {
+//            std::copy(column(rB, i).begin(), column(rB, i).end(), b + i * n);
+//        }
+
+        /* Internal solver memory pointer pt, */
+        /* 32-bit: int pt[64]; 64-bit: long int pt[64] */
+        /* or void *pt[64] should be OK on both architectures */
+        void *pt[64];
+        /* Pardiso control parameters. */
+        MKL_INT iparm[64];
+        MKL_INT maxfct, mnum, phase, error, msglvl;
+        /* Auxiliary variables. */
+        MKL_INT i;
+        double ddum; /* Double dummy */
+        MKL_INT idum; /* Integer dummy. */
+        /* -------------------------------------------------------------------- */
+        /* .. Setup Pardiso control parameters. */
+        /* -------------------------------------------------------------------- */
+        for (i = 0; i < 64; i++)
+        {
+            iparm[i] = 0;
+        }
+        iparm[0] = 1; /* No solver default */
+        iparm[1] = 2; /* Fill-in reordering from METIS */
+        /* Numbers of processors, value of OMP_NUM_THREADS */
+//        iparm[2] = OpenMPUtils::GetNumThreads(); //omp_get_max_threads();
+        iparm[2] = OpenMPUtils::GetNumProcs(); //omp_get_num_procs();
+        std::cout << "Number of threads/procs (for MKL): " << iparm[2] << std::endl;
+        if( mRefinements > 0 )
+            iparm[3] = 1; /* iterative-direct algorithm */
+        else
+            iparm[3] = 0; /* no iterative-direct algorithm */
+        iparm[4] = 0; /* No user fill-in reducing permutation */
+        iparm[5] = 0; /* Write solution into x */
+        iparm[6] = 0; /* Not in use */
+        iparm[7] = mRefinements; /* Max numbers of iterative refinement steps */
+        iparm[8] = 0; /* Not in use */
+        iparm[9] = 13; /* Perturb the pivot elements with 1E-13 */
+        iparm[10] = 1; /* Use nonsymmetric permutation and scaling MPS */
+        iparm[11] = 0; /* Not in use */
+        iparm[12] = 1; /* Maximum weighted matching algorithm is switched-on (default for non-symmetric) */
+        iparm[13] = 0; /* Output: Number of perturbed pivots */
+        iparm[14] = 0; /* Not in use */
+        iparm[15] = 0; /* Not in use */
+        iparm[16] = 0; /* Not in use */
+        iparm[17] = -1; /* Output: Number of nonzeros in the factor LU */
+        iparm[18] = -1; /* Output: Mflops for LU factorization */
+        iparm[19] = 0; /* Output: Numbers of CG Iterations */
+        maxfct = 1; /* Maximum number of numerical factorizations. */
+        mnum = 1; /* Which factorization to use. */
+        msglvl = 0; /* Print statistical information in file */
+        error = 0; /* Initialize error flag */
+        /* -------------------------------------------------------------------- */
+        /* .. Initialize the internal solver memory pointer. This is only */
+        /* necessary for the FIRST call of the PARDISO solver. */
+        /* -------------------------------------------------------------------- */
+        for (i = 0; i < 64; i++)
+        {
+            pt[i] = 0;
+        }
+        /* -------------------------------------------------------------------- */
+        /* .. Reordering and Symbolic Factorization. This step also allocates */
+        /* all memory that is necessary for the factorization. */
+        /* -------------------------------------------------------------------- */
+//                 std::cout << "pardiso_solver: line 241" << std::endl;
+        phase = 11;
+        PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+                 &n, a, index1_vector, index2_vector, &idum, &nrhs,
+                 iparm, &msglvl, &ddum, &ddum, &error);
+
+        if (error != 0)
+        {
+            std::cout << "ERROR during symbolic factorization: " << error << std::endl;
+            exit(1);
+        }
+//                 std::cout << "pardiso_solver: line 251" << std::endl;
+        std::cout << "Reordering completed ... " << std::endl;
+        //printf("\nNumber of nonzeros in factors = %d", iparm[17]);
+        //printf("\nNumber of factorization MFLOPS = %d", iparm[18]);
+        /* -------------------------------------------------------------------- */
+        KRATOS_WATCH(iparm[63]);
+
+        /* .. Numerical factorization. */
+        /* -------------------------------------------------------------------- */
+        phase = 22;
+        PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+                 &n, a, index1_vector, index2_vector, &idum, &nrhs,
+                 iparm, &msglvl, &ddum, &ddum, &error);
+        if (error != 0)
+        {
+            std::cout << "ERROR during numerical factorization: " << error << std::endl;
+            exit(2);
+        }
+        std::cout << "Factorization completed ... " << std::endl;
+//                 std::cout << "pardiso_solver: line 267" << std::endl;
+        /* -------------------------------------------------------------------- */
+        /* .. Back substitution and iterative refinement. */
+        /* -------------------------------------------------------------------- */
+        phase = 33;
+        iparm[7] = 2; /* Max numbers of iterative refinement steps. */
+        /* Set right hand side to one. */
+        //for (i = 0; i < n; i++) {
+        //    b[i] = 1;
+        //}
+//                 std::cout << "pardiso_solver: line 277" << std::endl;
+        PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+                 &n, a, index1_vector, index2_vector, &idum, &nrhs,
+                 iparm, &msglvl, b, x, &error);
+        if (error != 0)
+        {
+            std::cout << "ERROR during solution: " << error << std::endl;
+            exit(3);
+        }
+//                 std::cout << "pardiso_solver: line 285" << std::endl;
+        /* -------------------------------------------------------------------- */
+        /* .. Termination and release of memory. */
+        /* -------------------------------------------------------------------- */
+//                 std::cout << "pardiso_solver: line 289" << std::endl;
+        phase = -1; /* Release internal memory. */
+        PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
+                 &n, &ddum, index1_vector, index2_vector, &idum, &nrhs,
+                 iparm, &msglvl, &ddum, &ddum, &error);
+//                 std::cout << "pardiso_solver: line 294" << std::endl;
+        delete [] index1_vector;
+//                 std::cout << "pardiso_solver: line 296" << std::endl;
+        delete [] index2_vector;
+//                 std::cout << "pardiso_solver: line 298" << std::endl;
+
+        // inefficient copy
+//        for(int i = 0; i < nrhs; ++i)
+//        {
+//            std::copy(x + i * n, x + (i + 1) * n, column(rX, i).begin());
+//        }
+        
+        noalias(rX) = trans(Xt);
+        
+        std::cout << "#### SOLVER TIME: " << OpenMPUtils::GetCurrentTime()-start_solver << " ####" << std::endl;
+        return true;
     }
 
     /**
