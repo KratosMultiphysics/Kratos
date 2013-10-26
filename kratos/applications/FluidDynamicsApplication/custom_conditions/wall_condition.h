@@ -244,7 +244,7 @@ namespace Kratos
                 noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
                 noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-                //this->ApplyInflowCondition(rLeftHandSideMatrix,rRightHandSideVector);
+                this->ApplyInflowCondition(rLeftHandSideMatrix,rRightHandSideVector);
 
                 this->ApplyWallLaw(rLeftHandSideMatrix,rRightHandSideVector);
             }
@@ -547,11 +547,12 @@ namespace Kratos
 						const NodeType& rConstNode = this->GetGeometry()[j];
 						if ( rConstNode.IsFixed(PRESSURE)==true)
 						{
+                            //KRATOS_WATCH(rNormal)
 							const double& pext = this->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
 							for (unsigned int d = 0; d < TDim;d++)
 								rLocalVector[FirstRow+d] -= N*pext*rNormal[d];
 							
-							const array_1d<double,3>& rVel = this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
+							/*const array_1d<double,3>& rVel = this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
 							double Proj = rNormal[0]*rVel[0] + rNormal[1]*rVel[1] + rNormal[2]*rVel[2];
 							double normV = norm_2(rVel);
 					 
@@ -559,7 +560,7 @@ namespace Kratos
 							{
 								//KRATOS_WATCH(this->GetGeometry()[j].Coordinates());
 								//KRATOS_WATCH(rNormal);
-								//double Tij = Weight * Proj;
+								double Tij = Weight * Proj;
 														
 								for (unsigned int k = 0; k < TDim;k++)
 									for (unsigned int l = 0; l < TDim;l++)
@@ -568,13 +569,13 @@ namespace Kratos
 								for (unsigned int k = 0; k < TDim;k++)	
 									rLocalVector[FirstRow+k] -= Weight*normV*rNormal[k]*Proj;
 								
-								/*for (unsigned int d = 0; d < TDim;d++)
+								for (unsigned int d = 0; d < TDim;d++)
 								{
 									rLocalMatrix(FirstRow+d,FirstRow+d) -= Tij;
 									
 									rLocalVector[FirstRow+d] += Tij*rVel[d];
-								}*/
-							}
+								}
+							}*/
 						}
 
 						FirstRow += LocalSize;
