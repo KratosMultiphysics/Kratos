@@ -109,6 +109,7 @@ namespace Kratos
             array_1d<double,3>& pressure_grad       = GetGeometry()(0)->FastGetSolutionStepValue(PRESSURE_GRAD_PROJECTED);
             array_1d<double,3>& drag_force          = GetGeometry()(0)->FastGetSolutionStepValue(DRAG_FORCE);
             array_1d<double,3>& buoyancy            = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);
+            double fluid_fraction                   = 1 - GetGeometry()(0)->FastGetSolutionStepValue(SOLID_FRACTION_PROJECTED);
 
             if (GetGeometry()[0].IsFixed(VELOCITY_X) == false){
                 const double& fluid_density = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
