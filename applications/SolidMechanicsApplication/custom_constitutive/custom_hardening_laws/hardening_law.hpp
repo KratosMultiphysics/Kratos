@@ -78,7 +78,7 @@ public:
           void SetEquivalentPlasticStrainOld (const double& rEquivalentPlasticStrainOld) { mpEquivalentPlasticStrainOld = &rEquivalentPlasticStrainOld; };
 
 	  //Get Parameters
- 	  double& GetRateFactor        ()       { return  mRateFactor;   };
+ 	  const double& GetRateFactor  () const { return  mRateFactor;   };
           const double& GetDeltaGamma  () const { return *mpDeltaGamma;  };
           const double& GetLameMu_bar  () const { return *mpLameMu_bar;  };
           const double& GetDeltaTime   () const { return *mpDeltaTime;   };

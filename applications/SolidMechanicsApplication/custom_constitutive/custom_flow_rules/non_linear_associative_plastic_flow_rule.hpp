@@ -80,7 +80,7 @@ namespace Kratos
     ///@name Operations
     ///@{
     
-    bool CalculateReturnMapping(  RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix );
+    virtual bool CalculateReturnMapping(  RadialReturnVariables& rReturnMappingVariables, Matrix& rIsoStressMatrix );
 
     virtual void CalculateScalingFactors( const RadialReturnVariables& rReturnMappingVariables, PlasticFactors& rScalingFactors );
 
@@ -154,7 +154,7 @@ namespace Kratos
 
     //implex protected methods
 
-    void CalculateImplexReturnMapping( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters, Matrix& rIsoStressMatrix );
+    virtual void CalculateImplexReturnMapping( RadialReturnVariables& rReturnMappingVariables, InternalVariables& rPlasticVariables, YieldCriterion::Parameters& rCriterionParameters, Matrix& rIsoStressMatrix );
  
     void CalculateImplexThermalDissipation( YieldCriterion::Parameters& rCriterionParameters );
 
