@@ -99,24 +99,24 @@ public:
 
     enum { Dimension = 3,
            DIMENSION = 3,
-           MAX_LEVEL = 4,
+           MAX_LEVEL = 12,
            MIN_LEVEL = 2    // this cannot be less than 2!!!
          };
 
-    typedef Point<3, double>                                PointType;  /// always the point 3D
-    typedef std::vector<double>::iterator                   DistanceIteratorType;
-    typedef ModelPart::ConditionsContainerType::ContainerType ContainerType;
-    typedef ContainerType::value_type                       PointerType;
-    typedef ContainerType::iterator                         IteratorType;
-    typedef ModelPart::ConditionsContainerType::ContainerType ResultContainerType;
-    typedef ResultContainerType::value_type                 ResultPointerType;
-    typedef ResultContainerType::iterator                   ResultIteratorType;
+    typedef Point<3, double>                                    PointType;  /// always the point 3D
+    typedef std::vector<double>::iterator                       DistanceIteratorType;
+    typedef PointerVectorSet<GeometricalObject::Pointer, IndexedObject>  ContainerType;
+    typedef ContainerType::value_type                           PointerType;
+    typedef ContainerType::iterator                             IteratorType;
+    typedef PointerVectorSet<GeometricalObject::Pointer, IndexedObject>  ResultContainerType;
+    typedef ResultContainerType::value_type                     ResultPointerType;
+    typedef ResultContainerType::iterator                       ResultIteratorType;
 
-    typedef Condition::Pointer                                        pointer_type;
-    typedef CellNodeData                cell_node_data_type;
+    typedef GeometricalObject::Pointer                          pointer_type;
+    typedef CellNodeData                                        cell_node_data_type;
     typedef std::vector<CellNodeData*> data_type;
 
-    typedef std::vector<PointerType>::iterator             PointerTypeIterator;
+    typedef std::vector<PointerType>::iterator                  PointerTypeIterator;
 
 
 
@@ -354,6 +354,22 @@ private:
       virtual void Execute()
       {
           KRATOS_TRY
+	/*
+            std::cout << "Clearing the list of correspondances between the FIXED MESH ELEMENTS and the EMBEDDED CONDITIONS THAT ARE CROSSING THEM..." << std::endl;	
+
+		
+	  for( ModelPart::ElementIterator i_fluidElement = mrFluidModelPart.ElementsBegin();
+                                          i_fluidElement != mrFluidModelPart.ElementsEnd();
+                                          i_fluidElement++)
+          {
+              //i_fluidElement->GetValue(NEIGHBOUR_CONDITIONS).resize(0);
+		( i_fluidElement->GetValue(NEIGHBOUR_EMBEDDED_FACES)).reserve(6);
+
+		 WeakPointerVector<GeometricalObject >& rE = i_fluidElement->GetValue(NEIGHBOUR_EMBEDDED_FACES);
+	            rE.erase(rE.begin(),rE.end() );	
+          } 
+	*/
+
 
             std::cout << "Generating the Octree..." << std::endl;
             GenerateOctree();
@@ -403,6 +419,7 @@ private:
 
       void DistanceFluidStructure()
       {
+	
           // Initialize nodal distances each node in the domain to 1.0
           InitializeDistances();
 
@@ -410,13 +427,21 @@ private:
           bounded_matrix<unsigned int,6,2> TetEdgeIndexTable;
           SetIndexTable(TetEdgeIndexTable);
 
-          // loop over all fluid elements
-          for( ModelPart::ConditionIterator i_fluidCondition = mrFluidModelPart.ConditionsBegin();
-                                          i_fluidCondition != mrFluidModelPart.ConditionsEnd();
-                                          i_fluidCondition++)
+	for( ModelPart::ElementIterator i_fluidElement = mrFluidModelPart.ElementsBegin();
+                                          i_fluidElement != mrFluidModelPart.ElementsEnd();
+                                          i_fluidElement++)
           {
-              CalcNodalDistancesOfTetNodes( i_fluidCondition , TetEdgeIndexTable );
-          }
+		i_fluidElement->GetValue(EMBEDDED_VELOCITY)=ZeroVector(3);
+	  }
+
+          // loop over all fluid elements
+          for( ModelPart::ElementIterator i_fluidElement = mrFluidModelPart.ElementsBegin();
+                                          i_fluidElement != mrFluidModelPart.ElementsEnd();
+                                          i_fluidElement++)
+          {
+              CalcNodalDistancesOfTetNodes( i_fluidElement , TetEdgeIndexTable );
+          } 
+		KRATOS_WATCH("ENDOF LOOP")
       }
 
       ///******************************************************************************************************************
@@ -431,7 +456,7 @@ private:
           for(int i = 0 ; i < nodesSize ; i++)
                   nodes[i]->GetSolutionStepValue(DISTANCE) = 1.0;
 
-          ModelPart::ConditionsContainerType::ContainerType& fluid_elements = mrFluidModelPart.ConditionsArray();
+          ModelPart::ElementsContainerType::ContainerType& fluid_elements = mrFluidModelPart.ElementsArray();
 
           array_1d<double,4> ElementalDistances;
           const double initial_distance = 1.0;
@@ -471,7 +496,7 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void CalcNodalDistancesOfTetNodes( ModelPart::ConditionsContainerType::iterator& i_fluidCondition,
+      void CalcNodalDistancesOfTetNodes( ModelPart::ElementsContainerType::iterator& i_fluidElement,
                                          bounded_matrix<unsigned int,6,2>            TetEdgeIndexTable)
       {
           std::vector<OctreeType::cell_type*> leaves;
@@ -479,58 +504,76 @@ private:
           unsigned int NumberIntersectionsOnTetCorner = 0;
 
           // Get leaves of octree intersecting with fluid element
-          mOctree.GetIntersectedLeaves(*(i_fluidCondition).base(),leaves);
+          mOctree.GetIntersectedLeaves(*(i_fluidElement).base(),leaves);
 
+	  int intersection_counter=0;
+	  //i_fluidElement->GetValue(EMBEDDED_VELOCITY)=ZeroVector(3);
           // Loop over all 6 line Edges of the tetrahedra
           for(unsigned int i_tetEdge = 0; i_tetEdge < 6; i_tetEdge++)
           {
-              IdentifyIntersectionNodes( i_fluidCondition , i_tetEdge , leaves , IntersectedTetEdges ,
-                                         NumberIntersectionsOnTetCorner , TetEdgeIndexTable );  
+              IdentifyIntersectionNodes( i_fluidElement , i_tetEdge , leaves , IntersectedTetEdges ,
+                                         NumberIntersectionsOnTetCorner , TetEdgeIndexTable, intersection_counter );  
           }
+	  if (intersection_counter!=0)
+		  i_fluidElement->GetValue(EMBEDDED_VELOCITY)/=3.0*intersection_counter;
+	//else 
+	//	i_fluidElement->GetValue(EMBEDDED_VELOCITY)=ZeroVector(3);
+	//KRATOS_WATCH("============================================================")
+	 // KRATOS_WATCH(i_fluidElement->GetValue(EMBEDDED_VELOCITY))
+	//KRATOS_WATCH("???????????????????????????????????????????????????????????????")
+	  //if (intersection_counter!=0)
+	//	  KRATOS_WATCH(intersection_counter)
+
 
           if(IntersectedTetEdges.size() > 0)
-              CalcNodalDistanceTo3DSkin( IntersectedTetEdges , i_fluidCondition , NumberIntersectionsOnTetCorner );
+              CalcNodalDistanceTo3DSkin( IntersectedTetEdges , i_fluidElement , NumberIntersectionsOnTetCorner );
       }
 
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void IdentifyIntersectionNodes( ModelPart::ConditionsContainerType::iterator&   i_fluidCondition,
+      void IdentifyIntersectionNodes( ModelPart::ElementsContainerType::iterator&   i_fluidElement,
                                       unsigned int                                  i_tetEdge,
                                       std::vector<OctreeType::cell_type*>&          leaves,
                                       std::vector<TetEdgeStruct>&                   IntersectedTetEdges,
                                       unsigned int&                                 NumberIntersectionsOnTetCorner,
-                                      bounded_matrix<unsigned int,6,2>              TetEdgeIndexTable)
+                                      bounded_matrix<unsigned int,6,2>              TetEdgeIndexTable,
+				      int& intersection_counter)
       {
-          std::vector<unsigned int> IntersectingStructElemID;
+	    
+
+	  std::vector<unsigned int> IntersectingStructCondID;
           TetEdgeStruct             NewTetEdge;
 
           // Get nodes of line Edge
           unsigned int EdgeStartIndex = TetEdgeIndexTable(i_tetEdge,0);
           unsigned int EdgeEndIndex   = TetEdgeIndexTable(i_tetEdge,1);
 
-          PointType& P1 = i_fluidCondition->GetGeometry()[EdgeStartIndex];
-          PointType& P2 = i_fluidCondition->GetGeometry()[EdgeEndIndex];
+          PointType& P1 = i_fluidElement->GetGeometry()[EdgeStartIndex];
+          PointType& P2 = i_fluidElement->GetGeometry()[EdgeEndIndex];
 
           double EdgeNode1[3] = {P1.X() , P1.Y() , P1.Z()};
           double EdgeNode2[3] = {P2.X() , P2.Y() , P2.Z()};
 
+	  int count=0;
           // loop over all octree cells which are intersected by the fluid element
           for(unsigned int i_cell = 0 ; i_cell < leaves.size() ; i_cell++)
           {
               // Structural element contained in one cell of the octree
-              object_container_type* struct_elem = (leaves[i_cell]->pGetObjects());
+              object_container_type* struct_cond = (leaves[i_cell]->pGetObjects());
 
               // loop over all structural elements within each octree cell
-              for(object_container_type::iterator i_StructElement = struct_elem->begin(); i_StructElement != struct_elem->end(); i_StructElement++)
+	      
+              for(object_container_type::iterator i_StructCondition = struct_cond->begin(); i_StructCondition != struct_cond->end(); i_StructCondition++)
               {
+			//KRATOS_WATCH(struct_cond->size())
 
-                  if( StructuralElementNotYetConsidered( (*i_StructElement)->Id() , IntersectingStructElemID ) )
+                  if( StructuralElementNotYetConsidered( (*i_StructCondition)->Id() , IntersectingStructCondID ) )
                   {
 
                       // Calculate and associate intersection point to the current fluid element
                       double IntersectionPoint[3] = {0.0 , 0.0 , 0.0};
-                      int TetEdgeHasIntersections = IntersectionTriangleSegment( (*i_StructElement)->GetGeometry() , EdgeNode1 , EdgeNode2 , IntersectionPoint );
+                      int TetEdgeHasIntersections = IntersectionTriangleSegment( (*i_StructCondition)->GetGeometry() , EdgeNode1 , EdgeNode2 , IntersectionPoint );
 
                       if( TetEdgeHasIntersections == 1 )
                       {
@@ -548,21 +591,54 @@ private:
                               {
 
                                   // Calculate normal of the structural element at the position of the intersection point
-                                  CalculateNormal3D((*i_StructElement)->GetGeometry(),NewIntersectionNode.StructElemNormal);
+                                  CalculateNormal3D((*i_StructCondition)->GetGeometry(),NewIntersectionNode.StructElemNormal);
 
                                   // add the new intersection point to the list of intersection points of the fluid element
                                   NewTetEdge.IntNodes.push_back(NewIntersectionNode);
 
+				  //(i_fluidElement->GetValue(NEIGHBOUR_EMBEDDED_FACES)).push_back( GeometricalObject::WeakPointer( *(i_StructCondition.base()) ) );
+				  /*
+				  array_1d<double,3> emb_vel=(*i_StructCondition)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+				  emb_vel+=(*i_StructCondition)->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+				  emb_vel+=(*i_StructCondition)->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
+						
+				  //KRATOS_WATCH(emb_vel)
+				  i_fluidElement->GetValue(EMBEDDED_VELOCITY)+=emb_vel;
+				  intersection_counter++;
+				  */
+
                                   // check, how many intersection nodes are located on corner points of the tetrahedra
                                   if ( IsIntersectionOnCorner( NewIntersectionNode , EdgeNode1 , EdgeNode2) )
                                       NumberIntersectionsOnTetCorner++;
+				  //BY NOW I WANT TO CONSIDER ONLY THE EDGES THAT ARE CUT "NOT AT THE VERTEX"
+				  else
+					  {
+					//	double dummy=0.0;
+					  //(i_fluidElement->GetValue(NEIGHBOUR_EMBEDDED_FACES)).push_back( GeometricalObject::WeakPointer( *(i_StructCondition.base()) ) );
+					  
+					  array_1d<double,3> emb_vel=(*i_StructCondition)->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+					  emb_vel+=(*i_StructCondition)->GetGeometry()[1].FastGetSolutionStepValue(VELOCITY);
+					  emb_vel+=(*i_StructCondition)->GetGeometry()[2].FastGetSolutionStepValue(VELOCITY);
+						
+					  //KRATOS_WATCH(emb_vel)
+
+					  i_fluidElement->GetValue(EMBEDDED_VELOCITY)+=emb_vel;
+					  intersection_counter++;
+					  
+				  	  }
+					  //(pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
                               }
+
                           }
+			
+   			
                       }
+		      
                   }
               }
+		
           }
-
+		
           // check, if intersection nodes have been found on the tet edge --> if yes, then add these information to the TetEdgeVector
           if( NewTetEdge.IntNodes.size() > 0 )
               IntersectedTetEdges.push_back(NewTetEdge);
@@ -571,19 +647,19 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      bool StructuralElementNotYetConsidered( unsigned int                IDCurrentStructElem,
-                                              std::vector<unsigned int>&  IntersectingStructElemID )
+      bool StructuralElementNotYetConsidered( unsigned int                IDCurrentStructCond,
+                                              std::vector<unsigned int>&  IntersectingStructCondID )
       {
           // check if the structural element was already considered as intersecting element
-          for(unsigned int k = 0 ; k < IntersectingStructElemID.size() ; k++)
+          for(unsigned int k = 0 ; k < IntersectingStructCondID.size() ; k++)
           {
-              if( IDCurrentStructElem == IntersectingStructElemID[k] )
+              if( IDCurrentStructCond == IntersectingStructCondID[k] )
                   return false;
           }
 
           // if structural element has not been considered in another octree, which also intersects the fluid element
           // add the new object ID to the vector
-          IntersectingStructElemID.push_back( IDCurrentStructElem );
+          IntersectingStructCondID.push_back( IDCurrentStructCond );
           return true;
       }
 
@@ -706,7 +782,7 @@ private:
       ///******************************************************************************************************************
 
       void CalcNodalDistanceTo3DSkin(std::vector<TetEdgeStruct>&                 IntersectedTetEdges,
-                                     ModelPart::ConditionsContainerType::iterator& i_fluid_element,
+                                     ModelPart::ElementsContainerType::iterator& i_fluid_element,
                                      unsigned int                                NumberIntersectionsOnTetCorner)
       {          
           std::vector<IntersectionNodeStruct> NodesOfApproximatedStructure;
@@ -789,7 +865,7 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void CalcSignedDistancesToOneIntNode( ModelPart::ConditionsContainerType::iterator& i_fluid_element,
+      void CalcSignedDistancesToOneIntNode( ModelPart::ElementsContainerType::iterator& i_fluid_element,
                                             std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
                                             array_1d<double,4>&                         ElementalDistances)
       {
@@ -830,7 +906,7 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void CalcSignedDistancesToTwoIntNodes( ModelPart::ConditionsContainerType::iterator& i_fluid_element,
+      void CalcSignedDistancesToTwoIntNodes( ModelPart::ElementsContainerType::iterator& i_fluid_element,
                                              std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
                                              array_1d<double,4>&                         ElementalDistances)
       {
@@ -885,7 +961,7 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void CalcSignedDistancesToThreeIntNodes( ModelPart::ConditionsContainerType::iterator& i_fluid_element,
+      void CalcSignedDistancesToThreeIntNodes( ModelPart::ElementsContainerType::iterator& i_fluid_element,
                                                std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
                                                std::vector<TetEdgeStruct>                  IntersectedTetEdges,
                                                array_1d<double,4>&                         ElementalDistances)
@@ -903,7 +979,7 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void CalcSignedDistancesToFourIntNodes( ModelPart::ConditionsContainerType::iterator& i_fluid_element,
+      void CalcSignedDistancesToFourIntNodes( ModelPart::ElementsContainerType::iterator& i_fluid_element,
                                               std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
                                               std::vector<TetEdgeStruct>                  IntersectedTetEdges,
                                               array_1d<double,4>&                         ElementalDistances)
@@ -991,7 +1067,7 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void CalcSignedDistancesToApproxTriangle( ModelPart::ConditionsContainerType::iterator& i_fluid_element,
+      void CalcSignedDistancesToApproxTriangle( ModelPart::ElementsContainerType::iterator& i_fluid_element,
                                                 std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
                                                 std::vector<TetEdgeStruct>                  IntersectedTetEdges,
                                                 array_1d<double,4>&                         ElementalDistances,
@@ -1072,7 +1148,7 @@ private:
       ///******************************************************************************************************************
       ///******************************************************************************************************************
 
-      void AssignDistancesToElements(ModelPart::ConditionsContainerType::iterator& i_fluid_element,
+      void AssignDistancesToElements(ModelPart::ElementsContainerType::iterator& i_fluid_element,
                                      array_1d<double,4>                          ElementalDistances)
       {
           Geometry< Node<3> >& rFluidGeom = i_fluid_element->GetGeometry();
@@ -1104,6 +1180,7 @@ private:
       {
           Timer::Start("Generating Octree");
 
+ 	KRATOS_WATCH(OctreeType::MAX_LEVEL);
 
           //mOctree.RefineWithUniformSize(0.0625);
           for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin() ; i_node != mrSkinModelPart.NodesEnd() ; i_node++)
@@ -1112,6 +1189,7 @@ private:
               temp_point[0] = i_node->Coordinate(1);
               temp_point[1] = i_node->Coordinate(2);
               temp_point[2] = i_node->Coordinate(3);
+ //KRATOS_WATCH(temp_point[0])
               mOctree.Insert(temp_point);
           }
 
@@ -1152,10 +1230,10 @@ private:
 
 
           std::size_t last_id = mrBodyModelPart.NumberOfNodes() + 1;
-          KRATOS_WATCH(all_leaves.size());
+          //KRATOS_WATCH(all_leaves.size());
           for (std::size_t i = 0; i < all_leaves.size(); i++)
           {
-              KRATOS_WATCH(i)
+              //KRATOS_WATCH(i)
                 CellType* cell = all_leaves[i];
                 GenerateCellNode(cell, last_id);
           }
@@ -1174,7 +1252,7 @@ private:
                 (*(pCell->pGetData()))[i_pos] = new ConfigurationType::cell_node_data_type;
 
                 (*(pCell->pGetData()))[i_pos]->Id() = LastId++;
-                KRATOS_WATCH(LastId)
+                //KRATOS_WATCH(LastId)
 
                 mOctreeNodes.push_back((*(pCell->pGetData()))[i_pos]);
 
