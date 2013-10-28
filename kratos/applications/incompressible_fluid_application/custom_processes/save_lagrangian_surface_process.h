@@ -106,12 +106,44 @@ public:
 	
 	KRATOS_WATCH(lagrangian_model_part.Conditions().size())
        
-        KRATOS_WATCH("SAVING LAGRANGIAN SURFACE FOR EMBEDDED")
+        KRATOS_WATCH("SAVING LAGRANGIAN SURFACE MADE BY CONDITIONS FOR EMBEDDED")
         for(ModelPart::ConditionsContainerType::iterator ic = lagrangian_model_part.ConditionsBegin() ;
                 ic != lagrangian_model_part.ConditionsEnd() ; ++ic)
         {          
 	    surface_model_part.Conditions().push_back(*(ic.base()));
         }
+
+	for(ModelPart::NodesContainerType::iterator in = lagrangian_model_part.NodesBegin() ;
+                in != lagrangian_model_part.NodesEnd() ; ++in)
+        {          
+	    if (in->FastGetSolutionStepValue(IS_BOUNDARY)==1.0 && in->GetValue(NEIGHBOUR_CONDITIONS).size()!=0)
+		    surface_model_part.Nodes().push_back(*(in.base()));
+        }
+        KRATOS_CATCH("")
+    }
+	///////////////////////////////////////////////////////////////////////
+    void  SaveSurfaceElements(ModelPart& lagrangian_model_part, ModelPart& structure_model_part, ModelPart& surface_model_part)
+    {
+        KRATOS_TRY
+        surface_model_part.Elements().clear();
+        surface_model_part.Conditions().clear();
+        surface_model_part.Nodes().clear();
+	
+	surface_model_part.Elements()=structure_model_part.Elements();
+	KRATOS_WATCH(surface_model_part)
+       
+        KRATOS_WATCH("SAVING LAGRANGIAN SURFACE MADE BY STRUCTURE ELEMENTS FOR EMBEDDED")
+	//this one is for treating the membrane problems
+       
+
+	for(ModelPart::NodesContainerType::iterator in = lagrangian_model_part.NodesBegin() ;
+                in != lagrangian_model_part.NodesEnd() ; ++in)
+        {          
+	    //DO IT IN A BETTER WAY AFTERWAEDS:: THERE MIGHT BE A MEMBRANE ELEMENT THAT TOUCHES THE LAGRANGIAN FLUID
+	    if (in->FastGetSolutionStepValue(IS_STRUCTURE)==1.0 && in->FastGetSolutionStepValue(IS_FLUID)==0.0 && in->GetValue(NEIGHBOUR_ELEMENTS).size()!=0)
+		    surface_model_part.Nodes().push_back(*(in.base()));
+        }
+	KRATOS_WATCH(surface_model_part)
         KRATOS_CATCH("")
     }
 
