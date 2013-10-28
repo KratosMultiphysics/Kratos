@@ -1180,7 +1180,29 @@ private:
       {
           Timer::Start("Generating Octree");
 
- 	KRATOS_WATCH(OctreeType::MAX_LEVEL);
+	   // Setting the boundingbox for non-normalized coordinates
+	   const int dimension = 3;        
+	   double boundingBox_low[3],boundingBox_high[3];
+	      
+	   for(int i = 0; i < dimension; i++)
+	    {
+		boundingBox_low[i]  = mrSkinModelPart.NodesBegin()->Coordinates()[i];
+		boundingBox_high[i] = mrSkinModelPart.NodesBegin()->Coordinates()[i];
+	    }
+     
+	   for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin();
+        	i_node != mrSkinModelPart.NodesEnd();
+        	i_node++)
+	    {
+		for(int i = 0; i < dimension; i++)
+		{
+		    if(i_node->Coordinates()[i] < boundingBox_low[i])  boundingBox_low[i]  = i_node->Coordinates()[i];
+		    if(i_node->Coordinates()[i] > boundingBox_high[i]) boundingBox_high[i] = i_node->Coordinates()[i];
+		}
+    	    }
+
+	  mOctree.SetBoundingBox(boundingBox_low,boundingBox_high);
+
 
           //mOctree.RefineWithUniformSize(0.0625);
           for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin() ; i_node != mrSkinModelPart.NodesEnd() ; i_node++)
@@ -1189,20 +1211,19 @@ private:
               temp_point[0] = i_node->Coordinate(1);
               temp_point[1] = i_node->Coordinate(2);
               temp_point[2] = i_node->Coordinate(3);
- //KRATOS_WATCH(temp_point[0])
               mOctree.Insert(temp_point);
           }
 
 
           //mOctree.Constrain2To1(); // To be removed. Pooyan.
-          
-          for(ModelPart::ConditionIterator i_condition = mrSkinModelPart.ConditionsBegin() ; i_condition != mrSkinModelPart.ConditionsEnd() ; i_condition++)
+
+          for(ModelPart::ElementIterator i_element = mrSkinModelPart.ElementsBegin() ; i_element != mrSkinModelPart.ElementsEnd() ; i_element++)
           {
-              mOctree.Insert(*(i_condition).base());
+              mOctree.Insert(*(i_element).base());
           }
 
           Timer::Stop("Generating Octree");
-//          octree.Insert(*(mrSkinModelPart.CondtionsBegin().base()));
+//          octree.Insert(*(mrSkinModelPart.ElementsBegin().base()));
           KRATOS_WATCH(mOctree);
 
 //          std::cout << "######## WRITING OCTREE MESH #########" << std::endl;
@@ -1211,6 +1232,9 @@ private:
 //          mOctree.PrintGiDMesh(myfile);
 //          myfile.close();
       }
+
+      ///******************************************************************************************************************
+      ///******************************************************************************************************************
 
       ///******************************************************************************************************************
       ///******************************************************************************************************************
