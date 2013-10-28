@@ -100,72 +100,48 @@ public:
     ///@name Operations
     ///@{
 
-    void ApplyProjDirichlet(ModelPart& full_model_part, ModelPart& aux_conditions_model_part)
+void ApplyProjDirichlet(ModelPart& full_model_part)
     {
         KRATOS_TRY
         unsigned int n_int;
-
+        unsigned int n_fixed;
+        
         //first we remove the Dirichlet conditions from the nodes that were defining the interface in the previous step:
-        for(ModelPart::NodesContainerType::iterator in = full_model_part.NodesBegin() ;
-                in != full_model_part.NodesEnd() ; ++in)
-        {
-            n_int=in->FastGetSolutionStepValue(IS_INTERFACE,1);
-
-            if (n_int>0.0)
-            {
-                in->FastGetSolutionStepValue(DISABLE)=false;
-                in->Free(VELOCITY_X);
-                in->Free(VELOCITY_Y);
-                in->Free(AUX_VEL_X);
-                in->Free(AUX_VEL_Y);
-                in->Free(PRESSURE);
-            }
-            //fix the IS_INt to 1 additionally at the nodes that are too close to the interface
-            if (in->FastGetSolutionStepValue(IS_INTERFACE)==100.0)
-            {
-                in->FastGetSolutionStepValue(IS_INTERFACE)=1.0;
-                KRATOS_WATCH("BAD NODE IS")
-                KRATOS_WATCH(in->GetId())
-            }
-
-            //if ((in->GetDof(AUX_VEL_X)).IsFixed()==true)
-            //	in->FastGetSolutionStepValue(IS_INTERFACE)=1.0;
-
-        }
-        //disable the elements that lie inside of fictitious part now
-        for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ;
-                im != full_model_part.ElementsEnd() ; ++im)
-        {
-
-            n_int=im->GetGeometry()[0].FastGetSolutionStepValue(IS_INTERFACE);
-            n_int+=im->GetGeometry()[1].FastGetSolutionStepValue(IS_INTERFACE);
-            n_int+=im->GetGeometry()[2].FastGetSolutionStepValue(IS_INTERFACE);
-
-            if (n_int==3)
-            {
-                im->GetGeometry()[0].FastGetSolutionStepValue(DISABLE)=true;
-                im->GetGeometry()[1].FastGetSolutionStepValue(DISABLE)=true;
-                im->GetGeometry()[2].FastGetSolutionStepValue(DISABLE)=true;
-            }
-
-        }
         for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ;
                 im != full_model_part.ElementsEnd() ; ++im)
         {
             n_int=0.0;
+		n_fixed=0.0;
+
+	    for (int i=0; i<im->GetGeometry().size();i++)
+		n_int+=im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE);
+
+	if (n_int<im->GetGeometry().size() && n_int>0)
+	{
             //iterate over the of nodes in the element (interface element)
             for (unsigned int i=0; i<im->GetGeometry().size(); i++)
             {
                 n_int=im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE);
-                // if the node is lying on fictitious side - apply the project Dirichlet condition
-                if (n_int==1.0)
+		//n_fixed=im->GetGeometry()[i].IsFixed(AUX_VEL_X);
+		
+                // if the node is lying on fictitious side (or its a BAD node with a fixed AUX_VEL) - apply the project Dirichlet condition
+                if (n_int==1.0)// || n_fixed==1.0)		
                     //if (((ic->GetGeometry()[i]).GetDof(AUX_VEL_X)).IsFixed())
                 {
                     im->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY)=im->GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL);
+		    //im->GetGeometry()[i].FastGetSolutionStepValue(FRACT_VEL)=im->GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL);		
+
                     im->GetGeometry()[i].Fix(VELOCITY_X);
                     im->GetGeometry()[i].Fix(VELOCITY_Y);
+                    im->GetGeometry()[i].Fix(VELOCITY_Z);
+		    /*
+                    im->GetGeometry()[i].Fix(FRACT_VEL_X);
+                    im->GetGeometry()[i].Fix(FRACT_VEL_Y);
+                    im->GetGeometry()[i].Fix(FRACT_VEL_Z);
+		    */
                 }
             }
+	}//end if  (n_int<3 && n_int>0)
 
         }
 
@@ -174,7 +150,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
 
     ///@}
     ///@name Access
