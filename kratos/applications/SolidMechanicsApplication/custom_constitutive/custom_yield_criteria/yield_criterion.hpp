@@ -81,7 +81,7 @@ class YieldCriterion
 		void SetEquivalentPlasticStrainOld    (const double& rEquivalentPlasticStrainOld)    {  HardeningParameters.SetEquivalentPlasticStrainOld(rEquivalentPlasticStrainOld); };
 		
 		//Get Hardening Parameters
-		double&  GetRateFactor       ()       { return HardeningParameters.GetRateFactor();   };
+		const double&  GetRateFactor () const { return HardeningParameters.GetRateFactor();   };
 		const double& GetDeltaGamma  () const { return HardeningParameters.GetDeltaGamma();   };
 		const double& GetLameMu_bar  () const { return HardeningParameters.GetLameMu_bar();   };
 		const double& GetDeltaTime   () const { return HardeningParameters.GetDeltaTime();    };

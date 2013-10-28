@@ -127,7 +127,7 @@ bool NonLinearAssociativePlasticFlowRule::CalculateReturnMapping( RadialReturnVa
 	if( rReturnMappingVariables.Options.Is(IMPLEX_ACTIVE) ) 
 	  {
 
-   	     CalculateImplexReturnMapping ( rReturnMappingVariables, PlasticVariables, CriterionParameters, rIsoStressMatrix );
+   	     this->CalculateImplexReturnMapping ( rReturnMappingVariables, PlasticVariables, CriterionParameters, rIsoStressMatrix );
 
 	  }
 	else{
@@ -348,21 +348,39 @@ void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialRe
 	double EquivalentPlasticStrain = mInternalVariables.EquivalentPlasticStrain + sqrt(2.0/3.0) * rReturnMappingVariables.DeltaGamma;
 	double DeltaHardening = 0;
 
-	HardeningLaw::Parameters HardeningParameters;
-	HardeningParameters.SetTemperature(rReturnMappingVariables.Temperature);
-	HardeningParameters.SetEquivalentPlasticStrain(EquivalentPlasticStrain);
+	if( rReturnMappingVariables.Options.Is(IMPLEX_ACTIVE) ) 
+	  {
+	    rScalingFactors.Beta0 = 0;
+		
+	    rScalingFactors.Beta1 = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma / rReturnMappingVariables.NormIsochoricStress;
+		
+	    rScalingFactors.Beta2 = (2.0/3.0) * rReturnMappingVariables.NormIsochoricStress * rReturnMappingVariables.DeltaGamma / (rReturnMappingVariables.LameMu_bar) ;
+		
+	    rScalingFactors.Beta3 = ( - rScalingFactors.Beta1 + rScalingFactors.Beta2 );
+		
+	    rScalingFactors.Beta4 = ( - rScalingFactors.Beta1 ) * rReturnMappingVariables.NormIsochoricStress / ( rReturnMappingVariables.LameMu_bar ) ;
 
-	DeltaHardening = mpHardeningLaw->CalculateDeltaHardening( DeltaHardening, HardeningParameters );
+	  }
+	else
+	  {
 
-	rScalingFactors.Beta0 = 1.0 + DeltaHardening/(3.0 * rReturnMappingVariables.LameMu_bar);
+	    HardeningLaw::Parameters HardeningParameters;
+	    HardeningParameters.SetTemperature(rReturnMappingVariables.Temperature);
+	    HardeningParameters.SetEquivalentPlasticStrain(EquivalentPlasticStrain);
+
+	    DeltaHardening = mpHardeningLaw->CalculateDeltaHardening( DeltaHardening, HardeningParameters );
+
+	    rScalingFactors.Beta0 = 1.0 + DeltaHardening/(3.0 * rReturnMappingVariables.LameMu_bar);
 		
-	rScalingFactors.Beta1 = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma / rReturnMappingVariables.NormIsochoricStress;
+	    rScalingFactors.Beta1 = 2.0 * rReturnMappingVariables.LameMu_bar * rReturnMappingVariables.DeltaGamma / rReturnMappingVariables.NormIsochoricStress;
 		
-	rScalingFactors.Beta2 = ( ( 1.0 - ( 1.0 / rScalingFactors.Beta0 ) ) * (2.0/3.0) * rReturnMappingVariables.NormIsochoricStress * rReturnMappingVariables.DeltaGamma )/(rReturnMappingVariables.LameMu_bar) ;
+	    rScalingFactors.Beta2 = ( ( 1.0 - ( 1.0 / rScalingFactors.Beta0 ) ) * (2.0/3.0) * rReturnMappingVariables.NormIsochoricStress * rReturnMappingVariables.DeltaGamma )/(rReturnMappingVariables.LameMu_bar) ;
 		
-	rScalingFactors.Beta3 = ( ( 1.0 / rScalingFactors.Beta0 ) - rScalingFactors.Beta1 + rScalingFactors.Beta2 );
+	    rScalingFactors.Beta3 = ( ( 1.0 / rScalingFactors.Beta0 ) - rScalingFactors.Beta1 + rScalingFactors.Beta2 );
 		
-	rScalingFactors.Beta4 = ( ( 1.0 / rScalingFactors.Beta0 ) - rScalingFactors.Beta1 ) * rReturnMappingVariables.NormIsochoricStress / ( rReturnMappingVariables.LameMu_bar ) ;
+	    rScalingFactors.Beta4 = ( ( 1.0 / rScalingFactors.Beta0 ) - rScalingFactors.Beta1 ) * rReturnMappingVariables.NormIsochoricStress / ( rReturnMappingVariables.LameMu_bar ) ;
+
+	  }
 	
 	//std::cout<<"FACTORS:: Beta0 "<<rScalingFactors.Beta0<<" Beta 1 "<<rScalingFactors.Beta1<<" Beta2 "<<rScalingFactors.Beta2<<" Beta 3 "<<rScalingFactors.Beta3<<" Beta4 "<<rScalingFactors.Beta4<<std::endl;
 };
