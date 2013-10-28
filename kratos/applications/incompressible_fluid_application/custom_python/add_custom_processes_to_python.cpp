@@ -104,6 +104,7 @@ void  AddCustomProcessesToPython()
     ;
     class_<SaveLagrangianSurfaceProcess, bases<Process> >("SaveLagrangianSurfaceProcess", init<> ())
     .def("SaveSurfaceConditions", &SaveLagrangianSurfaceProcess::SaveSurfaceConditions)
+    .def("SaveSurfaceElements", &SaveLagrangianSurfaceProcess::SaveSurfaceElements)
     ;
     class_<MergeInOneModelPartsProcess, bases<Process> >("MergeInOneModelPartsProcess", init<> ())
     .def("MergeParts", &MergeInOneModelPartsProcess::MergeParts)
@@ -124,8 +125,7 @@ void  AddCustomProcessesToPython()
 			.def("FindInterface", &FindInterfaceProcess::FindInterface)
 		 ;
 	class_<SubdomainDisableProcess, bases<Process> >("SubdomainDisableProcess", init<>())
-		   .def("SaveReducedPart", &SubdomainDisableProcess::SaveReducedPart)
-		   //.def("SaveReducedPart1", &SubdomainDisableProcess::SaveReducedPart1)
+		   .def("SaveReducedPart", &SubdomainDisableProcess::SaveReducedPart)		   
 		 ;	
 	class_<PseudoLagPartProcess, bases<Process> >("PseudoLagPartProcess", init<>())
 		   .def("SavePseudoLagPart", &PseudoLagPartProcess::SavePseudoLagPart)
