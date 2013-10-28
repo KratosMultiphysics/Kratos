@@ -41,7 +41,7 @@ ProjDirichletCond3D::ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer 
 //************************************************************************************
 //************************************************************************************
 //This is a constructor for the intersections consisting of 3 points
-ProjDirichletCond3D::ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, array_1d<double,3> Point1, array_1d<double,3> Point2,array_1d<double,3> Point3, array_1d<double,3> 		vel1, array_1d<double,3> vel2, array_1d<double,3> vel3)
+ProjDirichletCond3D::ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, array_1d<double,3> Point1, array_1d<double,3> Point2,array_1d<double,3> Point3, array_1d<double,3> 		vel)
     : Condition(NewId, pGeometry, pProperties)
 {
 
@@ -51,11 +51,7 @@ ProjDirichletCond3D::ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer 
 
     this->mPoint4=ZeroVector(3);
 
-    this->mVel1=vel1;
-    this->mVel2=vel2;
-    this->mVel3=vel3;
-
-    this->mVel4=ZeroVector(3);
+    this->mVel=vel;
 
     this->mNumber_of_intersections=3;
 
@@ -69,7 +65,7 @@ ProjDirichletCond3D::ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer 
     //first point contribution
     CalculateN_at_Point(GetGeometry(), mPoint1[0], mPoint1[1], mPoint1[2], msN);
     //CHECK IF THE POINT IS NOT TOOO CLOSE TO THE VERTEX of destination - and identify if so, to which vertex
-    double tol=0.1;
+    double tol=0.4;
     if ( msN[0]<tol && msN[1]<tol && msN[2]<tol)
         bad_vertex_index1=3;
     else if ( msN[0]<tol && msN[2]<tol && msN[3]<tol)
@@ -112,33 +108,16 @@ ProjDirichletCond3D::ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer 
             //if the intersection is far enough from the verreces of REAL part of fluid domain
             if (i!=bad_vertex_index1 && i!=bad_vertex_index2 && i!=bad_vertex_index3)
             {
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X);
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y);
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Z);
-            }
-            else if (i==bad_vertex_index1)
-            {
-                KRATOS_WATCH("Case1")
-                GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)=100.0;
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=mVel1[0];
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=mVel1[1];
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=mVel1[2];
-            }
-            else if (i==bad_vertex_index2)
-            {
-                KRATOS_WATCH("Case2")
-                GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)=100.0;
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=mVel2[0];
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=mVel2[1];
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=mVel2[2];
-            }
-            else if (i==bad_vertex_index3)
-            {
-                KRATOS_WATCH("Case3")
-                GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)=100.0;
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=mVel3[0];
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=mVel3[1];
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=mVel3[2];
+                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X,1);
+                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y,1);
+                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Z,1);
+            }            
+	    else
+	    {
+                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL)=mVel;
+                //GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=0.33333333*(mVel1[0]+mVel2[0]+mVel3[0]);
+                //GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=0.33333333*(mVel1[1]+mVel2[1]+mVel3[1]);
+                //GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=0.33333333*(mVel1[2]+mVel2[2]+mVel3[2]);
             }
 
             GetGeometry()[i].Fix(AUX_VEL_X);
@@ -146,20 +125,76 @@ ProjDirichletCond3D::ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer 
             GetGeometry()[i].Fix(AUX_VEL_Z);
         }
 
-        //in the rest of the nodes (the ones that are lying in the fictitious part of the domain) we set aux_vel to zero
-        else if (GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==1.0)
+      
+	//in the rest of the nodes (the ones that are lying on the fictitious part of the domain) we set aux_vel to zero
+	//else if (GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==1.0)
+	else 
+        {            	
+		//GetGeometry()[i].FastGetSolutionStepValue(Hox)=1000.0;		
+		//if (i!=bad_vertex_index1 && i!=bad_vertex_index2 && i!=bad_vertex_index3)
+		//{
+		GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=0.0;
+		GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=0.0;
+		GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=0.0;
+		GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X)=0.0;
+		GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y)=0.0;
+		GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Z)=0.0;
+		GetGeometry()[i].Free(AUX_VEL_X);
+		GetGeometry()[i].Free(AUX_VEL_Y);
+		GetGeometry()[i].Free(AUX_VEL_Z);
+		//}
+
+		/*
+		else 
+		{
+		GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=0.33333*(mVel3[0]+mVel2[0]+mVel1[0]);
+		GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=0.33333*(mVel3[1]+mVel2[1]+mVel1[1]);
+		GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=0.33333*(mVel3[2]+mVel2[2]+mVel1[2]);
+
+		GetGeometry()[i].Fix(AUX_VEL_X);
+		GetGeometry()[i].Fix(AUX_VEL_Y);
+		GetGeometry()[i].Fix(AUX_VEL_Z);
+		//GetGeometry()[i].FastGetSolutionStepValue(Hox)=40.0;		
+		}
+		*/
+	}
+
+    }//end for loop
+
+
+	int n_interf=0;
+	bool bad_el=false;
+
+    for (unsigned int i=0; i<GetGeometry().size(); i++)
+    {
+
+	
+        if (GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==1.0)
         {
-            GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=0.0;
-            GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=0.0;
-            GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=0.0;
-        }
-
+	n_interf++;
+	}
+	
+	
+	if (i==bad_vertex_index1 || i==bad_vertex_index2 || i==bad_vertex_index3)
+		bad_el=true;
     }
-
+    if (bad_el==true && n_interf>0)
+	{
+	for (unsigned int i=0; i<GetGeometry().size(); i++)
+    		{
+		if (GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==1.0)
+			{
+			GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL)=mVel;
+			GetGeometry()[i].Fix(AUX_VEL_X);
+			GetGeometry()[i].Fix(AUX_VEL_Y);
+			GetGeometry()[i].Fix(AUX_VEL_Z);
+			}
+		}
+	}
 
 }
 //This is a constructor for the intersections consisting of 4 points
-ProjDirichletCond3D::ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, array_1d<double,3> Point1, array_1d<double,3> Point2,array_1d<double,3> Point3, array_1d<double,3> Point4, array_1d<double,3> vel1, array_1d<double,3> vel2, array_1d<double,3> vel3, array_1d<double,3> vel4)
+ProjDirichletCond3D::ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, array_1d<double,3> Point1, array_1d<double,3> Point2,array_1d<double,3> Point3, array_1d<double,3> Point4, array_1d<double,3> vel)
     : Condition(NewId, pGeometry, pProperties)
 {
     this->mPoint1=Point1;
@@ -167,10 +202,8 @@ ProjDirichletCond3D::ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer 
     this->mPoint3=Point3;
     this->mPoint4=Point4;
 
-    this->mVel1=vel1;
-    this->mVel2=vel2;
-    this->mVel3=vel3;
-    this->mVel4=vel4;
+    this->mVel=vel;
+   
 
     this->mNumber_of_intersections=4;
 
@@ -187,7 +220,7 @@ ProjDirichletCond3D::ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer 
     //KRATOS_WATCH(mPoint1)
     //KRATOS_WATCH(msN)
     //CHECK IF THE POINT IS NOT TOOO CLOSE TO THE VERTEX of destination - and identify if so, to which vertex
-    double tol=0.1;
+    double tol=0.4;
     if ( msN[0]<tol && msN[1]<tol && msN[2]<tol)
         bad_vertex_index1=3;
     else if ( msN[0]<tol && msN[2]<tol && msN[3]<tol)
@@ -243,39 +276,18 @@ ProjDirichletCond3D::ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer 
         {
 
             //if the intersection is far enough from the verreces of REAL part of fluid domain
-            if (i!=bad_vertex_index1 && i!=bad_vertex_index2 && i!=bad_vertex_index3)
+            if (i!=bad_vertex_index1 && i!=bad_vertex_index2 && i!=bad_vertex_index3 && i!=bad_vertex_index4)
             {
                 GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X);
                 GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y);
                 GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Z);
             }
-            else if (i==bad_vertex_index1)
-            {
-                GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)=100.0;
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=mVel1[0];
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=mVel1[1];
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=mVel1[2];
-            }
-            else if (i==bad_vertex_index2)
-            {
-                GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)=100.0;
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=mVel2[0];
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=mVel2[1];
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=mVel2[2];
-            }
-            else if (i==bad_vertex_index3)
-            {
-                GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)=100.0;
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=mVel3[0];
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=mVel3[1];
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=mVel3[2];
-            }
-            else if (i==bad_vertex_index4)
-            {
-                GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)=100.0;
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=mVel4[0];
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=mVel4[1];
-                GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=mVel4[2];
+            else
+	    {                
+		GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL)=mVel;                
+		//GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=0.25*(mVel1[0]+mVel2[0]+mVel3[0]+mVel4[0]);
+                //GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=0.25*(mVel1[1]+mVel2[1]+mVel3[1]+mVel4[1]);
+                //GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=0.25*(mVel1[2]+mVel2[2]+mVel3[2]+mVel4[2]);
             }
 
             GetGeometry()[i].Fix(AUX_VEL_X);
@@ -283,15 +295,75 @@ ProjDirichletCond3D::ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer 
             GetGeometry()[i].Fix(AUX_VEL_Z);
         }
         //in the rest of the nodes (the ones that are lying on the fictitious part of the domain) we set aux_vel to zero
-        else if (GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==1.0)
-        {
-            GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=0.0;
-            GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=0.0;
-            GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=0.0;
+        else 
+        {            	
+		//GetGeometry()[i].FastGetSolutionStepValue(Hox)=1000.0;		
+		//if (i!=bad_vertex_index1 && i!=bad_vertex_index2 && i!=bad_vertex_index3 && i!=bad_vertex_index4)
+		//{
+		GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=0.0;
+		GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=0.0;
+		GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=0.0;
+		GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_X)=0.0;
+		GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Y)=0.0;
+		GetGeometry()[i].FastGetSolutionStepValue(VELOCITY_Z)=0.0;
+		GetGeometry()[i].Free(AUX_VEL_X);
+		GetGeometry()[i].Free(AUX_VEL_Y);
+		GetGeometry()[i].Free(AUX_VEL_Z);
+		//}
+
+		/*	
+		else
+		{
+		GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X)=0.25*(mVel3[0]+mVel2[0]+mVel1[0]+mVel4[0]);
+		GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y)=0.25*(mVel3[1]+mVel2[1]+mVel1[1]+mVel4[1]);
+		GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z)=0.25*(mVel3[2]+mVel2[2]+mVel1[2]+mVel4[2]);
+
+		GetGeometry()[i].Fix(AUX_VEL_X);
+		GetGeometry()[i].Fix(AUX_VEL_Y);
+		GetGeometry()[i].Fix(AUX_VEL_Z);
+		//GetGeometry()[i].FastGetSolutionStepValue(Hox)=40.0;		
+		}
+		*/
+
+		
+
+	
         }
+
 
     }
 
+
+
+	int n_interf=0;
+	bool bad_el=false;
+
+    for (unsigned int i=0; i<GetGeometry().size(); i++)
+    {
+
+	
+        if (GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==1.0)
+        {
+	n_interf++;
+	}
+	
+	
+	if (i==bad_vertex_index1 || i==bad_vertex_index2 || i==bad_vertex_index3 ||  i==bad_vertex_index4)
+		bad_el=true;
+    }
+    if (bad_el==true && n_interf>0)
+	{
+	for (unsigned int i=0; i<GetGeometry().size(); i++)
+    		{
+		if (GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE)==1.0)
+			{
+			GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL)=mVel;
+			GetGeometry()[i].Fix(AUX_VEL_X);
+			GetGeometry()[i].Fix(AUX_VEL_Y);
+			GetGeometry()[i].Fix(AUX_VEL_Z);
+			}
+		}
+	}
 
 
 }
@@ -342,9 +414,9 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
     {
         Vel_VEC[3*i]=GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_X);
         Vel_VEC[3*i+1]=GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y);
-        Vel_VEC[3*i+2]=GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Y);
+        Vel_VEC[3*i+2]=GetGeometry()[i].FastGetSolutionStepValue(AUX_VEL_Z);
     }
-    KRATOS_WATCH(Vel_VEC)
+    //KRATOS_WATCH(Vel_VEC)
 
     double inters_area =  0.0;
     //if the intersection is a quadrilateral - its a sum of two triangles
@@ -352,21 +424,21 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
 
     inters_area=CalculateTriangleArea3D(mPoint1, mPoint2, mPoint3);
 
-    if (inters_area<0.000000000000001)
-        KRATOS_ERROR(std::logic_error,"ZERO intersection AREA!!!!","");
+    if (inters_area<0.00000000000000000001)
+		KRATOS_ERROR(std::logic_error,"ZERO intersection AREA!!!!","");
 
     //this vector stores the "vertices" of the second triangle (in case there are 4 intersection points)
     //std::vector< array_1d<double,3> > PointsOfSecondTriangle(4, array_1d<double,3>(3,0));//Vector(3));
 
     std::vector<array_1d<double,3> > PointsOfSecondTriangle;
-    std::vector<array_1d<double,3> > VelsOfSecondTriangle;
+    //std::vector<array_1d<double,3> > VelsOfSecondTriangle;
     PointsOfSecondTriangle.reserve(3);
-    VelsOfSecondTriangle.reserve(3);
+    //VelsOfSecondTriangle.reserve(3);
     if (this->mNumber_of_intersections==4)
     {
         //the fourth point always belongs to the secodn triangle.. the other two ones we need to find
         PointsOfSecondTriangle.push_back(mPoint4);
-        VelsOfSecondTriangle.push_back(mVel4);
+        //VelsOfSecondTriangle.push_back(mVel4);
         //if there are 4 points, we need to understand which is the second triangle (connectivities)
         double a41=Length(mPoint4, mPoint1);
         double a42=Length(mPoint4, mPoint2);
@@ -376,22 +448,22 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
         {
             PointsOfSecondTriangle.push_back(mPoint2);
             PointsOfSecondTriangle.push_back(mPoint3);
-            VelsOfSecondTriangle.push_back(mVel2);
-            VelsOfSecondTriangle.push_back(mVel3);
+            //VelsOfSecondTriangle.push_back(mVel2);
+            //VelsOfSecondTriangle.push_back(mVel3);
         }
         else if (a42>a41 && a42>a43)
         {
             PointsOfSecondTriangle.push_back(mPoint1);
             PointsOfSecondTriangle.push_back(mPoint3);
-            VelsOfSecondTriangle.push_back(mVel1);
-            VelsOfSecondTriangle.push_back(mVel3);
+            //VelsOfSecondTriangle.push_back(mVel1);
+            //VelsOfSecondTriangle.push_back(mVel3);
         }
         else if (a43>a41 && a43>a42)
         {
             PointsOfSecondTriangle.push_back(mPoint1);
             PointsOfSecondTriangle.push_back(mPoint2);
-            VelsOfSecondTriangle.push_back(mVel1);
-            VelsOfSecondTriangle.push_back(mVel2);
+            //VelsOfSecondTriangle.push_back(mVel1);
+            //VelsOfSecondTriangle.push_back(mVel2);
         }
         else
             KRATOS_ERROR(std::logic_error,"Intersection has 4 points, but something is wrong!!!! Maybe the distance between the points is the same","");
@@ -399,8 +471,10 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
 
         inters_area2=CalculateTriangleArea3D(PointsOfSecondTriangle[0], PointsOfSecondTriangle[1], PointsOfSecondTriangle[2]);
 
-        if (inters_area2==0.0)
+        if (inters_area2<0.00000000000000000001)
             KRATOS_ERROR(std::logic_error,"Intersection area of the second triangle is ZERO", "");
+		//inters_area2=1.0;//0.00000000000001;
+
 
     }
 
@@ -424,7 +498,7 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
     Mass3=outer_prod(msN, trans(msN));
 
     Mass=inters_area*0.3333333333333333333333333*(Mass1+Mass2+Mass3);
-    KRATOS_WATCH(Mass)
+    //KRATOS_WATCH(Mass)
 
     if (this->mNumber_of_intersections==4)
     {
@@ -439,7 +513,7 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
 
     }
     //checking with lumped mass
-
+ 
     for (int i=0; i<4; i++)
     {
         for (int k=0; k<4; k++)
@@ -461,7 +535,7 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
         }
 
     }
-    KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH(rLeftHandSideMatrix)
 
     //and now we  assemble the RHS, which is computed using 2 Gauss points - we integrate right at the intersection points
     //so: rhs=0.5 * l *( (N1 N2 N3)_at_point1 * (v_prescribed1) + (N1 N2 N3)_at_point2 * (v_prescribed2))  , where l is the length of the interface
@@ -470,9 +544,13 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
     CalculateN_at_Point(GetGeometry(), mPoint1[0], mPoint1[1], mPoint1[2], msN);
 
     //first all the x_components
-    double x_contr=mVel1[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
-    double y_contr=mVel1[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
-    double z_contr=mVel1[2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
+    //double x_contr=mVel1[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
+    //double y_contr=mVel1[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
+    //double z_contr=mVel1[2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
+
+    double x_contr=mVel[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
+    double y_contr=mVel[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
+    double z_contr=mVel[2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
 
 
     rRightHandSideVector[0]=msN[0]*x_contr;
@@ -491,9 +569,9 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
     rRightHandSideVector[10]=msN[3]*y_contr;
     rRightHandSideVector[11]=msN[3]*z_contr;
 
-    KRATOS_WATCH(x_contr)
-    KRATOS_WATCH(y_contr)
-    KRATOS_WATCH(z_contr)
+    //KRATOS_WATCH(x_contr)
+    //KRATOS_WATCH(y_contr)
+    //KRATOS_WATCH(z_contr)
 
 
 
@@ -505,9 +583,13 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
     //KRATOS_WATCH(msN)
     //first all the x_components
     //first all the x_components
-    x_contr=mVel2[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
-    y_contr=mVel2[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
-    z_contr=mVel2[2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
+    //x_contr=mVel2[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
+    //y_contr=mVel2[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
+    //z_contr=mVel2[2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
+
+    x_contr=mVel[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
+    y_contr=mVel[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
+    z_contr=mVel[2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
 
     rRightHandSideVector[0]+=msN[0]*x_contr;
     rRightHandSideVector[1]+=msN[0]*y_contr;
@@ -525,9 +607,9 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
     rRightHandSideVector[10]+=msN[3]*y_contr;
     rRightHandSideVector[11]+=msN[3]*z_contr;
 
-    KRATOS_WATCH(x_contr)
-    KRATOS_WATCH(y_contr)
-    KRATOS_WATCH(z_contr)
+    //KRATOS_WATCH(x_contr)
+    //KRATOS_WATCH(y_contr)
+    //KRATOS_WATCH(z_contr)
 
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -536,9 +618,14 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
     //KRATOS_WATCH(msN)
     //first all the x_components
     //first all the x_components
-    x_contr=mVel3[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
-    y_contr=mVel3[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
-    z_contr=mVel3[2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
+    //x_contr=mVel3[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
+    //y_contr=mVel3[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
+    //z_contr=mVel3[2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
+
+    x_contr=mVel[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
+    y_contr=mVel[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
+    z_contr=mVel[2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
+
 
     rRightHandSideVector[0]+=msN[0]*x_contr;
     rRightHandSideVector[1]+=msN[0]*y_contr;
@@ -556,30 +643,39 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
     rRightHandSideVector[10]+=msN[3]*y_contr;
     rRightHandSideVector[11]+=msN[3]*z_contr;
 
-    KRATOS_WATCH(x_contr)
-    KRATOS_WATCH(y_contr)
-    KRATOS_WATCH(z_contr)
+    //KRATOS_WATCH(x_contr)
+    //KRATOS_WATCH(y_contr)
+    //KRATOS_WATCH(z_contr)
 
 
     //completing integration using two Gauss points
     ///UTOCHNIT' NASCHET KONSTANY!!!!!!!!!!!!!
     rRightHandSideVector*=0.333333333333*inters_area;
-    KRATOS_WATCH(inters_area)
+    //KRATOS_WATCH(inters_area)
 
 
 
     if (this->mNumber_of_intersections==4)
     {
-        KRATOS_WATCH("SECond triangle")
-        KRATOS_WATCH(inters_area2)
+        //KRATOS_WATCH("SECond triangle")
+        //KRATOS_WATCH(inters_area2)
         array_1d<double,12> RHS_TEMP=ZeroVector(12);
         //first point contribution
         CalculateN_at_Point(GetGeometry(), PointsOfSecondTriangle[0][0], PointsOfSecondTriangle[0][1], PointsOfSecondTriangle[0][2], msN);
 
         //first all the x_components
-        x_contr=VelsOfSecondTriangle[0][0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
-        y_contr=VelsOfSecondTriangle[0][1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
-        z_contr=VelsOfSecondTriangle[0][2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
+        //x_contr=VelsOfSecondTriangle[0][0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
+        //y_contr=VelsOfSecondTriangle[0][1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
+        //z_contr=VelsOfSecondTriangle[0][2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
+
+
+	x_contr=mVel[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
+        y_contr=mVel[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
+        z_contr=mVel[2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
+
+
+
+	//KRATOS_WATCH(Vel_VEC)
 
         RHS_TEMP[0]=msN[0]*x_contr;
         RHS_TEMP[1]=msN[0]*y_contr;
@@ -596,20 +692,25 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
         RHS_TEMP[9]=msN[3]*x_contr;
         RHS_TEMP[10]=msN[3]*y_contr;
         RHS_TEMP[11]=msN[3]*z_contr;
-
+	/*
         KRATOS_WATCH(x_contr)
         KRATOS_WATCH(y_contr)
         KRATOS_WATCH(z_contr)
-
+	*/
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         //second point contribution
         CalculateN_at_Point(GetGeometry(), PointsOfSecondTriangle[1][0], PointsOfSecondTriangle[1][1], PointsOfSecondTriangle[1][2], msN);
         //KRATOS_WATCH(msN)
         //first all the x_components
         //first all the x_components
-        x_contr=VelsOfSecondTriangle[1][0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
-        y_contr=VelsOfSecondTriangle[1][1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
-        z_contr=VelsOfSecondTriangle[1][2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
+        //x_contr=VelsOfSecondTriangle[1][0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
+        //y_contr=VelsOfSecondTriangle[1][1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
+        //z_contr=VelsOfSecondTriangle[1][2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
+
+	x_contr=mVel[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
+        y_contr=mVel[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
+        z_contr=mVel[2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
+
 
 
         RHS_TEMP[0]+=msN[0]*x_contr;
@@ -628,22 +729,30 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
         RHS_TEMP[10]+=msN[3]*y_contr;
         RHS_TEMP[11]+=msN[3]*z_contr;
 
+	/*
         KRATOS_WATCH(x_contr)
         KRATOS_WATCH(y_contr)
         KRATOS_WATCH(z_contr)
+	*/
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         //third point contribution
         CalculateN_at_Point(GetGeometry(), PointsOfSecondTriangle[2][0], PointsOfSecondTriangle[2][1], PointsOfSecondTriangle[2][2], msN);
 
+	/*
         KRATOS_WATCH(x_contr)
         KRATOS_WATCH(y_contr)
         KRATOS_WATCH(z_contr)
+	*/
         //KRATOS_WATCH(msN)
         //first all the x_components
         //first all the x_components
-        x_contr=VelsOfSecondTriangle[2][0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
-        y_contr=VelsOfSecondTriangle[2][1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
-        z_contr=VelsOfSecondTriangle[2][2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
+        //x_contr=VelsOfSecondTriangle[2][0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
+        //y_contr=VelsOfSecondTriangle[2][1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
+        //z_contr=VelsOfSecondTriangle[2][2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
+
+	x_contr=mVel[0]-(msN[0]*Vel_VEC[0]+msN[1]*Vel_VEC[3]+msN[2]*Vel_VEC[6]+msN[3]*Vel_VEC[9]);
+        y_contr=mVel[1]-(msN[0]*Vel_VEC[1]+msN[1]*Vel_VEC[4]+msN[2]*Vel_VEC[7]+msN[3]*Vel_VEC[10]);
+        z_contr=mVel[2]-(msN[0]*Vel_VEC[2]+msN[1]*Vel_VEC[5]+msN[2]*Vel_VEC[8]+msN[3]*Vel_VEC[11]);
 
         RHS_TEMP[0]+=msN[0]*x_contr;
         RHS_TEMP[1]+=msN[0]*y_contr;
@@ -661,18 +770,18 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
         RHS_TEMP[10]+=msN[3]*y_contr;
         RHS_TEMP[11]+=msN[3]*z_contr;
 
-        KRATOS_WATCH(x_contr)
+        //KRATOS_WATCH(x_contr)
 
         RHS_TEMP*=0.333333333333*inters_area2;
-        KRATOS_WATCH(rRightHandSideVector)
-        KRATOS_WATCH(RHS_TEMP)
+        //KRATOS_WATCH(rRightHandSideVector)
+        //KRATOS_WATCH(RHS_TEMP)
 
         rRightHandSideVector+=RHS_TEMP;
 
 
     }
 
-    KRATOS_WATCH(rRightHandSideVector)
+    //KRATOS_WATCH(rRightHandSideVector)
 
 
 
@@ -681,7 +790,7 @@ void ProjDirichletCond3D::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, 
 /////////////////////////////////////////////////////////////
 double ProjDirichletCond3D::Length(array_1d<double,3>& Point1, array_1d<double,3>& Point2)
 {
-    KRATOS_WATCH("length calculation")
+    //KRATOS_WATCH("length calculation")
     return sqrt((Point1[0]-Point2[0])*(Point1[0]-Point2[0]) + (Point1[1]-Point2[1])*(Point1[1]-Point2[1]) +(Point1[2]-Point2[2])*(Point1[2]-Point2[2]));
 }
 ////////////////////////////////////////////////////////////
@@ -754,12 +863,14 @@ void ProjDirichletCond3D::CalculateN_at_Point(Element::GeometryType& geom, const
     N_at_c[3] = CalculateVol(x0,y0,z0,x1,y1,z1,x2,y2,z2,xc,yc,zc) * inv_vol;
 
     //if the intersection is close one of the tetrahedra's vertices ->send this message
-    if (  (N_at_c[0]<0.05 && N_at_c[1]<0.05 && N_at_c[2]<0.05) ||
-            (N_at_c[0]<0.05 && N_at_c[2]<0.05 && N_at_c[3]<0.05) ||
-            (N_at_c[2]<0.05 && N_at_c[1]<0.05 && N_at_c[3]<0.05) ||
-            (N_at_c[0]<0.05 && N_at_c[1]<0.05 && N_at_c[3]<0.05)     )
+    /*
+    if (  (N_at_c[0]<0.01 && N_at_c[1]<0.01 && N_at_c[2]<0.01) ||
+            (N_at_c[0]<0.01 && N_at_c[2]<0.01 && N_at_c[3]<0.01) ||
+            (N_at_c[2]<0.01 && N_at_c[1]<0.01 && N_at_c[3]<0.01) ||
+            (N_at_c[0]<0.01 && N_at_c[1]<0.01 && N_at_c[3]<0.01)     )
         KRATOS_WATCH("Dangerous VERTICES!!! Intersection is very close to the node")
         //KRATOS_ERROR(std::logic_error,  "Too close to the node is the INTERSECTION!!!! " , "")
+	*/
 
     }
 

@@ -69,9 +69,9 @@ public:
     ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer pGeometry);
     ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
     //if intersection contains 3 points
-    ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, array_1d<double,3> point1, array_1d<double,3> point2, array_1d<double,3> point3, array_1d<double,3> vel1, array_1d<double,3> vel2, array_1d<double,3> vel3);
+    ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, array_1d<double,3> point1, array_1d<double,3> point2, array_1d<double,3> point3, array_1d<double,3> vel);
     //if intersection contains 4 points
-    ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, array_1d<double,3> point1, array_1d<double,3> point2, array_1d<double,3> point3, array_1d<double,3> point4, array_1d<double,3> vel1, array_1d<double,3> vel2, array_1d<double,3> vel3, array_1d<double,3> vel4);
+    ProjDirichletCond3D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, array_1d<double,3> point1, array_1d<double,3> point2, array_1d<double,3> point3, array_1d<double,3> point4, array_1d<double,3> vel);
 
     /// Destructor.
     virtual ~ProjDirichletCond3D();
@@ -178,11 +178,8 @@ private:
     array_1d<double,3> mPoint3;
     array_1d<double,3> mPoint4;
 
-    array_1d<double,3> mVel1;
-    array_1d<double,3> mVel2;
-    array_1d<double,3> mVel3;
-    array_1d<double,3> mVel4;
-
+    array_1d<double,3> mVel;
+   
     int mNumber_of_intersections;
 
 
