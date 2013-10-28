@@ -132,6 +132,10 @@ void  AddProcessesToPython()
     .def("GenerateSkinModelPart",&CalculateSignedDistanceTo3DSkinProcess::GenerateSkinModelPart)
     .def("MappingPressureToStructure",&CalculateSignedDistanceTo3DSkinProcess::MappingPressureToStructure)
     ;
+
+   class_<CalculateSignedDistanceTo3DConditionSkinProcess, bases<Process> >("CalculateSignedDistanceTo3DConditionSkinProcess",
+            init<ModelPart&, ModelPart&>())
+    ;
     
     class_<TranslationOperation, bases<Process> >("TranslationOperation",
             init<ModelPart&, boost::numeric::ublas::vector<int> ,boost::numeric::ublas::vector<int> ,unsigned int>())
