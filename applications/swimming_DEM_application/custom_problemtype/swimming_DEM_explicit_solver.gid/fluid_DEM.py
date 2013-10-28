@@ -45,6 +45,7 @@ ProjectParameters.CouplingSchemeType          = "updated_fluid" # "updated_fluid
 # Changes on PROJECT PARAMETERS for the sake of consistency
 
 ProjectParameters.nodal_results.append("SOLID_FRACTION")
+ProjectParameters.nodal_results.append("MESH_VELOCITY1")
 
 ProjectParameters.ProjectFromParticlesOption  *= ProjectParameters.ProjectionModuleOption
 ProjectParameters.ProjectAtEverySubStepOption *= ProjectParameters.ProjectionModuleOption
@@ -107,6 +108,7 @@ fluid_model_part.AddNodalSolutionStepVariable(PRESSURE_GRADIENT)
 fluid_model_part.AddNodalSolutionStepVariable(AUX_DOUBLE_VAR)
 fluid_model_part.AddNodalSolutionStepVariable(DRAG_REACTION)
 fluid_model_part.AddNodalSolutionStepVariable(SOLID_FRACTION)
+fluid_model_part.AddNodalSolutionStepVariable(MESH_VELOCITY1)
 
 # Defining a model part for the balls part
 my_timer = Timer()
@@ -122,6 +124,9 @@ balls_model_part.AddNodalSolutionStepVariable(FLUID_VISCOSITY_PROJECTED)
 # FORCES
 balls_model_part.AddNodalSolutionStepVariable(DRAG_FORCE)
 balls_model_part.AddNodalSolutionStepVariable(BUOYANCY)
+
+# PHASE FRACTIONS
+balls_model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_PROJECTED)
 
 # Defining a model part for the mixed part
 mixed_model_part = ModelPart("MixedPart")
