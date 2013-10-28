@@ -57,9 +57,8 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// This class allows the interpolation between non-matching meshes in 2D and 3D in the case of the specific application of coupling a
-///seepage problem with a granular structural response.
-/** @author  Antonia Larese De Tetto <antoldt@cimne.upc.edu>
+/// This class allows the interpolation between non-matching meshes in 2D and 3D. it is designed for DEM-CFD coupling problems
+/** @author  Guillermo Casas Gonzalez <gcasas@cimne.upc.edu>
 *
 * For every node of the destination model part it is checked in which element of the origin model part it is
 * contained and a linear interpolation is performed
@@ -70,7 +69,7 @@ namespace Kratos
 */
 
 //class BinBasedDEMFluidCoupledMapping
-template<std::size_t TDim >
+template<std::size_t TDim>
 class BinBasedDEMFluidCoupledMapping
 {
 public:
@@ -78,14 +77,14 @@ public:
     ///@{
 
     /// Pointer definition of BinBasedDEMFluidCoupledMapping
-    KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping<TDim >);
+    KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping<TDim>);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    BinBasedDEMFluidCoupledMapping(double max_solid_fraction):mMaxSolidFraction(max_solid_fraction) {} //
+    BinBasedDEMFluidCoupledMapping(double max_solid_fraction):mMaxSolidFraction(max_solid_fraction){}
 
     /// Destructor.
     virtual ~BinBasedDEMFluidCoupledMapping() {}
@@ -100,34 +99,33 @@ public:
     ///@name Operations
     ///@{
 
+    //**********************************************************************
+    //**********************************************************************
 
-    //If you want to pass only one variable
-    //**********************************************************************
-    //**********************************************************************
-    /// Interpolate from the fluid to the DEM mesh
+    /// Interpolate fluid data onto the DEM model part.
     /**
       * @param rOrigin_ModelPart: the model part  all the variable should be taken from
       * @param rDestination_ModelPart: the destination model part where we want to know the values of the variables
       * @param bin_of_objects_fluid: precomputed bin of objects (elelments of the fluid mesh). It is to be constructed separately @see binbased_nodes_in_element_locator
+    */
 
-      */
-    // Form fluid to DEM model part
-// 		template<class TDataType>
+    //**********************************************************************
+    //**********************************************************************
+
+    // The fluid data are a weighted: data_to_project = alpha * new_data + (1 - alpha) * old_data
+
     void InterpolationFromFluidMesh(
-        ModelPart& rFluid_ModelPart ,
+        ModelPart& rFluid_ModelPart,
         ModelPart& rDEM_ModelPart,
-// 			Variable<TDataType>& rOriginVariable ,
-// 			Variable<TDataType>& rDestinationVariable,
         BinBasedFastPointLocator<TDim>& bin_of_objects_fluid,
         double alpha)
     {
-
         KRATOS_TRY
-        //KRATOS_WATCH("Interpolate From Fluid Mesh*************************************")
+
         //Clear all the variables to be mapped
         for (ModelPart::NodesContainerType::iterator node_it = rDEM_ModelPart.NodesBegin();
-                node_it != rDEM_ModelPart.NodesEnd(); ++node_it)
-        {
+                node_it != rDEM_ModelPart.NodesEnd(); ++node_it){
+
             ClearVariables(node_it, FLUID_VEL_PROJECTED);
             ClearVariables(node_it, PRESSURE_GRAD_PROJECTED);
             ClearVariables(node_it, FLUID_DENSITY_PROJECTED);
@@ -138,138 +136,121 @@ public:
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
         const int nparticles = rDEM_ModelPart.Nodes().size();
-        int contadorcito = 0;
+
         #pragma omp parallel for firstprivate(results, N)
-        for (int i = 0; i < nparticles; i++)
-        {
+        for (int i = 0; i < nparticles; i++){
             ModelPart::NodesContainerType::iterator iparticle = rDEM_ModelPart.NodesBegin() + i;
             Node < 3 > ::Pointer pparticle = *(iparticle.base());
 
-            if (pparticle->IsFixed(VELOCITY_X) == false){
-                contadorcito++;
+            if (!pparticle->IsFixed(VELOCITY_X)){
                 typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
                 Element::Pointer pelement;
-                // look for the fluid element in which the DEM node falls into
+
+                // looking for the fluid element in which the DEM node falls
                 bool is_found = bin_of_objects_fluid.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
-                //interpolate the variables
-                //KRATOS_WATCH(pparticle->Coordinates());
 
-                if (is_found == true)
-                {
+                // interpolating the variables
 
+                if (is_found){
                     //Interpolate(  el_it,  N, *it_found , rOriginVariable , rDestinationVariable  );
                     Interpolate(pelement, N, pparticle, DENSITY, FLUID_DENSITY_PROJECTED, alpha);
                     Interpolate(pelement, N, pparticle, VELOCITY, FLUID_VEL_PROJECTED, alpha);
                     Interpolate(pelement, N, pparticle, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED, alpha);
                     Interpolate(pelement, N, pparticle, VISCOSITY, FLUID_VISCOSITY_PROJECTED, alpha);
-
-
                 }
             }
         }
-//        if (contadorcito<8){
-//            KRATOS_WATCH("Now it happened!");
-//            KRATOS_WATCH(contadorcito);
-//            KRATOS_ERROR(std::logic_error,"error","");
-//        }
-//        for (ModelPart::NodesContainerType::iterator node_it = rDEM_ModelPart.NodesBegin();
-//                node_it != rDEM_ModelPart.NodesEnd(); ++node_it)
-//        {
-//            Node < 3 > ::Pointer pnode = *(node_it.base());
-//            double& water_pressure = pnode->FastGetSolutionStepValue(WATER_PRESSURE);
-//            if (water_pressure < 0.0)
-//            {
-//                water_pressure = 0.0;
-//            }
-//        }
-
 
         KRATOS_CATCH("")
     }
 
-
+    // The current fluid data are projected to the DEM mesh
     void InterpolateFromNewestFluidMesh(
         ModelPart& rFluid_ModelPart ,
         ModelPart& rDEM_ModelPart,
-        BinBasedFastPointLocator<TDim>& bin_of_objects_fluid
-        )
+        BinBasedFastPointLocator<TDim>& bin_of_objects_fluid)
     {
-
         KRATOS_TRY
-        //KRATOS_WATCH("Interpolate From Fluid Mesh*************************************")
-        //Clear all the variables to be mapped
+
+        // resetting all variables to be interpolated
+
         for (ModelPart::NodesContainerType::iterator node_it = rDEM_ModelPart.NodesBegin();
-                node_it != rDEM_ModelPart.NodesEnd(); ++node_it)
-        {
+             node_it != rDEM_ModelPart.NodesEnd(); ++node_it){
             ClearVariables(node_it, FLUID_VEL_PROJECTED);
             ClearVariables(node_it, PRESSURE_GRAD_PROJECTED);
             ClearVariables(node_it, FLUID_DENSITY_PROJECTED);
             ClearVariables(node_it, FLUID_VISCOSITY_PROJECTED);
+            ClearVariables(node_it, SOLID_FRACTION_PROJECTED);
         }
 
         array_1d<double, TDim + 1 > N;
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
         const int nparticles = rDEM_ModelPart.Nodes().size();
-        int contadorcito = 0;
 
         #pragma omp parallel for firstprivate(results, N)
-        for (int i = 0; i < nparticles; i++)
-        {
+        for (int i = 0; i < nparticles; i++){
             ModelPart::NodesContainerType::iterator iparticle = rDEM_ModelPart.NodesBegin() + i;
             Node < 3 > ::Pointer pparticle = *(iparticle.base());
 
-            if (pparticle->IsFixed(VELOCITY_X) == false){
-                contadorcito++;
+            if (!pparticle->IsFixed(VELOCITY_X)){
                 typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
                 Element::Pointer pelement;
-                // look for the fluid element in which the DEM node falls into
+
+                // looking for the fluid element in which the DEM node falls
                 bool is_found = bin_of_objects_fluid.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
-                //interpolate the variables
-                //KRATOS_WATCH(pparticle->Coordinates());
 
-                if (is_found == true)
-                {
+                // interpolating variables
 
+                if (is_found){
                     //Interpolate(el_it,  N, *it_found , rOriginVariable , rDestinationVariable);
                     Interpolate(pelement, N, pparticle, DENSITY, FLUID_DENSITY_PROJECTED);
                     Interpolate(pelement, N, pparticle, VELOCITY, FLUID_VEL_PROJECTED);
                     Interpolate(pelement, N, pparticle, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED);
                     Interpolate(pelement, N, pparticle, VISCOSITY, FLUID_VISCOSITY_PROJECTED);
-
+                    Interpolate(pelement, N, pparticle, VISCOSITY, SOLID_FRACTION_PROJECTED);
                 }
+
             }
+
         }
 
         KRATOS_CATCH("")
     }
 
+    //**********************************************************************
+    //**********************************************************************
 
     /// Interpolate form the DEM  to the fluid mesh
     /**
       * @param rOrigin_ModelPart: the model part  all the variable should be taken from
       * @param rDestination_ModelPart: the destination model part where we want to know the values of the variables
       * @param bin_of_nodes_fluid: precomputed bin of nodes of the fluid mesh. It is to be constructed separately @see binbased_nodes_in_element_locator
-      */
+    */
+
+    //**********************************************************************
+    //**********************************************************************
+
+    // The current DEM data are projected to the fluid mesh
     void InterpolationFromDEMMesh(
         ModelPart& rDEM_ModelPart ,
         ModelPart& rFluid_ModelPart,
         int n_particles_per_depth_distance,
-        BinBasedFastPointLocator<TDim>& bin_of_objects_fluid //this is a bin of objects which contains the FLUID model part
-
-    )
+        BinBasedFastPointLocator<TDim>& bin_of_objects_fluid) //this is a bin of objects which contains the FLUID model part
      {
-
         KRATOS_TRY
-        //KRATOS_WATCH("Interpolate From Fluid Mesh*************************************")
-        //Clear all the variables to be mapped
 
-        const int n_fluid_elements = rFluid_ModelPart.Nodes().size();
-        #pragma omp parallel for
-        for (int i = 0; i < n_fluid_elements; i++){
-        ModelPart::NodesContainerType::iterator inode = rFluid_ModelPart.NodesBegin() + i;
-        ClearVariables(inode, DRAG_REACTION);
-        ClearVariables(inode, SOLID_FRACTION);
+        const int n_fluid_nodes = rFluid_ModelPart.Nodes().size();
+
+        // resetting the variables to be mapped
+
+        for (int i = 0; i < n_fluid_nodes; i++){
+            ModelPart::NodesContainerType::iterator inode = rFluid_ModelPart.NodesBegin() + i;
+            ClearVariables(inode, SOLID_FRACTION);
+            array_1d<double,3>& body_force              = inode->FastGetSolutionStepValue(BODY_FORCE, 0);
+            const array_1d<double,3>& old_drag_reaction = inode->FastGetSolutionStepValue(DRAG_REACTION, 0);
+            body_force -= old_drag_reaction;
+            ClearVariables(inode, DRAG_REACTION);
         }
 
         array_1d<double, TDim + 1 > N;
@@ -283,25 +264,29 @@ public:
             Node < 3 > ::Pointer pparticle = *(iparticle.base());
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
             Element::Pointer pelement;
-            // look for the fluid element which the DEM node falls into
-            bool is_found = bin_of_objects_fluid.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
-            //interpolate the variables
 
-            if (is_found == true) {
+            // looking for the fluid element in which the DEM node falls
+            bool is_found = bin_of_objects_fluid.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
+
+            // interpolating variables
+
+            if (is_found) {
 
                 if (TDim == 2) {
-                    Transfer(pelement, N, pparticle, DRAG_REACTION, DRAG_FORCE, n_particles_per_depth_distance);
+                    Transfer(pelement, N, pparticle, BODY_FORCE, DRAG_FORCE, n_particles_per_depth_distance);
                 }
 
                 else {
-                    Transfer(pelement, N, pparticle, DRAG_REACTION, DRAG_FORCE);
+                    Transfer(pelement, N, pparticle, BODY_FORCE, DRAG_FORCE);
                     CalculateNodalSolidFraction(pelement, N, pparticle);
                 }
+
             }
+
         }
 
         #pragma omp parallel for
-        for (int i = 0; i < n_fluid_elements; i++){
+        for (int i = 0; i < n_fluid_nodes; i++){
             ModelPart::NodesContainerType::iterator inode = rFluid_ModelPart.NodesBegin() + i;
             double& solid_fraction = inode->FastGetSolutionStepValue(SOLID_FRACTION, 0);
             solid_fraction /= inode->FastGetSolutionStepValue(NODAL_AREA, 0);
@@ -309,19 +294,18 @@ public:
             if (solid_fraction > mMaxSolidFraction){
                 solid_fraction = mMaxSolidFraction;
             }
+
         }
 
-//        for (ModelPart::NodesContainerType::iterator node_it = rDEM_ModelPart.NodesBegin();
-//                node_it != rDEM_ModelPart.NodesEnd(); ++node_it)
-//        {
-//            Node < 3 > ::Pointer pnode = *(node_it.base());
-//            double& water_pressure = pnode->FastGetSolutionStepValue(WATER_PRESSURE);
-//            if (water_pressure < 0.0)
-//            {
-//                water_pressure = 0.0;
-//            }
-//        }
+        #pragma omp parallel for
+        for (int i = 0; i < n_fluid_nodes; i++){
+            ModelPart::NodesContainerType::iterator inode = rFluid_ModelPart.NodesBegin() + i;
+            double fluid_fraction                         = 1 - inode->FastGetSolutionStepValue(SOLID_FRACTION, 0);
+            array_1d<double,3>& darcy_vel                 = inode->FastGetSolutionStepValue(VELOCITY, 0);
+            array_1d<double,3>& space_averaged_fluid_vel  = inode->FastGetSolutionStepValue(MESH_VELOCITY1, 0);
+            space_averaged_fluid_vel                      = darcy_vel / fluid_fraction;
 
+        }
 
         KRATOS_CATCH("")
     }
@@ -409,24 +393,22 @@ private:
     double mMaxSolidFraction;
 
     inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
-            double& xc, double& yc, double& zc, double& R, array_1d<double,3>& N
-                                              )
+                                               double& xc, double& yc, double& zc, double& R, array_1d<double,3>& N)
     {
         double x0 = geom[0].X();
-        double  y0 = geom[0].Y();
+        double y0 = geom[0].Y();
         double x1 = geom[1].X();
-        double  y1 = geom[1].Y();
+        double y1 = geom[1].Y();
         double x2 = geom[2].X();
-        double  y2 = geom[2].Y();
+        double y2 = geom[2].Y();
 
-
-        xc = 0.3333333333333333333*(x0+x1+x2);
-        yc = 0.3333333333333333333*(y0+y1+y2);
+        xc = 0.3333333333333333333 * (x0+x1+x2);
+        yc = 0.3333333333333333333 * (y0+y1+y2);
         zc = 0.0;
 
-        double R1 = (xc-x0)*(xc-x0) + (yc-y0)*(yc-y0);
-        double R2 = (xc-x1)*(xc-x1) + (yc-y1)*(yc-y1);
-        double R3 = (xc-x2)*(xc-x2) + (yc-y2)*(yc-y2);
+        double R1 = (xc - x0) * (xc - x0) + (yc - y0) * (yc - y0);
+        double R2 = (xc - x1) * (xc - x1) + (yc - y1) * (yc - y1);
+        double R3 = (xc - x2) * (xc - x2) + (yc - y2) * (yc - y2);
 
         R = R1;
         if (R2 > R) R = R2;
@@ -437,34 +419,35 @@ private:
     //***************************************
     //***************************************
     inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
-            double& xc, double& yc, double& zc, double& R, array_1d<double,4>& N
-
-                                              )
+                                               double& xc, double& yc, double& zc, double& R, array_1d<double,4>& N)
     {
         double x0 = geom[0].X();
-        double  y0 = geom[0].Y();
-        double  z0 = geom[0].Z();
+        double y0 = geom[0].Y();
+        double z0 = geom[0].Z();
+
         double x1 = geom[1].X();
-        double  y1 = geom[1].Y();
-        double  z1 = geom[1].Z();
+        double y1 = geom[1].Y();
+        double z1 = geom[1].Z();
+
         double x2 = geom[2].X();
-        double  y2 = geom[2].Y();
-        double  z2 = geom[2].Z();
+        double y2 = geom[2].Y();
+        double z2 = geom[2].Z();
+
         double x3 = geom[3].X();
-        double  y3 = geom[3].Y();
-        double  z3 = geom[3].Z();
+        double y3 = geom[3].Y();
+        double z3 = geom[3].Z();
 
+        xc = 0.25 * (x0 + x1 + x2 + x3);
+        yc = 0.25 * (y0 + y1 + y2 + y3);
+        zc = 0.25 * (z0 + z1 + z2 + z3);
 
-        xc = 0.25*(x0+x1+x2+x3);
-        yc = 0.25*(y0+y1+y2+y3);
-        zc = 0.25*(z0+z1+z2+z3);
-
-        double R1 = (xc-x0)*(xc-x0) + (yc-y0)*(yc-y0) + (zc-z0)*(zc-z0);
-        double R2 = (xc-x1)*(xc-x1) + (yc-y1)*(yc-y1) + (zc-z1)*(zc-z1);
-        double R3 = (xc-x2)*(xc-x2) + (yc-y2)*(yc-y2) + (zc-z2)*(zc-z2);
-        double R4 = (xc-x3)*(xc-x3) + (yc-y3)*(yc-y3) + (zc-z3)*(zc-z3);
+        double R1 = (xc - x0) * (xc - x0) + (yc - y0) * (yc - y0) + (zc - z0) * (zc - z0);
+        double R2 = (xc - x1) * (xc - x1) + (yc - y1) * (yc - y1) + (zc - z1) * (zc - z1);
+        double R3 = (xc - x2) * (xc - x2) + (yc - y2) * (yc - y2) + (zc - z2) * (zc - z2);
+        double R4 = (xc - x3) * (xc - x3) + (yc - y3) * (yc - y3) + (zc - z3) * (zc - z3);
 
         R = R1;
+
         if (R2 > R) R = R2;
         if (R3 > R) R = R3;
         if (R4 > R) R = R4;
@@ -475,18 +458,16 @@ private:
     //***************************************
     inline double CalculateVol(	const double x0, const double y0,
                                 const double x1, const double y1,
-                                const double x2, const double y2
-                              )
+                                const double x2, const double y2)
     {
-        return 0.5*( (x1-x0)*(y2-y0)- (y1-y0)*(x2-x0) );
+        return 0.5 * ((x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0));
     }
     //***************************************
     //***************************************
     inline double CalculateVol(	const double x0, const double y0, const double z0,
                                 const double x1, const double y1, const double z1,
                                 const double x2, const double y2, const double z2,
-                                const double x3, const double y3, const double z3
-                              )
+                                const double x3, const double y3, const double z3)
     {
         double x10 = x1 - x0;
         double y10 = y1 - y0;
@@ -500,48 +481,47 @@ private:
         double y30 = y3 - y0;
         double z30 = z3 - z0;
 
-        double detJ = x10 * y20 * z30 - x10 * y30 * z20 + y10 * z20 * x30 - y10 * x20 * z30 + z10 * x20 * y30 - z10 * y20 * x30;
-        return  detJ*0.1666666666666666666667;
+        double detJ = x10 * y20 * z30 - x10 * y30 * z20 +
+                      y10 * z20 * x30 - y10 * x20 * z30 +
+                      z10 * x20 * y30 - z10 * y20 * x30;
 
-        //return 0.5*( (x1-x0)*(y2-y0)- (y1-y0)*(x2-x0) );
+        return  detJ * 0.1666666666666666666667;
+
     }
     //***************************************
     //***************************************
-    inline bool CalculatePosition(	Geometry<Node<3> >&geom,
-                                    const double xc, const double yc, const double zc,
-                                    array_1d<double,3>& N
-                                 )
+    inline bool CalculatePosition(Geometry<Node<3> >&geom,
+                                  const double xc, const double yc, const double zc, array_1d<double,3>& N)
     {
         double x0 = geom[0].X();
-        double  y0 = geom[0].Y();
+        double y0 = geom[0].Y();
+
         double x1 = geom[1].X();
-        double  y1 = geom[1].Y();
+        double y1 = geom[1].Y();
+
         double x2 = geom[2].X();
-        double  y2 = geom[2].Y();
+        double y2 = geom[2].Y();
 
-        double area = CalculateVol(x0,y0,x1,y1,x2,y2);
+        double area = CalculateVol(x0, y0, x1, y1, x2, y2);
         double inv_area = 0.0;
-        if (area == 0.0)
-        {
 
-// 				KRATOS_ERROR(std::logic_error,"element with zero area found","");
-            //The interpolated node will not be inside an elemente with zero area
+        if (area == 0.0){
             return false;
-
         }
-        else
-        {
+
+        else {
             inv_area = 1.0 / area;
         }
 
+        N[0] = CalculateVol(x1, y1, x2, y2, xc, yc) * inv_area;
+        N[1] = CalculateVol(x2, y2, x0, y0, xc, yc) * inv_area;
+        N[2] = CalculateVol(x0, y0, x1, y1, xc, yc) * inv_area;
 
-        N[0] = CalculateVol(x1,y1,x2,y2,xc,yc) * inv_area;
-        N[1] = CalculateVol(x2,y2,x0,y0,xc,yc) * inv_area;
-        N[2] = CalculateVol(x0,y0,x1,y1,xc,yc) * inv_area;
+        // if the xc yc is inside the triangle return true
 
-
-        if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[0] <=1.0 && N[1]<= 1.0 && N[2] <= 1.0) //if the xc yc is inside the triangle return true
+        if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0){
             return true;
+        }
 
         return false;
     }
@@ -549,56 +529,51 @@ private:
     //***************************************
     //***************************************
 
-    inline bool CalculatePosition(	Geometry<Node<3> >&geom,
-                                    const double xc, const double yc, const double zc,
-                                    array_1d<double,4>& N
-                                 )
+    inline bool CalculatePosition(Geometry<Node<3> >&geom,
+                                  const double xc, const double yc, const double zc, array_1d<double,4>& N)
     {
-
         double x0 = geom[0].X();
-        double  y0 = geom[0].Y();
-        double  z0 = geom[0].Z();
-        double x1 = geom[1].X();
-        double  y1 = geom[1].Y();
-        double  z1 = geom[1].Z();
-        double x2 = geom[2].X();
-        double  y2 = geom[2].Y();
-        double  z2 = geom[2].Z();
-        double x3 = geom[3].X();
-        double  y3 = geom[3].Y();
-        double  z3 = geom[3].Z();
+        double y0 = geom[0].Y();
+        double z0 = geom[0].Z();
 
-        double vol = CalculateVol(x0,y0,z0,x1,y1,z1,x2,y2,z2,x3,y3,z3);
+        double x1 = geom[1].X();
+        double y1 = geom[1].Y();
+        double z1 = geom[1].Z();
+
+        double x2 = geom[2].X();
+        double y2 = geom[2].Y();
+        double z2 = geom[2].Z();
+
+        double x3 = geom[3].X();
+        double y3 = geom[3].Y();
+        double z3 = geom[3].Z();
+
+        double vol = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
         double inv_vol = 0.0;
-        if (vol < 0.0000000000001)
-        {
 
-// 				KRATOS_ERROR(std::logic_error,"element with zero vol found","");
-            //The interpolated node will not be inside an elemente with zero volume
+        if (vol < 0.0000000000001){
             return false;
-// 				KRATOS_WATCH("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
         }
-        else
-        {
+
+        else {
             inv_vol = 1.0 / vol;
         }
 
-        N[0] = CalculateVol(x1,y1,z1,x3,y3,z3,x2,y2,z2,xc,yc,zc) * inv_vol;
-        N[1] = CalculateVol(x3,y3,z3,x0,y0,z0,x2,y2,z2,xc,yc,zc) * inv_vol;
-        N[2] = CalculateVol(x3,y3,z3,x1,y1,z1,x0,y0,z0,xc,yc,zc) * inv_vol;
-        N[3] = CalculateVol(x0,y0,z0,x1,y1,z1,x2,y2,z2,xc,yc,zc) * inv_vol;
+        N[0] = CalculateVol(x1, y1, z1, x3, y3, z3, x2, y2, z2, xc, yc, zc) * inv_vol;
+        N[1] = CalculateVol(x3, y3, z3, x0, y0, z0, x2, y2, z2, xc, yc, zc) * inv_vol;
+        N[2] = CalculateVol(x3, y3, z3, x1, y1, z1, x0, y0, z0, xc, yc, zc) * inv_vol;
+        N[3] = CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc) * inv_vol;
 
-
-        if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[3] >=0.0 &&
-                N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0 && N[3] <=1.0)
-            //if the xc yc zc is inside the tetrahedron return true
+        if (N[0] >= 0.0 && N[1] >= 0.0 && N[2] >= 0.0 && N[3] >= 0.0 &&
+            N[0] <= 1.0 && N[1] <= 1.0 && N[2] <= 1.0 && N[3] <=1.0){
             return true;
+        }
 
         return false;
     }
 
-    //projecting an array1D 2Dversion
+    // project an array1D (2Dversion)
     void Interpolate(
         Element::Pointer el_it,
         const array_1d<double,3>& N,
@@ -740,37 +715,28 @@ private:
         Variable<double>& rDestinationVariable,
         double alpha)
 {
-            //Geometry element of the rOrigin_ModelPart
-            Geometry< Node < 3 > >& geom = el_it->GetGeometry();
+        // Geometry element of the rOrigin_ModelPart
+        Geometry< Node < 3 > >& geom = el_it->GetGeometry();
 
+        // getting the data of the solution step
+        double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
 
+        const double node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable, 0);
+        const double node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable, 0);
+        const double node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable, 0);
+        const double node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable, 0);
 
-            //getting the data of the solution step
-            double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
-            //
-            const double node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable, 0);
-            const double node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable, 0);
-            const double node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable, 0);
-            const double node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable, 0);
-            //
-            const double node0_data_prev = geom[0].FastGetSolutionStepValue(rOriginVariable, 1);
-            const double node1_data_prev = geom[1].FastGetSolutionStepValue(rOriginVariable, 1);
-            const double node2_data_prev = geom[2].FastGetSolutionStepValue(rOriginVariable, 1);
-            const double node3_data_prev = geom[3].FastGetSolutionStepValue(rOriginVariable, 1);
-            //
-            step_data = alpha * (N[0] * node0_data + N[1] * node1_data + N[2] * node2_data + N[3] * node3_data) +
-            (1.0 - alpha) * (N[0] * node0_data_prev + N[1] * node1_data_prev + N[2] * node2_data_prev + N[3] * node3_data_prev);
-            //
-                       
-            //copying this data in the position of the vector we are interested in
+        const double node0_data_prev = geom[0].FastGetSolutionStepValue(rOriginVariable, 1);
+        const double node1_data_prev = geom[1].FastGetSolutionStepValue(rOriginVariable, 1);
+        const double node2_data_prev = geom[2].FastGetSolutionStepValue(rOriginVariable, 1);
+        const double node3_data_prev = geom[3].FastGetSolutionStepValue(rOriginVariable, 1);
 
-            //step_data = N[0] * node0_data + N[1] * node1_data + N[2] * node2_data + N[3] * node3_data;
-            // 				KRATOS_WATCH(step_data)
-
-            // 			pnode->GetValue(IS_VISITED) = 1.0;
+        step_data = alpha * (N[0] * node0_data + N[1] * node1_data + N[2] * node2_data + N[3] * node3_data) +
+        (1.0 - alpha) * (N[0] * node0_data_prev + N[1] * node1_data_prev + N[2] * node2_data_prev + N[3] * node3_data_prev);
 
     }
-    //2Dversion
+
+     // 2Dversion
      void Transfer(
         Element::Pointer el_it,
         const array_1d<double,3>& N,
@@ -779,19 +745,20 @@ private:
         Variable<array_1d<double,3> >& rOriginVariable,
         int n_particles_per_depth_distance)
     {
-// 		  		  KRATOS_ERROR(std::logic_error,"INTERPOLATE ARRAY 2D","")
 
-            //Geometry element of the rOrigin_ModelPart
+            // Geometry element of the rOrigin_ModelPart
             Geometry< Node < 3 > >& geom = el_it->GetGeometry();
 
 
-            //getting the data of the solution step
+            // getting the data of the solution step
             const array_1d<double, 3 > & step_data = (pnode)->FastGetSolutionStepValue(rOriginVariable, 0);
             array_1d<double, 3 > & node0_data = geom[0].FastGetSolutionStepValue(rDestinationVariable, 0);
             array_1d<double, 3 > & node1_data = geom[1].FastGetSolutionStepValue(rDestinationVariable, 0);
             array_1d<double, 3 > & node2_data = geom[2].FastGetSolutionStepValue(rDestinationVariable, 0);
             double origin_data;
-            //copying this data in the position of the vector we are interested in
+
+            // copying this data in the position of the vector we are interested in
+
             for (unsigned int j = 0; j < TDim; j++) {
                 origin_data = step_data[j];
                 node0_data[j] += -N[0] * origin_data * n_particles_per_depth_distance;
@@ -808,35 +775,67 @@ private:
         Element::Pointer el_it,
         const array_1d<double,4>& N,
         Node<3>::Pointer pnode,
-        Variable<array_1d<double,3> >& rOriginVariable,
-        Variable<array_1d<double,3> >& rDestinationVariable)
+        Variable<array_1d<double,3> >& rDestinationVariable,
+        Variable<array_1d<double,3> >& rOriginVariable)
         
     {
         //Geometry element of the rOrigin_ModelPart
         Geometry< Node<3> >& geom = el_it->GetGeometry();
 
-        //unsigned int buffer_size = pnode->GetBufferSize();
+        const array_1d<double,3>& origin_data = (pnode)->FastGetSolutionStepValue(rOriginVariable, 0);
+        array_1d<double,3>& node0_data = geom[0].FastGetSolutionStepValue(rDestinationVariable, 0);
+        array_1d<double,3>& node1_data = geom[1].FastGetSolutionStepValue(rDestinationVariable, 0);
+        array_1d<double,3>& node2_data = geom[2].FastGetSolutionStepValue(rDestinationVariable, 0);
+        array_1d<double,3>& node3_data = geom[3].FastGetSolutionStepValue(rDestinationVariable, 0);
 
-        //for (unsigned int step = 0; step<buffer_size; step++)
-        //{
-            //getting the data of the solution step
-            const array_1d<double,3>& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
-            array_1d<double,3>& node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable, 0);
-            array_1d<double,3>& node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable, 0);
-            array_1d<double,3>& node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable, 0);
-            array_1d<double,3>& node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable, 0);
-            double origin_data;
-            //copying this data in the position of the vector we are interested in
-            for (unsigned int j= 0; j< TDim; j++)
-            {
-                origin_data = step_data[j];
-                node0_data[j] += -N[0] * origin_data;
-                node1_data[j] += -N[1] * origin_data;
-                node2_data[j] += -N[2] * origin_data; 
-                node3_data[j] += -N[3] * origin_data;
+        if (rOriginVariable == DRAG_FORCE){
+            array_1d<double,3>& node0_drag = geom[0].FastGetSolutionStepValue(DRAG_REACTION, 0);
+            array_1d<double,3>& node1_drag = geom[1].FastGetSolutionStepValue(DRAG_REACTION, 0);
+            array_1d<double,3>& node2_drag = geom[2].FastGetSolutionStepValue(DRAG_REACTION, 0);
+            array_1d<double,3>& node3_drag = geom[3].FastGetSolutionStepValue(DRAG_REACTION, 0);
+            const double& node0_volume     = geom[0].FastGetSolutionStepValue(NODAL_AREA, 0);
+            const double& node1_volume     = geom[1].FastGetSolutionStepValue(NODAL_AREA, 0);
+            const double& node2_volume     = geom[2].FastGetSolutionStepValue(NODAL_AREA, 0);
+            const double& node3_volume     = geom[3].FastGetSolutionStepValue(NODAL_AREA, 0);
+            const double& node0_density    = geom[0].FastGetSolutionStepValue(DENSITY, 0);
+            const double& node1_density    = geom[1].FastGetSolutionStepValue(DENSITY, 0);
+            const double& node2_density    = geom[2].FastGetSolutionStepValue(DENSITY, 0);
+            const double& node3_density    = geom[3].FastGetSolutionStepValue(DENSITY, 0);
+            const double node0_mass_inv    = 1 / (node0_volume * node0_density);
+            const double node1_mass_inv    = 1 / (node1_volume * node1_density);
+            const double node2_mass_inv    = 1 / (node2_volume * node2_density);
+            const double node3_mass_inv    = 1 / (node3_volume * node3_density);
+
+            for (unsigned int j= 0; j< TDim; j++){
+                double data   = origin_data[j];
+                double data_0 = -N[0] * data * node0_mass_inv;
+                double data_1 = -N[1] * data * node1_mass_inv;
+                double data_2 = -N[2] * data * node2_mass_inv;
+                double data_3 = -N[3] * data * node3_mass_inv;
+                node0_data[j] += data_0;
+                node1_data[j] += data_1;
+                node2_data[j] += data_2;
+                node3_data[j] += data_3;
+                node0_drag[j] += data_0;
+                node1_drag[j] += data_1;
+                node2_drag[j] += data_2;
+                node3_drag[j] += data_3;
             }
-        //}
-// 			pnode->GetValue(IS_VISITED) = 1.0;
+        }
+
+        else {
+
+        //copying this data in the position of the vector we are interested in
+
+            for (unsigned int j= 0; j< TDim; j++){
+                double data   = origin_data[j];
+                node0_data[j] = N[0] * data;
+                node1_data[j] = N[1] * data;
+                node2_data[j] = N[2] * data;
+                node3_data[j] = N[3] * data;
+            }
+
+        }
 
     }
 
@@ -847,10 +846,11 @@ private:
         Geometry< Node<3> >& geom = el_it->GetGeometry();
 
         //getting the data of the solution step
-        double& radius              = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
-        double particle_volume      = 1.33333333333333333333 * M_PI * radius * radius * radius;
-        unsigned int i_nearest_node = 0;
-        double max                  = N[0];
+        const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
+        const double particle_volume = 1.33333333333333333333 * M_PI * radius * radius * radius;
+        unsigned int i_nearest_node  = 0;
+
+        double max                   = N[0];
 
         for (unsigned int inode = 1; inode < N.size(); inode++){
 
@@ -858,9 +858,10 @@ private:
                 max = N[inode];
                 i_nearest_node = inode;
             }
+
         }
 
-        geom[i_nearest_node].FastGetSolutionStepValue(SOLID_FRACTION,0) += particle_volume;
+        geom[i_nearest_node].FastGetSolutionStepValue(SOLID_FRACTION, 0) += particle_volume;
 
     }
 
