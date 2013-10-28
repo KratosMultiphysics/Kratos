@@ -114,7 +114,7 @@ public:
 
     enum { Dimension = 3,
            DIMENSION = 3,
-           MAX_LEVEL = 10,
+           MAX_LEVEL = 12,
            MIN_LEVEL = 2    // this cannot be less than 2!!!
          };
 
