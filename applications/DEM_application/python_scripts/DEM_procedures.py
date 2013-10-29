@@ -236,24 +236,34 @@ class Procedures:
 
         i           = 0.0
         sum_radi    = 0.0
-        sum_squared = 0.0
+        partial_sum_squared = 0.0
+        total_sum_squared = 0.0
+        volume = 0.0
+        area = 0.0
 
         for node in balls_model_part.Nodes:
 
             sum_radi += node.GetSolutionStepValue(RADIUS)
-            sum_squared += node.GetSolutionStepValue(RADIUS) ** 2.0
+            partial_sum_squared = node.GetSolutionStepValue(RADIUS) ** 2.0
+            total_sum_squared += partial_sum_squared
+            volume   += 4*3.141592/3*node.GetSolutionStepValue(RADIUS) ** 3.0
+            area     += 3.141592*partial_sum_squared
             i += 1.0
 
         mean = sum_radi / i
-        var = sum_squared / i - mean ** 2.0
-
-        std_dev = var ** 0.5
+        var = total_sum_squared / i - mean ** 2.0
+        std_dev = 0.0
+        
+        if(abs(var)>1e-9):
+          std_dev = var ** 0.5
 
         rel_std_dev = std_dev / mean
         
         Model_Data.write("Radius Mean: "   + str(mean) + '\n')
         Model_Data.write("Std Deviation: " + str(std_dev) + '\n')
         Model_Data.write("Relative Std Deviation: " + str(rel_std_dev) + '\n')
+        Model_Data.write("Total Particle Volume 3D: " + str(volume) + '\n')
+        Model_Data.write("Total Particle Area 2D: " + str(area) + '\n')
         Model_Data.write('\n')
 
         Total_Particles     = len(balls_model_part.Nodes)
