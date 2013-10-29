@@ -138,6 +138,9 @@ class ExplicitStrategy:
         
         self.continuum_simulating_option    = Var_Translator(Param.ContinuumOption)
         self.dempack_option                 = Var_Translator(Param.Dempack)
+        if(self.dempack_option):
+          self.dempack_damping            = Param.DempackDamping
+          self.dempack_global_damping     = Param.DempackGlobalDamping
         self.contact_mesh_option            = Var_Translator( Var_Translator(Param.ContactMeshOption) & Var_Translator(Param.ContinuumOption) ) 
         self.concrete_test_option           = Var_Translator( Var_Translator(Param.ConcreteTestOption) & Var_Translator(Param.ContinuumOption) ) 
         self.triaxial_option                = Var_Translator( Var_Translator(Param.TriaxialOption) & self.concrete_test_option )
@@ -158,8 +161,7 @@ class ExplicitStrategy:
           if( not self.continuum_simulating_option ): self.case_option = 0
           else: self.case_option = 3     
 
-        self.dempack_damping = Param.DempackDamping
-                    
+                         
         # MODEL
         self.model_part                     = model_part
         self.contact_model_part             = ModelPart("ContactModelPart") #funcio kratos
@@ -548,7 +550,10 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(CONTACT_TAU_ZERO, self.tau_zero)
         self.model_part.ProcessInfo.SetValue(CONTACT_INTERNAL_FRICC, self.internal_fricc)
 
-        self.model_part.ProcessInfo.SetValue(DEMPACK_DAMPING, self.dempack_damping)
+        if(self.dempack_option):
+          self.model_part.ProcessInfo.SetValue(DEMPACK_DAMPING, self.dempack_damping)
+          self.model_part.ProcessInfo.SetValue(DEMPACK_GLOBAL_DAMPING, self.dempack_global_damping)
+
         
         if (self.force_calculation_type_id == 2):
             self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N1, self.N1)
