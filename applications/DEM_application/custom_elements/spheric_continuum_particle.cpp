@@ -327,7 +327,7 @@ namespace Kratos
                       
                       {  
                   
-                      alpha  = 1.3*(1.40727)*(external_sphere_area/total_equiv_area)*((double(cont_ini_neighbours_size))/11);
+                      alpha  = 1.00*(1.40727)*(external_sphere_area/total_equiv_area)*((double(cont_ini_neighbours_size))/11);
                       mcont_ini_neigh_area[skin_index] = alpha*mcont_ini_neigh_area[skin_index];
                   
                       skin_index++;
@@ -585,7 +585,7 @@ namespace Kratos
                     
                   
                       
-                      PlasticityAndDamage1D(LocalElasticContactForce, kn_el, indentation, calculation_area,radius_sum_i, failure_criterion_state, i_neighbour_count,mapping_new_cont );
+                      PlasticityAndDamage1D(LocalElasticContactForce, kn_el, indentation, calculation_area,radius_sum_i, failure_criterion_state, i_neighbour_count,mapping_new_cont, mapping_new_ini );
                     
                       
                     }
@@ -1012,6 +1012,7 @@ namespace Kratos
          {
            
            mDempack_damping = rCurrentProcessInfo[DEMPACK_DAMPING]; 
+           mDempack_global_damping = rCurrentProcessInfo[DEMPACK_GLOBAL_DAMPING]; 
 
          }
          
@@ -1143,38 +1144,105 @@ namespace Kratos
 
    
    
-     void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() //NOTA: LOOP SOBRE TOTS ELS VEINS PROVISIONALS, TEN KEDERAS UNS QUANTS FENT PUSHBACK. ALS VECTORS DELTA ETC.. HI HAS DE POSAR
+   void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() //NOTA: LOOP SOBRE TOTS ELS VEINS PROVISIONALS, TEN KEDERAS UNS QUANTS FENT PUSHBACK. ALS VECTORS DELTA ETC.. HI HAS DE POSAR
      //LA POSICIÓ DELS QUE SON DEFINITIUS.
      {
    
-       ParticleWeakVectorType TempNeighbours;
-       TempNeighbours.swap(this->GetValue(NEIGHBOUR_ELEMENTS)); //GetValue is needed becouse this information comes from the strategy (the search function)
-       
-       this->GetValue(NEIGHBOUR_ELEMENTS).clear(); 
-              
-       unsigned int neighbour_counter       = 0;
-       
-       vector<int>                  temp_neighbours_ids;
-       vector<double>               temp_neighbours_delta;
-       vector<int>                  temp_neighbours_failure_id;
-       vector<array_1d<double, 3> > temp_neighbours_contact_forces;
-       vector<int>                  temp_neighbours_mapping;
-       vector<int>                  temp_cont_neighbours_mapping;
+       //NOU:
 
-       array_1d<double, 3> vector_of_zeros;
-       vector_of_zeros[0]                   = 0.0;
-       vector_of_zeros[1]                   = 0.0;
-       vector_of_zeros[2]                   = 0.0;
-   
-       for (ParticleWeakIteratorType_ptr i = TempNeighbours.ptr_begin(); i != TempNeighbours.ptr_end(); i++)
+       ParticleWeakVectorType& TempNeighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
        
-       {
+       vector<int> check_vector  = ZeroVector(TempNeighbours.size()+1); //TODO Ric. es fa així? EL +1 es per posar-hi el indicador de -1 que pari el proces
+       unsigned int check_counter       = 0;
+       unsigned int last_check          = 0;
+       double       ini_delta           = 0.0;
+       int          failure_id          = 1;
+       
+       
+      unsigned int temp_iterator = 0;
+      
+      for (ParticleWeakIteratorType i = TempNeighbours.begin(); i != TempNeighbours.end(); i++)
+       
+      {
 
-         //neigh_added = false;
-          
+         for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++)
+            {
+                           
+              if (static_cast<int>((i)->Id()) == mIniNeighbourIds[k])
+              {               
+                
+                ini_delta  = mIniNeighbourDelta[k];
+                failure_id = mIniNeighbourFailureId[k];
+
+                break;
+              }
+
+            }
+            
+           if (failure_id == 0)
+             
+           {
+                check_counter++;
+                check_vector[temp_iterator] = 1;
+                last_check = temp_iterator;
+
+           }
+           else
+           {
+             
+            double other_radius                 = i->GetGeometry()[0].GetSolutionStepValue(RADIUS);
+            double radius_sum                   = mRadius + other_radius;
+            array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - i->GetGeometry()(0)->Coordinates();
+            double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
+            double indentation                  = radius_sum - distance - ini_delta;
+            
+                if ( indentation > 0.0 )
+                {
+                  check_counter++;
+                  check_vector[temp_iterator] = 1;
+                  last_check = temp_iterator;
+                  
+                }
+                        
+           }
+           
+           temp_iterator++;
+
+       }
+       
+      check_vector[last_check+1] = -1; //After the last that passes the check there is the -1 flag to stop.
+
+      //2nd step: Reserve space
+      
+      vector<int>                  temp_neighbours_ids(check_counter);
+      vector<double>               temp_neighbours_delta(check_counter,0.0);
+      vector<int>                  temp_neighbours_failure_id(check_counter,1);
+      vector<array_1d<double, 3> > temp_neighbours_contact_forces;
+      temp_neighbours_contact_forces.resize(check_counter);
+            
+      //boost::numeric::ublas::matrix<double, check_counter, 3 > temp_neighbours_contact_forces; TODO:: no em deixa ric.
+     
+      vector<int>                  temp_neighbours_mapping(check_counter);
+      vector<int>                  temp_cont_neighbours_mapping(check_counter);
+      
+      this->GetValue(NEIGHBOUR_ELEMENTS).clear();
+      this->GetValue(NEIGHBOUR_ELEMENTS).reserve(check_counter);
+      
+      temp_iterator = 0;
+      unsigned int neighbour_counter = 0;
+      
+      //3rd step: 2nd loop to store the values
+      for (ParticleWeakIteratorType i = TempNeighbours.begin(); check_vector[temp_iterator] != -1; i++) //flag -1 after the last important.
+       
+      {
+ 
+        
+        if(check_vector[temp_iterator] == 1)
+        {
+ 
+          array_1d<double, 3>   neigh_forces        (3,0.0);
           double                ini_delta           = 0.0;
           int                   failure_id          = 1;
-          array_1d<double, 3>   neigh_forces        = vector_of_zeros;
           double                mapping_new_ini     = -1;  
           double                mapping_new_cont    = -1;
 
@@ -1182,8 +1250,8 @@ namespace Kratos
 
             for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++)
             {
-                           
-              if (static_cast<int>((*i).lock()->Id()) == mIniNeighbourIds[k])
+                            
+              if (static_cast<int>((i)->Id()) == mIniNeighbourIds[k])
               {               
                 
                 ini_delta  = mIniNeighbourDelta[k];
@@ -1195,12 +1263,12 @@ namespace Kratos
               }
 
             }
-                           
+                            
           //Loop Over Last time-step Neighbours
           
             for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++)
             {
-              if (static_cast<int>((*i).lock()->Id()) == mOldNeighbourIds[j])
+              if (static_cast<int>(i->Id()) == mOldNeighbourIds[j])
               {
                 neigh_forces = mOldNeighbourContactForces[j];
                 break;
@@ -1208,50 +1276,35 @@ namespace Kratos
 
             }
             
-            //Judge if its neighbour
+                  
+            this->GetValue(NEIGHBOUR_ELEMENTS).push_back(*(i.base()));
+      
+            temp_neighbours_ids[neighbour_counter]              = static_cast<int>((i)->Id());
+            temp_neighbours_mapping[neighbour_counter]          = mapping_new_ini;
+            temp_cont_neighbours_mapping[neighbour_counter]     = mapping_new_cont;
             
-            double other_radius                 = (*i).lock()->GetGeometry()[0].GetSolutionStepValue(RADIUS);
-            double radius_sum                   = mRadius + other_radius;
-            array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - (*i).lock()->GetGeometry()(0)->Coordinates();
-            double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
-            double indentation                  = radius_sum - distance - ini_delta;
+            temp_neighbours_delta[neighbour_counter]            = ini_delta;
+            temp_neighbours_failure_id[neighbour_counter]       = failure_id;
+            temp_neighbours_contact_forces[neighbour_counter]   = neigh_forces;//TODO:: Ric.//row(temp_neighbours_contact_forces,neighbour_counter)   = neigh_forces;
             
-            if ( indentation > 0.0 || (indentation < 1.0e-6 && failure_id == 0 ) )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
-            {
+            neighbour_counter++;
+                
            
-                this->GetValue(NEIGHBOUR_ELEMENTS).push_back(*i);
-                size_t size = this->GetValue(NEIGHBOUR_ELEMENTS).size();
-                
-                temp_neighbours_ids.resize(size);
-                temp_neighbours_delta.resize(size);
-                temp_neighbours_failure_id.resize(size);
-                temp_neighbours_contact_forces.resize(size);
-                temp_neighbours_mapping.resize(size);
-                temp_cont_neighbours_mapping.resize(size);
-                
-                temp_neighbours_ids[neighbour_counter]              = static_cast<int>((*i).lock()->Id());
-                temp_neighbours_mapping[neighbour_counter]          = mapping_new_ini;
-                temp_cont_neighbours_mapping[neighbour_counter]     = mapping_new_cont;
-                
-                temp_neighbours_delta[neighbour_counter]            = ini_delta;
-                temp_neighbours_failure_id[neighbour_counter]       = failure_id;
-                temp_neighbours_contact_forces[neighbour_counter]   = neigh_forces;
-                
-                neighbour_counter++;
-                
-            }
+        }//if(check_vector[temp_iterator] == 1)
 
-        }
+        temp_iterator++;
         
-        mMapping_New_Ini.swap(temp_neighbours_mapping);
-        mMapping_New_Cont.swap(temp_cont_neighbours_mapping);
-        mOldNeighbourIds.swap(temp_neighbours_ids);
-        mNeighbourDelta.swap(temp_neighbours_delta);
-        mNeighbourFailureId.swap(temp_neighbours_failure_id);
-        mOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
+      }
+      
+      mMapping_New_Ini.swap(temp_neighbours_mapping);
+      mMapping_New_Cont.swap(temp_cont_neighbours_mapping);
+      mOldNeighbourIds.swap(temp_neighbours_ids);
+      mNeighbourDelta.swap(temp_neighbours_delta);
+      mNeighbourFailureId.swap(temp_neighbours_failure_id);
+      mOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
 
-      } //ComputeNewNeighboursHistoricalData
-
+    } //ComputeNewNeighboursHistoricalData
+       
    
       void SphericContinuumParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
       {
@@ -1393,48 +1446,22 @@ namespace Kratos
             Output = AreaDebugging( rCurrentProcessInfo);
         }
           
-         if (rVariable == DEMPACK_DAMPING)
+           if (rVariable == DEMPACK_DAMPING)
         {
-          
-//             double alpha = 0.9;
-//             
-//             array_1d<double, 3>& total_force = this->GetGeometry()(0)->FastGetSolutionStepValue(TOTAL_FORCES);
-//             array_1d<double, 3>& velocity = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-//             
-//             int i;
-// 
-//             double factor;
-            
-// //             //if ( this->GetGeometry()(0)->pGetDof(VELOCITY_Y)->IsFixed() == false )
-// //             {
-// //                 for (i = 1; i<=3; i++)
-// //                 {
-// //                   
-// //                   factor = 0.1*fabs((velocity[i])/0.05);
-// //                   
-// //                   if(factor >=1) {factor = 0.95;}
-// //                   
-// //                   total_force[i] = (1-factor)*total_force[i]; 
-// //                   
-// //                 }
-// //               
-// //             }
-// //             
-            
-            
-            
-            
-            /*
-            for (i = 1; i<=3; i++)
+                  
+             array_1d<double, 3>& total_force = this->GetGeometry()(0)->FastGetSolutionStepValue(TOTAL_FORCES); //Includes all elastic, damping, but not external (gravity)
+             array_1d<double, 3>& velocity = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+                           
+
+            for (int i = 1; i<=3; i++)
             {
-              
-              if(
-              array_1d<double, 3>& velocity = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-             //total_force[i] = total_force[i] - alpha*fabs(total_force[i])*GeometryFunctions::sign(velocity[i]);
-       
-                         
-            }*/
+                if ( this->GetGeometry()(0)->pGetDof(VELOCITY_Y)->IsFixed() == false ){
+                    total_force[i] = total_force[i] - mDempack_global_damping*fabs(total_force[i])*GeometryFunctions::sign(velocity[i]);                                
+                }
+            }
         } 
+            
+    
           
           
           
@@ -1479,9 +1506,11 @@ namespace Kratos
           }
           
           //CharacteristicParticleFailureId(rCurrentProcessInfo);
-          additionally_applied_force[0] += mRealMass * gravity[0];
-          additionally_applied_force[1] += mRealMass * gravity[1];
-          additionally_applied_force[2] += mRealMass * gravity[2];
+          
+          noalias(additionally_applied_force) += mRealMass * gravity; 
+//           additionally_applied_force[0] += mRealMass * gravity[0];
+//           additionally_applied_force[1] += mRealMass * gravity[1];
+//           additionally_applied_force[2] += mRealMass * gravity[2];
       }
  
       void SphericContinuumParticle::CustomInitialize()
@@ -1779,7 +1808,7 @@ namespace Kratos
        **/
       
       
-      void SphericContinuumParticle::AddPoissonContribution(double LocalCoordSystem[3][3],
+      void SphericContinuumParticle::AddPoissonContribution(double LocalCoordSystem[3][3], //TODO: array 1d i boost::numeric::ublas::bounded_matrix o Matrix(,) si no saps el tamany a alocar.
                                                                     double GlobalContactForce[3],
                                                                     double GlobalElasticContactForce[3],
                                                                     double ViscoDampingGlobalContactForce[3],
@@ -1792,6 +1821,8 @@ namespace Kratos
           PoissonContactForce [2] = 0.0; //neigh_poisson_contribution; //MSI: cambiar a que tingui poisson de la matriu membre
           GeometryFunctions::VectorLocal2Global(LocalCoordSystem, PoissonContactForce, GlobalContactPoissonForce);
 
+          
+          // TODO:noalias(rContactForce) += GlobalContactForce PER PODER FER AIXO AHN DE SER TOTS ARRAY1D
           rContactForce[0] += GlobalContactForce[0] + GlobalContactPoissonForce[0];
           rContactForce[1] += GlobalContactForce[1] + GlobalContactPoissonForce[1];
           rContactForce[2] += GlobalContactForce[2] + GlobalContactPoissonForce[2];
@@ -1841,7 +1872,7 @@ namespace Kratos
      } //SphericContinuumParticle::ComputePressureForces
     
 
-    void SphericContinuumParticle::PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn_el, double indentation, double calculation_area, double radius_sum_i, double failure_criterion_state, int i_neighbour_count, double mapping_new_cont )
+    void SphericContinuumParticle::PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn_el, double indentation, double calculation_area, double radius_sum_i, double failure_criterion_state, int i_neighbour_count, double mapping_new_cont, double mapping_new_ini )
     {
 
       //VARIABLES
@@ -1980,6 +2011,7 @@ namespace Kratos
           if(fabs(indentation) > u2)                  // FULL DAMAGE 
           {
             mNeighbourFailureId[i_neighbour_count] = 4; //tension failure
+            mIniNeighbourFailureId[ mapping_new_ini ] = 12;
             failure_criterion_state = 1;
             fn = 0.0;
           }
