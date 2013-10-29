@@ -1430,7 +1430,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<doub
             //call the constitutive law to update material variables
             mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy (Values);
 
-            ComparisonUtils EquivalentStress;
+            ComparisonUtilities EquivalentStress;
             rOutput[PointNumber] =  EquivalentStress.CalculateVonMises(Variables.StressVector);
         }
     }

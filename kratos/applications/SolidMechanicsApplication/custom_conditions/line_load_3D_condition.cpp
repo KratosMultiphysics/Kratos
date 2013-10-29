@@ -14,7 +14,7 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_conditions/line_load_3D_condition.hpp"
-#include "custom_utilities/sd_math_utils.hpp"
+#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 #include "solid_mechanics_application.h"
 

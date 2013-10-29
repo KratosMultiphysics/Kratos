@@ -23,6 +23,10 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_strategies/custom_builders_and_solvers/residual_based_builder_and_solver.hpp"
 
+//Utilities
+#include "custom_utilities/line_search_calculation_utilities.hpp"
+#include "custom_utilities/comparison_utilities.hpp"
+#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 namespace Kratos
 {

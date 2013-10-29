@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(SD_MATH_UTILS)
-#define SD_MATH_UTILS
+#if !defined(KRATOS_SOLID_MECHANICS_MATH_UTILITIES)
+#define KRATOS_SOLID_MECHANICS_MATH_UTILITIES
 #define PI 3.1415926535898
 
 #include "utilities/math_utils.h"
@@ -16,7 +16,7 @@
 
 namespace Kratos
 {
-template<class TDataType> class SD_MathUtils
+template<class TDataType> class SolidMechanicsMathUtilities
 {
 public:
     /**
@@ -158,7 +158,7 @@ public:
                 HelpA(i,i) = HelpA(i,i)- shift;
             }
 
-            SD_MathUtils<double>::QRFactorization(HelpA, HelpQ, HelpR);
+            SolidMechanicsMathUtilities<double>::QRFactorization(HelpA, HelpQ, HelpR);
 
             HelpA= ZeroMatrix(dim, dim);
 
@@ -1350,6 +1350,6 @@ public:
     }
 
 private:
-};// class SD_MathUtils
+};// class SolidMechanicsMathUtilities
 }
-#endif /* SD_MATH_UTILS defined */
+#endif /* KRATOS_SOLID_MECHANICS_MATH_UTILITIESS defined */

@@ -21,7 +21,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
-#include "custom_utilities/comparison_utils.hpp"
+#include "custom_utilities/comparison_utilities.hpp"
 
 
 namespace Kratos
