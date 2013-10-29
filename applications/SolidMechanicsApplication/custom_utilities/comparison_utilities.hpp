@@ -6,15 +6,15 @@
 //
 //
 
-#if !defined(KRATOS_COMPARISON_UTILS )
-#define  KRATOS_COMPARISON_UTILS
+#if !defined(KRATOS_COMPARISON_UTILITIES )
+#define  KRATOS_COMPARISON_UTILITIES
 
 
 /* System includes */
 #include <cmath>
 
 /* Project includes */
-#include "custom_utilities/sd_math_utils.hpp"
+#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 namespace Kratos
 {
@@ -45,7 +45,7 @@ namespace Kratos
 /*@{ */
 
 
-class ComparisonUtils
+class ComparisonUtilities
 {
 public:
     /**@name Type Definitions */
@@ -59,11 +59,11 @@ public:
 
     /** Constructor.
      */
-    ComparisonUtils() {};
+    ComparisonUtilities() {};
 
     /** Destructor.
      */
-    ~ComparisonUtils() {};
+    ~ComparisonUtilities() {};
 
     /** Operators.
      */
@@ -91,7 +91,7 @@ public:
 
         Vector PrincipalStress = ZeroVector(3);
 
-        NormStress =SD_MathUtils<double>::NormTensor(StressTensor);
+        NormStress =SolidMechanicsMathUtilities<double>::NormTensor(StressTensor);
 
         Vector MainStresses;
 
@@ -102,7 +102,7 @@ public:
 
             if(NormStress>1e-6)
             {
-                MainStresses = SD_MathUtils<double>::EigenValues(StressTensor,tolerance,zero);
+                MainStresses = SolidMechanicsMathUtilities<double>::EigenValues(StressTensor,tolerance,zero);
             }
             else
             {
@@ -267,7 +267,7 @@ private:
 
     /*@} */
 
-}; /* Class ComparisonUtils */
+}; /* Class ComparisonUtilities */
 
 /*@} */
 
@@ -279,5 +279,5 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_COMPARISON_UTILS defined */
+#endif /* KRATOS_COMPARISON_UTILITIES defined */
 

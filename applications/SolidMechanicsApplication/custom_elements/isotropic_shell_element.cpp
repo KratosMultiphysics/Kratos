@@ -15,7 +15,7 @@
 #include "includes/define.h"
 #include "custom_elements/isotropic_shell_element.hpp"
 #include "utilities/math_utils.h"
-#include "custom_utilities/sd_math_utils.hpp"
+#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 #include "solid_mechanics_application.h"
 
 namespace Kratos

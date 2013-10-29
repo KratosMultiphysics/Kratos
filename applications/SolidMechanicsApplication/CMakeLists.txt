@@ -40,6 +40,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_element.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/isotropic_shell_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/large_displacement_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/small_displacement_element.cpp
@@ -61,7 +62,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_axisym_2D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/line_load_3D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/surface_load_3D_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp
+
 )
 
 ###############################################################
