@@ -123,14 +123,17 @@ namespace Kratos
 	ReturnVector[2] = u[0]*v[1] - u[1]*v[0];
     }
 
-   //NOTE:: Modified by M. Santasusana Feb 2013 - simplification (may be the one proposed by F.Chun was for a more generalized case) 
+   //NOTE:: Modified by M. Santasusana Feb 2013 - simplification (the one proposed by F.Chun was for a more generalized case) 
     static inline void ComputeContactLocalCoordSystem(double NormalDirection[3], double LocalCoordSystem[3][3])  //inline: modifies the LocalCoordSystem as it were a reference
     {
+      //TODO: boost::numeric::ublas::bounded_matrix<double, 4, 3 >
+      //Matrix a(4,3); a.resize(...,false)
+      
         int ii;
         double Vector0[3] = {0.0},Vector1[3] = {0.0};
 
         norm(NormalDirection);
-
+                               
         if(fabs(NormalDirection[0])>=0.577)
         {
             Vector0[0]= - NormalDirection[1]/NormalDirection[0];
@@ -158,6 +161,7 @@ namespace Kratos
         
         for(ii=0;ii<3;ii++)
         {
+             //TODO:: QUAN FACIS SERVIR MATRIX HAS DE ACCEDIRHO AMB AIXO (0,ii) EN COMPTES D'AIXO [][]
             LocalCoordSystem[0][ii]=Vector0[ii];
             LocalCoordSystem[1][ii]=Vector1[ii];
             LocalCoordSystem[2][ii]=NormalDirection[ii];
