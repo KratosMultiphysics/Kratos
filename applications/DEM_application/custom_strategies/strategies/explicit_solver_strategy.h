@@ -228,7 +228,9 @@ namespace Kratos
           if ((time_step + 1) % mNStepSearch == 0 && time_step > 0){
               if (this->GetBoundingBoxOption()){
                   BoundingBoxUtility();
-              }              
+                  SetSearchRadius(r_model_part, rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);                    
+              }      
+              
               SearchNeighbours(r_model_part);
           }
           
@@ -288,7 +290,7 @@ namespace Kratos
           for (int k = 0; k < this->GetNumberOfThreads(); k++){
 
               if (rhs_elem.size() != 6){
-                rhs_elem.resize(6);
+                rhs_elem.resize(6,false);
               }
 
               typename ElementsArrayType::iterator it_begin   = pElements.ptr_begin() + this->GetElementPartition()[k];
@@ -335,10 +337,6 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-          
-          //GetRadius() UPDATE!!  
-          SetSearchRadius(r_model_part, rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);                    
-          
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
           #pragma omp parallel for
