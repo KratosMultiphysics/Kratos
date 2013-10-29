@@ -46,6 +46,8 @@ ProjectParameters.CouplingSchemeType          = "updated_fluid" # "updated_fluid
 
 ProjectParameters.nodal_results.append("SOLID_FRACTION")
 ProjectParameters.nodal_results.append("MESH_VELOCITY1")
+ProjectParameters.nodal_results.append("BODY_FORCE")
+ProjectParameters.nodal_results.append("DRAG_REACTION")
 
 ProjectParameters.ProjectFromParticlesOption  *= ProjectParameters.ProjectionModuleOption
 ProjectParameters.ProjectAtEverySubStepOption *= ProjectParameters.ProjectionModuleOption
