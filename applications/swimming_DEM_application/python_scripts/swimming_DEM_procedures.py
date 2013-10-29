@@ -87,21 +87,22 @@ class PorosityUtils:
 
 class ProjectionModule:
 
-    def __init__(self, fluid_model_part, balls_model_part, dimension, n_particles_in_depth, max_solid_fraction):
+    def __init__(self, fluid_model_part, balls_model_part, dimension, max_solid_fraction, coupling_type, n_particles_in_depth):
 
         self.fluid_model_part     = fluid_model_part
         self.particles_model_part = balls_model_part
         self.dimension            = dimension
-        self.n_particles_in_depth = n_particles_in_depth
         self.max_solid_fraction   = max_solid_fraction
+        self.coupling_type        = coupling_type
+        self.n_particles_in_depth = n_particles_in_depth
 
 
         if (self.dimension == 3):
-            self.projector = BinBasedDEMFluidCoupledMapping3D(max_solid_fraction)
+            self.projector = BinBasedDEMFluidCoupledMapping3D(max_solid_fraction, coupling_type)
             self.bin_of_objects_fluid = BinBasedFastPointLocator3D(fluid_model_part)
 
         else:
-            self.projector = BinBasedDEMFluidCoupledMapping2D(max_solid_fraction)
+            self.projector = BinBasedDEMFluidCoupledMapping2D(max_solid_fraction, coupling_type, n_particles_in_depth)
             self.bin_of_objects_fluid = BinBasedFastPointLocator2D(fluid_model_part)
 
     def UpdateDatabase(self, HMin):
@@ -122,5 +123,5 @@ class ProjectionModule:
 
     def ProjectFromParticles(self):
 
-        self.projector.InterpolationFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.n_particles_in_depth, self.bin_of_objects_fluid)
+        self.projector.InterpolationFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
 
