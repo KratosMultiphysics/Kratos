@@ -254,6 +254,8 @@ FailureCriterionType             = "*GenData(Failure_Criterion)"
 *format "%10.5e"
 DempackDamping                   = *GenData(Dempack_Damping)
 *format "%10.5e"
+DempackGlobalDamping             = *GenData(Dempack_Global_Damping)
+*format "%10.5e"
 TauZero                          = *GenData(Tau_Zero)
 *format "%10.5e"
 SigmaMax                         = *GenData(Sigma_Max)
@@ -334,6 +336,7 @@ StressStrainOperationsOption     = "*GenData(Stress_Strain_Operations)"
 ContactMeshOption                = "*GenData(Contact_Mesh)"
 ConcreteTestOption               = "*GenData(Concrete_Test)"
 GraphOption                      = "*GenData(Graph_Option)"
+MonitoringOption                 = "*GenData(Monitoring_Option)"
 PoissonMeasure                   = "*GenData(Poisson_Measure)"
 *format "%10.5e"
 MeasuringSurface                 = *GenData(Measuring_Surface)
