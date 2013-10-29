@@ -40,6 +40,7 @@ ProjectParameters.max_solid_fraction          = 0.6
 ProjectParameters.DEM_nodal_results           = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED"]
 ProjectParameters.mixed_nodal_results         = ["VELOCITY", "DISPLACEMENT"]
 ProjectParameters.CouplingSchemeType          = "updated_fluid" # "updated_fluid" or "updated_DEM"
+ProjectParameters.CouplingWeighingType        = 1
 
 
 # Changes on PROJECT PARAMETERS for the sake of consistency
@@ -296,7 +297,7 @@ fluid_volume = 10
 n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume))
 
 if (ProjectParameters.ProjectionModuleOption):
-    projection_module = SwimProc.ProjectionModule(fluid_model_part, balls_model_part, domain_size, n_particles_in_depth, ProjectParameters.max_solid_fraction)
+    projection_module = SwimProc.ProjectionModule(fluid_model_part, balls_model_part, domain_size, ProjectParameters.max_solid_fraction, ProjectParameters.CouplingWeighingType, n_particles_in_depth)
     projection_module.UpdateDatabase(h_min)
     interaction_calculator = CustomFunctionsCalculator()
 
