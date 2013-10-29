@@ -84,7 +84,18 @@ public:
     ///@{
 
     /// Default constructor.
-    BinBasedDEMFluidCoupledMapping(double max_solid_fraction):mMaxSolidFraction(max_solid_fraction){}
+    //----------------------------------------------------------------
+    //                       key for coupling_type
+    //----------------------------------------------------------------
+    //        Averaged variables       |  Solid Fraction
+    //   Fluid-to-DEM | DEM-to-fluid   |
+    //----------------------------------------------------------------
+    // 0:   Constant       Constant            Constant
+    // 1:   Linear         Linear              Constant   (default)
+    // 2:   Linear         Linear              Linear
+    //----------------------------------------------------------------
+
+    BinBasedDEMFluidCoupledMapping(double max_solid_fraction, int coupling_type = 1): mMaxSolidFraction(max_solid_fraction), mCouplingType(coupling_type){}
 
     /// Destructor.
     virtual ~BinBasedDEMFluidCoupledMapping() {}
@@ -118,7 +129,7 @@ public:
         ModelPart& rFluid_ModelPart,
         ModelPart& rDEM_ModelPart,
         BinBasedFastPointLocator<TDim>& bin_of_objects_fluid,
-        double alpha)
+        const double alpha)
     {
         KRATOS_TRY
 
@@ -235,7 +246,7 @@ public:
     void InterpolationFromDEMMesh(
         ModelPart& rDEM_ModelPart ,
         ModelPart& rFluid_ModelPart,
-        int n_particles_per_depth_distance,
+        const int n_particles_per_depth_distance,
         BinBasedFastPointLocator<TDim>& bin_of_objects_fluid) //this is a bin of objects which contains the FLUID model part
      {
         KRATOS_TRY
@@ -273,12 +284,30 @@ public:
             if (is_found) {
 
                 if (TDim == 2) {
-                    Transfer(pelement, N, pparticle, BODY_FORCE, DRAG_FORCE, n_particles_per_depth_distance);
+
+                    if (mCouplingType == 0){
+                        TransferWithConstantWeighing(pelement, N, pparticle, BODY_FORCE, DRAG_FORCE, n_particles_per_depth_distance);
+                    }
+
+                    else if (mCouplingType == 1){
+                        TransferWithLinearWeighing(pelement, N, pparticle, BODY_FORCE, DRAG_FORCE, n_particles_per_depth_distance);
+                    }
+
                 }
 
                 else {
-                    Transfer(pelement, N, pparticle, BODY_FORCE, DRAG_FORCE);
-                    CalculateNodalSolidFraction(pelement, N, pparticle);
+
+                    if (mCouplingType == 0){
+                        TransferWithConstantWeighing(pelement, N, pparticle, BODY_FORCE, DRAG_FORCE);
+                        CalculateNodalSolidFractionWithConstantWeighing(pelement, N, pparticle);
+                      }
+
+                    else if (mCouplingType == 1){
+                        TransferWithLinearWeighing(pelement, N, pparticle, BODY_FORCE, DRAG_FORCE);
+                        CalculateNodalSolidFractionWithConstantWeighing(pelement, N, pparticle);
+                    }
+
+
                 }
 
             }
@@ -391,6 +420,7 @@ private:
     ///@{
 
     double mMaxSolidFraction;
+    int mCouplingType;
 
     inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
                                                double& xc, double& yc, double& zc, double& R, array_1d<double,3>& N)
@@ -573,6 +603,22 @@ private:
         return false;
     }
 
+    inline unsigned int GetNearestNode(const array_1d<double,4>& N)
+
+    {
+      double max                     = N[0];
+      unsigned int i_nearest_node    = 0;
+
+      for (unsigned int inode = 1; inode < N.size(); inode++){
+
+          if (N[inode] > max) {
+              max = N[inode];
+              i_nearest_node = inode;
+          }
+      }
+      return i_nearest_node;
+    }
+
     // project an array1D (2Dversion)
     void Interpolate(
         Element::Pointer el_it,
@@ -736,8 +782,83 @@ private:
 
     }
 
+    //2Dversion
+    void TransferWithConstantWeighing(
+        Element::Pointer el_it,
+        const array_1d<double,3>& N,
+        Node<3>::Pointer pnode,
+        Variable<array_1d<double,3> >& rDestinationVariable,
+        Variable<array_1d<double,3> >& rOriginVariable,
+        int n_particles_per_depth_distance)
+
+    {
+        //Geometry element of the rOrigin_ModelPart
+        Geometry< Node<3> >& geom   = el_it->GetGeometry();
+        unsigned int i_nearest_node = GetNearestNode(N);
+        const array_1d<double,3>& origin_data     = (pnode)->FastGetSolutionStepValue(rOriginVariable, 0);
+        array_1d<double,3>& destination_data      = geom[i_nearest_node].FastGetSolutionStepValue(rDestinationVariable, 0);
+
+        if (rOriginVariable == DRAG_FORCE){
+
+            array_1d<double,3>& old_drag_contribution = geom[i_nearest_node].FastGetSolutionStepValue(DRAG_REACTION, 0);
+            const double density                      = geom[i_nearest_node].FastGetSolutionStepValue(DENSITY, 0);
+            const double nodal_volume                 = geom[i_nearest_node].FastGetSolutionStepValue(NODAL_AREA, 0);
+            const double nodal_mass_inv               = n_particles_per_depth_distance / (density * nodal_volume);
+
+            for (unsigned int j= 0; j< TDim; j++){
+                array_1d<double,3> origin_nodal_contribution = - nodal_mass_inv * origin_data;
+                destination_data += origin_nodal_contribution;
+                old_drag_contribution += origin_nodal_contribution;
+            }
+        }
+
+        else {
+
+            std::cout << "Variable " << rOriginVariable << " is not supported for transference with constant weights" ;
+
+        }
+
+    }
+
+    //3Dversion
+    void TransferWithConstantWeighing(
+        Element::Pointer el_it,
+        const array_1d<double,4>& N,
+        Node<3>::Pointer pnode,
+        Variable<array_1d<double,3> >& rDestinationVariable,
+        Variable<array_1d<double,3> >& rOriginVariable)
+
+    {
+      //Geometry element of the rOrigin_ModelPart
+      Geometry< Node<3> >& geom   = el_it->GetGeometry();
+      unsigned int i_nearest_node = GetNearestNode(N);
+      const array_1d<double,3>& origin_data     = (pnode)->FastGetSolutionStepValue(rOriginVariable, 0);
+      array_1d<double,3>& destination_data      = geom[i_nearest_node].FastGetSolutionStepValue(rDestinationVariable, 0);
+
+      if (rOriginVariable == DRAG_FORCE){
+
+          array_1d<double,3>& old_drag_contribution = geom[i_nearest_node].FastGetSolutionStepValue(DRAG_REACTION, 0);
+          const double density                      = geom[i_nearest_node].FastGetSolutionStepValue(DENSITY, 0);
+          const double nodal_volume                 = geom[i_nearest_node].FastGetSolutionStepValue(NODAL_AREA, 0);
+          const double nodal_mass_inv               = 1 / (density * nodal_volume);
+
+          for (unsigned int j= 0; j< TDim; j++){
+              array_1d<double,3> origin_nodal_contribution = - nodal_mass_inv * origin_data;
+              destination_data += origin_nodal_contribution;
+              old_drag_contribution += origin_nodal_contribution;
+          }
+      }
+
+      else {
+
+          std::cout << "Variable " << rOriginVariable << " is not supported for transference with constant weights" ;
+
+      }
+
+    }
+
      // 2Dversion
-     void Transfer(
+     void TransferWithLinearWeighing(
         Element::Pointer el_it,
         const array_1d<double,3>& N,
         Node<3>::Pointer pnode,
@@ -745,33 +866,60 @@ private:
         Variable<array_1d<double,3> >& rOriginVariable,
         int n_particles_per_depth_distance)
     {
+         //Geometry element of the rOrigin_ModelPart
+         Geometry< Node<3> >& geom = el_it->GetGeometry();
 
-            // Geometry element of the rOrigin_ModelPart
-            Geometry< Node < 3 > >& geom = el_it->GetGeometry();
+         const array_1d<double,3>& origin_data = (pnode)->FastGetSolutionStepValue(rOriginVariable, 0);
+         array_1d<double,3>& node0_data = geom[0].FastGetSolutionStepValue(rDestinationVariable, 0);
+         array_1d<double,3>& node1_data = geom[1].FastGetSolutionStepValue(rDestinationVariable, 0);
+         array_1d<double,3>& node2_data = geom[2].FastGetSolutionStepValue(rDestinationVariable, 0);
+         array_1d<double,3>& node3_data = geom[3].FastGetSolutionStepValue(rDestinationVariable, 0);
 
+         if (rOriginVariable == DRAG_FORCE){
+             array_1d<double,3>& node0_drag = geom[0].FastGetSolutionStepValue(DRAG_REACTION, 0);
+             array_1d<double,3>& node1_drag = geom[1].FastGetSolutionStepValue(DRAG_REACTION, 0);
+             array_1d<double,3>& node2_drag = geom[2].FastGetSolutionStepValue(DRAG_REACTION, 0);
+             array_1d<double,3>& node3_drag = geom[3].FastGetSolutionStepValue(DRAG_REACTION, 0);
+             const double& node0_volume     = geom[0].FastGetSolutionStepValue(NODAL_AREA, 0);
+             const double& node1_volume     = geom[1].FastGetSolutionStepValue(NODAL_AREA, 0);
+             const double& node2_volume     = geom[2].FastGetSolutionStepValue(NODAL_AREA, 0);
+             const double& node3_volume     = geom[3].FastGetSolutionStepValue(NODAL_AREA, 0);
+             const double& node0_density    = geom[0].FastGetSolutionStepValue(DENSITY, 0);
+             const double& node1_density    = geom[1].FastGetSolutionStepValue(DENSITY, 0);
+             const double& node2_density    = geom[2].FastGetSolutionStepValue(DENSITY, 0);
+             const double& node3_density    = geom[3].FastGetSolutionStepValue(DENSITY, 0);
+             const double node0_mass_inv    = n_particles_per_depth_distance / (node0_volume * node0_density);
+             const double node1_mass_inv    = n_particles_per_depth_distance / (node1_volume * node1_density);
+             const double node2_mass_inv    = n_particles_per_depth_distance / (node2_volume * node2_density);
+             const double node3_mass_inv    = n_particles_per_depth_distance / (node3_volume * node3_density);
 
-            // getting the data of the solution step
-            const array_1d<double, 3 > & step_data = (pnode)->FastGetSolutionStepValue(rOriginVariable, 0);
-            array_1d<double, 3 > & node0_data = geom[0].FastGetSolutionStepValue(rDestinationVariable, 0);
-            array_1d<double, 3 > & node1_data = geom[1].FastGetSolutionStepValue(rDestinationVariable, 0);
-            array_1d<double, 3 > & node2_data = geom[2].FastGetSolutionStepValue(rDestinationVariable, 0);
-            double origin_data;
+             for (unsigned int j= 0; j< TDim; j++){
+                 double data   = origin_data[j];
+                 double data_0 = -N[0] * data * node0_mass_inv;
+                 double data_1 = -N[1] * data * node1_mass_inv;
+                 double data_2 = -N[2] * data * node2_mass_inv;
+                 double data_3 = -N[3] * data * node3_mass_inv;
+                 node0_data[j] += data_0;
+                 node1_data[j] += data_1;
+                 node2_data[j] += data_2;
+                 node3_data[j] += data_3;
+                 node0_drag[j] += data_0;
+                 node1_drag[j] += data_1;
+                 node2_drag[j] += data_2;
+                 node3_drag[j] += data_3;
+             }
+         }
 
-            // copying this data in the position of the vector we are interested in
+         else {
 
-            for (unsigned int j = 0; j < TDim; j++) {
-                origin_data = step_data[j];
-                node0_data[j] += -N[0] * origin_data * n_particles_per_depth_distance;
-                node1_data[j] += -N[1] * origin_data * n_particles_per_depth_distance;
-                node2_data[j] += -N[2] * origin_data * n_particles_per_depth_distance;
-            }
-            
-// 			pnode->GetValue(IS_VISITED) = 1.0;
+             std::cout << "Variable " << rOriginVariable << " is not supported for transference with constant weights" ;
+
+         }
 
     }
 
     //3Dversion
-    void Transfer(
+    void TransferWithLinearWeighing(
         Element::Pointer el_it,
         const array_1d<double,4>& N,
         Node<3>::Pointer pnode,
@@ -824,47 +972,92 @@ private:
         }
 
         else {
-
-        //copying this data in the position of the vector we are interested in
-
-            for (unsigned int j= 0; j< TDim; j++){
-                double data   = origin_data[j];
-                node0_data[j] = N[0] * data;
-                node1_data[j] = N[1] * data;
-                node2_data[j] = N[2] * data;
-                node3_data[j] = N[3] * data;
-            }
-
+            std::cout << "Variable " << rOriginVariable << " is not supported for transference with constant weights" ;
         }
 
     }
 
-    void CalculateNodalSolidFraction(Element::Pointer el_it, const array_1d<double,4>& N, Node<3>::Pointer pnode)
+    //2Dversion
+    void CalculateNodalSolidFractionWithConstantWeighing(
+        Element::Pointer el_it,
+        const array_1d<double,4>& N,
+        Node<3>::Pointer pnode,
+        int n_particles_per_depth_distance)
+
+    {
+      //Geometry element of the rOrigin_ModelPart
+      Geometry< Node<3> >& geom = el_it->GetGeometry();
+      unsigned int i_nearest_node;
+      i_nearest_node = GetNearestNode(N);
+
+      //getting the data of the solution step
+      const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
+      const double particle_volume = 1.33333333333333333333 * M_PI * n_particles_per_depth_distance * radius * radius * radius;
+
+      geom[i_nearest_node].FastGetSolutionStepValue(SOLID_FRACTION, 0) += particle_volume;
+
+    }
+
+    //3Dversion
+    void CalculateNodalSolidFractionWithConstantWeighing(
+        Element::Pointer el_it,
+        const array_1d<double,4>& N,
+        Node<3>::Pointer pnode)
 
     {
         //Geometry element of the rOrigin_ModelPart
         Geometry< Node<3> >& geom = el_it->GetGeometry();
+        unsigned int i_nearest_node;
+        i_nearest_node = GetNearestNode(N);
 
         //getting the data of the solution step
         const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
         const double particle_volume = 1.33333333333333333333 * M_PI * radius * radius * radius;
-        unsigned int i_nearest_node  = 0;
-
-        double max                   = N[0];
-
-        for (unsigned int inode = 1; inode < N.size(); inode++){
-
-            if (N[inode] > max) {
-                max = N[inode];
-                i_nearest_node = inode;
-            }
-
-        }
 
         geom[i_nearest_node].FastGetSolutionStepValue(SOLID_FRACTION, 0) += particle_volume;
 
     }
 
+    //2Dversion
+    void CalculateNodalSolidFractionWithLinearWeighing(
+        Element::Pointer el_it,
+        const array_1d<double,4>& N,
+        Node<3>::Pointer pnode,
+        int n_particles_per_depth_distance)
+
+    {
+      //Geometry element of the rOrigin_ModelPart
+      Geometry< Node<3> >& geom = el_it->GetGeometry();
+
+      //getting the data of the solution step
+      const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
+      const double particle_volume = 1.33333333333333333333 * M_PI * n_particles_per_depth_distance * radius * radius * radius;
+
+      for (unsigned int inode = 0; inode < N.size(); inode++){
+          geom[inode].FastGetSolutionStepValue(SOLID_FRACTION, 0) += N[inode] * particle_volume;
+      }
+
+    }
+
+    //3Dversion
+    void CalculateNodalSolidFractionWithLinearWeighing(
+        Element::Pointer el_it,
+        const array_1d<double,4>& N,
+        Node<3>::Pointer pnode)
+
+    {
+      //Geometry element of the rOrigin_ModelPart
+      Geometry< Node<3> >& geom = el_it->GetGeometry();
+
+      //getting the data of the solution step
+      const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
+      const double particle_volume = 1.33333333333333333333 * M_PI * radius * radius * radius;
+
+      for (unsigned int inode = 0; inode < N.size(); inode++){
+          geom[inode].FastGetSolutionStepValue(SOLID_FRACTION, 0) += N[inode] * particle_volume;
+      }
+
+    }
 
     inline void Clear(ModelPart::NodesContainerType::iterator node_it,  int step_data_size )
     {
