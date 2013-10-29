@@ -84,14 +84,18 @@ namespace Kratos
 
           ModelPart& rModelPart            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+        
           
-          mFixSwitch = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];
-
-          mStepFixVel = rCurrentProcessInfo[STEP_FIX_VELOCITIES];
           
-          int NumberOfElements = rModelPart.GetCommunicator().LocalMesh().ElementsArray().end() - rModelPart.GetCommunicator().LocalMesh().ElementsArray().begin();
+          mFixSwitch        = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];
+          mStepFixVel       = rCurrentProcessInfo[STEP_FIX_VELOCITIES];
+          mDempackOption    = bool(rCurrentProcessInfo[DEMPACK_OPTION]); 
           
-          this->GetResults().resize(NumberOfElements);
+          unsigned int NumberOfElements = rModelPart.GetCommunicator().LocalMesh().Elements().size();
+          
+          if(this->GetResults().size() != NumberOfElements)
+            this->GetResults().resize(NumberOfElements);
+          
           this->GetResultsDistances().resize(NumberOfElements);
           this->GetRadius().resize(NumberOfElements);
           
@@ -111,7 +115,7 @@ namespace Kratos
           {
 
           // 0. Set search radius
-          BaseType::SetSearchRadius(rModelPart,rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);
+         this->SetSearchRadius(rModelPart,rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION],1.0);
           
           }
           // 1. Search Neighbours with tolerance (Not in mpi.)
@@ -134,13 +138,12 @@ namespace Kratos
           {
             double amplification = rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION];
             
-            ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
-            for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
-            {
-            
-                this->GetRadius()[particle_pointer_it - pElements.begin()] *= (amplification);       
-              
-            }
+            #pragma omp parallel for
+            for(unsigned int i=0; i<this->GetRadius().size(); i++)
+            { 
+              this->GetRadius()[i] *= (amplification);      
+            } 
+
           }
          
           // 4. Set Initial Contacts
@@ -204,9 +207,10 @@ namespace Kratos
           //KRATOS_TIMER_START("GetForce")
           BaseType::GetForce();
           //KRATOS_TIMER_STOP("GetForce")
-
-          //this->GlobalDamping();
-                     
+          if(mDempackOption)
+          {
+            this->GlobalDamping();
+          }                    
           // 3. Motion Integration
           //KRATOS_TIMER_START("PerformTimeIntegrationOfMotion")
           this->PerformTimeIntegrationOfMotion(rCurrentProcessInfo); 
@@ -242,6 +246,8 @@ namespace Kratos
 
                   if (this->GetBoundingBoxOption() == 1){
                       BaseType::BoundingBoxUtility();
+                      this->SetSearchRadius(rModelPart,rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION],rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
+                      
                   }
 
                    BaseType::SearchNeighbours(rModelPart); //the amplification factor has been modified after the first search.
@@ -913,7 +919,7 @@ namespace Kratos
         
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         
-        if(this->GetNumberOfElementsOldRadiusList() == number_of_elements) return;
+        if(this->GetNumberOfElementsOldRadiusList() == number_of_elements) return;  //TODO:: this can fail when one particle is created and one is destroyed for example.
         else this->GetNumberOfElementsOldRadiusList() = number_of_elements;
         
         this->GetRadius().resize(number_of_elements);
@@ -921,6 +927,29 @@ namespace Kratos
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
             this->GetRadius()[particle_pointer_it - pElements.begin()] = particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS) + radiusExtend;
 
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    
+    void SetSearchRadius(ModelPart& r_model_part, double radiusExtend, double amplification)
+    {
+        KRATOS_TRY
+
+        ModelPart& r_model_part               = BaseType::GetModelPart();
+        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
+        
+        int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
+        
+        if(this->GetNumberOfElementsOldRadiusList() == number_of_elements) return;  //TODO:: this can fail when one particle is created and one is destroyed for example.
+        else this->GetNumberOfElementsOldRadiusList() = number_of_elements;
+        
+        this->GetRadius().resize(number_of_elements);
+
+        for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
+            this->GetRadius()[particle_pointer_it - pElements.begin()] = amplification*(1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+                                                                                       
         }
 
         KRATOS_CATCH("")
@@ -988,7 +1017,8 @@ namespace Kratos
     bool   mcontinuum_simulating_option;
     int    mFixSwitch;
     int    mStepFixVel;
-
+    bool   mDempackOption;
+    
 
   }; // Class ContinuumExplicitSolverStrategy
 
