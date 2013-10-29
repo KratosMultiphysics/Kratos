@@ -7,15 +7,11 @@ Begin ModelPartData
 //  VARIABLE_NAME value
 End ModelPartData
 
-
 *# Property blocks
 *loop materials
-
 Begin Properties  1
 End Properties
-
 *end materials
-
 
 Begin Nodes
 *#// id   X  Y  Z
@@ -34,128 +30,6 @@ Begin Elements *GenData(DEM_Element_Type)
 *end elems
 End Elements
 
-*Set cond volume_CONDITIONS *elems
-*Add cond surface_CONDITIONS *elems
-*Add cond line_CONDITIONS *elems
-*#Add cond group_CONDITIONS *elems
-
-*if(CondNumEntities > 0)
-*# Check if some node has its X value set
-*set var Xset=0
-*loop elems *OnlyInCond
-*if(cond(VELOCITY_X,int)==1)
-*set var Xset=1
-*break
-*endif
-*end elems      
-*if(Xset == 1)
-Begin NodalData VELOCITY_X
-*loop elems *OnlyInCond
-*if(cond(VELOCITY_X,int)==1)
-*elemsconec(1) *cond(X_fixed) *cond(X_Value)
-*endif
-*end elems
-End NodalData
-*endif
-
-*# Check if some node has its Y value set
-*set var Yset=0
-*loop elems *OnlyInCond
-*if(cond(VELOCITY_Y,int)==1)
-*set var Yset=1
-*break
-*endif
-*end elems
-*if(Yset == 1)
-Begin NodalData VELOCITY_Y
-*loop elems *OnlyInCond
-*if(cond(VELOCITY_Y,int)==1)
-*elemsconec(1) *cond(Y_fixed) *cond(Y_Value)
-*endif
-*end elems
-End NodalData
-*endif
-
-*# Check if some node has its Z value set
-*set var Zset=0
-*loop elems *OnlyInCond
-*if(cond(VELOCITY_Z,int)==1)
-*set var Zset=1
-*break
-*endif
-*end elems
-*if(Zset == 1)
-Begin NodalData VELOCITY_Z
-*loop elems *OnlyInCond
-*if(cond(VELOCITY_Z,int)==1)
-*elemsconec(1) *cond(Z_fixed) *cond(Z_Value)
-*endif
-*end elems
-
-End NodalData
-*#
-*endif
-
-*# Check if some node has its X value set
-*set var X_ang_vel_set=0
-*loop elems *OnlyInCond
-*if(cond(ANGULAR_VELOCITY_X,int)==1)
-*set var X_ang_vel_set=1
-*break
-*endif
-*end elems
-*if(X_ang_vel_set == 1)
-Begin NodalData ANGULAR_VELOCITY_X
-*loop elems *OnlyInCond
-*if(cond(ANGULAR_VELOCITY_X,int)==1)
-*elemsconec(1) *cond(X_ang_vel_fixed) *cond(X_ang_vel_Value)
-*endif
-*end elems
-End NodalData
-
-*endif
-*#
-*# Check if some node has its Y value set
-*set var Y_ang_vel_set=0
-*loop elems *OnlyInCond
-*if(cond(ANGULAR_VELOCITY_Y,int)==1)
-*set var Y_ang_vel_set=1
-*break
-*endif
-*end elems
-*if(Y_ang_vel_set == 1)
-Begin NodalData ANGULAR_VELOCITY_Y
-*loop elems *OnlyInCond
-*if(cond(ANGULAR_VELOCITY_Y,int)==1)
-*elemsconec(1) *cond(Y_ang_vel_fixed) *cond(Y_ang_vel_Value)
-*endif
-*end elems
-
-End NodalData
-
-*endif
-*#
-*# Check if some node has its Z value set
-*set var Z_ang_vel_set=0
-*loop elems *OnlyInCond
-*if(cond(ANGULAR_VELOCITY_Z,int)==1)
-*set var Z_ang_vel_set=1
-*break
-*endif
-*end elems
-*if(Z_ang_vel_set == 1)
-Begin NodalData ANGULAR_VELOCITY_Z
-*loop elems *OnlyInCond
-*if(cond(ANGULAR_VELOCITY_Z,int)==1)
-*elemsconec(1) *cond(Z_ang_vel_fixed) *cond(Z_ang_vel_Value)
-*endif
-*end elems
-End NodalData
-
-*endif
-
-*endif
-
 Begin NodalData RADIUS
 *set var iterator=1
 *loop elems *all
@@ -167,12 +41,82 @@ Begin NodalData RADIUS
 *end elems 
 End NodalData
 
+*Set cond group_CONDITIONS *groups
+Begin NodalData VELOCITY_X
+*loop groups *OnlyInCond
+*if(cond(VELOCITY_X,int))
+*set group *GroupName *elems
+*loop elems *onlyingroup
+*elemsconec(1) *cond(X_fixed) *cond(X_Value)
+*end elems
+*endif
+*end groups
+End NodalData
+
+Begin NodalData VELOCITY_Y
+*loop groups *OnlyInCond
+*if(cond(VELOCITY_Y,int))
+*set group *GroupName *elems
+*loop elems *onlyingroup
+*elemsconec(1) *cond(Y_fixed) *cond(Y_Value)
+*end elems
+*endif
+*end groups
+End NodalData
+
+Begin NodalData VELOCITY_Z
+*loop groups *OnlyInCond
+*if(cond(VELOCITY_Y,int))
+*set group *GroupName *elems
+*loop elems *onlyingroup
+*elemsconec(1) *cond(Z_fixed) *cond(Z_Value)
+*end elems
+*endif
+*end groups
+End NodalData
+
+Begin NodalData ANGULAR_VELOCITY_X
+*loop groups *OnlyInCond
+*if(cond(ANGULAR_VELOCITY_X,int))
+*set group *GroupName *elems
+*loop elems *onlyingroup
+*elemsconec(1) *cond(X_ang_vel_fixed) *cond(X_ang_vel_Value)
+*end elems
+*endif
+*end groups
+End NodalData
+
+Begin NodalData ANGULAR_VELOCITY_Y
+*loop groups *OnlyInCond
+*if(cond(ANGULAR_VELOCITY_Y,int))
+*set group *GroupName *elems
+*loop elems *onlyingroup
+*elemsconec(1) *cond(Y_ang_vel_fixed) *cond(Y_ang_vel_Value)
+*end elems
+*endif
+*end groups
+End NodalData
+
+Begin NodalData ANGULAR_VELOCITY_Z
+*loop groups *OnlyInCond
+*if(cond(ANGULAR_VELOCITY_Z,int))
+*set group *GroupName *elems
+*loop elems *onlyingroup
+*elemsconec(1) *cond(Z_ang_vel_fixed) *cond(Z_ang_vel_Value)
+*end elems
+*endif
+*end groups
+End NodalData
+
 Begin NodalData GROUP_ID
-*loop elems *OnlyInCond
+*loop groups *OnlyInCond
+*set group *GroupName *elems
+*loop elems *onlyingroup
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
 *elemsconec(1) 0 *cond(GROUP_ID)
 *endif
-*end elems 
+*end elems
+*end groups
 End NodalData
 
 Begin NodalData PARTICLE_CONTINUUM
@@ -255,10 +199,8 @@ Begin NodalData PARTICLE_MATERIAL
 *end elems 
 End NodalData
 
-
 *Set cond volume_SET_SKIN_MANUALLY *elems
 *Add cond surface_SET_SKIN_MANUALLY *elems
-
 Begin NodalData PREDEFINED_SKIN
 *loop elems *OnlyInCond
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
