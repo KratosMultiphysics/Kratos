@@ -355,6 +355,8 @@ QUESTION: Tangential_Contact_Damp#CB#(ViscDamp,NoDamp)
 VALUE: NoDamp
 QUESTION: Dempack_Damping
 VALUE: 0.9
+QUESTION: Dempack_Global_Damping
+VALUE: 0.2
 HELP: No idea how it works... ask Labra.
 QUESTION: Failure_Criterion#CB#(Mohr-Coulomb,Uncoupled)
 VALUE: Uncoupled
@@ -466,6 +468,8 @@ VALUE: 0.0
 QUESTION: Total_Time_Percentage_As_Force_Aplication_Time
 HELP:A percentage of the total simulation time from the initial time linearly increassing the pressure from 0 to the especified value
 VALUE: 15.0
+QUESTION: Monitoring_Option#CB#(ON,OFF)
+VALUE: OFF
 
 
 #Varibles to be exported for post-processing
