@@ -81,12 +81,14 @@ using namespace boost::python;
         .def("CalculatePressureGradient", &CustomFunctionsCalculator::CalculatePressureGradient)
         ; 
     
-    class_<BinBasedDEMFluidCoupledMapping < 2 > >("BinBasedDEMFluidCoupledMapping2D", init<double>())
+    class_<BinBasedDEMFluidCoupledMapping < 2 > >("BinBasedDEMFluidCoupledMapping2D", init<double, int>())
+        .def(init<double>()) // constructor with a default value of the coupling type
         .def("InterpolationFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 2 > ::InterpolationFromFluidMesh)
         .def("InterpolationFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 2 > ::InterpolationFromDEMMesh)
         ;
  
-    class_<BinBasedDEMFluidCoupledMapping < 3 > >("BinBasedDEMFluidCoupledMapping3D", init<double>())
+    class_<BinBasedDEMFluidCoupledMapping < 3 > >("BinBasedDEMFluidCoupledMapping3D", init<double, int>())
+        .def(init<double>()) // constructor with a default value of the coupling type
         .def("InterpolationFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolationFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolateFromNewestFluidMesh)
         .def("InterpolationFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolationFromDEMMesh)  
