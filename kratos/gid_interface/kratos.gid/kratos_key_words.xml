@@ -134,8 +134,8 @@
       kkword="Parallel MKL Pardiso" />
       <Item id="GiDPostMode" kkword="GiDPostMode" />
       <Item id="GiDWriteMeshFlag" kkword="GiDWriteMeshFlag" />
-      <Item id="GiDWriteConditionsFlag"
-      kkword="GiDWriteConditionsFlag" />
+      <Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
+      <Item id="GiDWriteParticlesFlag" kkword="GiDWriteParticlesFlag" />
       <Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
       <Item id="Monolithic" kkword="monolithic_solver_eulerian" />
       <Item id="PressureSplitting" kkword="pressure_splitting" />
@@ -196,6 +196,7 @@
       <Item id="GiDPostMode" kkword="GiDPostMode" />
       <Item id="GiDWriteMeshFlag" kkword="GiDWriteMeshFlag" />
       <Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
+      <Item id="GiDWriteParticlesFlag" kkword="GiDWriteParticlesFlag" />
       <Item id="GiDMultiFileFlag" kkword="GiDMultiFileFlag" />
     </ConvectionDiffusion>
     <FluidStructureInteraction></FluidStructureInteraction>
