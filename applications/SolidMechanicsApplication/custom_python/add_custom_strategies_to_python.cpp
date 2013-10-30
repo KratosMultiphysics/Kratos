@@ -17,16 +17,20 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/flags.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 
 #include "spaces/ublas_space.h"
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/residual_based_newton_raphson_line_search_strategy.hpp"
+
+//builders and solvers
 #include "custom_strategies/custom_builders_and_solvers/residual_based_builder_and_solver.hpp"
 #include "custom_strategies/custom_builders_and_solvers/block_residual_based_builder_and_solver.hpp"
 
-//convergence criterias
+//convergence criteria
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "custom_strategies/custom_convergence_criteria/residual_criteria.hpp"
 #include "custom_strategies/custom_convergence_criteria/displacement_criteria.hpp"
@@ -73,17 +77,6 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedRotationBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationBossakSchemeType;
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
 
-
-    //********************************************************************
-    //*************************STRATEGY CLASSES***************************
-    //********************************************************************
-
-    // class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-    // 	      bases< BaseSolvingStrategyType >,  boost::noncopyable >
-    // ("TestStrategy",
-    //  init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
-    // .def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
-    // ;
 
 
     //********************************************************************
@@ -169,6 +162,29 @@ void  AddCustomStrategiesToPython()
             (
                 "ResidualConvergenceCriteria", init<double, double >()
             );
+
+
+
+    //********************************************************************
+    //*************************STRATEGY CLASSES***************************
+    //********************************************************************
+
+    // class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
+    // 	      bases< BaseSolvingStrategyType >,  boost::noncopyable >
+    // ("TestStrategy",
+    //  init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
+    // .def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
+    // ;
+
+    class_< ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< BaseSolvingStrategyType >, boost::noncopyable >
+      ("ResidualBasedNewtonRaphsonLineSearchStrategy",
+       init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaBaseType::Pointer, int, bool, bool, bool >())
+      .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaBaseType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+      .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
+      .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
+      .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
+      .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations);
+	   
 
 
 }
