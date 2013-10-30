@@ -227,7 +227,7 @@ public:
                     Interpolate(pelement, N, pparticle, VELOCITY, FLUID_VEL_PROJECTED);
                     Interpolate(pelement, N, pparticle, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED);
                     Interpolate(pelement, N, pparticle, VISCOSITY, FLUID_VISCOSITY_PROJECTED);
-                    Interpolate(pelement, N, pparticle, VISCOSITY, SOLID_FRACTION_PROJECTED);
+                    Interpolate(pelement, N, pparticle, SOLID_FRACTION, SOLID_FRACTION_PROJECTED);
                 }
 
             }
@@ -736,11 +736,11 @@ private:
             Geometry< Node < 3 > >& geom = el_it->GetGeometry();
 
             //getting the data of the solution step
-            double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable);
-            const double node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable);
-            const double node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable);
-            const double node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable);
-            const double node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable);
+            double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
+            const double node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable, 0);
+            const double node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable, 0);
+            const double node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable, 0);
+            const double node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable, 0);
             step_data = N[0] * node0_data + N[1] * node1_data + N[2] * node2_data + N[3] * node3_data;
 
     }
