@@ -48,13 +48,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(KRATOS_LOG_H_INCLUDED )
 #define  KRATOS_LOG_H_INCLUDED
 
-
-
 // System includes
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <map>
 #include <ctime>
 
 #ifdef _OPENMP
@@ -68,13 +65,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 
 // Defines
-int const KratosError      = 0; 
-int const KratosWarning    = 1; 
-int const KratosInfo       = 2;
-int const KratosDebug      = 3; 
-int const KratosTrace      = 4;
+int const KRATOS_ERROR      = 0; 
+int const KRATOS_WARNING    = 1; 
+int const KRATOS_INFO       = 2;
+int const KRATOS_DEBUG      = 3; 
+int const KRATOS_TRACE      = 4;
 
-#define KRATOS_LOG(severity) Log::severity##_stream(__FILE__,BOOST_CURRENT_FUNCTION,__LINE__,severity)
+#define KRATOS_LOG(severity) Logger::severity##_stream(__FILE__,BOOST_CURRENT_FUNCTION,__LINE__,severity)
 
 namespace Kratos
 {
@@ -108,28 +105,19 @@ private:
     static bool     mInstanceFalg;
     static Log *    mInstance;
     
+    /**
+     * Default constructor
+     */
     Log() 
     {    
         std::stringstream LogFileName;
         
-        std::stringstream LogStandard;
-        std::stringstream LogWarning;
-        std::stringstream LogError;
-        
         mPrintLogOnScreen = 0;
-        mPrintWngOnScreen = 0;
-        mPrintErrOnScreen = 1;
+        mSeverityLevel    = KRATOS_INFO;
         
-        //Default filename for logs
-        LogFileName << "KratosMultiphysics" << '-' << getpid();
-        
-        LogStandard << LogFileName << '.' << "log";
-        LogWarning  << LogFileName << '.' << "wng";
-        LogError    << LogFileName << '.' << "err";
+        LogFileName << "KratosMultiphysics" << '.' << getpid() << '.' << "log";
         
         SetLogFile(LogFileName.str());
-        SetWngFile(LogFileName.str());
-        SetErrFile(LogFileName.str());
     }
     
 public:
@@ -144,18 +132,18 @@ public:
     ///@name Life Cycle
     ///@{
   
+    /**
+     * Returns the instance to the log class and creates it in case it not been yet created 
+     */
     static Log& GetInstance() 
     {
         if(!mInstanceFalg)
+        {   
+            mInstanceFalg = 1;
             mInstance = new Log();
+        }
         
         return (*mInstance);
-    }
-    
-    static std::ostream& KRATOS_ERROR_stream(const char * file, const char * funct, int line, int severity)
-    {
-        msErrFile << "KRATOS_ERROR:" << file << ":" << line << " In function \'" << funct << "\':";
-        return msErrFile;
     }
 
     /// Destructor.
@@ -165,40 +153,44 @@ public:
       
         if(msLogFile.is_open())
             msLogFile.close();
+        
+        mInstanceFalg = 0;
             
         delete mInstance;
     }
-
-
+    
     ///@}
     ///@name Operators
     ///@{
       
     // NOT NEEDED ANYMORE!!!
     /// Class operator only writes in the generic log file 
-    
+ 
     /// This function must be overloaded twice in order to adress std::endl as it is a function
-//     Log& operator<<(std::ostream& (*fn)(std::ostream&))
-//     {
-//         fn(msLogFile);
-//         
-//         if(mPrintLogOnScreen)
-//             fn(std::cout);
-//         
-//         return * this;
-//     }
-//     
-//     /// Rest of the inputs
-//     template<typename T>
-//     Log& operator << (const T& data)
-//     {
-//         msLogFile << data;
-//         
-//         if(mPrintLogOnScreen)
-//             std::cout << msLogFile;
-//         
-//         return * this;
-//     }
+    Log& operator<<(std::ostream& (*fn)(std::ostream&))
+    {
+        fn(msLogFile);
+        
+        if(mPrintLogOnScreen)
+            fn(std::cout);
+        
+        return * this;
+    }
+    
+    /// Rest of the inputs
+    template<typename T>
+    Log& operator << (const T& data)
+    {
+        msLogFile << data;
+        
+        if(mPrintLogOnScreen)
+            std::cout << msLogFile;
+        
+        if(mSeverityLevel == KRATOS_ERROR)
+            abort();
+        
+        return * this;
+    }
 
     ///@}
     ///@name Operations
@@ -214,37 +206,7 @@ public:
         return msLogFile.is_open();
     }
     
-    int SetWngFile(std::string const& WngFileName)
-    {
-        if(msWngFile.is_open())
-            msWngFile.close();
-
-        msWngFile.open(WngFileName.c_str());
-
-        return msWngFile.is_open();
-    }
-    
-    int SetErrFile(std::string const& ErrFileName)
-    {
-        if(msErrFile.is_open())
-            msErrFile.close();
-
-        msErrFile.open(ErrFileName.c_str());
-
-        return msErrFile.is_open();
-    }
-    
     void SetPrintLogOnScreen(bool print) 
-    {
-        mPrintLogOnScreen = print;
-    }
-    
-    void SetPrintWngOnScreen(bool print) 
-    {
-        mPrintLogOnScreen = print;
-    }
-    
-    void SetPrintErrOnScreen(bool print) 
     {
         mPrintLogOnScreen = print;
     }
@@ -257,16 +219,6 @@ public:
     {
         return msLogFile;
     }
-    
-    std::ofstream& GetWngStream()
-    {
-        return msWngFile;
-    }
-    
-    std::ofstream& GetErrStream()
-    {
-        return msErrFile;
-    }
 
     ///@}
     ///@name Inquiry
@@ -276,40 +228,11 @@ public:
     ///@}
     ///@name Input and output
     ///@{
-      
-    //TODO: Ask Pooyna if we allow write of multiple lines or just a line per call
-      
-    template<typename T>
-    void WriteLog(const T& data) 
-    {
-        msLogFile << data;
-        
-        if(mPrintLogOnScreen)
-            std::cout << msLogFile;
-    }
-    
-    template<typename T>
-    void WriteWng(const T& data)
-    {
-        msWngFile << data;
-        
-        if(mPrintWngOnScreen)
-            std::cout << msWngFile;
-    }
-    
-    template<typename T>
-    void WriteErr(const T& data)
-    {
-        msErrFile << data;
-        
-        if(mPrintErrOnScreen)
-            std::cout << msErrFile;      
-    }
 
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "Log";
+        return "Kratos Logger";
     }
 
     /// Print information about this object.
@@ -373,13 +296,10 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static std::ofstream msLogFile;
-    static std::ofstream msWngFile;
-    static std::ofstream msErrFile;
+    std::ofstream msLogFile;
 
     bool mPrintLogOnScreen;
-    bool mPrintWngOnScreen;
-    bool mPrintErrOnScreen;
+    int  mSeverityLevel;
 
     ///@}
     ///@name Member Variables
@@ -395,7 +315,7 @@ private:
     ///@name Private Operations
     ///@{
 
-
+      
     ///@}
     ///@name Private  Access
     ///@{
@@ -413,6 +333,165 @@ private:
     ///@}
 
 }; // Class Log
+
+class Logger
+{
+public:
+  
+    /**
+     * Preamble for log output. This version should never be called.
+     * 
+     * @param file:     File where the function was called
+     * @param funct:    Function where the function was called
+     * @param line:     Line where the function was called
+     * @param severity: Severity of the error **TODO: To be removed?
+     **/
+    static Log& _stream(const char * file, const char * funct, int line, int severity)
+    {
+        Log& stream = Log::GetInstance();
+         
+        stream << "[" << CurrentDateTime() << "]:" << "MISSING_SEVERITY: " << "\':";
+        return stream;
+    }
+  
+    /**
+     * Preamble for log output. This version prints:
+     * 
+     * Timestamp
+     * Severity
+     * file
+     * line
+     * function
+     * 
+     * @param file:     File where the function was called
+     * @param funct:    Function where the function was called
+     * @param line:     Line where the function was called
+     * @param severity: Severity of the error **TODO: To be removed?
+     **/
+    static Log& KRATOS_ERROR_stream(const char * file, const char * funct, int line, int severity)
+    {
+        Log& stream = Log::GetInstance();
+          
+        stream << "[" << CurrentDateTime() << "]:" <<  "KRATOS_ERROR:" << file << ":" << line << " In function \'" << funct << "\':";
+        return stream;
+    }
+    
+    /**
+     * Preamble for log output. This version should never be called.
+     * 
+     * Timestamp
+     * Severity
+     * file
+     * line
+     * 
+     * @param file:     File where the function was called
+     * @param funct:    Function where the function was called
+     * @param line:     Line where the function was called
+     * @param severity: Severity of the error **TODO: To be removed?
+     **/ 
+    static Log& KRATOS_WARNING_stream(const char * file, const char * funct, int line, int severity)
+    {
+        Log& stream = Log::GetInstance();
+            
+        stream << "[" << CurrentDateTime() << "]:" <<  "KRATOS_WARNING:" << file << ":" << line << "\':";
+        return stream;
+    }
+    
+    /**
+     * Preamble for log output. This version should never be called.
+     * 
+     * Timestamp
+     * 
+     * @param file:     File where the function was called
+     * @param funct:    Function where the function was called
+     * @param line:     Line where the function was called
+     * @param severity: Severity of the error **TODO: To be removed?
+     **/
+    static Log& KRATOS_INFO_stream(const char * file, const char * funct, int line, int severity)
+    {
+        Log& stream = Log::GetInstance();
+         
+        stream << "[" << CurrentDateTime() << "]:";
+        return stream;
+    }
+    
+    /**
+     * Preamble for log output. This version should never be called.
+     * 
+     * Timestamp
+     * 
+     * @param file:     File where the function was called
+     * @param funct:    Function where the function was called
+     * @param line:     Line where the function was called
+     * @param severity: Severity of the error **TODO: To be removed?
+     **/
+    static Log& KRATOS_DEBUG_stream(const char * file, const char * funct, int line, int severity)
+    {
+        Log& stream = Log::GetInstance();
+        
+        stream << "[" << CurrentDateTime() << "]:";
+        return Log::GetInstance();
+    }
+    
+    /**
+     * Preamble for log output. This version print trace-level information
+     * 
+     * Timestamp
+     * Severity
+     * file
+     * line
+     * function
+     * 
+     * @param file:     File where the function was called
+     * @param funct:    Function where the function was called
+     * @param line:     Line where the function was called
+     * @param severity: Severity of the error **TODO: To be removed?
+     **/
+    static Log& KRATOS_TRACE_stream(const char * file, const char * funct, int line, int severity)
+    {
+        Log& stream = Log::GetInstance();
+        
+        stream << "[" << CurrentDateTime() << "]:" <<  "KRATOS_TRACE:" << file << ":" << line << " In function \'" << funct << "\':";
+        return stream;
+    }
+    
+private:
+  
+    /**
+     * Returns the current time in HH:MM:SS format
+     */
+    static const std::string CurrentDateTime() 
+    {
+        time_t     now = time(0);
+        struct tm  tstruct;
+        
+        char       buf[80];
+        tstruct = *localtime(&now);
+        
+        strftime(buf, sizeof(buf), "%X", &tstruct);
+
+        return buf;
+    }
+    
+    /**
+    * Returns the current time in the specified format
+    * @param format:    valid format for time. Please check: "http://www.cplusplus.com/reference/ctime/strftime/"
+    *                   for more details.
+    */
+    static const std::string CurrentDateTime(const char * format) 
+    {
+        time_t     now = time(0);
+        struct tm  tstruct;
+        
+        char       buf[80];
+        tstruct = *localtime(&now);
+        
+        strftime(buf, sizeof(buf), format, &tstruct);
+
+        return buf;
+    }
+  
+};
 
 ///@}
 
