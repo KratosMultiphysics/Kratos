@@ -80,7 +80,7 @@ namespace Kratos
 		Matrix DeformationGradient=identity_matrix<double>( dimension );
 
 		
-		//initialize to cero all skin master-nodes
+		//initialize to zero all skin master-nodes
 		for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(); ic!= rModelPart.ConditionsEnd(); ic++)
 		  {
 		    ic->SetValue(CAUCHY_STRESS_VECTOR,StressVector);
