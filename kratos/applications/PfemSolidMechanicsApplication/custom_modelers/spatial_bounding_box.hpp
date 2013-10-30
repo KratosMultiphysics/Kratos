@@ -18,7 +18,7 @@
 #include <cstddef>
 #include "includes/kratos_flags.h"
 #include "includes/model_part.h"
-#include "pfem_solid_mechanics_application.h"
+
 
 namespace Kratos
 {
@@ -49,13 +49,59 @@ namespace Kratos
 class SpatialBoundingBox
 {
 public:
+
+  typedef Vector              TPointType;
+  
+  
+protected:
+
+  typedef struct
+  {
+    double Radius;         //tool tip radius
+    double RakeAngle;      //top angle,    from vertical axis
+    double ClearanceAngle; //bottom angle, from the horizontal axis
+      
+    double m_factor;       //cotan(RakeAngle) == 1/tan(RakeAngle) == tan((pi/2)-RakeAngle)
+    double n_factor;       //tan(ClearanceAngle)
+    
+    TPointType  HighPoint;      // box highest point
+    TPointType  LowPoint;       // box lowest point
+
+    TPointType  OriginalCenter; // center original position
+    TPointType  Center;         // center current position
+    TPointType  Velocity;       // velocity, expressed on the center velocity
+    
+  public:
+    
+    void clear()
+    {
+      Radius = 0;
+      RakeAngle = 0;
+      ClearanceAngle = 0;
+      
+      m_factor = 0;
+      n_factor = 0;
+
+      HighPoint.clear();
+      LowPoint.clear();
+
+      OriginalCenter.clear();
+      Center.clear();
+      Velocity.clear();
+    }
+
+
+  } BoundingBoxVariables;
+
+
+
+public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of SpatialBoundingBox
     KRATOS_CLASS_POINTER_DEFINITION(SpatialBoundingBox);
 
-    typedef Vector TPointType;
 
 
     ///@}
@@ -63,50 +109,85 @@ public:
     ///@{
 
     /// Default constructor.
-    SpatialBoundingBox() : mHighPoint(), mLowPoint()
+    SpatialBoundingBox()
     {
-        std::cout<< "Calling empty constructor" <<std::endl;
+      mBox.clear();
+      std::cout<< "Calling empty constructor" <<std::endl;
     }
 
-    SpatialBoundingBox(const TPointType& Point) :  mHighPoint(Point), mLowPoint(Point)
+    SpatialBoundingBox(const TPointType& rPoint)
     {
+      mBox.clear();
+      mBox.HighPoint = rPoint;
+      mBox.LowPoint  = rPoint;
     }
 
-    SpatialBoundingBox(const TPointType& LowPoint, const TPointType& HighPoint ) :  mHighPoint(HighPoint), mLowPoint(LowPoint)
+    SpatialBoundingBox(const TPointType& rLowPoint, const TPointType& rHighPoint )
     {
-      mCenter = 0.5 *( HighPoint + LowPoint );
-      mRadius = 0.5 * norm_2(HighPoint-LowPoint);   
+
+      mBox.clear();
+      mBox.HighPoint = rHighPoint;
+      mBox.LowPoint  = rLowPoint;
+
+      mBox.Center = 0.5 *( rHighPoint + rLowPoint );
+
+      mBox.Radius = 0.5 * norm_2(rHighPoint-rLowPoint);   
     }
 
-    SpatialBoundingBox(const TPointType& Center, const double& Radius) :  mCenter(Center), mRadius(Radius)
+    SpatialBoundingBox(const TPointType& rCenter, const double& rRadius)
     {
+
+      mBox.clear();     
+      mBox.Center = rCenter;
+      mBox.Radius = rRadius;
+
       TPointType Side;
-      Side[0] = mRadius;
-      Side[1] = mRadius;
+      Side[0] = mBox.Radius;
+      Side[1] = mBox.Radius;
 
-      if(Center.size()>2)
-	Side[2] = mRadius;
+      if(rCenter.size()>2)
+	Side[2] = mBox.Radius;
 
-      mHighPoint = Center + Side;
-      mLowPoint  = Center - Side;
+      mBox.HighPoint = rCenter + Side;
+      mBox.LowPoint  = rCenter - Side;
     }
 
-    SpatialBoundingBox(const TPointType& Center, const double& Radius, const TPointType& Velocity) :  mCenter(Center), mRadius(Radius), mVelocity(Velocity)
+    SpatialBoundingBox(const TPointType& rCenter, const double& rRadius, const TPointType& rVelocity)
     {
-      TPointType Side(Center.size());
-      Side[0] = 1.8 * mRadius;
-      Side[1] = mRadius;
+      mBox.clear();     
+      mBox.Center   = rCenter;
+      mBox.Radius   = rRadius;
+      mBox.Velocity = rVelocity;
 
-      if(Center.size()>2)
-	Side[2] = 1.8 * mRadius;
+      TPointType Side(rCenter.size());
+      Side[0] = 1.8 * mBox.Radius;
+      Side[1] = mBox.Radius;
 
-      mHighPoint = Center + Side;
-      mLowPoint  = Center - Side;
+      if(rCenter.size()>2)
+	Side[2] = 1.8 * mBox.Radius;
+
+      mBox.HighPoint = rCenter + Side;
+      mBox.LowPoint  = rCenter - Side;
 
     }
 
 
-   SpatialBoundingBox(ModelPart &rModelPart,const double& Radius)
+    SpatialBoundingBox( double Radius,
+			double RakeAngle,
+			double ClearanceAngle,
+			TPointType  Center,
+			TPointType  Velocity)
+    {
+      mBox.clear();
+      mBox.Radius         = Radius;
+      mBox.RakeAngle      = RakeAngle;
+      mBox.ClearanceAngle = ClearanceAngle; 
+      mBox.Center         = Center;
+      mBox.Velocity       = Velocity;
+    }
+
+
+   SpatialBoundingBox(ModelPart &rModelPart,const double& rRadius)
     {
       
       double max=9.999999999999999e300;
@@ -149,22 +230,38 @@ public:
 	} 
       }
     
-      mCenter = 0.5*(Maximum+Minimum);
-      mRadius = Radius + 0.5*(Maximum[0]-Minimum[0]);
+      mBox.Center = 0.5*(Maximum+Minimum);
+      mBox.Radius = rRadius + 0.5*(Maximum[0]-Minimum[0]);
 
-      mVelocity = ZeroVector(3);
+      mBox.Velocity = ZeroVector(3);
 
       TPointType Side(dimension);
-      Side[0] = mRadius;
-      Side[1] = mRadius;
+      Side[0] = mBox.Radius;
+      Side[1] = mBox.Radius;
 
       if(dimension>2)
-	Side[2] = mRadius;
+	Side[2] = mBox.Radius;
 
-      mHighPoint = mCenter + Side;
-      mLowPoint  = mCenter - Side;
+      mBox.HighPoint = mBox.Center + Side;
+      mBox.LowPoint  = mBox.Center - Side;
 
     }
+
+
+    /// Assignment operator.
+    virtual SpatialBoundingBox& operator=(SpatialBoundingBox const& rOther)
+    {
+        mBox = rOther.mBox;
+        return *this;
+    }
+
+
+    /// Copy constructor.
+    SpatialBoundingBox(SpatialBoundingBox const& rOther) 
+    :mBox(rOther.mBox)
+    {
+    }
+
 
     /// Destructor.
     virtual ~SpatialBoundingBox() {};
@@ -179,30 +276,30 @@ public:
     ///@name Operations
     ///@{
 
-    bool IsInside (const TPointType& Point, double & CurrentTime)
+    virtual bool IsInside (const TPointType& rPoint, double& rCurrentTime)
     {
       bool inside = true;
 
-      TPointType Reference = mCenter + mVelocity * CurrentTime;
+      TPointType Reference = mBox.Center + mBox.Velocity * rCurrentTime;
       
-      if(norm_2((Reference-Point)) > 2 * mRadius)
+      if(norm_2((Reference-rPoint)) > 2 * mBox.Radius)
 	inside = false;
 
-      Reference = mHighPoint + mVelocity * CurrentTime;
+      Reference = mBox.HighPoint + mBox.Velocity * rCurrentTime;
 
-      for(unsigned int i=0; i<mCenter.size(); i++)
+      for(unsigned int i=0; i<mBox.Center.size(); i++)
 	{
-	  if(Reference[i]<Point[i]){
+	  if(Reference[i]<rPoint[i]){
 	    inside = false;
 	    break;
 	  }
 	}
 
-      Reference = mLowPoint + mVelocity * CurrentTime;
+      Reference = mBox.LowPoint + mBox.Velocity * rCurrentTime;
 
-      for(unsigned int i=0; i<mCenter.size(); i++)
+      for(unsigned int i=0; i<mBox.Center.size(); i++)
 	{
-	  if(Reference[i]>Point[i]){
+	  if(Reference[i]>rPoint[i]){
 	    inside = false;
 	    break;
 	  }
@@ -212,51 +309,64 @@ public:
       return inside;
     }
 
+
+
+    virtual bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent)
+    {
+      std::cout<< "Calling empty method" <<std::endl;
+      return false;
+    }
+
     ///@}
     ///@name Access
     ///@{
 
-    void Set(const TPointType& LowPoint, const TPointType& HighPoint)
+    void Set(const TPointType& rLowPoint, const TPointType& rHighPoint)
     {
-        mLowPoint  = LowPoint;
-        mHighPoint = HighPoint;
+        mBox.LowPoint  = rLowPoint;
+        mBox.HighPoint = rHighPoint;
     }
 
     TPointType const& HighPoint() const
     {
-        return mHighPoint;
+        return mBox.HighPoint;
     }
 
 
     TPointType& HighPoint()
     {
-        return mHighPoint;
+        return mBox.HighPoint;
     }
 
     TPointType const& LowPoint() const
     {
-        return mLowPoint;
+        return mBox.LowPoint;
     }
 
 
     TPointType& LowPoint()
     {
-        return mLowPoint;
+        return mBox.LowPoint;
     }
 
     TPointType& Center()
     {
-        return mCenter;
+        return mBox.Center;
+    }
+
+    TPointType& OriginalCenter()
+    {
+        return mBox.OriginalCenter;
     }
 
     double  Radius()
     {
-        return mRadius;
+        return mBox.Radius;
     }
 
     TPointType& Velocity()
     {
-        return mVelocity;
+        return mBox.Velocity;
     }
 
     /// Compute inside holes
@@ -295,14 +405,14 @@ public:
 
 
     /// Compute vertices
-    std::vector<TPointType > GetVertices(double & CurrentTime)
+    std::vector<TPointType > GetVertices(double& rCurrentTime)
     {
     
       std::vector<TPointType> vertices;
 
-      TPointType Reference = mHighPoint + mVelocity * CurrentTime;
+      TPointType Reference = mBox.HighPoint + mBox.Velocity * rCurrentTime;
       
-      double Side =  2.0 * (mHighPoint[0] - mCenter[0]);
+      double Side =  2.0 * (mBox.HighPoint[0] - mBox.Center[0]);
 
       //point 1
       vertices.push_back(Reference);
@@ -323,9 +433,9 @@ public:
       vertices.push_back(Reference);
       
 
-      if( mCenter.size() > 2){
+      if( mBox.Center.size() > 2){
 
-	Reference = mLowPoint + mVelocity * CurrentTime;
+	Reference = mBox.LowPoint + mBox.Velocity * rCurrentTime;
 	
 	//point 5
 	vertices.push_back(Reference);
@@ -349,29 +459,6 @@ public:
 
       return vertices;
            
-    }
-
-
-    /// Assignment operator.
-    SpatialBoundingBox& operator=(SpatialBoundingBox const& rOther)
-    {
-        mHighPoint = rOther.mHighPoint;
-        mLowPoint  = rOther.mLowPoint;
-	mCenter    = rOther.mCenter;
-	mRadius    = rOther.mRadius;
-	mVelocity  = rOther.mVelocity;
-        return *this;
-    }
-
-
-    /// Copy constructor.
-    SpatialBoundingBox(SpatialBoundingBox const& rOther) :
-        mHighPoint(rOther.mHighPoint),
-        mLowPoint(rOther.mLowPoint),
-	mCenter(rOther.mCenter),
-	mRadius(rOther.mRadius),
-	mVelocity(rOther.mVelocity)
-    {
     }
 
 
@@ -400,7 +487,7 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-        rOStream << mHighPoint << " , " << mLowPoint;
+        rOStream << mBox.HighPoint << " , " << mBox.LowPoint;
     }
 
     ///@}
@@ -419,6 +506,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
+    BoundingBoxVariables mBox;
 
     ///@}
     ///@name Protected Operators
@@ -455,13 +543,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    TPointType mHighPoint;
-    TPointType mLowPoint;
-
-    TPointType mCenter;
-    double     mRadius;
-
-    TPointType mVelocity;
   
     ///@}
     ///@name Private Operators

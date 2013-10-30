@@ -23,6 +23,7 @@
 #include "custom_processes/elemental_neighbours_search_process.hpp"
 #include "custom_processes/nodal_neighbours_search_process.hpp"
 #include "custom_processes/boundary_skin_build_process.hpp"
+#include "custom_processes/rigid_wall_contact_search_process.hpp"
 
 namespace Kratos
 {

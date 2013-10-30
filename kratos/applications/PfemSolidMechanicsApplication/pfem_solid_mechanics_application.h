@@ -36,6 +36,8 @@
 #include "custom_conditions/axisym_contact_domain_LM_2D_condition.hpp"
 #include "custom_conditions/axisym_contact_domain_penalty_2D_condition.hpp"
 
+#include "custom_conditions/point_rigid_contact_penalty_2D_condition.hpp"
+
 //elements
 
 //constitutive laws

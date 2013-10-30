@@ -46,7 +46,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of TriGenCDT
+    /// Pointer definition of ContactDomainUtilities
     KRATOS_CLASS_POINTER_DEFINITION(ContactDomainUtilities);
 
     KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );

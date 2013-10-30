@@ -1,6 +1,6 @@
 # Activate it to import in the gdb path:
-import sys
-sys.path.append('/home/jmaria/kratos')
+#import sys
+#sys.path.append('/home/jmaria/kratos')
 #x = raw_input("stopped to allow debug: set breakpoints and press enter to continue");
 
 ##################################################################
