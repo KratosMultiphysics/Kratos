@@ -995,13 +995,13 @@ proc ::KFun::buildFrame { T item } {
 		
 		set ::KFun::cmb$idFrame $dv
 		
-		bind $f.cmb <Leave> "::KFun::cmbSelectChange $T $xml $item 0 current"
-		bind $f.cmb <FocusOut> "::KFun::cmbSelectChange $T $xml $item 1 current"
-		bind $f.cmb <Escape> "::KFun::cmbCancel $T $xml $xpath $item $idFrame"
+	    bind $f.cmb <Leave> [list ::KFun::cmbSelectChange $T $xml $item 0 current]
+	    bind $f.cmb <FocusOut> [list ::KFun::cmbSelectChange $T $xml $item 1 current]
+	    bind $f.cmb <Escape> [list ::KFun::cmbCancel $T $xml $xpath $item $idFrame]
 	}
 	# Si pulsan intro o Esc también forzamos la salida del combo
-	bind $f.cmb <KeyPress> "if { %k == 13  } { ::KFun::cmbSelectChange $T $xml $item 1 current}"
-	bind $T <KeyPress> "if { %k == 27   } { [list ::KFun::cmbCancel $T $xml $xpath $item $idFrame] }"
+	bind $f.cmb <Return> [list ::KFun::cmbSelectChange $T $xml $item 1 current]
+	bind $T <Escape> [list ::KFun::cmbCancel $T $xml $xpath $item $idFrame]
 	
 	tooltip::tooltip $f.cmb "$tooltip"
 	

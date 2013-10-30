@@ -176,8 +176,8 @@ proc ::KCurves::CreateTreeProperties {w} {
     # Notify bind
     # TODO
 
-    #		$T notify bind DragTag <Drag-receive> { ::KMProps::ReceiveDragGroups  %T %l %I }
-    $T notify bind EditTag <Edit-accept> { ::KCurves::SetCurveToRename %T %I %t }
+    #		$T notify bind DragTag <Drag-receive> [list ::KMProps::ReceiveDragGroups  %T %l %I]
+    $T notify bind EditTag <Edit-accept> [list ::KCurves::SetCurveToRename %T %I %t]
 
     #bind $T <Button-1> [list ::KCurves::ClickTree %x %y $T]
     bind $T <Double-Button-1> [list ::KCurves::DoubleClickTree %x %y $T]
@@ -734,18 +734,18 @@ proc ::KCurves::buildFrame { T item } {
 		    
 		    ::xmlutils::setComboValue $::KCurves::xml $xpath $f.cmb $value
 
-		    bind $f.cmb <<ComboboxSelected>> "::KCurves::cmbSelectChange $item $T 0"
+		    bind $f.cmb <<ComboboxSelected>> [list ::KCurves::cmbSelectChange $item $T 0]
 		} else {
 		    grid [ttk::combobox $f.cmb -state normal -textvariable "::KCurves::cmb$idFull"] \
 			-row 0 -column 0 -padx 3 -sticky nw -in $f
 		    set ::KCurves::cmb$idFull $value
-		    bind $f.cmb <FocusOut> "::KCurves::cmbSelectChange $item $T 0 "
-		    bind $f.cmb <Escape> "::KCurves::cmbCancel $item $T"
-            bind $f.cmb  <<ComboboxSelected>> "::KCurves::cmbSelectChange $item $T 0"
+		    bind $f.cmb <FocusOut> [list ::KCurves::cmbSelectChange $item $T 0]
+		    bind $f.cmb <Escape> [list ::KCurves::cmbCancel $item $T]
+		    bind $f.cmb  <<ComboboxSelected>> [list ::KCurves::cmbSelectChange $item $T 0]
 		}
         
 		# Si pulsan intro también forzamos la salida del combo
-		bind $f.cmb <KeyPress> "if { %k == 13  } { ::KCurves::cmbSelectChange $item $T 1 }"
+		bind $f.cmb <Return> [list KCurves::cmbSelectChange $item $T 1]
 		return $f		  
 	} elseif { [::KMProps::itemType $fullname] == "t"} {
 		# Si es el conjunto de puntos, lanzamos la ventana de edicion de puntos

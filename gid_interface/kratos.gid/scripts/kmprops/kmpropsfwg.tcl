@@ -214,7 +214,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 		                tooltip::tooltip $fTab.cmb$id [= $tooltip]
 		                
 		                if {$id == "Ax" || $id == "Ay" || $id == "Az"} {
-		                    bind $fTab.cmb$id <<ComboboxSelected>> "::KMProps::cmbDisable $fullname $f.nb $id"
+		                    bind $fTab.cmb$id <<ComboboxSelected>> [list ::KMProps::cmbDisable $fullname $f.nb $id]
 		                    set activation 1
 		                }
 		                ::xmlutils::setComboDv $fTab.cmb$id $fullname $dv $idTemplate 
@@ -392,7 +392,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 	#if { [llength $filterGroups] > 0 } {
 	#    $fg.cGroups current 0
 	#}
-	bind $fg.cGroups <<ComboboxSelected>> "::KMProps::cmbChangeCheckGroups $fg"
+	bind $fg.cGroups <<ComboboxSelected>> [list ::KMProps::cmbChangeCheckGroups $fg]
 	
 	# BOTON A LA DERECHA DE LOS GRUPOS (CREAR GRUPO AUTOMATICAMENTE)
 
@@ -435,7 +435,7 @@ proc ::KMProps::buildGroupsFrame { T idTemplate item fullname} {
 	grid rowconfigure $f {0 1 2 3} -weight 1
     }
     
-    bind $T <KeyPress> "if { %k == 27   } { ::KMProps::DestroyBottomFrame }"
+    bind $T <Escape> [list ::KMProps::DestroyBottomFrame]
 }
 
 proc ::KMProps::unassignFunction { f id fullname } {
@@ -779,12 +779,12 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 
 		                # En este caso se tendrá qué recargar si existe el combo de "Material Model"
 		                if { $id == "ElemType" } {
-		                    bind $cbpath <<ComboboxSelected>> "::KMProps::cmbElemTypeChange $cbpath $idContainer//$id $idTemplate"
+		                    bind $cbpath <<ComboboxSelected>> [list ::KMProps::cmbElemTypeChange $cbpath $idContainer//$id $idTemplate]
 		                }
 
 		                # Get the section type
 		                if {$id eq "SectionType"} {
-		                    bind $cbpath <<ComboboxSelected>> "::KMProps::cmbSectionTypeChange $cbpath $idContainer//$id $idTemplate"
+		                    bind $cbpath <<ComboboxSelected>> [list ::KMProps::cmbSectionTypeChange $cbpath $idContainer//$id $idTemplate]
 		                }
 
 		            } else {
@@ -869,7 +869,7 @@ proc ::KMProps::buildPropertyFrame { T idTemplate item fullname } {
 	-row 3 -column 0 -sticky nw  -pady 3 -padx 100  -in $f
     tooltip::tooltip $f.bBottomCancel [= "Cancel the defined properties"]
 
-    bind $T <KeyPress> "if { %k == 27   } { ::KMProps::DestroyBottomFrame }"
+    bind $T <Escape> [list ::KMProps::DestroyBottomFrame]
 
 }
 
@@ -1130,7 +1130,7 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 
 
 
-		bind $fTab.cGroups <<ComboboxSelected>> "::KMProps::cmbChangeCheckGroups $fTab"
+		bind $fTab.cGroups <<ComboboxSelected>> [list ::KMProps::cmbChangeCheckGroups $fTab]
 		######################
 	    }
 
@@ -1206,13 +1206,13 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 
 		            if {$id == "Ax" || $id == "Ay" || $id == "Az"} {
 		                ::KMProps::cmbDisable $fullname $f.nb
-		                bind $fTab.cmb$id <<ComboboxSelected>> "::KMProps::cmbDisable $fullname $f.nb"
+		                bind $fTab.cmb$id <<ComboboxSelected>> [list ::KMProps::cmbDisable $fullname $f.nb]
 		            } elseif {$id eq "ElemType" } {
 		                # En este caso se tendrá qué recargar si existe el combo de "Material Model"
-		                bind $cbpath <<ComboboxSelected>> "::KMProps::cmbElemTypeChange $cbpath $fullname"
+		                bind $cbpath <<ComboboxSelected>> [list ::KMProps::cmbElemTypeChange $cbpath $fullname]
 		            } elseif {$id eq "SectionType" } {
 		                # Update the section type combobox
-		                bind $cbpath <<ComboboxSelected>> "::KMProps::cmbSectionTypeChange $cbpath $fullname"
+		                bind $cbpath <<ComboboxSelected>> [list ::KMProps::cmbSectionTypeChange $cbpath $fullname]
 		            }
 
 		        } else {
@@ -1310,9 +1310,9 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 	}
 	
 	# Si pulsan Esc también forzamos la salida del Tab
-	bind $T <KeyPress> "if { %k == 27   } { ::KMProps::DestroyBottomFrame }"
-	#bind $T <KeyPress> "if { %k == 13   } {  [list ::KMProps::acceptTabFrame $T $acceptItems $class $item] }"
-	#bind $::KMProps::WinPath <KeyPress> "if { %k == 13   } { [list ::KMProps::acceptTabFrame $T $acceptItems $class $item] }"
+	bind $T <Ecape> [list ::KMProps::DestroyBottomFrame]
+	#bind $T <Return> [list ::KMProps::acceptTabFrame $T $acceptItems $class $item]
+	#bind $::KMProps::WinPath <Return> [list ::KMProps::acceptTabFrame $T $acceptItems $class $item]
 
 	if { [llength $acceptItems] } {
 	    # First remove the button widget if it exists
@@ -1381,7 +1381,7 @@ proc ::KMProps::buildFrame { T item { type "props" } } {
 	    #set selected [::xmlutils::getSelected $dv $comboList]
 	    #$f.cmb current $selected
 	    
-	    bind $f.cmb <<ComboboxSelected>> "::KMProps::cmbSelectChange $item $T 1 current"
+	    bind $f.cmb <<ComboboxSelected>> [list ::KMProps::cmbSelectChange $item $T 1 current]
 	} else {
 	    
 	    grid [ttk::combobox $f.cmb -state normal -values $values -textvariable "::KMProps::cmb$idFull" -width [::KMProps::getCmbWidth $comboList]] \
@@ -1389,13 +1389,13 @@ proc ::KMProps::buildFrame { T item { type "props" } } {
 	    
 	    set ::KMProps::cmb$idFull $dv
 	    
-	    bind $f.cmb <Leave> "::KMProps::cmbSelectChange $item $T 0 current"
-	    bind $f.cmb <FocusOut> "::KMProps::cmbSelectChange $item $T 1 current"
-	    bind $f.cmb <Escape> "::KMProps::cmbCancel $item $T"
+	    bind $f.cmb <Leave> [list ::KMProps::cmbSelectChange $item $T 0 current]
+	    bind $f.cmb <FocusOut> [list ::KMProps::cmbSelectChange $item $T 1 current]
+	    bind $f.cmb <Escape> [list ::KMProps::cmbCancel $item $T]
 	}
 	# Si pulsan intro o Esc también forzamos la salida del combo
 	bind $f.cmb <Return> [list ::KMProps::cmbSelectChange $item $T 1 current]
-	bind $T <KeyPress> "if { %k == 27   } { ::KMProps::cmbCancel $item $T }"
+	bind $T <Escape> [list ::KMProps::cmbCancel $item $T]
 	
 	tooltip::tooltip $f.cmb "$tooltip"
 	
