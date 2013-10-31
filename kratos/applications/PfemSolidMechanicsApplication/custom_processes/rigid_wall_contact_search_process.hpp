@@ -118,6 +118,8 @@ public:
       //Create Rigid Contact Conditions
       int MeshId = 0;
       int id = mrModelPart.Conditions(MeshId).back().Id() + 1;
+
+      mConditionsNumber =  mrModelPart.Conditions(MeshId).size();
       
       for ( ModelPart::NodesContainerType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
 	{
@@ -128,7 +130,12 @@ public:
 
 	  }
 
-	  if((*nd)->Is(BOUNDARY)){
+	  Vector Point;
+	  Point[0] = (*nd)->X();
+	  Point[1] = (*nd)->Y();
+	  Point[2] = (*nd)->Z();
+
+	  if( (*nd)->Is(BOUNDARY) && mpRigidWall->IsInside(Point,Time) ){
 	    
 	    int number_properties = mrModelPart.NumberOfProperties();
 	    PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(number_properties-1);
@@ -160,17 +167,12 @@ public:
       ProcessInfo& CurrentProcessInfo= mrModelPart.GetProcessInfo();
       double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 
-      int id = 0;
       for ( ModelPart::NodesContainerType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
 	{
 	  if((*nd)->FastGetSolutionStepValue(RIGID_WALL)==true){
 	  
 	    (*nd)->FastGetSolutionStepValue(DISPLACEMENT) += mpRigidWall->Velocity() * DeltaTime;
 	    
-	  }
-	  
-	  if((*nd)->Is(BOUNDARY)){
-	    id +=1;
 	  }
 	    
 	}
@@ -180,29 +182,15 @@ public:
       ModelPart::ConditionsContainerType NonRigidContactConditions;
 	    
       int MeshId = 0;
-      unsigned int ConditionId = 0;
-      for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsEnd(MeshId); ic!= mrModelPart.ConditionsBegin(MeshId); ic--)
-	{
-	  if(id == 0){
-	    ConditionId = ic->Id();
-	    break;
-	  }
-	  
-	  id -=1;
-	}
-   
-
+      unsigned int id=0;
       for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(MeshId); ic!= mrModelPart.ConditionsEnd(MeshId); ic++)
 	{
-	  
-	  GeometryType& r_geometry = ic->GetGeometry();
-	  if(r_geometry.size()>1)
-	    {
-	      NonRigidContactConditions.push_back(*(ic.base()));
-	    }
-	  
-	  if( ConditionId == ic->Id() )
+	  if( id == mConditionsNumber )
 	    break;
+	  
+	  NonRigidContactConditions.push_back(*(ic.base()));  
+
+	  id +=1;
 	}
     
       mrModelPart.Conditions(MeshId).swap( NonRigidContactConditions );
@@ -281,6 +269,8 @@ private:
     ModelPart&  mrModelPart;
 
     SpatialBoundingBox::Pointer mpRigidWall;
+
+    unsigned int mConditionsNumber;
 
     ///@}
     ///@name Un accessible methods

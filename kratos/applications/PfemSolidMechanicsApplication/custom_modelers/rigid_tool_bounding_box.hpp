@@ -139,6 +139,8 @@ public:
     {
       bool is_inside = false;
 
+      this->mBox.Radius *= 2; //increase the bounding box 
+
       switch( ContactSearch(rPoint) )
 	{
 	  
@@ -158,6 +160,8 @@ public:
 	  is_inside = false;
 	  break;
 	}
+
+      this->mBox.Radius *= 0.5; //restore the bounding box
 
       return is_inside;
       
