@@ -19,6 +19,16 @@
 // External includes
 #include "spatial_containers/spatial_search.h"
 
+/* Timer defines */
+#include "utilities/timer.h"
+#ifdef CUSTOMTIMER
+#define KRATOS_TIMER_START(t) Timer::Start(t);
+#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
+#else
+#define KRATOS_TIMER_START(t)
+#define KRATOS_TIMER_STOP(t)
+#endif
+
 namespace Kratos
 {
 
@@ -44,6 +54,86 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
+
+template<std::size_t dim, class T>
+class PointDistance2
+{
+    public:
+        inline double operator()( T const& p1, T const& p2 )
+        {
+            double dist = 0.0;
+            
+            double tmp1 = p1[0] - p2[0];
+            double tmp2 = p1[1] - p2[1];
+            double tmp3 = p1[2] - p2[2];
+                
+            dist += tmp1*tmp1 + tmp2*tmp2 + tmp3*tmp3;
+
+//             dist = sqrt(dist) - p2.radius - p1.radius;
+            
+            return dist;
+        }
+};
+
+template<std::size_t Dimension>
+class RadiusPoint
+{
+    public:
+      RadiusPoint() {}
+      virtual ~RadiusPoint(){}
+      
+      void Initialize(SpatialSearch::ElementPointerType baseElem)
+      {
+          for(std::size_t i = 0; i < Dimension; i++)
+              coord[i] = baseElem->GetGeometry()[0][i];
+          
+          pNaseElem = baseElem;
+          
+//           mRadius = baseElem->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+      }
+      
+      void Initialize(SpatialSearch::ElementPointerType baseElem, double Radius)
+      {
+          for(std::size_t i = 0; i < Dimension; i++)
+              coord[i] = baseElem->GetGeometry()[0][i];
+          
+          pNaseElem = baseElem;
+          
+//           mRadius = Radius;
+      }
+  
+    public:
+      
+      double       mRadius;
+      
+      double       coord[Dimension];
+      
+      double       & operator[](std::size_t i)       {return coord[i];}
+      double const & operator[](std::size_t i) const {return coord[i];}
+      
+      SpatialSearch::ElementPointerType pNaseElem;
+
+      void operator=(Point<Dimension> const& Other){
+         for(std::size_t i = 0; i < Dimension; i++)
+            coord[i] = Other.coord[i];
+      }
+};
+
+template< std::size_t Dimension >
+std::ostream & operator<<( std::ostream& rOut, RadiusPoint<Dimension> & rPoint){
+   for(std::size_t i = 0 ; i < Dimension ; i++)
+      rOut << rPoint[i] << " "; 
+   return rOut; 
+};
+
+template< std::size_t Dimension >
+std::istream & operator>>( std::istream& rIn, RadiusPoint<Dimension> & rPoint){
+   for(std::size_t i = 0 ; i < Dimension ; i++)
+      rIn >> rPoint[i];
+   
+   return rIn; 
+};
+
 template< class TDerived >
 class DEMSearch : public SpatialSearch
 {
@@ -53,16 +143,26 @@ class DEMSearch : public SpatialSearch
     
       /// Pointer definition of DEMSearch
       KRATOS_CLASS_POINTER_DEFINITION(DEMSearch);
+      
+      typedef RadiusPoint<Dimension>        PointType;
+      typedef PointType*                    PtrPointType;
+      typedef std::vector<PtrPointType>*    PointVector;
+      
+      PointVector       searchPoints;
     
       ///@}
       ///@name Life Cycle 
       ///@{
       
       /// Default constructor.
-      DEMSearch(){}
+      DEMSearch(){
+        searchPoints = new std::vector<PtrPointType>(0);
+      }
 
       /// Destructor.
-      virtual ~DEMSearch(){}
+      virtual ~DEMSearch(){
+        delete searchPoints;
+      }
       
 
       ///@}
@@ -148,6 +248,46 @@ class DEMSearch : public SpatialSearch
           VectorResultNodesContainerType& rResults )
       {
           static_cast<TDerived*>(this)->SearchNodesInRadiusInclusiveImplementation(StructureNodes,InputNodes,Radius,rResults);
+      }
+    
+      void SearchConditionsOverElementsInRadiusExclusive (
+          ElementsContainerType const& StructureElements,
+          ConditionsContainerType const& InputConditions,
+          const RadiusArrayType & Radius,
+          VectorResultConditionsContainerType& rResults,
+          VectorDistanceType& rResultsDistance )
+      {     
+          static_cast<TDerived*>(this)->SearchGeometricalInRadiusExclusiveImplementation(StructureElements,InputConditions,Radius,rResults,rResultsDistance);
+      }
+      
+      void SearchConditionsOverElementsInRadiusInclusive (
+          ElementsContainerType const& StructureElements,
+          ConditionsContainerType const& InputConditions,
+          const RadiusArrayType & Radius,
+          VectorResultConditionsContainerType& rResults,
+          VectorDistanceType& rResultsDistance )
+      {     
+          static_cast<TDerived*>(this)->SearchGeometricalInRadiusInclusiveImplementation(StructureElements,InputConditions,Radius,rResults,rResultsDistance);
+      }  
+      
+      void SearchElementsOverConditionsInRadiusExclusive (
+          ConditionsContainerType const& StructureElements,
+          ElementsContainerType const& InputElements,
+          const RadiusArrayType & Radius,
+          VectorResultElementsContainerType& rResults,
+          VectorDistanceType& rResultsDistance )
+      {     
+          static_cast<TDerived*>(this)->SearchGeometricalInRadiusExclusiveImplementation(StructureElements,InputElements,Radius,rResults,rResultsDistance);
+      }
+      
+      void SearchElementsOverConditionsInRadiusInclusive (
+          ConditionsContainerType const& StructureElements,
+          ElementsContainerType const& InputElements,
+          const RadiusArrayType & Radius,
+          VectorResultElementsContainerType& rResults,
+          VectorDistanceType& rResultsDistance )
+      {     
+          static_cast<TDerived*>(this)->SearchGeometricalInRadiusInclusiveImplementation(StructureElements,InputElements,Radius,rResults,rResultsDistance);
       }
         
       ///@}

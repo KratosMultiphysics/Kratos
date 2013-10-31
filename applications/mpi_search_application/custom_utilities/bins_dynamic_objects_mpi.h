@@ -401,8 +401,13 @@ public:
                 }
             }
         }
+        
+        for(int i = 0; i < mpi_size; i++) 
+        { 
+            std::cout << "SendObjectToProcess: " << SendObjectToProcess[i].size() << std::endl;
+        }
 
-        TConfigure::TransferObjects(Communicator,SendObjectToProcess,SearchPetitions);
+        TConfigure::TransferObjects(Communicator.GhostMesh(),SendObjectToProcess,SearchPetitions,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
         TConfigure::TransferObjects(SendRadiusToProcess,SearchPetitionsRadius);
 
         Communicator::NeighbourIndicesContainerType communicator_ranks = Communicator.NeighbourIndices();
@@ -410,6 +415,8 @@ public:
         //Calculate remote points
         for(int i = 0; i < mpi_size; i++) 
         { 
+            std::cout << "Search Petition: " << SearchPetitions[i].size() << std::endl;
+            
             int NumberOfRanks = Communicator.GetNumberOfColors();
             if(i != mpi_rank)
             {
@@ -456,17 +463,26 @@ public:
 
                 NumberOfSendPoints[i] = accum_results;
             }
+            
+            std::cout << "Remote results: " << remoteResults[i].size() << std::endl;
         }
 
-        TConfigure::TransferObjects(Communicator,remoteResults,SearchResults);
+        TConfigure::TransferObjects(Communicator.GhostMesh(),remoteResults,SearchResults,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
         TConfigure::TransferObjects(SendResultsPerPoint,RecvResultsPerPoint);
 
         for(int i = 0; i < mpi_size; i++) //for all ranks
         {
+            int NumberOfRanks = Communicator.GetNumberOfColors();
             if(i != mpi_rank) //not being myself
             {
                 int ParticleCounter = 0;
                 int ResultCounter = 0;
+                
+                int origin = -1;
+
+                for(int j = 0; j < NumberOfRanks; j++)
+                    if(i == communicator_ranks[j])
+                        origin = j;
                 
                 for(size_t j = 0; j < NumberOfObjects; j++)
                 { 
@@ -481,6 +497,9 @@ public:
                             TConfigure::Distance((*itrObject),(SearchResults[i].GetContainer())[ResultCounter],dist);
                             ResultsDistances[j][NumberOfResults[j]] = dist;         
                             NumberOfResults[j]++;
+                            
+                            Communicator.GhostMesh(origin).Elements().push_back((SearchResults[i].GetContainer())[ResultCounter]);
+                            Communicator.GhostMesh(origin).Nodes().push_back((SearchResults[i].GetContainer())[ResultCounter]->GetGeometry()(0));
                             
                             ResultCounter++;
                         }

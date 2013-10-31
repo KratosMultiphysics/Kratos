@@ -17,6 +17,7 @@ set( KRATOS_CORE_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/containers/variables_list_data_value_container.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/mmio.c;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/timer.cpp;
+ 	${CMAKE_CURRENT_SOURCE_DIR}/sources/log.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/serializer.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/kernel.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/includes/constitutive_law.cpp;
@@ -67,7 +68,7 @@ set( KRATOS_PYTHON_SOURCES
 
 ###############################################################
 ## define library KratosCore to be included in all of the others
-add_library(KratosCore STATIC ${KRATOS_CORE_SOURCES})
+add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES})
 target_link_libraries(KratosCore ${Boost_PYTHON_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
 install(TARGETS KratosCore DESTINATION libs )
 # if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")

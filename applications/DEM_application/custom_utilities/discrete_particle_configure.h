@@ -77,6 +77,30 @@ public:
     typedef ContainerContactType::iterator                          IteratorContactType;
     typedef ContainerContactType::value_type                        PointerContactType;
     
+    /////////////////////////////////////////////////////////////////////////////////////////// bins_dynamic_objects.h:279
+    
+//     typedef SpatialSearch                                                       SearchType;
+// 
+//     typedef SearchType::PointType                                               PointType;
+//     typedef PointerVectorSet<GeometricalObject, IndexedObject>::ContainerType   ContainerType;
+//     typedef PointerVectorSet<GeometricalObject, IndexedObject>                  ElementsContainerType;
+//     
+//     typedef SearchType::ElementType                                             ElementType;
+//     typedef ContainerType::value_type                                           PointerType;
+//     typedef ContainerType::iterator                                             IteratorType;
+//     typedef ElementsContainerType::iterator                                     ElementIteratorType;
+//     
+//     typedef PointerVectorSet<GeometricalObject, IndexedObject>::ContainerType   ResultContainerType;
+// //     typedef SearchType::ResultDistanceType::ContainerType             ResultDistanceType;
+//     
+//     typedef ResultContainerType::iterator                           ResultIteratorType;
+//     typedef std::vector<double>::iterator                           DistanceIteratorType;
+//     
+//     typedef ContactPair<PointerType>                                ContactPairType;
+//     typedef std::vector<ContactPairType>                            ContainerContactType;
+//     typedef ContainerContactType::iterator                          IteratorContactType;
+//     typedef ContainerContactType::value_type                        PointerContactType;
+    
     ///@}
     ///@name Life Cycle
     ///@{

@@ -22,6 +22,7 @@
 
 // Configures
 #include "discrete_particle_configure.h"
+#include "geometrical_object_configure.h"
 #include "node_configure.h"
 
 // Search
@@ -75,20 +76,25 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
       /// Pointer definition of OMP_DEMSearch
       KRATOS_CLASS_POINTER_DEFINITION(OMP_DEMSearch);
       
-      typedef PointType*                                PtrPointType;
-      typedef std::vector<PtrPointType>*                PointVector;
-      typedef std::vector<PtrPointType>::iterator       PointIterator;
+      typedef PointType*                                    PtrPointType;
+      typedef std::vector<PtrPointType>*                    PointVector;
+      typedef std::vector<PtrPointType>::iterator           PointIterator;
       
-      typedef double*                                   DistanceVector;
-      typedef double*                                   DistanceIterator;
+      typedef double*                                       DistanceVector;
+      typedef double*                                       DistanceIterator;
       
       //Configure Types
-      typedef DiscreteParticleConfigure<3>              ElementConfigureType;   //Element
-      typedef NodeConfigure<3>                          NodeConfigureType;      //Node
+      typedef DiscreteParticleConfigure<3>                  ElementConfigureType;       //Element
+      typedef NodeConfigure<3>                              NodeConfigureType;          //Node
+      typedef GeometricalConfigure<3>                       GeometricalConfigureType;   //Generic Geometry
       
       //Bin Types
-      typedef BinsObjectDynamic<ElementConfigureType>   BinsType;
-      typedef BinsObjectDynamic<NodeConfigureType>      NodeBinsType;
+      typedef BinsObjectDynamic<ElementConfigureType>       BinsType;
+      typedef BinsObjectDynamic<NodeConfigureType>          NodeBinsType;
+      typedef BinsObjectDynamic<GeometricalConfigureType>   GeometricalBinsType;
+      
+      //GeoimetricalObject
+      typedef PointerVectorSet<GeometricalObject, IndexedObject>     GeometricalObjectType;
      
       
       ///@}
@@ -124,27 +130,45 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           
           int MaxNumberOfElements = rStructureElements.size();
           
-          ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
-          ElementsContainerType::ContainerType& elements_ModelPart = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
-        
-          BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());
-                    
+          ElementsContainerType::ContainerType& elements_bins = const_cast<ElementsContainerType::ContainerType&>(rStructureElements.GetContainer());
+          ElementsContainerType::ContainerType& elements_sear = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
+          
+          GeometricalObjectType::ContainerType SearElementPointerToGeometricalObjecPointerTemporalVector;
+          GeometricalObjectType::ContainerType BinsElementPointerToGeometricalObjecPointerTemporalVector;
+
+          BinsElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_bins.size());
+          SearElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_sear.size());
+
+          for(ElementsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
+              BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);          
+          
+          for(ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
+              SearElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
+          
+          GeometricalBinsType bins(BinsElementPointerToGeometricalObjecPointerTemporalVector.begin(), BinsElementPointerToGeometricalObjecPointerTemporalVector.end());
+          
           #pragma omp parallel
           {
-              ResultElementsContainerType   localResults(MaxNumberOfElements);
-              DistanceType                  localResultsDistances(MaxNumberOfElements);
-              std::size_t                   NumberOfResults = 0;
+              GeometricalObjectType::ContainerType  localResults(MaxNumberOfElements);
+              DistanceType                          localResultsDistances(MaxNumberOfElements);
+              std::size_t                           NumberOfResults = 0;
               
               #pragma omp for
-              for(std::size_t i = 0; i < elements_array.size(); i++)
+              for(std::size_t i = 0; i < elements_sear.size(); i++)
               {
-                  ResultElementsContainerType::iterator ResultsPointer          = localResults.begin();
-                  DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
-                
-                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(elements_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);				  				  
+                  GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
+                  DistanceType::iterator                                                        ResultsDistancesPointer = localResultsDistances.begin();
+
+                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(SearElementPointerToGeometricalObjecPointerTemporalVector[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+
+                  rResults[i].reserve(NumberOfResults);
                   
-                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
-                  rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);      
+                  for(GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
+                  {
+                      Element::Pointer elem = boost::dynamic_pointer_cast<Element>(*it);
+                      rResults[i].push_back(elem);
+                      rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
+                  }
               }
           }
           
@@ -189,7 +213,6 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           KRATOS_CATCH("")        
       }
       
-      //ELEMENT SEARCH BASED
       void SearchElementsInRadiusExclusiveImplementation (
           ElementsContainerType const& rStructureElements,
           ElementsContainerType const& rElements,
@@ -401,7 +424,231 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           
           KRATOS_CATCH("")
       }
-            
+
+      void SearchGeometricalInRadiusExclusiveImplementation (
+          ElementsContainerType   const& rStructureElements,
+          ConditionsContainerType const& rElements,
+          const RadiusArrayType & Radius, 
+          VectorResultConditionsContainerType& rResults, 
+          VectorDistanceType& rResultsDistance )
+      {     
+          KRATOS_TRY
+          
+          int MaxNumberOfElements = rStructureElements.size();
+
+          ElementsContainerType::ContainerType& elements_bins   = const_cast<ElementsContainerType::ContainerType&>  (rStructureElements.GetContainer());
+          ConditionsContainerType::ContainerType& elements_sear = const_cast<ConditionsContainerType::ContainerType&>(rElements.GetContainer());
+
+          GeometricalObjectType::ContainerType SearElementPointerToGeometricalObjecPointerTemporalVector;
+          GeometricalObjectType::ContainerType BinsElementPointerToGeometricalObjecPointerTemporalVector;
+
+          SearElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_sear.size());
+          BinsElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_bins.size());
+              
+          for(ElementsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
+              BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
+          
+          for(ConditionsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
+              SearElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
+          
+          GeometricalBinsType bins(BinsElementPointerToGeometricalObjecPointerTemporalVector.begin(), BinsElementPointerToGeometricalObjecPointerTemporalVector.end());
+          
+          #pragma omp parallel
+          {
+              GeometricalObjectType::ContainerType  localResults(MaxNumberOfElements);
+              DistanceType                          localResultsDistances(MaxNumberOfElements);
+              std::size_t                           NumberOfResults = 0;
+              
+              #pragma omp for
+              for(std::size_t i = 0; i < elements_sear.size(); i++)
+              {
+                  GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
+                  DistanceType::iterator                                                        ResultsDistancesPointer = localResultsDistances.begin();
+
+                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(SearElementPointerToGeometricalObjecPointerTemporalVector[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+
+                  rResults[i].reserve(NumberOfResults);
+                  
+                  for(GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
+                  {
+                      Condition::Pointer elem = boost::dynamic_pointer_cast<Condition>(*it);
+                      rResults[i].push_back(elem);
+                      rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
+                  }
+              }
+          }
+          
+          KRATOS_CATCH("")
+      }
+      
+      void SearchGeometricalInRadiusInclusiveImplementation (
+          ElementsContainerType   const& rStructureElements,
+          ConditionsContainerType const& rElements,
+          const RadiusArrayType& Radius, 
+          VectorResultConditionsContainerType& rResults, 
+          VectorDistanceType& rResultsDistance )
+      {     
+          KRATOS_TRY
+          
+          int MaxNumberOfElements = rStructureElements.size();
+
+          ElementsContainerType::ContainerType& elements_bins   = const_cast<ElementsContainerType::ContainerType&>  (rStructureElements.GetContainer());
+          ConditionsContainerType::ContainerType& elements_sear = const_cast<ConditionsContainerType::ContainerType&>(rElements.GetContainer());
+
+          GeometricalObjectType::ContainerType SearElementPointerToGeometricalObjecPointerTemporalVector;
+          GeometricalObjectType::ContainerType BinsElementPointerToGeometricalObjecPointerTemporalVector;
+
+          SearElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_sear.size());
+          BinsElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_bins.size());
+              
+          for(ElementsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
+              BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
+          
+          for(ConditionsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
+              SearElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
+          
+          GeometricalBinsType bins(BinsElementPointerToGeometricalObjecPointerTemporalVector.begin(), BinsElementPointerToGeometricalObjecPointerTemporalVector.end());
+          
+          #pragma omp parallel
+          {
+              GeometricalObjectType::ContainerType  localResults(MaxNumberOfElements);
+              DistanceType                          localResultsDistances(MaxNumberOfElements);
+              std::size_t                           NumberOfResults = 0;
+              
+              #pragma omp for
+              for(std::size_t i = 0; i < elements_sear.size(); i++)
+              {
+                  GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
+                  DistanceType::iterator                                                        ResultsDistancesPointer = localResultsDistances.begin();
+
+                  NumberOfResults = bins.SearchObjectsInRadius(SearElementPointerToGeometricalObjecPointerTemporalVector[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+
+                  rResults[i].reserve(NumberOfResults);
+                  
+                  for(GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
+                  {
+                      Condition::Pointer elem = boost::dynamic_pointer_cast<Condition>(*it);
+                      rResults[i].push_back(elem);
+                      rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
+                  }
+              }
+          }
+          
+          KRATOS_CATCH("")
+      }
+      
+      void SearchGeometricalInRadiusExclusiveImplementation (
+          ConditionsContainerType const& rStructureElements,
+          ElementsContainerType   const& rElements,
+          const RadiusArrayType & Radius, 
+          VectorResultElementsContainerType& rResults, 
+          VectorDistanceType& rResultsDistance )
+      {     
+          KRATOS_TRY
+          
+          int MaxNumberOfElements = rStructureElements.size();
+
+          ConditionsContainerType::ContainerType& elements_bins = const_cast<ConditionsContainerType::ContainerType&>(rStructureElements.GetContainer());
+          ElementsContainerType::ContainerType& elements_sear   = const_cast<ElementsContainerType::ContainerType&>  (rElements.GetContainer());
+
+          GeometricalObjectType::ContainerType SearElementPointerToGeometricalObjecPointerTemporalVector;
+          GeometricalObjectType::ContainerType BinsElementPointerToGeometricalObjecPointerTemporalVector;
+
+          SearElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_sear.size());
+          BinsElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_bins.size());
+
+          for(ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
+              SearElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
+              
+          for(ConditionsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
+              BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
+          
+          GeometricalBinsType bins(BinsElementPointerToGeometricalObjecPointerTemporalVector.begin(), BinsElementPointerToGeometricalObjecPointerTemporalVector.end());
+          
+          #pragma omp parallel
+          {
+              GeometricalObjectType::ContainerType  localResults(MaxNumberOfElements);
+              DistanceType                          localResultsDistances(MaxNumberOfElements);
+              std::size_t                           NumberOfResults = 0;
+              
+              #pragma omp for
+              for(std::size_t i = 0; i < elements_sear.size(); i++)
+              {
+                  GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
+                  DistanceType::iterator                                                        ResultsDistancesPointer = localResultsDistances.begin();
+
+                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(SearElementPointerToGeometricalObjecPointerTemporalVector[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+
+                  rResults[i].reserve(NumberOfResults);
+                  
+                  for(GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
+                  {
+                      Element::Pointer elem = boost::dynamic_pointer_cast<Element>(*it);
+                      rResults[i].push_back(elem);
+                      rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
+                  }
+              }
+          }
+          
+          KRATOS_CATCH("")
+      }
+      
+      void SearchGeometricalInRadiusInclusiveImplementation (
+          ConditionsContainerType const& rStructureElements,
+          ElementsContainerType   const& rElements,
+          const RadiusArrayType& Radius, 
+          VectorResultElementsContainerType& rResults, 
+          VectorDistanceType& rResultsDistance )
+      {     
+          KRATOS_TRY
+          
+          int MaxNumberOfElements = rStructureElements.size();
+
+          ConditionsContainerType::ContainerType& elements_bins = const_cast<ConditionsContainerType::ContainerType&>(rStructureElements.GetContainer());
+          ElementsContainerType::ContainerType& elements_sear   = const_cast<ElementsContainerType::ContainerType&>  (rElements.GetContainer());
+
+          GeometricalObjectType::ContainerType SearElementPointerToGeometricalObjecPointerTemporalVector;
+          GeometricalObjectType::ContainerType BinsElementPointerToGeometricalObjecPointerTemporalVector;
+
+          SearElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_sear.size());
+          BinsElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_bins.size());
+
+          for(ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
+              SearElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
+              
+          for(ConditionsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
+              BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
+          
+          GeometricalBinsType bins(BinsElementPointerToGeometricalObjecPointerTemporalVector.begin(), BinsElementPointerToGeometricalObjecPointerTemporalVector.end());
+          
+          #pragma omp parallel
+          {
+              GeometricalObjectType::ContainerType  localResults(MaxNumberOfElements);
+              DistanceType                          localResultsDistances(MaxNumberOfElements);
+              std::size_t                           NumberOfResults = 0;
+              
+              #pragma omp for
+              for(std::size_t i = 0; i < elements_sear.size(); i++)
+              {
+                  GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
+                  DistanceType::iterator                                                        ResultsDistancesPointer = localResultsDistances.begin();
+
+                  NumberOfResults = bins.SearchObjectsInRadius(SearElementPointerToGeometricalObjecPointerTemporalVector[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
+
+                  rResults[i].reserve(NumberOfResults);
+                  
+                  for(GeometricalObjectType::ContainerType::iterator it = localResults.begin(); it != localResults.begin() + NumberOfResults; it++)
+                  {
+                      Element::Pointer elem = boost::dynamic_pointer_cast<Element>(*it);
+                      rResults[i].push_back(elem);
+                      rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);
+                  }
+              }
+          }
+          
+          KRATOS_CATCH("")      
+      }
+      
       ///@}
       ///@name Access
       ///@{ 

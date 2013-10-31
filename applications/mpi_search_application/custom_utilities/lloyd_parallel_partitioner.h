@@ -410,7 +410,7 @@ public:
             }
         }
 
-        TConfigure::TransferObjects(mModelPart.GetCommunicator(),SendMarkObjects,RecvMarkObjects);
+        TConfigure::TransferObjects(mModelPart.GetCommunicator().GhostMesh(),SendMarkObjects,RecvMarkObjects,(*pElements.begin())->GetGeometry()(0)->pGetVariablesList());
         
         for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
         {
@@ -418,11 +418,13 @@ public:
             {
                 if(j != mpi_rank)
                 {
-                    for(unsigned int k = 0; k < RecvMarkObjects[j].size(); k++)
+//                     for(unsigned int k = 0; k < RecvMarkObjects[j].size(); k++)
+//                     {
+                    for (SpatialSearch::ElementsContainerType::iterator r_it = RecvMarkObjects[j].begin(); r_it != RecvMarkObjects[j].end(); r_it++)
                     {
-                        if((*particle_pointer_it)->GetGeometry()(0)->Id() == (RecvMarkObjects[j].GetContainer())[k]->GetGeometry()(0)->Id())
+                        if((*particle_pointer_it)->GetGeometry()(0)->Id() == r_it->GetGeometry()(0)->Id())
                         {
-                            (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) |= (RecvMarkObjects[j].GetContainer())[k]->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
+                            (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH) |= r_it->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
                             (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(INTERNAL_ENERGY) = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(OSS_SWITCH);
                         }
                     }

@@ -50,7 +50,9 @@ public:
 
       /// Pointer definition of SpatialContainersConfigure
       KRATOS_CLASS_POINTER_DEFINITION(MpiDiscreteParticleConfigure);
-  
+
+      typedef Communicator::MeshType    MeshType;
+      typedef ModelPart::ElementsContainerType  ElementsContainerType;
 
       ///@}
       ///@name Life Cycle
@@ -89,8 +91,6 @@ public:
           first_element = reduceArray[mpi_rank];
       }
 
-      /* This method implements exactly the same functionality as the one included in the communicator.
-       * The aim of the method is to reimplement the genereic metho in to a specific one */
       template<class TObjectType>                            
       static inline void TransferObjects(Communicator& Communicator,
                                          TObjectType& SendObjects,
@@ -99,8 +99,161 @@ public:
           Communicator.TransferObjects(SendObjects,RecvObjects);
       }
       
-      /* This method implements exactly the same functionality as the one included in the communicator.
-       * The aim of the method is to reimplement the genereic metho in to a specific one */
+      template<class TObjectType>
+      static inline void TransferObjects(MeshType& ghostMesh,
+                                         std::vector<TObjectType>& SendObjects,
+                                         std::vector<TObjectType>& RecvObjects,
+                                         VariablesList* pVariablesList
+                                        )                                       
+      {
+          int mpi_rank;
+          int mpi_size;
+      
+          MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
+          MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+          
+          int msgSendSize[mpi_size];
+          int msgRecvSize[mpi_size];
+        
+          for(int i = 0; i < mpi_size; i++)
+          {
+              msgSendSize[i] = 0;
+              msgRecvSize[i] = 0;
+          }
+          
+          for(int i = 0; i < mpi_size; i++)
+          {
+              msgSendSize[i] = SendObjects[i].size();
+          }
+  
+          MPI_Alltoall(msgSendSize,1,MPI_INT,msgRecvSize,1,MPI_INT,MPI_COMM_WORLD);
+    
+          int NumberOfCommunicationEvents = 0;
+          int NumberOfCommunicationEventsIndex = 0;
+          
+          int * mpi_recv_buffer[mpi_size];
+          int * mpi_send_buffer[mpi_size];
+          
+          double * mpi_recv_buffer_x[mpi_size];
+          double * mpi_send_buffer_x[mpi_size];
+          
+          double * mpi_recv_buffer_y[mpi_size];
+          double * mpi_send_buffer_y[mpi_size];
+          
+          double * mpi_recv_buffer_z[mpi_size];
+          double * mpi_send_buffer_z[mpi_size];
+          
+          for(int j = 0; j < mpi_size; j++)
+          {
+              if(j != mpi_rank && msgRecvSize[j]) NumberOfCommunicationEvents+=4;
+              if(j != mpi_rank && msgSendSize[j]) NumberOfCommunicationEvents+=4;
+          }
+          
+          MPI_Request reqs[NumberOfCommunicationEvents];
+          MPI_Status stats[NumberOfCommunicationEvents];
+
+          //Set up all receive and send events
+          for(int i = 0; i < mpi_size; i++)
+          {
+              if(i != mpi_rank && msgRecvSize[i])
+              {
+                  mpi_recv_buffer[i] = (int *)malloc(sizeof(int) * msgRecvSize[i]);
+                  
+                  mpi_recv_buffer_x[i] = (double *)malloc(sizeof(double) * msgRecvSize[i]);
+                  mpi_recv_buffer_y[i] = (double *)malloc(sizeof(double) * msgRecvSize[i]);
+                  mpi_recv_buffer_z[i] = (double *)malloc(sizeof(double) * msgRecvSize[i]);
+                  
+                  MPI_Irecv(mpi_recv_buffer[i],msgRecvSize[i],MPI_INT,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                  
+                  MPI_Irecv(mpi_recv_buffer_x[i],msgRecvSize[i],MPI_DOUBLE,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                  MPI_Irecv(mpi_recv_buffer_y[i],msgRecvSize[i],MPI_DOUBLE,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                  MPI_Irecv(mpi_recv_buffer_z[i],msgRecvSize[i],MPI_DOUBLE,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+              }
+
+              if(i != mpi_rank && msgSendSize[i])
+              {
+                  mpi_send_buffer[i] = (int *)malloc(sizeof(int) * msgSendSize[i]);
+                  
+                  mpi_send_buffer_x[i] = (double *)malloc(sizeof(double) * msgSendSize[i]);
+                  mpi_send_buffer_y[i] = (double *)malloc(sizeof(double) * msgSendSize[i]);
+                  mpi_send_buffer_z[i] = (double *)malloc(sizeof(double) * msgSendSize[i]);
+                  
+                  for (ElementsContainerType::iterator i_element = SendObjects[i].begin();
+                      i_element != SendObjects[i].end(); ++i_element)
+                  {
+                      int index = i_element-SendObjects[i].begin();
+                    
+                      mpi_send_buffer[i][index] = i_element->Id();
+                      
+                      mpi_send_buffer_x[i][index] = i_element->GetGeometry()(0)->Coordinates()[0];
+                      mpi_send_buffer_y[i][index] = i_element->GetGeometry()(0)->Coordinates()[1];
+                      mpi_send_buffer_z[i][index] = i_element->GetGeometry()(0)->Coordinates()[2];
+                  }
+
+                  MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_INT,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                  
+                  MPI_Isend(mpi_send_buffer_x[i],msgSendSize[i],MPI_DOUBLE,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                  MPI_Isend(mpi_send_buffer_y[i],msgSendSize[i],MPI_DOUBLE,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                  MPI_Isend(mpi_send_buffer_z[i],msgSendSize[i],MPI_DOUBLE,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+              }
+          }
+          
+          //wait untill all communications finish
+          MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
+
+          MPI_Barrier(MPI_COMM_WORLD);
+          
+          for(int i = 0; i < mpi_size; i++)
+          { 
+              if (i != mpi_rank && msgRecvSize[i])
+              {
+//                   RecvObjects[i].resize(msgRecvSize[i]);
+                  for(int j = 0; j < msgRecvSize[i]; j++)
+                  {
+                      Geometry< Node < 3 > >::PointsArrayType nodelist;
+                      Node < 3 > ::Pointer pnew_node;
+                      pnew_node = Node < 3 > ::Pointer(new Node<3>(mpi_recv_buffer[i][j], 
+                                                                   mpi_recv_buffer_x[i][j], 
+                                                                   mpi_recv_buffer_y[i][j], 
+                                                                   mpi_recv_buffer_z[i][j]));
+                      
+                      // Ask Pooyan: Clone the whole variable list?
+                      pnew_node->SetSolutionStepVariablesList(pVariablesList);
+                   
+                      nodelist.push_back(pnew_node);
+                    
+                      Element::Pointer p_ghost_element = Element::Pointer(new Element(mpi_recv_buffer[i][j], nodelist));
+                      
+                      RecvObjects[i].push_back(p_ghost_element);
+                  }
+              }
+
+              MPI_Barrier(MPI_COMM_WORLD);
+          }
+          
+          // Free buffers
+          for(int i = 0; i < mpi_size; i++)
+          {
+              if(mpi_rank != i && msgRecvSize[i])
+              {
+                  free(mpi_recv_buffer[i]);
+                  
+                  free(mpi_recv_buffer_x[i]);
+                  free(mpi_recv_buffer_y[i]);
+                  free(mpi_recv_buffer_z[i]);
+              }
+              
+              if(i != mpi_rank && msgSendSize[i])
+              {
+                  free(mpi_send_buffer[i]);
+                  
+                  free(mpi_send_buffer_x[i]);
+                  free(mpi_send_buffer_y[i]);
+                  free(mpi_send_buffer_z[i]);
+              }
+          }
+      }
+      
       template<class TObjectType>
       static inline void TransferObjects(std::vector<TObjectType>& SendObjects,
                                          std::vector<TObjectType>& RecvObjects)                                       
