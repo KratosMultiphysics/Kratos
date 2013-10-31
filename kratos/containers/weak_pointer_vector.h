@@ -261,22 +261,22 @@ public:
     reference        front()       /* nothrow */
     {
         assert( !empty() );
-        return *mData.front();
+        return *((mData.front()).lock());
     }
     const_reference  front() const /* nothrow */
     {
         assert( !empty() );
-        return *mData.front();
+        return *((mData.front()).lock());
     }
     reference        back()        /* nothrow */
     {
         assert( !empty() );
-        return *mData.back();
+        return *((mData.back()).lock());
     }
     const_reference  back() const  /* nothrow */
     {
         assert( !empty() );
-        return *mData.back();
+        return *((mData.back()).lock());
     }
 
     size_type size() const
