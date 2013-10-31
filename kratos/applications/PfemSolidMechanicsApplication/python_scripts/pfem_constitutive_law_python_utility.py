@@ -1,6 +1,7 @@
 #importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.PfemSolidMechanicsApplication import *
 CheckForPreviousImport()
 
 class ConstitutiveLawUtility:
@@ -44,6 +45,15 @@ class ConstitutiveLawUtility:
                 elif(ConstitutiveLawName == "HyperElasticPlasticJ2PlaneStrain"):
                     prop.SetValue(CONSTITUTIVE_LAW, HyperElasticPlasticJ2PlaneStrain2DLaw() )
                     print "Hyper Elastic Plastic J2 Plane Strain 2D model selected"
+                elif(ConstitutiveLawName == "HenckyElasticMatsuokaPlasticPlaneStrain"):
+                    prop.SetValue(CONSTITUTIVE_LAW, HenckyMatsuokaPlasticPlaneStrain2DLaw() )
+                    print "Hencky Elastic Matsuoka Plastic Plane Strain 2D model selected"
+                elif(ConstitutiveLawName == "HenckyElasticMatsuokaPlasticAxisym"):
+                    prop.SetValue(CONSTITUTIVE_LAW, HenckyMatsuokaPlasticAxisym2DLaw() )
+                    print "Hencky Elastic Matsuoka Plastic Axisym 2D model selected"
+                elif(ConstitutiveLawName == "NonLinearHenckyCamClayPlasticPlaneStrain2DLaw"):
+                    prop.SetValue(CONSTITUTIVE_LAW, NonLinearHenckyCamClayPlasticPlaneStrain2DLaw() )
+                    print "Hencky Elastic Matsuoka Plastic Axisym 2D model selected"
                 else:
                     print "ERROR: CONSTITUTIVE_LAW 2D not defined properly"
                     

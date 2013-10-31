@@ -23,12 +23,12 @@ def AddVariables(model_part):
 def AddExtraVariables(model_part):
     AddConditionVariables(model_part);
     AddRigidWallVariables(model_part);
-    model_part.AddNodalSolutionStepVariable(MEAN_ERROR);
-    model_part.AddNodalSolutionStepVariable(OFFSET);
+    #model_part.AddNodalSolutionStepVariable(MEAN_ERROR);
+    #model_part.AddNodalSolutionStepVariable(OFFSET);
     model_part.AddNodalSolutionStepVariable(NODAL_H);    
     model_part.AddNodalSolutionStepVariable(NORMAL);
-    model_part.AddNodalSolutionStepVariable(FORCE_CONTACT_NORMAL);
-    model_part.AddNodalSolutionStepVariable(FORCE_CONTACT_TANGENT);
+    #model_part.AddNodalSolutionStepVariable(FORCE_CONTACT_NORMAL);
+    #model_part.AddNodalSolutionStepVariable(FORCE_CONTACT_TANGENT);
     
     print "EXTRA VARIABLES ADDED CORRECTLY"
 
@@ -45,11 +45,11 @@ def AddConditionVariables(model_part):
 
 def AddRigidWallVariables(model_part):
     #add specific variables for the problem (rigid walls)
-    model_part.AddNodalSolutionStepVariable(RIGID_WALL);
-    model_part.AddNodalSolutionStepVariable(WALL_TIP_RADIUS);
-    model_part.AddNodalSolutionStepVariable(WALL_REFERENCE_POINT);
-    model_part.AddNodalSolutionStepVariable(WALL_VELOCITY);
-
+    #model_part.AddNodalSolutionStepVariable(RIGID_WALL);
+    #model_part.AddNodalSolutionStepVariable(WALL_TIP_RADIUS);
+    #model_part.AddNodalSolutionStepVariable(WALL_REFERENCE_POINT);
+    #model_part.AddNodalSolutionStepVariable(WALL_VELOCITY);
+    #Ll:
     print "RIGID WALL VARIABLES ADDED CORRECTLY"
         
 def AddDofs(model_part,problemtype):
