@@ -121,13 +121,13 @@ class PrintResultsUtility:
                 self.gid_io.PrintOnGaussPoints(DELTA_PLASTIC_STRAIN,self.model_part,total_time)
 
                 #self.gid_io.WriteNodalResults(NORMAL,self.model_part.Nodes,total_time,0)
-                self.gid_io.WriteNodalResults(MEAN_ERROR,self.model_part.Nodes,total_time,0)
-                self.gid_io.WriteNodalResults(OFFSET,self.model_part.Nodes,total_time,0)
+                #self.gid_io.WriteNodalResults(MEAN_ERROR,self.model_part.Nodes,total_time,0)
+                #self.gid_io.WriteNodalResults(OFFSET,self.model_part.Nodes,total_time,0)
 
                 #self.gid_io.WriteNodalResults(FORCE_INTERNAL,self.model_part.Nodes,total_time,0)
                 self.gid_io.WriteNodalResults(FORCE_EXTERNAL,self.model_part.Nodes,total_time,0)
-                self.gid_io.WriteNodalResults(FORCE_CONTACT_NORMAL,self.model_part.Nodes,total_time,0)
-                self.gid_io.WriteNodalResults(FORCE_CONTACT_TANGENT,self.model_part.Nodes,total_time,0)
+                #self.gid_io.WriteNodalResults(FORCE_CONTACT_NORMAL,self.model_part.Nodes,total_time,0)
+                #self.gid_io.WriteNodalResults(FORCE_CONTACT_TANGENT,self.model_part.Nodes,total_time,0)
 
             if(self.problem_type == "DynamicSolver"):
                 self.gid_io.WriteNodalResults(VELOCITY,self.model_part.Nodes,total_time,0)

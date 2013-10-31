@@ -1,5 +1,6 @@
 #importing the Kratos Library
 from KratosMultiphysics import *
+from KratosMultiphysics.SolidMechanicsApplication import *
 CheckForPreviousImport()
 
 class ConditionsUtility:
@@ -43,7 +44,8 @@ class ConditionsUtility:
                     ImposedDisp[2]  = Displacement[2];
                     Displacement[2] = 0;  
 
-                #For velocity imposition instead of displacement        
+                #For velocity imposition instead of displacement       
+                time_step = 2.0; 
                 if(node.IsFixed(VELOCITY_X)==1):
                     ImposedDisp[0]  = Velocity[0]*time_step;
                     Velocity[0] = 0;
