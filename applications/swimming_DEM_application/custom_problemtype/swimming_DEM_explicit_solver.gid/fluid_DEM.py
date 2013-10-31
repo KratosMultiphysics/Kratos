@@ -368,9 +368,7 @@ Dt_DEM = DEM_parameters.MaxTimeStep
 while(time <= final_time):
     
     if(step < 3):
-        if (step = 0)
         Dt = initial_Dt
-        CalculateNodalAreaProcess(balls_model_part, 0)
 
     else:
         Dt = full_Dt
