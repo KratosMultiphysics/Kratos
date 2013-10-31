@@ -445,7 +445,7 @@ public:
         BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
         //			BaseType::GetModelPart().GetProcessInfo().SetNonLinearIterationNumber(iteration_number);
         bool is_converged = false;
-        bool ResidualIsUpdated = false;
+        //bool ResidualIsUpdated = false;
         pScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
         is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
@@ -574,7 +574,7 @@ public:
 
             pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
 
-            ResidualIsUpdated = false;
+            //ResidualIsUpdated = false;
 
             if (is_converged == true)
             {
@@ -584,7 +584,7 @@ public:
                     TSparseSpace::SetToZero(mb);
 
                     pBuilderAndSolver->BuildRHS(pScheme, BaseType::GetModelPart(), mb);
-                    ResidualIsUpdated = true;
+                    //ResidualIsUpdated = true;
                     //std::cout << "mb is calculated" << std::endl;
                 }
 
