@@ -60,6 +60,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "Epetra_MpiComm.h"
+#include "mpi.h"
 
 namespace Kratos
 {
@@ -179,10 +180,11 @@ public:
     {
         if (SparseSpaceType::Size(Dx) != 0) //if we are solving for something
         {
-            for(typename ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin(); ind != r_model_part.NodesEnd(); ind++)
+            ModelPart::MeshType::NodesContainerType& rLocalNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
+            for (ModelPart::MeshType::NodeIterator it = rLocalNodes.begin(); it != rLocalNodes.end(); it++)
             {
-                ind->GetValue(VELOCITY) = ind->FastGetSolutionStepValue(VELOCITY);
-                ind->GetValue(PRESSURE) = ind->FastGetSolutionStepValue(PRESSURE)/ind->FastGetSolutionStepValue(DENSITY);
+                it->GetValue(VELOCITY) = it->FastGetSolutionStepValue(VELOCITY);
+                it->GetValue(PRESSURE) = it->FastGetSolutionStepValue(PRESSURE) / it->FastGetSolutionStepValue(DENSITY);
             }
             return true;
 
@@ -210,84 +212,66 @@ public:
             double difference_pr_norm = 0.0;
             double reference_vel_norm = 0.0;
             double difference_vel_norm = 0.0;
-//			int pr_size = 0;
-//			int vel_size = 0;
-            double  dimension=(r_model_part.ElementsBegin()->GetGeometry()).WorkingSpaceDimension();
-            TDataType pr_size = 0;
-            TDataType vel_size = 0;
 
-            for(typename ModelPart::NodesContainerType::iterator ind = r_model_part.NodesBegin(); ind != r_model_part.NodesEnd(); ind++)
+            ModelPart::MeshType::NodesContainerType& rLocalNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
+            for (ModelPart::MeshType::NodeIterator it = rLocalNodes.begin(); it != rLocalNodes.end(); it++)
             {
-
-                double current_pr = 0.0;
-                current_pr = ind->FastGetSolutionStepValue(PRESSURE)/ind->FastGetSolutionStepValue(DENSITY);
+                const double current_pr = it->FastGetSolutionStepValue(PRESSURE) / it->FastGetSolutionStepValue(PRESSURE);
                 reference_pr_norm += current_pr*current_pr;
 
-                const array_1d<double,3> current_vel = ind->FastGetSolutionStepValue(VELOCITY);
-                reference_vel_norm += (current_vel[0]*current_vel[0] + current_vel[1]*current_vel[1] + current_vel[2]*current_vel[2]);
+                const double delta_pr = current_pr - it->GetValue(PRESSURE);
+                difference_pr_norm += delta_pr*delta_pr;
 
-                double old_pr = 0.0;
-                old_pr = ind->GetValue(PRESSURE);
-                difference_pr_norm += (current_pr - old_pr)*(current_pr - old_pr);
-                pr_size ++;
+                const array_1d<double,3> current_vel = it->FastGetSolutionStepValue(VELOCITY);
+                reference_vel_norm += current_vel[0]*current_vel[0] + current_vel[1]*current_vel[1] + current_vel[2]*current_vel[2];
 
-                const array_1d<double,3> old_vel = ind->GetValue(VELOCITY);
-                array_1d<double,3> dif_vel = current_vel - old_vel;
-                difference_vel_norm += (dif_vel[0]*dif_vel[0] + dif_vel[1]*dif_vel[1] + dif_vel[2]*dif_vel[2] );
-                vel_size += dimension;
-
-
-            }
-            mrComm.Barrier();
-
-            //perform the sum between all of the nodes
-            TDataType global_reference_vel_norm = TDataType();
-            TDataType global_difference_vel_norm = TDataType();
-            TDataType global_reference_pr_norm = TDataType();
-            TDataType global_difference_pr_norm = TDataType();
-            mrComm.SumAll(&reference_vel_norm, &global_reference_vel_norm, 1);
-            mrComm.SumAll(&difference_vel_norm, &global_difference_vel_norm, 1);
-            mrComm.SumAll(&reference_pr_norm, &global_reference_pr_norm, 1);
-            mrComm.SumAll(&difference_pr_norm, &global_difference_pr_norm, 1);
-
-            mrComm.Barrier();
-
-
-            double pr_ratio = sqrt(global_difference_pr_norm)/sqrt(global_reference_pr_norm);
-            double vel_ratio = sqrt(global_difference_vel_norm)/sqrt(global_reference_vel_norm);
-
-//                        KRATOS_WATCH(pr_size);
-//                        KRATOS_WATCH(vel_size);
-
-            double pr_abs = sqrt(global_difference_pr_norm)/sqrt(pr_size);
-            double vel_abs = sqrt(global_difference_vel_norm)/sqrt(vel_size);
-
-
-//KRATOS_WATCH(AbsoluteNorm)
-//KRATOS_WATCH(mAlwaysConvergedNorm)
-//KRATOS_WATCH(mRatioTolerance)
-
-            if(mrComm.MyPID() == 0)
-            {
-                std::cout << "VELOCITY CRITERIA :: obtained ratio = " << vel_ratio << ";  expected ratio = " << mVelRatioTolerance << "obtained abs = " <<vel_abs << ";  expected abs = " << mVelAbsTolerance << std::endl;
-
-                std::cout << "PRESSURE CRITERIA :: obtained ratio = " << pr_ratio << ";  expected ratio = " << mPrsRatioTolerance << "obtained abs = " <<pr_abs << ";  expected abs = " << mPrsAbsTolerance << std::endl;
+                const array_1d<double,3> delta_vel = current_vel - it->GetValue(VELOCITY);
+                difference_vel_norm += delta_vel[0]*delta_vel[0] + delta_vel[1]*delta_vel[1] + delta_vel[2]*delta_vel[2];
             }
 
-            if ( (vel_ratio <= mVelRatioTolerance || vel_abs<mVelAbsTolerance) &&  (pr_ratio <= mPrsRatioTolerance || pr_abs<mPrsAbsTolerance))
+            double nnode = double(r_model_part.GetCommunicator().LocalMesh().NumberOfNodes());
+            double sendbuff[5] = { reference_vel_norm, difference_vel_norm, reference_pr_norm, difference_pr_norm, nnode };
+            double recvbuff[5];
+
+            // Get a reference to the MPI communicator (Epetra does not provide a direct interface to MPI_Reduce)
+            const MPI_Comm& rComm = mrComm.Comm();
+
+            MPI_Reduce(&sendbuff,&recvbuff,5,MPI_DOUBLE,MPI_SUM,0,rComm);
+
+            int converged = 0;
+
+            if (mrComm.MyPID() == 0)
             {
-                if(mrComm.MyPID() == 0)
+                const double  dimension = (r_model_part.ElementsBegin()->GetGeometry()).WorkingSpaceDimension();
+                const double vel_norm = sqrt( recvbuff[0] );
+                const double vel_diff_norm = sqrt( recvbuff[1] );
+                const double pr_norm = sqrt( recvbuff[2] );
+                const double pr_diff_norm = sqrt( recvbuff[3] );
+                const double global_nnode = recvbuff[4];
+
+                const double vel_ratio = vel_diff_norm / vel_norm;
+                const double vel_abs = vel_norm / (dimension*global_nnode);
+
+                const double pr_ratio = pr_diff_norm / pr_norm;
+                const double pr_abs = pr_norm / global_nnode;
+
+                std::cout << "VELOCITY error (tolerance) -- Ratio: " << vel_ratio << " (" << mVelRatioTolerance << "); Absolute: " <<  vel_abs << " (" << mVelAbsTolerance << ")." << std::endl;
+                std::cout << "PRESSURE error (tolerance) -- Ratio: " <<  pr_ratio << " (" << mPrsRatioTolerance << "); Absolute: " <<   pr_abs << " (" << mPrsAbsTolerance << ")." << std::endl;
+
+                if( (vel_ratio <= mVelRatioTolerance || vel_abs<mVelAbsTolerance) && (pr_ratio <= mPrsRatioTolerance || pr_abs<mPrsAbsTolerance) )
                 {
-                    std::cout << "convergence in achieved" << std::endl;
+                    converged = 1;
+                    std::cout << "-- Convergence in achieved --" << std::endl;
                 }
-                return true;
             }
-            else
-            {
-                return false;
-            }
+
+            // Broadcast convergence status from process 0
+            MPI_Bcast(&converged,1,MPI_INT,0,rComm);
+
+            return bool(converged);
+
         }
-        else //in this case all the displacements are imposed!
+        else // if size(Dx) == 0 there are no unknowns to solve for!
         {
             return true;
         }
