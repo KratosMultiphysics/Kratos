@@ -832,6 +832,10 @@ private:
             array_1d<double,3>& node1_drag = geom[1].FastGetSolutionStepValue(DRAG_REACTION, 0);
             array_1d<double,3>& node2_drag = geom[2].FastGetSolutionStepValue(DRAG_REACTION, 0);
             array_1d<double,3>& node3_drag = geom[3].FastGetSolutionStepValue(DRAG_REACTION, 0);
+            const double fluid_fraction1   = 1 - geom[0].FastGetSolutionStepValue(SOLID_FRACTION, 0);
+            const double fluid_fraction2   = 1 - geom[1].FastGetSolutionStepValue(SOLID_FRACTION, 0);
+            const double fluid_fraction3   = 1 - geom[2].FastGetSolutionStepValue(SOLID_FRACTION, 0);
+            const double fluid_fraction4   = 1 - geom[0].FastGetSolutionStepValue(SOLID_FRACTION, 0);
             const double& node0_volume     = geom[0].FastGetSolutionStepValue(NODAL_AREA, 0);
             const double& node1_volume     = geom[1].FastGetSolutionStepValue(NODAL_AREA, 0);
             const double& node2_volume     = geom[2].FastGetSolutionStepValue(NODAL_AREA, 0);
@@ -840,10 +844,10 @@ private:
             const double& node1_density    = geom[1].FastGetSolutionStepValue(DENSITY, 0);
             const double& node2_density    = geom[2].FastGetSolutionStepValue(DENSITY, 0);
             const double& node3_density    = geom[3].FastGetSolutionStepValue(DENSITY, 0);
-            const double node0_mass_inv    = mParticlesPerDepthDistance / (node0_volume * node0_density);
-            const double node1_mass_inv    = mParticlesPerDepthDistance / (node1_volume * node1_density);
-            const double node2_mass_inv    = mParticlesPerDepthDistance / (node2_volume * node2_density);
-            const double node3_mass_inv    = mParticlesPerDepthDistance / (node3_volume * node3_density);
+            const double node0_mass_inv    = mParticlesPerDepthDistance / (fluid_fraction1 * node0_volume * node0_density);
+            const double node1_mass_inv    = mParticlesPerDepthDistance / (fluid_fraction2 * node1_volume * node1_density);
+            const double node2_mass_inv    = mParticlesPerDepthDistance / (fluid_fraction3 * node2_volume * node2_density);
+            const double node3_mass_inv    = mParticlesPerDepthDistance / (fluid_fraction4 * node3_volume * node3_density);
 
             for (unsigned int j= 0; j< TDim; j++){
                 double data   = origin_data[j];
