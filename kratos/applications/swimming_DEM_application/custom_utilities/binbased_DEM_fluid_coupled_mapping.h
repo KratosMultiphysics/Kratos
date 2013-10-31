@@ -16,7 +16,6 @@
 #include <iostream>
 #include <stdlib.h>
 
-
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
@@ -108,28 +107,27 @@ public:
     /// Destructor.
     virtual ~BinBasedDEMFluidCoupledMapping() {}
 
-
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
     ///@{
 
-    //**********************************************************************
-    //**********************************************************************
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     /// Interpolate fluid data onto the DEM model part.
     /**
       * @param rOrigin_ModelPart: the model part  all the variable should be taken from
       * @param rDestination_ModelPart: the destination model part where we want to know the values of the variables
-      * @param bin_of_objects_fluid: precomputed bin of objects (elelments of the fluid mesh). It is to be constructed separately @see binbased_nodes_in_element_locator
+      * @param bin_of_objects_fluid: precomputed bin of objects (elelments of the fluid mesh). It is to be constructed separately
+      * @see binbased_nodes_in_element_locator
     */
 
-    //**********************************************************************
-    //**********************************************************************
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     // The fluid data are a weighted: data_to_project = alpha * new_data + (1 - alpha) * old_data
 
@@ -182,6 +180,9 @@ public:
 
         KRATOS_CATCH("")
     }
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     // The current fluid data are projected to the DEM mesh
     void InterpolateFromNewestFluidMesh(
@@ -237,8 +238,8 @@ public:
         KRATOS_CATCH("")
     }
 
-    //**********************************************************************
-    //**********************************************************************
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     /// Interpolate form the DEM  to the fluid mesh
     /**
@@ -247,8 +248,8 @@ public:
       * @param bin_of_nodes_fluid: precomputed bin of nodes of the fluid mesh. It is to be constructed separately @see binbased_nodes_in_element_locator
     */
 
-    //**********************************************************************
-    //**********************************************************************
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     // The current DEM data are projected to the fluid mesh
     void InterpolationFromDEMMesh(
@@ -328,16 +329,13 @@ public:
         KRATOS_CATCH("")
     }
 
-
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -355,7 +353,6 @@ public:
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
 
-
     ///@}
     ///@name Friends
     ///@{
@@ -363,46 +360,40 @@ public:
     ///@}
 
 protected:
+
     ///@name Protected static Member rVariables
     ///@{
-
 
     ///@}
     ///@name Protected member rVariables
     ///@{ template<class T, std::size_t dim>
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
 
 private:
+
     ///@name Static Member rVariables
     ///@{
-
 
     ///@}
     ///@name Member rVariables
@@ -411,6 +402,9 @@ private:
     double mMaxSolidFraction;
     int mCouplingType;
     int mParticlesPerDepthDistance;
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
                                                double& xc, double& yc, double& zc, double& R, array_1d<double,3>& N)
@@ -436,8 +430,10 @@ private:
 
         R = 1.01 * sqrt(R);
     }
-    //***************************************
-    //***************************************
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
+
     inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
                                                double& xc, double& yc, double& zc, double& R, array_1d<double,4>& N)
     {
@@ -474,16 +470,20 @@ private:
 
         R = sqrt(R);
     }
-    //***************************************
-    //***************************************
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
+
     inline double CalculateVol(	const double x0, const double y0,
                                 const double x1, const double y1,
                                 const double x2, const double y2)
     {
         return 0.5 * ((x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0));
     }
-    //***************************************
-    //***************************************
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
+
     inline double CalculateVol(	const double x0, const double y0, const double z0,
                                 const double x1, const double y1, const double z1,
                                 const double x2, const double y2, const double z2,
@@ -508,8 +508,10 @@ private:
         return  detJ * 0.1666666666666666666667;
 
     }
-    //***************************************
-    //***************************************
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
+
     inline bool CalculatePosition(Geometry<Node<3> >&geom,
                                   const double xc, const double yc, const double zc, array_1d<double,3>& N)
     {
@@ -546,8 +548,8 @@ private:
         return false;
     }
 
-    //***************************************
-    //***************************************
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     inline bool CalculatePosition(Geometry<Node<3> >&geom,
                                   const double xc, const double yc, const double zc, array_1d<double,4>& N)
@@ -593,6 +595,9 @@ private:
         return false;
     }
 
+    //***************************************************************************************************************
+    //***************************************************************************************************************
+
     inline unsigned int GetNearestNode(const array_1d<double,4>& N)
 
     {
@@ -610,6 +615,9 @@ private:
 
       return i_nearest_node;
     }
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     // project an array1D (2Dversion)
     void Interpolate(
@@ -637,6 +645,9 @@ private:
 
     }
 
+    //***************************************************************************************************************
+    //***************************************************************************************************************
+
     //projecting an array1D 3Dversion
 
     void Interpolate(
@@ -661,7 +672,10 @@ private:
               step_data[j] = N[0] * node0_data[j] + N[1] * node1_data[j] + N[2] * node2_data[j] + N[3] * node3_data[j];
           }
 
-     }
+    }
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     void Interpolate(
         Element::Pointer el_it,
@@ -670,32 +684,35 @@ private:
         Variable<array_1d<double,3> >& rOriginVariable,
         Variable<array_1d<double,3> >& rDestinationVariable,
         double alpha)
- {
+    {
 
-            //Geometry element of the rOrigin_ModelPart
-            Geometry< Node < 3 > >& geom = el_it->GetGeometry();
+        //Geometry element of the rOrigin_ModelPart
+        Geometry< Node < 3 > >& geom = el_it->GetGeometry();
 
-            //getting the data of the solution step
-            array_1d<double, 3 > & step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
+        //getting the data of the solution step
+        array_1d<double, 3 > & step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
 
-            const array_1d<double, 3 > & node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable, 0);
-            const array_1d<double, 3 > & node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable, 0);
-            const array_1d<double, 3 > & node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable, 0);
-            const array_1d<double, 3 > & node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable, 0);
+        const array_1d<double, 3 > & node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable, 0);
+        const array_1d<double, 3 > & node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable, 0);
+        const array_1d<double, 3 > & node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable, 0);
+        const array_1d<double, 3 > & node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable, 0);
 
-            const array_1d<double, 3 > & node0_data_prev = geom[0].FastGetSolutionStepValue(rOriginVariable, 1);
-            const array_1d<double, 3 > & node1_data_prev = geom[1].FastGetSolutionStepValue(rOriginVariable, 1);
-            const array_1d<double, 3 > & node2_data_prev = geom[2].FastGetSolutionStepValue(rOriginVariable, 1);
-            const array_1d<double, 3 > & node3_data_prev = geom[3].FastGetSolutionStepValue(rOriginVariable, 1);
+        const array_1d<double, 3 > & node0_data_prev = geom[0].FastGetSolutionStepValue(rOriginVariable, 1);
+        const array_1d<double, 3 > & node1_data_prev = geom[1].FastGetSolutionStepValue(rOriginVariable, 1);
+        const array_1d<double, 3 > & node2_data_prev = geom[2].FastGetSolutionStepValue(rOriginVariable, 1);
+        const array_1d<double, 3 > & node3_data_prev = geom[3].FastGetSolutionStepValue(rOriginVariable, 1);
 
-            for (unsigned int j = 0; j < TDim; j++) {                                                                                       
-                step_data[j] = alpha * (N[0] * node0_data[j]      + N[1] * node1_data[j]      + N[2] * node2_data[j]      + N[3] * node3_data[j]) +
-                       (1.0 - alpha) * (N[0] * node0_data_prev[j] + N[1] * node1_data_prev[j] + N[2] * node2_data_prev[j] + N[3] * node3_data_prev[j]);
-            }
-
+        for (unsigned int j = 0; j < TDim; j++) {
+            step_data[j] = alpha * (N[0] * node0_data[j]      + N[1] * node1_data[j]      + N[2] * node2_data[j]      + N[3] * node3_data[j]) +
+                   (1.0 - alpha) * (N[0] * node0_data_prev[j] + N[1] * node1_data_prev[j] + N[2] * node2_data_prev[j] + N[3] * node3_data_prev[j]);
         }
 
-        //projecting a scalar 2Dversion
+     }
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
+
+    //projecting a scalar 2Dversion
     void Interpolate(
         Element::Pointer el_it,
         const array_1d<double,3>& N,
@@ -703,26 +720,21 @@ private:
         Variable<double>& rOriginVariable,
         Variable<double>& rDestinationVariable)
     {
-// 		  	  KRATOS_ERROR(std::logic_error,"INTERPOLATE SCALAR 2D","")
 
-        //Geometry element of the rOrigin_ModelPart
-            Geometry< Node < 3 > >& geom = el_it->GetGeometry();
+        Geometry< Node < 3 > >& geom = el_it->GetGeometry();
 
+        //getting the data of the solution step
+        double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
+        const double node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable, 0);
+        const double node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable, 0);
+        const double node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable, 0);
 
-            //getting the data of the solution step
-            double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
-            const double node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable, 0);
-            const double node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable, 0);
-            const double node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable, 0);
-
-            //copying this data in the position of the vector we are interested in
-
-            step_data = N[0] * node0_data + N[1] * node1_data + N[2] * node2_data;
-
-
-            // // 			pnode->GetValue(IS_VISITED) = 1.0;
-
+        //copying this data in the position of the vector we are interested in
+        step_data = N[0] * node0_data + N[1] * node1_data + N[2] * node2_data;
     }
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     //projecting a scalar 3Dversion
     void Interpolate(
@@ -732,18 +744,21 @@ private:
         Variable<double>& rOriginVariable,
         Variable<double>& rDestinationVariable)
     {
-            //Geometry element of the rOrigin_ModelPart
-            Geometry< Node < 3 > >& geom = el_it->GetGeometry();
+        //Geometry element of the rOrigin_ModelPart
+        Geometry< Node < 3 > >& geom = el_it->GetGeometry();
 
-            //getting the data of the solution step
-            double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
-            const double node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable, 0);
-            const double node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable, 0);
-            const double node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable, 0);
-            const double node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable, 0);
-            step_data = N[0] * node0_data + N[1] * node1_data + N[2] * node2_data + N[3] * node3_data;
+        //getting the data of the solution step
+        double& step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
+        const double node0_data = geom[0].FastGetSolutionStepValue(rOriginVariable, 0);
+        const double node1_data = geom[1].FastGetSolutionStepValue(rOriginVariable, 0);
+        const double node2_data = geom[2].FastGetSolutionStepValue(rOriginVariable, 0);
+        const double node3_data = geom[3].FastGetSolutionStepValue(rOriginVariable, 0);
+        step_data = N[0] * node0_data + N[1] * node1_data + N[2] * node2_data + N[3] * node3_data;
 
     }
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     void Interpolate(
         Element::Pointer el_it,
@@ -752,7 +767,7 @@ private:
         Variable<double>& rOriginVariable,
         Variable<double>& rDestinationVariable,
         double alpha)
-{
+    {
         // Geometry element of the rOrigin_ModelPart
         Geometry< Node < 3 > >& geom = el_it->GetGeometry();
 
@@ -773,6 +788,9 @@ private:
         (1.0 - alpha) * (N[0] * node0_data_prev + N[1] * node1_data_prev + N[2] * node2_data_prev + N[3] * node3_data_prev);
 
     }
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     //2Dversion
     void TransferWithConstantWeighing(
@@ -809,6 +827,9 @@ private:
         }
 
     }
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     void TransferWithLinearWeighing(
         Element::Pointer el_it,
@@ -873,24 +894,30 @@ private:
 
     }
 
+    //***************************************************************************************************************
+    //***************************************************************************************************************
+
     void CalculateNodalSolidFractionWithConstantWeighing(
         Element::Pointer el_it,
         const array_1d<double,4>& N,
         Node<3>::Pointer pnode)
 
     {
-      //Geometry element of the rOrigin_ModelPart
-      Geometry< Node<3> >& geom = el_it->GetGeometry();
-      unsigned int i_nearest_node;
-      i_nearest_node = GetNearestNode(N);
+        //Geometry element of the rOrigin_ModelPart
+        Geometry< Node<3> >& geom = el_it->GetGeometry();
+        unsigned int i_nearest_node;
+        i_nearest_node = GetNearestNode(N);
 
-      //getting the data of the solution step
-      const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
-      const double particle_volume = 1.33333333333333333333 * M_PI * mParticlesPerDepthDistance * radius * radius * radius;
+        //getting the data of the solution step
+        const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
+        const double particle_volume = 1.33333333333333333333 * M_PI * mParticlesPerDepthDistance * radius * radius * radius;
 
-      geom[i_nearest_node].FastGetSolutionStepValue(SOLID_FRACTION, 0) += particle_volume;
+        geom[i_nearest_node].FastGetSolutionStepValue(SOLID_FRACTION, 0) += particle_volume;
 
     }
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     void CalculateNodalSolidFractionWithLinearWeighing(
         Element::Pointer el_it,
@@ -898,56 +925,60 @@ private:
         Node<3>::Pointer pnode)
 
     {
-      //Geometry element of the rOrigin_ModelPart
-      Geometry< Node<3> >& geom = el_it->GetGeometry();
+        //Geometry element of the rOrigin_ModelPart
+        Geometry< Node<3> >& geom = el_it->GetGeometry();
 
-      //getting the data of the solution step
-      const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
-      const double particle_volume = 1.33333333333333333333 * M_PI * mParticlesPerDepthDistance * radius * radius * radius;
+        //getting the data of the solution step
+        const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
+        const double particle_volume = 1.33333333333333333333 * M_PI * mParticlesPerDepthDistance * radius * radius * radius;
 
-      for (unsigned int inode = 0; inode < N.size(); inode++){
-          geom[inode].FastGetSolutionStepValue(SOLID_FRACTION, 0) += N[inode] * particle_volume;
-      }
+        for (unsigned int inode = 0; inode < N.size(); inode++){
+            geom[inode].FastGetSolutionStepValue(SOLID_FRACTION, 0) += N[inode] * particle_volume;
+        }
 
     }
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     inline void Clear(ModelPart::NodesContainerType::iterator node_it,  int step_data_size )
     {
         unsigned int buffer_size = node_it->GetBufferSize();
 
-        for (unsigned int step = 0; step<buffer_size; step++)
-        {
+        for (unsigned int step = 0; step<buffer_size; step++){
             //getting the data of the solution step
             double* step_data = (node_it)->SolutionStepData().Data(step);
 
             //copying this data in the position of the vector we are interested in
-            for (int j= 0; j< step_data_size; j++)
-            {
+
+            for (int j= 0; j< step_data_size; j++){
                 step_data[j] = 0.0;
             }
+
         }
 
     }
 
+    //***************************************************************************************************************
+    //***************************************************************************************************************
+
     inline void ClearVariables(ModelPart::NodesContainerType::iterator node_it , Variable<array_1d<double,3> >& rVariable)
     {
-        array_1d<double, 3>& Aux_var = node_it->FastGetSolutionStepValue(rVariable, 0);
-
+        array_1d<double, 3>& Aux_var = node_it->FastGetSolutionStepValue(rVariable, 0);        
         noalias(Aux_var) = ZeroVector(3);
-
     }
 
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     inline void ClearVariables(ModelPart::NodesContainerType::iterator node_it,  Variable<double>& rVariable)
     {
         double& Aux_var = node_it->FastGetSolutionStepValue(rVariable, 0);
-
         Aux_var = 0.0;
-
     }
 
-
-
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     ///@}
     ///@name Private Operators
@@ -957,16 +988,13 @@ private:
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -974,7 +1002,6 @@ private:
 
     /// Assignment operator.
     BinBasedDEMFluidCoupledMapping& operator=(BinBasedDEMFluidCoupledMapping const& rOther);
-
 
     ///@}
 
@@ -985,13 +1012,9 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
-
-
-
 
 /// output stream function
 template<std::size_t TDim>
@@ -1005,7 +1028,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
-
 
 }  // namespace Kratos.
 
