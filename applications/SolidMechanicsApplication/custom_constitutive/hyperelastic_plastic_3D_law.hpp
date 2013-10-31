@@ -204,7 +204,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK1 (Parameters & rValues);
+    virtual void CalculateMaterialResponsePK1 (Parameters & rValues);
 
     /**
      * Computes the material response:
@@ -212,7 +212,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponsePK2 (Parameters & rValues);
+    virtual void CalculateMaterialResponsePK2 (Parameters & rValues);
 
     /**
      * Computes the material response:
@@ -220,7 +220,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponseKirchhoff (Parameters & rValues);
+    virtual void CalculateMaterialResponseKirchhoff (Parameters & rValues); //Ll:
 
     /**
      * Computes the material response:
@@ -228,7 +228,7 @@ public:
      * @param rValues
      * @see   Parameters
      */
-    void CalculateMaterialResponseCauchy (Parameters & rValues);
+    virtual void CalculateMaterialResponseCauchy (Parameters & rValues);
 
     /**
       * Updates the material response:
@@ -252,7 +252,7 @@ public:
       * @param rValues
       * @see   Parameters
       */
-    void FinalizeMaterialResponseKirchhoff (Parameters & rValues);
+    virtual void FinalizeMaterialResponseKirchhoff (Parameters & rValues);
 
     /**
       * Updates the material response:
