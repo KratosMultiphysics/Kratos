@@ -89,17 +89,20 @@ namespace Kratos
           array_1d<double, 3> additionally_applied_force;
           array_1d<double, 3> additionally_applied_moment;
           array_1d<double, 3> initial_rotation_moment;     
-          array_1d<double, 3>& elastic_force = this->GetGeometry()[0].GetSolutionStepValue(ELASTIC_FORCES);
+           array_1d<double, 3>& elastic_force = this->GetGeometry()[0].GetSolutionStepValue(ELASTIC_FORCES);
 
           contact_force.clear();
           contact_moment.clear();
           additionally_applied_force.clear();
           additionally_applied_moment.clear();
           initial_rotation_moment.clear();
-          elastic_force.clear();
-
-          ComputeNewNeighboursHistoricalData();
-
+         
+          if( *mpActivateSearch==1 || *mpTimeStep == 0)
+          {
+            elastic_force.clear();
+            ComputeNewNeighboursHistoricalData();
+          }
+          
           ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
 
           if (mLimitSurfaceOption > 0){
@@ -1811,6 +1814,7 @@ namespace Kratos
               mLimitCylinderOption           = rCurrentProcessInfo[LIMIT_CYLINDER_OPTION];
               
               mpTimeStep                     =  &(rCurrentProcessInfo[TIME_STEPS]); // reference.
+              mpActivateSearch               =  &(rCurrentProcessInfo[ACTIVATE_SEARCH]);
 
               if (mRotationOption){
                   mRollingFriction           = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
