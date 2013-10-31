@@ -251,7 +251,8 @@ namespace Kratos
       vector< array_1d<double, 3> > mOldNeighbourContactForces;
       
       //pointers:
-      int *mpTimeStep;       
+      int *mpTimeStep;  
+      int *mpActivateSearch;
       
       
       //ParticleWeakVectorType mrNeighbours;
