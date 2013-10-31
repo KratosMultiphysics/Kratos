@@ -12,6 +12,7 @@ from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
+
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 import math
 
@@ -41,7 +42,8 @@ ProjectParameters.DEM_nodal_results           = ["RADIUS", "FLUID_VEL_PROJECTED"
 ProjectParameters.mixed_nodal_results         = ["VELOCITY", "DISPLACEMENT"]
 ProjectParameters.CouplingSchemeType          = "updated_fluid" # "updated_fluid" or "updated_DEM"
 ProjectParameters.CouplingWeighingType        = 1
-
+ProjectParameters.DragForceType               = 1 # 1 for standard, any other for Weatherford
+ProjectParameters.DragModifierType            = 3 # 2 for Hayder and 3 for CHIEN
 
 # Changes on PROJECT PARAMETERS for the sake of consistency
 
@@ -65,6 +67,7 @@ for var in ProjectParameters.mixed_nodal_results:
 # Constructing a DEM_procedures object
 DEM_proc = DEMProc.Procedures(DEM_parameters)
 ##AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
 # defining variables to be used
 # GID IO IS NOT USING THIS NOW. TO BE REMOVED ONCE THE "PRINT IN POINTS"
 # CODE IS NOT USING IT
@@ -89,6 +92,7 @@ if "DISTANCE" in ProjectParameters.nodal_results:
 #if "MU" in ProjectParameters.nodal_results:
 #    fluid_model_part.AddNodalSolutionStepVariable(MU)
 ##AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
 #
 #
 # importing the solvers needed
@@ -107,29 +111,31 @@ model_part_io_fluid = ModelPartIO(input_file_name)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-fluid_model_part.AddNodalSolutionStepVariable(PRESSURE_GRADIENT)
-fluid_model_part.AddNodalSolutionStepVariable(AUX_DOUBLE_VAR)
-fluid_model_part.AddNodalSolutionStepVariable(DRAG_REACTION)
-fluid_model_part.AddNodalSolutionStepVariable(SOLID_FRACTION)
-fluid_model_part.AddNodalSolutionStepVariable(MESH_VELOCITY1)
+fluid_variables_to_add = [PRESSURE_GRADIENT,
+                          AUX_DOUBLE_VAR,
+                          DRAG_REACTION,
+                          SOLID_FRACTION,
+                          MESH_VELOCITY1]
+
+balls_variables_to_add = [FLUID_VEL_PROJECTED,
+                          FLUID_DENSITY_PROJECTED,
+                          PRESSURE_GRAD_PROJECTED,
+                          FLUID_VISCOSITY_PROJECTED,
+                          DRAG_FORCE,
+                          BUOYANCY,
+                          SOLID_FRACTION_PROJECTED]
+
+print 'Adding and initializing variables (to zero) to the fluid_model_part'
+
+SwimProc.AddNodalVariables(fluid_model_part, fluid_variables_to_add)
 
 # Defining a model part for the balls part
-my_timer = Timer()
 
 balls_model_part = ModelPart("SolidPart")
 
-# HYDRODYNAMICS
-balls_model_part.AddNodalSolutionStepVariable(FLUID_VEL_PROJECTED)
-balls_model_part.AddNodalSolutionStepVariable(FLUID_DENSITY_PROJECTED)
-balls_model_part.AddNodalSolutionStepVariable(PRESSURE_GRAD_PROJECTED)
-balls_model_part.AddNodalSolutionStepVariable(FLUID_VISCOSITY_PROJECTED)
+print 'Adding and initializing variables (to zero) to the balls_model_part'
 
-# FORCES
-balls_model_part.AddNodalSolutionStepVariable(DRAG_FORCE)
-balls_model_part.AddNodalSolutionStepVariable(BUOYANCY)
-
-# PHASE FRACTIONS
-balls_model_part.AddNodalSolutionStepVariable(SOLID_FRACTION_PROJECTED)
+SwimProc.AddNodalVariables(balls_model_part, balls_variables_to_add)
 
 # Defining a model part for the mixed part
 mixed_model_part = ModelPart("MixedPart")
@@ -147,9 +153,9 @@ balls_model_part.SetBufferSize(3)
 # adding nodal degrees of freedom
 SolverStrategy.AddDofs(balls_model_part)
 
-balls_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, 1)  # 1 for standard, any other for Weatherford
-balls_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, 3)  # 2 for Hayder and 3 for CHIEN
-
+# adding extra process info variables
+balls_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, ProjectParameters.DragForceType)
+balls_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, ProjectParameters.DragModifierType)
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 # setting up the buffer size: SHOULD BE DONE AFTER READING!!!
@@ -286,6 +292,7 @@ output_time = ProjectParameters.output_time
 time = ProjectParameters.Start_time
 out = 0
 step = 0
+
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 full_Dt = Dt
 initial_Dt = 0.001 * full_Dt
@@ -356,13 +363,14 @@ def yield_DEM_time(time_dem_initial, time_final, Dt_DEM, scheme_type):
 DEM_step = 0 # this variable is necessary to get a good random insertion of particles
 DEM_solver.Initialize()
 Dt_DEM = DEM_parameters.MaxTimeStep
-
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 while(time <= final_time):
     
     if(step < 3):
+        if (step = 0)
         Dt = initial_Dt
+        CalculateNodalAreaProcess(balls_model_part, 0)
 
     else:
         Dt = full_Dt
@@ -383,6 +391,7 @@ while(time <= final_time):
         
         print "Solving Fluid... (", fluid_model_part.NumberOfElements(0), " elements)"
         fluid_solver.Solve()
+
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
         if (time >= ProjectParameters.Interaction_start_time and ProjectParameters.ProjectionModuleOption):
@@ -429,6 +438,7 @@ while(time <= final_time):
 
     if(output_time <= out):
         ParticleUtils2D().VisualizationModelPart(mixed_model_part, fluid_model_part, balls_model_part)
+
 # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
         swimming_DEM_gid_io.write_swimming_DEM_results(
             time,
