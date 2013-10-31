@@ -3,6 +3,30 @@ import os
 from KratosMultiphysics import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 
+def AddNodalVariables(model_part, variable_list):
+
+    for var in variable_list:
+        model_part.AddNodalSolutionStepVariable(var)
+
+        if (var == "SOLID_FRACTION"):
+
+            for node in model_part.Nodes:
+                node.SetSolutionStepValue(var, 0, 0.0)
+
+        elif (var == "MESH_VELOCITY1"):
+
+            for node in model_part.Nodes:
+                node.SetSolutionStepValue("MESH_VELOCITY1_X", 0, 0.0)
+                node.SetSolutionStepValue("MESH_VELOCITY1_Y", 0, 0.0)
+                node.SetSolutionStepValue("MESH_VELOCITY1_Z", 0, 0.0)
+
+        elif (var == "DRAG_REACTION"):
+
+            for node in model_part.Nodes:
+                node.SetSolutionStepValue("DRAG_REACTION_X", 0, 0.0)
+                node.SetSolutionStepValue("DRAG_REACTION_Y", 0, 0.0)
+                node.SetSolutionStepValue("DRAG_REACTION_Z", 0, 0.0)
+
 class IOTools:
 
     def __init__(self, Param):
