@@ -89,7 +89,7 @@ public:
     //        Averaged variables       |  Solid Fraction
     //   Fluid-to-DEM | DEM-to-fluid   |
     //----------------------------------------------------------------
-    // 0:   Constant       Constant            Constant
+    // 0:   Linear         Constant            Constant
     // 1:   Linear         Linear              Constant
     // 2:   Linear         Linear              Linear
     //----------------------------------------------------------------
@@ -169,7 +169,7 @@ public:
                 // interpolating the variables
 
                 if (is_found){
-                    //Interpolate(el_it,  N, *it_found , rOriginVariable , rDestinationVariable);
+                    //Interpolate(el_it,  N, *it_found , rOriginVariable , rDestinationVariable, Present/(Present + Past)Coeff);
                     Interpolate(pelement, N, pparticle, DENSITY, FLUID_DENSITY_PROJECTED, alpha);
                     Interpolate(pelement, N, pparticle, VELOCITY, FLUID_VEL_PROJECTED, alpha);
                     Interpolate(pelement, N, pparticle, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED, alpha);
@@ -299,6 +299,11 @@ public:
                 else if (mCouplingType == 1){
                     TransferWithLinearWeighing(pelement, N, pparticle, BODY_FORCE, DRAG_FORCE);
                     CalculateNodalSolidFractionWithConstantWeighing(pelement, N, pparticle);
+                }
+
+                else if (mCouplingType == 2){
+                    TransferWithLinearWeighing(pelement, N, pparticle, BODY_FORCE, DRAG_FORCE);
+                    CalculateNodalSolidFractionWithLinearWeighing(pelement, N, pparticle);
                 }
 
             }
