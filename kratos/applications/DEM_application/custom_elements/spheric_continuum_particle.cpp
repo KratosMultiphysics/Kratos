@@ -428,7 +428,9 @@ namespace Kratos
             
             double contact_tau = 0.0;
             double contact_sigma = 0.0;
-            double failure_criterion_state = 0.0;   
+            double failure_criterion_state = 0.0; 
+            
+            unsigned int neighbour_iterator_id = neighbour_iterator->Id();
           
 
             if (mUniformMaterialOption){
@@ -694,8 +696,9 @@ namespace Kratos
             if(mContactMeshOption==1 && (mapping_new_ini !=-1)) 
             {
 
-              CalculateOnContactElements( neighbour_iterator ,i_neighbour_count, mapping_new_ini, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state);
+              CalculateOnContactElements( neighbour_iterator_id ,i_neighbour_count, mapping_new_ini, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state);
 
+              
             }
 
             i_neighbour_count++;
@@ -1143,128 +1146,66 @@ namespace Kratos
       }
 
    
-   
-   void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() //NOTA: LOOP SOBRE TOTS ELS VEINS PROVISIONALS, TEN KEDERAS UNS QUANTS FENT PUSHBACK. ALS VECTORS DELTA ETC.. HI HAS DE POSAR
+  
+  void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() //NOTA: LOOP SOBRE TOTS ELS VEINS PROVISIONALS, TEN KEDERAS UNS QUANTS FENT PUSHBACK. ALS VECTORS DELTA ETC.. HI HAS DE POSAR
      //LA POSICIÓ DELS QUE SON DEFINITIUS.
      {
-   
-       //NOU:
 
-       ParticleWeakVectorType& TempNeighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
-       
-       vector<int> check_vector  = ZeroVector(TempNeighbours.size()+1); //TODO Ric. es fa així? EL +1 es per posar-hi el indicador de -1 que pari el proces
-       unsigned int check_counter       = 0;
-       unsigned int last_check          = 0;
-       double       ini_delta           = 0.0;
-       int          failure_id          = 1;
-       
-       
-      unsigned int temp_iterator = 0;
-      
-      for (ParticleWeakIteratorType i = TempNeighbours.begin(); i != TempNeighbours.end(); i++)
-       
-      {
+        ParticleWeakVectorType& TempNeighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
 
-         for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++)
-            {
-                           
-              if (static_cast<int>((i)->Id()) == mIniNeighbourIds[k])
-              {               
-                
-                ini_delta  = mIniNeighbourDelta[k];
-                failure_id = mIniNeighbourFailureId[k];
+        unsigned int neighbour_counter       = 0;
+        unsigned int temp_neighbour_counter  = 0;
 
-                break;
-              }
+        unsigned int temp_size = TempNeighbours.size();
 
-            }
-            
-           if (failure_id == 0)
-             
-           {
-                check_counter++;
-                check_vector[temp_iterator] = 1;
-                last_check = temp_iterator;
+        vector<int>                  temp_neighbours_mapping(temp_size);
+        vector<int>                  temp_cont_neighbours_mapping(temp_size);
+        vector<int>                  temp_neighbours_ids(temp_size);
+        vector<double>               temp_neighbours_delta(temp_size,0.0);
+        vector<int>                  temp_neighbours_failure_id(temp_size,1);
+        vector<array_1d<double, 3> > temp_neighbours_contact_forces;
+        temp_neighbours_contact_forces.resize(temp_size);              //TODO::Ric. No em deixa fer el //boost::numeric::ublas::matrix<double, check_counter, 3 >
 
-           }
-           else
-           {
-             
-            double other_radius                 = i->GetGeometry()[0].GetSolutionStepValue(RADIUS);
-            double radius_sum                   = mRadius + other_radius;
-            array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - i->GetGeometry()(0)->Coordinates();
-            double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
-            double indentation                  = radius_sum - distance - ini_delta;
-            
-                if ( indentation > 0.0 )
-                {
-                  check_counter++;
-                  check_vector[temp_iterator] = 1;
-                  last_check = temp_iterator;
-                  
-                }
-                        
-           }
-           
-           temp_iterator++;
-
-       }
-       
-      check_vector[last_check+1] = -1; //After the last that passes the check there is the -1 flag to stop.
-
-      //2nd step: Reserve space
-      
-      vector<int>                  temp_neighbours_ids(check_counter);
-      vector<double>               temp_neighbours_delta(check_counter,0.0);
-      vector<int>                  temp_neighbours_failure_id(check_counter,1);
-      vector<array_1d<double, 3> > temp_neighbours_contact_forces;
-      temp_neighbours_contact_forces.resize(check_counter);
-            
-      //boost::numeric::ublas::matrix<double, check_counter, 3 > temp_neighbours_contact_forces; TODO:: no em deixa ric.
-     
-      vector<int>                  temp_neighbours_mapping(check_counter);
-      vector<int>                  temp_cont_neighbours_mapping(check_counter);
-      
-      this->GetValue(NEIGHBOUR_ELEMENTS).clear();
-      this->GetValue(NEIGHBOUR_ELEMENTS).reserve(check_counter);
-      
-      temp_iterator = 0;
-      unsigned int neighbour_counter = 0;
-      
-      //3rd step: 2nd loop to store the values
-      for (ParticleWeakIteratorType i = TempNeighbours.begin(); check_vector[temp_iterator] != -1; i++) //flag -1 after the last important.
-       
-      {
- 
+        for (ParticleWeakIteratorType i = TempNeighbours.begin(); i != TempNeighbours.end(); i++)
         
-        if(check_vector[temp_iterator] == 1)
         {
- 
-          array_1d<double, 3>   neigh_forces        (3,0.0);
+
           double                ini_delta           = 0.0;
           int                   failure_id          = 1;
+          array_1d<double, 3>   neigh_forces        (3,0.0);
           double                mapping_new_ini     = -1;  
           double                mapping_new_cont    = -1;
 
           //Loop Over Initial Neighbours
 
-            for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++)
-            {
-                            
-              if (static_cast<int>((i)->Id()) == mIniNeighbourIds[k])
-              {               
-                
-                ini_delta  = mIniNeighbourDelta[k];
-                failure_id = mIniNeighbourFailureId[k];
-                mapping_new_ini = k; 
-                mapping_new_cont = mIniNeighbourToIniContinuum[k];
-                
-                break;
-              }
-
+          for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++)
+          {
+                        
+            if (static_cast<int>((i)->Id()) == mIniNeighbourIds[k])
+            {               
+              
+              ini_delta  = mIniNeighbourDelta[k];
+              failure_id = mIniNeighbourFailureId[k];
+              mapping_new_ini = k; 
+              mapping_new_cont = mIniNeighbourToIniContinuum[k];
+              
+              break;
             }
-                            
-          //Loop Over Last time-step Neighbours
+
+          }
+    
+          //Judge if its neighbour
+          
+          double other_radius                 = i->GetGeometry()[0].GetSolutionStepValue(RADIUS);
+          double radius_sum                   = mRadius + other_radius;
+          array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - i->GetGeometry()(0)->Coordinates();
+          double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
+          double indentation                  = radius_sum - distance - ini_delta;
+          
+          if ( indentation > 0.0 || (indentation < 1.0e-6 && failure_id == 0 ) )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
+          {
+        
+            //Loop Over Last time-step Neighbours
           
             for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++)
             {
@@ -1276,35 +1217,65 @@ namespace Kratos
 
             }
             
-                  
-            this->GetValue(NEIGHBOUR_ELEMENTS).push_back(*(i.base()));
-      
-            temp_neighbours_ids[neighbour_counter]              = static_cast<int>((i)->Id());
+            if(neighbour_counter != temp_neighbour_counter)
+            {
+              
+              (*(TempNeighbours.ptr_begin() + neighbour_counter)).swap( (*(TempNeighbours.ptr_begin() + temp_neighbour_counter))) ;     
+                              
+            }
+            
             temp_neighbours_mapping[neighbour_counter]          = mapping_new_ini;
             temp_cont_neighbours_mapping[neighbour_counter]     = mapping_new_cont;
-            
+            temp_neighbours_ids[neighbour_counter]              = static_cast<int>((i)->Id());
             temp_neighbours_delta[neighbour_counter]            = ini_delta;
             temp_neighbours_failure_id[neighbour_counter]       = failure_id;
-            temp_neighbours_contact_forces[neighbour_counter]   = neigh_forces;//TODO:: Ric.//row(temp_neighbours_contact_forces,neighbour_counter)   = neigh_forces;
+            temp_neighbours_contact_forces[neighbour_counter]   = neigh_forces;
             
             neighbour_counter++;
-                
-           
-        }//if(check_vector[temp_iterator] == 1)
+            
+          }
+            
+            temp_neighbour_counter++;
 
-        temp_iterator++;
+        }
         
-      }
-      
-      mMapping_New_Ini.swap(temp_neighbours_mapping);
-      mMapping_New_Cont.swap(temp_cont_neighbours_mapping);
-      mOldNeighbourIds.swap(temp_neighbours_ids);
-      mNeighbourDelta.swap(temp_neighbours_delta);
-      mNeighbourFailureId.swap(temp_neighbours_failure_id);
-      mOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
+        TempNeighbours.erase(TempNeighbours.begin()+neighbour_counter, TempNeighbours.end());
+     
+        if(mMapping_New_Ini.size() != neighbour_counter)   //si en comptes de fer tot aixo fes un resize del mMapping_New_... etc... no quedaria tallada la part ke no minteressa i hagues pogut ferlo servir ampliat i ja sta. fer resize i quedarme amb lo bo.
+        {
+            mMapping_New_Ini.resize(temp_size);
+            mMapping_New_Cont.resize(temp_size);
+            mOldNeighbourIds.resize(temp_size);
+            mNeighbourDelta.resize(temp_size);
+            mNeighbourFailureId.resize(temp_size);
+            mOldNeighbourContactForces.resize(temp_size);
+            
+            for(unsigned int w=0; w<neighbour_counter; w++)
+            {
+              mMapping_New_Ini[w]           = temp_neighbours_mapping[w];
+              mMapping_New_Cont[w]          = temp_cont_neighbours_mapping[w];
+              mOldNeighbourIds[w]           = temp_neighbours_ids[w];
+              mNeighbourDelta[w]            = temp_neighbours_delta[w];
+              mNeighbourFailureId[w]        = temp_neighbours_failure_id[w];
+              mOldNeighbourContactForces[w] = temp_neighbours_contact_forces[w];
+            }
+        }
+          
+        else
+        {
+            mMapping_New_Ini.swap(temp_neighbours_mapping);
+            mMapping_New_Cont.swap(temp_cont_neighbours_mapping);
+            mOldNeighbourIds.swap(temp_neighbours_ids);
+            mNeighbourDelta.swap(temp_neighbours_delta);
+            mNeighbourFailureId.swap(temp_neighbours_failure_id);
+            mOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
+        }
 
-    } //ComputeNewNeighboursHistoricalData
-       
+      } //ComputeNewNeighboursHistoricalData
+
+  
+
+  
    
       void SphericContinuumParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
       {
@@ -1648,7 +1619,7 @@ namespace Kratos
     
       }
       
-      void SphericContinuumParticle::CalculateOnContactElements(ParticleWeakIteratorType neighbour_iterator, size_t i_neighbour_count, int mapping_new_ini, double LocalElasticContactForce[3], 
+      void SphericContinuumParticle::CalculateOnContactElements(unsigned int neighbour_iterator_id, size_t i_neighbour_count, int mapping_new_ini, double LocalElasticContactForce[3], 
                                                           double  contact_sigma, double  contact_tau, double failure_criterion_state)
       {
       KRATOS_TRY
@@ -1656,7 +1627,7 @@ namespace Kratos
 
        Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(mapping_new_ini)).lock();
                   
-       if( this->Id() < neighbour_iterator->Id() )  // Since areas are the same, the values are the same and we only store from lower ids.
+       if( this->Id() < neighbour_iterator_id )  // Since areas are the same, the values are the same and we only store from lower ids.
         {
             //COPY VARIABLES LOW
                                         
@@ -1772,7 +1743,7 @@ namespace Kratos
               array_1d<double,3> normal_vector_on_contact =  -1 * other_to_me_vect; //outwards
             
               double Dummy_Dummy = 0.0;
-              GeometryFunctions::norm(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module
+              GeometryFunctions::normalize(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module
 
               array_1d<double,3> coord_target    = this->GetGeometry()(0)->Coordinates();
               array_1d<double,3> coord_neigh     = neighbour_iterator->GetGeometry()(0)->Coordinates();
@@ -2076,7 +2047,7 @@ namespace Kratos
                   array_1d<double,3> normal_vector_on_contact =  -1 * other_to_me_vect; //outwards     
                             
                   double Dummy_Dummy = 0.0;
-                  GeometryFunctions::norm(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module
+                  GeometryFunctions::normalize(normal_vector_on_contact,Dummy_Dummy); // Normalize to unitary module
                         
                   
                   area_vertical_centre += mcont_ini_neigh_area[i_neighbour_count]*fabs(normal_vector_on_contact[1]); //X(0), Y(1), Z(2)
