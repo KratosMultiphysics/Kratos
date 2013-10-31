@@ -505,7 +505,7 @@ namespace Kratos
             
             if(mDempack){
             
-            equiv_visco_damp_coeff_normal     = mDempack_damping*2.0*sqrt(kn_el/(mRealMass+other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
+            equiv_visco_damp_coeff_normal     = mDempack_damping*2.0*sqrt(kn_el/(mRealMass+other_sqrt_of_mass*other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
             equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal; // dempack no l'utilitza...
             
             }
