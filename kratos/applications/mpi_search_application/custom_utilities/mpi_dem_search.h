@@ -21,6 +21,18 @@
 #include "spatial_containers/bins_dynamic_objects.h"
 #include "spatial_containers/dem_search.h"
 
+#define CUSTOMTIMER 1
+
+/* Timer defines */
+#include "utilities/timer.h"
+#ifdef CUSTOMTIMER
+#define KRATOS_TIMER_START(t) Timer::Start(t);
+#define KRATOS_TIMER_STOP(t) Timer::Stop(t);
+#else
+#define KRATOS_TIMER_START(t)
+#define KRATOS_TIMER_STOP(t)
+#endif
+
 namespace Kratos
 {
 
@@ -89,6 +101,7 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       {     
           KRATOS_TRY
           
+          KRATOS_TIMER_START("MPI_SEARCH_STUFF")
           //TODO: Temporal compile fix. Commincator should be a member class from now on.
           ModelPart rModelPart;
           Clean_Modelpart(rModelPart);
@@ -112,9 +125,13 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
               rResults[particle_pointer_it-elements_array.begin()].resize(20);
               rResultsDistance[particle_pointer_it-elements_array.begin()].resize(20);
           }
+          KRATOS_TIMER_STOP("MPI_SEARCH_STUFF")
           
-          bins.SearchObjectsMpi(elements_array,NumberOfSearchElements,Radius,rResults,rResultsDistance,NumberOfResults,20,mCommunicator);
-
+          KRATOS_TIMER_START("MPI_SEARCH_KERNEL")
+          bins.SearchObjectsMpi(rElements,NumberOfSearchElements,Radius,rResults,rResultsDistance,NumberOfResults,20,mCommunicator);
+          KRATOS_TIMER_STOP("MPI_SEARCH_KERNEL")
+          
+          KRATOS_TIMER_START("MPI_SEARCH_STUFF")
           for(int i = 0; i < NumberOfSearchElements; i++)
           {
               rResults[i].resize(NumberOfResults[i]);
@@ -137,6 +154,7 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
           
           // Finally sort model for correct sync
           Sort_Modelpart(rModelPart);
+          KRATOS_TIMER_STOP("MPI_SEARCH_STUFF")
           
           KRATOS_CATCH(" ")
       }
@@ -207,6 +225,47 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       {     
         
       }
+      
+      void SearchGeometricalInRadiusExclusiveImplementation (
+          ElementsContainerType   const& rStructureElements,
+          ConditionsContainerType const& rElements,
+          const RadiusArrayType & Radius, 
+          VectorResultConditionsContainerType& rResults, 
+          VectorDistanceType& rResultsDistance )
+      {     
+
+      }
+      
+      void SearchGeometricalInRadiusInclusiveImplementation (
+          ElementsContainerType   const& rStructureElements,
+          ConditionsContainerType const& rElements,
+          const RadiusArrayType& Radius, 
+          VectorResultConditionsContainerType& rResults, 
+          VectorDistanceType& rResultsDistance )
+      {     
+
+      }
+      
+      void SearchGeometricalInRadiusExclusiveImplementation (
+          ConditionsContainerType const& rStructureElements,
+          ElementsContainerType   const& rElements,
+          const RadiusArrayType & Radius, 
+          VectorResultElementsContainerType& rResults, 
+          VectorDistanceType& rResultsDistance )
+      {     
+
+      }
+      
+      void SearchGeometricalInRadiusInclusiveImplementation (
+          ConditionsContainerType const& rStructureElements,
+          ElementsContainerType   const& rElements,
+          const RadiusArrayType& Radius, 
+          VectorResultElementsContainerType& rResults, 
+          VectorDistanceType& rResultsDistance )
+      {     
+ 
+      }
+   
       
       ///@}
       ///@name Access
