@@ -216,7 +216,7 @@ public:
             ModelPart::MeshType::NodesContainerType& rLocalNodes = r_model_part.GetCommunicator().LocalMesh().Nodes();
             for (ModelPart::MeshType::NodeIterator it = rLocalNodes.begin(); it != rLocalNodes.end(); it++)
             {
-                const double current_pr = it->FastGetSolutionStepValue(PRESSURE) / it->FastGetSolutionStepValue(PRESSURE);
+                const double current_pr = it->FastGetSolutionStepValue(PRESSURE) / it->FastGetSolutionStepValue(DENSITY);
                 reference_pr_norm += current_pr*current_pr;
 
                 const double delta_pr = current_pr - it->GetValue(PRESSURE);
@@ -242,7 +242,7 @@ public:
 
             if (mrComm.MyPID() == 0)
             {
-                const double  dimension = (r_model_part.ElementsBegin()->GetGeometry()).WorkingSpaceDimension();
+                const double dimension = (r_model_part.ElementsBegin()->GetGeometry()).WorkingSpaceDimension();
                 const double vel_norm = sqrt( recvbuff[0] );
                 const double vel_diff_norm = sqrt( recvbuff[1] );
                 const double pr_norm = sqrt( recvbuff[2] );
