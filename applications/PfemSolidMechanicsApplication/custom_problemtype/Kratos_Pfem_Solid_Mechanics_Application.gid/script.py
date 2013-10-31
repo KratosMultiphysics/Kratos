@@ -29,6 +29,7 @@ from KratosMultiphysics import *
 #including Applications paths
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.MeshingApplication        import *
 from KratosMultiphysics.PfemSolidMechanicsApplication import *
   
 #import the python solver:
