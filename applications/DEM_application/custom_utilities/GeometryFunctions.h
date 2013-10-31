@@ -45,7 +45,7 @@ namespace Kratos
         return output;
     }
 
-    static inline void norm(double Vector[3])
+    static inline void normalize(double Vector[3])
     {
             double distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
             Vector[0] = Vector[0] / distance;
@@ -53,7 +53,7 @@ namespace Kratos
             Vector[2] = Vector[2] / distance;
     }
     
-    static inline void norm( array_1d<double,3>& Vector, double& distance)
+    static inline void normalize( array_1d<double,3>& Vector, double& distance)
     {
             distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
             
@@ -132,7 +132,7 @@ namespace Kratos
         int ii;
         double Vector0[3] = {0.0},Vector1[3] = {0.0};
 
-        norm(NormalDirection);
+        normalize(NormalDirection); 
                                
         if(fabs(NormalDirection[0])>=0.577)
         {
@@ -155,9 +155,9 @@ namespace Kratos
             Vector0[2]= - NormalDirection[0] /NormalDirection[2];
         }
 
-        norm(Vector0);
+        normalize(Vector0);
         CrossProduct(NormalDirection,Vector0,Vector1);
-        norm(Vector1);
+        normalize(Vector1);
         
         for(ii=0;ii<3;ii++)
         {
@@ -256,12 +256,12 @@ namespace Kratos
          Vector2[1] = Centroid[1] - EdgeCoord1[1];
          Vector2[2] = Centroid[2] - EdgeCoord1[2];
 
-         norm(Vector1);
-         norm(Vector2);
+         normalize(Vector1);
+         normalize(Vector2);
          CrossProduct(Vector1, Vector2, Vector3);
-         norm(Vector3);
+         normalize(Vector3);
          CrossProduct(Vector1, Vector3, Normal);
-         norm(Normal);
+         normalize(Normal);
 
          if (DotProduct(Vector2, Normal) > 0.0)
          {
@@ -298,18 +298,18 @@ namespace Kratos
          Vector2[1] = FaceCoord3[1] - FaceCoord2[1];
          Vector2[2] = FaceCoord3[2] - FaceCoord2[2];
 
-         norm(Vector1);
-         norm(Vector2);
+         normalize(Vector1);
+         normalize(Vector2);
          CrossProduct(Vector1, Vector2, Normal);
-         norm(Normal);
+         normalize(Normal);
 
          CrossProduct(Normal, Vector1, Vector2);
-         norm(Vector2);
+         normalize(Vector2);
 
          Vector3[0] = FaceCoord1[0] - Centroid[0];
          Vector3[1] = FaceCoord1[1] - Centroid[1];
          Vector3[2] = FaceCoord1[2] - Centroid[2];
-         norm(Vector3);
+         normalize(Vector3);
 
 
 
@@ -394,7 +394,7 @@ namespace Kratos
          temp[1] = normal[1] + quart_imag[1];
          temp[2] = normal[2] + quart_imag[2];
          
-         norm(temp);
+         normalize(temp);
          
          double normal_norm = sqrt(normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]);
          
@@ -457,8 +457,8 @@ namespace Kratos
              Vector2[1] = IntersectionCoord[1] - EdgeCoord2[1];
              Vector2[2] = IntersectionCoord[2] - EdgeCoord2[2];
 
-             norm(Vector1);
-             norm(Vector2);
+             normalize(Vector1);
+             normalize(Vector2);
 
              if( DotProduct(Vector1, Vector2) <= 0.0)
              {
@@ -507,8 +507,8 @@ namespace Kratos
              Vector2[1] = IntersectionCoord[1] - EdgeCoord2[1];
              Vector2[2] = IntersectionCoord[2] - EdgeCoord2[2];
 
-             norm(Vector1);
-             norm(Vector2);
+             normalize(Vector1);
+             normalize(Vector2);
 
              if( DotProduct(Vector1, Vector2) <= 0.0)
              {
