@@ -27,7 +27,7 @@ namespace Kratos
 ContactDomainPenalty2DCondition::ContactDomainPenalty2DCondition( IndexType NewId, GeometryType::Pointer pGeometry )
     : ContactDomainLM2DCondition( NewId, pGeometry )
 {
-    //DO NOT ADD DOFS HERE!!!
+  //DO NOT ADD DOFS HERE!!!
 }
 
 
@@ -37,7 +37,7 @@ ContactDomainPenalty2DCondition::ContactDomainPenalty2DCondition( IndexType NewI
 ContactDomainPenalty2DCondition::ContactDomainPenalty2DCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : ContactDomainLM2DCondition( NewId, pGeometry, pProperties )
 {
-    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+  mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 }
 
 

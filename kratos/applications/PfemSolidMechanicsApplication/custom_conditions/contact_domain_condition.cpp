@@ -28,7 +28,8 @@ namespace Kratos
 ContactDomainCondition::ContactDomainCondition( IndexType NewId, GeometryType::Pointer pGeometry )
     : Condition( NewId, pGeometry )
 {
-    //DO NOT ADD DOFS HERE!!!
+  //DO NOT ADD DOFS HERE!!!
+   this->Set(CONTACT);
 }
 
 
@@ -38,7 +39,8 @@ ContactDomainCondition::ContactDomainCondition( IndexType NewId, GeometryType::P
 ContactDomainCondition::ContactDomainCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : Condition( NewId, pGeometry, pProperties )
 {
-    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+  this->Set(CONTACT);
+  mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
 }
 
 
