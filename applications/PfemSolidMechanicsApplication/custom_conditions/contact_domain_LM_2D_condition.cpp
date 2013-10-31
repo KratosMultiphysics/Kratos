@@ -87,13 +87,15 @@ ContactDomainLM2DCondition::~ContactDomainLM2DCondition()
 void ContactDomainLM2DCondition::SetMasterGeometry()
 
 {
-    unsigned int vsize=GetValue(MASTER_ELEMENTS).size();
-    Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS)[vsize-1];
+    //unsigned int vsize=GetValue(MASTER_ELEMENTS).size();
+    //Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS)[vsize-1];
+    Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS).back();
     mContactVariables.SetMasterElement(MasterElement);
 
 
-    vsize=GetValue(MASTER_NODES).size();
-    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES)[vsize-1];
+    //vsize=GetValue(MASTER_NODES).size();
+    //Element::NodeType&    MasterNode   = GetValue(MASTER_NODES)[vsize-1];
+    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
     mContactVariables.SetMasterNode(MasterNode);
 
      int  slave=-1;
