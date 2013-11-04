@@ -42,7 +42,10 @@ ProjectParameters.DEM_nodal_results           = ["RADIUS", "FLUID_VEL_PROJECTED"
 ProjectParameters.mixed_nodal_results         = ["VELOCITY", "DISPLACEMENT"]
 ProjectParameters.CouplingSchemeType          = "updated_fluid" # "updated_fluid" or "updated_DEM"
 ProjectParameters.CouplingWeighingType        = 1
-ProjectParameters.DragForceType               = 1 # 1 for standard, any other for Weatherford
+ProjectParameters.BuoyancyForceType           = 0 # 0 no buoyancy, 1 for standard
+ProjectParameters.DragForceType               = 1 # 0 no drag, 1 for standard, 2 for Weatherford
+ProjectParameters.VirtualMassForceType        = 0 # 0 no virtual mass force
+ProjectParameters.LiftForceType               = 0 # 0 no lift force
 ProjectParameters.DragModifierType            = 3 # 2 for Hayder and 3 for CHIEN
 
 # Changes on PROJECT PARAMETERS for the sake of consistency
@@ -154,7 +157,10 @@ balls_model_part.SetBufferSize(3)
 SolverStrategy.AddDofs(balls_model_part)
 
 # adding extra process info variables
+balls_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, ProjectParameters.BuoyancyForceType)
 balls_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, ProjectParameters.DragForceType)
+balls_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.VirtualMassForceType)
+balls_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.LiftForceType)
 balls_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, ProjectParameters.DragModifierType)
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
