@@ -57,6 +57,7 @@ SearchRadiusExtension            = *GenData(Search_Radius_Extension)
 *format "%10.5e"
 AmplifiedSearchRadiusExtension   = *GenData(Amplified_Continuum_Search_Radius_Extension)
 FixVelocitiesOption              = "*GenData(Fix_Velocities_At_Predetermined_Time)"
+HorizontalFixVel                 = "*GenData(Fix_Horizontal_Velocities)"
 *format "%10.5e"
 TotalTimePercentageFixVelocities = *GenData(Time_Step_Constrain_DOFs_Percentage)
 LimitSurfaceOption               = *GenData(Limit_Surface)
