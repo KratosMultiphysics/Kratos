@@ -49,6 +49,8 @@ VirtualMassOption                = "*GenData(Virtual_Mass_Option)"
 VirtualMassCoefficient           = *GenData(Virtual_Mass_Coefficient)
 *format "%10.5e"
 MagicFactor                      = *GenData(Magic_Factor)
+*format "%10.5e"
+MagicFactorPoisson               = *GenData(Magic_Factor_Poisson)
 DeltaOption                      = "*GenData(Set_Initial_Indentation_To_Zero_Force)"
 *format "%10.5e"
 SearchRadiusExtension            = *GenData(Search_Radius_Extension)
