@@ -63,18 +63,18 @@ namespace Kratos
           array_1d<double,3> virtual_mass_force;//    = GetGeometry()(0)->FastGetSolutionStepValue(VIRTUAL_FORCE);
           array_1d<double,3> lift_force;//            = GetGeometry()(0)->FastGetSolutionStepValue(LIFT_FORCE);
 
-//          ComputeBuoyancy(buoyancy, fluid_density, gravity, rCurrentProcessInfo);
-//          ComputeDragForce(drag_force, fluid_density, rCurrentProcessInfo);
-//          ComputeVirtualMassForce(virtual_mass_force, fluid_density, rCurrentProcessInfo);
-//          ComputeLiftForce(lift_force, fluid_density, rCurrentProcessInfo);
+          ComputeBuoyancy(buoyancy, fluid_density, gravity, rCurrentProcessInfo);
+          ComputeDragForce(drag_force, fluid_density, rCurrentProcessInfo);
+          ComputeVirtualMassForce(virtual_mass_force, fluid_density, rCurrentProcessInfo);
+          ComputeLiftForce(lift_force, fluid_density, rCurrentProcessInfo);
 
-          if (mDragForceType == 1){
-              ComputeFluidForcesOnParticle(rCurrentProcessInfo);
-          }
+//          if (mDragForceType == 1){
+//              ComputeFluidForcesOnParticle(rCurrentProcessInfo);
+//          }
 
-          else {
-              ComputeWeatherfordFluidForcesOnParticle(rCurrentProcessInfo);
-          }
+//          else {
+//              ComputeWeatherfordFluidForcesOnParticle(rCurrentProcessInfo);
+//          }
 
           additionally_applied_force[0] = buoyancy[0] + drag_force[0] + virtual_mass_force[0] + lift_force[0] + mRealMass * gravity[0];
           additionally_applied_force[1] = buoyancy[1] + drag_force[1] + virtual_mass_force[1] + lift_force[1] + mRealMass * gravity[1];
