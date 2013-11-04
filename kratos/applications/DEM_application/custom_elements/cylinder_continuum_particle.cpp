@@ -95,8 +95,12 @@ namespace Kratos
           additionally_applied_moment.clear();
           initial_rotation_moment.clear();
           elastic_force.clear();
+          
+          if( *mpActivateSearch==1 || *mpTimeStep == 0)
+          {
 
-          ComputeNewNeighboursHistoricalData();
+            ComputeNewNeighboursHistoricalData();
+          }
 
           ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
 
