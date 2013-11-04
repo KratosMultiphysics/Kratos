@@ -88,6 +88,7 @@ namespace Kratos
           
           
           mFixSwitch        = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];
+          mFixHorizontalVel = rCurrentProcessInfo[FIX_HORIZONTAL_VEL];
           mStepFixVel       = rCurrentProcessInfo[STEP_FIX_VELOCITIES];
           mDempackOption    = bool(rCurrentProcessInfo[DEMPACK_OPTION]); 
           
@@ -772,22 +773,30 @@ namespace Kratos
               
                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_TOP];
                 (it)->GetGeometry()(0)->Fix(VELOCITY_Y);
-                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
-                (it)->GetGeometry()(0)->Fix(VELOCITY_X);
-                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z)   = 0.0;
-                (it)->GetGeometry()(0)->Fix(VELOCITY_Z);
- 
+                
+                if(mFixHorizontalVel)
+                {
+                  (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
+                  (it)->GetGeometry()(0)->Fix(VELOCITY_X);
+                  (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z)   = 0.0;
+                  (it)->GetGeometry()(0)->Fix(VELOCITY_Z);
+                }
+                
             }
             
             if(  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2   )   //bot 
             {
               
                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_BOT];
-                (it)->GetGeometry()(0)->Fix(VELOCITY_Y);   
-                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
-                (it)->GetGeometry()(0)->Fix(VELOCITY_X);
-                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z)   = 0.0;
-                (it)->GetGeometry()(0)->Fix(VELOCITY_Z);
+                (it)->GetGeometry()(0)->Fix(VELOCITY_Y); 
+                
+                
+                if(mFixHorizontalVel){
+                  (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
+                  (it)->GetGeometry()(0)->Fix(VELOCITY_X);
+                  (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z)   = 0.0;
+                  (it)->GetGeometry()(0)->Fix(VELOCITY_Z);
+                }
                                 
             }
             
@@ -1023,6 +1032,7 @@ namespace Kratos
     //bool   mdelta_option;
     bool   mcontinuum_simulating_option;
     int    mFixSwitch;
+    int    mFixHorizontalVel;
     int    mStepFixVel;
     bool   mDempackOption;
     
