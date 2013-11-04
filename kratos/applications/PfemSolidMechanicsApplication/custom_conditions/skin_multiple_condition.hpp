@@ -84,8 +84,6 @@ public:
     /// Counted pointer of SkinMultipleCondition
     KRATOS_CLASS_POINTER_DEFINITION(SkinMultipleCondition);
 
-    KRATOS_DEFINE_LOCAL_FLAG( SKIN );
-
     ///@}
     ///@name Life Cycle
     ///@{

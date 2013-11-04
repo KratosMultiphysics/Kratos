@@ -20,8 +20,6 @@
 namespace Kratos
 {
 
-  KRATOS_CREATE_LOCAL_FLAG( SkinMultipleCondition, SKIN, 5 );
-
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
@@ -29,7 +27,7 @@ SkinMultipleCondition::SkinMultipleCondition( IndexType NewId, GeometryType::Poi
     : Condition( NewId, pGeometry )
 {
   //DO NOT ADD DOFS HERE!!!
-  this->Set(SkinMultipleCondition::SKIN);
+
 }
 
 
@@ -39,7 +37,7 @@ SkinMultipleCondition::SkinMultipleCondition( IndexType NewId, GeometryType::Poi
 SkinMultipleCondition::SkinMultipleCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : Condition( NewId, pGeometry, pProperties )
 {
-  this->Set(SkinMultipleCondition::SKIN);
+
 }
 
 
@@ -54,7 +52,6 @@ SkinMultipleCondition::SkinMultipleCondition( SkinMultipleCondition const& rOthe
     ArrayPointerConditions[cn] = rOther.ArrayPointerConditions[cn];
   }
 
-  this->Set(SkinMultipleCondition::SKIN);
 }
 
 
