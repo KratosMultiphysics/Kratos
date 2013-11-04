@@ -96,10 +96,11 @@ namespace Kratos
           additionally_applied_force.clear();
           additionally_applied_moment.clear();
           initial_rotation_moment.clear();
-         
+          elastic_force.clear();
+          
           if( *mpActivateSearch==1 || *mpTimeStep == 0)
           {
-            elastic_force.clear();
+
             ComputeNewNeighboursHistoricalData();
           }
           
