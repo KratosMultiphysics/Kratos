@@ -250,10 +250,10 @@ public:
                 const double global_nnode = recvbuff[4];
 
                 const double vel_ratio = vel_diff_norm / vel_norm;
-                const double vel_abs = vel_norm / (dimension*global_nnode);
+                const double vel_abs = vel_diff_norm / (dimension*global_nnode);
 
                 const double pr_ratio = pr_diff_norm / pr_norm;
-                const double pr_abs = pr_norm / global_nnode;
+                const double pr_abs = pr_diff_norm / global_nnode;
 
                 std::cout << "VELOCITY error (tolerance) -- Ratio: " << vel_ratio << " (" << mVelRatioTolerance << "); Absolute: " <<  vel_abs << " (" << mVelAbsTolerance << ")." << std::endl;
                 std::cout << "PRESSURE error (tolerance) -- Ratio: " <<  pr_ratio << " (" << mPrsRatioTolerance << "); Absolute: " <<   pr_abs << " (" << mPrsAbsTolerance << ")." << std::endl;
