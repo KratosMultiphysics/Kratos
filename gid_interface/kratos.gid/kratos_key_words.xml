@@ -272,7 +272,7 @@
     kkword="HARDENING_EXPONENT" />
     <Item id="InternalFrictionAngle"
     kkword="MAX_FRICTION_INTERNAL_ANGLE" />
-    <Item id="ImplicitIteration" kkword="IMPLICITERATION" />
+    <Item id="ImplicitIteration" kkword="NL_ITERATION_NUMBER" />
     <Item id="DilatancyAngle" kkword="MAX_DILATANCY_ANGLE" />
     <Item id="TensileStrength" kkword="FT" />
     <Item id="CompressiveStrength" kkword="FC" />

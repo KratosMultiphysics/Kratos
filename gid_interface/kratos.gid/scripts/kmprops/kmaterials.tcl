@@ -554,7 +554,7 @@ proc ::KMat::buildfatherFrame { T item {class "Tab"} } {
 	tooltip::tooltip $f.bBottomCancel [= "Cancel assignation"]
 }
 
-proc KMat::Tree_Return { } {
+proc ::KMat::Tree_Return { } {
     ::KMProps::DestroyBottomFrame     
 }
 
@@ -927,15 +927,15 @@ proc ::KMat::Combos {node row framePath} {
 	return [expr $row +1]
 }
 
-proc KMat::Combobox_Escape { item T } {
+proc ::KMat::Combobox_Escape { item T } {
     KMat::cmbCancel $item $T
 }
 
-proc KMat::Combobox_Return { item T } {
+proc ::KMat::Combobox_Return { item T } {
     KMat::cmbSelectChange $item $T 1 
 }
 
-proc KMat::Combobox_FocusOut { item T } {
+proc ::KMat::Combobox_FocusOut { item T } {
     KMat::cmbSelectChange $item $T 0
 }
 
