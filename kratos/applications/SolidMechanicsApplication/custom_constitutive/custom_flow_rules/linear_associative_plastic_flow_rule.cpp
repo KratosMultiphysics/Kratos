@@ -98,8 +98,7 @@ bool LinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialRetu
 // 	Matrix IdentityMatrix  = identity_matrix<double> (3);
 
 // 	//2.-Auxiliar matrices
-// 	Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rReturnMappingVariables.TrialIsoStressVector );
-// 	rScalingFactors.Normal      = IsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
+// 	rScalingFactors.Normal      = rReturnMappingVariables.TrialIsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
 
 
 // 	rScalingFactors.Dev_Normal  = zero_matrix<double> (3);

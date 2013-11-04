@@ -331,14 +331,14 @@ void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialRe
 {
   
  	//1.-Identity build
-	Matrix IdentityMatrix  = identity_matrix<double> (3);
+	Matrix IdentityMatrix       = identity_matrix<double> (3);
 
 	//2.-Auxiliar matrices
-	Matrix IsoStressMatrix      = MathUtils<double>::StressVectorToTensor( rReturnMappingVariables.TrialIsoStressVector );
-	rScalingFactors.Normal      = IsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
+	rScalingFactors.Normal      = rReturnMappingVariables.TrialIsoStressMatrix * ( 1.0 / rReturnMappingVariables.NormIsochoricStress );
 
 	Matrix Norm_Normal          = prod( rScalingFactors.Normal, trans(rScalingFactors.Normal) );
-	double Trace_Norm_Normal    = Norm_Normal( 0, 0 ) + Norm_Normal( 1, 1 ) + Norm_Normal( 2, 2 );
+
+	double Trace_Norm_Normal    = Norm_Normal( 0, 0 ) + Norm_Normal( 1, 1 )	+ Norm_Normal( 2, 2 );
 
 	rScalingFactors.Dev_Normal  = Norm_Normal;
 	rScalingFactors.Dev_Normal -= (1.0/3.0) * Trace_Norm_Normal * IdentityMatrix;

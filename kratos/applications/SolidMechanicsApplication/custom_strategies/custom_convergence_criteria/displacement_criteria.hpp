@@ -119,11 +119,15 @@ public:
             CalculateDispNorms(rDofSet,Dx,disp_norm,delta_disp_norm);
 
 
-            if(delta_disp_norm/disp_norm !=1 && disp_norm!=0)
+            if( disp_norm!=0 )
                 ratio=delta_disp_norm/disp_norm;
 
-            if(disp_norm < mAlwaysConvergedNorm && delta_disp_norm<=disp_norm)
+	    if(disp_norm < mAlwaysConvergedNorm && delta_disp_norm<=disp_norm)
                 ratio=mRatioTolerance;
+
+	    if( ratio == 0 && int(delta_disp_norm-int(disp_norm))==0)
+	        ratio = 1;
+
 
             std::cout << "delta_disp_norm = " << delta_disp_norm << ";  disp_norm = " << disp_norm << std::endl;
 
@@ -136,7 +140,7 @@ public:
             }
             else
             {
-                if( int(delta_disp_norm-int(disp_norm))==0 && int(ratio)==1)
+                if( int(delta_disp_norm-int(disp_norm))==0 && int(ratio)==1 &&  disp_norm <= mRatioTolerance * 1e-2)
                 {
                     KRATOS_WATCH("convergence is achieved : - no movement - ")
                     return true;

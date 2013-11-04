@@ -42,7 +42,6 @@
 #include "custom_strategies/custom_schemes/residual_based_rotation_bossak_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 
-
 //linear solvers
 #include "linear_solvers/linear_solver.h"
 
@@ -73,6 +72,8 @@ void  AddCustomStrategiesToPython()
     typedef ResidualBasedStaticScheme< SparseSpaceType, LocalSpaceType > ResidualBasedStaticSchemeType;
     typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
     typedef ResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakSchemeType;
+
+    // typedef ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedPredictorCorrectorBossakSchemeType;
 
     typedef ResidualBasedRotationBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationBossakSchemeType;
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
@@ -115,8 +116,6 @@ void  AddCustomStrategiesToPython()
             .def("Initialize", &ResidualBasedNewmarkScheme<SparseSpaceType, LocalSpaceType>::Initialize)
 
             ;
-
-
 
     class_< ResidualBasedBossakSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >

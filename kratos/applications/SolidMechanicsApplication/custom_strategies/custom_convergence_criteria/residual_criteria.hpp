@@ -297,6 +297,8 @@ private:
         ModelPart::NodesContainerType& rNodes = r_model_part.Nodes();
         for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
+	    in->SetLock();
+
             array_1d<double, 3 > & InternalForce  = in->FastGetSolutionStepValue(FORCE_INTERNAL);
             array_1d<double, 3 > & ExternalForce  = in->FastGetSolutionStepValue(FORCE_EXTERNAL);
             array_1d<double, 3 > & DynamicForce   = in->FastGetSolutionStepValue(FORCE_DYNAMIC);
@@ -357,6 +359,8 @@ private:
                     }
                 }
             }
+
+	    in->UnSetLock();
         }
 
 

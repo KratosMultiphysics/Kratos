@@ -110,19 +110,18 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix &
 //************************************************************************************
 
 void HyperElasticPlasticPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
-        const Vector & rIsoStressVector,
+        const Matrix & rIsoStressMatrix,
         Matrix& rConstitutiveMatrix)
 {
 
     rConstitutiveMatrix.clear();
 
-    Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rIsoStressVector );
 
     for(unsigned int i=0; i<3; i++)
     {
         for(unsigned int j=0; j<3; j++)
         {
-            rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, IsoStressMatrix,
+            rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rIsoStressMatrix,
                                           this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
         }
 
@@ -168,7 +167,7 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculatePlasticConstitutiveMatrix (co
 
     rConstitutiveMatrix.clear();
 
-    Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rReturnMappingVariables.TrialIsoStressVector );
+    Matrix IsoStressMatrix = rReturnMappingVariables.TrialIsoStressMatrix;
 
     //std::cout<< " TrialStressMatrix 2D "<<IsoStressMatrix<<std::endl;
 
@@ -195,19 +194,17 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculatePlasticConstitutiveMatrix (co
 
 void HyperElasticPlasticPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
 								     const Matrix & rInverseDeformationGradientF,
-								     const Vector & rIsoStressVector,
+								     const Matrix & rIsoStressMatrix,
 								     Matrix& rConstitutiveMatrix)
 {
 
     rConstitutiveMatrix.clear();
 
-    Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rIsoStressVector );
-
     for(unsigned int i=0; i<3; i++)
     {
         for(unsigned int j=0; j<3; j++)
         {
-	  rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rInverseDeformationGradientF, IsoStressMatrix,
+	  rConstitutiveMatrix( i, j ) = IsochoricConstitutiveComponent(rConstitutiveMatrix( i, j ), rElasticVariables, rInverseDeformationGradientF, rIsoStressMatrix,
                                           this->msIndexVoigt2D3C[i][0], this->msIndexVoigt2D3C[i][1], this->msIndexVoigt2D3C[j][0], this->msIndexVoigt2D3C[j][1]);
         }
 
@@ -255,7 +252,7 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculatePlasticConstitutiveMatrix (co
 
     rConstitutiveMatrix.clear();
 
-    Matrix IsoStressMatrix = MathUtils<double>::StressVectorToTensor( rReturnMappingVariables.TrialIsoStressVector );
+    Matrix IsoStressMatrix = rReturnMappingVariables.TrialIsoStressMatrix;
 
     FlowRule::PlasticFactors ScalingFactors;
     mpFlowRule->CalculateScalingFactors( rReturnMappingVariables, ScalingFactors );

@@ -345,7 +345,7 @@ protected:
      * @param rConstitutiveMatrix matrix where the constitutive tensor is stored
      */
     virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
-            const Vector & rIsoStressVector,
+            const Matrix & rIsoStressMatrix,
             Matrix& rConstitutiveMatrix);
 
 
@@ -359,7 +359,7 @@ protected:
      */
     virtual void CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables& rElasticVariables,
 						       const Matrix & rInverseDeformationGradientF,
-						       const Vector & rIsoStressVector,
+						       const Matrix & rIsoStressMatrix,
 						       Matrix& rConstitutiveMatrix);
 
 
