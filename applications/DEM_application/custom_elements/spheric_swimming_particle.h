@@ -190,7 +190,7 @@ namespace Kratos
       ///@name Member Variables
       ///@{
 
-      int mBuoyancyType;
+      int mBuoyancyForceType;
       int mDragForceType;
       int mVirtualMassForceType;
       int mLiftForceType;
