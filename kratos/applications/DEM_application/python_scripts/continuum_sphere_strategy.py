@@ -126,6 +126,7 @@ class ExplicitStrategy:
         self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)  
         self.activate_search                = 0 
         self.fix_velocities                 = Var_Translator(Param.FixVelocitiesOption)
+        self.fix_horizontal_vel             = Var_Translator(Param.HorizontalFixVel)
         self.limit_surface_option           = Param.LimitSurfaceOption
         self.limit_cylinder_option          = Param.LimitCylinderOption       
         self.clean_init_indentation_option  = Var_Translator(Param.CleanIndentationsOption)
@@ -296,7 +297,8 @@ class ExplicitStrategy:
         # GLOBAL MATERIAL PROPERTIES
         self.nodal_mass_coeff               = Param.VirtualMassCoefficient
         self.magic_factor                   = Param.MagicFactor
-
+        self.magic_factor_poisson           = Param.MagicFactorPoisson
+        
         if (self.global_variables_option):
             self.global_kn                  = Param.GlobalKn
             self.global_kt                  = Param.GlobalKt
@@ -441,6 +443,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(DEMPACK_OPTION, self.dempack_option)
         self.model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, 0)
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities)
+        self.model_part.ProcessInfo.SetValue(FIX_HORIZONTAL_VEL, self.fix_horizontal_vel)
         self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_option)
         self.model_part.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_option)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
@@ -514,6 +517,7 @@ class ExplicitStrategy:
         # GLOBAL PHISICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
         self.model_part.ProcessInfo.SetValue(DEM_MAGIC_FACTOR, self.magic_factor)
+        self.model_part.ProcessInfo.SetValue(DEM_MAGIC_FACTOR_POISSON, self.magic_factor_poisson)
 
         # GLOBAL MATERIAL PROPERTIES
 
