@@ -1822,7 +1822,6 @@ namespace Kratos
               }
 
               AdditionalMemberDeclarationFirstStep(rCurrentProcessInfo);
-
           }
 
       }

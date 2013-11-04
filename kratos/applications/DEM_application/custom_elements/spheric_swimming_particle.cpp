@@ -124,11 +124,11 @@ namespace Kratos
           double drag_coeff;
 
           if (mDragForceType == 1){
-              drag_coeff = ComputeConstantDragCoefficient(drag_coeff, norm_of_slip_vel, fluid_density, rCurrentProcessInfo);
+              drag_coeff = ComputeConstantDragCoefficient(norm_of_slip_vel, fluid_density, rCurrentProcessInfo);
           }
 
           else if (mDragForceType == 2){
-              drag_coeff = ComputeWeatherfordDragCoefficient(drag_coeff, norm_of_slip_vel, fluid_density, rCurrentProcessInfo);
+              drag_coeff = ComputeWeatherfordDragCoefficient(norm_of_slip_vel, fluid_density, rCurrentProcessInfo);
           }
 
           else{
@@ -177,17 +177,10 @@ namespace Kratos
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-      double SphericSwimmingParticle::ComputeConstantDragCoefficient(double& drag_coeff, const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo)
+      double SphericSwimmingParticle::ComputeConstantDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo)
       {
-
-          if (fluid_density > 0.0000000000001){
-              return drag_coeff = 0.235 * M_PI * fluid_density * mRadius * mRadius * norm_of_slip_vel;
-          }
-
-          else {
-              return 0.0;
-          }
-
+            double  drag_coeff = 0.235 * M_PI * fluid_density * mRadius * mRadius * norm_of_slip_vel;
+            return drag_coeff;
       }
 
     //**************************************************************************************************************************************************
@@ -349,7 +342,7 @@ namespace Kratos
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-        double SphericSwimmingParticle::ComputeWeatherfordDragCoefficient(double& drag_coeff, const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo)
+        double SphericSwimmingParticle::ComputeWeatherfordDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo)
         {
               KRATOS_TRY
 
@@ -377,6 +370,7 @@ namespace Kratos
               double regularization_v                    = 0.2 * mRadius;
 
               double reynolds;
+              double drag_coeff;
 
               if (!non_newtonian_OPTION){ //Newtonian
                   ComputeReynoldsNumber(non_newtonian_OPTION, norm_of_slip_vel, fluid_density, dynamic_viscosity, reynolds);
@@ -406,6 +400,8 @@ namespace Kratos
                   }
 
               }
+
+              return drag_coeff;
 
             KRATOS_CATCH("")
         }

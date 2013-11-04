@@ -130,8 +130,8 @@ namespace Kratos
         SphericSwimmingParticle();
         void ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment, array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo);
         void ComputeFluidForcesOnParticle(ProcessInfo& rCurrentProcessInfo);
-        double ComputeConstantDragCoefficient(double& drag_coeff, const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
-        double ComputeWeatherfordDragCoefficient(double& drag_coeff, const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
+        double ComputeConstantDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
+        double ComputeWeatherfordDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
         void ComputeBuoyancy(array_1d<double, 3>& buoyancy, const double& fluid_density, const array_1d<double,3>& gravity, ProcessInfo& rCurrentProcessInfo);
         void ComputeDragForce(array_1d<double, 3>& drag_force, const double& fluid_density, ProcessInfo& rCurrentProcessInfo);
         void ComputeVirtualMassForce(array_1d<double, 3>& virtual_mass_force, const double& fluid_density, ProcessInfo& rCurrentProcessInfo);
