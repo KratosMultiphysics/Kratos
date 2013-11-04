@@ -107,9 +107,11 @@ VALUE: 0.01
 HELP:It calculates the radius mean, variation, etc...
 QUESTION: Fix_Velocities_At_Predetermined_Time#CB#(ON,OFF)
 VALUE: OFF
-DEPENDENCIES: (OFF,HIDE,Time_Step_Constrain_DOFs_Percentage,#CURRENT#)(ON,RESTORE,Time_Step_Constrain_DOFs_Percentage,#CURRENT#)
+DEPENDENCIES: (OFF,HIDE,Time_Step_Constrain_DOFs_Percentage,#CURRENT#,HIDE,Fix_Horizontal_Velocities,#CURRENT#)(ON,RESTORE,Time_Step_Constrain_DOFs_Percentage,#CURRENT#,RESTORE,Fix_Horizontal_Velocities,#CURRENT#)
 HELP: It avoids fixing velocity at the initial timestep but at a predefined one.
 QUESTION: Time_Step_Constrain_DOFs_Percentage
+VALUE: 1.0
+QUESTION: Fix_Horizontal_Velocities
 VALUE: 1.0
 HELP: The constraints (applied conditions on velocity) apply at a percentual of the total time steps.
 QUESTION: Limit_Surface#CB#(0,1,2,3,4,5)
