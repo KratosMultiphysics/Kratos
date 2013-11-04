@@ -369,6 +369,19 @@ private:
     ///@name Private Operations
     ///@{
 
+    //check problem type definition
+    bool IsActive(Condition::Pointer pCondition, const ProcessInfo& rCurrentProcessInfo);
+
+    //set specific data value to condition children
+    template<class TVariableType> void SetValueToChildren(const TVariableType& rThisVariable){
+
+      for(unsigned int cn=0; cn<ArrayPointerConditions.size(); cn++)
+	{
+	  typename TVariableType::Type const& rValue = this->GetValue(rThisVariable);
+	  ArrayPointerConditions[cn]->SetValue(rThisVariable,rValue);	      
+	}
+      
+    }
     ///@}
     ///@name Private  Access
     ///@{

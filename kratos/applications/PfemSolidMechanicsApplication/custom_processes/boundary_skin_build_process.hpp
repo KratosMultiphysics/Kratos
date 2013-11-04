@@ -609,8 +609,17 @@ namespace Kratos
 							}
  
 							//usually one MasterElement and one MasterNode in 2D in 3D can be more than one
-							p_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
-							p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );
+
+							//p_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
+							WeakPointerVector< Element >& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
+							MasterElements.push_back( Element::WeakPointer( *(ie.base()) ) );
+							p_cond->SetValue(MASTER_ELEMENTS,MasterElements);
+
+							//p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );						
+							WeakPointerVector< Node<3> >& MasterNodes = p_cond->GetValue(MASTER_NODES);
+							MasterNodes.push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );
+							p_cond->SetValue(MASTER_NODES,MasterNodes);
+
 
 							//std::cout<<" Set preserved condition found "<<id<<std::endl;
 							mr_model_part.Conditions(MeshId).push_back(p_cond);
@@ -782,9 +791,17 @@ namespace Kratos
 						  }
 
 						if( !point_condition ){
-						    //usually one MasterElement and one MasterNode in 2D; in 3D can be more than one -> it has to be extended to 3D
-						    p_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
-						    p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );
+						  //usually one MasterElement and one MasterNode in 2D; in 3D can be more than one -> it has to be extended to 3D					  
+						  //p_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
+						  WeakPointerVector< Element >& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
+						  MasterElements.push_back( Element::WeakPointer( *(ie.base()) ));
+						  p_cond->SetValue(MASTER_ELEMENTS,MasterElements);
+									    
+						  //p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );						
+						  WeakPointerVector< Node<3> >& MasterNodes = p_cond->GetValue(MASTER_NODES);
+						  MasterNodes.push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );
+						  p_cond->SetValue(MASTER_NODES,MasterNodes);
+
 						}
 						//std::cout<<" Set preserved condition found "<<id<<std::endl;
 						mr_model_part.Conditions(MeshId).push_back(p_cond);

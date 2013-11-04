@@ -15,6 +15,7 @@
 #include "includes/kratos_flags.h"
 #include "custom_conditions/skin_multiple_condition.hpp"
 
+#include "pfem_solid_mechanics_application.h"
 
 namespace Kratos
 {
@@ -132,7 +133,8 @@ void SkinMultipleCondition::GetDofList( DofsVectorType& rConditionalDofList, Pro
    
   for (ConditionPointerVectorType::iterator cn = ArrayPointerConditions.begin() ; cn != ArrayPointerConditions.end(); ++cn)
     {
-      if( (this->Is(THERMAL) && (*cn)->Is(THERMAL)) || (this->Is(NOT_THERMAL) && (*cn)->Is(NOT_THERMAL)) ){
+      if( IsActive((*cn), rCurrentProcessInfo) ){
+
 	  (*cn)->GetDofList(LocalConditionalDofList,rCurrentProcessInfo);
 	
 	  for(unsigned int i=0; i<LocalConditionalDofList.size(); i++)
@@ -158,7 +160,7 @@ void SkinMultipleCondition::EquationIdVector( EquationIdVectorType& rResult, Pro
    
   for (ConditionPointerVectorType::iterator cn = ArrayPointerConditions.begin() ; cn != ArrayPointerConditions.end(); ++cn)
     {
-      if( (this->Is(THERMAL) && (*cn)->Is(THERMAL)) || (this->Is(NOT_THERMAL) && (*cn)->Is(NOT_THERMAL)) ){
+      if( IsActive((*cn),rCurrentProcessInfo) ){
 
 	(*cn)->EquationIdVector(LocalResult,rCurrentProcessInfo);
 
@@ -172,6 +174,23 @@ void SkinMultipleCondition::EquationIdVector( EquationIdVectorType& rResult, Pro
   
 }
 
+
+//*********************************SET VALUE TO CHILDREN******************************
+//************************************************************************************
+
+bool SkinMultipleCondition::IsActive(Condition::Pointer pCondition, const ProcessInfo& rCurrentProcessInfo )
+{
+  if(rCurrentProcessInfo.Is(THERMAL) && pCondition->Is(THERMAL))
+    return true;
+
+  if(rCurrentProcessInfo.IsNot(THERMAL) && pCondition->IsNot(THERMAL))
+    return true;
+  
+  return false;
+}
+
+
+
 //*********************************DISPLACEMENT***************************************
 //************************************************************************************
 
@@ -179,13 +198,11 @@ void SkinMultipleCondition::GetValuesVector( Vector& rValues, int Step )
 {
   Vector LocalValues;
   for(unsigned int cn=0; cn<ArrayPointerConditions.size(); cn++){
-    if( (this->Is(THERMAL) && ArrayPointerConditions[cn]->Is(THERMAL)) || (this->Is(NOT_THERMAL) && ArrayPointerConditions[cn]->Is(NOT_THERMAL)) ){
       ArrayPointerConditions[cn]->GetValuesVector(LocalValues,Step);
       if(LocalValues.size() != rValues.size())
 	rValues.resize(LocalValues.size(),false);
       
       rValues+=LocalValues;
-    }
   }
 }
 
@@ -197,14 +214,11 @@ void SkinMultipleCondition::GetFirstDerivativesVector( Vector& rValues, int Step
 {
   Vector LocalValues;
   for(unsigned int cn=0; cn<ArrayPointerConditions.size(); cn++){
-    if( (this->Is(THERMAL) && ArrayPointerConditions[cn]->Is(THERMAL)) || (this->Is(NOT_THERMAL) && ArrayPointerConditions[cn]->Is(NOT_THERMAL)) ){
-
       ArrayPointerConditions[cn]->GetFirstDerivativesVector(LocalValues,Step);
       if(LocalValues.size() != rValues.size())
 	rValues.resize(LocalValues.size(),false);
 
       rValues+=LocalValues;
-    }
   }
 }
 
@@ -215,14 +229,11 @@ void SkinMultipleCondition::GetSecondDerivativesVector( Vector& rValues, int Ste
 {
   Vector LocalValues;
   for(unsigned int cn=0; cn<ArrayPointerConditions.size(); cn++){
-    if( (this->Is(THERMAL) && ArrayPointerConditions[cn]->Is(THERMAL)) || (this->Is(NOT_THERMAL) && ArrayPointerConditions[cn]->Is(NOT_THERMAL)) ){
-
       ArrayPointerConditions[cn]->GetSecondDerivativesVector(LocalValues,Step);
       if(LocalValues.size() != rValues.size())
 	rValues.resize(LocalValues.size(),false);
 
       rValues+=LocalValues;
-    }
   }
 }
 
@@ -260,6 +271,7 @@ void SkinMultipleCondition::GetValueOnIntegrationPoints( const Variable<double>&
 
   std::vector< double > LocalValues;
   for(unsigned int cn=0; cn<ArrayPointerConditions.size(); cn++){
+
     ArrayPointerConditions[cn]->GetValueOnIntegrationPoints(rVariable,LocalValues,rCurrentProcessInfo);
 
     if ( LocalValues.size() != rValues.size() )
@@ -335,12 +347,12 @@ void SkinMultipleCondition::Initialize()
     KRATOS_TRY
       
       for(unsigned int cn=0; cn<ArrayPointerConditions.size(); cn++){
-	if( (this->Is(THERMAL) && ArrayPointerConditions[cn]->Is(THERMAL)) || (this->Is(NOT_THERMAL) && ArrayPointerConditions[cn]->Is(NOT_THERMAL)) ){
-	  ArrayPointerConditions[cn]->Data() = this->Data();
-	  // ArrayPointerConditions[cn]->AssignFlags(*this);
-	  ArrayPointerConditions[cn]->Initialize();
-	  this->Data() = 	ArrayPointerConditions[cn]->Data();
-	}
+
+	SetValueToChildren(MASTER_ELEMENTS);
+	SetValueToChildren(MASTER_NODES);
+
+	ArrayPointerConditions[cn]->Initialize();
+
       }
  
 
@@ -352,17 +364,21 @@ void SkinMultipleCondition::Initialize()
 ////************************************************************************************
 ////************************************************************************************
 
-void SkinMultipleCondition::InitializeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void SkinMultipleCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
   for(unsigned int cn=0; cn<ArrayPointerConditions.size(); cn++){
 
-    if( (this->Is(THERMAL) && ArrayPointerConditions[cn]->Is(THERMAL)) || (this->Is(NOT_THERMAL) && ArrayPointerConditions[cn]->Is(NOT_THERMAL)) ){
+    if( IsActive(ArrayPointerConditions[cn],rCurrentProcessInfo) ){
+
       ArrayPointerConditions[cn]->SetId(this->Id());
-      // ArrayPointerConditions[cn]->AssignFlags(*this);
-      ArrayPointerConditions[cn]->Data() = this->Data();
+
+      SetValueToChildren(MASTER_ELEMENTS);
+      SetValueToChildren(MASTER_NODES);
+
       ArrayPointerConditions[cn]->pGetGeometry() = this->pGetGeometry();
-      ArrayPointerConditions[cn]->InitializeSolutionStep(CurrentProcessInfo);
-      this->Data() = ArrayPointerConditions[cn]->Data();
+
+      ArrayPointerConditions[cn]->InitializeSolutionStep(rCurrentProcessInfo);
+
     }
   }
 }
@@ -370,11 +386,11 @@ void SkinMultipleCondition::InitializeSolutionStep( ProcessInfo& CurrentProcessI
 ////************************************************************************************
 ////************************************************************************************
 
-void SkinMultipleCondition::InitializeNonLinearIteration( ProcessInfo& CurrentProcessInfo )
+void SkinMultipleCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
   for(unsigned int cn=0; cn<ArrayPointerConditions.size(); cn++){
-    if( (this->Is(THERMAL) && ArrayPointerConditions[cn]->Is(THERMAL)) || (this->Is(NOT_THERMAL) && ArrayPointerConditions[cn]->Is(NOT_THERMAL)) ){
-      ArrayPointerConditions[cn]->InitializeNonLinearIteration(CurrentProcessInfo);
+    if( IsActive(ArrayPointerConditions[cn],rCurrentProcessInfo) ){
+      ArrayPointerConditions[cn]->InitializeNonLinearIteration(rCurrentProcessInfo);
     }
   }
 }
@@ -383,11 +399,11 @@ void SkinMultipleCondition::InitializeNonLinearIteration( ProcessInfo& CurrentPr
 //************************************************************************************
 //************************************************************************************
 
-void SkinMultipleCondition::FinalizeSolutionStep( ProcessInfo& CurrentProcessInfo )
+void SkinMultipleCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
   for(unsigned int cn=0; cn<ArrayPointerConditions.size(); cn++){
-    if( (this->Is(THERMAL) && ArrayPointerConditions[cn]->Is(THERMAL)) || (this->Is(NOT_THERMAL) && ArrayPointerConditions[cn]->Is(NOT_THERMAL)) ){
-      ArrayPointerConditions[cn]->FinalizeSolutionStep(CurrentProcessInfo);
+    if( IsActive(ArrayPointerConditions[cn],rCurrentProcessInfo) ){
+      ArrayPointerConditions[cn]->FinalizeSolutionStep(rCurrentProcessInfo);
     }
   }
 }
@@ -416,7 +432,7 @@ void SkinMultipleCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatri
 
   for(unsigned int cn=0; cn<ArrayPointerConditions.size(); cn++){
     
-    if( (this->Is(THERMAL) && ArrayPointerConditions[cn]->Is(THERMAL)) || (this->Is(NOT_THERMAL) && ArrayPointerConditions[cn]->Is(NOT_THERMAL)) ){
+    if( IsActive(ArrayPointerConditions[cn],rCurrentProcessInfo) ){
 
       ArrayPointerConditions[cn]->CalculateLocalSystem(LocalLeftHandSideMatrix,LocalRightHandSideVector,rCurrentProcessInfo);
       //std::cout<<" LocalRightHandSideVector "<<LocalRightHandSideVector<<std::endl;
@@ -479,7 +495,7 @@ void SkinMultipleCondition::CalculateRightHandSide( VectorType& rRightHandSideVe
   VectorType LocalRightHandSideVector;
   for(unsigned int cn=0; cn<ArrayPointerConditions.size(); cn++){
 
-    if( (this->Is(THERMAL) && ArrayPointerConditions[cn]->Is(THERMAL)) || (this->Is(NOT_THERMAL) && ArrayPointerConditions[cn]->Is(NOT_THERMAL)) ){
+    if( IsActive(ArrayPointerConditions[cn],rCurrentProcessInfo) ){
       ArrayPointerConditions[cn]->CalculateRightHandSide(LocalRightHandSideVector,rCurrentProcessInfo);
 
       //resizing as needed the RHS
@@ -514,7 +530,7 @@ void SkinMultipleCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatr
   MatrixType LocalLeftHandSideMatrix;
   for(unsigned int cn=0; cn<ArrayPointerConditions.size(); cn++){
 
-    if( (this->Is(THERMAL) && ArrayPointerConditions[cn]->Is(THERMAL)) || (this->Is(NOT_THERMAL) && ArrayPointerConditions[cn]->Is(NOT_THERMAL)) ){
+    if( IsActive(ArrayPointerConditions[cn],rCurrentProcessInfo) ){
 
       ArrayPointerConditions[cn]->CalculateLeftHandSide(LocalLeftHandSideMatrix,rCurrentProcessInfo);
 
