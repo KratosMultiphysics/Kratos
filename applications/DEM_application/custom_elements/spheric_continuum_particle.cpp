@@ -488,7 +488,7 @@ namespace Kratos
                 }
               
                 kn_el              = mMagicFactor * equiv_young * calculation_area * radius_sum_i; //MSIMSI 1: initial gap? aki dividim nomes per suma de radis.
-                kt_el              = kn_el;// / (2.0 + equiv_poisson + equiv_poisson);
+                kt_el              = mMagicFactorPoisson * kn_el/(2.0 + equiv_poisson + equiv_poisson);
                 aux_norm_to_tang   = sqrt(kt_el / kn_el);
 
 
@@ -1026,7 +1026,8 @@ namespace Kratos
          mGamma3 = rCurrentProcessInfo[DONZE_G3];
          mMaxDef = rCurrentProcessInfo[DONZE_MAX_DEF];
 
-
+         mMagicFactorPoisson  = rCurrentProcessInfo[DEM_MAGIC_FACTOR_POISSON];
+         
          mSkinSphere = &(this->GetValue(SKIN_SPHERE));
            
 
@@ -1144,9 +1145,8 @@ namespace Kratos
           }
            // the elemental variable is copied to a nodal variable in order to export the results onto GiD Post. Also a casting to double is necessary for GiD interpretation.
       }
-
-   
   
+   
   void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() //NOTA: LOOP SOBRE TOTS ELS VEINS PROVISIONALS, TEN KEDERAS UNS QUANTS FENT PUSHBACK. ALS VECTORS DELTA ETC.. HI HAS DE POSAR
      //LA POSICIÓ DELS QUE SON DEFINITIUS.
      {
