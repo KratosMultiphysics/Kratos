@@ -143,6 +143,7 @@ namespace Kratos
 
       virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       virtual void MemberDeclarationFirstStep(ProcessInfo& rCurrentProcessInfo);
+      virtual void AdditionalMemberDeclarationFirstStep(ProcessInfo& rCurrentProcessInfo);
       virtual void ComputeNewNeighboursHistoricalData();
       void CalculateMaxIndentation(double& rCurrentMaxIndentation, const double& rTolerance);
       void CalculateKineticEnergy(double& rKineticEnergy);
@@ -151,7 +152,7 @@ namespace Kratos
       void CalculateLocalAngularMomentum(array_1d<double, 3>& rAngularMomentum); 
       virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo); 
       void ComputeBallToSurfaceContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, int surface_num, ProcessInfo& rCurrentProcessInfo);
-      void ComputeBallToCylinderContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, int cylinder_num, ProcessInfo& rCurrentProcessInfo);
+      void ComputeBallToCylinderContactForce(array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& InitialRotaMoment, int cylinder_num, ProcessInfo& rCurrentProcessInfo);     
       //virtual void ComputeParticleBlockContactForce(const ProcessInfo& rCurrentProcessInfo);
       //virtual void ComputeParticleRotationSpring(   const ProcessInfo& rCurrentProcessInfo);
 
