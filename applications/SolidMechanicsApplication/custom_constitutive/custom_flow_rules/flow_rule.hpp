@@ -98,7 +98,7 @@ namespace Kratos
 
       double Temperature;
 
-      Vector TrialIsoStressVector;
+      Matrix TrialIsoStressMatrix;
 	    
 	    
     public:

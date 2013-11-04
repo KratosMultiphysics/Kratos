@@ -131,7 +131,7 @@ public:
 
         mNewmark.static_dynamic= rDynamic;
 
-        std::cout << " MECHANICAL SCHEME: The Bossak Time Integration Scheme [ beta= "<<mNewmark.beta<<" gamma= "<<mNewmark.gamma<<"]"<<std::endl;
+        std::cout << " MECHANICAL SCHEME: The Newmark Time Integration Scheme [ beta= "<<mNewmark.beta<<" gamma= "<<mNewmark.gamma<<"]"<<std::endl;
 
 
         //Allocate auxiliary memory

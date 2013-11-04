@@ -130,6 +130,8 @@ class StructuralSolver:
         if(self.block_builder == True):
             #to keep matrix blocks in builder
             self.builder_and_solver = BlockResidualBasedBuilderAndSolver(self.linear_solver)
+        else:
+            self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
 
         #creating the convergence criterion:
         self.SetConvergenceCriterion()
@@ -194,8 +196,9 @@ class StructuralSolver:
         elif(self.scheme_type == "QuasiStaticSolver"):
             #definition of time scheme
             self.damp_factor_f  =  0.00; 
-            self.damp_factor_m  = -0.01; 
+            self.damp_factor_m  =  0.00; 
             self.dynamic_factor =  0; #quasi-static
+            #self.mechanical_scheme = ResidualBasedNewmarkScheme(self.dynamic_factor)
             self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m,self.dynamic_factor)
         elif(self.scheme_type == "PseudoDynamicSolver"):
             #definition of time scheme
@@ -294,6 +297,7 @@ def CreateSolver(model_part, config):
     # definition of the linear solver
     import linear_solver_factory
     if(hasattr(config, "linear_solver_config")):
+        print "Linear Solver Set"
         structural_solver.linear_solver = linear_solver_factory.ConstructSolver(config.linear_solver_config)
 
         if(config.linear_solver_config.solver_type == "AMGCL"):
