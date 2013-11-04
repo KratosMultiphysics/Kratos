@@ -3062,10 +3062,10 @@ namespace Kratos
 	    cond_counter ++;
 	    bool refine_candidate = false;
 	    if( rVariables.MeshingOptions.Is(Modeler::CONSTRAINED_MESH) ){
-	      if( ic->Is(SkinMultipleCondition::SKIN) )
+	      // if( ic->Is(SkinMultipleCondition::SKIN) )
 		refine_candidate = true;
-	      else
-		refine_candidate = false;
+	      // else
+	      // 	refine_candidate = false;
 	    }
 	    else{
 	      refine_candidate = true; 
