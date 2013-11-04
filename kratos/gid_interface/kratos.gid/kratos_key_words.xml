@@ -78,6 +78,8 @@
       <Item id="BeamForces" kkword="FORCE" />
       <Item id="VonMises" kkword="VON_MISES_STRESS" />
       <Item id="StressTensor" kkword="CAUCHY_STRESS_TENSOR" />
+      <Item id="PlasticStrain" kkword="PLASTIC_STRAIN" />
+      <Item id="DeltaPlasticStrain" kkword="DELTA_PLASTIC_STRAIN" />
       <Item id="SkylineLUFactorization" kkword="Skyline LU factorization" />
       <Item id="SuperLU" kkword="Super LU" />
       <Item id="SuperLUIterative" kkword="SuperLUIterativeSolver" />
@@ -260,30 +262,22 @@
     <Item id="D32" kkword="" />
     <Item id="D33" kkword="" />
     <Item id="YieldStress" kkword="YIELD_STRESS" />
-    <Item id="IsotropicHardeningModulus"
-    kkword="ISOTROPIC_HARDENING_MODULUS" />
-    <Item id="KinematicHardeningModulus"
-    kkword="KINEMATIC_HARDENING_MODULUS" />
-    <Item id="ReferenceHardeningModulus"
-    kkword="REFERENCE_HARDENING_MODULUS" />
-    <Item id="InfinityHardeningModulus"
-    kkword="INFINITY_HARDENING_MODULUS" />
-    <Item id="HardeningExponent"
-    kkword="HARDENING_EXPONENT" />
-    <Item id="InternalFrictionAngle"
-    kkword="MAX_FRICTION_INTERNAL_ANGLE" />
+    <Item id="IsotropicHardeningModulus" kkword="ISOTROPIC_HARDENING_MODULUS" />
+    <Item id="KinematicHardeningModulus" kkword="KINEMATIC_HARDENING_MODULUS" />
+    <Item id="ReferenceHardeningModulus" kkword="REFERENCE_HARDENING_MODULUS" />
+    <Item id="InfinityHardeningModulus" kkword="INFINITY_HARDENING_MODULUS" />
+    <Item id="HardeningExponent" kkword="HARDENING_EXPONENT" />
+    <Item id="InternalFrictionAngle" kkword="MAX_FRICTION_INTERNAL_ANGLE" />
     <Item id="ImplicitIteration" kkword="NL_ITERATION_NUMBER" />
     <Item id="DilatancyAngle" kkword="MAX_DILATANCY_ANGLE" />
     <Item id="TensileStrength" kkword="FT" />
     <Item id="CompressiveStrength" kkword="FC" />
     <Item id="TensileFractureEnergy" kkword="FRACTURE_ENERGY" />
-    <Item id="CompressiveFractureEnergy"
-    kkword="CRUSHING_ENERGY" />
+    <Item id="CompressiveFractureEnergy" kkword="CRUSHING_ENERGY" />
     <Item id="DTensileStrength" kkword="FT" />
     <Item id="DCompressiveStrength" kkword="FC" />
     <Item id="DTensileFractureEnergy" kkword="FRACTURE_ENERGY" />
-    <Item id="DCompressiveFractureEnergy"
-    kkword="CRUSHING_ENERGY" />
+    <Item id="DCompressiveFractureEnergy" kkword="CRUSHING_ENERGY" />
     <Item id="ExpansionCoeff" kkword="" />
     <Item id="Conductivity" kkword="" />
     <Item id="SpecificHeat" kkword="" />
@@ -295,7 +289,7 @@
     <Item id="alfa33" kkword="" />
     <Item id="Viscosity" kkword="VISCOSITY" />
     <Item id="MagneticPermeability" kkword="" />
-    <Item id="ElectricalPermitivity" kkword="" />
+    <Item id="ElectricalPermitivity" kkword="" />    
   </Materials>
   <ElementCLaws>
     <Item id="ElementTypes2D" dv="Solid"

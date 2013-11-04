@@ -1743,7 +1743,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     # WarnWinText "nodal_results:$nodal_results"
 
     # On Gauss point results
-    set cgrlist [list "StrainTensor" "StressTensor" "VonMises" "BeamMoments" "BeamForces"]
+    set cgrlist [list "StrainTensor" "StressTensor" "VonMises" "PlasticStrain" "DeltaPlasticStrain" "BeamMoments" "BeamForces"]
     set gauss_points_results "gauss_points_results=\["
     foreach cgr $cgrlist {
 	set cxpath "$AppId//c.Results//c.OnGaussPoints//i.[list ${cgr}]"
@@ -1765,7 +1765,23 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     # GiD post mode variables
     #::wkcf::WriteGiDPostMode $AppId $fileid 
     ::wkcf::WriteGiDPostModeNew $AppId $fileid 
-    puts $fileid "${trailing_spaces}GiDWriteFrequency = 1"
+
+
+    # Delta time
+    set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.DeltaTime"
+    set TimeStep [::xmlutils::setXml $cxpath $cproperty]
+    
+    # Number of Steps
+    set cxpath "$AppId//c.Results//i.OutputDeltaTime"
+    set TimeWriting [::xmlutils::setXml $cxpath $cproperty]
+    set FrequencyWriting [expr int(double($TimeWriting)/double($TimeStep))]
+
+    if {$FrequencyWriting != "0.0" && $FrequencyWriting > 1.0} {
+	puts $fileid "${trailing_spaces}GiDWriteFrequency = $FrequencyWriting"      
+    } else {
+	puts $fileid "${trailing_spaces}GiDWriteFrequency = 1"
+    }
+
     puts $fileid ""
     puts $fileid "WriteResults = \"PreMeshing\""
     puts $fileid "echo_level = 1"
