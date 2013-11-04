@@ -507,7 +507,7 @@ namespace Kratos
       void SphericSwimmingParticle::AdditionalMemberDeclarationFirstStep(ProcessInfo& rCurrentProcessInfo)
       {
           mBuoyancyForceType             = 1;
-          mDragForceType                 = 2;//rCurrentProcessInfo[DRAG_FORCE_TYPE];
+          mDragForceType                 = rCurrentProcessInfo[DRAG_FORCE_TYPE];
           mVirtualMassForceType          = 0;
           mLiftForceType                 = 0;
       }

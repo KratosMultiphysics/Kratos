@@ -1821,7 +1821,7 @@ namespace Kratos
                   mRollingFriction           = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
               }
 
-
+              AdditionalMemberDeclarationFirstStep(rCurrentProcessInfo);
 
           }
 
