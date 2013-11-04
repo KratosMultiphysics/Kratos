@@ -96,6 +96,8 @@ QUESTION: Virtual_Mass_Coefficient
 VALUE: 0.0
 QUESTION: Magic_Factor
 VALUE: 1.0
+QUESTION: Magic_Factor_Poisson
+VALUE: 1.0
 HELP: It multiplies kn and ks in order to adjust the correct plot.
 QUESTION: Set_Initial_Indentation_To_Zero_Force#CB#(ON,OFF)
 VALUE: OFF
