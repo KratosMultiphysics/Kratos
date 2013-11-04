@@ -7,6 +7,8 @@ from numpy import *
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
+import datetime
+
 import DEM_explicit_solver_var as Param
 import DEM_procedures
 proc = DEM_procedures.Procedures(Param)
@@ -176,10 +178,15 @@ solver.Initialize()
 
 print 'Initialitzation Complete' + '\n'
 
+os.chdir(graphs_path)
+
 if (Param.GraphOption =="ON"):
-  graph_export = open("strain_stress_data.csv",'w');
+  graph_export = open("graph_"+str(datetime.datetime.now())+".csv",'w');
   if (Param.PoissonMeasure =="ON"):
-    graph_export_poisson = open("poisson.csv",'w');
+    graph_export_poisson = open("poisson_"+str(datetime.datetime.now())+".csv",'w');
+
+os.chdir(main_path)
+    
 
 #Adding stress and strain lists
 strainlist=[]; strainlist.append(0.0)
@@ -456,6 +463,8 @@ while (time < Param.FinalTime):
 
 if (Param.Multifile == "single_file"):
     gid_io.FinalizeResults()
+
+graph_export.close()
 
 multifile.close()
 multifile_5.close()
