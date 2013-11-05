@@ -162,7 +162,18 @@ class ExplicitStrategy:
           if( not self.continuum_simulating_option ): self.case_option = 0
           else: self.case_option = 3     
 
-                         
+        # BOUNDING_BOX
+        self.enlargement_factor             = Param.BoundingBoxEnlargementFactor
+        self.top_corner                     = Array3()
+        self.bottom_corner                  = Array3()
+        self.top_corner[0]                  = Param.BoundingBoxMaxX
+        self.top_corner[0]                  = Param.BoundingBoxMaxY
+        self.top_corner[0]                  = Param.BoundingBoxMaxZ
+        self.bottom_corner[0]               = Param.BoundingBoxMinX
+        self.bottom_corner[0]               = Param.BoundingBoxMinY
+        self.bottom_corner[0]               = Param.BoundingBoxMinZ     
+ 
+             
         # MODEL
         self.model_part                     = model_part
         self.contact_model_part             = ModelPart("ContactModelPart") #funcio kratos
