@@ -1556,8 +1556,10 @@ namespace Kratos
       void SphericParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
       {
           KRATOS_TRY
+          
+          const ProcessInfo& r_process_info = rCurrentProcessInfo;
 
-          MemberDeclarationFirstStep(rCurrentProcessInfo);
+          MemberDeclarationFirstStep(r_process_info);
           mInitializedVariablesFlag = 1;
 
           KRATOS_CATCH("")
@@ -1776,31 +1778,32 @@ namespace Kratos
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
+      
+      void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_info)
 
-      void SphericParticle::MemberDeclarationFirstStep(ProcessInfo& rCurrentProcessInfo)
       {
 
           // Paso al nodo la id del elemento cuando inicializo al mismo
           
           if (!mInitializedVariablesFlag){
 
-               if (rCurrentProcessInfo[PRINT_EXPORT_ID] == 1){
+               if (r_process_info[PRINT_EXPORT_ID] == 1){
                    this->GetGeometry()(0)->FastGetSolutionStepValue(EXPORT_ID) = double(this->Id());
                }
                           
 
-              mDampType                      = rCurrentProcessInfo[DAMP_TYPE];
-              mElasticityType                = rCurrentProcessInfo[FORCE_CALCULATION_TYPE];
-              mRotationOption                = rCurrentProcessInfo[ROTATION_OPTION]; //M:  it's 1/0, should be a boolean
-              mRotationDampType              = rCurrentProcessInfo[ROTA_DAMP_TYPE];
-              mGlobalVariablesOption         = rCurrentProcessInfo[GLOBAL_VARIABLES_OPTION];
-              mCriticalTimeOption            = rCurrentProcessInfo[CRITICAL_TIME_OPTION];
-              mUniformMaterialOption         = rCurrentProcessInfo[UNIFORM_MATERIAL_OPTION];
-              mMagicFactor                   = rCurrentProcessInfo[DEM_MAGIC_FACTOR];
+              mDampType                      = r_process_info[DAMP_TYPE];
+              mElasticityType                = r_process_info[FORCE_CALCULATION_TYPE];
+              mRotationOption                = r_process_info[ROTATION_OPTION]; //M:  it's 1/0, should be a boolean
+              mRotationDampType              = r_process_info[ROTA_DAMP_TYPE];
+              mGlobalVariablesOption         = r_process_info[GLOBAL_VARIABLES_OPTION];
+              mCriticalTimeOption            = r_process_info[CRITICAL_TIME_OPTION];
+              mUniformMaterialOption         = r_process_info[UNIFORM_MATERIAL_OPTION];
+              mMagicFactor                   = r_process_info[DEM_MAGIC_FACTOR];
 
               if (mGlobalVariablesOption){
-                  mGlobalKn                  = rCurrentProcessInfo[GLOBAL_KN];
-                  mGlobalKt                  = rCurrentProcessInfo[GLOBAL_KT];
+                  mGlobalKn                  = r_process_info[GLOBAL_KN];
+                  mGlobalKt                  = r_process_info[GLOBAL_KT];
                   
                   if (mGlobalKn == 0.0){
                       mGlobalAuxNormToTang       = 0.0;
@@ -1811,26 +1814,27 @@ namespace Kratos
                   }
               }
               
-              mLimitSurfaceOption            = rCurrentProcessInfo[LIMIT_SURFACE_OPTION];
-              mLimitCylinderOption           = rCurrentProcessInfo[LIMIT_CYLINDER_OPTION];
+              mLimitSurfaceOption            = r_process_info[LIMIT_SURFACE_OPTION];
+              mLimitCylinderOption           = r_process_info[LIMIT_CYLINDER_OPTION];
               
-              mpTimeStep                     =  &(rCurrentProcessInfo[TIME_STEPS]); // reference.
-              mpActivateSearch               =  &(rCurrentProcessInfo[ACTIVATE_SEARCH]);
+              mpTimeStep                     =  &(r_process_info[TIME_STEPS]); // reference.
+              mpActivateSearch               =  &(r_process_info[ACTIVATE_SEARCH]);
 
               if (mRotationOption){
                   mRollingFriction           = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
               }
 
-              AdditionalMemberDeclarationFirstStep(rCurrentProcessInfo);
+              AdditionalMemberDeclarationFirstStep(r_process_info);
           }
 
       }
 
+     
 
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericParticle::AdditionalMemberDeclarationFirstStep(ProcessInfo& rCurrentProcessInfo){}
+      void SphericParticle::AdditionalMemberDeclarationFirstStep(const ProcessInfo& r_process_info){}
         
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
