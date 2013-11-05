@@ -268,7 +268,7 @@ namespace Kratos
         double mFinalPressureTime;
         double mFinalSimulationTime;
      
-        int* mpCaseOption;
+        int mpCaseOption;
         int  mFailureId;
         int*  mSkinSphere;
    
