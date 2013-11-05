@@ -111,8 +111,8 @@ DEPENDENCIES: (OFF,HIDE,Time_Step_Constrain_DOFs_Percentage,#CURRENT#,HIDE,Fix_H
 HELP: It avoids fixing velocity at the initial timestep but at a predefined one.
 QUESTION: Time_Step_Constrain_DOFs_Percentage
 VALUE: 1.0
-QUESTION: Fix_Horizontal_Velocities
-VALUE: 1.0
+QUESTION: Fix_Horizontal_Velocities#CB#(ON,OFF)
+VALUE: ON
 HELP: The constraints (applied conditions on velocity) apply at a percentual of the total time steps.
 QUESTION: Limit_Surface#CB#(0,1,2,3,4,5)
 VALUE: 0
@@ -312,21 +312,27 @@ TITLE: Material_Model
 
 QUESTION: Normal_Force_Calculation#CB#(Linear,Hertz,PlasticityAndDamage1D,NonLinearDonze)
 VALUE: Linear
-DEPENDENCIES: (Linear,HIDE,C_1,#CURRENT#,HIDE,N_1,#CURRENT#,HIDE,C_2,#CURRENT#,HIDE,N_2,#CURRENT#,HIDE,Gamma_1,#CURRENT#,HIDE,Gamma_2,#CURRENT#,HIDE,Gamma_3,#CURRENT#,HIDE,Max_Deformation,#CURRENT#,HIDE,Plastic_Young_Modulus_Ratio,#CURRENT#,HIDE,Plastic_Yield_Stress,#CURRENT#,HIDE,Damage_Deformation_Factor,#CURRENT#)
-DEPENDENCIES: (Hertz,HIDE,C_1,#CURRENT#,HIDE,N_1,#CURRENT#,HIDE,C_2,#CURRENT#,HIDE,N_2,#CURRENT#,HIDE,Gamma_1,#CURRENT#,HIDE,Gamma_2,#CURRENT#,HIDE,Gamma_3,#CURRENT#,HIDE,Max_Deformation,#CURRENT#,HIDE,Plastic_Young_Modulus_Ratio,#CURRENT#,HIDE,Plastic_Yield_Stress,#CURRENT#,HIDE,Damage_Deformation_Factor,#CURRENT#)
-DEPENDENCIES: (PlasticityAndDamage1D,RESTORE,C_1,#CURRENT#,RESTORE,N_1,#CURRENT#,RESTORE,C_2,#CURRENT#,RESTORE,N_2,#CURRENT#,HIDE,Gamma_1,#CURRENT#,HIDE,Gamma_2,#CURRENT#,HIDE,Gamma_3,#CURRENT#,HIDE,Max_Deformation,#CURRENT#,RESTORE,Plastic_Young_Modulus_Ratio,#CURRENT#,RESTORE,Plastic_Yield_Stress,#CURRENT#,RESTORE,Damage_Deformation_Factor,#CURRENT#)
-DEPENDENCIES: (NonLinearDonze,RESTORE,Gamma_1,#CURRENT#,RESTORE,Gamma_2,#CURRENT#,RESTORE,Gamma_3,#CURRENT#,RESTORE,Max_Deformation,#CURRENT#,HIDE,C_1,#CURRENT#,HIDE,N_1,#CURRENT#,HIDE,C_2,#CURRENT#,HIDE,N_2,#CURRENT#,HIDE,Plastic_Young_Modulus_Ratio,#CURRENT#,HIDE,Plastic_Yield_Stress,#CURRENT#,HIDE,Damage_Deformation_Factor,#CURRENT#)
+DEPENDENCIES: (Linear,HIDE,C_1,#CURRENT#,HIDE,N_1,#CURRENT#,HIDE,C_2,#CURRENT#,HIDE,N_2,#CURRENT#,HIDE,C_3,#CURRENT#,HIDE,N_3,#CURRENT#,HIDE,Gamma_1,#CURRENT#,HIDE,Gamma_2,#CURRENT#,HIDE,Gamma_3,#CURRENT#,HIDE,Max_Deformation,#CURRENT#,HIDE,Plastic_Young_Modulus_Ratio,#CURRENT#,HIDE,Plastic_Yield_Stress,#CURRENT#,HIDE,Damage_Deformation_Factor,#CURRENT#)
+DEPENDENCIES: (Hertz,HIDE,C_1,#CURRENT#,HIDE,N_1,#CURRENT#,HIDE,C_2,#CURRENT#,HIDE,N_2,#CURRENT#,HIDE,C_3,#CURRENT#,HIDE,N_3,#CURRENT#,HIDE,Gamma_1,#CURRENT#,HIDE,Gamma_2,#CURRENT#,HIDE,Gamma_3,#CURRENT#,HIDE,Max_Deformation,#CURRENT#,HIDE,Plastic_Young_Modulus_Ratio,#CURRENT#,HIDE,Plastic_Yield_Stress,#CURRENT#,HIDE,Damage_Deformation_Factor,#CURRENT#)
+DEPENDENCIES: (PlasticityAndDamage1D,RESTORE,C_1,#CURRENT#,RESTORE,N_1,#CURRENT#,RESTORE,C_2,#CURRENT#,RESTORE,N_2,#CURRENT#,RESTORE,C_3,#CURRENT#,RESTORE,N_3,#CURRENT#,HIDE,Gamma_1,#CURRENT#,HIDE,Gamma_2,#CURRENT#,HIDE,Gamma_3,#CURRENT#,HIDE,Max_Deformation,#CURRENT#,RESTORE,Plastic_Young_Modulus_Ratio,#CURRENT#,RESTORE,Plastic_Yield_Stress,#CURRENT#,RESTORE,Damage_Deformation_Factor,#CURRENT#)
+DEPENDENCIES: (NonLinearDonze,RESTORE,Gamma_1,#CURRENT#,RESTORE,Gamma_2,#CURRENT#,RESTORE,Gamma_3,#CURRENT#,RESTORE,Max_Deformation,#CURRENT#,HIDE,C_1,#CURRENT#,HIDE,N_1,#CURRENT#,HIDE,C_2,#CURRENT#,HIDE,N_2,#CURRENT#,HIDE,C_3,#CURRENT#,HIDE,N_3,#CURRENT#,HIDE,Plastic_Young_Modulus_Ratio,#CURRENT#,HIDE,Plastic_Yield_Stress,#CURRENT#,HIDE,Damage_Deformation_Factor,#CURRENT#)
 QUESTION: C_1
 HELP:Coefficient that indicates the percentage of Sigma Max at which the stiffness changes for the first time.
-VALUE: 0.4
+VALUE: 0.15
 QUESTION: N_1
 HELP:Coefficient that divides the initial stiffness when the percentage of Sigma Max indicated by C_1 is reached.
-VALUE: 20
+VALUE: 3.0
 QUESTION: C_2
 HELP:Coefficient that indicates the percentage of Sigma Max at which the stiffness changes for the second time.
-VALUE: 1.5
+VALUE: 0.25
 QUESTION: N_2
 HELP:Coefficient that divides the initial stiffness when the percentage of Sigma Max indicated by C_2 is reached.
+VALUE: 7.0
+QUESTION: C_3
+HELP:Coefficient that indicates the percentage of Sigma Max at which the stiffness changes for the third time.
+VALUE: 0.3
+QUESTION: N_3
+HELP:Coefficient that divides the initial stiffness when the percentage of Sigma Max indicated by C_3 is reached.
 VALUE: 15
 QUESTION: Plastic_Young_Modulus_Ratio
 HELP: Mpa, ratio of the unloading plastic young modulus with respect to the elastic young modulus.
