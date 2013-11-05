@@ -513,7 +513,7 @@ public:
         return mpConditions->size();
     }
 
-    /** Inserts a element in the mesh.
+    /** Inserts a condition in the mesh.
     */
     void AddCondition(typename ConditionType::Pointer pNewCondition)
     {
