@@ -141,7 +141,7 @@ namespace Kratos
         void ComputeReynoldsNumber(int NonNewtonianOption, double rNormOfSlipVel, double FluidDensity, double rViscosity, double& rReynolds);
         double CalculateShahsTerm(double PowerLawN,double PowerLawK, double PowerLawTol, const double& ParticleDensity, const double& FluidDensity, double Sphericity, int DragModifier);
         void ComputeWeatherfordFluidForcesOnParticle(ProcessInfo& rCurrentProcessInfo);
-        void AdditionalMemberDeclarationFirstStep(ProcessInfo& rCurrentProcessInfo);
+        void AdditionalMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
 
       ///@name Protected static Member Variables
       ///@{
