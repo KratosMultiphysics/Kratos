@@ -63,7 +63,7 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericContinuumParticle::SetInitialContacts( ProcessInfo& rCurrentProcessInfo  ) //vull ficar que sigui zero si no son veins cohesius.
+      void SphericContinuumParticle::SetInitialContacts( const ProcessInfo& r_process_info  ) //vull ficar que sigui zero si no son veins cohesius.
       {   
                 
           /*
@@ -189,12 +189,12 @@ namespace Kratos
               
                 if(mDimension == 3)
                 {
-                  ContactAreaWeighting3D(rCurrentProcessInfo);
+                  ContactAreaWeighting3D(r_process_info);
                 }
                 else if (mDimension ==2)
                 {
                   
-                  ContactAreaWeighting2D(rCurrentProcessInfo);
+                  ContactAreaWeighting2D(r_process_info);
                   
                 }  
     
@@ -266,7 +266,7 @@ namespace Kratos
       
 
       
-      void SphericContinuumParticle::ContactAreaWeighting3D(const ProcessInfo& rCurrentProcessInfo) //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
+      void SphericContinuumParticle::ContactAreaWeighting3D(const ProcessInfo& r_process_info) //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
       { 
 
           double alpha = 1.0;
@@ -999,77 +999,78 @@ namespace Kratos
               
   
     
-
-      void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) //Note: this function is only called once by now in the continuum strategy
+void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) //Note: this function is only called once by now in the continuum strategy
       { 
    
-           MemberDeclarationFirstStep(rCurrentProcessInfo); //MSI 1: el cases va fer un custom memberdeclarationfirststep per ficar tot aixo...
+        const ProcessInfo& r_process_info = rCurrentProcessInfo;
+
+
+         MemberDeclarationFirstStep(r_process_info); //MSI 1: el cases va fer un custom memberdeclarationfirststep per ficar tot aixo...
            
          //DEM_CONTINUUM
          
          if (!mInitializedVariablesFlag){
 
-         mDempack = rCurrentProcessInfo[DEMPACK_OPTION]; 
+         mDempack = r_process_info[DEMPACK_OPTION]; 
          
          if(mDempack)
          {
            
-           mDempack_damping = rCurrentProcessInfo[DEMPACK_DAMPING]; 
-           mDempack_global_damping = rCurrentProcessInfo[DEMPACK_GLOBAL_DAMPING]; 
+           mDempack_damping = r_process_info[DEMPACK_DAMPING]; 
+           mDempack_global_damping = r_process_info[DEMPACK_GLOBAL_DAMPING]; 
 
          }
          
-         mpActivateSearch = &(rCurrentProcessInfo[ACTIVATE_SEARCH]);
+         mpActivateSearch = &(r_process_info[ACTIVATE_SEARCH]);
 
-         mGamma1 = rCurrentProcessInfo[DONZE_G1];
-         mGamma2 = rCurrentProcessInfo[DONZE_G2];
-         mGamma3 = rCurrentProcessInfo[DONZE_G3];
-         mMaxDef = rCurrentProcessInfo[DONZE_MAX_DEF];
+         mGamma1 = r_process_info[DONZE_G1];
+         mGamma2 = r_process_info[DONZE_G2];
+         mGamma3 = r_process_info[DONZE_G3];
+         mMaxDef = r_process_info[DONZE_MAX_DEF];
 
-         mMagicFactorPoisson  = rCurrentProcessInfo[DEM_MAGIC_FACTOR_POISSON];
+         mMagicFactorPoisson  = r_process_info[DEM_MAGIC_FACTOR_POISSON];
          
          mSkinSphere = &(this->GetValue(SKIN_SPHERE));
            
 
-         mFinalSimulationTime = rCurrentProcessInfo[FINAL_SIMULATION_TIME];
+         mFinalSimulationTime = r_process_info[FINAL_SIMULATION_TIME];
          
          mContinuumGroup        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);             
 
-         mpCaseOption                   = 2;//&(rCurrentProcessInfo[CASE_OPTION]);   //NOTE: pointer
+         mpCaseOption                   = r_process_info[CASE_OPTION]; 
          
-         mContactMeshOption             = rCurrentProcessInfo[CONTACT_MESH_OPTION];
+         mContactMeshOption             = r_process_info[CONTACT_MESH_OPTION];
          
-         mTriaxialOption                = rCurrentProcessInfo[TRIAXIAL_TEST_OPTION];
+         mTriaxialOption                = r_process_info[TRIAXIAL_TEST_OPTION];
 
          if (mTriaxialOption )
          {
-             mInitialPressureTime    = rCurrentProcessInfo[INITIAL_PRESSURE_TIME];
-             mFinalPressureTime      = 0.01*rCurrentProcessInfo[TIME_INCREASING_RATIO] * mFinalSimulationTime; 
+             mInitialPressureTime    = r_process_info[INITIAL_PRESSURE_TIME];
+             mFinalPressureTime      = 0.01*r_process_info[TIME_INCREASING_RATIO] * mFinalSimulationTime; 
          }
          
-         //AuxiliaryFunctions::SwitchCase(*mpCaseOption, mDeltaOption, mContinuumSimulationOption);
+         AuxiliaryFunctions::SwitchCase(mpCaseOption, mDeltaOption, mContinuumSimulationOption);
          
-         mContactInternalFriccion       = rCurrentProcessInfo[CONTACT_INTERNAL_FRICC]*M_PI/180;
+         mContactInternalFriccion       = r_process_info[CONTACT_INTERNAL_FRICC]*M_PI/180;
          
          mSinContactInternalFriccion    = sin(mContactInternalFriccion);
          mCosContactInternalFriccion    = cos(mContactInternalFriccion);
          mTanContactInternalFriccion    = tan(mContactInternalFriccion);
          
-         mFailureCriterionOption        = rCurrentProcessInfo[FAILURE_CRITERION_OPTION];
+         mFailureCriterionOption        = r_process_info[FAILURE_CRITERION_OPTION];
 
-         mTensionLimit                  = rCurrentProcessInfo[CONTACT_SIGMA_MIN]*1e6; //N/m2
-         mCompressionLimit              = rCurrentProcessInfo[CONTACT_SIGMA_MAX]*1e6;
-         mTauZero                       = rCurrentProcessInfo[CONTACT_TAU_ZERO]*1e6;           
+         mTensionLimit                  = r_process_info[CONTACT_SIGMA_MIN]*1e6; //N/m2
+         mCompressionLimit              = r_process_info[CONTACT_SIGMA_MAX]*1e6;
+         mTauZero                       = r_process_info[CONTACT_TAU_ZERO]*1e6;           
          
          if( mpCaseOption !=0 ) 
           {
             
-            SetInitialContacts( rCurrentProcessInfo);
-            //NeighNeighMapping( rCurrentProcessInfo);//MSIMSI DEBUG
+            SetInitialContacts( r_process_info);
+            //NeighNeighMapping( r_process_info);//MSIMSI DEBUG
             
           }
-          
-         mSwitchPressure = &(rCurrentProcessInfo[SWITCH_PRESSURE]); 
+   
          mInitializedVariablesFlag = 1;
          
          
@@ -1078,15 +1079,15 @@ namespace Kratos
          if(mElasticityType == 2)
          {
            
-            mN1 = rCurrentProcessInfo[SLOPE_FRACTION_N1];
-            mN2 = rCurrentProcessInfo[SLOPE_FRACTION_N2];
-            mN3 = rCurrentProcessInfo[SLOPE_FRACTION_N3];
-            mC1 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C1];
-            mC2 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C2];
-            mC3 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C2]; 
-            mYoungPlastic = rCurrentProcessInfo[YOUNG_MODULUS_PLASTIC];
-            mPlasticityLimit = rCurrentProcessInfo[PLASTIC_YIELD_STRESS];
-            mDamageMaxDisplacementFactor = rCurrentProcessInfo[DAMAGE_FACTOR];
+            mN1 = r_process_info[SLOPE_FRACTION_N1];
+            mN2 = r_process_info[SLOPE_FRACTION_N2];
+            mN3 = r_process_info[SLOPE_FRACTION_N3];
+            mC1 = r_process_info[SLOPE_LIMIT_COEFF_C1];
+            mC2 = r_process_info[SLOPE_LIMIT_COEFF_C2];
+            mC3 = r_process_info[SLOPE_LIMIT_COEFF_C2]; 
+            mYoungPlastic = r_process_info[YOUNG_MODULUS_PLASTIC];
+            mPlasticityLimit = r_process_info[PLASTIC_YIELD_STRESS];
+            mDamageMaxDisplacementFactor = r_process_info[DAMAGE_FACTOR];
            
          }
          
@@ -1096,7 +1097,7 @@ namespace Kratos
    
           //#C6: Initialize Volume... Stresstraintensors...MSIMSI 7
 
-      }//void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+      }//void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& r_process_info)
    
    
     void SphericContinuumParticle::FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)   
@@ -1830,16 +1831,6 @@ namespace Kratos
         {
           externally_applied_force = total_externally_applied_force;
           
-          if(*mSwitchPressure==0)
-          {
-			//Debug only
-            #pragma omp single
-            { 
-				std::cout<<"Confinement application finished at time :   "<<current_time<<std::endl;                   
-            }
-            
-            *mSwitchPressure = 1;
-          }  
         }
         
      } //SphericContinuumParticle::ComputePressureForces
