@@ -63,12 +63,9 @@ class GidOutputUtility(object):
         #set gid print options:
         self.write_particles  = gid_output_settings.GiDWriteParticlesFlag
 
-        #set print variables
-        self.print_id           = 0
-        self.print_step         = 0
-        self.print_frequency    = gid_output_settings.GiDWriteFrequency
+        #set gid input-output class
+        self.io = GidIO(self.file_name, self.post_mode, self.multi_file, self.write_deformed_mesh, self.write_conditions)
 
-        
 
     #######################################################################
     #
@@ -96,24 +93,6 @@ class GidOutputUtility(object):
     def _finalize_results(self):
         self.io.FinalizeResults()
 
-    #######################################################################
-    def Initialize(self,initial_time,steps_number,initial_print_step,initial_print_id):
-
-        #set initial time
-        self.initial_time = initial_time
-
-        #set initial print step
-        self.print_step   = initial_print_step
-
-        #set initial print id
-        self.print_id     = initial_print_id
-
-        #set step number
-        self.total_steps_number = steps_number-1
-
-        #set gid input-output class
-        self.io = GidIO(self.file_name, self.post_mode, self.multi_file, self.write_deformed_mesh, self.write_conditions)
-
 
     #######################################################################
     def initialize_results(self,model_part):
@@ -126,48 +105,32 @@ class GidOutputUtility(object):
     #######################################################################
     def write_results(self,model_part,nodal_variables,gp_variables,current_time,current_step):
 
-        step_printed = False
+        print "WRITING RESULTS: [STEP: ",current_step,"] [TIME: ",current_time,"]"
+        
+        # set multi-file label
+        label = current_time
 
-        if(current_step == self.total_steps_number or current_step == self.print_step):
-            print "WRITING RESULTS: [STEP: ",self.print_id,"] [TIME: ",current_time-self.initial_time,"]"
-            #set total time as label
-            total_time=current_time-self.initial_time
-            label = total_time
-
-            # update cut data if necessary
-            if self.multi_file == MultiFileFlag.MultipleFiles:
-                self._write_mesh(label,model_part)
-                self._initialize_results(label,model_part)
-
-            for var in nodal_variables:
-                kratos_variable = globals()[var]
-                self._write_nodal_results(label,model_part,kratos_variable)
+        # update cut data if necessary
+        if self.multi_file == MultiFileFlag.MultipleFiles:
+            self._write_mesh(label,model_part)
+            self._initialize_results(label,model_part)
+            
+        for var in nodal_variables:
+            kratos_variable = globals()[var]
+            self._write_nodal_results(label,model_part,kratos_variable)
                 
-            for var in gp_variables:
-                kratos_variable = globals()[var]
-                self._write_gp_results(label,model_part,kratos_variable)
+        for var in gp_variables:
+            kratos_variable = globals()[var]
+            self._write_gp_results(label,model_part,kratos_variable)
 
-            #flush gid writing
-            self.io.Flush()
+        #flush gid writing
+        self.io.Flush()
  
-            if self.multi_file == MultiFileFlag.MultipleFiles:
-                self._finalize_results()
+        if self.multi_file == MultiFileFlag.MultipleFiles:
+            self._finalize_results()    
 
-            #update time variables
-            if(self.print_step == 0):
-                self.print_step = self.print_frequency
-            else:
-                self.print_step = self.print_step+self.print_frequency
-          
-            self.print_id = self.print_id + 1
-            model_part.ProcessInfo[WRITE_ID] = self.print_id;
-            step_printed = True;
-
-            print " -Run_GID_for_viewing_the_results_of_the_analysis-"
+        print " -Run_GID_for_viewing_the_results_of_the_analysis-"
         
-
-        
-        return step_printed
 
     #######################################################################
     def finalize_results(self):
