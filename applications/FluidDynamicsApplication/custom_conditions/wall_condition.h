@@ -560,7 +560,7 @@ namespace Kratos
 							{
 								//KRATOS_WATCH(this->GetGeometry()[j].Coordinates());
 								//KRATOS_WATCH(rNormal);
-								double Tij = -Weight * Proj;
+								//double Tij = -Weight * Proj;
 														
                                 for (unsigned int k = 0; k < TDim;k++)
 									for (unsigned int l = 0; l < TDim;l++)
