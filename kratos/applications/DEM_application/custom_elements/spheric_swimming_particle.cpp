@@ -500,12 +500,12 @@ namespace Kratos
    //**************************************************************************************************************************************************
    //**************************************************************************************************************************************************
 
-      void SphericSwimmingParticle::AdditionalMemberDeclarationFirstStep(ProcessInfo& rCurrentProcessInfo)
+      void SphericSwimmingParticle::AdditionalMemberDeclarationFirstStep(const ProcessInfo& r_process_info)
       {
-          mBuoyancyForceType             = rCurrentProcessInfo[BUOYANCY_FORCE_TYPE];
-          mDragForceType                 = rCurrentProcessInfo[DRAG_FORCE_TYPE];
-          mVirtualMassForceType          = rCurrentProcessInfo[VIRTUAL_MASS_FORCE_TYPE];
-          mLiftForceType                 = rCurrentProcessInfo[LIFT_FORCE_TYPE];
+          mBuoyancyForceType             = r_process_info[BUOYANCY_FORCE_TYPE];
+          mDragForceType                 = r_process_info[DRAG_FORCE_TYPE];
+          mVirtualMassForceType          = r_process_info[VIRTUAL_MASS_FORCE_TYPE];
+          mLiftForceType                 = r_process_info[LIFT_FORCE_TYPE];
       }
 
     //**************************************************************************************************************************************************
