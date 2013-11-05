@@ -1003,7 +1003,7 @@ namespace Kratos
       void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo) //Note: this function is only called once by now in the continuum strategy
       { 
    
-           MemberDeclarationFirstStep(rCurrentProcessInfo);
+           MemberDeclarationFirstStep(rCurrentProcessInfo); //MSI 1: el cases va fer un custom memberdeclarationfirststep per ficar tot aixo...
            
          //DEM_CONTINUUM
          
@@ -1080,8 +1080,10 @@ namespace Kratos
            
             mN1 = rCurrentProcessInfo[SLOPE_FRACTION_N1];
             mN2 = rCurrentProcessInfo[SLOPE_FRACTION_N2];
+            mN3 = rCurrentProcessInfo[SLOPE_FRACTION_N3];
             mC1 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C1];
-            mC2 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C2]; 
+            mC2 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C2];
+            mC3 = rCurrentProcessInfo[SLOPE_LIMIT_COEFF_C2]; 
             mYoungPlastic = rCurrentProcessInfo[YOUNG_MODULUS_PLASTIC];
             mPlasticityLimit = rCurrentProcessInfo[PLASTIC_YIELD_STRESS];
             mDamageMaxDisplacementFactor = rCurrentProcessInfo[DAMAGE_FACTOR];
@@ -1852,15 +1854,18 @@ namespace Kratos
   
       double kn_b = kn_el/mN1;
       double kn_c = kn_el/mN2;
+      double kn_d = kn_el/mN3;
       double kp_el = mYoungPlastic*kn_el;
 
       double mCompressionLimit_1 = mC1*mCompressionLimit;
       double mCompressionLimit_2 = mC2*mCompressionLimit;
+      double mCompressionLimit_3 = mC3*mCompressionLimit;
       
       double mYields_el = mPlasticityLimit*mCompressionLimit*calculation_area;
         
       double mNcstr1_el = mCompressionLimit_1*calculation_area;
       double mNcstr2_el = mCompressionLimit_2*calculation_area;
+      double mNcstr3_el = mCompressionLimit_3*calculation_area;
       double mNtstr_el  = mTensionLimit*calculation_area;
       
       //double sigma_a = (kn_el * indentation)/(calculation_area);
@@ -1880,6 +1885,7 @@ namespace Kratos
           
           double u_ela1 = mNcstr1_el/kn_el;;
           double u_ela2 = u_ela1 + (mNcstr2_el-mNcstr1_el)/(kn_b);
+          double u_ela3 = u_ela2 + (mNcstr3_el-mNcstr2_el)/(kn_c);
 
           if ( ( indentation > u_max ) || (*mpTimeStep <= 1) )//en càrrega màxima
             
@@ -1887,7 +1893,14 @@ namespace Kratos
 
             mHistory[mapping_new_cont][0]  = indentation;             // Guarda el treshold del màxim desplaçament
             
-            if (indentation > u_ela2) //3r tram
+            
+            if (indentation > u_ela3) //4rt tram
+            {
+              
+              fn = mNcstr3_el + ( indentation - u_ela3 )*kn_d;
+              
+            }
+            else if (indentation > u_ela2) //3r tram
             {
               
               fn = mNcstr2_el + ( indentation - u_ela2 )*kn_c;
@@ -1927,10 +1940,16 @@ namespace Kratos
                         u_plas = mNcstr1_el/kn_el + (mYields_el-mNcstr1_el)/(kn_b);
 
                     }
-                    else //en la tercera...
+                     else if(mYields_el <= mNcstr3_el) //si està en la tercera...
+                    {
+                        u_plas = mNcstr1_el/kn_el + (mNcstr2_el-mNcstr1_el)/(kn_b) + (mYields_el-mNcstr2_el)/(kn_c);
+
+                    }
+                    
+                    else //en la quarta
                     {
 
-                      u_plas = mNcstr1_el/kn_el + (mNcstr2_el-mNcstr1_el)/(kn_b) + (mYields_el-mNcstr2_el)/(kn_c);
+                      u_plas = mNcstr1_el/kn_el + (mNcstr2_el-mNcstr1_el)/(kn_b) + (mNcstr3_el-mNcstr2_el)/(kn_c) + (mYields_el-mNcstr3_el)/(kn_d);
                     }
                     
                   }
@@ -1946,7 +1965,13 @@ namespace Kratos
                   else                                   // Esta en zona descarga elastica, ens despreocupem de la plasticitat
                   {
 
-                    if ( indentation > u_ela2)  //en la 3a ramma
+                    if ( indentation > u_ela3)  //en la 4a ramma
+                    {
+                      fn = mNcstr3_el + (indentation - u_ela3)*kn_d;
+                      
+                    }
+                    
+                    else if ( indentation > u_ela2)  //en la 3a ramma
                     {
                       fn = mNcstr2_el + (indentation - u_ela2)*kn_c;
                       
