@@ -1,6 +1,6 @@
 from KratosMultiphysics import *
 from KratosMultiphysics.BloodFlowApplication import *
-
+#File: 27/10/2013
 CheckForPreviousImport()
 import math
 
@@ -26,6 +26,7 @@ def GetNodeAfter(table, prop):
 def DoRemoval(model_part):
     import config
     import full_nodes_table
+    print "CoupledTool:v4_27102003"
     print "deactivate_list", config.deactivate_list
     print "list of inlets", config.inlets_1d
     print "list of outlets", config.outlets_1d
@@ -107,7 +108,7 @@ def DoRemoval(model_part):
             cond.SetValue(ERASE_FLAG, True)
             print "cond", cond
         # print "cond", cond
-    print "CONDICIONES A ELIMINAR"
+    #print "CONDICIONES A ELIMINAR"
     # raw_input()
 
     for node in model_part.Nodes:
@@ -124,9 +125,9 @@ def DoRemoval(model_part):
     # raw_input()
     print "ANTES DE ELIMINAR NODOS Y CONDICIONES"
     # do delete elements conditions and nodes
-    NodeEraseProcess(model_part).Execute()
-    ElementEraseProcess(model_part).Execute()
-    ConditionEraseProcess(model_part).Execute()
+    #NodeEraseProcess(model_part).Execute()
+    #ElementEraseProcess(model_part).Execute()
+    #ConditionEraseProcess(model_part).Execute()
 
     # raw_input()
     for cond in model_part.Conditions:
@@ -145,12 +146,12 @@ def DoRemoval(model_part):
     id_of_new_property = 0
     for node in inlet_nodes:
         print node
-        node.Fix(NODAL_AREA)
+        #node.Fix(NODAL_AREA)
         # node.Fix(FLOW)
         # print "flow on outlet node ",node.GetSolutionStepValue(FLOW)
-        print "outlet_node =", node.Id
-        CreateNewCondition("ArteryOutletCondition", model_part,
-                           highest_cond_id + 1, id_of_new_property, node)
+        print "outlet_node to 3D =", node.Id
+        #CreateNewCondition("ArteryOutletCondition", model_part,
+                           #highest_cond_id + 1, id_of_new_property, node)
         print id_of_new_property
         # print model_part
         print node
@@ -160,12 +161,12 @@ def DoRemoval(model_part):
     id_of_new_property = 0
     for node in outlet_nodes:
         # print node
-        print "inlet_node =", node.Id
-        node.Fix(FLOW)
+        print "inlet_node to 1D=", node.Id
+        #node.Fix(FLOW)
         # node.Fix(NODAL_AREA)
         # print model_part
-        CreateNewCondition("ArteryInletCondition", model_part,
-                           highest_cond_id + 1, id_of_new_property, node)
+        #CreateNewCondition("ArteryInletCondition", model_part,
+                           #highest_cond_id + 1, id_of_new_property, node)
         # print id_of_new_property
         # print model_part
         # print node
@@ -187,8 +188,8 @@ def DoRemoval(model_part):
     for cond in model_part.Conditions:
         print "cond", cond.Id
 
-    print "CREADAS CONDICIONES"
-    raw_input()
+    #print "CREADAS CONDICIONES"
+    #raw_input()
 
 
 def ComputePressure(model_part1D):

@@ -206,7 +206,7 @@ double ArteryOutletFreeCondition::UpdateArea(double Beta, double Density)
 
     const int max_iteration = 10;
 //    const double p_init = GetProperties()[PRESSURE];
-    const double p_init = GetGeometry()[1].FastGetSolutionStepValue(SYSTOLIC_PRESSURE);
+    const double p_init = GetGeometry()[1].FastGetSolutionStepValue(DYASTOLIC_PRESSURE);
       double& A = GetGeometry()[1].FastGetSolutionStepValue(NODAL_AREA);
     const double flow =  GetGeometry()[1].FastGetSolutionStepValue(FLOW);
     double initial_area = GetGeometry()[1].GetValue(NODAL_AREA);
@@ -215,7 +215,7 @@ double ArteryOutletFreeCondition::UpdateArea(double Beta, double Density)
     const double terminal_resistence = GetGeometry()[1].FastGetSolutionStepValue(TERMINAL_RESISTANCE);
     const double w1 = flow / A + 4.00*par2*pow(A,0.25);
     //const double p_init = 10640.00;
-     
+    KRATOS_WATCH("REVISAR PRESSSIIIIIIIIIIIIIIIIIONESSSSSSSSSS");
     double x = A;
     for(int i = 0 ; i < max_iteration ; i++)
     {

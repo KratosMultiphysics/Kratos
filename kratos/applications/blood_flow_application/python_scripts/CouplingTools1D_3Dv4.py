@@ -2,17 +2,22 @@ from KratosMultiphysics import *
 from KratosMultiphysics.BloodFlowApplication import *
 CheckForPreviousImport()
 
+from math import *
 import math
 import time
 import sys
 import config
 
+#import linalg
+#File: 27/10/2013
 
 class TransferTools:
 
     def __init__(self, model_part_1d, model_part_3d):
         self.model_part_1d = model_part_1d
         self.model_part_3d = model_part_3d
+        
+        
     # 3
 
     def Initialize(self):
@@ -31,11 +36,11 @@ class TransferTools:
         self.flow_1d_out = 0.0
         self.flow_1d_in2 = 0.0
         # compute normals and 3d areas
-        #NormalCalculationUtils().SwapNormals(self.model_part_3d)
-        NormalCalculationUtils().CalculateOnSimplex(self.model_part_3d,3)
-        
-        #BodyNormalCalculationUtils().CalculateBodyNormals(
-            #self.model_part_3d, 3)
+        print "CoupledTool:v4_27102003"
+	#raw_input()
+        NormalCalculationUtils().SwapNormals(self.model_part_3d)
+        BodyNormalCalculationUtils().CalculateBodyNormals(
+            self.model_part_3d, 3)
 
         # detect 1d inlets
 
@@ -74,7 +79,7 @@ class TransferTools:
                     normN = math.sqrt(tmp[0] ** 2 + tmp[1] ** 2 + tmp[2] ** 2)
                     tmp /= normN
                     directions.append(tmp)
-                    print "3D_inlet has been assigned", node
+                    print "3D_inlet has inlet_nodes_3d = self.inlets_3d[i]been assigned", node
             if(len(aux) != 0):
                 self.inlets_3d.append(aux)
                 self.inlet_velocity_directions.append(directions)
@@ -101,7 +106,7 @@ class TransferTools:
             for node in self.model_part_1d.Nodes:
                 if (node.GetSolutionStepValue(FLAG_VARIABLE) == i):
                     aux.append(node)
-                    node.Fix(FLOW)
+                    #node.Fix(FLOW)
             if(len(aux) != 0):
                 self.outlets_1d.append(aux)
                 print "1D_outlet has been assigned(H)", node
@@ -152,18 +157,31 @@ class TransferTools:
             self.outlet_areas_3d.append(area3d)
             print "area_inlet_3d", area3d
             #raw_input()
+            
+            
+        import FitAB
+	self.fitters_1d = []
+	for i in range(0,len(self.outlets_1d)):
+	  self.fitters_1d.append( FitAB.Fitter(self.outlets_1d[i][0].Id) )
+            
+	self.fitters_3d = []
+	for i in range(0,len(self.outlets_1d)):
+	  self.fitters_3d.append( FitAB.Fitter(self.outlets_1d[i][0].Id) )
+            
+            
 
     def Initial_Contitions(self):
-        initial_pressure = 0  # TODO
-        print "Inicializo 3D"
+        #initial_pressure = 0  # TODO
+        initial_pressure = config.dyastolic_pressure
+        #print "Inicializo 3D"
+        #print initial_pressure
         for i in range(0, len(self.inlets_1d)):
             inlet_nodes_1d = self.inlets_1d[i]
             print "3D-1D: inlet_nodes_1d [0].Id::::::>>>> ", inlet_nodes_1d[0].Id
             for i in range(0, len(self.outlets_1d)):
                 outlet_nodes_1d = self.outlets_1d[i]
-                pressinlet3D = outlet_nodes_1d[
-                    0].GetSolutionStepValue(PRESSURE)
-                print pressinlet3D
+                pressinlet3D = outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)
+                #print pressinlet3D
                 print "3D-1D: outlet_nodes_1d[0].Id::::::>>>> ", outlet_nodes_1d[0].Id
                 for i in range(0, len(self.inlets_3d)):
                     inlet_nodes_3d = self.inlets_3d[i]
@@ -171,8 +189,7 @@ class TransferTools:
                     print "area_inlet_3d", area3d
                     directions = self.inlet_velocity_directions[i]
                     radio3d = math.sqrt(area3d * 3.1416)
-                    vel1d = inlet_nodes_1d[
-                        0].GetSolutionStepValue(FLOW) / area3d
+                    vel1d = inlet_nodes_1d[0].GetSolutionStepValue(FLOW) / area3d
                     k = 0
                     print vel1d
                     # Impongo velocidad y la presion
@@ -180,23 +197,21 @@ class TransferTools:
                         n = node.GetSolutionStepValue(NORMAL)
                         a = math.sqrt(n[0] ** 2 + n[1] ** 2 + n[2] ** 2)
                         orientation = directions[k]
-                        node.SetSolutionStepValue(
-                            VELOCITY, 0, directions[k] * vel1d)
+                        node.SetSolutionStepValue(VELOCITY, 0, directions[k] * vel1d)
                         # node.SetSolutionStepValue(PRESSURE, 0, pressinlet3D)
                         k = k + 1
             # raw_input()
 
     def Transfer1D_to_3D(self):
-
-            # ARCHIVE TO SET :::::::::::::::::::::::::::>>>>>>>>>>>>>> VARIABLES
-            # import config_full
-        initial_pressure = config.systolic_pressure
-        initial_pressure = 0
-
+        # ARCHIVE TO SET :::::::::::::::::::::::::::>>>>>>>>>>>>>> VARIABLES
+        # import config_full
+        initial_pressure = config.dyastolic_pressure
+        #initial_pressure = 0
+	print initial_pressure
         print "Transfer1D_to_3D"
         for i in range(0, len(self.inlets_1d)):
             inlet_nodes_1d = self.inlets_1d[i]
-            print "NODO 1D-3D:: inlet_nodes_1d[0].Id::::::inlet 1D coupled with the 3D inlet>>>> ",inlet_nodes_1d[0].Id
+            #print "NODO 1D-3D:: inlet_nodes_1d[0].Id::::::inlet 1D coupled with the 3D inlet>>>> ",inlet_nodes_1d[0].Id
             # print "--"
             # raw_input()
             for i in range(0, len(self.inlets_3d)):
@@ -216,24 +231,24 @@ class TransferTools:
                     orientation = directions[k]
                     node.SetSolutionStepValue(VELOCITY, 0, directions[k] * vel1d)
                     k = k + 1
-            print "area3d",area3d ,"area1d",inlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA), "del nodo", inlet_nodes_1d[0].Id
-            print "Estoy fijando la velocidad en el inlet del 3D que proviene del nodo " , inlet_nodes_1d[0].Id, " del 1D. La velocidad que estoy fijando es"
-            print "vel1d",vel1d, "del nodo", inlet_nodes_1d[0].Id
+            #print "area3d",area3d ,"area1d",inlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA), "del nodo", inlet_nodes_1d[0].Id
+            #print "Estoy fijando la velocidad en el inlet del 3D que proviene del nodo " , inlet_nodes_1d[0].Id, " del 1D. La velocidad que estoy fijando es"
+            #print "vel1d",vel1d, "del nodo", inlet_nodes_1d[0].Id
             
 
         for i in range(0, len(self.outlets_1d)):
             outlet_nodes_1d = self.outlets_1d[i]
             pressinlet3D = outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)
             # pressinlet3D = 0
-            print "NODO 1D-3D: outlet_nodes_1d[0].Id::::::outlet 1D coupled with the 3D outlet>>>> ",outlet_nodes_1d[0].Id, "del nodo", outlet_nodes_1d[0].Id
-            # print "pressinlet3D ",pressinlet3D
-            # raw_input()
+            #print "NODO 1D-3D: outlet_nodes_1d[0].Id::::::outlet 1D coupled with the 3D outlet>>>> ",outlet_nodes_1d[0].Id
+            #print "pressinlet3D ",pressinlet3D
+            #raw_input()
             # double beta = E0*thickness0*1.77245385/(1.0-nu0*nu0);
             beta = outlet_nodes_1d[0].GetSolutionStepValue(BETA)
             #beta = ((outlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS) * outlet_nodes_1d[0].GetSolutionStepValue(THICKNESS) * math.sqrt(math.pi)) / (
                 #1 - (outlet_nodes_1d[0].GetSolutionStepValue(POISSON_RATIO) * outlet_nodes_1d[0].GetSolutionStepValue(POISSON_RATIO))))
             A = outlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA)
-            print "AREA_1D", A
+            #print "AREA_1D", A
             A0 = outlet_nodes_1d[0].GetValue(NODAL_AREA)
             press = initial_pressure + beta * \
                 (math.sqrt(A) - math.sqrt(A0)) / \
@@ -241,18 +256,19 @@ class TransferTools:
             #press = initial_pressure + beta * \
                 #(math.sqrt(A) - math.sqrt(A0)) / \
                 #A0  # math.sqrt(A/A0)*beta - beta
-            print "prress calucalteed",press 
+            print "prress calculated",press 
             print "press solver", pressinlet3D
             for i in range(0, len(self.outlets_3d)):
                 outlet_nodes_3d = self.outlets_3d[i]
                 area3d = self.outlet_areas_3d[i]
                 for node in outlet_nodes_3d:
                     node.SetSolutionStepValue(PRESSURE, 0, press)     
-            print "area3d",area3d ,"area1d",outlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA)
-            print "Estoy fijando la presion en el outlet del 3D que proviene del nodo " , outlet_nodes_1d[0].Id, " del 1D. La presion que estoy fijando es"
-            print "pression",press, "del nodo", outlet_nodes_1d[0].Id
+            #print "area3d",area3d ,"area1d",outlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA)
+            #print "Estoy fijando la presion en el outlet del 3D que proviene del nodo " , outlet_nodes_1d[0].Id, " del 1D. La presion que estoy fijando es"
+            #print "pression",press, "del nodo", outlet_nodes_1d[0].Id
 
     def Transfer3D_to_1D(self):
+        initial_pressure = config.dyastolic_pressure
         inlet_flow = (self.inlets_1d[0])[0].GetSolutionStepValue(FLOW)
         self.outlets_1d[0][0].SetSolutionStepValue(FLOW,0,inlet_flow)
 
@@ -262,9 +278,9 @@ class TransferTools:
 
         inlet_beta = self.inlets_1d[0][0].GetSolutionStepValue(BETA)
         inlet_A0  = self.inlets_1d[0][0].GetValue(NODAL_AREA)
-        Ainlet_to_prescribe = (((outlet_pressure * inlet_A0)/inlet_beta) + math.sqrt(inlet_A0))**2  # A0*(avg_press/beta + 1)**2
-        self.outlets_1d[0][0].SetSolutionStepValue(NODAL_AREA,0,Ainlet_to_prescribe)
-
+        Ainlet_to_prescribe = ((((outlet_pressure-initial_pressure) * inlet_A0)/inlet_beta) + math.sqrt(inlet_A0))**2  # A0*(avg_press/beta + 1)**2
+        #self.outlets_1d[0][0].SetSolutionStepValue(NODAL_AREA,0,Ainlet_to_prescribe)
+        
         print "inlet node = ",self.inlets_1d[0][0].Id
         print "outlet node = ",self.outlets_1d[0][0].Id
 		
@@ -336,6 +352,13 @@ class TransferTools:
         # raw_input()
 #-------------------------------------------------------------------------
 
+# FIT VALUES (WRITE FILE)
+
+#-------------------------------------------------------------------------
+        
+
+#-------------------------------------------------------------------------
+
 # Setting Contitions 3d
 
 #-------------------------------------------------------------------------
@@ -390,8 +413,7 @@ class TransferTools:
                 for node in cond.GetNodes():
                     # if(not node.IsFixed(VELOCITY_X)):
                     node.Fix(PRESSURE)
-                    node.SetSolutionStepValue(
-                        FLAG_VARIABLE, 0, cond.Properties.Id)
+                    node.SetSolutionStepValue(FLAG_VARIABLE, 0, cond.Properties.Id)
 
      # for cond in self.model_part_3d.Conditions:
             # if(cond.GetValue(IS_STRUCTURE) == 1):
@@ -423,3 +445,166 @@ class TransferTools:
 
 
         # print "n pressure nodes ",counter
+        
+        
+        
+    def FitValues(self,ffit,total_time,AB_Matriz,row_AB):
+     
+      for i in range(0, len(self.inlets_1d)):
+	node = self.inlets_1d[i]
+	##print "3D-1D: inlet_nodes_1d [0].Id::::::>>>> ", node[0].Id
+	#nodewrite = node[0].Id
+	##ToWrite = str(indextowrite) + " "
+	##ToWrite = str(nodewrite) + " " + str(total_time) + " " + str(node[0].GetSolutionStepValue(PRESSURE)) + " "
+	##ToWrite += str(node[0].GetSolutionStepValue(FLOW)) + " " + str(node[0].GetSolutionStepValue(NODAL_AREA)) + "\n"
+	#ToWrite = str(node[0].GetSolutionStepValue(FLOW)) + "\n"
+	#ffit[0].write(ToWrite)
+	#AB_Matriz[row_AB][0]= total_time
+	#AB_Matriz[row_AB][1]= node[0].GetSolutionStepValue(PRESSURE)
+	#AB_Matriz[row_AB][2]= node[0].GetSolutionStepValue(FLOW)
+	#AB_Matriz[row_AB][3]= node[0].GetSolutionStepValue(NODAL_AREA)
+	for fitter in self.fitters_1d:
+	  fitter.AddPin(node[0].GetSolutionStepValue(PRESSURE))
+	  fitter.AddQ(node[0].GetSolutionStepValue(FLOW))
+	  
+	j=0
+	for i in range(0, len(self.outlets_1d)):
+	  #j=j+1
+	  #row_AB=row_AB+1
+	  #node = self.outlets_1d[i]	 
+	  ##print "3D-1D: outlet_nodes_1d[0].Id::::::>>>> ", node[0].Id        
+	  #nodewrite = node[0].Id
+	  ##ToWrite = str(indextowrite) + " "
+	  ##ToWrite = str(nodewrite) + " " + str(total_time) + " " + str(node[0].GetSolutionStepValue(PRESSURE)) + " "
+	  ##ToWrite += str(node[0].GetSolutionStepValue(FLOW)) + " " + str(node[0].GetSolutionStepValue(NODAL_AREA)) + "\n"
+	  #ToWrite = str(node[0].GetSolutionStepValue(FLOW)) + "\n"
+	  #ffit[j].write(ToWrite)
+	  #AB_Matriz[row_AB][0]= total_time
+	  #AB_Matriz[row_AB][1]= node[0].GetSolutionStepValue(PRESSURE)
+	  #AB_Matriz[row_AB][2]= node[0].GetSolutionStepValue(FLOW)
+	  #AB_Matriz[row_AB][3]= node[0].GetSolutionStepValue(NODAL_AREA)
+	  self.fitters_1d[i].AddPout(node[0].GetSolutionStepValue(PRESSURE))
+	  
+
+	  print "**************************"
+      
+    def FitValues_3d(self,ffit3d,total_time):      
+      j=0
+      for i in range(0, len(self.inlets_1d)):
+	  inlet_nodes_1d = self.inlets_1d[i]
+	  for i in range(0, len(self.inlets_3d)):
+	    inlet_nodes_3d = self.inlets_3d[i]
+	    area3d = self.inlet_areas_3d[i]
+	    directions = self.inlet_velocity_directions[i]
+	    radio3d = math.sqrt(area3d * 3.1416)
+	    vel1d = inlet_nodes_1d[0].GetSolutionStepValue(FLOW) / area3d
+	    pres1d = inlet_nodes_1d[0].GetSolutionStepValue (PRESSURE)
+	    ToWrite = str(node) + " " + str(total_time) + " " + str(pres1d) + " "
+	    ToWrite += str(vel1d) + " " + str(inlet_nodes_3d.GetSolutionStepValue(NODAL_AREA)) + "\n"	
+	    ffit3d[j].write(ToWrite)
+	    print "3D-1D: outlet_nodes_1d[0].Id::::::>>>> ", inlet_nodes_3d[0].Id
+	    	  
+    def Fit_ABValues(self,AB_Matriz,row_AB,ffit_A):
+      
+      for fitter in self.fitters_1d:
+	  [node_id,A,B] = fitter.DoFitting()
+	  print "node_id = ",node_id
+	  print "A = ",A
+	  print "B = ",B
+	  
+	 # ...para los fitters_3d
+      
+      
+      #i=0
+      #j=0
+
+      #GradientPress=[]
+      #dd=len(range(row_AB))
+      #kk=dd/3      
+      #for i in range(kk):
+	#GradientPress.append([0]*1)   #Variables to save
+      
+      #A_Values=[]
+      #for i in range(2): #nodes_number
+	#A_Values.append([0]*2)   #Variables to save
+      
+      #B_values=[]
+      #for i in range(2): #nodes_number
+	#B_values.append([0]*1)   #Variables to save
+      
+      #print len(range(row_AB))
+      ##AB_Matriz[][0]=time
+      ##AB_Matriz[][1]=Pressure
+      ##AB_Matriz[][2]=flow
+      ##AB_Matriz[][3]=NodalArea
+      #j=0
+      #i=0
+      #while i < len(range(row_AB)):
+	##print i	
+	##print "pressure", AB_Matriz[i][1]
+	##print "pressure", AB_Matriz[i+1][1]
+	##print "pressure", AB_Matriz[i+2][1]	
+	#GradientPress[j]=AB_Matriz[i+1][1]-AB_Matriz[i][1]
+	#print GradientPress
+	##FlowFlow=AB_Matriz[i+1][2]*AB_Matriz[i+1][2]
+	##A=(GradientPress-FlowFlow)/AB_Matriz[i+1][2]
+	##B=(GradientPress-AB_Matriz[i+1][2])/FlowFlow
+	##ToWrite = str(GradientPress) + " " + str(FlowFlow) + "\n" 
+	##ToWrite = str(A) + " " + str(B) + "\n"
+	##ffit_A[0].write(ToWrite)
+	#i=i+3
+	#j=j+1
+
+      #TotalGradientPress=0
+      #for i in range(kk):
+	#TotalGradientPress=TotalGradientPress+GradientPress[i]
+      
+      #a11=0
+      #a21=0
+      #a12=0
+      #a22=0
+      #b1=0
+      #b2=0
+      #for i in range(0,len(row_AB)):
+	#Q2 = AB_Matriz[i][2]*AB_Matriz[i][2]
+	#a11=a11+(Q2)
+	#a12=a12+(Q2*AB_Matriz[i][2])
+	#a22=a22+(Q2*Q2)
+	#b1=b1+(AB_Matriz[i][2]*GradientPress[i])
+	#b2=b2+(Q2*GradientPress[i])
+      #a21 = a12
+		
+      #A_Values[0][0]= a11 
+      ## q2 
+      #A_Values[0][1]= a12 
+      ## q3
+      #A_Values[1][0]= a12 
+      ## q3
+      #A_Values[1][1]= a22 
+      ## q4
+      #B_values[0]=b1 
+      ##PQ
+      #B_values[1]=b2 
+      ##PQ2
+            
+      #print a11
+      #print a12 
+      #print a21
+      #print a22
+      #print b1
+      #print b2
+      
+      #ToWrite = str(a11) + " " + str(a12) + " " + str(a21) + " " + str(a22) + " " 
+      #ToWrite += str(b1) + " " + str(b2) + " " + str(TotalGradientPress) + "\n"
+      #ffit_A[0].write(ToWrite)
+      
+      ##transposed = []
+      ##for i in range(2):
+	##transposed.append([row[i] for row in A_Values])
+    
+      #B=(b2-a21/a11*b1)/(a22-a12*a21/a11)
+      #A=b1/a11-a12/a11*B
+      #ToWrite = str(A) + " " + str(B) + "\n"
+      #ffit_A[0].write(ToWrite)
+      
+  
