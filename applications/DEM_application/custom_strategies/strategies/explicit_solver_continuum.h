@@ -671,8 +671,8 @@ namespace Kratos
           
           {
 
-          FixVelocities();
-          mFixSwitch = 0;
+            FixVelocities();
+            mFixSwitch = 0;
           
           } 
         
@@ -772,15 +772,16 @@ namespace Kratos
             {
               
                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_TOP];
-                (it)->GetGeometry()(0)->Fix(VELOCITY_Y);
+                //(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
+                (it)->GetGeometry()(0)->pGetDof(VELOCITY_Y)->FixDof();
                 
-                if(mFixHorizontalVel)
+               // if(mFixHorizontalVel)
                 {
-                  (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
+                /*  (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
                   (it)->GetGeometry()(0)->Fix(VELOCITY_X);
                   (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z)   = 0.0;
                   (it)->GetGeometry()(0)->Fix(VELOCITY_Z);
-                }
+                */}
                 
             }
             
@@ -788,15 +789,17 @@ namespace Kratos
             {
               
                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_BOT];
-                (it)->GetGeometry()(0)->Fix(VELOCITY_Y); 
+                (it)->GetGeometry()(0)->pGetDof(VELOCITY_Y)->FixDof();
+                //(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
                 
                 
-                if(mFixHorizontalVel){
-                  (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
+               // if(mFixHorizontalVel)
+                {
+            /*      (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
                   (it)->GetGeometry()(0)->Fix(VELOCITY_X);
                   (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z)   = 0.0;
                   (it)->GetGeometry()(0)->Fix(VELOCITY_Z);
-                }
+              */  }
                                 
             }
             
