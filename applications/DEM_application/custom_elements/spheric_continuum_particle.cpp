@@ -1487,10 +1487,10 @@ namespace Kratos
       void SphericContinuumParticle::CustomInitialize()
       {
          
-          double& mSectionalInertia         = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);   
+          double& mSectionalInertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);   
           mSectionalInertia                 = 0.25 * M_PI * mRadius * mRadius * mRadius  * mRadius ;    
           
-          double& mRepresentative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);   
+          double& mRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);   
           
           mRepresentative_Volume = 0.0;
           
