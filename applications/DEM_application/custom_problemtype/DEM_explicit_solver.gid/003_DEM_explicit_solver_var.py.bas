@@ -259,32 +259,32 @@ DempackDamping                   = *GenData(Dempack_Damping)
 *format "%10.5e"
 DempackGlobalDamping             = *GenData(Dempack_Global_Damping)
 *format "%10.5e"
-TauZero                          = *GenData(Tau_Zero)
+TauZero                          = *GenData(TSTREN)
 *format "%10.5e"
 SigmaMax                         = *GenData(Sigma_Max)
 *format "%10.5e"
-SigmaMin                         = *GenData(Sigma_Min)
+SigmaMin                         = *GenData(NTSTR)
 *format "%10.5e"
 InternalFriction                 = *GenData(Internal_Friction)
 
 *format "%10.5e"
-C1                               = *GenData(C_1)
+C1                               = *GenData(NCSTR1)
 *format "%10.5e"
-N1                               = *GenData(N_1)
+N1                               = *GenData(YNGRT1)
 *format "%10.5e"
-C2                               = *GenData(C_2)
+C2                               = *GenData(NCSTR2)
 *format "%10.5e"
-N2                               = *GenData(N_2)
+N2                               = *GenData(YNGRT2)
 *format "%10.5e"
-C3                               = *GenData(C_3)
+C3                               = *GenData(NCSTR3)
 *format "%10.5e"
-N3                               = *GenData(N_3)
+N3                               = *GenData(YNGRT3)
 *format "%10.5e"
 PlasticYoungModulusRatio         = *GenData(Plastic_Young_Modulus_Ratio)
 *format "%10.5e"
-PlasticYieldStress               = *GenData(Plastic_Yield_Stress)
+PlasticYieldStress               = *GenData(YIELDS)
 *format "%10.5e"
-DamageDeformationFactor          = *GenData(Damage_Deformation_Factor)
+DamageDeformationFactor          = *GenData(AXIFRC)
 *format "%10.5e"
 G1                               = *GenData(Gamma_1)
 *format "%10.5e"
