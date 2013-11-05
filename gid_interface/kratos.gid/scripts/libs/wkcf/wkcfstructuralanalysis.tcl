@@ -1767,6 +1767,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     ::wkcf::WriteGiDPostModeNew $AppId $fileid 
 
 
+    puts $fileid ""
     # Delta time
     set cxpath "$AppId//c.SolutionStrategy//c.Dynamic//i.DeltaTime"
     set TimeStep [::xmlutils::setXml $cxpath $cproperty]
@@ -1776,13 +1777,12 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     set TimeWriting [::xmlutils::setXml $cxpath $cproperty]
     set FrequencyWriting [expr int(double($TimeWriting)/double($TimeStep))]
 
-    if {$FrequencyWriting != "0.0" && $FrequencyWriting > 1.0} {
-	puts $fileid "${trailing_spaces}GiDWriteFrequency = $FrequencyWriting"      
+    if {$FrequencyWriting != 0 && $FrequencyWriting > 1} { 
+	puts $fileid "GiDWriteFrequency = $TimeWriting"      
     } else {
-	puts $fileid "${trailing_spaces}GiDWriteFrequency = 1"
+	puts $fileid "GiDWriteFrequency = $TimeStep"
     }
-
-    puts $fileid ""
+    
     puts $fileid "WriteResults = \"PreMeshing\""
     puts $fileid "echo_level = 1"
     puts $fileid ""
@@ -1797,7 +1797,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     puts $fileid ""
     puts $fileid "# restart options"
     puts $fileid "SaveRestart = \"False\""
-    puts $fileid "Restart_Interval = 0"
+    puts $fileid "RestartFrequency = 0"
     puts $fileid "LoadRestart = \"False\""
     puts $fileid "Restart_Step = 0"
 
