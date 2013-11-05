@@ -590,7 +590,7 @@ class ExplicitStrategy:
             self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
             self.model_part.ProcessInfo.SetValue(INITIAL_PRESSURE_TIME, self.initial_pressure_time)
             self.model_part.ProcessInfo.SetValue(TIME_INCREASING_RATIO, self.time_increasing_ratio)
-            self.model_part.ProcessInfo.SetValue(SWITCH_PRESSURE,0)
+
 
         #OTHERS
         
