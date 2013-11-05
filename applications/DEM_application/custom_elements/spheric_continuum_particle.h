@@ -306,8 +306,10 @@ namespace Kratos
         //Non-linear
          double mN1;
          double mN2;
+         double mN3;
          double mC1;
          double mC2;
+         double mC3;
                             
         
         //FOR DEM_FEM APP
