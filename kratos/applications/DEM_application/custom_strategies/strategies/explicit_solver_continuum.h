@@ -775,13 +775,13 @@ namespace Kratos
                 //(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
                 (it)->GetGeometry()(0)->pGetDof(VELOCITY_Y)->FixDof();
                 
-               // if(mFixHorizontalVel)
+               if(mFixHorizontalVel)
                 {
-                /*  (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
+                  (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
                   (it)->GetGeometry()(0)->Fix(VELOCITY_X);
                   (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z)   = 0.0;
                   (it)->GetGeometry()(0)->Fix(VELOCITY_Z);
-                */}
+                }
                 
             }
             
@@ -793,13 +793,13 @@ namespace Kratos
                 //(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
                 
                 
-               // if(mFixHorizontalVel)
+                if(mFixHorizontalVel)
                 {
-            /*      (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
+                  (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
                   (it)->GetGeometry()(0)->Fix(VELOCITY_X);
                   (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z)   = 0.0;
                   (it)->GetGeometry()(0)->Fix(VELOCITY_Z);
-              */  }
+                }
                                 
             }
             
