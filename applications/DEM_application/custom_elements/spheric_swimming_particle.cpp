@@ -44,7 +44,6 @@ namespace Kratos
       /// Destructor.
       SphericSwimmingParticle::~SphericSwimmingParticle(){}
 
-
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
@@ -117,7 +116,8 @@ namespace Kratos
 
           // General case
 
-          const array_1d<double,3>& fluid_vel    = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+          const double fluid_fraction            = 1 - GetGeometry()(0)->FastGetSolutionStepValue(SOLID_FRACTION);
+          const array_1d<double,3> fluid_vel     = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VEL_PROJECTED) / fluid_fraction;
           const array_1d<double,3>& particle_vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
           const array_1d<double,3>& slip_vel     = fluid_vel - particle_vel;
           const double norm_of_slip_vel          = MathUtils<double>::Norm3(slip_vel);
@@ -131,7 +131,7 @@ namespace Kratos
               drag_coeff = ComputeWeatherfordDragCoefficient(norm_of_slip_vel, fluid_density, rCurrentProcessInfo);
           }
 
-          else{
+          else {
               std::cout << "The integer value designating the drag coefficient calculation model" << std::endl;
               std::cout << " (mDragForceType = " << mDragForceType << "), is not supported" << std::endl << std::flush;
               return;
@@ -191,7 +191,6 @@ namespace Kratos
             KRATOS_TRY
 
             array_1d<double,3>& pressure_grad       = GetGeometry()(0)->FastGetSolutionStepValue(PRESSURE_GRAD_PROJECTED);
-            const double fluid_fraction             = 1 - GetGeometry()(0)->FastGetSolutionStepValue(SOLID_FRACTION_PROJECTED);
             array_1d<double,3>& drag_force          = GetGeometry()(0)->FastGetSolutionStepValue(DRAG_FORCE);
             array_1d<double,3>& buoyancy            = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);
 
@@ -502,10 +501,10 @@ namespace Kratos
 
       void SphericSwimmingParticle::AdditionalMemberDeclarationFirstStep(ProcessInfo& rCurrentProcessInfo)
       {
-          mBuoyancyForceType             = 1;
+          mBuoyancyForceType             = rCurrentProcessInfo[BUOYANCY_FORCE_TYPE];
           mDragForceType                 = rCurrentProcessInfo[DRAG_FORCE_TYPE];
-          mVirtualMassForceType          = 0;
-          mLiftForceType                 = 0;
+          mVirtualMassForceType          = rCurrentProcessInfo[VIRTUAL_MASS_FORCE_TYPE];
+          mLiftForceType                 = rCurrentProcessInfo[LIFT_FORCE_TYPE];
       }
 
     //**************************************************************************************************************************************************
