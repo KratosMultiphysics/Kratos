@@ -208,9 +208,6 @@ public:
         return *this;
     }
 
-
-    /// Set multiple conditions. (Skin Condition)    
-    virtual void SetCondition (Condition::Pointer pCondition){};
    
     ///@}
     ///@name Operations
