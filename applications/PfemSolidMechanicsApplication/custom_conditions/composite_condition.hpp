@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_SKIN_MULTIPLE_CONDITION_H_INCLUDED )
-#define  KRATOS_SKIN_MULTIPLE_CONDITION_H_INCLUDED
+#if !defined(KRATOS_COMPOSITE_CONDITION_H_INCLUDED )
+#define  KRATOS_COMPOSITE_CONDITION_H_INCLUDED
 
 
 
@@ -27,16 +27,6 @@
 #include "includes/variables.h"
 #include "includes/constitutive_law.h"
 #include "utilities/math_utils.h"
-
-// #include "custom_conditions/point_load_2D_condition.hpp"
-// #include "custom_conditions/point_load_axisym_2D_condition.hpp"
-// #include "custom_conditions/point_load_3D_condition.hpp"
-// #include "custom_conditions/line_load_2D_condition.hpp"
-// #include "custom_conditions/line_load_axisym_2D_condition.hpp"
-// #include "custom_conditions/line_load_3D_condition.hpp"
-// #include "custom_conditions/surface_load_3D_condition.hpp"
-// #include "custom_conditions/wall_tip_condition.hpp"
-
 
 namespace Kratos
 {
@@ -64,7 +54,7 @@ namespace Kratos
  * This works for arbitrary geometries in 2D and 3D
  */
 
-class SkinMultipleCondition
+class CompositeCondition
     : public Condition
 {
 public:
@@ -72,17 +62,26 @@ public:
 
     ///@name Type Definitions
     ///@{
-    ///Reference type definition for constitutive laws
-    typedef ConstitutiveLaw ConstitutiveLawType;
-    ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-    ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-    ///Pointer type for constitutive laws  
-    typedef std::vector<Condition::Pointer> ConditionPointerVectorType;
+    typedef Condition ConditionType;
 
-    /// Counted pointer of SkinMultipleCondition
-    KRATOS_CLASS_POINTER_DEFINITION(SkinMultipleCondition);
+    /// Conditions container. A vector set of Conditions with their Id's as key.
+    typedef PointerVectorSet<ConditionType, IndexedObject> ConditionsContainerType;
+
+    /** Iterator over the Conditions. This iterator is an indirect
+    iterator over Conditions::Pointer which turn back a reference to
+    Condition by * operator and not a pointer for more convenient
+    usage. */
+    typedef typename ConditionsContainerType::iterator ConditionIterator;
+
+    /** Const iterator over the Conditions. This iterator is an indirect
+    iterator over Conditions::Pointer which turn back a reference to
+    Condition by * operator and not a pointer for more convenient
+    usage. */
+    typedef typename ConditionsContainerType::const_iterator ConditionConstantIterator;
+
+
+    /// Counted pointer of CompositeCondition
+    KRATOS_CLASS_POINTER_DEFINITION(CompositeCondition);
 
     ///@}
     ///@name Life Cycle
@@ -90,40 +89,133 @@ public:
 
 
     /// Default constructors.
-    SkinMultipleCondition(IndexType NewId, GeometryType::Pointer pGeometry);
-    SkinMultipleCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    CompositeCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    CompositeCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
-    SkinMultipleCondition(SkinMultipleCondition const& rOther);
+    CompositeCondition(CompositeCondition const& rOther);
 
 
     /// Destructor.
-    virtual ~SkinMultipleCondition();
+    virtual ~CompositeCondition();
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    SkinMultipleCondition& operator=(SkinMultipleCondition const& rOther);
-
-
-    /// Set multiple conditions. (Skin Condition)    
-    void SetCondition (Condition::Pointer pCondition);
+    CompositeCondition& operator=(CompositeCondition const& rOther);
 
 
     ///@}
     ///@name Operations
     ///@{
 
+
+   SizeType NumberOfChildren() const
+    {
+        return mpChildConditions->size();
+    }
+
+    /** Inserts a condition in the composite.
+    */
+    void AddChild(typename ConditionType::Pointer pNewChildCondition)
+    {
+      bool set = false;
+
+      for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+	{
+	  if(pNewChildCondition->Id() == cn->Id())
+	    set=true;
+	}
+
+      if(!set)
+        mpChildConditions->insert(mpChildConditions->begin(), pNewChildCondition);
+    }
+
+    /** Returns the Condition::Pointer  corresponding to it's identifier */
+    typename ConditionType::Pointer pGetChild(IndexType ChildConditionId)
+    {
+        return (*mpChildConditions)(ChildConditionId);
+    }
+
+    /** Returns a reference condition corresponding to it's identifier */
+    ConditionType& GetChild(IndexType ChildConditionId)
+    {
+        return (*mpChildConditions)[ChildConditionId];
+    }
+
+    /** Remove the condition with given Id from composite.
+    */
+    void RemoveChild(IndexType ChildConditionId)
+    {
+        mpChildConditions->erase(ChildConditionId);
+    }
+
+    /** Remove given condition from composite.
+    */
+    void RemoveChild(ConditionType& ThisChildCondition)
+    {
+        mpChildConditions->erase(ThisChildCondition.Id());
+    }
+
+    /** Remove given condition from composite.
+    */
+    void RemoveChild(typename ConditionType::Pointer pThisChildCondition)
+    {
+        mpChildConditions->erase(pThisChildCondition->Id());
+    }
+
+    ConditionIterator ChildConditionsBegin()
+    {
+        return mpChildConditions->begin();
+    }
+
+    ConditionConstantIterator ChildConditionsBegin() const
+    {
+        return mpChildConditions->begin();
+    }
+
+    ConditionIterator ChildConditionsEnd()
+    {
+        return mpChildConditions->end();
+    }
+
+    ConditionConstantIterator ChildConditionsEnd() const
+    {
+        return mpChildConditions->end();
+    }
+
+    ConditionsContainerType& ChildConditions()
+    {
+        return *mpChildConditions;
+    }
+
+    typename ConditionsContainerType::Pointer pChildConditions()
+    {
+        return mpChildConditions;
+    }
+
+    void SetChildConditions(typename ConditionsContainerType::Pointer pOtherChildConditions)
+    {
+        mpChildConditions = pOtherChildConditions;
+    }
+
+    typename ConditionsContainerType::ContainerType& ChildConditionsArray()
+    {
+        return mpChildConditions->GetContainer();
+    }
+
     /**
-     * creates a new total lagrangian updated element pointer
+     * creates a new condition pointer
      * @param NewId: the ID of the new element
      * @param ThisNodes: the nodes of the new element
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+
+
 
     //************* GETTING METHODS
 
@@ -357,7 +449,7 @@ private:
      * Variables
      */
 
-    ConditionPointerVectorType ArrayPointerConditions;
+    typename ConditionsContainerType::Pointer mpChildConditions;
 
     ///@}
     ///@name Private Operators
@@ -367,16 +459,16 @@ private:
     ///@name Private Operations
     ///@{
 
-    //check problem type definition
-    bool IsActive(Condition::Pointer pCondition, const ProcessInfo& rCurrentProcessInfo);
+    //check problem type definition and if coincides return active true
+    bool IsActive(ConditionIterator iChildCondition, const ProcessInfo& rCurrentProcessInfo);
 
     //set specific data value to condition children
     template<class TVariableType> void SetValueToChildren(const TVariableType& rThisVariable){
 
-      for(unsigned int cn=0; cn<ArrayPointerConditions.size(); cn++)
+      for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
 	{
 	  typename TVariableType::Type const& rValue = this->GetValue(rThisVariable);
-	  ArrayPointerConditions[cn]->SetValue(rThisVariable,rValue);	      
+	  cn->SetValue(rThisVariable,rValue);	      
 	}
       
     }
@@ -392,7 +484,7 @@ private:
 
     // A private default constructor necessary for serialization
 
-    SkinMultipleCondition() : Condition()
+    CompositeCondition() : Condition()
     {
     }
 
@@ -409,7 +501,7 @@ private:
     ///@{
     ///@}
 
-}; // Class SkinMultipleCondition
+}; // Class CompositeCondition
 
 ///@}
 ///@name Type Definitions
@@ -419,11 +511,11 @@ private:
 ///@{
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-    SkinMultipleCondition& rThis);
+    CompositeCondition& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-    const SkinMultipleCondition& rThis)
+    const CompositeCondition& rThis)
     {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -434,4 +526,4 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_SKIN_MULTIPLE_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_COMPOSITE_CONDITION_H_INCLUDED  defined 

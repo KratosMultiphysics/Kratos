@@ -80,8 +80,8 @@ namespace Kratos
   KratosPfemSolidMechanicsApplication::KratosPfemSolidMechanicsApplication():
     mCondition2D( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mCondition3D( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mSkinMultipleCondition2D( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mSkinMultipleCondition3D( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+    mCompositeCondition2D( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mCompositeCondition3D( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mWallTipCondition2D( 0, Condition::GeometryType::Pointer( new Line2D2<Node<3> >( Condition::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mWallTipCondition3D( 0, Condition::GeometryType::Pointer( new Triangle3D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mContactDomainLM2DCondition( 0, Condition::GeometryType::Pointer( new Triangle2D3<Node<3> >( Condition::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
@@ -105,8 +105,8 @@ namespace Kratos
     KRATOS_REGISTER_CONDITION( "Condition2D", mCondition2D );
     KRATOS_REGISTER_CONDITION( "Condition3D", mCondition3D );
 
-    KRATOS_REGISTER_CONDITION( "SkinCondition2D", mSkinMultipleCondition2D );
-    KRATOS_REGISTER_CONDITION( "SkinCondition3D", mSkinMultipleCondition3D );
+    KRATOS_REGISTER_CONDITION( "CompositeCondition2D", mCompositeCondition2D );
+    KRATOS_REGISTER_CONDITION( "CompositeCondition3D", mCompositeCondition3D );
    
     KRATOS_REGISTER_CONDITION( "WallTipCondition2D", mWallTipCondition2D );
     KRATOS_REGISTER_CONDITION( "WallTipCondition3D", mWallTipCondition3D );
