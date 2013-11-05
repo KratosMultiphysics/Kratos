@@ -338,7 +338,7 @@ public:
     }
 
     
-    void ComputePressure(ModelPart& ThisModelPart, double systolic_pressure)
+    void ComputePressure(ModelPart& ThisModelPart, double dyastolic_pressure)
     {
 
         KRATOS_TRY
@@ -375,28 +375,38 @@ public:
             double original_area = in->GetValue(NODAL_AREA);
             //double initial_pressure = in->GetValue(PRESSURE); //sytolic pressure. All nodes must have the same systolic pressure. Read from the config file.
             //KRATOS_WATCH(initial_pressure);
-            //double E0 = in->GetSolutionStepValue(YOUNG_MODULUS);
-            //double nu0 = in->GetSolutionStepValue(POISSON_RATIO);
-            //double thickness0 = in->GetSolutionStepValue(THICKNESS);
+            //double E0 = in->FastGetSolutionStepValue(YOUNG_MODULUS);
+            //double nu0 = in->FastGetSolutionStepValue(POISSON_RATIO);
+            //double thickness0 = in->FastGetSolutionStepValue(THICKNESS);
+
             double beta = in->FastGetSolutionStepValue(BETA);
-            //double beta = E0*thickness0*1.77245385/(1.0-nu0*nu0);
+            //double beta2 = in->GetValue(BETA);
+            //double beta3 = in->GetSolutionStepValue(BETA);
+            //double beta4 = E0*thickness0*1.77245385/(1.0-nu0*nu0);
             double nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
             //double nodal_flow = in->FastGetSolutionStepValue(FLOW);
             //KRATOS_WATCH(original_area);
-            // 	    KRATOS_WATCH(nu0);
-            //     	    KRATOS_WATCH(thickness0);
+            //        KRATOS_WATCH(nu0);
+            //            KRATOS_WATCH(thickness0);
             // 	    KRATOS_WATCH(beta);
                         //KRATOS_WATCH("-------------------------------------------------");
                         //KRATOS_WATCH(nodal_area);
             // 	    KRATOS_WATCH("-------------------------------------------------");
             // 	    KRATOS_WATCH(kkk);
 
-
-            //KRATOS_WATCH(systolic_pressure);
-            double pressure=systolic_pressure+(beta/original_area)*(sqrt(nodal_area)-sqrt(original_area));
+            //KRATOS_WATCH(NODAL_AREA)
+            //KRATOS_WATCH(dyastolic_pressure);
+            //KRATOS_WATCH(beta);
+            //KRATOS_WATCH(beta2);
+            //KRATOS_WATCH(beta3);
+            //KRATOS_WATCH(beta4);
+            //KRATOS_WATCH(nodal_area);
+           // KRATOS_WATCH(original_area);
+            double pressure=dyastolic_pressure+((beta/original_area)*(sqrt(nodal_area)-sqrt(original_area)));
+            //KRATOS_WATCH(pressure);
             in->FastGetSolutionStepValue(PRESSURE)=pressure;
             //FastSetSolutionStepValue(PRESSURE,0,pressure);
-
+            //KRATOS_WATCH("------------------------------------");
         }
         KRATOS_CATCH("")
     }
