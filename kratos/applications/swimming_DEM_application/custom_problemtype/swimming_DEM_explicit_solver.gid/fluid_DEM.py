@@ -22,11 +22,12 @@ import DEM_explicit_solver_var as DEM_parameters
 import DEM_procedures as DEMProc
 import swimming_DEM_procedures as SwimProc
 
-# PROJECT PARAMETERS TO BE PUT IN PROBLEMTYPE
+# PROJECT PARAMETERS (to be put in problem type)
 ProjectParameters.ProjectionModuleOption      = 1
 ProjectParameters.PrintParticlesResultsOption = 0
 ProjectParameters.ProjectFromParticlesOption  = 1
 ProjectParameters.ProjectAtEverySubStepOption = 1
+ProjectParameters.VelocityTrapOption          = 0
 ProjectParameters.CreateParticlesOption       = 0
 ProjectParameters.InletOption                 = 0
 ProjectParameters.CalculatePorosity           = 1
@@ -40,16 +41,16 @@ ProjectParameters.yield_stress_value          = 0.0
 ProjectParameters.max_solid_fraction          = 0.6
 ProjectParameters.DEM_nodal_results           = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED"]
 ProjectParameters.mixed_nodal_results         = ["VELOCITY", "DISPLACEMENT"]
+ProjectParameters.DEMInletElementType         = "SphericSwimmingParticle3D"  # options are: "SphericParticle3D", "SphericSwimmingParticle3D"
 ProjectParameters.CouplingSchemeType          = "updated_fluid" # "updated_fluid" or "updated_DEM"
-ProjectParameters.CouplingWeighingType        = 1
-ProjectParameters.BuoyancyForceType           = 0 # 0 no buoyancy, 1 for standard
-ProjectParameters.DragForceType               = 1 # 0 no drag, 1 for standard, 2 for Weatherford
-ProjectParameters.VirtualMassForceType        = 0 # 0 no virtual mass force
-ProjectParameters.LiftForceType               = 0 # 0 no lift force
-ProjectParameters.DragModifierType            = 3 # 2 for Hayder and 3 for CHIEN
+ProjectParameters.CouplingWeighingType        = 2 # {fluid_to_DEM, DEM_to_fluid, Solid_fraction} = {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
+ProjectParameters.BuoyancyForceType           = 1 # null buoyancy (0), standard (1)
+ProjectParameters.DragForceType               = 1 # null drag (0), standard (1), Weatherford (2)
+ProjectParameters.VirtualMassForceType        = 0 # null virtual mass force (0)
+ProjectParameters.LiftForceType               = 0 # null lift force (0)
+ProjectParameters.DragModifierType            = 3 # Hayder (2), Chien (3)
 
 # Changes on PROJECT PARAMETERS for the sake of consistency
-
 ProjectParameters.nodal_results.append("SOLID_FRACTION")
 ProjectParameters.nodal_results.append("MESH_VELOCITY1")
 ProjectParameters.nodal_results.append("BODY_FORCE")
@@ -66,6 +67,29 @@ for var in ProjectParameters.mixed_nodal_results:
 
     if var in ProjectParameters.nodal_results:
         ProjectParameters.nodal_results.remove(var)
+
+# Extra nodal variables to be added to the model parts
+fluid_variables_to_add = [PRESSURE_GRADIENT,
+                          AUX_DOUBLE_VAR,
+                          DRAG_REACTION,
+                          SOLID_FRACTION,
+                          MESH_VELOCITY1]
+
+balls_variables_to_add = [FLUID_VEL_PROJECTED,
+                          FLUID_DENSITY_PROJECTED,
+                          PRESSURE_GRAD_PROJECTED,
+                          FLUID_VISCOSITY_PROJECTED,
+                          DRAG_FORCE,
+                          BUOYANCY,
+                          SOLID_FRACTION_PROJECTED]
+
+DEM_inlet_variables_to_add = [FLUID_VEL_PROJECTED,
+                              FLUID_DENSITY_PROJECTED,
+                              PRESSURE_GRAD_PROJECTED,
+                              FLUID_VISCOSITY_PROJECTED,
+                              DRAG_FORCE,
+                              BUOYANCY]
+
 
 # Constructing a DEM_procedures object
 DEM_proc = DEMProc.Procedures(DEM_parameters)
@@ -91,9 +115,6 @@ if "REACTION" in ProjectParameters.nodal_results:
 if "DISTANCE" in ProjectParameters.nodal_results:
     fluid_model_part.AddNodalSolutionStepVariable(DISTANCE)
 
-#SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-#if "MU" in ProjectParameters.nodal_results:
-#    fluid_model_part.AddNodalSolutionStepVariable(MU)
 ##AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 #
@@ -114,19 +135,6 @@ model_part_io_fluid = ModelPartIO(input_file_name)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-fluid_variables_to_add = [PRESSURE_GRADIENT,
-                          AUX_DOUBLE_VAR,
-                          DRAG_REACTION,
-                          SOLID_FRACTION,
-                          MESH_VELOCITY1]
-
-balls_variables_to_add = [FLUID_VEL_PROJECTED,
-                          FLUID_DENSITY_PROJECTED,
-                          PRESSURE_GRAD_PROJECTED,
-                          FLUID_VISCOSITY_PROJECTED,
-                          DRAG_FORCE,
-                          BUOYANCY,
-                          SOLID_FRACTION_PROJECTED]
 
 print 'Adding and initializing variables (to zero) to the fluid_model_part'
 
@@ -329,27 +337,26 @@ creator_destructor = ParticleCreatorDestructor()
 DEM_solver = SolverStrategy.ExplicitStrategy(balls_model_part, creator_destructor, DEM_parameters)
 DEM_proc.GiDSolverTransfer(balls_model_part, DEM_solver, DEM_parameters)
 
-# Defining a model part for the DEM inlet  #############################################################MA
+# Defining a model part for the DEM inlet
 
 if (ProjectParameters.InletOption):
     DEM_inlet_model_part = ModelPart("DEMInletPart")
     DEM_Inlet_filename = DEM_parameters.problem_name + "_Inlet"
     SolverStrategy.AddVariables(DEM_inlet_model_part, DEM_parameters)
-    # HYDRODYNAMICS
-    DEM_inlet_model_part.AddNodalSolutionStepVariable(FLUID_VEL_PROJECTED)
-    DEM_inlet_model_part.AddNodalSolutionStepVariable(FLUID_DENSITY_PROJECTED)
-    DEM_inlet_model_part.AddNodalSolutionStepVariable(PRESSURE_GRAD_PROJECTED)
-    DEM_inlet_model_part.AddNodalSolutionStepVariable(FLUID_VISCOSITY_PROJECTED)
-    # FORCES
-    DEM_inlet_model_part.AddNodalSolutionStepVariable(DRAG_FORCE)
-    DEM_inlet_model_part.AddNodalSolutionStepVariable(BUOYANCY)
+    SwimProc.AddNodalVariables(DEM_inlet_model_part, DEM_inlet_variables_to_add)
 
     model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
     model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
+
+    # setting up the buffer size:
     DEM_inlet_model_part.SetBufferSize(2)
+
+    # adding nodal degrees of freedom
     SolverStrategy.AddDofs(DEM_inlet_model_part)
     DEM_inlet_parameters = DEM_inlet_model_part.Properties
-    DEM_inlet = DEM_Inlet(DEM_inlet_model_part) # constructor for an Inlet
+
+    # constructiong the inlet and intializing it
+    DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
     DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor)
 
 def yield_DEM_time(time_dem_initial, time_final, Dt_DEM, scheme_type):
@@ -365,6 +372,10 @@ def yield_DEM_time(time_dem_initial, time_final, Dt_DEM, scheme_type):
             time_dem_initial += Dt_DEM
 
     yield time_final
+
+# TEMPORARY!!! here we set the nodal variables to zero to avoid indefinitions that we don't know why they appear
+SwimProc.InitializeVariablesToZero(fluid_model_part, fluid_variables_to_add)
+SwimProc.InitializeVariablesToZero(balls_model_part, balls_variables_to_add)
 
 DEM_step = 0 # this variable is necessary to get a good random insertion of particles
 DEM_solver.Initialize()
@@ -420,12 +431,11 @@ while(time <= final_time):
         DEM_solver.Solve()
 
         if (ProjectParameters.InletOption):
-            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, "SphericSwimmingParticle3D") #After solving, to make sure that neighbours are already set.
-            # options are: "SphericParticle3D", "SphericSwimmingParticle3D"
+            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, ProjectParameters.DEMInletElementType) #After solving, to make sure that neighbours are already set.
 
-        #if (DEM_parameters.VelocityTrapOption):
-        #    PostUtils = DEMProc.PostUtils(DEM_parameters, balls_model_part)  
-        #    PostUtils.VelocityTrap("Average_Velocity", time_dem)  
+        if (ProjectParameters.VelocityTrapOption):
+            PostUtils = DEMProc.PostUtils(DEM_parameters, balls_model_part)
+            PostUtils.VelocityTrap("Average_Velocity", time_dem)
 
     if (time >= ProjectParameters.Interaction_start_time and ProjectParameters.ProjectFromParticlesOption):
         projection_module.ProjectFromParticles()
