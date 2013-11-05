@@ -204,7 +204,7 @@ namespace Kratos
 
        SphericContinuumParticle();
 
-        void SetInitialContacts( ProcessInfo& rCurrentProcessInfo );
+        void SetInitialContacts( const ProcessInfo& rCurrentProcessInfo );
         void NeighNeighMapping( ProcessInfo& rCurrentProcessInfo ); //MSIMSI DEBUG
         void CheckPairWiseBreaking(); //MSIMSI DEBUG
         double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG
@@ -249,9 +249,7 @@ namespace Kratos
         double mPlasticityLimit;
         double mDamageMaxDisplacementFactor;
         double mMagicFactorPoisson;
-        
-        int *mpActivateSearch;
-               
+     
         double mGamma1;
         double mGamma2;
         double mGamma3;
@@ -273,8 +271,6 @@ namespace Kratos
         int*  mSkinSphere;
    
         int mFailureCriterionOption;
-        
-        int* mSwitchPressure;
         
         double mTension;
         double mCohesion;
