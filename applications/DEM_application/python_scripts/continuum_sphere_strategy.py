@@ -320,8 +320,10 @@ class ExplicitStrategy:
         if (self.force_calculation_type_id ==2):
             self.C1                         = Param.C1
             self.C2                         = Param.C2
+            self.C3                         = Param.C3
             self.N1                         = Param.N1
             self.N2                         = Param.N2
+            self.N3                         = Param.N3
             self.plastic_young_modulus_ratio= Param.PlasticYoungModulusRatio
             self.plastic_yield_stress       = Param.PlasticYieldStress
             self.damage_deformation_factor  = Param.DamageDeformationFactor
@@ -393,24 +395,22 @@ class ExplicitStrategy:
         self.safety_factor                  = Param.DeltaTimeSafetyFactor # For critical time step
 
         # CREATOR-DESTRUCTOR
-
         self.creator_destructor             = creator_destructor
 
         b_box_low     = Array3()
         b_box_high    = Array3()
-        b_box_low[0]  = Param.BoundingBoxMaxX
-        b_box_low[1]  = Param.BoundingBoxMaxY
-        b_box_low[2]  = Param.BoundingBoxMaxZ
-        b_box_high[0] = Param.BoundingBoxMinX
-        b_box_high[1] = Param.BoundingBoxMinY
-        b_box_high[2] = Param.BoundingBoxMinZ
+        b_box_low[0]  = Param.BoundingBoxMinX
+        b_box_low[1]  = Param.BoundingBoxMinY
+        b_box_low[2]  = Param.BoundingBoxMinZ
+        b_box_high[0] = Param.BoundingBoxMaxX
+        b_box_high[1] = Param.BoundingBoxMaxY
+        b_box_high[2] = Param.BoundingBoxMaxZ
 
         self.creator_destructor.SetLowNode(b_box_low)
         self.creator_destructor.SetHighNode(b_box_high)
 
-        #if (self.automatic_bounding_box_option):
-            #self.creator_destructor.CalculateSurroundingBoundingBox()
-
+        if (self.automatic_bounding_box_option):
+            self.creator_destructor.CalculateSurroundingBoundingBox(self.model_part, self.enlargement_factor)
 
         # STRATEGIES
 
