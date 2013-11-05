@@ -1035,7 +1035,7 @@ namespace Kratos
          
          mContinuumGroup        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);             
 
-         mpCaseOption                   = &(rCurrentProcessInfo[CASE_OPTION]);   //NOTE: pointer
+         mpCaseOption                   = 2;//&(rCurrentProcessInfo[CASE_OPTION]);   //NOTE: pointer
          
          mContactMeshOption             = rCurrentProcessInfo[CONTACT_MESH_OPTION];
          
@@ -1047,7 +1047,7 @@ namespace Kratos
              mFinalPressureTime      = 0.01*rCurrentProcessInfo[TIME_INCREASING_RATIO] * mFinalSimulationTime; 
          }
          
-         AuxiliaryFunctions::SwitchCase(*mpCaseOption, mDeltaOption, mContinuumSimulationOption);
+         //AuxiliaryFunctions::SwitchCase(*mpCaseOption, mDeltaOption, mContinuumSimulationOption);
          
          mContactInternalFriccion       = rCurrentProcessInfo[CONTACT_INTERNAL_FRICC]*M_PI/180;
          
@@ -1061,7 +1061,7 @@ namespace Kratos
          mCompressionLimit              = rCurrentProcessInfo[CONTACT_SIGMA_MAX]*1e6;
          mTauZero                       = rCurrentProcessInfo[CONTACT_TAU_ZERO]*1e6;           
          
-         if( *mpCaseOption !=0 ) 
+         if( mpCaseOption !=0 ) 
           {
             
             SetInitialContacts( rCurrentProcessInfo);
