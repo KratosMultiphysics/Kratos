@@ -555,7 +555,7 @@ private:
           double EdgeNode1[3] = {P1.X() , P1.Y() , P1.Z()};
           double EdgeNode2[3] = {P2.X() , P2.Y() , P2.Z()};
 
-	  int count=0;
+	  //int count=0;
           // loop over all octree cells which are intersected by the fluid element
           for(unsigned int i_cell = 0 ; i_cell < leaves.size() ; i_cell++)
           {
@@ -1247,7 +1247,7 @@ private:
           mOctree.GetAllLeavesVector(all_leaves);
 
 #pragma omp parallel for
-          for (int i = 0; i < all_leaves.size(); i++)
+          for (uint i = 0; i < all_leaves.size(); i++)
           {
               *(all_leaves[i]->pGetDataPointer()) = ConfigurationType::AllocateData();
           }
@@ -1324,7 +1324,7 @@ private:
            std::vector<CellType*> leaves;
 
          mOctree.GetAllLeavesVector(leaves);
-         int leaves_size = leaves.size();
+         //int leaves_size = leaves.size();
 
 //         for(int i = 0 ; i < leaves_size ; i++)
 //             CalculateNotEmptyLeavesDistance(leaves[i]);
