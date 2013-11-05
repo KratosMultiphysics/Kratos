@@ -27,7 +27,7 @@
 #include "solid_mechanics_application.h"
 
 //conditions
-#include "custom_conditions/skin_multiple_condition.hpp"
+#include "custom_conditions/composite_condition.hpp"
 #include "custom_conditions/wall_tip_condition.hpp"
 
 #include "custom_conditions/contact_domain_condition.hpp"
@@ -259,8 +259,8 @@ namespace Kratos
     const Condition mCondition2D;
     const Condition mCondition3D;
 
-    const SkinMultipleCondition mSkinMultipleCondition2D;
-    const SkinMultipleCondition mSkinMultipleCondition3D;
+    const CompositeCondition mCompositeCondition2D;
+    const CompositeCondition mCompositeCondition3D;
 
     const WallTipCondition mWallTipCondition2D;
     const WallTipCondition mWallTipCondition3D;

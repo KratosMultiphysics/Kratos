@@ -766,8 +766,8 @@ namespace Kratos
 						id +=1;
 
 						Condition::GeometryType::Pointer vertices = Condition::GeometryType::Pointer(new Geometry< Node<3> >(face) );
-						Condition::Pointer p_cond = Condition::Pointer(new SkinMultipleCondition(id,vertices,properties) ); 
- 
+						CompositeCondition::Pointer composite_cond =  CompositeCondition::Pointer(new CompositeCondition(id,vertices,properties) ); 
+						
 						//Get the correct ReferenceCondition
 						Condition::Pointer pBoundaryCondition;
 						bool point_condition = false;
@@ -780,7 +780,7 @@ namespace Kratos
 			  
 						      //std::cout<<" Condition Found "<<std::endl;
 						      pBoundaryCondition = (*(ic.base())); 
-						      p_cond->SetCondition(pBoundaryCondition);
+						      composite_cond->AddChild(pBoundaryCondition);
 						      PreservedConditions[ic->Id()-1] += 1;
 
 						      if( rConditionGeom.PointsNumber() == 1 )
@@ -792,18 +792,21 @@ namespace Kratos
 
 						if( !point_condition ){
 						  //usually one MasterElement and one MasterNode in 2D; in 3D can be more than one -> it has to be extended to 3D					  
-						  //p_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
-						  WeakPointerVector< Element >& MasterElements = p_cond->GetValue(MASTER_ELEMENTS);
+						  //composite_cond->GetValue(MASTER_ELEMENTS).push_back( Element::WeakPointer( *(ie.base()) ) );
+						  WeakPointerVector< Element >& MasterElements = composite_cond->GetValue(MASTER_ELEMENTS);
 						  MasterElements.push_back( Element::WeakPointer( *(ie.base()) ));
-						  p_cond->SetValue(MASTER_ELEMENTS,MasterElements);
+						  composite_cond->SetValue(MASTER_ELEMENTS,MasterElements);
 									    
-						  //p_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );						
-						  WeakPointerVector< Node<3> >& MasterNodes = p_cond->GetValue(MASTER_NODES);
+						  //composite_cond->GetValue(MASTER_NODES).push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );						
+						  WeakPointerVector< Node<3> >& MasterNodes = composite_cond->GetValue(MASTER_NODES);
 						  MasterNodes.push_back( Node<3>::WeakPointer( rGeom(lpofa(0,i)) ) );
-						  p_cond->SetValue(MASTER_NODES,MasterNodes);
+						  composite_cond->SetValue(MASTER_NODES,MasterNodes);
 
 						}
+
+
 						//std::cout<<" Set preserved condition found "<<id<<std::endl;
+						Condition::Pointer p_cond = composite_cond;
 						mr_model_part.Conditions(MeshId).push_back(p_cond);
 
 					}
