@@ -98,7 +98,7 @@ namespace Kratos
           initial_rotation_moment.clear();
           elastic_force.clear();
           
-          if( *mpActivateSearch==1 || *mpTimeStep == 0)
+         if( *mpActivateSearch==1 || *mpTimeStep == 0)  //TODO: activar, MSISMI1 ///WARNING!!!!
           {
 
             ComputeNewNeighboursHistoricalData();
@@ -1817,7 +1817,7 @@ namespace Kratos
               mLimitSurfaceOption            = r_process_info[LIMIT_SURFACE_OPTION];
               mLimitCylinderOption           = r_process_info[LIMIT_CYLINDER_OPTION];
               
-              mpTimeStep                     =  &(r_process_info[TIME_STEPS]); // reference.
+              mpTimeStep                     =  &(r_process_info[TIME_STEPS]); // reference. ****
               mpActivateSearch               =  &(r_process_info[ACTIVATE_SEARCH]);
 
               if (mRotationOption){
