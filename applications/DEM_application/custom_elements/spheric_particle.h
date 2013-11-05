@@ -142,8 +142,8 @@ namespace Kratos
       //void SetInitialContacts(int case_opt, ProcessInfo& rCurrentProcessInfo);
 
       virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
-      virtual void MemberDeclarationFirstStep(ProcessInfo& rCurrentProcessInfo);
-      virtual void AdditionalMemberDeclarationFirstStep(ProcessInfo& rCurrentProcessInfo);
+      virtual void MemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
+      virtual void AdditionalMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
       virtual void ComputeNewNeighboursHistoricalData();
       void CalculateMaxIndentation(double& rCurrentMaxIndentation, const double& rTolerance);
       void CalculateKineticEnergy(double& rKineticEnergy);
@@ -252,8 +252,8 @@ namespace Kratos
       vector< array_1d<double, 3> > mOldNeighbourContactForces;
       
       //pointers:
-      int *mpTimeStep;  
-      int *mpActivateSearch;
+      const int *mpTimeStep;  
+      const int *mpActivateSearch;
       
       
       //ParticleWeakVectorType mrNeighbours;
