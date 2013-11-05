@@ -32,11 +32,12 @@ from KratosMultiphysics.SolidMechanicsApplication import *
 
 #import the python utilities:
 import restart_utility              as restart_utils
-import gid_output_python_utility    as gid_utils
+import gid_output_utility           as gid_utils
 
 import conditions_python_utility    as condition_utils
 import list_files_python_utility    as files_utils
 
+import time_operation_utility       as operation_utils
 #import modeler_python_utility       as modeler_utils
 #import graph_plot_python_utility    as plot_utils
 
@@ -100,7 +101,7 @@ main_step_solver   = solver_constructor.CreateSolver( model_part, SolverSettings
 
 #set the restart of the problem
 restart_step     = general_variables.Restart_Step
-problem_restart  = restart_utils.RestartUtility(model_part,problem_path,problem_name,restart_step);
+problem_restart  = restart_utils.RestartUtility(model_part,problem_path,problem_name);
 
 #set the results file list of the problem (managed by the problem_restart and gid_print)
 print_lists      = general_variables.PrintLists
@@ -161,10 +162,6 @@ gid_print = gid_utils.GidOutputUtility(problem_name, general_variables.GidOutput
 #initialize problem : load restart or initial start
 load_restart     = general_variables.LoadRestart
 save_restart     = general_variables.SaveRestart
-restart_interval = general_variables.Restart_Interval
-
-problem_restart.Initialize(load_restart,save_restart,restart_interval,list_files);
-
 
 #set buffer size
 buffer_size = 3;
@@ -175,6 +172,9 @@ solver_constructor.AddVariables( model_part, SolverSettings)
 
 #--- READ MODEL ------#
 if(load_restart == "False"):
+
+  problem_restart.CleanPreviousFiles(list_files)
+
   #reading the model 
   model_part_io = ModelPartIO(problem_name)
   model_part_io.ReadModelPart(model_part)
@@ -192,6 +192,12 @@ if(load_restart == "False"):
   constitutive_law = constitutive_law_utils.ConstitutiveLawUtility(model_part,domain_size);
   constitutive_law.Initialize();
 
+else:
+  
+  #reading the model from the restart file
+  problem_restart.Load(restart_time);
+
+  problem_restart.CleanPosteriorFiles(time_step,restart_time,list_files)
 
 #set mesh searches and modeler
 # modeler.InitializeDomains();
@@ -200,12 +206,10 @@ if(load_restart == "False"):
   #find nodal h
   #modeler.SearchNodalH();
 
-#set writing numeration
-problem_restart.SetStartSteps(buffer_size);
 
 #--- PRINT CONTROL ---#
 print model_part
-print model_part.Properties
+print model_part.Properties[1]
 
 
 #########################--INITIALIZE--###########################
@@ -218,35 +222,38 @@ main_step_solver.SetRestart(load_restart)
 # initial contact search
 #modeler.InitialContactSearch()
 
+#define time steps and loop range of steps
+if(load_restart == "True"):  
 
-#initialize time integration variables
-current_step = 0
+  istep        = model_part.ProcessInfo[TIME_STEPS]+1
+  nstep        = int(general_variables.nsteps) + buffer_size 
+  time_step    = model_part.ProcessInfo[DELTA_TIME]
+  current_step = istep-nstep
 
-#define time and time_step
-time_step    =  general_variables.time_step
-steps_number =  general_variables.nsteps
+else:
 
-#define loop range of steps
-istep        = 0
-nstep        = int(general_variables.nsteps) + buffer_size 
+  istep        = 0
+  nstep        = int(general_variables.nsteps) + buffer_size 
+  time_step    = general_variables.time_step
+  current_step = 0
 
-start_steps  = buffer_size-1
-start_time   = start_steps*time_step;
+  model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step;
 
-problem_restart.InitializeTimeIntegration(time_step,steps_number);
-
-#redefine loop range of steps after problem_restart
-istep        = problem_restart.step_i
-nstep        = problem_restart.step_n
-time_step    = problem_restart.TimeStep()
-current_step = problem_restart.current_step
-
-#initialize print results variables for time integration
-write_id = model_part.ProcessInfo[WRITE_ID];
-gid_print.Initialize(start_time,nstep,current_step,write_id)
-
-if(load_restart == "False"):
   conditions.Initialize();
+
+
+#initialize step operations
+starting_time  = current_step * time_step
+ending_time    = general_variables.nsteps * time_step;
+ 
+output_print = operation_utils.TimeOperationUtility()
+gid_time_frequency = general_variables.GiDWriteFrequency
+output_print.InitializeTime(starting_time,ending_time,time_step,gid_time_frequency)
+
+restart_print = operation_utils.TimeOperationUtility()
+restart_time_frequency = general_variables.RestartFrequency
+restart_print.InitializeTime(starting_time,ending_time,time_step,restart_time_frequency)
+
 
 #initialize mesh modeling variables for time integration
 #modeler.Initialize(current_step,current_step)
@@ -261,17 +268,24 @@ if(load_restart == "False"):
 #writing a single file
 gid_print.initialize_results(model_part)
 
+#initialize time integration variables
+start_steps  = buffer_size-1
+start_time   = start_steps*time_step;
 
 for step in range(istep,nstep):
+
   time = time_step*step
   model_part.CloneTimeStep(time)
   model_part.ProcessInfo[DELTA_TIME] = time_step
   model_part.ProcessInfo[TIME_STEPS] = step
 
-  if( (time-start_time) > 0 ):
-    print "STEP = ", step - start_steps - 1
-    print "TIME = ", time - start_time
-    model_part.ProcessInfo[TIME] = time - start_time
+  current_time = time - start_time
+  current_step = step - start_steps - 1
+
+  if( current_time > 0 ):
+    print "STEP = ", current_step
+    print "TIME = ", current_time
+    model_part.ProcessInfo[TIME] = current_time
   
   step_printed = False;
 
@@ -289,27 +303,30 @@ for step in range(istep,nstep):
     model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step;
     
     #incremental load
-    incr_steps = step-start_steps
+    incr_steps = current_step + 1
     conditions.SetIncrementalLoad(incr_steps,time_step);
       
     #print the results at the end of the step
     if(general_variables.WriteResults == "PreMeshing"):
-      clock_time=StartTimeMeasuring();
-      step_printed = gid_print.write_results(model_part,general_variables.nodal_results,general_variables.gauss_points_results,time,current_step)
-      if( step_printed == True ):
+      execute_write = output_print.perform_time_operation(current_time)
+      if( execute_write == True ):
+        clock_time=StartTimeMeasuring();
+        #print gid output file
+        gid_print.write_results(model_part,general_variables.nodal_results,general_variables.gauss_points_results,current_time,current_step)
+        #print on list files
         list_files.PrintListFiles(current_step);
-      StopTimeMeasuring(clock_time,"Write Results");
-       
+        StopTimeMeasuring(clock_time,"Write Results");
+        #plot graphs
+        #graph_plot.Plot(current_time)
+
     #print restart file
-    if( step_printed == True ):
-      write_id = model_part.ProcessInfo[WRITE_ID];
-      #graph_plot.Plot(write_id)
+    if( save_restart == True ):
+      execute_save = restart_print.perform_time_operation(current_time)
+      if( execute_save == True ):
+        clock_time=StartTimeMeasuring();
+        problem_restart.Save(current_time,current_step);
+        StopTimeMeasuring(clock_time,"Restart");
 
-      clock_time=StartTimeMeasuring();
-      problem_restart.PrintRestartFile(write_id);
-      StopTimeMeasuring(clock_time,"Restart");
-
-    current_step = current_step + 1
     
 ##########################--FINALIZE--############################
 ##################################################################
