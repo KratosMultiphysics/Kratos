@@ -254,7 +254,7 @@ namespace Kratos
                    BaseType::SearchNeighbours(rModelPart); //the amplification factor has been modified after the first search.
               }
 
-          }
+        }
           //KRATOS_TIMER_STOP("SearchNeighbours")
           
           //KRATOS_TIMER_START("FinalizeSolutionStep")
