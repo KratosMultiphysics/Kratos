@@ -276,6 +276,10 @@ C2                               = *GenData(C_2)
 *format "%10.5e"
 N2                               = *GenData(N_2)
 *format "%10.5e"
+C3                               = *GenData(C_3)
+*format "%10.5e"
+N3                               = *GenData(N_3)
+*format "%10.5e"
 PlasticYoungModulusRatio         = *GenData(Plastic_Young_Modulus_Ratio)
 *format "%10.5e"
 PlasticYieldStress               = *GenData(Plastic_Yield_Stress)
