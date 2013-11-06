@@ -1469,7 +1469,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
               ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
               
             {
-              
+                
                   Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(cont_neigh_index)).lock();
                  
                   if(!rCurrentProcessInfo[AREA_CALCULATED_FLAG])
@@ -1600,16 +1600,14 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       }
  
       void SphericContinuumParticle::CustomInitialize()
-      {
-         
-          double& mSectionalInertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);   
+      {         
+          
+          double& mSectionalInertia         = this->GetGeometry()(0)->GetSolutionStepValue(PARTICLE_INERTIA);   
           mSectionalInertia                 = 0.25 * M_PI * mRadius * mRadius * mRadius  * mRadius ;    
           
-          double& mRepresentative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);   
+          double& mRepresentative_Volume    = this->GetGeometry()(0)->GetSolutionStepValue(REPRESENTATIVE_VOLUME);             
+          mRepresentative_Volume            = 0.0;        
           
-          mRepresentative_Volume = 0.0;
-          
-      
       }
 
       
