@@ -157,6 +157,7 @@ namespace Kratos
               
               this->CreateContactElements();
               this->InitializeContactElements();
+              rCurrentProcessInfo[AREA_CALCULATED_FLAG] = false;
               this->Particle_Area_Calculate(); //first time;
               rCurrentProcessInfo[AREA_CALCULATED_FLAG] = true;
               this->Contact_Calculate_Area();
