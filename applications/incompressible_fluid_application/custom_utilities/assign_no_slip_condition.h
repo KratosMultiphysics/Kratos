@@ -98,7 +98,7 @@ public:
         for(ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin();
                 it!=ThisModelPart.NodesEnd(); it++)
         {
-            if( it->FastGetSolutionStepValue(IS_BOUNDARY) == 1.0)
+            if( it->FastGetSolutionStepValue(IS_INTERFACE) == 1.0)
             {
                 KRATOS_WATCH(">>>>>>>>>>>>>>>>>>>>> NOSLIPBOUNDARY <<<<<<<<<<<<<<<<<<<<<");
                 Condition::NodesArrayType temp;
