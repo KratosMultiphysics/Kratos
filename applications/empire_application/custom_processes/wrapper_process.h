@@ -136,15 +136,17 @@ public:
 //                    {
 //                        mr_interface_part.Conditions().push_back( *(i_condition.base()) );
 //                    }
-                    // NECESSARY FOR TUREK EXAMPLE
-                    double Z0 = (*i_condition).GetGeometry()[0].Z();
-                    double Z1 = (*i_condition).GetGeometry()[1].Z();
-                    double Z2 = (*i_condition).GetGeometry()[2].Z();
+                   // NECESSARY FOR TUREK EXAMPLE
+//                    double Z0 = (*i_condition).GetGeometry()[0].Z();
+//                    double Z1 = (*i_condition).GetGeometry()[1].Z();
+//                    double Z2 = (*i_condition).GetGeometry()[2].Z();
 
-                    if((Z0 < 0 || Z1 < 0 || Z2 < 0) && (Z0 > -0.01 || Z1 > -0.01 || Z2 > -0.01) )
-                    {
-                        mr_interface_part.Conditions().push_back( *(i_condition.base()) );
-                    }
+//                    if((Z0 < 0 || Z1 < 0 || Z2 < 0) && (Z0 > -0.01 || Z1 > -0.01 || Z2 > -0.01) )
+//                    {
+//                        mr_interface_part.Conditions().push_back( *(i_condition.base()) );
+//                    }
+
+                    mr_interface_part.Conditions().push_back( *(i_condition.base()) );
                 }
             }
 
@@ -226,11 +228,14 @@ public:
                                      i_node != mr_interface_part.NodesEnd() ;
                                      i_node++ )
         {
-                array_1d<double,3> vect_disp = i_node->GetSolutionStepValue(DISPLACEMENT);
+                array_1d<double,3> disp = i_node->GetSolutionStepValue(DISPLACEMENT,0);
+                array_1d<double,3> disp_old = i_node->GetSolutionStepValue(DISPLACEMENT,1);
 
-                displacements.append(vect_disp[0]);
-                displacements.append(vect_disp[1]);
-                displacements.append(vect_disp[2]);
+                array_1d<double,3> disp_increment = disp - disp_old;
+
+                displacements.append(disp_increment[0]);
+                displacements.append(disp_increment[1]);
+                displacements.append(disp_increment[2]);
         }
 
         KRATOS_CATCH("")
