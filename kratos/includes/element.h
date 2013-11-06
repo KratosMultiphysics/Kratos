@@ -38,17 +38,14 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: janosch $
-//   Date:                $Date: 2007-10-12 10:28:14 $
-//   Revision:            $Revision: 1.9 $
-//
+//   Last Modified by:    $Author:    J.M.Carbonell$
+//   Date:                $Date:          6/11/2013$
+//   Revision:            $Revision:           1.7 $
 //
 
 
 #if !defined(KRATOS_ELEMENT_H_INCLUDED )
 #define  KRATOS_ELEMENT_H_INCLUDED
-
-
 
 // System includes
 #include <string>
@@ -56,9 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <sstream>
 #include <cstddef>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -111,6 +106,9 @@ public:
     /// Pointer definition of Element
     KRATOS_CLASS_POINTER_DEFINITION(Element);
 
+    ///definition of element type
+    typedef Element ElementType;
+
     ///base type: an GeometricalObject that automatically has a unique number
     typedef GeometricalObject BaseType;
 
@@ -148,9 +146,6 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
-    ///definition of element type
-    typedef Element ElementType;
-
     typedef GeometryData GeometryDataType;
     ///@}
 
@@ -158,53 +153,58 @@ public:
     ///@{
 
     /**
+     * ELEMENTS inherited from this class have to implement next 
+     * contructors, copy constructors and destructor: MANDATORY
+     */
+
+    /**
      * Constructor.
      */
-    Element(IndexType NewId = 0) : BaseType(NewId),
-        Flags(),
-        mpProperties(new PropertiesType)
+    Element(IndexType NewId = 0) 
+        : BaseType(NewId)
+        , Flags()
+        , mpProperties(new PropertiesType)
     {
     }
 
     /**
      * Constructor using an array of nodes
      */
-    Element(IndexType NewId, const NodesArrayType& ThisNodes) :
-        BaseType(NewId,GeometryType::Pointer(new GeometryType(ThisNodes))),
-        Flags(),
-        mpProperties(new PropertiesType)
+    Element(IndexType NewId, const NodesArrayType& ThisNodes)
+        : BaseType(NewId,GeometryType::Pointer(new GeometryType(ThisNodes)))
+        , Flags()
+        , mpProperties(new PropertiesType)
     {
     }
 
     /**
      * Constructor using Geometry
      */
-    Element(IndexType NewId, GeometryType::Pointer pGeometry) :
-        BaseType(NewId,pGeometry),         
-        Flags(),
-        mpProperties(new PropertiesType)
+    Element(IndexType NewId, GeometryType::Pointer pGeometry)
+        : BaseType(NewId,pGeometry)
+        , Flags()
+        , mpProperties(new PropertiesType)
     {
     }
 
     /**
      * Constructor using Properties
      */
-    Element(IndexType NewId, GeometryType::Pointer pGeometry,
-            PropertiesType::Pointer pProperties) : 
-        BaseType(NewId,pGeometry),
-        Flags(),
-        mpProperties(pProperties)
+    Element(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) 
+        : BaseType(NewId,pGeometry)
+        , Flags()
+        , mpProperties(pProperties)
     {
     }
 
     /// Copy constructor.
 
-    Element(Element const& rOther) : BaseType(rOther),
-        Flags(rOther),
-        mpProperties(rOther.mpProperties)
+    Element(Element const& rOther) 
+        : BaseType(rOther)
+        , Flags(rOther)
+        , mpProperties(rOther.mpProperties)
     {
     }
-
 
     /// Destructor.
 
@@ -215,6 +215,12 @@ public:
     ///@}
     ///@name Operators
     ///@{
+
+    /**
+     * ELEMENTS inherited from this class have to implement next 
+     * assigment operator: MANDATORY
+     */
+
     /// Assignment operator.
 
     Element & operator=(Element const& rOther)
@@ -228,6 +234,11 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * ELEMENTS inherited from this class have to implement next 
+     * Create and Clone methods: MANDATORY
+     */
 
     /**
      * creates a new element pointer
@@ -244,8 +255,6 @@ public:
         KRATOS_CATCH("");
     }
 
-
-
     /**
      * creates a new element pointer and clones the previous element data
      * @param NewId: the ID of the new element
@@ -260,13 +269,152 @@ public:
         return Element::Pointer(new Element(NewId, GetGeometry().Create(ThisNodes), pGetProperties()));
         KRATOS_CATCH("");
     }
+
     /**
-     * is called to initialize the element.
-     * Must be called before any calculation is done!
+     * ELEMENTS inherited from this class have to implement next 
+     * EquationIdVector and GetDofList methods: MANDATORY
+     */
+
+    /**
+     * this determines the elemental equation ID vector for all elemental
+     * DOFs
+     * @param rResult: the elemental equation ID vector
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void EquationIdVector(EquationIdVectorType& rResult,
+                                  ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rResult.size() != 0)
+            rResult.resize(0);
+    }
+
+    /**
+     * determines the elemental list of DOFs
+     * @param ElementalDofList: the list of DOFs
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void GetDofList(DofsVectorType& rElementalDofList,
+                            ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rElementalDofList.size() != 0)
+            rElementalDofList.resize(0);
+    }
+
+    /**
+     * returns the used integration method. In the general case this is the
+     * default integration method of the used geometry. I an other integration
+     * method is used the method has to be overwritten within the element
+     * @return default integration method of the used Geometry
+     */
+    virtual IntegrationMethod GetIntegrationMethod() const
+    {
+        return pGetGeometry()->GetDefaultIntegrationMethod();
+    }
+
+    /**
+     * ELEMENTS inherited from this class must implement this methods
+     * if they need the values of the time derivatives of any of the dof 
+     * set by the condition. If the derivatives do not exist can set to zero
+     * these methods are: MANDATORY ( when compatibility with dynamics is required )
+     */
+
+    /**
+     * Getting method to obtain the variable which defines the degrees of freedom
+     */
+    virtual void GetValuesVector(Vector& values, int Step = 0)
+    {
+    }
+
+    /**
+     * Getting method to obtain the time derivative of variable which defines the degrees of freedom
+     */
+    virtual void GetFirstDerivativesVector(Vector& values, int Step = 0)
+    {
+    }
+
+    /**
+     * Getting method to obtain the second time derivative of variable which defines the degrees of freedom
+     */
+    virtual void GetSecondDerivativesVector(Vector& values, int Step = 0)
+    {
+    }
+
+    /**
+     * ELEMENTS inherited from this class must implement next methods
+     * Initialize, ResetConstitutiveLaw, CleanMemory
+     * if the condition needs to perform any operation before any calculation is done
+     * reset material and constitutive parameters
+     * or clean memory deleting obsolete variables
+     * this methods are: OPTIONAL
+     */
+
+    /**
+     * is called to initialize the element
+     * if the element needs to perform any operation before any calculation is done
+     * the elemental variables will be initialized and set using this method
      */
     virtual void Initialize()
     {
     }
+
+    /**
+     * is called to reset the constitutive law parameters and the material properties
+     * the elemental variables will be changed and reset using this method
+     */
+    virtual void ResetConstitutiveLaw()
+    {
+    }
+
+    /**
+     * deletes all obsolete data from memory
+     */
+    virtual void CleanMemory()
+    {
+    }
+
+    /**
+     * ELEMENTS inherited from this class must implement next methods
+     * InitializeSolutionStep, FinalizeSolutionStep,
+     * InitializeNonLinearIteration, FinalizeNonLinearIteration
+     * if the element needs to perform any operation before and after the solution step
+     * if the element needs to perform any operation before and after the solution iteration
+     * this methods are: OPTIONAL
+     */
+
+    /**
+     * this is called for non-linear analysis at the beginning of the iteration process
+     */
+    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    /**
+     * this is called for non-linear analysis at the end of the iteration process
+     */
+    virtual void FinalizeNonLinearIteration(ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    /**
+     * this is called in the beginning of each solution step
+     */
+    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    /**
+     * this is called at the end of each solution step
+     */
+    virtual void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    /**
+     * CONDITIONS inherited from this class have to implement next 
+     * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
+     * they can be managed internally with a private method to do the same calculations 
+     * only once: MANDATORY
+     */
 
     /**
      * this is called during the assembling process in order
@@ -276,49 +424,26 @@ public:
      * @param rRightHandSideVector: the elemental right hand side
      * @param rCurrentProcessInfo: the current process info instance
      */
-
-    virtual void ResetConstitutiveLaw()
-    {
-    }
-
     virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                       VectorType& rRightHandSideVector,
                                       ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-    /**This function provides a more general interface to the element.
-    *it is designed so that rLHSvariables and rRHSvariables are passed TO the element
-    *thus telling what is the desired output
-    *@param rLeftHandSideMatrices: container with the output left hand side matrices
-    *@param rLHSVariables: paramter describing the expected LHSs
-    *@param rRightHandSideVectors: container for the desired RHS output
-    *@param rRHSVariables: parameter describing the expected RHSs
-    */
+    /**
+     * this function provides a more general interface to the element.
+     * it is designed so that rLHSvariables and rRHSvariables are passed TO the element
+     * thus telling what is the desired output
+     * @param rLeftHandSideMatrices: container with the output left hand side matrices
+     * @param rLHSVariables: paramter describing the expected LHSs
+     * @param rRightHandSideVectors: container for the desired RHS output
+     * @param rRHSVariables: parameter describing the expected RHSs
+     */
     virtual void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
                                       const std::vector< Variable< MatrixType > >& rLHSVariables,
                                       std::vector< VectorType >& rRightHandSideVectors,
                                       const std::vector< Variable< VectorType > >& rRHSVariables,
                                       const ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-
-    
-    /**
-     * this is called during the assembling process in order
-     * to calculate all elemental contributions to the global system
-     * matrix and the right hand sides for a matrix-formed RHS
-     * @param rLeftHandSideMatrix: the elemental left hand side matrix
-     * @param rDampMatrix: the elemental damping matrix
-     * @param rRightHandSideVector1: the elemental right hand side (1)
-     * @param rRightHandSideVector2: the elemental right hand side (1)
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                                      MatrixType& rDampMatrix,
-                                      VectorType& rRightHandSideVector1,
-                                      VectorType& rRightHandSideVector2,
-                                      ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -349,80 +474,11 @@ public:
     }
 
     /**
-     * this is called during the assembling process in order
-     * to calculate the elemental left hand side vector only
-     * @param rLeftHandSideVector: the elemental left hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    virtual void CalculateLeftHandSide(VectorType& rLeftHandSideVector,
-                                       ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rLeftHandSideVector.size() != 0)
-            rLeftHandSideVector.resize(0);
-    }
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental right hand side matrix only
-     * @param rRightHandSideMatrix: the elemental right hand side matrix
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    virtual void CalculateRightHandSide(MatrixType& rRightHandSideMatrix,
-                                        ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rRightHandSideMatrix.size1() != 0)
-            rRightHandSideMatrix.resize(0, 0);
-    }
-    
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental contribution in explicit calculation.
-     * NodalData is modified Inside the function, so the 
-     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT
-     * IS ALLOWED TO WRITE ON ITS NODES.
-     * the caller is expected to ensure thread safety hence
-     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
-      * @param rCurrentProcessInfo: the current process info instance
-     */
-    virtual void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
-    {
-    }
-    
-    /**
-     * this function is designed to make the element to assemble an rRHS vector
-     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
-     * rDestinationVariable.
-     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT
-     * IS ALLOWED TO WRITE ON ITS NODES.
-     * the caller is expected to ensure thread safety hence
-     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
-     * @param rRHSVector: input variable containing the RHS vector to be assembled
-     * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
-     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
-      * @param rCurrentProcessInfo: the current process info instance
-     */
-    virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<double >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_ERROR(std::logic_error, "base element classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
-    }
-        
-    virtual void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
-    {
-         KRATOS_ERROR(std::logic_error, "base element classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
-    }
-    
-    /**
-     * this determines the elemental equation ID vector for all elemental
-     * DOFs
-     * @param rResult: the elemental equation ID vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    virtual void EquationIdVector(EquationIdVectorType& rResult,
-                                  ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rResult.size() != 0)
-            rResult.resize(0);
-    }
+     * CONDITIONS inherited from this class must implement this methods
+     * if they need to add dynamic condition contributions 
+     * MassMatrix, AddMassMatrix, DampMatrix, AddInertiaForces and 
+     * CalculateLocalVelocityContribution methods are: OPTIONAL
+     */    
 
     /**
      * this is called during the assembling process in order
@@ -483,66 +539,53 @@ public:
     }
 
     /**
-     * determines the elemental list of DOFs
-     * @param ElementalDofList: the list of DOFs
-     * @param rCurrentProcessInfo: the current process info instance
+     * CONDITIONS inherited from this class must implement this methods
+     * if they need to write something at the condition geometry nodes
+     * AddExplicitContribution methods are: OPTIONAL ( avoid to use them if is not needed )
      */
-    virtual void GetDofList(DofsVectorType& ElementalDofList,
-                            ProcessInfo& CurrentProcessInfo)
-    {
-        if (ElementalDofList.size() != 0)
-            ElementalDofList.resize(0);
-    }
 
     /**
-     * this is called for non-linear analysis at the beginning of the iteration process
+     * this is called during the assembling process in order
+     * to calculate the elemental contribution in explicit calculation.
+     * NodalData is modified Inside the function, so the 
+     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT
+     * IS ALLOWED TO WRITE ON ITS NODES.
+     * the caller is expected to ensure thread safety hence
+     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+    virtual void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
     {
     }
-
+    
     /**
-     * this is called for non-linear analysis at the end of the iteration process
+     * this function is designed to make the element to assemble an rRHS vector
+     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
+     * rDestinationVariable.
+     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT
+     * IS ALLOWED TO WRITE ON ITS NODES.
+     * the caller is expected to ensure thread safety hence
+     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector: input variable containing the RHS vector to be assembled
+     * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+      * @param rCurrentProcessInfo: the current process info instance
      */
-    virtual void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+    virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<double >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
     {
+        KRATOS_ERROR(std::logic_error, "base element classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
     }
-
+        
+    virtual void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    {
+         KRATOS_ERROR(std::logic_error, "base element classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
+    }
+       
     /**
-     * this is called in the beginning of each solution step
+     * Calculate a Condition variable usually associated to a integration point
+     * the Output is given on integration points and characterizes the condition
+     * Calculate(..) methods are: OPTIONAL
      */
-    virtual void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
-    {
-    }
-
-    /**
-     * this is called at the end of each solution step
-     */
-    virtual void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo)
-    {
-    }
-
-    /**
-     * deletes all obsolete data from memory
-     */
-    virtual void CleanMemory()
-    {
-    }
-
-    virtual void GetValuesVector(Vector& values, int Step = 0)
-    {
-    }
-
-    virtual void GetFirstDerivativesVector(Vector& values, int Step = 0)
-    {
-    }
-
-    virtual void GetSecondDerivativesVector(Vector& values, int Step = 0)
-    {
-    }
-
-    //output On integration points
-    //calculate on element
 
     virtual void Calculate(const Variable<double>& rVariable,
                            double& Output,
@@ -568,179 +611,137 @@ public:
     {
     }
 
-    //calculate on gauss points
+    /**
+     * Calculate variables on Integration points.
+     * This gives access to variables computed in the constitutive law on each integration point.
+     * Specialisations of condition must specify the actual interface to the integration points!
+     * Note, that these functions expect a std::vector of values for the specified variable type that
+     * contains a value for each integration point!
+     * CalculateValueOnIntegrationPoints: calculates the values of given Variable.
+     * these methods are: OPTIONAL
+     */
 
     virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-            Vector& Output,
-            const ProcessInfo& rCurrentProcessInfo)
-    {
-    } //must be changed in all elements and deleted
-
-    virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-					      std::vector<double>& Output,
+					      std::vector<double>& rOutput,
 					      const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
-
     virtual void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-            std::vector< array_1d<double, 3 > >& Output,
-            const ProcessInfo& rCurrentProcessInfo)
+					      std::vector< array_1d<double, 3 > >& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
-            std::vector< Vector >& Output,
-            const ProcessInfo& rCurrentProcessInfo)
+					      std::vector< Vector >& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
-            std::vector< Matrix >& Output,
-            const ProcessInfo& rCurrentProcessInfo)
+					      std::vector< Matrix >& rOutput,
+					      const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     /**
      * Access for variables on Integration points.
      * This gives access to variables stored in the constitutive law on each integration point.
-     * Specialisations of element.h (e.g. the TotalLagrangian) must specify the actual
-     * interface to the constitutive law!
-     * Note, that these functions expect a std::vector of values for the
-     * specified variable type that contains a value for each integration point!
+     * Specializations of condition must specify the actual interface to the integration points!
+     * Note, that these functions expect a std::vector of values for the specified variable type that
+     * contains a value for each integration point!
      * SetValueOnIntegrationPoints: set the values for given Variable.
      * GetValueOnIntegrationPoints: get the values for given Variable.
+     * these methods are: OPTIONAL
      */
+    
+    //SET ON INTEGRATION POINTS - METHODS 
+
     virtual void SetValueOnIntegrationPoints(const Variable<double>& rVariable,
-            std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+					     std::vector<double>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-            std::vector<array_1d<double, 3 > > rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+					     std::vector<array_1d<double, 3 > > rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-            std::vector<array_1d<double, 6 > > rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+					     std::vector<array_1d<double, 6 > > rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-            std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+					     std::vector<Vector>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-            std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+					     std::vector<Matrix>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void SetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-            std::vector<ConstitutiveLaw::Pointer>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+					     std::vector<ConstitutiveLaw::Pointer>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
+    //GET ON INTEGRATION POINTS METHODS 
+
     virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
-            std::vector<double>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+					     std::vector<double>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-            std::vector<array_1d<double, 3 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+					     std::vector<array_1d<double, 3 > >& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
-            std::vector<array_1d<double, 6 > >& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+					     std::vector<array_1d<double, 6 > >& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
-            std::vector<Vector>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+					     std::vector<Vector>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
-            std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+					     std::vector<Matrix>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
     {
     }
 
     virtual void GetValueOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
-            std::vector<ConstitutiveLaw::Pointer>& rValues,
-            const ProcessInfo& rCurrentProcessInfo)
+					     std::vector<ConstitutiveLaw::Pointer>& rValues,
+					     const ProcessInfo& rCurrentProcessInfo)
     {
-    }
-
-
-    /**
-     * returns the used integration method. In the general case this is the
-     * default integration method of the used geometry. I an other integration
-     * method is used the method has to be overwritten within the element
-     * @return default integration method of the used Geometry
-     */
-    virtual IntegrationMethod GetIntegrationMethod() const
-    {
-        return pGetGeometry()->GetDefaultIntegrationMethod();
-    }
-
-    ///@}
-    ///@name Elemental Data
-    ///@{
-
-    DataValueContainer& Data()
-    {
-        return mData;
-    }
-
-    template<class TVariableType> typename TVariableType::Type& GetValue(
-        const TVariableType& rThisVariable)
-    {
-        return mData.GetValue(rThisVariable);
-    }
-
-    template<class TVariableType> void SetValue(
-        const TVariableType& rThisVariable,
-        typename TVariableType::Type const& rValue)
-    {
-        mData.SetValue(rThisVariable, rValue);
-    }
-
-    template<class TVariableType> typename TVariableType::Type const& GetValue(
-        const TVariableType& rThisVariable) const
-    {
-        return mData.GetValue(rThisVariable);
-    }
-
-    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
-    {
-        return mData.Has(rThisVariable);
-    }
-
-    template<class TAdaptorType> bool Has(
-        const VariableComponent<TAdaptorType>& rThisVariable) const
-    {
-        return mData.Has(rThisVariable);
     }
 
     /**
-     * This function provides the place to perform checks on the completeness of the input.
+     * This method provides the place to perform checks on the completeness of the input
+     * and the compatibility with the problem options as well as the contitutive laws selected
      * It is designed to be called only once (or anyway, not often) typically at the beginning
      * of the calculations, so to verify that nothing is missing from the input
      * or that no common error is found.
      * @param rCurrentProcessInfo
+     * this method is: MANDATORY
      */
+
     virtual int Check(const ProcessInfo& rCurrentProcessInfo)
     {
         KRATOS_TRY
@@ -758,6 +759,60 @@ public:
         KRATOS_CATCH("");
     }
 
+    //METHODS TO BE CLEANED: RUBBISH start
+
+    /* virtual void CalculateOnIntegrationPoints(const Variable<double>& rVariable, */
+    /* 					      Vector& Output, */
+    /* 					      const ProcessInfo& rCurrentProcessInfo) */
+    /* { */
+    /* } //must be changed in all elements and deleted */
+
+
+    /* /\** */
+    /*  * this is called during the assembling process in order */
+    /*  * to calculate the elemental left hand side vector only */
+    /*  * @param rLeftHandSideVector: the elemental left hand side vector */
+    /*  * @param rCurrentProcessInfo: the current process info instance */
+    /*  *\/ */
+    /* virtual void CalculateLeftHandSide(VectorType& rLeftHandSideVector, */
+    /*                                    ProcessInfo& rCurrentProcessInfo) */
+    /* { */
+    /*     if (rLeftHandSideVector.size() != 0) */
+    /*         rLeftHandSideVector.resize(0); */
+    /* } */
+
+    /* /\** */
+    /*  * this is called during the assembling process in order */
+    /*  * to calculate the elemental right hand side matrix only */
+    /*  * @param rRightHandSideMatrix: the elemental right hand side matrix */
+    /*  * @param rCurrentProcessInfo: the current process info instance */
+    /*  *\/ */
+    /* virtual void CalculateRightHandSide(MatrixType& rRightHandSideMatrix, */
+    /*                                     ProcessInfo& rCurrentProcessInfo) */
+    /* { */
+    /*     if (rRightHandSideMatrix.size1() != 0) */
+    /*         rRightHandSideMatrix.resize(0, 0); */
+    /* } */
+
+    /* /\** */
+    /*  * this is called during the assembling process in order */
+    /*  * to calculate all elemental contributions to the global system */
+    /*  * matrix and the right hand sides for a matrix-formed RHS */
+    /*  * @param rLeftHandSideMatrix: the elemental left hand side matrix */
+    /*  * @param rDampMatrix: the elemental damping matrix */
+    /*  * @param rRightHandSideVector1: the elemental right hand side (1) */
+    /*  * @param rRightHandSideVector2: the elemental right hand side (1) */
+    /*  * @param rCurrentProcessInfo: the current process info instance */
+    /*  *\/ */
+    /* virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, */
+    /*                                   MatrixType& rDampMatrix, */
+    /*                                   VectorType& rRightHandSideVector1, */
+    /*                                   VectorType& rRightHandSideVector2, */
+    /*                                   ProcessInfo& rCurrentProcessInfo) */
+    /* { */
+    /* } */
+
+    //METHODS TO BE CLEANED: RUBBISH end
 
     ///@}
     ///@name Access
@@ -784,12 +839,65 @@ public:
     }
 
     ///@}
+    ///@name Elemental Data
+    ///@{
+
+    /**
+     * Access Data:
+     */
+    DataValueContainer& Data()
+    {
+        return mData;
+    }
+
+    /**
+     * Check if the Data exists with Has(..) methods:
+     */
+    template<class TDataType> bool Has(const Variable<TDataType>& rThisVariable) const
+    {
+        return mData.Has(rThisVariable);
+    }
+
+    template<class TAdaptorType> bool Has(
+        const VariableComponent<TAdaptorType>& rThisVariable) const
+    {
+        return mData.Has(rThisVariable);
+    }
+
+    /**
+     * Set Data with SetValue and the Variable to set:
+     */
+    template<class TVariableType> void SetValue(
+        const TVariableType& rThisVariable,
+        typename TVariableType::Type const& rValue)
+    {
+        mData.SetValue(rThisVariable, rValue);
+    }
+
+    /**
+     * Get Data with GetValue and the Variable to get:
+     */
+    template<class TVariableType> typename TVariableType::Type& GetValue(
+        const TVariableType& rThisVariable)
+    {
+        return mData.GetValue(rThisVariable);
+    }
+
+    template<class TVariableType> typename TVariableType::Type const& GetValue(
+        const TVariableType& rThisVariable) const
+    {
+        return mData.GetValue(rThisVariable);
+    }
+
+    ///@}
     ///@name Inquiry
     ///@{
     ///@}
     ///@name Input and output
     ///@{
+
     /// Turn back information as a string.
+
     virtual std::string Info() const
     {
         std::stringstream buffer;
@@ -798,16 +906,19 @@ public:
     }
 
     /// Print information about this object.
+
     virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "Element #" << Id();
     }
 
     /// Print object's data.
+
     virtual void PrintData(std::ostream& rOStream) const
     {
         pGetGeometry()->PrintData(rOStream);
     }
+
     ///@}
     ///@name Friends
     ///@{
@@ -842,7 +953,10 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-    /** A pointer to data related to this element. */
+
+    /**
+     * pointer to the data related to this condition
+     */
     DataValueContainer mData;
     
     /**
@@ -856,7 +970,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
     ///@}
     ///@name Serialization
     ///@{
@@ -867,16 +980,16 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeometricalObject );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
-        rSerializer.save("Data", mData);
-        rSerializer.save("Properties", mpProperties);
+        rSerializer.save("Element Data", mData);
+        rSerializer.save("Element Properties", mpProperties);
     }
 
     virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeometricalObject );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-        rSerializer.load("Data", mData);
-        rSerializer.load("Properties", mpProperties);
+        rSerializer.load("Element Data", mData);
+        rSerializer.load("Element Properties", mpProperties);
     }
 
     ///@}
@@ -889,16 +1002,20 @@ private:
     ///@name Un accessible methods
     ///@{
     ///@}
+
 }; // Class Element
+
 ///@}
 ///@name Type Definitions
 ///@{
 ///@}
 ///@name Input and output
 ///@{
+
 /// input stream function
 inline std::istream & operator >>(std::istream& rIStream,
                                   Element& rThis);
+
 /// output stream function
 
 inline std::ostream & operator <<(std::ostream& rOStream,
@@ -912,11 +1029,12 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 ///@}
 
 /**
- * definition of NEIGHBOUR_ELEMENTS variable
+ * definition of elemental specific variables
  */
 KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NEIGHBOUR_ELEMENTS)
+
+//TO BE CLEANED
 KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, CONTINUUM_INI_NEIGHBOUR_ELEMENTS)
-//KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, INITIAL_NEIGHBOUR_ELEMENTS)
 KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NODE_TO_NEIGH_ELEMENT_POINTER)
 
 } // namespace Kratos.
