@@ -48,22 +48,31 @@
 
 //constitutive laws
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
-#include "custom_constitutive/linear_elastic_3D_law.hpp"
-#include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_axisym_2D_law.hpp"
+
+#include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_U_P_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_U_P_axisym_2D_law.hpp"
+
+#include "custom_constitutive/linear_elastic_3D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_axisym_2D_law.hpp"
 
 #include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
-#include "custom_constitutive/hyperelastic_plastic_U_P_3D_law.hpp"
-#include "custom_constitutive/hyperelastic_plastic_J2_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_axisym_2D_law.hpp"
+
+#include "custom_constitutive/hyperelastic_plastic_U_P_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_U_P_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_U_P_axisym_2D_law.hpp"
+
+#include "custom_constitutive/hyperelastic_plastic_J2_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plastic_J2_plane_strain_2D_law.hpp"
 
+#include "custom_constitutive/hyperelastic_plastic_U_P_J2_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_U_P_J2_axisym_2D_law.hpp"
 
 namespace Kratos
 {
@@ -98,21 +107,49 @@ void  AddCustomConstitutiveLawsToPython()
     ;
 
 
+    //Hyperelastic laws
+
     class_< HyperElastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HyperElastic3DLaw",
       init<>() )
     ;
+    
+    class_< HyperElasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticPlaneStrain2DLaw",
+      init<>() )
+    ;
+
+    class_< HyperElasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticAxisym2DLaw",
+      init<>() )
+    ;
+
+
+    //Hyperelastic laws U-P
 
     class_< HyperElasticUP3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HyperElasticUP3DLaw",
       init<>() )
     ;
 
+
+    class_< HyperElasticUPPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticUPPlaneStrain2DLaw",
+      init<>() )
+    ;
+
+    class_< HyperElasticUPAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticUPAxisym2DLaw",
+      init<>() )
+    ;
+
+
+    //Linear Elastic laws
+
     class_< LinearElastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "LinearElastic3DLaw",
       init<>() )
     ;
-
 
     class_< LinearElasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "LinearElasticPlaneStrain2DLaw",
@@ -129,25 +166,9 @@ void  AddCustomConstitutiveLawsToPython()
       init<>() )
     ;
 
-    class_< HyperElasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticPlaneStrain2DLaw",
-      init<>() )
-    ;
 
-    class_< HyperElasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticAxisym2DLaw",
-      init<>() )
-    ;
 
-    class_< HyperElasticUPPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticUPPlaneStrain2DLaw",
-      init<>() )
-    ;
-
-    class_< HyperElasticUPAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticUPAxisym2DLaw",
-      init<>() )
-    ;
+    //Hyperelastic Plastic laws
 
     class_<HyperElasticPlastic3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HyperElasticPlastic3DLaw",
@@ -155,17 +176,40 @@ void  AddCustomConstitutiveLawsToPython()
       .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
 
+    class_<HyperElasticPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticPlasticPlaneStrain2DLaw",
+      init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
+
+    class_<HyperElasticPlasticAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticPlasticAxisym2DLaw",
+      init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
+
+
+    //Hyperelastic Plastic laws U-P
+
     class_<HyperElasticPlasticUP3DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HyperElasticPlasticUP3DLaw",
       init<>() )
       .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
 
-    class_<HyperElasticPlasticPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
-    ( "HyperElasticPlastic2DLaw",
+    class_<HyperElasticPlasticUPPlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticPlasticUPPlaneStrain2DLaw",
       init<>() )
       .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
     ;
+
+    class_<HyperElasticPlasticUPAxisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticPlasticUPAxisym2DLaw",
+      init<>() )
+      .def( init<FlowRulePointer, YieldCriterionPointer, HardeningLawPointer>() )
+    ;
+
+    //Hyperelastic Plastic J2 specilization laws 
 
     class_<HyperElasticPlasticJ23DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HyperElasticPlasticJ23DLaw",
@@ -176,6 +220,19 @@ void  AddCustomConstitutiveLawsToPython()
     ( "HyperElasticPlasticJ2PlaneStrain2DLaw",
       init<>() )
     ;
+
+    //Hyperelastic Plastic J2 specilization laws U-P
+
+    class_<HyperElasticPlasticUPJ2PlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticPlasticUPJ2PlaneStrain2DLaw",
+      init<>() )
+    ;
+
+    class_<HyperElasticPlasticUPJ2Axisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticPlasticUPJ2Axisym2DLaw",
+      init<>() )
+    ;
+
 }
 
 }  // namespace Python.

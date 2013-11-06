@@ -14,7 +14,7 @@
 
 // Project includes
 #include "includes/properties.h"
-#include "custom_constitutive/hyperelastic_plastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_U_P_plane_strain_2D_law.hpp"
 
 #include "solid_mechanics_application.h"
 
@@ -24,8 +24,8 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-HyperElasticPlasticPlaneStrain2DLaw::HyperElasticPlasticPlaneStrain2DLaw()
-    : HyperElasticPlastic3DLaw()
+HyperElasticPlasticUPPlaneStrain2DLaw::HyperElasticPlasticUPPlaneStrain2DLaw()
+    : HyperElasticPlasticUP3DLaw()
 {
 
 }
@@ -34,16 +34,16 @@ HyperElasticPlasticPlaneStrain2DLaw::HyperElasticPlasticPlaneStrain2DLaw()
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 
-HyperElasticPlasticPlaneStrain2DLaw::HyperElasticPlasticPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
-    : HyperElasticPlastic3DLaw()
+HyperElasticPlasticUPPlaneStrain2DLaw::HyperElasticPlasticUPPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
+    : HyperElasticPlasticUP3DLaw()
 {
 }
 
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
 
-HyperElasticPlasticPlaneStrain2DLaw::HyperElasticPlasticPlaneStrain2DLaw(const HyperElasticPlasticPlaneStrain2DLaw& rOther)
-    : HyperElasticPlastic3DLaw(rOther)
+HyperElasticPlasticUPPlaneStrain2DLaw::HyperElasticPlasticUPPlaneStrain2DLaw(const HyperElasticPlasticUPPlaneStrain2DLaw& rOther)
+    : HyperElasticPlasticUP3DLaw(rOther)
 {
 
 }
@@ -51,16 +51,16 @@ HyperElasticPlasticPlaneStrain2DLaw::HyperElasticPlasticPlaneStrain2DLaw(const H
 //********************************CLONE***********************************************
 //************************************************************************************
 
-ConstitutiveLaw::Pointer HyperElasticPlasticPlaneStrain2DLaw::Clone() const
+ConstitutiveLaw::Pointer HyperElasticPlasticUPPlaneStrain2DLaw::Clone() const
 {
-    HyperElasticPlasticPlaneStrain2DLaw::Pointer p_clone(new HyperElasticPlasticPlaneStrain2DLaw(*this));
+    HyperElasticPlasticUPPlaneStrain2DLaw::Pointer p_clone(new HyperElasticPlasticUPPlaneStrain2DLaw(*this));
     return p_clone;
 }
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 
-HyperElasticPlasticPlaneStrain2DLaw::~HyperElasticPlasticPlaneStrain2DLaw()
+HyperElasticPlasticUPPlaneStrain2DLaw::~HyperElasticPlasticUPPlaneStrain2DLaw()
 {
 }
 
@@ -73,7 +73,7 @@ HyperElasticPlasticPlaneStrain2DLaw::~HyperElasticPlasticPlaneStrain2DLaw()
 //***********************COMPUTE TOTAL STRAIN*****************************************
 //************************************************************************************
 
-void HyperElasticPlasticPlaneStrain2DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
+void HyperElasticPlasticUPPlaneStrain2DLaw::CalculateGreenLagrangeStrain( const Matrix & rRightCauchyGreen,
         Vector& rStrainVector )
 {
 
@@ -88,7 +88,7 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculateGreenLagrangeStrain( const Ma
 //***********************COMPUTE TOTAL STRAIN*****************************************
 //************************************************************************************
 
-void HyperElasticPlasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
+void HyperElasticPlasticUPPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
         Vector& rStrainVector )
 {
 
@@ -109,7 +109,7 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculateAlmansiStrain( const Matrix &
 //***********************COMPUTE ISOCHORIC CONSTITUTIVE MATRIX************************
 //************************************************************************************
 
-void HyperElasticPlasticPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
+void HyperElasticPlasticUPPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
         const Matrix & rIsoStressMatrix,
         Matrix& rConstitutiveMatrix)
 {
@@ -134,11 +134,12 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (
 //************************************************************************************
 
 
-void HyperElasticPlasticPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix ( const MaterialResponseVariables & rElasticVariables,
+void HyperElasticPlasticUPPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix ( const MaterialResponseVariables & rElasticVariables,
 								  Matrix& rConstitutiveMatrix)
 {
 
     rConstitutiveMatrix.clear();
+
 
     Vector Factors = ZeroVector(3);
     Factors = CalculateDomainPressureFactors( rElasticVariables, Factors );
@@ -160,7 +161,7 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix 
 //***********************COMPUTE PLASTIC CONSTITUTIVE MATRIX**************************
 //************************************************************************************
 
-void HyperElasticPlasticPlaneStrain2DLaw::CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
+void HyperElasticPlasticUPPlaneStrain2DLaw::CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
 									      FlowRule::RadialReturnVariables & rReturnMappingVariables,
 									      Matrix& rConstitutiveMatrix)
 {
@@ -192,7 +193,7 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculatePlasticConstitutiveMatrix (co
 //***********************COMPUTE ISOCHORIC CONSTITUTIVE MATRIX PULL-BACK**************
 //************************************************************************************
 
-void HyperElasticPlasticPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
+void HyperElasticPlasticUPPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
 								     const Matrix & rInverseDeformationGradientF,
 								     const Matrix & rIsoStressMatrix,
 								     Matrix& rConstitutiveMatrix)
@@ -217,7 +218,7 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculateIsochoricConstitutiveMatrix (
 //************************************************************************************
 
 
-void HyperElasticPlasticPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix ( const MaterialResponseVariables & rElasticVariables,
+void HyperElasticPlasticUPPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix ( const MaterialResponseVariables & rElasticVariables,
 								       const Matrix & rInverseDeformationGradientF,
 								       Matrix& rConstitutiveMatrix)
 {
@@ -244,7 +245,7 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculateVolumetricConstitutiveMatrix 
 //***********************COMPUTE PLASTIC CONSTITUTIVE MATRIX PULL-BACK****************
 //************************************************************************************
 
-void HyperElasticPlasticPlaneStrain2DLaw::CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
+void HyperElasticPlasticUPPlaneStrain2DLaw::CalculatePlasticConstitutiveMatrix (const MaterialResponseVariables & rElasticVariables,
 								   const Matrix & rInverseDeformationGradientF,
 								   FlowRule::RadialReturnVariables & rReturnMappingVariables,
 								   Matrix& rConstitutiveMatrix)
@@ -274,12 +275,13 @@ void HyperElasticPlasticPlaneStrain2DLaw::CalculatePlasticConstitutiveMatrix (co
 //*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
 //************************************************************************************
 
-void HyperElasticPlasticPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
+void HyperElasticPlasticUPPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
 {
     	//Set the type of law
 	rFeatures.mOptions.Set( PLANE_STRAIN_LAW );
 	rFeatures.mOptions.Set( FINITE_STRAINS );
 	rFeatures.mOptions.Set( ISOTROPIC );
+	rFeatures.mOptions.Set( U_P_LAW );
 
 	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);

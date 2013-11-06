@@ -307,23 +307,38 @@ void KratosSolidMechanicsApplication::Register()
 
     //Register Constitutive Laws
 
+    //Hyperelastic laws
     Serializer::Register("HyperElastic3DLaw",mHyperElastic3DLaw);
-    Serializer::Register("HyperElasticUP3DLaw",mHyperElasticUP3DLaw);
-    Serializer::Register("LinearElastic3DLaw",mLinearElastic3DLaw);
     Serializer::Register("HyperElasticPlaneStrain2DLaw",mHyperElasticPlaneStrain2DLaw);
     Serializer::Register("HyperElasticAxisym2DLaw",mHyperElasticAxisym2DLaw);
+
+    //Hyperelastic laws U-P
+    Serializer::Register("HyperElasticUP3DLaw",mHyperElasticUP3DLaw);
     Serializer::Register("HyperElasticUPPlaneStrain2DLaw",mHyperElasticUPPlaneStrain2DLaw);
     Serializer::Register("HyperElasticUPAxisym2DLaw",mHyperElasticUPAxisym2DLaw);
+
+    //Linear Elastic laws
+    Serializer::Register("LinearElastic3DLaw",mLinearElastic3DLaw);
     Serializer::Register("LinearElasticPlaneStrain2DLaw",mLinearElasticPlaneStrain2DLaw);
     Serializer::Register("LinearElasticPlaneStress2DLaw",mLinearElasticPlaneStress2DLaw);
     Serializer::Register("LinearElasticAxisym2DLaw",mLinearElasticAxisym2DLaw);
 
+    //Hyperelastic Plastic laws
     Serializer::Register("HyperElasticPlastic3DLaw",mHyperElasticPlastic3DLaw);
-    Serializer::Register("HyperElasticPlasticUP3DLaw",mHyperElasticPlastic3DLaw);
-    Serializer::Register("HyperElasticPlasticJ23DLaw",mHyperElasticPlasticJ23DLaw);
     Serializer::Register("HyperElasticPlasticPlaneStrain2DLaw",mHyperElasticPlasticPlaneStrain2DLaw);
+    Serializer::Register("HyperElasticPlasticAxisym2DLaw",mHyperElasticPlasticAxisym2DLaw);
+
+    //Hyperelastic Plastic laws U-P
+    Serializer::Register("HyperElasticPlasticUP3DLaw",mHyperElasticPlastic3DLaw);
+    Serializer::Register("HyperElasticPlasticUPPlaneStrain2DLaw",mHyperElasticPlasticUPPlaneStrain2DLaw);
+    Serializer::Register("HyperElasticPlasticUPAxisym2DLaw",mHyperElasticPlasticUPAxisym2DLaw);
+
+    //Hyperelastic Plastic J2 specilization laws 
+    Serializer::Register("HyperElasticPlasticJ23DLaw",mHyperElasticPlasticJ23DLaw);
     Serializer::Register("HyperElasticPlasticJ2PlaneStrain2DLaw",mHyperElasticPlasticJ2PlaneStrain2DLaw);
 
+    //Hyperelastic Plastic J2 specilization laws U-P
+    Serializer::Register("HyperElasticPlasticUPJ2PlaneStrain2DLaw",mHyperElasticPlasticUPJ2PlaneStrain2DLaw);
 
     //Register Variables
 
