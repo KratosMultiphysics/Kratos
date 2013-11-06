@@ -321,7 +321,7 @@ namespace Kratos
               const double power_law_K                   = rCurrentProcessInfo[POWER_LAW_K];
               const double initial_drag_force            = rCurrentProcessInfo[INIT_DRAG_FORCE];
               const double drag_law_slope                = rCurrentProcessInfo[DRAG_LAW_SLOPE];
-              const double power_law_tol                 = rCurrentProcessInfo[POWER_LAW_TOL];
+              const double power_law_tol                 = rCurrentProcessInfo[POWER_LAW_TOLERANCE];
               const double area                          = M_PI * mRadius * mRadius;
               const array_1d<double,3> weight            = mRealMass * gravity;
 
