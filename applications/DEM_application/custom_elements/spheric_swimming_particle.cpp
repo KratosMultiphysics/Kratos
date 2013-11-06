@@ -187,44 +187,6 @@ namespace Kratos
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-      void SphericSwimmingParticle::ComputeFluidForcesOnParticle(ProcessInfo& rCurrentProcessInfo)
-      {
-            KRATOS_TRY
-
-            array_1d<double,3>& pressure_grad       = GetGeometry()(0)->FastGetSolutionStepValue(PRESSURE_GRAD_PROJECTED);
-            array_1d<double,3>& drag_force          = GetGeometry()(0)->FastGetSolutionStepValue(DRAG_FORCE);
-            array_1d<double,3>& buoyancy            = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);
-
-            if (GetGeometry()[0].IsFixed(VELOCITY_X) == false){
-                const double& fluid_density = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
-                const array_1d<double,3>& fluid_vel = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
-                const array_1d<double,3>& particle_vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-                double volume = (1.333333333333333 * M_PI) * (mRadius * mRadius * mRadius);
-
-                if (fluid_density > 0.0000000000001){
-                    drag_force = (0.235 * M_PI) * (fluid_density * mRadius * mRadius) * MathUtils<double>::Norm3(fluid_vel - particle_vel) * (fluid_vel - particle_vel);
-                }
-
-                else {
-                    noalias(drag_force)    = ZeroVector(3);
-                    noalias(pressure_grad) = ZeroVector(3);
-                }
-
-                buoyancy = - pressure_grad * volume;
-            }
-
-            else {
-                noalias(drag_force)    = ZeroVector(3);
-                noalias(pressure_grad) = ZeroVector(3);
-                noalias(buoyancy)      = ZeroVector(3);
-            }
-
-            KRATOS_CATCH("")
-      }
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
       double SphericSwimmingParticle::CalculateDragCoeffFromSphericity(const double reynolds,
                                                                        const double sphericity,
                                                                        const int drag_modifier_type)
@@ -351,15 +313,15 @@ namespace Kratos
               const double sphericity                    = GetGeometry()(0)->GetSolutionStepValue(PARTICLE_SPHERICITY);
               const array_1d<double,3>& buoyancy         = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);
               const array_1d<double,3>& gravity          = rCurrentProcessInfo[GRAVITY];
-              const int non_newtonian_OPTION             = 0; //rCurrentProcessInfo[NON_NEWTONIAN_OPTION];
-              const int manually_imposed_drag_law_OPTION = 0; //rCurrentProcessInfo[MANUALLY_IMPOSED_DRAG_LAW_OPTION];
-              const int drag_modifier_type               = rCurrentProcessInfo[DRAG_MODIFIER_TYPE]; //2 for Hayder and 3 for CHIEN
-              const double gel_strength                  = 1.0; //rCurrentProcessInfo[GEL_STRENGTH];
-              const double power_law_n                   = 0.02; //rCurrentProcessInfo[POWER_LAW_N];
-              const double power_law_K                   = 0.02; //rCurrentProcessInfo[POWER_LAW_K];
-              const double initial_drag_force            = 0.5; //rCurrentProcessInfo[INIT_DRAG_FORCE];
-              const double drag_law_slope                = 0.05; //rCurrentProcessInfo[DRAG_LAW_SLOPE];
-              const double power_law_tol                 = 0.000000001; //rCurrentProcessInfo[POWER_LAW_TOL];
+              const int non_newtonian_OPTION             = rCurrentProcessInfo[NON_NEWTONIAN_OPTION];
+              const int manually_imposed_drag_law_OPTION = rCurrentProcessInfo[MANUALLY_IMPOSED_DRAG_LAW_OPTION];
+              const int drag_modifier_type               = rCurrentProcessInfo[DRAG_MODIFIER_TYPE];
+              const double gel_strength                  = rCurrentProcessInfo[GEL_STRENGTH];
+              const double power_law_n                   = rCurrentProcessInfo[POWER_LAW_N];
+              const double power_law_K                   = rCurrentProcessInfo[POWER_LAW_K];
+              const double initial_drag_force            = rCurrentProcessInfo[INIT_DRAG_FORCE];
+              const double drag_law_slope                = rCurrentProcessInfo[DRAG_LAW_SLOPE];
+              const double power_law_tol                 = rCurrentProcessInfo[POWER_LAW_TOL];
               const double area                          = M_PI * mRadius * mRadius;
               const array_1d<double,3> weight            = mRealMass * gravity;
 
@@ -405,97 +367,6 @@ namespace Kratos
 
             KRATOS_CATCH("")
         }
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-      void SphericSwimmingParticle::ComputeWeatherfordFluidForcesOnParticle(ProcessInfo& rCurrentProcessInfo)
-      {
-            KRATOS_TRY
-
-            array_1d<double,3>& pressure_grad          = GetGeometry()(0)->FastGetSolutionStepValue(PRESSURE_GRAD_PROJECTED);
-            array_1d<double,3>& drag_force             = GetGeometry()(0)->FastGetSolutionStepValue(DRAG_FORCE);
-            array_1d<double,3>& buoyancy               = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);
-
-            const double& particle_density             = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
-            double viscosity                           = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
-            double sphericity                          = GetGeometry()(0)->GetSolutionStepValue(PARTICLE_SPHERICITY);
-
-            const int non_newtonian_OPTION             = 0; //rCurrentProcessInfo[NON_NEWTONIAN_OPTION];
-            const int manually_imposed_drag_law_OPTION = 0; //rCurrentProcessInfo[MANUALLY_IMPOSED_DRAG_LAW_OPTION];
-            const int drag_modifier_type               = rCurrentProcessInfo[DRAG_MODIFIER_TYPE]; //2 for Hayder and 3 for CHIEN
-            const double gel_strength                  = 1.0; //rCurrentProcessInfo[GEL_STRENGTH];
-            const double power_law_n                   = 0.02; //rCurrentProcessInfo[POWER_LAW_N];
-            const double power_law_K                   = 0.02; //rCurrentProcessInfo[POWER_LAW_K];
-            const double initial_drag_force            = 0.5; //rCurrentProcessInfo[INIT_DRAG_FORCE];
-            const double drag_law_slope                = 0.05; //rCurrentProcessInfo[DRAG_LAW_SLOPE];
-            const double power_law_tol                 = 0.000000001; //rCurrentProcessInfo[POWER_LAW_TOL];
-            const array_1d<double,3>& gravity          = rCurrentProcessInfo[GRAVITY];
-
-            if (GetGeometry()[0].IsFixed(VELOCITY_X) == false){
-                const array_1d<double,3>& fluid_vel    = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
-                const array_1d<double,3>& particle_vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-                const double& fluid_density            = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_DENSITY_PROJECTED);
-                double volume                          = (1.33333333333333333 * M_PI) * (mRadius * mRadius * mRadius);
-                double dynamic_viscosity               = viscosity * fluid_density;
-
-                if (fluid_density > 0.0000000000001){
-                    double norm_of_slip_vel            = MathUtils<double>::Norm3(fluid_vel - particle_vel);
-                    double area                        = M_PI * mRadius * mRadius;
-                    double shahs_term_vel              = 0.0;
-                    double beta                        = 0.0;
-                    double F0                          = 0.0;
-                    double regularization_v            = 0.2 * mRadius;
-                    const array_1d<double,3> peso      = volume * particle_density * gravity;
-                    double drag_coeff;
-                    double reynolds;
-
-                    if (!non_newtonian_OPTION){ //Newtonian
-                        ComputeReynoldsNumber(non_newtonian_OPTION, norm_of_slip_vel, fluid_density, dynamic_viscosity, reynolds);
-                        CalculateNewtonianDragCoefficient(non_newtonian_OPTION, reynolds, sphericity, drag_coeff, drag_modifier_type);
-                        drag_force = 0.5 * fluid_density * area * drag_coeff * norm_of_slip_vel * (fluid_vel - particle_vel);
-                    }
-
-                    else {
-                        shahs_term_vel = CalculateShahsTerm(power_law_n, power_law_K, power_law_tol, fluid_density, particle_density, sphericity, drag_modifier_type);
-
-                        if (!manually_imposed_drag_law_OPTION){
-                            F0 = gel_strength * 4.0 * area; //initial value
-                            beta = (MathUtils<double>::Norm3(peso - buoyancy) - F0) / shahs_term_vel; //slope
-                        }
-
-                        else {
-                            F0 = initial_drag_force; //initial value
-                            beta = drag_law_slope; //slope
-                        }
-
-                        if (norm_of_slip_vel) {
-
-                            if (norm_of_slip_vel >= regularization_v){
-                                drag_force = (F0 + beta * norm_of_slip_vel) / norm_of_slip_vel * (fluid_vel - particle_vel);
-                            }
-
-                            else {
-                                drag_force = (F0 + beta * regularization_v) / regularization_v * (fluid_vel - particle_vel);
-                            }
-
-                        }
-
-                    }
-
-                }
-
-                buoyancy = - pressure_grad * volume;
-            }
-
-            else {
-                noalias(drag_force)    = ZeroVector(3);
-                noalias(pressure_grad) = ZeroVector(3);
-                noalias(buoyancy)      = ZeroVector(3);
-            }
-
-          KRATOS_CATCH("")
-      }
 
    //**************************************************************************************************************************************************
    //**************************************************************************************************************************************************
