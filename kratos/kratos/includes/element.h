@@ -218,7 +218,7 @@ public:
 
     /**
      * ELEMENTS inherited from this class have to implement next 
-     * assigment operator: MANDATORY
+     * assignment operator: MANDATORY
      */
 
     /// Assignment operator.
