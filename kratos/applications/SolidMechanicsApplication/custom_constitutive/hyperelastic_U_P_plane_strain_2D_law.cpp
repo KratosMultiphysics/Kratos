@@ -213,7 +213,7 @@ void HyperElasticUPPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
 	rFeatures.mOptions.Set( ISOTROPIC );
 	rFeatures.mOptions.Set( U_P_LAW );
 
-	//Set strain measure requires by the consitutive law
+	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 	
 	//Set the strain size

@@ -275,7 +275,7 @@ void LinearElastic3DLaw::GetLawFeatures(Features& rFeatures)
 	rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
 	rFeatures.mOptions.Set( ISOTROPIC );
 
-	//Set strain measure requires by the consitutive law
+	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 

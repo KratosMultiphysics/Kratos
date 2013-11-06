@@ -23,21 +23,31 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_3D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_U_P_3D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_axisym_2D_law.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_U_P_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_U_P_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_U_P_axisym_2D_law.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_plane_strain_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_plane_stress_2D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/linear_elastic_axisym_2D_law.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_3D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_U_P_3D_law.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_J2_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_axisym_2D_law.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_U_P_3D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_U_P_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_U_P_axisym_2D_law.cpp
+
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_J2_3D_law.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_J2_plane_strain_2D_law.cpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_U_P_J2_plane_strain_2D_law.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/hyperelastic_plastic_U_P_J2_axisym_2D_law.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/beam_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/membrane_element.cpp

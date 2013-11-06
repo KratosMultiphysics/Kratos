@@ -64,26 +64,31 @@
 
 //constitutive laws
 #include "custom_constitutive/hyperelastic_3D_law.hpp"
-#include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
-#include "custom_constitutive/linear_elastic_3D_law.hpp"
-
 #include "custom_constitutive/hyperelastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_axisym_2D_law.hpp"
+
+#include "custom_constitutive/hyperelastic_U_P_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_U_P_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_U_P_axisym_2D_law.hpp"
 
+#include "custom_constitutive/linear_elastic_3D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.hpp"
 #include "custom_constitutive/linear_elastic_axisym_2D_law.hpp"
 
 #include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
-#include "custom_constitutive/hyperelastic_plastic_U_P_3D_law.hpp"
-#include "custom_constitutive/hyperelastic_plastic_J2_3D_law.hpp"
-
 #include "custom_constitutive/hyperelastic_plastic_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_axisym_2D_law.hpp"
+
+#include "custom_constitutive/hyperelastic_plastic_U_P_3D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_U_P_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_U_P_axisym_2D_law.hpp"
+
+#include "custom_constitutive/hyperelastic_plastic_J2_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plastic_J2_plane_strain_2D_law.hpp"
 
-
+#include "custom_constitutive/hyperelastic_plastic_U_P_J2_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_U_P_J2_axisym_2D_law.hpp"
 
 #include "containers/flags.h"
 #include "includes/variables.h"
@@ -417,25 +422,40 @@ private:
 
 
     //constitutive laws
-    const HyperElastic3DLaw                            mHyperElastic3DLaw;
-    const HyperElasticUP3DLaw                        mHyperElasticUP3DLaw;
-    const LinearElastic3DLaw                          mLinearElastic3DLaw;
+    
+    //Hyperelastic laws
+    const HyperElastic3DLaw                       mHyperElastic3DLaw;
+    const HyperElasticPlaneStrain2DLaw            mHyperElasticPlaneStrain2DLaw;
+    const HyperElasticAxisym2DLaw                 mHyperElasticAxisym2DLaw;
 
-    const HyperElasticPlaneStrain2DLaw      mHyperElasticPlaneStrain2DLaw;
-    const HyperElasticAxisym2DLaw                mHyperElasticAxisym2DLaw;
-    const HyperElasticUPPlaneStrain2DLaw  mHyperElasticUPPlaneStrain2DLaw;
-    const HyperElasticUPAxisym2DLaw            mHyperElasticUPAxisym2DLaw;
+    //Hyperelastic laws U-P
+    const HyperElasticUP3DLaw                     mHyperElasticUP3DLaw;
+    const HyperElasticUPPlaneStrain2DLaw          mHyperElasticUPPlaneStrain2DLaw;
+    const HyperElasticUPAxisym2DLaw               mHyperElasticUPAxisym2DLaw;
 
-    const LinearElasticPlaneStrain2DLaw    mLinearElasticPlaneStrain2DLaw;
-    const LinearElasticPlaneStress2DLaw    mLinearElasticPlaneStress2DLaw;
-    const LinearElasticAxisym2DLaw              mLinearElasticAxisym2DLaw;
+    //Linear Elastic laws
+    const LinearElastic3DLaw                      mLinearElastic3DLaw;
+    const LinearElasticPlaneStrain2DLaw           mLinearElasticPlaneStrain2DLaw;
+    const LinearElasticPlaneStress2DLaw           mLinearElasticPlaneStress2DLaw;
+    const LinearElasticAxisym2DLaw                mLinearElasticAxisym2DLaw;
 
-    const HyperElasticPlastic3DLaw              mHyperElasticPlastic3DLaw;
-    const HyperElasticPlasticUP3DLaw          mHyperElasticPlasticUP3DLaw;
-    const HyperElasticPlasticJ23DLaw          mHyperElasticPlasticJ23DLaw;
+    //Hyperelastic Plastic laws
+    const HyperElasticPlastic3DLaw                mHyperElasticPlastic3DLaw;
+    const HyperElasticPlasticPlaneStrain2DLaw     mHyperElasticPlasticPlaneStrain2DLaw;
+    const HyperElasticPlasticAxisym2DLaw          mHyperElasticPlasticAxisym2DLaw;    
 
-    const HyperElasticPlasticPlaneStrain2DLaw       mHyperElasticPlasticPlaneStrain2DLaw;
+    //Hyperelastic Plastic laws U-P
+    const HyperElasticPlasticUP3DLaw              mHyperElasticPlasticUP3DLaw;
+    const HyperElasticPlasticUPPlaneStrain2DLaw   mHyperElasticPlasticUPPlaneStrain2DLaw;
+    const HyperElasticPlasticUPAxisym2DLaw        mHyperElasticPlasticUPAxisym2DLaw;    
+ 
+    //Hyperelastic Plastic J2 specilization laws 
+    const HyperElasticPlasticJ23DLaw              mHyperElasticPlasticJ23DLaw;
     const HyperElasticPlasticJ2PlaneStrain2DLaw   mHyperElasticPlasticJ2PlaneStrain2DLaw;
+
+    //Hyperelastic Plastic J2 specilization laws U-P
+    const HyperElasticPlasticUPJ2PlaneStrain2DLaw mHyperElasticPlasticUPJ2PlaneStrain2DLaw;
+    const HyperElasticPlasticUPJ2Axisym2DLaw      mHyperElasticPlasticUPJ2Axisym2DLaw;
 
 
     ///@}

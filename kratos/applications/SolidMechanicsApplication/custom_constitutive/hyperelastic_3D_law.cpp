@@ -759,7 +759,7 @@ void HyperElastic3DLaw::GetLawFeatures(Features& rFeatures)
 	rFeatures.mOptions.Set( FINITE_STRAINS );
 	rFeatures.mOptions.Set( ISOTROPIC );
 
-	//Set strain measure requires by the consitutive law
+	//Set strain measure required by the consitutive law
 	rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 	
 	//Set the strain size
