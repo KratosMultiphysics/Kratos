@@ -1155,7 +1155,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
      //LA POSICIÓ DELS QUE SON DEFINITIUS.
      {
    
-           
        ParticleWeakVectorType TempNeighbours;
        TempNeighbours.swap(this->GetValue(NEIGHBOUR_ELEMENTS)); //GetValue is needed becouse this information comes from the strategy (the search function)
        
@@ -1540,7 +1539,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
              array_1d<double, 3>& velocity = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
                            
 
-            for (int i = 1; i<=3; i++)
+            for (int i = 0; i<3; i++)
             {
                 if ( this->GetGeometry()(0)->pGetDof(VELOCITY_Y)->IsFixed() == false ){
                     total_force[i] = total_force[i] - mDempack_global_damping*fabs(total_force[i])*GeometryFunctions::sign(velocity[i]);                                
