@@ -225,6 +225,25 @@ public:
         if (rRightHandSideVector.size() != 0)
             rRightHandSideVector.resize(0);
     }
+    
+    
+    /**
+     * this is called during the assembling process in order
+     * to calculate all elemental contributions to the global system
+     * matrix and the right hand sides for a matrix-formed RHS
+     * @param rLeftHandSideMatrix: the elemental left hand side matrix
+     * @param rDampMatrix: the elemental damping matrix
+     * @param rRightHandSideVector1: the elemental right hand side (1)
+     * @param rRightHandSideVector2: the elemental right hand side (1)
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                                      MatrixType& rDampMatrix,
+                                      VectorType& rRightHandSideVector1,
+                                      VectorType& rRightHandSideVector2,
+                                      ProcessInfo& rCurrentProcessInfo)
+    {
+    }
 
     virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
     {
@@ -258,6 +277,44 @@ public:
             rRightHandSideMatrix.resize(0, 0);
     }
 
+    /**
+     * this is called during the assembling process in order
+     * to calculate the elemental contribution in explicit calculation.
+     * NodalData is modified Inside the function, so the 
+     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT
+     * IS ALLOWED TO WRITE ON ITS NODES.
+     * the caller is expected to ensure thread safety hence
+     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+      * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+    
+    /**
+     * this function is designed to make the element to assemble an rRHS vector
+     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
+     * rDestinationVariable.
+     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT
+     * IS ALLOWED TO WRITE ON ITS NODES.
+     * the caller is expected to ensure thread safety hence
+     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector: input variable containing the RHS vector to be assembled
+     * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+      * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<double >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_ERROR(std::logic_error, "base element classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
+    }
+        
+    virtual void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    {
+         KRATOS_ERROR(std::logic_error, "base element classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
+    }
+    
+    
     virtual void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo)
     {
         if (rResult.size() != 0)

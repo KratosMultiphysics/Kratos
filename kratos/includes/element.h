@@ -287,6 +287,23 @@ public:
     {
     }
 
+    /**This function provides a more general interface to the element.
+    *it is designed so that rLHSvariables and rRHSvariables are passed TO the element
+    *thus telling what is the desired output
+    *@param rLeftHandSideMatrices: container with the output left hand side matrices
+    *@param rLHSVariables: paramter describing the expected LHSs
+    *@param rRightHandSideVectors: container for the desired RHS output
+    *@param rRHSVariables: parameter describing the expected RHSs
+    */
+    virtual void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
+                                      const std::vector< Variable< MatrixType > >& rLHSVariables,
+                                      std::vector< VectorType >& rRightHandSideVectors,
+                                      const std::vector< Variable< VectorType > >& rRHSVariables,
+                                      const ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    
     /**
      * this is called during the assembling process in order
      * to calculate all elemental contributions to the global system
@@ -360,14 +377,40 @@ public:
     /**
      * this is called during the assembling process in order
      * to calculate the elemental contribution in explicit calculation.
-     * NodalData is modified Inside the function, so the Setlock must be performed in the strategy
-     * before calling the function. And after the unsetLock
-     * @param rCurrentProcessInfo: the current process info instance
+     * NodalData is modified Inside the function, so the 
+     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT
+     * IS ALLOWED TO WRITE ON ITS NODES.
+     * the caller is expected to ensure thread safety hence
+     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+      * @param rCurrentProcessInfo: the current process info instance
      */
     virtual void AddExplicitContribution(ProcessInfo& rCurrentProcessInfo)
     {
     }
-
+    
+    /**
+     * this function is designed to make the element to assemble an rRHS vector
+     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
+     * rDestinationVariable.
+     * The "AddEXplicit" FUNCTIONS THE ONLY FUNCTIONS IN WHICH AN ELEMENT
+     * IS ALLOWED TO WRITE ON ITS NODES.
+     * the caller is expected to ensure thread safety hence
+     * SET/UNSETLOCK MUST BE PERFORMED IN THE STRATEGY BEFORE CALLING THIS FUNCTION
+     * @param rRHSVector: input variable containing the RHS vector to be assembled
+     * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+      * @param rCurrentProcessInfo: the current process info instance
+     */
+    virtual void AddExplicitContribution(const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable, Variable<double >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_ERROR(std::logic_error, "base element classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
+    }
+        
+    virtual void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, Variable<array_1d<double,3> >& rDestinationVariable, const ProcessInfo& rCurrentProcessInfo)
+    {
+         KRATOS_ERROR(std::logic_error, "base element classes is not able to assemble rRHS to the desired variable. destination variable is ",rDestinationVariable)
+    }
+    
     /**
      * this determines the elemental equation ID vector for all elemental
      * DOFs
