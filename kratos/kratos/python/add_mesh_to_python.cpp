@@ -176,7 +176,7 @@ boost::python::list GetValuesOnIntegrationPointsDouble( Element& dummy,
     boost::python::list values_list;
     IntegrationPointsArrayType integration_points = dummy.GetGeometry().IntegrationPoints(
                 dummy.GetIntegrationMethod() );
-    Vector values( integration_points.size() );
+    std::vector<double> values( integration_points.size() );
     dummy.CalculateOnIntegrationPoints( rVariable, values, rCurrentProcessInfo );
     for( unsigned int i=0; i<values.size(); i++ )
     {
