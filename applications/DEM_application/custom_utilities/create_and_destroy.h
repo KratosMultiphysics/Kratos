@@ -124,22 +124,6 @@ public:
       pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_X)           = 0.0;
       pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_Y)           = 0.0;
       pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_Z)           = 0.0;
-
-      if (pnew_node->Has(SOLID_FRACTION)){
-          pnew_node->GetSolutionStepValue(SOLID_FRACTION)           = 0.0;
-      }
-
-      if (pnew_node->Has(MESH_VELOCITY1)){
-          pnew_node->GetSolutionStepValue(MESH_VELOCITY1_X)         = 0.0;
-          pnew_node->GetSolutionStepValue(MESH_VELOCITY1_Y)         = 0.0;
-          pnew_node->GetSolutionStepValue(MESH_VELOCITY1_Z)         = 0.0;
-      }
-
-      if (pnew_node->Has(DRAG_REACTION)){
-          pnew_node->GetSolutionStepValue(DRAG_REACTION_X)          = 0.0;
-          pnew_node->GetSolutionStepValue(DRAG_REACTION_Y)          = 0.0;
-          pnew_node->GetSolutionStepValue(DRAG_REACTION_Z)          = 0.0;
-      }
       
       ///DOFS
       pnew_node->AddDof(DISPLACEMENT_X, REACTION_X);
