@@ -368,7 +368,7 @@ public:
     /**
      * Calculate a double Variable on the Condition Constitutive Law
      */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Calculate a Vector Variable on the Condition Constitutive Law

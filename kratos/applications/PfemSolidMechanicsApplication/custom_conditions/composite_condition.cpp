@@ -597,13 +597,21 @@ void CompositeCondition:: DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurr
 //************************************************************************************
 //************************************************************************************
 
-void CompositeCondition::CalculateOnIntegrationPoints( const Variable<double>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo )
+void CompositeCondition::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
-  Vector LocalOutput;
+  std::vector<double> LocalOutput;
   for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
     {
       cn->CalculateOnIntegrationPoints(rVariable,LocalOutput,rCurrentProcessInfo);
-      rOutput+=LocalOutput;
+
+      if ( LocalOutput.size() != rOutput.size() )
+	rOutput.resize(LocalOutput.size(),true);
+
+      for(unsigned int i=0; i<LocalOutput.size(); i++)
+	{     
+	  rOutput[i]+=LocalOutput[i];
+	}
+
     }
 }
 
