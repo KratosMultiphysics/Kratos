@@ -49,8 +49,6 @@ public:
         typedef ParticlePointerVector::iterator             ParticlePointerIterator;
         typedef Configure::IteratorType                     ParticleIterator;
 		
-
-
     KRATOS_CLASS_POINTER_DEFINITION(ParticleCreatorDestructor);
 
     /// Default constructor. 
@@ -95,33 +93,53 @@ public:
       double cy= reference_node->Y();
       double dz= reference_node->Z();
       
-      if(initial) {
+      if (initial){
           pnew_node = reference_node;
           r_modelpart.AddNode(pnew_node);   // The same node is added to r_modelpart (the calculation model part)
           pnew_node->SetId(aId);
       }
-      else{
+
+      else {
           pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);      //ACTUAL node creation and addition to model part
 
       }
 
-      pnew_node->GetSolutionStepValue(RADIUS) = params[RADIUS];      
-      pnew_node->GetSolutionStepValue(PARTICLE_DENSITY) = params[PARTICLE_DENSITY];
-      pnew_node->GetSolutionStepValue(YOUNG_MODULUS) = params[YOUNG_MODULUS];
-      pnew_node->GetSolutionStepValue(POISSON_RATIO) = params[POISSON_RATIO];
-      pnew_node->GetSolutionStepValue(PARTICLE_FRICTION) = params[PARTICLE_FRICTION];
       double rest_coeff = params[RESTITUTION_COEFF];
-      if (rest_coeff>0.0) pnew_node->GetSolutionStepValue(LN_OF_RESTITUTION_COEFF) = log(rest_coeff);
-      else pnew_node->GetSolutionStepValue(LN_OF_RESTITUTION_COEFF) = 1.0; 
-      pnew_node->GetSolutionStepValue(ROLLING_FRICTION) = params[ROLLING_FRICTION];
+      double ln_rest_coeff;
+      if (rest_coeff > 0.0) ln_rest_coeff = log(rest_coeff);
+      else ln_rest_coeff = 1.0;
+
+      pnew_node->GetSolutionStepValue(RADIUS)                       = params[RADIUS];
+      pnew_node->GetSolutionStepValue(PARTICLE_DENSITY)             = params[PARTICLE_DENSITY];
+      pnew_node->GetSolutionStepValue(YOUNG_MODULUS)                = params[YOUNG_MODULUS];
+      pnew_node->GetSolutionStepValue(POISSON_RATIO)                = params[POISSON_RATIO];
+      pnew_node->GetSolutionStepValue(PARTICLE_FRICTION)            = params[PARTICLE_FRICTION];
+      pnew_node->GetSolutionStepValue(LN_OF_RESTITUTION_COEFF)      = ln_rest_coeff;
+      pnew_node->GetSolutionStepValue(ROLLING_FRICTION)             = params[ROLLING_FRICTION];
       pnew_node->GetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO) = params[PARTICLE_ROTATION_DAMP_RATIO];
-      pnew_node->GetSolutionStepValue(PARTICLE_SPHERICITY) = params[PARTICLE_SPHERICITY];       
-      pnew_node->GetSolutionStepValue(VELOCITY_X) = params[VELOCITY][0];//*cos(r_modelpart.GetProcessInfo()[TIME] * 2.0 * M_PI /2.0);
-      pnew_node->GetSolutionStepValue(VELOCITY_Y) = params[VELOCITY][1];
-      pnew_node->GetSolutionStepValue(VELOCITY_Z) = params[VELOCITY][2];      
-      pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
-      pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_Y) = 0.0;
-      pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_Z) = 0.0;                                 
+      pnew_node->GetSolutionStepValue(PARTICLE_SPHERICITY)          = params[PARTICLE_SPHERICITY];
+      pnew_node->GetSolutionStepValue(VELOCITY_X)                   = params[VELOCITY][0];//*cos(r_modelpart.GetProcessInfo()[TIME] * 2.0 * M_PI /2.0);
+      pnew_node->GetSolutionStepValue(VELOCITY_Y)                   = params[VELOCITY][1];
+      pnew_node->GetSolutionStepValue(VELOCITY_Z)                   = params[VELOCITY][2];
+      pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_X)           = 0.0;
+      pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_Y)           = 0.0;
+      pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_Z)           = 0.0;
+
+      if (pnew_node->Has(SOLID_FRACTION)){
+          pnew_node->GetSolutionStepValue(SOLID_FRACTION)           = 0.0;
+      }
+
+      if (pnew_node->Has(MESH_VELOCITY1)){
+          pnew_node->GetSolutionStepValue(MESH_VELOCITY1_X)         = 0.0;
+          pnew_node->GetSolutionStepValue(MESH_VELOCITY1_Y)         = 0.0;
+          pnew_node->GetSolutionStepValue(MESH_VELOCITY1_Z)         = 0.0;
+      }
+
+      if (pnew_node->Has(DRAG_REACTION)){
+          pnew_node->GetSolutionStepValue(DRAG_REACTION_X)          = 0.0;
+          pnew_node->GetSolutionStepValue(DRAG_REACTION_Y)          = 0.0;
+          pnew_node->GetSolutionStepValue(DRAG_REACTION_Z)          = 0.0;
+      }
       
       ///DOFS
       pnew_node->AddDof(DISPLACEMENT_X, REACTION_X);
@@ -140,8 +158,7 @@ public:
       pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
       pnew_node->pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
       pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
-      
-      
+            
     }
 
 
@@ -194,7 +211,7 @@ public:
 }    
     //MA
 
-    void CalculateSurroundingBoundingBox( ModelPart& r_model_part, double scale_factor)
+    void CalculateSurroundingBoundingBox(ModelPart& r_model_part, double scale_factor)
     {
         KRATOS_TRY
         if (r_model_part.NumberOfElements(0) == 0 )
@@ -239,9 +256,8 @@ public:
     void CreateBallsFromCentersModelPart(ModelPart& balls_model_part, ModelPart& centers_model_part, double radius)
     {
       int Elem_Id = balls_model_part.Nodes().size();
-      for(ModelPart::NodesContainerType::iterator inode = centers_model_part.NodesBegin(); inode != centers_model_part.NodesEnd();
-           inode++)
-       {
+
+      for(ModelPart::NodesContainerType::iterator inode = centers_model_part.NodesBegin(); inode != centers_model_part.NodesEnd(); inode++){
           Node<3>::Pointer pnode = *(inode.base());
           Geometry< Node < 3 > >::PointsArrayType nodelist;
           nodelist.push_back(pnode);
@@ -250,7 +266,9 @@ public:
           balls_model_part.Elements().push_back(particle);
           Elem_Id ++;
        }
+
     }
+
     void DestroyParticles(ModelPart& r_model_part)
     {
 
@@ -279,14 +297,15 @@ public:
         //Add the ones inside the bounding box
         for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin(); particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it){	  
             
-	  if( !(*particle_pointer_it)->GetGeometry()(0)->Is(TO_ERASE) ) {
-	    (rElements).push_back(*particle_pointer_it); //adding the elements 
-            for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++){ //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
-                ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
-                (rNodes).push_back(pNode);
-            }
+            if( !(*particle_pointer_it)->GetGeometry()(0)->Is(TO_ERASE) ) {
+                (rElements).push_back(*particle_pointer_it); //adding the elements
 
-	  }  	  
+                for (unsigned int i = 0; i < (*particle_pointer_it)->GetGeometry().PointsNumber(); i++){ //GENERAL FOR ELEMENTS OF MORE THAN ONE NODE
+                    ModelPart::NodeType::Pointer pNode = (*particle_pointer_it)->GetGeometry().pGetPoint(i);
+                    (rNodes).push_back(pNode);
+                }
+
+	    }
 	  
         }                           
 
@@ -565,7 +584,6 @@ private:
 
     /// Assignment operator.
     ParticleCreatorDestructor & operator=(ParticleCreatorDestructor const& rOther);
-
 
     ///@}
 
