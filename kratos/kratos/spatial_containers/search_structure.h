@@ -89,7 +89,7 @@ std::size_t PointerDistance( TPointerType const& PointerBegin, TPointerType cons
 {
     //return std::distance(PointerBegin,PointerEnd);
     return ( PointerEnd - PointerBegin );  // required for SUN Compiler
-};
+}
 
 
 template< std::size_t TDimension, class TPointType >
@@ -227,7 +227,7 @@ public:
 };
 
 
-};
+}
 
 
 
