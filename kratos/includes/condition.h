@@ -451,7 +451,7 @@ public:
                                       const std::vector< Variable< MatrixType > >& rLHSVariables,
                                       std::vector< VectorType >& rRightHandSideVectors,
                                       const std::vector< Variable< VectorType > >& rRHSVariables,
-                                      const ProcessInfo& rCurrentProcessInfo)
+                                      ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -480,7 +480,22 @@ public:
         if (rRightHandSideVector.size() != 0)
             rRightHandSideVector.resize(0);
     }
-    
+     
+    /**
+     * this function provides a more general interface to the condition.
+     * it is designed so that rRHSvariables are passed TO the condition
+     * thus telling what is the desired output
+     * @param rRightHandSideVectors: container for the desired RHS output
+     * @param rRHSVariables: parameter describing the expected RHSs
+     */
+    virtual void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
+					const std::vector< Variable< VectorType > >& rRHSVariables,
+					ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rRightHandSideVectors.size() != 0)
+            rRightHandSideVectors.resize(0);
+    }
+
     /**
      * CONDITIONS inherited from this class must implement this methods
      * if they need to add dynamic condition contributions 

@@ -443,7 +443,7 @@ public:
                                       const std::vector< Variable< MatrixType > >& rLHSVariables,
                                       std::vector< VectorType >& rRightHandSideVectors,
                                       const std::vector< Variable< VectorType > >& rRHSVariables,
-                                      const ProcessInfo& rCurrentProcessInfo)
+                                      ProcessInfo& rCurrentProcessInfo)
     {
     }
 
@@ -471,6 +471,21 @@ public:
     {
         if (rRightHandSideVector.size() != 0)
             rRightHandSideVector.resize(0);
+    }
+
+    /**
+     * this function provides a more general interface to the element.
+     * it is designed so that rRHSvariables are passed TO the element
+     * thus telling what is the desired output
+     * @param rRightHandSideVectors: container for the desired RHS output
+     * @param rRHSVariables: parameter describing the expected RHSs
+     */
+    virtual void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
+					const std::vector< Variable< VectorType > >& rRHSVariables,
+					ProcessInfo& rCurrentProcessInfo)
+    {
+        if (rRightHandSideVectors.size() != 0)
+            rRightHandSideVectors.resize(0);
     }
 
     /**
