@@ -91,12 +91,7 @@ balls_variables_to_add = [FLUID_VEL_PROJECTED,
                           BUOYANCY,
                           SOLID_FRACTION_PROJECTED]
 
-DEM_inlet_variables_to_add = [FLUID_VEL_PROJECTED,
-                              FLUID_DENSITY_PROJECTED,
-                              PRESSURE_GRAD_PROJECTED,
-                              FLUID_VISCOSITY_PROJECTED,
-                              DRAG_FORCE,
-                              BUOYANCY]
+DEM_inlet_variables_to_add = balls_variables_to_add
 
 
 # Constructing a DEM_procedures object
