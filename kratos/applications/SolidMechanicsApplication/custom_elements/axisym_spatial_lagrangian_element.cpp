@@ -293,14 +293,14 @@ void AxisymSpatialLagrangianElement::FinalizeStepVariables( GeneralVariables & r
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+void AxisymSpatialLagrangianElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
 
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
     //contributions to stiffness matrix calculated on the reference config
 
-    LargeDisplacementElement::CalculateAndAddLHS( rLeftHandSideMatrix, rVariables, IntegrationWeight );
+    LargeDisplacementElement::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
     //KRATOS_WATCH(rLeftHandSideMatrix)
 }
@@ -309,13 +309,13 @@ void AxisymSpatialLagrangianElement::CalculateAndAddLHS(MatrixType& rLeftHandSid
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void AxisymSpatialLagrangianElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
     //contribution to external forces
 
-    LargeDisplacementElement::CalculateAndAddRHS( rRightHandSideVector, rVariables, rVolumeForce, IntegrationWeight );
+    LargeDisplacementElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight );
 
     //KRATOS_WATCH(rRightHandSideVector)
 }

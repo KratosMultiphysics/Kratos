@@ -292,7 +292,7 @@ void AxisymSpatialLagrangianUPElement::FinalizeStepVariables( GeneralVariables &
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+void AxisymSpatialLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
 
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
@@ -302,7 +302,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddLHS(MatrixType& rLeftHandS
     double DeterminantF = rVariables.detF;
     rVariables.detF = 1; //in order to simplify updated and spatial lagrangian
 
-    LargeDisplacementUPElement::CalculateAndAddLHS( rLeftHandSideMatrix, rVariables, IntegrationWeight );
+    LargeDisplacementUPElement::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
     rVariables.detF     = DeterminantF;
     rVariables.detF0   /= rVariables.detF;
@@ -313,7 +313,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddLHS(MatrixType& rLeftHandS
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSpatialLagrangianUPElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void AxisymSpatialLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
@@ -322,7 +322,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddRHS(VectorType& rRightHand
     double DeterminantF = rVariables.detF;
     rVariables.detF = 1; //in order to simplify updated and spatial lagrangian
 
-    LargeDisplacementUPElement::CalculateAndAddRHS( rRightHandSideVector, rVariables, rVolumeForce, IntegrationWeight );
+    LargeDisplacementUPElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight );
 
     rVariables.detF     = DeterminantF;
     rVariables.detF0   /= rVariables.detF;

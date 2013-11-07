@@ -157,13 +157,13 @@ void AxisymSmallDisplacementElement::InitializeGeneralVariables (GeneralVariable
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSmallDisplacementElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+void AxisymSmallDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
 
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.Radius / GetProperties()[THICKNESS];
 
     //contributions to stiffness matrix calculated on the reference config
-    SmallDisplacementElement::CalculateAndAddLHS( rLeftHandSideMatrix, rVariables, IntegrationWeight );
+    SmallDisplacementElement::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
     //KRATOS_WATCH(rLeftHandSideMatrix)
 }
@@ -172,12 +172,12 @@ void AxisymSmallDisplacementElement::CalculateAndAddLHS(MatrixType& rLeftHandSid
 //************************************************************************************
 //************************************************************************************
 
-void AxisymSmallDisplacementElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void AxisymSmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
     double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.Radius / GetProperties()[THICKNESS];
 
     //contribution to external forces
-    SmallDisplacementElement::CalculateAndAddRHS( rRightHandSideVector, rVariables, rVolumeForce, IntegrationWeight );
+    SmallDisplacementElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight );
 
     //KRATOS_WATCH(rRightHandSideVector)
 }
