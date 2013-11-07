@@ -573,8 +573,10 @@ class ExplicitStrategy:
         if (self.force_calculation_type_id == 2):
             self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N1, self.N1)
             self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N2, self.N2)
+            self.model_part.ProcessInfo.SetValue(SLOPE_FRACTION_N3, self.N3)
             self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C1, self.C1)
             self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C2, self.C2)
+            self.model_part.ProcessInfo.SetValue(SLOPE_LIMIT_COEFF_C3, self.C3)
             self.model_part.ProcessInfo.SetValue(YOUNG_MODULUS_PLASTIC, self.plastic_young_modulus_ratio)
             self.model_part.ProcessInfo.SetValue(PLASTIC_YIELD_STRESS, self.plastic_yield_stress)
             self.model_part.ProcessInfo.SetValue(DAMAGE_FACTOR, self.damage_deformation_factor)
