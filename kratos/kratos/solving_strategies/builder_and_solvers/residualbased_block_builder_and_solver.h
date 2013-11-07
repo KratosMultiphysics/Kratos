@@ -1306,6 +1306,35 @@ private:
     }
 
 #ifdef _OPENMP
+inline void AssembleRowContribution(TSystemMatrixType& A, const Matrix& Alocal, const unsigned int i, const unsigned int i_local, Element::EquationIdVectorType& EquationId)
+{
+	double* values_vector = A.value_data().begin();
+    std::size_t* index1_vector = A.index1_data().begin();
+    std::size_t* index2_vector = A.index2_data().begin();
+		
+	size_t left_limit = index1_vector[i];
+//	size_t right_limit = index1_vector[i+1];
+
+	//find the first entry
+	size_t last_pos = ForwardFind(EquationId[0],left_limit,index2_vector);
+	size_t last_found = EquationId[0];
+	values_vector[last_pos] += Alocal(i_local,0);
+	
+	//now find all of the other entries
+	size_t pos = 0;
+	for(unsigned int j=1; j<EquationId.size(); j++)
+    {
+		unsigned int id_to_find = EquationId[j];
+		if(id_to_find > last_found) 
+			pos = ForwardFind(id_to_find,last_pos+1,index2_vector);
+		else 
+			pos = BackwardFind(id_to_find,last_pos-1,index2_vector);
+
+		values_vector[pos] += Alocal(i_local,j);
+		last_found = id_to_find;
+		last_pos = pos;
+	}	
+}
 
     void Assemble(
         TSystemMatrixType& A,
@@ -1326,14 +1355,16 @@ private:
                 omp_set_lock(&lock_array[i_global]);
 
                 b[i_global] += RHS_Contribution(i_local);
-                for (unsigned int j_local = 0; j_local < local_size; j_local++)
-                {
-                    unsigned int j_global = EquationId[j_local];
-
-                        A(i_global, j_global) += LHS_Contribution(i_local, j_local);
-                    
-                }
-
+				
+				AssembleRowContribution(A, LHS_Contribution, i_global, i_local, EquationId);
+//                  for (unsigned int j_local = 0; j_local < local_size; j_local++)
+//                  {
+//                      unsigned int j_global = EquationId[j_local];
+//  
+//                          A(i_global, j_global) += LHS_Contribution(i_local, j_local);
+//                      
+// 
+//                  }
                 omp_unset_lock(&lock_array[i_global]);
 
 
@@ -1342,6 +1373,25 @@ private:
         }
     }
 #endif
+
+
+inline unsigned int ForwardFind(const unsigned int id_to_find, 
+								const unsigned int start,
+								const size_t* index_vector)
+{
+	unsigned int pos = start;
+	while(id_to_find != index_vector[pos]) pos++;
+	return pos;
+}
+
+inline unsigned int BackwardFind(const unsigned int id_to_find, 
+								const unsigned int start,
+								const size_t* index_vector)
+{
+	unsigned int pos = start;
+	while(id_to_find != index_vector[pos]) pos--;
+	return pos;
+}
 
     /*@} */
     /**@name Private  Access */
