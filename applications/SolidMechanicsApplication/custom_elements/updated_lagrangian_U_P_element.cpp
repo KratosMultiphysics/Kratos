@@ -158,7 +158,7 @@ void UpdatedLagrangianUPElement::SetGeneralVariables (GeneralVariables& rVariabl
 //************************************************************************************
 
 
-void UpdatedLagrangianUPElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+void UpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
 
     //contributions to stiffness matrix calculated on the reference config
@@ -166,7 +166,7 @@ void UpdatedLagrangianUPElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMat
 
     CalculatePushForwardDN_DX( rVariables ); //to be compatible with the updated lagrangian configuration
 
-    LargeDisplacementUPElement::CalculateAndAddLHS( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    LargeDisplacementUPElement::CalculateAndAddLHS( rLocalSystem, rVariables, rIntegrationWeight );
 
     rVariables.detF0 /= rVariables.detF;
     //KRATOS_WATCH(rLeftHandSideMatrix)
@@ -176,13 +176,13 @@ void UpdatedLagrangianUPElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMat
 //************************************************************************************
 //************************************************************************************
 
-void UpdatedLagrangianUPElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void UpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
 
     //contribution to external forces
     rVariables.detF0 *= rVariables.detF;
 
-    LargeDisplacementUPElement::CalculateAndAddRHS( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+    LargeDisplacementUPElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, rIntegrationWeight );
 
     rVariables.detF0 /= rVariables.detF;
     //KRATOS_WATCH(rRightHandSideVector)

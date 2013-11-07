@@ -158,14 +158,14 @@ protected:
     /**
      * Calculation and addition of the matrices of the LHS
      */
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix,
+    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
                             GeneralVariables& rVariables,
                             double& rIntegrationWeight);
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
                             GeneralVariables& rVariables,
                             Vector& rVolumeForce,
                             double& rIntegrationWeight);

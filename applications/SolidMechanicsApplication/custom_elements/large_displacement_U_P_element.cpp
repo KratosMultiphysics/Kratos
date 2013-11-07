@@ -295,10 +295,11 @@ void LargeDisplacementUPElement::InitializeSystemMatrices(MatrixType& rLeftHandS
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+void LargeDisplacementUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
 
-    //contributions to stiffness matrix calculated on the reference config
+    //contributions of the stiffness matrix calculated on the reference configuration
+    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix();
 
     // operation performed: add Km to the rLefsHandSideMatrix
 
@@ -327,11 +328,12 @@ void LargeDisplacementUPElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMat
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementUPElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void LargeDisplacementUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
 
-    //contribution to external forces
-
+    //contribution of the internal and external forces
+    VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
+      
     // operation performed: rRightHandSideVector += ExtForce*IntegrationWeight
     CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 

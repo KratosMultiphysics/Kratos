@@ -24,8 +24,10 @@ namespace Kratos
 /**
  * Flags related to the element computation
  */
-KRATOS_CREATE_LOCAL_FLAG( LargeDisplacementElement, COMPUTE_RHS_VECTOR,       0 );
-KRATOS_CREATE_LOCAL_FLAG( LargeDisplacementElement, COMPUTE_LHS_MATRIX,       1 );
+KRATOS_CREATE_LOCAL_FLAG( LargeDisplacementElement, COMPUTE_RHS_VECTOR,                 0 );
+KRATOS_CREATE_LOCAL_FLAG( LargeDisplacementElement, COMPUTE_LHS_MATRIX,                 1 );
+KRATOS_CREATE_LOCAL_FLAG( LargeDisplacementElement, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
+KRATOS_CREATE_LOCAL_FLAG( LargeDisplacementElement, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 
 
 //******************************CONSTRUCTOR*******************************************
@@ -585,9 +587,10 @@ void LargeDisplacementElement::InitializeSystemMatrices(MatrixType& rLeftHandSid
     if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the matrix is required
     {
         if ( rRightHandSideVector.size() != MatSize )
-            rRightHandSideVector.resize( MatSize, false );
-
-        rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+	    rRightHandSideVector.resize( MatSize, false );
+      
+	rRightHandSideVector = ZeroVector( MatSize ); //resetting RHS
+	  
     }
 }
 
@@ -596,10 +599,8 @@ void LargeDisplacementElement::InitializeSystemMatrices(MatrixType& rLeftHandSid
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementElement::CalculateElementalSystem( MatrixType& rLeftHandSideMatrix,
-							 VectorType& rRightHandSideVector,
-							 ProcessInfo& rCurrentProcessInfo,
-							 Flags& rCalculationFlags)
+void LargeDisplacementElement::CalculateElementalSystem( LocalSystemComponents& rLocalSystem,
+							 ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -640,19 +641,18 @@ void LargeDisplacementElement::CalculateElementalSystem( MatrixType& rLeftHandSi
 
         //if ( dimension == 2 ) IntegrationWeight *= GetProperties()[THICKNESS];
 
-        if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+        if ( rLocalSystem.CalculationFlags.Is(LargeDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
             //contributions to stiffness matrix calculated on the reference config
-            this->CalculateAndAddLHS ( rLeftHandSideMatrix, Variables, IntegrationWeight );
+	    this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
         }
 
-        if ( rCalculationFlags.Is(LargeDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+        if ( rLocalSystem.CalculationFlags.Is(LargeDisplacementElement::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
         {
             //contribution to external forces
             VolumeForce  = this->CalculateVolumeForce( VolumeForce, Variables.N );
-
-            this->CalculateAndAddRHS ( rRightHandSideVector, Variables, VolumeForce, IntegrationWeight );
-
+	 
+	    this->CalculateAndAddRHS ( rLocalSystem, Variables, VolumeForce, IntegrationWeight );
         }
 
 
@@ -694,17 +694,47 @@ void LargeDisplacementElement::CalculateElementalSystem( MatrixType& rLeftHandSi
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+void LargeDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
 
-    //contributions to stiffness matrix calculated on the reference config
+  //contributions of the stiffness matrix calculated on the reference configuration
+  if( rLocalSystem.CalculationFlags.Is( LargeDisplacementElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+    {
+      std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
+      const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
+
+      for( unsigned int i=0; i<rLeftHandSideVariables.size(); i++ )
+	{
+	  bool calculated = false;
+	  if( rLeftHandSideVariables[i] == MATERIAL_STIFFNESS_MATRIX ){
+	    // operation performed: add Km to the rLefsHandSideMatrix
+	    this->CalculateAndAddKuum( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
+	    calculated = true;
+	  }
+	  
+	  if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX ){
+	    // operation performed: add Kg to the rLefsHandSideMatrix
+	    this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
+	    calculated = true;
+	  }
+
+	  if(calculated == false)
+	    {
+	      KRATOS_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i])
+	    }
+
+	}
+    } 
+  else{
+    
+    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
 
     // operation performed: add Km to the rLefsHandSideMatrix
     this->CalculateAndAddKuum( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
     // operation performed: add Kg to the rLefsHandSideMatrix
     this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
-
+  }
 
     //KRATOS_WATCH(rLeftHandSideMatrix)
 }
@@ -713,17 +743,47 @@ void LargeDisplacementElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatri
 //************************************************************************************
 //************************************************************************************
 
-void LargeDisplacementElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void LargeDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
+    //contribution of the internal and external forces
+    if( rLocalSystem.CalculationFlags.Is( LargeDisplacementElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+    {
 
-    //contribution to external forces
+      std::vector<VectorType>& rRightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
+      const std::vector< Variable< VectorType > >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables();
+      for( unsigned int i=0; i<rRightHandSideVariables.size(); i++ )
+	{
+	  bool calculated = false;
+	  if( rRightHandSideVariables[i] == EXTERNAL_FORCES_VECTOR ){
+	    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+	    this->CalculateAndAddExternalForces( rRightHandSideVectors[i], rVariables, rVolumeForce, rIntegrationWeight );
+	    calculated = true;
+	  }
+	  
+	  if( rRightHandSideVariables[i] == INTERNAL_FORCES_VECTOR ){
+	    // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+	    this->CalculateAndAddInternalForces( rRightHandSideVectors[i], rVariables, rIntegrationWeight );
+	    calculated = true;
+	  }
 
-    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
-    this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+	  if(calculated == false)
+	    {
+	      KRATOS_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rRightHandSideVariables[i])
+	    }
 
-    // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-    this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
+	}
+    }
+    else{
+      
+      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
 
+      // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+      this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+
+      // operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+      this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
+
+    }
     //KRATOS_WATCH(rRightHandSideVector)
 }
 
@@ -746,17 +806,57 @@ double& LargeDisplacementElement::CalculateIntegrationWeight(double& rIntegratio
 
 void LargeDisplacementElement::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
+    //create local system components
+    LocalSystemComponents LocalSystem;
+
     //calculation flags
-    Flags CalculationFlags;
-    CalculationFlags.Set(LargeDisplacementElement::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_RHS_VECTOR);
 
     MatrixType LeftHandSideMatrix = Matrix();
 
     //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, CalculationFlags );
+    this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+
+    //Set Variables to Local system components
+    LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
+    LocalSystem.SetRightHandSideVector(rRightHandSideVector);
 
     //Calculate elemental system
-    CalculateElementalSystem( LeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculationFlags );
+    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+}
+
+//************************************************************************************
+//************************************************************************************
+
+
+void LargeDisplacementElement::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
+{
+    //create local system components
+    LocalSystemComponents LocalSystem;
+
+    //calculation flags
+    LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
+
+    MatrixType LeftHandSideMatrix = Matrix();
+
+    //Initialize sizes for the system components:
+    if( rRHSVariables.size() != rRightHandSideVectors.size() )
+      rRightHandSideVectors.resize(rRHSVariables.size());
+    
+    for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
+      {
+	this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVectors[i], LocalSystem.CalculationFlags );
+      }
+
+    //Set Variables to Local system components
+    LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
+    LocalSystem.SetRightHandSideVectors(rRightHandSideVectors);
+
+    LocalSystem.SetRightHandSideVariables(rRHSVariables);
+
+    //Calculate elemental system
+    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 }
 
 
@@ -766,18 +866,23 @@ void LargeDisplacementElement::CalculateRightHandSide( VectorType& rRightHandSid
 
 void LargeDisplacementElement::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
 {
+    //create local system components
+    LocalSystemComponents LocalSystem;
 
     //calculation flags
-    Flags CalculationFlags;
-    CalculationFlags.Set(LargeDisplacementElement::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_LHS_MATRIX);
 
     VectorType RightHandSideVector = Vector();
 
     //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, CalculationFlags );
+    this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
+
+    //Set Variables to Local system components
+    LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
+    LocalSystem.SetRightHandSideVector(RightHandSideVector);
 
     //Calculate elemental system
-    CalculateElementalSystem( rLeftHandSideMatrix, RightHandSideVector, rCurrentProcessInfo, CalculationFlags );
+    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
 }
 
@@ -787,16 +892,77 @@ void LargeDisplacementElement::CalculateLeftHandSide( MatrixType& rLeftHandSideM
 
 void LargeDisplacementElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
+    //create local system components
+    LocalSystemComponents LocalSystem;
+
     //calculation flags
-    Flags CalculationFlags;
-    CalculationFlags.Set(LargeDisplacementElement::COMPUTE_LHS_MATRIX);
-    CalculationFlags.Set(LargeDisplacementElement::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_RHS_VECTOR);
 
     //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, CalculationFlags );
+    this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+
+    //Set Variables to Local system components
+    LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
+    LocalSystem.SetRightHandSideVector(rRightHandSideVector);
 
     //Calculate elemental system
-    CalculateElementalSystem( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculationFlags );
+    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
+
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void LargeDisplacementElement::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
+						     const std::vector< Variable< MatrixType > >& rLHSVariables,
+						     std::vector< VectorType >& rRightHandSideVectors,
+						     const std::vector< Variable< VectorType > >& rRHSVariables,
+						     ProcessInfo& rCurrentProcessInfo )
+{
+    //create local system components
+    LocalSystemComponents LocalSystem;
+
+    //calculation flags
+    LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
+    LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
+
+
+    //Initialize sizes for the system components:
+    if( rLHSVariables.size() != rLeftHandSideMatrices.size() )
+      rLeftHandSideMatrices.resize(rLHSVariables.size());
+
+    if( rRHSVariables.size() != rRightHandSideVectors.size() )
+      rRightHandSideVectors.resize(rRHSVariables.size());
+    
+    LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_LHS_MATRIX);
+    for( unsigned int i=0; i<rLeftHandSideMatrices.size(); i++ )
+      {
+	//Note: rRightHandSideVectors.size() > 0
+	this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0], LocalSystem.CalculationFlags );
+      }
+
+    LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_LHS_MATRIX,false);
+
+    for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
+      {
+	//Note: rLeftHandSideMatrices.size() > 0
+    	this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags );
+      }
+    LocalSystem.CalculationFlags.Set(LargeDisplacementElement::COMPUTE_LHS_MATRIX,true);
+
+
+    //Set Variables to Local system components
+    LocalSystem.SetLeftHandSideMatrices(rLeftHandSideMatrices);
+    LocalSystem.SetRightHandSideVectors(rRightHandSideVectors);
+
+    LocalSystem.SetLeftHandSideVariables(rLHSVariables);
+    LocalSystem.SetRightHandSideVariables(rRHSVariables);
+
+    //Calculate elemental system
+    CalculateElementalSystem( LocalSystem, rCurrentProcessInfo );
 
 }
 

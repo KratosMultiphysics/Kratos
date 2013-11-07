@@ -261,7 +261,7 @@ void SpatialLagrangianUPElement::FinalizeStepVariables( GeneralVariables & rVari
 //************************************************************************************
 //************************************************************************************
 
-void SpatialLagrangianUPElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+void SpatialLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
 
     //contributions to stiffness matrix calculated on the reference config
@@ -269,7 +269,7 @@ void SpatialLagrangianUPElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMat
     double DeterminantF = rVariables.detF;
     rVariables.detF = 1; //in order to simplify updated and spatial lagrangian
 
-    LargeDisplacementUPElement::CalculateAndAddLHS( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+    LargeDisplacementUPElement::CalculateAndAddLHS( rLocalSystem, rVariables, rIntegrationWeight );
 
     rVariables.detF     = DeterminantF;
     rVariables.detF0   /= rVariables.detF;
@@ -280,14 +280,14 @@ void SpatialLagrangianUPElement::CalculateAndAddLHS(MatrixType& rLeftHandSideMat
 //************************************************************************************
 //************************************************************************************
 
-void SpatialLagrangianUPElement::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
+void SpatialLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, Vector& rVolumeForce, double& rIntegrationWeight)
 {
     //contribution to external forces
     rVariables.detF0   *= rVariables.detF;
     double DeterminantF = rVariables.detF;
     rVariables.detF = 1; //in order to simplify updated and spatial lagrangian
 
-    LargeDisplacementUPElement::CalculateAndAddRHS( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
+    LargeDisplacementUPElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, rIntegrationWeight );
 
     rVariables.detF     = DeterminantF;
     rVariables.detF0   /= rVariables.detF;
