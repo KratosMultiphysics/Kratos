@@ -313,12 +313,12 @@ while (time < Param.FinalTime):
   
     if ((timer.time() - initial_real_time > 60) and first_print == True and step != 0):    
         first_print = False    
-        estimated_sim_duration = 60 * (total_steps_expected / step) # seconds
+        estimated_sim_duration = 60.0 * (total_steps_expected / step) # seconds
     
         print('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n')
-        print('in minutes:'        + str(estimated_sim_duration / 60) + 'min.' + '\n')
-        print('in hours:'        + str(estimated_sim_duration / 3600) + 'hrs.' + '\n')
-        print('in days:'        + str(estimated_sim_duration / 86400) + 'days' + '\n') 
+        print('in minutes:'        + str(estimated_sim_duration / 60.0) + 'min.' + '\n')
+        print('in hours:'        + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
+        print('in days:'        + str(estimated_sim_duration / 86400.0) + 'days' + '\n') 
         sys.stdout.flush()
         
         if (estimated_sim_duration / 86400 > 2.0):
