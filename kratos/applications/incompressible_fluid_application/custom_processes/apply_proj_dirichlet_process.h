@@ -104,16 +104,16 @@ void ApplyProjDirichlet(ModelPart& full_model_part)
     {
         KRATOS_TRY
         unsigned int n_int;
-        unsigned int n_fixed;
+        //unsigned int n_fixed;
         
         //first we remove the Dirichlet conditions from the nodes that were defining the interface in the previous step:
         for(ModelPart::ElementsContainerType::iterator im = full_model_part.ElementsBegin() ;
                 im != full_model_part.ElementsEnd() ; ++im)
         {
             n_int=0.0;
-		n_fixed=0.0;
+	    //n_fixed=0.0;
 
-	    for (int i=0; i<im->GetGeometry().size();i++)
+	    for (uint i=0; i<im->GetGeometry().size();i++)
 		n_int+=im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE);
 
 	if (n_int<im->GetGeometry().size() && n_int>0)
