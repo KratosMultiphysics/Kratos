@@ -2108,7 +2108,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           if(fabs(indentation) > u2)                  // FULL DAMAGE 
           {
             mNeighbourFailureId[i_neighbour_count] = 4; //tension failure
-            mIniNeighbourFailureId[ mapping_new_ini ] = 12;
+            mIniNeighbourFailureId[ mapping_new_ini ] = 4;
             failure_criterion_state = 1;
             fn = 0.0;
           }
