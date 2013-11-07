@@ -235,7 +235,7 @@ public:
 		Vector which_edge=ZeroVector(10);
 		which_edge.resize(IntersectionPoints.size());
 
-                for (int i=0; i<IntersectionPoints.size(); i++)
+                for (uint i=0; i<IntersectionPoints.size(); i++)
                 {
                     which_edge[i]=100;
                 }
