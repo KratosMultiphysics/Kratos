@@ -124,7 +124,7 @@ std::ostream & operator<<( std::ostream& rOut, RadiusPoint<Dimension> & rPoint){
    for(std::size_t i = 0 ; i < Dimension ; i++)
       rOut << rPoint[i] << " "; 
    return rOut; 
-};
+}
 
 template< std::size_t Dimension >
 std::istream & operator>>( std::istream& rIn, RadiusPoint<Dimension> & rPoint){
@@ -132,7 +132,7 @@ std::istream & operator>>( std::istream& rIn, RadiusPoint<Dimension> & rPoint){
       rIn >> rPoint[i];
    
    return rIn; 
-};
+}
 
 template< class TDerived >
 class DEMSearch : public SpatialSearch
