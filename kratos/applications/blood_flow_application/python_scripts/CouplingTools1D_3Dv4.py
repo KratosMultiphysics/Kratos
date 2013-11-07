@@ -2,22 +2,18 @@ from KratosMultiphysics import *
 from KratosMultiphysics.BloodFlowApplication import *
 CheckForPreviousImport()
 
-from math import *
 import math
 import time
 import sys
 import config
 
-#import linalg
 #File: 27/10/2013
 
 class TransferTools:
 
     def __init__(self, model_part_1d, model_part_3d):
         self.model_part_1d = model_part_1d
-        self.model_part_3d = model_part_3d
-        
-        
+        self.model_part_3d = model_part_3d    
     # 3
 
     def Initialize(self):
@@ -26,7 +22,7 @@ class TransferTools:
         self.inlets_3d = []
         self.outlets_3d = []
         self.inlet_areas_3d = []
-        self.outlet_areas_3d = []
+        self.outlet_areas_3d = []        
         self.inlet_velocity_directions = []
         self.flow_1d = 0.0
         self.flow_1d_pressure = 0.0
@@ -40,8 +36,8 @@ class TransferTools:
 	#raw_input()
         NormalCalculationUtils().SwapNormals(self.model_part_3d)
         BodyNormalCalculationUtils().CalculateBodyNormals(
-            self.model_part_3d, 3)
-
+            self.model_part_3d, 3) 
+	  
         # detect 1d inlets
 
         for i in range(100, 101):
@@ -157,19 +153,33 @@ class TransferTools:
             self.outlet_areas_3d.append(area3d)
             print "area_inlet_3d", area3d
             #raw_input()
-            
-            
-        import FitAB
-	self.fitters_1d = []
-	for i in range(0,len(self.outlets_1d)):
-	  self.fitters_1d.append( FitAB.Fitter(self.outlets_1d[i][0].Id) )
-            
-	self.fitters_3d = []
-	for i in range(0,len(self.outlets_1d)):
-	  self.fitters_3d.append( FitAB.Fitter(self.outlets_1d[i][0].Id) )
-            
-            
 
+	import FitAB
+	self.fitters_1d = []
+	self.fitters_3d = []
+	self.fitters_inlet_nodes=[]
+	self.fitters_outlet_nodes=[]
+	
+	for i in range(0,len(self.outlets_1d)):
+	  self.fitters_1d.append(FitAB.Fitter(self.outlets_1d[i][0].Id))        
+	  self.fitters_3d.append(FitAB.Fitter(self.outlets_1d[i][0].Id))
+	
+	self.fixed_flow_nodes =[]
+	for node in self.model_part_1d.Nodes:
+	  if(node.IsFixed(FLOW) == True and node.GetSolutionStepValue(FLAG_VARIABLE) == 0):
+	    self.fixed_flow_nodes.append(node)  	  
+	for i in range(0,len(self.fixed_flow_nodes)):
+	  self.fitters_inlet_nodes.append(FitAB.Fitter(self.fixed_flow_nodes[i].Id))
+	  print self.fixed_flow_nodes[i].Id
+
+	self.fixed_outlet_nodes=[]
+	for node in self.model_part_1d.Nodes:
+	  if(node.IsFixed(PRESSURE) == True):
+	    self.fixed_outlet_nodes.append(node)	
+	for i in range(0,len(self.fixed_outlet_nodes)):
+	  self.fitters_outlet_nodes.append(FitAB.Fitter(self.fixed_outlet_nodes[i].Id))
+	  print self.fixed_outlet_nodes[i].Id   
+	
     def Initial_Contitions(self):
         #initial_pressure = 0  # TODO
         initial_pressure = config.dyastolic_pressure
@@ -221,7 +231,7 @@ class TransferTools:
                 radio3d = math.sqrt(area3d * 3.1416)
                 vel1d = inlet_nodes_1d[0].GetSolutionStepValue(FLOW) / area3d
                 # NOTA: REVISAR EL CAUDAL QUE ESTAMOS IMPONIENDO DE ENTRADA El hecho de considerar q/2 es debido a que el caudal que imponemos
-                # pressinlet1D =
+                # pessinlet1D =
                 # inlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)
                 k = 0
                 # Impongo velocidad y la presion
@@ -373,6 +383,7 @@ class TransferTools:
             node.Free(PRESSURE)
             node.SetSolutionStepValue(VISCOSITY, 0, 0.0035 / 1060.0)
             node.SetSolutionStepValue(DENSITY, 0, 1060.0)
+            node.SetSolutionStepValue(PRESSURE,0,8000)
         # set inlet
         for cond in self.model_part_3d.Conditions:
             if(cond.Properties.Id == 100):  # inlet
@@ -445,11 +456,21 @@ class TransferTools:
 
 
         # print "n pressure nodes ",counter
-        
-        
-        
-    def FitValues(self,ffit,total_time,AB_Matriz,row_AB):
-     
+       
+    def FitValues_Inlet(self):
+      for i in range(0,len(self.fixed_flow_nodes)):
+	node=self.fixed_flow_nodes[i]
+	for fitter in self.fitters_inlet_nodes:
+	  fitter.AddPin(node[0].GetSolutionStepValue(PRESSURE))
+	  fitter.AddQ(node[0].GetSolutionStepValue(FLOW))	  
+	  
+      for i in range(0,len(self.fixed_outlet_nodes)):
+	node=self.fixed_outlet_nodes[i]
+	for fitter in self.fitters_inlet_nodes:
+	  fitter.AddPout(node[0].GetSolutionStepValue(PRESSURE))
+    #raw_input()
+	  
+    def FitValues_1d(self):     
       for i in range(0, len(self.inlets_1d)):
 	node = self.inlets_1d[i]
 	##print "3D-1D: inlet_nodes_1d [0].Id::::::>>>> ", node[0].Id
@@ -465,13 +486,11 @@ class TransferTools:
 	#AB_Matriz[row_AB][3]= node[0].GetSolutionStepValue(NODAL_AREA)
 	for fitter in self.fitters_1d:
 	  fitter.AddPin(node[0].GetSolutionStepValue(PRESSURE))
-	  fitter.AddQ(node[0].GetSolutionStepValue(FLOW))
-	  
 	j=0
-	for i in range(0, len(self.outlets_1d)):
+	for j in range(0, len(self.outlets_1d)):
 	  #j=j+1
 	  #row_AB=row_AB+1
-	  #node = self.outlets_1d[i]	 
+	  node = self.outlets_1d[j]	 
 	  ##print "3D-1D: outlet_nodes_1d[0].Id::::::>>>> ", node[0].Id        
 	  #nodewrite = node[0].Id
 	  ##ToWrite = str(indextowrite) + " "
@@ -483,35 +502,71 @@ class TransferTools:
 	  #AB_Matriz[row_AB][1]= node[0].GetSolutionStepValue(PRESSURE)
 	  #AB_Matriz[row_AB][2]= node[0].GetSolutionStepValue(FLOW)
 	  #AB_Matriz[row_AB][3]= node[0].GetSolutionStepValue(NODAL_AREA)
-	  self.fitters_1d[i].AddPout(node[0].GetSolutionStepValue(PRESSURE))
-	  
-
-	  print "**************************"
-      
-    def FitValues_3d(self,ffit3d,total_time):      
-      j=0
+	  self.fitters_1d[j].AddPout(node[0].GetSolutionStepValue(PRESSURE))
+	  self.fitters_1d[j].AddQ(node[0].GetSolutionStepValue(FLOW))
+		        
+    def FitValues_3d(self):
       for i in range(0, len(self.inlets_1d)):
-	  inlet_nodes_1d = self.inlets_1d[i]
-	  for i in range(0, len(self.inlets_3d)):
-	    inlet_nodes_3d = self.inlets_3d[i]
-	    area3d = self.inlet_areas_3d[i]
-	    directions = self.inlet_velocity_directions[i]
-	    radio3d = math.sqrt(area3d * 3.1416)
-	    vel1d = inlet_nodes_1d[0].GetSolutionStepValue(FLOW) / area3d
-	    pres1d = inlet_nodes_1d[0].GetSolutionStepValue (PRESSURE)
-	    ToWrite = str(node) + " " + str(total_time) + " " + str(pres1d) + " "
-	    ToWrite += str(vel1d) + " " + str(inlet_nodes_3d.GetSolutionStepValue(NODAL_AREA)) + "\n"	
-	    ffit3d[j].write(ToWrite)
-	    print "3D-1D: outlet_nodes_1d[0].Id::::::>>>> ", inlet_nodes_3d[0].Id
-	    	  
-    def Fit_ABValues(self,AB_Matriz,row_AB,ffit_A):
+	inlet_nodes_1d = self.inlets_1d[i]
+	inlet_nodes_3d = self.inlets_3d[i]
+	press_3d = 0.0
+	flow_3d = 0.0
+	area3d=0.0
+	counter = 0.0
+	print "inlet", inlet_nodes_1d[0]
+	for node in inlet_nodes_3d:
+	  press_3d += node.GetSolutionStepValue(PRESSURE)
+	  counter += 1.0
+	  avg_press = press_3d / counter	
+	#area3d=self.inlet_areas_3d
+	for fitter in self.fitters_3d:
+	  fitter.AddPin(avg_press)
+	  #self.fitters_3d[i].AddPin(avg_press)   	
+	#print "pressure", avg_press
+	j=0
+	for j in range(0, len(self.outlets_1d)):
+	  outlet_nodes_1d = self.outlets_1d[j]
+	  outlet_nodes_3d = self.outlets_3d[j]
+	  area3d = self.outlet_areas_3d[j]
+	  # compute flow on 3D outlet
+	  flow = 0.0
+	  for node in outlet_nodes_3d:
+	      normal = node.GetSolutionStepValue(NORMAL)
+	      vel = node.GetSolutionStepValue(VELOCITY)
+	      flow += normal[0] * vel[0] + normal[1] * vel[1] + normal[2] * vel[2]         
+	  self.fitters_3d[j].AddQ(flow)  
+	  self.fitters_3d[j].AddPout(outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE))  
+	  #print "node outlet", outlet_nodes_1d[0]
+	  #print "flow", flow
+	  #print "pressure", outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)
       
+    def Fit_ABValues_1D(self):
+      ffit_1d=[]
+      k=0
       for fitter in self.fitters_1d:
-	  [node_id,A,B] = fitter.DoFitting()
+	  ffit_1d.append(k)
+	  results = str("Fitter_1D_" + str(k) + "_.txt")
+	  ffit_1d[k] = open(results, 'w')
+	  ffit_1d[k].write("NODE-PRESSURE_OUTLET_1D   -    PRESSURE_INLET_1D        -      FLOW_1D) \n")
+	  [node_id,A,B] = fitter.DoFitting_1D(k,ffit_1d)
+	  k=k+1
 	  print "node_id = ",node_id
 	  print "A = ",A
 	  print "B = ",B
-	  
+
+    def Fit_ABValues_3D(self): 
+      ffit_3d=[]
+      k=0
+      for fitter in self.fitters_3d:
+	  ffit_3d.append(k)
+	  results = str("Fitter_3D_" + str(k) + "_.txt")
+	  ffit_3d[k] = open(results, 'w')		
+	  ffit_3d[k].write("NODE-PRESSURE_OUTLET_3D   -    PRESSURE_INLET_3D        -      FLOW_3D) \n")
+	  [node_id,A,B] = fitter.DoFitting_3D(k,ffit_3d)
+	  k=k+1
+	  print "node_id = ",node_id
+	  print "A = ",A
+	  print "B = ",B
 	 # ...para los fitters_3d
       
       

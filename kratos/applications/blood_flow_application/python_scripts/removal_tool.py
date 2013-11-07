@@ -146,7 +146,7 @@ def DoRemoval(model_part):
     id_of_new_property = 0
     for node in inlet_nodes:
         print node
-        #node.Fix(NODAL_AREA)
+        # node.Fix(NODAL_AREA)
         # node.Fix(FLOW)
         # print "flow on outlet node ",node.GetSolutionStepValue(FLOW)
         print "outlet_node to 3D =", node.Id
