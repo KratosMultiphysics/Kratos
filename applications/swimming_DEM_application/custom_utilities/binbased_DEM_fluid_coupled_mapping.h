@@ -310,7 +310,6 @@ public:
 
         }
 
-        #pragma omp parallel for
         for (int i = 0; i < n_fluid_nodes; i++){
             ModelPart::NodesContainerType::iterator inode = rFluid_ModelPart.NodesBegin() + i;
             double& solid_fraction = inode->FastGetSolutionStepValue(SOLID_FRACTION, 0);
@@ -322,7 +321,6 @@ public:
 
         }
 
-        #pragma omp parallel for
         for (int i = 0; i < n_fluid_nodes; i++){
             ModelPart::NodesContainerType::iterator inode = rFluid_ModelPart.NodesBegin() + i;
             double fluid_fraction                         = 1 - inode->FastGetSolutionStepValue(SOLID_FRACTION, 0);
