@@ -40,12 +40,10 @@ namespace Kratos
 
   //************************************************************************************
   //************************************************************************************
-  PointRigidContactPenalty2DCondition::PointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall)
+  PointRigidContactPenalty2DCondition::PointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall)
   :Condition(NewId, pGeometry, pProperties)
   {
-    
-    mpRigidWall = pRigidWall;
-    
+      mpRigidWall = pRigidWall;
   }
 
   //************************************************************************************

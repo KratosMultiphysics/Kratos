@@ -27,7 +27,7 @@ CompositeCondition::CompositeCondition( IndexType NewId, GeometryType::Pointer p
     : Condition( NewId, pGeometry )
 {
   //DO NOT ADD DOFS HERE!!!
-
+  this->Set(BOUNDARY);
 }
 
 
@@ -37,7 +37,7 @@ CompositeCondition::CompositeCondition( IndexType NewId, GeometryType::Pointer p
 CompositeCondition::CompositeCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : Condition( NewId, pGeometry, pProperties )
 {
-
+  this->Set(BOUNDARY);
 }
 
 
@@ -57,6 +57,8 @@ CompositeCondition::CompositeCondition( CompositeCondition const& rOther)
       mpChildConditions->push_back(*cn);
     }
 
+  this->Set(BOUNDARY);
+
 }
 
 
@@ -75,6 +77,8 @@ CompositeCondition&  CompositeCondition::operator=(CompositeCondition const& rOt
     {
       mpChildConditions->push_back(*cn);
     }
+
+  this->Set(BOUNDARY);
 
   return *this;
 }

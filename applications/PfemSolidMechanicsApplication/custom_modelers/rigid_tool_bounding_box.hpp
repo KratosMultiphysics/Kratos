@@ -86,16 +86,16 @@ public:
       
       double pi = 3.141592654;
 
-      this->mBox.Radius     =  Radius;
-      this->mBox.RakeAngle  =  RakeAngle * pi / 180;
+      this->mBox.Radius         = Radius;
+      this->mBox.RakeAngle      = RakeAngle * pi / 180;
       this->mBox.ClearanceAngle = ClearanceAngle * pi / 180;
 
-      this->mBox.m_factor = tan(0.5*pi-this->mBox.RakeAngle);
-      this->mBox.n_factor = tan(this->mBox.ClearanceAngle);
+      this->mBox.m_factor       = tan(0.5*pi-this->mBox.RakeAngle);
+      this->mBox.n_factor       = tan(this->mBox.ClearanceAngle);
 
-      this->mBox.OriginalCenter  = Center;
-      this->mBox.Center    = Center;
-      this->mBox.Velocity  = Velocity;
+      this->mBox.OriginalCenter = Center;
+      this->mBox.Center         = Center;
+      this->mBox.Velocity       = Velocity;
 
       std::cout<<" [TOOL:                        ] "<<std::endl;
       std::cout<<" [Radius:"<<this->mBox.Radius<<"            ] "<<std::endl;
@@ -316,6 +316,7 @@ private:
 	}
 	else if(FaceT<=0 && Face3<0 && Face2<=0){
 	  Face = TipSurface;
+	  //It must be set to be able to refine boundaries later on REFINE
 	  //rCurrentNode->Set(WallTipCondition::WALL_TIP);
 	}
 	else if(FaceC>=0 && Face2>=0 && Face1<0){
@@ -332,6 +333,7 @@ private:
 	}
 	else if(FaceT<=0 && Face3<=0 && Face2<=0){
 	  Face = TipSurface;
+	  //It must be set to be able to refine boundaries later on REFINE
 	  //rCurrentNode->Set(WallTipCondition::WALL_TIP);
 	}
 	else if(FaceC>=0 && Face2>=0 && Face1<=0){

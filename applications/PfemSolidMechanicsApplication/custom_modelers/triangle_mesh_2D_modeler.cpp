@@ -2878,10 +2878,10 @@ namespace Kratos
 			double distance2=norm_2(radius);
 			    
 			if( (1-alpha_radius)*tool_radius < distance1 &&  distance1 < (1+alpha_radius)*tool_radius )
-			  rConditionGeom[0].Set(WallTipCondition::WALL_TIP);
+			  rConditionGeom[0].Set( Modeler::WALL_TIP );
 			    
 			if( (1-alpha_radius)*tool_radius < distance2 &&  distance2 < (1+alpha_radius)*tool_radius )
-			  rConditionGeom[1].Set(WallTipCondition::WALL_TIP);
+			  rConditionGeom[1].Set( Modeler::WALL_TIP );
 			  
 			
 
@@ -2996,10 +2996,10 @@ namespace Kratos
 			Condition::Pointer ContactMasterCondition  = ic->GetValue(MASTER_CONDITION);
 			
 
-			if( (rConditionGeom[0].Is(WallTipCondition::WALL_TIP) && rConditionGeom[1].Is(WallTipCondition::WALL_TIP)) )
+			if( (rConditionGeom[0].Is( Modeler::WALL_TIP ) && rConditionGeom[1].Is( Modeler::WALL_TIP )) )
 			  tool_project = true;
 			    
-			if( (rConditionGeom[0].Is(WallTipCondition::WALL_TIP) || rConditionGeom[1].Is(WallTipCondition::WALL_TIP)) && contact_active)
+			if( (rConditionGeom[0].Is( Modeler::WALL_TIP ) || rConditionGeom[1].Is( Modeler::WALL_TIP )) && contact_active)
 			  tool_project = true;
 			    
 
@@ -3062,10 +3062,10 @@ namespace Kratos
 	    cond_counter ++;
 	    bool refine_candidate = false;
 	    if( rVariables.MeshingOptions.Is(Modeler::CONSTRAINED_MESH) ){
-	      // if( ic->Is(CompositeCondition::SKIN) )
+	      if( ic->Is(BOUNDARY) ) //ONLY SET TO THE BOUNDARY SKIN CONDITIONS (CompositeCondition)
 		refine_candidate = true;
-	      // else
-	      // 	refine_candidate = false;
+	      else
+	       	refine_candidate = false;
 	    }
 	    else{
 	      refine_candidate = true; 
@@ -3130,10 +3130,10 @@ namespace Kratos
 		      std::cout<<"   Tip not set "<<std::endl;
 
 		    bool on_tip = false;
-		    if(rConditionGeom[0].Is(WallTipCondition::WALL_TIP) && rConditionGeom[1].Is(WallTipCondition::WALL_TIP)){
+		    if(rConditionGeom[0].Is( Modeler::WALL_TIP ) && rConditionGeom[1].Is( Modeler::WALL_TIP )){
 		      on_tip = true;
 		    }
-		    else if (rConditionGeom[0].Is(WallTipCondition::WALL_TIP) || rConditionGeom[1].Is(WallTipCondition::WALL_TIP)){
+		    else if (rConditionGeom[0].Is( Modeler::WALL_TIP ) || rConditionGeom[1].Is( Modeler::WALL_TIP )){
 		      if( side_length > 1.5*rVariables.Refine.critical_side*tip_correction ){
 			on_tip = true;
 		      }
@@ -3178,10 +3178,10 @@ namespace Kratos
 		    else{
 		      if(tool_radius!=0)
 			std::cout<<" Tool_radius "<<tool_radius<<std::endl;
-		      if(rConditionGeom[0].IsNot(WallTipCondition::WALL_TIP))
+		      if(rConditionGeom[0].IsNot( Modeler::WALL_TIP ))
 			std::cout<<" Node 0 not tool tip "<<rConditionGeom[0].Id()<<std::endl;
 			    
-		      if(rConditionGeom[1].IsNot(WallTipCondition::WALL_TIP))
+		      if(rConditionGeom[1].IsNot( Modeler::WALL_TIP ))
 			std::cout<<" Node 1 not tool tip "<<rConditionGeom[1].Id()<<std::endl;
 
 
@@ -3254,13 +3254,13 @@ namespace Kratos
 		    new_point.SetId(ic->Id()); //set condition Id
 		      
 		    //it will be good if the node is detected in the tool tip using the rigid contact standards:
-		    if( (rConditionGeom[0].Is(WallTipCondition::WALL_TIP) && rConditionGeom[1].Is(WallTipCondition::WALL_TIP)) )
+		    if( (rConditionGeom[0].Is( Modeler::WALL_TIP ) && rConditionGeom[1].Is( Modeler::WALL_TIP )) )
 		      tool_project = true;
 
-		    if( (rConditionGeom[0].Is(WallTipCondition::WALL_TIP) || rConditionGeom[1].Is(WallTipCondition::WALL_TIP)) && contact_active)
+		    if( (rConditionGeom[0].Is( Modeler::WALL_TIP ) || rConditionGeom[1].Is( Modeler::WALL_TIP )) && contact_active)
 		      tool_project = true;
 
-		    if( (rConditionGeom[0].Is(WallTipCondition::WALL_TIP) || rConditionGeom[1].Is(WallTipCondition::WALL_TIP)) && contact_semi_active)
+		    if( (rConditionGeom[0].Is( Modeler::WALL_TIP ) || rConditionGeom[1].Is( Modeler::WALL_TIP )) && contact_semi_active)
 		      tool_project = true;
 
 
@@ -3473,7 +3473,7 @@ namespace Kratos
 	    Geometry< Node<3> > rGeom =ic->GetGeometry();
 	    for(unsigned int i=0; i<rGeom.size(); i++)
 	      {
-		rGeom[i].Reset(WallTipCondition::WALL_TIP);
+		rGeom[i].Reset( Modeler::WALL_TIP );
 	      }
 		
 	    if(ic->IsNot(TO_ERASE)){
