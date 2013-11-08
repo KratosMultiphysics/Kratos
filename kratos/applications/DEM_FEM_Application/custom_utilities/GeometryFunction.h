@@ -285,12 +285,35 @@ namespace Kratos
      
    
 
-     static inline bool JudgeIfThisEdgeIsContactWithParticle(double EdgeCoord1[3], double EdgeCoord2[3], double Centroid[3], double Particle_Coord[3], double rad)
+     static inline bool JudgeIfThisEdgeIsContactWithParticle(double EdgeCoord1[3], double EdgeCoord2[3], double Particle_Coord[3], double rad)
      {
          bool If_Conact = false;
 
          double LocalCoordSystem[3][3];
-         Compute2DimElementEdgeLocalSystem(EdgeCoord1, EdgeCoord2, Centroid, LocalCoordSystem);
+		 
+		 double Vector1[3] = {0.0};
+		 double Vector2[3] = {0.0, 0.0, 1.0}; ////2D problem, z direction
+		 double NormalV[3] = {0.0};
+		 
+		 Vector1[0] = EdgeCoord2[0] - EdgeCoord1[0];
+		 Vector1[1] = EdgeCoord2[1] - EdgeCoord1[1];
+		 Vector1[2] = EdgeCoord2[2] - EdgeCoord1[2];
+		 norm(Vector1);
+		 
+		 CrossProduct(Vector1, Vector2, NormalV);
+		 norm(NormalV);
+		 
+		 LocalCoordSystem[0][0] = Vector1[0];
+		 LocalCoordSystem[0][1] = Vector1[1];		 
+		 LocalCoordSystem[0][2] = Vector1[2];
+		 
+		 LocalCoordSystem[1][0] = Vector2[0];
+		 LocalCoordSystem[1][1] = Vector2[1];		 
+		 LocalCoordSystem[1][2] = Vector2[2];
+		 
+		 LocalCoordSystem[2][0] = NormalV[0];
+		 LocalCoordSystem[2][1] = NormalV[1];		 
+		 LocalCoordSystem[2][2] = NormalV[2];
          
          double dist = DistancePointToPlane(EdgeCoord1, LocalCoordSystem[2], Particle_Coord);
 
@@ -299,9 +322,6 @@ namespace Kratos
              double IntersectionCoord[3] = {0.0};
 
              CoordProjectionOnPlane(Particle_Coord, EdgeCoord1, LocalCoordSystem, IntersectionCoord);
-
-             double Vector1[3] = {0.0};
-             double Vector2[3] = {0.0};
 
              Vector1[0] = IntersectionCoord[0] - EdgeCoord1[0];
              Vector1[1] = IntersectionCoord[1] - EdgeCoord1[1];
@@ -348,28 +368,6 @@ namespace Kratos
                  Weight[0] = dist3 / dist1;
                  Weight[1] = 1.0 - Weight[0];
              }
-            
-             /*
-             double Vector1[3] = {0.0};
-             double Vector2[3] = {0.0};
-
-             Vector1[0] = IntersectionCoord[0] - EdgeCoord1[0];
-             Vector1[1] = IntersectionCoord[1] - EdgeCoord1[1];
-             Vector1[2] = IntersectionCoord[2] - EdgeCoord1[2];
-
-             Vector2[0] = IntersectionCoord[0] - EdgeCoord2[0];
-             Vector2[1] = IntersectionCoord[1] - EdgeCoord2[1];
-             Vector2[2] = IntersectionCoord[2] - EdgeCoord2[2];
-
-             norm(Vector1);
-             norm(Vector2);
-
-             if( DotProduct(Vector1, Vector2) <= 0.0)
-             {
-                 If_Conact = true;
-             }
-               
-              */
 
          }
 
@@ -385,6 +383,7 @@ namespace Kratos
          Compute3DimElementFaceLocalSystem(Coord[0], Coord[1], Coord[2], Centroid, LocalCoordSystem);
 
          double dist = DistancePointToPlane(Coord[0], LocalCoordSystem[2], Particle_Coord);
+		 
 
          if(dist < rad)
          {
