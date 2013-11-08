@@ -63,6 +63,11 @@ namespace Kratos
       /// Pointer definition of SphericParticle
       KRATOS_CLASS_POINTER_DEFINITION(SphericParticle);
 
+      //Cfeng,RigidFace
+      typedef WeakPointerVector<Condition> ConditionWeakVectorType; 
+	  typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+	  
+
       typedef WeakPointerVector<Element> ParticleWeakVectorType; 
       typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
       typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
@@ -140,6 +145,12 @@ namespace Kratos
       SphericParticle();
 
       //void SetInitialContacts(int case_opt, ProcessInfo& rCurrentProcessInfo);
+	  
+	  ///Cfeng,RigidFace
+	  virtual void ComputeNewRigidFaceNeighboursHistoricalData();
+	  virtual void ComputeBallToRigidFaceContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo);
+      virtual void ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rObj_2, std::size_t ino, 
+                             double LocalCoordSystem[3][3],double & DistPToB, array_1d<double, 3 > &other_to_me_vel);
 
       virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       virtual void MemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
@@ -252,9 +263,12 @@ namespace Kratos
       vector< array_1d<double, 3> > mOldNeighbourContactForces;
       
       //pointers:
-      const int *mpTimeStep;  
+      const int *mpTimeStep; 
       const int *mpActivateSearch;
-      
+	  
+      //Cfeng,RigidFace
+      vector<int> mOldRigidFaceNeighbourIds;
+      vector< array_1d<double, 3> >  mOldRigidFaceNeighbourContactForces;
       
       //ParticleWeakVectorType mrNeighbours;
 
