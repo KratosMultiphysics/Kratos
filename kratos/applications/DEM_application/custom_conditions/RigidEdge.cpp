@@ -162,7 +162,7 @@ void RigidEdge3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
 			
 	
 	double n[3] = {Xnormal, Ynormal, Znormal};
-	GeometryFunctions::norm(n);
+	GeometryFunctions::normalize(n);
 
 	double omiga = CyclePerSec * 2.0 * M_PI;
 	
@@ -214,15 +214,15 @@ void RigidEdge3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
 			local_vel[1] = dist * omiga;
 			local_vel[2] = vel;
 
-			GeometryFunctions::norm(vector1);
+			GeometryFunctions::normalize(vector1);
 			
 			GeometryFunctions::CrossProduct(n,vector1,vector2);
 			
-			GeometryFunctions::norm(vector2);  
+			GeometryFunctions::normalize(vector2);  
 			
 			GeometryFunctions::CrossProduct(vector2,n,vector1);
 			
-			GeometryFunctions::norm(vector1);
+			GeometryFunctions::normalize(vector1);
 
 			a[0][0] = vector1[0];
 			a[0][1] = vector1[1];
