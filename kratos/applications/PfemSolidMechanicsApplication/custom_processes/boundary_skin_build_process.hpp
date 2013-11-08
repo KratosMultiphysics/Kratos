@@ -79,7 +79,6 @@ namespace Kratos
 		// 		     unsigned int preserve)
 		// 	: mr_model_part(model_part), mr_reference_condition(KratosComponents<Condition>::Get("ReferenceConditionName"))
 		// { 
-
 		// 	std::cout<<" Reference Condition "<<mr_reference_condition<<std::endl;
 		// 	m_preserve = preserve;
 		// 	mdim=dim;
@@ -706,9 +705,9 @@ namespace Kratos
 		
 			//reset the boundary flag
 			for(ModelPart::NodesContainerType::const_iterator in = mr_model_part.NodesBegin(MeshId); in!=mr_model_part.NodesEnd(MeshId); in++)
-			{
-				in->Reset(BOUNDARY);
-			}
+			  {
+			    in->Reset(BOUNDARY);
+			  }
 
 			//filling the elemental neighbours list (from now on the elements list can not change)
 			//ModelPart::ElementsContainerType::iterator elements_end = mr_model_part.Elements().end();
