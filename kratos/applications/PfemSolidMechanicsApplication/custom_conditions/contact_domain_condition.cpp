@@ -1129,10 +1129,10 @@ void ContactDomainCondition::CalculateAndAddKm(MatrixType& rLeftHandSideMatrix,
 //************************************************************************************
 //************************************************************************************
 
-void ContactDomainCondition::CalculateOnIntegrationPoints( const Variable<double>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo )
+void ContactDomainCondition::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
     if ( rOutput.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
-        rOutput.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(), false );
+        rOutput.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size());
 
     for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
         rOutput[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rOutput[ii] );
