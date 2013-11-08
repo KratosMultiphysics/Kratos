@@ -401,5 +401,23 @@ TotalElementsVolume              = *tcl(DEM::Get_Mass_Elements)
 
 
 
+# For RigidFace
+ComputeMovementOption            =  "*GenData(ComputeMovementOption)"
+RotationSpeed                    = *GenData(RotationSpeed)
+AxialSpeed                       = *GenData(AxialSpeed)
+PropID                           = *GenData(PropID)
+GLOBAL_X_VEL                     = *GenData(GLOBAL_X_VEL)
+GLOBAL_Y_VEL                     = *GenData(GLOBAL_Y_VEL)
+GLOBAL_Z_VEL                     = *GenData(GLOBAL_Z_VEL)
+ROTA_ORIGIN_COORD_X              = *GenData(ROTA_ORIGIN_COORD_X)
+ROTA_ORIGIN_COORD_Y              = *GenData(ROTA_ORIGIN_COORD_Y)
+ROTA_ORIGIN_COORD_Z              = *GenData(ROTA_ORIGIN_COORD_Z)
+ROTA_AXIAL_NORMAL_X              = *GenData(ROTA_AXIAL_NORMAL_X)
+ROTA_AXIAL_NORMAL_Y              = *GenData(ROTA_AXIAL_NORMAL_Y)
+ROTA_AXIAL_NORMAL_Z              = *GenData(ROTA_AXIAL_NORMAL_Z)
+BEGIN_TIME                       = *GenData(BEGIN_TIME)
+END_TIME                         = *GenData(END_TIME)
+
+
 
 # Declare Python Variables
