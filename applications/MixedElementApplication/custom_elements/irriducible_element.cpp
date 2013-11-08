@@ -460,10 +460,10 @@ void IrriducibleElement::DampMatrix(MatrixType& rDampMatrix, ProcessInfo & rCurr
 //************************************************************************************
 //************************************************************************************
 
-void IrriducibleElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, Vector& Output, const ProcessInfo & rCurrentProcessInfo)
+void IrriducibleElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo & rCurrentProcessInfo)
 {
     if (Output.size() != mConstitutiveLawVector.size())
-        Output.resize(mConstitutiveLawVector.size(), false);
+        Output.resize(mConstitutiveLawVector.size());
 
     for (unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++)
         Output[ii] = mConstitutiveLawVector[ii]->GetValue(rVariable, Output[ii]);
