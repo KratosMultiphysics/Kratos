@@ -32,6 +32,8 @@
 #include "containers/weak_pointer_vector.h"
 #include "includes/constitutive_law.h"
 
+//Cfeng,RigidFace
+#include "includes/condition.h"
 
 namespace Kratos
 {
