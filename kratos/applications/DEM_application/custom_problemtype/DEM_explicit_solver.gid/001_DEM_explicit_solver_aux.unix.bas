@@ -19,6 +19,7 @@ problemtype_name="*Tcl(GiD_Info Project ProblemType)"
 export OMP_NUM_THREADS=*GenData(number_of_processors)
 
 mv "$2/$1-3.dat" "$2/${problemtype_name}_var.py"
+mv "$2/$1-4.dat" "$2/RigidFace_Part.mdpa"
 
 if [ $write_python_file = "Use_Default" ]
 then
