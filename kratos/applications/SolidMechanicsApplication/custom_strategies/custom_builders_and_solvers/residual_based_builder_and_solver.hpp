@@ -120,6 +120,7 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
+
         if (!pScheme)
             KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
 
@@ -136,10 +137,6 @@ public:
         //resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
-        //contributions to the system
-        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
         //vector containing the localization in the system of the different terms
         Element::EquationIdVectorType EquationId;
 
@@ -147,6 +144,10 @@ public:
 
         // assemble all elements
 #ifndef _OPENMP
+        //contributions to the system
+        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
@@ -193,6 +194,7 @@ public:
 
         vector<unsigned int> element_partition;
         CreatePartition(number_of_threads, pElements.size(), element_partition);
+
         if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
         {
             KRATOS_WATCH(number_of_threads);
@@ -576,7 +578,10 @@ public:
     {
         KRATOS_TRY
 
-        //Getting the Elements
+        if (!pScheme)
+            KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
+
+        //getting the elements from the model
         ElementsArrayType& pElements = r_model_part.Elements();
 
         //getting the array of the conditions
@@ -587,15 +592,16 @@ public:
         //resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
+        //vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType EquationId;
+
+        // assemble all elements
+#ifndef _OPENMP
+
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-        //vector containing the localization in the system of the different
-        //terms
-        Element::EquationIdVectorType EquationId;
-
-        // assemble all elements
         for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
         {
             //calculate elemental Right Hand Side Contribution
@@ -618,9 +624,106 @@ public:
             AssembleRHS(b, RHS_Contribution, EquationId);
         }
 
+#else
+        //creating an array of lock variables of the size of the system vector
+        std::vector< omp_lock_t > lock_array(b.size());
+
+        int b_size = b.size();
+        for (int i = 0; i < b_size; i++)
+            omp_init_lock(&lock_array[i]);
+
+        //create a partition of the element array
+        int number_of_threads = omp_get_max_threads();
+
+        vector<unsigned int> element_partition;
+        CreatePartition(number_of_threads, pElements.size(), element_partition);
+
+
+        if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
+        {
+            KRATOS_WATCH(number_of_threads);
+            KRATOS_WATCH(element_partition);
+        }
+
+
+        double start_prod = omp_get_wtime();
+
+        #pragma omp parallel for
+        for (int k = 0; k < number_of_threads; k++)
+        {
+            //contributions to the system
+            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+            //vector containing the localization in the system of the different
+            //terms
+            Element::EquationIdVectorType EquationId;
+            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+            typename ElementsArrayType::ptr_iterator it_begin = pElements.ptr_begin() + element_partition[k];
+            typename ElementsArrayType::ptr_iterator it_end = pElements.ptr_begin() + element_partition[k + 1];
+
+            // assemble all elements
+            for (typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
+            {
+
+                //calculate elemental contribution
+                pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                //assemble the elemental contribution
+                AssembleRHS(b, RHS_Contribution, EquationId, lock_array);
+
+                // clean local elemental memory
+                pScheme->CleanMemory(*it);
+            }
+        }
+
+        vector<unsigned int> condition_partition;
+        CreatePartition(number_of_threads, ConditionsArray.size(), condition_partition);
+
+        #pragma omp parallel for
+        for (int k = 0; k < number_of_threads; k++)
+        {
+            //contributions to the system
+            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+            Condition::EquationIdVectorType EquationId;
+
+            ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
+            typename ConditionsArrayType::ptr_iterator it_begin = ConditionsArray.ptr_begin() + condition_partition[k];
+            typename ConditionsArrayType::ptr_iterator it_end = ConditionsArray.ptr_begin() + condition_partition[k + 1];
+
+            // assemble all elements
+            for (typename ConditionsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
+            {
+                //calculate elemental contribution
+                pScheme->Condition_Calculate_RHS_Contributions(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                //assemble the elemental contribution
+                AssembleRHS(b, RHS_Contribution, EquationId, lock_array);
+
+            }
+        }
+
+
+        double stop_prod = omp_get_wtime();
+        if (this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
+            std::cout << "time: " << stop_prod - start_prod << std::endl;
+
+        for (int i = 0; i < A_size; i++)
+            omp_destroy_lock(&lock_array[i]);
+        if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
+        {
+            KRATOS_WATCH("finished parallel building");
+        }
+
+	//ensure that all the threads are syncronized here
+        //#pragma omp barrier
+#endif
+
         KRATOS_CATCH("")
 
     }
+
     //**************************************************************************
     //**************************************************************************
 
