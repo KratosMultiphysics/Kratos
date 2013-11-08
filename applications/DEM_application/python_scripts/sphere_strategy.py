@@ -112,7 +112,7 @@ def AddDofs(model_part):
 
 class ExplicitStrategy:
 
-    def __init__(self, model_part, creator_destructor, Param):
+    def __init__(self, model_part, fem_model_part, creator_destructor, Param):
 
         # Initialization of member variables
 
@@ -135,9 +135,11 @@ class ExplicitStrategy:
         self.deactivate_search              = 0
         self.case_option                    = 3
 
+        self.ComputeMovementOption          = Var_Translator(Param.ComputeMovementOption)
 
         # MODEL
-        self.model_part                      = model_part
+        self.model_part                     = model_part
+        self.fem_model_part                 = fem_model_part
 
         # BOUNDING_BOX
         self.enlargement_factor             = Param.BoundingBoxEnlargementFactor
@@ -149,6 +151,26 @@ class ExplicitStrategy:
         self.bottom_corner[0]               = Param.BoundingBoxMinX
         self.bottom_corner[0]               = Param.BoundingBoxMinY
         self.bottom_corner[0]               = Param.BoundingBoxMinZ
+
+        #RigidFace movement
+        if(self.ComputeMovementOption):
+           self.RotationSpeed             = Param.RotationSpeed
+           self.AxialSpeed                = Param.AxialSpeed
+           self.PROP_ID                   = Param.PropID
+           self.GLOBAL_VEL                = Vector(3)
+           self.GLOBAL_VEL[0]             = Param.GLOBAL_X_VEL
+           self.GLOBAL_VEL[1]             = Param.GLOBAL_Y_VEL
+           self.GLOBAL_VEL[2]             = Param.GLOBAL_Z_VEL
+           self.ROTA_ORIGIN_COORD         = Vector(3)
+           self.ROTA_ORIGIN_COORD[0]      = Param.ROTA_ORIGIN_COORD_X
+           self.ROTA_ORIGIN_COORD[1]      = Param.ROTA_ORIGIN_COORD_Y
+           self.ROTA_ORIGIN_COORD[2]      = Param.ROTA_ORIGIN_COORD_Z
+           self.ROTA_AXIAL_NORMAL         = Vector(3)
+           self.ROTA_AXIAL_NORMAL[0]      = Param.ROTA_AXIAL_NORMAL_X
+           self.ROTA_AXIAL_NORMAL[1]      = Param.ROTA_AXIAL_NORMAL_Y
+           self.ROTA_AXIAL_NORMAL[2]      = Param.ROTA_AXIAL_NORMAL_Z
+           self.BEGIN_TIME                = Param.BEGIN_TIME
+           self.END_TIME                  = Param.END_TIME
 
         # BOUNDARY
         if (Param.LimitSurfaceOption > 0):
@@ -396,7 +418,8 @@ class ExplicitStrategy:
 
         # Setting ProcessInfo variables
 
-        # SIMULATION FLAGS
+
+       # SIMULATION FLAGS
         self.model_part.ProcessInfo.SetValue(VIRTUAL_MASS_OPTION, self.virtual_mass_option)
         self.model_part.ProcessInfo.SetValue(CRITICAL_TIME_OPTION, self.critical_time_option)
         self.model_part.ProcessInfo.SetValue(CASE_OPTION, self.case_option)
@@ -408,7 +431,8 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_option)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
         self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
-        self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option);
+        self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
+        self.model_part.ProcessInfo.SetValue(RIGID_FACE_FLAG, self.ComputeMovementOption)
         self.model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, 1) #needed in the basic for the continuum.
 
         # TOTAL NUMBER OF INITIALIZED ELEMENTS
@@ -416,6 +440,17 @@ class ExplicitStrategy:
 
         # TOLERANCES
         self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);
+
+        #Rigid Face setting
+        if(self.ComputeMovementOption):
+           self.model_part.ProcessInfo.SetValue(RIGID_FACE_ROTA_SPEED, self.RotationSpeed)
+           self.model_part.ProcessInfo.SetValue(RIGID_FACE_AXIAL_SPEED, self.AxialSpeed)
+           self.model_part.ProcessInfo.SetValue(RIGID_FACE_PROP_ID, self.PROP_ID)
+           self.model_part.ProcessInfo.SetValue(RIGID_FACE_ROTA_ORIGIN_COORD, self.ROTA_ORIGIN_COORD)
+           self.model_part.ProcessInfo.SetValue(RIGID_FACE_ROTA_AXIAL_DIR, self.ROTA_AXIAL_NORMAL)
+           self.model_part.ProcessInfo.SetValue(RIGID_FACE_ROTA_GLOBAL_VELOCITY, self.GLOBAL_VEL)
+           self.model_part.ProcessInfo.SetValue(RIGID_FACE_BEGIN_TIME, self.BEGIN_TIME)
+           self.model_part.ProcessInfo.SetValue(RIGID_FACE_END_TIME, self.END_TIME)
 
         # BOUNDARY
         self.model_part.ProcessInfo.SetValue(LIMIT_SURFACE_OPTION, self.limit_surface_option)
@@ -507,7 +542,7 @@ class ExplicitStrategy:
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
 
-        self.solver = ExplicitSolverStrategy(self.model_part, self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag, self.creator_destructor, self.time_scheme, self.search_strategy) 
+        self.solver = ExplicitSolverStrategy(self.model_part, self.fem_model_part, self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag,    self.creator_destructor, self.time_scheme, self.search_strategy)
 
         self.solver.Initialize() # Calls the solver Initialize function (initializes all elements and performs other necessary tasks before iterating) (C++)
 
@@ -515,5 +550,7 @@ class ExplicitStrategy:
 
     def Solve(self):
         (self.solver).Solve()
+    def Compute_RigidFace_Movement(self):
+        (self.solver).Compute_RigidFace_Movement()
 
     #######################################################################
