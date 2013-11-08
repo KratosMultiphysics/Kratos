@@ -205,7 +205,9 @@ void SlaveContactFace3D::CalculateOnIntegrationPoints( const Variable<double>& r
 
 void SlaveContactFace3D::GetValueOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
-    Vector result = ZeroVector( GetGeometry().IntegrationPoints().size() );
+    std::vector<double> result( GetGeometry().IntegrationPoints().size() );
+    std::fill(result.begin(), result.end(), 0);
+
     CalculateOnIntegrationPoints( rVariable, result, rCurrentProcessInfo );
 
     if ( rValues.size() != GetGeometry().IntegrationPoints().size() )
