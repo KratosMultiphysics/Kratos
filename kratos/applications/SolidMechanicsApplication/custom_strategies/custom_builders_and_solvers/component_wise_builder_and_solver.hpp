@@ -198,7 +198,13 @@ public:
         bool CalculateReactionsFlag = BaseType::mCalculateReactionsFlag;
 	BaseType::mCalculateReactionsFlag = false;
 
-        //contributions to the element local system
+        //double StartTime = GetTickCount();
+
+        // assemble all elements
+#ifndef _OPENMP
+
+
+       //contributions to the element local system
 	ComponentBasedBossakScheme::SystemContributions ElementLocalSystem;
 	
         LocalSystemMatrixType LeftHandSideElementContribution  = LocalSystemMatrixType(0, 0);
@@ -243,10 +249,6 @@ public:
         //vector containing the localization in the system of the different terms
 	Element::EquationIdVectorType EquationId;
 
-        //double StartTime = GetTickCount();
-
-        // assemble all elements
-#ifndef _OPENMP
         ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
@@ -403,8 +405,11 @@ public:
 		rRHS_GlobalElementComponents[i] = LocalSystemVectorType(0);
 	      }
 	    
+	    //vector containing the localization in the system of the different terms
+	    Element::EquationIdVectorType EquationId;
 
             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
             typename ElementsArrayType::ptr_iterator it_begin = pElements.ptr_begin() + element_partition[k];
             typename ElementsArrayType::ptr_iterator it_end = pElements.ptr_begin() + element_partition[k + 1];
 
@@ -489,7 +494,11 @@ public:
 		rRHS_GlobalConditionComponents[i] = LocalSystemVectorType(0);
 	      }
 
+	    //vector containing the localization in the system of the different terms
+	    Element::EquationIdVectorType EquationId;
+
             ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+
             typename ConditionsArrayType::ptr_iterator it_begin = ConditionsArray.ptr_begin() + condition_partition[k];
             typename ConditionsArrayType::ptr_iterator it_end = ConditionsArray.ptr_begin() + condition_partition[k + 1];
 
