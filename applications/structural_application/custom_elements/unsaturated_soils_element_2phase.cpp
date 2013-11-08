@@ -735,7 +735,7 @@ void UnsaturatedSoilsElement_2phase::FinalizeSolutionStep(ProcessInfo& CurrentPr
 //************************************************************************************
 //************************************************************************************
 //************************************************************************************
-void UnsaturatedSoilsElement_2phase::CalculateOnIntegrationPoints(const Variable<double >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
+void UnsaturatedSoilsElement_2phase::CalculateOnIntegrationPoints(const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

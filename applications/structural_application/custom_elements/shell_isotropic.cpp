@@ -1019,7 +1019,7 @@ void ShellIsotropic::CalculateOnIntegrationPoints(const Variable<Matrix >& rVari
 }
 
 
-void ShellIsotropic::CalculateOnIntegrationPoints(const Variable<double >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
+void ShellIsotropic::CalculateOnIntegrationPoints(const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

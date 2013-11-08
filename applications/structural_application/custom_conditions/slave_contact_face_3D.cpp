@@ -142,13 +142,13 @@ SlaveContactFace3D::~SlaveContactFace3D()
 //     }
 //************************************************************************************
 //************************************************************************************
-void SlaveContactFace3D::CalculateOnIntegrationPoints( const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo )
+void SlaveContactFace3D::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo )
 {
     //reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
 
     if ( Output.size() != integration_points.size() )
-        Output.resize( integration_points.size(), false );
+        Output.resize( integration_points.size() );
 
     double result = 0.0;
 

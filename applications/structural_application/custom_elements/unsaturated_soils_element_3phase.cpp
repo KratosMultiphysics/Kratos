@@ -840,7 +840,7 @@ void UnsaturatedSoilsElement_3phase::FinalizeSolutionStep(ProcessInfo& CurrentPr
 
 //************************************************************************************
 //************************************************************************************
-void UnsaturatedSoilsElement_3phase::CalculateOnIntegrationPoints(const Variable<double >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
+void UnsaturatedSoilsElement_3phase::CalculateOnIntegrationPoints(const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -853,7 +853,7 @@ void UnsaturatedSoilsElement_3phase::CalculateOnIntegrationPoints(const Variable
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
     if(Output.size() != integration_points.size())
-        Output.resize(integration_points.size(),false);
+        Output.resize(integration_points.size());
 
     Matrix DN_DX_DISP(number_of_nodes_disp, dim);
 

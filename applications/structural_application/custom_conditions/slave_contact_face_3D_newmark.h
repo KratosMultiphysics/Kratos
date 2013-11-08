@@ -187,7 +187,7 @@ public:
     void GetDofList( DofsVectorType& ConditionalDofList,
                      ProcessInfo& CurrentProcessInfo);
 
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo);
 
     /**
      * Turn back information as a string.

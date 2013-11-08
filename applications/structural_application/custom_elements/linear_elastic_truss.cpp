@@ -403,18 +403,18 @@ void LinearElasticTruss::GetSecondDerivativesVector(Vector& values, int Step)
 }
 
 /*
-void LinearElasticTruss::CalculateOnIntegrationPoints(const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
+void LinearElasticTruss::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo)
 {
     if( rVariable == TRUSS_STRAIN )
     {
         if(Output.size() != 1)
-                    Output.resize(1,false);
+                    Output.resize(1);
         Output[0] = msStrain;
     }
     if( rVariable == TRUSS_STRESS )
     {
         if(Output.size() != 1)
-                    Output.resize(1,false);
+                    Output.resize(1);
         Output[0] = msStress;
     }
 }*/

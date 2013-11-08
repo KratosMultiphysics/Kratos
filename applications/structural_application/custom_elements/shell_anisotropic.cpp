@@ -985,7 +985,7 @@ void ShellAnisotropic::CalculateOnIntegrationPoints(const Variable<Matrix >& rVa
 }
 
 
-void ShellAnisotropic::CalculateOnIntegrationPoints(const Variable<double >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
+void ShellAnisotropic::CalculateOnIntegrationPoints(const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

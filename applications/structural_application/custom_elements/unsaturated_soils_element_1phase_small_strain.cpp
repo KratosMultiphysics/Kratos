@@ -622,7 +622,7 @@ void UnsaturatedSoilsElement_1phase_SmallStrain::FinalizeSolutionStep( ProcessIn
 //************************************************************************************
 //************************************************************************************
 //************************************************************************************
-void UnsaturatedSoilsElement_1phase_SmallStrain::CalculateOnIntegrationPoints( const Variable<double >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo )
+void UnsaturatedSoilsElement_1phase_SmallStrain::CalculateOnIntegrationPoints( const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
 

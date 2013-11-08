@@ -372,7 +372,7 @@ void CrisfieldTrussElement::GetSecondDerivativesVector(Vector& values, int Step)
 }
 
 /*
-void CrisfieldTrussElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
+void CrisfieldTrussElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo)
 {
     if( rVariable == TRUSS_STRAIN )
     {
