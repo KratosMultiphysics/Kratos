@@ -235,7 +235,7 @@ public:
     */
     void GetSecondDerivativesVector(Vector& values, int Step = 0);
 
-// 	  void CalculateOnIntegrationPoints(const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
+// 	  void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo);
 
 // 	  void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 

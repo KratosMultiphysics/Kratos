@@ -140,7 +140,7 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable, std::vector< Matrix >& Output, const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateOnIntegrationPoints(const Variable<double >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
+    void CalculateOnIntegrationPoints(const Variable<double >& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo);
 
     void GetValueOnIntegrationPoints( const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>& rValues,

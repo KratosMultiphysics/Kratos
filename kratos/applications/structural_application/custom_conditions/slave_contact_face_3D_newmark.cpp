@@ -140,13 +140,13 @@ SlaveContactFace3DNewmark::~SlaveContactFace3DNewmark()
 //     }
 //************************************************************************************
 //************************************************************************************
-void SlaveContactFace3DNewmark::CalculateOnIntegrationPoints(const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo)
+void SlaveContactFace3DNewmark::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo)
 {
     //reading integration points and local gradients
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
 
     if(Output.size() != integration_points.size())
-        Output.resize(integration_points.size(),false);
+        Output.resize(integration_points.size());
     double result= 0.0;
     double result_friction= 0.0;
     double reference= 0.0;

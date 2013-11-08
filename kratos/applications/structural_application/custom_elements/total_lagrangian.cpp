@@ -653,10 +653,10 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-    void TotalLagrangian::CalculateOnIntegrationPoints( const Variable<double>& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo )
+    void TotalLagrangian::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo& rCurrentProcessInfo )
     {
         if ( Output.size() != GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() )
-            Output.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size(), false );
+            Output.resize( GetGeometry().IntegrationPoints( mThisIntegrationMethod ).size() );
 
         for ( unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++ )
             Output[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, Output[ii] );
