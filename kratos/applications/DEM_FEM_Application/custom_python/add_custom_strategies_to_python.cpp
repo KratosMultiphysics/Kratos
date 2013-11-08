@@ -65,7 +65,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "spaces/ublas_space.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_strategies/explicit_forward_differential_strategy.h"
+#include "custom_strategies/DEM_FEM_Explicit_Solver.h"
+#include "custom_strategies/FEM_Explicit_Forward_Solver.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/schemes/scheme.h"
 
@@ -108,13 +109,21 @@ namespace Kratos
 // 					;
            //********************************************************************
            //********************************************************************
+		   
   
-           class_< DEM_FEM_Explicit_Forward_Differential_Strategy<SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
+           class_< DemFemExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
                    (
-                 "DEM_FEM_Explicit_Forward_Differential_Strategy", init< ModelPart&, int, int, double,bool,double,double,bool,bool,bool, LinearSolverType::Pointer, BaseSchemeType::Pointer, BuilderAndSolverType::Pointer>())
-                 .def("Initialize", &DEM_FEM_Explicit_Forward_Differential_Strategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Initialize)
-                 .def("ComputeCriticalTime",  &DEM_FEM_Explicit_Forward_Differential_Strategy<SparseSpaceType, LocalSpaceType, LinearSolverType >::ComputeCriticalTime)
+                 "DemFemExplicitSolverStrategy", init< ModelPart&, ModelPart&, double ,int,double, bool, BaseSolvingStrategyType&, BaseSolvingStrategyType&>())
+                 .def("Initialize", &DemFemExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Initialize)
+				 .def("Solve", &DemFemExplicitSolverStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Solve)
               ;  
+			  
+			class_< FemExplicitForwardStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType >,bases< BaseSolvingStrategyType >,  boost::noncopyable >
+                   (
+                 "FemExplicitForwardStrategy", init< ModelPart&, int, int ,double, bool, double, bool, bool>() )
+                 .def("Initialize", &FemExplicitForwardStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Initialize)
+				 .def("Solve", &FemExplicitForwardStrategy<SparseSpaceType, LocalSpaceType, LinearSolverType>::Solve)
+              ; 
         }
     }  // namespace Python.
 
