@@ -104,7 +104,7 @@ namespace Kratos
 
 /** Detail class definition.
  */
-class ModelPart : public DataValueContainer
+class ModelPart : public DataValueContainer, public Flags
 {
 
     struct GlobalIndex
@@ -240,7 +240,9 @@ public:
     /// Default constructor.
 
     ModelPart()
-        : mBufferSize(1)
+        : DataValueContainer()
+        , Flags()
+        , mBufferSize(1)
         , mCurrentIndex(0)
         , mpProcessInfo(new ProcessInfo())
         , mIndices(1, 0)
@@ -254,7 +256,9 @@ public:
     }
 
     ModelPart(std::string const& NewName)
-        : mBufferSize(1)
+        : DataValueContainer()
+        , Flags()
+        , mBufferSize(1)
         , mCurrentIndex(0)
         , mpProcessInfo(new ProcessInfo())
         , mIndices(1, 0)
@@ -268,7 +272,9 @@ public:
     }
 
     ModelPart(std::string const& NewName, IndexType NewBufferSize)
-        : mBufferSize(NewBufferSize)
+        : DataValueContainer()
+        , Flags()
+        , mBufferSize(NewBufferSize)
         , mCurrentIndex(0)
         , mpProcessInfo(new ProcessInfo())
         , mIndices(NewBufferSize, 0)
@@ -276,6 +282,7 @@ public:
     {
         mName = NewName;
         MeshType mesh;
+        // TODO: I have to remove this. Pooyan.
         for (IndexType i = 0; i < mBufferSize; i++)
             mMeshes.push_back(mesh.Clone());
  		mpCommunicator->SetLocalMesh(pGetMesh());  // assigning the current mesh to the local mesh of communicator for openmp cases
@@ -284,7 +291,9 @@ public:
     /// Copy constructor.
 
     ModelPart(ModelPart const& rOther)
-        : mName(rOther.mName)
+        : DataValueContainer(rOther)
+        , Flags(rOther)
+        , mName(rOther.mName)
         , mBufferSize(rOther.mBufferSize)
         , mCurrentIndex(rOther.mCurrentIndex)
         , mpProcessInfo(rOther.mpProcessInfo)
@@ -360,6 +369,8 @@ public:
         if (mCurrentIndex >= mBufferSize)
             mCurrentIndex = 0;
 
+
+        // TODO: I have to delete this!!! Pooyan.
         mMeshes(mCurrentIndex) = MeshType::Pointer(new MeshType);
         mIndices[mCurrentIndex] = new_index;
 
