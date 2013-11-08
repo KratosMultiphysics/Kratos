@@ -93,7 +93,6 @@ balls_variables_to_add = [FLUID_VEL_PROJECTED,
 
 DEM_inlet_variables_to_add = balls_variables_to_add
 
-
 # Constructing a DEM_procedures object
 DEM_proc = DEMProc.Procedures(DEM_parameters)
 ##AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -385,19 +384,16 @@ if (ProjectParameters.InletOption):
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
     DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor)
 
-def yield_DEM_time(time_dem_initial, time_final, Dt_DEM, scheme_type):
+def yield_DEM_time(current_time, current_time_plus_increment, DEM_delta_time, scheme_type):
 
-    while time_dem_initial < time_final:
+    while current_time < current_time_plus_increment - DEM_delta_time:
+        current_time += DEM_delta_time
+        yield current_time
 
-        if (scheme_type == "updated_DEM"):
-            time_dem_initial += Dt_DEM
+    if (scheme_type == "updated_DEM"):
+        current_time += DEM_delta_time
+        yield current_time
 
-        yield time_dem_initial
-
-        if (scheme_type == "updated_fluid"):
-            time_dem_initial += Dt_DEM
-
-    yield time_final
 
 # TEMPORARY!!! here we set the nodal variables to zero to avoid indefinitions that we don't know why they appear
 SwimProc.InitializeVariablesToZero(fluid_model_part, fluid_variables_to_add)
@@ -440,7 +436,7 @@ while(time <= final_time):
                     
     print "Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)"
             
-    for time_dem in yield_DEM_time(time_dem, time, Dt_DEM, ProjectParameters.CouplingSchemeType):
+    for time_dem in yield_DEM_time(time_dem, time_dem + Dt, Dt_DEM, ProjectParameters.CouplingSchemeType):
 				
         DEM_step = DEM_step + 1
         balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
