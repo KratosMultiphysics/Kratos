@@ -28,7 +28,11 @@ PyList_Insert(sysPath,0, PyString_FromString("python27.zip"));
 	 // return 1;
   //}
 
-  PyObject* PyFileObject = PyFile_FromString(argv[1], "r");
+  char filename[1024];
+  char options[128];
+  strcpy(filename,argv[1]);
+  strcpy(options,"r");
+  PyObject* PyFileObject = PyFile_FromString(filename, options);
   int error_code = PyRun_SimpleFile(PyFile_AsFile(PyFileObject), argv[1]);
   
   //PyRun_SimpleFile (fp, argv[1]);
