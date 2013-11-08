@@ -13,6 +13,7 @@
 #
 #  HISTORY:
 # 
+#   1.8- 09/11/13- GSM, change Ecape by Escape
 #   1.7- 16/07/13- GSM, modify the proc ShowPropertyBySectionType to enable the properties as a function of the selected element type and section type
 #                       - modify the proc buildTabFrame to show the thickness as a function of the selected element type
 #   1.6- 15/07/13- GSM, set filterGroups to [::KMProps::GetAvailableGiDGroups] to use only normal or disabled GiD group 
@@ -1310,7 +1311,7 @@ proc ::KMProps::buildTabFrame { T item {class "Tab"} } {
 	}
 	
 	# Si pulsan Esc también forzamos la salida del Tab
-	bind $T <Ecape> [list ::KMProps::DestroyBottomFrame]
+	bind $T <Escape> [list ::KMProps::DestroyBottomFrame]
 	#bind $T <Return> [list ::KMProps::acceptTabFrame $T $acceptItems $class $item]
 	#bind $::KMProps::WinPath <Return> [list ::KMProps::acceptTabFrame $T $acceptItems $class $item]
 
