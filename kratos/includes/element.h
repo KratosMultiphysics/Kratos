@@ -314,7 +314,7 @@ public:
     /**
      * ELEMENTS inherited from this class must implement this methods
      * if they need the values of the time derivatives of any of the dof 
-     * set by the condition. If the derivatives do not exist can set to zero
+     * set by the element. If the derivatives do not exist can set to zero
      * these methods are: MANDATORY ( when compatibility with dynamics is required )
      */
 
@@ -342,7 +342,7 @@ public:
     /**
      * ELEMENTS inherited from this class must implement next methods
      * Initialize, ResetConstitutiveLaw, CleanMemory
-     * if the condition needs to perform any operation before any calculation is done
+     * if the element needs to perform any operation before any calculation is done
      * reset material and constitutive parameters
      * or clean memory deleting obsolete variables
      * this methods are: OPTIONAL
@@ -410,7 +410,7 @@ public:
     }
 
     /**
-     * CONDITIONS inherited from this class have to implement next 
+     * ELEMENTS inherited from this class have to implement next 
      * CalculateLocalSystem, CalculateLeftHandSide and CalculateRightHandSide methods
      * they can be managed internally with a private method to do the same calculations 
      * only once: MANDATORY
@@ -489,8 +489,8 @@ public:
     }
 
     /**
-     * CONDITIONS inherited from this class must implement this methods
-     * if they need to add dynamic condition contributions 
+     * ELEMENTS inherited from this class must implement this methods
+     * if they need to add dynamic element contributions 
      * MassMatrix, AddMassMatrix, DampMatrix, AddInertiaForces and 
      * CalculateLocalVelocityContribution methods are: OPTIONAL
      */    
@@ -554,8 +554,8 @@ public:
     }
 
     /**
-     * CONDITIONS inherited from this class must implement this methods
-     * if they need to write something at the condition geometry nodes
+     * ELEMENTS inherited from this class must implement this methods
+     * if they need to write something at the element geometry nodes
      * AddExplicitContribution methods are: OPTIONAL ( avoid to use them if is not needed )
      */
 
@@ -597,8 +597,8 @@ public:
     }
        
     /**
-     * Calculate a Condition variable usually associated to a integration point
-     * the Output is given on integration points and characterizes the condition
+     * Calculate a Element variable usually associated to a integration point
+     * the Output is given on integration points and characterizes the element
      * Calculate(..) methods are: OPTIONAL
      */
 
@@ -629,7 +629,7 @@ public:
     /**
      * Calculate variables on Integration points.
      * This gives access to variables computed in the constitutive law on each integration point.
-     * Specialisations of condition must specify the actual interface to the integration points!
+     * Specialisations of element must specify the actual interface to the integration points!
      * Note, that these functions expect a std::vector of values for the specified variable type that
      * contains a value for each integration point!
      * CalculateValueOnIntegrationPoints: calculates the values of given Variable.
@@ -663,7 +663,7 @@ public:
     /**
      * Access for variables on Integration points.
      * This gives access to variables stored in the constitutive law on each integration point.
-     * Specializations of condition must specify the actual interface to the integration points!
+     * Specializations of element must specify the actual interface to the integration points!
      * Note, that these functions expect a std::vector of values for the specified variable type that
      * contains a value for each integration point!
      * SetValueOnIntegrationPoints: set the values for given Variable.
@@ -970,7 +970,7 @@ private:
     ///@{
 
     /**
-     * pointer to the data related to this condition
+     * pointer to the data related to this element
      */
     DataValueContainer mData;
     
