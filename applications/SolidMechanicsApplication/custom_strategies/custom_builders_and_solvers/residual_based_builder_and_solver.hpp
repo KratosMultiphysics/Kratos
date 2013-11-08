@@ -31,29 +31,18 @@ namespace Kratos
 
 /**@name Kratos Globals */
 /*@{ */
-
-
 /*@} */
 /**@name Type Definitions */
 /*@{ */
-
 /*@} */
-
-
 /**@name  Enum's */
 /*@{ */
-
-
 /*@} */
 /**@name  Functions */
 /*@{ */
-
-
-
 /*@} */
 /**@name Kratos Classes */
 /*@{ */
-
 
 template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
@@ -67,7 +56,6 @@ public:
     /*@{ */
     //typedef boost::shared_ptr< ResidualBasedBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBuilderAndSolver);
-
 
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -86,10 +74,13 @@ public:
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
+
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
     typedef typename BaseType::NodesArrayType NodesArrayType;
+
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
+
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
 
     typedef typename BaseType::ElementsContainerType ElementsContainerType;
@@ -105,9 +96,6 @@ public:
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver)
     {
-
-        /* 			std::cout << "using the standard builder and solver " << std::endl; */
-
     }
 
     /** Destructor.
@@ -152,8 +140,7 @@ public:
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
-        //vector containing the localization in the system of the different
-        //terms
+        //vector containing the localization in the system of the different terms
         Element::EquationIdVectorType EquationId;
 
         //double StartTime = GetTickCount();
@@ -858,8 +845,9 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b)
     {
+        KRATOS_TRY
+        KRATOS_CATCH("")
     }
-
 
     //**************************************************************************
     //**************************************************************************
@@ -954,43 +942,32 @@ public:
     }
 
 
-
     /*@} */
     /**@name Operations */
     /*@{ */
-
-
     /*@} */
     /**@name Access */
     /*@{ */
-
-
     /*@} */
     /**@name Inquiry */
     /*@{ */
-
-
     /*@} */
     /**@name Friends */
     /*@{ */
-
-
     /*@} */
 
 protected:
     /**@name Protected static Member Variables */
     /*@{ */
-
-
     /*@} */
     /**@name Protected member Variables */
     /*@{ */
-
-
     /*@} */
     /**@name Protected Operators*/
     /*@{ */
-    //**************************************************************************
+
+    //******************************************************************************************
+    //******************************************************************************************
 
     virtual void ConstructMatrixStructure(
         TSystemMatrixType& A,
@@ -1001,7 +978,7 @@ protected:
 
         std::size_t equation_size = A.size1();
         std::vector<std::vector<std::size_t> > indices(equation_size);
-        //				std::vector<std::vector<std::size_t> > dirichlet_indices(TSystemSpaceType::Size1(mDirichletMatrix));
+        //std::vector<std::vector<std::size_t> > dirichlet_indices(TSystemSpaceType::Size1(mDirichletMatrix));
 
         Element::EquationIdVectorType ids(3, 0);
         for (typename ElementsContainerType::iterator i_element = rElements.begin(); i_element != rElements.end(); i_element++)
@@ -1090,7 +1067,8 @@ protected:
         Timer::Stop("MatrixStructure");
     }
 
-    //**************************************************************************
+    //******************************************************************************************
+    //******************************************************************************************
 
     void AssembleLHS(
         TSystemMatrixType& A,
@@ -1116,8 +1094,8 @@ protected:
     }
 
 
-
-    //**************************************************************************
+    //******************************************************************************************
+    //******************************************************************************************
 
     void AssembleRHS(
         TSystemVectorType& b,
@@ -1160,49 +1138,8 @@ protected:
     }
 
 
-
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
-
-
-
-    /*@} */
-
-private:
-    /**@name Static Member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
-
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
-
-    //**************************************************************************
+    //******************************************************************************************
+    //******************************************************************************************
 
     void AssembleLHS_CompleteOnFreeRows(
         TSystemMatrixType& A,
@@ -1258,6 +1195,11 @@ private:
             partitions[i] = partitions[i - 1] + partition_size;
     }
 
+
+    //******************************************************************************************
+    //******************************************************************************************
+
+
 #ifdef _OPENMP
 
     void Assemble(
@@ -1296,23 +1238,109 @@ private:
             //note that computation of reactions is not performed here!
         }
     }
+
+    //******************************************************************************************
+    //******************************************************************************************
+
+    void AssembleLHS(
+        TSystemMatrixType& A,
+        const LocalSystemMatrixType& LHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        std::vector< omp_lock_t >& lock_array
+    )
+    {
+        unsigned int local_size = LHS_Contribution.size1();
+
+        for (unsigned int i_local = 0; i_local < local_size; i_local++)
+        {
+            unsigned int i_global = EquationId[i_local];
+
+            if (i_global < BaseType::mEquationSystemSize)
+            {
+                omp_set_lock(&lock_array[i_global]);
+
+                for (unsigned int j_local = 0; j_local < local_size; j_local++)
+                {
+                    unsigned int j_global = EquationId[j_local];
+                    if (j_global < BaseType::mEquationSystemSize)
+                    {
+                        A(i_global, j_global) += LHS_Contribution(i_local, j_local);
+                    }
+                }
+
+                omp_unset_lock(&lock_array[i_global]);
+
+
+            }
+            //note that computation of reactions is not performed here!
+        }
+    }
+
+    //******************************************************************************************
+    //******************************************************************************************
+    void AssembleRHS(
+        TSystemVectorType& b,
+        const LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        std::vector< omp_lock_t >& lock_array
+    )
+    {
+        unsigned int local_size = RHS_Contribution.size();
+
+        for (unsigned int i_local = 0; i_local < local_size; i_local++)
+        {
+            unsigned int i_global = EquationId[i_local];
+
+            if (i_global < BaseType::mEquationSystemSize)
+            {
+                omp_set_lock(&lock_array[i_global]);
+
+                b[i_global] += RHS_Contribution(i_local);
+
+                omp_unset_lock(&lock_array[i_global]);
+            }
+            //note that computation of reactions is not performed here!
+        }
+    }
+
+
 #endif
 
     /*@} */
+    /**@name Protected Operations*/
+    /*@{ */
+    /*@} */
+    /**@name Protected  Access */
+    /*@{ */
+    /*@} */
+    /**@name Protected Inquiry */
+    /*@{ */
+    /*@} */
+    /**@name Protected LifeCycle */
+    /*@{ */
+    /*@} */
+
+private:
+    /**@name Static Member Variables */
+    /*@{ */
+    /*@} */
+    /**@name Member Variables */
+    /*@{ */
+    /*@} */
+    /**@name Private Operators*/
+    /*@{ */
+    /*@} */
+    /**@name Private Operations*/
+    /*@{ */
+    /*@} */
     /**@name Private  Access */
     /*@{ */
-
-
     /*@} */
     /**@name Private Inquiry */
     /*@{ */
-
-
     /*@} */
     /**@name Un accessible methods */
     /*@{ */
-
-
     /*@} */
 
 }; /* Class ResidualBasedBuilderAndSolver */
@@ -1321,8 +1349,6 @@ private:
 
 /**@name Type Definitions */
 /*@{ */
-
-
 /*@} */
 
 } /* namespace Kratos.*/

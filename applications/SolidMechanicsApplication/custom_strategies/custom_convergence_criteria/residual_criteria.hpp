@@ -174,9 +174,6 @@ public:
         }
     }
 
-
-
-
     void Initialize(
         ModelPart& r_model_part
     )

@@ -162,21 +162,18 @@ public:
     virtual ~ResidualBasedBossakScheme
     () {}
 
-    /**@name Operators */
-
-    /*@} */
+   /*@} */
     /**@name Operators
      */
     /*@{ */
 
-    /**
-       Performing the update of the solution.
-    */
-
 
     //***************************************************************************
+    //***************************************************************************
+
     /**
-     * incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
+     * Performing the update of the solution
+     * Incremental update within newton iteration. It updates the state variables at the end of the time step: u_{n+1}^{k+1}= u_{n+1}^{k}+ \Delta u
      * @param r_model_part
      * @param rDofSet set of all primary variables
      * @param A	LHS matrix
@@ -225,7 +222,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
 
 
     //***************************************************************************
@@ -328,9 +324,9 @@ public:
 
     }
 
+    //***************************************************************************
+    //***************************************************************************
 
-    //***************************************************************************
-    //***************************************************************************
     /**
     this is the place to initialize the elements.
     This is intended to be called just once when the strategy is initialized
@@ -362,6 +358,8 @@ public:
         KRATOS_CATCH("")
     }
 
+    //***************************************************************************
+    //***************************************************************************
 
     /**
     this is the place to initialize the conditions.
@@ -394,6 +392,9 @@ public:
         this->mConditionsAreInitialized = true;
         KRATOS_CATCH("")
     }
+
+    //***************************************************************************
+    //***************************************************************************
 
     /**
      * initializes time step solution
@@ -436,6 +437,7 @@ public:
 
         KRATOS_CATCH("")
     }
+
     //***************************************************************************
     //***************************************************************************
 
@@ -535,14 +537,6 @@ public:
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
     }
 
-
-
-    //***************************************************************************
-    //***************************************************************************
-
-
-
-
     //***************************************************************************
     //***************************************************************************
 
@@ -588,6 +582,9 @@ public:
         KRATOS_CATCH("")
     }
 
+    //***************************************************************************
+    //***************************************************************************
+
     void Calculate_RHS_Contribution(
         Element::Pointer rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
@@ -625,6 +622,8 @@ public:
 
     }
 
+    //***************************************************************************
+    //***************************************************************************
 
     /** functions totally analogous to the precedent but applied to
           the "condition" objects
@@ -672,9 +671,8 @@ public:
         KRATOS_CATCH("")
     }
 
-
-    /**       At the current status of implementation it does nothing
-     */
+    //***************************************************************************
+    //***************************************************************************
 
     void Condition_Calculate_RHS_Contribution(
         Condition::Pointer rCurrentCondition,
@@ -715,6 +713,8 @@ public:
         KRATOS_CATCH("")
     }
 
+    //***************************************************************************
+    //***************************************************************************
 
     /** Function that returns the list of Degrees of freedom to be
     assembled in the system for a Given Element
@@ -727,6 +727,9 @@ public:
         rCurrentElement->GetDofList(ElementalDofList, CurrentProcessInfo);
     }
 
+    //***************************************************************************
+    //***************************************************************************
+
     /** Function that returns the list of Degrees of freedom to be
     assembled in the system for a Given Element
      */
@@ -738,6 +741,8 @@ public:
         rCurrentCondition->GetDofList(ConditionDofList, CurrentProcessInfo);
     }
 
+    //***************************************************************************
+    //***************************************************************************
 
     /**
      * This function is designed to be called once to perform all the checks needed
@@ -801,35 +806,31 @@ public:
         KRATOS_CATCH("");
     }
 
-
     /*@} */
     /**@name Operations */
     /*@{ */
-
-
     /*@} */
     /**@name Access */
     /*@{ */
-
-
     /*@} */
     /**@name Inquiry */
     /*@{ */
-
-
     /*@} */
     /**@name Friends */
     /*@{ */
 
 protected:
-
-
+    /**@name Static Member Variables */
+    /*@{ */
+    /*@} */
+    /**@name Member Variables */
+    /*@{ */
+    
     GeneralAlphaMethod  mAlpha;
     NewmarkMethod       mNewmark;
 
     GeneralMatrices     mMatrix;
     GeneralVectors      mVector;
-
 
     /*@} */
     /**@name Protected Operators*/
@@ -952,7 +953,6 @@ protected:
     //Conditions:
     //****************************************************************************
 
-
     void AddDynamicsToRHS(
         Condition::Pointer rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
@@ -989,14 +989,6 @@ protected:
 
     }
 
-
-
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
     /*@} */
     /**@name Protected Operations*/
     /*@{ */
@@ -1015,7 +1007,6 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    //DofsVectorType mElementalDofList;
     /*@} */
     /**@name Private Operators*/
     /*@{ */
@@ -1031,7 +1022,7 @@ private:
     /*@} */
     /**@name Unaccessible methods */
     /*@{ */
-}; /* Class Scheme */
+}; /* Class ResidualBasedBossakScheme */
 }  /* namespace Kratos.*/
 
 #endif /* KRATOS_RESIDUAL_BASED_BOSSAK_SCHEME defined */
