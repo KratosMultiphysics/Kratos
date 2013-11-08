@@ -18,6 +18,7 @@ from numpy import *
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
 
 ### BENCHMARK ###
 import DEM_explicit_solver_var as DEM_parameters
@@ -42,6 +43,12 @@ proc = DEM_procedures.Procedures(DEM_parameters)
 
 my_timer = Timer();
 balls_model_part = ModelPart("SolidPart");
+
+RigidFace_model_part   = ModelPart("RigidFace_Part");  
+mixed_model_part       = ModelPart("Mixed_Part");
+
+RigidFace_model_part.AddNodalSolutionStepVariable(VELOCITY)
+RigidFace_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
 
 # Importing the strategy object
 
@@ -70,6 +77,10 @@ gid_io = GidIO(DEM_parameters.problem_name, gid_mode, multifile, deformed_mesh_f
 model_part_io_solid = ModelPartIO(DEM_parameters.problem_name)
 model_part_io_solid.ReadModelPart(balls_model_part)
 
+
+model_part_io_solid = ModelPartIO("RigidFace_Part")
+model_part_io_solid.ReadModelPart(RigidFace_model_part)
+
 # Setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 
 balls_model_part.SetBufferSize(2)
@@ -84,8 +95,7 @@ creator_destructor = ParticleCreatorDestructor()
 
 # Creating a solver object
 
-solver = SolverStrategy.ExplicitStrategy(balls_model_part, creator_destructor, DEM_parameters) #here, solver variables initialize as default
-
+solver = SolverStrategy.ExplicitStrategy(balls_model_part, RigidFace_model_part,creator_destructor, DEM_parameters) #here, solver variables initialize as default
 
 # Creating necessary directories
 
@@ -174,10 +184,18 @@ if (DEM_parameters.Multifile == "single_file"):
       gid_io.FinalizeMesh()
       gid_io.InitializeResults(0.0, contact_model_part.GetMesh());
 
-  gid_io.InitializeMesh(0.0)
+  #gid_io.InitializeMesh(0.0)
+  #gid_io.WriteSphereMesh(balls_model_part.GetMesh())
+  #gid_io.FinalizeMesh()
+  #gid_io.InitializeResults(0.0, balls_model_part.GetMesh());
+
+  ParticleUtils2D().VisualizationModelPart(mixed_model_part,balls_model_part, RigidFace_model_part)
+  gid_io.InitializeMesh(0.0) 
+  gid_io.WriteMesh(RigidFace_model_part.GetMesh())
   gid_io.WriteSphereMesh(balls_model_part.GetMesh())
   gid_io.FinalizeMesh()
-  gid_io.InitializeResults(0.0, balls_model_part.GetMesh());
+  gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
+
 
 #------------------------------------------------------------------------------------------
 
@@ -292,7 +310,11 @@ while (time < DEM_parameters.FinalTime):
             gid_io.FinalizeMesh()
             gid_io.InitializeResults(time, balls_model_part.GetMesh());
 
-        proc.PrintingVariables(gid_io, export_model_part, time)
+        #proc.PrintingVariables(gid_io, export_model_part, time)
+        #131107,export according to mixed_model_part
+        gid_io.WriteNodalResults(DISPLACEMENT, mixed_model_part.Nodes, time, 0)
+        gid_io.WriteNodalResults(VELOCITY, mixed_model_part.Nodes, time, 0)
+        
         os.chdir(main_path)
 
         time_old_print = time
