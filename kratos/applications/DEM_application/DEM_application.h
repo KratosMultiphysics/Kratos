@@ -32,6 +32,8 @@
 #include "custom_elements/spheric_swimming_particle.h"
 #include "custom_elements/DEM_FEM_Particle.h"
 #include "custom_elements/Particle_Contact_Element.h"
+#include "custom_conditions/RigidFace.h"
+#include "custom_conditions/RigidEdge.h"
 
 
 const long double pi = 3.141592653589793238462643383279;  //this one is used in the forward_euler_scheme... does it have to be here?
@@ -336,6 +338,14 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(Vector, PARTICLE_BLOCK_CONTACT_FAILURE_ID)
   KRATOS_DEFINE_VARIABLE(Vector, PARTICLE_BLOCK_IF_INITIAL_CONTACT)
   KRATOS_DEFINE_VARIABLE(WeakPointerVector<Element >, NEIGHBOUR_PARTICLE_BLOCK_ELEMENTS)
+  
+  KRATOS_DEFINE_VARIABLE(WeakPointerVector<Condition >,     NEIGHBOUR_RIGID_FACES)
+  
+  KRATOS_DEFINE_VARIABLE(WeakPointerVector<Element >, NEIGHBOUR_PARTICLE_OF_RIGID_FACE)
+  
+  KRATOS_DEFINE_VARIABLE(Vector,   NEIGHBOUR_RIGID_FACES_PRAM)
+  
+  KRATOS_DEFINE_VARIABLE(Vector,   NEIGHBOUR_RIGID_FACES_CONTACT_FORCE)
 
   // DUMMIES INT AND DOUBLE VARIABLES
 
@@ -353,9 +363,20 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(int, PRINT_SKIN_SPHERE)
   KRATOS_DEFINE_VARIABLE(int, PRINT_GROUP_ID)
   KRATOS_DEFINE_VARIABLE(int, PRINT_RADIAL_DISPLACEMENT)
-
-
-
+  
+  
+  ///Cfeng,131013,RigidFace Movement
+  KRATOS_DEFINE_VARIABLE(double, RIGID_FACE_ROTA_SPEED)
+  KRATOS_DEFINE_VARIABLE(double, RIGID_FACE_AXIAL_SPEED)
+  KRATOS_DEFINE_VARIABLE(int,    RIGID_FACE_PROP_ID)
+  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(RIGID_FACE_ROTA_ORIGIN_COORD)
+  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(RIGID_FACE_ROTA_AXIAL_DIR)
+  KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(RIGID_FACE_ROTA_GLOBAL_VELOCITY)
+  KRATOS_DEFINE_VARIABLE(double, RIGID_FACE_BEGIN_TIME)
+  KRATOS_DEFINE_VARIABLE(double, RIGID_FACE_END_TIME)
+  KRATOS_DEFINE_VARIABLE(int, RIGID_FACE_FLAG)
+  KRATOS_DEFINE_VARIABLE(Vector, RIGID_FACE_COMPUTE_MOVEMENT)
+  
 class KratosDEMApplication : public KratosApplication
 {
 public:
@@ -491,6 +512,11 @@ private:
     
     const Particle_Contact_Element mParticleContactElement;
     const VariablesList mVariablesList;
+	
+	
+	const RigidFace3D  mRigidFace3D3N;
+    const RigidFace3D  mRigidFace3D4N;
+	const RigidEdge3D  mRigidEdge3D2N;
 
     //       static const ApplicationCondition  msApplicationCondition;
 
