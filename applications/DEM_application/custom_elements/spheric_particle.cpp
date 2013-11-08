@@ -760,7 +760,6 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 		double kn             = young * area / (2.0 * radius);
 		double ks             = kn / (2.0 * (1.0 + poisson));
 		
-
         std::size_t iRigidFaceNeighbour = 0;
 
         for(ConditionWeakIteratorType ineighbour = rNeighbours.begin(); ineighbour != rNeighbours.end(); ineighbour++)
