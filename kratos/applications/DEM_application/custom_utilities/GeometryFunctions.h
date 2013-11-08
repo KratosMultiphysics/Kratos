@@ -446,7 +446,7 @@ namespace Kratos
 			Vector1[0] = Particle_Coord[0] - PointCoord[0];
 			Vector1[1] = Particle_Coord[1] - PointCoord[1];		
 			Vector1[2] = Particle_Coord[2] - PointCoord[2];			
-			norm(Vector1);
+			normalize(Vector1);
 			
 			ComputeContactLocalCoordSystem(Vector1, LocalCoordSystem); 
 		}
@@ -471,18 +471,18 @@ namespace Kratos
 		 Vector1[0] = EdgeCoord2[0] - EdgeCoord1[0];
 		 Vector1[1] = EdgeCoord2[1] - EdgeCoord1[1];
 		 Vector1[2] = EdgeCoord2[2] - EdgeCoord1[2];
-		 norm(Vector1);
+		 normalize(Vector1);
 		
 		 Vector2[0] = Particle_Coord[0] - EdgeCoord1[0];
 		 Vector2[1] = Particle_Coord[1] - EdgeCoord1[1];
 		 Vector2[2] = Particle_Coord[2] - EdgeCoord1[2];
-		 norm(Vector2);
+		 normalize(Vector2);
 		 
 		 CrossProduct(Vector1, Vector2, Vector3);		 
-		 norm(Vector3);
+		 normalize(Vector3);
 		 
 		 CrossProduct(Vector3, Vector1, NormalV);
-		 norm(NormalV);
+		 normalize(NormalV);
 		 
 		 
 		 
@@ -556,18 +556,18 @@ namespace Kratos
 		 Vector1[0] = EdgeCoord2[0] - EdgeCoord1[0];
 		 Vector1[1] = EdgeCoord2[1] - EdgeCoord1[1];
 		 Vector1[2] = EdgeCoord2[2] - EdgeCoord1[2];
-		 norm(Vector1);
+		 normalize(Vector1);
 		
 		 Vector2[0] = Particle_Coord[0] - EdgeCoord1[0];
 		 Vector2[1] = Particle_Coord[1] - EdgeCoord1[1];
 		 Vector2[2] = Particle_Coord[2] - EdgeCoord1[2];
-		 norm(Vector2);
+		 normalize(Vector2);
 		 
 		 CrossProduct(Vector1, Vector2, Vector3);		 
-		 norm(Vector3);
+		 normalize(Vector3);
 		 
 		 CrossProduct(Vector3, Vector1, NormalV);
-		 norm(NormalV);
+		 normalize(NormalV);
 		 
 		 
 		 
