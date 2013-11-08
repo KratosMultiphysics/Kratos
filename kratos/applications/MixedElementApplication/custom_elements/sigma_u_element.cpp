@@ -685,10 +685,10 @@ void SigmaUElement::DampMatrix(MatrixType& rDampMatrix, ProcessInfo & rCurrentPr
 //************************************************************************************
 //************************************************************************************
 
-void SigmaUElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, Vector& Output, const ProcessInfo & rCurrentProcessInfo)
+void SigmaUElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& Output, const ProcessInfo & rCurrentProcessInfo)
 {
     if (Output.size() != mConstitutiveLawVector.size())
-        Output.resize(mConstitutiveLawVector.size(), false);
+        Output.resize(mConstitutiveLawVector.size());
 
     for (unsigned int ii = 0; ii < mConstitutiveLawVector.size(); ii++)
         Output[ii] = mConstitutiveLawVector[ii]->GetValue(rVariable, Output[ii]);
