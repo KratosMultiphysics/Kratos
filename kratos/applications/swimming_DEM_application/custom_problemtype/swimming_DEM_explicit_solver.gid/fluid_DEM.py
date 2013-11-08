@@ -384,15 +384,15 @@ if (ProjectParameters.InletOption):
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
     DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor)
 
-def yield_DEM_time(current_time, current_time_plus_increment, DEM_delta_time, scheme_type):
+def yield_DEM_time(current_time, current_time_plus_increment, delta_time, scheme_type):
+    current_time += DEM_delta_time
 
-    while current_time < current_time_plus_increment - DEM_delta_time:
-        current_time += DEM_delta_time
+    while current_time < current_time_plus_increment - delta_time:
         yield current_time
+        current_time += delta_time
 
-    if (scheme_type == "updated_DEM"):
-        current_time += DEM_delta_time
-        yield current_time
+    current_time = current_time_plus_increment
+    yield current_time
 
 
 # TEMPORARY!!! here we set the nodal variables to zero to avoid indefinitions that we don't know why they appear
@@ -411,17 +411,30 @@ while(time <= final_time):
 
     else:
         Dt = full_Dt
-        
+
+#SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
     print "\n" , "TIME = " , time 
      
-    step     = step + 1
-
-    time_dem = time
-
-    if (ProjectParameters.CouplingSchemeType == "updated_DEM"):
-        time_dem += Dt
-
     time = time + Dt
+
+    if(step < 2):
+
+         if (ProjectParameters.CouplingSchemeType == "updated_DEM"):
+             time_final_DEM_substepping = time + initial_fluid_dt
+
+         else:
+             time_final_DEM_substepping = time
+
+     else:
+
+         if(updated_DEM):
+             time_final_DEM_substepping = time + full_Dt
+
+         else:
+             time_final_DEM_substepping = time
+
+    step = step + 1
+
     fluid_model_part.CloneTimeStep(time)
 
     if(step >= 3):
@@ -429,16 +442,28 @@ while(time <= final_time):
         print "Solving Fluid... (", fluid_model_part.NumberOfElements(0), " elements)"
         fluid_solver.Solve()
 
-#SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
-        if (time >= ProjectParameters.Interaction_start_time and ProjectParameters.ProjectionModuleOption):
-            interaction_calculator.CalculatePressureGradient(fluid_model_part)
+        if(output_time <= out and ProjectParameters.CouplingSchemeType == "updated_DEM"):
+            ParticleUtils2D().VisualizationModelPart(mixed_model_part, fluid_model_part, balls_model_part)
+            swimming_DEM_gid_io.write_swimming_DEM_results(
+                time,
+                fluid_model_part,
+                balls_model_part,
+                mixed_model_part,
+                ProjectParameters.nodal_results,
+                ProjectParameters.DEM_nodal_results,
+                ProjectParameters.mixed_nodal_results,
+                ProjectParameters.gauss_points_results)
+
+            out = 0
+
+    if (time >= ProjectParameters.Interaction_start_time and ProjectParameters.ProjectionModuleOption):
+        interaction_calculator.CalculatePressureGradient(fluid_model_part)
                     
     print "Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)"
             
-    for time_dem in yield_DEM_time(time_dem, time_dem + Dt, Dt_DEM, ProjectParameters.CouplingSchemeType):
+    for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM, ProjectParameters.CouplingSchemeType):
 				
-        DEM_step = DEM_step + 1
         balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
                 
         if (time >= ProjectParameters.Interaction_start_time and ProjectParameters.ProjectAtEverySubStepOption):
@@ -447,7 +472,7 @@ while(time <= final_time):
                 projection_module.ProjectFromNewestFluid()
 
             else:
-                projection_module.ProjectFromFluid((time_dem + Dt - time) / Dt)
+                projection_module.ProjectFromFluid((time_final_DEM_substepping - time_dem) / Dt)
                 
         balls_model_part.CloneTimeStep(time_dem)
         DEM_solver.Solve()
@@ -472,7 +497,7 @@ while(time <= final_time):
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-    if(output_time <= out):
+    if(output_time <= out and ProjectParameters.CouplingSchemeType == "updated_fluid"):
         ParticleUtils2D().VisualizationModelPart(mixed_model_part, fluid_model_part, balls_model_part)
 
 # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
