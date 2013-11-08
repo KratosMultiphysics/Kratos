@@ -49,6 +49,7 @@ namespace Kratos
 
       ContinuumExplicitSolverStrategy(
                              ModelPart& model_part,
+							 ModelPart& fem_model_part,
                              ModelPart& contacts_model_part,
                              const double max_delta_time,
                              const double n_step_search,
@@ -59,7 +60,7 @@ namespace Kratos
                              typename ParticleCreatorDestructor::Pointer p_creator_destructor,
                              typename IntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch
-      ): ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, max_delta_time, n_step_search, safety_factor, MoveMeshFlag, p_creator_destructor, pScheme, pSpSearch), mcontacts_model_part(contacts_model_part)
+      ): ExplicitSolverStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part, fem_model_part, max_delta_time, n_step_search, safety_factor, MoveMeshFlag, p_creator_destructor, pScheme, pSpSearch), mcontacts_model_part(contacts_model_part)
       {
           //mdelta_option                 = delta_option;
           //mcontinuum_simulating_option  = continuum_simulating_option;
