@@ -15,6 +15,8 @@
 #include "DEM_application.h"
 #include "geometries/point_3d.h"
 #include "geometries/line_3d_2.h"
+#include "geometries/quadrilateral_3d_4.h"
+#include "geometries/triangle_3d_3.h"
 
 namespace Kratos
 {
@@ -311,6 +313,14 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(Vector, PARTICLE_BLOCK_CONTACT_FAILURE_ID)
   KRATOS_CREATE_VARIABLE(Vector, PARTICLE_BLOCK_IF_INITIAL_CONTACT)
   KRATOS_CREATE_VARIABLE(WeakPointerVector<Element >, NEIGHBOUR_PARTICLE_BLOCK_ELEMENTS)
+  
+  KRATOS_CREATE_VARIABLE(WeakPointerVector<Condition >,     NEIGHBOUR_RIGID_FACES)
+
+  KRATOS_CREATE_VARIABLE(Vector,    NEIGHBOUR_RIGID_FACES_PRAM)
+  
+  KRATOS_CREATE_VARIABLE(WeakPointerVector<Element >, NEIGHBOUR_PARTICLE_OF_RIGID_FACE)
+  
+  KRATOS_CREATE_VARIABLE(Vector,   NEIGHBOUR_RIGID_FACES_CONTACT_FORCE)
 
   // DUMMIES INT AND DOUBLE VARIABLES
 
@@ -329,6 +339,19 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(int, PRINT_GROUP_ID)
   KRATOS_CREATE_VARIABLE(int, PRINT_RADIAL_DISPLACEMENT)
   
+  
+  
+    ///Cfeng,131013,RigidFace Movement
+  KRATOS_CREATE_VARIABLE(double, RIGID_FACE_ROTA_SPEED)
+  KRATOS_CREATE_VARIABLE(double, RIGID_FACE_AXIAL_SPEED)
+  KRATOS_CREATE_VARIABLE(int,    RIGID_FACE_PROP_ID)
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(RIGID_FACE_ROTA_ORIGIN_COORD)
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(RIGID_FACE_ROTA_AXIAL_DIR)
+  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(RIGID_FACE_ROTA_GLOBAL_VELOCITY)
+  KRATOS_CREATE_VARIABLE(double, RIGID_FACE_BEGIN_TIME)
+  KRATOS_CREATE_VARIABLE(double, RIGID_FACE_END_TIME)
+  KRATOS_CREATE_VARIABLE(int, RIGID_FACE_FLAG)
+  KRATOS_CREATE_VARIABLE(Vector, RIGID_FACE_COMPUTE_MOVEMENT)
 
 
   /************************************************************************************************************************************************************/
@@ -343,9 +366,16 @@ namespace Kratos
   mSphericContinuumParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mSphericSwimmingParticle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
   mDEM_FEM_Particle3D( 0, Element::GeometryType::Pointer( new Point3D<Node<3> >( Element::GeometryType::PointsArrayType( 1, Node<3>() ) ) ) ),
-  mParticleContactElement( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
+  mParticleContactElement( 0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+  mRigidFace3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
+  mRigidFace3D4N( 0, Element::GeometryType::Pointer( new Quadrilateral3D4 <Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+  mRigidEdge3D2N( 0, Element::GeometryType::Pointer( new Line3D2 <Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) )
   {}
-        
+    
+    
+    
+	
+	
   void KratosDEMApplication::Register()
   {
 
@@ -650,6 +680,12 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(PARTICLE_BLOCK_CONTACT_FAILURE_ID)
     KRATOS_REGISTER_VARIABLE(PARTICLE_BLOCK_IF_INITIAL_CONTACT)
     KRATOS_REGISTER_VARIABLE(NEIGHBOUR_PARTICLE_BLOCK_ELEMENTS)
+	KRATOS_REGISTER_VARIABLE(NEIGHBOUR_RIGID_FACES)
+	KRATOS_REGISTER_VARIABLE(NEIGHBOUR_RIGID_FACES_PRAM)
+	KRATOS_REGISTER_VARIABLE(NEIGHBOUR_PARTICLE_OF_RIGID_FACE)
+	
+	KRATOS_REGISTER_VARIABLE(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE)
+
 
     // DUMMIES INT AND DOUBLE VARIABLES
 
@@ -667,8 +703,17 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(PRINT_RADIAL_DISPLACEMENT)
     
 
-
-    
+	///Cfeng,131013,RigidFace Movement
+	KRATOS_REGISTER_VARIABLE(RIGID_FACE_ROTA_SPEED)
+	KRATOS_REGISTER_VARIABLE(RIGID_FACE_AXIAL_SPEED)
+	KRATOS_REGISTER_VARIABLE(RIGID_FACE_PROP_ID)
+	KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(RIGID_FACE_ROTA_ORIGIN_COORD)
+	KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(RIGID_FACE_ROTA_AXIAL_DIR)
+	KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(RIGID_FACE_ROTA_GLOBAL_VELOCITY)
+	KRATOS_REGISTER_VARIABLE(RIGID_FACE_BEGIN_TIME)
+    KRATOS_REGISTER_VARIABLE(RIGID_FACE_END_TIME)
+	KRATOS_REGISTER_VARIABLE(RIGID_FACE_FLAG)
+    KRATOS_REGISTER_VARIABLE(RIGID_FACE_COMPUTE_MOVEMENT)
 
     // ELEMENTS
     KRATOS_REGISTER_ELEMENT("CylinderParticle2D", mCylinderParticle2D)
@@ -678,6 +723,14 @@ namespace Kratos
     KRATOS_REGISTER_ELEMENT("SphericSwimmingParticle3D", mSphericSwimmingParticle3D)
     KRATOS_REGISTER_ELEMENT("DEM_FEM_Particle3D", mDEM_FEM_Particle3D)
     KRATOS_REGISTER_ELEMENT("ParticleContactElement", mParticleContactElement)
+		
+	
+	KRATOS_REGISTER_CONDITION( "RigidFace3D", mRigidFace3D3N )
+	KRATOS_REGISTER_CONDITION( "RigidFace3D3N", mRigidFace3D3N )
+	KRATOS_REGISTER_CONDITION( "RigidFace3D4N", mRigidFace3D4N )
+	KRATOS_REGISTER_CONDITION( "RigidEdge3D", mRigidEdge3D2N )
+    KRATOS_REGISTER_CONDITION( "RigidEdge3D2N", mRigidEdge3D2N )
+
 
     // SERIALIZER
     Serializer::Register( "VariablesList", mVariablesList );
