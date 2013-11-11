@@ -509,7 +509,7 @@ public:
         if ( mMode == GiD_PostAscii && ! mResultFileOpen )
         {
             std::stringstream file_name;
-            file_name << mResultFileName << "_" << name << ".post.res";
+            file_name << mResultFileName << std::setprecision(12) << "_" << name << ".post.res";
             mResultFile = GiD_fOpenPostResultFile((char*)(file_name.str()).c_str(), mMode);
             mResultFileOpen = true;
             
