@@ -259,11 +259,10 @@ namespace Kratos
 
       void SphericSwimmingParticle::ComputeReynoldsNumber(int non_newtonian_option,
                                                           double norm_of_slip_vel,
-                                                          double fluid_density,
-                                                          double viscosity,
+                                                          double kinematic_viscosity,
                                                           double& reynolds)
       {
-          reynolds = 2 * mRadius * fluid_density * norm_of_slip_vel / viscosity; //dynamic viscosity was received
+          reynolds = 2 * mRadius * norm_of_slip_vel / kinematic_viscosity;
 
           if (!non_newtonian_option && reynolds < 0.01){
               reynolds = 0.01;
@@ -309,7 +308,7 @@ namespace Kratos
               KRATOS_TRY
 
               const double& particle_density             = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
-              const double viscosity                     = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
+              const double kinematic_viscosity           = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
               const double sphericity                    = GetGeometry()(0)->GetSolutionStepValue(PARTICLE_SPHERICITY);
               const array_1d<double,3>& buoyancy         = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);
               const array_1d<double,3>& gravity          = rCurrentProcessInfo[GRAVITY];
@@ -325,7 +324,6 @@ namespace Kratos
               const double area                          = M_PI * mRadius * mRadius;
               const array_1d<double,3> weight            = mRealMass * gravity;
 
-              double dynamic_viscosity                   = viscosity * fluid_density;
               double shahs_term_vel                      = 0.0;
               double beta                                = 0.0;
               double F0                                  = 0.0;
@@ -335,7 +333,7 @@ namespace Kratos
               double drag_coeff;
 
               if (!non_newtonian_OPTION){ //Newtonian
-                  ComputeReynoldsNumber(non_newtonian_OPTION, norm_of_slip_vel, fluid_density, dynamic_viscosity, reynolds);
+                  ComputeReynoldsNumber(non_newtonian_OPTION, norm_of_slip_vel, kinematic_viscosity, reynolds);
                   CalculateNewtonianDragCoefficient(non_newtonian_OPTION, reynolds, sphericity, drag_coeff, drag_modifier_type);
                   drag_coeff = 0.5 * fluid_density * area * drag_coeff * norm_of_slip_vel;
               }
@@ -382,6 +380,21 @@ namespace Kratos
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
+      void SphericSwimmingParticle::AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
+      {
+        if (rVariable == REYNOLDS_NUMBER){
+            const array_1d<double,3> fluid_vel     = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+            const array_1d<double,3>& particle_vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+            const array_1d<double,3>& slip_vel     = fluid_vel - particle_vel;
+            const double norm_of_slip_vel          = MathUtils<double>::Norm3(slip_vel);
+            const double kinematic_viscosity       = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
+            ComputeReynoldsNumber(rCurrentProcessInfo[NON_NEWTONIAN_OPTION], norm_of_slip_vel, kinematic_viscosity, Output);
+        }
+
+      }
+
+    //**************************************************************************************************************************************************
+    //**************************************************************************************************************************************************
 
 
 

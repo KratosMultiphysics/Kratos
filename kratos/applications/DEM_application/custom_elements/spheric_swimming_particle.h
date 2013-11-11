@@ -138,10 +138,11 @@ namespace Kratos
         void ComputeLiftForce(array_1d<double, 3>& lift_force, const double& fluid_density, ProcessInfo& rCurrentProcessInfo);
         double CalculateDragCoeffFromSphericity(const double Reynolds, double Sphericity, int DragModifierType);
         void CalculateNewtonianDragCoefficient(int NonNewtonianOption, const double Reynolds, const double Sphericity, double& rDrag_coeff, int DragModifierType);
-        void ComputeReynoldsNumber(int NonNewtonianOption, double rNormOfSlipVel, double FluidDensity, double rViscosity, double& rReynolds);
+        void ComputeReynoldsNumber(int NonNewtonianOption, double rNormOfSlipVel, double rViscosity, double& rReynolds);
         double CalculateShahsTerm(double PowerLawN,double PowerLawK, double PowerLawTol, const double& ParticleDensity, const double& FluidDensity, double Sphericity, int DragModifier);
         void ComputeWeatherfordFluidForcesOnParticle(ProcessInfo& rCurrentProcessInfo);
         void AdditionalMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
+        void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
       ///@name Protected static Member Variables
       ///@{
