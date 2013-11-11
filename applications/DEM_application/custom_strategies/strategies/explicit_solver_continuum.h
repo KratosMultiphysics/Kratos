@@ -49,7 +49,7 @@ namespace Kratos
 
       ContinuumExplicitSolverStrategy(
                              ModelPart& model_part,
-							 ModelPart& fem_model_part,
+			     ModelPart& fem_model_part,
                              ModelPart& contacts_model_part,
                              const double max_delta_time,
                              const double n_step_search,
