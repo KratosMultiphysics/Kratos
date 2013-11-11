@@ -353,6 +353,7 @@ void ArteryElement::Initialize()
 
     double beta=E*H0*1.77245385/(1.0-nu*nu);
 
+
     //compute the lenght of the element
     array_1d<double,3> lvec = GetGeometry()[1].Coordinates();
     lvec -= GetGeometry()[0].Coordinates();
