@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_STEP_DISPLACEMENT_CRITERIA )
-#define  KRATOS_STEP_DISPLACEMENT_CRITERIA
+#if !defined(KRATOS_DISPLACEMENT_CONVERGENCE_CRITERION )
+#define  KRATOS_DISPLACEMENT_CONVERGENCE_CRITERION
 
 
 /* System includes */
@@ -52,14 +52,14 @@ namespace Kratos
 template<class TSparseSpace,
          class TDenseSpace
          >
-class DisplacementConvergenceCriteria : virtual public ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class DisplacementConvergenceCriterion : virtual public ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     /**@name Type Definitions */
     /*@{ */
 
-    //typedef boost::shared_ptr< DisplacementConvergenceCriteria< TSparseSpace, TDenseSpace > > Pointer;
-    KRATOS_CLASS_POINTER_DEFINITION( DisplacementConvergenceCriteria );
+    //typedef boost::shared_ptr< DisplacementConvergenceCriterion< TSparseSpace, TDenseSpace > > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION( DisplacementConvergenceCriterion );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
@@ -80,7 +80,7 @@ public:
 
     /** Constructor.
     */
-    DisplacementConvergenceCriteria(TDataType NewRatioTolerance,
+    DisplacementConvergenceCriterion(TDataType NewRatioTolerance,
                                     TDataType AlwaysConvergedNorm)
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
     {
@@ -92,7 +92,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~DisplacementConvergenceCriteria() {}
+    virtual ~DisplacementConvergenceCriterion() {}
 
 
     /*@} */
@@ -131,7 +131,7 @@ public:
 
             std::cout << "delta_disp_norm = " << delta_disp_norm << ";  disp_norm = " << disp_norm << std::endl;
 
-            std::cout << "DISP_TOTAL :: ratio = --" << ratio << "-- ;  Expected ratio = " << mRatioTolerance <<" Absolute tol reached = " << disp_norm << std::endl;
+            std::cout << "DISP_TOTAL :: ratio = --" << ratio << "-- ;  (Expected ratio = " << mRatioTolerance <<", Absolute tol reached = " << disp_norm <<")"<< std::endl;
 
             if ( ratio <= mRatioTolerance)
             {
@@ -317,5 +317,5 @@ private:
 
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_STEP_DISPLACEMENT_CRITERIA  defined */
+#endif /* KRATOS_DISPLACEMENT_CONVERGENCE_CRITERION  defined */
 
