@@ -103,8 +103,8 @@ class StructuralSolver:
         self.convergence_criterion_type = "Residual_criteria"
         self.mechanical_convergence_criterion  = ResidualCriteria(self.rel_res_tol,self.abs_res_tol)
         #self.mechanical_convergence_criterion = DisplacementCriteria(self.rel_disp_tol,self.abs_disp_tol)
-        #self.mechanical_convergence_criterion = ResidualConvergenceCriteria(self.rel_res_tol,self.abs_res_tol)
-        #self.mechanical_convergence_criterion = DisplacementConvergenceCriteria(self.rel_disp_tol,self.abs_disp_tol)
+        #self.mechanical_convergence_criterion = ComponentWiseResidualConvergenceCriterion(self.rel_res_tol,self.abs_res_tol)
+        #self.mechanical_convergence_criterion = DisplacementConvergenceCriterion(self.rel_disp_tol,self.abs_disp_tol)
 
         #definition of the default builder_and_solver:   
         self.block_builder = False    
@@ -237,16 +237,16 @@ class StructuralSolver:
             print " CONVERGENCE CRITERION (solid) : ",self.convergence_criterion_type
 
             if(self.convergence_criterion_type == "Displacement_criteria"):
-                self.mechanical_convergence_criterion  =  DisplacementConvergenceCriteria(D_RT,D_AT)
+                self.mechanical_convergence_criterion  =  DisplacementConvergenceCriterion(D_RT,D_AT)
             elif(self.convergence_criterion_type == "Residual_criteria"):
-                self.mechanical_convergence_criterion  =  ResidualConvergenceCriteria(R_RT,R_AT)
+                self.mechanical_convergence_criterion  =  ComponentWiseResidualConvergenceCriterion(R_RT,R_AT)
             elif(self.convergence_criterion_type == "And_criteria"):
-                Displacement   =   DisplacementConvergenceCriteria(D_RT,D_AT)
-                Residual       =   ResidualConvergenceCriteria(R_RT,R_AT)
+                Displacement   =   DisplacementConvergenceCriterion(D_RT,D_AT)
+                Residual       =   ComponentWiseResidualConvergenceCriterion(R_RT,R_AT)
                 self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
             elif(self.convergence_criterion_type == "Or_criteria"):
-                Displacement   =   DisplacementConvergenceCriteria(D_RT,D_AT)
-                Residual       =   ResidualConvergenceCriteria(R_RT,R_AT)
+                Displacement   =   DisplacementConvergenceCriterion(D_RT,D_AT)
+                Residual       =   ComponentWiseResidualConvergenceCriterion(R_RT,R_AT)
                 self.mechanical_convergence_criterion  = OrCriteria(Residual, Displacement)
             elif(self.convergence_criterion_type == "Mixed_criteria"):
                 Displacement   =   MixedElementConvergeCriteria(D_RT,D_AT)

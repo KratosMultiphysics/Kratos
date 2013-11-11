@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_STEP_RESIDUAL_CRITERIA )
-#define  KRATOS_STEP_RESIDUAL_CRITERIA
+#if !defined(KRATOS_COMPONENT_WISE_RESIDUAL_CONVERGENCE_CRITERION)
+#define  KRATOS_COMPONENT_WISE_RESIDUAL_CONVERGENCE_CRITERION
 
 
 /* System includes */
@@ -53,14 +53,14 @@ namespace Kratos
 template<class TSparseSpace,
          class TDenseSpace
          >
-class ResidualConvergenceCriteria : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
+class ComponentWiseResidualConvergenceCriterion : public virtual  ConvergenceCriteria< TSparseSpace, TDenseSpace >
 {
 public:
     /**@name Type Definitions */
     /*@{ */
 
     //typedef boost::shared_ptr< DisplacementCriteria< TSparseSpace, TDenseSpace > > Pointer;
-    KRATOS_CLASS_POINTER_DEFINITION( ResidualConvergenceCriteria );
+    KRATOS_CLASS_POINTER_DEFINITION( ComponentWiseResidualConvergenceCriterion );
 
     typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
 
@@ -97,7 +97,7 @@ public:
 
     /** Constructor.
     */
-    ResidualConvergenceCriteria(
+    ComponentWiseResidualConvergenceCriterion(
         TDataType NewRatioTolerance,
         TDataType AlwaysConvergedNorm)
         : ConvergenceCriteria< TSparseSpace, TDenseSpace >()
@@ -108,7 +108,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~ResidualConvergenceCriteria() {}
+    virtual ~ComponentWiseResidualConvergenceCriterion() {}
 
 
     /*@} */
@@ -148,7 +148,7 @@ public:
 
             std::cout <<" residual_norm = " << residual_norm << ";  ratio_norm = " << ratio_norm  << std::endl;
 
-            std::cout <<" RESIDUAL FORCES :: ratio = --"<< ratio <<"-- ;  Expected ratio = " << mRatioTolerance <<" Absolute tol reached = " << residual_norm << std::endl;
+            std::cout <<" RESIDUAL FORCES :: ratio = --"<< ratio <<"-- ;  (Expected ratio = " << mRatioTolerance <<", Absolute tol reached = " << residual_norm <<")"<< std::endl;
 
             if (ratio <= mRatioTolerance  ||  residual_norm<= mAlwaysConvergedNorm )
             {
@@ -443,5 +443,5 @@ private:
 
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_STEP_RESIDUAL_CRITERIA  defined */
+#endif /* KRATOS_COMPONENT_WISE_RESIDUAL_CONVERGENCE_CRITERION  defined */
 

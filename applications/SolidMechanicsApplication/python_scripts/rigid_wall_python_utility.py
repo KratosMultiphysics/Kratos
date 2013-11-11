@@ -22,8 +22,8 @@ class RigidWallUtility:
         self.penalty_parameter = 1
 
         # movement parameters
-        self.center            = Array3()
-        self.velocity          = Array3()
+        self.center            = Vector(3)
+        self.velocity          = Vector(3)
 
 
     #######################################################################
