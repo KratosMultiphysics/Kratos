@@ -188,7 +188,7 @@ if (DEM_parameters.Multifile == "single_file"):
   #gid_io.FinalizeMesh()
   #gid_io.InitializeResults(0.0, balls_model_part.GetMesh());
 
-  ParticleUtils2D().VisualizationModelPart(mixed_model_part,balls_model_part, RigidFace_model_part)
+  ParticleUtils2D().VisualizationModelPart(mixed_model_part, balls_model_part, RigidFace_model_part)
   gid_io.InitializeMesh(0.0) 
   gid_io.WriteMesh(RigidFace_model_part.GetMesh())
   gid_io.WriteSphereMesh(balls_model_part.GetMesh())
