@@ -219,9 +219,9 @@ void RigidFace3D::Calculate(const Variable<Vector >& rVariable, Vector& Output, 
 
 	double g_v[3] = {GXvel, GYvel, GZvel};
 
-	Xorigin = (g_v[0] + n[0] * vel) * real_rota_time; 
-	Yorigin = (g_v[1] + n[1] * vel) * real_rota_time; 
-	Zorigin = (g_v[2] + n[2] * vel) * real_rota_time; 
+	Xorigin += (g_v[0] + n[0] * vel) * real_rota_time; 
+	Yorigin += (g_v[1] + n[1] * vel) * real_rota_time; 
+	Zorigin += (g_v[2] + n[2] * vel) * real_rota_time; 
 
 	
 	double origin[3] = {Xorigin, Yorigin, Zorigin};
