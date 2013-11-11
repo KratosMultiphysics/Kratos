@@ -131,17 +131,17 @@ public:
 
     // The fluid data are a weighted: data_to_project = alpha * new_data + (1 - alpha) * old_data
 
-    void InterpolationFromFluidMesh(
-        ModelPart& rFluid_ModelPart,
-        ModelPart& rDEM_ModelPart,
+    void InterpolateFromFluidMesh(
+        ModelPart& rfluid_model_part,
+        ModelPart& rdem_model_part,
         BinBasedFastPointLocator<TDim>& bin_of_objects_fluid,
         const double alpha)
     {
         KRATOS_TRY
 
         //Clear all the variables to be mapped
-        for (ModelPart::NodesContainerType::iterator node_it = rDEM_ModelPart.NodesBegin();
-                node_it != rDEM_ModelPart.NodesEnd(); ++node_it){
+        for (ModelPart::NodesContainerType::iterator node_it = rdem_model_part.NodesBegin();
+                node_it != rdem_model_part.NodesEnd(); ++node_it){
 
             ClearVariables(node_it, FLUID_VEL_PROJECTED);
             ClearVariables(node_it, PRESSURE_GRAD_PROJECTED);
@@ -152,11 +152,11 @@ public:
         array_1d<double, TDim + 1 > N;
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-        const int nparticles = rDEM_ModelPart.Nodes().size();
+        const int nparticles = rdem_model_part.Nodes().size();
 
         #pragma omp parallel for firstprivate(results, N)
         for (int i = 0; i < nparticles; i++){
-            ModelPart::NodesContainerType::iterator iparticle = rDEM_ModelPart.NodesBegin() + i;
+            ModelPart::NodesContainerType::iterator iparticle = rdem_model_part.NodesBegin() + i;
             Node < 3 > ::Pointer pparticle = *(iparticle.base());
 
             if (!pparticle->IsFixed(VELOCITY_X)){
@@ -186,16 +186,16 @@ public:
 
     // The current fluid data are projected to the DEM mesh
     void InterpolateFromNewestFluidMesh(
-        ModelPart& rFluid_ModelPart ,
-        ModelPart& rDEM_ModelPart,
+        ModelPart& rfluid_model_part,
+        ModelPart& rdem_model_part,
         BinBasedFastPointLocator<TDim>& bin_of_objects_fluid)
     {
         KRATOS_TRY
 
         // resetting all variables to be interpolated
 
-        for (ModelPart::NodesContainerType::iterator node_it = rDEM_ModelPart.NodesBegin();
-             node_it != rDEM_ModelPart.NodesEnd(); ++node_it){
+        for (ModelPart::NodesContainerType::iterator node_it = rdem_model_part.NodesBegin();
+             node_it != rdem_model_part.NodesEnd(); ++node_it){
             ClearVariables(node_it, FLUID_VEL_PROJECTED);
             ClearVariables(node_it, PRESSURE_GRAD_PROJECTED);
             ClearVariables(node_it, FLUID_DENSITY_PROJECTED);
@@ -206,11 +206,11 @@ public:
         array_1d<double, TDim + 1 > N;
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-        const int nparticles = rDEM_ModelPart.Nodes().size();
+        const int nparticles = rdem_model_part.Nodes().size();
 
         #pragma omp parallel for firstprivate(results, N)
         for (int i = 0; i < nparticles; i++){
-            ModelPart::NodesContainerType::iterator iparticle = rDEM_ModelPart.NodesBegin() + i;
+            ModelPart::NodesContainerType::iterator iparticle = rdem_model_part.NodesBegin() + i;
             Node < 3 > ::Pointer pparticle = *(iparticle.base());
 
             if (!pparticle->IsFixed(VELOCITY_X)){
@@ -252,19 +252,19 @@ public:
     //***************************************************************************************************************
 
     // The current DEM data are projected to the fluid mesh
-    void InterpolationFromDEMMesh(
-        ModelPart& rDEM_ModelPart ,
-        ModelPart& rFluid_ModelPart,
+    void InterpolateFromDEMMesh(
+        ModelPart& rdem_model_part,
+        ModelPart& rfluid_model_part,
         BinBasedFastPointLocator<TDim>& bin_of_objects_fluid) //this is a bin of objects which contains the FLUID model part
      {
         KRATOS_TRY
 
-        const int n_fluid_nodes = rFluid_ModelPart.Nodes().size();
+        const int n_fluid_nodes = rfluid_model_part.Nodes().size();
 
         // resetting the variables to be mapped
 
         for (int i = 0; i < n_fluid_nodes; i++){
-            ModelPart::NodesContainerType::iterator inode = rFluid_ModelPart.NodesBegin() + i;
+            ModelPart::NodesContainerType::iterator inode = rfluid_model_part.NodesBegin() + i;
             ClearVariables(inode, SOLID_FRACTION);
             array_1d<double,3>& body_force              = inode->FastGetSolutionStepValue(BODY_FORCE, 0);
             const array_1d<double,3>& old_drag_reaction = inode->FastGetSolutionStepValue(DRAG_REACTION, 0);
@@ -275,11 +275,11 @@ public:
         array_1d<double, TDim + 1 > N;
         const int max_results = 10000;
         typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
-        const int nparticles = rDEM_ModelPart.Nodes().size();
+        const int nparticles = rdem_model_part.Nodes().size();
 
-        #pragma omp parallel for firstprivate(results,N)
+        #pragma omp parallel for firstprivate(results, N)
         for (int i = 0; i < nparticles; i++){
-            ModelPart::NodesContainerType::iterator iparticle = rDEM_ModelPart.NodesBegin() + i;
+            ModelPart::NodesContainerType::iterator iparticle = rdem_model_part.NodesBegin() + i;
             Node < 3 > ::Pointer pparticle = *(iparticle.base());
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
             Element::Pointer pelement;
@@ -311,7 +311,7 @@ public:
         }
 
         for (int i = 0; i < n_fluid_nodes; i++){
-            ModelPart::NodesContainerType::iterator inode = rFluid_ModelPart.NodesBegin() + i;
+            ModelPart::NodesContainerType::iterator inode = rfluid_model_part.NodesBegin() + i;
             double& solid_fraction = inode->FastGetSolutionStepValue(SOLID_FRACTION, 0);
             solid_fraction /= inode->FastGetSolutionStepValue(NODAL_AREA, 0);
 
@@ -321,16 +321,42 @@ public:
 
         }
 
-        for (int i = 0; i < n_fluid_nodes; i++){
-            ModelPart::NodesContainerType::iterator inode = rFluid_ModelPart.NodesBegin() + i;
-            double fluid_fraction                         = 1 - inode->FastGetSolutionStepValue(SOLID_FRACTION, 0);
-            const array_1d<double,3>& darcy_vel           = inode->FastGetSolutionStepValue(VELOCITY, 0);
-            array_1d<double,3>& space_averaged_fluid_vel  = inode->FastGetSolutionStepValue(MESH_VELOCITY1, 0);
-            space_averaged_fluid_vel                      = darcy_vel / fluid_fraction;
-        }
-
         KRATOS_CATCH("")
     }
+
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
+
+    void ComputePostProcessResults(
+        ModelPart& rdem_model_part,
+        ModelPart& rfluid_model_part,
+        ModelPart& rfem_dem_model_part,
+        BinBasedFastPointLocator<TDim>& bin_of_objects_fluid,
+        const ProcessInfo& r_current_process_info)
+    {
+      const int n_dem_elements = rdem_model_part.Elements().size();
+      const int n_fluid_nodes = rfluid_model_part.Nodes().size();
+      double reynolds_number;
+
+      for (int i = 0; i < n_dem_elements; i++){
+          ModelPart::ElementsContainerType::iterator ielem = rdem_model_part.ElementsBegin() + i;
+          ielem->Calculate(REYNOLDS_NUMBER, reynolds_number, r_current_process_info);
+      }
+
+      for (int i = 0; i < n_fluid_nodes; i++){
+          ModelPart::NodesContainerType::iterator inode = rfluid_model_part.NodesBegin() + i;
+          double fluid_fraction                         = 1 - inode->FastGetSolutionStepValue(SOLID_FRACTION, 0);
+          const array_1d<double,3>& darcy_vel           = inode->FastGetSolutionStepValue(VELOCITY, 0);
+          array_1d<double,3>& space_averaged_fluid_vel  = inode->FastGetSolutionStepValue(MESH_VELOCITY1, 0);
+          space_averaged_fluid_vel                      = darcy_vel / fluid_fraction;
+      }
+
+    }
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
+
 
     ///@}
     ///@name Access
