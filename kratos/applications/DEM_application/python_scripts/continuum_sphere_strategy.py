@@ -112,7 +112,7 @@ def Var_Translator(variable):
 
 class ExplicitStrategy:
 
-    def __init__(self, model_part, creator_destructor, Param):
+    def __init__(self, model_part, fem_model_part, creator_destructor, Param):
 
         # Initialization of member variables
 
@@ -176,6 +176,7 @@ class ExplicitStrategy:
              
         # MODEL
         self.model_part                     = model_part
+        self.fem_model_part                 = fem_model_part
         self.contact_model_part             = ModelPart("ContactModelPart") #funcio kratos
         self.contact_model_part.Nodes       = self.model_part.Nodes;
         self.domain_size                    = Param.Dimension
@@ -603,7 +604,7 @@ class ExplicitStrategy:
 
         #self.solver = ContinuumExplicitSolverStrategy(self.model_part, self.contact_model_part, self.max_delta_time, self.n_step_search, self.safety_factor,
         #                                              self.MoveMeshFlag, self.delta_option, self.continuum_simulating_option, self.creator_destructor, self.time_scheme, self.search_strategy)
-        self.solver = ContinuumExplicitSolverStrategy(self.model_part, self.contact_model_part, self.max_delta_time, self.n_step_search, self.safety_factor,
+        self.solver = ContinuumExplicitSolverStrategy(self.model_part, self.fem_model_part, self.contact_model_part, self.max_delta_time, self.n_step_search, self.safety_factor,
                                                       self.MoveMeshFlag, self.creator_destructor, self.time_scheme, self.search_strategy)
   
                                   
