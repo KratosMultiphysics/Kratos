@@ -311,7 +311,7 @@ public:
 
 
 
-    virtual bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent)
+    virtual bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int ContactFace = 0)
     {
       std::cout<< "Calling empty method" <<std::endl;
       return false;

@@ -25,8 +25,6 @@
 
 //Utilities
 #include "custom_utilities/boundary_normals_calculation_utilities.hpp"
-#include "custom_utilities/rigid_wall_contact_calculation_utilities.hpp"
-#include "custom_utilities/line_search_calculation_utilities.hpp"
 #include "custom_utilities/modeler_utilities.hpp"
 #include "custom_utilities/contact_domain_utilities.hpp"
 
@@ -51,9 +49,6 @@ namespace Kratos
 
       typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType >                 BuilderAndSolverType;
       typedef BuilderAndSolverType::Pointer        BuilderAndSolverPointerType;
-      typedef LineSearchCalculationUtilities<SparseSpaceType,LocalSpaceType,LinearSolverType > LineSearchCalculationType;
-
-      typedef RigidWallContactCalculationUtilities <SparseSpaceType,LocalSpaceType>                 RigidWallContactType;
 
 
       //***************DOMAIN SET**************//
@@ -77,26 +72,6 @@ namespace Kratos
 	;
 
 
-      //***************LINE-SEARCH**************//
-      class_< LineSearchCalculationType, boost::noncopyable > ("LineSearchCalculation", init<>())
-	.def("ExecuteLineSearch", &LineSearchCalculationType::ExecuteLineSearch)
-	;
-
-
-      //***************RIGID_CONTACT_TOOL**************//
-      class_< RigidWallContactType, boost::noncopyable > ("RigidWallContactCalculation", init<>())
-	.def("SetRigidWall", &RigidWallContactType::SetRigidWall)
-	.def("SetContactParamters", &RigidWallContactType::SetContactParameters)
-	.def("SetEquationSystemSize", &RigidWallContactType::SetEquationSystemSize)
-	.def("Build", &RigidWallContactType::Build)
-	.def("InitializeSolutionStep", &RigidWallContactType::InitializeSolutionStep)
-	.def("FinalizeSolutionStep", &RigidWallContactType::FinalizeSolutionStep)
-	.def("InitializeNonLinearIteration", &RigidWallContactType::InitializeNonLinearIteration)
-	.def("FinalizeNonLinearIteration", &RigidWallContactType::FinalizeNonLinearIteration)
-	.def("GetWallTipCenter", &RigidWallContactType::GetWallTipCenter)
-	.def("GetWallTipRadius", &RigidWallContactType::GetWallTipRadius)
-	.def("Check", &RigidWallContactType::Check)
-	;
 
     }
 

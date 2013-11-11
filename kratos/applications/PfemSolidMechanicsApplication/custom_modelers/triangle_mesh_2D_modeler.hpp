@@ -91,17 +91,10 @@ protected:
       double   reference_error;
     };
 
-    struct ToolTipVariables
-    {
-      bool    tool_set;
-      double  Radius;
-      array_1d<double,3> Center;
-    };
-
 
     struct BoundingBoxVariables
     {
-      bool    box_set;
+      bool    is_set;
       double  Radius;
       Vector  Center;
       Vector  Velocity;
@@ -161,11 +154,7 @@ protected:
 	// double  critical_side;
 	// double  reference_error;
       
-        ToolTipVariables ToolTip;
-        // bool    tool_set;
-        // double  TipRadius;
-        // array_1d<double,3> TipCenter;
-
+        BoundingBoxVariables WallTip;
         BoundingBoxVariables BoundingBox;
  
     };
@@ -237,8 +226,8 @@ public:
 			double error       = 2,
 			int MeshId         = 0);
 
-    void SetToolTip (double radius,
-		     array_1d<double,3> center);
+    void SetWallTip (double radius,
+		     Vector center);
 
     void SetRefiningBox (double radius,
 			 Vector center,
