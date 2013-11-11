@@ -45,7 +45,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
             else:
                 self.write_step_to_list(0)
                
-    def write_swimming_DEM_results(self,label,fluid_model_part,DEM_model_part,mixed_model_part,fluid_nodal_variables,DEM_nodal_variables,mixed_nodal_variables, fluid_gp_variables):
+    def write_swimming_DEM_results(self, label, fluid_model_part, DEM_model_part, FEM_DEM_model_part, mixed_model_part, fluid_nodal_variables, DEM_nodal_variables, mixed_nodal_variables, fluid_gp_variables):
        #label = str(label) #it should be a C double
         # update cut data if necessary
         out_model_part = self.get_out_model_part(fluid_model_part)
@@ -55,9 +55,10 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
             self.cut_app.UpdateCutData(out_model_part,fluid_model_part)
 
         if self.multi_file == MultiFileFlag.MultipleFiles:
-            self.io.InitializeMesh( label )
-            self.io.WriteSphereMesh( DEM_model_part.GetMesh() )
-            self.io.WriteMesh( mixed_model_part.GetMesh() )
+            self.io.InitializeMesh(label)
+            self.io.WriteSphereMesh(DEM_model_part.GetMesh())
+            self.io.WriteMesh(FEM_DEM_model_part.GetMesh())
+            self.io.WriteMesh(mixed_model_part.GetMesh())
             self.io.FinalizeMesh()
             self.io.InitializeResults(label,mixed_model_part.GetMesh())
 
