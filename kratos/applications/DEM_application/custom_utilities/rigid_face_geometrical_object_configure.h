@@ -135,18 +135,12 @@ public:
 			xyz_max[1] = (xyz_max[1] < Coord[1]) ? Coord[1] : xyz_max[1];
 			xyz_max[2] = (xyz_max[2] < Coord[2]) ? Coord[2] : xyz_max[2];
 		}
-		 
+		
         for(std::size_t i = 0; i < 3; i++)
         {
-			if(xyz_min[i] == xyz_max[i])
-			{
-				xyz_min[i] -= 1.0e-6;
-				xyz_max[i] += 1.0e-6;
-			}
             rLowPoint [i] = xyz_min[i];
             rHighPoint[i] = xyz_max[i];
         }
-
     }
 
     //******************************************************************************************************************
@@ -392,14 +386,7 @@ public:
 			xyz_max[2] = (xyz_max[2] < Coord[2]) ? Coord[2] : xyz_max[2];
 		}
 		
-		 for(std::size_t i = 0; i < 3; i++)
-        {
-			if(xyz_min[i] == xyz_max[i])
-			{
-				xyz_min[i] -= 1.0e-6;
-				xyz_max[i] += 1.0e-6;
-			}
-        }
+		
 		bool intersect = (rLowPoint [0] <= xyz_max[0] && rLowPoint [1] <= xyz_max[1] && rLowPoint [2] <= xyz_max[2] &&
 		                  rHighPoint[0] >= xyz_min[0] && rHighPoint[1] >= xyz_min[1] && rHighPoint[2] >= xyz_min[2]);
 						
