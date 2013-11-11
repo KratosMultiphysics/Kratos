@@ -305,7 +305,8 @@ proc BeforeMeshGeneration {elementsize} {
 		set vol_elemtype_check 0
 	}
 
-	cleanautomatic CONDITIONS line surface point
+	cleanautomatic CONDITIONS Group
+        #cleanautomatic CONDITIONS line point surface #old sentence #MA
 	# End Reset Block
 	
 	# Volume Model Parts
