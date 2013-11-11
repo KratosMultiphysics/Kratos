@@ -4,7 +4,7 @@ TITLE:Problem
 # Options
 QUESTION: Problem_Type#CB#(Mechanical)
 VALUE: Mechanical
-QUESTION: Solver_Type#CB#(StaticSolver,DynamicSolver)
+QUESTION: Solver_Type#CB#(StaticSolver,QuasiStaticSolver,DynamicSolver)
 VALUE: StaticSolver
 QUESTION: Time_Step
 VALUE: 0.01

@@ -11,12 +11,14 @@ rm -f "${2}/${1}.info"
 rm -f "${2}/${1}.err"
 rm -f "${2}/${1}.mdpa"
 rm -f "${2}/${1}.kpt"
-rm -f "${2}/problem_settings.py"
+rm -f "${2}/ProjectParameters.py"
+rm -f "${2}/materials.py"
 
 mv "${2}/${1}.dat" "${2}/${1}.mdpa"
 mv "${2}/${1}-1.dat" "$2/${1}.kpt"
 rm "${2}/${1}-2.dat"
-mv "${2}/${1}-3.dat" "${2}/problem_settings.py"
+mv "${2}/${1}-3.dat" "${2}/ProjectParameters.py"
+mv "${2}/${1}-4.dat" "${2}/materials.py"
 
 # Read additional settings (kpt file)
 while read name value; do

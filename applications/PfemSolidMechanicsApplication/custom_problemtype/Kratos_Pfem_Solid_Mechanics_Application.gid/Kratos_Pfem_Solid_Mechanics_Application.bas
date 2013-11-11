@@ -9,20 +9,18 @@ End ModelPartData
 Begin Properties 0
 End Properties
 
-
 *loop materials
 *if(strcmp(MatProp(Type),"Elastic")==0)
 *format "%i"
-Begin Properties  *MatNum
-CONSTITUTIVE_LAW_NAME *MatProp(CONSTITUTIVE_LAW_NAME)
+Begin Properties *MatNum
 *format "%10.5e"
-DENSITY *MatProp(DENSITY,real)
+ DENSITY *MatProp(DENSITY,real)
 *format "%10.5e"
-YOUNG_MODULUS *MatProp(YOUNG_MODULUS,real)
+ YOUNG_MODULUS *MatProp(YOUNG_MODULUS,real)
 *format "%10.5e"
-POISSON_RATIO *MatProp(POISSON_RATIO,real)
+ POISSON_RATIO *MatProp(POISSON_RATIO,real)
 *format "%10.5e"
-THICKNESS *MatProp(THICKNESS,real)
+ THICKNESS *MatProp(THICKNESS,real)
 End Properties
 
 *endif
@@ -30,26 +28,25 @@ End Properties
 *loop materials
 *if(strcmp(MatProp(Type),"Plastic")==0)
 *format "%i"
-Begin Properties  *MatNum
-CONSTITUTIVE_LAW_NAME *MatProp(CONSTITUTIVE_LAW_NAME)
+Begin Properties *MatNum
 *format "%10.5e"
-DENSITY *MatProp(DENSITY,real)
+ DENSITY *MatProp(DENSITY,real)
 *format "%10.5e"
-YOUNG_MODULUS *MatProp(YOUNG_MODULUS,real)
+ YOUNG_MODULUS *MatProp(YOUNG_MODULUS,real)
 *format "%10.5e"
-POISSON_RATIO *MatProp(POISSON_RATIO,real)
+ POISSON_RATIO *MatProp(POISSON_RATIO,real)
 *format "%10.5e"
-YIELD_STRESS *MatProp(YIELD_STRESS,real)
+ YIELD_STRESS *MatProp(YIELD_STRESS,real)
 *format "%10.5e"
-KINEMATIC_HARDENING_MODULUS *MatProp(KINEMATIC_HARDENING_MODULUS,real)
+ KINEMATIC_HARDENING_MODULUS *MatProp(KINEMATIC_HARDENING_MODULUS,real)
 *format "%10.5e"
-HARDENING_EXPONENT *MatProp(HARDENING_EXPONENT,real)
+ HARDENING_EXPONENT *MatProp(HARDENING_EXPONENT,real)
 *format "%10.5e"
-REFERENCE_HARDENING_MODULUS *MatProp(REFERENCE_HARDENING_MODULUS,real)
+ REFERENCE_HARDENING_MODULUS *MatProp(REFERENCE_HARDENING_MODULUS,real)
 *format "%10.5e"
-INFINITY_HARDENING_MODULUS *MatProp(INFINITY_HARDENING,real)
+ INFINITY_HARDENING_MODULUS *MatProp(INFINITY_HARDENING,real)
 *format "%10.5e"
-THICKNESS *MatProp(THICKNESS,real)
+ THICKNESS *MatProp(THICKNESS,real)
 End Properties
 
 *endif
