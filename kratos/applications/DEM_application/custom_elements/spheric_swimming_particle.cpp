@@ -116,7 +116,7 @@ namespace Kratos
 
           // General case
 
-          const double fluid_fraction            = 1 - GetGeometry()(0)->FastGetSolutionStepValue(SOLID_FRACTION);
+          const double fluid_fraction            = 1 - GetGeometry()(0)->FastGetSolutionStepValue(SOLID_FRACTION_PROJECTED);
           // TEMPORARY!!!: the the fluid velocity is modified here. Instead, it should be properly calculated by the fluid code
           const array_1d<double,3> fluid_vel     = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VEL_PROJECTED) / fluid_fraction;
           const array_1d<double,3>& particle_vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
