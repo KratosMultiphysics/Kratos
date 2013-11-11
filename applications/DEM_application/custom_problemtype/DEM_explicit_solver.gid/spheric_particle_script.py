@@ -77,7 +77,6 @@ gid_io = GidIO(DEM_parameters.problem_name, gid_mode, multifile, deformed_mesh_f
 model_part_io_solid = ModelPartIO(DEM_parameters.problem_name)
 model_part_io_solid.ReadModelPart(balls_model_part)
 
-
 model_part_io_solid = ModelPartIO("RigidFace_Part")
 model_part_io_solid.ReadModelPart(RigidFace_model_part)
 
