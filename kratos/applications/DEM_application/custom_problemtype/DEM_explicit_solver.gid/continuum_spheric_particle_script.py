@@ -6,12 +6,13 @@ from numpy import *
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
+from KratosMultiphysics.IncompressibleFluidApplication import *
 
 import datetime
 
-import DEM_explicit_solver_var as Param
+import DEM_explicit_solver_var as DEM_parameters
 import DEM_procedures
-proc = DEM_procedures.Procedures(Param)
+proc = DEM_procedures.Procedures(DEM_parameters)
 
 import pressure_script as Press
 
@@ -22,21 +23,27 @@ import pressure_script as Press
 my_timer = Timer();
 balls_model_part = ModelPart("SolidPart");  
 
+RigidFace_model_part   = ModelPart("RigidFace_Part");  
+mixed_model_part       = ModelPart("Mixed_Part");
+
+RigidFace_model_part.AddNodalSolutionStepVariable(VELOCITY)
+RigidFace_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+
 # Importing the strategy object
 
 import continuum_sphere_strategy as SolverStrategy
 
-SolverStrategy.AddVariables(balls_model_part, Param)
+SolverStrategy.AddVariables(balls_model_part, DEM_parameters)
 
 # Reading the model_part: binary or ascii, multifile or single --> only binary and single for mpi.
 
-if (Param.OutputFileType == "Binary"):
+if (DEM_parameters.OutputFileType == "Binary"):
     gid_mode = GiDPostMode.GiD_PostBinary
   
 else:
     gid_mode = GiDPostMode.GiD_PostAscii
   
-if (Param.Multifile == "multiple_files"):
+if (DEM_parameters.Multifile == "multiple_files"):
     multifile = MultiFileFlag.MultipleFiles
   
 else:
@@ -45,9 +52,12 @@ else:
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
 write_conditions   = WriteConditionsFlag.WriteConditions
 
-gid_io = GidIO(Param.problem_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
-model_part_io_solid = ModelPartIO(Param.problem_name)
+gid_io = GidIO(DEM_parameters.problem_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
+model_part_io_solid = ModelPartIO(DEM_parameters.problem_name)
 model_part_io_solid.ReadModelPart(balls_model_part)
+
+model_part_io_solid = ModelPartIO("RigidFace_Part")
+model_part_io_solid.ReadModelPart(RigidFace_model_part)
 
 # Setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 
@@ -63,18 +73,18 @@ creator_destructor = ParticleCreatorDestructor()
 
 # Creating a solver object
 
-solver = SolverStrategy.ExplicitStrategy(balls_model_part, creator_destructor, Param) #here, solver variables initialize as default
+solver = SolverStrategy.ExplicitStrategy(balls_model_part, RigidFace_model_part, creator_destructor, DEM_parameters) #here, solver variables initialize as default
 
 
 # Creating necessary directories
 
 main_path        = os.getcwd()
-post_path        = str(main_path) + '/' + str(Param.problem_name) + '_Post_Files'
-list_path        = str(main_path) + '/' + str(Param.problem_name) + '_Post_Lists'
-neigh_list_path  = str(main_path) + '/' + str(Param.problem_name) + '_Neigh_Lists'
-data_and_results = str(main_path) + '/' + str(Param.problem_name) + '_Results_and_Data'
-graphs_path      = str(main_path) + '/' + str(Param.problem_name) + '_Graphs'   
-MPI_results      = str(main_path) + '/' + str(Param.problem_name) + '_MPI_results'  
+post_path        = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Post_Files'
+list_path        = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Post_Lists'
+neigh_list_path  = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Neigh_Lists'
+data_and_results = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Results_and_Data'
+graphs_path      = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Graphs'   
+MPI_results      = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_MPI_results'  
 
 for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path, MPI_results]:
 
@@ -83,10 +93,10 @@ for directory in [post_path, list_path, neigh_list_path, data_and_results, graph
 
 os.chdir(list_path)
 
-multifile       = open(Param.problem_name + '_all' + '.post.lst', 'w')
-multifile_5     = open(Param.problem_name + '_5'   + '.post.lst', 'w')
-multifile_10    = open(Param.problem_name + '_10'  + '.post.lst', 'w')
-multifile_50    = open(Param.problem_name + '_50'  + '.post.lst', 'w')
+multifile       = open(DEM_parameters.problem_name + '_all' + '.post.lst', 'w')
+multifile_5     = open(DEM_parameters.problem_name + '_5'   + '.post.lst', 'w')
+multifile_10    = open(DEM_parameters.problem_name + '_10'  + '.post.lst', 'w')
+multifile_50    = open(DEM_parameters.problem_name + '_50'  + '.post.lst', 'w')
 
 multifile.write('Multiple\n')
 multifile_5.write('Multiple\n')
@@ -105,7 +115,7 @@ os.chdir(main_path)
 
 export_model_part = balls_model_part
 
-if ( (Param.ContinuumOption =="ON") and (Param.ContactMeshOption =="ON") ) :
+if ( (DEM_parameters.ContinuumOption =="ON") and (DEM_parameters.ContactMeshOption =="ON") ) :
 
   contact_model_part = solver.contact_model_part   
   export_model_part = contact_model_part
@@ -115,34 +125,34 @@ if ( (Param.ContinuumOption =="ON") and (Param.ContactMeshOption =="ON") ) :
 #------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALITZATIONS--------------------------------------------------------
 
 Pressure = 0.0  
-Pressure = proc.GiDSolverTransfer(balls_model_part, solver, Param)
+Pressure = proc.GiDSolverTransfer(balls_model_part, solver, DEM_parameters)
 
-if (Param.ModelDataInfo == "ON"):
+if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
     proc.ModelData(balls_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
     os.chdir(main_path)
 
-if (Param.PredefinedSkinOption == "ON" ):
+if (DEM_parameters.PredefinedSkinOption == "ON" ):
 
    proc.SetPredefinedSkin(balls_model_part)
  
 print 'Initializing Problem....'
 
-dt = Param.MaxTimeStep
+dt = DEM_parameters.MaxTimeStep
 
-total_steps_expected = int(Param.FinalTime / dt)
+total_steps_expected = int(DEM_parameters.FinalTime / dt)
 
 print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n' )
 
 step_to_fix_velocities = 0
 
-if (Param.FixVelocitiesOption == 'ON'):
-  step_to_fix_velocities = 0.01*Param.TotalTimePercentageFixVelocities*total_steps_expected
+if (DEM_parameters.FixVelocitiesOption == 'ON'):
+  step_to_fix_velocities = 0.01*DEM_parameters.TotalTimePercentageFixVelocities*total_steps_expected
   print("QUAN HI HAGI CRITICAL TIME STEP... SHA DE MODIFICAR EL TOTAL STEP I EL FIXING..")
 
 balls_model_part.ProcessInfo.SetValue(STEP_FIX_VELOCITIES,int(step_to_fix_velocities))
 
-if( (Param.ContinuumOption == "ON")  and ( (Param.GraphOption =="ON") or (Param.ConcreteTestOption =="ON")) ):
+if( (DEM_parameters.ContinuumOption == "ON")  and ( (DEM_parameters.GraphOption =="ON") or (DEM_parameters.ConcreteTestOption =="ON")) ):
   
     (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = proc.ListDefinition(balls_model_part,solver)  # defines the lists where we measure forces
 
@@ -153,14 +163,14 @@ if( (Param.ContinuumOption == "ON")  and ( (Param.GraphOption =="ON") or (Param.
     diameter = 0.15
   
 
-if(Param.ConcreteTestOption =="ON"):
+if(DEM_parameters.ConcreteTestOption =="ON"):
   
-  if(Param.PredefinedSkinOption == "ON" ):
+  if(DEM_parameters.PredefinedSkinOption == "ON" ):
     print "ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF"
 
-  (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = proc.CylinderSkinDetermination(balls_model_part,solver,Param) # defines the skin and areas
+  (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = proc.CylinderSkinDetermination(balls_model_part,solver,DEM_parameters) # defines the skin and areas
   
-  if ( (Param.TriaxialOption == "ON") and (Pressure != 0.0) ):
+  if ( (DEM_parameters.TriaxialOption == "ON") and (Pressure != 0.0) ):
 
     #Correction Coefs
     alpha_top = 3.141592*diameter*diameter*0.25/(xtop_area + 0.70710678*xtopcorner_area)
@@ -180,9 +190,9 @@ print 'Initialitzation Complete' + '\n'
 
 os.chdir(graphs_path)
 
-if (Param.GraphOption =="ON"):
+if (DEM_parameters.GraphOption =="ON"):
   graph_export = open("graph_"+str(datetime.datetime.now())+".csv",'w');
-  if (Param.PoissonMeasure =="ON"):
+  if (DEM_parameters.PoissonMeasure =="ON"):
     graph_export_poisson = open("poisson_"+str(datetime.datetime.now())+".csv",'w');
 
 os.chdir(main_path)
@@ -192,7 +202,7 @@ os.chdir(main_path)
 strainlist=[]; strainlist.append(0.0)
 stresslist=[]; stresslist.append(0.0)
 
-if(Param.ContinuumOption =="ON" and Param.GraphOption =="ON"):
+if(DEM_parameters.ContinuumOption =="ON" and DEM_parameters.GraphOption =="ON"):
   
   #measuring height:
 
@@ -225,18 +235,25 @@ initial_real_time      = timer.time()
 
 os.chdir(post_path)
 
-if (Param.Multifile == "single_file"):
+if (DEM_parameters.Multifile == "single_file"):
 
-  if (Param.ContactMeshOption == "ON"):
+  if (DEM_parameters.ContactMeshOption == "ON"):
       gid_io.InitializeMesh(0.0)
       gid_io.WriteMesh(contact_model_part.GetMesh());
       gid_io.FinalizeMesh()
-      gid_io.InitializeResults(0.0, contact_model_part.GetMesh()); 
+      gid_io.InitializeResults(0.0, contact_model_part.GetMesh());
 
-  gid_io.InitializeMesh(0.0)
+  #gid_io.InitializeMesh(0.0)
+  #gid_io.WriteSphereMesh(balls_model_part.GetMesh())
+  #gid_io.FinalizeMesh()
+  #gid_io.InitializeResults(0.0, balls_model_part.GetMesh());
+
+  ParticleUtils2D().VisualizationModelPart(mixed_model_part,balls_model_part, RigidFace_model_part)
+  gid_io.InitializeMesh(0.0) 
+  gid_io.WriteMesh(RigidFace_model_part.GetMesh())
   gid_io.WriteSphereMesh(balls_model_part.GetMesh())
   gid_io.FinalizeMesh()
-  gid_io.InitializeResults(0.0, balls_model_part.GetMesh()); 
+  gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
 
 #------------------------------------------------------------------------------------------
  
@@ -261,7 +278,7 @@ xright_weight  = 0.0
 left_counter = 0.0
 right_counter = 0.0
 
-if(Param.PoissonMeasure == "ON"):
+if(DEM_parameters.PoissonMeasure == "ON"):
         
       for node in balls_model_part.Nodes:
         
@@ -280,7 +297,7 @@ if(Param.PoissonMeasure == "ON"):
       width_ini = xright_weight/right_counter - xleft_weight/left_counter
         
 
-while (time < Param.FinalTime):
+while (time < DEM_parameters.FinalTime):
  
     dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
@@ -295,14 +312,14 @@ while (time < Param.FinalTime):
    
     incremental_time = (timer.time() - initial_real_time) - prev_time
 
-    if (incremental_time > Param.ControlTime):
+    if (incremental_time > DEM_parameters.ControlTime):
         percentage = 100 * (float(step) / total_steps_expected)
       
         print 'Real time calculation: ' + str(timer.time() - initial_real_time)
         print 'Percentage Completed: '  + str(percentage) + ' %'
         print "TIME STEP = "            + str(step) + '\n'
         
-        if( Param.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and Param.GraphOption =="ON" and Param.MonitoringOption == "ON"):        
+        if( DEM_parameters.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and DEM_parameters.GraphOption =="ON" and DEM_parameters.MonitoringOption == "ON"):        
             monitoring = PostUtilities().QuasiStaticAdimensionalNumber(balls_model_part,contact_model_part,balls_model_part.ProcessInfo)
             print "The quasi-static-adimensional-number is:  "            + str(monitoring) + '\n'
             print "The measured stiffness is:  "            + str(total_stress/strain/1e6) + "Mpa" + '\n'
@@ -331,7 +348,7 @@ while (time < Param.FinalTime):
     total_force = 0.0
 
 
-    if( Param.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and Param.GraphOption =="ON"):
+    if( DEM_parameters.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and DEM_parameters.GraphOption =="ON"):
      
       if(first_time_entry):
         #measuring height:
@@ -364,9 +381,9 @@ while (time < Param.FinalTime):
         
         total_force += force_node_y
 
-      total_stress = total_force/(Param.MeasuringSurface*1000000)
+      total_stress = total_force/(DEM_parameters.MeasuringSurface*1000000)
       
-      if(Param.PoissonMeasure == "ON"):
+      if(DEM_parameters.PoissonMeasure == "ON"):
                   
         xleft_weight  = 0.0         
         xright_weight  = 0.0
@@ -389,40 +406,40 @@ while (time < Param.FinalTime):
         measured_poisson =  ((width_now-width_ini)/width_ini)/strain
         #print( (width_now/0.05)/strain )
     os.chdir(list_path)    
-    multifile.write(Param.problem_name + '_' + str(time) + '.post.bin\n')   
+    multifile.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')   
     os.chdir(main_path)
 
   #########################___GiD IO____#########################################4
 
     time_to_print = time - time_old_print
 
-    if (time_to_print >= Param.OutputTimeStep):
+    if (time_to_print >= DEM_parameters.OutputTimeStep):
         os.chdir(data_and_results)
 
         #properties_list = proc.MonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
 
         if (index_5 == 5):       
-            multifile_5.write(Param.problem_name + '_' + str(time) + '.post.bin\n')
+            multifile_5.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
             index_5 = 0
         
         if (index_10 == 10):       
-            multifile_10.write(Param.problem_name + '_' + str(time) + '.post.bin\n')
+            multifile_10.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
             index_10 = 0
         
         if (index_50 == 50):
-            multifile_50.write(Param.problem_name + '_' + str(time) + '.post.bin\n')
+            multifile_50.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
             index_50 = 0
       
         index_5  += 1
         index_10 += 1
         index_50 += 1
 
-        if (Param.Multifile == "multiple_files"):
+        if (DEM_parameters.Multifile == "multiple_files"):
             gid_io.FinalizeResults()
 
         os.chdir(graphs_path)
 
-        if (Param.PrintNeighbourLists == "ON"): # Printing neighbours id's
+        if (DEM_parameters.PrintNeighbourLists == "ON"): # Printing neighbours id's
             os.chdir(neigh_list_path)
             neighbours_list = open('neigh_list_' + str(time), 'w')
   
@@ -437,7 +454,7 @@ while (time < Param.FinalTime):
 
         os.chdir(post_path)
 
-        if (Param.Multifile == "multiple_files"):
+        if (DEM_parameters.Multifile == "multiple_files"):
             gid_io.InitializeMesh(time)
             gid_io.WriteSphereMesh(balls_model_part.GetMesh())
             gid_io.FinalizeMesh()
@@ -448,9 +465,9 @@ while (time < Param.FinalTime):
               
         time_old_print = time
     
-    if (Param.GraphOption =="ON"):
+    if (DEM_parameters.GraphOption =="ON"):
       graph_export.write(str(strain)+"  "+str(total_stress)+'\n')
-      if (Param.PoissonMeasure =="ON"):
+      if (DEM_parameters.PoissonMeasure =="ON"):
         graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
       
          
@@ -461,7 +478,7 @@ while (time < Param.FinalTime):
 #-----------------------FINALITZATION OPERATIONS-------------------------------------------------------------------------------------- 
 #proc.PlotPhysicalProperties(properties_list, graphs_path)
 
-if (Param.Multifile == "single_file"):
+if (DEM_parameters.Multifile == "single_file"):
     gid_io.FinalizeResults()
 
 graph_export.close()
