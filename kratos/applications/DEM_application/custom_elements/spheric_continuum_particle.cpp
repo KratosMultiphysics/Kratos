@@ -162,8 +162,8 @@ namespace Kratos
                             
                             mHistory.resize(continuum_ini_size);
                             
-                            mHistory[continuum_ini_size - 1][0] = 0.0;
-                            mHistory[continuum_ini_size - 1][1] = 0.0;
+                            mHistory[continuum_ini_size - 1][0] = 0.0; //maximum indentation reached
+                            mHistory[continuum_ini_size - 1][1] = 0.0; //maximum force reached
                             mHistory[continuum_ini_size - 1][2] = 0.0;
                             
                             r_continuum_ini_neighbours_ids[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();
@@ -1951,42 +1951,40 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       
       // a guardar:
   
-      double kn_b = kn_el/mN1;
-      double kn_c = kn_el/mN2;
-      double kn_d = kn_el/mN3;
-      double kp_el = mYoungPlastic*kn_el;
+      double kn_b = kn_el / mN1;
+      double kn_c = kn_el / mN2;
+      double kn_d = kn_el / mN3;
+      double kp_el = mYoungPlastic * kn_el;
 
-      double mCompressionLimit_1 = mC1*mCompressionLimit;
-      double mCompressionLimit_2 = mC2*mCompressionLimit;
-      double mCompressionLimit_3 = mC3*mCompressionLimit;
+      double CompressionLimit_1 = mC1 * mCompressionLimit;
+      double CompressionLimit_2 = mC2 * mCompressionLimit;
+      double CompressionLimit_3 = mC3 * mCompressionLimit;
       
-      double mYields_el = mPlasticityLimit*mCompressionLimit*calculation_area;
+      double Yields_el = mPlasticityLimit * mCompressionLimit * calculation_area;
         
-      double mNcstr1_el = mCompressionLimit_1*calculation_area;
-      double mNcstr2_el = mCompressionLimit_2*calculation_area;
-      double mNcstr3_el = mCompressionLimit_3*calculation_area;
-      double mNtstr_el  = mTensionLimit*calculation_area;
+      double Ncstr1_el = CompressionLimit_1 * calculation_area;
+      double Ncstr2_el = CompressionLimit_2 * calculation_area;
+      double Ncstr3_el = CompressionLimit_3 * calculation_area;
+      double Ntstr_el  = mTensionLimit * calculation_area;
       
       //double sigma_a = (kn_el * indentation)/(calculation_area);
       //double sigma_b = mCompressionLimit_1 + kn_b*(indentation/calculation_area - mCompressionLimit_1/kn_el);
 
       double u_max = mHistory[mapping_new_cont][0];
       
-      double& fn = LocalElasticContactForce[2];
-
-            
-      //COMPRESSIÓN
+      double& fn = LocalElasticContactForce[2]; //[2] means 'normal' contact force
+                
       
-      if( indentation >= 0.0 )
+      if( indentation >= 0.0 ) //COMPRESSION
       {
         
           fn = kn_el * indentation;
           
-          double u_ela1 = mNcstr1_el/kn_el;;
-          double u_ela2 = u_ela1 + (mNcstr2_el-mNcstr1_el)/(kn_b);
-          double u_ela3 = u_ela2 + (mNcstr3_el-mNcstr2_el)/(kn_c);
+          double u_ela1 = Ncstr1_el/kn_el;;
+          double u_ela2 = u_ela1 + (Ncstr2_el-Ncstr1_el)/(kn_b);
+          double u_ela3 = u_ela2 + (Ncstr3_el-Ncstr2_el)/(kn_c);
 
-          if ( ( indentation > u_max ) || (*mpTimeStep <= 1) )//en càrrega màxima
+          if ( ( indentation > u_max ) || (*mpTimeStep <= 1) )//maximum historical intentation OR first step
             
           {
 
@@ -1996,20 +1994,20 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             if (indentation > u_ela3) //4rt tram
             {
               
-              fn = mNcstr3_el + ( indentation - u_ela3 )*kn_d;
+              fn = Ncstr3_el + ( indentation - u_ela3 )*kn_d;
               
             }
             else if (indentation > u_ela2) //3r tram
             {
               
-              fn = mNcstr2_el + ( indentation - u_ela2 )*kn_c;
+              fn = Ncstr2_el + ( indentation - u_ela2 )*kn_c;
               
             }
             else
             {    
               if( indentation > u_ela1) //2n tram
               {
-                fn = mNcstr1_el + (indentation - u_ela1)*kn_b;
+                fn = Ncstr1_el + (indentation - u_ela1)*kn_b;
               
               }
               
@@ -2027,28 +2025,28 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
  
                   double u_plas;        //MSIMSI 2 akesta operació de saber quant val la u_plastica es fa cada pas de temps i en realitat es fixe sempre.
 
-                  if(mYields_el <= mNcstr1_el) //si el punt de plastificació està en la primera rama elastica.
+                  if(Yields_el <= Ncstr1_el) //si el punt de plastificació està en la primera rama elastica.
                   {
-                      u_plas = mYields_el/kn_el;
+                      u_plas = Yields_el/kn_el;
 
                   }
                   else
                   {  
-                    if(mYields_el <= mNcstr2_el) //si està en la segona...
+                    if(Yields_el <= Ncstr2_el) //si està en la segona...
                     {
-                        u_plas = mNcstr1_el/kn_el + (mYields_el-mNcstr1_el)/(kn_b);
+                        u_plas = u_ela1 + (Yields_el-Ncstr1_el)/(kn_b);
 
                     }
-                     else if(mYields_el <= mNcstr3_el) //si està en la tercera...
+                     else if(Yields_el <= Ncstr3_el) //si està en la tercera...
                     {
-                        u_plas = mNcstr1_el/kn_el + (mNcstr2_el-mNcstr1_el)/(kn_b) + (mYields_el-mNcstr2_el)/(kn_c);
+                        u_plas = u_ela2 + (Yields_el-Ncstr2_el)/(kn_c);
 
                     }
                     
                     else //en la quarta
                     {
 
-                      u_plas = mNcstr1_el/kn_el + (mNcstr2_el-mNcstr1_el)/(kn_b) + (mNcstr3_el-mNcstr2_el)/(kn_c) + (mYields_el-mNcstr3_el)/(kn_d);
+                      u_plas = u_ela3 + (Yields_el-Ncstr3_el)/(kn_d);
                     }
                     
                   }
@@ -2066,13 +2064,13 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
                     if ( indentation > u_ela3)  //en la 4a ramma
                     {
-                      fn = mNcstr3_el + (indentation - u_ela3)*kn_d;
+                      fn = Ncstr3_el + (indentation - u_ela3)*kn_d;
                       
                     }
                     
                     else if ( indentation > u_ela2)  //en la 3a ramma
                     {
-                      fn = mNcstr2_el + (indentation - u_ela2)*kn_c;
+                      fn = Ncstr2_el + (indentation - u_ela2)*kn_c;
                       
                     }
                     
@@ -2080,7 +2078,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                     {
                       if(indentation > u_ela1)  //en la 2a rama
                       {
-                        fn = mNcstr1_el + (indentation-u_ela1)*kn_b;
+                        fn = Ncstr1_el + (indentation-u_ela1)*kn_b;
                       }
             
                     }
@@ -2099,7 +2097,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       {
         fn = kn_el * indentation; 
         
-        double u1 = mNtstr_el / kn_el;
+        double u1 = Ntstr_el / kn_el;
 
         double u2 = u1*(1+ mDamageMaxDisplacementFactor);
  
