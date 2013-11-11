@@ -87,17 +87,16 @@ class GranulometryUtils:
         print "global porosity: ",     self.global_porosity
         print "number_of_balls: ",     self.number_of_balls
         print "balls per area unit: ", self.balls_per_area
-        
-        
+               
 class PostUtils:
 
     def __init__(self, param, balls_model_part):
-		self.param = param
-		self.balls_model_part = balls_model_part
+        self.param = param
+        self.balls_model_part = balls_model_part
 
-    def VelocityTrap(self, file_name, time_dem):
+    def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 	
-        if ( self.param.VelocityTrapOption ):	
+        if (self.param.VelocityTrapOption):
           average_velocity = Array3()
           low_point = Array3()
         
@@ -111,7 +110,6 @@ class PostUtils:
         
           post_utilities = PostUtilities() 
           average_velocity = post_utilities.VelocityTrap(self.balls_model_part, low_point, high_point)
-          #print "Average velocity in Velocity Trap is ", average_velocity , "m/s"
           f = open(file_name, 'a')
           tmp = str(time_dem) + "   " + str(average_velocity[0])  + "   " + str(average_velocity[1])  + "   " + str(average_velocity[2])  + "\n"
           f.write(tmp)
