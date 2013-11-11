@@ -507,7 +507,16 @@ public:
 
         Timer::Start("Build");
 
+        //resetting to false the reactions flag
+        bool CalculateReactionsFlag = BaseType::mCalculateReactionsFlag;
+	BaseType::mCalculateReactionsFlag = false;
+
+
         Build(pScheme, r_model_part, A, b);
+
+	//recovering the reactions flag
+	BaseType::mCalculateReactionsFlag = CalculateReactionsFlag;
+
 
         Timer::Stop("Build");
 
@@ -563,8 +572,17 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
+	  
+	//resetting to false the reactions flag
+        bool CalculateReactionsFlag = BaseType::mCalculateReactionsFlag;
+	BaseType::mCalculateReactionsFlag = false;
 
-        BuildRHS(pScheme, r_model_part, b);
+	BuildRHS(pScheme, r_model_part, b);
+
+	//recovering the reactions flag
+	BaseType::mCalculateReactionsFlag = CalculateReactionsFlag;
+		
+
         SystemSolve(A, Dx, b);
 
         KRATOS_CATCH("")
@@ -983,8 +1001,8 @@ public:
             {
                 i = (*it2)->EquationId();
                 i -= systemsize;
-                /*KRATOS_WATCH((*it2)->GetSolutionStepReactionValue());
-                KRATOS_WATCH(ReactionsVector[i]);*/
+                // KRATOS_WATCH((*it2)->GetSolutionStepReactionValue());
+                // KRATOS_WATCH(ReactionsVector[i]);
                 (*it2)->GetSolutionStepReactionValue() = ReactionsVector[i];
             }
             num++;
@@ -1394,20 +1412,52 @@ protected:
     {
         unsigned int local_size = RHS_Contribution.size();
 
-        for (unsigned int i_local = 0; i_local < local_size; i_local++)
-        {
-            unsigned int i_global = EquationId[i_local];
+        if (BaseType::mCalculateReactionsFlag == false) //if we don't need to calculate reactions
+	  {
+	    for (unsigned int i_local = 0; i_local < local_size; i_local++)
+	      {
+		unsigned int i_global = EquationId[i_local];
 
-            if (i_global < BaseType::mEquationSystemSize)
-            {
-                omp_set_lock(&lock_array[i_global]);
+		if (i_global < BaseType::mEquationSystemSize)
+		  {
+		    omp_set_lock(&lock_array[i_global]);
 
-                b[i_global] += RHS_Contribution(i_local);
+		    b[i_global] += RHS_Contribution(i_local);
 
-                omp_unset_lock(&lock_array[i_global]);
-            }
-            //note that computation of reactions is not performed here!
-        }
+		    omp_unset_lock(&lock_array[i_global]);
+		  }
+		//note that computation of reactions is not performed here!
+	      }
+
+	  }
+        else   //when the calculation of reactions is needed
+	  {
+            TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
+
+            for (unsigned int i_local = 0; i_local < local_size; i_local++)
+	      {
+                unsigned int i_global = EquationId[i_local];
+
+                if (i_global < BaseType::mEquationSystemSize) //on "free" DOFs
+		  {
+		    omp_set_lock(&lock_array[i_global]);
+
+                    b[i_global] += RHS_Contribution[i_local];
+
+		    omp_unset_lock(&lock_array[i_global]);
+		  }
+                else   //on "fixed" DOFs
+		  {
+
+		    omp_set_lock(&lock_array[i_global - BaseType::mEquationSystemSize]);
+
+                    ReactionsVector[i_global - BaseType::mEquationSystemSize] -= RHS_Contribution[i_local];
+
+		    omp_unset_lock(&lock_array[i_global - BaseType::mEquationSystemSize]);
+		  }
+	      }
+	  }
+
     }
 
 
