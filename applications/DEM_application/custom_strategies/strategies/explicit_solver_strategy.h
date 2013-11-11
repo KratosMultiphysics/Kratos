@@ -130,7 +130,7 @@ namespace Kratos
       ExplicitSolverStrategy(){}
 
       ExplicitSolverStrategy(ModelPart& r_model_part,
-	                         ModelPart& fem_model_part,
+	                     ModelPart& fem_model_part,
                              const double max_delta_time,
                              const double n_step_search,
                              const double safety_factor,
@@ -151,9 +151,9 @@ namespace Kratos
           mSafetyFactor                  = safety_factor;
           mNumberOfElementsOldRadiusList = 0;
 		  
-		  //Cfengs
-		  mpDem_model_part             = &r_model_part;
-		  mpFem_model_part             = &fem_model_part;
+	  //Cfengs
+	  mpDem_model_part             = &r_model_part;
+	  mpFem_model_part             = &fem_model_part;
 		  
       }
 
