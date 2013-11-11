@@ -319,7 +319,6 @@ graph_printer = point_graph_printer.PrintGraphPrinter(
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
 # creating a Post Utils object that executes several post-related tasks
-print DEM_procedures.pepe
 post_utils = DEM_procedures.PostUtils(DEM_parameters, balls_model_part)
 
 # creating projection module for the fluid-DEM coupling and initial projection
@@ -344,7 +343,6 @@ for node in fluid_model_part.Nodes:
 
 creator_destructor = ParticleCreatorDestructor()
 
-# balls_model_part.SetBufferSize(3)
 DEM_solver = SolverStrategy.ExplicitStrategy(balls_model_part, fem_dem_model_part, creator_destructor, DEM_parameters)
 DEM_proc.GiDSolverTransfer(balls_model_part, DEM_solver, DEM_parameters)
 
@@ -456,14 +454,13 @@ while(time <= final_time):
         print_particles_results = PrintParticlesResults("DRAG_FORCE", time, balls_model_part)
         print_particles_results = PrintParticlesResults("BUOYANCY", time, balls_model_part)
         print_particles_results = PrintParticlesResults("VELOCITY", time, balls_model_part)
-
-    graph_printer.PrintGraphs(time)
-    PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
+        graph_printer.PrintGraphs(time)
+        PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
     if (output_time <= out and ProjectParameters.CouplingSchemeType == "updated_DEM"):
         projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
-        ParticleUtils2D().VisualizationModelPart(mixed_model_part, fluid_model_part, balls_model_part, fem_dem_model_part)
-        swimming_DEM_gid_io.write_swimming_DEM_results(time, fluid_model_part, balls_model_part, mixed_model_part, fem_dem_model_part, ProjectParameters.nodal_results, ProjectParameters.DEM_nodal_results, ProjectParameters.mixed_nodal_results, ProjectParameters.gauss_points_results)
+        ParticleUtils2D().VisualizationModelPart(mixed_model_part, fluid_model_part, balls_model_part)
+        swimming_DEM_gid_io.write_swimming_DEM_results(time, fluid_model_part, balls_model_part, fem_dem_model_part, mixed_model_part, ProjectParameters.nodal_results, ProjectParameters.DEM_nodal_results, ProjectParameters.mixed_nodal_results, ProjectParameters.gauss_points_results)
         out = 0
 
     # solving the DEM part
@@ -513,14 +510,13 @@ while(time <= final_time):
         print_particles_results = PrintParticlesResults("DRAG_FORCE", time, balls_model_part)
         print_particles_results = PrintParticlesResults("BUOYANCY", time, balls_model_part)
         print_particles_results = PrintParticlesResults("VELOCITY", time, balls_model_part)
-
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
     if (output_time <= out and ProjectParameters.CouplingSchemeType == "updated_fluid"):
         projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo) # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-        ParticleUtils2D().VisualizationModelPart(mixed_model_part, fluid_model_part, balls_model_part, fem_dem_model_part)
-        swimming_DEM_gid_io.write_swimming_DEM_results(time, fluid_model_part, balls_model_part, mixed_model_part, fem_dem_model_part, ProjectParameters.nodal_results, ProjectParameters.DEM_nodal_results, ProjectParameters.mixed_nodal_results, ProjectParameters.gauss_points_results)
+        ParticleUtils2D().VisualizationModelPart(mixed_model_part, fluid_model_part, balls_model_part)
+        swimming_DEM_gid_io.write_swimming_DEM_results(time, fluid_model_part, balls_model_part, fem_dem_model_part, mixed_model_part, ProjectParameters.nodal_results, ProjectParameters.DEM_nodal_results, ProjectParameters.mixed_nodal_results, ProjectParameters.gauss_points_results)
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 #       gid_io.write_results(  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
