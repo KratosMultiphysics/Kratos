@@ -2254,6 +2254,8 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
               CalculateElasticEnergyOfContacts(Output);
           }
 
+          AdditionalCalculate(rVariable, Output, rCurrentProcessInfo);
+
           KRATOS_CATCH("")
 
       }// Calculate
