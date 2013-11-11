@@ -154,7 +154,6 @@ namespace Kratos
 
       virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
       virtual void MemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
-      virtual void AdditionalMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
       virtual void ComputeNewNeighboursHistoricalData();
       void CalculateMaxIndentation(double& rCurrentMaxIndentation, const double& rTolerance);
       void CalculateKineticEnergy(double& rKineticEnergy);
@@ -231,6 +230,8 @@ namespace Kratos
                                                   double equiv_visco_damp_coeff_tangential,
                                                   bool sliding);
 
+      virtual void AdditionalMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
+      virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
       int mDimension;
       bool mDeltaOption;
