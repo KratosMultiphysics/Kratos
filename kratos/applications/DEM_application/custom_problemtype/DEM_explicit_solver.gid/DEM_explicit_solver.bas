@@ -13,14 +13,10 @@ Begin Properties  1
 End Properties
 *end materials
 
+*tcl(DEM::SetSphereAndCircleNodes)
 Begin Nodes
-*#// id   X  Y  Z
-*loop nodes
-*nodesnum   *NodesCoord(1)  *NodesCoord(2)  *NodesCoord(3)
-*end nodes
+*tcl(DEM::WriteSphereAndCircleNodes *FileId)*\
 End Nodes
-*# Element blocks
-*# Condition Blocks
 
 *set elems(sphere)
 *Add elems(circle)
@@ -208,61 +204,3 @@ Begin NodalData PREDEFINED_SKIN
 *endif
 *end elems 
 End NodalData
-
-*set elems(All)
-*if( GenData(Domain_Dimension,int) == 3 )
-Begin Conditions RigidFace3D3N
-*loop elems *all
-*if(strcmp(ElemsTypeName,"Triangle") == 0)
-*Set var i=0
-*set var j= ElemsNnode
-*format "%i%i%i%i%i"
-*ElemsNum *ElemsMat*\
-*for(i=1;i<=j;i=i+1)*\
-	*operation(ElemsConec(*i))*\
-*end
-
-*endif
-*end elems
-End Conditions
-*endif
-
-
-*set elems(All)
-*if( GenData(Domain_Dimension,int) == 3 )
-Begin Conditions RigidFace3D4N
-*loop elems *all
-*if(strcmp(ElemsTypeName,"Quadrilateral") == 0)
-*Set var i=0
-*set var j= ElemsNnode
-*format "%i%i%i%i%i%i"
-*ElemsNum *ElemsMat*\
-*for(i=1;i<=j;i=i+1)*\
-	*operation(ElemsConec(*i))*\
-*end
-
-*endif
-*end elems
-End Conditions
-*endif
-
-
-
-*set elems(All)
-*if( GenData(Domain_Dimension,int) == 2 )
-Begin Conditions RigidEdge3D2N
-*loop elems *all
-*if(strcmp(ElemsTypeName,"Linear") == 0)
-*Set var i=0
-*set var j= ElemsNnode
-*format "%i%i%i%i"
-*ElemsNum *ElemsMat*\
-*for(i=1;i<=j;i=i+1)*\
-	*operation(ElemsConec(*i))*\
-*end
-
-*endif
-*end elems
-End Conditions
-*endif
-
