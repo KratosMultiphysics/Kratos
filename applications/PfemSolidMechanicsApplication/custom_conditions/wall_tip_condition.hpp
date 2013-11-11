@@ -65,8 +65,6 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( WallTipCondition );
 
 
-    KRATOS_DEFINE_LOCAL_FLAG( WALL_TIP );
-
     struct WallTipVariables
     {
       bool    wall_tip_set;

@@ -55,7 +55,7 @@ class RigidToolBoundingBox
 {
 private:
 
-   enum ContactFace{ FreeSurface, RakeSurface, TipSurface, ClearanceSurface };
+   enum ContactFace{ FreeSurface=0, RakeSurface=1, TipSurface=2, ClearanceSurface=3 };
 
 public:
     ///@name Type Definitions
@@ -170,7 +170,7 @@ public:
     //************************************************************************************
     //************************************************************************************
    
-    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent)
+    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int ContactFace = 0)
     {
       bool is_inside = false;
 
@@ -308,7 +308,10 @@ private:
       double Face1=0,Face2=0,Face3=0;
       CalculateAuxiliarFaces( Face1, Face2, Face3, rPoint );
 
-      //rCurrentNode->Reset(WallTipCondition::WALL_TIP);
+      //The nodes in the wall tip, are marked as TO_SPLIT 
+      //in order to be susceptible to refine
+      //rPoint.Reset(TO_SPLIT);
+
 
       if(this->mBox.RakeAngle>0){
 	if(FaceR<=0 && Face3>=0 && Face1>=0){
@@ -317,7 +320,7 @@ private:
 	else if(FaceT<=0 && Face3<0 && Face2<=0){
 	  Face = TipSurface;
 	  //It must be set to be able to refine boundaries later on REFINE
-	  //rCurrentNode->Set(WallTipCondition::WALL_TIP);
+	  //rPoint.Set(TO_SPLIT);
 	}
 	else if(FaceC>=0 && Face2>=0 && Face1<0){
 	  Face = ClearanceSurface;
@@ -334,7 +337,7 @@ private:
 	else if(FaceT<=0 && Face3<=0 && Face2<=0){
 	  Face = TipSurface;
 	  //It must be set to be able to refine boundaries later on REFINE
-	  //rCurrentNode->Set(WallTipCondition::WALL_TIP);
+	  //rPoint.Set(TO_SPLIT);
 	}
 	else if(FaceC>=0 && Face2>=0 && Face1<=0){
 	  Face = ClearanceSurface;

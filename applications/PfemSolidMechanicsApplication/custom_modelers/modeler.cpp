@@ -56,8 +56,6 @@ namespace Kratos
 
   KRATOS_CREATE_LOCAL_FLAG (Modeler,ENGAGED_NODES,11);
 
-  KRATOS_CREATE_LOCAL_FLAG (Modeler,WALL_TIP,12);
-
 
 } // Namespace Kratos
 

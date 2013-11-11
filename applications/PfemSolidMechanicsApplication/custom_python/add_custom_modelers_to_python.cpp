@@ -21,6 +21,11 @@
 #include "custom_modelers/triangle_mesh_2D_modeler.hpp"
 #include "custom_modelers/contact_domain_2D_modeler.hpp"
 
+// Bounding Boxes
+#include "custom_modelers/spatial_bounding_box.hpp"
+#include "custom_modelers/rigid_tool_bounding_box.hpp"
+
+
 namespace Kratos
 {
 
@@ -72,9 +77,9 @@ void GenerateTriangleContactMesh(ContactDomain2DModeler& Mesher, ModelPart& mode
 			 critical_radius,reference_error, domain);
 }
 
-void SetToolTip(TriangleMesh2DModeler& Mesher,double radius, array_1d<double,3> center)
+void SetWallTip(TriangleMesh2DModeler& Mesher,double radius, Vector center)
 {
-  Mesher.SetToolTip(radius,center);
+  Mesher.SetWallTip(radius,center);
 }
 
 void SetRefiningBox(TriangleMesh2DModeler& Mesher,double radius, Vector center, Vector velocity)
@@ -114,7 +119,7 @@ void  AddCustomModelersToPython()
       .def("SetInitialMeshData",SetInitialDataOnMesher)
       .def("SetRemeshData",SetRemeshDataOnMesher)
       .def("SetRefineData",SetRefineDataOnMesher)
-      .def("SetToolTip",SetToolTip)
+      .def("SetWallTip",SetWallTip)
       .def("SetRefiningBox",SetRefiningBox)
       .def("GenerateMesh",GenerateTriangleMesh)
       
@@ -127,7 +132,14 @@ void  AddCustomModelersToPython()
       .def("TransferContactData",TransferContactBoundaryData)
       ;
 
- 
+
+    //bounding box set
+    class_<RigidToolBoundingBox, boost::noncopyable > 
+      ( "RigidToolBoundingBox", 
+	init<double, double, double, Vector, Vector>() )
+	;
+	
+     
 }
 
 }  // namespace Python.

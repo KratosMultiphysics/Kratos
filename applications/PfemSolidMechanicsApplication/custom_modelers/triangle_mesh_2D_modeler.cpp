@@ -36,15 +36,15 @@ namespace Kratos
   //*******************************************************************************************
 
   void TriangleMesh2DModeler::SetRemeshData (Element   const& rReferenceElement,
-				      Condition const& rReferenceCondition,
-				      bool remesh,
-				      bool constrained,
-				      bool mesh_smoothing,
-				      bool jacobi_smoothing,
-				      bool avoid_tip_elements,
-				      double alpha,
-				      double my_offset,
-				      int    MeshId)
+					     Condition const& rReferenceCondition,
+					     bool remesh,
+					     bool constrained,
+					     bool mesh_smoothing,
+					     bool jacobi_smoothing,
+					     bool avoid_tip_elements,
+					     double alpha,
+					     double my_offset,
+					     int    MeshId)
   {    
 
     MeshingVariables & Variables = mVariables[MeshId];
@@ -64,19 +64,19 @@ namespace Kratos
     Variables.offset_factor =my_offset;
 
     Variables.refine           = false;
-    Variables.ToolTip.tool_set = false;
-    Variables.BoundingBox.box_set = false;
+    Variables.WallTip.is_set = false;
+    Variables.BoundingBox.is_set = false;
   }
 
   //*******************************************************************************************
   //*******************************************************************************************
 
   void TriangleMesh2DModeler::SetRefineData (bool refine,
-				      double h_factor,
-				      double dissipation,
-				      double radius,
-				      double error,
-				      int MeshId)
+					     double h_factor,
+					     double dissipation,
+					     double radius,
+					     double error,
+					     int MeshId)
   {    
     MeshingVariables & Variables  = mVariables[MeshId];
 
@@ -103,15 +103,15 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void TriangleMesh2DModeler::SetToolTip (double radius,
-				   array_1d<double,3> center)
+  void TriangleMesh2DModeler::SetWallTip (double radius,
+					  Vector center)
     
   {
     for(unsigned int i=0; i<mVariables.size(); i++)
       {
-	mVariables[i].ToolTip.tool_set =true;
-	mVariables[i].ToolTip.Radius=radius;
-	mVariables[i].ToolTip.Center=center;
+	mVariables[i].WallTip.is_set =true;
+	mVariables[i].WallTip.Radius=radius;
+	mVariables[i].WallTip.Center=center;
 	//std::cout<<" Center "<<mVariables[i].TipCenter<<std::endl;
       }
   }
@@ -126,7 +126,7 @@ namespace Kratos
   {
     for(unsigned int i=0; i<mVariables.size(); i++)
       {
-	mVariables[i].BoundingBox.box_set =true;
+	mVariables[i].BoundingBox.is_set =true;
 	mVariables[i].BoundingBox.Radius=radius;
 	mVariables[i].BoundingBox.Center=center;
 	mVariables[i].BoundingBox.Velocity=velocity;
@@ -1445,7 +1445,7 @@ namespace Kratos
 		//std::cout<<"   prescribed_h (el:"<<el<<") = "<<prescribed_h<<std::endl;
 		  
 		bool refine_candidate = true;
-		if (rVariables.BoundingBox.box_set == true ){
+		if (rVariables.BoundingBox.is_set == true ){
 		  refine_candidate = mModelerUtilities.CheckVerticesInBox(vertices,RefiningBox,CurrentProcessInfo);
 		}
 		  
@@ -2784,7 +2784,7 @@ namespace Kratos
 	std::cout<<"   List of Conditions Reserved Size: "<<conditions_size<<std::endl;
 
 	bool tool_set = false;
-	if(rVariables.ToolTip.tool_set)
+	if(rVariables.WallTip.is_set)
 	  tool_set=true;
 
 	double alpha_radius = 0.6;
@@ -2845,7 +2845,8 @@ namespace Kratos
 		  if( MasterCondition->IsNot(TO_ERASE) ){
 
 
-		    //The order is determined to set WALL_TIP to the nodes on boundary, independently if they are on active contact or not
+		    // The order is determined to detect wall tip contact nodes on boundary
+		    // independently if they are on active contact or not (they are marked as TO_SPLIT)
 
 		    rConditionGeom  = MasterCondition->GetGeometry(); 
 
@@ -2858,9 +2859,9 @@ namespace Kratos
 			tip_center = MasterNode.FastGetSolutionStepValue( WALL_REFERENCE_POINT );
 			    
 			if(!tool_set){
-			  rVariables.ToolTip.Radius=tool_radius;
-			  rVariables.ToolTip.Center=tip_center;
-			  //std::cout<<" rVariables.ToolTip.Radius "<<rVariables.ToolTip.Radius<<" rVariables.ToolTip.Center "<<rVariables.ToolTip.Center<<std::endl;
+			  rVariables.WallTip.Radius=tool_radius;
+			  rVariables.WallTip.Center=tip_center;
+			  //std::cout<<" rVariables.WallTip.Radius "<<rVariables.WallTip.Radius<<" rVariables.WallTip.Center "<<rVariables.WallTip.Center<<std::endl;
 			  tool_set=true;
 			}
 			    
@@ -2877,11 +2878,14 @@ namespace Kratos
 
 			double distance2=norm_2(radius);
 			    
+			//If a node is detected in the wall tip is set TO_SPLIT
+			//the criteria to splitting will be applied later in the nodes marked as TO_SPLIT
+
 			if( (1-alpha_radius)*tool_radius < distance1 &&  distance1 < (1+alpha_radius)*tool_radius )
-			  rConditionGeom[0].Set( Modeler::WALL_TIP );
+			  rConditionGeom[0].Set(TO_SPLIT);
 			    
 			if( (1-alpha_radius)*tool_radius < distance2 &&  distance2 < (1+alpha_radius)*tool_radius )
-			  rConditionGeom[1].Set( Modeler::WALL_TIP );
+			  rConditionGeom[1].Set(TO_SPLIT);
 			  
 			
 
@@ -2996,10 +3000,10 @@ namespace Kratos
 			Condition::Pointer ContactMasterCondition  = ic->GetValue(MASTER_CONDITION);
 			
 
-			if( (rConditionGeom[0].Is( Modeler::WALL_TIP ) && rConditionGeom[1].Is( Modeler::WALL_TIP )) )
+			if( (rConditionGeom[0].Is(TO_SPLIT) && rConditionGeom[1].Is(TO_SPLIT)) )
 			  tool_project = true;
 			    
-			if( (rConditionGeom[0].Is( Modeler::WALL_TIP ) || rConditionGeom[1].Is( Modeler::WALL_TIP )) && contact_active)
+			if( (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)) && contact_active)
 			  tool_project = true;
 			    
 
@@ -3073,7 +3077,7 @@ namespace Kratos
 		
 
 	    if( refine_candidate ){
-	      if (rVariables.BoundingBox.box_set == true ){
+	      if (rVariables.BoundingBox.is_set == true ){
 		refine_candidate = mModelerUtilities.CheckConditionInBox(*(ic.base()),RefiningBox,CurrentProcessInfo);
 	      }
 	    }
@@ -3125,15 +3129,15 @@ namespace Kratos
 
 		    //to recover TIP definition on conditions
 		    if(tool_set)
-		      tool_radius  = rVariables.ToolTip.Radius;
+		      tool_radius  = rVariables.WallTip.Radius;
 		    else
 		      std::cout<<"   Tip not set "<<std::endl;
 
 		    bool on_tip = false;
-		    if(rConditionGeom[0].Is( Modeler::WALL_TIP ) && rConditionGeom[1].Is( Modeler::WALL_TIP )){
+		    if(rConditionGeom[0].Is(TO_SPLIT) && rConditionGeom[1].Is(TO_SPLIT)){
 		      on_tip = true;
 		    }
-		    else if (rConditionGeom[0].Is( Modeler::WALL_TIP ) || rConditionGeom[1].Is( Modeler::WALL_TIP )){
+		    else if (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)){
 		      if( side_length > 1.5*rVariables.Refine.critical_side*tip_correction ){
 			on_tip = true;
 		      }
@@ -3143,7 +3147,7 @@ namespace Kratos
 		    if(tool_radius!=0 && on_tip) //master node in tool -->  refine workpiece  // (tool_radius ==0 in workpiece nodes)
 		      {
 			//if(tool_set)
-			tip_center  = rVariables.ToolTip.Center;
+			tip_center  = rVariables.WallTip.Center;
 			//else
 			//std::cout<<" Tip not set "<<std::endl;
 
@@ -3178,10 +3182,10 @@ namespace Kratos
 		    else{
 		      if(tool_radius!=0)
 			std::cout<<" Tool_radius "<<tool_radius<<std::endl;
-		      if(rConditionGeom[0].IsNot( Modeler::WALL_TIP ))
+		      if(rConditionGeom[0].IsNot(TO_SPLIT))
 			std::cout<<" Node 0 not tool tip "<<rConditionGeom[0].Id()<<std::endl;
 			    
-		      if(rConditionGeom[1].IsNot( Modeler::WALL_TIP ))
+		      if(rConditionGeom[1].IsNot(TO_SPLIT))
 			std::cout<<" Node 1 not tool tip "<<rConditionGeom[1].Id()<<std::endl;
 
 
@@ -3254,13 +3258,14 @@ namespace Kratos
 		    new_point.SetId(ic->Id()); //set condition Id
 		      
 		    //it will be good if the node is detected in the tool tip using the rigid contact standards:
-		    if( (rConditionGeom[0].Is( Modeler::WALL_TIP ) && rConditionGeom[1].Is( Modeler::WALL_TIP )) )
+		    
+		    if( (rConditionGeom[0].Is(TO_SPLIT) && rConditionGeom[1].Is(TO_SPLIT)) )
 		      tool_project = true;
 
-		    if( (rConditionGeom[0].Is( Modeler::WALL_TIP ) || rConditionGeom[1].Is( Modeler::WALL_TIP )) && contact_active)
+		    if( (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)) && contact_active)
 		      tool_project = true;
 
-		    if( (rConditionGeom[0].Is( Modeler::WALL_TIP ) || rConditionGeom[1].Is( Modeler::WALL_TIP )) && contact_semi_active)
+		    if( (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)) && contact_semi_active)
 		      tool_project = true;
 
 
@@ -3268,9 +3273,9 @@ namespace Kratos
 			  
 		      if(tool_set){
 
-			//std::cout<<" rVariables.ToolTip.Radius "<<rVariables.ToolTip.Radius<<" rVariables.ToolTip.Center "<<rVariables.ToolTip.Center<<std::endl;
-			tool_radius = rVariables.ToolTip.Radius;
-			tip_center  = rVariables.ToolTip.Center;
+			//std::cout<<" rVariables.WallTip.Radius "<<rVariables.WallTip.Radius<<" rVariables.WallTip.Center "<<rVariables.WallTip.Center<<std::endl;
+			tool_radius = rVariables.WallTip.Radius;
+			tip_center  = rVariables.WallTip.Center;
 			  
 			if(new_point.Y()<(tip_center[1]) && new_point.Y()>(tip_center[1]-tool_radius)){
 			    
@@ -3473,7 +3478,7 @@ namespace Kratos
 	    Geometry< Node<3> > rGeom =ic->GetGeometry();
 	    for(unsigned int i=0; i<rGeom.size(); i++)
 	      {
-		rGeom[i].Reset( Modeler::WALL_TIP );
+		rGeom[i].Reset(TO_SPLIT);
 	      }
 		
 	    if(ic->IsNot(TO_ERASE)){
@@ -3959,7 +3964,7 @@ namespace Kratos
 		  std::cout<<" Create Condition "<<id<<"("<<face[0].Id()<<","<<face[1].Id()<<")"<<std::endl;
 		  p_cond = rReferenceCondition.Create(id, face, properties);
 		      
-		  //if a condition is created new nodes must be labeled to REFINE
+		  //if a condition is created new nodes must be labeled TO_REFINE
 		  face[0].Set(TO_REFINE);
 		  face[1].Set(TO_REFINE);
 

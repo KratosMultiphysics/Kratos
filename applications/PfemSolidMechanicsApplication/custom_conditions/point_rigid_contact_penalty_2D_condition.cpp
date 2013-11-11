@@ -109,12 +109,16 @@ namespace Kratos
     KRATOS_TRY
 
       
-      ContactVariables Contact;
+    ContactVariables Contact;
     
-    if( mpRigidWall->IsInside( GetGeometry()[0], Contact.Gap.Normal, Contact.Gap.Tangent, Contact.Surface.Normal, Contact.Surface.Tangent ) ){
+    int ContactFace = 0; //free surface
+    
+    if( mpRigidWall->IsInside( GetGeometry()[0], Contact.Gap.Normal, Contact.Gap.Tangent, Contact.Surface.Normal, Contact.Surface.Tangent, ContactFace ) ){
 
       Contact.Options.Set(ACTIVE,true);
 
+      if(ContactFace == 2) //tip surface
+	GetGeometry()[0].Set(TO_SPLIT);
 
       if(rRightHandSideVector.size() != 2)
 	rRightHandSideVector.resize(2,false);
@@ -158,11 +162,16 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      ContactVariables Contact;
+    ContactVariables Contact;
+
+    int ContactFace = 0; //free surface
     
-    if( mpRigidWall->IsInside( GetGeometry()[0], Contact.Gap.Normal, Contact.Gap.Tangent, Contact.Surface.Normal, Contact.Surface.Tangent ) ){
+    if( mpRigidWall->IsInside( GetGeometry()[0], Contact.Gap.Normal, Contact.Gap.Tangent, Contact.Surface.Normal, Contact.Surface.Tangent, ContactFace ) ){
 
       Contact.Options.Set(ACTIVE,true);
+      
+      if(ContactFace == 2) //tip surface
+	GetGeometry()[0].Set(TO_SPLIT);
 
       if(rLeftHandSideMatrix.size1() != 2)
         rLeftHandSideMatrix.resize(2,2,false);
@@ -201,11 +210,16 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      ContactVariables Contact;
-    
-    if( mpRigidWall->IsInside( GetGeometry()[0], Contact.Gap.Normal, Contact.Gap.Tangent, Contact.Surface.Normal, Contact.Surface.Tangent ) ){
+    ContactVariables Contact;
+ 
+    int ContactFace = 0; //free surface
+     
+    if( mpRigidWall->IsInside( GetGeometry()[0], Contact.Gap.Normal, Contact.Gap.Tangent, Contact.Surface.Normal, Contact.Surface.Tangent, ContactFace ) ){
 
       Contact.Options.Set(ACTIVE,true);
+
+      if(ContactFace == 2) //tip surface
+	GetGeometry()[0].Set(TO_SPLIT);
 
       if(rRightHandSideVector.size() != 2)
 	rRightHandSideVector.resize(2,false);

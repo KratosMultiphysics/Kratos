@@ -25,6 +25,9 @@
 #include "custom_processes/boundary_skin_build_process.hpp"
 #include "custom_processes/rigid_wall_contact_search_process.hpp"
 
+//Modeler Bounding Boxes
+#include "custom_modelers/rigid_tool_bounding_box.hpp"
+
 namespace Kratos
 {
 	
@@ -65,6 +68,15 @@ namespace Kratos
 	;
 
       
+      //********WALL CONTACT SEARCH*********//
+
+      class_<RigidWallContactSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
+	(
+	 "RigidWallContactSearch", init<RigidToolBoundingBox::Pointer, ModelPart&>()
+	 )
+	;
+
+
     }
  
   }  // namespace Python.
