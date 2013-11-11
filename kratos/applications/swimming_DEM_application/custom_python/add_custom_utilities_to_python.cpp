@@ -82,14 +82,16 @@ using namespace boost::python;
         ; 
     
     class_<BinBasedDEMFluidCoupledMapping < 2 > >("BinBasedDEMFluidCoupledMapping2D", init<double, int, int>())
-        .def("InterpolationFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 2 > ::InterpolationFromFluidMesh)
-        .def("InterpolationFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 2 > ::InterpolationFromDEMMesh)
+        .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 2 > ::InterpolateFromFluidMesh)
+        .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 2 > ::InterpolateFromDEMMesh)
+        .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping < 2 > ::ComputePostProcessResults)
         ;
  
     class_<BinBasedDEMFluidCoupledMapping < 3 > >("BinBasedDEMFluidCoupledMapping3D", init<double, int>())
-        .def("InterpolationFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolationFromFluidMesh)
+        .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolateFromNewestFluidMesh)
-        .def("InterpolationFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolationFromDEMMesh)  
+        .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolateFromDEMMesh)
+        .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping < 3 > ::ComputePostProcessResults)
         ;
     }
 
