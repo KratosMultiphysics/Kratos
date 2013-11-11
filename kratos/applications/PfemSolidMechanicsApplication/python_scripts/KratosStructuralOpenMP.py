@@ -29,7 +29,6 @@ from KratosMultiphysics import *
 #including Applications paths
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.MeshingApplication        import *
 from KratosMultiphysics.PfemSolidMechanicsApplication import *
 
 #import the python utilities:
@@ -40,8 +39,8 @@ import conditions_python_utility    as condition_utils
 import list_files_python_utility    as files_utils
 
 import time_operation_utility       as operation_utils
-import modeler_python_utility       as modeler_utils
-import rigid_wall_python_utility    as wall_utils
+#import modeler_python_utility       as modeler_utils
+#import rigid_wall_python_utility    as wall_utils
 #import graph_plot_python_utility    as plot_utils
 
 
@@ -113,10 +112,10 @@ modeler = modeler_utils.ModelerUtility(model_part,domain_size,remesh_domains, co
 #critical_radius      = 0.025
 #critical_radius      = general_variables.tip_radius
 
-critical_radius      = general_variables.mesh_modeler_config.critical_radius
+critical_radius      = general_variables.CriticalMeshSize
 
-if(critical_radius > 5*general_variables.rigid_wall_config.tip_radius):
-  critical_radius    = general_variables.rigid_wall_config.tip_radius
+if(general_variables.CriticalMeshSize > 5*general_variables.tip_radius):
+  critical_radius    = general_variables.tip_radius
 
 # Optional : mesh refinement b#defining the mesh conditions
 
@@ -149,7 +148,7 @@ modeler.BuildContactModeler(general_variables.contact_modeler_config);
 #set rigid wall configuration
 rigid_wall = wall_utils.RigidWallUtility(model_part,domain_size);
 
-rigid_wall.Initialize(general_variables.rigid_wall_config);
+rigid_wall.Initialize(rigid_wall_config);
 
 ######################--RIGID WALL OPTIONS END--##################
 
