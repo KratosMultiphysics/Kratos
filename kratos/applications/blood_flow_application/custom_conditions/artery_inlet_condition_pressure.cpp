@@ -66,7 +66,7 @@ namespace Kratos
 //************************************************************************************
 //************************************************************************************
 
-ArteryInletCondition::ArteryInletCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+ArteryInletConditionPressure::ArteryInletConditionPressure(IndexType NewId, GeometryType::Pointer pGeometry)
         : Condition(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
@@ -75,27 +75,27 @@ ArteryInletCondition::ArteryInletCondition(IndexType NewId, GeometryType::Pointe
 //************************************************************************************
 //************************************************************************************
 
-ArteryInletCondition::ArteryInletCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+ArteryInletConditionPressure::ArteryInletConditionPressure(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Condition(NewId, pGeometry, pProperties)
 {
 }
 
-Condition::Pointer ArteryInletCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+Condition::Pointer ArteryInletConditionPressure::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     KRATOS_TRY
 
-    return Condition::Pointer(new ArteryInletCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new ArteryInletConditionPressure(NewId, GetGeometry().Create(ThisNodes), pProperties));
     KRATOS_CATCH("");
 }
 
-ArteryInletCondition::~ArteryInletCondition()
+ArteryInletConditionPressure::~ArteryInletConditionPressure()
 {
 }
 
 //************************************************************************************
 //************************************************************************************
 
-void ArteryInletCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ArteryInletConditionPressure::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
     KRATOS_ERROR(std::logic_error, "method not implemented (it does not make sense to computer the system matrix for an explicit condition", "");
@@ -104,7 +104,7 @@ void ArteryInletCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
 
 //************************************************************************************
 //************************************************************************************
-void ArteryInletCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+void ArteryInletConditionPressure::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -112,7 +112,8 @@ void ArteryInletCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
     if (rRightHandSideVector.size() != 2)
         rRightHandSideVector.resize(2,false);
 
-    std::cout << "FLOWWWWWWW ::::::: Artery_Inlet" << std::endl;
+
+    std::cout << "PRESSURE ::::::: Artery_Inlet _ NUEVO" << std::endl;
 
     //double h_int = rCurrentProcessInfo[DELTA_TIME];
     // get data as needed
@@ -129,11 +130,21 @@ void ArteryInletCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
     //const double H0 = GetGeometry()[0].FastGetSolutionStepValue(THICKNESS);;
     //const double beta = E*H0*1.77245385/(1.0-nu*nu);
     const double beta =GetGeometry()[0].FastGetSolutionStepValue(BETA);
-    const double A1 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
+    //const double A1 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
     const double A0 = GetGeometry()[0].GetValue(NODAL_AREA);
-    //const double& A = UpdateArea(beta,A1);
-    const double A = A1; // No hago update del area
-    const double& flow = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
+    KRATOS_WATCH("A0_kratos");
+    KRATOS_WATCH(A0);
+    const double A = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
+    KRATOS_WATCH("A_kratos");
+    KRATOS_WATCH(A);
+    const double Q1 = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
+    KRATOS_WATCH("Q1_kratos");
+    KRATOS_WATCH(Q1);
+    const double flow = UpdateFlow(beta,Q1);
+    KRATOS_WATCH("Flow_kratos");
+    KRATOS_WATCH(flow);
+    //const double A = A1; // No hago update del area
+    //const double& flow = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
     //flow = 2*flow -
     //const double flow3 = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
     //const double& flow5 = GetGeometry()[0].GetSolutionStepValue(FLOW);
@@ -155,34 +166,40 @@ void ArteryInletCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
     rRightHandSideVector[1] = C + (coriolis_coefficient*flow*flow/(A));
     //TODO:CHEQUEAR EL TERMINO DE LA MASA y el SIGNO
     // RHS = RHS + FR/MASA
+
     KRATOS_CATCH("")
 }
 
 
-double ArteryInletCondition::UpdateArea(double Beta, double A)
+double ArteryInletConditionPressure::UpdateFlow(double Beta, double Q)
 {
 
     KRATOS_TRY
 
     const int max_iteration = 100;
     const double flow =  GetGeometry()[0].FastGetSolutionStepValue(FLOW);
+    const double A=GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
+    const double A0=GetGeometry()[0].GetValue(NODAL_AREA);
     const double density = GetProperties()[DENSITY];
-    const double par2 = sqrt(Beta / (2.00*density*GetGeometry()[0].GetValue(NODAL_AREA)));
+    const double par2 = sqrt(Beta / (2.00*density*A0));
     const double w1 = (flow / A) - 4.00*par2*pow(A,0.25);
 
     //std::cout << "FLOWWWWWWW ::::::: Artery_Inlet" << std::endl;
     //KRATOS_WATCH(flow);
 
-    double x = A;
+    double x = Q;
     for(int i = 0 ; i < max_iteration ; i++)
     {
-        double f = 4.00 * par2 * pow(x, 1.25) + w1 * x - flow;
-        double df= 5.00 * par2 * pow(x, 0.25) + w1 ;
-
+        double f = pow(((w1 - (x/A0))/(4*par2)),4) - A0;
+                //4.00 * par2 * pow(x, 1.25) + w1 * x - flow;
+        double df=-((pow(((w1-x/A0)/4),3))/(A0*pow(par2,4)));
+                //5.00 * par2 * pow(x, 0.25) + w1 ;
         double dx = f/df;
         x -= dx;
         if(fabs(dx) < 1e-6)
-            A = x;
+            Q = x;
+            KRATOS_WATCH("NEWTON_R");
+            KRATOS_WATCH(Q);
             break;
 //        else
 //            //std::cout << "NO CONVERGEEEEEEEEEEEEEEEE:: Artery_Inlet" << std::endl;
@@ -191,17 +208,15 @@ double ArteryInletCondition::UpdateArea(double Beta, double A)
 //            std::cout << "NO CONVERGEEEEEEEEEEEEEEEE::: Artery_Inlet" << std::endl;
 //            KRATOS_ERROR(std::runtime_error, "Artery_Inlet", "");
     }
-
-    A = x;
-    return A;
-
+    Q = x;
+    return Q;
     KRATOS_CATCH("");
 }
 
 
 //************************************************************************************
 //************************************************************************************
-void ArteryInletCondition::Initialize()
+void ArteryInletConditionPressure::Initialize()
 {
     KRATOS_TRY
 
@@ -213,7 +228,7 @@ void ArteryInletCondition::Initialize()
 // this subroutine calculates the nodal contributions for the explicit steps of the
 // fractional step procedure
 
-void ArteryInletCondition::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
+void ArteryInletConditionPressure::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -223,7 +238,7 @@ void ArteryInletCondition::InitializeSolutionStep(ProcessInfo& CurrentProcessInf
 //************************************************************************************
 //************************************************************************************
 
-void ArteryInletCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+void ArteryInletConditionPressure::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_ERROR(std::logic_error, "method not implemented (it does not make sense for an explicit condition", "");
 }
@@ -231,7 +246,7 @@ void ArteryInletCondition::EquationIdVector(EquationIdVectorType& rResult, Proce
 //************************************************************************************
 //************************************************************************************
 
-void ArteryInletCondition::GetDofList(DofsVectorType& ConditionalDofList, ProcessInfo& CurrentProcessInfo)
+void ArteryInletConditionPressure::GetDofList(DofsVectorType& ConditionalDofList, ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_ERROR(std::logic_error, "method not implemented (it does not make sense for an explicit condition", "");
 }
@@ -239,7 +254,7 @@ void ArteryInletCondition::GetDofList(DofsVectorType& ConditionalDofList, Proces
 
 //************************************************************************************
 //************************************************************************************
-void ArteryInletCondition::Calculate(const Variable<double >& rVariable,
+void ArteryInletConditionPressure::Calculate(const Variable<double >& rVariable,
                               double& Output,
                               const ProcessInfo& rCurrentProcessInfo)
 {
@@ -254,7 +269,7 @@ void ArteryInletCondition::Calculate(const Variable<double >& rVariable,
 
 }
 
-int ArteryInletCondition::Check(const ProcessInfo& rCurrentProcessInfo)
+int ArteryInletConditionPressure::Check(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 

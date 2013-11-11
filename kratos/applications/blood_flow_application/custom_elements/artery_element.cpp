@@ -347,6 +347,10 @@ void ArteryElement::Initialize()
     const double pressure = GetProperties()[PRESSURE]; //Initial Pressure (Dyastolic pressure)
     const double blood_density = GetProperties()[DENSITY];
     
+//    KRATOS_WATCH(GetProperties().Id());
+//    KRATOS_WATCH(pressure);
+//    KRATOS_WATCH(this->Id());
+
     double beta=E*H0*1.77245385/(1.0-nu*nu);
 
     //compute the lenght of the element
