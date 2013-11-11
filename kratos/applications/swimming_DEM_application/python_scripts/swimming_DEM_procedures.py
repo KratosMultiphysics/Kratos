@@ -31,6 +31,16 @@ def InitializeVariablesToZero(model_part, variable_list):
                 node.SetSolutionStepValue(DRAG_REACTION_Y, 0, 0.0)
                 node.SetSolutionStepValue(DRAG_REACTION_Z, 0, 0.0)
 
+def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
+    current_time += delta_time
+
+    while current_time < current_time_plus_increment - delta_time:
+        yield current_time
+        current_time += delta_time
+
+    current_time = current_time_plus_increment
+    yield current_time
+
 class IOTools:
 
     def __init__(self, Param):
@@ -115,10 +125,11 @@ class PorosityUtils:
 
 class ProjectionModule:
 
-    def __init__(self, fluid_model_part, balls_model_part, dimension, max_solid_fraction, coupling_type, n_particles_in_depth):
+    def __init__(self, fluid_model_part, balls_model_part, FEM_DEM_model_part, dimension, max_solid_fraction, coupling_type, n_particles_in_depth):
 
         self.fluid_model_part     = fluid_model_part
         self.particles_model_part = balls_model_part
+        self.FEM_DEM_model_part   = FEM_DEM_model_part
         self.dimension            = dimension
         self.max_solid_fraction   = max_solid_fraction
         self.coupling_type        = coupling_type
@@ -143,7 +154,7 @@ class ProjectionModule:
 
     def ProjectFromFluid(self, alpha):
 
-        self.projector.InterpolationFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid, alpha)
+        self.projector.InterpolateFromFluidMesh(self.fluid_model_part, self.particles_model_part, self.bin_of_objects_fluid, alpha)
 
     def ProjectFromNewestFluid(self):
 
@@ -151,5 +162,8 @@ class ProjectionModule:
 
     def ProjectFromParticles(self):
 
-        self.projector.InterpolationFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
+        self.projector.InterpolateFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
+
+    def ComputePostProcessResults(self, particles_process_info):
+        self.projector.ComputePostProcessResults(self.particles_model_part, self.fluid_model_part, self.FEM_DEM_model_part, self.bin_of_objects_fluid, particles_process_info)
 
