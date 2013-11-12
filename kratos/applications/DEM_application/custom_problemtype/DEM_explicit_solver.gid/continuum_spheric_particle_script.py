@@ -112,12 +112,10 @@ control         = 0.0
 
 os.chdir(main_path)
 
-export_model_part = balls_model_part
 
 if ( (DEM_parameters.ContinuumOption =="ON") and (DEM_parameters.ContactMeshOption =="ON") ) :
 
   contact_model_part = solver.contact_model_part   
-  export_model_part = contact_model_part
 
 #-------------------------------------------------------------------------------------------------------------------------
 
@@ -189,7 +187,7 @@ print 'Initialitzation Complete' + '\n'
 
 os.chdir(graphs_path)
 
-if(Param.BtsOption == "ON"):
+if(DEM_parameters.BtsOption == "ON"):
     bts_export = open("bts_"+str(datetime.datetime.now())+".csv",'w');
 
 if (DEM_parameters.GraphOption =="ON"):
@@ -241,16 +239,16 @@ os.chdir(post_path)
 
 if (DEM_parameters.Multifile == "single_file"):
   
-  post_utility.AddModelPartNodesToModelPart(mixed_model_part, balls_model_part) 
+  post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part) 
   if (DEM_parameters.ContactMeshOption == "ON"):
-	  post_utility.AddModelPartNodesToModelPart(mixed_model_part, contact_model_part)
-  post_utility.AddModelPartNodesToModelPart(mixed_model_part, RigidFace_model_part)
+      post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
+  post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part)
   
   gid_io.InitializeMesh(0.0) 
   gid_io.WriteSphereMesh(balls_model_part.GetMesh())
   if (DEM_parameters.ContactMeshOption == "ON"):
-	  gid_io.WriteMesh(contact_model_part.GetMesh())
-	  gid_io.WriteMesh(RigidFace_model_part.GetMesh())
+      gid_io.WriteMesh(contact_model_part.GetMesh())
+      gid_io.WriteMesh(RigidFace_model_part.GetMesh())
   gid_io.FinalizeMesh()
   
   gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
@@ -348,7 +346,7 @@ while (time < DEM_parameters.FinalTime):
     total_force = 0.0
     total_force_bts = 0.0
     
-    if( Param.BtsOption =="ON"):
+    if( DEM_parameters.BtsOption =="ON"):
 
       for node in sup_layer_fm:
 
@@ -465,23 +463,24 @@ while (time < DEM_parameters.FinalTime):
         os.chdir(post_path)
 
         if (DEM_parameters.Multifile == "multiple_files"):
-			
-			post_utility.AddModelPartNodesToModelPart(mixed_model_part, balls_model_part) 
-			if (DEM_parameters.ContactMeshOption == "ON"):
-				post_utility.AddModelPartNodesToModelPart(mixed_model_part, contact_model_part)
-			post_utility.AddModelPartNodesToModelPart(mixed_model_part, RigidFace_model_part)
-			
-			gid_io.InitializeMesh(time) 
-			gid_io.WriteSphereMesh(balls_model_part.GetMesh())
-			if (DEM_parameters.ContactMeshOption == "ON"):
-				gid_io.WriteMesh(contact_model_part.GetMesh())
-			gid_io.WriteMesh(RigidFace_model_part.GetMesh())
-			gid_io.FinalizeMesh()
-			
-			gid_io.InitializeResults(time, mixed_model_part.GetMesh())
-			            
- 
-        proc.PrintingVariables(gid_io, export_model_part, time)
+            post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part) 
+            if (DEM_parameters.ContactMeshOption == "ON"):
+                post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
+            post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part)
+
+            gid_io.InitializeMesh(time) 
+            gid_io.WriteSphereMesh(balls_model_part.GetMesh())
+            if (DEM_parameters.ContactMeshOption == "ON"):
+                gid_io.WriteMesh(contact_model_part.GetMesh())
+            gid_io.WriteMesh(RigidFace_model_part.GetMesh())
+            gid_io.FinalizeMesh()
+            
+            gid_io.InitializeResults(time, mixed_model_part.GetMesh())
+                                
+        proc.PrintingGlobalVariables(gid_io, mixed_model_part, time)
+        proc.PrintingBallsVariables(gid_io, balls_model_part, time)
+        proc.PrintingContactElementsVariables(gid_io, contact_model_part, time)
+        
         os.chdir(main_path)     
               
         if (DEM_parameters.Multifile == "multiple_files"):
@@ -489,7 +488,7 @@ while (time < DEM_parameters.FinalTime):
           
         time_old_print = time
     
-    if(Param.BtsOption == "ON"):
+    if(DEM_parameters.BtsOption == "ON"):
        bts_export.write(str(step)+"  "+str(total_force_bts)+'\n')
       
     if (DEM_parameters.GraphOption =="ON"):
@@ -509,10 +508,10 @@ while (time < DEM_parameters.FinalTime):
 if (DEM_parameters.Multifile == "single_file"):
     gid_io.FinalizeResults()
 
-if (Param.GraphOption =="ON"):
+if (DEM_parameters.GraphOption =="ON"):
   graph_export.close()
   
-if(Param.BtsOption == "ON"):
+if(DEM_parameters.BtsOption == "ON"):
   bts_export.close()
   
 multifile.close()
