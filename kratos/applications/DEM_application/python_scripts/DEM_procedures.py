@@ -558,14 +558,20 @@ class Procedures:
             #plt.title('Evolution of ' + entries[i] + ' in time')
             #plt.savefig(entries[i] + '.pdf')
 
-    def PrintingVariables(self, gid_io,export_model_part,time):
-    
+    def PrintingGlobalVariables(self, gid_io,export_model_part,time):
+        
         if (self.print_displacement):
-            gid_io.WriteNodalResults(DISPLACEMENT, export_model_part.Nodes, time, 0)       
-        if (self.print_radial_displacement):
-            gid_io.WriteNodalResults(RADIAL_DISPLACEMENT, export_model_part.Nodes, time, 0)       
+            gid_io.WriteNodalResults(DISPLACEMENT, export_model_part.Nodes, time, 0)
         if (self.print_velocity):
-            gid_io.WriteNodalResults(VELOCITY, export_model_part.Nodes, time, 0)  
+            gid_io.WriteNodalResults(VELOCITY, export_model_part.Nodes, time, 0) 
+        gid_io.Flush()
+        sys.stdout.flush()
+
+    def PrintingBallsVariables(self, gid_io,export_model_part,time):
+    
+               
+        if (self.print_radial_displacement):
+            gid_io.WriteNodalResults(RADIAL_DISPLACEMENT, export_model_part.Nodes, time, 0)                
         if (self.print_applied_forces):
             gid_io.WriteNodalResults(EXTERNAL_APPLIED_FORCE, export_model_part.Nodes, time, 0)       
         if (self.print_total_forces):     
@@ -604,8 +610,20 @@ class Procedures:
           
         #Aixo sempre per que si no hi ha manera de debugar
         #gid_io.WriteNodalResults(PARTITION_INDEX, export_model_part.Nodes, time, 0)
-        #gid_io.WriteNodalResults(INTERNAL_ENERGY, export_model_part.Nodes, time, 0)
+        #gid_io.WriteNodalResults(INTERNAL_ENERGY, export_model_part.Nodes, time, 0)                   
 
+        if (self.rotation_OPTION): ##xapuza
+            if (self.print_angular_velocity):
+                gid_io.WriteNodalResults(ANGULAR_VELOCITY, export_model_part.Nodes, time, 0)
+            if (self.print_particle_moment):
+                gid_io.WriteNodalResults(PARTICLE_MOMENT, export_model_part.Nodes, time, 0)
+            if (self.print_euler_angles):
+                gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, export_model_part.Nodes, time, 0)
+
+        gid_io.Flush()
+        sys.stdout.flush()
+
+    def PrintingContactElementsVariables(self, gid_io,export_model_part,time):
         if (self.contact_mesh_OPTION): ##xapuza
             if (self.print_local_contact_force):
                 gid_io.PrintOnGaussPoints(LOCAL_CONTACT_FORCE, export_model_part, time)
@@ -619,17 +637,7 @@ class Procedures:
                 gid_io.PrintOnGaussPoints(CONTACT_TAU, export_model_part, time)
             if (self.print_contact_sigma):
                 gid_io.PrintOnGaussPoints(CONTACT_SIGMA, export_model_part, time)
-
-        #gid_io.PrintOnGaussPoints(NON_ELASTIC_STAGE,export_model_part,time)    
-
-        if (self.rotation_OPTION): ##xapuza
-            if (self.print_angular_velocity):
-                gid_io.WriteNodalResults(ANGULAR_VELOCITY, export_model_part.Nodes, time, 0)
-            if (self.print_particle_moment):
-                gid_io.WriteNodalResults(PARTICLE_MOMENT, export_model_part.Nodes, time, 0)
-            if (self.print_euler_angles):
-                gid_io.WriteLocalAxesOnNodes(EULER_ANGLES, export_model_part.Nodes, time, 0)
-
+           #gid_io.PrintOnGaussPoints(NON_ELASTIC_STAGE,export_model_part,time) 
         gid_io.Flush()
         sys.stdout.flush()
         
