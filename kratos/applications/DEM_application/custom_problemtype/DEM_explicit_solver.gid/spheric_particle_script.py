@@ -18,7 +18,6 @@ from numpy import *
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 
 ### BENCHMARK ###
 import DEM_explicit_solver_var as DEM_parameters
@@ -173,11 +172,14 @@ initial_real_time      = timer.time()
 
 #-----------------------SINGLE FILE MESH AND RESULTS INITIALITZATION-------------------------------------------------------------------
 
+post_utility = PostUtilities()
+
 os.chdir(post_path)
 
 if (DEM_parameters.Multifile == "single_file"):
 
-  ParticleUtils2D().VisualizationModelPart(mixed_model_part, balls_model_part, RigidFace_model_part) #order is important
+  post_utility.AddModelPartNodesToModelPart(mixed_model_part, balls_model_part)
+  post_utility.AddModelPartNodesToModelPart(mixed_model_part, RigidFace_model_part) 
   gid_io.InitializeMesh(0.0) 
   gid_io.WriteMesh(RigidFace_model_part.GetMesh())
   gid_io.WriteSphereMesh(balls_model_part.GetMesh())
@@ -293,10 +295,11 @@ while (time < DEM_parameters.FinalTime):
 
         if (DEM_parameters.Multifile == "multiple_files"):
             
-            ParticleUtils2D().VisualizationModelPart(mixed_model_part, RigidFace_model_part, balls_model_part) #order is important
+            post_utility.AddModelPartNodesToModelPart(mixed_model_part, balls_model_part) 
+            post_utility.AddModelPartNodesToModelPart(mixed_model_part, RigidFace_model_part)             
             gid_io.InitializeMesh(time) 
-            gid_io.WriteMesh(RigidFace_model_part.GetMesh())
             gid_io.WriteSphereMesh(balls_model_part.GetMesh())
+            gid_io.WriteMesh(RigidFace_model_part.GetMesh())            
             gid_io.FinalizeMesh()
             gid_io.InitializeResults(time, mixed_model_part.GetMesh())
 
