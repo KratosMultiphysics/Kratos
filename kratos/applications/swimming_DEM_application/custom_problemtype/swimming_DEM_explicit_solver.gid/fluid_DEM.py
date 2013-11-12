@@ -143,7 +143,7 @@ print 'Adding and initializing variables (to zero) to the fluid_model_part'
 
 swimming_DEM_procedures.AddNodalVariables(fluid_model_part, fluid_variables_to_add)
 
-# Defining a model part for the balls part and for the DEM-FEM interaction elements
+# defining model parts for the balls part and for the DEM-FEM interaction elements
 
 balls_model_part = ModelPart("SolidPart")
 fem_dem_model_part = ModelPart("RigidFace_Part");
@@ -153,7 +153,7 @@ print 'Adding extra nodal variables to the nodal part'
 swimming_DEM_procedures.AddNodalVariables(balls_model_part, balls_variables_to_add)
 swimming_DEM_procedures.AddNodalVariables(fem_dem_model_part, fem_dem_variables_to_add)
 
-# Defining a model part for the mixed part
+# defining a model part for the mixed part
 mixed_model_part = ModelPart("MixedPart")
 
 import sphere_strategy as SolverStrategy
