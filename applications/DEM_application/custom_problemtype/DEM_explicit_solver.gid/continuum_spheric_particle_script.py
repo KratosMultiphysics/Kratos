@@ -6,7 +6,6 @@ from numpy import *
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-from KratosMultiphysics.IncompressibleFluidApplication import *
 
 import datetime
 
@@ -236,26 +235,24 @@ initial_real_time      = timer.time()
 
 #-----------------------SINGLE FILE MESH AND RESULTS INITIALITZATION-------------------------------------------------------------------
 
+post_utility = PostUtilities()
+
 os.chdir(post_path)
 
 if (DEM_parameters.Multifile == "single_file"):
-
+  
+  post_utility.AddModelPartNodesToModelPart(mixed_model_part, balls_model_part) 
   if (DEM_parameters.ContactMeshOption == "ON"):
-      gid_io.InitializeMesh(0.0)
-      gid_io.WriteMesh(contact_model_part.GetMesh());
-      gid_io.FinalizeMesh()
-      gid_io.InitializeResults(0.0, contact_model_part.GetMesh());
-
-  #gid_io.InitializeMesh(0.0)
-  #gid_io.WriteSphereMesh(balls_model_part.GetMesh())
-  #gid_io.FinalizeMesh()
-  #gid_io.InitializeResults(0.0, balls_model_part.GetMesh());
-
-  ParticleUtils2D().VisualizationModelPart(mixed_model_part,balls_model_part, RigidFace_model_part)
+	  post_utility.AddModelPartNodesToModelPart(mixed_model_part, contact_model_part)
+  post_utility.AddModelPartNodesToModelPart(mixed_model_part, RigidFace_model_part)
+  
   gid_io.InitializeMesh(0.0) 
-  gid_io.WriteMesh(RigidFace_model_part.GetMesh())
   gid_io.WriteSphereMesh(balls_model_part.GetMesh())
+  if (DEM_parameters.ContactMeshOption == "ON"):
+	  gid_io.WriteMesh(contact_model_part.GetMesh())
+	  gid_io.WriteMesh(RigidFace_model_part.GetMesh())
   gid_io.FinalizeMesh()
+  
   gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
 
 #------------------------------------------------------------------------------------------
@@ -468,14 +465,28 @@ while (time < DEM_parameters.FinalTime):
         os.chdir(post_path)
 
         if (DEM_parameters.Multifile == "multiple_files"):
-            gid_io.InitializeMesh(time)
-            gid_io.WriteSphereMesh(balls_model_part.GetMesh())
-            gid_io.FinalizeMesh()
-            gid_io.InitializeResults(time, balls_model_part.GetMesh()); 
+			
+			post_utility.AddModelPartNodesToModelPart(mixed_model_part, balls_model_part) 
+			if (DEM_parameters.ContactMeshOption == "ON"):
+				post_utility.AddModelPartNodesToModelPart(mixed_model_part, contact_model_part)
+			post_utility.AddModelPartNodesToModelPart(mixed_model_part, RigidFace_model_part)
+			
+			gid_io.InitializeMesh(time) 
+			gid_io.WriteSphereMesh(balls_model_part.GetMesh())
+			if (DEM_parameters.ContactMeshOption == "ON"):
+				gid_io.WriteMesh(contact_model_part.GetMesh())
+			gid_io.WriteMesh(RigidFace_model_part.GetMesh())
+			gid_io.FinalizeMesh()
+			
+			gid_io.InitializeResults(time, mixed_model_part.GetMesh())
+			            
  
         proc.PrintingVariables(gid_io, export_model_part, time)
         os.chdir(main_path)     
               
+        if (DEM_parameters.Multifile == "multiple_files"):
+            gid_io.FinalizeResults()  
+          
         time_old_print = time
     
     if(Param.BtsOption == "ON"):
