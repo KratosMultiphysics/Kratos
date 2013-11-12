@@ -693,10 +693,10 @@ namespace Kratos
             
             //StressTensorOperations(mStressTensor,GlobalElasticContactForce,other_to_me_vect,distance,radius_sum,calculation_area,neighbour_iterator,rCurrentProcessInfo); //MSISI 10
   
-            if(mContactMeshOption==1 && (mapping_new_ini !=-1)) 
+            if(mContactMeshOption==1 && (mapping_new_cont !=-1)) 
             {
 
-              CalculateOnContactElements( neighbour_iterator_id ,i_neighbour_count, mapping_new_ini, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state);
+              CalculateOnContactElements( neighbour_iterator_id ,i_neighbour_count, mapping_new_cont, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state);
 
               
             }
@@ -1730,13 +1730,13 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
     
       }
       
-      void SphericContinuumParticle::CalculateOnContactElements(unsigned int neighbour_iterator_id, size_t i_neighbour_count, int mapping_new_ini, double LocalElasticContactForce[3], 
+      void SphericContinuumParticle::CalculateOnContactElements(unsigned int neighbour_iterator_id, size_t i_neighbour_count, int mapping_new_cont, double LocalElasticContactForce[3], 
                                                           double  contact_sigma, double  contact_tau, double failure_criterion_state)
       {
       KRATOS_TRY
        //obtaining pointer to contact element.
 
-       Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(mapping_new_ini)).lock();
+       Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(mapping_new_cont)).lock();
                   
        if( this->Id() < neighbour_iterator_id )  // Since areas are the same, the values are the same and we only store from lower ids.
         {
