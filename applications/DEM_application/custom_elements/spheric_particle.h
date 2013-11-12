@@ -233,6 +233,7 @@ namespace Kratos
       virtual void AdditionalMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
       virtual void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
+      int mParticleId;
       int mDimension;
       bool mDeltaOption;
       int mDampType;

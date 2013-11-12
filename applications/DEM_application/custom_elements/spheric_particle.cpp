@@ -31,13 +31,13 @@ namespace Kratos
       : DiscreteElement(){mInitializedVariablesFlag = 0;}
 
       SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry)
-      : DiscreteElement(NewId, pGeometry){mInitializedVariablesFlag = 0;}
+      : DiscreteElement(NewId, pGeometry){mInitializedVariablesFlag = 0; mParticleId = NewId;}
 
       SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-      : DiscreteElement(NewId, pGeometry, pProperties){mInitializedVariablesFlag = 0;}
+      : DiscreteElement(NewId, pGeometry, pProperties){mInitializedVariablesFlag = 0; mParticleId = NewId;}
 
       SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-      : DiscreteElement(NewId, ThisNodes){mInitializedVariablesFlag = 0;}
+      : DiscreteElement(NewId, ThisNodes){mInitializedVariablesFlag = 0; mParticleId = NewId;}
 
       Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
@@ -2204,6 +2204,11 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       {
           KRATOS_TRY
 
+          if (rVariable == PARTICLE_ID){
+              Output = mParticleId;
+              return;
+          }
+
           //CRITICAL DELTA CALCULATION
 
           if (rVariable == DELTA_TIME){
@@ -2265,6 +2270,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
       void SphericParticle::Calculate(const Variable<array_1d<double, 3> >& rVariable, array_1d<double, 3>& Output, const ProcessInfo& rCurrentProcessInfo)
       {
+
           if (rVariable == MOMENTUM){
               CalculateMomentum(Output);
           }
