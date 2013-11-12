@@ -408,6 +408,40 @@ class Procedures:
                 
         return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area) 
                 
+    def BtsSkinDetermination(self, model_part,solver, param):
+      
+      #SKIN DETERMINATION
+
+      #Cylinder dimensions
+
+      h   = 0.086
+      d   = 0.15
+      eps = 2.0
+
+      for element in model_part.Elements:
+      
+        element.SetValue(SKIN_SPHERE, 0)
+
+        node = element.GetNode(0)
+        r = node.GetSolutionStepValue(RADIUS,0)
+        x = node.X
+        y = node.Y
+        z = node.Z
+     
+        if ((x * x + y * y) >= ((d / 2 - eps * r) * (d / 2 - eps * r))): 
+    
+            element.SetValue(SKIN_SPHERE, 1)     
+           
+    
+        if ((z <= eps * r) or (z >= (h - eps * r))): 
+
+            element.SetValue(SKIN_SPHERE, 1)            
+           
+
+      print "End 30x15 Bts Skin Determination", "\n"
+              
+          
+                
     def MeasureBOT(self, solver):
 
         tol = 2.0
@@ -612,7 +646,6 @@ class Procedures:
               
     def ListDefinition(self, model_part, solver):
 
-  # Defining lists (FOR COMPRESSION TESTS)
       for node in model_part.Nodes:
           if (node.GetSolutionStepValue(GROUP_ID) == 1):      #reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
               self.sup_layer_fm.append(node)
