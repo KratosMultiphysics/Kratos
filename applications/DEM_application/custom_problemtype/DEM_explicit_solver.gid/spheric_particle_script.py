@@ -294,19 +294,19 @@ while (time < DEM_parameters.FinalTime):
         os.chdir(post_path)
 
         if (DEM_parameters.Multifile == "multiple_files"):
-            
-            post_utility.AddModelPartNodesToModelPart(mixed_model_part, balls_model_part) 
-            post_utility.AddModelPartNodesToModelPart(mixed_model_part, RigidFace_model_part)             
-            gid_io.InitializeMesh(time) 
-            gid_io.WriteSphereMesh(balls_model_part.GetMesh())
-            gid_io.WriteMesh(RigidFace_model_part.GetMesh())            
-            gid_io.FinalizeMesh()
-            gid_io.InitializeResults(time, mixed_model_part.GetMesh())
-
-        #proc.PrintingVariables(gid_io, export_model_part, time)
-        #131107,export according to mixed_model_part
-        gid_io.WriteNodalResults(DISPLACEMENT, mixed_model_part.Nodes, time, 0)
-        gid_io.WriteNodalResults(VELOCITY, mixed_model_part.Nodes, time, 0)
+			
+			post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part) 			
+			post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part)
+			
+			gid_io.InitializeMesh(time) 
+			gid_io.WriteSphereMesh(balls_model_part.GetMesh())			
+			gid_io.WriteMesh(RigidFace_model_part.GetMesh())
+			gid_io.FinalizeMesh()
+			
+			gid_io.InitializeResults(time, mixed_model_part.GetMesh())
+			                    
+        proc.PrintingGlobalVariables(gid_io, mixed_model_part, time)
+        proc.PrintingBallsVariables(gid_io, balls_model_part, time)
         
         if (DEM_parameters.Multifile == "multiple_files"):
             gid_io.FinalizeResults()
