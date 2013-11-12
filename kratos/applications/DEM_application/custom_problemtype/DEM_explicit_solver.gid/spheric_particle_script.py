@@ -63,7 +63,7 @@ if (DEM_parameters.OutputFileType == "Binary"):
 
 else:
     gid_mode = GiDPostMode.GiD_PostAscii
-
+    
 if (DEM_parameters.Multifile == "multiple_files"):
     multifile = MultiFileFlag.MultipleFiles
 
@@ -177,24 +177,12 @@ os.chdir(post_path)
 
 if (DEM_parameters.Multifile == "single_file"):
 
-  if (DEM_parameters.ContactMeshOption == "ON"):
-      gid_io.InitializeMesh(0.0)
-      gid_io.WriteMesh(contact_model_part.GetMesh());
-      gid_io.FinalizeMesh()
-      gid_io.InitializeResults(0.0, contact_model_part.GetMesh());
-
-  #gid_io.InitializeMesh(0.0)
-  #gid_io.WriteSphereMesh(balls_model_part.GetMesh())
-  #gid_io.FinalizeMesh()
-  #gid_io.InitializeResults(0.0, balls_model_part.GetMesh());
-
-  ParticleUtils2D().VisualizationModelPart(mixed_model_part, balls_model_part, RigidFace_model_part)
+  ParticleUtils2D().VisualizationModelPart(mixed_model_part, balls_model_part, RigidFace_model_part) #order is important
   gid_io.InitializeMesh(0.0) 
   gid_io.WriteMesh(RigidFace_model_part.GetMesh())
   gid_io.WriteSphereMesh(balls_model_part.GetMesh())
   gid_io.FinalizeMesh()
   gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
-
 
 #------------------------------------------------------------------------------------------
 
@@ -304,10 +292,13 @@ while (time < DEM_parameters.FinalTime):
         os.chdir(post_path)
 
         if (DEM_parameters.Multifile == "multiple_files"):
-            gid_io.InitializeMesh(time)
+            gid_io.FinalizeResults()
+            ParticleUtils2D().VisualizationModelPart(mixed_model_part, RigidFace_model_part, balls_model_part) #order is important
+            gid_io.InitializeMesh(time) 
+            gid_io.WriteMesh(RigidFace_model_part.GetMesh())
             gid_io.WriteSphereMesh(balls_model_part.GetMesh())
             gid_io.FinalizeMesh()
-            gid_io.InitializeResults(time, balls_model_part.GetMesh());
+            gid_io.InitializeResults(time, mixed_model_part.GetMesh())
 
         #proc.PrintingVariables(gid_io, export_model_part, time)
         #131107,export according to mixed_model_part
