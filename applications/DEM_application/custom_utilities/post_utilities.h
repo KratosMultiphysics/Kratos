@@ -49,20 +49,26 @@ public:
 
     virtual ~PostUtilities() {};
     
-    void AddModelPartNodesToModelPart(ModelPart& rCompleteModelPart, ModelPart& rModelPartToAdd)
+    void AddModelPartToModelPart(ModelPart& rCompleteModelPart, ModelPart& rModelPartToAdd)
     {
+        ////WATCH OUT! This function respects the existing Id's!
         KRATOS_TRY;      
         
         //preallocate the memory needed
         int tot_nodes = rCompleteModelPart.Nodes().size() + rModelPartToAdd.Nodes().size();
+        int tot_elements = rCompleteModelPart.Elements().size() + rModelPartToAdd.Elements().size();
         rCompleteModelPart.Nodes().reserve( tot_nodes );
+        rCompleteModelPart.Elements().reserve( tot_elements );
 
-        //note that here we renumber the nodes
-        for (ModelPart::NodesContainerType::iterator node_it = rModelPartToAdd.NodesBegin();
-                node_it != rModelPartToAdd.NodesEnd(); node_it++)
+        for (ModelPart::NodesContainerType::iterator node_it = rModelPartToAdd.NodesBegin(); node_it != rModelPartToAdd.NodesEnd(); node_it++)
         {			
             rCompleteModelPart.AddNode(*(node_it.base()));
         }
+        for (ModelPart::ElementsContainerType::iterator elem_it = rModelPartToAdd.ElementsBegin(); elem_it != rModelPartToAdd.ElementsEnd(); elem_it++)
+        {			
+            rCompleteModelPart.AddElement(*(elem_it.base()));
+        }
+        
 
         KRATOS_CATCH("");
     }
