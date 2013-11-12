@@ -26,7 +26,7 @@ def GetNodeAfter(table, prop):
 def DoRemoval(model_part):
     import config
     import full_nodes_table
-    print "CoupledTool:v4_27102003"
+    #print "CoupledTool:v4_27102003"
     print "deactivate_list", config.deactivate_list
     print "list of inlets", config.inlets_1d
     print "list of outlets", config.outlets_1d
@@ -54,7 +54,7 @@ def DoRemoval(model_part):
 
     # mark for erasal nodes before inlet
     for i in range(0, len(config.inlets_1d)):
-        print "nodes before inlet"
+        #print "nodes before inlet"
         flag_id = config.inlets_1d[i][0]
         prop_id = config.inlets_1d[i][1]
         # print "prop_id", prop_id
@@ -66,10 +66,10 @@ def DoRemoval(model_part):
             GetNodeBegin(full_nodes_table.table, prop_id)]
         node_before.SetValue(ERASE_FLAG, True)
         node_begin.SetValue(ERASE_FLAG, True)
-        print node_before
-        print node_begin
+        #print node_before
+        #print node_begin
         node_before.SetSolutionStepValue(FLAG_VARIABLE, 0, flag_id)
-        print node_begin
+        #print node_begin
         # nodes_to_preserve.append(node_begin)
         nodes_to_preserve.append(node_before)
         inlet_nodes.append(node_before)
@@ -78,7 +78,7 @@ def DoRemoval(model_part):
 
     # mark for erasal nodes after outlet
     for i in range(0, len(config.outlets_1d)):
-        print "nodes after outlet"
+        #print "nodes after outlet"
         flag_id = config.outlets_1d[i][0]
         prop_id = config.outlets_1d[i][1]
         node_end = model_part.Nodes[
@@ -87,9 +87,9 @@ def DoRemoval(model_part):
             GetNodeAfter(full_nodes_table.table, prop_id)]
         node_end.SetValue(ERASE_FLAG, True)
         node_after.SetValue(ERASE_FLAG, True)
-        print "prop_id = ", prop_id
-        print "node end = ", node_end.Id
-        print "node after = ", node_after.Id
+        #print "prop_id = ", prop_id
+        #print "node end = ", node_end.Id
+        #print "node after = ", node_after.Id
         node_after.SetSolutionStepValue(FLAG_VARIABLE, 0, flag_id)
         nodes_to_preserve.append(node_after)
         outlet_nodes.append(node_after)
@@ -106,40 +106,40 @@ def DoRemoval(model_part):
                 aaa += 1
         if (tot_nodes == aaa and aaa != 0):
             cond.SetValue(ERASE_FLAG, True)
-            print "cond", cond
+            #print "cond", cond
         # print "cond", cond
     #print "CONDICIONES A ELIMINAR"
     # raw_input()
 
     for node in model_part.Nodes:
         flag = node.GetSolutionStepValue(FLAG_VARIABLE)
-        if(flag != 0):
-            print "id = ", node.Id, " flag = ", flag
+        #if(flag != 0):
+            #print "id = ", node.Id, " flag = ", flag
     
 
     # unamrk the node to be preserved
     for node in nodes_to_preserve:
         node.SetValue(ERASE_FLAG, False)
-        print "node to preserve", node
+        #print "node to preserve", node
 
     # raw_input()
-    print "ANTES DE ELIMINAR NODOS Y CONDICIONES"
+    #print "ANTES DE ELIMINAR NODOS Y CONDICIONES"
     # do delete elements conditions and nodes
     #NodeEraseProcess(model_part).Execute()
     #ElementEraseProcess(model_part).Execute()
     #ConditionEraseProcess(model_part).Execute()
 
     # raw_input()
-    for cond in model_part.Conditions:
-        print "cond", cond
+    #for cond in model_part.Conditions:
+        #print "cond", cond
 
-    print "DESPUES DE ELIMINAR NODOS Y CONDICIONES"
+    #print "DESPUES DE ELIMINAR NODOS Y CONDICIONES"
     # raw_input()
     highest_cond_id = 0
     for cond in model_part.Conditions:
         if (cond.Id > highest_cond_id):
             highest_cond_id = cond.Id
-    print highest_cond_id
+    #print highest_cond_id
 
     # raw_input()
     # add conditions associated to the outlet of the 3d
@@ -149,19 +149,19 @@ def DoRemoval(model_part):
         # node.Fix(NODAL_AREA)
         # node.Fix(FLOW)
         # print "flow on outlet node ",node.GetSolutionStepValue(FLOW)
-        print "outlet_node to 3D =", node.Id
+        #print "outlet_node to 3D =", node.Id
         #CreateNewCondition("ArteryOutletCondition", model_part,
                            #highest_cond_id + 1, id_of_new_property, node)
-        print id_of_new_property
+        #print id_of_new_property
         # print model_part
-        print node
+        #print node
         # print highest_cond_id + 1
         highest_cond_id += 1
 
     id_of_new_property = 0
     for node in outlet_nodes:
         # print node
-        print "inlet_node to 1D=", node.Id
+        #print "inlet_node to 1D=", node.Id
         #node.Fix(FLOW)
         # node.Fix(NODAL_AREA)
         # print model_part
@@ -185,8 +185,8 @@ def DoRemoval(model_part):
         # print node_before
         # print node_begin
         # raw_input()
-    for cond in model_part.Conditions:
-        print "cond", cond.Id
+    #for cond in model_part.Conditions:
+        #print "cond", cond.Id
 
     #print "CREADAS CONDICIONES"
     #raw_input()

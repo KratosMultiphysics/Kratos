@@ -217,7 +217,7 @@ class TransferTools:
         # import config_full
         initial_pressure = config.dyastolic_pressure
         #initial_pressure = 0
-	print initial_pressure
+	print "Dyastolic_Pressure", initial_pressure
         print "Transfer1D_to_3D"
         for i in range(0, len(self.inlets_1d)):
             inlet_nodes_1d = self.inlets_1d[i]
@@ -265,8 +265,8 @@ class TransferTools:
             #press = initial_pressure + beta * \
                 #(math.sqrt(A) - math.sqrt(A0)) / \
                 #A0  # math.sqrt(A/A0)*beta - beta
-            print "prress calculated",press 
-            print "press solver", pressinlet3D
+            #print "prress calculated",press 
+            #print "press solver", pressinlet3D
             for i in range(0, len(self.outlets_3d)):
                 outlet_nodes_3d = self.outlets_3d[i]
                 area3d = self.outlet_areas_3d[i]
@@ -375,6 +375,7 @@ class TransferTools:
     def Setting3d(self):
         # print self
      # print len(self.model_part_3d.Conditions)
+	initial_pressure = config.dyastolic_pressure
         for node in self.model_part_3d.Nodes:
             node.Free(VELOCITY_X)
             node.Free(VELOCITY_Y)
@@ -382,7 +383,7 @@ class TransferTools:
             node.Free(PRESSURE)
             node.SetSolutionStepValue(VISCOSITY, 0, 0.0035 / 1060.0)
             node.SetSolutionStepValue(DENSITY, 0, 1060.0)
-            node.SetSolutionStepValue(PRESSURE,0,8000)
+            node.SetSolutionStepValue(PRESSURE,0,initial_pressure)
         # set inlet
         for cond in self.model_part_3d.Conditions:
             if(cond.Properties.Id == 100):  # inlet

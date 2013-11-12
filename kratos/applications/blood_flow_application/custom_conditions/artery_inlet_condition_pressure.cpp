@@ -113,7 +113,7 @@ void ArteryInletConditionPressure::CalculateRightHandSide(VectorType& rRightHand
         rRightHandSideVector.resize(2,false);
 
 
-    std::cout << "PRESSURE ::::::: Artery_Inlet _ NUEVO" << std::endl;
+    //std::cout << "Using Parabolic Pressure as Inlet" << std::endl;
 
     //double h_int = rCurrentProcessInfo[DELTA_TIME];
     // get data as needed
@@ -132,17 +132,17 @@ void ArteryInletConditionPressure::CalculateRightHandSide(VectorType& rRightHand
     const double beta =GetGeometry()[0].FastGetSolutionStepValue(BETA);
     //const double A1 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
     const double A0 = GetGeometry()[0].GetValue(NODAL_AREA);
-    KRATOS_WATCH("A0_kratos");
-    KRATOS_WATCH(A0);
+    //KRATOS_WATCH("A0_kratos");
+    //KRATOS_WATCH(A0);
     const double A = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
-    KRATOS_WATCH("A_kratos");
-    KRATOS_WATCH(A);
+    //KRATOS_WATCH("A_kratos");
+    //KRATOS_WATCH(A);
     const double Q1 = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
-    KRATOS_WATCH("Q1_kratos");
-    KRATOS_WATCH(Q1);
+    //KRATOS_WATCH("Q1_kratos");
+    //KRATOS_WATCH(Q1);
     const double flow = UpdateFlow(beta,Q1);
-    KRATOS_WATCH("Flow_kratos");
-    KRATOS_WATCH(flow);
+    //KRATOS_WATCH("Flow_kratos");
+    //KRATOS_WATCH(flow);
     //const double A = A1; // No hago update del area
     //const double& flow = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
     //flow = 2*flow -
@@ -198,8 +198,8 @@ double ArteryInletConditionPressure::UpdateFlow(double Beta, double Q)
         x -= dx;
         if(fabs(dx) < 1e-6)
             Q = x;
-            KRATOS_WATCH("NEWTON_R");
-            KRATOS_WATCH(Q);
+            //KRATOS_WATCH("NEWTON_R");
+            //KRATOS_WATCH(Q);
             break;
 //        else
 //            //std::cout << "NO CONVERGEEEEEEEEEEEEEEEE:: Artery_Inlet" << std::endl;
