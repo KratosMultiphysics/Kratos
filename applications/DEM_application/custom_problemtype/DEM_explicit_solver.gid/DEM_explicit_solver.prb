@@ -453,6 +453,8 @@ QUESTION: Concrete_Test#CB#(ON,OFF)
 HELP: Necessary for Skin determination
 VALUE: OFF
 DEPENDENCIES: (OFF,HIDE,Triaxial_Option,#CURRENT#,HIDE,Real_Time_Graph,#CURRENT#,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Initial_Pressure_Aplication_Time,#CURRENT#,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#,HIDE,RADIAL_DISPLACEMENT,#CURRENT#)(ON,RESTORE,Triaxial_Option,#CURRENT#,RESTORE,Real_Time_Graph,#CURRENT#,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#)
+QUESTION: Brazilian_test#CB#(ON,OFF)
+VALUE: OFF
 QUESTION: Real_Time_Graph#CB#(ON,OFF)
 VALUE: OFF
 QUESTION: Graph_Option#CB#(ON,OFF)
