@@ -292,7 +292,7 @@ while (time < DEM_parameters.FinalTime):
         os.chdir(post_path)
 
         if (DEM_parameters.Multifile == "multiple_files"):
-            gid_io.FinalizeResults()
+            
             ParticleUtils2D().VisualizationModelPart(mixed_model_part, RigidFace_model_part, balls_model_part) #order is important
             gid_io.InitializeMesh(time) 
             gid_io.WriteMesh(RigidFace_model_part.GetMesh())
@@ -304,6 +304,9 @@ while (time < DEM_parameters.FinalTime):
         #131107,export according to mixed_model_part
         gid_io.WriteNodalResults(DISPLACEMENT, mixed_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(VELOCITY, mixed_model_part.Nodes, time, 0)
+        
+        if (DEM_parameters.Multifile == "multiple_files"):
+            gid_io.FinalizeResults()
         
         os.chdir(main_path)
 
