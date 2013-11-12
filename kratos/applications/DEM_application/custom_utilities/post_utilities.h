@@ -49,6 +49,25 @@ public:
 
     virtual ~PostUtilities() {};
     
+    void AddModelPartNodesToModelPart(ModelPart& rCompleteModelPart, ModelPart& rModelPartToAdd)
+    {
+        KRATOS_TRY;      
+        
+        //preallocate the memory needed
+        int tot_nodes = rCompleteModelPart.Nodes().size() + rModelPartToAdd.Nodes().size();
+        rCompleteModelPart.Nodes().reserve( tot_nodes );
+
+        //note that here we renumber the nodes
+        for (ModelPart::NodesContainerType::iterator node_it = rModelPartToAdd.NodesBegin();
+                node_it != rModelPartToAdd.NodesEnd(); node_it++)
+        {			
+            rCompleteModelPart.AddNode(*(node_it.base()));
+        }
+
+        KRATOS_CATCH("");
+    }
+    
+    
     array_1d<double, 3> VelocityTrap(ModelPart& rModelPart, const array_1d<double, 3> low_point, const array_1d<double, 3> high_point){
         
           ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
