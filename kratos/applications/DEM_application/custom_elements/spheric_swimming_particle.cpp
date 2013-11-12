@@ -67,14 +67,6 @@ namespace Kratos
           ComputeVirtualMassForce(virtual_mass_force, fluid_density, rCurrentProcessInfo);
           ComputeLiftForce(lift_force, fluid_density, rCurrentProcessInfo);
 
-//          if (mDragForceType == 1){
-//              ComputeFluidForcesOnParticle(rCurrentProcessInfo);
-//          }
-
-//          else {
-//              ComputeWeatherfordFluidForcesOnParticle(rCurrentProcessInfo);
-//          }
-
           additionally_applied_force[0] = buoyancy[0] + drag_force[0] + virtual_mass_force[0] + lift_force[0] + mRealMass * gravity[0];
           additionally_applied_force[1] = buoyancy[1] + drag_force[1] + virtual_mass_force[1] + lift_force[1] + mRealMass * gravity[1];
           additionally_applied_force[2] = buoyancy[2] + drag_force[2] + virtual_mass_force[2] + lift_force[2] + mRealMass * gravity[2];
@@ -339,7 +331,7 @@ namespace Kratos
               }
 
               else {
-                  shahs_term_vel = CalculateShahsTerm(power_law_n, power_law_K, power_law_tol, fluid_density, particle_density, sphericity, drag_modifier_type);
+                  shahs_term_vel = CalculateShahsTerm(power_law_n, power_law_K, power_law_tol, particle_density, fluid_density, sphericity, drag_modifier_type);
 
                   if (!manually_imposed_drag_law_OPTION){
                       F0 = 4.0 * gel_strength * area; //initial value
@@ -382,14 +374,14 @@ namespace Kratos
 
       void SphericSwimmingParticle::AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
       {
-        if (rVariable == REYNOLDS_NUMBER){
-            const array_1d<double,3> fluid_vel     = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
-            const array_1d<double,3>& particle_vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-            const array_1d<double,3>& slip_vel     = fluid_vel - particle_vel;
-            const double norm_of_slip_vel          = MathUtils<double>::Norm3(slip_vel);
-            const double kinematic_viscosity       = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
-            ComputeReynoldsNumber(rCurrentProcessInfo[NON_NEWTONIAN_OPTION], norm_of_slip_vel, kinematic_viscosity, Output);
-        }
+//        if (rVariable == REYNOLDS_NUMBER){
+//            const array_1d<double,3> fluid_vel     = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
+//            const array_1d<double,3>& particle_vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+//            const array_1d<double,3>& slip_vel     = fluid_vel - particle_vel;
+//            const double norm_of_slip_vel          = MathUtils<double>::Norm3(slip_vel);
+//            const double kinematic_viscosity       = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
+//            ComputeReynoldsNumber(rCurrentProcessInfo[NON_NEWTONIAN_OPTION], norm_of_slip_vel, kinematic_viscosity, Output);
+//        }
 
       }
 
