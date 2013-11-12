@@ -119,7 +119,7 @@ void  AddCustomUtilitiesToPython(){
      class_<PostUtilities, boost::noncopyable >
         ("PostUtilities", init<>())
         .def("VelocityTrap", &PostUtilities::VelocityTrap)
-        .def("AddModelPartNodesToModelPart", &PostUtilities::AddModelPartNodesToModelPart)
+        .def("AddModelPartToModelPart", &PostUtilities::AddModelPartToModelPart)
         .def("QuasiStaticAdimensionalNumber", &PostUtilities::QuasiStaticAdimensionalNumber)     
         ;
 
