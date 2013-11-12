@@ -190,6 +190,9 @@ print 'Initialitzation Complete' + '\n'
 
 os.chdir(graphs_path)
 
+if(Param.BtsOption == "ON"):
+    bts_export = open("bts_"+str(datetime.datetime.now())+".csv",'w');
+
 if (DEM_parameters.GraphOption =="ON"):
   graph_export = open("graph_"+str(datetime.datetime.now())+".csv",'w');
   if (DEM_parameters.PoissonMeasure =="ON"):
@@ -346,8 +349,18 @@ while (time < DEM_parameters.FinalTime):
     os.chdir(data_and_results)
     
     total_force = 0.0
+    total_force_bts = 0.0
+    
+    if( Param.BtsOption =="ON"):
 
+      for node in sup_layer_fm:
 
+        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES,0)[0]
+        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES,0)[1]
+        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES,0)[2]
+        
+        total_force_bts += force_node_y
+    
     if( DEM_parameters.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and DEM_parameters.GraphOption =="ON"):
      
       if(first_time_entry):
@@ -465,8 +478,12 @@ while (time < DEM_parameters.FinalTime):
               
         time_old_print = time
     
+    if(Param.BtsOption == "ON"):
+       bts_export.write(str(step)+"  "+str(total_force_bts)+'\n')
+      
     if (DEM_parameters.GraphOption =="ON"):
       graph_export.write(str(strain)+"  "+str(total_stress)+'\n')
+      
       if (DEM_parameters.PoissonMeasure =="ON"):
         graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
       
@@ -481,8 +498,12 @@ while (time < DEM_parameters.FinalTime):
 if (DEM_parameters.Multifile == "single_file"):
     gid_io.FinalizeResults()
 
-graph_export.close()
-
+if (Param.GraphOption =="ON"):
+  graph_export.close()
+  
+if(Param.BtsOption == "ON"):
+  bts_export.close()
+  
 multifile.close()
 multifile_5.close()
 multifile_10.close()
