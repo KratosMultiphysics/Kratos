@@ -69,7 +69,7 @@ public:
 
     virtual ~ParticleCreatorDestructor() {};
 
-    void InitializeForANewModelPart(ModelPart& r_model_part)
+    void InitializeForANewModelPart(ModelPart& r_model_part) //Not yet active, needs a Calculate for int variables!!!
     {
       Configure::ElementsContainerType::Pointer pElements = r_model_part.pElements();
       Configure::ElementsContainerType Elements           = r_model_part.Elements();
