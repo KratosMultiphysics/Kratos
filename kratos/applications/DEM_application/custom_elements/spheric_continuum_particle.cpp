@@ -1737,6 +1737,9 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
        //obtaining pointer to contact element.
 
        Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(mapping_new_cont)).lock();
+      
+       if ( (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(mapping_new_cont)).expired() ) 
+           KRATOS_WATCH("You are using a pointer that points to nowhere. Something has to be Fix!!!")
                   
        if( this->Id() < neighbour_iterator_id )  // Since areas are the same, the values are the same and we only store from lower ids.
         {
