@@ -57,6 +57,16 @@ LinearIsotropicKinematicHardeningLaw::LinearIsotropicKinematicHardeningLaw(Linea
 }
 
 
+//********************************CLONE***********************************************
+//************************************************************************************
+
+HardeningLaw::Pointer LinearIsotropicKinematicHardeningLaw::Clone() const
+{
+  HardeningLaw::Pointer p_clone(new LinearIsotropicKinematicHardeningLaw(*this));
+  return p_clone;
+}
+
+
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
 

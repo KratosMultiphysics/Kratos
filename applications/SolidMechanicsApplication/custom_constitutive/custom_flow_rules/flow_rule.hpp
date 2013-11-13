@@ -184,7 +184,7 @@ namespace Kratos
     };
 
     /// Pointer definition of FlowRule
-      KRATOS_CLASS_POINTER_DEFINITION(FlowRule);
+    KRATOS_CLASS_POINTER_DEFINITION(FlowRule);
 
     ///@}
     ///@name Life Cycle
@@ -199,12 +199,14 @@ namespace Kratos
     /// Copy constructor.
     FlowRule(FlowRule const& rOther)
     :mInternalVariables(rOther.mInternalVariables)
+    ,mThermalVariables(rOther.mThermalVariables)
     ,mpYieldCriterion(rOther.mpYieldCriterion)
     ,mpHardeningLaw(rOther.mpHardeningLaw)
     ,mpProperties(rOther.mpProperties)
     {
     };
-	
+
+
     /// Assignment operator.
     FlowRule& operator=(FlowRule const& rOther) 
     { 
@@ -224,6 +226,17 @@ namespace Kratos
     ///@}
     ///@name Operators
     ///@{
+
+
+    /**
+     * Clone function (has to be implemented by any derived class)
+     * @return a pointer to a new instance of this flow rule
+     */
+    virtual FlowRule::Pointer Clone() const
+    {
+      FlowRule::Pointer p_clone(new FlowRule(*this));
+      return p_clone;
+    }
 
 
     ///@}

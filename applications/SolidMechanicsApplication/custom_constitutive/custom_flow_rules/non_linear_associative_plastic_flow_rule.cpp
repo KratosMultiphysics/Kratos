@@ -48,6 +48,14 @@ NonLinearAssociativePlasticFlowRule::NonLinearAssociativePlasticFlowRule(NonLine
 
 }
 
+//********************************CLONE***********************************************
+//************************************************************************************
+
+FlowRule::Pointer NonLinearAssociativePlasticFlowRule::Clone() const
+{
+  FlowRule::Pointer p_clone(new NonLinearAssociativePlasticFlowRule(*this));
+  return p_clone;
+}
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************

@@ -49,6 +49,14 @@ LinearAssociativePlasticFlowRule::LinearAssociativePlasticFlowRule(LinearAssocia
 
 }
 
+//********************************CLONE***********************************************
+//************************************************************************************
+
+FlowRule::Pointer LinearAssociativePlasticFlowRule::Clone() const
+{
+  FlowRule::Pointer p_clone(new LinearAssociativePlasticFlowRule(*this));
+  return p_clone;
+}
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************

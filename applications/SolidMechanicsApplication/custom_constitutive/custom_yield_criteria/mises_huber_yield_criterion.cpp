@@ -48,6 +48,14 @@ MisesHuberYieldCriterion::MisesHuberYieldCriterion(MisesHuberYieldCriterion cons
 
 }
 
+//********************************CLONE***********************************************
+//************************************************************************************
+
+YieldCriterion::Pointer MisesHuberYieldCriterion::Clone() const
+{
+  YieldCriterion::Pointer p_clone(new MisesHuberYieldCriterion(*this));
+  return p_clone;
+}
 
 //********************************DESTRUCTOR******************************************
 //************************************************************************************
