@@ -2204,7 +2204,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
       {
 
           if (rVariable == PARTICLE_ID){
-              Output = mParticleId;
+              Output = mParticleId; // (NOT YET ACTIVE!!)
               return;
           }
 
