@@ -52,15 +52,15 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ParticleCreatorDestructor);
 
     /// Default constructor. 
-    ParticleCreatorDestructor()
+    ParticleCreatorDestructor(): mGreatestParticleId(0)
     {
-      mScaleFactor  = 1.0;
-      mHighPoint[0] = 10e18;
-      mHighPoint[1] = 10e18;
-      mHighPoint[2] = 10e18;
-      mLowPoint[0]  = -10e18;
-      mLowPoint[1]  = -10e18;
-      mLowPoint[2]  = -10e18;
+      mScaleFactor        = 1.0;
+      mHighPoint[0]       = 10e18;
+      mHighPoint[1]       = 10e18;
+      mHighPoint[2]       = 10e18;
+      mLowPoint[0]        = -10e18;
+      mLowPoint[1]        = -10e18;
+      mLowPoint[2]        = -10e18;
     }
 
     //Particle_Creator_Destructor() {};
@@ -69,8 +69,25 @@ public:
 
     virtual ~ParticleCreatorDestructor() {};
 
+    void InitializeForANewModelPart(ModelPart& r_model_part)
+    {
+      Configure::ElementsContainerType::Pointer pElements = r_model_part.pElements();
+      Configure::ElementsContainerType Elements           = r_model_part.Elements();
+
+      for (Configure::ElementsContainerType::iterator particle_pointer_it = Elements.begin(); particle_pointer_it != Elements.end(); ++particle_pointer_it){
+//          int id;
+//          particle_pointer_it->Calculate(PARTICLE_ID, id, r_model_part.GetProcessInfo());
+
+//          if (id > mGreatestParticleId){
+//              mGreatestParticleId = int(id);
+//          }
+
+      }
+
+    }
     
-    void NodeCreator(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, double bx, double cy, double dz) {
+    void NodeCreator(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, double bx, double cy, double dz)
+    {
               
       pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);
       pnew_node->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
@@ -86,7 +103,8 @@ public:
       pnew_node->FastGetSolutionStepValue(PARTICLE_MATERIAL) = 1;
           
     }
-    void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, Node < 3 > ::Pointer & reference_node , Properties& params, bool initial=false) {
+    void NodeCreatorWithPhysicalParameters(ModelPart& r_modelpart, Node < 3 > ::Pointer& pnew_node, int aId, Node < 3 > ::Pointer & reference_node , Properties& params, bool initial=false)
+    {
 
         
       double bx= reference_node->X();
@@ -513,6 +531,7 @@ private:
     double mDiameter;
     double mStrictDiameter;
     double mScaleFactor;
+    int mGreatestParticleId;
 
     inline void Clear(ModelPart::NodesContainerType::iterator node_it, int step_data_size)
     {
