@@ -1531,12 +1531,12 @@ public:
         
         for(int i = 0; i < dimension; i++)
         {
-            boundingBox_low[i]  = mrSkinModelPart.NodesBegin()->Coordinates()[i];
-            boundingBox_high[i] = mrSkinModelPart.NodesBegin()->Coordinates()[i];
+            boundingBox_low[i]  = mrFluidModelPart.NodesBegin()->Coordinates()[i];
+            boundingBox_high[i] = mrFluidModelPart.NodesBegin()->Coordinates()[i];
         }
         
-        for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin();
-            i_node != mrSkinModelPart.NodesEnd();
+        for(ModelPart::NodeIterator i_node = mrFluidModelPart.NodesBegin();
+            i_node != mrFluidModelPart.NodesEnd();
             i_node++)
         {
             for(int i = 0; i < dimension; i++)
