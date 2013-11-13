@@ -379,10 +379,10 @@ namespace Kratos
         KRATOS_CATCH("")
       }
 
-      void BoundingBoxUtility()
+      virtual void BoundingBoxUtility()
       {
           KRATOS_TRY
-
+          
           ModelPart& r_model_part = BaseType::GetModelPart();
           mpParticleCreatorDestructor->MarkDistantParticlesForErasing(r_model_part);
           mpParticleCreatorDestructor->DestroyParticles(r_model_part);
