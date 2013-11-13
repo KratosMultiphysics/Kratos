@@ -149,7 +149,7 @@ if (DEM_parameters.FixVelocitiesOption == 'ON'):
 
 balls_model_part.ProcessInfo.SetValue(STEP_FIX_VELOCITIES,int(step_to_fix_velocities))
 
-if( (DEM_parameters.ContinuumOption == "ON")  and ( (DEM_parameters.GraphOption =="ON") or (DEM_parameters.ConcreteTestOption =="ON")) ):
+if( ( (DEM_parameters.ContinuumOption == "ON")  and ( (DEM_parameters.GraphOption =="ON") or (DEM_parameters.ConcreteTestOption =="ON")) )or (DEM_parameters.BtsOption == "ON") ):
   
     (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = proc.ListDefinition(balls_model_part,solver)  # defines the lists where we measure forces
 
