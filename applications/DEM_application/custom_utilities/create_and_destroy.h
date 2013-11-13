@@ -296,7 +296,7 @@ public:
         temp_particles_container.swap(rElements);
         temp_nodes_container.swap(rNodes);
 
-        //Add the ones inside the bounding box
+        //Add the ones not marked with TO_ERASE
         for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = temp_particles_container.ptr_begin(); particle_pointer_it != temp_particles_container.ptr_end(); ++particle_pointer_it){	  
             
             if( !(*particle_pointer_it)->GetGeometry()(0)->Is(TO_ERASE) ) {
@@ -313,6 +313,38 @@ public:
 
         KRATOS_CATCH("")
     }
+    
+    
+        void DestroyContactElements(ModelPart& r_model_part)
+    {
+
+        KRATOS_TRY
+
+        //Type definitions
+        typedef ModelPart::ElementsContainerType                          ElementsArrayType;
+        typedef ElementsArrayType::iterator                               ElementsIterator;
+
+        ElementsArrayType& rElements                          = r_model_part.Elements();
+
+        ElementsArrayType temp_elements_container;
+
+        //Copy the elements and clear the element container
+        //temp_elements_container.reserve(pElements->size());
+        temp_elements_container.reserve(rElements.size());        
+        temp_elements_container.swap(rElements);
+
+        //Add the ones not marked with TO_ERASE
+        for (Configure::ElementsContainerType::ptr_iterator element_pointer_it = temp_elements_container.ptr_begin(); element_pointer_it != temp_elements_container.ptr_end(); ++element_pointer_it){	              
+
+            if( !(*element_pointer_it)->Is(TO_ERASE) ) {
+                (rElements).push_back(*element_pointer_it); //adding the elements               
+	    }	  
+        }                           
+
+        KRATOS_CATCH("")
+    }
+
+    
 
     void MarkDistantParticlesForErasing(ModelPart& r_model_part)
     {
@@ -399,6 +431,34 @@ public:
 
       KRATOS_CATCH("")
     }
+    
+    
+    void MarkContactElementsForErasing(ModelPart& r_model_part, ModelPart& mcontacts_model_part)
+    {
+
+      KRATOS_TRY
+                                                           
+      Configure::ElementsContainerType& rElements = r_model_part.Elements();
+
+      for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
+              particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
+          
+          if( (*particle_pointer_it)->GetGeometry()(0)->Is(TO_ERASE) )   {
+                                        
+              uint number_of_contact_elements = (*particle_pointer_it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).size();
+              for(uint i = 0; i < number_of_contact_elements; i++)
+              {
+                  Element::WeakPointer wp_to_contact_element = (*particle_pointer_it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(i);
+                  (  wp_to_contact_element.lock() )->Set(TO_ERASE);
+              }
+                            
+          }       
+
+      }
+
+      KRATOS_CATCH("")
+    }
+    
 
     ///@}
     ///@name Access
