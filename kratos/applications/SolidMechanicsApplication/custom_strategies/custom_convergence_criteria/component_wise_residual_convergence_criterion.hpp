@@ -74,6 +74,10 @@ public:
 
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
 
+    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+
+    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+
     /*@} */
     /**@name Life Cycle
     */
@@ -104,6 +108,14 @@ public:
     {
         mRatioTolerance       = NewRatioTolerance;
         mAlwaysConvergedNorm  = AlwaysConvergedNorm;
+
+	//components asked to the elements
+	mRHS_Element_Variables.push_back(EXTERNAL_FORCES_VECTOR);
+	mRHS_Element_Variables.push_back(INTERNAL_FORCES_VECTOR);
+	
+	//components asked to the conditions
+	mRHS_Condition_Variables.push_back(EXTERNAL_FORCES_VECTOR);
+	mRHS_Condition_Variables.push_back(CONTACT_FORCES_VECTOR);
     }
 
     /** Destructor.
@@ -116,7 +128,7 @@ public:
     */
     /*@{ */
 
-    /*Criterias that need to be called after getting the solution */
+    /*Criterion that needs to be called after getting the solution */
     bool PostCriteria(
         ModelPart& r_model_part,
         DofsArrayType& rDofSet,
@@ -187,9 +199,7 @@ public:
         const TSystemMatrixType& A,
         const TSystemVectorType& Dx,
         const TSystemVectorType& b
-    )
-    {
-    }
+    ) {}
 
     void FinalizeSolutionStep(
         ModelPart& r_model_part,
@@ -205,60 +215,70 @@ public:
     /**@name Operations */
     /*@{ */
 
+    /**
+     * Get component wise element components
+     */
+    std::vector<TSystemVectorType>&  GetRHS_Element_Components()
+    { 
+      return mRHS_Element_Components;
+    } 
+
+    /**
+     * Get component wise element variables
+     */
+    std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Element_Variables()
+    { 
+      return mRHS_Element_Variables;
+    } 
+
+    /**
+     * Get component wise condition components
+     */
+    std::vector<TSystemVectorType>&  GetRHS_Condition_Components()
+    { 
+      return mRHS_Condition_Components;
+    } 
+
+    /**
+     * Get component wise condition variables
+     */
+    std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Condition_Variables()
+    { 
+      return mRHS_Condition_Variables;
+    } 
 
     /*@} */
     /**@name Access */
     /*@{ */
-
-
     /*@} */
     /**@name Inquiry */
     /*@{ */
-
-
     /*@} */
     /**@name Friends */
     /*@{ */
-
-
     /*@} */
 
 protected:
     /**@name Protected static Member Variables */
     /*@{ */
-
-
     /*@} */
     /**@name Protected member Variables */
     /*@{ */
-
-
     /*@} */
     /**@name Protected Operators*/
     /*@{ */
-
-
     /*@} */
     /**@name Protected Operations*/
     /*@{ */
-
-
     /*@} */
     /**@name Protected  Access */
     /*@{ */
-
-
     /*@} */
     /**@name Protected Inquiry */
     /*@{ */
-
-
     /*@} */
     /**@name Protected LifeCycle */
     /*@{ */
-
-
-
     /*@} */
 
 private:
@@ -266,21 +286,61 @@ private:
 
     /**@name Static Member Variables */
     /*@{ */
-
-
     /*@} */
     /**@name Member Variables */
     /*@{ */
 
     TDataType mRatioTolerance;
+
     TDataType mAlwaysConvergedNorm;
 
+    std::vector<TSystemVectorType> mRHS_Element_Components;
+
+    std::vector< Variable< LocalSystemVectorType > > mRHS_Element_Variables;
+
+    std::vector<TSystemVectorType> mRHS_Condition_Components;
+
+    std::vector< Variable< LocalSystemVectorType > > mRHS_Condition_Variables;
+      
     /*@} */
     /**@name Private Operators*/
     /*@{ */
 
+    //Calculate Force Norms component wise
 
     void CalculateForceNorms(ModelPart& r_model_part,ForceModulus& rforce_norm,TDataType & rresidual_norm,TDataType & rdelta_disp_norm)
+    {
+        //initialize
+        rforce_norm.internal=0;
+        rforce_norm.external=0;
+        rforce_norm.dynamic =0;
+        rforce_norm.reaction=0;
+
+        rforce_norm.residual=0;
+
+        //set norms from component vectors
+	rforce_norm.dynamic  = TSparseSpace::TwoNorm(mRHS_Element_Components[0]);   // external forces from elements weight
+	rforce_norm.internal = TSparseSpace::TwoNorm(mRHS_Element_Components[1]);   // interal forces from elements
+
+	rforce_norm.external = TSparseSpace::TwoNorm(mRHS_Condition_Components[0]); // external forces from conditions
+	rforce_norm.reaction = TSparseSpace::TwoNorm(mRHS_Condition_Components[1]); // contact forces from conditions
+
+	rforce_norm.residual = rresidual_norm;
+
+        std::cout<<" NORMS (internal:"<<rforce_norm.internal<<", external:"<<rforce_norm.external<<", dynamic:"<<rforce_norm.dynamic<<", reaction:"<<rforce_norm.reaction<<", residual:"<<rforce_norm.residual<<", total_residual:"<<rresidual_norm<<", delta_disp_residual:"<<rdelta_disp_norm<<" ) "<<std::endl;
+
+
+        if(rdelta_disp_norm == rresidual_norm) //is not the norm of the residual,is the norm of the Dx (SuperLU)
+	  std::cout<<" something is wrong ResidualNorm and DeltaDisplacementNorm are the same:: check linear solver return "<<std::endl;
+
+        // if(rresidual_norm==0 && rresidual_norm < rforce_norm.residual)
+        //   rresidual_norm = rforce_norm.residual;
+
+    }
+
+    //Calculate Force Norms nodally
+
+    void CalculateNodalForceNorms(ModelPart& r_model_part,ForceModulus& rforce_norm,TDataType & rresidual_norm,TDataType & rdelta_disp_norm)
     {
         //initialize
         rforce_norm.internal=0;
@@ -412,23 +472,15 @@ private:
     /*@} */
     /**@name Private Operations*/
     /*@{ */
-
-
     /*@} */
     /**@name Private  Access */
     /*@{ */
-
-
     /*@} */
     /**@name Private Inquiry */
     /*@{ */
-
-
     /*@} */
     /**@name Un accessible methods */
     /*@{ */
-
-
     /*@} */
 
 }; /* Class ClassName */
