@@ -18,45 +18,47 @@ import math
 
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
-import DEM_explicit_solver_var as DEM_parameters
+import DEM_explicit_solver_var as DEMParameters
 import DEM_procedures
 import swimming_DEM_procedures
 
 # PROJECT PARAMETERS (to be put in problem type)
-ProjectParameters.ProjectionModuleOption       = 1
-ProjectParameters.PrintParticlesResultsOption  = 0
-ProjectParameters.ProjectFromParticlesOption   = 1
-ProjectParameters.ProjectAtEverySubStepOption  = 1
-ProjectParameters.VelocityTrapOption           = 0
-ProjectParameters.CreateParticlesOption        = 0
-ProjectParameters.InletOption                  = 0
-ProjectParameters.NonNewtonianOption           = 0
-ProjectParameters.ManuallyImposedDragLawOption = 0
-ProjectParameters.DEMInletElementType          = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
-ProjectParameters.CouplingSchemeType           = "updated_fluid" # "updated_fluid", "updated_DEM"
-ProjectParameters.CouplingWeighingType         = 2 # {fluid_to_DEM, DEM_to_fluid, Solid_fraction} = {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
-ProjectParameters.BuoyancyForceType            = 1 # null buoyancy (0), standard (1)
-ProjectParameters.DragForceType                = 1 # null drag (0), standard (1), Weatherford (2)
-ProjectParameters.VirtualMassForceType         = 0 # null virtual mass force (0)
-ProjectParameters.LiftForceType                = 0 # null lift force (0)
-ProjectParameters.DragModifierType             = 3 # Hayder (2), Chien (3)
-ProjectParameters.CalculatePorosity            = 1
-ProjectParameters.Interaction_start_time       = 0.01
-ProjectParameters.gravity_x                    = 0.0
-ProjectParameters.gravity_y                    = 0.0
-ProjectParameters.gravity_z                    = -9.81
-ProjectParameters.plastic_viscosity            = 0.000001 #It is divided by the density
-ProjectParameters.smoothing_parameter_m        = 0.035
-ProjectParameters.yield_stress_value           = 0.0
-ProjectParameters.max_solid_fraction           = 0.6
-ProjectParameters.DEM_nodal_results            = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED", "REYNOLDS_NUMBER"]
-ProjectParameters.mixed_nodal_results          = ["VELOCITY", "DISPLACEMENT"]
-ProjectParameters.GelStrength                  = 0.0
-ProjectParameters.PowerLawN                    = 0.0
-ProjectParameters.PowerLawK                    = 0.0
-ProjectParameters.InitialDragForce             = 0.0
-ProjectParameters.DragLawSlope                 = 0.0
-ProjectParameters.PowerLawTol                  = 0.0
+ProjectParameters.projection_module_option         = 1
+ProjectParameters.print_particles_results_option   = 1
+ProjectParameters.project_from_particles_option    = 1
+ProjectParameters.project_at_every_substep_option  = 1
+ProjectParameters.velocity_trap_option             = 0
+ProjectParameters.create_particles_option          = 0
+ProjectParameters.inlet_option                     = 0
+ProjectParameters.non_newtonian_option             = 0
+ProjectParameters.manually_imposed_drag_law_option = 0
+ProjectParameters.dem_inlet_element_type           = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
+ProjectParameters.coupling_scheme_type             = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
+ProjectParameters.coupling_weighing_type           = 2 # {fluid_to_DEM, DEM_to_fluid, Solid_fraction} = {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
+ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), standard (1)
+ProjectParameters.drag_force_type                  = 1 # null drag (0), standard (1), Weatherford (2)
+ProjectParameters.virtual_mass_force_type          = 0 # null virtual mass force (0)
+ProjectParameters.lift_force_type                  = 0 # null lift force (0)
+ProjectParameters.drag_modifier_type               = 3 # Hayder (2), Chien (3)
+ProjectParameters.calculate_porosity_option        = 1
+ProjectParameters.interaction_start_time           = 0.01
+ProjectParameters.gravity_x                        = 0.0
+ProjectParameters.gravity_y                        = 0.0
+ProjectParameters.gravity_z                        = - 9.81
+ProjectParameters.plastic_viscosity                = 0.000001 # kinematic viscosity
+ProjectParameters.smoothing_parameter_m            = 0.035
+ProjectParameters.yield_stress_value               = 0.0
+ProjectParameters.max_solid_fraction               = 0.6
+ProjectParameters.gel_strength                     = 0.0
+ProjectParameters.power_law_n                      = 0.0
+ProjectParameters.power_law_k                      = 0.0
+ProjectParameters.initial_drag_force               = 0.0
+ProjectParameters.drag_law_slope                   = 0.0
+ProjectParameters.power_law_tol                    = 0.0
+ProjectParameters.dimensional_upscaling_ratio      = 0.0
+ProjectParameters.dem_nodal_results                = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED", "REYNOLDS_NUMBER"]
+ProjectParameters.mixed_nodal_results              = ["VELOCITY", "DISPLACEMENT"]
+ProjectParameters.variables_to_print_in_file       = ["DRAG_FORCE", "BUOYANCY", "VELOCITY"]
 
 # changes on PROJECT PARAMETERS for the sake of consistency
 ProjectParameters.nodal_results.append("SOLID_FRACTION")
@@ -64,12 +66,12 @@ ProjectParameters.nodal_results.append("MESH_VELOCITY1")
 ProjectParameters.nodal_results.append("BODY_FORCE")
 ProjectParameters.nodal_results.append("DRAG_REACTION")
 
-ProjectParameters.ProjectFromParticlesOption  *= ProjectParameters.ProjectionModuleOption
-ProjectParameters.ProjectAtEverySubStepOption *= ProjectParameters.ProjectionModuleOption
+ProjectParameters.project_from_particles_option *= ProjectParameters.projection_module_option
+ProjectParameters.project_at_every_substep_option *= ProjectParameters.projection_module_option
 
-DEM_parameters.GravityX                       = ProjectParameters.gravity_x
-DEM_parameters.GravityY                       = ProjectParameters.gravity_y
-DEM_parameters.GravityZ                       = ProjectParameters.gravity_z
+DEMParameters.GravityX                       = ProjectParameters.gravity_x
+DEMParameters.GravityY                       = ProjectParameters.gravity_y
+DEMParameters.GravityZ                       = ProjectParameters.gravity_z
 
 for var in ProjectParameters.mixed_nodal_results:
 
@@ -98,7 +100,7 @@ fem_dem_variables_to_add = [VELOCITY,
 DEM_inlet_variables_to_add = balls_variables_to_add
 
 # constructing a DEM_procedures object
-DEM_proc = DEM_procedures.Procedures(DEM_parameters)
+dem_procedures = DEM_procedures.Procedures(DEMParameters)
 ##AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 # defining variables to be used
@@ -157,10 +159,10 @@ swimming_DEM_procedures.AddNodalVariables(fem_dem_model_part, fem_dem_variables_
 mixed_model_part = ModelPart("MixedPart")
 
 import sphere_strategy as SolverStrategy
-SolverStrategy.AddVariables(balls_model_part, DEM_parameters)
+SolverStrategy.AddVariables(balls_model_part, DEMParameters)
 
 # reading the balls model part
-model_part_io_solid = ModelPartIO(DEM_parameters.problem_name)
+model_part_io_solid = ModelPartIO(DEMParameters.problem_name)
 model_part_io_solid.ReadModelPart(balls_model_part)
 model_part_io_solid = ModelPartIO("RigidFace_Part")
 model_part_io_solid.ReadModelPart(fem_dem_model_part)
@@ -172,19 +174,19 @@ balls_model_part.SetBufferSize(3)
 SolverStrategy.AddDofs(balls_model_part)
 
 # adding extra process info variables
-balls_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, ProjectParameters.BuoyancyForceType)
-balls_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, ProjectParameters.DragForceType)
-balls_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.VirtualMassForceType)
-balls_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.LiftForceType)
-balls_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, ProjectParameters.NonNewtonianOption)
-balls_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, ProjectParameters.ManuallyImposedDragLawOption)
-balls_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, ProjectParameters.DragModifierType)
-balls_model_part.ProcessInfo.SetValue(GEL_STRENGTH, ProjectParameters.GelStrength)
-balls_model_part.ProcessInfo.SetValue(POWER_LAW_N, ProjectParameters.PowerLawN)
-balls_model_part.ProcessInfo.SetValue(POWER_LAW_K, ProjectParameters.PowerLawK)
-balls_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, ProjectParameters.InitialDragForce)
-balls_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, ProjectParameters.DragLawSlope)
-balls_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, ProjectParameters.PowerLawTol)
+balls_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, ProjectParameters.buoyancy_force_type)
+balls_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, ProjectParameters.drag_force_type)
+balls_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.virtual_mass_force_type)
+balls_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.lift_force_type)
+balls_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, ProjectParameters.non_newtonian_option)
+balls_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, ProjectParameters.manually_imposed_drag_law_option)
+balls_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, ProjectParameters.drag_modifier_type)
+balls_model_part.ProcessInfo.SetValue(GEL_STRENGTH, ProjectParameters.gel_strength)
+balls_model_part.ProcessInfo.SetValue(POWER_LAW_N, ProjectParameters.power_law_n)
+balls_model_part.ProcessInfo.SetValue(POWER_LAW_K, ProjectParameters.power_law_k)
+balls_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, ProjectParameters.initial_drag_force)
+balls_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, ProjectParameters.drag_law_slope)
+balls_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, ProjectParameters.power_law_tol)
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 # setting up the buffer size: SHOULD BE DONE AFTER READING!!!
@@ -253,8 +255,8 @@ if not ProjectParameters.VolumeOutput:
 # gid_io.initialize_results(fluid_model_part) # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
 # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-import swimming_DEM_gid_output as gid_output
-swimming_DEM_gid_io = gid_output.SwimmingDEMGiDOutput(input_file_name,
+import swimming_DEM_gid_output
+swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(input_file_name,
                    ProjectParameters.VolumeOutput,
                    ProjectParameters.GiDPostMode,
                    ProjectParameters.GiDMultiFileFlag,
@@ -314,7 +316,11 @@ graph_printer = point_graph_printer.PrintGraphPrinter(
 
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 # creating a Post Utils object that executes several post-related tasks
-post_utils = DEM_procedures.PostUtils(DEM_parameters, balls_model_part)
+post_utils = DEM_procedures.PostUtils(DEMParameters, balls_model_part)
+post_utilities = post_utils.post_utilities
+
+# creating an IOTools object to perform other printing tasks
+io_tools = swimming_DEM_procedures.IOTools(ProjectParameters)
 
 # creating a projection module for the fluid-DEM coupling
 h_min = 0.01
@@ -322,8 +328,8 @@ n_balls = 1
 fluid_volume = 10
 n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume))
 
-if (ProjectParameters.ProjectionModuleOption):
-    projection_module = swimming_DEM_procedures.ProjectionModule(fluid_model_part, balls_model_part, fem_dem_model_part, domain_size, ProjectParameters.max_solid_fraction, ProjectParameters.CouplingWeighingType, n_particles_in_depth)
+if (ProjectParameters.projection_module_option):
+    projection_module = swimming_DEM_procedures.ProjectionModule(fluid_model_part, balls_model_part, fem_dem_model_part, domain_size, ProjectParameters.max_solid_fraction, ProjectParameters.coupling_weighing_type, n_particles_in_depth)
     projection_module.UpdateDatabase(h_min)
     interaction_calculator = CustomFunctionsCalculator()
 
@@ -341,15 +347,15 @@ for node in fluid_model_part.Nodes:
 creator_destructor = ParticleCreatorDestructor()
 
 # creating a Solver object for the DEM part. It contains the sequence of function calls necessary for the evolution of the DEM system at every time step
-DEM_solver = SolverStrategy.ExplicitStrategy(balls_model_part, fem_dem_model_part, creator_destructor, DEM_parameters)
-DEM_proc.GiDSolverTransfer(balls_model_part, DEM_solver, DEM_parameters)
+dem_solver = SolverStrategy.ExplicitStrategy(balls_model_part, fem_dem_model_part, creator_destructor, DEMParameters)
+dem_procedures.GiDSolverTransfer(balls_model_part, dem_solver, DEMParameters)
 
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
 
-if (ProjectParameters.InletOption):
+if (ProjectParameters.inlet_option):
     DEM_inlet_model_part = ModelPart("DEMInletPart")
-    DEM_Inlet_filename = DEM_parameters.problem_name + "_Inlet"
-    SolverStrategy.AddVariables(DEM_inlet_model_part, DEM_parameters)
+    DEM_Inlet_filename = DEMParameters.problem_name + "_Inlet"
+    SolverStrategy.AddVariables(DEM_inlet_model_part, DEMParameters)
     swimming_DEM_procedures.AddNodalVariables(DEM_inlet_model_part, DEM_inlet_variables_to_add)
     model_part_io_demInlet = ModelPartIO(DEM_Inlet_filename)
     model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
@@ -361,19 +367,19 @@ if (ProjectParameters.InletOption):
     SolverStrategy.AddDofs(DEM_inlet_model_part)
     DEM_inlet_parameters = DEM_inlet_model_part.Properties
 
-    DEM_inlet_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, ProjectParameters.BuoyancyForceType)
-    DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, ProjectParameters.DragForceType)
-    DEM_inlet_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.VirtualMassForceType)
-    DEM_inlet_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.LiftForceType)
-    DEM_inlet_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, ProjectParameters.NonNewtonianOption)
-    DEM_inlet_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, ProjectParameters.ManuallyImposedDragLawOption)
-    DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, ProjectParameters.DragModifierType)
-    DEM_inlet_model_part.ProcessInfo.SetValue(GEL_STRENGTH, ProjectParameters.GelStrength)
-    DEM_inlet_model_part.ProcessInfo.SetValue(POWER_LAW_N, ProjectParameters.PowerLawN)
-    DEM_inlet_model_part.ProcessInfo.SetValue(POWER_LAW_K, ProjectParameters.PowerLawK)
-    DEM_inlet_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, ProjectParameters.InitialDragForce)
-    DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, ProjectParameters.DragLawSlope)
-    DEM_inlet_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, ProjectParameters.PowerLawTol)
+    DEM_inlet_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, ProjectParameters.buoyancy_force_type)
+    DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, ProjectParameters.drag_force_type)
+    DEM_inlet_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.virtual_mass_force_type)
+    DEM_inlet_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.lift_force_type)
+    DEM_inlet_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, ProjectParameters.non_newtonian_option)
+    DEM_inlet_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, ProjectParameters.manually_imposed_drag_law_option)
+    DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, ProjectParameters.drag_modifier_type)
+    DEM_inlet_model_part.ProcessInfo.SetValue(GEL_STRENGTH, ProjectParameters.gel_strength)
+    DEM_inlet_model_part.ProcessInfo.SetValue(POWER_LAW_N, ProjectParameters.power_law_n)
+    DEM_inlet_model_part.ProcessInfo.SetValue(POWER_LAW_K, ProjectParameters.power_law_k)
+    DEM_inlet_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, ProjectParameters.initial_drag_force)
+    DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, ProjectParameters.drag_law_slope)
+    DEM_inlet_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, ProjectParameters.power_law_tol)
 
     # constructiong the inlet and intializing it
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
@@ -406,8 +412,8 @@ time_dem = 0.0
 full_Dt = Dt
 initial_Dt = 0.001 * full_Dt
 DEM_step = 0 # this variable is necessary to get a good random insertion of particles
-DEM_solver.Initialize()
-Dt_DEM = DEM_parameters.MaxTimeStep
+dem_solver.Initialize()
+Dt_DEM = DEMParameters.MaxTimeStep
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 while(time <= final_time):
@@ -425,7 +431,7 @@ while(time <= final_time):
 
     if (step < 2):
 
-        if (ProjectParameters.CouplingSchemeType == "updated_DEM"):
+        if (ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
             time_final_DEM_substepping = time + initial_fluid_dt
 
         else:
@@ -433,7 +439,7 @@ while(time <= final_time):
 
     else:
 
-        if (ProjectParameters.CouplingSchemeType == "updated_DEM"):
+        if (ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
             time_final_DEM_substepping = time + full_Dt
 
         else:
@@ -452,24 +458,27 @@ while(time <= final_time):
 
     # printing if required
 
-    if (ProjectParameters.PrintParticlesResultsOption):
-        print_particles_results = PrintParticlesResults("DRAG_FORCE", time, balls_model_part)
-        print_particles_results = PrintParticlesResults("BUOYANCY", time, balls_model_part)
-        print_particles_results = PrintParticlesResults("VELOCITY", time, balls_model_part)
+    if (ProjectParameters.print_particles_results_option):
+        io_tools.PrintParticlesResults(ProjectParameters.variables_to_print_in_file, time, balls_model_part)
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-    if (output_time <= out and ProjectParameters.CouplingSchemeType == "updated_DEM"):
+    if (output_time <= out and ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
         projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
-        ParticleUtils2D().VisualizationModelPart(mixed_model_part, fluid_model_part, balls_model_part)
-        swimming_DEM_gid_io.write_swimming_DEM_results(time, fluid_model_part, balls_model_part, fem_dem_model_part, mixed_model_part, ProjectParameters.nodal_results, ProjectParameters.DEM_nodal_results, ProjectParameters.mixed_nodal_results, ProjectParameters.gauss_points_results)
+
+        if (ProjectParameters.GiDMultiFileFlag == "Multiples"):
+            post_utilities.AddModelPartToModelPart(mixed_model_part, fluid_model_part)
+            post_utilities.AddModelPartToModelPart(mixed_model_part, balls_model_part)
+            post_utilities.AddModelPartToModelPart(mixed_model_part, fem_dem_model_part)
+
+        swimming_DEM_gid_io.write_swimming_DEM_results(time, fluid_model_part, balls_model_part, fem_dem_model_part, mixed_model_part, ProjectParameters.nodal_results, ProjectParameters.dem_nodal_results, ProjectParameters.mixed_nodal_results, ProjectParameters.gauss_points_results)
         out = 0
 
     # solving the DEM part
 
     print "Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)"
 
-    if (time >= ProjectParameters.Interaction_start_time and ProjectParameters.ProjectionModuleOption):
+    if (time >= ProjectParameters.interaction_start_time and ProjectParameters.projection_module_option):
         interaction_calculator.CalculatePressureGradient(fluid_model_part)                 
             
     for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):
@@ -478,9 +487,9 @@ while(time <= final_time):
 
         # applying fluid-to-DEM coupling
                 
-        if (time >= ProjectParameters.Interaction_start_time and ProjectParameters.ProjectAtEverySubStepOption):
+        if (time >= ProjectParameters.interaction_start_time and ProjectParameters.project_at_every_substep_option):
 
-            if (ProjectParameters.CouplingSchemeType == "updated_DEM"):
+            if (ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
                 projection_module.ProjectFromNewestFluid()
 
             else:
@@ -489,36 +498,40 @@ while(time <= final_time):
         # performing the time integration of the DEM part
 
         balls_model_part.CloneTimeStep(time_dem)
-        DEM_solver.Solve()
+        dem_solver.Solve()
 
         # adding DEM elements by the inlet
 
-        if (ProjectParameters.InletOption):
-            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, ProjectParameters.DEMInletElementType) #After solving, to make sure that neighbours are already set.
+        if (ProjectParameters.inlet_option):
+            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, ProjectParameters.dem_inlet_element_type) #After solving, to make sure that neighbours are already set.
 
         # measuring mean velocities in a certain control volume (the 'velocity trap')
 
-        if (ProjectParameters.VelocityTrapOption):
+        if (ProjectParameters.velocity_trap_option):
             post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity", time_dem)
 
     # applying DEM-to-fluid coupling
 
-    if (time >= ProjectParameters.Interaction_start_time and ProjectParameters.ProjectFromParticlesOption):
+    if (time >= ProjectParameters.interaction_start_time and ProjectParameters.project_from_particles_option):
         projection_module.ProjectFromParticles()
 
     # printing if required
 
-    if (ProjectParameters.PrintParticlesResultsOption):
-        print_particles_results = PrintParticlesResults("DRAG_FORCE", time, balls_model_part)
-        print_particles_results = PrintParticlesResults("BUOYANCY", time, balls_model_part)
-        print_particles_results = PrintParticlesResults("VELOCITY", time, balls_model_part)
+    if (ProjectParameters.print_particles_results_option):
+        io_tools.PrintParticlesResults(ProjectParameters.variables_to_print_in_file, time, balls_model_part)
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
-    if (output_time <= out and ProjectParameters.CouplingSchemeType == "updated_fluid"):
+    if (output_time <= out and ProjectParameters.coupling_scheme_type == "UpdatedFluid"):
         projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo) # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-        ParticleUtils2D().VisualizationModelPart(mixed_model_part, fluid_model_part, balls_model_part)
-        swimming_DEM_gid_io.write_swimming_DEM_results(time, fluid_model_part, balls_model_part, fem_dem_model_part, mixed_model_part, ProjectParameters.nodal_results, ProjectParameters.DEM_nodal_results, ProjectParameters.mixed_nodal_results, ProjectParameters.gauss_points_results)
+
+        if (ProjectParameters.GiDMultiFileFlag == "Multiples"):
+            post_utilities.AddModelPartToModelPart(mixed_model_part, fluid_model_part)
+            post_utilities.AddModelPartToModelPart(mixed_model_part, balls_model_part)
+            post_utilities.AddModelPartToModelPart(mixed_model_part, fem_dem_model_part)
+
+        swimming_DEM_gid_io.write_swimming_DEM_results(time, fluid_model_part, balls_model_part, fem_dem_model_part, mixed_model_part, ProjectParameters.nodal_results, ProjectParameters.dem_nodal_results, ProjectParameters.mixed_nodal_results, ProjectParameters.gauss_points_results)
+        out = 0
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 #       gid_io.write_results(  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
