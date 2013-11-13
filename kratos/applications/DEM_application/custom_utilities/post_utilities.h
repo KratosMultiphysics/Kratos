@@ -51,27 +51,27 @@ public:
     
     void AddModelPartToModelPart(ModelPart& rCompleteModelPart, ModelPart& rModelPartToAdd)
     {
-        ////WATCH OUT! This function respects the existing Id's!
-        KRATOS_TRY;      
-        
-        //preallocate the memory needed
-        int tot_nodes = rCompleteModelPart.Nodes().size() + rModelPartToAdd.Nodes().size();
-        int tot_elements = rCompleteModelPart.Elements().size() + rModelPartToAdd.Elements().size();
-        rCompleteModelPart.Nodes().reserve( tot_nodes );
-        rCompleteModelPart.Elements().reserve( tot_elements );
-
-        for (ModelPart::NodesContainerType::iterator node_it = rModelPartToAdd.NodesBegin(); node_it != rModelPartToAdd.NodesEnd(); node_it++)
-        {			
-            rCompleteModelPart.AddNode(*(node_it.base()));
-        }
-        for (ModelPart::ElementsContainerType::iterator elem_it = rModelPartToAdd.ElementsBegin(); elem_it != rModelPartToAdd.ElementsEnd(); elem_it++)
-        {			
-            rCompleteModelPart.AddElement(*(elem_it.base()));
-        }
-        
-
-        KRATOS_CATCH("");
-    }
+      ////WATCH OUT! This function respects the existing Id's!
+      KRATOS_TRY;      
+      
+      //preallocate the memory needed
+      int tot_nodes = rCompleteModelPart.Nodes().size() + rModelPartToAdd.Nodes().size();
+      int tot_elements = rCompleteModelPart.Elements().size() + rModelPartToAdd.Elements().size();
+      rCompleteModelPart.Nodes().reserve( tot_nodes );
+      rCompleteModelPart.Elements().reserve( tot_elements );
+      for (ModelPart::NodesContainerType::ptr_iterator node_it = rModelPartToAdd.Nodes().ptr_begin(); node_it != rModelPartToAdd.Nodes().ptr_end(); node_it++)
+	{			
+          rCompleteModelPart.Nodes().push_back( *node_it );
+	}
+      
+      for (ModelPart::ElementsContainerType::ptr_iterator elem_it = rModelPartToAdd.Elements().ptr_begin(); elem_it != rModelPartToAdd.Elements().ptr_end(); elem_it++)
+	{			
+	  rCompleteModelPart.Elements().push_back( *elem_it );          
+	}
+      
+      KRATOS_CATCH("");
+    
+    }    
     
     
     array_1d<double, 3> VelocityTrap(ModelPart& rModelPart, const array_1d<double, 3> low_point, const array_1d<double, 3> high_point){
