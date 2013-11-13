@@ -223,6 +223,8 @@ namespace Kratos
           //KRATOS_TIMER_START("SynchronizeSolidMesh")
           BaseType::SynchronizeSolidMesh(rModelPart);
           //KRATOS_TIMER_STOP("SynchronizeSolidMesh")
+          
+          rCurrentProcessInfo[ACTIVATE_SEARCH]=1;
 
           if(rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
           {
@@ -248,7 +250,7 @@ namespace Kratos
               if ((time_step + 1)%this->GetNStepSearch() == 0 && time_step > 0){
 
                   if (this->GetBoundingBoxOption() == 1){
-                      BaseType::BoundingBoxUtility();
+                      BoundingBoxUtility();
                       this->SetSearchRadius(rModelPart,rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION],rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
                       
                   }
@@ -390,10 +392,10 @@ namespace Kratos
         
         PrepareContactModelPart(r_sphere_model_part,mcontacts_model_part);
 
-          //Here we are going to create contact elements when we are on a target particle and we see a neighbour which id is higher than us.
+          //Here we are going to create contact elements when we are on a target particle and we see a neighbour whose id is higher than ours.
           //We create also a pointer from the node to the element, after creating it.
           //When our particle has a higher ID than the neighbour we also create a pointer to the (previously) created contact element.
-          //We proced in this way becouse we want to have the pointers to contact elements in a list in the same order than the initial elements order.
+          //We proceed in this way because we want to have the pointers to contact elements in a list in the same order than the initial elements order.
                  
         
         for (typename ElementsArrayType::ptr_iterator it= pSphereElements.ptr_begin(); it!=pSphereElements.ptr_end(); ++it)
@@ -593,6 +595,24 @@ namespace Kratos
 
       } //Contact_InitializeSolutionStep
       
+    
+    void BoundingBoxUtility()
+      {
+          KRATOS_TRY
+                            
+          ModelPart& r_model_part = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
+          ParticleCreatorDestructor::Pointer& p_creator_destructor=BaseType::GetParticleCreatorDestructor();
+                    
+          p_creator_destructor->MarkDistantParticlesForErasing(r_model_part);
+          if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
+              p_creator_destructor->MarkContactElementsForErasing(r_model_part, mcontacts_model_part);
+          p_creator_destructor->DestroyParticles(r_model_part);
+          p_creator_destructor->DestroyContactElements(mcontacts_model_part);
+
+          KRATOS_CATCH("")
+      }
+    
     void Contact_Calculate_Area()
     {
        
