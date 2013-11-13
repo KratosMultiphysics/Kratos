@@ -463,6 +463,8 @@ while (time < DEM_parameters.FinalTime):
         os.chdir(post_path)
 
         if (DEM_parameters.Multifile == "multiple_files"):
+            mixed_model_part.Elements.clear()
+            mixed_model_part.Nodes.clear()
             post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part) 
             if (DEM_parameters.ContactMeshOption == "ON"):
                 post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
@@ -484,7 +486,8 @@ while (time < DEM_parameters.FinalTime):
         os.chdir(main_path)     
               
         if (DEM_parameters.Multifile == "multiple_files"):
-            gid_io.FinalizeResults()  
+            gid_io.FinalizeResults() 
+            
           
         time_old_print = time
     
