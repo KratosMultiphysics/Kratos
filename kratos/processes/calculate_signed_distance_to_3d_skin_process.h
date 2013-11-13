@@ -53,7 +53,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 #include <string>
 #include <iostream> 
-
+#include <ctime>
 
 // External includes 
 
@@ -73,11 +73,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/kratos_flags.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
-
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-#include <boost/numeric/ublas/io.hpp>
 
 #ifdef _OPENMP
 #include "omp.h"
@@ -357,16 +352,16 @@ public:
 
     virtual void Execute()
     {
-        KRATOS_TRY
+        KRATOS_TRY;
 
-                GenerateOctree();
+        GenerateOctree();
 
         DistanceFluidStructure();
 
         //          ------------------------------------------------------------------
         //          GenerateNodes();
-        //CalculateDistance2(); // I have to change this. Pooyan.
-        //          mrSkinModelPart.GetCommunicator().AssembleCurrentData(DISTANCE);
+        CalculateDistance2(); // I have to change this. Pooyan.
+        //mrSkinModelPart.GetCommunicator().AssembleCurrentData(DISTANCE);
         //          std::ofstream mesh_file1("octree1.post.msh");
         //          std::ofstream res_file("octree1.post.res");
         //          Timer::Start("Writing Gid conform Mesh");
@@ -600,22 +595,73 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    //    double RadialShapeFunctionEvaluation(const Point<3> edge_point_j,
-    //                                         const Point<3> edge_point_i,
-    //                                         const double h)
-    //    {
-    //        // choose Gaussian radial base function
-    //        array_1d<double,3> radial_vector;
+    void AveragePressureToNode(BinBasedFastPointLocator<3>& node_locator,
+                               Node<3>& node)
+    {
+        //loop over nodes and find the tetra in which it falls, than do interpolation
+        array_1d<double, 4 > N;
+        const int max_results = 10000;
+        BinBasedFastPointLocator<3>::ResultContainerType results(max_results);
+        BinBasedFastPointLocator<3>::ResultIteratorType result_begin = results.begin();
+        Element::Pointer pElement;
 
-    //        radial_vector[0] = edge_point_i[0] - edge_point_j[0];
-    //        radial_vector[1] = edge_point_i[1] - edge_point_j[1];
-    //        radial_vector[2] = edge_point_i[2] - edge_point_j[2];
+        bool is_found = node_locator.FindPointOnMesh(node.Coordinates(), N, pElement, result_begin, max_results);
 
-    //        const double r = norm_2(radial_vector);
+        if (is_found == true)
+        {
+            array_1d<double,4> nodalPressures;
+            const array_1d<double,4>& ElementalDistances = pElement->GetValue(ELEMENTAL_DISTANCES);
+            Geometry<Node<3> >& geom = pElement->GetGeometry();
 
-    //        double phi = exp(-(r*r)/(2*h*h));
-    //        return phi;
-    //    }
+            for(unsigned int i=0; i<4; i++)
+                nodalPressures[i] = geom[i].GetSolutionStepValue(PRESSURE);
+
+            if(pElement->GetValue(SPLIT_ELEMENT)==true)
+            {
+                // Compute average of all positive and all negative values
+                double positiveAverage = 0;
+                double negativeAverage = 0;
+                unsigned int nPos = 0;
+                unsigned int nNeg = 0;
+
+                for(unsigned int i=0 ; i<4 ; i++)
+                {
+                    if(ElementalDistances[i]>=0)
+                    {
+                        positiveAverage += nodalPressures[i];
+                        nPos++;
+                    }
+                    else
+                    {
+                        negativeAverage += nodalPressures[i];
+                        nNeg++;
+                    }
+                }
+
+                positiveAverage /= nPos;
+                negativeAverage /= nNeg;
+
+                // Assign Pressures
+                node.GetSolutionStepValue(POSITIVE_FACE_PRESSURE,0) = positiveAverage;
+                node.GetSolutionStepValue(NEGATIVE_FACE_PRESSURE,0) = negativeAverage;
+            }
+            else
+            {
+                // Compute average of all positive and all negative values
+                double Average = 0;
+
+                // for output of
+                for(unsigned int i = 0 ; i<4 ; i++)
+                    Average += nodalPressures[i];
+
+                Average /= 4;
+
+                // Assign Pressures
+                node.GetSolutionStepValue(POSITIVE_FACE_PRESSURE,0) = Average;
+                node.GetSolutionStepValue(NEGATIVE_FACE_PRESSURE,0) = Average;
+            }
+        }
+    }
 
     ///******************************************************************************************************************
     ///******************************************************************************************************************
@@ -655,7 +701,7 @@ public:
             {
                 CalcElementDistances( it , TetEdgeIndexTable );
             }
-        }
+        }        
 
         // Finally, each tetrahedral Element has 4 distance values. But each node belongs to
         // several Elements, such that it is assigned several distance values
@@ -779,7 +825,7 @@ public:
 
         double EdgeNode1[3] = {P1.X() , P1.Y() , P1.Z()};
         double EdgeNode2[3] = {P2.X() , P2.Y() , P2.Z()};
-
+	
         // loop over all octree cells which are intersected by the fluid Element
         for(unsigned int i_cell = 0 ; i_cell < leaves.size() ; i_cell++)
         {
@@ -805,7 +851,7 @@ public:
                         NewIntersectionNode.Coordinates[0] = IntersectionPoint[0];
                         NewIntersectionNode.Coordinates[1] = IntersectionPoint[1];
                         NewIntersectionNode.Coordinates[2] = IntersectionPoint[2];
-
+			 
                         if( IsIntersectionNodeOnTetEdge( IntersectionPoint , EdgeNode1 , EdgeNode2 ) )
                         {
                             if ( IsNewIntersectionNode( NewIntersectionNode , IntersectedTetEdges ) )
@@ -848,11 +894,6 @@ public:
                                     NewIntersectionNode.EdgeNode2 = EdgeEndIndex;
                                     NewTetEdge.IntNodes.push_back(NewIntersectionNode);
 
-                                    // if tet edge belonging to this intersection point is not already marked as "IntersectedTetEdge" --> put it into the respective container
-                                    // when a second intersection node is found, then it is not necessary to push_back again
-                                    if( NewTetEdge.IntNodes.size() == 1 )
-                                        IntersectedTetEdges.push_back(NewTetEdge);
-
                                     // velocity mapping structure --> fluid
                                     array_1d<double,3> emb_vel = (*i_StructElement)->GetGeometry()[0].GetSolutionStepValue(VELOCITY);
                                     emb_vel += (*i_StructElement)->GetGeometry()[1].GetSolutionStepValue(VELOCITY);
@@ -867,6 +908,13 @@ public:
                 }
             }
         }
+
+        // Finally put the found intersection nodes into the container
+        if( NewTetEdge.IntNodes.size() > 0 )
+	{
+	  if(NumberIntersectionsOnTetCornerCurrentEdge == 0)
+            IntersectedTetEdges.push_back(NewTetEdge);
+	}
     }
 
     ///******************************************************************************************************************
@@ -929,7 +977,7 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    bool IsNewIntersectionNode( IntersectionNodeStruct&    NewIntersectionNode,
+    bool IsNewIntersectionNode( IntersectionNodeStruct&     NewIntersectionNode,
                                 std::vector<TetEdgeStruct>& IntersectedTetEdges )
     {
         array_1d<double,3> DiffVector;
@@ -1010,9 +1058,8 @@ public:
         std::vector<IntersectionNodeStruct> NodesOfApproximatedStructure;
         array_1d<double,4> ElementalDistances;
 
-        // Reduce all found intersection nodes located on each tetdrahedra edge to just one intersection node by averaging
-        ComputeApproximationNodes(IntersectedTetEdges,NodesOfApproximatedStructure);
-
+        FillIntNodesContainer(IntersectedTetEdges,NodesOfApproximatedStructure);
+	
         // Intersection with one corner point
         if( NodesOfApproximatedStructure.size() == 1 && NumberIntersectionsOnTetCorner == 1 )
         {
@@ -1030,14 +1077,14 @@ public:
         // Intersection with three tetrahedra edges
         if( NodesOfApproximatedStructure.size() == 3 )
         {
-            CalcSignedDistancesToThreeIntNodes(i_fluid_Element,NodesOfApproximatedStructure,IntersectedTetEdges,ElementalDistances);
+            CalcSignedDistancesToThreeIntNodes(i_fluid_Element,NodesOfApproximatedStructure,ElementalDistances);
             i_fluid_Element->GetValue(SPLIT_ELEMENT) = true;
         }
 
         // Intersection with more than three tetrahedra edges
         if( NodesOfApproximatedStructure.size() > 3 )
         {
-            CalcSignedDistancesToMoreThanThreeIntNodes(i_fluid_Element,NodesOfApproximatedStructure,IntersectedTetEdges,ElementalDistances);
+            CalcSignedDistancesToMoreThanThreeIntNodes(i_fluid_Element,NodesOfApproximatedStructure,ElementalDistances,IntersectedTetEdges);
             i_fluid_Element->GetValue(SPLIT_ELEMENT) = true;
         }
 
@@ -1053,63 +1100,19 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    void ComputeApproximationNodes( std::vector<TetEdgeStruct>&          IntersectedTetEdges,
-                                    std::vector<IntersectionNodeStruct>& NodesOfApproximatedStructure )
+    void FillIntNodesContainer( std::vector<TetEdgeStruct>&          IntersectedTetEdges,
+                                std::vector<IntersectionNodeStruct>& NodesOfApproximatedStructure )
     {
-        unsigned int NumberIntNodes = 0;
-        double sum_X;
-        double sum_Y;
-        double sum_Z;
+        const unsigned int NumberCutEdges = IntersectedTetEdges.size();
 
-        unsigned int NumberCutEdges = IntersectedTetEdges.size();
-        std::vector<unsigned int> IndicesOfDoubleCutEdges;
-        IndicesOfDoubleCutEdges.reserve(NumberCutEdges);
-
-        // calculate average of all intersection nodes of each tetrahedra edge
         for(unsigned int i_TetEdge = 0 ; i_TetEdge < NumberCutEdges ; i_TetEdge++)
         {
-            NumberIntNodes = IntersectedTetEdges[i_TetEdge].IntNodes.size();
-            if(NumberIntNodes == 2)
-            {
-                IndicesOfDoubleCutEdges.push_back(i_TetEdge);
-            }
-        }
-
-        // For odd number of double cut edges --> kick the double cut edges out
-        const unsigned int NumberEdgesDoubleCut = IndicesOfDoubleCutEdges.size();
-        if(NumberEdgesDoubleCut == 1)
-        {
-            // kick these intersection nodes on this edge out of the container
-            unsigned int index = IndicesOfDoubleCutEdges[0];
-            IntersectedTetEdges.erase(IntersectedTetEdges.begin() + index);
-            NumberCutEdges -= 1;
-        }
-
-        // For the remaining edges bild the average if an edge is double cut and the approximate surface
-        for(unsigned int i_TetEdge = 0 ; i_TetEdge < NumberCutEdges ; i_TetEdge++)
-        {
-            sum_X = 0;
-            sum_Y = 0;
-            sum_Z = 0;
+            unsigned int NumberIntNodes = IntersectedTetEdges[i_TetEdge].IntNodes.size();
 
             for( unsigned int i_IntNode = 0 ; i_IntNode < NumberIntNodes ; i_IntNode++ )
             {
-                sum_X += IntersectedTetEdges[i_TetEdge].IntNodes[i_IntNode].Coordinates[0];
-                sum_Y += IntersectedTetEdges[i_TetEdge].IntNodes[i_IntNode].Coordinates[1];
-                sum_Z += IntersectedTetEdges[i_TetEdge].IntNodes[i_IntNode].Coordinates[2];
+                NodesOfApproximatedStructure.push_back(IntersectedTetEdges[i_TetEdge].IntNodes[i_IntNode]);
             }
-
-            IntersectionNodeStruct NewApproximationNode;
-            NewApproximationNode.Coordinates[0] = sum_X / NumberIntNodes;
-            NewApproximationNode.Coordinates[1] = sum_Y / NumberIntNodes;
-            NewApproximationNode.Coordinates[2] = sum_Z / NumberIntNodes;
-
-            NewApproximationNode.StructElemNormal = IntersectedTetEdges[i_TetEdge].IntNodes[0].StructElemNormal;
-
-            NewApproximationNode.EdgeNode1 = IntersectedTetEdges[i_TetEdge].IntNodes[0].EdgeNode1;
-            NewApproximationNode.EdgeNode2 = IntersectedTetEdges[i_TetEdge].IntNodes[0].EdgeNode2;
-
-            NodesOfApproximatedStructure.push_back(NewApproximationNode);
         }
     }
 
@@ -1166,8 +1169,8 @@ public:
 
         // switch direction of normal
         if(NormalWrongOriented)
-            Normal *=-1;
-
+            Normal *=-1;	
+	
         // Compute distance values for all tet-nodes
         for(unsigned int i_TetNode = 0 ; i_TetNode < 4 ; i_TetNode++)
         {
@@ -1179,9 +1182,8 @@ public:
     ///******************************************************************************************************************
 
     void CalcSignedDistancesToThreeIntNodes( ModelPart::ElementsContainerType::iterator& i_fluid_Element,
-                                             std::vector<IntersectionNodeStruct>&         NodesOfApproximatedStructure,
-                                             std::vector<TetEdgeStruct>&                  IntersectedTetEdges,
-                                             array_1d<double,4>&                          ElementalDistances )
+                                             std::vector<IntersectionNodeStruct>&        NodesOfApproximatedStructure,
+                                             array_1d<double,4>&                         ElementalDistances )
     {
         Geometry< Node<3> >& rFluidGeom = i_fluid_Element->GetGeometry();
 
@@ -1220,8 +1222,8 @@ public:
 
     void CalcSignedDistancesToMoreThanThreeIntNodes(  ModelPart::ElementsContainerType::iterator& i_fluid_Element,
                                                       std::vector<IntersectionNodeStruct>         NodesOfApproximatedStructure,
-                                                      std::vector<TetEdgeStruct>                  IntersectedTetEdges,
-                                                      array_1d<double,4>&                         ElementalDistances )
+                                                      array_1d<double,4>&                         ElementalDistances,
+                                                      std::vector<TetEdgeStruct>&                 IntersectedTetEdges )
     {
         unsigned int numberCutEdges = NodesOfApproximatedStructure.size();
 
@@ -1234,7 +1236,7 @@ public:
         for(unsigned int i=0; i<3; i++)
             P_mean.Coordinates()[i] /= numberCutEdges;
 
-        // Compute average of normals and areas
+        // Compute normal for the best-fitted plane
         array_1d<double,3> N_mean;
 
         Matrix coordinates(numberCutEdges,3);
@@ -1281,6 +1283,55 @@ public:
         {
             ElementalDistances[i_TetNode] = PointDistanceToPlane(P_mean, N_mean, i_fluid_Element->GetGeometry()[i_TetNode] );
         }
+
+        // #################################################
+        unsigned int numberDoubleCutEdges = 0;
+        unsigned int indexDoubleCutEdge = 0;
+
+        // figure out the edges which are cut more than once
+        for(unsigned int i_TetEdge = 0 ; i_TetEdge < IntersectedTetEdges.size() ; i_TetEdge++)
+        {
+            unsigned int NumberIntNodes = IntersectedTetEdges[i_TetEdge].IntNodes.size();
+            if(NumberIntNodes == 2)
+            {
+                numberDoubleCutEdges++;
+                indexDoubleCutEdge = i_TetEdge;
+            }
+        }
+
+        if((numberDoubleCutEdges >= 1))
+        {
+            array_1d<double,3> normal_1 = IntersectedTetEdges[indexDoubleCutEdge].IntNodes[0].StructElemNormal;
+            array_1d<double,3> normal_2 = IntersectedTetEdges[indexDoubleCutEdge].IntNodes[1].StructElemNormal;
+
+            // normalize normals
+            normal_1 /= norm_2(normal_1);
+            normal_2 /= norm_2(normal_2);
+
+            const double pi = 3.1415926;
+
+            // compute angle between normals
+            double angle_n1n2 = acos( inner_prod(normal_1,normal_2) );
+            // rad --> degree
+            angle_n1n2 *= 180 / pi;
+
+            // if angle between -60º and 120º, take the mean
+            if( (angle_n1n2 > -60) && (angle_n1n2 < 120) )
+            {
+                // take the mean of the normals
+                N_mean = 0.5 * (normal_1 + normal_2);
+            }
+            else
+            {
+                N_mean = 0.5 * (normal_1 - normal_2);
+            }
+
+            // Based on N_mean and P_mean compute the distances to that plane
+            for(unsigned int i_TetNode = 0 ; i_TetNode < 4 ; i_TetNode++)
+            {
+                ElementalDistances[i_TetNode] = PointDistanceToPlane(P_mean, N_mean, i_fluid_Element->GetGeometry()[i_TetNode] );
+            }
+        }
     }
 
     ///******************************************************************************************************************
@@ -1314,9 +1365,6 @@ public:
     ///******************************************************************************************************************
     ///******************************************************************************************************************
 
-    /**
-       * This function calculates the minimal distances of a node considering all neighboring Elements
-       */
     void AssignMinimalNodalDistance()
     {
         // loop over all fluid Elements
@@ -1353,7 +1401,7 @@ public:
                              array_1d<double,4>&                         ElementalDistances)
     {
         // Assign a distance limit
-        double dist_limit = 1e-6;
+        double dist_limit = 1e-5;
         bool distChangedToLimit = false; //variable to indicate that a distance value < tolerance is set to a limit distance = tolerance
 
         for(unsigned int i_node = 0; i_node < 4; i_node++)
@@ -1523,34 +1571,10 @@ public:
     {
         Timer::Start("Generating Octree");
         std::cout << "Generating the Octree..." << std::endl;
-        
-        // Setting the boundingbox for non-normalized coordinates
-        const int dimension = 3;
-        
-        double boundingBox_low[3],boundingBox_high[3];
-        
-        for(int i = 0; i < dimension; i++)
-        {
-            boundingBox_low[i]  = mrFluidModelPart.NodesBegin()->Coordinates()[i];
-            boundingBox_high[i] = mrFluidModelPart.NodesBegin()->Coordinates()[i];
-        }
-        
-        for(ModelPart::NodeIterator i_node = mrFluidModelPart.NodesBegin();
-            i_node != mrFluidModelPart.NodesEnd();
-            i_node++)
-        {
-            for(int i = 0; i < dimension; i++)
-            {
-                if(i_node->Coordinates()[i] < boundingBox_low[i])  boundingBox_low[i]  = i_node->Coordinates()[i];
-                if(i_node->Coordinates()[i] > boundingBox_high[i]) boundingBox_high[i] = i_node->Coordinates()[i];
-            }
-        }
 
-        mOctree.SetBoundingBox(boundingBox_low,boundingBox_high);
         //mOctree.RefineWithUniformSize(0.0625);
 
         // loop over all structure nodes
-
         for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin();
             i_node != mrSkinModelPart.NodesEnd();
             i_node++)
@@ -1559,7 +1583,6 @@ public:
             temp_point[0] = i_node->X();
             temp_point[1] = i_node->Y();
             temp_point[2] = i_node->Z();
-            
             mOctree.Insert(temp_point);
         }
 
@@ -1575,13 +1598,13 @@ public:
 
         Timer::Stop("Generating Octree");
 
-        //KRATOS_WATCH(mOctree);
+//        KRATOS_WATCH(mOctree);
 
-        //          std::cout << "######## WRITING OCTREE MESH #########" << std::endl;
-        //          std::ofstream myfile;
-        //          myfile.open ("octree.post.msh");
-        //          mOctree.PrintGiDMesh(myfile);
-        //          myfile.close();
+//        std::cout << "######## WRITING OCTREE MESH #########" << std::endl;
+//        std::ofstream myfile;
+//        myfile.open ("octree.post.msh");
+//        mOctree.PrintGiDMesh(myfile);
+//        myfile.close();
 
         std::cout << "Generating the Octree finished" << std::endl;
     }
@@ -1981,9 +2004,9 @@ public:
         //            if(distances[0]*distances[1] < 0.00 || distances[2]*distances[1] < 0.00)
         //                KRATOS_WATCH_3(distances);
 
-#ifdef _DEBUG
-        std::cout << "colors : " << colors[0] << ", " << colors[1] << ", " << colors[2] << std::endl;
-#endif
+//#ifdef _DEBUG
+//        std::cout << "colors : " << colors[0] << ", " << colors[1] << ", " << colors[2] << std::endl;
+//#endif
         double distance = (fabs(distances[0]) > fabs(distances[1])) ? distances[1] : distances[0];
         distance = (fabs(distance) > fabs(distances[2])) ? distances[2] : distance;
 
@@ -2072,13 +2095,13 @@ public:
                 cell = octree->pGetCell(ray_key);
                 ray_key[direction] -= 1 ;//the key returned by GetNeighbourKey is inside the cell (minkey +1), to ensure that the corresponding
                 //cell get in pGetCell is the right one.
-#ifdef _DEBUG
-                Octree_Pooyan::key_type min_key[3];
-                cell->GetMinKey(min_key[0],min_key[1],min_key[2]);
-                Octree_Pooyan::key_type tmp;
-                tmp= min_key[direction];
-                assert(ray_key[direction]==tmp);
-#endif
+//#ifdef _DEBUG
+//                Octree_Pooyan::key_type min_key[3];
+//                cell->GetMinKey(min_key[0],min_key[1],min_key[2]);
+//                Octree_Pooyan::key_type tmp;
+//                tmp= min_key[direction];
+//                assert(ray_key[direction]==tmp);
+//#endif
             } else
                 cell = NULL;
         }
@@ -2131,13 +2154,13 @@ public:
                 cell = octree->pGetCell(ray_key);
                 ray_key[direction] -= 1 ;//the key returned by GetNeighbourKey is inside the cell (minkey +1), to ensure that the corresponding
                 //cell get in pGetCell is the right one.
-#ifdef _DEBUG
-                Octree_Pooyan::key_type min_key[3];
-                cell->GetMinKey(min_key[0],min_key[1],min_key[2]);
-                Octree_Pooyan::key_type tmp;
-                tmp= min_key[direction];
-                assert(ray_key[direction]==tmp);
-#endif
+//#ifdef _DEBUG
+//                Octree_Pooyan::key_type min_key[3];
+//                cell->GetMinKey(min_key[0],min_key[1],min_key[2]);
+//                Octree_Pooyan::key_type tmp;
+//                tmp= min_key[direction];
+//                assert(ray_key[direction]==tmp);
+//#endif
             } else
                 cell = NULL;
         }
