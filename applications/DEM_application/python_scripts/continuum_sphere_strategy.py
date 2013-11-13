@@ -178,7 +178,7 @@ class ExplicitStrategy:
         self.model_part                     = model_part
         self.fem_model_part                 = fem_model_part
         self.contact_model_part             = ModelPart("ContactModelPart") #funcio kratos
-        self.contact_model_part.Nodes       = self.model_part.Nodes;
+        #self.contact_model_part.Nodes       = self.model_part.Nodes; #This is not necessary, elements point at the nodes of the balls_model_part already. It is also problematic when summing modelparts!
         self.domain_size                    = Param.Dimension
 
         # BOUNDARY
