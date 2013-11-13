@@ -159,6 +159,39 @@ public:
 
     /*@{ */
 
+    /**
+     * Get component wise element components
+     */
+    virtual std::vector<TSystemVectorType>&  GetRHS_Element_Components()
+    { 
+      KRATOS_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
+    } 
+
+    /**
+     * Get component wise element variables
+     */
+    virtual std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Element_Variables()
+    { 
+      KRATOS_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
+    } 
+
+    /**
+     * Get component wise condition components
+     */
+    virtual std::vector<TSystemVectorType>&  GetRHS_Condition_Components()
+    { 
+      KRATOS_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
+    } 
+
+    /**
+     * Get component wise condition variables
+     */
+    virtual std::vector< Variable< LocalSystemVectorType > >&  GetRHS_Condition_Variables()
+    { 
+      KRATOS_ERROR(std::logic_error, "Asking for Global Components to the CONVERGENCE CRITERION base class which is not component wise and not contains this member variable","")
+    } 
+
+
     void SetActualizeRHSFlag(bool flag)
     {
         mActualizeRHSIsNeeded = flag;
