@@ -48,11 +48,15 @@ HyperElasticPlastic3DLaw::HyperElasticPlastic3DLaw(FlowRulePointer pFlowRule, Yi
 HyperElasticPlastic3DLaw::HyperElasticPlastic3DLaw(const HyperElasticPlastic3DLaw& rOther)
     : ConstitutiveLaw(rOther)
   ,mElasticLeftCauchyGreen(rOther.mElasticLeftCauchyGreen)
+  ,mpYieldCriterion(rOther.mpYieldCriterion)
+  ,mpHardeningLaw(rOther.mpHardeningLaw)
 {
 
   mpFlowRule       = rOther.mpFlowRule->Clone();
-  mpYieldCriterion = rOther.mpYieldCriterion->Clone();
-  mpHardeningLaw   = rOther.mpHardeningLaw->Clone();
+
+  //they not contain member variables to be stored and cloned:
+  // mpYieldCriterion = rOther.mpYieldCriterion->Clone();
+  // mpHardeningLaw   = rOther.mpHardeningLaw->Clone();
 
 }
 
