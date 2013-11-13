@@ -239,14 +239,17 @@ class StructuralSolver:
             if(self.convergence_criterion_type == "Displacement_criteria"):
                 self.mechanical_convergence_criterion  =  DisplacementConvergenceCriterion(D_RT,D_AT)
             elif(self.convergence_criterion_type == "Residual_criteria"):
-                self.mechanical_convergence_criterion  =  ComponentWiseResidualConvergenceCriterion(R_RT,R_AT)
+                #self.mechanical_convergence_criterion  =  ComponentWiseResidualConvergenceCriterion(R_RT,R_AT)
+                self.mechanical_convergence_criterion  =  ResidualCriteria(R_RT,R_AT)
             elif(self.convergence_criterion_type == "And_criteria"):
                 Displacement   =   DisplacementConvergenceCriterion(D_RT,D_AT)
-                Residual       =   ComponentWiseResidualConvergenceCriterion(R_RT,R_AT)
+                #Residual       =   ComponentWiseResidualConvergenceCriterion(R_RT,R_AT)
+                Residual       =   ResidualCriteria(R_RT,R_AT)
                 self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
             elif(self.convergence_criterion_type == "Or_criteria"):
                 Displacement   =   DisplacementConvergenceCriterion(D_RT,D_AT)
-                Residual       =   ComponentWiseResidualConvergenceCriterion(R_RT,R_AT)
+                #Residual       =   ComponentWiseResidualConvergenceCriterion(R_RT,R_AT)
+                Residual       =   ResidualCriteria(R_RT,R_AT)
                 self.mechanical_convergence_criterion  = OrCriteria(Residual, Displacement)
             elif(self.convergence_criterion_type == "Mixed_criteria"):
                 Displacement   =   MixedElementConvergeCriteria(D_RT,D_AT)

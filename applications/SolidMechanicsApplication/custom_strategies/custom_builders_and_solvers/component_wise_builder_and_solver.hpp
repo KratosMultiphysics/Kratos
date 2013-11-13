@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_COMPONENT_BASED_BUILDER_AND_SOLVER )
-#define  KRATOS_COMPONENT_BASED_BUILDER_AND_SOLVER
+#if !defined(KRATOS_COMPONENT_WISE_BUILDER_AND_SOLVER )
+#define  KRATOS_COMPONENT_WISE_BUILDER_AND_SOLVER
 
 
 /* System includes */
@@ -48,72 +48,15 @@ template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class ComponentBasedBuilderAndSolver
+class ComponentWiseBuilderAndSolver
     : public ResidualBasedBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >
 {
 public:
 
-    struct GlobalSystemContributions
-    {
-    private:
-
-      TSystemMatrixType *mpLeftHandSideContribution;
-      TSystemVectorType *mpRightHandSideContribution;
-
-      //elements
-      std::vector<TSystemMatrixType> *mpLHS_Element_Components;
-      const std::vector< Variable< TSystemMatrixType > > *mpLHS_Element_Variables;
-
-      std::vector<TSystemVectorType> *mpRHS_Element_Components;
-      const std::vector< Variable< TSystemVectorType > > *mpRHS_Element_Variables;
-      
-      //conditions
-      std::vector<TSystemMatrixType> *mpLHS_Condition_Components;
-      const std::vector< Variable< TSystemMatrixType > > *mpLHS_Condition_Variables;
-
-      std::vector<TSystemVectorType> *mpRHS_Condition_Components;
-      const std::vector< Variable< TSystemVectorType > > *mpRHS_Condition_Variables;
-      
-    public:
-      
-      //setting pointer variables
-      void SetLeftHandSideContribution  ( TSystemMatrixType& rLeftHandSideContribution )  { mpLeftHandSideContribution = &rLeftHandSideContribution; };
-      void SetRightHandSideContribution ( TSystemVectorType& rRightHandSideContribution ) { mpRightHandSideContribution = &rRightHandSideContribution; };
-
-      //elements
-      void SetLHS_Element_Components ( std::vector<TSystemMatrixType>& rLHS_Element_Components ) { mpLHS_Element_Components = &rLHS_Element_Components; };
-      void SetLHS_Element_Variables     ( std::vector< Variable< LocalSystemMatrixType > >& rLHS_Element_Variables ) { mpLHS_Element_Variables = &rLHS_Element_Variables; };
-      void SetRHS_Element_Components ( std::vector<TSystemVectorType>& rRHS_Element_Components ) { mpRHS_Element_Components = &rRHS_Element_Components; };
-      void SetRHS_Element_Variables     ( std::vector< Variable< LocalSystemVectorType > >& rRHS_Element_Variables ) { mpRHS_Element_Variables = &rRHS_Element_Variables; };
-
-      //conditions
-      void SetLHS_Condition_Components ( std::vector<TSystemMatrixType>& rLHS_Condition_Components ) { mpLHS_Condition_Components = &rLHS_Condition_Components; };
-      void SetLHS_Condition_Variables     ( std::vector< Variable< LocalSystemMatrixType > >& rLHS_Condition_Variables ) { mpLHS_Condition_Variables = &rLHS_Condition_Variables; };
-      void SetRHS_Condition_Components ( std::vector<TSystemVectorType>& rRHS_Condition_Components ) { mpRHS_Condition_Components = &rRHS_Condition_Components; };
-      void SetRHS_Condition_Variables     ( std::vector< Variable< LocalSystemVectorType > >& rRHS_Condition_Variables ) { mpRHS_Condition_Variables = &rRHS_Condition_Variables; };
-
-      //getting pointer variables
-      TSystemMatrixType& GetLeftHandSideContribution  () { return *mpLeftHandSideContribution; };
-      TSystemVectorType& GetRightHandSideContribution () { return *mpRightHandSideContribution; };
-
-      //elements
-      std::vector<TSystemMatrixType>& GetLHS_Element_Components() { return *mpLHS_Element_Components; };
-      std::vector< Variable< LocalSystemMatrixType > >& GetLHS_Element_Variables() { return *mpLHS_Element_Variables; };
-      std::vector<TSystemVectorType>& GetRHS_Element_Components() { return *mpRHS_Element_Components; };
-      std::vector< Variable< LocalSystemVectorType > >& GetRHS_Element_Variables() { return *mpRHS_Element_Variables; };
-
-      //conditions
-      std::vector<TSystemMatrixType>& GetLHS_Condition_Components() { return *mpLHS_Condition_Components; };
-      std::vector< Variable< LocalSystemMatrixType > >& GetLHS_Condition_Variables() { return *mpLHS_Condition_Variables; };
-      std::vector<TSystemVectorType>& GetRHS_Condition_Components() { return *mpRHS_Condition_Components; };
-      std::vector< Variable< LocalSystemVectorType > >& GetRHS_Condition_Variables() { return *mpRHS_Condition_Variables; };
-
-    }
-
     /**@name Type Definitions */
     /*@{ */
-    //typedef boost::shared_ptr< ComponentBasedBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
-    KRATOS_CLASS_POINTER_DEFINITION(ComponentBasedBuilderAndSolver);
+    //typedef boost::shared_ptr< ComponentWiseBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION(ComponentWiseBuilderAndSolver);
 
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -150,7 +93,7 @@ public:
 
     /** Constructor.
      */
-    ComponentBasedBuilderAndSolver(
+    ComponentWiseBuilderAndSolver(
         typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : ResidualBasedBuilderAndSolver< TSparseSpace, TDenseSpace, TLinearSolver >(pNewLinearSystemSolver)
     {
@@ -158,7 +101,7 @@ public:
 
     /** Destructor.
      */
-    virtual ~ComponentBasedBuilderAndSolver()
+    virtual ~ComponentWiseBuilderAndSolver()
     {
     }
 
@@ -168,13 +111,19 @@ public:
      */
     /*@{ */
 
+    GlobalSystemComponents& GetGlobalSystemComponents()
+    {
+      return mGlobalSystem;
+    }
+
     //**************************************************************************
     //**************************************************************************
 
     void Build(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-	GlobalSystemContributions& rGlobalSystem)
+        TSystemMatrixType& A,
+        TSystemVectorType& b)
     {
         KRATOS_TRY
 
@@ -205,46 +154,40 @@ public:
 
 
        //contributions to the element local system
-	ComponentBasedBossakScheme::SystemContributions ElementLocalSystem;
+	ComponentWiseBossakScheme::LocalSystemComponents& ElementLocalSystem = pScheme->GetLocalSystemComponents();
 	
-        LocalSystemMatrixType LeftHandSideElementContribution  = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType RightHandSideElementContribution = LocalSystemVectorType(0);
-
-	ElementLocalSystem.SetLeftHandSideContribution( LeftHandSideElementContribution );
-	ElementLocalSystem.SetRightHandSideContribution( RightHandSideElementContribution );
+	LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
 	std::vector<LocalSystemMatrixType> rLHS_LocalElementComponents; 
-	ElementLocalSystem.SetLHS_Components(rLHS_LocalElementComponents);
+	ElementLocalSystem.SetLHS_Element_Components(rLHS_LocalElementComponents);
 
 	std::vector<LocalSystemVectorType> rRHS_LocalElementComponents; 
-	ElementLocalSystem.SetRHS_Components(rRHS_LocalElementComponents);
+	ElementLocalSystem.SetRHS_Element_Components(rRHS_LocalElementComponents);
 
         //contributions to the global system
-	std::vector<TSystemMatrixType>& rLHS_GlobalElementComponents = rGlobalSystem.GetLHS_Element_Components();
-	ElementLocalSystem.SetLHS_Element_Variables( rGlobalSystem.GetLHS_Element_Variables() );
+	std::vector<TSystemMatrixType>& rLHS_GlobalElementComponents = mGlobalSystem.GetLHS_Element_Components();
+	ElementLocalSystem.SetLHS_Element_Variables( mGlobalSystem.GetLHS_Element_Variables() );
 
-	if( rGlobalSystem.GetLHS_Element_Variables().size() != rLHS_GlobalElementComponents.size() )
-	  rLHS_GlobalElementComponents.resize(rGlobalSystem.GetLHS_Element_Variables().size());
+	if( mGlobalSystem.GetLHS_Element_Variables().size() != rLHS_GlobalElementComponents.size() )
+	  rLHS_GlobalElementComponents.resize(mGlobalSystem.GetLHS_Element_Variables().size());
 
 	for( unsigned int i=0; i<rLHS_GlobalElementComponents.size(); i++ )
 	  {
 	    rLHS_GlobalElementComponents[i] = LocalSystemMatrixType(0, 0);
 	  }
 
-	std::vector<TSystemVectorType>& rRHS_GlobalElementComponents = rGlobalSystem.GetRHS_Element_Components();
-	ElementLocalSystem.SetRHS_Element_Variables( rGlobalSystem.GetRHS_Element_Variables() );
+	std::vector<TSystemVectorType>& rRHS_GlobalElementComponents = mGlobalSystem.GetRHS_Element_Components();
+	ElementLocalSystem.SetRHS_Element_Variables( mGlobalSystem.GetRHS_Element_Variables() );
 
-	if( rGlobalSystem.GetRHS_Element_Variables().size() != rRHS_GlobalElementComponents.size() )
-	  rRHS_GlobalElementComponents.resize(rGlobalSystem.GetRHS_Element_Variables().size());
+	if( mGlobalSystem.GetRHS_Element_Variables().size() != rRHS_GlobalElementComponents.size() )
+	  rRHS_GlobalElementComponents.resize(mGlobalSystem.GetRHS_Element_Variables().size());
 
 	for( unsigned int i=0; i<rRHS_GlobalElementComponents.size(); i++ )
 	  {
 	    rRHS_GlobalElementComponents[i] = LocalSystemVectorType(0);
 	  }
 
-
-	TSystemMatrixType& rGlobalLeftHandSideContribution  = rGlobalSystem.GetLeftHandSideContribution();
-	TSystemVectorType& rGlobalRightHandSideContribution = rGlobalSystem.GetRightHandSideContribution();
 
         //vector containing the localization in the system of the different terms
 	Element::EquationIdVectorType EquationId;
@@ -254,11 +197,11 @@ public:
         for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->CalculateSystemContributions(*it, ElementLocalSystem, EquationId, CurrentProcessInfo);
+            pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
-            AssembleLHS(rGlobalLeftHandSideContribution, LeftHandSideElementContribution, EquationId);
-            AssembleRHS(rGlobalRightHandSideContribution, RightHandSideElementContribution, EquationId);
+            AssembleLHS(A, LHS_Contribution, EquationId);
+            AssembleRHS(b, RHS_Contribution, EquationId);
 
 	    for( unsigned int i=0; i<rLHS_GlobalComponents.size(); i++ )
 	      {	    
@@ -281,37 +224,34 @@ public:
 
 
         //contributions to the condition local system
-	ComponentBasedBossakScheme::SystemContributions ConditionLocalSystem;
+	ComponentWiseBossakScheme::LocalSystemComponents& ConditionLocalSystem = pScheme->GetLocalSystemComponents();
 
-        LocalSystemMatrixType LeftHandSideConditionContribution  = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType RightHandSideConditionContribution = LocalSystemVectorType(0);
-
-	ConditionLocalSystem.SetLeftHandSideContribution( LeftHandSideConditionContribution );
-	ConditionLocalSystem.SetRightHandSideContribution( RightHandSideConditionContribution );
+        LHS_Contribution.resize(0, 0, false);
+        RHS_Contribution.resize(0, false);
 
 	std::vector<LocalSystemMatrixType> rLHS_LocalConditionComponents; 
-	ConditionLocalSystem.SetLHS_Components(rLHS_LocalConditionComponents);
+	ConditionLocalSystem.SetLHS_Condition_Components(rLHS_LocalConditionComponents);
 
 	std::vector<LocalSystemVectorType> rRHS_LocalConditionComponents; 
-	ConditionLocalSystem.SetRHS_Components(rRHS_LocalConditionComponents);
+	ConditionLocalSystem.SetRHS_Condition_Components(rRHS_LocalConditionComponents);
 
         //contributions to the global system
-	std::vector<TSystemMatrixType>& rLHS_GlobalConditionComponents = rGlobalSystem.GetLHS_Condition_Components();
-	ConditionLocalSystem.SetLHS_Condition_Variables( rGlobalSystem.GetLHS_Condition_Variables() );
+	std::vector<TSystemMatrixType>& rLHS_GlobalConditionComponents = mGlobalSystem.GetLHS_Condition_Components();
+	ConditionLocalSystem.SetLHS_Condition_Variables( mGlobalSystem.GetLHS_Condition_Variables() );
 
-	if( rGlobalSystem.GetLHS_Condition_Variables().size() != rLHS_GlobalConditionComponents.size() )
-	  rLHS_GlobalConditionComponents.resize(rGlobalSystem.GetLHS_Condition_Variables().size());
+	if( mGlobalSystem.GetLHS_Condition_Variables().size() != rLHS_GlobalConditionComponents.size() )
+	  rLHS_GlobalConditionComponents.resize(mGlobalSystem.GetLHS_Condition_Variables().size());
 
 	for( unsigned int i=0; i<rLHS_GlobalConditionComponents.size(); i++ )
 	  {
 	    rLHS_GlobalConditionComponents[i] = LocalSystemMatrixType(0, 0);
 	  }
 
-	std::vector<TSystemVectorType>& rRHS_GlobalConditionComponents = rGlobalSystem.GetRHS_Condition_Components();
-	ConditionLocalSystem.SetRHS_Condition_Variables( rGlobalSystem.GetRHS_Condition_Variables() );
+	std::vector<TSystemVectorType>& rRHS_GlobalConditionComponents = mGlobalSystem.GetRHS_Condition_Components();
+	ConditionLocalSystem.SetRHS_Condition_Variables( mGlobalSystem.GetRHS_Condition_Variables() );
 
-	if( rGlobalSystem.GetRHS_Condition_Variables().size() != rRHS_GlobalConditionComponents.size() )
-	  rRHS_GlobalConditionComponents.resize(rGlobalSystem.GetRHS_Condition_Variables().size());
+	if( mGlobalSystem.GetRHS_Condition_Variables().size() != rRHS_GlobalConditionComponents.size() )
+	  rRHS_GlobalConditionComponents.resize(mGlobalSystem.GetRHS_Condition_Variables().size());
 
 	for( unsigned int i=0; i<rRHS_GlobalConditionComponents.size(); i++ )
 	  {
@@ -323,11 +263,11 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
         {
             //calculate condition contribution
-  	    pScheme->Condition_CalculateSystemContributions(*it, ConditionLocalSytem, EquationId, CurrentProcessInfo);
+  	    pScheme->Condition_CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the condition contribution
-            AssembleLHS(rGlobalLeftHandSideContribution, LeftHandSideConditionContribution, EquationId);
-            AssembleRHS(rGlobalRightHandSideContribution, RightHandSideConditionContribution, EquationId);
+            AssembleLHS(A, LHS_Contribution, EquationId);
+            AssembleRHS(b, RHS_Contribution, EquationId);
 
 	    for( unsigned int i=0; i<rLHS_GlobalComponents.size(); i++ )
 	      {	    
@@ -367,38 +307,36 @@ public:
         {
 
 	    //contributions to the element local system
-	    ComponentBasedBossakScheme::SystemContributions ElementLocalSystem;
+	    ComponentWiseBossakScheme::LocalSystemComponents& ElementLocalSystem = pScheme->GetLocalSystemComponents();
 	  
-	    LocalSystemMatrixType LeftHandSideElementContribution  = LocalSystemMatrixType(0, 0);
-	    LocalSystemVectorType RightHandSideElementContribution = LocalSystemVectorType(0);
-	    
-	    ElementLocalSystem.SetLeftHandSideContribution( LeftHandSideElementContribution );
-	    ElementLocalSystem.SetRightHandSideContribution( RightHandSideElementContribution );
+            LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
 
 	    std::vector<LocalSystemMatrixType> rLHS_LocalElementComponents; 
-	    ElementLocalSystem.SetLHS_Components(rLHS_LocalElementComponents);
+	    ElementLocalSystem.SetLHS_Element_Components(rLHS_LocalElementComponents);
 	    
 	    std::vector<LocalSystemVectorType> rRHS_LocalElementComponents; 
-	    ElementLocalSystem.SetRHS_Components(rRHS_LocalElementComponents);
+	    ElementLocalSystem.SetRHS_Element_Components(rRHS_LocalElementComponents);
 	    
     
 	    //contributions to the global system
-	    std::vector<TSystemMatrixType>& rLHS_GlobalElementComponents = rGlobalSystem.GetLHS_Element_Components();
-	    ElementLocalSystem.SetLHS_Element_Variables( rGlobalSystem.GetLHS_Element_Variables() );
+	    std::vector<TSystemMatrixType>& rLHS_GlobalElementComponents = mGlobalSystem.GetLHS_Element_Components();
+	    ElementLocalSystem.SetLHS_Element_Variables( mGlobalSystem.GetLHS_Element_Variables() );
 	    
-	    if( rGlobalSystem.GetLHS_Element_Variables().size() != rLHS_GlobalElementComponents.size() )
-	      rLHS_GlobalElementComponents.resize(rGlobalSystem.GetLHS_Element_Variables().size());
+	    if( mGlobalSystem.GetLHS_Element_Variables().size() != rLHS_GlobalElementComponents.size() )
+	      rLHS_GlobalElementComponents.resize(mGlobalSystem.GetLHS_Element_Variables().size());
 	    
 	    for( unsigned int i=0; i<rLHS_GlobalElementComponents.size(); i++ )
 	      {
 		rLHS_GlobalElementComponents[i] = LocalSystemMatrixType(0, 0);
 	      }
 	    
-	    std::vector<TSystemVectorType>& rRHS_GlobalElementComponents = rGlobalSystem.GetRHS_Element_Components();
-	    ElementLocalSystem.SetRHS_Element_Variables( rGlobalSystem.GetRHS_Element_Variables() );
+	    std::vector<TSystemVectorType>& rRHS_GlobalElementComponents = mGlobalSystem.GetRHS_Element_Components();
+	    ElementLocalSystem.SetRHS_Element_Variables( mGlobalSystem.GetRHS_Element_Variables() );
 	    
-	    if( rGlobalSystem.GetRHS_Element_Variables().size() != rRHS_GlobalElementComponents.size() )
-	      rRHS_GlobalElementComponents.resize(rGlobalSystem.GetRHS_Element_Variables().size());
+	    if( mGlobalSystem.GetRHS_Element_Variables().size() != rRHS_GlobalElementComponents.size() )
+	      rRHS_GlobalElementComponents.resize(mGlobalSystem.GetRHS_Element_Variables().size());
 	    
 	    for( unsigned int i=0; i<rRHS_GlobalElementComponents.size(); i++ )
 	      {
@@ -418,15 +356,14 @@ public:
             {
 
                 //calculate elemental contribution
-	        pScheme->CalculateSystemContributions(*it, ElementLocalSystem, EquationId, CurrentProcessInfo);
+	        pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                 //assemble the elemental contribution
-                Assemble(rGlobalLeftHandSideContribution, rGlobalRightHandSideContribution, 
-			 LeftHandSideElementContribution, RightHandSideElementContribution, EquationId, lock_array);
+                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
 
 		//assemble the elemental contribution
-		//AssembleLHS(rGlobalSystem.LeftHandSideContribution, ElementLocalSystem.LeftHandSideContribution, EquationId);
-		//AssembleRHS(rGlobalSystem.RightHandSideContribution, ElementLocalSystem.RightHandSideContribution, EquationId);
+		//AssembleLHS(mGlobalSystem.LeftHandSideContribution, ElementLocalSystem.LeftHandSideContribution, EquationId);
+		//AssembleRHS(mGlobalSystem.RightHandSideContribution, ElementLocalSystem.RightHandSideContribution, EquationId);
 		
 		for( unsigned int i=0; i<rLHS_GlobalElementComponents.size(); i++ )
 		  {	    
@@ -454,40 +391,34 @@ public:
         {
 
 	    //contributions to the condition local system
-	    ComponentBasedBossakScheme::SystemContributions ConditionLocalSystem;
-
-	    LocalSystemMatrixType LeftHandSideConditionContribution  = LocalSystemMatrixType(0, 0);
-	    LocalSystemVectorType RightHandSideConditionContribution = LocalSystemVectorType(0);
-	    
-	    ConditionLocalSystem.SetLeftHandSideContribution( LeftHandSideConditionContribution );
-	    ConditionLocalSystem.SetRightHandSideContribution( RightHandSideConditionContribution );
+	    ComponentWiseBossakScheme::LocalSystemComponents& ConditionLocalSystem = pScheme->GetLocalSystemComponents();
+       
+	    LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+            LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
 	    std::vector<LocalSystemMatrixType> rLHS_LocalConditionComponents; 
-	    ConditionLocalSystem.SetLHS_Components(rLHS_LocalConditionComponents);
+	    ConditionLocalSystem.SetLHS_Condition_Components(rLHS_LocalConditionComponents);
 	    
 	    std::vector<LocalSystemVectorType> rRHS_LocalConditionComponents; 
-	    ConditionLocalSystem.SetRHS_Components(rRHS_LocalConditionComponents);
+	    ConditionLocalSystem.SetRHS_Condition_Components(rRHS_LocalConditionComponents);
 	    
-	    ConditionLocalSystem.LeftHandSideContribution  = LocalSystemMatrixType(0, 0);
-	    ConditionLocalSystem.RightHandSideContribution = LocalSystemVectorType(0); 
+ 	    //contributions to the global system
+	    std::vector<TSystemMatrixType>& rLHS_GlobalConditionComponents = mGlobalSystem.GetLHS_Condition_Components();
+	    ConditionLocalSystem.SetLHS_Condition_Variables( mGlobalSystem.GetLHS_Condition_Variables() );
 	    
-	    //contributions to the global system
-	    std::vector<TSystemMatrixType>& rLHS_GlobalConditionComponents = rGlobalSystem.GetLHS_Condition_Components();
-	    ConditionLocalSystem.SetLHS_Condition_Variables( rGlobalSystem.GetLHS_Condition_Variables() );
-	    
-	    if( rGlobalSystem.GetLHS_Condition_Variables().size() != rLHS_GlobalConditionComponents.size() )
-	      rLHS_GlobalConditionComponents.resize(rGlobalSystem.GetLHS_Condition_Variables().size());
+	    if( mGlobalSystem.GetLHS_Condition_Variables().size() != rLHS_GlobalConditionComponents.size() )
+	      rLHS_GlobalConditionComponents.resize(mGlobalSystem.GetLHS_Condition_Variables().size());
 	    
 	    for( unsigned int i=0; i<rLHS_GlobalConditionComponents.size(); i++ )
 	      {
 		rLHS_GlobalConditionComponents[i] = LocalSystemMatrixType(0, 0);
 	      }
 	    
-	    std::vector<TSystemVectorType>& rRHS_GlobalConditionComponents = rGlobalSystem.GetRHS_Condition_Components();
-	    ConditionLocalSystem.SetRHS_Condition_Variables( rGlobalSystem.GetRHS_Condition_Variables() );
+	    std::vector<TSystemVectorType>& rRHS_GlobalConditionComponents = mGlobalSystem.GetRHS_Condition_Components();
+	    ConditionLocalSystem.SetRHS_Condition_Variables( mGlobalSystem.GetRHS_Condition_Variables() );
 	    
-	    if( rGlobalSystem.GetRHS_Condition_Variables().size() != rRHS_GlobalConditionComponents.size() )
-	      rRHS_GlobalConditionComponents.resize(rGlobalSystem.GetRHS_Condition_Variables().size());
+	    if( mGlobalSystem.GetRHS_Condition_Variables().size() != rRHS_GlobalConditionComponents.size() )
+	      rRHS_GlobalConditionComponents.resize(mGlobalSystem.GetRHS_Condition_Variables().size());
 	    
 	    for( unsigned int i=0; i<rRHS_GlobalConditionComponents.size(); i++ )
 	      {
@@ -506,15 +437,14 @@ public:
             for (typename ConditionsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
             {
                 //calculate condition contribution
-                pScheme->Condition_CalculateSystemContributions(*it, ConditionLocalSytem, EquationId, CurrentProcessInfo);
+	        pScheme->Condition_CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                 //assemble the condition contribution
-                Assemble(rGlobalLeftHandSideContribution, rGlobalRightHandSideContribution, 
-			 LeftHandSideConditionContribution, RightHandSideConditionContribution, EquationId, lock_array);
+                Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
 
  		//assemble the elemental contribution
-		//AssembleLHS(rGlobalSystem.LeftHandSideContribution, ConditionLocalSystem.LeftHandSideContribution, EquationId);
-		//AssembleRHS(rGlobalSystem.RightHandSideContribution, ConditionLocalSystem.RightHandSideContribution, EquationId);
+		//AssembleLHS(mGlobalSystem.LeftHandSideContribution, ConditionLocalSystem.LeftHandSideContribution, EquationId);
+		//AssembleRHS(mGlobalSystem.RightHandSideContribution, ConditionLocalSystem.RightHandSideContribution, EquationId);
 		
 		for( unsigned int i=0; i<rLHS_GlobalConditionComponents.size(); i++ )
 		  {	    
@@ -557,7 +487,7 @@ public:
     void BuildLHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-	GlobalSystemContributions& rGlobalSystem)
+	TSystemMatrixType& A)
     {
         KRATOS_TRY
 
@@ -571,28 +501,24 @@ public:
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
         //contributions to the element local system
-	ComponentBasedBossakScheme::LHS_SystemContributions ElementLocalLHS;
+	ComponentWiseBossakScheme::LocalSystemComponents& ElementLocalLHS = pScheme->GetLocalSystemComponents();
 	
-        LocalSystemMatrixType LeftHandSideElementContribution  = LocalSystemMatrixType(0, 0);
-	ElementLocalLHS.SetLeftHandSideContribution( LeftHandSideElementContribution );
+        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
 
 	std::vector<LocalSystemMatrixType> rLHS_LocalElementComponents; 
-	ElementLocalLHS.SetLHS_Components(rLHS_LocalElementComponents);
+	ElementLocalLHS.SetLHS_Element_Components(rLHS_LocalElementComponents);
 
         //contributions to the global system
-	std::vector<TSystemMatrixType>& rLHS_GlobalElementComponents = rGlobalSystem.GetLHS_Element_Components();
-	ElementLocalLHS.SetLHS_Element_Variables( rGlobalSystem.GetLHS_Element_Variables() );
+	std::vector<TSystemMatrixType>& rLHS_GlobalElementComponents = mGlobalSystem.GetLHS_Element_Components();
+	ElementLocalLHS.SetLHS_Element_Variables( mGlobalSystem.GetLHS_Element_Variables() );
 
-	if( rGlobalSystem.GetLHS_Element_Variables().size() != rLHS_GlobalElementComponents.size() )
-	  rLHS_GlobalElementComponents.resize(rGlobalSystem.GetLHS_Element_Variables().size());
+	if( mGlobalSystem.GetLHS_Element_Variables().size() != rLHS_GlobalElementComponents.size() )
+	  rLHS_GlobalElementComponents.resize(mGlobalSystem.GetLHS_Element_Variables().size());
 
 	for( unsigned int i=0; i<rLHS_GlobalElementComponents.size(); i++ )
 	  {
 	    rLHS_GlobalElementComponents[i] = LocalSystemMatrixType(0, 0);
 	  }
-
-
-	TSystemMatrixType& rGlobalLeftHandSideContribution  = rGlobalSystem.GetLeftHandSideContribution();
 
         //vector containing the localization in the system of the different
         //terms
@@ -604,10 +530,10 @@ public:
         for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(*it, ElementLocalLHS, EquationId, CurrentProcessInfo);
+            pScheme->Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
-            AssembleLHS(rGlobalLeftHandSideContribution, LeftHandSideElementContribution, EquationId);
+            AssembleLHS(A, LHS_Contribution, EquationId);
 
 	    for( unsigned int i=0; i<rLHS_GlobalElementComponents.size(); i++ )
 	      {	    
@@ -620,20 +546,19 @@ public:
 
 
         //contributions to the condition local system
-	ComponentBasedBossakScheme::LHS_SystemContributions ConditionLocalLHS;
+	ComponentWiseBossakScheme::LocalSystemComponents& ConditionLocalLHS = pScheme->GetLocalSystemComponents();
 
-        LocalSystemMatrixType LeftHandSideConditionContribution  = LocalSystemMatrixType(0, 0);
-	ConditionLocalLHS.SetLeftHandSideContribution( LeftHandSideConditionContribution );
+        LHS_Contribution.resize(0, 0, false);
 
 	std::vector<LocalSystemMatrixType> rLHS_LocalConditionComponents; 
-	ConditionLocalRHS.SetLHS_Components(rLHS_LocalConditionComponents);
+	ConditionLocalRHS.SetLHS_Condition_Components(rLHS_LocalConditionComponents);
 
         //contributions to the global system
-	std::vector<TSystemMatrixType>& rLHS_GlobalConditionComponents = rGlobalSystem.GetLHS_Condition_Components();
-	ConditionLocalLHS.SetLHS_Condition_Variables( rGlobalSystem.GetLHS_Condition_Variables() );
+	std::vector<TSystemMatrixType>& rLHS_GlobalConditionComponents = mGlobalSystem.GetLHS_Condition_Components();
+	ConditionLocalLHS.SetLHS_Condition_Variables( mGlobalSystem.GetLHS_Condition_Variables() );
 
-	if( rGlobalSystem.GetLHS_Condition_Variables().size() != rLHS_GlobalConditionComponents.size() )
-	  rLHS_GlobalConditionComponents.resize(rGlobalSystem.GetLHS_Condition_Variables().size());
+	if( mGlobalSystem.GetLHS_Condition_Variables().size() != rLHS_GlobalConditionComponents.size() )
+	  rLHS_GlobalConditionComponents.resize(mGlobalSystem.GetLHS_Condition_Variables().size());
 
 	for( unsigned int i=0; i<rLHS_GlobalConditionComponents.size(); i++ )
 	  {
@@ -644,10 +569,10 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(*it, ConditionalLocalLHS, EquationId, CurrentProcessInfo);
+            pScheme->Condition_Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
-            AssembleLHS(rGlobalLeftHandSideContribution, LeftHandSideConditionContribution, EquationId);
+            AssembleLHS(A, LHS_Contribution, EquationId);
 
 	    for( unsigned int i=0; i<rLHS_GlobalConditionComponents.size(); i++ )
 	      {	    
@@ -660,137 +585,6 @@ public:
 
     }
 
-    //**************************************************************************
-    //**************************************************************************
-
-    void BuildLHS_CompleteOnFreeRows(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-        TSystemMatrixType& A)
-    {
-        KRATOS_TRY
-
-        //getting the elements from the model
-        ElementsArrayType& pElements = r_model_part.Elements();
-
-        //getting the array of the conditions
-        ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
-
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
-
-        //resetting to zero the vector of reactions
-        TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
-
-        //contributions to the system
-        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-
-        //vector containing the localization in the system of the different
-        //terms
-        Element::EquationIdVectorType EquationId;
-
-        // assemble all elements
-        for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
-        {
-            //calculate elemental contribution
-            pScheme->Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
-
-            //assemble the elemental contribution
-            AssembleLHS_CompleteOnFreeRows(A, LHS_Contribution, EquationId);
-
-            //clean local elemental memory
-            pScheme->CleanMemory(*it);
-        }
-
-        LHS_Contribution.resize(0, 0, false);
-        // assemble all conditions
-        for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
-        {
-            //calculate elemental contribution
-            pScheme->Condition_Calculate_LHS_Contribution(*it, LHS_Contribution, EquationId, CurrentProcessInfo);
-
-            //assemble the elemental contribution
-            AssembleLHS_CompleteOnFreeRows(A, LHS_Contribution, EquationId);
-        }
-
-
-        KRATOS_CATCH("")
-
-    }
-
-
-    //**************************************************************************
-    //**************************************************************************
-
-    void BuildAndSolve(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-	GlobalSystemContributions& rGlobalSystem,
-	TSystemVectorType& rDx)
-    {
-        KRATOS_TRY
-
-        Timer::Start("Build");
-
-        Build(pScheme, r_model_part, rGlobalSystem);
-
-        Timer::Stop("Build");
-
-	TSystemMatrixType& rA = rGlobalSystem.LeftHandSideSystemContribution;
-	TSystemVectorType& rb = rGlobalSystem.RightHandSideSystemContribution;
-
-
-        //does nothing...dirichlet conditions are naturally dealt with in defining the residual
-        ApplyDirichletConditions(pScheme, r_model_part, rA, rDx, rb);
-
-        if (this->GetEchoLevel() == 3)
-        {
-            std::cout << "Before solving the system :" << std::endl;
-            std::cout << "System Matrix   = " << rA << std::endl;
-            std::cout << "Unknowns vector = " << rDx << std::endl;
-            std::cout << "RHS vector      = " << rb << std::endl;
-        }
-
-        Timer::Start("Solve");
-
-        SystemSolveWithPhysics(rA, rDx, rb, r_model_part);
-
-        Timer::Stop("Solve");
-
-        if (this->GetEchoLevel() == 3)
-        {
-            std::cout << "After solving the system:" << std::endl;
-            std::cout << "System Matrix   = " << rA << std::endl;
-            std::cout << "Unknowns vector = " << rDx << std::endl;
-            std::cout << "RHS vector      = " << rb << std::endl;
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    //**************************************************************************
-    //**************************************************************************
-
-    void BuildRHSAndSolve(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart& r_model_part,
-	GlobalSystemContributions& rGlobalSystem,
-        TSystemVectorType& rDx)
-    {
-        KRATOS_TRY
-
-	TSystemMatrixType& rA = rGlobalSystem.LeftHandSideSystemContribution;
-	TSystemVectorType& rb = rGlobalSystem.RightHandSideSystemContribution;
-
-        bool CalculateReactionsFlag = BaseType::mCalculateReactionsFlag;
-	
-	BaseType::mCalculateReactionsFlag = false;
-        BuildRHS(pScheme, r_model_part, rGlobalSystem);
-	BaseType::mCalculateReactionsFlag = CalculateReactionsFlag;
-
-        SystemSolve(rA, rDx, rb);
-
-        KRATOS_CATCH("")
-    }
 
     //**************************************************************************
     //**************************************************************************
@@ -798,7 +592,7 @@ public:
     void BuildRHS(
         typename TSchemeType::Pointer pScheme,
         ModelPart& r_model_part,
-	GlobalSystemContributions& rGlobalSystem)
+	TSystemVectorType& b)
     {
         KRATOS_TRY
 
@@ -814,33 +608,26 @@ public:
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
         //contributions to the system
-	ComponentBasedBossakScheme::RHS_SystemContributions ElementLocalRHS;
+	ComponentWiseBossakScheme::LocalSystemComponents& ElementLocalRHS = pScheme->GetLocalSystemComponents();
 	
-	LocalSystemVectorType RightHandSideElementContribution = LocalSystemVectorType(0);
-	ElementLocalRHS.SetRightHandSideContribution( RightHandSideElementContribution );
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 	
 	std::vector<LocalSystemVectorType> rRHS_LocalElementComponents; 
-	ElementLocalRHS.SetRHS_Components(rRHS_LocalElementComponents);
+	ElementLocalRHS.SetRHS_Element_Components(rRHS_LocalElementComponents);
 	
 	    
 	//contributions to the global system   
-	std::vector<TSystemVectorType>& rRHS_GlobalElementComponents = rGlobalSystem.GetRHS_Element_Components();
-	ElementLocalRHS.SetRHS_Element_Variables( rGlobalSystem.GetRHS_Element_Variables() );
+	std::vector<TSystemVectorType>& rRHS_GlobalElementComponents = mGlobalSystem.GetRHS_Element_Components();
+	ElementLocalRHS.SetRHS_Element_Variables( mGlobalSystem.GetRHS_Element_Variables() );
 	
-	if( rGlobalSystem.GetRHS_Element_Variables().size() != rRHS_GlobalElementComponents.size() )
-	  rRHS_GlobalElementComponents.resize(rGlobalSystem.GetRHS_Element_Variables().size());
+	if( mGlobalSystem.GetRHS_Element_Variables().size() != rRHS_GlobalElementComponents.size() )
+	  rRHS_GlobalElementComponents.resize(mGlobalSystem.GetRHS_Element_Variables().size());
 	
 	for( unsigned int i=0; i<rRHS_GlobalElementComponents.size(); i++ )
 	  {
 	    rRHS_GlobalElementComponents[i] = LocalSystemVectorType(0);
 	  }
 	    
-
-	TSystemVectorType& rGlobalRightHandSideContribution = rGlobalSystem.GetRightHandSideContribution();
-
-        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
-
         //vector containing the localization in the system of the different
         //terms
         Element::EquationIdVectorType EquationId;
@@ -849,10 +636,10 @@ public:
         for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
         {
             //calculate elemental Right Hand Side Contribution
-            pScheme->Calculate_RHS_Contribution(*it, ElementLocalRHS, EquationId, CurrentProcessInfo);
+            pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
-            AssembleRHS(rGlobalRightHandSideContribution, RightHandSideElementContribution, EquationId);
+            AssembleRHS(b, RHS_Contribution, EquationId);
 
 	    for( unsigned int i=0; i<rRHS_GlobalElementComponents.size(); i++ )
 	      {
@@ -861,20 +648,19 @@ public:
         }
 
         //contributions to the condition local system
-	ComponentBasedBossakScheme::RHS_SystemContributions ConditionLocalRHS;
+	ComponentWiseBossakScheme::LocalSystemComponents& ConditionLocalRHS = pScheme->GetLocalSystemComponents();
 
-        LocalSystemVectorType RightHandSideConditionContribution = LocalSystemVectorType(0);
-	ConditionLocalRHS.SetRightHandSideContribution( RightHandSideConditionContribution );
+        RHS_Contribution.resize(0, false);
 
 	std::vector<LocalSystemVectorType> rRHS_LocalConditionComponents; 
-	ConditionLocaRHS.SetRHS_Components(rRHS_LocalConditionComponents);
+	ConditionLocaRHS.SetRHS_Condition_Components(rRHS_LocalConditionComponents);
 
         //contributions to the global system
-	std::vector<TSystemVectorType>& rRHS_GlobalConditionComponents = rGlobalSystem.GetRHS_Condition_Components();
-	ConditionLocalRHS.SetRHS_Condition_Variables( rGlobalSystem.GetRHS_Condition_Variables() );
+	std::vector<TSystemVectorType>& rRHS_GlobalConditionComponents = mGlobalSystem.GetRHS_Condition_Components();
+	ConditionLocalRHS.SetRHS_Condition_Variables( mGlobalSystem.GetRHS_Condition_Variables() );
 
-	if( rGlobalSystem.GetRHS_Condition_Variables().size() != rRHS_GlobalConditionComponents.size() )
-	  rRHS_GlobalConditionComponents.resize(rGlobalSystem.GetRHS_Condition_Variables().size());
+	if( mGlobalSystem.GetRHS_Condition_Variables().size() != rRHS_GlobalConditionComponents.size() )
+	  rRHS_GlobalConditionComponents.resize(mGlobalSystem.GetRHS_Condition_Variables().size());
 
 	for( unsigned int i=0; i<rRHS_GlobalConditionComponents.size(); i++ )
 	  {
@@ -886,10 +672,10 @@ public:
         for (typename ConditionsArrayType::ptr_iterator it = ConditionsArray.ptr_begin(); it != ConditionsArray.ptr_end(); ++it)
         {
             //calculate elemental contribution
-            pScheme->Condition_Calculate_RHS_Contribution(*it, ConditionLocalRHS, EquationId, CurrentProcessInfo);
+            pScheme->Condition_Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
             //assemble the elemental contribution
-            AssembleRHS(rGlobalRightHandSideContribution, RightHandSideConditionContribution, EquationId);
+            AssembleRHS(b, RHS_Contribution, EquationId);
 
 	    for( unsigned int i=0; i<rRHS_GlobalConditionComponents.size(); i++ )
 	      {
@@ -901,104 +687,6 @@ public:
 
     }
 
-
-    //**************************************************************************
-    //**************************************************************************
-
-    void ResizeAndInitializeVectors(
-        TSystemMatrixPointerType& pA,
-        TSystemVectorPointerType& pDx,
-        TSystemVectorPointerType& pb,
-        ElementsArrayType& rElements,
-        ConditionsArrayType& rConditions,
-        ProcessInfo& CurrentProcessInfo
-    )
-    {
-        KRATOS_TRY
-        if (pA == NULL) //if the pointer is not initialized initialize it to an empty matrix
-        {
-            TSystemMatrixPointerType pNewA = TSystemMatrixPointerType(new TSystemMatrixType(0, 0));
-            pA.swap(pNewA);
-        }
-        if (pDx == NULL) //if the pointer is not initialized initialize it to an empty matrix
-        {
-            TSystemVectorPointerType pNewDx = TSystemVectorPointerType(new TSystemVectorType(0));
-            pDx.swap(pNewDx);
-        }
-        if (pb == NULL) //if the pointer is not initialized initialize it to an empty matrix
-        {
-            TSystemVectorPointerType pNewb = TSystemVectorPointerType(new TSystemVectorType(0));
-            pb.swap(pNewb);
-        }
-        if (BaseType::mpReactionsVector == NULL) //if the pointer is not initialized initialize it to an empty matrix
-        {
-            TSystemVectorPointerType pNewReactionsVector = TSystemVectorPointerType(new TSystemVectorType(0));
-            BaseType::mpReactionsVector.swap(pNewReactionsVector);
-        }
-
-        TSystemMatrixType& A = *pA;
-        TSystemVectorType& Dx = *pDx;
-        TSystemVectorType& b = *pb;
-
-        //resizing the system vectors and matrix
-        if (A.size1() == 0 || BaseType::GetReshapeMatrixFlag() == true) //if the matrix is not initialized
-        {
-            A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-            ConstructMatrixStructure(A, rElements, rConditions, CurrentProcessInfo);
-        }
-        else
-        {
-            if (A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
-            {
-                KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
-                A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
-                ConstructMatrixStructure(A, rElements, rConditions, CurrentProcessInfo);
-            }
-        }
-        if (Dx.size() != BaseType::mEquationSystemSize)
-            Dx.resize(BaseType::mEquationSystemSize, false);
-        if (b.size() != BaseType::mEquationSystemSize)
-            b.resize(BaseType::mEquationSystemSize, false);
-
- 
-        //if needed resize the vector for the calculation of reactions
-        if (BaseType::mCalculateReactionsFlag == true)
-        {
-            unsigned int ReactionsVectorSize = BaseType::mDofSet.size() - BaseType::mEquationSystemSize;
-            if (BaseType::mpReactionsVector->size() != ReactionsVectorSize)
-                BaseType::mpReactionsVector->resize(ReactionsVectorSize, false);
-        }
-
-        KRATOS_CATCH("")
-
-    }
-
-
-    //**************************************************************************
-    //**************************************************************************
-
-    void InitializeSolutionStep(
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
-    {
-        KRATOS_TRY
-        KRATOS_CATCH("")
-    }
-
-    //**************************************************************************
-    //**************************************************************************
-
-    void FinalizeSolutionStep(
-        ModelPart& r_model_part,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
-    {
-        KRATOS_TRY
-        KRATOS_CATCH("")
-    }
 
 
     /**
@@ -1060,6 +748,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
+    GlobalSystemComponents mGlobalSystem;
     /*@} */
     /**@name Private Operators*/
     /*@{ */
@@ -1077,7 +766,7 @@ private:
     /*@{ */
     /*@} */
 
-}; /* Class ComponentBasedBuilderAndSolver */
+}; /* Class ComponentWiseBuilderAndSolver */
 
 /*@} */
 
@@ -1087,5 +776,5 @@ private:
 
 } /* namespace Kratos.*/
 
-#endif /* KRATOS_COMPONENT_BASED_BUILDER_AND_SOLVER  defined */
+#endif /* KRATOS_COMPONENT_WISE_BUILDER_AND_SOLVER  defined */
 
