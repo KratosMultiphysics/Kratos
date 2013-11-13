@@ -1048,9 +1048,6 @@ inline std::ostream & operator <<(std::ostream& rOStream,
  */
 KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NEIGHBOUR_ELEMENTS)
 
-//TO BE CLEANED
-KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, CONTINUUM_INI_NEIGHBOUR_ELEMENTS)
-KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NODE_TO_NEIGH_ELEMENT_POINTER)
 
 } // namespace Kratos.
 #endif // KRATOS_ELEMENT_H_INCLUDED  defined 
