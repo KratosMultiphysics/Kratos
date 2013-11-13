@@ -89,9 +89,9 @@ namespace Kratos
 /** Variable class contains all information needed to store and
     retrive data from a data container.  It contains key value which
     is needed for searching in data container. Also a zero value to
-    use as a default vlaue in container. Finally it has the type of
-    the Variable as its template parameter so container can find it
-    int its relative part.
+    use as a default value in the container. Finally it has the type of
+    the Variable as its template parameter so the container can find it
+    in its relative part.
 */
 template<class TDataType>
 class Variable : public VariableData
@@ -131,7 +131,14 @@ public:
     ///@}
     ///@name Operators
     ///@{
-
+    
+    /// Assignment operator.
+    VariableType& operator=(const VariableType& rOtherVariable)
+    {
+        VariableData::operator=(rOtherVariable);
+        mZero = rOtherVariable.mZero;
+        return *this;
+    }
 
     ///@}
     ///@name Operations
@@ -251,14 +258,7 @@ protected:
     ///@name Protected Operators
     ///@{
 
-    /// Assignment operator.
-    VariableType& operator=(const VariableType& rOtherVariable)
-    {
-        VariableData::operator=(rOtherVariable);
-        mZero = rOtherVariable.mZero;
-        return *this;
-    }
-
+ 
     ///@}
     ///@name Protected Operations
     ///@{
