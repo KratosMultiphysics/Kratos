@@ -295,6 +295,9 @@ while (time < DEM_parameters.FinalTime):
 
         if (DEM_parameters.Multifile == "multiple_files"):
 			
+			mixed_model_part.Elements.clear()
+			mixed_model_part.Nodes.clear()
+			
 			post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part) 			
 			post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part)
 			
