@@ -75,7 +75,12 @@ namespace Kratos
     ///@name Operators
     ///@{
 
-
+    /**
+     * Clone function (has to be implemented by any derived class)
+     * @return a pointer to a new instance of this flow rule
+     */
+    virtual FlowRule::Pointer Clone() const;
+   
     ///@}
     ///@name Operations
     ///@{

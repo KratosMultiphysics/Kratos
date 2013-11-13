@@ -51,8 +51,19 @@ NonLinearIsotropicKinematicHardeningLaw& NonLinearIsotropicKinematicHardeningLaw
 
 NonLinearIsotropicKinematicHardeningLaw::NonLinearIsotropicKinematicHardeningLaw(NonLinearIsotropicKinematicHardeningLaw const& rOther)
 	:HardeningLaw(rOther)
+	,mTheta(rOther.mTheta)
 {
 
+}
+
+
+//********************************CLONE***********************************************
+//************************************************************************************
+
+HardeningLaw::Pointer NonLinearIsotropicKinematicHardeningLaw::Clone() const
+{
+  HardeningLaw::Pointer p_clone(new NonLinearIsotropicKinematicHardeningLaw(*this));
+  return p_clone;
 }
 
 

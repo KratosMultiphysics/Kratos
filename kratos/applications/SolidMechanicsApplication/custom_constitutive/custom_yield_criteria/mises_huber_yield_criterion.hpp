@@ -77,6 +77,11 @@ class MisesHuberYieldCriterion
         ///@name Operators
         ///@{
 
+        /**
+	 * Clone function (has to be implemented by any derived class)
+	 * @return a pointer to a new instance of this yield criterion
+	 */
+        virtual YieldCriterion::Pointer Clone() const;
 
         ///@}
         ///@name Operations

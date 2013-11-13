@@ -56,6 +56,8 @@ public:
 
 	struct Parameters
 	{
+	private:
+
   	  double         mRateFactor;
 
   	  const double*  mpDeltaGamma;
@@ -67,8 +69,10 @@ public:
 	  const double*  mpEquivalentPlasticStrain;
 	  const double*  mpEquivalentPlasticStrainOld;		
 
+	public:
+
           //Set Parameters
-          void SetRateFactor  (double rRateFactor)         { mRateFactor = rRateFactor;   };	
+          void SetRateFactor  (double rRateFactor)         { mRateFactor = rRateFactor;     };	
           void SetDeltaGamma  (const double& rDeltaGamma)  { mpDeltaGamma = &rDeltaGamma;   };
           void SetLameMu_bar  (const double& rLameMu_bar)  { mpLameMu_bar = &rLameMu_bar;   };
           void SetDeltaTime   (const double& rDeltaTime)   { mpDeltaTime = &rDeltaTime;     };
@@ -120,6 +124,15 @@ public:
     ///@name Operators
     ///@{
 
+    /**
+     * Clone function (has to be implemented by any derived class)
+     * @return a pointer to a new instance of this hardening law
+     */
+    virtual HardeningLaw::Pointer Clone() const
+    {
+      HardeningLaw::Pointer p_clone(new HardeningLaw(*this));
+      return p_clone;
+    }
 
     ///@}
     ///@name Operations
