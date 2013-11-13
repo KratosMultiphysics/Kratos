@@ -28,16 +28,16 @@ namespace Kratos
      // using namespace GeometryFunctions;
 
       SphericParticle::SphericParticle()
-      : DiscreteElement(){mInitializedVariablesFlag = 0;}
+        : DiscreteElement(), mParticleId(-1), mInitializedVariablesFlag(0){}
 
       SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry)
-      : DiscreteElement(NewId, pGeometry){mInitializedVariablesFlag = 0; mParticleId = NewId;}
+        : DiscreteElement(NewId, pGeometry), mParticleId(NewId), mInitializedVariablesFlag(0){}
 
       SphericParticle::SphericParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-      : DiscreteElement(NewId, pGeometry, pProperties){mInitializedVariablesFlag = 0; mParticleId = NewId;}
+      : DiscreteElement(NewId, pGeometry, pProperties), mParticleId(NewId), mInitializedVariablesFlag(0){}
 
       SphericParticle::SphericParticle(IndexType NewId, NodesArrayType const& ThisNodes)
-      : DiscreteElement(NewId, ThisNodes){mInitializedVariablesFlag = 0; mParticleId = NewId;}
+      : DiscreteElement(NewId, ThisNodes), mParticleId(NewId), mInitializedVariablesFlag(0){}
 
       Element::Pointer SphericParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
       {
@@ -2202,12 +2202,13 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
       void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
       {
-          KRATOS_TRY
 
           if (rVariable == PARTICLE_ID){
               Output = mParticleId;
               return;
           }
+
+          KRATOS_TRY
 
           //CRITICAL DELTA CALCULATION
 
