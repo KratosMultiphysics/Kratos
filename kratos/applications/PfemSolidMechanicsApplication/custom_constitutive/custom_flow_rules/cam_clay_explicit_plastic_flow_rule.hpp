@@ -70,6 +70,9 @@ namespace Kratos
     /// Assignment operator.
     CamClayExplicitFlowRule& operator=(CamClayExplicitFlowRule const& rOther);
 	
+    // CLONE
+    virtual FlowRule::Pointer Clone() const;
+
     /// Destructor.
     virtual ~CamClayExplicitFlowRule();
 

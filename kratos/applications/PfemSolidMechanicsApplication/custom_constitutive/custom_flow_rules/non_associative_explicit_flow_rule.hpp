@@ -69,6 +69,9 @@ namespace Kratos
 
     /// Assignment operator.
     NonAssociativeExplicitPlasticFlowRule& operator=(NonAssociativeExplicitPlasticFlowRule const& rOther) {FlowRule::operator=(rOther); return *this;} ;
+ 
+    /// CLONE
+    virtual FlowRule::Pointer Clone() const;
 	
     /// Destructor.
     virtual ~NonAssociativeExplicitPlasticFlowRule();
@@ -176,7 +179,7 @@ namespace Kratos
     };
 
 
-    void CalculateOneExplicitStep(const Vector& rHenckyStrainIncrement, const Vector& rPreviousElasticHenckyStrain, InternalVariables& rPlasticVariables, Vector& rNewElasticHenckyStrain, Vector& rNewStressVector, double& rNewEquivalentPlasticStrain, const bool& rElastoPlasticBool, double rStressErrorMeasure);
+    void CalculateOneExplicitStep(const Vector& rHenckyStrainIncrement, const Vector& rPreviousElasticHenckyStrain, InternalVariables& rPlasticVariables, Vector& rNewElasticHenckyStrain, Vector& rNewStressVector, double& rNewEquivalentPlasticStrain, const bool& rElastoPlasticBool, double& rStressErrorMeasure);
 
     void CalculateExplicitSolution( const Vector& rHenckyStrainIncrement, const Vector& rPreviousElasticHenckyStrain, InternalVariables& rPlasticVariables, Vector& rNewElasticHenckyStrain, Vector& rNewStressVector,  const bool& rElastoPlasticBool, const double& rTolerance); 
 
