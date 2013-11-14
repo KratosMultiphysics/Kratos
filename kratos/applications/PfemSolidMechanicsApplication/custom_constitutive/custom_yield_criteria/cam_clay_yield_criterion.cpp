@@ -61,18 +61,20 @@ double& CamClayYieldCriterion::CalculateYieldCondition(double& rStateFunction, c
    this->CalculateInvariants( rStressVector, MeanStress, DeviatoricQ);
    
    double Beta = 1.0;
-   double ShearM = 0.9;
+   double ShearM = 1.4;
 
    double PreconsolidationStress = mpHardeningLaw->CalculateHardening(PreconsolidationStress, rAlpha);
 
    rStateFunction = pow(DeviatoricQ/ShearM, 2.0);
-   rStateFunction += pow(1/Beta, 2.0)*(MeanStress*(MeanStress-PreconsolidationStress) - pow(PreconsolidationStress, 2.0)*( 1.0-pow(Beta,2.0)));
+//   rStateFunction += pow(1/Beta, 2.0)*(MeanStress*(MeanStress-PreconsolidationStress) - pow(PreconsolidationStress, 2.0)*( 1.0-pow(Beta,2.0)));
+   rStateFunction += pow(1.0/Beta, 2.0)*(MeanStress*(MeanStress-2.0*PreconsolidationStress) - pow(PreconsolidationStress, 2.0)*(1.0-pow(Beta, 2.0)));
+if (MeanStress > -10.0)
+    rStateFunction = -1.0;
 
-//std::cout << "YieldCrit " << rStressVector << " MeanStress " << MeanStress << " Deviat " << DeviatoricQ <<  " Precons " << PreconsolidationStress << " stF " << rStateFunction << " rAlpha " << rAlpha <<  std::endl;
-   rStateFunction = -1.0;
+
+//std::cout << " rSF " << rStateFunction << " PRECONSO " << PreconsolidationStress << " meanStress " << MeanStress << " devQ " << DeviatoricQ << std::endl;
 
    return rStateFunction; 
-
 }
 
 
@@ -93,9 +95,8 @@ void CamClayYieldCriterion::CalculateInvariants(const Vector& rStressVector, dou
     for (unsigned int i = 3; i<6; ++i)
       rDeviatoricQ += 2.0*pow(rStressVector(i), 2.0);
    
+    rDeviatoricQ = pow( 3.0/2.0*rDeviatoricQ, 1.0/2.0);
 
-    rDeviatoricQ = pow(rDeviatoricQ, 1.0/2.0) /2.0 ;
-    rDeviatoricQ = pow( 3.0*rDeviatoricQ, 1.0/2.0);
 
 }
 
@@ -105,9 +106,10 @@ void CamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStre
 {
     double PreconsolidationStress;
     PreconsolidationStress = mpHardeningLaw->CalculateHardening(PreconsolidationStress, rAlpha);
-
     double MeanStress;
     double DeviatoricQ;
+
+
     this->CalculateInvariants( rStressVector, MeanStress, DeviatoricQ);
 
     Vector IdentityVector = ZeroVector(6);
@@ -122,17 +124,13 @@ void CamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStre
        ShearVector(i) = 2.0*rStressVector(i);
  
     double Beta = 1.0;
-    double ShearM = 0.9;
+    double ShearM = 1.4;
   
     rYieldFunctionD = 2.0/pow(Beta, 2.0)*(MeanStress-PreconsolidationStress)*IdentityVector;
-
-    double J2 = 3.0*pow(DeviatoricQ, 2.0);
-    rYieldFunctionD = 3.0/(4.0*pow(ShearM, 2.0)*J2)*ShearVector;
+   
+    rYieldFunctionD += 3.0/pow(ShearM, 2.0) * ShearVector;
 
 }
-
-
-
 void CamClayYieldCriterion::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, YieldCriterion );
