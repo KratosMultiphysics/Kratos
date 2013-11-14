@@ -36,6 +36,12 @@ CamClayExplicitFlowRule::CamClayExplicitFlowRule(CamClayExplicitFlowRule const& 
 {
 }
 
+//*******   CLONE ********
+FlowRule::Pointer CamClayExplicitFlowRule::Clone() const
+{
+  FlowRule::Pointer p_clone(new CamClayExplicitFlowRule(*this));
+  return p_clone;
+}
 
 
 
@@ -65,15 +71,14 @@ void CamClayExplicitFlowRule::CalculateKirchhoffStressVector(const Vector& rHenc
     this->CalculateDeviatoricStress( VolumetricStrain, DeviatoricStrainVector, rKirchhoffStressVector);
 
     rKirchhoffStressVector += MeanStress*IdentityVector;
-   
 
 }
 
 void CamClayExplicitFlowRule::CalculateMeanStress(const Vector& rHenckyStrainVector, double& rMeanStress)
 {
-   double VolumetricStrain = 0;
+   double VolumetricStrain = 0.0;
    for (unsigned int i = 0; i < 3; ++i)
-       VolumetricStrain = rHenckyStrainVector(i);
+       VolumetricStrain += rHenckyStrainVector(i);
 
    Vector DeviatoricStrain = rHenckyStrainVector;
   
@@ -92,7 +97,7 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrai
     //SwellingSlope
     //AlphaShear
 
-    double ReferencePreasure = -80.0;
+    double ReferencePreasure = 20.0;
     double SwellingSlope = 0.0078;
     double AlphaShear = 120.0;
 
@@ -104,7 +109,7 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrai
 	DeviatoricStrain2Norm += 2.0*pow(rDeviatoricStrainVector(i)/2.0, 2.0);
 
 
-    rMeanStress = ReferencePreasure*std::exp( -rVolumetricStrain / SwellingSlope) * (1.0 + AlphaShear*DeviatoricStrain2Norm / SwellingSlope);
+    rMeanStress = -ReferencePreasure*std::exp( -rVolumetricStrain / SwellingSlope) * (1.0 + 1.0*AlphaShear*DeviatoricStrain2Norm/SwellingSlope);
  //   std::cout << " Calc Mean Stress: Volumetric " << rVolumetricStrain << " Computed P " << rMeanStress << std::endl;
 }
 
@@ -113,22 +118,21 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrai
 
 void CamClayExplicitFlowRule::CalculateDeviatoricStress(const double& rVolumetricStrain, const Vector & rDeviatoricStrainVector, Vector& rDeviatoricStress)
 {
-    double ReferencePreasure = -80.0;
+    double ReferencePreasure = 20.0;
     double SwellingSlope = 0.0078;
     double AlphaShear = 120.0;
+
     rDeviatoricStress = rDeviatoricStrainVector;
     rDeviatoricStress *= 2.0*AlphaShear*ReferencePreasure* std::exp(-rVolumetricStrain / SwellingSlope);
 
     for (unsigned int i = 3; i<6; ++i)
-         rDeviatoricStress /= 2.0;
-
-
-
+         rDeviatoricStress(i) /= 2.0;  // BECAUSE VOIGT NOTATION
 }
 
 
 void CamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainVector, Matrix& rElasticMatrix )
 {
+
 
     Matrix FourthOrderIdentity = ZeroMatrix(6);
     for (unsigned int i = 0; i<6; ++i)
@@ -144,6 +148,7 @@ void CamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainV
 
    Vector StressVector = ZeroVector(6);
    this->CalculateKirchhoffStressVector(rElasticStrainVector, StressVector);
+   
 
    double MeanStress = 0.0;
    double VolumetricStrain = 0.0;
@@ -156,11 +161,16 @@ void CamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainV
 
    double SwellingSlope = 0.0078;
    double AlphaShear = 120.0;
+   double ReferencePreasure = 20.0;
 
 
    rElasticMatrix  = (-1.0/SwellingSlope)*MeanStress*IdentityCross;
-   rElasticMatrix += 2.0*AlphaShear*std::exp(-VolumetricStrain/SwellingSlope)*(FourthOrderIdentity - (1.0/3.0)*IdentityCross);
+   rElasticMatrix += 2.0*AlphaShear*ReferencePreasure*std::exp(-VolumetricStrain/SwellingSlope)*(FourthOrderIdentity - (1.0/3.0)*IdentityCross);
+   //std::cout << " NO QUIERO NEGATIVO " << 2.0*AlphaShear*ReferencePreasure*std::exp(-VolumetricStrain/SwellingSlope) <<  " " << std::exp(-VolumetricStrain/SwellingSlope) << " " << VolumetricStrain << std::endl;
 
+
+
+   // PARTE ASQUEROSA
    for (unsigned int i = 0; i<3; ++i) {
       for (unsigned int j = 0; j<3; ++j) {
          rElasticMatrix(i,j) -= (1.0/SwellingSlope)* (StressVector(i)-MeanStress);
@@ -170,17 +180,23 @@ void CamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainV
 
    for (unsigned int i = 0; i<3; ++i) {
       for (unsigned int j = 3; j < 6; ++j) {
-         rElasticMatrix(i,j) -= (1.0/SwellingSlope)*(StressVector(j));
+         rElasticMatrix(i,j) -= 1.0*(1.0/SwellingSlope)*(StressVector(j));///2.0;
       }
    }
 
    for (unsigned int i = 3; i<6; ++i) {
       for (unsigned int j = 0; j<3; ++j) {
-          rElasticMatrix(i,j) -= (1.0/SwellingSlope)*(StressVector(i));
+          rElasticMatrix(i,j) -= 1.0*(1.0/SwellingSlope)*(StressVector(i));///2.0;
        }
    }
 
-std::cout << "ELASTIC MATRIX " << rElasticMatrix << "ElasticVector " << rElasticStrainVector << " StressV " << StressVector << "Mean Stress " << MeanStress << std::endl;
+   if ( fabs(VolumetricStrain) > 0.50) {
+     for (unsigned int i = 0; i<6; ++i) {
+       rElasticMatrix(i,i) += 0000.1;
+     }
+   }
+//std::cout << "ELASTIC MATRIX " << rElasticMatrix << "ElasticVector " << rElasticStrainVector << " StressV " << StressVector << "Mean Stress " << MeanStress << std::endl;
+
 }
 
 
@@ -195,16 +211,19 @@ void CamClayExplicitFlowRule::ComputePlasticHardeningParameter(const Vector& rHe
 
 
 
-    double ReferencePreasure = -80.0;
+    double ReferencePreasure = 20.0;
     double SwellingSlope = 0.0078;
-    double AlphaShear = 12.0;
+    double AlphaShear = 120.0;
     double OtherSlope = 0.085;
     double Beta = 1.0;
     double VoidRatio = 0.6;
 
-   rH = 4.0*(MeanStress - PreconsolidationStress*(1.0-pow(Beta, 2.0)));
-   rH = (1+VoidRatio)/( OtherSlope-SwellingSlope);
-   rH = (MeanStress - PreconsolidationStress) / pow(Beta, 2.0);
+
+   rH = (MeanStress-PreconsolidationStress) ;
+   rH *=  (PreconsolidationStress*(1.0-pow(Beta, 2.0)) - MeanStress) ;
+   rH *= PreconsolidationStress/ ( OtherSlope - SwellingSlope);
+   rH *= 4.0 / pow(Beta, 4.0);
+
 
 
 }
