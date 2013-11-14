@@ -13,69 +13,58 @@
 
 // System includes
 
-
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/condition.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
-
+#include "custom_conditions/line_load_3D_condition.hpp"
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
-
 ///@}
 ///@name Type Definitions
 ///@{
-
 ///@}
 ///@name  Enum's
 ///@{
-
 ///@}
 ///@name  Functions
 ///@{
-
 ///@}
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/// Force Load Condition for 3D and 2D geometries. (base class)
 
+/**
+ * Implements a Force Load definition for structural analysis.
+ * This works for arbitrary geometries in 3D and 2D (base class)
+ */
 class LineLoad2DCondition
-    : public Condition
+    : public LineLoad3DCondition
 {
 public:
+
     ///@name Type Definitions
     ///@{
-
-    /// Counted pointer of LineLoad2DCondition
+    // Counted pointer of LineLoad2DCondition
     KRATOS_CLASS_POINTER_DEFINITION( LineLoad2DCondition );
-
     ///@}
+
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
     LineLoad2DCondition( IndexType NewId, GeometryType::Pointer pGeometry );
-    LineLoad2DCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
 
-    ///Copy constructor
+    LineLoad2DCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+
+    /// Copy constructor
     LineLoad2DCondition( LineLoad2DCondition const& rOther);
 
-    /// Destructor.
+    /// Destructor
     virtual ~LineLoad2DCondition();
-
 
     ///@}
     ///@name Operators
@@ -86,20 +75,32 @@ public:
     ///@name Operations
     ///@{
 
-    Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
+    /**
+     * creates a new condition pointer
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(IndexType NewId,
+			      NodesArrayType const& ThisNodes,
+			      PropertiesType::Pointer pProperties ) const;
 
-    void CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
 
-    void CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo );
-    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    /**
+     * clones the selected condition variables, creating a new one
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone(IndexType NewId, 
+			     NodesArrayType const& ThisNodes) const;
 
-    void EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo );
 
-    void GetDofList( DofsVectorType& rConditionalDofList, ProcessInfo& rCurrentProcessInfo );
 
-    void MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo );
+    //************* COMPUTING  METHODS
 
-    void DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo );
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -109,88 +110,65 @@ public:
      * @param rCurrentProcessInfo
      */
     virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+
     ///@}
     ///@name Access
     ///@{
-
-
     ///@}
     ///@name Inquiry
     ///@{
-
-
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-//      virtual String Info() const;
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "Line Load 2D Condition #" << Id();
-    }
-
-
-    /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
-
     ///@}
     ///@name Friends
     ///@{
-
-
     ///@}
 
 protected:
     ///@name Protected static Member Variables
     ///@{
-
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
-    // A protected default constructor necessary for serialization
     LineLoad2DCondition() {};
-
-
     ///@}
     ///@name Protected Operators
     ///@{
-
-
     ///@}
     ///@name Protected Operations
     ///@{
 
-    virtual void CalculateConditionalSystem( MatrixType& rLeftHandSideMatrix,
-            VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo,
-            bool CalculateStiffnessMatrixFlag,
-            bool CalculateResidualVectorFlag );
+    /**
+     * Initialize System Matrices
+     */
+    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, 
+					    const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Calculate Condition Kinematics
+     */
+    virtual void CalculateKinematics(GeneralVariables& rVariables, 
+				     const double& rPointNumber);
+
+    /**
+     * Calculation of the Vector Force of the Condition
+     */
+    virtual Vector& CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables);
 
 
-    void CalculateAndSubKp(Matrix& rK,
-                           const Matrix& rDN_De,
-                           const Vector& rN,
-                           double rPressure,
-                           double rIntegrationWeight
-                          );
+    /**
+     * Calculation of the Integration Weight
+     */
+    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
 
 
-    void CalculateAndAddFacePressure (Vector& rF,
-                                      const Vector& rN,
-                                      Vector& rNormal,
-                                      double rPressure,
-                                      double rIntegrationWeight );
-
-    void CalculateAndAddLineLoad(Vector& rF,
-                                 const Vector& rN,
-                                 Vector& rForce,
-                                 double rIntegrationWeight );
+    /**
+     * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
+     */
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+				     GeneralVariables& rVariables,
+				     double& rIntegrationWeight);
 
     ///@}
     ///@name Protected  Access
@@ -218,11 +196,10 @@ private:
     ///@name Member Variables
     ///@{
 
-
-
     ///@}
     ///@name Private Operators
     ///@{
+
 
     ///@}
     ///@name Private Operations
@@ -246,59 +223,17 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoad3DCondition );
     }
 
     virtual void load( Serializer& rSerializer )
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoad3DCondition );
     }
 
 
-    ///@}
-    ///@name Un accessible methods
-    ///@{
+}; // class LineLoad2DCondition.
 
-    /// Assignment operator.
-    //LineLoad2DCondition& operator=(const LineLoad2DCondition& rOther);
+} // namespace Kratos.
 
-    /// Copy constructor.
-    //LineLoad2DCondition(const LineLoad2DCondition& rOther);
-
-
-    ///@}
-
-}; // Class LineLoad2DCondition
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-        LineLoad2DCondition& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-        const LineLoad2DCondition& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
-///@}
-
-}  // namespace Kratos.
-
-#endif // KRATOS_LINE_LOAD_2D_CONDITION_H_INCLUDED  defined 
-
-
+#endif // KRATOS_LINE_LOAD_2D_CONDITION_H_INCLUDED defined 

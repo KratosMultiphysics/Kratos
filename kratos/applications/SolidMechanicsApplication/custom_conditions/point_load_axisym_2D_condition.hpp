@@ -18,55 +18,54 @@
 // Project includes
 #include "custom_conditions/point_load_2D_condition.hpp"
 
+
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
-
 ///@}
 ///@name Type Definitions
 ///@{
-
 ///@}
 ///@name  Enum's
 ///@{
-
 ///@}
 ///@name  Functions
 ///@{
-
 ///@}
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/// Force Load Condition for 3D and 2D geometries. (base class)
+
+/**
+ * Implements a Force Load definition for structural analysis.
+ * This works for arbitrary geometries in 3D and 2D (base class)
+ */
 class PointLoadAxisym2DCondition
     : public PointLoad2DCondition
 {
 public:
+
     ///@name Type Definitions
     ///@{
-
-    /// Counted pointer of PointLoadAxisym2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION(PointLoadAxisym2DCondition);
-
+    // Counted pointer of PointLoadAxisym2DCondition
+    KRATOS_CLASS_POINTER_DEFINITION( PointLoadAxisym2DCondition );
     ///@}
+
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PointLoadAxisym2DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
-    PointLoadAxisym2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    PointLoadAxisym2DCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+
+    PointLoadAxisym2DCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
     PointLoadAxisym2DCondition( PointLoadAxisym2DCondition const& rOther);
 
-    /// Destructor.
+    /// Destructor
     virtual ~PointLoadAxisym2DCondition();
-
 
     ///@}
     ///@name Operators
@@ -77,69 +76,95 @@ public:
     ///@name Operations
     ///@{
 
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const&
-                              ThisNodes,  PropertiesType::Pointer pProperties) const;
+    /**
+     * creates a new condition pointer
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(IndexType NewId,
+			      NodesArrayType const& ThisNodes,
+			      PropertiesType::Pointer pProperties ) const;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType&
-                              rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo&
-                                rCurrentProcessInfo);
+    /**
+     * clones the selected condition variables, creating a new one
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone(IndexType NewId, 
+			     NodesArrayType const& ThisNodes) const;
 
-    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+
+    //************************************************************************************
+    //************************************************************************************
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
+    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
 
     ///@}
     ///@name Access
     ///@{
-
-
     ///@}
     ///@name Inquiry
     ///@{
-
-
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-    //      virtual String Info() const;
-
-    /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
-
     ///@}
     ///@name Friends
     ///@{
-
-
     ///@}
 
 protected:
     ///@name Protected static Member Variables
     ///@{
-
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
-
+    PointLoadAxisym2DCondition() {};
     ///@}
     ///@name Protected Operators
     ///@{
-
-
     ///@}
     ///@name Protected Operations
     ///@{
-    void CalculateRadius(double & rCurrentRadius,
-                         double & rReferenceRadius);
+   
+    /**
+     * Calculate Condition Kinematics
+     */
+    virtual void CalculateKinematics(GeneralVariables& rVariables, 
+				     const double& rPointNumber);
 
+
+    /**
+     * Calculation and addition of the matrices of the LHS
+     */
+    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                                    GeneralVariables& rVariables,
+                                    double& rIntegrationWeight);
+
+    /**
+     * Calculation and addition of the vectors of the RHS
+     */
+    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+                                    GeneralVariables& rVariables,
+                                    Vector& rVolumeForce,
+                                    double& rIntegrationWeight);
+
+    /**
+     * Calculation of the contidion radius (axisymmetry)
+     */
+    void CalculateRadius(double & rCurrentRadius,
+			 double & rReferenceRadius);
     ///@}
     ///@name Protected  Access
     ///@{
@@ -166,25 +191,10 @@ private:
     ///@name Member Variables
     ///@{
 
-
-    friend class Serializer;
-
-    // A private default constructor necessary for serialization
-    PointLoadAxisym2DCondition() {};
-
-    virtual void save(Serializer& rSerializer) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointLoad2DCondition );
-    }
-
-    virtual void load(Serializer& rSerializer)
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointLoad2DCondition );
-    }
-
     ///@}
     ///@name Private Operators
     ///@{
+
 
     ///@}
     ///@name Private Operations
@@ -200,52 +210,25 @@ private:
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
-    ///@name Un accessible methods
+    ///@name Serialization
     ///@{
 
-    /// Assignment operator.
-    //PointLoadAxisym2DCondition& operator=(const PointLoadAxisym2DCondition& rOther);
+    friend class Serializer;
 
-    /// Copy constructor.
-    //PointLoadAxisym2DCondition(const PointLoadAxisym2DCondition& rOther);
-
-
-    ///@}
-
-}; // Class PointLoadAxisym2DCondition
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-				    PointLoadAxisym2DCondition& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const PointLoadAxisym2DCondition& rThis)
+    virtual void save( Serializer& rSerializer ) const
     {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, PointLoad2DCondition );
+    }
 
-      return rOStream;
-    }*/
-///@}
-
-}  // namespace Kratos.
-
-#endif // KRATOS_POINT_LOAD_AXISYM_2D_CONDITION_H_INCLUDED  defined 
+    virtual void load( Serializer& rSerializer )
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, PointLoad2DCondition );
+    }
 
 
+}; // class PointLoadAxisym2DCondition.
 
+} // namespace Kratos.
+
+#endif // KRATOS_POINT_LOAD_AXISYM_2D_CONDITION_H_INCLUDED defined 

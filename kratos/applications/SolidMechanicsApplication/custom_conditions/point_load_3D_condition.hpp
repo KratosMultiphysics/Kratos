@@ -13,68 +13,59 @@
 
 // System includes
 
-
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/condition.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
+#include "custom_conditions/force_load_condition.hpp"
 
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
-
 ///@}
 ///@name Type Definitions
 ///@{
-
 ///@}
 ///@name  Enum's
 ///@{
-
 ///@}
 ///@name  Functions
 ///@{
-
 ///@}
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/// Force Load Condition for 3D and 2D geometries. (base class)
+
+/**
+ * Implements a Force Load definition for structural analysis.
+ * This works for arbitrary geometries in 3D and 2D (base class)
+ */
 class PointLoad3DCondition
-    : public Condition
+    : public ForceLoadCondition
 {
 public:
+
     ///@name Type Definitions
     ///@{
-
-    /// Counted pointer of PointLoad3DCondition
-    KRATOS_CLASS_POINTER_DEFINITION(PointLoad3DCondition);
-
+    // Counted pointer of PointLoad3DCondition
+    KRATOS_CLASS_POINTER_DEFINITION( PointLoad3DCondition );
     ///@}
+
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    PointLoad3DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
-    PointLoad3DCondition(IndexType NewId, GeometryType::Pointer pGeometry,PropertiesType::Pointer pProperties);
+    PointLoad3DCondition( IndexType NewId, GeometryType::Pointer pGeometry );
 
-    ///Copy constructor
+    PointLoad3DCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
+
+    /// Copy constructor
     PointLoad3DCondition( PointLoad3DCondition const& rOther);
 
-    /// Destructor.
+    /// Destructor
     virtual ~PointLoad3DCondition();
-
 
     ///@}
     ///@name Operators
@@ -85,86 +76,99 @@ public:
     ///@name Operations
     ///@{
 
-    Condition::Pointer Create(IndexType NewId, NodesArrayType const&
-                              ThisNodes,  PropertiesType::Pointer pProperties) const;
+    /**
+     * creates a new condition pointer
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(IndexType NewId,
+			      NodesArrayType const& ThisNodes,
+			      PropertiesType::Pointer pProperties ) const;
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType&
-                              rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo&
-                                rCurrentProcessInfo);
-    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+    /**
+     * clones the selected condition variables, creating a new one
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone(IndexType NewId, 
+			     NodesArrayType const& ThisNodes) const;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo&
-                          rCurrentProcessInfo);
 
-    void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo&
-                    CurrentProcessInfo);
+    //************************************************************************************
+    //************************************************************************************
+    /**
+     * This function provides the place to perform checks on the completeness of the input.
+     * It is designed to be called only once (or anyway, not often) typically at the beginning
+     * of the calculations, so to verify that nothing is missing from the input
+     * or that no common error is found.
+     * @param rCurrentProcessInfo
+     */
+    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
 
     ///@}
     ///@name Access
     ///@{
-
-
     ///@}
     ///@name Inquiry
     ///@{
-
-
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-//      virtual String Info() const;
-
-    /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
-
     ///@}
     ///@name Friends
     ///@{
-
-
     ///@}
 
 protected:
     ///@name Protected static Member Variables
     ///@{
-
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
-
+    PointLoad3DCondition() {};
     ///@}
     ///@name Protected Operators
     ///@{
-
-
     ///@}
     ///@name Protected Operations
     ///@{
 
-    friend class Serializer;
+    /**
+     * Initialize System Matrices
+     */
+    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, 
+					    const ProcessInfo& rCurrentProcessInfo);
 
-    // A private default constructor necessary for serialization
-    PointLoad3DCondition() {};
 
-    virtual void save(Serializer& rSerializer) const
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition );
-    }
+    /**
+     * Calculate Condition Kinematics
+     */
+    virtual void CalculateKinematics(GeneralVariables& rVariables, 
+				     const double& rPointNumber);
 
-    virtual void load(Serializer& rSerializer)
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
-    }
+    /**
+     * Calculation of the Vector Force of the Condition
+     */
+    virtual Vector& CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables);
+
+
+    /**
+     * Calculation of the Integration Weight
+     */
+    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
+
+
+    /**
+     * Calculates the condition contributions
+     */
+    virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
+					  const ProcessInfo& rCurrentProcessInfo);
+
 
     ///@}
     ///@name Protected  Access
@@ -192,11 +196,10 @@ private:
     ///@name Member Variables
     ///@{
 
-
-
     ///@}
     ///@name Private Operators
     ///@{
+
 
     ///@}
     ///@name Private Operations
@@ -212,52 +215,25 @@ private:
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
-    ///@name Un accessible methods
+    ///@name Serialization
     ///@{
 
-    /// Assignment operator.
-    //PointLoad3DCondition& operator=(const PointLoad3DCondition& rOther);
+    friend class Serializer;
 
-    /// Copy constructor.
-    //PointLoad3DCondition(const PointLoad3DCondition& rOther);
-
-
-    ///@}
-
-}; // Class PointLoad3DCondition
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-				    PointLoad3DCondition& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const PointLoad3DCondition& rThis)
+    virtual void save( Serializer& rSerializer ) const
     {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ForceLoadCondition );
+    }
 
-      return rOStream;
-    }*/
-///@}
-
-}  // namespace Kratos.
-
-#endif // KRATOS_POINT_LOAD_3D_CONDITION_H_INCLUDED  defined 
+    virtual void load( Serializer& rSerializer )
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ForceLoadCondition );
+    }
 
 
+}; // class PointLoad3DCondition.
 
+} // namespace Kratos.
+
+#endif // KRATOS_POINT_LOAD_3D_CONDITION_H_INCLUDED defined 
