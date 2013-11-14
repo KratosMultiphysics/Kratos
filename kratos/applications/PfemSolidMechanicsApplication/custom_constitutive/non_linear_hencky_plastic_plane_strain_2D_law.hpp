@@ -10,7 +10,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/non_linear_hencky_plastic_3d_law.hpp"
+#include "custom_constitutive/non_linear_hencky_plastic_3D_law.hpp"
 #include "includes/ublas_interface.h"
 
 
