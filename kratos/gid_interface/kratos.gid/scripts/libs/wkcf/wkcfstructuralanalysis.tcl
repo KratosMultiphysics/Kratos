@@ -1463,6 +1463,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     puts $fileid "class SolverSettings:"
     puts $fileid "${trailing_spaces}solver_type = \"mechanical_solver\""    
     puts $fileid "${trailing_spaces}domain_size = $domain_size"
+    puts $fileid "${trailing_spaces}echo_level  = 0"
 
     if {($useshells eq "Yes")||($usebeams eq "Yes")} {
 	puts $fileid "${trailing_spaces}RotationDofs = True"
