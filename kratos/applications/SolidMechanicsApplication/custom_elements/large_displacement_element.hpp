@@ -149,6 +149,14 @@ protected:
 
     };
 
+
+    /**
+     * This struct is used in the component wise calculation only
+     * is defined here and is used to declare a member variable in the component wise elements
+     * private pointers can only be accessed by means of set and get functions
+     * this allows to set and not copy the local system variables
+     */
+
     struct LocalSystemComponents
     {
     private:
@@ -226,10 +234,7 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    /**
-     * Returns the currently selected integration method
-     * @return current integration method selected
-     */
+
     /**
      * creates a new element pointer
      * @param NewId: the ID of the new element
@@ -577,35 +582,31 @@ protected:
 
     virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
                                      GeneralVariables& rVariables,
-                                     double& rIntegrationWeight
-                                    );
+                                     double& rIntegrationWeight);
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
     virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
                                      GeneralVariables& rVariables,
-                                     double& rIntegrationWeight
-                                    );
+                                     double& rIntegrationWeight);
 
 
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-            GeneralVariables& rVariables,
-            Vector& rVolumeForce,
-            double& rIntegrationWeight
-                                              );
+					       GeneralVariables& rVariables,
+					       Vector& rVolumeForce,
+					       double& rIntegrationWeight);
 
 
     /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            double& rIntegrationWeight
-                                              );
+					       GeneralVariables & rVariables,
+					       double& rIntegrationWeight);
 
 
     /**
