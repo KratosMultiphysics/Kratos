@@ -3,16 +3,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 message("**** configuring KratosDEM_FEM_Application ****")
 
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../DEM_application )
+## include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/../DEM_application )
 
 
 ## generate variables with the sources
 set( KRATOS_DEM_FEM_APPLICATION_SOURCES     
 	${CMAKE_CURRENT_SOURCE_DIR}/dem_fem__application.cpp
-    
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/dem_fem__python_application.cpp
-        
-        ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/dem_fem__python_application.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_io_to_python.cpp
 )
