@@ -657,7 +657,7 @@ public:
         }
 
         (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
-
+	
         if(mNewmark.static_dynamic !=0)
         {
 
@@ -667,6 +667,7 @@ public:
         }
 
         //AssembleTimeSpaceLHS_Condition(rCurrentCondition, LHS_Contribution,DampMatrix, MassMatrix,CurrentProcessInfo);
+
 
         KRATOS_CATCH("")
     }

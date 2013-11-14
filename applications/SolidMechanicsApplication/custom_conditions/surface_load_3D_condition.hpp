@@ -10,40 +10,53 @@
 #define  KRATOS_SURFACE_LOAD_3D_CONDITION_H_INCLUDED
 
 
-
 // System includes
 
 // External includes
-#include "boost/smart_ptr.hpp"
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/condition.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
-
+#include "custom_conditions/force_load_condition.hpp"
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name  Enum's
+///@{
+///@}
+///@name  Functions
+///@{
+///@}
+///@name Kratos Classes
+///@{
 
+/// Force Load Condition for 3D and 2D geometries. (base class)
+
+/**
+ * Implements a Force Load definition for structural analysis.
+ * This works for arbitrary geometries in 3D and 2D (base class)
+ */
 class SurfaceLoad3DCondition
-    : public Condition
+    : public ForceLoadCondition
 {
 public:
+
     ///@name Type Definitions
     ///@{
-
     // Counted pointer of SurfaceLoad3DCondition
     KRATOS_CLASS_POINTER_DEFINITION( SurfaceLoad3DCondition );
-
-
     ///@}
+
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
     SurfaceLoad3DCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+
     SurfaceLoad3DCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
@@ -60,47 +73,33 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    Condition::Pointer Create(
-        IndexType NewId,
-        NodesArrayType const& ThisNodes,
-        PropertiesType::Pointer pProperties ) const;
 
-    void EquationIdVector(
-        EquationIdVectorType& rResult,
-        ProcessInfo& rCurrentProcessInfo );
+    /**
+     * creates a new condition pointer
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(IndexType NewId,
+			      NodesArrayType const& ThisNodes,
+			      PropertiesType::Pointer pProperties ) const;
 
-    void GetDofList(
-        DofsVectorType& ElementalDofList,
-        ProcessInfo& rCurrentProcessInfo );
 
-    void CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo );
+    /**
+     * clones the selected condition variables, creating a new one
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone(IndexType NewId, 
+			     NodesArrayType const& ThisNodes) const;
 
-    void CalculateLocalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        ProcessInfo& rCurrentProcessInfo );
 
-    void MassMatrix(
-        MatrixType& rMassMatrix,
-        ProcessInfo& rCurrentProcessInfo );
 
-    void DampMatrix(
-        MatrixType& rDampMatrix,
-        ProcessInfo& rCurrentProcessInfo );
+    //************* COMPUTING  METHODS
 
-    void GetValuesVector(
-        Vector& values,
-        int Step = 0 );
-
-    void GetFirstDerivativesVector(
-        Vector& values,
-        int Step = 0 );
-
-    void GetSecondDerivativesVector(
-        Vector& values,
-        int Step = 0 );
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -114,91 +113,82 @@ public:
     ///@}
     ///@name Access
     ///@{
-
-
     ///@}
     ///@name Inquiry
     ///@{
-
-
     ///@}
     ///@name Input and output
     ///@{
-
-
     ///@}
     ///@name Friends
     ///@{
-
-
     ///@}
 
 protected:
     ///@name Protected static Member Variables
     ///@{
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
     SurfaceLoad3DCondition() {};
-
     ///@}
     ///@name Protected Operators
     ///@{
-
-
     ///@}
     ///@name Protected Operations
     ///@{
 
-    void CalculateConditionalSystem(
-        MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag );
+    /**
+     * Initialize System Matrices
+     */
+    virtual void InitializeGeneralVariables(GeneralVariables& rVariables, 
+					    const ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateAndSubKp(
-        Matrix& K,
-        array_1d<double, 3>& ge,
-        array_1d<double, 3>& gn,
-        const Matrix& DN_De,
-        const Vector& N,
-        double pressure,
-        double weight );
+    /**
+     * Calculate Condition Kinematics
+     */
+    virtual void CalculateKinematics(GeneralVariables& rVariables, 
+				     const double& rPointNumber);
 
-    void MakeCrossMatrix(
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
-        array_1d<double, 3>& U );
+    /**
+     * Calculation of the Vector Force of the Condition
+     */
+    virtual Vector& CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables);
 
-    void CrossProduct(
-        array_1d<double, 3>& cross,
-        array_1d<double, 3>& a,
-        array_1d<double, 3>& b );
 
-    void SubtractMatrix(
-        MatrixType& Destination,
-        boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
-        int InitialRow,
-        int InitialCol );
+    /**
+     * Calculation of the Integration Weight
+     */
+    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
 
-    void ExpandReducedMatrix(
-        Matrix& Destination,
-        Matrix& ReducedMatrix );
 
-    void CalculateAndAddFacePressure(
-        VectorType& rF,
-        const Vector& rN,
-        const array_1d<double, 3 > & rNormal,
-        double rPressure,
-        double rIntegrationWeight);
+    /**
+     * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
+     */
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+				     GeneralVariables& rVariables,
+				     double& rIntegrationWeight);
 
-    void CalculateAndAddSurfaceLoad(
-        Vector& rF,
-        const Vector& rN,
-        Vector& rForce,
-        double  rIntegrationWeight );
+
+    //utilities::
+
+    void MakeCrossMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3>& M,
+			 Vector& U );
+
+    void CrossProduct(Vector& cross,
+		      Vector& a,
+		      Vector& b );
+
+
+    void SubtractMatrix(MatrixType& Destination,
+			boost::numeric::ublas::bounded_matrix<double, 3, 3>& InputMatrix,
+			int InitialRow,
+			int InitialCol );
+
+
+    void ExpandReducedMatrix(Matrix& Destination,
+			     Matrix& ReducedMatrix );
+
 
     ///@}
     ///@name Protected  Access
@@ -253,12 +243,12 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ForceLoadCondition );
     }
 
     virtual void load( Serializer& rSerializer )
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ForceLoadCondition );
     }
 
 

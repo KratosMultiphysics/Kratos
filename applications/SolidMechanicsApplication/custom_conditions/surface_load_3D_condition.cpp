@@ -13,11 +13,9 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/surface_load_3D_condition.hpp"
-#include "custom_utilities/solid_mechanics_math_utilities.hpp"
-
 #include "solid_mechanics_application.h"
+#include "custom_utilities/solid_mechanics_math_utilities.hpp"
 
 namespace Kratos
 {
@@ -25,7 +23,7 @@ namespace Kratos
 //***********************************************************************************
 //***********************************************************************************
 SurfaceLoad3DCondition::SurfaceLoad3DCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : Condition(NewId, pGeometry)
+    : ForceLoadCondition(NewId, pGeometry)
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -33,7 +31,7 @@ SurfaceLoad3DCondition::SurfaceLoad3DCondition(IndexType NewId, GeometryType::Po
 //***********************************************************************************
 //***********************************************************************************
 SurfaceLoad3DCondition::SurfaceLoad3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties)
+    : ForceLoadCondition(NewId, pGeometry, pProperties)
 {
     //DO NOT ADD DOFS HERE!!!
 }
@@ -41,19 +39,25 @@ SurfaceLoad3DCondition::SurfaceLoad3DCondition(IndexType NewId, GeometryType::Po
 //************************************************************************************
 //************************************************************************************
 SurfaceLoad3DCondition::SurfaceLoad3DCondition( SurfaceLoad3DCondition const& rOther )
-    : Condition(rOther)
+    : ForceLoadCondition(rOther)
 {
 }
 
 //***********************************************************************************
 //***********************************************************************************
-Condition::Pointer SurfaceLoad3DCondition::Create(
-    IndexType NewId,
-    NodesArrayType const& ThisNodes,
-    PropertiesType::Pointer pProperties) const
+Condition::Pointer SurfaceLoad3DCondition::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     return Condition::Pointer(new SurfaceLoad3DCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
+
+
+//************************************CLONE*******************************************
+//************************************************************************************
+Condition::Pointer SurfaceLoad3DCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+{
+  return (this->Create( NewId, rThisNodes, pGetProperties() ) );
+}
+
 
 //***********************************************************************************
 //***********************************************************************************
@@ -61,240 +65,190 @@ SurfaceLoad3DCondition::~SurfaceLoad3DCondition()
 {
 }
 
-//***********************************************************************************
-//***********************************************************************************
+//************* GETTING METHODS
 
-void SurfaceLoad3DCondition::EquationIdVector(
-    EquationIdVectorType& rResult,
-    ProcessInfo& rCurrentProcessInfo)
+//************************************************************************************
+//************************************************************************************
+
+void SurfaceLoad3DCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY
-    unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int conditiondimension = number_of_nodes * 3;
 
-    if (rResult.size() != conditiondimension)
-        rResult.resize(conditiondimension);
+  ForceLoadCondition::InitializeGeneralVariables(rVariables, rCurrentProcessInfo);
+  
+  //Initialize Surface Variables
+  rVariables.Tangent1 = ZeroVector(3);
+  rVariables.Tangent2 = ZeroVector(3);
+  rVariables.Normal   = ZeroVector(3);
 
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
-        index = i * 3;
-        rResult[index] = GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId();
-        rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId();
-        rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
-    }
-    KRATOS_CATCH("")
-}
-
-//***********************************************************************************
-//***********************************************************************************
-
-void SurfaceLoad3DCondition::GetDofList(
-    DofsVectorType& ElementalDofList,
-    ProcessInfo& rCurrentProcessInfo)
-{
-    ElementalDofList.resize(0);
-
-    for (unsigned int i = 0; i < GetGeometry().size(); i++)
-    {
-        ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-        ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-        ElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-    }
-}
-
-//***********************************************************************************
-//***********************************************************************************
-
-
-//***********************************************************************************
-//***********************************************************************************
-
-void SurfaceLoad3DCondition::CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
-{
-    //calculation flags
-    bool CalculateStiffnessMatrixFlag = false;
-    bool CalculateResidualVectorFlag = true;
-    MatrixType temp = Matrix();
-
-    CalculateConditionalSystem(temp, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
-}
-
-//***********************************************************************************
-//***********************************************************************************
-
-void SurfaceLoad3DCondition::CalculateLocalSystem(
-    MatrixType& rLeftHandSideMatrix,
-    VectorType& rRightHandSideVector,
-    ProcessInfo& rCurrentProcessInfo)
-{
-    //calculation flags
-    bool CalculateStiffnessMatrixFlag = true;
-    bool CalculateResidualVectorFlag = true;
-
-    CalculateConditionalSystem(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculateStiffnessMatrixFlag, CalculateResidualVectorFlag);
+  //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
+  rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
 }
 
-//***********************************************************************************
-//***********************************************************************************
+//*********************************COMPUTE KINEMATICS*********************************
+//************************************************************************************
 
-void SurfaceLoad3DCondition::MassMatrix(
-    MatrixType& rMassMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+void SurfaceLoad3DCondition::CalculateKinematics(GeneralVariables& rVariables,
+					     const double& rPointNumber)
 {
     KRATOS_TRY
 
-    rMassMatrix.resize(0, 0, false);
+    //Get the parent coodinates derivative [dN/d£]
+    const GeometryType::ShapeFunctionsGradientsType& DN_De = rVariables.GetShapeFunctionsGradients();
 
-    KRATOS_CATCH("")
+    //Get the shape functions for the order of the integration method [N]
+    const Matrix& Ncontainer = rVariables.GetShapeFunctions();
+
+    //get first vector of the plane
+    rVariables.Tangent1[0] = rVariables.j[rPointNumber](0, 0);
+    rVariables.Tangent1[1] = rVariables.j[rPointNumber](1, 0);
+    rVariables.Tangent1[2] = rVariables.j[rPointNumber](2, 0);
+
+    //get second vector of the plane
+    rVariables.Tangent2[0] = rVariables.j[rPointNumber](0, 1);
+    rVariables.Tangent2[1] = rVariables.j[rPointNumber](1, 1);
+    rVariables.Tangent2[2] = rVariables.j[rPointNumber](2, 1);
+
+    //Compute the  normal
+    CrossProduct( rVariables.Normal, rVariables.Tangent1, rVariables.Tangent2);
+
+    double Jacobian = norm_2(rVariables.Normal);
+
+    //Compute the unit normal and weighted tangents
+    if(Jacobian>0){
+      rVariables.Normal   /= Jacobian;
+      rVariables.Tangent1 /= Jacobian;
+      rVariables.Tangent2 /= Jacobian;
+    }
+ 
+    //Set Shape Functions Values for this integration point
+    rVariables.N =row( Ncontainer, rPointNumber);
+
+    //Set Shape Functions Derivatives [dN/d£] for this integration point
+    rVariables.DN_De = DN_De[rPointNumber];
+
+    //Get domain size
+    rVariables.DomainSize = GetGeometry().Area();
+    
+
+    KRATOS_CATCH( "" )
 }
 
+
 //***********************************************************************************
 //***********************************************************************************
 
-void SurfaceLoad3DCondition::DampMatrix(
-    MatrixType& rDampMatrix,
-    ProcessInfo& rCurrentProcessInfo)
+Vector& SurfaceLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables)
 {
     KRATOS_TRY
 
-    rDampMatrix.resize(0, 0, false);
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    //const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
-    KRATOS_CATCH("")
-}
+    //PRESSURE CONDITION:
+    rVectorForce = rVariables.Normal;
+    rVariables.Pressure = 0;
 
-
-//***********************************************************************************
-//***********************************************************************************
-
-void SurfaceLoad3DCondition::GetValuesVector(
-    Vector& values,
-    int Step)
-{
-    unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int MatSize = number_of_nodes * 3;
-    if (values.size() != MatSize)
-        values.resize(MatSize, false);
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < number_of_nodes; i++)
+    for ( unsigned int j = 0; j < number_of_nodes; j++ )
     {
-        const array_1d<double, 3 > & disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
-        index = i * 3;
-        values[index] = disp[0];
-        values[index + 1] = disp[1];
-        values[index + 2] = disp[2];
-    }
-}
-
-//***********************************************************************************
-//***********************************************************************************
-
-void SurfaceLoad3DCondition::GetFirstDerivativesVector(
-    Vector& values,
-    int Step)
-{
-    unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int MatSize = number_of_nodes * 3;
-    if (values.size() != MatSize)
-        values.resize(MatSize, false);
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
-        const array_1d<double, 3 > & vel = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
-        index = i * 3;
-        values[index] = vel[0];
-        values[index + 1] = vel[1];
-        values[index + 2] = vel[2];
-    }
-
-}
-
-//***********************************************************************************
-//***********************************************************************************
-
-void SurfaceLoad3DCondition::GetSecondDerivativesVector(
-    Vector& values,
-    int Step)
-{
-    unsigned int number_of_nodes = GetGeometry().size();
-    unsigned int MatSize = number_of_nodes * 3;
-    if (values.size() != MatSize)
-        values.resize(MatSize, false);
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
-        const array_1d<double, 3 > & acc = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
-        index = i * 3;
-        values[index] = acc[0];
-        values[index + 1] = acc[1];
-        values[index + 2] = acc[2];
-    }
-}
-
-//***********************************************************************************
-//***********************************************************************************
-// --------- //
-//  PRIVATE  //
-// --------- //
-
-
-//***********************************************************************************
-//***********************************************************************************
-
-void SurfaceLoad3DCondition::CalculateAndSubKp(
-    Matrix& K,
-    array_1d<double, 3 > & ge,
-    array_1d<double, 3 > & gn,
-    const Matrix& DN_De,
-    const Vector& N,
-    double pressure,
-    double weight)
-{
-    KRATOS_TRY
-
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > Kij;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_ge;
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_gn;
-    double coeff;
-    unsigned int number_of_nodes = GetGeometry().size();
-
-    MakeCrossMatrix(Cross_ge, ge);
-    MakeCrossMatrix(Cross_gn, gn);
-    unsigned int RowIndex = 0;
-    unsigned int ColIndex = 0;
-
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
-        RowIndex = i * 3;
-        for (unsigned int j = 0; j < number_of_nodes; j++)
-        {
-            ColIndex = j * 3;
-
-            coeff = pressure * N[i] * DN_De(j, 1) * weight;
-            noalias(Kij) = coeff * Cross_ge;
-
-            coeff = pressure * N[i] * DN_De(j, 0) * weight;
-
-            noalias(Kij) -= coeff * Cross_gn;
-
-            //TAKE CARE: the load correction matrix should be SUBTRACTED not added
-            SubtractMatrix(K, Kij, RowIndex, ColIndex);
-        }
+      if( GetGeometry()[j].SolutionStepsDataHas( NEGATIVE_FACE_PRESSURE) && GetGeometry()[j].SolutionStepsDataHas( POSITIVE_FACE_PRESSURE) ) //temporary, will be checked once at the beginning only
+	rVariables.Pressure += rVariables.N[j] * ( GetGeometry()[j].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) - GetGeometry()[j].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE ) );
+      
     }
     
-    KRATOS_CATCH("")
+    rVectorForce *= rVariables.Pressure;
+
+    //FORCE CONDITION:
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+      {
+	if( GetGeometry()[i].SolutionStepsDataHas( FACE_LOAD ) ) //temporary, will be checked once at the beginning only
+	  rVectorForce += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( FACE_LOAD );
+      }
+
+
+    //KRATOS_WATCH(rVectorForce)
+
+      
+    return rVectorForce;
+
+    KRATOS_CATCH( "" )
 }
 
+
+//************* COMPUTING  METHODS
+//************************************************************************************
+//************************************************************************************
+
+double& SurfaceLoad3DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
+{
+
+    rIntegrationWeight *= ( GetGeometry().Area() * 2.0 );
+    
+    return rIntegrationWeight;
+}
+
+
 //***********************************************************************************
 //***********************************************************************************
 
-void SurfaceLoad3DCondition::MakeCrossMatrix(
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > & M,
-    array_1d<double, 3 > & U)
+void SurfaceLoad3DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+						 GeneralVariables& rVariables,
+						 double& rIntegrationWeight)
+
+{
+    KRATOS_TRY
+
+    if( rVariables.Pressure == 0 )
+      {
+	rLeftHandSideMatrix = ZeroMatrix( 9, 9 );
+      }
+    else
+      {
+	
+	boost::numeric::ublas::bounded_matrix<double, 3, 3 > Kij;
+	boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_ge;
+	boost::numeric::ublas::bounded_matrix<double, 3, 3 > Cross_gn;
+
+	double coeff;
+	const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+
+	MakeCrossMatrix(Cross_ge, rVariables.Tangent1);
+
+	MakeCrossMatrix(Cross_gn, rVariables.Tangent2);
+
+	unsigned int RowIndex = 0;
+	unsigned int ColIndex = 0;
+
+	for (unsigned int i = 0; i < number_of_nodes; i++)
+	  {
+	    RowIndex = i * 3;
+	    for (unsigned int j = 0; j < number_of_nodes; j++)
+	      {
+		ColIndex = j * 3;
+
+		coeff = rVariables.Pressure * rVariables.N[i] * rVariables.DN_De(j, 1) * rIntegrationWeight;
+		noalias(Kij) = coeff * Cross_ge;
+
+		coeff = rVariables.Pressure * rVariables.N[i] * rVariables.DN_De(j, 0) * rIntegrationWeight;
+
+		noalias(Kij) -= coeff * Cross_gn;
+
+		//TAKE CARE: the load correction matrix should be SUBTRACTED not added
+		SubtractMatrix( rLeftHandSideMatrix, Kij, RowIndex, ColIndex );
+	      }
+	  }
+
+      }
+
+    KRATOS_CATCH( "" )
+}
+
+
+//***********************************************************************************
+//***********************************************************************************
+
+void SurfaceLoad3DCondition::MakeCrossMatrix(boost::numeric::ublas::bounded_matrix<double, 3, 3 > & M, 
+					 Vector& U)
 {
     M(0, 0) = 0.00;
     M(0, 1) = -U[2];
@@ -310,10 +264,9 @@ void SurfaceLoad3DCondition::MakeCrossMatrix(
 //***********************************************************************************
 //***********************************************************************************
 
-void SurfaceLoad3DCondition::CrossProduct(
-    array_1d<double, 3 > & cross,
-    array_1d<double, 3 > & a,
-    array_1d<double, 3 > & b)
+void SurfaceLoad3DCondition::CrossProduct(Vector & cross,
+				      Vector & a,
+				      Vector & b)
 {
     cross[0] = a[1] * b[2] - a[2] * b[1];
     cross[1] = a[2] * b[0] - a[0] * b[2];
@@ -323,9 +276,8 @@ void SurfaceLoad3DCondition::CrossProduct(
 //***********************************************************************************
 //***********************************************************************************
 
-void SurfaceLoad3DCondition::ExpandReducedMatrix(
-    Matrix& Destination,
-    Matrix& ReducedMatrix)
+void SurfaceLoad3DCondition::ExpandReducedMatrix(Matrix& Destination,
+					     Matrix& ReducedMatrix)
 {
     KRATOS_TRY
 
@@ -350,11 +302,10 @@ void SurfaceLoad3DCondition::ExpandReducedMatrix(
 //***********************************************************************************
 //***********************************************************************************
 
-void SurfaceLoad3DCondition::SubtractMatrix(
-    MatrixType& Destination,
-    boost::numeric::ublas::bounded_matrix<double, 3, 3 > & InputMatrix,
-    int InitialRow,
-    int InitialCol)
+void SurfaceLoad3DCondition::SubtractMatrix(MatrixType& Destination,
+					boost::numeric::ublas::bounded_matrix<double, 3, 3 > & InputMatrix,
+					int InitialRow,
+					int InitialCol)
 {
     KRATOS_TRY
 
@@ -366,197 +317,9 @@ void SurfaceLoad3DCondition::SubtractMatrix(
 }
 
 
-
-
 //***********************************************************************************
 //***********************************************************************************
 
-void SurfaceLoad3DCondition::CalculateAndAddFacePressure(
-    VectorType& rF,
-    const Vector& rN,
-    const array_1d<double, 3 > & rNormal,
-    double rPressure,
-    double rIntegrationWeight)
-{
-    KRATOS_TRY
-
-    unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension  = 3;
-
-    unsigned int index = 0;
-    for (unsigned int i = 0; i < number_of_nodes; i++)
-    {
-        
-        index = dimension * i;
-        double  DiscretePressure = rPressure * rN[i] * rIntegrationWeight;
-        rF[index]     += DiscretePressure * rNormal[0];
-        rF[index + 1] += DiscretePressure * rNormal[1];
-        rF[index + 2] += DiscretePressure * rNormal[2];
-
-	GetGeometry()[i].SetLock();
-        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
-        ExternalForce[0] += DiscretePressure * rNormal[0];
-        ExternalForce[1] += DiscretePressure * rNormal[1];
-        ExternalForce[2] += DiscretePressure * rNormal[2];
-	GetGeometry()[i].UnSetLock();
-    }
-
-    KRATOS_CATCH("")
-}
-
-
-//***********************************************************************
-//***********************************************************************
-
-void SurfaceLoad3DCondition::CalculateAndAddSurfaceLoad(Vector& rF,
-        const Vector& rN,
-        Vector& rForce,
-        double  rIntegrationWeight )
-{
-
-    KRATOS_TRY
-
-    unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension  = 3;
-    unsigned int index = 0;
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        index = dimension * i;
-
-        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
-
-	GetGeometry()[i].SetLock();
-        for ( unsigned int idim = 0; idim < dimension; idim++ )
-        {
-            rF[index+idim] += rN[i] * rForce[idim] * rIntegrationWeight;
-
-            ExternalForce[idim] += rN[i] * rForce[idim] * rIntegrationWeight;
-        }
-	GetGeometry()[i].UnSetLock();
-    }
-
-    KRATOS_CATCH("")
-}
-
-//***********************************************************************************
-//***********************************************************************************
-
-void SurfaceLoad3DCondition::CalculateConditionalSystem(MatrixType& rLeftHandSideMatrix,
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo,
-        bool CalculateStiffnessMatrixFlag,
-        bool CalculateResidualVectorFlag)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().size();
-    const unsigned int dimension = 3;
-    unsigned int MatSize = number_of_nodes * dimension;
-    //resizing as needed the LHS
-    if (CalculateStiffnessMatrixFlag == true) //calculation of the matrix is required
-    {
-        if (rLeftHandSideMatrix.size1() != MatSize)
-            rLeftHandSideMatrix.resize(MatSize, MatSize, false);
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(MatSize, MatSize); //resetting LHS
-    }
-
-    //resizing as needed the RHS
-    if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
-    {
-        if (rRightHandSideVector.size() != MatSize)
-            rRightHandSideVector.resize(MatSize, false);
-        rRightHandSideVector = ZeroVector(MatSize); //resetting RHS
-    }
-
-    //reading integration points and local gradients
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
-    const GeometryType::ShapeFunctionsGradientsType& DN_DeContainer = GetGeometry().ShapeFunctionsLocalGradients();
-    const Matrix& Ncontainer = GetGeometry().ShapeFunctionsValues();
-
-    //calculating actual jacobian
-    GeometryType::JacobiansType J;
-    J = GetGeometry().Jacobian(J);
-
-    //PRESSURE CONDITION:
-    Vector PressureOnNodes(number_of_nodes);
-    PressureOnNodes = ZeroVector(number_of_nodes);
-
-    double PressureCondition = 0;
-    //PressureCondition = GetValue( PRESSURE );
-
-    for (unsigned int i = 0; i < PressureOnNodes.size(); i++)
-    {
-        PressureOnNodes[i] = PressureCondition;
-        PressureOnNodes[i]+= GetGeometry()[i].FastGetSolutionStepValue( NEGATIVE_FACE_PRESSURE ) - GetGeometry()[i].FastGetSolutionStepValue( POSITIVE_FACE_PRESSURE );
-    }
-
-
-    //FORCE CONDITION:
-    std::vector<array_1d<double,3> > ForceArray (number_of_nodes);
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        ForceArray[i]=GetGeometry()[i].FastGetSolutionStepValue( FACE_LOAD );
-    }
-
-    //Plane definition:
-    array_1d<double, 3 > ge; //tangent 1
-    array_1d<double, 3 > gn; //tangent 2
-
-    array_1d<double, 3 > NormalVector;
-
-    for (unsigned int PointNumber = 0; PointNumber < integration_points.size(); PointNumber++)
-    {
-        double IntegrationWeight = GetGeometry().IntegrationPoints()[PointNumber].Weight();
-
-        ge[0] = J[PointNumber](0, 0);
-        gn[0] = J[PointNumber](0, 1);
-        ge[1] = J[PointNumber](1, 0);
-        gn[1] = J[PointNumber](1, 1);
-        ge[2] = J[PointNumber](2, 0);
-        gn[2] = J[PointNumber](2, 1);
-
-        CrossProduct(NormalVector, ge, gn);
-        //NormalVector /= norm_2(NormalVector);
-//         KRATOS_WATCH(NormalVector);
-
-        // calculating the pressure and force on the gauss point
-        double gauss_pressure = 0.00;
-        Vector ForceLoad = ZeroVector(dimension);
-
-        for (unsigned int ii = 0; ii < number_of_nodes; ii++)
-        {
-            gauss_pressure += Ncontainer(PointNumber, ii) * PressureOnNodes[ii];
-            for ( unsigned int j = 0; j < dimension; j++ )
-            {
-                ForceLoad[j] += Ncontainer( PointNumber, ii ) * ForceArray[ii][j];
-            }
-        }
-
-        // LEFT HAND SIDE MATRIX
-        if (CalculateStiffnessMatrixFlag == true)
-        {
-            if (gauss_pressure != 0.00)
-                CalculateAndSubKp(rLeftHandSideMatrix, ge, gn, DN_DeContainer[PointNumber], row(Ncontainer, PointNumber), gauss_pressure, IntegrationWeight);
-        }
-
-        // RIGHT HAND SIDE VECTOR
-        if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
-        {
-            if (gauss_pressure != 0.00)
-                CalculateAndAddFacePressure(rRightHandSideVector, row(Ncontainer, PointNumber),
-                                            NormalVector, gauss_pressure, IntegrationWeight);
-
-            if (norm_2(ForceLoad) != 0.00)
-                CalculateAndAddSurfaceLoad(rRightHandSideVector, row(Ncontainer, PointNumber),
-                                           ForceLoad, IntegrationWeight);
-        }
-    }
-//     std::cout << this->Id() << rRightHandSideVector << std::endl;
-
-    KRATOS_CATCH("")
-}
 
 int SurfaceLoad3DCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 {

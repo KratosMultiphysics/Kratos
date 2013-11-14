@@ -20,55 +20,51 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
-
 ///@}
 ///@name Type Definitions
 ///@{
-
 ///@}
 ///@name  Enum's
 ///@{
-
 ///@}
 ///@name  Functions
 ///@{
-
 ///@}
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/// Force Load Condition for 3D and 2D geometries. (base class)
 
+/**
+ * Implements a Force Load definition for structural analysis.
+ * This works for arbitrary geometries in 3D and 2D (base class)
+ */
 class LineLoadAxisym2DCondition
     : public LineLoad2DCondition
 {
 public:
+
     ///@name Type Definitions
     ///@{
-
-    /// Counted pointer of LineLoadAxisym2DCondition
+    // Counted pointer of LineLoadAxisym2DCondition
     KRATOS_CLASS_POINTER_DEFINITION( LineLoadAxisym2DCondition );
-
     ///@}
+
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
     LineLoadAxisym2DCondition( IndexType NewId, GeometryType::Pointer pGeometry );
-    LineLoadAxisym2DCondition( IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties );
+
+    LineLoadAxisym2DCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties );
 
     /// Copy constructor
     LineLoadAxisym2DCondition( LineLoadAxisym2DCondition const& rOther);
 
-
-    /// Destructor.
+    /// Destructor
     virtual ~LineLoadAxisym2DCondition();
-
 
     ///@}
     ///@name Operators
@@ -79,7 +75,32 @@ public:
     ///@name Operations
     ///@{
 
-    Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
+    /**
+     * creates a new condition pointer
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Create(IndexType NewId,
+			      NodesArrayType const& ThisNodes,
+			      PropertiesType::Pointer pProperties ) const;
+
+
+    /**
+     * clones the selected condition variables, creating a new one
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone(IndexType NewId, 
+			     NodesArrayType const& ThisNodes) const;
+
+
+
+    //************* COMPUTING  METHODS
+
 
     /**
      * This function provides the place to perform checks on the completeness of the input.
@@ -88,71 +109,65 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    //virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+    virtual int Check( const ProcessInfo& rCurrentProcessInfo );
+
     ///@}
     ///@name Access
     ///@{
-
-
     ///@}
     ///@name Inquiry
     ///@{
-
-
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-//      virtual String Info() const;
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "Line Load Axisym 2D Condition #" << Id();
-    }
-
-
-    /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
-
     ///@}
     ///@name Friends
     ///@{
-
-
     ///@}
 
 protected:
     ///@name Protected static Member Variables
     ///@{
-
     ///@}
     ///@name Protected member Variables
     ///@{
-
-
+    LineLoadAxisym2DCondition() {};
     ///@}
     ///@name Protected Operators
     ///@{
-
-
     ///@}
     ///@name Protected Operations
     ///@{
 
-    void CalculateConditionalSystem( MatrixType& rLeftHandSideMatrix,
-                                     VectorType& rRightHandSideVector,
-                                     ProcessInfo& rCurrentProcessInfo,
-                                     bool CalculateStiffnessMatrixFlag,
-                                     bool CalculateResidualVectorFlag );
 
+    /**
+     * Calculate Condition Kinematics
+     */
+    virtual void CalculateKinematics(GeneralVariables& rVariables, 
+				     const double& rPointNumber);
 
+    /**
+     * Calculation and addition of the matrices of the LHS
+     */
+    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                                    GeneralVariables& rVariables,
+                                    double& rIntegrationWeight);
 
+    /**
+     * Calculation and addition of the vectors of the RHS
+     */
+    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+                                    GeneralVariables& rVariables,
+                                    Vector& rVolumeForce,
+                                    double& rIntegrationWeight);
+
+    /**
+     * Calculation of the contidion radius (axisymmetry)
+     */
     void CalculateRadius(double & rCurrentRadius,
-                         double & rReferenceRadius,
-                         const Vector& rN);
+			 double & rReferenceRadius,
+			 const Vector& rN);
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -179,11 +194,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    /**
-     * Currently selected integration methods
-     */
-    IntegrationMethod mThisIntegrationMethod;
-
     ///@}
     ///@name Private Operators
     ///@{
@@ -209,64 +219,19 @@ private:
 
     friend class Serializer;
 
-    // A private default constructor necessary for serialization
-    LineLoadAxisym2DCondition() {};
-
     virtual void save( Serializer& rSerializer ) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoad2DCondition );
     }
 
     virtual void load( Serializer& rSerializer )
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoad2DCondition );
     }
 
 
-    ///@}
-    ///@name Un accessible methods
-    ///@{
+}; // class LineLoadAxisym2DCondition.
 
-    /// Assignment operator.
-    //LineLoadAxisym2DCondition& operator=(const LineLoadAxisym2DCondition& rOther);
+} // namespace Kratos.
 
-    /// Copy constructor.
-    //LineLoadAxisym2DCondition(const LineLoadAxisym2DCondition& rOther);
-
-
-    ///@}
-
-}; // Class LineLoadAxisym2DCondition
-
-///@}
-
-///@name Type Definitions
-///@{
-
-
-///@}
-///@name Input and output
-///@{
-
-
-/// input stream function
-/*  inline std::istream& operator >> (std::istream& rIStream,
-        LineLoadAxisym2DCondition& rThis);
-*/
-/// output stream function
-/*  inline std::ostream& operator << (std::ostream& rOStream,
-        const LineLoadAxisym2DCondition& rThis)
-    {
-      rThis.PrintInfo(rOStream);
-      rOStream << std::endl;
-      rThis.PrintData(rOStream);
-
-      return rOStream;
-    }*/
-///@}
-
-}  // namespace Kratos.
-
-#endif // KRATOS_LINE_LOAD_2D_CONDITION_H_INCLUDED  defined 
-
-
+#endif // KRATOS_LINE_LOAD_AXISYM_2D_CONDITION_H_INCLUDED defined 

@@ -13,127 +13,196 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_conditions/point_load_3D_condition.hpp"
-#include "utilities/math_utils.h"
+
 #include "solid_mechanics_application.h"
 
 namespace Kratos
 {
-//************************************************************************************
-//************************************************************************************
-PointLoad3DCondition::PointLoad3DCondition(IndexType NewId, GeometryType::Pointer
-        pGeometry)
-    : Condition(NewId, pGeometry)
+
+
+//***********************************************************************************
+//***********************************************************************************
+PointLoad3DCondition::PointLoad3DCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : ForceLoadCondition(NewId, pGeometry)
 {
+    //DO NOT ADD DOFS HERE!!!
+}
+
+//***********************************************************************************
+//***********************************************************************************
+PointLoad3DCondition::PointLoad3DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : ForceLoadCondition(NewId, pGeometry, pProperties)
+{
+
+    mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+
     //DO NOT ADD DOFS HERE!!!
 }
 
 //************************************************************************************
 //************************************************************************************
-PointLoad3DCondition::PointLoad3DCondition(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties)
-{
-}
-
-//************************************************************************************
-//************************************************************************************
 PointLoad3DCondition::PointLoad3DCondition( PointLoad3DCondition const& rOther )
-    : Condition(rOther)
+    : ForceLoadCondition(rOther)     
 {
 }
 
-//************************************************************************************
-//************************************************************************************
-Condition::Pointer PointLoad3DCondition::Create(IndexType NewId, NodesArrayType
-        const& ThisNodes,  PropertiesType::Pointer pProperties) const
+//***********************************************************************************
+//***********************************************************************************
+Condition::Pointer PointLoad3DCondition::Create(
+    IndexType NewId,
+    NodesArrayType const& ThisNodes,
+    PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new PointLoad3DCondition(NewId,
-                              GetGeometry().Create(ThisNodes), pProperties));
+    return Condition::Pointer(new PointLoad3DCondition(NewId, GetGeometry().Create(ThisNodes), pProperties));
 }
 
+
+//************************************CLONE*******************************************
 //************************************************************************************
-//************************************************************************************
+
+Condition::Pointer PointLoad3DCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+{
+  return (this->Create( NewId, rThisNodes, pGetProperties() ) );
+}
+
+
+//***********************************************************************************
+//***********************************************************************************
 PointLoad3DCondition::~PointLoad3DCondition()
 {
 }
 
-//************************************************************************************
-//************************************************************************************
-void PointLoad3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-    if(rRightHandSideVector.size() != 3)
-        rRightHandSideVector.resize(3,false);
-
-    array_1d<double,3>& force = GetGeometry()[0].GetSolutionStepValue(FORCE);
-    rRightHandSideVector[0] = force[0];
-    rRightHandSideVector[1] = force[1];
-    rRightHandSideVector[2] = force[2];
-
-    array_1d<double, 3 > & ExternalForce = GetGeometry()[0].FastGetSolutionStepValue(FORCE_EXTERNAL);
-    GetGeometry()[0].SetLock();
-    ExternalForce+=force;
-    GetGeometry()[0].UnSetLock();
-
-
-    KRATOS_CATCH("")
-}
 
 //************************************************************************************
 //************************************************************************************
-void PointLoad3DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo)
+
+void PointLoad3DCondition::InitializeGeneralVariables(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    if(rLeftHandSideMatrix.size1() != 3)
-        rLeftHandSideMatrix.resize(3,3,false);
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(3,3);
+    rVariables.DomainSize = 1;
+    rVariables.N = ZeroVector(1);
+    
+    //Only one node:
+    rVariables.N[0] = 1;
 
-    if(rRightHandSideVector.size() != 3)
-        rRightHandSideVector.resize(3,false);
+    KRATOS_CATCH( "" )
 
-    array_1d<double,3>& force = GetGeometry()[0].GetSolutionStepValue(FORCE);
-    rRightHandSideVector[0] = force[0];
-    rRightHandSideVector[1] = force[1];
-    rRightHandSideVector[2] = force[2];
-    KRATOS_CATCH("")
 }
 
 
-//************************************************************************************
-//************************************************************************************
-void PointLoad3DCondition::EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& CurrentProcessInfo)
+//***********************************************************************************
+//***********************************************************************************
+
+Vector& PointLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables)
 {
-    int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int index;
-    unsigned int dim = 3;
-    rResult.resize(number_of_nodes*dim);
-    for (int i=0; i<number_of_nodes; i++)
-    {
-        index = i*dim;
-        rResult[index] = (GetGeometry()[i].GetDof(DISPLACEMENT_X).EquationId());
-        rResult[index+1] = (GetGeometry()[i].GetDof(DISPLACEMENT_Y).EquationId());
-        rResult[index+2] = (GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId());
-    }
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().size();
+
+    //PRESSURE CONDITION:
+    rVectorForce = ZeroVector(3);
+   
+    //FORCE CONDITION:
+    for (unsigned int i = 0; i < number_of_nodes; i++)
+      {
+	if( GetGeometry()[i].SolutionStepsDataHas( FACE_LOAD ) ) //temporary, will be checked once at the beginning only
+	  rVectorForce += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( FORCE );
+      }
+
+    return rVectorForce;
+
+    KRATOS_CATCH( "" )
 }
 
+
+//*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
-//************************************************************************************
-void PointLoad3DCondition::GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo& CurrentProcessInfo)
+
+void PointLoad3DCondition::CalculateKinematics(GeneralVariables& rVariables,
+					       const double& rPointNumber)
 {
-    unsigned int dim = 3;
-    ConditionalDofList.resize(GetGeometry().size()*dim);
-    unsigned int index;
-    for (unsigned int i=0; i<GetGeometry().size(); i++)
-    {
-        index = i*dim;
-        ConditionalDofList[index] = (GetGeometry()[i].pGetDof(DISPLACEMENT_X));
-        ConditionalDofList[index+1] = (GetGeometry()[i].pGetDof(DISPLACEMENT_Y));
-        ConditionalDofList[index+2] = (GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
-    }
+    KRATOS_TRY
+
+    KRATOS_CATCH( "" )
 }
-} // Namespace Kratos
 
 
+//************************************************************************************
+//************************************************************************************
 
+void PointLoad3DCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
+						    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    //create and initialize condition variables:
+    GeneralVariables Variables;
+    this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
+
+    //reading integration points
+
+    //force terms
+    Vector VectorForce;
+
+    for ( unsigned int PointNumber = 0; PointNumber < 1; PointNumber++ )
+    {
+        //compute element kinematics B, F, DN_DX ...
+        this->CalculateKinematics(Variables,PointNumber);
+
+        //calculating weights for integration on the "reference configuration"
+        double IntegrationWeight = 1;
+        IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
+
+        if ( rLocalSystem.CalculationFlags.Is(PointLoad3DCondition::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+        {
+            //contributions to stiffness matrix calculated on the reference config
+	    this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
+        }
+
+        if ( rLocalSystem.CalculationFlags.Is(PointLoad3DCondition::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+        {
+            //contribution to external forces
+   	    VectorForce  = this->CalculateVectorForce( VectorForce, Variables );
+	 
+	    this->CalculateAndAddRHS ( rLocalSystem, Variables, VectorForce, IntegrationWeight );
+        }
+
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+
+//************* COMPUTING  METHODS
+//************************************************************************************
+//************************************************************************************
+
+//***********************************************************************************
+//************************************************************************************
+
+double& PointLoad3DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
+{
+    // const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    // if( dimension == 2 )
+    //   rIntegrationWeight *= GetProperties()[THICKNESS];
+
+    return rIntegrationWeight;
+}
+
+
+//***********************************************************************************
+//***********************************************************************************
+
+
+int PointLoad3DCondition::Check( const ProcessInfo& rCurrentProcessInfo )
+{
+    return 0;
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
+} // Namespace Kratos.

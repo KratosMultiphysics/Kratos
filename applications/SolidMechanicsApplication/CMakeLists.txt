@@ -64,6 +64,7 @@ set( KRATOS_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/updated_lagrangian_U_P_element.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisym_spatial_lagrangian_U_P_element.cpp
 
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/force_load_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_moment_3D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_2D_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/point_load_axisym_2D_condition.cpp

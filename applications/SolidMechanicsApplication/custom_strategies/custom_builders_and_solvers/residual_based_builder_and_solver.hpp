@@ -531,10 +531,11 @@ public:
         //does nothing...dirichlet conditions are naturally dealt with in defining the residual
         ApplyDirichletConditions(pScheme, r_model_part, A, Dx, b);
 
-        if (this->GetEchoLevel() == 3)
+        if (this->GetEchoLevel() >= 2)
         {
             std::cout << "Before solving the system :" << std::endl;
-            std::cout << "System Matrix   = " << A << std::endl;
+	    if (this->GetEchoLevel() == 3)
+	      std::cout << "System Matrix   = " << A << std::endl;
             std::cout << "Unknowns vector = " << Dx << std::endl;
             std::cout << "RHS vector      = " << b << std::endl;
         }
@@ -550,10 +551,11 @@ public:
         // 			{
         // 				std::cout << "System Solve Time : " << solve_time.elapsed() << std::endl;
         // 			}
-        if (this->GetEchoLevel() == 3)
+        if (this->GetEchoLevel() >= 2)
         {
             std::cout << "After solving the system:" << std::endl;
-            std::cout << "System Matrix   = " << A << std::endl;
+	    if (this->GetEchoLevel() == 3)
+	      std::cout << "System Matrix   = " << A << std::endl;
             std::cout << "Unknowns vector = " << Dx << std::endl;
             std::cout << "RHS vector      = " << b << std::endl;
         }
@@ -1336,7 +1338,7 @@ protected:
         std::vector< omp_lock_t >& lock_array
     )
     {
-        unsigned int local_size = LHS_Contribution.size1();
+        unsigned int local_size = RHS_Contribution.size();
 
         for (unsigned int i_local = 0; i_local < local_size; i_local++)
         {
@@ -1347,6 +1349,7 @@ protected:
                 omp_set_lock(&lock_array[i_global]);
 
                 b[i_global] += RHS_Contribution(i_local);
+
                 for (unsigned int j_local = 0; j_local < local_size; j_local++)
                 {
                     unsigned int j_global = EquationId[j_local];
