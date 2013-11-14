@@ -1823,6 +1823,8 @@ public:
 
         // Creating the ray
         double ray[3] = {coords[0], coords[1], coords[2]};
+        
+        mOctree.NormalizeCoordinates(ray);
         ray[i_direction] = 0; // starting from the lower extreme
 
         //            KRATOS_WATCH_3(ray)
@@ -1962,6 +1964,8 @@ public:
         {
             // Creating the ray
             double ray[3] = {coords[0], coords[1], coords[2]};
+            
+            mOctree.NormalizeCoordinates(ray);
             ray[i_direction] = 0; // starting from the lower extreme
 
             GetIntersections(ray, i_direction, intersections);
