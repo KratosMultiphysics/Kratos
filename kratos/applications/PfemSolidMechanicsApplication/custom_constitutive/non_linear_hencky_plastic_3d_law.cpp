@@ -113,7 +113,8 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
 
     //4.-Left Cauchy-Green tensor b (without bar) to the new configuration
     Matrix IncrementalDeformationGradient;
-    IncrementalDeformationGradient = prod(DeformationGradientFbar, trans(DeformationGradientFbar));
+//    IncrementalDeformationGradient = prod(DeformationGradientFbar, trans(DeformationGradientFbar));
+    IncrementalDeformationGradient = DeformationGradientFbar;
     
 
 /*    //4.-Left Cauchy-Green tensor b_bar to the new configuration
@@ -192,6 +193,7 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
         {
 //            ConstitutiveMatrix = SplitConstitutiveMatrix.Volumetric;
         }
+
     }
 
 
