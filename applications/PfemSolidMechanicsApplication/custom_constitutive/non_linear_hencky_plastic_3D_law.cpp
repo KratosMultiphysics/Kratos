@@ -8,7 +8,7 @@
 #include "includes/properties.h"
 #include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
 
-#include "../PfemSolidMechanicsApplication/custom_constitutive/non_linear_hencky_plastic_3d_law.hpp"
+#include "../PfemSolidMechanicsApplication/custom_constitutive/non_linear_hencky_plastic_3D_law.hpp"
 
 #include "solid_mechanics_application.h"
 //Molt important, el tema de constructors... etc
