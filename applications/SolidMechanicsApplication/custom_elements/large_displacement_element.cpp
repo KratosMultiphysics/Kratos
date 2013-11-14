@@ -47,6 +47,8 @@ LargeDisplacementElement::LargeDisplacementElement( IndexType NewId, GeometryTyp
     : Element( NewId, pGeometry, pProperties )
 {
     mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+
+    //DO NOT ADD DOFS HERE!!!
 }
 
 
