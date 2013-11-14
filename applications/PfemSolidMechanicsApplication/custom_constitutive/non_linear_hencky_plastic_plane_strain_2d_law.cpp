@@ -23,12 +23,14 @@ NonLinearHenckyElasticPlasticPlaneStrain2DLaw::NonLinearHenckyElasticPlasticPlan
 }
 
 NonLinearHenckyElasticPlasticPlaneStrain2DLaw::NonLinearHenckyElasticPlasticPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
-   : NonLinearHenckyElasticPlastic3DLaw( pFlowRule, pYieldCriterion, pHardeningLaw)
+   : NonLinearHenckyElasticPlastic3DLaw()
 {
 
 }
 
 
+
+// ************* COPY CONSTRUCTOR ******************
 NonLinearHenckyElasticPlasticPlaneStrain2DLaw::NonLinearHenckyElasticPlasticPlaneStrain2DLaw(const NonLinearHenckyElasticPlasticPlaneStrain2DLaw&  rOther)
   : NonLinearHenckyElasticPlastic3DLaw(rOther)
 {
@@ -94,7 +96,8 @@ Matrix NonLinearHenckyElasticPlasticPlaneStrain2DLaw::SetConstitutiveMatrixToApp
      Result(0, 2) = rElastoPlasticTangentMatrix(0, 3);
      Result(1, 2) = rElastoPlasticTangentMatrix(1, 3);
 
-     return rElastoPlasticTangentMatrix;
+
+     return Result;
 
 }
 
