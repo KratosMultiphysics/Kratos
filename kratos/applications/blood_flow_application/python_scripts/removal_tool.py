@@ -54,10 +54,10 @@ def DoRemoval(model_part):
 
     # mark for erasal nodes before inlet
     for i in range(0, len(config.inlets_1d)):
-        #print "nodes before inlet"
+        print "nodes before inlet"
         flag_id = config.inlets_1d[i][0]
         prop_id = config.inlets_1d[i][1]
-        # print "prop_id", prop_id
+        print "prop_id", prop_id
         # print GetNodeBefore(full_nodes_table.table, prop_id)
         # raw_input()
         node_before = model_part.Nodes[
@@ -78,9 +78,10 @@ def DoRemoval(model_part):
 
     # mark for erasal nodes after outlet
     for i in range(0, len(config.outlets_1d)):
-        #print "nodes after outlet"
+	print "nodes after outlet"
         flag_id = config.outlets_1d[i][0]
         prop_id = config.outlets_1d[i][1]
+        print "prop_id", prop_id
         node_end = model_part.Nodes[
             GetNodeEnd(full_nodes_table.table, prop_id)]
         node_after = model_part.Nodes[
@@ -93,7 +94,7 @@ def DoRemoval(model_part):
         node_after.SetSolutionStepValue(FLAG_VARIABLE, 0, flag_id)
         nodes_to_preserve.append(node_after)
         outlet_nodes.append(node_after)
-        # raw_input()
+        raw_input()
 
     # mark for deactivation the conditions which have all of their nodes
     # marked for erasal
@@ -192,8 +193,7 @@ def DoRemoval(model_part):
     #raw_input()
 
 
-def ComputePressure(model_part1D):
-    initial_pressure = 0
+def ComputePressure(model_part1D,dyastolic_pressure):
     for node in model_part1D.Nodes:
         # print node.Id
         beta = (
@@ -203,6 +203,6 @@ def ComputePressure(model_part1D):
         A0 = node.GetValue(NODAL_AREA)
         # print A0
         # press=outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)
-        press = initial_pressure + beta * (math.sqrt(A) - math.sqrt(A0)) / A0
+        press = dyastolic_pressure + beta * (math.sqrt(A) - math.sqrt(A0)) / A0
         # press = initial_pressure+beta*(math.sqrt(A/A0)) - beta
         node.SetSolutionStepValue(PRESSURE, 0, press)

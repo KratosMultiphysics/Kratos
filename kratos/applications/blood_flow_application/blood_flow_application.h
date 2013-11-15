@@ -35,6 +35,7 @@
 #include "custom_conditions/artery_inlet_condition_pressure.h"
 #include "custom_conditions/artery_outlet_condition.h"
 #include "custom_conditions/artery_outlet_condition_free.h"
+#include "custom_conditions/artery_resistence.h"
 
 
 namespace Kratos
@@ -210,6 +211,7 @@ namespace Kratos
         const ArteryInletCondition mArteryInletCondition;
         const ArteryInletConditionPressure mArteryInletConditionPressure;
         const ArteryOutletCondition mArteryOutletCondition;
+        const ArteryResistence mArteryResistence;
         const ArteryOutletFreeCondition mArteryOutletFreeCondition;
 
 // 		const Elem2D   mElem2D;

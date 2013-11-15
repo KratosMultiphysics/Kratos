@@ -122,11 +122,11 @@ public:
             //KRATOS_WATCH ("");
 
         //CheckSolution (ThisModelPart, 1);
-        //KRATOS_WATCH("2")
+//        KRATOS_WATCH("2")
         ComputeRHS( ThisModelPart );
-        //KRATOS_WATCH("3")
+//        KRATOS_WATCH("3")
         ComputeRHS_Actualize( ThisModelPart );
-        //KRATOS_WATCH("4")
+//        KRATOS_WATCH("4")
         //CheckSolution (ThisModelPart, 2);
         KRATOS_CATCH("")
     }
@@ -435,19 +435,20 @@ private:
         for(ModelPart::ElementsContainerType::iterator i = ThisModelPart.ElementsBegin();
                 i!=ThisModelPart.ElementsEnd(); i++)
         {
+
             i->CalculateRightHandSide(rhs_el,CurrentProcessInfo);
             //KRATOS_WATCH(rhs_el)
             //int id = i->Id();
             //KRATOS_WATCH (id);
-            i->CalculateRightHandSide(rhs_el,CurrentProcessInfo);
+            //i->CalculateRightHandSide(rhs_el,CurrentProcessInfo);
             //KRATOS_WATCH ('--------------------------------------------');
-
             //KRATOS_WATCH(rhs_el);
-
             Geometry< Node<3> >& geom = i->GetGeometry();
             for(unsigned int j=0; j<geom.size(); j++)
             {
                 int base = 2*j;
+//                int id = geom[j].Id();
+                //KRATOS_WATCH(id);
                 array_1d<double,3>& rhs_node = geom[j].FastGetSolutionStepValue(RHS);
                 //nodal_mass[j] = geom[j].FastGetSolutionStepValue(NODAL_MASS);
                 //double nodal_mass = geom[j].GetSolutionStepValue(NODAL_MASS);
@@ -461,8 +462,18 @@ private:
                  rhs_node[1] += rhs_el[base+1]; ///nodal_mass[1];
                  //KRATOS_WATCH('despues contribution')
                  //KRATOS_WATCH(rhs_node)
+
+//                if(id == 351)
+//                {
+//                    KRATOS_WATCH(id)
+//                    KRATOS_WATCH("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+//                    KRATOS_WATCH(rhs_node)
+//                    KRATOS_WATCH("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+//            }
             }
          }
+
+
 
       // KRATOS_WATCH("----------------BOUNDARIES--------------------------------------------")
         //CONDICIONES DE CONTORNO
@@ -475,9 +486,11 @@ private:
             //array_1d<double,2> nodal_mass;
             //int id = i->Id();
             //KRATOS_WATCH (id);
+            //int id = i->Id();
             for(unsigned int j=0; j<geom.size(); j++)
             {
                 int base = 2*j;
+//                int id = geom[j].Id();
                 array_1d<double,3>& rhs_node = geom[j].FastGetSolutionStepValue(RHS);
                 //KRATOS_WATCH(geom[j]);
                 //nodal_mass[j] = geom[j].FastGetSolutionStepValue(NODAL_MASS);
@@ -494,10 +507,26 @@ private:
                     //KRATOS_WATCH (id);
                     //KRATOS_WATCH(geom[j].FastGetSolutionStepValue(FLOW));
                     //KRATOS_WATCH(geom[j].FastGetSolutionStepValue(NODAL_AREA));
+
+//            if(id == 351)
+//                {
+//                    KRATOS_WATCH(id)
+//                    KRATOS_WATCH("-------------------------------------------------")
+//                    KRATOS_WATCH(rhs_node)
+//                    KRATOS_WATCH("-------------------------------------------------")
+//            }
             }
 
         }
-		//KRATOS_WATCH("----------------FINISHED--------------------------------------------")
+
+//        KRATOS_WATCH("----------------F(AB+QB2)--------------------------------------------")
+//                array_1d<double,3>& rhs_node = geom[j].FastGetSolutionStepValue(RHS);
+//        flow=
+//                rRightHandSideVector[0] = - flow;
+//        //double temp = -(C + coriolis_coefficient*flow*flow/(A1));
+//        //EDU::CREO QUE LA EXPRESION ES A en vez de A1:
+//        //rRightHandSideVector[1] = -(C + (coriolis_coefficient*flow*flow/(A1)));
+//        rRightHandSideVector[1] = -(C + ((coriolis_coefficient*flow*flow)/A));
 
         KRATOS_CATCH("")
     }
@@ -508,12 +537,66 @@ private:
         double dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
         for(ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin(); in!=ThisModelPart.NodesEnd(); in++)
         {
-            //int id = in->Id();
-            //KRATOS_WATCH (id);
+            array_1d<double,3> aux = in->FastGetSolutionStepValue(RHS);
+            double& nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
+            double& nodal_flow = in->FastGetSolutionStepValue(FLOW);
+            ///KRATOS_WATCH(nodal_flow);
+//            int id = in->Id();
+//            if(id == 353)
+//                {
+//                    KRATOS_WATCH(id)
+//                    const double A3d =10000000;
+//                    const double B3d =1000000000000;
+//                    KRATOS_WATCH(A3d)
+//                    KRATOS_WATCH(B3d)
+//                    double& nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
+//                    double& nodal_flow = in->FastGetSolutionStepValue(FLOW);
+//                    KRATOS_WATCH(nodal_area)
+//                    KRATOS_WATCH(nodal_flow)
+//                    KRATOS_WATCH("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+//                    KRATOS_WATCH(aux)
+//                    KRATOS_WATCH("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+//                    KRATOS_WATCH(in->FastGetSolutionStepValue(RHS))
+//                    const double dpressure=(A3d*nodal_flow)+(B3d*fabs(nodal_flow)*nodal_flow);
+//                    KRATOS_WATCH(dpressure)
+
+//                    const double coriolis_coefficient = 1.1;
+//                    const double density =1021;
+//                    const double beta =in->FastGetSolutionStepValue(BETA);
+//                    const double A0 =in->GetValue(NODAL_AREA);
+//                    KRATOS_WATCH(A0)
+//                    KRATOS_WATCH(beta)
+//                    KRATOS_WATCH(density)
+//                    const double A = pow((sqrt(A0) + A0*(dpressure/beta)),2);
+////-------------------------------------------------------------------------------------------------------------
+////                    A0=node.GetValue(NODAL_AREA)
+////                    A_aux = node.GetSolutionStepValue(NODAL_AREA,1)
+////                    Q=node.GetSolutionStepValue(FLOW,1)
+////                    A = (math.sqrt(A0) + (((instant_pressure - dyastolic_pressure)*A0) / node.GetSolutionStepValue(BETA,1)))**2
+////                    A2 = pow(2*pow(A,0.25) - pow(A_aux,0.25),4)
+////                    node.SetSolutionStepValue(NODAL_AREA,0,A2)
+////--------------------------------------------------------------------------------
+//                    KRATOS_WATCH(A)
+//                    const double A2 =pow((2*(pow(A,0.25)) - (pow(nodal_area,0.25))),4);
+//                    KRATOS_WATCH(A2)
+//                    KRATOS_WATCH(nodal_area)
+//                    //const double& flow = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
+//                    //const double C = (beta*sqrt(A2*A2*A2)/(3.0*density*A0));
+//                    KRATOS_WATCH(coriolis_coefficient*nodal_flow*nodal_flow/(A2))
+//                    KRATOS_WATCH(dpressure)
+//                    //aux[0]= (nodal_flow);
+//                    //aux[1]+= -dpressure*nodal_area; //
+//                   //aux[1]+=
+//                    KRATOS_WATCH(aux)
+//                }
+                //KRATOS_WATCH(in)
+                //KRATOS_WATCH (id);
+
+
             double nodal_mass = in->FastGetSolutionStepValue(NODAL_MASS);
             //KRATOS_WATCH (nodal_mass)
             //array_1d<double,3>& pepe = in->FastGetSolutionStepValue(RHS);
-            array_1d<double,3> aux = in->FastGetSolutionStepValue(RHS);
+            //array_1d<double,3> aux = in->FastGetSolutionStepValue(RHS);
             //KRATOS_WATCH (id);
             //KRATOS_WATCH (aux);
             //aux /= nodal_mass;
@@ -524,10 +607,7 @@ private:
             //KRATOS_WATCH (pepe)
             //int id = in->Id();
             //KRATOS_WATCH (id);
-            //KRATOS_WATCH (aux);
-
-            double& nodal_area = in->FastGetSolutionStepValue(NODAL_AREA);
-            double& nodal_flow = in->FastGetSolutionStepValue(FLOW);
+            //KRATOS_WATCH (aux);            
             //double lhs1=aux[0] / nodal_mass;
             //double lhs2=aux[1] / nodal_mass;
             //KRATOS_WATCH(nodal_area)
