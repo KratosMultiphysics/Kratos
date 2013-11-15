@@ -187,6 +187,7 @@ public:
 
     virtual ~TrilinosStokesInitializationProcess()
     {
+        BaseType::mpSolutionStrategy->Clear();
     }
 
 
