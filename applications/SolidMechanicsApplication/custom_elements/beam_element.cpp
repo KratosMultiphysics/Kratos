@@ -95,25 +95,9 @@ void BeamElement::InitializeSolutionStep(ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-
-        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
-        array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_INTERNAL);
-        array_1d<double, 3 > & DynamicForce  = GetGeometry()[i].FastGetSolutionStepValue(FORCE_DYNAMIC);
-
-	GetGeometry()[i].SetLock();
-        ExternalForce.clear();
-        InternalForce.clear();
-        DynamicForce.clear();
-	GetGeometry()[i].UnSetLock();
-
-    }
-
     KRATOS_CATCH( "" )
-
 }
+
 //************************************************************************************
 //************************************************************************************
 
@@ -319,20 +303,6 @@ void BeamElement::CalculateRHS(Vector& rRightHandSideVector)
     CalculateLHS(GlobalMatrix);
     noalias(rRightHandSideVector) -= prod(GlobalMatrix, CurrentDisplacement);
 
-    //get internal forces and store in nodes
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        unsigned int indexu  = dimension * i;
-        array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_INTERNAL);
-
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            InternalForce[j] += rRightHandSideVector [indexu+j];
-        }
-    }
 }
 
 

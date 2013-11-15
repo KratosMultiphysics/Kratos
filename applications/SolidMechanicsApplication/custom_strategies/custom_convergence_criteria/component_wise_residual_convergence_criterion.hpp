@@ -356,9 +356,9 @@ private:
         {
 	    in->SetLock();
 
-            array_1d<double, 3 > & InternalForce  = in->FastGetSolutionStepValue(FORCE_INTERNAL);
-            array_1d<double, 3 > & ExternalForce  = in->FastGetSolutionStepValue(FORCE_EXTERNAL);
-            array_1d<double, 3 > & DynamicForce   = in->FastGetSolutionStepValue(FORCE_DYNAMIC);
+            array_1d<double, 3 > & InternalForce  = in->FastGetSolutionStepValue(INTERNAL_FORCE);
+            array_1d<double, 3 > & ExternalForce  = in->FastGetSolutionStepValue(EXTERNAL_FORCE);
+            array_1d<double, 3 > & DynamicForce   = in->FastGetSolutionStepValue(CONTACT_FORCE);
 
 
             array_1d<double, 3 >   Residual       = ExternalForce+InternalForce-DynamicForce;

@@ -1055,23 +1055,14 @@ void SmallDisplacementElement::CalculateAndAddExternalForces(VectorType& rRightH
 
     double DomainSize = (rVariables.DomainSize / rVariables.detJ );
 
-    double Fext=0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int index = dimension * i;
-
-        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
-
-	GetGeometry()[i].SetLock();
-        Fext = 0;
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-	  Fext = rIntegrationWeight * rVariables.N[i] * rVolumeForce[j] * DomainSize;
-            rRightHandSideVector[index + j] += Fext;
-            ExternalForce[j] +=Fext;
-        }
+            rRightHandSideVector[index + j] += rIntegrationWeight * rVariables.N[i] * rVolumeForce[j] * DomainSize;
 
-	GetGeometry()[i].UnSetLock();
+        }
     }
 
     KRATOS_CATCH( "" )
@@ -1089,24 +1080,6 @@ void SmallDisplacementElement::CalculateAndAddInternalForces(VectorType& rRightH
 
     VectorType InternalForces = rIntegrationWeight * prod( trans( rVariables.B ), rVariables.StressVector );
     noalias( rRightHandSideVector ) -= InternalForces;
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        unsigned int indexu  = dimension * i;
-        array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_INTERNAL);
-
-	GetGeometry()[i].SetLock();
-
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            InternalForce[j] -= InternalForces [indexu+j];
-        }
-
-	GetGeometry()[i].UnSetLock();
-    }
 
     // std::cout<<std::endl;
     // std::cout<<" Fint "<<InternalForces<<std::endl;
@@ -1145,20 +1118,72 @@ void SmallDisplacementElement::ClearNodalForces()
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-
-        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
-        array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_INTERNAL);
-        array_1d<double, 3 > & DynamicForce  = GetGeometry()[i].FastGetSolutionStepValue(FORCE_DYNAMIC);
-
-	GetGeometry()[i].SetLock();
+        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
+        array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FORCE);
+  
+    	GetGeometry()[i].SetLock();
         ExternalForce.clear();
         InternalForce.clear();
-        DynamicForce.clear();
-	GetGeometry()[i].UnSetLock();
+    	GetGeometry()[i].UnSetLock();
 
     }
 
     KRATOS_CATCH( "" )
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
+void SmallDisplacementElement::AddExplicitContribution(const VectorType& rRHS, 
+						       const Variable<VectorType>& rRHSVariable, 
+						       Variable<array_1d<double,3> >& rDestinationVariable, 
+						       const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_FORCE )
+      {
+
+	for(unsigned int i=0; i< number_of_nodes; i++)
+	  {
+	    int index = dimension * i;
+
+	    GetGeometry()[i].SetLock();
+
+	    array_1d<double, 3 > &ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
+	    for(unsigned int j=0; j<dimension; j++)
+	      {
+		ExternalForce[j] += rRHS[index + j];
+	      }
+
+	    GetGeometry()[i].UnSetLock();
+	  }
+      }
+
+    if( rRHSVariable == INTERNAL_FORCES_VECTOR && rDestinationVariable == INTERNAL_FORCE )
+      {
+
+	for(unsigned int i=0; i< number_of_nodes; i++)
+	  {
+	    int index = dimension * i;
+
+	    GetGeometry()[i].SetLock();
+
+	    array_1d<double, 3 > &InternalForce = GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FORCE);
+	    for(unsigned int j=0; j<dimension; j++)
+	      {
+		InternalForce[j] += rRHS[index + j];
+	      }
+
+	    GetGeometry()[i].UnSetLock();
+	  }
+      }
+
+    KRATOS_CATCH( "" )
+
 }
 
 //************* COMPUTING  METHODS

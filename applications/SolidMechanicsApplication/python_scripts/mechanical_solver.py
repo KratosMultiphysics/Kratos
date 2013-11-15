@@ -14,9 +14,9 @@ def AddVariables(model_part, config=None):
     #add reactions for the displacements
     model_part.AddNodalSolutionStepVariable(REACTION)
     #add nodal force variables
-    model_part.AddNodalSolutionStepVariable(FORCE_INTERNAL);
-    model_part.AddNodalSolutionStepVariable(FORCE_EXTERNAL);
-    model_part.AddNodalSolutionStepVariable(FORCE_DYNAMIC);
+    model_part.AddNodalSolutionStepVariable(INTERNAL_FORCE);
+    model_part.AddNodalSolutionStepVariable(EXTERNAL_FORCE);
+    model_part.AddNodalSolutionStepVariable(CONTACT_FORCE);
     #add specific variables for the problem conditions
     model_part.AddNodalSolutionStepVariable(IMPOSED_DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);

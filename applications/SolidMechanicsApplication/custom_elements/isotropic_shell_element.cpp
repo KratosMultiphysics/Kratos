@@ -660,23 +660,6 @@ void IsotropicShellElement::CalculateAllMatrices(
 
     //adding the body force (which is already given in global coordinates)
 
-
-    //get internal forces and store in nodes
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        unsigned int indexu  = dimension * i;
-        array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_INTERNAL);
-
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            InternalForce[j] += rRightHandSideVector [indexu+j];
-        }
-    }
-
-
     //contribution to external forces
     Vector VolumeForce = ZeroVector(3);
     VolumeForce = this->CalculateVolumeForce( VolumeForce );
@@ -926,23 +909,6 @@ void IsotropicShellElement::AddBodyForce(
     rRightHandSideVector[12] += bf[0];
     rRightHandSideVector[13] += bf[1];
     rRightHandSideVector[14] += bf[2];
-
-
-    //get internal forces and store in nodes
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
-
-	GetGeometry()[i].SetLock();
-        for ( unsigned int j = 0; j < dimension; j++ )
-        {
-            ExternalForce[j] += bf[j];
-        }
-	GetGeometry()[i].UnSetLock();
-    }
 
 
     KRATOS_CATCH("");
@@ -1919,21 +1885,6 @@ void IsotropicShellElement::Initialize()
 void IsotropicShellElement::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-
-        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
-        array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_INTERNAL);
-        array_1d<double, 3 > & DynamicForce  = GetGeometry()[i].FastGetSolutionStepValue(FORCE_DYNAMIC);
-	GetGeometry()[i].SetLock();
-        ExternalForce.clear();
-        InternalForce.clear();
-        DynamicForce.clear();
-	GetGeometry()[i].UnSetLock();
-
-    }
 
     KRATOS_CATCH( "" )
 }
