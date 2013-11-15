@@ -141,6 +141,7 @@ public:
 
     virtual ~StokesInitializationProcess()
     {
+        mpSolutionStrategy->Clear();
     }
 
 
@@ -285,6 +286,7 @@ protected:
     virtual void Clear()
     {
         mpStokesModelPart.reset();
+        mpSolutionStrategy->Clear();
         mpSolutionStrategy.reset();
 
         mIsCleared = true;

@@ -276,6 +276,7 @@ class IncompressibleFluidSolver:
             stokes_process.SetConditions(self.model_part.Conditions)
             # execute Stokes process
             stokes_process.Execute()
+            stokes_processs = None # delete the process, we no longer want it
 
             for node in self.model_part.Nodes:
                 node.SetSolutionStepValue(PRESSURE, 0, 0.0)
