@@ -210,7 +210,7 @@ void ArteryElement::CalculateRightHandSide(VectorType& rRightHandSideVector, Pro
         //KRATOS_WATCH(Hj[i]);
         Suj[i](0,0) = 0.0;
         Suj[i](0,1) = 0.0;
-        Suj[i](1,0) = kr_coefficient*flow/(A*A);;
+        Suj[i](1,0) = kr_coefficient*flow/(A*A);
         Suj[i](1,1) = -kr_coefficient/A;
         //KRATOS_WATCH(Suj[i]);
     }

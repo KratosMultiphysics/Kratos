@@ -166,13 +166,13 @@ void ArteryOutletFreeCondition::CalculateRightHandSide(VectorType& rRightHandSid
         const double Area_1 = GetGeometry()[1].GetValue(NODAL_AREA);
         const double Area_2 = GetGeometry()[0].GetValue(NODAL_AREA);
         //An_1=(2*(An_1**0.25d0)-(An**0.25d0))**4
-	double Area_Aux = pow((2*(pow(Area_1,0.25))-pow(Area_2,0.25)),4.0);
-	KRATOS_WATCH(Area_Aux);
-	KRATOS_WATCH(A1);
-	KRATOS_WATCH(A);
-	KRATOS_WATCH(Area_2);
-	KRATOS_WATCH(Area_1);
-	Area_Aux=Area_1;
+        double Area_Aux = pow((2*(pow(Area_1,0.25))-pow(Area_2,0.25)),4.0);
+        KRATOS_WATCH(Area_Aux);
+        KRATOS_WATCH(A1);
+        KRATOS_WATCH(A);
+        KRATOS_WATCH(Area_2);
+        KRATOS_WATCH(Area_1);
+        Area_Aux=Area_1;
         const double C = beta*sqrt(Area_Aux*Area_Aux*Area_Aux)/(3.0*density*A0);
 
         rRightHandSideVector[0] = 0; //-flow;

@@ -112,7 +112,7 @@ void ArteryInletCondition::CalculateRightHandSide(VectorType& rRightHandSideVect
     if (rRightHandSideVector.size() != 2)
         rRightHandSideVector.resize(2,false);
 
-    std::cout << "FLOWWWWWWW ::::::: Artery_Inlet" << std::endl;
+    //std::cout << "FLOWWWWWWW ::::::: Artery_Inlet" << std::endl;
 
     //double h_int = rCurrentProcessInfo[DELTA_TIME];
     // get data as needed

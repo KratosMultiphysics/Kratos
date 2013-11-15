@@ -7,8 +7,8 @@
 //
 
 
-#if !defined(KRATOS_ARTERY_11_CONDITION_H_INCLUDED )
-#define  KRATOS_ARTERY_11_CONDITION_H_INCLUDED
+#if !defined(KRATOS_ARTERY_RESISTENCE_H_INCLUDED )
+#define  KRATOS_ARTERY_RESISTENCE_H_INCLUDED
 
 
 
@@ -51,14 +51,14 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class Artery11Condition : public Condition
+class ArteryResistence : public Condition
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of Artery11Condition
-    KRATOS_CLASS_POINTER_DEFINITION(Artery11Condition);
+    /// Pointer definition of ArteryResistence
+    KRATOS_CLASS_POINTER_DEFINITION(ArteryResistence);
 
     ///@}
     ///@name Life Cycle
@@ -66,11 +66,11 @@ public:
 
 
     /// Default constructor.
-    Artery11Condition(IndexType NewId, GeometryType::Pointer pGeometry);
-    Artery11Condition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    ArteryResistence(IndexType NewId, GeometryType::Pointer pGeometry);
+    ArteryResistence(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~Artery11Condition();
+    virtual ~ArteryResistence();
 
 
     ///@}
@@ -88,13 +88,12 @@ public:
 
     void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
 
     void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
     int Check(const ProcessInfo& rCurrentProcessInfo);
-	
-	void Initialize();
+
+    void Initialize();
 
 
     ///@}
@@ -110,12 +109,12 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
-	
-	     ///@}
+
+         ///@}
      ///@name Serialization
-     ///@{	
-	
-		friend class Serializer;     
+     ///@{
+
+        friend class Serializer;
 
         virtual void save(Serializer& rSerializer) const
         {
@@ -135,7 +134,7 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "Artery11Condition #";
+        return "ArteryResistence #";
     }
 
     /// Print information about this object.
@@ -194,50 +193,22 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    //double mL;
+
     ///@}
     ///@name Member Variables
     ///@{
 
-    array_1d<double,3> mInitialArea;
-        double mH0;
-        double mBeta;
-        //double mC0;
-
     ///@}
     ///@name Private Operators
     ///@{
-	Artery11Condition() : Condition(){}
+    ArteryResistence() : Condition(){}
 
 
     ///@}
     ///@name Private Operations
     ///@{
 
-void CalculateFunctional(array_1d<double,3>& rFunctional,
-                         array_1d<double, 2> const& Area,
-                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
-                         array_1d<double, 2> const& WaveVelocity,
-                         double BloodDensity,double a_factor, double b_factor);
-
-void CalculateJacobian(Matrix& rJacobian,
-                         array_1d<double, 2> const& Area,
-                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
-                         array_1d<double, 2> const& WaveVelocity,
-                         double BloodDensity,double a_factor, double b_factor);
-
-
-void CalculateFunctional4(array_1d<double,4>& rFunctional,
-                         array_1d<double, 2> const& Area,
-                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
-                         array_1d<double, 2> const& WaveVelocity,
-                         double BloodDensity,double a_factor, double b_factor);
-
-void CalculateJacobian4(Matrix& rJacobian,
-                         array_1d<double, 2> const& Area,
-                         array_1d<double, 2> const& Flow, array_1d<double,2> const& ArteryProperty, array_1d<double,2> const& Coef,
-                         array_1d<double, 2> const& WaveVelocity,
-                         double BloodDensity,double a_factor, double b_factor);
+    double UpdateArea(double A_resistence, double B_resistence, double flow, double A);
 
     ///@}
     ///@name Private  Access
@@ -254,15 +225,15 @@ void CalculateJacobian4(Matrix& rJacobian,
     ///@{
 
     /// Assignment operator.
- //   Artery11Condition& operator=(Artery11Condition const& rOther) {};
+ //   ArteryResistence& operator=(ArteryResistence const& rOther) {};
 
     /// Copy constructor.
-//    Artery11Condition(Artery11Condition const& rOther) {};
+//    ArteryResistence(ArteryResistence const& rOther) {};
 
 
     ///@}
 
-}; // Class Artery11Condition
+}; // Class ArteryResistence
 
 ///@}
 
@@ -277,14 +248,14 @@ void CalculateJacobian4(Matrix& rJacobian,
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
-                                  Artery11Condition& rThis)
+                                  ArteryResistence& rThis)
 {
     return rIStream;
 };
 
 /// output stream function
 inline std::ostream& operator << (std::ostream& rOStream,
-                                  const Artery11Condition& rThis)
+                                  const ArteryResistence& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -298,6 +269,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_ARTERY_11_CONDITION_H_INCLUDED  defined
+#endif // KRATOS_ARTERY_OUTLET_CONDITION_H_INCLUDED  defined
 
 

@@ -15,6 +15,7 @@ set( KRATOS_BLOOD_FLOW_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/artery_inlet_condition.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/artery_inlet_condition_pressure.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/artery_outlet_condition.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/artery_resistence.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/blood_flow_python_application.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_utilities_to_python.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/artery_outlet_condition_free.cpp
