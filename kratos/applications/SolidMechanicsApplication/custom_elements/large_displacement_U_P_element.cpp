@@ -367,24 +367,15 @@ void LargeDisplacementUPElement::CalculateAndAddExternalForces(VectorType& rRigh
 
     double DomainSize = (rVariables.DomainSize / rVariables.detJ );
 
-    double Fext=0;
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         int indexup = dimension * i + i;
-
-        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_EXTERNAL);
-
-	GetGeometry()[i].SetLock();
-        Fext = 0;
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-            Fext = rIntegrationWeight * rVariables.N[i] * rVolumeForce[j] * DomainSize;
-            rRightHandSideVector[indexup + j] += Fext;
-            ExternalForce[j] +=Fext;
+	  rRightHandSideVector[indexup + j] += rIntegrationWeight * rVariables.N[i] * rVolumeForce[j] * DomainSize;
         }
-	GetGeometry()[i].UnSetLock();
-    }
 
+    }
 
     // std::cout<<std::endl;
     // std::cout<<" Fext "<<rRightHandSideVector-Fh<<std::endl;
@@ -415,17 +406,10 @@ void LargeDisplacementUPElement::CalculateAndAddInternalForces(VectorType& rRigh
         unsigned int indexup = dimension * i + i;
         unsigned int indexu  = dimension * i;
 
-        array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(FORCE_INTERNAL);
-
-	GetGeometry()[i].SetLock();
-
         for ( unsigned int j = 0; j < dimension; j++ )
         {
             rRightHandSideVector[indexup + j] -= InternalForces[indexu + j];
-            InternalForce[j] -= InternalForces[indexu + j];
         }
-
-	GetGeometry()[i].UnSetLock();
     }
 
     // std::cout<<std::endl;

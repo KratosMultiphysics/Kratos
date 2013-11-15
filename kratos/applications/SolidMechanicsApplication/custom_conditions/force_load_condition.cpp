@@ -213,7 +213,76 @@ void ForceLoadCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
 }
 
 
+//************************************************************************************
+//************************************************************************************
+void ForceLoadCondition::ClearNodalForces()
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
+        array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FORCE);
+  
+    	GetGeometry()[i].SetLock();
+        ExternalForce.clear();
+        InternalForce.clear();
+    	GetGeometry()[i].UnSetLock();
+
+    }
+
+    KRATOS_CATCH( "" )
+}
+
+//***********************************************************************************
+//***********************************************************************************
+
+void ForceLoadCondition::AddExplicitContribution(const VectorType& rRHS, 
+						 const Variable<VectorType>& rRHSVariable, 
+						 Variable<array_1d<double,3> >& rDestinationVariable, 
+						 const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    if( rRHSVariable == EXTERNAL_FORCES_VECTOR && rDestinationVariable == EXTERNAL_FORCE )
+      {
+
+	for(unsigned int i=0; i< number_of_nodes; i++)
+	  {
+	    int index = dimension * i;
+
+	    GetGeometry()[i].SetLock();
+
+	    array_1d<double, 3 > &ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
+	    for(unsigned int j=0; j<dimension; j++)
+	      {
+		ExternalForce[j] += rRHS[index + j];
+	      }
+
+	    GetGeometry()[i].UnSetLock();
+	  }
+      }
+
+    KRATOS_CATCH( "" )
+}
+
 //************* STARTING - ENDING  METHODS
+//***********************************************************************************
+//***********************************************************************************
+
+void ForceLoadCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
+{
+    KRATOS_TRY
+
+    ClearNodalForces();
+
+    KRATOS_CATCH( "" )
+}
+
 //***********************************************************************************
 //***********************************************************************************
 
