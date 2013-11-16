@@ -174,8 +174,9 @@ if(DEM_parameters.ConcreteTestOption =="ON"):
     alpha_bot = 3.141592*diameter*diameter*0.25/(xbot_area + 0.70710678*xbotcorner_area)
     alpha_lat = 3.141592*diameter*height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
 
-    Press.ApplyPressure(Pressure, balls_model_part, solver, proc.SKIN, proc.BOT, proc.TOP, proc.LAT, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER, alpha_top, alpha_bot, alpha_lat)
-
+    Press.ApplyPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
+    renew_pressure = 0
+    
 solver.Initialize()
 
 # Initialization of physics monitor and of the initial position of the center of mass
@@ -342,6 +343,17 @@ while (time < DEM_parameters.FinalTime):
     #########################CONCRETE_TEST_STUFF#########################################4
     
     os.chdir(data_and_results)
+    
+    
+    if( (DEM_parameters.ConcreteTestOption =="ON" ) and (DEM_parameters.TriaxialOption == "ON") and (Pressure != 0.0) ):
+        
+        if( renew_pressure == 10):
+          
+          Press.RedirectPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
+                 
+          renew_pressure = 0
+    
+        renew_pressure += 1
     
     total_force = 0.0
     total_force_bts = 0.0
