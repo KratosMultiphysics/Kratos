@@ -173,7 +173,9 @@ if(DEM_parameters.ConcreteTestOption =="ON"):
     alpha_top = 3.141592*diameter*diameter*0.25/(xtop_area + 0.70710678*xtopcorner_area)
     alpha_bot = 3.141592*diameter*diameter*0.25/(xbot_area + 0.70710678*xbotcorner_area)
     alpha_lat = 3.141592*diameter*height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
-
+      
+    print "Applying Pressure" , "\n"
+ 
     Press.ApplyPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
     renew_pressure = 0
     
@@ -349,7 +351,7 @@ while (time < DEM_parameters.FinalTime):
         
         if( renew_pressure == 10):
           
-          Press.RedirectPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
+          Press.ApplyPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
                  
           renew_pressure = 0
     
