@@ -39,7 +39,7 @@ class TransferTools:
 	  
         # detect 1d inlets
         print "....................................."
-	Total_radius_inlet_1D=0.0
+	Reference_Radius=0.0
         for i in range(100, 101):
             nfound = 0
             aux = []
@@ -49,15 +49,15 @@ class TransferTools:
                     # node.Fix(NODAL_AREA)
                     # node.Fix(FLOW)
                     print "1D_inlet has been assigned", node
-                    Total_radius_inlet_1D=1
                     #print self.model_part_1d[node].GetValue(RADIUS)
                     #inlet_nodes_1d[0].GetSolutionStepValue(FLOW)
                     #raw_input()
+                    Node_reference = node
             if(len(aux) != 0):
                 self.inlets_1d.append(aux)
             else:
                 break
-
+               	        
         if(len(self.inlets_1d) == 0):
             # print "number of 1d is zero"
             sys.exit("number of 1d_inlets are zero!! Please check your config.py file!")
@@ -163,19 +163,34 @@ class TransferTools:
             print "area3d_inlet", Total_area_outlet
 	Total_area_outlet=Total_area_outlet/len(self.inlets_3d)
 
-        meanArea=Total_area_inlet/2
-	meanRadius=math.sqrt(meanArea/math.pi)
-	RadiusFactor=meanRadius/Total_radius_inlet_1D
-	print Total_radius_inlet_1D	
-	print meanRadius
-	print RadiusFactor
+	for prop in self.model_part_1d.Properties:
+	  if (prop.Id == config.deactivate_list[0]):
+	    Reference_Radius=prop.GetValue(RADIUS)
+	    break
 	
-	#for prop in self.model_part_1d.Properties:
-	  #R=prop.GetValue(RADIUS)
-	  #R_fit=R*RadiusFactor
-	  #prop.SetValue(RADIUS,R_fit)
+	if (config.FitRadius== true):
+	  meanArea=Total_area_inlet/2
+	  meanRadius=math.sqrt(meanArea/math.pi)
+	  RadiusFactor=meanRadius/Reference_Radius
+	  print Reference_Radius	
+	  print meanRadius
+	  print RadiusFactor
+	else:
+	  RadiusFactor=1
+	
+	#print "----------------------------------------------"
+	for prop in self.model_part_1d.Properties:
+	  R=prop.GetValue(RADIUS)
+	  #print "R", R
+	#print "----------------------------------------------"
+	
+	for prop in self.model_part_1d.Properties:
+	  R=prop.GetValue(RADIUS)
+	  R_fit=R*RadiusFactor
+	  prop.SetValue(RADIUS,R_fit)
 	  #print "R_FIT", R_fit
-	  
+	#print "----------------------------------------------"
+	
 	import FitAB
 	self.fitters_1d = []
 	self.fitters_3d = []

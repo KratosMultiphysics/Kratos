@@ -31,7 +31,7 @@ def DoRemoval(model_part):
     print "list of inlets", config.inlets_1d
     print "list of outlets", config.outlets_1d
     print "full nodes table", full_nodes_table.table
-    print model_part
+    #print model_part
 
     # mark for deactivation all of the nodes which are not needed
     for prop_id in config.deactivate_list:
@@ -66,15 +66,13 @@ def DoRemoval(model_part):
             GetNodeBegin(full_nodes_table.table, prop_id)]
         node_before.SetValue(ERASE_FLAG, True)
         node_begin.SetValue(ERASE_FLAG, True)
-        #print node_before
-        #print node_begin
+        print node_before
+        print node_begin
         node_before.SetSolutionStepValue(FLAG_VARIABLE, 0, flag_id)
-        #print node_begin
         # nodes_to_preserve.append(node_begin)
         nodes_to_preserve.append(node_before)
         inlet_nodes.append(node_before)
 
-    # raw_input()
 
     # mark for erasal nodes after outlet
     for i in range(0, len(config.outlets_1d)):
@@ -88,13 +86,12 @@ def DoRemoval(model_part):
             GetNodeAfter(full_nodes_table.table, prop_id)]
         node_end.SetValue(ERASE_FLAG, True)
         node_after.SetValue(ERASE_FLAG, True)
-        #print "prop_id = ", prop_id
-        #print "node end = ", node_end.Id
-        #print "node after = ", node_after.Id
+        print "prop_id = ", prop_id
+        print "node end = ", node_end.Id
+        print "node after = ", node_after.Id
         node_after.SetSolutionStepValue(FLAG_VARIABLE, 0, flag_id)
         nodes_to_preserve.append(node_after)
         outlet_nodes.append(node_after)
-        raw_input()
 
     # mark for deactivation the conditions which have all of their nodes
     # marked for erasal
