@@ -105,6 +105,7 @@ void  AddLinearSolversToPython()
     .value("GMRES", GMRES)
     .value("BICGSTAB", BICGSTAB)
     .value("CG",CG)
+    .value("BICGSTAB_WITH_GMRES_FALLBACK",BICGSTAB_WITH_GMRES_FALLBACK)
     ;
     
     typedef AMGCLSolver<SpaceType,  LocalSpaceType> AMGCLSolverType;
