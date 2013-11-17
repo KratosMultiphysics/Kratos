@@ -35,7 +35,7 @@ namespace Kratos
 
   enum AMGCLIterativeSolverType
 {
-   GMRES,BICGSTAB,CG
+   GMRES,BICGSTAB,CG,BICGSTAB_WITH_GMRES_FALLBACK
 };
 
 template< class TSparseSpaceType, class TDenseSpaceType,
@@ -120,6 +120,17 @@ public:
 		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
 		else if(msolver == CG)
 		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::cg_tag(mmax_it, mTol));	  
+        else if(msolver == BICGSTAB_WITH_GMRES_FALLBACK)
+        {
+            cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
+            if(cnv.second > mTol )
+            {
+                std::cout << "************ bicgstab failed. ************ Falling back on gmres" << std::endl;
+                TSparseSpaceType::SetToZero( rX); 
+                cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
+            }
+                
+        }
 	    
 	  }
 	  else if(msmoother == ILU0)
@@ -141,6 +152,16 @@ public:
 		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
 		else if(msolver == CG)
 		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::cg_tag(mmax_it, mTol));
+        else if(msolver == BICGSTAB_WITH_GMRES_FALLBACK)
+        {
+            cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
+            if(cnv.second > mTol )
+            {
+                std::cout << "************ bicgstab failed. ************ Falling back on gmres" << std::endl;
+                TSparseSpaceType::SetToZero( rX); 
+                cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
+            }                
+        }
 	  }
 	  else if(msmoother == DAMPED_JACOBI)
 	  {
@@ -162,7 +183,18 @@ public:
 		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
 		else if(msolver == CG)
 		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::cg_tag(mmax_it, mTol));
-	  }	  
+        else if(msolver == BICGSTAB_WITH_GMRES_FALLBACK)
+        {
+            cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
+            if(cnv.second > mTol )
+            {
+                std::cout << "************ bicgstab failed. ************ Falling back on gmres" << std::endl;
+                TSparseSpaceType::SetToZero( rX); 
+                cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
+            }                
+        }
+          
+    }	  
 	  else if(msmoother == GAUSS_SEIDEL)
 	  {
 		typedef amgcl::solver<
@@ -183,6 +215,16 @@ public:
 		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
 		else if(msolver == CG)
 		  cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::cg_tag(mmax_it, mTol));
+        else if(msolver == BICGSTAB_WITH_GMRES_FALLBACK)
+        {
+            cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::bicg_tag(mmax_it, mTol));
+            if(cnv.second > mTol )
+            {
+                std::cout << "************ bicgstab failed. ************ Falling back on gmres" << std::endl;
+                TSparseSpaceType::SetToZero( rX); 
+                cnv = amgcl::solve( rA, rB, amg, rX,  amgcl::gmres_tag(mgmres_size,mmax_it, mTol));
+            }                
+        }
 	  }	
 	  if(mverbosity > 0)
 	  {
