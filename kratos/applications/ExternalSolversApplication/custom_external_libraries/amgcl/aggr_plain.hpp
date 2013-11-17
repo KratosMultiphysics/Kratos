@@ -76,7 +76,7 @@ template <class spmat>
 static std::vector< typename sparse::matrix_index<spmat>::type >
 aggregates( const spmat &A, const std::vector<char> &S ) {
     typedef typename sparse::matrix_index<spmat>::type index_t;
-    typedef typename sparse::matrix_value<spmat>::type value_t;
+//    typedef typename sparse::matrix_value<spmat>::type value_t;
 
     const index_t n = sparse::matrix_rows(A);
 
