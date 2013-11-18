@@ -169,13 +169,14 @@ namespace Kratos
 			  
 	  } //SwitchCase
 	  
-	  inline array_1d<double,3> LinearTimeIncreasingFunction(array_1d<double,3> external_total_applied_force, double initial_time, 
-                                                             double current_time, double final_time)
+	  inline array_1d<double,3> LinearTimeIncreasingFunction(array_1d<double,3> external_total_applied_force, double current_time, double final_time)
 
-	  {			
-		array_1d<double,3> externally_applied_force_now = external_total_applied_force*current_time/final_time - initial_time*external_total_applied_force/(final_time - initial_time);
+	  {		
+        
+        array_1d<double,3> externally_applied_force_now = external_total_applied_force*current_time/final_time;
 	
 		return externally_applied_force_now;
+        
 		
 	  }// inline array_1d<double,3> LinearTimeIncreasingFunction
  
