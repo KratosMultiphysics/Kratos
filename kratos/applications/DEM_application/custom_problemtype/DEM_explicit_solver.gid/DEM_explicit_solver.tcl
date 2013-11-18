@@ -243,16 +243,21 @@ proc InitGIDProject {dir} {
             if { [file exists [file join $dir "kratos_splash.png"] ] } then {
                 kratos_splash $dir 1
             }
-            GiDMenu::Create "DEM explicit solver" PRE
-            GiDMenu::InsertOption "DEM explicit solver" [list "Nodal Values"] 0 PRE {GidOpenConditions Nodal_Values} "" ""
-            GiDMenu::InsertOption "DEM explicit solver" [list "Predefined Skin Particles"] 1 PRE {GidOpenConditions Predefined_Skin_Particles} "" ""
-            GiDMenu::InsertOption "DEM explicit solver" [list "Problem Parameters"] 2 PRE "GidOpenProblemData \"Problem_Parameters\"" "" ""
-            GiDMenu::InsertOption "DEM explicit solver" [list "Materials"] 3 PRE "GidOpenMaterials \"DEM Materials\"" "" ""
-            GiDMenu::InsertOption "DEM explicit solver" [list "---"] 4 PRE "" "" ""
-            GiDMenu::InsertOption "DEM explicit solver" [list "Model Status"] 5 PRE "cond_report" "" ""
-            GiDMenu::InsertOption "DEM explicit solver" [list "Change Kratos Path"] 6 PRE "GetKratosPath" "" ""
-            GiDMenu::UpdateMenus
-            # Custom Menu
+	    GiDMenu::Create "DEM explicit solver" PRE
+	    GiDMenu::InsertOption "DEM explicit solver" [list "Kinematic Conditions"] 0 PRE {GidOpenConditions Kinematics} "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "---"] 1 PRE "" "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "Fem2Dem Meshing"] 2 PRE {GidOpenConditions Fem2Dem_mesher} "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "---"] 3 PRE "" "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "Predefined Skin Particles"] 4 PRE {GidOpenConditions Predefined_Skin_Particles} "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "---"] 5 PRE "" "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "Problem Parameters"] 6 PRE "GidOpenProblemData \"Problem_Parameters\"" "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "---"] 7 PRE "" "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "Materials"] 8 PRE "GidOpenMaterials \"DEM Materials\"" "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "---"] 9 PRE "" "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "Model Status"] 10 PRE "cond_report" "" ""
+	    GiDMenu::InsertOption "DEM explicit solver" [list "Change Kratos Path"] 11 PRE "GetKratosPath" "" ""
+	    GiDMenu::UpdateMenus
+	    # Custom Menu
         }
 }
 
