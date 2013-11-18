@@ -187,17 +187,18 @@ protected:
 			 double & rReferenceRadius,
 			 const Vector& rN);
 	
+
     /**
      * Calculate LHS
      */
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, 
+    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
 			    GeneralVariables& rVariables, 
 			    double& rIntegrationWeight);
 
     /**
      * Calculate RHS
      */
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
 			    GeneralVariables& rVariables, 
 			    double& rIntegrationWeight);
 

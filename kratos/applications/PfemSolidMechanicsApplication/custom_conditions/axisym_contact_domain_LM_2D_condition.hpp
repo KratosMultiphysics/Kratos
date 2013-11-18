@@ -190,14 +190,14 @@ protected:
     /**
      * Calculate LHS
      */
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, 
+    void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
 			    GeneralVariables& rVariables, 
 			    double& rIntegrationWeight);
 
     /**
      * Calculate RHS
      */
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+    void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
 			    GeneralVariables& rVariables, 
 			    double& rIntegrationWeight);
 

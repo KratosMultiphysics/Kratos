@@ -239,6 +239,63 @@ protected:
 
 
 
+    /**
+     * This struct is used in the component wise calculation only
+     * is defined here and is used to declare a member variable in the component wise condition
+     * private pointers can only be accessed by means of set and get functions
+     * this allows to set and not copy the local system variables
+     */
+
+    struct LocalSystemComponents
+    {
+    private:
+      
+      //for calculation local system with compacted LHS and RHS 
+      MatrixType *mpLeftHandSideMatrix;
+      VectorType *mpRightHandSideVector;
+
+      //for calculation local system with LHS and RHS components 
+      std::vector<MatrixType> *mpLeftHandSideMatrices;
+      std::vector<VectorType> *mpRightHandSideVectors;
+
+      //LHS variable components 
+      const std::vector< Variable< MatrixType > > *mpLeftHandSideVariables;
+
+      //RHS variable components 
+      const std::vector< Variable< VectorType > > *mpRightHandSideVariables;
+
+    
+    public:
+
+      //calculation flags
+      Flags  CalculationFlags;
+
+      /**
+       * sets the value of a specified pointer variable
+       */
+      void SetLeftHandSideMatrix( MatrixType& rLeftHandSideMatrix ) { mpLeftHandSideMatrix = &rLeftHandSideMatrix; };
+      void SetLeftHandSideMatrices( std::vector<MatrixType>& rLeftHandSideMatrices ) { mpLeftHandSideMatrices = &rLeftHandSideMatrices; };
+      void SetLeftHandSideVariables(const std::vector< Variable< MatrixType > >& rLeftHandSideVariables ) { mpLeftHandSideVariables = &rLeftHandSideVariables; }; 
+
+      void SetRightHandSideVector( VectorType& rRightHandSideVector ) { mpRightHandSideVector = &rRightHandSideVector; };
+      void SetRightHandSideVectors( std::vector<VectorType>& rRightHandSideVectors ) { mpRightHandSideVectors = &rRightHandSideVectors; };
+      void SetRightHandSideVariables(const std::vector< Variable< VectorType > >& rRightHandSideVariables ) { mpRightHandSideVariables = &rRightHandSideVariables; }; 
+
+ 
+      /**
+       * returns the value of a specified pointer variable
+       */
+      MatrixType& GetLeftHandSideMatrix() { return *mpLeftHandSideMatrix; };
+      std::vector<MatrixType>& GetLeftHandSideMatrices() { return *mpLeftHandSideMatrices; };
+      const std::vector< Variable< MatrixType > >& GetLeftHandSideVariables() { return *mpLeftHandSideVariables; }; 
+
+      VectorType& GetRightHandSideVector() { return *mpRightHandSideVector; };
+      std::vector<VectorType>& GetRightHandSideVectors() { return *mpRightHandSideVectors; };
+      const std::vector< Variable< VectorType > >& GetRightHandSideVariables() { return *mpRightHandSideVariables; }; 
+
+    };
+
+
 public:
 
     /// Counted pointer of ContactDomainCondition
@@ -284,6 +341,16 @@ public:
      * @return a Pointer to the new element
      */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const;
+
+    /**
+     * clones the selected condition variables, creating a new one
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
+    Condition::Pointer Clone(IndexType NewId, 
+			     NodesArrayType const& ThisNodes) const;
 
     //************* GETTING METHODS
 
@@ -405,12 +472,39 @@ public:
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
     /**
+     * this function provides a more general interface to the condition.
+     * it is designed so that rLHSvariables and rRHSvariables are passed TO the condition
+     * thus telling what is the desired output
+     * @param rLeftHandSideMatrices: container with the output left hand side matrices
+     * @param rLHSVariables: paramter describing the expected LHSs
+     * @param rRightHandSideVectors: container for the desired RHS output
+     * @param rRHSVariables: parameter describing the expected RHSs
+     */
+    void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
+			      const std::vector< Variable< MatrixType > >& rLHSVariables,
+			      std::vector< VectorType >& rRightHandSideVectors,
+			      const std::vector< Variable< VectorType > >& rRHSVariables,
+			      ProcessInfo& rCurrentProcessInfo);
+
+    /**
      * this is called during the assembling process in order
      * to calculate the elemental right hand side vector only
      * @param rRightHandSideVector: the elemental right hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+
+
+   /**
+     * this function provides a more general interface to the condition.
+     * it is designed so that rRHSvariables are passed TO the condition
+     * thus telling what is the desired output
+     * @param rRightHandSideVectors: container for the desired RHS output
+     * @param rRHSVariables: parameter describing the expected RHSs
+     */
+    void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
+				const std::vector< Variable< VectorType > >& rRHSVariables,
+				ProcessInfo& rCurrentProcessInfo);
 
     /**
      * this is called during the assembling process in order
@@ -419,6 +513,20 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
     void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
+
+
+    /**
+     * this function is designed to make the element to assemble an rRHS vector
+     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
+     * rDestinationVariable.
+     * @param rRHSVector: input variable containing the RHS vector to be assembled
+     * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+      * @param rCurrentProcessInfo: the current process info instance
+     */      
+    virtual void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, 
+					 Variable<array_1d<double,3> >& rDestinationVariable, 
+					 const ProcessInfo& rCurrentProcessInfo);
 
 
     //on integration points:
@@ -540,14 +648,12 @@ protected:
      */
     virtual void InitializeGeneralVariables (GeneralVariables& rVariables, 
 					     const ProcessInfo& rCurrentProcessInfo);
-	
+
     /**
-     * Calculates condition contributions
+     * Calculates the condition contributions
      */
-    virtual void CalculateConditionalSystem(MatrixType& rLeftHandSideMatrix,
-                                            VectorType& rRightHandSideVector,
-                                            ProcessInfo& rCurrentProcessInfo,
-                                            Flags& rCalculationFlags);
+    virtual void CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
+					  ProcessInfo& rCurrentProcessInfo);	
     /**
      * Clear Nodal Forces
      */
@@ -639,24 +745,24 @@ protected:
     /**
      * Calculate LHS
      */
-    virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, 
+    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
 				    GeneralVariables& rVariables, 
 				    double& rIntegrationWeight);
 
     /**
      * Calculate RHS
      */
-    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector,
+    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
 				    GeneralVariables& rVariables, 
 				    double& rIntegrationWeight);
 
 
     /**
-     * Calculation of the Material Stiffness Matrix. Km = BT * D * B
+     * Calculation of the Material Stiffness Matrix. Kuug = BT * D * B
      */
-    virtual void CalculateAndAddKm(MatrixType& rLeftHandSideMatrix,
-				   GeneralVariables& rVariables,
-				   double& rIntegrationWeight);
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+				     GeneralVariables& rVariables,
+				     double& rIntegrationWeight);
 	    
     /**
      * Calculation of the Material Stiffness Matrix by components

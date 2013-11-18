@@ -93,6 +93,15 @@ Condition::Pointer CompositeCondition::Create( IndexType NewId, NodesArrayType c
 }
 
 
+//************************************CLONE*******************************************
+//************************************************************************************
+
+Condition::Pointer CompositeCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+{
+  return this->Create( NewId, rThisNodes, pGetProperties() );
+}
+
+
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
