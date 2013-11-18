@@ -8,6 +8,32 @@ def AddNodalVariables(model_part, variable_list):
     for var in variable_list:
         model_part.AddNodalSolutionStepVariable(var)
 
+def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, fem_dem_model_part):
+
+    max_id = 1
+    renumerate = False
+
+    for node in fluid_model_part.Nodes:
+
+        if (node.Id > max_id):
+            max_id = node.Id
+
+    for node in dem_model_part.Nodes:
+
+        if (node.Id < max_id):
+            renumerate = True
+            break
+
+    if (renumerate):
+        print "WARNING!, the DEM model part and the fluid model part have some ID values in common"
+        print "Renumerating DEM model part and fem-DEM model parts Ids"
+
+        for node in dem_model_part.Nodes:
+            node.Id += max_id
+
+        for node in fem_dem_model_part.Nodes:
+            node.Id += max_id
+
 def InitializeVariablesToZero(model_part, variable_list):
 
     for var in variable_list:
