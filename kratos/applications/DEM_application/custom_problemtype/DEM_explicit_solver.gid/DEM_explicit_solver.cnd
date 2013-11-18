@@ -1,4 +1,4 @@
-BOOK: Nodal_Values
+BOOK: Kinematics
 
 CONDITION: Group_CONDITIONS
 CONDTYPE: over groups
@@ -52,6 +52,9 @@ VALUE: 0.0
 QUESTION: Z_ang_vel_fixed#CB#(1,0)
 VALUE: 0
 END CONDITION
+
+
+BOOK: Fem2Dem_mesher
 
 CONDITION: volume_RADIUS
 CONDTYPE: over volumes
