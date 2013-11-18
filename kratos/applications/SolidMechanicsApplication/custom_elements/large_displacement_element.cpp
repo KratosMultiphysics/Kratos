@@ -1054,7 +1054,7 @@ void LargeDisplacementElement::FinalizeSolutionStep( ProcessInfo& rCurrentProces
 void LargeDisplacementElement::FinalizeStepVariables( GeneralVariables & rVariables, const double& rPointNumber )
 {
 
-};
+}
 
 //************************************************************************************
 //************************************************************************************
