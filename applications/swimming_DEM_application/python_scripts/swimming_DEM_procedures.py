@@ -31,6 +31,31 @@ def InitializeVariablesToZero(model_part, variable_list):
                 node.SetSolutionStepValue(DRAG_REACTION_Y, 0, 0.0)
                 node.SetSolutionStepValue(DRAG_REACTION_Z, 0, 0.0)
 
+def MultiplyNodalVariableByFactor(model_part, variable, factor):
+
+    for node in model_part.Nodes:
+        new_variable = node.GetSolutionStepValue(variable, 0) * factor
+        node.SetSolutionStepValue(variable, 0, new_variable)
+
+def ApplySimilarityTransformations(fluid_model_part, transformation_type, mod_over_real):
+
+    if (transformation_type == 0):
+        return
+
+    elif (transformation_type == 1):
+        print ('***\n\nWARNING!, applying similarity transformations to the problem fluid variables')
+        print ('The particles diameters quotient is\n')
+        print 'D_model / D_real =', mod_over_real; print
+
+        if (transformation_type == 1): # Tsuji 2013, (Preserves Archimedes and Reynolds numbers)
+            print ('The fluid variables to be modified are\n\nDENSITY\nVISCOSITY\n\n***')
+            fluid_density_factor = mod_over_real
+            fluid_viscosity_factor = mod_over_real * mod_over_real
+            MultiplyNodalVariableByFactor(fluid_model_part, DENSITY, fluid_density_factor)
+            MultiplyNodalVariableByFactor(fluid_model_part, VISCOSITY, fluid_viscosity_factor)
+    else:
+        print ('The entered value similarity_transformation_type = ', transformation_type, 'is not currently supported')
+
 def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
     current_time += delta_time
 
