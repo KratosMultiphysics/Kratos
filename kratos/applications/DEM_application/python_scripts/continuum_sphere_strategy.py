@@ -119,12 +119,14 @@ class ExplicitStrategy:
         # SIMULATION FLAGS        
         self.virtual_mass_option            = Var_Translator(Param.VirtualMassOption)  
         self.critical_time_option           = Var_Translator(Param.AutoReductionOfTimeStepOption)   
-        self.case_option                    = 3  #aixo es una xapuza fins que pooyan permeti bools a pyton o tinguis flags.
+        self.case_option                    = 3  
         self.trihedron_option               = Var_Translator(Param.PostEulerAngles)
         self.rotation_option                = Var_Translator(Param.RotationOption)
         self.rotation_spring_option         = Var_Translator(Param.RotationalSpringOption)  
-        self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)  
+        self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)
         self.activate_search                = 0 
+        if (len(fem_model_part.Nodes)>0):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
+           self.activate_search             = 1
         self.fix_velocities                 = Var_Translator(Param.FixVelocitiesOption)
         self.fix_horizontal_vel             = Var_Translator(Param.HorizontalFixVel)
         self.limit_surface_option           = Param.LimitSurfaceOption
@@ -383,7 +385,6 @@ class ExplicitStrategy:
         
         # CONCRETE TEST
         if (self.triaxial_option):
-            self.initial_pressure_time        = Param.InitialPressureAplicationTime
             self.time_increasing_ratio        = Param.TotalTimePercentAsForceAplTime # (%)
         
         
@@ -591,7 +592,6 @@ class ExplicitStrategy:
         
         if (self.triaxial_option):
             self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
-            self.model_part.ProcessInfo.SetValue(INITIAL_PRESSURE_TIME, self.initial_pressure_time)
             self.model_part.ProcessInfo.SetValue(TIME_INCREASING_RATIO, self.time_increasing_ratio)
 
 
