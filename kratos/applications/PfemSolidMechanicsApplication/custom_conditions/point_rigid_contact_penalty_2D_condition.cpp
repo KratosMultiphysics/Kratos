@@ -92,7 +92,7 @@ namespace Kratos
     
       int ContactFace = 0; //free surface
       
-    if( mpRigidWall->IsInside( GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, ContactFace ) ){
+    if( this->mpRigidWall->IsInside( GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, ContactFace ) ){
 
       rVariables.Options.Set(ACTIVE,true);
 
@@ -161,7 +161,7 @@ namespace Kratos
 
   double& PointRigidContactPenalty2DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
   { 
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     if ( dimension == 2 ) 
       rIntegrationWeight *= GetProperties()[THICKNESS];

@@ -6,8 +6,8 @@
 //
 //
 
-#if !defined(KRATOS_POINT_RIGID_CONTACT_PENALTY_2D_CONDITION_H_INCLUDED )
-#define  KRATOS_POINT_RIGID_CONTACT_PENALTY_2D_CONDITION_H_INCLUDED
+#if !defined(KRATOS_AXISYM_POINT_RIGID_CONTACT_PENALTY_2D_CONDITION_H_INCLUDED )
+#define  KRATOS_AXISYM_POINT_RIGID_CONTACT_PENALTY_2D_CONDITION_H_INCLUDED
 
 
 // System includes
@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_conditions/point_rigid_contact_condition.hpp"
+#include "custom_conditions/point_rigid_contact_penalty_2D_condition.hpp"
 
 namespace Kratos
 {
@@ -42,8 +42,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class PointRigidContactPenalty2DCondition
-    : public PointRigidContactCondition
+class AxisymPointRigidContactPenalty2DCondition
+    : public PointRigidContactPenalty2DCondition
 {
 public:
 
@@ -53,8 +53,8 @@ public:
     typedef Vector VectorType;
 
     ///@{
-    // Counted pointer of PointRigidContactCondition
-    KRATOS_CLASS_POINTER_DEFINITION( PointRigidContactPenalty2DCondition );
+    // Counted pointer of PointRigidContactPenalty2DCondition
+    KRATOS_CLASS_POINTER_DEFINITION( AxisymPointRigidContactPenalty2DCondition );
     ///@}
  
     ///@}
@@ -62,19 +62,19 @@ public:
     ///@{
 
     /// Default constructor.
-    PointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    AxisymPointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    PointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    AxisymPointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    PointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall);
+    AxisymPointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall);
   
 
     /// Copy constructor
-    PointRigidContactPenalty2DCondition( PointRigidContactPenalty2DCondition const& rOther);
+    AxisymPointRigidContactPenalty2DCondition( AxisymPointRigidContactPenalty2DCondition const& rOther);
 
 
     /// Destructor.
-    virtual ~PointRigidContactPenalty2DCondition();
+    virtual ~AxisymPointRigidContactPenalty2DCondition();
 
 
     ///@}
@@ -117,7 +117,7 @@ protected:
     ///@{
 
     // A protected default constructor necessary for serialization
-    PointRigidContactPenalty2DCondition() {};
+    AxisymPointRigidContactPenalty2DCondition() {};
 
     ///@}
     ///@name Protected member Variables
@@ -130,39 +130,32 @@ protected:
     ///@{
 
 
-    /**
-     * Initialize General Variables
-     */
-    void InitializeGeneralVariables(GeneralVariables& rVariables, 
-				    const ProcessInfo& rCurrentProcessInfo);
-
-    /**
+     /**
      * Calculate Condition Kinematics
      */
     virtual void CalculateKinematics(GeneralVariables& rVariables, 
 				     const double& rPointNumber);
 
-    /**
-     * Calculation of the Integration Weight
-     */
-    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
-
-
 
     /**
-     * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
+     * Calculation and addition of the matrices of the LHS
      */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-				     GeneralVariables& rVariables,
-				     double& rIntegrationWeight);
-
+    virtual void CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
+                                    GeneralVariables& rVariables,
+                                    double& rIntegrationWeight);
 
     /**
-     * Calculation of the External Forces Vector for a force or pressure vector 
+     * Calculation and addition of the vectors of the RHS
      */
-    virtual void CalculateAndAddContactForces(Vector& rRightHandSideVector,
-					      GeneralVariables& rVariables,
-					      double& rIntegrationWeight );
+    virtual void CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
+                                    GeneralVariables& rVariables,
+                                    double& rIntegrationWeight);
+
+    /**
+     * Calculation of the contidion radius (axisymmetry)
+     */
+    void CalculateRadius(double & rCurrentRadius,
+			 double & rReferenceRadius);
 
     ///@}
     ///@name Protected  Access
@@ -192,18 +185,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    /**
-     * Calculation of the Contact Force Factors
-     */
-    void CalculateContactFactors(GeneralVariables &rContact);
-
-
-    /**
-     * Calculation utility for 2D outer product
-     */
-    inline MatrixType outer_prod_2(const array_1d<double, 3>& a, const array_1d<double, 3>& b);
-
-
     ///@}
     ///@name Private  Access
     ///@{
@@ -221,16 +202,16 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointRigidContactCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, PointRigidContactPenalty2DCondition );
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointRigidContactCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, PointRigidContactPenalty2DCondition );
     }
 
 
-}; // Class PointRigidContactPenalty2DCondition
+}; // Class AxisymPointRigidContactPenalty2DCondition
 
 ///@}
 
@@ -245,11 +226,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-				    PointRigidContactPenalty2DCondition& rThis);
+				    AxisymPointRigidContactPenalty2DCondition& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-				    const PointRigidContactPenalty2DCondition& rThis)
+				    const AxisymPointRigidContactPenalty2DCondition& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -261,7 +242,7 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINT_RIGID_CONTACT_PENALTY_2D_CONDITION_H_INCLUDED  defined 
+#endif // KRATOS_AXISYM_POINT_RIGID_CONTACT_PENALTY_2D_CONDITION_H_INCLUDED  defined 
 
 
 
