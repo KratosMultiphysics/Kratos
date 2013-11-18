@@ -29,24 +29,36 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
             mesh_name = 0.0
             self.io.InitializeMesh(mesh_name)
             self.io.WriteMesh(mixed_model_part.GetMesh())
-            self.io.WriteSphereMesh( DEM_model_part.GetMesh())
+            self.io.WriteSphereMesh(DEM_model_part.GetMesh())
             self.io.FinalizeMesh(mesh_name)
             self.io.InitializeResults(mesh_name, mixed_model_part.GetMesh())
 
         # Initialize list file
         with open(self.listfilename,"w") as listfile:
+
             if self.multi_file == MultiFileFlag.MultipleFiles:
                 listfile.write("Multiple\n")
+
             elif self.multi_file == MultiFileFlag.SingleFile:
                 listfile.write("Single\n")
                 
         if self.multi_file == MultiFileFlag.SingleFile:
+
             if self.post_mode == GiDPostMode.GiD_PostBinary:
                 self.write_step_to_list()
+
             else:
                 self.write_step_to_list(0)
                
-    def write_swimming_DEM_results(self, label, fluid_model_part, DEM_model_part, FEM_DEM_model_part, mixed_model_part, fluid_nodal_variables, DEM_nodal_variables, mixed_nodal_variables, fluid_gp_variables):
+    def write_swimming_DEM_results(self, label,
+                                         fluid_model_part,
+                                         DEM_model_part,
+                                         FEM_DEM_model_part,
+                                         mixed_model_part,
+                                         fluid_nodal_variables,
+                                         DEM_nodal_variables,
+                                         mixed_nodal_variables,
+                                         fluid_gp_variables):
        #label = str(label) #it should be a C double
         # update cut data if necessary
         out_model_part = self.get_out_model_part(fluid_model_part)
@@ -65,19 +77,19 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
 
         for var in fluid_nodal_variables:
             kratos_variable = globals()[var]
-            self._write_nodal_results(label,fluid_model_part,kratos_variable)
+            self._write_nodal_results(label, fluid_model_part, kratos_variable)
             
         for var in DEM_nodal_variables:
             kratos_variable = globals()[var]
-            self._write_nodal_results(label,DEM_model_part,kratos_variable)
+            self._write_nodal_results(label, DEM_model_part, kratos_variable)
             
         for var in mixed_nodal_variables:
             kratos_variable = globals()[var]
-            self._write_nodal_results(label,mixed_model_part,kratos_variable) 
+            self._write_nodal_results(label, mixed_model_part, kratos_variable)
             
         for var in fluid_gp_variables:
             kratos_variable = globals()[var]
-            self._write_gp_results(label,fluid_model_part,kratos_variable)
+            self._write_gp_results(label, fluid_model_part, kratos_variable)
 
         if self.multi_file == MultiFileFlag.MultipleFiles:
             self._finalize_results()
