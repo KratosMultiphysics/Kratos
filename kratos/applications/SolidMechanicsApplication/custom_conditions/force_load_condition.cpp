@@ -539,7 +539,7 @@ void ForceLoadCondition::CalculateRightHandSide( VectorType& rRightHandSideVecto
     LocalSystem.SetRightHandSideVector(rRightHandSideVector);
 
     //Calculate condition system
-    CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
 }
 
@@ -573,7 +573,7 @@ void ForceLoadCondition::CalculateRightHandSide( std::vector< VectorType >& rRig
     LocalSystem.SetRightHandSideVariables(rRHSVariables);
 
     //Calculate condition system
-    CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
 
 }
@@ -600,7 +600,7 @@ void ForceLoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
     LocalSystem.SetRightHandSideVector(rRightHandSideVector);
 
     //Calculate condition system
-    CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
     //KRATOS_WATCH(rLeftHandSideMatrix)
     //KRATOS_WATCH(rRightHandSideVector)
@@ -658,7 +658,7 @@ void ForceLoadCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftH
     LocalSystem.SetRightHandSideVariables(rRHSVariables);
 
     //Calculate condition system
-    CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
 }
 
