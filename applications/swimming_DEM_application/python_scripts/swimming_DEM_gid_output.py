@@ -1,5 +1,6 @@
 import os
 from KratosMultiphysics import *
+from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
 import gid_output
 
