@@ -98,11 +98,15 @@ namespace Kratos
           initial_rotation_moment.clear();
           elastic_force.clear();
           
-         if( *mpActivateSearch==1 || *mpTimeStep == 0)  //TODO: activar, MSISMI1 ///WARNING!!!!
+         if( *mpActivateSearch==1 || *mpTimeStep == 0)  
           {
+          
           ComputeNewNeighboursHistoricalData();		  
-	  //Cfeng,RigidFace
-	  ComputeNewRigidFaceNeighboursHistoricalData();		  
+            //Cfeng,RigidFace
+          
+          ComputeNewRigidFaceNeighboursHistoricalData();		  
+          
+            
           }
           
 
