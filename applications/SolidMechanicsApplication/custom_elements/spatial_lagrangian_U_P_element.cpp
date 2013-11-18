@@ -254,7 +254,7 @@ void SpatialLagrangianUPElement::FinalizeStepVariables( GeneralVariables & rVari
     //update internal (historical) variables
     mDeterminantF0[rPointNumber]         = rVariables.detF0 ;
     mDeformationGradientF0[rPointNumber] = rVariables.F0;
-};
+}
 
 
 //************* COMPUTING  METHODS
