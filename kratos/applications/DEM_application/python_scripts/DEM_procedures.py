@@ -182,6 +182,7 @@ class Procedures:
           self.print_export_skin_sphere            = Var_Translator(param.PostExportSkinSphere)
           self.print_local_contact_force           = Var_Translator(param.PostLocalContactForce)
           self.print_failure_criterion_state       = Var_Translator(param.PostFailureCriterionState)
+          self.print_unidimensional_damage         = Var_Translator(param.PostUnidimensionalDamage)
           self.print_contact_failure               = Var_Translator(param.PostContactFailure)
           self.print_contact_tau                   = Var_Translator(param.PostContactTau)
           self.print_contact_sigma                 = Var_Translator(param.PostContactSigma)
@@ -632,7 +633,9 @@ class Procedures:
             if (self.print_contact_failure): 
                 gid_io.PrintOnGaussPoints(CONTACT_FAILURE, export_model_part, time)  
             if (self.print_failure_criterion_state):
-                gid_io.PrintOnGaussPoints(FAILURE_CRITERION_STATE, export_model_part, time)         
+                gid_io.PrintOnGaussPoints(FAILURE_CRITERION_STATE, export_model_part, time)
+            if (self.print_unidimensional_damage):
+                gid_io.PrintOnGaussPoints(UNIDIMENSIONAL_DAMAGE, export_model_part, time)
             if (self.print_contact_tau):
                 gid_io.PrintOnGaussPoints(CONTACT_TAU, export_model_part, time)
             if (self.print_contact_sigma):
