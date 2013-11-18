@@ -32,11 +32,12 @@ ProjectParameters.create_particles_option          = 0
 ProjectParameters.inlet_option                     = 0
 ProjectParameters.non_newtonian_option             = 0
 ProjectParameters.manually_imposed_drag_law_option = 0
+ProjectParameters.similarity_transformation_type   = 1 # no transformation (0), Tsuji (1)
 ProjectParameters.dem_inlet_element_type           = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 ProjectParameters.coupling_scheme_type             = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
 ProjectParameters.coupling_weighing_type           = 2 # {fluid_to_DEM, DEM_to_fluid, Solid_fraction} = {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
 ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), standard (1)
-ProjectParameters.drag_force_type                  = 1 # null drag (0), standard (1), Weatherford (2)
+ProjectParameters.drag_force_type                  = 1 # null drag (0), standard (1), Weatherford (2), Ganser (3)
 ProjectParameters.virtual_mass_force_type          = 0 # null virtual mass force (0)
 ProjectParameters.lift_force_type                  = 0 # null lift force (0)
 ProjectParameters.drag_modifier_type               = 3 # Hayder (2), Chien (3)
@@ -45,7 +46,7 @@ ProjectParameters.interaction_start_time           = 0.01
 ProjectParameters.gravity_x                        = 0.0
 ProjectParameters.gravity_y                        = 0.0
 ProjectParameters.gravity_z                        = - 9.81
-ProjectParameters.plastic_viscosity                = 0.000001 # kinematic viscosity
+ProjectParameters.plastic_viscosity                = 0.000014 # kinematic viscosity
 ProjectParameters.smoothing_parameter_m            = 0.035
 ProjectParameters.yield_stress_value               = 0.0
 ProjectParameters.max_solid_fraction               = 0.6
@@ -55,7 +56,10 @@ ProjectParameters.power_law_k                      = 0.0
 ProjectParameters.initial_drag_force               = 0.0
 ProjectParameters.drag_law_slope                   = 0.0
 ProjectParameters.power_law_tol                    = 0.0
-ProjectParameters.dimensional_upscaling_ratio      = 0.0
+ProjectParameters.model_over_real_diameter_factor  = 2.0 # not active if similarity_transformation_type = 0
+
+
+# variables to be printed
 ProjectParameters.dem_nodal_results                = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED", "REYNOLDS_NUMBER"]
 ProjectParameters.mixed_nodal_results              = ["VELOCITY", "DISPLACEMENT"]
 ProjectParameters.variables_to_print_in_file       = ["DRAG_FORCE", "BUOYANCY", "VELOCITY"]
@@ -78,7 +82,7 @@ for var in ProjectParameters.mixed_nodal_results:
     if var in ProjectParameters.nodal_results:
         ProjectParameters.nodal_results.remove(var)
 
-# extra nodal variables to be added to the model parts
+# extra nodal variables to be added to the model parts (memory will be allocated for them)
 fluid_variables_to_add = [PRESSURE_GRADIENT,
                           AUX_DOUBLE_VAR,
                           DRAG_REACTION,
@@ -315,6 +319,10 @@ graph_printer = point_graph_printer.PrintGraphPrinter(
     domain_size)
 
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+# applying changes to the physiscal properties of the model to adjust for
+# the similarity transformation if required (fluid effects only).
+swimming_DEM_procedures.ApplySimilarityTransformations(fluid_model_part, ProjectParameters.similarity_transformation_type, ProjectParameters.model_over_real_diameter_factor)
+
 # creating a Post Utils object that executes several post-related tasks
 post_utils = DEM_procedures.PostUtils(DEMParameters, balls_model_part)
 post_utilities = post_utils.post_utilities
