@@ -109,7 +109,7 @@ namespace Kratos
       virtual void EvaluateFailureCriteria(double LocalElasticContactForce[3], double ShearForceNow, double corrected_area, int i_neighbour_count, double& contact_sigma, double& contact_tau, double& failure_criterion_state, bool& sliding, int mapping);
       
       virtual void CalculateOnContactElements(unsigned int neighbour_iterator_id, size_t i_neighbour_count, int mapping, double LocalElasticContactForce[3], 
-                                              double contact_sigma, double contact_tau, double failure_criterion_state);
+                                              double contact_sigma, double contact_tau, double failure_criterion_state, double acumulated_damage);
 
       virtual void ComputeStressStrain(   double mStressTensor[3][3],
                                           ProcessInfo& rCurrentProcessInfo);
@@ -220,7 +220,7 @@ namespace Kratos
         //MSIMSI 6 aixo hauria de cridar el del basic o cal ke sigui del continu?
         
         void ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo);
-        void PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn, double indentation, double corrected_area, double radius_sum_i, double failure_criterion_state, int i_neighbour_count, double mapping_new_cont, double mapping_new_ini);
+        void PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn, double indentation, double corrected_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, double mapping_new_cont, double mapping_new_ini);
         
         //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
@@ -262,13 +262,14 @@ namespace Kratos
         bool mContactMeshOption;
         int mTriaxialOption;
 
-        double mInitialPressureTime;
         double mFinalPressureTime;
         double mFinalSimulationTime;
      
         int mpCaseOption;
         int  mFailureId;
         int*  mSkinSphere;
+        
+        const double *mpCurrentTime;
    
         int mFailureCriterionOption;
         
