@@ -336,11 +336,12 @@ public:
         const ProcessInfo& r_current_process_info)
     {
       const int n_dem_elements = rdem_model_part.Elements().size();
-      const int n_fluid_nodes = rfluid_model_part.Nodes().size();
-      double reynolds_number;
+      const int n_fluid_nodes = rfluid_model_part.Nodes().size();     
 
       for (int i = 0; i < n_dem_elements; i++){
           ModelPart::ElementsContainerType::iterator ielem = rdem_model_part.ElementsBegin() + i;
+          Geometry< Node<3> >& geom = ielem->GetGeometry();
+          double& reynolds_number = geom[0].FastGetSolutionStepValue(REYNOLDS_NUMBER, 0);
           ielem->Calculate(REYNOLDS_NUMBER, reynolds_number, r_current_process_info);
       }
 
