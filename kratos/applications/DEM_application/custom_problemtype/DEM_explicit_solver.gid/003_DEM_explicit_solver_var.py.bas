@@ -355,8 +355,6 @@ TriaxialOption                   = "*GenData(Triaxial_Option)"
 *format "%10.5e"
 ConfinementPressure              = *GenData(Confinement_Pressure)
 *format "%10.5e"
-InitialPressureAplicationTime    = *GenData(Initial_Pressure_Aplication_Time)
-*format "%10.5e"
 TotalTimePercentAsForceAplTime   = *GenData(Total_Time_Percentage_As_Force_Aplication_Time)
 
 #POSTPROCES
@@ -377,6 +375,7 @@ PostExportParticleFailureId      = "*GenData(EXPORT_PARTICLE_FAILURE_ID)"
 PostExportSkinSphere             = "*GenData(EXPORT_SKIN_SPHERE)"
 PostLocalContactForce            = "*GenData(LOCAL_CONTACT_FORCE)"
 PostFailureCriterionState        = "*GenData(FAILURE_CRITERION_STATE)"
+PostUnidimensionalDamage         = "*GenData(UNIDIMENSIONAL_DAMAGE)"
 PostContactFailure               = "*GenData(CONTACT_FAILURE)"
 PostContactTau                   = "*GenData(CONTACT_TAU)"
 PostContactSigma                 = "*GenData(CONTACT_SIGMA)"
