@@ -2889,8 +2889,8 @@ namespace Kratos
 			  
 			
 
-			array_1d<double, 3 > & ContactForceNormal1  = rConditionGeom[0].FastGetSolutionStepValue(FORCE_CONTACT_NORMAL);
-			array_1d<double, 3 > & ContactForceNormal2  = rConditionGeom[1].FastGetSolutionStepValue(FORCE_CONTACT_NORMAL);
+			array_1d<double, 3 > & ContactForceNormal1  = rConditionGeom[0].FastGetSolutionStepValue(CONTACT_FORCE);
+			array_1d<double, 3 > & ContactForceNormal2  = rConditionGeom[1].FastGetSolutionStepValue(CONTACT_FORCE);
 			if(norm_2(ContactForceNormal1)>0 && norm_2(ContactForceNormal2)>0){
 			  contact_active = true;
 			  number_contacts_active ++;
@@ -3104,8 +3104,8 @@ namespace Kratos
 
 		  
 		rConditionGeom = ic->GetGeometry();
-		array_1d<double, 3 > & ContactForceNormal1  = rConditionGeom[0].FastGetSolutionStepValue(FORCE_CONTACT_NORMAL);
-		array_1d<double, 3 > & ContactForceNormal2  = rConditionGeom[1].FastGetSolutionStepValue(FORCE_CONTACT_NORMAL);
+		array_1d<double, 3 > & ContactForceNormal1  = rConditionGeom[0].FastGetSolutionStepValue(CONTACT_FORCE);
+		array_1d<double, 3 > & ContactForceNormal2  = rConditionGeom[1].FastGetSolutionStepValue(CONTACT_FORCE);
 
 		//std::cout<<" Forces : [1] "<<norm_2(ContactForceNormal1)<<" [2] "<<norm_2(ContactForceNormal2)<<std::endl;
 		if(norm_2(ContactForceNormal1)>0 && norm_2(ContactForceNormal2)>0){
@@ -3678,8 +3678,8 @@ namespace Kratos
 	(*it)->Z0() = 0.0;
 
 	//correct contact_normal interpolation
-	noalias((*it)->GetSolutionStepValue(FORCE_CONTACT_NORMAL))  = ZeroNormal;
-	noalias((*it)->GetSolutionStepValue(FORCE_CONTACT_TANGENT)) = ZeroNormal;
+	noalias((*it)->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
+	noalias((*it)->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
 		    
 	(*it)->SetValue(DOMAIN_LABEL,MeshId);
 

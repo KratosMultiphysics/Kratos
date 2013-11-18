@@ -28,8 +28,8 @@ namespace Kratos
 ContactDomainCondition::ContactDomainCondition( IndexType NewId, GeometryType::Pointer pGeometry )
     : Condition( NewId, pGeometry )
 {
+  this->Set(CONTACT);
   //DO NOT ADD DOFS HERE!!!
-   this->Set(CONTACT);
 }
 
 
@@ -41,6 +41,7 @@ ContactDomainCondition::ContactDomainCondition( IndexType NewId, GeometryType::P
 {
   this->Set(CONTACT);
   mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
+  //DO NOT ADD DOFS HERE!!!
 }
 
 
@@ -87,6 +88,14 @@ Condition::Pointer ContactDomainCondition::Create( IndexType NewId, NodesArrayTy
     return Condition::Pointer(new ContactDomainCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
+
+//************************************CLONE*******************************************
+//************************************************************************************
+
+Condition::Pointer ContactDomainCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+{
+  return this->Create( NewId, rThisNodes, pGetProperties() );
+}
 
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
@@ -484,17 +493,51 @@ void ContactDomainCondition::ClearNodalForces()
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
 	GetGeometry()[i].SetLock();
-	VectorType & ContactForceNormal  = GetGeometry()[i].FastGetSolutionStepValue(FORCE_CONTACT_NORMAL);
-	ContactForceNormal.clear();
-
-	VectorType & ContactForceTangent  = GetGeometry()[i].FastGetSolutionStepValue(FORCE_CONTACT_TANGENT);
-	ContactForceTangent.clear();
+	VectorType & ContactForce  = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+	ContactForce.clear();
 	GetGeometry()[i].UnSetLock();
     }
 
 
     KRATOS_CATCH( "" )
 }
+
+
+//***********************************************************************************
+//***********************************************************************************
+
+void ContactDomainCondition::AddExplicitContribution(const VectorType& rRHS, 
+						     const Variable<VectorType>& rRHSVariable, 
+						     Variable<array_1d<double,3> >& rDestinationVariable, 
+						     const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    if( rRHSVariable == CONTACT_FORCES_VECTOR && rDestinationVariable == CONTACT_FORCE )
+      {
+
+	for(unsigned int i=0; i< number_of_nodes; i++)
+	  {
+	    int index = dimension * i;
+
+	    GetGeometry()[i].SetLock();
+
+	    array_1d<double, 3 > &ContactForce = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+	    for(unsigned int j=0; j<dimension; j++)
+	      {
+		ContactForce[j] += rRHS[index + j];
+	      }
+
+	    GetGeometry()[i].UnSetLock();
+	  }
+      }
+
+    KRATOS_CATCH( "" )
+}
+
 
 //************************************************************************************
 //************************************************************************************
@@ -509,12 +552,10 @@ void ContactDomainCondition::ClearMasterElementNodalForces(ElementType& rMasterE
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
 	rMasterElement.GetGeometry()[i].SetLock();
-	VectorType & ContactForceNormal   = rMasterElement.GetGeometry()[i].FastGetSolutionStepValue(FORCE_CONTACT_NORMAL);
-	VectorType & ContactForceTangent  = rMasterElement.GetGeometry()[i].FastGetSolutionStepValue(FORCE_CONTACT_TANGENT);
 
+	VectorType & ContactForce = rMasterElement.GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+	ContactForce.clear();
 
-	ContactForceNormal.clear();
-	ContactForceTangent.clear();
 	rMasterElement.GetGeometry()[i].UnSetLock();
     }
     //------------------------------------//
@@ -636,44 +677,146 @@ void ContactDomainCondition::CalculateKinematics( GeneralVariables& rVariables, 
 //***********************COMPUTE LOCAL SYSTEM CONTRIBUTIONS***************************
 //************************************************************************************
 
-
-void ContactDomainCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
-{
-
-    //calculation flags
-    Flags CalculationFlags;
-    CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX);
-    CalculationFlags.Set(ContactDomainUtilities::COMPUTE_RHS_VECTOR);
-
-
-    //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, CalculationFlags );
-
-    //Calculate elemental system
-    this->CalculateConditionalSystem( rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculationFlags );
-
-}
-
-//************************************************************************************
-//************************************************************************************
-
-
 void ContactDomainCondition::CalculateRightHandSide( VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
+    //create local system components
+    LocalSystemComponents LocalSystem;
+
     //calculation flags
-    Flags CalculationFlags;
-    CalculationFlags.Set(ContactDomainUtilities::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_RHS_VECTOR);
 
     MatrixType LeftHandSideMatrix = Matrix();
 
     //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, CalculationFlags );
+    this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
 
-    //Calculate elemental system
-    this->CalculateConditionalSystem( LeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, CalculationFlags );
+    //Set Variables to Local system components
+    LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
+    LocalSystem.SetRightHandSideVector(rRightHandSideVector);
+
+    //Calculate condition system
+    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
 }
 
+//************************************************************************************
+//************************************************************************************
+
+void ContactDomainCondition::CalculateRightHandSide( std::vector< VectorType >& rRightHandSideVectors, const std::vector< Variable< VectorType > >& rRHSVariables, ProcessInfo& rCurrentProcessInfo )
+{
+    //create local system components
+    LocalSystemComponents LocalSystem;
+
+    //calculation flags
+    LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
+
+    MatrixType LeftHandSideMatrix = Matrix();
+
+    //Initialize sizes for the system components:
+    if( rRHSVariables.size() != rRightHandSideVectors.size() )
+      rRightHandSideVectors.resize(rRHSVariables.size());
+    
+    for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
+      {
+	this->InitializeSystemMatrices( LeftHandSideMatrix, rRightHandSideVectors[i], LocalSystem.CalculationFlags );
+      }
+
+    //Set Variables to Local system components
+    LocalSystem.SetLeftHandSideMatrix(LeftHandSideMatrix);
+    LocalSystem.SetRightHandSideVectors(rRightHandSideVectors);
+
+    LocalSystem.SetRightHandSideVariables(rRHSVariables);
+
+    //Calculate condition system
+    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+
+
+}
+
+
+
+//************************************************************************************
+//************************************************************************************
+
+void ContactDomainCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
+{
+    //create local system components
+    LocalSystemComponents LocalSystem;
+
+    //calculation flags
+    LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_RHS_VECTOR);
+
+    //Initialize sizes for the system components:
+    this->InitializeSystemMatrices( rLeftHandSideMatrix, rRightHandSideVector, LocalSystem.CalculationFlags );
+
+    //Set Variables to Local system components
+    LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
+    LocalSystem.SetRightHandSideVector(rRightHandSideVector);
+
+    //Calculate condition system
+    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+
+    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH(rRightHandSideVector)
+
+}
+
+
+//************************************************************************************
+//************************************************************************************
+
+void ContactDomainCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftHandSideMatrices,
+					       const std::vector< Variable< MatrixType > >& rLHSVariables,
+					       std::vector< VectorType >& rRightHandSideVectors,
+					       const std::vector< Variable< VectorType > >& rRHSVariables,
+					       ProcessInfo& rCurrentProcessInfo )
+{
+    //create local system components
+    LocalSystemComponents LocalSystem;
+
+    //calculation flags
+    LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX_WITH_COMPONENTS);
+    LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_RHS_VECTOR_WITH_COMPONENTS);
+
+
+    //Initialize sizes for the system components:
+    if( rLHSVariables.size() != rLeftHandSideMatrices.size() )
+      rLeftHandSideMatrices.resize(rLHSVariables.size());
+
+    if( rRHSVariables.size() != rRightHandSideVectors.size() )
+      rRightHandSideVectors.resize(rRHSVariables.size());
+    
+    LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX);
+    for( unsigned int i=0; i<rLeftHandSideMatrices.size(); i++ )
+      {
+	//Note: rRightHandSideVectors.size() > 0
+	this->InitializeSystemMatrices( rLeftHandSideMatrices[i], rRightHandSideVectors[0], LocalSystem.CalculationFlags );
+      }
+
+    LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_RHS_VECTOR);
+    LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX,false);
+
+    for( unsigned int i=0; i<rRightHandSideVectors.size(); i++ )
+      {
+	//Note: rLeftHandSideMatrices.size() > 0
+    	this->InitializeSystemMatrices( rLeftHandSideMatrices[0], rRightHandSideVectors[i], LocalSystem.CalculationFlags );
+      }
+    LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX,true);
+
+
+    //Set Variables to Local system components
+    LocalSystem.SetLeftHandSideMatrices(rLeftHandSideMatrices);
+    LocalSystem.SetRightHandSideVectors(rRightHandSideVectors);
+
+    LocalSystem.SetLeftHandSideVariables(rLHSVariables);
+    LocalSystem.SetRightHandSideVariables(rRHSVariables);
+
+    //Calculate condition system
+    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+
+}
 
 //************************************************************************************
 //************************************************************************************
@@ -681,17 +824,24 @@ void ContactDomainCondition::CalculateRightHandSide( VectorType& rRightHandSideV
 
 void ContactDomainCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
 {
+ 
+    //create local system components
+    LocalSystemComponents LocalSystem;
+
     //calculation flags
-    Flags CalculationFlags;
-    CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX);
+    LocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX);
 
     VectorType RightHandSideVector = Vector();
 
     //Initialize sizes for the system components:
-    this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, CalculationFlags );
+    this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
 
-    //Calculate elemental system
-    this->CalculateConditionalSystem( rLeftHandSideMatrix, RightHandSideVector, rCurrentProcessInfo, CalculationFlags );
+    //Set Variables to Local system components
+    LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
+    LocalSystem.SetRightHandSideVector(RightHandSideVector);
+
+    //Calculate condition system
+    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
 }
 
@@ -904,10 +1054,8 @@ void ContactDomainCondition::CalculateFrictionCoefficient (GeneralVariables& rVa
 //************************************************************************************
 //************************************************************************************
 
-void ContactDomainCondition::CalculateConditionalSystem( MatrixType& rLeftHandSideMatrix,
-							 VectorType& rRightHandSideVector,
-							 ProcessInfo& rCurrentProcessInfo,
-							 Flags& rCalculationFlags )
+void ContactDomainCondition::CalculateConditionSystem(LocalSystemComponents& rLocalSystem,
+						      ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -947,18 +1095,18 @@ void ContactDomainCondition::CalculateConditionalSystem( MatrixType& rLeftHandSi
 
         if(Variables.Contact.Options.Is(ACTIVE))
         {
-	  rCalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX,true); //take a look on strategy and impose it
+	  rLocalSystem.CalculationFlags.Set(ContactDomainUtilities::COMPUTE_LHS_MATRIX,true); //take a look on strategy and impose it
 
-	  if ( rCalculationFlags.Is(ContactDomainUtilities::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
+	  if ( rLocalSystem.CalculationFlags.Is(ContactDomainUtilities::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
 	    {
 	      //contributions to stiffness matrix calculated on the reference config
-	      this->CalculateAndAddLHS ( rLeftHandSideMatrix, Variables, IntegrationWeight );
+	      this->CalculateAndAddLHS ( rLocalSystem, Variables, IntegrationWeight );
 	    }
 
-	  if ( rCalculationFlags.Is(ContactDomainUtilities::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
+	  if ( rLocalSystem.CalculationFlags.Is(ContactDomainUtilities::COMPUTE_RHS_VECTOR) ) //calculation of the vector is required
 	    {
 	      //contribution to contact forces
-	      this->CalculateAndAddRHS ( rRightHandSideVector, Variables, IntegrationWeight );
+	      this->CalculateAndAddRHS ( rLocalSystem, Variables, IntegrationWeight );
 
 	    }
 
@@ -983,22 +1131,83 @@ double& ContactDomainCondition::CalculateIntegrationWeight(double& rIntegrationW
 //************************************************************************************
 //************************************************************************************
 
-void ContactDomainCondition::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+void ContactDomainCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
-  //contributions to stiffness matrix calculated on the reference config
-  this->CalculateAndAddKm( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+  //contributions of the stiffness matrix calculated on the reference configuration
+  if( rLocalSystem.CalculationFlags.Is( ContactDomainUtilities::COMPUTE_LHS_MATRIX_WITH_COMPONENTS ) )
+    {
+      std::vector<MatrixType>& rLeftHandSideMatrices = rLocalSystem.GetLeftHandSideMatrices();
+      const std::vector< Variable< MatrixType > >& rLeftHandSideVariables = rLocalSystem.GetLeftHandSideVariables();
 
-  //KRATOS_WATCH(rLeftHandSideMatrix)
+      for( unsigned int i=0; i<rLeftHandSideVariables.size(); i++ )
+	{
+	  bool calculated = false;
+	  
+	  if( rLeftHandSideVariables[i] == GEOMETRIC_STIFFNESS_MATRIX ){
+	    // operation performed: add Kg to the rLefsHandSideMatrix
+	    this->CalculateAndAddKuug( rLeftHandSideMatrices[i], rVariables, rIntegrationWeight );
+	    calculated = true;
+	  }
+
+	  if(calculated == false)
+	    {
+	      KRATOS_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i])
+	    }
+
+	}
+    } 
+  else{
+    
+    MatrixType& rLeftHandSideMatrix = rLocalSystem.GetLeftHandSideMatrix(); 
+
+    // operation performed: add Kg to the rLefsHandSideMatrix
+    this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
+
+    //KRATOS_WATCH(rLeftHandSideMatrix)
+  }
+
 }
 
 
 //************************************************************************************
 //************************************************************************************
 
-void ContactDomainCondition::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight)
+void ContactDomainCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
-  //contribution to contact forces
-  this->CalculateAndAddContactForces(rRightHandSideVector, rVariables, rIntegrationWeight);
+
+    //contribution of the internal and external forces
+    if( rLocalSystem.CalculationFlags.Is( ContactDomainUtilities::COMPUTE_RHS_VECTOR_WITH_COMPONENTS ) )
+    {
+
+      std::vector<VectorType>& rRightHandSideVectors = rLocalSystem.GetRightHandSideVectors();
+      const std::vector< Variable< VectorType > >& rRightHandSideVariables = rLocalSystem.GetRightHandSideVariables();
+      for( unsigned int i=0; i<rRightHandSideVariables.size(); i++ )
+	{
+	  bool calculated = false;
+	  if( rRightHandSideVariables[i] == CONTACT_FORCES_VECTOR ){
+	    // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+	    this->CalculateAndAddContactForces( rRightHandSideVectors[i], rVariables, rIntegrationWeight );
+	    calculated = true;
+	  }
+	  
+	  if(calculated == false)
+	    {
+	      KRATOS_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rRightHandSideVariables[i])
+	    }
+
+	}
+    }
+    else{
+      
+      VectorType& rRightHandSideVector = rLocalSystem.GetRightHandSideVector(); 
+
+      // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
+      this->CalculateAndAddContactForces( rRightHandSideVector, rVariables, rIntegrationWeight );
+
+      //KRATOS_WATCH(rRightHandSideVector)
+
+    }
+    
 
   //KRATOS_WATCH(rRightHandSideVector)
 }
@@ -1013,8 +1222,14 @@ inline void ContactDomainCondition::CalculateAndAddContactForces(VectorType& rRi
     KRATOS_TRY
 
     //contributions to stiffness matrix calculated on the reference config
-    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-    unsigned int size      = rRightHandSideVector.size()/dimension;
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    //resizing as needed the LHS
+    unsigned int size = (number_of_nodes + 1);
+
+    // unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    // unsigned int size      = rRightHandSideVector.size()/dimension;
 
     Vector Nforce;
     Vector Tforce;
@@ -1054,26 +1269,6 @@ inline void ContactDomainCondition::CalculateAndAddContactForces(VectorType& rRi
 	    index++;
         }
 	
-
-	if(ndi<GetGeometry().PointsNumber())
-	{
-		GetGeometry()[ndi].SetLock();
-
-		VectorType & ForceContactNormal  = GetGeometry()[ndi].FastGetSolutionStepValue(FORCE_CONTACT_NORMAL);
-
-		VectorType & ForceContactTangent = GetGeometry()[ndi].FastGetSolutionStepValue(FORCE_CONTACT_TANGENT);
-
-
-		//Only tangent force
-		ForceContactTangent += (TangentForce);
-
-		//Only normal force
-		ForceContactNormal  += (NormalForce);
-
-		GetGeometry()[ndi].UnSetLock();
-    		
-	}
-
     }
 
 
@@ -1089,9 +1284,9 @@ inline void ContactDomainCondition::CalculateAndAddContactForces(VectorType& rRi
 //************************************************************************************
 
 
-void ContactDomainCondition::CalculateAndAddKm(MatrixType& rLeftHandSideMatrix,
-					       GeneralVariables& rVariables,
-					       double& rIntegrationWeight)
+void ContactDomainCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+						 GeneralVariables& rVariables,
+						 double& rIntegrationWeight)
   
 { 
     KRATOS_TRY

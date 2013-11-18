@@ -973,7 +973,7 @@ namespace Kratos
 	//initial assignation
 	for(int in = 0; in<out.numberofpoints; in++)
 	  {
-	    array_1d<double, 3 > & ContactForceNormal  = rModelPart.Nodes(MeshId)[in+1].FastGetSolutionStepValue(FORCE_CONTACT_NORMAL);
+	    array_1d<double, 3 > & ContactForceNormal  = rModelPart.Nodes(MeshId)[in+1].FastGetSolutionStepValue(CONTACT_FORCE);
 	    if(norm_2(ContactForceNormal)==0 && rModelPart.Nodes(MeshId)[in+1].IsNot(BOUNDARY)){
 	      nodes_ranks[in+1]=5;
 	    }	    
@@ -1105,8 +1105,8 @@ namespace Kratos
 
 		double projection=inner_prod(DeltaDisplacement,Normal);
 
-		array_1d<double, 3 > & ContactForceNormal  = rModelPart.Nodes(MeshId)[in+1].FastGetSolutionStepValue(FORCE_CONTACT_NORMAL);
-		if(norm_2(ContactForceNormal)!=0){
+		array_1d<double, 3 > & ContactForce = rModelPart.Nodes(MeshId)[in+1].FastGetSolutionStepValue(CONTACT_FORCE);
+		if(norm_2(ContactForce)!=0){
 		  initial_nodes_distances[in+1] = (-1)*(movement_factor*contact_factor)*fabs(projection)*Normal;
 		}
 		else{

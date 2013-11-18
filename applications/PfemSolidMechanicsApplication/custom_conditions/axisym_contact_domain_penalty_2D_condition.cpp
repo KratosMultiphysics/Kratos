@@ -252,13 +252,11 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( GeneralVariable
 //************************************************************************************
 //************************************************************************************
 
-void AxisymContactDomainPenalty2DCondition::CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
+void AxisymContactDomainPenalty2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
-
   double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
-  //contributions to stiffness matrix calculated on the reference config
-  this->CalculateAndAddKm( rLeftHandSideMatrix, rVariables, IntegrationWeight );
+  ContactDomainCondition::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
   //KRATOS_WATCH(rLeftHandSideMatrix)
 }
@@ -267,12 +265,11 @@ void AxisymContactDomainPenalty2DCondition::CalculateAndAddLHS(MatrixType& rLeft
 //************************************************************************************
 //************************************************************************************
 
-void AxisymContactDomainPenalty2DCondition::CalculateAndAddRHS(VectorType& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight)
+void AxisymContactDomainPenalty2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
   double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
-  //contribution to contact forces
-  this->CalculateAndAddContactForces(rRightHandSideVector, rVariables, IntegrationWeight);
+  ContactDomainCondition::CalculateAndAddRHS( rLocalSystem, rVariables, IntegrationWeight );
 
   //KRATOS_WATCH(rRightHandSideVector)
 }

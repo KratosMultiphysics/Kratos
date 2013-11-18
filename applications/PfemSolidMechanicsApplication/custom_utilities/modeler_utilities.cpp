@@ -125,8 +125,8 @@ namespace Kratos
 		
 	    if(i_node->IsNot(BOUNDARY))
 	      {
-		noalias(i_node->GetSolutionStepValue(FORCE_CONTACT_NORMAL)) = ZeroNormal;
-		noalias(i_node->GetSolutionStepValue(FORCE_CONTACT_TANGENT)) = ZeroNormal;
+		noalias(i_node->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
+		noalias(i_node->GetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
 	      }
 
 

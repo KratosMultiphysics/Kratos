@@ -10,23 +10,12 @@
 #define  KRATOS_POINT_RIGID_CONTACT_PENALTY_2D_CONDITION_H_INCLUDED
 
 
-
 // System includes
 
-
 // External includes
-#include "boost/smart_ptr.hpp"
-
 
 // Project includes
-#include "includes/define.h"
-#include "includes/serializer.h"
-#include "includes/condition.h"
-#include "includes/ublas_interface.h"
-#include "includes/variables.h"
-#include "utilities/math_utils.h"
-
-#include "custom_modelers/rigid_tool_bounding_box.hpp"
+#include "custom_conditions/point_rigid_contact_condition.hpp"
 
 namespace Kratos
 {
@@ -54,66 +43,28 @@ namespace Kratos
 /** Detail class definition.
 */
 class PointRigidContactPenalty2DCondition
-    : public Condition
+    : public PointRigidContactCondition
 {
 public:
-    ///@name Type Definitions
-    ///@{
-  
+
+   ///@name Type Definitions
+
     ///Tensor order 1 definition
     typedef Vector VectorType;
-  
 
-protected:
-
-
-   typedef struct
-    {
-        VectorType Normal;        //normal direction
-        VectorType Tangent;       //tangent direction
-	   
-    } SurfaceVector;
-
-
-    typedef struct
-    {
-        double Normal;        //normal component 
-        double Tangent;       //tangent component
-        	   
-    } SurfaceScalar;
-
-
-    typedef struct
-    {
-      Flags           Options;               //calculation options
-      
-      //Geometrical gaps:
-      SurfaceScalar   Gap;                   //normal and tangential gap
-
-      //Friction:
-      double          FrictionCoefficient;   //total friction coeffitient mu
-
-      SurfaceScalar   Penalty;               //Penalty Parameter normal and tangent
-
-      //Geometric variables
-      SurfaceVector   Surface;               //normal and tangent vector to the surface
-      
-    } ContactVariables;
-
-
-public:
-
-    /// Counted pointer of PointRigidContactPenalty2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION(PointRigidContactPenalty2DCondition);
-
+    ///@{
+    // Counted pointer of PointRigidContactCondition
+    KRATOS_CLASS_POINTER_DEFINITION( PointRigidContactPenalty2DCondition );
+    ///@}
+ 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
     PointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry);
-    PointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
+    PointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     PointRigidContactPenalty2DCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties, SpatialBoundingBox::Pointer pRigidWall);
   
@@ -135,61 +86,30 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * creates a new condition pointer
+     * @param NewId: the ID of the new condition
+     * @param ThisNodes: the nodes of the new condition
+     * @param pProperties: the properties assigned to the new condition
+     * @return a Pointer to the new condition
+     */
     Condition::Pointer Create(IndexType NewId, NodesArrayType const&
                               ThisNodes,  PropertiesType::Pointer pProperties) const;
 
   
-    void InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
-  
-    void FinalizeNonLinearIteration(ProcessInfo& CurrentProcessInfo);
-  
-  
-    void SetRigidWall(SpatialBoundingBox::Pointer pRigidWall);
-
-
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType&
-                              rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo&
-                                rCurrentProcessInfo);
-    
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo&
-                          rCurrentProcessInfo);
-
-    void GetDofList(DofsVectorType& ConditionalDofList,ProcessInfo&
-                    CurrentProcessInfo);
 
     ///@}
     ///@name Access
     ///@{
-
-
     ///@}
     ///@name Inquiry
     ///@{
-
-
     ///@}
     ///@name Input and output
     ///@{
-
-    /// Turn back information as a string.
-    //      virtual String Info() const;
-
-    /// Print information about this object.
-//      virtual void PrintInfo(std::ostream& rOStream) const;
-
-    /// Print object's data.
-//      virtual void PrintData(std::ostream& rOStream) const;
-
-
     ///@}
     ///@name Friends
     ///@{
-
-
     ///@}
 
 protected:
@@ -202,46 +122,100 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-
-
     ///@}
     ///@name Protected Operators
     ///@{
-
-
     ///@}
     ///@name Protected Operations
     ///@{
 
 
+    /**
+     * Initialize General Variables
+     */
+    void InitializeGeneralVariables(GeneralVariables& rVariables, 
+				    const ProcessInfo& rCurrentProcessInfo);
+
+    /**
+     * Calculate Condition Kinematics
+     */
+    virtual void CalculateKinematics(GeneralVariables& rVariables, 
+				     const double& rPointNumber);
+
+    /**
+     * Calculation of the Integration Weight
+     */
+    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
+
+
+
+    /**
+     * Calculation of the Load Stiffness Matrix which usually is subtracted to the global stiffness matrix
+     */
+    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
+				     GeneralVariables& rVariables,
+				     double& rIntegrationWeight);
+
+
+    /**
+     * Calculation of the External Forces Vector for a force or pressure vector 
+     */
+    virtual void CalculateAndAddContactForces(Vector& rRightHandSideVector,
+					      GeneralVariables& rVariables,
+					      double& rIntegrationWeight );
+
     ///@}
     ///@name Protected  Access
     ///@{
-
-
     ///@}
     ///@name Protected Inquiry
     ///@{
-
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
-
     ///@}
 
 private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
 
-    SpatialBoundingBox::Pointer mpRigidWall;
-  
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * Calculation of the Contact Force Factors
+     */
+    void CalculateContactFactors(GeneralVariables &rContact);
+
+
+    /**
+     * Calculation utility for 2D outer product
+     */
+    inline MatrixType outer_prod_2(const array_1d<double, 3>& a, const array_1d<double, 3>& b);
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+    ///@}
+    ///@name Serialization
+    ///@{
 
     friend class Serializer;
 
@@ -255,42 +229,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition );
     }
 
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    void CalculateContactFactors(ContactVariables &rContact);
-
-    inline MatrixType outer_prod_2(const array_1d<double, 3>& a, const array_1d<double, 3>& b);
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    //PointRigidContactPenalty2DCondition& operator=(const PointRigidContactPenalty2DCondition& rOther);
-
-    /// Copy constructor.
-    //PointRigidContactPenalty2DCondition(const PointRigidContactPenalty2DCondition& rOther);
-
-
-    ///@}
 
 }; // Class PointRigidContactPenalty2DCondition
 
