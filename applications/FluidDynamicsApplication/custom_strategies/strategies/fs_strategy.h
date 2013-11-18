@@ -1014,14 +1014,15 @@ private:
             bool PredictorCorrector)
     {
         KRATOS_TRY;
-
+        
+        mTimeOrder = rSolverConfig.GetTimeOrder();
+        
         // Check that input parameters are reasonable and sufficient.
         this->Check();
 
         ModelPart& rModelPart = this->GetModelPart();
 
         mDomainSize = rSolverConfig.GetDomainSize();
-        mTimeOrder = rSolverConfig.GetTimeOrder();
 
         mPredictorCorrector = PredictorCorrector;
 
