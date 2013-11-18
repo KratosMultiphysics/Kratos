@@ -105,21 +105,10 @@ namespace Kratos
           this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
      
           rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR].resize(this->GetNumberOfThreads());
-          
-          if(1>4)//rCurrentProcessInfo[DEMPACK_OPTION])
-          {
-
-          this->SetDempackSearchRadius(rModelPart,rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);  
-            
-          }
-          
-          else
-          {
 
           // 0. Set search radius
          this->SetSearchRadius(rModelPart,rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION],1.0);
-          
-          }
+
           // 1. Search Neighbours with tolerance (Not in mpi.)
           this->GetBoundingBoxOption()     = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
 
@@ -223,8 +212,6 @@ namespace Kratos
           //KRATOS_TIMER_START("SynchronizeSolidMesh")
           BaseType::SynchronizeSolidMesh(rModelPart);
           //KRATOS_TIMER_STOP("SynchronizeSolidMesh")
-          
-          rCurrentProcessInfo[ACTIVATE_SEARCH]=1;
 
           if(rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
           {
@@ -950,7 +937,7 @@ namespace Kratos
           KRATOS_CATCH("")
         }
       
-
+/* DEMPACK RADIUS
     void SetDempackSearchRadius(ModelPart& r_model_part, double radiusExtend)
     {
         KRATOS_TRY
@@ -972,7 +959,7 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-
+*/
     
     void SetSearchRadius(ModelPart& r_model_part, double radiusExtend, double amplification)
     {
