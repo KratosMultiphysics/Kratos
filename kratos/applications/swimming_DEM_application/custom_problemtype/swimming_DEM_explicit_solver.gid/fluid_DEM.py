@@ -24,7 +24,7 @@ import swimming_DEM_procedures
 
 # PROJECT PARAMETERS (to be put in problem type)
 ProjectParameters.projection_module_option         = 1
-ProjectParameters.print_particles_results_option   = 1
+ProjectParameters.print_particles_results_option   = 0
 ProjectParameters.project_from_particles_option    = 1
 ProjectParameters.project_at_every_substep_option  = 1
 ProjectParameters.velocity_trap_option             = 0
@@ -32,7 +32,7 @@ ProjectParameters.create_particles_option          = 0
 ProjectParameters.inlet_option                     = 0
 ProjectParameters.non_newtonian_option             = 0
 ProjectParameters.manually_imposed_drag_law_option = 0
-ProjectParameters.similarity_transformation_type   = 1 # no transformation (0), Tsuji (1)
+ProjectParameters.similarity_transformation_type   = 0 # no transformation (0), Tsuji (1)
 ProjectParameters.dem_inlet_element_type           = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 ProjectParameters.coupling_scheme_type             = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
 ProjectParameters.coupling_weighing_type           = 2 # {fluid_to_DEM, DEM_to_fluid, Solid_fraction} = {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
@@ -57,7 +57,6 @@ ProjectParameters.initial_drag_force               = 0.0
 ProjectParameters.drag_law_slope                   = 0.0
 ProjectParameters.power_law_tol                    = 0.0
 ProjectParameters.model_over_real_diameter_factor  = 2.0 # not active if similarity_transformation_type = 0
-
 
 # variables to be printed
 ProjectParameters.dem_nodal_results                = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED", "REYNOLDS_NUMBER"]
@@ -404,6 +403,10 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
     yield current_time
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
+# renumerating IDs if required
+
+swimming_DEM_procedures.RenumberNodesIdsToAvoidRepeating(fluid_model_part, balls_model_part, fem_dem_model_part)
+
 # Stepping and time settings
 
 Dt = ProjectParameters.Dt
@@ -489,8 +492,7 @@ while(time <= final_time):
     if (time >= ProjectParameters.interaction_start_time and ProjectParameters.projection_module_option):
         interaction_calculator.CalculatePressureGradient(fluid_model_part)                 
             
-    for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):
-				
+    for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):			
         balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
 
         # applying fluid-to-DEM coupling
