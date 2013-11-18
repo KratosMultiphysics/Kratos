@@ -429,6 +429,7 @@ namespace Kratos
             double contact_tau = 0.0;
             double contact_sigma = 0.0;
             double failure_criterion_state = 0.0; 
+            double acumulated_damage = 0.0; 
             
             unsigned int neighbour_iterator_id = neighbour_iterator->Id();
           
@@ -587,7 +588,7 @@ namespace Kratos
                     
                   
                       
-                      PlasticityAndDamage1D(LocalElasticContactForce, kn_el, indentation, calculation_area,radius_sum_i, failure_criterion_state, i_neighbour_count,mapping_new_cont, mapping_new_ini );
+                      PlasticityAndDamage1D(LocalElasticContactForce, kn_el, indentation, calculation_area,radius_sum_i, failure_criterion_state, acumulated_damage, i_neighbour_count,mapping_new_cont, mapping_new_ini );
                     
                       
                     }
@@ -696,7 +697,7 @@ namespace Kratos
             if(mContactMeshOption==1 && (mapping_new_cont !=-1)) 
             {
 
-              CalculateOnContactElements( neighbour_iterator_id ,i_neighbour_count, mapping_new_cont, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state);
+              CalculateOnContactElements( neighbour_iterator_id ,i_neighbour_count, mapping_new_cont, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage);
 
               
             }
@@ -1013,6 +1014,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
          mDempack = r_process_info[DEMPACK_OPTION]; 
          
+         mpCurrentTime =&(r_process_info[TIME]); 
+                 
          if(mDempack)
          {
            
@@ -1045,7 +1048,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
          if (mTriaxialOption )
          {
-             mInitialPressureTime    = r_process_info[INITIAL_PRESSURE_TIME];
              mFinalPressureTime      = 0.01*r_process_info[TIME_INCREASING_RATIO] * mFinalSimulationTime; 
          }
          
@@ -1591,10 +1593,10 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           
           //CharacteristicParticleFailureId(rCurrentProcessInfo);
           
-          noalias(additionally_applied_force) += mRealMass * gravity; 
-//           additionally_applied_force[0] += mRealMass * gravity[0];
-//           additionally_applied_force[1] += mRealMass * gravity[1];
-//           additionally_applied_force[2] += mRealMass * gravity[2];
+          //noalias(additionally_applied_force) += mRealMass * gravity;  //MSIMSI 1: Test that this works
+          additionally_applied_force[0] += mRealMass * gravity[0];
+          additionally_applied_force[1] += mRealMass * gravity[1];
+          additionally_applied_force[2] += mRealMass * gravity[2];
       }
  
       void SphericContinuumParticle::CustomInitialize()
@@ -1704,15 +1706,20 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                           //Amb Dempack la fractura tracció és el limit del dany i es mira al calcul de forces...
                           
                             
+                         /*  
+                            
                             if(contact_sigma<-mTensionLimit && mElasticityType<2)
                             {
                                 mNeighbourFailureId[i_neighbour_count] = 12; //both shear and tension
                                 mIniNeighbourFailureId[ mapping_new_ini ] = 12;
                                 failure_criterion_state = 1.0;
                             } //both shear and tension
-                            
+                          */
+                          
+                          
                         }
-                      
+                        
+                      /*
                         else if (contact_sigma<-mTensionLimit && mElasticityType<2)
                         {
                             mNeighbourFailureId[i_neighbour_count] = 4; //tension failure
@@ -1720,7 +1727,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                             sliding = true;
                             failure_criterion_state = 1.0;
                             
-                        }
+                        }*/
                      
                       
                   } //negative values of sigma              
@@ -1731,7 +1738,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       }
       
       void SphericContinuumParticle::CalculateOnContactElements(unsigned int neighbour_iterator_id, size_t i_neighbour_count, int mapping_new_cont, double LocalElasticContactForce[3], 
-                                                          double  contact_sigma, double  contact_tau, double failure_criterion_state)
+                                                          double  contact_sigma, double  contact_tau, double failure_criterion_state, double acumulated_damage)
       {
       KRATOS_TRY
        //obtaining pointer to contact element.
@@ -1759,6 +1766,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
             lock_p_weak->GetValue(CONTACT_FAILURE) = (mNeighbourFailureId[i_neighbour_count]);                                        
             lock_p_weak->GetValue(FAILURE_CRITERION_STATE) = failure_criterion_state;
+            if( ( acumulated_damage > lock_p_weak->GetValue(UNIDIMENSIONAL_DAMAGE) ) || (*mpTimeStep == 0) )
+             { lock_p_weak->GetValue(UNIDIMENSIONAL_DAMAGE) = acumulated_damage; }
               
         
             
@@ -1921,9 +1930,16 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
      {
  
         array_1d<double, 3> total_externally_applied_force  = this->GetGeometry()[0].GetSolutionStepValue(EXTERNAL_APPLIED_FORCE); 
+        
+//         double magnitude = 0.0;
+//         
+//         GeometryFunctions::module(total_externally_applied_force, magnitude);
+//         
+//      
+        
+        double time_now = rCurrentProcessInfo[TIME]; //MSIMSI 1 I tried to do a *mpTIME
 
-        double current_time     = rCurrentProcessInfo[TIME];     
-  
+    
         if( mFinalPressureTime <= 1e-10 )
         {
           
@@ -1931,13 +1947,19 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           
         }
         
-        else if ( (mFinalPressureTime > 1e-10) && (current_time < mFinalPressureTime) )
+        else if ( (mFinalPressureTime > 1e-10) && (time_now < mFinalPressureTime) )
         {
           
-        externally_applied_force = AuxiliaryFunctions::LinearTimeIncreasingFunction(total_externally_applied_force,mInitialPressureTime,current_time,mFinalPressureTime);
+        externally_applied_force = AuxiliaryFunctions::LinearTimeIncreasingFunction(total_externally_applied_force, time_now, mFinalPressureTime);
    
-        }
-        
+//               if(this->Id() ==10118)
+//               {
+//                       double magnitude;
+//                       GeometryFunctions::module(externally_applied_force, magnitude);
+//                       KRATOS_WATCH(time_now)
+//                   KRATOS_WATCH(magnitude)
+//               }
+        }       
         else
         {
           externally_applied_force = total_externally_applied_force;
@@ -1947,7 +1969,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
      } //SphericContinuumParticle::ComputePressureForces
     
 
-    void SphericContinuumParticle::PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn_el, double indentation, double calculation_area, double radius_sum_i, double failure_criterion_state, int i_neighbour_count, double mapping_new_cont, double mapping_new_ini )
+    void SphericContinuumParticle::PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn_el, double indentation, double calculation_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, double mapping_new_cont, double mapping_new_ini )
     {
 
       //VARIABLES
@@ -2108,7 +2130,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           {
             mNeighbourFailureId[i_neighbour_count] = 4; //tension failure
             mIniNeighbourFailureId[ mapping_new_ini ] = 4;
-            failure_criterion_state = 1;
+            acumulated_damage = 1.0;
             fn = 0.0;
           }
           else
@@ -2116,7 +2138,9 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             if (fabs(indentation) > u1)  
             {
               double u_frac = (fabs(indentation) - u1)/(u2 - u1);
-              failure_criterion_state = fabs(indentation)/u2;
+              //failure_criterion_state = fabs(indentation)/u2;
+              acumulated_damage = u_frac;
+              
               
               if (u_frac > mHistory[mapping_new_cont][2])  
               {
