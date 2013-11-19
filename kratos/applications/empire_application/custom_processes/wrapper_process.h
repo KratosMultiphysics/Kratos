@@ -183,6 +183,10 @@ public:
                 double p_neg = i_node->GetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
 
                 double p_diff = p_pos - p_neg;
+                
+//                 KRATOS_WATCH(p_diff);
+//                 KRATOS_WATCH(p_pos);
+//                 KRATOS_WATCH(p_neg);
 
                 pressure.append(p_diff);
         }
@@ -229,13 +233,10 @@ public:
                                      i_node++ )
         {
                 array_1d<double,3> disp = i_node->GetSolutionStepValue(DISPLACEMENT,0);
-                array_1d<double,3> disp_old = i_node->GetSolutionStepValue(DISPLACEMENT,1);
 
-                array_1d<double,3> disp_increment = disp - disp_old;
-
-                displacements.append(disp_increment[0]);
-                displacements.append(disp_increment[1]);
-                displacements.append(disp_increment[2]);
+                displacements.append(disp[0]);
+                displacements.append(disp[1]);
+                displacements.append(disp[2]);
         }
 
         KRATOS_CATCH("")
@@ -244,12 +245,15 @@ public:
     // ##############################################################################
 
     void CreateEmbeddedInterfacePart( boost::python::list nodeIDs ,
-                                      boost::python::list nodes,
-                                      boost::python::list connectivity )
+                                      boost::python::list nodeCoordinates,
+                                      boost::python::list connectivity,
+                                      boost::python::list displacement,
+                                      boost::python::list velocity)
     {
         KRATOS_TRY
-
-        //ModelPart& mr_interface_part;
+        
+        mr_interface_part.Nodes().erase(mr_interface_part.Nodes().begin(), mr_interface_part.Nodes().end());
+        mr_interface_part.Elements().erase(mr_interface_part.Elements().begin(), mr_interface_part.Elements().end());
 
         // Adding new nodes
         const unsigned int size_nodes = boost::python::len(nodeIDs);
@@ -257,22 +261,32 @@ public:
 
         for (unsigned int nodesIndex=0; nodesIndex!=size_nodes; ++nodesIndex)
         {
-            boost::python::extract<double> node_X( nodes[3*nodesIndex] );
-            boost::python::extract<double> node_Y( nodes[3*nodesIndex+1] );
-            boost::python::extract<double> node_Z( nodes[3*nodesIndex+2] );
+            boost::python::extract<double> node_X( nodeCoordinates[3*nodesIndex] );
+            boost::python::extract<double> node_Y( nodeCoordinates[3*nodesIndex+1] );
+            boost::python::extract<double> node_Z( nodeCoordinates[3*nodesIndex+2] );
+            
             boost::python::extract<unsigned int> nodeID( nodeIDs[nodesIndex] );
+            
+            boost::python::extract<double> vel_X( velocity[3*nodesIndex] );
+            boost::python::extract<double> vel_Y( velocity[3*nodesIndex+1] );
+            boost::python::extract<double> vel_Z( velocity[3*nodesIndex+2] );
+            
+            boost::python::extract<double> disp_X( displacement[3*nodesIndex] );
+            boost::python::extract<double> disp_Y( displacement[3*nodesIndex+1] );
+            boost::python::extract<double> disp_Z( displacement[3*nodesIndex+2] ); 
+            
             // ######## ADDING NEW NODE #########
             Node < 3 >::Pointer pnode = mr_interface_part.CreateNewNode(nodeID,node_X,node_Y,node_Z);
             array_1d<double,3> vel;
-            vel[0] = 0;
-            vel[1] = 0;
-            vel[2] = 0;
+            vel[0] = vel_X;
+            vel[1] = vel_Y;
+            vel[2] = vel_Z;
             pnode->GetSolutionStepValue(VELOCITY) = vel;
 
             array_1d<double,3> disp;
-            disp[0] = 0;
-            disp[1] = 0;
-            disp[2] = 0;
+            disp[0] = disp_X;
+            disp[1] = disp_Y;
+            disp[2] = disp_Z;
             pnode->GetSolutionStepValue(DISPLACEMENT) = disp;
         }
 
@@ -318,7 +332,7 @@ public:
 
     void ExtractMeshInfo( boost::python::list& numNodes, boost::python::list& numElems,
                           boost::python::list& nodes, boost::python::list& nodeIDs,
-                          boost::python::list& numNodesPerElem, boost::python::list& elems )
+                          boost::python::list& numNodesPerElem, boost::python::list& elems)
     {
         KRATOS_TRY
 
