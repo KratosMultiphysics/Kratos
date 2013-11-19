@@ -144,7 +144,7 @@ Vector& LineLoad2DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralV
 	  rVectorForce += rVariables.N[i] * GetGeometry()[i].FastGetSolutionStepValue( FACE_LOAD );
       }
 
-    //KRATOS_WATCH(rVectorForce)
+    //KRATOS_WATCH( rVectorForce )
 
     return rVectorForce;
 
@@ -211,7 +211,7 @@ void LineLoad2DCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
 	  }
       }
 
-    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH( rLeftHandSideMatrix )
 
     KRATOS_CATCH( "" )
 }

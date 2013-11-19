@@ -80,7 +80,7 @@ class MembraneElement
 	public:
 
 		// Counted pointer of MembraneElement
-		KRATOS_CLASS_POINTER_DEFINITION(MembraneElement);  
+		KRATOS_CLASS_POINTER_DEFINITION( MembraneElement );  
 
 		// Constructor using an array of nodes 
 		MembraneElement(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -287,7 +287,7 @@ class MembraneElement
 
 void save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);    
     rSerializer.save("ReferenceGeometry",mpReferenceGeometry);
     rSerializer.save("DetJ0",mDetJ0);
@@ -306,7 +306,7 @@ void save( Serializer& rSerializer ) const
 
 void load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     rSerializer.load("ConstitutiveLawVector",mConstitutiveLawVector);
     rSerializer.load("ReferenceGeometry",mpReferenceGeometry);
     rSerializer.load("DetJ0",mDetJ0);

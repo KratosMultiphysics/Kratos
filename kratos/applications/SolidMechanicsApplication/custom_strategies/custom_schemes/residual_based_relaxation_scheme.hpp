@@ -132,7 +132,7 @@ public:
     /*@{ */
 
     //typedef boost::shared_ptr< ResidualBasedRelaxationScheme<TSparseSpace,TDenseSpace> > Pointer;
-    KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedRelaxationScheme);
+    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedRelaxationScheme );
 
     typedef Scheme<TSparseSpace, TDenseSpace> BaseType;
 
@@ -221,7 +221,7 @@ public:
         {
 
             noalias(DeltaDisp) = (i)->FastGetSolutionStepValue(DISPLACEMENT) - (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            //KRATOS_WATCH(i->Id());
+            //KRATOS_WATCH( i->Id() )
             array_1d<double, 3 > & CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 0);
             array_1d<double, 3 > & OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
 
@@ -232,11 +232,11 @@ public:
             UpdateVelocity(CurrentVelocity, DeltaDisp, OldVelocity, OldAcceleration);
 
             UpdateAcceleration(CurrentAcceleration, DeltaDisp, OldVelocity, OldAcceleration);
-            //KRATOS_WATCH((i)->FastGetSolutionStepValue(DISPLACEMENT));
-            //KRATOS_WATCH((i)->FastGetSolutionStepValue(DISPLACEMENT,1));
-            //KRATOS_WATCH(DeltaDisp);
-            //KRATOS_WATCH(OldVelocity);
-            //KRATOS_WATCH(CurrentVelocity);
+            //KRATOS_WATCH( (i)->FastGetSolutionStepValue(DISPLACEMENT) )
+            //KRATOS_WATCH( (i)->FastGetSolutionStepValue(DISPLACEMENT,1) )
+            //KRATOS_WATCH( DeltaDisp )
+            //KRATOS_WATCH( OldVelocity )
+            //KRATOS_WATCH( CurrentVelocity )
             //std::cout << "after update" << std::endl;
 
             //std::cout  << std::endl;
@@ -254,7 +254,7 @@ public:
         //                      mpModel->Value((*it2)->GetSecondTimeDerivative(), *it2) = Dtt(**it2, CurrentTime, DeltaTime);
         //          }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -279,16 +279,16 @@ public:
         for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
                 i != r_model_part.NodesEnd(); ++i)
         {
-            //KRATOS_WATCH(i->Id())
-            //KRATOS_WATCH(i->FastGetSolutionStepValue(DISPLACEMENT))
-            //KRATOS_WATCH(i->FastGetSolutionStepValue(VELOCITY))
-            //KRATOS_WATCH(i->FastGetSolutionStepValue(ACCELERATION))
+            //KRATOS_WATCH( i->Id())
+            //KRATOS_WATCH( i->FastGetSolutionStepValue(DISPLACEMENT) )
+            //KRATOS_WATCH( i->FastGetSolutionStepValue(VELOCITY) )
+            //KRATOS_WATCH( i->FastGetSolutionStepValue(ACCELERATION) )
             array_1d<double, 3 > & OldVelocity = (i)->FastGetSolutionStepValue(VELOCITY, 1);
             array_1d<double, 3 > & OldDisp = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
             //predicting displacement = OldDisplacement + OldVelocity * DeltaTime;
             //ATTENTION::: the prediction is performed only on free nodes
             array_1d<double, 3 > & CurrentDisp = (i)->FastGetSolutionStepValue(DISPLACEMENT);
-            //KRATOS_WATCH("1")
+            //KRATOS_WATCH( "1" )
 
             if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
                 (CurrentDisp[0]) = OldDisp[0] + DeltaTime * OldVelocity[0];
@@ -297,18 +297,18 @@ public:
             if (i->HasDofFor(DISPLACEMENT_Z))
                 if (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false)
                     (CurrentDisp[2]) = OldDisp[2] + DeltaTime * OldVelocity[2];
-            //KRATOS_WATCH("2")
+            //KRATOS_WATCH( "2" )
 
             //updating time derivatives ::: please note that displacements and its time derivatives
             //can not be consistently fixed separately
             noalias(DeltaDisp) = CurrentDisp - OldDisp;
             array_1d<double, 3 > & OldAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION, 1);
-            //KRATOS_WATCH(DeltaDisp)
+            //KRATOS_WATCH( DeltaDisp )
 
             array_1d<double, 3 > & CurrentVelocity = (i)->FastGetSolutionStepValue(VELOCITY);
             array_1d<double, 3 > & CurrentAcceleration = (i)->FastGetSolutionStepValue(ACCELERATION);
-            //KRATOS_WATCH(CurrentVelocity)
-            //KRATOS_WATCH(CurrentAcceleration)
+            //KRATOS_WATCH( CurrentVelocity )
+            //KRATOS_WATCH( CurrentAcceleration )
 
 
             UpdateVelocity(CurrentVelocity, DeltaDisp, OldVelocity, OldAcceleration);
@@ -344,24 +344,24 @@ public:
         int k = OpenMPUtils::ThisThread();
         //Initializing the non linear iteration for the current element
         (rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
-        //KRATOS_WATCH(LHS_Contribution);
+        //KRATOS_WATCH( LHS_Contribution )
         //basic operations for the element considered
         (rCurrentElement)->CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
         (rCurrentElement)->MassMatrix(mMass[k], CurrentProcessInfo);
         (rCurrentElement)->DampMatrix(mDamp[k], CurrentProcessInfo);
         (rCurrentElement)->EquationIdVector(EquationId, CurrentProcessInfo);
-        //KRATOS_WATCH(LHS_Contribution);
-        //KRATOS_WATCH(RHS_Contribution);
-        //KRATOS_WATCH(mMass);
-        //KRATOS_WATCH(mDamp);
+        //KRATOS_WATCH( LHS_Contribution )
+        //KRATOS_WATCH( RHS_Contribution )
+        //KRATOS_WATCH( mMass )
+        //KRATOS_WATCH( mDamp )
         //adding the dynamic contributions (statics is already included)
 
         AddDynamicsToLHS(LHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
         AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
-        //RATOS_WATCH(LHS_Contribution);
-        //KRATOS_WATCH(RHS_Contribution);
-        KRATOS_CATCH("")
+        //KRATOS_WATCH( LHS_Contribution )
+        //KRATOS_WATCH( RHS_Contribution )
+        KRATOS_CATCH( "" )
 
     }
 
@@ -410,7 +410,7 @@ public:
 
         AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     virtual void Condition_Calculate_RHS_Contribution(
@@ -434,7 +434,7 @@ public:
 
         AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mDamp[k], mMass[k], CurrentProcessInfo);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     void InitializeSolutionStep(
@@ -451,7 +451,7 @@ public:
         double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 
         if (DeltaTime == 0)
-            KRATOS_ERROR(std::logic_error, "detected delta_time = 0 in the Bossak Scheme ... check if the time step is created correctly for the current model part", "");
+            KRATOS_ERROR( std::logic_error, "detected delta_time = 0 in the Bossak Scheme ... check if the time step is created correctly for the current model part", "" )
 
         //initializing constants
         ma0 = 1.0 / (mBetaNewmark * pow(DeltaTime, 2));
@@ -480,22 +480,22 @@ public:
         //check for variables keys
         //verify that the variables are correctly initialized
         if (DISPLACEMENT.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "");
+            KRATOS_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
         if (VELOCITY.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "");
+            KRATOS_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
         if (ACCELERATION.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "");
+            KRATOS_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" )
 
         //check that variables are correctly allocated
         for (ModelPart::NodesContainerType::iterator it = r_model_part.NodesBegin();
                 it != r_model_part.NodesEnd(); it++)
         {
             if (it->SolutionStepsDataHas(DISPLACEMENT) == false)
-                KRATOS_ERROR(std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id());
+                KRATOS_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
             if (it->SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_ERROR(std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id());
+                KRATOS_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
             if (it->SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_ERROR(std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id());
+                KRATOS_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
         }
 
         //check that dofs exist
@@ -503,26 +503,26 @@ public:
                 it != r_model_part.NodesEnd(); it++)
         {
             if (it->HasDofFor(DISPLACEMENT_X) == false)
-                KRATOS_ERROR(std::invalid_argument, "missing DISPLACEMENT_X dof on node ", it->Id());
+                KRATOS_ERROR( std::invalid_argument, "missing DISPLACEMENT_X dof on node ", it->Id() )
             if (it->HasDofFor(DISPLACEMENT_Y) == false)
-                KRATOS_ERROR(std::invalid_argument, "missing DISPLACEMENT_Y dof on node ", it->Id());
+                KRATOS_ERROR( std::invalid_argument, "missing DISPLACEMENT_Y dof on node ", it->Id() )
             if (it->HasDofFor(DISPLACEMENT_Z) == false)
-                KRATOS_ERROR(std::invalid_argument, "missing DISPLACEMENT_Z dof on node ", it->Id());
+                KRATOS_ERROR( std::invalid_argument, "missing DISPLACEMENT_Z dof on node ", it->Id() )
         }
 
 
         //check for admissible value of the AlphaBossak
         if (mAlphaBossak > 0.0 || mAlphaBossak < -0.3)
-            KRATOS_ERROR(std::logic_error, "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is ", mAlphaBossak)
+            KRATOS_ERROR( std::logic_error, "Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is ", mAlphaBossak )
 
             //check for minimum value of the buffer index
             //verify buffer size
             if (r_model_part.GetBufferSize() < 2)
-                KRATOS_ERROR(std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize());
+                KRATOS_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() )
 
 
         return 0;
-        KRATOS_CATCH("");
+        KRATOS_CATCH( "" )
     }
 
     /*@} */

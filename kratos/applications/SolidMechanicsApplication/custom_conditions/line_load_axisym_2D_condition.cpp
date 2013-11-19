@@ -159,7 +159,7 @@ void LineLoadAxisym2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocal
 
     ForceLoadCondition::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
-    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH( rLeftHandSideMatrix )
 }
 
 
@@ -174,7 +174,7 @@ void LineLoadAxisym2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocal
 
     ForceLoadCondition::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight );
 
-    //KRATOS_WATCH(rRightHandSideVector)
+    //KRATOS_WATCH( rRightHandSideVector )
 }
 
 //***********************************************************************************

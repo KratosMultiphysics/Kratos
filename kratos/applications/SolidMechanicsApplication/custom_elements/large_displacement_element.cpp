@@ -90,7 +90,7 @@ LargeDisplacementElement&  LargeDisplacementElement::operator=(LargeDisplacement
 Element::Pointer LargeDisplacementElement::Create( IndexType NewId, NodesArrayType const& rThisNodes, PropertiesType::Pointer pProperties ) const
 {
 
-    KRATOS_ERROR(std::logic_error, "calling the default constructor for a large displacement 3D element ... illegal operation!!","");
+    KRATOS_ERROR( std::logic_error, "calling the default constructor for a large displacement 3D element ... illegal operation!!", "" )
 
     return Element::Pointer( new LargeDisplacementElement( NewId, GetGeometry().Create( rThisNodes ), pProperties ) );
 }
@@ -101,7 +101,7 @@ Element::Pointer LargeDisplacementElement::Create( IndexType NewId, NodesArrayTy
 Element::Pointer LargeDisplacementElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
 
-    KRATOS_ERROR(std::logic_error, "calling the default constructor for a large displacement 3D element ... illegal operation!!","");
+    KRATOS_ERROR( std::logic_error, "calling the default constructor for a large displacement 3D element ... illegal operation!!", "" )
 
     LargeDisplacementElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
@@ -115,7 +115,7 @@ Element::Pointer LargeDisplacementElement::Clone( IndexType NewId, NodesArrayTyp
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 	
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
       }
     
        
@@ -313,7 +313,7 @@ void LargeDisplacementElement::SetValueOnIntegrationPoints( const Variable<Const
             mConstitutiveLawVector.resize(rValues.size());
 
             if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod ) )
-                KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() );
+                KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() )
         }
 
         for(unsigned int i=0; i<rValues.size(); i++)
@@ -329,7 +329,7 @@ void LargeDisplacementElement::SetValueOnIntegrationPoints( const Variable<Const
             mConstitutiveLawVector.resize(rValues.size());
 
             if( mConstitutiveLawVector.size() != GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod ) )
-                KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() );
+                KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", mConstitutiveLawVector.size() )
         }
 
         for(unsigned int i=0; i<rValues.size(); i++)
@@ -499,7 +499,7 @@ void LargeDisplacementElement::SetGeneralVariables(GeneralVariables& rVariables,
     rVariables.detF  = MathUtils<double>::Det(rVariables.F);
 
     if(rVariables.detF<0)
-        KRATOS_ERROR(std::invalid_argument,"DeterminantF < 0","");
+        KRATOS_ERROR( std::invalid_argument,"DeterminantF < 0", "" )
 
     rValues.SetDeterminantF0(rVariables.detF0);
     rValues.SetDeformationGradientF0(rVariables.F0);
@@ -738,7 +738,7 @@ void LargeDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& rLocalS
     this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
   }
 
-    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH( rLeftHandSideMatrix )
 }
 
 
@@ -771,7 +771,7 @@ void LargeDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalS
 
 	  if(calculated == false)
 	    {
-	      KRATOS_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rRightHandSideVariables[i])
+	      KRATOS_ERROR( std::logic_error, " ELEMENT can not supply the required local system variable: ", rRightHandSideVariables[i] )
 	    }
 
 	}
@@ -787,7 +787,7 @@ void LargeDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& rLocalS
       this->CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rIntegrationWeight );
 
     }
-    //KRATOS_WATCH(rRightHandSideVector)
+    //KRATOS_WATCH( rRightHandSideVector )
 }
 
 //***********************************************************************************
@@ -1275,7 +1275,7 @@ void LargeDisplacementElement::CalculateKinematics(GeneralVariables& rVariables,
 {
     KRATOS_TRY
 
-    KRATOS_ERROR(std::logic_error, "Called the virtual function of Large Displacement Element for CalculateKinematics", "");
+    KRATOS_ERROR( std::logic_error, "Called the virtual function of Large Displacement Element for CalculateKinematics", "" )
 
 
     KRATOS_CATCH( "" )
@@ -1361,7 +1361,7 @@ void LargeDisplacementElement::CalculateGreenLagrangeStrain(const Matrix& rF,
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -1472,7 +1472,7 @@ void LargeDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
 {
     KRATOS_TRY
 
-    KRATOS_ERROR(std::logic_error, "calling the default function for a large displacement 3D element ... illegal operation!!","");
+    KRATOS_ERROR( std::logic_error, "calling the default function for a large displacement 3D element ... illegal operation!!", "" )
 
     KRATOS_CATCH( "" )
 }
@@ -1901,22 +1901,22 @@ int  LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     }
 
     if( correct_strain_measure == false )
-	    KRATOS_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Large Displacements " );
+	    KRATOS_ERROR( std::logic_error, "constitutive law is not compatible with the element type ", " Large Displacements " )
 	  
 
     //verify that the variables are correctly initialized
 
     if ( VELOCITY.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
 
     if ( DISPLACEMENT.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
 
     if ( ACCELERATION.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" )
 
     if ( DENSITY.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" )
 
     // if ( BODY_FORCE.Key() == 0 )
     //     KRATOS_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
@@ -1925,16 +1925,16 @@ int  LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
     for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
     {
         if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-            KRATOS_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() );
+            KRATOS_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
 
         if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-            KRATOS_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() );
+            KRATOS_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
     }
 
     //verify that the constitutive law exists
     if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
     {
-        KRATOS_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() );
+        KRATOS_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
     }
 
     //Verify that the body force is defined
@@ -1950,15 +1950,15 @@ int  LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
         //   KRATOS_ERROR( std::logic_error, "wrong constitutive law used. This is a 2D element! expected strain size is 3 (el id = ) ", this->Id() );
 
         if ( THICKNESS.Key() == 0 )
-            KRATOS_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" );
+            KRATOS_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" )
 
         if ( this->GetProperties().Has( THICKNESS ) == false )
-            KRATOS_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() );
+            KRATOS_ERROR( std::logic_error, "THICKNESS not provided for element ", this->Id() )
     }
     else
     {
         if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 6 )
-            KRATOS_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() );
+            KRATOS_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element! expected strain size is 6 (el id = ) ", this->Id() )
     }
 
     //check constitutive law
@@ -1978,7 +1978,7 @@ int  LargeDisplacementElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
 void LargeDisplacementElement::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     int IntMethod = int(mThisIntegrationMethod);
     rSerializer.save("IntegrationMethod",IntMethod);
     rSerializer.save("ConstitutiveLawVector",mConstitutiveLawVector);
@@ -1986,7 +1986,7 @@ void LargeDisplacementElement::save( Serializer& rSerializer ) const
 
 void LargeDisplacementElement::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     int IntMethod;
     rSerializer.load("IntegrationMethod",IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);

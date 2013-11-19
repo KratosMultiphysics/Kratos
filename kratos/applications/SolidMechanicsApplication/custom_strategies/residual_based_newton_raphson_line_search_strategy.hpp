@@ -91,7 +91,7 @@ public:
 
     /** Counted pointer of ClassName */
     //typedef boost::shared_ptr< ResidualBasedNewtonRaphsonLineSearchStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
-    KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedNewtonRaphsonLineSearchStrategy);
+    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewtonRaphsonLineSearchStrategy );
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
@@ -180,7 +180,7 @@ public:
         //by default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     ResidualBasedNewtonRaphsonLineSearchStrategy(
@@ -236,7 +236,7 @@ public:
         //by default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     /** Destructor.
@@ -347,7 +347,7 @@ public:
         //move the mesh if needed
         if (this->MoveMeshFlag() == true) BaseType::MoveMesh();
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
 
@@ -380,7 +380,7 @@ public:
     rCurrentAlpha  = 1;
     //rCurrentAlpha  = (rCurrentAlpha+1)/2.0;
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 
       };
 
@@ -641,7 +641,7 @@ public:
 
         return 0.00;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -668,7 +668,7 @@ public:
         DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
 
         return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -718,7 +718,7 @@ public:
 
         GetScheme()->Clear();
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH( "" )
     }
 
     /*@} */
@@ -887,7 +887,7 @@ protected:
 
         mInitializeWasPerformed = true;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
 
@@ -919,7 +919,7 @@ protected:
 
         mSolutionStepIsInitialized = true;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
 
@@ -952,7 +952,7 @@ protected:
 
         return 0;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
 

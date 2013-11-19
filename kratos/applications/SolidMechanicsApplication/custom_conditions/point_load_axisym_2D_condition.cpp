@@ -129,7 +129,7 @@ void PointLoadAxisym2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLoca
 
     ForceLoadCondition::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
-    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH( rLeftHandSideMatrix )
 }
 
 
@@ -144,7 +144,7 @@ void PointLoadAxisym2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLoca
 
     ForceLoadCondition::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight );
 
-    //KRATOS_WATCH(rRightHandSideVector)
+    //KRATOS_WATCH( rRightHandSideVector )
 }
 
 //***********************************************************************************

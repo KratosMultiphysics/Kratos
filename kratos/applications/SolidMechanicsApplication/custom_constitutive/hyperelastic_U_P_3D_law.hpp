@@ -60,7 +60,7 @@ public:
      * Counted pointer of HyperElasticUP3DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(HyperElasticUP3DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticUP3DLaw );
 
     /**
      * Life Cycle
@@ -340,12 +340,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElastic3DLaw);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElastic3DLaw )
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElastic3DLaw);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElastic3DLaw )
     }
 
 

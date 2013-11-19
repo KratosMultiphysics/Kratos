@@ -102,7 +102,7 @@ Element::Pointer AxisymSpatialLagrangianUPElement::Clone( IndexType NewId, Nodes
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 	
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
       }
     
 
@@ -306,7 +306,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents&
 
     rVariables.detF     = DeterminantF;
     rVariables.detF0   /= rVariables.detF;
-    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH( rLeftHandSideMatrix )
 }
 
 
@@ -326,7 +326,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents&
 
     rVariables.detF     = DeterminantF;
     rVariables.detF0   /= rVariables.detF;
-    //KRATOS_WATCH(rRightHandSideVector)
+    //KRATOS_WATCH( rRightHandSideVector )
 }
 
 
@@ -558,7 +558,7 @@ void AxisymSpatialLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -652,7 +652,7 @@ void AxisymSpatialLagrangianUPElement::CalculateAlmansiStrain(const Matrix& rF,
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -1100,14 +1100,14 @@ void AxisymSpatialLagrangianUPElement::CalculateAndAddKppStab (MatrixType& rK,
 //************************************************************************************
 void AxisymSpatialLagrangianUPElement::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementUPElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementUPElement )
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
 }
 
 void AxisymSpatialLagrangianUPElement::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementUPElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementUPElement )
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
 }

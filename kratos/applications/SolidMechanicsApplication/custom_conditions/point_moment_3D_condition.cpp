@@ -70,7 +70,7 @@ void PointMoment3DCondition::CalculateRightHandSide(VectorType& rRightHandSideVe
     rRightHandSideVector[0] = Moment[0];
     rRightHandSideVector[1] = Moment[1];
     rRightHandSideVector[2] = Moment[2];
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -91,7 +91,7 @@ void PointMoment3DCondition::CalculateLocalSystem(MatrixType& rLeftHandSideMatri
     rRightHandSideVector[1] = Moment[1];
     rRightHandSideVector[2] = Moment[2];
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 

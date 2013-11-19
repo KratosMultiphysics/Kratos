@@ -179,7 +179,7 @@ public:
         //by default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     ResidualBasedNewtonRaphsonStrategy(
@@ -235,7 +235,7 @@ public:
         //by default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     /** Destructor.
@@ -346,7 +346,7 @@ public:
         //move the mesh if needed
         if (this->MoveMeshFlag() == true) BaseType::MoveMesh();
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //*********************************************************************************
@@ -598,7 +598,7 @@ public:
 
         return 0.00;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -625,7 +625,7 @@ public:
         DofsArrayType& rDofSet = GetBuilderAndSolver()->GetDofSet();
 
         return mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -675,7 +675,7 @@ public:
 
         GetScheme()->Clear();
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH( "" )
     }
 
     /*@} */
@@ -844,7 +844,7 @@ protected:
 
         mInitializeWasPerformed = true;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
 
@@ -873,7 +873,7 @@ protected:
 
         mSolutionStepIsInitialized = true;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
 
@@ -906,7 +906,7 @@ protected:
 
         return 0;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
 

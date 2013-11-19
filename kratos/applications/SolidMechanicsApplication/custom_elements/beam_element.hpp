@@ -91,7 +91,7 @@ public:
 
 
 
-    KRATOS_CLASS_POINTER_DEFINITION(BeamElement);
+    KRATOS_CLASS_POINTER_DEFINITION( BeamElement );
 
     /// Default constructor.
     BeamElement(IndexType NewId, GeometryType::Pointer pGeometry);
@@ -169,12 +169,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Element )
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }
 
 

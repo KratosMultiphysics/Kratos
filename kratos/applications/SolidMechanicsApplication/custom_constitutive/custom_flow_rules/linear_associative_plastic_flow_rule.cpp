@@ -139,12 +139,12 @@ bool LinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialRetu
 
 void LinearAssociativePlasticFlowRule::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonLinearAssociativePlasticFlowRule );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonLinearAssociativePlasticFlowRule )
 }
 
 void LinearAssociativePlasticFlowRule::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonLinearAssociativePlasticFlowRule );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonLinearAssociativePlasticFlowRule )
 }
 
 

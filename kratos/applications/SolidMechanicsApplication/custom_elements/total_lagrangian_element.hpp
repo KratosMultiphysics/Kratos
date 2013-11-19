@@ -56,7 +56,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of TotalLagrangianElement
-    KRATOS_CLASS_POINTER_DEFINITION(TotalLagrangianElement);
+    KRATOS_CLASS_POINTER_DEFINITION( TotalLagrangianElement );
     ///@}
     ///@name Life Cycle
     ///@{

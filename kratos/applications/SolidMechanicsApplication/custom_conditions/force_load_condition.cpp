@@ -75,7 +75,7 @@ Condition::Pointer ForceLoadCondition::Create(
 
 Condition::Pointer ForceLoadCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
-  KRATOS_ERROR(std::logic_error, "calling the default constructor for a force load condition ... illegal operation!!","");
+  KRATOS_ERROR( std::logic_error, "calling the default constructor for a force load condition ... illegal operation!!", "" )
 
   ForceLoadCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
@@ -112,7 +112,7 @@ void ForceLoadCondition::GetDofList(DofsVectorType& rConditionDofList,
     }
 
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //***********************************************************************************
@@ -139,7 +139,7 @@ void ForceLoadCondition::EquationIdVector(EquationIdVectorType& rResult,
 	  rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 
@@ -348,7 +348,7 @@ void ForceLoadCondition::CalculateKinematics(GeneralVariables& rVariables,
 {
     KRATOS_TRY
 
-    KRATOS_ERROR(std::logic_error, "calling the default CalculateKinematics method for a force load condition ... illegal operation!!","");
+    KRATOS_ERROR( std::logic_error, "calling the default CalculateKinematics method for a force load condition ... illegal operation!!", "" )
 
     KRATOS_CATCH( "" )
 }
@@ -361,7 +361,7 @@ Vector& ForceLoadCondition::CalculateVectorForce(Vector& rVectorForce, GeneralVa
 {
     KRATOS_TRY
 
-    KRATOS_ERROR(std::logic_error, "calling the default CalculateVectorForce method for a force load condition ... illegal operation!!","");
+    KRATOS_ERROR( std::logic_error, "calling the default CalculateVectorForce method for a force load condition ... illegal operation!!", "" )
 
 
     return rVectorForce;
@@ -445,7 +445,7 @@ void ForceLoadCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
 
 	  if(calculated == false)
 	    {
-	      KRATOS_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i])
+	      KRATOS_ERROR( std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i] )
 	    }
 
 	}
@@ -457,7 +457,7 @@ void ForceLoadCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
     // operation performed: add Kg to the rLefsHandSideMatrix
     this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
-    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH( rLeftHandSideMatrix )
   }
 
 }
@@ -485,7 +485,7 @@ void ForceLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
 	  
 	  if(calculated == false)
 	    {
-	      KRATOS_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rRightHandSideVariables[i])
+	      KRATOS_ERROR( std::logic_error, " ELEMENT can not supply the required local system variable: ",rRightHandSideVariables[i] )
 	    }
 
 	}
@@ -497,7 +497,7 @@ void ForceLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
       // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
       this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVectorForce, rIntegrationWeight );
 
-      //KRATOS_WATCH(rRightHandSideVector)
+      //KRATOS_WATCH( rRightHandSideVector )
 
     }
     
@@ -602,8 +602,8 @@ void ForceLoadCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
     //Calculate condition system
     this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
-    //KRATOS_WATCH(rLeftHandSideMatrix)
-    //KRATOS_WATCH(rRightHandSideVector)
+    //KRATOS_WATCH( rLeftHandSideMatrix )
+    //KRATOS_WATCH( rRightHandSideVector )
 
 }
 
@@ -672,7 +672,7 @@ void ForceLoadCondition::MassMatrix( MatrixType& rMassMatrix, ProcessInfo& rCurr
 
     rMassMatrix.resize(0, 0, false);
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //***********************************************************************************
@@ -684,7 +684,7 @@ void ForceLoadCondition::DampMatrix( MatrixType& rDampMatrix, ProcessInfo& rCurr
 
     rDampMatrix.resize(0, 0, false);
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 
@@ -726,7 +726,7 @@ void ForceLoadCondition::CalculateAndAddExternalForces(VectorType& rRightHandSid
         }
     }
 
-    //KRATOS_WATCH(rRightHandSideVector)
+    //KRATOS_WATCH( rRightHandSideVector )
 
     KRATOS_CATCH( "" )
 }

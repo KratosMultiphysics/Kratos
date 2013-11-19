@@ -303,17 +303,17 @@ int LinearElastic3DLaw::Check(const Properties& rMaterialProperties,
 {
 
     if(YOUNG_MODULUS.Key() == 0 || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
-        KRATOS_ERROR(std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ","");
+        KRATOS_ERROR( std::invalid_argument,"YOUNG_MODULUS has Key zero or invalid value ", "" )
 
     const double& nu = rMaterialProperties[POISSON_RATIO];
     const bool check = bool( (nu >0.499 && nu<0.501 ) || (nu < -0.999 && nu > -1.01 ) );
 
     if(POISSON_RATIO.Key() == 0 || check==true)
-        KRATOS_ERROR(std::invalid_argument,"POISSON_RATIO has Key zero invalid value ","");
+        KRATOS_ERROR( std::invalid_argument,"POISSON_RATIO has Key zero invalid value ", "" )
 
 
     if(DENSITY.Key() == 0 || rMaterialProperties[DENSITY]<0.00)
-        KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero or invalid value ","");
+        KRATOS_ERROR( std::invalid_argument,"DENSITY has Key zero or invalid value ", "" )
 
 
     return 0;

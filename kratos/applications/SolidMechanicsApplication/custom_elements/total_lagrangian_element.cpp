@@ -101,7 +101,7 @@ Element::Pointer TotalLagrangianElement::Clone( IndexType NewId, NodesArrayType 
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 	
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
       }
     
 
@@ -312,7 +312,7 @@ void TotalLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -345,7 +345,7 @@ double& TotalLagrangianElement::CalculateTotalMass( double& rTotalMass )
 
 void TotalLagrangianElement::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
     rSerializer.save("mTotalDomainInitialSize",mTotalDomainInitialSize);
     rSerializer.save("InvJ0",mInvJ0);
     rSerializer.save("DetJ0",mDetJ0);
@@ -353,7 +353,7 @@ void TotalLagrangianElement::save( Serializer& rSerializer ) const
 
 void TotalLagrangianElement::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
     rSerializer.load("mTotalDomainInitialSize",mTotalDomainInitialSize);
     rSerializer.load("InvJ0",mInvJ0);
     rSerializer.load("DetJ0",mDetJ0);

@@ -111,7 +111,7 @@ void IsotropicShellElement::CalculateLocalGlobalTransformation(
     y23 = y21-y31;
 
     //calculating
-    KRATOS_CATCH("");
+    KRATOS_CATCH( "" )
 }
 
 
@@ -292,7 +292,7 @@ void IsotropicShellElement::CalculateMembraneB( boost::numeric::ublas::bounded_m
     noalias(aux33) = (1.5*sqrt(beta0)) * prod( trans(Q),trans(Te) );
     noalias(Bm) += prod(TTu,aux33);
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 
@@ -392,7 +392,7 @@ void IsotropicShellElement::CalculateBendingB( boost::numeric::ublas::bounded_ma
         Bb(i,2) = temp * (-x31*H1[i] - x12*H3[i] + y31*H2[i] + y12*H4[i] );
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -407,7 +407,7 @@ void IsotropicShellElement::CalculateMembraneContribution(
     noalias(aux39) = prod(Em,trans(Bm) );
     noalias(Km) = prod(Bm, aux39);
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -438,7 +438,7 @@ void IsotropicShellElement::AssembleMembraneContribution(
             Kloc_system( local_indices[i],local_indices[j] ) += coeff*Km(i,j);
         }
     }
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -453,7 +453,7 @@ void IsotropicShellElement::CalculateBendingContribution(
     boost::numeric::ublas::bounded_matrix<double,3,9> aux39;
     noalias(aux39) = prod(Eb,trans(Bb) );
     noalias(Kb) = prod(Bb, aux39);
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -482,7 +482,7 @@ void IsotropicShellElement::AssembleBendingContribution(
             Kloc_system( local_indices[i],local_indices[j] ) += coeff*Kb(i,j);
         }
     }
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -798,7 +798,7 @@ void IsotropicShellElement::RotateToGlobal(
     boost::numeric::ublas::bounded_matrix<double,18,18> temp = prod(Kloc_system,rot18);
     noalias(rLeftHandSideMatrix) = prod(trans(rot18),temp);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -851,7 +851,7 @@ void IsotropicShellElement::RotateToGlobal(
     noalias(aaa) = prod(trans(rot18),rRightHandSideVector);
     noalias(rRightHandSideVector) = aaa;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH( "" )
 }
 
 //************************************CALCULATE VOLUME ACCELERATION*******************
@@ -911,7 +911,7 @@ void IsotropicShellElement::AddBodyForce(
     rRightHandSideVector[14] += bf[2];
 
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH( "" )
 
 }
 //************************************************************************************
@@ -1015,7 +1015,7 @@ void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<Matrix >
 
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 
 }
 
@@ -1106,12 +1106,12 @@ void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<double >
         Output[0] = std::max(von_mises_face1,von_mises_face2);
         //Output[0] = von_mises;
 
-//  			KRATOS_WATCH(von_mises);
+//  			KRATOS_WATCH( von_mises )
 
 
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 
 }
 
@@ -1218,7 +1218,7 @@ void IsotropicShellElement::CalculateKg_GaussPointContribution(
 
     AssembleBendingContribution(   mKloc99, weight, Kloc_system  );
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 
 }
 
@@ -1327,7 +1327,7 @@ void IsotropicShellElement::CalculateAndAddKg(
 
     noalias(LHS) += rWorkMatrix;
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 
 }
 
@@ -1459,7 +1459,7 @@ void IsotropicShellElement::CalculateLocalShapeDerivatives(
     DNw_loc(1,7) = -0.2e1 * y31 * c + 0.3e1 * b * c * y31 + 0.3e1 * c * c * y31 - 0.1e1 * b * c * y32 - 0.5000000000e0 * y31 * b + 0.5000000000e0 * y31 * b * b - 0.5000000000e0 * y32 * b + 0.5000000000e0 * y32 * b * b;
     DNw_loc(1,8) = 0.2e1 * x31 * c - 0.3e1 * b * c * x31 - 0.3e1 * c * c * x31 + b * c * x32 + 0.5000000000e0 * x31 * b - 0.5000000000e0 * x31 * b * b + 0.5000000000e0 * x32 * b - 0.5000000000e0 * x32 * b * b;
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -1517,7 +1517,7 @@ void IsotropicShellElement::CalculateProjectionOperator(
     noalias(rProjOperator) -= prod(psi,trans(rho));
 
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -1540,7 +1540,7 @@ void IsotropicShellElement::ApplyProjection(
     noalias(rWorkArray) = prod(trans(rProjOperator),rRightHandSideVector);
     noalias(rRightHandSideVector) = rWorkArray;
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -1595,7 +1595,7 @@ void IsotropicShellElement::UpdateNodalReferenceSystem(
     }
 
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -1624,7 +1624,7 @@ void IsotropicShellElement::SaveOriginalReference(
     noalias(mTs[2]) = IdentityMatrix(3,3);
 
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -1851,7 +1851,7 @@ void IsotropicShellElement::InvertMatrix(const boost::numeric::ublas::bounded_ma
 
     //finalizing the calculation of the inverted matrix
     InvertedMatrix /= InputMatrixDet;
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 
@@ -1875,7 +1875,7 @@ void IsotropicShellElement::Initialize()
     noalias(rot_oldit[1]) = GetGeometry()[1].FastGetSolutionStepValue(ROTATION);
     noalias(rot_oldit[2]) = GetGeometry()[2].FastGetSolutionStepValue(ROTATION);
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 
@@ -1907,7 +1907,7 @@ void IsotropicShellElement::FinalizeNonLinearIteration(ProcessInfo& CurrentProce
 
     UpdateNodalReferenceSystem(x12,x23,x31,y12,y23,y31);
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 
 }
 
@@ -1952,7 +1952,7 @@ void IsotropicShellElement::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCu
     rMassMatrix(13,13) = node_mass;
     rMassMatrix(14,14) = node_mass;
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //************************************************************************************
@@ -2008,29 +2008,29 @@ int  IsotropicShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
 
     //verify that the variables are correctly initialized
     if(VELOCITY.Key() == 0)
-        KRATOS_ERROR(std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered","");
+        KRATOS_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
     if(DISPLACEMENT.Key() == 0)
-        KRATOS_ERROR(std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered","");
+        KRATOS_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
     if(ACCELERATION.Key() == 0)
-        KRATOS_ERROR(std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered","");
+        KRATOS_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
     if(DENSITY.Key() == 0)
-        KRATOS_ERROR(std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered","");
+        KRATOS_ERROR( std::invalid_argument,"DENSITY has Key zero! (check if the application is correctly registered", "" )
     // if(BODY_FORCE.Key() == 0)
-        // KRATOS_ERROR(std::invalid_argument,"BODY_FORCE has Key zero! (check if the application is correctly registered","");
+        // KRATOS_ERROR( std::invalid_argument,"BODY_FORCE has Key zero! (check if the application is correctly registered", "" )
     if(THICKNESS.Key() == 0)
-        KRATOS_ERROR(std::invalid_argument,"THICKNESS has Key zero! (check if the application is correctly registered","");
+        KRATOS_ERROR( std::invalid_argument,"THICKNESS has Key zero! (check if the application is correctly registered", "" )
 
     //verify that the dofs exist
     for(unsigned int i=0; i<this->GetGeometry().size(); i++)
     {
         if(this->GetGeometry()[i].SolutionStepsDataHas(DISPLACEMENT) == false)
-            KRATOS_ERROR(std::invalid_argument,"missing variable DISPLACEMENT on node ",this->GetGeometry()[i].Id());
+            KRATOS_ERROR( std::invalid_argument,"missing variable DISPLACEMENT on node ",this->GetGeometry()[i].Id() )
         if(this->GetGeometry()[i].HasDofFor(DISPLACEMENT_X) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Y) == false || this->GetGeometry()[i].HasDofFor(DISPLACEMENT_Z) == false)
-            KRATOS_ERROR(std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ",GetGeometry()[i].Id());
+            KRATOS_ERROR( std::invalid_argument,"missing one of the dofs for the variable DISPLACEMENT on node ",GetGeometry()[i].Id() )
         if(this->GetGeometry()[i].SolutionStepsDataHas(ROTATION) == false)
-            KRATOS_ERROR(std::invalid_argument,"missing variable ROTATION on node ",this->GetGeometry()[i].Id());
+            KRATOS_ERROR( std::invalid_argument,"missing variable ROTATION on node ",this->GetGeometry()[i].Id() )
         if(this->GetGeometry()[i].HasDofFor(ROTATION_X) == false || this->GetGeometry()[i].HasDofFor(ROTATION_Y) == false || this->GetGeometry()[i].HasDofFor(ROTATION_Z) == false)
-            KRATOS_ERROR(std::invalid_argument,"missing one of the dofs for the variable ROTATION on node ",GetGeometry()[i].Id());
+            KRATOS_ERROR( std::invalid_argument,"missing one of the dofs for the variable ROTATION on node ",GetGeometry()[i].Id() )
     }
 
     //Verify that the body force is defined
@@ -2038,22 +2038,22 @@ int  IsotropicShellElement::Check(const ProcessInfo& rCurrentProcessInfo)
     //     KRATOS_ERROR(std::logic_error,"BODY_FORCE not provided for property ",this->GetProperties().Id())
 
         if (this->GetProperties().Has(THICKNESS)==false)
-            KRATOS_ERROR(std::logic_error,"THICKNESS not provided for element ",this->Id());
+            KRATOS_ERROR( std::logic_error,"THICKNESS not provided for element ",this->Id() )
 
     if (this->GetProperties().Has(DENSITY)==false)
-        KRATOS_ERROR(std::logic_error,"DENSITY not provided for element ",this->Id());
+        KRATOS_ERROR( std::logic_error,"DENSITY not provided for element ",this->Id() )
 
     if (this->GetProperties().Has(YOUNG_MODULUS)==false)
-        KRATOS_ERROR(std::logic_error,"YOUNG_MODULUS not provided for element ",this->Id());
+        KRATOS_ERROR( std::logic_error,"YOUNG_MODULUS not provided for element ",this->Id() )
 
     if (this->GetProperties().Has(POISSON_RATIO)==false)
-        KRATOS_ERROR(std::logic_error,"POISSON_RATIO not provided for element ",this->Id());
+        KRATOS_ERROR( std::logic_error,"POISSON_RATIO not provided for element ",this->Id() )
 
 
 
     return 0;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH( "" )
 }
 
 }

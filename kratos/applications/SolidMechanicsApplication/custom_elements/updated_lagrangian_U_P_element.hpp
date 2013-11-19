@@ -58,7 +58,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of UpdatedLagrangianUPElement
-    KRATOS_CLASS_POINTER_DEFINITION(UpdatedLagrangianUPElement);
+    KRATOS_CLASS_POINTER_DEFINITION( UpdatedLagrangianUPElement );
 
     ///@}
     ///@name Life Cycle

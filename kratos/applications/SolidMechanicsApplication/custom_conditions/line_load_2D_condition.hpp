@@ -223,12 +223,12 @@ private:
 
     virtual void save( Serializer& rSerializer ) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoad3DCondition );
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LineLoad3DCondition )
     }
 
     virtual void load( Serializer& rSerializer )
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoad3DCondition );
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LineLoad3DCondition )
     }
 
 

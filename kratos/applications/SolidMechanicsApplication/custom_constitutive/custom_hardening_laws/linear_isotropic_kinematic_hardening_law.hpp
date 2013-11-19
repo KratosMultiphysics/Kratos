@@ -53,7 +53,7 @@ public:
     ///@{
 
     /// Pointer definition of LinearIsotropicKinematicHardeningLaw
-    KRATOS_CLASS_POINTER_DEFINITION(LinearIsotropicKinematicHardeningLaw);
+    KRATOS_CLASS_POINTER_DEFINITION( LinearIsotropicKinematicHardeningLaw );
 
     ///@}
     ///@name Life Cycle

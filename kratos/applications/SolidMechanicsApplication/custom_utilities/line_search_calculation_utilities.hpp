@@ -282,7 +282,7 @@ public:
 
    	Timer::Stop("LineSearch");
 
-   	KRATOS_CATCH("")
+   	KRATOS_CATCH( "" )
 
 	return rCurrentAlpha;
     };
@@ -423,7 +423,7 @@ public:
 
    	Timer::Stop("LineSearch");
 
-   	KRATOS_CATCH("")
+   	KRATOS_CATCH( "" )
 
 	return rCurrentAlpha;
     };
@@ -570,7 +570,7 @@ public:
 
    	Timer::Stop("LineSearch");
 
-   	KRATOS_CATCH("")
+   	KRATOS_CATCH( "" )
 
 	return rCurrentAlpha;
     };

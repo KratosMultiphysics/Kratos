@@ -62,7 +62,7 @@ public:
     /*@{ */
 
     //typedef boost::shared_ptr< ResidualBasedStaticScheme<TSparseSpace,TDenseSpace> > Pointer;
-    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedStaticScheme);
+    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedStaticScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace> BaseType;
 
@@ -119,7 +119,7 @@ public:
                 i_dof->GetSolutionStepValue() += Dx[i_dof->EquationId()];
             }
         }
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     /**
@@ -134,7 +134,7 @@ public:
     )
     {
         KRATOS_TRY
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     /** this function is designed to be called in the builder and solver to introduce
@@ -160,7 +160,7 @@ public:
         (rCurrentElement)->CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
         (rCurrentElement)->EquationIdVector(EquationId,CurrentProcessInfo);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
 
@@ -179,7 +179,7 @@ public:
         (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
         (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //***************************************************************************
@@ -197,7 +197,7 @@ public:
         (rCurrentElement) -> CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
         (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
 
@@ -214,7 +214,7 @@ public:
         KRATOS_TRY
         (rCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
         (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     virtual void Condition_Calculate_RHS_Contribution(
@@ -226,7 +226,7 @@ public:
         KRATOS_TRY
         (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
         (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
 

@@ -100,7 +100,7 @@ public:
     /**@name Type Definitions */
 
     /*@{ */
-    KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBossakScheme);
+    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedBossakScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
 
@@ -220,7 +220,7 @@ public:
 
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
 
@@ -355,7 +355,7 @@ public:
         this->mElementsAreInitialized = true;
         std::cout<<" mechanical elements are initialized "<<std::endl;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //***************************************************************************
@@ -370,7 +370,7 @@ public:
         KRATOS_TRY
 
         if(this->mElementsAreInitialized==false)
-            KRATOS_ERROR(std::logic_error, "Before initilizing Conditions, initialize Elements FIRST","")
+            KRATOS_ERROR( std::logic_error, "Before initilizing Conditions, initialize Elements FIRST", "" )
 
             int NumThreads = OpenMPUtils::GetNumThreads();
         OpenMPUtils::PartitionVector ConditionPartition;
@@ -390,7 +390,7 @@ public:
         }
 
         this->mConditionsAreInitialized = true;
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //***************************************************************************
@@ -421,7 +421,7 @@ public:
         double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 
         if (DeltaTime == 0)
-            KRATOS_ERROR(std::logic_error, "detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "");
+            KRATOS_ERROR( std::logic_error, "detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
 
 
         //initializing Newmark constants
@@ -435,7 +435,7 @@ public:
 
         //std::cout<<" Newmark Variables "<<mNewmark.c0<<" "<<mNewmark.c1<<" "<<mNewmark.c2<<" "<<mNewmark.c3<<" "<<mNewmark.c4<<" "<<mNewmark.c5<<std::endl;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //***************************************************************************
@@ -490,7 +490,7 @@ public:
                 itCond->FinalizeSolutionStep(CurrentProcessInfo);
             }
         }
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //***************************************************************************
@@ -515,7 +515,7 @@ public:
         {
             (it) -> InitializeNonLinearIteration(CurrentProcessInfo);
         }
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //***************************************************************************
@@ -579,7 +579,7 @@ public:
 
         //AssembleTimeSpaceLHS(rCurrentElement, LHS_Contribution, DampMatrix, MassMatrix,CurrentProcessInfo);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //***************************************************************************
@@ -618,7 +618,7 @@ public:
             AddDynamicsToRHS (rCurrentElement, RHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], CurrentProcessInfo);
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -669,7 +669,7 @@ public:
         //AssembleTimeSpaceLHS_Condition(rCurrentCondition, LHS_Contribution,DampMatrix, MassMatrix,CurrentProcessInfo);
 
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //***************************************************************************
@@ -711,7 +711,7 @@ public:
 
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //***************************************************************************
@@ -762,22 +762,22 @@ public:
         //check for variables keys
         //verify that the variables are correctly initialized
         if(DISPLACEMENT.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered","");
+            KRATOS_ERROR( std::invalid_argument,"DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
         if(VELOCITY.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered","");
+            KRATOS_ERROR( std::invalid_argument,"VELOCITY has Key zero! (check if the application is correctly registered", "" )
         if(ACCELERATION.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered","");
+            KRATOS_ERROR( std::invalid_argument,"ACCELERATION has Key zero! (check if the application is correctly registered", "" )
 
         //check that variables are correctly allocated
         for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin();
                 it!=r_model_part.NodesEnd(); it++)
         {
             if (it->SolutionStepsDataHas(DISPLACEMENT) == false)
-                KRATOS_ERROR(std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() );
+                KRATOS_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
             if (it->SolutionStepsDataHas(VELOCITY) == false)
-                KRATOS_ERROR(std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() );
+                KRATOS_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
             if (it->SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_ERROR(std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() );
+                KRATOS_ERROR( std::logic_error, "DISPLACEMENT variable is not allocated for node ", it->Id() )
         }
 
         //check that dofs exist
@@ -785,26 +785,26 @@ public:
                 it!=r_model_part.NodesEnd(); it++)
         {
             if(it->HasDofFor(DISPLACEMENT_X) == false)
-                KRATOS_ERROR(std::invalid_argument,"missing DISPLACEMENT_X dof on node ",it->Id());
+                KRATOS_ERROR( std::invalid_argument,"missing DISPLACEMENT_X dof on node ",it->Id() )
             if(it->HasDofFor(DISPLACEMENT_Y) == false)
-                KRATOS_ERROR(std::invalid_argument,"missing DISPLACEMENT_Y dof on node ",it->Id());
+                KRATOS_ERROR( std::invalid_argument,"missing DISPLACEMENT_Y dof on node ",it->Id() )
             if(it->HasDofFor(DISPLACEMENT_Z) == false)
-                KRATOS_ERROR(std::invalid_argument,"missing DISPLACEMENT_Z dof on node ",it->Id());
+                KRATOS_ERROR( std::invalid_argument,"missing DISPLACEMENT_Z dof on node ",it->Id() )
         }
 
 
         //check for admissible value of the AlphaBossak
         if(mAlpha.m > 0.0 || mAlpha.m < -0.3)
-            KRATOS_ERROR(std::logic_error,"Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is ",mAlpha.m)
+            KRATOS_ERROR( std::logic_error,"Value not admissible for AlphaBossak. Admissible values should be between 0.0 and -0.3. Current value is ", mAlpha.m )
 
             //check for minimum value of the buffer index
             //verify buffer size
             if (r_model_part.GetBufferSize() < 2)
-                KRATOS_ERROR(std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize());
+                KRATOS_ERROR( std::logic_error, "insufficient buffer size. Buffer size should be greater than 2. Current size is", r_model_part.GetBufferSize() )
 
 
         return 0;
-        KRATOS_CATCH("");
+        KRATOS_CATCH( "" )
     }
 
     /*@} */
@@ -847,9 +847,9 @@ protected:
                                const array_1d<double, 3 > & PreviousAcceleration)
     {
 
-        //KRATOS_WATCH(DeltaDisplacement);
-        //KRATOS_WATCH(PreviousVelocity);
-        //KRATOS_WATCH(PreviousAcceleration);
+        //KRATOS_WATCH( DeltaDisplacement )
+        //KRATOS_WATCH( PreviousVelocity )
+        //KRATOS_WATCH( PreviousAcceleration )
 
         noalias(CurrentVelocity) =  (mNewmark.c1 * DeltaDisplacement - mNewmark.c4 * PreviousVelocity
                                      - mNewmark.c5 * PreviousAcceleration) * mNewmark.static_dynamic;
@@ -933,7 +933,7 @@ protected:
             noalias(mVector.a[thread]) += mAlpha.m * mVector.ap[thread] * mNewmark.static_dynamic;
 
             noalias(RHS_Contribution)  -= prod(M, mVector.a[thread]);
-            //KRATOS_WATCH(prod(M, macc[thread] ));
+            //KRATOS_WATCH( prod(M, macc[thread] ) )
 
         }
 

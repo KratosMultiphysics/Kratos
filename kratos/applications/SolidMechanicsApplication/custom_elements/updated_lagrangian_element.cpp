@@ -89,7 +89,7 @@ Element::Pointer UpdatedLagrangianElement::Clone( IndexType NewId, NodesArrayTyp
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 	
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
       }
     
 
@@ -281,13 +281,13 @@ void UpdatedLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
 
 void UpdatedLagrangianElement::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SpatialLagrangianElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SpatialLagrangianElement )
 
 }
 
 void UpdatedLagrangianElement::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SpatialLagrangianElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SpatialLagrangianElement )
 
 }
 

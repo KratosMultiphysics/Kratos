@@ -130,13 +130,13 @@ double& LinearIsotropicKinematicHardeningLaw::CalculateDeltaIsotropicHardening(d
 
 void LinearIsotropicKinematicHardeningLaw::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonLinearIsotropicKinematicHardeningLaw );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonLinearIsotropicKinematicHardeningLaw )
 
 }
 
 void LinearIsotropicKinematicHardeningLaw::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonLinearIsotropicKinematicHardeningLaw );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonLinearIsotropicKinematicHardeningLaw )
 
 }
 
