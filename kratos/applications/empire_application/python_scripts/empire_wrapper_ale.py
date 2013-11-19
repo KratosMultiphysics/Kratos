@@ -57,6 +57,7 @@ class EmpireWrapper:
 			disp[2] = 0
 
 		nodes.SetSolutionStepValue(DISPLACEMENT,0,disp)
+		
 		i = i + 1
     # -------------------------------------------------------------------------------------------------
 
@@ -135,7 +136,8 @@ class EmpireWrapper:
 	# assign pressure to nodes of interface for current time step
 	for nodes in (self.interface_model_part).Nodes:
 		pressure[0] = c_pressure[i]
-		nodes.SetSolutionStepValue(POSITIVE_FACE_PRESSURE,0,pressure[0]);
+		#nodes.SetSolutionStepValue(POSITIVE_FACE_PRESSURE,0,pressure[0]);
+		nodes.SetSolutionStepValue(NEGATIVE_FACE_PRESSURE,0,pressure[0]);
 		i = i + 1
     # -------------------------------------------------------------------------------------------------
 
