@@ -18,9 +18,20 @@ class EmpireWrapper:
 	self.interface_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
 	self.interface_model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
 	self.interface_model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE);
+	self.interface_model_part.SetBufferSize(3)
         self.wrapper_process      = WrapperProcess(self.model_part,self.interface_model_part)
+        
+        # specifically needed for exchange of mesh information (constant mesh information)
+        self.nodeIDs = []
+        self.elements = []
+        self.interfaceX0 = []
+        self.interfaceY0 = []
+        self.interfaceZ0 = []
     # -------------------------------------------------------------------------------------------------	
 
+    def getInterfacePart(self):
+        return self.interface_model_part
+      
     # -------------------------------------------------------------------------------------------------
     # convert char* to python-compatible string
     def getUserDefinedText(self,stringText):
@@ -42,36 +53,83 @@ class EmpireWrapper:
         # extract delta_t from fluid model part to calculate the updated velocity
         delta_T = self.model_part.ProcessInfo[DELTA_TIME]
         
+        # initialize vectors and lists
 	disp = Vector(3)
 	disp_old = Vector(3)
 	vel = Vector(3)
 	vel_old = Vector(3)
+	nodeCoordinates = []
+	displacement = []
+	velocity = []
+	
+	# update coordinates of interface of current time step
 	i = 0
-	# assign displacements to nodes of interface for current time step
 	for nodes in (self.interface_model_part).Nodes:
 		disp[0] = c_displacements[3*i]
 		disp[1] = c_displacements[3*i+1]
 		disp[2] = c_displacements[3*i+2]
+		
+		displacement.append(disp[0])
+		displacement.append(disp[1])
+		displacement.append(disp[2])
+		
 
-		if(abs(disp[0]) < 1e-9):
-			disp[0] = 0
-		if(abs(disp[1]) < 1e-9):
-			disp[1] = 0
-		if(abs(disp[2]) < 1e-9):
-			disp[2] = 0
+                if(abs(disp[0]) < 1e-9):
+                        disp[0] = 0
+                if(abs(disp[1]) < 1e-9):
+                        disp[1] = 0
+                if(abs(disp[2]) < 1e-9):
+                        disp[2] = 0
 
-		nodes.SetSolutionStepValue(DISPLACEMENT,0,disp)
-		
-		disp_old = nodes.GetSolutionStepValue(DISPLACEMENT,1)
-		vel_old = nodes.GetSolutionStepValue(VELOCITY,1)
-		
-		vel[0] = vel_old[0] + (disp[0]-disp_old[0]) / delta_T
-		vel[1] = vel_old[1] + (disp[1]-disp_old[1]) / delta_T
-		vel[2] = vel_old[2] + (disp[2]-disp_old[2]) / delta_T
-		
-		nodes.SetSolutionStepValue(VELOCITY,0,vel)
-		
+                # Compute coordinates of new interface_model_part
+                nodeCoordinates.append(self.interfaceX0[i] + disp[0])
+                nodeCoordinates.append(self.interfaceY0[i] + disp[1])
+                nodeCoordinates.append(self.interfaceZ0[i] + disp[2])
+                
+                # Set velocity of new interface_model_part
+                disp_old = nodes.GetSolutionStepValue(DISPLACEMENT,1)
+                vel[0] = (disp[0]-disp_old[0]) / delta_T
+                vel[1] = (disp[1]-disp_old[1]) / delta_T
+                vel[2] = (disp[2]-disp_old[2]) / delta_T
+                
+                velocity.append(vel[0])
+                velocity.append(vel[1])
+                velocity.append(vel[2])
+
 		i = i + 1
+		
+	# create interface part with the received mesh information
+        self.wrapper_process.CreateEmbeddedInterfacePart(self.nodeIDs, nodeCoordinates, self.elements, displacement, velocity)
+        
+        
+        
+        ## assign displacements and velocities to nodes of updated interface
+        #i = 0
+        #for nodes in (self.interface_model_part).Nodes:
+                                
+                ## Set displacement of updated interface_model_part
+                #disp[0] = c_displacements[3*i]
+                #disp[1] = c_displacements[3*i+1]
+                #disp[2] = c_displacements[3*i+2]      
+                
+                #if(abs(disp[0]) < 1e-9):
+                        #disp[0] = 0
+                #if(abs(disp[1]) < 1e-9):
+                        #disp[1] = 0
+                #if(abs(disp[2]) < 1e-9):
+                        #disp[2] = 0                
+                
+                #nodes.SetSolutionStepValue(DISPLACEMENT,0,disp)
+                
+                ## Set velocity of new interface_model_part
+                #disp_old = nodes.GetSolutionStepValue(DISPLACEMENT,1)
+                #vel[0] = (disp[0]-disp_old[0]) / delta_T
+                #vel[1] = (disp[1]-disp_old[1]) / delta_T
+                #vel[2] = (disp[2]-disp_old[2]) / delta_T
+
+                #nodes.SetSolutionStepValue(VELOCITY,0,vel)
+                
+                #i = i + 1
     # -------------------------------------------------------------------------------------------------
     
     # -------------------------------------------------------------------------------------------------
@@ -79,7 +137,7 @@ class EmpireWrapper:
 	# extract pressure from interface nodes as result of the CFD simulation
 	pressure = []
         self.wrapper_process.ExtractPressureFromEmbeddedModelPart( pressure )
-
+ 
 	# List pressure has the format: Node1.POSITIVE_FACE_PRESSURE, Node1.NEGATIVE_FACE_PRESSURE, 
 	#				Node2.POSITIVE_FACE_PRESSURE, Node2.NEGATIVE_FACE_PRESSURE, 
 	# such that array has size node_size * 2
@@ -118,7 +176,7 @@ class EmpireWrapper:
 
         # extract interface nodes and conditions from the fluid model part which have a flag "IS_INTERFACE"
         self.wrapper_process.ExtractInterface()
-
+        
 	# Extract interface mesh info from above extracted interface
 	self.wrapper_process.ExtractMeshInfo(numNodes,numElems,nodeCoordinates,nodeIDs,numNodesPerElem,elements)
 	
@@ -146,14 +204,13 @@ class EmpireWrapper:
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
-    def recvInterfaceMesh(self):
-	nodeIDs		= []        
+    def recvInterfaceMesh(self):   
 	nodeCoordinates = []
-        elements        = []
 	numNodes        = []
 	numElems        = []
 	sizes		= []
 	c_sizes		= []
+	zero_list      = []
 
         # receive number of nodes of structure mesh
         c_sizes = (c_double * 2)(*sizes)
@@ -163,9 +220,9 @@ class EmpireWrapper:
 	numNodes.append(int(c_sizes[0]))
         numElems.append(int(c_sizes[1]))
 
-	c_nodeIDs         = (c_double * numNodes[0])(*nodeIDs)
+	c_nodeIDs         = (c_double * numNodes[0])(*self.nodeIDs)
         c_nodeCoordinates = (c_double * (numNodes[0]*3))(*nodeCoordinates)
-        c_elements        = (c_double * (numElems[0]*3))(*elements)
+        c_elements        = (c_double * (numElems[0]*3))(*self.elements)
 
         # receive mesh data from empire
 	# Note: EMPIREs send and recvSignal only processes doubles, i.e. also the ids will be seen as doubles --> conversion to int later
@@ -175,14 +232,18 @@ class EmpireWrapper:
 
         # create python list to work with in c++
         for i in range(0,numNodes[0]):
-                nodeIDs.append(int(c_nodeIDs[i]))
+                self.nodeIDs.append(int(c_nodeIDs[i]))
+                self.interfaceX0.append(c_nodeCoordinates[3*i])
+                self.interfaceY0.append(c_nodeCoordinates[3*i+1])
+                self.interfaceZ0.append(c_nodeCoordinates[3*i+2])
         for i in range(0,numNodes[0]*3):
                 nodeCoordinates.append(c_nodeCoordinates[i])
+                zero_list.append(0)
 	for i in range(0,(numElems[0]*3)):
-		elements.append(int(c_elements[i]))
+		self.elements.append(int(c_elements[i]))
 
         # create interface part with the received mesh information
-        self.wrapper_process.CreateEmbeddedInterfacePart(nodeIDs, nodeCoordinates, elements)
+        self.wrapper_process.CreateEmbeddedInterfacePart(self.nodeIDs, nodeCoordinates, self.elements, zero_list, zero_list)
     # -------------------------------------------------------------------------------------------------
 
     # -------------------------------------------------------------------------------------------------
@@ -207,8 +268,8 @@ class EmpireWrapper:
 	# assign pressure to nodes of interface for current time step
 	for nodes in (self.interface_model_part).Nodes:
 		pressure = c_pressure[i]
-		nodes.SetSolutionStepValue(POSITIVE_FACE_PRESSURE,0,pressure);
-		nodes.SetSolutionStepValue(NEGATIVE_FACE_PRESSURE,0,0);
+		nodes.SetSolutionStepValue(NEGATIVE_FACE_PRESSURE,0,-pressure);
+		#nodes.SetSolutionStepValue(POSITIVE_FACE_PRESSURE,0,pressure);
 		i = i + 1
     # -------------------------------------------------------------------------------------------------
 
