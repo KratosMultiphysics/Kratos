@@ -89,7 +89,7 @@ namespace Kratos
           array_1d<double, 3> additionally_applied_force;
           array_1d<double, 3> additionally_applied_moment;
           array_1d<double, 3> initial_rotation_moment;     
-           array_1d<double, 3>& elastic_force = this->GetGeometry()[0].GetSolutionStepValue(ELASTIC_FORCES);
+           array_1d<double, 3>& elastic_force = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
 
           contact_force.clear();
           contact_moment.clear();
@@ -301,8 +301,12 @@ namespace Kratos
        ParticleWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_ELEMENTS);
        unsigned int new_size                = rNeighbours.size();
        unsigned int neighbour_counter       = 0;
-       vector<int> temp_neighbours_ids(new_size);
-       vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
+       //vector<int> temp_neighbours_ids(new_size);
+       std::vector<int>& temp_neighbours_ids = mTempNeighboursIds;
+       temp_neighbours_ids.resize(new_size);
+       //vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
+       std::vector<array_1d<double, 3> >& temp_neighbours_contact_forces = mTempNeighboursContactForces;
+       temp_neighbours_contact_forces.resize(new_size);
        array_1d<double, 3> vector_of_zeros;
        vector_of_zeros[0]                   = 0.0;
        vector_of_zeros[1]                   = 0.0;
@@ -342,8 +346,9 @@ namespace Kratos
        ConditionWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_RIGID_FACES);
        unsigned int new_size                = rNeighbours.size();
        unsigned int neighbour_counter       = 0;
-       vector<int> temp_neighbours_ids(new_size);
-       vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);
+       vector<int> temp_neighbours_ids(new_size); //these two temporal vectors are very small, saving them as a member of the particle loses time.
+       vector<array_1d<double, 3> > temp_neighbours_contact_forces(new_size);       
+       
        array_1d<double, 3> vector_of_zeros;
        vector_of_zeros[0]                   = 0.0;
        vector_of_zeros[1]                   = 0.0;
@@ -417,8 +422,8 @@ namespace Kratos
 
           // FORMING OLD LOCAL CORDINATES
 
-          array_1d<double,3> old_coord_target     = this->GetGeometry()(0)->GetInitialPosition() + this->GetGeometry()(0)->GetSolutionStepValue(DISPLACEMENT,1);
-          array_1d<double,3> old_coord_neigh      = neighbour_iterator->GetGeometry()(0)->GetInitialPosition()+neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(DISPLACEMENT,1);
+          array_1d<double,3> old_coord_target     = this->GetGeometry()(0)->GetInitialPosition() + this->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT,1);
+          array_1d<double,3> old_coord_neigh      = neighbour_iterator->GetGeometry()(0)->GetInitialPosition()+neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT,1);
           array_1d<double,3> Old_other_to_me_vect = old_coord_target - old_coord_neigh;
 
           OldNormalDir[0] = Old_other_to_me_vect[0];   // M. this way the compresion is positive.
@@ -427,8 +432,8 @@ namespace Kratos
           GeometryFunctions::ComputeContactLocalCoordSystem(OldNormalDir, OldLocalCoordSystem); //Old Local Coord System
 
           // VELOCITIES AND DISPLACEMENTS
-          array_1d<double, 3 > other_vel          = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(VELOCITY);
-          array_1d<double, 3 > other_delta_displ  = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(DELTA_DISPLACEMENT);
+          array_1d<double, 3 > other_vel          = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+          array_1d<double, 3 > other_delta_displ  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
 
           RelVel[0] = (vel[0] - other_vel[0]);
           RelVel[1] = (vel[1] - other_vel[1]);

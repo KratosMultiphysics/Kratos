@@ -261,8 +261,14 @@ namespace Kratos
       double mGlobalKn;
       double mGlobalKt;
       double mGlobalAuxNormToTang;
-      vector<int> mOldNeighbourIds;
-      vector< array_1d<double, 3> > mOldNeighbourContactForces;
+      
+      //vector<int> mOldNeighbourIds;//candidate to std::vector
+      //vector< array_1d<double, 3> > mOldNeighbourContactForces;//candidate to std::vector
+      
+      std::vector<int> mOldNeighbourIds;
+      std::vector< array_1d<double, 3> > mOldNeighbourContactForces;      
+      std::vector<int> mTempNeighboursIds;
+      std::vector<array_1d<double, 3> > mTempNeighboursContactForces;
       
       //pointers:
       const int *mpTimeStep; 
@@ -270,7 +276,7 @@ namespace Kratos
 	  
       //Cfeng,RigidFace
       vector<int> mOldRigidFaceNeighbourIds;
-      vector< array_1d<double, 3> >  mOldRigidFaceNeighbourContactForces;
+      vector< array_1d<double, 3> >  mOldRigidFaceNeighbourContactForces;            
       
       //ParticleWeakVectorType mrNeighbours;
 
