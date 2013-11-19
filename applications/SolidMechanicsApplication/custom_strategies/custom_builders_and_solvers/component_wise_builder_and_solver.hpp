@@ -56,7 +56,7 @@ public:
     /**@name Type Definitions */
     /*@{ */
     //typedef boost::shared_ptr< ComponentWiseBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
-    KRATOS_CLASS_POINTER_DEFINITION(ComponentWiseBuilderAndSolver);
+    KRATOS_CLASS_POINTER_DEFINITION( ComponentWiseBuilderAndSolver );
 
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -128,7 +128,7 @@ public:
         KRATOS_TRY
 
         if (!pScheme)
-            KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
+            KRATOS_ERROR( std::runtime_error, "No scheme provided!", "" )
 
         //getting the elements from the model
         ElementsArrayType& pElements = r_model_part.Elements();
@@ -295,8 +295,8 @@ public:
         CreatePartition(number_of_threads, pElements.size(), element_partition);
         if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
         {
-            KRATOS_WATCH(number_of_threads);
-            KRATOS_WATCH(element_partition);
+            KRATOS_WATCH( number_of_threads )
+            KRATOS_WATCH( element_partition )
         }
 
 
@@ -467,7 +467,7 @@ public:
             omp_destroy_lock(&lock_array[i]);
         if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
         {
-            KRATOS_WATCH("finished parallel building");
+            KRATOS_WATCH( "finished parallel building" )
         }
 
         //to ensure that all the threads are syncronized here
@@ -477,7 +477,7 @@ public:
 	//recovering the reactions flag
 	BaseType::mCalculateReactionsFlag = CalculateReactionsFlag;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -581,7 +581,7 @@ public:
 
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -683,7 +683,7 @@ public:
 	      }
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -701,7 +701,7 @@ public:
         KRATOS_TRY
 
         return 0;
-        KRATOS_CATCH("");
+        KRATOS_CATCH( "" )
     }
 
 

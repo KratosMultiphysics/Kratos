@@ -388,7 +388,7 @@ void SpatialLagrangianElement::CalculateDeformationGradient(const Matrix& rDN_DX
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -452,7 +452,7 @@ void SpatialLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -468,7 +468,7 @@ void SpatialLagrangianElement::CalculateDeformationMatrix(Matrix& rB,
 
 void SpatialLagrangianElement::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
 
@@ -476,7 +476,7 @@ void SpatialLagrangianElement::save( Serializer& rSerializer ) const
 
 void SpatialLagrangianElement::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
 

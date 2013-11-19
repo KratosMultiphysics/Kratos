@@ -166,7 +166,7 @@ Vector& SurfaceLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, Gener
       }
 
 
-    //KRATOS_WATCH(rVectorForce)
+    //KRATOS_WATCH( rVectorForce )
 
       
     return rVectorForce;
@@ -296,7 +296,7 @@ void SurfaceLoad3DCondition::ExpandReducedMatrix(Matrix& Destination,
         }
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //***********************************************************************************
@@ -313,7 +313,7 @@ void SurfaceLoad3DCondition::SubtractMatrix(MatrixType& Destination,
         for (unsigned int j = 0; j < 3; j++)
             Destination(InitialRow + i, InitialCol + j) -= InputMatrix(i, j);
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 

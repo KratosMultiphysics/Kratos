@@ -64,7 +64,7 @@ public:
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
     /// Counted pointer of SmallDisplacementElement
-    KRATOS_CLASS_POINTER_DEFINITION(SmallDisplacementElement);
+    KRATOS_CLASS_POINTER_DEFINITION( SmallDisplacementElement );
     ///@}
 
 protected:

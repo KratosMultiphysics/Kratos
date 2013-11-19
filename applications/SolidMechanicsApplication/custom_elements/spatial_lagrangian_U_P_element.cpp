@@ -98,7 +98,7 @@ Element::Pointer SpatialLagrangianUPElement::Clone( IndexType NewId, NodesArrayT
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 	
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
       }
     
 
@@ -273,7 +273,7 @@ void SpatialLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLoca
 
     rVariables.detF     = DeterminantF;
     rVariables.detF0   /= rVariables.detF;
-    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH( rLeftHandSideMatrix )
 }
 
 
@@ -291,7 +291,7 @@ void SpatialLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLoca
 
     rVariables.detF     = DeterminantF;
     rVariables.detF0   /= rVariables.detF;
-    //KRATOS_WATCH(rRightHandSideVector)
+    //KRATOS_WATCH( rRightHandSideVector )
 }
 
 
@@ -414,7 +414,7 @@ void SpatialLagrangianUPElement::CalculateDeformationGradient(const Matrix& rDN_
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -493,14 +493,14 @@ void SpatialLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
 
 void SpatialLagrangianUPElement::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementUPElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementUPElement )
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
 }
 
 void SpatialLagrangianUPElement::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementUPElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementUPElement )
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
 }

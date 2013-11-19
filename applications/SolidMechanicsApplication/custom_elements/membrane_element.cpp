@@ -151,7 +151,7 @@ void MembraneElement::Initialize()
 
 {
     KRATOS_TRY
-    //KRATOS_WATCH("INITIALIZE ELEMENT");
+    //KRATOS_WATCH( "INITIALIZE ELEMENT" )
     //getting all "Actual" info from the geometry
     const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
 
@@ -180,8 +180,8 @@ void MembraneElement::Initialize()
     // Initialize Variables
     mdensity = GetProperties()[DENSITY];
     mThickness0 = GetProperties()[THICKNESS];
-    //KRATOS_WATCH(mdensity);
-    //KRATOS_WATCH(mThickness0);
+    //KRATOS_WATCH( mdensity )
+    //KRATOS_WATCH( mThickness0 )
     mThickness.resize( integration_points.size(), 0.00 );
 
     // Initialize Material
@@ -1208,42 +1208,42 @@ int  MembraneElement::Check( const ProcessInfo& rCurrentProcessInfo )
     //verify that the variables are correctly initialized
 
     if ( VELOCITY.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR( std::invalid_argument, "VELOCITY has Key zero! (check if the application is correctly registered", "" )
 
     if ( DISPLACEMENT.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR( std::invalid_argument, "DISPLACEMENT has Key zero! (check if the application is correctly registered", "" )
 
     if ( ACCELERATION.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR( std::invalid_argument, "ACCELERATION has Key zero! (check if the application is correctly registered", "" )
 
     if ( DENSITY.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR( std::invalid_argument, "DENSITY has Key zero! (check if the application is correctly registered", "" )
 
     if ( VOLUME_ACCELERATION.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR( std::invalid_argument, "BODY_FORCE has Key zero! (check if the application is correctly registered", "" )
 
     if ( THICKNESS.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR( std::invalid_argument, "THICKNESS has Key zero! (check if the application is correctly registered", "" )
 
     //verify that the dofs exist
     for ( unsigned int i = 0; i < this->GetGeometry().size(); i++ )
     {
         if ( this->GetGeometry()[i].SolutionStepsDataHas( DISPLACEMENT ) == false )
-            KRATOS_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() );
+            KRATOS_ERROR( std::invalid_argument, "missing variable DISPLACEMENT on node ", this->GetGeometry()[i].Id() )
 
         if ( this->GetGeometry()[i].HasDofFor( DISPLACEMENT_X ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Y ) == false || this->GetGeometry()[i].HasDofFor( DISPLACEMENT_Z ) == false )
-            KRATOS_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() );
+            KRATOS_ERROR( std::invalid_argument, "missing one of the dofs for the variable DISPLACEMENT on node ", GetGeometry()[i].Id() )
     }
 
     //verify that the constitutive law exists
     if ( this->GetProperties().Has( CONSTITUTIVE_LAW ) == false )
     {
-        KRATOS_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() );
+        KRATOS_ERROR( std::logic_error, "constitutive law not provided for property ", this->GetProperties().Id() )
     }
 
     //verify that the constitutive law has the correct dimension
     if ( this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetStrainSize() != 3 )
-        KRATOS_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element with expected strain size is 3 (el id = ) ", this->Id() );
+        KRATOS_ERROR( std::logic_error, "wrong constitutive law used. This is a 3D element with expected strain size is 3 (el id = ) ", this->Id() )
 
     //check constitutive law
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); i++ )
@@ -1253,7 +1253,7 @@ int  MembraneElement::Check( const ProcessInfo& rCurrentProcessInfo )
         ConstitutiveLaw::Features LawFeatures;
         mConstitutiveLawVector[i]->GetLawFeatures(LawFeatures);
                 
-        if(LawFeatures.mStrainSize != 3) KRATOS_ERROR(std::logic_error,"Constitutive law expects a strain size different from 3 for membrane element with Id",this->Id())
+        if(LawFeatures.mStrainSize != 3) KRATOS_ERROR( std::logic_error,"Constitutive law expects a strain size different from 3 for membrane element with Id", this->Id() )
     }
 
     return 0;

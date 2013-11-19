@@ -101,7 +101,7 @@ public:
 
 
     /// Pointer definition of HardeningLaw
-    KRATOS_CLASS_POINTER_DEFINITION(HardeningLaw);
+    KRATOS_CLASS_POINTER_DEFINITION( HardeningLaw );
 
     ///@}
     ///@name Life Cycle

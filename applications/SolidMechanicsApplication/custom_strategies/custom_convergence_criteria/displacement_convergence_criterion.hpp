@@ -135,14 +135,14 @@ public:
 
             if ( ratio <= mRatioTolerance)
             {
-                KRATOS_WATCH("convergence is achieved")
+                KRATOS_WATCH( "convergence is achieved" )
                 return true;
             }
             else
             {
                 if( int(delta_disp_norm-int(disp_norm))==0 && int(ratio)==1 &&  disp_norm <= mRatioTolerance * 1e-2)
                 {
-                    KRATOS_WATCH("convergence is achieved : - no movement - ")
+                    KRATOS_WATCH( "convergence is achieved : - no movement - " )
                     return true;
                 }
                 else

@@ -401,7 +401,7 @@ public:
                 }
             }
 
-//                 KRATOS_WATCH(Help);
+//                 KRATOS_WATCH( Help )
 
             if(is_converged)
                 break;
@@ -735,11 +735,11 @@ public:
         KRATOS_TRY
 
         Matrix StrainTensor;
-        //KRATOS_WATCH(Strains)
+        //KRATOS_WATCH( Strains )
         if (Strains.size()==3)
         {
             StrainTensor.resize(2,2, false);
-            //KRATOS_WATCH(StrainTensor)
+            //KRATOS_WATCH( StrainTensor )
             StrainTensor(0,0) = Strains[0];
             StrainTensor(0,1) = 0.5*Strains[2];
             StrainTensor(1,0) = 0.5*Strains[2];
@@ -759,9 +759,9 @@ public:
             StrainTensor(2,2) = Strains[2];
         }
 
-        //KRATOS_WATCH(StrainTensor)
+        //KRATOS_WATCH( StrainTensor )
         return StrainTensor;
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     static inline Vector TensorToStrainVector( const Matrix& Tensor )
@@ -792,7 +792,7 @@ public:
 
 
         return StrainVector;
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
 

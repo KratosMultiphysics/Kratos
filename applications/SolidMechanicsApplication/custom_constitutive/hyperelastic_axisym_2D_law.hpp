@@ -41,7 +41,7 @@ public:
      * Counted pointer of HyperElasticAxisym2DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(HyperElasticAxisym2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticAxisym2DLaw );
 
     /**
      * Life Cycle

@@ -53,7 +53,7 @@ class MisesHuberYieldCriterion
         ///@{
 
         /// Pointer definition of MisesHuberYieldCriterion
-        KRATOS_CLASS_POINTER_DEFINITION(MisesHuberYieldCriterion);
+        KRATOS_CLASS_POINTER_DEFINITION( MisesHuberYieldCriterion );
 
         ///@}
         ///@name Life Cycle

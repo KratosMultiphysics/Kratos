@@ -397,12 +397,12 @@ void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialRe
 
 void NonLinearAssociativePlasticFlowRule::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FlowRule );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, FlowRule )
 }
 
 void NonLinearAssociativePlasticFlowRule::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FlowRule );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, FlowRule )
 }
 
 

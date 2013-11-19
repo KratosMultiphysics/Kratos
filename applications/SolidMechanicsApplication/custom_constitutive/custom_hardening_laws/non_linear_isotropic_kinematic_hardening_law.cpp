@@ -233,13 +233,13 @@ double NonLinearIsotropicKinematicHardeningLaw::CalculateThermalCurrentEffect(co
 
 void NonLinearIsotropicKinematicHardeningLaw::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningLaw );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningLaw )
     rSerializer.save("Theta",mTheta);
 }
 
 void NonLinearIsotropicKinematicHardeningLaw::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningLaw );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningLaw )
     rSerializer.load("Theta",mTheta);
 }
 

@@ -165,7 +165,7 @@ void AxisymSmallDisplacementElement::CalculateAndAddLHS(LocalSystemComponents& r
     //contributions to stiffness matrix calculated on the reference config
     SmallDisplacementElement::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
-    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH( rLeftHandSideMatrix )
 }
 
 
@@ -179,7 +179,7 @@ void AxisymSmallDisplacementElement::CalculateAndAddRHS(LocalSystemComponents& r
     //contribution to external forces
     SmallDisplacementElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight );
 
-    //KRATOS_WATCH(rRightHandSideVector)
+    //KRATOS_WATCH( rRightHandSideVector )
 }
 
 
@@ -331,7 +331,7 @@ void AxisymSmallDisplacementElement::CalculateDisplacementGradient(Matrix& rH,
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -380,7 +380,7 @@ void AxisymSmallDisplacementElement::CalculateDeformationMatrix(Matrix& rB,
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -422,7 +422,7 @@ void AxisymSmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& 
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -436,12 +436,12 @@ void AxisymSmallDisplacementElement::CalculateInfinitesimalStrain(const Matrix& 
 //************************************************************************************
 void AxisymSmallDisplacementElement::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallDisplacementElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallDisplacementElement )
 }
 
 void AxisymSmallDisplacementElement::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallDisplacementElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallDisplacementElement )
 }
 
 

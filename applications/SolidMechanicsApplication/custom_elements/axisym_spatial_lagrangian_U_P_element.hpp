@@ -58,7 +58,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of AxisymSpatialLagrangianUPElement
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymSpatialLagrangianUPElement);
+    KRATOS_CLASS_POINTER_DEFINITION( AxisymSpatialLagrangianUPElement );
 
     ///@}
     ///@name Life Cycle

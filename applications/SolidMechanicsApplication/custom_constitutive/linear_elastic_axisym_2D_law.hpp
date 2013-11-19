@@ -40,7 +40,7 @@ public:
      * Counted pointer of LinearElasticAxisym2DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(LinearElasticAxisym2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION( LinearElasticAxisym2DLaw );
 
     /**
      * Life Cycle
@@ -202,12 +202,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearElastic3DLaw);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LinearElastic3DLaw )
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearElastic3DLaw);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElastic3DLaw )
     }
 
 

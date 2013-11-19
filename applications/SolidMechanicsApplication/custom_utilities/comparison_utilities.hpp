@@ -131,7 +131,7 @@ public:
 
         return SigmaEquivalent;
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     };
 

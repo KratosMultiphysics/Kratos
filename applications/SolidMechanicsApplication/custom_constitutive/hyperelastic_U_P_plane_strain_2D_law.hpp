@@ -42,7 +42,7 @@ public:
      * Counted pointer of HyperElasticUPPlaneStrain2DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(HyperElasticUPPlaneStrain2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticUPPlaneStrain2DLaw );
 
     /**
      * Life Cycle
@@ -246,12 +246,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElasticUP3DLaw);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticUP3DLaw )
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElasticUP3DLaw);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticUP3DLaw )
     }
 
 

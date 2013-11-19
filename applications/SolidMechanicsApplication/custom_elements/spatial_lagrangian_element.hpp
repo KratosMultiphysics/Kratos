@@ -56,7 +56,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of SpatialLagrangianElement
-    KRATOS_CLASS_POINTER_DEFINITION(SpatialLagrangianElement);
+    KRATOS_CLASS_POINTER_DEFINITION( SpatialLagrangianElement );
     ///@}
     ///@name Life Cycle
     ///@{

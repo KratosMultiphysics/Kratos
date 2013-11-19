@@ -55,7 +55,7 @@ public:
     /**@name Type Definitions */
     /*@{ */
     //typedef boost::shared_ptr< ResidualBasedBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
-    KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBuilderAndSolver);
+    KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedBuilderAndSolver );
 
     typedef BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
 
@@ -122,7 +122,7 @@ public:
         KRATOS_TRY
 
         if (!pScheme)
-            KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
+            KRATOS_ERROR( std::runtime_error, "No scheme provided!", "" )
 
         //getting the elements from the model
         ElementsArrayType& pElements = r_model_part.Elements();
@@ -197,8 +197,8 @@ public:
 
         if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
         {
-            KRATOS_WATCH(number_of_threads);
-            KRATOS_WATCH(element_partition);
+            KRATOS_WATCH( number_of_threads )
+            KRATOS_WATCH( element_partition )
         }
 
 
@@ -290,7 +290,7 @@ public:
             omp_destroy_lock(&lock_array[i]);
         if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
         {
-            KRATOS_WATCH("finished parallel building");
+            KRATOS_WATCH( "finished parallel building" )
         }
 
         //                        //ensure that all the threads are syncronized here
@@ -298,7 +298,7 @@ public:
 #endif
 
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -355,7 +355,7 @@ public:
             AssembleLHS(A, LHS_Contribution, EquationId);
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -412,7 +412,7 @@ public:
         }
 
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -447,7 +447,7 @@ public:
             std::cout << *(BaseType::mpLinearSystemSolver) << std::endl;
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -487,7 +487,7 @@ public:
             std::cout << *(BaseType::mpLinearSystemSolver) << std::endl;
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -560,7 +560,7 @@ public:
             std::cout << "RHS vector      = " << b << std::endl;
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //**************************************************************************
@@ -587,7 +587,7 @@ public:
 
         SystemSolve(A, Dx, b);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //**************************************************************************
@@ -601,7 +601,7 @@ public:
         KRATOS_TRY
 
         if (!pScheme)
-            KRATOS_ERROR(std::runtime_error, "No scheme provided!", "");
+            KRATOS_ERROR( std::runtime_error, "No scheme provided!", "" )
 
         //getting the elements from the model
         ElementsArrayType& pElements = r_model_part.Elements();
@@ -664,8 +664,8 @@ public:
 
         if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
         {
-            KRATOS_WATCH(number_of_threads);
-            KRATOS_WATCH(element_partition);
+            KRATOS_WATCH( number_of_threads )
+            KRATOS_WATCH( element_partition )
         }
 
         double start_prod = omp_get_wtime();
@@ -737,14 +737,14 @@ public:
             omp_destroy_lock(&lock_array[i]);
         if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
         {
-            KRATOS_WATCH("finished parallel building");
+            KRATOS_WATCH( "finished parallel building" )
         }
 
 	//ensure that all the threads are syncronized here
         //#pragma omp barrier
 #endif
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -781,7 +781,7 @@ public:
             //aaa = GetTickCount();
             pScheme->GetElementalDofList(*it, ElementalDofList, CurrentProcessInfo);
             //bbb += GetTickCount() - aaa;
-            /*KRATOS_WATCH((*it)->Id());
+            /*KRATOS_WATCH( (*it)->Id() )
             std::cout << "node ids" << std::endl;
             for(unsigned int i=0; i<((*it)->GetGeometry()).size(); i++)
                     std::cout << ((*it)->GetGeometry())[i].Id() << " ";
@@ -790,7 +790,7 @@ public:
                     std::cout << (ElementalDofList[i]->Id()) << " ";
             std::cout << std::endl;*/
 
-            //KRATOS_WATCH(ElementalDofList);
+            //KRATOS_WATCH( ElementalDofList )
 
             //ccc = GetTickCount();
             for (typename Element::DofsVectorType::iterator i = ElementalDofList.begin(); i != ElementalDofList.end(); ++i)
@@ -823,7 +823,7 @@ public:
         //std::cout << "inserting " << ddd << std::endl;
         /*for (typename DofsArrayType::iterator dof_iterator = Doftemp.begin(); dof_iterator != Doftemp.end(); ++dof_iterator)
         {
-                KRATOS_WATCH(*dof_iterator);
+                KRATOS_WATCH( *dof_iterator )
         }
         std::cout << "DofTemp before Unique" << Doftemp.size() << std::endl;
          */
@@ -837,7 +837,7 @@ public:
 
         //throws an execption if there are no Degrees of freedom involved in the analysis
         if (BaseType::mDofSet.size() == 0)
-            KRATOS_ERROR(std::logic_error, "No degrees of freedom!", "");
+            KRATOS_ERROR( std::logic_error, "No degrees of freedom!", "" )
 
         BaseType::mDofSetIsInitialized = true;
         if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
@@ -845,7 +845,7 @@ public:
             std::cout << "finished setting up the dofs" << std::endl;
         }
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH( "" )
     }
 
     //**************************************************************************
@@ -923,7 +923,7 @@ public:
         {
             if (A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
             {
-                KRATOS_WATCH("it should not come here!!!!!!!! ... this is SLOW");
+                KRATOS_WATCH( "it should not come here!!!!!!!! ... this is SLOW" )
                 A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
                 ConstructMatrixStructure(A, rElements, rConditions, CurrentProcessInfo);
             }
@@ -944,7 +944,7 @@ public:
                 BaseType::mpReactionsVector->resize(ReactionsVectorSize, false);
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -960,7 +960,7 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //**************************************************************************
@@ -973,7 +973,7 @@ public:
         TSystemVectorType& b)
     {
         KRATOS_TRY
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //**************************************************************************
@@ -993,7 +993,7 @@ public:
         int systemsize = BaseType::mDofSet.size() - TSparseSpace::Size(*BaseType::mpReactionsVector);
 
         typename DofsArrayType::ptr_iterator it2;
-        // KRATOS_WATCH(*BaseType::mpReactionsVector);
+        // KRATOS_WATCH( *BaseType::mpReactionsVector )
         //updating variables
         TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
         int num=1;
@@ -1003,8 +1003,8 @@ public:
             {
                 i = (*it2)->EquationId();
                 i -= systemsize;
-                // KRATOS_WATCH((*it2)->GetSolutionStepReactionValue());
-                // KRATOS_WATCH(ReactionsVector[i]);
+                // KRATOS_WATCH( (*it2)->GetSolutionStepReactionValue() )
+                // KRATOS_WATCH( ReactionsVector[i] )
                 (*it2)->GetSolutionStepReactionValue() = ReactionsVector[i];
             }
             num++;
@@ -1065,7 +1065,7 @@ public:
         KRATOS_TRY
 
         return 0;
-        KRATOS_CATCH("");
+        KRATOS_CATCH( "" )
     }
 
 
@@ -1170,7 +1170,7 @@ protected:
         CreatePartition(number_of_threads, indices.size(), matrix_partition);
         if (this->GetEchoLevel() > 2)
         {
-            KRATOS_WATCH(matrix_partition);
+            KRATOS_WATCH( matrix_partition )
         }
         for (int k = 0; k < number_of_threads; k++)
         {

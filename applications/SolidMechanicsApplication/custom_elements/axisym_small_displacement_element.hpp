@@ -58,7 +58,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of AxisymSmallDisplacementElement
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymSmallDisplacementElement);
+    KRATOS_CLASS_POINTER_DEFINITION( AxisymSmallDisplacementElement );
 
     ///@}
     ///@name Life Cycle

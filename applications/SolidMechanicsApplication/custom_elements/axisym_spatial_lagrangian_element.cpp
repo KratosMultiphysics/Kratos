@@ -302,7 +302,7 @@ void AxisymSpatialLagrangianElement::CalculateAndAddLHS(LocalSystemComponents& r
 
     LargeDisplacementElement::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
-    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH( rLeftHandSideMatrix )
 }
 
 
@@ -317,7 +317,7 @@ void AxisymSpatialLagrangianElement::CalculateAndAddRHS(LocalSystemComponents& r
 
     LargeDisplacementElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, IntegrationWeight );
 
-    //KRATOS_WATCH(rRightHandSideVector)
+    //KRATOS_WATCH( rRightHandSideVector )
 }
 
 
@@ -644,7 +644,7 @@ void AxisymSpatialLagrangianElement::CalculateAlmansiStrain(const Matrix& rF,
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -707,14 +707,14 @@ void AxisymSpatialLagrangianElement::CalculateAndAddKuug(MatrixType& rK,
 //************************************************************************************
 void AxisymSpatialLagrangianElement::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
     rSerializer.save("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.save("DeterminantF0",mDeterminantF0);
 }
 
 void AxisymSpatialLagrangianElement::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
     rSerializer.load("DeformationGradientF0",mDeformationGradientF0);
     rSerializer.load("DeterminantF0",mDeterminantF0);
 }

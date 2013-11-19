@@ -85,7 +85,7 @@ Element::Pointer UpdatedLagrangianUPElement::Clone( IndexType NewId, NodesArrayT
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 	
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
       }
     
 
@@ -169,7 +169,7 @@ void UpdatedLagrangianUPElement::CalculateAndAddLHS(LocalSystemComponents& rLoca
     LargeDisplacementUPElement::CalculateAndAddLHS( rLocalSystem, rVariables, rIntegrationWeight );
 
     rVariables.detF0 /= rVariables.detF;
-    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH( rLeftHandSideMatrix )
 }
 
 
@@ -185,7 +185,7 @@ void UpdatedLagrangianUPElement::CalculateAndAddRHS(LocalSystemComponents& rLoca
     LargeDisplacementUPElement::CalculateAndAddRHS( rLocalSystem, rVariables, rVolumeForce, rIntegrationWeight );
 
     rVariables.detF0 /= rVariables.detF;
-    //KRATOS_WATCH(rRightHandSideVector)
+    //KRATOS_WATCH( rRightHandSideVector )
 }
 
 
@@ -300,7 +300,7 @@ void UpdatedLagrangianUPElement::CalculateDeformationMatrix(Matrix& rB,
     else
     {
 
-        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" );
+        KRATOS_ERROR( std::invalid_argument, "something is wrong with the dimension", "" )
 
     }
 
@@ -348,12 +348,12 @@ void UpdatedLagrangianUPElement::CalculatePushForwardDN_DX(GeneralVariables& rVa
 
 void UpdatedLagrangianUPElement::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SpatialLagrangianUPElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SpatialLagrangianUPElement )
 }
 
 void UpdatedLagrangianUPElement::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SpatialLagrangianUPElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SpatialLagrangianUPElement )
 }
 
 

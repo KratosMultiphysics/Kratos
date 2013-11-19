@@ -75,7 +75,7 @@ Element::Pointer LargeDisplacementUPElement::Create( IndexType NewId, NodesArray
 Element::Pointer LargeDisplacementUPElement::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
 
-    KRATOS_ERROR(std::logic_error, "calling the default constructor for a large displacement 3D element ... illegal operation!!","");
+    KRATOS_ERROR( std::logic_error, "calling the default constructor for a large displacement 3D element ... illegal operation!!", "" )
 
     LargeDisplacementUPElement NewElement( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
@@ -89,7 +89,7 @@ Element::Pointer LargeDisplacementUPElement::Clone( IndexType NewId, NodesArrayT
 	NewElement.mConstitutiveLawVector.resize(mConstitutiveLawVector.size());
 	
 	if( NewElement.mConstitutiveLawVector.size() != NewElement.GetGeometry().IntegrationPointsNumber() )
-	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() );
+	  KRATOS_ERROR( std::logic_error, "constitutive law not has the correct size ", NewElement.mConstitutiveLawVector.size() )
       }
     
        
@@ -321,7 +321,7 @@ void LargeDisplacementUPElement::CalculateAndAddLHS(LocalSystemComponents& rLoca
     // operation performed: add Kpp Stab to the rLefsHandSideMatrix
     CalculateAndAddKppStab( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
-    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH( rLeftHandSideMatrix )
 }
 
 
@@ -346,7 +346,7 @@ void LargeDisplacementUPElement::CalculateAndAddRHS(LocalSystemComponents& rLoca
     // operation performed: rRightHandSideVector -= Stabilized Pressure Forces
     CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, rIntegrationWeight);
 
-    //KRATOS_WATCH(rRightHandSideVector)
+    //KRATOS_WATCH( rRightHandSideVector )
 }
 
 
@@ -912,12 +912,12 @@ int  LargeDisplacementUPElement::Check( const ProcessInfo& rCurrentProcessInfo )
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
     if(LawFeatures.mOptions.IsNot(ConstitutiveLaw::U_P_LAW))
-	    KRATOS_ERROR( std::logic_error, "constitutive law is not compatible with the U-P element type ", " Large Displacements U_P" );
+	    KRATOS_ERROR( std::logic_error, "constitutive law is not compatible with the U-P element type ", " Large Displacements U_P" )
 
     //verify that the variables are correctly initialized
 
     if ( PRESSURE.Key() == 0 )
-        KRATOS_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" );
+        KRATOS_ERROR( std::invalid_argument, "PRESSURE has Key zero! (check if the application is correctly registered", "" )
 
     return correct;
 
@@ -930,12 +930,12 @@ int  LargeDisplacementUPElement::Check( const ProcessInfo& rCurrentProcessInfo )
 
 void LargeDisplacementUPElement::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, LargeDisplacementElement )
 }
 
 void LargeDisplacementUPElement::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LargeDisplacementElement )
 }
 
 

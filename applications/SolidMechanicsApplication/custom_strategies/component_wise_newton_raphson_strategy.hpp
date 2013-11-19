@@ -90,7 +90,7 @@ public:
 
     /** Counted pointer of ClassName */
     //typedef boost::shared_ptr< ComponentWiseNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
-    KRATOS_CLASS_POINTER_DEFINITION(ComponentWiseNewtonRaphsonStrategy);
+    KRATOS_CLASS_POINTER_DEFINITION( ComponentWiseNewtonRaphsonStrategy );
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
@@ -191,7 +191,7 @@ public:
 	//component-wise options
 
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     ComponentWiseNewtonRaphsonStrategy(
@@ -219,7 +219,7 @@ public:
 	rGlobalSystem.SetRHS_Condition_Variables( mpConvergenceCriteria->GetRHS_Condition_Variables() );
 	//component-wise options
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     /** Destructor.

@@ -58,7 +58,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// Counted pointer of LargeDisplacementUPElement
-    KRATOS_CLASS_POINTER_DEFINITION(LargeDisplacementUPElement);
+    KRATOS_CLASS_POINTER_DEFINITION( LargeDisplacementUPElement );
     ///@}
 
     ///@name Life Cycle

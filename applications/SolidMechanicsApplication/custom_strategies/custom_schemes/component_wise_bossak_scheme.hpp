@@ -49,7 +49,7 @@ public:
     /**@name Type Definitions */
 
     /*@{ */
-    KRATOS_CLASS_POINTER_DEFINITION(ComponentWiseBossakScheme);
+    KRATOS_CLASS_POINTER_DEFINITION( ComponentWiseBossakScheme );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
 
@@ -201,7 +201,7 @@ public:
 
         //AssembleTimeSpaceLHS(rCurrentElement, rLHS_Contribution, DampMatrix, MassMatrix,CurrentProcessInfo);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //***************************************************************************
@@ -257,7 +257,7 @@ public:
             AddDynamicsToRHS (rCurrentElement, rRHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
 
     }
 
@@ -365,7 +365,7 @@ public:
 
         //AssembleTimeSpaceLHS_Condition(rCurrentCondition, rLHS_Contribution, DampMatrix, MassMatrix,CurrentProcessInfo);
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
     //***************************************************************************
@@ -423,7 +423,7 @@ public:
 
         }
 
-        KRATOS_CATCH("")
+        KRATOS_CATCH( "" )
     }
 
 

@@ -47,7 +47,7 @@ public:
      * Counted pointer of HyperElasticPlasticUPJ2Axisym2DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(HyperElasticPlasticUPJ2Axisym2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticPlasticUPJ2Axisym2DLaw );
 
     /**
      * Life Cycle
@@ -173,12 +173,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HyperElasticPlasticUPAxisym2DLaw);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HyperElasticPlasticUPAxisym2DLaw )
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HyperElasticPlasticUPAxisym2DLaw);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HyperElasticPlasticUPAxisym2DLaw )
     }
 
 

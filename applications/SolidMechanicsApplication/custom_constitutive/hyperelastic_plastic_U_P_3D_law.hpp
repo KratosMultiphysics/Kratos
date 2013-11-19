@@ -46,7 +46,7 @@ public:
      * Counted pointer of HyperElasticPlasticUP3DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(HyperElasticPlasticUP3DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION( HyperElasticPlasticUP3DLaw );
 
     /**
      * Life Cycle
