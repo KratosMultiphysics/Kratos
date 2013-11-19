@@ -127,21 +127,21 @@ public:
       if (rest_coeff > 0.0) ln_rest_coeff = log(rest_coeff);
       else ln_rest_coeff = 1.0;
 
-      pnew_node->GetSolutionStepValue(RADIUS)                       = params[RADIUS];
-      pnew_node->GetSolutionStepValue(PARTICLE_DENSITY)             = params[PARTICLE_DENSITY];
-      pnew_node->GetSolutionStepValue(YOUNG_MODULUS)                = params[YOUNG_MODULUS];
-      pnew_node->GetSolutionStepValue(POISSON_RATIO)                = params[POISSON_RATIO];
-      pnew_node->GetSolutionStepValue(PARTICLE_FRICTION)            = params[PARTICLE_FRICTION];
-      pnew_node->GetSolutionStepValue(LN_OF_RESTITUTION_COEFF)      = ln_rest_coeff;
-      pnew_node->GetSolutionStepValue(ROLLING_FRICTION)             = params[ROLLING_FRICTION];
-      pnew_node->GetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO) = params[PARTICLE_ROTATION_DAMP_RATIO];
-      pnew_node->GetSolutionStepValue(PARTICLE_SPHERICITY)          = params[PARTICLE_SPHERICITY];
-      pnew_node->GetSolutionStepValue(VELOCITY_X)                   = params[VELOCITY][0];//*cos(r_modelpart.GetProcessInfo()[TIME] * 2.0 * M_PI /2.0);
-      pnew_node->GetSolutionStepValue(VELOCITY_Y)                   = params[VELOCITY][1];
-      pnew_node->GetSolutionStepValue(VELOCITY_Z)                   = params[VELOCITY][2];
-      pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_X)           = 0.0;
-      pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_Y)           = 0.0;
-      pnew_node->GetSolutionStepValue(ANGULAR_VELOCITY_Z)           = 0.0;
+      pnew_node->FastGetSolutionStepValue(RADIUS)                       = params[RADIUS];
+      pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY)             = params[PARTICLE_DENSITY];
+      pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS)                = params[YOUNG_MODULUS];
+      pnew_node->FastGetSolutionStepValue(POISSON_RATIO)                = params[POISSON_RATIO];
+      pnew_node->FastGetSolutionStepValue(PARTICLE_FRICTION)            = params[PARTICLE_FRICTION];
+      pnew_node->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF)      = ln_rest_coeff;
+      pnew_node->FastGetSolutionStepValue(ROLLING_FRICTION)             = params[ROLLING_FRICTION];
+      pnew_node->FastGetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO) = params[PARTICLE_ROTATION_DAMP_RATIO];
+      pnew_node->FastGetSolutionStepValue(PARTICLE_SPHERICITY)          = params[PARTICLE_SPHERICITY];
+      pnew_node->FastGetSolutionStepValue(VELOCITY_X)                   = params[VELOCITY][0];//*cos(r_modelpart.GetProcessInfo()[TIME] * 2.0 * M_PI /2.0);
+      pnew_node->FastGetSolutionStepValue(VELOCITY_Y)                   = params[VELOCITY][1];
+      pnew_node->FastGetSolutionStepValue(VELOCITY_Z)                   = params[VELOCITY][2];
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X)           = 0.0;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_Y)           = 0.0;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_Z)           = 0.0;
       
       ///DOFS
       pnew_node->AddDof(DISPLACEMENT_X, REACTION_X);
