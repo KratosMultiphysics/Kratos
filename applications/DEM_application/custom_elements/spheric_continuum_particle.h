@@ -291,12 +291,25 @@ namespace Kratos
         vector<int> mIniNeighbourIds;
         //vector<int> mIniContinuumNeighbourIds;
         Vector mIniNeighbourDelta;
-        Vector mNeighbourDelta;
+               
+        /*Vector mNeighbourDelta;//candidate to std::vector                
+        vector<int> mMapping_New_Ini; //candidate to std::vector
+        vector<int> mMapping_New_Cont; //candidate to std::vector
+        vector<int> mNeighbourFailureId; //candidate to std::vector*/
         vector<int> mIniNeighbourFailureId;
-        vector<int> mNeighbourFailureId;
-        vector<int> mMapping_New_Ini;
-        vector<int> mMapping_New_Cont;
         vector<int> mIniNeighbourToIniContinuum;
+        
+        std::vector<int> mMapping_New_Ini;
+        std::vector<int> mMapping_New_Cont;
+        std::vector<double> mNeighbourDelta;
+        std::vector<int> mNeighbourFailureId;
+        ParticleWeakVectorType mTempNeighbours;
+        
+        std::vector<double>               mTempNeighboursDelta;
+        std::vector<int>                  mTempNeighboursFailureId;
+        std::vector<int>                  mTempNeighboursMapping;
+        std::vector<int>                  mTempContNeighboursMapping;
+        
         
         Vector mHistDist;
         

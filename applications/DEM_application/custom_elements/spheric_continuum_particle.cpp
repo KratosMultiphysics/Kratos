@@ -106,10 +106,10 @@ namespace Kratos
                                                       other_to_me_vect[1] * other_to_me_vect[1] +
                                                       other_to_me_vect[2] * other_to_me_vect[2]);
 
-                double radius_sum                   = mRadius + ((*ineighbour).lock())->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+                double radius_sum                   = mRadius + ((*ineighbour).lock())->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
                 double initial_delta                = radius_sum - distance;
 
-                int r_other_continuum_group         = ((*ineighbour).lock())->GetGeometry()(0)->GetSolutionStepValue(PARTICLE_CONTINUUM);
+                int r_other_continuum_group         = ((*ineighbour).lock())->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_CONTINUUM);
    
                 if( ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) ) || ( fabs(initial_delta)>1.0e-6 ) ) // which would be the appropiate tolerance?
                 
@@ -286,7 +286,7 @@ namespace Kratos
           for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();     // MSIMSI 99:Could this loop be done during the bar creation in the strategy and so avoid another repetition?
               ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
           {   
-              double other_radius     = ini_cont_neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+              double other_radius     = ini_cont_neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
               double equiv_radius     = 2*mRadius * other_radius / (mRadius + other_radius);        
               double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the efective mRadius.
               total_equiv_area       += equiv_area;
@@ -731,14 +731,14 @@ namespace Kratos
 
           KRATOS_TRY
       
-          array_1d<double, 3 > & RotaMoment       = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_MOMENT);
-          double RotaDampRatio                    = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO);
+          array_1d<double, 3 > & RotaMoment       = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT);
+          double RotaDampRatio                    = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO);
 
           // LOCAL DAMPING OPTION FOR THE UNBALANCED FORCES (IN GLOBAL CORDINATES).
         
           for (int iDof = 0; iDof < 3; iDof++)
           {
-              if (this->GetGeometry()(0)->GetSolutionStepValue(ANGULAR_VELOCITY)[iDof] > 0.0)
+              if (this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY)[iDof] > 0.0)
               {
                   RotaMoment[iDof] = RotaMoment[iDof] - RotaDampRatio * fabs(RotaMoment[iDof]);
               }
@@ -867,8 +867,8 @@ namespace Kratos
                 // GETTING NEIGHBOUR PROPERTIES
 
                 //searching for the area
-                double other_radius     = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-                double other_poisson    = neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
+                double other_radius     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                double other_poisson    = neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
                 double equiv_radius     = 2*mRadius * other_radius / (mRadius + other_radius);
                 int size_ini_cont_neigh = this->GetValue(CONTINUUM_INI_NEIGHBOURS_IDS).size();
                 double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; // 0.25 is becouse we take only the half of the equivalent mRadius, corresponding to the case of one sphere with mRadius Requivalent and other = mRadius 0.
@@ -1038,7 +1038,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
          mFinalSimulationTime = r_process_info[FINAL_SIMULATION_TIME];
          
-         mContinuumGroup        = this->GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTINUUM);             
+         mContinuumGroup        = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_CONTINUUM);             
 
          mpCaseOption                   = r_process_info[CASE_OPTION]; 
          
@@ -1142,10 +1142,10 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
            if(rCurrentProcessInfo[PRINT_RADIAL_DISPLACEMENT]==1)
           {
             
-            double X = this->GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_X);
-            double Z = this->GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT_Z);
+            double X = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
+            double Z = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
             
-            this->GetGeometry()[0].GetSolutionStepValue(RADIAL_DISPLACEMENT) = sqrt(X*X+Z*Z);
+            this->GetGeometry()[0].FastGetSolutionStepValue(RADIAL_DISPLACEMENT) = sqrt(X*X+Z*Z);
             
           }
            // the elemental variable is copied to a nodal variable in order to export the results onto GiD Post. Also a casting to double is necessary for GiD interpretation.
@@ -1157,19 +1157,27 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
      //LA POSICIÓ DELS QUE SON DEFINITIUS.
      {
    
-       ParticleWeakVectorType TempNeighbours;
+       ParticleWeakVectorType& TempNeighbours = mTempNeighbours;
        TempNeighbours.swap(this->GetValue(NEIGHBOUR_ELEMENTS)); //GetValue is needed becouse this information comes from the strategy (the search function)
        
        this->GetValue(NEIGHBOUR_ELEMENTS).clear(); 
               
        unsigned int neighbour_counter       = 0;
        
-       vector<int>                  temp_neighbours_ids;
+       /*vector<int>                  temp_neighbours_ids;
        vector<double>               temp_neighbours_delta;
        vector<int>                  temp_neighbours_failure_id;
        vector<array_1d<double, 3> > temp_neighbours_contact_forces;
        vector<int>                  temp_neighbours_mapping;
-       vector<int>                  temp_cont_neighbours_mapping;
+       vector<int>                  temp_cont_neighbours_mapping;*/
+       
+       
+       std::vector<int>&                  temp_neighbours_ids = mTempNeighboursIds;
+       std::vector<double>&               temp_neighbours_delta = mTempNeighboursDelta;
+       std::vector<int>&                  temp_neighbours_failure_id = mTempNeighboursFailureId;
+       std::vector<array_1d<double, 3> >& temp_neighbours_contact_forces = mTempNeighboursContactForces;
+       std::vector<int>&                  temp_neighbours_mapping = mTempNeighboursMapping;
+       std::vector<int>&                  temp_cont_neighbours_mapping = mTempContNeighboursMapping;
 
        array_1d<double, 3> vector_of_zeros;
        vector_of_zeros[0]                   = 0.0;
@@ -1220,13 +1228,13 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             
             //Judge if its neighbour
             
-            double other_radius                 = i->GetGeometry()[0].GetSolutionStepValue(RADIUS);
+            double other_radius                 = i->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
             double radius_sum                   = mRadius + other_radius;
             array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - i->GetGeometry()(0)->Coordinates();
             double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
             double indentation                  = radius_sum - distance - ini_delta;
             
-            if ( indentation > 0.0 || (indentation < 1.0e-6 && failure_id == 0 ) )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
+            if ( indentation > 0.0 || failure_id == 0 )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
             {
            
                 this->GetValue(NEIGHBOUR_ELEMENTS).push_back(*(i.base()));
@@ -1262,7 +1270,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
       } //ComputeNewNeighboursHistoricalData
   
-  /*
+ /* 
   //RIC!!!!!
   void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() //NOTA: LOOP SOBRE TOTS ELS VEINS PROVISIONALS, TEN KEDERAS UNS QUANTS FENT PUSHBACK. ALS VECTORS DELTA ETC.. HI HAS DE POSAR
      //LA POSICIÓ DELS QUE SON DEFINITIUS.
@@ -1282,16 +1290,26 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         vector<int>                  temp_neighbours_failure_id(temp_size,1);
         vector<array_1d<double, 3> > temp_neighbours_contact_forces;
         temp_neighbours_contact_forces.resize(temp_size);              //TODO::Ric. No em deixa fer el //boost::numeric::ublas::matrix<double, check_counter, 3 >
+        
+        
+        double                ini_delta           = 0.0;
+        int                   failure_id          = 1;
+        array_1d<double, 3>   neigh_forces        (3,0.0);
+        double                mapping_new_ini     = -1;  
+        double                mapping_new_cont    = -1;
+               
 
         for (ParticleWeakIteratorType i = TempNeighbours.begin(); i != TempNeighbours.end(); i++)
         
         {
 
-          double                ini_delta           = 0.0;
-          int                   failure_id          = 1;
-          array_1d<double, 3>   neigh_forces        (3,0.0);
-          double                mapping_new_ini     = -1;  
-          double                mapping_new_cont    = -1;
+          ini_delta        = 0.0;
+          failure_id       = 1;
+          neigh_forces[0]  = 0.0;
+          neigh_forces[1]  = 0.0;
+          neigh_forces[2]  = 0.0;
+          mapping_new_ini  = -1;  
+          mapping_new_cont = -1;
 
           //Loop Over Initial Neighbours
 
@@ -1313,13 +1331,13 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
     
           //Judge if its neighbour
           
-          double other_radius                 = i->GetGeometry()[0].GetSolutionStepValue(RADIUS);
+          double other_radius                 = i->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
           double radius_sum                   = mRadius + other_radius;
           array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - i->GetGeometry()(0)->Coordinates();
           double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
           double indentation                  = radius_sum - distance - ini_delta;
           
-          if ( indentation > 0.0 || (indentation < 1.0e-6 && failure_id == 0 ) )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
+          if ( indentation > 0.0 || failure_id == 0 )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
           {
         
             //Loop Over Last time-step Neighbours
@@ -1388,9 +1406,9 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             mOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
         }
 
-      } //ComputeNewNeighboursHistoricalData
+      } //ComputeNewNeighboursHistoricalData*/
 
-  */
+  
    
       void SphericContinuumParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
       {
@@ -1602,10 +1620,10 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       void SphericContinuumParticle::CustomInitialize()
       {         
           
-          double& mSectionalInertia         = this->GetGeometry()(0)->GetSolutionStepValue(PARTICLE_INERTIA);   
+          double& mSectionalInertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);   
           mSectionalInertia                 = 0.25 * M_PI * mRadius * mRadius * mRadius  * mRadius ;    
           
-          double& mRepresentative_Volume    = this->GetGeometry()(0)->GetSolutionStepValue(REPRESENTATIVE_VOLUME);             
+          double& mRepresentative_Volume    = this->GetGeometry()(0)->FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);             
           mRepresentative_Volume            = 0.0;        
           
       }
@@ -1814,12 +1832,12 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       {
           if(rCurrentProcessInfo[STRESS_STRAIN_OPTION] == 1) // if stress_strain_options ON 
           {
-              double& Representative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);
+              double& Representative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
           
             
               if ( ( Representative_Volume <= 0.0 ))// && ( this->GetValue(SKIN_SPHERE) == 0 ) )
               {
-                  this->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) = 15;
+                  this->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) = 15;
                   KRATOS_WATCH(this->Id())
                   KRATOS_WATCH("Negatiu volume")
                   KRATOS_WATCH(*mpTimeStep)
@@ -1870,14 +1888,14 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
               array_1d<double,3> coord_target    = this->GetGeometry()(0)->Coordinates();
               array_1d<double,3> coord_neigh     = neighbour_iterator->GetGeometry()(0)->Coordinates();
-              //double neigh_radius                = neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-              double target_radius               = this->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+              //double neigh_radius                = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+              double target_radius               = this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
               array_1d<double,3> x_centroid      = (target_radius + 0.5*gap) * normal_vector_on_contact;
             
               //KRATOS_WATCH(kn_el)
               double result_product = GeometryFunctions::DotProduct(x_centroid,normal_vector_on_contact);
             
-              double& Representative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);
+              double& Representative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
           
               Representative_Volume = Representative_Volume + 0.33333333333333 * (result_product * calculation_area);
             
@@ -1929,7 +1947,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         
      {
  
-        array_1d<double, 3> total_externally_applied_force  = this->GetGeometry()[0].GetSolutionStepValue(EXTERNAL_APPLIED_FORCE); 
+        array_1d<double, 3> total_externally_applied_force  = this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE); 
         
 //         double magnitude = 0.0;
 //         
@@ -2173,7 +2191,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
            
           double area_vertical_centre = 0.0;
           
-          if (this->GetGeometry()[0].GetSolutionStepValue(GROUP_ID)==5)
+          if (this->GetGeometry()[0].FastGetSolutionStepValue(GROUP_ID)==5)
                 
           {
 
@@ -2187,7 +2205,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
               neighbour_iterator != r_continuum_ini_neighbours.end(); neighbour_iterator++)
             {
             
-                if ( neighbour_iterator->GetGeometry()[0].GetSolutionStepValue(GROUP_ID) != 5 )
+                if ( neighbour_iterator->GetGeometry()[0].FastGetSolutionStepValue(GROUP_ID) != 5 )
                   
                 {
                     
@@ -2278,10 +2296,10 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 //                   array_1d<double, 3 > & mRotaSpringMoment  = this->GetValue(PARTICLE_ROTATE_SPRING_MOMENT)[ i_neighbour_count ];
 // 
 //                   double other_radius    = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-//                   double other_young     = ineighbour->GetGeometry()[0].GetSolutionStepValue(YOUNG_MODULUS);
-//                   double other_poisson   = ineighbour->GetGeometry()[0].GetSolutionStepValue(POISSON_RATIO);
-//                   double other_tension   = ineighbour->GetGeometry()[0].GetSolutionStepValue(PARTICLE_TENSION); //MSI: these variables are eliminated.
-//                   double other_cohesion  = ineighbour->GetGeometry()[0].GetSolutionStepValue(PARTICLE_COHESION);
+//                   double other_young     = ineighbour->GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
+//                   double other_poisson   = ineighbour->GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
+//                   double other_tension   = ineighbour->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_TENSION); //MSI: these variables are eliminated.
+//                   double other_cohesion  = ineighbour->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COHESION);
 //                   double other_inertia   = ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);
 // 
 //                   double equiv_tension  = (mTension  + other_tension ) * 0.5;
@@ -2406,7 +2424,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
    /*
    //#C6 : initalizesolutionstep del volume strain stress tensor...  
          
-          double& Representative_Volume = this->GetGeometry()[0].GetSolutionStepValue(REPRESENTATIVE_VOLUME);
+          double& Representative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
          
           Representative_Volume = 0.0;
           
