@@ -1571,6 +1571,28 @@ public:
     {
         Timer::Start("Generating Octree");
         std::cout << "Generating the Octree..." << std::endl;
+        
+        double low[3];
+        double high[3];
+        
+        for (int i = 0 ; i < 3; i++)
+        {
+            low[i] = high[i] = mrFluidModelPart.NodesBegin()->Coordinate(i+1);
+        }
+        
+        // loop over all structure nodes
+        for(ModelPart::NodeIterator i_node = mrFluidModelPart.NodesBegin();
+            i_node != mrFluidModelPart.NodesEnd();
+            i_node++)
+        {
+            for (int i = 0 ; i < 3; i++)
+            {
+                low[i]  = i_node->Coordinate(i+1) < low[i]  ? i_node->Coordinate(i+1) : low[i];
+                high[i] = i_node->Coordinate(i+1) > high[i] ? i_node->Coordinate(i+1) : high[i];
+            }
+        }
+        
+        mOctree.SetBoundingBox(low,high);
 
         //mOctree.RefineWithUniformSize(0.0625);
 
