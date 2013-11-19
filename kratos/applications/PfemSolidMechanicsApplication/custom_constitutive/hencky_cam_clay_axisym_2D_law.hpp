@@ -53,7 +53,7 @@ public:
      * Counted pointer of HyperElasticPlasticJ2PlaneStrain2DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(NonLinearHenckyCamClayPlasticAxisym2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION( NonLinearHenckyCamClayPlasticAxisym2DLaw );
 
     /**
      * Life Cycle
@@ -179,12 +179,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, NonLinearHenckyCamClayPlasticAxisym2DLaw);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonLinearHenckyCamClayPlasticAxisym2DLaw )
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, NonLinearHenckyCamClayPlasticAxisym2DLaw);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonLinearHenckyCamClayPlasticAxisym2DLaw )
     }
 
 

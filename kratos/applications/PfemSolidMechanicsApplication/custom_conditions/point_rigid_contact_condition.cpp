@@ -120,7 +120,7 @@ void PointRigidContactCondition::GetDofList(DofsVectorType& rConditionDofList,
     }
 
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //***********************************************************************************
@@ -147,7 +147,7 @@ void PointRigidContactCondition::EquationIdVector(EquationIdVectorType& rResult,
 	  rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z).EquationId();
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 
@@ -376,7 +376,7 @@ void PointRigidContactCondition::CalculateKinematics(GeneralVariables& rVariable
 {
     KRATOS_TRY
 
-    KRATOS_ERROR(std::logic_error, "calling the default CalculateKinematics method for a force load condition ... illegal operation!!","");
+    KRATOS_ERROR( std::logic_error, "calling the default CalculateKinematics method for a force load condition ... illegal operation!!", "" )
 
     KRATOS_CATCH( "" )
 }
@@ -462,7 +462,7 @@ void PointRigidContactCondition::CalculateAndAddLHS(LocalSystemComponents& rLoca
     // operation performed: add Kg to the rLefsHandSideMatrix
     this->CalculateAndAddKuug( rLeftHandSideMatrix, rVariables, rIntegrationWeight );
 
-    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH( rLeftHandSideMatrix )
   }
 
 }
@@ -502,7 +502,7 @@ void PointRigidContactCondition::CalculateAndAddRHS(LocalSystemComponents& rLoca
       // operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
       this->CalculateAndAddContactForces( rRightHandSideVector, rVariables, rIntegrationWeight );
 
-      //KRATOS_WATCH(rRightHandSideVector)
+      //KRATOS_WATCH( rRightHandSideVector )
 
     }
     
@@ -607,8 +607,8 @@ void PointRigidContactCondition::CalculateLocalSystem( MatrixType& rLeftHandSide
     //Calculate condition system
     this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
 
-    //KRATOS_WATCH(rLeftHandSideMatrix)
-    //KRATOS_WATCH(rRightHandSideVector)
+    //KRATOS_WATCH( rLeftHandSideMatrix )
+    //KRATOS_WATCH( rRightHandSideVector )
 
 }
 
@@ -677,7 +677,7 @@ void PointRigidContactCondition::MassMatrix( MatrixType& rMassMatrix, ProcessInf
 
     rMassMatrix.resize(0, 0, false);
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 //***********************************************************************************
@@ -689,7 +689,7 @@ void PointRigidContactCondition::DampMatrix( MatrixType& rDampMatrix, ProcessInf
 
     rDampMatrix.resize(0, 0, false);
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
 }
 
 

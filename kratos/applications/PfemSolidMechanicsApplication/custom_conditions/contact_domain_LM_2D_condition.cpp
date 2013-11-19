@@ -164,7 +164,7 @@ void ContactDomainLM2DCondition::SetMasterGeometry()
     }
     else
     {
-        KRATOS_ERROR( std::invalid_argument, "MASTERNODE do not belongs to MASTER ELEMENT", "" );
+        KRATOS_ERROR( std::invalid_argument, "MASTERNODE do not belongs to MASTER ELEMENT", "" )
 
     }
 
@@ -1213,12 +1213,12 @@ inline bool ContactDomainLM2DCondition::CheckFictiousContacts(GeneralVariables& 
 
 void ContactDomainLM2DCondition::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ContactDomainCondition );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ContactDomainCondition )
 }
 
 void ContactDomainLM2DCondition::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ContactDomainCondition );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ContactDomainCondition )
 }
 
 

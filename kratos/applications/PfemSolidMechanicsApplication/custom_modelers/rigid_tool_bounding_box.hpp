@@ -62,7 +62,7 @@ public:
     ///@{
 
     /// Pointer definition of RigidToolBoundingBox
-    KRATOS_CLASS_POINTER_DEFINITION(RigidToolBoundingBox);
+    KRATOS_CLASS_POINTER_DEFINITION( RigidToolBoundingBox );
 
     typedef Vector TPointType;
 
@@ -351,7 +351,7 @@ private:
       return Face;
 
 
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 
 	}
 
@@ -371,7 +371,7 @@ private:
 
       return Face;
     
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
     //************************************************************************************
@@ -386,7 +386,7 @@ private:
       
       return Face;	
     
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
     //************************************************************************************
@@ -403,7 +403,7 @@ private:
  
 
     
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
     //************************************************************************************
@@ -425,7 +425,7 @@ private:
       if(this->mBox.RakeAngle==0)
       	rFace3 = rPoint[1] - this->mBox.Center[1];
 
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
 
@@ -470,7 +470,7 @@ private:
 	return false;
 
 
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
     //************************************************************************************
@@ -507,7 +507,7 @@ private:
 	return false;
 
     
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
 
@@ -545,7 +545,7 @@ private:
       else
 	return false;
      
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
      }
 
 

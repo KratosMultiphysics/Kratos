@@ -265,7 +265,7 @@ public:
 	  // For MPI: correct values on partition boundaries
 	  rModelPart.GetCommunicator().AssembleCurrentData(NORMAL);
 	  //std::cout<<" Boundary COUNTER "<<boundarycounter<<std::endl;
-	  KRATOS_CATCH("")
+	  KRATOS_CATCH( "" )
 
 	}
 
@@ -349,7 +349,7 @@ private:
 		  noalias(in->GetSolutionStepValue(NORMAL)) = zero;
 		}
 
-		KRATOS_CATCH("")
+		KRATOS_CATCH( "" )
 	}
 
 
@@ -405,7 +405,7 @@ private:
 			}
 		}
 
-		KRATOS_CATCH("")
+		KRATOS_CATCH( "" )
 	}
 
 

@@ -14,11 +14,11 @@
 namespace Kratos
 {
 
-       KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, NODE_TO_ELEMENT, 0 );
-       KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, ELEMENT_TO_NODE, 1 );
-       KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, ELEMENT_TO_ELEMENT, 2 );
+       KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, NODE_TO_ELEMENT,        0 );
+       KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, ELEMENT_TO_NODE,        1 );
+       KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, ELEMENT_TO_ELEMENT,     2 );
        KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, MASTER_ELEMENT_TO_NODE, 3 );
-       KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, INITIALIZATION, 4 );
+       KRATOS_CREATE_LOCAL_FLAG( MeshDataTransferUtilities, INITIALIZATION,         4 );
 
 
 	//*******************************************************************************************
@@ -175,7 +175,7 @@ namespace Kratos
 
 	    KRATOS_TRY
 		    
-	    KRATOS_WATCH("Data Transfer NODE to ELEMENT")
+	    KRATOS_WATCH( "Data Transfer NODE to ELEMENT" )
 
 	    double alpha = 1; //[0,1] //smoothing level of the Jacobian	      
 
@@ -208,8 +208,8 @@ namespace Kratos
 	      }
 
 		    
-	      KRATOS_WATCH("Finished Nodal Transfer")
-	      KRATOS_CATCH("")
+	      KRATOS_WATCH( "Finished Nodal Transfer" )
+	      KRATOS_CATCH( "" )
 	}
       
 
@@ -223,7 +223,7 @@ namespace Kratos
 
 	    KRATOS_TRY
 	     
-	    KRATOS_WATCH("Data Transfer ELEMENT to NODE")
+	    KRATOS_WATCH( "Data Transfer ELEMENT to NODE" )
 	    std::vector<double> Jacobians(1);					
 	    ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 	    NodesContainerType& rNodes = rModelPart.Nodes(MeshId);
@@ -260,8 +260,8 @@ namespace Kratos
     
 
 							   
-	    KRATOS_WATCH("Finished Nodal Transfer")
-	    KRATOS_CATCH("")
+	    KRATOS_WATCH( "Finished Nodal Transfer" )
+	    KRATOS_CATCH( "" )
         }
 
 
@@ -277,11 +277,11 @@ namespace Kratos
 
 	    KRATOS_TRY
 		    
-	    KRATOS_WATCH("Data Transfer NODE to ELEMENT: NOT IMPLEMENTED YET")
+	    KRATOS_WATCH( "Data Transfer NODE to ELEMENT: NOT IMPLEMENTED YET" )
 
 
-	    KRATOS_WATCH("Finished Nodal Transfer")
-	    KRATOS_CATCH("")
+	    KRATOS_WATCH( "Finished Nodal Transfer" )
+	    KRATOS_CATCH( "" )
 
 	}
 
@@ -297,11 +297,11 @@ namespace Kratos
 
 	    KRATOS_TRY
 		    
-	    KRATOS_WATCH("Data Transfer NODE to ELEMENT: NOT IMPLEMENTED YET")
+	    KRATOS_WATCH( "Data Transfer NODE to ELEMENT: NOT IMPLEMENTED YET" )
 
 
-	    KRATOS_WATCH("Finished Nodal Transfer")
-	    KRATOS_CATCH("")
+	    KRATOS_WATCH( "Finished Nodal Transfer" )
+	    KRATOS_CATCH( "" )
 
 	}
 
@@ -317,7 +317,7 @@ namespace Kratos
 
 	    KRATOS_TRY
 		    
-	    KRATOS_WATCH("Data Transfer ELEMENT to ELEMENT")
+	    KRATOS_WATCH( "Data Transfer ELEMENT to ELEMENT" )
 
 	    //definitions for spatial search
   	    typedef Node<3>                                  PointType;
@@ -446,8 +446,8 @@ namespace Kratos
 	    std::cout<<" MOVED TRANSFERS: "<<moved_transfers<<std::endl;
 
 
-	    KRATOS_WATCH("Finished Element to Element Transfer")
-	    KRATOS_CATCH("")
+	    KRATOS_WATCH( "Finished Element to Element Transfer" )
+	    KRATOS_CATCH( "" )
 	}
 	
 
@@ -499,7 +499,7 @@ namespace Kratos
 
 	//     if(area < 1e-20)
 	//     {
-	// 	KRATOS_ERROR(std::logic_error,"element with zero area found","");
+	// 	KRATOS_ERROR( std::logic_error,"element with zero area found", "" )
 	//     }
 
 	//     N[0] = CalculateVol(x1,y1,x2,y2,xc,yc)  / area;
@@ -544,7 +544,7 @@ namespace Kratos
 	    }
 
 	    if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
-		KRATOS_ERROR(std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR","");
+		KRATOS_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
 
 	}
 
@@ -579,7 +579,7 @@ namespace Kratos
 	    }
 
 	  if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
-	    KRATOS_ERROR(std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR","");
+	    KRATOS_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
 
 	  return VariablesListData;
 	};

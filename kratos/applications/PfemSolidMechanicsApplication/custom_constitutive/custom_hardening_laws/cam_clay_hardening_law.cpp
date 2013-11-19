@@ -91,13 +91,13 @@ double& CamClayKinematicHardeningLaw::CalculateHardening(double &rHardening, con
 
 void CamClayKinematicHardeningLaw::save( Serializer& rSerializer ) const
 {
-    //KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, NonLinearIsotropicKinematicHardeningLaw );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HardeningLaw )
 
 }
 
 void CamClayKinematicHardeningLaw::load( Serializer& rSerializer )
 {
-    //KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, NonLinearIsotropicKinematicHardeningLaw );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HardeningLaw )
 
 }
 

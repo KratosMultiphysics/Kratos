@@ -47,7 +47,7 @@ public:
     ///@{
 
     /// Pointer definition of ContactDomainUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(ContactDomainUtilities);
+    KRATOS_CLASS_POINTER_DEFINITION( ContactDomainUtilities );
 
     /**
      * Flags related to the condition computation
@@ -133,7 +133,7 @@ public:
 	    
 		if(area < 1e-15)
 		{
-			//KRATOS_ERROR(std::logic_error,"element with zero area found","");
+			//KRATOS_ERROR( std::logic_error,"element with zero area found", "" )
 			std::cout<<"element with zero area found: "<<area<<" position ("<<x0<<", "<<y0<<") ("<<x1<<", "<<y1<<") ("<<x2<<", "<<y2<<") "<<std::endl;
 		}
 

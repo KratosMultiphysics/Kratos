@@ -43,7 +43,7 @@ public:
     ///@{
 
     /// Pointer definition of Process
-    KRATOS_CLASS_POINTER_DEFINITION(RigidWallContactSearchProcess);
+    KRATOS_CLASS_POINTER_DEFINITION( RigidWallContactSearchProcess );
 
     typedef ModelPart::ConditionType         ConditionType;
     typedef ModelPart::PropertiesType       PropertiesType;
@@ -111,7 +111,7 @@ public:
       mpRigidWall->Center() = mpRigidWall->OriginalCenter() +  mpRigidWall->Velocity() * Time;
 
       if (Time == 0)
-	KRATOS_ERROR(std::logic_error, "detected time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "");
+	KRATOS_ERROR( std::logic_error, "detected time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
 
       ModelPart::NodesContainerType& NodesArray = mrModelPart.Nodes();
       
@@ -153,7 +153,7 @@ public:
 	}
 
 
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	
     }
 
@@ -196,7 +196,7 @@ public:
       mrModelPart.Conditions(MeshId).swap( NonRigidContactConditions );
 
       //calculate elemental contribution
-      KRATOS_CATCH("")      
+      KRATOS_CATCH( "" )      
     }
 
 

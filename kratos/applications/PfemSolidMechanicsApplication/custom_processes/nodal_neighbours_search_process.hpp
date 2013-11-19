@@ -60,7 +60,7 @@ public:
     ///@{
 
     /// Pointer definition of NodalNeighboursSearchProcess
-    KRATOS_CLASS_POINTER_DEFINITION(NodalNeighboursSearchProcess);
+    KRATOS_CLASS_POINTER_DEFINITION( NodalNeighboursSearchProcess );
 
     ///@}
     ///@name Life Cycle
@@ -337,9 +337,9 @@ private:
             Element::GeometryType& pGeom = ie->GetGeometry();
             for(unsigned int i = 0; i < pGeom.size(); i++)
             {
-                //KRATOS_WATCH( pGeom[i] );
+                //KRATOS_WATCH( pGeom[i] )
                 (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
-                //KRATOS_WATCH( (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).size() );
+                //KRATOS_WATCH( (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).size() )
             }
         }
 

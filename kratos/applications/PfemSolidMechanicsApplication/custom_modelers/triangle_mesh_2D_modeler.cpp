@@ -433,7 +433,7 @@ namespace Kratos
     std::cout<<" [ [ [ ] ] ]"<<std::endl;
 
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
       }
 
   
@@ -588,7 +588,7 @@ namespace Kratos
     std::cout<<" [ Finished Remeshing ] "<<std::endl;
     std::cout<<" [ [ [ ] ] ]"<<std::endl;
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
       }
 
 
@@ -646,10 +646,10 @@ namespace Kratos
     GenerateTriangulation(rVariables.MeshingOptions,rVariables.RefiningOptions,in, mid);
     rVariables.MeshingOptions.Reset(Modeler::BOUNDARIES_SEARCH);
 
-    KRATOS_WATCH(in.numberofsegments);
-    KRATOS_WATCH(in.numberofpoints);
-    KRATOS_WATCH(in.numberoftriangles);
-    KRATOS_WATCH(in.numberofholes);
+    KRATOS_WATCH( in.numberofsegments )
+    KRATOS_WATCH( in.numberofpoints )
+    KRATOS_WATCH( in.numberoftriangles )
+    KRATOS_WATCH( in.numberofholes )
 
     //free the memory used in the first step
     free_pointio(in);
@@ -673,10 +673,10 @@ namespace Kratos
     rVariables.MeshingOptions.Reset(Modeler::CONSTRAINED_MESH);
     rVariables.MeshingOptions.Reset(Modeler::NEIGHBOURS_SEARCH);
 
-    KRATOS_WATCH(out.numberofsegments);
-    KRATOS_WATCH(out.numberofpoints);
-    KRATOS_WATCH(out.numberoftriangles);
-    KRATOS_WATCH(out.numberofholes);
+    KRATOS_WATCH( out.numberofsegments )
+    KRATOS_WATCH( out.numberofpoints )
+    KRATOS_WATCH( out.numberoftriangles )
+    KRATOS_WATCH( out.numberofholes )
 	
     ////////////////////////////////////////////////////////////
 
@@ -707,7 +707,7 @@ namespace Kratos
     std::cout<<" [ [ [ ] ] ]"<<std::endl;
 
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
       }
 
 
@@ -878,7 +878,7 @@ namespace Kratos
     std::cout<<" [ Finished Remeshing ] "<<std::endl;
     std::cout<<" [ [ [ ] ] ]"<<std::endl;
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
       }
 
 
@@ -1084,7 +1084,7 @@ namespace Kratos
     std::cout<<" [ Finished Remeshing ] "<<std::endl;
     std::cout<<" [ [ [ ] ] ]"<<std::endl;
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
       }
     
 
@@ -2374,7 +2374,7 @@ namespace Kratos
 			      {
 				if ( (*nn)->Is(BOUNDARY) && (*nn)->IsNot(CONTACT) && neighbour_distances[k] < (extra_factor*radius) && neighbour_distances[k] > 0.0 )
 				  {
-				    //KRATOS_WATCH( neighbours_distances[k] );
+				    //KRATOS_WATCH( neighbours_distances[k] )
 				    if((*nn)->IsNot(TO_ERASE)){
 				      std::cout<<" Removed Boundary Node on Distance ["<<neighbour_distances[k]<<"<"<<extra_factor*radius<<"] "<<std::endl;
 				      counter += 1;

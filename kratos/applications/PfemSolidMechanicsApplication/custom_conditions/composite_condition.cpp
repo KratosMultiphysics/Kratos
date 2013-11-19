@@ -725,13 +725,13 @@ int  CompositeCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 
 void CompositeCondition::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
     rSerializer.save("mpChildConditions",mpChildConditions);
 }
 
 void CompositeCondition::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
     rSerializer.load("mpChildConditions",mpChildConditions);
 }
 

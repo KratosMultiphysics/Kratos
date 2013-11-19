@@ -52,7 +52,7 @@ class MatsuokaYieldCriterion
         ///@{
 
         /// Pointer definition of MisesHuberYieldCriterion
-        KRATOS_CLASS_POINTER_DEFINITION(MatsuokaYieldCriterion);
+        KRATOS_CLASS_POINTER_DEFINITION( MatsuokaYieldCriterion );
 
         ///@}
         ///@name Life Cycle

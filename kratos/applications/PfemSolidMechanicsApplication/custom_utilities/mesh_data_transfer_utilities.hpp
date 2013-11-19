@@ -56,7 +56,7 @@ namespace Kratos
 	///@{
 
 	/// Pointer definition of data transfer
-	KRATOS_CLASS_POINTER_DEFINITION(MeshDataTransferUtilities);
+        KRATOS_CLASS_POINTER_DEFINITION( MeshDataTransferUtilities );
  
         KRATOS_DEFINE_LOCAL_FLAG( NODE_TO_ELEMENT );
         KRATOS_DEFINE_LOCAL_FLAG( ELEMENT_TO_NODE );
@@ -203,7 +203,7 @@ namespace Kratos
 
 	    if(area < 1e-20)
 	    {
-		KRATOS_ERROR(std::logic_error,"element with zero area found","");
+		KRATOS_ERROR( std::logic_error,"element with zero area found", "" )
 	    }
 
 	    N[0] = CalculateVol(x1,y1,x2,y2,xc,yc)  / area;

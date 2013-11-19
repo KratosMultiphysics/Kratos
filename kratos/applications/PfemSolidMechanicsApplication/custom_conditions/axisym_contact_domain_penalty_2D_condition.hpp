@@ -71,7 +71,7 @@ public:
 
 
     /// Counted pointer of AxisymContactDomainPenalty2DCondition
-    KRATOS_CLASS_POINTER_DEFINITION(AxisymContactDomainPenalty2DCondition);
+    KRATOS_CLASS_POINTER_DEFINITION( AxisymContactDomainPenalty2DCondition );
 
     ///@}
     ///@name Life Cycle

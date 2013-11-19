@@ -104,7 +104,7 @@ namespace Kratos
     /**@name Type Definitions */
     /*@{ */
 
-    KRATOS_CLASS_POINTER_DEFINITION(RigidWallContactCalculationUtilities);
+    KRATOS_CLASS_POINTER_DEFINITION( RigidWallContactCalculationUtilities );
 
     typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
 
@@ -226,7 +226,7 @@ namespace Kratos
 	else
 	  return 1;
 
-      KRATOS_CATCH("");
+      KRATOS_CATCH( "" )
     }
 
     
@@ -292,8 +292,8 @@ namespace Kratos
 
       // if( r_model_part.GetCommunicator().MyPID() == 0)
       // 	{
-      // 	  KRATOS_WATCH(number_of_threads);
-      // 	  KRATOS_WATCH(nodes_partition);
+      // 	  KRATOS_WATCH( number_of_threads )
+      // 	  KRATOS_WATCH( nodes_partition )
       // 	}
 
 #pragma omp parallel for
@@ -343,7 +343,7 @@ namespace Kratos
 
       // if(r_model_part.GetCommunicator().MyPID() == 0)
       // 	{
-      // 	  KRATOS_WATCH("finished parallel building");
+      // 	  KRATOS_WATCH( "finished parallel building" )
       // 	}
 
       //                        //ensure that all the threads are syncronized here
@@ -351,7 +351,7 @@ namespace Kratos
 #endif
 
 
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 
 	}
 
@@ -415,8 +415,8 @@ namespace Kratos
 
       // if( r_model_part.GetCommunicator().MyPID() == 0)
       // 	{
-      // 	  KRATOS_WATCH(number_of_threads);
-      // 	  KRATOS_WATCH(nodes_partition);
+      // 	  KRATOS_WATCH( number_of_threads )
+      // 	  KRATOS_WATCH( nodes_partition )
       // 	}
 
 #pragma omp parallel for
@@ -466,7 +466,7 @@ namespace Kratos
 
       // if(r_model_part.GetCommunicator().MyPID() == 0)
       // 	{
-      // 	  KRATOS_WATCH("finished parallel building");
+      // 	  KRATOS_WATCH( "finished parallel building" )
       // 	}
 
       //                        //ensure that all the threads are syncronized here
@@ -474,7 +474,7 @@ namespace Kratos
 #endif
 
 
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 
 	}
 
@@ -495,7 +495,7 @@ namespace Kratos
       mRigidWall.Center = mRigidWall.OriginalCenter +  mRigidWall.Velocity * Time;
 
       if (Time == 0)
-	KRATOS_ERROR(std::logic_error, "detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "");
+	KRATOS_ERROR( std::logic_error, "detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
 
       NodesArrayType& NodesArray = r_model_part.Nodes();
       for (typename NodesArrayType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
@@ -510,7 +510,7 @@ namespace Kratos
 	}
 
 
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
     //**************************************************************************
@@ -539,7 +539,7 @@ namespace Kratos
 	}
       
       //calculate elemental contribution
-      KRATOS_CATCH("")      
+      KRATOS_CATCH( "" )      
      }
 
     //**************************************************************************
@@ -816,7 +816,7 @@ namespace Kratos
       // 	std::cout<<" Contact.active "<<Contact.active<<" Fcont "<<rCurrentNode->FastGetSolutionStepValue(FORCE_CONTACT_NORMAL)<<" Center Position "<<mRigidWall.Center<<std::endl;
 
 
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
 
@@ -835,7 +835,7 @@ namespace Kratos
       CalculateLocalRHS (rCurrentNode,RHS_Contribution,CurrentProcessInfo);
       EquationIdVector  (rCurrentNode,EquationId,CurrentProcessInfo);
 
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
   
 
@@ -884,7 +884,7 @@ namespace Kratos
       // 	std::cout<<" Contact.active "<<Contact.active<<" Fcont "<<rCurrentNode->FastGetSolutionStepValue(FORCE_CONTACT_NORMAL)<<" Center Position "<<mRigidWall.Center<<std::endl;
 
 
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
 
@@ -904,7 +904,7 @@ namespace Kratos
       CalculateLocalSystem (rCurrentNode,LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
       EquationIdVector     (rCurrentNode,EquationId,CurrentProcessInfo);
 
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
   
 
@@ -975,7 +975,7 @@ namespace Kratos
       }
 
 
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
     //************************************************************************************
@@ -1039,7 +1039,7 @@ namespace Kratos
 
 
     
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
     //************************************************************************************
@@ -1101,7 +1101,7 @@ namespace Kratos
 
 
     
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
     //************************************************************************************
@@ -1174,7 +1174,7 @@ namespace Kratos
       }
 
 
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
     //************************************************************************************
@@ -1242,7 +1242,7 @@ namespace Kratos
 
 
     
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
     //************************************************************************************
@@ -1309,7 +1309,7 @@ namespace Kratos
 
 
     
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
 
@@ -1394,7 +1394,7 @@ namespace Kratos
       return Face;
 
 
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 
 	}
 
@@ -1414,7 +1414,7 @@ namespace Kratos
 
       return Face;
     
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
     //************************************************************************************
@@ -1429,7 +1429,7 @@ namespace Kratos
       
       return Face;	
     
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
     //************************************************************************************
@@ -1446,7 +1446,7 @@ namespace Kratos
  
 
     
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
     //************************************************************************************
@@ -1488,7 +1488,7 @@ namespace Kratos
       // if(mRigidWall.RakeAngle==0)
       // 	Face3 = rContact.Point[1]-mRigidWall.Center[1];
      
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
 	}
 
     //************************************************************************************
@@ -1524,7 +1524,7 @@ namespace Kratos
       
       return rContact.penalty_factor;
     
-      KRATOS_CATCH("")
+      KRATOS_CATCH( "" )
     }
 
 
