@@ -391,7 +391,7 @@ void NonLinearAssociativePlasticFlowRule::CalculateScalingFactors(const RadialRe
 	  }
 	
 	//std::cout<<"FACTORS:: Beta0 "<<rScalingFactors.Beta0<<" Beta 1 "<<rScalingFactors.Beta1<<" Beta2 "<<rScalingFactors.Beta2<<" Beta 3 "<<rScalingFactors.Beta3<<" Beta4 "<<rScalingFactors.Beta4<<std::endl;
-};
+}
 
 
 
