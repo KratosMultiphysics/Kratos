@@ -55,7 +55,7 @@ namespace Kratos
     ///@{
 
     /// Pointer definition of NonLinearAssociativePlasticFlowRule
-      KRATOS_CLASS_POINTER_DEFINITION(CamClayExplicitFlowRule);
+      KRATOS_CLASS_POINTER_DEFINITION( CamClayExplicitFlowRule );
 
     ///@}
     ///@name Life Cycle

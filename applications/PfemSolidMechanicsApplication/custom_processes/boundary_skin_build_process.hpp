@@ -65,7 +65,7 @@ namespace Kratos
 		///@{
 
 		/// Pointer definition of BoundarySkinBuildProcess
-		KRATOS_CLASS_POINTER_DEFINITION(BoundarySkinBuildProcess);
+		KRATOS_CLASS_POINTER_DEFINITION( BoundarySkinBuildProcess );
 
 		///@}
 		///@name Life Cycle

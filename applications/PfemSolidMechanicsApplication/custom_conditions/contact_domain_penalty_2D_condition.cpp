@@ -448,12 +448,12 @@ void ContactDomainPenalty2DCondition::CalcContactStiffness (double &Kcont,Genera
 
 void ContactDomainPenalty2DCondition::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ContactDomainLM2DCondition );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ContactDomainLM2DCondition )
 }
 
 void ContactDomainPenalty2DCondition::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ContactDomainLM2DCondition );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ContactDomainLM2DCondition )
 }
 
 

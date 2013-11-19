@@ -81,7 +81,7 @@ public:
 
 
     /// Counted pointer of CompositeCondition
-    KRATOS_CLASS_POINTER_DEFINITION(CompositeCondition);
+    KRATOS_CLASS_POINTER_DEFINITION( CompositeCondition );
 
     ///@}
     ///@name Life Cycle

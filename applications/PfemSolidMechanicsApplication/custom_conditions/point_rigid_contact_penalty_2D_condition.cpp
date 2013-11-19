@@ -153,7 +153,7 @@ namespace Kratos
       
     
     
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
       }
   
   //***********************************************************************************
@@ -220,7 +220,7 @@ namespace Kratos
     
     }
 
-    //KRATOS_WATCH(rRightHandSideVector)
+    //KRATOS_WATCH( rRightHandSideVector )
 
     KRATOS_CATCH( "" )
       }

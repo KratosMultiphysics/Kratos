@@ -168,7 +168,7 @@ namespace Kratos
     free_triangleio(out);
 
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
       }
 
   //*******************************************************************************************
@@ -217,7 +217,7 @@ namespace Kratos
     free_triangleio(out);
 
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
       }
 
 

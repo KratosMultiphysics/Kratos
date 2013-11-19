@@ -100,7 +100,7 @@ public:
     ///@{
 
     /// Pointer definition of SpatialBoundingBox
-    KRATOS_CLASS_POINTER_DEFINITION(SpatialBoundingBox);
+    KRATOS_CLASS_POINTER_DEFINITION( SpatialBoundingBox );
 
 
 

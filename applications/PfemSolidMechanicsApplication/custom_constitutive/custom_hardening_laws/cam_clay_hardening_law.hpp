@@ -53,7 +53,7 @@ public:
     ///@{
 
     /// Pointer definition of CamClayKinematicHardeningLaw
-    KRATOS_CLASS_POINTER_DEFINITION(CamClayKinematicHardeningLaw);
+    KRATOS_CLASS_POINTER_DEFINITION( CamClayKinematicHardeningLaw );
 
     ///@}
     ///@name Life Cycle

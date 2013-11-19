@@ -59,7 +59,7 @@ namespace Kratos
      };
 
     /// Pointer definition of NonLinearAssociativePlasticFlowRule
-      KRATOS_CLASS_POINTER_DEFINITION(NonAssociativePlasticFlowRule);
+      KRATOS_CLASS_POINTER_DEFINITION( NonAssociativePlasticFlowRule );
 
     ///@}
     ///@name Life Cycle
@@ -159,7 +159,7 @@ namespace Kratos
 
     virtual void CalculatePlasticPotentialDerivatives(const Vector& rPrincipalStress, Vector& rFirstDerivative, Matrix& rSecondDerivative)
     {
-	KRATOS_ERROR(std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "");
+	KRATOS_ERROR( std::logic_error, "Calling the base class function in NonAss FlowRule ... illegal operation!", "" )
     };
 
     void ComputePrincipalAxisStrain(RadialReturnVariables& rReturnMappingVariables, const Matrix& rStrainMatrix, Vector& rPrincipalStrain);

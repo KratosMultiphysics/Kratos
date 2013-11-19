@@ -117,12 +117,12 @@ void J2YieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStressVec
 }
 void J2YieldCriterion::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, YieldCriterion );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, YieldCriterion )
 }
 
 void J2YieldCriterion::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, YieldCriterion );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, YieldCriterion )
 }
 
 

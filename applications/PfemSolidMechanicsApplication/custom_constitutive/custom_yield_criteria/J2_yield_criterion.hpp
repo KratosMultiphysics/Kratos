@@ -53,7 +53,7 @@ class J2YieldCriterion
         ///@{
 
         /// Pointer definition of MisesHuberYieldCriterion
-        KRATOS_CLASS_POINTER_DEFINITION(J2YieldCriterion);
+        KRATOS_CLASS_POINTER_DEFINITION( J2YieldCriterion );
 
         ///@}
         ///@name Life Cycle

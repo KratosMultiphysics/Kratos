@@ -63,7 +63,7 @@ public:
     ///@{
 
     /// Pointer definition of TriGenCDT
-    KRATOS_CLASS_POINTER_DEFINITION(ContactDomain2DModeler);
+    KRATOS_CLASS_POINTER_DEFINITION( ContactDomain2DModeler );
 
 
     typedef Node<3>                                                       PointType;

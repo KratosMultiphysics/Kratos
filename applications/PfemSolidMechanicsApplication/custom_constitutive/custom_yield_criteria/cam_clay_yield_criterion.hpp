@@ -53,7 +53,7 @@ class CamClayYieldCriterion
         ///@{
 
         /// Pointer definition of MisesHuberYieldCriterion
-        KRATOS_CLASS_POINTER_DEFINITION(CamClayYieldCriterion);
+        KRATOS_CLASS_POINTER_DEFINITION( CamClayYieldCriterion );
 
         ///@}
         ///@name Life Cycle

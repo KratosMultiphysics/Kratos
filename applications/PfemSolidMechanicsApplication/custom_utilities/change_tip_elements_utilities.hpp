@@ -554,7 +554,7 @@ public:
 
 	return any_swap_performed;
 
-	KRATOS_CATCH("")
+	KRATOS_CATCH( "" )
 
     };
 
@@ -998,7 +998,7 @@ public:
 
 	return any_swap_performed;
 
-	KRATOS_CATCH("")
+	KRATOS_CATCH( "" )
 
     };
 

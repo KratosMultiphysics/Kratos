@@ -46,7 +46,7 @@ public:
      * Counted pointer of HyperElasticPlasticPlaneStrain2DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(HenckyElasticPlasticAxisym2DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION( HenckyElasticPlasticAxisym2DLaw );
 
     /**
      * Life Cycle
@@ -179,11 +179,11 @@ protected:
      */
     virtual void  CalculateEigenValuesConstitutiveMatrix(const Matrix& rPrincipalTangent, const Matrix& rEigenVectors, const Matrix& rInverseDeformationGradientF, Matrix& rConstitutiveMatrix)
     {
-        KRATOS_ERROR(std::logic_error, "Called the pullback configuration and it is not implemented", "");
+        KRATOS_ERROR( std::logic_error, "Called the pullback configuration and it is not implemented", "" )
     };
     virtual void CalculateEigenVectorsConstitutiveMatrix(const Matrix& rEigenVectors, const Vector& rEigenValues, const Matrix& rStressMatrix, const Matrix& rInverseDeformationGradientF, Matrix& rConstitutiveMatrix)
     {
-        KRATOS_ERROR(std::logic_error, "Called the pullback configuration and it is not implemented", "");
+        KRATOS_ERROR( std::logic_error, "Called the pullback configuration and it is not implemented", "" )
     };
 
 
@@ -227,12 +227,12 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, HenckyElasticPlasticAxisym2DLaw);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, HenckyElasticPlasticAxisym2DLaw )
     }
 
     virtual void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, HenckyElasticPlasticAxisym2DLaw);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, HenckyElasticPlasticAxisym2DLaw )
     }
 
 

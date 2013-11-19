@@ -69,7 +69,7 @@ namespace Kratos
     ///@{
 
     /// Pointer definition of NonLinearAssociativePlasticFlowRule
-      KRATOS_CLASS_POINTER_DEFINITION(MatsuokaNakaiFlowRule);
+      KRATOS_CLASS_POINTER_DEFINITION( MatsuokaNakaiFlowRule );
 
     ///@}
     ///@name Life Cycle

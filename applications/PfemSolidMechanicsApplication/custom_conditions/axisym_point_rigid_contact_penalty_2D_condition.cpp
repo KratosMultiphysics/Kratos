@@ -127,7 +127,7 @@ namespace Kratos
 
     PointRigidContactCondition::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
-    //KRATOS_WATCH(rLeftHandSideMatrix)
+    //KRATOS_WATCH( rLeftHandSideMatrix )
   }
 
 
@@ -142,7 +142,7 @@ namespace Kratos
 
     PointRigidContactCondition::CalculateAndAddRHS( rLocalSystem, rVariables, IntegrationWeight );
 
-    //KRATOS_WATCH(rRightHandSideVector)
+    //KRATOS_WATCH( rRightHandSideVector )
   }
 
   

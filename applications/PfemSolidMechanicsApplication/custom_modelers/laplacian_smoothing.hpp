@@ -64,7 +64,7 @@ namespace Kratos
 	///@{
 
 	/// Pointer definition of data transfer
-	KRATOS_CLASS_POINTER_DEFINITION(LaplacianSmoothing);
+	KRATOS_CLASS_POINTER_DEFINITION( LaplacianSmoothing );
  
 	typedef ModelPart::PropertiesType                                PropertiesType;
         typedef ModelPart::MeshType                                            MeshType;
@@ -121,7 +121,7 @@ namespace Kratos
 
 	    KRATOS_TRY
 		    
-	    KRATOS_WATCH("Start Laplacian Smoothing INCREMENTAL")
+	    KRATOS_WATCH( "Start Laplacian Smoothing INCREMENTAL" )
 
 	  //defintions for spatial search
 	  typedef Node<3>                                  PointType;
@@ -424,8 +424,8 @@ namespace Kratos
 	    
 	  }
   
-	    KRATOS_WATCH("Finished Laplacian Smoothing")
-	    KRATOS_CATCH("")
+	    KRATOS_WATCH( "Finished Laplacian Smoothing" )
+	    KRATOS_CATCH( "" )
 
 
 	}
@@ -1301,7 +1301,7 @@ namespace Kratos
 	    
 	    if(area < 1e-15)
 	    {
-	      //KRATOS_ERROR(std::logic_error,"element with zero area found","");
+	      //KRATOS_ERROR( std::logic_error,"element with zero area found", "" );
 	      std::cout<<"element with zero area found: "<<area<<" position ("<<x0<<", "<<y0<<") ("<<x1<<", "<<y1<<") ("<<x2<<", "<<y2<<") "<<std::endl;
 	    }
 
@@ -1343,7 +1343,7 @@ namespace Kratos
 	    }
 
 	    if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
-		KRATOS_ERROR(std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR","");
+		KRATOS_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" );
 
 	}
 
@@ -1375,7 +1375,7 @@ namespace Kratos
 	       }
 	     
 	     if (N[0]==0.0 && N[1]==0.0 && N[2]==0.0)
-	       KRATOS_ERROR(std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR","");
+	       KRATOS_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
 	     
 	     return VariablesListData;
          }

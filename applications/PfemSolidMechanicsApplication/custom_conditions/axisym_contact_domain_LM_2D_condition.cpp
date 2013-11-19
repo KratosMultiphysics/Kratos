@@ -258,7 +258,7 @@ void AxisymContactDomainLM2DCondition::CalculateAndAddLHS(LocalSystemComponents&
 
   ContactDomainCondition::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
 
-  //KRATOS_WATCH(rLeftHandSideMatrix)
+  //KRATOS_WATCH( rLeftHandSideMatrix )
 }
 
 
@@ -271,7 +271,7 @@ void AxisymContactDomainLM2DCondition::CalculateAndAddRHS(LocalSystemComponents&
 
   ContactDomainCondition::CalculateAndAddRHS( rLocalSystem, rVariables, IntegrationWeight );
 
-  //KRATOS_WATCH(rRightHandSideVector)
+  //KRATOS_WATCH( rRightHandSideVector )
 }
 
 //************************************************************************************
@@ -280,12 +280,12 @@ void AxisymContactDomainLM2DCondition::CalculateAndAddRHS(LocalSystemComponents&
 
 void AxisymContactDomainLM2DCondition::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ContactDomainLM2DCondition );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ContactDomainLM2DCondition )
 }
 
 void AxisymContactDomainLM2DCondition::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ContactDomainLM2DCondition );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ContactDomainLM2DCondition )
 }
 
 

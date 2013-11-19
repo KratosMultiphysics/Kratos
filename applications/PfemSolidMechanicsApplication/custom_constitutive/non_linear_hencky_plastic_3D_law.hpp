@@ -42,7 +42,7 @@ public:
      * Counted pointer of HyperElasticPlastic3DLaw
      */
 
-    KRATOS_CLASS_POINTER_DEFINITION(NonLinearHenckyElasticPlastic3DLaw);
+    KRATOS_CLASS_POINTER_DEFINITION( NonLinearHenckyElasticPlastic3DLaw );
 
     /**
      * Life Cycle
@@ -519,12 +519,12 @@ private:
 
     void save(Serializer& rSerializer) const
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
     void load(Serializer& rSerializer)
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
     }
 
 

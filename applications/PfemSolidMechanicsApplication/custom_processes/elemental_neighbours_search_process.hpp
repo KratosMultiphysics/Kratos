@@ -64,7 +64,7 @@ public:
     ///@{
 
     /// Pointer definition of ElementalNeighboursSearchProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ElementalNeighboursSearchProcess);
+    KRATOS_CLASS_POINTER_DEFINITION( ElementalNeighboursSearchProcess );
 
     ///@}
     ///@name Life Cycle

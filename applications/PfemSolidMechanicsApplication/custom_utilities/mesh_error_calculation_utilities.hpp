@@ -129,7 +129,7 @@ public:
 	id++;
       }
     
-    KRATOS_CATCH("")
+    KRATOS_CATCH( "" )
     }
 
 
@@ -282,7 +282,7 @@ public:
 	      id++;
 	    }
 	}
-	  KRATOS_CATCH("")
+	  KRATOS_CATCH( "" )
 
     };
 

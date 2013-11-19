@@ -170,7 +170,7 @@ public:
     ///@{
 
     /// Pointer definition of TriGenCDT
-    KRATOS_CLASS_POINTER_DEFINITION(TriangleMesh2DModeler);
+    KRATOS_CLASS_POINTER_DEFINITION( TriangleMesh2DModeler );
 
 
     typedef Node<3>                                                       PointType;

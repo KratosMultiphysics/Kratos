@@ -52,7 +52,7 @@ public:
     ///@{
 
     /// Pointer definition of TriGenCDT
-    KRATOS_CLASS_POINTER_DEFINITION(ModelerUtilities);
+    KRATOS_CLASS_POINTER_DEFINITION( ModelerUtilities );
 
 
     typedef Node<3>                                                       PointType;
