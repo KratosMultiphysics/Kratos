@@ -469,6 +469,19 @@ public:
     }
 
     /**
+     * this function provides a more general interface to the condition.
+     * it is designed so that rLHSvariables are passed TO the condition
+     * thus telling what is the desired output
+     * @param rLeftHandSideMatrices: container for the desired LHS output
+     * @param rLHSVariables: parameter describing the expected LHSs
+     */
+    virtual void CalculateLeftHandSide(std::vector< MatrixType >& rLeftHandSideMatrices,
+					const std::vector< Variable< MatrixType > >& rLHSVariables,
+					ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    /**
      * this is called during the assembling process in order
      * to calculate the condition right hand side vector only
      * @param rRightHandSideVector: the condition right hand side vector
