@@ -608,20 +608,20 @@ class TransferTools:
       return_list_3D = []
       k=0
       for fitter in self.fitters_3d:
-	  ffit_3d.append(k)
-	  results = str("Fitter_3D_" + str(k) + "_.txt")
-	  ffit_3d[k] = open(results, 'w')		
-	  ffit_3d[k].write("Node	Time	Pressure_Inlet_3D	Pressure_outlet_3d	PressureDrop	flow_3d) \n")
-	  [node_id,A,B] = fitter.DoFitting_3D(k,ffit_3d)
-	  return_list_3D.append([node_id,A,B])
-	  print "node_id = ",node_id
-	  print "A = ",A
-	  print "B = ",B
 	  ffit_3d_2.append(k)
 	  results = str("Fitter_3D_2" + str(k) + "_.txt")
 	  ffit_3d_2[k] = open(results, 'w')		
 	  ffit_3d_2[k].write("Node	Time	Pressure_Inlet_3D	Pressure_outlet_3d	PressureDrop	flow_3d) \n")
 	  [node_id,A,B] = fitter.DoFitting_3D_2(k,ffit_3d_2)
+	  print "node_id = ",node_id
+	  print "A = ",A
+	  print "B = ",B
+	  return_list_3D.append([node_id,A,B])
+	  ffit_3d.append(k)
+	  results = str("Fitter_3D_" + str(k) + "_.txt")
+	  ffit_3d[k] = open(results, 'w')		
+	  ffit_3d[k].write("Node	Time	Pressure_Inlet_3D	Pressure_outlet_3d	PressureDrop	flow_3d) \n")
+	  [node_id,A,B] = fitter.DoFitting_3D(k,ffit_3d)	  
 	  print "node_id = ",node_id
 	  print "A = ",A
 	  print "B = ",B
