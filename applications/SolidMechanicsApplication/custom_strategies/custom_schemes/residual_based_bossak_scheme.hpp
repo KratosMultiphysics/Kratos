@@ -121,8 +121,9 @@ public:
     typedef ModelPart::ElementsContainerType             ElementsArrayType;
 
     typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
-
-
+    
+    typedef typename BaseType::Pointer                     BaseTypePointer;
+  
     /*@} */
 
     /**
@@ -157,6 +158,19 @@ public:
 
     }
 
+
+    /** Copy Constructor.
+     */
+    ResidualBasedBossakScheme(ResidualBasedBossakScheme& rOther)
+      :BaseType(rOther)
+      ,mAlpha(rOther.mAlpha)
+      ,mNewmark(rOther.mNewmark)
+      ,mMatrix(rOther.mMatrix)
+      ,mVector(rOther.mVector)
+    {
+    }
+
+
     /** Destructor.
      */
     virtual ~ResidualBasedBossakScheme
@@ -166,6 +180,16 @@ public:
     /**@name Operators
      */
     /*@{ */
+
+
+    /**
+     * Clone 
+     */
+    virtual BaseTypePointer Clone()
+    {
+      return BaseTypePointer( new ResidualBasedBossakScheme(*this) );
+    }
+
 
 
     //***************************************************************************

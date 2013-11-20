@@ -445,7 +445,7 @@ void ForceLoadCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem,
 
 	  if(calculated == false)
 	    {
-	      KRATOS_ERROR( std::logic_error, " ELEMENT can not supply the required local system variable: ",rLeftHandSideVariables[i] )
+	      KRATOS_ERROR( std::logic_error, " CONDITION can not supply the required local system variable: ",rLeftHandSideVariables[i] )
 	    }
 
 	}
@@ -482,10 +482,16 @@ void ForceLoadCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem,
 	    this->CalculateAndAddExternalForces( rRightHandSideVectors[i], rVariables, rVectorForce, rIntegrationWeight );
 	    calculated = true;
 	  }
+
+	  if( rRightHandSideVariables[i] == CONTACT_FORCES_VECTOR ){
+	    // operation performed: rRightHandSideVector += ContactForce*IntToReferenceWeight
+	    rRightHandSideVectors[i] += ZeroVector( rRightHandSideVectors[i].size() );
+	    calculated = true;
+	  }
 	  
 	  if(calculated == false)
 	    {
-	      KRATOS_ERROR( std::logic_error, " ELEMENT can not supply the required local system variable: ",rRightHandSideVariables[i] )
+	      KRATOS_ERROR( std::logic_error, " CONDITION can not supply the required local system variable: ",rRightHandSideVariables[i] )
 	    }
 
 	}
@@ -517,6 +523,33 @@ double& ForceLoadCondition::CalculateIntegrationWeight(double& rIntegrationWeigh
     return rIntegrationWeight;
 }
 
+
+//************************************************************************************
+//************************************************************************************
+
+void ForceLoadCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo )
+{
+    //create local system components
+    LocalSystemComponents LocalSystem;
+
+    //calculation flags
+    LocalSystem.CalculationFlags.Set(ForceLoadCondition::COMPUTE_LHS_MATRIX);
+
+    VectorType RightHandSideVector = Vector();
+
+    //Initialize sizes for the system components:
+    this->InitializeSystemMatrices( rLeftHandSideMatrix, RightHandSideVector, LocalSystem.CalculationFlags );
+
+    //Set Variables to Local system components
+    LocalSystem.SetLeftHandSideMatrix(rLeftHandSideMatrix);
+    LocalSystem.SetRightHandSideVector(RightHandSideVector);
+
+    //Calculate condition system
+    this->CalculateConditionSystem( LocalSystem, rCurrentProcessInfo );
+
+    //KRATOS_WATCH( rRightHandSideVector )
+
+}
 
 //************************************************************************************
 //************************************************************************************

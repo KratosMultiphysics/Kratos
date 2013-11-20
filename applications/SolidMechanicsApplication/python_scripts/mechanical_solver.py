@@ -109,6 +109,10 @@ class StructuralSolver:
         #definition of the default builder_and_solver:   
         self.block_builder = False    
         self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
+
+        #definition of the component wise calculation "computation is slower"
+        #(it affects to strategy, builder_and_solver, scheme and convergence_criterion)
+        self.component_wise = False
         
         #definition of computing flags
         self.compute_reactions = True
@@ -123,26 +127,24 @@ class StructuralSolver:
     #
     def Initialize(self):
 
+        #creating the builder and solver:                
+        self.SetBuilderAndSolver()
+
         #creating the solution scheme:
         self.SetSolutionScheme()
-        
-        #creating the builder and solver:
-        if(self.block_builder == True):
-            #to keep matrix blocks in builder
-            self.builder_and_solver = BlockResidualBasedBuilderAndSolver(self.linear_solver)
-        else:
-            self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
-
+                
         #creating the convergence criterion:
         self.SetConvergenceCriterion()
 
-        # creating the solution strategy
+        # creating the solution strategy (application strategy or python strategy)
         
         self.reform_step_dofs = False;
-        # option 1.- Application Strategy:    
-        self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion,self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
 
-        # option 2.- Phyton Strategy: (import solid_mechanics_python_strategy)
+        if(self.component_wise == True):
+            self.mechanical_solver = ComponentWiseNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion,self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
+        else:
+            self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion,self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
+
 
         (self.mechanical_solver).SetEchoLevel(self.echo_level)
 
@@ -182,6 +184,19 @@ class StructuralSolver:
         self.mechanical_solver.Check();
 
     #
+    def SetBuilderAndSolver(self):
+        
+        #type of builder and solver
+        if(self.component_wise == True):
+            self.builder_and_solver = ComponentWiseBuilderAndSolver(self.linear_solver)
+        else:
+            if(self.block_builder == True):
+                #to keep matrix blocks in builder
+                self.builder_and_solver = BlockResidualBasedBuilderAndSolver(self.linear_solver)
+            else:
+                self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
+
+    #
     def SetSolutionScheme(self):
 
        #type of solver (static,dynamic,quasi-static,pseudo-dynamic)
@@ -192,14 +207,20 @@ class StructuralSolver:
             self.damp_factor_f  =  0.00; 
             self.damp_factor_m  = -0.01; 
             self.dynamic_factor =  1;
-            self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m,self.dynamic_factor)
+            if(self.component_wise == True):
+                self.mechanical_scheme = ComponentWiseBossakScheme(self.damp_factor_m,self.dynamic_factor)
+            else:
+                self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m,self.dynamic_factor)
         elif(self.scheme_type == "QuasiStaticSolver"):
             #definition of time scheme
             self.damp_factor_f  =  0.00; 
             self.damp_factor_m  =  0.00; 
             self.dynamic_factor =  0; #quasi-static
-            #self.mechanical_scheme = ResidualBasedNewmarkScheme(self.dynamic_factor)
-            self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m,self.dynamic_factor)
+            if(self.component_wise == True):
+                self.mechanical_scheme = ComponentWiseBossakScheme(self.damp_factor_m,self.dynamic_factor)
+            else:
+                self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m,self.dynamic_factor)
+                #self.mechanical_scheme = ResidualBasedNewmarkScheme(self.dynamic_factor)
         elif(self.scheme_type == "PseudoDynamicSolver"):
             #definition of time scheme
             self.damp_factor_f  = -0.3; 
@@ -216,6 +237,7 @@ class StructuralSolver:
         R_AT = self.abs_res_tol; 
 
         if(self.rotation_dofs == True):
+
             if(self.convergence_criterion_type == "Displacement_criteria"):
                 self.mechanical_convergence_criterion  =  DisplacementCriteria(D_RT,D_AT)
             elif(self.convergence_criterion_type == "Residual_criteria"):
@@ -232,6 +254,7 @@ class StructuralSolver:
                 Displacement   =   MixedElementCriteria(D_RT,D_AT)
                 Residual       =   ResidualCriteria(R_RT,R_AT)
                 self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
+
         else:
 
             print " CONVERGENCE CRITERION (solid) : ",self.convergence_criterion_type
@@ -239,17 +262,23 @@ class StructuralSolver:
             if(self.convergence_criterion_type == "Displacement_criteria"):
                 self.mechanical_convergence_criterion  =  DisplacementConvergenceCriterion(D_RT,D_AT)
             elif(self.convergence_criterion_type == "Residual_criteria"):
-                #self.mechanical_convergence_criterion  =  ComponentWiseResidualConvergenceCriterion(R_RT,R_AT)
-                self.mechanical_convergence_criterion  =  ResidualCriteria(R_RT,R_AT)
+                if(self.component_wise == True):
+                    self.mechanical_convergence_criterion  =  ComponentWiseResidualConvergenceCriterion(R_RT,R_AT)
+                else:
+                    self.mechanical_convergence_criterion  =  ResidualCriteria(R_RT,R_AT)
             elif(self.convergence_criterion_type == "And_criteria"):
-                Displacement   =   DisplacementConvergenceCriterion(D_RT,D_AT)
-                #Residual       =   ComponentWiseResidualConvergenceCriterion(R_RT,R_AT)
-                Residual       =   ResidualCriteria(R_RT,R_AT)
+                Displacement   =   DisplacementConvergenceCriterion(D_RT,D_AT)                 
+                if(self.component_wise == True):
+                    Residual       =   ComponentWiseResidualConvergenceCriterion(R_RT,R_AT)
+                else:
+                    Residual       =   ResidualCriteria(R_RT,R_AT)
                 self.mechanical_convergence_criterion  = AndCriteria(Residual, Displacement)
             elif(self.convergence_criterion_type == "Or_criteria"):
                 Displacement   =   DisplacementConvergenceCriterion(D_RT,D_AT)
-                #Residual       =   ComponentWiseResidualConvergenceCriterion(R_RT,R_AT)
-                Residual       =   ResidualCriteria(R_RT,R_AT)
+                if(self.component_wise == True):
+                    Residual       =   ComponentWiseResidualConvergenceCriterion(R_RT,R_AT)
+                else:
+                    Residual       =   ResidualCriteria(R_RT,R_AT)
                 self.mechanical_convergence_criterion  = OrCriteria(Residual, Displacement)
             elif(self.convergence_criterion_type == "Mixed_criteria"):
                 Displacement   =   MixedElementConvergeCriteria(D_RT,D_AT)

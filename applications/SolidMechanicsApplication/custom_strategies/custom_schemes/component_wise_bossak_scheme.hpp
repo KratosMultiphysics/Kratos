@@ -51,26 +51,31 @@ public:
     /*@{ */
     KRATOS_CLASS_POINTER_DEFINITION( ComponentWiseBossakScheme );
 
-    typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
+    typedef Scheme<TSparseSpace,TDenseSpace>                            BaseType;
 
-    typedef typename BaseType::TDataType                         TDataType;
+    typedef typename BaseType::TDataType                               TDataType;
 
-    typedef typename BaseType::DofsArrayType                 DofsArrayType;
+    typedef typename BaseType::DofsArrayType                       DofsArrayType;
 
-    typedef typename Element::DofsVectorType                DofsVectorType;
+    typedef typename Element::DofsVectorType                      DofsVectorType;
 
-    typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
+    typedef typename BaseType::TSystemMatrixType               TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType         TSystemVectorType;
+    typedef typename BaseType::TSystemVectorType               TSystemVectorType;
 
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
+    typedef typename BaseType::LocalSystemVectorType       LocalSystemVectorType;
 
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    typedef typename BaseType::LocalSystemMatrixType       LocalSystemMatrixType;
 
-    typedef ModelPart::ElementsContainerType             ElementsArrayType;
+    typedef ModelPart::ElementsContainerType                   ElementsArrayType;
 
-    typedef ModelPart::ConditionsContainerType         ConditionsArrayType;
+    typedef ModelPart::ConditionsContainerType               ConditionsArrayType;
 
+    typedef typename BaseType::LocalSystemComponents   LocalSystemComponentsType;
+
+    typedef typename BaseType::Pointer                           BaseTypePointer;
+
+    typedef ResidualBasedBossakScheme<TSparseSpace,TDenseSpace>  DerivedBaseType;
 
     /*@} */
 
@@ -79,8 +84,30 @@ public:
      * The bossak method
      */
     ComponentWiseBossakScheme(double rAlpham=0,double rDynamic=1)
-      :ResidualBasedBossakScheme<TSparseSpace,TDenseSpace>(rAlpham,rDynamic)
+      :DerivedBaseType(rAlpham,rDynamic)
     {
+      mLocalSystem.Initialize();
+      std::cout<<" component wise bossak scheme selected "<<std::endl;
+    }
+
+
+    /** Copy Constructor.
+     */
+    ComponentWiseBossakScheme(ComponentWiseBossakScheme& rOther)
+      :DerivedBaseType(rOther)
+    {
+      mLocalSystem.Initialize();
+
+      //set local component variables for the elements
+      mLocalSystem.SetLHS_Element_Variables(rOther.mLocalSystem.GetLHS_Element_Variables());
+      mLocalSystem.SetRHS_Element_Variables(rOther.mLocalSystem.GetRHS_Element_Variables());   
+
+      //set local component variables for the conditions
+      mLocalSystem.SetLHS_Condition_Variables(rOther.mLocalSystem.GetLHS_Condition_Variables());
+      mLocalSystem.SetRHS_Condition_Variables(rOther.mLocalSystem.GetRHS_Condition_Variables());   
+      
+      //element components and condition components must be set by the builder_and_solver
+        
     }
 
     /** Destructor.
@@ -94,7 +121,17 @@ public:
      */
     /*@{ */
 
-    LocalSystemComponents& GetLocalSystemComponents()
+
+    /**
+     * Clone 
+     */
+    BaseTypePointer Clone()
+    {
+      return BaseTypePointer( new ComponentWiseBossakScheme(*this) );
+    }
+
+
+    LocalSystemComponentsType& GetLocalSystemComponents()
     {
       return mLocalSystem;
     }
@@ -117,23 +154,36 @@ public:
 
         //(rCurrentElement) -> InitializeNonLinearIteration(rCurrentProcessInfo);
 
+	bool LHS_Element_Components_Set = mLocalSystem.Are_LHS_Element_Components_Set();
 	std::vector<LocalSystemMatrixType>& rLHS_Components = mLocalSystem.GetLHS_Element_Components();
-	std::vector< Variable< LocalSystemMatrixType > >& rLHS_Variables = mLocalSystem.GetLHS_Element_Variables();
-	std::vector<LocalSystemVectorType>& rRHS_Components = mLocalSystem.GetRHS_Element_Components();
-	std::vector< Variable< LocalSystemVectorType > >& rRHS_Variables = mLocalSystem.GetRHS_Element_Variables();
+	const std::vector< Variable< LocalSystemMatrixType > >& rLHS_Variables = mLocalSystem.GetLHS_Element_Variables();
 
-	if( rRHS_Variables.size() > 0 && rLHS_Variables.size() > 0)
+	bool RHS_Element_Components_Set = mLocalSystem.Are_RHS_Element_Components_Set();
+	std::vector<LocalSystemVectorType>& rRHS_Components = mLocalSystem.GetRHS_Element_Components();
+	const std::vector< Variable< LocalSystemVectorType > >& rRHS_Variables = mLocalSystem.GetRHS_Element_Variables();
+
+
+	if( LHS_Element_Components_Set && RHS_Element_Components_Set )
 	  {
 
 	    //basic operations for the element considered
 	    (rCurrentElement) -> CalculateLocalSystem(rLHS_Components, rLHS_Variables, rRHS_Components, rRHS_Variables, rCurrentProcessInfo);
 
+	    if( rLHS_Contribution.size1() != rLHS_Components[0].size1() )
+	      rLHS_Contribution.resize(rLHS_Components[0].size1(), rLHS_Components[0].size2());	
+	    
+	    rLHS_Contribution.clear();
 
 	    for( unsigned int i=0; i<rLHS_Components.size(); i++ )
 	      {	    
 		rLHS_Contribution += rLHS_Components[i];
 	      }
 	
+	    if( rRHS_Contribution.size() != rRHS_Components[0].size() )
+	      rRHS_Contribution.resize(rRHS_Components[0].size());
+
+	    rRHS_Contribution.clear();
+
 	    for( unsigned int i=0; i<rRHS_Components.size(); i++ )
 	      {
 		rRHS_Contribution += rRHS_Components[i];
@@ -142,12 +192,17 @@ public:
 	  }
 	else
 	  {
-	    if( rRHS_Variables.size() > 0 )
+	    if( !LHS_Element_Components_Set && RHS_Element_Components_Set )
 	      {
 		(rCurrentElement) -> CalculateRightHandSide(rRHS_Components, rRHS_Variables, rCurrentProcessInfo);
 
 		(rCurrentElement) -> CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
 		
+		if( rRHS_Contribution.size() != rRHS_Components[0].size() )
+		  rRHS_Contribution.resize(rRHS_Components[0].size());
+
+		rRHS_Contribution.clear();
+
 		for( unsigned int i=0; i<rRHS_Components.size(); i++ )
 		  {
 		    rRHS_Contribution += rRHS_Components[i];
@@ -155,13 +210,20 @@ public:
 		
 
 	      }
-	    else if ( rRHS_Variables.size() > 0 )
+	    else if ( LHS_Element_Components_Set && !RHS_Element_Components_Set )
 	      {
-		
+	
+		KRATOS_ERROR( std::logic_error, " scheme asks for a unusual Element LHS components not implemented ", "" )
+
 		(rCurrentElement) -> CalculateLeftHandSide(rLHS_Components, rLHS_Variables, rCurrentProcessInfo);
 
 		(rCurrentElement) -> CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
 		
+		if( rLHS_Contribution.size1() != rLHS_Components[0].size1() )
+		  rLHS_Contribution.resize(rLHS_Components[0].size1(), rLHS_Components[0].size2());	
+
+		rLHS_Contribution.clear();
+
 		for( unsigned int i=0; i<rLHS_Components.size(); i++ )
 		  {
 		    rLHS_Contribution += rLHS_Components[i];
@@ -179,23 +241,23 @@ public:
 	  }
 	
 
-        if(mNewmark.static_dynamic !=0)
+        if(this->mNewmark.static_dynamic !=0)
         {
 
-            (rCurrentElement) -> MassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
+            (rCurrentElement) -> MassMatrix(this->mMatrix.M[thread], rCurrentProcessInfo);
 
-            (rCurrentElement) -> DampMatrix(mMatrix.D[thread], rCurrentProcessInfo);
+            (rCurrentElement) -> DampMatrix(this->mMatrix.D[thread], rCurrentProcessInfo);
 
         }
 
         (rCurrentElement) -> EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-        if(mNewmark.static_dynamic !=0)
+        if(this->mNewmark.static_dynamic !=0)
         {
 
-            AddDynamicsToLHS (rLHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+            this->AddDynamicsToLHS (rLHS_Contribution, this->mMatrix.D[thread], this->mMatrix.M[thread], rCurrentProcessInfo);
 
-            AddDynamicsToRHS (rCurrentElement, rRHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+            this->AddDynamicsToRHS (rCurrentElement, rRHS_Contribution, this->mMatrix.D[thread], this->mMatrix.M[thread], rCurrentProcessInfo);
 
         }
 
@@ -221,14 +283,20 @@ public:
         //Initializing the non linear iteration for the current element
         //(rCurrentElement) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
+	bool RHS_Element_Components_Set = mLocalSystem.Are_RHS_Element_Components_Set();
 	std::vector<LocalSystemVectorType>& rRHS_Components = mLocalSystem.GetRHS_Element_Components();
-	std::vector< Variable< LocalSystemVectorType > >& rRHS_Variables = mLocalSystem.GetRHS_Element_Variables();
+	const std::vector< Variable< LocalSystemVectorType > >& rRHS_Variables = mLocalSystem.GetRHS_Element_Variables();
 
-	if( rRHS_Variables.size() > 0 )
+	if( RHS_Element_Components_Set )
 	  {
 	    //basic operations for the element considered
 	    (rCurrentElement) -> CalculateRightHandSide(rRHS_Components, rRHS_Variables, rCurrentProcessInfo);
 	
+	    if( rRHS_Contribution.size() != rRHS_Components[0].size() )
+	      rRHS_Contribution.resize(rRHS_Components[0].size());
+
+	    rRHS_Contribution.clear();
+
 	    for( unsigned int i=0; i<rRHS_Components.size(); i++ )
 	      {
 		rRHS_Contribution += rRHS_Components[i];
@@ -241,20 +309,20 @@ public:
 	  }
 	
 
-        if(mNewmark.static_dynamic !=0)
+        if(this->mNewmark.static_dynamic !=0)
         {
 
-            (rCurrentElement) -> MassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
+            (rCurrentElement) -> MassMatrix(this->mMatrix.M[thread], rCurrentProcessInfo);
 
-            (rCurrentElement) -> DampMatrix(mMatrix.D[thread], rCurrentProcessInfo);
+            (rCurrentElement) -> DampMatrix(this->mMatrix.D[thread], rCurrentProcessInfo);
         }
 
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        (rCurrentElement) -> EquationIdVector(rEquationId,rCurrentProcessInfo);
 
-        if(mNewmark.static_dynamic !=0)
+        if(this->mNewmark.static_dynamic !=0)
         {
 
-            AddDynamicsToRHS (rCurrentElement, rRHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+            this->AddDynamicsToRHS (rCurrentElement, rRHS_Contribution, this->mMatrix.D[thread], this->mMatrix.M[thread], rCurrentProcessInfo);
         }
 
         KRATOS_CATCH( "" )
@@ -283,23 +351,35 @@ public:
         //Initializing the non linear iteration for the current element
         //(rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
+	bool LHS_Condition_Components_Set = mLocalSystem.Are_LHS_Condition_Components_Set();
 	std::vector<LocalSystemMatrixType>& rLHS_Components = mLocalSystem.GetLHS_Condition_Components();
-	std::vector< Variable< LocalSystemMatrixType > >& rLHS_Variables = mLocalSystem.GetLHS_Condition_Variables();
-	std::vector<LocalSystemVectorType>& rRHS_Components = mLocalSystem.GetRHS_Condition_Components();
-	std::vector< Variable< LocalSystemVectorType > >& rRHS_Variables = mLocalSystem.GetRHS_Condition_Variables();
+	const std::vector< Variable< LocalSystemMatrixType > >& rLHS_Variables = mLocalSystem.GetLHS_Condition_Variables();
 
-	if( rRHS_Variables.size() > 0 && rLHS_Variables.size() > 0)
+	bool RHS_Condition_Components_Set = mLocalSystem.Are_RHS_Condition_Components_Set();
+	std::vector<LocalSystemVectorType>& rRHS_Components = mLocalSystem.GetRHS_Condition_Components();
+	const std::vector< Variable< LocalSystemVectorType > >& rRHS_Variables = mLocalSystem.GetRHS_Condition_Variables();
+
+	if( LHS_Condition_Components_Set && RHS_Condition_Components_Set )
 	  {
 
 	    //basic operations for the element considered
 	    (rCurrentCondition) -> CalculateLocalSystem(rLHS_Components, rLHS_Variables, rRHS_Components, rRHS_Variables, rCurrentProcessInfo);
 
+	    if( rLHS_Contribution.size1() != rLHS_Components[0].size1() )
+	      rLHS_Contribution.resize(rLHS_Components[0].size1(), rLHS_Components[0].size2());	
+
+	    rLHS_Contribution.clear();
 
 	    for( unsigned int i=0; i<rLHS_Components.size(); i++ )
 	      {	    
 		rLHS_Contribution += rLHS_Components[i];
 	      }
 	
+	    if( rRHS_Contribution.size() != rRHS_Components[0].size() )
+	      rRHS_Contribution.resize(rRHS_Components[0].size());
+
+	    rRHS_Contribution.clear();
+		
 	    for( unsigned int i=0; i<rRHS_Components.size(); i++ )
 	      {
 		rRHS_Contribution += rRHS_Components[i];
@@ -308,32 +388,46 @@ public:
 	  }
 	else
 	  {
-	    if( rRHS_Variables.size() > 0 )
+	    if( !LHS_Condition_Components_Set && RHS_Condition_Components_Set )
 	      {
 		(rCurrentCondition) -> CalculateRightHandSide(rRHS_Components, rRHS_Variables, rCurrentProcessInfo);
 
 		(rCurrentCondition) -> CalculateLeftHandSide(rLHS_Contribution, rCurrentProcessInfo);
 		
+		if( rRHS_Contribution.size() != rRHS_Components[0].size() )
+		  rRHS_Contribution.resize(rRHS_Components[0].size());
+
+		rRHS_Contribution.clear();
+
 		for( unsigned int i=0; i<rRHS_Components.size(); i++ )
 		  {
 		    rRHS_Contribution += rRHS_Components[i];
+
+		    //std::cout<<" Condition ["<<(rCurrentCondition) -> Id()<<"] :"<<rRHS_Contribution<<" and "<<rRHS_Components[i]<<std::endl;
 		  }
+
 		
 
 	      }
-	    else if ( rRHS_Variables.size() > 0 )
+	    else if ( LHS_Condition_Components_Set && !RHS_Condition_Components_Set )
 	      {
 		
+		KRATOS_ERROR( std::logic_error, " scheme asks for a unusual Condition LHS components not implemented ", "" )
+
 		(rCurrentCondition) -> CalculateLeftHandSide(rLHS_Components, rLHS_Variables, rCurrentProcessInfo);
 
 		(rCurrentCondition) -> CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
 		
+		if( rLHS_Contribution.size1() != rLHS_Components[0].size1() )
+		  rLHS_Contribution.resize(rLHS_Components[0].size1(), rLHS_Components[0].size2());	
+		
+		rLHS_Contribution.clear();
+
 		for( unsigned int i=0; i<rLHS_Components.size(); i++ )
 		  {
 		    rLHS_Contribution += rLHS_Components[i];
 		  }
 		
-
 	      }
 	    else
 	      {
@@ -344,23 +438,23 @@ public:
 
 	  }
 	    	    
-        if(mNewmark.static_dynamic !=0)
+        if(this->mNewmark.static_dynamic !=0)
         {
 
-            (rCurrentCondition) -> MassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
+            (rCurrentCondition) -> MassMatrix(this->mMatrix.M[thread], rCurrentProcessInfo);
 
-            (rCurrentCondition) -> DampMatrix(mMatrix.D[thread], rCurrentProcessInfo);
+            (rCurrentCondition) -> DampMatrix(this->mMatrix.D[thread], rCurrentProcessInfo);
 
         }
 
         (rCurrentCondition) -> EquationIdVector(rEquationId, rCurrentProcessInfo);
 
-        if(mNewmark.static_dynamic !=0)
+        if(this->mNewmark.static_dynamic !=0)
         {
 
-            AddDynamicsToLHS  (rLHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+            this->AddDynamicsToLHS  (rLHS_Contribution, this->mMatrix.D[thread], this->mMatrix.M[thread], rCurrentProcessInfo);
 
-            AddDynamicsToRHS  (rCurrentCondition, rRHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+            this->AddDynamicsToRHS  (rCurrentCondition, rRHS_Contribution, this->mMatrix.D[thread], this->mMatrix.M[thread], rCurrentProcessInfo);
         }
 
         //AssembleTimeSpaceLHS_Condition(rCurrentCondition, rLHS_Contribution, DampMatrix, MassMatrix,CurrentProcessInfo);
@@ -384,14 +478,20 @@ public:
         //Initializing the non linear iteration for the current condition
         //(rCurrentCondition) -> InitializeNonLinearIteration(CurrentProcessInfo);
 
+	bool RHS_Condition_Components_Set = mLocalSystem.Are_RHS_Condition_Components_Set();
 	std::vector<LocalSystemVectorType>& rRHS_Components = mLocalSystem.GetRHS_Condition_Components();
-	std::vector< Variable< LocalSystemVectorType > >& rRHS_Variables = mLocalSystem.GetRHS_Condition_Variables();
+	const std::vector< Variable< LocalSystemVectorType > >& rRHS_Variables = mLocalSystem.GetRHS_Condition_Variables();
 
-	if( rRHS_Variables.size() > 0 )
+	if( RHS_Condition_Components_Set )
 	  {
 	    //basic operations for the element considered
 	    (rCurrentCondition) -> CalculateRightHandSide(rRHS_Components, rRHS_Variables, rCurrentProcessInfo);
 	
+	    if( rRHS_Contribution.size() != rRHS_Components[0].size() )
+	      rRHS_Contribution.resize(rRHS_Components[0].size());
+
+	    rRHS_Contribution.clear();
+
 	    for( unsigned int i=0; i<rRHS_Components.size(); i++ )
 	      {
 		rRHS_Contribution += rRHS_Components[i];
@@ -403,12 +503,12 @@ public:
 	    (rCurrentCondition) -> CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
 	  }
 
-        if(mNewmark.static_dynamic !=0)
+        if(this->mNewmark.static_dynamic !=0)
         {
 
-            (rCurrentCondition) -> MassMatrix(mMatrix.M[thread], rCurrentProcessInfo);
+            (rCurrentCondition) -> MassMatrix(this->mMatrix.M[thread], rCurrentProcessInfo);
 
-            (rCurrentCondition) -> DampMatrix(mMatrix.D[thread], rCurrentProcessInfo);
+            (rCurrentCondition) -> DampMatrix(this->mMatrix.D[thread], rCurrentProcessInfo);
 
         }
 
@@ -416,10 +516,10 @@ public:
 
         //adding the dynamic contributions (static is already included)
 
-        if(mNewmark.static_dynamic !=0)
+        if(this->mNewmark.static_dynamic !=0)
         {
 
-            AddDynamicsToRHS  (rCurrentCondition, rRHS_Contribution, mMatrix.D[thread], mMatrix.M[thread], rCurrentProcessInfo);
+            this->AddDynamicsToRHS  (rCurrentCondition, rRHS_Contribution, this->mMatrix.D[thread], this->mMatrix.M[thread], rCurrentProcessInfo);
 
         }
 
@@ -468,7 +568,7 @@ private:
     /*@} */
     /**@name Member Variables */
     /*@{ */
-    LocalSystemComponents mLocalSystem;
+    LocalSystemComponentsType mLocalSystem;
     /*@} */
     /**@name Private Operators*/
     /*@{ */

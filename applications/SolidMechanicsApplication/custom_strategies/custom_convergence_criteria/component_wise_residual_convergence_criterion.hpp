@@ -156,9 +156,9 @@ public:
             if(residual_norm/ratio_norm !=1 && ratio_norm!=0)
                 ratio/=ratio_norm;
 
-            std::cout<<" SIZES (A:"<<A.size1()<<"x"<<A.size2()<<", b:"<<b.size()<<")"<<std::endl;
+            //std::cout<<" SIZES (A:"<<A.size1()<<"x"<<A.size2()<<", b:"<<b.size()<<")"<<std::endl;
 
-            std::cout <<" residual_norm = " << residual_norm << ";  ratio_norm = " << ratio_norm  << std::endl;
+            //std::cout <<" residual_norm = " << residual_norm << ";  ratio_norm = " << ratio_norm  << std::endl;
 
             std::cout <<" RESIDUAL FORCES :: ratio = --"<< ratio <<"-- ;  (Expected ratio = " << mRatioTolerance <<", Absolute tol reached = " << residual_norm <<")"<< std::endl;
 
@@ -320,14 +320,22 @@ private:
 
         //set norms from component vectors
 	rforce_norm.dynamic  = TSparseSpace::TwoNorm(mRHS_Element_Components[0]);   // external forces from elements weight
+	//std::cout<<" element external "<<mRHS_Element_Components[0]<<std::endl;
+
 	rforce_norm.internal = TSparseSpace::TwoNorm(mRHS_Element_Components[1]);   // interal forces from elements
 
+	//std::cout<<" element internal "<<mRHS_Element_Components[1]<<std::endl;
+
 	rforce_norm.external = TSparseSpace::TwoNorm(mRHS_Condition_Components[0]); // external forces from conditions
+	//std::cout<<" condition external "<<mRHS_Condition_Components[0]<<std::endl;
+
 	rforce_norm.reaction = TSparseSpace::TwoNorm(mRHS_Condition_Components[1]); // contact forces from conditions
+
+	//std::cout<<" condition contact "<<mRHS_Condition_Components[1]<<std::endl;
 
 	rforce_norm.residual = rresidual_norm;
 
-        std::cout<<" NORMS (internal:"<<rforce_norm.internal<<", external:"<<rforce_norm.external<<", dynamic:"<<rforce_norm.dynamic<<", reaction:"<<rforce_norm.reaction<<", residual:"<<rforce_norm.residual<<", total_residual:"<<rresidual_norm<<", delta_disp_residual:"<<rdelta_disp_norm<<" ) "<<std::endl;
+        //std::cout<<" NORMS (internal:"<<rforce_norm.internal<<", external:"<<rforce_norm.external<<", dynamic:"<<rforce_norm.dynamic<<", reaction:"<<rforce_norm.reaction<<", residual:"<<rforce_norm.residual<<", total_residual:"<<rresidual_norm<<", delta_disp_residual:"<<rdelta_disp_norm<<" ) "<<std::endl;
 
 
         if(rdelta_disp_norm == rresidual_norm) //is not the norm of the residual,is the norm of the Dx (SuperLU)

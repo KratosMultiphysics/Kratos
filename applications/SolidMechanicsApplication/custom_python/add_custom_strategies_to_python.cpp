@@ -24,21 +24,25 @@
 
 //strategies
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "custom_strategies/residual_based_newton_raphson_strategy.hpp"
+#include "custom_strategies/component_wise_newton_raphson_strategy.hpp"
 #include "custom_strategies/residual_based_newton_raphson_line_search_strategy.hpp"
 
 //builders and solvers
 #include "custom_strategies/custom_builders_and_solvers/residual_based_builder_and_solver.hpp"
+#include "custom_strategies/custom_builders_and_solvers/component_wise_builder_and_solver.hpp"
 #include "custom_strategies/custom_builders_and_solvers/block_residual_based_builder_and_solver.hpp"
 
 //convergence criteria
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
-#include "custom_strategies/custom_convergence_criteria/component_wise_residual_convergence_criterion.hpp"
 #include "custom_strategies/custom_convergence_criteria/displacement_convergence_criterion.hpp"
+#include "custom_strategies/custom_convergence_criteria/component_wise_residual_convergence_criterion.hpp"
 
 //schemes
 #include "custom_strategies/custom_schemes/residual_based_static_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_newmark_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_bossak_scheme.hpp"
+#include "custom_strategies/custom_schemes/component_wise_bossak_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_rotation_bossak_scheme.hpp"
 #include "custom_strategies/custom_schemes/residual_based_relaxation_scheme.hpp"
 
@@ -62,22 +66,33 @@ void  AddCustomStrategiesToPython()
     //base types
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
-    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
-    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
-
     typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
+    typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+    typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 
 
-    //custom types
+    //custom strategy types
+    typedef ResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonStrategyType;
+    typedef ComponentWiseNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ComponentWiseNewtonRaphsonStrategyType;
+    typedef ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedNewtonRaphsonLineSearchStrategyType;
+
+    //custom builder_and_solver types
+    typedef ResidualBasedBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBuilderAndSolverType;
+    typedef ComponentWiseBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ComponentWiseBuilderAndSolverType;
+    typedef BlockResidualBasedBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BlockResidualBasedBuilderAndSolverType;
+
+    //custom scheme types
     typedef ResidualBasedStaticScheme< SparseSpaceType, LocalSpaceType > ResidualBasedStaticSchemeType;
     typedef ResidualBasedNewmarkScheme< SparseSpaceType, LocalSpaceType > ResidualBasedNewmarkSchemeType;
     typedef ResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedBossakSchemeType;
-
-    // typedef ResidualBasedPredictorCorrectorBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedPredictorCorrectorBossakSchemeType;
-
+    typedef ComponentWiseBossakScheme< SparseSpaceType, LocalSpaceType >  ComponentWiseBossakSchemeType;
     typedef ResidualBasedRotationBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRotationBossakSchemeType;
     typedef ResidualBasedRelaxationScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedRelaxationSchemeType;
 
+
+    //custom convergence criterion types
+    typedef DisplacementConvergenceCriterion< SparseSpaceType,  LocalSpaceType > DisplacementConvergenceCriterionType;
+    typedef ComponentWiseResidualConvergenceCriterion< SparseSpaceType,  LocalSpaceType > ComponentWiseResidualConvergenceCriterionType;
 
 
     //********************************************************************
@@ -85,29 +100,38 @@ void  AddCustomStrategiesToPython()
     //********************************************************************
 
     // Residual Based Builder and Solver
-    typedef ResidualBasedBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBuilderAndSolverType;
+    class_< ResidualBasedBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > 
+            (
+	      "ResidualBasedBuilderAndSolver", init< LinearSolverType::Pointer > ()
+            );
 
-    class_< ResidualBasedBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > ("ResidualBasedBuilderAndSolver", init< LinearSolverType::Pointer > ());
+    // Component Wise Builder and Solver
+    class_< ComponentWiseBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > 
+            (
+              "ComponentWiseBuilderAndSolver", init< LinearSolverType::Pointer > ()
+            );
 
-
-    // Block Residual Based Builder and Solver
-    typedef BlockResidualBasedBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BlockResidualBasedBuilderAndSolverType;
-    class_< BlockResidualBasedBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > ("BlockResidualBasedBuilderAndSolver", init< LinearSolverType::Pointer > ());
+    // Block Residual Based Builder and Solver   
+    class_< BlockResidualBasedBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > 
+            (
+              "BlockResidualBasedBuilderAndSolver", init< LinearSolverType::Pointer > ()
+            );
 
 
     //********************************************************************
     //*************************SHCHEME CLASSES****************************
     //********************************************************************
 
+    // Static Scheme Type
     class_< ResidualBasedStaticSchemeType,
-            bases< BaseSchemeType >, boost::noncopyable >
+	    bases< BaseSchemeType >, boost::noncopyable >
             (
-                "ResidualBasedStaticScheme", init< >() )
-
+	         "ResidualBasedStaticScheme", init< >() )
+      
             .def("Initialize", &ResidualBasedStaticScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-
             ;
 
+    // Residual Based Newmark Scheme Type
     class_< ResidualBasedNewmarkSchemeType,
             bases< BaseSchemeType >, boost::noncopyable >
             (
@@ -117,6 +141,7 @@ void  AddCustomStrategiesToPython()
 
             ;
 
+    // Residual Based Bossak Scheme Type
     class_< ResidualBasedBossakSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >
             (
@@ -125,7 +150,16 @@ void  AddCustomStrategiesToPython()
             .def("Initialize", &ResidualBasedBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;
 
+    // Component Wise Bossak Scheme Type
+    class_< ComponentWiseBossakSchemeType,
+            bases< BaseSchemeType >,  boost::noncopyable >
+            (
+                "ComponentWiseBossakScheme", init< double , double >() )
 
+            .def("Initialize", &ComponentWiseBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            ;
+
+    // Residual Based Rotational Bossak Scheme Type
     class_< ResidualBasedRotationBossakSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >
             (
@@ -135,7 +169,7 @@ void  AddCustomStrategiesToPython()
             ;
 
 
-
+    // Residual Based Relaxation Scheme Type
     class_< ResidualBasedRelaxationSchemeType,
             bases< BaseSchemeType >,  boost::noncopyable >
             (
@@ -143,21 +177,22 @@ void  AddCustomStrategiesToPython()
 
             .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize)
             ;
+
     //********************************************************************
     //*******************CONVERGENCE CRITERIA CLASSES*********************
     //********************************************************************
 
-
-    class_< DisplacementConvergenceCriterion< SparseSpaceType,  LocalSpaceType > ,
-            bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
+    // Displacement Convergence Criterion
+    class_< DisplacementConvergenceCriterionType,
+            bases< ConvergenceCriteriaType >, boost::noncopyable >
             (
                 "DisplacementConvergenceCriterion", init<double, double >()
             );
 
 
-
-    class_< ComponentWiseResidualConvergenceCriterion< SparseSpaceType,  LocalSpaceType > ,
-            bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
+    // Component Wise Residual Convergence Criterion
+    class_< ComponentWiseResidualConvergenceCriterionType,
+            bases< ConvergenceCriteriaType >, boost::noncopyable >
             (
                 "ComponentWiseResidualConvergenceCriterion", init<double, double >()
             );
@@ -168,21 +203,51 @@ void  AddCustomStrategiesToPython()
     //*************************STRATEGY CLASSES***************************
     //********************************************************************
 
-    // class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,
-    // 	      bases< BaseSolvingStrategyType >,  boost::noncopyable >
-    // ("TestStrategy",
-    //  init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
-    // .def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
-    // ;
 
-    class_< ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >, bases< BaseSolvingStrategyType >, boost::noncopyable >
-      ("ResidualBasedNewtonRaphsonLineSearchStrategy",
-       init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaBaseType::Pointer, int, bool, bool, bool >())
-      .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaBaseType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
-      .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetMaxIterationNumber)
-      .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetMaxIterationNumber)
-      .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::SetKeepSystemConstantDuringIterations)
-      .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::GetKeepSystemConstantDuringIterations);
+    // Residual Based Newton-Raphson Strategy
+    class_< ResidualBasedNewtonRaphsonStrategyType, 
+	    bases< BaseSolvingStrategyType >, boost::noncopyable >
+            (
+	     "ResidualBasedNewtonRaphsonStrategy",
+	     init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool
+	     >())
+      
+           .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+           .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategyType::SetMaxIterationNumber)
+           .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonStrategyType::GetMaxIterationNumber)
+           .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
+           .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
+      ;
+
+    // Component Wise Newton-Raphson Strategy
+    class_< ComponentWiseNewtonRaphsonStrategyType, 
+	    bases< BaseSolvingStrategyType >, boost::noncopyable >
+            (
+	     "ComponentWiseNewtonRaphsonStrategy",
+	     init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool
+	     >())
+      
+           .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+           .def("SetMaxIterationNumber", &ComponentWiseNewtonRaphsonStrategyType::SetMaxIterationNumber)
+           .def("GetMaxIterationNumber", &ComponentWiseNewtonRaphsonStrategyType::GetMaxIterationNumber)
+           .def("SetKeepSystemConstantDuringIterations", &ComponentWiseNewtonRaphsonStrategyType::SetKeepSystemConstantDuringIterations)
+           .def("GetKeepSystemConstantDuringIterations", &ComponentWiseNewtonRaphsonStrategyType::GetKeepSystemConstantDuringIterations)
+      ;
+  
+    // Residual Based Newton-Raphson Line Search Strategy
+    class_< ResidualBasedNewtonRaphsonLineSearchStrategyType, 
+	    bases< BaseSolvingStrategyType >, boost::noncopyable >
+            (
+	     "ResidualBasedNewtonRaphsonLineSearchStrategy",
+	     init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, int, bool, bool, bool
+	     >())
+      
+           .def(init < ModelPart&, BaseSchemeType::Pointer, LinearSolverType::Pointer, ConvergenceCriteriaType::Pointer, BuilderAndSolverType::Pointer, int, bool, bool, bool >())
+           .def("SetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetMaxIterationNumber)
+           .def("GetMaxIterationNumber", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetMaxIterationNumber)
+           .def("SetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategyType::SetKeepSystemConstantDuringIterations)
+           .def("GetKeepSystemConstantDuringIterations", &ResidualBasedNewtonRaphsonLineSearchStrategyType::GetKeepSystemConstantDuringIterations)
+      ;
 	   
 
 

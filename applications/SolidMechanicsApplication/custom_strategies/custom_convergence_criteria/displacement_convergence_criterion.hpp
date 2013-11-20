@@ -129,7 +129,7 @@ public:
 	        ratio = 1;
 
 
-            std::cout << "delta_disp_norm = " << delta_disp_norm << ";  disp_norm = " << disp_norm << std::endl;
+            //std::cout << "delta_disp_norm = " << delta_disp_norm << ";  disp_norm = " << disp_norm << std::endl;
 
             std::cout << "DISP_TOTAL :: ratio = --" << ratio << "-- ;  (Expected ratio = " << mRatioTolerance <<", Absolute tol reached = " << disp_norm <<")"<< std::endl;
 

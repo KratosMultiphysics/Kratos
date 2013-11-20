@@ -635,7 +635,7 @@ void LargeDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
         this->SetGeneralVariables(Variables,Values,PointNumber);
 
         //compute stresses and constitutive parameters
-        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values,Variables.StressMeasure);
+        mConstitutiveLawVector[PointNumber]->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
         //calculating weights for integration on the "reference configuration"
         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;

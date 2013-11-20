@@ -332,6 +332,15 @@ public:
 				ProcessInfo& rCurrentProcessInfo);
 
     /**
+     * this is called during the assembling process in order
+     * to calculate the condition left hand side matrix only
+     * @param rLeftHandSideMatrix: the condition left hand side matrix
+     * @param rCurrentProcessInfo: the current process info instance
+     */
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, 
+			       ProcessInfo& rCurrentProcessInfo);
+
+    /**
       * this is called during the assembling process in order
       * to calculate the condition mass matrix
       * @param rMassMatrix: the condition mass matrix
