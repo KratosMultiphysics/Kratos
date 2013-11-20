@@ -512,7 +512,7 @@ public:
 	BaseType::mCalculateReactionsFlag = false;
 
 
-        Build(pScheme, r_model_part, A, b);
+        this->Build(pScheme, r_model_part, A, b);
 
 	//recovering the reactions flag
 	BaseType::mCalculateReactionsFlag = CalculateReactionsFlag;
@@ -579,7 +579,7 @@ public:
         bool CalculateReactionsFlag = BaseType::mCalculateReactionsFlag;
 	BaseType::mCalculateReactionsFlag = false;
 
-	BuildRHS(pScheme, r_model_part, b);
+	this->BuildRHS(pScheme, r_model_part, b);
 
 	//recovering the reactions flag
 	BaseType::mCalculateReactionsFlag = CalculateReactionsFlag;
@@ -987,7 +987,7 @@ public:
         TSystemVectorType& b)
     {
         //refresh RHS to have the correct reactions
-        BuildRHS(pScheme, r_model_part, b);
+        this->BuildRHS(pScheme, r_model_part, b);
 
         int i;
         int systemsize = BaseType::mDofSet.size() - TSparseSpace::Size(*BaseType::mpReactionsVector);
@@ -1413,6 +1413,7 @@ protected:
         std::vector< omp_lock_t >& lock_array
     )
     {
+
         unsigned int local_size = RHS_Contribution.size();
 
         if (BaseType::mCalculateReactionsFlag == false) //if we don't need to calculate reactions

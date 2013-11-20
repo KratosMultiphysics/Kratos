@@ -89,10 +89,10 @@ public:
     typedef ConvergenceCriteria<TSparseSpace, TDenseSpace> TConvergenceCriteriaType;
 
     /** Counted pointer of ClassName */
-    //typedef boost::shared_ptr< ComponentWiseNewtonRaphsonStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
     KRATOS_CLASS_POINTER_DEFINITION( ComponentWiseNewtonRaphsonStrategy );
 
     typedef SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
 
     typedef typename BaseType::TDataType TDataType;
@@ -100,8 +100,6 @@ public:
     typedef TSparseSpace SparseSpaceType;
 
     typedef typename BaseType::TSchemeType TSchemeType;
-
-    //typedef typename BaseType::DofSetType DofSetType;
 
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
@@ -114,8 +112,10 @@ public:
     typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
 
     typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
+ 
     typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
 
+    typedef typename TBuilderAndSolverType::GlobalSystemComponents GlobalSystemComponentsType;
 
     /*@} */
     /**@name Life Cycle
@@ -134,60 +134,60 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
     )
-      : SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
+      : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, MoveMeshFlag)
     {
         KRATOS_TRY
 
-        mKeepSystemConstantDuringIterations = false;
+	this->mKeepSystemConstantDuringIterations = false;
 
         //set flags to default values
-        SetMaxIterationNumber(MaxIterations);
-        mCalculateReactionsFlag = CalculateReactions;
+        this->SetMaxIterationNumber(MaxIterations);
+        this->mCalculateReactionsFlag = CalculateReactions;
 
 
-        mReformDofSetAtEachStep = ReformDofSetAtEachStep;
+        this->mReformDofSetAtEachStep = ReformDofSetAtEachStep;
 
         //saving the convergence criteria to be used
-        mpConvergenceCriteria = pNewConvergenceCriteria;
+        this->mpConvergenceCriteria = pNewConvergenceCriteria;
 
         //saving the scheme
-        mpScheme = pScheme;
+        this->mpScheme = pScheme;
 
         //saving the linear solver
-        mpLinearSolver = pNewLinearSolver;
+        this->mpLinearSolver = pNewLinearSolver;
 
         //setting up the default builder and solver
-        mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
-                             (
-                                 new ComponentWiseBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (mpLinearSolver)
-                             );
+        this->mpBuilderAndSolver = typename TBuilderAndSolverType::Pointer
+	  (
+	   new ComponentWiseBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver > (this->mpLinearSolver)
+	   );
 
         //set flags to start correcty the calculations
-        mSolutionStepIsInitialized = false;
-        mInitializeWasPerformed = false;
+        this->mSolutionStepIsInitialized = false;
+        this->mInitializeWasPerformed = false;
 
         //tells to the builder and solver if the reactions have to be Calculated or not
-        GetBuilderAndSolver()->SetCalculateReactionsFlag(mCalculateReactionsFlag);
+        this->GetBuilderAndSolver()->SetCalculateReactionsFlag(this->mCalculateReactionsFlag);
 
         //tells to the Builder And Solver if the system matrix and vectors need to
         //be reshaped at each step or not
-        GetBuilderAndSolver()->SetReshapeMatrixFlag(mReformDofSetAtEachStep);
+        this->GetBuilderAndSolver()->SetReshapeMatrixFlag(this->mReformDofSetAtEachStep);
 
         //set EchoLevel to the default value (only time is displayed)
-        SetEchoLevel(1);
+        this->SetEchoLevel(1);
 
         //by default the matrices are rebuilt at each iteration
         this->SetRebuildLevel(2);
 
 
 	//component-wise options
-	BuilderAndSolver::GlobalSystemComponents& rGlobalSystem = mpBuilderAndSolver.GetGlobalSystemComponents();
+	GlobalSystemComponentsType& rGlobalSystem = this->mpBuilderAndSolver->GetGlobalSystemComponents();
 	
-	rGlobalSystem.SetRHS_Element_Components( mpConvergenceCriteria->GetRHS_Element_Components() );
-	rGlobalSystem.SetRHS_Element_Variables( mpConvergenceCriteria->GetRHS_Element_Variables() );
+	rGlobalSystem.SetRHS_Element_Components( this->mpConvergenceCriteria->GetRHS_Element_Components() );
+	rGlobalSystem.SetRHS_Element_Variables( this->mpConvergenceCriteria->GetRHS_Element_Variables() );
 
-	rGlobalSystem.SetRHS_Condition_Components( mpConvergenceCriteria->GetRHS_Condition_Components() );
-	rGlobalSystem.SetRHS_Condition_Variables( mpConvergenceCriteria->GetRHS_Condition_Variables() );
+	rGlobalSystem.SetRHS_Condition_Components( this->mpConvergenceCriteria->GetRHS_Condition_Components() );
+	rGlobalSystem.SetRHS_Condition_Variables( this->mpConvergenceCriteria->GetRHS_Condition_Variables() );
 	//component-wise options
 
 
@@ -205,18 +205,20 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
     )
-      : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, mNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+      : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme, pNewLinearSolver, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
     {
         KRATOS_TRY
+	  
+        std::cout<<" Using the Component Wise Newton-Raphson Strategy "<<std::endl;
 
 	//component-wise options
-	BuilderAndSolver::GlobalSystemComponents& rGlobalSystem = mpBuilderAndSolver.GetGlobalSystemComponents();
+	GlobalSystemComponentsType& rGlobalSystem = this->mpBuilderAndSolver->GetGlobalSystemComponents();
 	
-	rGlobalSystem.SetRHS_Element_Components( mpConvergenceCriteria->GetRHS_Element_Components() );
-	rGlobalSystem.SetRHS_Element_Variables( mpConvergenceCriteria->GetRHS_Element_Variables() );
+	rGlobalSystem.SetRHS_Element_Components( this->mpConvergenceCriteria->GetRHS_Element_Components() );
+	rGlobalSystem.SetRHS_Element_Variables( this->mpConvergenceCriteria->GetRHS_Element_Variables() );
 
-	rGlobalSystem.SetRHS_Condition_Components( mpConvergenceCriteria->GetRHS_Condition_Components() );
-	rGlobalSystem.SetRHS_Condition_Variables( mpConvergenceCriteria->GetRHS_Condition_Variables() );
+	rGlobalSystem.SetRHS_Condition_Components( this->mpConvergenceCriteria->GetRHS_Condition_Components() );
+	rGlobalSystem.SetRHS_Condition_Variables( this->mpConvergenceCriteria->GetRHS_Condition_Variables() );
 	//component-wise options
 
         KRATOS_CATCH( "" )
