@@ -220,11 +220,9 @@ class TransferTools:
 	  print self.fixed_outlet_nodes[i].Id   
 
     	  
-    def Initial_Contitions(self):
-        #initial_pressure = 0  # TODO
-        initial_pressure = config.dyastolic_pressure
+    def Initial_Contitions(self,dyastolic_pressure):
         print "Inicializo 3D"
-        #print initial_pressure
+        #print dyastolic_pressure
         for i in range(0, len(self.inlets_1d)):
             inlet_nodes_1d = self.inlets_1d[i]
             #print "3D-1D: inlet_nodes_1d [0].Id::::::>>>> ", inlet_nodes_1d[0].Id
@@ -252,11 +250,10 @@ class TransferTools:
                         k = k + 1
             # raw_input()
 
-    def Transfer1D_to_3D(self):
+    def Transfer1D_to_3D(self,dyastolic_pressure):
         # ARCHIVE TO SET :::::::::::::::::::::::::::>>>>>>>>>>>>>> VARIABLES
         # import config_full
-        initial_pressure = config.dyastolic_pressure
-	#print "Dyastolic_Pressure", initial_pressure
+	#print "Dyastolic_Pressure", dyastolic_pressure
         print "Transfer1D_to_3D"
         for i in range(0, len(self.inlets_1d)):
             inlet_nodes_1d = self.inlets_1d[i]
@@ -298,10 +295,10 @@ class TransferTools:
             A = outlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA)
             #print "AREA_1D", A
             A0 = outlet_nodes_1d[0].GetValue(NODAL_AREA)
-            press = initial_pressure + beta * \
+            press = dyastolic_pressure + beta * \
                 (math.sqrt(A) - math.sqrt(A0)) / \
                 A0  # math.sqrt(A/A0)*beta - beta
-            #press = initial_pressure + beta * \
+            #press = dyastolic_pressure + beta * \
                 #(math.sqrt(A) - math.sqrt(A0)) / \
                 #A0  # math.sqrt(A/A0)*beta - beta
             #print "prress calculated",press 
@@ -316,8 +313,7 @@ class TransferTools:
 	    #print "Estoy fijando la presion en el outlet del 3D que proviene del nodo " , outlet_nodes_1d[i].Id, " del 1D. La presion que estoy fijando es"
 	    #print "pression",press, "del nodo", outlet_nodes_1d[0].Id
 
-    def Transfer3D_to_1D(self):
-        initial_pressure = config.dyastolic_pressure
+    def Transfer3D_to_1D(self,dyastolic_pressure):
         inlet_flow = (self.inlets_1d[0])[0].GetSolutionStepValue(FLOW)
         self.outlets_1d[0][0].SetSolutionStepValue(FLOW,0,inlet_flow)
 
@@ -327,7 +323,7 @@ class TransferTools:
 
         inlet_beta = self.inlets_1d[0][0].GetSolutionStepValue(BETA)
         inlet_A0  = self.inlets_1d[0][0].GetValue(NODAL_AREA)
-        Ainlet_to_prescribe = ((((outlet_pressure-initial_pressure) * inlet_A0)/inlet_beta) + math.sqrt(inlet_A0))**2  # A0*(avg_press/beta + 1)**2
+        Ainlet_to_prescribe = ((((outlet_pressure-dyastolic_pressure) * inlet_A0)/inlet_beta) + math.sqrt(inlet_A0))**2  # A0*(avg_press/beta + 1)**2
         #self.outlets_1d[0][0].SetSolutionStepValue(NODAL_AREA,0,Ainlet_to_prescribe)
         
         #print "inlet node = ",self.inlets_1d[0][0].Id
@@ -412,10 +408,9 @@ class TransferTools:
 
 #-------------------------------------------------------------------------
 
-    def Setting3d(self):
+    def Setting3d(self,dyastolic_pressure):
         # print self
             # print len(self.model_part_3d.Conditions)
-	initial_pressure = config.dyastolic_pressure
         for node in self.model_part_3d.Nodes:
             node.Free(VELOCITY_X)
             node.Free(VELOCITY_Y)
@@ -423,7 +418,7 @@ class TransferTools:
             node.Free(PRESSURE)
             node.SetSolutionStepValue(VISCOSITY, 0, 0.0035 / 1060.0)
             node.SetSolutionStepValue(DENSITY, 0, 1060.0)
-            node.SetSolutionStepValue(PRESSURE,0,initial_pressure)
+            node.SetSolutionStepValue(PRESSURE,0,dyastolic_pressure)
         # set inlet
         for cond in self.model_part_3d.Conditions:
             if(cond.Properties.Id == 100):  # inlet
