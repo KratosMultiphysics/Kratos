@@ -461,6 +461,19 @@ public:
     }
 
     /**
+     * this function provides a more general interface to the element.
+     * it is designed so that rLHSvariables are passed TO the element
+     * thus telling what is the desired output
+     * @param rLeftHandSideMatrices: container for the desired LHS output
+     * @param rLHSVariables: parameter describing the expected LHSs
+     */
+    virtual void CalculateLeftHandSide(std::vector< MatrixType >& rLeftHandSideMatrices,
+					const std::vector< Variable< MatrixType > >& rLHSVariables,
+					ProcessInfo& rCurrentProcessInfo)
+    {
+    }
+
+    /**
      * this is called during the assembling process in order
      * to calculate the elemental right hand side vector only
      * @param rRightHandSideVector: the elemental right hand side vector
@@ -484,8 +497,6 @@ public:
 					const std::vector< Variable< VectorType > >& rRHSVariables,
 					ProcessInfo& rCurrentProcessInfo)
     {
-        if (rRightHandSideVectors.size() != 0)
-            rRightHandSideVectors.resize(0);
     }
 
     /**
