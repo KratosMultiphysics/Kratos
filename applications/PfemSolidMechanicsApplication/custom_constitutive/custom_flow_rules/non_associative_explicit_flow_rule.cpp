@@ -245,7 +245,7 @@ void NonAssociativeExplicitPlasticFlowRule::ReturnStressToYieldSurface(Vector& r
 
      }
 
-     std::cout << "Leaving Drift Correction whitout converging!" << std::endl;
+     std::cout << "Leaving Drift Correction whitout converging! " << rDrift << std::endl;
 
 
 }

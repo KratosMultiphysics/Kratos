@@ -127,6 +127,10 @@ void CamClayExplicitFlowRule::CalculateDeviatoricStress(const double& rVolumetri
 
     for (unsigned int i = 3; i<6; ++i)
          rDeviatoricStress(i) /= 2.0;  // BECAUSE VOIGT NOTATION
+  
+    //std::cout << "DeviatoricStrain " << rDeviatoricStrainVector << " DeviatoricStress " << rDeviatoricStress << std::endl;
+    //std::cout << "ShearModulus " << 2.0*AlphaShear*ReferencePreasure*std::exp(-rVolumetricStrain/SwellingSlope) << std::endl;
+
 }
 
 
@@ -135,8 +139,12 @@ void CamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainV
 
 
     Matrix FourthOrderIdentity = ZeroMatrix(6);
-    for (unsigned int i = 0; i<6; ++i)
+    for (unsigned int i = 0; i<3; ++i)
        FourthOrderIdentity(i,i) = 1.0;
+
+    for (unsigned int i = 3; i<6; ++i)
+       FourthOrderIdentity(i,i) = 0.50;
+// VOIGT NOTATION AND NOT KELVIN
 
     Matrix IdentityCross = ZeroMatrix(6);
     for (unsigned int i = 0; i<3; ++i) {
@@ -166,8 +174,6 @@ void CamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainV
 
    rElasticMatrix  = (-1.0/SwellingSlope)*MeanStress*IdentityCross;
    rElasticMatrix += 2.0*AlphaShear*ReferencePreasure*std::exp(-VolumetricStrain/SwellingSlope)*(FourthOrderIdentity - (1.0/3.0)*IdentityCross);
-   //std::cout << " NO QUIERO NEGATIVO " << 2.0*AlphaShear*ReferencePreasure*std::exp(-VolumetricStrain/SwellingSlope) <<  " " << std::exp(-VolumetricStrain/SwellingSlope) << " " << VolumetricStrain << std::endl;
-
 
 
    // PARTE ASQUEROSA
