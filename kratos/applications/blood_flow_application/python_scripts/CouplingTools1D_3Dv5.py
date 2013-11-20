@@ -414,7 +414,7 @@ class TransferTools:
 
     def Setting3d(self):
         # print self
-     # print len(self.model_part_3d.Conditions)
+            # print len(self.model_part_3d.Conditions)
 	initial_pressure = config.dyastolic_pressure
         for node in self.model_part_3d.Nodes:
             node.Free(VELOCITY_X)
@@ -558,7 +558,8 @@ class TransferTools:
 	for node in inlet_nodes_3d:
 	  press_3d += node.GetSolutionStepValue(PRESSURE)
 	  counter += 1.0
-	  avg_press = press_3d / counter	
+	  
+	avg_press = press_3d / counter	
 	#area3d=self.inlet_areas_3d
 	for fitter in self.fitters_3d:
 	  fitter.AddPin(avg_press)
@@ -606,7 +607,7 @@ class TransferTools:
       ffit_3d_3=[]
       ffit_3d_4=[]      
       return_list_3D = []
-      k=0
+      k=0 
       for fitter in self.fitters_3d:
 	  ffit_3d_2.append(k)
 	  results = str("Fitter_3D_2" + str(k) + "_.txt")
