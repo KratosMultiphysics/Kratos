@@ -322,8 +322,8 @@ namespace Kratos
                 for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[ResultCounter].begin(); neighbour_it != this->GetResults()[ResultCounter].end(); ++neighbour_it)
                 {
                   
-                   double particle_radius  = (particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-                   double neigh_radius     = (*neighbour_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+                   double particle_radius  = (particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                   double neigh_radius     = (*neighbour_it)->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
                         
                    array_1d<double,3> other_to_me_vect      = (particle_pointer_it)->GetGeometry()(0)->Coordinates() - (*neighbour_it)->GetGeometry()(0)->Coordinates();
                    double distance                          = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
@@ -353,6 +353,9 @@ namespace Kratos
 
                 this->GetResults()[ResultCounter].clear();
                 this->GetResultsDistances()[ResultCounter].clear();
+                //SORTING NEIGHBOURS:
+                //std::sort( (particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS)).ptr_begin(), (particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS)).ptr_end(), compare_ids );
+
             }
 
         }
@@ -775,7 +778,7 @@ namespace Kratos
           for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
           {
     
-            if(  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 1) //top
+            if(  it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 1) //top
               
               
             {
@@ -794,7 +797,7 @@ namespace Kratos
                 
             }
             
-            if(  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2   )   //bot 
+            if(  it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2   )   //bot 
             {
               
                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_BOT];
@@ -841,7 +844,7 @@ namespace Kratos
 
           for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
           {
-                  if (  it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 1 ) //top
+                  if (  it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 1 ) //top
                   {
                         
                       (it)->GetGeometry()(0)->Free(VELOCITY_Y); 
@@ -851,7 +854,7 @@ namespace Kratos
 
                   }
                   
-                  if ( it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2 ) //bot
+                  if ( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2 ) //bot
                   {
                         
                       (it)->GetGeometry()(0)->Free(VELOCITY_Y);
@@ -953,7 +956,7 @@ namespace Kratos
         this->GetRadius().resize(number_of_elements);
 
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
-            this->GetRadius()[particle_pointer_it - pElements.begin()] = particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS) + radiusExtend;
+            this->GetRadius()[particle_pointer_it - pElements.begin()] = particle_pointer_it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS) + radiusExtend;
 
         }
 
@@ -976,7 +979,7 @@ namespace Kratos
         this->GetRadius().resize(number_of_elements);
 
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
-            this->GetRadius()[particle_pointer_it - pElements.begin()] = amplification*(1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+            this->GetRadius()[particle_pointer_it - pElements.begin()] = amplification*(1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
                                                                                        
         }
 
