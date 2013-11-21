@@ -160,13 +160,13 @@ namespace Kratos
                       
                   for(std::size_t j = 0; j < mResultsDistances[i].size() ; j++)
                   {
-                      mResultsDistances[i][j] -= mNodesResults[i][j]->GetSolutionStepValue(RADIUS);
+                      mResultsDistances[i][j] -= mNodesResults[i][j]->FastGetSolutionStepValue(RADIUS);
                       minDist = minDist < mResultsDistances[i][j] ? minDist : mResultsDistances[i][j];
                   }
               }
                   
               NodesArrayType::iterator it = rSearchNodes.begin() + i;
-              it->GetSolutionStepValue(rDistanceVar) = minDist;
+              it->FastGetSolutionStepValue(rDistanceVar) = minDist;
           }
           
           KRATOS_CATCH("")
