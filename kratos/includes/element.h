@@ -1006,16 +1006,16 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeometricalObject );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
-        rSerializer.save("Element Data", mData);
-        rSerializer.save("Element Properties", mpProperties);
+        rSerializer.save("Data", mData);
+        rSerializer.save("Properties", mpProperties);
     }
 
     virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeometricalObject );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-        rSerializer.load("Element Data", mData);
-        rSerializer.load("Element Properties", mpProperties);
+        rSerializer.load("Data", mData);
+        rSerializer.load("Properties", mpProperties);
     }
 
     ///@}
