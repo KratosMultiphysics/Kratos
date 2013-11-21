@@ -82,6 +82,17 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
+  bool compare_ids(const boost::weak_ptr<Element>& i, const boost::weak_ptr<Element>& j) {
+    
+     if( (i.lock())->Id() <  (j.lock())->Id()) return true;
+     if( (i.lock())->Id() >  (j.lock())->Id()) return false;
+  
+     std::cout<<"Two elements with the same Id!! problems can occur here!!"<<std::endl<<std::flush;           
+     return false;               
+     
+         
+  }  
+    
   /// Short class definition.
   /** Detail class definition.
   */
@@ -193,8 +204,8 @@ namespace Kratos
           // 2. Search Neighbours with tolerance (after first repartition process)
           SearchNeighbours(r_model_part);
 		  
-		  ///Cfeng RigidFace search
-		  SearchRigidFaceNeighbours();
+	  ///Cfeng RigidFace search
+	  SearchRigidFaceNeighbours();
 
           // 3. Finding overlapping of initial configurations
 
@@ -437,12 +448,12 @@ namespace Kratos
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
 
-                  if (it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 1){
+                  if (it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 1){
                       (it)->GetGeometry()(0)->Fix(VELOCITY_Y);
                       (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y) = rCurrentProcessInfo[FIXED_VEL_TOP];
                   }
 
-                  if (it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2){
+                  if (it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2){
                       (it)->GetGeometry()(0)->Fix(VELOCITY_Y);
                       (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y) = rCurrentProcessInfo[FIXED_VEL_BOT];
                   }
@@ -472,14 +483,14 @@ namespace Kratos
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
 
-                  if (it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 1){
+                  if (it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 1){
                     (it)->GetGeometry()(0)->Free(VELOCITY_Y);
                     rCurrentProcessInfo[FIXED_VEL_TOP] = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y); //cutre way yeah!
                     //I only store one value for every ball in the group ID
                     (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
                   }
 
-                  if (it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2){
+                  if (it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2){
                     (it)->GetGeometry()(0)->Free(VELOCITY_Y);
                     rCurrentProcessInfo[FIXED_VEL_BOT] = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y); //cutre way yeah!
                     //I only store one value for every ball in the group ID
@@ -542,7 +553,7 @@ namespace Kratos
         this->GetRadius().resize(number_of_elements);
 
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
-            this->GetRadius()[particle_pointer_it - pElements.begin()] = (1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
+            this->GetRadius()[particle_pointer_it - pElements.begin()] = (1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
 
         }
 
@@ -602,17 +613,22 @@ namespace Kratos
 
                 this->GetResults()[ResultCounter].clear();
                 this->GetResultsDistances()[ResultCounter].clear();
+                
+                //SORTING NEIGHBOURS BY ID:
+                //std::sort( (particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS)).ptr_begin(), (particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS)).ptr_end(), compare_ids );
+                /*KRATOS_WATCH("new ball")
+                for (WeakPointerVector<Element >::iterator nei_i = (particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS)).begin(); nei_i != (particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS)).end(); nei_i++){
+                    KRATOS_WATCH(nei_i->Id())  
+                }*/
             }
 
         }
 
         KRATOS_CATCH("")
-    }
-	
-	
+    }        	
 	
 	////Cfeng
-	virtual void SearchRigidFaceNeighbours()
+    virtual void SearchRigidFaceNeighbours()
     {
 		
         KRATOS_TRY
