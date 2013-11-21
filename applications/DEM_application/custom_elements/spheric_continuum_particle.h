@@ -161,8 +161,8 @@ namespace Kratos
        double mDisplacement_Y;
        double mDisplacement_Z;
 */
-      // std::vector<double>   mInitialDelta = GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTACT_INITIAL_DELTA);
-      // std::vector<int>  mContactFailureId = GetGeometry()[0].GetSolutionStepValue(PARTICLE_CONTACT_FAILURE_ID);
+      // std::vector<double>   mInitialDelta = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_CONTACT_INITIAL_DELTA);
+      // std::vector<int>  mContactFailureId = GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_CONTACT_FAILURE_ID);
        ///@}
       ///@name Access
       ///@{ 
@@ -288,7 +288,7 @@ namespace Kratos
 
         Vector mcont_ini_neigh_area;
         
-        vector<int> mIniNeighbourIds;
+        std::vector<int> mIniNeighbourIds;
         //vector<int> mIniContinuumNeighbourIds;
         Vector mIniNeighbourDelta;
                
