@@ -454,7 +454,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
         self.model_part.ProcessInfo.SetValue(DEMPACK_OPTION, self.dempack_option)
-        self.model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, 0)
+        self.model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, self.activate_search)
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities)
         self.model_part.ProcessInfo.SetValue(FIX_HORIZONTAL_VEL, self.fix_horizontal_vel)
         self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_option)
