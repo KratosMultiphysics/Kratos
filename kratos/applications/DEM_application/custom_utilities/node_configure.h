@@ -105,7 +105,7 @@ public:
             rHighPoint[i] = rLowPoint[i]  = (*rObject)[i];
         }
         
-        double radius = rObject->GetSolutionStepValue(RADIUS);
+        double radius = rObject->FastGetSolutionStepValue(RADIUS);
 
         for(std::size_t i = 0; i < 3; i++)
         {
@@ -155,8 +155,8 @@ public:
         
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
-        const double& radius_1 = rObj_1->GetSolutionStepValue(RADIUS);
-        const double& radius_2 = rObj_2->GetSolutionStepValue(RADIUS);
+        const double& radius_1 = rObj_1->FastGetSolutionStepValue(RADIUS);
+        const double& radius_2 = rObj_2->FastGetSolutionStepValue(RADIUS);
         double radius_sum      = radius_1 + radius_2;
         bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
         
@@ -178,7 +178,7 @@ public:
         double distance_2 = inner_prod(rObj_2_to_rObj_1, rObj_2_to_rObj_1);
 
         const double& radius_1 = Radius;
-        const double& radius_2 = rObj_2->GetSolutionStepValue(RADIUS);
+        const double& radius_2 = rObj_2->FastGetSolutionStepValue(RADIUS);
         double radius_sum      = radius_1 + radius_2;
         bool intersect         = floatle((distance_2 - radius_sum * radius_sum),0);
 //         std::cout << "J" << std::endl;
@@ -199,7 +199,7 @@ public:
             center_of_particle[i]  = (*rObject)[i];
         }
  
-        const double& radius = rObject->GetSolutionStepValue(RADIUS);
+        const double& radius = rObject->FastGetSolutionStepValue(RADIUS);
 
         bool intersect = (
           floatle(rLowPoint[0]  - radius,center_of_particle[0]) && 
