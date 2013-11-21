@@ -1158,7 +1158,10 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
      {
    
        ParticleWeakVectorType& TempNeighbours = mTempNeighbours;
+       
        TempNeighbours.swap(this->GetValue(NEIGHBOUR_ELEMENTS)); //GetValue is needed becouse this information comes from the strategy (the search function)
+       
+       unsigned int temp_size = TempNeighbours.size();
        
        this->GetValue(NEIGHBOUR_ELEMENTS).clear(); 
               
@@ -1169,8 +1172,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
        vector<int>                  temp_neighbours_failure_id;
        vector<array_1d<double, 3> > temp_neighbours_contact_forces;
        vector<int>                  temp_neighbours_mapping;
-       vector<int>                  temp_cont_neighbours_mapping;*/
-       
+       vector<int>                  temp_cont_neighbours_mapping;*/       
        
        std::vector<int>&                  temp_neighbours_ids = mTempNeighboursIds;
        std::vector<double>&               temp_neighbours_delta = mTempNeighboursDelta;
@@ -1178,12 +1180,20 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
        std::vector<array_1d<double, 3> >& temp_neighbours_contact_forces = mTempNeighboursContactForces;
        std::vector<int>&                  temp_neighbours_mapping = mTempNeighboursMapping;
        std::vector<int>&                  temp_cont_neighbours_mapping = mTempContNeighboursMapping;
+       
+       temp_neighbours_ids.resize(temp_size);
+       temp_neighbours_delta.resize(temp_size);
+       temp_neighbours_failure_id.resize(temp_size);
+       temp_neighbours_contact_forces.resize(temp_size);
+       temp_neighbours_mapping.resize(temp_size);
+       temp_cont_neighbours_mapping.resize(temp_size);
+       
 
        array_1d<double, 3> vector_of_zeros;
        vector_of_zeros[0]                   = 0.0;
        vector_of_zeros[1]                   = 0.0;
        vector_of_zeros[2]                   = 0.0;
-   
+       
        for (ParticleWeakIteratorType i = TempNeighbours.begin(); i != TempNeighbours.end(); i++)
        
        {
@@ -1197,37 +1207,39 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           double                mapping_new_cont    = -1;
 
           //Loop Over Initial Neighbours
-
-            for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++)
+            //unsigned int start_searching_here = 0; //only to be used if neighbours are already sorted
+            
+            
+            //for (unsigned int k = start_searching_here; k != mIniNeighbourIds.size(); k++) //only to be used if neighbours are already sorted
+          for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++) 
             {
-                           
+              //if (static_cast<int>((i)->Id()) < mIniNeighbourIds[k])  break;         //theoretically useful but it loses a lot of time   
               if (static_cast<int>((i)->Id()) == mIniNeighbourIds[k])
-              {               
-                
+              {                               
                 ini_delta  = mIniNeighbourDelta[k];
                 failure_id = mIniNeighbourFailureId[k];
                 mapping_new_ini = k; 
                 mapping_new_cont = mIniNeighbourToIniContinuum[k];
-                
+                //start_searching_here = k + 1;      //only to be used if neighbours are already sorted           
                 break;
               }
-
             }
-                           
+                      
           //Loop Over Last time-step Neighbours
-          
+            //start_searching_here = 0;     //only to be used if neighbours are already sorted       
+            //for (unsigned int j = start_searching_here; j != mOldNeighbourIds.size(); j++) //only to be used if neighbours are already sorted
             for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++)
             {
+              //if (static_cast<int>(i->Id()) < mOldNeighbourIds[j]) break;  //theoretically useful but it loses a lot of time    
               if (static_cast<int>(i->Id()) == mOldNeighbourIds[j])
               {
                 neigh_forces = mOldNeighbourContactForces[j];
+                //start_searching_here = j + 1; //only to be used if neighbours are already sorted
                 break;
               }
-
             }
             
-            //Judge if its neighbour
-            
+            //Judge if its neighbour            
             double other_radius                 = i->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
             double radius_sum                   = mRadius + other_radius;
             array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - i->GetGeometry()(0)->Coordinates();
@@ -1237,20 +1249,11 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             if ( indentation > 0.0 || failure_id == 0 )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
             {
            
-                this->GetValue(NEIGHBOUR_ELEMENTS).push_back(*(i.base()));
-                size_t size = this->GetValue(NEIGHBOUR_ELEMENTS).size();
-                
-                temp_neighbours_ids.resize(size);
-                temp_neighbours_delta.resize(size);
-                temp_neighbours_failure_id.resize(size);
-                temp_neighbours_contact_forces.resize(size);
-                temp_neighbours_mapping.resize(size);
-                temp_cont_neighbours_mapping.resize(size);
+                this->GetValue(NEIGHBOUR_ELEMENTS).push_back(*(i.base()));                
                 
                 temp_neighbours_ids[neighbour_counter]              = static_cast<int>((i)->Id());
                 temp_neighbours_mapping[neighbour_counter]          = mapping_new_ini;
-                temp_cont_neighbours_mapping[neighbour_counter]     = mapping_new_cont;
-                
+                temp_cont_neighbours_mapping[neighbour_counter]     = mapping_new_cont;                
                 temp_neighbours_delta[neighbour_counter]            = ini_delta;
                 temp_neighbours_failure_id[neighbour_counter]       = failure_id;
                 temp_neighbours_contact_forces[neighbour_counter]   = neigh_forces;
@@ -1259,7 +1262,14 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                 
             }
 
-        }
+        }//for ParticleWeakIteratorType i
+       
+        temp_neighbours_ids.resize(this->GetValue(NEIGHBOUR_ELEMENTS).size());
+        temp_neighbours_delta.resize(this->GetValue(NEIGHBOUR_ELEMENTS).size());
+        temp_neighbours_failure_id.resize(this->GetValue(NEIGHBOUR_ELEMENTS).size());
+        temp_neighbours_contact_forces.resize(this->GetValue(NEIGHBOUR_ELEMENTS).size());
+        temp_neighbours_mapping.resize(this->GetValue(NEIGHBOUR_ELEMENTS).size());
+        temp_cont_neighbours_mapping.resize(this->GetValue(NEIGHBOUR_ELEMENTS).size());
         
         mMapping_New_Ini.swap(temp_neighbours_mapping);
         mMapping_New_Cont.swap(temp_cont_neighbours_mapping);
@@ -1267,10 +1277,10 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         mNeighbourDelta.swap(temp_neighbours_delta);
         mNeighbourFailureId.swap(temp_neighbours_failure_id);
         mOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
-
+        
       } //ComputeNewNeighboursHistoricalData
   
- /* 
+ /*
   //RIC!!!!!
   void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() //NOTA: LOOP SOBRE TOTS ELS VEINS PROVISIONALS, TEN KEDERAS UNS QUANTS FENT PUSHBACK. ALS VECTORS DELTA ETC.. HI HAS DE POSAR
      //LA POSICIÓ DELS QUE SON DEFINITIUS.
@@ -1283,14 +1293,27 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
         unsigned int temp_size = TempNeighbours.size();
 
-        vector<int>                  temp_neighbours_mapping(temp_size);
-        vector<int>                  temp_cont_neighbours_mapping(temp_size);
-        vector<int>                  temp_neighbours_ids(temp_size);
-        vector<double>               temp_neighbours_delta(temp_size,0.0);
-        vector<int>                  temp_neighbours_failure_id(temp_size,1);
-        vector<array_1d<double, 3> > temp_neighbours_contact_forces;
-        temp_neighbours_contact_forces.resize(temp_size);              //TODO::Ric. No em deixa fer el //boost::numeric::ublas::matrix<double, check_counter, 3 >
+        //vector<int>                  temp_neighbours_mapping(temp_size);
+        //vector<int>                  temp_cont_neighbours_mapping(temp_size);
+        //vector<int>                  temp_neighbours_ids(temp_size);
+        //vector<double>               temp_neighbours_delta(temp_size,0.0);
+        //vector<int>                  temp_neighbours_failure_id(temp_size,1);
+        //vector<array_1d<double, 3> > temp_neighbours_contact_forces;
+        //temp_neighbours_contact_forces.resize(temp_size);              //TODO::Ric. No em deixa fer el //boost::numeric::ublas::matrix<double, check_counter, 3 >
+  
+        std::vector<int>&                  temp_neighbours_ids = mTempNeighboursIds;
+        std::vector<double>&               temp_neighbours_delta = mTempNeighboursDelta;
+        std::vector<int>&                  temp_neighbours_failure_id = mTempNeighboursFailureId;
+        std::vector<array_1d<double, 3> >& temp_neighbours_contact_forces = mTempNeighboursContactForces;
+        std::vector<int>&                  temp_neighbours_mapping = mTempNeighboursMapping;
+        std::vector<int>&                  temp_cont_neighbours_mapping = mTempContNeighboursMapping;   
         
+        temp_neighbours_ids.resize(temp_size);
+        temp_neighbours_delta.resize(temp_size);
+        temp_neighbours_failure_id.resize(temp_size);
+        temp_neighbours_contact_forces.resize(temp_size);
+        temp_neighbours_mapping.resize(temp_size);
+        temp_cont_neighbours_mapping.resize(temp_size);
         
         double                ini_delta           = 0.0;
         int                   failure_id          = 1;
