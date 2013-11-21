@@ -1158,12 +1158,13 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
      {
    
        ParticleWeakVectorType& TempNeighbours = mTempNeighbours;
+       ParticleWeakVectorType& neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
        
-       TempNeighbours.swap(this->GetValue(NEIGHBOUR_ELEMENTS)); //GetValue is needed becouse this information comes from the strategy (the search function)
+       TempNeighbours.swap(neighbour_elements); //GetValue is needed becouse this information comes from the strategy (the search function)
        
        unsigned int temp_size = TempNeighbours.size();
        
-       this->GetValue(NEIGHBOUR_ELEMENTS).clear(); 
+       neighbour_elements.clear(); 
               
        unsigned int neighbour_counter       = 0;
        
@@ -1249,7 +1250,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             if ( indentation > 0.0 || failure_id == 0 )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
             {
            
-                this->GetValue(NEIGHBOUR_ELEMENTS).push_back(*(i.base()));                
+                neighbour_elements.push_back(*(i.base()));                
                 
                 temp_neighbours_ids[neighbour_counter]              = static_cast<int>((i)->Id());
                 temp_neighbours_mapping[neighbour_counter]          = mapping_new_ini;
@@ -1264,12 +1265,13 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
         }//for ParticleWeakIteratorType i
        
-        temp_neighbours_ids.resize(this->GetValue(NEIGHBOUR_ELEMENTS).size());
-        temp_neighbours_delta.resize(this->GetValue(NEIGHBOUR_ELEMENTS).size());
-        temp_neighbours_failure_id.resize(this->GetValue(NEIGHBOUR_ELEMENTS).size());
-        temp_neighbours_contact_forces.resize(this->GetValue(NEIGHBOUR_ELEMENTS).size());
-        temp_neighbours_mapping.resize(this->GetValue(NEIGHBOUR_ELEMENTS).size());
-        temp_cont_neighbours_mapping.resize(this->GetValue(NEIGHBOUR_ELEMENTS).size());
+        int final_size = neighbour_elements.size();
+        temp_neighbours_ids.resize(final_size);
+        temp_neighbours_delta.resize(final_size);
+        temp_neighbours_failure_id.resize(final_size);
+        temp_neighbours_contact_forces.resize(final_size);
+        temp_neighbours_mapping.resize(final_size);
+        temp_cont_neighbours_mapping.resize(final_size);
         
         mMapping_New_Ini.swap(temp_neighbours_mapping);
         mMapping_New_Cont.swap(temp_cont_neighbours_mapping);
