@@ -103,7 +103,6 @@ namespace Kratos
           
           ComputeNewNeighboursHistoricalData();		  
             //Cfeng,RigidFace
-          
           ComputeNewRigidFaceNeighboursHistoricalData();		  
           
             
