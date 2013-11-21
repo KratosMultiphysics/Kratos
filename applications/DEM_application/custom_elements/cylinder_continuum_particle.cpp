@@ -87,7 +87,7 @@ namespace Kratos
           array_1d<double, 3> additionally_applied_force;
           array_1d<double, 3> additionally_applied_moment;
           array_1d<double, 3> initial_rotation_moment;     
-          array_1d<double, 3>& elastic_force = this->GetGeometry()[0].GetSolutionStepValue(ELASTIC_FORCES);
+          array_1d<double, 3>& elastic_force = this->GetGeometry()[0].FastGetSolutionStepValue(ELASTIC_FORCES);
 
           contact_force.clear();
           contact_moment.clear();
@@ -153,7 +153,7 @@ namespace Kratos
         for(ParticleWeakIteratorType ini_cont_neighbour_iterator = r_continuum_ini_neighbours.begin();     // MSIMSI 99:Could this loop be done during the bar creation in the strategy and so avoid another repetition?
             ini_cont_neighbour_iterator != r_continuum_ini_neighbours.end(); ini_cont_neighbour_iterator++)
         {   
-            double other_radius     = ini_cont_neighbour_iterator->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+            double other_radius     = ini_cont_neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
             double equiv_radius     = 2*mRadius * other_radius / (mRadius + other_radius);        
             //double equiv_area       = (0.25)*M_PI * equiv_radius * equiv_radius; //we now take 1/2 of the efective mRadius.
             total_equiv_perimeter  += equiv_radius;
