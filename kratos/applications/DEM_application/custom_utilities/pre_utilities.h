@@ -61,7 +61,7 @@ class PreUtilities
         for (ElementsArrayType::iterator it= pElements.begin(); it!=pElements.end(); ++it)
         {
                  
-            if( it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 1 )
+            if( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 1 )
             {
               
               ParticleWeakVectorType& mrNeighbours = it->GetValue(NEIGHBOUR_ELEMENTS);            
@@ -70,11 +70,11 @@ class PreUtilities
               ineighbour != mrNeighbours.end(); ineighbour++)
               {
                 
-                if( ineighbour->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) != 1 )
+                if( ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) != 1 )
                 {
                 
-                    subtotal += it->GetGeometry()(0)->Coordinates()[1]*it->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-                    weight += it->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+                    subtotal += it->GetGeometry()(0)->Coordinates()[1]*it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                    weight += it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
                     
                     break;
                 }
@@ -109,7 +109,7 @@ class PreUtilities
         for (ElementsArrayType::iterator it= pElements.begin(); it!=pElements.end(); ++it)
         {
                  
-            if(it->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) == 2)
+            if(it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2)
             {
               
               ParticleWeakVectorType& mrNeighbours = it->GetValue(NEIGHBOUR_ELEMENTS);            
@@ -118,10 +118,10 @@ class PreUtilities
               ineighbour != mrNeighbours.end(); ineighbour++)
               {
                 
-                if(ineighbour->GetGeometry()(0)->GetSolutionStepValue(GROUP_ID) != 2)
+                if(ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) != 2)
                 
-                subtotal += it->GetGeometry()(0)->Coordinates()[1]*it->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-                weight += it->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+                subtotal += it->GetGeometry()(0)->Coordinates()[1]*it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                weight += it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
                 break;
                   
               }
