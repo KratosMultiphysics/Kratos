@@ -614,7 +614,7 @@ namespace Kratos
                 this->GetResults()[ResultCounter].clear();
                 this->GetResultsDistances()[ResultCounter].clear();
                 
-                //SORTING NEIGHBOURS BY ID:
+                //SORTING NEIGHBOURS BY ID: (if you activate this, do not forget to activate it also in searchinitialneighbours
                 //std::sort( (particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS)).ptr_begin(), (particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS)).ptr_end(), compare_ids );
                 /*KRATOS_WATCH("new ball")
                 for (WeakPointerVector<Element >::iterator nei_i = (particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS)).begin(); nei_i != (particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS)).end(); nei_i++){
