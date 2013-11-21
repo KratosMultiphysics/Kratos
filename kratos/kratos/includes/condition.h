@@ -992,16 +992,16 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeometricalObject );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
-        rSerializer.save("Condition Data", mData);
-        rSerializer.save("Condition Properties", mpProperties);
+        rSerializer.save("Data", mData);
+        rSerializer.save("Properties", mpProperties);
     }
 
     virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeometricalObject );
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Flags );
-        rSerializer.load("Condition Data", mData);
-        rSerializer.load("Condition Properties", mpProperties);
+        rSerializer.load("Data", mData);
+        rSerializer.load("Properties", mpProperties);
     }
 
     ///@}
