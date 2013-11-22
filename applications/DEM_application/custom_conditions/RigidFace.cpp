@@ -146,17 +146,18 @@ void RigidFace3D::CalculateRightHandSide(
 				double ContactForce[3] = {0.0};
 				
 				unsigned int ino = 15 * i_nei;
-				
-				weight[0] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_PRAM)[ino + 10];
-				weight[1] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_PRAM)[ino + 11];
-				weight[2] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_PRAM)[ino + 12];
-				weight[3] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_PRAM)[ino + 13];
+				Vector& neighbour_rigid_faces_pram = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
+				weight[0] = neighbour_rigid_faces_pram[ino + 10];
+				weight[1] = neighbour_rigid_faces_pram[ino + 11];
+				weight[2] = neighbour_rigid_faces_pram[ino + 12];
+				weight[3] = neighbour_rigid_faces_pram[ino + 13];
 				
 				ino = 3 * i_nei;
 				
-				ContactForce[0] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE)[ino + 0];
-				ContactForce[1] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE)[ino + 1];
-				ContactForce[2] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE)[ino + 2];
+                                Vector& neighbour_rigid_faces_contact_force = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE);
+				ContactForce[0] = neighbour_rigid_faces_contact_force[ino + 0];
+				ContactForce[1] = neighbour_rigid_faces_contact_force[ino + 1];
+				ContactForce[2] = neighbour_rigid_faces_contact_force[ino + 2];
 				
 				for(unsigned int inode = 0; inode < GetGeometry().size(); inode++ )
 				{
