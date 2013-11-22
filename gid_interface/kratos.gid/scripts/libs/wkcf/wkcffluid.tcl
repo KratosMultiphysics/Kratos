@@ -1619,6 +1619,14 @@ proc ::wkcf::WriteFluidSolvers {rootid fileid vartype wfsmethod trailing_spaces 
 	    puts $fileid "${trailing_spaces}    max_iteration = $MaximumIteration"
 	    puts $fileid "${trailing_spaces}    preconditioner = \"$precond\""
 	    puts $fileid "${trailing_spaces}    scaling = False"
+        if { $lsolver =="AMGCL"} {
+	    set cxpath "$rootid//c.SolutionStrategy//c.SolverTypes//i.[list ${vartype}]KrylovType"
+	    set KrylovType [::xmlutils::setXml $cxpath $cproperty]
+	    puts $fileid "${trailing_spaces}    krylov_type = \"$KrylovType\""
+	    set cxpath "$rootid//c.SolutionStrategy//c.SolverTypes//i.[list ${vartype}]SmootherType"
+	    set SmootherType [::xmlutils::setXml $cxpath $cproperty]
+	    puts $fileid "${trailing_spaces}    smoother_type = \"$SmootherType\""
+	}
 
     }
 }
