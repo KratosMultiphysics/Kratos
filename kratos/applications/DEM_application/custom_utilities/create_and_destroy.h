@@ -444,11 +444,12 @@ public:
               particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
           
           if( (*particle_pointer_it)->GetGeometry()(0)->Is(TO_ERASE) )   {
-                                        
-              uint number_of_contact_elements = (*particle_pointer_it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).size();
-              for(uint i = 0; i < number_of_contact_elements; i++)
+              
+              WeakPointerVector<Element>& node_to_neigh_element_pointer = (*particle_pointer_it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER);
+              unsigned int number_of_contact_elements = node_to_neigh_element_pointer.size();
+              for(unsigned int i = 0; i < number_of_contact_elements; i++)
               {
-                  Element::WeakPointer wp_to_contact_element = (*particle_pointer_it)->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(i);
+                  Element::WeakPointer wp_to_contact_element = node_to_neigh_element_pointer(i);
                   (  wp_to_contact_element.lock() )->Set(TO_ERASE);
               }
                             
@@ -689,7 +690,7 @@ public:
     virtual ~DEM_Inlet() {};
         
     void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator){
-        uint max_Id=0; 
+        unsigned int max_Id=0; 
 	for (ModelPart::NodesContainerType::iterator node_it = r_modelpart.NodesBegin(); node_it != r_modelpart.NodesEnd(); node_it++){
 	  if( node_it->Id() > max_Id) max_Id = node_it->Id();
 	}
@@ -720,7 +721,7 @@ public:
         } //for mesh_it                                               
     } //InitializeDEM_Inlet
         
-    void DettachElementsAndFindMaxId(ModelPart& r_modelpart, uint& max_Id){    
+    void DettachElementsAndFindMaxId(ModelPart& r_modelpart, unsigned int& max_Id){    
                      
         for (ElementsArrayType::iterator elem_it = r_modelpart.ElementsBegin(); elem_it != r_modelpart.ElementsEnd(); ++elem_it){
           
@@ -770,7 +771,7 @@ public:
     
     void CreateElementsFromInletMesh( ModelPart& r_modelpart, ModelPart& inlet_modelpart, ParticleCreatorDestructor& creator, const std::string& ElementNameString){
                         
-        uint max_Id=0; 
+        unsigned int max_Id=0; 
         DettachElementsAndFindMaxId(r_modelpart, max_Id);                
                 
         int mesh_number=0;
