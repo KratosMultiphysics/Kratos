@@ -181,6 +181,9 @@ public:
 
 	if( LHS_Element_Components_Set ){
 	  
+	  if( ElementLocalSystem.GetLHS_Element_Variables().size() != rLHS_LocalElementComponents.size() )
+	    rLHS_LocalElementComponents.resize( ElementLocalSystem.GetLHS_Element_Variables().size() );
+
 	  for( unsigned int i=0; i<rLHS_LocalElementComponents.size(); i++ )
 	    {
 	      rLHS_LocalElementComponents[i] = LocalSystemMatrixType(0, 0);
@@ -191,6 +194,9 @@ public:
 	std::vector<TSystemVectorType>& rRHS_GlobalElementComponents = mGlobalSystem.GetRHS_Element_Components();
 
 	if( RHS_Element_Components_Set ){
+
+	  if( ElementLocalSystem.GetRHS_Element_Variables().size() != rRHS_LocalElementComponents.size() )
+	    rRHS_LocalElementComponents.resize( ElementLocalSystem.GetRHS_Element_Variables().size() );
 
 	  for( unsigned int i=0; i<rRHS_LocalElementComponents.size(); i++ )
 	    {
@@ -258,6 +264,9 @@ public:
 
 	if( LHS_Condition_Components_Set ){
 
+	  if( ConditionLocalSystem.GetLHS_Element_Variables().size() != rLHS_ConditionComponents.size() )
+	    rLHS_LocalConditionComponents.resize( ConditionLocalSystem.GetLHS_Condition_Variables().size() );
+
 	  for( unsigned int i=0; i<rLHS_LocalConditionComponents.size(); i++ )
 	    {
 	      rLHS_LocalConditionComponents[i] = LocalSystemMatrixType(0, 0);
@@ -269,6 +278,9 @@ public:
 	std::vector<TSystemVectorType>& rRHS_GlobalConditionComponents = mGlobalSystem.GetRHS_Condition_Components();
 
 	if( RHS_Condition_Components_Set ){
+
+	  if( ConditionLocalSystem.GetRHS_Element_Variables().size() != rRHS_ConditionComponents.size() )
+	    rRHS_LocalConditionComponents.resize( ConditionLocalSystem.GetRHS_Condition_Variables().size() );
 
 	  for( unsigned int i=0; i<rRHS_LocalConditionComponents.size(); i++ )
 	    {
@@ -354,6 +366,9 @@ public:
 
 	    if( LHS_Element_Components_Set ){
 	    	    
+	      if( ElementLocalSystem.GetLHS_Element_Variables().size() != rLHS_LocalElementComponents.size() )
+		rLHS_LocalElementComponents.resize( ElementLocalSystem.GetLHS_Element_Variables().size() );
+
 	      for( unsigned int i=0; i<rLHS_LocalElementComponents.size(); i++ )
 		{
 		  rLHS_LocalElementComponents[i] = LocalSystemMatrixType(0, 0);
@@ -366,6 +381,9 @@ public:
 
 	    if( RHS_Element_Components_Set ){	    
 	    
+	      if( ElementLocalSystem.GetRHS_Element_Variables().size() != rRHS_LocalElementComponents.size() )
+		rRHS_LocalElementComponents.resize( ElementLocalSystem.GetRHS_Element_Variables().size() );
+
 	      for( unsigned int i=0; i<rRHS_LocalElementComponents.size(); i++ )
 		{
 		  rRHS_LocalElementComponents[i] = LocalSystemVectorType(0);
@@ -445,7 +463,10 @@ public:
 	    std::vector<TSystemMatrixType>& rLHS_GlobalConditionComponents = mGlobalSystem.GetLHS_Condition_Components();
 
 	    if( LHS_Condition_Components_Set ){
-	      	    
+	      
+	      if( ConditionLocalSystem.GetLHS_Condition_Variables().size() != rLHS_LocalConditionComponents.size() )
+		rLHS_LocalConditionComponents.resize( ConditionLocalSystem.GetLHS_Condition_Variables().size() );
+
 	      for( unsigned int i=0; i<rLHS_LocalConditionComponents.size(); i++ )
 		{
 		  rLHS_LocalConditionComponents[i] = LocalSystemMatrixType(0, 0);
@@ -459,6 +480,9 @@ public:
 
 	    if( RHS_Condition_Components_Set ){
     
+	      if( ConditionLocalSystem.GetRHS_Condition_Variables().size() != rRHS_LocalConditionComponents.size() )
+		rRHS_LocalConditionComponents.resize( ConditionLocalSystem.GetRHS_Condition_Variables().size() );
+
 	      for( unsigned int i=0; i<rRHS_LocalConditionComponents.size(); i++ )
 		{
 		  rRHS_LocalConditionComponents[i] = LocalSystemVectorType(0);
@@ -564,6 +588,9 @@ public:
 	  
 	if( LHS_Element_Components_Set ){
 	      
+	  if( mGlobalSystem.GetLHS_Element_Variables().size() != rLHS_LocalElementComponents.size() )
+	    rLHS_LocalElementComponents.resize( mGlobalSystem.GetLHS_Element_Variables().size() );
+
 	  for( unsigned int i=0; i<rLHS_LocalElementComponents.size(); i++ )
 	    {
 	      rLHS_LocalElementComponents[i] = LocalSystemMatrixType(0, 0);
@@ -612,6 +639,9 @@ public:
 	std::vector<TSystemMatrixType>& rLHS_GlobalConditionComponents = mGlobalSystem.GetLHS_Condition_Components();
 
 	if( LHS_Condition_Components_Set ){
+
+	  if( mGlobalSystem.GetLHS_Condition_Variables().size() != rLHS_LocalConditionComponents.size() )
+	    rLHS_LocalConditionComponents.resize( mGlobalSystem.GetLHS_Condition_Variables().size() );
 
 	  for( unsigned int i=0; i<rLHS_LocalConditionComponents.size(); i++ )
 	    {
@@ -682,6 +712,9 @@ public:
 	  
 	if( RHS_Element_Components_Set ){
 
+	  if( mGlobalSystem.GetRHS_Element_Variables().size() != rRHS_LocalElementComponents.size() )
+	    rRHS_LocalElementComponents.resize( mGlobalSystem.GetRHS_Element_Variables().size() );
+
 	  for( unsigned int i=0; i<rRHS_LocalElementComponents.size(); i++ )
 	    {
 	      rRHS_LocalElementComponents[i] = LocalSystemVectorType(0);
@@ -724,6 +757,9 @@ public:
 	std::vector<TSystemVectorType>& rRHS_GlobalConditionComponents = mGlobalSystem.GetRHS_Condition_Components();
 	  
 	if( RHS_Condition_Components_Set ){
+
+	  if( mGlobalSystem.GetRHS_Condition_Variables().size() != rRHS_LocalConditionComponents.size() )
+	    rRHS_LocalConditionComponents.resize( mGlobalSystem.GetRHS_Condition_Variables().size() );
 
 	  for( unsigned int i=0; i<rRHS_LocalConditionComponents.size(); i++ )
 	    {

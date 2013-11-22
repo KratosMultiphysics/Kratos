@@ -12,15 +12,9 @@
 /* System includes */
 
 /* External includes */
-#include "boost/smart_ptr.hpp"
 
 /* Project includes */
-#include "includes/define.h"
-#include "includes/model_part.h"
-#include "solving_strategies/schemes/scheme.h"
-#include "includes/variables.h"
-#include "containers/array_1d.h"
-#include "includes/element.h"
+#include "custom_strategies/custom_schemes/residual_based_bossak_scheme.hpp"
 #include "solid_mechanics_application.h"
 
 namespace Kratos
