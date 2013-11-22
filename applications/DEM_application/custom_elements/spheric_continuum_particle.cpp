@@ -94,115 +94,97 @@ namespace Kratos
 
             size_t cont_ini_mapping_index= 0;
             
+            unsigned int neighbours_size = mrNeighbours.size();
+            mIniNeighbourIds.resize(neighbours_size);
+            mIniNeighbourToIniContinuum.resize(neighbours_size);
+            mIniNeighbourDelta.resize(neighbours_size);
+            mIniNeighbourFailureId.resize(neighbours_size);
+            mMapping_New_Ini.resize(neighbours_size);
+            
             //SAVING THE INICIAL NEIGHBOURS, THE DELTAS AND THE FAILURE ID
-                              
-            for(ParticleWeakIteratorType_ptr ineighbour = mrNeighbours.ptr_begin();  //loop over the temp neighbours and store into a initial_neighbours vector.
-            ineighbour != mrNeighbours.ptr_end(); ineighbour++)
-            {
-               
-              
-                array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - ((*ineighbour).lock())->GetGeometry()(0)->Coordinates();
-                double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
-                                                      other_to_me_vect[1] * other_to_me_vect[1] +
-                                                      other_to_me_vect[2] * other_to_me_vect[2]);
 
-                double radius_sum                   = mRadius + ((*ineighbour).lock())->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-                double initial_delta                = radius_sum - distance;
+        for (ParticleWeakIteratorType_ptr ineighbour = mrNeighbours.ptr_begin(); //loop over the temp neighbours and store into a initial_neighbours vector.
+                ineighbour != mrNeighbours.ptr_end(); ineighbour++) {
 
-                int r_other_continuum_group         = ((*ineighbour).lock())->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_CONTINUUM);
-   
-                if( ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) ) || ( fabs(initial_delta)>1.0e-6 ) ) // which would be the appropiate tolerance?
-                
-                //for the ones that need to be stored... #5
-                {
-                    ini_size++;
-                    
-                    mIniNeighbourIds.resize(ini_size); 
-                    mIniNeighbourToIniContinuum.resize(ini_size);
-                    mIniNeighbourDelta.resize(ini_size);
-                    mIniNeighbourFailureId.resize(ini_size);           
-                    mMapping_New_Ini.resize(ini_size); 
-        
-                    mIniNeighbourIds[ini_size - 1]          = ((*ineighbour).lock())->Id();
-                    mIniNeighbourDelta[ini_size - 1]        = 0.0;
-                    mIniNeighbourFailureId[ini_size - 1]    = 1;
-                    mMapping_New_Ini[ini_size - 1]          = ini_size - 1;
-                    
-                    mIniNeighbourToIniContinuum[ini_size-1] = -1; //-1 is initial but not continuum.             
-                    
-                    
-                    if (mDeltaOption == true)
-                    {            
-                        mIniNeighbourDelta[ini_size - 1]    = initial_delta;
 
-                                                
-                    }
+            array_1d<double, 3 > other_to_me_vect = this->GetGeometry()(0)->Coordinates() - ((*ineighbour).lock())->GetGeometry()(0)->Coordinates();
+            double distance = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
+                    other_to_me_vect[1] * other_to_me_vect[1] +
+                    other_to_me_vect[2] * other_to_me_vect[2]);
 
-                    if (mContinuumSimulationOption == true)
-                    {
-                        
-                        if ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) )
-                        {
-                            
-                            mIniNeighbourToIniContinuum[ini_size-1] = cont_ini_mapping_index;
-                        
-                            mIniNeighbourFailureId[ini_size - 1]=0;
-                           
-                            mFailureId=0; // if a cohesive contact exist, the FailureId becomes 0. 
-                            
-                            continuum_ini_size++;
-                            cont_ini_mapping_index++;
-                                
-                            r_continuum_ini_neighbours.push_back(*ineighbour);
-                              
-                            r_continuum_ini_neighbours_ids.resize(continuum_ini_size);
-                            
-                            mMapping_New_Cont.resize(continuum_ini_size);
-                            mMapping_New_Cont[continuum_ini_size - 1] = -1;
-                            
-                            mHistory.resize(continuum_ini_size);
-                            
-                            mHistory[continuum_ini_size - 1][0] = 0.0; //maximum indentation reached
-                            mHistory[continuum_ini_size - 1][1] = 0.0; //maximum force reached
-                            mHistory[continuum_ini_size - 1][2] = 0.0;
-                            
-                            r_continuum_ini_neighbours_ids[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();
-                                                                                    
-                           if(mContactMeshOption)
-                            {
+            double radius_sum = mRadius + ((*ineighbour).lock())->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+            double initial_delta = radius_sum - distance;
 
-                                (this->GetGeometry()(0))->GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).resize(continuum_ini_size);
-                    
-                            } //if(mContactMeshOption) 
-                            
-                        }//if ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) )
+            int r_other_continuum_group = ((*ineighbour).lock())->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_CONTINUUM);
 
-                    }//for mContinuumSimulationOption      
+            ini_size++;
+            mIniNeighbourIds[ini_size - 1] = ((*ineighbour).lock())->Id();
+            mIniNeighbourDelta[ini_size - 1] = 0.0;
+            mIniNeighbourFailureId[ini_size - 1] = 1;
+            mMapping_New_Ini[ini_size - 1] = ini_size - 1;
 
-                } // FOR THE CASES THAT NEED STORING INITIAL NEIGHBOURS
-              
-            } //end for: ParticleWeakIteratorType ineighbour
-            
+            mIniNeighbourToIniContinuum[ini_size - 1] = -1; //-1 is initial but not continuum.             
 
-            if (mContinuumSimulationOption == true)
-            {
-              
-                if(mDimension == 3)
-                {
-                  ContactAreaWeighting3D(r_process_info);
-                }
-                else if (mDimension ==2)
-                {
-                  
-                  ContactAreaWeighting2D(r_process_info);
-                  
-                }  
-    
-            } 
-            
-         
-        }//SetInitialContacts
-        
+            if (mDeltaOption == true) {
+                mIniNeighbourDelta[ini_size - 1] = initial_delta;
+            }
+
+            if (mContinuumSimulationOption == true) {
+
+                if ((r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0)) {
+
+                    mIniNeighbourToIniContinuum[ini_size - 1] = cont_ini_mapping_index;
+
+                    mIniNeighbourFailureId[ini_size - 1] = 0;
+
+                    mFailureId = 0; // if a cohesive contact exist, the FailureId becomes 0. 
+
+                    continuum_ini_size++;
+                    cont_ini_mapping_index++;
+
+                    r_continuum_ini_neighbours.push_back(*ineighbour);
+
+                    r_continuum_ini_neighbours_ids.resize(continuum_ini_size);
+
+                    mMapping_New_Cont.resize(continuum_ini_size);
+                    mMapping_New_Cont[continuum_ini_size - 1] = -1;
+
+                    mHistory.resize(continuum_ini_size);
+
+                    mHistory[continuum_ini_size - 1][0] = 0.0; //maximum indentation reached
+                    mHistory[continuum_ini_size - 1][1] = 0.0; //maximum force reached
+                    mHistory[continuum_ini_size - 1][2] = 0.0;
+
+                    r_continuum_ini_neighbours_ids[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();
+
+                    if (mContactMeshOption) {
+
+                        (this->GetGeometry()(0))->GetValue(NODE_TO_NEIGH_ELEMENT_POINTER).resize(continuum_ini_size);
+
+                    } //if(mContactMeshOption) 
+
+                }//if ( (r_other_continuum_group == mContinuumGroup) && (mContinuumGroup != 0) )
+
+            }//for mContinuumSimulationOption      
+
+        } //end for: ParticleWeakIteratorType ineighbour
+
+
+        if (mContinuumSimulationOption == true) {
+
+            if (mDimension == 3) {
+                ContactAreaWeighting3D(r_process_info);
+            } else if (mDimension == 2) {
+
+                ContactAreaWeighting2D(r_process_info);
+
+            }
+
+        }
+
+
+    }//SetInitialContacts
+      
         void SphericContinuumParticle::NeighNeighMapping( ProcessInfo& rCurrentProcessInfo  ) 
         {
           
@@ -789,10 +771,11 @@ namespace Kratos
               vector<int>& r_initial_neighbours_id          = this->GetValue(INI_NEIGHBOURS_IDS);
 
               int ini_neighbours_size = r_initial_neighbours_id.size();
+              
      
               for(int index = 0; index < ini_neighbours_size; index++)    //loop over neighbours, just to run the index.
               {    
-                  if( this->GetValue(PARTICLE_INITIAL_FAILURE_ID)[index] == 0)
+                  if( this->GetValue(PARTICLE_INITIAL_FAILURE_ID)[index] == 0)  //MA: GetValue(PARTICLE_INITIAL_FAILURE_ID) must be stored locally with a reference to save time
                   {
                       tempType[0]++;
                   }
@@ -1155,7 +1138,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
    
   void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() 
   {
-
   ParticleWeakVectorType& TempNeighbours = mTempNeighbours;
   ParticleWeakVectorType& neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
   
@@ -1776,10 +1758,12 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       {
       KRATOS_TRY
        //obtaining pointer to contact element.
-
-       Element::Pointer lock_p_weak = (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(mapping_new_cont)).lock();
+              
+       WeakPointerVector<Element>& node_to_neigh_element_pointer = this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER);
+       
+       Element::Pointer lock_p_weak = (node_to_neigh_element_pointer(mapping_new_cont)).lock();
       
-       if ( (this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER)(mapping_new_cont)).expired() ) 
+       if ( (node_to_neigh_element_pointer(mapping_new_cont)).expired() ) 
            KRATOS_WATCH("You are using a pointer that points to nowhere. Something has to be Fix!!!")
                   
        if( this->Id() < neighbour_iterator_id )  // Since areas are the same, the values are the same and we only store from lower ids.
@@ -1789,10 +1773,10 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             //storing values:
                 
             //HIGH-LOW variables
-                  
-            lock_p_weak->GetValue(LOCAL_CONTACT_FORCE)[0] = LocalElasticContactForce[0];
-            lock_p_weak->GetValue(LOCAL_CONTACT_FORCE)[1] = LocalElasticContactForce[1];
-            lock_p_weak->GetValue(LOCAL_CONTACT_FORCE)[2] = LocalElasticContactForce[2];
+            array_1d<double,3> local_contact_force = lock_p_weak->GetValue(LOCAL_CONTACT_FORCE);      
+            local_contact_force[0] = LocalElasticContactForce[0];
+            local_contact_force[1] = LocalElasticContactForce[1];
+            local_contact_force[2] = LocalElasticContactForce[2];
                    
   
             lock_p_weak->GetValue(CONTACT_SIGMA) = contact_sigma;
