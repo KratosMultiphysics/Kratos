@@ -358,6 +358,33 @@ public:
     void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
 
     /**
+     * this function provides a more general interface to the condition.
+     * it is designed so that rLHSvariables and rRHSvariables are passed TO the condition
+     * thus telling what is the desired output
+     * @param rLeftHandSideMatrices: container with the output left hand side matrices
+     * @param rLHSVariables: paramter describing the expected LHSs
+     * @param rRightHandSideVectors: container for the desired RHS output
+     * @param rRHSVariables: parameter describing the expected RHSs
+     */
+    void CalculateLocalSystem(std::vector< MatrixType >& rLeftHandSideMatrices,
+			      const std::vector< Variable< MatrixType > >& rLHSVariables,
+			      std::vector< VectorType >& rRightHandSideVectors,
+			      const std::vector< Variable< VectorType > >& rRHSVariables,
+			      ProcessInfo& rCurrentProcessInfo);
+
+
+   /**
+     * this function provides a more general interface to the condition.
+     * it is designed so that rRHSvariables are passed TO the condition
+     * thus telling what is the desired output
+     * @param rRightHandSideVectors: container for the desired RHS output
+     * @param rRHSVariables: parameter describing the expected RHSs
+     */
+    void CalculateRightHandSide(std::vector< VectorType >& rRightHandSideVectors,
+				const std::vector< Variable< VectorType > >& rRHSVariables,
+				ProcessInfo& rCurrentProcessInfo);
+
+    /**
       * this is called during the assembling process in order
       * to calculate the elemental mass matrix
       * @param rMassMatrix: the elemental mass matrix
@@ -372,6 +399,20 @@ public:
       * @param rCurrentProcessInfo: the current process info instance
       */
     void DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo);
+
+
+    /**
+     * this function is designed to make the element to assemble an rRHS vector
+     * identified by a variable rRHSVariable by assembling it to the nodes on the variable
+     * rDestinationVariable.
+     * @param rRHSVector: input variable containing the RHS vector to be assembled
+     * @param rRHSVariable: variable describing the type of the RHS vector to be assembled
+     * @param rDestinationVariable: variable in the database to which the rRHSvector will be assembled 
+     * @param rCurrentProcessInfo: the current process info instance
+     */      
+    void AddExplicitContribution(const VectorType& rRHS, const Variable<VectorType>& rRHSVariable, 
+				 Variable<array_1d<double,3> >& rDestinationVariable, 
+				 const ProcessInfo& rCurrentProcessInfo);
 
 
     //on integration points:
