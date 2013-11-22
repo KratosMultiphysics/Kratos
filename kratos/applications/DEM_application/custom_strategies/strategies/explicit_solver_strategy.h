@@ -606,9 +606,9 @@ namespace Kratos
             size_t ResultCounter = this->GetElementPartition()[k];
 
             for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter){
-
+                WeakPointerVector<Element>& neighbour_elements = particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS);
                 for (SpatialSearch::ResultElementsContainerType::iterator neighbour_it = this->GetResults()[ResultCounter].begin(); neighbour_it != this->GetResults()[ResultCounter].end(); ++neighbour_it){
-                    particle_pointer_it->GetValue(NEIGHBOUR_ELEMENTS).push_back(*neighbour_it);         
+                    neighbour_elements.push_back(*neighbour_it);         
                 }
 
                 this->GetResults()[ResultCounter].clear();
@@ -672,10 +672,11 @@ namespace Kratos
 				
 				for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter)
 				{
+                                    WeakPointerVector<Condition>& neighbour_rigid_faces = particle_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES);
 					for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[ResultCounter].begin(); 
 						 neighbour_it != this->GetRigidFaceResults()[ResultCounter].end(); ++neighbour_it)
 					{
-						particle_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).push_back(*neighbour_it);   
+						neighbour_rigid_faces.push_back(*neighbour_it);   
 					}
 
 					this->GetRigidFaceResults()[ResultCounter].clear();
@@ -719,8 +720,7 @@ namespace Kratos
 			
 			////Cfeng: Find The particle neighbours for each RigidFace, used for calculating FEM force
 			for (E_pointer_it = pElements.begin(); E_pointer_it != pElements.end(); ++E_pointer_it)
-			{
-					
+			{					
 				for(ConditionWeakIteratorType ineighbour = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).begin(); 
 					 ineighbour != E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).end(); ineighbour++)
 				{
@@ -789,10 +789,11 @@ namespace Kratos
 				
 				for (SpatialSearch::ConditionsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter)
 				{
+                                    WeakPointerVector<Condition>& neighbour_rigid_faces = particle_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES);
 					for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[ResultCounter].begin(); 
 						 neighbour_it != this->GetRigidFaceResults()[ResultCounter].end(); ++neighbour_it)
 					{
-						particle_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).push_back(*neighbour_it);         
+						neighbour_rigid_faces.push_back(*neighbour_it);         
 					}
 
 					this->GetRigidFaceResults()[ResultCounter].clear();
@@ -829,8 +830,9 @@ namespace Kratos
 			
 			for (E_pointer_it = pElements.begin(); E_pointer_it != pElements.end(); ++E_pointer_it)
 			{
-				for(ConditionWeakIteratorType ineighbour = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).begin(); 
-					 ineighbour != E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).end(); ineighbour++)
+                                WeakPointerVector<Condition>& neighbour_rigid_faces = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES);
+				for(ConditionWeakIteratorType ineighbour = neighbour_rigid_faces.begin(); 
+					 ineighbour != neighbour_rigid_faces.end(); ineighbour++)
 				{
 					ineighbour->GetValue(NEIGHBOUR_PARTICLE_OF_RIGID_FACE).push_back(*(E_pointer_it.base()));				
 				}
