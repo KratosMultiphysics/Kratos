@@ -27,6 +27,7 @@
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
 //schemes
+#include "custom_strategies/custom_schemes/residual_based_contact_bossak_scheme.hpp"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -48,39 +49,26 @@ namespace Kratos
       //base types
       typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
       typedef SolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
+      typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
       typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
       typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaBaseType;
 
-      typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
-
-
       //custom types
+
+      //custom scheme types
+      typedef ResidualBasedContactBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedContactBossakSchemeType;
+
 
       //********************************************************************
       //*************************STRATEGY CLASSES***************************
       //********************************************************************
 
-      // class_< TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >,	
-      // 	      bases< BaseSolvingStrategyType >,  boost::noncopyable >
-      // ("TestStrategy", 
-      //  init<ModelPart&, LinearSolverType::Pointer, int, int, bool >() )
-      // .def("MoveNodes",&TestStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType >::MoveNodes)
-      // ;
     
 
       //********************************************************************
       //*************************BUILDER AND SOLVER*************************
       //********************************************************************
       
-      // Residual Based Builder and Solver
-      //typedef ResidualBasedBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > ResidualBasedBuilderAndSolverType;
-      
-      //class_< ResidualBasedBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > ("ResidualBasedBuilderAndSolver", init< LinearSolverType::Pointer > ());
-
-     
-      // Block Residual Based Builder and Solver
-      //typedef BlockResidualBasedBuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BlockResidualBasedBuilderAndSolverType;
-      //class_< BlockResidualBasedBuilderAndSolverType, bases<BuilderAndSolverType>, boost::noncopyable > ("BlockResidualBasedBuilderAndSolver", init< LinearSolverType::Pointer > ());
 
 
       //********************************************************************
@@ -88,28 +76,20 @@ namespace Kratos
       //********************************************************************
 
  
-      // class_< ResidualBasedBossakSchemeType,
-      // 	      bases< BaseSchemeType >,  boost::noncopyable >
-      // 	(
-      // 	 "ResidualBasedBossakScheme", init< double , double >() )
+      // Residual Based Bossak Scheme Type
+      class_< ResidualBasedContactBossakSchemeType,
+            bases< BaseSchemeType >,  boost::noncopyable >
+            (
+                "ResidualBasedContactBossakScheme", init< double , double >() )
 
-      // 	 .def("Initialize", &ResidualBasedBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-      // 	;
-    
+            .def("Initialize", &ResidualBasedContactBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
+            ;
 
 
-      
 
       //********************************************************************
       //*******************CONVERGENCE CRITERIA CLASSES*********************
       //********************************************************************
-
-
-     //  class_< DisplacementConvergenceCriteria< SparseSpaceType,  LocalSpaceType > ,
-     // 	      bases< ConvergenceCriteriaBaseType >, boost::noncopyable >
-     // 	(
-     // 	 "DisplacementConvergenceCriteria", init<double, double >()
-     // 	 );
 
 
  
