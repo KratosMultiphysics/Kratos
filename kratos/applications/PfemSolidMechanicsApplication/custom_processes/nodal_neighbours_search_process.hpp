@@ -329,7 +329,7 @@ private:
         //*************  Erase old node neighbours  *************//
         CleanNodeNeighbours();
 
-        //*************  Neigbours of nodes  ************//
+        //*************  Neighbours of nodes  ************//
 
         //add the neighbour elements to all the nodes in the mesh
         for(ElementsContainerType::iterator ie = rElems.begin(); ie!=rElems.end(); ie++)
@@ -337,27 +337,33 @@ private:
             Element::GeometryType& pGeom = ie->GetGeometry();
             for(unsigned int i = 0; i < pGeom.size(); i++)
             {
-                //KRATOS_WATCH( pGeom[i] )
+  	        //KRATOS_WATCH( pGeom[i] )
                 (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).push_back( Element::WeakPointer( *(ie.base()) ) );
                 //KRATOS_WATCH( (pGeom[i].GetValue(NEIGHBOUR_ELEMENTS)).size() )
             }
         }
 
+
         //adding the neighbouring nodes to all nodes in the mesh
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
-            WeakPointerVector<Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
-
+            WeakPointerVector< Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
+	        KRATOS_WATCH ( *in )
+            KRATOS_WATCH ( rE.size() )
             for(unsigned int ie = 0; ie < rE.size(); ie++)
             {
                 Element::GeometryType& pGeom = rE[ie].GetGeometry();
                 for(unsigned int i = 0; i < pGeom.size(); i++)
                 {
-                    if(pGeom[i].Id() != in->Id() )
-                    {
+ 		    std::cout<<" inside pgeom loop {"<<i<<"} rE.size() : "<<rE.size()<<std::endl;
+                    if( pGeom[i].Id() != in->Id() )
+                    {              
                         Element::NodeType::WeakPointer temp = pGeom(i);
-                        AddUniqueWeakPointer< Node<3> >(in->GetValue(NEIGHBOUR_NODES), temp);
-                    }
+			            WeakPointerVector< Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
+                        AddUniqueWeakPointer< Node<3> >(rN, temp);
+			std::cout<<" inside add unique {"<<i<<"} rE.size() : "<<rE.size()<<std::endl;
+                    }	    
+
                 }
             }
         }
@@ -375,7 +381,7 @@ private:
         CleanNodeNeighbours();
 
 
-        //*************  Neigbours of nodes  ************//
+        //*************  Neighbours of nodes  ************//
         unsigned int Ne=rElems.size();
         unsigned int Np=rNodes.size();
 
