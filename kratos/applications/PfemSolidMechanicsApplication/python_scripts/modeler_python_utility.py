@@ -114,7 +114,7 @@ class ModelerUtility:
         # execute search:
         nodal_neighbour_search.Execute()
 
-        #print " Nodal Search executed "
+        print " Nodal Search executed "
 
 
     #######################################################################   
@@ -130,7 +130,7 @@ class ModelerUtility:
         # execute search:
         elemental_neighbour_search.Execute()
 
-        #print " Element Search executed "
+        print " Element Search executed "
 
     #######################################################################   
     def ComputeBoundaryNormals(self):
