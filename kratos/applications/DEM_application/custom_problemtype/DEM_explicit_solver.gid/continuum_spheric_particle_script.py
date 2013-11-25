@@ -495,7 +495,8 @@ while (time < DEM_parameters.FinalTime):
                                 
         proc.PrintingGlobalVariables(gid_io, mixed_model_part, time)
         proc.PrintingBallsVariables(gid_io, balls_model_part, time)
-        proc.PrintingContactElementsVariables(gid_io, contact_model_part, time)
+        if (DEM_parameters.ContactMeshOption == "ON"):
+            proc.PrintingContactElementsVariables(gid_io, contact_model_part, time)
         
         os.chdir(main_path)     
               
