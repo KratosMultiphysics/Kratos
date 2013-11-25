@@ -2231,32 +2231,35 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                   }
 
              }
-
+              return;
           }
 
-          else if (rVariable == MAX_INDENTATION){
+          if (rVariable == MAX_INDENTATION){
               CalculateMaxIndentation(Output, rCurrentProcessInfo[DISTANCE_TOLERANCE]);
+              return;
           }
 
-          else if (rVariable == KINETIC_ENERGY){
+          if (rVariable == KINETIC_ENERGY){
               CalculateKineticEnergy(Output);
-
+              return;
           }
 
-          else if (rVariable == ELASTIC_ENERGY_OF_CONTACTS){
+          if (rVariable == ELASTIC_ENERGY_OF_CONTACTS){
               CalculateElasticEnergyOfContacts(Output);
+              return;
           }
           
-           else if (rVariable == CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA){
+          if (rVariable == CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA){
              ComputeNewNeighboursHistoricalData();
-              
+             return;              
           }
           
-           else if (rVariable == CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA){
+          if (rVariable == CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA){
               ComputeNewRigidFaceNeighboursHistoricalData();
+              return;
           }
           
-          AdditionalCalculate(rVariable, Output, rCurrentProcessInfo);
+          //AdditionalCalculate(rVariable, Output, rCurrentProcessInfo);
 
           KRATOS_CATCH("")
 
