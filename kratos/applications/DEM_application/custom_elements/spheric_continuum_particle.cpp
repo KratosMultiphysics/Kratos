@@ -1404,68 +1404,33 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         //KRATOS_WATCH(rVariable)
         
         KRATOS_TRY
-
-        if (rVariable == DELTA_TIME)
-        {
-
-            double coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
-
-            if (coeff>1.0)
-            {
-                KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",coeff)
-            }
-
-            else if ((coeff==1.0) && (rCurrentProcessInfo[VIRTUAL_MASS_OPTION]))
-            {
-                Output = 9.0E09;
-            }
-
-            else
-            {
-
-                if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
-                {
-                    mRealMass = mRealMass/(1-coeff);
-                }
-
-                double K = mYoung * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); //M. Error, should be the same that the local definition.
-
-                if (rCurrentProcessInfo[GLOBAL_VARIABLES_OPTION]==1)
-                    K = rCurrentProcessInfo[GLOBAL_KN];
-
-                Output = 0.34 * sqrt( mRealMass / K);
-
-                if(rCurrentProcessInfo[ROTATION_OPTION] == 1)
-                {
-                    Output = Output * 0.5; //factor for critical time step when rotation is allowed.
-                }
-            }
-            
-        }//CRITICAL DELTA CALCULATION
-
-        else if (rVariable == PARTICLE_ROTATION_DAMP_RATIO)
-        {
-            //ApplyLocalMomentsDamping( rCurrentProcessInfo ); MSIMSI
-        } //DAMPING
-
-        else if (rVariable == DEM_STRESS_XX)  //operations with the stress_strain tensors
-        {
-          
-            SymmetrizeTensor( rCurrentProcessInfo );
-            
-          
-        } //EULER_ANGLES
-        
-        else if (rVariable == DUMMY_DEBUG_DOUBLE) //Dummy variable for debugging  MSIMSI DEBUG
-        {
-          
-          CheckPairWiseBreaking();
-        
+        if (rVariable == CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA){
+            ComputeNewNeighboursHistoricalData();
+            return;            
         }
-        
-        else if (rVariable == MEAN_CONTACT_AREA)
-        {
+        ////////////////////////////////////////////////////////////////////////
+        if (rVariable == CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA){
+            ComputeNewRigidFaceNeighboursHistoricalData();
+            return;
+        }
+        ////////////////////////////////////////////////////////////////////////
+        if (rVariable == DEMPACK_DAMPING)
+        {                  
+             array_1d<double, 3>& total_force = this->GetGeometry()(0)->FastGetSolutionStepValue(TOTAL_FORCES); //Includes all elastic, damping, but not external (gravity)
+             array_1d<double, 3>& velocity = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+                           
 
+            for (int i = 0; i<3; i++)
+            {
+                if ( this->GetGeometry()(0)->pGetDof(VELOCITY_Y)->IsFixed() == false ){
+                    total_force[i] = total_force[i] - mDempack_global_damping*fabs(total_force[i])*GeometryFunctions::sign(velocity[i]);                                
+                }
+            }
+             return;
+        } 
+        ////////////////////////////////////////////////////////////////////////
+        if (rVariable == MEAN_CONTACT_AREA)
+        {
             int my_id = this->Id();
             bool im_skin = bool(this->GetValue(SKIN_SPHERE));
             ParticleWeakVectorType& r_continuum_ini_neighbours    = this->GetValue(CONTINUUM_INI_NEIGHBOUR_ELEMENTS);
@@ -1530,43 +1495,72 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             
             }//loop neigh.
           
-          
+            return;
         } //MEAN_CONTACT_AREA
-        
-        else if (rVariable == LOCAL_CONTACT_AREA_HIGH)
+        ////////////////////////////////////////////////////////////////////////
+        if (rVariable == DELTA_TIME)
         {
-            
-            Output = AreaDebugging( rCurrentProcessInfo);
-        }
-          
-        else if (rVariable == DEMPACK_DAMPING)
-        {
-                  
-             array_1d<double, 3>& total_force = this->GetGeometry()(0)->FastGetSolutionStepValue(TOTAL_FORCES); //Includes all elastic, damping, but not external (gravity)
-             array_1d<double, 3>& velocity = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-                           
 
-            for (int i = 0; i<3; i++)
+            double coeff = rCurrentProcessInfo[NODAL_MASS_COEFF];
+
+            if (coeff>1.0)
             {
-                if ( this->GetGeometry()(0)->pGetDof(VELOCITY_Y)->IsFixed() == false ){
-                    total_force[i] = total_force[i] - mDempack_global_damping*fabs(total_force[i])*GeometryFunctions::sign(velocity[i]);                                
+                KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",coeff)
+            }
+
+            else if ((coeff==1.0) && (rCurrentProcessInfo[VIRTUAL_MASS_OPTION]))
+            {
+                Output = 9.0E09;
+            }
+
+            else
+            {
+
+                if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
+                {
+                    mRealMass = mRealMass/(1-coeff);
+                }
+
+                double K = mYoung * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); //M. Error, should be the same that the local definition.
+
+                if (rCurrentProcessInfo[GLOBAL_VARIABLES_OPTION]==1)
+                    K = rCurrentProcessInfo[GLOBAL_KN];
+
+                Output = 0.34 * sqrt( mRealMass / K);
+
+                if(rCurrentProcessInfo[ROTATION_OPTION] == 1)
+                {
+                    Output = Output * 0.5; //factor for critical time step when rotation is allowed.
                 }
             }
-        } 
-         
-        else if (rVariable == CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA){
-            ComputeNewNeighboursHistoricalData();
-            
-        }
+            return;
+        }//CRITICAL DELTA CALCULATION
+        ////////////////////////////////////////////////////////////////////////
+        if (rVariable == PARTICLE_ROTATION_DAMP_RATIO)
+        {
+            //ApplyLocalMomentsDamping( rCurrentProcessInfo ); MSIMSI
+            return;
+        } //DAMPING
+        ////////////////////////////////////////////////////////////////////////
+        if (rVariable == DEM_STRESS_XX)  //operations with the stress_strain tensors
+        {          
+            SymmetrizeTensor( rCurrentProcessInfo );
+            return;                      
+        } //EULER_ANGLES
+        ////////////////////////////////////////////////////////////////////////
+        if (rVariable == DUMMY_DEBUG_DOUBLE) //Dummy variable for debugging  MSIMSI DEBUG
+        {          
+          CheckPairWiseBreaking();
+          return;
+        }        
+        ////////////////////////////////////////////////////////////////////////
+        if (rVariable == LOCAL_CONTACT_AREA_HIGH)
+        {            
+            Output = AreaDebugging( rCurrentProcessInfo);
+            return;
+        }                                   
+        ////////////////////////////////////////////////////////////////////////
         
-          else if (rVariable == CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA){
-            ComputeNewRigidFaceNeighboursHistoricalData();
-        }
-    
-          
-          
-          
-     
       KRATOS_CATCH("")
       
       }//calculate
@@ -1756,14 +1750,13 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                                                           double  contact_sigma, double  contact_tau, double failure_criterion_state, double acumulated_damage)
       {
       KRATOS_TRY
-       //obtaining pointer to contact element.
-              
+       //obtaining pointer to contact element.              
        WeakPointerVector<Element>& node_to_neigh_element_pointer = this->GetGeometry()[0].GetValue(NODE_TO_NEIGH_ELEMENT_POINTER);
        
        Element::Pointer lock_p_weak = (node_to_neigh_element_pointer(mapping_new_cont)).lock();
       
-       if ( (node_to_neigh_element_pointer(mapping_new_cont)).expired() ) 
-           KRATOS_WATCH("You are using a pointer that points to nowhere. Something has to be Fix!!!")
+       //if ( (node_to_neigh_element_pointer(mapping_new_cont)).expired() ) 
+         //  KRATOS_WATCH("You are using a pointer that points to nowhere. Something has to be Fixed!!!")
                   
        if( this->Id() < neighbour_iterator_id )  // Since areas are the same, the values are the same and we only store from lower ids.
         {
@@ -1784,10 +1777,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             lock_p_weak->GetValue(CONTACT_FAILURE) = (mNeighbourFailureId[i_neighbour_count]);                                        
             lock_p_weak->GetValue(FAILURE_CRITERION_STATE) = failure_criterion_state;
             if( ( acumulated_damage > lock_p_weak->GetValue(UNIDIMENSIONAL_DAMAGE) ) || (*mpTimeStep == 0) )
-             { lock_p_weak->GetValue(UNIDIMENSIONAL_DAMAGE) = acumulated_damage; }
-              
-        
-            
+             { lock_p_weak->GetValue(UNIDIMENSIONAL_DAMAGE) = acumulated_damage; }                                  
                   
         } // if Target Id < Neigh Id
 //         else   
@@ -1802,11 +1792,9 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 //                                                   
 //             //COMBINED MEAN       
 //   
-//             lock_p_weak->GetValue(CONTACT_TAU)                  = contact_sigma;
-//             
+//             lock_p_weak->GetValue(CONTACT_TAU)                  = contact_sigma;             
 //                                   
-//         }
-        
+//         }        
 
         ///////////////////////////////////////////////////////////////////////////////////////////////      
         //QUESTION!::: M.S.I.     
@@ -1817,11 +1805,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       KRATOS_CATCH("")
       
       }//CalculateOnContactElements
-      
-      
-      
-      
-      
+                              
       /**
        * ComputeStressStrain
        * @param mStressTensor StressTensor matrix
@@ -1838,7 +1822,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
               {
                   this->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) = 15;
                   KRATOS_WATCH(this->Id())
-                  KRATOS_WATCH("Negatiu volume")
+                  KRATOS_WATCH("Negative volume")
                   KRATOS_WATCH(*mpTimeStep)
               }
                 
@@ -1848,8 +1832,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                   {
                       for (int j=0; j<3; j++)
                       {
-                          //KRATOS_WATCH(Representative_Volume)
-                          //KRATOS_WATCH(mStressTensor[i][j])
                           mStressTensor[i][j] = (1/Representative_Volume)*0.5*(mStressTensor [i][j] + mStressTensor[j][i]);  //THIS WAY THE TENSOR BECOMES SYMMETRIC
                       }
                   }       
@@ -1891,7 +1873,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
               double target_radius               = this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
               array_1d<double,3> x_centroid      = (target_radius + 0.5*gap) * normal_vector_on_contact;
             
-              //KRATOS_WATCH(kn_el)
               double result_product = GeometryFunctions::DotProduct(x_centroid,normal_vector_on_contact);
             
               double& Representative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
@@ -1967,15 +1948,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         else if ( (mFinalPressureTime > 1e-10) && (time_now < mFinalPressureTime) )
         {
           
-        externally_applied_force = AuxiliaryFunctions::LinearTimeIncreasingFunction(total_externally_applied_force, time_now, mFinalPressureTime);
-   
-//               if(this->Id() ==10118)
-//               {
-//                       double magnitude;
-//                       GeometryFunctions::module(externally_applied_force, magnitude);
-//                       KRATOS_WATCH(time_now)
-//                   KRATOS_WATCH(magnitude)
-//               }
+          externally_applied_force = AuxiliaryFunctions::LinearTimeIncreasingFunction(total_externally_applied_force, time_now, mFinalPressureTime);
+
         }       
         else
         {
