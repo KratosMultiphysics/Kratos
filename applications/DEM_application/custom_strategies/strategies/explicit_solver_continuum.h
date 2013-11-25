@@ -161,6 +161,8 @@ namespace Kratos
           
           }  
           
+           BaseType::ComputeNewNeighboursHistoricalData();                    
+          
           // 5. Finalize Solution Step
           
           BaseType::FinalizeSolutionStep();
@@ -236,16 +238,28 @@ namespace Kratos
 
               if ((time_step + 1)%this->GetNStepSearch() == 0 && time_step > 0){
 
-                  if (this->GetBoundingBoxOption() == 1){
-                      BoundingBoxUtility();
+                  if (this->GetBoundingBoxOption() == 1)
+                  {
+                      this->BoundingBoxUtility();
                       this->SetSearchRadius(rModelPart,rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION],rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
                       
                   }
 
-                   BaseType::SearchNeighbours(rModelPart); //the amplification factor has been modified after the first search.
+                   BaseType::SearchNeighbours(); //the amplification factor has been modified after the first search.
+                   
+                    //if( *mpActivateSearch==1 || *mpTimeStep == 0)  
+                    {
+                        BaseType::ComputeNewNeighboursHistoricalData();
+                        
+                    }
+                    
+                    //BaseType::SearchRigidFaceNeighbours();
+                    //BaseType::ComputeNewRigidFaceNeighboursHistoricalData(); //Cfeng,RigidFace          
+              
+                
               }
 
-        }
+          }
           //KRATOS_TIMER_STOP("SearchNeighbours")
           
           //KRATOS_TIMER_START("FinalizeSolutionStep")
