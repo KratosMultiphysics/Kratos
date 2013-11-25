@@ -98,17 +98,7 @@ namespace Kratos
           initial_rotation_moment.clear();
           elastic_force.clear();
           
-         if( *mpActivateSearch==1 || *mpTimeStep == 0)  
-          {
           
-          ComputeNewNeighboursHistoricalData();		  
-            //Cfeng,RigidFace
-          ComputeNewRigidFaceNeighboursHistoricalData();		  
-          
-            
-          }
-          
-
           ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
 
           if (mLimitSurfaceOption > 0){
@@ -296,7 +286,7 @@ namespace Kratos
 
      void SphericParticle::ComputeNewNeighboursHistoricalData()
      {
-
+      
        ParticleWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_ELEMENTS);
        unsigned int new_size                = rNeighbours.size();
        unsigned int neighbour_counter       = 0;
@@ -2200,14 +2190,13 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
       void SphericParticle::Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo)
       {
+          
+        KRATOS_TRY
 
           if (rVariable == PARTICLE_ID){
               Output = mParticleId; // (NOT YET ACTIVE!!)
               return;
           }
-
-          KRATOS_TRY
-
           //CRITICAL DELTA CALCULATION
 
           if (rVariable == DELTA_TIME){
@@ -2257,7 +2246,16 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           else if (rVariable == ELASTIC_ENERGY_OF_CONTACTS){
               CalculateElasticEnergyOfContacts(Output);
           }
-
+          
+           else if (rVariable == CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA){
+             ComputeNewNeighboursHistoricalData();
+              
+          }
+          
+           else if (rVariable == CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA){
+              ComputeNewRigidFaceNeighboursHistoricalData();
+          }
+          
           AdditionalCalculate(rVariable, Output, rCurrentProcessInfo);
 
           KRATOS_CATCH("")
