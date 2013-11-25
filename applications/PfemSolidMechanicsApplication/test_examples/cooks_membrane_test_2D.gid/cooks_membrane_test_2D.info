@@ -1,0 +1,134 @@
+Mon Nov 25 17:57:59 2013
+ |  /           |             
+ ' /   __| _` | __|  _ \   __|
+ . \  |   (   | |   (   |\__ \ 
+_|\_\_|  \__,_|\__|\___/ ____/
+           Multi-Physics 3.2.1
+Importing KratosExternalSolversApplication
+Initializing KratosExternalSolversApplication... 
+Initializing  KratosExternalSolversApplication
+Importing KratosSolidMechanicsApplication
+Initializing KratosSolidMechanicsApplication... 
+Initializing  KratosExternalSolversApplication
+Initializing  KratosSolidMechanicsApplication
+Importing KratosMeshingApplication
+Initializing Kratos MeshingApplication... 
+Initializing  KratosMeshingApplication
+Initializing  KratosExternalSolversApplication
+Initializing  KratosSolidMechanicsApplication
+Importing KratosPfemSolidMechanicsApplication
+Initializing KratosPfemSolidMechanicsApplication... 
+Initializing  KratosPfemSolidMechanicsApplication
+Initializing  KratosMeshingApplication
+Initializing  KratosExternalSolversApplication
+Initializing  KratosSolidMechanicsApplication
+Num Threads =  4
+Thread 0 getting environment info...
+  | ------------ OMP IN USE --------- |
+  | Machine number of processors  = 8 |
+  | Number of threads set         = 4 |
+  | Max threads in use            = 4 |
+  | In parallel?                  = 1 |
+  | Dynamic threads enabled?      = 0 |
+  | Nested parallelism supported? = 0 |
+  | --------------------------------- |
+
+Construction structural solver finished
+Linear Solver Set
+ MESH CONDITIONS : 1
+ --> Domain [ 1 ]  SpatialLagrangianUPElement2D3N
+SET MESH DOMAIN DATA
+ --> Domain [ 1 ]  SpatialLagrangianUPElement2D3N  remesh:  1
+ CRITICAL RADIUS      : 0.00218167
+ CRITICAL SIDE        : 0.01309
+ CRITICAL DISSIPATION : 100
+cooks_membrane_test_2D opened for io
+cooks_membrane_test_2D.node opened for io
+cooks_membrane_test_2D.prop opened for io
+cooks_membrane_test_2D.elem opened for io
+cooks_membrane_test_2D.cond opened for io
+cooks_membrane_test_2D.init opened for io
+initializing result files
+variables for the structural solver added correctly
+Start: -remove previous problem files-
+Reading Nodes : 2601 nodes read
+Reading Elements : 5000 SpatialLagrangianUPElement2D3N read
+lines read : 7907
+dofs for the structural solver added correctly
+SolidDomain model part
+    Buffer Size : 3
+    Number of tables : 0
+    Current solution step index : 0
+
+    Mesh 0 : 
+    Number of Nodes      : 2601
+    Number of Properties : 2
+    Number of Elements   : 5000
+    Number of Conditions : 50
+
+Properties
+    DENSITY : 0
+    YOUNG_MODULUS : 240.565
+    POISSON_RATIO : 0.4999
+    THICKNESS : 1
+    CONSTITUTIVE_LAW : 0x2fe2360
+
+ MECHANICAL SCHEME: The Bossak Time Integration Scheme [alpha_m= 0 beta= 0.25 gamma= 0.5]
+ CONVERGENCE CRITERION (solid) :  Residual_Criteria
+Initialization mechanical solver finished
+STEP =  0
+TIME =  1
+ MECHANICAL SOLUTION START 
+ mechanical elements are initialized 
+matrix size in solver:  7701
+RHS size in solver SLU: 7701
+Factor time  =     0.41
+Factor flops = 2.870087e+08	Mflops =   700.02
+Solve time   =     0.00
+Number of memory expansions: 0
+RESIDUAL CRITERIA :: Ratio = 1;  Norm   = 0.0018272
+matrix size in solver:  7701
+RHS size in solver SLU: 7701
+Factor time  =     0.40
+Factor flops = 2.846359e+08	Mflops =   711.59
+Solve time   =     0.00
+Number of memory expansions: 0
+RESIDUAL CRITERIA :: Ratio = 1.51842;  Norm   = 0.00277445
+matrix size in solver:  7701
+RHS size in solver SLU: 7701
+Factor time  =     0.40
+Factor flops = 2.835383e+08	Mflops =   708.85
+Solve time   =     0.00
+Number of memory expansions: 0
+RESIDUAL CRITERIA :: Ratio = 0.177187;  Norm   = 0.000323756
+matrix size in solver:  7701
+RHS size in solver SLU: 7701
+Factor time  =     0.40
+Factor flops = 2.828315e+08	Mflops =   707.08
+Solve time   =     0.00
+Number of memory expansions: 0
+RESIDUAL CRITERIA :: Ratio = 0.00807664;  Norm   = 1.47576e-05
+matrix size in solver:  7701
+RHS size in solver SLU: 7701
+Factor time  =     0.40
+Factor flops = 2.828252e+08	Mflops =   707.06
+Solve time   =     0.01
+Solve flops = 3.973574e+06	Mflops =   397.36
+Number of memory expansions: 0
+RESIDUAL CRITERIA :: Ratio = 0.000465668;  Norm   = 8.50867e-07
+matrix size in solver:  7701
+RHS size in solver SLU: 7701
+Factor time  =     0.40
+Factor flops = 2.827992e+08	Mflops =   707.00
+Solve time   =     0.00
+Number of memory expansions: 0
+RESIDUAL CRITERIA :: Ratio = 2.43338e-05;  Norm   = 4.44626e-08
+Convergence is achieved.
+ MECHANICAL SOLUTION PERFORMED 
+Solving  [ spent time =  3.61 ] 
+WRITING RESULTS: [STEP:  0 ] [TIME:  1 ]
+ -Run_GID_for_viewing_the_results_of_the_analysis-
+Write Results  [ spent time =  0.27 ] 
+Analysis Finalized 
+Mon Nov 25 17:58:01 2013
+Analysis Completed  [Process Time =  4.33 ] 
