@@ -257,11 +257,13 @@ else:
   problem_restart.CleanPosteriorFiles(time_step,restart_time,list_files)
 
 #set mesh searches and modeler
-# modeler.InitializeDomains();
+#print "initialize modeler"
+##modeler.InitializeDomains();
 
-#if(load_restart == "False"):
+##if(load_restart == "False"):
   #find nodal h
-  #modeler.SearchNodalH();
+  #print "search mesh nodal_h"
+  ##modeler.SearchNodalH();
 
 
 #--- PRINT CONTROL ---#
@@ -313,7 +315,7 @@ restart_print.InitializeTime(starting_time,ending_time,time_step,restart_time_fr
 
 
 #initialize mesh modeling variables for time integration
-#modeler.Initialize(current_step,current_step)
+##modeler.Initialize(current_step,current_step)
 
 #initialize graph plot variables for time integration
 #graph_plot.Initialize(current_step)
@@ -375,6 +377,27 @@ for step in range(istep,nstep):
         StopTimeMeasuring(clock_time,"Write Results");
         #plot graphs
         #graph_plot.Plot(current_time)
+
+    #remesh domains
+    ##modeler.RemeshDomains(current_step);
+    
+    #contact search
+    ##modeler.ContactSearch(current_step);
+
+
+    #print the results at the end of the step
+    if(general_variables.WriteResults == "PostMeshing"):
+      execute_write = output_print.perform_time_operation(current_time)
+      if( execute_write == True ):
+        clock_time=StartTimeMeasuring();
+        #print gid output file
+        gid_print.write_results(model_part,general_variables.nodal_results,general_variables.gauss_points_results,current_time,current_step)
+        #print on list files
+        list_files.PrintListFiles(current_step);
+        StopTimeMeasuring(clock_time,"Write Results");
+        #plot graphs
+        #graph_plot.Plot(current_time)
+
 
     #print restart file
     if( save_restart == True ):
