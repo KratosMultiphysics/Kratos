@@ -50,11 +50,11 @@ namespace Kratos
 					    double my_alpha,
 					    double h_factor,
 					    double my_offset,
-					    double penalty_stab,
+					    double penalty_parameter,
+					    double stability_parameter,
 					    bool friction_active,
 					    double mu_static,
-					    double mu_dynamic,
-					    bool penalty_contact)
+					    double mu_dynamic)
 
   {
 
@@ -70,7 +70,9 @@ namespace Kratos
     ContactVars.offset_factor =my_offset;
     std::cout<<" offset_factor "<<ContactVars.offset_factor<<std::endl;
 
-    ContactVars.penalty_stab    = penalty_stab;
+    ContactVars.penalty_parameter    = penalty_parameter;
+    ContactVars.stability_parameter  = stability_parameter;
+
     if(friction_active)
       ContactVars.friction_active = 1;
     else
@@ -78,11 +80,6 @@ namespace Kratos
 
     ContactVars.mu_static       = mu_static;
     ContactVars.mu_dynamic      = mu_dynamic;
-
-    if(penalty_contact)
-      ContactVars.penalty_contact = 1;
-    else
-      ContactVars.penalty_contact = 0;
 
     //Sort Conditions
     unsigned int consecutive_index = 1;
@@ -476,11 +473,12 @@ namespace Kratos
     Properties::Pointer properties = PropertiesArray[0];
 	
     properties->SetValue(THICKNESS,PropertiesArray[0]->GetValue(THICKNESS));
-    properties->SetValue(TAU_STAB,rContactVariables.penalty_stab);
+    properties->SetValue(PENALTY_PARAMETER,rContactVariables.penalty_parameter);
+    properties->SetValue(TAU_STAB,rContactVariables.stability_parameter);
     properties->SetValue(FRICTION_ACTIVE,rContactVariables.friction_active);
     properties->SetValue(MU_STATIC,rContactVariables.mu_static);
     properties->SetValue(MU_DYNAMIC,rContactVariables.mu_dynamic);
-    properties->SetValue(PENALTY_CONTACT,rContactVariables.penalty_contact);
+
 	
     // for(unsigned int p=0; p<PropertiesArray.size(); p++)
     //   std::cout<<" Properties ID ["<<p<<"]: "<<PropertiesArray[p]->Id()<<std::endl;

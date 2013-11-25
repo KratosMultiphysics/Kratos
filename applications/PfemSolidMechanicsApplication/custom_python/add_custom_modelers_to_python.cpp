@@ -51,14 +51,14 @@ void GenerateTriangleMesh(TriangleMesh2DModeler& Mesher, ModelPart& model_part)
   Mesher.GenerateMesh(model_part);
 }
 
-void GenerateTriangleContactMesh(ContactDomain2DModeler& Mesher, ModelPart& model_part, char* ElementName, char* ConditionName, bool constrained, double alpha_shape, double h_factor, double offset_factor, double penalty_stab, bool friction_active, double nu_static, double nu_dynamic,bool penalty_contact)
+void GenerateTriangleContactMesh(ContactDomain2DModeler& Mesher, ModelPart& model_part, char* ElementName, char* ConditionName, bool constrained, double alpha_shape, double h_factor, double offset_factor, double penalty_parameter, double stability_parameter, bool friction_active, double nu_static, double nu_dynamic)
 {
   Mesher.GenerateContactMesh(model_part,
 			     KratosComponents<Element>::Get(ElementName),
 			     KratosComponents<Condition>::Get(ConditionName),
 			     constrained, alpha_shape, h_factor, offset_factor,
-			     penalty_stab, friction_active, nu_static, nu_dynamic,
-			     penalty_contact);
+			     penalty_parameter, stability_parameter,
+			     friction_active, nu_static, nu_dynamic);
 }
 
   void SetRemeshDataOnMesher(TriangleMesh2DModeler& Mesher, char* ElementName, char* ConditionName,bool remesh, bool constrained, bool mesh_smoothing, bool jacobi_smoothing, bool avoid_tip_elements, double alpha_shape, double offset_factor, int domain)

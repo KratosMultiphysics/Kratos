@@ -68,10 +68,9 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(WeakPointerVector< Node<3> >, MASTER_NODES )
 
   //properties
-  KRATOS_CREATE_VARIABLE(bool, PENALTY_CONTACT )
   KRATOS_CREATE_VARIABLE(bool, FRICTION_ACTIVE )
-  KRATOS_CREATE_VARIABLE(double, TAU_STAB )
   KRATOS_CREATE_VARIABLE(double, PENALTY_PARAMETER )
+  KRATOS_CREATE_VARIABLE(double, TAU_STAB )
   KRATOS_CREATE_VARIABLE(double, MU_STATIC )
   KRATOS_CREATE_VARIABLE(double, MU_DYNAMIC )
 
@@ -112,8 +111,8 @@ namespace Kratos
     KRATOS_REGISTER_CONDITION( "ContactDomainLM2DCondition", mContactDomainLM2DCondition )
     KRATOS_REGISTER_CONDITION( "ContactDomainPenalty2DCondition", mContactDomainPenalty2DCondition )
 
-    KRATOS_REGISTER_CONDITION( "AxisymContactDomainLM2DCondition",   mAxisymContactDomainLM2DCondition )
-    KRATOS_REGISTER_CONDITION( "AxisymContactDomainLM2DCondition",   mAxisymContactDomainPenalty2DCondition )
+    KRATOS_REGISTER_CONDITION( "AxisymContactDomainLM2DCondition", mAxisymContactDomainLM2DCondition )
+    KRATOS_REGISTER_CONDITION( "AxisymContactDomainPenalty2DCondition", mAxisymContactDomainPenalty2DCondition )
 
     //Register Constitutive Laws
     
@@ -151,10 +150,9 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( MASTER_NODES )
 
     //properties
-    KRATOS_REGISTER_VARIABLE( PENALTY_CONTACT )
     KRATOS_REGISTER_VARIABLE( FRICTION_ACTIVE )
-    KRATOS_REGISTER_VARIABLE( TAU_STAB )
     KRATOS_REGISTER_VARIABLE( PENALTY_PARAMETER )
+    KRATOS_REGISTER_VARIABLE( TAU_STAB )
     KRATOS_REGISTER_VARIABLE( MU_STATIC )
     KRATOS_REGISTER_VARIABLE( MU_DYNAMIC )
   
