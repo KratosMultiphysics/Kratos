@@ -202,10 +202,10 @@ namespace Kratos
           this->GetBoundingBoxOption() = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
 
           // 2. Search Neighbours with tolerance (after first repartition process)
-          SearchNeighbours(r_model_part);
+          SearchNeighbours();
 		  
-	  ///Cfeng RigidFace search
-	  SearchRigidFaceNeighbours();
+          ///Cfeng RigidFace search
+          SearchRigidFaceNeighbours();
 
           // 3. Finding overlapping of initial configurations
 
@@ -253,9 +253,13 @@ namespace Kratos
                   BoundingBoxUtility();
               }
 
-              SearchNeighbours(r_model_part);
-	      ///Cfeng RigidFace search
-	      SearchRigidFaceNeighbours();
+              SearchNeighbours();
+              ComputeNewNeighboursHistoricalData();  
+              
+              ///Cfeng RigidFace search
+              SearchRigidFaceNeighbours();
+              ComputeNewRigidFaceNeighboursHistoricalData();
+              
           }
                 
           // 3. Get and Calculate the forces
@@ -577,7 +581,7 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 
-    virtual void SearchNeighbours(ModelPart& r_model_part)
+    virtual void SearchNeighbours()
     {
         KRATOS_TRY
 
@@ -626,6 +630,66 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }        	
+	
+	 void ComputeNewNeighboursHistoricalData()
+    {
+        KRATOS_TRY
+
+        ModelPart& r_model_part               = BaseType::GetModelPart();
+        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
+        ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
+        
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+
+        #pragma omp parallel for 
+        
+        for (int k = 0; k < this->GetNumberOfThreads(); k++){
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+            double dummy;
+            
+            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+           
+                (it)->Calculate(CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA, dummy, rCurrentProcessInfo);
+            
+              
+            }
+
+        }
+
+        KRATOS_CATCH("")
+    }
+    
+     void ComputeNewRigidFaceNeighboursHistoricalData()
+    {
+        KRATOS_TRY
+
+        ModelPart& r_model_part               = BaseType::GetModelPart();
+        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
+        ProcessInfo& rCurrentProcessInfo      = r_model_part.GetProcessInfo();
+        
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+
+        #pragma omp parallel for 
+        
+        for (int k = 0; k < this->GetNumberOfThreads(); k++){
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+            double dummy;
+            
+            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+           
+                (it)->Calculate(CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA, dummy, rCurrentProcessInfo);
+
+            }
+
+        }
+
+        KRATOS_CATCH("")
+    }
+
 	
 	////Cfeng
     virtual void SearchRigidFaceNeighbours()
