@@ -48,7 +48,8 @@ protected:
     struct ContactVariables
     {
       double  offset_factor;  
-      double  penalty_stab;
+      double  penalty_parameter;
+      double  stability_parameter;
       double  mu_static;
       double  mu_dynamic;
       
@@ -113,11 +114,11 @@ public:
 			      double my_alpha  = 1.4,
 			      double h_factor  = 0.5,
 			      double my_offset = 1.0,
-			      double penalty_stab = 0.01,
+			      double penalty_parameter = 1000,
+			      double stability_parameter = 0.01,
 			      bool friction_active = false,
 			      double mu_static = 0.3,
-			      double mu_dynamic = 0.2,
-			      bool penalty_contact = false);
+			      double mu_dynamic = 0.2);
 
        
 

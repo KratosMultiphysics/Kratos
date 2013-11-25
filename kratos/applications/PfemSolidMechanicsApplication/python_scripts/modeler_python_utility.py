@@ -54,10 +54,11 @@ class ModelerUtility:
         self.contact_constrained   = False
         self.penalty_contact       = False
         self.friction_active       = False
-        self.penalty_factor        = 1
+        self.penalty_parameter     = 1
+        self.stability_parameter   = 1
         self.contact_offset_factor = 0
 
-        self.contact_condition     = "ContactDomain2DCondition"
+        self.contact_condition     = "ContactDomainLM2DCondition"
 
         # time step meshing control parameters
         self.remesh_frequency         = 1
@@ -266,14 +267,10 @@ class ModelerUtility:
             self.friction_active = True
         else:
             self.friction_active = False
-
-        if( contact_config.penalty_contact == "True" ):
-            self.penalty_contact = True
-        else:
-            self.penalty_contact = False
             
         self.contact_offset_factor = contact_config.offset_factor
-        self.penalty_factor        = contact_config.penalty_factor
+        self.penalty_parameter     = contact_config.penalty_parameter
+        self.stability_parameter   = contact_config.stability_parameter
         self.mu_static             = contact_config.mu_static
         self.mu_dynamic            = contact_config.mu_dynamic
         
@@ -288,7 +285,7 @@ class ModelerUtility:
         if(self.contact_search == True):
             print " CONTACT SEARCH START: ", self.contact_condition
             self.ContactTransfer()
-            self.contact_modeler.GenerateContactMesh(self.model_part,"Element2D",self.contact_condition,self.constrained_contact,self.alpha_shape,self.h_factor,self.contact_offset_factor,self.penalty_factor,self.friction_active,self.mu_static,self.mu_dynamic,self.penalty_contact);
+            self.contact_modeler.GenerateContactMesh(self.model_part,"Element2D",self.contact_condition,self.constrained_contact,self.alpha_shape,self.h_factor,self.contact_offset_factor,self.penalty_parameter,self.stability_parameter,self.friction_active,self.mu_static,self.mu_dynamic);
          
 
     #######################################################################
@@ -316,7 +313,7 @@ class ModelerUtility:
       
             if(self.remesh_executed == True or current_step == self.contact_search_step):
                 self.ContactTransfer()
-                self.contact_modeler.GenerateContactMesh(self.model_part,"Element2D",self.contact_condition,self.constrained_contact,self.alpha_shape,self.h_factor,self.contact_offset_factor,self.penalty_factor,self.friction_active,self.mu_static,self.mu_dynamic,self.penalty_contact);
+                self.contact_modeler.GenerateContactMesh(self.model_part,"Element2D",self.contact_condition,self.constrained_contact,self.alpha_shape,self.h_factor,self.contact_offset_factor,self.penalty_parameter,self.stability_parameter,self.friction_active,self.mu_static,self.mu_dynamic);
             
                 if(current_step == self.contact_search_step):
                     self.contact_search_step = self.contact_search_step + self.contact_search_frequency

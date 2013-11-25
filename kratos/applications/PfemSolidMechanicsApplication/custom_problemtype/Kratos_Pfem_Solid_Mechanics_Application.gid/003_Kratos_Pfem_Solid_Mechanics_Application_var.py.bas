@@ -105,11 +105,11 @@ class contact_modeler_config:
     contact_condition        = "*GenData(ContactCondition)"
     constrained_contact      = "*GenData(Constrained_Contact)"
     friction_active          = "*GenData(Friction_Active)"
-    penalty_contact          = "*GenData(Penalty_Contact)"
     mu_static                = 0.3
     mu_dynamic               = 0.2
     offset_factor            = *GenData(Offset_Factor)
-    penalty_factor           = *GenData(Penalty-Stability_Factor)
+    penalty_parameter        = *GenData(Penalty_Parameter)
+    stability_parameter      = *GenData(Stability_Parameter)
     contact_search_frequency = *GenData(Contact_Search_Frequency)
 
 
@@ -132,7 +132,7 @@ class rigid_wall_config:
     rake_angle         = *GenData(Rake_Angle)
     clearance_angle    = *GenData(Clearance_Angle)
     young_modulus      = *GenData(Rigid_Body_Elastic_Modulus)
-    penalty_parameter  = *GenData(Penalty_Parameter)
+    penalty_parameter  = *GenData(Rigid_Body_Penalty_Parameter)
     center             = ToolCenter
     velocity           = ToolVelocity
 
@@ -146,7 +146,7 @@ Incremental_Displacement = "*GenData(Incremental_Displacement)"
 #PostProcess Data
 #####################################
 
-nodal_results=["DISPLACEMENT","REACTION"]
+nodal_results=["DISPLACEMENT","REACTION","PRESSURE"]
 gauss_points_results=["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","FORCE"]
 
 # GiD output configuration
