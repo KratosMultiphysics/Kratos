@@ -1183,31 +1183,24 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         //unsigned int start_searching_here = 0; //only to be used if neighbours are already sorted
         
         
-        //for (unsigned int k = start_searching_here; k != mIniNeighbourIds.size(); k++) //only to be used if neighbours are already sorted
       for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++) 
         {
-          //if (static_cast<int>((i)->Id()) < mIniNeighbourIds[k])  break;         //theoretically useful but it loses a lot of time   
-          if (  (i)->Id() == mIniNeighbourIds[k]) //****
+          if (  static_cast<int>((i)->Id()) == mIniNeighbourIds[k]) //****
           {                               
             ini_delta  = mIniNeighbourDelta[k];
             failure_id = mIniNeighbourFailureId[k];
             mapping_new_ini = k; 
             mapping_new_cont = mIniNeighbourToIniContinuum[k];
-            //start_searching_here = k + 1;      //only to be used if neighbours are already sorted           
             break;
           }
         }
                   
       //Loop Over Last time-step Neighbours
-        //start_searching_here = 0;     //only to be used if neighbours are already sorted       
-        //for (unsigned int j = start_searching_here; j != mOldNeighbourIds.size(); j++) //only to be used if neighbours are already sorted
         for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++)
         {
-          //if (static_cast<int>(i->Id()) < mOldNeighbourIds[j]) break;  //theoretically useful but it loses a lot of time    
-          if ( i->Id() == mOldNeighbourIds[j])
+          if ( static_cast<int>((i)->Id()) == mOldNeighbourIds[j])
           {
             neigh_forces = mOldNeighbourContactForces[j];
-            //start_searching_here = j + 1; //only to be used if neighbours are already sorted
             break;
           }
         }
@@ -1224,8 +1217,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         
             neighbour_elements.push_back(*(i.base()));                
             
-            //temp_neighbours_ids[neighbour_counter]              = static_cast<int>((i)->Id());
-            temp_neighbours_ids[neighbour_counter]              = ((i)->Id());
+            temp_neighbours_ids[neighbour_counter]              = static_cast<int>((i)->Id());
             temp_neighbours_mapping[neighbour_counter]          = mapping_new_ini;
             temp_cont_neighbours_mapping[neighbour_counter]     = mapping_new_cont;                
             temp_neighbours_delta[neighbour_counter]            = ini_delta;
@@ -1288,7 +1280,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
        
         //double                ini_delta           = 0.0;
         //int                   failure_id          = 1;
-        //array_1d<double, 3>   neigh_forces        (3,0.0); //**zerovector anava mes rapid
+        //array_1d<double, 3>   neigh_forces        (3,0.0); // **zerovector anava mes rapid
         //double                mapping_new_ini     = -1;  
         //double                mapping_new_cont    = -1;
                
@@ -1299,7 +1291,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
          double                ini_delta           = 0.0;
         int                   failure_id          = 1;
-        array_1d<double, 3>   neigh_forces        (3,0.0); //**zerovector anava mes rapid
+        array_1d<double, 3>   neigh_forces        (3,0.0); // **zerovector anava mes rapid
         double                mapping_new_ini     = -1;  
         double                mapping_new_cont    = -1;
 
@@ -1571,10 +1563,9 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
     {
        
       if (rVariable == DEM_AREA_VECTOR)  //weighting area.
-          {
-            
+          {            
               Output = mcont_ini_neigh_area;
-                   
+              return;                   
           } //EULER_ANGLES
       
       
