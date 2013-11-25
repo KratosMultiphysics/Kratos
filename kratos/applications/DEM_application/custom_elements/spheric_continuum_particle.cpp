@@ -1138,128 +1138,131 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
    
   void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() 
   {
-  ParticleWeakVectorType& TempNeighbours = mTempNeighbours;
-  ParticleWeakVectorType& neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
-  
-  TempNeighbours.swap(neighbour_elements); 
-  
-  unsigned int temp_size = TempNeighbours.size();
-  
-  neighbour_elements.clear(); 
+    ParticleWeakVectorType& TempNeighbours = mTempNeighbours;
+    ParticleWeakVectorType& neighbour_elements = this->GetValue(NEIGHBOUR_ELEMENTS);
+    
+    TempNeighbours.swap(neighbour_elements); 
+    
+    unsigned int temp_size = TempNeighbours.size();
+    
+    neighbour_elements.clear(); 
+          
+    unsigned int neighbour_counter       = 0;
         
-  unsigned int neighbour_counter       = 0;
-      
-  std::vector<int>&                  temp_neighbours_ids = mTempNeighboursIds;
-  std::vector<double>&               temp_neighbours_delta = mTempNeighboursDelta;
-  std::vector<int>&                  temp_neighbours_failure_id = mTempNeighboursFailureId;
-  std::vector<array_1d<double, 3> >& temp_neighbours_contact_forces = mTempNeighboursContactForces;
-  std::vector<int>&                  temp_neighbours_mapping = mTempNeighboursMapping;
-  std::vector<int>&                  temp_cont_neighbours_mapping = mTempContNeighboursMapping;
-  
-  temp_neighbours_ids.resize(temp_size);
-  temp_neighbours_delta.resize(temp_size);
-  temp_neighbours_failure_id.resize(temp_size);
-  temp_neighbours_contact_forces.resize(temp_size);
-  temp_neighbours_mapping.resize(temp_size);
-  temp_cont_neighbours_mapping.resize(temp_size);
-  
+    std::vector<int>&                  temp_neighbours_ids = mTempNeighboursIds;
+    std::vector<double>&               temp_neighbours_delta = mTempNeighboursDelta;
+    std::vector<int>&                  temp_neighbours_failure_id = mTempNeighboursFailureId;
+    std::vector<array_1d<double, 3> >& temp_neighbours_contact_forces = mTempNeighboursContactForces;
+    std::vector<int>&                  temp_neighbours_mapping = mTempNeighboursMapping;
+    std::vector<int>&                  temp_cont_neighbours_mapping = mTempContNeighboursMapping;
+    
+    temp_neighbours_ids.resize(temp_size);
+    temp_neighbours_delta.resize(temp_size);
+    temp_neighbours_failure_id.resize(temp_size);
+    temp_neighbours_contact_forces.resize(temp_size);
+    temp_neighbours_mapping.resize(temp_size);
+    temp_cont_neighbours_mapping.resize(temp_size);
+    
 
-  array_1d<double, 3> vector_of_zeros;
-  vector_of_zeros[0]                   = 0.0;
-  vector_of_zeros[1]                   = 0.0;
-  vector_of_zeros[2]                   = 0.0;
-  
-  for (ParticleWeakIteratorType i = TempNeighbours.begin(); i != TempNeighbours.end(); i++)
-  
-  {
+    array_1d<double, 3> vector_of_zeros;
+    vector_of_zeros[0]                   = 0.0;
+    vector_of_zeros[1]                   = 0.0;
+    vector_of_zeros[2]                   = 0.0;
+    
+    for (ParticleWeakIteratorType i = TempNeighbours.begin(); i != TempNeighbours.end(); i++)
+    
+    {
 
-    double                ini_delta           = 0.0;
-    int                   failure_id          = 1;
-    array_1d<double, 3>   neigh_forces        = vector_of_zeros;
-    double                mapping_new_ini     = -1;  
-    double                mapping_new_cont    = -1;
+      double                ini_delta           = 0.0;
+      int                   failure_id          = 1;
+      array_1d<double, 3>   neigh_forces        = vector_of_zeros;
+      double                mapping_new_ini     = -1;  
+      double                mapping_new_cont    = -1;
 
-    //Loop Over Initial Neighbours
-      //unsigned int start_searching_here = 0; //only to be used if neighbours are already sorted
-      
-      
-      //for (unsigned int k = start_searching_here; k != mIniNeighbourIds.size(); k++) //only to be used if neighbours are already sorted
-    for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++) 
-      {
-        //if (static_cast<int>((i)->Id()) < mIniNeighbourIds[k])  break;         //theoretically useful but it loses a lot of time   
-        if (  (i)->Id() == mIniNeighbourIds[k]) //****
-        {                               
-          ini_delta  = mIniNeighbourDelta[k];
-          failure_id = mIniNeighbourFailureId[k];
-          mapping_new_ini = k; 
-          mapping_new_cont = mIniNeighbourToIniContinuum[k];
-          //start_searching_here = k + 1;      //only to be used if neighbours are already sorted           
-          break;
-        }
-      }
-                
-    //Loop Over Last time-step Neighbours
-      //start_searching_here = 0;     //only to be used if neighbours are already sorted       
-      //for (unsigned int j = start_searching_here; j != mOldNeighbourIds.size(); j++) //only to be used if neighbours are already sorted
-      for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++)
-      {
-        //if (static_cast<int>(i->Id()) < mOldNeighbourIds[j]) break;  //theoretically useful but it loses a lot of time    
-        if ( i->Id() == mOldNeighbourIds[j])
+      //Loop Over Initial Neighbours
+        //unsigned int start_searching_here = 0; //only to be used if neighbours are already sorted
+        
+        
+        //for (unsigned int k = start_searching_here; k != mIniNeighbourIds.size(); k++) //only to be used if neighbours are already sorted
+      for (unsigned int k = 0; k != mIniNeighbourIds.size(); k++) 
         {
-          neigh_forces = mOldNeighbourContactForces[j];
-          //start_searching_here = j + 1; //only to be used if neighbours are already sorted
-          break;
+          //if (static_cast<int>((i)->Id()) < mIniNeighbourIds[k])  break;         //theoretically useful but it loses a lot of time   
+          if (  (i)->Id() == mIniNeighbourIds[k]) //****
+          {                               
+            ini_delta  = mIniNeighbourDelta[k];
+            failure_id = mIniNeighbourFailureId[k];
+            mapping_new_ini = k; 
+            mapping_new_cont = mIniNeighbourToIniContinuum[k];
+            //start_searching_here = k + 1;      //only to be used if neighbours are already sorted           
+            break;
+          }
         }
-      }
-      
-      //Judge if its neighbour            
-      double other_radius                 = i->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
-      double radius_sum                   = mRadius + other_radius;
-      array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - i->GetGeometry()(0)->Coordinates();
-      double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
-      double indentation                  = radius_sum - distance - ini_delta;
-      
-      if ( indentation > 0.0 || failure_id == 0 )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
-      {
-      
-          neighbour_elements.push_back(*(i.base()));                
-          
-          //temp_neighbours_ids[neighbour_counter]              = static_cast<int>((i)->Id());
-          temp_neighbours_ids[neighbour_counter]              = ((i)->Id());
-          temp_neighbours_mapping[neighbour_counter]          = mapping_new_ini;
-          temp_cont_neighbours_mapping[neighbour_counter]     = mapping_new_cont;                
-          temp_neighbours_delta[neighbour_counter]            = ini_delta;
-          temp_neighbours_failure_id[neighbour_counter]       = failure_id;
-          temp_neighbours_contact_forces[neighbour_counter]   = neigh_forces;
-          
-          neighbour_counter++;
-          
-      }
+                  
+      //Loop Over Last time-step Neighbours
+        //start_searching_here = 0;     //only to be used if neighbours are already sorted       
+        //for (unsigned int j = start_searching_here; j != mOldNeighbourIds.size(); j++) //only to be used if neighbours are already sorted
+        for (unsigned int j = 0; j != mOldNeighbourIds.size(); j++)
+        {
+          //if (static_cast<int>(i->Id()) < mOldNeighbourIds[j]) break;  //theoretically useful but it loses a lot of time    
+          if ( i->Id() == mOldNeighbourIds[j])
+          {
+            neigh_forces = mOldNeighbourContactForces[j];
+            //start_searching_here = j + 1; //only to be used if neighbours are already sorted
+            break;
+          }
+        }
+        
+        //Judge if its neighbour            
+        double other_radius                 = i->GetGeometry()[0].FastGetSolutionStepValue(RADIUS);
+        double radius_sum                   = mRadius + other_radius;
+        array_1d<double,3> other_to_me_vect = this->GetGeometry()(0)->Coordinates() - i->GetGeometry()(0)->Coordinates();
+        double distance                     = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
+        double indentation                  = radius_sum - distance - ini_delta;
+        
+        if ( indentation > 0.0 || failure_id == 0 )  //WE NEED TO SET A NUMERICAL TOLERANCE FUNCTION OF THE RADIUS.  MSIMSI 10
+        {
+        
+            neighbour_elements.push_back(*(i.base()));                
+            
+            //temp_neighbours_ids[neighbour_counter]              = static_cast<int>((i)->Id());
+            temp_neighbours_ids[neighbour_counter]              = ((i)->Id());
+            temp_neighbours_mapping[neighbour_counter]          = mapping_new_ini;
+            temp_cont_neighbours_mapping[neighbour_counter]     = mapping_new_cont;                
+            temp_neighbours_delta[neighbour_counter]            = ini_delta;
+            temp_neighbours_failure_id[neighbour_counter]       = failure_id;
+            temp_neighbours_contact_forces[neighbour_counter]   = neigh_forces;
+            
+            neighbour_counter++;
+            
+        }
 
-    }//for ParticleWeakIteratorType i
-    
-    int final_size = neighbour_elements.size();
-    temp_neighbours_ids.resize(final_size);
-    temp_neighbours_delta.resize(final_size);
-    temp_neighbours_failure_id.resize(final_size);
-    temp_neighbours_contact_forces.resize(final_size);
-    temp_neighbours_mapping.resize(final_size);
-    temp_cont_neighbours_mapping.resize(final_size);
-    
-    mMapping_New_Ini.swap(temp_neighbours_mapping);
-    mMapping_New_Cont.swap(temp_cont_neighbours_mapping);
-    mOldNeighbourIds.swap(temp_neighbours_ids);
-    mNeighbourDelta.swap(temp_neighbours_delta);
-    mNeighbourFailureId.swap(temp_neighbours_failure_id);
-    mOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
+      }//for ParticleWeakIteratorType i
+      
+      int final_size = neighbour_elements.size();
+      temp_neighbours_ids.resize(final_size);
+      temp_neighbours_delta.resize(final_size);
+      temp_neighbours_failure_id.resize(final_size);
+      temp_neighbours_contact_forces.resize(final_size);
+      temp_neighbours_mapping.resize(final_size);
+      temp_cont_neighbours_mapping.resize(final_size);
+      
+      mMapping_New_Ini.swap(temp_neighbours_mapping);
+      mMapping_New_Cont.swap(temp_cont_neighbours_mapping);
+      mOldNeighbourIds.swap(temp_neighbours_ids);
+      mNeighbourDelta.swap(temp_neighbours_delta);
+      mNeighbourFailureId.swap(temp_neighbours_failure_id);
+      mOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
     
   } //ComputeNewNeighboursHistoricalData
+  
+
   
  /*
   //RIC!!!!!
   void SphericContinuumParticle::ComputeNewNeighboursHistoricalData() //NOTA: LOOP SOBRE TOTS ELS VEINS PROVISIONALS, TEN KEDERAS UNS QUANTS FENT PUSHBACK. ALS VECTORS DELTA ETC.. HI HAS DE POSAR
      //LA POSICIÓ DELS QUE SON DEFINITIUS.
      {
+        KRATOS_TRY
 
         ParticleWeakVectorType& TempNeighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
 
@@ -1268,14 +1271,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
         unsigned int temp_size = TempNeighbours.size();
 
-        //vector<int>                  temp_neighbours_mapping(temp_size);
-        //vector<int>                  temp_cont_neighbours_mapping(temp_size);
-        //vector<int>                  temp_neighbours_ids(temp_size);
-        //vector<double>               temp_neighbours_delta(temp_size,0.0);
-        //vector<int>                  temp_neighbours_failure_id(temp_size,1);
-        //vector<array_1d<double, 3> > temp_neighbours_contact_forces;
-        //temp_neighbours_contact_forces.resize(temp_size);              //TODO::Ric. No em deixa fer el //boost::numeric::ublas::matrix<double, check_counter, 3 >
-  
+
         std::vector<int>&                  temp_neighbours_ids = mTempNeighboursIds;
         std::vector<double>&               temp_neighbours_delta = mTempNeighboursDelta;
         std::vector<int>&                  temp_neighbours_failure_id = mTempNeighboursFailureId;
@@ -1289,25 +1285,23 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         temp_neighbours_contact_forces.resize(temp_size);
         temp_neighbours_mapping.resize(temp_size);
         temp_cont_neighbours_mapping.resize(temp_size);
-        
-        double                ini_delta           = 0.0;
-        int                   failure_id          = 1;
-        array_1d<double, 3>   neigh_forces        (3,0.0);
-        double                mapping_new_ini     = -1;  
-        double                mapping_new_cont    = -1;
+       
+        //double                ini_delta           = 0.0;
+        //int                   failure_id          = 1;
+        //array_1d<double, 3>   neigh_forces        (3,0.0); //**zerovector anava mes rapid
+        //double                mapping_new_ini     = -1;  
+        //double                mapping_new_cont    = -1;
                
 
         for (ParticleWeakIteratorType i = TempNeighbours.begin(); i != TempNeighbours.end(); i++)
         
         {
 
-          ini_delta        = 0.0;
-          failure_id       = 1;
-          neigh_forces[0]  = 0.0;
-          neigh_forces[1]  = 0.0;
-          neigh_forces[2]  = 0.0;
-          mapping_new_ini  = -1;  
-          mapping_new_cont = -1;
+         double                ini_delta           = 0.0;
+        int                   failure_id          = 1;
+        array_1d<double, 3>   neigh_forces        (3,0.0); //**zerovector anava mes rapid
+        double                mapping_new_ini     = -1;  
+        double                mapping_new_cont    = -1;
 
           //Loop Over Initial Neighbours
 
@@ -1374,37 +1368,34 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         
         TempNeighbours.erase(TempNeighbours.begin()+neighbour_counter, TempNeighbours.end());
      
-        if(mMapping_New_Ini.size() != neighbour_counter)   //si en comptes de fer tot aixo fes un resize del mMapping_New_... etc... no quedaria tallada la part ke no minteressa i hagues pogut ferlo servir ampliat i ja sta. fer resize i quedarme amb lo bo.
+      //  if(mMapping_New_Ini.size() != neighbour_counter)   //si en comptes de fer tot aixo fes un resize del mMapping_New_... etc... no quedaria tallada la part ke no minteressa i hagues pogut ferlo servir ampliat i ja sta. fer resize i quedarme amb lo bo.
         {
-            mMapping_New_Ini.resize(temp_size);
-            mMapping_New_Cont.resize(temp_size);
-            mOldNeighbourIds.resize(temp_size);
-            mNeighbourDelta.resize(temp_size);
-            mNeighbourFailureId.resize(temp_size);
-            mOldNeighbourContactForces.resize(temp_size);
-            
-            for(unsigned int w=0; w<neighbour_counter; w++)
-            {
-              mMapping_New_Ini[w]           = temp_neighbours_mapping[w];
-              mMapping_New_Cont[w]          = temp_cont_neighbours_mapping[w];
-              mOldNeighbourIds[w]           = temp_neighbours_ids[w];
-              mNeighbourDelta[w]            = temp_neighbours_delta[w];
-              mNeighbourFailureId[w]        = temp_neighbours_failure_id[w];
-              mOldNeighbourContactForces[w] = temp_neighbours_contact_forces[w];
-            }
-        }
-          
-        else
+            mMapping_New_Ini.resize(neighbour_counter);
+            mMapping_New_Cont.resize(neighbour_counter);
+            mOldNeighbourIds.resize(neighbour_counter);
+            mNeighbourDelta.resize(neighbour_counter);
+            mNeighbourFailureId.resize(neighbour_counter);
+            mOldNeighbourContactForces.resize(neighbour_counter);
+        }   
+        
+        for(unsigned int w=0; w<neighbour_counter; w++)
         {
-            mMapping_New_Ini.swap(temp_neighbours_mapping);
-            mMapping_New_Cont.swap(temp_cont_neighbours_mapping);
-            mOldNeighbourIds.swap(temp_neighbours_ids);
-            mNeighbourDelta.swap(temp_neighbours_delta);
-            mNeighbourFailureId.swap(temp_neighbours_failure_id);
-            mOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
+          mMapping_New_Ini[w]           = temp_neighbours_mapping[w];
+          mMapping_New_Cont[w]          = temp_cont_neighbours_mapping[w];
+          mOldNeighbourIds[w]           = temp_neighbours_ids[w];
+          mNeighbourDelta[w]            = temp_neighbours_delta[w];
+          mNeighbourFailureId[w]        = temp_neighbours_failure_id[w];
+          mOldNeighbourContactForces[w] = temp_neighbours_contact_forces[w];
         }
+        
+        
 
-      } //ComputeNewNeighboursHistoricalData*/
+      KRATOS_CATCH("")
+
+      } //ComputeNewNeighboursHistoricalData
+      
+      
+     */
 
   
    
@@ -1452,12 +1443,12 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             
         }//CRITICAL DELTA CALCULATION
 
-        if (rVariable == PARTICLE_ROTATION_DAMP_RATIO)
+        else if (rVariable == PARTICLE_ROTATION_DAMP_RATIO)
         {
             //ApplyLocalMomentsDamping( rCurrentProcessInfo ); MSIMSI
         } //DAMPING
 
-        if (rVariable == DEM_STRESS_XX)  //operations with the stress_strain tensors
+        else if (rVariable == DEM_STRESS_XX)  //operations with the stress_strain tensors
         {
           
             SymmetrizeTensor( rCurrentProcessInfo );
@@ -1465,14 +1456,14 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           
         } //EULER_ANGLES
         
-        if (rVariable == DUMMY_DEBUG_DOUBLE) //Dummy variable for debugging  MSIMSI DEBUG
+        else if (rVariable == DUMMY_DEBUG_DOUBLE) //Dummy variable for debugging  MSIMSI DEBUG
         {
           
           CheckPairWiseBreaking();
         
         }
         
-        if (rVariable == MEAN_CONTACT_AREA)
+        else if (rVariable == MEAN_CONTACT_AREA)
         {
 
             int my_id = this->Id();
@@ -1542,13 +1533,13 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           
         } //MEAN_CONTACT_AREA
         
-        if (rVariable == LOCAL_CONTACT_AREA_HIGH)
+        else if (rVariable == LOCAL_CONTACT_AREA_HIGH)
         {
             
             Output = AreaDebugging( rCurrentProcessInfo);
         }
           
-           if (rVariable == DEMPACK_DAMPING)
+        else if (rVariable == DEMPACK_DAMPING)
         {
                   
              array_1d<double, 3>& total_force = this->GetGeometry()(0)->FastGetSolutionStepValue(TOTAL_FORCES); //Includes all elastic, damping, but not external (gravity)
@@ -1562,7 +1553,15 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                 }
             }
         } 
+         
+        else if (rVariable == CALCULATE_COMPUTE_NEW_NEIGHBOURS_HISTORICAL_DATA){
+            ComputeNewNeighboursHistoricalData();
             
+        }
+        
+          else if (rVariable == CALCULATE_COMPUTE_NEW_RIGID_FACE_NEIGHBOURS_HISTORICAL_DATA){
+            ComputeNewRigidFaceNeighboursHistoricalData();
+        }
     
           
           
