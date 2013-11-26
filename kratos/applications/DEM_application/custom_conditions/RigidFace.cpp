@@ -166,7 +166,9 @@ void RigidFace3D::CalculateRightHandSide(
 					rRightHandSideVector[ino1 + 0] += -ContactForce[0] * weight[inode];
 					rRightHandSideVector[ino1 + 1] += -ContactForce[1] * weight[inode];
 					rRightHandSideVector[ino1 + 2] += -ContactForce[2] * weight[inode];
+					
 				}
+				
 				
 			}
 		}

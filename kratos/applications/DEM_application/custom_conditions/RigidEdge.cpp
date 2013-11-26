@@ -122,7 +122,58 @@ void RigidEdge3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
         ProcessInfo& rCurrentProcessInfo)
 {
     //calculation flags
-  
+  const unsigned int number_of_nodes = GetGeometry().size();
+   unsigned int               MatSize = number_of_nodes * 3;
+
+	if (rRightHandSideVector.size() != MatSize)
+	{
+		rRightHandSideVector.resize(MatSize, false);
+	}
+	rRightHandSideVector = ZeroVector(MatSize); 
+	
+	
+	ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_PARTICLE_OF_RIGID_FACE);
+
+	
+	for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++)
+	{
+		ConditionWeakVectorType& rRFnei    = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES);
+		
+		for(unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
+		{
+			if( rRFnei[i_nei].Id() == this->Id() )
+			{
+				double weight[4] = {0.0};
+				double ContactForce[3] = {0.0};
+				
+				unsigned int ino = 15 * i_nei;
+				
+				weight[0] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_PRAM)[ino + 10];
+				weight[1] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_PRAM)[ino + 11];
+				weight[2] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_PRAM)[ino + 12];
+				weight[3] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_PRAM)[ino + 13];
+				
+				ino = 3 * i_nei;
+				
+				ContactForce[0] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE)[ino + 0];
+				ContactForce[1] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE)[ino + 1];
+				ContactForce[2] = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE)[ino + 2];
+				
+				for(unsigned int inode = 0; inode < GetGeometry().size(); inode++ )
+				{
+					unsigned int ino1 =  inode * 3;
+					
+					rRightHandSideVector[ino1 + 0] += -ContactForce[0] * weight[inode];
+					rRightHandSideVector[ino1 + 1] += -ContactForce[1] * weight[inode];
+					rRightHandSideVector[ino1 + 2] += -ContactForce[2] * weight[inode];
+					
+				}
+				
+				
+			}
+		}
+	
+	}
 }
 
 
