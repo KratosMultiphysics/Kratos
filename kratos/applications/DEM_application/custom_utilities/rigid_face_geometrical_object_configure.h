@@ -172,9 +172,8 @@ public:
             Centroid[2] += rObj_2->GetGeometry()(inode)->Coordinates()[2] / (double)rObj_2->GetGeometry().size();
         }
 
-         std::size_t dim = rObj_2->GetGeometry().WorkingSpaceDimension();
 		 
-         if(dim == 2)
+         if(rObj_2->GetGeometry().size() == 2)
          {
 			double Coord1[3]     = {0.0};
 			double Coord2[3]     = {0.0};
@@ -214,10 +213,11 @@ public:
 					}
 				}				
 			}
+			
 			/////////////////////////////////////
 			   
          }        
-         else if(dim == 3)
+         else if(rObj_2->GetGeometry().size() > 2)
          {
             double Coord[4][3] = { {0.0},{0.0},{0.0},{0.0} };
 
