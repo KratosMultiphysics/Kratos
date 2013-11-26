@@ -555,8 +555,8 @@ public:
                             
                             double penalty_coeff = h/BDFVector[0];
                             enrichment_diagonal(i,i) += penalty_coeff * Ni*Ni;
-                            enrichment_diagonal(i,j) += penalty_coeff * Ni*Nj;
-                            enrichment_diagonal(j,i) += penalty_coeff * Nj*Ni;
+                            enrichment_diagonal(i,j) += penalty_coeff * -Ni*Nj;
+                            enrichment_diagonal(j,i) += penalty_coeff * -Nj*Ni;
                             enrichment_diagonal(j,j) += penalty_coeff * Nj*Nj;
                             
                         }
