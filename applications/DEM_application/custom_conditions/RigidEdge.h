@@ -72,6 +72,14 @@ class RigidEdge3D : public Condition
 public:
     // Counted pointer of RigidEdge3D
     KRATOS_CLASS_POINTER_DEFINITION(RigidEdge3D);
+	
+	typedef WeakPointerVector<Element> ParticleWeakVectorType; 
+	typedef ParticleWeakVectorType::ptr_iterator ParticleWeakIteratorType_ptr;
+	typedef WeakPointerVector<Element >::iterator ParticleWeakIteratorType;
+	
+	typedef WeakPointerVector<Condition> ConditionWeakVectorType; 
+	typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
+	
 
     /**
      * Default constructor.
