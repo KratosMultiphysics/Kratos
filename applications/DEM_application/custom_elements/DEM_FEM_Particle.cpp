@@ -173,6 +173,7 @@ namespace Kratos
                                                           ProcessInfo& rCurrentProcessInfo)
       {
 		  
+		  
           KRATOS_TRY
 
           ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_ELEMENTS);
