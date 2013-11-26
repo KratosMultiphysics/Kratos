@@ -87,17 +87,17 @@ if(Param.FEM_Option == "ON"):
     ##choosing the default value for the constitutive law 
     if(Param.ConstitutiveLaw == "LinearElastic"):
         if(Param.Dimension == 2):
-        for prop in fem_model_part.Properties:
-        prop.SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
-    else:
-        for prop in fem_model_part.Properties:
-        prop.SetValue(CONSTITUTIVE_LAW, Isotropic3D() )
+	    for prop in fem_model_part.Properties:
+		prop.SetValue(CONSTITUTIVE_LAW, Isotropic2D() )
+	else:
+	    for prop in fem_model_part.Properties:
+		prop.SetValue(CONSTITUTIVE_LAW, Isotropic3D() )
     elif(Param.ConstitutiveLaw == "DruckerPrager"):    
-    if(Param.Dimension == 3):
+	if(Param.Dimension == 3):
             for prop in fem_model_part.Properties:
-        prop.SetValue(CONSTITUTIVE_LAW, DruckerPrager())
-    else:
-        print "Error!!!!!DruckerPrager Constitutive Law only suitable for 3D Mesh"
+		prop.SetValue(CONSTITUTIVE_LAW, DruckerPrager())
+	else:
+	    print "Error!!!!!DruckerPrager Constitutive Law only suitable for 3D Mesh"
 ###########################################################################
 
 
@@ -362,8 +362,8 @@ os.chdir(main_path)
 
 # Porosity
 
-elapsed_pr_time     = timer.clock() - initial_pr_time
-elapsed_real_time   = timer.time() - initial_real_time
+elapsed_pr_time 	= timer.clock() - initial_pr_time
+elapsed_real_time 	= timer.time() - initial_real_time
 
 print 'Calculation ends at instant: '                 + str(timer.time())
 print 'Calculation ends at processing time instant: ' + str(timer.clock())
