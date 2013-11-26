@@ -74,7 +74,16 @@ def AddVariables(model_part, Param):
     # FLAGS
     model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
     model_part.AddNodalSolutionStepVariable(ERASE_FLAG)
-    # ONLY VISUALITZATION
+
+    # OPTIMIZATION
+    model_part.AddNodalSolutionStepVariable(VELOCITY_X_DOF_POS) 
+    model_part.AddNodalSolutionStepVariable(VELOCITY_Y_DOF_POS) 
+    model_part.AddNodalSolutionStepVariable(VELOCITY_Z_DOF_POS) 
+    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_X_DOF_POS) 
+    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Y_DOF_POS) 
+    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Z_DOF_POS)
+
+    # ONLY VISUALIZATION
 
     if (Var_Translator(Param.PostExportId)):
       model_part.AddNodalSolutionStepVariable(EXPORT_ID)
