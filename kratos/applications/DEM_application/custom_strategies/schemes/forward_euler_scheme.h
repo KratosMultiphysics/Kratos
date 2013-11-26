@@ -245,6 +245,8 @@ namespace Kratos
                 If_Fix_Rotation[0] = i->pGetDof(ANGULAR_VELOCITY_X)->IsFixed();
                 If_Fix_Rotation[1] = i->pGetDof(ANGULAR_VELOCITY_Y)->IsFixed();
                 If_Fix_Rotation[2] = i->pGetDof(ANGULAR_VELOCITY_Z)->IsFixed();
+				
+
                 
                 for(std::size_t iterator = 0 ; iterator < 3; iterator++)
                 {
