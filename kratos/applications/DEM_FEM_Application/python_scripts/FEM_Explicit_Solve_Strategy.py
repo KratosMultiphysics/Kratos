@@ -16,6 +16,8 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(REACTION);   
     model_part.AddNodalSolutionStepVariable(GRAVITY);
     model_part.AddNodalSolutionStepVariable(NODAL_STRESS);
+    model_part.AddNodalSolutionStepVariable(VIRTUAL_NODAL_MASS);
+
 
     print "Variables for the dynamic structural solution added correctly"
     
