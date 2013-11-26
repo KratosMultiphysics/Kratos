@@ -1,5 +1,41 @@
-	
-	
+namespace eval DEMFEM {
+}
+
+proc DEMFEM::SetSphereAndCircleNodes { } {
+    variable sphere_and_circle_nodes
+    foreach element_type {Sphere Circle} {
+        foreach node_id [lindex [lindex [lindex [GiD_Info Mesh Elements $element_type -array] 0] 2] 0] {
+            set sphere_and_circle_nodes($node_id) 1
+        }        
+    }
+}
+
+proc DEMFEM::WriteSphereAndCircleNodes { fd } {
+    variable sphere_and_circle_nodes
+    foreach node_id [lsort -integer [array names sphere_and_circle_nodes]] {
+        lassign [lrange [GiD_Mesh get node $node_id] 1 end] x y z
+        GiD_File fprintf $fd "%d %g %g %g" $node_id $x $y $z
+    }        
+    return ""
+}
+
+proc DEMFEM::WriteNonSphereAndCircleNodes { fd } {
+    variable sphere_and_circle_nodes
+    set data [GiD_Info Mesh Nodes -array]
+    lassign [lindex $data 1] xs ys zs
+    foreach node_id [lindex $data 0] x $xs y $ys z $zs {
+        if { ![info exists sphere_and_circle_nodes($node_id)] } {
+            GiD_File fprintf $fd "%d %g %g %g" $node_id $x $y $z
+        }
+    }        
+    return ""
+}
+
+proc DEMFEM::ReleaseSphereAndCircleNodes { } {
+    variable sphere_and_circle_nodes
+    unset sphere_and_circle_nodes
+}
+
 #*********************
 
 
@@ -7,7 +43,6 @@ namespace eval ::kaux:: {
     variable kratos_path ""
     variable pt_path ""
 }
-
 
 
 # Pass the path to kratos and the name of the problem to the Python script
@@ -69,7 +104,6 @@ proc GetKratosPath { } {
 proc InitGIDProject {dir} {
 	GiDMenu::Create "DEM_FEM Application" PRE
 	GiDMenu::InsertOption "DEM_FEM Application" [list "Nodal Values"] 0 PRE "GidOpenConditions \"Nodal Values\"" "" ""
-	GiDMenu::InsertOption "DEM_FEM Application" [list "Elements"] 1 PRE "GidOpenConditions \"Elements\"" "" ""
 	GiDMenu::InsertOption "DEM_FEM Application" [list "Conditions"] 2 PRE "GidOpenConditions \"Conditions\"" "" ""
 	GiDMenu::InsertOption "DEM_FEM Application" [list "Elements Materials"] 3 PRE "GidOpenMaterials \"Elements Materials\"" "" ""
 	GiDMenu::InsertOption "DEM_FEM Application" [list "Problem Parameters"] 4 PRE "GidOpenProblemData \"Problem Parameters\"" "" ""
@@ -88,12 +122,6 @@ proc BeforeMeshGeneration {elementsize} {
 	set vol_elemtype_check 0
 
 
-check_elemtype TotalLagrangian2D3N surface None
-check_elemtype TotalLagrangian2D4N surface None
-check_elemtype TotalLagrangian3D4N volume Tetrahedra
-check_elemtype TotalLagrangian3D8N volume Hexahedra
-check_elemtype Particle2D surface None
-check_elemtype Particle3D volume  None
 
 # Look for Elements with custom ElemTypes
 
@@ -173,12 +201,6 @@ check_elemtype Particle3D volume  None
 
 	# Assign Non-Default Mesh Criteria to Entities
 
-meshtype TotalLagrangian2D3N surface None
-meshtype TotalLagrangian2D4N surface None
-meshtype TotalLagrangian3D4N volume Tetrahedra
-meshtype TotalLagrangian3D8N volume Hexahedra
-meshtype Particle2D         surface None
-meshtype Particle3D         volume  None
 # End Meshing Block
 }
 

@@ -546,61 +546,7 @@ END CONDITION
 
 # Nodal Values
 
-BOOK: Elements
 
-CONDITION: surface_TotalLagrangian2D3N
-CONDTYPE: over surfaces
-CONDMESHTYPE: over body elements
-QUESTION: Automatic
-VALUE: 0
-STATE: HIDDEN
-END CONDITION
-
-CONDITION: surface_TotalLagrangian2D4N
-CONDTYPE: over surfaces
-CONDMESHTYPE: over body elements
-QUESTION: Automatic
-VALUE: 0
-STATE: HIDDEN
-END CONDITION
-
-CONDITION: volume_TotalLagrangian3D4N
-CONDTYPE: over volumes
-CONDMESHTYPE: over body elements
-QUESTION: Automatic
-VALUE: 0
-STATE: HIDDEN
-END CONDITION
-
-CONDITION: volume_TotalLagrangian3D8N
-CONDTYPE: over volumes
-CONDMESHTYPE: over body elements
-QUESTION: Automatic
-VALUE: 0
-STATE: HIDDEN
-END CONDITION
-
-
-CONDITION: surface_DEM_FEM_Particle2D
-CONDTYPE: over surfaces
-CONDMESHTYPE: over body elements
-QUESTION: Automatic
-VALUE: 0
-STATE: HIDDEN
-END CONDITION
-
-CONDITION: volume_DEM_FEM_Particle3D
-CONDTYPE: over volumes
-CONDMESHTYPE: over body elements
-QUESTION: Automatic
-VALUE: 0
-STATE: HIDDEN
-END CONDITION
-
-
-# Elements
-
-# Elemental Data
 
 BOOK: Conditions
 CONDITION: point_PointForce3D
