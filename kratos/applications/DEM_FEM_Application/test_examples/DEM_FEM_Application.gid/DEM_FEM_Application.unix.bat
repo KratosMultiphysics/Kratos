@@ -14,3 +14,5 @@ rm $2/$1-2.dat
 chmod 700 $2/${1}_aux.unix.bat
 
 ./${1}_aux.unix.bat $1 $2 $3
+
+
