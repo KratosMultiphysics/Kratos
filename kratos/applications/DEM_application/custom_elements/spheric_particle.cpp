@@ -127,8 +127,9 @@ namespace Kratos
           rRightHandSideVector[1] = contact_force[1]  + additionally_applied_force[1];
           rRightHandSideVector[2] = contact_force[2]  + additionally_applied_force[2];
           rRightHandSideVector[3] = contact_moment[0] + additionally_applied_moment[0];
-          rRightHandSideVector[4] = contact_moment[1] + additionally_applied_moment[0];
-          rRightHandSideVector[5] = contact_moment[2] + additionally_applied_moment[0];
+          rRightHandSideVector[4] = contact_moment[1] + additionally_applied_moment[1];
+          rRightHandSideVector[5] = contact_moment[2] + additionally_applied_moment[2];
+		  
 
           KRATOS_CATCH( "" )
       }
@@ -1914,6 +1915,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
             aux_norm_to_tang                    = mGlobalAuxNormToTang;
             equiv_ln_of_restit_coeff            = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
             equiv_tg_of_fri_ang                 = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+			
         }
 
         else {
@@ -1960,7 +1962,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
                         kn                              = (4/3) * equiv_young * sqrt(effective_radius);
                         kt                              = 2.0 * kn * (1 - equiv_poisson * equiv_poisson) / ((2.0 - equiv_poisson) * (1 + equiv_poisson));
-                        aux_norm_to_tang                = sqrt(kt / kn);                
+                        aux_norm_to_tang                = sqrt(kt / kn); 
                  
                     break;
 
@@ -1993,6 +1995,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         }
 
         equiv_visco_damp_coeff_tangential = equiv_visco_damp_coeff_normal * aux_norm_to_tang;
+		
 
       }
 	  
