@@ -1246,6 +1246,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       mOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
     
   } //ComputeNewNeighboursHistoricalData
+	  
+	
   
 
   
