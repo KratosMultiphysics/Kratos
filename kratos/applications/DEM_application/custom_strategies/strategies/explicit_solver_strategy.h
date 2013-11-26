@@ -203,10 +203,10 @@ namespace Kratos
 
           // 2. Search Neighbours with tolerance (after first repartition process)
           SearchNeighbours();
-		  
+		  ComputeNewNeighboursHistoricalData();  
           ///Cfeng RigidFace search
           SearchRigidFaceNeighbours();
-
+		  ComputeNewRigidFaceNeighboursHistoricalData();
           // 3. Finding overlapping of initial configurations
 
           if (rCurrentProcessInfo[CLEAN_INDENT_OPTION]){
@@ -261,15 +261,17 @@ namespace Kratos
               ComputeNewRigidFaceNeighboursHistoricalData();
               
           }
+
                 
           // 3. Get and Calculate the forces
           GetForce();
-                    
+               
           // 4. Motion Integration
           PerformTimeIntegrationOfMotion(rCurrentProcessInfo); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
 
            ////Cfeng, compute rigid face movement
 		  Compute_RigidFace_Movement();
+		  
 
           // 5. Synchronize
           SynchronizeSolidMesh(r_model_part);
@@ -340,6 +342,7 @@ namespace Kratos
                   Element::GeometryType& geom = it->GetGeometry();
 
                   (it)->CalculateRightHandSide(rhs_elem, rCurrentProcessInfo);
+				  
 
                   array_1d<double,3>& total_forces  = geom(0)->FastGetSolutionStepValue(TOTAL_FORCES);
                   array_1d<double,3>& total_moment = geom(0)->FastGetSolutionStepValue(PARTICLE_MOMENT);
@@ -557,7 +560,9 @@ namespace Kratos
         this->GetRadius().resize(number_of_elements);
 
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
-            this->GetRadius()[particle_pointer_it - pElements.begin()] = (1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
+
+           // this->GetRadius()[particle_pointer_it - pElements.begin()] = (1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
+           this->GetRadius()[particle_pointer_it - pElements.begin()] = radiusExtend + particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
 
         }
 
