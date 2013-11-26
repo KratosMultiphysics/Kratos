@@ -35,7 +35,7 @@ namespace Kratos
 
     
     KRATOS_CREATE_VARIABLE(double,  DEM_FEM_CONVERGENCE_RATIO)
-
+    KRATOS_CREATE_VARIABLE(double,  VIRTUAL_NODAL_MASS)
 
 
     KratosDEM_FEM_Application::KratosDEM_FEM_Application()
@@ -50,6 +50,7 @@ namespace Kratos
         std::cout << "Initializing KratosDEM_FEM_Application... " << std::endl;
 
        KRATOS_REGISTER_VARIABLE(DEM_FEM_CONVERGENCE_RATIO)
+	   KRATOS_REGISTER_VARIABLE(VIRTUAL_NODAL_MASS)
     }
 
 }  // namespace Kratos.

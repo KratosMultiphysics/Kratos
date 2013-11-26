@@ -46,6 +46,8 @@ namespace Kratos
 
   
       KRATOS_DEFINE_VARIABLE(double,  DEM_FEM_CONVERGENCE_RATIO)
+	  
+	  KRATOS_DEFINE_VARIABLE(double,  VIRTUAL_NODAL_MASS)
    
 	
 	class KratosDEM_FEM_Application : public KratosApplication
