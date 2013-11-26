@@ -142,29 +142,42 @@ namespace Kratos
 
         void Initialize();
 
-        void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-
         void InitializeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
         void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
+        virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, 
+               array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo); 
+			   
+		void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
         ///@name Protected static Member Variables
-        ////Cfeng: Add some functions to calculate the direction of the contact plane
  
-        void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
-
-        void FindContactFaceOfBlockForParticle(ParticleWeakIterator rObj_2, int & RightFace, double LocalCoordSystem[3][3], double Coeff[4], double &DistPToB);
-        void ComputeParticleBlockContactForce(ProcessInfo& CurrentProcessInfo);
- 
-
+	  void Calculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
+      void Calculate(const Variable<array_1d<double, 3 > >& rVariable, array_1d<double, 3 > & Output, const ProcessInfo& rCurrentProcessInfo);
+      void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
+      void Calculate(const Variable<Matrix >& rVariable, Matrix& Output, const ProcessInfo& rCurrentProcessInfo);
+	  
+	  
+	  void SetInitialBallNeighbor();
 
    protected:
 
 
     private:
      
-
+		double mfcohesion;
+		double mftension;
+		
+		vector<int> maInitialBallNeighborID;
+		vector<int> maInitialRigidFaceNeighborID;
+		
+		vector<int> maInitialBallNeighborFailureType;
+		vector<int> maInitialRigidFaceNeighborFailureType;
+		
+		//vector< array_1d<double, 3> > maPPContactForce;
+		//vector< array_1d<double, 3> > maPBContactForce;
+		
         ///@}
         ///@name Private Operations
         ///@{
