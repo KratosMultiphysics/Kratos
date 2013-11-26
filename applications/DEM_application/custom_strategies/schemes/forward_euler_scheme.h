@@ -123,8 +123,9 @@ namespace Kratos
                       aux = (1 - virtual_mass_coeff)* (delta_t / mass);
                       if (aux<0.0) KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",virtual_mass_coeff)
                   }
-       
-                  if( i->pGetDof(VELOCITY_X)->IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
+                  
+                  unsigned int pos = i->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);
+                  if( i->GetDof(VELOCITY_X, pos).IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
                   {    
                       vel[0] += aux * force[0];
 
@@ -146,8 +147,8 @@ namespace Kratos
                       coor[0] = initial_coor[0] + displ[0];
                  
                   }
-                  
-                  if( i->pGetDof(VELOCITY_Y)->IsFixed() == false ) 
+                  pos = i->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
+                  if( i->GetDof(VELOCITY_Y, pos).IsFixed() == false ) 
                   {    
                       vel[1] += aux * force[1];
 
@@ -170,7 +171,8 @@ namespace Kratos
                  
                   }
                   
-                    if( i->pGetDof(VELOCITY_Z)->IsFixed() == false ) 
+                    pos = i->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);
+                    if( i->GetDof(VELOCITY_Z, pos).IsFixed() == false ) 
                   {    
                       vel[2] += aux * force[2];
 
@@ -242,9 +244,13 @@ namespace Kratos
                 array_1d<double, 3 > & Orientation_imag       = i->FastGetSolutionStepValue(ORIENTATION_IMAG);                
                 
                 bool If_Fix_Rotation[3] = {false, false, false};
-                If_Fix_Rotation[0] = i->pGetDof(ANGULAR_VELOCITY_X)->IsFixed();
-                If_Fix_Rotation[1] = i->pGetDof(ANGULAR_VELOCITY_Y)->IsFixed();
-                If_Fix_Rotation[2] = i->pGetDof(ANGULAR_VELOCITY_Z)->IsFixed();
+
+                unsigned int pos = i->FastGetSolutionStepValue(ANGULAR_VELOCITY_X_DOF_POS);                  
+                If_Fix_Rotation[0] = i->GetDof(ANGULAR_VELOCITY_X, pos).IsFixed();
+                pos = i->FastGetSolutionStepValue(ANGULAR_VELOCITY_Y_DOF_POS);
+                If_Fix_Rotation[1] = i->GetDof(ANGULAR_VELOCITY_Y, pos).IsFixed();
+                pos = i->FastGetSolutionStepValue(ANGULAR_VELOCITY_Z_DOF_POS);
+                If_Fix_Rotation[2] = i->GetDof(ANGULAR_VELOCITY_Z, pos).IsFixed();
 				
 
                 
