@@ -800,7 +800,8 @@ namespace Kratos
               
                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_TOP];
                 //(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
-                (it)->GetGeometry()(0)->pGetDof(VELOCITY_Y)->FixDof();
+                unsigned int pos = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
+                (it)->GetGeometry()(0)->GetDof(VELOCITY_Y, pos).FixDof();
                 
                if(mFixHorizontalVel)
                 {
@@ -814,9 +815,9 @@ namespace Kratos
             
             if(  it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2   )   //bot 
             {
-              
+                unsigned int pos = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_BOT];
-                (it)->GetGeometry()(0)->pGetDof(VELOCITY_Y)->FixDof();
+                (it)->GetGeometry()(0)->GetDof(VELOCITY_Y, pos).FixDof();
                 //(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
                 
                 
