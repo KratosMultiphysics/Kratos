@@ -91,7 +91,7 @@ namespace Kratos
       ///@}
       ///@name Operations
       ///@{
-        
+       
 
 
       void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
