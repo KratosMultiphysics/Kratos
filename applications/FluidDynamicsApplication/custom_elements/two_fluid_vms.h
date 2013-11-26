@@ -37,8 +37,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //   Revision:            $Revision: 0.1 $
 //
 //
-#if !defined(KRATOS_TWO_FLUID_TwoFluidVMS_H_INCLUDED )
-#define  KRATOS_TWO_FLUID_TwoFluidVMS_H_INCLUDED
+#if !defined(KRATOS_TWO_FLUID_TwoFluidVMS2_H_INCLUDED )
+#define  KRATOS_TWO_FLUID_TwoFluidVMS2_H_INCLUDED
 // System includes
 #include <string>
 #include <iostream>
@@ -50,12 +50,38 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/split_tetrahedra.h"
-#include "utilities/enrichment_utilities.h"
+// #include "utilities/enrichment_utilities.h"
+#include "utilities/enrichment_utilities_duplicate_dofs.h"
 // Application includes
 #include "fluid_dynamics_application_variables.h"
 #include "vms.h"
 namespace Kratos
 {
+    
+/**The "TwoFluidVMS" element is an element based on the Variation Multiscale Stabilization technique (VMS)
+ * which is designed for the solution of a two fluid problem.
+ * 
+ * A distinctive feature of the element is the use of 4 LOCAL enrichment functions, which allows to model
+ * a discontinuity in both the pressure field and in its gradient.
+ * The enrichment functions are obtained by duplicating all of the degrees of freedom of the element.
+ * Since the enrichment is performed elementwise, a purely local static condensation 
+ * step is performed.
+ * 
+ * Since a jump in the pressure can be considered, the element shall be able to habdle moderate changes of the viscosity
+ * between the two fluids to be considered
+ * 
+ * WARNING: From the implementation point of view, the element hard codes a BDF2 scheme within the element
+ * this is different from the VMS base element which supports the use of an arbitrary time integrator.
+ * In the practice this implies that the element can ONLY be used in conjunction with the scheme implemented
+ * in "residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
+ * 
+ * a buffer size of dimension 3 is needed since the current step and two steps in the past need to be stored.
+ * 
+ * TODO: so far only ASGS stabilization is implemented. OSS stabilization is possible but has not yet been implemented
+ * 
+ * 
+ * 
+ */
 ///@addtogroup FluidDynamicsApplication
 ///@{
 ///@name Kratos Globals
@@ -180,71 +206,11 @@ public:
     virtual void CalculateRightHandSide(VectorType& rRightHandSideVector,
                                         ProcessInfo& rCurrentProcessInfo)
     {
-        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
-        // Check sizes and initialize
-        if (rRightHandSideVector.size() != LocalSize)
-            rRightHandSideVector.resize(LocalSize, false);
-        noalias(rRightHandSideVector) = ZeroVector(LocalSize);
-        // Calculate this element's geometric parameters
-        double Area;
-        array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-        //get position of the cut surface
-        Vector distances(TNumNodes);
-        Matrix Nenriched(6, 1);
-        Vector volumes(6);
-        Matrix coords(TNumNodes, TDim);
-        Matrix Ngauss(6, TNumNodes);
-        Vector signs(6);
-        std::vector< Matrix > gauss_gradients(6);
-        //fill coordinates
-        for (unsigned int i = 0; i < TNumNodes; i++)
-        {
-            const array_1d<double, 3 > & xyz = this->GetGeometry()[i].Coordinates();
-            volumes[i] = 0.0;
-            distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-            for (unsigned int j = 0; j < TDim; j++)
-                coords(i, j) = xyz[j];
-        }
-        for (unsigned int i = 0; i < 6; i++)
-            gauss_gradients[i].resize(1, TDim, false);
-        unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
-        //do integration
-        for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
-        {
-            //assigning the gauss data
-            for (unsigned int k = 0; k < TNumNodes; k++)
-                N[k] = Ngauss(igauss, k);
-            double wGauss = volumes[igauss];
-            // Calculate this element's fluid properties
-            double Density;
-            this->EvaluateInPoint(Density, DENSITY, N);
-            // Calculate Momentum RHS contribution
-            this->AddMomentumRHS(rRightHandSideVector, Density, N, wGauss);
-            // For OSS: Add projection of residuals to RHS
-            if (rCurrentProcessInfo[OSS_SWITCH] == 1)
-            {
-                array_1d<double, 3 > AdvVel;
-                this->GetAdvectiveVel(AdvVel, N);
-                double KinViscosity;
-                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-                double Viscosity;
-                this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
-                // Calculate stabilization parameters
-                double TauOne, TauTwo;
-//                    if (ndivisions == 1)
-                this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
-//                else
-//                {
-//                    TauOne = 0.0;
-//                    TauTwo = 0.0;
-//                }
-//                    this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Viscosity, rCurrentProcessInfo);
-                this->AddProjectionToRHS(rRightHandSideVector, AdvVel, Density, TauOne, TauTwo, N, DN_DX, wGauss, rCurrentProcessInfo[DELTA_TIME]);
-            }
-        }
+        const unsigned int local_size = (TDim+1)*(TDim+1);
+        Matrix tmp(local_size,local_size);
+        CalculateLocalSystem(tmp,rRightHandSideVector,rCurrentProcessInfo);
     }
+    
     /// Computes local contributions to the mass matrix
     /**
      * Provides the local contributions to the mass matrix, which is defined here
@@ -255,24 +221,64 @@ public:
      */
     virtual void MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
     {
+        KRATOS_ERROR(std::logic_error,"MassMatrix function shall not be called when using this type of element","");
+    }
+    
+    
+    /// Calculate the element's local contribution to the system for the current step.
+    /// this function is essentially identical to the one of the father element, to which it only
+    /// adds a term in the momentum equation to allow imposing weakly the tangential component of the velocity
+    /// on the cut elements
+        virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                                          VectorType& rRightHandSideVector,
+                                          ProcessInfo& rCurrentProcessInfo)
+    {
         const unsigned int LocalSize = (TDim + 1) * TNumNodes;
-        // Resize and set to zero
-        if (rMassMatrix.size1() != LocalSize)
-            rMassMatrix.resize(LocalSize, LocalSize, false);
-        rMassMatrix = ZeroMatrix(LocalSize, LocalSize);
-        // Get the element's geometric parameters
+    
+        //****************************************************
+        // Resize and set to zero the RHS
+        if(rRightHandSideVector.size() != LocalSize)
+            rRightHandSideVector.resize(LocalSize,false);
+        noalias(rRightHandSideVector) = ZeroVector(LocalSize);
+        
+        // Resize and set to zero the LHS
+        if (rLeftHandSideMatrix.size1() != LocalSize)
+            rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
+        noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
+        
+       Matrix MassMatrix(LocalSize,LocalSize,0.0);
+        
+       //****************************************************
+        //Get Vector of BDF coefficients
+        const Vector& BDFVector = rCurrentProcessInfo[BDF_COEFFICIENTS];
+
+       //****************************************************
+        // Get this element's geometric properties
         double Area;
         array_1d<double, TNumNodes> N;
         boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
         GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-        //get position of the cut surface
+        
+        
+        //estimate a minimal h
+        double h=0.0;
+        if(TDim == 3) h = pow(6.0*Area, 1.0/3.0);
+        else h = sqrt(2.0*Area);
+        
+        
+        
+        //input data for enrichment function
         Vector distances(TNumNodes);
+        Matrix coords(TNumNodes, TDim);
+        
+        //output data for enrichment function
         Matrix Nenriched(6, 1);
         Vector volumes(6);
-        Matrix coords(TNumNodes, TDim);
         Matrix Ngauss(6, TNumNodes);
         Vector signs(6);
         std::vector< Matrix > gauss_gradients(6);
+        
+        
         //fill coordinates
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
@@ -282,44 +288,158 @@ public:
             for (unsigned int j = 0; j < TDim; j++)
                 coords(i, j) = xyz[j];
         }
+        
         for (unsigned int i = 0; i < 6; i++)
             gauss_gradients[i].resize(1, TDim, false);
-        unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
-        //mass matrix
-        for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
+
+//         unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
+         unsigned int ndivisions = EnrichmentUtilitiesDuplicateDofs::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
+        const unsigned int nenrichments = Nenriched.size2();
+        
+        Matrix enrichment_terms_vertical   = ZeroMatrix(LocalSize,nenrichments);
+        Matrix enrichment_terms_horizontal = ZeroMatrix(nenrichments,LocalSize);
+        
+        Matrix enrichment_diagonal(nenrichments,nenrichments,0.0);
+        Vector enriched_rhs(nenrichments,0.0);
+        array_1d<double,3> bf(3,0.0);
+
+        double positive_volume = 0.0;
+        double negative_volume = 0.0;
+        
+        if(ndivisions == 1) //compute gauss points for exact integration of a tetra element
+        {           
+            const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2);
+
+            Ngauss = this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+
+            for (unsigned int g = 0; g < this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
+                volumes[g] = 6.0*Area * IntegrationPoints[g].Weight();
+
+        }
+        else
+        {
+            Matrix aux = Ngauss;
+            Ngauss.resize(ndivisions,Ngauss.size2(),false);
+            for(unsigned int i=0; i<ndivisions; i++)
+                for(unsigned int k=0; k<Ngauss.size2(); k++)
+                    Ngauss(i,k) = aux(i,k);
+        }
+        
+        
+        //****************************************************
+        //compute LHS and RHS + first part of mass computation
+        for (unsigned int igauss = 0; igauss < Ngauss.size1(); igauss++)
         {
             //assigning the gauss data
             for (unsigned int k = 0; k < TNumNodes; k++)
                 N[k] = Ngauss(igauss, k);
             double wGauss = volumes[igauss];
+            
+            
+            if(signs[igauss] > 0) //check positive and negative volume
+                positive_volume += wGauss;
+            else
+                negative_volume += wGauss;
+            
+            //****************************************************
             // Calculate this element's fluid properties
-            double Density;
+            double Density, KinViscosity;
             this->EvaluateInPoint(Density, DENSITY, N);
-            // Consisten Mass Matrix
-            this->AddConsistentMassMatrixContribution(rMassMatrix, N, Density, wGauss);
-        }
-        this->LumpMassMatrix(rMassMatrix);
-//if (ndivisions > 1)
-//{
-//KRATOS_WATCH(this->Id());
-//KRATOS_WATCH(rMassMatrix);
-//
-//for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
-//{
-//    double dist = 0.0;
-//    for(unsigned int k=0; k<4; k++)
-//    {
-//        dist += Ngauss(igauss, k)*this->GetGeometry()[k].FastGetSolutionStepValue(DISTANCE);
-//    }
-//    KRATOS_WATCH(dist);
-//    KRATOS_WATCH(signs[igauss]);
-//    if( signs[igauss] * dist < 0.0 )
-//        KRATOS_ERROR(std::logic_error,"sign of partition does not coincide","")
-//}
-//
-//}
+            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+            this->EvaluateInPoint(bf,BODY_FORCE,N);
 
-        //stabilization terms
+            double Viscosity;
+            this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+            
+            //compute RHS contributions
+            this->AddMomentumRHS(rRightHandSideVector, Density, N, wGauss);
+
+            // Get Advective velocity
+            array_1d<double, 3 > AdvVel;
+            this->GetAdvectiveVel(AdvVel, N);
+            // Calculate stabilization parameters
+            double TauOne, TauTwo;
+
+            //compute stabilization parameters
+            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
+
+            this->AddIntegrationPointVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, wGauss);
+            
+            //compute mass matrix - terms related to real mass
+            this->AddConsistentMassMatrixContribution(MassMatrix, N, Density, wGauss);
+                      
+            
+            //****************************************************
+            //enrichment variables
+            if (ndivisions > 1)
+            {
+                //note that here we compute only a part of the acceleration term
+                //this is done like this since the velocity*BDFVector[0] is treated implicitly
+                array_1d<double,3> OldAcceleration = ZeroVector(3);
+                for(unsigned int step=1; step<BDFVector.size(); step++)
+                {
+                    for(unsigned int jjj=0; jjj<(this->GetGeometry()).size(); jjj++)
+                        OldAcceleration += N[jjj] * BDFVector[step] * (this->GetGeometry())[jjj].FastGetSolutionStepValue(VELOCITY,step);
+                }
+                
+                for(unsigned int enriched_id = 0; enriched_id < nenrichments; enriched_id++)
+                {
+                    const Matrix& enriched_grad = gauss_gradients[igauss];
+
+                    //compute enrichment terms contribution
+                    for (unsigned int inode = 0; inode < TNumNodes; inode++)
+                    {
+                        int base_index = (TDim + 1) * inode;
+                        array_1d<double,TNumNodes> AGradN(TNumNodes,0.0);
+                        this->GetConvectionOperator(AGradN,AdvVel,DN_DX);
+                        //momentum term
+                        for (unsigned int k = 0; k < TDim; k++)
+                        {
+                            double ConvTerm = wGauss * TauOne * enriched_grad(enriched_id,k)* Density * AGradN[inode];
+
+                            //                      enrichment_terms_vertical[base_index + k] += ConvTerm + wGauss*N[inode]*enriched_grad(0, k);
+                            enrichment_terms_vertical(base_index + k,enriched_id) += ConvTerm - wGauss * DN_DX(inode, k) * Nenriched(igauss, enriched_id);
+                            enrichment_terms_horizontal(enriched_id,base_index + k) += ConvTerm + wGauss * DN_DX(inode, k) * Nenriched(igauss, enriched_id);
+    //                             enrichment_terms_vertical[base_index + k] +=wGauss*N[inode]*enriched_grad(0, k); //-= wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
+    //                            enrichment_terms_horizontal[base_index + k] -=Density*wGauss*N[inode]*enriched_grad(0, k); //   += Density*wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
+                        }
+                        //pressure term
+                        for (unsigned int k = 0; k < TDim; k++)
+                        {
+                            double temp =  wGauss * TauOne* DN_DX(inode, k) * enriched_grad(enriched_id, k);
+                            enrichment_terms_vertical(base_index + TDim,enriched_id) += temp;
+                            enrichment_terms_horizontal(enriched_id,base_index + TDim) += temp;
+                        }
+                        //add acceleration enrichment term
+                        for (unsigned int k = 0; k < TDim; k++)
+                        {
+                            double coeff = wGauss * TauOne *Density *  enriched_grad(enriched_id,k)*N[inode] * BDFVector[0];
+                            enrichment_terms_horizontal(enriched_id,base_index + k) += coeff;
+                            //i believe this shall not be here!! enriched_rhs += coeff * (old_vnode[k]);
+    //                             enrichment_terms_vertical[base_index + k] +=wGauss*N[inode]*gauss_gradients[igauss](0, k); //-= wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
+    //                            enrichment_terms_horizontal[base_index + k] -=Density*wGauss*N[inode]*gauss_gradients[igauss](0, k); //   += Density*wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
+                        }
+                    }
+                    //compute diagonal enrichment terms
+
+                    for (unsigned int k = 0; k < TDim; k++)
+                    {                        
+                        for(unsigned int lll=0; lll<nenrichments; lll++)
+                        {
+                            enrichment_diagonal(enriched_id,lll) += wGauss  * TauOne * enriched_grad(enriched_id, k) * enriched_grad(lll,k);
+                        }
+                        
+                        
+                        enriched_rhs[enriched_id] += wGauss * TauOne *Density * enriched_grad(enriched_id,k)*(bf[k]-OldAcceleration[k]); //changed the sign of the acc term
+                    }
+                }
+            }
+        }
+        
+        //lump mass matrix
+        this->LumpMassMatrix(MassMatrix);
+        
+        //add mass matrix stabilization contributions
         for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
         {
             //assigning the gauss data
@@ -347,175 +467,39 @@ public:
                 this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
 
                 // Add dynamic stabilization terms ( all terms involving a delta(u) )
-                this->AddMassStabTerms(rMassMatrix, Density, AdvVel, TauOne, N, DN_DX, wGauss);
+                this->AddMassStabTerms(MassMatrix, Density, AdvVel, TauOne, N, DN_DX, wGauss);
+ 
+                this->AddProjectionToRHS(rRightHandSideVector, AdvVel, Density, TauOne, TauTwo, N, DN_DX, wGauss, rCurrentProcessInfo[DELTA_TIME]);
+
             }
         }
-    }
-    /// Computes the local contribution associated to 'new' velocity and pressure values
-    /**
-     * Provides local contributions to the system associated to the velocity and
-     * pressure terms (convection, diffusion, pressure gradient/velocity divergence
-     * and stabilization).
-     * @param rDampMatrix Will be filled with the velocity-proportional "damping" matrix
-     * @param rRightHandSideVector the elemental right hand side vector
-     * @param rCurrentProcessInfo the current process info instance
-     */
-    virtual void CalculateLocalVelocityContribution(MatrixType& rDampMatrix,
-            VectorType& rRightHandSideVector,
-            ProcessInfo& rCurrentProcessInfo)
-    {
-        const unsigned int LocalSize = (TDim + 1) * TNumNodes;
-        // Resize and set to zero the matrix
-        // Note that we don't clean the RHS because it will already contain body force (and stabilization) contributions
-        if (rDampMatrix.size1() != LocalSize)
-            rDampMatrix.resize(LocalSize, LocalSize, false);
-        noalias(rDampMatrix) = ZeroMatrix(LocalSize, LocalSize);
-        // Get this element's geometric properties
-        double Area;
-        array_1d<double, TNumNodes> N;
-        boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-        GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-        //get position of the cut surface
-        Vector distances(TNumNodes);
-        Matrix Nenriched(6, 1);
-        Vector volumes(6);
-        Matrix coords(TNumNodes, TDim);
-        Matrix Ngauss(6, TNumNodes);
-        Vector signs(6);
-        std::vector< Matrix > gauss_gradients(6);
-        //fill coordinates
-        for (unsigned int i = 0; i < TNumNodes; i++)
+        
+        
+        //****************************************************
+        //consider contributions of mass to LHS and RHS
+        //add Mass Matrix to the LHS with the correct coefficient
+        noalias(rLeftHandSideMatrix) += BDFVector[0]*MassMatrix;
+
+        //do RHS -= MassMatrix*(BDFVector[1]*un + BDFVector[2]*u_(n-1))
+        //note that the term related to BDFVector[0] is included in the LHS
+        array_1d<double,LocalSize> aaa = ZeroVector(LocalSize);
+        for(unsigned int k = 0; k<TNumNodes; k++)
         {
-            const array_1d<double, 3 > & xyz = this->GetGeometry()[i].Coordinates();
-            volumes[i] = 0.0;
-            distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-            for (unsigned int j = 0; j < TDim; j++)
-                coords(i, j) = xyz[j];
-        }
-        for (unsigned int i = 0; i < 6; i++)
-            gauss_gradients[i].resize(1, TDim, false);
-        unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
-        Vector enrichment_terms_vertical = ZeroVector(LocalSize);
-        Vector enrichment_terms_horizontal = ZeroVector(LocalSize);
-        double enrichment_diagonal = 0.0;
-        double enriched_rhs = 0.0;
-        array_1d<double,3> bf(3,0.0);
-
-        double positive_volume = 0.0;
-        double negative_volume = 0.0;
-        //do integration
-        for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
-        {
-            //assigning the gauss data
-            for (unsigned int k = 0; k < TNumNodes; k++)
-                N[k] = Ngauss(igauss, k);
-            double wGauss = volumes[igauss];
-            if(signs[igauss] > 0)
-                positive_volume += wGauss;
-            else
-                negative_volume += wGauss;
-            // Calculate this element's fluid properties
-            double Density, KinViscosity;
-            this->EvaluateInPoint(Density, DENSITY, N);
-            this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-            this->EvaluateInPoint(bf,BODY_FORCE,N);
-
-            double Viscosity;
-            this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
-			
-/*			if(this->Id() == 9109)
-			{
-				KRATOS_WATCH(DN_DX)
-				KRATOS_WATCH(Density)
-				KRATOS_WATCH(Viscosity)
-				KRATOS_WATCH(KinViscosity)
-				KRATOS_WATCH(this->FilterWidth(DN_DX))
-				KRATOS_WATCH( this->SymmetricGradientNorm(DN_DX) );
-				
-				for(unsigned int i=0; i<this->GetGeometry().size(); i++)
-				{
-					KRATOS_WATCH(this->GetGeometry()[i].Id());
-					KRATOS_WATCH(this->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY));
-					KRATOS_WATCH(this->GetGeometry()[i].FastGetSolutionStepValue(NORMAL));
-					
-				}
-			}*/
-            // Get Advective velocity
-            array_1d<double, 3 > AdvVel;
-            this->GetAdvectiveVel(AdvVel, N);
-            // Calculate stabilization parameters
-            double TauOne, TauTwo;
-
-            this->CalculateTau(TauOne, TauTwo, AdvVel, Area, Density, Viscosity, rCurrentProcessInfo);
-
-            double Dt =  rCurrentProcessInfo[DELTA_TIME];
-            this->AddIntegrationPointVelocityContribution(rDampMatrix, rRightHandSideVector, Density, Viscosity, AdvVel, TauOne, TauTwo, N, DN_DX, wGauss);
-            if (ndivisions > 1)
+            unsigned int base=k*(TDim+1);
+            for(unsigned int step=1; step<BDFVector.size(); step++)
             {
-                //compute enrichment terms contribution
-                for (unsigned int inode = 0; inode < TNumNodes; inode++)
-                {
-                    int base_index = (TDim + 1) * inode;
-                    array_1d<double,TNumNodes> AGradN(TNumNodes,0.0);
-                    this->GetConvectionOperator(AGradN,AdvVel,DN_DX);
-                    //momentum term
-                    for (unsigned int k = 0; k < TDim; k++)
-                    {
-                        double ConvTerm = wGauss * TauOne * gauss_gradients[igauss](0,k)* Density * AGradN[inode];
- //                      enrichment_terms_vertical[base_index + k] += ConvTerm + wGauss*N[inode]*gauss_gradients[igauss](0, k);
-                       enrichment_terms_vertical[base_index + k] += ConvTerm - wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
-                        enrichment_terms_horizontal[base_index + k] += ConvTerm + wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
-//                             enrichment_terms_vertical[base_index + k] +=wGauss*N[inode]*gauss_gradients[igauss](0, k); //-= wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
-//                            enrichment_terms_horizontal[base_index + k] -=Density*wGauss*N[inode]*gauss_gradients[igauss](0, k); //   += Density*wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
-                    }
-                    //pressure term
-                    for (unsigned int k = 0; k < TDim; k++)
-                    {
-                        double temp =  wGauss * TauOne* DN_DX(inode, k) * gauss_gradients[igauss](0, k);
-                        enrichment_terms_vertical[base_index + TDim] += temp;
-                        enrichment_terms_horizontal[base_index + TDim] += temp;
-                    }
-                    //add acceleration enrichment term
-					//const array_1d<double,3>& vnode = this->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY);
-                    const array_1d<double,3>& old_vnode = this->GetGeometry()[inode].FastGetSolutionStepValue(VELOCITY,1);
-                    for (unsigned int k = 0; k < TDim; k++)
-                    {
-                        double coeff = wGauss * TauOne *Density *  gauss_gradients[igauss](0,k)*N[inode] * 2.0/ Dt;
-                        enrichment_terms_horizontal[base_index + k] += coeff;
-                        enriched_rhs += coeff * (old_vnode[k]);
-//                             enrichment_terms_vertical[base_index + k] +=wGauss*N[inode]*gauss_gradients[igauss](0, k); //-= wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
-//                            enrichment_terms_horizontal[base_index + k] -=Density*wGauss*N[inode]*gauss_gradients[igauss](0, k); //   += Density*wGauss * DN_DX(inode, k) * Nenriched(igauss, 0);
-                    }
-                }
-                //compute diagonal enrichment term
-				array_1d<double,3> OldAcceleration = N[0]*this->GetGeometry()[0].FastGetSolutionStepValue(ACCELERATION,1);
-				for(unsigned int jjj=0; jjj<(this->GetGeometry()).size(); jjj++)
-					OldAcceleration += N[jjj]*(this->GetGeometry())[jjj].FastGetSolutionStepValue(ACCELERATION,1);
-
-                for (unsigned int k = 0; k < TDim; k++)
-                {
-                    const Matrix& enriched_grad = gauss_gradients[igauss];
-                    enrichment_diagonal += wGauss  * TauOne * pow(enriched_grad(0, k), 2);
-                    enriched_rhs += wGauss * TauOne *Density * enriched_grad(0,k)*(bf[k]+OldAcceleration[k]);
-                }
+                const array_1d<double,3>& u = this->GetGeometry()[k].FastGetSolutionStepValue(VELOCITY,step);
+                const double& bdf_coeff = BDFVector[step];
+                aaa[base]   += bdf_coeff*u[0];
+                aaa[base+1] += bdf_coeff*u[1];
+                aaa[base+2] += bdf_coeff*u[2];
             }
         }
+        noalias(rRightHandSideVector) -= prod(MassMatrix,aaa);
 
-        if (ndivisions > 1)
-        {
-            //add to LHS enrichment contributions
-            double inverse_diag_term = 1.0 / ( enrichment_diagonal);
-
-
-
-            for (unsigned int i = 0; i < LocalSize; i++)
-                for (unsigned int j = 0; j < LocalSize; j++)
-                    rDampMatrix(i, j) -= inverse_diag_term * enrichment_terms_vertical[i] * enrichment_terms_horizontal[j];
-            rRightHandSideVector -= (inverse_diag_term*enriched_rhs )*enrichment_terms_vertical;
-
-        }
-
-        // Now calculate an additional contribution to the residual: r -= rDampMatrix * (u,p)
+        //****************************************************
+        //finalize computation of the residual
+        // Now calculate an additional contribution to the residual: r -= rLeftHandSideMatrix * (u,p)
         VectorType U = ZeroVector(LocalSize);
         int LocalIndex = 0;
         for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
@@ -529,7 +513,79 @@ public:
             U[LocalIndex] = this->GetGeometry()[iNode].FastGetSolutionStepValue(PRESSURE); // Pressure Dof
             ++LocalIndex;
         }
-        noalias(rRightHandSideVector) -= prod(rDampMatrix, U);
+        noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, U);
+                
+                
+        //****************************************************
+        //finalize computation of enrichment terms
+        //(do static condensation) of enrichment terms
+        //note that it each step we assume that the enrichment starts from 0
+        if (ndivisions > 1)
+        {
+                //finalize the computation of the rhs 
+                noalias(enriched_rhs) -= prod(enrichment_terms_horizontal,U);
+                
+                
+                
+                //ensure the matrix is invertible
+//                 for(unsigned int i=0; i<nenrichments; i++)
+//                 {
+//                     if(fabs(enrichment_diagonal(i,i)) < 1e-30) 
+//                     {
+//                         enrichment_diagonal(i,i) = 1.0;
+//                         enriched_rhs[i] = 0.0;
+//                     }
+//                 }
+                
+                //"weakly" impose continuity
+                           unsigned int edge_counter = 0.0;
+                for(unsigned int i=0; i<TDim; i++)
+                {
+                    const double di = fabs(distances[i]); 
+                    
+                    for(unsigned int j=i+1; j<TDim+1; j++)
+                    {
+                        const double dj =  fabs(distances[j]); 
+
+                        if( distances[i]*distances[j] < 0.0) //cut edge
+                        {
+                            double sum_d = di+dj;
+                            double Ni = dj/sum_d;
+                            double Nj = di/sum_d;
+                            
+                            double penalty_coeff = h/BDFVector[0];
+                            enrichment_diagonal(i,i) += penalty_coeff * Ni*Ni;
+                            enrichment_diagonal(i,j) += penalty_coeff * Ni*Nj;
+                            enrichment_diagonal(j,i) += penalty_coeff * Nj*Ni;
+                            enrichment_diagonal(j,j) += penalty_coeff * Nj*Nj;
+                            
+                        }
+                    }
+                }
+                
+                
+                
+                //add to LHS enrichment contributions
+                Matrix inverse_diag(nenrichments, nenrichments);
+                bool inversion_successful = InvertMatrix(enrichment_diagonal,inverse_diag);
+                if(!inversion_successful )
+                    KRATOS_ERROR(std::logic_error,"error in the inversion of the enrichment matrix for element ",this->Id());
+//                double inverse_diag_term = 1.0 / ( enrichment_diagonal);
+//        KRATOS_WATCH(this->Id());
+//        KRATOS_WATCH(enrichment_terms_horizontal);
+//        KRATOS_WATCH(enrichment_terms_vertical);
+//        KRATOS_WATCH(inverse_diag);
+                Matrix tmp = prod(inverse_diag,enrichment_terms_horizontal);
+                noalias(rLeftHandSideMatrix) -= prod(enrichment_terms_vertical,tmp);
+                
+                Vector tmp2 = prod(inverse_diag,enriched_rhs);
+                noalias(rRightHandSideVector) -= prod(enrichment_terms_vertical,tmp2); 
+
+/*                for (unsigned int i = 0; i < LocalSize; i++)
+                    for (unsigned int j = 0; j < LocalSize; j++)
+                        rLeftHandSideMatrix(i, j) -= inverse_diag_term * enrichment_terms_vertical[i] * enrichment_terms_horizontal[j];
+                noalias(rRightHandSideVector) -= (inverse_diag_term*enriched_rhs )*enrichment_terms_vertical;
+      */      }
     }
 
     /// Implementation of Calculate to compute the local OSS projections.
@@ -548,157 +604,160 @@ public:
                            array_1d<double, 3 > & rOutput,
                            const ProcessInfo& rCurrentProcessInfo)
     {
-        if (rVariable == ADVPROJ) // Compute residual projections for OSS
-        {
-            // Get the element's geometric parameters
-            double Area;
-            array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-            array_1d< double, 3 > ElementalMomRes(3, 0.0);
-            double ElementalMassRes(0);
-            //get position of the cut surface
-            Vector distances(TNumNodes);
-            Matrix Nenriched(6, 1);
-            Vector volumes(6);
-            Matrix coords(TNumNodes, TDim);
-            Matrix Ngauss(6, TNumNodes);
-            Vector signs(6);
-            std::vector< Matrix > gauss_gradients(6);
-            //fill coordinates
-            for (unsigned int i = 0; i < TNumNodes; i++)
-            {
-                const array_1d<double, 3 > & xyz = this->GetGeometry()[i].Coordinates();
-                volumes[i] = 0.0;
-                distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-                for (unsigned int j = 0; j < TDim; j++)
-                    coords(i, j) = xyz[j];
-            }
-            for (unsigned int i = 0; i < 6; i++)
-                gauss_gradients[i].resize(1, TDim, false);
-            unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
-            //do integration
-            for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
-            {
-                //assigning the gauss data
-                for (unsigned int k = 0; k < TNumNodes; k++)
-                    N[k] = Ngauss(igauss, k);
-                double wGauss = volumes[igauss];
-                // Calculate this element's fluid properties
-                double Density, KinViscosity;
-                this->EvaluateInPoint(Density, DENSITY, N);
-                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-                double Viscosity;
-                this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
-                // Get Advective velocity
-                array_1d<double, 3 > AdvVel;
-                this->GetAdvectiveVel(AdvVel, N);
-                // Output containers
-                ElementalMomRes = ZeroVector(3);
-                ElementalMassRes = 0.0;
-                this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, wGauss);
-                if (rCurrentProcessInfo[OSS_SWITCH] == 1)
-                {
-                    // Carefully write results to nodal variables, to avoid parallelism problems
-                    for (unsigned int i = 0; i < TNumNodes; ++i)
-                    {
-                        this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
-                        array_1d< double, 3 > & rAdvProj = this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ);
-                        for (unsigned int d = 0; d < TDim; ++d)
-                            rAdvProj[d] += N[i] * ElementalMomRes[d];
-                        this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ) += N[i] * ElementalMassRes;
-                        this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += wGauss * N[i];
-                        this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
-                    }
-                }
-            }
-            /// Return output
-            rOutput = ElementalMomRes;
-        }
-        else if (rVariable == SUBSCALE_VELOCITY)
-        {
-            // Get the element's geometric parameters
-            double Area;
-            array_1d<double, TNumNodes> N;
-            boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
-            GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
-            array_1d< double, 3 > ElementalMomRes(3, 0.0);
-            double ElementalMassRes(0);
-            //get position of the cut surface
-            Vector distances(TNumNodes);
-            Matrix Nenriched(6, 1);
-            Vector volumes(6);
-            Matrix coords(TNumNodes, TDim);
-            Matrix Ngauss(6, TNumNodes);
-            Vector signs(6);
-            std::vector< Matrix > gauss_gradients(6);
-            //fill coordinates
-            for (unsigned int i = 0; i < TNumNodes; i++)
-            {
-                const array_1d<double, 3 > & xyz = this->GetGeometry()[i].Coordinates();
-                volumes[i] = 0.0;
-                distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-                for (unsigned int j = 0; j < TDim; j++)
-                    coords(i, j) = xyz[j];
-            }
-            for (unsigned int i = 0; i < 6; i++)
-                gauss_gradients[i].resize(1, TDim, false);
-            unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
-            //do integration
-            for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
-            {
-                //assigning the gauss data
-                for (unsigned int k = 0; k < TNumNodes; k++)
-                    N[k] = Ngauss(igauss, k);
-                double wGauss = volumes[igauss];
-                // Calculate this element's fluid properties
-                double Density, KinViscosity;
-                this->EvaluateInPoint(Density, DENSITY, N);
-                this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
-                double Viscosity;
-                this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
-                // Get Advective velocity
-                array_1d<double, 3 > AdvVel;
-                this->GetAdvectiveVel(AdvVel, N);
-                // Output containers
-                ElementalMomRes = ZeroVector(3);
-                ElementalMassRes = 0.0;
-                this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, wGauss);
-                if (rCurrentProcessInfo[OSS_SWITCH] == 1)
-                {
-                    /* Projections of the elemental residual are computed with
-                     * Newton-Raphson iterations of type M(lumped) dx = ElemRes - M(consistent) * x
-                     */
-                    const double Weight = ElementBaseType::ConsistentMassCoef(wGauss); // Consistent mass matrix is Weigth * ( Ones(TNumNodes,TNumNodes) + Identity(TNumNodes,TNumNodes) )
-                    // Carefully write results to nodal variables, to avoid parallelism problems
-                    for (unsigned int i = 0; i < TNumNodes; ++i)
-                    {
-                        this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
-                        // Add elemental residual to RHS
-                        array_1d< double, 3 > & rMomRHS = this->GetGeometry()[i].GetValue(ADVPROJ);
-                        double& rMassRHS = this->GetGeometry()[i].GetValue(DIVPROJ);
-                        for (unsigned int d = 0; d < TDim; ++d)
-                            rMomRHS[d] += N[i] * ElementalMomRes[d];
-                        rMassRHS += N[i] * ElementalMassRes;
-                        // Write nodal area
-                        this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += wGauss * N[i];
-                        // Substract M(consistent)*x(i-1) from RHS
-                        for (unsigned int j = 0; j < TNumNodes; ++j) // RHS -= Weigth * Ones(TNumNodes,TNumNodes) * x(i-1)
-                        {
-                            for (unsigned int d = 0; d < TDim; ++d)
-                                rMomRHS[d] -= Weight * this->GetGeometry()[j].FastGetSolutionStepValue(ADVPROJ)[d];
-                            rMassRHS -= Weight * this->GetGeometry()[j].FastGetSolutionStepValue(DIVPROJ);
-                        }
-                        for (unsigned int d = 0; d < TDim; ++d) // RHS -= Weigth * Identity(TNumNodes,TNumNodes) * x(i-1)
-                            rMomRHS[d] -= Weight * this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ)[d];
-                        rMassRHS -= Weight * this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
-                        this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
-                    }
-                }
-            }
-            /// Return output
-            rOutput = ElementalMomRes;
-        }
+//         if (rVariable == ADVPROJ) // Compute residual projections for OSS
+//         {
+//             // Get the element's geometric parameters
+//             double Area;
+//             array_1d<double, TNumNodes> N;
+//             boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+//             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+//             array_1d< double, 3 > ElementalMomRes(3, 0.0);
+//             double ElementalMassRes(0);
+//             //get position of the cut surface
+//             Vector distances(TNumNodes);
+//             Matrix Nenriched(6, 1);
+//             Vector volumes(6);
+//             Matrix coords(TNumNodes, TDim);
+//             Matrix Ngauss(6, TNumNodes);
+//             Vector signs(6);
+//             std::vector< Matrix > gauss_gradients(6);
+//             //fill coordinates
+//             for (unsigned int i = 0; i < TNumNodes; i++)
+//             {
+//                 const array_1d<double, 3 > & xyz = this->GetGeometry()[i].Coordinates();
+//                 volumes[i] = 0.0;
+//                 distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+//                 for (unsigned int j = 0; j < TDim; j++)
+//                     coords(i, j) = xyz[j];
+//             }
+//             for (unsigned int i = 0; i < 6; i++)
+//                 gauss_gradients[i].resize(1, TDim, false);
+//             unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
+//             //do integration
+//             for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
+//             {
+//                 //assigning the gauss data
+//                 for (unsigned int k = 0; k < TNumNodes; k++)
+//                     N[k] = Ngauss(igauss, k);
+//                 double wGauss = volumes[igauss];
+//                 // Calculate this element's fluid properties
+//                 double Density, KinViscosity;
+//                 this->EvaluateInPoint(Density, DENSITY, N);
+//                 this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+//                 double Viscosity;
+//                 this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+//                 // Get Advective velocity
+//                 array_1d<double, 3 > AdvVel;
+//                 this->GetAdvectiveVel(AdvVel, N);
+//                 // Output containers
+//                 ElementalMomRes = ZeroVector(3);
+//                 ElementalMassRes = 0.0;
+//                 this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, wGauss);
+//                 if (rCurrentProcessInfo[OSS_SWITCH] == 1)
+//                 {
+//                                     KRATOS_ERROR(std::logic_error,"OSS is currently not tested for this element","");
+// 
+//                                     
+//                     // Carefully write results to nodal variables, to avoid parallelism problems
+//                     for (unsigned int i = 0; i < TNumNodes; ++i)
+//                     {
+//                         this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
+//                         array_1d< double, 3 > & rAdvProj = this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ);
+//                         for (unsigned int d = 0; d < TDim; ++d)
+//                             rAdvProj[d] += N[i] * ElementalMomRes[d];
+//                         this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ) += N[i] * ElementalMassRes;
+//                         this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += wGauss * N[i];
+//                         this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
+//                     }
+//                 }
+//             }
+//             /// Return output
+//             rOutput = ElementalMomRes;
+//         }
+//         else if (rVariable == SUBSCALE_VELOCITY)
+//         {
+//             // Get the element's geometric parameters
+//             double Area;
+//             array_1d<double, TNumNodes> N;
+//             boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim> DN_DX;
+//             GeometryUtils::CalculateGeometryData(this->GetGeometry(), DN_DX, N, Area);
+//             array_1d< double, 3 > ElementalMomRes(3, 0.0);
+//             double ElementalMassRes(0);
+//             //get position of the cut surface
+//             Vector distances(TNumNodes);
+//             Matrix Nenriched(6, 1);
+//             Vector volumes(6);
+//             Matrix coords(TNumNodes, TDim);
+//             Matrix Ngauss(6, TNumNodes);
+//             Vector signs(6);
+//             std::vector< Matrix > gauss_gradients(6);
+//             //fill coordinates
+//             for (unsigned int i = 0; i < TNumNodes; i++)
+//             {
+//                 const array_1d<double, 3 > & xyz = this->GetGeometry()[i].Coordinates();
+//                 volumes[i] = 0.0;
+//                 distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
+//                 for (unsigned int j = 0; j < TDim; j++)
+//                     coords(i, j) = xyz[j];
+//             }
+//             for (unsigned int i = 0; i < 6; i++)
+//                 gauss_gradients[i].resize(1, TDim, false);
+//             unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
+//             //do integration
+//             for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
+//             {
+//                 //assigning the gauss data
+//                 for (unsigned int k = 0; k < TNumNodes; k++)
+//                     N[k] = Ngauss(igauss, k);
+//                 double wGauss = volumes[igauss];
+//                 // Calculate this element's fluid properties
+//                 double Density, KinViscosity;
+//                 this->EvaluateInPoint(Density, DENSITY, N);
+//                 this->EvaluateInPoint(KinViscosity, VISCOSITY, N);
+//                 double Viscosity;
+//                 this->GetEffectiveViscosity(Density, KinViscosity, N, DN_DX, Viscosity, rCurrentProcessInfo);
+//                 // Get Advective velocity
+//                 array_1d<double, 3 > AdvVel;
+//                 this->GetAdvectiveVel(AdvVel, N);
+//                 // Output containers
+//                 ElementalMomRes = ZeroVector(3);
+//                 ElementalMassRes = 0.0;
+//                 this->AddProjectionResidualContribution(AdvVel, Density, ElementalMomRes, ElementalMassRes, N, DN_DX, wGauss);
+//                 if (rCurrentProcessInfo[OSS_SWITCH] == 1)
+//                 {
+//                     /* Projections of the elemental residual are computed with
+//                      * Newton-Raphson iterations of type M(lumped) dx = ElemRes - M(consistent) * x
+//                      */
+//                     const double Weight = ElementBaseType::ConsistentMassCoef(wGauss); // Consistent mass matrix is Weigth * ( Ones(TNumNodes,TNumNodes) + Identity(TNumNodes,TNumNodes) )
+//                     // Carefully write results to nodal variables, to avoid parallelism problems
+//                     for (unsigned int i = 0; i < TNumNodes; ++i)
+//                     {
+//                         this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
+//                         // Add elemental residual to RHS
+//                         array_1d< double, 3 > & rMomRHS = this->GetGeometry()[i].GetValue(ADVPROJ);
+//                         double& rMassRHS = this->GetGeometry()[i].GetValue(DIVPROJ);
+//                         for (unsigned int d = 0; d < TDim; ++d)
+//                             rMomRHS[d] += N[i] * ElementalMomRes[d];
+//                         rMassRHS += N[i] * ElementalMassRes;
+//                         // Write nodal area
+//                         this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) += wGauss * N[i];
+//                         // Substract M(consistent)*x(i-1) from RHS
+//                         for (unsigned int j = 0; j < TNumNodes; ++j) // RHS -= Weigth * Ones(TNumNodes,TNumNodes) * x(i-1)
+//                         {
+//                             for (unsigned int d = 0; d < TDim; ++d)
+//                                 rMomRHS[d] -= Weight * this->GetGeometry()[j].FastGetSolutionStepValue(ADVPROJ)[d];
+//                             rMassRHS -= Weight * this->GetGeometry()[j].FastGetSolutionStepValue(DIVPROJ);
+//                         }
+//                         for (unsigned int d = 0; d < TDim; ++d) // RHS -= Weigth * Identity(TNumNodes,TNumNodes) * x(i-1)
+//                             rMomRHS[d] -= Weight * this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ)[d];
+//                         rMassRHS -= Weight * this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
+//                         this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
+//                     }
+//                 }
+//             }
+//             /// Return output
+//             rOutput = ElementalMomRes;
+//         }
     }
     /// Checks the input and that all required Kratos variables have been registered.
     /**
@@ -722,8 +781,6 @@ public:
             KRATOS_ERROR(std::invalid_argument, "VELOCITY Key is 0. Check if the application was correctly registered.", "");
         if (MESH_VELOCITY.Key() == 0)
             KRATOS_ERROR(std::invalid_argument, "MESH_VELOCITY Key is 0. Check if the application was correctly registered.", "");
-        if (ACCELERATION.Key() == 0)
-            KRATOS_ERROR(std::invalid_argument, "ACCELERATION Key is 0. Check if the application was correctly registered.", "");
         if (PRESSURE.Key() == 0)
             KRATOS_ERROR(std::invalid_argument, "PRESSURE Key is 0. Check if the application was correctly registered.", "");
         if (DENSITY.Key() == 0)
@@ -760,8 +817,6 @@ public:
                 KRATOS_ERROR(std::invalid_argument, "missing PRESSURE variable on solution step data for node ", this->GetGeometry()[i].Id());
             if (this->GetGeometry()[i].SolutionStepsDataHas(MESH_VELOCITY) == false)
                 KRATOS_ERROR(std::invalid_argument, "missing MESH_VELOCITY variable on solution step data for node ", this->GetGeometry()[i].Id());
-            if (this->GetGeometry()[i].SolutionStepsDataHas(ACCELERATION) == false)
-                KRATOS_ERROR(std::invalid_argument, "missing ACCELERATION variable on solution step data for node ", this->GetGeometry()[i].Id());
             if (this->GetGeometry()[i].HasDofFor(VELOCITY_X) == false ||
                     this->GetGeometry()[i].HasDofFor(VELOCITY_Y) == false ||
                     this->GetGeometry()[i].HasDofFor(VELOCITY_Z) == false)
@@ -824,6 +879,32 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+    template<class T>
+    bool InvertMatrix(const T& input, T& inverse)
+    {
+        typedef permutation_matrix<std::size_t> pmatrix;
+
+        // create a working copy of the input
+        T A(input);
+
+        // create a permutation matrix for the LU-factorization
+        pmatrix pm(A.size1());
+
+        // perform LU-factorization
+        int res = lu_factorize(A, pm);
+        if (res != 0)
+            return false;
+
+        // create identity matrix of "inverse"
+        inverse.assign(identity_matrix<double> (A.size1()));
+
+        // backsubstitute to get the inverse
+        lu_substitute(A, pm, inverse);
+
+        return true;
+    }
+
+
     /// Add lumped mass matrix
     void LumpMassMatrix(MatrixType& rMassMatrix)
     {
@@ -877,13 +958,7 @@ protected:
         double dist = 0.0;
         for (unsigned int i = 0; i < TNumNodes; i++)
             dist += rShapeFunc[i] * this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
-//KRATOS_WATCH(dist)
-//
-//double test=0.0;
-//for (unsigned int i = 0; i < TNumNodes; i++)
-//    test+= rShapeFunc[i];
-//if(test < 0.9999999)
-//    KRATOS_ERROR(std::logic_error,"shape functions do not sum to 1","")
+
         double navg = 0.0;
         double value = 0.0;
         for (unsigned int i = 0; i < TNumNodes; i++)
@@ -892,10 +967,6 @@ protected:
             {
                 navg += 1.0;
                 value += this->GetGeometry()[i].FastGetSolutionStepValue(rVariable);
-//                    KRATOS_WATCH(this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE))
-//                    KRATOS_WATCH(this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE))
-//                    KRATOS_WATCH(value);
-//                    KRATOS_WATCH(navg);
             }
         }
         if(navg != 0)
@@ -903,8 +974,6 @@ protected:
         else
             ElementBaseType::EvaluateInPoint(value,rVariable,rShapeFunc);
         rResult = value;
-//            if(rVariable==DENSITY)
-//                KRATOS_WATCH(rResult)
     }
     /// Add the weighted value of a variable at a point inside the element to a vector
     /**
@@ -926,6 +995,7 @@ protected:
         this->EvaluateInPoint(temp, rVariable, rShapeFunc);
         rResult += Weight*temp;
     }
+    
     /// Write the value of a variable at a point inside the element to a double
     /**
      * Evaluate a scalar variable in the point where the form functions take the
@@ -959,6 +1029,7 @@ protected:
             ElementBaseType::EvaluateInPoint(value,rVariable,rShapeFunc);
         rResult = value;
     }
+    
     /// Return an estimate for the element size h, used to calculate the stabilization parameters
     /**
      * Estimate the element size from its area or volume, required to calculate stabilization parameters.
@@ -968,6 +1039,106 @@ protected:
      * @return Element size h
      */
     double ElementSize(const double);
+    
+    
+        /// Add a the contribution from a single integration point to the velocity contribution
+    void AddIntegrationPointVelocityContribution(MatrixType& rDampMatrix,
+            VectorType& rDampRHS,
+            const double Density,
+            const double Viscosity,
+            const array_1d< double, 3 > & rAdvVel,
+            const double TauOne,
+            const double TauTwo,
+            const array_1d< double, TNumNodes >& rShapeFunc,
+            const boost::numeric::ublas::bounded_matrix<double, TNumNodes, TDim >& rShapeDeriv,
+            const double Weight)
+    {
+        const unsigned int BlockSize = TDim + 1;
+
+        // If we want to use more than one Gauss point to integrate the convective term, this has to be evaluated once per integration point
+        array_1d<double, TNumNodes> AGradN;
+        this->GetConvectionOperator(AGradN, rAdvVel, rShapeDeriv); // Get a * grad(Ni)
+
+        // Build the local matrix and RHS
+        unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
+        double K, G, PDivV, L, qF; // Temporary results
+
+        array_1d<double,3> BodyForce(3,0.0);
+        this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
+        BodyForce *= Density;
+
+        for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
+        {
+            for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over columns
+            {
+                // Calculate the part of the contributions that is constant for each node combination
+
+                // Velocity block
+                K = Density * rShapeFunc[i] * AGradN[j]; // Convective term: v * ( a * Grad(u) )
+                K += TauOne * Density * AGradN[i] * Density * AGradN[j]; // Stabilization: (a * Grad(v)) * TauOne * (a * Grad(u))
+                K *= Weight;
+
+                // q-p stabilization block (reset result)
+                L = 0;
+
+                const array_1d<double,3>& OldVel = this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY,1);
+                
+                for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
+                {
+                    // Velocity block
+//                        K += Weight * Density * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
+
+                    // v * Grad(p) block
+                    G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
+                    PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
+
+                    // Write v * Grad(p) component
+                    rDampMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
+                    // Use symmetry to write the q * Div(u) component
+                    rDampMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + PDivV);
+                    
+                    rDampRHS[FirstCol + TDim] -=  Weight * PDivV*OldVel[m];
+
+                    // q-p stabilization block
+                    L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
+
+                    for (unsigned int n = 0; n < TDim; ++n) // iterate over u components (ux,uy[,uz])
+                    {
+                        // Velocity block
+                        rDampMatrix(FirstRow + m, FirstCol + n) += Weight * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
+                    }
+
+                }
+
+                // Write remaining terms to velocity block
+                for (unsigned int d = 0; d < TDim; ++d)
+                    rDampMatrix(FirstRow + d, FirstCol + d) += K;
+
+                // Write q-p stabilization block
+                rDampMatrix(FirstRow + TDim, FirstCol + TDim) += Weight * TauOne * L;
+
+
+                // Update reference column index for next iteration
+                FirstCol += BlockSize;
+            }
+
+            // Operate on RHS
+            qF = 0.0;
+            for (unsigned int d = 0; d < TDim; ++d)
+            {
+                rDampRHS[FirstRow + d] += Weight * TauOne * Density * AGradN[i] * BodyForce[d]; // ( a * Grad(v) ) * TauOne * (Density * BodyForce)
+                qF += rShapeDeriv(i, d) * BodyForce[d];
+            }
+            rDampRHS[FirstRow + TDim] += Weight * TauOne * qF; // Grad(q) * TauOne * (Density * BodyForce)
+
+            // Update reference indices
+            FirstRow += BlockSize;
+            FirstCol = 0;
+        }
+
+//            this->AddBTransCB(rDampMatrix,rShapeDeriv,Viscosity*Coef);
+        this->AddViscousTerm(rDampMatrix,rShapeDeriv,Viscosity*Density*Weight);
+    }
     ///@}
     ///@name Protected  Access
     ///@{
@@ -1045,4 +1216,4 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 ///@}
 ///@} // Fluid Dynamics Application group
 } // namespace Kratos.
-#endif // KRATOS_TWO_FLUID_TwoFluidVMS_H_INCLUDED  defined
+#endif // KRATOS_TWO_FLUID_TwoFluidVMS2_H_INCLUDED  defined
