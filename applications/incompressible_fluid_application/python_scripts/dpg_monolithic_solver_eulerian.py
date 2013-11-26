@@ -81,8 +81,13 @@ class MonolithicSolver:
 
         self.alpha = -0.0
         self.move_mesh_strategy = 0
-        self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched(
-            self.alpha, self.move_mesh_strategy, self.domain_size)
+        #self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched(
+            #self.alpha, self.move_mesh_strategy, self.domain_size)
+
+        self.time_scheme = ResidualBasedPredictorCorrectorBDFSchemeTurbulent(self.domain_size)
+
+
+
         #self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
 
         # definition of the solvers
@@ -102,14 +107,15 @@ class MonolithicSolver:
         #self.linear_solver = PastixSolver(verbosity,False)
 
         # new solvers
-        self.gmres_size = 50
+        self.gmres_size = 200
+        self.iterations = 200
         self.tol = 1e-3
         self.verbosity = 0
         self.linear_solver = AMGCLSolver(
             AMGCLSmoother.ILU0,
-            AMGCLIterativeSolverType.GMRES,
+            AMGCLIterativeSolverType.BICGSTAB_WITH_GMRES_FALLBACK,
             self.tol,
-            50,
+            self.iterations,
             self.verbosity,
             self.gmres_size)
 
@@ -282,9 +288,7 @@ class MonolithicSolver:
             self.normal_util.CalculateOnSimplex(
                 self.model_part,
                 self.domain_size,
-                IS_STRUCTURE,
-                0.0,
-                35.0)  # ,0.0,35.0
+                IS_STRUCTURE,0,35.0)#,0.0),180) #35.0)  # ,0.0,35.0
 
         # saving inlet nodes
         self.inlet_nodes = []
@@ -329,6 +333,9 @@ class MonolithicSolver:
                     node.GetSolutionStepValue(DISTANCE))
             self.divergence_clearance_performed = True
 
+        if(step > 3):
+            (self.solver).Predict()
+        
         Timer.Start("ConvectDistance")
         # convect distance function
         self.ConvectDistance()
@@ -343,7 +350,7 @@ class MonolithicSolver:
         if(self.volume_correction_switch and step > self.vol_cr_step):
             net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
             BiphasicFillingUtilities().VolumeCorrection(
-                self.model_part, net_volume)
+                self.model_part, net_volume,self.max_edge_size)
         Timer.Start("ApplyFluidProperties")
         self.ApplyFluidProperties()
         Timer.Stop("ApplyFluidProperties")
@@ -353,6 +360,9 @@ class MonolithicSolver:
 # self.normal_util.CalculateOnSimplex(self.model_part,self.domain_size,IS_STRUCTURE,0.0,35.0)#,0.0,35.0
 
         Timer.Start("self.solve")
+
+        if(step > 3):
+            (self.solver).Predict()
         (self.solver).Solve()
         self.internal_step_counter += 1
         Timer.Stop("self.solve")
