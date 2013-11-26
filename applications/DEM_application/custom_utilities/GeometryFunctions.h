@@ -158,6 +158,7 @@ namespace Kratos
         normalize(Vector0);
         CrossProduct(NormalDirection,Vector0,Vector1);
         normalize(Vector1);
+
         
         for(ii=0;ii<3;ii++)
         {
