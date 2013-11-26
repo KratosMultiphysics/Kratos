@@ -71,6 +71,14 @@ namespace Kratos
           mRealMass                 = mass;                    
           mSqrtOfRealMass           = sqrt_of_mass;
           mMomentOfInertia          = moment_of_inertia;
+          
+          //OPTIMIZATION
+          GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X_DOF_POS) = GetGeometry()[0].GetDofPosition(VELOCITY_X); 
+          GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS) = GetGeometry()[0].GetDofPosition(VELOCITY_Y); 
+          GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS) = GetGeometry()[0].GetDofPosition(VELOCITY_Z); 
+          GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY_X_DOF_POS) = GetGeometry()[0].GetDofPosition(ANGULAR_VELOCITY_X); 
+          GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY_Y_DOF_POS) = GetGeometry()[0].GetDofPosition(ANGULAR_VELOCITY_Y); 
+          GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY_Z_DOF_POS) = GetGeometry()[0].GetDofPosition(ANGULAR_VELOCITY_Z);
 
           CustomInitialize();
 

@@ -276,7 +276,8 @@ namespace Kratos
 	  
       //Cfeng,RigidFace
       vector<int> mOldRigidFaceNeighbourIds;
-      vector< array_1d<double, 3> >  mOldRigidFaceNeighbourContactForces;            
+      vector< array_1d<double, 3> >  mOldRigidFaceNeighbourContactForces;     
+      
       
       //ParticleWeakVectorType mrNeighbours;
 

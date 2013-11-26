@@ -1412,14 +1412,24 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         {                  
              array_1d<double, 3>& total_force = this->GetGeometry()(0)->FastGetSolutionStepValue(TOTAL_FORCES); //Includes all elastic, damping, but not external (gravity)
              array_1d<double, 3>& velocity = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-                           
+             
+             unsigned int pos;
 
-            for (int i = 0; i<3; i++)
-            {
-                if ( this->GetGeometry()(0)->pGetDof(VELOCITY_Y)->IsFixed() == false ){
-                    total_force[i] = total_force[i] - mDempack_global_damping*fabs(total_force[i])*GeometryFunctions::sign(velocity[i]);                                
-                }
-            }
+             pos = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);
+             if ( this->GetGeometry()(0)->GetDof(VELOCITY_X,pos).IsFixed() == false ){ 
+                   total_force[0] = total_force[0] - mDempack_global_damping*fabs(total_force[0])*GeometryFunctions::sign(velocity[0]);                                
+             }
+             
+             pos = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
+             if ( this->GetGeometry()(0)->GetDof(VELOCITY_Y,pos).IsFixed() == false ){  
+                   total_force[1] = total_force[1] - mDempack_global_damping*fabs(total_force[1])*GeometryFunctions::sign(velocity[1]);                                
+             }
+             
+             pos = this->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);
+             if ( this->GetGeometry()(0)->GetDof(VELOCITY_Z,pos).IsFixed() == false ){  
+                   total_force[2] = total_force[2] - mDempack_global_damping*fabs(total_force[2])*GeometryFunctions::sign(velocity[2]);                                
+             }
+                         
              return;
         } 
         ////////////////////////////////////////////////////////////////////////
