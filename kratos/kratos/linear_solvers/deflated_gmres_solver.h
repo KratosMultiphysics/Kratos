@@ -41,6 +41,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // System includes
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <sstream>
 #include <cstddef>
 // External includes
@@ -52,6 +53,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "linear_solvers/iterative_solver.h"
 #include <boost/numeric/ublas/vector.hpp>
 #include "utilities/openmp_utils.h"
+
+//#define NO_PRECOND 
 
 namespace Kratos
 {
@@ -94,19 +97,25 @@ public:
     ///@name Life Cycle
     ///@{
     /// Default constructor.
-    DeflatedGMRESSolver (typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer psolver_UU_block,
-                         typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer psolver_PP_block,
+    DeflatedGMRESSolver (typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer pred_solver,
                          double NewMaxTolerance,
                          unsigned int NewMaxIterationsNumber,
-                         unsigned int m
+                         unsigned int m, unsigned int max_reduced_size
                         ) : BaseType (NewMaxTolerance, NewMaxIterationsNumber)
     {
         //saving the linear solvers to be used in the solution process
-        mpsolver_UU_block = psolver_UU_block;
-        mpsolver_PP_block = psolver_PP_block;
+        //mpsolver_UU_block = psolver_UU_block;
+        //mpsolver_PP_block = psolver_PP_block;
+	//this is the solver used at the prediction step before entering the GMRES loop... can be direct or iterative
+	mPred_solver = pred_solver;
         mBlocksAreAllocated = false;
         mis_initialized = false;
         mm = m;
+	mmax_reduced_size=max_reduced_size;
+	KRATOS_WATCH("Quasi-deflated solver created")
+	std::cout<<"Krylov space size is"<< mm<<std::endl;
+	std::cout<<"Maximum deflated matrix size is"<< mmax_reduced_size<<std::endl;	
+	myfile.open("iterations.txt");
     }
     /// Copy constructor.
     DeflatedGMRESSolver (const DeflatedGMRESSolver& Other)
@@ -139,8 +148,6 @@ public:
 	if (mBlocksAreAllocated == true)
 	{
 	    
-	    mpsolver_UU_block->Initialize(mK, mu, mru);
-	    mpsolver_PP_block->Initialize(mS, mp, mrp);
 	    mis_initialized = true;
 	}
 	else
@@ -171,10 +178,7 @@ public:
         }
         
         if(mis_initialized == false) this->Initialize(rA,rX,rB);
-
-        //initialize solvers
-        mpsolver_UU_block->InitializeSolutionStep(mK, mu, mru);
-        mpsolver_PP_block->InitializeSolutionStep(mS, mp, mrp);
+        
     }
 
     /** This function actually performs the solution work, eventually taking advantage of what was done before in the
@@ -189,7 +193,7 @@ public:
         unsigned int max_iter = BaseType::GetMaxIterationsNumber();
         double tol = BaseType::GetTolerance();
         gmres_solve (rA,rX,rB,m,max_iter,tol);
-    }
+    } 
     /** This function is designed to be called at the end of the solve step.
      * for example this is the place to remove any data that we do not want to save for later
     @param rA. System matrix
@@ -198,8 +202,7 @@ public:
     */
     virtual void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        mpsolver_UU_block->FinalizeSolutionStep(mK, mu, mru);
-        mpsolver_PP_block->FinalizeSolutionStep(mS, mp, mrp);
+        
     }
     /** This function is designed to clean up all internal data in the solver.
      * Clear is designed to leave the solver object as if newly created.
@@ -211,9 +214,8 @@ public:
         mG.clear();
         mD.clear();
         mS.clear();
-        mBlocksAreAllocated = false;
-        mpsolver_UU_block->Clear();
-        mpsolver_PP_block->Clear();
+        mBlocksAreAllocated = false;        
+	mPred_solver->Clear();
 	mu.clear();
 	mp.clear();
 	mru.clear();
@@ -298,6 +300,8 @@ public:
                 if (it->GetVariable().Key() == PRESSURE)
                     n_pressure_dofs += 1;
             }
+	//KRATOS_WATCH(rA.size1())
+	//KRATOS_WATCH(tot_active_dofs)
         if (tot_active_dofs != rA.size1() )
             KRATOS_ERROR (std::logic_error,"total system size does not coincide with the free dof map","");
 
@@ -381,6 +385,7 @@ protected:
     void FillBlockMatrices (bool need_allocation, SparseMatrixType& rA, SparseMatrixType& K, SparseMatrixType& G, SparseMatrixType& D, SparseMatrixType& S )
     {
         KRATOS_TRY
+	KRATOS_WATCH("FILLING BLOCK MATRICES")
         //get access to A data
         const std::size_t* index1 = rA.index1_data().begin();
         const std::size_t* index2 = rA.index2_data().begin();
@@ -443,16 +448,12 @@ protected:
                     }
                 }
             }
-
-            //allocate the schur complement
-            ConstructSystemMatrix(S,G,D,L);
-
+	
+            S = L;           
             Vector diagK (mother_indices.size() );
             ComputeDiagonalByLumping (K,diagK);
 
-            //fill the shur complement
-            CalculateShurComplement(S,K,G,D,L,diagK);
-
+           
 
         }
         else //allocation is not needed so only do copying
@@ -490,11 +491,12 @@ protected:
                 }
             }
 
+	S = L;
+
             Vector diagK (mother_indices.size() );
             ComputeDiagonalByLumping (K,diagK);
 
-            //fill the shur complement
-            CalculateShurComplement(S,K,G,D,L,diagK);
+         
 
         }
 
@@ -524,9 +526,12 @@ private:
     ///@name Member Variables
     ///@{
     /// A counted pointer to the reorderer object.
-    typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer mpsolver_UU_block;
-    typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer mpsolver_PP_block;
+    //typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer mpsolver_UU_block;
+    //typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer mpsolver_PP_block;
+    typename LinearSolver<TSparseSpaceType, TDenseSpaceType, TReordererType>::Pointer mPred_solver;
+
     unsigned int mm;
+    unsigned int mmax_reduced_size;
     bool mBlocksAreAllocated;
     bool mis_initialized;
     boost::numeric::ublas::vector<unsigned int> mpressure_indices;
@@ -543,6 +548,7 @@ private:
     Vector mp;
     Vector mu;
 	
+    std::ofstream myfile;
     ///@}
     ///@name Private Operators
     ///@{
@@ -603,18 +609,19 @@ private:
             KRATOS_ERROR (std::logic_error,"the dimension of the GMRES krylov space can not be set to zero. Please change the value of m","")
             if (m > max_iter)
                 m = max_iter;
+	//KRATOS_WATCH("Krylov space size")
+	//KRATOS_WATCH(m)
         VectorType s (m+1), sn (m+1), w (dim), r (dim), y (m+1);
 	/////////THINGS NECESSARY FOR DEFLATION///////////////////////////////////////////////////////////////////////////
 	SparseMatrixType S_deflated;											//
 	//THIS ww is the matrix W in vector form									//
-	std::vector<int> ww;												//	
-	int mmax_reduced_size=10000.0;											//
-	DeflationUtils::ConstructW(mmax_reduced_size, mS, ww, S_deflated);						//
-	DeflationUtils::FillDeflatedMatrix(mS, ww, S_deflated);								//
+	std::vector<int> W;												//	
+	//int mmax_reduced_size=10000;											//
+	//int mmax_reduced_size=5000;//1000;										//
 															//
-	LUSkylineFactorization<TSparseSpaceType, TDenseSpaceType> Factorization;					//
-	Factorization.copyFromCSRMatrix(S_deflated);									//
-        Factorization.factorize();											//
+	DeflationUtils::ConstructW(mmax_reduced_size, mS, W, S_deflated);						//
+	DeflationUtils::FillDeflatedMatrix(mS, W, S_deflated);								//	
+	int red_dim=S_deflated.size1();											//
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	Vector  cs (m+1);
@@ -622,20 +629,13 @@ private:
         int restart = 0;
 	int p_dim=mS.size1();
 	VectorType output(p_dim);//WT*lambda
-	VectorType d_output(p_dim); //WT*d_lambda
-	VectorType temp (dim);
+	//VectorType d_output(p_dim); //WT*d_lambda
+	VectorType temp (dim,0.0);
 	VectorType dw (dim);
 
-        //preconditioner solve b and store in Minv_b
-        VectorType preconditioned_b (dim);
-	//the u part (corresp. to velocity) remains as it is. So we first copy the b to prec_b and then modify the p part
-        TSparseSpaceType::Copy(b, preconditioned_b); //preconditioned_b=b
-        
-        double normb = TSparseSpaceType::TwoNorm (preconditioned_b);
-	//apply preconditioner
-        //SolveBlockPreconditioner (b,preconditioned_b);
-	
-	
+        double normb = TSparseSpaceType::TwoNorm (b);
+
+
 	/*KRATOS_WATCH(normb);*/
         if (normb < 1e-16) //ARBITRARY SMALL NUMBER!
         {
@@ -645,21 +645,23 @@ private:
 	//get the residual
         //r = b - Ax
         TSparseSpaceType::Mult (A,x,r);
-        TSparseSpaceType::ScaleAndAdd (1.00, b, -1.00, r); //r = b - r
+        TSparseSpaceType::ScaleAndAdd (1.00, b, -1.00, r); //r = b - r	
 	
+	//CHECKING IF THE MATRIX IS INVERTIBLE!!!! If it is not (i.e. if S_deflated*Identity=0, we add a number to diagonal)
+	CheckDeflatedMatrix(S_deflated);	
 
-	//apply preconditioner and overwrite r
-        //SolveBlockPreconditioner (r,r);
-	
-	//output =  ww*lambda.. 
-	SolveDeflatedPressure( output, r, S_deflated, ww, Factorization);	
-
+#ifndef NO_PRECOND
+	//SolveDeflatedPressure( output, r, S_deflated, W, Factorization);
+	KRATOS_WATCH("SOLVING DEFLATED PRESSURE")
+	SolveDeflatedPressure( output, r, S_deflated, W);		
+	KRATOS_WATCH("SOLVED DEFLATED PRESSURE")
 	//update x: by modifying its part corresponding to pressure
 	WritePPart (temp, output);	
-	TSparseSpaceType::ScaleAndAdd(1.00, temp, 1.00, x);	
+	//TSparseSpaceType::ScaleAndAdd(1.00, temp, 1.00, x);	
 
-	TSparseSpaceType::Mult (A,x,r);
-        TSparseSpaceType::ScaleAndAdd (1.00, b, -1.00, r); //r = b - r
+	//TSparseSpaceType::Mult (A,x,r);
+        //TSparseSpaceType::ScaleAndAdd (1.00, b, -1.00, r); //r = b - r
+#endif
 	
 	
         const double rel_tol = tol*normb;
@@ -683,35 +685,19 @@ private:
             s[0] = beta;
             for (unsigned int i = 0; (i < m) && (j <= max_iter); ++i, ++j)
             {
-                TSparseSpaceType::Mult (A,V[i],w); //w = A*V[i];
-		
-                //apply preconditioner and overwrite r
-                //SolveBlockPreconditioner (w,w); 
-		//output=W*d_lambda
-		TSparseSpaceType::SetToZero (d_output);
-		//TSparseSpaceType::SetToZero (output);
-		TSparseSpaceType::SetToZero (temp);
-		SolveDeflatedPressure( d_output, w, S_deflated, ww, Factorization);
-		d_output*=-1.0;
-		WritePPart (temp, d_output);	
-
-		//dw=A*W*d_lambda
-		TSparseSpaceType::Mult (A,temp, dw);
-
-		//TSparseSpaceType::ScaleAndAdd(1.00, dw, 1.00, w);	
-		w+=dw;
-		output+=d_output;
-		//output: WT*lamda+=WT*d_lambda
-		
+                TSparseSpaceType::Mult (A,V[i],w); //w = A*V[i];	
 
                 for (unsigned int k = 0; k <= i; k++)
                 {
                     H (k, i) = TSparseSpaceType::Dot (V[k], w);
                     w -= H (k, i) * V[k];
                 }
+#ifndef NO_PRECOND
+		//Modify_w(  w,  W, dim, p_dim, red_dim);
+#endif
+
                 const double normw = TSparseSpaceType::TwoNorm (w);
-                H (i+1, i) = normw;
-                /*KRATOS_WATCH(normw);*/
+                H (i+1, i) = normw;                
                 // This breakdown is a good one ...
                 if (normw == 0)
                     TSparseSpaceType::Copy (V[i+1], w); //V[i+1] = w;
@@ -724,21 +710,22 @@ private:
                 ApplyPlaneRotation (s (i), s (i+1), cs (i), sn (i) );
                 beta = fabs (s (i+1) );
 		std::cout << "iter = " <<  j << "  estimated res ratio = " << beta << std::endl;
-//                 KRATOS_WATCH (beta);
+                //KRATOS_WATCH (beta);
                 if (beta <= rel_tol)
                 {
                     this->Update (y, x, i, H, s, V);
+		   //WRITE THE NUMBER OF ITERATIONS INTO A FILE
+		   myfile <<j<<"\n";
+		   
+
                     return 0;
                 }
+		//IF WE SURPASS THE MAX ITERATION NUMBER WE WILL ALSO PRINT IT TO FILE
+		else if (j>=max_iter)
+			myfile <<j<<"\n";
             }
 	    
-            this->Update (y,x, m - 1, H, s, V);
-	    //add the deflated part to x: x+=Wlambda
-	    TSparseSpaceType::SetToZero (temp);
-	    //we summed: lambda+dlambda un the output by now
-	    WritePPart (temp, output);	
-	    x+=temp;
-
+            this->Update (y,x, m - 1, H, s, V);	    
             //r = b - Ax
             TSparseSpaceType::Mult (A,x,r);
             TSparseSpaceType::ScaleAndAdd (1.00, b, -1.00, r); //r = b - r
@@ -755,31 +742,76 @@ private:
         return err;
     }
 
+
+    void CheckDeflatedMatrix(SparseMatrixType& S_deflated)
+    {
+    std::size_t reduced_size = S_deflated.size1();
+
+    VectorType identity(reduced_size,1.0);
+    VectorType res(reduced_size,0.0);
+	TSparseSpaceType::Mult (S_deflated,identity,res);
+//S_deflated(0,0)=1.0;
+KRATOS_WATCH(res)
+KRATOS_WATCH(norm_2(res))	
+    }
+
     //FUNCTION THAT SOLVES THE SYSTEM WTLW*lambda=WT*r or WTLW*d_lambda=WT*w.. in the first case output=W*lambda, in the second ouput=W*d_lambda
-    void SolveDeflatedPressure( VectorType& output, VectorType& r, SparseMatrixType& S_deflated, std::vector<int>& ww, LUSkylineFactorization<TSparseSpaceType, TDenseSpaceType>& Factorization)
+    //void SolveDeflatedPressure( VectorType& output, VectorType& r, SparseMatrixType& S_deflated, std::vector<int>& W, LUSkylineFactorization<TSparseSpaceType, TDenseSpaceType>& Factorization)
+    void SolveDeflatedPressure( VectorType& output, VectorType& r, SparseMatrixType& S_deflated, std::vector<int>& W)
     {
 	///////////////////////////////////////////////////////////
 	// put here deflation i.e. solve for WTLWp=WTr fixing w
-	//ww is a deflation matrix W written in a vector format
-	
+	//ww is a deflation matrix W written in a vector format	
 	//extracted the part of the residual corresponding to the pressure - r_p
-	Vector rp=ZeroVector();	
+	Vector rp;	
 	//get the lower part of the residual vector, corresponding to pressure dofs
 	GetPPart (r, rp);
-
 	std::size_t reduced_size = S_deflated.size1();
 	//std::size_t full_size = mS.size1();
-	VectorType wwT_rp(reduced_size), lambda(reduced_size);
+	VectorType WT_rp(reduced_size), lambda(reduced_size);
 	
-	//w_T_r is the residual multiplied by the wwT
-	DeflationUtils::ApplyWtranspose(ww, rp, wwT_rp);
-		
-	// Solve mSdeflated * lambda = wwTth.. the results is dh
-        Factorization.backForwardSolve(reduced_size, wwT_rp, lambda);
+	//w_T_r is the residual multiplied by the WT
+	DeflationUtils::ApplyWtranspose(W, rp, WT_rp);	
+	mPred_solver->Solve(S_deflated, lambda, WT_rp);
+	
+	//Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+	KRATOS_WATCH(norm_2(lambda) );
+	//mPred_solver->FinilizeSolutionStep(S_deflated, lambda,  WT_rp); 
 
-	DeflationUtils::ApplyW(ww, lambda, output);       
+
+	DeflationUtils::ApplyW(W, lambda, output);       
 	///////////////////////////////////////////////////////////////////////////////////////////////
 
+    }
+    //makes w orthogonal to W
+    void Modify_w( VectorType& w, std::vector<int>& W, std::size_t full_glob_size, std::size_t full_size, std::size_t reduced_size)
+    {
+    //std::size_t full_glob_size = A.size1();
+    //std::size_t reduced_size = S_deflated.size1();
+    //std::size_t full_size = mS.size1();
+	
+
+    VectorType wp (full_size); 
+    VectorType WT_wp(reduced_size); 
+    VectorType W_WT_wp (full_size); 
+    VectorType temp (full_glob_size);     
+
+	GetPPart(w,wp);
+    VectorType ModulusSquared(reduced_size);  
+	VectorType identity(full_size,1.0);
+	DeflationUtils::ApplyWtranspose(W, identity, ModulusSquared);
+
+    DeflationUtils::ApplyWtranspose(W, wp, WT_wp);
+    //scale down Wt_wp with the squared modulus
+    for(unsigned int i=0; i<reduced_size; i++)
+	{
+	WT_wp[i] /= ModulusSquared[i];
+	
+	}
+    DeflationUtils::ApplyW(W, WT_wp, W_WT_wp);      
+        
+    wp-=W_WT_wp;
+    WritePPart(w,wp);
     }
 
     //this function extracts from a vector which has the size of the
@@ -864,178 +896,7 @@ private:
         return sqrt (norm);
     }
 
-    void SolveBlockPreconditioner (const VectorType& rtot, VectorType& x)
-    {
-        noalias(mp) = ZeroVector(mother_indices.size());
-        noalias(mu)  = ZeroVector(mother_indices.size());
-        Vector uaux (mother_indices.size() );
-        Vector paux (mpressure_indices.size() );
-	
-        //get diagonal of K (to be removed)
-        Vector diagK (mother_indices.size() );
-        ComputeDiagonalByLumping (mK,diagK);
-
-	//get the u and p residuals
-        GetUPart (rtot,mru);
-        GetPPart (rtot,mrp);
-
-	//solve u block
-        mpsolver_UU_block->Solve (mK,mu,mru);
-
-	//correct pressure block
-        //rp -= D*u
-        TSparseSpaceType::Mult (mD,mu,paux);
-        TSparseSpaceType::UnaliasedAdd (mrp,-1.0,paux);
-
-	//solve pressure
-        //p = S⁻1*rp
-        mpsolver_PP_block->Solve (mS,mp,mrp);
-
-        //correct u block
-        //u = G*p
-        TSparseSpaceType::Mult (mG,mp,uaux);
-        #pragma omp parallel for
-        for (int i=0; i< static_cast<int>(mu.size()); i++)
-            mu[i] += uaux[i]/diagK[i];
-
-        //write back solution
-        WriteUPart (x,mu);
-        WritePPart (x,mp);
-    }
-
-    /// Compute the Pressure System Matrix
-    /**
-     *  Compute the System Matrix A = L - D*Inv(Diag(S))*G. The multiplication
-     * is performed in random order, so each row will be stored in a temporary
-     * variable, ordered and copied in input matrix A.
-     */
-    void CalculateShurComplement (
-        SparseMatrixType& A,
-        SparseMatrixType& K,
-        SparseMatrixType& rG,
-        SparseMatrixType& rD,
-        SparseMatrixType& rL,
-        VectorType& diagK
-    )
-    {
-        // Retrieve matrices
-
-        // Compute Inv(Diag(S))
-        VectorType& rIDiagS = diagK;
-
-
-        //KRATOS_WATCH(804)
-
-        typedef boost::numeric::ublas::vector<int> IndexVector;
-        typedef typename SparseMatrixType::iterator1 OuterIt;
-        typedef typename SparseMatrixType::iterator2 InnerIt;
-        typedef typename boost::numeric::ublas::matrix_row< SparseMatrixType > RowType;
-
-        int DiagSize = int (diagK.size()); // to avoid comparison between int & unsigned int
-        #pragma omp parallel for
-        for ( int i = 0; i < DiagSize; i++)
-            rIDiagS[i] = 1.0/diagK[i];
-        OpenMPUtils::PartitionVector Partition;
-        int NumThreads = OpenMPUtils::GetNumThreads();
-        OpenMPUtils::DivideInPartitions (A.size1(),NumThreads,Partition);
-        #pragma omp parallel
-        {
-            int k = OpenMPUtils::ThisThread();
-            VectorType CurrentRow(K.size2());
-
-            for (unsigned int i = 0; i < rL.size1(); i++) CurrentRow[i] = 0.0;
-            boost::shared_ptr< IndexVector > pNext ( new IndexVector (rL.size1()) );
-            IndexVector& Next = *pNext; // Keeps track of which columns were filled
-            for (unsigned int m=0; m < rL.size1(); m++) Next[m] = -1;
-            std::size_t NumTerms = 0; // Full positions in a row
-            boost::shared_ptr< std::vector<unsigned int> > pUsedCols ( new std::vector<unsigned int>);
-            std::vector<unsigned int>& UsedCols = *pUsedCols;
-            UsedCols.reserve (rL.size1());
-            for ( int RowIndex = Partition[k] ;
-                    RowIndex != Partition[k+1] ; RowIndex++ )
-            {
-                RowType RowD (rD,RowIndex);
-                RowType RowL (rL,RowIndex);
-                int head = -2;
-                std::size_t Length = 0;
-                // Write L in A
-                for ( typename RowType::iterator ItL = RowL.begin();
-                        ItL != RowL.end(); ItL++ )
-                {
-                    CurrentRow (ItL.index() ) = *ItL;
-                    if ( Next[ItL.index()] == -1)
-                    {
-                        Next[ItL.index()] = head;
-                        head = ItL.index();
-                        Length++;
-                    }
-                }
-                // Substract D*Inv(Diag(S))*G
-                for ( typename RowType::iterator ItD = RowD.begin();
-                        ItD != RowD.end(); ItD++ )
-                {
-                    RowType RowG (rG,ItD.index() );
-                    for ( typename RowType::iterator ItG = RowG.begin();
-                            ItG != RowG.end(); ItG++ )
-                    {
-                        CurrentRow[ItG.index()] -= (*ItD) * rIDiagS[ItD.index()] * (*ItG);
-                        if ( Next[ItG.index()] == -1)
-                        {
-                            Next[ItG.index()] = head;
-                            head = ItG.index();
-                            Length++;
-                        }
-                    }
-                }
-                // Identify full terms for ordering
-                for ( std::size_t i = 0; i < Length; i++)
-                {
-                    if ( Next[head] != -1 )
-                    {
-                        UsedCols.push_back (head);
-                        NumTerms++;
-                    }
-                    int temp = head;
-                    head = Next[head];
-                    // Clear 'Next' for next iteration
-                    Next[temp] = -1;
-                }
-                // Sort Column indices
-                SortCols (UsedCols,NumTerms);
-                // Fill matrix row, then clean temporary variables.
-                RowType RowA (A,RowIndex);
-                std::size_t n = 0;
-                unsigned int Col;
-                for ( typename RowType::iterator ItA = RowA.begin(); ItA != RowA.end(); ItA++)
-                {
-                    Col = UsedCols[n++];
-                    *ItA = CurrentRow[Col];
-                    CurrentRow[Col] = 0;
-                }
-                NumTerms = 0;
-                UsedCols.resize (0,false);
-            }
-
-
-        }
-        //KRATOS_WATCH(896)
-        //add stabilization matrix L
-        /*				const std::size_t* L_index1 = rL.index1_data().begin();
-        				const std::size_t* L_index2 = rL.index2_data().begin();
-        				const double*	   L_values = rL.value_data().begin();
-        				for (unsigned int i=0; i<rL.size1(); i++)
-        				{
-        					unsigned int row_begin = L_index1[i];
-        					unsigned int row_end   = L_index1[i+1];
-        					diagA[i] = 0.0;
-        					for (unsigned int j=row_begin; j<row_end; j++)
-        					{
-        						unsigned int col = L_index2[j];
-        						rS(i,col) += L_values[j];
-        					}
-        				}*/
-
-    }
+    
 
     /// Helper function for Sytem matrix functions
     void SortCols (
@@ -1060,110 +921,7 @@ private:
         }
     }
 
-    /// Identify non-zero tems in the system matrix
-    void ConstructSystemMatrix(
-        SparseMatrixType& A,
-        SparseMatrixType& rG,
-        SparseMatrixType& rD,
-        SparseMatrixType& rL
-    )
-    {
-        typedef boost::numeric::ublas::vector<int> IndexVector;
-        typedef OpenMPUtils::PartitionVector PartitionVector;
-        typedef typename SparseMatrixType::iterator1 OuterIt;
-        typedef typename SparseMatrixType::iterator2 InnerIt;
-        typedef typename boost::numeric::ublas::matrix_row< SparseMatrixType > RowType;
-
-        PartitionVector Partition;
-        int NumThreads = OpenMPUtils::GetNumThreads();
-
-        OpenMPUtils::DivideInPartitions(A.size1(),NumThreads,Partition);
-
-        for ( int k = 0 ; k < NumThreads ; k++)
-        {
-            // This code is serial, the pragma is here to ensure that each
-            // row block is assigned to the processor that will fill it
-            #pragma omp parallel
-            if ( OpenMPUtils::ThisThread() == k)
-            {
-                boost::shared_ptr< IndexVector > pNext( new IndexVector(rL.size1() ) );
-                IndexVector& Next = *pNext; // Keeps track of which columns were filled
-                for (unsigned int m = 0; m < rL.size1(); m++) Next[m] = -1;
-
-                std::size_t NumTerms = 0; // Full positions in a row
-                boost::shared_ptr< std::vector<unsigned int> > pUsedCols( new std::vector<unsigned int>);
-                std::vector<unsigned int>& UsedCols = *pUsedCols;
-                UsedCols.reserve(rL.size1());
-
-                for ( int RowIndex = Partition[k] ;
-                        RowIndex != Partition[k+1] ; RowIndex++ )
-                {
-                    RowType RowD(rD,RowIndex);
-                    RowType RowL(rL,RowIndex);
-
-                    int head = -2;
-                    std::size_t Length = 0;
-
-                    // Terms filled by L
-                    for ( typename RowType::iterator ItL = RowL.begin();
-                            ItL != RowL.end(); ItL++ )
-                    {
-                        if ( Next[ItL.index()] == -1)
-                        {
-                            Next[ItL.index()] = head;
-                            head = ItL.index();
-                            Length++;
-                        }
-                    }
-
-                    // Additional terms due to D*Inv(Diag(S))*G
-                    for ( typename RowType::iterator ItD = RowD.begin();
-                            ItD != RowD.end(); ItD++ )
-                    {
-                        RowType RowG(rG,ItD.index());
-
-                        for ( typename RowType::iterator ItG = RowG.begin();
-                                ItG != RowG.end(); ItG++ )
-                        {
-                            if ( Next[ItG.index()] == -1)
-                            {
-                                Next[ItG.index()] = head;
-                                head = ItG.index();
-                                Length++;
-                            }
-                        }
-                    }
-
-                    // Identify full terms for ordering
-                    for ( std::size_t i = 0; i < Length; i++)
-                    {
-                        if ( Next[head] != -1 )
-                        {
-                            UsedCols.push_back(head);
-                            NumTerms++;
-                        }
-
-                        int temp = head;
-                        head = Next[head];
-
-                        // Clear 'Next' for next iteration
-                        Next[temp] = -1;
-                    }
-
-                    // Sort Column indices
-                    SortCols(UsedCols,NumTerms);
-
-                    // Store row in matrix, clean temporary variables
-                    for ( unsigned int i = 0; i < NumTerms; i++)
-                    {
-                        A.push_back(RowIndex,UsedCols[i],0);
-                    }
-                    NumTerms = 0;
-                    UsedCols.resize(0,false);
-                }
-            }
-        }
-    }
+   
     ///@}
     ///@name Private Operations
     ///@{
