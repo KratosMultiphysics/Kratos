@@ -206,7 +206,7 @@ void  AddLinearSolversToPython()
     .def(self_ns::str(self))
     ;
 
-    class_<DeflatedGMRESSolverType, DeflatedGMRESSolverType::Pointer, bases<IterativeSolverType> >("DeflatedGMRESSolver",init<LinearSolverType::Pointer, LinearSolverType::Pointer ,double, unsigned int, unsigned int >())
+    class_<DeflatedGMRESSolverType, DeflatedGMRESSolverType::Pointer, bases<IterativeSolverType> >("DeflatedGMRESSolver",init<LinearSolverType::Pointer ,double, unsigned int, unsigned int, unsigned int >())
     .def(self_ns::str(self))
     ;
 
