@@ -294,16 +294,16 @@ TITLE: Time_Discretization_Settings
 QUESTION: Integration_Scheme#CB#(forward_euler,mid_point_rule,const_average_acc)
 VALUE: forward_euler
 QUESTION: Time_Steps_Per_Search_Step
-VALUE: 1
+VALUE: 20
 QUESTION: Automatic_Time_Step_Reduction_Option#CB#(ON,OFF)
 VALUE: OFF
 DEPENDENCIES: (OFF,HIDE,Time_Step_Safety_Factor,#CURRENT#)(ON,RESTORE,Time_Step_Safety_Factor,#CURRENT#)
 QUESTION: Time_Step_Safety_Factor
 VALUE: 1.0
 QUESTION: Time_Step
-VALUE: 0.0001
+VALUE: 1e-7
 QUESTION: Output_Time_Step
-VALUE: 0.01
+VALUE: 2e-5
 QUESTION: Control_Time
 VALUE: 20.0
 
