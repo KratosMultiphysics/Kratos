@@ -490,7 +490,9 @@ private:
             }
             for (unsigned int i = 0; i < 6; i++)
                 gauss_gradients[i].resize(1, 3, false);
-            unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
+                
+            array_1d<double,6> edge_areas;
+            unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);
 
             if(ndivisions == 1)
             {
@@ -506,7 +508,10 @@ private:
                         ele_wet_volume += volumes[kk];
                 }
                 wetvol += ele_wet_volume;
-                cutare += 1.80140543 * pow(ele_wet_volume,0.666666666667); // equilateral tetrahedraon is considered
+                
+                for(unsigned int i=0; i<6; i++)
+                    cutare += edge_areas[i];
+                //cutare += 1.80140543 * pow(ele_wet_volume,0.666666666667); // equilateral tetrahedraon is considered
             }
         }
         //syncronoze

@@ -208,7 +208,9 @@ public:
 	  this->GetValue(AUX_INDEX) = 0.0;
 	  for (unsigned int i = 0; i < 6; i++)
 	      gauss_gradients[i].resize(1, TDim, false);
-	  unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);      
+          
+      array_1d<double,6> edge_areas;
+	  unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);      
       
 	  if(ndivisions == 1)
 	    this->is_cutted = 0;
@@ -306,7 +308,9 @@ public:
 	  }
 	  for (unsigned int i = 0; i < 6; i++)
 	      gauss_gradients[i].resize(1, TDim, false);
-	  unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
+          
+      array_1d<double,6> edge_areas;
+	  unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);
 	  //do integration
 	  for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
 	  {
@@ -390,7 +394,9 @@ public:
         }
         for (unsigned int i = 0; i < 6; i++)
             gauss_gradients[i] = ZeroMatrix(1,TDim);//.resize(1, TDim, false);
-        unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
+            
+        array_1d<double,6> edge_areas;
+        unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);
         //mass matrix
         for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
         {
@@ -573,7 +579,9 @@ public:
         }
         for (unsigned int i = 0; i < 6; i++)
             gauss_gradients[i] = ZeroMatrix(1,TDim);
-        unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
+            
+        array_1d<double,6> edge_areas;
+        unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);
 //         Vector enrichment_terms_vertical = ZeroVector(LocalSize);
 //         Vector enrichment_terms_horizontal = ZeroVector(LocalSize);
 //         double enrichment_diagonal = 0.0;
@@ -849,7 +857,9 @@ public:
             }
             for (unsigned int i = 0; i < 6; i++)
                 gauss_gradients[i].resize(1, TDim, false);
-            unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
+                
+            array_1d<double,6> edge_areas;
+            unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);
             //do integration
             for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
             {
@@ -916,7 +926,9 @@ public:
             }
             for (unsigned int i = 0; i < 6; i++)
                 gauss_gradients[i].resize(1, TDim, false);
-            unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
+                
+            array_1d<double,6> edge_areas;
+            unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched,edge_areas);
             //do integration
             for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
             {

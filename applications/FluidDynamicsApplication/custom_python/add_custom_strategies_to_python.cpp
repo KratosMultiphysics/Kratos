@@ -75,6 +75,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "custom_strategies/strategies/fs_strategy.h"
 #include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bossak_scheme_turbulent.h"
+#include "custom_strategies/strategies/residualbased_predictorcorrector_velocity_bdf_scheme_turbulent.h"
 #include "custom_strategies/strategies/gear_scheme.h"
 
 //linear solvers
@@ -121,6 +122,14 @@ void  AddCustomStrategiesToPython()
             .def(init<double,double,unsigned int,Kratos::Variable<double>&>())// constructor with a non-default flag for slip conditions
             ;
 
+
+    class_< ResidualBasedPredictorCorrectorBDFSchemeTurbulent< SparseSpaceType, LocalSpaceType >,
+            bases< BaseSchemeType >,  boost::noncopyable >
+            ("ResidualBasedPredictorCorrectorBDFSchemeTurbulent",init<unsigned int,Process::Pointer >() )
+            .def(init<unsigned int >())// constructor without a turbulence model
+            .def(init<unsigned int,Kratos::Variable<double>&>())// constructor with a non-default flag for slip conditions
+            ;
+            
     class_< GearScheme< SparseSpaceType, LocalSpaceType >,
             bases< BaseSchemeType >,  boost::noncopyable >
             ("GearScheme",init<>()) // default constructor
