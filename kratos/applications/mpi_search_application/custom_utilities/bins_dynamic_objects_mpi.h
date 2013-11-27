@@ -407,7 +407,8 @@ public:
             std::cout << "SendObjectToProcess: " << SendObjectToProcess[i].size() << std::endl;
         }
 
-        TConfigure::TransferObjects(Communicator.GhostMesh(),SendObjectToProcess,SearchPetitions,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
+        TConfigure::TransferObjects(Communicator,SendObjectToProcess,SearchPetitions);
+//         TConfigure::TransferObjects(Communicator.GhostMesh(),SendObjectToProcess,SearchPetitions,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
         TConfigure::TransferObjects(SendRadiusToProcess,SearchPetitionsRadius);
 
         Communicator::NeighbourIndicesContainerType communicator_ranks = Communicator.NeighbourIndices();
@@ -467,7 +468,8 @@ public:
             std::cout << "Remote results: " << remoteResults[i].size() << std::endl;
         }
 
-        TConfigure::TransferObjects(Communicator.GhostMesh(),remoteResults,SearchResults,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
+        TConfigure::TransferObjects(Communicator,remoteResults,SearchResults);
+//         TConfigure::TransferObjects(Communicator.GhostMesh(),remoteResults,SearchResults,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
         TConfigure::TransferObjects(SendResultsPerPoint,RecvResultsPerPoint);
 
         for(int i = 0; i < mpi_size; i++) //for all ranks
