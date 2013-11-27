@@ -336,8 +336,9 @@ while (time < Param.FinalTime):
         #proc.PrintingVariables(gid_io, export_model_part, time)
         gid_io.WriteNodalResults(DISPLACEMENT, mixed_model_part.Nodes, time, 0)
         gid_io.WriteNodalResults(VELOCITY, mixed_model_part.Nodes, time, 0)
-        gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_TENSOR,fem_model_part,time)
-        gid_io.PrintOnGaussPoints(PK2_STRESS_TENSOR,fem_model_part,time)
+        if(Param.FEM_Option == "ON"):
+            gid_io.PrintOnGaussPoints(GREEN_LAGRANGE_STRAIN_TENSOR,fem_model_part,time)
+            gid_io.PrintOnGaussPoints(PK2_STRESS_TENSOR,fem_model_part,time)
 
 
         os.chdir(main_path)
