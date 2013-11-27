@@ -346,8 +346,8 @@ while (time < DEM_parameters.FinalTime):
     
     os.chdir(data_and_results)
     
-    
-    if( (DEM_parameters.ConcreteTestOption =="ON" ) and (DEM_parameters.TriaxialOption == "ON") and (Pressure != 0.0) ):
+                                                                                                                                                                                                  
+    if( (DEM_parameters.ConcreteTestOption =="ON" ) and (DEM_parameters.TriaxialOption == "ON") and (Pressure != 0.0) and (step < 0.01*DEM_parameters.TotalTimePercentAsForceAplTime*total_steps_expected) ):
         
         if( renew_pressure == 10):
           
