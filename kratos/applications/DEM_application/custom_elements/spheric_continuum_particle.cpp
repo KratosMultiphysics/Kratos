@@ -397,8 +397,8 @@ namespace Kratos
             double DeltDisp[3]                    = {0.0};
             double RelVel[3]                      = {0.0};
 
-            double NormalDir[3]                   = {0.0};
-            double OldNormalDir[3]                = {0.0};
+            //double NormalDir[3]                   = {0.0};
+            //double OldNormalDir[3]                = {0.0};
 
             double LocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
             double OldLocalCoordSystem[3][3]      = {{0.0}, {0.0}, {0.0}};
@@ -512,9 +512,9 @@ namespace Kratos
             }
             
             
-            EvaluateDeltaDisplacement(DeltDisp, RelVel, NormalDir, OldNormalDir, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator);
+            EvaluateDeltaDisplacement(DeltDisp, RelVel, /*NormalDir, OldNormalDir, */LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator);
 
-            DisplacementDueToRotation(DeltDisp, OldNormalDir, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
+            DisplacementDueToRotation(DeltDisp, /*OldNormalDir,*/ OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
             
             double LocalDeltDisp[3] = {0.0};
             double LocalElasticContactForce[3]  = {0.0}; // 0: first tangential, // 1: second tangential, // 2: normal force
