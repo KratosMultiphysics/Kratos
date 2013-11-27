@@ -60,7 +60,7 @@ model_part_io_solid.ReadModelPart(RigidFace_model_part)
 
 # Setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 
-balls_model_part.SetBufferSize(2)
+balls_model_part.SetBufferSize(1)
 
 # Adding dofs
 
@@ -302,7 +302,7 @@ while (time < DEM_parameters.FinalTime):
  
     dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
-    balls_model_part.CloneTimeStep(time)
+    #balls_model_part.CloneTimeStep(time)
     balls_model_part.ProcessInfo[TIME_STEPS] = step
 
     #########################_SOLVE_#########################################4
