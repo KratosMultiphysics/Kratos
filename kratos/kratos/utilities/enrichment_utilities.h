@@ -95,13 +95,21 @@ public:
      *        matrix is for possible future improvement.
      * @param Nenriched is a Matrix that contains for every gauss point the values of the enriched shape functions at the position of the gauss point
      *        so that Nenriched(1,0) contains the value of the enriched shape function "0" at the gauss point "1"
+     * @param edge_areas an array of size 6 containing a positive double value for each edge. This value is zero if the edge is not cut, it corresponds to the 
+     *        area of the cut surface associtated to the edge otherwise 
      * @return number of partitions created which can be from 1 to 6.
      *         1 holds for only 1 partition which is the original element. (No partitioning needed)
      */
     template<class TMatrixType, class TVectorType, class TGradientType>
-    static int CalculateTetrahedraEnrichedShapeFuncions(TMatrixType const& rPoints, TGradientType const& DN_DX,
-            TVectorType rDistances, TVectorType& rVolumes, TMatrixType& rShapeFunctionValues,
-            TVectorType& rPartitionsSign, std::vector<TMatrixType>& rGradientsValue, TMatrixType& NEnriched)
+    static int CalculateTetrahedraEnrichedShapeFuncions(TMatrixType const& rPoints, 
+            TGradientType const& DN_DX,
+            TVectorType rDistances, TVectorType& rVolumes, 
+            TMatrixType& rShapeFunctionValues,
+            TVectorType& rPartitionsSign, 
+            std::vector<TMatrixType>& rGradientsValue, 
+            TMatrixType& NEnriched,
+            array_1d<double,6>& edge_areas
+                                                       )
     {
         KRATOS_TRY
 
@@ -348,6 +356,8 @@ public:
         else //if (number_of_splitted_edges == 4)
         {
             //define the splitting mode for the tetrahedra
+            array_1d<double,4> local_subtet_indices;
+
             int edge_ids[6];
             TetrahedraSplit::TetrahedraSplitMode(split_edge, edge_ids);
             int nel; //number of elements generated
@@ -363,6 +373,7 @@ public:
 
 
             //now obtain the tetras and compute their center coordinates and volume
+            noalias(edge_areas) = ZeroVector(6);
             array_1d<double, 3 > center_position;
             for (int i = 0; i < nel; i++)
             {
@@ -371,6 +382,15 @@ public:
 
 
                 double sub_volume = ComputeSubTetraVolumeAndCenter(aux_coordinates, center_position, i0, i1, i2, i3);
+                
+                
+                //here we add to the areas of the cut adges
+                local_subtet_indices[0] = t[i*4];
+                local_subtet_indices[1] = t[i*4+1];
+                local_subtet_indices[2] = t[i*4+2];
+                local_subtet_indices[3] = t[i*4+3];
+                AddToEdgeAreas<3>(edge_areas,exact_distance,local_subtet_indices,sub_volume);
+                
 
                 rVolumes[i] = sub_volume;
 
@@ -2169,6 +2189,41 @@ private:
 
 			Area = 0.5*detJ;
 		}
+		
+		
+		    template <int TDim>
+    static void AddToEdgeAreas(array_1d<double, (TDim-1)*3 >& edge_areas, 
+                        const array_1d<double, TDim+1 >& exact_distance,
+                        const array_1d<double, TDim+1 >& indices,
+                        const double sub_volume)
+    {
+        //check if the element has 3 "nodes" on the cut surface and if the remaining one is positive
+        //to do so, remember that edge nodes are marked with an id greater than 3
+        unsigned int ncut=0, pos=0, positive_pos=0;
+        for(unsigned int i=0; i<TDim+1; i++)
+        {
+            if(indices[i] > TDim) ncut++;
+            else if(exact_distance[indices[i]] > 0)
+            {
+                positive_pos = indices[i];
+                pos++;
+            }
+        }
+               
+        if(ncut == TDim && pos==1) //cut face with a positive node!!
+        {
+            double edge_area = sub_volume*3.0/fabs(exact_distance[positive_pos]);
+            edge_area /= static_cast<double>(TDim);
+            for(unsigned int i=0; i<TDim+1; i++)
+            {
+                if( indices[i] > TDim)
+                {
+                    int edge_index = indices[i] - TDim - 1;
+                    edge_areas[edge_index] += edge_area;
+                }
+             }
+        }
+    }
 
 
 };

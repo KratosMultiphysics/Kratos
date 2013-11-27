@@ -146,7 +146,9 @@ void ASGS3D_ENR::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorTyp
         Points(i,2)=GetGeometry()[i].Z();
     }
 
-    unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions );
+    array_1d<double,6> edge_areas;
+    unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	
+                                Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions,edge_areas );
     array_1d<double,4> N_at_igauss = ZeroVector(4);
 
     //this loops is in progress
@@ -281,7 +283,9 @@ void ASGS3D_ENR::MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProces
         Points(i,2)=GetGeometry()[i].Z();
     }
 
-    unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions );
+    array_1d<double,6> edge_areas;
+    unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	
+                                Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions,edge_areas );
     array_1d<double,4> N_at_igauss = ZeroVector(4);
 
 
@@ -359,7 +363,9 @@ void ASGS3D_ENR::CalculateLocalVelocityContribution(MatrixType& rDampMatrix, Vec
         Points(i,2)=GetGeometry()[i].Z();
     }
 
-    unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions );
+    array_1d<double,6> edge_areas;
+    unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	
+                                    Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions,edge_areas );
     array_1d<double,4> N_at_igauss = ZeroVector(4);
 
     //this loops is in progress
@@ -1133,7 +1139,9 @@ void ASGS3D_ENR::CalculateEnrichmentTerms(MatrixType& DampMatrix, VectorType& rR
             Points(i,2)=GetGeometry()[i].Z();
         }
 
-        unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions );
+        array_1d<double,6> edge_areas;
+        unsigned int n_subdivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions<MatrixType,VectorType,boost::numeric::ublas::bounded_matrix<double,4,3> >(Points, DN_DX, Distances, PartitionVolumes, 																	
+                                    Partition_Shape_Functions,PartitionSigns, Partition_Gradients, Enriched_Shape_Functions,edge_areas );
         double Lap = 0.0;	//laplacian is a 1x1 matrix since we have one enrichment shape fct per element
         boost::numeric::ublas::bounded_matrix<double,3,3> Grad_u; //gradient of velocity
         boost::numeric::ublas::bounded_matrix<double, 1, 4 >Lap_star = ZeroMatrix(1,4);  //gradN* gradN
