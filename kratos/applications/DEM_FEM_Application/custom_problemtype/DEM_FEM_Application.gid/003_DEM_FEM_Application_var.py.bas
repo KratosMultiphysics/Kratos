@@ -148,7 +148,7 @@ CylinderFrictionAngle5           = 4.50000e+01
 # Time Discretization Settings
 
 IntegrationScheme               = "forward_euler"
-TimeStepsPerSearchStep           = 1
+TimeStepsPerSearchStep           = *GenData(Time_Steps_Per_Search_Step)
 AutoReductionOfTimeStepOption    = "OFF"
 DeltaTimeSafetyFactor            = 1.00000e+00
 MaxTimeStep                      = *GenData(Time_Step)
