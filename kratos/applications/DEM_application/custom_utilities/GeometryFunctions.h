@@ -65,6 +65,18 @@ namespace Kratos
             }
 
       }
+    static inline void normalize( array_1d<double,3>& Vector)
+    {
+            double distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
+            
+            if(distance != 0.0)
+            {
+            Vector[0] = Vector[0] / distance;
+            Vector[1] = Vector[1] / distance;
+            Vector[2] = Vector[2] / distance;
+            }
+
+      }
       
       static inline void module( array_1d<double,3> Vector, double& distance)
     {
@@ -124,13 +136,14 @@ namespace Kratos
     }
 
    //NOTE:: Modified by M. Santasusana Feb 2013 - simplification (the one proposed by F.Chun was for a more generalized case) 
-    static inline void ComputeContactLocalCoordSystem(double NormalDirection[3], double LocalCoordSystem[3][3])  //inline: modifies the LocalCoordSystem as it were a reference
+    static inline void ComputeContactLocalCoordSystem(array_1d<double,3>& NormalDirection, double LocalCoordSystem[3][3])  //inline: modifies the LocalCoordSystem as it were a reference
     {
       //TODO: boost::numeric::ublas::bounded_matrix<double, 4, 3 >
       //Matrix a(4,3); a.resize(...,false)
       
         int ii;
-        double Vector0[3] = {0.0},Vector1[3] = {0.0};
+        //double Vector0[3] = {0.0},Vector1[3] = {0.0};
+        array_1d<double,3> Vector0, Vector1;
 
         normalize(NormalDirection); 
                                
@@ -443,7 +456,8 @@ namespace Kratos
 		{
 			If_Conact = true;
 			
-			double Vector1[3] = {0.0};
+			//double Vector1[3] = {0.0};
+                        array_1d<double,3> Vector1;
 			Vector1[0] = Particle_Coord[0] - PointCoord[0];
 			Vector1[1] = Particle_Coord[1] - PointCoord[1];		
 			Vector1[2] = Particle_Coord[2] - PointCoord[2];			
