@@ -155,4 +155,12 @@ OPTIONAL LIBRARIES
 			we shall observe that the pastix should be compild with FORCE_NOMPI and should use the same blas as the kratos
 
     ZLIB: the version of the gidpost library distributed with Kratos has a dependence on zlib. Users should ensure that "libz.so" and "zlib.h" can be found in the system
+	In windows 64 in CMakeLists.txt file following lines have to be addded and then compiled 
+
+	if(CMAKE_SIZEOF_VOID_P EQUAL 8 AND MSVC)
+	 set_target_properties(zlibstatic PROPERTIES STATIC_LIBRARY_FLAGS "/machine:x64")
+	endif()
+    more info at http://stackoverflow.com/questions/10507893/libzip-with-visual-studio-2010
+
+
 
