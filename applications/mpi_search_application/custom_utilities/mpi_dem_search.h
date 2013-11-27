@@ -100,7 +100,7 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
           VectorDistanceType& rResultsDistance )
       {     
           KRATOS_TRY
-          
+          KRATOS_WATCH("sksdkhssdhakjshdkjashdskjahdjkashdkjashdkjashdjk")
           KRATOS_TIMER_START("MPI_SEARCH_STUFF")
           //TODO: Temporal compile fix. Commincator should be a member class from now on.
           ModelPart rModelPart;
@@ -112,6 +112,8 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
          
           int NumberOfSearchElements = elements_array.size();
           int NumberOfModelPElements = elements_ModelPart.size();
+          
+          int MaxNumberOfElements = 50;
                    
           // Generate the bins
           BinsType bins(elements_ModelPart.begin(), elements_ModelPart.end());
@@ -122,13 +124,13 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
           for (IteratorType particle_pointer_it = elements_array.begin();
                 particle_pointer_it != elements_array.end(); ++particle_pointer_it)
           {                   
-              rResults[particle_pointer_it-elements_array.begin()].resize(20);
-              rResultsDistance[particle_pointer_it-elements_array.begin()].resize(20);
+              rResults[particle_pointer_it-elements_array.begin()].resize(MaxNumberOfElements);
+              rResultsDistance[particle_pointer_it-elements_array.begin()].resize(MaxNumberOfElements);
           }
           KRATOS_TIMER_STOP("MPI_SEARCH_STUFF")
           
           KRATOS_TIMER_START("MPI_SEARCH_KERNEL")
-          bins.SearchObjectsMpi(rElements,NumberOfSearchElements,Radius,rResults,rResultsDistance,NumberOfResults,20,mCommunicator);
+          bins.SearchObjectsMpi(rElements,NumberOfSearchElements,Radius,rResults,rResultsDistance,NumberOfResults,MaxNumberOfElements,mCommunicator);
           KRATOS_TIMER_STOP("MPI_SEARCH_KERNEL")
           
           KRATOS_TIMER_START("MPI_SEARCH_STUFF")
