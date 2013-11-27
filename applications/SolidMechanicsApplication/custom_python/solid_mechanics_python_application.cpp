@@ -13,7 +13,6 @@
 
 
 // Project includes
-#include "includes/define.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
