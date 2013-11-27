@@ -116,7 +116,10 @@ namespace Kratos
                   array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
                   
                   double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
-                  aux = delta_t / mass;
+                  aux = delta_t / mass;                   
+
+                  i->FastGetSolutionStepValue(OLD_COORDINATES) = coor; //saving the coordinates in order to optimize some functions (specially de previous step coordinates)  
+
 
                   if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
                   {
@@ -193,7 +196,7 @@ namespace Kratos
 
                       coor[2] = initial_coor[2] + displ[2];
                  
-                  }
+                  }                    
               }
           }
 
