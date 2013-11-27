@@ -285,10 +285,7 @@ protected:
     // Liberate memory.
     virtual void Clear()
     {
-        mpStokesModelPart.reset();
-     //   mpSolutionStrategy->Clear();
-        mpSolutionStrategy.reset();
-
+        mpSolutionStrategy->Clear();
         mIsCleared = true;
     }
 
