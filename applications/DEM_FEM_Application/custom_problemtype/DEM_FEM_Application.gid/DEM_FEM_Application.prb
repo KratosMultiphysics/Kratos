@@ -79,7 +79,8 @@ QUESTION: Normal_Contact_Damp#CB#(ViscDamp,NoDamp)
 VALUE: NoDamp
 QUESTION: Tangential_Contact_Damp#CB#(ViscDamp,NoDamp)
 VALUE: NoDamp
-
+QUESTION: Time_Steps_Per_Search_Step
+VALUE: 20
 
 TITLE: RigidFace Movement
 QUESTION: ComputeMovementOption#CB#(OFF,ON)
