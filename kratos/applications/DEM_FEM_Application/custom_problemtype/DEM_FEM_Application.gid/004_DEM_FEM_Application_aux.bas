@@ -8,8 +8,10 @@ Begin Properties  0
 End Properties
 
 
+
 *loop materials
 *#*if(strcmp(MatProp(Type),"Elements")==0)
+*format "%4i"
 Begin Properties  *MatNum
 *format "%f"
 DENSITY *MatProp(DENSITY,real)
