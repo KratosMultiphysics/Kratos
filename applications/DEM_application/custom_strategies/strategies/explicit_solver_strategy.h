@@ -362,7 +362,7 @@ namespace Kratos
       virtual void PerformTimeIntegrationOfMotion(ProcessInfo& rCurrentProcessInfo)
       {
           KRATOS_TRY
-
+          
           ModelPart& r_model_part = BaseType::GetModelPart();
 
           GetScheme()->Calculate(r_model_part);
