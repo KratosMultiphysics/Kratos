@@ -176,7 +176,7 @@ namespace Kratos
     ///// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const
     {
-      KRATOS_WATCH( "in my application" ) 
+      KRATOS_WATCH( "in KratosPfemSolidMechanicsApplication" ) 
       KRATOS_WATCH( KratosComponents<VariableData>::GetComponents().size() )
       rOStream << "Variables:" << std::endl;
       KratosComponents<VariableData>().PrintData(rOStream);
