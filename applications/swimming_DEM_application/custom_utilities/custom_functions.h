@@ -29,7 +29,7 @@
 //
 #include "includes/define.h"
 //#include "custom_elements/spheric_swimming_particle.h"
-#include "custom_utilities/GeometryFunctions.h"
+//#include "custom_utilities/GeometryFunctions.h"
 #include "custom_utilities/AuxiliaryFunctions.h"
 //#include "../../DEM_application/DEM_application.h"
 
