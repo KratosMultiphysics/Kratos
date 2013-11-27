@@ -23,7 +23,11 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "includes/constitutive_law.h"
+#include "includes/variables.h"
+#include "includes/ublas_interface.h"
 #include "includes/kratos_application.h"
+
+#include "containers/flags.h"
 
 //conditions
 #include "custom_conditions/point_moment_3D_condition.hpp"
@@ -89,10 +93,6 @@
 
 #include "custom_constitutive/hyperelastic_plastic_U_P_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_plastic_U_P_J2_axisym_2D_law.hpp"
-
-#include "containers/flags.h"
-#include "includes/variables.h"
-#include "includes/ublas_interface.h"
 
 namespace Kratos
 {
