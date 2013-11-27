@@ -82,6 +82,7 @@ def AddVariables(model_part, Param):
     model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_X_DOF_POS) 
     model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Y_DOF_POS) 
     model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Z_DOF_POS)
+    model_part.AddNodalSolutionStepVariable(OLD_COORDINATES) 
 
     # ONLY VISUALIZATION
 
