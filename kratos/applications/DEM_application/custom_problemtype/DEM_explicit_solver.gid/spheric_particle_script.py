@@ -205,7 +205,7 @@ while (time < DEM_parameters.FinalTime):
 
     dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
-    #balls_model_part.CloneTimeStep(time)
+    balls_model_part.CloneTimeStep(time)
     balls_model_part.ProcessInfo[TIME_STEPS] = step
 
     #########################_SOLVE_#########################################4
