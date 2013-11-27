@@ -178,11 +178,11 @@ namespace Kratos
 
       virtual void EvaluateDeltaDisplacement(double DeltDisp[3],
                                 double RelVel[3],
-                                double NormalDir[3],
-                                double OldNormalDir[3],
+                                //double NormalDir[3],
+                                //double OldNormalDir[3],
                                 double LocalCoordSystem[3][3],
                                 double OldLocalCoordSystem[3][3],
-                                const array_1d<double, 3> &other_to_me_vect,
+                                array_1d<double, 3> &other_to_me_vect,
                                 const array_1d<double, 3> &vel,
                                 const array_1d<double, 3> &delta_displ,
                                 ParticleWeakIteratorType neighbour_iterator);
@@ -192,7 +192,7 @@ namespace Kratos
       virtual void TangentialForceCalculation(double LocalElasticContactForce[3], double LocalDeltDisp[3], const double& kt, const double& equiv_tg_of_fri_ang, bool& sliding);
 
       virtual void DisplacementDueToRotation(double DeltDesp[3],
-                                double OldNormalDir[3],
+                                //double OldNormalDir[3],
                                 double OldLocalCoordSystem[3][3],
                                 const double &other_radius,
                                 const double &dt,
