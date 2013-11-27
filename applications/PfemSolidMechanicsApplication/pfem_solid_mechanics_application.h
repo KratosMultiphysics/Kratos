@@ -11,17 +11,10 @@
 
 
 // System includes
-#include <string>
-#include <iostream> 
-
 
 // External includes 
 
-
 // Project includes
-#include "includes/define.h"
-#include "includes/kratos_application.h"
-#include "includes/constitutive_law.h"
 
 // Core applications
 #include "solid_mechanics_application.h"
@@ -43,10 +36,6 @@
 //elements
 
 //constitutive laws
-#include "containers/flags.h"
-#include "includes/variables.h"
-#include "includes/ublas_interface.h"
-
 
 namespace Kratos
 {
@@ -92,7 +81,7 @@ namespace Kratos
   KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, MASTER_ELEMENTS )
   KRATOS_DEFINE_VARIABLE(WeakPointerVector< Node<3> >, MASTER_NODES )
 
-  //properties
+  //contact properties
   KRATOS_DEFINE_VARIABLE(bool, FRICTION_ACTIVE )
   KRATOS_DEFINE_VARIABLE(double, PENALTY_PARAMETER )
   KRATOS_DEFINE_VARIABLE(double, TAU_STAB )

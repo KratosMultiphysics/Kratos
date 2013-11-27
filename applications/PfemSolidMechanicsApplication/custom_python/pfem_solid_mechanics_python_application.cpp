@@ -12,13 +12,13 @@
 #include <boost/python.hpp>
 
 // Project includes 
-#include "includes/define.h"
-#include "pfem_solid_mechanics_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
 #include "custom_python/add_custom_modelers_to_python.h"
+
+#include "pfem_solid_mechanics_application.h"
  
 namespace Kratos
 {
@@ -35,7 +35,7 @@ namespace Kratos
 
       class_<KratosPfemSolidMechanicsApplication, 
 	     KratosPfemSolidMechanicsApplication::Pointer, 
-	     bases<KratosApplication>, boost::noncopyable >("KratosPfemSolidMechanicsApplication")
+	     bases<KratosSolidMechanicsApplication>, boost::noncopyable >("KratosPfemSolidMechanicsApplication")
 	  ;
 
       AddCustomProcessesToPython();

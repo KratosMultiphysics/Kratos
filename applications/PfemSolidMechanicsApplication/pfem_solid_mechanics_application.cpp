@@ -67,7 +67,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(WeakPointerVector< Element >, MASTER_ELEMENTS )
   KRATOS_CREATE_VARIABLE(WeakPointerVector< Node<3> >, MASTER_NODES )
 
-  //properties
+  //contact 
   KRATOS_CREATE_VARIABLE(bool, FRICTION_ACTIVE )
   KRATOS_CREATE_VARIABLE(double, PENALTY_PARAMETER )
   KRATOS_CREATE_VARIABLE(double, TAU_STAB )
@@ -92,7 +92,8 @@ namespace Kratos
   void KratosPfemSolidMechanicsApplication::Register()
   {
     // calling base class register to register Kratos components
-    KratosApplication::Register();
+    //KratosApplication::Register();
+    KratosSolidMechanicsApplication::Register();
     std::cout << "Initializing KratosPfemSolidMechanicsApplication... " << std::endl;
     
     //Register Elements
@@ -149,7 +150,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE( MASTER_ELEMENTS )
     KRATOS_REGISTER_VARIABLE( MASTER_NODES )
 
-    //properties
+    //contact properties
     KRATOS_REGISTER_VARIABLE( FRICTION_ACTIVE )
     KRATOS_REGISTER_VARIABLE( PENALTY_PARAMETER )
     KRATOS_REGISTER_VARIABLE( TAU_STAB )
