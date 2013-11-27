@@ -79,6 +79,7 @@ namespace Kratos
           GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY_X_DOF_POS) = GetGeometry()[0].GetDofPosition(ANGULAR_VELOCITY_X); 
           GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY_Y_DOF_POS) = GetGeometry()[0].GetDofPosition(ANGULAR_VELOCITY_Y); 
           GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY_Z_DOF_POS) = GetGeometry()[0].GetDofPosition(ANGULAR_VELOCITY_Z);
+          GetGeometry()(0)->FastGetSolutionStepValue(OLD_COORDINATES) = GetGeometry()(0)->Coordinates();
 
           CustomInitialize();
 
@@ -395,11 +396,11 @@ namespace Kratos
 
       void SphericParticle::EvaluateDeltaDisplacement(double DeltDisp[3],
                                                       double RelVel[3],
-                                                      double NormalDir[3],
-                                                      double OldNormalDir[3],
+                                                      //double NormalDir[3],
+                                                      //double OldNormalDir[3],
                                                       double LocalCoordSystem[3][3],
                                                       double OldLocalCoordSystem[3][3],
-                                                      const array_1d<double, 3>& other_to_me_vect,
+                                                      array_1d<double, 3>& other_to_me_vect,
                                                       const array_1d<double, 3>& vel,
                                                       const array_1d<double, 3>& delta_displ,
                                                       ParticleWeakIteratorType neighbour_iterator)
@@ -412,22 +413,27 @@ namespace Kratos
           //In the local coordinates we will define the normal direction of the contact as the [2] component!!!!!
           //the way the normal direction is defined (other_to_me_vect) compression is positive
 
-          NormalDir[0] = other_to_me_vect[0];
-          NormalDir[1] = other_to_me_vect[1];
-          NormalDir[2] = other_to_me_vect[2];
-
-          GeometryFunctions::ComputeContactLocalCoordSystem(NormalDir, LocalCoordSystem); //new Local Coord System
+          //NormalDir[0] = other_to_me_vect[0];
+          //NormalDir[1] = other_to_me_vect[1];
+          //NormalDir[2] = other_to_me_vect[2];
+          array_1d<double,3> test3 = other_to_me_vect;
+          
+          GeometryFunctions::ComputeContactLocalCoordSystem(other_to_me_vect, LocalCoordSystem); //new Local Coord System (normalizes other_to_me_vect)
 
           // FORMING OLD LOCAL CORDINATES
 
-          array_1d<double,3> old_coord_target     = this->GetGeometry()(0)->GetInitialPosition() + this->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT,1);
-          array_1d<double,3> old_coord_neigh      = neighbour_iterator->GetGeometry()(0)->GetInitialPosition()+neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT,1);
-          array_1d<double,3> Old_other_to_me_vect = old_coord_target - old_coord_neigh;
+          //array_1d<double,3> old_coord_target     = this->GetGeometry()(0)->GetInitialPosition() + this->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT/*,1*/);          
+          array_1d<double,3> old_coord_target     = this->GetGeometry()(0)->FastGetSolutionStepValue(OLD_COORDINATES);
+          //array_1d<double,3> old_coord_neigh      = neighbour_iterator->GetGeometry()(0)->GetInitialPosition()+neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(DISPLACEMENT/*,1*/);
+          array_1d<double,3> old_coord_neigh      = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(OLD_COORDINATES);
+          array_1d<double,3> Old_other_to_me_vect = old_coord_target - old_coord_neigh;                    
 
-          OldNormalDir[0] = Old_other_to_me_vect[0];   // M. this way the compresion is positive.
-          OldNormalDir[1] = Old_other_to_me_vect[1];
-          OldNormalDir[2] = Old_other_to_me_vect[2];
-          GeometryFunctions::ComputeContactLocalCoordSystem(OldNormalDir, OldLocalCoordSystem); //Old Local Coord System
+          //OldNormalDir[0] = Old_other_to_me_vect[0];   // M. this way the compresion is positive.
+          //OldNormalDir[1] = Old_other_to_me_vect[1];
+          //OldNormalDir[2] = Old_other_to_me_vect[2];
+          
+          //GeometryFunctions::ComputeContactLocalCoordSystem(OldNormalDir, OldLocalCoordSystem); //Old Local Coord System
+          GeometryFunctions::ComputeContactLocalCoordSystem(Old_other_to_me_vect, OldLocalCoordSystem); //Old Local Coord System
 
           // VELOCITIES AND DISPLACEMENTS
           array_1d<double, 3 > other_vel          = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
@@ -444,7 +450,7 @@ namespace Kratos
       }
 
       void SphericParticle::DisplacementDueToRotation(double DeltDisp[3],
-                                                      double OldNormalDir[3],
+                                                      //double OldNormalDir[3],
                                                       double OldLocalCoordSystem[3][3],
                                                       const double& other_radius,
                                                       const double& dt,
@@ -592,9 +598,7 @@ namespace Kratos
               InitialRotaMoment[2]               = RotaAcc[2] * mMomentOfInertia;
           }
 
-          //KRATOS_WATCH("Ball2ball entered") //SALVA
-          //LOOP OVER NEIGHBOURS BEGINS
-
+          //LOOP OVER NEIGHBOURS BEGINS:
           size_t i_neighbour_count = 0;
 
           for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++){
@@ -619,15 +623,15 @@ namespace Kratos
               double LocalDeltDisp[3]                  = {0.0};
               double RelVel[3]                         = {0.0};
               double LocalRelVel[3]                    = {0.0};
-              double NormalDir[3]                      = {0.0};
-              double OldNormalDir[3]                   = {0.0};
+              //double NormalDir[3]                      = {0.0};
+              //double OldNormalDir[3]                   = {0.0};
               double LocalCoordSystem[3][3]            = {{0.0}, {0.0}, {0.0}};
               double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
 
-              EvaluateDeltaDisplacement(DeltDisp, RelVel, NormalDir, OldNormalDir, LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator);
+              EvaluateDeltaDisplacement(DeltDisp, RelVel, /*NormalDir, OldNormalDir,*/ LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator);
 
               if (mRotationOption){
-                  DisplacementDueToRotation(DeltDisp, OldNormalDir, OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
+                  DisplacementDueToRotation(DeltDisp, /*OldNormalDir,*/ OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
               }
 
               double LocalContactForce[3]              = {0.0};
@@ -1097,7 +1101,8 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                  // In the local coordinates we will define the normal direction of the contact as the [2] component!!!!!
                  // the way the normal direction is defined compression is positive
 
-                 double NormalDir[3]            = {0.0};
+                 //double NormalDir[3]            = {0.0};
+                 array_1d<double, 3> NormalDir;
                  double LocalCoordSystem[3][3]  = {{0.0}, {0.0}, {0.0}};
                  double norm_surface_normal_dir = sqrt(surface_normal_dir[0] * surface_normal_dir[0] + surface_normal_dir[1] * surface_normal_dir[1] + surface_normal_dir[2] * surface_normal_dir[2]);
                  NormalDir[0] = surface_normal_dir[0] / norm_surface_normal_dir;
@@ -1465,7 +1470,8 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 			 }				 
 
              if(det_normal_vect != 0.0){
-				 double contact_normal_dir_unit[3] = {0.0};
+		 //double contact_normal_dir_unit[3] = {0.0};
+                 array_1d<double, 3> contact_normal_dir_unit;
                  contact_normal_dir_unit[0] = contact_normal_dir[0]/det_normal_vect;
                  contact_normal_dir_unit[1] = contact_normal_dir[1]/det_normal_vect;
                  contact_normal_dir_unit[2] = contact_normal_dir[2]/det_normal_vect;
@@ -1618,13 +1624,14 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                      }// if (mRotationOption)
                      
                      if (CylinderAngularVelocity != 0.0){
-						 double cylinder_angular_velocity[3] = {0.0};
-						 cylinder_angular_velocity[0] = CylinderAngularVelocity * cylinder_axis_dir[0];
-						 cylinder_angular_velocity[1] = CylinderAngularVelocity * cylinder_axis_dir[1];
-						 cylinder_angular_velocity[2] = CylinderAngularVelocity * cylinder_axis_dir[2];
-						 
-						 double vel_cyl[3]      = {0.0};
-						 GeometryFunctions::CrossProduct(cylinder_angular_velocity, contact_normal_dir_unit, vel_cyl);
+						 //double cylinder_angular_velocity[3] = {0.0};
+                         array_1d<double, 3> cylinder_angular_velocity;
+                         cylinder_angular_velocity[0] = CylinderAngularVelocity * cylinder_axis_dir[0];
+                         cylinder_angular_velocity[1] = CylinderAngularVelocity * cylinder_axis_dir[1];
+                         cylinder_angular_velocity[2] = CylinderAngularVelocity * cylinder_axis_dir[2];
+                         //double vel_cyl[3]      = {0.0};
+                         array_1d<double, 3> vel_cyl;
+                         GeometryFunctions::CrossProduct(cylinder_angular_velocity, contact_normal_dir_unit, vel_cyl);
                          
                          if (det_normal_vect > CylinderRadius){                 
                              DeltDisp[0] -= vel_cyl[0] * CylinderRadius * dt;
