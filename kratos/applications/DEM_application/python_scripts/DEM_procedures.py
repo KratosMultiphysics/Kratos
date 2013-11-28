@@ -180,16 +180,18 @@ class Procedures:
         if ( Var_Translator(param.ContinuumOption) ):
           self.print_export_particle_failure_id    = Var_Translator(param.PostExportParticleFailureId)
           self.print_export_skin_sphere            = Var_Translator(param.PostExportSkinSphere)
-          self.print_local_contact_force           = Var_Translator(param.PostLocalContactForce)
-          self.print_failure_criterion_state       = Var_Translator(param.PostFailureCriterionState)
-          self.print_unidimensional_damage         = Var_Translator(param.PostUnidimensionalDamage)
-          self.print_contact_failure               = Var_Translator(param.PostContactFailure)
-          self.print_contact_tau                   = Var_Translator(param.PostContactTau)
-          self.print_contact_sigma                 = Var_Translator(param.PostContactSigma)
-          self.print_representative_volume         = Var_Translator(param.PostRepresentativeVolume)
-          self.print_mean_contact_area             = Var_Translator(param.PostMeanContactArea)
-          self.print_stress_tensor                 = Var_Translator(param.PostStressTensor)
-          self.predefined_skin_option              = Var_Translator(param.PredefinedSkinOption)        
+          self.predefined_skin_option              = Var_Translator(param.PredefinedSkinOption)  
+          if ( self.contact_mesh_OPTION ):
+             self.print_local_contact_force           = Var_Translator(param.PostLocalContactForce)
+             self.print_failure_criterion_state       = Var_Translator(param.PostFailureCriterionState)
+             self.print_unidimensional_damage         = Var_Translator(param.PostUnidimensionalDamage)
+             self.print_contact_failure               = Var_Translator(param.PostContactFailure)
+             self.print_contact_tau                   = Var_Translator(param.PostContactTau)
+             self.print_contact_sigma                 = Var_Translator(param.PostContactSigma)
+             self.print_representative_volume         = Var_Translator(param.PostRepresentativeVolume)
+             self.print_mean_contact_area             = Var_Translator(param.PostMeanContactArea)
+             self.print_stress_tensor                 = Var_Translator(param.PostStressTensor)
+                
         
         
     def AddMpiVariables(self, model_part):
