@@ -626,14 +626,10 @@ private:
         Matrix  H (m+1, m+1);
         int restart = 0;
 	int p_dim=mS.size1();
-	VectorType output(p_dim);//WT*lambda
-	//VectorType d_output(p_dim); //WT*d_lambda
+	VectorType output(p_dim);//WT*lambda	
 	VectorType temp (dim,0.0);
-	VectorType dw (dim);
 
         double normb = TSparseSpaceType::TwoNorm (b);
-
-
 	/*KRATOS_WATCH(normb);*/
         if (normb < 1e-16) //ARBITRARY SMALL NUMBER!
         {
@@ -644,18 +640,15 @@ private:
         //r = b - Ax
         TSparseSpaceType::Mult (A,x,r);
         TSparseSpaceType::ScaleAndAdd (1.00, b, -1.00, r); //r = b - r	
-	//KRATOS_WATCH(b)
-	//KRATOS_WATCH(r)
 	
 	//CHECKING IF THE MATRIX IS INVERTIBLE!!!! If it is not (i.e. if S_deflated*Identity=0, we add a number to diagonal)
-	CheckDeflatedMatrix(S_deflated);	
+	//CheckDeflatedMatrix(S_deflated);	
 
 #ifndef NO_PRECOND	
 	KRATOS_WATCH("SOLVING DEFLATED PRESSURE")
 	SolveDeflatedPressure( output, r, S_deflated, W);		
 	KRATOS_WATCH("SOLVED DEFLATED PRESSURE")
-	//update x: by modifying its part corresponding to pressure
-	
+	//update x: by modifying its part corresponding to pressure	
 	WritePPart (temp, output);		
 	TSparseSpaceType::ScaleAndAdd(1.00, temp, 1.00, x);	
 	
@@ -752,7 +745,7 @@ private:
     VectorType identity(reduced_size,1.0);
     VectorType res(reduced_size,0.0);
 	TSparseSpaceType::Mult (S_deflated,identity,res);
-S_deflated(0,0)=1.0;
+
 KRATOS_WATCH(res)
 KRATOS_WATCH(norm_2(res))	
     }
