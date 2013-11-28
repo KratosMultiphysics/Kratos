@@ -2,7 +2,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
 import os
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from numpy import *
 
 #from KratosMultiphysics.mpi import * #CARLOS
