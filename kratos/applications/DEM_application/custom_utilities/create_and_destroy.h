@@ -611,7 +611,7 @@ private:
 
     inline void ClearVariables(ModelPart::NodesContainerType::iterator node_it, Variable<array_1d<double, 3 > >& rVariable)
     {
-        array_1d<double, 3 > & Aux_var = node_it->FastGetSolutionStepValue(rVariable, 0);
+        array_1d<double, 3 > & Aux_var = node_it->FastGetSolutionStepValue(rVariable);
         noalias(Aux_var) = ZeroVector(3);
     }
 
