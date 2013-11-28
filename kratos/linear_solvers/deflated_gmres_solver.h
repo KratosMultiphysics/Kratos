@@ -616,8 +616,6 @@ private:
 	SparseMatrixType S_deflated;											//
 	//THIS ww is the matrix W in vector form									//
 	std::vector<int> W;												//	
-	//int mmax_reduced_size=10000;											//
-	//int mmax_reduced_size=5000;//1000;										//
 															//
 	DeflationUtils::ConstructW(mmax_reduced_size, mS, W, S_deflated);						//
 	DeflationUtils::FillDeflatedMatrix(mS, W, S_deflated);								//	
@@ -646,21 +644,24 @@ private:
         //r = b - Ax
         TSparseSpaceType::Mult (A,x,r);
         TSparseSpaceType::ScaleAndAdd (1.00, b, -1.00, r); //r = b - r	
+	//KRATOS_WATCH(b)
+	//KRATOS_WATCH(r)
 	
 	//CHECKING IF THE MATRIX IS INVERTIBLE!!!! If it is not (i.e. if S_deflated*Identity=0, we add a number to diagonal)
 	CheckDeflatedMatrix(S_deflated);	
 
-#ifndef NO_PRECOND
-	//SolveDeflatedPressure( output, r, S_deflated, W, Factorization);
+#ifndef NO_PRECOND	
 	KRATOS_WATCH("SOLVING DEFLATED PRESSURE")
 	SolveDeflatedPressure( output, r, S_deflated, W);		
 	KRATOS_WATCH("SOLVED DEFLATED PRESSURE")
 	//update x: by modifying its part corresponding to pressure
-	WritePPart (temp, output);	
-	//TSparseSpaceType::ScaleAndAdd(1.00, temp, 1.00, x);	
-
-	//TSparseSpaceType::Mult (A,x,r);
-        //TSparseSpaceType::ScaleAndAdd (1.00, b, -1.00, r); //r = b - r
+	
+	WritePPart (temp, output);		
+	TSparseSpaceType::ScaleAndAdd(1.00, temp, 1.00, x);	
+	
+	TSparseSpaceType::Mult (A,x,r);
+        TSparseSpaceType::ScaleAndAdd (1.00, b, -1.00, r); //r = b - r
+	//KRATOS_WATCH(r)
 #endif
 	
 	
@@ -693,7 +694,7 @@ private:
                     w -= H (k, i) * V[k];
                 }
 #ifndef NO_PRECOND
-		//Modify_w(  w,  W, dim, p_dim, red_dim);
+		Modify_w(  w,  W, dim, p_dim, red_dim);
 #endif
 
                 const double normw = TSparseSpaceType::TwoNorm (w);
@@ -725,10 +726,11 @@ private:
 			myfile <<j<<"\n";
             }
 	    
-            this->Update (y,x, m - 1, H, s, V);	    
+            this->Update (y,x, m - 1, H, s, V);	 
+	    
             //r = b - Ax
             TSparseSpaceType::Mult (A,x,r);
-            TSparseSpaceType::ScaleAndAdd (1.00, b, -1.00, r); //r = b - r
+	    TSparseSpaceType::ScaleAndAdd (1.00, b, -1.00, r); //r = b - r	    
             beta = TSparseSpaceType::TwoNorm (r);
             
 	    std::cout << "number of iterations at convergence = " << j << std::endl;
@@ -750,7 +752,7 @@ private:
     VectorType identity(reduced_size,1.0);
     VectorType res(reduced_size,0.0);
 	TSparseSpaceType::Mult (S_deflated,identity,res);
-//S_deflated(0,0)=1.0;
+S_deflated(0,0)=1.0;
 KRATOS_WATCH(res)
 KRATOS_WATCH(norm_2(res))	
     }
@@ -772,12 +774,8 @@ KRATOS_WATCH(norm_2(res))
 	
 	//w_T_r is the residual multiplied by the WT
 	DeflationUtils::ApplyWtranspose(W, rp, WT_rp);	
-	mPred_solver->Solve(S_deflated, lambda, WT_rp);
-	
-	//Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+	mPred_solver->Solve(S_deflated, lambda, WT_rp);	
 	KRATOS_WATCH(norm_2(lambda) );
-	//mPred_solver->FinilizeSolutionStep(S_deflated, lambda,  WT_rp); 
-
 
 	DeflationUtils::ApplyW(W, lambda, output);       
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -796,18 +794,20 @@ KRATOS_WATCH(norm_2(res))
     VectorType W_WT_wp (full_size); 
     VectorType temp (full_glob_size);     
 
-	GetPPart(w,wp);
+    GetPPart(w,wp);
     VectorType ModulusSquared(reduced_size);  
-	VectorType identity(full_size,1.0);
-	DeflationUtils::ApplyWtranspose(W, identity, ModulusSquared);
+    VectorType identity(full_size,1.0);
+    DeflationUtils::ApplyWtranspose(W, identity, ModulusSquared);
 
     DeflationUtils::ApplyWtranspose(W, wp, WT_wp);
     //scale down Wt_wp with the squared modulus
+	
     for(unsigned int i=0; i<reduced_size; i++)
 	{
 	WT_wp[i] /= ModulusSquared[i];
 	
 	}
+
     DeflationUtils::ApplyW(W, WT_wp, W_WT_wp);      
         
     wp-=W_WT_wp;
