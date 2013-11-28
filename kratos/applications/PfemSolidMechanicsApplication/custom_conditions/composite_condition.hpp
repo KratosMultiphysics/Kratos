@@ -114,7 +114,7 @@ public:
 
    SizeType NumberOfChildren() const
     {
-        return mpChildConditions->size();
+        return mChildConditions.size();
     }
 
     /** Inserts a condition in the composite.
@@ -122,88 +122,89 @@ public:
     void AddChild(typename ConditionType::Pointer pNewChildCondition)
     {
       bool set = false;
-
-      for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+      
+      for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
 	{
 	  if(pNewChildCondition->Id() == cn->Id())
 	    set=true;
 	}
 
+	
       if(!set)
-        mpChildConditions->insert(mpChildConditions->begin(), pNewChildCondition);
+        mChildConditions.insert(mChildConditions.begin(), pNewChildCondition);
     }
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
     typename ConditionType::Pointer pGetChild(IndexType ChildConditionId)
     {
-        return (*mpChildConditions)(ChildConditionId);
+        return (mChildConditions)(ChildConditionId);
     }
 
     /** Returns a reference condition corresponding to it's identifier */
     ConditionType& GetChild(IndexType ChildConditionId)
     {
-        return (*mpChildConditions)[ChildConditionId];
+        return (mChildConditions)[ChildConditionId];
     }
 
     /** Remove the condition with given Id from composite.
     */
     void RemoveChild(IndexType ChildConditionId)
     {
-        mpChildConditions->erase(ChildConditionId);
+        mChildConditions.erase(ChildConditionId);
     }
 
     /** Remove given condition from composite.
     */
     void RemoveChild(ConditionType& ThisChildCondition)
     {
-        mpChildConditions->erase(ThisChildCondition.Id());
+        mChildConditions.erase(ThisChildCondition.Id());
     }
 
     /** Remove given condition from composite.
     */
     void RemoveChild(typename ConditionType::Pointer pThisChildCondition)
     {
-        mpChildConditions->erase(pThisChildCondition->Id());
+        mChildConditions.erase(pThisChildCondition->Id());
     }
 
     ConditionIterator ChildConditionsBegin()
     {
-        return mpChildConditions->begin();
+        return mChildConditions.begin();
     }
 
     ConditionConstantIterator ChildConditionsBegin() const
     {
-        return mpChildConditions->begin();
+        return mChildConditions.begin();
     }
 
     ConditionIterator ChildConditionsEnd()
     {
-        return mpChildConditions->end();
+        return mChildConditions.end();
     }
 
     ConditionConstantIterator ChildConditionsEnd() const
     {
-        return mpChildConditions->end();
+        return mChildConditions.end();
     }
 
     ConditionsContainerType& ChildConditions()
     {
-        return *mpChildConditions;
+        return mChildConditions;
     }
 
     typename ConditionsContainerType::Pointer pChildConditions()
     {
-        return mpChildConditions;
+      return ConditionsContainerType::Pointer(&mChildConditions);
     }
 
     void SetChildConditions(typename ConditionsContainerType::Pointer pOtherChildConditions)
     {
-        mpChildConditions = pOtherChildConditions;
+      mChildConditions = (*pOtherChildConditions);
     }
 
     typename ConditionsContainerType::ContainerType& ChildConditionsArray()
     {
-        return mpChildConditions->GetContainer();
+        return mChildConditions.GetContainer();
     }
 
     /**
@@ -500,7 +501,7 @@ private:
      * Variables
      */
 
-    typename ConditionsContainerType::Pointer mpChildConditions;
+    ConditionsContainerType mChildConditions;
 
     ///@}
     ///@name Private Operators
@@ -516,7 +517,7 @@ private:
     //set specific data value to condition children
     template<class TVariableType> void SetValueToChildren(const TVariableType& rThisVariable){
 
-      for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+      for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
 	{
 	  typename TVariableType::Type const& rValue = this->GetValue(rThisVariable);
 	  cn->SetValue(rThisVariable,rValue);	      

@@ -226,6 +226,14 @@ buffer_size = 3;
 #define problem variables:
 solver_constructor.AddVariables( model_part, SolverSettings)
 
+#set PfemSolidApplicationVariables
+model_part.AddNodalSolutionStepVariable(NORMAL);
+
+model_part.AddNodalSolutionStepVariable(OFFSET);
+model_part.AddNodalSolutionStepVariable(SHRINK_FACTOR);
+
+model_part.AddNodalSolutionStepVariable(MEAN_ERROR); 
+model_part.AddNodalSolutionStepVariable(NODAL_H);
 
 #--- READ MODEL ------#
 if(load_restart == "False"):

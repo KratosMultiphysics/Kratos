@@ -348,20 +348,20 @@ private:
         for(NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
         {
             WeakPointerVector< Element >& rE = in->GetValue(NEIGHBOUR_ELEMENTS);
-	        KRATOS_WATCH ( *in )
-            KRATOS_WATCH ( rE.size() )
+	    //KRATOS_WATCH ( *in )
+            //KRATOS_WATCH ( rE.size() )
             for(unsigned int ie = 0; ie < rE.size(); ie++)
             {
                 Element::GeometryType& pGeom = rE[ie].GetGeometry();
                 for(unsigned int i = 0; i < pGeom.size(); i++)
                 {
- 		    std::cout<<" inside pgeom loop {"<<i<<"} rE.size() : "<<rE.size()<<std::endl;
+		    //std::cout<<" inside pgeom loop {"<<i<<"} rE.size() : "<<rE.size()<<std::endl;
                     if( pGeom[i].Id() != in->Id() )
                     {              
                         Element::NodeType::WeakPointer temp = pGeom(i);
-			            WeakPointerVector< Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
+			WeakPointerVector< Node<3> >& rN = in->GetValue(NEIGHBOUR_NODES);
                         AddUniqueWeakPointer< Node<3> >(rN, temp);
-			std::cout<<" inside add unique {"<<i<<"} rE.size() : "<<rE.size()<<std::endl;
+			//std::cout<<" inside add unique {"<<i<<"} rE.size() : "<<rE.size()<<std::endl;
                     }	    
 
                 }

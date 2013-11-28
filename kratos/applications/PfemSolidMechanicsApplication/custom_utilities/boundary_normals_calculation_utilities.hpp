@@ -146,17 +146,15 @@ public:
 
 
 		//Reset normals
-		const array_1d<double,3> ZeroNormal(3,0.0);
-
 		ModelPart::NodesContainerType&    rNodes = rModelPart.Nodes(MeshId);
-		ModelPart::ElementsContainerType& rElems = rModelPart.Elements(MeshId);
+		ModelPart::ElementsContainerType& rElems = rModelPart .Elements(MeshId);
 
 
 		bool neighsearch=true;
 	
 		for(ModelPart::NodesContainerType::iterator in = rNodes.begin(); in!=rNodes.end(); in++)
 		{
-			noalias(in->GetSolutionStepValue(NORMAL)) = ZeroNormal;
+   		        (in->GetSolutionStepValue(NORMAL)).clear();
 	    
 			if(neighsearch){
 				//*************  Neigbours of nodes search  ************//
@@ -250,7 +248,7 @@ public:
 				}
 			}
 			else{
-				noalias(in->FastGetSolutionStepValue(NORMAL)) = ZeroNormal;
+			        (in->FastGetSolutionStepValue(NORMAL)).clear();
 				std::cout<<" ERROR: normal not set "<<std::endl;
 			}
 
@@ -340,13 +338,11 @@ private:
 	{
 		KRATOS_TRY
 		  
-	        //resetting the normals
-		  array_1d<double,3> zero (3,0.0);
-
+		//resetting the normals
 		for(NodesArrayType::iterator in =  rModelPart.NodesBegin(MeshId);
 		    in !=rModelPart.NodesEnd(MeshId); in++)
 		{
-		  noalias(in->GetSolutionStepValue(NORMAL)) = zero;
+		  (in->GetSolutionStepValue(NORMAL)).clear();
 		}
 
 		KRATOS_CATCH( "" )
@@ -370,14 +366,12 @@ private:
 		KRATOS_TRY
 
 	        //resetting the normals
-		array_1d<double,3> zero (3,0.0);
-
 		for(ConditionsArrayType::iterator it =  rConditions.begin();
 		    it !=rConditions.end(); it++)
 		{
 			Element::GeometryType& rNodes = it->GetGeometry();
 			for(unsigned int in = 0; in<rNodes.size(); in++)
-				noalias((rNodes[in]).GetSolutionStepValue(NORMAL)) = zero;
+ 			    ((rNodes[in]).GetSolutionStepValue(NORMAL)).clear();
 		}
 
 
@@ -388,7 +382,7 @@ private:
 			for(ConditionsArrayType::iterator it =  rConditions.begin();
 			    it !=rConditions.end(); it++)
 			{
-			  if(it->IsNot(CONTACT))
+			  if(it->IsNot(CONTACT) && it->Is(BOUNDARY) )
 			    CalculateUnityNormal2D(it,An);
 			}
 		}
@@ -400,7 +394,7 @@ private:
 			    it !=rConditions.end(); it++)
 			{
 				//calculate the normal on the given condition
-			  if(it->IsNot(CONTACT))
+			  if(it->IsNot(CONTACT) && it->Is(BOUNDARY))
 			    CalculateUnityNormal3D(it,An,v1,v2);
 			}
 		}
@@ -444,21 +438,21 @@ private:
 		std::vector<int> Ids (rModelPart.NumberOfNodes()+1) ;
 		std::fill( Ids.begin(), Ids.end(), 0 );
 	
-		
 		//*************  Neigbours of nodes search ************//
 		//add the neighbour conditions to all the nodes in the mesh
 		int id=1;
 		for(ModelPart::ConditionsContainerType::iterator ic = rCond.begin(); ic!=rCond.end(); ic++)
 		  {
-		    if(ic->IsNot(CONTACT)){
+		    if(ic->IsNot(CONTACT) && ic->Is(BOUNDARY)){
 			
-		      Element::GeometryType& pGeom = ic->GetGeometry();
+		      Condition::GeometryType& pGeom = ic->GetGeometry();
+
 		      for(unsigned int i = 0; i < pGeom.size(); i++)
 			{
 			  //std::cout<<" Condition ID "<<ic->Id()<<" id "<<id<<std::endl;
 			  // if(Ids.size()<=pGeom[i].Id())
 			  //   std::cout<<" Shrink node in geom "<<pGeom[i].Id()<<" number of nodes "<<Ids.size()<<std::endl;
-
+			  
 			  if(Ids[pGeom[i].Id()]==0){
 			    Ids[pGeom[i].Id()]=id;
  			    nConditions[id].push_back( Condition::WeakPointer( *(ic.base()) ) );
@@ -466,7 +460,7 @@ private:
 			  }
 			  else{
 			    
- 			    nConditions[Ids[pGeom[i].Id()]].push_back( Condition::WeakPointer( *(ic.base()) ) );
+			    nConditions[Ids[pGeom[i].Id()]].push_back( Condition::WeakPointer( *(ic.base()) ) );
 			  }
 			    
 			}
@@ -481,8 +475,6 @@ private:
 		ModelPart::NodesContainerType::iterator nodes_begin = rNodes.begin();
 		ModelPart::NodesContainerType  BoundaryNodes;
 
-
-		const array_1d<double,3> ZeroOffset(3,0.0);
 		
 		for(unsigned int i = 0; i<rNodes.size(); i++)
 		  {

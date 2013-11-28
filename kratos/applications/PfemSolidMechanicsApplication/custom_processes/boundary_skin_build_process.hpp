@@ -150,6 +150,8 @@ namespace Kratos
 			BoundaryNormalsCalculationUtilities BoundaryComputation;
 			BoundaryComputation.CalculateBoundaryNormals(mr_model_part,2);
 			
+			std::cout<<" Boundary Normals Computed "<<std::endl;
+
 		};
 
 

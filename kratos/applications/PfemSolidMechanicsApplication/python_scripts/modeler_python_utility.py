@@ -68,14 +68,12 @@ class ModelerUtility:
         self.remesh_step           = 0
         self.contact_transfer_done = False
         self.contact_search_step   = 0
-
         
     #######################################################################
     def Initialize(self,remesh_step,contact_search_step):
         
         self.remesh_step         = remesh_step
         self.contact_search_step = contact_search_step
-
 
     #######################################################################
     def InitializeDomains(self):
@@ -130,7 +128,7 @@ class ModelerUtility:
         # execute search:
         elemental_neighbour_search.Execute()
 
-        print " Element Search executed "
+        print " Elemental Search executed "
 
     #######################################################################   
     def ComputeBoundaryNormals(self):
@@ -142,6 +140,7 @@ class ModelerUtility:
         normals_calculation.CalculateBoundaryNormals(self.model_part,self.domain_size)
         #normals_calculation.CalculateBoundaryUnitNormals(model_part)
 
+        print " Boundary Normals computed "
 
     #######################################################################   
     def BuildBoundarySkin(self):
@@ -154,6 +153,8 @@ class ModelerUtility:
 
         # execute building:
         skin_build.Execute()
+
+        print " Boundary Skin Build executed "
 
     #######################################################################   
     def SearchNodalH(self):
@@ -168,7 +169,7 @@ class ModelerUtility:
                 #nodal_h  = node.GetSolutionStepValue(NODAL_H);
                 #print "nodal_h:",nodal_h
                 
-            #print " Nodal H search executed "
+            print " Nodal H Search executed "
 
 
     #######################################################################   
@@ -229,7 +230,7 @@ class ModelerUtility:
             print "SET MESH DOMAIN DATA"
             print " --> Domain [",conditions["Subdomain"],"] ",conditions["MeshElement"], " remesh: ",conditions["Remesh"]
             #self.mesh_modeler.SetRemeshData(conditions["MeshElement"],"Condition2D",,self.remesh,,self.constrained,,self.laplacian_smoothing,,self.jacobi_smoothing,,self.avoid_tip_elements,,self.alpha_shape,domain);
-            self.mesh_modeler.SetRemeshData(conditions["MeshElement"],"SkinCondition2D",self.remesh,self.constrained,self.laplacian_smoothing,self.jacobi_smoothing,self.avoid_tip_elements,self.alpha_shape,self.offset_factor,domain);
+            self.mesh_modeler.SetRemeshData(conditions["MeshElement"],"CompositeCondition2D",self.remesh,self.constrained,self.laplacian_smoothing,self.jacobi_smoothing,self.avoid_tip_elements,self.alpha_shape,self.offset_factor,domain);
             self.mesh_modeler.SetRefineData(self.refine,self.h_factor,configuration.critical_dissipation,radius_critical,configuration.reference_error,domain)
             
 

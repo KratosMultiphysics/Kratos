@@ -48,13 +48,13 @@ CompositeCondition::CompositeCondition( CompositeCondition const& rOther)
     :Condition(rOther)
 {
 
-  //mpChildConditions = rOther.mpChildConditions;
+  //mChildConditions = rOther.mChildConditions;
 
   //deep copy
-  mpChildConditions->clear();
-  for (ConditionIterator cn = rOther.mpChildConditions->begin() ; cn != rOther.mpChildConditions->end(); ++cn)
+  mChildConditions.clear();
+  for (ConditionConstantIterator cn = rOther.mChildConditions.begin() ; cn != rOther.mChildConditions.end(); ++cn)
     {
-      mpChildConditions->push_back(*cn);
+      mChildConditions.push_back(*cn);
     }
 
   this->Set(BOUNDARY);
@@ -69,13 +69,13 @@ CompositeCondition&  CompositeCondition::operator=(CompositeCondition const& rOt
 {
   Condition::operator=(rOther);
 
-  //mpChildConditions = rOther.mpChildConditions;
+  //mChildConditions = rOther.mChildConditions;
 
   //deep copy
-  mpChildConditions->clear();
-  for (ConditionIterator cn = rOther.mpChildConditions->begin() ; cn != rOther.mpChildConditions->end(); ++cn)
+  mChildConditions.clear();
+  for (ConditionConstantIterator cn = rOther.mChildConditions.begin() ; cn != rOther.mChildConditions.end(); ++cn)
     {
-      mpChildConditions->push_back(*cn);
+      mChildConditions.push_back(*cn);
     }
 
   this->Set(BOUNDARY);
@@ -119,7 +119,7 @@ CompositeCondition::~CompositeCondition()
 
 CompositeCondition::IntegrationMethod CompositeCondition::GetIntegrationMethod()
 {
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       return cn->GetIntegrationMethod();
     }
@@ -138,7 +138,7 @@ void CompositeCondition::GetDofList( DofsVectorType& rConditionalDofList, Proces
 
   DofsVectorType LocalConditionalDofList;
 
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn, rCurrentProcessInfo) ){
 
@@ -165,7 +165,7 @@ void CompositeCondition::EquationIdVector( EquationIdVectorType& rResult, Proces
 
   EquationIdVectorType LocalResult;
    
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn, rCurrentProcessInfo) ){
 
@@ -205,7 +205,7 @@ void CompositeCondition::GetValuesVector( Vector& rValues, int Step )
 {
   Vector LocalValues;
 
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       cn->GetValuesVector(LocalValues,Step);
       if(LocalValues.size() != rValues.size())
@@ -222,7 +222,7 @@ void CompositeCondition::GetValuesVector( Vector& rValues, int Step )
 void CompositeCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
 {
   Vector LocalValues;
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       cn->GetFirstDerivativesVector(LocalValues,Step);
       if(LocalValues.size() != rValues.size())
@@ -238,7 +238,7 @@ void CompositeCondition::GetFirstDerivativesVector( Vector& rValues, int Step )
 void CompositeCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
 {
   Vector LocalValues;
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       cn->GetSecondDerivativesVector(LocalValues,Step);
       if(LocalValues.size() != rValues.size())
@@ -254,7 +254,7 @@ void CompositeCondition::GetSecondDerivativesVector( Vector& rValues, int Step )
 
 void CompositeCondition::SetValueOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rValues, const ProcessInfo& rCurrentProcessInfo )
 {
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       cn->SetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
@@ -268,7 +268,7 @@ void CompositeCondition::SetValueOnIntegrationPoints( const Variable<Matrix>& rV
         std::vector<Matrix>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       cn->SetValueOnIntegrationPoints(rVariable,rValues,rCurrentProcessInfo);
     }
@@ -283,7 +283,7 @@ void CompositeCondition::GetValueOnIntegrationPoints( const Variable<double>& rV
 {
 
   std::vector< double > LocalValues;
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       cn->GetValueOnIntegrationPoints(rVariable,LocalValues,rCurrentProcessInfo);
 
@@ -305,7 +305,7 @@ void CompositeCondition::GetValueOnIntegrationPoints( const Variable<Vector>& rV
 							    const ProcessInfo& rCurrentProcessInfo )
 {
   std::vector< Vector > LocalValues;
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       cn->GetValueOnIntegrationPoints(rVariable,LocalValues,rCurrentProcessInfo);
 
@@ -332,7 +332,7 @@ void CompositeCondition::GetValueOnIntegrationPoints( const Variable<Matrix>& rV
 							 const ProcessInfo& rCurrentProcessInfo )
 {
   std::vector< Matrix > LocalValues;
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       cn->GetValueOnIntegrationPoints(rVariable,LocalValues,rCurrentProcessInfo);
 
@@ -360,7 +360,7 @@ void CompositeCondition::Initialize()
 {
     KRATOS_TRY
       
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       SetValueToChildren(MASTER_ELEMENTS);
       SetValueToChildren(MASTER_NODES);
@@ -381,7 +381,7 @@ void CompositeCondition::Initialize()
 void CompositeCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
 
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn,rCurrentProcessInfo) ){
 
@@ -402,7 +402,7 @@ void CompositeCondition::InitializeSolutionStep( ProcessInfo& rCurrentProcessInf
 
 void CompositeCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProcessInfo )
 {
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn,rCurrentProcessInfo) ){
 	cn->InitializeNonLinearIteration(rCurrentProcessInfo);
@@ -416,7 +416,7 @@ void CompositeCondition::InitializeNonLinearIteration( ProcessInfo& rCurrentProc
 
 void CompositeCondition::FinalizeSolutionStep( ProcessInfo& rCurrentProcessInfo )
 {
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn,rCurrentProcessInfo) ){
 	cn->FinalizeSolutionStep(rCurrentProcessInfo);
@@ -435,7 +435,7 @@ void CompositeCondition::AddExplicitContribution(const VectorType& rRHS,
 {
     KRATOS_TRY
 
-    for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+    for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
       {
 	cn->AddExplicitContribution(rRHS, rRHSVariable, rDestinationVariable, rCurrentProcessInfo);
       }
@@ -465,7 +465,7 @@ void CompositeCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, 
   VectorType LocalRightHandSideVector;
   MatrixType LocalLeftHandSideMatrix;
 
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn,rCurrentProcessInfo) ){
 	
@@ -528,7 +528,7 @@ void CompositeCondition::CalculateRightHandSide( VectorType& rRightHandSideVecto
 
 
   VectorType LocalRightHandSideVector;
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn,rCurrentProcessInfo) ){
 	
@@ -564,7 +564,7 @@ void CompositeCondition::CalculateLeftHandSide( MatrixType& rLeftHandSideMatrix,
   rLeftHandSideMatrix.resize(0,0);
 
   MatrixType LocalLeftHandSideMatrix;
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn,rCurrentProcessInfo) ){
 	
@@ -623,7 +623,7 @@ void CompositeCondition::CalculateLocalSystem( std::vector< MatrixType >& rLeftH
   std::vector< MatrixType > LocalLeftHandSideMatrices;
   std::vector< VectorType > LocalRightHandSideVectors;
 
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn,rCurrentProcessInfo) ){
 	
@@ -699,7 +699,7 @@ void CompositeCondition::CalculateRightHandSide( std::vector< VectorType >& rRig
 
 
   std::vector< VectorType > LocalRightHandSideVectors;
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       if( IsActive(cn,rCurrentProcessInfo) ){
 	
@@ -736,7 +736,7 @@ void CompositeCondition::CalculateRightHandSide( std::vector< VectorType >& rRig
 void CompositeCondition:: MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurrentProcessInfo)
 {
   // MatrixType LocalMassMatrix;
-  // for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  // for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
   //    {
   //      cn->MassMatrix(LocalMassMatrix,rCurrentProcessInfo);
   //   rMassMatrix+=LocalMassMatrix;
@@ -751,7 +751,7 @@ void CompositeCondition:: MassMatrix(MatrixType& rMassMatrix, ProcessInfo& rCurr
 void CompositeCondition:: DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurrentProcessInfo)
 {
   // MatrixType LocalDampMatrix;
-  // for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  // for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
   //    {
   //      cn->DampMatrix(LocalDampMatrix,rCurrentProcessInfo);
   //   rDampMatrix+=LocalDampMatrix;
@@ -764,7 +764,7 @@ void CompositeCondition:: DampMatrix(MatrixType& rDampMatrix, ProcessInfo& rCurr
 void CompositeCondition::CalculateOnIntegrationPoints( const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
   std::vector<double> LocalOutput;
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       cn->CalculateOnIntegrationPoints(rVariable,LocalOutput,rCurrentProcessInfo);
 
@@ -786,7 +786,7 @@ void CompositeCondition::CalculateOnIntegrationPoints( const Variable<double>& r
 void CompositeCondition::CalculateOnIntegrationPoints( const Variable<Vector>& rVariable, std::vector<Vector>& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
   std::vector< Vector > LocalOutput;
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       cn->CalculateOnIntegrationPoints(rVariable,LocalOutput,rCurrentProcessInfo);
 
@@ -812,7 +812,7 @@ void CompositeCondition::CalculateOnIntegrationPoints( const Variable<Vector>& r
 void CompositeCondition::CalculateOnIntegrationPoints( const Variable<Matrix >& rVariable, std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
   std::vector< Matrix > LocalOutput;
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       cn->CalculateOnIntegrationPoints(rVariable,LocalOutput,rCurrentProcessInfo);
 
@@ -840,7 +840,7 @@ void CompositeCondition::CalculateOnIntegrationPoints( const Variable<Matrix >& 
 void CompositeCondition::Calculate( const Variable<double>& rVariable, double& rOutput, const ProcessInfo& rCurrentProcessInfo )
 {
   double LocalOutput;
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       cn->Calculate(rVariable,LocalOutput,rCurrentProcessInfo);
       rOutput+=LocalOutput;
@@ -863,7 +863,7 @@ int  CompositeCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 {
   int check = 1;
   int child_check = 1;
-  for (ConditionIterator cn = mpChildConditions->begin() ; cn != mpChildConditions->end(); ++cn)
+  for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
     {
       child_check = cn->Check(rCurrentProcessInfo);
       if(child_check == 0)
@@ -877,13 +877,13 @@ int  CompositeCondition::Check( const ProcessInfo& rCurrentProcessInfo )
 void CompositeCondition::save( Serializer& rSerializer ) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, Condition )
-    rSerializer.save("mpChildConditions",mpChildConditions);
+    rSerializer.save("mChildConditions",mChildConditions);
 }
 
 void CompositeCondition::load( Serializer& rSerializer )
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Condition )
-    rSerializer.load("mpChildConditions",mpChildConditions);
+    rSerializer.load("mChildConditions",mChildConditions);
 }
 
 
