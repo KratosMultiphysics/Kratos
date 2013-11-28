@@ -178,8 +178,8 @@ os.chdir(post_path)
 
 if (DEM_parameters.Multifile == "single_file"):
 
-  post_utility.AddModelPartNodesToModelPart(mixed_model_part, balls_model_part)
-  post_utility.AddModelPartNodesToModelPart(mixed_model_part, RigidFace_model_part) 
+  post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
+  post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part) 
   gid_io.InitializeMesh(0.0) 
   gid_io.WriteMesh(RigidFace_model_part.GetMesh())
   gid_io.WriteSphereMesh(balls_model_part.GetMesh())
