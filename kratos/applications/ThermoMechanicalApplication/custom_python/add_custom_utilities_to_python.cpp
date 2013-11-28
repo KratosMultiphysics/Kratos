@@ -123,7 +123,7 @@ void  AddCustomUtilitiesToPython()
     .def("ComputeFillPercentage", &BiphasicFillingUtilities::ComputeFillPercentage) 
 	.def("ComputeNetInletVolume", &BiphasicFillingUtilities::ComputeNetInletVolume)
 	.def("ComputeNodalVolume", &BiphasicFillingUtilities::ComputeNodalVolume)	
-
+    .def("ApplyVelocityLimitation", &BiphasicFillingUtilities::ApplyVelocityLimitation)   
     ; 
 
 

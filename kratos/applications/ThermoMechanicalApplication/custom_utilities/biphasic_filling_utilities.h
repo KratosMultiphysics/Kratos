@@ -396,6 +396,46 @@ public:
 
         KRATOS_CATCH("")
     }
+    
+
+        //**********************************************************************************************
+    //**********************************************************************************************
+    /**This function applies a velocity reduction. Velocity is not allowed to be greater in modulus
+     * than          old_vel_norm + max_acc_modulus * dt
+     * the function is designed to palliate the effect of errors in the solution of the linear system
+     * which result in unphysical velocity peaks, typically located at edges.
+     */
+    void ApplyVelocityLimitation(ModelPart& ThisModelPart, const double max_acc_modulus)
+    {
+        KRATOS_TRY;
+        double net_input = 0.0;
+        int node_size = ThisModelPart.Nodes().size();
+        const double dt = ThisModelPart.GetProcessInfo()[DELTA_TIME];
+        
+        #pragma omp parallel for firstprivate(node_size) reduction(+:net_input)
+        for (int ii = 0; ii < node_size; ii++)
+        {
+            ModelPart::NodesContainerType::iterator it = ThisModelPart.NodesBegin() + ii;
+            if(!it->IsFixed(VELOCITY_X) && !it->IsFixed(VELOCITY_Y) &&  !it->IsFixed(VELOCITY_Z))
+            {
+                array_1d<double, 3>& vel = it->FastGetSolutionStepValue(VELOCITY);
+                const array_1d<double, 3>& old_vel = it->FastGetSolutionStepValue(VELOCITY,1);
+                const double current_vel_norm = norm_2(vel);
+                const double old_vel_norm = norm_2(old_vel);
+                
+                const double acceptable_vel_norm = old_vel_norm + max_acc_modulus*dt;
+                const double ratio = current_vel_norm/acceptable_vel_norm;
+                
+                //velocity is reduced if too high
+                if(ratio > 1.0) vel /= ratio;
+            }
+            
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    
     //**********************************************************************************************
     //**********************************************************************************************
     void ComputeNodalVolume(ModelPart& ThisModelPart)
