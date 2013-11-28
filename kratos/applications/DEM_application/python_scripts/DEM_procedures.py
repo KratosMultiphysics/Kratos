@@ -350,11 +350,11 @@ class Procedures:
           element.SetValue(SKIN_SPHERE, 0)
 
           node = element.GetNode(0)
-          r = node.GetSolutionStepValue(RADIUS,0)
+          r = node.GetSolutionStepValue(RADIUS)
           x = node.X
           y = node.Y
           z = node.Z
-          node_group = node.GetSolutionStepValue(GROUP_ID,0)
+          node_group = node.GetSolutionStepValue(GROUP_ID)
           cross_section = 3.141592 * r * r
 
           if ((x * x + z * z) >= ((d / 2 - eps * r) * (d / 2 - eps * r))): 
@@ -424,7 +424,7 @@ class Procedures:
         element.SetValue(SKIN_SPHERE, 0)
 
         node = element.GetNode(0)
-        r = node.GetSolutionStepValue(RADIUS,0)
+        r = node.GetSolutionStepValue(RADIUS)
         x = node.X
         y = node.Y
         z = node.Z
@@ -450,7 +450,7 @@ class Procedures:
         counter = 0.0
         
         for node in self.BOT:
-            r = node.GetSolutionStepValue(RADIUS, 0)
+            r = node.GetSolutionStepValue(RADIUS)
             y = node.Y        
             y_mean += (y - r) * r
             counter += r
@@ -464,7 +464,7 @@ class Procedures:
         counter = 0.0
         
         for node in self.TOP:
-          r = node.GetSolutionStepValue(RADIUS, 0)
+          r = node.GetSolutionStepValue(RADIUS)
           y = node.Y
         
           y_mean += (y + r) * r
