@@ -188,7 +188,6 @@ class Procedures:
              self.print_contact_failure               = Var_Translator(param.PostContactFailure)
              self.print_contact_tau                   = Var_Translator(param.PostContactTau)
              self.print_contact_sigma                 = Var_Translator(param.PostContactSigma)
-             self.print_representative_volume         = Var_Translator(param.PostRepresentativeVolume)
              self.print_mean_contact_area             = Var_Translator(param.PostMeanContactArea)
                 
         
@@ -596,9 +595,7 @@ class Procedures:
           if (self.print_export_particle_failure_id):
               gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, export_model_part.Nodes, time, 0)
           if (self.print_export_skin_sphere):
-              gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, export_model_part.Nodes, time, 0)          
-          if (self.print_representative_volume):
-              gid_io.WriteNodalResults(REPRESENTATIVE_VOLUME, export_model_part.Nodes, time, 0)
+              gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, export_model_part.Nodes, time, 0)                    
           
         #Aixo sempre per que si no hi ha manera de debugar
         #gid_io.WriteNodalResults(PARTITION_INDEX, export_model_part.Nodes, time, 0)
