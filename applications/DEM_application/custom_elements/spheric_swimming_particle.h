@@ -129,18 +129,11 @@ namespace Kratos
 
         SphericSwimmingParticle();
         void ComputeAdditionalForces(array_1d<double, 3>& contact_force, array_1d<double, 3>& contact_moment, array_1d<double, 3>& additionally_applied_force, array_1d<double, 3>& additionally_applied_moment, ProcessInfo& rCurrentProcessInfo);
-        void ComputeFluidForcesOnParticle(ProcessInfo& rCurrentProcessInfo);
-        double ComputeConstantDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
-        double ComputeWeatherfordDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
         void ComputeBuoyancy(array_1d<double, 3>& buoyancy, const double& fluid_density, const array_1d<double,3>& gravity, ProcessInfo& rCurrentProcessInfo);
         void ComputeDragForce(array_1d<double, 3>& drag_force, const double& fluid_density, ProcessInfo& rCurrentProcessInfo);
         void ComputeVirtualMassForce(array_1d<double, 3>& virtual_mass_force, const double& fluid_density, ProcessInfo& rCurrentProcessInfo);
-        void ComputeLiftForce(array_1d<double, 3>& lift_force, const double& fluid_density, ProcessInfo& rCurrentProcessInfo);
-        double CalculateDragCoeffFromSphericity(const double Reynolds, double Sphericity, int DragModifierType);
-        void CalculateNewtonianDragCoefficient(int NonNewtonianOption, const double Reynolds, const double Sphericity, double& rDrag_coeff, int DragModifierType);
-        void ComputeReynoldsNumber(int NonNewtonianOption, double rNormOfSlipVel, double rViscosity, double& rReynolds);
-        double CalculateShahsTerm(double PowerLawN,double PowerLawK, double PowerLawTol, const double& ParticleDensity, const double& FluidDensity, double Sphericity, int DragModifier);
-        void ComputeWeatherfordFluidForcesOnParticle(ProcessInfo& rCurrentProcessInfo);
+        void ComputeLiftForce(array_1d<double, 3>& lift_force, const double& fluid_density, ProcessInfo& rCurrentProcessInfo);      
+        void ComputeReynoldsNumber(double rNormOfSlipVel, double rViscosity, double& rReynolds);
         void AdditionalMemberDeclarationFirstStep(const ProcessInfo& rCurrentProcessInfo);
         void AdditionalCalculate(const Variable<double>& rVariable, double& Output, const ProcessInfo& rCurrentProcessInfo);
 
@@ -182,7 +175,13 @@ namespace Kratos
 
     private:
 
-
+        double ComputeConstantDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
+        double ComputeWeatherfordDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
+        void CalculateNewtonianDragCoefficient(int NonNewtonianOption, const double Reynolds, const double Sphericity, double& rDrag_coeff, int DragModifierType);
+        double CalculateDragCoeffFromSphericity(const double Reynolds, double Sphericity, int DragModifierType);
+        double CalculateShahsTerm(double PowerLawN,double PowerLawK, double PowerLawTol, const double& ParticleDensity, const double& FluidDensity, double Sphericity, int DragModifier);
+        double ComputeGanserDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
+        void ComputeGanserParameters(const int isometric_shape, const double sphericity, const double dn, double& k_1, double& k_2);
       ///@name Static Member Variables
       ///@{
 
