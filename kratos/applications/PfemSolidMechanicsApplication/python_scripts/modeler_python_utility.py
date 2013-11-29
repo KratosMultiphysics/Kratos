@@ -336,7 +336,7 @@ class ModelerUtility:
                 self.remesh_step = self.remesh_step + self.remesh_frequency
 
     #######################################################################   
-    def RemeshDomains(self,current_step,rigid_wall):
+    def RemeshDomainsWithWall(self,current_step,rigid_wall):
         
         if(self.remesh_domains == True):
             if( current_step == self.remesh_step):

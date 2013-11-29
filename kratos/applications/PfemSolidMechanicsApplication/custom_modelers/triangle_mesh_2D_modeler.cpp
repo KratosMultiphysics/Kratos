@@ -1742,6 +1742,11 @@ namespace Kratos
 	}
     }
     
+    if(MeshingOptions.IsNot(Modeler::REFINE_MESH) && in.numberofpoints<out.numberofpoints){
+      fail=3;
+      std::cout<<"  fail error: [NODES ADDED] something is wrong with the geometry "<<std::endl;
+    }
+    
     std::cout<<"  -( "<<meshing_info<<" )- "<<std::endl;
     std::cout<<"  (out POINTS "<<out.numberofpoints<<") :  REMESH ]; "<<std::endl;
     std::cout<<std::endl;
@@ -1795,6 +1800,7 @@ namespace Kratos
     rVariables.Refine.NumberOfElements=0;
     
     bool box_side_element = false;
+    bool wrong_added_node = false;
     if(rVariables.RefiningOptions.IsNot(Modeler::SELECT_ELEMENTS))
       {
 
@@ -1824,8 +1830,8 @@ namespace Kratos
 	    int  numfreesurf =0;
 	    int  numboundary =0;
 
-	    //std::cout<<" num nodes "<<rNodes.size()<<std::endl;
-	    //std::cout<<" selected vertices [ "<<out.trianglelist[el*3]<<", "<<out.trianglelist[el*3+1]<<", "<<out.trianglelist[el*3+2]<<"] "<<std::endl;
+	    // std::cout<<" num nodes "<<rNodes.size()<<std::endl;
+	    // std::cout<<" selected vertices [ "<<out.trianglelist[el*3]<<", "<<out.trianglelist[el*3+1]<<", "<<out.trianglelist[el*3+2]<<"] "<<std::endl;
 	    box_side_element = false;
 	    for(int pn=0; pn<3; pn++)
 	      {
@@ -1834,6 +1840,14 @@ namespace Kratos
 		  box_side_element = true;
 		  break;
 		}
+		
+
+		if( (unsigned int)out.trianglelist[el*3+pn] > rVariables.PreIds.size() ){
+		  wrong_added_node = true;
+		  std::cout<<" something is wrong: node out of bounds "<<std::endl;
+		  break;
+		}
+
 		//vertices.push_back( *((rNodes).find( out.trianglelist[el*3+pn] ).base() ) );
 		vertices.push_back(rNodes(out.trianglelist[el*3+pn]));
 
@@ -1857,7 +1871,7 @@ namespace Kratos
 
 	      }
 
-	    if(box_side_element){
+	    if(box_side_element || wrong_added_node){
 	      //std::cout<<" Box_Side_Element "<<std::endl;
 	      continue;
 	    }
