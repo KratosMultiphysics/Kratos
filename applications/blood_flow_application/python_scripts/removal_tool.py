@@ -45,6 +45,7 @@ def DoRemoval(model_part):
     nodes_to_preserve = []
     outlet_nodes = []
     inlet_nodes = []
+    FFR_nodes =[]
 
     # mark for erasal nodes before inlet
     for i in range(0, len(config.inlets_1d)):
@@ -64,7 +65,7 @@ def DoRemoval(model_part):
         # nodes_to_preserve.append(node_begin)
         nodes_to_preserve.append(node_before)
         inlet_nodes.append(node_before)
-	print "Nodo to save in inlet_nodes",node_before 
+        FFR_nodes.append(node_begin)
 
     # mark for erasal nodes after outlet
     for i in range(0, len(config.outlets_1d)):
@@ -82,7 +83,7 @@ def DoRemoval(model_part):
         node_after.SetSolutionStepValue(FLAG_VARIABLE, 0, flag_id)
         nodes_to_preserve.append(node_after)
         outlet_nodes.append(node_after)
-        print "Nodo to save in outlet_nodes",node_after 
+        FFR_nodes.append(node_after)
 
     # mark for deactivation the conditions which have all of their nodes
     # marked for erasal
@@ -146,7 +147,7 @@ def DoRemoval(model_part):
         # print highest_cond_id + 1
         highest_cond_id += 1
         
-    raw_input()
+
     id_of_new_property = 0
     for node in outlet_nodes:
         # print node
