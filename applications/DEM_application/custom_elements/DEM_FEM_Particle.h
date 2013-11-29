@@ -146,10 +146,13 @@ namespace Kratos
 
         void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
-        virtual void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, 
+        void ComputeBallToBallContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, 
                array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo); 
 			   
 		void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
+		
+		
+		void ComputeBallToRigidFaceContactForce(   array_1d<double, 3>& rContactForce, array_1d<double, 3>& rContactMoment, array_1d<double, 3>& rElasticForce, array_1d<double, 3>& InitialRotaMoment, ProcessInfo& rCurrentProcessInfo);
 
         ///@name Protected static Member Variables
  
@@ -160,6 +163,7 @@ namespace Kratos
 	  
 	  
 	  void SetInitialBallNeighbor();
+	  void SetInitialRigidFaceNeighbor();
 
    protected:
 
