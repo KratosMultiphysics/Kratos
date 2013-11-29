@@ -185,7 +185,8 @@ namespace Kratos
                                 array_1d<double, 3> &other_to_me_vect,
                                 const array_1d<double, 3> &vel,
                                 const array_1d<double, 3> &delta_displ,
-                                ParticleWeakIteratorType neighbour_iterator);
+                                ParticleWeakIteratorType neighbour_iterator,
+                                double& distance);
       
       virtual void NormalForceCalculation(double LocalElasticContactForce[3], double kn, double indentation);
 
@@ -201,7 +202,8 @@ namespace Kratos
 
       virtual void ComputeMoments(double LocalElasticContactForce[3],
                                   double GlobalElasticContactForces[3],
-                                  double InitialRotaMoment[3],
+                                  //double InitialRotaMoment[3],
+                                  array_1d<double, 3>& rInitialRotaMoment,
                                   double LocalCoordSystem[3][3],
                                   const double &other_radius,
                                   array_1d<double, 3>& rContactMoment,
