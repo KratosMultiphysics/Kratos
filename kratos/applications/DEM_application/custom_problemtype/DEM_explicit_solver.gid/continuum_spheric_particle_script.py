@@ -302,7 +302,8 @@ while (time < DEM_parameters.FinalTime):
  
     dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
-    balls_model_part.CloneTimeStep(time)
+    #balls_model_part.CloneTimeStep(time)
+    balls_model_part.ProcessInfo[DELTA_TIME] = dt
     balls_model_part.ProcessInfo[TIME_STEPS] = step
 
     #########################_SOLVE_#########################################4
@@ -364,9 +365,9 @@ while (time < DEM_parameters.FinalTime):
 
       for node in sup_layer_fm:
 
-        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES,0)[0]
-        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES,0)[1]
-        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES,0)[2]
+        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
+        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
         
         total_force_bts += force_node_y
     
@@ -385,7 +386,7 @@ while (time < DEM_parameters.FinalTime):
         height = ini_height2
         
         for node in sup_layer_fm:
-          velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y,0) #Applied velocity during the uniaxial compression test
+          velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y) #Applied velocity during the uniaxial compression test
           break
 
         print 'velocity for the graph: ' + str(velocity_node_y) + '\n'
@@ -397,9 +398,9 @@ while (time < DEM_parameters.FinalTime):
       strainlist.append(strain)
       for node in sup_layer_fm:
 
-        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES,0)[0]
-        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES,0)[1]
-        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES,0)[2]
+        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
+        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
         
         total_force += force_node_y
 
