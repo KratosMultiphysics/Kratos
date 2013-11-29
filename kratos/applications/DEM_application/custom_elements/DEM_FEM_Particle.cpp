@@ -241,6 +241,9 @@ namespace Kratos
               
               // BASIC CALCULATIONS              
               array_1d<double, 3> other_to_me_vect    = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
+              double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
+                                                          other_to_me_vect[1] * other_to_me_vect[1] +
+                                                          other_to_me_vect[2] * other_to_me_vect[2]);
               const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
  
               //double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
@@ -249,17 +252,17 @@ namespace Kratos
 			  
               double equiv_radius                     = radius_sum * 0.5;
              // double indentation                      = radius_sum - distance;
-	          double kn;
-	          double kt;
+	      double kn;
+	      double kt;
               
               double equiv_area                       =  M_PI * equiv_radius * equiv_radius;
 			  
 			  
-			  double other_cohesion = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_COHESION);
-			  double other_tension  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_TENSION );
-			  
-			  double equiv_cohesion = (mfcohesion + other_cohesion) * 0.5;
-			  double equiv_tension  = (mftension  + other_tension ) * 0.5;
+	      double other_cohesion = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_COHESION);
+	      double other_tension  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_TENSION );
+		  
+	      double equiv_cohesion = (mfcohesion + other_cohesion) * 0.5;
+	      double equiv_tension  = (mftension  + other_tension ) * 0.5;
 
               double equiv_visco_damp_coeff_normal;
               double equiv_visco_damp_coeff_tangential;
@@ -277,13 +280,13 @@ namespace Kratos
               double OldLocalCoordSystem[3][3]         = {{0.0}, {0.0}, {0.0}};
 			  
 			  
-			  const double &other_young       = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-			  const double &other_poisson     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
-			  double equiv_young              = (mYoung + other_young) * 0.5;
-			  double equiv_poisson            = (mPoisson + other_poisson) * 0.5;
-			  double equiv_shearM             = equiv_young / (2.0 * (1.0 + equiv_poisson));
-			  kn                              = equiv_young  * equiv_area / radius_sum;
-			  kt                              = equiv_shearM * equiv_area / radius_sum;
+	      const double &other_young       = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+	      const double &other_poisson     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+	      double equiv_young              = (mYoung + other_young) * 0.5;
+	      double equiv_poisson            = (mPoisson + other_poisson) * 0.5;
+	      double equiv_shearM             = equiv_young / (2.0 * (1.0 + equiv_poisson));
+	      kn                              = equiv_young  * equiv_area / radius_sum;
+	      kt                              = equiv_shearM * equiv_area / radius_sum;
 			  
 
               EvaluateDeltaDisplacement(DeltDisp, RelVel, /*NormalDir, OldNormalDir,*/ LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
