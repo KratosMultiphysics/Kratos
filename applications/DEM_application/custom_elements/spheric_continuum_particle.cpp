@@ -347,16 +347,19 @@ namespace Kratos
         const array_1d<double, 3>& delta_displ = this->GetGeometry()(0)->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
         const array_1d<double, 3>& ang_vel     = this->GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
         double RotaAcc[3]                      = {0.0};
-        double InitialRotaMoment[3]            = {0.0};
+        //double InitialRotaMoment[3]            = {0.0};
 
         if (mRotationOption){
             RotaAcc[0]                         = ang_vel[0] * dt_i;
             RotaAcc[1]                         = ang_vel[1] * dt_i;
             RotaAcc[2]                         = ang_vel[2] * dt_i;
 
-            InitialRotaMoment[0] = RotaAcc[0] * mMomentOfInertia;       
+            /*InitialRotaMoment[0] = RotaAcc[0] * mMomentOfInertia;       
             InitialRotaMoment[1] = RotaAcc[1] * mMomentOfInertia;
-            InitialRotaMoment[2] = RotaAcc[2] * mMomentOfInertia;
+            InitialRotaMoment[2] = RotaAcc[2] * mMomentOfInertia;*/
+            rInitialRotaMoment[0] = RotaAcc[0] * mMomentOfInertia;       
+            rInitialRotaMoment[1] = RotaAcc[1] * mMomentOfInertia;
+            rInitialRotaMoment[2] = RotaAcc[2] * mMomentOfInertia;
 
         }        
 
@@ -512,7 +515,7 @@ namespace Kratos
             }
             
             
-            EvaluateDeltaDisplacement(DeltDisp, RelVel, /*NormalDir, OldNormalDir, */LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator);
+            EvaluateDeltaDisplacement(DeltDisp, RelVel, /*NormalDir, OldNormalDir, */LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
             DisplacementDueToRotation(DeltDisp, /*OldNormalDir,*/ OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
             
@@ -544,11 +547,12 @@ namespace Kratos
         
             double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
             
-            if (Frictional_ShearForceMax < 0.0)
+            /*if (Frictional_ShearForceMax < 0.0)
             {
               Frictional_ShearForceMax = 0.0;
               
-            }
+            }*/
+            Frictional_ShearForceMax = (Frictional_ShearForceMax < 0.0) ? 0.0 : Frictional_ShearForceMax;
             
                
             if  (indentation > 0.0 || (mNeighbourFailureId[i_neighbour_count] == 0) )//*  //#3
@@ -672,7 +676,7 @@ namespace Kratos
             //AddPoissonContribution(LocalCoordSystem, GlobalContactForce, GlobalElasticContactForce, ViscoDampingGlobalContactForce, rContactForce, damp_forces); //MSIMSI 10
 
             
-            ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce,InitialRotaMoment,LocalCoordSystem,other_radius,rContactMoment,neighbour_iterator);
+            ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce,/*InitialRotaMoment,*/rInitialRotaMoment, LocalCoordSystem,other_radius,rContactMoment,neighbour_iterator);
             
             //StressTensorOperations(mStressTensor,GlobalElasticContactForce,other_to_me_vect,distance,radius_sum,calculation_area,neighbour_iterator,rCurrentProcessInfo); //MSISI 10
   
@@ -688,9 +692,9 @@ namespace Kratos
 
         }//for each neighbour
         
-        rInitialRotaMoment [0] = InitialRotaMoment [0];
+        /*rInitialRotaMoment [0] = InitialRotaMoment [0];
         rInitialRotaMoment [1] = InitialRotaMoment [1];
-        rInitialRotaMoment [2] = InitialRotaMoment [2];
+        rInitialRotaMoment [2] = InitialRotaMoment [2];*/
 
 
         //ComputeStressStrain(mStressTensor, rCurrentProcessInfo);  //MSIMSI 10
