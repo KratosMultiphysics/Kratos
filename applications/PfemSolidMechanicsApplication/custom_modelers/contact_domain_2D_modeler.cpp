@@ -253,7 +253,7 @@ namespace Kratos
 
     for(unsigned int i = 0; i<rBoundaryNodes.size(); i++)
       {
-	nodal_h=(boundary_nodes_begin + i)->FastGetSolutionStepValue(NODAL_H); //BOUNDARY_NORMAL mus
+	nodal_h=(boundary_nodes_begin + i)->FastGetSolutionStepValue(NODAL_H); 
 	
 	if(nodal_h_min>nodal_h)  
 	  nodal_h_min=nodal_h;
@@ -302,13 +302,20 @@ namespace Kratos
 	  array_1d<double, 3>&  Normal=(boundary_nodes_begin + i)->FastGetSolutionStepValue(NORMAL); //BOUNDARY_NORMAL must be set as nodal variable
 	  double Shrink = (boundary_nodes_begin + i)->FastGetSolutionStepValue(SHRINK_FACTOR);   //SHRINK_FACTOR   must be set as nodal variable
 
+	  //std::cout<<" Normal "<<Normal<<" Shrink "<<Shrink<<std::endl;
 
 	  //if normal not normalized
 	  //Shrink /=norm_2(Normal);
 	    
 	  array_1d<double, 3>& Offset = (boundary_nodes_begin + i)->FastGetSolutionStepValue(OFFSET);
 
-	  Normal /= norm_2(Normal);
+	  if( norm_2(Normal)!= 0 ){
+	    Normal /= norm_2(Normal);
+	  }
+	  else{
+	    std::cout<<" Boundary NORMAL is Zero in node ["<<(boundary_nodes_begin + i)->Id()<<"] : something is wrong with the normals search "<<std::endl;
+	  };
+
 	  Offset[0] = ((-1)*Normal[0]*Shrink*rContactVariables.offset_factor);
 	  Offset[1] = ((-1)*Normal[1]*Shrink*rContactVariables.offset_factor);
 
@@ -316,6 +323,8 @@ namespace Kratos
 
 	  in.pointlist[base]   = (boundary_nodes_begin + i)->X() + Offset[0];
 	  in.pointlist[base+1] = (boundary_nodes_begin + i)->Y() + Offset[1];
+
+	  //std::cout<<" vertex["<<id<<"] "<< in.pointlist[base] <<" "<<in.pointlist[base+1]<<std::endl; 
 
 	  base+=2;
 	  id  +=1;
