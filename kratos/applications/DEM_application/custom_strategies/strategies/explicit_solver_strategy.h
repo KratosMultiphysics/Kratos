@@ -214,11 +214,11 @@ namespace Kratos
           }
 
           // 4. Initializing elements and perform the repartition
-          if (!mElementsAreInitialized){
-
+          //if (!mElementsAreInitialized){
+            InitializeSolutionStep();
             InitializeElements();
               
-          }
+          //}
 
           mInitializeWasPerformed = true;
           
@@ -244,7 +244,7 @@ namespace Kratos
           int time_step = rCurrentProcessInfo[TIME_STEPS];
           
           // 1. Here we initialize member variables that depend on the rCurrentProcessInfo
-          InitializeSolutionStep();
+          //InitializeSolutionStep();
 		  
 		 // 2. Neighbouring search. Every N times. + destruction of particles outside the bounding box                   
 	
