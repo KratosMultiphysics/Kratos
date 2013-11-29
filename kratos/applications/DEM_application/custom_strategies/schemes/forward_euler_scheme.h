@@ -256,6 +256,7 @@ namespace Kratos
                 If_Fix_Rotation[2] = i->GetDof(ANGULAR_VELOCITY_Z, pos).IsFixed();
 				
 
+                bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
                 
                 for(std::size_t iterator = 0 ; iterator < 3; iterator++)
                 {
@@ -265,7 +266,7 @@ namespace Kratos
                          
                          RotaAcc = (RotaMoment[iterator]) / (PMomentOfInertia);
 
-                         if(rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
+                         if(if_virtual_mass_option)
                          {
                                   RotaAcc = RotaAcc * ( 1 - coeff );
                          }
