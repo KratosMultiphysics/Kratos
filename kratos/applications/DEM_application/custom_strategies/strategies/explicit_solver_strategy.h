@@ -605,6 +605,12 @@ namespace Kratos
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
 //         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part,this->GetRadius(),this->GetResults());
         
+        for (SpatialSearch::ElementsContainerType::iterator i = r_model_part.GetCommunicator().GhostMesh().Elements().begin(); i != r_model_part.GetCommunicator().GhostMesh().Elements().end(); i++){
+            r_model_part.Elements().push_back(*i);
+        }
+        
+        SynchronizeSolidMesh(r_model_part);
+        
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
         
         #pragma omp parallel for
@@ -1091,7 +1097,7 @@ namespace Kratos
     void SynchronizeSolidMesh(ModelPart& r_model_part)
     {
         r_model_part.GetCommunicator().SynchronizeNodalSolutionStepsData();
-        r_model_part.GetCommunicator().SynchronizeDofs();
+//         r_model_part.GetCommunicator().SynchronizeDofs();
     }
     
     // Getting member variables
