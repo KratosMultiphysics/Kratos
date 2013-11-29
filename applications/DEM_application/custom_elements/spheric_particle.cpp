@@ -60,17 +60,20 @@ namespace Kratos
           mLnOfRestitCoeff          = GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
           double& density           = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
           double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
-          double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
-          double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
+          double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);          
           double& erase_flag        = GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
 
           erase_flag                = 0.0;
           mass                      = 4.0 / 3.0 * M_PI * density * mRadius * mRadius * mRadius;
           sqrt_of_mass              = sqrt(mass);
-          moment_of_inertia         = 0.4 * mass * mRadius * mRadius;         
+          double moment_of_inertia         = 0.4 * mass * mRadius * mRadius; 
+          
           mRealMass                 = mass;                    
           mSqrtOfRealMass           = sqrt_of_mass;
           mMomentOfInertia          = moment_of_inertia;
+          if(mRotationOption){
+            GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
+          }
           
           //OPTIMIZATION
           GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X_DOF_POS) = GetGeometry()[0].GetDofPosition(VELOCITY_X); 
