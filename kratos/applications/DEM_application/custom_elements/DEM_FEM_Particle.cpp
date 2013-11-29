@@ -101,6 +101,7 @@ namespace Kratos
         SphericParticle::Initialize();
 		
 		SetInitialBallNeighbor();
+		SetInitialRigidFaceNeighbor();
 
         //Extra functions;
 		mfcohesion = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_COHESION);
@@ -128,6 +129,36 @@ namespace Kratos
         }
 		
 	}
+	
+	
+	
+     //////RigidFace
+	void DEM_FEM_Particle::SetInitialRigidFaceNeighbor()
+     {
+
+       ConditionWeakVectorType& rNeighbours  = this->GetValue(NEIGHBOUR_RIGID_FACES);
+       unsigned int new_size                = rNeighbours.size();
+	   
+		maInitialRigidFaceNeighborID.resize(new_size);
+		maInitialRigidFaceNeighborFailureType.resize(new_size);
+		
+		
+		unsigned int neighbour_counter = 0;
+       
+       for (ConditionWeakIteratorType i = rNeighbours.begin(); i != rNeighbours.end(); i++)
+		{
+
+           maInitialRigidFaceNeighborID[neighbour_counter] = static_cast<int>(i->Id());
+           maInitialRigidFaceNeighborFailureType[neighbour_counter] = 0;
+
+		   neighbour_counter++;
+        }
+      }
+	
+	
+	
+	
+	
 
 
     ////************************************************************************************
@@ -212,12 +243,12 @@ namespace Kratos
               array_1d<double, 3> other_to_me_vect    = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
               const double &other_radius              = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
  
-              double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
+              //double distance                         = sqrt(other_to_me_vect[0] * other_to_me_vect[0] + other_to_me_vect[1] * other_to_me_vect[1] + other_to_me_vect[2] * other_to_me_vect[2]);
               double radius_sum                       = mRadius + other_radius;
 			  
 			  
               double equiv_radius                     = radius_sum * 0.5;
-              double indentation                      = radius_sum - distance;
+             // double indentation                      = radius_sum - distance;
 	          double kn;
 	          double kt;
               
@@ -307,7 +338,7 @@ namespace Kratos
 			}
 			
 
-            bool If_sliding = false;
+          //  bool If_sliding = false;
 			
 			int failure_type= 0;
 			
@@ -339,7 +370,7 @@ namespace Kratos
                     LocalElasticContactForce[0] = ShearForceMax / ShearForceNow * LocalElasticContactForce[0];
                     LocalElasticContactForce[1] = ShearForceMax / ShearForceNow * LocalElasticContactForce[1];
 					
-					If_sliding = true;
+				//	If_sliding = true;
 					
 					failure_type = 2;
                 }
@@ -410,6 +441,226 @@ namespace Kratos
 
           KRATOS_CATCH("")
       }// ComputeBallToBallContactForce
+	  
+	  
+	  
+	  
+	  
+  void DEM_FEM_Particle::ComputeBallToRigidFaceContactForce(array_1d<double, 3>& rContactForce,
+                                                          array_1d<double, 3>& rContactMoment,
+                                                          array_1d<double, 3>& rElasticForce,
+                                                          array_1d<double, 3>& rInitialRotaMoment,
+                                                          ProcessInfo& rCurrentProcessInfo)
+	{
+		  
+		  KRATOS_TRY
+		  
+
+          ConditionWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_RIGID_FACES);
+          
+		
+		double mTimeStep    = rCurrentProcessInfo[DELTA_TIME];
+		/////int CalRotateOption = rCurrentProcessInfo[RIGID_FACE_FLAG];
+
+		double Friction       = mTgOfFrictionAngle;
+		double young          = mYoung;
+		double poisson        = mPoisson;
+		double radius         = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+		double area           = M_PI * radius * radius;
+		double kn             = young * area / (2.0 * radius);
+		double ks             = kn / (2.0 * (1.0 + poisson));
+		
+		double equiv_cohesion = mfcohesion;
+	    double equiv_tension  = mftension;
+		
+        std::size_t iRigidFaceNeighbour = 0;
+
+        for(ConditionWeakIteratorType ineighbour = rNeighbours.begin(); ineighbour != rNeighbours.end(); ineighbour++)
+        {
+			
+            double LocalContactForce[3]  = {0.0};
+            double GlobalContactForce[3] = {0.0};
+            double GlobalContactForceOld[3] = {0.0};
+			
+
+            array_1d<double, 3 > vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+
+            array_1d<double, 3 > other_to_me_vel;
+            noalias(other_to_me_vel) = ZeroVector(3);
+
+            double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
+			
+			double DistPToB = 0.0;
+
+
+			ComputeRigidFaceToMeVelocity(ineighbour, iRigidFaceNeighbour, LocalCoordSystem, DistPToB, other_to_me_vel);			
+			
+
+            double DeltDisp[3] = {0.0};
+            double DeltVel [3] = {0.0};
+
+            DeltVel[0] = (vel[0] - other_to_me_vel[0]);
+            DeltVel[1] = (vel[1] - other_to_me_vel[1]);
+            DeltVel[2] = (vel[2] - other_to_me_vel[2]);
+
+            // For translation movement delt displacement
+            DeltDisp[0] = DeltVel[0] * mTimeStep;
+            DeltDisp[1] = DeltVel[1] * mTimeStep;
+            DeltDisp[2] = DeltVel[2] * mTimeStep;
+
+
+            if (mRotationOption)
+            {
+                double velA[3]   = {0.0};
+                double dRotaDisp[3] = {0.0};
+
+                array_1d<double, 3 > AngularVel= GetGeometry()(0)->FastGetSolutionStepValue(ANGULAR_VELOCITY);
+                double Vel_Temp[3] = { AngularVel[0], AngularVel[1], AngularVel[2]};
+                GeometryFunctions::CrossProduct(Vel_Temp, LocalCoordSystem[2], velA);
+
+                dRotaDisp[0] = -velA[0] * radius;
+                dRotaDisp[1] = -velA[1] * radius;
+                dRotaDisp[2] = -velA[2] * radius;
+
+                //////contribution of the rotation vel
+                DeltDisp[0] += dRotaDisp[0] * mTimeStep;
+                DeltDisp[1] += dRotaDisp[1] * mTimeStep;
+                DeltDisp[2] += dRotaDisp[2] * mTimeStep;
+            }
+
+
+            double LocalDeltDisp[3] = {0.0};
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, DeltDisp, LocalDeltDisp);
+			
+			
+
+            //////120323,for global storage
+			
+		    GlobalContactForceOld[0] = mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][0];
+		    GlobalContactForceOld[1] = mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][1];
+		    GlobalContactForceOld[2] = mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][2];
+			
+			
+            GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalContactForceOld, LocalContactForce);
+            LocalContactForce[0] +=  - ks * LocalDeltDisp[0];
+            LocalContactForce[1] +=  - ks * LocalDeltDisp[1];
+            LocalContactForce[2] +=  - kn * LocalDeltDisp[2];
+			
+		
+		    ////Check if_initial_neighbor
+			unsigned int inb;
+			for(inb = 0; inb < maInitialRigidFaceNeighborID.size(); inb++)
+			{
+				if( maInitialRigidFaceNeighborID[inb] == static_cast<int>(ineighbour->Id()) )
+				{
+					if(maInitialRigidFaceNeighborFailureType[inb] > 0)
+					{
+					  equiv_cohesion = 0.0;
+					  equiv_tension  = 0.0;
+					}
+					break;
+				}
+				  
+			}
+			// Not the initial contact 
+			if(inb == maInitialRigidFaceNeighborID.size())
+			{
+				equiv_cohesion = 0.0;
+				equiv_tension  = 0.0;		
+			}
+			
+			
+			
+			int failure_type= 0;
+			
+            if (-LocalContactForce[2] > area * equiv_tension)
+            {
+                LocalContactForce[0] = 0.0;
+                LocalContactForce[1]  = 0.0;
+                LocalContactForce[2]  = 0.0;
+				
+				failure_type = 1;
+            }
+            else
+            {
+
+                double ShearForceMax = LocalContactForce[2] * Friction + area * equiv_cohesion;
+				
+                double ShearForceNow = sqrt(LocalContactForce[0] * LocalContactForce[0]
+                                     +      LocalContactForce[1] * LocalContactForce[1]);
+
+
+                //Cfeng: for shear failure
+                if(ShearForceMax <= 0.0)
+                {
+                    LocalContactForce[0] = 0.0;
+                    LocalContactForce[1] = 0.0;
+                }
+                else if(ShearForceNow > ShearForceMax)
+                {
+                    LocalContactForce[0] = ShearForceMax / ShearForceNow * LocalContactForce[0];
+                    LocalContactForce[1] = ShearForceMax / ShearForceNow * LocalContactForce[1];
+				
+					
+					failure_type = 2;
+                }
+            }
+			
+			
+			
+			
+
+            GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalContactForce, GlobalContactForce);
+
+            mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][0] = GlobalContactForce[0];
+            mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][1] = GlobalContactForce[1];
+            mOldRigidFaceNeighbourContactForces[iRigidFaceNeighbour][2] = GlobalContactForce[2];
+			
+	    ///Global stored contact force between rigid face and particle, used by fem elements
+            Vector& neighbour_rigid_faces_contact_force = this->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE);
+	    neighbour_rigid_faces_contact_force[3 * iRigidFaceNeighbour + 0] = GlobalContactForce[0];
+	    neighbour_rigid_faces_contact_force[3 * iRigidFaceNeighbour + 1] = GlobalContactForce[1];
+	    neighbour_rigid_faces_contact_force[3 * iRigidFaceNeighbour + 2] = GlobalContactForce[2];
+			
+
+            rContactForce[0] += GlobalContactForce[0];
+            rContactForce[1] += GlobalContactForce[1];
+            rContactForce[2] += GlobalContactForce[2];
+		
+			
+			/////////////////////////////////////////////////////////////////////////////
+
+            if ( mRotationOption)
+            {
+                double MA[3] = {0.0};
+                GeometryFunctions::CrossProduct(LocalCoordSystem[2], GlobalContactForce, MA);
+                rContactMoment[0] -= MA[0] * radius;
+                rContactMoment[1] -= MA[1] * radius;
+                rContactMoment[2] -= MA[2] * radius;
+            }
+
+
+            iRigidFaceNeighbour++;
+			
+			
+			  if(inb < maInitialRigidFaceNeighborID.size())
+			  {
+				  if(maInitialRigidFaceNeighborFailureType[inb] == 0)
+				  {
+					  maInitialRigidFaceNeighborFailureType[inb] = failure_type;
+				  }
+			  }
+
+        }
+		  
+          KRATOS_CATCH("")
+		  
+      }// ComputeBallToRigidFaceContactForce
+	  
+	  
+	  
+	  
+	  
 
 
 
