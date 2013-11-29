@@ -4,24 +4,18 @@ from KratosMultiphysics.BloodFlowApplication import *
 CheckForPreviousImport()
 import math
 
-
 def GetNodeBefore(table, prop):
     return table[prop - 1][1]
-
 
 def GetNodeBegin(table, prop):
     return table[prop - 1][2]
 
-
 def GetNodeEnd(table, prop):
     return table[prop - 1][3]
 
-
 def GetNodeAfter(table, prop):
     return table[prop - 1][4]
-
 # select and remove
-
 
 def DoRemoval(model_part):
     import config
@@ -60,10 +54,8 @@ def DoRemoval(model_part):
         print "prop_id", prop_id
         # print GetNodeBefore(full_nodes_table.table, prop_id)
         # raw_input()
-        node_before = model_part.Nodes[
-            GetNodeBefore(full_nodes_table.table, prop_id)]
-        node_begin = model_part.Nodes[
-            GetNodeBegin(full_nodes_table.table, prop_id)]
+        node_before = model_part.Nodes[GetNodeBefore(full_nodes_table.table, prop_id)]
+        node_begin = model_part.Nodes[GetNodeBegin(full_nodes_table.table, prop_id)]
         node_before.SetValue(ERASE_FLAG, True)
         node_begin.SetValue(ERASE_FLAG, True)
         print node_before
@@ -80,10 +72,8 @@ def DoRemoval(model_part):
         flag_id = config.outlets_1d[i][0]
         prop_id = config.outlets_1d[i][1]
         print "prop_id", prop_id
-        node_end = model_part.Nodes[
-            GetNodeEnd(full_nodes_table.table, prop_id)]
-        node_after = model_part.Nodes[
-            GetNodeAfter(full_nodes_table.table, prop_id)]
+        node_end = model_part.Nodes[GetNodeEnd(full_nodes_table.table, prop_id)]
+        node_after = model_part.Nodes[GetNodeAfter(full_nodes_table.table, prop_id)]
         node_end.SetValue(ERASE_FLAG, True)
         node_after.SetValue(ERASE_FLAG, True)
         print "prop_id = ", prop_id
@@ -114,7 +104,6 @@ def DoRemoval(model_part):
         #if(flag != 0):
             #print "id = ", node.Id, " flag = ", flag
     
-
     # unamrk the node to be preserved
     for node in nodes_to_preserve:
         node.SetValue(ERASE_FLAG, False)
@@ -188,7 +177,8 @@ def DoRemoval(model_part):
 
     #print "CREADAS CONDICIONES"
     #raw_input()
-
+    return [inlet_nodes,outlet_nodes]
+    
 
 def ComputePressure(model_part1D,dyastolic_pressure):
     for node in model_part1D.Nodes:

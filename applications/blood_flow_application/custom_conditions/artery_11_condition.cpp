@@ -481,7 +481,7 @@ void Artery11Condition::CalculateJacobian4(Matrix& rJacobian,
     rJacobian(1,0)=  ((0.50 * ArteryProperty[0] / sqrt(Area[0])) - ((BloodDensity* Flow[0] * Flow[0]) / (Area[0]*Area[0]*Area[0])));
     rJacobian(1,1)= -((0.50 * ArteryProperty[1] / sqrt(Area[1])) + ((BloodDensity* Flow[1] * Flow[1]) / (Area[1]*Area[1]*Area[1])));
     rJacobian(1,2)=  (BloodDensity * Flow[0]) / (Area[0] * Area[0]);
-    rJacobian(1,3)= -((BloodDensity * Flow[1]) / (Area[1] * Area[1])) - (a_factor) - (2*b_factor*Flow[1]);
+    rJacobian(1,3)= -((BloodDensity * Flow[1]) / (Area[1] * Area[1])) - (a_factor) - (2*b_factor*(Flow[1]));
 
     rJacobian(2,0)= 0.00;
     rJacobian(2,1)= 0.00;
