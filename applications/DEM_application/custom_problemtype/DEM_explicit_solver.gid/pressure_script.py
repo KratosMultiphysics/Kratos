@@ -11,7 +11,7 @@ def ApplyPressure(Pressure,XLAT,XBOT,XTOP,XBOTCORNER,XTOPCORNER,alpha_top,alpha_
 
   for node in XLAT:
 
-    r = node.GetSolutionStepValue(RADIUS,0)
+    r = node.GetSolutionStepValue(RADIUS)
     x = node.X
     y = node.Y
     z = node.Z
@@ -42,7 +42,7 @@ def ApplyPressure(Pressure,XLAT,XBOT,XTOP,XBOTCORNER,XTOPCORNER,alpha_top,alpha_
 
   for node in XTOP:
 
-    r = node.GetSolutionStepValue(RADIUS,0)
+    r = node.GetSolutionStepValue(RADIUS)
     x = node.X
     y = node.Y
     z = node.Z
