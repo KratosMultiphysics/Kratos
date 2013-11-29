@@ -214,7 +214,9 @@ namespace Kratos
           //KRATOS_TIMER_START("SynchronizeSolidMesh")
           BaseType::SynchronizeSolidMesh(rModelPart);
           //KRATOS_TIMER_STOP("SynchronizeSolidMesh")
-
+          
+//           rCurrentProcessInfo[ACTIVATE_SEARCH]=1;
+          
           if(rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
           {
             
@@ -230,11 +232,15 @@ namespace Kratos
              }
              
           }
+         
+          //Synch this var.
+          rModelPart.GetCommunicator().MaxAll(rCurrentProcessInfo[ACTIVATE_SEARCH]);
 
           // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box
           //KRATOS_TIMER_START("SearchNeighbours")
           
-          else{
+          if(rCurrentProcessInfo[ACTIVATE_SEARCH]==1)
+          {
 
               if ((time_step + 1)%this->GetNStepSearch() == 0 && time_step > 0){
 
@@ -261,6 +267,8 @@ namespace Kratos
 
           }
           //KRATOS_TIMER_STOP("SearchNeighbours")
+                    // 5. Synchronize
+          BaseType::SynchronizeSolidMesh(rModelPart);
           
           //KRATOS_TIMER_START("FinalizeSolutionStep")
           BaseType::FinalizeSolutionStep();
@@ -321,7 +329,7 @@ namespace Kratos
             i->GetValue(NEIGHBOUR_ELEMENTS).clear();
         }
 
-        this->GetSpSearch()->SearchElementsInRadiusExclusive(rModelPart,this->GetRadius(),this->GetResults());
+        this->GetSpSearch()->SearchElementsInRadiusExclusive(rModelPart,this->GetRadius(),this->GetResults(),this->GetResultsDistances());
 
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
         
