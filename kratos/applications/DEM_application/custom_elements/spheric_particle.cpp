@@ -71,6 +71,7 @@ namespace Kratos
           mRealMass                 = mass;                    
           mSqrtOfRealMass           = sqrt_of_mass;
           mMomentOfInertia          = moment_of_inertia;
+
           if(mRotationOption){
             GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA) = moment_of_inertia;
           }
@@ -420,7 +421,6 @@ namespace Kratos
           //NormalDir[0] = other_to_me_vect[0];
           //NormalDir[1] = other_to_me_vect[1];
           //NormalDir[2] = other_to_me_vect[2];
-          array_1d<double,3> test3 = other_to_me_vect;
           
           GeometryFunctions::ComputeContactLocalCoordSystem(other_to_me_vect, distance, LocalCoordSystem); //new Local Coord System (normalizes other_to_me_vect)
 
