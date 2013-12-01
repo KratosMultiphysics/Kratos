@@ -113,10 +113,10 @@ namespace Kratos
           this->GetBoundingBoxOption()     = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
 
           // 2. Initializing elements and perform the repartition
-          if (this->GetElementsAreInitialized() == false){
-
+          //if (this->GetElementsAreInitialized() == false){
+            BaseType::InitializeSolutionStep();
             BaseType::InitializeElements();
-          }
+          //}
   
           this->GetInitializeWasPerformed() = true;
 
@@ -138,7 +138,7 @@ namespace Kratos
           }
          
           // 4. Set Initial Contacts
-          BaseType::InitializeSolutionStep();
+          
 
           
           if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
