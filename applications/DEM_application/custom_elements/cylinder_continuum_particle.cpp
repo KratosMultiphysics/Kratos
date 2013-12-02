@@ -133,7 +133,7 @@ namespace Kratos
       }
       
       
-       void SphericContinuumParticle::ContactAreaWeighting2D(const ProcessInfo& r_process_info) //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
+       void SphericContinuumParticle::ContactAreaWeighting2D() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
       { 
 
         double alpha = 1.0;
