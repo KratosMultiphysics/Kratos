@@ -226,7 +226,7 @@ class Procedures:
         return model_part_io_solid
         
 
-    def ModelData(self, balls_model_part, solver):
+    def ModelData(self, balls_model_part, contact_model_part, solver):
     # Previous Calculations.
 
         Model_Data = open('Model_Data.txt', 'w')
@@ -266,8 +266,14 @@ class Procedures:
         Model_Data.write('\n')
 
         Total_Particles     = len(balls_model_part.Nodes)
-        Total_Contacts      = solver.model_part.ProcessInfo.GetValue(TOTAL_CONTACTS) / 2
-        Coordination_Number = 1.0 * (Total_Contacts * 2) / Total_Particles
+        
+        Total_Contacts = 0
+        
+        for bar in contact_model_part.Elements:
+
+            Total_Contacts += 1.0
+
+        Coordination_Number = 1.0 * (double(Total_Contacts) * 2.0) / double(Total_Particles)
 
         Model_Data.write("Total Number of Particles: " + str(Total_Particles)     + '\n')
         Model_Data.write("Total Number of Contacts: "  + str(Total_Contacts)      + '\n')
@@ -277,6 +283,8 @@ class Procedures:
         #Model_Data.write("Volume Elements: " + str(total_volume) + '\n')
 
         Model_Data.close()
+        
+        return Coordination_Number
 
 
     def GiDSolverTransfer(self, model_part, solver, param):
