@@ -88,6 +88,7 @@ namespace Kratos
           double aux                  = 0;
           double delta_t              = rCurrentProcessInfo[DELTA_TIME];
           double virtual_mass_coeff   = rCurrentProcessInfo[NODAL_MASS_COEFF];
+          bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
 
           vector<unsigned int> node_partition;
           //NodesArrayType::iterator it_begin = pNodes.ptr_begin();
@@ -121,7 +122,7 @@ namespace Kratos
                   i->FastGetSolutionStepValue(OLD_COORDINATES) = coor; //saving the coordinates in order to optimize some functions (specially de previous step coordinates)  
 
 
-                  if (rCurrentProcessInfo[VIRTUAL_MASS_OPTION])
+                  if (if_virtual_mass_option)
                   {
                       aux = (1 - virtual_mass_coeff)* (delta_t / mass);
                       if (aux<0.0) KRATOS_ERROR(std::runtime_error,"The coefficient assigned for vitual mass is larger than one, virtual_mass_coeff= ",virtual_mass_coeff)
@@ -210,13 +211,11 @@ namespace Kratos
 
           ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
           NodesArrayType& pNodes            = GetNodes(model_part);
-
-    
-    double delta_t =  rCurrentProcessInfo[DELTA_TIME];
-
-        vector<unsigned int> node_partition;
-    //NodesArrayType::iterator it_begin = pNodes.ptr_begin();
-    //NodesArrayType::iterator it_end   = pNodes.ptr_end();
+          double delta_t =  rCurrentProcessInfo[DELTA_TIME];
+          bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
+          vector<unsigned int> node_partition;
+          bool if_trihedron_option = (bool) rCurrentProcessInfo[TRIHEDRON_OPTION];
+          double coeff            = rCurrentProcessInfo[NODAL_MASS_COEFF];
 
     #ifdef _OPENMP
         int number_of_threads = omp_get_max_threads();
@@ -235,9 +234,7 @@ namespace Kratos
 
                 //double PMass            = i->FastGetSolutionStepValue(NODAL_MASS);
 
-                double PMomentOfInertia = i->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
-                double coeff            = rCurrentProcessInfo[NODAL_MASS_COEFF];
-
+                double PMomentOfInertia = i->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);                
 
                 array_1d<double, 3 > & AngularVel             = i->FastGetSolutionStepValue(ANGULAR_VELOCITY);
                 array_1d<double, 3 > & RotaMoment             = i->FastGetSolutionStepValue(PARTICLE_MOMENT);
@@ -253,10 +250,7 @@ namespace Kratos
                 pos = i->FastGetSolutionStepValue(ANGULAR_VELOCITY_Y_DOF_POS);
                 If_Fix_Rotation[1] = i->GetDof(ANGULAR_VELOCITY_Y, pos).IsFixed();
                 pos = i->FastGetSolutionStepValue(ANGULAR_VELOCITY_Z_DOF_POS);
-                If_Fix_Rotation[2] = i->GetDof(ANGULAR_VELOCITY_Z, pos).IsFixed();
-				
-
-                bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
+                If_Fix_Rotation[2] = i->GetDof(ANGULAR_VELOCITY_Z, pos).IsFixed();				               
                 
                 for(std::size_t iterator = 0 ; iterator < 3; iterator++)
                 {
@@ -298,7 +292,7 @@ namespace Kratos
                 
                 //double RotationAngle;
           
-                if(rCurrentProcessInfo[TRIHEDRON_OPTION])
+                if(if_trihedron_option)
                 {
                     double theta[3] = {0.0};
                     
