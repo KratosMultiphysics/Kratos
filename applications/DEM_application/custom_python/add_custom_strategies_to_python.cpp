@@ -146,7 +146,7 @@ namespace Kratos
           
           class_< ExplicitSolverStrategyType, bases< BaseSolvingStrategyType >,  boost::noncopyable>
           (
-          "ExplicitSolverStrategy", init< ModelPart&, ModelPart&, double, double, double, bool, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ExplicitSolverStrategy", init< ModelPart&, ModelPart&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ExplicitSolverStrategyType::InitialTimeStepCalculation)
 				  .def("Compute_RigidFace_Movement", &ExplicitSolverStrategyType::Compute_RigidFace_Movement)
@@ -154,7 +154,7 @@ namespace Kratos
           
           class_< ContinuumExplicitSolverStrategyType, bases< ExplicitSolverStrategyType >,  boost::noncopyable>
           (
-          "ContinuumExplicitSolverStrategy", init< ModelPart&, ModelPart&, ModelPart&, double, double, double, bool, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
+          "ContinuumExplicitSolverStrategy", init< ModelPart&, ModelPart&, ModelPart&, double, double, double, bool, int, double, double, ParticleCreatorDestructor::Pointer, IntegrationScheme::Pointer, SpatialSearch::Pointer>())
                   .def("Initialize", &ContinuumExplicitSolverStrategyType::Initialize)
                   .def("InitialTimeStepCalculation", &ContinuumExplicitSolverStrategyType::InitialTimeStepCalculation)
           ;
