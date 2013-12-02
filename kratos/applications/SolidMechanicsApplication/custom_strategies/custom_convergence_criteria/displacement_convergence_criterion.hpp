@@ -136,6 +136,10 @@ public:
             if ( ratio <= mRatioTolerance)
             {
                 KRATOS_WATCH( "convergence is achieved" )
+		  
+  	        // if(r_model_part.GetProcessInfo()[NL_ITERATION_NUMBER] == 1)
+		//   return false;
+
                 return true;
             }
             else

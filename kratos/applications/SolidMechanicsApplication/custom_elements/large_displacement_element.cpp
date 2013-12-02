@@ -384,6 +384,12 @@ void LargeDisplacementElement::GetValueOnIntegrationPoints( const Variable<Vecto
         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
     }
+    else if ( rVariable == PK2_STRESS_VECTOR ||  rVariable == CAUCHY_STRESS_VECTOR )
+    {
+
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+
+    }
     else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR ||  rVariable == ALMANSI_STRAIN_TENSOR )
     {
 
@@ -1794,7 +1800,7 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::LAST_KNOWN_CONFIGURATION);
+        //ConstitutiveLawOptions.Set(ConstitutiveLaw::LAST_KNOWN_CONFIGURATION); //contact domain formulation UL
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -1806,8 +1812,8 @@ void LargeDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
             this->SetGeneralVariables(Variables,Values,PointNumber);
 
             //call the constitutive law to update material variables
-            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
-
+            //mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values); //contact domain formulation UL
+	    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values); //contact domain formulation SL
 
             if( rOutput[PointNumber].size2() != Variables.ConstitutiveMatrix.size2() )
                 rOutput[PointNumber].resize( Variables.ConstitutiveMatrix.size1() , Variables.ConstitutiveMatrix.size2() , false );
