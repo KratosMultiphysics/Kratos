@@ -127,8 +127,8 @@ void LineLoadAxisym2DCondition::CalculateRadius(double & rCurrentRadius,
             array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
             array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;
-            array_1d<double, 3 > & ReferencePosition    = GetGeometry()[i].Coordinates();
-            array_1d<double, 3 > CurrentPosition        = ReferencePosition + DeltaDisplacement;
+	    array_1d<double, 3 > & CurrentPosition      = GetGeometry()[i].Coordinates();
+	    array_1d<double, 3 > ReferencePosition      = CurrentPosition - DeltaDisplacement;
 
             rCurrentRadius   += CurrentPosition[0]*rN[i];
             rReferenceRadius += ReferencePosition[0]*rN[i];

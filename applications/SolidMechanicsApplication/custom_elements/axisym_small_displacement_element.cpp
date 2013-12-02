@@ -273,7 +273,7 @@ void AxisymSmallDisplacementElement::CalculateRadius(double & rRadius,
     {
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
-            array_1d<double, 3 > & ReferencePosition    = GetGeometry()[i].Coordinates();
+            array_1d<double, 3 > & ReferencePosition = GetGeometry()[i].Coordinates();
 
             rRadius   += ReferencePosition[0]*rN[i];
         }
