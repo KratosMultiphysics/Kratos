@@ -99,12 +99,15 @@ VALUE: 1.0
 QUESTION: Magic_Factor_Poisson
 VALUE: 1.0
 HELP: It multiplies kn and ks in order to adjust the correct plot.
-QUESTION: Set_Initial_Indentation_To_Zero_Force#CB#(ON,OFF)
+QUESTION: Set_Search_Tolerance#CB#(OFF,ABSOLUTE,COORDINATION_NUMBER)
 VALUE: OFF
-DEPENDENCIES: (OFF,HIDE,Search_Radius_Extension,#CURRENT#)(ON,RESTORE,Search_Radius_Extension,#CURRENT#)
-QUESTION: Search_Radius_Extension
+DEPENDENCIES: (OFF,HIDE,Search_Tolerance_Absolute,#CURRENT#,HIDE,Coordination_Number,#CURRENT#)(ABSOLUTE,RESTORE,Search_Tolerance_Absolute,#CURRENT#,HIDE,Coordination_Number,#CURRENT#)(COORDINATION_NUMBER,RESTORE,Coordination_Number,#CURRENT#,HIDE,Search_Tolerance_Absolute,#CURRENT#)
+QUESTION: Search_Tolerance_Absolute
 VALUE: 0.01
-HELP:It calculates the radius mean, variation, etc...
+HELP:Absolute value in meters of the radius extensions for the search.
+QUESTION: Coordination_Number
+VALUE: 10.0
+HELP:Desired Coordination Number in the model
 QUESTION: Fix_Velocities_At_Predetermined_Time#CB#(ON,OFF)
 VALUE: OFF
 DEPENDENCIES: (OFF,HIDE,Time_Step_Constrain_DOFs_Percentage,#CURRENT#,HIDE,Fix_Horizontal_Velocities,#CURRENT#)(ON,RESTORE,Time_Step_Constrain_DOFs_Percentage,#CURRENT#,RESTORE,Fix_Horizontal_Velocities,#CURRENT#)
