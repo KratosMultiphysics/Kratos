@@ -192,29 +192,30 @@ class ULFFracStrategyPython:
         (self.builder_and_solver).SavePressureIteration(self.model_part);
         for node in self.model_part.Nodes:
             if (node.GetSolutionStepValue(IS_STRUCTURE)==0):
-                if (node.GetSolutionStepValue(IS_FREE_SURFACE)==1):# and node.GetSolutionStepValue(IS_LAGRANGIAN_INLET)!=1):
+                if (node.GetSolutionStepValue(IS_FREE_SURFACE)==1.0 and node.GetSolutionStepValue(IS_LAGRANGIAN_INLET)!=1.0):
 		    
-		  #and node.X>0.5):
-                  node.SetSolutionStepValue(PRESSURE,0,0.0)
-                  #print "FIXING PRESSURE AT THE OUTLET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+		  ##and node.X>0.5):
+                  ##node.SetSolutionStepValue(PRESSURE,0,0.0)
+                  ##print "FIXING PRESSURE AT THE OUTLET!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
                   node.Fix(PRESSURE)
-            #if the problem involves FSI, then the pressure at the FSI interface should be fixed also
-            #if (FSI==True):
-	    #    if (node.GetSolutionStepValue(IS_INTERFACE)==1):
-	#	    node.Fix(PRESSURE)
+            ##if the problem involves FSI, then the pressure at the FSI interface should be fixed also
+            ##if (FSI==True):
+	    ##    if (node.GetSolutionStepValue(IS_INTERFACE)==1):
+	##	    node.Fix(PRESSURE)
 
         self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);
         self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 2);          
 
         self.PressureLinStrat.Solve()        
         self.fluid_only_model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1);     
+        self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 1);
         
         time_ln212 = time.time()
         #if (self.domain_size==3):
 	  #self.CorrectVolume(domain_size, 0.011, self.model_part, UlfUtils) 
-        converged=False
-        inverted_elements=False
-        normDx = self.ExecuteIteration(3, self.echo_level,self.MoveMeshFlag,calculate_norm, UlfUtils)
+        #converged=False
+        #inverted_elements=False
+        #normDx = self.ExecuteIteration(3, self.echo_level,self.MoveMeshFlag,calculate_norm, UlfUtils)
         #while(converged == False and inverted_elements == False):
             #normDx = self.ExecuteIteration(3, self.echo_level,self.MoveMeshFlag,calculate_norm, UlfUtils)
             #converged = self.convergence_criteria.PostCriteria(self.model_part,self.builder_and_solver.GetDofSet(),self.A,self.Dx,self.b)
