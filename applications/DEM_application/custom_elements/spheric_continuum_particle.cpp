@@ -63,7 +63,7 @@ namespace Kratos
       //**************************************************************************************************************************************************
       //**************************************************************************************************************************************************
 
-      void SphericContinuumParticle::SetInitialContacts( const ProcessInfo& r_process_info  ) //vull ficar que sigui zero si no son veins cohesius.
+      void SphericContinuumParticle::SetInitialContacts() //vull ficar que sigui zero si no son veins cohesius.
       {   
                 
           /*
@@ -173,10 +173,10 @@ namespace Kratos
         if (mContinuumSimulationOption == true) {
 
             if (mDimension == 3) {
-                ContactAreaWeighting3D(r_process_info);
+                ContactAreaWeighting3D();
             } else if (mDimension == 2) {
 
-                ContactAreaWeighting2D(r_process_info);
+                ContactAreaWeighting2D();
 
             }
 
@@ -248,7 +248,7 @@ namespace Kratos
       
 
       
-      void SphericContinuumParticle::ContactAreaWeighting3D(const ProcessInfo& r_process_info) //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
+      void SphericContinuumParticle::ContactAreaWeighting3D() //MISMI 10: POOYAN this could be done by calculating on the bars. not looking at the neighbous of my neighbours.
       { 
 
           double alpha = 1.0;
@@ -675,8 +675,9 @@ namespace Kratos
      
             //AddPoissonContribution(LocalCoordSystem, GlobalContactForce, GlobalElasticContactForce, ViscoDampingGlobalContactForce, rContactForce, damp_forces); //MSIMSI 10
 
-            
-            ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce,/*InitialRotaMoment,*/rInitialRotaMoment, LocalCoordSystem,other_radius,rContactMoment,neighbour_iterator);
+            if(mRotationOption){
+              ComputeMoments(LocalElasticContactForce,GlobalElasticContactForce,rInitialRotaMoment,LocalCoordSystem,other_radius,rContactMoment,neighbour_iterator);
+            }
             
             //StressTensorOperations(mStressTensor,GlobalElasticContactForce,other_to_me_vect,distance,radius_sum,calculation_area,neighbour_iterator,rCurrentProcessInfo); //MSISI 10
   
@@ -1050,15 +1051,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
          mTensionLimit                  = r_process_info[CONTACT_SIGMA_MIN]*1e6; //N/m2
          mCompressionLimit              = r_process_info[CONTACT_SIGMA_MAX]*1e6;
-         mTauZero                       = r_process_info[CONTACT_TAU_ZERO]*1e6;           
-         
-         if( mpCaseOption !=0 ) 
-          {
-            
-            SetInitialContacts( r_process_info);
-            //NeighNeighMapping( r_process_info);//MSIMSI DEBUG
-            
-          }
+         mTauZero                       = r_process_info[CONTACT_TAU_ZERO]*1e6;                             
    
          mInitializedVariablesFlag = 1;
          
@@ -1078,8 +1071,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             mPlasticityLimit = r_process_info[PLASTIC_YIELD_STRESS];
             mDamageMaxDisplacementFactor = r_process_info[DAMAGE_FACTOR];
            
-         }
-         
+         }                                     
            
         }// if (!mInitializedVariablesFlag)
          
@@ -1568,6 +1560,11 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             return;
         }                                   
         ////////////////////////////////////////////////////////////////////////
+        if (rVariable == CALCULATE_SET_INITIAL_CONTACTS)
+        {            
+            SetInitialContacts();
+            return;
+        }        
         
       KRATOS_CATCH("")
       
@@ -1618,8 +1615,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       void SphericContinuumParticle::CustomInitialize()
       {         
           
-          double& mSectionalInertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);   
-          mSectionalInertia                 = 0.25 * M_PI * mRadius * mRadius * mRadius  * mRadius ;    
+          /*double& mSectionalInertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);   
+          mSectionalInertia                 = 0.25 * M_PI * mRadius * mRadius * mRadius  * mRadius ;   */ 
           
           double& mRepresentative_Volume    = this->GetGeometry()(0)->FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);             
           mRepresentative_Volume            = 0.0;        
