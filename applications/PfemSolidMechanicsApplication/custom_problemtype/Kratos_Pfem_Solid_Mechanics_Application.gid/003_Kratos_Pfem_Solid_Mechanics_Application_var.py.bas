@@ -146,7 +146,7 @@ Incremental_Displacement = "*GenData(Incremental_Displacement)"
 #PostProcess Data
 #####################################
 
-nodal_results=["DISPLACEMENT","REACTION"]
+nodal_results=["DISPLACEMENT","REACTION","NORMAL"]
 gauss_points_results=["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","FORCE"]
 
 # GiD output configuration

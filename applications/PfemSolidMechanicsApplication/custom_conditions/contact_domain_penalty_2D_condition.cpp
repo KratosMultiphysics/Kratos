@@ -136,8 +136,7 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
     // std::cout<<" ************ CONTACT ELEMENT "<<this->Id()<<" ************* "<<std::endl;
     // std::cout<<std::endl;
     
-    // unsigned int vsize=GetValue(MASTER_ELEMENTS).size();
-    // Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS)[vsize-1];
+    // Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS).back();
     
     // std::cout<<" master element "<<MasterElement.Id()<<std::endl;
     // std::cout<<" Elastic Modulus "<<MasterElement.GetProperties()[YOUNG_MODULUS]<<std::endl;
@@ -151,9 +150,9 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
 
     //1.- Compute the Current Normal and Tangent
 
-    VectorType PS  =  GetGeometry()[slave].Coordinates() + ( GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1) );
-    VectorType P1  =  GetGeometry()[node1].Coordinates() + ( GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) );
-    VectorType P2  =  GetGeometry()[node2].Coordinates() + ( GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) );
+    LocalVectorType PS  =  GetGeometry()[slave].Coordinates();
+    LocalVectorType P1  =  GetGeometry()[node1].Coordinates();
+    LocalVectorType P2  =  GetGeometry()[node2].Coordinates();
 
     //compute the current normal vector
     rVariables.Contact.CurrentSurface.Normal=mContactUtilities.CalculateFaceNormal(rVariables.Contact.CurrentSurface.Normal,P1,P2);
@@ -202,9 +201,9 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
 
     //A, B, L:
 
-    PS =  GetGeometry()[slave].Coordinates();
-    P1 =  GetGeometry()[node1].Coordinates();
-    P2 =  GetGeometry()[node2].Coordinates();
+    PS =  GetGeometry()[slave].Coordinates() - ( GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1) );
+    P1 =  GetGeometry()[node1].Coordinates() - ( GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) );
+    P2 =  GetGeometry()[node2].Coordinates() - ( GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) );
 
     mContactUtilities.CalculateBaseDistances (rVariables.Contact.ReferenceBase[0],P1,P2,PS,mContactVariables.ReferenceSurface.Normal);
 
@@ -226,9 +225,9 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
 
     double H = ReferenceGapN;
 
-    VectorType DS  =  GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1);
-    VectorType D1  =  GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1);
-    VectorType D2  =  GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1);
+    LocalVectorType DS  =  GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1);
+    LocalVectorType D1  =  GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1);
+    LocalVectorType D2  =  GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1);
 
     //(g_N)3
     ReferenceGapN*=inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal);

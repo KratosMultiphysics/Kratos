@@ -645,11 +645,12 @@ Begin Mesh *igroup
 *if(CondNumEntities > 0)
 *loop elems *onlyincond *onlyingroup
 *format "%i"
- *Tcl( getCondId *ElemsNum *CondElemFace )
+ *Tcl( getCondId *elemsnum *condelemface )
 *end elems
 *endif
 *endif
 *# Point Condition Blocks
+*set group *GroupName *nodes
 *set cond point_PointLoad2DCondition *nodes
 *add cond point_PointLoadAxisym2DCondition *nodes
 *if(CondNumEntities > 0)	    

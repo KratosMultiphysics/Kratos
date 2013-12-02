@@ -1323,11 +1323,11 @@ namespace Kratos
 
       ContactFace Face = FreeSurface;
       
-      array_1d<double, 3 > & CurrentDisplacement  = rCurrentNode->FastGetSolutionStepValue(DISPLACEMENT);
-      array_1d<double, 3 > & PreviousDisplacement = rCurrentNode->FastGetSolutionStepValue(DISPLACEMENT,1);
+      // array_1d<double, 3 > & CurrentDisplacement  = rCurrentNode->FastGetSolutionStepValue(DISPLACEMENT);
+      // array_1d<double, 3 > & PreviousDisplacement = rCurrentNode->FastGetSolutionStepValue(DISPLACEMENT,1);
       array_1d<double, 3 > & ReferencePosition    = rCurrentNode->Coordinates();
 	    
-      rContact.Point = ReferencePosition + (CurrentDisplacement-PreviousDisplacement);
+      rContact.Point = ReferencePosition; // + (CurrentDisplacement-PreviousDisplacement);
 
       // rContact.Point[0] = rCurrentNode->X();
       // rContact.Point[1] = rCurrentNode->Y();

@@ -63,7 +63,7 @@ public:
 
 
     ///Tensor order 1 definition
-    typedef array_1d<double, 3>                                          VectorType;
+    typedef array_1d<double, 3>                    LocalVectorType;
 
 
     typedef struct
@@ -77,8 +77,8 @@ public:
 
     typedef struct
     {
-        VectorType Normal;        //normal direction
-        VectorType Tangent;       //tangent direction
+        LocalVectorType Normal;        //normal direction
+        LocalVectorType Tangent;       //tangent direction
 	   
     } SurfaceVector;
 
@@ -137,7 +137,7 @@ public:
 			std::cout<<"element with zero area found: "<<area<<" position ("<<x0<<", "<<y0<<") ("<<x1<<", "<<y1<<") ("<<x2<<", "<<y2<<") "<<std::endl;
 		}
 
-		VectorType N;
+		LocalVectorType N;
 
 		N[0] = CalculateVolume(x1,y1,x2,y2,xc,yc)  / area;
 		N[1] = CalculateVolume(x2,y2,x0,y0,xc,yc)  / area;
@@ -188,25 +188,25 @@ public:
 
 
     void  CalculateBaseDistances (BaseLengths& Base, 
-				  VectorType& P1, 
-				  VectorType& P2, 
-				  VectorType& PS, 
-				  VectorType& Normal);
+				  LocalVectorType& P1, 
+				  LocalVectorType& P2, 
+				  LocalVectorType& PS, 
+				  LocalVectorType& Normal);
 
 
-    VectorType & CalculateFaceNormal(VectorType &Normal,
-				     VectorType& P1, 
-				     VectorType &P2);
+    LocalVectorType & CalculateFaceNormal(LocalVectorType &Normal,
+					  LocalVectorType& P1, 
+					  LocalVectorType &P2);
 
 	
-    VectorType & CalculateFaceTangent(VectorType &Tangent,
-				      VectorType& P1, 
-				      VectorType &P2);
+    LocalVectorType & CalculateFaceTangent(LocalVectorType &Tangent,
+					   LocalVectorType& P1, 
+					   LocalVectorType &P2);
 
    
 
-    VectorType & CalculateFaceTangent(VectorType &Tangent, 
-				      VectorType& Normal);
+    LocalVectorType & CalculateFaceTangent(LocalVectorType &Tangent, 
+					   LocalVectorType& Normal);
 
 
     ///@}

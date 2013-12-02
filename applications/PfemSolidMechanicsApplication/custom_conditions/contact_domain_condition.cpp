@@ -136,8 +136,7 @@ void ContactDomainCondition::GetDofList( DofsVectorType& rConditionalDofList, Pr
     }
 
     //ADD MASTER NODE
-    unsigned int vsize=GetValue(MASTER_NODES).size();
-    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES)[vsize-1];
+    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
     
     rConditionalDofList.push_back( MasterNode.pGetDof( DISPLACEMENT_X ) );
     rConditionalDofList.push_back( MasterNode.pGetDof( DISPLACEMENT_Y ) );
@@ -169,8 +168,7 @@ void ContactDomainCondition::EquationIdVector( EquationIdVectorType& rResult, Pr
 
     //ADD MASTER NODE
     int index = number_of_nodes * dimension;
-    unsigned int vsize=GetValue(MASTER_NODES).size();
-    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES)[vsize-1];
+    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
  
     rResult[index]   = MasterNode.GetDof( DISPLACEMENT_X ).EquationId();
     rResult[index+1] = MasterNode.GetDof( DISPLACEMENT_Y ).EquationId();
@@ -203,8 +201,7 @@ void ContactDomainCondition::GetValuesVector( Vector& rValues, int Step )
 
     //ADD MASTER NODE
     unsigned int index = number_of_nodes * dimension;
-    unsigned int vsize=GetValue(MASTER_NODES).size();
-    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES)[vsize-1];
+    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
 
     rValues[index] = MasterNode.GetSolutionStepValue( DISPLACEMENT_X, Step );
     rValues[index+1] = MasterNode.GetSolutionStepValue( DISPLACEMENT_Y, Step );
@@ -238,8 +235,7 @@ void ContactDomainCondition::GetFirstDerivativesVector( Vector& rValues, int Ste
 
     //ADD MASTER NODE
     unsigned int index = number_of_nodes * dimension;
-    unsigned int vsize=GetValue(MASTER_NODES).size();
-    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES)[vsize-1];
+    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
 
     rValues[index] = MasterNode.GetSolutionStepValue( VELOCITY_X, Step );
     rValues[index+1] = MasterNode.GetSolutionStepValue( VELOCITY_Y, Step );
@@ -274,8 +270,7 @@ void ContactDomainCondition::GetSecondDerivativesVector( Vector& rValues, int St
 
     //ADD MASTER NODE
     unsigned int index = number_of_nodes * dimension;
-    unsigned int vsize=GetValue(MASTER_NODES).size();
-    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES)[vsize-1];
+    Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
 
     rValues[index] = MasterNode.GetSolutionStepValue( ACCELERATION_X, Step );
     rValues[index+1] = MasterNode.GetSolutionStepValue( ACCELERATION_Y, Step );
@@ -493,7 +488,7 @@ void ContactDomainCondition::ClearNodalForces()
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
 	GetGeometry()[i].SetLock();
-	VectorType & ContactForce  = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+	LocalVectorType & ContactForce  = GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
 	ContactForce.clear();
 	GetGeometry()[i].UnSetLock();
     }
@@ -553,7 +548,7 @@ void ContactDomainCondition::ClearMasterElementNodalForces(ElementType& rMasterE
     {
 	rMasterElement.GetGeometry()[i].SetLock();
 
-	VectorType & ContactForce = rMasterElement.GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
+	LocalVectorType & ContactForce = rMasterElement.GetGeometry()[i].FastGetSolutionStepValue(CONTACT_FORCE);
 	ContactForce.clear();
 
 	rMasterElement.GetGeometry()[i].UnSetLock();
@@ -602,9 +597,11 @@ void ContactDomainCondition::CalculateKinematics( GeneralVariables& rVariables, 
 
     ElementType&  MasterElement  = mContactVariables.GetMasterElement();
     GeometryType& MasterGeometry = mContactVariables.GetMasterGeometry();
-      
+    
+
     //Get the parent coodinates derivative [dN/d£]
     const GeometryType::ShapeFunctionsGradientsType& DN_De = MasterGeometry.ShapeFunctionsLocalGradients( mThisIntegrationMethod );
+
 
     //Get integration points number
     unsigned int integration_points_number = MasterGeometry.IntegrationPointsNumber( MasterElement.GetIntegrationMethod() );
@@ -620,14 +617,21 @@ void ContactDomainCondition::CalculateKinematics( GeneralVariables& rVariables, 
     //Set Shape Functions Values for this integration point
     rVariables.N=row( Ncontainer, rPointNumber);
 
+    // UL
+    // //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+    // Matrix Invj;
+    // MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
+    // //Compute cartesian derivatives [dN/dx_n]
+    // noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
+
+    // SL
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
     Matrix Invj;
-    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ );
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ ); //overwrites detJ
 
-    //Compute cartesian derivatives
-    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , Invj );   
-
+    //Compute cartesian derivatives [dN/dx_n+1]
+    rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
     //Get Current DeformationGradient
     std::vector<Matrix> DeformationGradientVector ( integration_points_number );
@@ -640,8 +644,16 @@ void ContactDomainCondition::CalculateKinematics( GeneralVariables& rVariables, 
     //Get Current Stress
     std::vector<Vector> StressVector ( integration_points_number );
     StressVector[rPointNumber]=ZeroVector(voigtsize);
-    MasterElement.GetValueOnIntegrationPoints(PK2_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
+    MasterElement.GetValueOnIntegrationPoints(CAUCHY_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
     
+    // UL
+    // for( unsigned int i=0; i<StressVector.size(); i++)
+    //   {
+    // 	StressVector[i] = mConstitutiveLawVector[rPointNumber]->TransformStresses(StressVector[i], rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK2); 
+    //   }
+
+    //std::cout<<" StressVector "<<StressVector[rPointNumber]<<std::endl;
+
     SetContactIntegrationVariable( rVariables.StressVector, StressVector, rPointNumber );
 
 
@@ -660,8 +672,10 @@ void ContactDomainCondition::CalculateKinematics( GeneralVariables& rVariables, 
     SetContactIntegrationVariable( rVariables.StrainVector, StrainVector, rPointNumber );
 
 
-    //Get Current Constitutive Matrix
+    //Get Current Constitutive Matrix 
     std::vector<Matrix> ConstitutiveMatrix(mConstitutiveLawVector.size());   
+    // UL (ask for the last known configuration constitutive matrix)
+    // SL (ask for the current configuration constitutive matrix)
     MasterElement.CalculateOnIntegrationPoints(CONSTITUTIVE_MATRIX,ConstitutiveMatrix,rCurrentProcessInfo);
 
     rVariables.ConstitutiveMatrix = ConstitutiveMatrix[rPointNumber];
@@ -741,6 +755,7 @@ void ContactDomainCondition::CalculateRightHandSide( std::vector< VectorType >& 
 
 void ContactDomainCondition::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo )
 {
+
     //create local system components
     LocalSystemComponents LocalSystem;
 
@@ -912,16 +927,52 @@ void ContactDomainCondition::InitializeGeneralVariables (GeneralVariables& rVari
     //reading shape functions local gradients
     rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
 
-    //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
-    rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
+     // UL
+    //Calculate Delta Position
+    //rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
 
+    //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
+    //rVariables.J = MasterGeometry.Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
+
+     // SL
+    //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
+    rVariables.j = MasterGeometry.Jacobian( rVariables.j, mThisIntegrationMethod );
+}
+
+
+
+//*************************COMPUTE DELTA POSITION*************************************
+//************************************************************************************
+Matrix& ContactDomainCondition::CalculateDeltaPosition(Matrix & rDeltaPosition)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+        }
+    }
+
+    return rDeltaPosition;
+
+    KRATOS_CATCH( "" )
 }
 
 
 //************************************************************************************
 //************************************************************************************
 
-void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVariables, VectorType & TangentVelocity)
+void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVariables, LocalVectorType & TangentVelocity)
 {
     //if current tangent is not previously computed, do it here.
     rVariables.Contact.CurrentSurface.Tangent = this->CalculateCurrentTangent( rVariables.Contact.CurrentSurface.Tangent );
@@ -938,10 +989,10 @@ void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVaria
 
     //compute relative velocities
     int slave=mContactVariables.slaves[0];
-    VectorType  CurrentVelocity;
+    LocalVectorType  CurrentVelocity;
     for (int i = 0; i < number_of_nodes; i++ )
     {
-        //Displacement from the reference to the current configuration
+        //Current velocity
         CurrentVelocity  = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
         if(i!=slave)
 	    CurrentVelocity *=(-1)*(1.0/double(number_of_nodes - 1));
@@ -969,7 +1020,7 @@ void ContactDomainCondition::CalculateRelativeVelocity (GeneralVariables& rVaria
 //************************************************************************************
 
 
-void ContactDomainCondition::CalculateRelativeDisplacement (GeneralVariables& rVariables, VectorType & TangentDisplacement)
+void ContactDomainCondition::CalculateRelativeDisplacement (GeneralVariables& rVariables, LocalVectorType & TangentDisplacement)
 {
 
     // (Tangent vector previously computed)
@@ -977,11 +1028,11 @@ void ContactDomainCondition::CalculateRelativeDisplacement (GeneralVariables& rV
 
     //compute relative displacements
     int slave=mContactVariables.slaves[0];
-    VectorType CurrentDisplacement;
+    LocalVectorType CurrentDisplacement;
     for (int i = 0; i < number_of_nodes; i++ )
     {
         //Displacement from the reference to the current configuration
-        CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+        CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
         if(i!=slave)
 	    CurrentDisplacement *=(-1)*(1.0/double(number_of_nodes - 1));
 
@@ -997,7 +1048,7 @@ void ContactDomainCondition::CalculateRelativeDisplacement (GeneralVariables& rV
 //************************************************************************************
 
 
-void ContactDomainCondition::CalculateFrictionCoefficient (GeneralVariables& rVariables, const VectorType & TangentVelocity)
+void ContactDomainCondition::CalculateFrictionCoefficient (GeneralVariables& rVariables, const LocalVectorType & TangentVelocity)
 {
     //---FRICTION LAW in function of the relative sliding velocity ---//
 
@@ -1074,7 +1125,7 @@ void ContactDomainCondition::CalculateConditionSystem(LocalSystemComponents& rLo
 	    Variables.Contact.Options.Set(ContactDomainUtilities::COMPUTE_FRICTION_FORCES);
 
     //Tangent velocity and stablish friction parameter
-    VectorType TangentVelocity (3,0.0);
+    LocalVectorType TangentVelocity (3,0.0);
 
     for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
     {
@@ -1090,7 +1141,11 @@ void ContactDomainCondition::CalculateConditionSystem(LocalSystemComponents& rLo
 	//Calculate Friction Coefficient
 	this->CalculateFrictionCoefficient ( Variables, TangentVelocity);
 
-        double IntegrationWeight =0.5 * Variables.Contact.ReferenceBase[0].L;  //all components are multiplied by this
+	// UL (ask for the last known configuration size)
+        //double IntegrationWeight =0.5 * Variables.Contact.ReferenceBase[0].L;  //all components are multiplied by this
+
+	// SL (ask for the current configuration size)
+	double IntegrationWeight =0.5 * Variables.Contact.CurrentBase[0].L;  //all components are multiplied by this 
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
         if(Variables.Contact.Options.Is(ACTIVE))
@@ -1234,8 +1289,8 @@ inline void ContactDomainCondition::CalculateAndAddContactForces(VectorType& rRi
     Vector Nforce;
     Vector Tforce;
 
-    VectorType NormalForce  (3,0.0);
-    VectorType TangentForce (3,0.0);
+    LocalVectorType NormalForce  (3,0.0);
+    LocalVectorType TangentForce (3,0.0);
 
     unsigned int index=0;
     for (unsigned int ndi=0; ndi<size; ndi++)
@@ -1273,6 +1328,9 @@ inline void ContactDomainCondition::CalculateAndAddContactForces(VectorType& rRi
 
 
     rRightHandSideVector  *=  rIntegrationWeight;
+
+    // std::cout<<std::endl;
+    // std::cout<<" Fcontact "<<rRightHandSideVector<<std::endl;
 
 
     KRATOS_CATCH( "" )
@@ -1314,8 +1372,8 @@ void ContactDomainCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix
 
     rLeftHandSideMatrix *= rIntegrationWeight;
 
-    // std::cout<<std::endl;
-    // std::cout<<" Kcontact "<<rLeftHandSideMatrix<<std::endl;
+    //std::cout<<std::endl;
+    //std::cout<<" Kcontact "<<rLeftHandSideMatrix<<std::endl;
 
     KRATOS_CATCH( "" )
 }

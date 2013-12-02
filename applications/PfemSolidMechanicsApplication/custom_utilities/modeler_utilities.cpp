@@ -374,9 +374,13 @@ namespace Kratos
 	if(norm_2(Coplanar))
 	  Coplanar/= norm_2(Coplanar);
 
-	//std::cout<<" vertices contact element: [normal(0)] "<<Coplanar<<" ";
+	//std::cout<<" vertices contact element: "<<std::endl;
+
 	for(int v=0; v<Nn; v++)
 	  {
+
+	    //std::cout<<" V: ["<<vertices[v].X()<<", "<<vertices[v].Y()<<"]  Normal:"<<vertices[v].FastGetSolutionStepValue(NORMAL)<<std::endl;
+
 	    Normal.clear();
 
 	    array_1d<double, 3> Corner;
@@ -427,14 +431,24 @@ namespace Kratos
 	  }
 
 	// std::cout<<std::endl;
-	// std::cout<<"  [ no:"<<numouter<<";ne:"<<numextra<<";nc:"<<numcoplanar<<";ns: "<<numsamedirection<<";no:"<<numorthogonal<<"]"<<std::endl;
+	// std::cout<<"  [ no:"<<numouter<<";ne:"<<numextra<<";nc:"<<numcoplanar<<";ns: "<<numsamedirection<<";nor:"<<numorthogonal<<"]"<<std::endl;
+	
 
-	//std::cout<<" numouter "<<numouter<<" numextra "<<numextra<<std::endl;
 	if(numouter==3)
 	  outer=true;
 
 	if(numouter==2 && numextra==1)
 	  outer=true;
+	
+	if(numouter>0 && (numextra>0 && numorthogonal>0)){
+	  outer=true;
+	  std::cout<<"   Element with 3 corners accepted:case1 "<<std::endl;
+	}
+	
+	if(numouter==0 && (numextra>2 && numorthogonal>0)){
+	  outer=true;
+	  std::cout<<"   Element with 3 corners accepted:case2 "<<std::endl;
+	}
 
 	if(numcoplanar==3)
 	  outer=false;
@@ -521,17 +535,23 @@ namespace Kratos
     double x0 = vertices[0].X()-Normal[0]*Shrink*offset_factor;
     double y0 = vertices[0].Y()-Normal[1]*Shrink*offset_factor;
 
+    //std::cout<<" [0] ("<<x0<<", "<<y0<<") Shrink: "<<Shrink<<" offset_factor: "<<offset_factor<<std::endl; 
+
     Normal = vertices[1].FastGetSolutionStepValue(NORMAL); 
     Shrink = vertices[1].FastGetSolutionStepValue(SHRINK_FACTOR);   
 
     double x1 = vertices[1].X()-Normal[0]*Shrink*offset_factor;
     double y1 = vertices[1].Y()-Normal[1]*Shrink*offset_factor;
 
+    //std::cout<<" [1] ("<<x1<<", "<<y1<<") Shrink: "<<Shrink<<" offset_factor: "<<offset_factor<<std::endl;
+
     Normal = vertices[2].FastGetSolutionStepValue(NORMAL); 
     Shrink = vertices[2].FastGetSolutionStepValue(SHRINK_FACTOR);   
 
     double x2 = vertices[2].X()-Normal[0]*Shrink*offset_factor;
     double y2 = vertices[2].Y()-Normal[1]*Shrink*offset_factor;
+    
+    //std::cout<<" [2] ("<<x2<<", "<<y2<<") Shrink: "<<Shrink<<" offset_factor: "<<offset_factor<<std::endl;
 
     mJ(0,0)=2.0*(x1-x0);
     mJ(0,1)=2.0*(y1-y0);
@@ -582,7 +602,7 @@ namespace Kratos
          
     if(detJ < 1e-6*h*h) 
       {
-	// std::cout << "Alpha shape: volume criterion  = " << detJ << std::endl;
+	std::cout << "Alpha shape: volume criterion  = " << detJ << std::endl;
 	////mark as boundary
 	vertices[0].Set(BOUNDARY);
 	vertices[1].Set(BOUNDARY);

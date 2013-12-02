@@ -87,14 +87,9 @@ ContactDomainLM2DCondition::~ContactDomainLM2DCondition()
 void ContactDomainLM2DCondition::SetMasterGeometry()
 
 {
-    //unsigned int vsize=GetValue(MASTER_ELEMENTS).size();
-    //Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS)[vsize-1];
     Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS).back();
     mContactVariables.SetMasterElement(MasterElement);
 
-
-    //vsize=GetValue(MASTER_NODES).size();
-    //Element::NodeType&    MasterNode   = GetValue(MASTER_NODES)[vsize-1];
     Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
     mContactVariables.SetMasterNode(MasterNode);
 
@@ -197,8 +192,6 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     //compare to auxiliar variables stored in the contact nodes to restore the LocalTensils
     //from the previous configuration
 
-    // unsigned int vsize=GetValue(MASTER_NODES).size();
-    // Element::NodeType&    MasterNode   = GetValue(MASTER_NODES)[vsize-1];
     // Element::NodeType&    MasterNode   = GetValue(MASTER_NODES).back();
 
     Condition::Pointer MasterCondition = GetValue(MASTER_CONDITION);
@@ -245,9 +238,9 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
 
     //Previous normal and tangent:  n_n-1,t_n-1
     //Previous Position
-    VectorType PS  =  GetGeometry()[slave].Coordinates() - (GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,2) );
-    VectorType P1  =  GetGeometry()[node1].Coordinates() - (GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) -GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,2) );
-    VectorType P2  =  GetGeometry()[node2].Coordinates() - (GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,2) );
+    LocalVectorType PS  =  GetGeometry()[slave].Coordinates() - (GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,2) );
+    LocalVectorType P1  =  GetGeometry()[node1].Coordinates() - (GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) -GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,2) );
+    LocalVectorType P2  =  GetGeometry()[node2].Coordinates() - (GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,2) );
 
     //Compute Previous Normal
     mContactVariables.PreStepSurface.Normal=mContactUtilities.CalculateFaceNormal(mContactVariables.PreStepSurface.Normal,P1,P2);
@@ -289,9 +282,9 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
 
     //e.-obtain the (g_N)3 and (g_T)3 for the n-1 configuration
 
-    VectorType DS  =  GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,2);
-    VectorType D1  =  GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,2);
-    VectorType D2  =  GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,2);
+    LocalVectorType DS  =  GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,2);
+    LocalVectorType D1  =  GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,2);
+    LocalVectorType D2  =  GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1)-GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,2);
 
 
     mContactVariables.PreStepGap.Normal  = 0;
@@ -335,8 +328,8 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     mContactVariables.PreStepGap.Tangent += 2 * ContactFactor * TangentTensil;
    
 
-    // std::cout<<"ConditionID:  "<<this->Id()<<" -> Previous Tractions [tN:"<<NormalTensil<<", tT:"<<TangentTensil<<"] "<<std::endl; 
-    // std::cout<<" Previous Gaps [gN:"<<mContactVariables.PreStepGap.Normal<<", gT:"<<mContactVariables.PreStepGap.Tangent<<"] "<<std::endl; 
+    //std::cout<<"ConditionID:  "<<this->Id()<<" -> Previous Tractions [tN:"<<NormalTensil<<", tT:"<<TangentTensil<<"] "<<std::endl; 
+    //std::cout<<" Previous Gaps [gN:"<<mContactVariables.PreStepGap.Normal<<", gT:"<<mContactVariables.PreStepGap.Tangent<<"] "<<std::endl; 
 }
 
 
@@ -420,8 +413,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     // std::cout<<" ************ CONTACT ELEMENT "<<this->Id()<<" ************* "<<std::endl;
     // std::cout<<std::endl;
     
-    // unsigned int vsize=GetValue(MASTER_ELEMENTS).size();
-    // Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS)[vsize-1];
+    // Element::ElementType& MasterElement = GetValue(MASTER_ELEMENTS).back();
     
     // std::cout<<" master element "<<MasterElement.Id()<<std::endl;
     // std::cout<<" Elastic Modulus "<<MasterElement.GetProperties()[YOUNG_MODULUS]<<std::endl;
@@ -435,7 +427,8 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     //1.- Compute tension vector:  (must be updated each iteration)
     Matrix StressMatrix ( dimension, dimension );
 
-    // std::cout<<" 2nd PK stress "<<rVariables.StressVector<<std::endl;
+    //std::cout<<" 2nd PK stress "<<rVariables.StressVector<<std::endl;
+    //std::cout<<" F "<<rVariables.F<<std::endl;
 
     //a.- Assign initial 2nd Piola Kirchhoff stress:
     StressMatrix=MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
@@ -464,9 +457,9 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 
     //d.- Compute the Current Normal and Tangent
 
-    VectorType PS  =  GetGeometry()[slave].Coordinates() + ( GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1) );
-    VectorType P1  =  GetGeometry()[node1].Coordinates() + ( GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) );
-    VectorType P2  =  GetGeometry()[node2].Coordinates() + ( GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) );
+    LocalVectorType PS  =  GetGeometry()[slave].Coordinates();
+    LocalVectorType P1  =  GetGeometry()[node1].Coordinates();
+    LocalVectorType P2  =  GetGeometry()[node2].Coordinates();
 
     //compute the current normal vector
     rVariables.Contact.CurrentSurface.Normal=mContactUtilities.CalculateFaceNormal(rVariables.Contact.CurrentSurface.Normal,P1,P2);
@@ -487,13 +480,11 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     rVariables.Contact.CurrentSurface.Tangent=mContactUtilities.CalculateFaceTangent(rVariables.Contact.CurrentSurface.Tangent,rVariables.Contact.CurrentSurface.Normal);
 
 
+    // std::cout<<" reference face  normal  "<<mContactVariables.ReferenceSurface.Normal<<std::endl;
+    // std::cout<<" reference face  tangent  "<<mContactVariables.ReferenceSurface.Tangent<<std::endl;
 
-    //std::cout<<" reference face  normal  "<<mContactVariables.ReferenceSurface.Normal<<std::endl;
-    //std::cout<<" reference face  tangent  "<<mContactVariables.ReferenceSurface.Tangent<<std::endl;
-
-
-    //std::cout<<" current face  normal  "<<rVariables.Contact.CurrentSurface.Normal<<std::endl;
-    //std::cout<<" current face  tangent  "<<rVariables.Contact.CurrentSurface.Tangent<<std::endl;
+    // std::cout<<" current face  normal  "<<rVariables.Contact.CurrentSurface.Normal<<std::endl;
+    // std::cout<<" current face  tangent  "<<rVariables.Contact.CurrentSurface.Tangent<<std::endl;
 
     //Current normal:   mContactVariables.ReferenceSurface.Normal
 
@@ -523,9 +514,9 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 
     //A, B, L:
 
-    PS =  GetGeometry()[slave].Coordinates();
-    P1 =  GetGeometry()[node1].Coordinates();
-    P2 =  GetGeometry()[node2].Coordinates();
+    PS =  GetGeometry()[slave].Coordinates() - ( GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1) );
+    P1 =  GetGeometry()[node1].Coordinates() - ( GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) );
+    P2 =  GetGeometry()[node2].Coordinates() - ( GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) );
 
     mContactUtilities.CalculateBaseDistances (rVariables.Contact.ReferenceBase[0],P1,P2,PS,mContactVariables.ReferenceSurface.Normal);
 
@@ -546,9 +537,9 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 
     double H = ReferenceGapN;
 
-    VectorType DS  =  GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1);
-    VectorType D1  =  GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1);
-    VectorType D2  =  GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1);
+    LocalVectorType DS  =  GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1);
+    LocalVectorType D1  =  GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1);
+    LocalVectorType D2  =  GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1);
 
     //(g_N)3
     ReferenceGapN*=inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal);
@@ -622,28 +613,32 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     double PreviousTimeStep = rCurrentProcessInfo[PREVIOUS_DELTA_TIME];
     
     
-    if(mContactVariables.PreStepGap.Normal!=0 && mContactVariables.IterationCounter<1){
-	EffectiveGapN+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreStepGap.Normal);
-	// std::cout<<" Effective prediction first iteration +:"<<(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreStepGap.Normal)<<" PreStepGap.Normal "<<mContactVariables.PreStepGap.Normal<<" ReferenceGapN "<<ReferenceGapN<<std::endl;
-	// std::cout<<" EffectiveGapN "<<EffectiveGapN<<" PreviousEffectiveGapN "<<ReferenceGapN<<std::endl;
+    if(mContactVariables.PreStepGap.Normal!=0 && mContactVariables.IterationCounter<1){    
+      //std::cout<<" Effective prediction first iteration +:"<<(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreStepGap.Normal)<<" PreStepGap.Normal "<<mContactVariables.PreStepGap.Normal<<" ReferenceGapN "<<ReferenceGapN<<std::endl;
+
+      EffectiveGapN+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapN-mContactVariables.PreStepGap.Normal);
     }
 
+    //std::cout<<" EffectiveGapN "<<EffectiveGapN<<" PreviousEffectiveGapN "<<ReferenceGapN<<std::endl;
     //only in the first iteration:
     //mContactVariables.PreStepGap.Normal=ReferenceGapN;
-
+      
+ 
     if(mContactVariables.PreStepGap.Tangent!=0 && mContactVariables.IterationCounter<1){
-      EffectiveGapT+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapT-mContactVariables.PreStepGap.Tangent);
-      // std::cout<<" Effective prediction first iteration +:"<<(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapT-mContactVariables.PreStepGap.Tangent)<<" PreStepGap.Tangent "<<mContactVariables.PreStepGap.Tangent<<" ReferenceGapT "<<ReferenceGapT<<std::endl;
-      // std::cout<<" EffectiveGapT "<<EffectiveGapT<<" PreviousEffectiveGapT "<<ReferenceGapT<<std::endl;
+      //std::cout<<" Effective prediction first iteration +:"<<(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapT-mContactVariables.PreStepGap.Tangent)<<" PreStepGap.Tangent "<<mContactVariables.PreStepGap.Tangent<<" ReferenceGapT "<<ReferenceGapT<<std::endl;
 
+      EffectiveGapT+=(CurrentTimeStep/PreviousTimeStep)*(ReferenceGapT-mContactVariables.PreStepGap.Tangent);
     }
+
+    //std::cout<<" EffectiveGapT "<<EffectiveGapT<<" PreviousEffectiveGapT "<<ReferenceGapT<<std::endl;
+    //only in the first iteration:
+    //mContactVariables.PreStepGap.Tangent=ReferenceGapT;
+    
+
 
     // std::cout<<"ConditionID:  "<<this->Id()<<" -> Previous Gap [gN:"<<ReferenceGapN<<", gT:"<<ReferenceGapT<<"] "<<std::endl; 
     // std::cout<<" -> Effective Gap [gN:"<<EffectiveGapN<<", gT:"<<EffectiveGapT<<"] "<<std::endl; 
 
-
-    //only in the first iteration:
-    //mContactVariables.PreStepGap.Tangent=ReferenceGapT;
 
     //std::cout<<" PreTime "<<Time.PreStep<<" Time "<<Time.Step<<std::endl;
 
@@ -661,7 +656,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     
     //Check ORTHOGONAL FACES in contact
     if(check_fictious_geometry ==true){
-      VectorType& SlaveNormal  =  GetGeometry()[slave].FastGetSolutionStepValue(NORMAL);
+      LocalVectorType& SlaveNormal  =  GetGeometry()[slave].FastGetSolutionStepValue(NORMAL);
       double orthogonal = inner_prod(SlaveNormal,rVariables.Contact.CurrentSurface.Normal);
 
       if(EffectiveGapN<=0 && fabs(orthogonal)<=1){
@@ -817,7 +812,7 @@ void ContactDomainLM2DCondition::CalculateDomainShapeN(GeneralVariables& rVariab
 //************************************************************************************
 //************************************************************************************
 
-void ContactDomainLM2DCondition::FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, VectorType& DirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr)
+void ContactDomainLM2DCondition::FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, LocalVectorType& DirVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr)
 {
     //Computation with the ndi and storage to ndj
 
@@ -838,7 +833,7 @@ void ContactDomainLM2DCondition::FSigmaP(GeneralVariables& rVariables, std::vect
 //************************************************************************************
 
 
-void ContactDomainLM2DCondition::FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, VectorType& DirVector,unsigned int &ndi,unsigned int &ndj)
+void ContactDomainLM2DCondition::FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, LocalVectorType& DirVector,unsigned int &ndi,unsigned int &ndj)
 {
     //Computation with the ndi and storage to ndj
     SigmaP[ndj]=ZeroVector(2);
@@ -932,6 +927,7 @@ double& ContactDomainLM2DCondition::CalculateIntegrationWeight(double& rIntegrat
 
 void ContactDomainLM2DCondition::CalculateNormalForce (double &F,GeneralVariables& rVariables,unsigned int& ndi,unsigned int& idir)
 {    
+
     F = rVariables.Contact.Multiplier.Normal*rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir];
 
 }
@@ -1042,14 +1038,14 @@ void ContactDomainLM2DCondition::CalcContactStiffness (double &Kcont,GeneralVari
 //************************************************************************************
 
 
-ContactDomainUtilities::VectorType & ContactDomainLM2DCondition::CalculateCurrentTangent ( VectorType &rTangent )
+ContactDomainUtilities::LocalVectorType & ContactDomainLM2DCondition::CalculateCurrentTangent ( LocalVectorType &rTangent )
 {
 
 	unsigned int node1=mContactVariables.nodes[0];
 	unsigned int node2=mContactVariables.nodes[1];
 
-	VectorType P1  =  GetGeometry()[node1].Coordinates() + ( GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) );
-	VectorType P2  =  GetGeometry()[node2].Coordinates() + ( GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) );
+	LocalVectorType P1  =  GetGeometry()[node1].Coordinates();
+	LocalVectorType P2  =  GetGeometry()[node2].Coordinates();
   
 	//Set Reference Tangent
 	rTangent=mContactUtilities.CalculateFaceTangent(rTangent,P1,P2);
@@ -1074,11 +1070,11 @@ inline bool ContactDomainLM2DCondition::CheckFictiousContacts(GeneralVariables& 
 
   double offset_factor = rVariables.Contact.CurrentGap.Normal; 
   
-  VectorType PS  =  GetGeometry()[slave].Coordinates() + ( GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1) );
+  LocalVectorType PS  =  GetGeometry()[slave].Coordinates();
 
-  VectorType Normal =GetGeometry()[slave].FastGetSolutionStepValue(NORMAL); 
+  LocalVectorType Normal =GetGeometry()[slave].FastGetSolutionStepValue(NORMAL); 
   double  Shrink             =1;//GetGeometry()[slave].FastGetSolutionStepValue(SHRINK_FACTOR);   
-  VectorType Offset =GetGeometry()[slave].FastGetSolutionStepValue(OFFSET);   
+  LocalVectorType Offset =GetGeometry()[slave].FastGetSolutionStepValue(OFFSET);   
   offset_factor = norm_2(Offset);
 
   //modify slave position projection following slave normal
@@ -1176,8 +1172,8 @@ inline bool ContactDomainLM2DCondition::CheckFictiousContacts(GeneralVariables& 
   if( real_contact == false && (is_inside_b || is_inside_a) ){ //following the master normal is in.
     std::cout<<" THERE IS a SERIOUS DOUBT IN A FICTIOUS CONTACT "<<this->Id()<<std::endl;
 
-    VectorType P1  =  GetGeometry()[node1].Coordinates() + ( GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1) );
-    VectorType P2  =  GetGeometry()[node2].Coordinates() + ( GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT) - GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1) );
+    LocalVectorType P1  =  GetGeometry()[node1].Coordinates();
+    LocalVectorType P2  =  GetGeometry()[node2].Coordinates();
 
     bool is_obtuse = mContactUtilities.CalculateObtuseAngle( P1[0], P1[1],
 							     P2[0], P2[1],

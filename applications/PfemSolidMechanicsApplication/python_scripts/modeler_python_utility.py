@@ -302,7 +302,7 @@ class ModelerUtility:
     def ContactTransfer(self):
         
         if(self.contact_transfer_done == False):
-            print "TRANSFER CONTACTS"
+            print " TRANSFER CONTACTS"
             self.contact_modeler.TransferContactData(self.model_part,self.initial_transfer);
             self.contact_transfer_done = True
         
