@@ -157,17 +157,28 @@ class ExplicitStrategy:
         self.contact_mesh_option            = Var_Translator( Var_Translator(Param.ContactMeshOption) & Var_Translator(Param.ContinuumOption) ) 
         self.concrete_test_option           = Var_Translator( Var_Translator(Param.ConcreteTestOption) & Var_Translator(Param.ContinuumOption) ) 
         self.triaxial_option                = Var_Translator( Var_Translator(Param.TriaxialOption) & self.concrete_test_option )
-        self.search_radius_extension        = 1e-6 #needed for the tangential contacts. Charlie will modify the search. MSIMSI 3 comproba que ja esta arreglat aixo.
+        self.automatic_bounding_box_option  = Var_Translator(Param.AutomaticBoundingBoxOption)   
+        
+        self.search_tolerance               = 0.0
+        self.coordination_number            = 10.0
         self.amplified_continuum_search_radius_extension    = 1.0;
-        self.automatic_bounding_box_option  = Var_Translator(Param.AutomaticBoundingBoxOption)              
+        
+        if (Param.DeltaOption == "OFF"):
+            self.delta_option  = 0
 
-        if (self.delta_option ):
-            self.search_radius_extension    = Param.SearchRadiusExtension
+        elif (Param.DeltaOption == "ABSOLUTE"):
+            self.delta_option  = 1
+            self.search_tolerance    = Param.SearchTolerance
+        
+        elif (Param.DeltaOption == "COORDINATION_NUMBER"):
+            self.delta_option  = 2
+            self.coordination_number = Param.CoordinationNumber 
+            self.search_tolerance = 0.01*Param.MeanRadius
 
         if (self.continuum_simulating_option):
             self.amplified_continuum_search_radius_extension = Param.AmplifiedSearchRadiusExtension;
                  
-        if(self.delta_option):
+        if( self.delta_option > 0 ):
           if(self.continuum_simulating_option): self.case_option = 2
           else: self.case_option = 1
         elif( not self.delta_option ):
@@ -452,8 +463,6 @@ class ExplicitStrategy:
 
     def Initialize(self):
 
-        print("CONTINUUM PYTHON STRATEGY!")
-
         # Setting ProcessInfo variables
         
         # SIMULATION FLAGS
@@ -566,7 +575,7 @@ class ExplicitStrategy:
         
         #CONTINUUM
         
-        self.model_part.ProcessInfo.SetValue(SEARCH_RADIUS_EXTENSION, self.search_radius_extension)
+        self.model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance) #needed here for MPI search.
         self.model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
         
         self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_option)
@@ -611,11 +620,9 @@ class ExplicitStrategy:
 
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
-
-        #self.solver = ContinuumExplicitSolverStrategy(self.model_part, self.contact_model_part, self.max_delta_time, self.n_step_search, self.safety_factor,
-        #                                              self.MoveMeshFlag, self.delta_option, self.continuum_simulating_option, self.creator_destructor, self.time_scheme, self.search_strategy)
+        
         self.solver = ContinuumExplicitSolverStrategy(self.model_part, self.fem_model_part, self.contact_model_part, self.max_delta_time, self.n_step_search, self.safety_factor,
-                                                      self.MoveMeshFlag, self.creator_destructor, self.time_scheme, self.search_strategy)
+                                                      self.MoveMeshFlag, self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_scheme, self.search_strategy)
   
                                   
         self.solver.Initialize() # Calls the solver Initialized function (initializes all elements and performs other necessary tasks before iterating)
