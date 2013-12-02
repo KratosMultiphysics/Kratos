@@ -231,7 +231,17 @@ public:
       }
     
       mBox.Center = 0.5*(Maximum+Minimum);
-      mBox.Radius = rRadius + 0.5*(Maximum[0]-Minimum[0]);
+
+      double MaxRadius = Maximum[0]-Minimum[0];
+      if(Maximum[1]-Minimum[1]>MaxRadius)
+	MaxRadius = Maximum[1]-Minimum[1];
+      
+      if(dimension>2){
+	if(Maximum[2]-Minimum[2]>MaxRadius)
+	  MaxRadius = Maximum[2]-Minimum[2];
+      }
+	  
+      mBox.Radius = rRadius + 0.5*(MaxRadius);
 
       mBox.Velocity = ZeroVector(3);
 

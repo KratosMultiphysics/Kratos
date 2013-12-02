@@ -112,8 +112,16 @@ void AxisymContactDomainPenalty2DCondition::InitializeGeneralVariables (GeneralV
     //reading shape functions local gradients
     rVariables.SetShapeFunctionsGradients(GetGeometry().ShapeFunctionsLocalGradients( mThisIntegrationMethod ));
 
+    // UL
+    //Calculate Delta Position
+    //rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+
+    //calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
+    //rVariables.J = MasterGeometry.Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
+
+     // SL
     //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
-    rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
+    rVariables.j = MasterGeometry.Jacobian( rVariables.j, mThisIntegrationMethod );
 
 }
 
@@ -144,8 +152,8 @@ void AxisymContactDomainPenalty2DCondition::CalculateRadius(double & rCurrentRad
             array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
             array_1d<double, 3 > DeltaDisplacement      = CurrentDisplacement-PreviousDisplacement;  
-	    array_1d<double, 3 > & ReferencePosition    = GetGeometry()[i].Coordinates();
-	    array_1d<double, 3 > CurrentPosition        = ReferencePosition + DeltaDisplacement;
+	    array_1d<double, 3 > & CurrentPosition      = GetGeometry()[i].Coordinates();
+	    array_1d<double, 3 > ReferencePosition      = CurrentPosition - DeltaDisplacement;
 	    
 	    rCurrentRadius   += CurrentPosition[0]*rN[i];
 	    rReferenceRadius += ReferencePosition[0]*rN[i];
@@ -196,13 +204,21 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( GeneralVariable
     rVariables.ReferenceRadius = 0;
     CalculateRadius( rVariables.CurrentRadius, rVariables.ReferenceRadius, rVariables.N );
 
+   // UL
+    // //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
+    // Matrix Invj;
+    // MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
+
+    // //Compute cartesian derivatives [dN/dx_n]
+    // noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , InvJ );
+
+    // SL
     //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n+1]
     Matrix Invj;
-    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ );
+    MathUtils<double>::InvertMatrix( rVariables.j[rPointNumber], Invj, rVariables.detJ ); //overwrites detJ
 
-    //Compute cartesian derivatives
-    noalias( rVariables.DN_DX ) = prod( DN_De[rPointNumber] , Invj );   
-
+    //Compute cartesian derivatives [dN/dx_n+1]
+    rVariables.DN_DX = prod( DN_De[rPointNumber], Invj ); //overwrites DX now is the current position dx
 
     //Get Current DeformationGradient
     std::vector<Matrix> DeformationGradientVector ( integration_points_number );
@@ -215,7 +231,13 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( GeneralVariable
     //Get Current Stress
     std::vector<Vector> StressVector ( integration_points_number );
     StressVector[rPointNumber]=ZeroVector(voigtsize);
-    MasterElement.GetValueOnIntegrationPoints(PK2_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
+    //MasterElement.GetValueOnIntegrationPoints(PK2_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
+    MasterElement.GetValueOnIntegrationPoints(CAUCHY_STRESS_VECTOR,StressVector,rCurrentProcessInfo);
+    
+    for( unsigned int i=0; i<StressVector.size(); i++)
+      {
+    	StressVector[i] = mConstitutiveLawVector[rPointNumber]->TransformStresses(StressVector[i], rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK2); 
+      }
     
     SetContactIntegrationVariable( rVariables.StressVector, StressVector, rPointNumber );
 
@@ -254,6 +276,10 @@ void AxisymContactDomainPenalty2DCondition::CalculateKinematics( GeneralVariable
 
 void AxisymContactDomainPenalty2DCondition::CalculateAndAddLHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
+  // UL
+  //double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.ReferenceRadius / GetProperties()[THICKNESS];
+
+  // SL
   double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
   ContactDomainCondition::CalculateAndAddLHS( rLocalSystem, rVariables, IntegrationWeight );
@@ -267,6 +293,10 @@ void AxisymContactDomainPenalty2DCondition::CalculateAndAddLHS(LocalSystemCompon
 
 void AxisymContactDomainPenalty2DCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSystem, GeneralVariables& rVariables, double& rIntegrationWeight)
 {
+  // UL
+  //double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.ReferenceRadius / GetProperties()[THICKNESS];
+
+  // SL
   double IntegrationWeight = rIntegrationWeight * 2.0 * 3.141592654 * rVariables.CurrentRadius / GetProperties()[THICKNESS];
 
   ContactDomainCondition::CalculateAndAddRHS( rLocalSystem, rVariables, IntegrationWeight );

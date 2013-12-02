@@ -61,13 +61,13 @@ public:
 	
 
     ///Tensor order 1 definition
-    typedef ContactDomainUtilities::VectorType   VectorType;
+    typedef ContactDomainUtilities::LocalVectorType   LocalVectorType;
     ///SurfaceVector
-    typedef ContactDomainUtilities::SurfaceVector SurfaceVector;
+    typedef ContactDomainUtilities::SurfaceVector       SurfaceVector;
     ///SurfaceScalar
-    typedef ContactDomainUtilities::SurfaceScalar SurfaceScalar;
+    typedef ContactDomainUtilities::SurfaceScalar       SurfaceScalar;
     ///BaseLengths
-    typedef ContactDomainUtilities::BaseLengths     BaseLengths;
+    typedef ContactDomainUtilities::BaseLengths           BaseLengths;
 
 
     /// Counted pointer of ContactDomainPenalty2DCondition

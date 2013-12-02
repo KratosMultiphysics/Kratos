@@ -1942,7 +1942,7 @@ namespace Kratos
 	    //   	accepted=mModelerUtilities.CheckSubdomain(vertices);
 	    // }
 
-
+	    
 	    //4.- to control that the element is inside of the domain boundaries
 	    if(accepted)
 	      {

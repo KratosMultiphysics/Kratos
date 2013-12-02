@@ -794,17 +794,17 @@ private:
 			std::cout<<" cosmedio "<<cosmedio<<std::endl;
 
 		      //if (cosmedio!=0) {
-		      if (cosmedio>0 && cosmedio>1e-3) { //too ensure consistency
+		      if (cosmedio>0 && cosmedio>1e-3) { //to ensure consistency
 			cosmedio=1.0/cosmedio;
 			Normal*=cosmedio;               //only to put the correct length   
-			//(boundary_nodes_begin + pn)->SetOuterNormal(Normal);
-			//std::cout<<pn<<" cosmedio "<<cosmedio<<" Normal "<<Normal.GetX()<<" "<<Normal.GetY()<<" "<<Normal.GetZ()<<std::endl;		     
+			//(boundary_nodes_begin + pn)->SetValue(Normal);
+			//std::cout<<pn<<" cosmedio "<<cosmedio<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<std::endl;		     
 		      }
 		    }
-		    //std::cout<<Particles[pn].GetGlobal()<<" Normal "<<Normal.GetX()<<" "<<Normal.GetY()<<" "<<Normal.GetZ()<<std::endl;		     
+		    
+		    //std::cout<<(boundary_nodes_begin + pn)->Id()<<" Normal "<<Normal[0]<<" "<<Normal[1]<<" "<<Normal[2]<<std::endl;		     
 
-
-		    //Now Normalize Normal and store Shrink_Factor
+		    //Now Normalize Normal and store the Shrink_Factor
 		    shrink_factor=norm_2(Normal);
 
 		    if(shrink_factor!=0)

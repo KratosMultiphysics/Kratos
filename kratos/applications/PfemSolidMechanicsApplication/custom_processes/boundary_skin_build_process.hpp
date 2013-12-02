@@ -490,6 +490,24 @@ namespace Kratos
   
 		}
 
+
+	        bool FindConditionDomain(Geometry< Node<3> >& rConditionGeom, unsigned int& MeshId)
+		{
+
+		        //check if the conditions belongs to the MeshId checking the nodes Id
+		        for(unsigned int i=0; i<rConditionGeom.size(); i++)
+			  {
+			    for(ModelPart::NodesContainerType::const_iterator in = mr_model_part.NodesBegin(MeshId); in!=mr_model_part.NodesEnd(MeshId); in++)
+			      {			
+				if( rConditionGeom[i].Id() == in->Id() )
+				  return true;
+			      }
+			  }
+
+			return false;
+  		}
+
+
 		bool SkinSearch(ModelPart::IndexType MeshId=0)
 		{
 			//properties to be used in the generation
@@ -642,21 +660,25 @@ namespace Kratos
 			    if( PreservedConditions[ic->Id()-1] == 0 ){
 
 				Geometry< Node<3> >& rGeom = ic->GetGeometry();
-				Condition::NodesArrayType face;
+				
+				if( FindConditionDomain(rGeom, MeshId) ){
 
-				face.reserve(rGeom.size() );
+				  Condition::NodesArrayType face;
 
-				for(unsigned int j=0; j<rGeom.size(); j++)
-				{
-				    face.push_back(rGeom(j));
+				  face.reserve(rGeom.size() );
+
+				  for(unsigned int j=0; j<rGeom.size(); j++)
+				    {
+				      face.push_back(rGeom(j));
+				    }
+
+				  PreservedConditions[ic->Id()-1] += 1;
+
+				  id +=1;
+
+				  mr_model_part.Conditions(MeshId).push_back(ic->Create(id,face,ic->pGetProperties()));
+
 				}
-
-				PreservedConditions[ic->Id()-1] += 1;
-
-				id +=1;
-
-				mr_model_part.Conditions(MeshId).push_back(ic->Create(id,face,ic->pGetProperties()));
-
 				//std::cout<<" Set preserved condition not found "<<ic->Id()<<std::endl;
 
 			    }
@@ -741,14 +763,14 @@ namespace Kratos
 				rGeom.NodesInFaces(lpofa);   
 	    
 				//unsigned int size=rGeom.size();
-	      
+
 				//loop on neighbour elements of an element
 				unsigned int i=0;
 				for(WeakPointerVector< Element >::iterator ne = rE.begin(); ne!=rE.end(); ne++)
 				{
-					if (ne->Id() == ie->Id())
+ 					if (ne->Id() == ie->Id())
 					{
-						//if no neighnour is present => the face is free surface
+					        //if no neighnour is present => the face is free surface
 						int sizei=lpofa.size2();
 						for(int j=1; j<sizei; j++)
 						{
@@ -809,6 +831,7 @@ namespace Kratos
 						//std::cout<<" Set preserved condition found "<<id<<std::endl;
 						Condition::Pointer p_cond = composite_cond;
 						mr_model_part.Conditions(MeshId).push_back(p_cond);
+						
 
 					}
 					
@@ -825,27 +848,31 @@ namespace Kratos
 			    if( PreservedConditions[ic->Id()-1] == 0 ){
 
 				Geometry< Node<3> >& rGeom = ic->GetGeometry();
-				Condition::NodesArrayType face;
 
-				face.reserve(rGeom.size() );
+				if( FindConditionDomain(rGeom, MeshId) ){
+								  
+				  Condition::NodesArrayType face;
 
-				for(unsigned int j=0; j<rGeom.size(); j++)
-				{
-				    face.push_back(rGeom(j));
+				  face.reserve(rGeom.size() );
+
+				  for(unsigned int j=0; j<rGeom.size(); j++)
+				    {
+				      face.push_back(rGeom(j));
+				    }
+
+				  PreservedConditions[ic->Id()-1] += 1;
+
+				  id +=1;
+
+				  mr_model_part.Conditions(MeshId).push_back(ic->Create(id,face,ic->pGetProperties()));
+
+				  //std::cout<<" Set preserved condition not found "<<ic->Id()<<std::endl;
+
 				}
-
-				PreservedConditions[ic->Id()-1] += 1;
-
-				id +=1;
-
-				mr_model_part.Conditions(MeshId).push_back(ic->Create(id,face,ic->pGetProperties()));
-
-				//std::cout<<" Set preserved condition not found "<<ic->Id()<<std::endl;
-
 			    }
 			}
 
-
+			
 			//control if previous conditions have been assigned
 			bool all_assigned = true;
 			for(unsigned int i=0; i<PreservedConditions.size(); i++)

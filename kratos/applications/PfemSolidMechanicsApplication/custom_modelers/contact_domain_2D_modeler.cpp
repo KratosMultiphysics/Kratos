@@ -60,15 +60,16 @@ namespace Kratos
 
     TriangleMesh2DModeler::MeshingVariables MeshingVars;
     ContactVariables ContactVars;
-
+    
     MeshingVars.SetReferenceElement   (rReferenceElement);
     MeshingVars.SetReferenceCondition (rReferenceCondition);
 
     MeshingVars.Refine.size_factor=h_factor;
     MeshingVars.AlphaParameter=my_alpha;
+    MeshingVars.offset_factor =my_offset;
 
     ContactVars.offset_factor =my_offset;
-    std::cout<<" offset_factor "<<ContactVars.offset_factor<<std::endl;
+    //std::cout<<" offset_factor "<<ContactVars.offset_factor<<std::endl;
 
     ContactVars.penalty_parameter    = penalty_parameter;
     ContactVars.stability_parameter  = stability_parameter;
@@ -264,7 +265,7 @@ namespace Kratos
     if( rContactVariables.offset_factor > nodal_h_min*hnodal_offset_conversion || rContactVariables.offset_factor < nodal_h_min*0.01)
       rContactVariables.offset_factor = nodal_h_min*hnodal_offset_conversion;
 
-    std::cout<<" nodal_h_min "<<nodal_h_min<<" offset_factor "<<rContactVariables.offset_factor<<std::endl;
+    //std::cout<<" nodal_h_min "<<nodal_h_min<<" offset_factor "<<rContactVariables.offset_factor<<std::endl;
 
     //*********************************************************************
 
@@ -340,7 +341,7 @@ namespace Kratos
 	  in.pointlist[base]   = BoxVertices[i][0];
 	  in.pointlist[base+1] = BoxVertices[i][1];
 	  
-	  std::cout<<" BoxVertices ["<<i<<"]= ("<<BoxVertices[i][0]<<", "<<BoxVertices[i][1]<<"). Id = "<<vertices_ids[i]<<std::endl;
+	  //std::cout<<"  BoxVertices ["<<i<<"]= ("<<BoxVertices[i][0]<<", "<<BoxVertices[i][1]<<"). Id = "<<vertices_ids[i]<<std::endl;
 
 	  base+=2; 
 	  id  +=1;
@@ -493,7 +494,7 @@ namespace Kratos
     //   std::cout<<" Properties ID ["<<p<<"]: "<<PropertiesArray[p]->Id()<<std::endl;
 
 
-    std::cout<<"   Properties have been SET: [ ] "<<std::endl;
+    std::cout<<"   Properties have been SET: ["<<properties->Id()<<"] "<<std::endl;
 	
 	
     //node list can not be changed from now on
@@ -520,8 +521,8 @@ namespace Kratos
 
     Condition const & rReferenceCondition=rMeshingVariables.GetReferenceCondition(); //contact element
     //Condition const & rReferenceCondition=KratosComponents<Condition>::Get("ContactDomain2DCondition");
-
-    std::cout<<"   START contact Element Generation [ "<<std::endl;
+    
+    std::cout<<"   [START contact Element Generation "<<std::endl;
 
     //generate kratos elements (conditions are not touched)
     int contact_Id = rModelPart.Conditions().size();
@@ -574,9 +575,9 @@ namespace Kratos
 	  }
       }
 
-    std::cout<<"   END contact Elements Generation ["<<id-contact_Id<<"]"<<std::endl;
+    std::cout<<"   [END   contact Elements Generation ["<<id-contact_Id<<"] ]"<<std::endl;
 
-    std::cout<<" Total Conditions AFTER: ["<<rModelPart.Conditions().size()<<"]"<<std::endl;
+    std::cout<<"   Total Conditions AFTER: ["<<rModelPart.Conditions().size()<<"] ];"<<std::endl;
 
 	
   };

@@ -61,13 +61,13 @@ public:
 	
 
     ///Tensor order 1 definition
-    typedef ContactDomainUtilities::VectorType   VectorType;
+    typedef ContactDomainUtilities::LocalVectorType  LocalVectorType;
     ///SurfaceVector
-    typedef ContactDomainUtilities::SurfaceVector SurfaceVector;
+    typedef ContactDomainUtilities::SurfaceVector      SurfaceVector;
     ///SurfaceScalar
-    typedef ContactDomainUtilities::SurfaceScalar SurfaceScalar;
+    typedef ContactDomainUtilities::SurfaceScalar      SurfaceScalar;
     ///BaseLengths
-    typedef ContactDomainUtilities::BaseLengths     BaseLengths;
+    typedef ContactDomainUtilities::BaseLengths          BaseLengths;
 
 
     /// Counted pointer of ContactDomainLM2DCondition
@@ -232,11 +232,11 @@ protected:
 
     inline bool CheckFictiousContacts(GeneralVariables& rVariables);
 
-    VectorType& CalculateCurrentTangent(VectorType &rTangent);
+    LocalVectorType& CalculateCurrentTangent(LocalVectorType &rTangent);
 
-    void FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, VectorType& AuxVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr);
+    void FSigmaP(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, LocalVectorType& AuxVector,unsigned int &ndi,unsigned int &ndj,unsigned int &ndk,unsigned int &ndr);
 
-    void FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, VectorType& AuxVector,unsigned int &ndi,unsigned int &ndj);
+    void FSigmaPnd(GeneralVariables& rVariables, std::vector<Vector > &SigmaP, LocalVectorType& AuxVector,unsigned int &ndi,unsigned int &ndj);
 
 
 

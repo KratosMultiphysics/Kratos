@@ -265,13 +265,13 @@ else:
   problem_restart.CleanPosteriorFiles(time_step,restart_time,list_files)
 
 #set mesh searches and modeler
-#print "initialize modeler"
-##modeler.InitializeDomains();
+print "initialize modeler"
+modeler.InitializeDomains();
 
-##if(load_restart == "False"):
+if(load_restart == "False"):
   #find nodal h
-  #print "search mesh nodal_h"
-  ##modeler.SearchNodalH();
+  print "search mesh nodal_h"
+  modeler.SearchNodalH();
 
 
 #--- PRINT CONTROL ---#
@@ -287,7 +287,7 @@ main_step_solver.Initialize()
 main_step_solver.SetRestart(load_restart)
 
 # initial contact search
-#modeler.InitialContactSearch()
+modeler.InitialContactSearch()
 
 #define time steps and loop range of steps
 if(load_restart == "True"):  
@@ -323,7 +323,7 @@ restart_print.InitializeTime(starting_time,ending_time,time_step,restart_time_fr
 
 
 #initialize mesh modeling variables for time integration
-##modeler.Initialize(current_step,current_step)
+modeler.Initialize(current_step,current_step)
 
 #initialize graph plot variables for time integration
 #graph_plot.Initialize(current_step)
@@ -387,10 +387,10 @@ for step in range(istep,nstep):
         #graph_plot.Plot(current_time)
 
     #remesh domains
-    ##modeler.RemeshDomains(current_step);
+    modeler.RemeshDomains(current_step);
     
     #contact search
-    ##modeler.ContactSearch(current_step);
+    modeler.ContactSearch(current_step);
 
 
     #print the results at the end of the step

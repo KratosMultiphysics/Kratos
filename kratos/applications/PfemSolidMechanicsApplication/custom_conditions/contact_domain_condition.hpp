@@ -74,13 +74,13 @@ public:
 	
 
     ///Tensor order 1 definition
-    typedef ContactDomainUtilities::VectorType       VectorType;
+    typedef ContactDomainUtilities::LocalVectorType LocalVectorType;
     ///SurfaceVector
-    typedef ContactDomainUtilities::SurfaceVector SurfaceVector;
+    typedef ContactDomainUtilities::SurfaceVector     SurfaceVector;
     ///SurfaceScalar
-    typedef ContactDomainUtilities::SurfaceScalar SurfaceScalar;
+    typedef ContactDomainUtilities::SurfaceScalar     SurfaceScalar;
     ///BaseLengths
-    typedef ContactDomainUtilities::BaseLengths     BaseLengths;
+    typedef ContactDomainUtilities::BaseLengths         BaseLengths;
 
 
 
@@ -150,8 +150,10 @@ protected:
         const GeometryType::ShapeFunctionsGradientsType* pDN_De;
 	const Matrix* pNcontainer;
 
+        GeometryType::JacobiansType J;
         GeometryType::JacobiansType j;
-	    
+        Matrix  DeltaPosition;
+ 
         /**
          * sets the value of a specified pointer variable
 	 */
@@ -207,7 +209,7 @@ protected:
         std::vector<unsigned int> slaves;
 
         //Resultant mechanical tractions
-	VectorType           TractionVector;       //Traction Vector in the reference configuration
+	LocalVectorType       TractionVector;       //Traction Vector in the reference configuration
 
 	//Pointer Variables
         GeometryType*         mpMasterGeometry;
@@ -680,6 +682,11 @@ protected:
 				     const unsigned int& rPointNumber);
 
     /**
+     * Calculation of the Deformation Gradient F
+     */
+    Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
+
+    /**
      * Calculation of the Contact Multipliers or Penalty Factors
      */
     virtual void CalculateExplicitFactors(GeneralVariables& rVariables,
@@ -703,18 +710,18 @@ protected:
      *  Parameters for friction law Relative Tangent Velocity:
      */
     virtual void CalculateRelativeVelocity(GeneralVariables& rVariables,
-					   VectorType & TangentVelocity);
+					   LocalVectorType & TangentVelocity);
 
     /**
      *  Parameters for friction law Relative Tangent Displacement:
      */
     virtual void CalculateRelativeDisplacement(GeneralVariables& rVariables,
-					       VectorType & TangentDisplacement);
+					       LocalVectorType & TangentDisplacement);
 
     /**
      * Calculate current tangent vector
      */
-    virtual VectorType & CalculateCurrentTangent(VectorType &rTangent)
+    virtual LocalVectorType & CalculateCurrentTangent(LocalVectorType &rTangent)
 	{
 		KRATOS_ERROR( std::invalid_argument, "Calling base class in contact domain", "" )
 
@@ -725,7 +732,7 @@ protected:
      * Friction Parameters:
      */
     virtual void CalculateFrictionCoefficient(GeneralVariables& rVariables,
-					      const VectorType & TangentVelocity);
+					      const LocalVectorType & TangentVelocity);
 
 
     /**
