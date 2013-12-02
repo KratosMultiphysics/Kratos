@@ -51,9 +51,11 @@ VirtualMassCoefficient           = *GenData(Virtual_Mass_Coefficient)
 MagicFactor                      = *GenData(Magic_Factor)
 *format "%10.5e"
 MagicFactorPoisson               = *GenData(Magic_Factor_Poisson)
-DeltaOption                      = "*GenData(Set_Initial_Indentation_To_Zero_Force)"
+DeltaOption                      = "*GenData(Set_Search_Tolerance)"
 *format "%10.5e"
-SearchRadiusExtension            = *GenData(Search_Radius_Extension)
+SearchTolerance                  = *GenData(Search_Tolerance_Absolute)
+*format "%10.5e"
+CoordinationNumber               = *GenData(Coordination_Number)
 *format "%10.5e"
 AmplifiedSearchRadiusExtension   = *GenData(Amplified_Continuum_Search_Radius_Extension)
 FixVelocitiesOption              = "*GenData(Fix_Velocities_At_Predetermined_Time)"
@@ -398,8 +400,7 @@ PredefinedSkinOption             = "OFF"
 *endif
 
 TotalElementsVolume              = *tcl(DEM::Get_Mass_Elements)
-
-
+MeanRadius                       = *tcl(DEM::Get_Mean_Radius)
 
 # For RigidFace
 ComputeMovementOption            =  "*GenData(ComputeMovementOption)"
