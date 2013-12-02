@@ -1176,6 +1176,7 @@ private:
 
       
 
+	/*
       void GenerateOctree()
       {
           Timer::Start("Generating Octree");
@@ -1232,6 +1233,75 @@ private:
 //          mOctree.PrintGiDMesh(myfile);
 //          myfile.close();
       }
+*/
+
+	void GenerateOctree()
+    {
+        Timer::Start("Generating Octree");
+        std::cout << "Generating the Octree..." << std::endl;
+        
+        double low[3];
+        double high[3];
+        
+        for (int i = 0 ; i < 3; i++)
+        {
+            low[i] = high[i] = mrFluidModelPart.NodesBegin()->Coordinate(i+1);
+        }
+        
+        // loop over all structure nodes
+        for(ModelPart::NodeIterator i_node = mrFluidModelPart.NodesBegin();
+            i_node != mrFluidModelPart.NodesEnd();
+            i_node++)
+        {
+            for (int i = 0 ; i < 3; i++)
+            {
+                low[i]  = i_node->Coordinate(i+1) < low[i]  ? i_node->Coordinate(i+1) : low[i];
+                high[i] = i_node->Coordinate(i+1) > high[i] ? i_node->Coordinate(i+1) : high[i];
+            }
+        }
+        
+        mOctree.SetBoundingBox(low,high);
+
+        //mOctree.RefineWithUniformSize(0.0625);
+
+        // loop over all structure nodes
+        for(ModelPart::NodeIterator i_node = mrSkinModelPart.NodesBegin();
+            i_node != mrSkinModelPart.NodesEnd();
+            i_node++)
+        {
+            double temp_point[3];
+            temp_point[0] = i_node->X();
+            temp_point[1] = i_node->Y();
+            temp_point[2] = i_node->Z();
+            mOctree.Insert(temp_point);
+        }
+
+        //mOctree.Constrain2To1(); // To be removed. Pooyan.
+
+        // loop over all structure elements
+        //for(ModelPart::ElementIterator i_element = mrSkinModelPart.ElementsBegin();
+         //   i_element != mrSkinModelPart.ElementsEnd();
+          //  i_element++)
+	for(ModelPart::ConditionIterator i_cond = mrSkinModelPart.ConditionsBegin();
+            i_cond != mrSkinModelPart.ConditionsEnd();
+            i_cond++)
+        {
+            mOctree.Insert(*(i_cond).base());
+        }
+
+        Timer::Stop("Generating Octree");
+
+//        KRATOS_WATCH(mOctree);
+
+//        std::cout << "######## WRITING OCTREE MESH #########" << std::endl;
+//        std::ofstream myfile;
+//        myfile.open ("octree.post.msh");
+//        mOctree.PrintGiDMesh(myfile);
+//        myfile.close();
+
+        std::cout << "Generating the Octree finished" << std::endl;
+    }
+
 
       ///******************************************************************************************************************
       ///******************************************************************************************************************
