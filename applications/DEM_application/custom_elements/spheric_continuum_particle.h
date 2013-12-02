@@ -204,13 +204,13 @@ namespace Kratos
 
        SphericContinuumParticle();
 
-        void SetInitialContacts( const ProcessInfo& rCurrentProcessInfo );
+        void SetInitialContacts();
         void NeighNeighMapping( ProcessInfo& rCurrentProcessInfo ); //MSIMSI DEBUG
         void CheckPairWiseBreaking(); //MSIMSI DEBUG
         double AreaDebugging(const ProcessInfo& rCurrentProcessInfo); //MSIMSI DEBUG
         
-        virtual void ContactAreaWeighting2D(const ProcessInfo& rCurrentProcessInfo );
-        void ContactAreaWeighting3D(const ProcessInfo& rCurrentProcessInfo );
+        virtual void ContactAreaWeighting2D();
+        void ContactAreaWeighting3D();
         void SymmetrizeTensor(const ProcessInfo& rCurrentProcessInfo );
         
         virtual void CustomInitialize();
