@@ -2198,6 +2198,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
           }//switch
 
+          
       } //NormalForceCalculation
       
       //**************************************************************************************************************************************************
