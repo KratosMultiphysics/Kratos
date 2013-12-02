@@ -139,6 +139,10 @@ namespace Kratos
          
           // 4. Set Initial Contacts
           
+          if( rCurrentProcessInfo[CASE_OPTION] !=0 ) 
+          {            
+            this->Set_Initial_Contacts();
+          }   
 
           
           if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
@@ -747,8 +751,8 @@ namespace Kratos
           
           KRATOS_CATCH("")
 
-        } //ConsistentAreaRecovering
- 
+        } //GlobalDamping
+
     void Particle_Area_Calculate()
     {
            
@@ -771,6 +775,37 @@ namespace Kratos
           {
             
               (it)->Calculate(MEAN_CONTACT_AREA,Output,rCurrentProcessInfo); 
+            
+          } //loop over particles
+
+      }// loop threads OpenMP
+      
+      KRATOS_CATCH("")
+
+    } //Particle_Area_Calculate
+ 
+    void Set_Initial_Contacts()
+    {
+           
+      KRATOS_TRY
+
+      ModelPart& r_model_part           = BaseType::GetModelPart();
+      ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
+      ElementsArrayType& pElements      = GetElements(r_model_part);
+      
+      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+      
+      double Output = 0.0;
+      
+      #pragma omp parallel for
+      for (int k = 0; k < this->GetNumberOfThreads(); k++){
+          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+          typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+          {
+            
+              (it)->Calculate(CALCULATE_SET_INITIAL_CONTACTS,Output,rCurrentProcessInfo); 
             
           } //loop over particles
 
