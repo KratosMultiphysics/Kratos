@@ -124,11 +124,6 @@ if ( (DEM_parameters.ContinuumOption =="ON") and (DEM_parameters.ContactMeshOpti
 Pressure = 0.0  
 Pressure = proc.GiDSolverTransfer(balls_model_part, solver, DEM_parameters)
 
-if (DEM_parameters.ModelDataInfo == "ON"):
-    os.chdir(data_and_results)
-    proc.ModelData(balls_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
-    os.chdir(main_path)
-
 if (DEM_parameters.PredefinedSkinOption == "ON" ):
 
    proc.SetPredefinedSkin(balls_model_part)
@@ -256,6 +251,16 @@ if (DEM_parameters.Multifile == "single_file"):
   
   gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
 
+  
+##MODEL DATA 
+
+if (DEM_parameters.ModelDataInfo == "ON"):
+    os.chdir(data_and_results)
+    (coordination_number) = proc.ModelData(balls_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
+    print ('Coordination Number: ' + str(coordination_number) + '\n' )
+    os.chdir(main_path)
+
+  
 #------------------------------------------------------------------------------------------
  
 ###########################################################################################
