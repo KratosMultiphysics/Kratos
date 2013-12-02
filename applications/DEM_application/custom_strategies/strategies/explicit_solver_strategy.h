@@ -146,6 +146,9 @@ namespace Kratos
                              const double n_step_search,
                              const double safety_factor,
                              const bool move_mesh_flag,
+                             const int delta_option,
+                             const double search_tolerance,
+                             const double coordination_number,
                              typename ParticleCreatorDestructor::Pointer p_creator_destructor,
                              typename IntegrationScheme::Pointer pScheme,
                              typename SpatialSearch::Pointer pSpSearch
@@ -154,6 +157,9 @@ namespace Kratos
 
           mElementsAreInitialized        = false;
           mInitializeWasPerformed        = false;
+          mDeltaOption                   = delta_option,
+          mSearchTolerance               = search_tolerance,
+          mCoordinationNumber            = coordination_number;
           mpParticleCreatorDestructor    = p_creator_destructor;
           mpScheme                       = pScheme;
           mpSpSearch                     = pSpSearch;
@@ -196,14 +202,23 @@ namespace Kratos
 
           // 0. Set search radius
                     
-          SetSearchRadius(r_model_part, rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION]);
+          
 
           // 1. Search Neighbours with tolerance (Not in mpi.)
           this->GetBoundingBoxOption() = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
 
           // 2. Search Neighbours with tolerance (after first repartition process)
+          
           SearchNeighbours();
-		  ComputeNewNeighboursHistoricalData();  
+          
+          if(mDeltaOption == 2)
+          {
+            
+            SetCoordinationNumber(r_model_part);
+            
+          }
+          
+          ComputeNewNeighboursHistoricalData();  
           ///Cfeng RigidFace search
           SearchRigidFaceNeighbours();
 		  ComputeNewRigidFaceNeighboursHistoricalData();
@@ -311,7 +326,7 @@ namespace Kratos
           process_info_delta_time = temp_time_step;
           KRATOS_WATCH(mMaxTimeStep)
 
-          std::cout<< "****************** Calculated time step is " << temp_time_step << " ******************" << std::endl;
+          std::cout<< "****************** Calculated time step is " << temp_time_step << " ******************" << "\n" << std::endl;
 
           KRATOS_CATCH("")
       }
@@ -512,7 +527,81 @@ namespace Kratos
       }
 	  
 	  
-	  
+    void SetCoordinationNumber(ModelPart& r_model_part) 
+    {
+      double in_coordination_number = mCoordinationNumber;
+      double out_coordination_number = ComputeCoordinationNumber();
+      int iteration = 0;
+ 
+      if(in_coordination_number <= 0.0)
+      {
+        KRATOS_ERROR(std::runtime_error,"The specified Coordination Number is less or equal to zero, N.C. = ",in_coordination_number)
+      }
+      else
+      {
+          while ( fabs(out_coordination_number/in_coordination_number-1.0) > 1e-3)
+          {
+    
+            
+            iteration++;
+
+            mSearchTolerance *= in_coordination_number/out_coordination_number;
+            
+            SetSearchRadius(r_model_part, 1.0);
+            
+            SearchNeighbours();
+             
+            out_coordination_number = ComputeCoordinationNumber();
+   
+          }//while
+          
+          std::cout<< "Coordination Number iteration converged after "<<iteration<< " iterations, to value " <<out_coordination_number<<". "<<"\n"<<std::endl;
+          
+            
+      }
+      
+    } //SetCoordinationNumber
+    
+    double ComputeCoordinationNumber()
+    {
+        KRATOS_TRY
+
+        ModelPart& r_model_part               = BaseType::GetModelPart();
+        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
+
+        unsigned int size = 0;
+        unsigned int total_contacts = 0;
+        mNeighbourCounter[OpenMPUtils::ThisThread()] = 0.0;
+        
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+
+        #pragma omp parallel for //private(index, MassMatrix)  //M. proba de compilar sense mass matrix??
+        for (int k = 0; k < this->GetNumberOfThreads(); k++){
+            typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+
+                size = (it)->GetValue(NEIGHBOUR_ELEMENTS).size();
+                mNeighbourCounter[OpenMPUtils::ThisThread()]+=size;
+                
+            }
+
+        }
+              
+        for (int i = 0; i < this->GetNumberOfThreads(); i++)
+        {
+          
+          total_contacts += mNeighbourCounter[OpenMPUtils::ThisThread()];
+                  
+        }
+        
+        return (double(total_contacts)/double(pElements.size()));
+       
+        KRATOS_CATCH("")
+      
+    }
+    
 
 
     void CalculateEnergies(){}
@@ -544,25 +633,26 @@ namespace Kratos
 
         KRATOS_CATCH("")
     }
-
-    void SetSearchRadius(ModelPart& r_model_part, double radiusExtend)
+    
+    
+    void SetSearchRadius(ModelPart& r_model_part, double amplification)
     {
         KRATOS_TRY
-
+     
         ModelPart& r_model_part               = BaseType::GetModelPart();
         ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
         
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         
-        if(mNumberOfElementsOldRadiusList == number_of_elements) return;
-        else mNumberOfElementsOldRadiusList = number_of_elements;
+       // if(mNumberOfElementsOldRadiusList == number_of_elements) return;  //TODO:: this can fail when one particle is created and one is destroyed for example.
+       // else 
+        mNumberOfElementsOldRadiusList = number_of_elements;
         
         this->GetRadius().resize(number_of_elements);
 
         for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
 
-           // this->GetRadius()[particle_pointer_it - pElements.begin()] = (1.0 + radiusExtend) * particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS); //if this is changed, then compobation before adding neighbours must change also.
-           this->GetRadius()[particle_pointer_it - pElements.begin()] = radiusExtend + particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+            this->GetRadius()[particle_pointer_it - pElements.begin()] = amplification*(mSearchTolerance + particle_pointer_it->GetGeometry()(0)->GetSolutionStepValue(RADIUS));
 
         }
 
@@ -1116,6 +1206,11 @@ namespace Kratos
     double&                                      GetMaxTimeStep(){return (mMaxTimeStep);}
     double&                                      GetSafetyFactor(){return (mSafetyFactor);}
     
+    int&                                         GetDeltaOption(){return (mDeltaOption);}
+    double&                                      GetSearchTolerance(){return (mSearchTolerance);}
+    double&                                      GetCoordinationNumber(){return (mCoordinationNumber);}
+    vector<unsigned int>&                        GetNeighbourCounter(){return(mNeighbourCounter);}
+                                           
     int&                                         GetNumberOfElementsOldRadiusList(){return (mNumberOfElementsOldRadiusList);}
 
     vector<unsigned int>&                        GetElementPartition(){return (mElementPartition);}
@@ -1147,7 +1242,12 @@ namespace Kratos
 
     double                                       mMaxTimeStep;
     double                                       mSafetyFactor;
-
+    
+    int                                          mDeltaOption;
+    double                                       mSearchTolerance;
+    double                                       mCoordinationNumber;
+    vector<unsigned int>                         mNeighbourCounter;
+          
     vector<unsigned int>                         mElementPartition;
     typename ParticleCreatorDestructor::Pointer  mpParticleCreatorDestructor;
     typename IntegrationScheme::Pointer          mpScheme;
