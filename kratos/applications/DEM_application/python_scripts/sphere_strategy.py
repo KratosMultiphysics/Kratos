@@ -140,7 +140,18 @@ class ExplicitStrategy:
         self.global_variables_option        = Var_Translator(Param.GlobalVariablesOption)
         self.contact_mesh_option            = Var_Translator(Param.ContactMeshOption)
         self.automatic_bounding_box_option  = Var_Translator(Param.AutomaticBoundingBoxOption)
-        self.delta_option                   = Var_Translator(Param.DeltaOption)
+        
+        if (Param.DeltaOption == "OFF"):
+            self.delta_option  = 0
+
+        elif (Param.DeltaOption == "ABSOLUTE"):
+            self.delta_option  = 1
+            self.search_tolerance    = Param.SearchTolerance
+        
+        elif (Param.DeltaOption == "COORDINATION_NUMBER"):
+            self.delta_option  = 2
+            self.coordination_number = Param.CoordinationNumber  
+       
         self.move_mesh_flag                 = True
         self.deactivate_search              = 0
         self.case_option                    = 3
@@ -402,10 +413,8 @@ class ExplicitStrategy:
 
         # STRATEGIES
         
-        self.search_radius_extension        = 0.0 
- 
-        if (self.delta_option ):
-            self.search_radius_extension    = Param.SearchRadiusExtension
+        self.search_tolerance        = 0.0 
+        self.coordination_number     = 10.0
 
         self.search_strategy                = OMP_DEMSearch()
 
@@ -534,7 +543,7 @@ class ExplicitStrategy:
             self.model_part.ProcessInfo.SetValue(GLOBAL_KT, self.global_kt)
 
         # SEARCH-RELATED
-        self.model_part.ProcessInfo.SetValue(SEARCH_RADIUS_EXTENSION, self.search_radius_extension)
+        self.model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance) #needed in ProcessInfo for MPISearch 
 
         # PRINTING VARIABLES
         
@@ -552,7 +561,8 @@ class ExplicitStrategy:
         # RESOLUTION METHODS AND PARAMETERS
         # Creating the solution strategy
 
-        self.solver = ExplicitSolverStrategy(self.model_part, self.fem_model_part, self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag,    self.creator_destructor, self.time_scheme, self.search_strategy)
+        self.solver = ExplicitSolverStrategy(self.model_part, self.fem_model_part, self.max_delta_time, self.n_step_search, self.safety_factor, self.move_mesh_flag,
+                                             self.delta_option, self.search_tolerance, self.coordination_number, self.creator_destructor, self.time_scheme, self.search_strategy)
 
         self.solver.Initialize() # Calls the solver Initialize function (initializes all elements and performs other necessary tasks before iterating) (C++)
 
