@@ -153,7 +153,8 @@ namespace Kratos
 
                     mHistory[continuum_ini_size - 1][0] = 0.0; //maximum indentation reached
                     mHistory[continuum_ini_size - 1][1] = 0.0; //maximum force reached
-                    mHistory[continuum_ini_size - 1][2] = 0.0;
+                    mHistory[continuum_ini_size - 1][2] = 0.0; //acumulated_damage
+                    mHistory[continuum_ini_size - 1][3] = 1.0; //degradation factor for G reducing in Dempack;
 
                     r_continuum_ini_neighbours_ids[continuum_ini_size - 1] = ((*ineighbour).lock())->Id();
 
@@ -535,26 +536,7 @@ namespace Kratos
             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, RelVel, LocalRelVel);
             
             /* Translational Forces */
-            
-            //Tangential Forces   #4
 
-
-            LocalElasticContactForce[0] += - kt_el * LocalDeltDisp[0];  // 0: first tangential
-            LocalElasticContactForce[1] += - kt_el * LocalDeltDisp[1];  // 1: second tangential
-                              
-            double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
-                                    +   LocalElasticContactForce[1] * LocalElasticContactForce[1]); 
-        
-            double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
-            
-            /*if (Frictional_ShearForceMax < 0.0)
-            {
-              Frictional_ShearForceMax = 0.0;
-              
-            }*/
-            Frictional_ShearForceMax = (Frictional_ShearForceMax < 0.0) ? 0.0 : Frictional_ShearForceMax;
-            
-               
             if  (indentation > 0.0 || (mNeighbourFailureId[i_neighbour_count] == 0) )//*  //#3
             {                                                                                                
               
@@ -590,10 +572,46 @@ namespace Kratos
 
             } //if compression or cohesive contact
                
-
-              /* Evaluating Failure for the continuum contacts */
-          
+     
+            //Tangential. With degradation:
+            
+            double degradation = 1.0;
+     
+            if(mDempack)
+            {
+              
+              if(indentation >= 0.0 ) //COMPRESSION
+              {
+              
+                degradation = mHistory[mapping_new_cont][3];
+               
+              }
+              else
+              {
+               
+                degradation = (1.0 -  mHistory[mapping_new_cont][2]);
+               
+              }
+            }
+            
+              
+            LocalElasticContactForce[0] += - degradation*kt_el * LocalDeltDisp[0];  // 0: first tangential
+            LocalElasticContactForce[1] += - degradation*kt_el * LocalDeltDisp[1];  // 1: second tangential  
+              
+                                         
+            double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
+                                    +   LocalElasticContactForce[1] * LocalElasticContactForce[1]); 
+        
+            double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
+            
+            if (Frictional_ShearForceMax < 0.0)
+            {
+              Frictional_ShearForceMax = 0.0;
+              
+            }
                 
+                /* Evaluating Failure for the continuum contacts */
+          
                 if(mNeighbourFailureId[i_neighbour_count] == 0)
                 {                
                   /*
@@ -614,26 +632,7 @@ namespace Kratos
                     }
                   
                 }
-                
-                       /*   MSIMSI 10 Activar la busqueda quan un peti. 
-          if(mNeighbourFailureId[i_neighbour_count] != 0 && rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
-          {
-              rCurrentProcessInfo.SetValue(ACTIVATE_SEARCH, 1);
-
-              KRATOS_WATCH(" ")
-              KRATOS_WATCH("-------->From now on, searching neighbours, some contacs have failed<-------")
-              KRATOS_WATCH("Time step:")
-              KRATOS_WATCH(*mpTimeStep)
-              KRATOS_WATCH("Particle_1")
-              KRATOS_WATCH(this->Id())
-              KRATOS_WATCH("Particle_2")
-              KRATOS_WATCH(neighbour_iterator->Id())      
-              KRATOS_WATCH(" ")
-          
-
-           }
-      */
-                
+               
                 
                 /* Tangential Friction for broken bonds */  //dempack and kdem do the same.
                 
@@ -1964,7 +1963,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
      } //SphericContinuumParticle::ComputePressureForces
     
 
-    void SphericContinuumParticle::PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn_el, double indentation, double calculation_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, double mapping_new_cont, double mapping_new_ini )
+    void SphericContinuumParticle::PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn_el, double indentation, double calculation_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini )
     {
 
       //VARIABLES
@@ -2015,12 +2014,14 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             {
               
               fn = Ncstr3_el + ( indentation - u_ela3 )*kn_d;
+              mHistory[mapping_new_cont][3] = kn_d/kn_el;
               
             }
             else if (indentation > u_ela2) //3r tram
             {
               
               fn = Ncstr2_el + ( indentation - u_ela2 )*kn_c;
+              mHistory[mapping_new_cont][3] = kn_c/kn_el;
               
             }
             else
@@ -2028,6 +2029,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
               if( indentation > u_ela1) //2n tram
               {
                 fn = Ncstr1_el + (indentation - u_ela1)*kn_b;
+                mHistory[mapping_new_cont][3] = kn_b/kn_el;
               
               }
               
@@ -2075,7 +2077,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                   if ( u_plas < u_max ) //si nosaltres estem per sota del maxim pero ja estem plastificant 
                   {
                     fn = mHistory[mapping_new_cont][1] - kp_el*(u_max - indentation); // Esta en zona de descarga plastica (pot estar en carga/descarga)
-                  
+                    mHistory[mapping_new_cont][3] = kp_el/kn_el;
                     
                     
                   }
@@ -2144,7 +2146,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
               
             }
             
-            fn = indentation * kn_el*(1 -  mHistory[mapping_new_cont][2]);  // normal adhesive force (gap +)
+            fn = indentation * kn_el*(1.0 -  mHistory[mapping_new_cont][2]);  // normal adhesive force (gap +)
             
           }
       
