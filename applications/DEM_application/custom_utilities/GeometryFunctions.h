@@ -49,7 +49,7 @@ namespace Kratos
     {
             double distance = sqrt(Vector[0] * Vector[0] + Vector[1] * Vector[1] + Vector[2] * Vector[2]);
             
-            double inv_distance = 1 / distance;
+            double inv_distance = (distance != 0.0) ?  1.0 / distance : 0.00;
             Vector[0] = Vector[0] * inv_distance;
             Vector[1] = Vector[1] * inv_distance;
             Vector[2] = Vector[2] * inv_distance;
@@ -137,13 +137,7 @@ namespace Kratos
    //NOTE:: Modified by M. Santasusana Feb 2013 - simplification (the one proposed by F.Chun was for a more generalized case) 
     static inline void ComputeContactLocalCoordSystem(array_1d<double,3>& NormalDirection, const double& distance, double LocalCoordSystem[3][3])  //inline: modifies the LocalCoordSystem as it were a reference
     {
-      //TODO: boost::numeric::ublas::bounded_matrix<double, 4, 3 >
-      //Matrix a(4,3); a.resize(...,false)
-             
-        //double Vector0[3] = {0.0},Vector1[3] = {0.0};
-        //array_1d<double,3> Vector0, Vector1;
-
-        //normalize(NormalDirection);         
+           
         double inv_distance = 1.0/distance;
         NormalDirection[0] *= inv_distance;
         NormalDirection[1] *= inv_distance;
@@ -156,9 +150,7 @@ namespace Kratos
             
         LocalCoordSystem[0][k]= - NormalDirection[i];
         LocalCoordSystem[0][i]= NormalDirection[k];
-        LocalCoordSystem[0][j]=0.0;*/
-        
-        
+        LocalCoordSystem[0][j]=0.0;*/                
        
       if(fabs(NormalDirection[0])>=0.577)
         {
@@ -198,71 +190,7 @@ namespace Kratos
         LocalCoordSystem[2][2]=NormalDirection[2];        
 
     }
-   //NOTE:: Modified by M. Santasusana Feb 2013 - simplification (the one proposed by F.Chun was for a more generalized case) 
-    static inline void ComputeContactLocalCoordSystemNew(array_1d<double,3>& NormalDirection, double LocalCoordSystem[3][3])  //inline: modifies the LocalCoordSystem as it were a reference
-    {
-      //TODO: boost::numeric::ublas::bounded_matrix<double, 4, 3 >
-      //Matrix a(4,3); a.resize(...,false)
-      
-        int ii;
-        //double Vector0[3] = {0.0},Vector1[3] = {0.0};
-        array_1d<double,3> Vector0, Vector1;
-
-        normalize(NormalDirection); 
-        
-        
-        
-        //Vector0[0] = -(fabs(NormalDirection[0])>=0.577) * NormalDirection[1];                       
-        if(fabs(NormalDirection[0])>=0.577)
-        {
-
-            Vector0[0] = -NormalDirection[1] * NormalDirection[0];
-            Vector0[1] = 1.00 -NormalDirection[1] * NormalDirection[1];
-            Vector0[2] = -NormalDirection[1] * NormalDirection[2];
-            normalize(Vector0);
-//            Vector1[0] = - NormalDirection[2]*NormalDirection[0] - Vector0[2]*Vector0[0];
-//            Vector1[1] = - NormalDirection[2]*NormalDirection[1] - Vector0[2]*Vector0[1];
-//            Vector1[2] = 1.00 - NormalDirection[2]*NormalDirection[2] - Vector0[2]*Vector0[2];
-            
-        }
-        else if(fabs(NormalDirection[1])>=0.577)
-        {
-            Vector0[0] = 1.00 -NormalDirection[0] * NormalDirection[0];
-            Vector0[1] = -NormalDirection[0] * NormalDirection[1];
-            Vector0[2] = -NormalDirection[0] * NormalDirection[2];
-            normalize(Vector0);
-//            Vector1[0] = - NormalDirection[2]*NormalDirection[0] - Vector0[2]*Vector0[0];
-//            Vector1[1] = - NormalDirection[2]*NormalDirection[1] - Vector0[2]*Vector0[1];
-//            Vector1[2] = 1.00 - NormalDirection[2]*NormalDirection[2] - Vector0[2]*Vector0[2];
-       }
-        
-        else
-        {                   
-            Vector0[0] = 1.00 -NormalDirection[0] * NormalDirection[0];
-            Vector0[1] = -NormalDirection[0] * NormalDirection[1];
-            Vector0[2] = -NormalDirection[0] * NormalDirection[2];
-            normalize(Vector0);
-//            Vector1[0] = - NormalDirection[1]*NormalDirection[0] - Vector0[1]*Vector0[0];
-//            Vector1[1] = 1.00 - NormalDirection[1]*NormalDirection[1] - Vector0[1]*Vector0[1];
-//            Vector1[2] =  - NormalDirection[1]*NormalDirection[2] - Vector0[1]*Vector0[2];
-        }
-
-        
-        //Vector1 = u3 - DotProduct(NormalDirection,u3)*NormalDirection - DotProduct(Vector0,u3)*Vector0;
-        CrossProduct(NormalDirection,Vector0,Vector1);
-        //normalize(Vector1);
-
-        
-        for(ii=0;ii<3;ii++)
-        {
-             //TODO:: QUAN FACIS SERVIR MATRIX HAS DE ACCEDIRHO AMB AIXO (0,ii) EN COMPTES D'AIXO [][]
-            LocalCoordSystem[0][ii]=Vector0[ii];
-            LocalCoordSystem[1][ii]=Vector1[ii];
-            LocalCoordSystem[2][ii]=NormalDirection[ii];
-        }
-
-    }
-
+   
      static inline double DistanceOfTwoPoint(double coord1[3], double coord2[3])
      {
          double dx = coord1[0] - coord2[0];
