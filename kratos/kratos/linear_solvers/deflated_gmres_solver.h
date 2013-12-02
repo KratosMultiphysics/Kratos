@@ -282,6 +282,68 @@ public:
      * which require knowledge on the spatial position of the nodes associated to a given dof.
      * This function is the place to eventually provide such data
      */
+ void ProvideAdditionalData (
+        SparseMatrixType& rA,
+        VectorType& rX,
+        VectorType& rB,
+        typename ModelPart::DofsArrayType& rdof_set,
+        ModelPart& r_model_part
+    )
+    {
+        //count pressure dofs
+        unsigned int n_pressure_dofs = 0;
+        unsigned int tot_active_dofs = 0;
+        for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
+		{
+		  if (it->EquationId() < rA.size1())
+		  {
+		      tot_active_dofs += 1;
+		      if (it->GetVariable().Key() == PRESSURE)
+			  n_pressure_dofs += 1;
+		  }
+		}
+
+        if (tot_active_dofs != rA.size1() )
+            KRATOS_ERROR (std::logic_error,"total system size does not coincide with the free dof map","");
+
+        //resize arrays as needed
+        mpressure_indices.resize (n_pressure_dofs,false);
+
+        unsigned int other_dof_size = tot_active_dofs - n_pressure_dofs;
+        mother_indices.resize (other_dof_size,false);
+        mglobal_to_local_indexing.resize (tot_active_dofs,false);
+        mis_pressure_block.resize (tot_active_dofs,false);
+        //construct aux_lists as needed
+        //"other_counter[i]" i will contain the position in the global system of the i-th NON-pressure node
+        //"pressure_counter[i]" will contain the in the global system of the i-th NON-pressure node
+        //
+        //mglobal_to_local_indexing[i] will contain the position in the local blocks of the
+        unsigned int pressure_counter = 0;
+        unsigned int other_counter = 0;
+        unsigned int global_pos = 0;
+        for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
+        {
+            if (it->EquationId() < rA.size1())
+            {
+                if (it->GetVariable().Key() == PRESSURE)
+                {
+                    mpressure_indices[pressure_counter] = global_pos;
+                    mglobal_to_local_indexing[global_pos] = pressure_counter;
+                    mis_pressure_block[global_pos] = true;
+                    pressure_counter++;
+                }
+                else
+                {
+                    mother_indices[other_counter] = global_pos;
+                    mglobal_to_local_indexing[global_pos] = other_counter;
+                    mis_pressure_block[global_pos] = false;
+                    other_counter++;
+                }
+                global_pos++;
+            }
+        }
+    }
+/*
     void ProvideAdditionalData (
         SparseMatrixType& rA,
         VectorType& rX,
@@ -342,6 +404,7 @@ public:
             }
         }
     }
+*/
     ///@}
     ///@name Access
     ///@{
