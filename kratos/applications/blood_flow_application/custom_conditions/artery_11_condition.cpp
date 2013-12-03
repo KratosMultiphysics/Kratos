@@ -153,10 +153,7 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
             const double density = GetProperties()[DENSITY];
             double a_factor = this->GetValue(a);
             double b_factor = this->GetValue(b);
-//            if (this->Id()==61)
-//                KRATOS_WATCH("-------------------------------------------------------")
-//                KRATOS_WATCH(a_factor);
-            //KRATOS_WATCH(b_factor);
+            
             //const double density = GetSolutionStepValue(DENSITY);
             //const double pi = 3.14159265;
             const double coriolis_coefficient = 1.1;
@@ -218,6 +215,11 @@ void Artery11Condition::CalculateRightHandSide(VectorType& rRightHandSideVector,
             //wave_velocity[1] = (flow[1] / area[1]) - 4.00 * sqrt(beta[1] / (2.00 * density * GetGeometry()[1].GetValue(NODAL_AREA))) * pow(area[1],0.25);
             wave_velocity[0] = (flow[0] / area[0]) + 4.00 * coef(0) * pow(area[0],0.25);
             wave_velocity[1] = (flow[1] / area[1]) - 4.00 * coef(1) * pow(area[1],0.25);
+// 	    if (this->Id()==250)
+//                KRATOS_WATCH("---------------------sdfsdf----------------------------------");
+//                KRATOS_WATCH(a_factor);
+//                KRATOS_WATCH(b_factor);
+// 	       KRATOS_WATCH(a_factor*flow[1]+ b_factor*fabs(flow[1])*flow[1]);    
 
 //KRATOS_WATCH(flow);
 //KRATOS_WATCH(wave_velocity);
@@ -449,7 +451,7 @@ void Artery11Condition::CalculateFunctional4(array_1d<double,4>& rFunctional,
   
     const double qa0 = Flow[0]/Area[0];
     const double qa1 = Flow[1]/Area[1];
-
+      
     rFunctional[0]=Flow[0] + (4.00 * Coef[0]* pow(Area[0],1.25)) - WaveVelocity[0]*Area[0];
     rFunctional[1]=(ArteryProperty[0]*(sqrt(Area[0])-sqrt(GetGeometry()[0].GetValue(NODAL_AREA))))-
              (ArteryProperty[1]*(sqrt(Area[1])-sqrt(GetGeometry()[1].GetValue(NODAL_AREA))))+
@@ -457,7 +459,7 @@ void Artery11Condition::CalculateFunctional4(array_1d<double,4>& rFunctional,
              ((a_factor*Flow[1]) + (b_factor*fabs(Flow[1])*Flow[1]));
     rFunctional[2]=Flow[0]-Flow[1];
     rFunctional[3]=Flow[1]-4.00*Coef[1] * pow(Area[1],1.25)-(WaveVelocity[1]*Area[1]);
-    //KRATOS_WATCH(a_factor*Flow[1]+ b_factor*fabs(Flow[1])*Flow[1]);
+    
     KRATOS_CATCH("");
 
 }
@@ -481,7 +483,7 @@ void Artery11Condition::CalculateJacobian4(Matrix& rJacobian,
     rJacobian(1,0)=  ((0.50 * ArteryProperty[0] / sqrt(Area[0])) - ((BloodDensity* Flow[0] * Flow[0]) / (Area[0]*Area[0]*Area[0])));
     rJacobian(1,1)= -((0.50 * ArteryProperty[1] / sqrt(Area[1])) + ((BloodDensity* Flow[1] * Flow[1]) / (Area[1]*Area[1]*Area[1])));
     rJacobian(1,2)=  (BloodDensity * Flow[0]) / (Area[0] * Area[0]);
-    rJacobian(1,3)= -((BloodDensity * Flow[1]) / (Area[1] * Area[1])) - (a_factor) - (2*b_factor*(Flow[1])); 
+    rJacobian(1,3)= -((BloodDensity * Flow[1]) / (Area[1] * Area[1])) - (a_factor) - (2*b_factor*fabs(Flow[1])); 
 
     rJacobian(2,0)= 0.00;
     rJacobian(2,1)= 0.00;

@@ -119,31 +119,38 @@ void ArteryOutletCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
         rRightHandSideVector.resize(2,false);
 
     //double h_int = rCurrentProcessInfo[DELTA_TIME];
-
     //const int Propiedad=GetProperties().Id();
-
     //get data as needed
     // EDU:: TOMA LAS PROPIEDADES DE LA PROPIEDAD XXX DEL MPDA
     //const double dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
-    const double density = GetProperties()[DENSITY];
-    const double p_venous= GetGeometry()[0].FastGetSolutionStepValue(DYASTOLIC_PRESSURE);
-    //GetProperties()[PRESSURE_VENOUS];
-    const double p_init = GetGeometry()[0].FastGetSolutionStepValue(DYASTOLIC_PRESSURE);
-
-
+    //KRATOS_WATCH(density)
+    //const double p_venous= GetProperties()[DYASTOLIC_PRESSURE];
+    //const double p_sss=GetProperties()[PRESSURE_VENOUS];
+    //KRATOS_WATCH(p_venous)
+    //KRATOS_WATCH(p_sss)
+    //GetProperties()[PRESSURE_VENOUS];PRESSURE_VENOUS
+    //const double p_init = GetGeometry()[0].FastGetSolutionStepValue(DYASTOLIC_PRESSURE);
+    //double p_init = this->GetValue(p_init);
+    //double p_sss = this->GetValue(DYASTOLIC_PRESSURE);
+    //KRATOS_WATCH(p_sss)
     //GetGeometry()[0].FastGetSolutionStepValue(PRESSURE);
     //KRATOS_WATCH(p_init)
     //const double initial_area = GetGeometry()[0].GetValue(NODAL_AREA);
-    const double A0 = GetGeometry()[0].GetValue(NODAL_AREA);
-    //
     //const double E = GetGeometry()[0].FastGetSolutionStepValue(YOUNG_MODULUS);
     //const double nu = GetGeometry()[0].FastGetSolutionStepValue(POISSON_RATIO);
     //const double pi = 3.14159265;
-    const double coriolis_coefficient = 1.1;
-    //const double kr_coefficient = 1.0;
 
-    const double terminal_resistence = GetProperties()[TERMINAL_RESISTANCE];
-    
+    //const double kr_coefficient = 1.0;
+    const double coriolis_coefficient = 1.1;
+    double p_init = GetGeometry()[0].FastGetSolutionStepValue(DYASTOLIC_PRESSURE);
+    double p_venous = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_VENOUS);
+    double terminal_resistence = GetProperties()[TERMINAL_RESISTANCE];
+    KRATOS_WATCH(terminal_resistence)
+    const double A0 = GetGeometry()[0].GetValue(NODAL_AREA);
+    const double density = GetProperties()[DENSITY];
+    double Resistence_factor = this->GetValue(PRESSURE_DT);
+    terminal_resistence=terminal_resistence*Resistence_factor;
+    KRATOS_WATCH(terminal_resistence)
     //const double kinematic_viscosity = dynamic_viscosity/density;
     //const double H0 = GetGeometry()[0].FastGetSolutionStepValue(THICKNESS);
     //const double beta = E*H0*1.77245385/(1.0-nu*nu);
@@ -152,14 +159,15 @@ void ArteryOutletCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
 
     //KRATOS_WATCH(Propiedad)
     //const double A1 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);    
-	const double A1 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
+    const double A1 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
     //KRATOS_WATCH(A1)
-	const double A = UpdateArea(beta, A1);
+    const double A = UpdateArea(beta, A1, p_venous,p_init,terminal_resistence);
 
-    //const double flow1 =  GetGeometry()[0].FastGetSolutionStepValue(FLOW); // NOTE: HERE we have to put the corrected value
+    //const double flow1 =  GetGeometry()[0].FastGetSolutionStepValue(FLOW);
     //const double flow2 = GetGeometry()[0].FastGetSolutionStepValue(FLOW);
-
-    const double flow1 =  (par1*(sqrt(A)-sqrt(A0))+p_init-p_venous)*(1/terminal_resistence); // NOTE: HERE we have to put the corrected value
+    //KRATOS_WATCH(p_venous)
+    //KRATOS_WATCH(p_init)
+    const double flow1 =  (par1*(sqrt(A)-sqrt(A0))+p_init-p_venous)*(1/terminal_resistence);
     const double flow2 =  GetGeometry()[0].FastGetSolutionStepValue(FLOW);
     
     const double flow = 2* flow1 - flow2;
@@ -193,21 +201,22 @@ void ArteryOutletCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
     KRATOS_CATCH("")
 }
 
-double ArteryOutletCondition::UpdateArea(double Beta, double A)
+double ArteryOutletCondition::UpdateArea(double Beta, double A, double p_venous,double p_init,double terminal_resistence)
 {
 
     KRATOS_TRY
 
     const int max_iteration = 100;
-    const double p_init = GetGeometry()[0].FastGetSolutionStepValue(DYASTOLIC_PRESSURE);
+    //const double p_init = GetGeometry()[0].FastGetSolutionStepValue(DYASTOLIC_PRESSURE);
     //const double A0=GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
     const double flow =  GetGeometry()[0].FastGetSolutionStepValue(FLOW);
     const double initial_area = GetGeometry()[0].GetValue(NODAL_AREA);
     const double par1 = Beta / initial_area;
     //const double par2 = sqrt(Beta / (2.00*Density*initial_area));
     const double c0 = GetGeometry()[0].FastGetSolutionStepValue(C0);
-    const double terminal_resistence = GetProperties()[TERMINAL_RESISTANCE];
-    const double p_venous=GetGeometry()[0].FastGetSolutionStepValue(DYASTOLIC_PRESSURE);
+    //const double terminal_resistence = GetProperties()[TERMINAL_RESISTANCE];
+    //const double p_venous=GetGeometry()[0].FastGetSolutionStepValue(DYASTOLIC_PRESSURE);
+            //GetGeometry()[0].FastGetSolutionStepValue(DYASTOLIC_PRESSURE);PRESSURE_VENOUS
             //GetProperties()[PRESSURE_VENOUS];
     const double w1 = (flow / A) + (4.00*c0*pow(A,0.25));
 // KRATOS_WATCH(flow)

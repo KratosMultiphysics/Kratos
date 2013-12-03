@@ -122,12 +122,12 @@ void ArteryResistence::CalculateRightHandSide(VectorType& rRightHandSideVector, 
     //get data as needed (A - B)
     // P = A q + B q²
 
-    const double density = GetProperties()[DENSITY];
-    const double coriolis_coefficient = 1.1;
-    const double A0 = GetGeometry()[0].GetValue(NODAL_AREA);
+    //const double density = GetProperties()[DENSITY];
+    //const double coriolis_coefficient = 1.1;
+    //const double A0 = GetGeometry()[0].GetValue(NODAL_AREA);
     const double A_resistence = GetProperties()[a];
     const double B_resistence = GetProperties()[b];
-    const double flow =  GetGeometry()[0].FastGetSolutionStepValue(FLOW);
+    //const double flow =  GetGeometry()[0].FastGetSolutionStepValue(FLOW);
     //const double A1 = GetGeometry()[0].FastGetSolutionStepValue(NODAL_AREA);
     //KRATOS_WATCH(A1)
     //const double A = UpdateArea(A_resistence, B_resistence, flow, A1);
@@ -136,7 +136,7 @@ void ArteryResistence::CalculateRightHandSide(VectorType& rRightHandSideVector, 
     //const double kinematic_viscosity = dynamic_viscosity/density;
     //const double H0 = GetGeometry()[0].FastGetSolutionStepValue(THICKNESS);
     //const double beta = E*H0*1.77245385/(1.0-nu*nu);
-    const double beta = GetGeometry()[0].FastGetSolutionStepValue(BETA);
+    //const double beta = GetGeometry()[0].FastGetSolutionStepValue(BETA);
     //const double par1 = beta / A0;
 
     //KRATOS_WATCH(Propiedad)
@@ -198,7 +198,7 @@ double ArteryResistence::UpdateArea(double A_resistence, double B_resistence, do
     terminal_resistence = 1;
     double flow_resistence = A_resistence*flow+B_resistence*flow*flow;
     KRATOS_WATCH(terminal_resistence)
-    //const double p_venous=GetGeometry()[0].FastGetSolutionStepValue(DYASTOLIC_PRESSURE);
+    //const double p_venous=GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_VENOUS);
     //GetProperties()[flow_resistence];
     const double w1 = (flow / A) + (4.00*c0*pow(A,0.25));
 

@@ -208,7 +208,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    double UpdateArea(double Beta, double Density);
+    double UpdateArea(double Beta, double Density, double p_venous, double p_init, double terminal_resistence);
 
     ///@}
     ///@name Private  Access
