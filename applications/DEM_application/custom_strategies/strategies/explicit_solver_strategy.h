@@ -199,16 +199,14 @@ namespace Kratos
 
           // Omp initializations
           this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
+          mNeighbourCounter.resize(this->GetNumberOfThreads());
 
           // 0. Set search radius
                     
-          
+          SetSearchRadius(r_model_part, 1.0);
 
-          // 1. Search Neighbours with tolerance (Not in mpi.)
           this->GetBoundingBoxOption() = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
 
-          // 2. Search Neighbours with tolerance (after first repartition process)
-          
           SearchNeighbours();
           
           if(mDeltaOption == 2)
