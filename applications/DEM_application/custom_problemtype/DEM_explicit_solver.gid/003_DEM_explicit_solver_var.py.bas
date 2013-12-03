@@ -261,6 +261,8 @@ DempackDamping                   = *GenData(Dempack_Damping)
 *format "%10.5e"
 DempackGlobalDamping             = *GenData(Dempack_Global_Damping)
 *format "%10.5e"
+AreaFactor                       = *GenData(Area_Factor)
+*format "%10.5e"
 TauZero                          = *GenData(TSTREN)
 *format "%10.5e"
 SigmaMax                         = *GenData(Sigma_Max)
