@@ -269,11 +269,15 @@ class Procedures:
         
         Total_Contacts = 0
         
-        for bar in contact_model_part.Elements:
+        Coordination_Number = 0.0 
+        
+        if(self.contact_mesh_OPTION):
+          
+          for bar in contact_model_part.Elements:
 
-            Total_Contacts += 1.0
+              Total_Contacts += 1.0
 
-        Coordination_Number = 1.0 * (double(Total_Contacts) * 2.0) / double(Total_Particles)
+          Coordination_Number = 1.0 * (double(Total_Contacts) * 2.0) / double(Total_Particles)
 
         Model_Data.write("Total Number of Particles: " + str(Total_Particles)     + '\n')
         Model_Data.write("Total Number of Contacts: "  + str(Total_Contacts)      + '\n')
