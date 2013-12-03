@@ -459,7 +459,7 @@ namespace Kratos
                 double equiv_shear = equiv_young/(2*(1+equiv_poisson));
                 kn_el = equiv_young*calculation_area*radius_sum_i;
                 kt_el = equiv_shear*calculation_area*radius_sum_i;
-                KRATOS_WATCH(mAreaFactorInv)
+                
                 
               
             }
