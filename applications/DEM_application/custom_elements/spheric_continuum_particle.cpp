@@ -455,15 +455,13 @@ namespace Kratos
             else if(mDempack){
                 
                 double rad_squared = mRadius * other_radius;
-                
-                calculation_area = 4.0*M_PI*(rad_squared*rad_squared)*radius_sum_i*radius_sum_i;
-                
-                
+                calculation_area = mAreaFactorInv*4.0*M_PI*(rad_squared*rad_squared)*radius_sum_i*radius_sum_i;
                 double equiv_shear = equiv_young/(2*(1+equiv_poisson));
                 kn_el = equiv_young*calculation_area*radius_sum_i;
                 kt_el = equiv_shear*calculation_area*radius_sum_i;
+                KRATOS_WATCH(mAreaFactorInv)
+                
               
-
             }
             
             else
@@ -1007,7 +1005,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
          {
            
            mDempack_damping = r_process_info[DEMPACK_DAMPING]; 
-           mDempack_global_damping = r_process_info[DEMPACK_GLOBAL_DAMPING]; 
+           mDempack_global_damping = r_process_info[DEMPACK_GLOBAL_DAMPING];
+           mAreaFactorInv = 1/r_process_info[AREA_FACTOR];
 
          }
          
