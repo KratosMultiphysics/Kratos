@@ -577,7 +577,7 @@ class ExplicitStrategy:
         
         #CONTINUUM
         
-        self.model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance) #needed here for MPI search.
+        self.model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance)
         self.model_part.ProcessInfo.SetValue(AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION, self.amplified_continuum_search_radius_extension)
         
         self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_option)
