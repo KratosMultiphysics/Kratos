@@ -371,6 +371,8 @@ VALUE: 0.9
 QUESTION: Dempack_Global_Damping
 VALUE: 0.2
 HELP: No idea how it works... ask Labra.
+QUESTION: Area_Factor
+VALUE: 1.25
 QUESTION: Failure_Criterion#CB#(Mohr-Coulomb,Uncoupled)
 VALUE: Uncoupled
 QUESTION: TSTREN
