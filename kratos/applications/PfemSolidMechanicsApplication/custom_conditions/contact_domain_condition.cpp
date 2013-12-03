@@ -619,7 +619,7 @@ void ContactDomainCondition::CalculateKinematics( GeneralVariables& rVariables, 
 
     // UL
     // //Calculating the inverse of the jacobian and the parameters needed [d£/dx_n]
-    // Matrix Invj;
+    // Matrix InvJ;
     // MathUtils<double>::InvertMatrix( rVariables.J[rPointNumber], InvJ, rVariables.detJ);
 
     // //Compute cartesian derivatives [dN/dx_n]
