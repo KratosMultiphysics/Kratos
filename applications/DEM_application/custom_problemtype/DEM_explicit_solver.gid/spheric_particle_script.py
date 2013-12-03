@@ -140,8 +140,9 @@ export_model_part = balls_model_part
 
 if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
-    proc.ModelData(balls_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
+    proc.ModelData(balls_model_part,balls_model_part, solver) #dummy contact model part. (only for continuum)      # calculates the mean number of neighbours the mean radius, etc..
     os.chdir(main_path)
+    
 
 print 'Initializing Problem....'
 
