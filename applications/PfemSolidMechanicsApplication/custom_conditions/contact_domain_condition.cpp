@@ -1372,8 +1372,8 @@ void ContactDomainCondition::CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix
 
     rLeftHandSideMatrix *= rIntegrationWeight;
 
-    //std::cout<<std::endl;
-    //std::cout<<" Kcontact "<<rLeftHandSideMatrix<<std::endl;
+    // std::cout<<std::endl;
+    // std::cout<<" Kcontact "<<rLeftHandSideMatrix<<std::endl;
 
     KRATOS_CATCH( "" )
 }

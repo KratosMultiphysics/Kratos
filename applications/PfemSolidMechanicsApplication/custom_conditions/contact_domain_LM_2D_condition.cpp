@@ -426,17 +426,20 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 
     //1.- Compute tension vector:  (must be updated each iteration)
     Matrix StressMatrix ( dimension, dimension );
-
-    //std::cout<<" 2nd PK stress "<<rVariables.StressVector<<std::endl;
-    //std::cout<<" F "<<rVariables.F<<std::endl;
-
+    
     //a.- Assign initial 2nd Piola Kirchhoff stress:
     StressMatrix=MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
 
-    //b.- Compute the 1srt Piola Kirchhoff stress tensor  (P=F·S)
-    StressMatrix=prod(rVariables.F,StressMatrix);
+    // SL
+    //b.- Compute the 1srt Piola Kirchhoff stress tensor
+    StressMatrix = mConstitutiveLawVector[0]->TransformStresses(StressMatrix, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_Cauchy, ConstitutiveLaw::StressMeasure_PK1);
 
-    //c.- Transform to 3 components
+    // UL  
+    //b.- Compute the 1srt Piola Kirchhoff stress tensor  (P=F·S)
+    //StressMatrix = mConstitutiveLawVector[0]->TransformStresses(StressMatrix, rVariables.F, rVariables.detF, ConstitutiveLaw::StressMeasure_PK2, ConstitutiveLaw::StressMeasure_PK1);
+    //StressMatrix=prod(rVariables.F,StressMatrix);
+
+    //b.- Transform to 3 components
     Matrix StressMatrix3D= zero_matrix<double> ( 3 );
     for(unsigned int i=0; i<2; i++)
       {
@@ -446,13 +449,8 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 	  }
       }
    
-    // std::cout<<" 1st PK stress "<<StressMatrix3D<<std::endl;
-
     //c.- Compute the tension (or traction) vector T=P*N (in the Reference configuration)
     mContactVariables.TractionVector=prod(StressMatrix3D,mContactVariables.ReferenceSurface.Normal);
-
-    //std::cout<<" Reference Normal "<<mContactVariables.ReferenceSurface.Normal<<std::endl;
-    //std::cout<<" Traction  Vector "<<mContactVariables.TractionVector<<std::endl;
 
 
     //d.- Compute the Current Normal and Tangent
@@ -480,12 +478,6 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     rVariables.Contact.CurrentSurface.Tangent=mContactUtilities.CalculateFaceTangent(rVariables.Contact.CurrentSurface.Tangent,rVariables.Contact.CurrentSurface.Normal);
 
 
-    // std::cout<<" reference face  normal  "<<mContactVariables.ReferenceSurface.Normal<<std::endl;
-    // std::cout<<" reference face  tangent  "<<mContactVariables.ReferenceSurface.Tangent<<std::endl;
-
-    // std::cout<<" current face  normal  "<<rVariables.Contact.CurrentSurface.Normal<<std::endl;
-    // std::cout<<" current face  tangent  "<<rVariables.Contact.CurrentSurface.Tangent<<std::endl;
-
     //Current normal:   mContactVariables.ReferenceSurface.Normal
 
     //2.- Compute normal component of the tension vector:   (tn=n·P·N)
@@ -498,6 +490,21 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 
     //Reference normal: n_n,t_n  -> mContactVariables.ReferenceSurface.Normal / rVariables.Contact.Tangent
     //Current normal:   n,t      -> rVariables.Contact.CurrentSurface.Normal /  rVariables.Contact.CurrentSurface.Tangent
+
+
+    // std::cout<<" 2nd PK stress "<<rVariables.StressVector<<std::endl;
+    // std::cout<<" 1st PK stress "<<StressMatrix3D<<std::endl;
+    // std::cout<<" DeformationGradientF "<<rVariables.F<<std::endl;
+    // std::cout<<" Traction  Vector "<<mContactVariables.TractionVector<<std::endl;
+
+
+    // std::cout<<" reference face  normal  "<<mContactVariables.ReferenceSurface.Normal<<std::endl;
+    // std::cout<<" reference face  tangent  "<<mContactVariables.ReferenceSurface.Tangent<<std::endl;
+
+    // std::cout<<" current face  normal  "<<rVariables.Contact.CurrentSurface.Normal<<std::endl;
+    // std::cout<<" current face  tangent  "<<rVariables.Contact.CurrentSurface.Tangent<<std::endl;
+
+
 
     //d.- Compute A_n,B_n,L_n
     rVariables.Contact.ReferenceBase.resize(1);
@@ -525,13 +532,15 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     rVariables.Contact.ContactFactor =  mContactVariables.StabilizationFactor * rVariables.Contact.ReferenceBase[0].L;
 
     //e.-obtain the (g_N)3 and (g_T)3 for the n configuration
-    //Write Current Positions:
+
+    //Write Reference Positions:
     // std::cout<<" Reference position node 1 "<<P1<<std::endl;
     // std::cout<<" Reference position node 2 "<<P2<<std::endl;
     // std::cout<<" Reference position node s "<<PS<<std::endl;
 
-    double ReferenceGapN = inner_prod((PS - P1),mContactVariables.ReferenceSurface.Normal);
-    //std::cout<<" Reference GAP "<<ReferenceGapN<<std::endl;
+    double ReferenceGapN = inner_prod((PS - P1), mContactVariables.ReferenceSurface.Normal);
+
+    // std::cout<<" Reference GAP "<<ReferenceGapN<<std::endl;
     
     double ReferenceGapT = ReferenceGapN;
 
@@ -540,6 +549,11 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     LocalVectorType DS  =  GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[slave].FastGetSolutionStepValue(DISPLACEMENT,1);
     LocalVectorType D1  =  GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[node1].FastGetSolutionStepValue(DISPLACEMENT,1);
     LocalVectorType D2  =  GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT)-GetGeometry()[node2].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+    //Write Displacements:
+    // std::cout<<" displacement node 1 "<<D1<<std::endl;
+    // std::cout<<" displacement node 2 "<<D2<<std::endl;
+    // std::cout<<" displacement node s "<<DS<<std::endl;
 
     //(g_N)3
     ReferenceGapN*=inner_prod(rVariables.Contact.CurrentSurface.Normal,mContactVariables.ReferenceSurface.Normal);
@@ -556,17 +570,9 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     ReferenceGapT+=inner_prod(rVariables.Contact.CurrentSurface.Tangent,DS);
 
  
-    //Write Displacements:
-    // std::cout<<" displacement node 1 "<<D1<<std::endl;
-    // std::cout<<" displacement node 2 "<<D2<<std::endl;
-    // std::cout<<" displacement node s "<<DS<<std::endl;
 
-    // std::cout<<" L :"<<rVariables.Contact.ReferenceBase[0].L<<" A :"<<rVariables.Contact.ReferenceBase[0].A<<" B :"<<rVariables.Contact.ReferenceBase[0].B<<std::endl;
+    //std::cout<<" L :"<<rVariables.Contact.ReferenceBase[0].L<<" A :"<<rVariables.Contact.ReferenceBase[0].A<<" B :"<<rVariables.Contact.ReferenceBase[0].B<<std::endl;
     // std::cout<<" gN3 ref "<<ReferenceGapN<<std::endl;
-
-
-     // std::cout<<" current   normal  "<<rVariables.Contact.CurrentSurface.Normal<<std::endl;
-     // std::cout<<" reference normal  "<<mContactVariables.ReferenceSurface.Normal<<std::endl;
 
 
     rVariables.Contact.CurrentGap.Normal=ReferenceGapN; //(g_N)3 -- needed in the Kcont1 computation
@@ -578,6 +584,8 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 
     ReferenceGapN+= 2 * rVariables.Contact.ContactFactor * rVariables.Contact.CurrentTensil.Normal;
     ReferenceGapT+= 2 * rVariables.Contact.ContactFactor * rVariables.Contact.CurrentTensil.Tangent;
+
+    //std::cout<<" ReferenceGapN "<<ReferenceGapN<<" ContactFactor "<<rVariables.Contact.ContactFactor<<" TensilNormal "<<rVariables.Contact.CurrentTensil.Normal<<std::endl;
 
     rVariables.Contact.TangentialGapSign=1;
 
@@ -600,7 +608,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
       }
 
     //std::cout<<" Tensil "<<rVariables.Contact.CurrentTensil.ReferenceSurface.Normal<<" Tau "<<rVariables.Contact.ContactFactor<<" product "<<2*rVariables.Contact.ContactFactor*rVariables.Contact.CurrentTensil.ReferenceSurface.Normal<<std::endl;
-    //std::cout<<" gN3 ref total "<<ReferenceGap<<std::endl;
+    //std::cout<<" gN3 ref total "<<ReferenceGapN<<std::endl;
 
     //5.- Compute (Lagrange) Multipliers
 
@@ -635,12 +643,10 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     //mContactVariables.PreStepGap.Tangent=ReferenceGapT;
     
 
-
-    // std::cout<<"ConditionID:  "<<this->Id()<<" -> Previous Gap [gN:"<<ReferenceGapN<<", gT:"<<ReferenceGapT<<"] "<<std::endl; 
+    // std::cout<<" ConditionID:  "<<this->Id()<<" -> Previous Gap [gN:"<<ReferenceGapN<<", gT:"<<ReferenceGapT<<"] "<<std::endl; 
     // std::cout<<" -> Effective Gap [gN:"<<EffectiveGapN<<", gT:"<<EffectiveGapT<<"] "<<std::endl; 
 
-
-    //std::cout<<" PreTime "<<Time.PreStep<<" Time "<<Time.Step<<std::endl;
+    //std::cout<<" PreTimeStep "<<Time.PreStep<<" TimeStep "<<Time.Step<<std::endl;
 
     //CHECK IF THE ELEMENT IS ACTIVE:
 
@@ -671,7 +677,11 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
     }
     //Check ORTHOGONAL FACES in contact
     
-   
+    //decimal correction from tension vector calculation
+    if(fabs(EffectiveGapN)<= 1e-15 && fabs(EffectiveGapN)<= 1e-15)
+      EffectiveGapN = 0;
+    //decimal correction from tension vector calculation
+
     if(EffectiveGapN<=0)   //if(EffectiveGap<0){
     {
 
@@ -717,14 +727,13 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
         rVariables.Contact.TangentialGapSign*=(-1);
     }
 
-    //std::cout<<" Effective GapN "<<EffectiveGapN<<" Multiplier.Normal "<<rVariables.Contact.Multiplier.Normal<<" CurrentTensil.N "<<rVariables.Contact.CurrentTensil.Normal<<" GapN "<<rVariables.Contact.CurrentGap.Normal<<" ReferenceGapN "<<ReferenceGapN<<" Tau "<<rVariables.Contact.ContactFactor<<" iteration "<<mContactVariables.IterationCounter<<std::endl;
 
-    // std::cout<<" current face  normal  "<<rVariables.Contact.CurrentSurface.Normal<<std::endl;
-    // std::cout<<" current face  tangent  "<<rVariables.Contact.CurrentSurface.Tangent<<std::endl;
-
-    // if(rVariables.Contact.Options.Is(ACTIVE) && rVariables.Contact.CurrentGap.Normal>0)
-    //   std::cout<<" Condition ["<<this->Id()<<"]:  Effective GapN "<<EffectiveGapN<<" Multiplier.Normal "<<rVariables.Contact.Multiplier.Normal<<" CurrentTensil.N "<<rVariables.Contact.CurrentTensil.Normal<<" GapN "<<rVariables.Contact.CurrentGap.Normal<<" ReferenceGapN "<<ReferenceGapN<<" Tau "<<rVariables.Contact.ContactFactor<<" iteration "<<mContactVariables.IterationCounter<<std::endl;
-      
+    if(rVariables.Contact.Options.Is(ACTIVE) && rVariables.Contact.CurrentGap.Normal>0){
+      // int active = 0;
+      // if(this->Is(ACTIVE))
+      // 	active = 1;
+      // std::cout<<" Condition ["<<this->Id()<<"]:  Active "<<active<<" Effective GapN "<<EffectiveGapN<<" Multiplier.Normal "<<rVariables.Contact.Multiplier.Normal<<" CurrentTensil.N "<<rVariables.Contact.CurrentTensil.Normal<<" GapN "<<rVariables.Contact.CurrentGap.Normal<<" ReferenceGapN "<<ReferenceGapN<<" Tau "<<rVariables.Contact.ContactFactor<<" iteration "<<mContactVariables.IterationCounter<<std::endl;
+    }
 
     if(mContactVariables.IterationCounter < 1)
       mContactVariables.IterationCounter += 1;
