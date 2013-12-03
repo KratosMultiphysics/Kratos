@@ -344,12 +344,13 @@ void ArteryElement::Initialize()
     const double H0 = GetProperties()[THICKNESS];
     const double E = GetProperties()[YOUNG_MODULUS];
     const double nu = GetProperties()[POISSON_RATIO];
+    const double venous_pressure = GetProperties()[PRESSURE_VENOUS];
     const double pressure = GetProperties()[PRESSURE]; //Initial Pressure (Dyastolic pressure)
     const double blood_density = GetProperties()[DENSITY];
     
-//    KRATOS_WATCH(GetProperties().Id());
-//    KRATOS_WATCH(pressure);
-//    KRATOS_WATCH(this->Id());
+    //KRATOS_WATCH(GetProperties().Id());
+    //KRATOS_WATCH(pressure);
+    //KRATOS_WATCH(this->Id());
 
     double beta=E*H0*1.77245385/(1.0-nu*nu);
 
@@ -385,6 +386,7 @@ void ArteryElement::Initialize()
     GetGeometry()[0].FastGetSolutionStepValue(SYSTOLIC_PRESSURE) = pressure;
     GetGeometry()[0].FastGetSolutionStepValue(DYASTOLIC_PRESSURE) = pressure;
     GetGeometry()[0].FastGetSolutionStepValue(AVERAGE_PRESSURE) = pressure;
+    GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_VENOUS) = venous_pressure;
     GetGeometry()[0].FastGetSolutionStepValue(C0) = c0[0];
     GetGeometry()[0].GetValue(NODAL_AREA) = A0[0];//here we store the initial area
     GetGeometry()[0].GetValue(PRESSURE) = pressure;//here we store the initial area
@@ -416,6 +418,7 @@ void ArteryElement::Initialize()
     GetGeometry()[1].FastGetSolutionStepValue(SYSTOLIC_PRESSURE) = pressure;
     GetGeometry()[1].FastGetSolutionStepValue(DYASTOLIC_PRESSURE) = pressure;
     GetGeometry()[1].FastGetSolutionStepValue(AVERAGE_PRESSURE) = pressure;
+    GetGeometry()[1].FastGetSolutionStepValue(PRESSURE_VENOUS) = venous_pressure;
     GetGeometry()[1].FastGetSolutionStepValue(BETA) = beta;
     GetGeometry()[1].FastGetSolutionStepValue(C0) = c0[1];
     GetGeometry()[1].GetValue(NODAL_AREA) = A0[1]; //here we store the initial area
