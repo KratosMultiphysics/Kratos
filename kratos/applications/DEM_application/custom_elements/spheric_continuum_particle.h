@@ -242,6 +242,7 @@ namespace Kratos
         int mDempack;
         double mDempack_damping;
         double mDempack_global_damping;
+        double mAreaFactorInv;
         vector< array_1d<double, 4> > mHistory;
         double mNcstr1_el;
         double mNcstr2_el;
