@@ -213,14 +213,14 @@ namespace Kratos
 
           ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
           
-          double radius_extend = 0.0;
-          if (extension_option) radius_extend = rCurrentProcessInfo[SEARCH_RADIUS_EXTENSION];
+          double search_tolerance = 0.0;
+          if (extension_option) search_tolerance = rCurrentProcessInfo[SEARCH_TOLERANCE];
           
           static double MaxNodeRadius = 0.0f;
           if(MaxNodeRadius == 0.0f) //TODO
               for (ElementsContainerType::ContainerType::iterator particle_pointer_it = pLocalElements.begin(); particle_pointer_it != pLocalElements.end(); ++particle_pointer_it)
               {
-                  double NodeRaidus = (1.0 + radius_extend) * (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
+                  double NodeRaidus = search_tolerance + (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
                   MaxNodeRadius = NodeRaidus > MaxNodeRadius ? NodeRaidus : MaxNodeRadius;
               }
           
