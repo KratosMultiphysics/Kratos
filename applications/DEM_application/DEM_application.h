@@ -129,6 +129,8 @@ namespace Kratos
   // TOLERANCES
 
   KRATOS_DEFINE_VARIABLE(double, DISTANCE_TOLERANCE)
+  KRATOS_DEFINE_VARIABLE(double, SEARCH_TOLERANCE)
+  
 
   // *************** Swimming only BEGIN *************
   KRATOS_DEFINE_VARIABLE(double, POWER_LAW_TOLERANCE)
