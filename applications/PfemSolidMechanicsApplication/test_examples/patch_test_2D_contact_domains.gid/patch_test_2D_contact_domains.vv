@@ -1,27 +1,27 @@
-BeginZE /home/jmaria/ModelsGID/PfemMechanicsApplication/patch_test_2D_contact_domains.gid/patch_test_2D_contact_domains.vv
-   x -4.57894229888916016 9.57894229888916016
-   y 4.99335908889770508 -2.99336910247802734
-   z -8.45576190948486328 8.45576190948486328
-   e 2.81858730316162109
+BeginZE /home/jmaria/kratos/applications/PfemSolidMechanicsApplication/test_examples/patch_test_2D_contact_domains.gid/patch_test_2D_contact_domains.vv
+   x -3.48497915267944336 8.48497962951660156
+   y 3.81845378875732422 -1.81865370273590088
+   z -8.45566082000732422 8.45566082000732422
+   e 2.81855368614196777
    v 0 0 0
    r 1
    m 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1
-   c 2.5 0.999994993209838867 0
+   c 2.5 0.999899983406066895 0
    pd 0
    pno 0
    pfo 0
    pf 4
    pv 0
-   NowUse 1
-   DrawingType 0
+   NowUse 2
+   DrawingType 3
    LightVector 90 90 150 0
    OGLShadow(UseShadows) 0
-   OGLShadow(RenderMode) RenderFast
-   OGLShadow(ShadowBias) 0
-   OGLShadow(AmbientShadows) 0
+   OGLShadow(RenderMode) RenderNice
+   OGLShadow(ShadowBias) -0.002
+   OGLShadow(AmbientShadows) 1
    OGLShadow(UseFBO) 0
-   OGLShadow(FBOSize) 0
-   OGLShadow(DimmedLightFactor) 0
+   OGLShadow(FBOSize) 2048
+   OGLShadow(DimmedLightFactor) 0.02
    OGLStereo(UseStereo) 0
    OGLStereo(RelativeEyeDistance) 1
    OGLStereo(FlipEyes) 0
@@ -29,7 +29,7 @@ BeginZE /home/jmaria/ModelsGID/PfemMechanicsApplication/patch_test_2D_contact_do
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE /home/jmaria/ModelsGID/PfemMechanicsApplication/patch_test_2D_contact_domains.gid/patch_test_2D_contact_domains.vv
+EndZE /home/jmaria/kratos/applications/PfemSolidMechanicsApplication/test_examples/patch_test_2D_contact_domains.gid/patch_test_2D_contact_domains.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror

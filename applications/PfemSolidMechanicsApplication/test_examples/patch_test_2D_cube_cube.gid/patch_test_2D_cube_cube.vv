@@ -1,6 +1,6 @@
-BeginZE /home/jmaria/ModelsGID/PfemMechanicsApplication/patch_test_2D_cube_cube.gid/patch_test_2D_cube_cube.vv
-   x -0.0057498617097735405 0.00674986187368631363
-   y 0.00452566472813487053 -0.00252566463313996792
+BeginZE /home/jmaria/kratos/applications/PfemSolidMechanicsApplication/test_examples/patch_test_2D_cube_cube.gid/patch_test_2D_cube_cube.vv
+   x -0.00150935002602636814 0.00250934995710849762
+   y 0.0021666667889803648 -0.000166666693985462189
    z -0.00350000010803341866 0.00350000010803341866
    e 0.00116666674148291349
    v 0 0 0
@@ -20,7 +20,7 @@ BeginZE /home/jmaria/ModelsGID/PfemMechanicsApplication/patch_test_2D_cube_cube.
    OGLShadow(ShadowBias) -0.002
    OGLShadow(AmbientShadows) 1
    OGLShadow(UseFBO) 0
-   OGLShadow(FBOSize) 0
+   OGLShadow(FBOSize) 2048
    OGLShadow(DimmedLightFactor) 0.02
    OGLStereo(UseStereo) 0
    OGLStereo(RelativeEyeDistance) 1
@@ -29,7 +29,7 @@ BeginZE /home/jmaria/ModelsGID/PfemMechanicsApplication/patch_test_2D_cube_cube.
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE /home/jmaria/ModelsGID/PfemMechanicsApplication/patch_test_2D_cube_cube.gid/patch_test_2D_cube_cube.vv
+EndZE /home/jmaria/kratos/applications/PfemSolidMechanicsApplication/test_examples/patch_test_2D_cube_cube.gid/patch_test_2D_cube_cube.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror

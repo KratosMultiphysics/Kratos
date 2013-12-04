@@ -134,7 +134,7 @@ VALUE: Deformed
 QUESTION: WriteParticles#CB#(False,True)
 VALUE: False
 QUESTION: WriteConditions#CB#(False,True)
-VALUE: False
+VALUE: True
 QUESTION: WriteFrequency
 VALUE: 1
 QUESTION: Plot_Graphs#CB#(False,True)
