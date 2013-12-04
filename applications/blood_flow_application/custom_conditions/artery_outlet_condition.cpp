@@ -145,12 +145,13 @@ void ArteryOutletCondition::CalculateRightHandSide(VectorType& rRightHandSideVec
     double p_init = GetGeometry()[0].FastGetSolutionStepValue(DYASTOLIC_PRESSURE);
     double p_venous = GetGeometry()[0].FastGetSolutionStepValue(PRESSURE_VENOUS);
     double terminal_resistence = GetProperties()[TERMINAL_RESISTANCE];
-    KRATOS_WATCH(terminal_resistence)
+    //KRATOS_WATCH(terminal_resistence)
     const double A0 = GetGeometry()[0].GetValue(NODAL_AREA);
     const double density = GetProperties()[DENSITY];
     double Resistence_factor = this->GetValue(PRESSURE_DT);
     terminal_resistence=terminal_resistence*Resistence_factor;
-    KRATOS_WATCH(terminal_resistence)
+    //KRATOS_WATCH(terminal_resistence)
+    //KRATOS_WATCH(Resistence_factor)
     //const double kinematic_viscosity = dynamic_viscosity/density;
     //const double H0 = GetGeometry()[0].FastGetSolutionStepValue(THICKNESS);
     //const double beta = E*H0*1.77245385/(1.0-nu*nu);
