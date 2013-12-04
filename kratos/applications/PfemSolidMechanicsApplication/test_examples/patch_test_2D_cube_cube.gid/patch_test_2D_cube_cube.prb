@@ -78,7 +78,7 @@ VALUE: True
 DEPENDENCIES: (True,RESTORE,ContactCondition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Stability_Parameter,#CURRENT#,RESTORE,Offset_Factor,#CURRENT#,RESTORE,Contact_Search_Frequency,#CURRENT#,RESTORE,Constrained_Contact,#CURRENT#,RESTORE,Friction_Active,#CURRENT#,HIDE,Rigid_Wall_Contact,#CURRENT#)
 DEPENDENCIES: (False,HIDE,ContactCondition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Stability_Parameter,#CURRENT#,HIDE,Offset_Factor,#CURRENT#,HIDE,Contact_Search_Frequency,#CURRENT#,HIDE,Constrained_Contact,#CURRENT#,HIDE,Friction_Active,#CURRENT#,RESTORE,Rigid_Wall_Contact,#CURRENT#,HIDE,Radius,#CURRENT#,HIDE,Rake_Angle,#CURRENT#,HIDE,Clearance_Angle,#CURRENT#,HIDE,Rigid_Wall_Movement,#CURRENT#,HIDE,Reference_Point_definition,#CURRENT#,HIDE,Velocity_definition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Rigid_Body_Elastic_Modulus,#CURRENT#)
 QUESTION: ContactCondition#CB#(ContactDomainLM2DCondition,ContactDomainPenalty2DCondition,AxisymContactDomainLM2DCondition,AxisymContactDomainPenalty2DCondition)
-VALUE: ContactDomainLM2DCondition
+VALUE: ContactDomainPenalty2DCondition
 DEPENDENCIES: (ContactDomainLM2DCondition,RESTORE,Stability_Parameter,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#)
 DEPENDENCIES: (AxisymContactDomainLM2DCondition,RESTORE,Stability_Parameter,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#)
 DEPENDENCIES: (ContactDomainPenalty2DCondition,RESTORE,Penalty_Parameter,#CURRENT#,HIDE,Stability_Parameter,#CURRENT#)
