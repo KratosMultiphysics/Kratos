@@ -278,7 +278,7 @@ void ContactDomainLM2DCondition::CalculatePreviousGap() //prediction of the lagr
     //complete the computation of the stabilization gap
     double ContactFactor = mContactVariables.StabilizationFactor * PreviousBase.L;
 
-    //std::cout<<" Tau "<<rVariables.Contact.ContactFactor<<std::endl;
+    //std::cout<<" Tau "<<ContactFactor<<std::endl;
 
     //e.-obtain the (g_N)3 and (g_T)3 for the n-1 configuration
 
@@ -529,8 +529,9 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 
 
     //complete the computation of the stabilization gap
-    rVariables.Contact.ContactFactor =  mContactVariables.StabilizationFactor * rVariables.Contact.ReferenceBase[0].L;
-
+    rVariables.Contact.ContactFactor.Normal  =  mContactVariables.StabilizationFactor * rVariables.Contact.ReferenceBase[0].L;
+    rVariables.Contact.ContactFactor.Tangent =  rVariables.Contact.ContactFactor.Normal;
+    
     //e.-obtain the (g_N)3 and (g_T)3 for the n configuration
 
     //Write Reference Positions:
@@ -582,10 +583,10 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 
     //gap_n   (in function of the n position of the other node) gap_n=(g_N)3+2*Tau*tn_n
 
-    ReferenceGapN+= 2 * rVariables.Contact.ContactFactor * rVariables.Contact.CurrentTensil.Normal;
-    ReferenceGapT+= 2 * rVariables.Contact.ContactFactor * rVariables.Contact.CurrentTensil.Tangent;
+    ReferenceGapN+= 2 * rVariables.Contact.ContactFactor.Normal * rVariables.Contact.CurrentTensil.Normal;
+    ReferenceGapT+= 2 * rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.CurrentTensil.Tangent;
 
-    //std::cout<<" ReferenceGapN "<<ReferenceGapN<<" ContactFactor "<<rVariables.Contact.ContactFactor<<" TensilNormal "<<rVariables.Contact.CurrentTensil.Normal<<std::endl;
+    //std::cout<<" ReferenceGapN "<<ReferenceGapN<<" ContactFactor "<<rVariables.Contact.ContactFactor.Normal<<" TensilNormal "<<rVariables.Contact.CurrentTensil.Normal<<std::endl;
 
     rVariables.Contact.TangentialGapSign=1;
 
@@ -602,12 +603,12 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
       {
 	//look at the magnitud
 	if(fabs(rVariables.Contact.CurrentGap.Normal) > 2*fabs(ReferenceGapN)){
-	  ReferenceGapN = 0; //rVariables.Contact.CurrentGap.Normal +  rVariables.Contact.ContactFactor * rVariables.Contact.CurrentTensil.Normal;
+	  ReferenceGapN = 0; //rVariables.Contact.CurrentGap.Normal +  rVariables.Contact.ContactFactor.Normal * rVariables.Contact.CurrentTensil.Normal;
 	}
 
       }
 
-    //std::cout<<" Tensil "<<rVariables.Contact.CurrentTensil.ReferenceSurface.Normal<<" Tau "<<rVariables.Contact.ContactFactor<<" product "<<2*rVariables.Contact.ContactFactor*rVariables.Contact.CurrentTensil.ReferenceSurface.Normal<<std::endl;
+    //std::cout<<" Tensil "<<rVariables.Contact.CurrentTensil.ReferenceSurface.Normal<<" Tau "<<rVariables.Contact.ContactFactor.Normal<<" product "<<2*rVariables.Contact.ContactFactor*rVariables.Contact.CurrentTensil.ReferenceSurface.Normal<<std::endl;
     //std::cout<<" gN3 ref total "<<ReferenceGapN<<std::endl;
 
     //5.- Compute (Lagrange) Multipliers
@@ -714,12 +715,12 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
 
     //From total current gap compute multipliers:
 
-    //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor)); //posible computation of the Lagrange Multiplier
+    //rVariables.Contact.Multiplier.Normal = EffectiveGap*(1./(2.0*rVariables.Contact.ContactFactor.Normal)); //posible computation of the Lagrange Multiplier
     rVariables.Contact.Multiplier.Normal =rVariables.Contact.CurrentTensil.Normal;
-    rVariables.Contact.Multiplier.Normal+=rVariables.Contact.CurrentGap.Normal*(1./(2.0*rVariables.Contact.ContactFactor));
+    rVariables.Contact.Multiplier.Normal+=rVariables.Contact.CurrentGap.Normal*(1./(2.0*rVariables.Contact.ContactFactor.Normal));
 
     rVariables.Contact.Multiplier.Tangent =rVariables.Contact.CurrentTensil.Tangent;
-    rVariables.Contact.Multiplier.Tangent+=rVariables.Contact.CurrentGap.Tangent*(1./(2.0*rVariables.Contact.ContactFactor));
+    rVariables.Contact.Multiplier.Tangent+=rVariables.Contact.CurrentGap.Tangent*(1./(2.0*rVariables.Contact.ContactFactor.Tangent));
 
 
     if(rVariables.Contact.Multiplier.Tangent<0)  //add the sign of the Lagrange Multiplier
@@ -732,7 +733,7 @@ void ContactDomainLM2DCondition::CalculateExplicitFactors(GeneralVariables& rVar
       // int active = 0;
       // if(this->Is(ACTIVE))
       // 	active = 1;
-      // std::cout<<" Condition ["<<this->Id()<<"]:  Active "<<active<<" Effective GapN "<<EffectiveGapN<<" Multiplier.Normal "<<rVariables.Contact.Multiplier.Normal<<" CurrentTensil.N "<<rVariables.Contact.CurrentTensil.Normal<<" GapN "<<rVariables.Contact.CurrentGap.Normal<<" ReferenceGapN "<<ReferenceGapN<<" Tau "<<rVariables.Contact.ContactFactor<<" iteration "<<mContactVariables.IterationCounter<<std::endl;
+      // std::cout<<" Condition ["<<this->Id()<<"]:  Active "<<active<<" Effective GapN "<<EffectiveGapN<<" Multiplier.Normal "<<rVariables.Contact.Multiplier.Normal<<" CurrentTensil.N "<<rVariables.Contact.CurrentTensil.Normal<<" GapN "<<rVariables.Contact.CurrentGap.Normal<<" ReferenceGapN "<<ReferenceGapN<<" Tau "<<rVariables.Contact.ContactFactor.Normal<<" iteration "<<mContactVariables.IterationCounter<<std::endl;
     }
 
     if(mContactVariables.IterationCounter < 1)

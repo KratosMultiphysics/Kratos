@@ -98,7 +98,7 @@ protected:
         SurfaceScalar   CurrentGap;             //normal and tangential gap
 
         //The stabilization factor or penalty factor
-        double          ContactFactor;
+        SurfaceScalar   ContactFactor;
 
         //Friction:
         double          FrictionCoefficient;   //total friction coeffitient mu
