@@ -465,7 +465,7 @@ proc ::wkcf::WriteExplicitSolverVariables {} {
 
     set PName [::KUtils::GetPaths "PName"]
     puts $fileid "problem_name=\"${PName}${AppId}\"" 
-    puts $fileid "problem_path=\"$PDir\"" 
+    puts $fileid "problem_path=\"[file join $PDir]\"" 
     
     # Get the kratos path 
     set cxpath "GeneralApplicationData//c.ProjectConfiguration//i.KratosPath"
@@ -474,7 +474,7 @@ proc ::wkcf::WriteExplicitSolverVariables {} {
     set KratosPath [file native $KratosPath]
     
     # Write the kratos path
-    puts $fileid "kratos_path=\"${KratosPath}\""
+    puts $fileid "kratos_path=\"$[file join $KratosPath]\""
 
     close $fileid
 }

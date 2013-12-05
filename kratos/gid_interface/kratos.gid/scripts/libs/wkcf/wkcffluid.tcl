@@ -1430,7 +1430,7 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
     puts $fileid ""
     set PName [::KUtils::GetPaths "PName"]
     puts $fileid "problem_name=\"${PName}${AppId}\"" 
-    puts $fileid "problem_path=\"$PDir\"" 
+    puts $fileid "problem_path=\"[file join $PDir]\"" 
     
     # Get the kratos path 
     set cxpath "GeneralApplicationData//c.ProjectConfiguration//i.KratosPath"
@@ -1439,7 +1439,7 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
     set KratosPath [file native $KratosPath]
     
     # Write the kratos path
-    puts $fileid "kratos_path=\"${KratosPath}\"" 
+    puts $fileid "kratos_path=\"[file join $KratosPath]\"" 
 }
 
 proc ::wkcf::WritePFEMLagrangianFluidProjectParameters {AppId fileid PDir} {
@@ -1553,7 +1553,7 @@ proc ::wkcf::WritePFEMLagrangianFluidProjectParameters {AppId fileid PDir} {
 	puts $fileid ""
 	set PName [::KUtils::GetPaths "PName"]
 	puts $fileid "problem_name=\"${PName}${AppId}\"" 
-	puts $fileid "problem_path=\"$PDir\"" 
+	puts $fileid "problem_path=\"[file join $PDir]\"" 
 
 	# Get the kratos path 
 	set cxpath "GeneralApplicationData//c.ProjectConfiguration//i.KratosPath"
@@ -1562,7 +1562,7 @@ proc ::wkcf::WritePFEMLagrangianFluidProjectParameters {AppId fileid PDir} {
 	set KratosPath [file native $KratosPath]
 
 	# Write the kratos path
-	puts $fileid "kratos_path=\"${KratosPath}\"" 
+	puts $fileid "kratos_path=\"$[file join KratosPath]\"" 
     }
 }
 
