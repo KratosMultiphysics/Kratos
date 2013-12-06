@@ -101,14 +101,21 @@ void ContactDomainPenalty2DCondition::CalculateContactFactor( ProcessInfo& rCurr
 
 
     double Eslave = GetGeometry()[slave].GetValue(NEIGHBOUR_ELEMENTS)[0].GetProperties()[YOUNG_MODULUS];
-    double Emax   = MasterElement.GetProperties()[YOUNG_MODULUS];
+    // double Emax   = MasterElement.GetProperties()[YOUNG_MODULUS];
+
+    // //STANDARD OPTION
+    // if(Emax<Eslave)
+    // 	Emax=Eslave;
+
+    // mContactVariables.PenaltyFactor = 0.5 * penalty_parameter * Emax;
+
+    double Emin   = MasterElement.GetProperties()[YOUNG_MODULUS];
 
     //STANDARD OPTION
-    if(Emax<Eslave)
-	Emax=Eslave;
+    if(Emin>Eslave)
+	Emin=Eslave;
 
-
-    mContactVariables.PenaltyFactor = 0.5 * penalty_parameter * Emax;
+    mContactVariables.PenaltyFactor = 0.5 * penalty_parameter * Emin;
 
     // mContactVariables.PenaltyParameter = 0.5 / mContactVariables.StabilizationFactor ;
    
@@ -188,6 +195,7 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
 
     //d.- Compute A_n,B_n,L_n
     rVariables.Contact.ReferenceBase.resize(1);
+    //e.-obtain the (g_N)3 and (g_T)3 for the n configuration
     rVariables.Contact.CurrentBase.resize(1);
 
     //a, b, l:
@@ -210,9 +218,8 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
 
     //complete the computation of the stabilization gap
     //rVariables.Contact.ContactFactor.Normal = mContactVariables.StabilizationFactor * rVariables.Contact.ReferenceBase[0].L;
-    rVariables.Contact.ContactFactor.Normal  = mContactVariables.PenaltyFactor / rVariables.Contact.ReferenceBase[0].L;
-    
-    rVariables.Contact.ContactFactor.Tangent = mContactVariables.PenaltyFactor * 0.01 / rVariables.Contact.ReferenceBase[0].L;
+    rVariables.Contact.ContactFactor.Normal  = mContactVariables.PenaltyFactor; // rVariables.Contact.ReferenceBase[0].L; 
+    rVariables.Contact.ContactFactor.Tangent = mContactVariables.PenaltyFactor; // rVariables.Contact.ReferenceBase[0].L;
 
 
     //e.-obtain the (g_N)3 and (g_T)3 for the n configuration
@@ -263,25 +270,18 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
     rVariables.Contact.CurrentGap.Normal  = ReferenceGapN; //(g_N)3 -- needed in the Kcont1 computation
     rVariables.Contact.CurrentGap.Tangent = ReferenceGapT; //(g_T)3 -- needed in the Kcont1 computation
 
-    //5.- Compute (Lagrange) Multipliers
-
-
-    // double CurrentTimeStep  = rCurrentProcessInfo[DELTA_TIME];
-    // double PreviousTimeStep = rCurrentProcessInfo[PREVIOUS_DELTA_TIME];
+    //5.- Compute Penalty Factors
         
-
-    //rVariables.Contact.Penalty.Normal  = H * (0.5/rVariables.Contact.ContactFactor.Normal); //(1/(2*Tau)) is now KN, the penalty parameter
-    //rVariables.Contact.Penalty.Normal  = H * rVariables.Contact.ContactFactor.Normal; 
-    //rVariables.Contact.Penalty.Tangent = H * rVariables.Contact.ContactFactor.Tangent;
-
-    rVariables.Contact.Penalty.Normal   = rVariables.Contact.CurrentGap.Normal * rVariables.Contact.ContactFactor.Normal;
+    //(1/(2*Tau)) is now ContactFactor.Normal, the penalty parameter
+    rVariables.Contact.Penalty.Normal  = rVariables.Contact.CurrentGap.Normal * rVariables.Contact.ContactFactor.Normal;
 
     //std::cout<<" rVariables.Contact.Penalty.Normal "<<rVariables.Contact.Penalty.Normal<<" ContactFactor.Normal "<<rVariables.Contact.ContactFactor.Normal<<std::endl;
 
     //Compute tangent component of the tension vector:  (tt=t·P·N) PREVIOUS CONFIGURATION: (CalculatePreviousGap needed)
     rVariables.Contact.Penalty.Tangent  = inner_prod(mContactVariables.PreStepSurface.Tangent, mContactVariables.TractionVector);
-    rVariables.Contact.Penalty.Tangent += rVariables.Contact.CurrentGap.Tangent * H * rVariables.Contact.ContactFactor.Tangent;
-    
+    rVariables.Contact.CurrentGap.Tangent *= H;
+    rVariables.Contact.Penalty.Tangent += rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.CurrentGap.Tangent;
+
     rVariables.Contact.TangentialGapSign=1;
 
     if((rVariables.Contact.Penalty.Tangent)<0)
@@ -291,11 +291,12 @@ void ContactDomainPenalty2DCondition::CalculateExplicitFactors(GeneralVariables&
     
     if(H==0) rVariables.Contact.TangentialGapSign=0;
 
-    //friction still not avaliable:
-    rVariables.Contact.Penalty.Tangent = 0;
-    rVariables.Contact.ContactFactor.Tangent = 0;
+    // if friction still not avaliable:
+    //rVariables.Contact.Penalty.Tangent = 0;
+    //rVariables.Contact.ContactFactor.Tangent = 0;
+    //rVariables.Contact.TangentialGapSign=0;
 
-    //std::cout<<" rVariables.Contact.Penalty.Tangent "<<rVariables.Contact.Penalty.Tangent<<" ContactFactor.Tangent "<<rVariables.Contact.ContactFactor.Tangent<<std::endl;
+    //std::cout<<" rVariables.Contact.Penalty.Tangent "<<rVariables.Contact.Penalty.Tangent<<" ContactFactor.Tangent "<<rVariables.Contact.ContactFactor.Tangent<<" rVariables.Contact.CurrentGap.Tangent "<<rVariables.Contact.CurrentGap.Tangent<<std::endl;
 
     //std::cout<<" PreTime "<<Time.PreStep<<" Time "<<Time.Step<<std::endl;
 
@@ -358,7 +359,7 @@ void ContactDomainPenalty2DCondition::CalculateTangentStickForce (double &F,Gene
 
 	if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
 	{
-		F=rVariables.Contact.Penalty.Tangent*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]);
+	  F = rVariables.Contact.Penalty.Tangent * (rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]);
 	}
 	else{
 		F=0.0;
@@ -375,8 +376,7 @@ void ContactDomainPenalty2DCondition::CalculateTangentSlipForce (double &F,Gener
 
 	if( rVariables.Contact.Options.Is(ContactDomainUtilities::COMPUTE_FRICTION_FORCES) )
 	{
-		F=rVariables.Contact.Penalty.Normal*(rVariables.Contact.FrictionCoefficient*rVariables.Contact.TangentialGapSign)*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]);
-
+	  F=rVariables.Contact.Penalty.Normal*(rVariables.Contact.FrictionCoefficient*rVariables.Contact.TangentialGapSign)*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]);
 	}
 	else{
 		F=0.0;
@@ -398,10 +398,10 @@ void ContactDomainPenalty2DCondition::CalcContactStiffness (double &Kcont,Genera
     
     //Normal contact penalty contribution:
     //KI:
-    Kcont= rVariables.Contact.ContactFactor.Normal * ( (rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])-
-		(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Tangent[jdir])-
-		(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])-
-		((rVariables.Contact.CurrentGap.Normal*rVariables.Contact.CurrentGap.Normal)*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]));
+    Kcont = rVariables.Contact.ContactFactor.Normal * ( rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
+						       - rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Tangent[jdir]
+						       - rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
+						       - rVariables.Contact.CurrentGap.Normal*rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]);
 
     // std::cout<<" ndi "<<ndi<<" ndj "<<ndj<<" i "<<idir<<" j "<<jdir<<std::endl;
     // std::cout<<" Kg "<<Kcont;
@@ -417,11 +417,13 @@ void ContactDomainPenalty2DCondition::CalcContactStiffness (double &Kcont,Genera
         {
     	    //std::cout<<"(mu_on)";
     	    Kcont+= rVariables.Contact.ContactFactor.Tangent * (rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]+rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir])*(rVariables.Contact.CurrentGap.Normal*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]+rVariables.Contact.dN_drn[ndj]*rVariables.Contact.CurrentSurface.Tangent[jdir])
-    	      + rVariables.Contact.Penalty.Tangent * (rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
-    		    + rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
-    		    - rVariables.Contact.CurrentGap.Normal*(rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])
-    		    - rVariables.Contact.CurrentGap.Normal*(rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Tangent[jdir]));
+    	      + (rVariables.Contact.Penalty.Tangent)* (rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dn[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
+						      + rVariables.Contact.dN_drn[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir]
+						      - rVariables.Contact.CurrentGap.Normal*(rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Tangent[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Normal[jdir])
+						      - rVariables.Contact.CurrentGap.Normal*(rVariables.Contact.dN_dt[ndi]*rVariables.Contact.CurrentSurface.Normal[idir]*rVariables.Contact.dN_dt[ndj]*rVariables.Contact.CurrentSurface.Tangent[jdir]));
 		    
+	    //( rVariables.Contact.Penalty.Tangent-  rVariables.Contact.ContactFactor.Tangent * rVariables.Contact.CurrentGap.Tangent )
+	  
         }
     }
     // else
