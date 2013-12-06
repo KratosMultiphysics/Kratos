@@ -8,7 +8,7 @@ VALUE: QuasiStaticSolver
 QUESTION: Time_Step
 VALUE: 1
 QUESTION: Number_of_steps
-VALUE: 1
+VALUE: 10
 QUESTION: LineSearch#CB#(True,False)
 VALUE: False
 QUESTION: Let_GiD_determine_domain_size#CB#(1,0)
@@ -31,8 +31,8 @@ QUESTION: Linear_Solver_Tolerance
 VALUE: 1E-9
 QUESTION: Linear_Solver_Max_Iteration
 VALUE: 5000
-QUESTION: Convergence_Criteria#CB#(Displacement_Criteria,Residual_Criteria,And_Criteria,Or_Criteria,Mixed_Criteria)
-VALUE: Residual_Criteria
+QUESTION: Convergence_Criteria#CB#(Displacement_criteria,Residual_criteria,And_criteria,Or_criteria,Mixed_criteria)
+VALUE: Residual_criteria
 QUESTION: Convergence_Tolerance
 VALUE: 1E-9
 QUESTION: Absolute_Tolerance
@@ -40,7 +40,7 @@ VALUE: 1E-9
 QUESTION: Max_Iter
 VALUE: 30
 QUESTION: Number_of_threads
-VALUE: 4
+VALUE: 1
 TITLE: Meshing
 QUESTION: RemeshDomains#CB#(False,True)
 VALUE: False
@@ -119,7 +119,7 @@ QUESTION: Velocity_definition:(Vx,Vy)
 VALUE: #N# 2 0 0
 TITLE: Constraints
 QUESTION: Incremental_Load#CB#(False,True)
-VALUE: False
+VALUE: True
 QUESTION: Incremental_Displacement#CB#(False,True)
 VALUE: False
 TITLE: PostProcess
