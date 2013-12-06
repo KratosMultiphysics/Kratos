@@ -1958,7 +1958,7 @@ namespace Kratos
 
 	    if(accepted)
 	      {
-		//std::cout<<" Element ACCEPTED after cheking Center "<<std::endl;
+		//std::cout<<" Element ACCEPTED after cheking Center "<<number<<std::endl;
 		rVariables.PreservedElements[el] = 1;
 		number+=1;
 	      }
