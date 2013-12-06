@@ -378,8 +378,8 @@ namespace Kratos
 
 	for(int v=0; v<Nn; v++)
 	  {
-
-	    //std::cout<<" V: ["<<vertices[v].X()<<", "<<vertices[v].Y()<<"]  Normal:"<<vertices[v].FastGetSolutionStepValue(NORMAL)<<std::endl;
+	   
+	    //std::cout<<" V: ("<<vertices[v].Id()<<"): ["<<vertices[v].X()<<", "<<vertices[v].Y()<<"]  Normal:"<<vertices[v].FastGetSolutionStepValue(NORMAL)<<std::endl;
 
 	    Normal.clear();
 
@@ -430,8 +430,8 @@ namespace Kratos
 
 	  }
 
-	// std::cout<<std::endl;
-	// std::cout<<"  [ no:"<<numouter<<";ne:"<<numextra<<";nc:"<<numcoplanar<<";ns: "<<numsamedirection<<";nor:"<<numorthogonal<<"]"<<std::endl;
+	//std::cout<<std::endl;
+	//std::cout<<"  [ no:"<<numouter<<";ne:"<<numextra<<";nc:"<<numcoplanar<<";ns: "<<numsamedirection<<";nor:"<<numorthogonal<<"]"<<std::endl;
 	
 
 	if(numouter==3)
@@ -453,7 +453,7 @@ namespace Kratos
 	if(numcoplanar==3)
 	  outer=false;
 	    
-	if(numsamedirection==3)
+	if(numsamedirection==3 && numorthogonal==0)
 	  outer=false;
 	    
 	// if(numorthogonal>=1)
