@@ -347,8 +347,8 @@ public:
         ThisModelPart.GetProcessInfo()[WET_VOLUME] = wet_volume;
 
         //volume loss is just corrected
-//         if(volume_difference > 0.05*wet_volume) //0.0)
-        {
+//          if(volume_difference > 0.0)
+//         {
 //             TODO: this is not correct in MPI parallel
             #pragma omp parallel for firstprivate(node_size)
             for (int ii = 0; ii < node_size; ii++)
@@ -359,7 +359,7 @@ public:
                 it->FastGetSolutionStepValue(DISTANCE) -= correction;
 
             }
-        }
+//         }
         std::cout << "Volume Correction " << " Net volume: "<< fabs(Net_volume) << " wet volume: " << wet_volume << " percent: "<< wet_volume/fabs(Net_volume)<< " Area: "<< cutted_area << std::endl;
         KRATOS_CATCH("")
     }
