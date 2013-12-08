@@ -272,26 +272,26 @@ public:
         Matrix coords(TNumNodes, TDim);
         
         //output data for enrichment function
-        Matrix Nenriched(6, 1);
-        Vector volumes(6);
-        Matrix Ngauss(6, TNumNodes);
+        Matrix Nenriched;
+        Vector volumes;
+        Matrix Ngauss;
         Vector signs(6);
-        std::vector< Matrix > gauss_gradients(6);
+        std::vector< Matrix > gauss_gradients;
         
         
         //fill coordinates
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
             const array_1d<double, 3 > & xyz = this->GetGeometry()[i].Coordinates();
-            volumes[i] = 0.0;
+//             volumes[i] = 0.0;
             distances[i] = this->GetGeometry()[i].FastGetSolutionStepValue(DISTANCE);
             for (unsigned int j = 0; j < TDim; j++)
                 coords(i, j) = xyz[j];
         }
         
-        for (unsigned int i = 0; i < 6; i++)
+/*        for (unsigned int i = 0; i < 6; i++)
             gauss_gradients[i].resize(1, TDim, false);
-
+*/
 //         unsigned int ndivisions = EnrichmentUtilities::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
          unsigned int ndivisions = EnrichmentUtilitiesDuplicateDofs::CalculateTetrahedraEnrichedShapeFuncions(coords, DN_DX, distances, volumes, Ngauss, signs, gauss_gradients, Nenriched);
         const unsigned int nenrichments = Nenriched.size2();
@@ -311,21 +311,62 @@ public:
             const GeometryType::IntegrationPointsArrayType& IntegrationPoints = this->GetGeometry().IntegrationPoints(GeometryData::GI_GAUSS_2);
 
             Ngauss = this->GetGeometry().ShapeFunctionsValues(GeometryData::GI_GAUSS_2);
+            
+            volumes.resize(IntegrationPoints.size(),false);
 
             for (unsigned int g = 0; g < this->GetGeometry().IntegrationPointsNumber(GeometryData::GI_GAUSS_2); g++)
                 volumes[g] = 6.0*Area * IntegrationPoints[g].Weight();
 
         }
-        else
+//         else
+//         {
+//             Matrix aux = Ngauss;
+//             Ngauss.resize(ndivisions,Ngauss.size2(),false);
+//             for(unsigned int i=0; i<ndivisions; i++)
+//                 for(unsigned int k=0; k<Ngauss.size2(); k++)
+//                     Ngauss(i,k) = aux(i,k);
+//         }
+/*  KRATOS_WATCH(this->Id());      
+KRATOS_WATCH(volumes);      
+KRATOS_WATCH(Ngauss);  */    
+
+        for (unsigned int igauss = 0; igauss < Ngauss.size1(); igauss++)
         {
-            Matrix aux = Ngauss;
-            Ngauss.resize(ndivisions,Ngauss.size2(),false);
-            for(unsigned int i=0; i<ndivisions; i++)
-                for(unsigned int k=0; k<Ngauss.size2(); k++)
-                    Ngauss(i,k) = aux(i,k);
+            double wGauss = volumes[igauss];
+            
+            
+            if(signs[igauss] > 0) //check positive and negative volume
+                positive_volume += wGauss;
+            else
+                negative_volume += wGauss;
         }
-        
-        
+
+
+        const double min_area_ratio = 1e-6;
+//         if(positive_volume/Area < min_area_ratio)
+//         {
+//             for (unsigned int igauss = 0; igauss < Ngauss.size1(); igauss++)
+//             {
+//                  if(signs[igauss] > 0) //check positive and negative volume
+//                     volumes[igauss] =0.0;
+//             }
+//         }
+// 
+//         if(negative_volume/Area < min_area_ratio)
+//         {
+//             for (unsigned int igauss = 0; igauss < Ngauss.size1(); igauss++)
+//             {
+//                  if(signs[igauss] < 0) //check positive and negative volume
+//                     volumes[igauss] =0.0;
+//             }
+//         }
+
+
+
+
+
+
+
         //****************************************************
         //compute LHS and RHS + first part of mass computation
         for (unsigned int igauss = 0; igauss < Ngauss.size1(); igauss++)
@@ -336,10 +377,10 @@ public:
             double wGauss = volumes[igauss];
             
             
-            if(signs[igauss] > 0) //check positive and negative volume
-                positive_volume += wGauss;
-            else
-                negative_volume += wGauss;
+//             if(signs[igauss] > 0) //check positive and negative volume
+//                 positive_volume += wGauss;
+//             else
+//                 negative_volume += wGauss;
             
             //****************************************************
             // Calculate this element's fluid properties
@@ -373,6 +414,9 @@ public:
             //enrichment variables
             if (ndivisions > 1)
             {
+//                 KRATOS_WATCH(Nenriched);
+                
+                
                 //note that here we compute only a part of the acceleration term
                 //this is done like this since the velocity*BDFVector[0] is treated implicitly
                 array_1d<double,3> OldAcceleration = ZeroVector(3);
@@ -385,6 +429,8 @@ public:
                 for(unsigned int enriched_id = 0; enriched_id < nenrichments; enriched_id++)
                 {
                     const Matrix& enriched_grad = gauss_gradients[igauss];
+//                     KRATOS_WATCH(enriched_grad);
+                    
 
                     //compute enrichment terms contribution
                     for (unsigned int inode = 0; inode < TNumNodes; inode++)
@@ -436,11 +482,19 @@ public:
             }
         }
         
+        
+//         if (ndivisions > 1)
+//         {
+//             KRATOS_WATCH(this->Id());
+//             KRATOS_WATCH(ndivisions);
+//         KRATOS_WATCH( (positive_volume+negative_volume )/Area);
+//         }
+//    KRATOS_WATCH("line 438");         
         //lump mass matrix
         this->LumpMassMatrix(MassMatrix);
         
         //add mass matrix stabilization contributions
-        for (unsigned int igauss = 0; igauss < ndivisions; igauss++)
+        for (unsigned int igauss = 0; igauss < Ngauss.size1(); igauss++)
         {
             //assigning the gauss data
             for (unsigned int k = 0; k < TNumNodes; k++)
@@ -473,7 +527,7 @@ public:
 
             }
         }
-        
+//           KRATOS_WATCH("line 476");         
         
         //****************************************************
         //consider contributions of mass to LHS and RHS
@@ -514,7 +568,7 @@ public:
             ++LocalIndex;
         }
         noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, U);
-                
+//                KRATOS_WATCH("line 517");          
                 
         //****************************************************
         //finalize computation of enrichment terms
@@ -525,6 +579,64 @@ public:
                 //finalize the computation of the rhs 
                 noalias(enriched_rhs) -= prod(enrichment_terms_horizontal,U);
                 
+                double max_diag = 0.0;
+                for(unsigned int k=0; k<TDim+1; k++)
+                    if(fabs(enrichment_diagonal(k,k) ) > max_diag) max_diag = fabs(enrichment_diagonal(k,k) );
+                if(max_diag == 0) max_diag = 1.0;
+                
+                
+
+                if(positive_volume/Area < min_area_ratio)
+                {
+//                     KRATOS_WATCH(this->Id());
+//                     KRATOS_WATCH(positive_volume/Area)
+                    for(unsigned int i=0; i<TDim+1; i++)
+                    {
+                        if(distances[i] >= 0.0)
+                        {
+/*                            
+                            for(unsigned int k=0; k<TDim+1; k++)
+                            {
+                                enrichment_diagonal(i,k) = 0.0;
+                                enrichment_diagonal(k,i) = 0.0;
+                            }*/
+                            enrichment_diagonal(i,i) += 1000.0*max_diag;
+//                             enriched_rhs[i] = 0.0;
+//                             
+//                             for(unsigned int k=0; k<enrichment_terms_horizontal.size2();k++)
+//                             {
+//                                 enrichment_terms_horizontal(i,k) = 0.0;
+//                                 enrichment_terms_vertical(k,i) = 0.0;
+//                             }
+                        }
+                    }        
+                }
+                 if(negative_volume/Area < min_area_ratio)
+                {
+//                     KRATOS_WATCH(this->Id());
+//                     KRATOS_WATCH(negative_volume/Area)
+                    for(unsigned int i=0; i<TDim+1; i++)
+                    {
+                        if(distances[i] < 0.0)
+                        {
+                            enrichment_diagonal(i,i) += 1000.0*max_diag;
+//                             for(unsigned int k=0; k<TDim+1; k++)
+//                             {
+//                                 enrichment_diagonal(i,k) = 0.0;
+//                                 enrichment_diagonal(k,i) = 0.0;
+//                             }
+//                             enrichment_diagonal(i,i) = 1.0; //max_diag;
+//                             enriched_rhs[i] = 0.0;
+//                         
+//                         
+//                             for(unsigned int k=0; k<enrichment_terms_horizontal.size2();k++)
+//                             {
+//                                 enrichment_terms_horizontal(i,k) = 0.0;
+//                                 enrichment_terms_vertical(k,i) = 0.0;
+//                             }
+                        }
+                    }        
+                }               
                 
                 
                 //ensure the matrix is invertible
@@ -538,7 +650,7 @@ public:
 //                 }
                 
                 //"weakly" impose continuity
-                           unsigned int edge_counter = 0.0;
+//                 KRATOS_WATCH("line 541");         
                 for(unsigned int i=0; i<TDim; i++)
                 {
                     const double di = fabs(distances[i]); 
@@ -553,24 +665,36 @@ public:
                             double Ni = dj/sum_d;
                             double Nj = di/sum_d;
                             
-                            double penalty_coeff = h/BDFVector[0];
+                            double penalty_coeff = max_diag*0.001; // h/BDFVector[0];
                             enrichment_diagonal(i,i) += penalty_coeff * Ni*Ni;
-                            enrichment_diagonal(i,j) += penalty_coeff * -Ni*Nj;
-                            enrichment_diagonal(j,i) += penalty_coeff * -Nj*Ni;
+                            enrichment_diagonal(i,j) -= penalty_coeff * Ni*Nj;
+                            enrichment_diagonal(j,i) -= penalty_coeff * Nj*Ni;
                             enrichment_diagonal(j,j) += penalty_coeff * Nj*Nj;
                             
                         }
                     }
                 }
+//                 KRATOS_WATCH("line 565");   
                 
+                
+//                 KRATOS_WATCH(enrichment_diagonal);
                 
                 
                 //add to LHS enrichment contributions
                 Matrix inverse_diag(nenrichments, nenrichments);
                 bool inversion_successful = InvertMatrix(enrichment_diagonal,inverse_diag);
+                
+//                 KRATOS_WATCH("line 574");   
+                
                 if(!inversion_successful )
+                {
+                    KRATOS_WATCH(distances)
+                    KRATOS_WATCH(positive_volume/Area)
+                    KRATOS_WATCH(negative_volume/Area)
+                    KRATOS_WATCH(enrichment_diagonal)
                     KRATOS_ERROR(std::logic_error,"error in the inversion of the enrichment matrix for element ",this->Id());
-//                double inverse_diag_term = 1.0 / ( enrichment_diagonal);
+               }
+                  //  double inverse_diag_term = 1.0 / ( enrichment_diagonal);
 //        KRATOS_WATCH(this->Id());
 //        KRATOS_WATCH(enrichment_terms_horizontal);
 //        KRATOS_WATCH(enrichment_terms_vertical);
@@ -586,6 +710,8 @@ public:
                         rLeftHandSideMatrix(i, j) -= inverse_diag_term * enrichment_terms_vertical[i] * enrichment_terms_horizontal[j];
                 noalias(rRightHandSideVector) -= (inverse_diag_term*enriched_rhs )*enrichment_terms_vertical;
       */      }
+      
+//       KRATOS_WATCH("finished elem")
     }
 
     /// Implementation of Calculate to compute the local OSS projections.
