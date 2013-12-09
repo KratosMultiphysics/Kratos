@@ -472,6 +472,9 @@ while(time <= final_time):
         interaction_calculator.CalculatePressureGradient(fluid_model_part)                 
             
     for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):
+        
+        DEM_step = DEM_step + 1   # this variable is necessary to get a good random insertion of particles
+        
         balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
         
         # applying fluid-to-DEM coupling
