@@ -82,6 +82,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "containers/array_1d.h"
 #include "spatial_containers/spatial_containers.h"
 #include "dem_fem__application.h"
+
+
 namespace Kratos
 {
   
@@ -254,6 +256,7 @@ void Initialize()
 
     if(mInitializeWasPerformed == false)
 	{
+		
 		InitializeElements();
 	
 		InitializeConditions();
