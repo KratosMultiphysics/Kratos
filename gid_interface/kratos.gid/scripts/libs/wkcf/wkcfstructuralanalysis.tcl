@@ -1806,7 +1806,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     puts $fileid ""
     set PName [::KUtils::GetPaths "PName"]
     puts $fileid "problem_name=\"${PName}${AppId}\"" 
-    puts $fileid "problem_path=\"$PDir\"" 
+    puts $fileid "problem_path=\"[file join $PDir]\""
     
     
     # Commented by J. Garate on 17/12/2012
