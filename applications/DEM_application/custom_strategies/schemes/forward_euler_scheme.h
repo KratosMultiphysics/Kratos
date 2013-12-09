@@ -29,6 +29,8 @@
 
 #include "DEM_application.h"
 
+#define DEBUG_PARTICLE -1
+
 namespace Kratos
 {
   
@@ -101,7 +103,7 @@ namespace Kratos
           #endif
           OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
           
-          #pragma omp parallel for firstprivate(aux) shared(delta_t) 
+          #pragma omp parallel for shared(delta_t) 
           for(int k=0; k<number_of_threads; k++)
           {
               NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
@@ -117,7 +119,13 @@ namespace Kratos
                   array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
                   
                   double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
-                  aux = delta_t / mass;                   
+                  aux = delta_t / mass;     
+                  
+                  if(i->Id() == DEBUG_PARTICLE)
+                  {
+                      std::cout << "\t" << displ[0] << " " << displ[1] << " " << displ[2] << std::endl;
+                  }
+
 
                   i->FastGetSolutionStepValue(OLD_COORDINATES) = coor; //saving the coordinates in order to optimize some functions (specially de previous step coordinates)  
 
@@ -200,6 +208,112 @@ namespace Kratos
                   }                    
               }
           }
+          
+          NodesArrayType& pGNodes            = GetGhostNodes(model_part);
+      
+          //NodesArrayType::iterator it_begin = pNodes.ptr_begin();
+          //NodesArrayType::iterator it_end   = pNodes.ptr_end();
+          
+          OpenMPUtils::CreatePartition(number_of_threads, pGNodes.size(), node_partition);
+          
+          #pragma omp parallel for shared(delta_t) 
+          for(int k=0; k<number_of_threads; k++)
+          {
+              NodesArrayType::iterator i_begin=pGNodes.ptr_begin()+node_partition[k];
+              NodesArrayType::iterator i_end=pGNodes.ptr_begin()+node_partition[k+1];
+             
+              for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
+              {      
+                  array_1d<double, 3 > & vel             = i->FastGetSolutionStepValue(VELOCITY);
+                  array_1d<double, 3 > & displ           = i->FastGetSolutionStepValue(DISPLACEMENT);
+                  array_1d<double, 3 > & delta_displ     = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
+                  array_1d<double, 3 > & coor            = i->Coordinates();
+                  array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
+                  array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
+                  
+                  double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
+                  aux = delta_t / mass;     
+                  
+                  if(i->Id() == DEBUG_PARTICLE)
+                  {
+                      std::cout << "\t" << displ[0] << " " << displ[1] << " " << displ[2] << std::endl;
+                  }
+
+                  i->FastGetSolutionStepValue(OLD_COORDINATES) = coor; //saving the coordinates in order to optimize some functions (specially de previous step coordinates)  s
+                  
+                  unsigned int pos = i->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);
+                  if( i->GetDof(VELOCITY_X, pos).IsFixed() == false ) // equivalently:  i->IsFixed(VELOCITY_X) == false
+                  {    
+                      vel[0] += aux * force[0];
+
+                      displ[0] +=  delta_displ[0];
+
+                      delta_displ[0] = delta_t * vel[0];
+
+                      coor[0] = initial_coor[0] + displ[0];
+
+
+                  }
+                  else
+                  {
+                      
+                      displ[0] += delta_displ[0];
+                      
+                      delta_displ[0] = delta_t * vel[0];
+
+                      coor[0] = initial_coor[0] + displ[0];
+                 
+                  }
+                  pos = i->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
+                  if( i->GetDof(VELOCITY_Y, pos).IsFixed() == false ) 
+                  {    
+                      vel[1] += aux * force[1];
+
+                      displ[1] +=  delta_displ[1];
+
+                      delta_displ[1] = delta_t * vel[1];
+
+                      coor[1] = initial_coor[1] + displ[1];
+
+
+                  }
+                  else
+                  {
+                      
+                      displ[1] += delta_displ[1];
+                      
+                      delta_displ[1] = delta_t * vel[1];
+
+                      coor[1] = initial_coor[1] + displ[1];
+                 
+                  }
+                  
+                    pos = i->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);
+                    if( i->GetDof(VELOCITY_Z, pos).IsFixed() == false ) 
+                  {    
+                      vel[2] += aux * force[2];
+
+                      displ[2] +=  delta_displ[2];
+
+                      delta_displ[2] = delta_t * vel[2];
+
+                      coor[2] = initial_coor[2] + displ[2];
+
+
+                  }
+                  else
+                  {
+                      
+                      displ[2] += delta_displ[2];
+                      
+                      delta_displ[2] = delta_t * vel[2];
+
+                      coor[2] = initial_coor[2] + displ[2];
+                 
+                  }                    
+              }
+          }
+
 
           KRATOS_CATCH(" ")
       }
@@ -224,7 +338,7 @@ namespace Kratos
     #endif
     OpenMPUtils::CreatePartition(number_of_threads, pNodes.size(), node_partition);
 
-    #pragma omp parallel for shared(delta_t)
+    #pragma omp parallel for
     for(int k=0; k<number_of_threads; k++)
     {
             NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
