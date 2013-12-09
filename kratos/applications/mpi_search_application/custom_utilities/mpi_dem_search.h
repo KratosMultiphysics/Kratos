@@ -100,7 +100,6 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
           VectorDistanceType& rResultsDistance )
       {     
           KRATOS_TRY
-          KRATOS_WATCH("sksdkhssdhakjshdkjashdskjahdjkashdkjashdkjashdjk")
           KRATOS_TIMER_START("MPI_SEARCH_STUFF")
           //TODO: Temporal compile fix. Commincator should be a member class from now on.
           ModelPart rModelPart;
