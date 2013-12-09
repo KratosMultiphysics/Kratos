@@ -8,7 +8,7 @@ VALUE: QuasiStaticSolver
 QUESTION: Time_Step
 VALUE: 0.0025
 QUESTION: Number_of_steps
-VALUE: 2
+VALUE: 2000
 QUESTION: LineSearch#CB#(True,False)
 VALUE: False
 QUESTION: Let_GiD_determine_domain_size#CB#(1,0)
@@ -43,7 +43,7 @@ QUESTION: Number_of_threads
 VALUE: 4
 TITLE: Meshing
 QUESTION: RemeshDomains#CB#(False,True)
-VALUE: True
+VALUE: False
 DEPENDENCIES: (True,RESTORE,MeshingElement,#CURRENT#,RESTORE,MeshDomains,#CURRENT#,RESTORE,Meshing_Frequency,#CURRENT#)
 DEPENDENCIES: (False,HIDE,MeshingElement,#CURRENT#,HIDE,MeshDomains,#CURRENT#,HIDE,Meshing_Frequency,#CURRENT#)
 QUESTION: MeshingElement#CB#(SpatialLagrangianElement2D3N,SpatialLagrangianUPElement2D3N,AxisymSpatialLagrangianElement2D3N,AxisymSpatialLagrangianUPElement2D3N)
@@ -130,13 +130,13 @@ VALUE: Binary
 QUESTION: WriteResults#CB#(PreMeshing,PostMeshing)
 VALUE: PreMeshing
 QUESTION: WriteMesh#CB#(Deformed,Undeformed)
-VALUE: Undeformed
+VALUE: Deformed
 QUESTION: WriteParticles#CB#(False,True)
 VALUE: False
 QUESTION: WriteConditions#CB#(False,True)
 VALUE: True
 QUESTION: WriteFrequency
-VALUE: 0.001
+VALUE: 0.1
 QUESTION: Plot_Graphs#CB#(False,True)
 VALUE: False
 DEPENDENCIES: (False,HIDE,PlotFrequency,#CURRENT#)
