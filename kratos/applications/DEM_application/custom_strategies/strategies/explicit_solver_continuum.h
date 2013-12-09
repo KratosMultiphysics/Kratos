@@ -789,11 +789,11 @@ namespace Kratos
           for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
           {
     
+            
             if(  it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 1) //top
               
               
             {
-              
                 (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_TOP];
                 //(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
                 unsigned int pos = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
@@ -858,12 +858,14 @@ namespace Kratos
           {
                   if (  it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 1 ) //top
                   {
-                        
                       (it)->GetGeometry()(0)->Free(VELOCITY_Y); 
                         rCurrentProcessInfo[FIXED_VEL_TOP] = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y); //cutre way yeah!   
                         //I only store one value for every ball in the group ID
                       (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = 0.0;
-
+                      
+                                      std::cout << it->GetGeometry()(0)->FastGetSolutionStepValue(PARTITION_INDEX) << std::endl;
+                KRATOS_WATCH(rCurrentProcessInfo[FIXED_VEL_TOP] )
+                    
                   }
                   
                   if ( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2 ) //bot

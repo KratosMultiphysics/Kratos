@@ -282,12 +282,11 @@ namespace Kratos
           // 4. Motion Integration
           PerformTimeIntegrationOfMotion(rCurrentProcessInfo); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
 
-           ////Cfeng, compute rigid face movement
-		  Compute_RigidFace_Movement();
-		  
-
           // 5. Synchronize
           SynchronizeSolidMesh(r_model_part);
+          
+           ////Cfeng, compute rigid face movement
+		  Compute_RigidFace_Movement();
 	          
           FinalizeSolutionStep();		  
 
@@ -355,7 +354,6 @@ namespace Kratos
                   Element::GeometryType& geom = it->GetGeometry();
 
                   (it)->CalculateRightHandSide(rhs_elem, rCurrentProcessInfo);
-				  
 
                   array_1d<double,3>& total_forces  = geom(0)->FastGetSolutionStepValue(TOTAL_FORCES);
                   array_1d<double,3>& total_moment = geom(0)->FastGetSolutionStepValue(PARTICLE_MOMENT);
@@ -552,7 +550,7 @@ namespace Kratos
             out_coordination_number = ComputeCoordinationNumber();
    
           }//while
-          
+
           std::cout<< "Coordination Number iteration converged after "<<iteration<< " iterations, to value " <<out_coordination_number<<". "<<"\n"<<std::endl;
           
             
@@ -697,7 +695,7 @@ namespace Kratos
             r_model_part.Elements().push_back(*i);
         }
         
-        SynchronizeSolidMesh(r_model_part);
+//         SynchronizeSolidMesh(r_model_part);
         
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
         
