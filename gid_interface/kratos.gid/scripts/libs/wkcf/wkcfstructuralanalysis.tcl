@@ -1472,7 +1472,7 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     }
     puts $fileid "${trailing_spaces}PressureDofs = False"
 
-    puts $fileid "${trailing_spaces}ReformDofSetAtEachStep = True"
+    puts $fileid "${trailing_spaces}ReformDofSetAtEachStep = False"
     puts $fileid "${trailing_spaces}compute_reactions = True"
     puts $fileid "${trailing_spaces}line_search  = False"
 
