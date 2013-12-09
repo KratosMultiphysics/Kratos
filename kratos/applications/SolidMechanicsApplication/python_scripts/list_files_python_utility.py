@@ -117,7 +117,7 @@ class ListFilesUtility:
       
              num_list_files = len(self.file_list) 
              for lfile in range(0,num_list_files):
-                 if( general_variables.file_list[lfile] == listprint[lfile] ):
+                 if( self.file_list[lfile] == self.listprint[lfile] ):
                      problempath = os.path.join(self.problem_path, self.problem_name + "_" + str(self.file_list[lfile]) + ".post.lst")
                      #problempath= self.problem_path + "/" + self.problem_name + "_" + str(self.file_list[lfile]) + ".post.lst"
                      if(os.path.exists(problempath) == False):
