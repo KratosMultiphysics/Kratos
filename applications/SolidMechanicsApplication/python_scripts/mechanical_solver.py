@@ -36,14 +36,6 @@ def AddVariables(model_part, config=None):
                 #add specific variables for the problem (pressure dofs)
                 model_part.AddNodalSolutionStepVariable(PRESSURE)
                 model_part.AddNodalSolutionStepVariable(REACTION_PRESSURE);
-        if hasattr(config, "RigidWalls"):
-            if config.RigidWalls == True:
-                #add specific variables for the problem (rigid walls)
-                model_part.AddNodalSolutionStepVariable(RIGID_WALL);
-                model_part.AddNodalSolutionStepVariable(WALL_TIP_RADIUS);
-                model_part.AddNodalSolutionStepVariable(WALL_REFERENCE_POINT);
-                model_part.AddNodalSolutionStepVariable(WALL_VELOCITY);
-
 
     print "variables for the structural solver added correctly"
 
