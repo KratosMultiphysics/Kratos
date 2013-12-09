@@ -55,7 +55,8 @@ gid_io = GidIO(DEM_parameters.problem_name, gid_mode, multifile, deformed_mesh_f
 model_part_io_solid = ModelPartIO(DEM_parameters.problem_name)
 model_part_io_solid.ReadModelPart(balls_model_part)
 
-model_part_io_solid = ModelPartIO("RigidFace_Part")
+rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
+model_part_io_solid = ModelPartIO(rigidFace_mp_filename)
 model_part_io_solid.ReadModelPart(RigidFace_model_part)
 
 # Setting up the buffer size: SHOULD BE DONE AFTER READING!!!
@@ -186,12 +187,12 @@ print 'Initialitzation Complete' + '\n'
 os.chdir(graphs_path)
 
 if(DEM_parameters.BtsOption == "ON"):
-    bts_export = open("bts_"+str(datetime.datetime.now())+".csv",'w');
+    bts_export = open(DEM_parameters.problem_name +"_bts_"+str(datetime.datetime.now())+".csv",'w');
 
 if (DEM_parameters.GraphOption =="ON"):
-  graph_export = open("graph_"+str(datetime.datetime.now())+".csv",'w');
+  graph_export = open(DEM_parameters.problem_name + "_graph_" + str(datetime.datetime.now()) + ".csv", 'w');
   if (DEM_parameters.PoissonMeasure =="ON"):
-    graph_export_poisson = open("poisson_"+str(datetime.datetime.now())+".csv",'w');
+    graph_export_poisson = open(DEM_parameters.problem_name + "_poisson_"+str(datetime.datetime.now())+".csv",'w');
 
 os.chdir(main_path)
     
