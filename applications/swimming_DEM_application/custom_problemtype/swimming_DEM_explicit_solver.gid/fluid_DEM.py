@@ -23,13 +23,12 @@ import DEM_procedures
 import swimming_DEM_procedures
 
 # PROJECT PARAMETERS (to be put in problem type)
-ProjectParameters.projection_module_option         = 1
+ProjectParameters.projection_module_option         = 0
 ProjectParameters.print_particles_results_option   = 0
-ProjectParameters.project_from_particles_option    = 1
-ProjectParameters.project_at_every_substep_option  = 1
-ProjectParameters.velocity_trap_option             = 0
-ProjectParameters.create_particles_option          = 0
-ProjectParameters.inlet_option                     = 0
+ProjectParameters.project_from_particles_option    = 0
+ProjectParameters.project_at_every_substep_option  = 0
+ProjectParameters.velocity_trap_option             = 1
+ProjectParameters.inlet_option                     = 1
 ProjectParameters.non_newtonian_option             = 0
 ProjectParameters.manually_imposed_drag_law_option = 0
 ProjectParameters.similarity_transformation_type   = 0 # no transformation (0), Tsuji (1)
@@ -41,12 +40,10 @@ ProjectParameters.drag_force_type                  = 1 # null drag (0), standard
 ProjectParameters.virtual_mass_force_type          = 0 # null virtual mass force (0)
 ProjectParameters.lift_force_type                  = 0 # null lift force (0)
 ProjectParameters.drag_modifier_type               = 3 # Hayder (2), Chien (3)
-ProjectParameters.calculate_porosity_option        = 1
-ProjectParameters.interaction_start_time           = 0.01
+ProjectParameters.interaction_start_time           = 0.00
 ProjectParameters.gravity_x                        = 0.0
 ProjectParameters.gravity_y                        = 0.0
-ProjectParameters.gravity_z                        = - 9.81
-ProjectParameters.plastic_viscosity                = 0.000014 # kinematic viscosity
+ProjectParameters.gravity_z                        = 0.0 #- 9.81
 ProjectParameters.smoothing_parameter_m            = 0.035
 ProjectParameters.yield_stress_value               = 0.0
 ProjectParameters.max_solid_fraction               = 0.6
@@ -167,11 +164,12 @@ SolverStrategy.AddVariables(balls_model_part, DEMParameters)
 # reading the balls model part
 model_part_io_solid = ModelPartIO(DEMParameters.problem_name)
 model_part_io_solid.ReadModelPart(balls_model_part)
-model_part_io_solid = ModelPartIO("RigidFace_Part")
+rigidFace_mp_filename = DEMParameters.problem_name + "_FEM_boundary"
+model_part_io_solid = ModelPartIO(rigidFace_mp_filename)
 model_part_io_solid.ReadModelPart(fem_dem_model_part)
 
 # setting up the buffer size: SHOULD BE DONE AFTER READING!!!
-balls_model_part.SetBufferSize(3)
+balls_model_part.SetBufferSize(1)
 
 # adding nodal degrees of freedom
 SolverStrategy.AddDofs(balls_model_part)
@@ -190,6 +188,9 @@ balls_model_part.ProcessInfo.SetValue(POWER_LAW_K, ProjectParameters.power_law_k
 balls_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, ProjectParameters.initial_drag_force)
 balls_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, ProjectParameters.drag_law_slope)
 balls_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, ProjectParameters.power_law_tol)
+
+fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, ProjectParameters.yield_stress_value)
+fluid_model_part.ProcessInfo.SetValue(M, ProjectParameters.smoothing_parameter_m)
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 # setting up the buffer size: SHOULD BE DONE AFTER READING!!!
@@ -340,12 +341,8 @@ if (ProjectParameters.projection_module_option):
     projection_module.UpdateDatabase(h_min)
     interaction_calculator = CustomFunctionsCalculator()
 
-fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, ProjectParameters.yield_stress_value)
-fluid_model_part.ProcessInfo.SetValue(M, ProjectParameters.smoothing_parameter_m)
-
 # TEMPORARY!! setting the initial kinematic viscosity, should be done from problemtype
 for node in fluid_model_part.Nodes:
-    node.SetSolutionStepValue(VISCOSITY, 0, ProjectParameters.plastic_viscosity)
     node.SetSolutionStepValue(BODY_FORCE_X, 0, ProjectParameters.gravity_x)
     node.SetSolutionStepValue(BODY_FORCE_Y, 0, ProjectParameters.gravity_y)
     node.SetSolutionStepValue(BODY_FORCE_Z, 0, ProjectParameters.gravity_z)
@@ -368,7 +365,7 @@ if (ProjectParameters.inlet_option):
     model_part_io_demInlet.ReadModelPart(DEM_inlet_model_part)
 
     # setting up the buffer size:
-    DEM_inlet_model_part.SetBufferSize(3)
+    DEM_inlet_model_part.SetBufferSize(1)
 
     # adding nodal degrees of freedom
     SolverStrategy.AddDofs(DEM_inlet_model_part)
@@ -405,7 +402,7 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 
 # renumerating IDs if required
 
-swimming_DEM_procedures.RenumberNodesIdsToAvoidRepeating(fluid_model_part, balls_model_part, fem_dem_model_part)
+#swimming_DEM_procedures.RenumberNodesIdsToAvoidRepeating(fluid_model_part, balls_model_part, fem_dem_model_part)
 
 # Stepping and time settings
 
@@ -415,13 +412,11 @@ final_time = ProjectParameters.max_time
 output_time = ProjectParameters.output_time
 
 time = ProjectParameters.Start_time
-out = 0
+out = Dt
 step = 0
 
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 time_dem = 0.0
-full_Dt = Dt
-initial_Dt = 0.001 * full_Dt
 DEM_step = 0 # this variable is necessary to get a good random insertion of particles
 dem_solver.Initialize()
 Dt_DEM = DEMParameters.MaxTimeStep
@@ -429,41 +424,20 @@ Dt_DEM = DEMParameters.MaxTimeStep
 
 while(time <= final_time):
     
-    if(step < 3):
-        Dt = initial_Dt
-
-    else:
-        Dt = full_Dt
-
-#SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-    print "\n", "TIME = ", time
-     
     time = time + Dt
+    step = step + 1
+    fluid_model_part.CloneTimeStep(time)
+    print "\n", "TIME = ", time
 
-    if (step < 2):
-
-        if (ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
-            time_final_DEM_substepping = time + initial_fluid_dt
-
-        else:
-            time_final_DEM_substepping = time
+    if (ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
+        time_final_DEM_substepping = time + Dt
 
     else:
-
-        if (ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
-            time_final_DEM_substepping = time + full_Dt
-
-        else:
-            time_final_DEM_substepping = time
-
-    step = step + 1
+        time_final_DEM_substepping = time
 
     # solving the fluid part
 
-    fluid_model_part.CloneTimeStep(time)
-
     if (step >= 3):
-        
         print "Solving Fluid... (", fluid_model_part.NumberOfElements(0), " elements )"
         fluid_solver.Solve()
 
@@ -475,9 +449,13 @@ while(time <= final_time):
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
     if (output_time <= out and ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
-        projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
+        
+        if (ProjectParameters.projection_module_option):
+            projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
 
         if (ProjectParameters.GiDMultiFileFlag == "Multiples"):
+            mixed_model_part.Elements.clear()
+            mixed_model_part.Nodes.clear()
             post_utilities.AddModelPartToModelPart(mixed_model_part, fluid_model_part)
             post_utilities.AddModelPartToModelPart(mixed_model_part, balls_model_part)
             post_utilities.AddModelPartToModelPart(mixed_model_part, fem_dem_model_part)
@@ -490,15 +468,16 @@ while(time <= final_time):
     print "Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)"
 
     if (time >= ProjectParameters.interaction_start_time and ProjectParameters.projection_module_option):
+        #print "Calculating Pressure Gradient ..."
         interaction_calculator.CalculatePressureGradient(fluid_model_part)                 
             
-    for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):			
+    for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):
         balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
-
+        
         # applying fluid-to-DEM coupling
                 
         if (time >= ProjectParameters.interaction_start_time and ProjectParameters.project_at_every_substep_option):
-
+            
             if (ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
                 projection_module.ProjectFromNewestFluid()
 
@@ -517,12 +496,13 @@ while(time <= final_time):
 
         # measuring mean velocities in a certain control volume (the 'velocity trap')
 
-        if (ProjectParameters.velocity_trap_option):
-            post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity", time_dem)
+    if (ProjectParameters.velocity_trap_option):
+        post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity", time_dem)
 
     # applying DEM-to-fluid coupling
 
     if (time >= ProjectParameters.interaction_start_time and ProjectParameters.project_from_particles_option):
+        print "Project from particles to the fluid"
         projection_module.ProjectFromParticles()
 
     # printing if required
@@ -531,11 +511,17 @@ while(time <= final_time):
         io_tools.PrintParticlesResults(ProjectParameters.variables_to_print_in_file, time, balls_model_part)
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
-
+        
     if (output_time <= out and ProjectParameters.coupling_scheme_type == "UpdatedFluid"):
-        projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo) # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-
+        
+        if (ProjectParameters.projection_module_option):
+            projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo) 
+            
+        print ""
+        print "*******************  PRINTING RESULTS FOR GID  ***************************" 
         if (ProjectParameters.GiDMultiFileFlag == "Multiples"):
+            mixed_model_part.Elements.clear()
+            mixed_model_part.Nodes.clear()
             post_utilities.AddModelPartToModelPart(mixed_model_part, fluid_model_part)
             post_utilities.AddModelPartToModelPart(mixed_model_part, balls_model_part)
             post_utilities.AddModelPartToModelPart(mixed_model_part, fem_dem_model_part)
