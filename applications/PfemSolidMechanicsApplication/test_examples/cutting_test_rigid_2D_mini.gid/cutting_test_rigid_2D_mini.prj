@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gid version="11.0">
+  <pre>
+    <groups>
+      <group id="1" name="RigidWall" color="#999999ff"/>
+    </groups>
+    <entities_groups>
+      <entities_group name="points">
+        <vector name="entity_ids" length="7" type="integer">3828 3829 3832:3836</vector>
+        <vector name="entity_num_groups" length="7" type="ushort">1x7</vector>
+        <vector name="entity_groups" length="7" type="ushort">1x7</vector>
+      </entities_group>
+      <entities_group name="lines">
+        <vector name="entity_ids" length="6" type="integer">66:71</vector>
+        <vector name="entity_num_groups" length="6" type="ushort">1x6</vector>
+        <vector name="entity_groups" length="6" type="ushort">1x6</vector>
+      </entities_group>
+      <entities_group name="nodes">
+        <vector name="entity_ids" length="42" type="integer">120 126 132 138 146 150 157 162 169 175 181 188 196 204 214 220 223 224 226 228 234 237 239 243 245 250 256 257 260 265 270 272 274 278 281 286 288 290 294 295 298 299</vector>
+        <vector name="entity_num_groups" length="42" type="ushort">1x42</vector>
+        <vector name="entity_groups" length="42" type="ushort">1x42</vector>
+      </entities_group>
+      <entities_group name="elements">
+        <vector name="entity_ids" length="41" type="integer">1458:1498</vector>
+        <vector name="entity_num_groups" length="41" type="ushort">1x41</vector>
+        <vector name="entity_groups" length="41" type="ushort">1x41</vector>
+      </entities_group>
+    </entities_groups>
+  </pre>
+</gid>
