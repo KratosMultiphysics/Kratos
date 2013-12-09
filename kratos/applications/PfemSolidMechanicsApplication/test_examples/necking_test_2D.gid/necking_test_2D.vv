@@ -1,6 +1,6 @@
-BeginZE /home/jmaria/ModelsGID/PfemMechanicsApplication/necking_test_2D.gid/necking_test_2D.vv
-   x -36.1186981201171875 42.5316925048828125
-   y 35.5175819396972656 -8.85058212280273438
+BeginZE /home/jmaria/kratos/applications/PfemSolidMechanicsApplication/test_examples/necking_test_2D.gid/necking_test_2D.vv
+   x -22.1814765930175781 28.5944786071777344
+   y 28.0742378234863281 -1.40723896026611328
    z -44.2222175598144531 44.2222175598144531
    e 14.7407388687133789
    v 0 0 0
@@ -29,7 +29,7 @@ BeginZE /home/jmaria/ModelsGID/PfemMechanicsApplication/necking_test_2D.gid/neck
    OGLStereo(EyeDistance) 0.075
    OGLStereo(LeftEyeDistance) 1 0 0 1
    OGLStereo(RightEyeDistance) 0 1 1 1
-EndZE /home/jmaria/ModelsGID/PfemMechanicsApplication/necking_test_2D.gid/necking_test_2D.vv
+EndZE /home/jmaria/kratos/applications/PfemSolidMechanicsApplication/test_examples/necking_test_2D.gid/necking_test_2D.vv
 
 BeginMirror
    Mirror 0 Angle 0.0 AngleFake -15.0 SizeFactor 2.0 HeightOffset 0.25 Color #d9e5f24d Backlight Off EdgeStyle No Type Scene DrawMode Mirror
