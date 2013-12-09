@@ -262,7 +262,7 @@ namespace Kratos {
                 //in the next loop we do for each node
                 //vn+1 = vn + dt*(vn - vn-1)/oldDt
                 #pragma omp parallel for private(dv)
-                for(unsigned int i=0; i<rModelPart.Nodes().size(); i++)
+                for(int i=0; i<rModelPart.Nodes().size(); i++)
                 {
                     
                     ModelPart::NodesContainerType::iterator it = it_begin + i;
