@@ -29,10 +29,7 @@ class RigidWallUtility:
     #######################################################################
     def Initialize(self,wall_configuration):
         
-        if(wall_configuration.rigid_wall == "True"):
-            self.rigid_wall_active = True
-        else:
-            self.rigid_wall_active = False
+        self.rigid_wall_active = wall_configuration.rigid_wall
 
         size_scale = wall_configuration.size_scale
 
@@ -45,6 +42,9 @@ class RigidWallUtility:
         for size in range(0,3):
             self.center[size]   = wall_configuration.center[size] * size_scale
             self.velocity[size] = wall_configuration.velocity[size] * size_scale
+        
+        print " Center ", self.center
+        print " Velocity ", self.velocity
 
 
     #######################################################################   

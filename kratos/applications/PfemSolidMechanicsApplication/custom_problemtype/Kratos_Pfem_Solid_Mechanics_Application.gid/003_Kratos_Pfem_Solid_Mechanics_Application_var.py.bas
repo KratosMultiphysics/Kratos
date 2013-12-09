@@ -18,9 +18,10 @@ class SolverSettings:
     domain_size  = *GenData(DOMAIN_SIZE,INT)
     RotationDofs = False
     PressureDofs = False
+    RigidWalls = *GenData(Rigid_Wall_Contact)
     ReformDofSetAtEachStep = True
     compute_reactions = True
-    line_search = "*GenData(LineSearch)"
+    line_search = *GenData(LineSearch)
     scheme_type = "*GenData(Solver_Type)"
     convergence_criterion = "*GenData(Convergence_Criteria)"
 *format "%10.5e"
@@ -61,9 +62,9 @@ class SolverSettings:
 #Meshing Data
 #####################################
 
-RemeshDomains  = "*GenData(RemeshDomains)"
+RemeshDomains  = *GenData(RemeshDomains)
 MeshingElement = "*GenData(MeshingElement)"
-RefineDomains  = "False"
+RefineDomains  = False
 MeshConditions = []
 *for(i=1;i<=GenData(MeshDomains,INT);i=i+7)
 *set var ndomains(int)=Operation(ndomains(int)+1)
@@ -99,12 +100,12 @@ class mesh_modeler_config:
 #Contact Data
 #####################################
 
-FindContacts = "*GenData(FindContacts)"
+FindContacts = *GenData(FindContacts)
 
 class contact_modeler_config:
     contact_condition        = "*GenData(ContactCondition)"
-    constrained_contact      = "*GenData(Constrained_Contact)"
-    friction_active          = "*GenData(Friction_Active)"
+    constrained_contact      = *GenData(Constrained_Contact)
+    friction_active          = *GenData(Friction_Active)
     mu_static                = 0.3
     mu_dynamic               = 0.2
     offset_factor            = *GenData(Offset_Factor)
@@ -112,29 +113,23 @@ class contact_modeler_config:
     stability_parameter      = *GenData(Stability_Parameter)
     contact_search_frequency = *GenData(Contact_Search_Frequency)
 
-
-ToolVelocity = []
-ToolVelocity.append(*GenData(Velocity_definition,1))
-ToolVelocity.append(*GenData(Velocity_definition,2))
-ToolVelocity.append(0)
-	
-ToolCenter = []
-ToolCenter.append(*GenData(Reference_Point_definition,1))
-ToolCenter.append(*GenData(Reference_Point_definition,2))
-ToolCenter.append(0)
-
-
 #set rigid wall configuration
 class rigid_wall_config:
-    rigid_wall         = "*GenData(Rigid_Wall_Contact)"
+    rigid_wall         = *GenData(Rigid_Wall_Contact)
     size_scale         = 1
     tip_radius         = *GenData(Tip_Radius)
     rake_angle         = *GenData(Rake_Angle)
     clearance_angle    = *GenData(Clearance_Angle)
     young_modulus      = *GenData(Rigid_Body_Elastic_Modulus)
     penalty_parameter  = *GenData(Rigid_Body_Penalty_Parameter)
-    center             = ToolCenter
-    velocity           = ToolVelocity
+    center = []
+    center.append(*GenData(Reference_Point_definition,1))
+    center.append(*GenData(Reference_Point_definition,2))
+    center.append(0)
+    velocity = [] 
+    velocity.append(*GenData(Velocity_definition,1))
+    velocity.append(*GenData(Velocity_definition,2))
+    velocity.append(0)
 
 
 #Constraints Data

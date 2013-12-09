@@ -584,8 +584,8 @@ End NodalData
 *if(CondNumEntities > 0)
 Begin NodalData RIGID_WALL
 *loop nodes *OnlyInCond
-*format "%i%i%10.5e"
-*NodesNum *cond(Fixed) *cond(RIGID_WALL)
+*format "%i%i%i"
+*NodesNum *cond(Fixed) *cond(RIGID_WALL,int)
 *end nodes
 End NodalData
 
