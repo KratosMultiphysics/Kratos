@@ -11,14 +11,8 @@ class ModelerUtility:
         self.domain_size = domain_size 
 
         # set remesh flags
-        self.remesh_domains = False
-        if(remesh_domains == "True"):
-            self.remesh_domains = True
-            
-        self.contact_search = False
-        if(contact_search == "True"):
-            self.contact_search = True
-            
+        self.remesh_domains = remesh_domains
+        self.contact_search = contact_search
         self.neighbours_set = False
 
         # set mesh modeler
@@ -263,15 +257,9 @@ class ModelerUtility:
         
         self.contact_condition = contact_config.contact_condition
 
-        if( contact_config.constrained_contact == "True" ):
-            self.constrained_contact = True
-        else:
-            self.constrained_contact = False
-
-        if( contact_config.friction_active == "True" ):
-            self.friction_active = True
-        else:
-            self.friction_active = False
+        self.constrained_contact =  contact_config.constrained_contact
+        
+        self.friction_active = contact_config.friction_active
             
         self.contact_offset_factor = contact_config.offset_factor
         self.penalty_parameter     = contact_config.penalty_parameter
