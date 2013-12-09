@@ -1,5 +1,5 @@
 BeginZE /home/jmaria/kratos/applications/PfemSolidMechanicsApplication/test_examples/patch_test_2D_contact_domains.gid/patch_test_2D_contact_domains.vv
-   x -3.48430061340332031 8.48430061340332031
+   x -2.07923603057861328 7.07923650741577148
    y 3.81723260879516602 -1.81923532485961914
    z -8.45470237731933594 8.45470237731933594
    e 2.81823396682739258
@@ -12,8 +12,8 @@ BeginZE /home/jmaria/kratos/applications/PfemSolidMechanicsApplication/test_exam
    pfo 0
    pf 4
    pv 0
-   NowUse 2
-   DrawingType 3
+   NowUse 0
+   DrawingType 0
    LightVector 90 90 150 0
    OGLShadow(UseShadows) 0
    OGLShadow(RenderMode) RenderNice
