@@ -224,13 +224,17 @@ class ModelerUtility:
             else:
                 self.jacobi_smoothing = False
 
-            domain =int(conditions["Subdomain"])
+            domain = 0
+            if(configuration.number_domains != 1):
+                domain =int(conditions["Subdomain"])
             
             
             print "SET MESH DOMAIN DATA"
-            print " --> Domain [",conditions["Subdomain"],"] ",conditions["MeshElement"], " remesh: ",conditions["Remesh"]
+            print " --> Domain Remesh [",conditions["Subdomain"],"] ",conditions["MeshElement"], " Remesh: ",conditions["Remesh"]
             #self.mesh_modeler.SetRemeshData(conditions["MeshElement"],"Condition2D",,self.remesh,,self.constrained,,self.laplacian_smoothing,,self.jacobi_smoothing,,self.avoid_tip_elements,,self.alpha_shape,domain);
             self.mesh_modeler.SetRemeshData(conditions["MeshElement"],"CompositeCondition2D",self.remesh,self.constrained,self.laplacian_smoothing,self.jacobi_smoothing,self.avoid_tip_elements,self.alpha_shape,self.offset_factor,domain);
+            print " --> Domain Refine [",conditions["Subdomain"],"] ", "Refine: ",conditions["Refine"]
+            
             self.mesh_modeler.SetRefineData(self.refine,self.h_factor,configuration.critical_dissipation,radius_critical,configuration.reference_error,domain)
             
 
