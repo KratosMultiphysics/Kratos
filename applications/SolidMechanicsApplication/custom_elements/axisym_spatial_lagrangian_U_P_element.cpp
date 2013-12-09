@@ -64,7 +64,7 @@ AxisymSpatialLagrangianUPElement&  AxisymSpatialLagrangianUPElement::operator=(A
     mDeformationGradientF0.clear();
     mDeformationGradientF0.resize(rOther.mDeformationGradientF0.size());
 
-    for(unsigned int i=0; i<<mConstitutiveLawVector.size(); i++)
+    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
     {
         mDeformationGradientF0[i] = rOther.mDeformationGradientF0[i];
     }
@@ -116,7 +116,7 @@ Element::Pointer AxisymSpatialLagrangianUPElement::Clone( IndexType NewId, Nodes
     if ( NewElement.mDeformationGradientF0.size() != mDeformationGradientF0.size() )
       NewElement.mDeformationGradientF0.resize(mDeformationGradientF0.size());
 
-    for(unsigned int i=0; i<<mDeformationGradientF0.size(); i++)
+    for(unsigned int i=0; i<mDeformationGradientF0.size(); i++)
     {
         NewElement.mDeformationGradientF0[i] = mDeformationGradientF0[i];
     }
