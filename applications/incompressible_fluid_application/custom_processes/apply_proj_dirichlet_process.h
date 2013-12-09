@@ -113,7 +113,7 @@ void ApplyProjDirichlet(ModelPart& full_model_part)
             n_int=0.0;
 	    //n_fixed=0.0;
 
-	    for (uint i=0; i<im->GetGeometry().size();i++)
+	    for (unsigned int i=0; i<im->GetGeometry().size();i++)
 		n_int+=im->GetGeometry()[i].FastGetSolutionStepValue(IS_INTERFACE);
 
 	if (n_int<im->GetGeometry().size() && n_int>0)
