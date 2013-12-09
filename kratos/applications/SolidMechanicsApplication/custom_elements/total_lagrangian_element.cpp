@@ -64,7 +64,7 @@ TotalLagrangianElement&  TotalLagrangianElement::operator=(TotalLagrangianElemen
     mInvJ0.clear();
     mInvJ0.resize( rOther.mInvJ0.size());
 
-    for(unsigned int i=0; i<<mConstitutiveLawVector.size(); i++)
+    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
     {
         mInvJ0[i]=rOther.mInvJ0[i];
     }
@@ -116,7 +116,7 @@ Element::Pointer TotalLagrangianElement::Clone( IndexType NewId, NodesArrayType 
     if ( NewElement.mInvJ0.size() != mInvJ0.size() )
       NewElement.mInvJ0.resize(mInvJ0.size());
 
-    for(unsigned int i=0; i<<mInvJ0.size(); i++)
+    for(unsigned int i=0; i<mInvJ0.size(); i++)
     {
         NewElement.mInvJ0[i] = mInvJ0[i];
     }

@@ -138,7 +138,7 @@ class StructuralSolver:
 
         # creating the solution strategy (application strategy or python strategy)
         
-        self.reform_step_dofs = False;
+        #self.reform_step_dofs = False;
 
         if(self.component_wise == True):
             self.mechanical_solver = ComponentWiseNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion,self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)

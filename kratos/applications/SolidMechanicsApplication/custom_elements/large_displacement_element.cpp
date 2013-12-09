@@ -73,9 +73,9 @@ LargeDisplacementElement&  LargeDisplacementElement::operator=(LargeDisplacement
     mThisIntegrationMethod = rOther.mThisIntegrationMethod;
 
     mConstitutiveLawVector.clear();
-    mConstitutiveLawVector.resize( rOther.mConstitutiveLawVector.size());
+    mConstitutiveLawVector.resize( rOther.mConstitutiveLawVector.size() );
 
-    for(unsigned int i=0; i<<mConstitutiveLawVector.size(); i++)
+    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
     {
         mConstitutiveLawVector[i] = rOther.mConstitutiveLawVector[i];
     }
@@ -1185,6 +1185,9 @@ void LargeDisplacementElement::CalculateAndAddKuug(MatrixType& rLeftHandSideMatr
     Matrix StressTensor = MathUtils<double>::StressVectorToTensor( rVariables.StressVector );
     Matrix ReducedKg = prod( rVariables.DN_DX, rIntegrationWeight * Matrix( prod( StressTensor, trans( rVariables.DN_DX ) ) ) ); //to be optimized
     MathUtils<double>::ExpandAndAddReducedMatrix( rLeftHandSideMatrix, ReducedKg, dimension );
+
+    // std::cout<<std::endl;
+    // std::cout<<" Kmat + Kgeo "<<rLeftHandSideMatrix<<std::endl;
 
     KRATOS_CATCH( "" )
 }

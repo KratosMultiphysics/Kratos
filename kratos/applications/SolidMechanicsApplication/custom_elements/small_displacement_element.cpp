@@ -72,7 +72,7 @@ SmallDisplacementElement&  SmallDisplacementElement::operator=(SmallDisplacement
     mConstitutiveLawVector.clear();
     mConstitutiveLawVector.resize( rOther.mConstitutiveLawVector.size());
 
-    for(unsigned int i=0; i<<mConstitutiveLawVector.size(); i++)
+    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
     {
         mConstitutiveLawVector[i] = rOther.mConstitutiveLawVector[i];
     }

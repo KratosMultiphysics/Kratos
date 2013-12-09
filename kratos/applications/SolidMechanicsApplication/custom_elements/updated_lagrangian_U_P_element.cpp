@@ -99,7 +99,7 @@ Element::Pointer UpdatedLagrangianUPElement::Clone( IndexType NewId, NodesArrayT
     if ( NewElement.mDeformationGradientF0.size() != mDeformationGradientF0.size() )
       NewElement.mDeformationGradientF0.resize(mDeformationGradientF0.size());
 
-    for(unsigned int i=0; i<<mDeformationGradientF0.size(); i++)
+    for(unsigned int i=0; i<mDeformationGradientF0.size(); i++)
     {
         NewElement.mDeformationGradientF0[i] = mDeformationGradientF0[i];
     }
