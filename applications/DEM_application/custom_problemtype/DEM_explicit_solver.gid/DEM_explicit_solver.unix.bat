@@ -23,6 +23,5 @@ chmod 700 "$2/${1}_aux.unix.bat"
 # are linked to different versions of libstdc++.so
 export LD_PRELOAD=libstdc++.so.6
 
-echo PYTHONPATH=$PYTHONPATH >> /tmp/pepito.txt
 ./"${1}_aux.unix.bat" $1 $2 $3
 
