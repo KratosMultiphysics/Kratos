@@ -135,7 +135,7 @@ public:
     }
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
-    typename ConditionType::Pointer pGetChild(IndexType ChildConditionId)
+    ConditionType::Pointer pGetChild(IndexType ChildConditionId)
     {
         return (mChildConditions)(ChildConditionId);
     }
@@ -192,17 +192,17 @@ public:
         return mChildConditions;
     }
 
-    typename ConditionsContainerType::Pointer pChildConditions()
+    ConditionsContainerType::Pointer pChildConditions()
     {
       return ConditionsContainerType::Pointer(&mChildConditions);
     }
 
-    void SetChildConditions(typename ConditionsContainerType::Pointer pOtherChildConditions)
+    void SetChildConditions(ConditionsContainerType::Pointer pOtherChildConditions)
     {
       mChildConditions = (*pOtherChildConditions);
     }
 
-    typename ConditionsContainerType::ContainerType& ChildConditionsArray()
+    ConditionsContainerType::ContainerType& ChildConditionsArray()
     {
         return mChildConditions.GetContainer();
     }
