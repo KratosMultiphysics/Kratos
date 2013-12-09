@@ -2,7 +2,7 @@ from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
 import os
-from numpy import *
+#from numpy import *
 
 #from KratosMultiphysics.mpi import * #CARLOS
 
@@ -92,7 +92,8 @@ class PostUtils:
 
     def __init__(self, param, balls_model_part):
         self.param = param
-        self.balls_model_part = balls_model_part
+        self.balls_model_part = balls_model_part        
+        self.post_utilities = PostUtilities() 
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 	
@@ -107,9 +108,8 @@ class PostUtils:
           high_point[0]= self.param.VelocityTrapMaxX
           high_point[1]= self.param.VelocityTrapMaxY
           high_point[2]= self.param.VelocityTrapMaxZ
-        
-          post_utilities = PostUtilities() 
-          average_velocity = post_utilities.VelocityTrap(self.balls_model_part, low_point, high_point)
+                  
+          average_velocity = self.post_utilities.VelocityTrap(self.balls_model_part, low_point, high_point)
           f = open(file_name, 'a')
           tmp = str(time_dem) + "   " + str(average_velocity[0])  + "   " + str(average_velocity[1])  + "   " + str(average_velocity[2])  + "\n"
           f.write(tmp)
