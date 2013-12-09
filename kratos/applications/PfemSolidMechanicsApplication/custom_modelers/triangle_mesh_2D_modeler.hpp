@@ -79,6 +79,7 @@ protected:
 
     struct RefineVariables
     {      
+    public: 
       int      NumberOfElements;     
 
       double   size_factor;       //nodal h factor
@@ -89,74 +90,115 @@ protected:
       double   critical_dissipation;
  
       double   reference_error;
+
+      void Initialize (){
+	
+	NumberOfElements = 0;
+	size_factor      = 0;       //nodal h factor
+	critical_radius  = 0;   //critical area   size
+	critical_side    = 0;     //critical length size
+	critical_dissipation = 0;
+	reference_error  = 0;
+
+      };
+
     };
 
 
     struct BoundingBoxVariables
     {
+    public:
       bool    is_set;
       double  Radius;
       Vector  Center;
       Vector  Velocity;
+
+      void Initialize (){
+	is_set = false;
+	Radius = 0;
+	Center = ZeroVector(3);
+	Velocity = ZeroVector(3);
+      };
+
     };
 
     struct MeshingVariables
     {
+    protected:
+      //Pointer variables
+      const Element   *mpReferenceElement;
+      const Condition *mpReferenceCondition;
 
-	//Pointer variables
-	const Element   *mpReferenceElement;
-	const Condition *mpReferenceCondition;
+    public:
 
-	void SetReferenceElement   (const Element   & rElement)
-	{
-	    mpReferenceElement=&rElement;
-	};
-	void SetReferenceCondition (const Condition & rCondition)
-	{
-	    mpReferenceCondition=&rCondition;
-	};
+      void SetReferenceElement   (const Element   & rElement)
+      {
+	mpReferenceElement=&rElement;
+      };
+      void SetReferenceCondition (const Condition & rCondition)
+      {
+	mpReferenceCondition=&rCondition;
+      };
 
-	Element const&    GetReferenceElement   ()
-	{
-	    return *mpReferenceElement;
-	};
-        Condition const&  GetReferenceCondition ()
-	{
-	    return *mpReferenceCondition;
-	};
+      Element const&    GetReferenceElement   ()
+      {
+	return *mpReferenceElement;
+      };
+      Condition const&  GetReferenceCondition ()
+      {
+	return *mpReferenceCondition;
+      };
 
-	//Other variables (general struct access)
-	Flags   MeshingOptions;
-	Flags   RefiningOptions;
+      //Other variables (general struct access)
+      Flags   MeshingOptions;
+      Flags   RefiningOptions;
       
-        bool    remesh;
-        bool    refine;
-        bool    constrained;
-        bool    mesh_smoothing;
-        bool    jacobi_smoothing;
-        bool    avoid_tip_elements;
+      bool    remesh;
+      bool    refine;
+      bool    constrained;
+      bool    mesh_smoothing;
+      bool    jacobi_smoothing;
+      bool    avoid_tip_elements;
       
-        bool    idset;
-	double  AlphaParameter;
-        double  offset_factor;
+      bool    idset;
+      double  AlphaParameter;
+      double  offset_factor;
 
-	std::vector<int> PreIds;
-	std::vector<int> NewIds;
+      std::vector<int> PreIds;
+      std::vector<int> NewIds;
 
-        std::vector<int> PreservedElements;
-        std::vector<std::vector<int> > NeighbourList; 
+      std::vector<int> PreservedElements;
+      std::vector<std::vector<int> > NeighbourList; 
 
-        RefineVariables  Refine;  
-	// int     NumberElements;
-        // double  h_factor;
-	// double  critical_dissipation;
-	// double  critical_radius;
-	// double  critical_side;
-	// double  reference_error;
+      RefineVariables  Refine;  
+      // int     NumberElements;
+      // double  h_factor;
+      // double  critical_dissipation;
+      // double  critical_radius;
+      // double  critical_side;
+      // double  reference_error;
       
-        BoundingBoxVariables WallTip;
-        BoundingBoxVariables BoundingBox;
+      BoundingBoxVariables WallTip;
+      BoundingBoxVariables BoundingBox;
  
+      void Initialize (){
+  
+	remesh = false;
+	refine = false;
+	constrained = false;
+	mesh_smoothing = false;
+	jacobi_smoothing = false;
+	avoid_tip_elements = false;
+	idset = false;
+
+	AlphaParameter = 0;
+	offset_factor  = 0;
+
+	Refine.Initialize();
+	WallTip.Initialize();
+	BoundingBox.Initialize();
+
+      };
     };
 
 
@@ -193,7 +235,6 @@ public:
 
     /// Destructor.
     virtual ~TriangleMesh2DModeler() {}
-
 
     ///@}
     ///@name Operators

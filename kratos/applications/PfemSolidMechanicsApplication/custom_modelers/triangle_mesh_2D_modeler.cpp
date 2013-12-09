@@ -26,10 +26,24 @@ namespace Kratos
 
   void TriangleMesh2DModeler::SetInitialMeshData (int number_of_domains)
   {
+    
+    std::cout<<" INITIALIZE MESH DATA: [ number of domains = "<<number_of_domains<<" ]"<<std::endl;
+    
     MeshingVariables Variables;
+    Variables.Initialize();
     mVariables.push_back(Variables);
-    for(int i=1; i<=number_of_domains; i++)
-      mVariables.push_back(Variables);
+    mVariables.back().Initialize();
+   
+    if(number_of_domains>1){
+      for(int i=1; i<=number_of_domains; i++)
+	{
+	  MeshingVariables Variables;
+	  Variables.Initialize();
+	  mVariables.push_back(Variables);
+	  mVariables.back().Initialize();
+	} 
+    }
+  
   }
   
   //*******************************************************************************************
@@ -46,26 +60,31 @@ namespace Kratos
 					     double my_offset,
 					     int    MeshId)
   {    
+    
+    if(mVariables.size() == 1 && MeshId != 0)
+      std::cout<<" Something wrong with mesh ID "<<MeshId<<std::endl;
 
-    MeshingVariables & Variables = mVariables[MeshId];
+    mVariables[MeshId].SetReferenceElement   (rReferenceElement);
+    mVariables[MeshId].SetReferenceCondition (rReferenceCondition);
 
-    Variables.SetReferenceElement   (rReferenceElement);
-    Variables.SetReferenceCondition (rReferenceCondition);
+    mVariables[MeshId].remesh      = remesh;
+    mVariables[MeshId].constrained = constrained;
 
-    Variables.remesh      = remesh;
-    Variables.constrained = constrained;
+    mVariables[MeshId].mesh_smoothing   = mesh_smoothing;
+    mVariables[MeshId].jacobi_smoothing = jacobi_smoothing;
+    mVariables[MeshId].avoid_tip_elements = avoid_tip_elements;
 
-    Variables.mesh_smoothing   = mesh_smoothing;
-    Variables.jacobi_smoothing = jacobi_smoothing;
-    Variables.avoid_tip_elements = avoid_tip_elements;
+    mVariables[MeshId].AlphaParameter=alpha;
 
-    Variables.AlphaParameter=alpha;
+    mVariables[MeshId].offset_factor =my_offset;
 
-    Variables.offset_factor =my_offset;
+    mVariables[MeshId].refine         = false;
+    mVariables[MeshId].WallTip.is_set = false;
+    mVariables[MeshId].BoundingBox.is_set = false;
 
-    Variables.refine           = false;
-    Variables.WallTip.is_set = false;
-    Variables.BoundingBox.is_set = false;
+    std::cout<<" SetRemeshData : [ refine:"<<mVariables[MeshId].refine<<" - "<<mVariables[MeshId].refine<<" remesh : "<<mVariables[MeshId].remesh<<" - "<<mVariables[MeshId].remesh<<" ] "<<std::endl;
+
+
   }
 
   //*******************************************************************************************
@@ -78,26 +97,30 @@ namespace Kratos
 					     double error,
 					     int MeshId)
   {    
-    MeshingVariables & Variables  = mVariables[MeshId];
 
-    Variables.refine      = refine;
+    if(mVariables.size() == 1 && MeshId != 0)
+      std::cout<<" Something wrong with mesh ID "<<MeshId<<std::endl;
 
-    Variables.Refine.size_factor=h_factor;
+    mVariables[MeshId].refine      = refine;
+
+    mVariables[MeshId].Refine.size_factor=h_factor;
 
     //other reference variables (JuanManuel)
-    Variables.Refine.critical_dissipation = dissipation; //40;  400;
+    mVariables[MeshId].Refine.critical_dissipation = dissipation; //40;  400;
 
     double tool_arch = 5; //7.5; //5; //10; //degrees 
     double side_tol  = 6; //3; //6;
 
-    Variables.Refine.critical_radius      = (tool_arch)*(3.1416/180.0)*radius;  //radius 0.00004 m
-    Variables.Refine.critical_side        = side_tol*(tool_arch)*(3.1416/180.0)*radius;  //offset*5;  //0.02;
-    Variables.Refine.reference_error      = error;  //2;
+    mVariables[MeshId].Refine.critical_radius      = (tool_arch)*(3.1416/180.0)*radius;  //radius 0.00004 m
+    mVariables[MeshId].Refine.critical_side        = side_tol*(tool_arch)*(3.1416/180.0)*radius;  //offset*5;  //0.02;
+    mVariables[MeshId].Refine.reference_error      = error;  //2;
 
 
-    std::cout<<" CRITICAL RADIUS      : "<<Variables.Refine.critical_radius<<std::endl;
-    std::cout<<" CRITICAL SIDE        : "<<Variables.Refine.critical_side<<std::endl;
-    std::cout<<" CRITICAL DISSIPATION : "<<Variables.Refine.critical_dissipation<<std::endl;
+    std::cout<<" CRITICAL RADIUS      : "<<mVariables[MeshId].Refine.critical_radius<<std::endl;
+    std::cout<<" CRITICAL SIDE        : "<<mVariables[MeshId].Refine.critical_side<<std::endl;
+    std::cout<<" CRITICAL DISSIPATION : "<<mVariables[MeshId].Refine.critical_dissipation<<std::endl;
+
+
   }
 
   //*******************************************************************************************
@@ -124,7 +147,8 @@ namespace Kratos
 				       Vector velocity)
     
   {
-    for(unsigned int i=0; i<mVariables.size(); i++)
+
+    for(unsigned int i=1; i<mVariables.size(); i++)
       {
 	mVariables[i].BoundingBox.is_set =true;
 	mVariables[i].BoundingBox.Radius=radius;
@@ -149,8 +173,7 @@ namespace Kratos
     //By the way: set meshes options from bools
     for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
       {
-
-	//std::cout<<" MeshId "<<MeshId<<" remesh "<<mVariables[MeshId].remesh<<std::endl;
+	std::cout<<" GetRemeshData : [ refine:"<<mVariables[MeshId].refine<<" - "<<mVariables[MeshId].refine<<" remesh : "<<mVariables[MeshId].remesh<<" - "<<mVariables[MeshId].remesh<<" ] "<<std::endl;
 
 	if(mVariables[MeshId].remesh)
 	  rModelPart.GetMesh(MeshId).Set( Modeler::REMESH );
