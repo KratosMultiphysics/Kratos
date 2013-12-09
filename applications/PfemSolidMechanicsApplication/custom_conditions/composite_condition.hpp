@@ -71,13 +71,13 @@ public:
     iterator over Conditions::Pointer which turn back a reference to
     Condition by * operator and not a pointer for more convenient
     usage. */
-    typedef typename ConditionsContainerType::iterator ConditionIterator;
+    typedef ConditionsContainerType::iterator ConditionIterator;
 
     /** Const iterator over the Conditions. This iterator is an indirect
     iterator over Conditions::Pointer which turn back a reference to
     Condition by * operator and not a pointer for more convenient
     usage. */
-    typedef typename ConditionsContainerType::const_iterator ConditionConstantIterator;
+    typedef ConditionsContainerType::const_iterator ConditionConstantIterator;
 
 
     /// Counted pointer of CompositeCondition
@@ -119,7 +119,7 @@ public:
 
     /** Inserts a condition in the composite.
     */
-    void AddChild(typename ConditionType::Pointer pNewChildCondition)
+    void AddChild(ConditionType::Pointer pNewChildCondition)
     {
       bool set = false;
       
@@ -162,7 +162,7 @@ public:
 
     /** Remove given condition from composite.
     */
-    void RemoveChild(typename ConditionType::Pointer pThisChildCondition)
+    void RemoveChild(ConditionType::Pointer pThisChildCondition)
     {
         mChildConditions.erase(pThisChildCondition->Id());
     }
