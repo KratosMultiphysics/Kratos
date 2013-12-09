@@ -437,7 +437,8 @@ namespace Kratos
 		// Matrix Stress;
 		// Stress.clear();
 		// StressMatrix.push_back(Stress);
-		// new_element->GetValueOnIntegrationPoints(CAUCHY_STRESS_TENSOR,StressMatrix,rCurrentProcessInfo);
+		// ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+		// new_element->GetValueOnIntegrationPoints(CAUCHY_STRESS_TENSOR,StressMatrix,CurrentProcessInfo);
 		// std::cout<<StressMatrix[0]<<std::endl;
 		//ELEMENT TRANSFER CHECK//
 	    }
