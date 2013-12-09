@@ -229,7 +229,7 @@ namespace Kratos
               const double& particle_density             = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
               const double kinematic_viscosity           = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VISCOSITY_PROJECTED);
               const double sphericity                    = GetGeometry()(0)->GetSolutionStepValue(PARTICLE_SPHERICITY);
-              const array_1d<double,3>& buoyancy         = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);
+              //const array_1d<double,3>& buoyancy       = GetGeometry()(0)->FastGetSolutionStepValue(BUOYANCY);//S
               const array_1d<double,3>& gravity          = rCurrentProcessInfo[GRAVITY];
               const int non_newtonian_option             = rCurrentProcessInfo[NON_NEWTONIAN_OPTION];
               const int manually_imposed_drag_law_option = rCurrentProcessInfo[MANUALLY_IMPOSED_DRAG_LAW_OPTION];
@@ -240,14 +240,14 @@ namespace Kratos
               const double initial_drag_force            = rCurrentProcessInfo[INIT_DRAG_FORCE];
               const double drag_law_slope                = rCurrentProcessInfo[DRAG_LAW_SLOPE];
               const double power_law_tol                 = rCurrentProcessInfo[POWER_LAW_TOLERANCE];
+
               const double area                          = M_PI * mRadius * mRadius;
               const array_1d<double,3> weight            = mRealMass * gravity;
-
+              const array_1d<double,3> buoyancy = 0.5 * weight; //S
               double shahs_term_vel                      = 0.0;
               double beta                                = 0.0;
               double F0                                  = 0.0;
-              double regularization_v                    = 0.2 * mRadius;
-
+              double regularization_v                    = 0.02 * mRadius;
               double reynolds;
               double drag_coeff;
 
@@ -263,11 +263,11 @@ namespace Kratos
               }
 
               else {
-                  shahs_term_vel = CalculateShahsTerm(power_law_n, power_law_K, power_law_tol, particle_density, fluid_density, sphericity, drag_modifier_type);
+                  shahs_term_vel = CalculateShahsTerm(power_law_n, power_law_K, power_law_tol, fluid_density, particle_density, sphericity, drag_modifier_type);
 
                   if (!manually_imposed_drag_law_option){
                       F0 = 4.0 * gel_strength * area; //initial value
-                      beta = (MathUtils<double>::Norm3(weight - buoyancy) - F0) / shahs_term_vel; //slope
+                      beta = (MathUtils<double>::Norm3(weight) - MathUtils<double>::Norm3(buoyancy) - F0) / shahs_term_vel; //S
                   }
 
                   else {
@@ -289,9 +289,9 @@ namespace Kratos
 
           KRATOS_CATCH("")
       }
-
-  //**************************************************************************************************************************************************
-  //**************************************************************************************************************************************************
+        
+    //**************************************************************************************************************************************************
+    //**************************************************************************************************************************************************
 
     void SphericSwimmingParticle::CalculateNewtonianDragCoefficient(int non_newtonian_option,
                                                                     const double reynolds,
@@ -366,20 +366,18 @@ namespace Kratos
     double SphericSwimmingParticle::CalculateShahsTerm(double power_law_N,
                                                        double power_law_K,
                                                        double power_law_tol,
-                                                       const double& particle_density,
                                                        const double& fluid_density,
+                                                       const double& particle_density,
                                                        double sphericity,
                                                        int drag_modifier_type)
     {
-
       if (fabs(power_law_N) < power_law_tol || fabs(power_law_K) < power_law_tol){
           std::cout << "WARNING: Shah's method is being used with Power Law data being zero!!" << std::endl << std::flush;
       }
+      double shah_A_i = 1 / (6.9148 * power_law_N * power_law_N - 24.838 * power_law_N + 22.642);
+      double shah_B_i = 1 / (-0.5067 * power_law_N * power_law_N + 1.3234 * power_law_N - 0.1744);
 
-      double shah_A_i = 1 / (6.9148 * power_law_N * (power_law_N - 24.838) + 22.642);
-      double shah_B_i = 1 / (- 0.5067 * power_law_N * (power_law_N + 1.3234) - 0.1744);
-
-      double dimensionless_shah = sqrt(pow(13.08, 2 - power_law_N) * pow(2 * mRadius, power_law_N + 2) * pow(fluid_density, power_law_N) * pow(particle_density - fluid_density, 2 - power_law_N) / (pow(2, 2 * (power_law_N - 1)) * power_law_N * power_law_N));
+      double dimensionless_shah = sqrt(pow(13.08, 2 - power_law_N) * pow(2 * mRadius, power_law_N + 2) * pow(fluid_density, power_law_N) * pow(particle_density - fluid_density, 2 - power_law_N) / (pow(2, 2 * (power_law_N - 1)) * power_law_K * power_law_K));
       double reynolds = pow(dimensionless_shah * shah_A_i, shah_B_i);
       double fi_i = CalculateDragCoeffFromSphericity(reynolds, 1.0, drag_modifier_type) / CalculateDragCoeffFromSphericity(reynolds, sphericity, drag_modifier_type);
       dimensionless_shah = sqrt(pow(fi_i, 2 - power_law_N)) * dimensionless_shah;
