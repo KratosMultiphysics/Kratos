@@ -8,7 +8,7 @@ VALUE: StaticSolver
 QUESTION: Time_Step
 VALUE: 1.25e-8
 QUESTION: Number_of_steps
-VALUE: 10
+VALUE: 100
 QUESTION: LineSearch#CB#(True,False)
 VALUE: False
 QUESTION: Let_GiD_determine_domain_size#CB#(1,0)
@@ -75,8 +75,8 @@ VALUE: 0
 TITLE: Contact
 QUESTION: FindContacts#CB#(False,True)
 VALUE: False
-DEPENDENCIES: (True,RESTORE,ContactCondition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Stability_Parameter,#CURRENT#,RESTORE,Offset_Factor,#CURRENT#,RESTORE,Contact_Search_Frequency,#CURRENT#,RESTORE,Constrained_Contact,#CURRENT#,RESTORE,Friction_Active,#CURRENT#,HIDE,Rigid_Wall_Contact,#CURRENT#)
-DEPENDENCIES: (False,HIDE,ContactCondition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Stability_Parameter,#CURRENT#,HIDE,Offset_Factor,#CURRENT#,HIDE,Contact_Search_Frequency,#CURRENT#,HIDE,Constrained_Contact,#CURRENT#,HIDE,Friction_Active,#CURRENT#,RESTORE,Rigid_Wall_Contact,#CURRENT#,HIDE,Radius,#CURRENT#,HIDE,Rake_Angle,#CURRENT#,HIDE,Clearance_Angle,#CURRENT#,HIDE,Rigid_Wall_Movement,#CURRENT#,HIDE,Reference_Point_definition,#CURRENT#,HIDE,Velocity_definition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Rigid_Body_Elastic_Modulus,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,ContactCondition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Stability_Parameter,#CURRENT#,RESTORE,Offset_Factor,#CURRENT#,RESTORE,Contact_Search_Frequency,#CURRENT#,RESTORE,Constrained_Contact,#CURRENT#,RESTORE,Friction_Active,#CURRENT#,RESTORE,Rigid_Wall_Contact,#DEFAULT#)
+DEPENDENCIES: (#DEFAULT#,HIDE,ContactCondition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Stability_Parameter,#CURRENT#,HIDE,Offset_Factor,#CURRENT#,HIDE,Contact_Search_Frequency,#CURRENT#,HIDE,Constrained_Contact,#CURRENT#,HIDE,Friction_Active,#CURRENT#,RESTORE,Rigid_Wall_Contact,#CURRENT#)
 QUESTION: ContactCondition#CB#(ContactDomainLM2DCondition,ContactDomainPenalty2DCondition,AxisymContactDomainLM2DCondition,AxisymContactDomainPenalty2DCondition)
 VALUE: ContactDomainLM2DCondition
 DEPENDENCIES: (ContactDomainLM2DCondition,RESTORE,Stability_Parameter,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#)
@@ -92,23 +92,21 @@ VALUE: 4e-7
 QUESTION: Contact_Search_Frequency
 VALUE: 1
 QUESTION: Constrained_Contact#CB#(False,True)
-VALUE: True
+VALUE: False
 QUESTION: Friction_Active#CB#(False,True)
 VALUE: False
 QUESTION: Rigid_Wall_Contact#CB#(False,True)
 VALUE: True
-DEPENDENCIES: (True,RESTORE,Tip_Radius,#CURRENT#,RESTORE,Rake_Angle,#CURRENT#,RESTORE,Clearance_Angle,#CURRENT#,RESTORE,Rigid_Wall_Movement,#CURRENT#,RESTORE,Rigid_Body_Elastic_Modulus,#CURRENT#,RESTORE,Rigid_Body_Penalty_Parameter,#CURRENT#)
-DEPENDENCIES: (False,HIDE,Tip_Radius,#CURRENT#,HIDE,Rake_Angle,#CURRENT#,HIDE,Clearance_Angle,#CURRENT#,HIDE,Rigid_Wall_Movement,#CURRENT#,HIDE,Reference_Point_definition,#CURRENT#,HIDE,Velocity_definition,#CURRENT#,HIDE,Rigid_Body_Elastic_Modulus,#CURRENT#,HIDE,Rigid_Body_Penalty_Parameter,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,Tip_Radius,#CURRENT#,RESTORE,Rake_Angle,#CURRENT#,RESTORE,Clearance_Angle,#CURRENT#,RESTORE,Rigid_Body_Penalty_Parameter,#CURRENT#,RESTORE,Rigid_Wall_Movement,#CURRENT#)
+DEPENDENCIES: (#DEFAULT#,HIDE,Tip_Radius,#CURRENT#,HIDE,Rake_Angle,#CURRENT#,HIDE,Clearance_Angle,#CURRENT#,HIDE,Rigid_Body_Penalty_Parameter,#CURRENT#,HIDE,Rigid_Wall_Movement,False)
 QUESTION: Tip_Radius
 VALUE: 5.48e-6
 QUESTION: Rake_Angle
 VALUE: 5
 QUESTION: Clearance_Angle
 VALUE: 5
-QUESTION: Rigid_Body_Elastic_Modulus
-VALUE: 210e9
 QUESTION: Rigid_Body_Penalty_Parameter
-VALUE: 2.1
+VALUE: 100
 QUESTION: Rigid_Wall_Movement#CB#(False,True)
 VALUE: True
 DEPENDENCIES: (True,RESTORE,Reference_Point_definition,#CURRENT#,RESTORE,Velocity_definition,#CURRENT#)
@@ -116,7 +114,7 @@ DEPENDENCIES: (False,HIDE,Reference_Point_definition,#CURRENT#,HIDE,Velocity_def
 QUESTION: Reference_Point_definition:(X,Y)
 VALUE: #N# 2 0.00350550 0.0012055
 QUESTION: Velocity_definition:(Vx,Vy)
-VALUE: #N# 2 0 0
+VALUE: #N# 2 -1 0
 TITLE: Constraints
 QUESTION: Incremental_Load#CB#(False,True)
 VALUE: False

@@ -21,7 +21,7 @@
 
 //conditions
 #include "custom_conditions/composite_condition.hpp"
-#include "custom_conditions/wall_tip_condition.hpp"
+#include "custom_conditions/wall_condition.hpp"
 
 #include "custom_conditions/contact_domain_condition.hpp"
 #include "custom_conditions/contact_domain_LM_2D_condition.hpp"
@@ -250,8 +250,8 @@ namespace Kratos
     const CompositeCondition mCompositeCondition2D;
     const CompositeCondition mCompositeCondition3D;
 
-    const WallTipCondition mWallTipCondition2D;
-    const WallTipCondition mWallTipCondition3D;
+    const WallCondition mWallCondition2D;
+    const WallCondition mWallCondition3D;
 
     const ContactDomainLM2DCondition   mContactDomainLM2DCondition;
     const ContactDomainPenalty2DCondition   mContactDomainPenalty2DCondition;

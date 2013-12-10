@@ -120,7 +120,6 @@ class rigid_wall_config:
     tip_radius         = *GenData(Tip_Radius)
     rake_angle         = *GenData(Rake_Angle)
     clearance_angle    = *GenData(Clearance_Angle)
-    young_modulus      = *GenData(Rigid_Body_Elastic_Modulus)
     penalty_parameter  = *GenData(Rigid_Body_Penalty_Parameter)
     center = []
     center.append(*GenData(Reference_Point_definition,1))

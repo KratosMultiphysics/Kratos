@@ -97,17 +97,16 @@ public:
       this->mBox.Center         = Center;
       this->mBox.Velocity       = Velocity;
 
-      std::cout<<" [TOOL:                        ] "<<std::endl;
-      std::cout<<" [Radius:"<<this->mBox.Radius<<"            ] "<<std::endl;
-      std::cout<<" [Center:"<<this->mBox.Center<<"  ] "<<std::endl;
-      std::cout<<" [Velocity:"<<this->mBox.Velocity<<"      ] "<<std::endl;
-      std::cout<<" [Rake:"<<this->mBox.RakeAngle<<"               ] "<<std::endl;
-      std::cout<<" [Clearance:"<<this->mBox.ClearanceAngle<<"          ] "<<std::endl;
-      std::cout<<" [m_factor:"<<this->mBox.m_factor<<"          ] "<<std::endl;
-      std::cout<<" [n_factor:"<<this->mBox.n_factor<<"          ] "<<std::endl;
-
+      std::cout<<" [TOOL] "<<std::endl;
+      std::cout<<" [Radius:"<<this->mBox.Radius<<std::endl;
+      std::cout<<" [Center:"<<this->mBox.Center<<std::endl;
+      std::cout<<" [Velocity:"<<this->mBox.Velocity<<std::endl;
+      std::cout<<" [Rake:"<<this->mBox.RakeAngle<<std::endl;
+      std::cout<<" [Clearance:"<<this->mBox.ClearanceAngle<<std::endl;
+      std::cout<<" [m_factor:"<<this->mBox.m_factor<<std::endl;
+      std::cout<<" [n_factor:"<<this->mBox.n_factor<<std::endl;
+      std::cout<<" [    ] "<<std::endl;
     }
-
     /// Assignment operator.
     RigidToolBoundingBox& operator=(RigidToolBoundingBox const& rOther)
     {
@@ -418,7 +417,7 @@ private:
 
 	rFace1 = rPoint[1] - tan(pi*0.25) * ( rPoint[0] - this->mBox.Center[0] ) - this->mBox.Center[1];
 
-	rFace2 = rPoint[0]  + this->mBox.n_factor * ( rPoint[1] - this->mBox.Center[1] ) - this->mBox.Center[0];
+	rFace2 = rPoint[0] + this->mBox.n_factor * ( rPoint[1] - this->mBox.Center[1] ) - this->mBox.Center[0];
 
 	rFace3 = rPoint[1] + tan(this->mBox.RakeAngle) * ( rPoint[0] - this->mBox.Center[0] ) - this->mBox.Center[1];
 
@@ -436,14 +435,17 @@ private:
     bool CalculateRakeSurface(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent)
     {
       KRATOS_TRY
-      
+     
+      rNormal  = ZeroVector(3);
+      rTangent = ZeroVector(3);
+ 
       //1.-compute contact normal
       rNormal[0] = -cos(this->mBox.RakeAngle);
       rNormal[1] =  sin(this->mBox.RakeAngle);
       rNormal[2] = 0;
 
       //2.-compute point projection
-      TPointType Projection;
+      TPointType Projection(3);
 
       Projection[0] = rPoint[0] + this->mBox.m_factor * ( rPoint[1] - this->mBox.m_factor * ( this->mBox.Radius * cos(this->mBox.RakeAngle) - this->mBox.Center[0] ) - this->mBox.Center[1] ) - this->mBox.Radius * sin(this->mBox.RakeAngle);
 
@@ -452,7 +454,6 @@ private:
       Projection[2] = 0;
       
       Projection /= (1+this->mBox.m_factor * this->mBox.m_factor);
-
 
       if(this->mBox.RakeAngle == 0){
 	Projection[0] = this->mBox.Center[0] - this->mBox.Radius; 
@@ -480,9 +481,11 @@ private:
     {
       KRATOS_TRY
 
- 
+      rNormal  = ZeroVector(3);
+      rTangent = ZeroVector(3);
+
       //1.-compute point projection
-      TPointType Projection;
+      TPointType Projection(3);
       Projection = this->mBox.Radius * ( (rPoint-this->mBox.Center)/ norm_2(rPoint-this->mBox.Center) ) + this->mBox.Center;
 
       
@@ -519,13 +522,16 @@ private:
     {
       KRATOS_TRY
 
+      rNormal  = ZeroVector(3);
+      rTangent = ZeroVector(3);
+
       //1.-compute contact normal
       rNormal[0] =  sin(this->mBox.ClearanceAngle);
       rNormal[1] = -cos(this->mBox.ClearanceAngle);
       rNormal[2] = 0;
 
       //2.-compute point projection
-      TPointType Projection;
+      TPointType Projection(3);
 
       Projection[0] = rPoint[0] + this->mBox.n_factor * ( rPoint[1] + this->mBox.n_factor * ( this->mBox.Center[0] + this->mBox.Radius * sin(this->mBox.ClearanceAngle) ) - this->mBox.Center[1] + this->mBox.Radius * cos(this->mBox.ClearanceAngle) );
 

@@ -235,13 +235,11 @@ model_part.AddNodalSolutionStepVariable(SHRINK_FACTOR);
 model_part.AddNodalSolutionStepVariable(MEAN_ERROR); 
 model_part.AddNodalSolutionStepVariable(NODAL_H);
 
-if hasattr(SolverSettings, "RigidWalls"):
-  if SolverSettings.RigidWalls == True:
-    model_part.AddNodalSolutionStepVariable(RIGID_WALL);
-    model_part.AddNodalSolutionStepVariable(WALL_TIP_RADIUS);
-    model_part.AddNodalSolutionStepVariable(WALL_REFERENCE_POINT);
-    model_part.AddNodalSolutionStepVariable(WALL_VELOCITY);
-
+#if hasattr(SolverSettings, "RigidWalls"):
+  #if SolverSettings.RigidWalls == True:
+model_part.AddNodalSolutionStepVariable(RIGID_WALL);
+model_part.AddNodalSolutionStepVariable(WALL_TIP_RADIUS);
+model_part.AddNodalSolutionStepVariable(WALL_REFERENCE_POINT);
 
 #--- READ MODEL ------#
 if(load_restart == "False"):
@@ -329,6 +327,13 @@ restart_print = operation_utils.TimeOperationUtility()
 restart_time_frequency = general_variables.RestartFrequency
 restart_print.InitializeTime(starting_time,ending_time,time_step,restart_time_frequency)
 
+contact_search = operation_utils.TimeOperationUtility()
+contact_search_frequency = general_variables.contact_modeler_config.contact_search_frequency
+contact_search.InitializeTime(starting_time,ending_time,time_step,contact_search_frequency)
+
+rigid_wall_contact_search = operation_utils.TimeOperationUtility()
+rigid_wall_contact_search_frequency = 0
+rigid_wall_contact_search.InitializeTime(starting_time,ending_time,time_step,rigid_wall_contact_search_frequency)
 
 #initialize mesh modeling variables for time integration
 modeler.Initialize(current_step,current_step)
@@ -368,9 +373,19 @@ for step in range(istep,nstep):
   if(step > start_steps ):
     
     clock_time=StartTimeMeasuring();
+
+    #processes to be executed at the begining of the solution step
+    execute_rigid_wall_contact_search = rigid_wall_contact_search.perform_time_operation(current_time)
+    if( execute_rigid_wall_contact_search == True ):
+      rigid_wall.ExecuteContactSearch()
+
     #solve time step non-linear system
     main_step_solver.Solve()
     StopTimeMeasuring(clock_time,"Solving");
+
+
+    #processes to be executed at the end of the solution step
+    rigid_wall.UpdatePosition()
 
     #plot graphs
 

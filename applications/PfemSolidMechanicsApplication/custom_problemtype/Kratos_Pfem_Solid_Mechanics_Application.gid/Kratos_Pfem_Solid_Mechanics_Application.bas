@@ -164,14 +164,19 @@ Begin Conditions LineLoadAxisymCondition2D2N
 End Conditions
 
 *endif
-*Set cond line_WallTip2DCondition *OverFaceElements *CanRepeat
+*Set cond line_WallCondition2D *elems
 *if(CondNumEntities > 0)
-Begin Conditions WallTip2DCondition
+Begin Conditions WallCondition2D
 *#// id prop_id	 n1	n2	n3	...
 *loop elems *OnlyInCond
 *set var icond=operation(icond+1)
-*format "%i%i"
-*Tcl( setCondId *ElemsNum *CondElemFace ) *ElemsMat *GlobalNodes*\
+*set var i=0
+*set var j=ElemsNnode
+*format "%i%i%i%i"
+*icond *ElemsMat *\
+*for(i=1;i<=j;i=i+1)*\
+	*ElemsConec(*i)*\
+*end
 
 *end elems
 End Conditions
@@ -459,125 +464,37 @@ Begin NodalData POSITIVE_FACE_PRESSURE
 End NodalData
 
 *endif
-*Set cond surface_WALL_REFERENCE_POINT *nodes
-*Add cond line_WALL_REFERENCE_POINT *nodes
+*Set cond surface_WALL_TIP *nodes
+*Add cond line_WALL_TIP *nodes
 *if(CondNumEntities > 0)
-*# Check if some node has its X value set
-*set var Xset=0
+Begin NodalData WALL_TIP_RADIUS
 *loop nodes *OnlyInCond
-*if(cond(WALL_REFERENCE_POINT_X,int)==1)
-*set var Xset=1
-*endif
+*format "%i%i%10.5e"
+*NodesNum *cond(Fixed) *cond(WALL_TIP_RADIUS)
 *end nodes
-*if(Xset == 1)
+End NodalData
+
 Begin NodalData WALL_REFERENCE_POINT_X
 *loop nodes *OnlyInCond
-*if(cond(WALL_REFERENCE_POINT_X,int)==1)
 *format "%i%i%10.5e"
-*NodesNum *cond(Fix_X) *cond(X_Value)
-*endif
+*NodesNum *cond(Fixed) *cond(X_Value)
 *end nodes
 End NodalData
 
-*endif
-*#
-*# Check if some node has its Y value set
-*set var Yset=0
-*loop nodes *OnlyInCond
-*if(cond(WALL_REFERENCE_POINT_Y,int)==1)
-*set var Yset=1
-*endif
-*end nodes
-*if(Yset == 1)
 Begin NodalData WALL_REFERENCE_POINT_Y
 *loop nodes *OnlyInCond
-*if(cond(WALL_REFERENCE_POINT_Y,int)==1)
 *format "%i%i%10.5e"
-*NodesNum *cond(Fix_Y) *cond(Y_Value)
-*endif
+*NodesNum *cond(Fixed) *cond(Y_Value)
 *end nodes
 End NodalData
 
-*endif
-*#
-*# Check if some node has its Z value set
-*set var Zset=0
-*loop nodes *OnlyInCond
-*if(cond(WALL_REFERENCE_POINT_Z,int)==1)
-*set var Zset=1
-*endif
-*end nodes
-*if(Zset == 1)
 Begin NodalData WALL_REFERENCE_POINT_Z
 *loop nodes *OnlyInCond
-*if(cond(WALL_REFERENCE_POINT_Z,int)==1)
 *format "%i%i%10.5e"
-*NodesNum *cond(Fix_Z) *cond(Z_Value)
-*endif
+*NodesNum *cond(Fixed) *cond(Z_Value)
 *end nodes
 End NodalData
 
-*endif
-*endif
-*Set cond surface_WALL_VELOCITY *nodes
-*Add cond line_WALL_VELOCITY *nodes
-*if(CondNumEntities > 0)
-*# Check if some node has its X value set
-*set var Xset=0
-*loop nodes *OnlyInCond
-*if(cond(WALL_VELOCITY_X,int)==1)
-*set var Xset=1
-*endif
-*end nodes
-*if(Xset == 1)
-Begin NodalData WALL_VELOCITY_X
-*loop nodes *OnlyInCond
-*if(cond(WALL_VELOCITY_X,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_X) *cond(X_Value)
-*endif
-*end nodes
-End NodalData
-
-*endif
-*#
-*# Check if some node has its Y value set
-*set var Yset=0
-*loop nodes *OnlyInCond
-*if(cond(WALL_VELOCITY_Y,int)==1)
-*set var Yset=1
-*endif
-*end nodes
-*if(Yset == 1)
-Begin NodalData WALL_VELOCITY_Y
-*loop nodes *OnlyInCond
-*if(cond(WALL_VELOCITY_Y,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_Y) *cond(Y_Value)
-*endif
-*end nodes
-End NodalData
-
-*endif
-*#
-*# Check if some node has its Z value set
-*set var Zset=0
-*loop nodes *OnlyInCond
-*if(cond(WALL_VELOCITY_Z,int)==1)
-*set var Zset=1
-*endif
-*end nodes
-*if(Zset == 1)
-Begin NodalData WALL_VELOCITY_Z
-*loop nodes *OnlyInCond
-*if(cond(WALL_VELOCITY_Z,int)==1)
-*format "%i%i%10.5e"
-*NodesNum *cond(Fix_Z) *cond(Z_Value)
-*endif
-*end nodes
-End NodalData
-
-*endif
 *endif
 *Set cond surface_RIGID_WALL *nodes
 *Add cond line_RIGID_WALL *nodes
@@ -590,17 +507,7 @@ Begin NodalData RIGID_WALL
 End NodalData
 
 *endif
-*Set cond surface_WALL_TIP_RADIUS *nodes
-*Add cond line_WALL_TIP_RADIUS *nodes
-*if(CondNumEntities > 0)
-Begin NodalData WALL_TIP_RADIUS
-*loop nodes *OnlyInCond
-*format "%i%i%10.5e"
-*NodesNum *cond(Fixed) *cond(WALL_TIP_RADIUS)
-*end nodes
-End NodalData
 
-*endif
 
 *#Tcl( WriteMeshGroups *FileId ) *\
 
@@ -641,7 +548,6 @@ Begin Mesh *igroup
 *# Line Condition Blocks
 *set cond line_LineLoadCondition2D2N *OverFaceElements *CanRepeat
 *add cond line_LineLoadAxisymCondition2D2N *OverFaceElements *CanRepeat
-*add cond line_WallTip2DCondition *OverFaceElements *CanRepeat
 *if(CondNumEntities > 0)
 *loop elems *onlyincond *onlyingroup
 *format "%i"

@@ -74,6 +74,8 @@ namespace Kratos
 	(
 	 "RigidWallContactSearch", init<RigidToolBoundingBox::Pointer, ModelPart&>()
 	 )
+	 .def("ExecuteInitializeSolutionStep", &RigidWallContactSearchProcess::ExecuteInitializeSolutionStep)
+	 .def("ExecuteFinalizeSolutionStep", &RigidWallContactSearchProcess::ExecuteFinalizeSolutionStep)
 	;
 
 
