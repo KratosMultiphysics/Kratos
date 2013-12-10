@@ -7,10 +7,12 @@ from KratosMultiphysics.DEM_FEM_Application import *
 
 def AddVariables(model_part):
 
-    model_part.AddNodalSolutionStepVariable(REACTION);
-    model_part.AddNodalSolutionStepVariable(NEGATIVE_FACE_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(POSITIVE_FACE_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(VELOCITY);
+    # Just for meshing, without any meanings
+    model_part.AddNodalSolutionStepVariable(IS_BOUNDARY)
+    model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
+    model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
+    model_part.AddNodalSolutionStepVariable(IS_FLUID)
+    model_part.AddNodalSolutionStepVariable(NODAL_H)
 
     print "Variables for the DEM&FEM Coupled solution added correctly"
     
