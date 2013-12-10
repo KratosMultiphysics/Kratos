@@ -531,6 +531,9 @@ KRATOS_DEFINE_VARIABLE(double,  Y_WALL )
 // for ALE application
 KRATOS_DEFINE_VARIABLE( double, AUX_MESH_VAR )
 
+// for mpi;
+KRATOS_DEFINE_VARIABLE(Vector,NEIGHBOUR_PARTITION_INDEX)
+
 
 }  // namespace Kratos.
 #endif // KRATOS_VARIABLES_H_INCLUDED  defined 
