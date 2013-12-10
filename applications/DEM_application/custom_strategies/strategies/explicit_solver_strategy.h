@@ -256,7 +256,7 @@ namespace Kratos
           int time_step = rCurrentProcessInfo[TIME_STEPS];
           
           // 1. Here we initialize member variables that depend on the rCurrentProcessInfo
-          //InitializeSolutionStep();
+          InitializeSolutionStep();
 		  
 		 // 2. Neighbouring search. Every N times. + destruction of particles outside the bounding box                   
 	
@@ -273,19 +273,19 @@ namespace Kratos
               ComputeNewRigidFaceNeighboursHistoricalData();
               
           }
-
                 
           // 3. Get and Calculate the forces
           GetForce();
-               
+          
           // 4. Motion Integration
           PerformTimeIntegrationOfMotion(rCurrentProcessInfo); //llama al scheme, i aquesta ja fa el calcul dels despaçaments i tot
+          
 
           // 5. Synchronize
           SynchronizeSolidMesh(r_model_part);
           
            ////Cfeng, compute rigid face movement
-		  Compute_RigidFace_Movement();
+	  Compute_RigidFace_Movement();
 	          
           FinalizeSolutionStep();		  
 
@@ -333,6 +333,7 @@ namespace Kratos
           ModelPart& r_model_part             = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
+		  
 
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
