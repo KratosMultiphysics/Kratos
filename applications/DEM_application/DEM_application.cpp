@@ -373,6 +373,7 @@ namespace Kratos
   KRATOS_CREATE_VARIABLE(int,    ANGULAR_VELOCITY_Y_DOF_POS)
   KRATOS_CREATE_VARIABLE(int,    ANGULAR_VELOCITY_Z_DOF_POS)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(OLD_COORDINATES)
+ 
 
   /************************************************************************************************************************************************************/
   /************************************************************************************************************************************************************/
@@ -749,7 +750,7 @@ namespace Kratos
     KRATOS_REGISTER_VARIABLE(ANGULAR_VELOCITY_X_DOF_POS)        
     KRATOS_REGISTER_VARIABLE(ANGULAR_VELOCITY_Y_DOF_POS)        
     KRATOS_REGISTER_VARIABLE(ANGULAR_VELOCITY_Z_DOF_POS)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(OLD_COORDINATES)        
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(OLD_COORDINATES)    
             
     // ELEMENTS
     KRATOS_REGISTER_ELEMENT("CylinderParticle2D", mCylinderParticle2D)
