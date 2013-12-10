@@ -201,12 +201,17 @@ namespace Kratos
           this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
           mNeighbourCounter.resize(this->GetNumberOfThreads());
 
+          this->GetBoundingBoxOption() = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
+
+          InitializeSolutionStep();
+          InitializeElements();
+
+          mInitializeWasPerformed = true;
+          
           // 0. Set search radius
                     
           SetSearchRadius(r_model_part, 1.0);
-
-          this->GetBoundingBoxOption() = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
-
+          
           SearchNeighbours();
           
           if(mDeltaOption == 2)
@@ -217,23 +222,17 @@ namespace Kratos
           }
           
           ComputeNewNeighboursHistoricalData();  
+          
           ///Cfeng RigidFace search
           SearchRigidFaceNeighbours();
 		  ComputeNewRigidFaceNeighboursHistoricalData();
+          
           // 3. Finding overlapping of initial configurations
 
           if (rCurrentProcessInfo[CLEAN_INDENT_OPTION]){
               CalculateInitialMaxIndentations();
           }
 
-          // 4. Initializing elements and perform the repartition
-          //if (!mElementsAreInitialized){
-            InitializeSolutionStep();
-            InitializeElements();
-              
-          //}
-
-          mInitializeWasPerformed = true;
           
            // 5. Finalize Solution Step.
           FinalizeSolutionStep();
@@ -321,7 +320,6 @@ namespace Kratos
 
           temp_time_step /= mSafetyFactor;
           process_info_delta_time = temp_time_step;
-          KRATOS_WATCH(mMaxTimeStep)
 
           std::cout<< "****************** Calculated time step is " << temp_time_step << " ******************" << "\n" << std::endl;
 
