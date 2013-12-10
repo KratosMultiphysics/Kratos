@@ -34,7 +34,7 @@ set( KRATOS_PFEM_SOLID_MECHANICS_APPLICATION_SOURCES
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mesh_data_transfer_utilities.cpp
 	
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/composite_condition.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_tip_condition.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition.cpp
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_condition.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/contact_domain_LM_2D_condition.cpp

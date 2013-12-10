@@ -106,7 +106,7 @@ public:
       KRATOS_TRY
 
       ProcessInfo& CurrentProcessInfo= mrModelPart.GetProcessInfo();	  
-      double Time = CurrentProcessInfo[TIME];
+      double Time      = CurrentProcessInfo[TIME];   
 
       mpRigidWall->Center() = mpRigidWall->OriginalCenter() +  mpRigidWall->Velocity() * Time;
 
@@ -121,16 +121,26 @@ public:
 
       mConditionsNumber =  mrModelPart.Conditions(MeshId).size();
       
+
       for ( ModelPart::NodesContainerType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
 	{
 	  if((*nd)->FastGetSolutionStepValue(RIGID_WALL)==true){
-    
-	    (*nd)->Set(RIGID);
-	    //(*nd)->Set(STRUCTURE);
 
+	    //(*nd)->Set(STRUCTURE);
+	    (*nd)->Set(RIGID);
+
+	    //set new coordinates
+	    (*nd)->X() = (*nd)->X0() + mpRigidWall->Velocity()[0] * Time;
+            (*nd)->Y() = (*nd)->Y0() + mpRigidWall->Velocity()[1] * Time;
+            (*nd)->Z() = (*nd)->Z0() + mpRigidWall->Velocity()[2] * Time;
+
+	    (*nd)->FastGetSolutionStepValue(DISPLACEMENT).clear();
+	    (*nd)->FastGetSolutionStepValue(VELOCITY)    = mpRigidWall->Velocity();
 	  }
 
-	  Vector Point;
+	  //set point rigid wall condition : usually in non rigid_wall points
+
+	  Vector Point(3);
 	  Point[0] = (*nd)->X();
 	  Point[1] = (*nd)->Y();
 	  Point[2] = (*nd)->Z();
@@ -138,6 +148,7 @@ public:
 	  if( (*nd)->Is(BOUNDARY) && mpRigidWall->IsInside(Point,Time) ){
 	    
 	    int number_properties = mrModelPart.NumberOfProperties();
+
 	    PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(number_properties-1);
 
 	    GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point2DType( (*nd) ));
@@ -151,7 +162,8 @@ public:
 	  }
 	  
 	}
-
+      
+      std::cout<<" [ rigid contacts : "<<mrModelPart.Conditions(MeshId).size() - mConditionsNumber<<" ]"<<std::endl;
 
       KRATOS_CATCH( "" )
 	
@@ -160,29 +172,31 @@ public:
     /// this function will be executed at every time step AFTER performing the solve phase
     virtual void ExecuteFinalizeSolutionStep()
     {
-      KRATOS_TRY
-	
-      //getting the array of the conditions
-      ModelPart::NodesContainerType& NodesArray = mrModelPart.Nodes();
+      KRATOS_TRY	  
+
+      // To write correct displacements
       ProcessInfo& CurrentProcessInfo= mrModelPart.GetProcessInfo();
-      double DeltaTime = CurrentProcessInfo[DELTA_TIME];
+      double Time      = CurrentProcessInfo[TIME];
+      //double DeltaTime = CurrentProcessInfo[DELTA_TIME];
+
+      ModelPart::NodesContainerType& NodesArray = mrModelPart.Nodes();
 
       for ( ModelPart::NodesContainerType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
 	{
 	  if((*nd)->FastGetSolutionStepValue(RIGID_WALL)==true){
-	  
-	    (*nd)->FastGetSolutionStepValue(DISPLACEMENT) += mpRigidWall->Velocity() * DeltaTime;
-	    
+	    (*nd)->FastGetSolutionStepValue(DISPLACEMENT) = mpRigidWall->Velocity() * Time;
 	  }
-	    
 	}
-      
+
 
       //Clean Rigid Contact Conditions
       ModelPart::ConditionsContainerType NonRigidContactConditions;
-	    
+
       int MeshId = 0;
       unsigned int id=0;
+	    
+      //std::cout<<" [ NUMBER OF CONDITIONS before rigid contact update: "<<mrModelPart.Conditions(MeshId).size()<<" ]"<<std::endl;
+    
       for(ModelPart::ConditionsContainerType::iterator ic = mrModelPart.ConditionsBegin(MeshId); ic!= mrModelPart.ConditionsEnd(MeshId); ic++)
 	{
 	  if( id == mConditionsNumber )
@@ -194,6 +208,8 @@ public:
 	}
     
       mrModelPart.Conditions(MeshId).swap( NonRigidContactConditions );
+
+      //std::cout<<" [ NUMBER OF CONDITIONS after  rigid contact update: "<<mrModelPart.Conditions(MeshId).size()<<" ]"<<std::endl;
 
       //calculate elemental contribution
       KRATOS_CATCH( "" )      

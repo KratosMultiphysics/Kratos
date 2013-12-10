@@ -90,7 +90,7 @@ namespace Kratos
   {
     KRATOS_TRY
     
-      int ContactFace = 0; //free surface
+    int ContactFace = 0; //free surface
       
     if( this->mpRigidWall->IsInside( GetGeometry()[0], rVariables.Gap.Normal, rVariables.Gap.Tangent, rVariables.Surface.Normal, rVariables.Surface.Tangent, ContactFace ) ){
 
@@ -152,6 +152,7 @@ namespace Kratos
     rVariables.Penalty.Normal = distance * 20 * PenaltyParameter * ElasticModulus;
       
     
+    //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<std::endl;
     
     KRATOS_CATCH( "" )
       }
@@ -186,13 +187,16 @@ namespace Kratos
 
       noalias(rLeftHandSideMatrix) = rVariables.Penalty.Normal * rIntegrationWeight  * outer_prod_2(rVariables.Surface.Normal, rVariables.Surface.Normal);
       
+      //std::cout<<std::endl;
+      //std::cout<<" Kcont "<<rLeftHandSideMatrix<<std::endl;
+
     }
     else{
 
       rLeftHandSideMatrix= ZeroMatrix(2,2);   
 
     }
-
+ 
     KRATOS_CATCH( "" )
       }
 
@@ -213,6 +217,10 @@ namespace Kratos
 
       rRightHandSideVector = (-1) * (rVariables.Penalty.Normal * rVariables.Gap.Normal) * rVariables.Surface.Normal * rIntegrationWeight;
       
+      //std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" rVariables.Gap.Normal "<<rVariables.Gap.Normal<<" rVariables.Surface.Normal "<<rVariables.Surface.Normal<<" rIntegrationWeight "<<rIntegrationWeight<<std::endl;
+      //std::cout<<std::endl;
+      //std::cout<<" Fcont "<<rRightHandSideVector<<std::endl;
+
     }
     else{
 
@@ -220,7 +228,6 @@ namespace Kratos
     
     }
 
-    //KRATOS_WATCH( rRightHandSideVector )
 
     KRATOS_CATCH( "" )
       }
