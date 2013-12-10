@@ -200,7 +200,7 @@ namespace Kratos
           if (rVariable == REYNOLDS_NUMBER){
               const array_1d<double,3> fluid_vel      = GetGeometry()(0)->FastGetSolutionStepValue(FLUID_VEL_PROJECTED);
               const array_1d<double,3>& particle_vel  = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
-              const double fluid_fraction_inv         = 1.0 / (1.0 - GetGeometry()(0)->FastGetSolutionStepValue(SOLID_FRACTION));
+              const double fluid_fraction_inv         = 1.0 / (1.0 - GetGeometry()(0)->FastGetSolutionStepValue(SOLID_FRACTION_PROJECTED));
               const array_1d<double,3>& avg_fluid_vel = fluid_fraction_inv * fluid_vel;
               const array_1d<double,3>& slip_vel      = avg_fluid_vel - particle_vel;
               const double norm_of_slip_vel           = MathUtils<double>::Norm3(slip_vel);
