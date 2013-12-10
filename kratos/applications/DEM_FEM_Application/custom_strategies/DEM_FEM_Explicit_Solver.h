@@ -47,7 +47,6 @@
 #include "spatial_containers/spatial_search.h"
 
 
-
 namespace Kratos
 {
   
