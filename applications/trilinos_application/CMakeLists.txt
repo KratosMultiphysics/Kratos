@@ -39,6 +39,8 @@ set( KRATOS_TRILINOS_APPLICATION_SOURCES
 	${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/laplacian_componentwise_meshmoving_element_3d.cpp
         ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/structural_meshmoving_element_2d.cpp
         ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/structural_meshmoving_element_3d.cpp
+        ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/structural_meshmoving_element_2d_nonlinear.cpp
+        ${CMAKE_SOURCE_DIR}/applications/ALEapplication/custom_elements/structural_meshmoving_element_3d_nonlinear.cpp
         ${CMAKE_SOURCE_DIR}/applications/FluidDynamicsApplication/fluid_dynamics_application_variables.cpp
 
 )
