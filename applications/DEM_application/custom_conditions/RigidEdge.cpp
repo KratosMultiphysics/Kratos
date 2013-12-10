@@ -169,7 +169,7 @@ void RigidEdge3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
 					
 				}
 				
-				
+				break;
 			}
 		}
 	
