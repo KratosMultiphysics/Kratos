@@ -78,7 +78,7 @@ for var in ProjectParameters.mixed_nodal_results:
     if var in ProjectParameters.nodal_results:
         ProjectParameters.nodal_results.remove(var)
 
-# extra nodal variables to be added to the model parts (memory will be allocated for them)
+# extra nodal variables (related to the coupling) to be added to the model parts (memory will be allocated for them)
 fluid_variables_to_add = [PRESSURE_GRADIENT,
                           AUX_DOUBLE_VAR,
                           DRAG_REACTION,
@@ -267,7 +267,7 @@ swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(input_file_na
                    ProjectParameters.GiDWriteMeshFlag,
                    ProjectParameters.GiDWriteConditionsFlag)
 
-swimming_DEM_gid_io.initialize_swimming_DEM_results(balls_model_part, mixed_model_part)
+swimming_DEM_gid_io.initialize_swimming_DEM_results(balls_model_part, fem_dem_model_part, mixed_model_part)
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 # define the drag computation list
@@ -352,7 +352,6 @@ creator_destructor = ParticleCreatorDestructor()
 
 # creating a Solver object for the DEM part. It contains the sequence of function calls necessary for the evolution of the DEM system at every time step
 dem_solver = SolverStrategy.ExplicitStrategy(balls_model_part, fem_dem_model_part, creator_destructor, DEMParameters)
-dem_procedures.GiDSolverTransfer(balls_model_part, dem_solver, DEMParameters)
 
 # constructing a model part for the DEM inlet. it contains the DEM elements to be released during the simulation
 
@@ -522,6 +521,10 @@ while(time <= final_time):
             
         print ""
         print "*******************  PRINTING RESULTS FOR GID  ***************************" 
+
+        if (ProjectParameters.projection_module_option):
+            projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
+
         if (ProjectParameters.GiDMultiFileFlag == "Multiples"):
             mixed_model_part.Elements.clear()
             mixed_model_part.Nodes.clear()
