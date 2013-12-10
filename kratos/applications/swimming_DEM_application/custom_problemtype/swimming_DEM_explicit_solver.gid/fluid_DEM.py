@@ -141,7 +141,7 @@ model_part_io_fluid = ModelPartIO(input_file_name)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-print 'Adding and initializing variables (to zero) to the fluid_model_part'
+print 'Adding nodal variables to the fluid_model_part' #(memory allocation)
 
 swimming_DEM_procedures.AddNodalVariables(fluid_model_part, fluid_variables_to_add)
 
@@ -150,9 +150,12 @@ swimming_DEM_procedures.AddNodalVariables(fluid_model_part, fluid_variables_to_a
 balls_model_part = ModelPart("SolidPart")
 fem_dem_model_part = ModelPart("RigidFace_Part");
 
-print 'Adding extra nodal variables to the nodal part'
+print 'Adding nodal variables to the balls_model_part' #(memory allocation)
 
 swimming_DEM_procedures.AddNodalVariables(balls_model_part, balls_variables_to_add)
+
+print 'Adding nodal variables to the dem_fem_wall_model_part' #(memory allocation)
+
 swimming_DEM_procedures.AddNodalVariables(fem_dem_model_part, fem_dem_variables_to_add)
 
 # defining a model part for the mixed part
