@@ -113,6 +113,9 @@ control         = 0.0
 
 os.chdir(main_path)
 
+solver.Initialize()
+
+
 
 if ( (DEM_parameters.ContinuumOption =="ON") and (DEM_parameters.ContactMeshOption =="ON") ) :
 
@@ -122,28 +125,13 @@ if ( (DEM_parameters.ContinuumOption =="ON") and (DEM_parameters.ContactMeshOpti
 
 #------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALITZATIONS--------------------------------------------------------
 
-Pressure = 0.0  
-Pressure = proc.GiDSolverTransfer(balls_model_part, solver, DEM_parameters)
+Pressure = DEM_parameters.ConfinementPressure * 1e6 #Mpa
 
 if (DEM_parameters.PredefinedSkinOption == "ON" ):
 
    proc.SetPredefinedSkin(balls_model_part)
  
 print 'Initializing Problem....'
-
-dt = DEM_parameters.MaxTimeStep
-
-total_steps_expected = int(DEM_parameters.FinalTime / dt)
-
-print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n' )
-
-step_to_fix_velocities = 0
-
-if (DEM_parameters.FixVelocitiesOption == 'ON'):
-  step_to_fix_velocities = 0.01*DEM_parameters.TotalTimePercentageFixVelocities*total_steps_expected
-  print("QUAN HI HAGI CRITICAL TIME STEP... SHA DE MODIFICAR EL TOTAL STEP I EL FIXING..")
-
-balls_model_part.ProcessInfo.SetValue(STEP_FIX_VELOCITIES,int(step_to_fix_velocities))
 
 if( ( (DEM_parameters.ContinuumOption == "ON")  and ( (DEM_parameters.GraphOption =="ON") or (DEM_parameters.ConcreteTestOption =="ON")) )or (DEM_parameters.BtsOption == "ON") ):
   
@@ -175,7 +163,6 @@ if(DEM_parameters.ConcreteTestOption =="ON"):
     Press.ApplyPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
     renew_pressure = 0
     
-solver.Initialize()
 
 # Initialization of physics monitor and of the initial position of the center of mass
 
@@ -205,22 +192,23 @@ if(DEM_parameters.ContinuumOption =="ON" and DEM_parameters.GraphOption =="ON"):
   
   #measuring height:
 
-  mean_top = PreUtilities(balls_model_part).MeasureTopHeigh(balls_model_part)
-  mean_bot = PreUtilities(balls_model_part).MeasureBotHeigh(balls_model_part)
-
-  ini_height = mean_top - mean_bot
   
+  pre_utilities = PreUtilities(balls_model_part)
+  
+  (subtotal_top,weight_top) = pre_utilities.MeasureTopHeigh(balls_model_part)
+  (subtotal_bot,weight_bot) = pre_utilities.MeasureBotHeigh(balls_model_part)
+
+  mean_top = subtotal_top/weight_top;
+  mean_bot = subtotal_bot/weight_bot;
+  
+  ini_height = mean_top - mean_bot
+
   height = ini_height
 
 #
   print ('Initial Height of the Model: ' + str(ini_height)+'\n')
 
 
-dt1 = dt
-dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
-
-if(dt != dt1):
-  print("sha canviat el pas de temps, corregeix lo de fix vel")
 
 step                   = 0 
 time                   = 0.0 
@@ -271,8 +259,11 @@ if (DEM_parameters.ModelDataInfo == "ON"):
 ###########################################################################################
 os.chdir(main_path)
 
-print ('Main loop starts at instant: ' + str(initial_pr_time) + '\n')
+dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
 
+total_steps_expected = int(DEM_parameters.FinalTime / dt)
+
+print ('Main loop starts at instant: ' + str(initial_pr_time) + '\n')
 
 print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n' )
 
@@ -303,7 +294,8 @@ if(DEM_parameters.PoissonMeasure == "ON"):
            
       width_ini = xright_weight/right_counter - xleft_weight/left_counter
         
-
+step_to_fix_velocities = balls_model_part.ProcessInfo[STEP_FIX_VELOCITIES]
+        
 while (time < DEM_parameters.FinalTime):
  
     dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
@@ -379,12 +371,17 @@ while (time < DEM_parameters.FinalTime):
         total_force_bts += force_node_y
     
     if( DEM_parameters.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and DEM_parameters.GraphOption =="ON"):
-     
+
       if(first_time_entry):
         #measuring height:
+        
+        pre_utilities = PreUtilities(balls_model_part)
+  
+        (subtotal_top,weight_top) = pre_utilities.MeasureTopHeigh(balls_model_part)
+        (subtotal_bot,weight_bot) = pre_utilities.MeasureBotHeigh(balls_model_part)
 
-        mean_top = PreUtilities(balls_model_part).MeasureTopHeigh(balls_model_part)
-        mean_bot = PreUtilities(balls_model_part).MeasureBotHeigh(balls_model_part)
+        mean_top = subtotal_top/weight_top;
+        mean_bot = subtotal_bot/weight_bot;
 
         ini_height2 = mean_top - mean_bot
 
