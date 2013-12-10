@@ -30,7 +30,7 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
             self.io.InitializeMesh(mesh_name)
             self.io.WriteMesh(mixed_model_part.GetMesh())
             self.io.WriteSphereMesh(DEM_model_part.GetMesh())
-            self.io.FinalizeMesh(mesh_name)
+            self.io.FinalizeMesh()
             self.io.InitializeResults(mesh_name, mixed_model_part.GetMesh())
 
         # Initialize list file
