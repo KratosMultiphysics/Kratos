@@ -522,9 +522,6 @@ while(time <= final_time):
         print ""
         print "*******************  PRINTING RESULTS FOR GID  ***************************" 
 
-        if (ProjectParameters.projection_module_option):
-            projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
-
         if (ProjectParameters.GiDMultiFileFlag == "Multiples"):
             mixed_model_part.Elements.clear()
             mixed_model_part.Nodes.clear()
