@@ -575,13 +575,17 @@ namespace Kratos
             
             double degradation = 1.0;
      
+           /* 
             if(mDempack)
             {
-              
+             
               if(indentation >= 0.0 ) //COMPRESSION
               {
               
                 degradation = mHistory[mapping_new_cont][3];
+               
+                KRATOS_WATCH(mHistory[mapping_new_cont][3])
+               
                
               }
               else
@@ -590,7 +594,9 @@ namespace Kratos
                 degradation = (1.0 -  mHistory[mapping_new_cont][2]);
                
               }
+              
             }
+            */
             
               
             LocalElasticContactForce[0] += - degradation*kt_el * LocalDeltDisp[0];  // 0: first tangential
@@ -600,14 +606,7 @@ namespace Kratos
             double ShearForceNow = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
                                     +   LocalElasticContactForce[1] * LocalElasticContactForce[1]); 
         
-            double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
-            
-            if (Frictional_ShearForceMax < 0.0)
-            {
-              Frictional_ShearForceMax = 0.0;
-              
-            }
-                
+          
                 /* Evaluating Failure for the continuum contacts */
           
                 if(mNeighbourFailureId[i_neighbour_count] == 0)
@@ -631,11 +630,22 @@ namespace Kratos
                   
                 }
                
-                
+                              
+               
+                  
                 /* Tangential Friction for broken bonds */  //dempack and kdem do the same.
                 
                 if ( mNeighbourFailureId[i_neighbour_count] != 0 ) //*   //degut als canvis de DEMPACK hi ha hagut una modificació, ara despres de trencar es fa akest maping de maxima tangencial que és correcte!
                 {
+                   double Frictional_ShearForceMax = equiv_tg_of_fri_ang * LocalElasticContactForce[2];
+                
+                if (Frictional_ShearForceMax < 0.0)
+                {
+                  Frictional_ShearForceMax = 0.0;
+                  
+                }
+                  
+                  
                   failure_criterion_state = 1.0;
                                                         
                   if( (ShearForceNow >  Frictional_ShearForceMax) && (ShearForceNow != 0.0) ) 
@@ -1592,9 +1602,10 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
           if(mTriaxialOption && *mSkinSphere) //could be applified to selected particles.
           {
-            
+
             ComputePressureForces(additionally_applied_force, rCurrentProcessInfo);
             
+
           }
                 
           if( mRotationOption != 0 && mRotationSpringOption != 0 )
@@ -1930,16 +1941,9 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
      {
  
         array_1d<double, 3> total_externally_applied_force  = this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE); 
-        
-//         double magnitude = 0.0;
-//         
-//         GeometryFunctions::module(total_externally_applied_force, magnitude);
-//         
-//      
-        
+
         double time_now = rCurrentProcessInfo[TIME]; //MSIMSI 1 I tried to do a *mpTIME
 
-    
         if( mFinalPressureTime <= 1e-10 )
         {
           
@@ -1949,15 +1953,19 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         
         else if ( (mFinalPressureTime > 1e-10) && (time_now < mFinalPressureTime) )
         {
+  
           
           externally_applied_force = AuxiliaryFunctions::LinearTimeIncreasingFunction(total_externally_applied_force, time_now, mFinalPressureTime);
 
         }       
         else
         {
+
           externally_applied_force = total_externally_applied_force;
           
         }
+        
+    
         
      } //SphericContinuumParticle::ComputePressureForces
     
