@@ -61,7 +61,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/pre_utilities.h"
 #include "custom_utilities/post_utilities.h"
 
-
+#include "boost/python/list.hpp"
+#include "boost/python/extract.hpp"
 
 namespace Kratos{
 
@@ -70,6 +71,36 @@ namespace Python{
 typedef ModelPart::NodesContainerType::iterator PointIterator;
 typedef std::vector<array_1d<double, 3 > > ComponentVectorType;
 typedef std::vector<array_1d<double, 3 > >::iterator ComponentIteratorType;
+
+boost::python::list Aux_MeasureTopHeight(PreUtilities& ThisPreUtils, ModelPart& rModelPart)
+{
+  double subtotal = 0.0;
+  double weight = 0.0;
+  ThisPreUtils.MeasureTopHeight(rModelPart,subtotal,weight);
+  
+  // Copy output to a Python list
+  boost::python::list Out;
+  boost::python::object py_subtotal(subtotal);
+  boost::python::object py_weight(weight);
+  Out.append( py_subtotal );
+  Out.append( py_weight );
+  return Out;
+}
+
+boost::python::list Aux_MeasureBotHeight(PreUtilities& ThisPreUtils, ModelPart& rModelPart)
+{
+  double subtotal = 0.0;
+  double weight = 0.0;
+  ThisPreUtils.MeasureBotHeight(rModelPart,subtotal,weight);
+  
+  // Copy output to a Python list
+  boost::python::list Out;
+  boost::python::object py_subtotal(subtotal);
+  boost::python::object py_weight(weight);
+  Out.append( py_subtotal );
+  Out.append( py_weight );
+  return Out;
+}
 
 
 void  AddCustomUtilitiesToPython(){
@@ -113,8 +144,8 @@ void  AddCustomUtilitiesToPython(){
 
       class_<PreUtilities, boost::noncopyable >
         ("PreUtilities", init<ModelPart&>())
-        .def("MeasureTopHeigh", &PreUtilities::MeasureTopHeight)        
-        .def("MeasureBotHeigh", &PreUtilities::MeasureBotHeight) 
+        .def("MeasureTopHeigh", Aux_MeasureTopHeight)        
+        .def("MeasureBotHeigh", Aux_MeasureBotHeight) 
         ;
 
      class_<PostUtilities, boost::noncopyable >
