@@ -46,6 +46,7 @@ def AddVariables(model_part, Param):
 
 
 
+
     # ROTATION RELATED PROPERTIES
 
     if (Var_Translator(Param.RotationOption)):
@@ -88,6 +89,15 @@ def AddVariables(model_part, Param):
     if (Param.LimitCylinderOption > 4):
         model_part.AddNodalSolutionStepVariable(PARTICLE_CYLINDER_CONTACT_FORCES_5)
     
+
+    model_part.AddNodalSolutionStepVariable(VELOCITY_X_DOF_POS) 
+    model_part.AddNodalSolutionStepVariable(VELOCITY_Y_DOF_POS) 
+    model_part.AddNodalSolutionStepVariable(VELOCITY_Z_DOF_POS) 
+    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_X_DOF_POS) 
+    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Y_DOF_POS) 
+    model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY_Z_DOF_POS) 
+    model_part.AddNodalSolutionStepVariable(OLD_COORDINATES) 
+
     # FLAGS
     model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
     model_part.AddNodalSolutionStepVariable(ERASE_FLAG)
