@@ -109,13 +109,13 @@ void StructuralMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideM
     if(rRightHandSideVector.size() != mat_size)
         rRightHandSideVector.resize(mat_size,false);
 
-    boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
-    array_1d<double,4> msN;
+    boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX;
+    array_1d<double,4> N;
     array_1d<double,12> ms_temp_vec_np;
 
     // Getting data for the given geometry
     double Area;
-    GeometryUtils::CalculateGeometryData(GetGeometry(), msDN_DX, msN, Area);
+    GeometryUtils::CalculateGeometryData(GetGeometry(), DN_DX, N, Area);
 
     // Plane strain constitutive matrix:
     boost::numeric::ublas::bounded_matrix<double,6,6>  ConstitutiveMatrix;
@@ -143,6 +143,11 @@ void StructuralMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideM
     ConstitutiveMatrix ( 1 , 2 ) = C01;
     ConstitutiveMatrix ( 2 , 1 ) = C01;
 
+
+
+
+
+
     // Setting up B-matrix
     boost::numeric::ublas::bounded_matrix<double,6,12>  B;
     B = ZeroMatrix(6,12);
@@ -150,9 +155,9 @@ void StructuralMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideM
     for(unsigned int i=0; i<number_of_points; i++)
     {
         // Spatial derivatives of shape function i
-        double D_X = msDN_DX(i,0);
-        double D_Y = msDN_DX(i,1);
-        double D_Z = msDN_DX(i,2);
+        double D_X = DN_DX(i,0);
+        double D_Y = DN_DX(i,1);
+        double D_Z = DN_DX(i,2);
 
         // Insert derivatives in B
         B ( 0 , 3*i ) = D_X;
@@ -175,7 +180,7 @@ void StructuralMeshMovingElem3D::CalculateLocalSystem(MatrixType& rLeftHandSideM
     // Compute dirichlet contribution
     for(unsigned int i=0; i<4; i++)
     {
-        array_1d<double,3>& disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double,3>& disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
         // Dirichlet contribution
         ms_temp_vec_np[i*3] = disp[0];

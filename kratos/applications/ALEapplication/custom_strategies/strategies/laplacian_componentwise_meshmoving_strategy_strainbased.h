@@ -1,14 +1,14 @@
 /* *********************************************************
 *
-*   Last Modified by:    $Author: dbaumgaertner $
-*   Date:                $Date: 2013-08-30 16:07:50 $
-*   Revision:            $Revision: 1.1.1.1 $
+*   Last Modified by:    $Author: Amini $
+*   Date:                $Date: 2013-10-30 16:07:50 $
+*   Revision:            $Revision: 1.0 $
 *
 * ***********************************************************/
 
 
-#if !defined(KRATOS_NEW_STRUCTURAL_MESHMOVING_STRATEGY )
-#define  KRATOS_NEW_STRUCTURAL_MESHMOVING_STRATEGY
+#if !defined(KRATOS_NEW_LAPLACIAN_COMPONENTWISE_MESHMOVING_STRATEGY_STRAINBASED )
+#define  KRATOS_NEW_LAPLACIAN_COMPONENTWISE_MESHMOVING_STRATEGY_STRAINBASED
 
 
 /* System includes */
@@ -21,16 +21,14 @@
 /* Project includes */
 #include "includes/define.h"
 #include "includes/model_part.h"
+#include "custom_elements/laplacian_componentwise_meshmoving_element_2d.h"
+#include "custom_elements/laplacian_componentwise_meshmoving_element_3d.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "custom_elements/structural_meshmoving_element_2d.h"
-#include "custom_elements/structural_meshmoving_element_3d.h"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
 #include "ale_application.h"
-#include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
-
-
-
+#include "custom_elements/laplacian_componentwise_meshmoving_element_2d_strainbased.h"
 
 namespace Kratos
 {
@@ -86,7 +84,7 @@ template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class StructuralMeshMovingStrategy
+class LaplacianComponentwiseMeshMovingStrategyStrainbased
     : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
@@ -94,7 +92,8 @@ public:
     /*@{ */
 
     /** Counted pointer of ClassName */
-    KRATOS_CLASS_POINTER_DEFINITION( StructuralMeshMovingStrategy );
+    //typedef boost::shared_ptr< LaplacianComponentwiseMeshMovingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> > Pointer;
+    KRATOS_CLASS_POINTER_DEFINITION( LaplacianComponentwiseMeshMovingStrategyStrainbased );
 
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
@@ -121,14 +120,12 @@ public:
 
     /** Constructor.
     */
-    StructuralMeshMovingStrategy(
+    LaplacianComponentwiseMeshMovingStrategyStrainbased(
         ModelPart& model_part,
         typename TLinearSolver::Pointer pNewLinearSolver,
         int dimension = 3,
         int velocity_order = 1,
         bool reform_dof_at_every_step = true
-
-
     )
         : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part)
     {
@@ -141,25 +138,49 @@ public:
         mvel_order = velocity_order;
         mreform_dof_at_every_step = reform_dof_at_every_step;
 
-
-
-        //linear strategy
-        //====================================================
-
         typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
-        typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
-        typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
+        typename SchemeType::Pointer pscheme = typename SchemeType::Pointer
+                                               ( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,  TDenseSpace >() );
 
         bool CalculateReactions = false;
-        bool ReformDofAtEachIteration = false;
+        bool ReformDofAtEachIteration = true;
         bool CalculateNormDxFlag = false;
 
 
+        //computation of the fractional vel velocity (first step)
+//			mstrategy = typename BaseType::Pointer(
+//				new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >
+//				(*mpMeshModelPart,pscheme,pNewLinearSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
+//			mstrategy->SetEchoLevel(2);
 
-        BuilderSolverTypePointer pBuilderSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(pNewLinearSolver) );
-        mstrategy = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(*mpMeshModelPart,pscheme,pNewLinearSolver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
-        mstrategy->SetEchoLevel(2);
+        typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
+//			typedef typename Variable< double > VarComponent;
 
+        typedef typename Kratos::VariableComponent<Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > > VarComponent;
+
+        BuilderSolverTypePointer var_x_build = BuilderSolverTypePointer(new	ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace,TDenseSpace,TLinearSolver, VarComponent >(pNewLinearSolver,DISPLACEMENT_X) );
+        BuilderSolverTypePointer var_y_build = BuilderSolverTypePointer(new	ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace,TDenseSpace,TLinearSolver, VarComponent >(pNewLinearSolver,DISPLACEMENT_Y) );
+        BuilderSolverTypePointer var_z_build = BuilderSolverTypePointer(new	ResidualBasedEliminationBuilderAndSolverComponentwise<TSparseSpace,TDenseSpace,TLinearSolver, VarComponent >(pNewLinearSolver,DISPLACEMENT_Z) );
+
+        mstrategy_x = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >				(*mpMeshModelPart,pscheme,pNewLinearSolver,var_x_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
+        mstrategy_x->SetEchoLevel(2);
+
+        mstrategy_y = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >				(*mpMeshModelPart,pscheme,pNewLinearSolver,var_y_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
+        mstrategy_y->SetEchoLevel(2);
+
+        mstrategy_z = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,  TDenseSpace, TLinearSolver >				(*mpMeshModelPart,pscheme,pNewLinearSolver,var_z_build,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag)  );
+        mstrategy_z->SetEchoLevel(2);
+
+        for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin() ;
+                i != (*mpMeshModelPart).NodesEnd() ; ++i)
+        {
+            if(!i->IsFixed(DISPLACEMENT_X))
+                (i)->GetSolutionStepValue(DISPLACEMENT_X) = 0.00;
+            if(!i->IsFixed(DISPLACEMENT_Y))
+                (i)->GetSolutionStepValue(DISPLACEMENT_Y) = 0.00;
+            if(!i->IsFixed(DISPLACEMENT_Z))
+                (i)->GetSolutionStepValue(DISPLACEMENT_Z) = 0.00;
+        }
 
         KRATOS_CATCH("")
     }
@@ -168,7 +189,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~StructuralMeshMovingStrategy() {}
+    virtual ~LaplacianComponentwiseMeshMovingStrategyStrainbased() {}
 
     /** Destructor.
     */
@@ -180,25 +201,84 @@ public:
     {
         KRATOS_TRY
 
-        // Mesh has to be regenerated in each solving step
         ReGenerateMeshPart();
+
+        unsigned int num_of_points = (*mpMeshModelPart).Nodes().size();
+        std::vector< double > disp_x;
+        disp_x.reserve(num_of_points);
+        std::vector< double > disp_y;
+        disp_y.reserve(num_of_points);
 
         ProcessInfo& rCurrentProcessInfo = (mpMeshModelPart)->GetProcessInfo();
 
-        // Updating the time
+        //updating the time
         rCurrentProcessInfo[TIME] = BaseType::GetModelPart().GetProcessInfo()[TIME];
         rCurrentProcessInfo[DELTA_TIME] = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
-        // Solve for the mesh movement
-        mstrategy->Solve();
+        //X DIRECTION
+        rCurrentProcessInfo[FRACTIONAL_STEP] = 1; //laplacian mesh moving type corresponds to -1
 
-        // Update FEM-base
+        mstrategy_x->Solve();
+
+        for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin() ;
+            i != (*mpMeshModelPart).NodesEnd() ; ++i)
+        {
+            double disp = (i)->GetSolutionStepValue(DISPLACEMENT_X);
+            disp_x.push_back(disp);
+
+            // overwrite the displacement with values from previous time step
+            (i)->GetSolutionStepValue(DISPLACEMENT_X,0) = (i)->GetSolutionStepValue(DISPLACEMENT_X,1);
+        }
+
+        //Y DIRECTION
+        if(mdimension > 1)
+        {
+            rCurrentProcessInfo[FRACTIONAL_STEP] = 2; //laplacian mesh moving type corresponds to -1
+
+            mstrategy_y->Solve();
+
+            for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin() ;
+                i != (*mpMeshModelPart).NodesEnd() ; ++i)
+            {
+                double disp = (i)->GetSolutionStepValue(DISPLACEMENT_Y);
+                disp_y.push_back(disp);
+
+                // overwrite the displacement with values from previous time step
+                (i)->GetSolutionStepValue(DISPLACEMENT_Y,0) = (i)->GetSolutionStepValue(DISPLACEMENT_Y,1);
+            }
+        }
+
+        //Z DIRECTION
+        if(mdimension > 2)
+        {
+            rCurrentProcessInfo[FRACTIONAL_STEP] = 3; //laplacian mesh moving type corresponds to -1
+
+            mstrategy_z->Solve();
+        }
+
+        //Finally, assign disp_x and disp_y to the DISPLACEMENT_X and DISPLACEMENT_Y of this model part
+        unsigned int index = 0;
+
+        for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin() ;
+            i != (*mpMeshModelPart).NodesEnd() ; i++)
+        {
+            (i)->GetSolutionStepValue(DISPLACEMENT_X,0) = disp_x[index];
+            (i)->GetSolutionStepValue(DISPLACEMENT_Y,0) = disp_y[index];
+            index++;
+        }
+
+
         CalculateMeshVelocities();
+
         BaseType::MoveMesh();
 
-        // Clearing the system if needed
+        //clearing the system if needed
         if(mreform_dof_at_every_step == true)
-            mstrategy->Clear();
+        {
+            mstrategy_x->Clear();
+            mstrategy_y->Clear();
+            mstrategy_z->Clear();
+        }
 
         return 0.0;
 
@@ -247,7 +327,9 @@ public:
 
     virtual void SetEchoLevel(int Level)
     {
-        mstrategy->SetEchoLevel(Level);
+        mstrategy_x->SetEchoLevel(Level);
+        mstrategy_y->SetEchoLevel(Level);
+        mstrategy_z->SetEchoLevel(Level);
     }
 
     void MoveNodes()
@@ -332,13 +414,13 @@ private:
     /*@{ */
     ModelPart::Pointer mpMeshModelPart;
 
-    typename BaseType::Pointer mstrategy;
+    typename BaseType::Pointer mstrategy_x;
+    typename BaseType::Pointer mstrategy_y;
+    typename BaseType::Pointer mstrategy_z;
 
     int mdimension;
     int mvel_order;
     bool mreform_dof_at_every_step;
-    double mtol;
-    int mmax_it;
 
     /*@} */
     /**@name Private Operators*/
@@ -351,19 +433,11 @@ private:
     void GenerateMeshPart(int dimension)
     {
         mpMeshModelPart = ModelPart::Pointer( new ModelPart("MeshPart",1) );
-
-        mpMeshModelPart->SetProcessInfo( BaseType::GetModelPart().pGetProcessInfo() );
-        mpMeshModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize() );
-        mpMeshModelPart->SetProperties( BaseType::GetModelPart().pProperties() );
-
-        // Initializing mesh nodes
+        //initializing mesh nodes
         mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
+        //mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
 
-        // Removing existing mesh conditions
-        mpMeshModelPart->Conditions().clear();
-
-
-        // Creating mesh elements
+        //creating mesh elements
         ModelPart::ElementsContainerType& MeshElems = mpMeshModelPart->Elements();
         Element::Pointer pElem;
 
@@ -371,33 +445,32 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem2D(
+                pElem = Element::Pointer(new LaplacianComponentwiseMeshMovingElem2DStrainbased(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
                 MeshElems.push_back(pElem);
             }
-        else if(dimension == 3)
+        if(dimension == 3)
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem3D(
+                pElem = Element::Pointer(new LaplacianComponentwiseMeshMovingElem3D(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
                 MeshElems.push_back(pElem);
             }
+//KRATOS_WATCH((mpMeshModelPart->Elements()).size());
+//KRATOS_WATCH((mpMeshModelPart->Nodes()).size());
+//KRATOS_WATCH(mpMeshModelPart->GetMesh());
     }
 
     void ReGenerateMeshPart()
     {
         std::cout << "regenerating elements for the mesh motion scheme" << std::endl;
 
-        mpMeshModelPart->SetProcessInfo( BaseType::GetModelPart().pGetProcessInfo() );
-        mpMeshModelPart->SetBufferSize( BaseType::GetModelPart().GetBufferSize() );
-        mpMeshModelPart->SetProperties( BaseType::GetModelPart().pProperties() );
-
-        // Initializing mesh nodes
+        //initializing mesh nodes
         mpMeshModelPart->Nodes().clear();
         mpMeshModelPart->Nodes() = BaseType::GetModelPart().Nodes();
 
@@ -408,29 +481,28 @@ private:
         MeshElems.clear();
         MeshElems.reserve( MeshElems.size() );
 
-        // Removing existing mesh conditions
-        mpMeshModelPart->Conditions().clear();
-
         if(mdimension == 2)
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem2D(
+                pElem = Element::Pointer(new LaplacianComponentwiseMeshMovingElem2DStrainbased(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
                 MeshElems.push_back(pElem);
             }
-        else if(mdimension == 3)
+        else
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem3D(
+                pElem = Element::Pointer(new LaplacianComponentwiseMeshMovingElem3D(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
                 MeshElems.push_back(pElem);
             }
+
+        KRATOS_WATCH(MeshElems.size());
     }
 
     /*@} */
@@ -449,12 +521,12 @@ private:
 
     /** Copy constructor.
     */
-    StructuralMeshMovingStrategy(const StructuralMeshMovingStrategy& Other);
+    LaplacianComponentwiseMeshMovingStrategyStrainbased(const LaplacianComponentwiseMeshMovingStrategyStrainbased& Other);
 
 
     /*@} */
 
-}; /* Class StructuralMeshMovingStrategy */
+}; /* Class LaplacianComponentwiseMeshMovingStrategyStrainbased */
 
 /*@} */
 
@@ -466,5 +538,5 @@ private:
 
 }  /* namespace Kratos.*/
 
-#endif /* KRATOS_NEW_STRUCTURAL_MESHMOVING_STRATEGY  defined */
+#endif /* KRATOS_NEW_LAPLACIAN_COMPONENTWISE_MESHMOVING_STRATEGY_STRAINBASED  defined */
 

@@ -44,15 +44,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: dbaumgaertner $
-//   Date:                $Date: 2007-08-30 10:30:31 $
-//   Revision:            $Revision: 1.2 $
+//   Last Modified by:    $Author: AMini $
+//   Date:                $Date: Nov. 2013 $
+//   Revision:            $Revision: 1.0 $
 //
 //
 
 
-#if !defined(KRATOS_STRUCTURAL_MESHMOVING_ELEM_2D_INCLUDED )
-#define  KRATOS_STRUCTURAL_MESHMOVING_ELEM_2D_INCLUDED
+#if !defined(KRATOS_STRUCTURAL_MESHMOVING_ELEM_2D_NONLINEAR_INCLUDED )
+#define  KRATOS_STRUCTURAL_MESHMOVING_ELEM_2D_NONLINEAR_INCLUDED
 
 
 
@@ -92,10 +92,16 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+
+/// This class implements a structural structural-meshsolver in 2D using non-linear kinematics
+/**
+ *Implements a mesh-solver in 2D treating the mesh as a structure using a linear elastic
+ *material law. The kinemematics are implemented non-linear. In Addition the solver
+ *can be stabilized by an exponential law using an exponential law containing the
+ *Jacobi determinant.
 */
-class StructuralMeshMovingElem2D
+
+class StructuralMeshMovingElem2DNonlin
     : public Element
 {
 public:
@@ -103,18 +109,18 @@ public:
     ///@{
 
     /// Counted pointer of StructuralMeshMovingElem2D
-    KRATOS_CLASS_POINTER_DEFINITION(StructuralMeshMovingElem2D);
+    KRATOS_CLASS_POINTER_DEFINITION(StructuralMeshMovingElem2DNonlin);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    StructuralMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry);
-    StructuralMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    StructuralMeshMovingElem2DNonlin(IndexType NewId, GeometryType::Pointer pGeometry);
+    StructuralMeshMovingElem2DNonlin(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~StructuralMeshMovingElem2D();
+    virtual ~StructuralMeshMovingElem2DNonlin();
 
 
     ///@}
@@ -136,6 +142,8 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
+
+
 
     //void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
@@ -213,8 +221,8 @@ private:
 
 
     /*		static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
-      		static array_1d<double,3> msN; //dimension = number of nodes
-      		static array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes*/
+            static array_1d<double,3> msN; //dimension = number of nodes
+            static array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes*/
 
     ///@}
     ///@name Member Variables
@@ -229,7 +237,7 @@ private:
 
     friend class Serializer;
 
-    StructuralMeshMovingElem2D() {}
+    StructuralMeshMovingElem2DNonlin() {}
 
     ///@}
     ///@name Private Operators
@@ -264,7 +272,7 @@ private:
 
     ///@}
 
-}; // Class StructuralMeshMovingElem2D
+}; // Class StructuralMeshMovingElem2DNonlin
 
 ///@}
 
@@ -279,11 +287,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-                    StructuralMeshMovingElem2D& rThis);
+                    StructuralMeshMovingElem2DNonlin& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-                    const StructuralMeshMovingElem2D& rThis)
+                    const StructuralMeshMovingElem2DNonlin& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -295,6 +303,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIANGULAR_LAPLACIAN_MESHMOVING_ELEM_2D_H_INCLUDED  defined 
+#endif // KRATOS_TRIANGULAR_STRUCTURAL_MESHMOVING_ELEM_2D_NONLINEAR_H_INCLUDED  defined
 
 

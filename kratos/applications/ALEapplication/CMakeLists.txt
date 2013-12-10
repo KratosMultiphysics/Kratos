@@ -13,6 +13,10 @@ set( KRATOS_ALE_APPLICATION_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/structural_meshmoving_element_2d.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/structural_meshmoving_element_3d.cpp
 
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/laplacian_componentwise_meshmoving_element_2d_strainbased.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/structural_meshmoving_element_2d_nonlinear.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/structural_meshmoving_element_3d_nonlinear.cpp
+
 	${CMAKE_CURRENT_SOURCE_DIR}/ale_application.cpp 
 
 	${CMAKE_CURRENT_SOURCE_DIR}/custom_python/add_custom_strategies_to_python.cpp 

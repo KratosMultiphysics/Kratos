@@ -44,15 +44,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: dbaumgaertner $
-//   Date:                $Date: 2007-08-30 10:30:31 $
-//   Revision:            $Revision: 1.2 $
+//   Last Modified by:    $Author: AMini $
+//   Date:                $Date: Nov 2013 $
+//   Revision:            $Revision: 1.0 $
 //
 //
 
 
-#if !defined(KRATOS_STRUCTURAL_MESHMOVING_ELEM_2D_INCLUDED )
-#define  KRATOS_STRUCTURAL_MESHMOVING_ELEM_2D_INCLUDED
+#if !defined(KRATOS_STRUCTURAL_MESHMOVING_ELEM_3D_NONLINEAR_INCLUDED )
+#define  KRATOS_STRUCTURAL_MESHMOVING_ELEM_3D_NONLINEAR_INCLUDED
 
 
 
@@ -92,29 +92,33 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
+/// This class implements a structural structural-meshsolver in 3D using non-linear kinematics
+/**
+ *Implements a mesh-solver in 3D treating the mesh as a structure using a linear elastic
+ *material law. The kinemematics are implemented non-linear. In Addition the solver
+ *can be stabilized by an exponential law using an exponential law containing the
+ *Jacobi determinant.
 */
-class StructuralMeshMovingElem2D
+class StructuralMeshMovingElem3DNonlin
     : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of StructuralMeshMovingElem2D
-    KRATOS_CLASS_POINTER_DEFINITION(StructuralMeshMovingElem2D);
+    /// Counted pointer of StructuralMeshMovingElem3DNonlin
+    KRATOS_CLASS_POINTER_DEFINITION(StructuralMeshMovingElem3DNonlin);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    StructuralMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry);
-    StructuralMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    StructuralMeshMovingElem3DNonlin(IndexType NewId, GeometryType::Pointer pGeometry);
+    StructuralMeshMovingElem3DNonlin(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~StructuralMeshMovingElem2D();
+    virtual ~StructuralMeshMovingElem3DNonlin();
 
 
     ///@}
@@ -130,14 +134,9 @@ public:
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo);
-    //virtual void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo);
-
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
-
-    //void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
     ///@}
     ///@name Access
@@ -210,11 +209,9 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-
-
-    /*		static boost::numeric::ublas::bounded_matrix<double,3,2> msDN_DX;
-      		static array_1d<double,3> msN; //dimension = number of nodes
-      		static array_1d<double,3> ms_temp_vec_np; //dimension = number of nodes*/
+    /*		static boost::numeric::ublas::bounded_matrix<double,4,3> msDN_DX;
+      		static array_1d<double,4> msN; //dimension = number of nodes
+      		static array_1d<double,4> ms_temp_vec_np; //dimension = number of nodes*/
 
     ///@}
     ///@name Member Variables
@@ -223,13 +220,16 @@ private:
         double mJ0;
         double mxi;
 
+
+
     ///@}
     ///@name Serialization
     ///@{
 
     friend class Serializer;
 
-    StructuralMeshMovingElem2D() {}
+    StructuralMeshMovingElem3DNonlin() {}
+
 
     ///@}
     ///@name Private Operators
@@ -256,15 +256,15 @@ private:
 
 
     /// Assignment operator.
-    //StructuralMeshMovingElem2D& operator=(const StructuralMeshMovingElem2D& rOther);
+    //StructuralMeshMovingElem3DNonlin& operator=(const StructuralMeshMovingElem3DNonlin& rOther);
 
     /// Copy constructor.
-    //StructuralMeshMovingElem2D(const StructuralMeshMovingElem2D& rOther);
+    //StructuralMeshMovingElem3DNonlin(const StructuralMeshMovingElem3DNonlin& rOther);
 
 
     ///@}
 
-}; // Class StructuralMeshMovingElem2D
+}; // Class StructuralMeshMovingElem3DNonlin
 
 ///@}
 
@@ -279,11 +279,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-                    StructuralMeshMovingElem2D& rThis);
+                    StructuralMeshMovingElem3DNonlin& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-                    const StructuralMeshMovingElem2D& rThis)
+                    const StructuralMeshMovingElem3DNonlin& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -295,6 +295,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIANGULAR_LAPLACIAN_MESHMOVING_ELEM_2D_H_INCLUDED  defined 
+#endif // KRATOS_STRUCTURAL_MESHMOVING_ELEM_3D_INCLUDED  defined
 
 

@@ -44,15 +44,15 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //
 //   Project Name:        Kratos
-//   Last Modified by:    $Author: dbaumgaertner $
-//   Date:                $Date: 2007-08-30 10:30:31 $
-//   Revision:            $Revision: 1.2 $
+//   Last modified by:    $Author: AMini $
+//   Date:                $Date: Oct 2013 $
+//   Revision:            $Revision: 1.0 $
 //
 //
 
 
-#if !defined(KRATOS_STRUCTURAL_MESHMOVING_ELEM_2D_INCLUDED )
-#define  KRATOS_STRUCTURAL_MESHMOVING_ELEM_2D_INCLUDED
+#if !defined(KRATOS_TRIANGULAR_LAPLACIAN_COMPONENTWISE_MESHMOVING_ELEM_2D_STRAINBASED_H_INCLUDED )
+#define  KRATOS_TRIANGULAR_LAPLACIAN_COMPONENTWISE_MESHMOVING_ELEM_2D_STRAINBASED_H_INCLUDED
 
 
 
@@ -95,26 +95,26 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class StructuralMeshMovingElem2D
+class LaplacianComponentwiseMeshMovingElem2DStrainbased
     : public Element
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of StructuralMeshMovingElem2D
-    KRATOS_CLASS_POINTER_DEFINITION(StructuralMeshMovingElem2D);
+    /// Counted pointer of LaplacianComponentwiseMeshMovingElem2DStrainbased
+    KRATOS_CLASS_POINTER_DEFINITION(LaplacianComponentwiseMeshMovingElem2DStrainbased);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    StructuralMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry);
-    StructuralMeshMovingElem2D(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+    LaplacianComponentwiseMeshMovingElem2DStrainbased(IndexType NewId, GeometryType::Pointer pGeometry);
+    LaplacianComponentwiseMeshMovingElem2DStrainbased(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
 
     /// Destructor.
-    virtual ~StructuralMeshMovingElem2D();
+    virtual ~LaplacianComponentwiseMeshMovingElem2DStrainbased();
 
 
     ///@}
@@ -136,8 +136,6 @@ public:
     void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo);
 
     void GetDofList(DofsVectorType& ElementalDofList,ProcessInfo& CurrentProcessInfo);
-
-    //void FinalizeSolutionStep(ProcessInfo& CurrentProcessInfo);
 
     ///@}
     ///@name Access
@@ -219,9 +217,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-        double mJold;
-        double mJ0;
-        double mxi;
+
 
     ///@}
     ///@name Serialization
@@ -229,7 +225,7 @@ private:
 
     friend class Serializer;
 
-    StructuralMeshMovingElem2D() {}
+    LaplacianComponentwiseMeshMovingElem2DStrainbased() {}
 
     ///@}
     ///@name Private Operators
@@ -256,15 +252,15 @@ private:
 
 
     /// Assignment operator.
-    //StructuralMeshMovingElem2D& operator=(const StructuralMeshMovingElem2D& rOther);
+    //LaplacianComponentwiseMeshMovingElem2DStrainbased& operator=(const LaplacianComponentwiseMeshMovingElem2DStrainbased& rOther);
 
     /// Copy constructor.
-    //StructuralMeshMovingElem2D(const StructuralMeshMovingElem2D& rOther);
+    //LaplacianComponentwiseMeshMovingElem2DStrainbased(const LaplacianComponentwiseMeshMovingElem2DStrainbased& rOther);
 
 
     ///@}
 
-}; // Class StructuralMeshMovingElem2D
+}; // Class LaplacianComponentwiseMeshMovingElem2DStrainbased
 
 ///@}
 
@@ -279,11 +275,11 @@ private:
 
 /// input stream function
 /*  inline std::istream& operator >> (std::istream& rIStream,
-                    StructuralMeshMovingElem2D& rThis);
+                    LaplacianComponentwiseMeshMovingElem2DStrainbased& rThis);
 */
 /// output stream function
 /*  inline std::ostream& operator << (std::ostream& rOStream,
-                    const StructuralMeshMovingElem2D& rThis)
+                    const LaplacianComponentwiseMeshMovingElem2DStrainbased& rThis)
     {
       rThis.PrintInfo(rOStream);
       rOStream << std::endl;
@@ -295,6 +291,6 @@ private:
 
 }  // namespace Kratos.
 
-#endif // KRATOS_TRIANGULAR_LAPLACIAN_MESHMOVING_ELEM_2D_H_INCLUDED  defined 
+#endif // KRATOS_TRIANGULAR_LAPLACIAN_COMPONENTWISE_MESHMOVING_ELEM_2D_STRAINBASED_H_INCLUDED  defined
 
 
