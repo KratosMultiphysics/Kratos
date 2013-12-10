@@ -18,9 +18,9 @@ def AddDofs(model_part):
     print "variables for the mesh solver added correctly"
 
 
-class MeshSolverStructuralSimilarity:
+class MeshSolverStructuralSimilarityNonlin:
     
-    def __init__(self,model_part,domain_size,reform_dof_at_every_step):
+    def __init__(self,model_part,domain_size,reform_dof_at_every_step,NonLinearTol,MaxIter):
 
         # set parameters
 	self.time_order = 2
@@ -28,6 +28,9 @@ class MeshSolverStructuralSimilarity:
         self.domain_size = domain_size
         self.reform_dof_at_every_step = reform_dof_at_every_step
 
+        #for non-linear
+        self.NonLinearTol = NonLinearTol
+        self.MaxIter = MaxIter
         
         # neighbour search
         number_of_avg_elems = 10
@@ -36,7 +39,7 @@ class MeshSolverStructuralSimilarity:
         
         #definition of the solvers
         tol = 1e-6
-        max_it = 1000
+        max_it = 300
         verbosity = 1
         m = 100
         self.linear_solver = AMGCLSolver(AMGCLSmoother.DAMPED_JACOBI, AMGCLIterativeSolverType.BICGSTAB,tol,max_it,verbosity,m)
@@ -50,7 +53,7 @@ class MeshSolverStructuralSimilarity:
     def Initialize(self):
         (self.neighbour_search).Execute()
         
-        self.solver = StructuralMeshMovingStrategy(self.model_part,self.linear_solver,self.domain_size, self.time_order,self.reform_dof_at_every_step)
+        self.solver = StructuralMeshMovingStrategyNonlin(self.model_part,self.linear_solver,self.domain_size, self.time_order,self.reform_dof_at_every_step, self.NonLinearTol, self.MaxIter)
         (self.solver).SetEchoLevel(0)
         print "Finished moving the mesh"
 

@@ -37,8 +37,12 @@ KratosALEApplication::KratosALEApplication():
     mLaplacianComponentwiseMeshMovingElem2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
     mLaplacianComponentwiseMeshMovingElem3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
     mStructuralMeshMovingElem2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
-    mStructuralMeshMovingElem3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>()))))
+    mStructuralMeshMovingElem3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4, Node<3>())))),
+    mLaplacianComponentwiseMeshMovingElem2DStrainbased(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mStructuralMeshMovingElem2DNonlin(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
+    mStructuralMeshMovingElem3DNonlin(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))))
 {}
+
 
 void KratosALEApplication::Register()
 {
@@ -54,7 +58,9 @@ void KratosALEApplication::Register()
     KRATOS_REGISTER_ELEMENT("LaplacianComponentwiseMeshMovingElemt2D", mLaplacianComponentwiseMeshMovingElem2D);
     KRATOS_REGISTER_ELEMENT("LaplacianComponentwiseMeshMovingElemt3D", mLaplacianComponentwiseMeshMovingElem3D);
     KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElemt2D", mStructuralMeshMovingElem2D);
-    KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElemt3D", mStructuralMeshMovingElem3D);
+    KRATOS_REGISTER_ELEMENT("LaplacianComponentwiseMeshMovingElemt2D", mLaplacianComponentwiseMeshMovingElem2DStrainbased);
+    KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElemt2DNonlin", mStructuralMeshMovingElem2DNonlin);
+    KRATOS_REGISTER_ELEMENT("StructuralMeshMovingElemt3DNonlin", mStructuralMeshMovingElem3DNonlin);
 
 }
 

@@ -1,14 +1,14 @@
 /* *********************************************************
 *
-*   Last Modified by:    $Author: dbaumgaertner $
-*   Date:                $Date: 2013-08-30 16:07:50 $
-*   Revision:            $Revision: 1.1.1.1 $
+*   Last Modified by:    $Author: AMini $
+*   Date:                $Date: Dez 2013 $
+*   Revision:            $Revision: 1.0 $
 *
 * ***********************************************************/
 
 
-#if !defined(KRATOS_NEW_STRUCTURAL_MESHMOVING_STRATEGY )
-#define  KRATOS_NEW_STRUCTURAL_MESHMOVING_STRATEGY
+#if !defined(KRATOS_NEW_STRUCTURAL_MESHMOVING_STRATEGY_NONLINEAR )
+#define  KRATOS_NEW_STRUCTURAL_MESHMOVING_STRATEGY_NONLINEAR
 
 
 /* System includes */
@@ -24,12 +24,18 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
-#include "custom_elements/structural_meshmoving_element_2d.h"
-#include "custom_elements/structural_meshmoving_element_3d.h"
+#include "custom_elements/structural_meshmoving_element_2d_nonlinear.h"
+#include "custom_elements/structural_meshmoving_element_3d_nonlinear.h"
 #include "ale_application.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
 
+//includes for non-linear solver
+#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
+#include "solving_strategies/schemes/residualbased_incremental_aitken_static_scheme.h"
+#include "solving_strategies/builder_and_solvers/residualbased_elimination_builder_and_solver_componentwise.h"
+#include "solving_strategies/convergencecriterias/residual_criteria.h"
+#include "spaces/ublas_space.h"
 
 
 namespace Kratos
@@ -60,8 +66,24 @@ namespace Kratos
 /**@name Kratos Classes */
 /*@{ */
 
-/// Short class definition.
-/**   Detail class definition.
+/** Short class definition.
+
+Detail class definition.
+
+Current class provides an implementation for standard builder and solving operations.
+
+the RHS is constituted by the unbalanced loads (residual)
+
+Degrees of freedom are reordered putting the restrained degrees of freedom at
+the end of the system ordered in reverse order with respect to the DofSet.
+
+Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
+this information.
+
+Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+
+The non-linear system of equations is solved by a Newton-Raphson iteration.
+
 
 \URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
 
@@ -81,12 +103,12 @@ namespace Kratos
 \URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
 
 
-*/
+ */
 template<class TSparseSpace,
          class TDenseSpace, //= DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
          >
-class StructuralMeshMovingStrategy
+class StructuralMeshMovingStrategyNonlin
     : public SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>
 {
 public:
@@ -94,7 +116,7 @@ public:
     /*@{ */
 
     /** Counted pointer of ClassName */
-    KRATOS_CLASS_POINTER_DEFINITION( StructuralMeshMovingStrategy );
+    KRATOS_CLASS_POINTER_DEFINITION( StructuralMeshMovingStrategyNonlin );
 
     typedef SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver> BaseType;
 
@@ -121,13 +143,14 @@ public:
 
     /** Constructor.
     */
-    StructuralMeshMovingStrategy(
+    StructuralMeshMovingStrategyNonlin(
         ModelPart& model_part,
         typename TLinearSolver::Pointer pNewLinearSolver,
         int dimension = 3,
         int velocity_order = 1,
-        bool reform_dof_at_every_step = true
-
+        bool reform_dof_at_every_step = true,
+        double NonLinearTol = 10e-5,    //default value
+        int MaxIter = 50                //default value
 
     )
         : SolvingStrategy<TSparseSpace,TDenseSpace,TLinearSolver>(model_part)
@@ -140,26 +163,36 @@ public:
         mdimension = dimension;
         mvel_order = velocity_order;
         mreform_dof_at_every_step = reform_dof_at_every_step;
+        mtol = NonLinearTol;
+        mmax_it = MaxIter;
 
-
-
-        //linear strategy
-        //====================================================
 
         typedef Scheme< TSparseSpace,  TDenseSpace > SchemeType;
         typename SchemeType::Pointer pscheme = typename SchemeType::Pointer( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,TDenseSpace >() );
         typedef typename BuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>::Pointer BuilderSolverTypePointer;
 
+
         bool CalculateReactions = false;
         bool ReformDofAtEachIteration = false;
-        bool CalculateNormDxFlag = false;
-
+        //bool CalculateNormDxFlag = false;
 
 
         BuilderSolverTypePointer pBuilderSolver = BuilderSolverTypePointer(new ResidualBasedBlockBuilderAndSolver<TSparseSpace,TDenseSpace,TLinearSolver>(pNewLinearSolver) );
-        mstrategy = typename BaseType::Pointer( new ResidualBasedLinearStrategy<TSparseSpace,TDenseSpace,TLinearSolver >(*mpMeshModelPart,pscheme,pNewLinearSolver,pBuilderSolver,CalculateReactions,ReformDofAtEachIteration,CalculateNormDxFlag) );
+
+        // Convergence criteria
+        typedef typename ConvergenceCriteria< TSparseSpace, TDenseSpace >::Pointer ConvergenceCriteriaPointerType;
+        typedef typename SolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Pointer StrategyPointerType;
+
+
+        double NearlyZero = 1.0e-20;
+        ConvergenceCriteriaPointerType pConvCriteria = ConvergenceCriteriaPointerType( new ResidualCriteria<TSparseSpace,TDenseSpace>(NonLinearTol,NearlyZero) );
+
+        bool MoveMesh = false;
+
+        mstrategy = StrategyPointerType( new ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(*mpMeshModelPart,pscheme,pNewLinearSolver,pConvCriteria,pBuilderSolver,MaxIter,CalculateReactions,ReformDofAtEachIteration,MoveMesh));
         mstrategy->SetEchoLevel(2);
 
+        //====================================================
 
         KRATOS_CATCH("")
     }
@@ -168,7 +201,7 @@ public:
 
     /** Destructor.
     */
-    virtual ~StructuralMeshMovingStrategy() {}
+    virtual ~StructuralMeshMovingStrategyNonlin() {}
 
     /** Destructor.
     */
@@ -189,8 +222,13 @@ public:
         rCurrentProcessInfo[TIME] = BaseType::GetModelPart().GetProcessInfo()[TIME];
         rCurrentProcessInfo[DELTA_TIME] = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
 
+        //copy step
+
         // Solve for the mesh movement
         mstrategy->Solve();
+
+
+        //copy back
 
         // Update FEM-base
         CalculateMeshVelocities();
@@ -371,7 +409,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem2D(
+                pElem = Element::Pointer(new StructuralMeshMovingElem2DNonlin(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
@@ -381,7 +419,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem3D(
+                pElem = Element::Pointer(new StructuralMeshMovingElem3DNonlin(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
@@ -415,7 +453,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem2D(
+                pElem = Element::Pointer(new StructuralMeshMovingElem2DNonlin(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
@@ -425,7 +463,7 @@ private:
             for(ModelPart::ElementsContainerType::iterator it =  BaseType::GetModelPart().ElementsBegin();
                     it != BaseType::GetModelPart().ElementsEnd(); it++)
             {
-                pElem = Element::Pointer(new StructuralMeshMovingElem3D(
+                pElem = Element::Pointer(new StructuralMeshMovingElem3DNonlin(
                                              (*it).Id(),
                                              (*it).pGetGeometry(),
                                              (*it).pGetProperties() ) );
@@ -449,12 +487,12 @@ private:
 
     /** Copy constructor.
     */
-    StructuralMeshMovingStrategy(const StructuralMeshMovingStrategy& Other);
+    StructuralMeshMovingStrategyNonlin(const StructuralMeshMovingStrategyNonlin& Other);
 
 
     /*@} */
 
-}; /* Class StructuralMeshMovingStrategy */
+}; /* Class StructuralMeshMovingStrategyNonlin */
 
 /*@} */
 

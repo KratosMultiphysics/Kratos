@@ -118,10 +118,10 @@ void LaplacianComponentwiseMeshMovingElem3D::CalculateLocalSystem(MatrixType& rL
     noalias(rLeftHandSideMatrix) = ZeroMatrix(number_of_points,number_of_points);
     noalias(rLeftHandSideMatrix) = prod(msDN_DX,trans(msDN_DX));
 
-    const array_1d<double,3>& disp0 = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
-    const array_1d<double,3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT);
-    const array_1d<double,3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT);
-    const array_1d<double,3>& disp3 = GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT);
+    const array_1d<double,3>& disp0 = GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT,0)-GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT,1);
+    const array_1d<double,3>& disp1 = GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT,0)-GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT,1);
+    const array_1d<double,3>& disp2 = GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT,0)-GetGeometry()[2].FastGetSolutionStepValue(DISPLACEMENT,1);
+    const array_1d<double,3>& disp3 = GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT,0)-GetGeometry()[3].FastGetSolutionStepValue(DISPLACEMENT,1);
 
     //dirichlet contribution
     ms_temp_vec_np[0] = disp0[ComponentIndex];
@@ -158,7 +158,7 @@ void LaplacianComponentwiseMeshMovingElem3D::CalculateLocalSystem(MatrixType& rL
         // compute strains
         for(unsigned int i = 0; i < number_of_points; i++) // loop over the three nodes
         {
-            disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+            disp = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,0)-GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
 
             grad(0,0) += msDN_DX(i,0)*disp[0];
             grad(1,0) += msDN_DX(i,1)*disp[0];

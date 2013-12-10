@@ -37,7 +37,7 @@ class MeshSolver:
         pILUPrecond = ILU0Preconditioner()
 	self.linear_solver =  DeflatedCGSolver(1e-6, 3000, True,1000)
         #self.linear_solver =  BICGSTABSolver(1e-3, 300,pILUPrecond)
-        #self.linear_solver = ScalingSolver( DeflatedCGSolver(1e-6, 3000, True,1000) , True)
+        self.linear_solver = ScalingSolver( DeflatedCGSolver(1e-6, 3000, True,1000) , True)
 
     def Initialize(self):
         (self.neighbour_search).Execute()

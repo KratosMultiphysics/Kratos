@@ -143,7 +143,7 @@ public:
                                                ( new ResidualBasedIncrementalUpdateStaticScheme< TSparseSpace,  TDenseSpace >() );
 
         bool CalculateReactions = false;
-        bool ReformDofAtEachIteration = false;
+        bool ReformDofAtEachIteration = true;
         bool CalculateNormDxFlag = false;
 
 
