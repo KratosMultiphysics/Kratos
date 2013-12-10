@@ -85,43 +85,42 @@ namespace Kratos
          
          std::cout << "---------------------CONTINUUM EXPLICIT SOLVER STRATEGY-------------------------------" << "\n" <<std::endl;
 
-          ModelPart& rModelPart            = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+          ModelPart& r_model_part            = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
         
-          
-          
           mFixSwitch        = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];
           mFixHorizontalVel = rCurrentProcessInfo[FIX_HORIZONTAL_VEL];
           mStepFixVel       = rCurrentProcessInfo[STEP_FIX_VELOCITIES];
           mDempackOption    = bool(rCurrentProcessInfo[DEMPACK_OPTION]); 
           
-          unsigned int NumberOfElements = rModelPart.GetCommunicator().LocalMesh().Elements().size();
+          unsigned int number_of_elements = r_model_part.GetCommunicator().LocalMesh().Elements().size();
           
-          if(this->GetResults().size() != NumberOfElements)
-            this->GetResults().resize(NumberOfElements);
+          if(this->GetResults().size() != number_of_elements)
+            this->GetResults().resize(number_of_elements);
           
-          this->GetResultsDistances().resize(NumberOfElements);
-          this->GetRadius().resize(NumberOfElements);
+          this->GetResultsDistances().resize(number_of_elements);
           
+           
+          //Cfeng
+          this->GetRigidFaceResults().resize(number_of_elements);
+          this->GetRigidFaceResultsDistances().resize(number_of_elements);
+
+
           // Omp initializations
           this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
      
           rCurrentProcessInfo[ACTIVATE_SEARCH_VECTOR].resize(this->GetNumberOfThreads());
           this->GetNeighbourCounter().resize(this->GetNumberOfThreads());
           
-          // 0. Set search radius
-          BaseType::SetSearchRadius(rModelPart, 1.0);
-
-          // 1. Search Neighbours with tolerance (Not in mpi.)
           this->GetBoundingBoxOption()     = rCurrentProcessInfo[BOUNDING_BOX_OPTION];
 
-          // 2. Initializing elements and perform the repartition
-          //if (this->GetElementsAreInitialized() == false){
-            BaseType::InitializeSolutionStep();
-            BaseType::InitializeElements();
-          //}
+          BaseType::InitializeSolutionStep();
+          BaseType::InitializeElements();
   
           this->GetInitializeWasPerformed() = true;
+          
+          // 0. Set search radius
+          BaseType::SetSearchRadius(r_model_part, 1.0);
 
           // 3. Search Neighbours with tolerance (after first repartition process)
           BaseType::SearchNeighbours();
@@ -129,36 +128,25 @@ namespace Kratos
            if(this->GetDeltaOption() == 2)
           {
           
-            BaseType::SetCoordinationNumber(rModelPart);
+            BaseType::SetCoordinationNumber(r_model_part);
             
           }
-          
-          
-          
-          
-          //the search radius is modified for the next steps.
-        
-          BaseType::SetSearchRadius(rModelPart, rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
-                      
-          /*
-          if(rCurrentProcessInfo[DELTA_OPTION])
-          {
-            double amplification = rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION];
-            
-            #pragma omp parallel for
-            for(unsigned int i=0; i<this->GetRadius().size(); i++)
-            { 
-              this->GetRadius()[i] *= (amplification);      
-            } 
-
-          }*/
-         
           // 4. Set Initial Contacts
           
           if( rCurrentProcessInfo[CASE_OPTION] !=0 ) 
           {            
             this->Set_Initial_Contacts();
           }   
+          
+          BaseType::ComputeNewNeighboursHistoricalData();                    
+          
+          BaseType::SearchRigidFaceNeighbours();
+          BaseType::ComputeNewRigidFaceNeighboursHistoricalData();
+
+          
+          //the search radius is modified for the next steps.
+        
+          BaseType::SetSearchRadius(r_model_part, rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
 
           
           if(rCurrentProcessInfo[CONTACT_MESH_OPTION] == 1)
@@ -180,8 +168,7 @@ namespace Kratos
           
           }  
           
-           BaseType::ComputeNewNeighboursHistoricalData();                    
-          
+     
           // 5. Finalize Solution Step
           
           BaseType::FinalizeSolutionStep();
@@ -196,46 +183,27 @@ namespace Kratos
       {
             
           KRATOS_TRY
-          
-          //KRATOS_TIMER_START("SOLVE")
-
-          //KRATOS_TIMER_START("BEGIN")
-          ModelPart& rModelPart            = BaseType::GetModelPart();
-          ProcessInfo& rCurrentProcessInfo = rModelPart.GetProcessInfo();
+   
+          ModelPart& r_model_part            = BaseType::GetModelPart();
+          ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
 
           int time_step = rCurrentProcessInfo[TIME_STEPS];
-          //KRATOS_TIMER_STOP("BEGIN")
-
-          //STRATEGY:
-          // 1. Here we initialize member variables that depend on the rCurrentProcessInfo
-          ////KRATOS_TIMER_START("InitializeSolutionStep")
-          //BaseType::InitializeSolutionStep();
-          ////KRATOS_TIMER_STOP("InitializeSolutionStep")
-          
-          //KRATOS_TIMER_START("Contact_InitializeSolutionStep")
+ 
           this->Contact_InitializeSolutionStep();
-          //KRATOS_TIMER_STOP("Contact_InitializeSolutionStep")
-          
-          // 2. Get and Calculate the forces
-          //KRATOS_TIMER_START("GetForce")
+    
           BaseType::GetForce();
-          //KRATOS_TIMER_STOP("GetForce")
+
           if(mDempackOption)
           {
             this->GlobalDamping();
           }                    
-          // 3. Motion Integration
-          //KRATOS_TIMER_START("PerformTimeIntegrationOfMotion")
+ 
           this->PerformTimeIntegrationOfMotion(rCurrentProcessInfo); 
-          //KRATOS_TIMER_STOP("PerformTimeIntegrationOfMotion")
+ 
+          BaseType::Compute_RigidFace_Movement();
           
-          // 4. Synchronize  
-          //KRATOS_TIMER_START("SynchronizeSolidMesh")
-          BaseType::SynchronizeSolidMesh(rModelPart);
-          //KRATOS_TIMER_STOP("SynchronizeSolidMesh")
-          
-//           rCurrentProcessInfo[ACTIVATE_SEARCH]=1;
-          
+          BaseType::SynchronizeSolidMesh(r_model_part);
+  
           if(rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
           {
             
@@ -253,7 +221,7 @@ namespace Kratos
           }
          
           //Synch this var.
-          rModelPart.GetCommunicator().MaxAll(rCurrentProcessInfo[ACTIVATE_SEARCH]);
+          r_model_part.GetCommunicator().MaxAll(rCurrentProcessInfo[ACTIVATE_SEARCH]);
 
           // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box
           //KRATOS_TIMER_START("SearchNeighbours")
@@ -266,7 +234,7 @@ namespace Kratos
                   if (this->GetBoundingBoxOption() == 1)
                   {
                       this->BoundingBoxUtility();
-                      BaseType::SetSearchRadius(rModelPart,rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
+                      BaseType::SetSearchRadius(r_model_part,rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
                       
                   }
 
@@ -274,8 +242,8 @@ namespace Kratos
                    BaseType::ComputeNewNeighboursHistoricalData();
                         
                    
-                    //BaseType::SearchRigidFaceNeighbours();
-                    //BaseType::ComputeNewRigidFaceNeighboursHistoricalData(); //Cfeng,RigidFace          
+                   BaseType::SearchRigidFaceNeighbours();
+                   BaseType::ComputeNewRigidFaceNeighboursHistoricalData(); //Cfeng,RigidFace          
               
                 
               }
@@ -283,12 +251,12 @@ namespace Kratos
           }
           //KRATOS_TIMER_STOP("SearchNeighbours")
                     // 5. Synchronize
-          BaseType::SynchronizeSolidMesh(rModelPart);
+          BaseType::SynchronizeSolidMesh(r_model_part);
           
           //KRATOS_TIMER_START("FinalizeSolutionStep")
           BaseType::FinalizeSolutionStep();
           
-          //this->DebugOperations(rModelPart);
+          //this->DebugOperations(r_model_part);
           
           //KRATOS_TIMER_STOP("FinalizeSolutionStep")
 		
@@ -299,15 +267,15 @@ namespace Kratos
       }//Solve()
 
       
-    void DebugOperations(ModelPart& rModelPart)
+    void DebugOperations(ModelPart& r_model_part)
     
     {
      
           //DEBUG OPERATIONS
           
           //this->CheckPairWiseBreaking();
-           ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
-          ProcessInfo& rCurrentProcessInfo    = rModelPart.GetProcessInfo();
+           ElementsArrayType& pElements        = r_model_part.GetCommunicator().LocalMesh().Elements();
+          ProcessInfo& rCurrentProcessInfo    = r_model_part.GetProcessInfo();
          
           int time_step = rCurrentProcessInfo[TIME_STEPS];
          
@@ -658,7 +626,7 @@ namespace Kratos
         
         if (mFixSwitch)
         {
-          
+
           if(  rCurrentProcessInfo[TIME_STEPS] == mStepFixVel  )
           
           {
@@ -948,30 +916,6 @@ namespace Kratos
           KRATOS_CATCH("")
         }
       
-/* DEMPACK RADIUS
-    void SetDempackSearchRadius(ModelPart& r_model_part, double radiusExtend)
-    {
-        KRATOS_TRY
-
-        ModelPart& r_model_part               = BaseType::GetModelPart();
-        ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
-        
-        int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
-        
-        if(this->GetNumberOfElementsOldRadiusList() == number_of_elements) return;  //TODO:: this can fail when one particle is created and one is destroyed for example.
-        else this->GetNumberOfElementsOldRadiusList() = number_of_elements;
-        
-        this->GetRadius().resize(number_of_elements);
-
-        for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it){
-            this->GetRadius()[particle_pointer_it - pElements.begin()] = particle_pointer_it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS) + radiusExtend;
-
-        }
-
-        KRATOS_CATCH("")
-    }
-*/
-     
    
    
     virtual void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part)
