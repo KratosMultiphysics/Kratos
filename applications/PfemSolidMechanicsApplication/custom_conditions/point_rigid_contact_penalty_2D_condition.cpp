@@ -123,7 +123,9 @@ namespace Kratos
 
     KRATOS_TRY
       
-      WeakPointerVector<Node<3> >& rN = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
+    WeakPointerVector<Node<3> >& rN = GetGeometry()[0].GetValue(NEIGHBOUR_NODES);
+
+    array_1d<double,3> Contact_Point = GetGeometry()[0].Coordinates();
     array_1d<double,3> Neighb_Point;
 
     double distance = 0;
@@ -137,7 +139,7 @@ namespace Kratos
 	  Neighb_Point[1] = rN[i].Y();
 	  Neighb_Point[2] = rN[i].Z();
 	    
-	  distance += norm_2(GetGeometry()[0]-Neighb_Point);
+	  distance += norm_2(Contact_Point-Neighb_Point);
 
 	  counter ++;
 	}
@@ -149,10 +151,10 @@ namespace Kratos
     double PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
     double ElasticModulus   = GetProperties()[YOUNG_MODULUS];
 
-    rVariables.Penalty.Normal = distance * 20 * PenaltyParameter * ElasticModulus;
+    rVariables.Penalty.Normal = distance * 2000 * PenaltyParameter * ElasticModulus;
       
     
-    //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<std::endl;
+    //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
     
     KRATOS_CATCH( "" )
       }
@@ -211,12 +213,23 @@ namespace Kratos
   {
     KRATOS_TRY
 
-      //const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
     if( rVariables.Options.Is(ACTIVE)){
 
       rRightHandSideVector = (-1) * (rVariables.Penalty.Normal * rVariables.Gap.Normal) * rVariables.Surface.Normal * rIntegrationWeight;
       
+      GetGeometry()[0].SetLock();
+
+      array_1d<double, 3 > &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
+
+      for(unsigned int j=0; j<dimension; j++)
+	{
+	  ContactForce[j] += rRightHandSideVector[j];
+	}
+
+      GetGeometry()[0].UnSetLock();
+
       //std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" rVariables.Gap.Normal "<<rVariables.Gap.Normal<<" rVariables.Surface.Normal "<<rVariables.Surface.Normal<<" rIntegrationWeight "<<rIntegrationWeight<<std::endl;
       //std::cout<<std::endl;
       //std::cout<<" Fcont "<<rRightHandSideVector<<std::endl;

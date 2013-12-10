@@ -129,13 +129,12 @@ public:
 	    //(*nd)->Set(STRUCTURE);
 	    (*nd)->Set(RIGID);
 
-	    //set new coordinates
+	    //set new coordinates (MOVE MESH)
 	    (*nd)->X() = (*nd)->X0() + mpRigidWall->Velocity()[0] * Time;
             (*nd)->Y() = (*nd)->Y0() + mpRigidWall->Velocity()[1] * Time;
             (*nd)->Z() = (*nd)->Z0() + mpRigidWall->Velocity()[2] * Time;
 
-	    (*nd)->FastGetSolutionStepValue(DISPLACEMENT).clear();
-	    (*nd)->FastGetSolutionStepValue(VELOCITY)    = mpRigidWall->Velocity();
+	    //std::cout<<" node "<<(*nd)->Id()<<" Position ("<<(*nd)->X()<<", "<<(*nd)->Y()<<" "<<(*nd)->Z()<<") "<<std::endl;
 	  }
 
 	  //set point rigid wall condition : usually in non rigid_wall points
@@ -183,8 +182,11 @@ public:
 
       for ( ModelPart::NodesContainerType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
 	{
-	  if((*nd)->FastGetSolutionStepValue(RIGID_WALL)==true){
-	    (*nd)->FastGetSolutionStepValue(DISPLACEMENT) = mpRigidWall->Velocity() * Time;
+	  if((*nd)->Is(RIGID)){
+	    array_1d<double, 3 > &CurrentDisplacement  = (*nd)->FastGetSolutionStepValue(DISPLACEMENT);	    
+	    CurrentDisplacement[0] = mpRigidWall->Velocity()[0] * Time;
+	    CurrentDisplacement[1] = mpRigidWall->Velocity()[1] * Time;
+	    CurrentDisplacement[2] = mpRigidWall->Velocity()[2] * Time;
 	  }
 	}
 

@@ -538,8 +538,8 @@ Begin Mesh *igroup
 *loop elems *onlyingroup 
  *elemsnum
 *end elems
-*end if
-*end if
+*endif
+*endif
  End MeshElements
 
  Begin MeshConditions
@@ -552,6 +552,15 @@ Begin Mesh *igroup
 *loop elems *onlyincond *onlyingroup
 *format "%i"
  *Tcl( getCondId *elemsnum *condelemface )
+*end elems
+*endif
+*else
+*set cond line_WallCondition2D *elems
+*if(CondNumEntities > 0)
+*loop elems *onlyincond *onlyingroup
+*set var icond=operation(icond+1)
+*format "%i"
+ *icond
 *end elems
 *endif
 *endif
