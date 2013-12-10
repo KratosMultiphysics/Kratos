@@ -51,13 +51,10 @@ class PreUtilities
 
       virtual ~PreUtilities(){}
 
-      double MeasureTopHeight(ModelPart& rModelPart)
+      void MeasureTopHeight(ModelPart& rModelPart, double& subtotal, double& weight )
       {
           ElementsArrayType& pElements        = rModelPart.Elements();      
-          double subtotal = 0.0;
-          double weight = 0.0;
-          double top_height = 0.0;
-          
+           
         for (ElementsArrayType::iterator it= pElements.begin(); it!=pElements.end(); ++it)
         {
                  
@@ -85,31 +82,16 @@ class PreUtilities
             
          }
          
-        if(weight != 0.0)
-        {
-          top_height = subtotal/weight; 
-        }
-        else
-        {
-          KRATOS_ERROR(std::runtime_error,"There are no top elements = ", top_height)
-        }
-        
-        
-        return top_height;   
-         
       }
           
-      double MeasureBotHeight(ModelPart& rModelPart)
+     void MeasureBotHeight(ModelPart& rModelPart, double& subtotal, double& weight )
       {
           ElementsArrayType& pElements        = rModelPart.Elements();      
-          double subtotal = 0.0;
-          double weight = 0.0;
-          double bot_height = 0.0;
-          
+           
         for (ElementsArrayType::iterator it= pElements.begin(); it!=pElements.end(); ++it)
         {
                  
-            if(it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2)
+            if( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2 )
             {
               
               ParticleWeakVectorType& mrNeighbours = it->GetValue(NEIGHBOUR_ELEMENTS);            
@@ -118,29 +100,20 @@ class PreUtilities
               ineighbour != mrNeighbours.end(); ineighbour++)
               {
                 
-                if(ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) != 2)
+                if( ineighbour->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) != 2 )
+                {
                 
-                subtotal += it->GetGeometry()(0)->Coordinates()[1]*it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-                weight += it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
-                break;
+                    subtotal += it->GetGeometry()(0)->Coordinates()[1]*it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                    weight += it->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+                    
+                    break;
+                }
                   
               }
               
             }
             
          }
-         
-        if(weight != 0.0)
-        {
-          bot_height = subtotal/weight; 
-        }
-        else
-        {
-          KRATOS_ERROR(std::runtime_error,"There are no bot elements = ", bot_height)
-        }
-        
-        
-        return bot_height;   
          
       }
       
