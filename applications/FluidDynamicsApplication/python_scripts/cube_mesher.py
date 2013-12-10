@@ -1,10 +1,12 @@
 #!/usr/bin/env python
+import numpy as np
 
 """
 Generate a structured tetrahedral mesh that fills a box of given size.
 Identify the box faces using conditions and mesh groups.
 
 changelog:
+ 09-12-2013: Adding periodic conditions and tanh scaling of node positions
  05-12-2013: Initial version (adapted from my turbulent channel mesher)
 """
 
@@ -16,6 +18,10 @@ class box_data(object):
         self.jump = [ (xmax-xmin)/nx, (ymax-ymin)/ny, (zmax-zmin)/nz ]
         self.cond_range = dict()
 
+        self.x_periodic = False
+        self.y_periodic = False
+        self.z_periodic = False
+
     def nx(self):
         return self.ndiv[0]
 
@@ -24,6 +30,24 @@ class box_data(object):
 
     def nz(self):
         return self.ndiv[2]
+
+    def xmin(self):
+        return self.box[0]
+
+    def xmax(self):
+        return self.box[3]
+
+    def ymin(self):
+        return self.box[1]
+
+    def ymax(self):
+        return self.box[4]
+
+    def zmin(self):
+        return self.box[2]
+
+    def zmax(self):
+        return self.box[5]
 
     def get_coord(self,direction,n):
         """ Use direction {0,1,2} for {x,y,z}, 0 <= n <= ndiv[direction]."""
@@ -39,26 +63,26 @@ class box_data(object):
             to ensure that they are conformant.
         """
         if iz % 2:
-            n0 = box.get_id(ix  ,iy  ,iz)
-            n1 = box.get_id(ix+1,iy  ,iz)
-            n2 = box.get_id(ix+1,iy+1,iz)
-            n3 = box.get_id(ix  ,iy+1,iz)
+            n0 = self.get_id(ix  ,iy  ,iz)
+            n1 = self.get_id(ix+1,iy  ,iz)
+            n2 = self.get_id(ix+1,iy+1,iz)
+            n3 = self.get_id(ix  ,iy+1,iz)
             
-            n4 = box.get_id(ix  ,iy  ,iz+1)
-            n5 = box.get_id(ix+1,iy  ,iz+1)
-            n6 = box.get_id(ix+1,iy+1,iz+1)
-            n7 = box.get_id(ix  ,iy+1,iz+1)
+            n4 = self.get_id(ix  ,iy  ,iz+1)
+            n5 = self.get_id(ix+1,iy  ,iz+1)
+            n6 = self.get_id(ix+1,iy+1,iz+1)
+            n7 = self.get_id(ix  ,iy+1,iz+1)
             
         else:
-            n1 = box.get_id(ix  ,iy  ,iz)
-            n2 = box.get_id(ix+1,iy  ,iz)
-            n3 = box.get_id(ix+1,iy+1,iz)
-            n0 = box.get_id(ix  ,iy+1,iz)
+            n1 = self.get_id(ix  ,iy  ,iz)
+            n2 = self.get_id(ix+1,iy  ,iz)
+            n3 = self.get_id(ix+1,iy+1,iz)
+            n0 = self.get_id(ix  ,iy+1,iz)
             
-            n5 = box.get_id(ix  ,iy  ,iz+1)
-            n6 = box.get_id(ix+1,iy  ,iz+1)
-            n7 = box.get_id(ix+1,iy+1,iz+1)
-            n4 = box.get_id(ix  ,iy+1,iz+1)
+            n5 = self.get_id(ix  ,iy  ,iz+1)
+            n6 = self.get_id(ix+1,iy  ,iz+1)
+            n7 = self.get_id(ix+1,iy+1,iz+1)
+            n4 = self.get_id(ix  ,iy+1,iz+1)
 
         return n0,n1,n2,n3,n4,n5,n6,n7
 
@@ -72,6 +96,16 @@ def node_y(box,position):
 def node_z(box,position):
     return box.get_coord(2,position)
 
+def node_z_tanh(box,position,w):
+    nlevels = box.nz()
+    wz = np.tanh( w * (2*float(position)/nlevels - 1) )/np.tanh(w)
+    return 0.5*( box.zmin()+box.zmax() + (box.zmax()-box.zmin())*wz )
+
+def node_y_tanh(box,position,w):
+    nlevels = box.ny()
+    wz = np.tanh( w * (2*float(position)/nlevels - 1) )/np.tanh(w)
+    return 0.5*( box.ymin()+box.ymax() + (box.ymax()-box.ymin())*wz )
+
 def write_header(mdpa):
     mdpa.write("Begin ModelPartData\n")
     mdpa.write("//  VARIABLE_NAME value\n")
@@ -82,6 +116,9 @@ def write_header(mdpa):
     mdpa.write("\n")
 
 def generate_nodes(mdpa,box,x_scale=node_x,y_scale=node_y,z_scale=node_z):
+    nx = box.nx()
+    ny = box.ny()
+    nz = box.nz()
     index = 1
 
     print "Generating nodes"
@@ -98,7 +135,7 @@ def generate_nodes(mdpa,box,x_scale=node_x,y_scale=node_y,z_scale=node_z):
     
     mdpa.write("End Nodes\n\n")
 
-def generate_elements(mpda,box,elemtype="FractionalStep3D",prop_id=0):
+def generate_elements(mdpa,box,elemtype="FractionalStep3D",prop_id=0):
     index = 1
     nx = box.nx()
     ny = box.ny()
@@ -150,6 +187,7 @@ def generate_front_faces(mdpa,box,index,condtype="WallCondition3D",prop_id=0):
     return index
 
 def generate_back_faces(mdpa,box,index,condtype="WallCondition3D",prop_id=0):
+    nx = box.nx()
     ny = box.ny()
     nz = box.nz()
     i0 = index
@@ -207,6 +245,7 @@ def generate_right_faces(mdpa,box,index,condtype="WallCondition3D",prop_id=0):
 
 def generate_left_faces(mdpa,box,index,condtype="WallCondition3D",prop_id=0):
     nx = box.nx()
+    ny = box.ny()
     nz = box.nz()
     i0 = index
 
@@ -259,6 +298,7 @@ def generate_bottom_faces(mdpa,box,index,condtype="WallCondition3D",prop_id=0):
 def generate_top_faces(mdpa,box,index,condtype="WallCondition3D",prop_id=0):
     nx = box.nx()
     ny = box.ny()
+    nz = box.nz()
     i0 = index
 
     mdpa.write("Begin Conditions {0} //Top\n".format(condtype))
@@ -278,19 +318,143 @@ def generate_top_faces(mdpa,box,index,condtype="WallCondition3D",prop_id=0):
 
     return index
 
-def generate_conditions(mdpa,box,condtype="WallCondition3D",prop_id=0):
+def generate_x_periodic_faces(mdpa,box,index,condtype="PeriodicCondition",prop_id=0):
+    if box.y_periodic:
+        y_range = range(1,box.ny())
+    else:
+        y_range = range(0,box.ny()+1)
+    if box.z_periodic:
+        z_range = range(1,box.nz())
+    else:
+        z_range = range(0,box.nz()+1)
     nx = box.nx()
+
+    mdpa.write("Begin Conditions {0} //x-links\n".format(condtype))
+    for iz in z_range:
+        for iy in y_range:
+            nmin = box.get_id(0,iy,iz)
+            nmax = box.get_id(nx,iy,iz)
+            mdpa.write("{0:d} {1:d} {2:d} {3:d}\n".format(index,prop_id,nmin,nmax))
+            index += 1
+    mdpa.write("End Conditions\n\n")
+
+    return index
+
+
+def generate_y_periodic_faces(mdpa,box,index,condtype="PeriodicCondition",prop_id=0):
+    if box.x_periodic:
+        x_range = range(1,box.nx())
+    else:
+        x_range = range(0,box.nx()+1)
+    if box.z_periodic:
+        z_range = range(1,box.nz())
+    else:
+        z_range = range(0,box.nz()+1)
     ny = box.ny()
+
+    mdpa.write("Begin Conditions {0} //y links\n".format(condtype))
+    for iz in z_range:
+        for ix in x_range:
+            nmin = box.get_id(ix,0,iz)
+            nmax = box.get_id(ix,ny,iz)
+            mdpa.write("{0:d} {1:d} {2:d} {3:d}\n".format(index,prop_id,nmin,nmax))
+            index += 1
+    mdpa.write("End Conditions\n\n")
+
+    return index
+
+
+def generate_z_periodic_faces(mdpa,box,index,condtype="PeriodicCondition",prop_id=0):
+    if box.x_periodic:
+        x_range = range(1,box.nx())
+    else:
+        x_range = range(0,box.nx()+1)
+    if box.y_periodic:
+        y_range = range(1,box.ny())
+    else:
+        y_range = range(0,box.ny()+1)
     nz = box.nz()
 
+    mdpa.write("Begin Conditions {0} //z links\n".format(condtype))
+    for iy in y_range:
+        for ix in x_range:
+            nmin = box.get_id(ix,iy,0)
+            nmax = box.get_id(ix,iy,nz)
+            mdpa.write("{0:d} {1:d} {2:d} {3:d}\n".format(index,prop_id,nmin,nmax))
+            index += 1
+    mdpa.write("End Conditions\n\n")
+
+    return index
+
+def generate_xy_periodic_edges(mdpa,box,index,condtype="PeriodicConditionCorner",prop_id=0):
+    nz = box.nz()
+    nx = box.nx()
+    ny = box.ny()
+
+    mdpa.write("Begin Conditions {0} //xy links\n".format(condtype))
+    for iz in range(nz+1):
+        n0 = box.get_id(0 ,0 ,iz)
+        n1 = box.get_id(0 ,ny,iz)
+        n2 = box.get_id(nx,ny,iz)
+        n3 = box.get_id(nx,0 ,iz)
+
+        mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d} {5:d}\n".format(index,prop_id,n0,n1,n2,n3))
+        index += 1
+    mdpa.write("End Conditions\n\n")
+
+    return index
+
+def generate_xz_periodic_edges(mdpa,box,index,condtype="PeriodicConditionCorner",prop_id=0):
+    ny = box.ny()
+    nx = box.nx()
+    nz = box.nz()
+
+    mdpa.write("Begin Conditions {0} //xy links\n".format(condtype))
+    for iy in range(ny+1):
+        n0 = box.get_id(0 ,iy,0)
+        n1 = box.get_id(0 ,iy,nz)
+        n2 = box.get_id(nx,iy,nz)
+        n3 = box.get_id(nx,iy,0)
+
+        mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d} {5:d}\n".format(index,prop_id,n0,n1,n2,n3))
+        index += 1
+    mdpa.write("End Conditions\n\n")
+
+    return index
+        
+
+def generate_conditions(mdpa,box,condtype="WallCondition3D",periodic_facetype="PeriodicCondition",periodic_edgetype="PeriodicConditionCorner",prop_id=0):
     print "Generating {0} faces.".format(condtype)
     
-    index = generate_front_faces(mdpa,box,1,condtype,prop_id)    
-    index = generate_back_faces(mdpa,box,index,condtype,prop_id)
-    index = generate_right_faces(mdpa,box,index,condtype,prop_id)
-    index = generate_left_faces(mdpa,box,index,condtype,prop_id)
-    index = generate_bottom_faces(mdpa,box,index,condtype,prop_id)
-    index = generate_top_faces(mdpa,box,index,condtype,prop_id)
+    if box.x_periodic:
+        index = generate_x_periodic_faces(mdpa,box,1,periodic_facetype,prop_id)
+    else:
+        index = generate_front_faces(mdpa,box,1,condtype,prop_id)    
+        index = generate_back_faces(mdpa,box,index,condtype,prop_id)
+
+    if box.y_periodic:
+        index = generate_y_periodic_faces(mdpa,box,index,periodic_facetype,prop_id)
+    else:
+        index = generate_right_faces(mdpa,box,index,condtype,prop_id)
+        index = generate_left_faces(mdpa,box,index,condtype,prop_id)
+
+    if box.z_periodic:
+        index = generate_z_periodic_faces(mdpa,box,index,periodic_facetype,prop_id)
+    else:
+        index = generate_bottom_faces(mdpa,box,index,condtype,prop_id)
+        index = generate_top_faces(mdpa,box,index,condtype,prop_id)
+
+    if box.x_periodic and box.y_periodic:
+        index = generate_xy_periodic_edges(mdpa,box,index,periodic_edgetype,prop_id)
+
+    if box.x_periodic and box.z_periodic:
+        index = generate_xz_periodic_edges(mdpa,box,index,periodic_edgetype,prop_id)
+
+    if box.y_periodic and box.z_periodic:
+        raise Exception("yz periodic links not implemented")
+
+    if box.x_periodic and box.y_periodic and box.z_periodic:
+        raise Exception("Corner conditions not implemented")
 
 def generate_mesh_groups(mdpa,box):
     index = 1
@@ -299,94 +463,100 @@ def generate_mesh_groups(mdpa,box):
     nz = box.nz()
 
     # Front group
-    mdpa.write("Begin Mesh 1 //Front\n")
-    mdpa.write("Begin MeshNodes\n")
-    for iz in range(nz+1):
-        for iy in range(ny+1):
-            mdpa.write("{0}\n".format(box.get_id(0,iy,iz)))
-    mdpa.write("End MeshNodes\n\n")
-
-    mdpa.write("Begin MeshConditions\n")
-    for i in range(*box.cond_range["front"]):
-        mdpa.write("{0}\n".format(i))
-    mdpa.write("End MeshConditions\n\n")
-    
-    mdpa.write("End Mesh\n\n")
+    if "front" in box.cond_range:
+        mdpa.write("Begin Mesh 1 //Front\n")
+        mdpa.write("Begin MeshNodes\n")
+        for iz in range(nz+1):
+            for iy in range(ny+1):
+                mdpa.write("{0}\n".format(box.get_id(0,iy,iz)))
+        mdpa.write("End MeshNodes\n\n")
+        
+        mdpa.write("Begin MeshConditions\n")
+        for i in range(*box.cond_range["front"]):
+            mdpa.write("{0}\n".format(i))
+        mdpa.write("End MeshConditions\n\n")
+        
+        mdpa.write("End Mesh\n\n")
 
     # Back group
-    mdpa.write("Begin Mesh 2 //Back\n")
-    mdpa.write("Begin MeshNodes\n")
-    for iz in range(nz+1):
-        for iy in range(ny+1):
-            mdpa.write("{0}\n".format(box.get_id(nx,iy,iz)))
-    mdpa.write("End MeshNodes\n\n")
-
-    mdpa.write("Begin MeshConditions\n")
-    for i in range(*box.cond_range["back"]):
-        mdpa.write("{0}\n".format(i))
-    mdpa.write("End MeshConditions\n\n")
-    
-    mdpa.write("End Mesh\n\n")
+    if "back" in box.cond_range:
+        mdpa.write("Begin Mesh 2 //Back\n")
+        mdpa.write("Begin MeshNodes\n")
+        for iz in range(nz+1):
+            for iy in range(ny+1):
+                mdpa.write("{0}\n".format(box.get_id(nx,iy,iz)))
+        mdpa.write("End MeshNodes\n\n")
+        
+        mdpa.write("Begin MeshConditions\n")
+        for i in range(*box.cond_range["back"]):
+            mdpa.write("{0}\n".format(i))
+        mdpa.write("End MeshConditions\n\n")
+        
+        mdpa.write("End Mesh\n\n")
 
     # Right group
-    mdpa.write("Begin Mesh 3 //Right\n")
-    mdpa.write("Begin MeshNodes\n")
-    for iz in range(nz+1):
-        for ix in range(nx+1):
-            mdpa.write("{0}\n".format(box.get_id(ix,0,iz)))
-    mdpa.write("End MeshNodes\n\n")
-
-    mdpa.write("Begin MeshConditions\n")
-    for i in range(*box.cond_range["right"]):
-        mdpa.write("{0}\n".format(i))
-    mdpa.write("End MeshConditions\n\n")
-    
-    mdpa.write("End Mesh\n\n")
+    if "right" in box.cond_range:
+        mdpa.write("Begin Mesh 3 //Right\n")
+        mdpa.write("Begin MeshNodes\n")
+        for iz in range(nz+1):
+            for ix in range(nx+1):
+                mdpa.write("{0}\n".format(box.get_id(ix,0,iz)))
+        mdpa.write("End MeshNodes\n\n")
+        
+        mdpa.write("Begin MeshConditions\n")
+        for i in range(*box.cond_range["right"]):
+            mdpa.write("{0}\n".format(i))
+        mdpa.write("End MeshConditions\n\n")
+        
+        mdpa.write("End Mesh\n\n")
 
     # Left group
-    mdpa.write("Begin Mesh 4 //Left\n")
-    mdpa.write("Begin MeshNodes\n")
-    for iz in range(nz+1):
-        for ix in range(nx+1):
-            mdpa.write("{0}\n".format(box.get_id(ix,ny,iz)))
-    mdpa.write("End MeshNodes\n\n")
-
-    mdpa.write("Begin MeshConditions\n")
-    for i in range(*box.cond_range["left"]):
-        mdpa.write("{0}\n".format(i))
-    mdpa.write("End MeshConditions\n\n")
-    
-    mdpa.write("End Mesh\n\n")
+    if "left" in box.cond_range:
+        mdpa.write("Begin Mesh 4 //Left\n")
+        mdpa.write("Begin MeshNodes\n")
+        for iz in range(nz+1):
+            for ix in range(nx+1):
+                mdpa.write("{0}\n".format(box.get_id(ix,ny,iz)))
+        mdpa.write("End MeshNodes\n\n")
+        
+        mdpa.write("Begin MeshConditions\n")
+        for i in range(*box.cond_range["left"]):
+            mdpa.write("{0}\n".format(i))
+        mdpa.write("End MeshConditions\n\n")
+        
+        mdpa.write("End Mesh\n\n")
 
     # Bottom group
-    mdpa.write("Begin Mesh 5 //Bottom\n")
-    mdpa.write("Begin MeshNodes\n")
-    for iy in range(ny+1):
-        for ix in range(nx+1):
-            mdpa.write("{0}\n".format(box.get_id(ix,iy,0)))
-    mdpa.write("End MeshNodes\n\n")
-
-    mdpa.write("Begin MeshConditions\n")
-    for i in range(*box.cond_range["bottom"]):
-        mdpa.write("{0}\n".format(i))
-    mdpa.write("End MeshConditions\n\n")
-    
-    mdpa.write("End Mesh\n\n")
+    if "bottom" in box.cond_range:
+        mdpa.write("Begin Mesh 5 //Bottom\n")
+        mdpa.write("Begin MeshNodes\n")
+        for iy in range(ny+1):
+            for ix in range(nx+1):
+                mdpa.write("{0}\n".format(box.get_id(ix,iy,0)))
+        mdpa.write("End MeshNodes\n\n")
+        
+        mdpa.write("Begin MeshConditions\n")
+        for i in range(*box.cond_range["bottom"]):
+            mdpa.write("{0}\n".format(i))
+        mdpa.write("End MeshConditions\n\n")
+        
+        mdpa.write("End Mesh\n\n")
 
     # Top group
-    mdpa.write("Begin Mesh 6 //Top\n")
-    mdpa.write("Begin MeshNodes\n")
-    for iy in range(ny+1):
-        for ix in range(nx+1):
-            mdpa.write("{0}\n".format(box.get_id(ix,iy,nz)))
-    mdpa.write("End MeshNodes\n\n")
-
-    mdpa.write("Begin MeshConditions\n")
-    for i in range(*box.cond_range["top"]):
-        mdpa.write("{0}\n".format(i))
-    mdpa.write("End MeshConditions\n\n")
-    
-    mdpa.write("End Mesh\n\n")
+    if "top" in box.cond_range:
+        mdpa.write("Begin Mesh 6 //Top\n")
+        mdpa.write("Begin MeshNodes\n")
+        for iy in range(ny+1):
+            for ix in range(nx+1):
+                mdpa.write("{0}\n".format(box.get_id(ix,iy,nz)))
+        mdpa.write("End MeshNodes\n\n")
+        
+        mdpa.write("Begin MeshConditions\n")
+        for i in range(*box.cond_range["top"]):
+            mdpa.write("{0}\n".format(i))
+        mdpa.write("End MeshConditions\n\n")
+            
+        mdpa.write("End Mesh\n\n")
 
 
 if __name__ == "__main__":
@@ -406,6 +576,14 @@ if __name__ == "__main__":
     zmax = 2.0
 
     box = box_data(xmin,ymin,zmin,xmax,ymax,zmax,nx,ny,nz)
+    box.x_periodic = True
+    #box.y_periodic = True
+
+    def y_scale_func(box,position):
+        return node_y_tanh(box,position,2.1)
+
+    def z_scale_func(box,position):
+        return node_z_tanh(box,position,2.1)
     
     # element type
     if len(sys.argv) > 4:
@@ -418,7 +596,9 @@ if __name__ == "__main__":
     
     with open(filename,"w") as mdpa:
         write_header(mdpa)
-        generate_nodes(mdpa,box)
+        #generate_nodes(mdpa,box)
+        #generate_nodes(mdpa,box,z_scale=z_scale_func)
+        generate_nodes(mdpa,box,y_scale=y_scale_func,z_scale=z_scale_func)
         generate_elements(mdpa,box,elemtype)
         generate_conditions(mdpa,box,condtype)
         generate_mesh_groups(mdpa,box)
