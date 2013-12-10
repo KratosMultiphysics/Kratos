@@ -48,6 +48,7 @@ public:
         typedef Configure::ContainerType                    ParticlePointerVector;
         typedef ParticlePointerVector::iterator             ParticlePointerIterator;
         typedef Configure::IteratorType                     ParticleIterator;
+        unsigned int mMaxNodeId;
 		
     KRATOS_CLASS_POINTER_DEFINITION(ParticleCreatorDestructor);
 
@@ -206,7 +207,8 @@ public:
           p_particle->Set(BLOCKED);
           pnew_node->Set(BLOCKED);  
       }
-               
+      
+      p_particle->InitializeSolutionStep(r_modelpart.GetProcessInfo());
       p_particle->Initialize();
       
       r_modelpart.Elements().push_back(p_particle);          
@@ -504,6 +506,10 @@ public:
     {
         mLowPoint = node;
     }
+    void SetMaxNodeId(unsigned int id)
+    {
+        mMaxNodeId = id;
+    }
     ///@}
     ///@name Inquiry
     ///@{
@@ -690,7 +696,9 @@ public:
     virtual ~DEM_Inlet() {};
         
     void InitializeDEM_Inlet(ModelPart& r_modelpart, ParticleCreatorDestructor& creator){
-        unsigned int max_Id=0; 
+        
+        unsigned int& max_Id=creator.mMaxNodeId; 
+        
 	for (ModelPart::NodesContainerType::iterator node_it = r_modelpart.NodesBegin(); node_it != r_modelpart.NodesEnd(); node_it++){
 	  if( node_it->Id() > max_Id) max_Id = node_it->Id();
 	}
@@ -727,7 +735,7 @@ public:
           
           Node < 3 > ::Pointer node_it = elem_it->GetGeometry()(0);                  
             
-	  if( node_it->Id() > max_Id) max_Id = node_it->Id(); 
+	  //if( node_it->Id() > max_Id) max_Id = node_it->Id(); 
                    
           if( node_it->IsNot(NEW_ENTITY) ) continue;
           
@@ -771,7 +779,9 @@ public:
     
     void CreateElementsFromInletMesh( ModelPart& r_modelpart, ModelPart& inlet_modelpart, ParticleCreatorDestructor& creator, const std::string& ElementNameString){
                         
-        unsigned int max_Id=0; 
+        //unsigned int max_Id=0; 
+        unsigned int& max_Id=creator.mMaxNodeId; 
+        
         DettachElementsAndFindMaxId(r_modelpart, max_Id);                
                 
         int mesh_number=0;
