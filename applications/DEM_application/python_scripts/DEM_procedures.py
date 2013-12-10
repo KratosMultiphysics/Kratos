@@ -270,7 +270,7 @@ class Procedures:
         Total_Contacts = 0
         
         Coordination_Number = 0.0 
-        
+
         if(self.contact_mesh_OPTION):
           
           for bar in contact_model_part.Elements:
@@ -289,54 +289,6 @@ class Procedures:
         Model_Data.close()
         
         return Coordination_Number
-
-
-    def GiDSolverTransfer(self, model_part, solver, param):
-
-        extra_radius = 0.0
-        max_radius = 0.0
-        min_radius = 0.0
-        first_it = True
-
-        #calculation of search radius
-        for node in model_part.Nodes:
-            
-            rad = node.GetSolutionStepValue(RADIUS)
-            
-            if rad > max_radius:  
-                max_radius = rad
-            
-            if first_it == True:
-                min_radius = rad
-                first_it = False
-            
-            if rad < min_radius:  
-                min_radius = rad
-            
-        if (self.bounding_box_OPTION):
-            solver.bounding_box_OPTION = 1  #xapuza
-        
-        extra_radius = 2.5 * max_radius
-        prox_tol = 0.000001 * min_radius  #currently not in use.
-        m_bounding_box_enlargement_factor = max(1.0 + extra_radius, self.bounding_box_enlargement_factor)
-
-        solver.enlargement_factor = m_bounding_box_enlargement_factor
-        
-        if (self.triaxial_OPTION):
-            Pressure = param.ConfinementPressure * 1e6 #Mpa
-
-        else:
-            Pressure = 0.0
-        
-        if (Pressure != 0):        
-            solver.external_pressure = 1
-    
-        if (self.fix_velocities ):
-            solver.fix_velocities = 1  #xapuza
-
-        solver.time_step_percentage_fix_velocities = self.time_percentage_fix_velocities
-        
-        return Pressure
        
     def CylinderSkinDetermination(self, model_part,solver, param):
         
