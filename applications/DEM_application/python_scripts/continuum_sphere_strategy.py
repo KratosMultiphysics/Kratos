@@ -137,7 +137,7 @@ class ExplicitStrategy:
         self.activate_search                = 0 
         if (len(fem_model_part.Nodes)>0):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
            self.activate_search             = 1
-        self.fix_velocities                 = Var_Translator(Param.FixVelocitiesOption)
+        self.fix_velocities                 = Var_Translator(Param.FixVelocitiesOption)       
         self.fix_horizontal_vel             = Var_Translator(Param.HorizontalFixVel)
         self.limit_surface_option           = Param.LimitSurfaceOption
         self.limit_cylinder_option          = Param.LimitCylinderOption       
@@ -407,9 +407,15 @@ class ExplicitStrategy:
         self.internal_fricc                 = Param.InternalFriction
         
         # CONCRETE TEST
+        
+        self.step_to_fix_velocities = 0
+
         if (self.triaxial_option):
             self.time_increasing_ratio        = Param.TotalTimePercentAsForceAplTime # (%)
-        
+            if (Param.FixVelocitiesOption == 'ON'):
+              total_steps_expected = int(Param.FinalTime / Param.MaxTimeStep)
+              self.step_to_fix_velocities = 0.01*Param.TotalTimePercentageFixVelocities*total_steps_expected
+              
         
         # PRINTING VARIABLES
         self.print_export_id                = Var_Translator(Param.PostExportId)
@@ -425,6 +431,9 @@ class ExplicitStrategy:
         self.max_delta_time                 = Param.MaxTimeStep
         self.final_time                     = Param.FinalTime
 
+        
+   
+        
         # RESOLUTION METHODS AND PARAMETERS
 
         self.n_step_search                  = int(Param.TimeStepsPerSearchStep)
@@ -615,7 +624,7 @@ class ExplicitStrategy:
         if (self.triaxial_option):
             self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
             self.model_part.ProcessInfo.SetValue(TIME_INCREASING_RATIO, self.time_increasing_ratio)
-
+            self.model_part.ProcessInfo.SetValue(STEP_FIX_VELOCITIES,int(self.step_to_fix_velocities))
 
         #OTHERS
         
