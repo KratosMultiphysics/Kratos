@@ -275,7 +275,7 @@ public:
         KRATOS_TRY
 
         if (GetModelPart().NodesBegin()->SolutionStepsDataHas(DISPLACEMENT_X) == false)
-            KRATOS_ERROR(std::logic_error, "It is impossible to move the mesh since the DISPLACMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables", "");
+            KRATOS_ERROR(std::logic_error, "It is impossible to move the mesh since the DISPLACEMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables", "");
 
         for (ModelPart::NodeIterator i = GetModelPart().NodesBegin();
                 i != GetModelPart().NodesEnd(); ++i)
