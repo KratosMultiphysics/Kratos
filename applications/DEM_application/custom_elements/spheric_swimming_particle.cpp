@@ -243,7 +243,7 @@ namespace Kratos
 
               const double area                          = M_PI * mRadius * mRadius;
               const array_1d<double,3> weight            = mRealMass * gravity;
-              const array_1d<double,3> buoyancy = 0.5 * weight; //S
+              const array_1d<double,3> buoyancy          = fluid_density / particle_density * weight; // hydrostatic case!! (only for Weatherford)
               double shahs_term_vel                      = 0.0;
               double beta                                = 0.0;
               double F0                                  = 0.0;
