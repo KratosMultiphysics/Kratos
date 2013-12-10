@@ -133,17 +133,10 @@ control         = 0.0
 
 os.chdir(main_path)
 
-export_model_part = balls_model_part
-
 #-------------------------------------------------------------------------------------------------------------------------
 
 #------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALITZATIONS--------------------------------------------------------
 
-if (DEM_parameters.ModelDataInfo == "ON"):
-    os.chdir(data_and_results)
-    proc.ModelData(balls_model_part,balls_model_part, solver) #dummy contact model part. (only for continuum)      # calculates the mean number of neighbours the mean radius, etc..
-    os.chdir(main_path)
-    
 
 print 'Initializing Problem....'
 
@@ -162,7 +155,6 @@ print 'Initialitzation Complete' + '\n'
 ### BENCHMARK ###
 ### BENCHMARK ###
 
-dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
 step                   = 0
 time                   = 0.0
@@ -188,6 +180,15 @@ if (DEM_parameters.Multifile == "single_file"):
   gid_io.FinalizeMesh()
   gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
 
+  
+##MODEL DATA
+  
+if (DEM_parameters.ModelDataInfo == "ON"):
+    os.chdir(data_and_results)
+    proc.ModelData(balls_model_part,balls_model_part, solver) #dummy contact model part. (only for continuum)      # calculates the mean number of neighbours the mean radius, etc..
+    os.chdir(main_path)
+     
+  
 #------------------------------------------------------------------------------------------
 
 ###########################################################################################
@@ -196,6 +197,8 @@ if (DEM_parameters.Multifile == "single_file"):
 #                                                                                         #
 ###########################################################################################
 os.chdir(main_path)
+
+dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
 print ('Main loop starts at instant: ' + str(initial_pr_time) + '\n')
 
@@ -209,6 +212,7 @@ while (time < DEM_parameters.FinalTime):
     time = time + dt
     balls_model_part.ProcessInfo[TIME] = time
     #balls_model_part.CloneTimeStep(time)
+    balls_model_part.ProcessInfo[TIME] = time
     balls_model_part.ProcessInfo[DELTA_TIME] = dt
     balls_model_part.ProcessInfo[TIME_STEPS] = step
 
