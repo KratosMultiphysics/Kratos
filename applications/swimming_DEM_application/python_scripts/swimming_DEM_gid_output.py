@@ -22,14 +22,15 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
                  deformed_mesh,
                  write_conditions)
        
-    def initialize_swimming_DEM_results(self,DEM_model_part,mixed_model_part):
+    def initialize_swimming_DEM_results(self, DEM_model_part, FEM_DEM_model_part, mixed_model_part):
         
         if self.multi_file == MultiFileFlag.SingleFile:
             print "Singlefile option is not available for the swimming DEM application!"
             mesh_name = 0.0
             self.io.InitializeMesh(mesh_name)
-            self.io.WriteMesh(mixed_model_part.GetMesh())
             self.io.WriteSphereMesh(DEM_model_part.GetMesh())
+            self.io.WriteMesh(FEM_DEM_model_part.GetMesh())
+            self.io.WriteMesh(mixed_model_part.GetMesh())
             self.io.FinalizeMesh()
             self.io.InitializeResults(mesh_name, mixed_model_part.GetMesh())
 
