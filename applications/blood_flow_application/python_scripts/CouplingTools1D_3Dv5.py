@@ -6,15 +6,15 @@ import math
 import time
 import sys
 import config
+import simulation_config
 
-#File: 27/10/2013
+#File: 11/12/2013
 
 class TransferTools:
 
     def __init__(self, model_part_1d, model_part_3d):
         self.model_part_1d = model_part_1d
         self.model_part_3d = model_part_3d    
-    # 3
 
     def Initialize(self):
         self.inlets_1d = []
@@ -34,7 +34,7 @@ class TransferTools:
         self.Aprime= []
         self.Bprime= []
         # compute normals and 3d areas
-        print "CoupledTool:v5_28112013"
+        print "CoupledTool:v5_11122013"
 	#raw_input()
         NormalCalculationUtils().SwapNormals(self.model_part_3d)
         BodyNormalCalculationUtils().CalculateBodyNormals(self.model_part_3d, 3) 
@@ -179,21 +179,22 @@ class TransferTools:
 	    B_prime=(Reference_density)*((Total_area_outlet/Area_Stenosis)-1)*((Total_area_outlet/Area_Stenosis)-1)/(2*Total_area_outlet*Total_area_outlet)
 	    self.Aprime.append(A_prime)
 	    self.Bprime.append(B_prime)
-	    print "A_prime",A_prime
-	    print "B_prime",B_prime
+	    #print "A_prime",A_prime
+	    #print "B_prime",B_prime
 	    break
 	  
-	if (config.FitRadius== True):
+	if (simulation_config.FitRadius== True):
 	  meanArea=Total_area_inlet
 	  meanRadius=math.sqrt(meanArea/math.pi)
 	  RadiusFactor=meanRadius/Reference_Radius
 	  print "1D Inlet Reference_Radius", Reference_Radius	
 	  print "3D Inlet Reference Radius", meanRadius
 	  print "Radius Factor 3D/1D", RadiusFactor
+	  print "Setting 1D New Radius - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
 	else:
 	  RadiusFactor=1
 	
-	print "Setting 1D New Radius - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
+	
 	for prop in self.model_part_1d.Properties:
 	  R=prop.GetValue(RADIUS)
 	  R_fit=R*RadiusFactor
@@ -230,7 +231,7 @@ class TransferTools:
 
     	  
     def Initial_Contitions(self,dyastolic_pressure):
-        print "Inicializo 3D"
+        print "Initialize 3D contidions"
         #print dyastolic_pressure
         for i in range(0, len(self.inlets_1d)):
             inlet_nodes_1d = self.inlets_1d[i]
