@@ -66,15 +66,15 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
 
         # update cut data if necessary
         if not self.volume_output:
-            self.cut_app.UpdateCutData(out_model_part,fluid_model_part)
+            self.cut_app.UpdateCutData(out_model_part, fluid_model_part)
 
         if self.multi_file == MultiFileFlag.MultipleFiles:
             self.io.InitializeMesh(label)
             self.io.WriteSphereMesh(DEM_model_part.GetMesh())
-            self.io.WriteMesh(FEM_DEM_model_part.GetMesh())
             self.io.WriteMesh(mixed_model_part.GetMesh())
+            self.io.WriteMesh(FEM_DEM_model_part.GetMesh())
             self.io.FinalizeMesh()
-            self.io.InitializeResults(label,mixed_model_part.GetMesh())
+            self.io.InitializeResults(label, mixed_model_part.GetMesh())
 
         for var in fluid_nodal_variables:
             kratos_variable = globals()[var]
@@ -95,6 +95,6 @@ class SwimmingDEMGiDOutput(gid_output.GiDOutput):
         if self.multi_file == MultiFileFlag.MultipleFiles:
             self._finalize_results()
 
-            with open(self.listfilename,"w") as listfile:
+            with open(self.listfilename, "w") as listfile:
                 self.write_step_to_list(label)
        
