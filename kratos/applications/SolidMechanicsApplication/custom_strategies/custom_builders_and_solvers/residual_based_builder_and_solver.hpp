@@ -137,13 +137,14 @@ public:
         //resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
-        //vector containing the localization in the system of the different terms
-        Element::EquationIdVectorType EquationId;
-
         //double StartTime = GetTickCount();
 
         // assemble all elements
 #ifndef _OPENMP
+
+	//vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType EquationId;
+
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
         LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
