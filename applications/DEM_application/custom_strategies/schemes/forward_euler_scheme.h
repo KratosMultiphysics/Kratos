@@ -86,8 +86,7 @@ namespace Kratos
 
           ProcessInfo& rCurrentProcessInfo  = model_part.GetProcessInfo();
           NodesArrayType& pNodes            = GetNodes(model_part);
-        
-          double aux                  = 0;
+
           double delta_t              = rCurrentProcessInfo[DELTA_TIME];
           double virtual_mass_coeff   = rCurrentProcessInfo[NODAL_MASS_COEFF];
           bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
@@ -119,7 +118,7 @@ namespace Kratos
                   array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
                   
                   double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
-                  aux = delta_t / mass;     
+                  double aux = delta_t / mass;     
                   
                   if(i->Id() == DEBUG_PARTICLE)
                   {
@@ -211,6 +210,7 @@ namespace Kratos
           
           NodesArrayType& pGNodes            = GetGhostNodes(model_part);
       
+    
           //NodesArrayType::iterator it_begin = pNodes.ptr_begin();
           //NodesArrayType::iterator it_end   = pNodes.ptr_end();
           
@@ -223,7 +223,8 @@ namespace Kratos
               NodesArrayType::iterator i_end=pGNodes.ptr_begin()+node_partition[k+1];
              
               for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)      
-              {      
+              {   
+                
                   array_1d<double, 3 > & vel             = i->FastGetSolutionStepValue(VELOCITY);
                   array_1d<double, 3 > & displ           = i->FastGetSolutionStepValue(DISPLACEMENT);
                   array_1d<double, 3 > & delta_displ     = i->FastGetSolutionStepValue(DELTA_DISPLACEMENT);
@@ -232,7 +233,7 @@ namespace Kratos
                   array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
                   
                   double mass                            = i->FastGetSolutionStepValue(NODAL_MASS);
-                  aux = delta_t / mass;     
+                  double aux = delta_t / mass;     
                   
                   if(i->Id() == DEBUG_PARTICLE)
                   {
@@ -364,7 +365,7 @@ namespace Kratos
                 pos = i->FastGetSolutionStepValue(ANGULAR_VELOCITY_Y_DOF_POS);
                 If_Fix_Rotation[1] = i->GetDof(ANGULAR_VELOCITY_Y, pos).IsFixed();
                 pos = i->FastGetSolutionStepValue(ANGULAR_VELOCITY_Z_DOF_POS);
-                If_Fix_Rotation[2] = i->GetDof(ANGULAR_VELOCITY_Z, pos).IsFixed();				               
+                If_Fix_Rotation[2] = i->GetDof(ANGULAR_VELOCITY_Z, pos).IsFixed();                             
                 
                 for(std::size_t iterator = 0 ; iterator < 3; iterator++)
                 {
