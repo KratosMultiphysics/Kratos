@@ -258,7 +258,6 @@ public:
         BinBasedFastPointLocator<TDim>& bin_of_objects_fluid) //this is a bin of objects which contains the FLUID model part
      {
         KRATOS_TRY
-
         const int n_fluid_nodes = rfluid_model_part.Nodes().size();
 
         // resetting the variables to be mapped
@@ -883,10 +882,10 @@ private:
             array_1d<double,3>& node1_drag = geom[1].FastGetSolutionStepValue(DRAG_REACTION, 0);
             array_1d<double,3>& node2_drag = geom[2].FastGetSolutionStepValue(DRAG_REACTION, 0);
             array_1d<double,3>& node3_drag = geom[3].FastGetSolutionStepValue(DRAG_REACTION, 0);
-            const double fluid_fraction1   = 1 - geom[0].FastGetSolutionStepValue(SOLID_FRACTION, 0);
-            const double fluid_fraction2   = 1 - geom[1].FastGetSolutionStepValue(SOLID_FRACTION, 0);
-            const double fluid_fraction3   = 1 - geom[2].FastGetSolutionStepValue(SOLID_FRACTION, 0);
-            const double fluid_fraction4   = 1 - geom[0].FastGetSolutionStepValue(SOLID_FRACTION, 0);
+            const double fluid_fraction0   = 1 - geom[0].FastGetSolutionStepValue(SOLID_FRACTION, 0);
+            const double fluid_fraction1   = 1 - geom[1].FastGetSolutionStepValue(SOLID_FRACTION, 0);
+            const double fluid_fraction2   = 1 - geom[2].FastGetSolutionStepValue(SOLID_FRACTION, 0);
+            const double fluid_fraction3   = 1 - geom[3].FastGetSolutionStepValue(SOLID_FRACTION, 0);
             const double& node0_volume     = geom[0].FastGetSolutionStepValue(NODAL_AREA, 0);
             const double& node1_volume     = geom[1].FastGetSolutionStepValue(NODAL_AREA, 0);
             const double& node2_volume     = geom[2].FastGetSolutionStepValue(NODAL_AREA, 0);
@@ -895,10 +894,10 @@ private:
             const double& node1_density    = geom[1].FastGetSolutionStepValue(DENSITY, 0);
             const double& node2_density    = geom[2].FastGetSolutionStepValue(DENSITY, 0);
             const double& node3_density    = geom[3].FastGetSolutionStepValue(DENSITY, 0);
-            const double node0_mass_inv    = mParticlesPerDepthDistance / (fluid_fraction1 * node0_volume * node0_density);
-            const double node1_mass_inv    = mParticlesPerDepthDistance / (fluid_fraction2 * node1_volume * node1_density);
-            const double node2_mass_inv    = mParticlesPerDepthDistance / (fluid_fraction3 * node2_volume * node2_density);
-            const double node3_mass_inv    = mParticlesPerDepthDistance / (fluid_fraction4 * node3_volume * node3_density);
+            const double node0_mass_inv    = mParticlesPerDepthDistance / (fluid_fraction0 * node0_volume * node0_density);
+            const double node1_mass_inv    = mParticlesPerDepthDistance / (fluid_fraction1 * node1_volume * node1_density);
+            const double node2_mass_inv    = mParticlesPerDepthDistance / (fluid_fraction2 * node2_volume * node2_density);
+            const double node3_mass_inv    = mParticlesPerDepthDistance / (fluid_fraction3 * node3_volume * node3_density);
 
             for (unsigned int j= 0; j< TDim; j++){
                 double data   = origin_data[j];
@@ -956,7 +955,12 @@ private:
 
     {
         //Geometry element of the rOrigin_ModelPart
+
         Geometry< Node<3> >& geom = el_it->GetGeometry();
+        array_1d<double,4> N_2; // a dummy since we are nbot interested in its value at the Gauss points
+        boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX; // its value is constant over the element so its value on the Gauss point will do
+        double element_volume; // a dummy
+        GeometryUtils::CalculateGeometryData(geom, DN_DX, N_2, element_volume);
 
         //getting the data of the solution step
         const double& radius         = (pnode)->FastGetSolutionStepValue(RADIUS, 0);
@@ -964,6 +968,9 @@ private:
 
         for (unsigned int inode = 0; inode < N.size(); inode++){
             geom[inode].FastGetSolutionStepValue(SOLID_FRACTION, 0) += N[inode] * particle_volume;
+//            geom[inode].FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT, 0)[0] += DN_DX(inode, 0) * particle_volume;
+//            geom[inode].FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT, 0)[1] += DN_DX(inode, 1) * particle_volume;
+//            geom[inode].FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT, 0)[2] += DN_DX(inode, 2) * particle_volume;
         }
 
     }
