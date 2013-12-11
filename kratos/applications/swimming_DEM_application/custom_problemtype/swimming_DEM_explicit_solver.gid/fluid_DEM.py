@@ -23,11 +23,11 @@ import DEM_procedures
 import swimming_DEM_procedures
 
 # PROJECT PARAMETERS (to be put in problem type)
-ProjectParameters.projection_module_option         = 0
+ProjectParameters.projection_module_option         = 1
 ProjectParameters.print_particles_results_option   = 0
 ProjectParameters.project_from_particles_option    = 0
 ProjectParameters.project_at_every_substep_option  = 0
-ProjectParameters.velocity_trap_option             = 1
+ProjectParameters.velocity_trap_option             = 0
 ProjectParameters.inlet_option                     = 1
 ProjectParameters.non_newtonian_option             = 0
 ProjectParameters.manually_imposed_drag_law_option = 0
@@ -131,7 +131,10 @@ solver_module = import_solver(SolverSettings)
 
 #
 # importing variables
+print 'Adding nodal variables to the fluid_model_part' #(memory allocation) #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+
 solver_module.AddVariables(fluid_model_part, SolverSettings)
+swimming_DEM_procedures.AddNodalVariables(fluid_model_part, fluid_variables_to_add) #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
 # introducing input file name
 input_file_name = ProjectParameters.problem_name
@@ -141,9 +144,7 @@ model_part_io_fluid = ModelPartIO(input_file_name)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-print 'Adding nodal variables to the fluid_model_part' #(memory allocation)
 
-swimming_DEM_procedures.AddNodalVariables(fluid_model_part, fluid_variables_to_add)
 
 # defining model parts for the balls part and for the DEM-FEM interaction elements
 
