@@ -133,11 +133,10 @@ public:
             it->FastGetSolutionStepValue (VISCOSITY) = viscosity;
 	
 	mMolecularViscosity = viscosity;
-KRATOS_WATCH(viscosity)
-// 	    mViscosity = viscosity;
 
+        for(unsigned int i = 0; i<TDim; i++)
+            mBodyForce[i] = body_force[i];
 
-        noalias(mBodyForce) = body_force;
         mRho = density;
 
         mdelta_t_avg = 1000.0;
@@ -148,13 +147,6 @@ KRATOS_WATCH(viscosity)
 
         mshock_coeff = 0.7;
         mWallLawIsActive = false;
-
-//            for (unsigned int i = 0; i < TDim; i++) mBodyForce[i] = 0;
-//            mBodyForce[1] = -9.81;
-//
-//            mRho = 1000.0;
-
-
 
 
     };
@@ -230,7 +222,7 @@ KRATOS_WATCH(viscosity)
         mr_matrix_container.SetToZero(mA);
         mB.resize(n_nodes);
         mr_matrix_container.SetToZero(mB);
-	mStrVel.resize(n_nodes);
+        mStrVel.resize(n_nodes);
         mr_matrix_container.SetToZero(mStrVel);
 
         mdiv_error.resize(n_nodes);
@@ -302,16 +294,12 @@ KRATOS_WATCH(viscosity)
         if(TDim == 3)
             DetectEdges3D(mr_model_part.Conditions());
 
-        //print number of nodes corresponding to the different types of boundary conditions
-        //				KRATOS_WATCH(mFixedVelocities.size())
-        //				KRATOS_WATCH(mPressureOutletList.size())
-        //				KRATOS_WATCH(mSlipBoundaryList.size())
-
 
         //determine number of edges and entries
-        unsigned int n_nonzero_entries = 2 * n_edges + n_nodes;
+////        not implemented in ublas yet !!!
+        //unsigned int n_nonzero_entries = 2 * n_edges + n_nodes;
         //allocate memory for variables
-        mL.resize(n_nodes, n_nodes, n_nonzero_entries);
+        mL.resize(n_nodes, n_nodes, false);
 
         int number_of_threads= OpenMPUtils::GetNumThreads();
         std::vector<int> row_partition(number_of_threads);
@@ -358,11 +346,19 @@ KRATOS_WATCH(viscosity)
 
 
         //set the pressure projection to the body force value
-        array_1d<double,3> temp = mRho * mBodyForce;
+
+        array_1d<double,3> temp = ZeroVector(3);
+        for(unsigned int i = 0 ; i < TDim; i++)
+            temp[i]=  mRho * mBodyForce[i];
         for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
                 inode != mr_model_part.NodesEnd();
                 inode++)
-            inode->FastGetSolutionStepValue(PRESS_PROJ) = temp;
+        {
+            array_1d<double, 3> & press_proj = inode->FastGetSolutionStepValue(PRESS_PROJ);
+            for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+                press_proj[l_comp] = temp[l_comp];
+
+        }
 
         KRATOS_CATCH("")
     }
@@ -391,19 +387,16 @@ KRATOS_WATCH(viscosity)
         //getting value of current velocity and of viscosity
         mr_matrix_container.FillScalarFromDatabase (VISCOSITY, mViscosity, mr_model_part.Nodes() );
         mr_matrix_container.FillVectorFromDatabase(VELOCITY, mvel_n1, mr_model_part.Nodes());
-//            mr_matrix_container.FillVectorFromDatabase(PRESS_PROJ, mXi, mr_model_part.Nodes());
         mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
-//	    mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
         mr_matrix_container.FillScalarFromDatabase(LIN_DARCY_COEF, mA, mr_model_part.Nodes());
         mr_matrix_container.FillScalarFromDatabase(NONLIN_DARCY_COEF, mB, mr_model_part.Nodes());
         mr_matrix_container.FillVectorFromDatabase(STRUCTURE_VELOCITY, mStrVel, mr_model_part.Nodes());
 
 
-//            double delta_t_i = delta_t;
 
         //*******************
         //loop over all nodes
-        double n_nodes = mvel_n1.size();
+        unsigned int n_nodes = mvel_n1.size();
         for (unsigned int i_node = 0; i_node < n_nodes; i_node++)
         {
             const array_1d<double, TDim>& v_i = mvel_n1[i_node];
@@ -420,12 +413,17 @@ KRATOS_WATCH(viscosity)
 //	    rel_vel_i[1] = v_i[1] - str_v_i[1];
 //	    rel_vel_i[2] = v_i[2] - str_v_i[2];
 //            double rel_vel_norm = norm_2(rel_vel_i);
-            double vel_norm = norm_2(v_i);
+//            double vel_norm = norm_2(v_i);
 
-//// 			double porosity_coefficient = ComputePorosityCoefficient(mViscosity, vel_norm, eps_i, d_i);
+            double vel_norm = 0.0;
+            for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+            {
+                vel_norm += v_i[l_comp]*v_i[l_comp];
+            }
+            vel_norm = sqrt(vel_norm);
+
 //            double porosity_coefficient = ComputePorosityCoefficient( rel_vel_norm, eps_i, lindarcy_i, nonlindarcy_i);
-// KRATOS_WATCH("porosity_coefficient -----------  ComputeTimeStep")
-// KRATOS_WATCH(porosity_coefficient)
+
             vel_norm /= eps_i;
 
             //use CFL condition to compute time step size
@@ -452,21 +450,9 @@ KRATOS_WATCH(viscosity)
                 v_diff_norm /= eps_i;
                 double delta_t_j = CFLNumber * 1.0 / (2.0 * v_diff_norm /hmin_i + 4.0 * nu / (hmin_i * hmin_i));
 //                double delta_t_j =  1.0 / ( v_diff_norm /hmin_i +  nu / (hmin_i * hmin_i));
-//KRATOS_WATCH(nu);
-//KRATOS_WATCH(v_diff_norm);
-//                KRATOS_WATCH(hmin_i)
+
                 if (delta_t_j < delta_t_i)
                     delta_t_i = delta_t_j;
-                //                    if ((v_i_par >= 0.0 && v_j_par <= 0.0) || (v_i_par <= 0.0 && v_j_par >= 0.0))
-                //                    {
-                //                        double delta_t_j = CFLNumber * 1.0 / (2.0 * norm_2(v_diff) /hmin_i + 4.0 * mViscosity / (hmin_i * hmin_i));
-                ////                        double delta_t_j = CFLNumber / ((fabs(v_i_par) + fabs(v_j_par)) / mHmin[i_node] + 2.0 * mViscosity / (mHmin[i_node] * mHmin[i_node]));
-                //                        // 							KRATOS_WATCH(delta_t_j);
-                //                        // 							KRATOS_WATCH(delta_t_i);
-                //                        if (delta_t_j < delta_t_i)
-                //                            delta_t_i = delta_t_j;
-                //                    }
-
 
             }
 
@@ -517,6 +503,7 @@ KRATOS_WATCH(viscosity)
             for (unsigned int comp = 0; comp < TDim; comp++)
                 u_i_fix[comp] = u_i[comp];
         }
+
         KRATOS_CATCH("");
     }
 
@@ -555,111 +542,49 @@ KRATOS_WATCH(viscosity)
         ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
         double delta_t = CurrentProcessInfo[DELTA_TIME];
 
-        //read the prescribed values of velocity
-//            int fixed_size = mD.size();
-// //            #pragma omp parallel for firstprivate(fixed_size)
-//            for (int i_d = 0; i_d < fixed_size; i_d++)
-//            {
-//                    KRATOS_WATCH(mD[i_d]);
-//            }
-
-
-//            //read the prescribed values of velocity
-//            int fixed_size = mFixedVelocities.size();
-////            #pragma omp parallel for firstprivate(fixed_size)
-//            for (int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
-//            {
-//                unsigned int i_node = mFixedVelocities[i_velocity];
-//                     array_1d<double, TDim>& u_i_fix = mFixedVelocitiesValues[i_velocity];
-//                    const array_1d<double, TDim>& u_i = mvel_n1[i_node];
-//                    KRATOS_WATCH(mvel_n1[i_node-1]);
-//                    KRATOS_WATCH(mvel_n1[i_node]);
-//                    KRATOS_WATCH(mvel_n1[i_node+1]);
-//                    for (unsigned int comp = 0; comp < TDim; comp++)
-//                        u_i_fix[comp] = u_i[comp];
-//            }
-//            KRATOS_WATCH("AAAAAAAAAAAAAAAAA")
-//            mFixedVelocities.resize(0);
-//            mFixedVelocitiesValues.resize(0);
-//            mFixedVelocities.clear();
-//            mFixedVelocitiesValues.clear();
-//
-//            for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
-//                    inode != mr_model_part.NodesEnd();
-//                    inode++) {
-//                int index = inode->FastGetSolutionStepValue(AUX_INDEX);
-//                if (inode->IsFixed(VELOCITY_X)) //note that the variables can be either all fixed or no one fixed
-//                {
-//                    KRATOS_WATCH(index);
-//                    KRATOS_WATCH(inode->FastGetSolutionStepValue(VELOCITY));
-//                    mFixedVelocities.push_back(index);
-//                    mFixedVelocitiesValues.push_back(mvel_n1[index]);
-//
-//
-//                }
-//            }
-//
-//            int fixed_size = mFixedVelocities.size();
-////            #pragma omp parallel for firstprivate(fixed_size)
-//            for (int i_velocity = 0; i_velocity < fixed_size; i_velocity++)
-//            {
-////                                    mFixedVelocitiesValues[i_velocity][0] = 10.0;
-////                    mFixedVelocitiesValues[i_velocity][1] = 10.0;
-////                    mFixedVelocitiesValues[i_velocity][2] = 10.0;
-//                KRATOS_WATCH( mFixedVelocitiesValues[i_velocity] );
-//            }
-
-
 
         //compute intrinsic time
-//            double time_inv = 1.0 / delta_t;
         double time_inv_avg = 1.0/mdelta_t_avg;
 
         double stabdt_pressure_factor  = mstabdt_pressure_factor;
         double stabdt_convection_factor  = mstabdt_convection_factor;
         double tau2_factor = mtau2_factor;
 
-//            const double max_dt_inv = 1.0 / max_dt;
 
-//            double max_dt_inv_coeff = 0.1 / max_dt;
-//            const double max_dt_coeff = 10.0*max_dt;
 
         #pragma omp parallel for firstprivate(time_inv_avg,stabdt_pressure_factor,stabdt_convection_factor,tau2_factor)
         for (int i_node = 0; i_node < n_nodes; i_node++)
         {
-            // 					double& h_i = mHavg[i_node];
             double& h_avg_i = mHavg[i_node];
 
             array_1d<double, TDim>& a_i = mvel_n1[i_node];
             const double nu_i = mViscosity[i_node];
             const double eps_i = mEps[i_node];
-// 		//const double d_i = mD[i_node];
             const double lindarcy_i = mA[i_node];
             const double nonlindarcy_i = mB[i_node];
 
-            double vel_norm = norm_2(a_i);
-	    
+            double vel_norm = 0.0;
+            for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+            {
+                vel_norm += a_i[l_comp]*a_i[l_comp];
+            }
+            vel_norm = sqrt(vel_norm);
+
     	    const array_1d<double, TDim>& str_v_i = mStrVel[i_node];
 	    array_1d<double, TDim> rel_vel_i;
-	    rel_vel_i[0] = a_i[0] - str_v_i[0];
-	    rel_vel_i[1] = a_i[1] - str_v_i[1];
-	    rel_vel_i[2] = a_i[2] - str_v_i[2];
-            double rel_vel_norm = norm_2(rel_vel_i);
 
-// 	    KRATOS_WATCH(vel_norm);
-// 	    KRATOS_WATCH(rel_vel_norm);
-// // KRATOS_WATCH("lindarcy_i")
-// KRATOS_WATCH(lindarcy_i)
-// // // KRATOS_WATCH("nonlindarcy_i")
-// KRATOS_WATCH(nonlindarcy_i)
-// // // KRATOS_WATCH("porosityyyyyyy ******************************************")
-// KRATOS_WATCH(eps_i)
-// KRATOS_WATCH(vel_norm)
-// KRATOS_WATCH(mViscosity)
-// 		double porosity_coefficient = ComputePorosityCoefficient(nu_i, vel_norm, eps_i, d_i);
+            double rel_vel_norm = 0.0;
+            for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+            {
+                rel_vel_i[l_comp] = a_i[l_comp] - str_v_i[l_comp];
+                rel_vel_norm += rel_vel_i[l_comp]*rel_vel_i[l_comp];
+            }
+            rel_vel_norm = sqrt(rel_vel_norm);
+
+
+
             double porosity_coefficient = ComputePorosityCoefficient(rel_vel_norm, eps_i, lindarcy_i, nonlindarcy_i);
-// KRATOS_WATCH("porosity_coefficient -------  STEP 1")
-// KRATOS_WATCH(porosity_coefficient)
+
             vel_norm /= eps_i;
 
 //                double tau = 1.0 / (2.0 * vel_norm / h_avg_i + time_inv_avg + (4.0*nu_i) / (h_avg_i * h_avg_i) + porosity_coefficient);
@@ -734,9 +659,9 @@ KRATOS_WATCH(viscosity)
 	    /*convective front velocity == fluid velocity - structural velocity*/
 // // 	    ****************************************rel_vel_modifications_b
 //     	    const array_1d<double, TDim>& str_v_i = mStrVel[i_node];
-// 	    a_i[0] -= str_v_i[0];
-// 	    a_i[1] -= str_v_i[1];
-// 	    a_i[2] -= str_v_i[2];
+//            for(unsigned int comp = 0; comp < TDim; comp++)
+//                {a_i[comp] -= str_v_i[comp];}
+
 // // 	    ****************************************rel_vel_modifications_e
             //const double& p_i = pressure[i_node];
 
@@ -753,9 +678,9 @@ KRATOS_WATCH(viscosity)
 		/*convective front velocity == fluid velocity - structural velocity*/
 // // 	        ****************************************rel_vel_modifications_b
 // 		const array_1d<double, TDim>& str_v_j = mStrVel[j_neighbour];
-// 		a_j[0] -= str_v_j[0];
-// 		a_j[1] -= str_v_j[1];
-// 		a_j[2] -= str_v_j[2];
+//            for(unsigned int comp = 0; comp < TDim; comp++)
+//                {a_j[comp] -= str_v_j[comp];}
+
 // // 	        ****************************************rel_vel_modifications_e		
 		
                 CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
@@ -809,7 +734,6 @@ KRATOS_WATCH(viscosity)
             //prepare for next step
             //mr_matrix_container.AssignVectorToVector (mvel_n1, mvel_n);//???????????????????????????????????????
 
-
         KRATOS_CATCH("")
     }
 
@@ -829,18 +753,12 @@ KRATOS_WATCH(viscosity)
 
         int n_nodes = vel.size();
 
-
-
-
-
-
         //perform MPI syncronization
 
         //calculating the RHS
         array_1d<double, TDim> stab_low;
         array_1d<double, TDim> stab_high;
-        //const double nu_i = mViscosity;
-        //const double nu_j = mViscosity;
+
         double inverse_rho = 1.0 / mRho;
         #pragma omp parallel for private(stab_low,stab_high)
         for (int i_node = 0; i_node < n_nodes; i_node++)
@@ -864,15 +782,16 @@ KRATOS_WATCH(viscosity)
 		
 		const array_1d<double, TDim>& str_v_i = mStrVel[i_node];
 		array_1d<double, TDim> rel_vel_i;
-		rel_vel_i[0] = U_i[0] - str_v_i[0];
-		rel_vel_i[1] = U_i[1] - str_v_i[1];
-		rel_vel_i[2] = U_i[2] - str_v_i[2];
-		double rel_vel_norm = norm_2(rel_vel_i);
 
-// 	    KRATOS_WATCH(norm_2(U_i));
-// 	    KRATOS_WATCH(rel_vel_norm);
-// KRATOS_WATCH("before");
-// KRATOS_WATCH(d_i);
+        double rel_vel_norm = 0.0;
+        for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+        {
+            rel_vel_i[l_comp] = U_i[l_comp] - str_v_i[l_comp];
+            rel_vel_norm += rel_vel_i[l_comp]*rel_vel_i[l_comp];
+        }
+        rel_vel_norm = sqrt(rel_vel_norm);
+
+
                 //const double& tau2_i = mTau2[i_node];
 
                 double edge_tau = mTauConvection[i_node];
@@ -881,12 +800,13 @@ KRATOS_WATCH(viscosity)
 
 		/*convective front velocity == fluid velocity - structural velocity*/
 //     // 	    ****************************************rel_vel_modifications_b
-// 		a_i[0] -= str_v_i[0];
-// 		a_i[1] -= str_v_i[1];
-// 		a_i[2] -= str_v_i[2];
+//                for(unsigned int comp = 0; comp < TDim; comp++)
+//                    {a_i[comp] -= str_v_i[comp];}
+
 //     // 	    ****************************************rel_vel_modifications_e
 // 		
                 //double& h_i = mHmin[i_node];
+
 
                 //initializing with the external forces (e.g. gravity)
                 double& m_i = mr_matrix_container.GetLumpedMass()[i_node];
@@ -899,13 +819,7 @@ KRATOS_WATCH(viscosity)
                 double porosity_coefficient = ComputePorosityCoefficient( rel_vel_norm, eps_i, lindarcy_i, nonlindarcy_i);
  				diag_stiffness[i_node]= m_i * porosity_coefficient;
 
-// 		KRATOS_WATCH("porosity_coefficient -----------  Calcualte RHS")
-// KRATOS_WATCH(rel_vel_norm)
-// KRATOS_WATCH(lindarcy_i);
-// KRATOS_WATCH(nonlindarcy_i);
-// KRATOS_WATCH(porosity_coefficient)
-// KRATOS_WATCH(U_i);
-// KRATOS_WATCH(str_v_i);
+
 
 // 		/**************************************************rel_vel_modifications_b*/
                 for (unsigned int comp = 0; comp < TDim; comp++)
@@ -914,7 +828,6 @@ KRATOS_WATCH(viscosity)
 		    rhs_i[comp] += m_i * porosity_coefficient * str_v_i[comp];
 		}
 //		/*************************************************rel_vel_modifications_e*/
-
 
                 //std::cout << i_node << "rhs =" << rhs_i << "after adding body force" << std::endl;
                 //convective term
@@ -933,24 +846,24 @@ KRATOS_WATCH(viscosity)
 		/*convective front velocity == fluid velocity - structural velocity*/
 //		  ****************************************rel_vel_modifications_b
 // 		  const array_1d<double, TDim>& str_v_j = mStrVel[j_neighbour];
-// 		  a_j[0] -= str_v_j[0];
-// 		  a_j[1] -= str_v_j[1];
-// 		  a_j[2] -= str_v_j[2];
+//                for(unsigned int comp = 0; comp < TDim; comp++)
+//                    {a_j[comp] -= str_v_j[comp];}
+
 //	          ****************************************/*rel_vel_modifications*/_e	    
 		    
                     CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
 
                     edge_ij.Sub_ConvectiveContribution(rhs_i, a_i, U_i, a_j, U_j);
-                    //std::cout << i_node << "rhs =" << rhs_i << "after convective contrib" << std::endl;
+//                    std::cout << i_node << "rhs =" << rhs_i << "after convective contrib" << std::endl;
 
                     //take care! we miss including a B.C.  for the external pressure
                     //							edge_ij.Add_Gp(rhs_i,p_i*inverse_rho,p_j*inverse_rho);
                     edge_ij.Sub_grad_p(rhs_i, p_i*inverse_rho*eps_i, p_j * inverse_rho*eps_i);
                     //                        edge_ij.Add_grad_p(rhs_i, p_i*inverse_rho, p_j * inverse_rho);
-                    //std::cout << i_node << "rhs =" << rhs_i << "after Gp" << std::endl;
+//                    std::cout << i_node << "rhs =" << rhs_i << "after Gp" << std::endl;
 
                     edge_ij.Sub_ViscousContribution(rhs_i, U_i, nu_i, U_j, nu_j);
-                    //std::cout << i_node << "rhs =" << rhs_i << "after viscous" << std::endl;
+//                    std::cout << i_node << "rhs =" << rhs_i << "after viscous" << std::endl;
 
                     //add stabilization
                     edge_ij.CalculateConvectionStabilization_LOW(stab_low, a_i, U_i, a_j, U_j);
@@ -967,7 +880,7 @@ KRATOS_WATCH(viscosity)
 //                             edge_ij.Sub_StabContribution(rhs_i, edge_tau, (1.0-beta), stab_low, stab_high);
                     edge_ij.Sub_StabContribution(rhs_i, edge_tau, 1.0, stab_low, stab_high);
 
-                    //std::cout << i_node << "rhs =" << rhs_i << "after stab" << std::endl;
+//                    std::cout << i_node << "rhs =" << rhs_i << "after stab" << std::endl;
 
                     //add tau2 term
 //                             boost::numeric::ublas::bounded_matrix<double,TDim,TDim>& LL = edge_ij.LaplacianIJ;
@@ -987,11 +900,14 @@ KRATOS_WATCH(viscosity)
 
         }
 
+
         //apply wall resistance
         if (mWallLawIsActive == true)
             ComputeWallResistance (vel,diag_stiffness);
         ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
         mr_matrix_container.WriteVectorToDatabase(VELOCITY, mvel_n1, rNodes);
+
+
         KRATOS_CATCH("")
     }
 
@@ -1032,8 +948,7 @@ KRATOS_WATCH(viscosity)
                         {
                             layers[0].push_back(*(inode.base()));
                             inode->GetValue(IS_VISITED) = 1.0;
-// 				KRATOS_WATCH("layer 0")
-// 				KRATOS_WATCH(inode->Id())
+
                         }
                     }
                 }
@@ -1054,8 +969,6 @@ KRATOS_WATCH(viscosity)
                 {
                     layers[1].push_back(Node < 3 > ::Pointer(*(jjj.base())));
                     jjj->GetValue(IS_VISITED) = 2.0;
-// 		      	KRATOS_WATCH("layer 1")
-// 			KRATOS_WATCH(jjj->Id())
                 }
             }
         }
@@ -1114,15 +1027,16 @@ KRATOS_WATCH(viscosity)
 
                 grad_d *= dist_i; //this is the vector with the distance of node_i from the closest point on the free surface
 
-                const array_1d<double, TDim> press_grad = iii->FastGetSolutionStepValue(PRESS_PROJ);
-                double pestimate = inner_prod(press_grad,grad_d);
+                //array_1d<double, TDim> press_grad;
+				double pestimate = 0.0;
+
+                const array_1d<double, 3> & r_press_proj = iii->FastGetSolutionStepValue(PRESS_PROJ);
+                for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+                	pestimate += r_press_proj[l_comp]*grad_d[l_comp];
+//                    press_grad[l_comp]= r_press_proj[l_comp];
 
                 iii->FastGetSolutionStepValue(PRESSURE) = pestimate;
-// 			    KRATOS_WATCH("peastimate step2")
-// 			    KRATOS_WATCH(iii->Id())
-// 			    KRATOS_WATCH(grad_d)
-// 			    KRATOS_WATCH(press_grad)
-// 			    KRATOS_WATCH(pestimate)
+
             }
             else
             {
@@ -1166,8 +1080,8 @@ KRATOS_WATCH(viscosity)
         int n_nodes = rNodes.size();
         //unknown and right-hand side vector
         TSystemVectorType dp, rhs;
-        dp.resize(n_nodes);
-        rhs.resize(n_nodes);
+        dp.resize(n_nodes,false);
+        rhs.resize(n_nodes,false);
         array_1d<double, TDim> dU_i, dU_j, work_array;
         //read time step size from Kratos
         ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
@@ -1393,10 +1307,10 @@ KRATOS_WATCH(viscosity)
         #pragma omp parallel for
         for (int i_node = 0; i_node < n_nodes; i_node++)
             dp[i_node] = 0.0;
-        //KRATOS_WATCH(rhs);
-        //solve linear equation system L dp = rhs
+
+
+
         pLinearSolver->Solve(mL, dp, rhs);
-        //KRATOS_WATCH(*pLinearSolver)
 
 
         //update pressure
@@ -1789,48 +1703,12 @@ KRATOS_WATCH(viscosity)
             }
             else //case in which there is not a layer of nodes completely internal
             {
-                //get the node
-                /*testing_begin*/
-// 		      unsigned int i_node = iii->FastGetSolutionStepValue(AUX_INDEX);
-//
-// 		      array_1d<double, TDim> grad_d;
-// 		      for (unsigned int comp = 0; comp < TDim; comp++)
-// 			  grad_d[comp] = 0.0;
-//
-// 		      double dist_i = mdistances[i_node];
-// //
-// 		      for (unsigned int csr_index = mr_matrix_container.GetRowStartIndex()[i_node]; csr_index != mr_matrix_container.GetRowStartIndex()[i_node + 1]; csr_index++)
-// 		      {
-// 			  //get global index of neighbouring node j
-// 			  unsigned int j_neighbour = mr_matrix_container.GetColumnIndex()[csr_index];
-//
-// 			      const double& dist_j  = mdistances[j_neighbour];
-// 			      //projection of pressure gradients
-// 			      CSR_Tuple& edge_ij = mr_matrix_container.GetEdgeValues()[csr_index];
-//
-// 			      edge_ij.Add_grad_p(grad_d, dist_i, dist_j);
-//
-// 		      }
-// 		      const double& m_inv = mr_matrix_container.GetInvertedMass()[i_node];
-// 		      for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
-// 			  grad_d[l_comp] *= m_inv;
-//
-// 		      double norm_grad = norm_2(grad_d);
-// 		      grad_d /= norm_grad;//versor normal to the free surface
-// //
-// 			double aux = inner_prod(mBodyForce,grad_d);
-// 			grad_d *= aux;
-// 			array_1d<double,3>& pi = iii->FastGetSolutionStepValue(PRESS_PROJ);
-// 			for (unsigned int comp = 0; comp < TDim; comp++)
-// 			{
-// 			    pi[comp] = mRho*grad_d[comp]; //the nodes with zero distance also enter this loop!!!
-// 			}
-// 			KRATOS_WATCH("PresProjections")
-// 			KRATOS_WATCH(iii->Id())
-// 			KRATOS_WATCH(grad_d)
-// 			KRATOS_WATCH(iii->FastGetSolutionStepValue(PRESS_PROJ))
-                /*testing_end*/
-                noalias(iii->FastGetSolutionStepValue(PRESS_PROJ)) = mRho*mBodyForce;
+                array_1d<double,3>& pproj = iii->FastGetSolutionStepValue(PRESS_PROJ);
+                for(unsigned int i=0; i<TDim; i++) 
+					pproj[i] = mRho*mBodyForce[i];
+//                noalias(iii->FastGetSolutionStepValue(PRESS_PROJ)) = mRho*mBodyForce;
+
+
             }
         }
 
@@ -2226,7 +2104,7 @@ KRATOS_WATCH(viscosity)
 
             //inlet or outlet condition
             bool is_inlet_or_outlet = false;
-            if (cond_it->GetValue (IS_STRUCTURE) == 0) is_inlet_or_outlet = true;
+            if (cond_it->GetValue (IS_STRUCTURE) != true) is_inlet_or_outlet = true;
             else
             {
                 for (unsigned int if_node = 0; if_node < TDim; if_node++)
@@ -2306,7 +2184,6 @@ KRATOS_WATCH(viscosity)
         mphi_n1.clear();
 
         mEps.clear();
-        //mD.clear();
         mA.clear();
         mB.clear();
 	mStrVel.clear();
@@ -2864,17 +2741,21 @@ KRATOS_WATCH(viscosity)
 //            const double lindarcy_i = mA[i_node];
 //            const double nonlindarcy_i = mB[i_node];
 
-            double vel_norm = norm_2(v_i);
+//            double vel_norm = norm_2(v_i);
+            double vel_norm = 0.0;
+            for (unsigned int l_comp = 0; l_comp < TDim; l_comp++)
+            {
+                vel_norm += v_i[l_comp]*v_i[l_comp];
+            }
+            vel_norm = sqrt(vel_norm);
 
 //	    const array_1d<double, TDim>& str_v_i = mStrVel[i_node];
 //	    array_1d<double, TDim> rel_vel_i;
-//	    rel_vel_i[0] = v_i[0] - str_v_i[0];
-//	    rel_vel_i[1] = v_i[1] - str_v_i[1];
-//	    rel_vel_i[2] = v_i[2] - str_v_i[2];
+//            for(unsigned int comp = 0; comp < TDim; comp++)
+ //               {rel_vel_i[comp] = v_i[comp] - str_v_i[comp];}
 //	    double rel_vel_norm = norm_2(rel_vel_i);
 	    
-// 	    KRATOS_WATCH(vel_norm)
-// 	    KRATOS_WATCH(rel_vel_norm)
+
 	    
 //// 			double porosity_coefficient = ComputePorosityCoefficient(mViscosity, vel_norm, eps_i, d_i);
   //          double porosity_coefficient = ComputePorosityCoefficient(rel_vel_norm, eps_i, lindarcy_i, nonlindarcy_i);
@@ -2968,18 +2849,10 @@ KRATOS_WATCH(viscosity)
     void CalculatePorousResistanceLaw(unsigned int res_law)
     {
 
-        //variables for node based data handling
-// 	    ModelPart::NodesContainerType& rNodes = mr_model_part.Nodes();
-
-// 	    mr_matrix_container.FillScalarFromDatabase(DIAMETER, mD, mr_model_part.Nodes());
-// 	    mr_matrix_container.FillScalarFromDatabase(POROSITY, mEps, mr_model_part.Nodes());
-//  	    mr_matrix_container.FillScalarFromDatabase(LIN_DARCY_COEF, mA, mr_model_part.Nodes());
-//  	    mr_matrix_container.FillScalarFromDatabase(NONLIN_DARCY_COEF, mB, mr_model_part.Nodes());
 
 // 	  const double nu_i = mViscosity;
         if(res_law == 1)
         {
-// 	  KRATOS_WATCH("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Calculating Ergun Darcy coefficients ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
             /* if the chosen resistance law is ERGUN calculate Ergun A and B*/
             for (ModelPart::NodesContainerType::iterator inode = mr_model_part.NodesBegin();
                     inode != mr_model_part.NodesEnd();
@@ -2988,8 +2861,6 @@ KRATOS_WATCH(viscosity)
                 const double eps = inode->FastGetSolutionStepValue(POROSITY);/*reading from kratos database*/
                 const double d = inode->FastGetSolutionStepValue(DIAMETER);/*reading from kratos database*/
                 const double nu = inode->FastGetSolutionStepValue(VISCOSITY);/*reading from kratos database*/
-//                if (inode->FastGetSolutionStepValue(VISCOSITY) == 0)
-//                    KRATOS_WATCH( "CONSTRUCTOR--------------------------------------------------------------------------------");
                 double& a = inode-> FastGetSolutionStepValue(LIN_DARCY_COEF);/*changing kratos database*/
                 double& b = inode-> FastGetSolutionStepValue(NONLIN_DARCY_COEF);/*changing kratos database*/
                 if(eps < 1.0)
@@ -2997,12 +2868,7 @@ KRATOS_WATCH(viscosity)
                     double k_inv = 150.0 * (1.0 - eps)*(1.0 - eps) / (eps * eps * eps * d * d);
                     a = nu * k_inv;
                     b = (1.75 / eps) * sqrt(k_inv / (150.0 * eps));
-// 		KRATOS_WATCH("PERMEABILITY	")
-// 		KRATOS_WATCH(k_inv)
-// 		KRATOS_WATCH("LIN DARCY COEFFICIENT	")
-// 		KRATOS_WATCH(a)
-// 		KRATOS_WATCH("NONLIN DARCY COEFFICIENT	")
-// 		KRATOS_WATCH(b)
+
                 }
                 else
                 {
@@ -3434,18 +3300,29 @@ private:
                 edge_nodes[index1] += 1;
                 edge_nodes[index2] += 1;
 
-                double sign1 = inner_prod(cornern_list[index1], edge);
+//                double sign1 = inner_prod(cornern_list[index1], edge);
+                double sign1 = 0.0;
+                for(unsigned int i = 0 ; i < edge.size() ; i++)
+                    {sign1 += cornern_list[index1][i]*edge[i];}
+
                 if (sign1 >= 0)
-                    cornern_list[index1] += edge;
+                {    for(unsigned int i = 0 ; i < edge.size() ; i++)
+                        cornern_list[index1][i] += edge[i];
+                }
                 else
-                    cornern_list[index1] -= edge;
+                {    for(unsigned int i = 0 ; i < edge.size() ; i++)
+                        cornern_list[index1][i] -= edge[i];
+                }
 
                 double sign2 = inner_prod(cornern_list[index2], edge);
                 if (sign2 >= 0)
-                    cornern_list[index2] += edge;
+                {    for(unsigned int i = 0 ; i < edge.size() ; i++)
+                        cornern_list[index2][i] += edge[i];
+                }
                 else
-                    cornern_list[index2] -= edge;
-
+                 {   for(unsigned int i = 0 ; i < edge.size() ; i++)
+                        cornern_list[index2][i] -= edge[i];
+                  }
 
             }
 
@@ -3651,8 +3528,6 @@ private:
         //parameters:
         double k = 0.41;
         double B = 5.1;
-//        double density = mRho;
- //       double mu = mViscosity;
         double toll = 1e-6;
         double ym = mY_wall; //0.0825877; //0.0093823
         double y_plus_incercept = 10.9931899;
@@ -3685,7 +3560,7 @@ private:
                 }
                 mod_vel = sqrt(mod_vel);
                 area = sqrt(area);
-				diag_stiffness[i_node] = area * mod_vel /pow(1.0/k*log(100.00) + B,2);/* * mWallReductionFactor[ i_node ];*/
+                diag_stiffness[i_node] += area * mod_vel /pow(1.0/k*log(100.00) + B,2);/* * mWallReductionFactor[ i_node ];*/
                 //now compute the skin friction
                 double mod_uthaw = sqrt(mod_vel * nu / ym);
                 const double y_plus = ym * mod_uthaw / nu;
@@ -3707,9 +3582,7 @@ private:
                         it = it + 1;
                     }
 
-                    //                         KRATOS_WATCH(toll*mod_uthaw);
-                    //                         KRATOS_WATCH(area);
-                    //                        KRATOS_WATCH(it);
+
                     if (it == itmax)
                         std::cout << "attention max number of iterations exceeded in wall law computation" << std::endl;
 
@@ -3729,7 +3602,7 @@ private:
 
             }
             else
-                diag_stiffness[i_node] = 0.0;
+                diag_stiffness[i_node] += 0.0;
         }
     }
 
@@ -3799,8 +3672,7 @@ private:
             aux *= 0.5;
             if (aux < 0.0 ) aux=0.0;
             double turbulent_viscosity = Cs*h*h*sqrt (aux) /**MolecularViscosity*/;
-// 	  KRATOS_WATCH(aux);
-// 	  KRATOS_WATCH(turbulent_viscosity);
+
             mViscosity[i_node] = turbulent_viscosity + MolecularViscosity;
         }
         mr_matrix_container.WriteScalarToDatabase (VISCOSITY, mViscosity, rNodes);
@@ -3862,8 +3734,7 @@ private:
             aux *= 0.5;
             if (aux < 0.0 ) aux=0.0;
             double turbulent_viscosity = Cs*h*h*sqrt (aux) /**MolecularViscosity*/;
-// 	  KRATOS_WATCH(aux);
-// 	  KRATOS_WATCH(turbulent_viscosity);
+
             mViscosity[i_node] = turbulent_viscosity + MolecularViscosity;
         }
         mr_matrix_container.WriteScalarToDatabase (VISCOSITY, mViscosity, rNodes);
