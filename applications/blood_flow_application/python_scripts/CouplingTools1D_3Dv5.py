@@ -230,9 +230,8 @@ class TransferTools:
 	  print self.fixed_outlet_nodes[i].Id   
 
     	  
-    def Initial_Contitions(self,dyastolic_pressure):
-        print "Initialize 3D contidions"
-        #print dyastolic_pressure
+    def Velocity_Initial_Contitions(self):
+        print "Initialize Velocity 3D contidion"
         for i in range(0, len(self.inlets_1d)):
             inlet_nodes_1d = self.inlets_1d[i]
             #print "3D-1D: inlet_nodes_1d [0].Id::::::>>>> ", inlet_nodes_1d[0].Id
@@ -293,7 +292,7 @@ class TransferTools:
         for i in range(0, len(self.outlets_1d)):
             outlet_nodes_1d = self.outlets_1d[i]
             #print outlet_nodes_1d[0].Id            
-            #pressinlet3D = outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)
+            pressinlet3D = outlet_nodes_1d[0].GetSolutionStepValue(PRESSURE)
             # pressinlet3D = 0
             #print "NODO 1D-3D: outlet_nodes_1d[0].Id::::::outlet 1D coupled with the 3D outlet>>>> ",outlet_nodes_1d[0].Id
             #print "pressinlet3D ",pressinlet3D
@@ -311,8 +310,8 @@ class TransferTools:
             #press = dyastolic_pressure + beta * \
                 #(math.sqrt(A) - math.sqrt(A0)) / \
                 #A0  # math.sqrt(A/A0)*beta - beta
-            #print "prress calculated",press 
-            #print "press solver", pressinlet3D
+            print "prress calculated",press 
+            print "press solver", pressinlet3D
             #for i in range(0, len(self.outlets_3d)):
             outlet_nodes_3d = self.outlets_3d[i]
 	    area3d = self.outlet_areas_3d[i]
@@ -418,7 +417,7 @@ class TransferTools:
 
 #-------------------------------------------------------------------------
 
-    def Setting3d(self,dyastolic_pressure):
+    def Setting3d(self,initial_pressure,blood_density,blood_viscosity):
         # print self
             # print len(self.model_part_3d.Conditions)
         for node in self.model_part_3d.Nodes:
@@ -426,9 +425,9 @@ class TransferTools:
             node.Free(VELOCITY_Y)
             node.Free(VELOCITY_Z)
             node.Free(PRESSURE)
-            node.SetSolutionStepValue(VISCOSITY, 0, 0.0035 / 1060.0)
-            node.SetSolutionStepValue(DENSITY, 0, 1060.0)
-            node.SetSolutionStepValue(PRESSURE,0,dyastolic_pressure)
+            node.SetSolutionStepValue(VISCOSITY, 0, blood_viscosity)
+            node.SetSolutionStepValue(DENSITY, 0, blood_density)
+            node.SetSolutionStepValue(PRESSURE,0,initial_pressure)
         # set inlet
         for cond in self.model_part_3d.Conditions:
             if(cond.Properties.Id == 100):  # inlet
