@@ -1731,7 +1731,9 @@ private:
             //if the angle is too big between the two normals then the edge in the middle is a corner
             if (cos_normal < acceptable_cos)
             {
-                array_1d<double, 3 > edge = face_geometry[i2].Coordinates() - face_geometry[i1].Coordinates();
+                array_1d<double, TDim > edge;
+                for(int i = 0 ; i < TDim ; i++)
+                    edge[i] = face_geometry[i2].Coordinates()[i] - face_geometry[i1].Coordinates()[i];
                 double temp = norm_2(edge);
                 edge /= temp;
 

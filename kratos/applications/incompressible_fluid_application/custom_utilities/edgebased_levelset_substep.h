@@ -3458,16 +3458,30 @@ private:
                 int index2 = face_geometry[i2].FastGetSolutionStepValue (AUX_INDEX);
                 edge_nodes[index1] += 1;
                 edge_nodes[index2] += 1;
-                double sign1 = inner_prod (cornern_list[index1], edge);
+//                double sign1 = inner_prod (cornern_list[index1], edge);
+                double sign1 = 0.0;
+                for(unsigned int i = 0 ; i < edge.size() ; i++)
+                    {sign1 += cornern_list[index1][i]*edge[i];}
+
                 if (sign1 >= 0)
-                    cornern_list[index1] += edge;
+                {    for(unsigned int i = 0 ; i < edge.size() ; i++)
+                        cornern_list[index1][i] += edge[i];
+                }
                 else
-                    cornern_list[index1] -= edge;
-                double sign2 = inner_prod (cornern_list[index2], edge);
+                {    for(unsigned int i = 0 ; i < edge.size() ; i++)
+                        cornern_list[index1][i] -= edge[i];
+                }
+
+                double sign2 = inner_prod(cornern_list[index2], edge);
                 if (sign2 >= 0)
-                    cornern_list[index2] += edge;
+                {    for(unsigned int i = 0 ; i < edge.size() ; i++)
+                        cornern_list[index2][i] += edge[i];
+                }
                 else
-                    cornern_list[index2] -= edge;
+                 {   for(unsigned int i = 0 ; i < edge.size() ; i++)
+                        cornern_list[index2][i] -= edge[i];
+                  }
+
             }
         }
     }

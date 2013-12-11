@@ -1230,13 +1230,16 @@ public:
 
             double h = sqrt(2.00*dummy);
 
-            ms_vel_gauss=im->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
-
+            array_1d<double,3> const& v = im->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+            ms_vel_gauss[0] = v[0];
+            ms_vel_gauss[1] = v[1];
 
             //direction of the height is stored in the auxilliary vector
             for (unsigned int i=1; i<3; i++)
             {
-                ms_vel_gauss +=im->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+                array_1d<double,3> const& vi = im->GetGeometry()[i].FastGetSolutionStepValue(VELOCITY);
+                ms_vel_gauss[0] += vi[0];
+                ms_vel_gauss[1] += vi[1];
             }
             ms_vel_gauss *=0.3333;
 
