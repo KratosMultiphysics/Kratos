@@ -120,6 +120,7 @@ void  AddCustomUtilitiesToPython(){
         .def("GetLowNode", &ParticleCreatorDestructor::GetLowNode)
         .def("SetHighNode", &ParticleCreatorDestructor::SetHighNode)
         .def("SetLowNode", &ParticleCreatorDestructor::SetLowNode)
+        .def("SetMaxNodeId", &ParticleCreatorDestructor::SetMaxNodeId)
         ;
       
       class_<DEM_Inlet, boost::noncopyable >
