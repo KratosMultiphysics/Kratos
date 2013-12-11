@@ -91,6 +91,17 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 
     current_time = current_time_plus_increment
     yield current_time
+    
+
+def FindMaxNodeIdInFLuid(fluid_model_part):
+    
+    max = 0
+    for node in fluid_model_part.Nodes:
+        if ( node.Id > max ):
+            max = node.Id
+            
+    return max        
+
 
 class IOTools:
 
