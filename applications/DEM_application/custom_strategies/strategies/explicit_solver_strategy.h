@@ -527,6 +527,7 @@ namespace Kratos
       double in_coordination_number = mCoordinationNumber;
       double out_coordination_number = ComputeCoordinationNumber();
       int iteration = 0;
+      int maxiteration = 100;
  
       if(in_coordination_number <= 0.0)
       {
@@ -534,10 +535,10 @@ namespace Kratos
       }
       else
       {
-          while ( fabs(out_coordination_number/in_coordination_number-1.0) > 1e-3)
-          {
-    
-            
+          while ( fabs(out_coordination_number/in_coordination_number-1.0) > 1e-3 )
+          {              
+            if(iteration>=maxiteration)   break;
+              
             iteration++;
 
             mSearchTolerance *= in_coordination_number/out_coordination_number;
@@ -550,7 +551,8 @@ namespace Kratos
    
           }//while
 
-          std::cout<< "Coordination Number iteration converged after "<<iteration<< " iterations, to value " <<out_coordination_number<<". "<<"\n"<<std::endl;
+          if(iteration<maxiteration) std::cout<< "Coordination Number iteration converged after "<<iteration<< " iterations, to value " <<out_coordination_number<<". "<<"\n"<<std::endl;
+          else std::cout<<"Coordination Number iteration did NOT converge after "<<iteration<<" iterations. Coordination number reached is "<<out_coordination_number<<". "<<"\n"<<std::endl;
           
             
       }
@@ -563,35 +565,39 @@ namespace Kratos
 
         ModelPart& r_model_part               = BaseType::GetModelPart();
         ElementsArrayType& pElements          = r_model_part.GetCommunicator().LocalMesh().Elements();
-
-        unsigned int size = 0;
+         
         unsigned int total_contacts = 0;
-        mNeighbourCounter[OpenMPUtils::ThisThread()] = 0.0;
-        
+                
         OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
-
-        #pragma omp parallel for //private(index, MassMatrix)  //M. proba de compilar sense mass matrix??
+        
+        #pragma omp parallel 
+        {
+        mNeighbourCounter[OpenMPUtils::ThisThread()] = 0;
+        
+        #pragma omp for //private(index, MassMatrix)  //M. proba de compilar sense mass matrix??
         for (int k = 0; k < this->GetNumberOfThreads(); k++){
             typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
             typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
             for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
 
-                size = (it)->GetValue(NEIGHBOUR_ELEMENTS).size();
-                mNeighbourCounter[OpenMPUtils::ThisThread()]+=size;
+                mNeighbourCounter[OpenMPUtils::ThisThread()] += (it)->GetValue(NEIGHBOUR_ELEMENTS).size();
                 
             }
 
         }
+        } //#pragma omp parallel 
               
         for (int i = 0; i < this->GetNumberOfThreads(); i++)
         {
-          
-          total_contacts += mNeighbourCounter[OpenMPUtils::ThisThread()];
+          //std::cout<<mNeighbourCounter[i]<<"*********";
+          total_contacts += mNeighbourCounter[i];
                   
         }
         
-        return (double(total_contacts)/double(pElements.size()));
+        double coord_number = (double(total_contacts)/double(pElements.size()));
+        //std::cout<<"COORDINATION NUMBER = "<<coord_number<<std::endl;
+        return coord_number;
        
         KRATOS_CATCH("")
       
