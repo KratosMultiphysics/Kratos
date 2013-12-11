@@ -189,8 +189,11 @@ namespace Kratos
 
       noalias(rLeftHandSideMatrix) = rVariables.Penalty.Normal * rIntegrationWeight  * outer_prod_2(rVariables.Surface.Normal, rVariables.Surface.Normal);
       
-      //std::cout<<std::endl;
-      //std::cout<<" Kcont "<<rLeftHandSideMatrix<<std::endl;
+      // std::cout<<std::endl;
+      // std::cout<<" Penalty.Normal "<<rVariables.Penalty.Normal<<" rVariables.Gap.Normal "<<rVariables.Gap.Normal<<" rVariables.Surface.Normal "<<rVariables.Surface.Normal<<" rIntegrationWeight "<<rIntegrationWeight<<" nxn : "<<outer_prod_2(rVariables.Surface.Normal, rVariables.Surface.Normal)<<std::endl;
+
+      // std::cout<<std::endl;
+      // std::cout<<" Kcont "<<rLeftHandSideMatrix<<std::endl;
 
     }
     else{

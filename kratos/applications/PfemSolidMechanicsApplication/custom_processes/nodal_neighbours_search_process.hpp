@@ -122,7 +122,7 @@ public:
         else
         {
             //print out the mesh generation time
-            std::cout<<"Neighbour Nodes Search time = "<<auxiliary.elapsed()<<std::endl;
+            //std::cout<<"   Neighbour Nodes Search time = "<<auxiliary.elapsed()<<std::endl;
             //PrintNodeNeighbours();
         }
 

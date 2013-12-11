@@ -243,12 +243,19 @@ namespace Kratos
 
 			    Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
 			    unsigned int size=rConditionGeom.size();
+			    
+			    bool perform_search = true;
+			    for(unsigned int i=0; i<size; i++)
+			      if( rConditionGeom[i].FastGetSolutionStepValue(RIGID_WALL)==true )
+				perform_search = false;			   		     
 
+			    if( size != 2 ) 
+			      perform_search = false;
 
 			    //********************************************************************
 			    found=false;
 
-			    if(size==2)
+			    if( perform_search )
 			      {
 
 				WeakPointerVector<Element >& rE1 = rConditionGeom[0].GetValue(NEIGHBOUR_ELEMENTS);				    
@@ -313,11 +320,11 @@ namespace Kratos
 			  
 
 			if(counter == totalcond){
-			  std::cout<<"  Condition Masters (mesh "<<MeshId<<"): LOCATED ["<<counter<<"]"<<std::endl;
+			  std::cout<<"   Condition Masters (mesh "<<MeshId<<"): LOCATED ["<<counter<<"]"<<std::endl;
 			  found=true;
 			}
 			else{
-			  std::cout<<"  Condition Masters (mesh "<<MeshId<<"): not LOCATED ["<<counter-totalcond<<"]"<<std::endl;
+			  std::cout<<"   Condition Masters (mesh "<<MeshId<<"): not LOCATED ["<<counter-totalcond<<"]"<<std::endl;
 			  found=false;
 			}
 			

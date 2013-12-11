@@ -365,7 +365,7 @@ private:
       Face = rPoint[1] - this->mBox.m_factor * ( rPoint[0] + this->mBox.Radius * cos(this->mBox.RakeAngle) - this->mBox.Center[0]) - this->mBox.Center[1] - this->mBox.Radius * sin(this->mBox.RakeAngle); 
  
       if(this->mBox.RakeAngle == 0)
-	Face = rPoint[0] - this->mBox.Center[0] - this->mBox.Radius; 
+	Face = rPoint[0] - (this->mBox.Center[0] - this->mBox.Radius); 
 
 
       return Face;

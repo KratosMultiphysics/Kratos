@@ -175,7 +175,7 @@ namespace Kratos
 
 	    KRATOS_TRY
 		    
-	    KRATOS_WATCH( "Data Transfer NODE to ELEMENT" )
+            std::cout<<" [ Data Transfer NODE to ELEMENT ]"<<std::endl;
 
 	    double alpha = 1; //[0,1] //smoothing level of the Jacobian	      
 
@@ -208,8 +208,9 @@ namespace Kratos
 	      }
 
 		    
-	      KRATOS_WATCH( "Finished Nodal Transfer" )
-	      KRATOS_CATCH( "" )
+            std::cout<<" [ Finished NODE to ELEMENT Transfer ]"<<std::endl;
+	    
+	    KRATOS_CATCH( "" )
 	}
       
 
@@ -223,7 +224,8 @@ namespace Kratos
 
 	    KRATOS_TRY
 	     
-	    KRATOS_WATCH( "Data Transfer ELEMENT to NODE" )
+            std::cout<<" [ Data Transfer ELEMENT to NODE ]"<<std::endl;
+
 	    std::vector<double> Jacobians(1);					
 	    ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 	    NodesContainerType& rNodes = rModelPart.Nodes(MeshId);
@@ -259,8 +261,8 @@ namespace Kratos
 	      }
     
 
-							   
-	    KRATOS_WATCH( "Finished Nodal Transfer" )
+	    std::cout<<" [ Finished ELEMENT to NODE Transfer ]"<<std::endl;
+		   
 	    KRATOS_CATCH( "" )
         }
 
@@ -277,10 +279,8 @@ namespace Kratos
 
 	    KRATOS_TRY
 		    
-	    KRATOS_WATCH( "Data Transfer NODE to ELEMENT: NOT IMPLEMENTED YET" )
-
-
-	    KRATOS_WATCH( "Finished Nodal Transfer" )
+            std::cout<<" [ Data Transfer NODE to ELEMENT: NOT IMPLEMENTED YET ]"<<std::endl;
+            std::cout<<" [ Finished NODE to ELEMENT Transfer: NOT IMPLEMENTED YET ]"<<std::endl;
 	    KRATOS_CATCH( "" )
 
 	}
@@ -297,11 +297,9 @@ namespace Kratos
 
 	    KRATOS_TRY
 		    
-	    KRATOS_WATCH( "Data Transfer NODE to ELEMENT: NOT IMPLEMENTED YET" )
-
-
-	    KRATOS_WATCH( "Finished Nodal Transfer" )
-	    KRATOS_CATCH( "" )
+            std::cout<<" [ Data Transfer ELEMENT to NODE: NOT IMPLEMENTED YET ]"<<std::endl;
+            std::cout<<" [ Finished ELEMENT to NODE Transfer: NOT IMPLEMENTED YET ]"<<std::endl;
+    	    KRATOS_CATCH( "" )
 
 	}
 
@@ -317,7 +315,7 @@ namespace Kratos
 
 	    KRATOS_TRY
 		    
-	    KRATOS_WATCH( "Data Transfer ELEMENT to ELEMENT" )
+            std::cout<<" [ Data Transfer ELEMENT to ELEMENT ]"<<std::endl;
 
 	    //definitions for spatial search
   	    typedef Node<3>                                  PointType;
@@ -444,10 +442,10 @@ namespace Kratos
 	    }
 
 
-	    std::cout<<" MOVED TRANSFERS: "<<moved_transfers<<std::endl;
+	    std::cout<<" [ MOVED TRANSFERS: "<<moved_transfers<<" ]"<<std::endl;
 
+	    std::cout<<" [ Finished ELEMENT to ELEMENT Transfer ]"<<std::endl;
 
-	    KRATOS_WATCH( "Finished Element to Element Transfer" )
 	    KRATOS_CATCH( "" )
 	}
 	
