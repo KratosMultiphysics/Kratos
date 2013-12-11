@@ -100,8 +100,8 @@ public:
      */
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        std::cout << "matrix size in solver:  " << rA.size1() << std::endl;
-        std::cout << "RHS size in solver SLU: " << rB.size() << std::endl;
+        //std::cout << "matrix size in solver:  " << rA.size1() << std::endl;
+        //std::cout << "RHS size in solver SLU: " << rB.size() << std::endl;
 
 //               typedef ublas::compressed_matrix<double, ublas::row_major, 0,
 //                 ublas::unbounded_array<int>, ublas::unbounded_array<double> > cm_t;
@@ -187,7 +187,9 @@ public:
         dgssv(&options, &Aslu, perm_c, perm_r, &L, &U, &B, &stat, &info);
 
         //print output
+        if (options.PrintStat) {
         StatPrint(&stat);
+        }
 
         //resubstitution of results
         #pragma omp parallel for
