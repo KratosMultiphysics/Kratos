@@ -93,9 +93,9 @@ public:
      */
     bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
-        std::cout << "Starting Petsc Solver....." << std::endl;
-        std::cout << "matrix size in solver: " << rA.size1() << std::endl;
-        std::cout << "RHS size in solver: " << rB.size() << std::endl;
+        //std::cout << "Starting Petsc Solver....." << std::endl;
+        //std::cout << "matrix size in solver: " << rA.size1() << std::endl;
+        //std::cout << "RHS size in solver: " << rB.size() << std::endl;
         //          typedef boost::numeric::bindings::traits::sparse_matrix_traits<SparseMatrixType> matraits;
         //          typedef typename matraits::value_type val_t;
 
