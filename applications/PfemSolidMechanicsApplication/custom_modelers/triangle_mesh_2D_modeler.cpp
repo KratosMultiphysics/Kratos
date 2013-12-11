@@ -2023,7 +2023,7 @@ namespace Kratos
 	  i_node->Reset(Modeler::ENGAGED_NODES);
 	}
 	  
-      std::cout<<" NUMBER OF RELEASED NODES "<<count_release<<std::endl;
+      std::cout<<"   NUMBER OF RELEASED NODES "<<count_release<<std::endl;
 
     }
 
@@ -2198,7 +2198,7 @@ namespace Kratos
 		
       }
 
-    std::cout<<"[   FACES "<<faces<<"]"<<std::endl;
+    std::cout<<" [ FACES "<<faces<<"]"<<std::endl;
 	
     //*******************************************************************
     //5) Laplacian Smoothing

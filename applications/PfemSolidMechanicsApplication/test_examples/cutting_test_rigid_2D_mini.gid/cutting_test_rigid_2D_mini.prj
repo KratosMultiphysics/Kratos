@@ -2,7 +2,7 @@
 <gid version="11.0">
   <pre>
     <groups>
-      <group id="1" name="RigidWall" color="#999999ff" parent_id="2"/>
+      <group id="1" name="RigidWall" color="#999999ff"/>
       <group id="2" name="Domains" color="#0000ffff"/>
       <group id="3" name="Workpiece" color="#ff00ffff" parent_id="2"/>
     </groups>
@@ -33,9 +33,9 @@
         <vector name="entity_groups" length="1111" type="ushort">3x1070 1x41</vector>
       </entities_group>
       <entities_group name="faces">
-        <vector name="entity_ids" length="116" type="integer">1:6 8 10 11 14 15 17 19 20 23:25 31 53 54 57 59 61 64 77 80 86 91 133 135 138 140 142 146 150 572 573 576 581 632 635 640 688 690 691 718 802 803 805 832 835 840 846 867 869 892 897 902 932 948 950 951 955 956 958 959 967 970 975 977 980:982 985 988 990 992 995:997 999:1002 1004 1007 1008 1010 1012 1015 1018 1021:1024 1026 1029 1031 1033 1035 1036 1038 1045 1048:1050 1052 1054 1056 1059:1061 1063 1064 1066 1067</vector>
-        <vector name="entity_num_faces" length="116" type="uchar">1x14 2 1x52 2 1x3 2 1x7 2 1x36</vector>
-        <vector name="entity_faces" length="120" type="uchar">1x15 3 1 1 2 3 2x6 3 2x9 1 1 2 2 3x3 1x3 3 3 2 2 3x4 1 1 3x6 1x4 3 1 3 1 3 1x3 2 1x3 2 3 1 2 3 1x7 2 1x29</vector>
+        <vector name="entity_ids" length="120" type="integer">1:6 8 10 11 14 15 17 19 20 23:25 31 53 54 57 59 61 64 77 80 86 91 133 135 138 140 142 146 150 152 572 573 576 581 583 632 635 640 688 690 691 718 802 803 805 832 835 840 846 865 867 869 892 897 902 932 948 950 951 955 956 958 959 967 970 975 977 980:982 985 988 990 992 995 997 999:1002 1004 1007 1008 1010 1012 1015 1018 1021:1024 1026 1029:1031 1033 1035 1036 1038 1045 1048:1050 1052 1054 1056 1057 1059:1061 1063 1064 1066 1067</vector>
+        <vector name="entity_num_faces" length="120" type="uchar">1x120</vector>
+        <vector name="entity_faces" length="120" type="uchar">1x17 2 3 2x6 3 2x10 1 1 2x3 3x3 1x3 3 3 2 2 3x4 1x3 3x6 1x4 3 1 1 3 1 1 2 1x3 2 3 1x8 2 1x10 2 1x12 2 1x7</vector>
         <vector name="face_num_groups" length="120" type="ushort">1x120</vector>
         <vector name="face_groups" length="120" type="ushort">3x120</vector>
       </entities_group>
