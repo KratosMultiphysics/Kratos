@@ -25,33 +25,33 @@ import swimming_DEM_procedures
 # PROJECT PARAMETERS (to be put in problem type)
 ProjectParameters.projection_module_option         = 1
 ProjectParameters.print_particles_results_option   = 0
-ProjectParameters.project_from_particles_option    = 0
+ProjectParameters.project_from_particles_option    = 0 # problemtype option
 ProjectParameters.project_at_every_substep_option  = 0
 ProjectParameters.velocity_trap_option             = 0
 ProjectParameters.inlet_option                     = 1
-ProjectParameters.non_newtonian_option             = 0
+ProjectParameters.non_newtonian_option             = 0 # problemtype option
 ProjectParameters.manually_imposed_drag_law_option = 0
 ProjectParameters.similarity_transformation_type   = 0 # no transformation (0), Tsuji (1)
 ProjectParameters.dem_inlet_element_type           = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 ProjectParameters.coupling_scheme_type             = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
 ProjectParameters.coupling_weighing_type           = 2 # {fluid_to_DEM, DEM_to_fluid, Solid_fraction} = {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
 ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), standard (1)
-ProjectParameters.drag_force_type                  = 1 # null drag (0), standard (1), Weatherford (2), Ganser (3)
+ProjectParameters.drag_force_type                  = 2 # null drag (0), standard (1), Weatherford (2), Ganser (3)
 ProjectParameters.virtual_mass_force_type          = 0 # null virtual mass force (0)
 ProjectParameters.lift_force_type                  = 0 # null lift force (0)
-ProjectParameters.drag_modifier_type               = 3 # Hayder (2), Chien (3)
+ProjectParameters.drag_modifier_type               = 3 # Hayder (2), Chien (3)  # problemtype option
 ProjectParameters.interaction_start_time           = 0.00
-ProjectParameters.gravity_x                        = 0.0
-ProjectParameters.gravity_y                        = 0.0
-ProjectParameters.gravity_z                        = 0.0 #- 9.81
+ProjectParameters.gravity_x                        = 0.0  # problemtype option
+ProjectParameters.gravity_y                        = 0.0  # problemtype option
+ProjectParameters.gravity_z                        = 0.0 #- 9.81  # problemtype option
 ProjectParameters.smoothing_parameter_m            = 0.035
-ProjectParameters.yield_stress_value               = 0.0
+ProjectParameters.yield_stress_value               = 0.0  # problemtype option
 ProjectParameters.max_solid_fraction               = 0.6
-ProjectParameters.gel_strength                     = 0.0
-ProjectParameters.power_law_n                      = 0.0
-ProjectParameters.power_law_k                      = 0.0
-ProjectParameters.initial_drag_force               = 0.0
-ProjectParameters.drag_law_slope                   = 0.0
+ProjectParameters.gel_strength                     = 0.0   # problemtype option
+ProjectParameters.power_law_n                      = 0.0   # problemtype option
+ProjectParameters.power_law_k                      = 0.0   # problemtype option
+ProjectParameters.initial_drag_force               = 0.0   # problemtype option
+ProjectParameters.drag_law_slope                   = 0.0   # problemtype option
 ProjectParameters.power_law_tol                    = 0.0
 ProjectParameters.model_over_real_diameter_factor  = 2.0 # not active if similarity_transformation_type = 0
 
