@@ -46,7 +46,7 @@ void set_default_options(superlu_options_t *options)
     options->SymmetricMode = NO;
     options->PivotGrowth = NO;
     options->ConditionNumber = NO;
-    options->PrintStat = YES;
+    options->PrintStat = NO;
 }
 
 /*! \brief Set the default values for the options argument for ILU.
