@@ -326,6 +326,9 @@ graph_printer = point_graph_printer.PrintGraphPrinter(
 # the similarity transformation if required (fluid effects only).
 swimming_DEM_procedures.ApplySimilarityTransformations(fluid_model_part, ProjectParameters.similarity_transformation_type, ProjectParameters.model_over_real_diameter_factor)
 
+max_fluid_node_Id = swimming_DEM_procedures.FindMaxNodeIdInFLuid(fluid_model_part)
+
+
 # creating a Post Utils object that executes several post-related tasks
 post_utils = DEM_procedures.PostUtils(DEMParameters, balls_model_part)
 post_utilities = post_utils.post_utilities
@@ -352,6 +355,7 @@ for node in fluid_model_part.Nodes:
 
 # creating a CreatorDestructor object, encharged of any adding or removing of elements during the simulation
 creator_destructor = ParticleCreatorDestructor()
+creator_destructor.SetMaxNodeId(max_fluid_node_Id)
 
 # creating a Solver object for the DEM part. It contains the sequence of function calls necessary for the evolution of the DEM system at every time step
 dem_solver = SolverStrategy.ExplicitStrategy(balls_model_part, fem_dem_model_part, creator_destructor, DEMParameters)
