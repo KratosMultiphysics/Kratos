@@ -194,8 +194,8 @@ namespace Kratos
           this->GetResultsDistances().resize(number_of_elements);          
 		  
 		  //Cfeng
-		  this->GetRigidFaceResults().resize(number_of_elements);
-		  this->GetRigidFaceResultsDistances().resize(number_of_elements);
+          this->GetRigidFaceResults().resize(number_of_elements);
+	  this->GetRigidFaceResultsDistances().resize(number_of_elements);
 
           // Omp initializations
           this->GetNumberOfThreads() = OpenMPUtils::GetNumThreads();
@@ -247,18 +247,22 @@ namespace Kratos
           ModelPart& r_model_part            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo   = r_model_part.GetProcessInfo();                    
 
-          int NumberOfElements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
+          int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
 
-          this->GetResults().resize(NumberOfElements);
-          this->GetResultsDistances().resize(NumberOfElements);
-          this->GetRadius().resize(NumberOfElements);          
+          this->GetResults().resize(number_of_elements);
+          this->GetResultsDistances().resize(number_of_elements);
+          this->GetRadius().resize(number_of_elements);          
           
           int time_step = rCurrentProcessInfo[TIME_STEPS];
-          
-          // 1. Here we initialize member variables that depend on the rCurrentProcessInfo
+                    
+          //Cfeng
+          this->GetRigidFaceResults().resize(number_of_elements);
+	  this->GetRigidFaceResultsDistances().resize(number_of_elements);
+
+          // 1. Here we initialize member variables that depend on the rCurrentProcessInfo          
           InitializeSolutionStep();
 		  
-		 // 2. Neighbouring search. Every N times. + destruction of particles outside the bounding box                   
+          // 2. Neighbouring search. Every N times. + destruction of particles outside the bounding box                   
 	
           if ((time_step + 1) % mNStepSearch == 0 && time_step > 0){
               if (this->GetBoundingBoxOption()){
