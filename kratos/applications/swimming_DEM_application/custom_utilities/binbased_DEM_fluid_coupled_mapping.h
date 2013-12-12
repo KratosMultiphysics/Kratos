@@ -261,14 +261,15 @@ public:
         const int n_fluid_nodes = rfluid_model_part.Nodes().size();
 
         // resetting the variables to be mapped
-
         for (int i = 0; i < n_fluid_nodes; i++){
+            
             ModelPart::NodesContainerType::iterator inode = rfluid_model_part.NodesBegin() + i;
             ClearVariables(inode, SOLID_FRACTION);
             array_1d<double,3>& body_force              = inode->FastGetSolutionStepValue(BODY_FORCE, 0);
-            const array_1d<double,3>& old_drag_reaction = inode->FastGetSolutionStepValue(DRAG_REACTION, 0);
+            array_1d<double,3>& old_drag_reaction = inode->FastGetSolutionStepValue(DRAG_REACTION, 0);
             body_force -= old_drag_reaction;
-            ClearVariables(inode, DRAG_REACTION);
+            
+            noalias(old_drag_reaction) = ZeroVector(3);
         }
 
         array_1d<double, TDim + 1 > N;
