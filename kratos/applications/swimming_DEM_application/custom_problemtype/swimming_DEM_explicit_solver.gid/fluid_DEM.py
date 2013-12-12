@@ -36,7 +36,7 @@ ProjectParameters.similarity_transformation_type   = 0 # no transformation (0), 
 ProjectParameters.dem_inlet_element_type           = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 ProjectParameters.coupling_scheme_type             = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
 ProjectParameters.coupling_weighing_type           = 2 # {fluid_to_DEM, DEM_to_fluid, Solid_fraction} = {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
-ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), standard (1)
+ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
 ProjectParameters.drag_force_type                  = 2 # null drag (0), standard (1), Weatherford (2), Ganser (3)
 ProjectParameters.virtual_mass_force_type          = 0 # null virtual mass force (0)
 ProjectParameters.lift_force_type                  = 0 # null lift force (0)
@@ -45,7 +45,7 @@ ProjectParameters.interaction_start_time           = 0.00
 ProjectParameters.time_steps_per_stationarity_step = 10 # number of fluid time steps between consecutive assessment of stationarity
 ProjectParameters.gravity_x                        = 0.0  # problemtype option
 ProjectParameters.gravity_y                        = 0.0  # problemtype option
-ProjectParameters.gravity_z                        = 0.0 #- 9.81  # problemtype option
+ProjectParameters.gravity_z                        = - 9.81  # problemtype option
 ProjectParameters.smoothing_parameter_m            = 0.035
 ProjectParameters.yield_stress_value               = 0.0  # problemtype option
 ProjectParameters.max_solid_fraction               = 0.6
@@ -86,7 +86,7 @@ for var in ProjectParameters.mixed_nodal_results:
 fluid_variables_to_add = [PRESSURE_GRADIENT,
                           AUX_DOUBLE_VAR,
                           DRAG_REACTION,
-                          SOLID_FRACTION,
+                          SOLID_FRACTION,                          
                           MESH_VELOCITY1]
 
 balls_variables_to_add = [FLUID_VEL_PROJECTED,
@@ -353,10 +353,10 @@ if (ProjectParameters.projection_module_option):
     interaction_calculator = CustomFunctionsCalculator()
 
 # TEMPORARY!! setting the initial kinematic viscosity, should be done from problemtype
-for node in fluid_model_part.Nodes:
-    node.SetSolutionStepValue(BODY_FORCE_X, 0, ProjectParameters.gravity_x)
-    node.SetSolutionStepValue(BODY_FORCE_Y, 0, ProjectParameters.gravity_y)
-    node.SetSolutionStepValue(BODY_FORCE_Z, 0, ProjectParameters.gravity_z)
+#for node in fluid_model_part.Nodes:
+ #   node.SetSolutionStepValue(BODY_FORCE_X, 0, ProjectParameters.gravity_x)
+  #  node.SetSolutionStepValue(BODY_FORCE_Y, 0, ProjectParameters.gravity_y)
+   # node.SetSolutionStepValue(BODY_FORCE_Z, 0, ProjectParameters.gravity_z)
 
 # creating a CreatorDestructor object, encharged of any adding or removing of elements during the simulation
 creator_destructor = ParticleCreatorDestructor()
@@ -452,7 +452,7 @@ while(time <= final_time):
     # solving the fluid part
 
     if (step >= 3 and not stationarity):
-        print "Solving Fluid... (", fluid_model_part.NumberOfElements(0), " elements )"
+        print "Solving Fluid... (", fluid_model_part.NumberOfElements(0), " elements )"        
         fluid_solver.Solve()
 
     # assessing stationarity
