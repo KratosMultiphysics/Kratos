@@ -447,7 +447,7 @@ while(time <= final_time):
     if (step >= 3):
         print "Solving Fluid... (", fluid_model_part.NumberOfElements(0), " elements )"
         fluid_solver.Solve()
-
+        
     # printing if required
 
     if (ProjectParameters.print_particles_results_option):
@@ -456,7 +456,6 @@ while(time <= final_time):
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
     if (output_time <= out and ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
-        
         if (ProjectParameters.projection_module_option):
             projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
 
@@ -472,12 +471,11 @@ while(time <= final_time):
 
     # solving the DEM part
 
+    if (time >= ProjectParameters.interaction_start_time and ProjectParameters.projection_module_option):
+        interaction_calculator.CalculatePressureGradient(fluid_model_part)                 
+
     print "Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)"
 
-    if (time >= ProjectParameters.interaction_start_time and ProjectParameters.projection_module_option):
-        #print "Calculating Pressure Gradient ..."
-        interaction_calculator.CalculatePressureGradient(fluid_model_part)                 
-            
     for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):
         
         DEM_step = DEM_step + 1   # this variable is necessary to get a good random insertion of particles
@@ -486,7 +484,7 @@ while(time <= final_time):
         
         # applying fluid-to-DEM coupling
                 
-        if (time >= ProjectParameters.interaction_start_time and ProjectParameters.project_at_every_substep_option):
+        if (time >= ProjectParameters.interaction_start_time and ProjectParameters.project_at_every_substep_option):            
             
             if (ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
                 projection_module.ProjectFromNewestFluid()
@@ -512,7 +510,7 @@ while(time <= final_time):
     # applying DEM-to-fluid coupling
 
     if (time >= ProjectParameters.interaction_start_time and ProjectParameters.project_from_particles_option):
-        print "Project from particles to the fluid"
+        print "Projecting from particles to the fluid..."
         projection_module.ProjectFromParticles()
 
     # printing if required
