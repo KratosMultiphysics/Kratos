@@ -93,10 +93,10 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(CustomFunctionsCalculator);
 
   
-    CustomFunctionsCalculator() {};
+    CustomFunctionsCalculator():mPressuresFilled(false){}
     /// Calculator
 
-    virtual ~CustomFunctionsCalculator() {};
+    virtual ~CustomFunctionsCalculator(){}
 
     /// Default calculator
     
@@ -143,6 +143,68 @@ public:
                 inode->FastGetSolutionStepValue(PRESSURE_GRADIENT) /= inode->FastGetSolutionStepValue(AUX_DOUBLE_VAR);
             }
         }
+
+    bool AssessStationarity(ModelPart& r_model_part, const double& tol){
+
+      if (!mPressuresFilled){
+          mPressures.resize(r_model_part.Nodes().size());
+          mLastMeasurementTime = r_model_part.GetProcessInfo()[TIME];
+          unsigned int i = 0;
+
+          for (ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++) {
+              mPressures[i] = inode->FastGetSolutionStepValue(PRESSURE);
+              i++;
+          }
+
+          mPressuresFilled = true;
+
+          return(false);
+        }
+
+      else {
+          double max_pressure_variation_rate = 0.0;
+          unsigned int i = 0;
+
+          for (ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++) {
+              double aux = mPressures[i];
+              mPressures[i] = inode->FastGetSolutionStepValue(PRESSURE);
+              max_pressure_variation_rate = fabs(aux - mPressures[i]);
+
+              if (aux > max_pressure_variation_rate){
+                  max_pressure_variation_rate = aux;
+                }
+
+              i++;
+          }
+
+          double delta_t = r_model_part.GetProcessInfo()[TIME] - mLastMeasurementTime;
+          KRATOS_WATCH(delta_t);
+
+          if (delta_t > 0){
+              max_pressure_variation_rate /= (delta_t);
+            }
+
+          else {
+              KRATOS_ERROR(std::runtime_error,"Trying to calculate mx pressure variation between to coincident time steps! (null time variation since last recorded time)","");
+            }
+
+          if (max_pressure_variation_rate <= tol){
+              return(true);
+            }
+
+          else {
+              return(false);
+            }
+
+        }
+
+    }
+
+private:
+
+    bool mPressuresFilled;
+    double mLastMeasurementTime;
+    std::vector<double> mPressures;
 
     }; // Class CustomFunctionsCalculator
 
