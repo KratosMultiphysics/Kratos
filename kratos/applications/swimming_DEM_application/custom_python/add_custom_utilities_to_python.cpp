@@ -79,6 +79,7 @@ using namespace boost::python;
     class_<CustomFunctionsCalculator, boost::noncopyable >
         ("CustomFunctionsCalculator", init<>())
         .def("CalculatePressureGradient", &CustomFunctionsCalculator::CalculatePressureGradient)
+        .def("AssessStationarity", &CustomFunctionsCalculator::AssessStationarity)
         ; 
     
     class_<BinBasedDEMFluidCoupledMapping < 2 > >("BinBasedDEMFluidCoupledMapping2D", init<double, int, int>())
