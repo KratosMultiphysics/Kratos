@@ -31,6 +31,7 @@ ProjectParameters.velocity_trap_option             = 0
 ProjectParameters.inlet_option                     = 1
 ProjectParameters.non_newtonian_option             = 0 # problemtype option
 ProjectParameters.manually_imposed_drag_law_option = 0
+ProjectParameters.stationary_problem_option        = 1 # stationary, stop calculating the fluid after it reaches the stationary state (1)
 ProjectParameters.similarity_transformation_type   = 0 # no transformation (0), Tsuji (1)
 ProjectParameters.dem_inlet_element_type           = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 ProjectParameters.coupling_scheme_type             = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
@@ -41,6 +42,7 @@ ProjectParameters.virtual_mass_force_type          = 0 # null virtual mass force
 ProjectParameters.lift_force_type                  = 0 # null lift force (0)
 ProjectParameters.drag_modifier_type               = 3 # Hayder (2), Chien (3)  # problemtype option
 ProjectParameters.interaction_start_time           = 0.00
+ProjectParameters.time_steps_per_stationarity_step = 10 # number of fluid time steps between consecutive assessment of stationarity
 ProjectParameters.gravity_x                        = 0.0  # problemtype option
 ProjectParameters.gravity_y                        = 0.0  # problemtype option
 ProjectParameters.gravity_z                        = 0.0 #- 9.81  # problemtype option
@@ -54,6 +56,7 @@ ProjectParameters.initial_drag_force               = 0.0   # problemtype option
 ProjectParameters.drag_law_slope                   = 0.0   # problemtype option
 ProjectParameters.power_law_tol                    = 0.0
 ProjectParameters.model_over_real_diameter_factor  = 2.0 # not active if similarity_transformation_type = 0
+ProjectParameters.max_pressure_variation_rate_tol  = 10-7 # for stationary problems, criterion to stop the fluid calculations
 
 # variables to be printed
 ProjectParameters.dem_nodal_results                = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED", "REYNOLDS_NUMBER"]
@@ -68,6 +71,7 @@ ProjectParameters.nodal_results.append("DRAG_REACTION")
 
 ProjectParameters.project_from_particles_option *= ProjectParameters.projection_module_option
 ProjectParameters.project_at_every_substep_option *= ProjectParameters.projection_module_option
+ProjectParameters.time_steps_per_stationarity_step = max(1, int(ProjectParameters.time_steps_per_stationarity_step)) # it should never be smaller than 1!
 
 DEMParameters.GravityX                       = ProjectParameters.gravity_x
 DEMParameters.GravityY                       = ProjectParameters.gravity_y
@@ -427,12 +431,15 @@ time_dem = 0.0
 DEM_step = 0 # this variable is necessary to get a good random insertion of particles
 dem_solver.Initialize()
 Dt_DEM = DEMParameters.MaxTimeStep
+stationarity = False
+stat_steps = 0
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 while(time <= final_time):
     
     time = time + Dt
-    step = step + 1
+    step += 1
+    stat_steps += 1
     fluid_model_part.CloneTimeStep(time)
     print "\n", "TIME = ", time
 
@@ -444,9 +451,23 @@ while(time <= final_time):
 
     # solving the fluid part
 
-    if (step >= 3):
+    if (step >= 3 and not stationarity):
         print "Solving Fluid... (", fluid_model_part.NumberOfElements(0), " elements )"
         fluid_solver.Solve()
+
+    # assessing stationarity
+
+        if (stat_steps >= ProjectParameters.time_steps_per_stationarity_step and ProjectParameters.stationary_problem_option):
+            print "Assessing Stationarity..."
+            stat_steps = 0
+            stationarity = interaction_calculator.AssessStationarity(fluid_model_part, ProjectParameters.max_pressure_variation_rate_tol) # in the first time step the 'old' pressure vector is created and filled
+
+            if (stationarity):
+                print "**************************************************************************************************"
+                print
+                print "The model has reached a stationary state. The fluid calculation is suspended."
+                print
+                print "**************************************************************************************************"
         
     # printing if required
 
@@ -456,6 +477,7 @@ while(time <= final_time):
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
 
     if (output_time <= out and ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
+
         if (ProjectParameters.projection_module_option):
             projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
 
