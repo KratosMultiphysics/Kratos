@@ -112,6 +112,13 @@ Element::Pointer SmallDisplacementElement::Clone( IndexType NewId, NodesArrayTyp
       }
     
        
+    for(unsigned int i=0; i<mConstitutiveLawVector.size(); i++)
+      {
+	NewElement.mConstitutiveLawVector[i] = mConstitutiveLawVector[i]->Clone();
+      }
+
+    //-----------//
+
     return Element::Pointer( new SmallDisplacementElement(NewElement) );
 }
 
@@ -188,11 +195,12 @@ void SmallDisplacementElement::GetValuesVector( Vector& rValues, int Step )
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension;
-        array_1d<double, 3>& Displacement = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT, Step );
-        for ( unsigned int j = 0; j < Displacement.size(); j++ )
-        {
-            rValues[ index + j ] = Displacement[j];
-        }
+        rValues[index]     = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_X, Step );
+        rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Y, Step );
+
+        if ( dimension == 3 )
+            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( DISPLACEMENT_Z, Step );
+
     }
 }
 
@@ -211,11 +219,11 @@ void SmallDisplacementElement::GetFirstDerivativesVector( Vector& rValues, int S
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension;
-        array_1d<double, 3>& Velocity = GetGeometry()[i].GetSolutionStepValue( VELOCITY, Step );
-        for ( unsigned int j = 0; j < Velocity.size(); j++ )
-        {
-            rValues[ index + j ] = Velocity[j];
-        }
+        rValues[index]     = GetGeometry()[i].GetSolutionStepValue( VELOCITY_X, Step );
+        rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Y, Step );
+
+        if ( dimension == 3 )
+            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( VELOCITY_Z, Step );
     }
 }
 
@@ -233,11 +241,11 @@ void SmallDisplacementElement::GetSecondDerivativesVector( Vector& rValues, int 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension;
-        array_1d<double, 3>& Acceleration = GetGeometry()[i].GetSolutionStepValue( ACCELERATION, Step );
-        for ( unsigned int j = 0; j < Acceleration.size(); j++ )
-        {
-            rValues[ index + j ] = Acceleration[j];
-        }
+        rValues[index]     = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_X, Step );
+        rValues[index + 1] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Y, Step );
+
+        if ( dimension == 3 )
+            rValues[index + 2] = GetGeometry()[i].GetSolutionStepValue( ACCELERATION_Z, Step );
     }
 
 }
@@ -287,25 +295,6 @@ void SmallDisplacementElement::SetValueOnIntegrationPoints( const Variable<Matri
 
 }
 
-//*********************************GET DOUBLE VALUE***********************************
-//************************************************************************************
-
-
-void SmallDisplacementElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
-        std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo )
-{
-    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
-
-    if ( rVariable == VON_MISES_STRESS )
-        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
-
-    if ( rValues.size() != integration_points_number )
-        rValues.resize( integration_points_number );
-
-    for ( unsigned int ii = 0; ii < integration_points_number; ii++ )
-        rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
-}
 
 //********************************SET CONSTITUTIVE VALUE******************************
 //************************************************************************************
@@ -348,8 +337,31 @@ void SmallDisplacementElement::SetValueOnIntegrationPoints( const Variable<Const
 
 }
 
+
+
 //************************************************************************************
 //************************************************************************************
+
+
+//*********************************GET DOUBLE VALUE***********************************
+//************************************************************************************
+
+
+void SmallDisplacementElement::GetValueOnIntegrationPoints( const Variable<double>& rVariable,
+        std::vector<double>& rValues,
+        const ProcessInfo& rCurrentProcessInfo )
+{
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+
+    if ( rVariable == VON_MISES_STRESS )
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+
+    if ( rValues.size() != integration_points_number )
+        rValues.resize( integration_points_number );
+
+    for ( unsigned int ii = 0; ii < integration_points_number; ii++ )
+        rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
+}
 
 
 //**********************************GET VECTOR VALUE**********************************
@@ -367,6 +379,12 @@ void SmallDisplacementElement::GetValueOnIntegrationPoints( const Variable<Vecto
 
 
     if ( rVariable == PK2_STRESS_TENSOR ||  rVariable == CAUCHY_STRESS_TENSOR )
+    {
+
+        CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+
+    }
+    else if ( rVariable == PK2_STRESS_VECTOR ||  rVariable == CAUCHY_STRESS_VECTOR )
     {
 
         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
@@ -1674,12 +1692,10 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Vect
             else
                 mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
 
-
             if ( rOutput[PointNumber].size() != Variables.StressVector.size() )
                 rOutput[PointNumber].resize( Variables.StressVector.size(), false );
 
             rOutput[PointNumber] = Variables.StressVector;
-
 
         }
 
@@ -1723,6 +1739,7 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
     KRATOS_TRY
 
     const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
+    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
 
     if ( rOutput.size() != integration_points_number )
         rOutput.resize( integration_points_number );
@@ -1731,6 +1748,7 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
     if ( rVariable == CAUCHY_STRESS_TENSOR || rVariable == PK2_STRESS_TENSOR )
     {
         std::vector<Vector> StressVector;
+	
         if( rVariable == CAUCHY_STRESS_TENSOR )
             this->CalculateOnIntegrationPoints( CAUCHY_STRESS_VECTOR, StressVector, rCurrentProcessInfo );
         else
@@ -1738,15 +1756,14 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
 
         //loop integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
-        {
-            if ( rOutput[PointNumber].size2() != StressVector[PointNumber].size() )
-                rOutput[PointNumber].resize( 1, StressVector[PointNumber].size(), false );
+	  {
 
-            for ( unsigned int ii = 0; ii < StressVector[PointNumber].size(); ii++ )
-            {
-                rOutput[PointNumber]( 0, ii ) = StressVector[PointNumber][ii];
-            }
-        }
+            if ( rOutput[PointNumber].size2() != dimension )
+	      rOutput[PointNumber].resize( dimension, dimension, false );
+
+            rOutput[PointNumber] = MathUtils<double>::StressVectorToTensor(StressVector[PointNumber]);
+	    
+	  }
     }
     else if ( rVariable == GREEN_LAGRANGE_STRAIN_TENSOR  || rVariable == ALMANSI_STRAIN_TENSOR)
     {
@@ -1760,12 +1777,10 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
         //loop integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
         {
+            if ( rOutput[PointNumber].size2() != dimension )
+                rOutput[PointNumber].resize( dimension, dimension, false );
 
-            if ( rOutput[PointNumber].size2() != StrainVector[PointNumber].size() )
-                rOutput[PointNumber].resize( 1, StrainVector[PointNumber].size(), false );
-
-            for ( unsigned int ii = 0; ii < StrainVector[PointNumber].size(); ii++ )
-                rOutput[PointNumber]( 0, ii ) = StrainVector[PointNumber][ii];
+            rOutput[PointNumber] = MathUtils<double>::StrainVectorToTensor(StrainVector[PointNumber]);
         }
     }
     else if ( rVariable == CONSTITUTIVE_MATRIX )
@@ -1781,7 +1796,7 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::LAST_KNOWN_CONFIGURATION);
+        //ConstitutiveLawOptions.Set(ConstitutiveLaw::LAST_KNOWN_CONFIGURATION);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )
@@ -1793,8 +1808,8 @@ void SmallDisplacementElement::CalculateOnIntegrationPoints( const Variable<Matr
             this->SetGeneralVariables(Variables,Values,PointNumber);
 
             //call the constitutive law to update material variables
-            mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
-
+	    mConstitutiveLawVector[PointNumber]->CalculateMaterialResponseCauchy(Values);
+            //mConstitutiveLawVector[PointNumber]->CalculateMaterialResponsePK2(Values);
 
             if( rOutput[PointNumber].size2() != Variables.ConstitutiveMatrix.size2() )
                 rOutput[PointNumber].resize( Variables.ConstitutiveMatrix.size1() , Variables.ConstitutiveMatrix.size2() , false );
