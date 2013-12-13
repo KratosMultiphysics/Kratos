@@ -26,7 +26,7 @@
 #include "custom_processes/rigid_wall_contact_search_process.hpp"
 
 //Modeler Bounding Boxes
-#include "custom_modelers/rigid_tool_bounding_box.hpp"
+#include "custom_modelers/rigid_wall_bounding_box.hpp"
 
 namespace Kratos
 {
@@ -72,7 +72,7 @@ namespace Kratos
 
       class_<RigidWallContactSearchProcess, bases<ProcessBaseType>, boost::noncopyable >
 	(
-	 "RigidWallContactSearch", init<RigidToolBoundingBox::Pointer, ModelPart&>()
+	 "RigidWallContactSearch", init<RigidWallBoundingBox::Pointer, ModelPart&>()
 	 )
 	 .def("ExecuteInitializeSolutionStep", &RigidWallContactSearchProcess::ExecuteInitializeSolutionStep)
 	 .def("ExecuteFinalizeSolutionStep", &RigidWallContactSearchProcess::ExecuteFinalizeSolutionStep)

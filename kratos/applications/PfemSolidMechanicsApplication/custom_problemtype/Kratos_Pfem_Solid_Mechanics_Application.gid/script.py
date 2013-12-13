@@ -115,8 +115,8 @@ modeler = modeler_utils.ModelerUtility(model_part,domain_size,remesh_domains, co
 
 critical_radius      = general_variables.mesh_modeler_config.critical_radius
 
-if(critical_radius > 5*general_variables.rigid_wall_config.tip_radius):
-  critical_radius    = general_variables.rigid_wall_config.tip_radius
+#if(critical_radius > 5*general_variables.rigid_wall_config.tip_radius):
+#  critical_radius    = general_variables.rigid_wall_config.tip_radius
 
 # Optional : mesh refinement b#defining the mesh conditions
 
@@ -147,9 +147,7 @@ modeler.BuildContactModeler(general_variables.contact_modeler_config);
 #activated instead of classical contact
 
 #set rigid wall configuration
-rigid_wall = wall_utils.RigidWallUtility(model_part,domain_size);
-
-rigid_wall.Initialize(general_variables.rigid_wall_config);
+rigid_wall = wall_utils.RigidWallUtility(model_part,domain_size,general_variables.rigid_wall_config);
 
 ######################--RIGID WALL OPTIONS END--##################
 

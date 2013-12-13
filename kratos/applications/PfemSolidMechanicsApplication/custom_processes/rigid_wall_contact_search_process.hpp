@@ -108,7 +108,8 @@ public:
       ProcessInfo& CurrentProcessInfo= mrModelPart.GetProcessInfo();	  
       double Time      = CurrentProcessInfo[TIME];   
 
-      mpRigidWall->Center() = mpRigidWall->OriginalCenter() +  mpRigidWall->Velocity() * Time;
+      //update center position
+      mpRigidWall->UpdatePosition( Time );
 
       if (Time == 0)
 	KRATOS_ERROR( std::logic_error, "detected time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
@@ -146,13 +147,23 @@ public:
 
 	  if( (*nd)->Is(BOUNDARY) && mpRigidWall->IsInside(Point,Time) ){
 	    
+	    //std::cout<<" Node Selected "<<(*nd)->Id()<<std::endl;
+
 	    int number_properties = mrModelPart.NumberOfProperties();
 
 	    PropertiesType::Pointer p_properties = mrModelPart.pGetProperties(number_properties-1);
 
 	    GeometryType::Pointer p_geometry = GeometryType::Pointer(new Point2DType( (*nd) ));
 
-	    ConditionType::Pointer p_cond = ModelPart::ConditionType::Pointer(new PointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+	    ConditionType::Pointer p_cond;
+
+	    if( mpRigidWall->Axisymmetric() == true ){
+	      p_cond= ModelPart::ConditionType::Pointer(new AxisymPointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+	    }
+	    else{
+	      p_cond= ModelPart::ConditionType::Pointer(new PointRigidContactPenalty2DCondition(id, p_geometry, p_properties, mpRigidWall) ); 
+	    }
+
 	    //pcond->SetValue(mpRigidWall); the boundingbox of the rigid wall must be passed to the condition
 
 	    mrModelPart.Conditions(MeshId).push_back(p_cond);

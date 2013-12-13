@@ -23,7 +23,7 @@
 
 // Bounding Boxes
 #include "custom_modelers/spatial_bounding_box.hpp"
-#include "custom_modelers/rigid_tool_bounding_box.hpp"
+#include "custom_modelers/rigid_wall_bounding_box.hpp"
 
 
 namespace Kratos
@@ -139,9 +139,10 @@ namespace Python
 	init<Vector, double, Vector>() )
       ;
 
-    class_<RigidToolBoundingBox, boost::noncopyable > 
-      ( "RigidToolBoundingBox", 
-	init<double, double, double, Vector, Vector>() )
+    class_<RigidWallBoundingBox, boost::noncopyable > 
+      ( "RigidWallBoundingBox", 
+	init<Vector, Vector, Vector, Vector, Matrix, Vector, Vector, Vector>() )
+      .def("SetAxisymmetric",&RigidWallBoundingBox::SetAxisymmetric)
       ;
 	
      
