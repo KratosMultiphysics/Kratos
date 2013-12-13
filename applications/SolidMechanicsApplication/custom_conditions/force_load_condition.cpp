@@ -221,16 +221,20 @@ void ForceLoadCondition::ClearNodalForces()
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
-        array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FORCE);
+      {
+	if( GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_FORCE) && GetGeometry()[i].SolutionStepsDataHas(INTERNAL_FORCE) ){
+	  
+	  array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
+	  array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FORCE);
   
-    	GetGeometry()[i].SetLock();
-        ExternalForce.clear();
-        InternalForce.clear();
-    	GetGeometry()[i].UnSetLock();
+	  GetGeometry()[i].SetLock();
+	  ExternalForce.clear();
+	  InternalForce.clear();
+	  GetGeometry()[i].UnSetLock();
 
-    }
+	}
+
+      }
 
     KRATOS_CATCH( "" )
 }

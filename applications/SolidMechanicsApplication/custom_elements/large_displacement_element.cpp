@@ -1203,6 +1203,8 @@ void LargeDisplacementElement::ClearNodalForces()
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
+      if( GetGeometry()[i].SolutionStepsDataHas(EXTERNAL_FORCE) && GetGeometry()[i].SolutionStepsDataHas(INTERNAL_FORCE) ){
+
         array_1d<double, 3 > & ExternalForce = GetGeometry()[i].FastGetSolutionStepValue(EXTERNAL_FORCE);
         array_1d<double, 3 > & InternalForce = GetGeometry()[i].FastGetSolutionStepValue(INTERNAL_FORCE);
 
@@ -1210,6 +1212,8 @@ void LargeDisplacementElement::ClearNodalForces()
         ExternalForce.clear();
         InternalForce.clear();
     	GetGeometry()[i].UnSetLock();
+
+      }
     }
 
     KRATOS_CATCH( "" )
