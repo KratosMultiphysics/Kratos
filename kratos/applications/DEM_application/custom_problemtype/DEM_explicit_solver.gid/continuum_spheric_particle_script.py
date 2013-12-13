@@ -113,6 +113,8 @@ control         = 0.0
 
 os.chdir(main_path)
 
+print 'Initializing Problem....'
+
 solver.Initialize()
 
 
@@ -130,8 +132,8 @@ Pressure = DEM_parameters.ConfinementPressure * 1e6 #Mpa
 if (DEM_parameters.PredefinedSkinOption == "ON" ):
 
    proc.SetPredefinedSkin(balls_model_part)
- 
-print 'Initializing Problem....'
+
+
 
 if( ( (DEM_parameters.ContinuumOption == "ON")  and ( (DEM_parameters.GraphOption =="ON") or (DEM_parameters.ConcreteTestOption =="ON")) )or (DEM_parameters.BtsOption == "ON") ):
   
@@ -183,16 +185,9 @@ if (DEM_parameters.GraphOption =="ON"):
 
 os.chdir(main_path)
     
-
-#Adding stress and strain lists
-strainlist=[]; strainlist.append(0.0)
-stresslist=[]; stresslist.append(0.0)
-
 if(DEM_parameters.ContinuumOption =="ON" and DEM_parameters.GraphOption =="ON"):
   
   #measuring height:
-
-  
   pre_utilities = PreUtilities(balls_model_part)
   
   (subtotal_top,weight_top) = pre_utilities.MeasureTopHeigh(balls_model_part)
@@ -364,19 +359,17 @@ while (time < DEM_parameters.FinalTime):
 
       for node in sup_layer_fm:
 
-        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
         force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
-        
+
         total_force_bts += force_node_y
     
     if( DEM_parameters.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and DEM_parameters.GraphOption =="ON"):
 
       if(first_time_entry):
         #measuring height:
-        
+
         pre_utilities = PreUtilities(balls_model_part)
-  
+
         (subtotal_top,weight_top) = pre_utilities.MeasureTopHeigh(balls_model_part)
         (subtotal_bot,weight_bot) = pre_utilities.MeasureBotHeigh(balls_model_part)
 
@@ -388,7 +381,7 @@ while (time < DEM_parameters.FinalTime):
         print 'Current Height after confinement: ' + str(ini_height2) + '\n'
         print 'Axial strain due to the confinement: ' + str( 100*(ini_height2-ini_height)/ini_height ) + ' %' +'\n'
         height = ini_height2
-        
+       
         for node in sup_layer_fm:
           velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y) #Applied velocity during the uniaxial compression test
           break
@@ -397,14 +390,12 @@ while (time < DEM_parameters.FinalTime):
               
         first_time_entry = 0
 
-      strain += -2*velocity_node_y*dt/height
+      strain += -1.0*velocity_node_y*dt/height
 
-      strainlist.append(strain)
       for node in sup_layer_fm:
 
-        force_node_x = node.GetSolutionStepValue(ELASTIC_FORCES)[0]
         force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-        force_node_z = node.GetSolutionStepValue(ELASTIC_FORCES)[2]
+
         
         total_force += force_node_y
 
@@ -431,6 +422,7 @@ while (time < DEM_parameters.FinalTime):
         width_now = xright_weight/right_counter - xleft_weight/left_counter
 
         measured_poisson =  ((width_now-width_ini)/width_ini)/strain
+
         #print( (width_now/0.05)/strain )
     os.chdir(list_path)    
     multifile.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')   
