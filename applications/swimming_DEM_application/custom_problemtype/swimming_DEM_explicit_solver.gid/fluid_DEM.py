@@ -55,7 +55,6 @@ ProjectParameters.model_over_real_diameter_factor  = 1.0 # not active if similar
 ProjectParameters.max_pressure_variation_rate_tol  = 1e-3 # for stationary problems, criterion to stop the fluid calculations
 ProjectParameters.time_steps_per_stationarity_step = 15
 
-
 # variables to be printed
 ProjectParameters.dem_nodal_results                = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED", "REYNOLDS_NUMBER"]
 ProjectParameters.mixed_nodal_results              = ["VELOCITY", "DISPLACEMENT"]
@@ -422,10 +421,10 @@ step = 0
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 time_dem = 0.0
 DEM_step = 0 # this variable is necessary to get a good random insertion of particles
-dem_solver.Initialize()
+stat_steps = 0
 Dt_DEM = DEMParameters.MaxTimeStep
 stationarity = False
-stat_steps = 0
+dem_solver.Initialize()
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 while(time <= final_time):
@@ -490,7 +489,6 @@ while(time <= final_time):
         interaction_calculator.CalculatePressureGradient(fluid_model_part)                 
 
     print "Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)"
-
     first_dem_iter = True
 
     for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):
@@ -520,6 +518,7 @@ while(time <= final_time):
             DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, ProjectParameters.dem_inlet_element_type) #After solving, to make sure that neighbours are already set.
 
         first_dem_iter = False
+
     # measuring mean velocities in a certain control volume (the 'velocity trap')
 
     if (ProjectParameters.velocity_trap_option):
@@ -569,8 +568,8 @@ while(time <= final_time):
 
 #gid_io.finalize_results()  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 swimming_DEM_gid_io.finalize_results()
-#
+
 print "CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY."
-#
+
 for i in drag_file_output_list:
     i.close()
