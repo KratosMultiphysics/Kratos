@@ -5,7 +5,7 @@ VALUE: Elastic
 QUESTION: CONSTITUTIVE_LAW_NAME#CB#(LinearElastic3Dlaw,HyperElastic3Dlaw,HyperElasticUP3Dlaw,LinearElasticPlaneStrain2DLaw,LinearElasticPlaneStress2DLaw,HyperElasticPlaneStrain2DLaw,HyperElasticUPPlaneStrain2DLaw,LinearElasticAxisym2DLaw,HyperElasticAxisym2DLaw,HyperElasticUPAxisym2DLaw)
 VALUE: HyperElasticAxisym2DLaw
 QUESTION: DENSITY
-VALUE: 7850
+VALUE: 4850
 QUESTION: YOUNG_MODULUS
 VALUE: 2.1E11
 QUESTION: POISSON_RATIO
