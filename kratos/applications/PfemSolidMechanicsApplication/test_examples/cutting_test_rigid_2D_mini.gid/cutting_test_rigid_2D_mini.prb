@@ -4,11 +4,11 @@ TITLE: Problem
 QUESTION: Problem_Type#CB#(Mechanical)
 VALUE: Mechanical
 QUESTION: Solver_Type#CB#(StaticSolver,QuasiStaticSolver,DynamicSolver)
-VALUE: StaticSolver
+VALUE: QuasiStaticSolver
 QUESTION: Time_Step
 VALUE: 1.25e-8
 QUESTION: Number_of_steps
-VALUE: 4
+VALUE: 100
 QUESTION: LineSearch#CB#(True,False)
 VALUE: False
 QUESTION: Let_GiD_determine_domain_size#CB#(1,0)
@@ -108,7 +108,7 @@ VALUE: 1
 QUESTION: Wall_Noses:(Wall_Label,Tip_Radius,Rake_Angle,Clearance_Angle,TipCx,TipCy,TipCz,Convexity)
 VALUE: #N# 8 1 5.48e-6 5 5 0.0035055 0.0012055 0 1
 QUESTION: Rigid_Wall_Movement#CB#(False,True)
-VALUE: True
+VALUE: False
 DEPENDENCIES: (True,RESTORE,Wall_Movements,#CURRENT#,RESTORE,Wall_Rotations,#CURRENT#)
 DEPENDENCIES: (#DEFAULT#,HIDE,Wall_Movements,#CURRENT#,HIDE,Wall_Rotations,#CURRENT#)
 QUESTION: Wall_Movements:(Wall_Label,Vx,Vy,Vz)
