@@ -1,0 +1,911 @@
+//
+//   Project Name:        KratosPfemSolidMechanicsApplication $
+//   Last modified by:    $Author:                JMCarbonell $
+//   Date:                $Date:                    July 2013 $
+//   Revision:            $Revision:                      0.0 $
+//
+//
+
+#if !defined(KRATOS_RIGID_WALL_BOUNDING_BOX_H_INCLUDED )
+#define  KRATOS_RIGID_WALL_BOUNDING_BOX_H_INCLUDED
+
+// External includes
+
+// System includes
+#include <string>
+#include <iostream>
+#include <sstream>
+#include <cstddef>
+
+// Project includes
+#include "includes/kratos_flags.h"
+#include "includes/model_part.h"
+
+#include "custom_modelers/spatial_bounding_box.hpp"
+
+
+namespace Kratos
+{
+
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/// Short class definition.
+/** Detail class definition.
+
+    This Box represents a 2D wall composed by a set of two-line sistems called "Noses"
+    each pair of lines are tangent to the semi-circle given by a center and a radius
+    these semi-circles represent the "noses" or the "tips" of the box wall
+    One line is the upper line of the nose defined by a rake angle (respect to the vertical axis)
+    The other line is a down line defined by a clearance angle (respect to the horizontal axis)
+    
+    A convexity parameter is given to determine which side of each nose is considered 
+    the internal or external boundary
+
+    This bounding box is essentially used for rigid wall contact purposes
+*/
+
+class RigidWallBoundingBox
+  : public SpatialBoundingBox
+{
+private:
+
+   enum ContactFace{ FreeSurface=0, RakeSurface=1, TipSurface=2, ClearanceSurface=3 };
+
+public:
+    ///@name Type Definitions
+    ///@{
+
+    /// Pointer definition of RigidWallBoundingBox
+    KRATOS_CLASS_POINTER_DEFINITION( RigidWallBoundingBox );
+
+    typedef Vector TPointType;
+
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    RigidWallBoundingBox() : SpatialBoundingBox()
+    {
+        std::cout<< "Calling empty constructor" <<std::endl;
+    }
+
+    // General Wall constructor
+    RigidWallBoundingBox( Vector Convexities,
+			  Vector Radius,
+			  Vector RakeAngles,
+			  Vector ClearanceAngles,
+			  Matrix Centers,
+			  TPointType Velocity,
+      			  TPointType AngularVelocity,
+			  TPointType RotationCenter)
+    {
+      
+      if( Radius.size() != RakeAngles.size() || RakeAngles.size() != ClearanceAngles.size() )
+	std::cout<<" Introduced walls are not consistent in sizes "<<std::endl;
+      
+      double pi = 3.141592654;
+      
+      std::cout<<" [--WALL--] "<<std::endl;
+
+      for(unsigned int i=0; i<Radius.size(); i++)
+	{
+	  BoxNoseVariables WallNose;
+	  WallNose.clear();
+
+	  WallNose.Convexity      = Convexities[i];
+	  WallNose.Radius         = Radius[i];
+
+	  // RakeAngle :: Angle given respect to the vertical axis  (is positive line, represents the nose upper part) 
+	  // changed to be expressed respect to the horitzontal axis, represents positive (increasing) line
+	  WallNose.RakeAngle      = ( 90 - RakeAngles[i] );        
+
+	  // ClearanceAngle :: Angle given respect to the vertical axis  (is negative line, represents the nose down part) 
+	  // changed to represent a negative (decreasing) line
+	  WallNose.ClearanceAngle = ( 180 + ClearanceAngles[i] ); 
+
+	  //check if the angle is 0 or 180 before performing this operation
+	  if( WallNose.RakeAngle != 90 &&  WallNose.RakeAngle != 180 ){
+	    WallNose.RakeAngle *= pi / 180.0;
+	    WallNose.TangentRakeAngle = tan(0.5*pi-WallNose.RakeAngle);
+	  }
+	  else{
+	    WallNose.RakeAngle *= pi / 180.0;
+	    WallNose.TangentRakeAngle = 0;
+	  }
+	  
+	  //check if the angle is 0 or 180 before performing this operation
+	  if( WallNose.ClearanceAngle != 90 &&  WallNose.ClearanceAngle != 180 ){
+	    WallNose.ClearanceAngle *= pi / 180.0;
+	    WallNose.TangentClearanceAngle = tan(0.5*pi-WallNose.ClearanceAngle);
+	  }
+	  else{
+	    WallNose.ClearanceAngle *= pi / 180.0;
+	    WallNose.TangentClearanceAngle = 0;
+	  }
+	  
+	  WallNose.OriginalCenter.resize(3);
+	  WallNose.Center.resize(3);
+
+	  for(unsigned int j=0; j<Centers.size2(); j++)
+	    {
+	      WallNose.OriginalCenter[j] = Centers(i,j);
+	      WallNose.Center[j]         = Centers(i,j);
+	    }
+	  
+	  std::cout<<" [COMPONENT]["<<i<<"]"<<std::endl;
+	  std::cout<<" [Convexity:"<<WallNose.Convexity<<std::endl;
+	  std::cout<<" [Radius:"<<WallNose.Radius<<std::endl;
+	  std::cout<<" [Center:"<<WallNose.Center<<std::endl;
+	  std::cout<<" [Rake:"<<WallNose.RakeAngle<<std::endl;
+	  std::cout<<" [Clearance:"<<WallNose.ClearanceAngle<<std::endl;
+	  std::cout<<" [TangentRakeAngle:"<<WallNose.TangentRakeAngle<<std::endl;
+	  std::cout<<" [TangentClearanceAngle:"<<WallNose.TangentClearanceAngle<<std::endl;
+	  
+	  mBoxNoses.push_back(WallNose);
+
+	}
+
+      std::cout<<" [--------] "<<std::endl;
+      
+      this->mMovement.Velocity                = Velocity;
+      this->mMovement.AngularVelocity         = AngularVelocity;
+      this->mMovement.OriginalRotationCenter  = RotationCenter;
+      this->mMovement.RotationCenter          = RotationCenter;
+
+    }
+
+
+    /// Assignment operator.
+    RigidWallBoundingBox& operator=(RigidWallBoundingBox const& rOther)
+    {
+      SpatialBoundingBox::operator=(rOther);
+      return *this;
+    }
+
+
+    /// Copy constructor.
+    RigidWallBoundingBox(RigidWallBoundingBox const& rOther) 
+    :SpatialBoundingBox(rOther)
+    {
+    }
+
+    /// Destructor.
+    virtual ~RigidWallBoundingBox() {};
+
+
+    ///@}
+    ///@name Operators
+    ///@{
+
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    virtual void UpdatePosition(double & rTime)
+    {
+      
+      SpatialBoundingBox::UpdatePosition(rTime);
+      
+      for(unsigned int i=0; i<mBoxNoses.size(); i++)
+	{
+	  mBoxNoses[i].Center =  mBoxNoses[i].OriginalCenter + this->mMovement.Velocity * rTime;
+	}
+    }
+
+
+    bool IsInside (const TPointType& rPoint, double& rCurrentTime)
+    {
+      bool is_inside = false;
+
+      unsigned int SelectedNose = BoxNoseSearch(rPoint);
+      
+      BoxNoseVariables& rWallNose = mBoxNoses[SelectedNose];
+
+      rWallNose.Radius *= 2; //increase the bounding box 
+
+      switch( ContactSearch(rPoint, rWallNose) )
+	{
+	  
+	case FreeSurface:      
+	  is_inside = false;
+	  break;
+	case RakeSurface:      
+	  is_inside = true;
+	  break;
+	case TipSurface:       
+	  is_inside = true;
+	  break;
+	case ClearanceSurface: 
+	  is_inside = true;
+	  break;
+	default:               
+	  is_inside = false;
+	  break;
+	}
+
+      rWallNose.Radius *= 0.5; //restore the bounding box
+
+      return is_inside;
+      
+    } 
+
+    //************************************************************************************
+    //************************************************************************************
+   
+    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int ContactFace = 0)
+    {
+      bool is_inside = false;
+
+      rGapNormal  = 0;
+      rGapTangent = 0;
+      rNormal.clear();
+      rTangent.clear();
+
+      unsigned int SelectedNose = BoxNoseSearch(rPoint);
+      
+      BoxNoseVariables& rWallNose = mBoxNoses[SelectedNose];
+
+      switch( ContactSearch(rPoint, rWallNose) )
+	{	  
+	case FreeSurface:      
+	  is_inside = false;
+	  break;
+	case RakeSurface:      
+	  is_inside = CalculateRakeSurface(rPoint, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
+	  break;
+	case TipSurface:       
+	  is_inside = CalculateTipSurface(rPoint, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
+	  break;
+	case ClearanceSurface: 
+	  is_inside = CalculateClearanceSurface(rPoint, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
+	  break;
+	default:               
+	  is_inside = false;
+	  break;
+	}
+
+
+      return is_inside;
+      
+    } 
+
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        return "RigidWallBoundingBox";
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << Info();
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        rOStream << this->mBox.HighPoint << " , " << this->mBox.LowPoint;
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    std::vector<BoxNoseVariables> mBoxNoses;
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    unsigned int BoxNoseSearch(const TPointType& rPoint)
+    {
+      double MinimumDistance=9.999999999999999e300;
+
+      unsigned int NumberBoxNoses = mBoxNoses.size();
+
+      unsigned int SelectedNose = 0;
+
+      for(unsigned int i=0; i<NumberBoxNoses; i++)
+	{
+	  double NoseDistance = norm_2( (mBoxNoses[i].Center - rPoint) );
+	  if( NoseDistance < MinimumDistance ){
+	    MinimumDistance = NoseDistance;
+	    SelectedNose    = i;
+	  }
+
+	}
+      
+      return SelectedNose;
+    }
+
+
+    //************************************************************************************
+    //************************************************************************************
+
+
+    ContactFace ContactSearch(const TPointType& rPoint, const BoxNoseVariables& rWallNose)
+    {
+
+      KRATOS_TRY
+
+      ContactFace Face = FreeSurface;
+           
+      double FaceR = CalculateRakeFace( FaceR, rPoint, rWallNose );
+      double FaceT = CalculateTipFace( FaceT, rPoint, rWallNose );
+      double FaceC = CalculateClearanceFace( FaceC, rPoint, rWallNose );      
+	
+      double Face1=0, Face2=0, Face3=0;
+      CalculateAuxiliarFaces( Face1, Face2, Face3, rPoint, rWallNose );
+
+      //The nodes in the wall tip, are marked as TO_SPLIT 
+      //in order to be susceptible to refine
+      //rPoint.Reset(TO_SPLIT);
+      
+      if(rWallNose.Convexity == 1){
+
+	if(FaceR>0 && Face3<0 && Face1<0){
+	  Face = RakeSurface;
+	}
+	else if(FaceT>0 && Face1>0 && Face2>0){
+	  Face = TipSurface;
+	  //It must be set to be able to refine boundaries later on REFINE
+	  //rPoint.Set(TO_SPLIT);
+	}
+	else if(FaceC>0 && Face3>0 && Face2<0){
+	  Face = ClearanceSurface;
+	}
+	else{
+	  Face = FreeSurface;
+	}
+	
+      }
+      else{
+	
+	if(FaceR<0 && Face3<0 && Face1<0){
+	  Face = RakeSurface;
+	}
+	else if(FaceT<0 && Face1>0 && Face2>0){
+	  Face = TipSurface;
+	  //It must be set to be able to refine boundaries later on REFINE
+	  //rPoint.Set(TO_SPLIT);
+	}
+	else if(FaceC<0 && Face3>0 && Face2<0){
+	  Face = ClearanceSurface;
+	}
+	else{
+	  Face = FreeSurface;
+	}
+
+
+      }
+
+      return Face;
+
+      KRATOS_CATCH( "" )
+
+   }
+
+
+   //************************************************************************************
+    //************************************************************************************
+    void PointFaceEvaluation(const TPointType& rPoint, const TPointType& rLinePoint, const  double& rTangentAngle, TPointType& rPointFace)
+    {
+      KRATOS_TRY
+
+	if( rTangentAngle != 0 ){
+	  
+	  rPointFace[0] = rPoint[0] - ( 1.0/rTangentAngle ) * ( rPoint[1] - rLinePoint[1] ) - rLinePoint[0];
+	  rPointFace[1] = rPoint[1] - (   rTangentAngle   ) * ( rPoint[0] - rLinePoint[0] ) - rLinePoint[1];
+
+	}
+	else{
+	  
+	  rPointFace[0] = rPoint[0] - rLinePoint[0];
+	  rPointFace[1] = rPoint[1] - rLinePoint[1];  
+	}	
+
+      rPointFace [2] = 0;
+      
+      KRATOS_CATCH( "" )
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+
+    double& CalculateRakeFace(double& Face, const TPointType& rPoint, const BoxNoseVariables& rWallNose)
+    {
+      KRATOS_TRY
+	    
+
+      TPointType PointFace(3);
+
+      TPointType CenterFace(3);
+
+      TPointType RakePoint(3);
+
+      RakePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.RakeAngle);
+      RakePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.RakeAngle);
+      RakePoint[2] = 0;
+ 
+      PointFaceEvaluation(rPoint, RakePoint, rWallNose.TangentRakeAngle, PointFace);
+      PointFaceEvaluation(rWallNose.Center, RakePoint, rWallNose.TangentRakeAngle, CenterFace);
+
+      PointFace[0] *= CenterFace[0];
+      PointFace[1] *= CenterFace[1];
+
+      //the sign is evaluated (+) accepted and  (-) rejected
+      if( PointFace[0] != 0 && PointFace[1] != 0 ){
+	Face = PointFace[0] * PointFace[1];
+      }
+      else if( PointFace[0] != 0 && PointFace[1] == 0 ){
+	Face = PointFace[0];
+      }
+      else if( PointFace[0] == 0 && PointFace[1] != 0 ){
+	Face = PointFace[1];
+      }
+      else{
+	std::cout<<" Critical point reached and accepted on Rake Face "<<std::endl;
+	Face = +1;
+      }
+
+      //Face (+) rPoint is "in" :: (-) rPoint is "out" the rake part of the nose
+      return Face;
+    
+      KRATOS_CATCH( "" )
+	}
+
+
+
+    //************************************************************************************
+    //************************************************************************************
+
+    double& CalculateClearanceFace(double& Face, const TPointType& rPoint, const BoxNoseVariables& rWallNose)
+    {
+      KRATOS_TRY
+
+      TPointType PointFace(3);
+
+      TPointType CenterFace(3);
+
+      TPointType ClearancePoint(3);
+
+      ClearancePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.ClearanceAngle);
+      ClearancePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.ClearanceAngle);
+      ClearancePoint[2] = 0; 
+
+      PointFaceEvaluation(rPoint, ClearancePoint, rWallNose.TangentClearanceAngle, PointFace);
+      PointFaceEvaluation(rWallNose.Center, ClearancePoint, rWallNose.TangentClearanceAngle, CenterFace);
+
+      PointFace[0] *= CenterFace[0];
+      PointFace[1] *= CenterFace[1];
+
+      //the sign is evaluated (+) accepted and  (-) rejected
+      if( PointFace[0] != 0 && PointFace[1] != 0 ){
+	Face = PointFace[0] * PointFace[1];
+      }
+      else if( PointFace[0] != 0 && PointFace[1] == 0 ){
+	Face = PointFace[0];
+      }
+      else if( PointFace[0] == 0 && PointFace[1] != 0 ){
+	Face = PointFace[1];
+      }
+      else{
+	std::cout<<" Critical point reached and accepted on Clearance Face "<<std::endl;
+	Face = +1;
+      }
+	  
+
+      //Face (+) rPoint is "in" :: (-) rPoint is "out" the clearance part of the nose
+      return Face;
+
+    
+      KRATOS_CATCH( "" )
+	}
+
+    //************************************************************************************
+    //************************************************************************************
+
+
+    double& CalculateTipFace(double& Face, const TPointType& rPoint, const BoxNoseVariables& rWallNose)
+    {
+      KRATOS_TRY
+      
+      Face = ( rWallNose.Radius * rWallNose.Radius ) - pow( (rPoint[0] - rWallNose.Center[0]), 2 ) - pow( (rPoint[1] - rWallNose.Center[1]), 2 ); 
+      
+      //Face (+) rPoint is "in" :: (-) rPoint is "out" the nose tip
+      return Face;	
+    
+      KRATOS_CATCH( "" )
+	}
+
+
+    //************************************************************************************
+    //************************************************************************************
+
+  void CalculateLineProjection(double& rFace, const TPointType& rPoint, const TPointType& rReferencePoint, const TPointType& rCenterPoint, const TPointType& rLinePoint )
+    {
+
+      TPointType Line(3);
+
+      TPointType NormalLine(3);
+
+      //rCenterPoint and rLinePoint define the line:
+      Line  = (rLinePoint - rCenterPoint);
+      Line *= (1.0/norm_2(Line));
+      
+      //normal to the line
+      NormalLine[0] = -Line[1];
+      NormalLine[1] =  Line[0];
+      NormalLine[2] =  0;
+
+      //compare the sense of the direction of Line1 and Line2
+      TPointType Line1 = (rReferencePoint - rCenterPoint);
+      TPointType Line2 = (rPoint - rCenterPoint);
+
+      //check the Projection with the Line
+      double ReferenceDirection = inner_prod(Line1,NormalLine);
+      double PointDirection     = inner_prod(Line2,NormalLine);
+
+      //the sign is evaluated (+) accepted and  (-) rejected
+      if( PointDirection != 0 ){
+	rFace = PointDirection * ReferenceDirection;
+      }
+      else{
+	std::cout<<" Critical point reached and accepted on a Face "<<std::endl;
+	rFace = +1;
+      }
+
+    }
+    //************************************************************************************
+    //************************************************************************************
+
+
+    void CalculateAuxiliarFaces(double& rFace1, double& rFace2,  double& rFace3, const TPointType& rPoint, const BoxNoseVariables& rWallNose)
+    {
+      KRATOS_TRY
+
+      double pi = 3.141592654;
+
+      //-----------
+
+      TPointType RakePoint(3);
+
+      RakePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.RakeAngle);
+      RakePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.RakeAngle);
+      RakePoint[2] = 0;
+
+      TPointType ClearancePoint(3);
+
+      ClearancePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.ClearanceAngle);
+      ClearancePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.ClearanceAngle);
+      ClearancePoint[2] = 0;
+
+      TPointType TipPoint(3);
+
+      TipPoint  = ( RakePoint - rWallNose.Center ) + ( ClearancePoint - rWallNose.Center );
+      TipPoint *= ( rWallNose.Radius/norm_2(TipPoint) );
+      
+      //open angle to get the correct tip direction
+      double OpenAngle = ( rWallNose.ClearanceAngle - rWallNose.RakeAngle ) * ( 180.0 / pi ) - 90;
+
+      if( OpenAngle < 90 )
+	TipPoint  = rWallNose.Center + TipPoint;
+      else
+	TipPoint  = rWallNose.Center - TipPoint;
+
+      // std::cout<<" Center "<<rWallNose.Center<<" Radius "<<rWallNose.Radius<<std::endl;
+      // std::cout<<" RakePoint "<<RakePoint<<" x "<<-sin(rWallNose.RakeAngle)<<" y "<<cos(rWallNose.RakeAngle)<<std::endl;
+      // std::cout<<" ClearancePoint "<<ClearancePoint<<" x "<<-sin(rWallNose.ClearanceAngle)<<" y "<<cos(rWallNose.ClearanceAngle)<<std::endl;
+      // std::cout<<" TipPoint "<<TipPoint<<std::endl;
+      
+
+      //-----------
+      
+ 
+      //Center to RakePoint line  (TipPoint:= NoseCenter)  (rFace1)
+      
+      CalculateLineProjection(rFace1, rPoint, TipPoint, rWallNose.Center, RakePoint);
+
+      //Face1 (+) rPoint is "in" the same part as the TipPoint :: (-) rPoint is "out" of the nose tip
+      
+
+      //-----------
+
+
+      //Center to ClearancePoint line (TipPoint:= NoseCenter)  (rFace2)
+
+      CalculateLineProjection(rFace2, rPoint, TipPoint, rWallNose.Center, ClearancePoint);
+
+      //Face2 (+) rPoint is "in" the same part as the TipPoint :: (-) rPoint is "out" of the nose tip
+
+
+
+      //-----------
+
+      //Center to TipPoint line (ClearancePoint:= NoseCenter) (rFace3)
+
+      CalculateLineProjection(rFace3, rPoint, ClearancePoint, rWallNose.Center, TipPoint);
+
+      //Face3 (+) rPoint is "in" the same part as the ClearancePoint :: (-) rPoint is "in" the same part of the RakePoint
+
+
+      KRATOS_CATCH( "" )
+    }
+
+
+    //************************************************************************************
+    //************************************************************************************
+
+
+    bool CalculateRakeSurface(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, const BoxNoseVariables& rWallNose)
+    {
+      KRATOS_TRY
+     
+      rNormal  = ZeroVector(3);
+      rTangent = ZeroVector(3);
+ 
+      //1.-compute contact normal
+      rNormal[0] = -sin(rWallNose.RakeAngle);
+      rNormal[1] =  cos(rWallNose.RakeAngle);
+      rNormal[2] = 0;
+
+      rNormal *= rWallNose.Convexity; 
+
+      //2.-compute point projection
+      TPointType RakePoint(3);
+
+      RakePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.RakeAngle);
+      RakePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.RakeAngle);
+      RakePoint[2] = 0;
+
+      //3.-compute gap
+      rGapNormal = inner_prod((rPoint - RakePoint), rNormal);
+      
+      if(rGapNormal<0)
+	return true;
+      else
+	return false;
+
+      KRATOS_CATCH( "" )
+	}
+
+    //************************************************************************************
+    //************************************************************************************
+
+    bool CalculateTipSurface(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, const BoxNoseVariables& rWallNose)
+    {
+      KRATOS_TRY
+
+      rNormal  = ZeroVector(3);
+      rTangent = ZeroVector(3);
+
+      //1.-compute point projection
+      TPointType Projection(3);
+      Projection = rWallNose.Radius * ( (rPoint-rWallNose.Center)/ norm_2(rPoint-rWallNose.Center) ) + rWallNose.Center;
+      
+      //2.-compute contact normal
+      rNormal = (Projection-rWallNose.Center)/rWallNose.Radius;
+
+      rNormal *= rWallNose.Convexity;
+
+      //3.-compute gap
+      if( norm_2(rWallNose.Center-rPoint) <= rWallNose.Radius ){
+	rGapNormal = (-1) * norm_2(rPoint - Projection);
+      }
+      else{
+	rGapNormal = norm_2(Projection - rPoint);
+      }
+      
+      if(rGapNormal<0)
+	return true;
+      else
+	return false;
+
+    
+      KRATOS_CATCH( "" )
+	}
+
+
+    //************************************************************************************
+    //************************************************************************************
+
+
+    bool CalculateClearanceSurface(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, const BoxNoseVariables& rWallNose)
+    {
+      KRATOS_TRY
+
+      rNormal  = ZeroVector(3);
+      rTangent = ZeroVector(3);
+
+      //1.-compute contact normal
+      rNormal[0] = -sin(rWallNose.ClearanceAngle);
+      rNormal[1] =  cos(rWallNose.ClearanceAngle);
+      rNormal[2] = 0;
+
+      rNormal *= rWallNose.Convexity;
+
+      //2.-compute point projection
+      TPointType ClearancePoint(3);
+
+      ClearancePoint[0] = rWallNose.Center[0] - rWallNose.Radius * sin(rWallNose.ClearanceAngle);
+      ClearancePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.ClearanceAngle);
+      ClearancePoint[2] = 0;
+
+      //3.-compute gap
+      rGapNormal = inner_prod((rPoint - ClearancePoint), rNormal);
+
+      if(rGapNormal<0)
+	return true;
+      else
+	return false;
+     
+      KRATOS_CATCH( "" )
+     }
+
+
+    //************************************************************************************
+    //************************************************************************************
+
+    static inline double inner_prod(const TPointType& a, const TPointType& b)
+    {
+        double temp =a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+        return temp;
+    }
+
+    //************************************************************************************
+    //************************************************************************************
+
+    static inline double norm_2(const TPointType& a)
+    {
+        double temp = pow(a[0],2) + pow(a[1],2) + pow(a[2],2);
+        temp = sqrt(temp);
+        return temp;
+    }
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+
+    ///@}
+
+
+}; // Class RigidWallBoundingBox
+
+///@}
+
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+
+/// input stream function
+template<class TPointType, class TPointerType>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  RigidWallBoundingBox& rThis);
+
+/// output stream function
+template<class TPointType, class TPointerType>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const RigidWallBoundingBox& rThis)
+{
+    // rThis.PrintInfo(rOStream);
+    // rOStream << std::endl;
+    // rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
+
+
+}  // namespace Kratos.
+
+#endif // KRATOS_RIGID_WALL_BOUNDING_BOX_H_INCLUDED  defined 
+
+
