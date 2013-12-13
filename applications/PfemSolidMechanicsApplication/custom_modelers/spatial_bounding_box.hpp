@@ -55,44 +55,93 @@ public:
   
 protected:
 
+
   typedef struct
   {
-    double Radius;         //tool tip radius
-    double RakeAngle;      //top angle,    from vertical axis
-    double ClearanceAngle; //bottom angle, from the horizontal axis
-      
-    double m_factor;       //cotan(RakeAngle) == 1/tan(RakeAngle) == tan((pi/2)-RakeAngle)
-    double n_factor;       //tan(ClearanceAngle)
+    bool   Axisymmetric;   //true or false
+    int    Convexity;      //1 or -1  if "in" is inside or outside respectively   
+    double Radius;              // box radius
     
     TPointType  HighPoint;      // box highest point
     TPointType  LowPoint;       // box lowest point
 
     TPointType  OriginalCenter; // center original position
     TPointType  Center;         // center current position
-    TPointType  Velocity;       // velocity, expressed on the center velocity
     
   public:
     
     void clear()
     {
+      Axisymmetric = false;
+      Convexity = 1;
       Radius = 0;
-      RakeAngle = 0;
-      ClearanceAngle = 0;
-      
-      m_factor = 0;
-      n_factor = 0;
 
       HighPoint.clear();
       LowPoint.clear();
 
       OriginalCenter.clear();
       Center.clear();
-      Velocity.clear();
     }
 
 
   } BoundingBoxVariables;
 
+
+  typedef struct
+  {
+    int    Convexity;      //1 or -1 if "in" is inside or outside respectively
+    
+    double Radius;         //nose radius
+    double RakeAngle;      //top angle,    from vertical axis       --> #RakeAngle      = (90-RakeAngle)
+    double ClearanceAngle; //bottom angle, from the horizontal axis --> #ClearanceAngle = (180-ClearanceAngle)
+      
+    double TangentRakeAngle;      //tan((pi/2)-#RakeAngle)
+    double TangentClearanceAngle; //tan((pi/2)-#ClearanceAngle)
+    
+    TPointType  OriginalCenter; // center original position
+    TPointType  Center;         // center current position
+    
+  public:
+    
+    void clear()
+    {
+      Convexity = 1;
+      Radius = 0;
+      RakeAngle = 0;
+      ClearanceAngle = 0;
+      
+      TangentRakeAngle = 0;
+      TangentClearanceAngle = 0;
+
+      OriginalCenter.clear();
+      Center.clear();
+    }
+
+
+  } BoxNoseVariables;
+
+
+  typedef struct
+  {
+
+    TPointType  Velocity;         // velocity, relative to rotation center and box center (the same)
+    TPointType  AngularVelocity;  // angular velocity, relative to the Rotation Center 
+
+    TPointType  OriginalRotationCenter;   // original position for the rotation center
+    TPointType  RotationCenter;           // rotation center
+
+
+  public:
+    
+    void clear()
+    {
+      Velocity.clear();
+      AngularVelocity.clear();
+      RotationCenter.clear();
+      OriginalRotationCenter.clear();
+    }
+
+  } BoxMovementVariables;
 
 
 public:
@@ -157,7 +206,7 @@ public:
       mBox.clear();     
       mBox.Center   = rCenter;
       mBox.Radius   = rRadius;
-      mBox.Velocity = rVelocity;
+      mMovement.Velocity = rVelocity;
 
       TPointType Side(rCenter.size());
       Side[0] = 1.8 * mBox.Radius;
@@ -172,18 +221,16 @@ public:
     }
 
 
-    SpatialBoundingBox( double Radius,
-			double RakeAngle,
-			double ClearanceAngle,
-			TPointType  Center,
-			TPointType  Velocity)
+    SpatialBoundingBox( Vector Convexities,
+			Vector Radius,
+			Vector RakeAngles,
+			Vector ClearanceAngles,
+			Matrix Centers,
+			TPointType Velocity,
+			TPointType AngularVelocity,
+			TPointType RotationCenter)
     {
-      mBox.clear();
-      mBox.Radius         = Radius;
-      mBox.RakeAngle      = RakeAngle;
-      mBox.ClearanceAngle = ClearanceAngle; 
-      mBox.Center         = Center;
-      mBox.Velocity       = Velocity;
+      std::cout<<" Calling a Base Class Constructor: RIGID WALL Bounding Box must be called "<<std::endl;
     }
 
 
@@ -243,7 +290,7 @@ public:
 	  
       mBox.Radius = rRadius + 0.5*(MaxRadius);
 
-      mBox.Velocity = ZeroVector(3);
+      mMovement.Velocity = ZeroVector(3);
 
       TPointType Side(dimension);
       Side[0] = mBox.Radius;
@@ -290,12 +337,12 @@ public:
     {
       bool inside = true;
 
-      TPointType Reference = mBox.Center + mBox.Velocity * rCurrentTime;
+      TPointType Reference = mBox.Center + mMovement.Velocity * rCurrentTime;
       
       if(norm_2((Reference-rPoint)) > 2 * mBox.Radius)
 	inside = false;
 
-      Reference = mBox.HighPoint + mBox.Velocity * rCurrentTime;
+      Reference = mBox.HighPoint + mMovement.Velocity * rCurrentTime;
 
       for(unsigned int i=0; i<mBox.Center.size(); i++)
 	{
@@ -305,7 +352,7 @@ public:
 	  }
 	}
 
-      Reference = mBox.LowPoint + mBox.Velocity * rCurrentTime;
+      Reference = mBox.LowPoint + mMovement.Velocity * rCurrentTime;
 
       for(unsigned int i=0; i<mBox.Center.size(); i++)
 	{
@@ -376,7 +423,25 @@ public:
 
     TPointType& Velocity()
     {
-        return mBox.Velocity;
+        return mMovement.Velocity;
+    }
+
+    void SetAxisymmetric()
+    {
+        mBox.Axisymmetric = true;
+    }
+
+    bool& Axisymmetric()
+    {
+        return mBox.Axisymmetric;
+    }
+
+  
+    virtual void UpdatePosition(double & rTime)
+    {
+      
+      mBox.Center = mBox.OriginalCenter + mMovement.Velocity * rTime;
+      
     }
 
     /// Compute inside holes
@@ -420,7 +485,7 @@ public:
     
       std::vector<TPointType> vertices;
 
-      TPointType Reference = mBox.HighPoint + mBox.Velocity * rCurrentTime;
+      TPointType Reference = mBox.HighPoint + mMovement.Velocity * rCurrentTime;
       
       double Side =  2.0 * (mBox.HighPoint[0] - mBox.Center[0]);
 
@@ -445,7 +510,7 @@ public:
 
       if( mBox.Center.size() > 2){
 
-	Reference = mBox.LowPoint + mBox.Velocity * rCurrentTime;
+	Reference = mBox.LowPoint + mMovement.Velocity * rCurrentTime;
 	
 	//point 5
 	vertices.push_back(Reference);
@@ -517,6 +582,8 @@ protected:
     ///@{
 
     BoundingBoxVariables mBox;
+
+    BoxMovementVariables mMovement;
 
     ///@}
     ///@name Protected Operators

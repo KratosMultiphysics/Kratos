@@ -117,19 +117,37 @@ class contact_modeler_config:
 class rigid_wall_config:
     rigid_wall         = *GenData(Rigid_Wall_Contact)
     size_scale         = 1
-    tip_radius         = *GenData(Tip_Radius)
-    rake_angle         = *GenData(Rake_Angle)
-    clearance_angle    = *GenData(Clearance_Angle)
-    penalty_parameter  = *GenData(Rigid_Body_Penalty_Parameter)
-    center = []
-    center.append(*GenData(Reference_Point_definition,1))
-    center.append(*GenData(Reference_Point_definition,2))
-    center.append(0)
-    velocity = [] 
-    velocity.append(*GenData(Velocity_definition,1))
-    velocity.append(*GenData(Velocity_definition,2))
-    velocity.append(0)
-
+    contact_condition  = "*GenData(Contact_Condition)"
+    penalty_parameter  = *GenData(Rigid_Body_Penalty_Parameter)	
+    number_of_walls    = *GenData(Number_of_walls)
+    wall_labels        = []
+    tip_radius         = []
+    rake_angles        = []   	 
+    clearance_angles   = []  
+    tip_centers        = []
+    nose_convexities   = []     
+*for(i=1;i<=GenData(Wall_Noses,INT);i=i+8)
+    wall_labels.append(*GenData(Wall_Noses,*i))  
+    tip_radius.append(*GenData(Wall_Noses,*Operation(i+1)))
+    rake_angles.append(*GenData(Wall_Noses,*Operation(i+2)))
+    clearance_angles.append(*GenData(Wall_Noses,*Operation(i+3)))
+    tip_centers.append([*GenData(Wall_Noses,*Operation(i+4)),*GenData(Wall_Noses,*Operation(i+5)),*GenData(Wall_Noses,*Operation(i+6))])
+    nose_convexities.append(*GenData(Wall_Noses,*Operation(i+7)))
+*end
+    wall_movement_labels  = [] 
+    wall_velocity         = []
+*for(i=1;i<=GenData(Wall_Movements,INT);i=i+4)
+    wall_movement_labels.append(*GenData(Wall_Movements,*i))
+    wall_velocity.append([*GenData(Wall_Movements,*Operation(i+1)),*GenData(Wall_Movements,*Operation(i+2)),*GenData(Wall_Movements,*Operation(i+3))])
+*end
+    wall_rotation_labels  = [] 
+    wall_angular_velocity = []
+    reference_point       = []
+*for(i=1;i<=GenData(Wall_Rotations,INT);i=i+7)
+    wall_rotation_labels.append(*GenData(Wall_Rotations,*i))
+    wall_angular_velocity.append([*GenData(Wall_Rotations,*Operation(i+1)),*GenData(Wall_Rotations,*Operation(i+2)),*GenData(Wall_Rotations,*Operation(i+3))]) 
+    reference_point.append([*GenData(Wall_Rotations,*Operation(i+4)),*GenData(Wall_Rotations,*Operation(i+5)),*GenData(Wall_Rotations,*Operation(i+6))])     
+*end
 
 #Constraints Data
 #####################################

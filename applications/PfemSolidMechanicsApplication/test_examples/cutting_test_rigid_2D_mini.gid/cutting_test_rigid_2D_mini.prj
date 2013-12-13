@@ -2,7 +2,7 @@
 <gid version="11.0">
   <pre>
     <groups>
-      <group id="1" name="RigidWall" color="#999999ff"/>
+      <group id="1" name="RigidWall" color="#999999ff" parent_id="2"/>
       <group id="2" name="Domains" color="#0000ffff"/>
       <group id="3" name="Workpiece" color="#ff00ffff" parent_id="2"/>
     </groups>

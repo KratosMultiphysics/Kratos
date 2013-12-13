@@ -4,11 +4,11 @@ TITLE: Problem
 QUESTION: Problem_Type#CB#(Mechanical)
 VALUE: Mechanical
 QUESTION: Solver_Type#CB#(StaticSolver,QuasiStaticSolver,DynamicSolver)
-VALUE: QuasiStaticSolver
+VALUE: StaticSolver
 QUESTION: Time_Step
 VALUE: 1.25e-8
 QUESTION: Number_of_steps
-VALUE: 5
+VALUE: 4
 QUESTION: LineSearch#CB#(True,False)
 VALUE: False
 QUESTION: Let_GiD_determine_domain_size#CB#(1,0)
@@ -40,7 +40,7 @@ VALUE: 1E-9
 QUESTION: Max_Iter
 VALUE: 30
 QUESTION: Number_of_threads
-VALUE: 1
+VALUE: 4
 TITLE: Meshing
 QUESTION: RemeshDomains#CB#(False,True)
 VALUE: True
@@ -97,29 +97,29 @@ QUESTION: Friction_Active#CB#(False,True)
 VALUE: False
 QUESTION: Rigid_Wall_Contact#CB#(False,True)
 VALUE: True
-DEPENDENCIES: (True,RESTORE,Tip_Radius,#CURRENT#,RESTORE,Rake_Angle,#CURRENT#,RESTORE,Clearance_Angle,#CURRENT#,RESTORE,Rigid_Body_Penalty_Parameter,#CURRENT#,RESTORE,Rigid_Wall_Movement,#CURRENT#)
-DEPENDENCIES: (#DEFAULT#,HIDE,Tip_Radius,#CURRENT#,HIDE,Rake_Angle,#CURRENT#,HIDE,Clearance_Angle,#CURRENT#,HIDE,Rigid_Body_Penalty_Parameter,#CURRENT#,HIDE,Rigid_Wall_Movement,False)
-QUESTION: Tip_Radius
-VALUE: 5.48e-6
-QUESTION: Rake_Angle
-VALUE: 5
-QUESTION: Clearance_Angle
-VALUE: 5
+DEPENDENCIES: (True,RESTORE,Contact_Condition,#CURRENT#,RESTORE,Rigid_Body_Penalty_Parameter,#CURRENT#,RESTORE,Number_of_Walls,#CURRENT#,RESTORE,Wall_Noses,#CURRENT#,RESTORE,Rigid_Wall_Movement,#CURRENT#)
+DEPENDENCIES: (#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Rigid_Body_Penalty_Parameter,#CURRENT#,HIDE,Number_of_Walls,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,HIDE,Rigid_Wall_Movement,#DEFAULT#)
+QUESTION: Contact_Condition#CB#(2D,Axisymmetric)
+VALUE: 2D
 QUESTION: Rigid_Body_Penalty_Parameter
-VALUE: 100
+VALUE: 1000
+QUESTION: Number_of_Walls
+VALUE: 1
+QUESTION: Wall_Noses:(Wall_Label,Tip_Radius,Rake_Angle,Clearance_Angle,TipCx,TipCy,TipCz,Convexity)
+VALUE: #N# 8 1 5.48e-6 5 5 0.0035055 0.0012055 0 1
 QUESTION: Rigid_Wall_Movement#CB#(False,True)
 VALUE: True
-DEPENDENCIES: (True,RESTORE,Reference_Point_definition,#CURRENT#,RESTORE,Velocity_definition,#CURRENT#)
-DEPENDENCIES: (False,HIDE,Reference_Point_definition,#CURRENT#,HIDE,Velocity_definition,#CURRENT#)
-QUESTION: Reference_Point_definition:(X,Y)
-VALUE: #N# 2 0.00350550 0.0012055
-QUESTION: Velocity_definition:(Vx,Vy)
-VALUE: #N# 2 -2 0
+DEPENDENCIES: (True,RESTORE,Wall_Movements,#CURRENT#,RESTORE,Wall_Rotations,#CURRENT#)
+DEPENDENCIES: (#DEFAULT#,HIDE,Wall_Movements,#CURRENT#,HIDE,Wall_Rotations,#CURRENT#)
+QUESTION: Wall_Movements:(Wall_Label,Vx,Vy,Vz)
+VALUE: #N# 4 1 -4 0 0
+QUESTION: Wall_Rotations:(Wall_Label,Wx,Wy,Wz,Cx,Cy,Cz)
+VALUE: #N# 7 1 0 0 0 0 0 0
 TITLE: Constraints
 QUESTION: Incremental_Load#CB#(False,True)
 VALUE: False
 QUESTION: Incremental_Displacement#CB#(False,True)
-VALUE: False
+VALUE: True
 TITLE: PostProcess
 QUESTION: Echo_Level
 VALUE: 1
