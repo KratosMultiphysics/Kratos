@@ -225,7 +225,7 @@ namespace Kratos
           
           ///Cfeng RigidFace search
           SearchRigidFaceNeighbours();
-		  ComputeNewRigidFaceNeighboursHistoricalData();
+          ComputeNewRigidFaceNeighboursHistoricalData();
           
           // 3. Finding overlapping of initial configurations
 
@@ -268,7 +268,8 @@ namespace Kratos
               if (this->GetBoundingBoxOption()){
                   BoundingBoxUtility();
               }
-
+              SetSearchRadius(r_model_part, 1.0);
+              
               SearchNeighbours();
               ComputeNewNeighboursHistoricalData();  
               
@@ -830,7 +831,7 @@ namespace Kratos
 			}
 		   
 
-			moDemFemSearch.SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTContitions, this->GetRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
+			moDemFemSearch.SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTContitions, this->GetRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());                        
 			
 			#pragma omp parallel for
 			for (int k = 0; k < this->GetNumberOfThreads(); k++)
@@ -842,7 +843,8 @@ namespace Kratos
 				
 				for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter)
 				{
-                                    WeakPointerVector<Condition>& neighbour_rigid_faces = particle_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES);
+                                        WeakPointerVector<Condition>& neighbour_rigid_faces = particle_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES);
+                                    
 					for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[ResultCounter].begin(); 
 						 neighbour_it != this->GetRigidFaceResults()[ResultCounter].end(); ++neighbour_it)
 					{
