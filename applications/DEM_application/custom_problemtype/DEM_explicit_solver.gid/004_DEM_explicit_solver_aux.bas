@@ -4,7 +4,7 @@ End ModelPartData
 
 
 
-Begin Properties  1
+Begin Properties  0
 End Properties
 
 Begin Nodes
