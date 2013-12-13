@@ -65,11 +65,14 @@ namespace Kratos
           ComputeBuoyancy(buoyancy, fluid_density, gravity, rCurrentProcessInfo);
           ComputeDragForce(drag_force, fluid_density, rCurrentProcessInfo);
           ComputeVirtualMassForce(virtual_mass_force, fluid_density, rCurrentProcessInfo);
-          ComputeLiftForce(lift_force, fluid_density, rCurrentProcessInfo);
-
+          ComputeLiftForce(lift_force, fluid_density, rCurrentProcessInfo);                            
+          
+          
           additionally_applied_force[0] = buoyancy[0] + drag_force[0] + virtual_mass_force[0] + lift_force[0] + mRealMass * gravity[0];
           additionally_applied_force[1] = buoyancy[1] + drag_force[1] + virtual_mass_force[1] + lift_force[1] + mRealMass * gravity[1];
           additionally_applied_force[2] = buoyancy[2] + drag_force[2] + virtual_mass_force[2] + lift_force[2] + mRealMass * gravity[2];
+          
+          
 
           KRATOS_CATCH( "" )
       }
@@ -86,12 +89,19 @@ namespace Kratos
               return;
           }
 
-          // General Case
-
-          const array_1d<double,3>& pressure_grad = GetGeometry()(0)->FastGetSolutionStepValue(PRESSURE_GRAD_PROJECTED);
           const double volume = 1.333333333333333 * M_PI * mRadius * mRadius * mRadius;
-
-          noalias(buoyancy) = - volume * pressure_grad;
+          
+          if (mDragForceType == 2){ // Weatherford
+              
+              noalias(buoyancy) =  -1.0 * gravity * fluid_density * volume;              
+          }
+          
+          else{ // General Case
+              
+              const array_1d<double,3>& pressure_grad = GetGeometry()(0)->FastGetSolutionStepValue(PRESSURE_GRAD_PROJECTED);
+              noalias(buoyancy) = - volume * pressure_grad;
+              
+          }
       }
 
     //**************************************************************************************************************************************************
