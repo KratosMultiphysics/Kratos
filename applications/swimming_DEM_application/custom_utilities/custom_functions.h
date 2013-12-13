@@ -197,7 +197,7 @@ class CustomFunctionsCalculator
           else {
               KRATOS_ERROR(std::runtime_error,"Trying to calculate pressure variations between to coincident time steps! (null time variation since last recorded time)","");
             }
-
+          
           std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << "\n";
           std::cout << "The stationarity condition tolerance is " << "\n";
           KRATOS_WATCH(tol)
