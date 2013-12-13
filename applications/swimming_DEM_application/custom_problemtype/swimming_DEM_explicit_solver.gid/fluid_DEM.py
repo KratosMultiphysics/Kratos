@@ -128,7 +128,7 @@ solver_module = import_solver(SolverSettings)
 
 #
 # importing variables
-print 'Adding nodal variables to the fluid_model_part' #(memory allocation) #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+print 'Adding nodal variables to the fluid_model_part' # (memory allocation) #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
 solver_module.AddVariables(fluid_model_part, SolverSettings)
 swimming_DEM_procedures.AddNodalVariables(fluid_model_part, fluid_variables_to_add) #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
@@ -148,11 +148,11 @@ model_part_io_fluid.ReadModelPart(fluid_model_part)
 balls_model_part = ModelPart("SolidPart")
 fem_dem_model_part = ModelPart("RigidFace_Part");
 
-print 'Adding nodal variables to the balls_model_part' #(memory allocation)
+print 'Adding nodal variables to the balls_model_part' # (memory allocation)
 
 swimming_DEM_procedures.AddNodalVariables(balls_model_part, balls_variables_to_add)
 
-print 'Adding nodal variables to the dem_fem_wall_model_part' #(memory allocation)
+print 'Adding nodal variables to the dem_fem_wall_model_part' # (memory allocation)
 
 swimming_DEM_procedures.AddNodalVariables(fem_dem_model_part, fem_dem_variables_to_add)
 
@@ -493,7 +493,7 @@ while(time <= final_time):
 
     for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):
         
-        DEM_step = DEM_step + 1   # this variable is necessary to get a good random insertion of particles
+        DEM_step += 1   # this variable is necessary to get a good random insertion of particles
         
         balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
         
