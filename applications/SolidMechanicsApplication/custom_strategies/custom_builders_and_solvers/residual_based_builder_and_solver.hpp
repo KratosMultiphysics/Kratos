@@ -289,6 +289,7 @@ public:
 
         for (int i = 0; i < A_size; i++)
             omp_destroy_lock(&lock_array[i]);
+
         if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
         {
             KRATOS_WATCH( "finished parallel building" )
@@ -736,6 +737,7 @@ public:
 
         for (int i = 0; i < b_size; i++)
             omp_destroy_lock(&lock_array[i]);
+
         if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
         {
             KRATOS_WATCH( "finished parallel building" )
