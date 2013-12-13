@@ -36,6 +36,7 @@ ProjectParameters.similarity_transformation_type   = 0 # no transformation (0), 
 ProjectParameters.dem_inlet_element_type           = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 ProjectParameters.coupling_scheme_type             = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
 ProjectParameters.coupling_weighing_type           = 2 # {fluid_to_DEM, DEM_to_fluid, Solid_fraction} = {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
+ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), standard (1) (but, if drag_force_type is 2, buoyancy is always parallel to gravity) 
 ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
 ProjectParameters.drag_force_type                  = 2 # null drag (0), standard (1), Weatherford (2), Ganser (3)
 ProjectParameters.virtual_mass_force_type          = 0 # null virtual mass force (0)
@@ -56,7 +57,7 @@ ProjectParameters.initial_drag_force               = 0.0   # problemtype option
 ProjectParameters.drag_law_slope                   = 0.0   # problemtype option
 ProjectParameters.power_law_tol                    = 0.0
 ProjectParameters.model_over_real_diameter_factor  = 2.0 # not active if similarity_transformation_type = 0
-ProjectParameters.max_pressure_variation_rate_tol  = 10-7 # for stationary problems, criterion to stop the fluid calculations
+ProjectParameters.max_pressure_variation_rate_tol  = 1e-6 # for stationary problems, criterion to stop the fluid calculations
 
 # variables to be printed
 ProjectParameters.dem_nodal_results                = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED", "REYNOLDS_NUMBER"]
