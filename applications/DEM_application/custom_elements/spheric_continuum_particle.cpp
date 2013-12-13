@@ -384,6 +384,7 @@ namespace Kratos
             
             double initial_delta                  = mNeighbourDelta[i_neighbour_count]; //*
             double initial_dist                   = (radius_sum - initial_delta);
+            double initial_dist_i                 = 1 / initial_dist;
             double indentation                    = initial_dist - distance;   //#1
             double equiv_area                     = 0.25*M_PI * equiv_radius * equiv_radius; //#2 
             double calculation_area               = equiv_area;
@@ -454,12 +455,27 @@ namespace Kratos
 
             else if(mDempack){
                 
+              
+              /*
                 double rad_squared = mRadius * other_radius;
+                
                 calculation_area = mAreaFactorInv*4.0*M_PI*(rad_squared*rad_squared)*radius_sum_i*radius_sum_i;
+                
                 double equiv_shear = equiv_young/(2*(1+equiv_poisson));
+                
                 kn_el = equiv_young*calculation_area*radius_sum_i;
                 kt_el = equiv_shear*calculation_area*radius_sum_i;
-                
+              */
+              double rmin = mRadius;
+              if(other_radius<mRadius) rmin = other_radius;
+              
+              calculation_area = M_PI*rmin*rmin;
+              
+              double equiv_shear = equiv_young/(2*(1+equiv_poisson));
+              
+              kn_el = equiv_young*calculation_area*initial_dist_i;
+              kt_el = equiv_shear*calculation_area*initial_dist_i;
+              
                 
               
             }
@@ -575,7 +591,7 @@ namespace Kratos
             
             double degradation = 1.0;
      
-           /* 
+           
             if(mDempack)
             {
              
@@ -583,9 +599,6 @@ namespace Kratos
               {
               
                 degradation = mHistory[mapping_new_cont][3];
-               
-                KRATOS_WATCH(mHistory[mapping_new_cont][3])
-               
                
               }
               else
@@ -596,7 +609,7 @@ namespace Kratos
               }
               
             }
-            */
+            
             
               
             LocalElasticContactForce[0] += - degradation*kt_el * LocalDeltDisp[0];  // 0: first tangential
