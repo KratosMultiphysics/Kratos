@@ -325,6 +325,79 @@ namespace Kratos
 
             KRATOS_CATCH("");
         }
+        
+                /// Apply condition to prevent numerical problems due to flow into the domain in unexpected places.
+        /** This condition prevents problems arising from inflow in outflow areas, typically due to vortices
+         *  exiting the domain.
+         * @param rLocalMatrix Local LHS matrix
+         * @param rLocalVector Local RHS vector
+         */
+        void ApplyInflowCondition(MatrixType& rLocalMatrix,
+                                  VectorType& rLocalVector)
+        {
+            const double N = 1.0 / static_cast<double>(TNumNodes);
+
+                        array_1d<double,3> rNormal;
+                        this->CalculateNormal(rNormal); //this already contains the area
+            const double Weight = N/(norm_2(rNormal)); // N * N ;
+                        
+                                        rNormal *= -1;
+
+            unsigned int FirstRow = 0;
+            const unsigned int LocalSize = TNumNodes;// + 1;
+
+                                if(this->GetValue(IS_STRUCTURE) == 0)
+                                {
+                                        for( unsigned int j = 0; j < TNumNodes; j++ )
+                                        {
+                                                const NodeType& rConstNode = this->GetGeometry()[j];
+                                                if ( rConstNode.IsFixed(PRESSURE)==true)
+                                                {
+//                             KRATOS_WATCH(rNormal);
+//                                                         const double& pext = this->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
+//                                                         for (unsigned int d = 0; d < TDim;d++)
+//                                                                 rLocalVector[FirstRow+d] -= N*pext*rNormal[d];
+                                                        
+                                                        const array_1d<double,3>& rVel = this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
+                                                        double Proj = rNormal[0]*rVel[0] + rNormal[1]*rVel[1] + rNormal[2]*rVel[2];
+                                                        double normV = norm_2(rVel);
+                                         
+                                                        if( Proj  < 0 )
+                                                        {
+                                                                //KRATOS_WATCH(this->GetGeometry()[j].Coordinates());
+                                                                //KRATOS_WATCH(rNormal);
+                                                                //double Tij = -Weight * Proj;
+                                                                                                                
+                                for (unsigned int k = 0; k < TDim;k++)
+                                                                        for (unsigned int l = 0; l < TDim;l++)
+                                                                                rLocalMatrix(FirstRow+k,FirstRow+l) += -Weight*normV*rNormal[k]*rNormal[l];
+                                                                                
+                                                                for (unsigned int k = 0; k < TDim;k++)  
+                                                                        rLocalVector[FirstRow+k] -= -Weight*normV*rNormal[k]*Proj;
+                                                                
+                                                                /*for (unsigned int d = 0; d < TDim;d++)
+                                                                {
+                                                                        rLocalMatrix(FirstRow+d,FirstRow+d) -= Tij;
+                                                                        
+                                                                        rLocalVector[FirstRow+d] += Tij*rVel[d];
+                                                                }*/
+                                                        }
+                                                }
+
+                                                FirstRow += LocalSize;
+                                        }
+                                }
+                        
+                        
+
+/*             VectorType Values = ZeroVector(rLocalVector.size());
+             this->GetValuesVector(Values);
+                         VectorType OldValues = ZeroVector(rLocalVector.size());
+             this->GetValuesVector(OldValues);
+                         Values += OldValues;
+                         Values *= 0.5;
+             noalias(rLocalVector) -= prod(rLocalMatrix,Values);*/
+        }
 
 
         /// Provides the global indices for each one of this element's local rows.

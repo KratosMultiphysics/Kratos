@@ -89,12 +89,12 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
 
     // Check sizes and initialize
     if( rLeftHandSideMatrix.size1() != NumNodes )
-        rLeftHandSideMatrix.resize(NumNodes,NumNodes);
+        rLeftHandSideMatrix.resize(NumNodes,NumNodes,false);
 
     rLeftHandSideMatrix = ZeroMatrix(NumNodes,NumNodes);
 
     if( rRightHandSideVector.size() != NumNodes )
-        rRightHandSideVector.resize(NumNodes);
+        rRightHandSideVector.resize(NumNodes,false);
 
     rRightHandSideVector = ZeroVector(NumNodes);
 
@@ -244,6 +244,31 @@ void FractionalStepDiscontinuous<TDim>::CalculateLocalPressureSystem(MatrixType&
 				edge_counter++;
 			}
 		}
+		
+		//FSI STRUCTURAL MASS TERM
+		if( rCurrentProcessInfo.Has(DENSITY) )
+                {
+                  const double structural_density = rCurrentProcessInfo[DENSITY];
+                  edge_counter = 0.0;
+                  for(unsigned int i=0; i<TDim; i++)
+                  {
+                      for(unsigned int j=i+1; j<TDim+1; j++)
+                      {
+                              if( distances[i]*distances[j] < 0.0) //cut edge
+                              {          
+                                      //double li = fabs(distances[i]) + fabs(distances[j]);
+                                      double Nj = 1.0; //distances[i]/li;
+                                      double Ni = 1.0; // - Nj;
+                                      
+                                      const double aux = 1.0 / (structural_density * rCurrentProcessInfo[BDF_COEFFICIENTS][0]) * medge_areas[edge_counter];
+                                      rLeftHandSideMatrix(i,i)  += Ni * aux;
+                                      rLeftHandSideMatrix(j,j)  += Nj * aux;                             
+                              }
+                              edge_counter++;
+                      }
+                  }                  
+                  
+                }
 
 	}
 }
