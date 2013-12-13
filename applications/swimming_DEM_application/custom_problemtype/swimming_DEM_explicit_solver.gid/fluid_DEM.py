@@ -499,15 +499,17 @@ while(time <= final_time):
 
     print "Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)"
 
+    first_dem_iter = True
+
     for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):
         
         DEM_step = DEM_step + 1   # this variable is necessary to get a good random insertion of particles
         
         balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
         
-        # applying fluid-to-DEM coupling
-                
-        if (time >= ProjectParameters.interaction_start_time and ProjectParameters.project_at_every_substep_option):            
+        # applying fluid-to-DEM coupling if required
+
+        if (time >= ProjectParameters.interaction_start_time and (ProjectParameters.project_at_every_substep_option or first_dem_iter)):
             
             if (ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
                 projection_module.ProjectFromNewestFluid()
@@ -525,7 +527,8 @@ while(time <= final_time):
         if (ProjectParameters.inlet_option):
             DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, ProjectParameters.dem_inlet_element_type) #After solving, to make sure that neighbours are already set.
 
-        # measuring mean velocities in a certain control volume (the 'velocity trap')
+        first_dem_iter = False
+    # measuring mean velocities in a certain control volume (the 'velocity trap')
 
     if (ProjectParameters.velocity_trap_option):
         post_utils.ComputeMeanVelocitiesinTrap("Average_Velocity", time_dem)
