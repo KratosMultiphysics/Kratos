@@ -233,11 +233,11 @@ namespace Kratos
 
                   if (this->GetBoundingBoxOption() == 1)
                   {
-                      this->BoundingBoxUtility();
-                      BaseType::SetSearchRadius(r_model_part,rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
-                      
+                      this->BoundingBoxUtility();                                            
                   }
-
+                  
+                   BaseType::SetSearchRadius(r_model_part,rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
+                   
                    BaseType::SearchNeighbours(); //the amplification factor has been modified after the first search.
                    BaseType::ComputeNewNeighboursHistoricalData();
                         
