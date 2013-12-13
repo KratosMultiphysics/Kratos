@@ -34,11 +34,11 @@
 
 namespace Kratos
 {
-    void CalculateGeometryData2D(
-            Element::GeometryType& geom,
-            boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX,
-            array_1d<double, 4 > & N,
-            double& Area) {
+    void CalculateGeometryData2D(Element::GeometryType& geom,
+                                 boost::numeric::ublas::bounded_matrix<double, 4, 3 > & DN_DX,
+                                 array_1d<double, 4 > & N,
+                                 double& area)
+    {
         double x10 = geom[1].X() - geom[0].X();
         double y10 = geom[1].Y() - geom[0].Y();
 
@@ -47,9 +47,8 @@ namespace Kratos
 
         //Jacobian is calculated:
         //  |dx/dxi  dx/deta|	|x1-x0   x2-x0|
-        //J=|				|=	|			  |
+        //J=|				      |
         //  |dy/dxi  dy/deta|	|y1-y0   y2-y0|
-
 
         double detJ = x10 * y20 - y10 * x20;
 
@@ -65,7 +64,7 @@ namespace Kratos
         N[1] = 0.333333333333333;
         N[2] = 0.333333333333333;
 
-        Area = 0.5 * detJ;
+        area = 0.5 * detJ;
     }
 
 class CustomFunctionsCalculator
@@ -101,11 +100,11 @@ class CustomFunctionsCalculator
             const std::size_t TDim = 3;
             array_1d <double, TDim + 1 > elemental_pressures;
             array_1d <double, TDim> grad;
-            array_1d <double, TDim + 1 > N; //Shape functions vector//
+            array_1d <double, TDim + 1 > N; // shape functions vector
             boost::numeric::ublas::bounded_matrix<double, TDim + 1, TDim> DN_DX;
 
             for (ModelPart::ElementIterator ielem = r_model_part.ElementsBegin(); ielem != r_model_part.ElementsEnd(); ielem++) {
-                //compute shape function derivatives
+                // computing the shape function derivatives
                 Geometry< Node < 3 > >& geom = ielem->GetGeometry();
                 double Volume;
 
@@ -114,19 +113,19 @@ class CustomFunctionsCalculator
                 else 
                     CalculateGeometryData2D(geom, DN_DX, N, Volume);
                     
-                //get the pressure gradients;
+                // getting the pressure gradients;
                 
-                for (unsigned int i = 0; i < geom.size(); i++)
+                for (unsigned int i = 0; i < geom.size(); ++i)
                     elemental_pressures[i] = geom[i].FastGetSolutionStepValue(PRESSURE);
 
                 noalias(grad) = prod(trans(DN_DX), elemental_pressures);
                 double nodal_area = Volume / static_cast<double>(geom.size());
                 grad *= nodal_area;
 
-                for (unsigned int i = 0; i < geom.size(); i++)
+                for (unsigned int i = 0; i < geom.size(); ++i)
                     geom[i].FastGetSolutionStepValue(PRESSURE_GRADIENT) += grad;
 
-                for (unsigned int i = 0; i < geom.size(); i++)
+                for (unsigned int i = 0; i < geom.size(); ++i)
                     geom[i].FastGetSolutionStepValue(AUX_DOUBLE_VAR) += nodal_area;
 
             }
@@ -148,57 +147,65 @@ class CustomFunctionsCalculator
         }
 
       else {
-          double max_pressure_variation_rate = 0.0;
-          array_1d<double, 3> velocity;
-          double mean_celerity = 0.0;
+          double max_pressure_change_rate = 0.0; // measure of stationarity
+          double mean_celerity = 0.0;            // to adimensionalize the time step
+
+          // filling up mPressures and calculating the mean velocities and the maximum nodal pressure change
 
           unsigned int i = 0;
 
           for (ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++) {
-              double aux = mPressures[i];
-              mPressures[i] = inode->FastGetSolutionStepValue(PRESSURE);
-              velocity = inode->FastGetSolutionStepValue(VELOCITY);
+              array_1d<double, 3> velocity = inode->FastGetSolutionStepValue(VELOCITY);
               mean_celerity += sqrt(velocity[0] * velocity[0] + velocity[1] * velocity[1] + velocity[2] * velocity[2]);
 
-              aux = fabs(aux - mPressures[i]);
+              double aux    = mPressures[i];
+              mPressures[i] = inode->FastGetSolutionStepValue(PRESSURE);
+              aux           = fabs(aux - mPressures[i]);
 
-              if (aux > max_pressure_variation_rate){
-                  max_pressure_variation_rate = aux;
+              if (aux > max_pressure_change_rate){
+                  max_pressure_change_rate = aux;
                 }
 
-              i++;
-          }
+              ++i;
+            }
 
           mean_celerity /= i;
 
           double delta_t = r_model_part.GetProcessInfo()[TIME] - mLastMeasurementTime;
 
           if (delta_t > 0.0){
-              double min_pressure;
-              double max_pressure;
-              CalculateVariationWithingVector(mPressures, min_pressure, max_pressure);
-              double pressure_variation = max_pressure - min_pressure;
-              double char_length = pow(mTotalVolume, 1/3); // should be improved: a hydraulic radius or such
-              double time_adim_coeff = mean_celerity / char_length;
+              // calculating coefficients for adimensionalization of the pressure change rate
+              double pressure_variation;
+              CalculateVariationWithingVector(mPressures, pressure_variation);
+              double char_length         = pow(mTotalVolume, 1/3); // characteristic length of the model. Should be improved: a hydraulic radius or such
+              double time_adim_coeff     = mean_celerity / char_length;
               double pressure_adim_coeff = 0.5 * (pressure_variation + mLastPressureVariation);
+              mLastPressureVariation     = pressure_variation;
 
               if (pressure_adim_coeff == 0.0 || time_adim_coeff == 0.0){ // unlikely
 
                   std::cout << "Uniform problem: stationarity check being performed with dimensional values...! " << "\n";
 
-                  if (max_pressure_variation_rate <= tol){ // go with the absolute value
+                  if (max_pressure_change_rate <= tol){ // go with the absolute value
                       return(true);
                     }
                 }
 
-              max_pressure_variation_rate /= time_adim_coeff * delta_t * pressure_adim_coeff ;
+              max_pressure_change_rate /= time_adim_coeff * delta_t * pressure_adim_coeff ;
             }
 
           else {
-              KRATOS_ERROR(std::runtime_error,"Trying to calculate max pressure variation between to coincident time steps! (null time variation since last recorded time)","");
+              KRATOS_ERROR(std::runtime_error,"Trying to calculate pressure variations between to coincident time steps! (null time variation since last recorded time)","");
             }
 
-          if (max_pressure_variation_rate <= tol){
+          std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << "\n";
+          std::cout << "The stationarity condition tolerance is " << "\n";
+          KRATOS_WATCH(tol)
+          std::cout << "The stationarity residual is now " << "\n";
+          KRATOS_WATCH(max_pressure_change_rate)
+          std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << "\n";
+
+          if (max_pressure_change_rate <= tol){
               return(true);
             }
 
@@ -227,7 +234,7 @@ class CustomFunctionsCalculator
 
     void PerformFirstStepComputations(ModelPart& r_model_part)
     {
-      CalculateDomainVolume(r_model_part);
+      CalculateDomainVolume(r_model_part, mTotalVolume);
       mPressures.resize(r_model_part.Nodes().size());
       mLastMeasurementTime = r_model_part.GetProcessInfo()[TIME];
 
@@ -235,15 +242,11 @@ class CustomFunctionsCalculator
 
       for (ModelPart::NodesContainerType::iterator inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); inode++) {
           mPressures[i] = inode->FastGetSolutionStepValue(PRESSURE);
-          i++;
+          ++i;
       }
 
       mPressuresFilled = true;
-      double min_pressure;
-      double max_pressure;
-
-      CalculateVariationWithingVector(mPressures, min_pressure, max_pressure);
-      mLastPressureVariation = max_pressure - min_pressure;
+      CalculateVariationWithingVector(mPressures, mLastPressureVariation);
     }
 
     //**************************************************************************************************************************************************
@@ -277,28 +280,11 @@ class CustomFunctionsCalculator
     //**************************************************************************************************************************************************
     //**************************************************************************************************************************************************
 
-    inline void CalculateVariationWithingVector(const std::vector<double>& vector, double& min, double& max)
+    void CalculateDomainVolume(ModelPart& r_model_part, double& volume)
     {
-      double min_aux = vector[0];
-      double max_aux = vector[0];
 
-      for (unsigned int i = 0; i != vector.size(); ++i){
-
-          min_aux = std::min(min_aux, mPressures[i]);
-          max_aux = std::max(max_aux, mPressures[i]);
-        }
-
-      min = min_aux;
-      max = max_aux;
-    }
-
-    //**************************************************************************************************************************************************
-    //**************************************************************************************************************************************************
-
-    void CalculateDomainVolume(ModelPart& r_model_part)
-    {
+      volume = 0.0;
       const int n_elem = r_model_part.Elements().size();
-      mTotalVolume = 0.0;
 
       for (int i = 0; i < n_elem; ++i){
           ModelPart::ElementsContainerType::iterator ielem = r_model_part.ElementsBegin() + i;
@@ -319,9 +305,26 @@ class CustomFunctionsCalculator
           double y3 = geom[3].Y();
           double z3 = geom[3].Z();
 
-          mTotalVolume += fabs(CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3));
+          volume += fabs(CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3));
         }
 
+    }
+
+    //**************************************************************************************************************************************************
+    //**************************************************************************************************************************************************
+
+    inline void CalculateVariationWithingVector(const std::vector<double>& vector, double& variation)
+    {
+      double min = vector[0];
+      double max = vector[0];
+
+      for (unsigned int i = 0; i != vector.size(); ++i){
+
+          min = std::min(min, mPressures[i]);
+          max = std::max(max, mPressures[i]);
+        }
+
+      variation = max - min;
     }
 
     //**************************************************************************************************************************************************
