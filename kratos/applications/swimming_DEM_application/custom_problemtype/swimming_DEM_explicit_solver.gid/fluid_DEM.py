@@ -25,7 +25,6 @@ import swimming_DEM_procedures
 # PROJECT PARAMETERS (to be put in problem type)
 ProjectParameters.projection_module_option         = 1
 ProjectParameters.print_particles_results_option   = 0
-ProjectParameters.project_from_particles_option    = 0 # problemtype option
 ProjectParameters.project_at_every_substep_option  = 0
 ProjectParameters.velocity_trap_option             = 0
 ProjectParameters.inlet_option                     = 1
@@ -43,10 +42,6 @@ ProjectParameters.virtual_mass_force_type          = 0 # null virtual mass force
 ProjectParameters.lift_force_type                  = 0 # null lift force (0)
 ProjectParameters.drag_modifier_type               = 3 # Hayder (2), Chien (3)  # problemtype option
 ProjectParameters.interaction_start_time           = 0.00
-ProjectParameters.time_steps_per_stationarity_step = 10 # number of fluid time steps between consecutive assessment of stationarity
-ProjectParameters.gravity_x                        = 0.0  # problemtype option
-ProjectParameters.gravity_y                        = 0.0  # problemtype option
-ProjectParameters.gravity_z                        = - 9.81  # problemtype option
 ProjectParameters.smoothing_parameter_m            = 0.035
 ProjectParameters.yield_stress_value               = 0.0  # problemtype option
 ProjectParameters.max_solid_fraction               = 0.6
@@ -59,6 +54,7 @@ ProjectParameters.power_law_tol                    = 0.0
 ProjectParameters.model_over_real_diameter_factor  = 2.0 # not active if similarity_transformation_type = 0
 ProjectParameters.max_pressure_variation_rate_tol  = 1e-6 # for stationary problems, criterion to stop the fluid calculations
 
+
 # variables to be printed
 ProjectParameters.dem_nodal_results                = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED", "REYNOLDS_NUMBER"]
 ProjectParameters.mixed_nodal_results              = ["VELOCITY", "DISPLACEMENT"]
@@ -70,13 +66,9 @@ ProjectParameters.nodal_results.append("MESH_VELOCITY1")
 ProjectParameters.nodal_results.append("BODY_FORCE")
 ProjectParameters.nodal_results.append("DRAG_REACTION")
 
-ProjectParameters.project_from_particles_option *= ProjectParameters.projection_module_option
+DEMParameters.project_from_particles_option *= ProjectParameters.projection_module_option
 ProjectParameters.project_at_every_substep_option *= ProjectParameters.projection_module_option
 ProjectParameters.time_steps_per_stationarity_step = max(1, int(ProjectParameters.time_steps_per_stationarity_step)) # it should never be smaller than 1!
-
-DEMParameters.GravityX                       = ProjectParameters.gravity_x
-DEMParameters.GravityY                       = ProjectParameters.gravity_y
-DEMParameters.GravityZ                       = ProjectParameters.gravity_z
 
 for var in ProjectParameters.mixed_nodal_results:
 
@@ -353,7 +345,6 @@ if (ProjectParameters.projection_module_option):
     projection_module.UpdateDatabase(h_min)
     interaction_calculator = CustomFunctionsCalculator()
 
-# TEMPORARY!! setting the initial kinematic viscosity, should be done from problemtype
 #for node in fluid_model_part.Nodes:
  #   node.SetSolutionStepValue(BODY_FORCE_X, 0, ProjectParameters.gravity_x)
   #  node.SetSolutionStepValue(BODY_FORCE_Y, 0, ProjectParameters.gravity_y)
@@ -535,7 +526,7 @@ while(time <= final_time):
 
     # applying DEM-to-fluid coupling
 
-    if (time >= ProjectParameters.interaction_start_time and ProjectParameters.project_from_particles_option):
+    if (time >= ProjectParameters.interaction_start_time and DEMParameters.project_from_particles_option):
         print "Projecting from particles to the fluid..."
         projection_module.ProjectFromParticles()
 
