@@ -51,8 +51,9 @@ ProjectParameters.power_law_k                      = 0.0   # problemtype option
 ProjectParameters.initial_drag_force               = 0.0   # problemtype option
 ProjectParameters.drag_law_slope                   = 0.0   # problemtype option
 ProjectParameters.power_law_tol                    = 0.0
-ProjectParameters.model_over_real_diameter_factor  = 2.0 # not active if similarity_transformation_type = 0
-ProjectParameters.max_pressure_variation_rate_tol  = 1e-6 # for stationary problems, criterion to stop the fluid calculations
+ProjectParameters.model_over_real_diameter_factor  = 1.0 # not active if similarity_transformation_type = 0
+ProjectParameters.max_pressure_variation_rate_tol  = 1e-3 # for stationary problems, criterion to stop the fluid calculations
+ProjectParameters.time_steps_per_stationarity_step = 15
 
 
 # variables to be printed
