@@ -671,6 +671,7 @@ public:
         //basic operations for the element considered
         (rCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
+	
         if(mNewmark.static_dynamic !=0)
         {
 

@@ -377,6 +377,11 @@ public:
 	    for( unsigned int i=0; i<rRHS_Components.size(); i++ )
 	      {
 		rRHS_Contribution += rRHS_Components[i];
+
+		if( rRHS_Variables[i] == CONTACT_FORCES_VECTOR ){
+		  //add explicit components to nodes
+		  (rCurrentCondition) -> AddExplicitContribution(rRHS_Components[i], rRHS_Variables[i], CONTACT_FORCE, rCurrentProcessInfo);
+		}
 	      }
 
 	  }
@@ -397,6 +402,11 @@ public:
 		  {
 		    rRHS_Contribution += rRHS_Components[i];
 
+		    if( rRHS_Variables[i] == CONTACT_FORCES_VECTOR ){
+		      //add explicit components to nodes
+		      (rCurrentCondition) -> AddExplicitContribution(rRHS_Components[i], rRHS_Variables[i], CONTACT_FORCE, rCurrentProcessInfo);
+		    }
+		    
 		    //std::cout<<" Condition ["<<(rCurrentCondition) -> Id()<<"] :"<<rRHS_Contribution<<" and "<<rRHS_Components[i]<<std::endl;
 		  }
 
@@ -416,7 +426,7 @@ public:
 		  rLHS_Contribution.resize(rLHS_Components[0].size1(), rLHS_Components[0].size2());	
 		
 		rLHS_Contribution.clear();
-
+	    
 		for( unsigned int i=0; i<rLHS_Components.size(); i++ )
 		  {
 		    rLHS_Contribution += rLHS_Components[i];
@@ -489,6 +499,12 @@ public:
 	    for( unsigned int i=0; i<rRHS_Components.size(); i++ )
 	      {
 		rRHS_Contribution += rRHS_Components[i];
+
+		if( rRHS_Variables[i] == CONTACT_FORCES_VECTOR ){
+		  //add explicit components to nodes
+		  (rCurrentCondition) -> AddExplicitContribution(rRHS_Components[i], rRHS_Variables[i], CONTACT_FORCE, rCurrentProcessInfo);
+		}
+
 	      }
 	  }
 	else

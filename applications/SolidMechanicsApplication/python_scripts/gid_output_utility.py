@@ -105,7 +105,7 @@ class GidOutputUtility(object):
     #######################################################################
     def write_results(self,model_part,nodal_variables,gp_variables,current_time,current_step):
 
-        print "WRITING RESULTS: [STEP: ",current_step,"] [TIME: ",current_time,"]"
+        print " WRITING RESULTS: [STEP: ",current_step,"] [TIME: ",current_time,"]"
         
         # set multi-file label
         label = current_time

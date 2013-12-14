@@ -198,6 +198,8 @@ public:
     {
         KRATOS_TRY
 
+	  std::cout<<" STRATEGY: ResidualBasedNewtonRaphsonLineSearchStrategy "<<std::endl;
+
         mKeepSystemConstantDuringIterations = false;
 
         //set flags to default values

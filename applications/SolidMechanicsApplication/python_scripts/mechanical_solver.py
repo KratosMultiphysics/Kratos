@@ -108,7 +108,9 @@ class StructuralSolver:
         
         #definition of computing flags
         self.compute_reactions = True
+        self.compute_contact_forces = False
         self.line_search       = False
+        self.implex            = False
         self.reform_step_dofs  = True
 
         #definition of the (x_n+1 = x_n+dx) in each iteration -> strategy base class includes de MoveMesh method
@@ -135,7 +137,10 @@ class StructuralSolver:
         if(self.component_wise == True):
             self.mechanical_solver = ComponentWiseNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion,self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
         else:
-            self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion,self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
+            if(self.line_search == True):                
+                self.mechanical_solver = ResidualBasedNewtonRaphsonLineSearchStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion,self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
+            else:
+                self.mechanical_solver = ResidualBasedNewtonRaphsonStrategy(self.model_part, self.mechanical_scheme, self.linear_solver, self.mechanical_convergence_criterion,self.builder_and_solver, self.max_iters, self.compute_reactions, self.reform_step_dofs, self.move_mesh_flag)
 
 
         (self.mechanical_solver).SetEchoLevel(self.echo_level)
@@ -144,7 +149,7 @@ class StructuralSolver:
         self.Check();
                
 
-        print "Initialization mechanical solver finished"
+        print " [Initialization mechanical solver finished] "
 
     #  
     def Solve(self):
@@ -186,7 +191,8 @@ class StructuralSolver:
                 #to keep matrix blocks in builder
                 self.builder_and_solver = BlockResidualBasedBuilderAndSolver(self.linear_solver)
             else:
-                self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)
+                if(self.block_builder == True):
+                    self.builder_and_solver = ResidualBasedBuilderAndSolver(self.linear_solver)            
 
     #
     def SetSolutionScheme(self):
@@ -202,7 +208,10 @@ class StructuralSolver:
             if(self.component_wise == True):
                 self.mechanical_scheme = ComponentWiseBossakScheme(self.damp_factor_m,self.dynamic_factor)
             else:
-                self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m,self.dynamic_factor)
+                if(self.compute_contact_forces == True):
+                    self.mechanical_scheme = ResidualBasedContactBossakScheme(self.damp_factor_m,self.dynamic_factor)
+                else:
+                    self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m,self.dynamic_factor)
         elif(self.scheme_type == "QuasiStaticSolver"):
             #definition of time scheme
             self.damp_factor_f  =  0.00; 
@@ -211,7 +220,10 @@ class StructuralSolver:
             if(self.component_wise == True):
                 self.mechanical_scheme = ComponentWiseBossakScheme(self.damp_factor_m,self.dynamic_factor)
             else:
-                self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m,self.dynamic_factor)
+                if(self.compute_contact_forces == True):
+                    self.mechanical_scheme = ResidualBasedContactBossakScheme(self.damp_factor_m,self.dynamic_factor)
+                else:
+                    self.mechanical_scheme = ResidualBasedBossakScheme(self.damp_factor_m,self.dynamic_factor)
                 #self.mechanical_scheme = ResidualBasedNewmarkScheme(self.dynamic_factor)
         elif(self.scheme_type == "PseudoDynamicSolver"):
             #definition of time scheme
@@ -303,16 +315,22 @@ def CreateSolver(model_part, config):
         structural_solver.scheme_type = config.scheme_type
  
     # definition of the solver parameters
-    if(hasattr(config, "compute_reactions")):
-        structural_solver.compute_reactions = config.compute_reactions #bool
+    if(hasattr(config, "ComputeReactions")):
+        structural_solver.compute_reactions = config.ComputeReactions #bool
+    if(hasattr(config, "ComputeContactForces")):
+        structural_solver.compute_contact_forces = config.ComputeContactForces #bool
     if(hasattr(config, "ReformDofSetAtEachStep")):
         structural_solver.reform_step_dofs = config.ReformDofSetAtEachStep #bool
     if(hasattr(config, "RotationDofs")):
         structural_solver.rotation_dofs = config.RotationDofs #bool
     if(hasattr(config, "PressureDofs")):
         structural_solver.pressure_dofs = config.PressureDofs #bool
-    if(hasattr(config, "line_search")):
-        structural_solver.line_search = config.line_search #bool
+    if(hasattr(config, "LineSearch")):
+        structural_solver.line_search = config.LineSearch #bool
+    if(hasattr(config, "Implex")):
+        structural_solver.implex = config.Implex #bool
+    if(hasattr(config, "ComponentWise")):
+        structural_solver.component_wise = config.ComponentWise #bool
 
     # definition of the echo level
     if(hasattr(config, "echo_level")):
