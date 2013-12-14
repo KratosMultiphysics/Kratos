@@ -58,7 +58,7 @@ def StartTimeMeasuring():
 def StopTimeMeasuring(time_ip,process):
   # measure process time
   time_fp = clock()
-  print  process," [ spent time = ",time_fp - time_ip,"] "
+  print " ", process," [ spent time = ",time_fp - time_ip,"] "
 ######################--TIME MONITORING END --###################
 
 ######################--SET NUMBER OF THREADS --#################

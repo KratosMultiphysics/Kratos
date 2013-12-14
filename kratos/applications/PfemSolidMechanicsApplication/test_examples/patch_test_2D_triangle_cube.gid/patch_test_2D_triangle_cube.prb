@@ -11,6 +11,8 @@ QUESTION: Number_of_steps
 VALUE: 1
 QUESTION: LineSearch#CB#(True,False)
 VALUE: False
+QUESTION: Implex#CB#(True,False)
+VALUE: False
 QUESTION: Let_GiD_determine_domain_size#CB#(1,0)
 VALUE: 0
 DEPENDENCIES: (1,HIDE,DOMAIN_SIZE,#CURRENT#)(0,RESTORE,DOMAIN_SIZE,#CURRENT#)
@@ -31,8 +33,10 @@ QUESTION: Linear_Solver_Tolerance
 VALUE: 1E-9
 QUESTION: Linear_Solver_Max_Iteration
 VALUE: 5000
-QUESTION: Convergence_Criteria#CB#(Displacement_Criteria,Residual_Criteria,And_Criteria,Or_Criteria,Mixed_Criteria)
-VALUE: Residual_Criteria
+QUESTION: Convergence_Criteria#CB#(Displacement_criteria,Residual_criteria,And_criteria,Or_criteria,Mixed_criteria)
+VALUE: Displacement_criteria
+QUESTION: Component_Wise_Criterion#CB#(False,True)
+VALUE: False
 QUESTION: Convergence_Tolerance
 VALUE: 1E-9
 QUESTION: Absolute_Tolerance
@@ -75,8 +79,8 @@ VALUE: 0
 TITLE: Contact
 QUESTION: FindContacts#CB#(False,True)
 VALUE: True
-DEPENDENCIES: (True,RESTORE,ContactCondition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Stability_Parameter,#CURRENT#,RESTORE,Offset_Factor,#CURRENT#,RESTORE,Contact_Search_Frequency,#CURRENT#,RESTORE,Constrained_Contact,#CURRENT#,RESTORE,Friction_Active,#CURRENT#,HIDE,Rigid_Wall_Contact,#CURRENT#)
-DEPENDENCIES: (False,HIDE,ContactCondition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Stability_Parameter,#CURRENT#,HIDE,Offset_Factor,#CURRENT#,HIDE,Contact_Search_Frequency,#CURRENT#,HIDE,Constrained_Contact,#CURRENT#,HIDE,Friction_Active,#CURRENT#,RESTORE,Rigid_Wall_Contact,#CURRENT#,HIDE,Radius,#CURRENT#,HIDE,Rake_Angle,#CURRENT#,HIDE,Clearance_Angle,#CURRENT#,HIDE,Rigid_Wall_Movement,#CURRENT#,HIDE,Reference_Point_definition,#CURRENT#,HIDE,Velocity_definition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Rigid_Body_Elastic_Modulus,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,ContactCondition,#CURRENT#,RESTORE,Penalty_Parameter,#CURRENT#,RESTORE,Stability_Parameter,#CURRENT#,RESTORE,Offset_Factor,#CURRENT#,RESTORE,Contact_Search_Frequency,#CURRENT#,RESTORE,Constrained_Contact,#CURRENT#,RESTORE,Friction_Active,#CURRENT#,RESTORE,Rigid_Wall_Contact,False)
+DEPENDENCIES: (#DEFAULT#,HIDE,ContactCondition,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#,HIDE,Stability_Parameter,#CURRENT#,HIDE,Offset_Factor,#CURRENT#,HIDE,Contact_Search_Frequency,#CURRENT#,HIDE,Constrained_Contact,#CURRENT#,HIDE,Friction_Active,#CURRENT#,RESTORE,Rigid_Wall_Contact,#CURRENT#)
 QUESTION: ContactCondition#CB#(ContactDomainLM2DCondition,ContactDomainPenalty2DCondition,AxisymContactDomainLM2DCondition,AxisymContactDomainPenalty2DCondition)
 VALUE: ContactDomainLM2DCondition
 DEPENDENCIES: (ContactDomainLM2DCondition,RESTORE,Stability_Parameter,#CURRENT#,HIDE,Penalty_Parameter,#CURRENT#)
@@ -97,26 +101,24 @@ QUESTION: Friction_Active#CB#(False,True)
 VALUE: False
 QUESTION: Rigid_Wall_Contact#CB#(False,True)
 VALUE: False
-DEPENDENCIES: (True,RESTORE,Tip_Radius,#CURRENT#,RESTORE,Rake_Angle,#CURRENT#,RESTORE,Clearance_Angle,#CURRENT#,RESTORE,Rigid_Wall_Movement,#CURRENT#,RESTORE,Rigid_Body_Elastic_Modulus,#CURRENT#,RESTORE,Rigid_Body_Penalty_Parameter,#CURRENT#)
-DEPENDENCIES: (False,HIDE,Tip_Radius,#CURRENT#,HIDE,Rake_Angle,#CURRENT#,HIDE,Clearance_Angle,#CURRENT#,HIDE,Rigid_Wall_Movement,#CURRENT#,HIDE,Reference_Point_definition,#CURRENT#,HIDE,Velocity_definition,#CURRENT#,HIDE,Rigid_Body_Elastic_Modulus,#CURRENT#,HIDE,Rigid_Body_Penalty_Parameter,#CURRENT#)
-QUESTION: Tip_Radius
-VALUE: 0.0004
-QUESTION: Rake_Angle
-VALUE: 5
-QUESTION: Clearance_Angle
-VALUE: 5
-QUESTION: Rigid_Body_Elastic_Modulus
-VALUE: 210e9
+DEPENDENCIES: (True,RESTORE,Contact_Condition,#CURRENT#,RESTORE,Rigid_Body_Penalty_Parameter,#CURRENT#,RESTORE,Number_of_Walls,#CURRENT#,RESTORE,Wall_Noses,#CURRENT#,RESTORE,Rigid_Wall_Movement,#CURRENT#)
+DEPENDENCIES: (#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Rigid_Body_Penalty_Parameter,#CURRENT#,HIDE,Number_of_Walls,#CURRENT#,HIDE,Wall_Noses,#CURRENT#,HIDE,Rigid_Wall_Movement,#DEFAULT#)
+QUESTION: Contact_Condition#CB#(2D,Axisymmetric)
+VALUE: 2D
 QUESTION: Rigid_Body_Penalty_Parameter
 VALUE: 2.1
+QUESTION: Number_of_Walls
+VALUE: 1
+QUESTION: Wall_Noses:(Wall_Label,Tip_Radius,Rake_Angle,Clearance_Angle,TipCx,TipCy,TipCz,Convexity)
+VALUE: #N# 8 1 0.0004 5 5 0 0 0 1
 QUESTION: Rigid_Wall_Movement#CB#(False,True)
-VALUE: False
-DEPENDENCIES: (True,RESTORE,Reference_Point_definition,#CURRENT#,RESTORE,Velocity_definition,#CURRENT#)
-DEPENDENCIES: (False,HIDE,Reference_Point_definition,#CURRENT#,HIDE,Velocity_definition,#CURRENT#)
-QUESTION: Reference_Point_definition:(X,Y)
-VALUE: #N# 2 0 0
-QUESTION: Velocity_definition:(Vx,Vy)
-VALUE: #N# 2 0 0
+VALUE: #DEFAULT#
+DEPENDENCIES: (True,RESTORE,Wall_Movements,#CURRENT#,RESTORE,Wall_Rotations,#CURRENT#)
+DEPENDENCIES: (#DEFAULT#,HIDE,Wall_Movements,#CURRENT#,HIDE,Wall_Rotations,#CURRENT#)
+QUESTION: Wall_Movements:(Wall_Label,Vx,Vy,Vz)
+VALUE: #N# 4 1 0 0 0
+QUESTION: Wall_Rotations:(Wall_Label,Wx,Wy,Wz,Cx,Cy,Cz)
+VALUE: #N# 7 1 0 0 0 0 0 0
 TITLE: Constraints
 QUESTION: Incremental_Load#CB#(False,True)
 VALUE: False
@@ -125,18 +127,22 @@ VALUE: False
 TITLE: PostProcess
 QUESTION: Echo_Level
 VALUE: 1
-QUESTION: FileFormat#CB#(Binary,Ascii)
+QUESTION: File_Format#CB#(Binary,Ascii)
 VALUE: Binary
-QUESTION: WriteResults#CB#(PreMeshing,PostMeshing)
-VALUE: PreMeshing
-QUESTION: WriteMesh#CB#(Deformed,Undeformed)
+QUESTION: Write_Mesh#CB#(Deformed,Undeformed)
 VALUE: Deformed
-QUESTION: WriteParticles#CB#(False,True)
-VALUE: False
-QUESTION: WriteConditions#CB#(False,True)
+QUESTION: Write_Results#CB#(PreMeshing,PostMeshing)
+VALUE: PreMeshing
+QUESTION: Write_Reactions#CB#(False,True)
 VALUE: True
-QUESTION: WriteFrequency
-VALUE: 1
+QUESTION: Write_Contact_Forces#CB#(False,True)
+VALUE: True
+QUESTION: Write_Conditions#CB#(False,True)
+VALUE: True
+QUESTION: Write_Particles#CB#(False,True)
+VALUE: False
+QUESTION: Write_Frequency
+VALUE: 0
 QUESTION: Plot_Graphs#CB#(False,True)
 VALUE: False
 DEPENDENCIES: (False,HIDE,PlotFrequency,#CURRENT#)

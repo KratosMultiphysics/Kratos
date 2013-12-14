@@ -20,9 +20,12 @@ class SolverSettings:
     PressureDofs = False
     RigidWalls = *GenData(Rigid_Wall_Contact)
     ReformDofSetAtEachStep = True
-    compute_reactions = True
-    line_search = *GenData(LineSearch)
+    ComputeReactions = *GenData(Write_Reactions)
+    ComputeContactForces = *GenData(Write_Contact_Forces)
+    LineSearch = *GenData(LineSearch)
+    Implex = False
     scheme_type = "*GenData(Solver_Type)"
+    ComponentWise = *GenData(Component_Wise_Criterion)
     convergence_criterion = "*GenData(Convergence_Criteria)"
 *format "%10.5e"
     displacement_relative_tolerance = *GenData(Convergence_Tolerance)
@@ -158,23 +161,35 @@ Incremental_Displacement = "*GenData(Incremental_Displacement)"
 #PostProcess Data
 #####################################
 
-nodal_results=["DISPLACEMENT","REACTION","NORMAL","CONTACT_FORCE"]
-gauss_points_results=["GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","FORCE"]
+nodal_results = []
+nodal_results.append("DISPLACEMENT")
+*if(strcmp(GenData(Write_Reactions),"True")==0)
+nodal_results.append("REACTION")
+*endif
+*if(strcmp(GenData(Write_Contact_Forces),"True")==0)
+nodal_results.append("NORMAL")
+nodal_results.append("CONTACT_FORCE")
+*endif
+
+gauss_points_results = []
+gauss_points_results.append("GREEN_LAGRANGE_STRAIN_TENSOR")
+gauss_points_results.append("CAUCHY_STRESS_TENSOR")
+gauss_points_results.append("FORCE")
 
 # GiD output configuration
 class GidOutputConfiguration:
-    GiDPostMode = "*GenData(FileFormat)"
-*if(strcmp(GenData(WriteMesh),"Deformed")==0)
+    GiDPostMode = "*GenData(File_Format)"
+*if(strcmp(GenData(Write_Mesh),"Deformed")==0)
     GiDWriteMeshFlag = True
 *else
     GiDWriteMeshFlag = False
 *endif
-    GiDWriteConditionsFlag = *GenData(WriteConditions)
-    GiDWriteParticlesFlag = *GenData(WriteParticles)
+    GiDWriteConditionsFlag = *GenData(Write_Conditions)
+    GiDWriteParticlesFlag = *GenData(Write_Particles)
     GiDMultiFileFlag = "Multiples"
 
-GiDWriteFrequency = *GenData(WriteFrequency)
-WriteResults = "*GenData(WriteResults)"
+GiDWriteFrequency = *GenData(Write_Frequency)
+WriteResults = "*GenData(Write_Results)"
 echo_level = *GenData(Echo_Level)
 
 # graph_options
