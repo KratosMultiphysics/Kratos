@@ -26,8 +26,6 @@
 //convergence criterias
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 
-//schemes
-#include "custom_strategies/custom_schemes/residual_based_contact_bossak_scheme.hpp"
 
 //linear solvers
 #include "linear_solvers/linear_solver.h"
@@ -55,10 +53,6 @@ namespace Kratos
 
       //custom types
 
-      //custom scheme types
-      typedef ResidualBasedContactBossakScheme< SparseSpaceType, LocalSpaceType >  ResidualBasedContactBossakSchemeType;
-
-
       //********************************************************************
       //*************************STRATEGY CLASSES***************************
       //********************************************************************
@@ -74,16 +68,6 @@ namespace Kratos
       //********************************************************************
       //*************************SHCHEME CLASSES****************************
       //********************************************************************
-
- 
-      // Residual Based Bossak Scheme Type
-      class_< ResidualBasedContactBossakSchemeType,
-            bases< BaseSchemeType >,  boost::noncopyable >
-            (
-                "ResidualBasedContactBossakScheme", init< double , double >() )
-
-            .def("Initialize", &ResidualBasedContactBossakScheme<SparseSpaceType, LocalSpaceType>::Initialize)
-            ;
 
 
 

@@ -2,7 +2,7 @@ BOOK:Materials
 NUMBER: 1 MATERIAL: Elastic
 QUESTION: Type#CB#(Elastic)
 VALUE: Elastic
-QUESTION: CONSTITUTIVE_LAW_NAME#CB#(LinearElastic3Dlaw,HyperElastic3Dlaw,HyperElasticUP3Dlaw,LinearElasticPlaneStrain2DLaw,LinearElasticPlaneStress2DLaw,HyperElasticPlaneStrain2DLaw,HyperElasticPlaneStrainUP2DLaw,LinearElasticAxisym2DLaw,HyperElasticAxisym2DLaw,HyperElasticAxisymUP2DLaw)
+QUESTION: CONSTITUTIVE_LAW_NAME#CB#(LinearElastic3Dlaw,HyperElastic3Dlaw,HyperElasticUP3Dlaw,LinearElasticPlaneStrain2DLaw,LinearElasticPlaneStress2DLaw,HyperElasticPlaneStrain2DLaw,HyperElasticUPPlaneStrain2DLaw,LinearElasticAxisym2DLaw,HyperElasticAxisym2DLaw,HyperElasticUPAxisym2DLaw)
 VALUE: HyperElastic
 QUESTION: DENSITY
 VALUE: 7850

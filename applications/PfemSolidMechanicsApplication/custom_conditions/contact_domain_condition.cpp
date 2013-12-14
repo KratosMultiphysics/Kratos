@@ -1247,7 +1247,7 @@ void ContactDomainCondition::CalculateAndAddRHS(LocalSystemComponents& rLocalSys
 	  
 	  if(calculated == false)
 	    {
-	      KRATOS_ERROR(std::logic_error, " ELEMENT can not supply the required local system variable: ",rRightHandSideVariables[i])
+	      //KRATOS_ERROR(std::logic_error, " CONDITION can not supply the required local system variable: ",rRightHandSideVariables[i])
 	    }
 
 	}
