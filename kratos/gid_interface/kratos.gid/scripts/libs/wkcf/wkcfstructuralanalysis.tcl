@@ -1473,9 +1473,10 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     puts $fileid "${trailing_spaces}PressureDofs = False"
 
     puts $fileid "${trailing_spaces}ReformDofSetAtEachStep = False"
-    puts $fileid "${trailing_spaces}compute_reactions = True"
-    puts $fileid "${trailing_spaces}line_search  = False"
-
+    puts $fileid "${trailing_spaces}LineSearch = False"
+    puts $fileid "${trailing_spaces}Implex = False"
+    puts $fileid "${trailing_spaces}ComputeReactions = True"
+    puts $fileid "${trailing_spaces}ComputeContactForces = False"
     # Solution type
     set cxpath "$AppId//c.AnalysisData//i.SolutionType"
     set cproperty "dv"
@@ -1549,144 +1550,6 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     set rootid "$AppId"
     ::wkcf::WriteLinearSolver $rootid $fileid $trailing_spaces "linear_solver_config"
    
-    # Structural solver configuration ********************** 
-
-
-    # puts $fileid "LineSearch = \"False\""
-    # #puts $fileid "FindNodalNeighbours = \"False\""
-
-    # if {$usenbst =="Yes"} {
-    # 	#puts $fileid "FindElementalNeighbours = \"True\""
-    # } else {
-    # 	#puts $fileid "FindElementalNeighbours = \"False\""
-    # }
-    # if {($useshells eq "Yes")||($usebeams eq "Yes")} {
-    # 	puts $fileid "Rotational_Dofs = \"True\""
-    # } else {
-    # 	puts $fileid "Rotational_Dofs = \"False\""
-    # }
-
-
-
-    # puts $fileid ""
-    # puts $fileid "#Solver Data"
-    # puts $fileid "#################################################"
-
-    # # Linear Solver type
-
-    # set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.LinearSolverType"
-    # set LinearSolverType [::xmlutils::setXml $cxpath $cproperty]
-    # if {$LinearSolverType =="Direct"} {
-
-    # 	# Direct solver type
-    # 	set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.DirectSolverType"
-    # 	set solvertype [::xmlutils::setXml $cxpath $cproperty]
-    # 	set DirectSolverType [::xmlutils::getKKWord $kwxpath $solvertype]
-    # 	puts $fileid "LinearSolver = \"$DirectSolverType\""
-
-    # 	puts $fileid "Linear_Solver_Tolerance = 1.0E-6"
-    # 	puts $fileid "Linear_Solver_Max_Iteration = 5000"
-
-
-    # } elseif {$LinearSolverType =="Iterative"} {
-
-    # 	# Iterative solver type        
-    # 	set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.IterativeSolverType"
-    # 	set solvertype [::xmlutils::setXml $cxpath $cproperty]
-    # 	set IterativeSolverType [::xmlutils::getKKWord $kwxpath $solvertype]
-    # 	puts $fileid "LinearSolver = \"$IterativeSolverType\""
-
-    # 	# Tolerance
-    # 	set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.Tolerance"
-    # 	set Tolerance [::xmlutils::setXml $cxpath $cproperty]
-    # 	puts $fileid "Linear_Solver_Tolerance = $Tolerance"
-	
-    # 	# Maximum iteration
-    # 	set cxpath "$AppId//c.SolutionStrategy//c.LinearSolver//i.MaximumIteration"
-    # 	set MaximumIteration [::xmlutils::setXml $cxpath $cproperty]
-   
-    # 	puts $fileid "Linear_Solver_Max_Iteration = $MaximumIteration"
-
-    # }
-
-
-    
-    # # Analysis type
-    # set cxpath "$AppId//c.AnalysisData//i.AnalysisType"
-    # set cproperty "dv"
-    # set AnalysisType [::xmlutils::setXml $cxpath $cproperty]
-    # # WarnWinText "AnalysisType:$AnalysisType"
-    # if {$AnalysisType =="Non-Linear"} {
-    # 	# Convergence criteria
-    # 	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.ConvergenceCriteria"
-    # 	set ConvergenceCriteria [::xmlutils::setXml $cxpath $cproperty]
-    # 	# Residual convergence tolerance
-    # 	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.ResidualConvergenceTolerance"
-    # 	set ResidualConvergenceTolerance [::xmlutils::setXml $cxpath $cproperty]
-    # 	# Residual absolute tolerance
-    # 	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.ResidualAbsoluteTolerance"
-    # 	set ResidualAbsoluteTolerance [::xmlutils::setXml $cxpath $cproperty]
-    # 	# Displacement convergence tolerance
-    # 	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.DisplacementConvergenceTolerance"
-    # 	set DisplacementConvergenceTolerance [::xmlutils::setXml $cxpath $cproperty]
-    # 	# Displacement absolute tolerance
-    # 	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.DisplacementAbsoluteTolerance"
-    # 	set DisplacementAbsoluteTolerance [::xmlutils::setXml $cxpath $cproperty]
-    # 	# Maximum iterations
-    # 	set cxpath "$AppId//c.SolutionStrategy//c.Non-Linear//i.MaximumIterations"
-    # 	set MaximumIterations [::xmlutils::setXml $cxpath $cproperty]
-
-    # 	switch -exact -- $ConvergenceCriteria {
-    # 	    "Displacement" {
-    # 		puts $fileid "Convergence_Criteria = \"Displacement_criteria\""
-    # 		puts $fileid "Convergence_Tolerance = $DisplacementConvergenceTolerance"
-    # 		puts $fileid "Absolute_Tolerance = $DisplacementAbsoluteTolerance"
-    # 		# puts $fileid "Displacement_Convergence_Tolerance = $DisplacementConvergenceTolerance"
-    # 		# puts $fileid "Displacement_Absolute_Tolerance = $DisplacementAbsoluteTolerance"
-    # 		# puts $fileid "Residual_Convergence_Tolerance = $ResidualConvergenceTolerance"
-    # 		# puts $fileid "Residual_Absolute_Tolerance = $ResidualAbsoluteTolerance"
-    # 	    }
-    # 	    "Residual" {
-    # 		puts $fileid "Convergence_Criteria = \"Residual_criteria\""
-    # 		puts $fileid "Convergence_Tolerance = $ResidualConvergenceTolerance"
-    # 		puts $fileid "Absolute_Tolerance = $ResidualAbsoluteTolerance"
-    # 		# puts $fileid "Residual_Convergence_Tolerance = $ResidualConvergenceTolerance"
-    # 		# puts $fileid "Residual_Absolute_Tolerance = $ResidualAbsoluteTolerance"
-    # 		# puts $fileid "Displacement_Convergence_Tolerance = $DisplacementConvergenceTolerance"
-    # 		# puts $fileid "Displacement_Absolute_Tolerance = $DisplacementAbsoluteTolerance"
-    # 	    }
-    # 	    "DisplacementAndResidual" {
-    # 		puts $fileid "Convergence_Criteria = \"And_criteria\""
-    # 		puts $fileid "Convergence_Tolerance = $ResidualConvergenceTolerance"
-    # 		puts $fileid "Absolute_Tolerance = $ResidualAbsoluteTolerance"
-    # 		# puts $fileid "Residual_Convergence_Tolerance = $ResidualConvergenceTolerance"
-    # 		# puts $fileid "Residual_Absolute_Tolerance = $ResidualAbsoluteTolerance"
-    # 		# puts $fileid "Displacement_Convergence_Tolerance = $DisplacementConvergenceTolerance"
-    # 		# puts $fileid "Displacement_Absolute_Tolerance = $DisplacementAbsoluteTolerance"
-    # 	    }
-    # 	    "DisplacementOrResidual" {
-    # 		puts $fileid "Convergence_Criteria = \"Or_criteria\""
-    # 		puts $fileid "Convergence_Tolerance = $ResidualConvergenceTolerance"
-    # 		puts $fileid "Absolute_Tolerance = $ResidualAbsoluteTolerance"
-    # 		# puts $fileid "Residual_Convergence_Tolerance = $ResidualConvergenceTolerance"
-    # 		# puts $fileid "Residual_Absolute_Tolerance = $ResidualAbsoluteTolerance"
-    # 		# puts $fileid "Displacement_Convergence_Tolerance = $DisplacementConvergenceTolerance"
-    # 		# puts $fileid "Displacement_Absolute_Tolerance = $DisplacementAbsoluteTolerance"
-    # 	    }
-    # 	}
-    # 	puts $fileid "Max_Iter = $MaximumIterations"
-
-
-    # 	# WarnWinText "SolutionMethod:$SolutionMethod ConvergenceCriteria:$ConvergenceCriteria ConvergenceTolerance:$ConvergenceTolerance AbsoluteTolerance:$AbsoluteTolerance MaximumIterations:$MaximumIterations"
-    # 	#END NON LINEAR
-    # } elseif {$AnalysisType =="Linear"} {
-
-    # 	puts $fileid "Convergence_Criteria  = \"Residual_criteria\""
-    # 	puts $fileid "Convergence_Tolerance = 1.0E-4"
-    # 	puts $fileid "Absolute_Tolerance    = 1.0E-9"
-    # 	puts $fileid "Max_Iter = 10"
-    # }
-
     puts $fileid ""
     puts $fileid "#Constraints Data"
     puts $fileid "#################################################"
