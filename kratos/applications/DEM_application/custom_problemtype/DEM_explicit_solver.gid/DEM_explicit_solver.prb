@@ -302,7 +302,13 @@ VALUE: OFF
 QUESTION: Concrete_Test#CB#(ON,OFF)
 HELP: Necessary for Skin determination
 VALUE: OFF
-DEPENDENCIES: (OFF,HIDE,Triaxial_Option,#CURRENT#,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#,HIDE,RADIAL_DISPLACEMENT,#CURRENT#)(ON,RESTORE,Triaxial_Option,#CURRENT#,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#)
+DEPENDENCIES: (OFF,HIDE,Triaxial_Option,#CURRENT#,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#,HIDE,RADIAL_DISPLACEMENT,#CURRENT#,HIDE,Specimen_height,#CURRENT#,HIDE,Specimen_width,#CURRENT#)(ON,RESTORE,Triaxial_Option,#CURRENT#,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#)
+QUESTION: Specimen_height
+VALUE: 0.30
+HELP: meters
+QUESTION: Specimen_width
+VALUE: 0.15
+HELP: meters
 QUESTION: Brazilian_test#CB#(ON,OFF)
 VALUE: OFF
 QUESTION: Real_Time_Graph#CB#(ON,OFF)
