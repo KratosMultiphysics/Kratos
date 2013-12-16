@@ -254,9 +254,9 @@ public:
 			{
 				Weight[0] = Weight[1] = Weight[2] = Weight[3] = 0.0;
 				
-				for(int inode1 = 0; inode1 < FaceNodeTotal - 1; inode1++)
+				for(int inode1 = 0; inode1 < FaceNodeTotal; inode1++)
 				{
-					int inode2 = inode1 + 1;
+					int inode2 = (inode1 + 1) % FaceNodeTotal;
 					
 					double Coord1[3]     = {0.0};
 					double Coord2[3]     = {0.0};
@@ -275,14 +275,14 @@ public:
 					
 					if(If_PB_Contact == true)
 					{
-						int inode3 = (inode2 + 1) % FaceNodeTotal;
+						int inode3 = (inode1 + 2) % FaceNodeTotal;
 						Weight[inode1] = tempWeight[0];
 						Weight[inode2] = tempWeight[1];
 						Weight[inode3] = 0.0;
 						
 						if(FaceNodeTotal == 4)
 						{
-							int inode4 = (inode2 + 2) % FaceNodeTotal;
+							int inode4 = (inode1 + 3) % FaceNodeTotal;
 							Weight[inode4] = 0.0;
 						}
 
