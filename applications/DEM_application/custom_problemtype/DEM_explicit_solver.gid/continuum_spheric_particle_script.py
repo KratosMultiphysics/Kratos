@@ -142,9 +142,9 @@ if( ( (DEM_parameters.ContinuumOption == "ON")  and ( (DEM_parameters.GraphOptio
     strain=0.0; total_stress = 0.0; first_time_entry = 1
     # for the graph plotting    
     velocity_node_y = 0.0
-    height = 0.3
-    diameter = 0.15
-  
+    height = DEM_parameters.SpecimenHeight
+    diameter = DEM_parameters.SpecimenWidth
+
 
 if(DEM_parameters.ConcreteTestOption =="ON"):
   
@@ -159,7 +159,7 @@ if(DEM_parameters.ConcreteTestOption =="ON"):
     alpha_top = 3.141592*diameter*diameter*0.25/(xtop_area + 0.70710678*xtopcorner_area)
     alpha_bot = 3.141592*diameter*diameter*0.25/(xbot_area + 0.70710678*xbotcorner_area)
     alpha_lat = 3.141592*diameter*height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
-      
+
     print "Applying Pressure" , "\n"
  
     Press.ApplyPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
@@ -344,13 +344,13 @@ while (time < DEM_parameters.FinalTime):
                                                                                                                                                                                                   
     if( (DEM_parameters.ConcreteTestOption =="ON" ) and (DEM_parameters.TriaxialOption == "ON") and (Pressure != 0.0) and (step < 0.01*DEM_parameters.TotalTimePercentAsForceAplTime*total_steps_expected) ):
         
-        if( renew_pressure == 10):
+        #if( renew_pressure == 10):
           
           Press.ApplyPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
                  
-          renew_pressure = 0
+          #renew_pressure = 0
     
-        renew_pressure += 1
+        #renew_pressure += 1
     
     total_force = 0.0
     total_force_bts = 0.0
