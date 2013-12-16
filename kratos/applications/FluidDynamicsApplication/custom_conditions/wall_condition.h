@@ -245,7 +245,7 @@ namespace Kratos
                 noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
                 noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-                this->ApplyInflowCondition(rLeftHandSideMatrix,rRightHandSideVector);
+                this->ApplyNeumannCondition(rLeftHandSideMatrix,rRightHandSideVector);
 
                 this->ApplyWallLaw(rLeftHandSideMatrix,rRightHandSideVector);
             }
@@ -403,7 +403,76 @@ namespace Kratos
 //            }
 //        }
 
-      void CalculateNormal(array_1d<double,3>& An );
+
+        virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+                                                 std::vector<array_1d<double, 3 > >& rValues,
+                                                 const ProcessInfo& rCurrentProcessInfo)
+        {
+            rValues.resize(1);
+            if (rVariable == NORMAL)
+            {
+                this->CalculateNormal(rValues[0]);
+            }
+            else
+            {
+                /*
+                 The cast is done to avoid modification of the element's data. Data modification
+                 would happen if rVariable is not stored now (would initialize a pointer to &rVariable
+                 with associated value of 0.0). This is catastrophic if the variable referenced
+                 goes out of scope.
+                 */
+                const WallCondition* const_this = static_cast< const WallCondition* >(this);
+                rValues[0] = const_this->GetValue(rVariable);
+            }
+        }
+
+
+
+        virtual void GetValueOnIntegrationPoints(const Variable<double>& rVariable,
+                                                 std::vector<double>& rValues,
+                                                 const ProcessInfo& rCurrentProcessInfo)
+        {
+            rValues.resize(1);
+            /*
+             The cast is done to avoid modification of the element's data. Data modification
+             would happen if rVariable is not stored now (would initialize a pointer to &rVariable
+             with associated value of 0.0). This is catastrophic if the variable referenced
+             goes out of scope.
+             */
+            const WallCondition* const_this = static_cast< const WallCondition* >(this);
+            rValues[0] = const_this->GetValue(rVariable);
+        }
+
+
+        virtual void GetValueOnIntegrationPoints(const Variable<array_1d<double, 6 > >& rVariable,
+                                                 std::vector<array_1d<double, 6 > >& rValues,
+                                                 const ProcessInfo& rCurrentProcessInfo)
+        {
+            rValues.resize(1);
+            const WallCondition* const_this = static_cast< const WallCondition* >(this);
+            rValues[0] = const_this->GetValue(rVariable);
+        }
+
+
+        virtual void GetValueOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                 std::vector<Vector>& rValues,
+                                                 const ProcessInfo& rCurrentProcessInfo)
+        {
+            rValues.resize(1);
+            const WallCondition* const_this = static_cast< const WallCondition* >(this);
+            rValues[0] = const_this->GetValue(rVariable);
+        }
+
+
+        virtual void GetValueOnIntegrationPoints(const Variable<Matrix>& rVariable,
+                                                 std::vector<Matrix>& rValues,
+                                                 const ProcessInfo& rCurrentProcessInfo)
+        {
+            rValues.resize(1);
+            const WallCondition* const_this = static_cast< const WallCondition* >(this);
+            rValues[0] = const_this->GetValue(rVariable);
+        }
+
 
 
         ///@}
@@ -460,6 +529,9 @@ namespace Kratos
         ///@}
         ///@name Protected Operations
         ///@{
+
+
+        void CalculateNormal(array_1d<double,3>& An );
 
         /// Commpute the wall stress and add corresponding terms to the system contributions.
         /**
@@ -551,78 +623,16 @@ namespace Kratos
             }
         }
 
-        /// Apply condition to prevent numerical problems due to flow into the domain in unexpected places.
-        /** This condition prevents problems arising from inflow in outflow areas, typically due to vortices
+
+        /// Apply boundary terms to allow imposing a pressure (normal stress), with a correction to prevent inflow.
+        /** This correction should prevent numerical problems arising from inflow in outflow areas, typically due to vortices.
          *  exiting the domain.
          * @param rLocalMatrix Local LHS matrix
          * @param rLocalVector Local RHS vector
          */
-        void ApplyInflowCondition(MatrixType& rLocalMatrix,
-                                  VectorType& rLocalVector)
-        {
-            const double N = 1.0 / static_cast<double>(TNumNodes);
+        void ApplyNeumannCondition(MatrixType& rLocalMatrix,
+                                   VectorType& rLocalVector);
 
-			array_1d<double,3> rNormal;
-			this->CalculateNormal(rNormal); //this already contains the area
-            const double Weight = N/(norm_2(rNormal)); // N * N ;
-			
-					rNormal *= -1;
-
-            unsigned int FirstRow = 0;
-            const unsigned int LocalSize = TNumNodes;// + 1;
-
-				if(this->GetValue(IS_STRUCTURE) == 0)
-				{
-					for( unsigned int j = 0; j < TNumNodes; j++ )
-					{
-						const NodeType& rConstNode = this->GetGeometry()[j];
-						if ( rConstNode.IsFixed(PRESSURE)==true)
-						{
-                            //KRATOS_WATCH(rNormal
-							const double& pext = this->GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
-							for (unsigned int d = 0; d < TDim;d++)
-								rLocalVector[FirstRow+d] -= N*pext*rNormal[d];
-							
-							const array_1d<double,3>& rVel = this->GetGeometry()[j].FastGetSolutionStepValue(VELOCITY);
-							double Proj = rNormal[0]*rVel[0] + rNormal[1]*rVel[1] + rNormal[2]*rVel[2];
-							double normV = norm_2(rVel);
-					 
-							if( Proj  < 0 )
-							{
-								//KRATOS_WATCH(this->GetGeometry()[j].Coordinates());
-								//KRATOS_WATCH(rNormal);
-								//double Tij = -Weight * Proj;
-														
-                                for (unsigned int k = 0; k < TDim;k++)
-									for (unsigned int l = 0; l < TDim;l++)
-										rLocalMatrix(FirstRow+k,FirstRow+l) += -Weight*normV*rNormal[k]*rNormal[l];
-										
-								for (unsigned int k = 0; k < TDim;k++)	
-									rLocalVector[FirstRow+k] -= -Weight*normV*rNormal[k]*Proj;
-								
-								/*for (unsigned int d = 0; d < TDim;d++)
-								{
-									rLocalMatrix(FirstRow+d,FirstRow+d) -= Tij;
-									
-									rLocalVector[FirstRow+d] += Tij*rVel[d];
-								}*/
-							}
-						}
-
-						FirstRow += LocalSize;
-					}
-				}
-			
-			
-
-/*             VectorType Values = ZeroVector(rLocalVector.size());
-             this->GetValuesVector(Values);
-			 VectorType OldValues = ZeroVector(rLocalVector.size());
-             this->GetValuesVector(OldValues);
-			 Values += OldValues;
-			 Values *= 0.5;
-             noalias(rLocalVector) -= prod(rLocalMatrix,Values);*/
-        }
 
 
         ///@}

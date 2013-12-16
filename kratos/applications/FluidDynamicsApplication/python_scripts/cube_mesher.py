@@ -172,11 +172,11 @@ def generate_front_faces(mdpa,box,index,condtype="WallCondition3D",prop_id=0):
             n0,n1,n2,n3,n4,n5,n6,n7 = box.cube_vertices(0,iy,iz)
             
             if iz % 2:
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n0,n3,n4))
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n3,n7,n4))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n0,n4,n3))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n3,n4,n7))
             else:
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n0,n5,n1))
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n0,n4,n5))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n0,n1,n5))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n0,n5,n4))
 
             index += 2
     
@@ -200,11 +200,11 @@ def generate_back_faces(mdpa,box,index,condtype="WallCondition3D",prop_id=0):
             n0,n1,n2,n3,n4,n5,n6,n7 = box.cube_vertices(nx-1,iy,iz)
             
             if iz % 2:
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n2,n1,n5))
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n2,n5,n6))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n2,n5,n1))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n2,n6,n5))
             else:
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n3,n2,n6))
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n3,n6,n7))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n3,n6,n2))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n3,n7,n6))
 
             index += 2
    
@@ -228,11 +228,11 @@ def generate_right_faces(mdpa,box,index,condtype="WallCondition3D",prop_id=0):
             n0,n1,n2,n3,n4,n5,n6,n7 = box.cube_vertices(ix,0,iz)
             
             if iz % 2:
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n0,n5,n1))
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n0,n4,n5))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n0,n1,n5))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n0,n5,n4))
             else:
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n2,n5,n6))
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n5,n2,n1))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n2,n6,n5))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n5,n1,n2))
 
             index += 2
    
@@ -257,11 +257,11 @@ def generate_left_faces(mdpa,box,index,condtype="WallCondition3D",prop_id=0):
             n0,n1,n2,n3,n4,n5,n6,n7 = box.cube_vertices(ix,ny-1,iz)
             
             if iz % 2:
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n3,n6,n7))
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n3,n2,n6))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n3,n7,n6))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n3,n6,n2))
             else:
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n3,n7,n4))
-                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n3,n4,n0))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n3,n4,n7))
+                mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n3,n0,n4))
 
             index += 2
    
@@ -284,8 +284,8 @@ def generate_bottom_faces(mdpa,box,index,condtype="WallCondition3D",prop_id=0):
         for ix in range(nx):
             n0,n1,n2,n3,n4,n5,n6,n7 = box.cube_vertices(ix,iy,0)
 
-            mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n0,n1,n3))
-            mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n3,n1,n2))
+            mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n0,n3,n1))
+            mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n3,n2,n1))
             index += 2
    
     mdpa.write("End Conditions\n\n")
@@ -308,8 +308,8 @@ def generate_top_faces(mdpa,box,index,condtype="WallCondition3D",prop_id=0):
         for ix in range(nx):
             n0,n1,n2,n3,n4,n5,n6,n7 = box.cube_vertices(ix,iy,nz-1)
                 
-            mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n4,n6,n5))
-            mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n4,n7,n6))
+            mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n4,n5,n4))
+            mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n4,n6,n7))
             index += 2
   
     mdpa.write("End Conditions\n\n")
