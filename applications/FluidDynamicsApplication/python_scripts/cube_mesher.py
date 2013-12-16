@@ -308,7 +308,7 @@ def generate_top_faces(mdpa,box,index,condtype="WallCondition3D",prop_id=0):
         for ix in range(nx):
             n0,n1,n2,n3,n4,n5,n6,n7 = box.cube_vertices(ix,iy,nz-1)
                 
-            mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n4,n5,n4))
+            mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index,prop_id,n4,n5,n6))
             mdpa.write("{0:d} {1:d} {2:d} {3:d} {4:d}\n".format(index+1,prop_id,n4,n6,n7))
             index += 2
   
