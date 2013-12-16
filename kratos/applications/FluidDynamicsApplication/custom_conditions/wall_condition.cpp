@@ -31,7 +31,23 @@ void WallCondition<2,2>::EquationIdVector(EquationIdVectorType& rResult,
     }
     else
     {
-        rResult.resize(0,false);
+        		if(this->Is(INTERFACE) && step==5 )
+        {
+                //add here a mass matrix in the form Dt/rho_equivalent_structure to the lhs alone
+                const SizeType NumNodes = 2;
+
+                if (rResult.size() != NumNodes)
+					rResult.resize(NumNodes, false);
+
+                unsigned int LocalIndex = 0;
+
+                for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+					rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
+        }
+        else
+        {
+			rResult.resize(0,false);
+		}
     }
 }
 
@@ -61,7 +77,23 @@ void WallCondition<3,3>::EquationIdVector(EquationIdVectorType& rResult,
     }
     else
     {
-        rResult.resize(0,false);
+		if(this->Is(INTERFACE) && step==5 )
+        {
+                //add here a mass matrix in the form Dt/rho_equivalent_structure to the lhs alone
+                const SizeType NumNodes = 3;
+
+                if (rResult.size() != NumNodes)
+					rResult.resize(NumNodes, false);
+
+                unsigned int LocalIndex = 0;
+
+                for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+					rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(PRESSURE).EquationId();
+        }
+        else
+        {
+			rResult.resize(0,false);
+		}
     }
 }
 
@@ -91,7 +123,23 @@ void WallCondition<2,2>::GetDofList(DofsVectorType& rElementalDofList,
     }
     else
     {
-        rElementalDofList.resize(0);
+                if(this->Is(INTERFACE) && step==5 )
+        {
+                //add here a mass matrix in the form Dt/rho_equivalent_structure to the lhs alone
+                const SizeType NumNodes = 2;
+
+                if (rElementalDofList.size() != NumNodes)
+                    rElementalDofList.resize(NumNodes);
+
+                unsigned int LocalIndex = 0;
+
+                for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+                    rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(PRESSURE);
+        }
+        else
+        {
+            rElementalDofList.resize(0);
+        }        
     }
 }
 
@@ -122,7 +170,23 @@ void WallCondition<3,3>::GetDofList(DofsVectorType& rElementalDofList,
     }
     else
     {
-        rElementalDofList.resize(0);
+        if(this->Is(INTERFACE) && step==5 )
+        {
+                //add here a mass matrix in the form Dt/rho_equivalent_structure to the lhs alone
+                const SizeType NumNodes = 3;
+
+                if (rElementalDofList.size() != NumNodes)
+                    rElementalDofList.resize(NumNodes);
+
+                unsigned int LocalIndex = 0;
+
+                for (unsigned int iNode = 0; iNode < NumNodes; ++iNode)
+                    rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(PRESSURE);
+        }
+        else
+        {
+            rElementalDofList.resize(0);
+        }
     }
 }
 

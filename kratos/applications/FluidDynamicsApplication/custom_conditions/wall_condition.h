@@ -44,6 +44,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <iostream>
 
+#include "includes/kratos_flags.h"
 
 // External includes
 
@@ -237,9 +238,9 @@ namespace Kratos
                 const SizeType LocalSize = TDim * TNumNodes;
 
                 if (rLeftHandSideMatrix.size1() != LocalSize)
-                    rLeftHandSideMatrix.resize(LocalSize,LocalSize);
+                    rLeftHandSideMatrix.resize(LocalSize,LocalSize,false);
                 if (rRightHandSideVector.size() != LocalSize)
-                    rRightHandSideVector.resize(LocalSize);
+                    rRightHandSideVector.resize(LocalSize,false);
 
                 noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize,LocalSize);
                 noalias(rRightHandSideVector) = ZeroVector(LocalSize);
@@ -250,11 +251,41 @@ namespace Kratos
             }
             else
             {
-                if (rLeftHandSideMatrix.size1() != 0)
-                    rLeftHandSideMatrix.resize(0,0,false);
+                if(this->Is(INTERFACE) && step==5 )
+                {
+                     //add here a mass matrix in the form Dt/rho_equivalent_structure to the lhs alone
+                    const double N = 1.0 / static_cast<double>(TNumNodes);
+                    array_1d<double,3> rNormal;
+                    this->CalculateNormal(rNormal); //this already contains the area
+                    const double Area = norm_2(rNormal);
+                    
+                    if (rLeftHandSideMatrix.size1() != TNumNodes)
+                        rLeftHandSideMatrix.resize(TNumNodes,TNumNodes,false);
+                    if (rRightHandSideVector.size() != TNumNodes)
+                        rRightHandSideVector.resize(TNumNodes,false);
+                    
+                    noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes,TNumNodes);
+                    noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
+                    
+                    const double dt = rCurrentProcessInfo[DELTA_TIME];
+                    const double equivalent_structural_density = rCurrentProcessInfo[DENSITY];
+                    const double diag_term = dt*Area*N/( equivalent_structural_density );
+					
+					//KRATOS_WATCH(equivalent_structural_density)
 
-                if (rRightHandSideVector.size() != 0)
-                    rRightHandSideVector.resize(0,false);
+                    for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
+                    {
+                        rLeftHandSideMatrix(iNode,iNode) = diag_term;
+                    }
+                }
+                else
+                {
+                    if (rLeftHandSideMatrix.size1() != 0)
+                        rLeftHandSideMatrix.resize(0,0,false);
+                 
+                    if (rRightHandSideVector.size() != 0)
+                        rRightHandSideVector.resize(0,false);
+                }
             }
         }
 
