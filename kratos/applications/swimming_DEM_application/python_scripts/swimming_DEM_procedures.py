@@ -199,7 +199,6 @@ class ProjectionModule:
         self.coupling_type        = coupling_type
         self.n_particles_in_depth = n_particles_in_depth
 
-
         if (self.dimension == 3):
             self.projector = BinBasedDEMFluidCoupledMapping3D(max_solid_fraction, coupling_type)
             self.bin_of_objects_fluid = BinBasedFastPointLocator3D(fluid_model_part)
@@ -207,6 +206,11 @@ class ProjectionModule:
         else:
             self.projector = BinBasedDEMFluidCoupledMapping2D(max_solid_fraction, coupling_type, n_particles_in_depth)
             self.bin_of_objects_fluid = BinBasedFastPointLocator2D(fluid_model_part)
+
+        # calculating the fluid nodal areas that are needed for the coupling
+
+        self.area_calculator = CalculateNodalAreaProcess(self.fluid_model_part, self.dimension)
+        self.area_calculator.Execute()
 
     def UpdateDatabase(self, HMin):
 
