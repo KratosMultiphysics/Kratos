@@ -25,7 +25,6 @@ import swimming_DEM_procedures
 # PROJECT PARAMETERS (to be put in problem type)
 ProjectParameters.projection_module_option         = 1
 ProjectParameters.print_particles_results_option   = 0
-ProjectParameters.project_from_particles_option    = 0 # problemtype option
 ProjectParameters.project_at_every_substep_option  = 0
 ProjectParameters.velocity_trap_option             = 0
 ProjectParameters.inlet_option                     = 1
@@ -67,7 +66,6 @@ ProjectParameters.nodal_results.append("MESH_VELOCITY1")
 ProjectParameters.nodal_results.append("BODY_FORCE")
 ProjectParameters.nodal_results.append("DRAG_REACTION")
 
-DEMParameters.project_from_particles_option *= ProjectParameters.projection_module_option
 ProjectParameters.project_at_every_substep_option *= ProjectParameters.projection_module_option
 ProjectParameters.stationary_problem_option *= not DEMParameters.project_from_particles_option # the stationarity condition is only for one-way coupling!
 ProjectParameters.time_steps_per_stationarity_step = max(1, int(ProjectParameters.time_steps_per_stationarity_step)) # it should never be smaller than 1!
