@@ -297,8 +297,9 @@ class Procedures:
 
         #Cylinder dimensions
 
-        h   = 0.3
-        d   = 0.15
+        h = param.SpecimenHeight
+        d = param.SpecimenWidth
+        
         eps = 2.0
 
         surface = 2 * (3.141592 * d * d * 0.25) + (3.141592 * d * h)
@@ -369,7 +370,7 @@ class Procedures:
                       self.XTOP.append(node)
                       xtop_area = xtop_area + cross_section
 
-        print "End 30x15 Cylinder Skin Determination", "\n"
+        print "End ", h, "x", d, "Cylinder Skin Determination", "\n"
                 
         return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area) 
                 
