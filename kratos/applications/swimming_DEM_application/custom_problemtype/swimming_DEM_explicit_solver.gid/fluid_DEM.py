@@ -25,6 +25,7 @@ import swimming_DEM_procedures
 # PROJECT PARAMETERS (to be put in problem type)
 ProjectParameters.projection_module_option         = 1
 ProjectParameters.print_particles_results_option   = 0
+ProjectParameters.project_from_particles_option    = 0 # problemtype option
 ProjectParameters.project_at_every_substep_option  = 0
 ProjectParameters.velocity_trap_option             = 0
 ProjectParameters.inlet_option                     = 1
@@ -43,7 +44,7 @@ ProjectParameters.lift_force_type                  = 0 # null lift force (0)
 ProjectParameters.drag_modifier_type               = 3 # Hayder (2), Chien (3)  # problemtype option
 ProjectParameters.interaction_start_time           = 0.00
 ProjectParameters.smoothing_parameter_m            = 0.035
-ProjectParameters.yield_stress_value               = 0.0  # problemtype option
+ProjectParameters.yield_stress_value               = 0.0   # problemtype option
 ProjectParameters.max_solid_fraction               = 0.6
 ProjectParameters.gel_strength                     = 0.0   # problemtype option
 ProjectParameters.power_law_n                      = 0.0   # problemtype option
@@ -53,7 +54,7 @@ ProjectParameters.drag_law_slope                   = 0.0   # problemtype option
 ProjectParameters.power_law_tol                    = 0.0
 ProjectParameters.model_over_real_diameter_factor  = 1.0 # not active if similarity_transformation_type = 0
 ProjectParameters.max_pressure_variation_rate_tol  = 1e-3 # for stationary problems, criterion to stop the fluid calculations
-ProjectParameters.time_steps_per_stationarity_step = 15
+ProjectParameters.time_steps_per_stationarity_step = 15 # number of fluid time steps between consecutive assessment of stationarity steps
 
 # variables to be printed
 ProjectParameters.dem_nodal_results                = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED", "REYNOLDS_NUMBER"]
