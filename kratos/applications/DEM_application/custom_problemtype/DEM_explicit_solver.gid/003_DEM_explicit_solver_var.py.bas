@@ -179,6 +179,10 @@ GraphOption                      = "*GenData(Graph_Option)"
 MonitoringOption                 = "*GenData(Monitoring_Option)"
 PoissonMeasure                   = "*GenData(Poisson_Measure)"
 *format "%10.5e"
+SpecimenHeight                   = *GenData(Specimen_height)
+*format "%10.5e"
+SpecimenWidth                    = *GenData(Specimen_width)
+*format "%10.5e"
 MeasuringSurface                 = *GenData(Measuring_Surface)
 *format "%10.5e"
 MeasuringWidth                   = *GenData(Measuring_Width)
