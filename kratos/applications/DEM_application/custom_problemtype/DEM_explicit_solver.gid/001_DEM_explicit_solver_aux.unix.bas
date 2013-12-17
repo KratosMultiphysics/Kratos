@@ -26,11 +26,13 @@ then
  cp "$3/script.py" "$2/"
  cp "$3/spheric_particle_script.py" "$2/"
  cp "$3/continuum_spheric_particle_script.py" "$2/"
+ cp "$3/continuum_spheric_particle_script_mpi.py" "$2/"
 elif [ $write_python_file = "Copy_From" ]
 then
  cp "$file_location" "$2/script.py"
  cp "$file_location" "$2/spheric_particle_script.py"
  cp "$file_location" "$2/continuum_spheric_particle_script.py"
+ cp "$file_location" "$2/continuum_spheric_particle_script_mpi.py"
 
 fi
 
