@@ -523,7 +523,7 @@ while (time < DEM_parameters.FinalTime):
     if(DEM_parameters.BtsOption == "ON"):
        bts_export.write(str(step)+"  "+str(total_force_bts)+'\n')
       
-    if (DEM_parameters.GraphOption =="ON"):
+    if (DEM_parameters.GraphOption =="ON" and (step >= step_to_fix_velocities )):
       graph_export_top.write(str(strain)+"  "+str(total_stress_top)+'\n')
       graph_export_bot.write(str(strain)+"  "+str(total_stress_bot)+'\n')
       total_stress_mean = 0.5*(total_stress_bot + total_stress_top)
