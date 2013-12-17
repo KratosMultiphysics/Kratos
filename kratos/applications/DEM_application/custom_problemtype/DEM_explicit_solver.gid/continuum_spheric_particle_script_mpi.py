@@ -168,9 +168,9 @@ if( ( (DEM_parameters.ContinuumOption == "ON")  and ( (DEM_parameters.GraphOptio
     strain=0.0; total_stress = 0.0; first_time_entry = 1
     # for the graph plotting    
     velocity_node_y = 0.0
-    height = 0.3
-    diameter = 0.15
-  
+    height = DEM_parameters.SpecimenHeight
+    diameter = DEM_parameters.SpecimenWidth
+
 
 if(DEM_parameters.ConcreteTestOption =="ON"):
   
@@ -470,7 +470,7 @@ while (time < DEM_parameters.FinalTime):
               print 'velocity for the graph: ' + str(velocity_node_y) + '\n'
               break
               
-          strain += -2*velocity_node_y*dt/height
+          strain += -1.0*velocity_node_y*dt/height
  
         first_time_entry = 0
 
