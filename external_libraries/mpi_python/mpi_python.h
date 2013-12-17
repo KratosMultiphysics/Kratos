@@ -107,7 +107,8 @@ public:
         if (MpiIsInitialized == 0)
         {
             int argc = 0;
-            char* a = new char[0];
+            char* a = new char[1];
+            *a = '\0';
             char** empty_argv = &a;
 
             MPI_Init(&argc,&empty_argv);
