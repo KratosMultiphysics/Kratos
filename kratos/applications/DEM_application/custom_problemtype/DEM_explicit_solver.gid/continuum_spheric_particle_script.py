@@ -173,13 +173,21 @@ if(DEM_parameters.ConcreteTestOption =="ON"):
 
 print 'Initialitzation Complete' + '\n'
 
+initial_time = datetime.datetime.now()
+
 os.chdir(graphs_path)
 
 if(DEM_parameters.BtsOption == "ON"):
     bts_export = open(DEM_parameters.problem_name +"_bts_"+str(datetime.datetime.now())+".csv",'w');
 
 if (DEM_parameters.GraphOption =="ON"):
-  graph_export = open(DEM_parameters.problem_name + "_graph_" + str(datetime.datetime.now()) + ".csv", 'w');
+  #graph_export_top = open(DEM_parameters.problem_name + "_graph_" + str(datetime.datetime.now()) + "_TOP.csv", 'w');
+  #graph_export_bot = open(DEM_parameters.problem_name + "_graph_" + str(datetime.datetime.now()) + "_BOT.csv", 'w');
+  #graph_export_mean = open(DEM_parameters.problem_name + "_graph_" + str(datetime.datetime.now()) + "_MEAN.csv", 'w');
+  graph_export_top = open("Provisional_TOP.csv", 'w');
+  graph_export_bot = open("Provisional_BOT.csv", 'w');
+  graph_export_mean = open("Provisional_MEAN.csv", 'w');
+      
   if (DEM_parameters.PoissonMeasure =="ON"):
     graph_export_poisson = open(DEM_parameters.problem_name + "_poisson_"+str(datetime.datetime.now())+".csv",'w');
 
@@ -352,7 +360,8 @@ while (time < DEM_parameters.FinalTime):
     
         #renew_pressure += 1
     
-    total_force = 0.0
+    total_force_top = 0.0
+    total_force_bot = 0.0
     total_force_bts = 0.0
     
     if( DEM_parameters.BtsOption =="ON"):
@@ -397,9 +406,17 @@ while (time < DEM_parameters.FinalTime):
         force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
 
         
-        total_force += force_node_y
+        total_force_top += force_node_y
 
-      total_stress = total_force/(DEM_parameters.MeasuringSurface*1000000)
+      total_stress_top = total_force_top/(DEM_parameters.MeasuringSurface*1000000)
+      
+      for node in inf_layer_fm:
+
+        force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+
+        total_force_bot = force_node_y
+
+      total_stress_bot = total_force_bot/(DEM_parameters.MeasuringSurface*1000000)
       
       if(DEM_parameters.PoissonMeasure == "ON"):
                   
@@ -507,7 +524,10 @@ while (time < DEM_parameters.FinalTime):
        bts_export.write(str(step)+"  "+str(total_force_bts)+'\n')
       
     if (DEM_parameters.GraphOption =="ON"):
-      graph_export.write(str(strain)+"  "+str(total_stress)+'\n')
+      graph_export_top.write(str(strain)+"  "+str(total_stress_top)+'\n')
+      graph_export_bot.write(str(strain)+"  "+str(total_stress_bot)+'\n')
+      total_stress_mean = 0.5*(total_stress_bot + total_stress_top)
+      graph_export_mean.write(str(strain)+"  "+str(total_stress_mean)+'\n')
       
       if (DEM_parameters.PoissonMeasure =="ON"):
         graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
@@ -523,8 +543,22 @@ while (time < DEM_parameters.FinalTime):
 if (DEM_parameters.Multifile == "single_file"):
     gid_io.FinalizeResults()
 
+
+os.chdir(graphs_path)
+
+for filename in os.listdir("."):
+  if filename.startswith("Provisional_TOP"):
+    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_TOP.csv")
+  if filename.startswith("Provisional_BOT"):
+    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_BOT.csv")
+  if filename.startswith("Provisional_MEAN"):
+    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_MEAN.csv")
+
+
 if (DEM_parameters.GraphOption =="ON"):
-  graph_export.close()
+  graph_export_top.close()
+  graph_export_bot.close()
+  graph_export_mean.close()
   
 if(DEM_parameters.BtsOption == "ON"):
   bts_export.close()
