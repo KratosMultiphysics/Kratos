@@ -78,12 +78,7 @@ class StructuralSolver:
         # definition of the solvers
         self.scheme_type = "Dynamic"
 
-        try:
-            from KratosMultiphysics.ExternalSolversApplication import SuperLUIterativeSolver
-            self.linear_solver = SuperLUIterativeSolver()
-        except:
-            self.linear_solver = SkylineLUFactorizationSolver()
-
+        self.linear_solver = SkylineLUFactorizationSolver()
 
         # definition of the convergence criteria
         self.rel_disp_tol  = 1e-4
@@ -339,7 +334,7 @@ def CreateSolver(model_part, config):
     # definition of the linear solver
     import linear_solver_factory
     if(hasattr(config, "linear_solver_config")):
-        print "Linear Solver Set"
+        print "Linear Solver Set", config.linear_solver_config.solver_type
         structural_solver.linear_solver = linear_solver_factory.ConstructSolver(config.linear_solver_config)
 
         if(config.linear_solver_config.solver_type == "AMGCL"):
