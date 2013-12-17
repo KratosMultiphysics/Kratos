@@ -147,6 +147,9 @@ public:
             ClearVariables(node_it, PRESSURE_GRAD_PROJECTED);
             ClearVariables(node_it, FLUID_DENSITY_PROJECTED);
             ClearVariables(node_it, FLUID_VISCOSITY_PROJECTED);
+            ClearVariables(node_it, POWER_LAW_N);
+            ClearVariables(node_it, POWER_LAW_K);
+            ClearVariables(node_it, GEL_STRENGTH);
         }
 
         array_1d<double, TDim + 1 > N;
@@ -174,6 +177,9 @@ public:
                     Interpolate(pelement, N, pparticle, VELOCITY, FLUID_VEL_PROJECTED, alpha);
                     Interpolate(pelement, N, pparticle, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED, alpha);
                     Interpolate(pelement, N, pparticle, VISCOSITY, FLUID_VISCOSITY_PROJECTED, alpha);
+                    Interpolate(pelement, N, pparticle, VISCOSITY, POWER_LAW_N, alpha);
+                    Interpolate(pelement, N, pparticle, VISCOSITY, POWER_LAW_K, alpha);
+                    Interpolate(pelement, N, pparticle, VISCOSITY, GEL_STRENGTH, alpha);
                 }
             }
         }
@@ -201,6 +207,9 @@ public:
             ClearVariables(node_it, FLUID_DENSITY_PROJECTED);
             ClearVariables(node_it, FLUID_VISCOSITY_PROJECTED);
             ClearVariables(node_it, SOLID_FRACTION_PROJECTED);
+            ClearVariables(node_it, POWER_LAW_N);
+            ClearVariables(node_it, POWER_LAW_K);
+            ClearVariables(node_it, GEL_STRENGTH);
         }
 
         array_1d<double, TDim + 1 > N;
@@ -229,6 +238,9 @@ public:
                     Interpolate(pelement, N, pparticle, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED);
                     Interpolate(pelement, N, pparticle, VISCOSITY, FLUID_VISCOSITY_PROJECTED);
                     Interpolate(pelement, N, pparticle, SOLID_FRACTION, SOLID_FRACTION_PROJECTED);
+                    Interpolate(pelement, N, pparticle, VISCOSITY, POWER_LAW_N);
+                    Interpolate(pelement, N, pparticle, VISCOSITY, POWER_LAW_K);
+                    Interpolate(pelement, N, pparticle, VISCOSITY, GEL_STRENGTH);
                 }
 
             }
