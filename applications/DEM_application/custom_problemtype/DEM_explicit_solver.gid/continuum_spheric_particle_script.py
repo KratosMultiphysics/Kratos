@@ -414,7 +414,7 @@ while (time < DEM_parameters.FinalTime):
 
         force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
 
-        total_force_bot = force_node_y
+        total_force_bot += force_node_y
 
       total_stress_bot = total_force_bot/(DEM_parameters.MeasuringSurface*1000000)
       
