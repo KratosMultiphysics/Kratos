@@ -62,7 +62,7 @@ End NodalData
 
 Begin NodalData VELOCITY_Z
 *loop groups *OnlyInCond
-*if(cond(VELOCITY_Y,int))
+*if(cond(VELOCITY_Z,int))
 *set group *GroupName *elems
 *loop elems *onlyingroup
 *elemsconec(1) *cond(Z_fixed) *cond(Z_Value)
