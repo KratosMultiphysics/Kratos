@@ -28,9 +28,9 @@ ProjectParameters.print_particles_results_option   = 0
 ProjectParameters.project_at_every_substep_option  = 0
 ProjectParameters.velocity_trap_option             = 0
 ProjectParameters.inlet_option                     = 1
-ProjectParameters.non_newtonian_option             = 0 # problemtype option
 ProjectParameters.manually_imposed_drag_law_option = 0
 ProjectParameters.stationary_problem_option        = 1 # stationary, stop calculating the fluid after it reaches the stationary state (1)
+ProjectParameters.body_force_on_fluid              = 1
 ProjectParameters.similarity_transformation_type   = 0 # no transformation (0), Tsuji (1)
 ProjectParameters.dem_inlet_element_type           = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
 ProjectParameters.coupling_scheme_type             = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
@@ -42,8 +42,6 @@ ProjectParameters.virtual_mass_force_type          = 0 # null virtual mass force
 ProjectParameters.lift_force_type                  = 0 # null lift force (0)
 ProjectParameters.drag_modifier_type               = 3 # Hayder (2), Chien (3)  # problemtype option
 ProjectParameters.interaction_start_time           = 0.00
-ProjectParameters.smoothing_parameter_m            = 0.035
-ProjectParameters.yield_stress_value               = 0.0   # problemtype option
 ProjectParameters.max_solid_fraction               = 0.6
 ProjectParameters.gel_strength                     = 0.0   # problemtype option
 ProjectParameters.power_law_n                      = 0.0   # problemtype option
@@ -66,8 +64,8 @@ ProjectParameters.nodal_results.append("MESH_VELOCITY1")
 ProjectParameters.nodal_results.append("BODY_FORCE")
 ProjectParameters.nodal_results.append("DRAG_REACTION")
 
+DEMParameters.project_from_particles_option *= ProjectParameters.projection_module_option
 ProjectParameters.project_at_every_substep_option *= ProjectParameters.projection_module_option
-ProjectParameters.stationary_problem_option *= not DEMParameters.project_from_particles_option # the stationarity condition is only for one-way coupling!
 ProjectParameters.time_steps_per_stationarity_step = max(1, int(ProjectParameters.time_steps_per_stationarity_step)) # it should never be smaller than 1!
 
 for var in ProjectParameters.mixed_nodal_results:
@@ -80,16 +78,24 @@ fluid_variables_to_add = [PRESSURE_GRADIENT,
                           AUX_DOUBLE_VAR,
                           DRAG_REACTION,
                           SOLID_FRACTION,                          
-                          MESH_VELOCITY1]
+                          MESH_VELOCITY1,
+                          YIELD_STRESS,
+                          BINGHAM_SMOOTHER,
+                          POWER_LAW_N,
+                          POWER_LAW_K,
+                          GEL_STRENGTH]
 
 balls_variables_to_add = [FLUID_VEL_PROJECTED,
                           FLUID_DENSITY_PROJECTED,
                           PRESSURE_GRAD_PROJECTED,
                           FLUID_VISCOSITY_PROJECTED,
+                          POWER_LAW_N,
+                          POWER_LAW_K,
                           DRAG_FORCE,
                           BUOYANCY,
-                          SOLID_FRACTION_PROJECTED,
-                          REYNOLDS_NUMBER]
+                          SOLID_FRACTION_PROJECTED,                         
+                          REYNOLDS_NUMBER,
+                          GEL_STRENGTH]
 
 fem_dem_variables_to_add = [VELOCITY,
                             DISPLACEMENT]
@@ -143,6 +149,13 @@ model_part_io_fluid.ReadModelPart(fluid_model_part)
 #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
 
+for node in fluid_model_part.Nodes:
+    first_node_yield_stress     = node.GetSolutionStepValue(YIELD_STRESS)
+    break
+
+if(first_node_yield_stress == 0.0):
+    non_newtonian_option = 0
+
 # defining model parts for the balls part and for the DEM-FEM interaction elements
 
 balls_model_part = ModelPart("SolidPart")
@@ -180,7 +193,7 @@ balls_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, ProjectParameters.buo
 balls_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, ProjectParameters.drag_force_type)
 balls_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.virtual_mass_force_type)
 balls_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.lift_force_type)
-balls_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, ProjectParameters.non_newtonian_option)
+#balls_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, non_newtonian_option)
 balls_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, ProjectParameters.manually_imposed_drag_law_option)
 balls_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, ProjectParameters.drag_modifier_type)
 balls_model_part.ProcessInfo.SetValue(GEL_STRENGTH, ProjectParameters.gel_strength)
@@ -190,9 +203,8 @@ balls_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, ProjectParameters.initial
 balls_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, ProjectParameters.drag_law_slope)
 balls_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, ProjectParameters.power_law_tol)
 
-fluid_model_part.ProcessInfo.SetValue(YIELD_STRESS, ProjectParameters.yield_stress_value)
-fluid_model_part.ProcessInfo.SetValue(M, ProjectParameters.smoothing_parameter_m)
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
 
 # setting up the buffer size: SHOULD BE DONE AFTER READING!!!
 fluid_model_part.SetBufferSize(3)
@@ -345,10 +357,11 @@ if (ProjectParameters.projection_module_option):
     projection_module.UpdateDatabase(h_min)
     interaction_calculator = CustomFunctionsCalculator()
 
-#for node in fluid_model_part.Nodes:
- #   node.SetSolutionStepValue(BODY_FORCE_X, 0, ProjectParameters.gravity_x)
-  #  node.SetSolutionStepValue(BODY_FORCE_Y, 0, ProjectParameters.gravity_y)
-   # node.SetSolutionStepValue(BODY_FORCE_Z, 0, ProjectParameters.gravity_z)
+if (ProjectParameters.body_force_on_fluid):
+    for node in fluid_model_part.Nodes:
+        node.SetSolutionStepValue(BODY_FORCE_X, 0, DEMParameters.GravityX)
+        node.SetSolutionStepValue(BODY_FORCE_Y, 0, DEMParameters.GravityY)
+        node.SetSolutionStepValue(BODY_FORCE_Z, 0, DEMParameters.GravityZ)
 
 # creating a CreatorDestructor object, encharged of any adding or removing of elements during the simulation
 creator_destructor = ParticleCreatorDestructor()
@@ -378,7 +391,7 @@ if (ProjectParameters.inlet_option):
     DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, ProjectParameters.drag_force_type)
     DEM_inlet_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.virtual_mass_force_type)
     DEM_inlet_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.lift_force_type)
-    DEM_inlet_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, ProjectParameters.non_newtonian_option)
+    #DEM_inlet_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, non_newtonian_option)
     DEM_inlet_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, ProjectParameters.manually_imposed_drag_law_option)
     DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, ProjectParameters.drag_modifier_type)
     DEM_inlet_model_part.ProcessInfo.SetValue(GEL_STRENGTH, ProjectParameters.gel_strength)
