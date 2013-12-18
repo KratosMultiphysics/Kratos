@@ -350,15 +350,16 @@ while (time < DEM_parameters.FinalTime):
     os.chdir(data_and_results)
     
                                                                                                                                                                                                   
-    if( (DEM_parameters.ConcreteTestOption =="ON" ) and (DEM_parameters.TriaxialOption == "ON") and (Pressure != 0.0) and (step < 0.01*DEM_parameters.TotalTimePercentAsForceAplTime*total_steps_expected) ):
+    if( (DEM_parameters.ConcreteTestOption =="ON" ) and (DEM_parameters.TriaxialOption == "ON") and (Pressure != 0.0) ):
+       #and (step < 0.01*DEM_parameters.TotalTimePercentAsForceAplTime*total_steps_expected) )
         
-        #if( renew_pressure == 10):
+        if( renew_pressure == 10):
           
           Press.ApplyPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
                  
-          #renew_pressure = 0
+          renew_pressure = 0
     
-        #renew_pressure += 1
+        renew_pressure += 1
     
     total_force_top = 0.0
     total_force_bot = 0.0
