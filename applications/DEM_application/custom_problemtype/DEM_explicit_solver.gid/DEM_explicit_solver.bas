@@ -165,16 +165,6 @@ Begin NodalData ROLLING_FRICTION
 End NodalData
 *endif
 
-*if(strcmp(GenData(Rota_Damp_Type),"LocalDamp")==0)
-Begin NodalData PARTICLE_ROTATION_DAMP_RATIO
-*loop elems *all
-*if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
-*elemsconec(1) 0 *elemsmatprop(RotaDampRatio)
-*endif
-*end elems 
-End NodalData
-*endif
-
 Begin NodalData LN_OF_RESTITUTION_COEFF
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
