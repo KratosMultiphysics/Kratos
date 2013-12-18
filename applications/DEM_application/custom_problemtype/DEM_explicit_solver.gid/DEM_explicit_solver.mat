@@ -9,13 +9,13 @@ QUESTION: Particle_density
 VALUE: 2500
 
 QUESTION: Young_modulus
-VALUE: 2.8e09
+VALUE: 28e09
 
 QUESTION: Poisson_ratio
 VALUE: 0.2
 
-QUESTION: Friction(Deg)
-VALUE: 45
+QUESTION: Dynamic_Friction
+VALUE: 0.4
 
 QUESTION: Rolling_Friction
 VALUE: 0.1
@@ -42,8 +42,8 @@ VALUE: 2.8e09
 QUESTION: Poisson_ratio
 VALUE: 0.2
 
-QUESTION: Friction(Deg)
-VALUE: 45
+QUESTION: Dynamic_Friction
+VALUE: 0.4
 
 QUESTION: Rolling_Friction
 VALUE: 0.1
@@ -70,8 +70,8 @@ VALUE: 3.0e10
 QUESTION: Poisson_ratio
 VALUE: 0.2
 
-QUESTION: Friction(Deg)
-VALUE: 15.1
+QUESTION: Dynamic_Friction
+VALUE: 0.4
 
 QUESTION: Rolling_Friction
 VALUE: 0.1
@@ -98,8 +98,8 @@ VALUE: 2.1e11
 QUESTION: Poisson_ratio
 VALUE: 0.2
 
-QUESTION: Friction(Deg)
-VALUE: 45
+QUESTION: Dynamic_Friction
+VALUE: 0.4
 
 QUESTION: Rolling_Friction
 VALUE: 0.1
@@ -126,8 +126,8 @@ VALUE: 2.0e7
 QUESTION: Poisson_ratio
 VALUE: 0.2
 
-QUESTION: Friction(Deg)
-VALUE: 45
+QUESTION: Dynamic_Friction
+VALUE: 0.4
 
 QUESTION: Rolling_Friction
 VALUE: 0.1

@@ -3,7 +3,7 @@ BOOK: Kinematics
 CONDITION: Group_CONDITIONS
 CONDTYPE: over groups
 CONDMESHTYPE: over body elements
-GROUPALLOW: points lines surfaces volumes nodes elements          
+GROUPALLOW: lines surfaces volumes elements          
 QUESTION: Automatic
 VALUE: 0
 STATE: HIDDEN
@@ -15,42 +15,42 @@ DEPENDENCIES: (0,HIDE,X_Value,#CURRENT#,HIDE,X_fixed,#CURRENT#)(1,RESTORE,X_Valu
 QUESTION: X_Value
 VALUE: 0.0
 QUESTION: X_fixed#CB#(1,0)
-VALUE: 0
+VALUE: 1
 QUESTION: VELOCITY_Y#CB#(1,0)
 VALUE: 0
 DEPENDENCIES: (0,HIDE,Y_Value,#CURRENT#,HIDE,Y_fixed,#CURRENT#)(1,RESTORE,Y_Value,#CURRENT#,RESTORE,Y_fixed,#CURRENT#)
 QUESTION: Y_Value
 VALUE: 0.0
 QUESTION: Y_fixed#CB#(1,0)
-VALUE: 0
+VALUE: 1
 QUESTION: VELOCITY_Z#CB#(1,0)
 VALUE: 0
 DEPENDENCIES: (0,HIDE,Z_Value,#CURRENT#,HIDE,Z_fixed,#CURRENT#)(1,RESTORE,Z_Value,#CURRENT#,RESTORE,Z_fixed,#CURRENT#)
 QUESTION: Z_Value
 VALUE: 0.0
 QUESTION: Z_fixed#CB#(1,0)
-VALUE: 0
+VALUE: 1
 QUESTION: ANGULAR_VELOCITY_X#CB#(1,0)
 VALUE: 0
 DEPENDENCIES: (0,HIDE,X_ang_vel_Value,#CURRENT#,HIDE,X_ang_vel_fixed,#CURRENT#)(#DEFAULT#,RESTORE,X_ang_vel_Value,#CURRENT#,RESTORE,X_ang_vel_fixed,#CURRENT#)
 QUESTION: X_ang_vel_Value
 VALUE: 0.0
 QUESTION: X_ang_vel_fixed#CB#(1,0)
-VALUE: 0
+VALUE: 1
 QUESTION: ANGULAR_VELOCITY_Y#CB#(1,0)
 VALUE: 0
 DEPENDENCIES: (0,HIDE,Y_ang_vel_Value,#CURRENT#,HIDE,Y_ang_vel_fixed,#CURRENT#)(#DEFAULT#,RESTORE,Y_ang_vel_Value,#CURRENT#,RESTORE,Y_ang_vel_fixed,#CURRENT#)
 QUESTION: Y_ang_vel_Value
 VALUE: 0.0
 QUESTION: Y_ang_vel_fixed#CB#(1,0)
-VALUE: 0
+VALUE: 1
 QUESTION: ANGULAR_VELOCITY_Z#CB#(1,0)
 VALUE: 0
 DEPENDENCIES: (0,HIDE,Z_ang_vel_Value,#CURRENT#,HIDE,Z_ang_vel_fixed,#CURRENT#)(#DEFAULT#,RESTORE,Z_ang_vel_Value,#CURRENT#,RESTORE,Z_ang_vel_fixed,#CURRENT#)
 QUESTION: Z_ang_vel_Value
 VALUE: 0.0
 QUESTION: Z_ang_vel_fixed#CB#(1,0)
-VALUE: 0
+VALUE: 1
 END CONDITION
 
 
