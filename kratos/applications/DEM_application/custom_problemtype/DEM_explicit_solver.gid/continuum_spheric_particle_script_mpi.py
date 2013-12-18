@@ -265,6 +265,8 @@ initial_real_time      = timer.time()
 
 post_utility = PostUtilities()
 
+gid_io.ChangeOutputName(problem_name + "_" + str(mpi.rank))
+
 os.chdir(post_path)
 
 if (DEM_parameters.Multifile == "single_file"):
