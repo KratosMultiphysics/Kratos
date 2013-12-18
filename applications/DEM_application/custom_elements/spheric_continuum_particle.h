@@ -220,7 +220,7 @@ namespace Kratos
         //MSIMSI 6 aixo hauria de cridar el del basic o cal ke sigui del continu?
         
         void ComputePressureForces(array_1d<double, 3>& externally_applied_force, ProcessInfo& rCurrentProcessInfo);
-        void PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn, double indentation, double corrected_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini);
+        void PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn, double equiv_young, double indentation, double corrected_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini);
         
         //void ApplyLocalForcesDamping(const ProcessInfo& rCurrentProcessInfo );
         void ApplyLocalMomentsDamping(const ProcessInfo& rCurrentProcessInfo );
