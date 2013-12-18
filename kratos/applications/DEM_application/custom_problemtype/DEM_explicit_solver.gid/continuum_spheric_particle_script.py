@@ -181,9 +181,7 @@ if(DEM_parameters.BtsOption == "ON"):
     bts_export = open(DEM_parameters.problem_name +"_bts_"+str(datetime.datetime.now())+".csv",'w');
 
 if (DEM_parameters.GraphOption =="ON"):
-  #graph_export_top = open(DEM_parameters.problem_name + "_graph_" + str(datetime.datetime.now()) + "_TOP.csv", 'w');
-  #graph_export_bot = open(DEM_parameters.problem_name + "_graph_" + str(datetime.datetime.now()) + "_BOT.csv", 'w');
-  #graph_export_mean = open(DEM_parameters.problem_name + "_graph_" + str(datetime.datetime.now()) + "_MEAN.csv", 'w');
+  
   graph_export_top = open("Provisional_TOP.csv", 'w');
   graph_export_bot = open("Provisional_BOT.csv", 'w');
   graph_export_mean = open("Provisional_MEAN.csv", 'w');
