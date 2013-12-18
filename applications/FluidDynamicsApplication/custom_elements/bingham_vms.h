@@ -408,7 +408,9 @@ protected:
                                        double& TotalViscosity,
                                        const ProcessInfo& rCurrentProcessInfo)
     {
-        const double yield = rCurrentProcessInfo.GetValue(YIELD_STRESS);
+        //const double yield = rCurrentProcessInfo.GetValue(YIELD_STRESS);
+        double yield;
+        this->EvaluateInPoint(yield,YIELD_STRESS,rShapeFunc);
 
         TotalViscosity = MolecularViscosity;
         if ( yield != 0)
@@ -416,7 +418,10 @@ protected:
             const double NormS = this->SymmetricGradientNorm(rShapeDeriv);
 
             //non newtonian case
-            const double mcoef = rCurrentProcessInfo.GetValue(M);
+            //const double mcoef = rCurrentProcessInfo.GetValue(BINGHAM_SMOOTHER);
+            double mcoef;
+            this->EvaluateInPoint(mcoef,BINGHAM_SMOOTHER,rShapeFunc);
+            
             double aux_1 = 1.0 - exp(-(mcoef * NormS));
             if(NormS < 1.0/(1000.0*mcoef))
                 TotalViscosity += yield*mcoef;
