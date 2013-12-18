@@ -133,20 +133,20 @@ control         = 0.0
 
 os.chdir(main_path)
 
+print 'Initializing Problem....'
+
+solver.Initialize()
+
 #-------------------------------------------------------------------------------------------------------------------------
 
 #------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALITZATIONS--------------------------------------------------------
 
 
-print 'Initializing Problem....'
-
-solver.Initialize()
 
 # Initialization of physics monitor and of the initial position of the center of mass
 
 #physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
-
-properties_list = []
+#properties_list = []
 
 print 'Initialitzation Complete' + '\n'
 
@@ -173,7 +173,7 @@ os.chdir(post_path)
 if (DEM_parameters.Multifile == "single_file"):
 
   post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
-  post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part) 
+  post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part)
   gid_io.InitializeMesh(0.0) 
   gid_io.WriteMesh(RigidFace_model_part.GetMesh())
   gid_io.WriteSphereMesh(balls_model_part.GetMesh())
@@ -187,10 +187,10 @@ if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
     proc.ModelData(balls_model_part,balls_model_part, solver) #dummy contact model part. (only for continuum)      # calculates the mean number of neighbours the mean radius, etc..
     os.chdir(main_path)
-     
+
   
 #------------------------------------------------------------------------------------------
-
+ 
 ###########################################################################################
 #                                                                                         #
 #                                    MAIN LOOP                                            #
@@ -200,9 +200,9 @@ os.chdir(main_path)
 
 dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
-print ('Main loop starts at instant: ' + str(initial_pr_time) + '\n')
-
 total_steps_expected = int(DEM_parameters.FinalTime / dt)
+
+print ('Main loop starts at instant: ' + str(initial_pr_time) + '\n')
 
 print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n' )
 
@@ -210,7 +210,6 @@ while (time < DEM_parameters.FinalTime):
 
     dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
-    balls_model_part.ProcessInfo[TIME] = time
     #balls_model_part.CloneTimeStep(time)
     balls_model_part.ProcessInfo[TIME] = time
     balls_model_part.ProcessInfo[DELTA_TIME] = dt
@@ -229,27 +228,24 @@ while (time < DEM_parameters.FinalTime):
         print 'Real time calculation: ' + str(timer.time() - initial_real_time)
         print 'Percentage Completed: '  + str(percentage) + ' %'
         print "TIME STEP = "            + str(step) + '\n'
-
+        sys.stdout.flush()
+        
         prev_time = (timer.time() - initial_real_time)
-
-    if ((timer.time() - initial_real_time > 60) and first_print == True):
-        first_print = False
+  
+    if ((timer.time() - initial_real_time > 60) and first_print == True and step != 0):    
+        first_print = False    
         estimated_sim_duration = 60.0 * (total_steps_expected / step) # seconds
 
         print('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n')
         print('in minutes:'        + str(estimated_sim_duration / 60.0) + 'min.' + '\n')
         print('in hours:'        + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
-        print('in days:'        + str(estimated_sim_duration / 86400.0) + 'days' + '\n')
-
+        print('in days:'        + str(estimated_sim_duration / 86400.0) + 'days' + '\n') 
+        sys.stdout.flush()
+        
         if (estimated_sim_duration / 86400 > 2.0):
             print('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
 
     #########################CONCRETE_TEST_STUFF#########################################4
-
-    os.chdir(data_and_results)
-
-    total_force = 0.0
-    force_node  = 0.0
 
     os.chdir(list_path)
     multifile.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
@@ -302,27 +298,24 @@ while (time < DEM_parameters.FinalTime):
         os.chdir(post_path)
 
         if (DEM_parameters.Multifile == "multiple_files"):
-			
-			mixed_model_part.Elements.clear()
-			mixed_model_part.Nodes.clear()
-			
-			post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part) 			
-			post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part)
-			
-			gid_io.InitializeMesh(time) 
-			gid_io.WriteSphereMesh(balls_model_part.GetMesh())			
-			gid_io.WriteMesh(RigidFace_model_part.GetMesh())
-			gid_io.FinalizeMesh()
-			
-			gid_io.InitializeResults(time, mixed_model_part.GetMesh())
-			                    
+            mixed_model_part.Elements.clear()
+            mixed_model_part.Nodes.clear()
+
+            post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
+            post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part)
+
+            gid_io.InitializeMesh(time) 
+            gid_io.WriteSphereMesh(balls_model_part.GetMesh())
+            gid_io.WriteMesh(RigidFace_model_part.GetMesh())
+            gid_io.FinalizeMesh()
+            
+            gid_io.InitializeResults(time, mixed_model_part.GetMesh())
+                                
         proc.PrintingGlobalVariables(gid_io, mixed_model_part, time)
         proc.PrintingBallsVariables(gid_io, balls_model_part, time)
         
         if (DEM_parameters.Multifile == "multiple_files"):
-            gid_io.FinalizeResults()
-        
-        os.chdir(main_path)
+            gid_io.FinalizeResults() 
 
         time_old_print = time
 
@@ -330,7 +323,7 @@ while (time < DEM_parameters.FinalTime):
 #-------------------------------------------------------------------------------------------------------------------------------------
 
 
-#-----------------------FINALITZATION OPERATIONS--------------------------------------------------------------------------------------
+#-----------------------FINALITZATION OPERATIONS-------------------------------------------------------------------------------------- 
 #proc.PlotPhysicalProperties(properties_list, graphs_path)
 
 if (DEM_parameters.Multifile == "single_file"):
@@ -341,8 +334,6 @@ multifile_5.close()
 multifile_10.close()
 multifile_50.close()
 os.chdir(main_path)
-
-# Porosity
 
 elapsed_pr_time 	= timer.clock() - initial_pr_time
 elapsed_real_time 	= timer.time() - initial_real_time
