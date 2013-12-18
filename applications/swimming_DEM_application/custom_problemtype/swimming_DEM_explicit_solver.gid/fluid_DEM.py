@@ -134,10 +134,12 @@ solver_module = import_solver(SolverSettings)
 
 #
 # importing variables
-print 'Adding nodal variables to the fluid_model_part' # (memory allocation) #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+print 'Adding nodal variables to the fluid_model_part' #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
+# caution with breaking up this block! # (memory allocation) {
 solver_module.AddVariables(fluid_model_part, SolverSettings)
 swimming_DEM_procedures.AddNodalVariables(fluid_model_part, fluid_variables_to_add) #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+# }
 
 # introducing input file name
 input_file_name = ProjectParameters.problem_name
@@ -337,7 +339,6 @@ graph_printer = point_graph_printer.PrintGraphPrinter(
 swimming_DEM_procedures.ApplySimilarityTransformations(fluid_model_part, ProjectParameters.similarity_transformation_type, ProjectParameters.model_over_real_diameter_factor)
 
 max_fluid_node_Id = swimming_DEM_procedures.FindMaxNodeIdInFLuid(fluid_model_part)
-
 
 # creating a Post Utils object that executes several post-related tasks
 post_utils = DEM_procedures.PostUtils(DEMParameters, balls_model_part)
