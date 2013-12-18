@@ -570,7 +570,7 @@ namespace Kratos
                     
                   
                       
-                      PlasticityAndDamage1D(LocalElasticContactForce, kn_el, indentation, calculation_area,radius_sum_i, failure_criterion_state, acumulated_damage, i_neighbour_count,mapping_new_cont, mapping_new_ini );
+                      PlasticityAndDamage1D(LocalElasticContactForce, kn_el, equiv_young, indentation, calculation_area,radius_sum_i, failure_criterion_state, acumulated_damage, i_neighbour_count,mapping_new_cont, mapping_new_ini );
                     
                       
                     }
@@ -1085,11 +1085,11 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             mN1 = r_process_info[SLOPE_FRACTION_N1];
             mN2 = r_process_info[SLOPE_FRACTION_N2];
             mN3 = r_process_info[SLOPE_FRACTION_N3];
-            mC1 = r_process_info[SLOPE_LIMIT_COEFF_C1];
-            mC2 = r_process_info[SLOPE_LIMIT_COEFF_C2];
-            mC3 = r_process_info[SLOPE_LIMIT_COEFF_C2]; 
+            mC1 = r_process_info[SLOPE_LIMIT_COEFF_C1]*1e6;
+            mC2 = r_process_info[SLOPE_LIMIT_COEFF_C2]*1e6;
+            mC3 = r_process_info[SLOPE_LIMIT_COEFF_C2]*1e6; 
             mYoungPlastic = r_process_info[YOUNG_MODULUS_PLASTIC];
-            mPlasticityLimit = r_process_info[PLASTIC_YIELD_STRESS];
+            mPlasticityLimit = r_process_info[PLASTIC_YIELD_STRESS]*1e6;
             mDamageMaxDisplacementFactor = r_process_info[DAMAGE_FACTOR];
            
          }                                     
@@ -1983,7 +1983,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
      } //SphericContinuumParticle::ComputePressureForces
     
 
-    void SphericContinuumParticle::PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn_el, double indentation, double calculation_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini )
+    void SphericContinuumParticle::PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn_el, double equiv_young, double indentation, double calculation_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini )
     {
 
       //VARIABLES
@@ -1993,21 +1993,13 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       double kn_b = kn_el / mN1;
       double kn_c = kn_el / mN2;
       double kn_d = kn_el / mN3;
-      double kp_el = mYoungPlastic * kn_el;
-
-      double CompressionLimit_1 = mC1 * mCompressionLimit;
-      double CompressionLimit_2 = mC2 * mCompressionLimit;
-      double CompressionLimit_3 = mC3 * mCompressionLimit;
-      
-      double Yields_el = mPlasticityLimit * mCompressionLimit * calculation_area;
+      double kp_el = mYoungPlastic/equiv_young * kn_el;
+      double Yields_el = mPlasticityLimit * calculation_area;
         
-      double Ncstr1_el = CompressionLimit_1 * calculation_area;
-      double Ncstr2_el = CompressionLimit_2 * calculation_area;
-      double Ncstr3_el = CompressionLimit_3 * calculation_area;
+      double Ncstr1_el = mC1 * calculation_area;
+      double Ncstr2_el = mC2 * calculation_area;
+      double Ncstr3_el = mC3 * calculation_area;
       double Ntstr_el  = mTensionLimit * calculation_area;
-      
-      //double sigma_a = (kn_el * indentation)/(calculation_area);
-      //double sigma_b = mCompressionLimit_1 + kn_b*(indentation/calculation_area - mCompressionLimit_1/kn_el);
 
       double u_max = mHistory[mapping_new_cont][0];
       
