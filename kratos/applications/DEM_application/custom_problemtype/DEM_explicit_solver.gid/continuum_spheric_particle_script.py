@@ -20,7 +20,7 @@ import pressure_script as Press
 # Defining a model part for the solid part
 
 my_timer = Timer();
-balls_model_part = ModelPart("SolidPart");  
+balls_model_part = ModelPart("SolidPart");
 
 RigidFace_model_part   = ModelPart("RigidFace_Part");  
 mixed_model_part       = ModelPart("Mixed_Part");
@@ -73,8 +73,7 @@ creator_destructor = ParticleCreatorDestructor()
 
 # Creating a solver object
 
-solver = SolverStrategy.ExplicitStrategy(balls_model_part, RigidFace_model_part, creator_destructor, DEM_parameters) #here, solver variables initialize as default
-
+solver = SolverStrategy.ExplicitStrategy(balls_model_part, RigidFace_model_part,creator_destructor, DEM_parameters) #here, solver variables initialize as default
 
 # Creating necessary directories
 
@@ -83,20 +82,20 @@ post_path        = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_P
 list_path        = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Post_Lists'
 neigh_list_path  = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Neigh_Lists'
 data_and_results = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Results_and_Data'
-graphs_path      = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Graphs'   
-MPI_results      = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_MPI_results'  
+graphs_path      = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Graphs'
+MPI_results      = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_MPI_results'
 
 for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path, MPI_results]:
 
-    if not os.path.isdir(directory):    
+    if not os.path.isdir(directory):
         os.makedirs(str(directory))
 
 os.chdir(list_path)
 
-multifile       = open(DEM_parameters.problem_name + '_all' + '.post.lst', 'w')
-multifile_5     = open(DEM_parameters.problem_name + '_5'   + '.post.lst', 'w')
-multifile_10    = open(DEM_parameters.problem_name + '_10'  + '.post.lst', 'w')
-multifile_50    = open(DEM_parameters.problem_name + '_50'  + '.post.lst', 'w')
+multifile        = open(DEM_parameters.problem_name + '_all' + '.post.lst', 'w')
+multifile_5      = open(DEM_parameters.problem_name + '_5'   + '.post.lst', 'w')
+multifile_10     = open(DEM_parameters.problem_name + '_10'  + '.post.lst', 'w')
+multifile_50     = open(DEM_parameters.problem_name + '_50'  + '.post.lst', 'w')
 
 multifile.write('Multiple\n')
 multifile_5.write('Multiple\n')
@@ -116,8 +115,6 @@ os.chdir(main_path)
 print 'Initializing Problem....'
 
 solver.Initialize()
-
-
 
 if ( (DEM_parameters.ContinuumOption =="ON") and (DEM_parameters.ContactMeshOption =="ON") ) :
 
@@ -211,12 +208,12 @@ if(DEM_parameters.ContinuumOption =="ON" and DEM_parameters.GraphOption =="ON"):
 
 
 
-step                   = 0 
-time                   = 0.0 
+step                   = 0
+time                   = 0.0
 time_old_print         = 0.0
 initial_pr_time        = timer.clock()
 initial_real_time      = timer.time()
-    
+
 #-------------------------------------------------------------------------------------------------------------------------------------
 
 #-----------------------SINGLE FILE MESH AND RESULTS INITIALITZATION-------------------------------------------------------------------
@@ -226,19 +223,17 @@ post_utility = PostUtilities()
 os.chdir(post_path)
 
 if (DEM_parameters.Multifile == "single_file"):
-  
-  post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part) 
+
+  post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
   if (DEM_parameters.ContactMeshOption == "ON"):
       post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
   post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part)
-  
   gid_io.InitializeMesh(0.0) 
+  gid_io.WriteMesh(RigidFace_model_part.GetMesh())
   gid_io.WriteSphereMesh(balls_model_part.GetMesh())
   if (DEM_parameters.ContactMeshOption == "ON"):
       gid_io.WriteMesh(contact_model_part.GetMesh())
-      gid_io.WriteMesh(RigidFace_model_part.GetMesh())
   gid_io.FinalizeMesh()
-  
   gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
 
   
@@ -298,7 +293,7 @@ if(DEM_parameters.PoissonMeasure == "ON"):
 step_to_fix_velocities = balls_model_part.ProcessInfo[STEP_FIX_VELOCITIES]
         
 while (time < DEM_parameters.FinalTime):
- 
+
     dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
     #balls_model_part.CloneTimeStep(time)
@@ -307,16 +302,15 @@ while (time < DEM_parameters.FinalTime):
     balls_model_part.ProcessInfo[TIME_STEPS] = step
 
     #########################_SOLVE_#########################################4
-    os.chdir(main_path) 
-    
+    os.chdir(main_path)
     solver.Solve()
     #########################TIME CONTROL######################################4
-   
+
     incremental_time = (timer.time() - initial_real_time) - prev_time
 
     if (incremental_time > DEM_parameters.ControlTime):
         percentage = 100 * (float(step) / total_steps_expected)
-      
+
         print 'Real time calculation: ' + str(timer.time() - initial_real_time)
         print 'Percentage Completed: '  + str(percentage) + ' %'
         print "TIME STEP = "            + str(step) + '\n'
@@ -333,7 +327,7 @@ while (time < DEM_parameters.FinalTime):
     if ((timer.time() - initial_real_time > 60) and first_print == True and step != 0):    
         first_print = False    
         estimated_sim_duration = 60.0 * (total_steps_expected / step) # seconds
-    
+
         print('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n')
         print('in minutes:'        + str(estimated_sim_duration / 60.0) + 'min.' + '\n')
         print('in hours:'        + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
@@ -341,13 +335,12 @@ while (time < DEM_parameters.FinalTime):
         sys.stdout.flush()
         
         if (estimated_sim_duration / 86400 > 2.0):
-          print('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
-    
+            print('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
+
     #########################CONCRETE_TEST_STUFF#########################################4
-    
+
     os.chdir(data_and_results)
-    
-                                                                                                                                                                                                  
+                                                                                                                                                                                               
     if( (DEM_parameters.ConcreteTestOption =="ON" ) and (DEM_parameters.TriaxialOption == "ON") and (Pressure != 0.0) ):
        #and (step < 0.01*DEM_parameters.TotalTimePercentAsForceAplTime*total_steps_expected) )
         
@@ -440,6 +433,7 @@ while (time < DEM_parameters.FinalTime):
         measured_poisson =  ((width_now-width_ini)/width_ini)/strain
 
         #print( (width_now/0.05)/strain )
+
     os.chdir(list_path)    
     multifile.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')   
     os.chdir(main_path)
@@ -453,18 +447,18 @@ while (time < DEM_parameters.FinalTime):
 
         #properties_list = proc.MonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
 
-        if (index_5 == 5):       
+        if (index_5 == 5):
             multifile_5.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
             index_5 = 0
-        
-        if (index_10 == 10):       
+
+        if (index_10 == 10):
             multifile_10.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
             index_10 = 0
-        
+
         if (index_50 == 50):
             multifile_50.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
             index_50 = 0
-      
+
         index_5  += 1
         index_10 += 1
         index_50 += 1
@@ -477,14 +471,14 @@ while (time < DEM_parameters.FinalTime):
         if (DEM_parameters.PrintNeighbourLists == "ON"): # Printing neighbours id's
             os.chdir(neigh_list_path)
             neighbours_list = open('neigh_list_' + str(time), 'w')
-  
+
             for elem in balls_model_part.Elements:
                 ID = (elem.Id)
                 Neigh_ID = elem.GetValue(NEIGHBOURS_IDS)
-      
+
             for i in range(len(Neigh_ID)):
                 neighbours_list.write(str(ID) + ' ' + str(Neigh_ID[i]) + '\n')
-  
+
             neighbours_list.close()
 
         os.chdir(post_path)
@@ -492,7 +486,8 @@ while (time < DEM_parameters.FinalTime):
         if (DEM_parameters.Multifile == "multiple_files"):
             mixed_model_part.Elements.clear()
             mixed_model_part.Nodes.clear()
-            post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part) 
+
+            post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
             if (DEM_parameters.ContactMeshOption == "ON"):
                 post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
             post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part)
@@ -515,8 +510,7 @@ while (time < DEM_parameters.FinalTime):
               
         if (DEM_parameters.Multifile == "multiple_files"):
             gid_io.FinalizeResults() 
-            
-          
+
         time_old_print = time
     
     if(DEM_parameters.BtsOption == "ON"):
@@ -568,8 +562,8 @@ multifile_10.close()
 multifile_50.close()
 os.chdir(main_path)
 
-elapsed_pr_time     = timer.clock() - initial_pr_time
-elapsed_real_time   = timer.time() - initial_real_time
+elapsed_pr_time 	= timer.clock() - initial_pr_time
+elapsed_real_time 	= timer.time() - initial_real_time
 
 print 'Calculation ends at instant: '                 + str(timer.time())
 print 'Calculation ends at processing time instant: ' + str(timer.clock())
@@ -578,4 +572,4 @@ print 'Elapsed real time: '                           + str(elapsed_real_time)
 
 print (my_timer)
 
-print "ANALYSIS COMPLETED" 
+print "ANALYSIS COMPLETED"
