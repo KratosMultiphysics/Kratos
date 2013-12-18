@@ -85,38 +85,38 @@ NormalDampingType                = "*GenData(Normal_Contact_Damp)"
 TangentialDampingType            = "*GenData(Tangential_Contact_Damp)"
 FailureCriterionType             = "*GenData(Failure_Criterion)"
 *format "%10.5e"
-DempackDamping                   = *GenData(Dempack_Damping)
+DempackDamping                   = *GenData(LDAMP)
 *format "%10.5e"
-DempackGlobalDamping             = *GenData(Dempack_Global_Damping)
+DempackGlobalDamping             = *GenData(GDAMP)
 *format "%10.5e"
-AreaFactor                       = *GenData(Area_Factor)
+AreaFactor                       = *GenData(Alpha)
 *format "%10.5e"
-TauZero                          = *GenData(TSTREN)
+TauZero                          = *GenData(FSS_MPa)
 *format "%10.5e"
 SigmaMax                         = *GenData(Sigma_Max)
 *format "%10.5e"
-SigmaMin                         = *GenData(NTSTR)
+SigmaMin                         = *GenData(FTS_MPa)
 *format "%10.5e"
-InternalFriction                 = *GenData(Internal_Friction)
+InternalFriction                 = *GenData(Static_Friction)
 
 *format "%10.5e"
-C1                               = *GenData(NCSTR1)
+C1                               = *GenData(LCS1_MPa)
 *format "%10.5e"
-N1                               = *GenData(YNGRT1)
+N1                               = *GenData(YRC1)
 *format "%10.5e"
-C2                               = *GenData(NCSTR2)
+C2                               = *GenData(LCS2_MPa)
 *format "%10.5e"
-N2                               = *GenData(YNGRT2)
+N2                               = *GenData(YRC2)
 *format "%10.5e"
-C3                               = *GenData(NCSTR3)
+C3                               = *GenData(LCS3_MPa)
 *format "%10.5e"
-N3                               = *GenData(YNGRT3)
+N3                               = *GenData(YRC3)
 *format "%10.5e"
-PlasticYoungModulusRatio         = *GenData(Plastic_Young_Modulus_Ratio)
+PlasticYoungModulusRatio         = *GenData(YEP)
 *format "%10.5e"
-PlasticYieldStress               = *GenData(YIELDS)
+PlasticYieldStress               = *GenData(YIELD_MPa)
 *format "%10.5e"
-DamageDeformationFactor          = *GenData(AXIFRC)
+DamageDeformationFactor          = *GenData(EDR)
 *format "%10.5e"
 G1                               = *GenData(Gamma_1)
 *format "%10.5e"

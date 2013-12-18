@@ -11,8 +11,8 @@ QUESTION: Domain_Dimension#CB#(2,3)
 VALUE: 3
 QUESTION: Continuum#CB#(ON,OFF)
 VALUE: ON
-DEPENDENCIES: (OFF,TITLESTATE,Continuum_Options,hidden,HIDE,Skin_Determination,#CURRENT#,HIDE,General_Poisson_Ratio,#CURRENT#,HIDE,General_Friction,#CURRENT#,HIDE,General_Tension,#CURRENT#,HIDE,PARTICLE_COHESION,#CURRENT#,HIDE,PARTICLE_TENSION,#CURRENT#,HIDE,EXPORT_PARTICLE_FAILURE_ID,#CURRENT#,HIDE,EXPORT_SKIN_SPHERE,0,HIDE,LOCAL_CONTACT_FORCE,#CURRENT#,HIDE,REPRESENTATIVE_VOLUME,#CURRENT#,HIDE,MEAN_CONTACT_AREA,#CURRENT#,HIDE,STRESS_TENSOR,#CURRENT#,HIDE,CONTACT_FAILURE,#CURRENT#,HIDE,FAILURE_CRITERION_STATE,#CURRENT#,HIDE,UNIDIMENSIONAL_DAMAGE,#CURRENT#,HIDE,CONTACT_TAU,#CURRENT#,HIDE,CONTACT_SIGMA,#CURRENT#,HIDE,Failure_Criterion,#CURRENT#,HIDE,TSTREN,#CURRENT#,HIDE,Sigma_Max,#CURRENT#,HIDE,NTSTR,#CURRENT#,HIDE,Internal_Friction,#CURRENT#,HIDE,NCSTR1,#CURRENT#,HIDE,YNGRT1,#CURRENT#,HIDE,NCSTR2,#CURRENT#,HIDE,YNGRT2,#CURRENT#)
-DEPENDENCIES: (ON,TITLESTATE,Continuum_Options,normal,RESTORE,Skin_Determination,#CURRENT#,RESTORE,Failure_Criterion,#CURRENT#,RESTORE,TSTREN,#CURRENT#,RESTORE,Sigma_Max,#CURRENT#,RESTORE,NTSTR,#CURRENT#,RESTORE,Internal_Friction,#CURRENT#,RESTORE,PARTICLE_TENSION,#CURRENT#,RESTORE,EXPORT_PARTICLE_FAILURE_ID,#CURRENT#,RESTORE,EXPORT_SKIN_SPHERE,#CURRENT#,RESTORE,LOCAL_CONTACT_FORCE,#CURRENT#,RESTORE,REPRESENTATIVE_VOLUME,#CURRENT#,RESTORE,MEAN_CONTACT_AREA,#CURRENT#,RESTORE,STRESS_TENSOR,#CURRENT#,RESTORE,CONTACT_FAILURE,#CURRENT#,RESTORE,FAILURE_CRITERION_STATE,#CURRENT#,RESTORE,UNIDIMENSIONAL_DAMAGE,#CURRENT#,RESTORE,CONTACT_TAU,#CURRENT#,RESTORE,CONTACT_SIGMA,#CURRENT#)
+DEPENDENCIES: (OFF,TITLESTATE,Continuum_Options,hidden,HIDE,Skin_Determination,#CURRENT#,RESTORE,DEM_Element_Type,SphericParticle3D,HIDE,General_Poisson_Ratio,#CURRENT#,HIDE,General_Friction,#CURRENT#,HIDE,General_Tension,#CURRENT#,HIDE,PARTICLE_COHESION,#CURRENT#,HIDE,PARTICLE_TENSION,#CURRENT#,HIDE,EXPORT_PARTICLE_FAILURE_ID,#CURRENT#,HIDE,EXPORT_SKIN_SPHERE,0,HIDE,LOCAL_CONTACT_FORCE,#CURRENT#,HIDE,REPRESENTATIVE_VOLUME,#CURRENT#,HIDE,MEAN_CONTACT_AREA,#CURRENT#,HIDE,STRESS_TENSOR,#CURRENT#,HIDE,CONTACT_FAILURE,#CURRENT#,HIDE,FAILURE_CRITERION_STATE,#CURRENT#,HIDE,UNIDIMENSIONAL_DAMAGE,#CURRENT#,HIDE,CONTACT_TAU,#CURRENT#,HIDE,CONTACT_SIGMA,#CURRENT#,HIDE,Failure_Criterion,#CURRENT#,HIDE,FSS_MPa,#CURRENT#,HIDE,Sigma_Max,#CURRENT#,HIDE,FTS_MPa,#CURRENT#,HIDE,Static_Friction,#CURRENT#,HIDE,LCS1_MPa,#CURRENT#,HIDE,YRC1,#CURRENT#,HIDE,LCS2_MPa,#CURRENT#,HIDE,YRC2,#CURRENT#)
+DEPENDENCIES: (ON,TITLESTATE,Continuum_Options,normal,RESTORE,Skin_Determination,#CURRENT#,RESTORE,DEM_Element_Type,SphericContinuumParticle3D,RESTORE,Failure_Criterion,#CURRENT#,RESTORE,FSS_MPa,#CURRENT#,RESTORE,Sigma_Max,#CURRENT#,RESTORE,FTS_MPa,#CURRENT#,RESTORE,Static_Friction,#CURRENT#,RESTORE,PARTICLE_TENSION,#CURRENT#,RESTORE,EXPORT_PARTICLE_FAILURE_ID,#CURRENT#,RESTORE,EXPORT_SKIN_SPHERE,#CURRENT#,RESTORE,LOCAL_CONTACT_FORCE,#CURRENT#,RESTORE,REPRESENTATIVE_VOLUME,#CURRENT#,RESTORE,MEAN_CONTACT_AREA,#CURRENT#,RESTORE,STRESS_TENSOR,#CURRENT#,RESTORE,CONTACT_FAILURE,#CURRENT#,RESTORE,FAILURE_CRITERION_STATE,#CURRENT#,RESTORE,UNIDIMENSIONAL_DAMAGE,#CURRENT#,RESTORE,CONTACT_TAU,#CURRENT#,RESTORE,CONTACT_SIGMA,#CURRENT#)
 QUESTION: Dempack#CB#(ON,OFF)
 VALUE: ON
 QUESTION: DEM_Element_Type#CB#(SphericParticle3D,SphericContinuumParticle3D,SphericSwimmingParticle3D,CylinderParticle2D,CylinderContinuumParticle2D)
@@ -67,7 +67,6 @@ QUESTION: Min_Z
 VALUE: -1.0
 QUESTION: Output_file_type#CB#(Binary,Ascii)
 VALUE: Binary
-DEPENDENCIES: (Binary,RESTORE,Multifile,#CURRENT#)(Ascii,HIDE,Multifile,#CURRENT#)
 QUESTION: Multifile#CB#(single_file,multiple_files)
 VALUE: single_file
 QUESTION: Model_Data_Info#CB#(ON,OFF)
@@ -97,7 +96,7 @@ VALUE: 0.01
 HELP:Absolute value in meters of the radius extensions for the search.
 QUESTION: Coordination_Number
 VALUE: 10.0
-HELP:Desired Coordination Number in the model
+HELP:Desired Coordination number in the model
 QUESTION: Fix_Velocities_At_Predetermined_Time#CB#(ON,OFF)
 VALUE: OFF
 DEPENDENCIES: (OFF,HIDE,Time_Step_Constrain_DOFs_Percentage,#CURRENT#,HIDE,Fix_Horizontal_Velocities,#CURRENT#)(ON,RESTORE,Time_Step_Constrain_DOFs_Percentage,#CURRENT#,RESTORE,Fix_Horizontal_Velocities,#CURRENT#)
@@ -134,7 +133,7 @@ VALUE: 1e-7
 QUESTION: Output_Time_Step
 VALUE: 2e-5
 QUESTION: Control_Time
-HELP:Refreshes screen output
+HELP: Refreshes screen output
 VALUE: 5.0
 
 
@@ -142,36 +141,36 @@ TITLE: Material_Model
 
 QUESTION: Normal_Force_Calculation#CB#(PlasticityAndDamage1D,Linear,Hertz,NonLinearDonze)
 VALUE: PlasticityAndDamage1D
-DEPENDENCIES: (Linear,HIDE,NCSTR1,#CURRENT#,HIDE,YNGRT1,#CURRENT#,HIDE,NCSTR2,#CURRENT#,HIDE,YNGRT2,#CURRENT#,HIDE,NCSTR3,#CURRENT#,HIDE,YNGRT3,#CURRENT#,HIDE,Gamma_1,#CURRENT#,HIDE,Gamma_2,#CURRENT#,HIDE,Gamma_3,#CURRENT#,HIDE,Max_Deformation,#CURRENT#,HIDE,Plastic_Young_Modulus_Ratio,#CURRENT#,HIDE,YIELDS,#CURRENT#,HIDE,AXIFRC,#CURRENT#)
-DEPENDENCIES: (Hertz,HIDE,NCSTR1,#CURRENT#,HIDE,YNGRT1,#CURRENT#,HIDE,NCSTR2,#CURRENT#,HIDE,YNGRT2,#CURRENT#,HIDE,NCSTR3,#CURRENT#,HIDE,YNGRT3,#CURRENT#,HIDE,Gamma_1,#CURRENT#,HIDE,Gamma_2,#CURRENT#,HIDE,Gamma_3,#CURRENT#,HIDE,Max_Deformation,#CURRENT#,HIDE,Plastic_Young_Modulus_Ratio,#CURRENT#,HIDE,YIELDS,#CURRENT#,HIDE,AXIFRC,#CURRENT#)
-DEPENDENCIES: (PlasticityAndDamage1D,RESTORE,NCSTR1,#CURRENT#,RESTORE,YNGRT1,#CURRENT#,RESTORE,NCSTR2,#CURRENT#,RESTORE,YNGRT2,#CURRENT#,RESTORE,NCSTR3,#CURRENT#,RESTORE,YNGRT3,#CURRENT#,HIDE,Gamma_1,#CURRENT#,HIDE,Gamma_2,#CURRENT#,HIDE,Gamma_3,#CURRENT#,HIDE,Max_Deformation,#CURRENT#,RESTORE,Plastic_Young_Modulus_Ratio,#CURRENT#,RESTORE,YIELDS,#CURRENT#,RESTORE,AXIFRC,#CURRENT#)
-DEPENDENCIES: (NonLinearDonze,RESTORE,Gamma_1,#CURRENT#,RESTORE,Gamma_2,#CURRENT#,RESTORE,Gamma_3,#CURRENT#,RESTORE,Max_Deformation,#CURRENT#,HIDE,NCSTR1,#CURRENT#,HIDE,YNGRT1,#CURRENT#,HIDE,NCSTR2,#CURRENT#,HIDE,YNGRT2,#CURRENT#,HIDE,NCSTR3,#CURRENT#,HIDE,YNGRT3,#CURRENT#,HIDE,Plastic_Young_Modulus_Ratio,#CURRENT#,HIDE,YIELDS,#CURRENT#,HIDE,AXIFRC,#CURRENT#)
-QUESTION: NCSTR1
-HELP:Coefficient that indicates the percentage of Sigma Max at which the stiffness changes for the first time.
+DEPENDENCIES: (Linear,HIDE,LCS1_MPa,#CURRENT#,HIDE,YRC1,#CURRENT#,HIDE,LCS2_MPa,#CURRENT#,HIDE,YRC2,#CURRENT#,HIDE,LCS3_MPa,#CURRENT#,HIDE,YRC3,#CURRENT#,HIDE,Gamma_1,#CURRENT#,HIDE,Gamma_2,#CURRENT#,HIDE,Gamma_3,#CURRENT#,HIDE,Max_Deformation,#CURRENT#,HIDE,YEP,#CURRENT#,HIDE,YIELD_MPa,#CURRENT#,HIDE,EDR,#CURRENT#)
+DEPENDENCIES: (Hertz,HIDE,LCS1_MPa,#CURRENT#,HIDE,YRC1,#CURRENT#,HIDE,LCS2_MPa,#CURRENT#,HIDE,YRC2,#CURRENT#,HIDE,LCS3_MPa,#CURRENT#,HIDE,YRC3,#CURRENT#,HIDE,Gamma_1,#CURRENT#,HIDE,Gamma_2,#CURRENT#,HIDE,Gamma_3,#CURRENT#,HIDE,Max_Deformation,#CURRENT#,HIDE,YEP,#CURRENT#,HIDE,YIELD_MPa,#CURRENT#,HIDE,EDR,#CURRENT#)
+DEPENDENCIES: (PlasticityAndDamage1D,RESTORE,LCS1_MPa,#CURRENT#,RESTORE,YRC1,#CURRENT#,RESTORE,LCS2_MPa,#CURRENT#,RESTORE,YRC2,#CURRENT#,RESTORE,LCS3_MPa,#CURRENT#,RESTORE,YRC3,#CURRENT#,HIDE,Gamma_1,#CURRENT#,HIDE,Gamma_2,#CURRENT#,HIDE,Gamma_3,#CURRENT#,HIDE,Max_Deformation,#CURRENT#,RESTORE,YEP,#CURRENT#,RESTORE,YIELD_MPa,#CURRENT#,RESTORE,EDR,#CURRENT#)
+DEPENDENCIES: (NonLinearDonze,RESTORE,Gamma_1,#CURRENT#,RESTORE,Gamma_2,#CURRENT#,RESTORE,Gamma_3,#CURRENT#,RESTORE,Max_Deformation,#CURRENT#,HIDE,LCS1_MPa,#CURRENT#,HIDE,YRC1,#CURRENT#,HIDE,LCS2_MPa,#CURRENT#,HIDE,YRC2,#CURRENT#,HIDE,LCS3_MPa,#CURRENT#,HIDE,YRC3,#CURRENT#,HIDE,YEP,#CURRENT#,HIDE,YIELD_MPa,#CURRENT#,HIDE,EDR,#CURRENT#)
+QUESTION: LCS1_MPa
+HELP:Tension at which the stiffness changes for the first time.
 VALUE: 0.15
-QUESTION: NCSTR2
-HELP:Coefficient that indicates the percentage of Sigma Max at which the stiffness changes for the second time.
+QUESTION: LCS2_MPa
+HELP:Tension at which the stiffness changes for the second time.
 VALUE: 0.25
-QUESTION: NCSTR3
-HELP:Coefficient that indicates the percentage of Sigma Max at which the stiffness changes for the third time.
+QUESTION: LCS3_MPa
+HELP:Tension at which the stiffness changes for the third time.
 VALUE: 0.3
-QUESTION: YNGRT1
-HELP:Coefficient that divides the initial stiffness when the percentage of Sigma Max indicated by NCSTR1 is reached.
+QUESTION: YRC1
+HELP:Divides the initial stiffness when LCS1_MPa is reached.
 VALUE: 3.0
-QUESTION: YNGRT2
-HELP:Coefficient that divides the initial stiffness when the percentage of Sigma Max indicated by NCSTR2 is reached.
+QUESTION: YRC2
+HELP:Divides the initial stiffness when LCS2_MPa is reached.
 VALUE: 7.0
-QUESTION: YNGRT3
-HELP:Coefficient that divides the initial stiffness when the percentage of Sigma Max indicated by NCSTR3 is reached.
+QUESTION: YRC3
+HELP:Divides the initial stiffness when LCS3_MPa is reached.
 VALUE: 15
-QUESTION: Plastic_Young_Modulus_Ratio
-HELP: Mpa, ratio of the unloading plastic young modulus with respect to the elastic young modulus.
+QUESTION: YEP
+HELP: ratio of the unloading plastic young modulus with respect to the elastic young modulus.
 VALUE: 1.0
-QUESTION: YIELDS
-HELP: Coefficient that indicates the percentage of Sigma Max at which the plastic yield is reached.
+QUESTION: YIELD_MPa
+HELP: Tension at which the plastic yield point is reached.
 VALUE: 0.5
-QUESTION: AXIFRC
-HELP: Ratio of the maximum extra damaged strain with respect to the elastic strain once this is reached. Value 0 is fragile failure. 
+QUESTION: EDR
+HELP: Ratio of the maximum extra damaged strain with respect to the elastic strain once this is reached. Value is 0 for fragile failure. 
 VALUE: 0.0
 
 
@@ -189,26 +188,29 @@ QUESTION: Normal_Contact_Damp#CB#(ViscDamp,NoDamp)
 VALUE: ViscDamp
 QUESTION: Tangential_Contact_Damp#CB#(ViscDamp,NoDamp)
 VALUE: NoDamp
-QUESTION: Dempack_Damping
+QUESTION: LDAMP
+HELP: Local damping
 VALUE: 0.9
-QUESTION: Dempack_Global_Damping
+QUESTION: GDAMP
+HELP: Global damping
 VALUE: 0.2
-QUESTION: Area_Factor
-VALUE: 1.25
+QUESTION: Alpha
+HELP: Contact area factor modifier.
+VALUE: 1.00
 QUESTION: Failure_Criterion#CB#(Mohr-Coulomb,Uncoupled)
 VALUE: Uncoupled
-QUESTION: TSTREN
-HELP:MPa
+QUESTION: FSS_MPa
+HELP:Tangential Strength
 VALUE: 15.0
 QUESTION: Sigma_Max
-HELP:MPa
 VALUE: 100
-QUESTION: NTSTR
-HELP:MPa
+STATE: HIDDEN
+QUESTION: FTS_MPa
+HELP:Tensile Strength
 VALUE: 3.20
-QUESTION: Internal_Friction
-HELP:Degrees
-VALUE: 35
+QUESTION: Static_Friction
+HELP:Material internal friction
+VALUE: 0.2
 
 #Rotation
 QUESTION: Rotation_Spring#CB#(ON,OFF)
@@ -332,7 +334,7 @@ QUESTION: Confinement_Pressure
 HELP:MPa
 VALUE: 0.0
 QUESTION: Total_Time_Percentage_As_Force_Aplication_Time
-HELP:A percentage of the total simulation time from the initial time linearly increassing the pressure from 0 to the especified value
+HELP:A percentage of the total simulation time from the initial time linearly increassing the pressure from 0 to the specified value
 VALUE: 15.0
 QUESTION: Monitoring_Option#CB#(ON,OFF)
 VALUE: OFF
