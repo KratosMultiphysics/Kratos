@@ -354,7 +354,9 @@ namespace Kratos
                                   double ElemSize,
                                   const ProcessInfo &rCurrentProcessInfo)
         {
-        const double yield = rCurrentProcessInfo.GetValue(YIELD_STRESS);
+        //const double yield = rCurrentProcessInfo.GetValue(YIELD_STRESS);
+        double yield;
+        this->EvaluateInPoint(yield,YIELD_STRESS,rN);
         double TotalViscosity = 0.0;
         this->EvaluateInPoint(TotalViscosity,VISCOSITY,rN);
        // TotalViscosity = MolecularViscosity;
@@ -365,7 +367,10 @@ namespace Kratos
             const double NormS = SymmetricGradientNorm(rDN_DX);
 
             //non newtonian case
-            const double mcoef = rCurrentProcessInfo.GetValue(M);
+            //const double mcoef = rCurrentProcessInfo.GetValue(BINGHAM_SMOOTHER);
+            double mcoef;
+            this->EvaluateInPoint(mcoef,BINGHAM_SMOOTHER,rN);
+            
             double aux_1 = 1.0 - exp(-(mcoef * NormS));
             if(NormS < 1.0/(1000.0*mcoef))
                 TotalViscosity += yield*mcoef;
