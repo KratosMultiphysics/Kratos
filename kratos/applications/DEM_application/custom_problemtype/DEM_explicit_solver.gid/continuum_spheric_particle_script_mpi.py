@@ -220,7 +220,11 @@ if(DEM_parameters.BtsOption == "ON"):
     bts_export = open(DEM_parameters.problem_name +"_bts_"+str(datetime.datetime.now())+".csv",'w');
 
 if (DEM_parameters.GraphOption =="ON"):
-  graph_export = open(DEM_parameters.problem_name + "_graph_" + str(datetime.datetime.now()) + ".csv", 'w');
+ 
+  graph_export_top = open("Provisional_TOP.csv", 'w');
+  graph_export_bot = open("Provisional_BOT.csv", 'w');
+  graph_export_mean = open("Provisional_MEAN.csv", 'w');
+      
   if (DEM_parameters.PoissonMeasure =="ON"):
     graph_export_poisson = open(DEM_parameters.problem_name + "_poisson_"+str(datetime.datetime.now())+".csv",'w');
 
@@ -405,7 +409,8 @@ while (time < DEM_parameters.FinalTime):
     os.chdir(data_and_results)
     
                                                                                                                                                                                                   
-    if( (DEM_parameters.ConcreteTestOption =="ON" ) and (DEM_parameters.TriaxialOption == "ON") and (Pressure != 0.0) and (step < 0.01*DEM_parameters.TotalTimePercentAsForceAplTime*total_steps_expected) ):
+    if( (DEM_parameters.ConcreteTestOption =="ON" ) and (DEM_parameters.TriaxialOption == "ON") and (Pressure != 0.0) ):
+       #and (step < 0.01*DEM_parameters.TotalTimePercentAsForceAplTime*total_steps_expected) )
         
         if( renew_pressure == 10):
           
@@ -415,7 +420,8 @@ while (time < DEM_parameters.FinalTime):
     
         renew_pressure += 1
     
-    total_force = 0.0
+    total_force_top = 0.0
+    total_force_bot = 0.0
     total_force_bts = 0.0
     
     if( DEM_parameters.BtsOption =="ON"):
