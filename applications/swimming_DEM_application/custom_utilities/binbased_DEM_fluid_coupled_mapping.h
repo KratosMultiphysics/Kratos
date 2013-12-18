@@ -9,7 +9,6 @@
 #define  KRATOS_BINBASED_DEM_FLUID_COUPLED_MAPPING
 
 // /* External includes */
-// #include "boost/smart_ptr.hpp"
 
 // System includes
 #include <string>
@@ -22,17 +21,10 @@
 #include "geometries/triangle_2d_3.h"
 #include "utilities/timer.h"
 
-// #include "geometries/tetrahedra_3d_4.h"
-
-//#include "PFEM_application.h"
-
 //Database includes
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
-
-//iNCLUDE THE DRAG UTILITIED TO CALCULATE THE SEEPAGE DRAG
-// #include "custom_utilities/drag_utilities.h"
 
 namespace Kratos
 {
@@ -461,7 +453,6 @@ private:
         xc = 0.3333333333333333333 * (x0 + x1 + x2);
         yc = 0.3333333333333333333 * (y0 + y1 + y2);
         zc = 0.0;
-
         double R1 = (xc - x0) * (xc - x0) + (yc - y0) * (yc - y0);
         double R2 = (xc - x1) * (xc - x1) + (yc - y1) * (yc - y1);
         double R3 = (xc - x2) * (xc - x2) + (yc - y2) * (yc - y2);
@@ -895,18 +886,23 @@ private:
             array_1d<double,3>& node1_drag = geom[1].FastGetSolutionStepValue(DRAG_REACTION, 0);
             array_1d<double,3>& node2_drag = geom[2].FastGetSolutionStepValue(DRAG_REACTION, 0);
             array_1d<double,3>& node3_drag = geom[3].FastGetSolutionStepValue(DRAG_REACTION, 0);
+
             const double fluid_fraction0   = 1 - geom[0].FastGetSolutionStepValue(SOLID_FRACTION, 0);
             const double fluid_fraction1   = 1 - geom[1].FastGetSolutionStepValue(SOLID_FRACTION, 0);
             const double fluid_fraction2   = 1 - geom[2].FastGetSolutionStepValue(SOLID_FRACTION, 0);
             const double fluid_fraction3   = 1 - geom[3].FastGetSolutionStepValue(SOLID_FRACTION, 0);
+
             const double& node0_volume     = geom[0].FastGetSolutionStepValue(NODAL_AREA, 0);
             const double& node1_volume     = geom[1].FastGetSolutionStepValue(NODAL_AREA, 0);
             const double& node2_volume     = geom[2].FastGetSolutionStepValue(NODAL_AREA, 0);
             const double& node3_volume     = geom[3].FastGetSolutionStepValue(NODAL_AREA, 0);
+
+
             const double& node0_density    = geom[0].FastGetSolutionStepValue(DENSITY, 0);
             const double& node1_density    = geom[1].FastGetSolutionStepValue(DENSITY, 0);
             const double& node2_density    = geom[2].FastGetSolutionStepValue(DENSITY, 0);
             const double& node3_density    = geom[3].FastGetSolutionStepValue(DENSITY, 0);
+
             const double node0_mass_inv    = mParticlesPerDepthDistance / (fluid_fraction0 * node0_volume * node0_density);
             const double node1_mass_inv    = mParticlesPerDepthDistance / (fluid_fraction1 * node1_volume * node1_density);
             const double node2_mass_inv    = mParticlesPerDepthDistance / (fluid_fraction2 * node2_volume * node2_density);
