@@ -1086,7 +1086,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             mN3 = r_process_info[SLOPE_FRACTION_N3];
             mC1 = r_process_info[SLOPE_LIMIT_COEFF_C1]*1e6;
             mC2 = r_process_info[SLOPE_LIMIT_COEFF_C2]*1e6;
-            mC3 = r_process_info[SLOPE_LIMIT_COEFF_C2]*1e6; 
+            mC3 = r_process_info[SLOPE_LIMIT_COEFF_C3]*1e6; 
             mYoungPlastic = r_process_info[YOUNG_MODULUS_PLASTIC];
             mPlasticityLimit = r_process_info[PLASTIC_YIELD_STRESS]*1e6;
             mDamageMaxDisplacementFactor = r_process_info[DAMAGE_FACTOR];
@@ -2000,6 +2000,21 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       double Ncstr3_el = mC3 * calculation_area;
       double Ntstr_el  = mTensionLimit * calculation_area;
 
+      if(this->Id()==1)
+      {
+      KRATOS_WATCH(mC1)
+      KRATOS_WATCH(mC2)
+      KRATOS_WATCH(mC3)
+      KRATOS_WATCH(mN1)
+      KRATOS_WATCH(mN2)
+      KRATOS_WATCH(mN3)
+      KRATOS_WATCH(mPlasticityLimit)
+      KRATOS_WATCH(mYoungPlastic)
+      KRATOS_WATCH(mTanContactInternalFriccion)
+      KRATOS_WATCH(mTensionLimit)
+
+      }
+      
       double u_max = mHistory[mapping_new_cont][0];
       
       double& fn = LocalElasticContactForce[2]; //[2] means 'normal' contact force
