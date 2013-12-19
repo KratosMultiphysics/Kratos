@@ -127,7 +127,10 @@ class SphericElementGlobalPhysicsCalculator
               ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-                  double particle_mass = (it)->GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
+                  //double particle_mass = (it)->GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
+                  double particle_mass                            = (it)->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
+                  particle_mass                                  *= particle_mass;
+                  
                   added_mass += particle_mass;
               }
 
@@ -153,7 +156,9 @@ class SphericElementGlobalPhysicsCalculator
               ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
               for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
-                  double particle_mass = (it)->GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
+                  //double particle_mass = (it)->GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
+                  double particle_mass                            = (it)->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
+                  particle_mass                                  *= particle_mass;
                   center_of_mass += particle_mass * (it)->GetGeometry()(0)->Coordinates();
               }
 
