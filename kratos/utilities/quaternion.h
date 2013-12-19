@@ -44,7 +44,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //   Project Name:        Kratos
 //   Last Modified by:    $Author: Massimo Petracca $
-//   Date:                $Date: 2013-09-18 22:43:00 $
+//   Date:                $Date: 2013-19-12 22:43:00 $
 //   Revision:            $Revision: 1.00 $
 //
 //
@@ -56,6 +56,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
 
+    /** \brief Quaternion
+	* A simple class that implements the main features of quaternion algebra
+	*/
 	template<class T>
 	class Quaternion
 	{
@@ -75,6 +78,10 @@ namespace Kratos
 
 		/**
 		Creates a Quaternion from its coefficients.
+		@param w w coefficient
+		@param x x coefficient
+		@param y y coefficient
+		@param z z coefficient
 		*/
 		Quaternion(T w, T x, T y, T z)
 			: mX(x)
@@ -86,6 +93,7 @@ namespace Kratos
 		
 		/**
 		Creates a Quaternion from another Quaternion.
+		@param other the other Quaternion
 		*/
 		Quaternion(const Quaternion& other)
 			: mX(other.mX)
@@ -97,6 +105,10 @@ namespace Kratos
 
 	public:
 		
+		/**
+		Copies a Quaternion.
+		@param other the other Quaternion
+		*/
 		Quaternion& operator= (const Quaternion& other)
 		{
 			if(this != &other) {
@@ -112,21 +124,25 @@ namespace Kratos
 
 		/**
 		Returns the X coefficient of this quaternion.
+		@return the X coefficient of this quaternion.
 		*/
 		inline const T x()const { return mX; }
 		
 		/**
 		Returns the Y coefficient of this quaternion.
+		@return the Y coefficient of this quaternion.
 		*/
 		inline const T y()const { return mY; }
 		
 		/**
 		Returns the Z coefficient of this quaternion.
+		@return the Z coefficient of this quaternion.
 		*/
 		inline const T z()const { return mZ; }
 		
 		/**
 		Returns the W coefficient of this quaternion.
+		@return the W coefficient of this quaternion.
 		*/
 		inline const T w()const { return mW; }
 		
@@ -135,6 +151,7 @@ namespace Kratos
 		/**
 		Returns the squared norm of this quaternion.
 		x*x + y*y + z*z + w*w
+		@return the squared norm of this quaternion.
 		*/
 		inline const T squaredNorm()const
 		{
@@ -144,6 +161,7 @@ namespace Kratos
 		/**
 		Returns the norm of this quaternion.
 		sqrt(x*x + y*y + z*z + w*w)
+		@return the norm of this quaternion.
 		*/
 		inline const T norm()const
 		{
@@ -168,6 +186,7 @@ namespace Kratos
 		
 		/**
 	    Returns the Conjugate of this Quaternion, which represents the opposite rotation
+		@return the Conjugate of this Quaternion
 		*/
 		inline Quaternion conjugate()const
 		{
@@ -184,6 +203,7 @@ namespace Kratos
 		This means that the input matrix is a C-Style 3x3 Matrix.
 		All the 9 coefficients are properly set so there's no need to set the matrix to Zero
 		before calling this function.
+		@param R the output rotation matrix
 		*/
 		template<class TMatrix3x3>
 		inline void ToRotationMatrix(TMatrix3x3& R)const
@@ -203,6 +223,9 @@ namespace Kratos
 		
 		/**
 		Extracts the Rotation Vector (Euler Angles) from this Quaternion
+		@param rx the output x component if the rotation vector
+		@param ry the output y component if the rotation vector
+		@param rz the output z component if the rotation vector
 		*/
 		inline void ToRotationVector(T& rx, T& ry, T& rz)const
 		{
@@ -245,6 +268,7 @@ namespace Kratos
 		The following assumptions are made:
 		The vector type should provide indexing like vector(i) where i goes from 0 to 2.
 		(i.e. a C-Style vector of size 3)
+		@param v the output rotation vector
 		*/
 		template<class TVector3>
 		inline void ToRotationVector(TVector3& v)const
@@ -260,6 +284,8 @@ namespace Kratos
 		The following assumptions are made:
 		The vector type should provide indexing like vector(i) where i goes from 0 to 2.
 		(i.e. a C-Style vector of size 3)
+		@param a the input source vector
+		@param b the output rotated vector
 		*/
 		template<class TVector3_A, class TVector3_B>
 		inline void RotateVector3(const TVector3_A& a, TVector3_B& b)const
@@ -270,9 +296,9 @@ namespace Kratos
 			b(2) = 2.0 * (mX * a(1) - mY * a(0));
 
 			// c = cross( this->VectorialPart, b )
-			T c0 = mY * a(2) - mZ * a(1);
-			T c1 = mZ * a(0) - mX * a(2);
-			T c2 = mX * a(1) - mY * a(0);
+			T c0 = mY * b(2) - mZ * b(1);
+			T c1 = mZ * b(0) - mX * b(2);
+			T c2 = mX * b(1) - mY * b(0);
 
 			// set results
 			b(0) = a(0) + b(0)*mW + c0;
@@ -284,6 +310,7 @@ namespace Kratos
 		
 		/**
 		Returns the Identity Quaternion (i.e. a Quaternion that represents a Zero rotation)
+		@return the Identity Quaternion
 		*/
 		static inline Quaternion Identity()
 		{
@@ -292,6 +319,11 @@ namespace Kratos
 		
 		/**
 		Returns a Quaternion that represents a rotation of an angle 'radians' around the axis (x, y, z)
+		@param x the x component of the rotation axis
+		@param y the y component of the rotation axis
+		@param z the z component of the rotation axis
+		@param radians the rotation angle in radians
+		@return a Quaternion that represents a rotation of an angle 'radians' around the axis (x, y, z)
 		*/
 		static inline Quaternion FromAxisAngle(T x, T y, T z, T radians)
 		{
@@ -319,6 +351,10 @@ namespace Kratos
 
 		/**
 		Returns a Quaternion from 3 Euler Angles
+		@param rx the x component of the source rotation vector
+		@param ry the y component of the source rotation vector
+		@param rz the z component of the source rotation vector
+		@return a Quaternion from 3 Euler Angles
 		*/
 		static inline Quaternion FromRotationVector(T rx, T ry, T rz)
 		{
@@ -347,6 +383,8 @@ namespace Kratos
 		The following assumptions are made:
 		The vector type should provide indexing like vector(i) where i goes from 0 to 2.
 		(i.e. a C-Style vector of size 3)
+		@param v the source rotation vector
+		@return a Quaternion from 3 Euler Angles
 		*/
 		template<class TVector3>
 		static inline Quaternion FromRotationVector(const TVector3& v)
@@ -362,6 +400,8 @@ namespace Kratos
 		The matrix should provide an indexed access like m(i, j) where i and j are indices
 		from 0 to 2.
 		This means that the input matrix is a C-Style 3x3 Matrix.
+		@param m the source rotation matrix
+		@return a Quaternion from a Rotation Matrix
 		*/
 		template<class TMatrix3x3>
 		static inline Quaternion FromRotationMatrix(const TMatrix3x3 & m)
@@ -424,6 +464,9 @@ namespace Kratos
 	/**
 	Performs a Quaternion-Quaternion product and returns the concatenation
 	of the two input quaternions (i.e. the compound rotation)
+	@param a the first quaternion
+	@param b the second quaternion
+	@return the compound quaternion
 	*/
 	template<class T>
 	inline Quaternion<T> operator* (const Quaternion<T>& a, const Quaternion<T>& b)
