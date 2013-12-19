@@ -1071,7 +1071,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
          mFailureCriterionOption        = r_process_info[FAILURE_CRITERION_OPTION];
 
          mTensionLimit                  = r_process_info[CONTACT_SIGMA_MIN]*1e6; //N/m2
-         mCompressionLimit              = r_process_info[CONTACT_SIGMA_MAX]*1e6;
          mTauZero                       = r_process_info[CONTACT_TAU_ZERO]*1e6;                             
    
          mInitializedVariablesFlag = 1;
