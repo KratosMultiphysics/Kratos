@@ -255,10 +255,13 @@ w_dynfrc = DEM_parameters.w_dynfrc
 w_young = DEM_parameters.w_young
 w_poiss = DEM_parameters.w_poiss
 
-print("This chart is only valid for one material case" + '\n')
 
-if(DEM_parameters.Dempack):
+os.chdir(graphs_path)
+
+if(DEM_parameters.Dempack and (DEM_parameters.GraphOption =="ON")):
   
+  print("This chart is only valid for one material case" + '\n')
+
   chart.write(("*********PARAMETERS*******************")+'\n')
   chart.write( "*                                    *" +'\n')
   chart.write( "*      DENSI         = " + (str(w_densi))+"          *"+'\n')
@@ -283,13 +286,12 @@ if(DEM_parameters.Dempack):
   chart.write( "*      ALPHA         = " + (str(DEM_parameters.AreaFactor))+"           *" +'\n')
   chart.write( "**************************************" +'\n')
 
-os.chdir(graphs_path)
-
-chart.close()
-a_chart = open("Provisional_CHART.txt","r")
+  chart.close()
+  a_chart = open("Provisional_CHART.txt","r")
   
-for line in a_chart.readlines():
-  print(line)
+  for line in a_chart.readlines():
+    print(line)
+  a_chart.close()
   
 
 #------------------------------------------------------------------------------------------
@@ -600,7 +602,7 @@ if (DEM_parameters.GraphOption =="ON"):
   graph_export_top.close()
   graph_export_bot.close()
   graph_export_mean.close()
-  chart.close()
+
   
 if(DEM_parameters.BtsOption == "ON"):
   bts_export.close()
