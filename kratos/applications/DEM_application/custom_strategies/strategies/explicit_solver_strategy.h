@@ -236,6 +236,7 @@ namespace Kratos
           
            // 5. Finalize Solution Step.
           FinalizeSolutionStep();
+                    
 
       KRATOS_CATCH("")
       }// Initialize()
