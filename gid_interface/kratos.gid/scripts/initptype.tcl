@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.5-03/11/13-G. Socorro, add a call to the proc AssignSpecialBoundaries for the special case of DEM application
 #     1.4-09/10/13-G. Socorro, add two new script file wkcfconvectiondiffusion.tcl wkcfdem.tcl
 #     1.3-19/09/13-G. Socorro, modify the proc BeforeMeshGeneration to assign automatically triangle or quadrilateral element to the skin surfaces
 #     1.2-18/06/13-G. Socorro, delete the proc kipt::NewGiDGroups
@@ -136,6 +137,9 @@ proc kipt::BeforeMeshGeneration { elementsize } {
         # Assign the boundary condition
         ::wkcf::AssignConditionToGroupGID $entitytype $blinelist $groupid     
    
+	# Special case of DEM 
+	::wkcf::AssignSpecialBoundaries $ndime $blinelist
+
     } elseif { $ndime =="3D" } { 
       
         # Align the normal
@@ -166,7 +170,11 @@ proc kipt::BeforeMeshGeneration { elementsize } {
 	    # Automatically meshing all the boundary surfaces
 	    GiD_Process Mescape Meshing MeshCriteria Mesh Surfaces {*}$hexasurf escape 
         }
-        ::wkcf::AssignConditionToGroupGID $entitytype $bsurfacelist $groupid        
+        ::wkcf::AssignConditionToGroupGID $entitytype $bsurfacelist $groupid   
+
+
+	# Special case of DEM 
+	::wkcf::AssignSpecialBoundaries $ndime $bsurfacelist
     }
 }  
 
@@ -521,6 +529,10 @@ proc kipt::SelectGIDBatFile { directory basename } {
         set cxpath "$rootid//c.AnalysisData//i.FreeSurface"
         set FreeSurface [::xmlutils::setXml $cxpath $cproperty]
         
+	# Get the fluid approach
+	set cxpath "$rootid//c.AnalysisData//i.FluidApproach"
+	set FluidApproach [::xmlutils::setXml $cxpath $cproperty]
+
         # Solver type for free surface
         set cxpath "$rootid//c.AnalysisData//i.SolverTypeFreeSurf"
         set SolverTypeFreeSurf [::xmlutils::setXml $cxpath $cproperty]
