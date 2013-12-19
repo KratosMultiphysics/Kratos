@@ -171,10 +171,11 @@ namespace Kratos
 		if (CurrentProcessInfo[VIRTUAL_MASS_OPTION])
 		{
 	
-          double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
+          //double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
           double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 		  
-		  mass  = mYoung * M_PI * mRadius; 
+		  double mass  = mYoung * M_PI * mRadius; 
+                  GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS) = sqrt(mass);
 		  
 		  if(mRotationOption)
 		  {
