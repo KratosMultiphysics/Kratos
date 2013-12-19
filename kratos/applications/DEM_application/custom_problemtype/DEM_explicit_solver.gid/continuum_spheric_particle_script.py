@@ -273,7 +273,7 @@ if(DEM_parameters.Dempack):
   chart.write( "*      YRC1          = " + (str(DEM_parameters.N1))+"           *" +'\n')
   chart.write( "*      YRC2          = " + (str(DEM_parameters.N2))+"           *" +'\n')
   chart.write( "*      YRC3          = " + (str(DEM_parameters.N3))+"          *" +'\n')
-  chart.write( "*      NG            = " + (str(7/6*2.0*(1.0+w_poiss)))+"           *" +'\n')
+  chart.write( "*      NG            = " + (str(7.0/6.0*2.0*(1.0+w_poiss)))+"           *" +'\n')
   chart.write( "*      FSS           = " + (str(DEM_parameters.TauZero))+"          *" +'\n')
   chart.write( "*      YEP           = " + (str(DEM_parameters.PlasticYoungModulus))+" *" +'\n')
   chart.write( "*      YIELD         = " + (str(DEM_parameters.PlasticYieldStress))+"          *" +'\n')
