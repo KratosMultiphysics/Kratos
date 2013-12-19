@@ -52,7 +52,7 @@ def AddVariables(model_part, Param):
     # OTHER PROPERTIES
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
     model_part.AddNodalSolutionStepVariable(PARTICLE_CONTINUUM)  # Continuum group
-    model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
+#    model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
     model_part.AddNodalSolutionStepVariable(MAX_INDENTATION)
     model_part.AddNodalSolutionStepVariable(PARTICLE_SPHERICITY)  #MA: this is added temporarily until inlet becomes a process
 
