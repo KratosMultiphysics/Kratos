@@ -363,7 +363,7 @@ class ExplicitStrategy:
             self.N1                         = Param.N1
             self.N2                         = Param.N2
             self.N3                         = Param.N3
-            self.plastic_young_modulus_ratio= Param.PlasticYoungModulusRatio
+            self.plastic_young_modulus_ratio= Param.PlasticYoungModulus
             self.plastic_yield_stress       = Param.PlasticYieldStress
             self.damage_deformation_factor  = Param.DamageDeformationFactor
 
@@ -404,7 +404,6 @@ class ExplicitStrategy:
             self.failure_criterion_option   = 2
 
         self.tau_zero                       = Param.TauZero
-        self.sigma_max                      = Param.SigmaMax
         self.sigma_min                      = Param.SigmaMin
         self.internal_fricc                 = Param.InternalFriction
         
@@ -594,7 +593,6 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(CONTACT_MESH_OPTION, self.contact_mesh_option)
 
         self.model_part.ProcessInfo.SetValue(FAILURE_CRITERION_OPTION, self.failure_criterion_option)
-        self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MAX, self.sigma_max)
         self.model_part.ProcessInfo.SetValue(CONTACT_SIGMA_MIN, self.sigma_min)
         self.model_part.ProcessInfo.SetValue(CONTACT_TAU_ZERO, self.tau_zero)
         self.model_part.ProcessInfo.SetValue(CONTACT_INTERNAL_FRICC, self.internal_fricc)
