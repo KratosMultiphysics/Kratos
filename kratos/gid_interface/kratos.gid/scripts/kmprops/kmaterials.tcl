@@ -12,9 +12,10 @@
 #
 #        HISTORY:
 #
-#   1.9- 17/07/13-G. Socorro, modify the proc FillTreeMat to take into account the current state of the property (normal,hidden or disabled)
-#   1.8- 15/07/13-G. Socorro, create a local variable createframeafteredit to disable/enable the bottom frame creation after rename a material
-#   1.7- 15/07/13-G. Socorro, update the proc insertXml and insertXmlCopy
+#        2.0- 31/10/13-G. Socorro, correct some ::KMat:: namespace scope problems
+#        1.9- 17/07/13-G. Socorro, modify the proc FillTreeMat to take into account the current state of the property (normal,hidden or disabled)
+#        1.8- 15/07/13-G. Socorro, create a local variable createframeafteredit to disable/enable the bottom frame creation after rename a material
+#        1.7- 15/07/13-G. Socorro, update the proc insertXml and insertXmlCopy
 #        1.6- 11/07/13-G. Socorro, correct the bug in the proc splitNode from the last Adrià modification
 #        1.5- 20/09/12-J. Garate, Minor bug fixing, 
 #        1.4- 24/07/12-J. Garate, Minor bug fixing, function comments 
@@ -602,7 +603,7 @@ proc ::KMat::buildTabFrame { T item f {class "Tab"} } {
 		
 		
 		# Si pulsan Esc también forzamos la salida del Tab
-		bind $T <Return> [list KMat::Tree_Return]
+		bind $T <Return> [list ::KMat::Tree_Return]
 
 		incr row 1
 
@@ -928,15 +929,15 @@ proc ::KMat::Combos {node row framePath} {
 }
 
 proc ::KMat::Combobox_Escape { item T } {
-    KMat::cmbCancel $item $T
+    ::KMat::cmbCancel $item $T
 }
 
 proc ::KMat::Combobox_Return { item T } {
-    KMat::cmbSelectChange $item $T 1 
+    ::KMat::cmbSelectChange $item $T 1 
 }
 
 proc ::KMat::Combobox_FocusOut { item T } {
-    KMat::cmbSelectChange $item $T 0
+    ::KMat::cmbSelectChange $item $T 0
 }
 
 proc ::KMat::buildFrame { T item } {
@@ -977,11 +978,11 @@ proc ::KMat::buildFrame { T item } {
 		    grid [ttk::combobox $f.cmb -state normal -textvariable ::KMat::cmb$idFull] \
 		        -row 0 -column 0 -padx 3 -sticky nw -in $f
 		    set ::KMat::cmb$idFull $value
-		    bind $f.cmb <FocusOut> [list KMat::Combobox_FocusOut $item $T]
-		    bind $f.cmb <Escape> [list KMat::Combobox_Escape $item $T]
+		    bind $f.cmb <FocusOut> [list ::KMat::Combobox_FocusOut $item $T]
+		    bind $f.cmb <Escape> [list ::KMat::Combobox_Escape $item $T]
 		}
 		# Si pulsan intro o Esc también forzamos la salida del combo (por probar)
-		bind $f.cmb <Return> [list KMat::Combobox_Return $item $T]
+		bind $f.cmb <Return> [list ::KMat::Combobox_Return $item $T]
 
 		return $f                  
 	} elseif { [::KMProps::itemType $fullname] == "c"} {
