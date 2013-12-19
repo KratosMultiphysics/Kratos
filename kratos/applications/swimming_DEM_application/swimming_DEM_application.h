@@ -21,19 +21,15 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_application.h"
-
 #include "includes/variables.h"
+#include "custom_elements/monolithic_dem_coupled.h"
 
 namespace Kratos
 {
-  //
-  KRATOS_DEFINE_VARIABLE(double, AUX_DOUBLE_VAR) //SALVA
-  //KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_GRADIENT) //SALVA   
+  KRATOS_DEFINE_VARIABLE(double, AUX_DOUBLE_VAR)
   KRATOS_DEFINE_VARIABLE(double, POWER_LAW_N)
   KRATOS_DEFINE_VARIABLE(double, POWER_LAW_K)
   KRATOS_DEFINE_VARIABLE(double, GEL_STRENGTH)
-  //
-    
 
 class KratosSwimmingDEMApplication : public KratosApplication
 {
@@ -42,7 +38,7 @@ public:
     ///@{
 
 
-    /// Pointer definition of KratosDEMSpheresApplication
+    /// Pointer definition of KratosSwimmingDEMApplication
     KRATOS_CLASS_POINTER_DEFINITION(KratosSwimmingDEMApplication);
 
     ///@}
@@ -159,8 +155,10 @@ protected:
 private:
     ///@name Static Member Variables
     ///@{
-    //const SphericParticle mSphericParticle2D;
-
+    /// 2D instance of the VMS element
+    const MonolithicDEMCoupled<2> mMonolithicDEMCoupled2D;
+    /// 3D instance of the VMS element
+    const MonolithicDEMCoupled<3> mMonolithicDEMCoupled3D;
 
     //const DEM_FEM_Particle mDEM_FEM_Particle2D;
     const VariablesList mVariablesList;
