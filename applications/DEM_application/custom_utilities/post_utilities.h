@@ -153,7 +153,9 @@ public:
               {
                 
                 particle_forces  = geom(0)->FastGetSolutionStepValue(TOTAL_FORCES);
-                double mass = geom(0)->FastGetSolutionStepValue(NODAL_MASS);
+                //double mass = geom(0)->FastGetSolutionStepValue(NODAL_MASS);
+                double mass                            = geom(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
+                mass                                  *= mass;
                 
                 
                 particle_forces[0] += mass * gravity[0];
