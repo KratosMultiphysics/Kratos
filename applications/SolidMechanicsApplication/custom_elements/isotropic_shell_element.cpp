@@ -18,6 +18,7 @@
 #include "custom_utilities/solid_mechanics_math_utilities.hpp"
 #include "solid_mechanics_application.h"
 
+
 namespace Kratos
 {
 
@@ -986,8 +987,6 @@ void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<Matrix >
         loc2 = 0.33333333333333;
         loc3 = 0.33333333333333;
 
-
-
         double beta0 = 1.5; //note that this is just for stress evaluation!
         CalculateMembraneB(mBm, beta0,  loc1, loc2, loc3, x12, x23, x31, y12, y23, y31 );
 
@@ -1000,18 +999,44 @@ void IsotropicShellElement::CalculateOnIntegrationPoints(const Variable<Matrix >
         noalias(local_strain) = prod(trans(mBm),local_disp);
         noalias(local_stress) = prod(mEm,local_strain);
 
-        //rotating the stress to global coordinates
-        AddVoigtTensorComponents(local_stress[0],rotated_stress,v1,v1);
-        AddVoigtTensorComponents(local_stress[1],rotated_stress,v2,v2);
+		if(rVariable == CAUCHY_STRESS_TENSOR)
+		{
+			// rotate the local system to the material one for output purposes
+			Matrix LocalStressTensor(3, 3, 0.0);
+			LocalStressTensor(0,0) = local_stress(0);
+			LocalStressTensor(1,1) = local_stress(1);
+			LocalStressTensor(0,1) = local_stress(2);
+			LocalStressTensor(1,0) = local_stress(2);
 
-        AddVoigtTensorComponents(local_stress[2],rotated_stress,v1,v2);
-        AddVoigtTensorComponents(local_stress[2],rotated_stress,v2,v1);
+			double cc = std::cos(mOrientationAngle);
+			double ss = std::sin(mOrientationAngle);
+			Matrix R(3, 3, 0.0);
+			R(2,2) = 1.0;
+			R(0,0) =  cc; R(0,1) = -ss;
+			R(1,0) =  ss; R(1,1) =  cc;
+		
+			Matrix& globalStressTensor = Output[0];
+			if(globalStressTensor.size1() != 3 || globalStressTensor.size2() != 3)
+				globalStressTensor.resize(3,3,false);
+			LocalStressTensor = prod(LocalStressTensor, R);
+			noalias(globalStressTensor) = prod(trans(R), LocalStressTensor);
+		}
+		else
+		{
+			//rotating the stress to global coordinates
+			AddVoigtTensorComponents(local_stress[0],rotated_stress,v1,v1);
+			AddVoigtTensorComponents(local_stress[1],rotated_stress,v2,v2);
 
-        if(Output[0].size2() != 6)
-            Output[0].resize(1,6,false);
+			AddVoigtTensorComponents(local_stress[2],rotated_stress,v1,v2);
+			AddVoigtTensorComponents(local_stress[2],rotated_stress,v2,v1);
 
-        for(unsigned int ii = 0; ii<rotated_stress.size(); ii++)
-            Output[0](0,ii) = rotated_stress[ii];
+			/*if(Output[0].size2() != 6)
+				Output[0].resize(1,6,false);
+
+			for(unsigned int ii = 0; ii<rotated_stress.size(); ii++)
+				Output[0](0,ii) = rotated_stress[ii];*/
+			Output[0] = MathUtils<double>::StressVectorToTensor(rotated_stress);
+		}
 
     }
 
@@ -1857,6 +1882,53 @@ void IsotropicShellElement::InvertMatrix(const boost::numeric::ublas::bounded_ma
 
 //************************************************************************************
 //************************************************************************************
+void IsotropicShellElement::SetupOrientationAngles()
+{
+	array_1d<double,3> v1;
+    array_1d<double,3> v2;
+    array_1d<double,3> normal;
+    double x12, x23, x31, y12, y23, y31;
+    double A;
+
+    CalculateLocalGlobalTransformation( x12, x23, x31, y12, y23, y31,v1,v2,normal,A);
+
+	array_1d<double,3> dZ;
+    dZ(0) = 0.0; 
+    dZ(1) = 0.0; 
+    dZ(2) = 1.0; // for the moment let's take this. But the user can specify its own triad! TODO
+
+	array_1d<double,3> dirX;
+    MathUtils<double>::CrossProduct(dirX,   dZ, normal);
+
+	// try to normalize the local x direction, otherwise chose the default one( global X )
+	double dirX_norm( dirX(0)*dirX(0) + dirX(1)*dirX(1) + dirX(2)*dirX(2) );
+	if(dirX_norm == 0.0) {
+		dirX(0) = 1.0; 
+        dirX(1) = 0.0; 
+        dirX(2) = 0.0;
+	}
+	else if(dirX_norm != 1.0) {
+		dirX_norm = std::sqrt(dirX_norm);
+		dirX /= dirX_norm;
+	}
+
+	// now calculate the angle in radians between the element x direction (as per element convention)
+	// and the material local x direction
+	double a_dot_b = v1(0)*dirX(0) + v1(1)*dirX(1) + v1(2)*dirX(2);
+	if(a_dot_b > 1.0)
+		a_dot_b = 1.0;
+	else if(a_dot_b < -1.0)
+		a_dot_b = -1.0;
+	mOrientationAngle = std::acos( a_dot_b );
+
+	// reverse it if the two vectors are not counter-clock-wise
+	if( (v1(1)*dirX(2)-dirX(1)*v1(2) - (v1(0)*dirX(2)-dirX(0)*v1(2)) + v1(0)*dirX(1)-dirX(0)*v1(1)) < 0.0 )
+		mOrientationAngle = -mOrientationAngle;
+}
+
+
+//************************************************************************************
+//************************************************************************************
 void IsotropicShellElement::Initialize()
 {
     KRATOS_TRY
@@ -1874,6 +1946,8 @@ void IsotropicShellElement::Initialize()
     noalias(rot_oldit[0]) = GetGeometry()[0].FastGetSolutionStepValue(ROTATION);
     noalias(rot_oldit[1]) = GetGeometry()[1].FastGetSolutionStepValue(ROTATION);
     noalias(rot_oldit[2]) = GetGeometry()[2].FastGetSolutionStepValue(ROTATION);
+
+	this->SetupOrientationAngles(); 
 
     KRATOS_CATCH( "" )
 }

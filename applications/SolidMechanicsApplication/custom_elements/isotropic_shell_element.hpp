@@ -194,6 +194,9 @@ private:
 
     array_1d< array_1d<double,3>, 3> rot_oldit;
 
+	double mOrientationAngle;
+
+
     ///@}
     ///@name Private Operators
     ///@{
@@ -444,6 +447,9 @@ private:
         boost::numeric::ublas::bounded_matrix<double,3,3>& InvertedMatrix,
         double& InputMatrixDet
     );
+
+	void SetupOrientationAngles();
+
 
     ///@}
     ///@name Private Operations
