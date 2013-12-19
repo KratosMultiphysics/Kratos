@@ -182,6 +182,7 @@ namespace Kratos
         double CalculateShahsTerm(double PowerLawN,double PowerLawK, double PowerLawTol, const double& ParticleDensity, const double& FluidDensity, double Sphericity, int DragModifier);
         double ComputeGanserDragCoefficient(const double& norm_of_slip_vel, const double fluid_density, ProcessInfo& rCurrentProcessInfo);
         void ComputeGanserParameters(const int isometric_shape, const double sphericity, const double dn, double& k_1, double& k_2);
+        double ComputeSaffmanLiftCoefficient(const double& norm_of_slip_vel, const double fluid_density, const double norm_of_shear_rate, const double vorticity_norm, ProcessInfo& rCurrentProcessInfo);
       ///@name Static Member Variables
       ///@{
 
