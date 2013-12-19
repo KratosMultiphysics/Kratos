@@ -813,19 +813,21 @@ proc ::KMProps::checkMaterials { materialId {editName ""} } {
     
     global KPriv
     
-    #Recorremos el xml
+    # Recorremos el xml
     set nodes [$KPriv(xml) getElementsByTagName "Item"]
     
     foreach node $nodes {
-	
-	#Si encuentra el grupo intenta borrar el nodo y su descendencia
+	# wa "GCV:[$node getAttribute GCV ""]"
+	# Si encuentra el grupo intenta borrar el nodo y su descendencia
 	if { [$node getAttribute GCV ""] == "Materials" } {
+	    # wa "id:[$node getAttribute id ""]\ndv:[$node getAttribute dv ""]"
 	    if { [$node getAttribute dv ""] == $materialId } {
 		$node setAttribute dv $editName
 	    }
 	}
     }
     
+    # Refresh the tree
     ::KMProps::RefreshTree
 }
 
