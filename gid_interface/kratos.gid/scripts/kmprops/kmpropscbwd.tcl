@@ -13,6 +13,7 @@
 #
 #  HISTORY:
 #
+#   1.0- 07/10/13-GSM, enable/disable DEM and convection-diffusion application
 #   0.9- 18/06/13-GSM, delete the use of the proc kipt::NewGiDGroups 
 #   0.8- 06/05/13-G. Socorro, add the option to work with the cross section properties (simple property or database)
 #                             - modify and update some procedures
@@ -292,7 +293,7 @@ proc ::KMProps::cmbCancel { item T  } {
 
 proc ::KMProps::cmbSelectChange { item T {remove 1} {selectVal "current"} } {
     
-    # WarnWin "cmbselectChange $remove"
+    # WarnWin "cmbselectChange remove:$remove selectVal:$selectVal"
     set refresh 0
     set fullname [DecodeName [$T item tag names $item]]
     set idFull [string map { "." "" "//" ""} $fullname]
@@ -300,7 +301,7 @@ proc ::KMProps::cmbSelectChange { item T {remove 1} {selectVal "current"} } {
     set id [::xmlutils::setXml $fullname id]
     
     set comboState [::xmlutils::getComboBoxState $fullname]
-    # wa "fullname:$fullname idFull:$idFull id:$id"
+    # wa "comboState:$comboState fullname:$fullname idFull:$idFull id:$id"
     if { $comboState == "normal" } {
 	
 	# Si han pulsado el combo en modo editar no tiene que hacer nada (antes desaparecía)
@@ -330,7 +331,7 @@ proc ::KMProps::cmbSelectChange { item T {remove 1} {selectVal "current"} } {
 	    set ::KMProps::lastSelected {}
 	}
     }
-    
+    # wa "selCombo:$selCombo selComboText:$selComboText"
     if {$id == "Ax" || $id == "Ay" || $id == "Az"} { 
 	
 	set whatDisable [string map {A V} $id]
@@ -455,8 +456,9 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
     
     global KPriv 
 
-    # Variable used to disabked the FSI
+    # Variable used to disabled the FSI
     set disabledFSI 1
+
     # wa "clase:$clase selCombo:$selCombo item:$item id:$id"
     if { $clase == "application" } {
 	
@@ -469,9 +471,25 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
 	    set parentId [::xmlutils::setXml $fullParent id]
 	    set applications [::xmlutils::setXmlContainerIds $fullParent "Item"]
 	    foreach aplicId $applications {
+		# wa "aplicId:$aplicId id.$id"
 		if { $aplicId != $id } {
-		    ::xmlutils::setXml "${fullParent}//i.[list ${aplicId}]" dv "write" "No"
-		    ::xmlutils::setXml "$aplicId" state "write" "hiddenAll"
+		    # Check the spacial case of DEM
+		    if {$id eq "DEM"} {
+			# Check for the case of fluid
+			if {$aplicId ne "Fluid"} {
+			    ::xmlutils::setXml "${fullParent}//i.[list ${aplicId}]" dv "write" "No"
+			    ::xmlutils::setXml "$aplicId" state "write" "hiddenAll"
+			}
+		    } elseif {$id eq "Fluid"} {
+			# Check for the case of DEM
+			if {$aplicId ne "DEM"} {
+			    ::xmlutils::setXml "${fullParent}//i.[list ${aplicId}]" dv "write" "No"
+			    ::xmlutils::setXml "$aplicId" state "write" "hiddenAll"
+			}
+		    } else {
+			::xmlutils::setXml "${fullParent}//i.[list ${aplicId}]" dv "write" "No"
+			::xmlutils::setXml "$aplicId" state "write" "hiddenAll"
+		    }
 		}
 	    }
 	    
@@ -491,6 +509,9 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
 		    ::xmlutils::setXml "PFEM" state "write" "hiddenAll"
 		    ::xmlutils::setXml "PFEM" open "write" 0
 		    
+		    ::xmlutils::setXml "ConvectionDiffusion" state "write" "hiddenAll"
+		    ::xmlutils::setXml "ConvectionDiffusion" open "write" 0
+
 		    # Forzamos el tipo de fluido a "Incompressible"
 		    set fluidType [::xmlutils::setXml "Fluid//c.AnalysisData//i.FluidType" dv]
 		    if { $fluidType == "Compressible"} {
@@ -520,6 +541,7 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
 		    ::xmlutils::setXml "StructuralAnalysis" state "write" "hiddenAll"
 		    ::xmlutils::setXml "Fluid" state "write" "hiddenAll"
 		    ::xmlutils::setXml "PFEM" state "write" "hiddenAll"
+		    ::xmlutils::setXml "ConvectionDiffusion" state "write" "hiddenAll"
 		}
 	    } else {
 		::xmlutils::setXml "$id" state "write" "hiddenAll"
@@ -528,8 +550,9 @@ proc ::KMProps::specialComboAction { T clase selCombo item id } {
 	}
     }
     
+    # WarnWin "selCombo:$selCombo"
     foreach var $::KMProps::visibilityVars {
-        # msg "var $var"
+	# wa "var $var"
         if {$var == $clase} {
             
             # General case

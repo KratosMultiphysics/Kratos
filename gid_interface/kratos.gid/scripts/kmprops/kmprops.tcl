@@ -139,6 +139,8 @@ proc ::KMProps::initVisibilityClass { } {
 	lappend visibilityVars $classid
 	set ::KMProps::${classid} ""
     }
+    
+    # wa "visibilityVars:$visibilityVars\nkinemtype:[info exists ::KMProps::kinemType]"
 }
 
 #---------------------------------------------------------------------------------------------- 
@@ -149,43 +151,43 @@ proc ::KMProps::FillTreeProps { } {
 	variable TreePropsPath
 	
 	set T $TreePropsPath
-	
+
 	# Seleccionamos todos los nodos del primer nivel
 	set nodes [$::KPriv(xml) selectNodes "/Kratos_Data/RootData\[@id\]"]
 	
 	foreach node $nodes {
-		# Insertamos cada RootData de 1er nivel en el árbol
-		set item [::KMProps::InsertNewProp $node [$node getAttribute id ""] $T "" "root" [$node hasChildNodes] [::KMProps::stateNode $node] [$node getAttribute open "0"]]
-		# wa "item:$item"
-		if {$item != -1} {
-		        set path "[$node getAttribute id 0]//"
-		        ::KMProps::FillRecursiveChilds $T $path $node $item
-		}
+	    # Insertamos cada RootData de 1er nivel en el árbol
+	    set item [::KMProps::InsertNewProp $node [$node getAttribute id ""] $T "" "root" [$node hasChildNodes] [::KMProps::stateNode $node] [$node getAttribute open "0"]]
+	    # wa "item:$item"
+	    if {$item != -1} {
+		set path "[$node getAttribute id 0]//"
+		::KMProps::FillRecursiveChilds $T $path $node $item
+	    }
 	}
-}
+    }
 
 proc ::KMProps::FillRecursiveChilds { T path node item} {
 	
 	set nodes2 [$node childNodes]
 	set pathcp $path
 	foreach node2 $nodes2 {
-	   # msg $path
-	   # msg $pathcp
-	   # msg "[$node2 getAttribute id ""]"
+	    # msg $path
+	    # msg $pathcp
+	    # msg "id:[$node2 getAttribute id ""]"
 	    #set item3 [::KMProps::InsertNewProp $node3 [::KMProps::splitNode $node3] $T "[$node getAttribute id 0]//[::KMProps::splitNode $node2]//" "$item2" [$node3 hasChildNodes] [::KMProps::stateNode $node3] [$node3 getAttribute open "0"]]
 	    set item2 [::KMProps::InsertNewProp $node2 [::KMProps::splitNode $node2] $T $path "$item" [$node2 hasChildNodes] [::KMProps::stateNode $node2] [$node2 getAttribute open "0"]]
-		if {$item2 != -1} {
-		        
-		        #set pathcp [join [concat $path "[::KMProps::splitNode $node2]//"] ""]
-	    set pathcp [regsub -all "// " [concat $path "[::KMProps::splitNode $node2]//"] "//"]
-		        
-		        #msg "$pathcp \n"
-		        ::KMProps::FillRecursiveChilds $T $pathcp $node2 $item2
-		        #set pathcp [join [concat $path "[::KMProps::splitNode $node2]//"] ""]
-	    set pathcp [regsub -all "// " [concat $path "[::KMProps::splitNode $node2]//"] "//"]
-		}
+	    if {$item2 != -1} {
+		
+		#set pathcp [join [concat $path "[::KMProps::splitNode $node2]//"] ""]
+		set pathcp [regsub -all "// " [concat $path "[::KMProps::splitNode $node2]//"] "//"]
+		
+		#msg "$pathcp \n"
+		::KMProps::FillRecursiveChilds $T $pathcp $node2 $item2
+		#set pathcp [join [concat $path "[::KMProps::splitNode $node2]//"] ""]
+		set pathcp [regsub -all "// " [concat $path "[::KMProps::splitNode $node2]//"] "//"]
+	    }
 	}
-}
+    }
 
 #
 # Valida varias cosas para cada nodo
@@ -243,7 +245,7 @@ proc ::KMProps::stateNode { node } {
     }
     
     set state [$node getAttribute state "normal"]
-    # wa "\n[$node getAttribute id ""]        state:$state"
+    # wa "\nid:[$node getAttribute id ""]        state:$state"
     
     #Si el estado es hiddenAll se oculta el nodo y toda su descendencia
     if {$state == "hiddenAll"} {
@@ -265,22 +267,22 @@ proc ::KMProps::stateNode { node } {
 	
 	set nodeValuesVar [split [$node getAttribute $var ""] ","]
 	
-	
+	# wa "id:[$node getAttribute id ""] var:$var globalVar:$globalVar nodeValuesVar:$nodeValuesVar"
 	#Si el nodo tiene alguna restriccion de clase (p.ej. del tipo strucType=Shell)
 	# y no coincide con el valor seleccionado, ocultamos el nodo        
-	if { $nodeValuesVar != "" } {
+	 if { $nodeValuesVar != "" } {
 	    
 	    if { !($globalVar in $nodeValuesVar) } {
 		
-		#msg "$state:  --------- > g: $globalVar in nodeVals: $nodeValuesVar"
+		# msg "$state:  --------- > g: $globalVar in nodeVals: $nodeValuesVar"
 		if {$var == "strucType" } {
 		    if { $globalVar != "Generic"} { 
-		        #msg "$nodeValuesVar \"\" !=  && $globalVar in $nodeValuesVar"
+		        # msg "aqui $nodeValuesVar \"\" !=  && $globalVar in $nodeValuesVar"
 		        ::KMProps::setNoActiveGroups $node
 		        return -1
 		    }
 		} else {
-		    #msg "$nodeValuesVar \"\" !=  && $globalVar in $nodeValuesVar"
+		    # msg "este caso $nodeValuesVar \"\" !=  && $globalVar in $nodeValuesVar"
 		    ::KMProps::setNoActiveGroups $node
 		    return -1
 		}
