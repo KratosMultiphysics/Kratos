@@ -58,11 +58,11 @@ namespace Kratos
           mTgOfFrictionAngle        = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
           mLnOfRestitCoeff          = GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
           double& density           = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
-          double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
+          //double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
           double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
           double& moment_of_inertia = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_MOMENT_OF_INERTIA);
 
-          mass                      = M_PI * density * mRadius * mRadius * 1.0;
+          double mass               = M_PI * density * mRadius * mRadius * 1.0;
           sqrt_of_mass              = sqrt(mass);
           moment_of_inertia         = 0.5 * mass * mRadius * mRadius;
           mRealMass                 = mass;          

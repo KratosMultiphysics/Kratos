@@ -59,12 +59,10 @@ namespace Kratos
           mTgOfFrictionAngle        = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
           mLnOfRestitCoeff          = GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
           double& density           = GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_DENSITY);
-          double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
+          //double& mass              = GetGeometry()(0)->FastGetSolutionStepValue(NODAL_MASS);
           double& sqrt_of_mass      = GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);          
-          double& erase_flag        = GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
 
-          erase_flag                = 0.0;
-          mass                      = 4.0 / 3.0 * M_PI * density * mRadius * mRadius * mRadius;
+          double mass                      = 4.0 / 3.0 * M_PI * density * mRadius * mRadius * mRadius;
           sqrt_of_mass              = sqrt(mass);
           double moment_of_inertia         = 0.4 * mass * mRadius * mRadius; 
           
@@ -781,7 +779,9 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 		double area           = M_PI * radius * radius;
 		double kn             = young * area / (2.0 * radius);
 		double ks             = kn / (2.0 * (1.0 + poisson));
-		
+                //const double &mLnOfRestitCoeff        = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
+		array_1d<double, 3 > vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+                
         std::size_t iRigidFaceNeighbour = 0;
 
         for(ConditionWeakIteratorType ineighbour = rNeighbours.begin(); ineighbour != rNeighbours.end(); ineighbour++)
@@ -789,21 +789,15 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 			
             double LocalContactForce[3]  = {0.0};
             double GlobalContactForce[3] = {0.0};
-            double GlobalContactForceOld[3] = {0.0};
-			
-
-            array_1d<double, 3 > vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+            double GlobalContactForceOld[3] = {0.0};			            
 
             array_1d<double, 3 > other_to_me_vel;
             noalias(other_to_me_vel) = ZeroVector(3);
 
-            double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};
-			
-			double DistPToB = 0.0;
+            double LocalCoordSystem[3][3] = {{0.0}, {0.0}, {0.0}};			
+            double DistPToB = 0.0;
 
-
-			ComputeRigidFaceToMeVelocity(ineighbour, iRigidFaceNeighbour, LocalCoordSystem, DistPToB, other_to_me_vel);			
-			
+	    ComputeRigidFaceToMeVelocity(ineighbour, iRigidFaceNeighbour, LocalCoordSystem, DistPToB, other_to_me_vel);						
 
             double DeltDisp[3] = {0.0};
             double DeltVel [3] = {0.0};
@@ -993,6 +987,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           double InitialRotaMoment[3]           = {0.0};
           double visco_damp_coeff_normal;
           double visco_damp_coeff_tangential;
+          //const double &mLnOfRestitCoeff        = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
 
           InitialRotaMoment [0] = rInitialRotaMoment [0];
           InitialRotaMoment [1] = rInitialRotaMoment [1];
@@ -1373,7 +1368,8 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
           double CylinderRadius                        = rCurrentProcessInfo[CYLINDER_RADIUS_1];
 		  double CylinderVelocity                      = rCurrentProcessInfo[CYLINDER_VELOCITY_1];
           double CylinderAngularVelocity               = rCurrentProcessInfo[CYLINDER_ANGULAR_VELOCITY_1];          
-          double CylinderFriction                      = rCurrentProcessInfo[CYLINDER_FRICTION_1];          
+          double CylinderFriction                      = rCurrentProcessInfo[CYLINDER_FRICTION_1];  
+          //const double &mLnOfRestitCoeff        = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
 
           if (cylinder_num == 1){
 			  CylinderAxisDir           = rCurrentProcessInfo[CYLINDER_AXIS_DIR_2];
@@ -1936,6 +1932,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
         const double &other_sqrt_of_mass        = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
         const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
         const double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
+        //const double &mLnOfRestitCoeff          = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
 
         double radius_sum_i                     = 1 / radius_sum;
         double equiv_radius                     = 2 * mRadius * other_radius * radius_sum_i;
