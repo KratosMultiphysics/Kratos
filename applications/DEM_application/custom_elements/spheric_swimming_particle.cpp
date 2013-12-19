@@ -243,19 +243,20 @@ namespace Kratos
               const array_1d<double,3>& gravity          = rCurrentProcessInfo[GRAVITY];              
               const int manually_imposed_drag_law_option = rCurrentProcessInfo[MANUALLY_IMPOSED_DRAG_LAW_OPTION];
               const int drag_modifier_type               = rCurrentProcessInfo[DRAG_MODIFIER_TYPE];
-              const double gel_strength                  = rCurrentProcessInfo[GEL_STRENGTH];
-              
+              //const double gel_strength                  = rCurrentProcessInfo[GEL_STRENGTH];
+              const double gel_strength                  = GetGeometry()(0)->FastGetSolutionStepValue(GEL_STRENGTH);
               //const double power_law_n                   = rCurrentProcessInfo[POWER_LAW_N];
               const double power_law_n                   = GetGeometry()(0)->FastGetSolutionStepValue(POWER_LAW_N);
-              
+              //const double power_law_K                   = rCurrentProcessInfo[POWER_LAW_K];
+              const double power_law_K                   = GetGeometry()(0)->FastGetSolutionStepValue(POWER_LAW_K);
+              const double yield_stress                  = GetGeometry()(0)->FastGetSolutionStepValue(YIELD_STRESS);
               //const int non_newtonian_option             = rCurrentProcessInfo[NON_NEWTONIAN_OPTION];              
               int non_newtonian_option = 1;
-              if( fabs(power_law_n - 1.0) < 0.00001 ) {
+              if(  fabs(power_law_n - 1.0) < 0.00001  ||  fabs(yield_stress) < 0.00001  ) {
                   non_newtonian_option = 0;
               }
               
-              //const double power_law_K                   = rCurrentProcessInfo[POWER_LAW_K];
-              const double power_law_K                   = GetGeometry()(0)->FastGetSolutionStepValue(POWER_LAW_K);
+              
               const double initial_drag_force            = rCurrentProcessInfo[INIT_DRAG_FORCE];
               const double drag_law_slope                = rCurrentProcessInfo[DRAG_LAW_SLOPE];
               const double power_law_tol                 = rCurrentProcessInfo[POWER_LAW_TOLERANCE];
