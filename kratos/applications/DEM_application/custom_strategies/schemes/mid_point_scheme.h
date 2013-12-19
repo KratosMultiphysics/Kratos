@@ -139,7 +139,9 @@ namespace Kratos
         array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
         array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(TOTAL_FORCES);
 
-	    const double& mass                    = i->FastGetSolutionStepValue(NODAL_MASS);
+	    //const double& mass                    = i->FastGetSolutionStepValue(NODAL_MASS);
+            double mass                           = i->FastGetSolutionStepValue(SQRT_OF_MASS);
+                  mass                           *= mass;
 	    noalias(aux)                          = (half_delta_t/ mass) * force;
 	    
 	   
