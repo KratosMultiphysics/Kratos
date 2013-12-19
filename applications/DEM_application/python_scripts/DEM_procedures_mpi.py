@@ -12,11 +12,7 @@ from KratosMultiphysics.mpi import *
 def AddMpiVariables(model_part):
     
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
-    model_part.AddNodalSolutionStepVariable(INTERNAL_ENERGY)
-    model_part.AddNodalSolutionStepVariable(OSS_SWITCH)
-
-
-    
+    model_part.AddNodalSolutionStepVariable(PARTITION_MASK)
     
 def PerformInitialPartition(model_part,model_part_io_solid,input_file_name):
     

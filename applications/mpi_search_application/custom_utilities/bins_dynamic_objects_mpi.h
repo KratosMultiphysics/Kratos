@@ -318,7 +318,7 @@ public:
         std::vector<std::vector<double> >  SearchPetitionsRadius(mpi_size, std::vector<double>(0));
         std::vector<std::vector<double> >  SendResultsPerPoint(mpi_size, std::vector<double>(0));
         std::vector<std::vector<double> >  RecvResultsPerPoint(mpi_size, std::vector<double>(0));
-        
+
         std::vector<PointerType>           SecondStepSearch(0);
   
         int NumberOfSendPoints[mpi_size];
@@ -342,33 +342,6 @@ public:
         IteratorType it_end   = const_cast<typename ElementsContainerType::ContainerType& >(ThisObjects.GetContainer()).end();
         
         int objectCounter = 0;
-        
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//         unsigned int NumberOfRanks = Communicator.GetNumberOfColors();
-// 
-//         ModelPart::ElementsContainerType    ETempGhost[NumberOfRanks];
-//         ModelPart::ElementsContainerType    ETempLocal[NumberOfRanks];
-//         ModelPart::NodesContainerType       NTempGhost[NumberOfRanks];
-//         ModelPart::NodesContainerType       NTempLocal[NumberOfRanks];
-// 
-//         //Clean the ghost(i) and local(i) meshes
-// 
-//         for(unsigned int i = 0; i < NumberOfRanks; i++)
-//         {
-//             ETempGhost[i].swap(Communicator.GhostMesh(i).Elements());
-//             ETempLocal[i].swap(Communicator.LocalMesh(i).Elements());
-//             NTempGhost[i].swap(Communicator.GhostMesh(i).Nodes());
-//             NTempLocal[i].swap(Communicator.LocalMesh(i).Nodes());
-//         }
-// 
-//         //Celan the ghost mesh
-// 
-//         ModelPart::ElementsContainerType  ETempGhostGlobal;
-//         ModelPart::NodesContainerType     NTempGhostGlobal;
-// 
-//         ETempGhostGlobal.swap(Communicator.GhostMesh().Elements());
-//         NTempGhostGlobal.swap(Communicator.GhostMesh().Nodes());
-        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         for (IteratorType object_pointer_it = it_begin; object_pointer_it != it_end; ++object_pointer_it)  
         {   
@@ -383,20 +356,18 @@ public:
             SearchInRadiusExclusive((*object_pointer_it), Radius[objectCounter], ResultsPointer, ResultsDistancesPointer, NumberOfResults[objectCounter], MaxNumberOfResults, Box );
 
             //For each point with results < MaxResults and each process excluding ourself
-            if(NumberOfResults[objectCounter] < MaxNumberOfResults) 
+            if(NumberOfResults[objectCounter] < MaxNumberOfResults)
             {
                 for(int j = 0; j < mpi_size; j++)
                 {
-                    int val = (*object_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(NEIGHBOUR_PARTITION_INDEX)[j];
-                    
-                    if(val) 
+                    if((((*object_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_MASK)) & (1<<j)))
                     {
                         SendPoint[j*NumberOfObjects+objectCounter]=1;
                         NumberOfSendPoints[j]++;
                     }
                 }
             }
-            
+
             objectCounter++;
         }
 
@@ -405,10 +376,10 @@ public:
             if(i != mpi_rank && NumberOfSendPoints[i])
             {
                 int k = 0;
-                
+
                 SendObjectToProcess[i].reserve(NumberOfSendPoints[i]);
                 SendRadiusToProcess[i].resize(NumberOfSendPoints[i]);
-                
+
                 for(size_t j = 0; j < NumberOfObjects; j++)
                 {
                     if( SendPoint[i*NumberOfObjects+j])
@@ -417,29 +388,22 @@ public:
 
                         SendObjectToProcess[i].push_back(*itrObject);
                         SendRadiusToProcess[i][k] = Radius[j];
-                        
+
                         k++;
                     }
                 }
             }
         }
         
-//         for(int i = 0; i < mpi_size; i++) 
-//         { 
-//             std::cout << "SendObjectToProcess: " << SendObjectToProcess[i].size() << std::endl;
-//         }
-
         TConfigure::TransferObjects(Communicator,SendObjectToProcess,SearchPetitions);
 //         TConfigure::TransferObjects(Communicator.GhostMesh(),SendObjectToProcess,SearchPetitions,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
         TConfigure::TransferObjects(SendRadiusToProcess,SearchPetitionsRadius);
 
         Communicator::NeighbourIndicesContainerType communicator_ranks = Communicator.NeighbourIndices();
-        
+
         //Calculate remote points
         for(int i = 0; i < mpi_size; i++) 
         { 
-//             std::cout << "Search Petition: " << SearchPetitions[i].size() << std::endl;
-            
             int NumberOfRanks = Communicator.GetNumberOfColors();
             if(i != mpi_rank)
             {
@@ -459,11 +423,6 @@ public:
 
                 for(int j = 0; j < NumberOfRecvPoints[i]; j++) 
                 {   
-                    if( (*(SearchPetitions[i].GetContainer())[j]).GetGeometry()(0)->Id() == 8416 )
-                    {
-                        std::cout << "SearchPetitionForPartition: " << (*it_begin)->GetGeometry()(0)->Id() << std::endl;
-                    }  
-                  
                     DistanceIteratorType ResultsDistancesPointer = TempResultsDistances.begin(); //Useless
                     ResultContainerType  TempResults(MaxNumberOfResults);
                     ResultIteratorType   remoteResultsPointer = TempResults.begin();
@@ -477,16 +436,11 @@ public:
 
                     SearchInRadiusExclusive((SearchPetitions[i].GetContainer())[j], SearchPetitionsRadius[i][j], remoteResultsPointer, ResultsDistancesPointer, thisNumberOfResults, MaxNumberOfResults, Box );
 
-                    if( (*(SearchPetitions[i].GetContainer())[j]).GetGeometry()(0)->Id() == 8416 )
-                    {
-                        std::cout << "\t\trrtt: " << thisNumberOfResults << std::endl;
-                    }  
-                    
                     for(ResultIteratorType result_it = TempResults.begin(); result_it != remoteResultsPointer; ++result_it)
-                    {     
+                    {
                         Communicator.LocalMesh(destination).Elements().push_back((*result_it));
                         Communicator.LocalMesh(destination).Nodes().push_back((*result_it)->GetGeometry()(0));
-                        
+
                         (remoteResults[i].GetContainer()).push_back(*result_it);
                         accum_results++;
                     }
@@ -496,8 +450,6 @@ public:
 
                 NumberOfSendPoints[i] = accum_results;
             }
-            
-//             std::cout << "Remote results: " << remoteResults[i].size() << std::endl;
         }
 
         TConfigure::TransferObjects(Communicator,remoteResults,SearchResults);
@@ -529,7 +481,7 @@ public:
                                                           
                             Results[j][NumberOfResults[j]] = (SearchResults[i].GetContainer())[ResultCounter];
                             TConfigure::Distance((*itrObject),(SearchResults[i].GetContainer())[ResultCounter],dist);
-                            ResultsDistances[j][NumberOfResults[j]] = dist;         
+                            ResultsDistances[j][NumberOfResults[j]] = dist;
                             NumberOfResults[j]++;
                             
                             Communicator.GhostMesh().Elements().push_back((SearchResults[i].GetContainer())[ResultCounter]);
@@ -554,6 +506,11 @@ public:
             Results[objectCounter].resize(NumberOfResults[objectCounter]);
             objectCounter++;
         }
+/*
+        for (IteratorType object_pointer_it = it_begin; object_pointer_it != it_end; ++object_pointer_it)
+        {
+            KRATOS_WATCH(*(*object_pointer_it)->GetGeometry()(0)->SolutionStepData().pGetVariablesList())
+        }*/
     }
 
 //************************************************************************
