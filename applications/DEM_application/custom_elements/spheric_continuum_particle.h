@@ -280,7 +280,6 @@ namespace Kratos
         
         
         double mTensionLimit;
-        double mCompressionLimit;
         double mTauZero;
         double mContactInternalFriccion;
         double mTanContactInternalFriccion;
