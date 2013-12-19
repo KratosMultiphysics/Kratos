@@ -83,7 +83,9 @@ namespace Kratos
   	     array_1d<double, 3 > & initial_coor    = i->GetInitialPosition();
   	     array_1d<double, 3 > & force           = i->FastGetSolutionStepValue(RHS);
 	     array_1d<double, 3 > & prev_force      = i->FastGetSolutionStepValue(RHS,1); // (RHS,1) is different from RHS which has been calculated in the previous step.
-	     const double mass                      = i->FastGetSolutionStepValue(NODAL_MASS);   
+	     //const double mass                      = i->FastGetSolutionStepValue(NODAL_MASS);  
+             double mass                            = i->FastGetSolutionStepValue(SQRT_OF_MASS);
+                  mass                                  *= mass;
              
 	     //             aux = delta_t / mass;
             
