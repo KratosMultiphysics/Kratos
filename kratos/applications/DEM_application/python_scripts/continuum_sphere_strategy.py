@@ -94,8 +94,6 @@ def AddVariables(model_part, Param):
     if (Var_Translator(Param.PostGroupId)):
       model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
       
-    model_part.AddNodalSolutionStepVariable(NEIGHBOUR_PARTITION_INDEX)
-      
     print "Variables for the explicit solver added correctly"
 
 def AddDofs(model_part):
