@@ -246,6 +246,41 @@ if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(main_path)
 
   
+##WHEATHERFORD
+
+w_densi = DEM_parameters.w_densi
+w_dynfrc = DEM_parameters.w_dynfrc
+w_young = DEM_parameters.w_young
+w_poiss = DEM_parameters.w_poiss
+
+print("This chart is only valid for one material case" + '\n')
+
+if(DEM_parameters.Dempack):
+  print("*************PARAMETERS***************")
+  print("*                                    *")
+  print(("*      DENSI         = ")+(str(w_densi))+"          *")
+  print(("*      STAFRC        = ")+(str(DEM_parameters.InternalFriction))+"           *")
+  print(("*      DYNFRC        = ")+(str(w_dynfrc))+"          *")
+  print(("*      YOUNG         = ")+(str(w_young))+" *")
+  print(("*      POISS         = ")+(str(w_poiss))+"           *")
+  print(("*      NTSR          = ")+(str(DEM_parameters.SigmaMin))+"           *")
+  print(("*      LCS1          = ")+(str(DEM_parameters.C1))+"          *")
+  print(("*      LCS2          = ")+(str(DEM_parameters.C2))+"          *")
+  print(("*      LCS3          = ")+(str(DEM_parameters.C3))+"          *")
+  print(("*      YRC1          = ")+(str(DEM_parameters.N1))+"           *")
+  print(("*      YRC2          = ")+(str(DEM_parameters.N2))+"           *")
+  print(("*      YRC3          = ")+(str(DEM_parameters.N3))+"          *")
+  print(("*      NG            = ")+(str(2.0*(1.0+w_poiss)))+"           *")
+  print(("*      FSS           = ")+(str(DEM_parameters.TauZero))+"          *")
+  print(("*      YEP           = ")+(str(DEM_parameters.PlasticYoungModulus))+" *")
+  print(("*      YIELD         = ")+(str(DEM_parameters.PlasticYieldStress))+"          *")
+  print(("*      EDR           = ")+(str(DEM_parameters.DamageDeformationFactor))+"           *")
+  print(("*      GLOBAL_DAMPIN = ")+(str(DEM_parameters.DempackDamping))+"           *")
+  print(("*      LOCAL_DAMPIN  = ")+(str(DEM_parameters.DempackGlobalDamping))+"           *")
+  print(("*      ALPHA         = ")+(str(DEM_parameters.AreaFactor))+"           *")
+  print("**************************************")
+  
+  
 #------------------------------------------------------------------------------------------
  
 ###########################################################################################
@@ -438,7 +473,7 @@ while (time < DEM_parameters.FinalTime):
     multifile.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')   
     os.chdir(main_path)
 
-  #########################___GiD IO____#########################################4
+  ##########################___GiD IO____#########################################4
 
     time_to_print = time - time_old_print
 
