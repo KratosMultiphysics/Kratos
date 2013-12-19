@@ -204,7 +204,7 @@ public:
 
     /// Default constructor.
 
-    MPICommunicator(VariablesList* Variables_list) : BaseType(), mVariables_list(Variables_list)
+    MPICommunicator(VariablesList* Variables_list) : BaseType(), mpVariables_list(Variables_list)
     {
     }
 
@@ -225,7 +225,7 @@ public:
     {
         KRATOS_TRY
 
-        return Communicator::Pointer(new MPICommunicator(mVariables_list));
+        return Communicator::Pointer(new MPICommunicator(mpVariables_list));
 
         KRATOS_CATCH("");
     }
@@ -795,7 +795,7 @@ private:
     //      // To store interfaces ghost+local entities
     //      MeshesContainerType mInterfaceMeshes;
     
-    VariablesList* mVariables_list;
+    VariablesList* mpVariables_list;
 
     ///@}
     ///@name Private Operators
@@ -1361,7 +1361,7 @@ private:
                 std::stringstream * serializer_buffer;
                 
                 t0 = OpenMPUtils::GetCurrentTime();
-                particleSerializer.save("VariableList",mVariables_list);
+                particleSerializer.save("VariableList",mpVariables_list);
                 particleSerializer.save("Object",SendObjects[i].GetContainer());
                 t1 = OpenMPUtils::GetCurrentTime();
                 
@@ -1370,7 +1370,7 @@ private:
                 
                 serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
                 buffer[i] = std::string(serializer_buffer->str());
-                msgSendSize[i] = buffer[i].size();
+                msgSendSize[i] = buffer[i].size()+1;
             }
         }
   
@@ -1428,7 +1428,7 @@ private:
                 serializer_buffer->write(message[i], msgRecvSize[i]);
                 
                 t0 = OpenMPUtils::GetCurrentTime();
-                particleSerializer.load("VariableList",mVariables_list);
+                particleSerializer.load("VariableList",mpVariables_list);
                 particleSerializer.load("Object",RecvObjects[i].GetContainer());
                 t1 = OpenMPUtils::GetCurrentTime();
                 
@@ -1443,10 +1443,10 @@ private:
         t0 = OpenMPUtils::GetCurrentTime();
         for(int i = 0; i < mpi_size; i++)
         {
-            if(mpi_rank != i && msgRecvSize[i])
+            if(msgRecvSize[i])
                 free(message[i]);
             
-            if(i != mpi_rank && msgSendSize[i])
+            if(msgSendSize[i])
                 free(mpi_send_buffer[i]);
         }
         t1 = OpenMPUtils::GetCurrentTime();

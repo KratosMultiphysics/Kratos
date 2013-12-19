@@ -166,11 +166,20 @@ public:
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);
         MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
     }
-    
-    double * MeanPoint;
-    double * Normal;
-    double * Plane;
-    double * Dot;
+
+    /// Destructor.
+    virtual ~LloydParallelPartitioner() {
+
+        char msg[12] = {'b','i','n','s','_','X','.','t','i','m','e','\0'};
+        msg[5] = '0' + mpi_rank;
+        Timer::SetOuputFile(msg);
+        Timer::PrintTimingInformation();
+    }
+
+    Vector MeanPoint;
+    Vector Normal;
+    Vector Plane;
+    Vector Dot;
     
     //Lloyd based partitioning
     void LloydsBasedParitioner(ModelPart& mModelPart, double MaxNodeRadius, int CalculateBoundry)
@@ -182,10 +191,10 @@ public:
         double SetCentroid[mpi_size*Dimension], SendSetCentroid[mpi_size*Dimension];
         
         //Boundary conditions
-        MeanPoint = new double[mpi_size*Dimension];
-        Normal = new double[mpi_size*Dimension];
-        Plane = new double[mpi_size];
-        Dot = new double[mpi_size];
+        MeanPoint.resize(mpi_size*Dimension,false);
+        Normal.resize(mpi_size*Dimension,false);
+        Plane.resize(mpi_size,false);
+        Dot.resize(mpi_size,false);
         
         //Define algorthm iterations (maybe is a good idea pass this as a parameter)
         int NumIterations = 100;
@@ -315,7 +324,7 @@ public:
                     }
                     
                     (*particle_pointer_it)->GetValue(PARTITION_INDEX) = PartitionIndex;
-                    i_nod->GetSolutionStepValue(PARTITION_INDEX) = PartitionIndex;
+                    i_nod->FastGetSolutionStepValue(PARTITION_INDEX) = PartitionIndex;
                 }
             }
         }
@@ -325,38 +334,37 @@ public:
     {
         ContainerType pElements = mModelPart.GetCommunicator().LocalMesh().ElementsArray();
         ContainerType pElementsMarked;
-        
+
         MPI_Barrier(MPI_COMM_WORLD);
         
         //Mark elements in boundary (Level-1)
         for (IteratorType particle_pointer_it = pElements.begin(); particle_pointer_it != pElements.end(); ++particle_pointer_it)
         {   
-            double Radius       = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(RADIUS);
-            int myRank          = (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX);
-            int interface_size  = 1; 
-          
-            (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(NEIGHBOUR_PARTITION_INDEX).clear();
-            (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(NEIGHBOUR_PARTITION_INDEX).resize(mpi_size);
-            (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(NEIGHBOUR_PARTITION_INDEX)[myRank] = 0;
-            
+            double Radius       = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
+            int myRank          = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(PARTITION_INDEX);
+
+            (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(PARTITION_MASK) = 0;
+
             for(int j = 0; j < mpi_size; j++)
             {
                 double NodeToCutPlaneDist = 0;
 
+                //tmp[j] = 0;
+
                 NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()(0)->X() * Normal[j*Dimension+0];
                 NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()(0)->Y() * Normal[j*Dimension+1];
                 NodeToCutPlaneDist += (*particle_pointer_it)->GetGeometry()(0)->Z() * Normal[j*Dimension+2];
-                
+
                 NodeToCutPlaneDist += Plane[j];
                 NodeToCutPlaneDist /= Dot[j];
-                
+
                 NodeToCutPlaneDist  = fabs(NodeToCutPlaneDist);
-                
+
                 if (j != myRank)
                 {
                     if( NodeToCutPlaneDist <= Radius*2)
                     {
-                        (*particle_pointer_it)->GetGeometry()(0)->GetSolutionStepValue(NEIGHBOUR_PARTITION_INDEX)[j] = 1;
+                       (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(PARTITION_MASK) |= ((1 << j) | (1 << myRank));
                     }
                 }
             }
@@ -420,14 +428,6 @@ public:
 //                 }
 //             }
 //         }
-    }
-
-    /// Destructor.
-    virtual ~LloydParallelPartitioner() {
-        char msg[12] = {'b','i','n','s','_','X','.','t','i','m','e','\0'};
-        msg[5] = '0' + mpi_rank;
-        Timer::SetOuputFile(msg);
-        Timer::PrintTimingInformation();
     }
 
 

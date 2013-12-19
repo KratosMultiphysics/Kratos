@@ -287,7 +287,7 @@ public:
                   
                   serializer_buffer = (std::stringstream *)particleSerializer.pGetBuffer();
                   buffer[i] = std::string(serializer_buffer->str());
-                  msgSendSize[i] = buffer[i].size();
+                  msgSendSize[i] = buffer[i].size()+1;
               }
           }
   
@@ -311,17 +311,18 @@ public:
           //Set up all receive and send events
           for(int i = 0; i < mpi_size; i++)
           {
-              if(i != mpi_rank && msgRecvSize[i])
+              if((i != mpi_rank) && msgRecvSize[i])
               {
                   message[i] = (char *)malloc(sizeof(char) * msgRecvSize[i]);
 
                   MPI_Irecv(message[i],msgRecvSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
               }
 
-              if(i != mpi_rank && msgSendSize[i])
+              if((i != mpi_rank) && msgSendSize[i])
               {
                   mpi_send_buffer[i] = (char *)malloc(sizeof(char) * msgSendSize[i]);
                   memcpy(mpi_send_buffer[i],buffer[i].c_str(),msgSendSize[i]);
+
                   MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
               }
           }

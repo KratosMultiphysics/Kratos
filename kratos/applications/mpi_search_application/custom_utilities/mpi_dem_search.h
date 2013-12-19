@@ -365,7 +365,7 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       virtual void Clean_Modelpart(ModelPart& r_model_part)
       {
           KRATOS_TRY
-          
+
           Communicator::NeighbourIndicesContainerType communicator_ranks = mCommunicator.NeighbourIndices();
 
           unsigned int NumberOfRanks = mCommunicator.GetNumberOfColors();
@@ -400,70 +400,47 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       void Add_To_Modelpart(ModelPart& r_model_part, ResultIteratorType neighbour_it)
       {
           KRATOS_TRY
-          
+
           #pragma omp critical
           {
               Communicator::NeighbourIndicesContainerType communicator_ranks = mCommunicator.NeighbourIndices();
-              
+
               ElementsContainerType::ContainerType& pGhostElements = mCommunicator.GhostMesh().ElementsArray();
-              
+
               int NumberOfRanks = mCommunicator.GetNumberOfColors();
               int destination = -1;
-              
+
               bool IsInGhostMesh = false;
-              //bool IsInLocalMesh = false;
-            
+
               for(int i = 0; i < NumberOfRanks; i++)
                   if((*neighbour_it)->GetGeometry()(0)->GetSolutionStepValue(PARTITION_INDEX) == communicator_ranks[i])
                       destination = i;
-                              
+
               if(destination > -1)
-              {   
+              {
                   for(IteratorType element_it = pGhostElements.begin(); !IsInGhostMesh && element_it != pGhostElements.end(); ++element_it)
                       if((*element_it)->GetGeometry()(0)->Id() == (*neighbour_it)->GetGeometry()(0)->Id())
                           IsInGhostMesh = true;
-                  
-                  /*
-                  for(IteratorType element_it = pLocalElements.begin(); !IsInLocalMesh && element_it != pLocalElements.end(); ++element_it)
-                      if((*element_it)->GetGeometry()(0)->Id() == (*neighbour_it)->GetGeometry()(0)->Id())
-                          IsInLocalMesh = true;
-                */
-                          
-                  if(!IsInGhostMesh /*&& !IsInLocalMesh*/)
+
+                  if(!IsInGhostMesh)
                   {
                       mCommunicator.GhostMesh().Elements().push_back((*neighbour_it));
                       mCommunicator.GhostMesh().Nodes().push_back((*neighbour_it)->GetGeometry()(0));
                   }
-                  
+
                   IsInGhostMesh = false;
-                  //IsInLocalMesh = false;
-                
+
                   ElementsContainerType::ContainerType& pMyGhostElements = mCommunicator.GhostMesh(destination).ElementsArray();
-                  //ContainerType& pMyLocalElements = mCommunicator.LocalMesh(destination).ElementsArray();
-            
+
                   for(IteratorType element_it = pMyGhostElements.begin(); !IsInGhostMesh && element_it != pMyGhostElements.end(); ++element_it)
                       if((*element_it)->GetGeometry()(0)->Id() == (*neighbour_it)->GetGeometry()(0)->Id())
                           IsInGhostMesh = true;
-                  
-                  /*
-                  for(IteratorType element_it = pMyLocalElements.begin(); !IsInLocalMesh && element_it != pMyLocalElements.end(); ++element_it)
-                      if((*element_it)->GetGeometry()(0)->Id() == (*particle_pointer_it)->GetGeometry()(0)->Id())
-                          IsInLocalMesh = true;
-                  */
-                  
+
                   if(!IsInGhostMesh)
-                  {   
+                  {
                       mCommunicator.GhostMesh(destination).Elements().push_back((*neighbour_it));
                       mCommunicator.GhostMesh(destination).Nodes().push_back((*neighbour_it)->GetGeometry()(0));
                   }
-                  
-                  /*
-                  if(!IsInLocalMesh)
-                  {
-                      mCommunicator.LocalMesh(destination).Elements().push_back((*particle_pointer_it));
-                      mCommunicator.LocalMesh(destination).Nodes().push_back((*particle_pointer_it)->GetGeometry()(0));
-                  }
-                  */
               }
           }
           
