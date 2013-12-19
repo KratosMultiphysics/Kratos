@@ -9,7 +9,7 @@ QUESTION: Particle_density
 VALUE: 2500
 
 QUESTION: Young_modulus
-VALUE: 28e09
+VALUE: 2.8e10
 
 QUESTION: Poisson_ratio
 VALUE: 0.2
