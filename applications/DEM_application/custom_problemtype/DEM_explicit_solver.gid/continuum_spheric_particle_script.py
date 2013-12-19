@@ -179,9 +179,11 @@ if(DEM_parameters.BtsOption == "ON"):
 
 if (DEM_parameters.GraphOption =="ON"):
   
-  graph_export_top = open("Provisional_TOP.csv", 'w');
-  graph_export_bot = open("Provisional_BOT.csv", 'w');
-  graph_export_mean = open("Provisional_MEAN.csv", 'w');
+  graph_export_top = open("Provisional_TOP.csv", 'w')
+  graph_export_bot = open("Provisional_BOT.csv", 'w')
+  graph_export_mean = open("Provisional_MEAN.csv", 'w')
+  chart = open("Provisional_CHART.txt", 'w')
+  
       
   if (DEM_parameters.PoissonMeasure =="ON"):
     graph_export_poisson = open(DEM_parameters.problem_name + "_poisson_"+str(datetime.datetime.now())+".csv",'w');
@@ -256,31 +258,40 @@ w_poiss = DEM_parameters.w_poiss
 print("This chart is only valid for one material case" + '\n')
 
 if(DEM_parameters.Dempack):
-  print("*************PARAMETERS***************")
-  print("*                                    *")
-  print(("*      DENSI         = ")+(str(w_densi))+"          *")
-  print(("*      STAFRC        = ")+(str(DEM_parameters.InternalFriction))+"           *")
-  print(("*      DYNFRC        = ")+(str(w_dynfrc))+"          *")
-  print(("*      YOUNG         = ")+(str(w_young))+" *")
-  print(("*      POISS         = ")+(str(w_poiss))+"           *")
-  print(("*      NTSR          = ")+(str(DEM_parameters.SigmaMin))+"           *")
-  print(("*      LCS1          = ")+(str(DEM_parameters.C1))+"          *")
-  print(("*      LCS2          = ")+(str(DEM_parameters.C2))+"          *")
-  print(("*      LCS3          = ")+(str(DEM_parameters.C3))+"          *")
-  print(("*      YRC1          = ")+(str(DEM_parameters.N1))+"           *")
-  print(("*      YRC2          = ")+(str(DEM_parameters.N2))+"           *")
-  print(("*      YRC3          = ")+(str(DEM_parameters.N3))+"          *")
-  print(("*      NG            = ")+(str(2.0*(1.0+w_poiss)))+"           *")
-  print(("*      FSS           = ")+(str(DEM_parameters.TauZero))+"          *")
-  print(("*      YEP           = ")+(str(DEM_parameters.PlasticYoungModulus))+" *")
-  print(("*      YIELD         = ")+(str(DEM_parameters.PlasticYieldStress))+"          *")
-  print(("*      EDR           = ")+(str(DEM_parameters.DamageDeformationFactor))+"           *")
-  print(("*      GLOBAL_DAMPIN = ")+(str(DEM_parameters.DempackDamping))+"           *")
-  print(("*      LOCAL_DAMPIN  = ")+(str(DEM_parameters.DempackGlobalDamping))+"           *")
-  print(("*      ALPHA         = ")+(str(DEM_parameters.AreaFactor))+"           *")
-  print("**************************************")
   
+  chart.write(("*********PARAMETERS*******************")+'\n')
+  chart.write( "*                                    *" +'\n')
+  chart.write( "*      DENSI         = " + (str(w_densi))+"          *"+'\n')
+  chart.write( "*      STAFRC        = " + (str(DEM_parameters.InternalFriction))+"           *"+'\n')
+  chart.write( "*      DYNFRC        = " + (str(w_dynfrc))+"          *" +'\n')
+  chart.write( "*      YOUNG         = " + (str(w_young))+" *" +'\n')
+  chart.write( "*      POISS         = " + (str(w_poiss))+"           *" +'\n')
+  chart.write( "*      NTSR          = " + (str(DEM_parameters.SigmaMin))+"           *" +'\n')
+  chart.write( "*      LCS1          = " + (str(DEM_parameters.C1))+"          *" +'\n')
+  chart.write( "*      LCS2          = " + (str(DEM_parameters.C2))+"          *" +'\n')
+  chart.write( "*      LCS3          = " + (str(DEM_parameters.C3))+"          *" +'\n')
+  chart.write( "*      YRC1          = " + (str(DEM_parameters.N1))+"           *" +'\n')
+  chart.write( "*      YRC2          = " + (str(DEM_parameters.N2))+"           *" +'\n')
+  chart.write( "*      YRC3          = " + (str(DEM_parameters.N3))+"          *" +'\n')
+  chart.write( "*      NG            = " + (str(7/6*2.0*(1.0+w_poiss)))+"           *" +'\n')
+  chart.write( "*      FSS           = " + (str(DEM_parameters.TauZero))+"          *" +'\n')
+  chart.write( "*      YEP           = " + (str(DEM_parameters.PlasticYoungModulus))+" *" +'\n')
+  chart.write( "*      YIELD         = " + (str(DEM_parameters.PlasticYieldStress))+"          *" +'\n')
+  chart.write( "*      EDR           = " + (str(DEM_parameters.DamageDeformationFactor))+"           *" +'\n')
+  chart.write( "*      GLOBAL_DAMPIN = " + (str(DEM_parameters.DempackDamping))+"           *" +'\n')
+  chart.write( "*      LOCAL_DAMPIN  = " + (str(DEM_parameters.DempackGlobalDamping))+"           *" +'\n')
+  chart.write( "*      ALPHA         = " + (str(DEM_parameters.AreaFactor))+"           *" +'\n')
+  chart.write( "**************************************" +'\n')
+
+os.chdir(graphs_path)
+
+chart.close()
+a_chart = open("Provisional_CHART.txt","r")
   
+for line in a_chart.readlines():
+  print(line)
+  
+
 #------------------------------------------------------------------------------------------
  
 ###########################################################################################
@@ -581,12 +592,15 @@ for filename in os.listdir("."):
     os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_BOT.csv")
   if filename.startswith("Provisional_MEAN"):
     os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_MEAN.csv")
+  if filename.startswith("Provisional_CHART"):
+    os.rename(filename, DEM_parameters.problem_name + "_CHART_" + str(initial_time) +".txt")
 
 
 if (DEM_parameters.GraphOption =="ON"):
   graph_export_top.close()
   graph_export_bot.close()
   graph_export_mean.close()
+  chart.close()
   
 if(DEM_parameters.BtsOption == "ON"):
   bts_export.close()
@@ -597,8 +611,8 @@ multifile_10.close()
 multifile_50.close()
 os.chdir(main_path)
 
-elapsed_pr_time 	= timer.clock() - initial_pr_time
-elapsed_real_time 	= timer.time() - initial_real_time
+elapsed_pr_time     = timer.clock() - initial_pr_time
+elapsed_real_time   = timer.time() - initial_real_time
 
 print 'Calculation ends at instant: '                 + str(timer.time())
 print 'Calculation ends at processing time instant: ' + str(timer.clock())
