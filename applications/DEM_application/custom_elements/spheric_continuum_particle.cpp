@@ -1636,8 +1636,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           /*double& mSectionalInertia         = this->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_INERTIA);   
           mSectionalInertia                 = 0.25 * M_PI * mRadius * mRadius * mRadius  * mRadius ;   */ 
           
-          double& mRepresentative_Volume    = this->GetGeometry()(0)->FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);             
-          mRepresentative_Volume            = 0.0;        
+          /*double& mRepresentative_Volume    = this->GetGeometry()(0)->FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);             
+          mRepresentative_Volume            = 0.0;   */     
           
       }
 
@@ -1835,7 +1835,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
        **/
       void SphericContinuumParticle::ComputeStressStrain(double mStressTensor[3][3],ProcessInfo& rCurrentProcessInfo)
       {
-          if(rCurrentProcessInfo[STRESS_STRAIN_OPTION] == 1) // if stress_strain_options ON 
+          /*if(rCurrentProcessInfo[STRESS_STRAIN_OPTION] == 1) // if stress_strain_options ON 
           {
               double& Representative_Volume = this->GetGeometry()[0].FastGetSolutionStepValue(REPRESENTATIVE_VOLUME);
           
@@ -1858,7 +1858,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                       }
                   }       
               }  
-          }//if stress_strain_options
+          }//if stress_strain_options*/
       }
 
       /**
@@ -1880,7 +1880,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                                                                     const double &calculation_area,
                                                                     ParticleWeakIteratorType neighbour_iterator, ProcessInfo& rCurrentProcessInfo)
       {
-          if(rCurrentProcessInfo[STRESS_STRAIN_OPTION]==1) //TODO: Change this with class members or flags
+         /* if(rCurrentProcessInfo[STRESS_STRAIN_OPTION]==1) //TODO: Change this with class members or flags
           {
               double gap                  = distance - radius_sum;
             
@@ -1908,7 +1908,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                       mStressTensor[i][j] += (x_centroid[j]) * GlobalElasticContactForce[i]; //ref: Katalin Bagi 1995 Mean stress tensor           
                   }
               }
-          }
+          }*/
       }
       
       /**
