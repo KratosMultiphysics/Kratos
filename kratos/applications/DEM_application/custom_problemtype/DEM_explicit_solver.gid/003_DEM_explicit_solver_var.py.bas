@@ -93,8 +93,6 @@ AreaFactor                       = *GenData(Alpha)
 *format "%10.5e"
 TauZero                          = *GenData(FSS_MPa)
 *format "%10.5e"
-SigmaMax                         = *GenData(Sigma_Max)
-*format "%10.5e"
 SigmaMin                         = *GenData(FTS_MPa)
 *format "%10.5e"
 InternalFriction                 = *GenData(Static_Friction)
@@ -112,7 +110,7 @@ C3                               = *GenData(LCS3_MPa)
 *format "%10.5e"
 N3                               = *GenData(YRC3)
 *format "%10.5e"
-PlasticYoungModulusRatio         = *GenData(YEP)
+PlasticYoungModulus              = *GenData(YEP_Pa)
 *format "%10.5e"
 PlasticYieldStress               = *GenData(YIELD_MPa)
 *format "%10.5e"
@@ -252,6 +250,18 @@ ROTA_AXIAL_NORMAL_Y              = *GenData(ROTA_AXIAL_NORMAL_Y)
 ROTA_AXIAL_NORMAL_Z              = *GenData(ROTA_AXIAL_NORMAL_Z)
 BEGIN_TIME                       = *GenData(BEGIN_TIME)
 END_TIME                         = *GenData(END_TIME)
+
+# WEATHERFORD
+
+*loop elems
+*if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
+w_densi = *elemsmatprop(Particle_density)
+w_dynfrc = *elemsmatprop(Dynamic_Friction)
+w_young = *elemsmatprop(Young_modulus)
+w_poiss = *elemsmatprop(Poisson_ratio)
+*break
+*endif 
+*end elems
 
 
 
