@@ -471,7 +471,7 @@ namespace Kratos
               
               calculation_area = M_PI*rmin*rmin;
               
-              double equiv_shear = 7/6*equiv_young/(2*(1+equiv_poisson));  // 6/7 area shear factor for circular area
+              double equiv_shear = 6.0/7.0*equiv_young/(2*(1+equiv_poisson));  // 6/7 area shear factor for circular area
               
               kn_el = equiv_young*calculation_area*initial_dist_i;
               kt_el = equiv_shear*calculation_area*initial_dist_i;
