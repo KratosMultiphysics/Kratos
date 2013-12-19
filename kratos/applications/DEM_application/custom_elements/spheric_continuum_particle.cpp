@@ -643,9 +643,6 @@ namespace Kratos
                   
                 }
                
-                              
-               
-                  
                 /* Tangential Friction for broken bonds */  //dempack and kdem do the same.
                 
                 if ( mNeighbourFailureId[i_neighbour_count] != 0 ) //*   //degut als canvis de DEMPACK hi ha hagut una modificació, ara despres de trencar es fa akest maping de maxima tangencial que és correcte!
@@ -1062,11 +1059,11 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
          
          AuxiliaryFunctions::SwitchCase(mpCaseOption, mDeltaOption, mContinuumSimulationOption);
          
-         mContactInternalFriccion       = r_process_info[CONTACT_INTERNAL_FRICC]*M_PI/180;
+         mTanContactInternalFriccion    = r_process_info[CONTACT_INTERNAL_FRICC];
+         double atanInternalFriccion    = atan(mTanContactInternalFriccion);
+         mSinContactInternalFriccion    = sin(atanInternalFriccion);
+         mCosContactInternalFriccion    = cos(atanInternalFriccion);
          
-         mSinContactInternalFriccion    = sin(mContactInternalFriccion);
-         mCosContactInternalFriccion    = cos(mContactInternalFriccion);
-         mTanContactInternalFriccion    = tan(mContactInternalFriccion);
          
          mFailureCriterionOption        = r_process_info[FAILURE_CRITERION_OPTION];
 
@@ -1999,22 +1996,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       double Ncstr2_el = mC2 * calculation_area;
       double Ncstr3_el = mC3 * calculation_area;
       double Ntstr_el  = mTensionLimit * calculation_area;
-
-      if(this->Id()==1)
-      {
-      KRATOS_WATCH(mC1)
-      KRATOS_WATCH(mC2)
-      KRATOS_WATCH(mC3)
-      KRATOS_WATCH(mN1)
-      KRATOS_WATCH(mN2)
-      KRATOS_WATCH(mN3)
-      KRATOS_WATCH(mPlasticityLimit)
-      KRATOS_WATCH(mYoungPlastic)
-      KRATOS_WATCH(mTanContactInternalFriccion)
-      KRATOS_WATCH(mTensionLimit)
-
-      }
-      
       double u_max = mHistory[mapping_new_cont][0];
       
       double& fn = LocalElasticContactForce[2]; //[2] means 'normal' contact force
