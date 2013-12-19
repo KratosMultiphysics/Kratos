@@ -10,8 +10,8 @@ def AddVariables(model_part, Param):
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
     model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
-    model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
+#    model_part.AddNodalSolutionStepVariable(ORIENTATION_REAL)
+#    model_part.AddNodalSolutionStepVariable(ORIENTATION_IMAG)
     model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY)
 
     # FORCES
@@ -23,7 +23,7 @@ def AddVariables(model_part, Param):
 
     # BASIC PARTICLE PROPERTIES
     model_part.AddNodalSolutionStepVariable(RADIUS)
-    model_part.AddNodalSolutionStepVariable(NODAL_MASS)
+#    model_part.AddNodalSolutionStepVariable(NODAL_MASS)
     model_part.AddNodalSolutionStepVariable(SQRT_OF_MASS)
     model_part.AddNodalSolutionStepVariable(PARTICLE_DENSITY)
     model_part.AddNodalSolutionStepVariable(YOUNG_MODULUS)
@@ -73,7 +73,7 @@ def AddVariables(model_part, Param):
 #    
     # FLAGS
     model_part.AddNodalSolutionStepVariable(GROUP_ID)            # Differencied groups for plotting, etc..
-    model_part.AddNodalSolutionStepVariable(ERASE_FLAG)
+#    model_part.AddNodalSolutionStepVariable(ERASE_FLAG)
 
     # OPTIMIZATION
     model_part.AddNodalSolutionStepVariable(VELOCITY_X_DOF_POS) 
