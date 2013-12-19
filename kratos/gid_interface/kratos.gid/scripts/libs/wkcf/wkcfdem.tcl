@@ -12,12 +12,14 @@
 #
 #    HISTORY:
 #
+#     0.3- 03/11/13-G. Socorro, add the proc GetInletGroupNodes to get the inlet condition group node list
+#     0.2- 02/11/13-G. Socorro, add the proc AssignSpecialBoundaries and GetBoundariesNodeList
 #     0.1- 01/10/13-G. Socorro, create a base source code from wkcf.tcl
 #
 ###############################################################################
 
 proc ::wkcf::GetInletGroupMeshProperties {AppId} {
-    # ABSTRACT: Write inlet condition group properties mdpa file (only the nodes)
+    # ABSTRACT: Get the inlet condition group properties mdpa file (only the nodes)
     variable dprops
    
     # For debug
@@ -112,8 +114,133 @@ proc ::wkcf::GetInletGroupMeshProperties {AppId} {
 	set endtime [clock seconds]
 	set ttime [expr $endtime-$inittime]
 	# WarnWinText "endtime:$endtime ttime:$ttime"
-	WarnWinText "Write DEM-Inlet group using the new mesh format: [::KUtils::Duration $ttime]"
+	WarnWinText "Obtening DEM-Inlet group using the new mesh format: [::KUtils::Duration $ttime]"
     }   
+}
+
+proc ::wkcf::GetBoundariesNodeList {} {
+    variable ndime
+
+    set nlist [list]
+    set cgroupid "-AKGDEMSkinMesh2D"
+    if {$ndime =="3D"} {
+	set cgroupid "-AKGDEMSkinMesh3D"
+    }
+    if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
+	set nlist [GiD_EntitiesGroups get $cgroupid nodes]
+    }
+    return $nlist
+}
+
+proc ::wkcf::AssignSpecialBoundaries {ndime entitylist} {
+
+    # wa "ndime:$ndime entitylist:$entitylist"
+    set DEMApplication "No"
+    set cproperty "dv"
+    set cxpath "GeneralApplicationData//c.ApplicationTypes//i.DEM"
+    catch { set DEMApplication [::xmlutils::setXml $cxpath $cproperty] }
+    if {$DEMApplication eq "Yes"} {
+	if { $ndime =="2D" } {        
+	    # Automatic Kratos Group for all DEM boundary points
+	    set groupid "-AKGDEMSkinMesh2D"
+	    set entitytype "point" 
+	    ::wkcf::CleanAutomaticConditionGroupGiD $entitytype $groupid        
+	    # Get all end point list from the boundary lines
+	    set endpointlist [list]
+	    foreach lineid $entitylist {
+		lappend endpointlist {*}[lrange [GiD_Geometry get line $lineid] 2 end]
+	    }
+	    set endpointlist [lsort -integer -unique $endpointlist]
+	    # wa "endpointlist:$endpointlist"
+	    # Assign the boundary condition
+	    ::wkcf::AssignConditionToGroupGID $entitytype $endpointlist $groupid 
+
+	} elseif { $ndime =="3D" } {
+
+	    # Automatic Kratos Group for all DEM boundary lines
+	    set groupid "-AKGDEMSkinMesh3D"
+	    set entitytype "line" 
+	    ::wkcf::CleanAutomaticConditionGroupGiD $entitytype $groupid
+	    # Get all end line list from the boundary surfaces
+	    set endlinelist [list]
+	    foreach surfid $entitylist {
+		set surfprop [GiD_Geometry get surface $surfid]
+		# set surfacetype [lindex $surfprop 0]
+		set nline [lindex $surfprop 2]
+		# wa "surfacetype:$surfacetype\nnline:$nline\nsurfprop:$surfprop"
+		set lineprop [list]
+		#if {$surfacetype eq "nurbssurface"} {
+		    set lineprop [lrange $surfprop 9 [expr 9+$nline-1]]
+		#}
+		foreach lprop $lineprop {
+		    lassign $lprop lineid orientation 
+		    lappend endlinelist $lineid
+		}
+	    }
+	    # wa "before endlinelist:$endlinelist"
+	    set endlinelist [lsort -integer -unique $endlinelist]
+	    # wa "endlinelist:$endlinelist"
+	    # Assign the boundary condition
+	    ::wkcf::AssignConditionToGroupGID $entitytype $endlinelist $groupid
+	}
+    }
+}
+
+
+proc ::wkcf::GetInletGroupNodes {AppId cgroupid} {
+    # ABSTRACT: Get the inlet condition group node list
+    variable dprops
+    
+    set cprop [list]
+
+    # For debug
+    if {!$::wkcf::pflag} {
+        set inittime [clock seconds]
+    }
+    
+    # Set the rootid
+    set rootid "$AppId"
+    set cproperty "dv"
+    
+    # Get the values
+    set basexpath "$rootid//c.Conditions//c.DEM-Inlet"
+    # Get the group properties
+    set cxpath "${basexpath}//c.[list ${cgroupid}]//c.MainProperties"
+    set allgprop [::xmlutils::setXmlContainerPairs $cxpath "" "dv"]
+    # wa "allgprop:$allgprop"
+    if {[llength $allgprop]} {
+	if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
+	    # Check for the exclude boundaries option
+	    set findeb [lsearch -index 0 $allgprop "ExcludeBoundaries"]
+	    # wa "findeb:$findeb"
+	    set ExcludeBoundaries "No"
+	    if {$findeb !="-1"} {
+		set ExcludeBoundaries [lindex $allgprop $findeb 1]
+	    }
+	    # wa "ExcludeBoundaries:$ExcludeBoundaries"
+	    if {$ExcludeBoundaries eq "No"} {
+		set cprop [GiD_EntitiesGroups get $cgroupid nodes]
+	    } else {
+		# Get the boundary node list 
+		set nlist [::wkcf::GetBoundariesNodeList]
+		foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+		    set findnode [lsearch $nlist $node_id]
+		    # wa "findnode:$findnode"
+		    if {$findnode =="-1"} {
+			lappend cprop $node_id
+		    }
+		}
+	    }
+	}
+    }
+    
+    # For debug
+    if {!$::wkcf::pflag} {
+	set endtime [clock seconds]
+	set ttime [expr $endtime-$inittime]
+	WarnWinText "Get DEM-Inlet group nodes list: [::KUtils::Duration $ttime]"
+    }
+    return $cprop  
 }
 
 proc ::wkcf::WriteInletGroupMeshProperties {AppId} {
@@ -128,36 +255,31 @@ proc ::wkcf::WriteInletGroupMeshProperties {AppId} {
     
     # Set the rootid
     set rootid "$AppId"
-    set cproperty "dv"
     
     # Get the values
     set basexpath "$rootid//c.Conditions//c.DEM-Inlet"
     set gproplist [::xmlutils::setXmlContainerIds $basexpath]
     # wa "gproplist:$gproplist"
     foreach cgroupid $gproplist {
-	# Get the group properties
-	set cxpath "${basexpath}//c.[list ${cgroupid}]//c.MainProperties"
-	set allgprop [::xmlutils::setXmlContainerPairs $cxpath "" "dv"]
-	# wa "allgprop:$allgprop"
-	if {[llength $allgprop]} {
-	    if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
-		incr meshgroupid 1
-		# Get the meshid-group identifier mapping
-		set meshgroupid $dprops($AppId,Mesh,$cgroupid,MeshIdGroup) 
-		
-		# Write mesh properties for this group
-		GiD_File fprintf $filechannel "%s" "Begin Mesh $meshgroupid \/\/ GUI group identifier: $cgroupid"
-		# Write nodes
-		GiD_File fprintf $filechannel "%s" " "
-		GiD_File fprintf $filechannel "%s" " Begin MeshNodes"
-		foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-		    GiD_File fprintf $filechannel "%10i" $node_id
-		}
-		GiD_File fprintf $filechannel "%s" " End MeshNodes"
-		GiD_File fprintf $filechannel "%s" " "
-		GiD_File fprintf $filechannel "%s" "End Mesh"
-		GiD_File fprintf $filechannel "%s" ""
+	# Get the group node list
+	set nlist [::wkcf::GetInletGroupNodes $AppId $cgroupid]
+	if {[llength $nlist]} {
+	    incr meshgroupid 1
+	    # Get the meshid-group identifier mapping
+	    set meshgroupid $dprops($AppId,Mesh,$cgroupid,MeshIdGroup) 
+	    
+	    # Write mesh properties for this group
+	    GiD_File fprintf $filechannel "%s" "Begin Mesh $meshgroupid \/\/ GUI group identifier: $cgroupid"
+	    # Write nodes
+	    GiD_File fprintf $filechannel "%s" " "
+	    GiD_File fprintf $filechannel "%s" " Begin MeshNodes"
+	    foreach node_id $nlist {
+		GiD_File fprintf $filechannel "%10i" $node_id
 	    }
+	    GiD_File fprintf $filechannel "%s" " End MeshNodes"
+	    GiD_File fprintf $filechannel "%s" " "
+	    GiD_File fprintf $filechannel "%s" "End Mesh"
+	    GiD_File fprintf $filechannel "%s" ""
 	}
     }
     
@@ -170,7 +292,7 @@ proc ::wkcf::WriteInletGroupMeshProperties {AppId} {
     }   
 }
 
-proc ::wkcf::WriteBoundingBoXDefaults {fileid} {
+proc ::wkcf::WriteBoundingBoxDefaults {fileid} {
 
     puts $fileid "BoundingBoxMaxX                  = 3.00000e+00"  
     puts $fileid "BoundingBoxMaxY                  = 3.00000e+00"
@@ -242,12 +364,13 @@ proc ::wkcf::WriteExplicitSolverVariables {} {
 	    puts $fileid "BoundingBoxEnlargementFactor     = $EnlargementFactor"
 	
 	    # Write default bounding box values
-	    ::wkcf::WriteBoundingBoXDefaults $fileid
+	    ::wkcf::WriteBoundingBoxDefaults $fileid
 	   
 	} elseif {$BoundingBoxType eq "Fixed"} {
 
 	    puts $fileid "AutomaticBoundingBoxOption       = \"OFF\""
-	    
+	    puts $fileid "BoundingBoxEnlargementFactor     = 1.0"
+
 	    # Get the bounding limit
 	    set varlist [list MaxX MaxY MaxZ MinX MinY MinZ]
 	    foreach varid $varlist {
@@ -259,9 +382,10 @@ proc ::wkcf::WriteExplicitSolverVariables {} {
     } else {
 	puts $fileid "BoundingBoxOption                = \"OFF\""
 	puts $fileid "AutomaticBoundingBoxOption       = \"OFF\""
-	
+	puts $fileid "BoundingBoxEnlargementFactor     = 1.0"
+
 	# Write default bounding box values
-	::wkcf::WriteBoundingBoXDefaults $fileid
+	::wkcf::WriteBoundingBoxDefaults $fileid
     }
 
   
