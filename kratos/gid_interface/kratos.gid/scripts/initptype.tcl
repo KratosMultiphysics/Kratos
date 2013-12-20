@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     1.6-20/12/13-G. Socorro, update the proc SelectGIDBatFile to run convection-diffusion simulations
 #     1.5-03/11/13-G. Socorro, add a call to the proc AssignSpecialBoundaries for the special case of DEM application
 #     1.4-09/10/13-G. Socorro, add two new script file wkcfconvectiondiffusion.tcl wkcfdem.tcl
 #     1.3-19/09/13-G. Socorro, modify the proc BeforeMeshGeneration to assign automatically triangle or quadrilateral element to the skin surfaces
@@ -570,6 +571,46 @@ proc kipt::SelectGIDBatFile { directory basename } {
                 } else {
                     set batfilename "kratos.win.bat"
                 }
+            }
+        }
+    }
+    
+    
+     # Convection diffusion application
+    set cxpath "GeneralApplicationData//c.ApplicationTypes//i.ConvectionDiffusion"
+    set ConvectionDiffusionApplication [::xmlutils::setXml $cxpath $cproperty]
+    if {$ConvectionDiffusionApplication eq "Yes"} {
+        set rootid "ConvectionDiffusion"
+        # Kratos key word xpath
+        set kxpath "Applications/$rootid"
+        # Get the parallel solution type
+        set cxpath "$rootid//c.SolutionStrategy//c.ParallelType//i.ParallelSolutionType"
+        set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
+        
+        if {$ParallelSolutionType eq "MPI"} {
+            if {($::tcl_platform(os) eq "Linux")} {
+                set batfilename "kratos-mpi.unix.bat"
+                #  Get the number of processors
+                set cxpath "$rootid//c.SolutionStrategy//c.ParallelType//i.MPINumberOfProcessors"
+                set MPINumberOfProcessors [::xmlutils::setXml $cxpath $cproperty]
+                if {$MPINumberOfProcessors>0} {
+                    # Calculate arguments
+                    set args "$MPINumberOfProcessors"
+                }
+            }
+        } else {
+            # OpenMP
+            #  Get the number of threads
+            set cxpath "$rootid//c.SolutionStrategy//c.ParallelType//i.OpenMPNumberOfThreads"
+            set OpenMPNumberOfThreads [::xmlutils::setXml $cxpath $cproperty]
+            if {$OpenMPNumberOfThreads>0} {
+                # Calculate arguments
+                set args "$OpenMPNumberOfThreads"
+            }
+            if {($::tcl_platform(os) eq "Linux")} {
+                set batfilename "kratos.unix.bat"
+            } else {
+               set batfilename "kratos.win.bat"
             }
         }
     }
