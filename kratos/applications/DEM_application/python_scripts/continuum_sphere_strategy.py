@@ -157,8 +157,7 @@ class ExplicitStrategy:
           self.dempack_global_damping       = Param.DempackGlobalDamping
           self.area_factor                  = Param.AreaFactor
         self.contact_mesh_option            = Var_Translator( Var_Translator(Param.ContactMeshOption) & Var_Translator(Param.ContinuumOption) ) 
-        self.concrete_test_option           = Var_Translator( Var_Translator(Param.ConcreteTestOption) & Var_Translator(Param.ContinuumOption) ) 
-        self.triaxial_option                = Var_Translator( Var_Translator(Param.TriaxialOption) & self.concrete_test_option )
+        self.concrete_test_option           = Param.ConcreteTestOption
         self.automatic_bounding_box_option  = Var_Translator(Param.AutomaticBoundingBoxOption)   
         
         self.search_tolerance               = 0.0
@@ -409,7 +408,7 @@ class ExplicitStrategy:
         
         self.step_to_fix_velocities = 0
 
-        if (self.triaxial_option):
+        if (self.concrete_test_option == "TRIAXIAL"):
             self.time_increasing_ratio        = Param.TotalTimePercentAsForceAplTime # (%)
             if (Param.FixVelocitiesOption == 'ON'):
               total_steps_expected = int(Param.FinalTime / Param.MaxTimeStep)
@@ -619,7 +618,7 @@ class ExplicitStrategy:
             self.model_part.ProcessInfo.SetValue(DONZE_G3, self.donze_g3)
             self.model_part.ProcessInfo.SetValue(DONZE_MAX_DEF, self.donze_max_def)
         
-        if (self.triaxial_option):
+        if (self.concrete_test_option == "TRIAXIAL"):
             self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
             self.model_part.ProcessInfo.SetValue(TIME_INCREASING_RATIO, self.time_increasing_ratio)
             self.model_part.ProcessInfo.SetValue(STEP_FIX_VELOCITIES,int(self.step_to_fix_velocities))
