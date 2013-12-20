@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_KMat_DB version="1.1.4">
+<Kratos_KMat_DB version="1.1.7">
     <Materials>
         <MaterialGroup id="Metal" pid="Solid" icon="grey.gif" help="Helptext" open="1">
             <Material id="Steel_AISI1059" pid="Steel_AISI1059" icon="grey.gif" help="Helptext" open="0">
@@ -86,7 +86,7 @@
                 </Container>
                 <Container id="Thermal" pid="Thermal" icon="prop.gif" state="normal" class="normal" help="General" open="0">
                     <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="normal" class="normal" help="General" open="0">
-                        <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                         <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     </Container>
@@ -100,9 +100,13 @@
                     </Container>
                 </Container>
                 <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="0">
-                    <Property id="Viscosity" pid="Viscosity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                    <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                </Container>
+		  <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+                    <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+		    <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
+                    <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+		    <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
+		    <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
+		</Container>
                 <Container id="Electromagnetic" pid="Electromagnetic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
                     <Property id="MagneticPermeability" pid="Magnetic permeability" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                     <Property id="ElectricalPermitivity" pid="Electrical permitivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
@@ -192,7 +196,7 @@
                 </Container>
                 <Container id="Thermal" pid="Thermal" icon="prop.gif" state="normal" class="normal" help="General" open="0">
                     <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="normal" class="normal" help="General" open="0">
-                        <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                         <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     </Container>
@@ -206,9 +210,13 @@
                     </Container>
                 </Container>
                 <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="0">
-                    <Property id="Viscosity" pid="Viscosity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                    <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                </Container>
+		  <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+                    <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+		    <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
+                    <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+		    <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
+		    <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
+		</Container>
                 <Container id="Electromagnetic" pid="Electromagnetic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
                     <Property id="MagneticPermeability" pid="Magnetic permeability" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                     <Property id="ElectricalPermitivity" pid="Electrical permitivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
@@ -314,9 +322,13 @@
                     </Container>
                 </Container>
                 <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="0">
-                    <Property id="Viscosity" pid="Viscosity" value="15e-6" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                    <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                </Container>
+		  <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+                    <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="15e-6" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+		    <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
+                    <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+		    <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
+		    <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
+		</Container>
                 <Container id="Electromagnetic" pid="Electromagnetic" state="hiddenAll" icon="prop.gif" class="normal" help="General" open="0">
                     <Property id="MagneticPermeability" pid="Magnetic permeability" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                     <Property id="ElectricalPermitivity" pid="Electrical permitivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
@@ -420,9 +432,13 @@
                     </Container>
                 </Container>
                 <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="1">
-                    <Property id="Viscosity" pid="Viscosity" value="1e-6" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                    <Property id="BulkModulus" pid="Bulk Modulus" value="2.2e9" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                </Container>
+		  <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+                    <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="1e-6" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+		    <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
+                    <Property id="BulkModulus" pid="Bulk Modulus" value="2.2e9" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+		    <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
+		    <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
+		</Container>
                 <Container id="Electromagnetic" pid="Electromagnetic" state="hiddenAll" icon="prop.gif" class="normal" help="General" open="0">
                     <Property id="MagneticPermeability" pid="Magnetic permeability" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                     <Property id="ElectricalPermitivity" pid="Electrical permitivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
@@ -515,7 +531,7 @@
                 </Container>
                 <Container id="Thermal" pid="Thermal" icon="prop.gif" state="normal" class="normal" help="General" open="0">
                     <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="normal" class="normal" help="General" open="0">
-                        <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                         <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                         <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     </Container>
@@ -529,9 +545,13 @@
                     </Container>
                 </Container>
                 <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="0">
-                    <Property id="Viscosity" pid="Viscosity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                    <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                </Container>
+		  <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+                    <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+		    <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
+                    <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+		    <Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
+		    <Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
+		</Container>
                 <Container id="Electromagnetic" pid="Electromagnetic" state="hiddenAll" icon="prop.gif" class="normal" help="General" open="0">
                     <Property id="MagneticPermeability" pid="Magnetic permeability" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     <Property id="ElectricalPermitivity" pid="Electrical permitivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
@@ -553,7 +573,7 @@
 	  </Material>
         </MaterialGroup>
         <ClassConfiguration>
-            <Class>HardeningLaw,SaturationLaw,FlowRule,YieldCriteria</Class>
+            <Class>HardeningLaw,SaturationLaw,FlowRule,YieldCriteria,NonNewtonianFluid</Class>
         </ClassConfiguration>
     </Materials>
     <Units>
@@ -644,7 +664,7 @@
             </Container>
             <Container id="Thermal" pid="Thermal" icon="prop.gif" state="normal" class="normal" help="General" open="0">
                 <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="normal" class="normal" help="General" open="0">
-                    <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                    <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                     <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                 </Container>
@@ -658,9 +678,13 @@
                 </Container>
             </Container>
             <Container id="Fluid" pid="Fluid" icon="prop.gif" class="normal" help="General" open="0">
-                <Property id="Viscosity" pid="Viscosity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-                <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
-            </Container>
+	      <Property id="NonNewtonianFluid" pid="Non-Newtonian fluid" class="NonNewtonianFluid" value="No" ivalues="Yes,No" values="Yes,No" icon="prop.gif" state="normal" help="Non-Newtonian fluid option" />
+              <Property id="Viscosity" pid="Viscosity" NonNewtonianFluid="No" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+	      <Property id="PlasticViscosity" pid="Plastic viscosity" value="0.001" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the plastic viscosity value"/>
+                <Property id="BulkModulus" pid="Bulk Modulus" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+		<Property id="BinghamSmoother" pid="Bingham smoother" value="500.0" NonNewtonianFluid="Yes" unit=" " icon="prop.gif" state="normal" help="Define the Bingham smoother value"/>
+		<Property id="YieldStress" pid="Yield stress" value="0.0" unit=" " NonNewtonianFluid="Yes" icon="prop.gif" state="normal" help="Define the yield stress value"/>
+	    </Container>
             <Container id="Electromagnetic" pid="Electromagnetic" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
                 <Property id="MagneticPermeability" pid="Magnetic permeability" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                 <Property id="ElectricalPermitivity" pid="Electrical permitivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
