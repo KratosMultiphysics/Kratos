@@ -54,9 +54,9 @@ ProjectParameters.max_pressure_variation_rate_tol  = 1e-3 # for stationary probl
 ProjectParameters.time_steps_per_stationarity_step = 15 # number of fluid time steps between consecutive assessment of stationarity steps
 
 # variables to be printed
-ProjectParameters.dem_nodal_results                = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED", "REYNOLDS_NUMBER"]
+ProjectParameters.dem_nodal_results                = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED", "REYNOLDS_NUMBER"]
 ProjectParameters.mixed_nodal_results              = ["VELOCITY", "DISPLACEMENT"]
-ProjectParameters.variables_to_print_in_file       = ["DRAG_FORCE", "BUOYANCY", "VELOCITY"]
+ProjectParameters.variables_to_print_in_file       = ["DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "VELOCITY"]
 
 # changes on PROJECT PARAMETERS for the sake of consistency
 ProjectParameters.nodal_results.append("SOLID_FRACTION")
@@ -92,10 +92,13 @@ balls_variables_to_add = [FLUID_VEL_PROJECTED,
                           POWER_LAW_N,
                           POWER_LAW_K,
                           DRAG_FORCE,
+                          LIFT_FORCE,
                           BUOYANCY,
                           SOLID_FRACTION_PROJECTED,                         
                           REYNOLDS_NUMBER,
-                          GEL_STRENGTH]
+                          GEL_STRENGTH,
+                          SHEAR_RATE_PROJECTED,
+                          FLUID_VORTICITY_PROJECTED]
 
 fem_dem_variables_to_add = [VELOCITY,
                             DISPLACEMENT]
@@ -114,7 +117,8 @@ variables_dictionary = {"PRESSURE"   : PRESSURE,
                         "VELOCITY"   : VELOCITY,
                         "MU"         : MU,         #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
                         "BUOYANCY"   : BUOYANCY,   #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-                        "DRAG_FORCE" : DRAG_FORCE} #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+                        "DRAG_FORCE" : DRAG_FORCE  #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+                        "LIFT_FORCE" : LIFT_FORCE} #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 #                        "REACTION": REACTION,
 #                        "DISTANCE": DISTANCE, }
 
@@ -193,6 +197,7 @@ SolverStrategy.AddDofs(balls_model_part)
 # adding extra process info variables
 balls_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, ProjectParameters.buoyancy_force_type)
 balls_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, ProjectParameters.drag_force_type)
+balls_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.lift_force_type)
 balls_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.virtual_mass_force_type)
 balls_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.lift_force_type)
 #balls_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, non_newtonian_option)
@@ -359,6 +364,7 @@ if (ProjectParameters.projection_module_option):
     interaction_calculator = CustomFunctionsCalculator()
 
 if (ProjectParameters.body_force_on_fluid):
+
     for node in fluid_model_part.Nodes:
         node.SetSolutionStepValue(BODY_FORCE_X, 0, DEMParameters.GravityX)
         node.SetSolutionStepValue(BODY_FORCE_Y, 0, DEMParameters.GravityY)
@@ -390,6 +396,7 @@ if (ProjectParameters.inlet_option):
 
     DEM_inlet_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, ProjectParameters.buoyancy_force_type)
     DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, ProjectParameters.drag_force_type)
+    DEM_inlet_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.lift_force_type)
     DEM_inlet_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.virtual_mass_force_type)
     DEM_inlet_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.lift_force_type)
     #DEM_inlet_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, non_newtonian_option)
