@@ -12,6 +12,8 @@
 #
 #    HISTORY:
 #
+#     3.4- 19/12/13-G. Socorro, add the proc WritePFEMLagrangianFluidFixedWallBC
+#     3.3- 31/10/13-G. Socorro, change the proc GetDensityViscosityValues by the proc GetFluidMaterialProperties 
 #     3.2- 14/07/13-G. Socorro, modify the proc WriteFluidIsSlipWallLawBC to write is-slip and walllaw BC
 #     3.1- 17/06/13-G. Socorro, delete wmethod variable and all related procedures (*_m0,*_m1,*_m2) => now we are using only the new GiD groups
 #     3.0- 12/04/13-G. Socorro, correct a bug in the proc WriteFluidInletNoSlipBC_m2 (2D case)
@@ -78,41 +80,55 @@ proc ::wkcf::WritePropertyAtNodes {AppId} {
     # wa "flag:$flag"
     # Check for all defined kratos elements
     if {$flag} {
-	
-	# Write viscosity and density for each node identifier
-	set Density 0.0; set Viscosity 0.0; set BulkMod 0.0
-	lassign [::wkcf::GetDensityViscosityValues $AppId] Density Viscosity BulkMod
-	# WarnWinText "Density:$Density Viscosity:$Viscosity"
-
 	set kxpath "Materials"
+	# Write fluid material properties at nodal level
+	set matdict [dict create]
+	# Get the material properties dictionary
+	set matdict [::wkcf::GetFluidMaterialProperties $AppId]
+	# wa "matdict:$matdict"
+	# Get the fluid type
+	set NonNewtonianFluid "No"
+	if {[dict exists $matdict "NonNewtonianFluid"]} {
+	    set NonNewtonianFluid [dict get $matdict "NonNewtonianFluid"]
+	}
+	# Case: Newtoniam fluid
+	set plist [list "Viscosity" "Density"]
+	set kwlist [list]
+	set vplist [list]
+	if {$NonNewtonianFluid eq "Yes"} {
+	    lappend plist "BinghamSmoother" "YieldStress"
+	}
+	# wa "plist:$plist"
+	# update temporal list 
+	foreach pid $plist {
+	    lappend kwlist [::xmlutils::getKKWord $kxpath "$pid" "kkword"]
+	    lappend vplist [dict get $matdict "$pid"]
+	}
+	if {$NonNewtonianFluid eq "Yes"} {
+	    # Replace viscosity value by the plastic viscosity value
+	    lset vplist 0 [dict get $matdict "PlasticViscosity"]
+	}
+	# wa "kwlist:$kwlist\nvplist:$vplist"
+
 	set cpropid "0"        
 
 	# Write the group nodal properties
 	foreach celemid $dprops($AppId,AllKElemId) {
 	    # Check for all defined group identifier for this element
-	    if {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])} {
+	    set cflag [expr {([info exists dprops($AppId,KElem,$celemid,AllGroupId)]) && ([llength $dprops($AppId,KElem,$celemid,AllGroupId)])}]
+	    if {$cflag} {
 		# For all defined group identifier for this element
 		foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {                    
-		    # Write viscosity value for this group
+		    # Write the nodal material properties
 		    if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
-		        set vkword [::xmlutils::getKKWord $kxpath "Viscosity" "kkword"]
-		        GiD_File fprintf $filechannel "%s" "Begin NodalData $vkword \/\/ GUI group identifier: $cgroupid"
-		        foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-		            GiD_File fprintf $filechannel "%10i %4i %4s" $node_id $cpropid $Viscosity
-		        }
-		        GiD_File fprintf $filechannel "%s " "End NodalData"
-		        GiD_File fprintf $filechannel ""
-		    }
-
-		    # Write density value for this group
-		    if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
-		        set vkword [::xmlutils::getKKWord $kxpath "Density" "kkword"]
-		        GiD_File fprintf $filechannel "%s" "Begin NodalData $vkword \/\/ GUI group identifier: $cgroupid"
-		        foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
-		            GiD_File fprintf $filechannel "%10i %4i %4s" $node_id $cpropid $Density
-		        }
-		        GiD_File fprintf $filechannel "%s" "End NodalData"
-		        GiD_File fprintf $filechannel "%s" ""
+			foreach kw $kwlist cval $vplist {
+			    GiD_File fprintf $filechannel "%s" "Begin NodalData $kw \/\/ GUI group identifier: $cgroupid"
+			    foreach node_id [GiD_EntitiesGroups get $cgroupid nodes] {
+				GiD_File fprintf $filechannel "%10i %4i %20.10f" $node_id $cpropid $cval
+			    }
+			    GiD_File fprintf $filechannel "%s " "End NodalData"
+			    GiD_File fprintf $filechannel ""
+			}
 		    }
 		}
 	    }
@@ -181,17 +197,28 @@ proc ::wkcf::WritePropertyAtNodes {AppId} {
     }
 }
 
-proc ::wkcf::GetDensityViscosityValues {AppId} {
-    # ABSTRACT : Return the viscosity and density values
+proc ::wkcf::GetFluidMaterialProperties {AppId {what All} {key ""}} {
+    # ABSTRACT : Return the fluid material properties values
     variable dprops
-
-    set Density 0.0; set Viscosity 0.0
+    
+    set cprop [list]
+    
+    # Set the kratos element list flag
     set flag [expr {([info exists dprops($AppId,AllKElemId)]) && ([llength $dprops($AppId,AllKElemId)])}]
     # wa "flag:$flag"
     
     if {$flag} {
-	set cproplist [list "Density" "Viscosity" "BulkModulus"]
+	# Create the material properties dictionary
+	set pdict [dict create]
+	set cproplist [list "NonNewtonianFluid" "Density" "Viscosity" "BulkModulus" "PlasticViscosity" "BinghamSmoother" "YieldStress"]
+	set dfvcproplist [list No 0.0 0.0 0.0 0.0 0.0 0.0]
+	# Init the dictionary
+	foreach pid $cproplist dfv $dfvcproplist {
+	    dict set pdict $pid $dfv
+	}
+	# wa "pdict:$pdict"
 	foreach PropertyId $dprops($AppId,GKProps,AllPropertyId) {
+	    # wa "PropertyId:$PropertyId"
 	    # Get the material identifier for this property 
 	    set MatId $dprops($AppId,Property,$PropertyId,MatId) 
 	    # Get the group identifier
@@ -201,28 +228,42 @@ proc ::wkcf::GetDensityViscosityValues {AppId} {
 	    # WarnWinText "mpxpath:$mpxpath"
 	    # Get the material properties
 	    foreach pid $cproplist {
-	    if {$pid =="Density"} {
-		set xpath "c.General"
+		if {$pid =="Density"} {
+		    set xpath "c.General"
+		} else {
+		    set xpath "c.Fluid"
+		}
 		# Get the current value for this properties
 		set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
-		set Density [GiD_FormatReal "%10.5e" $cvalue]
-	    } elseif {$pid =="Viscosity"} {
-		set xpath "c.Fluid"
-		# Get the current value for this properties
-		set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
-		set Viscosity [GiD_FormatReal "%10.5e" $cvalue]
-	    } elseif {$pid =="BulkModulus"} {
-		set xpath "c.Fluid"
-		# Get the current value for this properties
-		set cvalue [lindex [::KMat::getMaterialProperties "p" "$mpxpath//$xpath//p.[list $pid]"] 0 1]
-		set BulkMod [GiD_FormatReal "%10.5e" $cvalue]
-	    }
+		# Format some properties
+		if {$pid ne "NonNewtonianFluid"} {
+		    set $pid [GiD_FormatReal "%10.5e" $cvalue]
+		} else {
+		    set $pid $cvalue 
+		}
+		# Create/update the fluid material properties dictionary
+		dict set pdict $pid [set $pid]
 	    }
 	    # Only the first property
 	    break 
 	}
+	# Update cprop
+	if {[llength [dict keys $pdict]]} {
+	    switch -exact -- $what {
+		"All" {
+		    set cprop $pdict
+		}
+		"PropertyId" {
+		    if {[dict exists $pdict $key]} {
+			set cprop [dict get $pdict $key]
+		    } 
+		}
+	    }
+	    unset pdict
+	}
     }
-    return [list $Density $Viscosity $BulkMod]
+    # wa "cprop:$cprop"
+    return $cprop
 }
 
 
@@ -843,6 +884,67 @@ proc ::wkcf::WriteFluidIsSlipWallLawBC {AppId ccondid kwordlist } {
     }
 }
 
+proc ::wkcf::WritePFEMLagrangianFluidFixedWallBC {AppId ccondid kwordlist } {
+    # ABSTRACT: Write fixed wall boundary conditions => Conditional data
+    variable dprops;   variable ndime
+    variable ctbclink; variable filechannel
+
+    # Note: In this case IS_STRUCTURE is a nodal data
+    # wa "AppId:$AppId ccondid:$ccondid kwordlist:$kwordlist"
+    # For debug
+    if {!$::wkcf::pflag} {
+	set inittime [clock seconds]
+    }
+    # Set the keyword values
+    set isstructurekw [lindex $kwordlist 0]
+    set DispX [lindex $kwordlist 1]
+    set DispY [lindex $kwordlist 2]
+    set DispZ [lindex $kwordlist 3]
+
+    set state 1
+    set activateval "1.0"
+    set fvalue "1.0"
+
+    # For all defined group identifier inside this condition type
+    foreach cgroupid $dprops($AppId,BC,$ccondid,AllGroupId) {
+	# wa "cgroupid:$cgroupid"
+	# Get the condition properties
+	lassign $dprops($AppId,BC,$ccondid,$cgroupid,GProps) DispXValue DispYValue DispZValue
+	# wa "DispXValue:$DispXValue DispYValue:$DispYValue DispZValue:$DispZValue"
+	if {[GiD_EntitiesGroups get $cgroupid nodes -count]} {
+	    if {$ndime == "2D"} {
+		# Write is_structure and displacement values
+		foreach kw [list $isstructurekw $DispX $DispY] cvalue [list $fvalue $DispXValue $DispYValue] {
+		    GiD_File fprintf $filechannel "%s" " Begin NodalData $kw // GUI $ccondid condition group identifier: $cgroupid"
+		    foreach nodeid [GiD_EntitiesGroups get $cgroupid nodes] {
+			GiD_File fprintf $filechannel "%10d %4d %10g" $nodeid $state $cvalue
+		    }
+		    GiD_File fprintf $filechannel "%s" "End NodalData"
+		    GiD_File fprintf $filechannel "" 
+		}
+	    } elseif {$ndime == "3D"} {
+	    	
+		# Write is_structure and displacement values
+		foreach kw [list $isstructurekw $DispX $DispY $DispZ] cvalue [list $fvalue $DispXValue $DispYValue $DispZValue] {
+		    GiD_File fprintf $filechannel "%s" " Begin NodalData $kw // GUI $ccondid condition group identifier: $cgroupid"
+		    foreach nodeid [GiD_EntitiesGroups get $cgroupid nodes] {
+			GiD_File fprintf $filechannel "%10d %4d %10g" $nodeid $state $cvalue
+		    }
+		    GiD_File fprintf $filechannel "%s" "End NodalData"
+		    GiD_File fprintf $filechannel "" 
+		}
+	    } 
+	}
+    }
+
+    # For debug
+    if {!$::wkcf::pflag} {
+	set endtime [clock seconds]
+	set ttime [expr $endtime-$inittime]
+	# WarnWinText "endtime:$endtime ttime:$ttime"
+	WarnWinText "Write PFEM fixed wall boundary conditions: [::KUtils::Duration $ttime]"
+    }
+}
 
 proc ::wkcf::WriteFluidDistanceBC {AppId ccondid kwordlist} {
     # ABSTRACT: Write distance boundary conditions => Nodal data
@@ -1076,9 +1178,9 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
 		        # Solution strategy
 		        # Linear solvers
 		        # Velocity
-		        ::wkcf::WriteFluidSolvers $rootid $fileid "Velocity" $wfsmethod $trailing_spaces "velocity_linear_solver_config"
+		        ::wkcf::WriteLinearSolvers $rootid $fileid "Velocity" $wfsmethod $trailing_spaces "velocity_linear_solver_config"
 		        # Pressure
-		        ::wkcf::WriteFluidSolvers $rootid $fileid "Pressure" $wfsmethod $trailing_spaces "pressure_linear_solver_config" 
+		        ::wkcf::WriteLinearSolvers $rootid $fileid "Pressure" $wfsmethod $trailing_spaces "pressure_linear_solver_config" 
 
                         puts $fileid "$trailing_spaces"
                         puts $fileid "${trailing_spaces}#convergence criteria settings"
@@ -1095,10 +1197,10 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
 		        # Solution strategy
 		        # Linear solvers
 		        # Velocity
-		        ::wkcf::WriteFluidSolvers $rootid $fileid "Velocity" $wfsmethod $trailing_spaces 
+		        ::wkcf::WriteLinearSolvers $rootid $fileid "Velocity" $wfsmethod $trailing_spaces 
 		        puts $fileid ""
 		        # Pressure
-		        ::wkcf::WriteFluidSolvers $rootid $fileid "Pressure" $wfsmethod $trailing_spaces
+		        ::wkcf::WriteLinearSolvers $rootid $fileid "Pressure" $wfsmethod $trailing_spaces
 		    }
 		    "Monolithic" {
 		        # Monolithic
@@ -1106,7 +1208,7 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
 		        # Solution strategy
 		        # Linear solvers
 		        # Velocity
-		        ::wkcf::WriteFluidSolvers $rootid $fileid "Monolithic" $wfsmethod $trailing_spaces "linear_solver_config" 
+		        ::wkcf::WriteLinearSolvers $rootid $fileid "Monolithic" $wfsmethod $trailing_spaces "linear_solver_config" 
                         # Write relative and absolute tolerances
                         puts $fileid "$trailing_spaces"
                         puts $fileid "${trailing_spaces}#convergence criteria settings"
@@ -1309,8 +1411,8 @@ proc ::wkcf::WriteEulerianFluidProjectParameters {AppId fileid PDir} {
 		}
 		
 		# Material properties (Density and viscosity)
-		set Density 0.0; set Viscosity 0.0; set BulkMod 0.0
-		lassign [::wkcf::GetDensityViscosityValues $AppId] Density Viscosity BulkMod
+		set Density [::wkcf::GetFluidMaterialProperties $AppId "PropertyId" "Density"]
+		set Viscosity [::wkcf::GetFluidMaterialProperties $AppId "PropertyId" "Viscosity"]
 		# wa "Density:$Density Viscosity:$Viscosity"
 		puts $fileid "Density = $Density "
 		puts $fileid "Viscosity = $Viscosity "
@@ -1507,13 +1609,16 @@ proc ::wkcf::WritePFEMLagrangianFluidProjectParameters {AppId fileid PDir} {
 	puts $fileid "delete_nodes_close_to_wall = 1.00000e+00"
 
 	# Material properties (Density, viscosity and Bulk Modulus)
-	set Density 0.0; set Viscosity 0.0; set BulkMod 0.0
-	lassign [::wkcf::GetDensityViscosityValues $AppId] Density Viscosity BulkMod
-	# wa "Density:$Density Viscosity:$Viscosity BulkModulus:$BulkMod"
+	set Density [::wkcf::GetFluidMaterialProperties $AppId "PropertyId" "Density"]
+	set Viscosity [::wkcf::GetFluidMaterialProperties $AppId "PropertyId" "Viscosity"]
+	set BulkModulus [::wkcf::GetFluidMaterialProperties $AppId "PropertyId" "BulkModulus"]
+	# wa "Density:$Density Viscosity:$Viscosity BulkModulus:$BulkModulus"
 	puts $fileid "density = $Density "
 	puts $fileid "viscosity = $Viscosity "
-	puts $fileid "bulk_modulus = $BulkMod "
-	
+	# Set the bulk_modulus as a default value for this version
+	# puts $fileid "bulk_modulus = $BulkModulus "
+	puts $fileid "bulk_modulus = -1000.0 "
+
 	# Gravity
 	set cxpath "$rootid//c.ProblemParameters//i.PFEMBodyForceGravity"
 	set Gravity [::xmlutils::setXml $cxpath $cproperty]
@@ -1566,8 +1671,8 @@ proc ::wkcf::WritePFEMLagrangianFluidProjectParameters {AppId fileid PDir} {
     }
 }
 
-proc ::wkcf::WriteFluidSolvers {rootid fileid vartype wfsmethod trailing_spaces config_name} {
-    # Write fluid velocity and pressure solvers
+proc ::wkcf::WriteLinearSolvers {rootid fileid vartype wfsmethod trailing_spaces config_name} {
+    # Write linear solver for all applications
     
     # Kratos key word xpath
     set kxpath "Applications/$rootid"
@@ -1575,9 +1680,9 @@ proc ::wkcf::WriteFluidSolvers {rootid fileid vartype wfsmethod trailing_spaces 
     set cproperty "dv"
 
 
-	puts $fileid "    # $vartype solver"
-	# Define the class
-	puts $fileid "    class ${config_name}:"
+    puts $fileid "    # $vartype solver"
+    # Define the class
+    puts $fileid "    class ${config_name}:"
 
 
     set cxpath "$rootid//c.SolutionStrategy//c.SolverTypes//i.[list ${vartype}]LinearSolverType"
