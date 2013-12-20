@@ -13,6 +13,7 @@
 #
 #	HISTORY:
 #
+#       0.3- 19/12/13- GSM, modify the proc updateKratosIniFile to include the widget state attribute
 #       0.2- 15/07/13- GSM, update to use translation, disable kratos_debug.ini file
 #	0.1- 08/07/10- LCA, create the base source code
 #
@@ -215,18 +216,28 @@ proc ::kps::updateKratosIniFile { {w ""} } {
 	
 	set pid [= [::xmlutils::getAttribute $xmlIni $xpath pid]]
 	
+	# Get the widget type
+	set widgettype [$node getAttribute widget ""]
+	# Get the widget state
+	set widgetstate [$node getAttribute state ""]
 	
 	if { $w != "" } {
 	    
 	    set fcmb ${w}.cmb$id
 	    
-	    if { [$node getAttribute widget ""] == "check" } {
+	    if {$widgettype == "check" } {
 		
 		grid [ttk::checkbutton $fcmb -variable kps::cmb$id -text $pid] \
 		    -row $i -column 0 -padx 3 -pady 10 -sticky nw -in $w
 		
 		set kps::cmb$id $dv
 		
+		# Update the state
+		if {($widgetstate eq "hidden")||($widgetstate eq "hiddenAll")} {
+			grid remove $fcmb	
+		} elseif {($widgetstate eq "disabled")} {
+			$fcmb configure -state disable
+		}
 	    } else {
 		
 		grid [ttk::label ${w}.lbl$id -text "$pid" -padding {10 10 10 10}] \
@@ -247,6 +258,15 @@ proc ::kps::updateKratosIniFile { {w ""} } {
 		    ::xmlutils::setComboValue $xmlIni $xpath $fcmb $dv
 		} else {
 		    set kps::cmb$id $dv
+		}
+		
+		# Update the state
+		if {($widgetstate eq "hidden")||($widgetstate eq "hiddenAll")} {
+			grid remove ${w}.lbl$id
+			grid remove $fcmb
+		} elseif {($widgetstate eq "disabled")} {
+			$fcmb configure -state disable
+			${w}.lbl$id configure -state disable
 		}
 	    }				 
 	}
