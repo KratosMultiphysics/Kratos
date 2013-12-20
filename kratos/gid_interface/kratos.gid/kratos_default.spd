@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_Data version="1.2.26">
+<Kratos_Data version="1.2.28">
     <Groups modeltype="GiD"/>
     <!-- Kratos general application data -->
     <!-- id= Internal identifier -->
@@ -11,7 +11,7 @@
     <!-- ivalues= Available idValues list => Using ComboBox widget-->
     <!-- values= Available traduction values list => Using ComboBox widget-->
     <!-- Kratos application data containers -->
-    <RootData id="GeneralApplicationData" pid="General application data" help="Helptext" open="1">
+    <RootData id="GeneralApplicationData" pid="General application data" help="General application data" open="1" state="normal">
         <Container id="ProjectInfo" pid="Project information" class="Tab" help="Project information" open="0" icon="ProjectInfo.gif">
             <Item id="CompanyName" pid="Company name" dv="" style="" help="Company name"/>
             <Item id="ProjectName" pid="Project name" dv="" style="" help="Project name"/>
@@ -34,7 +34,8 @@
             <Item id="Fluid" pid="Fluid" class="application" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid dynamics" icon="aplicationTree.gif"/>
 	    <Item id="PFEM" pid="PFEM" class="application" dv="No" state="hidden" ivalues="Yes,No" values="Yes,No" help="PFEM" icon="aplicationTree.gif"/>
             <Item id="FluidStructureInteraction" pid="Fluid structure interaction (FSI)" class="application" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Fluid structure interaction (FSI)" icon="aplicationTree.gif"/>
-            <Item id="ConvectionDiffusion" pid="Convection diffusion" class="application" state="hidden" dv="No" ivalues="Yes,No" values="Yes,No" help="Convection diffusion" icon="aplicationTree.gif"/>            
+            <Item id="ConvectionDiffusion" pid="Convection diffusion" class="application" state="normal" dv="No" ivalues="Yes,No" values="Yes,No" help="Convection diffusion" icon="aplicationTree.gif"/>
+	    <Item id="DEM" pid="DEM" class="application" dv="No" state="normal" ivalues="Yes,No" values="Yes,No" help="DEM" icon="aplicationTree.gif"/>            
         </Container>
     </RootData>
     <RootData id="StructuralAnalysis" pid="Structural simulation" state="normal" class="application" icon="aplicationTree.gif" help="Structural simulation" open="1">
@@ -76,13 +77,13 @@
         </Container>
         <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesStruct" icon="propsTreeNew.gif" help="Add a new Property" open="0"/>
         <Container id="Elements" pid="Elements" help="Elements" open="0" icon="femelements.gif">
-	  <Container id="PlaneStress2D" pid="Plane Stress SD" class="Groups" nDim="2D" axiSym="No" kinemType="SmallDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Small Displacement 2D Plane Stress" open="0"/>
-	  <Container id="PlaneStrain2D" pid="Plane Strain SD" class="Groups" nDim="2D" axiSym="No" kinemType="SmallDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid" idTemplate="Solid2DElement" icon="femelements.gif" help="Small Displacement 2D Plane Strain" open="0"/>
+	  <Container id="PlaneStress2D" pid="Plane Stress" class="Groups" nDim="2D" axiSym="No" kinemType="SmallDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Small Displacement 2D Plane Stress" open="0"/>
+	  <Container id="PlaneStrain2D" pid="Plane Strain" class="Groups" nDim="2D" axiSym="No" kinemType="SmallDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid" idTemplate="Solid2DElement" icon="femelements.gif" help="Small Displacement 2D Plane Strain" open="0"/>
 	  <Container id="Axisymmetric2D" pid="Axisymmetric SD" class="Groups" nDim="2D" axiSym="Yes" kinemType="SmallDisplacements"  GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Small Displacement 2D Axisymmetric" open="0"/>
-	  <Container id="SolidElement3D" pid="Solid Element  SD" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="volume" GiDValidMesh="Tetrahedra,Hexahedra" strucType="Solid,Generic" idTemplate="Solid3DElement" icon="femelements.gif" help="Small Displacement 3D" open="0"/>
-	  <Container id="BeamElement" pid="Beam Element SD" class="Groups" nDim="3D" kinemType="SmallDisplacements" strucType="Beam" idTemplate="BeamElement" GiDEntity="line" icon="femelements.gif" help="Beam Element type" open="0"/>
+	  <Container id="SolidElement3D" pid="Solid Element" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="volume" GiDValidMesh="Tetrahedra,Hexahedra" strucType="Solid,Generic" idTemplate="Solid3DElement" icon="femelements.gif" help="Small Displacement 3D" open="0"/>
+	  <Container id="BeamElement" pid="Beam Element" class="Groups" nDim="3D" kinemType="SmallDisplacements" strucType="Beam" idTemplate="BeamElement" GiDEntity="line" icon="femelements.gif" help="Beam Element type" open="0"/>
 	  <Container id="CrisfieldTrussElement" pid="Crisfield truss element" state="hidden" class="Groups" strucType="Truss" idTemplate="TrussElement" GiDEntity="line" nDim="3D" icon="femelements.gif" help="Crisfield truss element" open="0"/>	     
-	  <Container id="ShellIsotropic" pid="Shell isotropic  SD" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="Shell isotropic" open="0"/>
+	  <Container id="ShellIsotropic" pid="Shell isotropic" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="Shell isotropic" open="0"/>
 	  <Container id="ShellAnisotropic" pid="Shell anisotropic" state="hidden" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="ShellAnisotropic" open="0"/>
 	  <Container id="EBST" pid="EBST (formulation)" state="hidden" class="Groups" nDim="3D" GiDEntity="surface" strucType="Shell" idTemplate="ShellElement" icon="femelements.gif" help="Total Lagrangian" open="0"/>
 	  <Container id="Membrane" pid="Membrane" class="Groups" nDim="3D" kinemType="SmallDisplacements" GiDEntity="surface" strucType="Membrane" idTemplate="MembraneElement" icon="femelements.gif" help="Membrane element type" open="0"/>
@@ -95,7 +96,7 @@
 	  <Container id="SpatialLagrangian2DPlaneStress" pid="Plane Stress LD"  class="Groups" nDim="2D" axiSym="No" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Spatial Lagrangian 2D Plane Stress" open="0"/>
 	  <Container id="SpatialLagrangian2DPlaneStrain" pid="Plane Strain LD"  class="Groups" nDim="2D" axiSym="No" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Spatial Lagrangian 2D Plane Strain" open="0"/>
 	  <Container id="SpatialLagrangian2DAxisymmetric" pid="Axisymmetric LD" class="Groups" nDim="2D" axiSym="Yes" kinemType="LargeDisplacements" GiDEntity="surface" GiDValidMesh="Triangle,Quadrilateral" strucType="Solid,Generic" idTemplate="Solid2DElement" icon="femelements.gif" help="Spatial Lagrangian 2D Axisymmetric" open="0"/>
-	  <Container id="SpatialLagrangian3D" pid="Solid Element LD" class="Groups" nDim="3D" kinemType="LargeDisplacements" GiDEntity="volume"  GiDValidMesh="Tetrahedra,Hexahedra" strucType="Solid,Generic" idTemplate="Solid3DElement" icon="femelements.gif" help="Spatial Lagrangian 3D" open="0"/>
+	  <Container id="SpatialLagrangian3D" pid="Solid Element" class="Groups" nDim="3D" kinemType="LargeDisplacements" GiDEntity="volume"  GiDValidMesh="Tetrahedra,Hexahedra" strucType="Solid,Generic" idTemplate="Solid3DElement" icon="femelements.gif" help="Spatial Lagrangian 3D" open="0"/>
 	</Container>
         <Container id="Loads" pid="Loads" help="Loads" open="0" icon="loads.gif">
             <Container id="VolumeAcceleration" pid="Self weight" class="Groups" idTemplate="BodyForce" icon="groupsTreeNew.gif" help="Gravity (Body Force)" open="0"/>
@@ -157,7 +158,7 @@
     <RootData id="Fluid" pid="Fluid" state="hiddenAll" class="application" icon="aplicationTree.gif" help="Fluid" open="1">
         <Container id="AnalysisData" pid="Analysis data" class="Tab" help="Analysis data" open="0">
             <Item id="FluidType" pid="Fluid type" class="fluidType" dv="Incompressible" ivalues="Compressible,Incompressible" values="Compressible,Incompressible" help="Fluid type"/>
-            <Item id="FluidApproach" pid="Fluid Approach" class="fluidAppr" dv="Eulerian" ivalues="Eulerian" values="Eulerian" help="Fluid approach" delvalues="PFEM-Lagrangian" />
+            <Item id="FluidApproach" pid="Fluid Approach" class="fluidAppr" dv="Eulerian" ivalues="Eulerian,PFEM-Lagrangian" values="Eulerian,PFEM-Lagrangian" help="Fluid approach" delvalues="PFEM-Lagrangian" />
             <Item id="FreeSurface" pid="Free surface" state="hidden" class="freeSurf" fluidAppr="Eulerian" fluidType="Incompressible" dv="No" ivalues="Yes,No" values="Yes,No" help="Free surface"/>
             
             <Item id="SolverTypeCompressible" pid="Solver type" class="fluidSolvTyp" freeSurf="No" fluidType="Compressible" dv="FSSE-ElementBased" ivalues="FSSE-ElementBased" values="Fractional step semi-explicit element based" help="Fractional step"/>
@@ -246,7 +247,7 @@
                 <Container id="ErgunEquationYes" pid="Zones" class="Groups" ErgunEquationType="Yes" nDim="3D" GiDEntity="line,surface,volume" fluidSolvTyp="LevelSet" PSolutionType="OpenMP" idTemplate="PorosityDiameter" icon="groupsTreeNew.gif" help="" open="0"/>
 	    </Container>
         </Container>
-        <Container id="ProblemParameters" pid="Problem Parameters" help="Problem Parameters" open="0" dv="fh" values="">
+        <Container id="ProblemParameters" pid="Problem parameters" help="Problem parameters" open="0" dv="fh" values="">
             <Item id="StartTime" pid="Start time" dv="0.0" fluidAppr="Eulerian" help=""/>
             <Item id="EndTime" pid="End time" dv="1" help=""/>
             <Item id="UseAutomaticDeltaTime" pid="Automatic delta time" fluidSolvTyp="ElementBased,Monolithic" fluidAppr="Eulerian" class="deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the Delta time option to be used"/>
@@ -287,7 +288,8 @@
 	    <Container id="Distance" pid="Distance" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="LevelSet" idTemplate="LevelSetDistance" GiDEntity="line,surface,volume" icon="groupsTreeNew.gif" help="Distance variable for the free surface using level set method" open="0"/>
             <Container id="No-Slip" pid="No-Slip" class="Groups" fluidAppr="Eulerian" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="NoSlip" icon="groupsTreeNew.gif" help="No-Slip" open="0"/>
 	    <Container id="Flag-Variable" pid="Flag-Variable" fluidAppr="Eulerian" class="Groups" fluidSolvTyp="Monolithic,ElementBased,LevelSet,PressureSplitting" idTemplate="FlagVariable" icon="groupsTreeNew.gif" help="Define the flag variable properties" open="0"/>
-	    <Container id="PFEMWall" pid="Wall/Object" class="Groups" fluidAppr="PFEM-Lagrangian" idTemplate="PFEMwall" icon="groupsTreeNew.gif" GiDEntity="line,surface,volume" help="" open="0"/>
+	    <Container id="PFEMWall" pid="Wall/Object" class="Groups" fluidAppr="PFEM-Lagrangian" state="hiddenAll" idTemplate="PFEMwall" icon="groupsTreeNew.gif" GiDEntity="line,surface,volume" help="" open="0"/>
+        <Container id="PFEMFixedWall" pid="Fixed Wall" class="Groups" fluidAppr="PFEM-Lagrangian" idTemplate="PFEMFixedWall" icon="groupsTreeNew.gif" GiDEntity="line,surface,volume" help="" open="0"/>
 	    <Container id="PFEMFluidInlet" pid="Fluid Inlet" class="Groups" fluidAppr="PFEM-Lagrangian" idTemplate="PFEMFluidInlet" icon="groupsTreeNew.gif" GiDEntity="line,surface" help="" open="0"/>
         </Container>
         <Container id="Results" pid="Results" help="Results" open="0">
@@ -366,7 +368,90 @@
       <Container id="NotAvailable" pid="Not available" dv="res" help="Developing in process"/>
     </RootData>
     <RootData id="ConvectionDiffusion" pid="Convection diffusion" state="hiddenAll" class="application" icon="aplicationTree.gif" help="Convection diffusion" open="1">
-        <Container id="NotAvailable" pid="Not available" dv="res" help="Developing in process"/>
+      <Container id="AnalysisData" pid="Analysis data" class="Tab" state="hidden" help="Analysis data" open="0">
+        <Item id="BaseCDType" pid="Base variable type" class="BaseCFType" dv="Temperature" ivalues="Temperature" state="hidden" values="Temperature" help="Base variable type"/>
+	<Item id="AnalysisType" pid="Analysis type" dv="Linear" class="CDAnalysisType" ivalues="Linear,Non-Linear" values="Linear,Non-Linear" help="Analysis type"/>
+      </Container>
+      <Container id="SolutionStrategy" pid="Solution strategy" help="Solution Strategy" open="0" dv="fh" values="">
+	<Container id="ParallelType" pid="Parallel type" class="Tab" help="Parallel type" open="0" icon="groupsTreeNew.gif">
+	  <Item id="ParallelSolutionType" pid="Parallelization" dv="OpenMP" class="PSolutionType" ivalues="OpenMP" values="OpenMP" delvalues="MPI" help="Parallelization type"/>
+	  <Item id="MPINumberOfProcessors" pid="Number of processors" dv="2" PSolutionType="MPI" help="Number of processors"/>
+	  <Item id="OpenMPNumberOfThreads" pid="Number of threads" dv="2" PSolutionType="OpenMP" help="Number of threads"/>
+	</Container>
+	<Container id="SolverTypes" pid="Linear solver" class="Tab" help="Solver types" open="0" icon="groupsTreeNew.gif">
+          <Item id="TemperatureLinearSolverType" pid="Temperature linear solver type" class="CDLinearSolverType" BaseCFType="Temperature" dv="Iterative" ivalues="Direct,Iterative" values="Direct,Iterative" help=""/>
+          <Item id="TemperatureDirectSolverType" pid="Temperature direct solver type" CDLinearSolverType="Direct" BaseCFType="Temperature" dv="SuperLU" ivalues="SkylineLUFactorization,SuperLU,ParallelMKLPardiso" values="Skyline LU factorization,Super LU,Parallel MKL Pardiso" help=""/>
+          <Item id="TemperatureIterativeSolverType" pid="Temperature iterative solver type" CDLinearSolverType="Iterative" BaseCFType="Temperature" dv="BiConjugateGradientStabilized" ivalues="ConjugateGradient,BiConjugateGradientStabilized,GMRES,AMGCL" values="Conjugate gradient,BiConjugate gradient stabilized,GMRES,AMGCL" help=""/>
+          <Item id="TemperatureISTolerance" pid="Temperature solver tolerance" BaseCFType="Temperature" CDLinearSolverType="Iterative" dv="1E-6" help=""/>
+          <Item id="TemperatureISMaximumIteration" pid="Temperature solver maximum iteration" BaseCFType="Temperature" CDLinearSolverType="Iterative" dv="5000" help=""/>
+          <Item id="TemperaturePreconditionerType" pid="Temperature preconditioner type" CDLinearSolverType="Iterative" BaseCFType="Temperature" dv="ILU0" ivalues="None,Diagonal,ILU0" values="None,Diagonal,ILU0" help=""/>
+	</Container>
+	<Container id="Advanced" pid="Advanced" BaseCFType="Temperature" class="Tab" help="Advanced Solver Parameters" open="0" icon="groupsTreeNew.gif">
+	  <Item id="PredictorCorrector" pid="Predictor corrector" BaseCFType="Temperature" dv="False" ivalues="True,False" values="True,False" help=""/>
+          <Item id="RelativeTemperatureTolerance" pid="Relative temperature tolerance" BaseCFType="Temperature" dv="1E-3" help="Relative temperature tolerance"/>
+          <Item id="MaximumTemperatureIterations" pid="Maximum temperature iterations" BaseCFType="Temperature" dv="15" help=""/>
+	  <Item id="TimeOrder" pid="Time order" dv="2" BaseCFType="Temperature" ivalues="1,2" values="1,2" help=""/>
+        </Container>
+	<Container id="ProblemParameters" pid="Problem parameters" help="Problem parameters" open="0">
+          <Item id="StartTime" pid="Start time" dv="0.0" BaseCFType="Temperature" help=""/>
+          <Item id="EndTime" pid="End time" dv="1" help=""/>
+          <Item id="UseAutomaticDeltaTime" pid="Automatic delta time" BaseCFType="Temperature" class="cddeltatimetype" dv="Fixed" ivalues="Fixed" values="Fixed" delvalues="Automatic" help="Select the Delta time option to be used"/>
+          <Item id="DeltaTime" cddeltatimetype="Fixed" pid="Delta time" dv="0.001" help=""/>
+	</Container>
+      </Container>
+      <Container id="Properties" pid="Properties" class="Properties" idTemplate="PropertiesConvectionDiffusion" icon="propsTreeNew.gif" help="Add a new Property" open="0"/>
+      <Container id="Elements" pid="Elements" help="Elements" open="0">
+        <Container id="ConvDiff2D" pid="Convection-Diffusion" class="Groups" nDim="2D" GiDEntity="surface" BaseCFType="Temperature" idTemplate="ConvDiff2D" icon="groupsTreeNew.gif" help="Convection diffusion element type" open="0"/>
+        <Container id="ConvDiff3D" pid="Convection-Diffusion" class="Groups" nDim="3D" GiDEntity="volume" BaseCFType="Temperature" idTemplate="ConvDiff3D" icon="groupsTreeNew.gif" help="Convection diffusion element type" open="0"/>
+      </Container>
+      <Container id="InitialConditions" pid="Initial conditions" BaseCFType="Temperature" help="Initial Conditions" open="0">
+        <Container id="InitialTemperature" pid="Initial temperature" BaseCFType="Temperature" class="Groups" idTemplate="CDInitialTemperature" icon="groupsTreeNew.gif" help="Initial Conditions" open="0"/>
+      </Container>
+      <Container id="Conditions" pid="Boundary conditions" help="Boundary Conditions" open="0">
+        <Container id="HeatFlux" pid="Heat flux" class="Groups" BaseCFType="Temperature" idTemplate="CDHeatFlux" icon="groupsTreeNew.gif" help="Heat flux" open="0"/>
+	<Container id="FaceHeatFlux" pid="Face heat flux" class="Groups" BaseCFType="Temperature" idTemplate="CDFaceHeatFlux" icon="groupsTreeNew.gif" help="Face heat flux" open="0"/>
+        <Container id="PrescribedTemperature" pid="Prescribed temperature" class="Groups" BaseCFType="Temperature" idTemplate="CDPrescribedTemperature" icon="groupsTreeNew.gif" help="Prescribed temperature" open="0"/>
+      </Container>
+      <Container id="Results" pid="Results" help="Results" open="0">
+        <Item id="VolumeOutput" pid="Volume output" dv="Yes" nDim="3D" class="UseCuts" ivalues="Yes,No" values="Yes,No" help="Volume output"/>
+        <Item id="OutputDeltaTime" pid="Output delta time" dv="0.1" help="Output delata time"/>
+        <Item id="PrintInLayer" pid="Print in layer" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Print in layer"/>
+        <Container id="OnNodes" pid="On nodes" class="Tab" help="On nodes" open="0">
+          <Item id="Temperature" pid="Temperature" dv="Yes" ivalues="Yes,No" values="Yes,No" help="Temperature"/>
+        </Container>
+        <Container id="GiDOptions" pid="Options" class="Tab" help="GiD postprocess options" open="0">
+          <Item id="GiDPostMode" pid="Result format" dv="Binary" ivalues="Ascii,Binary" values="Ascii,Binary" help="GiD result file format"/>
+          <Item id="GiDWriteMeshFlag" pid="Write deformed mesh" dv="Yes" ivalues="True,False" values="Yes,No" fluidAppr="Eulerian" help="Write the GiD deformed or undeformed mesh"/>
+          <Item id="GiDWriteConditionsFlag" pid="Write conditions" dv="Yes" ivalues="True,False" values="Yes,No" fluidAppr="Eulerian" help="Write the conditions or only element to the GiD result file"/>
+          <Item id="GiDMultiFileFlag" pid="Result file" dv="Single" ivalues="Single,Multiples" values="Single,Multiples" fluidAppr="Eulerian" help="Write one GiD result file or multiple files"/>
+        </Container>
+	<Container id="CutOptions" pid="Cut planes" class="Properties" UseCuts="No" idTemplate="CutProperties" help="Cut plane postprocess options" open="0" />
+      </Container>
+    </RootData>
+    <RootData id="DEM" pid="DEM" state="hiddenAll" class="application" icon="aplicationTree.gif" help="DEM" open="1">
+      <Container id="DEM-Options" pid="DEM general options" class="Tab" help="DEM general options" open="0">
+	<Container id="TimeStep" pid="Time step" class="Tab">
+	  <Item id="UseAutomaticDeltaTime" pid="Automatic delta time" class="DEM-deltatimetype" dv="Fixed" ivalues="Fixed,Automatic" values="Fixed,Automatic" help="Select the Delta time option to be used"/>
+          <Item id="DeltaTime" DEM-deltatimetype="Fixed" pid="Delta time" dv="0.0001" help=""/>
+	  <Item id="DeltaTimeSafetyFactor" DEM-deltatimetype="Automatic" pid="Delta time safety factor" dv="1.0" help="Delta time safety factor"/>
+	</Container>
+	<Item id="DragCorrection" pid="Drag correction" dv="Chien" ivalues="Chien,Hayder" values="Chien,Hayder" help="Select the method used for the drag correction due to sphericity"/>
+	<Container id="Boundingbox" pid="Bounding Box" class="Tab">
+	  <Item id="UseBoundingBox" pid="Active bounding box" dv="Active" class="DEM-BBox" ivalues="Active,NotActive" values="Active,Not active" help="Active bounding box"/> 
+	  <Item id="BoundingBoxType" pid="Bounding box type" DEM-BBox="Active" class="DEM-BBoxType" dv="Automatic" ivalues="Automatic,Fixed" values="Automatic,Fixed" help="Bounding box type"/> 
+	  <Item id="EnlargementFactor" pid="Enlargement factor" DEM-BBox="Active" DEM-BBoxType="Automatic" dv="1.1" help="Enlargement factor"/> 
+          <Item id="MaxX" pid="Max X" DEM-BBox="Active" DEM-BBoxType="Fixed" dv="100.0" help="Max X"/> 
+          <Item id="MaxY" pid="Max Y" DEM-BBox="Active" DEM-BBoxType="Fixed" dv="100.0" help="Max Y" sbi="PickCoordinates" sbp="Pick" sbxp="MaxX,MaxY,MaxZ"/> 
+          <Item id="MaxZ" pid="Max Z" DEM-BBox="Active" DEM-BBoxType="Fixed" dv="100.0" help="Max Z"/> 
+          <Item id="MinX" pid="Min X" DEM-BBox="Active" DEM-BBoxType="Fixed" dv="-100.0" help="Min X"/> 
+          <Item id="MinY" pid="Min Y" DEM-BBox="Active" DEM-BBoxType="Fixed" dv="-100.0" help="Min Y" sbi="PickCoordinates" sbp="Pick" sbxp="MinX,MinY,MinZ"/> 
+          <Item id="MinZ" pid="Min Z" DEM-BBox="Active" DEM-BBoxType="Fixed" dv="-100.0" help="Min Z"/>
+	</Container>
+      </Container>
+      <Container id="Properties" pid="Properties" class="Properties" state="hidden" idTemplate="PropertiesDEM" icon="propsTreeNew.gif" help="Add a new Property" open="0"/>
+      <Container id="Conditions" pid="Boundary conditions" help="Boundary conditions" open="0">
+	<Container id="DEM-Inlet" pid="Inlet" class="Groups" idTemplate="DEM-InletBC" GiDEntity="line,surface" icon="groupsTreeNew.gif" help="DEM inlet boundary condition" open="0"/>
+      </Container>
     </RootData>
     <RootData id="Curves" pid="Curves" state="hiddenAll" class="Curves" icon="arc.gif" help="Curve definition" open="1">
     </RootData>
@@ -476,6 +561,13 @@
                 <Item id="Gz" pid="Z" dv="0.0" nDim="3D" help="Z velocity"/>
             </Container>
         </Template>
+	<Template id="PFEMFixedWall" icon="groupsTree.gif" help="PFEM Fixed Wall">
+            <Container id="Displacement" pid="Displacement" help="Displacement">
+                <Item id="Dx" pid="X" dv="0.0" help="X displacement"/>
+                <Item id="Dy" pid="Y" dv="0.0" help="Y displacement"/>
+                <Item id="Dz" pid="Z" dv="0.0" nDim="3D" help="Z displacement"/>                
+            </Container>           
+        </Template>
         <Template id="PFEMFluidInlet" icon="groupsTree.gif" help="Activation">
             <Container id="Values" pid="Velocity" help="Values">
                 <Item id="Vx" pid="X" dv="0.0" help="X velocity"/>
@@ -495,6 +587,32 @@
             <Item id="MinX" pid="Min X" dv="0.0" help="Min X"/> 
             <Item id="MinY" pid="Min Y" dv="0.0" help="Min Y" sbi="PickCoordinates" sbp="Pick" sbxp="MinX,MinY,MinZ"/> 
             <Item id="MinZ" pid="Min Z" dv="0.0" help="Min Z"/> 
+        </Template>
+	<Template id="DEM-InletBC" help="DEM inlet boundary condition">
+	  <Container id="MainProperties" pid="New property" state="hidden" help="Values">
+            <Item id="VelocityModulus" pid="Velocity modulus" dv="1.0" help="Velocity modulus of the particles"/> 
+	    <Item id="NumberOfParticles" pid="Number of particles" dv="200.0" help="Number of particles per square meter and second"/> 
+            <Item id="DirectionVectorX" pid="Direction vector X" dv="0.0" help="Direction vector X"/>
+	    <Item id="DirectionVectorY" pid="Direction vector Y" dv="0.0" help="Direction vector Y"/>
+	    <Item id="DirectionVectorZ" pid="Direction vector Z" dv="1.0" help="Direction vector Z"/>
+            <Item id="InletStartTime" pid="Inlet start time" dv="0.0" help="Inlet start time"/> 
+	    <Item id="InletStopTime" pid="Inlet stop time" dv="1000.0" help="Inlet stop time"/>  
+	    <Item id="MatModel" pid="Material model" dv="" GCV="MatModel" help="Material model" state="hidden"/>
+            <Item id="Material" pid="Material" dv="" GCV="Materials" help="Material"/>
+	    <Item id="ExcludeBoundaries" pid="Exclude boundaries" dv="No" ivalues="Yes,No" values="Yes,No" help="Exclude boundaries"/>
+          </Container>
+        </Template>
+	<Template id="ConvDiff2D" icon="groupsTree.gif" help="Convection diffusion 2D element type">
+            <Container id="Properties" pid="ConvDiff2D" state="hidden" help="Properties">
+                <Item id="ElementType" pid="Element type" dv="Triangle" ivalues="Triangle,Quadrilateral" values="Triangle,Quadrilateral" help="Element Type"/>
+                <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
+            </Container>
+        </Template>
+	<Template id="ConvDiff3D" icon="groupsTree.gif" help="Convection diffusion 2D element type">
+            <Container id="Properties" pid="ConvDiff3D" state="hidden" help="Properties">
+                <Item id="ElementType" pid="Element type" dv="Tetrahedra" ivalues="Tetrahedra,Hexahedra" values="Tetrahedra,Hexahedra" help="Element Type"/>
+                <Item id="Property" pid="Property" dv="" GCV="Properties" help="Property"/>
+            </Container>
         </Template>
         <Template id="PrescribedVelocity" icon="groupsTree.gif" help="Activation">
             <Container id="Activation" pid="Fix" help="Fix coordinates">
@@ -531,13 +649,46 @@
                 <Item id="Material" pid="Material" dv="" GCV="Materials" help="Material"/>
                 <Item id="Thickness" pid="Thickness" dv="1.0" help="Thickness" state="hidden"/>
             </Container>
+        </Template>
+	<Template id="PropertiesDEM" icon="propsTree.gif" help="Property">
+          <Container id="MainProperties" pid="New property" state="hidden" help="Values">
+            <Item id="MatModel" pid="Material model" dv="" GCV="MatModel" help="Material model" state="hidden"/>
+            <Item id="Material" pid="Material" dv="" GCV="Materials" help="Material"/>
+          </Container>
+        </Template> 
+	<Template id="PropertiesConvectionDiffusion" icon="propsTree.gif" help="Property">
+            <Container id="MainProperties" pid="New property" state="hidden" help="Values">
+	      <Item id="MatModel" pid="Material model" dv="" GCV="MatModel" help="Material model" state="hidden"/>
+              <Item id="Material" pid="Material" dv="" GCV="Materials" help="Material"/>
+            </Container>
         </Template>   
+	<Template id="CDPrescribedTemperature" icon="groupsTree.gif" help="Activation">
+          <Container id="Activation" pid="Fix" help="Fix value">
+            <Item id="APTemperature" pid="Temperature fix" dv="1" ivalues="1,0" values="1,0" help="Fix the temperature value"/>
+          </Container>
+          <Container id="Values" pid="Value" help="Value">
+            <Item id="VPTemperature" pid="Temperature" dv="0.0" help="Temperature value"/>
+          </Container>
+        </Template>
+	<Template id="CDHeatFlux" icon="groupsTree.gif" help="Heat flux">
+          <Container id="MainProperties" pid="Heat flux" state="hidden" help="Heat flux">
+            <Item id="VHeatFlux" pid="Heat flux" dv="0.0" help="Heat flux value"/>
+          </Container>
+        </Template>
+	<Template id="CDFaceHeatFlux" icon="groupsTree.gif" help="Face heat flux">
+          <Container id="MainProperties" pid="Face heat flux" state="hidden" help="Face heat flux">
+            <Item id="VFaceHeatFlux" pid="Face heat flux" dv="0.0" help="Face heat flux value"/>
+	    <Item id="VEmissivity" pid="Emissivity" dv="0.0" help="Emissivity value"/>
+	    <Item id="EnvironmentTemperature" pid="Environment temperature" dv="0.0" help="Environment temperature"/>
+	    <Item id="VConvectionCoefficient" pid="Convection coefficient" dv="0.0" help="Convection coefficient"/>
+          </Container>
+        </Template>
         <Template id="BodyForce" icon="groupsTree.gif" help="BodyForce">
             <Container id="MainProperties" pid="Body force" state="hidden" help="Values">
                 <Item id="GravityValue" pid="Gravity value" dv="9.8" help="Gravity value"/>
                 <Item id="Cx" pid="Cx" dv="0.0" help="X Vector"/>
-                <Item id="Cy" pid="Cy" dv="-1.0" help="Y Vector"/>
-                <Item id="Cz" pid="Cz" dv="0.0" nDim="3D" help="Z Vector"/>
+                <Item id="Cy" pid="Cy" dv="0.0" help="Y Vector"/>
+                <Item id="Cz" pid="Cz" dv="-1.0" nDim="3D" help="Z Vector"/>
             </Container>
         </Template>        
         <Template id="PointLoad" icon="groupsTree.gif" help="Point Load">
@@ -606,13 +757,17 @@
                 <Item id="InitialTemperature" pid="Temperature" dv="0.0" help=""/>
             </Container>
         </Template>
+	<Template id="CDInitialTemperature" icon="groupsTree.gif" help="Initial temperature">
+            <Container id="MainProperties" pid="New property" state="hidden" help="Values">
+                <Item id="InitialTemperature" pid="Temperature" dv="298.0" help=""/>
+            </Container>
+        </Template>
         <Template id="InitialPressure" icon="groupsTree.gif" help="Initial pressure">
             <Container id="MainProperties" pid="New property" state="hidden" help="Values">
                 <Item id="InitialPressure" pid="Pressure" dv="0.0" help=""/>
             </Container>
         </Template>
-        
-	<Template id="FlagVariable" icon="groupsTree.gif" help="Flag variable">
+      	<Template id="FlagVariable" icon="groupsTree.gif" help="Flag variable">
             <Container id="MainProperties" pid="New property" state="hidden" help="Values">
                 <Item id="Flag" pid="Flag" dv="1" ivalues="1,2" values="1,2" help="Select the flag value"/>
 	    </Container>
@@ -694,10 +849,11 @@
             </Template>
     </Templates>
     <GlobalProjectSettings>
-    	<Item id="ValidateModel" pid="Validate model before calculate" dv="1" widget="check" help=""/>
-    	<Item id="CheckSpdVersion" pid="Check problem type version" dv="1" widget="check" help=""/>
+    	<Item id="ValidateModel" pid="Validate model before calculate" dv="1" state="normal" widget="check" help=""/>
+    	<Item id="CheckSpdVersion" pid="Check problem type version" dv="1" state="normal" widget="check" help=""/>
+	<Item id="WriteAllGiDGroups" pid="Write all GiD groups" dv="0" widget="check" state="hidden" help="Write all GiD groups to the Kratos meshes"/>
     </GlobalProjectSettings>
     <ClassConfiguration>
-        <Class>nDim,axiSym,kinemType,strucType,soluType,analysType,velocityLinearSolvTyp,monolithicLinearSolvTyp,pressureLinearSolvTyp,linearSolvTyp,solverType,fluidSolvTyp,fluidType,fluidAppr,freeSurf,convCriteria,application,deltatimetype,TurbulenceModelType,UseCuts,monolithiciterativesolvertype,PSolutionType,ErgunEquationType,PressureIterativeSolverType,VelocityIterativeSolverType</Class>
+        <Class>nDim,axiSym,kinemType,strucType,soluType,analysType,velocityLinearSolvTyp,monolithicLinearSolvTyp,pressureLinearSolvTyp,linearSolvTyp,solverType,fluidSolvTyp,fluidType,fluidAppr,freeSurf,convCriteria,application,deltatimetype,TurbulenceModelType,UseCuts,monolithiciterativesolvertype,PSolutionType,ErgunEquationType,BaseCFType,cddeltatimetype,CDLinearSolverType,DEM-deltatimetype,DEM-BBox,DEM-BBoxType,CDAnalysisType,PressureIterativeSolverType,VelocityIterativeSolverType</Class>
     </ClassConfiguration>
 </Kratos_Data>
