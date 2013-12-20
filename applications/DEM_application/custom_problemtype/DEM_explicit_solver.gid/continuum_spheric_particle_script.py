@@ -131,8 +131,7 @@ if (DEM_parameters.PredefinedSkinOption == "ON" ):
    proc.SetPredefinedSkin(balls_model_part)
 
 
-
-if( ( (DEM_parameters.ContinuumOption == "ON")  and ( (DEM_parameters.GraphOption =="ON") or (DEM_parameters.ConcreteTestOption =="ON")) )or (DEM_parameters.BtsOption == "ON") ):
+if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOption != "OFF") ):
   
     (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = proc.ListDefinition(balls_model_part,solver)  # defines the lists where we measure forces
 
@@ -142,26 +141,59 @@ if( ( (DEM_parameters.ContinuumOption == "ON")  and ( (DEM_parameters.GraphOptio
     height = DEM_parameters.SpecimenHeight
     diameter = DEM_parameters.SpecimenWidth
 
+    initial_time = datetime.datetime.now()
 
-if(DEM_parameters.ConcreteTestOption =="ON"):
-  
-  if(DEM_parameters.PredefinedSkinOption == "ON" ):
-    print "ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF"
+    os.chdir(graphs_path)
 
-  (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = proc.CylinderSkinDetermination(balls_model_part,solver,DEM_parameters) # defines the skin and areas
-  
-  if ( (DEM_parameters.TriaxialOption == "ON") and (Pressure != 0.0) ):
-
-    #Correction Coefs
-    alpha_top = 3.141592*diameter*diameter*0.25/(xtop_area + 0.70710678*xtopcorner_area)
-    alpha_bot = 3.141592*diameter*diameter*0.25/(xbot_area + 0.70710678*xbotcorner_area)
-    alpha_lat = 3.141592*diameter*height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
-
-    print "Applying Pressure" , "\n"
- 
-    Press.ApplyPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
-    renew_pressure = 0
+    chart = open("Provisional_CHART.txt", 'w')
     
+    if(DEM_parameters.ConcreteTestOption == "BTS"):
+        bts_export = open(DEM_parameters.problem_name +"_bts_"+str(datetime.datetime.now())+".csv",'w');
+
+    else:
+      graph_export_top = open("Provisional_TOP.csv", 'w')
+      graph_export_bot = open("Provisional_BOT.csv", 'w')
+      graph_export_mean = open("Provisional_MEAN.csv", 'w')
+    
+    if (DEM_parameters.PoissonMeasure =="ON"):
+      
+      graph_export_poisson = open(DEM_parameters.problem_name + "_poisson_"+str(datetime.datetime.now())+".csv",'w');
+
+    os.chdir(main_path)
+    
+    if(DEM_parameters.PredefinedSkinOption == "ON" ):
+      print "ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF"
+
+    (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = proc.CylinderSkinDetermination(balls_model_part,solver,DEM_parameters) # defines the skin and areas
+      
+    #measuring height:
+    pre_utilities = PreUtilities(balls_model_part)
+  
+    (subtotal_top,weight_top) = pre_utilities.MeasureTopHeigh(balls_model_part)
+    (subtotal_bot,weight_bot) = pre_utilities.MeasureBotHeigh(balls_model_part)
+
+    mean_top = subtotal_top/weight_top;
+    mean_bot = subtotal_bot/weight_bot;
+  
+    ini_height = mean_top - mean_bot
+
+    height = ini_height
+    
+    if ( DEM_parameters.ConcreteTestOption == "TRIAXIAL" ) and (Pressure != 0.0) :
+
+      #Correction Coefs
+      alpha_top = 3.141592*diameter*diameter*0.25/(xtop_area + 0.70710678*xtopcorner_area)
+      alpha_bot = 3.141592*diameter*diameter*0.25/(xbot_area + 0.70710678*xbotcorner_area)
+      alpha_lat = 3.141592*diameter*height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
+
+      print "Applying Pressure" , "\n"
+ 
+      Press.ApplyPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
+      renew_pressure = 0
+    
+#
+    print ('Initial Height of the Model: ' + str(ini_height)+'\n')
+
 
 # Initialization of physics monitor and of the initial position of the center of mass
 
@@ -169,45 +201,6 @@ if(DEM_parameters.ConcreteTestOption =="ON"):
 #properties_list = []
 
 print 'Initialitzation Complete' + '\n'
-
-initial_time = datetime.datetime.now()
-
-os.chdir(graphs_path)
-
-if(DEM_parameters.BtsOption == "ON"):
-    bts_export = open(DEM_parameters.problem_name +"_bts_"+str(datetime.datetime.now())+".csv",'w');
-
-if (DEM_parameters.GraphOption =="ON"):
-  
-  graph_export_top = open("Provisional_TOP.csv", 'w')
-  graph_export_bot = open("Provisional_BOT.csv", 'w')
-  graph_export_mean = open("Provisional_MEAN.csv", 'w')
-  chart = open("Provisional_CHART.grf", 'w')
-  
-      
-  if (DEM_parameters.PoissonMeasure =="ON"):
-    graph_export_poisson = open(DEM_parameters.problem_name + "_poisson_"+str(datetime.datetime.now())+".csv",'w');
-
-os.chdir(main_path)
-    
-if(DEM_parameters.ContinuumOption =="ON" and DEM_parameters.GraphOption =="ON"):
-  
-  #measuring height:
-  pre_utilities = PreUtilities(balls_model_part)
-  
-  (subtotal_top,weight_top) = pre_utilities.MeasureTopHeigh(balls_model_part)
-  (subtotal_bot,weight_bot) = pre_utilities.MeasureBotHeigh(balls_model_part)
-
-  mean_top = subtotal_top/weight_top;
-  mean_bot = subtotal_bot/weight_bot;
-  
-  ini_height = mean_top - mean_bot
-
-  height = ini_height
-
-#
-  print ('Initial Height of the Model: ' + str(ini_height)+'\n')
-
 
 
 step                   = 0
@@ -239,6 +232,17 @@ if (DEM_parameters.Multifile == "single_file"):
   gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
 
   
+##EDOMETRIC
+
+if(DEM_parameters.ConcreteTestOption == "EDOMETRIC"):
+  
+  for node in proc.LAT:
+
+    node.SetSolutionStepValue(VELOCITY_X,0.0);
+    node.SetSolutionStepValue(VELOCITY_Z,0.0);
+    node.Fix(VELOCITY_X);
+    node.Fix(VELOCITY_Z);
+    
 ##MODEL DATA 
 
 if (DEM_parameters.ModelDataInfo == "ON"):
@@ -255,40 +259,39 @@ w_dynfrc = DEM_parameters.w_dynfrc
 w_young = DEM_parameters.w_young
 w_poiss = DEM_parameters.w_poiss
 
-
 os.chdir(graphs_path)
 
-if(DEM_parameters.Dempack and (DEM_parameters.GraphOption =="ON")):
+if(DEM_parameters.Dempack and (DEM_parameters.ConcreteTestOption != "OFF")):
   
   print("This chart is only valid for one material case" + '\n')
 
   chart.write(("***********PARAMETERS*****************")+'\n')
-  chart.write( "                                    " +'\n')
-  chart.write( "*      DENSI  = " + (str(w_densi))+"Kg/m3     "+'\n')
-  chart.write( "*      STAFRC = " + (str(DEM_parameters.InternalFriction))+"           "+'\n')
-  chart.write( "*      DYNFRC = " + (str(w_dynfrc))+"          " +'\n')
-  chart.write( "*      YOUNG  = " + (str(w_young/1e9))+" GPa"+"     " +'\n')
-  chart.write( "*      POISS  = " + (str(w_poiss))+"           " +'\n')
-  chart.write( "*      FTS    = " + (str(DEM_parameters.SigmaMin))+" Mpa        " +'\n')
-  chart.write( "*      LCS1   = " + (str(DEM_parameters.C1))+" Mpa       " +'\n')
-  chart.write( "*      LCS2   = " + (str(DEM_parameters.C2))+" Mpa       " +'\n')
-  chart.write( "*      LCS3   = " + (str(DEM_parameters.C3))+" Mpa       " +'\n')
-  chart.write( "*      YRC1   = " + (str(DEM_parameters.N1))+"           " +'\n')
-  chart.write( "*      YRC2   = " + (str(DEM_parameters.N2))+"           " +'\n')
-  chart.write( "*      YRC3   = " + (str(DEM_parameters.N3))+"          " +'\n')
-  chart.write( "*      NG     = " + (str(7.0/6.0*2.0*(1.0+w_poiss)))+"           " +'\n')
-  chart.write( "*      FSS    = " + (str(DEM_parameters.TauZero))+" Mpa       " +'\n')
-  chart.write( "*      YEP    = " + (str(DEM_parameters.PlasticYoungModulus/1e9))+" GPa"+"     " +'\n')
-  chart.write( "*      YIELD  = " + (str(DEM_parameters.PlasticYieldStress))+" Mpa       " +'\n')
-  chart.write( "*      EDR    = " + (str(DEM_parameters.DamageDeformationFactor))+"           " +'\n')
-  chart.write( "*      GDAMP  = " + (str(DEM_parameters.DempackGlobalDamping))+"           " +'\n')
-  chart.write( "*      LDAMP  = " + (str(DEM_parameters.DempackDamping))+"           " +'\n')
-  chart.write( "*      ALPHA  = " + (str(DEM_parameters.AreaFactor))+"           " +'\n')
-  chart.write( "*                                    " +'\n')
+  chart.write( "*                                    *" +'\n')
+  chart.write( "*      DENSI         = " + (str(w_densi))+"Kg/m3     *"+'\n')
+  chart.write( "*      STAFRC        = " + (str(DEM_parameters.InternalFriction))+"           *"+'\n')
+  chart.write( "*      DYNFRC        = " + (str(w_dynfrc))+"          *" +'\n')
+  chart.write( "*      YOUNG         = " + (str(w_young/1e9))+" GPa"+"     *" +'\n')
+  chart.write( "*      POISS         = " + (str(w_poiss))+"           *" +'\n')
+  chart.write( "*      NTSR          = " + (str(DEM_parameters.SigmaMin))+"Mpa        *" +'\n')
+  chart.write( "*      LCS1          = " + (str(DEM_parameters.C1))+"Mpa       *" +'\n')
+  chart.write( "*      LCS2          = " + (str(DEM_parameters.C2))+"Mpa       *" +'\n')
+  chart.write( "*      LCS3          = " + (str(DEM_parameters.C3))+"Mpa       *" +'\n')
+  chart.write( "*      YRC1          = " + (str(DEM_parameters.N1))+"           *" +'\n')
+  chart.write( "*      YRC2          = " + (str(DEM_parameters.N2))+"           *" +'\n')
+  chart.write( "*      YRC3          = " + (str(DEM_parameters.N3))+"          *" +'\n')
+  chart.write( "*      NG            = " + (str(7.0/6.0*2.0*(1.0+w_poiss)))+"           *" +'\n')
+  chart.write( "*      FSS           = " + (str(DEM_parameters.TauZero))+"Mpa       *" +'\n')
+  chart.write( "*      YEP           = " + (str(DEM_parameters.PlasticYoungModulus/1e9))+" GPa"+"     *" +'\n')
+  chart.write( "*      YIELD         = " + (str(DEM_parameters.PlasticYieldStress))+"Mpa       *" +'\n')
+  chart.write( "*      EDR           = " + (str(DEM_parameters.DamageDeformationFactor))+"           *" +'\n')
+  chart.write( "*      GLOBAL_DAMPIN = " + (str(DEM_parameters.DempackGlobalDamping))+"           *" +'\n')
+  chart.write( "*      LOCAL_DAMPIN  = " + (str(DEM_parameters.DempackDamping))+"           *" +'\n')
+  chart.write( "*      ALPHA         = " + (str(DEM_parameters.AreaFactor))+"           *" +'\n')
+  chart.write( "*                                    *" +'\n')
   chart.write( "**************************************" +'\n')
 
   chart.close()
-  a_chart = open("Provisional_CHART.grf","r")
+  a_chart = open("Provisional_CHART.txt","r")
   
   for line in a_chart.readlines():
     print(line)
@@ -364,7 +367,7 @@ while (time < DEM_parameters.FinalTime):
         print 'Percentage Completed: '  + str(percentage) + ' %'
         print "TIME STEP = "            + str(step) + '\n'
         
-        if( DEM_parameters.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and DEM_parameters.GraphOption =="ON" and DEM_parameters.MonitoringOption == "ON"):        
+        if( DEM_parameters.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and DEM_parameters.ConcreteTestOption != "OFF" and DEM_parameters.MonitoringOption == "ON"):        
             monitoring = PostUtilities().QuasiStaticAdimensionalNumber(balls_model_part,contact_model_part,balls_model_part.ProcessInfo)
             print "The quasi-static-adimensional-number is:  "            + str(monitoring) + '\n'
             print "The measured stiffness is:  "            + str(total_stress/strain/1e6) + "Mpa" + '\n'
@@ -390,7 +393,7 @@ while (time < DEM_parameters.FinalTime):
 
     os.chdir(data_and_results)
                                                                                                                                                                                                
-    if( (DEM_parameters.ConcreteTestOption =="ON" ) and (DEM_parameters.TriaxialOption == "ON") and (Pressure != 0.0) ):
+    if( (DEM_parameters.ConcreteTestOption == "TRIAXIAL" ) and (Pressure != 0.0) ):
        #and (step < 0.01*DEM_parameters.TotalTimePercentAsForceAplTime*total_steps_expected) )
         
         if( renew_pressure == 10):
@@ -405,7 +408,7 @@ while (time < DEM_parameters.FinalTime):
     total_force_bot = 0.0
     total_force_bts = 0.0
     
-    if( DEM_parameters.BtsOption =="ON"):
+    if( DEM_parameters.ConcreteTestOption =="BTS"):
 
       for node in sup_layer_fm:
 
@@ -413,7 +416,7 @@ while (time < DEM_parameters.FinalTime):
 
         total_force_bts += force_node_y
     
-    if( DEM_parameters.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and DEM_parameters.GraphOption =="ON"):
+    if( DEM_parameters.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and DEM_parameters.ConcreteTestOption != "OFF"):
 
       if(first_time_entry):
         #measuring height:
@@ -562,10 +565,10 @@ while (time < DEM_parameters.FinalTime):
 
         time_old_print = time
     
-    if(DEM_parameters.BtsOption == "ON"):
+    if(DEM_parameters.ConcreteTestOption == "BTS"):
        bts_export.write(str(step)+"  "+str(total_force_bts)+'\n')
       
-    if (DEM_parameters.GraphOption =="ON" and (step >= step_to_fix_velocities )):
+    if (DEM_parameters.ConcreteTestOption !="OFF" and (step >= step_to_fix_velocities )):
       graph_export_top.write(str(strain)+"  "+str(total_stress_top)+'\n')
       graph_export_bot.write(str(strain)+"  "+str(total_stress_bot)+'\n')
       total_stress_mean = 0.5*(total_stress_bot + total_stress_top)
@@ -596,16 +599,16 @@ for filename in os.listdir("."):
   if filename.startswith("Provisional_MEAN"):
     os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_MEAN.csv")
   if filename.startswith("Provisional_CHART"):
-    os.rename(filename, DEM_parameters.problem_name + "_CHART_" + str(initial_time) +".grf")
+    os.rename(filename, DEM_parameters.problem_name + "_CHART_" + str(initial_time) +".txt")
 
 
-if (DEM_parameters.GraphOption =="ON"):
+if (DEM_parameters.ConcreteTestOption!= "OFF"):
   graph_export_top.close()
   graph_export_bot.close()
   graph_export_mean.close()
 
   
-if(DEM_parameters.BtsOption == "ON"):
+if(DEM_parameters.ConcreteTestOption == "BTS"):
   bts_export.close()
   
 multifile.close()
