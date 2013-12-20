@@ -135,7 +135,9 @@ proc ::wkcf::Preprocess {} {
 	    set ActiveAppList [list "ConvectionDiffusion"]
 	}
 	# DEM application
-	if {$DEMApplication eq "Yes"} {
+	if {($DEMApplication eq "Yes")&& ($FluidApplication =="Yes")} {
+	    set ActiveAppList [list "Fluid" "DEM"]
+	} elseif {($DEMApplication eq "Yes")&& ($FluidApplication =="No")} {
 	    set ActiveAppList [list "DEM"]
 	}
     }
@@ -149,14 +151,23 @@ proc ::wkcf::Preprocess {} {
     # Get the element properties
     ::wkcf::GetElementProperties
   
+    # Get properties data
+    ::wkcf::GetPropertiesData
+    
+    # Convection diffusion
+    if {$ConvectionDiffusionApplication eq "Yes"} {
+	# Get the initial conditions
+	::wkcf::GetInitialConditionProperties
+
+	# Get the mapping between face heat flux and the property data
+	::wkcf::GetPropertyDataFromFaceHeatFluxBC "ConvectionDiffusion"
+    }
+
     # DEM application
     if {$DEMApplication eq "Yes"} {
 	# Get the mapping between group and mesh
 	::wkcf::GetInletGroupMeshProperties "DEM"
-    } else {
-	# Get properties data
-	::wkcf::GetPropertiesData
-    }
+    } 
   
     # Get boundary condition properties
     ::wkcf::GetBoundaryConditionProperties
@@ -356,6 +367,67 @@ proc ::wkcf::GetLoadProperties {} {
     }
 }
 
+proc ::wkcf::GetInitialConditionProperties {} {
+    # Get all initial condition properties
+    variable dprops; variable ActiveAppList
+    
+    # For each active application
+    foreach AppId $ActiveAppList {
+	# Get the application root identifier    
+	set rootdataid $AppId
+	# Get all defined initial condition groups
+	set cxpath "$rootdataid//c.InitialConditions"
+	set cicproplist [::xmlutils::setXmlContainerIds $cxpath]
+	# WarnWinText "cicproplist:$cicproplist"
+	# Initial condition type list
+	set dprops($AppId,AllICTypeId) [list]
+	foreach cictid $cicproplist {
+	    # WarnWinText "cictid:$cictid"
+	    # Get the group identifier defined for this condition
+	    set cxpath "${cxpath}//c.[list ${cictid}]"
+	    set cicgrouplist [::xmlutils::setXmlContainerIds $cxpath]
+	    # WarnWinText "cicgrouplist:$cicgrouplist"
+	    if {[llength $cicgrouplist]} {
+		# Update initial condition type identifier
+		lappend dprops($AppId,AllICTypeId) $cictid
+		# WarnWinText "inside cicgrouplist:$cicgrouplist"
+		foreach cgroupid $cicgrouplist {
+		    set proplist [list]
+		    switch -exact -- $cictid {
+		        "InitialTemperature" {
+			    # Get properties
+		            foreach citem [list "InitialTemperature"] {
+		                # set xpath
+		                set pcxpath "$cxpath//c.[list ${cgroupid}]//c.MainProperties//i.[list ${citem}]"
+		                set cproperty "dv"
+		                set CValue [::xmlutils::setXml $pcxpath $cproperty]
+		                lappend proplist $CValue
+		            }
+		        }
+		    }
+		    
+		    # WarnWinText "proplist:$proplist"
+		    # Kratos IC to group link
+		    # Group list
+		    if {![info exists dprops($AppId,IC,$cictid,AllGroupId)]} {
+		        set dprops($AppId,IC,$cictid,AllGroupId) [list]
+		    }
+		    if {$cgroupid ni $dprops($AppId,IC,$cictid,AllGroupId)} {
+		        lappend dprops($AppId,IC,$cictid,AllGroupId) $cgroupid
+		    }
+		    # Group properties
+		    if {![info exists dprops($AppId,IC,$cictid,$cgroupid,GProps)]} {
+		        set dprops($AppId,IC,$cictid,$cgroupid,GProps) [list]
+		    }
+		    set dprops($AppId,IC,$cictid,$cgroupid,GProps) $proplist
+		}
+	    }
+	    # Reset the path
+	    set cxpath "$rootdataid//c.InitialConditions"
+	}
+    }
+}
+
 proc ::wkcf::GetBoundaryConditionProperties {} {
     # Get all boundary condition properties
     variable dprops; variable ActiveAppList
@@ -527,6 +599,27 @@ proc ::wkcf::GetBoundaryConditionProperties {} {
 		                lappend proplist $CValue
 		            }
 		        }
+			"FaceHeatFlux" {
+		            # Get properties
+		            foreach citem [list "VFaceHeatFlux"] {
+		                # set xpath
+		                set pcxpath "$cxpath//c.[list ${cgroupid}]//c.MainProperties//i.[list ${citem}]"
+		                set cproperty "dv"
+		                set CValue [::xmlutils::setXml $pcxpath $cproperty]
+		                lappend proplist $CValue
+		            }
+		        }
+			"PFEMFixedWall" {
+			    # PFEM fixed wall boundary condition
+			    # Get properties
+		            foreach citem [list "Dx" "Dy" "Dz"] {
+		                # set xpath
+		                set pcxpath "$cxpath//c.[list ${cgroupid}]//c.Displacement//i.[list ${citem}]"
+		                set cproperty "dv"
+		                set CValue [::xmlutils::setXml $pcxpath $cproperty]
+		                lappend proplist $CValue
+		            }
+			}
 		    }
 		    # WarnWinText "proplist:$proplist"
 		    # Kratos BC to group link
@@ -685,6 +778,11 @@ proc ::wkcf::GetPropertiesData {} {
 	    # WarnWinText "MatModel:$MatModel"
 	    set dprops($AppId,Property,$propid,MatModel) $MatModel
 
+	    if {$AppId ne "StructuralAnalysis"} {
+		continue
+	    }
+	    
+	    # Only for structural analysis
 	    # For cross section properties
 	    # Get the property list
 	    set pid "propertylist"
@@ -1790,7 +1888,7 @@ proc ::wkcf::GetSurfaceTypeList {surfacelist} {
 	# wa "ivhe:$ivhe"
 	if {$ivhe} {
 	    set he [regexp -nocase {Higher entities volumes: (.)*} $cprop vol]
-	    # wa "vol:$vol vlist:[lrange $vol 3 end-2]"
+	    # wa "he:$he vol:$vol vlist:[lrange $vol 3 end-2]"
 	    if {$he && $vol !=""} {
 		set voltype ""
 		set vlist [lindex [lrange $vol 3 end-2] 0]
@@ -1798,8 +1896,8 @@ proc ::wkcf::GetSurfaceTypeList {surfacelist} {
 		set cvprop [GiD_Info list_entities volumes $vlist]
 		# wa "cvprop:$cvprop"
 		regexp -nocase {Elemtype=([0-9]*)} $cvprop none voltype
-		#wa "voltype:$voltype"
-		if {($voltype == 4) || ($voltype == 0)||($voltype=="")} {
+		# wa "voltype:$voltype"
+		if {($voltype == 4) || ($voltype == 0) || ($voltype=="")} {
 		    lappend tetrasurf $surfid
 		} elseif {$voltype == 5} {
 		    lappend hexasurf $surfid
