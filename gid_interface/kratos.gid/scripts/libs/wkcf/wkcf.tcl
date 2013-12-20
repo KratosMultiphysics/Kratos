@@ -13,6 +13,7 @@
 #
 #    HISTORY:
 #   
+#     7.1- 20/12/13-G. Socorro, update to use DEM and convection-diffusion applications
 #     7.0- 19/09/13-G. Socorro, modify the proc WriteConditions to write condition for Quadrilateral surface element
 #                               write convection-diffusion conditions
 #     6.9- 18/09/13-G. Socorro, start to add the convection-diffusion properties 
@@ -106,6 +107,8 @@ namespace eval ::wkcf:: {
     variable FSIApplication
     # ConvectionDiffusion application
     variable ConvectionDiffusionApplication
+    # DEM application
+    variable DEMApplication
     # Active application list
     variable ActiveAppList
     
@@ -130,6 +133,7 @@ namespace eval ::wkcf:: {
     
     # filechannel -> output file .mdpa
     variable filechannel
+    variable demfilechannel
 
     # Structural analysis condition counter
     variable sa_icondid 
@@ -138,7 +142,8 @@ namespace eval ::wkcf:: {
 proc ::wkcf::WriteCalculationFiles {filename} {
     variable FluidApplication; variable StructuralAnalysis
     variable ActiveAppList;    variable filechannel
-    variable ConvectionDiffusionApplication
+    variable ConvectionDiffusionApplication; variable DEMApplication
+    variable demfilechannel
 
     # Unset some local variables
     ::wkcf::UnsetLocalVariables
@@ -151,8 +156,15 @@ proc ::wkcf::WriteCalculationFiles {filename} {
     set basefilename "[string range $filename 0 end-4]"
     # Write a mdpa file for each application
     foreach AppId $ActiveAppList {
-        set filename "${basefilename}${AppId}.mdpa"
-        # WarnWinText "filename:$filename"
+	if {$AppId eq "DEM"} {
+	    set filename "${basefilename}${AppId}_Inlet.mdpa"
+	    set demfilename "${basefilename}${AppId}.mdpa"
+	    # Open the file
+	    set demfilechannel [GiD_File fopen $demfilename]
+	} else {
+	    set filename "${basefilename}${AppId}.mdpa"
+	}
+	# wa "filename:$filename"
         
 	# Open the file
 	set filechannel [GiD_File fopen $filename]
@@ -161,7 +173,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
         ::wkcf::WriteModelPartData $AppId
 	
         # Write properties block
-        ::wkcf::WriteProperties $AppId
+	::wkcf::WriteProperties $AppId
 	
         # Write nodes block    
         ::wkcf::WriteNodalCoordinates $AppId
@@ -170,22 +182,31 @@ proc ::wkcf::WriteCalculationFiles {filename} {
         ::wkcf::WriteElementConnectivities $AppId
 	
         # For fluid or convection-diffusion applications
-        if {($AppId == "Fluid")|| ($AppId == "ConvectionDiffusion")} {
+        if {($AppId == "Fluid")} {
             # Write conditions (Condition2D and Condition3D)
             ::wkcf::WriteConditions $AppId  
+
+        } elseif {($AppId == "ConvectionDiffusion")} {
+	    # For convection-diffusion application
+
+            # Write conditions (ThermalFace2D and ThermalFace3D)
+	    ::wkcf::WriteConditions $AppId  
+	    
+
+            # Write initial conditions
+            ::wkcf::WriteInitialConditions $AppId  
         }
-	
-        # Write boundary condition block
+
+	# Write boundary condition block
 	::wkcf::WriteBoundaryConditions $AppId
 	
 	# For structural analysis application
 	if {$AppId =="StructuralAnalysis"} {
 	    # Write load properties block
 	    ::wkcf::WriteLoads $AppId
-	}
-	
-	# For fluid application
-	if {$AppId == "Fluid"} {
+
+	} elseif {$AppId == "Fluid"} {
+	    # For fluid application
 	    # Write nodal data for density and viscosity            
 	    ::wkcf::WritePropertyAtNodes $AppId
 	    
@@ -199,10 +220,21 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 	    
 	    # Write nodal data for mesh velocity and velocity
 	    ::wkcf::WriteConvectionDiffusionPropertyAtNodes $AppId
+
+	    # Write the cutting and point history properties
+	    ::wkcf::WriteCutAndGraph $AppId
+
+	} elseif {$AppId == "DEM"} {
+	    
+	    # Write all group properties
+	    ::wkcf::WriteGroupMeshProperties $AppId
 	}
 	
 	# Close the file
 	GiD_File fclose $filechannel
+	if {$AppId eq "DEM"} {
+	    GiD_File fclose $demfilechannel
+	}
     }
     
     # Write the project parameters file
@@ -216,8 +248,13 @@ proc ::wkcf::WriteCalculationFiles {filename} {
     if {$StructuralAnalysis=="Yes"} {
 	::wkcf::WriteConstitutiveLawsProperties
     }
-    
-    
+   
+    #  Write DEM explicit solver variables
+    if {$AppId == "DEM"} {
+	
+	::wkcf::WriteExplicitSolverVariables
+    }
+
     variable wbatfile
     if {$wbatfile} {
         # Write bat file only for the Linux OS
@@ -236,6 +273,7 @@ proc ::wkcf::WriteCalculationFiles {filename} {
 proc ::wkcf::SelectPythonScript {} {
     # Select the correct Python script
     variable FluidApplication; variable StructuralAnalysis
+    variable ConvectionDiffusionApplication
     
     set endfilename "KratosOpenMP.py"
     set mpiendfilename "KratosMPI.py"
@@ -307,36 +345,81 @@ proc ::wkcf::SelectPythonScript {} {
 	set SolverTypeFreeSurf [::xmlutils::setXml $cxpath $cproperty]
 	# wa "SolverTypeFreeSurf:$SolverTypeFreeSurf"
 	
+	# Get the fluid approach
+	set cxpath "$rootdataid//c.AnalysisData//i.FluidApproach"
+	set FluidApproach [::xmlutils::setXml $cxpath $cproperty]
+
+	# wa "FluidApproach:$FluidApproach"
+
 	# Check for use OpenMP
 	set cxpath "$rootdataid//c.SolutionStrategy//c.ParallelType//i.ParallelSolutionType"
 	set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
 	
 	if {$ParallelSolutionType eq "OpenMP"} {
-	    set ppfilename "KratosOpenMPFluid.py"
-	    if {($FreeSurface eq "Yes") && ($SolverTypeFreeSurf eq "LevelSet")} {
-		set ppfilename "KratosOpenMPFluidLevelSet.py"
-	    }
 	    
-	    set tofname [file native [file join $PDir $endfilename]]
-	    set fromfname [file native [file join "$PTDir/python" $ppfilename]]
-	   	    
-	    # Copy the script file
-	    if {[catch {file copy -force "$fromfname" "$tofname"} error]} {
-		WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $fromfname $tofname $error ]
-		return ""
+	    if {$FluidApproach eq "Eulerian"} {
+		# Eulerian fluid case
+
+		set ppfilename "KratosOpenMPFluid.py"
+		if {($FreeSurface eq "Yes") && ($SolverTypeFreeSurf eq "LevelSet")} {
+		    set ppfilename "KratosOpenMPFluidLevelSet.py"
+		}
+		
+		set tofname [file native [file join $PDir $endfilename]]
+		set fromfname [file native [file join $PTDir python $ppfilename]]
+		
+		# Copy the script file
+		if {[catch {file copy -force -- "$fromfname" "$tofname"} error]} {
+		    WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $fromfname $tofname $error ]
+		    return ""
+		}
+
+	    } elseif {$FluidApproach eq "PFEM-Lagrangian"} {
+		# PFEM case
+
+		set ppfilename "KratosOpenMPPFEM.py"
+		set tofname [file native [file join $PDir $endfilename]]
+		set fromfname [file native [file join $PTDir python $ppfilename]]
+		
+		# Copy the script file
+		if {[catch {file copy -force -- "$fromfname" "$tofname"} error]} {
+		    WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $fromfname $tofname $error ]
+		    return ""
+		}
 	    }
 	    
 	} elseif {$ParallelSolutionType eq "MPI"} {
 	    set mpifilename "KratosMPIFluid.py"
 	    
 	    set mpitofname [file native [file join $PDir $mpiendfilename]]
-	    set mpifromfname [file native [file join "$PTDir/python" $mpifilename]]
+	    set mpifromfname [file native [file join $PTDir python $mpifilename]]
  
-	    if {[catch {file copy -force "$mpifromfname" "$mpitofname"} error]} {
+	    if {[catch {file copy -force -- "$mpifromfname" "$mpitofname"} error]} {
 		WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $mpifromfname $mpitofname $error ]
 		return ""
 	    }
 	}
+    }
+
+    # For convection-diffusion application
+    if {$ConvectionDiffusionApplication =="Yes"} {
+	# Check for use OpenMP
+	set cxpath "$rootdataid//c.SolutionStrategy//c.ParallelType//i.ParallelSolutionType"
+	set ParallelSolutionType [::xmlutils::setXml $cxpath $cproperty]
+	
+	if {$ParallelSolutionType eq "OpenMP"} {
+	    
+	    set ppfilename "KratosOpenMPConvDiff.py"
+	     
+	    set tofname [file native [file join $PDir $endfilename]]
+	    set fromfname [file native [file join $PTDir python $ppfilename]]
+	    
+	    # Copy the script file
+	    if {[catch {file copy -force -- "$fromfname" "$tofname"} error]} {
+		WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $fromfname $tofname $error ]
+		return ""
+	    }
+	} 
     }
 }
 
@@ -344,12 +427,20 @@ proc ::wkcf::WriteModelPartData {AppId} {
     # Write the model part data
     # Arguments
     # AppId => Application identifier
-    variable filechannel
-        GiD_File fprintf $filechannel "%s" "Begin ModelPartData"
-        GiD_File fprintf $filechannel "%s" "//  VARIABLE_NAME value"
-        GiD_File fprintf $filechannel "%s" "End ModelPartData"
-        GiD_File fprintf $filechannel "%s" ""
-    }   
+    variable filechannel; variable demfilechannel
+     
+    if {$AppId eq "DEM"} {
+    	GiD_File fprintf $demfilechannel "%s" "Begin ModelPartData"
+	GiD_File fprintf $demfilechannel "%s" "//  VARIABLE_NAME value"
+	GiD_File fprintf $demfilechannel "%s" "End ModelPartData"
+	GiD_File fprintf $demfilechannel "%s" ""
+    } else {
+	GiD_File fprintf $filechannel "%s" "Begin ModelPartData"
+	GiD_File fprintf $filechannel "%s" "//  VARIABLE_NAME value"
+	GiD_File fprintf $filechannel "%s" "End ModelPartData"
+	GiD_File fprintf $filechannel "%s" ""
+    }
+}   
 
 proc ::wkcf::WriteProperties {AppId} {
     # Write the properties block
@@ -421,16 +512,117 @@ proc ::wkcf::WriteProperties {AppId} {
         }
        
         GiD_File fprintf $filechannel ""
-    }
-    
-    # For fluid or convection-diffusion applications
-    if {($AppId =="Fluid")||($AppId =="ConvectionDiffusion")} {
 
+    } elseif {$AppId =="Fluid"} {
+	# For fluid application
+   
         GiD_File fprintf $filechannel "%s" "Begin Properties 0"
         GiD_File fprintf $filechannel "%s" "End Properties"
         GiD_File fprintf $filechannel ""
+
+    } elseif {$AppId =="ConvectionDiffusion"} {
+	# For convection-diffusion application
+
+	# Kratos key word xpath
+	set kxpath "Applications/$AppId"
+	set cproperty "dv"
+	
+	# Only in the case of linear analysis
+	# Analysis type
+	set cxpath "$AppId//c.AnalysisData//i.AnalysisType"
+	set AnalysisType [::xmlutils::setXml $cxpath $cproperty]
+
+	# Check the face flux case
+	set facefluxflag [expr {([info exists dprops($AppId,GBCKProps,AllPropertyId)]) && ([llength $dprops($AppId,GBCKProps,AllPropertyId)])}]
+	if {$facefluxflag} {
+
+	    if {$AnalysisType eq "Linear"} {
+		
+		# Write the base properties => Properties identifier =0
+		::wkcf::CDWriteDefaultProperties $AppId
+	    }
+	    
+	    # Write boundary condition properties 
+	    foreach PropertyId $dprops($AppId,GBCKProps,AllPropertyId) {
+		# Get the propertyid-group identifier
+		set PropertyGroupId $dprops($AppId,GBCKProps,$PropertyId,PropertyGroupId)
+		GiD_File fprintf $filechannel "%s" "Begin Properties $PropertyId // GUI face heat flux BC group identifier: $PropertyGroupId"
+		
+		# Write face heat flux BC properties 
+		foreach cpropid $dprops($AppId,GBCKProps,$PropertyId,PropertyList) {
+		    # wa "Properties propid:$cpropid"
+		    lassign $cpropid key value
+		    if {$value ne ""} {
+			# Get the kratos keyword
+			set ckword [::xmlutils::getKKWord $kxpath $key]
+			# wa "ckword:$ckword"
+			if {$ckword !=""} {
+			    GiD_File fprintf $filechannel "%s" " $ckword $value"
+			}
+		    }
+		}
+		
+		GiD_File fprintf $filechannel "%s" "End Properties"
+		GiD_File fprintf $filechannel ""
+	    }
+	} else {
+	    
+	     # Write the base properties => Properties identifier =0
+	    ::wkcf::CDWriteDefaultProperties $AppId	   
+	}
+
+    } elseif {$AppId =="DEM"} {
+	
+	# Kratos key word xpath
+	set kxpath "Applications/$AppId"
+
+        foreach cgroupid $dprops($AppId,AllMeshGroupId) {
+	    # Get the mesh-group identifier
+	    set meshgroupid $dprops($AppId,Mesh,$cgroupid,MeshIdGroup) 
+            GiD_File fprintf $filechannel "%s" "Begin Properties $meshgroupid // GUI property identifier: $cgroupid"
+            
+	    # Write inlet properties 
+            foreach cpropid $dprops($AppId,Mesh,$cgroupid,MeshIdGroupProp) {
+		# WarnWinText "material propid:$cpropid"
+                lassign $cpropid key value
+		if {$value ne ""} {
+		    if {$key eq "Material"} {
+			GiD_File fprintf $filechannel "%s" "// GUI inlet material identifier: $value"
+			# Get the material properties
+			# Get all material properties
+			set mpxpath "[::KMat::findMaterialParent $value]//m.[list ${value}]"
+			# WarnWinText "mpxpath:$mpxpath"
+			# Get all the properties
+			set allmatprops [::xmlutils::setXmlContainerPairs $mpxpath "" "value" "Property" "mat"]
+			# wa "allmatprops:$allmatprops"
+			foreach propid $allmatprops {
+			    lassign $propid key value
+			    # wa "key:$key value:$value"
+			    
+			    # Get the kratos keyword
+			    set ckword [::xmlutils::getKKWord $kxpath $key]
+			    # wa "ckword:$ckword"
+			    if {$ckword !=""} {
+				GiD_File fprintf $filechannel "%s" " $ckword $value"
+			    }
+			}
+		
+
+		    } else { 
+			# Get the kratos keyword
+			set ckword [::xmlutils::getKKWord $kxpath $key]
+			# wa "ckword:$ckword"
+			if {$ckword !=""} {
+			    GiD_File fprintf $filechannel "%s" " $ckword $value"
+			}
+		    }
+		}
+            }
+
+	    GiD_File fprintf $filechannel "%s" "End Properties"
+	    GiD_File fprintf $filechannel ""
+	}
     }
-    
 }
 
 proc ::wkcf::WriteNodalCoordinates {AppId} {
@@ -476,14 +668,53 @@ proc ::wkcf::WriteNodalCoordinates {AppId} {
                                 GiD_File fprintf $filechannel "$nodeid [format {%.5f %.5f %.5f} $x $y $z]"                 
                             }
                         }
+			GiD_File fprintf $filechannel "End Nodes"
+			GiD_File fprintf $filechannel ""
                     }
-                    GiD_File fprintf $filechannel "End Nodes"
-                    GiD_File fprintf $filechannel ""
-                }
+		}
             }
         }
     }
     
+    # Special case of DEM application
+    if {$AppId eq "DEM"} {
+	# Get the values
+	set rootid $AppId
+	set basexpath "$rootid//c.Conditions//c.DEM-Inlet"
+	set gproplist [::xmlutils::setXmlContainerIds $basexpath]
+	# wa "gproplist:$gproplist"
+	foreach cgroupid $gproplist {
+	    # Get the group node list
+	    set nlist [::wkcf::GetInletGroupNodes $AppId $cgroupid]
+	    if {[llength $nlist]} {
+		# Write all nodes for this group in increasing orden
+		GiD_File fprintf $filechannel "Begin Nodes // GUI Inlet group identifier: $cgroupid"			
+		if {$ndime == "2D"} {			    
+		    foreach nodeid $nlist {                               
+			lassign [GiD_Mesh get node $nodeid] layer x y z
+			# msg "nodeid:$nodeid layer:$layer x:$x y:$y z:$z"
+			GiD_File fprintf $filechannel "$nodeid [format {%.5f %.5f} $x $y] 0"
+		    }
+		} else {			            
+		    foreach nodeid $nlist {                                
+			lassign [GiD_Mesh get node $nodeid] layer x y z
+			# msg "nodeid:$nodeid layer:$layer x:$x y:$y z:$z"
+			GiD_File fprintf $filechannel "$nodeid [format {%.5f %.5f %.5f} $x $y $z]"                 
+		    }
+		}
+		GiD_File fprintf $filechannel "End Nodes"
+		GiD_File fprintf $filechannel ""
+	    }
+	}
+
+	# Update the standard mdpa file
+	variable demfilechannel
+	
+	GiD_File fprintf $demfilechannel "Begin Nodes"
+	GiD_File fprintf $demfilechannel "End Nodes"
+
+    }
+
     # For debug
     if {!$::wkcf::pflag} {
         set endtime [clock seconds]
@@ -514,12 +745,14 @@ proc ::wkcf::WriteElementConnectivities {AppId} {
         set kwxpath "Applications/$AppId"        
         # For all defined kratos elements        
         foreach celemid $dprops($AppId,AllKElemId) {
+	    # wa "celemid:$celemid"
             # Check for all defined group identifier for this element
             if {[info exists dprops($AppId,KElem,$celemid,AllGroupId)] && [llength $dprops($AppId,KElem,$celemid,AllGroupId)]} {
                 # For all defined group identifier for this element
                 foreach cgroupid $dprops($AppId,KElem,$celemid,AllGroupId) {
                     # Get the GiD entity type, element type and property identifier
                     lassign $dprops($AppId,KElem,$celemid,$cgroupid,GProps) GiDEntity GiDElemType PropertyId KEKWord nDim
+		    # wa "cgroupid:$cgroupid GiDEntity:$GiDEntity GiDElemType:$GiDElemType PropertyId:$PropertyId KEKWord:$KEKWord nDim:$nDim"
                     if {[GiD_EntitiesGroups get $cgroupid elements -count -element_type $GiDElemType]} {
                         set etbf ""
                         set usennode [::xmlutils::getKKWord $kwxpath $celemid usennode]                                       
@@ -672,6 +905,21 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
 			set kwordlist [list "TEMPERATURE"]
                         ::wkcf::WriteConvectionDiffusionPrescribedTemperatureBC $AppId $ccondid $kwordlist
 		    }
+		    "HeatFlux" {
+			# Write prescribed heat flux condition
+			set kwordlist [list "HEAT_FLUX"]
+                        ::wkcf::WriteConvectionDiffusionPrescribedHeatFluxBC $AppId $ccondid $kwordlist
+		    }
+		    "FaceHeatFlux" {
+			# Write prescribed face heat flux condition
+			set kwordlist [list "FACE_HEAT_FLUX"]
+                        ::wkcf::WriteConvectionDiffusionPrescribedFaceHeatFluxBC $AppId $ccondid $kwordlist
+		    }
+		    "PFEMFixedWall" {
+                        # Write PFEM fixed wall boundary condition
+                        set kwordlist [list "IS_STRUCTURE" "DISPLACEMENT_X" "DISPLACEMENT_Y" "DISPLACEMENT_Z"]
+                        ::wkcf::WritePFEMLagrangianFluidFixedWallBC $AppId $ccondid $kwordlist
+                    }
                 }
             }
         }
@@ -689,6 +937,45 @@ proc ::wkcf::WriteBoundaryConditions {AppId} {
             set ttime [expr $endtime-$inittime]
             # WarnWinText "endtime:$endtime ttime:$ttime"
             WarnWinText "Write boundary conditions: [::KUtils::Duration $ttime]"
+        }
+    }
+}
+
+proc ::wkcf::WriteInitialConditions {AppId} {
+    # Write the initial condition block
+    variable dprops
+    
+    # Check for all defined initial condition type
+    if {([info exists dprops($AppId,AllICTypeId)]) && ([llength $dprops($AppId,AllICTypeId)])} {
+        # For debug
+        if {!$::wkcf::pflag} {
+            set inittime [clock seconds]
+        }
+        set inletvelglist [list]; set noslipglist [list]
+        set flagvariablelist [list] 
+        # For all defined initial condition identifier
+        foreach ccondid $dprops($AppId,AllICTypeId) {
+	    # WarnWinText "ccondid:$ccondid"
+            # Check for all defined group identifier inside this initial condition type
+            if {([info exists dprops($AppId,IC,$ccondid,AllGroupId)]) && ([llength $dprops($AppId,IC,$ccondid,AllGroupId)])} {
+                # Select the initial condition type
+                switch -exact -- $ccondid {
+                    "InitialTemperature" {
+                        set kwxpath "Applications/$AppId"
+                        set kwordlist [list [::xmlutils::getKKWord $kwxpath "$ccondid" "kkword"]]
+                        # Process initial temperature properties
+                        ::wkcf::WriteInitialTemperatureIC $AppId $ccondid $kwordlist 
+                    }
+		}
+            }
+        }
+       
+        # For debug
+        if {!$::wkcf::pflag} {
+            set endtime [clock seconds]
+            set ttime [expr $endtime-$inittime]
+            # WarnWinText "endtime:$endtime ttime:$ttime"
+            WarnWinText "Write initial conditions: [::KUtils::Duration $ttime]"
         }
     }
 }
@@ -829,7 +1116,8 @@ proc ::wkcf::WriteConditions {AppId} {
 proc ::wkcf::WriteProjectParameters {} {
     # Write the project parameters file
     variable StructuralAnalysis;     variable FluidApplication
-    
+    variable ConvectionDiffusionApplication
+
     set ppfilename "ProjectParameters.py"
     set PDir [::KUtils::GetPaths "PDir"]
     
@@ -851,10 +1139,16 @@ proc ::wkcf::WriteProjectParameters {} {
 	::wkcf::WriteStructuralProjectParameters "StructuralAnalysis" $fileid $PDir
     }    
     
+    # Write fluid application project parameter file
     if {$FluidApplication =="Yes"} {
 	::wkcf::WriteFluidProjectParameters "Fluid" $fileid $PDir
     }
     
+    # Write convection diffusion application project parameter file
+    if {$ConvectionDiffusionApplication =="Yes"} {
+	::wkcf::WriteConvectionDiffusionProjectParameters "ConvectionDiffusion" $fileid $PDir
+    }
+
     close $fileid
     
 }
@@ -872,18 +1166,21 @@ proc ::wkcf::WriteGiDPostMode {AppId fileid} {
         set cxpath "$AppId//c.Results//c.GiDOptions//i.[list ${gidr}]"
         set cproperty "dv"
         set cvalue [::xmlutils::setXml $cxpath $cproperty]
-        # Get the kratos keyword
-        set gidrkw [::xmlutils::getKKWord $kwxpath $gidr]
-        # WarnWinText "gidr:$gidr cvalue:$cvalue gidrkw:$gidrkw"
-        if {($gidr=="GiDWriteMeshFlag") || ($gidr=="GiDWriteConditionsFlag") || ($gidr=="GiDWriteParticlesFlag")} {
-            if {$cvalue =="Yes"} {
-              set cvalue True
-            } else {
-              set cvalue False
-            }
-            puts $fileid "$gidrkw = $cvalue"
-        } else {
-            puts $fileid "$gidrkw = \"$cvalue\""
-        }
+	if {$cvalue !=""} {
+	    # Get the kratos keyword
+	    set gidrkw [::xmlutils::getKKWord $kwxpath $gidr]
+	    # WarnWinText "gidr:$gidr cvalue:$cvalue gidrkw:$gidrkw"
+	    if {($gidr=="GiDWriteMeshFlag") || ($gidr=="GiDWriteConditionsFlag") || ($gidr=="GiDWriteParticlesFlag")} {
+		if {$cvalue =="Yes"} {
+		    set cvalue True
+		} else {
+		    set cvalue False
+		}
+		# wa "cvalue:$cvalue"
+		puts $fileid "$gidrkw = $cvalue"
+	    } else {
+		puts $fileid "$gidrkw = \"$cvalue\""
+	    }
+	}
     }
 }
