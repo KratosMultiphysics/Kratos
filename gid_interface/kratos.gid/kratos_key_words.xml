@@ -117,8 +117,8 @@
       usennode="No" />
       <Item id="VMS2D" kkword="FractionalStep2D" usennode="No" />
       <Item id="VMS3D" kkword="FractionalStep3D" usennode="No" />
-      <Item id="PFEM2D" kkword="ASGS2D" usennode="No" />
-      <Item id="PFEM3D" kkword="ASGS3D" usennode="No" />
+      <Item id="PFEM2D" kkword="UlfFrac2D" usennode="No" />
+      <Item id="PFEM3D" kkword="UlfFrac3D" usennode="No" />
       <Item id="Vx" kkword="VELOCITY_X" />
       <Item id="Vy" kkword="VELOCITY_Y" />
       <Item id="Vz" kkword="VELOCITY_Z" />
@@ -190,11 +190,33 @@
     <ConvectionDiffusion>
       <Item id="ConvDiff2D" kkword="ConvDiff2D" usennode="No" />
       <Item id="ConvDiff3D" kkword="ConvDiff3D" usennode="No" />
-      <Item id="MeshVelocity" kkword="MESH_VELOCITY" />
-      <Item id="Velocity" kkword="VELOCITY" />
+      <Item id="MeshVelocity_X" kkword="MESH_VELOCITY_X" />
+      <Item id="MeshVelocity_Y" kkword="MESH_VELOCITY_Y" />
+      <Item id="MeshVelocity_Z" kkword="MESH_VELOCITY_Z" />
+      <Item id="Velocity_X" kkword="VELOCITY_X" />
+      <Item id="Velocity_Y" kkword="VELOCITY_Y" />
+      <Item id="Velocity_Z" kkword="VELOCITY_Z" />
       <Item id="Density" kkword="DENSITY" />
       <Item id="Conductivity" kkword="CONDUCTIVITY" />
       <Item id="SpecificHeat" kkword="SPECIFIC_HEAT" />
+      <Item id="VEmissivity" kkword="EMISSIVITY"/>
+      <Item id="InitialTemperature" kkword="TEMPERATURE"/>
+      <Item id="EnvironmentTemperature" kkword="AMBIENT_TEMPERATURE"/>
+      <Item id="VConvectionCoefficient" kkword="CONVECTION_COEFFICIENT"/>
+      <Item id="ILU0" kkword="ILU0" />
+      <Item id="GMRES" kkword="GMRES" />
+      <Item id="None" kkword="None" />
+      <Item id="RelativeTemperatureTolerance" kkword="temperature_relative_tolerance" />
+      <Item id="SkylineLUFactorization" kkword="Skyline LU factorization" />
+      <Item id="SuperLU" kkword="Super LU" />
+      <Item id="ParallelMKLPardiso" kkword="Parallel MKL Pardiso" />
+      <Item id="GMRES-UP Block" kkword="GMRES-UP Block" />
+      <Item id="AMGCL" kkword="AMGCL" />
+      <Item id="SuperLUIterativeSolver" kkword="SuperLUIterativeSolver" />
+      <Item id="DivergenceCleareanceStep" kkword="divergence_cleareance_step" />
+      <Item id="BiConjugateGradientStabilized" kkword="BiConjugate gradient stabilized" />
+      <Item id="ConjugateGradient" kkword="Conjugate gradient" />
+      <Item id="Diagonal" kkword="Diagonal" />
       <Item id="GiDPostMode" kkword="GiDPostMode" />
       <Item id="GiDWriteMeshFlag" kkword="GiDWriteMeshFlag" />
       <Item id="GiDWriteConditionsFlag" kkword="GiDWriteConditionsFlag" />
@@ -290,6 +312,7 @@
     <Item id="Viscosity" kkword="VISCOSITY" />
     <Item id="MagneticPermeability" kkword="" />
     <Item id="ElectricalPermitivity" kkword="" />    
+    <Item id="BinghamSmoother" kkword="BINGHAM_SMOOTHER" />
   </Materials>
   <ElementCLaws>
     <Item id="ElementTypes2D" dv="Solid"
