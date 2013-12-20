@@ -19,10 +19,10 @@ VALUE: 0.4
 
 QUESTION: Rolling_Friction
 VALUE: 0.1
-
+STATE: HIDDEN
 QUESTION: Restitution_coef
 VALUE: 0.5
-
+STATE: HIDDEN
 QUESTION: Colour
 VALUE: 12
 
@@ -47,10 +47,10 @@ VALUE: 0.4
 
 QUESTION: Rolling_Friction
 VALUE: 0.1
-
+STATE: HIDDEN
 QUESTION: Restitution_coef
 VALUE: 0.5
-
+STATE: HIDDEN
 QUESTION: Colour
 VALUE: 12
 
@@ -75,10 +75,10 @@ VALUE: 0.4
 
 QUESTION: Rolling_Friction
 VALUE: 0.1
-
+STATE: HIDDEN
 QUESTION: Restitution_coef
 VALUE: 0.5
-
+STATE: HIDDEN
 QUESTION: Colour
 VALUE: 12
 
@@ -103,10 +103,10 @@ VALUE: 0.4
 
 QUESTION: Rolling_Friction
 VALUE: 0.1
-
+STATE: HIDDEN
 QUESTION: Restitution_coef
 VALUE: 0.5
-
+STATE: HIDDEN
 QUESTION: Colour
 VALUE: 14
 
@@ -131,10 +131,10 @@ VALUE: 0.4
 
 QUESTION: Rolling_Friction
 VALUE: 0.1
-
+STATE: HIDDEN
 QUESTION: Restitution_coef
 VALUE: 0.5
-
+STATE: HIDDEN
 QUESTION: Colour
 VALUE: 14
 
