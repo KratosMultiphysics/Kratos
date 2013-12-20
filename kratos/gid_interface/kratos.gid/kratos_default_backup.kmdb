@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<Kratos_KMat_DB version="1.0.8">
+<Kratos_KMat_DB version="1.1.0">
     <Materials>
         <MaterialGroup id="Metal" pid="Solid" icon="grey.gif" help="Helptext" open="1">
             <Material id="Steel_AISI1059" pid="Steel_AISI1059" icon="grey.gif" help="Helptext" open="0">
@@ -84,11 +84,11 @@
                         <Property id="DCompressiveFractureEnergy" pid="Compressive fracture energy" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                     </Container>
                 </Container>
-                <Container id="Thermal" pid="Thermal" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
-                    <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
-                        <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
-                        <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
-                        <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Container id="Thermal" pid="Thermal" icon="prop.gif" state="normal" class="normal" help="General" open="0">
+                    <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="normal" class="normal" help="General" open="0">
+                        <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     </Container>
                     <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
                         <Property id="K11" pid="K11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
@@ -190,11 +190,11 @@
                         <Property id="CompressiveFractureEnergy" pid="Compressive fracture energy" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                     </Container>
                 </Container>
-                <Container id="Thermal" pid="Thermal" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
-                    <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
-                        <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
-                        <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
-                        <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Container id="Thermal" pid="Thermal" icon="prop.gif" state="normal" class="normal" help="General" open="0">
+                    <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="normal" class="normal" help="General" open="0">
+                        <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     </Container>
                     <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
                         <Property id="K11" pid="K11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
@@ -513,11 +513,11 @@
                         <Property id="CompressiveFractureEnergy" pid="Compressive fracture energy" value="276" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                     </Container>
                 </Container>
-                <Container id="Thermal" pid="Thermal" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
-                    <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
-                        <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
-                        <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
-                        <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+                <Container id="Thermal" pid="Thermal" icon="prop.gif" state="normal" class="normal" help="General" open="0">
+                    <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="normal" class="normal" help="General" open="0">
+                        <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                        <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                     </Container>
                     <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
                         <Property id="K11" pid="K11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
@@ -537,6 +537,21 @@
                     <Property id="ElectricalPermitivity" pid="Electrical permitivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                 </Container>
             </Material>
+        </MaterialGroup>
+	<MaterialGroup id="DEMMaterial" pid="DEM" icon="grey.gif" help="DEM material" open="1">
+          <Material id="DEM-DefaultMaterial" pid="DEM-DefaultMaterial" icon="grey.gif" help="Material name" open="0">
+            <Container id="ParticleProperties" pid="Particle properties" icon="prop.gif" class="normal" help="Particle properties" open="1">
+              <Property id="Description" pid="Description" value="material description" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+              <Property id="Density" pid="Density" value="2300.0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+	      <Property id="ParticleDiameter" pid="Diameter" value="0.002" unit=" " icon="prop.gif" state="normal" help="Particle diameter" open="0"/>
+	      <Property id="ParticleSphericity" pid="Sphericity" value="1.0" unit=" " icon="prop.gif" state="normal" help="Particle sphericity" open="0"/>
+	      <Property id="ParticleFrictionAngle" pid="Friction angle" value="45.0" unit=" " icon="prop.gif" state="normal" help="Particle friction angle" open="0"/>
+	      <Property id="RestitutionCoefficient" pid="Restitution coefficient" value="0.0" unit=" " icon="prop.gif" state="normal" help="Restitution coefficient" open="0"/>
+	      <Property id="RollingFriction" pid="Rolling friction" value="0.0" unit=" " icon="prop.gif" state="normal" help="Rolling friction" open="0"/>
+	      <Property id="RotationalDampingRatio" pid="Rotational damping ratio" value="0.5" unit=" " icon="prop.gif" state="normal" help="Rotational damping ratio" open="0"/>
+	      <Property id="Color" pid="Color" value="1" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
+	    </Container>
+	  </Material>
         </MaterialGroup>
         <ClassConfiguration>
             <Class>HardeningLaw,SaturationLaw,FlowRule,YieldCriteria</Class>
@@ -628,11 +643,11 @@
                     <Property id="CompressiveFractureEnergy" pid="Compressive fracture energy" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
                </Container>
             </Container>
-            <Container id="Thermal" pid="Thermal" icon="prop.gif" state="hiddenAll" class="normal" help="General" open="0">
-                <Container id="Isotropic" pid="Isotropic" icon="prop.gif" class="normal" help="General" open="0">
-                    <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
-                    <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
-                    <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
+            <Container id="Thermal" pid="Thermal" icon="prop.gif" state="normal" class="normal" help="General" open="0">
+                <Container id="Isotropic" pid="Isotropic" icon="prop.gif" state="normal" class="normal" help="General" open="0">
+                    <Property id="ExpansionCoeff" pid="Expansion coeff" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                    <Property id="Conductivity" pid="Conductivity" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+                    <Property id="SpecificHeat" pid="Specific heat" value="0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
                 </Container>
                 <Container id="Orthotropic" pid="Orthotropic" icon="prop.gif" state="hidden" class="normal" help="General" open="0">
                     <Property id="K11" pid="K11" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
@@ -652,5 +667,18 @@
                 <Property id="ElectricalPermitivity" pid="Electrical permitivity" value="0" unit=" " icon="prop.gif" state="hidden" help="Helptext" open="0"/>
             </Container>
         </Template>
-    </Templates>
+	<Template id="NewDEMMaterial" help="New DEM material type" open="1">
+          <Container id="ParticleProperties" pid="Particle properties" icon="prop.gif" class="normal" help="Particle properties" open="1">
+            <Property id="Description" pid="Description" value="material description" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+            <Property id="Density" pid="Density" value="2300.0" unit=" " icon="prop.gif" state="normal" help="Helptext" open="0"/>
+	    <Property id="ParticleDiameter" pid="Diameter" value="0.002" unit=" " icon="prop.gif" state="normal" help="Particle diameter" open="0"/>
+	    <Property id="ParticleSphericity" pid="Sphericity" value="1.0" unit=" " icon="prop.gif" state="normal" help="Particle sphericity" open="0"/>
+	    <Property id="ParticleFrictionAngle" pid="Friction angle" value="45.0" unit=" " icon="prop.gif" state="normal" help="Particle friction angle" open="0"/>
+	    <Property id="RestitutionCoefficient" pid="Restitution coefficient" value="0.0" unit=" " icon="prop.gif" state="normal" help="Restitution coefficient" open="0"/>
+	    <Property id="RollingFriction" pid="Rolling friction" value="0.0" unit=" " icon="prop.gif" state="normal" help="Rolling friction" open="0"/>
+	    <Property id="RotationalDampingRatio" pid="Rotational damping ratio" value="0.5" unit=" " icon="prop.gif" state="normal" help="Rotational damping ratio" open="0"/>
+	    <Property id="Color" pid="Color" value="1" unit=" " icon="prop.gif" state="normal" help="Color" open="0"/>
+	  </Container>
+	</Template>
+        </Templates>
 </Kratos_KMat_DB>
