@@ -293,50 +293,52 @@ TITLE: Continuum_Options
 QUESTION: Amplified_Continuum_Search_Radius_Extension
 HELP: Manually especified factor that enlarges the initial radius of search in order to find the continuum neighbours that are may be separated by traccional strain. 
 VALUE: 1.10
+
 STATE: HIDDEN
 QUESTION: Stress_Strain_Operations#CB#(ON,OFF)
 VALUE: OFF
 QUESTION: Contact_Mesh#CB#(ON,OFF)
 VALUE: OFF
-#Concrete_Tests
-QUESTION: Concrete_Test#CB#(ON,OFF)
-HELP: Necessary for Skin determination
+QUESTION: Concrete_Test#CB#(UCS,TRIAXIAL,EDOMETRIC,BTS,OFF)
 VALUE: OFF
-DEPENDENCIES: (OFF,HIDE,Triaxial_Option,#CURRENT#,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#,HIDE,RADIAL_DISPLACEMENT,#CURRENT#,HIDE,Specimen_height,#CURRENT#,HIDE,Specimen_width,#CURRENT#)(ON,RESTORE,Triaxial_Option,#CURRENT#,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#)
+DEPENDENCIES: (OFF,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#,HIDE,RADIAL_DISPLACEMENT,#CURRENT#,HIDE,Specimen_height,#CURRENT#,HIDE,Specimen_width,#CURRENT#,HIDE,Measuring_Surface,#CURRENT#,HIDE,Poisson_Measure,#CURRENT#,HIDE,Measuring_Width,#CURRENT#,HIDE,Real_Time_Graph,#CURRENT#) 
+DEPENDENCIES: (UCS,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#,RESTORE,Measuring_Surface,#CURRENT#,RESTORE,Poisson_Measure,#CURRENT#,RESTORE,Measuring_Width,#CURRENT#,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#) 
+DEPENDENCIES: (TRIAXIAL,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#,RESTORE,Measuring_Surface,#CURRENT#,RESTORE,Poisson_Measure,#CURRENT#,RESTORE,Measuring_Width,#CURRENT#,RESTORE,Confinement_Pressure,#CURRENT#,RESTORE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#)
+DEPENDENCIES: (EDOMETRIC,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#,HIDE,Confinement_Pressure,0.0,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#,RESTORE,Measuring_Surface,#CURRENT#,HIDE,Poisson_Measure,#CURRENT#,HIDE,Measuring_Width,#CURRENT#)
+DEPENDENCIES: (BTS,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#,HIDE,RADIAL_DISPLACEMENT,#CURRENT#,HIDE,Specimen_height,#CURRENT#,HIDE,Specimen_width,#CURRENT#,HIDE,Measuring_Surface,#CURRENT#,HIDE,Poisson_Measure,#CURRENT#,HIDE,Measuring_Width,#CURRENT#,HIDE,Real_Time_Graph,#CURRENT#) 
 QUESTION: Specimen_height
 VALUE: 0.30
+STATE: HIDDEN
 HELP: meters
 QUESTION: Specimen_width
 VALUE: 0.15
-HELP: meters
-QUESTION: Brazilian_test#CB#(ON,OFF)
-VALUE: OFF
-QUESTION: Real_Time_Graph#CB#(ON,OFF)
-VALUE: OFF
 STATE: HIDDEN
-QUESTION: Graph_Option#CB#(ON,OFF)
-VALUE: ON
-DEPENDENCIES: (OFF,HIDE,Measuring_Surface,#CURRENT#,HIDE,Measuring_Width,#CURRENT#,HIDE,Poisson_Measure,OFF)(ON,RESTORE,Measuring_Surface,#CURRENT#,RESTORE,Measuring_Width,#CURRENT#,RESTORE,Poisson_Measure,#CURRENT#)
+HELP: meters
 QUESTION: Measuring_Surface
 HELP:in meters
 VALUE: 0.01767145868
+STATE: HIDDEN
 QUESTION: Poisson_Measure#CB#(ON,OFF)
 VALUE: OFF
+STATE: HIDDEN
 QUESTION: Measuring_Width
 HELP:in meters
 VALUE: 0.05
-QUESTION: Triaxial_Option#CB#(ON,OFF)
+STATE: HIDDEN
+QUESTION: Real_Time_Graph#CB#(ON,OFF)
 VALUE: OFF
-DEPENDENCIES: (OFF,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#)(ON,RESTORE,Confinement_Pressure,#CURRENT#,RESTORE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#)
+STATE: HIDDEN
 QUESTION: Confinement_Pressure
 HELP:MPa
 VALUE: 0.0
+STATE: HIDDEN
 QUESTION: Total_Time_Percentage_As_Force_Aplication_Time
 HELP:A percentage of the total simulation time from the initial time linearly increassing the pressure from 0 to the specified value
 VALUE: 15.0
+STATE: HIDDEN
 QUESTION: Monitoring_Option#CB#(ON,OFF)
 VALUE: OFF
-
+STATE: HIDDEN
 
 
 TITLE: RigidFace Movement
