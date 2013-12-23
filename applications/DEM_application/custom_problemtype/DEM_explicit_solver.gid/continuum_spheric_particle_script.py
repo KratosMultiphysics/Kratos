@@ -145,7 +145,7 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
 
     os.chdir(graphs_path)
 
-    chart = open("Provisional_CHART.txt", 'w')
+    chart = open("Provisional_CHART.grf", 'w')
     
     if(DEM_parameters.ConcreteTestOption == "BTS"):
         bts_export = open(DEM_parameters.problem_name +"_bts_"+str(datetime.datetime.now())+".csv",'w');
@@ -266,32 +266,32 @@ if(DEM_parameters.Dempack and (DEM_parameters.ConcreteTestOption != "OFF")):
   print("This chart is only valid for one material case" + '\n')
 
   chart.write(("***********PARAMETERS*****************")+'\n')
-  chart.write( "*                                    *" +'\n')
-  chart.write( "*      DENSI         = " + (str(w_densi))+"Kg/m3     *"+'\n')
-  chart.write( "*      STAFRC        = " + (str(DEM_parameters.InternalFriction))+"           *"+'\n')
-  chart.write( "*      DYNFRC        = " + (str(w_dynfrc))+"          *" +'\n')
-  chart.write( "*      YOUNG         = " + (str(w_young/1e9))+" GPa"+"     *" +'\n')
-  chart.write( "*      POISS         = " + (str(w_poiss))+"           *" +'\n')
-  chart.write( "*      NTSR          = " + (str(DEM_parameters.SigmaMin))+"Mpa        *" +'\n')
-  chart.write( "*      LCS1          = " + (str(DEM_parameters.C1))+"Mpa       *" +'\n')
-  chart.write( "*      LCS2          = " + (str(DEM_parameters.C2))+"Mpa       *" +'\n')
-  chart.write( "*      LCS3          = " + (str(DEM_parameters.C3))+"Mpa       *" +'\n')
-  chart.write( "*      YRC1          = " + (str(DEM_parameters.N1))+"           *" +'\n')
-  chart.write( "*      YRC2          = " + (str(DEM_parameters.N2))+"           *" +'\n')
-  chart.write( "*      YRC3          = " + (str(DEM_parameters.N3))+"          *" +'\n')
-  chart.write( "*      NG            = " + (str(7.0/6.0*2.0*(1.0+w_poiss)))+"           *" +'\n')
-  chart.write( "*      FSS           = " + (str(DEM_parameters.TauZero))+"Mpa       *" +'\n')
-  chart.write( "*      YEP           = " + (str(DEM_parameters.PlasticYoungModulus/1e9))+" GPa"+"     *" +'\n')
-  chart.write( "*      YIELD         = " + (str(DEM_parameters.PlasticYieldStress))+"Mpa       *" +'\n')
-  chart.write( "*      EDR           = " + (str(DEM_parameters.DamageDeformationFactor))+"           *" +'\n')
-  chart.write( "*      GLOBAL_DAMPIN = " + (str(DEM_parameters.DempackGlobalDamping))+"           *" +'\n')
-  chart.write( "*      LOCAL_DAMPIN  = " + (str(DEM_parameters.DempackDamping))+"           *" +'\n')
-  chart.write( "*      ALPHA         = " + (str(DEM_parameters.AreaFactor))+"           *" +'\n')
-  chart.write( "*                                    *" +'\n')
+  chart.write( "                                    *" +'\n')
+  chart.write( "    DENSI  = " + (str(w_densi))+" Kg/m3     "+'\n')
+  chart.write( "    STAFRC = " + (str(DEM_parameters.InternalFriction))+"           "+'\n')
+  chart.write( "    DYNFRC = " + (str(w_dynfrc))+"          " +'\n')
+  chart.write( "    YOUNG  = " + (str(w_young/1e9))+" GPa"+"     " +'\n')
+  chart.write( "    POISS  = " + (str(w_poiss))+"           " +'\n')
+  chart.write( "    NTSR   = " + (str(DEM_parameters.SigmaMin))+" Mpa        " +'\n')
+  chart.write( "    LCS1   = " + (str(DEM_parameters.C1))+" Mpa       " +'\n')
+  chart.write( "    LCS2   = " + (str(DEM_parameters.C2))+" Mpa       " +'\n')
+  chart.write( "    LCS3   = " + (str(DEM_parameters.C3))+" Mpa       " +'\n')
+  chart.write( "    YRC1   = " + (str(DEM_parameters.N1))+"           " +'\n')
+  chart.write( "    YRC2   = " + (str(DEM_parameters.N2))+"           " +'\n')
+  chart.write( "    YRC3   = " + (str(DEM_parameters.N3))+"           " +'\n')
+  chart.write( "    NG     = " + (str(7.0/6.0*2.0*(1.0+w_poiss)))+"           " +'\n')
+  chart.write( "    FSS    = " + (str(DEM_parameters.TauZero))+" Mpa       " +'\n')
+  chart.write( "    YEP    = " + (str(DEM_parameters.PlasticYoungModulus/1e9))+" GPa"+"     " +'\n')
+  chart.write( "    YIELD  = " + (str(DEM_parameters.PlasticYieldStress))+" Mpa       " +'\n')
+  chart.write( "    EDR    = " + (str(DEM_parameters.DamageDeformationFactor))+"           " +'\n')
+  chart.write( "    GDAMP  = " + (str(DEM_parameters.DempackGlobalDamping))+"           " +'\n')
+  chart.write( "    LDAMP  = " + (str(DEM_parameters.DempackDamping))+"           " +'\n')
+  chart.write( "    ALPHA  = " + (str(DEM_parameters.AreaFactor))+"           " +'\n')
+  chart.write( "                                    *" +'\n')
   chart.write( "**************************************" +'\n')
 
   chart.close()
-  a_chart = open("Provisional_CHART.txt","r")
+  a_chart = open("Provisional_CHART.grf","r")
   
   for line in a_chart.readlines():
     print(line)
@@ -599,7 +599,7 @@ for filename in os.listdir("."):
   if filename.startswith("Provisional_MEAN"):
     os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_MEAN.csv")
   if filename.startswith("Provisional_CHART"):
-    os.rename(filename, DEM_parameters.problem_name + "_CHART_" + str(initial_time) +".txt")
+    os.rename(filename, DEM_parameters.problem_name + "_CHART_" + str(initial_time) +".grf")
 
 
 if (DEM_parameters.ConcreteTestOption!= "OFF"):
