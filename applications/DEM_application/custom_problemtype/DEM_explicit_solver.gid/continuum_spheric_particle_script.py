@@ -148,12 +148,12 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
     chart = open("Provisional_CHART.grf", 'w')
     
     if(DEM_parameters.ConcreteTestOption == "BTS"):
-        bts_export = open(DEM_parameters.problem_name +"_bts_"+str(datetime.datetime.now())+".csv",'w');
+        bts_export = open(DEM_parameters.problem_name +"_bts_"+str(datetime.datetime.now())+".grf",'w');
 
     else:
-      graph_export_top = open("Provisional_TOP.csv", 'w')
-      graph_export_bot = open("Provisional_BOT.csv", 'w')
-      graph_export_mean = open("Provisional_MEAN.csv", 'w')
+      graph_export_top = open(DEM_parameters.problem_name +"_Provisional_TOP.grf", 'w')
+      graph_export_bot = open(DEM_parameters.problem_name +"_Provisional_BOT.grf", 'w')
+      graph_export_mean = open(DEM_parameters.problem_name +"_Provisional_MEAN.grf", 'w')
     
     if (DEM_parameters.PoissonMeasure =="ON"):
       
@@ -591,15 +591,25 @@ if (DEM_parameters.Multifile == "single_file"):
 
 os.chdir(graphs_path)
 
+#for filename in os.listdir("."):
+#  if filename.startswith("Provisional_TOP"):
+#    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_TOP.grf")
+#  if filename.startswith("Provisional_BOT"):
+#    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_BOT.grf")
+#  if filename.startswith("Provisional_MEAN"):
+#    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_MEAN.grf")
+#  if filename.startswith("Provisional_CHART"):
+#    os.rename(filename, DEM_parameters.problem_name + "_CHART_" + str(initial_time) +".grf")
+
 for filename in os.listdir("."):
-  if filename.startswith("Provisional_TOP"):
-    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_TOP.csv")
-  if filename.startswith("Provisional_BOT"):
-    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_BOT.csv")
-  if filename.startswith("Provisional_MEAN"):
-    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_MEAN.csv")
-  if filename.startswith("Provisional_CHART"):
-    os.rename(filename, DEM_parameters.problem_name + "_CHART_" + str(initial_time) +".grf")
+  if filename.startswith(DEM_parameters.problem_name +"_Provisional_TOP"):
+    os.rename(filename, DEM_parameters.problem_name + "_graph_" + "_TOP.grf")
+  if filename.startswith(DEM_parameters.problem_name +"_Provisional_BOT"):                    
+    os.rename(filename, DEM_parameters.problem_name + "_graph_" + "_BOT.grf")
+  if filename.startswith(DEM_parameters.problem_name +"_Provisional_MEAN"):                   
+    os.rename(filename, DEM_parameters.problem_name + "_graph_" + "_MEAN.grf")
+  if filename.startswith(DEM_parameters.problem_name +"_Provisional_CHART"):                  
+    os.rename(filename, DEM_parameters.problem_name + "_CHART_" +".grf")
 
 
 if (DEM_parameters.ConcreteTestOption!= "OFF"):
