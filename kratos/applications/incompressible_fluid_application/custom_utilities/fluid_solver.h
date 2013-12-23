@@ -1732,7 +1732,7 @@ private:
             if (cos_normal < acceptable_cos)
             {
                 array_1d<double, TDim > edge;
-                for(int i = 0 ; i < TDim ; i++)
+                for(unsigned int i = 0 ; i < TDim ; i++)
                     edge[i] = face_geometry[i2].Coordinates()[i] - face_geometry[i1].Coordinates()[i];
                 double temp = norm_2(edge);
                 edge /= temp;
