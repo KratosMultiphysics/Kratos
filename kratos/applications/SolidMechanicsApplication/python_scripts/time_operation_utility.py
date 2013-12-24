@@ -55,7 +55,7 @@ class TimeOperationUtility(object):
 
         #set step counters 
         self.step_counter = self.starting_step
-        self.id_counter   = self.step_counter + 1
+        self.id_counter   = self.step_counter
 
 
 
@@ -91,7 +91,7 @@ class TimeOperationUtility(object):
 
         #set step counters 
         self.step_counter = self.starting_step
-        self.id_counter   = self.step_counter + 1
+        self.id_counter   = self.step_counter
 
         #-----#
 
