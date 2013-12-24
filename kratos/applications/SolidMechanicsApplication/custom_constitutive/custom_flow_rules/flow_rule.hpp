@@ -147,6 +147,15 @@ namespace Kratos
 	  EquivalentPlasticStrainOld = 0;
 	}
 
+
+        void print()
+        {
+	  std::cout<<" Internal Variables "<<std::endl;
+	  std::cout<<" EquivalentPlasticStrain: "<<EquivalentPlasticStrain<<std::endl;
+	  std::cout<<" DeltaPlasticstrain: "<<DeltaPlasticStrain<<std::endl;
+	  std::cout<<" EquivalentPlasticStrainOld: "<<EquivalentPlasticStrainOld<<std::endl;
+	}
+
     private:
 
       friend class Serializer;
@@ -179,6 +188,13 @@ namespace Kratos
         {
 	  PlasticDissipation = 0;
 	  DeltaPlasticDissipation = 0;
+	}
+
+        void print()
+        {
+	  std::cout<<" Internal Thermal Variables "<<std::endl;
+	  std::cout<<" PlasticDissipation: "<<PlasticDissipation<<std::endl;
+	  std::cout<<" DeltaPlasticDissipation: "<<DeltaPlasticDissipation<<std::endl;
 	}
 
     };
