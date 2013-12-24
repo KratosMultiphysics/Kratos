@@ -103,12 +103,12 @@ class GidOutputUtility(object):
             self._initialize_results(mesh_name,model_part)
 
     #######################################################################
-    def write_results(self,model_part,nodal_variables,gp_variables,current_time,current_step):
-
-        print " WRITING RESULTS: [STEP: ",current_step,"] [TIME: ",current_time,"]"
-        
+    def write_results(self,model_part,nodal_variables,gp_variables,current_time,current_step,current_id):
+     
         # set multi-file label
-        label = current_time
+        label = current_id
+
+        print " WRITING RESULTS: [ID: ",label,"] [STEP: ",current_step,"] [TIME: ",current_time,"]"
 
         # update cut data if necessary
         if self.multi_file == MultiFileFlag.MultipleFiles:
@@ -117,11 +117,11 @@ class GidOutputUtility(object):
             
         for var in nodal_variables:
             kratos_variable = globals()[var]
-            self._write_nodal_results(label,model_part,kratos_variable)
+            self._write_nodal_results(current_time,model_part,kratos_variable)
                 
         for var in gp_variables:
             kratos_variable = globals()[var]
-            self._write_gp_results(label,model_part,kratos_variable)
+            self._write_gp_results(current_time,model_part,kratos_variable)
 
         #flush gid writing
         self.io.Flush()
