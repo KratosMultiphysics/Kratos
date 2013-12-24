@@ -213,8 +213,8 @@ public:
     private:
     
       Flags                mOptions;
-      double               mDeterminantF;
-      double               mDeterminantF0;
+      const double*        mDeterminantF;
+      double*              mDeterminantF0;
 
       /*** NOTE: Member Pointers are used only to point to a certain variable, no "new" or "malloc" can be used for this Parameters ***/
 
@@ -242,8 +242,8 @@ public:
       Parameters ()
       {  
         //Initialize parameters with a non-coherent value
-	mDeterminantF=-1;
-	mDeterminantF0=-1;
+	mDeterminantF=NULL;
+	mDeterminantF0=NULL;
 	//Initialize pointers to NULL
 	mpStrainVector=NULL;
 	mpStressVector=NULL;
@@ -269,8 +269,8 @@ public:
       ,mpElementGeometry(&rElementGeometry)
       {  
         //Initialize parameters with a non-coherent value
-	mDeterminantF=-1;
-	mDeterminantF0=-1;
+	mDeterminantF=NULL;
+	mDeterminantF0=NULL;
 	//Initialize pointers to NULL
 	mpStrainVector=NULL;
 	mpStressVector=NULL;
@@ -362,10 +362,10 @@ public:
 
       bool CheckMechanicalVariables ()
       {
-	if(mDeterminantF==-1)
+	if(!mDeterminantF)
 	  KRATOS_ERROR(std::invalid_argument,"DeterminantF NOT SET","");
 
-	if(mDeterminantF0==-1)
+	if(!mDeterminantF0)
 	  KRATOS_ERROR(std::invalid_argument,"DeterminantF0 NOT SET","");
 
 	if(!mpDeformationGradientF)
@@ -399,8 +399,8 @@ public:
       void Reset                           (Flags ThisFlag)                           {mOptions.Reset(ThisFlag);};
 
       void SetOptions                      (const Flags&  rOptions)                   {mOptions=rOptions;};
-      void SetDeterminantF                 (const double& rDeterminantF)              {mDeterminantF=rDeterminantF;};
-      void SetDeterminantF0                (const double& rDeterminantF0)             {mDeterminantF0=rDeterminantF0;};
+      void SetDeterminantF                 (const double& rDeterminantF)              {mDeterminantF=&rDeterminantF;};
+      void SetDeterminantF0                (double& rDeterminantF0)                   {mDeterminantF0=&rDeterminantF0;};
  
       void SetShapeFunctionsValues         (const Vector& rShapeFunctionsValues)      {mpShapeFunctionsValues=&rShapeFunctionsValues;};
       void SetShapeFunctionsDerivatives    (const Matrix& rShapeFunctionsDerivatives) {mpShapeFunctionsDerivatives=&rShapeFunctionsDerivatives;};
@@ -422,13 +422,13 @@ public:
        */ 
       Flags& GetOptions () {return mOptions;};
    
-      const double& GetDeterminantF              () {return mDeterminantF;};     
+      const double& GetDeterminantF              () {return *mDeterminantF;};     
       const Vector& GetShapeFunctionsValues      () {return *mpShapeFunctionsValues;};
       const Matrix& GetShapeFunctionsDerivatives () {return *mpShapeFunctionsDerivatives;};
       const Matrix& GetDeformationGradientF      () {return *mpDeformationGradientF;};
       Matrix& GetDeformationGradientF0           () {return *mpDeformationGradientF0;};
 
-      double& GetDeterminantF0                   () {return mDeterminantF0;};
+      double& GetDeterminantF0                   () {return *mDeterminantF0;};
       Vector& GetStrainVector                    () {return *mpStrainVector;};
       Vector& GetStressVector                    () {return *mpStressVector;};
 
@@ -445,8 +445,8 @@ public:
        * returns the reference to the value of a specified variable with not constant access
        */ 
       
-      double& GetDeterminantF                  (double & rDeterminantF) {rDeterminantF=mDeterminantF; return rDeterminantF;};
-      double& GetDeterminantF0                 (double & rDeterminantF0) {rDeterminantF0=mDeterminantF0; return rDeterminantF0;};
+      double& GetDeterminantF                  (double & rDeterminantF) {rDeterminantF=*mDeterminantF; return rDeterminantF;};
+      double& GetDeterminantF0                 (double & rDeterminantF0) {rDeterminantF0=*mDeterminantF0; return rDeterminantF0;};
       Vector& GetStrainVector                  (Vector & rStrainVector) {rStrainVector=*mpStrainVector; return rStrainVector;};
       Matrix& GetDeformationGradientF          (Matrix & rDeformationGradientF)  {rDeformationGradientF=*mpDeformationGradientF;   return rDeformationGradientF;};
       Matrix& GetDeformationGradientF0         (Matrix & rDeformationGradientF0) {rDeformationGradientF0=*mpDeformationGradientF0; return rDeformationGradientF0;};
