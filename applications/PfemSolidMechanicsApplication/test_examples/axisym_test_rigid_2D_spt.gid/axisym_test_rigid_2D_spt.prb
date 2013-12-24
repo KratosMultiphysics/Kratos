@@ -106,7 +106,7 @@ DEPENDENCIES: (#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Rigid_Body_Penalt
 QUESTION: Contact_Condition#CB#(2D,Axisymmetric)
 VALUE: Axisymmetric
 QUESTION: Rigid_Body_Penalty_Parameter
-VALUE: 600
+VALUE: 800
 QUESTION: Number_of_Walls
 VALUE: 1
 QUESTION: Wall_Noses:(Wall_Label,Tip_Radius,Rake_Angle,Clearance_Angle,TipCx,TipCy,TipCz,Convexity)
@@ -150,7 +150,7 @@ DEPENDENCIES: (True,RESTORE,PlotFrequency,#CURRENT#)
 QUESTION: PlotFrequency
 VALUE: 10
 QUESTION: Print_List_Files#CB#(False,True)
-VALUE: False
+VALUE: True
 DEPENDENCIES: (False,HIDE,List_Files,#CURRENT#)
 DEPENDENCIES: (True,RESTORE,List_Files,#CURRENT#)
 QUESTION: List_Files:(File_Intervals)

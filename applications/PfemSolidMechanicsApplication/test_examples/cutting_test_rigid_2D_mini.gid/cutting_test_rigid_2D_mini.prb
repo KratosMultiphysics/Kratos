@@ -34,7 +34,7 @@ VALUE: 1E-9
 QUESTION: Linear_Solver_Max_Iteration
 VALUE: 5000
 QUESTION: Convergence_Criteria#CB#(Displacement_criteria,Residual_criteria,And_criteria,Or_criteria,Mixed_criteria)
-VALUE: Displacement_criteria
+VALUE: And_criteria
 QUESTION: Component_Wise_Criterion#CB#(False,True)
 VALUE: False
 QUESTION: Convergence_Tolerance
@@ -150,7 +150,7 @@ DEPENDENCIES: (True,RESTORE,PlotFrequency,#CURRENT#)
 QUESTION: PlotFrequency
 VALUE: 10
 QUESTION: Print_List_Files#CB#(False,True)
-VALUE: False
+VALUE: True
 DEPENDENCIES: (False,HIDE,List_Files,#CURRENT#)
 DEPENDENCIES: (True,RESTORE,List_Files,#CURRENT#)
 QUESTION: List_Files:(File_Intervals)

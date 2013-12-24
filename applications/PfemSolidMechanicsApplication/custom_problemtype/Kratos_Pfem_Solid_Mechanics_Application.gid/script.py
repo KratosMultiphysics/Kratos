@@ -160,7 +160,8 @@ problem_restart  = restart_utils.RestartUtility(model_part,problem_path,problem_
 
 #set the results file list of the problem (managed by the problem_restart and gid_print)
 print_lists      = general_variables.PrintLists
-list_files       = files_utils.ListFilesUtility(problem_path,problem_name,print_lists);
+output_mode      = general_variables.GidOutputConfiguration.GiDPostMode
+list_files       = files_utils.ListFilesUtility(problem_path,problem_name,print_lists,output_mode);
 list_files.Initialize(general_variables.file_list);
   
 ######################--READ AND SET MODEL FILES END--############
@@ -245,7 +246,9 @@ model_part.AddNodalSolutionStepVariable(CONTACT_FORCE);
 #--- READ MODEL ------#
 if(load_restart == "False"):
 
-  problem_restart.CleanPreviousFiles(list_files)
+  #remove results, restart, graph and list previous files
+  problem_restart.CleanPreviousFiles()
+  list_files.RemoveListFiles()
 
   #reading the model 
   model_part_io = ModelPartIO(problem_name)
@@ -269,7 +272,9 @@ else:
   #reading the model from the restart file
   problem_restart.Load(restart_time);
 
-  problem_restart.CleanPosteriorFiles(time_step,restart_time,list_files)
+  #remove results, restart, graph and list posterior files
+  problem_restart.CleanPosteriorFiles(restart_time)
+  list_files.ReBuildListFiles()
 
 #set mesh searches and modeler
 print "initialize modeler"
@@ -403,7 +408,7 @@ for step in range(istep,nstep):
       if( execute_write == True ):
         clock_time=StartTimeMeasuring();
         #print gid output file
-        gid_print.write_results(model_part,general_variables.nodal_results,general_variables.gauss_points_results,current_time,current_step)
+        gid_print.write_results(model_part,general_variables.nodal_results,general_variables.gauss_points_results,current_time,current_step,output_print.operation_id())
         #print on list files
         list_files.PrintListFiles(current_step);
         StopTimeMeasuring(clock_time,"Write Results");
@@ -423,7 +428,7 @@ for step in range(istep,nstep):
       if( execute_write == True ):
         clock_time=StartTimeMeasuring();
         #print gid output file
-        gid_print.write_results(model_part,general_variables.nodal_results,general_variables.gauss_points_results,current_time,current_step)
+        gid_print.write_results(model_part,general_variables.nodal_results,general_variables.gauss_points_results,current_time,current_step,output_print.operation_id())
         #print on list files
         list_files.PrintListFiles(current_step);
         StopTimeMeasuring(clock_time,"Write Results");
