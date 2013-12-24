@@ -198,7 +198,6 @@ PlotFrequency = *GenData(PlotFrequency)
 
 # list options
 PrintLists = "*GenData(Print_List_Files)"
-number_of_lists = *GenData(List_Files)
 file_list = []
 *for(i=1;i<=GenData(List_Files,INT);i=i+1)
 file_list.append(*GenData(List_Files,*i))

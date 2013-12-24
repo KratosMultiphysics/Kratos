@@ -8,7 +8,7 @@ VALUE: QuasiStaticSolver
 QUESTION: Time_Step
 VALUE: 1
 QUESTION: Number_of_steps
-VALUE: 1
+VALUE: 100
 QUESTION: LineSearch#CB#(True,False)
 VALUE: True
 QUESTION: Implex#CB#(True,False)
@@ -150,7 +150,7 @@ DEPENDENCIES: (True,RESTORE,PlotFrequency,#CURRENT#)
 QUESTION: PlotFrequency
 VALUE: 10
 QUESTION: Print_List_Files#CB#(False,True)
-VALUE: False
+VALUE: True
 DEPENDENCIES: (False,HIDE,List_Files,#CURRENT#)
 DEPENDENCIES: (True,RESTORE,List_Files,#CURRENT#)
 QUESTION: List_Files:(File_Intervals)
