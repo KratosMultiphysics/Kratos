@@ -1050,7 +1050,7 @@ public:
 
         this->mpLinearSystemSolver->Clear();
 
-        if (this->GetEchoLevel() > 0)
+        if (this->GetEchoLevel() > 1)
         {
             std::cout << "ResidualBasedBuilderAndSolver Clear Function called" << std::endl;
         }

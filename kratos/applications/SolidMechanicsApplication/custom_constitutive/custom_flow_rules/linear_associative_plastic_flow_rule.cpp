@@ -30,6 +30,14 @@ LinearAssociativePlasticFlowRule::LinearAssociativePlasticFlowRule()
    
 }
 
+//*****************************INITIALIZATION CONSTRUCTOR*****************************
+//************************************************************************************
+
+LinearAssociativePlasticFlowRule::LinearAssociativePlasticFlowRule(YieldCriterionPointer pYieldCriterion)
+	:NonLinearAssociativePlasticFlowRule(pYieldCriterion)
+{
+   
+}
 
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
@@ -119,7 +127,7 @@ bool LinearAssociativePlasticFlowRule::CalculateConsistencyCondition( RadialRetu
 	// HardeningParamters.SetTemperature(rReturnMappingVariables.Temperature);
 	// HardeningParamters.SetEquivalentPlasticStrain(EquivalentPlasticStrain);
 
-	// DeltaHardening = mpHardeningLaw->CalculateDeltaHardening( DeltaHardening, HardeningParameters );
+	// DeltaHardening = mpYieldCriterion->GetHardeningLaw().CalculateDeltaHardening( DeltaHardening, HardeningParameters );
 
 // 	rScalingFactors.Beta0 = 1.0 + DeltaHardening/(3.0 * rReturnMappingVariables.LameMu_bar);
 		

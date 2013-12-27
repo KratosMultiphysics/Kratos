@@ -464,6 +464,16 @@ private:
     const HyperElasticPlasticUPJ2PlaneStrain2DLaw mHyperElasticPlasticUPJ2PlaneStrain2DLaw;
     const HyperElasticPlasticUPJ2Axisym2DLaw      mHyperElasticPlasticUPJ2Axisym2DLaw;
 
+    //Flow Rules
+    const NonLinearAssociativePlasticFlowRule     mNonLinearAssociativePlasticFlowRule;
+    const LinearAssociativePlasticFlowRule        mLinearAssociativePlasticFlowRule;
+    
+    //Yield Criteria
+    const MisesHuberYieldCriterion                mMisesHuberYieldCriterion;
+    
+    //Hardening Laws
+    const NonLinearIsotropicKinematicHardeningLaw mNonLinearIsotropicKinematicHardeningLaw;
+    const LinearIsotropicKinematicHardeningLaw    mLinearIsotropicKinematicHardeningLaw;
 
     ///@}
     ///@name Private Operators

@@ -61,6 +61,9 @@ namespace Kratos
     /// Default constructor.
     NonLinearAssociativePlasticFlowRule();
 
+    /// Initialization constructor.
+    NonLinearAssociativePlasticFlowRule(YieldCriterionPointer pYieldCriterion);
+
     /// Copy constructor.
     NonLinearAssociativePlasticFlowRule(NonLinearAssociativePlasticFlowRule const& rOther);
 

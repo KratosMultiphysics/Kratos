@@ -30,9 +30,9 @@ namespace Kratos
 HyperElasticPlasticJ2PlaneStrain2DLaw::HyperElasticPlasticJ2PlaneStrain2DLaw()
     : HyperElasticPlasticPlaneStrain2DLaw()
 {
-  mpFlowRule       = FlowRule::Pointer( new LinearAssociativePlasticFlowRule() );
-  mpYieldCriterion = YieldCriterion::Pointer( new MisesHuberYieldCriterion() );
   mpHardeningLaw   = HardeningLaw::Pointer( new NonLinearIsotropicKinematicHardeningLaw() );
+  mpYieldCriterion = YieldCriterion::Pointer( new MisesHuberYieldCriterion(mpHardeningLaw) );
+  mpFlowRule       = FlowRule::Pointer( new LinearAssociativePlasticFlowRule(mpYieldCriterion) );
 }
 
 
@@ -41,9 +41,9 @@ HyperElasticPlasticJ2PlaneStrain2DLaw::HyperElasticPlasticJ2PlaneStrain2DLaw()
 
 HyperElasticPlasticJ2PlaneStrain2DLaw::HyperElasticPlasticJ2PlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
-  mpFlowRule        =  pFlowRule;
-  mpYieldCriterion  =  YieldCriterion::Pointer( new MisesHuberYieldCriterion() );
   mpHardeningLaw    =  pHardeningLaw;
+  mpYieldCriterion  =  YieldCriterion::Pointer( new MisesHuberYieldCriterion(mpHardeningLaw) );
+  mpFlowRule        =  pFlowRule;
 }
 
 //******************************COPY CONSTRUCTOR**************************************

@@ -30,6 +30,15 @@ MisesHuberYieldCriterion::MisesHuberYieldCriterion()
 }
 
 
+//*****************************INITIALIZATION CONSTRUCTOR*****************************
+//************************************************************************************
+
+MisesHuberYieldCriterion::MisesHuberYieldCriterion(HardeningLawPointer pHardeningLaw)
+	:YieldCriterion(pHardeningLaw)
+{
+   
+}
+
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************
 
@@ -122,6 +131,7 @@ double& MisesHuberYieldCriterion::CalculateDeltaStateFunction(double & rDeltaSta
 
 	DeltaHardening = mpHardeningLaw->CalculateDeltaHardening( DeltaHardening, rHardeningParameters );
 
+	//std::cout<<" DeltaHardening "<<DeltaHardening<<std::endl;
 
 	rDeltaStateFunction = 2.0 * rLameMu_bar + (2.0/3.0) * DeltaHardening;
 		

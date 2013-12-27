@@ -62,6 +62,9 @@ class MisesHuberYieldCriterion
         /// Default constructor.
         MisesHuberYieldCriterion();
 
+        /// Initialization constructor.
+        MisesHuberYieldCriterion(HardeningLawPointer pHardeningLaw);
+
         /// Copy constructor.
         MisesHuberYieldCriterion(MisesHuberYieldCriterion const& rOther);
 

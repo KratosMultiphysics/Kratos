@@ -53,10 +53,9 @@ HyperElasticPlastic3DLaw::HyperElasticPlastic3DLaw(const HyperElasticPlastic3DLa
 {
 
   mpFlowRule       = rOther.mpFlowRule->Clone();
-
   //they not contain member variables to be stored and cloned:
-  // mpYieldCriterion = rOther.mpYieldCriterion->Clone();
-  // mpHardeningLaw   = rOther.mpHardeningLaw->Clone();
+  //mpYieldCriterion = rOther.mpYieldCriterion->Clone();
+  //mpHardeningLaw   = rOther.mpHardeningLaw->Clone();
 
 }
 
@@ -85,9 +84,6 @@ HyperElasticPlastic3DLaw::~HyperElasticPlastic3DLaw()
 
 bool HyperElasticPlastic3DLaw::Has( const Variable<double>& rThisVariable )
 {
-  // if(rThisVariable == DELTA_PLASTIC_DISSIPATION || rThisVariable == PLASTIC_DISSIPATION )
-  //   return true;
-  
     return false;
 }
 
@@ -119,18 +115,6 @@ double& HyperElasticPlastic3DLaw::GetValue( const Variable<double>& rThisVariabl
       rValue=InternalVariables.DeltaPlasticStrain;
     }
 
-
-  // if (rThisVariable==PLASTIC_DISSIPATION)
-  //   {
-  //     const FlowRule::ThermalVariables& ThermalVariables = mpFlowRule->GetThermalVariables();
-  //     rValue=ThermalVariables.PlasticDissipation;
-  //   }
-  
-  // if (rThisVariable==DELTA_PLASTIC_DISSIPATION)
-  //   {
-  //     const FlowRule::ThermalVariables& ThermalVariables = mpFlowRule->GetThermalVariables();
-  //     rValue=ThermalVariables.DeltaPlasticDissipation;
-  //   }
 
   return( rValue );
 }
@@ -184,6 +168,8 @@ void HyperElasticPlastic3DLaw::InitializeMaterial( const Properties& rMaterialPr
 
   mpFlowRule->InitializeMaterial( mpYieldCriterion, mpHardeningLaw, rMaterialProperties );
 
+  //mpFlowRule->InitializeMaterial( rMaterialProperties );
+
 }
 
 //************************************************************************************
@@ -195,7 +181,7 @@ void HyperElasticPlastic3DLaw::InitializeSolutionStep( const Properties& rMateri
         const Vector& rShapeFunctionsValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
-
+  mpHardeningLaw->SetProperties(rMaterialProperties);
 }
 
 //************************************************************************************

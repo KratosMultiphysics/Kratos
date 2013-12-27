@@ -55,7 +55,7 @@ class TimeOperationUtility(object):
 
         #set step counters 
         self.step_counter = self.starting_step
-        self.id_counter   = self.step_counter
+        self.id_counter   = int(self.step_counter/self.frequency)
 
 
 
@@ -64,7 +64,7 @@ class TimeOperationUtility(object):
         
         execute = False
         
-        if( current_time == self.ending_time ):
+        if( current_time + 1e-20 >= self.ending_time ):
             execute = True
         elif( current_time > self.time_counter ):
             execute = True

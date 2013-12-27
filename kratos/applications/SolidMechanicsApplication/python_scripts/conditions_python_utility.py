@@ -21,11 +21,11 @@ class ConditionsUtility:
           
             
     #######################################################################
-    def Initialize(self):
-        self.SetIncrementalDisp();
+    def Initialize(self,time_step):
+        self.SetIncrementalDisp(time_step);
 
     #######################################################################
-    def SetIncrementalDisp(self):
+    def SetIncrementalDisp(self,time_step):
         
         if(self.incr_disp == True):
             for node in self.model_part.Nodes:

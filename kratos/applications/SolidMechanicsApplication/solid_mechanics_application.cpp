@@ -49,10 +49,6 @@
 #include "includes/condition.h"
 #include "includes/variables.h"
 
-// #include "custom_constitutive/custom_hardening_laws/hardening_law.hpp"
-// #include "custom_constitutive/custom_yield_criteria/yield_criterion.hpp"
-// #include "custom_constitutive/custom_flow_rules/flow_rule.hpp"
-
 #include "solid_mechanics_application.h"
 
 namespace Kratos
@@ -348,13 +344,23 @@ void KratosSolidMechanicsApplication::Register()
     //Hyperelastic Plastic J2 specilization laws U-P
     Serializer::Register("HyperElasticPlasticUPJ2PlaneStrain2DLaw",mHyperElasticPlasticUPJ2PlaneStrain2DLaw);
 
+    //Flow Rules
+    Serializer::Register("NonLinearAssociativePlasticFlowRule",mNonLinearAssociativePlasticFlowRule);
+    Serializer::Register("LinearAssociativePlasticFlowRule",mLinearAssociativePlasticFlowRule);
+
+    //Yield Criteria
+    Serializer::Register("MisesHuberYieldCriterion",mMisesHuberYieldCriterion);
+    
+    //Hardening Laws
+    Serializer::Register("NonLinearIsotropicKinematicHardeningLaw",mNonLinearIsotropicKinematicHardeningLaw);
+    Serializer::Register("LinearIsotropicKinematicHardeningLaw",mLinearIsotropicKinematicHardeningLaw);
+
     //Register Variables
 
     //solution
     KRATOS_REGISTER_VARIABLE( WRITE_ID )
     KRATOS_REGISTER_VARIABLE( PREVIOUS_DELTA_TIME )
  
-
     //geometrical
     KRATOS_REGISTER_VARIABLE( AREA )
     KRATOS_REGISTER_VARIABLE( IX )
