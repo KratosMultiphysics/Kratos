@@ -14,6 +14,14 @@ NonAssociativePlasticFlowRule::NonAssociativePlasticFlowRule()
 {
 }
 
+//*****************************INITIALIZATION CONSTRUCTOR*****************************
+//************************************************************************************
+
+NonAssociativePlasticFlowRule::NonAssociativePlasticFlowRule(YieldCriterionPointer pYieldCriterion)
+	:FlowRule(pYieldCriterion)
+{
+   
+}
 
 NonAssociativePlasticFlowRule::NonAssociativePlasticFlowRule( const NonAssociativePlasticFlowRule & rOther)
   :FlowRule(rOther)

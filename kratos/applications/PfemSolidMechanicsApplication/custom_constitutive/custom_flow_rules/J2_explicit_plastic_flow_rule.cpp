@@ -19,6 +19,14 @@ J2ExplicitFlowRule::J2ExplicitFlowRule()
 {
 }
 
+//*****************************INITIALIZATION CONSTRUCTOR*****************************
+//************************************************************************************
+
+J2ExplicitFlowRule::J2ExplicitFlowRule(YieldCriterionPointer pYieldCriterion)
+	:NonAssociativeExplicitPlasticFlowRule(pYieldCriterion)
+{
+   
+}
 
 //********* ASSIGMENT OPERATOR
 J2ExplicitFlowRule& J2ExplicitFlowRule::operator=(J2ExplicitFlowRule const& rOther)

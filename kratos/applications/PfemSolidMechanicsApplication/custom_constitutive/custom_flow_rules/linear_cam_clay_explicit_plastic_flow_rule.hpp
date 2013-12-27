@@ -64,6 +64,9 @@ namespace Kratos
     /// Default constructor.
     LinearCamClayExplicitFlowRule();
 
+    /// Initialization constructor.
+    LinearCamClayExplicitFlowRule(YieldCriterionPointer pYieldCriterion);
+
     /// Copy constructor.
     LinearCamClayExplicitFlowRule(LinearCamClayExplicitFlowRule const& rOther);
 

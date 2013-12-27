@@ -26,9 +26,9 @@ namespace Kratos
 LinearHenckyCamClayPlasticPlaneStrain2DLaw::LinearHenckyCamClayPlasticPlaneStrain2DLaw()
     : NonLinearHenckyCamClayPlasticPlaneStrain2DLaw()
 {
-  mpFlowRule       = FlowRule::Pointer( new LinearCamClayExplicitFlowRule() );
-  mpYieldCriterion = YieldCriterion::Pointer( new CamClayYieldCriterion() );
   mpHardeningLaw   = HardeningLaw::Pointer( new CamClayKinematicHardeningLaw() );
+  mpYieldCriterion = YieldCriterion::Pointer( new CamClayYieldCriterion(mpHardeningLaw) );
+  mpFlowRule       = FlowRule::Pointer( new LinearCamClayExplicitFlowRule(mpYieldCriterion) );
 }
 
 
@@ -37,9 +37,9 @@ LinearHenckyCamClayPlasticPlaneStrain2DLaw::LinearHenckyCamClayPlasticPlaneStrai
 
 LinearHenckyCamClayPlasticPlaneStrain2DLaw::LinearHenckyCamClayPlasticPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
-  mpFlowRule        =  pFlowRule;
-  mpYieldCriterion  =  YieldCriterion::Pointer( new CamClayYieldCriterion() );
   mpHardeningLaw    =  pHardeningLaw;
+  mpYieldCriterion  =  YieldCriterion::Pointer( new CamClayYieldCriterion(mpHardeningLaw) );
+  mpFlowRule        =  pFlowRule;
 }
 
 //******************************COPY CONSTRUCTOR**************************************

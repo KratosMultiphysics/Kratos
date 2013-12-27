@@ -78,6 +78,9 @@ namespace Kratos
     /// Default constructor.
     MatsuokaNakaiFlowRule();
 
+    /// Initialization constructor.
+    MatsuokaNakaiFlowRule(YieldCriterionPointer pYieldCriterion);
+
     /// Copy constructor.
     MatsuokaNakaiFlowRule(MatsuokaNakaiFlowRule const& rOther);
 

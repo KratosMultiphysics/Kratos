@@ -23,6 +23,14 @@ MatsuokaNakaiFlowRule::MatsuokaNakaiFlowRule()
 {
 }
 
+//*****************************INITIALIZATION CONSTRUCTOR*****************************
+//************************************************************************************
+
+MatsuokaNakaiFlowRule::MatsuokaNakaiFlowRule(YieldCriterionPointer pYieldCriterion)
+	:NonAssociativePlasticFlowRule(pYieldCriterion)
+{
+   
+}
 
 //********* ASSIGMENT OPERATOR
 MatsuokaNakaiFlowRule& MatsuokaNakaiFlowRule::operator=(MatsuokaNakaiFlowRule const& rOther)

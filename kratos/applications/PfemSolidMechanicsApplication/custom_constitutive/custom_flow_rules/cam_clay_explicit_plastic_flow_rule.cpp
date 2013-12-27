@@ -20,6 +20,15 @@ CamClayExplicitFlowRule::CamClayExplicitFlowRule()
 }
 
 
+//*****************************INITIALIZATION CONSTRUCTOR*****************************
+//************************************************************************************
+
+CamClayExplicitFlowRule::CamClayExplicitFlowRule(YieldCriterionPointer pYieldCriterion)
+	:NonAssociativeExplicitPlasticFlowRule(pYieldCriterion)
+{
+   
+}
+
 //********* ASSIGMENT OPERATOR
 CamClayExplicitFlowRule& CamClayExplicitFlowRule::operator=(CamClayExplicitFlowRule const& rOther)
 {
@@ -213,7 +222,7 @@ void CamClayExplicitFlowRule::ComputePlasticHardeningParameter(const Vector& rHe
    this->CalculateMeanStress(rHenckyStrainVector, MeanStress);
 
    double PreconsolidationStress;
-   PreconsolidationStress = mpHardeningLaw->CalculateHardening(PreconsolidationStress, rAlpha);
+   PreconsolidationStress = mpYieldCriterion->GetHardeningLaw().CalculateHardening(PreconsolidationStress, rAlpha);
 
 
 

@@ -26,9 +26,9 @@ namespace Kratos
 HenckyJ2PlasticPlaneStrain2DLaw::HenckyJ2PlasticPlaneStrain2DLaw()
     : NonLinearHenckyElasticPlasticPlaneStrain2DLaw()
 {
-  mpFlowRule       = FlowRule::Pointer( new J2ExplicitFlowRule() );
-  mpYieldCriterion = YieldCriterion::Pointer( new J2YieldCriterion() );
   mpHardeningLaw   = HardeningLaw::Pointer( new HardeningLaw() );
+  mpYieldCriterion = YieldCriterion::Pointer( new J2YieldCriterion(mpHardeningLaw) );
+  mpFlowRule       = FlowRule::Pointer( new J2ExplicitFlowRule(mpYieldCriterion) );
 }
 
 
@@ -37,9 +37,9 @@ HenckyJ2PlasticPlaneStrain2DLaw::HenckyJ2PlasticPlaneStrain2DLaw()
 
 HenckyJ2PlasticPlaneStrain2DLaw::HenckyJ2PlasticPlaneStrain2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
-  mpFlowRule        =  pFlowRule;
-  mpYieldCriterion  =  YieldCriterion::Pointer( new J2YieldCriterion() );
   mpHardeningLaw    =  pHardeningLaw;
+  mpYieldCriterion  =  YieldCriterion::Pointer( new J2YieldCriterion(mpHardeningLaw) );
+  mpFlowRule        =  pFlowRule;
 }
 
 //******************************COPY CONSTRUCTOR**************************************

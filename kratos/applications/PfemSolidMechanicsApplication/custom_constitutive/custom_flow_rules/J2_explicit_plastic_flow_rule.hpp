@@ -64,6 +64,9 @@ namespace Kratos
     /// Default constructor.
     J2ExplicitFlowRule();
 
+    /// Initialization constructor.
+    J2ExplicitFlowRule(YieldCriterionPointer pYieldCriterion);
+
     /// Copy constructor.
     J2ExplicitFlowRule(J2ExplicitFlowRule const& rOther);
 
