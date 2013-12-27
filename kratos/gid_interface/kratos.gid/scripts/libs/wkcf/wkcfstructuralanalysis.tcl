@@ -1659,9 +1659,9 @@ proc ::wkcf::WriteStructuralProjectParameters {AppId fileid PDir} {
     puts $fileid "file_list = \[\] "
     puts $fileid ""
     puts $fileid "# restart options"
-    puts $fileid "SaveRestart = \"False\""
+    puts $fileid "SaveRestart = False"
     puts $fileid "RestartFrequency = 0"
-    puts $fileid "LoadRestart = \"False\""
+    puts $fileid "LoadRestart = False"
     puts $fileid "Restart_Step = 0"
 
 
