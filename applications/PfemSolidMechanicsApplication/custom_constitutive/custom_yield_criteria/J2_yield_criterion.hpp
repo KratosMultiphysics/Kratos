@@ -62,6 +62,9 @@ class J2YieldCriterion
         /// Default constructor.
         J2YieldCriterion();
 
+        /// Initialization constructor.
+        J2YieldCriterion(HardeningLawPointer pHardeningLaw);
+
         /// Copy constructor.
         J2YieldCriterion(J2YieldCriterion const& rOther);
 

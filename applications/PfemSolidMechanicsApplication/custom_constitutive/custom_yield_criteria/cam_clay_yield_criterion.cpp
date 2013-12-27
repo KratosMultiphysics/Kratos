@@ -21,6 +21,15 @@ CamClayYieldCriterion::CamClayYieldCriterion()
    
 }
 
+//*****************************INITIALIZATION CONSTRUCTOR*****************************
+//************************************************************************************
+
+CamClayYieldCriterion::CamClayYieldCriterion(HardeningLawPointer pHardeningLaw)
+	:YieldCriterion(pHardeningLaw)
+{
+   
+}
+
 
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************

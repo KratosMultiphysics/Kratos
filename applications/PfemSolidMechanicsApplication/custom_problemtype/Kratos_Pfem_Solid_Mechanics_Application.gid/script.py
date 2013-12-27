@@ -42,7 +42,7 @@ import list_files_python_utility    as files_utils
 import time_operation_utility       as operation_utils
 import modeler_python_utility       as modeler_utils
 import rigid_wall_python_utility    as wall_utils
-#import graph_plot_python_utility    as plot_utils
+import graph_plot_python_utility    as plot_utils
 
 
 
@@ -188,22 +188,8 @@ gid_print = gid_utils.GidOutputUtility(problem_name, general_variables.GidOutput
 
 ######################--PLOT GRAPHS OPTIONS START--###############
 
-#plot_active    = general_variables.PlotGraphs
-#plot_frequency = general_variables.PlotFrequency
-
-#graph_plot  = plot_utils.GraphPlotUtility(model_part,problem_path,plot_active,plot_frequency);
-
-#x_var   = "TIME"
-#y_var   = "REACTION"
-#mesh_id = 1
-
-#plot variables on the domain which is remeshed
-#for conditions in general_variables.MeshConditions:
-#  if(conditions["Remesh"] == 1):
-#    mesh_id =int(conditions["Subdomain"])
-
-#print " Graph Subdomain ", mesh_id
-#graph_plot.SetPlotVariables(x_var,y_var,mesh_id);
+plot_active = general_variables.PlotGraphs
+graph_plot  = plot_utils.GraphPlotUtility(model_part,problem_path)
 
 ######################--PLOT GRAPHS OPTIONS END--#################
 
@@ -244,7 +230,7 @@ model_part.AddNodalSolutionStepVariable(CONTACT_FORCE);
 
 
 #--- READ MODEL ------#
-if(load_restart == "False"):
+if(load_restart == False):
 
   #remove results, restart, graph and list previous files
   problem_restart.CleanPreviousFiles()
@@ -270,17 +256,17 @@ if(load_restart == "False"):
 else:
   
   #reading the model from the restart file
-  problem_restart.Load(restart_time);
+  problem_restart.Load(restart_step);
 
   #remove results, restart, graph and list posterior files
-  problem_restart.CleanPosteriorFiles(restart_time)
+  problem_restart.CleanPosteriorFiles(restart_step)
   list_files.ReBuildListFiles()
 
 #set mesh searches and modeler
 print "initialize modeler"
 modeler.InitializeDomains();
 
-if(load_restart == "False"):
+if(load_restart == False):
   #find nodal h
   print "search mesh nodal_h"
   modeler.SearchNodalH();
@@ -302,12 +288,13 @@ main_step_solver.SetRestart(load_restart)
 modeler.InitialContactSearch()
 
 #define time steps and loop range of steps
-if(load_restart == "True"):  
+if(load_restart == True):  
 
-  istep        = model_part.ProcessInfo[TIME_STEPS]+1
-  nstep        = int(general_variables.nsteps) + buffer_size 
+  istep        = model_part.ProcessInfo[TIME_STEPS] + 1
+  nstep        = int(general_variables.nsteps)
   time_step    = model_part.ProcessInfo[DELTA_TIME]
-  current_step = istep-nstep
+  current_step = istep
+  buffer_size  = 0
 
 else:
 
@@ -318,7 +305,7 @@ else:
 
   model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step;
 
-  conditions.Initialize();
+  conditions.Initialize(time_step);
 
 
 #initialize step operations
@@ -345,7 +332,15 @@ rigid_wall_contact_search.InitializeTime(starting_time,ending_time,time_step,rig
 modeler.Initialize(current_step,current_step)
 
 #initialize graph plot variables for time integration
-#graph_plot.Initialize(current_step)
+if( plot_active == True):
+  mesh_id     = 0 #general_variables.PlotMeshId
+  x_variable  = "DISPLACEMENT"
+  y_variable  = "REACTION"
+  graph_plot.Initialize(x_variable,y_variable,mesh_id)
+
+graph_write= operation_utils.TimeOperationUtility()
+graph_write_frequency = general_variables.PlotFrequency
+graph_write.InitializeTime(starting_time,ending_time,time_step,graph_write_frequency)
 
 
 #######################--TIME INTEGRATION--#######################
@@ -394,6 +389,8 @@ for step in range(istep,nstep):
     rigid_wall.UpdatePosition()
 
     #plot graphs
+    if( plot_active == True):
+      graph_plot.SetStepResult()
 
     #update previous time step
     model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step;
@@ -412,9 +409,7 @@ for step in range(istep,nstep):
         #print on list files
         list_files.PrintListFiles(current_step);
         StopTimeMeasuring(clock_time,"Write Results");
-        #plot graphs
-        #graph_plot.Plot(current_time)
-
+ 
     #remesh domains
     modeler.RemeshDomains(current_step);
     
@@ -432,8 +427,13 @@ for step in range(istep,nstep):
         #print on list files
         list_files.PrintListFiles(current_step);
         StopTimeMeasuring(clock_time,"Write Results");
-        #plot graphs
-        #graph_plot.Plot(current_time)
+
+
+   #plot graphs
+    if( plot_active == True ):
+      execute_plot = graph_write.perform_time_operation(current_time)
+      if( execute_plot == True ):
+        graph_plot.Plot(graph_write.operation_id())
 
 
     #print restart file
@@ -441,7 +441,7 @@ for step in range(istep,nstep):
       execute_save = restart_print.perform_time_operation(current_time)
       if( execute_save == True ):
         clock_time=StartTimeMeasuring();
-        problem_restart.Save(current_time,current_step);
+        problem_restart.Save(current_time,current_step,restart_print.operation_id());
         StopTimeMeasuring(clock_time,"Restart");
 
     

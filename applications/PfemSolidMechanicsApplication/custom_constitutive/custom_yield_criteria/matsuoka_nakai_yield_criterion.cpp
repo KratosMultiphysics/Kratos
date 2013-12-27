@@ -29,6 +29,14 @@ MatsuokaYieldCriterion::MatsuokaYieldCriterion()
    
 }
 
+//*****************************INITIALIZATION CONSTRUCTOR*****************************
+//************************************************************************************
+
+MatsuokaYieldCriterion::MatsuokaYieldCriterion(HardeningLawPointer pHardeningLaw)
+	:YieldCriterion(pHardeningLaw)
+{
+   
+}
 
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************

@@ -20,6 +20,14 @@ LinearCamClayExplicitFlowRule::LinearCamClayExplicitFlowRule()
 {
 }
 
+//*****************************INITIALIZATION CONSTRUCTOR*****************************
+//************************************************************************************
+
+LinearCamClayExplicitFlowRule::LinearCamClayExplicitFlowRule(YieldCriterionPointer pYieldCriterion)
+	:CamClayExplicitPlasticFlowRule(pYieldCriterion)
+{
+   
+}
 
 //********* ASSIGMENT OPERATOR
 LinearCamClayExplicitFlowRule& LinearCamClayExplicitFlowRule::operator=(LinearCamClayExplicitFlowRule const& rOther)
@@ -174,7 +182,7 @@ void LinearCamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticS
    this->CalculateMeanStress(rHenckyStrainVector, MeanStress);
 
    double PreconsolidationStress;
-   PreconsolidationStress = mpHardeningLaw->CalculateHardening(PreconsolidationStress, rAlpha);
+   PreconsolidationStress = mpYieldCriterion->GetHardeningLaw().CalculateHardening(PreconsolidationStress, rAlpha);
 
 
 

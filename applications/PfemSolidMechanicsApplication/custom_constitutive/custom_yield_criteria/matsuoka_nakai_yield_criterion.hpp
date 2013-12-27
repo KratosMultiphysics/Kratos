@@ -61,6 +61,9 @@ class MatsuokaYieldCriterion
         /// Default constructor.
         MatsuokaYieldCriterion();
 
+        /// Initialization constructor.
+        MatsuokaYieldCriterion(HardeningLawPointer pHardeningLaw);
+
         /// Copy constructor.
         MatsuokaYieldCriterion(MatsuokaYieldCriterion const& rOther);
 

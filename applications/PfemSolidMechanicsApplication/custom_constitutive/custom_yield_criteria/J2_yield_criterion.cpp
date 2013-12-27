@@ -21,6 +21,14 @@ J2YieldCriterion::J2YieldCriterion()
    
 }
 
+//*****************************INITIALIZATION CONSTRUCTOR*****************************
+//************************************************************************************
+
+J2YieldCriterion::J2YieldCriterion(HardeningLawPointer pHardeningLaw)
+	:YieldCriterion(pHardeningLaw)
+{
+   
+}
 
 //*******************************ASSIGMENT OPERATOR***********************************
 //************************************************************************************

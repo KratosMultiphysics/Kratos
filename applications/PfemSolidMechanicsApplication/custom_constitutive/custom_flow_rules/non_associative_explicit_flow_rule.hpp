@@ -64,6 +64,9 @@ namespace Kratos
     /// Default constructor.
     NonAssociativeExplicitPlasticFlowRule();
 
+    /// Initialization constructor.
+    NonAssociativeExplicitPlasticFlowRule(YieldCriterionPointer pYieldCriterion);
+
     /// Copy constructor.
     NonAssociativeExplicitPlasticFlowRule(const NonAssociativeExplicitPlasticFlowRule & rOther);
 

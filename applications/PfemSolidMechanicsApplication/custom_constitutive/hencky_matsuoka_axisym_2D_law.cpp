@@ -30,9 +30,9 @@ namespace Kratos
 HenckyMatsuokaPlasticAxisym2DLaw::HenckyMatsuokaPlasticAxisym2DLaw()
     : HenckyElasticPlasticAxisym2DLaw()
 {
-  mpFlowRule       = FlowRule::Pointer( new MatsuokaNakaiFlowRule() );
-  mpYieldCriterion = YieldCriterion::Pointer( new MatsuokaYieldCriterion() );
   mpHardeningLaw   = HardeningLaw::Pointer( new NonLinearIsotropicKinematicHardeningLaw() );
+  mpYieldCriterion = YieldCriterion::Pointer( new MatsuokaYieldCriterion(mpHardeningLaw) );
+  mpFlowRule       = FlowRule::Pointer( new MatsuokaNakaiFlowRule(mpYieldCriterion) );
 }
 
 
@@ -41,9 +41,9 @@ HenckyMatsuokaPlasticAxisym2DLaw::HenckyMatsuokaPlasticAxisym2DLaw()
 
 HenckyMatsuokaPlasticAxisym2DLaw::HenckyMatsuokaPlasticAxisym2DLaw(FlowRulePointer pFlowRule, YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw)
 {
-  mpFlowRule        =  pFlowRule;
-  mpYieldCriterion  =  YieldCriterion::Pointer( new MatsuokaYieldCriterion() );
   mpHardeningLaw    =  pHardeningLaw;
+  mpYieldCriterion  =  YieldCriterion::Pointer( new MatsuokaYieldCriterion(mpHardeningLaw) );
+  mpFlowRule        =  pFlowRule;
 }
 
 //******************************COPY CONSTRUCTOR**************************************

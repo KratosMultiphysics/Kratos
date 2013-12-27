@@ -65,6 +65,9 @@ class CamClayYieldCriterion
         /// Copy constructor.
         CamClayYieldCriterion(CamClayYieldCriterion const& rOther);
 
+        /// Initialization constructor.
+        CamClayYieldCriterion(HardeningLawPointer pHardeningLaw);
+
         /// Assignment operator.
         CamClayYieldCriterion& operator=(CamClayYieldCriterion const& rOther);
 

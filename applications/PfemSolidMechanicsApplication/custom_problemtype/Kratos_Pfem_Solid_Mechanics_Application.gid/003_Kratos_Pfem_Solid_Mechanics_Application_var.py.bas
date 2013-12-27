@@ -194,7 +194,7 @@ echo_level = *GenData(Echo_Level)
 
 # graph_options
 PlotGraphs = "*GenData(Plot_Graphs)"
-PlotFrequency = *GenData(PlotFrequency)
+PlotFrequency = *GenData(Plot_Frequency)
 
 # list options
 PrintLists = "*GenData(Print_List_Files)"
@@ -204,9 +204,9 @@ file_list.append(*GenData(List_Files,*i))
 *end
 
 # restart options
-SaveRestart = "*GenData(Print_Restart)"
-RestartFrequency = *GenData(Restart_Interval)
-LoadRestart = "*GenData(Load_Restart)"
+SaveRestart = *GenData(Print_Restart)
+RestartFrequency = *GenData(Restart_Frequency)
+LoadRestart = *GenData(Load_Restart)
 Restart_Step = *GenData(Load_Step)
 
 # Declare Python Variables

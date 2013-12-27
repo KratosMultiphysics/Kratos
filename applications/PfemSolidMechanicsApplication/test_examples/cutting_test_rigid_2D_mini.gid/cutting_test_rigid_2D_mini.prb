@@ -145,10 +145,10 @@ QUESTION: Write_Frequency
 VALUE: 0
 QUESTION: Plot_Graphs#CB#(False,True)
 VALUE: False
-DEPENDENCIES: (False,HIDE,PlotFrequency,#CURRENT#)
-DEPENDENCIES: (True,RESTORE,PlotFrequency,#CURRENT#)
-QUESTION: PlotFrequency
-VALUE: 10
+DEPENDENCIES: (False,HIDE,Plot_Frequency,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,Plot_Frequency,#CURRENT#)
+QUESTION: Plot_Frequency
+VALUE: 0
 QUESTION: Print_List_Files#CB#(False,True)
 VALUE: True
 DEPENDENCIES: (False,HIDE,List_Files,#CURRENT#)
@@ -157,9 +157,9 @@ QUESTION: List_Files:(File_Intervals)
 VALUE: #N# 3 2 5 10
 QUESTION: Print_Restart#CB#(False,True)
 VALUE: False
-DEPENDENCIES: (False,HIDE,Restart_Interval,#CURRENT#)
-DEPENDENCIES: (True,RESTORE,Restart_Interval,#CURRENT#)
-QUESTION: Restart_Interval:
+DEPENDENCIES: (False,HIDE,Restart_Frequency,#CURRENT#)
+DEPENDENCIES: (True,RESTORE,Restart_Frequency,#CURRENT#)
+QUESTION: Restart_Frequency:
 VALUE: 0
 QUESTION: Load_Restart#CB#(False,True)
 VALUE: False
