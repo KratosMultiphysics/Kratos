@@ -59,16 +59,18 @@ class YieldCriterion
 
 	struct Parameters
 	{
-		const double* mpStressNorm;
+	private:
 
+		const double* mpStressNorm;
+		HardeningLaw::Parameters HardeningParameters;
+
+	public:
                 //Set Parameters
 		void SetStressNorm  (const double& rStressNorm)  { mpStressNorm = &rStressNorm; };
 
 		//Get Parameters
 		const double& GetStressNorm  () const { return *mpStressNorm;  };
 
-
-		HardeningLaw::Parameters HardeningParameters;
 
 		//Set Hardening Parameters
 		void SetRateFactor  (double rRateFactor)         { HardeningParameters.SetRateFactor(rRateFactor);   };
@@ -81,7 +83,7 @@ class YieldCriterion
 		void SetEquivalentPlasticStrainOld    (const double& rEquivalentPlasticStrainOld)    {  HardeningParameters.SetEquivalentPlasticStrainOld(rEquivalentPlasticStrainOld); };
 		
 		//Get Hardening Parameters
-		const double&  GetRateFactor () const { return HardeningParameters.GetRateFactor();   };
+		const double& GetRateFactor  () const { return HardeningParameters.GetRateFactor();   };
 		const double& GetDeltaGamma  () const { return HardeningParameters.GetDeltaGamma();   };
 		const double& GetLameMu_bar  () const { return HardeningParameters.GetLameMu_bar();   };
 		const double& GetDeltaTime   () const { return HardeningParameters.GetDeltaTime();    };
@@ -109,6 +111,13 @@ class YieldCriterion
         YieldCriterion()
 	{
 	  //KRATOS_ERROR( std::logic_error, "calling the default constructor in YieldCriterion ... illegal operation!!", "" )
+	};
+
+
+        /// Initialization constructor.
+        YieldCriterion(HardeningLawPointer pHardeningLaw)
+	:mpHardeningLaw(pHardeningLaw)
+	{
 	};
 
         /// Copy constructor.
@@ -148,12 +157,34 @@ class YieldCriterion
         ///@}
         ///@name Operations
         ///@{
-	void InitializeMaterial (HardeningLawPointer pHardeningLaw)
+        void InitializeMaterial (HardeningLawPointer pHardeningLaw, const Properties& rMaterialProperties)
 	{
-		mpHardeningLaw = pHardeningLaw;
+	        mpHardeningLaw = pHardeningLaw;
+		mpHardeningLaw->InitializeMaterial(rMaterialProperties);
 	}
 
 
+        void SetHardeningLaw(HardeningLaw& rHardeningLaw)
+        {      
+	  mpHardeningLaw = (HardeningLawPointer) (&rHardeningLaw);
+        }
+
+        void pSetHardeningLaw(HardeningLawPointer pHardeningLaw)
+        {      
+	  mpHardeningLaw = pHardeningLaw;
+        }
+
+        HardeningLaw& GetHardeningLaw()
+        {      
+	  return *mpHardeningLaw;
+        }
+
+        HardeningLawPointer pGetHardeningLaw()
+        {      
+	  return mpHardeningLaw;
+        }
+
+ 
         virtual double& CalculateYieldCondition(double & rStateFunction, const Parameters& rVariables)
 	{
 		KRATOS_ERROR( std::logic_error, "calling the base class function in YieldCriterion ... illegal operation!!", "" )
@@ -330,10 +361,12 @@ class YieldCriterion
 
 	virtual void save(Serializer& rSerializer) const
 	{
+	  rSerializer.save("mpHardeningLaw",mpHardeningLaw);
 	};
 
 	virtual void load(Serializer& rSerializer)
 	{
+	  rSerializer.load("mpHardeningLaw",mpHardeningLaw);
 	};
 
         ///@}

@@ -564,11 +564,21 @@ private:
     virtual void save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, ConstitutiveLaw )
+	
+	rSerializer.save("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
+	rSerializer.save("mpFlowRule",mpFlowRule);
+	rSerializer.save("mpYieldCriterion",mpYieldCriterion);
+	rSerializer.save("mpHardeningLaw",mpHardeningLaw);
     }
 
     virtual void load(Serializer& rSerializer)
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw )
+	  
+	rSerializer.load("mElasticLeftCauchyGreen",mElasticLeftCauchyGreen);
+	rSerializer.load("mpFlowRule",mpFlowRule);
+	rSerializer.load("mpYieldCriterion",mpYieldCriterion);
+	rSerializer.load("mpHardeningLaw",mpHardeningLaw);
     }
 
 

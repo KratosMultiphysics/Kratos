@@ -12,54 +12,52 @@ from pylab import *
 
 class GraphPlotUtility:
     #######################################################################
-    def __init__(self,model_part,problem_path,plot_active,plot_frequency):
+    def __init__(self,model_part,problem_path):
 
         self.model_part   = model_part
+
         self.problem_path = problem_path
         
-        self.plot_active = False
-        if(plot_active == "True"):
-            self.plot_active = True
-            
-        self.plot_frequency = plot_frequency
-
         # graph variables
-        self.mesh_id   = 0
-        self.x_var     = "TIME"
-        self.y_var     = "FORCE_CONTACT_NORMAL"
-        self.plot_step = 0
+        self.mesh_id = 0
+        self.x_var   = "DISPLACEMENT"
+        self.y_var   = "REACTION"     
 
         # graph data limits
         self.x_limit = 100
         self.y_limit = 100
-        self.x_dir = 0
-        self.y_dir = 0
+        self.x_dir   = 0
+        self.y_dir   = 0
 
         # graph data containers
+        self.Time = []
+
         self.X   = []
+        self.X_x = [] 
+        self.X_y = []
+        self.X_z = [] 
+
         self.Y   = []
         self.Y_x = [] 
-        self.Y_y = [] 
-        
+        self.Y_y = []
+        self.Y_z = []        
+
 
     #######################################################################
-    def Initialize(self,initial_plot_step):
+    def Initialize(self,x_variable,y_variable,mesh_id):
+
         clf()
-        self.X   = []
-        self.Y   = []
-        self.Y_x = []
-        self.Y_y = []
 
-        #set initial plot step
-        self.plot_step   = initial_plot_step
+        self.SetPlotVariables(x_variable,y_variable,mesh_id)
 
-        #print file headers
-        if(initial_plot_step == 0):
-            self.graph_path  = self.problem_path + "/ContactForce_vs_Displacement.cvs"
-            graphfile  = open(self.graph_path,"w")
-            linevalue  = "Displacement TotalForce ForceX ForceY\n"
-            graphfile.write(linevalue)
-            graphfile.close()
+        figure_path = os.path.join(self.problem_path,str(self.x_var) + "_vs_" + str(self.y_var) + ".cvs")
+
+        if(os.path.exists(figure_path) == False):
+            #print file headers
+            figure_file  = open(figure_path,"w")
+            line_header  = "Time "+str(self.x_var)+" "+str(self.y_var)+" "+str(self.x_var)+"_X "+str(self.x_var)+"_Y "+str(self.x_var)+"_Z "+str(self.y_var)+"_X "+str(self.y_var)+"_Y "+str(self.y_var)+"_Z "+"\n"
+            figure_file.write(line_header)
+            figure_file.close()
 
 
     #######################################################################
@@ -67,104 +65,136 @@ class GraphPlotUtility:
         # graph variables
         self.x_var   = x_variable
         self.y_var   = y_variable
-        self.mesh_id  = mesh_id
+        self.mesh_id = mesh_id
 
         # graph name
-        #self.graph_name = str(self.y_var)+"_vs_"+str(self.x_var)
-        self.graph_name = str(self.y_var)+"_vs_DISPLACEMENT"
- 
-    #######################################################################   
-    def SetStepResult(self,velocity):
+        self.graph_name = str(self.y_var)+"_vs_"+str(self.x_var)
+        self.plot_name  = str(self.y_var)+"_vs_TIME"
+
+        # initialize variables
+        self.InitializePlotVariables()
+
+
+    #######################################################################
+    def InitializePlotVariables(self):
         
-        if(self.plot_active == True):
+        self.Time = []
 
-            if(self.x_var == "TIME"):
-                X_value  = self.model_part.ProcessInfo[TIME]
+        self.X   = []
+        self.X_x = []
+        self.X_y = []
+        self.X_z = []
 
-                velocity = sqrt( velocity[0]*velocity[0] + velocity[1]*velocity[1] + velocity[2]*velocity[2]) 
+        self.Y   = []
+        self.Y_x = []
+        self.Y_y = []
+        self.Y_z = []
+         
 
-                if(velocity != 0):
-                    X_value  = X_value * velocity;
+    #######################################################################
+    def GetStepTime(self):
+        
+        return self.model_part.ProcessInfo[TIME]
 
-                Y_value = []
-                Y_value_x = 0
-                Y_value_y = 0
 
-                initial_mesh  = 0
-                number_meshes = 2 #numberofmeshes
-            
-                if(self.mesh_id > 0):
-                    initial_mesh  = 1
-                    number_meshes = 3
-                
-                for mesh in range(int(initial_mesh),int(number_meshes)):
-                    #print "Mesh", mesh
-                    if(mesh == self.mesh_id):
-                        for node in self.model_part.GetNodes(mesh):
-                            value   = node.GetSolutionStepValue(FORCE_CONTACT_NORMAL);
-                            Y_value = Y_value + value
-                            Y_value_x = Y_value_x + value[0]
-                            Y_value_y = Y_value_y + value[1]
-                            
-                        self.X.append(X_value)
-                        totalforce = sqrt( Y_value[0]*Y_value[0] + Y_value[1]*Y_value[1] + Y_value[2]*Y_value[2]) 
-                        self.Y.append(totalforce)
-                        self.Y_x.append(Y_value_x)
-                        self.Y_y.append(Y_value_y)
-                
-                        forcepath = self.problem_path + "/ContactForce_vs_Time.cvs"
-                        forcefile  = open(forcepath,"a")
-                        linevalue = str(X_value) + " " + str(totalforce) + " " + str(Y_value_x) + " " + str(Y_value_y)+"\n"
-                        forcefile.write(linevalue)
-                        forcefile.close()
-                
-            
-            #print " X ", self.X
+    #######################################################################
+    def GetStepDeltaTime(self):
+        
+        return self.model_part.ProcessInfo[DELTA_TIME]
+
+
+    #######################################################################
+    def GetStepVariable(self, variable):            
+        
+        variable_value = []
+        for node in self.model_part.GetNodes(self.mesh_id):
+            kratos_variable = globals()[variable]
+            nodal_value   = node.GetSolutionStepValue(kratos_variable);
+            variable_value = variable_value + nodal_value
+        
+        return variable_value
+
+
+    #######################################################################
+    def Get3DArrayModulus(self, variable):            
+        
+        modulus = 0
+        for var in variable:
+            modulus = modulus + var*var
+
+        return sqrt( modulus ) 
+        
+    #######################################################################   
+    def SetStepResult(self):
+                 
+        time = self.GetStepTime()
+
+        X_value = self.GetStepVariable(self.x_var)
+        Y_value = self.GetStepVariable(self.x_var)
+        
+        X_value_norm = self.Get3DArrayModulus(X_value)
+        Y_value_norm = self.Get3DArrayModulus(Y_value)
+
+        self.Time.append(time)
+
+        self.X.append(X_value_norm)
+        self.X_x.append(X_value[0])
+        self.X_y.append(X_value[1])
+        self.X_z.append(X_value[2])
+        
+        self.Y.append(Y_value_norm)
+        self.Y_x.append(Y_value[0])
+        self.Y_y.append(Y_value[1])
+        self.Y_z.append(Y_value[2])
+
+        figure_path = os.path.join(self.problem_path,str(self.x_var) + "_vs_" + str(self.y_var) + ".cvs")
+        figure_file = open(figure_path,"a")
+        line_value = str(time) + " "  + str(X_value_norm) + " " + str(Y_value_norm) + " " + str(X_value[0]) + " " + str(X_value[1])+ " " + str(X_value[2])+ " " + str(Y_value[0]) + " " + str(Y_value[1])+ " " + str(Y_value[2]) + "\n"
+        figure_file.write(line_value)
+        figure_file.close()
+             
 
     #######################################################################   
     def Plot(self,write_id):
         
-        if(self.plot_active == True and self.plot_step == self.plot_frequency ):
-            clf()
-            plot(self.X,self.Y,'g-o',self.X,self.Y_x,'b-s', self.X,self.Y_y,'r-^')
-            grid(True)
-            title('TITLE: '+str(self.graph_name))
-            
-            #write_id = self.model_part.ProcessInfo[WRITE_ID]
-            
-            xlabel(str(self.x_var))
-            ylabel(str(self.y_var))
-            
-            force_extra = 10
-            time_extra  = 10 * self.model_part.ProcessInfo[DELTA_TIME]
+        clf()
+        plot(self.Time,self.Y,'g-o')
+        #plot(self.Time,self.Y,'g-o',self.Time,self.Y_x,'b-s', self.Time,self.Y_y,'r-^')
+        grid(True)
+        title('TITLE: '+str(self.plot_name))
+                    
+        #xlabel(str(self.x_var))
+        xlabel("TIME")
+        ylabel(str(self.y_var))
+        
+        force_extra = 10
+        time_extra  = 10 * self.GetStepDeltaTime()
+        
+        x_limits = self.SearchLimits(self.Time,time_extra)
+        #x_limits = self.SearchLimits(self.X,time_extra)
+        y_limits = self.SearchLimits(self.Y,force_extra)
+        y_xlimits = self.SearchLimits(self.Y_x,force_extra)
+        y_ylimits = self.SearchLimits(self.Y_y,force_extra)
+        
+        y_max = y_limits.max
+        y_min = y_limits.min
+        if(y_max<y_xlimits.max):
+            y_max = y_xlimits.max
+        if(y_max<y_ylimits.max):
+            y_max = y_ylimits.max
 
-            x_limits = self.SearchLimits(self.X,time_extra)
-            y_limits = self.SearchLimits(self.Y,force_extra)
-            y_xlimits = self.SearchLimits(self.Y_x,force_extra)
-            y_ylimits = self.SearchLimits(self.Y_y,force_extra)
-            
-            y_max = y_limits.max
-            y_min = y_limits.min
-            if(y_max<y_xlimits.max):
-                y_max = y_xlimits.max
-            if(y_max<y_ylimits.max):
-                y_max = y_ylimits.max
-
-            if(y_min>y_xlimits.min):
-                y_min = y_xlimits.min
-            if(y_min>y_ylimits.min):
-                y_min = y_ylimits.min
+        if(y_min>y_xlimits.min):
+            y_min = y_xlimits.min
+        if(y_min>y_ylimits.min):
+            y_min = y_ylimits.min
                          
-            xlim(x_limits.min,x_limits.max)
-            ylim(y_min,y_max)
+        xlim(x_limits.min,x_limits.max)
+        ylim(y_min,y_max)
+        
+        figure_name = os.path.join(self.problem_path,self.plot_name + "_" + str(write_id))
 
-            figure_name = os.path.join(self.problem_path,self.graph_name + "_" + str(write_id))
-            #figure_name = str(self.problempath)+"/"+str(self.graph_name)+"_"+str(write_id)
-            savefig(figure_name)
+        savefig(figure_name)
 
-            self.plot_step = 0;
-        else:
-            self.plot_step = self.plot_step + 1;
 
     #######################################################################   
     def SearchLimits(self,X,extra):

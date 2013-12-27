@@ -77,7 +77,7 @@ class ListFilesUtility:
      
             for rfile in range(0,total_files):
 
-                for f in os.listdir(problem_path):
+                for f in os.listdir(self.problem_path):
 
                     if(f.endswith("_"+str(rfile)+self.output_mode)):
                          
@@ -86,14 +86,17 @@ class ListFilesUtility:
                             if( self.file_list[lfile] == self.listprint[lfile] ):
 
                                 problempath = os.path.join(self.problem_path, self.problem_name + "_" + str(self.file_list[lfile]) + ".post.lst")
-
-                                if(self.FileExists(problempath) == False):
-                                    problemname = "Multiple\n"
-                                    listfile.write(problemname)  
                                 
-                                if(self.header_in_list[lfile] == True):
-                                    self.header_in_list[lfile] = False
+                                if(self.FileExists(problempath) == False):
+                                    self.header_in_list[lfile] == True
 
+                                listfile = open(problempath,"a")
+
+                                if(self.header_in_list[lfile] == True):
+                                    problemname = "Multiple\n"
+                                    listfile.write(problemname)
+                                    self.header_in_list[lfile] = False
+                                                                    
                                 problemname = self.problem_name + "_" + str(rfile) + self.output_mode + "\n" 
                                 listfile.write(problemname)
                                 listfile.close()

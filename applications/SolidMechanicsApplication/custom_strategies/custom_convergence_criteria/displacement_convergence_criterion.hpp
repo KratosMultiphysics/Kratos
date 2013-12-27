@@ -131,9 +131,14 @@ public:
 
             //std::cout << "delta_disp_norm = " << delta_disp_norm << ";  disp_norm = " << disp_norm << std::endl;
 
-            std::cout << "DISP_TOTAL :: ratio = --" << ratio << "-- ;  (Expected ratio = " << mRatioTolerance <<", Absolute tol reached = " << disp_norm <<")"<< std::endl;
+	    TDataType Dx_size = SparseSpaceType::Size(Dx);
 
-            if ( ratio <= mRatioTolerance)
+            TDataType absolute_norm = (delta_disp_norm/sqrt(Dx_size));
+
+            std::cout << "DISPLACEMENT CRITERION :: ratio = --" << ratio << "-- ;  (Expected ratio = " << mRatioTolerance <<", Absolute tol reached = " << absolute_norm <<")"<< std::endl;
+
+
+            if ( ratio <= mRatioTolerance || absolute_norm < mAlwaysConvergedNorm )
             {
                 KRATOS_WATCH( "convergence is achieved" )
 		  

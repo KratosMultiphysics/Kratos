@@ -97,7 +97,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Properties::Pointer            PropertiesPointer;
+    typedef const Properties*   PropertiesPointer;
 
 
     /// Pointer definition of HardeningLaw
@@ -108,13 +108,19 @@ public:
     ///@{
 
     /// Default constructor.
-    HardeningLaw(){};
+    HardeningLaw(){ mpProperties = NULL; };
 
     /// Copy constructor.
-    HardeningLaw(HardeningLaw const& rOther){};
+    HardeningLaw(HardeningLaw const& rOther)
+    :mpProperties(rOther.mpProperties)
+    {};
 
     /// Assignment operator.
-    HardeningLaw& operator=(HardeningLaw const& rOther){return *this;};
+    HardeningLaw& operator=(HardeningLaw const& rOther)
+    {
+      mpProperties = rOther.mpProperties;
+      return *this;
+    };
 
     /// Destructor.
     virtual ~HardeningLaw() {};
@@ -139,13 +145,19 @@ public:
     ///@{
     void InitializeMaterial (const Properties& rMaterialProperties)
 	{
-		mpProperties = &rMaterialProperties;
+	  SetProperties(rMaterialProperties);
+	}
+
+
+    void SetProperties (const Properties& rMaterialProperties)
+	{
+	  mpProperties = (PropertiesPointer)(&rMaterialProperties);
 	}
 
 
     const Properties& GetProperties()
 	{
-		return *mpProperties;
+	  return *mpProperties;
 	}
 
 
@@ -204,7 +216,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    const Properties* mpProperties;
+    PropertiesPointer mpProperties;
      
     ///@}
     ///@name Protected Operators
@@ -270,12 +282,15 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
+      //24-12-2013 : it has problems in typeid recognition for serializer....
       //rSerializer.save("Properties",mpProperties);
     };
 
     virtual void load(Serializer& rSerializer)
     {
-      //rSerializer.load("Properties",mpProperties);
+      //Properties* pProperties;
+      //rSerializer.load("Properties",pProperties);
+      //mpProperties = pProperties;
     };
 
     ///@}

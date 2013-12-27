@@ -102,6 +102,7 @@ class GidOutputUtility(object):
             self._write_mesh(mesh_name,model_part)
             self._initialize_results(mesh_name,model_part)
 
+
     #######################################################################
     def write_results(self,model_part,nodal_variables,gp_variables,current_time,current_step,current_id):
      

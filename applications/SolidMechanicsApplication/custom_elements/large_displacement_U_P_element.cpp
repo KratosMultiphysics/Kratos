@@ -493,6 +493,7 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
     unsigned int indexp = dimension;
 
     // VectorType Fh=rRightHandSideVector;
+    // std::cout<<" Element "<<this->Id()<<" "<<std::endl;
 
     double AlphaStabilization = 4.0; //GetProperties()[STABILIZATION];
 
@@ -522,6 +523,8 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
 
             double& Pressure = GetGeometry()[j].FastGetSolutionStepValue(PRESSURE);
             rRightHandSideVector[indexp] += consistent * Pressure * rIntegrationWeight / (rVariables.detF0/rVariables.detF);
+
+	    // std::cout<<" Pressure "<<Pressure<<std::endl;
         }
 
 
@@ -530,6 +533,7 @@ void LargeDisplacementUPElement::CalculateAndAddStabilizedPressure(VectorType& r
 
 
     // std::cout<<std::endl;
+    // std::cout<<" IntegrationWeight "<<rIntegrationWeight<<" detF "<<rVariables.detF0<<std::endl;
     // std::cout<<" FpStab "<<rRightHandSideVector-Fh<<std::endl;
 
     KRATOS_CATCH( "" )
@@ -554,7 +558,7 @@ void LargeDisplacementUPElement::CalculateAndAddKuum(MatrixType& rLeftHandSideMa
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    // MatrixType Kh=rLeftHandSideMatrix;
+     // MatrixType Kh=rLeftHandSideMatrix;
 
     unsigned int indexi = 0;
     unsigned int indexj  = 0;
@@ -646,7 +650,7 @@ void LargeDisplacementUPElement::CalculateAndAddKup (MatrixType& rLeftHandSideMa
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-    // MatrixType Kh=rLeftHandSideMatrix;
+    //MatrixType Kh=rLeftHandSideMatrix;
     //contributions to stiffness matrix calculated on the reference configuration
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
@@ -663,8 +667,8 @@ void LargeDisplacementUPElement::CalculateAndAddKup (MatrixType& rLeftHandSideMa
         }
     }
 
-    // std::cout<<std::endl;
-    // std::cout<<" Kup "<<rLeftHandSideMatrix-Kh<<std::endl;
+     // std::cout<<std::endl;
+     // std::cout<<" Kup "<<rLeftHandSideMatrix-Kh<<std::endl;
 
     KRATOS_CATCH( "" )
 }

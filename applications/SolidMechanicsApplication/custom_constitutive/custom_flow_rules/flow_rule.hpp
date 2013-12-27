@@ -61,8 +61,8 @@ namespace Kratos
 
     typedef YieldCriterion::Pointer    YieldCriterionPointer;
     typedef HardeningLaw::Pointer        HardeningLawPointer;
-    typedef Properties::Pointer            PropertiesPointer;
-
+    typedef const Properties*              PropertiesPointer;
+    
 
     KRATOS_DEFINE_LOCAL_FLAG( IMPLEX_ACTIVE );
     KRATOS_DEFINE_LOCAL_FLAG( PLASTIC_REGION );
@@ -152,7 +152,7 @@ namespace Kratos
         {
 	  std::cout<<" Internal Variables "<<std::endl;
 	  std::cout<<" EquivalentPlasticStrain: "<<EquivalentPlasticStrain<<std::endl;
-	  std::cout<<" DeltaPlasticstrain: "<<DeltaPlasticStrain<<std::endl;
+	  std::cout<<" DeltaPlasticStrain: "<<DeltaPlasticStrain<<std::endl;
 	  std::cout<<" EquivalentPlasticStrainOld: "<<EquivalentPlasticStrainOld<<std::endl;
 	}
 
@@ -171,9 +171,9 @@ namespace Kratos
 
       void load(Serializer& rSerializer)
       {
-	rSerializer.load("EquivalenPlasticStrain",EquivalentPlasticStrain);
-	rSerializer.save("DeltaPlasticStrain",DeltaPlasticStrain);
-	rSerializer.load("EquivalenPlasticStrainOld",EquivalentPlasticStrainOld);
+	rSerializer.load("EquivalentPlasticStrain",EquivalentPlasticStrain);
+	rSerializer.load("DeltaPlasticStrain",DeltaPlasticStrain);
+	rSerializer.load("EquivalentPlasticStrainOld",EquivalentPlasticStrainOld);
       };
     };
 
@@ -197,6 +197,24 @@ namespace Kratos
 	  std::cout<<" DeltaPlasticDissipation: "<<DeltaPlasticDissipation<<std::endl;
 	}
 
+    private:
+
+      friend class Serializer;
+
+      // A private default constructor necessary for serialization
+      
+      void save(Serializer& rSerializer) const
+      {
+	rSerializer.save("PlasticDissipation",PlasticDissipation);
+	rSerializer.save("DeltaPlasticDissipation",DeltaPlasticDissipation);
+      };
+
+      void load(Serializer& rSerializer)
+      {
+	rSerializer.load("PlasticDissipation",PlasticDissipation);
+	rSerializer.load("DeltaPlasticDissipation",DeltaPlasticDissipation);
+      };
+
     };
 
     /// Pointer definition of FlowRule
@@ -212,13 +230,19 @@ namespace Kratos
       //KRATOS_ERROR( std::logic_error, "calling the default constructor in FlowRule ... illegal operation!!", "" )
     };
 
+    /// Initialization constructor.
+    FlowRule(YieldCriterionPointer pYieldCriterion)
+    :mpYieldCriterion(pYieldCriterion)
+    {
+    };
+
     /// Copy constructor.
     FlowRule(FlowRule const& rOther)
     :mInternalVariables(rOther.mInternalVariables)
     ,mThermalVariables(rOther.mThermalVariables)
     ,mpYieldCriterion(rOther.mpYieldCriterion)
-    ,mpHardeningLaw(rOther.mpHardeningLaw)
-    ,mpProperties(rOther.mpProperties)
+     //,mpHardeningLaw(rOther.mpHardeningLaw)
+     //,mpProperties(rOther.mpProperties)
     {
     };
 
@@ -229,8 +253,8 @@ namespace Kratos
        mInternalVariables = rOther.mInternalVariables;
        mThermalVariables  = rOther.mThermalVariables;
        mpYieldCriterion   = rOther.mpYieldCriterion;
-       mpHardeningLaw     = rOther.mpHardeningLaw;
-       mpProperties       = rOther.mpProperties;
+       //mpHardeningLaw     = rOther.mpHardeningLaw;
+       //mpProperties       = rOther.mpProperties;
 
        return *this; 
     };
@@ -261,22 +285,30 @@ namespace Kratos
     
     void InitializeMaterial (YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw, const Properties& rMaterialProperties)
     {
-      
+      //set yield criterion
       mpYieldCriterion = pYieldCriterion;
-      mpHardeningLaw   = pHardeningLaw;
-      mpProperties     = &rMaterialProperties;
+      mpYieldCriterion->InitializeMaterial(pHardeningLaw, rMaterialProperties);	
 
-      mpHardeningLaw->InitializeMaterial(rMaterialProperties);	
-      mpYieldCriterion->InitializeMaterial(mpHardeningLaw);	
-
+      //initialize material variables
       mInternalVariables.clear();
       mThermalVariables.clear();
+
     };
 
+    void InitializeMaterial (const Properties& rMaterialProperties)
+    {
+
+      mpYieldCriterion->GetHardeningLaw().InitializeMaterial(rMaterialProperties);	
+
+      //initialize material variables
+      mInternalVariables.clear();
+      mThermalVariables.clear();
+
+    };
 
     const Properties & GetProperties()
     {
-      return *mpProperties;
+      return mpYieldCriterion->GetHardeningLaw().GetProperties();
     };
 	
     const InternalVariables & GetInternalVariables()
@@ -355,9 +387,9 @@ namespace Kratos
     ThermalVariables    mThermalVariables;
 
     YieldCriterionPointer   mpYieldCriterion;
-    HardeningLawPointer       mpHardeningLaw;
 
-    const Properties*           mpProperties;
+    //HardeningLawPointer     mpHardeningLaw;
+    //PropertiesPointer       mpProperties;
 	  
     ///@}
     ///@name Protected Operators
@@ -429,17 +461,22 @@ namespace Kratos
     virtual void save(Serializer& rSerializer) const
     {
 	    rSerializer.save("InternalVariables",mInternalVariables);
+	    rSerializer.save("ThermalVariables",mThermalVariables);
 	    rSerializer.save("YieldCriterion",mpYieldCriterion);
-	    rSerializer.save("HardeningLaw",mpHardeningLaw);
+	    //rSerializer.save("HardeningLaw",mpHardeningLaw);
+	    //std::cout<<" for (mpProperties) the typeid is : " << typeid(*mpProperties).name() << std::endl;
 	    //rSerializer.save("Properties",mpProperties);
     };
 
     virtual void load(Serializer& rSerializer)
     {
 	    rSerializer.load("InternalVariables",mInternalVariables);
+	    rSerializer.load("ThermalVariables",mThermalVariables);
 	    rSerializer.load("YieldCriterion",mpYieldCriterion);
-	    rSerializer.load("HardeningLaw",mpHardeningLaw);
-	    //rSerializer.load("Properties",mpProperties);
+	    //rSerializer.load("HardeningLaw",mpHardeningLaw);
+	    //Properties* pProperties;
+	    //rSerializer.load("Properties",pProperties);
+	    //mpProperties = pProperties;
     };
 
     ///@}
