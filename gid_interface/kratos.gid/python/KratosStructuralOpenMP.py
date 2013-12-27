@@ -172,7 +172,7 @@ solver_constructor.AddVariables( model_part, SolverSettings)
 
 
 #--- READ MODEL ------#
-if(load_restart == "False"):
+if(load_restart == False):
   
   #remove results, restart, graph and list previous files
   problem_restart.CleanPreviousFiles()
@@ -198,16 +198,16 @@ if(load_restart == "False"):
 else:
   
   #reading the model from the restart file
-  problem_restart.Load(restart_time);
+  problem_restart.Load(restart_step);
 
   #remove results, restart, graph and list posterior files
-  problem_restart.CleanPosteriorFiles(restart_time)
+  problem_restart.CleanPosteriorFiles(restart_step)
   list_files.ReBuildListFiles()
 
 #set mesh searches and modeler
 # modeler.InitializeDomains();
 
-#if(load_restart == "False"):
+#if(load_restart == False):
   #find nodal h
   #modeler.SearchNodalH();
 
@@ -228,12 +228,13 @@ main_step_solver.SetRestart(load_restart)
 #modeler.InitialContactSearch()
 
 #define time steps and loop range of steps
-if(load_restart == "True"):  
+if(load_restart == True):  
 
-  istep        = model_part.ProcessInfo[TIME_STEPS]+1
-  nstep        = int(general_variables.nsteps) + buffer_size 
+  istep        = model_part.ProcessInfo[TIME_STEPS] + 1
+  nstep        = int(general_variables.nsteps)
   time_step    = model_part.ProcessInfo[DELTA_TIME]
-  current_step = istep-nstep
+  current_step = istep
+  buffer_size  = 0
 
 else:
 
@@ -244,7 +245,7 @@ else:
 
   model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step;
 
-  conditions.Initialize();
+  conditions.Initialize(time_step);
 
 
 #initialize step operations
@@ -329,7 +330,7 @@ for step in range(istep,nstep):
       execute_save = restart_print.perform_time_operation(current_time)
       if( execute_save == True ):
         clock_time=StartTimeMeasuring();
-        problem_restart.Save(current_time,current_step);
+        problem_restart.Save(current_time,current_step,restart_print.operation_id());
         StopTimeMeasuring(clock_time,"Restart");
 
     
