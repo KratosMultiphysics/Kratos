@@ -52,6 +52,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(QUATERNION_H_INCLUDED)
 #define QUATERNION_H_INCLUDED
 
+#include "includes/serializer.h"
 
 namespace Kratos
 {
@@ -64,6 +65,9 @@ namespace Kratos
 	{
 
 	public:
+		
+		///@name Life Cycle
+		///@{
 		
 		/**
 		Creates a Zero Quaternion.
@@ -103,7 +107,12 @@ namespace Kratos
 		{
 		}
 
+		///@}
+		
 	public:
+		
+		///@name Operators
+		///@{
 		
 		/**
 		Copies a Quaternion.
@@ -120,8 +129,13 @@ namespace Kratos
 			return *this;
 		}
 		
+		///@}
+		
 	public:
 
+		///@name Access
+		///@{
+		
 		/**
 		Returns the X coefficient of this quaternion.
 		@return the X coefficient of this quaternion.
@@ -146,8 +160,13 @@ namespace Kratos
 		*/
 		inline const T w()const { return mW; }
 		
+		///@}
+		
 	public:
 
+		///@name Operations
+		///@{
+		
 		/**
 		Returns the squared norm of this quaternion.
 		x*x + y*y + z*z + w*w
@@ -306,7 +325,12 @@ namespace Kratos
 			b(2) = a(2) + b(2)*mW + c2;
 		}
 
+		///@}
+		
 	public:
+		
+		///@name Static Operations
+		///@{
 		
 		/**
 		Returns the Identity Quaternion (i.e. a Quaternion that represents a Zero rotation)
@@ -452,13 +476,43 @@ namespace Kratos
 			}
 		}
 		
+		///@}
+		
 	private:
 
+		///@name Member Variables
+		///@{
+		
 		T mX;
 		T mY;
 		T mZ;
 		T mW;
+		
+		///@}
 
+		///@name Serialization
+		///@{
+
+		friend class Serializer;
+
+		void save(Serializer& rSerializer) const
+		{
+			rSerializer.save("X", mX);
+			rSerializer.save("Y", mY);
+			rSerializer.save("Z", mZ);
+			rSerializer.save("W", mW);
+		}
+
+		void load(Serializer& rSerializer)
+		{
+			rSerializer.load("X", mX);
+			rSerializer.load("Y", mY);
+			rSerializer.load("Z", mZ);
+			rSerializer.load("W", mW);
+		}
+
+		///@}
+		
 	};
 
 	/**
