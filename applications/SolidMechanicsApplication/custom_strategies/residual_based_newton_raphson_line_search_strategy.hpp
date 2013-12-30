@@ -574,19 +574,7 @@ public:
                 std::cout << "ATTENTION: no free DOFs!! " << std::endl;
             }
 
-	    //Line search
-	    LineSearchCalculation(CurrentAlpha, PreviousAlpha);
 
-            //Updating the results stored in the database
-            rDofSet = pBuilderAndSolver->GetDofSet();
-            pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
-
-            //move the mesh if needed
-            if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
-
-            pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-
-            //ResidualIsUpdated = false;
 
             if (is_converged == true)
             {
@@ -602,6 +590,25 @@ public:
 
                 is_converged = mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
             }
+
+	    if( is_converged == false ){
+	      //Line search
+	      LineSearchCalculation(CurrentAlpha, PreviousAlpha);
+	    }
+
+            //Updating the results stored in the database
+            rDofSet = pBuilderAndSolver->GetDofSet();
+
+            pScheme->Update(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+
+            //move the mesh if needed
+            if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
+
+            pScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
+
+            //ResidualIsUpdated = false;
+
+
         }
 
 
