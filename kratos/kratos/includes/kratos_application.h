@@ -57,6 +57,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/kratos_components.h"
 #include "includes/element.h"
 #include "includes/condition.h"
+#include "includes/periodic_condition.h"
 
 namespace Kratos
 {
@@ -364,6 +365,11 @@ protected:
     const Condition  mCondition3D;
 
     const Condition  mCondition2D;
+
+    // Periodic Condition 
+    const PeriodicCondition mPeriodicCondition;
+
+    const PeriodicCondition mPeriodicConditionCorner;
 
 
 

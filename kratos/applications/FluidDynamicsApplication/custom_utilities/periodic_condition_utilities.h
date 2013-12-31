@@ -66,9 +66,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "geometries/point_3d.h"
 #include "spatial_containers/spatial_containers.h"
 #include "containers/variables_list.h"
+#include "containers/periodic_variables_container.h"
 
-#include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/periodic_variables_container.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {

@@ -55,8 +55,6 @@ KratosFluidDynamicsApplication::KratosFluidDynamicsApplication():
     mWallConditionDiscontinuous3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mMonolithicWallCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mMonolithicWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
-    mPeriodicCondition(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mPeriodicConditionCorner(0, Element::GeometryType::Pointer( new Quadrilateral3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mFSPeriodicCondition2D(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mFSPeriodicCondition3D(0, Element::GeometryType::Pointer( new Line3D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mLinearWallCondition3D(0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>())))),
@@ -81,7 +79,6 @@ void KratosFluidDynamicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(SUBSCALE_PRESSURE);
     KRATOS_REGISTER_VARIABLE(C_DES);
 //    KRATOS_REGISTER_VARIABLE(C_SMAGORINSKY);
-    KRATOS_REGISTER_VARIABLE(PERIODIC_VARIABLES);
     KRATOS_REGISTER_VARIABLE(SUBSCALE_VELOCITY);
     KRATOS_REGISTER_VARIABLE(VORTICITY);
     KRATOS_REGISTER_VARIABLE(COARSE_VELOCITY);

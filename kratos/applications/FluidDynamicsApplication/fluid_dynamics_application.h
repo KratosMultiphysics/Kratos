@@ -86,7 +86,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_conditions/wall_condition_werner_wengle.h"
 #include "custom_conditions/wall_condition_discontinuous.h"
 #include "custom_conditions/monolithic_wall_condition.h"
-#include "custom_conditions/periodic_condition.h"
 #include "custom_conditions/fs_periodic_condition.h"
 #include "custom_elements/dpg_vms.h"
 #include "custom_conditions/linear_wall_condition.h"
@@ -300,8 +299,6 @@ private:
     const  MonolithicWallCondition<3,3> mMonolithicWallCondition3D;
 
     /// Periodic Condition 
-    const PeriodicCondition mPeriodicCondition;
-    const PeriodicCondition mPeriodicConditionCorner;
     const FSPeriodicCondition<2> mFSPeriodicCondition2D;
     const FSPeriodicCondition<3> mFSPeriodicCondition3D;
 

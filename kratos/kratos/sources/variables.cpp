@@ -557,6 +557,8 @@ KRATOS_CREATE_VARIABLE(Vector, PARTICLE_ROTATE_SPRING_FAILURE_TYPE)
    
 KRATOS_CREATE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
 
+KRATOS_CREATE_VARIABLE( PeriodicVariablesContainer, PERIODIC_VARIABLES )
+
 //KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( VECTOR_ARROW_X )
 //KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( VECTOR_ARROW_Y )
 //KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( VECTOR_ARROW_Z )
@@ -593,6 +595,8 @@ KRATOS_CREATE_VARIABLE(double,  Y_WALL)
 KratosApplication::KratosApplication() :
     mCondition3D( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mCondition2D( 0, Element::GeometryType::Pointer( new Geometry<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mPeriodicCondition(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
+    mPeriodicConditionCorner(0, Element::GeometryType::Pointer( new Quadrilateral3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mpVariableData( KratosComponents<VariableData>::pGetComponents() ),
     mpIntVariables( KratosComponents<Variable<int> >::pGetComponents() ),
     mpUnsignedIntVariables( KratosComponents<Variable<unsigned int> >::pGetComponents() ),
@@ -1100,6 +1104,8 @@ void KratosApplication::RegisterVariables()
     KRATOS_REGISTER_VARIABLE(DEM_DELTA_TIME)
     KRATOS_REGISTER_VARIABLE(PARTICLE_ROTATE_SPRING_FAILURE_TYPE)
     KRATOS_REGISTER_VARIABLE(PARTICLE_ROTATE_SPRING_MOMENT)
+
+    KRATOS_REGISTER_VARIABLE(PERIODIC_VARIABLES);
 
 
 

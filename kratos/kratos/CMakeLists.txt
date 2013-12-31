@@ -19,6 +19,7 @@ set( KRATOS_CORE_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/timer.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/serializer.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/kernel.cpp;
+ 	${CMAKE_CURRENT_SOURCE_DIR}/sources/periodic_condition.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/includes/constitutive_law.cpp;
      )
 

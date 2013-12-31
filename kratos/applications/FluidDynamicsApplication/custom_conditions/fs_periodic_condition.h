@@ -61,8 +61,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/periodic_variables_container.h"
-#include "custom_conditions/periodic_condition.h"
 
 namespace Kratos
 {
