@@ -60,8 +60,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/serializer.h"
 
 // Application includes
-#include "fluid_dynamics_application_variables.h"
-#include "custom_utilities/periodic_variables_container.h"
+#include "includes/variables.h"
+#include "containers/periodic_variables_container.h"
 
 namespace Kratos
 {

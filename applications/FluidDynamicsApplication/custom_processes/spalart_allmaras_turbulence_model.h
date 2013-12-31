@@ -34,6 +34,7 @@
 
 // Application includes
 #include "custom_utilities/periodic_condition_utilities.h"
+#include "fluid_dynamics_application_variables.h"
 
 namespace Kratos
 {

@@ -25,7 +25,6 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition_werner_wengle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/wall_condition_discontinuous.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/monolithic_wall_condition.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/periodic_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/fs_periodic_condition.cpp
     )
 
