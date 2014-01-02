@@ -13,7 +13,6 @@
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
 #include "spheric_particle.h"
@@ -21,6 +20,7 @@
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "DEM_application.h"
 #include "includes/kratos_flags.h"
+
 
 
 namespace Kratos
@@ -1096,7 +1096,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                      double historic = rCurrentProcessInfo[HISTORICAL_MIN_K];
 
                      if ((kn < historic) || (kt < historic)){
-                         historic = fmin(kn, kt);
+                         historic = std::min(kn, kt);
                      }
 
                  }   
@@ -1585,7 +1585,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                          double historic = rCurrentProcessInfo[HISTORICAL_MIN_K];
     
                          if ((kn < historic) || (kt < historic)){
-                             historic = fmin(kn, kt);
+                             historic = std::min(kn, kt);
                          }
 
                      }

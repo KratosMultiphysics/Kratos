@@ -499,7 +499,7 @@ namespace Kratos
                 double historic = rCurrentProcessInfo[HISTORICAL_MIN_K];
 
                 if ((kn_el < historic) || (kt_el < historic)){
-                    historic = fmin(kn_el, kt_el);
+                    historic = std::min(kn_el, kt_el);
                 }
 
             }
