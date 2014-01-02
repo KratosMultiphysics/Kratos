@@ -6,7 +6,7 @@
 *
 */
 
-#include "includes/KRATOS_EXPORT_DLL.h"
+#include "includes/kratos_export_dll.h"
 
 #ifndef MM_IO_H
 #define MM_IO_H
