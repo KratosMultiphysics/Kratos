@@ -102,7 +102,7 @@ namespace Kratos
  * for monolithic incompressible flow problems) for an MPI implementation.
  * @see PeriodicConditionUtilities,ResidualBasedBlockBuilderAndSolverPeriodic,TrilinosResidualBasedBuilderAndSolverMLPeriodic
  */
-class PeriodicCondition : public Condition
+class KRATOS_EXPORT_DLL PeriodicCondition : public Condition
 {
 public:
     ///@name Type Definitions
@@ -387,6 +387,8 @@ private:
 }; // Class PeriodicCondition
 
 ///@}
+
+template class KRATOS_EXPORT_DLL KratosComponents<PeriodicCondition >;
 
 ///@name Type Definitions
 ///@{

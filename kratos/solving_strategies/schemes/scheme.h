@@ -277,9 +277,9 @@ public:
     /**
      * Clone 
      */
-    virtual typename Scheme::Pointer Clone()
+    virtual Pointer Clone()
     {
-      return Scheme::Pointer( new Scheme(*this) );
+      return Pointer( new Scheme(*this) );
     }
 
     /**

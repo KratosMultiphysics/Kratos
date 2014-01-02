@@ -1054,10 +1054,24 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 }
 ///@}
 
+template class KRATOS_EXPORT_DLL KratosComponents<Element >;
+
+void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, Element const& ThisComponent);
+
 /**
  * definition of elemental specific variables
  */
+#undef KRATOS_DEFINE_VARIABLE
+#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
+#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_DLL
+#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_DLL
+
 KRATOS_DEFINE_VARIABLE(WeakPointerVector< Element >, NEIGHBOUR_ELEMENTS)
+
+#undef KRATOS_DEFINE_VARIABLE
+#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
+#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_NO_DLL
+#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_NO_DLL
 
 
 } // namespace Kratos.

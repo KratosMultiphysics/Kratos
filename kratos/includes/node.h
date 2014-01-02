@@ -1250,8 +1250,10 @@ private:
 
 }; // Class Node
 
-
 ///@}
+
+//template class KRATOS_EXPORT_DLL KratosComponents<Node<3,double> >;
+//template class KRATOS_EXPORT_DLL KratosComponents<Node<3,double>::Pointer >;
 
 ///@name Type Definitions
 ///@{
@@ -1280,8 +1282,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
-
 //*********************************************************************************
 //*********************************************************************************
 //*********************************************************************************
@@ -1289,8 +1289,16 @@ inline std::ostream& operator << (std::ostream& rOStream,
 //*********************************************************************************
 //*********************************************************************************
 //*********************************************************************************
+#undef KRATOS_DEFINE_VARIABLE
+#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
+#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_DLL
+#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_DLL
 KRATOS_DEFINE_VARIABLE(WeakPointerVector<Node<3> >, NEIGHBOUR_NODES)
 KRATOS_DEFINE_VARIABLE(WeakPointerVector<Node<3> >, FATHER_NODES)
+#undef KRATOS_DEFINE_VARIABLE
+#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
+#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_NO_DLL
+#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_NO_DLL
 
 //     namespace Globals
 //     {

@@ -98,7 +98,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class DatafileIO : public IO
+class KRATOS_EXPORT_DLL DatafileIO : public IO
 {
 public:
     ///@name Type Definitions

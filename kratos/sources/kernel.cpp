@@ -45,6 +45,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
 #include "includes/kernel.h"
+#include "includes/kratos_version.h"
 
 
 namespace Kratos
@@ -55,7 +56,7 @@ namespace Kratos
 	std::cout << " ' /   __| _` | __|  _ \\   __|" << std::endl;
 	std::cout << " . \\  |   (   | |   (   |\\__ \\ " << std::endl;
 	std::cout << "_|\\_\\_|  \\__,_|\\__|\\___/ ____/" << std::endl;
-    std::cout << "           Multi-Physics 3.2.1" << std::endl;
+    std::cout << "           Multi-Physics "<< KRATOS_VERSION << std::endl;
 
         mKratosApplication.RegisterVariables();
     }
@@ -82,7 +83,6 @@ namespace Kratos
         rOStream << "Conditions:" << std::endl;
         KratosComponents<Condition>().PrintData(rOStream);
     }
-
 }
 
 

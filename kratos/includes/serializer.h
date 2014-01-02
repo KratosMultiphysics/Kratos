@@ -103,7 +103,7 @@ template <class TDataType> class Variable;
 /// Short class definition.
 /** Detail class definition.
 */
-class Serializer
+class KRATOS_EXPORT_DLL Serializer
 {
 public:
     ///@name  Enum's

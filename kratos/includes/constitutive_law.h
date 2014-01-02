@@ -72,7 +72,7 @@ namespace Kratos
 /**
  * Base class of constitutive laws.
  */
-class ConstitutiveLaw : public Flags
+class KRATOS_EXPORT_DLL ConstitutiveLaw : public Flags
 {
 public:
 
@@ -1113,10 +1113,25 @@ private:
 
 }; /* Class ConstitutiveLaw */
 
+template class KRATOS_EXPORT_DLL KratosComponents<ConstitutiveLaw >;
+
+void KRATOS_EXPORT_DLL AddKratosComponent(std::string const& Name, ConstitutiveLaw const& ThisComponent);
+
 /**
  * Definition of ConstitutiveLaw variable
  */
-KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW)
+
+#undef KRATOS_DEFINE_VARIABLE
+#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
+#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_DLL
+#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_DLL
+
+KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW);
+
+#undef KRATOS_DEFINE_VARIABLE
+#undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
+#define KRATOS_DEFINE_VARIABLE KRATOS_DEFINE_VARIABLE_NO_DLL
+#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_NO_DLL
 
 } /* namespace Kratos.*/
 #endif /* KRATOS_CONSTITUTIVE_LAW  defined */

@@ -54,6 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_version.h"
 #include "add_vector_to_python.h"
 //#include "add_mapped_vector_to_python.h"
 #include "add_matrix_to_python.h"
@@ -96,7 +97,9 @@ namespace Python
 
 char const* greet()
 {
-    return "Hello, I am Kratos Multi-Physics 3.2.1 ;-)";
+	std::stringstream header;
+	header << "Hello, I am Kratos Multi-Physics " << KRATOS_VERSION <<" ;-)"; 
+    return header.str().c_str();
 }
 
 using namespace boost::python;
