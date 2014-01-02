@@ -61,6 +61,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Project includes
 #include "includes/define.h"
 #include "containers/variables_list.h"
+#include "includes/kratos_export_dll.h"
 
 
 namespace Kratos
@@ -76,7 +77,7 @@ namespace Globals
 ///@{
 //
 // This variable is NOT synchronized between different applications threads
-extern VariablesList DefaultVariablesList;
+extern KRATOS_EXPORT_DLL VariablesList DefaultVariablesList;
 /*
 		extern KratosComponents<VariableData> VariableDataComponents;
 		extern KratosComponents<Condition> ConditionComponents;
