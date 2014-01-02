@@ -68,7 +68,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-class GaussLegendreIntegrationPoints1
+class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints1
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints1);
@@ -109,7 +109,7 @@ private:
 }; // Class QuadrilateralGaussianIntegrationPoints1
 
 
-class GaussLegendreIntegrationPoints2
+class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints2
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints2);
@@ -151,7 +151,7 @@ private:
 }; // Class QuadrilateralGaussianIntegrationPoints2
 
 
-class GaussLegendreIntegrationPoints3
+class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints3
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints3);
@@ -195,7 +195,7 @@ private:
 
 
 
-class GaussLegendreIntegrationPoints4
+class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints4
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints4);
@@ -240,7 +240,7 @@ private:
 
 
 
-class GaussLegendreIntegrationPoints5
+class KRATOS_EXPORT_DLL GaussLegendreIntegrationPoints5
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GaussLegendreIntegrationPoints5);

@@ -65,6 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 #include "containers/array_1d.h"
 #include "includes/serializer.h"
+#include "includes/kratos_components.h"
 
 
 namespace Kratos
@@ -496,6 +497,8 @@ private:
 }; // Class Point
 
 ///@}
+
+template class KRATOS_EXPORT_DLL KratosComponents<Point<3,double> >;
 
 ///@name Type Definitions
 ///@{

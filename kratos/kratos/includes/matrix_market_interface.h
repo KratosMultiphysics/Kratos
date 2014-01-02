@@ -59,7 +59,6 @@ extern "C"
 
 // Project includes
 
-
 namespace Kratos
 {
 

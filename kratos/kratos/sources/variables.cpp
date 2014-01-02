@@ -44,7 +44,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 //
 
-
+// This define must be HERE
+#define DKRATOS_EXPORT_INTERFACE_2 1
 
 // System includes
 #include <string>
@@ -553,6 +554,9 @@ KRATOS_CREATE_VARIABLE(vector<int>, CONTINUUM_PARTICLE_INITIAL_FAILURE_ID)
 //for shared DEM and DEM-FEM Application
 
 KRATOS_CREATE_VARIABLE(double, DEM_DELTA_TIME)
+
+KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(AUX_VEL)
+
 KRATOS_CREATE_VARIABLE(Vector, PARTICLE_ROTATE_SPRING_FAILURE_TYPE)
    
 KRATOS_CREATE_VARIABLE( VectorArray3Double, PARTICLE_ROTATE_SPRING_MOMENT )
@@ -1201,15 +1205,15 @@ void KratosApplication::RegisterVariables()
 
 }
 
-// Specialize array of compenents for VariableData
-KratosComponents<VariableData>::ComponentsContainerType KratosComponents<VariableData>::msComponents;
-
 // Initializing static members
 /*    const Condition  KratosApplication::msCondition3D(0, Element::GeometryType::Pointer(new Triangle3D<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>()))));
     const Condition  KratosApplication::msCondition2D(0, Element::GeometryType::Pointer(new Geometry<Node<3> >(Element::GeometryType::PointsArrayType(2, Node<3>()))));
 */
 
 }  // namespace Kratos.
+
+// This define must be HERE
+#undef DKRATOS_EXPORT_INTERFACE_2
 
 
 

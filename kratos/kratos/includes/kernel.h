@@ -54,9 +54,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <string>
 #include <iostream>
 
-
 // External includes
-
 
 // Project includes
 #include "includes/define.h"
@@ -90,7 +88,7 @@ namespace Kratos
     @see InitializeApplication
     @see KratosApplication
 */
-class Kernel
+class KRATOS_EXPORT_DLL Kernel
 {
 public:
     ///@name Type Definitions
@@ -138,22 +136,17 @@ public:
     */
     void AddApplication(KratosApplication& NewApplication)
     {
-        typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
+        //typedef VariableComponent<VectorComponentAdaptor<array_1d<double, 3> > > array_1d_component_type;
 
-        //NewApplication.SetComponents(KratosComponents<VariableData>::pGetComponents(),
-        //	KratosComponents<Element>::pGetComponents(),
-        //	KratosComponents<Condition>::pGetComponents());
-        //KRATOS_WATCH("kerneal entered in AddApplication");
         NewApplication.Register();
-        //KRATOS_WATCH("Application Registered");
-        KratosComponents<VariableData>::GetComponents().insert(NewApplication.GetVariables().begin(),
-                NewApplication.GetVariables().end());
-        //KRATOS_WATCH("Variables Registered");
-
+		
+		/*
+        KratosComponents<VariableData>::GetComponents().insert(NewApplication.GetVariables().begin(),NewApplication.GetVariables().end());
+		
         KratosComponents<Variable<int> >::GetComponents().insert(NewApplication.GetComponents(Variable<int>("NONE")).begin(),
                 NewApplication.GetComponents(Variable<int>("NONE")).end());
         KratosComponents<Variable<unsigned int> >::GetComponents().insert(NewApplication.GetComponents(Variable<unsigned int>("NONE")).begin(),
-                NewApplication.GetComponents(Variable<unsigned int>("NONE")).end());
+               NewApplication.GetComponents(Variable<unsigned int>("NONE")).end());
         KratosComponents<Variable<double> >::GetComponents().insert(NewApplication.GetComponents(Variable<double>("NONE")).begin(),
                 NewApplication.GetComponents(Variable<double>("NONE")).end());
         KratosComponents<Variable<array_1d<double, 3> > >::GetComponents().insert(NewApplication.GetComponents(Variable<array_1d<double, 3> >("NONE")).begin(),
@@ -162,24 +155,24 @@ public:
                 NewApplication.GetComponents(Variable<Vector>("NONE")).end());
         KratosComponents<Variable<Matrix> >::GetComponents().insert(NewApplication.GetComponents(Variable<Matrix>("NONE")).begin(),
                 NewApplication.GetComponents(Variable<Matrix>("NONE")).end());
-        Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > temp_adaptor(DISPLACEMENT, 0); // the displacement is not important, only an array_1d variable is needed!
-        KratosComponents<array_1d_component_type>::GetComponents().insert(NewApplication.GetComponents(array_1d_component_type("NONE", temp_adaptor)).begin(),				   NewApplication.GetComponents(array_1d_component_type("NONE", temp_adaptor)).end());
+        
+		Kratos::VectorComponentAdaptor<Kratos::array_1d<double, 3> > temp_adaptor(DISPLACEMENT, 0); // the displacement is not important, only an array_1d variable is needed!
 
+        KratosComponents<array_1d_component_type>::GetComponents().insert(NewApplication.GetComponents(array_1d_component_type("NONE", temp_adaptor)).begin(),				  
+				NewApplication.GetComponents(array_1d_component_type("NONE", temp_adaptor)).end());
 
         KratosComponents<Element>::GetComponents().insert(NewApplication.GetElements().begin(),
                 NewApplication.GetElements().end());
-        //KRATOS_WATCH("Elements Registered");
         KratosComponents<Condition>::GetComponents().insert(NewApplication.GetConditions().begin(),
                 NewApplication.GetConditions().end());
-        //KRATOS_WATCH("Conditions Registered");
 
 //        KratosComponents<Variable<double> >::GetComponents().insert(NewApplication.GetComponents(Variable<double>("NONE")).begin(),
 //                NewApplication.GetComponents(Variable<double>("NONE")).end());
 
 
         Serializer::GetRegisteredObjects().insert(NewApplication.GetRegisteredObjects().begin(), NewApplication.GetRegisteredObjects().end());
-
         Serializer::GetRegisteredObjectsName().insert(NewApplication.GetRegisteredObjectsName().begin(), NewApplication.GetRegisteredObjectsName().end());
+		*/
     }
 
     /// Assign sequential key to the registered variables.
@@ -209,12 +202,14 @@ public:
     */
     void InitializeApplication(KratosApplication& NewApplication)
     {
-        NewApplication.SetComponents(KratosComponents<VariableData>::GetComponents());
+        /*
+		NewApplication.SetComponents(KratosComponents<VariableData>::GetComponents());
         NewApplication.SetComponents(KratosComponents<Element>::GetComponents());
         NewApplication.SetComponents(KratosComponents<Condition>::GetComponents());
 
         NewApplication.GetRegisteredObjects().insert(Serializer::GetRegisteredObjects().begin(), Serializer::GetRegisteredObjects().end());
         NewApplication.GetRegisteredObjectsName().insert(Serializer::GetRegisteredObjectsName().begin(), Serializer::GetRegisteredObjectsName().end());
+		*/
     }
 
 

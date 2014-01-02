@@ -70,7 +70,7 @@ namespace Kratos
 
 */
 
-class KratosApplication
+class KRATOS_EXPORT_DLL KratosApplication
 {
 public:
     ///@name Type Definitions

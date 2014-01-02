@@ -95,7 +95,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class VariablesListDataValueContainer
+class KRATOS_EXPORT_DLL VariablesListDataValueContainer
 {
 public:
     ///@name Type Definitions
