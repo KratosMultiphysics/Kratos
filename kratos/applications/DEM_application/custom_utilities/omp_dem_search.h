@@ -190,7 +190,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                   NumberOfResults = 0;
               
               #pragma omp for
-              for(std::size_t i = 0; i < elements_array.size(); i++)
+              for(int i = 0; i < static_cast<int>(elements_array.size()); i++)
               {
                   ResultElementsContainerType::iterator ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
@@ -228,7 +228,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                   NumberOfResults = 0;
               
               #pragma omp for
-              for(std::size_t i = 0; i < elements_array.size(); i++)
+              for(int i = 0; i < static_cast<int>(elements_array.size()); i++)
               {
                   ResultElementsContainerType::iterator ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
@@ -264,7 +264,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                   NumberOfResults = 0;
               
               #pragma omp for
-              for(std::size_t i = 0; i < elements_array.size(); i++)
+              for(int i = 0; i < static_cast<int>(elements_array.size()); i++)
               {
                   ResultElementsContainerType::iterator ResultsPointer = localResults.begin();
                         
@@ -298,7 +298,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                   NumberOfResults = 0;
               
               #pragma omp parallel for
-              for(std::size_t i = 0; i < elements_array.size(); i++)
+              for(int i = 0; i < static_cast<int>(elements_array.size()); i++)
               {
                   ResultElementsContainerType::iterator ResultsPointer = localResults.begin();
                         
@@ -334,7 +334,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t               NumberOfResults = 0;
               
               #pragma omp parallel for
-              for(std::size_t i = 0; i < nodes_array.size(); i++)
+              for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
               {
                   ResultNodesContainerType::iterator    ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
@@ -372,7 +372,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t               NumberOfResults = 0;
               
               #pragma omp for
-              for(std::size_t i = 0; i < nodes_array.size(); i++)
+              for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
               {
                   ResultNodesContainerType::iterator    ResultsPointer          = localResults.begin();
                   DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
@@ -408,7 +408,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t               NumberOfResults = 0;
               
               #pragma omp for
-              for(std::size_t i = 0; i < nodes_array.size(); i++)
+              for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
               {
                   ResultNodesContainerType::iterator ResultsPointer    = localResults.begin();
                 
@@ -442,7 +442,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t               NumberOfResults = 0;
               
               #pragma omp for
-              for(std::size_t i = 0; i < nodes_array.size(); i++)
+              for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
               {
                   ResultNodesContainerType::iterator ResultsPointer    = localResults.begin();
                         
@@ -490,7 +490,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                           NumberOfResults = 0;
               
               #pragma omp for
-              for(std::size_t i = 0; i < elements_sear.size(); i++)
+              for(int i = 0; i < static_cast<int>(elements_sear.size()); i++)
               {
                   GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
                   DistanceType::iterator                                                        ResultsDistancesPointer = localResultsDistances.begin();
@@ -546,7 +546,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                           NumberOfResults = 0;
               
               #pragma omp for
-              for(std::size_t i = 0; i < elements_sear.size(); i++)
+              for(int i = 0; i < static_cast<int>(elements_sear.size()); i++)
               {
                   GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
                   DistanceType::iterator                                                        ResultsDistancesPointer = localResultsDistances.begin();
@@ -602,7 +602,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                           NumberOfResults = 0;
               
               #pragma omp for
-              for(std::size_t i = 0; i < elements_sear.size(); i++)
+              for(int i = 0; i < static_cast<int>(elements_sear.size()); i++)
               {
                   GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
                   DistanceType::iterator                                                        ResultsDistancesPointer = localResultsDistances.begin();
@@ -658,7 +658,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               std::size_t                           NumberOfResults = 0;
               
               #pragma omp for
-              for(std::size_t i = 0; i < elements_sear.size(); i++)
+              for(int i = 0; i < static_cast<int>(elements_sear.size()); i++)
               {
                   GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
                   DistanceType::iterator                                                        ResultsDistancesPointer = localResultsDistances.begin();
