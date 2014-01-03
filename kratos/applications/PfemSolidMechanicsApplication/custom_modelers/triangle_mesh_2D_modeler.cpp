@@ -82,7 +82,7 @@ namespace Kratos
     mVariables[MeshId].WallTip.is_set = false;
     mVariables[MeshId].BoundingBox.is_set = false;
 
-    std::cout<<" SetRemeshData : [ refine:"<<mVariables[MeshId].refine<<" - "<<mVariables[MeshId].refine<<" remesh : "<<mVariables[MeshId].remesh<<" - "<<mVariables[MeshId].remesh<<" ] "<<std::endl;
+    std::cout<<" SetRemeshData : [ refine: "<<mVariables[MeshId].refine<<" - "<<mVariables[MeshId].refine<<" remesh : "<<mVariables[MeshId].remesh<<" - "<<mVariables[MeshId].remesh<<" ] "<<std::endl;
 
 
   }
@@ -90,36 +90,36 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void TriangleMesh2DModeler::SetRefineData (bool refine,
+  void TriangleMesh2DModeler::SetRefineData (bool   refine,
 					     double h_factor,
 					     double dissipation,
 					     double radius,
 					     double error,
-					     int MeshId)
+					     int    MeshId)
   {    
 
     if(mVariables.size() == 1 && MeshId != 0)
       std::cout<<" Something wrong with mesh ID "<<MeshId<<std::endl;
 
-    mVariables[MeshId].refine      = refine;
-
-    mVariables[MeshId].Refine.size_factor=h_factor;
-
     //other reference variables (JuanManuel)
+    double side_tolerance = 6; //3;
+
+    mVariables[MeshId].refine                      = refine;
+
+    mVariables[MeshId].Refine.size_factor          = h_factor;
+    
     mVariables[MeshId].Refine.critical_dissipation = dissipation; //40;  400;
 
-    double tool_arch = 5; //7.5; //5; //10; //degrees 
-    double side_tol  = 6; //3; //6;
+    mVariables[MeshId].Refine.critical_radius      = radius; //0.0004 m
 
-    mVariables[MeshId].Refine.critical_radius      = (tool_arch)*(3.1416/180.0)*radius;  //radius 0.00004 m
-    mVariables[MeshId].Refine.critical_side        = side_tol*(tool_arch)*(3.1416/180.0)*radius;  //offset*5;  //0.02;
+    mVariables[MeshId].Refine.critical_side        = side_tolerance*radius;  //0.02;
+
     mVariables[MeshId].Refine.reference_error      = error;  //2;
 
 
     std::cout<<" CRITICAL RADIUS      : "<<mVariables[MeshId].Refine.critical_radius<<std::endl;
     std::cout<<" CRITICAL SIDE        : "<<mVariables[MeshId].Refine.critical_side<<std::endl;
     std::cout<<" CRITICAL DISSIPATION : "<<mVariables[MeshId].Refine.critical_dissipation<<std::endl;
-
 
   }
 
@@ -143,17 +143,19 @@ namespace Kratos
   //*******************************************************************************************
 
   void TriangleMesh2DModeler::SetRefiningBox (double radius,
-				       Vector center,
-				       Vector velocity)
+					      Vector center,
+					      Vector velocity)
     
   {
-
-    for(unsigned int i=1; i<mVariables.size(); i++)
+    for(unsigned int i=0; i<mVariables.size(); i++)
       {
 	mVariables[i].BoundingBox.is_set =true;
 	mVariables[i].BoundingBox.Radius=radius;
 	mVariables[i].BoundingBox.Center=center;
 	mVariables[i].BoundingBox.Velocity=velocity;
+
+	std::cout<<" Bounding Box [ Radius: "<<radius<<" Center: "<<center<<" Velocity: "<<velocity<<" ] "<<std::endl;
+
       }
   }
 
@@ -173,7 +175,7 @@ namespace Kratos
     //By the way: set meshes options from bools
     for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
       {
-	std::cout<<" GetRemeshData : [ refine:"<<mVariables[MeshId].refine<<" - "<<mVariables[MeshId].refine<<" remesh : "<<mVariables[MeshId].remesh<<" - "<<mVariables[MeshId].remesh<<" ] "<<std::endl;
+	std::cout<<" GetRemeshData : [ refine: "<<mVariables[MeshId].refine<<" - "<<mVariables[MeshId].refine<<" remesh : "<<mVariables[MeshId].remesh<<" - "<<mVariables[MeshId].remesh<<" ] "<<std::endl;
 
 	if(mVariables[MeshId].remesh)
 	  rModelPart.GetMesh(MeshId).Set( Modeler::REMESH );
@@ -257,9 +259,9 @@ namespace Kratos
 	    {
 	      if(Meshes[MeshId].Is( Modeler::REFINE_MESH )){ 
 		//Constrained Delaunay Triangulation
-		std::cout<<" [ MESH: "<<MeshId<<" REFINE WPCDT START]:"<<std::endl;
-		GenerateWPCDT(rModelPart,mVariables[MeshId],MeshId);	
-		std::cout<<" [ MESH: "<<MeshId<<" REFINE WPCDT END]"<<std::endl;	  
+		std::cout<<" [ MESH: "<<MeshId<<" REFINE RCDT START]:"<<std::endl;
+		GenerateRCDT(rModelPart,mVariables[MeshId],MeshId);	
+		std::cout<<" [ MESH: "<<MeshId<<" REFINE RCDT END]"<<std::endl;	  
 	      }
 	      else{ 	
 		//Generate Constrained Delaunay Triangulation
@@ -272,9 +274,9 @@ namespace Kratos
 	    {
 	      if(Meshes[MeshId].Is( Modeler::REFINE_MESH )){ 
 		//Constrained Delaunay Triangulation
-		std::cout<<" [ MESH: "<<MeshId<<" REFINE WPDT START]:"<<std::endl;
-		GenerateWPDT(rModelPart,mVariables[MeshId],MeshId);	
-		std::cout<<" [ MESH: "<<MeshId<<" REFINE WPDT END]"<<std::endl;	  
+		std::cout<<" [ MESH: "<<MeshId<<" REFINE RDT START]:"<<std::endl;
+		GenerateRDT(rModelPart,mVariables[MeshId],MeshId);	
+		std::cout<<" [ MESH: "<<MeshId<<" REFINE RDT END]"<<std::endl;	  
 	      }
 	      else{
 		//Generate Delaunay Triangulation
@@ -669,10 +671,10 @@ namespace Kratos
     GenerateTriangulation(rVariables.MeshingOptions,rVariables.RefiningOptions,in, mid);
     rVariables.MeshingOptions.Reset(Modeler::BOUNDARIES_SEARCH);
 
-    KRATOS_WATCH( in.numberofsegments )
-    KRATOS_WATCH( in.numberofpoints )
-    KRATOS_WATCH( in.numberoftriangles )
-    KRATOS_WATCH( in.numberofholes )
+    // KRATOS_WATCH( in.numberofsegments )
+    // KRATOS_WATCH( in.numberofpoints )
+    // KRATOS_WATCH( in.numberoftriangles )
+    // KRATOS_WATCH( in.numberofholes )
 
     //free the memory used in the first step
     free_pointio(in);
@@ -696,10 +698,10 @@ namespace Kratos
     rVariables.MeshingOptions.Reset(Modeler::CONSTRAINED_MESH);
     rVariables.MeshingOptions.Reset(Modeler::NEIGHBOURS_SEARCH);
 
-    KRATOS_WATCH( out.numberofsegments )
-    KRATOS_WATCH( out.numberofpoints )
-    KRATOS_WATCH( out.numberoftriangles )
-    KRATOS_WATCH( out.numberofholes )
+    // KRATOS_WATCH( out.numberofsegments )
+    // KRATOS_WATCH( out.numberofpoints )
+    // KRATOS_WATCH( out.numberoftriangles )
+    // KRATOS_WATCH( out.numberofholes )
 	
     ////////////////////////////////////////////////////////////
 
@@ -738,7 +740,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void TriangleMesh2DModeler::GenerateWPDT(ModelPart& rModelPart,
+  void TriangleMesh2DModeler::GenerateRDT(ModelPart& rModelPart,
 				    MeshingVariables & rVariables,
 				    ModelPart::IndexType MeshId)
   {
@@ -746,7 +748,7 @@ namespace Kratos
     KRATOS_TRY
 
 
-      std::cout<<" [ [ [ ] ] ]"<<std::endl;
+    std::cout<<" [ [ [ ] ] ]"<<std::endl;
     std::cout<<" [ Trigen PFEM DT Refine Mesher ]"<<std::endl;
     std::cout<<" [ PREVIOUS MESH (Elements: "<<rModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rModelPart.NumberOfConditions(MeshId)<<") ] MESH_ID: ["<<MeshId<<"]"<<std::endl;
 
@@ -808,7 +810,12 @@ namespace Kratos
     boost::timer auxiliary;
 
     rVariables.MeshingOptions.Set(Modeler::NEIGHBOURS_SEARCH);
-    GenerateTriangulation(rVariables.MeshingOptions,rVariables.RefiningOptions,in,out);
+    int fail = GenerateTriangulation(rVariables.MeshingOptions,rVariables.RefiningOptions,in,out);
+
+    if(fail){
+      std::cout<<" Mesher Failed first RCDT "<<std::endl;
+    }
+
     rVariables.MeshingOptions.Reset(Modeler::NEIGHBOURS_SEARCH);
 
     if(in.numberofpoints!=out.numberofpoints){
@@ -863,7 +870,11 @@ namespace Kratos
     rVariables.MeshingOptions.Set(Modeler::REFINE_MESH);
     rVariables.RefiningOptions.Set(Modeler::REFINE_ADD_NODES); //optional
 
-    GenerateTriangulation(rVariables.MeshingOptions,rVariables.RefiningOptions,in,out);
+    fail = GenerateTriangulation(rVariables.MeshingOptions,rVariables.RefiningOptions,in,out);
+
+    if(fail){
+      std::cout<<" Mesher Failed second RCDT "<<std::endl;
+    }
 
     rVariables.MeshingOptions.Reset(Modeler::REFINE_MESH);
     rVariables.RefiningOptions.Reset(Modeler::REFINE_ADD_NODES); //optional
@@ -908,7 +919,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
   
-  void TriangleMesh2DModeler::GenerateWPCDT(ModelPart& rModelPart,
+  void TriangleMesh2DModeler::GenerateRCDT(ModelPart& rModelPart,
 				     MeshingVariables & rVariables,
 				     ModelPart::IndexType MeshId)
   {
@@ -917,7 +928,7 @@ namespace Kratos
 
 
       std::cout<<" [ [ [ ] ] ]"<<std::endl;
-    std::cout<<" [ Trigen PFEM CCDT Refine Mesher ]"<<std::endl;
+    std::cout<<" [ Trigen PFEM CDT Refine Mesher ]"<<std::endl;
     std::cout<<" [ PREVIOUS MESH (Elements: "<<rModelPart.NumberOfElements(MeshId)<<" Nodes: "<<rModelPart.NumberOfNodes(MeshId)<<" Conditions: "<<rModelPart.NumberOfConditions(MeshId)<<") ] MESH_ID: ["<<MeshId<<"]"<<std::endl;
 
 		    
@@ -972,9 +983,7 @@ namespace Kratos
     rVariables.idset=false;
 
     rVariables.MeshingOptions.Set(Modeler::SET_DOF);
-	
     SetTriangulateNodes(rModelPart,rVariables,in,out,MeshId); 
-
     rVariables.MeshingOptions.Reset(Modeler::SET_DOF);
     ////////////////////////////////////////////////////////////
 
@@ -1030,6 +1039,7 @@ namespace Kratos
     rVariables.idset=false;
     SetTriangulateNodes (rModelPart,rVariables,in,mid_out,MeshId);
 
+    ////////////////////////////////////////////////////////////
     rVariables.RefiningOptions.Set(Modeler::REFINE_ELEMENTS);
     rVariables.RefiningOptions.Set(Modeler::CRITERION_ENERGY);
     rVariables.RefiningOptions.Set(Modeler::REFINE_BOUNDARY);
@@ -1932,7 +1942,7 @@ namespace Kratos
 
 	    double Alpha =  rVariables.AlphaParameter;
 	    if(numboundary>=2)
-	      Alpha*=1.6;
+	      Alpha*=1.8;
 	
 	    // std::cout<<" vertices for the contact element "<<std::endl;
 	    // std::cout<<" (1): ["<<rVariables.PreIds[vertices[0].Id()]<<"] "<<vertices[0]<<std::endl;
@@ -2293,7 +2303,7 @@ namespace Kratos
 			
 
 		    double radius_factor = 3;
-		    if(NodalError[nodes_ids[in->Id()]] < 2 && mean_node_radius < radius_factor * rVariables.Refine.critical_radius)
+		    if(NodalError[nodes_ids[in->Id()]] < rVariables.Refine.reference_error && mean_node_radius < radius_factor * rVariables.Refine.critical_radius)
 		      {
 			//std::cout<<"   Energy : node remove ["<<in->Id()<<"] : "<<NodalError[nodes_ids[in->Id()]]<<std::endl;
 			in->Set(TO_ERASE);
@@ -2371,7 +2381,7 @@ namespace Kratos
 		if( in->IsNot(NEW_ENTITY) )
 		  {
 		    //radius=rVariables.Refine.size_factor*in->FastGetSolutionStepValue(NODAL_H);
-		    radius= rVariables.Refine.critical_radius * distance_factor;
+		    radius = rVariables.Refine.critical_radius * distance_factor;
 
 		    work_point[0]=in->X();
 		    work_point[1]=in->Y();
@@ -2831,6 +2841,7 @@ namespace Kratos
 	bool size_insert = false;
 	bool radius_insert = false;
 	bool energy_insert = false;
+	bool mesh_size_insert = false;
 	bool contact_active = false;
 	bool contact_semi_active = false;
 	bool tool_project = false;
@@ -3124,6 +3135,7 @@ namespace Kratos
 			
 	      radius_insert = false;
 	      energy_insert = false;
+	      mesh_size_insert = false;
 	      tool_project = false;
 	      contact_active = false;
 	      contact_semi_active = false;
@@ -3137,6 +3149,7 @@ namespace Kratos
 	      if( ic->IsNot(TO_ERASE) ){
 
 		// TOOL TIP INSERT;
+
 		//std::cout<<" Condition "<<ic->Id()<<"("<<ic->GetGeometry()[0].Id()<<", "<<ic->GetGeometry()[1].Id()<<") NOT RELEASE  (number: "<<cond_counter<<") "<<std::endl;
 
 		  
@@ -3282,7 +3295,38 @@ namespace Kratos
 		}
 
 
-		if( radius_insert || energy_insert ) //Boundary must be rebuild 
+		// BOUNDARY SIZE INSERT
+
+		if( (!radius_insert || !energy_insert) && vsize>0 ){
+		   
+		  Element::ElementType& MasterElement = ic->GetValue(MASTER_ELEMENTS)[vsize-1];
+
+		  //std::cout<<" MASTER_ELEMENT "<<MasterElement.Id()<<std::endl;
+
+				  
+		  Geometry<Node<3> >& vertices = MasterElement.GetGeometry();
+		  double Alpha =  rVariables.AlphaParameter;
+
+		  bool accepted=mModelerUtilities.AlphaShape(Alpha,vertices);
+		 
+		  //condition_radius is side_length
+		  side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);
+
+		  //condition_radius = mModelerUtilities.CalculateCircRadius (pGeom);
+
+		  //if(plastic_power > rVariables.Refine.critical_dissipation && condition_radius > rVariables.Refine.critical_radius)
+		  if( !accepted && side_length > rVariables.Refine.critical_side * non_contact_boundary_factor)
+		    {
+		      mesh_size_insert = true;
+
+		      std::cout<<"   insert on mesh size "<<std::endl;		      
+		    }
+		}
+
+
+
+
+		if( radius_insert || energy_insert || mesh_size_insert ) //Boundary must be rebuild 
 		  {
 
 		    std::cout<<"   BOUNDARY DOMAIN ELEMENT REFINED "<<ic->Id()<<std::endl;
@@ -3339,7 +3383,7 @@ namespace Kratos
 
 		    if(radius_insert)
 		      tip_bound ++;
-		    if(energy_insert)
+		    if(energy_insert || mesh_size_insert)
 		      exterior_bound++;
 
 		    ic->Set(TO_ERASE);

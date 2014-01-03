@@ -74,7 +74,7 @@ namespace Python
   {
     //this is the maximum number of parameters to compile successfully
     Mesher.SetRefineData ( refine, h_factor, critical_dissipation,
-			   critical_radius,reference_error, domain);
+			   critical_radius, reference_error, domain);
   }
 
   void SetWallTip(TriangleMesh2DModeler& Mesher,double radius, Vector center)
