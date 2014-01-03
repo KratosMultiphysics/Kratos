@@ -25,6 +25,7 @@
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/binbased_fast_point_locator.h"
 #include "utilities/binbased_nodes_in_element_locator.h"
+#include "../../DEM_application/DEM_application.h"
 
 namespace Kratos
 {
