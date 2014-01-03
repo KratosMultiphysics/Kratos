@@ -308,18 +308,18 @@ public:
     //*******************************************************************************************
     //*******************************************************************************************
 
-    void GenerateWPDT(ModelPart& rModelPart,
-		      MeshingVariables & rMeshingVariables,
-		      ModelPart::IndexType MeshId=0);
+    void GenerateRDT(ModelPart& rModelPart,
+		     MeshingVariables & rMeshingVariables,
+		     ModelPart::IndexType MeshId=0);
     
 
 
     //*******************************************************************************************
     //*******************************************************************************************
   
-    void GenerateWPCDT(ModelPart& rModelPart,
-		       MeshingVariables & rMeshingVariables,
-		       ModelPart::IndexType MeshId=0);
+    void GenerateRCDT(ModelPart& rModelPart,
+		      MeshingVariables & rMeshingVariables,
+		      ModelPart::IndexType MeshId=0);
         
 
     ///@}

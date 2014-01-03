@@ -75,28 +75,26 @@ Conditions*ndomains = {"Subdomain":*GenData(MeshDomains,*i), "Remesh":*GenData(M
 MeshConditions.append(Conditions*ndomains)
 *end
 
-BoxCenter = []
-BoxCenter.append(*GenData(Center_box,1))
-BoxCenter.append(*GenData(Center_box,2))
-BoxCenter.append(0)
-
-BoxVelocity = [] 
-BoxVelocity.append(*GenData(Velocity_box,1))
-BoxVelocity.append(*GenData(Velocity_box,2))
-BoxVelocity.append(0)
-
 #set mesh modeler configuration
 class mesh_modeler_config:
     number_domains = *ndomains
     size_scale = 1
-    critical_radius = *GenData(Critical_Mesh_Size)
+    critical_mesh_size = *GenData(Critical_Mesh_Size)
     critical_dissipation = *GenData(Critical_Dissipation)
     reference_error = *GenData(Critical_Error)
-    offset_factor = *GenData(Offset_Factor)   			  
+    offset_factor = *GenData(Offset_Factor)
+    tip_radius_refine = *GenData(Tip_Radius_Refine)
+    critical_tip_radius = *GenData(Critical_Tip_Radius)		  
     mesh_conditions = MeshConditions
-    box_refinement_only = "*GenData(Refine_on_box_only)"
-    box_center = BoxCenter
-    box_velocity = BoxVelocity
+    box_refinement_only = *GenData(Refine_on_box_only)
+    box_center = []
+    box_center.append(*GenData(Center_box,1))
+    box_center.append(*GenData(Center_box,2))
+    box_center.append(0)
+    box_velocity = []
+    box_velocity.append(*GenData(Velocity_box,1))
+    box_velocity.append(*GenData(Velocity_box,2))
+    box_velocity.append(0)
     box_radius = *GenData(Radius_box)
     remesh_frequency = *GenData(Meshing_Frequency)
 

@@ -185,7 +185,19 @@ class ModelerUtility:
         self.modeler_utils.SetDomainLabels(self.model_part);
 
         #set remesh-refine conditions to mesh modeler
-        radius_critical = configuration.critical_radius * configuration.size_scale
+        critical_mesh_size  = configuration.critical_mesh_size  * configuration.size_scale
+
+        #set mesh refinement based on wall tip discretization size
+        if(configuration.tip_radius_refine == True):
+
+            #tip arch opening (in degrees = 5-7.5-10)
+            tool_arch_opening = 5 
+            #tip surface length
+            tool_arch_length = tool_arch_opening * (3.1416/180.0);
+
+            #critical mesh size based on wall tip 
+            critical_mesh_size = tool_arch_length * configuration.critical_tip_radius * configuration.size_scale
+            
 
         if hasattr(configuration, 'box_refinement_only'):
             box_refinement_only = configuration.box_refinement_only
@@ -229,13 +241,14 @@ class ModelerUtility:
             self.mesh_modeler.SetRemeshData(conditions["MeshElement"],"CompositeCondition2D",self.remesh,self.constrained,self.laplacian_smoothing,self.jacobi_smoothing,self.avoid_tip_elements,self.alpha_shape,self.offset_factor,domain);
             print " --> Domain Refine [",conditions["Subdomain"],"] ", "Refine: ",conditions["Refine"]
             
-            self.mesh_modeler.SetRefineData(self.refine,self.h_factor,configuration.critical_dissipation,radius_critical,configuration.reference_error,domain)
+            self.mesh_modeler.SetRefineData(self.refine,self.h_factor,configuration.critical_dissipation,critical_mesh_size,configuration.reference_error,domain)
             
 
-            if(box_refinement_only == "True"):
+            if(box_refinement_only == True):
 
                 center_box      = Vector(self.domain_size)
                 velocity_box    = Vector(self.domain_size)
+
                 for size in range(0,self.domain_size):
                     center_box[size]   = configuration.box_center[size]   * configuration.size_scale
                     velocity_box[size] = configuration.box_velocity[size] * configuration.size_scale

@@ -106,20 +106,6 @@ remesh_domains = general_variables.RemeshDomains
 contact_search = general_variables.FindContacts
 modeler = modeler_utils.ModelerUtility(model_part,domain_size,remesh_domains, contact_search);
 
-# Optional : mesh refinement based on tool characteristics 
-
-#(deffault arch=5-10 degrees)
-#critical_radius      = 0.00004
-#critical_radius      = 0.025
-#critical_radius      = general_variables.tip_radius
-
-critical_radius      = general_variables.mesh_modeler_config.critical_radius
-
-#if(critical_radius > 5*general_variables.rigid_wall_config.tip_radius):
-#  critical_radius    = general_variables.rigid_wall_config.tip_radius
-
-# Optional : mesh refinement b#defining the mesh conditions
-
 # print check
 print " MESH CONDITIONS :", len(general_variables.MeshConditions)
 for conditions in general_variables.MeshConditions:
