@@ -18,7 +18,8 @@ set( KRATOS_CORE_SOURCES
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/mmio.c;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/timer.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/serializer.cpp;
- 	${CMAKE_CURRENT_SOURCE_DIR}/sources/kernel.cpp;
+        ${CMAKE_CURRENT_SOURCE_DIR}/sources/kernel.cpp;
+        ${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_flags.cpp;
  	${CMAKE_CURRENT_SOURCE_DIR}/sources/periodic_condition.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/includes/constitutive_law.cpp;
 	${CMAKE_CURRENT_SOURCE_DIR}/sources/kratos_components.cpp;
@@ -70,18 +71,18 @@ set( KRATOS_PYTHON_SOURCES
 ###############################################################
 ## define library KratosCore to be included in all of the others
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES})
+if(NOT EXISTS "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_export_dll.h")
 GENERATE_EXPORT_HEADER( KratosCore
              BASE_NAME KratosCore
              EXPORT_MACRO_NAME KRATOS_EXPORT_DLL
-             EXPORT_FILE_NAME kratos_export_dll.h
+             EXPORT_FILE_NAME ${PROJECT_SOURCE_DIR}/kratos/includes/kratos_export_dll.h
              STATIC_DEFINE KratosCore_BUILT_AS_STATIC
 )
+endif(NOT EXISTS "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_export_dll.h")
 ADD_COMPILER_EXPORT_FLAGS()
 target_link_libraries(KratosCore ${Boost_PYTHON_LIBRARIES} ${PYTHON_LIBRARIES} gidpost )
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "DKRATOS_EXPORT_INTERFACE=1")
 install(TARGETS KratosCore DESTINATION libs )
-
-file(COPY ${PROJECT_SOURCE_DIR}/cmake_build/kratos/kratos_export_dll.h DESTINATION ${PROJECT_SOURCE_DIR}/kratos/includes)
 
 # if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 #     SET_TARGET_PROPERTIES( KratosCore PROPERTIES COMPILE_FLAGS -fPIC)
@@ -105,7 +106,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 install(TARGETS Kratos DESTINATION libs )
-
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("subdir inc_dirs = ${inc_dirs}")
