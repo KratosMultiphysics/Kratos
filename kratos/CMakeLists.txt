@@ -74,7 +74,7 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_export_dll.h")
 GENERATE_EXPORT_HEADER( KratosCore
              BASE_NAME KratosCore
              EXPORT_MACRO_NAME KRATOS_EXPORT_DLL
-             EXPORT_FILE_NAME ${PROJECT_SOURCE_DIR}/kratos/includes/kratos_export_dll.h
+             EXPORT_FILE_NAME ../../kratos/includes/kratos_export_dll.h
              STATIC_DEFINE KratosCore_BUILT_AS_STATIC
 )
 endif(NOT EXISTS "${PROJECT_SOURCE_DIR}/kratos/includes/kratos_export_dll.h")
