@@ -411,15 +411,6 @@ if (ProjectParameters.inlet_option):
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
     DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor)
 
-def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
-    current_time += delta_time
-
-    while current_time < current_time_plus_increment - delta_time:
-        yield current_time
-        current_time += delta_time
-
-    current_time = current_time_plus_increment
-    yield current_time
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 # renumerating IDs if required
@@ -456,9 +447,11 @@ while(time <= final_time):
 
     if (ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
         time_final_DEM_substepping = time + Dt
+        time_dem = time + Dt_DEM
 
     else:
         time_final_DEM_substepping = time
+        time_dem = time - Dt + Dt_DEM
 
     # solving the fluid part
 
@@ -509,13 +502,16 @@ while(time <= final_time):
 
     print "Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)"
     first_dem_iter = True
-
-    for time_dem in yield_DEM_time(time_dem, time_final_DEM_substepping, Dt_DEM):
-        
+      
+    while time_dem < (time_final_DEM_substepping + Dt_DEM) :
+      
+        if time_dem > time_final_DEM_substepping:
+	  time_dem = time_final_DEM_substepping
+	  
         DEM_step += 1   # this variable is necessary to get a good random insertion of particles
         
         balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
-        
+                
         # applying fluid-to-DEM coupling if required
 
         if (time >= ProjectParameters.interaction_start_time and ProjectParameters.projection_module_option and (ProjectParameters.project_at_every_substep_option or first_dem_iter)):
@@ -529,6 +525,9 @@ while(time <= final_time):
         # performing the time integration of the DEM part
 
         balls_model_part.CloneTimeStep(time_dem)
+        
+        #actual_Dt_DEM = balls_model_part.ProcessInfo[DELTA_TIME] #uncomment if you want to use the actual Dt for the DEM (obtained by CloneTimeStep)
+
         dem_solver.Solve()
 
         # adding DEM elements by the inlet
@@ -537,6 +536,8 @@ while(time <= final_time):
             DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, ProjectParameters.dem_inlet_element_type) #After solving, to make sure that neighbours are already set.
 
         first_dem_iter = False
+        
+        time_dem += Dt_DEM
 
     # measuring mean velocities in a certain control volume (the 'velocity trap')
 
