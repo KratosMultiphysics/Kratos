@@ -91,6 +91,7 @@ public:
 
     void BuildTotalMesh (ModelPart& rModelPart);
     
+    void CleanMeshFlags (ModelPart& rModelPart,ModelPart::IndexType MeshId=0);
 
     void CleanRemovedNodes (ModelPart& rModelPart,ModelPart::IndexType MeshId=0);
 

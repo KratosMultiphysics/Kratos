@@ -42,6 +42,7 @@ namespace Kratos
 
   }
 
+
   //*******************************************************************************************
   //*******************************************************************************************
 
@@ -169,6 +170,28 @@ namespace Kratos
  
   }
   
+
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void ModelerUtilities::CleanMeshFlags(ModelPart& rModelPart,ModelPart::IndexType MeshId)
+  {
+    
+    for(ModelPart::NodesContainerType::const_iterator i_node = rModelPart.NodesBegin(MeshId); i_node != rModelPart.NodesEnd(MeshId); i_node++)
+      {
+
+	i_node->Reset(NEW_ENTITY); //reset here if the node is labeled as insert 
+	i_node->Reset(TO_REFINE); //reset here if the node is labeled as refine (to not duplicate bo
+
+      }
+
+    for(ModelPart::ConditionsContainerType::iterator i_cond = rModelPart.ConditionsBegin(MeshId) ; i_cond != rModelPart.ConditionsEnd(MeshId) ; i_cond++)
+      {
+	i_cond->Reset(NEW_ENTITY); //reset here if the node is inserted
+      }
+  }
+
+
   //*******************************************************************************************
   //*******************************************************************************************
 
