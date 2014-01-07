@@ -135,8 +135,11 @@ class ExplicitStrategy:
         self.rotation_spring_option         = Var_Translator(Param.RotationalSpringOption)  
         self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)
         self.activate_search                = 0 
-        if (len(fem_model_part.Nodes)>0):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
+        if (len(fem_model_part.Nodes)>0 or Param.ConcreteTestOption== "BTS" ):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
+           print "Search is active from the beginning."
            self.activate_search             = 1
+        else:
+           print "Search is not active at the beginning."
         self.fix_velocities                 = Var_Translator(Param.FixVelocitiesOption)       
         self.fix_horizontal_vel             = Var_Translator(Param.HorizontalFixVel)
  #        self.limit_surface_option           = Param.LimitSurfaceOption
