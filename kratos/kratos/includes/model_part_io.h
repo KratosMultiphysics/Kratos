@@ -669,7 +669,7 @@ protected:
 
     ///@}
 
-private:
+protected:
     ///@name Static Member Variables
     ///@{
 
@@ -3094,17 +3094,17 @@ private:
         WriteInAllFiles(OutputFiles, "    End LocalNodes \n");
 
 
-        std::vector<PartitionIndicesContainerType> local_nodes_indices(NumberOfPartitions, PartitionIndicesContainerType(NumberOfPartitions));
-        std::vector<PartitionIndicesContainerType> ghost_nodes_indices(NumberOfPartitions, PartitionIndicesContainerType(NumberOfPartitions));
+        std::vector<PartitionIndicesContainerType> local_nodes_indices(NumberOfPartitions, PartitionIndicesContainerType(number_of_colors));
+        std::vector<PartitionIndicesContainerType> ghost_nodes_indices(NumberOfPartitions, PartitionIndicesContainerType(number_of_colors));
 
-        matrix<int> interface_indices = scalar_matrix<int>(NumberOfPartitions, NumberOfPartitions, -1);
+        matrix<int> interface_indices = scalar_matrix<int>(NumberOfPartitions, number_of_colors, -1);
 
         for(SizeType i_partition = 0 ; i_partition < NumberOfPartitions ; i_partition++)
         {
             vector<int> neighbours_indices = row(DomainsColoredGraph, i_partition);
 
             for(SizeType i = 0 ; i <  neighbours_indices.size() ; i++)
-                if(SizeType(neighbours_indices[i]) < NumberOfPartitions)
+                if(SizeType(neighbours_indices[i]) < number_of_colors)
                     interface_indices(i_partition,neighbours_indices[i]) = i;
         }
 
