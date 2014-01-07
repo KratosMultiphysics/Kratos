@@ -2305,7 +2305,7 @@ namespace Kratos
 		    double radius_factor = 3;
 		    if(NodalError[nodes_ids[in->Id()]] < rVariables.Refine.reference_error && mean_node_radius < radius_factor * rVariables.Refine.critical_radius)
 		      {
-			//std::cout<<"   Energy : node remove ["<<in->Id()<<"] : "<<NodalError[nodes_ids[in->Id()]]<<std::endl;
+			std::cout<<"   Energy : node remove ["<<in->Id()<<"] : "<<NodalError[nodes_ids[in->Id()]]<<std::endl;
 			in->Set(TO_ERASE);
 			any_node_removed = true;
 			error_remove++;
@@ -2403,6 +2403,7 @@ namespace Kratos
 
 			    if( erased_nodes < 1){ //we release the node if no other nodes neighbours are being erased
 			      in->Set(TO_ERASE);
+			      std::cout<<"  Distance Criterion Node to erase "<<in->Id()<<std::endl;
 			      any_node_removed = true;
 			      inside_nodes_removed++;
 			      //distance_remove++;
@@ -2432,6 +2433,7 @@ namespace Kratos
 
 			    if(counter > 0 && in->IsNot(NEW_ENTITY) && in->IsNot(CONTACT) ){ //Can be inserted in the boundary refine
 			      in->Set(TO_ERASE);
+			      std::cout<<"  Distance Criterion 2 Node to erase "<<in->Id()<<std::endl;
 			      any_node_removed = true;
 			      boundary_nodes_removed++;
 			      //distance_remove ++;
