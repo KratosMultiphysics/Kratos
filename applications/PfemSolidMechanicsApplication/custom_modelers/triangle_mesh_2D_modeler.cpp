@@ -312,8 +312,12 @@ namespace Kratos
       }
 
     //Once all meshes are build, the main mesh Id=0 must be reassigned
-    if(NumberOfMeshes>1) 
+    if(NumberOfMeshes>1){
       mModelerUtilities.BuildTotalMesh(rModelPart);
+    }
+    else{
+      mModelerUtilities.CleanMeshFlags(rModelPart,0);
+    }
 	
     //remesh_performed = false; //deactivate searches
 	   
@@ -2449,7 +2453,7 @@ namespace Kratos
 	////////////////////////////////////////////////////////////
 			
 	distance_remove =  inside_nodes_removed+ boundary_nodes_removed;
-	std::cout<<"   REMOVED DUE DISTANCE: "<<distance_remove<<" ( inside: "<<inside_nodes_removed<<" boundary: "<<boundary_nodes_removed<<" ) "<<std::endl;
+	std::cout<<"   REMOVED DUE DISTANCE: "<<distance_remove<<" ( inside: "<<inside_nodes_removed<<", boundary: "<<boundary_nodes_removed<<" ) "<<std::endl;
 
 	if(any_node_removed)
 	  mModelerUtilities.CleanRemovedNodes(rModelPart,MeshId);
@@ -2467,13 +2471,13 @@ namespace Kratos
   {
 
     KRATOS_TRY;
-    std::cout<<" [ REMOVE NON CONVEX BOUNDARY : "<<std::endl;
-    std::cout<<"   Conditions : "<<rModelPart.Conditions(MeshId).size()<<std::endl;
+    std::cout<<"   [ REMOVE NON CONVEX BOUNDARY : "<<std::endl;
+    std::cout<<"     Starting Conditions : "<<rModelPart.Conditions(MeshId).size()<<std::endl;
 
     double critical_angle = -140;
     std::vector<std::vector<Condition::Pointer> > node_shared_conditions(rModelPart.NumberOfNodes()+1); //all domain nodes
       
-    std::cout<<"   Shared Conditions Size "<<node_shared_conditions.size()<<std::endl;
+    //std::cout<<"     Shared Conditions Size "<<node_shared_conditions.size()<<std::endl;
 
     for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(MeshId); ic!= rModelPart.ConditionsEnd(MeshId); ic++)
       {	 
@@ -2482,14 +2486,14 @@ namespace Kratos
 	  for(unsigned int i=0; i<rConditionGeom.size(); i++){
 	    //std::cout<<"["<<ic->Id()<<"] i "<<i<<" condition "<<rConditionGeom[i].Id()<<std::endl;
 	    if(rConditionGeom[i].Is(TO_ERASE))
-	      std::cout<<" Released node condition: WARNING "<<std::endl;
+	      std::cout<<"     Released node condition: WARNING "<<std::endl;
 
 	    node_shared_conditions[rConditionGeom[i].Id()].push_back(*(ic.base()));	  
 	  }
 	}
       }
 
-    std::cout<<"   Node Shared Conditions Set "<<std::endl;
+    //std::cout<<"     Node Shared Conditions (Pair of Condition Nodes) is now set "<<std::endl;
 
     //angles 
     double condition_angle = 0;
@@ -2524,16 +2528,16 @@ namespace Kratos
 
 	    if(node_shared_conditions[nodeId].size()>=2){
 
-	      //std::cout<<" nodeId "<<nodeId<<std::endl;
+	      // std::cout<<"     nodeId "<<nodeId<<std::endl;
 	      if(node_shared_conditions[nodeId][0]->IsNot(TO_ERASE) && node_shared_conditions[nodeId][1]->IsNot(TO_ERASE)){
 		
-		if(node_shared_conditions[nodeId][0]->Id() == in->Id()){
+		if(node_shared_conditions[nodeId][0]->GetGeometry()[0].Id() == in->Id()){
 		  i = 1;
 		  j = 0;
 		}
 		else{
-		  j = 1;
 		  i = 0;
+		  j = 1;
 		}
 	      
 		  
@@ -2544,8 +2548,8 @@ namespace Kratos
 		//normal condition [2]
 		N2 = node_shared_conditions[nodeId][j]->GetValue(NORMAL);
 	      
-		// std::cout<<" N1 "<<N1<<std::endl;
-		// std::cout<<" N2 "<<N2<<std::endl;
+		// std::cout<<"     N1 "<<N1<<std::endl;
+		// std::cout<<"     N2 "<<N2<<std::endl;
 		
 
 		Geometry< Node<3> >& rConditionGeom1 = node_shared_conditions[nodeId][i]->GetGeometry();
@@ -2556,6 +2560,9 @@ namespace Kratos
 		Node<3> & Node0 = rConditionGeom1[0]; // other node in condition [1]
 		Node<3> & Node2 = rConditionGeom2[1]; // other node in condition [2]
 
+
+		// std::cout<<"     Node0: "<<rConditionGeom1[0].Id()<<" Node 1: "<<rConditionGeom1[1].Id()<<std::endl;
+		// std::cout<<"     Node1: "<<rConditionGeom2[0].Id()<<" Node 2: "<<rConditionGeom2[1].Id()<<std::endl;
 		//segment condition [1]
 		S1[0] = rConditionGeom1[1].X() - rConditionGeom1[0].X();
 		S1[1] = rConditionGeom1[1].Y() - rConditionGeom1[0].Y();
@@ -2564,8 +2571,8 @@ namespace Kratos
 		S2[0] = rConditionGeom2[1].X() - rConditionGeom2[0].X();
 		S2[1] = rConditionGeom2[1].Y() - rConditionGeom2[0].Y();
 		  
-		// std::cout<<" S1 "<<S1<<std::endl;
-		// std::cout<<" S2 "<<S2<<std::endl;
+		// std::cout<<"     S1 "<<S1<<std::endl;
+		// std::cout<<"     S2 "<<S2<<std::endl;
 
 		double distance_factor = 0.004;
 		double radius= rVariables.Refine.critical_radius * distance_factor;
@@ -2600,11 +2607,11 @@ namespace Kratos
 		  //properties to be used in the generation
 		  Properties::Pointer properties = NewCond->pGetProperties();
 		  Condition::Pointer pcond       = NewCond->Create(new_id, face, properties);
-		  // std::cout<<" ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
+		  // std::cout<<"     ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
 
 		  pcond->Set(NEW_ENTITY);
 
-		  std::cout<<"  Condition INSERTED (Id: "<<new_id<<") ["<<rConditionGeom1[0].Id()<<", "<<rConditionGeom2[1].Id()<<"] "<<std::endl;
+		  std::cout<<"     Condition INSERTED (Id: "<<new_id<<") ["<<rConditionGeom1[0].Id()<<", "<<rConditionGeom2[1].Id()<<"] "<<std::endl;
 
 		  pcond->SetValue(NORMAL, NewCond->GetValue(NORMAL) );
 
@@ -2628,9 +2635,9 @@ namespace Kratos
 		  if(projection_normals!=0)
 		    relative_angle = projection_sides/projection_normals;
 
-		  // std::cout<<"   projection_sides "<<projection_sides<<std::endl;
-		  // std::cout<<"   projection_normals "<<projection_normals<<std::endl;
-		  // std::cout<<"   relative_angle "<<relative_angle<<std::endl;
+		  // std::cout<<"     projection_sides "<<projection_sides<<std::endl;
+		  // std::cout<<"     projection_normals "<<projection_normals<<std::endl;
+		  // std::cout<<"     relative_angle "<<relative_angle<<std::endl;
 		  
 		  condition_angle = (180.0/3.14159) * std::acos(relative_angle);
 
@@ -2650,8 +2657,8 @@ namespace Kratos
 		    in->Set(TO_ERASE);    //release Node1*
 		    Node2.Set(TO_ERASE);  //release Node2
 		    
-		    std::cout<<" Node Release i "<<in->Id()<<std::endl;
-		    std::cout<<" Node Release j "<<Node2.Id()<<std::endl;
+		    std::cout<<"     Node Release i "<<in->Id()<<std::endl;
+		    std::cout<<"     Node Release j "<<Node2.Id()<<std::endl;
 
 		    //set Node0 to a new position (between 0 and 2)
 		    Node0.X() = 0.5 * ( Node0.X() + Node2.X() );
@@ -2730,7 +2737,7 @@ namespace Kratos
 
 		    pcond->Set(NEW_ENTITY);
 
-		    std::cout<<"  Condition INSERTED (Id: "<<new_id<<") ["<<rConditionGeom1[0].Id()<<", "<<rConditionGeom3[1].Id()<<"] "<<std::endl;
+		    std::cout<<"     Condition INSERTED (Id: "<<new_id<<") ["<<rConditionGeom1[0].Id()<<", "<<rConditionGeom3[1].Id()<<"] "<<std::endl;
 
 		    pcond->SetValue(NORMAL, NewCond->GetValue(NORMAL) );
 
@@ -2755,8 +2762,8 @@ namespace Kratos
 	in->Reset(BLOCKED);
       }
 	      
-    std::cout<<"   Conditions : "<<rModelPart.Conditions(MeshId).size()<<" Removed nodes: "<< removed_nodes<<std::endl;
-    std::cout<<"   REMOVE NON CONVEX BOUNDARY ]; "<<std::endl;
+    std::cout<<"     Ending   Conditions : "<<rModelPart.Conditions(MeshId).size()<<"  (Removed nodes: "<< removed_nodes<<" ) "<<std::endl;
+    std::cout<<"     REMOVE NON CONVEX BOUNDARY ]; "<<std::endl;
     KRATOS_CATCH(" ")
       };
 
@@ -3103,7 +3110,7 @@ namespace Kratos
 	      }
 	  }
 
-	std::cout<<"   (Contact Conditions : "<<total_contact_conditions<<", Contacts_in_domain: "<<number_contacts_domain<<", Of_them_active: "<<number_contacts_active<<") "<<std::endl;
+	std::cout<<"   [ Contact Conditions : "<<total_contact_conditions<<", (contacts in domain: "<<number_contacts_domain<<", of them active: "<<number_contacts_active<<") ] "<<std::endl;
 	std::cout<<"   Contact Search End ["<<list_of_conditions.size()<<" : "<<list_of_nodes.size()<<"]"<<std::endl;
 	std::cout<<"   Boundary Search Start "<<std::endl;
 	    
@@ -3414,7 +3421,7 @@ namespace Kratos
 	  
 	std::cout<<"   Boundary Search End ["<<list_of_conditions.size()<<" : "<<list_of_nodes.size()<<"]"<<std::endl;
 
-	std::cout<<"   [contact (TIP: "<<contact_tip<<"; SIZE: "<<contact_size<<"); bound(TIP: "<<tip_bound<<"; SIZE: "<<exterior_bound<<")]"<<std::endl;
+	std::cout<<"   [contact(TIP: "<<contact_tip<<", SIZE: "<<contact_size<<") -  bound(TIP: "<<tip_bound<<", SIZE: "<<exterior_bound<<")]"<<std::endl;
 
 	std::cout<<"   Added nodes on boundary: "<<list_of_nodes.size()<<std::endl;
   
@@ -3488,9 +3495,11 @@ namespace Kratos
 	      }
 
 		
-	    //set specific controles values and flags:
+	    //set specific controls values and flags:
 	    pnode->Set(BOUNDARY);
 	    pnode->Set(NEW_ENTITY);  //if boundary is rebuild, the flag INSERTED must be set to new conditions too
+	    std::cout<<" node "<<pnode->Id()<<" is new entity "<<std::endl;
+	    
 	    pnode->SetValue(DOMAIN_LABEL,MeshId);
 	    double& nodal_h = pnode->FastGetSolutionStepValue(NODAL_H);
 	    //nodal_h = 0.5*(nodal_h+rVariables.Refine.critical_side); //modify nodal_h for security
@@ -3580,7 +3589,7 @@ namespace Kratos
 
 
     std::cout<<"   Nodes and Conditions : "<<rModelPart.Nodes(MeshId).size()<<", "<<rModelPart.Conditions(MeshId).size()<<std::endl;
-    std::cout<<"   GENERATE NEW NODES ]; "<<std::endl;
+    std::cout<<"   REFINE BOUNDARY ]; "<<std::endl;
     KRATOS_CATCH(" ")
       };
 
@@ -3948,9 +3957,15 @@ namespace Kratos
 			Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
 
 			bool inserted = false;
-			if( rConditionGeom[0].Is(NEW_ENTITY) || rConditionGeom[1].Is(NEW_ENTITY) )
-			  inserted = true;
 
+			if( rConditionGeom[0].Is(NEW_ENTITY) || rConditionGeom[1].Is(NEW_ENTITY) ){
+			  inserted = true;
+			  if(rConditionGeom[0].Is(NEW_ENTITY))
+			    std::cout<<" node 0: Id-> "<<rConditionGeom[0].Id()<<" is new entity "<<std::endl;
+			  if(rConditionGeom[1].Is(NEW_ENTITY))
+			    std::cout<<" node 1: Id-> "<<rConditionGeom[1].Id()<<" is new entity "<<std::endl;
+
+			}
 
 			if(ic->Is(NEW_ENTITY))
 			  {
@@ -3972,6 +3987,7 @@ namespace Kratos
 			      PreservedConditions[ic->Id()-1] += 1; //add each time is used
 			      if( rConditionGeom.PointsNumber() == 1 )
  			          point_condition = true;	
+
 			      condition_found=true;
 			    }
 			  }
@@ -3989,16 +4005,16 @@ namespace Kratos
 			      pBoundaryCondition = (*(ic.base())); //accessing boost::shared_ptr  get() to obtain the raw pointer
 			      PreservedConditions[ic->Id()-1] += 1; //add each time is used
 			      if( rConditionGeom.PointsNumber() == 1 )
- 			          point_condition = true;	
+ 			          point_condition = true;
+	
 			      condition_found=true;
 			    }	
-			  }			
 
-			  std::cout<<" INSERTED COND "<<ic->Id()<<std::endl;
+			    std::cout<<" INSERTED COND "<<ic->Id()<<std::endl;
+			  }			
+			  
 			}
-			    			    
-			    
-			    
+			    			    			    			    
 		      }
 		      else{
 			    
