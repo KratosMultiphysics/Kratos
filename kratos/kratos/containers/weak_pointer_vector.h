@@ -186,7 +186,7 @@ public:
         if( size() != r.size() )
             return false;
         else
-            return std::equal(mData.begin(), mData.end(), r.mData.begin(), this->EqualKeyTo());
+            return std::equal(mData.begin(), mData.end(), r.mData.begin());
     }
 
     ///@}
