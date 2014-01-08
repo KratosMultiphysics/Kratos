@@ -146,43 +146,51 @@ public:
     {
 	KRATOS_TRY
 	if ((mr_model_part.NumberOfTables())==0)
-		            KRATOS_ERROR(std::logic_error, "Tables of the modelpart are empty", "");
+		KRATOS_ERROR(std::logic_error, "Tables of the modelpart are empty", "");
 	if (mgroup_ids.size()==0)
 		KRATOS_ERROR(std::logic_error, "No groups to translate", "");
 	if (mtable_ids.size()<3)
 		KRATOS_ERROR(std::logic_error, "Table's Vector too small!. Must be at least of size 3 for the 3 displacements", "");
 	ProcessInfo& CurrentProcessInfo = mr_model_part.GetProcessInfo();
 	double time = CurrentProcessInfo[TIME];
-	//double delta_t = CurrentProcessInfo[DELTA_TIME];	
-		
+
 	//tables are used in the following way
 	//table(table_ids[0]) is the x displacement, table(table_ids[1]) is the y_displacement and table(table_ids[2]) is the z_displacement
 	//table0(time,displacement(time)
+    
 	Table<double,double>& TranslationTableX = mr_model_part.GetTable(mtable_ids[0]);
-	//KRATOS_WATCH(mtable_ids[0]);
 	Table<double,double>& TranslationTableY = mr_model_part.GetTable(mtable_ids[1]);
-	//KRATOS_WATCH(mtable_ids[1]);
 	Table<double,double>& TranslationTableZ = mr_model_part.GetTable(mtable_ids[2]);
-	//KRATOS_WATCH(mtable_ids[2]);
+
 	array_1d<double,3> translation = ZeroVector(3);
 	translation(0)=TranslationTableX(time);
 	translation(1)=TranslationTableY(time);
 	translation(2)=TranslationTableZ(time);
 	
-		
+	
 	for (unsigned int mesh_index=0;mesh_index<mgroup_ids.size();mesh_index++) //we loop around the desired groups
 	{
+      
 		const int mesh_id=mgroup_ids[mesh_index];
 		ModelPart::MeshType& current_mesh = mr_model_part.GetMesh(mesh_id);
 		ModelPart::NodesContainerType::iterator inodebegin = current_mesh.NodesBegin();
-		//ModelPart::NodesContainerType::iterator inodeend = mgroup_container(mesh_id).NodesEnd();
-		#pragma omp parallel for
+
+		#pragma omp parallel 
+        
+        #pragma omp for
 		for(int ii=0; ii< static_cast<int>(current_mesh.Nodes().size()); ii++)
 		{
+                    
 			ModelPart::NodesContainerType::iterator pnode = inodebegin+ii;
+            
 			pnode->Coordinates() = pnode->GetInitialPosition().Coordinates()+translation;
+            
 			if (pnode->SolutionStepsDataHas(DISPLACEMENT_X))
+            {
+
 				pnode->FastGetSolutionStepValue(DISPLACEMENT) = translation;
+            }
+
 		}
 	}
         KRATOS_CATCH("")
