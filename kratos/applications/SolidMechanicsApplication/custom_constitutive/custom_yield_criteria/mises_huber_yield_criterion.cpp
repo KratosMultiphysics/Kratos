@@ -92,7 +92,7 @@ double& MisesHuberYieldCriterion::CalculateYieldCondition(double & rStateFunctio
 	rStateFunction = rStressNorm - sqrt(2.0/3.0) * Hardening;
 		
 	return rStateFunction;
-};
+}
 
 
 //***************************CALCULATE STATE FUNCTION ********************************
@@ -115,7 +115,7 @@ double& MisesHuberYieldCriterion::CalculateStateFunction(double & rStateFunction
 	rStateFunction = rStressNorm - 2.0 * rLameMu_bar * rDeltaGamma - sqrt(2.0/3.0) * ( Hardening );
 		
 	return rStateFunction;
-};
+}
 
 
 //***************************CALCULATE STATE FUNCTION ********************************
@@ -136,7 +136,7 @@ double& MisesHuberYieldCriterion::CalculateDeltaStateFunction(double & rDeltaSta
 	rDeltaStateFunction = 2.0 * rLameMu_bar + (2.0/3.0) * DeltaHardening;
 		
 	return rDeltaStateFunction;
-};
+}
 
 
 //***************************CALCULATE PLASTIC DISSIPATION****************************
@@ -146,7 +146,7 @@ double& MisesHuberYieldCriterion::CalculatePlasticDissipation(double & rPlasticD
 {
 	rPlasticDissipation = 0;
 	return rPlasticDissipation;
-};
+}
 
 
 //**********************CALCULATE DELTA PLASTIC DISSIPATION***************************
@@ -156,7 +156,7 @@ double& MisesHuberYieldCriterion::CalculateDeltaPlasticDissipation(double & rDel
 {
 	rDeltaPlasticDissipation = 0;
 	return rDeltaPlasticDissipation;
-};
+}
 
 
 //***************************CALCULATE PLASTIC DISSIPATION****************************
@@ -166,7 +166,7 @@ double& MisesHuberYieldCriterion::CalculateImplexPlasticDissipation(double & rPl
 {
 	rPlasticDissipation = 0;
 	return rPlasticDissipation;
-};
+}
 
 
 //**********************CALCULATE DELTA PLASTIC DISSIPATION***************************
@@ -176,7 +176,7 @@ double& MisesHuberYieldCriterion::CalculateImplexDeltaPlasticDissipation(double 
 {
 	rDeltaPlasticDissipation = 0;
 	return rDeltaPlasticDissipation;
-};
+}
 
 
 
