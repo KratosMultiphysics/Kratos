@@ -299,12 +299,12 @@ QUESTION: Stress_Strain_Operations#CB#(ON,OFF)
 VALUE: OFF
 QUESTION: Contact_Mesh#CB#(ON,OFF)
 VALUE: OFF
-QUESTION: Concrete_Test#CB#(UCS,TRIAXIAL,EDOMETRIC,BTS,OFF)
+QUESTION: Concrete_Test#CB#(UCS,TRIAXIAL,OEDOMETRIC,BTS,OFF)
 VALUE: OFF
 DEPENDENCIES: (OFF,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#,HIDE,RADIAL_DISPLACEMENT,#CURRENT#,HIDE,Specimen_height,#CURRENT#,HIDE,Specimen_width,#CURRENT#,HIDE,Measuring_Surface,#CURRENT#,HIDE,Poisson_Measure,#CURRENT#,HIDE,Measuring_Width,#CURRENT#,HIDE,Real_Time_Graph,#CURRENT#) 
 DEPENDENCIES: (UCS,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#,RESTORE,Measuring_Surface,#CURRENT#,RESTORE,Poisson_Measure,#CURRENT#,RESTORE,Measuring_Width,#CURRENT#,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#) 
 DEPENDENCIES: (TRIAXIAL,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#,RESTORE,Measuring_Surface,#CURRENT#,RESTORE,Poisson_Measure,#CURRENT#,RESTORE,Measuring_Width,#CURRENT#,RESTORE,Confinement_Pressure,#CURRENT#,RESTORE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#)
-DEPENDENCIES: (EDOMETRIC,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#,HIDE,Confinement_Pressure,0.0,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#,RESTORE,Measuring_Surface,#CURRENT#,HIDE,Poisson_Measure,#CURRENT#,HIDE,Measuring_Width,#CURRENT#)
+DEPENDENCIES: (OEDOMETRIC,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#,HIDE,Confinement_Pressure,0.0,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#,RESTORE,Measuring_Surface,#CURRENT#,HIDE,Poisson_Measure,#CURRENT#,HIDE,Measuring_Width,#CURRENT#)
 DEPENDENCIES: (BTS,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#,HIDE,RADIAL_DISPLACEMENT,#CURRENT#,HIDE,Specimen_height,#CURRENT#,HIDE,Specimen_width,#CURRENT#,HIDE,Measuring_Surface,#CURRENT#,HIDE,Poisson_Measure,#CURRENT#,HIDE,Measuring_Width,#CURRENT#,HIDE,Real_Time_Graph,#CURRENT#) 
 QUESTION: Specimen_height
 VALUE: 0.30
