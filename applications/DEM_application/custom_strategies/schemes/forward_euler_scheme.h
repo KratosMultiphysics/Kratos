@@ -29,7 +29,6 @@
 
 #include "DEM_application.h"
 
-#define DEBUG_PARTICLE -1
 
 namespace Kratos
 {
@@ -122,12 +121,6 @@ namespace Kratos
                   
                   double aux = delta_t / mass;     
                   
-                  if(i->Id() == DEBUG_PARTICLE)
-                  {
-                      std::cout << "\t" << displ[0] << " " << displ[1] << " " << displ[2] << std::endl;
-                  }
-
-
                   i->FastGetSolutionStepValue(OLD_COORDINATES) = coor; //saving the coordinates in order to optimize some functions (specially de previous step coordinates)  
 
 
@@ -237,11 +230,6 @@ namespace Kratos
                   double mass                            = i->FastGetSolutionStepValue(SQRT_OF_MASS);
                   mass                                  *= mass;
                   double aux = delta_t / mass;     
-                  
-                  if(i->Id() == DEBUG_PARTICLE)
-                  {
-                      std::cout << "\t" << displ[0] << " " << displ[1] << " " << displ[2] << std::endl;
-                  }
 
                   i->FastGetSolutionStepValue(OLD_COORDINATES) = coor; //saving the coordinates in order to optimize some functions (specially de previous step coordinates)  s
                   
