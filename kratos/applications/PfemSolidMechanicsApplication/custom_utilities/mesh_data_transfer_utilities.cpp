@@ -581,7 +581,7 @@ namespace Kratos
 	    KRATOS_ERROR( std::logic_error,"SOMETHING's wrong with the added nodes!!!!!! ERROR", "" )
 
 	  return VariablesListData;
-	};
+	}
 
 
 }  // namespace Kratos.
