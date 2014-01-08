@@ -189,10 +189,11 @@ KRATOS_CREATE_VARIABLE( double, DP_ALPHA1 )
 KRATOS_CREATE_VARIABLE( double, DP_K )
 KRATOS_CREATE_VARIABLE( int, CALCULATE_INSITU_STRESS )
 KRATOS_CREATE_VARIABLE( double, INTERNAL_FRICTION_ANGLE )
-    KRATOS_CREATE_VARIABLE( double, PERMEABILITY_28_DAYS )
-    KRATOS_CREATE_VARIABLE( double, PERMEABILITY_1_DAY )
-    KRATOS_CREATE_VARIABLE( double, PERMEABILITY_TRANSITION )
-    KRATOS_CREATE_VARIABLE( double, K0 )
+KRATOS_CREATE_VARIABLE( double, PERMEABILITY_28_DAYS )
+KRATOS_CREATE_VARIABLE( double, PERMEABILITY_1_DAY )
+KRATOS_CREATE_VARIABLE( double, PERMEABILITY_TRANSITION )
+KRATOS_CREATE_VARIABLE( double, K0 )
+KRATOS_CREATE_VARIABLE( double, NODAL_VOLUME )
 
 //CONTACT_LINK_MASTER is defined in condition.h
 //     KRATOS_CREATE_VARIABLE( Condition::Pointer, CONTACT_LINK_MASTER )
@@ -596,6 +597,7 @@ KRATOS_CREATE_VARIABLE(double,  FLUID_TEMPERATURE )
 KRATOS_CREATE_VARIABLE(double,  AMBIENT_TEMPERATURE )
 KRATOS_CREATE_VARIABLE(double,  Y_WALL)
 
+
 KratosApplication::KratosApplication() :
     mCondition3D( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mCondition2D( 0, Element::GeometryType::Pointer( new Geometry<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
@@ -711,6 +713,7 @@ void KratosApplication::RegisterVariables()
     KRATOS_REGISTER_VARIABLE( CALCULATE_INSITU_STRESS )
     KRATOS_REGISTER_VARIABLE( INTERNAL_FRICTION_ANGLE )
     KRATOS_REGISTER_VARIABLE( K0 )
+	KRATOS_REGISTER_VARIABLE( NODAL_VOLUME )
 
 
     //CONTACT_LINK_MASTER is defined in condition.h
@@ -1049,6 +1052,7 @@ void KratosApplication::RegisterVariables()
     KRATOS_REGISTER_VARIABLE( FLUID_TEMPERATURE ); 
     KRATOS_REGISTER_VARIABLE( AMBIENT_TEMPERATURE);
     KRATOS_REGISTER_VARIABLE(Y_WALL);
+
 
     //registering geometries in Serializer
     Line2D2<Node<3> > Line2D2Prototype( Element::GeometryType::PointsArrayType( 2, Node<3>() ) );
