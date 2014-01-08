@@ -148,36 +148,44 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
     chart = open("Provisional_CHART.grf", 'w')
     
     if(DEM_parameters.ConcreteTestOption == "BTS"):
-        bts_export = open(DEM_parameters.problem_name +"_bts_"+str(datetime.datetime.now())+".grf",'w');
 
+        bts_export = open(DEM_parameters.problem_name +"_bts_"+str(datetime.datetime.now())+".grf",'w');      
+        proc.BtsSkinDetermination(balls_model_part,solver,DEM_parameters)
+        
     else:
+
       graph_export_top = open(DEM_parameters.problem_name +"_Provisional_TOP.grf", 'w')
       graph_export_bot = open(DEM_parameters.problem_name +"_Provisional_BOT.grf", 'w')
       graph_export_mean = open(DEM_parameters.problem_name +"_Provisional_MEAN.grf", 'w')
-    
-    if (DEM_parameters.PoissonMeasure =="ON"):
+
       
-      graph_export_poisson = open(DEM_parameters.problem_name + "_poisson_"+str(datetime.datetime.now())+".csv",'w');
+      #measuring height:
+      pre_utilities = PreUtilities(balls_model_part)
+    
+      (subtotal_top,weight_top) = pre_utilities.MeasureTopHeigh(balls_model_part)
+      (subtotal_bot,weight_bot) = pre_utilities.MeasureBotHeigh(balls_model_part)
+
+      mean_top = subtotal_top/weight_top;
+      mean_bot = subtotal_bot/weight_bot;
+    
+      ini_height = mean_top - mean_bot
+
+      height = ini_height    
+    
+      print ('Initial Height of the Model: ' + str(ini_height)+'\n')
+      
+      
+      if(DEM_parameters.PredefinedSkinOption == "ON" ):
+        print "ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF"
+
+      (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = proc.CylinderSkinDetermination(balls_model_part,solver,DEM_parameters) # defines the skin and areas
+       
+      if (DEM_parameters.PoissonMeasure =="ON"):
+        
+        graph_export_poisson = open(DEM_parameters.problem_name + "_poisson_"+str(datetime.datetime.now())+".csv",'w');
 
     os.chdir(main_path)
-    
-    if(DEM_parameters.PredefinedSkinOption == "ON" ):
-      print "ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF"
-
-    (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = proc.CylinderSkinDetermination(balls_model_part,solver,DEM_parameters) # defines the skin and areas
       
-    #measuring height:
-    pre_utilities = PreUtilities(balls_model_part)
-  
-    (subtotal_top,weight_top) = pre_utilities.MeasureTopHeigh(balls_model_part)
-    (subtotal_bot,weight_bot) = pre_utilities.MeasureBotHeigh(balls_model_part)
-
-    mean_top = subtotal_top/weight_top;
-    mean_bot = subtotal_bot/weight_bot;
-  
-    ini_height = mean_top - mean_bot
-
-    height = ini_height
     
     if ( DEM_parameters.ConcreteTestOption == "TRIAXIAL" ) and (Pressure != 0.0) :
 
@@ -192,7 +200,7 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
       renew_pressure = 0
     
 #
-    print ('Initial Height of the Model: ' + str(ini_height)+'\n')
+    
 
 
 # Initialization of physics monitor and of the initial position of the center of mass
@@ -232,9 +240,9 @@ if (DEM_parameters.Multifile == "single_file"):
   gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
 
   
-##EDOMETRIC
+##OEDOMETRIC
 
-if(DEM_parameters.ConcreteTestOption == "EDOMETRIC"):
+if(DEM_parameters.ConcreteTestOption == "OEDOMETRIC"):
   
   for node in proc.LAT:
 
@@ -408,83 +416,85 @@ while (time < DEM_parameters.FinalTime):
     total_force_bot = 0.0
     total_force_bts = 0.0
     
-    if( DEM_parameters.ConcreteTestOption =="BTS"):
+    if( DEM_parameters.ContinuumOption =="ON"):
+      
+        if( DEM_parameters.ConcreteTestOption =="BTS"):
 
-      for node in sup_layer_fm:
+          for node in sup_layer_fm:
 
-        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+            force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
 
-        total_force_bts += force_node_y
-    
-    if( DEM_parameters.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and DEM_parameters.ConcreteTestOption != "OFF"):
-
-      if(first_time_entry):
-        #measuring height:
-
-        pre_utilities = PreUtilities(balls_model_part)
-
-        (subtotal_top,weight_top) = pre_utilities.MeasureTopHeigh(balls_model_part)
-        (subtotal_bot,weight_bot) = pre_utilities.MeasureBotHeigh(balls_model_part)
-
-        mean_top = subtotal_top/weight_top;
-        mean_bot = subtotal_bot/weight_bot;
-
-        ini_height2 = mean_top - mean_bot
-
-        print 'Current Height after confinement: ' + str(ini_height2) + '\n'
-        print 'Axial strain due to the confinement: ' + str( 100*(ini_height2-ini_height)/ini_height ) + ' %' +'\n'
-        height = ini_height2
-       
-        for node in sup_layer_fm:
-          velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y) #Applied velocity during the uniaxial compression test
-          break
-
-        print 'velocity for the graph: ' + str(velocity_node_y) + '\n'
-              
-        first_time_entry = 0
-
-      strain += -1.0*velocity_node_y*dt/height
-
-      for node in sup_layer_fm:
-
-        force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-
+            total_force_bts += force_node_y
         
-        total_force_top += force_node_y
+        elif ( ( step >= step_to_fix_velocities ) and DEM_parameters.ConcreteTestOption != "OFF"):
 
-      total_stress_top = total_force_top/(DEM_parameters.MeasuringSurface*1000000)
-      
-      for node in inf_layer_fm:
+          if(first_time_entry):
+            #measuring height:
 
-        force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+            pre_utilities = PreUtilities(balls_model_part)
 
-        total_force_bot += force_node_y
+            (subtotal_top,weight_top) = pre_utilities.MeasureTopHeigh(balls_model_part)
+            (subtotal_bot,weight_bot) = pre_utilities.MeasureBotHeigh(balls_model_part)
 
-      total_stress_bot = total_force_bot/(DEM_parameters.MeasuringSurface*1000000)
-      
-      if(DEM_parameters.PoissonMeasure == "ON"):
+            mean_top = subtotal_top/weight_top;
+            mean_bot = subtotal_bot/weight_bot;
+
+            ini_height2 = mean_top - mean_bot
+
+            print 'Current Height after confinement: ' + str(ini_height2) + '\n'
+            print 'Axial strain due to the confinement: ' + str( 100*(ini_height2-ini_height)/ini_height ) + ' %' +'\n'
+            height = ini_height2
+          
+            for node in sup_layer_fm:
+              velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y) #Applied velocity during the uniaxial compression test
+              break
+
+            print 'velocity for the graph: ' + str(velocity_node_y) + '\n'
                   
-        xleft_weight  = 0.0         
-        xright_weight  = 0.0
+            first_time_entry = 0
 
-        left_counter = 0.0
-        right_counter = 0.0
+          strain += -1.0*velocity_node_y*dt/height
 
-        for node in left_nodes:
+          for node in sup_layer_fm:
+
+            force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+
+            
+            total_force_top += force_node_y
+
+          total_stress_top = total_force_top/(DEM_parameters.MeasuringSurface*1000000)
           
-          xleft_weight = +(node.X - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-          left_counter = +node.GetSolutionStepValue(RADIUS)
-          
-        for node in right_nodes:
-          
-          xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-          right_counter = +node.GetSolutionStepValue(RADIUS)
-        
-        width_now = xright_weight/right_counter - xleft_weight/left_counter
+          for node in inf_layer_fm:
 
-        measured_poisson =  ((width_now-width_ini)/width_ini)/strain
+            force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
 
-        #print( (width_now/0.05)/strain )
+            total_force_bot += force_node_y
+
+          total_stress_bot = total_force_bot/(DEM_parameters.MeasuringSurface*1000000)
+          
+          if(DEM_parameters.PoissonMeasure == "ON"):
+                      
+            xleft_weight  = 0.0         
+            xright_weight  = 0.0
+
+            left_counter = 0.0
+            right_counter = 0.0
+
+            for node in left_nodes:
+              
+              xleft_weight = +(node.X - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+              left_counter = +node.GetSolutionStepValue(RADIUS)
+              
+            for node in right_nodes:
+              
+              xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+              right_counter = +node.GetSolutionStepValue(RADIUS)
+            
+            width_now = xright_weight/right_counter - xleft_weight/left_counter
+
+            measured_poisson =  ((width_now-width_ini)/width_ini)/strain
+
+            #print( (width_now/0.05)/strain )
 
     os.chdir(list_path)    
     multifile.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')   
