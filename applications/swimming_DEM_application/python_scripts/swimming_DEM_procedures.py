@@ -25,6 +25,7 @@ def RenumberNodesIdsToAvoidRepeating(fluid_model_part, dem_model_part, fem_dem_m
             break
 
     if (renumerate):
+
         print "WARNING!, the DEM model part and the fluid model part have some ID values in common"
         print "Renumerating DEM model part and fem-DEM model parts Ids"
 
@@ -57,6 +58,71 @@ def InitializeVariablesToZero(model_part, variable_list):
                 node.SetSolutionStepValue(DRAG_REACTION_Y, 0, 0.0)
                 node.SetSolutionStepValue(DRAG_REACTION_Z, 0, 0.0)
 
+def FixModelPart(model_part):
+
+    for node in model_part.Nodes:
+        node.Fix(VELOCITY)
+
+class SolidFractionFieldUtility:
+
+    def CheckIsInside(self, p, l, h): # p is the point, l and h are the low and high corners of the bounding box
+
+        if (p[0] < l[0] or p[1] < l[1] or p[2] < l[2] or p[0] > h[0] or p[1] > h[1] or p[2] > h[2]):
+            return False
+
+        else:
+            return True
+
+    class LinearField:
+
+        def __init__(self,
+                     solid_fraction_at_zero,
+                     solid_fraction_gradient,
+                     lower_corner,
+                     upper_corner):
+
+            self.frac_0    = solid_fraction_at_zero
+            self.frac_grad = solid_fraction_gradient
+            self.low       = lower_corner
+            self.high      = upper_corner
+
+    def __init__(self, fluid_model_part, max_solid_fraction):
+        self.fluid_model_part   = fluid_model_part
+        self.max_solid_fraction = max_solid_fraction
+        self.field_list         = list()
+
+    def AppendLinearField(self, field):
+        self.field_list.append(field)
+
+    def AddSolidFractionField(self):
+
+        print('******************************************************************')
+        print
+        print('Adding Imposed Solid Fraction Fields...')
+        print
+
+        count = 0
+
+        for field in self.field_list:
+            count += 1
+
+            print 'field number', count, ':'
+            print
+            print vars(field)
+            print
+
+        print('******************************************************************')
+
+        for field in self.field_list:
+
+            for node in self.fluid_model_part.Nodes:
+                solid_fraction = node.GetSolutionStepValue(SOLID_FRACTION, 0)
+
+                if (self.CheckIsInside([node.X, node.Y, node.Z], field.low, field.high)):
+                    value = solid_fraction +  field.frac_0 +  field.frac_grad[0] * node.X + field.frac_grad[1] * node.Y + field.frac_grad[2] * node.Z
+                    value = min(max(value, 0.0), self.max_solid_fraction)
+                    node.SetSolutionStepValue(SOLID_FRACTION, 0, value)
+
 def MultiplyNodalVariableByFactor(model_part, variable, factor):
 
     for node in model_part.Nodes:
@@ -69,17 +135,22 @@ def ApplySimilarityTransformations(fluid_model_part, transformation_type, mod_ov
         return
 
     elif (transformation_type == 1):
+
         print ('***\n\nWARNING!, applying similarity transformations to the problem fluid variables')
         print ('The particles diameters quotient is\n')
-        print 'D_model / D_real =', mod_over_real; print
+        print 'D_model / D_real =', mod_over_real
+        print
 
         if (transformation_type == 1): # Tsuji 2013, (Preserves Archimedes and Reynolds numbers)
+
             print ('The fluid variables to be modified are\n\nDENSITY\nVISCOSITY\n\n***')
+
             fluid_density_factor = mod_over_real
             fluid_viscosity_factor = mod_over_real * mod_over_real
             MultiplyNodalVariableByFactor(fluid_model_part, DENSITY, fluid_density_factor)
             MultiplyNodalVariableByFactor(fluid_model_part, VISCOSITY, fluid_viscosity_factor)
     else:
+
         print ('The entered value similarity_transformation_type = ', transformation_type, 'is not currently supported')
 
 def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
@@ -96,7 +167,9 @@ def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
 def FindMaxNodeIdInFLuid(fluid_model_part):
     
     max = 0
+
     for node in fluid_model_part.Nodes:
+
         if ( node.Id > max ):
             max = node.Id
             
@@ -142,20 +215,24 @@ class IOTools:
 
         if (incremental_time > self.param.ControlTime):
             percentage = 100.0 * (float(step) / total_steps_expected)
+
             print 'Real time calculation: ' + str(incremental_time)
             print 'Percentage Completed: '  + str(percentage) + ' %'
             print "TIME STEP = "            + str(step)   + '\n'
+
             prev_time = (incremental_time)
 
     def CalculationLengthEstimationEcho(self, step, incremental_time, total_steps_expected):
 
         estimated_sim_duration = 60.0 * (total_steps_expected / step) #seconds
+
         print('The total calculation estimated time is ' + str(estimated_sim_duration) + 'seconds.' + '\n')
         print('In minutes :' + str(estimated_sim_duration / 60) + 'min.'  + '\n')
         print('In hours :' + str(estimated_sim_duration / 3600) + 'hrs.'  + '\n')
         print('In days :' + str(estimated_sim_duration / 86400) + 'days.' + '\n')
 
         if (estimated_sim_duration / 86400 > 2.0):
+
             print('WARNING!!!:       VERY LASTING CALCULATION'+'\n')
 
 class PorosityUtils:
