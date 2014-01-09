@@ -578,7 +578,7 @@ while (time < DEM_parameters.FinalTime):
     if(DEM_parameters.ConcreteTestOption == "BTS"):
        bts_export.write(str(step)+"  "+str(total_force_bts)+'\n')
       
-    if ( ( (DEM_parameters.ConcreteTestOption =="TRIAXIAL") or (DEM_parameters.ConcreteTestOption == "UCS")) and (step >= step_to_fix_velocities )):
+    if ( ( (DEM_parameters.ConcreteTestOption =="TRIAXIAL") or (DEM_parameters.ConcreteTestOption == "UCS") or (DEM_parameters.ConcreteTestOption == "OEDOMETRIC")) and (step >= step_to_fix_velocities )):
       graph_export_top.write(str(strain)+"  "+str(total_stress_top)+'\n')
       graph_export_bot.write(str(strain)+"  "+str(total_stress_bot)+'\n')
       total_stress_mean = 0.5*(total_stress_bot + total_stress_top)
