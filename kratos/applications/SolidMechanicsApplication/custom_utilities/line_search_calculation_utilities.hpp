@@ -259,7 +259,7 @@ public:
    	     iterations++;
    	   }
 
-	   std::cout<<" [ LINE SEARCH iterations: "<<iterations<<", Alpha "<<CurrentAlpha<<" ] "<<std::endl;
+	   //std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<", alpha: "<<CurrentAlpha<<") ] "<<std::endl;
 	   //std::cout<<" CurrentSlope = "<<fabs(CurrentSlope)<<" > "<<0.8*fabs(InitialSlope)<<" = 0.8*InitialSlope; PreviousSlope "<<PreviousSlope<<std::endl;
 	   
 	   
@@ -400,8 +400,8 @@ public:
    	     iterations++;
    	   }
 
-	   //std::cout<<" [ LINE SEARCH iterations: "<<iterations<<" Alpha "<<CurrentAlpha<<" ] "<<std::endl;
-	   //std::cout<<" CurrentSlope = "<<fabs(R2)<<" > "<<0.5*fabs(R0)<<" = 0.5*InitialSlope; PreviousSlope "<<R1<<std::endl;
+	  //std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<", alpha: "<<CurrentAlpha<<") ] "<<std::endl;
+	  //std::cout<<" CurrentSlope = "<<fabs(R2)<<" > "<<0.5*fabs(R0)<<" = 0.5*InitialSlope; PreviousSlope "<<R1<<std::endl;
 	   
 	   
 	   rPreviousAlpha = rCurrentAlpha;
@@ -453,7 +453,7 @@ public:
 
    	TSystemVectorType  ReferenceDx = Dx;
 
-   	Timer::Start("LineSearch");
+   	//Timer::Start("LineSearch");
 	     
    	//s0  (alpha=0)
    	double R0= inner_prod(Dx,b);
@@ -472,11 +472,11 @@ public:
    	pScheme->Update(r_model_part,rDofSet,A,Dx,b);
 	b.clear();
 
-	std::cout<<" Initial Slope "<<R0<<" FinalSlope "<<R1<<std::endl;
+	//std::cout<<" Initial Slope "<<R0<<" FinalSlope "<<R1<<std::endl;
 
    	if(R0*R1<0){
 
-   	  std::cout<<" Enters to the Linesearch iteration "<<R0*R1<<" < 0 "<<std::endl;
+   	  //std::cout<<" Enters to the Linesearch iteration "<<R0*R1<<" < 0 "<<std::endl;
 
 	  double R2 = R1;
 	  if(fabs(R1)<fabs(R0))
@@ -488,12 +488,11 @@ public:
 	  double delta = 1;
 
   	  double CurrentAlpha  = 1.0; 
-   	  double PreviousAlpha = 0.0;
-
+   	  //double PreviousAlpha = 0.0;
 
 	  int iterations=0;
-	  int max_iterations = 5;
-	  std::cout<<" [fabs(R1): "<<fabs(R1)<<", fabs(R0): "<<fabs(R0)<<"]"<<std::endl;
+	  int max_iterations = 10;
+	  //std::cout<<" [R1: "<<R1<<", R0: "<<R0<<"]"<<std::endl;
 
 	  while(fabs(R2/R0start)>0.3 && iterations<max_iterations && (R1*R0)<0 && fabs(R1)>1e-7 && fabs(R0)>1e-7) {
 	  
@@ -501,58 +500,58 @@ public:
 	    alpha = 0.5*(nabla+delta);
 
 
-	     std::cout<<" R2 = "<<R2<<" > "<<0.5*R0start<<" =  0.5 * R0_start; R1 "<<R1<<" / ; R0 "<<R0<<std::endl;
-	     std::cout<<" [ CurrentAlpha: "<<CurrentAlpha<<" PreviousAlpha: "<<PreviousAlpha<<" ] --> Computed Alpha: "<<alpha<<std::endl;
+	    //std::cout<<" R2 = "<<fabs(R2)<<" ?> "<<0.5*R0start<<" =  0.5 * R0_start; R1 "<<R1<<" / ; R0 "<<R0<<std::endl;
+	    //std::cout<<" [ CurrentAlpha: "<<CurrentAlpha<<" PreviousAlpha: "<<PreviousAlpha<<" ] --> Computed Alpha: "<<alpha<<std::endl;
 
 
-	     //alpha_k-1 = alpha_k
-	     PreviousAlpha = CurrentAlpha;
+	    //alpha_k-1 = alpha_k
+	    //PreviousAlpha = CurrentAlpha;
 
-   	     //alpha_k  = alpha_k+1
-   	     CurrentAlpha  = alpha;
+	    //alpha_k  = alpha_k+1
+	    CurrentAlpha  = alpha;
 
   
-   	     //compute s(alpha_k+1)
-   	     Dx = ReferenceDx * CurrentAlpha;
+	    //compute s(alpha_k+1)
+	    Dx = ReferenceDx * CurrentAlpha;
 	
-   	        pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	    pScheme->Update(r_model_part,rDofSet,A,Dx,b);
 
-    	   	//pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
-	   	pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
+	    //pBuilderAndSolver->Build(pScheme, r_model_part, A, b);
+	    pBuilderAndSolver->BuildRHS(pScheme, r_model_part, b);
 	     
-   	     //slope_k = slope_k+1
-   	     R2 = inner_prod(ReferenceDx,b);
-   	     // ** Restore Current Displacement, Velocity, Acceleration
-   	     Dx *= (-1);
-   	     pScheme->Update(r_model_part,rDofSet,A,Dx,b);
-	     b.clear();
+	    //slope_k = slope_k+1
+	    R2 = inner_prod(ReferenceDx,b);
+	    // ** Restore Current Displacement, Velocity, Acceleration
+	    Dx *= (-1);
+	    pScheme->Update(r_model_part,rDofSet,A,Dx,b);
+	    b.clear();
 
 	     
 	       
-	     if(R2*R1<0){
-	       //slope_k-1 = slope_k
-	       nabla = alpha;
-	       R0 = R2;
-	     }
-	     else if(R2*R0<0){
-	       //slope_k-1 = slope_k
-	       delta = alpha;
-	       R1 = R2;
-	     }
-	     else{
-	       break;
-	     }
+	    if(R2*R1<0){
+	      //slope_k-1 = slope_k
+	      nabla = alpha;
+	      R0 = R2;
+	    }
+	    else if(R2*R0<0){
+	      //slope_k-1 = slope_k
+	      delta = alpha;
+	      R1 = R2;
+	    }
+	    else{
+	      break;
+	    }
 
 	       
-   	     iterations++;
-   	   }
+	    iterations++;
+	  }
 
-	   std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<" Alpha "<<CurrentAlpha<<") ] "<<std::endl;
-	   std::cout<<" CurrentSlope = "<<fabs(R2)<<" > "<<0.8*fabs(R0start)<<"=  0.8*InitialSlope; PreviousSlope "<<R1<<std::endl;
+	  std::cout<<" [ LINE SEARCH: (Iterations: "<<iterations<<", alpha: "<<CurrentAlpha<<") ] "<<std::endl;
+	  //std::cout<<" CurrentSlope = "<<R2<<" ?> "<<0.8*fabs(R0start)<<"=  0.8*InitialSlope;  PreviousSlope "<<R1<<std::endl;
 	   
 	   
-	   rPreviousAlpha = rCurrentAlpha;
-	   rCurrentAlpha  = CurrentAlpha;
+	  rPreviousAlpha = rCurrentAlpha;
+	  rCurrentAlpha  = CurrentAlpha;
     
    	}
    	// else{
@@ -568,7 +567,7 @@ public:
    	//rDofSet = HistoricDofSet;
 	
 
-   	Timer::Stop("LineSearch");
+   	//Timer::Stop("LineSearch");
 
    	KRATOS_CATCH( "" )
 
