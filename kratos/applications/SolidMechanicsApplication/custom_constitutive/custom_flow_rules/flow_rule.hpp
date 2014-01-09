@@ -283,7 +283,7 @@ namespace Kratos
     ///@name Operations
     ///@{
     
-    void InitializeMaterial (YieldCriterionPointer pYieldCriterion, HardeningLawPointer pHardeningLaw, const Properties& rMaterialProperties)
+    void InitializeMaterial (YieldCriterionPointer& pYieldCriterion, HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties)
     {
       //set yield criterion
       mpYieldCriterion = pYieldCriterion;

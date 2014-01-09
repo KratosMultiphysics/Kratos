@@ -118,6 +118,8 @@ public:
     /// Assignment operator.
     HardeningLaw& operator=(HardeningLaw const& rOther)
     {
+      //this assignment operator do not exists for const Properties::Pointer
+      //for this reason mpProperties is a const Properties*
       mpProperties = rOther.mpProperties;
       return *this;
     };
@@ -282,7 +284,10 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-      //24-12-2013 : it has problems in typeid recognition for serializer....
+      //Properties can not be stored in serializer
+      //because Properties have a ConstitutiveLaw pointer
+      //when the constitutive law pointer is called to be saved 
+      //a recursive call is done if properties are saved.
       //rSerializer.save("Properties",mpProperties);
     };
 
