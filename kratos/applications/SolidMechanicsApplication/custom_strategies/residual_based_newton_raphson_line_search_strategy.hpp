@@ -384,7 +384,7 @@ public:
     rPreviousAlpha = rCurrentAlpha;
     rCurrentAlpha  = ComputedAlpha;      
 
-    std::cout<< "LINE-SEARCH [alpha: "<<rCurrentAlpha<<"]"<<std::endl;
+    //std::cout<< "LINE-SEARCH-ACTIVE [alpha: "<<rCurrentAlpha<<"]"<<std::endl;
 
     mDx *= rCurrentAlpha;
 
