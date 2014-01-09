@@ -323,7 +323,7 @@ public:
 			  
 			 //Vector & RF_Pram= rObj_1->GetValue(NEIGHBOUR_RIGID_FACES_PRAM);
 			 std::size_t ino = RF_Pram.size();
-			 
+
 			 std::size_t TotalSize = ino / 15;
 			 
 			 std::size_t isize = 0;
