@@ -250,7 +250,11 @@ namespace Kratos
         virtual void Calculate(const Variable<array_1d<double, 3 > >& rVariable,
                                array_1d<double, 3 > & rOutput,
                                const ProcessInfo& rCurrentProcessInfo);
-
+        
+        /// Calculate the element's local contribution to the system for the current step.
+        virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+                                          VectorType& rRightHandSideVector,
+                                          ProcessInfo& rCurrentProcessInfo);
         ///@}
         ///@name Inquiry
         ///@{
