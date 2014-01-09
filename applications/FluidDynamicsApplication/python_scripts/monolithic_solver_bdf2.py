@@ -118,6 +118,7 @@ class MonolithicSolver:
 ##                                        self.rel_pres_tol,self.abs_pres_tol)
 
         builder_and_solver = ResidualBasedBlockBuilderAndSolverPeriodic(self.linear_solver,PATCH_INDEX)
+##        builder_and_solver = ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
         self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,builder_and_solver,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)
         (self.solver).SetEchoLevel(self.echo_level)
 
