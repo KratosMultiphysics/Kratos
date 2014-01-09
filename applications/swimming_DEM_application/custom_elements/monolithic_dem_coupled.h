@@ -1343,13 +1343,12 @@ protected:
                     PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
 //G
                     DivPEpsilon = FluidFraction * rShapeDeriv(i, m) * rShapeFunc[j] + FluidFractionGradient[m] * rShapeFunc[i] * rShapeFunc[j]; // Div(v) * p
-//Z
 
                     // Write v * Grad(p) component
                     rDampMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - DivPEpsilon);
                     // Use symmetry to write the q * Div(u) component
                     rDampMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + DivPEpsilon);
-
+//Z
                     // q-p stabilization block
                     L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
 
