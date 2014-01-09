@@ -193,6 +193,9 @@ namespace Kratos
           this->Contact_InitializeSolutionStep();
     
           BaseType::GetForce();
+             
+          /// Compute the global external nodal force.
+          Calculate_Conditions_RHS_and_Add();
 
           if(mDempackOption)
           {
@@ -916,8 +919,59 @@ namespace Kratos
 
           KRATOS_CATCH("")
         }
-      
    
+    
+    //DEMFFEM
+    
+    void Calculate_Conditions_RHS_and_Add()
+    {
+      
+      KRATOS_TRY
+      
+      ConditionsArrayType& pConditions      = BaseType::GetFemModelPart().GetCommunicator().LocalMesh().Conditions();     
+
+      ProcessInfo& CurrentProcessInfo  = BaseType::GetFemModelPart().GetProcessInfo();
+
+      Vector rhs_cond;
+
+      vector<unsigned int> condition_partition;
+      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pConditions.size(), condition_partition);
+      unsigned int index;
+      
+      #pragma omp parallel 
+      
+      #pragma omp for private (index, rhs_cond)
+      
+      for(int k=0; k<this->GetNumberOfThreads(); k++)
+      {
+          typename ConditionsArrayType::iterator it_begin=pConditions.ptr_begin()+condition_partition[k];
+          typename ConditionsArrayType::iterator it_end=pConditions.ptr_begin()+condition_partition[k+1];
+
+          for (typename ConditionsArrayType::iterator it= it_begin; it!=it_end; ++it)
+          {
+              Condition::GeometryType& geom = it->GetGeometry();
+              
+              it->CalculateRightHandSide(rhs_cond,CurrentProcessInfo);
+            
+              const unsigned int& dim = geom.WorkingSpaceDimension();
+              for (unsigned int i = 0; i <geom.size(); i++)
+              {
+                  index = i*dim;
+                  array_1d<double,3>& node_rhs = geom(i)->FastGetSolutionStepValue(TOTAL_FORCES);
+                  for(unsigned int kk=0; kk<dim; kk++)
+                  {
+                      geom(i)->SetLock();
+                      node_rhs[kk] = node_rhs[kk] + rhs_cond[index+kk];
+                      geom(i)->UnSetLock();
+                  }
+              }                   
+              
+          }
+      }
+
+      KRATOS_CATCH("")
+    }
+
    
     virtual void PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part)
     {  
