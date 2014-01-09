@@ -195,7 +195,9 @@ public:
     Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes,
                             PropertiesType::Pointer pProperties) const
     {
+
         return Element::Pointer(new MonolithicDEMCoupled(NewId, GetGeometry().Create(ThisNodes), pProperties));
+
     }
 
     /// Provides local contributions from body forces and OSS projection terms
@@ -1295,8 +1297,27 @@ protected:
         double K, G, PDivV, L, qF; // Temporary results
 
         array_1d<double,3> BodyForce(3,0.0);
-        this->EvaluateInPoint(BodyForce,BODY_FORCE,rShapeFunc);
+        this->EvaluateInPoint(BodyForce, BODY_FORCE,rShapeFunc);
         BodyForce *= Density;
+//G
+        double DivPEpsilon;
+        double FluidFraction;
+        array_1d<double,3> FluidFractionGradient(3,0.0);
+        this->EvaluateInPoint(FluidFraction, SOLID_FRACTION, rShapeFunc);
+        FluidFraction = 1.0 - FluidFraction;
+
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            double fluid_fraction = 1.0 - this->GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION);
+            FluidFractionGradient[0] += rShapeDeriv(i, 0) * fluid_fraction;
+            FluidFractionGradient[1] += rShapeDeriv(i, 1) * fluid_fraction;
+            FluidFractionGradient[2] += rShapeDeriv(i, 2) * fluid_fraction;
+        }
+
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            this->GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION_GRADIENT) = -FluidFractionGradient;
+        }
+
+//Z
 
         for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
         {
@@ -1320,11 +1341,14 @@ protected:
                     // v * Grad(p) block
                     G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
                     PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
+//G
+                    DivPEpsilon = FluidFraction * rShapeDeriv(i, m) * rShapeFunc[j] + FluidFractionGradient[m] * rShapeFunc[i] * rShapeFunc[j]; // Div(v) * p
+//Z
 
                     // Write v * Grad(p) component
-                    rDampMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
+                    rDampMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - DivPEpsilon);
                     // Use symmetry to write the q * Div(u) component
-                    rDampMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + PDivV);
+                    rDampMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + DivPEpsilon);
 
                     // q-p stabilization block
                     L += rShapeDeriv(i, m) * rShapeDeriv(j, m); // Stabilization: Grad(q) * TauOne * Grad(p)
