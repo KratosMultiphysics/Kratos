@@ -134,9 +134,9 @@ void RigidEdge3D::CalculateRightHandSide( VectorType& rRightHandSideVector,
 	
 	ParticleWeakVectorType& rNeighbours    = this->GetValue(NEIGHBOUR_PARTICLE_OF_RIGID_FACE);
 
-	
 	for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++)
 	{
+      
 		ConditionWeakVectorType& rRFnei    = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES);
 		
 		for(unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
