@@ -123,7 +123,7 @@ void RigidFace3D::CalculateRightHandSide(
 {
     const unsigned int number_of_nodes = GetGeometry().size();
     unsigned int               MatSize = number_of_nodes * 3;
-
+ 
 	if (rRightHandSideVector.size() != MatSize)
 	{
 		rRightHandSideVector.resize(MatSize, false);
@@ -136,10 +136,12 @@ void RigidFace3D::CalculateRightHandSide(
 	
 	for (ParticleWeakIteratorType neighbour_iterator = rNeighbours.begin(); neighbour_iterator != rNeighbours.end(); neighbour_iterator++)
 	{
+       
 		ConditionWeakVectorType& rRFnei    = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES);
-		
+
 		for(unsigned int i_nei = 0; i_nei < rRFnei.size(); i_nei++)
 		{
+          
 			if( rRFnei[i_nei].Id() == this->Id() )
 			{
 				double weight[4] = {0.0};
@@ -154,7 +156,7 @@ void RigidFace3D::CalculateRightHandSide(
 				
 				ino = 3 * i_nei;
 				
-                                Vector& neighbour_rigid_faces_contact_force = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE);
+                Vector& neighbour_rigid_faces_contact_force = neighbour_iterator->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE);
 				ContactForce[0] = neighbour_rigid_faces_contact_force[ino + 0];
 				ContactForce[1] = neighbour_rigid_faces_contact_force[ino + 1];
 				ContactForce[2] = neighbour_rigid_faces_contact_force[ino + 2];
@@ -166,7 +168,7 @@ void RigidFace3D::CalculateRightHandSide(
 					rRightHandSideVector[ino1 + 0] += -ContactForce[0] * weight[inode];
 					rRightHandSideVector[ino1 + 1] += -ContactForce[1] * weight[inode];
 					rRightHandSideVector[ino1 + 2] += -ContactForce[2] * weight[inode];
-					
+
 				}
 				
 				
