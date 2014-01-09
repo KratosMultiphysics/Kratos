@@ -29,7 +29,7 @@ ProjectParameters.project_at_every_substep_option  = 0
 ProjectParameters.velocity_trap_option             = 0
 ProjectParameters.inlet_option                     = 1
 ProjectParameters.manually_imposed_drag_law_option = 0
-ProjectParameters.stationary_problem_option        = 1 # stationary, stop calculating the fluid after it reaches the stationary state (1)
+ProjectParameters.stationary_problem_option        = 1 # inactive (0), stop calculating the fluid after it reaches the stationary state (1)
 ProjectParameters.body_force_on_fluid              = 1
 ProjectParameters.similarity_transformation_type   = 0 # no transformation (0), Tsuji (1)
 ProjectParameters.dem_inlet_element_type           = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
@@ -67,6 +67,7 @@ ProjectParameters.nodal_results.append("DRAG_REACTION")
 DEMParameters.project_from_particles_option *= ProjectParameters.projection_module_option
 ProjectParameters.project_at_every_substep_option *= ProjectParameters.projection_module_option
 ProjectParameters.time_steps_per_stationarity_step = max(1, int(ProjectParameters.time_steps_per_stationarity_step)) # it should never be smaller than 1!
+ProjectParameters.stationary_problem_option *= !DEMParameters.project_from_particles_option
 
 for var in ProjectParameters.mixed_nodal_results:
 
