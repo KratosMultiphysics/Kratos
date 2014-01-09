@@ -27,7 +27,7 @@ namespace Kratos
 {
 //KRATOS_CREATE_VARIABLE( double, WEIGHT_FATHER_NODES )
 //KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(PRESSURE_FORCE)
-KRATOS_CREATE_VARIABLE(double, COUNTER);
+KRATOS_CREATE_VARIABLE(double, COUNTER)
 
 KratosMeshingApplication::KratosMeshingApplication():
     mTestElement2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3, Node<3>())))),
