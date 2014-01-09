@@ -157,7 +157,7 @@ class YieldCriterion
         ///@}
         ///@name Operations
         ///@{
-        void InitializeMaterial (HardeningLawPointer pHardeningLaw, const Properties& rMaterialProperties)
+        void InitializeMaterial (HardeningLawPointer& pHardeningLaw, const Properties& rMaterialProperties)
 	{
 	        mpHardeningLaw = pHardeningLaw;
 		mpHardeningLaw->InitializeMaterial(rMaterialProperties);
@@ -169,7 +169,7 @@ class YieldCriterion
 	  mpHardeningLaw = (HardeningLawPointer) (&rHardeningLaw);
         }
 
-        void pSetHardeningLaw(HardeningLawPointer pHardeningLaw)
+        void pSetHardeningLaw(HardeningLawPointer& pHardeningLaw)
         {      
 	  mpHardeningLaw = pHardeningLaw;
         }
