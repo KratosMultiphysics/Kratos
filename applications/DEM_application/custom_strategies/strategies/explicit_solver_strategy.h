@@ -812,8 +812,11 @@ namespace Kratos
 			OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 			
 			////Cfeng: clear and swap the vector,initializaiton 
-			#pragma omp parallel for
-			for (int k = 0; k < this->GetNumberOfThreads(); k++)
+						
+            #pragma omp parallel
+            
+            #pragma omp for
+            for (int k = 0; k < this->GetNumberOfThreads(); k++)
 			{
 				typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
 				typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -834,7 +837,7 @@ namespace Kratos
 
 			moDemFemSearch.SearchRigidFaceForDEMInRadiusExclusiveImplementation(pElements, pTContitions, this->GetRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());                        
 			
-			#pragma omp parallel for
+			#pragma omp for
 			for (int k = 0; k < this->GetNumberOfThreads(); k++)
 			{
 				typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
@@ -844,7 +847,7 @@ namespace Kratos
 				
 				for (SpatialSearch::ElementsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter)
 				{
-                                        WeakPointerVector<Condition>& neighbour_rigid_faces = particle_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES);
+                    WeakPointerVector<Condition>& neighbour_rigid_faces = particle_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES);
                                     
 					for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[ResultCounter].begin(); 
 						 neighbour_it != this->GetRigidFaceResults()[ResultCounter].end(); ++neighbour_it)
@@ -858,10 +861,7 @@ namespace Kratos
 				}
 
 			}
-			
-			
-			
-			
+
 			//****************************************************************************
 			/////************Cfeng: Below for DEM FEM coupling********************
 			//*****************************************************************************
@@ -869,7 +869,8 @@ namespace Kratos
 			SpatialSearch::ElementsContainerType::iterator E_pointer_it;
 			
 			//Cfeng:resize the particle-rigidface contact forces for each particles 
-			#pragma omp parallel for
+            
+			#pragma omp for
 			for (int k = 0; k < this->GetNumberOfThreads(); k++)
 			{
 				typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
@@ -884,6 +885,8 @@ namespace Kratos
 			
 			typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
 			
+            //MSIMSI 3: parallelize these two loops
+            
 			///Cfeng:clear  neighbours for rigidfaces
 			for (ConditionsArrayType::iterator ic = pTContitions.begin(); ic != pTContitions.end(); ic++)
 			{
@@ -906,116 +909,6 @@ namespace Kratos
         KRATOS_CATCH("")
     }
 	
-	
-	
-	
-	////Not used now
-	virtual void SearchRigidFaceNeighbours_Old_Method()
-    {
-        KRATOS_TRY
-
-        ModelPart& r_model_part                = *mpDem_model_part;
-		ElementsArrayType& pElements           = r_model_part.GetCommunicator().LocalMesh().Elements();
-		ConditionsArrayType& pMContitions      = r_model_part.GetCommunicator().LocalMesh().Conditions();		
-		ConditionsArrayType& pTContitions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions();   
-		
-		if(pTContitions.size() > 0)
-		{
-			for (SpatialSearch::ElementsContainerType::iterator E_pointer_it = pElements.begin(); E_pointer_it != pElements.end(); ++E_pointer_it)
-			{
-				WeakPointerVector<Condition > tempP;
-				E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).swap(tempP);
-				
-				Vector tempV;
-				E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_PRAM).swap(tempV);
-				
-				Vector tempV1;
-				E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE).swap(tempV1);
-			}
-		   
-		   
-			for (ConditionsArrayType::iterator i = pMContitions.begin(); i != pMContitions.end(); i++)
-			{
-				WeakPointerVector<Condition > tempP;
-				i->GetValue(NEIGHBOUR_RIGID_FACES).swap(tempP);
-				
-				Vector tempV;
-				i->GetValue(NEIGHBOUR_RIGID_FACES_PRAM).swap(tempV);
-			}
-			
-			
-
-
-			moDemFemSearch.SearchConditionsInRadiusExclusive(r_model_part, pTContitions, this->GetRadius(), this->GetRigidFaceResults(), this->GetRigidFaceResultsDistances());
-			
-			
-			OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pMContitions.size(), this->GetConditionPartition());
-			
-			
-			#pragma omp parallel for
-			for (int k = 0; k < this->GetNumberOfThreads(); k++)
-			{
-				typename ConditionsArrayType::iterator it_begin = pMContitions.ptr_begin() + this->GetConditionPartition()[k];
-				typename ConditionsArrayType::iterator it_end   = pMContitions.ptr_begin() + this->GetConditionPartition()[k + 1];
-
-				size_t ResultCounter = this->GetConditionPartition()[k];
-				
-				for (SpatialSearch::ConditionsContainerType::iterator particle_pointer_it = it_begin; particle_pointer_it != it_end; ++particle_pointer_it,++ResultCounter)
-				{
-                                    WeakPointerVector<Condition>& neighbour_rigid_faces = particle_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES);
-					for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[ResultCounter].begin(); 
-						 neighbour_it != this->GetRigidFaceResults()[ResultCounter].end(); ++neighbour_it)
-					{
-						neighbour_rigid_faces.push_back(*neighbour_it);         
-					}
-
-					this->GetRigidFaceResults()[ResultCounter].clear();
-					this->GetRigidFaceResultsDistances()[ResultCounter].clear();
-				}
-
-			}
-			
-			
-			typename ConditionsArrayType::iterator C_pointer_it = pMContitions.ptr_begin();
-			
-			SpatialSearch::ElementsContainerType::iterator E_pointer_it;
-			
-			/////#pragma omp parallel for 
-			for (E_pointer_it = pElements.begin(); E_pointer_it != pElements.end(); ++E_pointer_it, ++C_pointer_it)
-			{
-				E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).swap(C_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES));
-				E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_PRAM).swap(C_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_PRAM));
-				
-				std::size_t totalno = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES).size() * 3;
-				E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES_CONTACT_FORCE).resize(totalno);
-			}
-			
-			
-			
-			
-			for (ConditionsArrayType::iterator ic = pTContitions.begin(); ic != pTContitions.end(); ic++)
-			{
-				WeakPointerVector<Element > tempP;
-				ic->GetValue(NEIGHBOUR_PARTICLE_OF_RIGID_FACE).swap(tempP);
-			}
-			///push_back the particle point to rigid face conditon
-			typedef WeakPointerVector<Condition >::iterator ConditionWeakIteratorType;
-			
-			for (E_pointer_it = pElements.begin(); E_pointer_it != pElements.end(); ++E_pointer_it)
-			{
-                                WeakPointerVector<Condition>& neighbour_rigid_faces = E_pointer_it->GetValue(NEIGHBOUR_RIGID_FACES);
-				for(ConditionWeakIteratorType ineighbour = neighbour_rigid_faces.begin(); 
-					 ineighbour != neighbour_rigid_faces.end(); ineighbour++)
-				{
-					ineighbour->GetValue(NEIGHBOUR_PARTICLE_OF_RIGID_FACE).push_back(*(E_pointer_it.base()));				
-				}
-			}
-			
-		}
-
-        KRATOS_CATCH("")
-    }
-	 
 	
 	
 	void Compute_RigidFace_Movement()
@@ -1199,7 +1092,10 @@ namespace Kratos
     }
     
     // Getting member variables
-
+    
+    ModelPart&                                   GetBallsModelPart(){return(*mpDem_model_part);}
+    ModelPart&                                   GetFemModelPart(){return(*mpFem_model_part);}
+    
     VectorResultElementsContainerType&           GetResults(){return(mResults);}
     VectorDistanceType&                          GetResultsDistances(){return(mResultsDistances);}
     RadiusArrayType&                             GetRadius(){return(mRadius);}
