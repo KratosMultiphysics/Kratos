@@ -20,7 +20,6 @@
 #include "utilities/openmp_utils.h"
 
 // Configures
-#include "dem_fem_configure.h"
 #include "rigid_face_geometrical_object_configure.h"
 // Search
 #include "spatial_containers/bins_dynamic_objects.h"
@@ -80,11 +79,11 @@ class DEM_FEM_Search : public SpatialSearch
       typedef double*                                   DistanceVector;
       typedef double*                                   DistanceIterator;
       
-      //Configure Types
-      typedef RigidFaceConfigure<3>                        ElementConfigureType;   //Element
-      //Bin Types
-      typedef BinsObjectDynamic<ElementConfigureType>   BinsType;
-	  
+//       //Configure Types
+//       typedef RigidFaceConfigure<3>                        ElementConfigureType;   //Element
+//       //Bin Types
+//       typedef BinsObjectDynamic<ElementConfigureType>   BinsType;
+// 	  
 	  //Configure Types
 	  typedef RigidFaceGeometricalObjectConfigure<3>        RigidFaceGeometricalConfigureType;     	
       //Bin Types
@@ -127,11 +126,12 @@ class DEM_FEM_Search : public SpatialSearch
           SearElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_sear.size());
           BinsElementPointerToGeometricalObjecPointerTemporalVector.reserve(elements_bins.size());
               
+          for(ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
+              SearElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
+          
           for(ConditionsContainerType::ContainerType::iterator it = elements_bins.begin(); it != elements_bins.end(); it++)
               BinsElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
           
-          for(ElementsContainerType::ContainerType::iterator it = elements_sear.begin(); it != elements_sear.end(); it++)
-              SearElementPointerToGeometricalObjecPointerTemporalVector.push_back(*it);
           
           GeometricalBinsType bins(BinsElementPointerToGeometricalObjecPointerTemporalVector.begin(), BinsElementPointerToGeometricalObjecPointerTemporalVector.end());
           
@@ -145,7 +145,7 @@ class DEM_FEM_Search : public SpatialSearch
               for(int i = 0; i < static_cast<int>(elements_sear.size()); i++)
               {
                   GeometricalObjectType::ContainerType::iterator   ResultsPointer          = localResults.begin();
-                  DistanceType::iterator                                                        ResultsDistancesPointer = localResultsDistances.begin();
+                  DistanceType::iterator                           ResultsDistancesPointer = localResultsDistances.begin();
 
                   NumberOfResults = bins.SearchObjectsInRadiusExclusive(SearElementPointerToGeometricalObjecPointerTemporalVector[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
 
@@ -164,56 +164,7 @@ class DEM_FEM_Search : public SpatialSearch
       }
 	  
 	  
-	  
-	  
-	 void SearchConditionsInRadiusExclusive (
-          ModelPart& rModelPart,
-          ConditionsContainerType const& TConditions,
-          const RadiusArrayType & Radius,
-          VectorResultConditionsContainerType& rResults,
-          VectorDistanceType& rResultsDistance )
-      {
-      
-	      KRATOS_TRY
-		  
-		  ConditionsContainerType const& MConditions = rModelPart.GetCommunicator().LocalMesh().Conditions();
-		
-          
-          int MaxNumberOfElements = TConditions.size();
-          
-          ConditionsContainerType::ContainerType& elements_array     = const_cast<ConditionsContainerType::ContainerType&>(MConditions.GetContainer());
-          ConditionsContainerType::ContainerType& conditions_array   = const_cast<ConditionsContainerType::ContainerType&>(TConditions.GetContainer());
-        
-          BinsType bins(conditions_array.begin(), conditions_array.end());
-		  
-		  typedef ConditionsContainerType::ContainerType::value_type ConditionsPointerType;
-		  
-		  //KRATOS_WATCH(elements_array.size());
-		  //KRATOS_WATCH(conditions_array.size());
-                    
-          #pragma omp parallel
-          {
-              ResultConditionsContainerType   localResults(MaxNumberOfElements);
-              DistanceType                  localResultsDistances(MaxNumberOfElements);
-              std::size_t                   NumberOfResults = 0;
-              
-              #pragma omp for
-              for(int i = 0; i < static_cast<int>(elements_array.size()); i++)
-              {
-                  ResultConditionsContainerType::iterator ResultsPointer          = localResults.begin();
-                  DistanceType::iterator                ResultsDistancesPointer = localResultsDistances.begin();
-                
-                  NumberOfResults = bins.SearchObjectsInRadiusExclusive(elements_array[i],Radius[i],ResultsPointer,ResultsDistancesPointer,MaxNumberOfElements);
-                  
-                  rResults[i].insert(rResults[i].begin(),localResults.begin(),localResults.begin()+NumberOfResults);
-                  rResultsDistance[i].insert(rResultsDistance[i].begin(),localResultsDistances.begin(),localResultsDistances.begin()+NumberOfResults);   
-
-              }
-          }
-          
-          KRATOS_CATCH("")	  
-      }
-      
+	
 	
 
       /// Turn back information as a string.
