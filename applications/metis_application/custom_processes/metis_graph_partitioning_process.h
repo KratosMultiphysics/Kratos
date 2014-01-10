@@ -59,18 +59,23 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <algorithm>
 #include <fstream>
 
-// External includes
-#include <parmetis.h>
 
 
 // Project includes
 #include "includes/define.h"
 #include "processes/process.h"
 
-extern "C" {
-    //extern void METIS_PartMeshDual(int*, int*, idxtype*, int*, int*, int*, int*, idxtype*, idxtype*);
-    extern int METIS_PartMeshDual(int*, int*, int*, int*, int*, int*, int*, int*, int*);
-};
+#ifdef KRATOS_USE_METIS_5
+  #include "metis.h"
+#else
+  // External includes
+  #include <parmetis.h>
+
+  extern "C" {
+      //extern void METIS_PartMeshDual(int*, int*, idxtype*, int*, int*, int*, int*, idxtype*, idxtype*);
+      extern int METIS_PartMeshDual(int*, int*, int*, int*, int*, int*, int*, int*, int*);
+  };
+#endif
 
 
 
@@ -107,6 +112,10 @@ class MetisGraphPartitioningProcess
 public:
     ///@name Type Definitions
     ///@{
+      
+    #ifdef KRATOS_USE_METIS_5
+      typedef idx_t idxtype;
+    #endif
 
     /// Pointer definition of MetisGraphPartitioningProcess
     KRATOS_CLASS_POINTER_DEFINITION(MetisGraphPartitioningProcess);
@@ -323,7 +332,12 @@ protected:
                 elmnts[i++] = (*i_connectivities)[j] - 1; // transforming to zero base indexing
 
         // Calling Metis to partition
-        METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
+        #ifndef KRATOS_USE_METIS_5
+          METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
+        #else
+           //METIS_PartMeshDual(&ne, &nn, elmnts, &etype, &numflag, &number_of_partitions, &edgecut, EPart, NPart);
+          KRATOS_WATCH("not implemented!!!")
+        #endif
 
         delete[] elmnts;
 
