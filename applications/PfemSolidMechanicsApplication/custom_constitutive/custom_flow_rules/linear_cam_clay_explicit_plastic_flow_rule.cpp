@@ -24,7 +24,7 @@ LinearCamClayExplicitFlowRule::LinearCamClayExplicitFlowRule()
 //************************************************************************************
 
 LinearCamClayExplicitFlowRule::LinearCamClayExplicitFlowRule(YieldCriterionPointer pYieldCriterion)
-	:CamClayExplicitPlasticFlowRule(pYieldCriterion)
+	:CamClayExplicitFlowRule(pYieldCriterion)
 {
    
 }
@@ -124,8 +124,8 @@ void LinearCamClayExplicitFlowRule::CalculateDeviatoricStress(const double& rVol
     rDeviatoricStress = rDeviatoricStrainVector;
     rDeviatoricStress *= 3.0*ShearModulus;
 
-//    for (unsigned int i = 3; i<6; ++i)
-//         rDeviatoricStress(i) /= 2.0;  // BECAUSE VOIGT NOTATION
+    for (unsigned int i = 3; i<6; ++i)
+         rDeviatoricStress(i) /= 2.0;  // BECAUSE VOIGT NOTATION
   
     //std::cout << "DeviatoricStrain " << rDeviatoricStrainVector << " DeviatoricStress " << rDeviatoricStress << std::endl;
     //std::cout << "ShearModulus " << 2.0*AlphaShear*ReferencePreasure*std::exp(-rVolumetricStrain/SwellingSlope) << std::endl;
@@ -139,8 +139,11 @@ void LinearCamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticS
 
 
     Matrix FourthOrderIdentity = ZeroMatrix(6);
-    for (unsigned int i = 0; i<6; ++i)
+    for (unsigned int i = 0; i<3; ++i)
        FourthOrderIdentity(i,i) = 1.0;
+
+    for (unsigned int i = 3; i<6; ++i)
+      FourthOrderIdentity(i,i) = 0.5;
 
     Matrix IdentityCross = ZeroMatrix(6);
     for (unsigned int i = 0; i<3; ++i) {
@@ -155,10 +158,8 @@ void LinearCamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticS
    
 
    double MeanStress = 0.0;
-   double VolumetricStrain = 0.0;
    for (unsigned int i = 0; i<3; i++) {
        MeanStress += StressVector(i);
-       VolumetricStrain += rElasticStrainVector(i);
    }
    MeanStress /= 3.0;
 
