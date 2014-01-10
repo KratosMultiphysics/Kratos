@@ -149,14 +149,14 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
     
     if(DEM_parameters.ConcreteTestOption == "BTS"):
 
-        bts_export = open(DEM_parameters.problem_name +"_bts_"+str(datetime.datetime.now())+".grf",'w');      
+        bts_export = open(DEM_parameters.problem_name +"_bts_"+".grf",'w');      
         proc.BtsSkinDetermination(balls_model_part,solver,DEM_parameters)
         
     else:
 
-      graph_export_top = open(DEM_parameters.problem_name +"_Provisional_TOP.grf", 'w')
-      graph_export_bot = open(DEM_parameters.problem_name +"_Provisional_BOT.grf", 'w')
-      graph_export_mean = open(DEM_parameters.problem_name +"_Provisional_MEAN.grf", 'w')
+      graph_export_top = open(DEM_parameters.problem_name +"_graph_TOP.grf", 'w')
+      graph_export_bot = open(DEM_parameters.problem_name +"_graph_BOT.grf", 'w')
+      graph_export_mean = open(DEM_parameters.problem_name +"_graph_MEAN.grf", 'w')
 
       
       #measuring height:
@@ -608,18 +608,18 @@ os.chdir(graphs_path)
 #    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_BOT.grf")
 #  if filename.startswith("Provisional_MEAN"):
 #    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_MEAN.grf")
-#  if filename.startswith("Provisional_CHART"):
+#  if filename.startswith("Parameters"):
 #    os.rename(filename, DEM_parameters.problem_name + "_CHART_" + str(initial_time) +".grf")
 
 for filename in os.listdir("."):
-  if filename.startswith(DEM_parameters.problem_name +"_Provisional_TOP"):
+  if filename.startswith(DEM_parameters.problem_name +"_graph_TOP"):
     os.rename(filename, DEM_parameters.problem_name + "_graph_" + "_TOP.grf")
-  if filename.startswith(DEM_parameters.problem_name +"_Provisional_BOT"):                    
+  if filename.startswith(DEM_parameters.problem_name +"_graph_BOT"):                    
     os.rename(filename, DEM_parameters.problem_name + "_graph_" + "_BOT.grf")
-  if filename.startswith(DEM_parameters.problem_name +"_Provisional_MEAN"):                   
+  if filename.startswith(DEM_parameters.problem_name +"_graph_MEAN"):                   
     os.rename(filename, DEM_parameters.problem_name + "_graph_" + "_MEAN.grf")
-  if filename.startswith(DEM_parameters.problem_name +"_Provisional_CHART"):                  
-    os.rename(filename, DEM_parameters.problem_name + "_CHART_" +".grf")
+#  if filename.startswith(DEM_parameters.problem_name +"Provisional_CHART"):                  
+#    os.rename(filename, DEM_parameters.problem_name + "_CHART_" +".grf")
 
 
 if (DEM_parameters.ConcreteTestOption!= "OFF"):
