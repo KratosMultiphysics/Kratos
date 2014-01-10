@@ -1,8 +1,11 @@
 #ifndef KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_PROCESS_H
 #define KRATOS_METIS_DIVIDE_HETEROGENEOUS_INPUT_PROCESS_H
 
-// External includes
-#include <parmetis.h>
+#ifdef KRATOS_USE_METIS_5
+  #include "metis.h"
+#else
+  #include <parmetis.h>
+#endif
 
 // Project includes
 #include "includes/define.h"
@@ -11,19 +14,21 @@
 #include "processes/graph_coloring_process.h"
 #include "custom_processes/metis_divide_input_to_partitions_process.h"
 
-extern "C" {
-extern void METIS_PartGraphKway(int*,  //int* n
-                                int*,  //idxtype* xadj
-                                int*,  //idxtype* adjcncy
-                                int*,  //idxtype* vwgt
-                                int*,  //idxtype* adjwgt
-                                int*,  //int* wgtflag
-                                int*,  //int* numflag
-                                int*,  //int* nparts
-                                int*,  //int* options
-                                int*,  //int* edgecut
-                                int*); //indxtype* part
-};
+#ifndef KRATOS_USE_METIS_5
+  extern "C" {
+  extern void METIS_PartGraphKway(int*,  //int* n
+                                  int*,  //idxtype* xadj
+                                  int*,  //idxtype* adjcncy
+                                  int*,  //idxtype* vwgt
+                                  int*,  //idxtype* adjwgt
+                                  int*,  //int* wgtflag
+                                  int*,  //int* numflag
+                                  int*,  //int* nparts
+                                  int*,  //int* options
+                                  int*,  //int* edgecut
+                                  int*); //indxtype* part
+  };
+#endif
 
 namespace Kratos
 {
@@ -55,6 +60,10 @@ class MetisDivideHeterogeneousInputProcess : public MetisDivideInputToPartitions
 public:
     ///@name Type Definitions
     ///@{
+      
+    #ifdef KRATOS_USE_METIS_5
+      typedef idx_t idxtype;
+    #endif
 
     /// Pointer definition of MetisDivideHeterogeneousInputProcess
     KRATOS_CLASS_POINTER_DEFINITION(MetisDivideHeterogeneousInputProcess);
@@ -311,12 +320,40 @@ private:
         int wgtflag = 0; // Graph is not weighted
         int numflag = 0; // Nodes are numbered from 0 (C style)
         int nparts = static_cast<int>(BaseType::mNumberOfPartitions);
-        int options[5]; // options array
-        options[0] = 0; // use default options
         int edgecut;
         rNodePartition.resize(NumNodes);
+        
+        
+        #ifndef KRATOS_USE_METIS_5
+           int options[5]; // options array
+           options[0] = 0; // use default options
 
-        METIS_PartGraphKway(&n,NodeIndices,NodeConnectivities,NULL,NULL,&wgtflag,&numflag,&nparts,&options[0],&edgecut,&rNodePartition[0]);
+          //old version
+           METIS_PartGraphKway(&n,NodeIndices,NodeConnectivities,NULL,NULL,&wgtflag,&numflag,&nparts,&options[0],&edgecut,&rNodePartition[0]);
+        #else
+           idx_t ncon = 1; //The number of balancing constraints. It should be at least 1.
+           
+           idx_t options[METIS_NOPTIONS];
+           METIS_SetDefaultOptions(options);
+           
+           int metis_return = METIS_PartGraphKway(&n,&ncon,NodeIndices,NodeConnectivities,NULL,NULL,NULL,&nparts,NULL,NULL,&options[0],&edgecut,&rNodePartition[0]);
+	   /*         int METIS PartGraphKway(
+            * idx t *nvtxs, 
+            * idx t *ncon, 
+            * idx t *xadj, 
+            * idx t *adjncy, 
+              idx t *vwgt,   NULL
+              idx t *vsize,  NULL
+              idx t *adjwgt,  NULL
+              idx t *nparts, 
+              real t *tpwgts, NULL
+              real t ubvec, NULL
+              idx t *options, 
+              idx t *objval, idx t *part)          
+	   */
+        #endif
+        
+
 
         // Debug: print partition
         PrintDebugData("Node Partition",rNodePartition);

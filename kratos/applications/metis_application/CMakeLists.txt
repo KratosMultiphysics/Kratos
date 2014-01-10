@@ -5,9 +5,18 @@ message("**** configuring KratosMetisApplication ****")
 include_directories( ${CMAKE_SOURCE_DIR}/kratos )
 
 #find mkl solver package -- this is our own find package!!
-find_package(PARMETIS REQUIRED)
-include_directories(${PARMETIS_INCLUDE_DIR})
-link_directories(${PARMETIS_LIBRARIES})
+if(${USE_METIS_5} MATCHES ON)
+    message("using metis (and not Parmetis) version 5")
+    add_definitions(-DKRATOS_USE_METIS_5)
+    find_package(METIS REQUIRED)
+    include_directories(${METIS_INCLUDE_DIR})
+    link_directories(${METIS_LIBRARIES})
+else(${USE_METIS_5} MATCHES ON)
+    message("using PARMETIS < 4 as default. Set USE_METIS_5=ON to compile with METIS v5 instead- note that current compile option is deprecated")
+    find_package(PARMETIS REQUIRED)
+    include_directories(${PARMETIS_INCLUDE_DIR})
+    link_directories(${PARMETIS_LIBRARIES})
+endif(${USE_METIS_5} MATCHES ON)
 
 ##add definitions needed
 add_definitions(-DMKL_ILP64)

@@ -62,15 +62,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_python/add_processes_to_python.h"
 #include "python/vector_python_interface.h"
 
+#include "custom_processes/metis_divide_heterogeneous_input_process.h"
+#include "custom_processes/set_mpi_communicator_process.h"
+
+#ifndef KRATOS_USE_METIS_5
 #include "custom_processes/metis_partitioning_process.h"
 #include "custom_processes/metis_divide_input_to_partitions_process.h"
-#include "custom_processes/metis_divide_heterogeneous_input_process.h"
 #include "custom_processes/morton_divide_input_to_partitions_process.h"
 #include "custom_processes/metis_contact_partitioning_process.h"
 #include "custom_processes/metis_partitioning_process_quadratic.h"
-#include "custom_processes/set_mpi_communicator_process.h"
-#include "custom_processes/metis_scalar_reorder_process.h"
 
+#include "custom_processes/metis_scalar_reorder_process.h"
+#endif
 
 namespace Kratos
 {
@@ -78,15 +81,7 @@ namespace Kratos
 namespace Python
 {
 
-int GetRank()
-{
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!! rank = " << rank << std::endl;
-
-    return rank;
-}
 
 void AddProcessesToPython()
 {
@@ -95,7 +90,7 @@ void AddProcessesToPython()
     class_<std::vector<int> >("IndicesVector")
     .def(vector_indexing_suite<std::vector<int> >())
     ;
-
+#ifndef KRATOS_USE_METIS_5
     class_<MetisScalarReorder, bases<Process> >("MetisScalarReorder",init<ModelPart&>())
     ;
 
@@ -123,15 +118,13 @@ void AddProcessesToPython()
             init<ModelPart&, IO&, unsigned int, unsigned int>())
     .def(init<ModelPart&, IO&, unsigned int>())
     ;
-
+#endif
     class_<MetisDivideHeterogeneousInputProcess, bases<Process> >("MetisDivideHeterogeneousInputProcess",
                                                                    init<IO&, unsigned int>())
             .def(init<IO&, unsigned int, int>())
             .def(init<IO&, unsigned int, int, int>())
             .def(init<IO&, unsigned int, int, int, bool>())
             ;
-
-    def("GetRank", GetRank);
 
     class_<SetMPICommunicatorProcess, bases<Process> >("SetMPICommunicatorProcess",
             init<ModelPart&>())
