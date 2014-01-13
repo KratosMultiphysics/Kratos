@@ -283,13 +283,13 @@ if(DEM_parameters.Dempack and (DEM_parameters.ConcreteTestOption != "OFF")):
   print("This chart is only valid for one material case" + '\n')
 
   chart.write(("***********PARAMETERS*****************")+'\n')
-  chart.write( "                                    *" +'\n')
+  chart.write( "                                    " +'\n')
   chart.write( "    DENSI  = " + (str(w_densi))+" Kg/m3     "+'\n')
   chart.write( "    STAFRC = " + (str(DEM_parameters.InternalFriction))+"           "+'\n')
   chart.write( "    DYNFRC = " + (str(w_dynfrc))+"          " +'\n')
   chart.write( "    YOUNG  = " + (str(w_young/1e9))+" GPa"+"     " +'\n')
   chart.write( "    POISS  = " + (str(w_poiss))+"           " +'\n')
-  chart.write( "    NTSR   = " + (str(DEM_parameters.SigmaMin))+" Mpa        " +'\n')
+  chart.write( "    FTS    = " + (str(DEM_parameters.SigmaMin))+" Mpa        " +'\n')
   chart.write( "    LCS1   = " + (str(DEM_parameters.C1))+" Mpa       " +'\n')
   chart.write( "    LCS2   = " + (str(DEM_parameters.C2))+" Mpa       " +'\n')
   chart.write( "    LCS3   = " + (str(DEM_parameters.C3))+" Mpa       " +'\n')
@@ -304,11 +304,11 @@ if(DEM_parameters.Dempack and (DEM_parameters.ConcreteTestOption != "OFF")):
   chart.write( "    GDAMP  = " + (str(DEM_parameters.DempackGlobalDamping))+"           " +'\n')
   chart.write( "    LDAMP  = " + (str(DEM_parameters.DempackDamping))+"           " +'\n')
   chart.write( "    ALPHA  = " + (str(DEM_parameters.AreaFactor))+"           " +'\n')
-  chart.write( "                                    *" +'\n')
+  chart.write( "                                    " +'\n')
   chart.write( "**************************************" +'\n')
 
   chart.close()
-  a_chart = open("Provisional_CHART.grf","r")
+  a_chart = open(DEM_parameters.problem_name + "Parameter_chart.grf","r")
   
   for line in a_chart.readlines():
     print(line)
