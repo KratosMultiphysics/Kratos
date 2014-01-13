@@ -26,6 +26,13 @@ import fs_cavity_build_reference
 
 os.chdir("..")
 
+# test of cylinder with slip BC, wall law and outlet close to the cylinder
+os.chdir("cyl_bench")
+sys.path.append(os.getcwd())
+
+import cyl_bench_build_reference
+
+os.chdir("..")
 
 # Add other examples here
 

@@ -293,296 +293,296 @@ KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 5.3 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.88776939285 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 2.99779237468 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.88776936862 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 2.99779226695 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 5.4 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.89248759465 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.00580164567 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.89248757549 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.00580149073 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 5.5 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.8969753109 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.01345502225 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.89697530763 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.01345487038 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 5.6 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.9012442118 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.02076921477 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.90124421596 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.02076906233 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 5.7 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.90530533917 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.02776006608 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.90530534333 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.02775989993 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 5.8 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.90916914418 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.03444260466 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.90916914635 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.03444242316 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 5.9 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.91284552229 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.04083109381 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.91284552268 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.04083090101 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 6.0 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.91634384592 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.04693907707 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.91634384476 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.04693887617 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 6.1 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.91967299472 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.05277942027 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.91967299202 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.05277921297 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 6.2 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.92284138395 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.05836435058 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.92284137959 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.05836413807 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 6.3 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.92585699084 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.06370549284 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.92585698472 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.06370527622 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 6.4 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.92872737932 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.06881390331 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.92872737143 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.06881368362 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 6.5 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.93145972313 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.07370010115 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.9314597135 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.07369987933 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 6.6 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.93406082743 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.07837409785 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.93406081614 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.07837387473 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 6.7 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.9365371491 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.08284542462 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.93653713624 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.08284520096 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 6.8 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.93889481574 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.08712315815 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.93889480144 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.08712293462 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 6.9 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.94113964354 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.09121594466 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.94113962791 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.09121572183 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 7.0 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.94327715406 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.09513202242 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.94327713721 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.09513180081 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 7.1 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.94531258997 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.09887924303 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.94531257202 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.09887902308 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 7.2 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.94725092995 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.10246509122 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.94725091101 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.10246487331 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 7.3 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.94909690262 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.10589670362 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.9490968828 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.1058964881 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 7.4 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.95085499973 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.10918088639 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.95085497912 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.10918067354 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 7.5 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.95252948855 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.11232413176 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.95252946726 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.11232392182 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 7.6 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.9541244236 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.11533263372 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.95412440173 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.11533242691 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 7.7 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.95564365769 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.11821230276 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.95564363534 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.11821209926 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 7.8 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.95709085237 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.1209687798 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.95709082961 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.12096857976 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 7.9 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.95846948775 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.12360744936 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.95846946466 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.12360725289 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 8.0 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.95978287183 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.12613345199 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.9597828485 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.12613325919 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 8.1 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.96103414934 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.12855169604 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.96103412583 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.128551507 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 8.2 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.96222631002 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.13086686882 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.96222628639 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.13086668359 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 8.3 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.96336219651 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.13308344712 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.96336217283 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.13308326574 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 8.4 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.96444451184 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.13520570719 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.96444448816 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.1352055297 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 8.5 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.96547582646 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.13723773426 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.96547580283 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.13723756068 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 8.6 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.96645858493 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.13918343147 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.96645856141 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.1391832618 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 8.7 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.9673951123 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.14104652842 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.96739508891 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.14104636266 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 8.8 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.96828762003 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.14283058926 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.96828759682 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.14283042738 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 8.9 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.96913821174 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.14453902032 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.96913818875 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.14453886231 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 9.0 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.96994888861 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.14617507747 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.96994886586 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.14617492331 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 9.1 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.97072155444 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.14774187303 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.97072153196 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.14774172268 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 9.2 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.97145802054 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.14924238231 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.97145799836 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.14924223573 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 9.3 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.97216001033 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.15067944996 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.97215998846 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.1506793071 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 9.4 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.97282916367 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.15205579583 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.97282914214 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.15205565666 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 9.5 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.97346704104 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.15337402075 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.97346701987 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.15337388519 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 9.6 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.97407512744 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.1546366118 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.97407508939 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.15463674596 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 9.7 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.97465483614 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.15584594757 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.97465481164 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.15584621013 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 9.8 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.97520751218 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.15700430296 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.97520750692 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.15700457656 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 9.9 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.97573443577 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.15811385388 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.97573443414 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.15811412603 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 10.0 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.97623682548 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.15917668167 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.97623681839 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.15917696532 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
 KRATOS_BENCHMARK | Float | Time | 10.1 | None | None
-KRATOS_BENCHMARK | Float | minimum pressure | -1.97671584122 | 1e-05 | None
-KRATOS_BENCHMARK | Float | maximum pressure | 3.16019477735 | 1e-05 | None
+KRATOS_BENCHMARK | Float | minimum pressure | -1.97671582892 | 1e-05 | None
+KRATOS_BENCHMARK | Float | maximum pressure | 3.16019507459 | 1e-05 | None
 KRATOS_BENCHMARK | Integer | Id of the node with minimum velocity norm | 2864 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord x minimum velocity norm | 0.88292 | 0.0 | None
 KRATOS_BENCHMARK | Float | coord y minimum velocity norm | 0.10495 | 0.0 | None
