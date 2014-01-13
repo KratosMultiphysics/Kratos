@@ -302,6 +302,8 @@ private:
     /// Periodic Condition 
     const FSPeriodicCondition<2> mFSPeriodicCondition2D;
     const FSPeriodicCondition<3> mFSPeriodicCondition3D;
+    const FSPeriodicCondition<2> mFSPeriodicConditionEdge2D;
+    const FSPeriodicCondition<3> mFSPeriodicConditionEdge3D;
 
     /// Simplified 3D slip condition using rotated coordinates (monolithic version)
     const  LinearWallCondition<3,3> mLinearWallCondition3D;

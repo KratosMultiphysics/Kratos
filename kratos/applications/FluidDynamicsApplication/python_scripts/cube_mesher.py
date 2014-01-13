@@ -386,7 +386,7 @@ def generate_z_periodic_faces(mdpa,box,index,condtype="PeriodicCondition",prop_i
 
     return index
 
-def generate_xy_periodic_edges(mdpa,box,index,condtype="PeriodicConditionCorner",prop_id=0):
+def generate_xy_periodic_edges(mdpa,box,index,condtype="PeriodicConditionEdge",prop_id=0):
     nz = box.nz()
     nx = box.nx()
     ny = box.ny()
@@ -404,7 +404,7 @@ def generate_xy_periodic_edges(mdpa,box,index,condtype="PeriodicConditionCorner"
 
     return index
 
-def generate_xz_periodic_edges(mdpa,box,index,condtype="PeriodicConditionCorner",prop_id=0):
+def generate_xz_periodic_edges(mdpa,box,index,condtype="PeriodicConditionEdge",prop_id=0):
     ny = box.ny()
     nx = box.nx()
     nz = box.nz()
@@ -423,7 +423,7 @@ def generate_xz_periodic_edges(mdpa,box,index,condtype="PeriodicConditionCorner"
     return index
         
 
-def generate_conditions(mdpa,box,condtype="WallCondition3D",periodic_facetype="PeriodicCondition",periodic_edgetype="PeriodicConditionCorner",prop_id=0):
+def generate_conditions(mdpa,box,condtype="WallCondition3D",periodic_facetype="PeriodicCondition",periodic_edgetype="PeriodicConditionEdge",prop_id=0):
     print "Generating {0} faces.".format(condtype)
     
     if box.x_periodic:

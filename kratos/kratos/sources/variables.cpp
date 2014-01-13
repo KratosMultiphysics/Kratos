@@ -152,6 +152,7 @@ KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( MOMENTUM_CM )
 KRATOS_CREATE_VARIABLE( double, TAU )
 KRATOS_CREATE_VARIABLE( Matrix, INERTIA )
 KRATOS_CREATE_VARIABLE( Matrix, LOCAL_INERTIA )
+KRATOS_CREATE_VARIABLE( int, PERIODIC_PAIR_INDEX )
 KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS( ADVPROJ )
 KRATOS_CREATE_VARIABLE( double, RHS_WATER )
 KRATOS_CREATE_VARIABLE( double, RHS_AIR )
@@ -609,7 +610,7 @@ KratosApplication::KratosApplication() :
     mCondition3D( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >( Element::GeometryType::PointsArrayType( 3, Node<3>() ) ) ) ),
     mCondition2D( 0, Element::GeometryType::Pointer( new Geometry<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
     mPeriodicCondition(0, Element::GeometryType::Pointer( new Line2D2<Node<3> >( Element::GeometryType::PointsArrayType( 2, Node<3>() ) ) ) ),
-    mPeriodicConditionCorner(0, Element::GeometryType::Pointer( new Quadrilateral3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
+    mPeriodicConditionEdge(0, Element::GeometryType::Pointer( new Quadrilateral3D4<Node<3> >( Element::GeometryType::PointsArrayType( 4, Node<3>() ) ) ) ),
     mpVariableData( KratosComponents<VariableData>::pGetComponents() ),
     mpIntVariables( KratosComponents<Variable<int> >::pGetComponents() ),
     mpUnsignedIntVariables( KratosComponents<Variable<unsigned int> >::pGetComponents() ),
@@ -693,6 +694,9 @@ void KratosApplication::RegisterVariables()
 
     KRATOS_REGISTER_VARIABLE( INERTIA ) 
     KRATOS_REGISTER_VARIABLE( LOCAL_INERTIA )
+    
+    KRATOS_REGISTER_VARIABLE( PERIODIC_PAIR_INDEX );
+
         KRATOS_REGISTER_VARIABLE( PERMEABILITY_28_DAYS )
         KRATOS_REGISTER_VARIABLE( PERMEABILITY_1_DAY )
         KRATOS_REGISTER_VARIABLE( PERMEABILITY_TRANSITION )
@@ -1027,6 +1031,8 @@ void KratosApplication::RegisterVariables()
     // Registering elements and conditions here
     KRATOS_REGISTER_CONDITION( "Condition3D", mCondition3D )
     KRATOS_REGISTER_CONDITION( "Condition2D", mCondition2D )
+    KRATOS_REGISTER_CONDITION( "PeriodicCondition", mPeriodicCondition )
+    KRATOS_REGISTER_CONDITION( "PeriodicConditionEdge", mPeriodicConditionEdge )
 
 
 
