@@ -22,6 +22,126 @@ import DEM_explicit_solver_var as DEMParameters
 import DEM_procedures
 import swimming_DEM_procedures
 
+#EMBEDDED:
+from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.StructuralApplication import *
+
+def ApplyEmbeddedBCsToFluid(model_part):
+    for node in model_part.Nodes:
+        old_dist = node.GetSolutionStepValue(DISTANCE,1)
+        dist = node.GetSolutionStepValue(DISTANCE)
+        if(dist < 0.0):
+            node.Fix(PRESSURE)
+            node.Fix(VELOCITY_X)
+            node.Fix(VELOCITY_Y)
+            node.Fix(VELOCITY_Z)  
+            node.SetSolutionStepValue(PRESSURE,0.0)
+            node.SetSolutionStepValue(VELOCITY_X,0.0)
+            node.SetSolutionStepValue(VELOCITY_Y,0.0)
+            node.SetSolutionStepValue(VELOCITY_Z,0.0)
+        elif(old_dist < 0.0):
+            node.Free(PRESSURE)
+            node.Free(VELOCITY_X)
+            node.Free(VELOCITY_Y)
+            node.Free(VELOCITY_Z)  
+
+    if model_part.NumberOfMeshes()>1:
+        for mesh_number in range(2, model_part.NumberOfMeshes()):  
+            mesh_nodes = model_part.GetMesh(mesh_number).Nodes
+            #print model_part.Properties[mesh_number] 
+            
+            #INLETS
+            if( model_part.Properties[mesh_number][IMPOSED_VELOCITY_X] == 1 or model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y] == 1 or model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z] == 1 ):
+                for node in mesh_nodes:
+                    dist = node.GetSolutionStepValue(DISTANCE)
+                    if(dist > 0.0):
+                        node.Free(PRESSURE)
+                        if( model_part.Properties[mesh_number][IMPOSED_VELOCITY_X] ):
+                            node.Fix(VELOCITY_X)
+                            node.SetSolutionStepValue(VELOCITY_X, model_part.Properties[mesh_number][IMPOSED_VELOCITY_X_VALUE])
+                        if( model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y] ):
+                            node.Fix(VELOCITY_Y)
+                            node.SetSolutionStepValue(VELOCITY_Y, model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y_VALUE])
+                        if( model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z] ):
+                            node.Fix(VELOCITY_Z)
+                            node.SetSolutionStepValue(VELOCITY_Z, model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z_VALUE])
+    
+            #OUTLETS
+            if( model_part.Properties[mesh_number][IMPOSED_PRESSURE] == 1 ): 
+                #here I assume all nodes of this outlet have the same body force and density!!
+                mod_bf=0.0
+                normalized_bf_x=0.0
+                normalized_bf_y=0.0
+                normalized_bf_z=0.0
+                outlet_density=0.0
+                for node in mesh_nodes:
+                    bx = node.GetSolutionStepValue(BODY_FORCE_X)
+                    by = node.GetSolutionStepValue(BODY_FORCE_Y)
+                    bz = node.GetSolutionStepValue(BODY_FORCE_Z)
+                    mod_bf = sqrt(bx*bx+by*by+bz*bz)
+                    normalized_bf_x = bx/mod_bf
+                    normalized_bf_y = by/mod_bf
+                    normalized_bf_z = bz/mod_bf
+                    outlet_density = node.GetSolutionStepValue(DENSITY)
+                    break
+            
+                for node in mesh_nodes:                                        
+                    height = -1.0 * (node.X*normalized_bf_x + node.Y*normalized_bf_y + node.Z*normalized_bf_z)
+                    maxheight= -1.0e90
+                    
+                    if (height > maxheight):
+                        maxheight = height
+                        highest_node = node
+                        
+                for node in mesh_nodes:
+                    dist = node.GetSolutionStepValue(DISTANCE)
+                    
+                    distance_to_highest = (node.X-highest_node.X)*normalized_bf_x  +  (node.Y-highest_node.Y)*normalized_bf_y  +  (node.Z-highest_node.Z)*normalized_bf_z
+                    base_pressure = model_part.Properties[mesh_number][PRESSURE]                   
+                    if(dist > 0.0):
+                        node.Fix(PRESSURE)                      
+                        actual_pressure = base_pressure + outlet_density*mod_bf*distance_to_highest
+                        node.SetSolutionStepValue(PRESSURE,actual_pressure)
+                        node.Free(VELOCITY_X)
+                        node.Free(VELOCITY_Y)
+                        node.Free(VELOCITY_Z)                      
+
+from math import *
+
+
+bigC_x = 0.5
+bigC_y = 0.5
+big_R  = 0.0707107
+
+def MoveEmbeddedStructure(model_part, time, bigC_x, bigC_y, big_R):
+    #omega = 10.472
+    #omega = 4
+    big_omega = 0.0
+    big_omega_t_phase = big_omega*time + 1.25 * 3.14159
+    center_x = bigC_x + big_R * cos(big_omega_t_phase)
+    center_y = bigC_y + big_R * sin(big_omega_t_phase)
+    center_x0 = 0.45
+    center_y0 = 0.45
+    center_vel_x = -big_R * big_omega * sin(big_omega_t_phase)
+    center_vel_y =  big_R * big_omega * cos(big_omega_t_phase)
+    
+    small_omega = 0.0
+    
+    for node in model_part.Nodes:
+        dist_to_center_x_0 = node.X0 - center_x0
+        dist_to_center_y_0 = node.Y0 - center_y0
+        node.X = dist_to_center_x_0 + center_x
+        node.Y = dist_to_center_y_0 + center_y
+        dist_to_center_x_now = node.X - center_x
+        dist_to_center_y_now = node.Y - center_y
+        vel_x_due_to_rotation = -small_omega * dist_to_center_y_now
+        vel_y_due_to_rotation =  small_omega * dist_to_center_x_now
+        node.SetSolutionStepValue(VELOCITY_X, (center_vel_x + vel_x_due_to_rotation))
+        node.SetSolutionStepValue(VELOCITY_Y, (center_vel_y + vel_y_due_to_rotation))
+        node.SetSolutionStepValue(VELOCITY_Z, 0.0)
+############## EMBEDDED
+
+
 # PROJECT PARAMETERS (to be put in problem type)
 ProjectParameters.projection_module_option         = 1
 ProjectParameters.print_particles_results_option   = 0
@@ -64,10 +184,14 @@ ProjectParameters.nodal_results.append("MESH_VELOCITY1")
 ProjectParameters.nodal_results.append("BODY_FORCE")
 ProjectParameters.nodal_results.append("DRAG_REACTION")
 
+#EMBEDDED
+ProjectParameters.nodal_results.append("DISTANCE")
+######EMBEDDED
+
 DEMParameters.project_from_particles_option *= ProjectParameters.projection_module_option
 ProjectParameters.project_at_every_substep_option *= ProjectParameters.projection_module_option
 ProjectParameters.time_steps_per_stationarity_step = max(1, int(ProjectParameters.time_steps_per_stationarity_step)) # it should never be smaller than 1!
-ProjectParameters.stationary_problem_option *= !DEMParameters.project_from_particles_option
+ProjectParameters.stationary_problem_option *= not DEMParameters.project_from_particles_option
 
 for var in ProjectParameters.mixed_nodal_results:
 
@@ -84,7 +208,8 @@ fluid_variables_to_add = [PRESSURE_GRADIENT,
                           BINGHAM_SMOOTHER,
                           POWER_LAW_N,
                           POWER_LAW_K,
-                          GEL_STRENGTH]
+                          GEL_STRENGTH,
+                          DISTANCE] # <- REQUIRED BY EMBEDDED
 
 balls_variables_to_add = [FLUID_VEL_PROJECTED,
                           FLUID_DENSITY_PROJECTED,
@@ -102,7 +227,12 @@ balls_variables_to_add = [FLUID_VEL_PROJECTED,
                           FLUID_VORTICITY_PROJECTED]
 
 fem_dem_variables_to_add = [VELOCITY,
-                            DISPLACEMENT]
+                            DISPLACEMENT,
+                            FORCE, # <- REQUIRED BY EMBEDDED
+                            POSITIVE_FACE_PRESSURE, # <- REQUIRED BY EMBEDDED
+                            NEGATIVE_FACE_PRESSURE] # <- REQUIRED BY EMBEDDED
+                            
+
 
 DEM_inlet_variables_to_add = balls_variables_to_add
 
@@ -209,6 +339,29 @@ balls_model_part.ProcessInfo.SetValue(POWER_LAW_K, ProjectParameters.power_law_k
 balls_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, ProjectParameters.initial_drag_force)
 balls_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, ProjectParameters.drag_law_slope)
 balls_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, ProjectParameters.power_law_tol)
+
+#EMBEDDED
+#Calculate elemental distances defining the structure embedded in the fluid mesh
+calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part,fluid_model_part)
+calculate_distance_process.Execute()
+
+# Write mesh of each partitioned model part --> create a cut model part, which gets all the nodes, elements and conditions
+#new_skin_model_part = ModelPart("SkinPart");   
+#calculate_distance_process.GenerateSkinModelPart(new_skin_model_part)
+#print new_skin_model_part
+
+# initialize GiD  I/O
+#gid_mode_skin = GiDPostMode.GiD_PostAscii
+#write_conditions_skin = WriteConditionsFlag.WriteConditions
+#multifile = MultiFileFlag.SingleFile
+#deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
+#gid_io_skin = GidIO("skin_part",gid_mode_skin,multifile,deformed_mesh_flag, write_conditions_skin)
+
+# mesh to be printed (single mesh case)
+#gid_io_skin.InitializeMesh( 0.0 )
+#gid_io_skin.WriteMesh( new_skin_model_part.GetMesh() )
+#gid_io_skin.FinalizeMesh()
+#######EMBEDDED
 
 #AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
@@ -454,7 +607,17 @@ while(time <= final_time):
         time_final_DEM_substepping = time
         time_dem = time - Dt + Dt_DEM
 
-    # solving the fluid part
+    #EMBEDDED
+    MoveEmbeddedStructure(fem_dem_model_part,time, bigC_x, bigC_y, big_R)
+    #Calculate elemental distances defining the structure embedded in the fluid mesh
+    calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part,fluid_model_part)
+    calculate_distance_process.Execute()
+    
+    if(step>=3): #MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
+        ApplyEmbeddedBCsToFluid(fluid_model_part)
+    #########EMBEDDED
+
+    # solving the fluid part    
 
     if (step >= 3 and not stationarity):
         print "Solving Fluid... (", fluid_model_part.NumberOfElements(0), " elements )"        
