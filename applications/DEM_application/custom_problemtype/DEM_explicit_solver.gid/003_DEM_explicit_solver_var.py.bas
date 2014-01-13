@@ -172,6 +172,7 @@ GlobalFrictionAngle              = *GenData(Global_FRI_ANG)
 StressStrainOperationsOption     = "*GenData(Stress_Strain_Operations)"
 ContactMeshOption                = "*GenData(Contact_Mesh)"
 ConcreteTestOption               = "*GenData(Concrete_Test)"
+FemPlates                        = "*GenData(Use_FEM_Plate)"
 MonitoringOption                 = "*GenData(Monitoring_Option)"
 PoissonMeasure                   = "*GenData(Poisson_Measure)"
 *format "%10.5e"
