@@ -852,7 +852,8 @@ namespace Kratos
 					for (ResultConditionsContainerType::iterator neighbour_it = this->GetRigidFaceResults()[ResultCounter].begin(); 
 						 neighbour_it != this->GetRigidFaceResults()[ResultCounter].end(); ++neighbour_it)
 					{
-						neighbour_rigid_faces.push_back(*neighbour_it);   
+						neighbour_rigid_faces.push_back(*neighbour_it); 
+ 
 					}
 
 					this->GetRigidFaceResults()[ResultCounter].clear();
