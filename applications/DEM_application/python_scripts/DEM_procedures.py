@@ -529,6 +529,10 @@ class Procedures:
             gid_io.WriteNodalResults(DISPLACEMENT, export_model_part.Nodes, time, 0)
         if (self.print_velocity):
             gid_io.WriteNodalResults(VELOCITY, export_model_part.Nodes, time, 0) 
+        if (self.print_total_forces):
+            gid_io.WriteNodalResults(TOTAL_FORCES, export_model_part.Nodes, time, 0) 
+        if (self.print_group_id):
+            gid_io.WriteNodalResults(EXPORT_GROUP_ID, export_model_part.Nodes, time, 0)
         gid_io.Flush()
         sys.stdout.flush()
 
@@ -539,8 +543,6 @@ class Procedures:
             gid_io.WriteNodalResults(RADIAL_DISPLACEMENT, export_model_part.Nodes, time, 0)                
         if (self.print_applied_forces):
             gid_io.WriteNodalResults(EXTERNAL_APPLIED_FORCE, export_model_part.Nodes, time, 0)       
-        if (self.print_total_forces):     
-            gid_io.WriteNodalResults(TOTAL_FORCES, export_model_part.Nodes, time, 0)    
         if (self.print_damp_forces):
             gid_io.WriteNodalResults(DAMP_FORCES, export_model_part.Nodes, time, 0)        
         if (self.print_radius):
@@ -549,8 +551,6 @@ class Procedures:
             gid_io.WriteNodalResults(PARTICLE_COHESION, export_model_part.Nodes, time, 0)       
         if (self.print_particle_tension):
             gid_io.WriteNodalResults(PARTICLE_TENSION, export_model_part.Nodes, time, 0)
-        if (self.print_group_id):
-            gid_io.WriteNodalResults(EXPORT_GROUP_ID, export_model_part.Nodes, time, 0)
         if (self.print_export_id):
             gid_io.WriteNodalResults(EXPORT_ID, export_model_part.Nodes, time, 0)
 
