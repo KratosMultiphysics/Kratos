@@ -42,7 +42,7 @@ number_of_partitions = mpi.size #we set it equal to the number of processors
 print "number_of_partitions", number_of_partitions
 partitioner = MetisPartitioningProcess(model_part, gid_io, number_of_partitions, domain_size);
 partitioner.Execute()
-print "GetRank()",GetRank()
+#print "GetRank()",GetRank()
 
 mesh_name = mpi.rank
 gid_io.InitializeMesh( mesh_name );
