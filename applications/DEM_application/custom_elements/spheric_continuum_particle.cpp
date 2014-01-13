@@ -482,8 +482,22 @@ namespace Kratos
               kn_el = equiv_young*calculation_area*initial_dist_i;
               kt_el = equiv_shear*calculation_area*initial_dist_i;
               
-                
               
+             
+//               if(rCurrentProcessInfo[TIME_STEPS]==1)
+//               {
+//                  KRATOS_WATCH(kn_el)
+//                 if(kn_el>rCurrentProcessInfo[PRESSURE])
+//                 {
+//                   rCurrentProcessInfo[PRESSURE]=kn_el;
+//                 }
+//                 
+//               }
+//               if(rCurrentProcessInfo[TIME_STEPS]==2)
+//               {
+//                 KRATOS_WATCH(rCurrentProcessInfo[PRESSURE])
+//               }
+//               
             }
             
             else
@@ -576,7 +590,7 @@ namespace Kratos
                     
                   
                       
-                      PlasticityAndDamage1D(LocalElasticContactForce, kn_el, equiv_young, indentation, calculation_area,radius_sum_i, failure_criterion_state, acumulated_damage, i_neighbour_count,mapping_new_cont, mapping_new_ini );
+                      PlasticityAndDamage1D(LocalElasticContactForce, kn_el, equiv_young, indentation, calculation_area,radius_sum_i, failure_criterion_state, acumulated_damage, i_neighbour_count,mapping_new_cont, mapping_new_ini, rCurrentProcessInfo );
                     
                       
                     }
@@ -707,7 +721,7 @@ namespace Kratos
             if(mContactMeshOption==1 && (mapping_new_cont !=-1)) 
             {
 
-              CalculateOnContactElements( neighbour_iterator_id ,i_neighbour_count, mapping_new_cont, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage);
+              CalculateOnContactElements( neighbour_iterator_id ,i_neighbour_count, mapping_new_cont, LocalElasticContactForce, contact_sigma, contact_tau, failure_criterion_state, acumulated_damage, rCurrentProcessInfo);
 
               
             }
@@ -1776,7 +1790,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       }
       
       void SphericContinuumParticle::CalculateOnContactElements(unsigned int neighbour_iterator_id, size_t i_neighbour_count, int mapping_new_cont, double LocalElasticContactForce[3], 
-                                                          double  contact_sigma, double  contact_tau, double failure_criterion_state, double acumulated_damage)
+                                                          double  contact_sigma, double  contact_tau, double failure_criterion_state, double acumulated_damage, ProcessInfo& rCurrentProcessInfo)
       {
       KRATOS_TRY
        //obtaining pointer to contact element.              
@@ -1987,7 +2001,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
      } //SphericContinuumParticle::ComputePressureForces
     
 
-    void SphericContinuumParticle::PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn_el, double equiv_young, double indentation, double calculation_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini )
+    void SphericContinuumParticle::PlasticityAndDamage1D(double LocalElasticContactForce[3], double kn_el, double equiv_young, double indentation, double calculation_area, double radius_sum_i, double& failure_criterion_state, double& acumulated_damage, int i_neighbour_count, int mapping_new_cont, int mapping_new_ini, ProcessInfo& rCurrentProcessInfo)
     {
 
       //VARIABLES
