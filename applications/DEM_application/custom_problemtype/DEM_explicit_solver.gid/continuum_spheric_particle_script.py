@@ -112,7 +112,7 @@ index_10        = 1
 index_50        = 1
 prev_time       = 0.0
 control         = 0.0
-
+count_100       = 1
 
 os.chdir(main_path)
 
@@ -151,7 +151,7 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
 
     os.chdir(graphs_path)
 
-    chart = open(DEM_parameters.problem_name + "Parameter_chart.grf", 'w')
+    chart = open(DEM_parameters.problem_name + "_Parameter_chart.grf", 'w')
     
     if(DEM_parameters.ConcreteTestOption == "BTS"):
 
@@ -308,7 +308,7 @@ if(DEM_parameters.Dempack and (DEM_parameters.ConcreteTestOption != "OFF")):
   chart.write( "**************************************" +'\n')
 
   chart.close()
-  a_chart = open(DEM_parameters.problem_name + "Parameter_chart.grf","r")
+  a_chart = open(DEM_parameters.problem_name + "_Parameter_chart.grf","r")
   
   for line in a_chart.readlines():
     print(line)
@@ -647,19 +647,21 @@ while (time < DEM_parameters.FinalTime):
 
 
 
-    if ( ( (DEM_parameters.ConcreteTestOption =="TRIAXIAL") or (DEM_parameters.ConcreteTestOption == "UCS") or (DEM_parameters.ConcreteTestOption == "OEDOMETRIC")) and (step >= step_to_fix_velocities )):
+    if ( ( (DEM_parameters.ConcreteTestOption =="TRIAXIAL") or (DEM_parameters.ConcreteTestOption == "UCS") or (DEM_parameters.ConcreteTestOption == "OEDOMETRIC")) and (step >= step_to_fix_velocities ) and (count_100 == 10)):
       graph_export_top.write(str(strain)+"  "+str(total_stress_top)+'\n')
       graph_export_bot.write(str(strain)+"  "+str(total_stress_bot)+'\n')
       total_stress_mean = 0.5*(total_stress_bot + total_stress_top)
       graph_export_mean.write(str(strain)+"  "+str(total_stress_mean)+'\n')
-      
+      count_100 = 0
       
       if((DEM_parameters.FemPlates == "ON") and (current_heigh <= 0.30)):
         graph_export_fem.write(str(strain_fem)+"  "+str(total_stress_fem)+'\n')
 
       if (DEM_parameters.PoissonMeasure =="ON"):
         graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
-             
+        
+    count_100  += 1
+    print (count_100)
     step += 1
 #-------------------------------------------------------------------------------------------------------------------------------------
 
@@ -690,8 +692,6 @@ for filename in os.listdir("."):
     os.rename(filename, DEM_parameters.problem_name + "_graph_" + "BOT.grf")
   if filename.startswith(DEM_parameters.problem_name +"_graph_MEAN"):                   
     os.rename(filename, DEM_parameters.problem_name + "_graph_" + "MEAN.grf")
-#  if filename.startswith(DEM_parameters.problem_name +"Provisional_CHART"):                  
-#    os.rename(filename, DEM_parameters.problem_name + "_CHART_" +".grf")
   if filename.startswith(DEM_parameters.problem_name +"_Provisional_PLATE"):                  
     os.rename(filename, DEM_parameters.problem_name + "_graph_" +"PLATE.grf")
     
