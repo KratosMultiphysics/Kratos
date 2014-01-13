@@ -773,7 +773,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 		double poisson        = mPoisson;
 		double radius         = GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
 		double area           = M_PI * radius * radius;
-		double kn             = young * area / (2.0 * radius);
+		double kn             = 1.0*young * area / (2.0 * radius);      
 		double ks             = kn / (2.0 * (1.0 + poisson));
                 //const double &mLnOfRestitCoeff        = this->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
 		array_1d<double, 3 > vel = GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
@@ -854,11 +854,11 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 			{
 				LocalContactForce[2] = 0.0;
 			}
-			if(this->Id()==2)
-            {
-            KRATOS_WATCH(*mpTimeStep)
-            KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
-            }
+// 			if(this->Id()==2)
+//             {
+//             KRATOS_WATCH(*mpTimeStep)
+//             KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
+//             }
 // 			if(*mpTimeStep == 0)
 //             {
 // 			KRATOS_WATCH((DistPToB - radius))
