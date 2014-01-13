@@ -195,12 +195,12 @@ QUESTION: Normal_Contact_Damp#CB#(ViscDamp,NoDamp)
 VALUE: ViscDamp
 QUESTION: Tangential_Contact_Damp#CB#(ViscDamp,NoDamp)
 VALUE: NoDamp
-QUESTION: LDAMP
-HELP: Local damping
-VALUE: 0.9
 QUESTION: GDAMP
 HELP: Global damping
 VALUE: 0.2
+QUESTION: LDAMP
+HELP: Local damping
+VALUE: 0.9
 QUESTION: Alpha
 HELP: Contact area factor modifier.
 VALUE: 1.00
@@ -306,6 +306,8 @@ DEPENDENCIES: (UCS,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#,RESTORE,Specimen_height
 DEPENDENCIES: (TRIAXIAL,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#,RESTORE,Measuring_Surface,#CURRENT#,RESTORE,Poisson_Measure,#CURRENT#,RESTORE,Measuring_Width,#CURRENT#,RESTORE,Confinement_Pressure,#CURRENT#,RESTORE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#)
 DEPENDENCIES: (OEDOMETRIC,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#,HIDE,Confinement_Pressure,0.0,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#,RESTORE,Measuring_Surface,#CURRENT#,HIDE,Poisson_Measure,#CURRENT#,HIDE,Measuring_Width,#CURRENT#)
 DEPENDENCIES: (BTS,HIDE,Confinement_Pressure,#CURRENT#,HIDE,Total_Time_Percentage_As_Force_Aplication_Time,#CURRENT#,HIDE,RADIAL_DISPLACEMENT,#CURRENT#,HIDE,Specimen_height,#CURRENT#,HIDE,Specimen_width,#CURRENT#,HIDE,Measuring_Surface,#CURRENT#,HIDE,Poisson_Measure,#CURRENT#,HIDE,Measuring_Width,#CURRENT#,HIDE,Real_Time_Graph,#CURRENT#) 
+QUESTION: Use_FEM_Plate#CB#(ON,OFF)
+VALUE: OFF
 QUESTION: Specimen_height
 VALUE: 0.30
 STATE: HIDDEN
