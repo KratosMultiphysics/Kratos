@@ -5,8 +5,8 @@
  * Created on 21 de mayo de 2012, 19:40
  */
 
-#ifndef _KRATOSAUXILIARYFUNCTIONS_H
-#define	_KRATOSAUXILIARYFUNCTIONS_H
+#ifndef _DEM_AUXILIARY_FUNCTIONS_H
+#define	_DEM_AUXILIARY_FUNCTIONS_H
 
 
 #include <cmath>
