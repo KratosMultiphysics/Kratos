@@ -254,7 +254,7 @@ public:
 
             if(this->GetValue(IS_STRUCTURE) == 0.0 )
             {
-                const unsigned int LocalSize = TNumNodes;
+	      //const unsigned int LocalSize = TNumNodes;
                 const GeometryType& rGeom = this->GetGeometry();
                 const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::GI_GAUSS_2);
                 const unsigned int NumGauss = IntegrationPoints.size();
@@ -280,7 +280,7 @@ public:
                         vgauss += N(iNode,g)*rGeom[iNode].FastGetSolutionStepValue(VELOCITY);
                     }
 
-                    double aux=inner_prod(Normal,vgauss);
+                    double aux =inner_prod(Normal,vgauss);
 
                     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode)
                     {
