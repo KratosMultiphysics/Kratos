@@ -335,11 +335,7 @@ namespace Kratos
         mOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
 
       }
-	  
-	  
-	  
-	  
-	  
+
 	//////Cfeng,RigidFace
 	void SphericParticle::ComputeNewRigidFaceNeighboursHistoricalData()
      {
@@ -847,10 +843,9 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
             GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalContactForceOld, LocalContactForce);
             LocalContactForce[0] +=  - ks * LocalDeltDisp[0];
             LocalContactForce[1] +=  - ks * LocalDeltDisp[1];
-            LocalContactForce[2] +=  - kn * LocalDeltDisp[2];
+            //LocalContactForce[2] +=  - kn * LocalDeltDisp[2];
 			
-			///Cfeng,abasolutal method
-			/*
+		
 			 if(DistPToB < radius)
 			{
 				LocalContactForce[2] =  -kn * (DistPToB - radius);
@@ -859,8 +854,15 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 			{
 				LocalContactForce[2] = 0.0;
 			}
-			 */
-			
+			if(this->Id()==2)
+            {
+            KRATOS_WATCH(*mpTimeStep)
+            KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
+            }
+// 			if(*mpTimeStep == 0)
+//             {
+// 			KRATOS_WATCH((DistPToB - radius))
+//             }
 				
 
             bool If_sliding = false;
