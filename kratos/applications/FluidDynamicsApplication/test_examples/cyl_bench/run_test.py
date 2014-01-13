@@ -309,7 +309,7 @@ elif(SolverType == "monolithic_solver_eulerian_compressible"):
 
 ##activate turbulence model
 if(ProjectParameters.TurbulenceModel == "Smagorinsky-Lilly"):
-    fluid_solver.ActivateSmagorinsky(ProjectParameters.SmagorinskyConstant)
+    fluid_solver.activate_smagorinsky(ProjectParameters.SmagorinskyConstant)
 elif(ProjectParameters.TurbulenceModel == "Spalart-Allmaras"):
     ##apply the initial turbulent viscosity on all of the nodes
     turb_visc = ProjectParameters.TurbulentViscosity
