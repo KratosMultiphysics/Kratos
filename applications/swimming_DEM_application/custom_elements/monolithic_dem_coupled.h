@@ -1294,7 +1294,8 @@ protected:
 
         // Build the local matrix and RHS
         unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
-        double K, G, PDivV, L, qF; // Temporary results
+        double K, G, L, qF; // Temporary results
+        //double PDivV
 
         array_1d<double,3> BodyForce(3,0.0);
         this->EvaluateInPoint(BodyForce, BODY_FORCE,rShapeFunc);
@@ -1340,7 +1341,7 @@ protected:
 
                     // v * Grad(p) block
                     G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
-                    PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
+                    //PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
 //G
                     DivPEpsilon = FluidFraction * rShapeDeriv(i, m) * rShapeFunc[j] + FluidFractionGradient[m] * rShapeFunc[i] * rShapeFunc[j]; // Div(v) * p
 
