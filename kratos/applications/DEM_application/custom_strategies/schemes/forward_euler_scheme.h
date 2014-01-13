@@ -87,6 +87,7 @@ namespace Kratos
           NodesArrayType& pNodes            = GetNodes(model_part);
 
           double delta_t              = rCurrentProcessInfo[DELTA_TIME];
+
           double virtual_mass_coeff   = rCurrentProcessInfo[NODAL_MASS_COEFF];
           bool if_virtual_mass_option = (bool) rCurrentProcessInfo[VIRTUAL_MASS_OPTION];
 
@@ -123,7 +124,6 @@ namespace Kratos
                   
                   i->FastGetSolutionStepValue(OLD_COORDINATES) = coor; //saving the coordinates in order to optimize some functions (specially de previous step coordinates)  
 
-
                   if (if_virtual_mass_option)
                   {
                       aux = (1 - virtual_mass_coeff)* (delta_t / mass);
@@ -155,6 +155,7 @@ namespace Kratos
                   }
                   pos = i->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
                   if( i->GetDof(VELOCITY_Y, pos).IsFixed() == false ) 
+     
                   {    
                       vel[1] += aux * force[1];
 
@@ -163,7 +164,7 @@ namespace Kratos
                       delta_displ[1] = delta_t * vel[1];
 
                       coor[1] = initial_coor[1] + displ[1];
-
+                      
 
                   }
                   else
