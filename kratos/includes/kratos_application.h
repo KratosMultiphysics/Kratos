@@ -369,7 +369,7 @@ protected:
     // Periodic Condition 
     const PeriodicCondition mPeriodicCondition;
 
-    const PeriodicCondition mPeriodicConditionCorner;
+    const PeriodicCondition mPeriodicConditionEdge;
 
 
 

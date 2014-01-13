@@ -841,6 +841,9 @@ protected:
      {
          if (mrPeriodicIdVar.Key() != 0)
          {
+             int GlobalNodesNum = rModelPart.GetCommunicator().LocalMesh().Nodes().size();
+             rModelPart.GetCommunicator().SumAll(GlobalNodesNum);
+
              for (typename ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++ )
              {
                  ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
@@ -868,6 +871,29 @@ protected:
                          rNode1.GetValue(CONV_PROJ) = ConvProj;
                          rNode1.GetValue(PRESS_PROJ) = PressProj;
                          rNode1.GetValue(DIVPROJ) = DivProj;
+                     }
+                 }
+                 else if (rGeom.PointsNumber() == 4 && rGeom[0].FastGetSolutionStepValue(mrPeriodicIdVar) > GlobalNodesNum)
+                 {
+                     double NodalArea = rGeom[0].FastGetSolutionStepValue(NODAL_AREA);
+                     array_1d<double,3> ConvProj = rGeom[0].FastGetSolutionStepValue(CONV_PROJ);
+                     array_1d<double,3> PressProj = rGeom[0].FastGetSolutionStepValue(PRESS_PROJ);
+                     double DivProj = rGeom[0].FastGetSolutionStepValue(DIVPROJ);
+
+                     for (unsigned int i = 1; i < 4; i++)
+                     {
+                         NodalArea += rGeom[i].FastGetSolutionStepValue(NODAL_AREA);
+                         ConvProj += rGeom[i].FastGetSolutionStepValue(CONV_PROJ);
+                         PressProj += rGeom[i].FastGetSolutionStepValue(PRESS_PROJ);
+                         DivProj += rGeom[i].FastGetSolutionStepValue(DIVPROJ);
+                     }
+
+                     for (unsigned int i = 0; i < 4; i++)
+                     {
+                         rGeom[i].GetValue(NODAL_AREA) = NodalArea;
+                         rGeom[i].GetValue(CONV_PROJ) = ConvProj;
+                         rGeom[i].GetValue(PRESS_PROJ) = PressProj;
+                         rGeom[i].GetValue(DIVPROJ) = DivProj;
                      }
                  }
              }
@@ -900,6 +926,9 @@ protected:
      {
          if (mrPeriodicIdVar.Key() != 0)
          {
+             int GlobalNodesNum = rModelPart.GetCommunicator().LocalMesh().Nodes().size();
+             rModelPart.GetCommunicator().SumAll(GlobalNodesNum);
+
              for (typename ModelPart::ConditionIterator itCond = rModelPart.ConditionsBegin(); itCond != rModelPart.ConditionsEnd(); itCond++ )
              {
                  ModelPart::ConditionType::GeometryType& rGeom = itCond->GetGeometry();
@@ -918,6 +947,19 @@ protected:
 
                          rNode0.GetValue(FRACT_VEL) = DeltaVel;
                          rNode1.GetValue(FRACT_VEL) = DeltaVel;
+                     }
+                 }
+                 else if (rGeom.PointsNumber() == 4 && rGeom[0].FastGetSolutionStepValue(mrPeriodicIdVar) > GlobalNodesNum)
+                 {
+                     array_1d<double,3> DeltaVel = rGeom[0].FastGetSolutionStepValue(FRACT_VEL);
+                     for (unsigned int i = 1; i < 4; i++)
+                     {
+                         DeltaVel += rGeom[i].FastGetSolutionStepValue(FRACT_VEL);
+                     }
+
+                     for (unsigned int i = 0; i < 4; i++)
+                     {
+                         rGeom[i].GetValue(FRACT_VEL) = DeltaVel;
                      }
                  }
              }
@@ -1090,6 +1132,9 @@ private:
             }
             rModelPart.GetCommunicator().AssembleNonHistoricalData(IS_STRUCTURE);
         }
+
+        // Check input parameters
+        this->Check();
 
         KRATOS_CATCH("");
     }
