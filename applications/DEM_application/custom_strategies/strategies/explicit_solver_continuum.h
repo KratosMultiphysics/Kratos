@@ -194,8 +194,12 @@ namespace Kratos
     
           BaseType::GetForce();
              
-          /// Compute the global external nodal force.
+          //DEM_FEM..... "should be gathered into one single RHS for both particle and FEM nodes
+          
+          Clear_forces_FEM();
           Calculate_Conditions_RHS_and_Add();
+          
+          //DEM_FEM
 
           if(mDempackOption)
           {
@@ -207,7 +211,7 @@ namespace Kratos
           BaseType::Compute_RigidFace_Movement();
           
           BaseType::SynchronizeSolidMesh(r_model_part);
-  
+          
           if(rCurrentProcessInfo[ACTIVATE_SEARCH]==0)
           {
             
@@ -229,7 +233,7 @@ namespace Kratos
 
           // 5. Neighbouring search. Every N times. + destruction of particles outside the bounding box
           //KRATOS_TIMER_START("SearchNeighbours")
-          
+
           if(rCurrentProcessInfo[ACTIVATE_SEARCH]==1)
           {
 
@@ -259,6 +263,7 @@ namespace Kratos
           
           //KRATOS_TIMER_START("FinalizeSolutionStep")
           BaseType::FinalizeSolutionStep();
+          FinalizeSolutionStepFEM();
           
           //this->DebugOperations(r_model_part);
           
@@ -965,6 +970,73 @@ namespace Kratos
                       geom(i)->UnSetLock();
                   }
               }                   
+              
+          }
+      }
+
+      KRATOS_CATCH("")
+    }
+    
+    
+    void Clear_forces_FEM()
+
+    {
+        KRATOS_TRY
+
+        ModelPart& fem_model_part  = BaseType::GetFemModelPart();
+        NodesArrayType& pNodes   = fem_model_part.Nodes();
+
+        vector<unsigned int> node_partition;
+        OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pNodes.size(), node_partition);
+
+        #pragma omp parallel 
+        #pragma omp for
+        
+        for(int k=0; k<this->GetNumberOfThreads(); k++)
+        {
+            typename NodesArrayType::iterator i_begin=pNodes.ptr_begin()+node_partition[k];
+            typename NodesArrayType::iterator i_end=pNodes.ptr_begin()+node_partition[k+1];
+
+            for(ModelPart::NodeIterator i=i_begin; i!= i_end; ++i)
+            {
+                //array_1d<double,3>& normal    = (i->FastGetSolutionStepValue(NORMAL));
+                array_1d<double,3>& node_rhs  = (i->FastGetSolutionStepValue(TOTAL_FORCES));
+                //noalias(normal)               = ZeroVector(3);    //MSIMSI 1 pk fa clear de NORMAL si no existeix enlloc??? 
+                noalias(node_rhs)             = ZeroVector(3);
+            }
+        }
+
+        KRATOS_CATCH("")
+    }
+
+    
+     void FinalizeSolutionStepFEM()
+    {
+      
+      KRATOS_TRY
+      
+      ConditionsArrayType& pConditions      = BaseType::GetFemModelPart().GetCommunicator().LocalMesh().Conditions();     
+
+      ProcessInfo& rCurrentProcessInfo  = BaseType::GetFemModelPart().GetProcessInfo();
+
+      Vector rhs_cond;
+
+      vector<unsigned int> condition_partition;
+      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pConditions.size(), condition_partition);
+            
+      #pragma omp parallel 
+      
+      #pragma omp for private (rhs_cond)
+      
+      for(int k=0; k<this->GetNumberOfThreads(); k++)
+      {
+          typename ConditionsArrayType::iterator it_begin=pConditions.ptr_begin()+condition_partition[k];
+          typename ConditionsArrayType::iterator it_end=pConditions.ptr_begin()+condition_partition[k+1];
+
+          for (typename ConditionsArrayType::iterator it= it_begin; it!=it_end; ++it)
+          {
+              
+            it->FinalizeSolutionStep(rCurrentProcessInfo);
               
           }
       }
