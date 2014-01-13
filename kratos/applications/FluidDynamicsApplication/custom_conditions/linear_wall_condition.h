@@ -408,17 +408,17 @@ protected:
                     const array_1d<double,3>& VelMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
                     Vel -= VelMesh;
 
-                    const double nu = rConstNode.FastGetSolutionStepValue(VISCOSITY);
+                    //const double nu = rConstNode.FastGetSolutionStepValue(VISCOSITY);
 
-                    const double slip_fac = rConstNode.FastGetSolutionStepValue(IS_SLIP);
-                    double edge_fac = 0.0;
+                    //const double slip_fac = rConstNode.FastGetSolutionStepValue(IS_SLIP);
+                    /*double edge_fac = 0.0;
 
                     if(slip_fac == 30.0)
                         edge_fac = 20.0;
                     else if(slip_fac == 20.0)
                         edge_fac = 1.0;
                     else
-                        edge_fac = 0.01;
+                        edge_fac = 0.01;*/
 //                      double tau = area * NodalFactor  * rho * nu  / y;
                     
                      const double wall_vel = norm_2(Vel);
