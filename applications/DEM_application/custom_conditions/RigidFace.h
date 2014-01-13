@@ -117,6 +117,7 @@ public:
         ProcessInfo& rCurrentProcessInfo );
 		
     void Calculate(const Variable<Vector >& rVariable, Vector& Output, const ProcessInfo& rCurrentProcessInfo);
+    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
 
     /**
