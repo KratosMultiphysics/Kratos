@@ -903,6 +903,28 @@ public:
                 rValues[0] -= TauTwo*Proj;
             }
         }
+        else if (rVariable == NODAL_AREA && TDim == 3)
+        {
+            MatrixType J = ZeroMatrix(3,3);
+            const array_1d<double,3>& X0 = this->GetGeometry()[0].Coordinates();
+            const array_1d<double,3>& X1 = this->GetGeometry()[1].Coordinates();
+            const array_1d<double,3>& X2 = this->GetGeometry()[2].Coordinates();
+            const array_1d<double,3>& X3 = this->GetGeometry()[3].Coordinates();
+
+            J(0,0) = X1[0]-X0[0];
+            J(0,1) = X2[0]-X0[0];
+            J(0,2) = X3[0]-X0[0];
+            J(1,0) = X1[1]-X0[1];
+            J(1,1) = X2[1]-X0[1];
+            J(1,2) = X3[1]-X0[1];
+            J(2,0) = X1[2]-X0[2];
+            J(2,1) = X2[2]-X0[2];
+            J(2,2) = X3[2]-X0[2];
+
+            double DetJ = J(0,0)*( J(1,1)*J(2,2) - J(1,2)*J(2,1) ) + J(0,1)*( J(1,2)*J(2,0) - J(1,0)*J(2,2) ) + J(0,2)*( J(1,0)*J(2,1) - J(1,1)*J(2,0) );
+            rValues.resize(1, false);
+            rValues[0] = DetJ;
+        }
         else // Default behaviour (returns elemental data)
         {
             rValues.resize(1, false);
@@ -1090,10 +1112,10 @@ protected:
      * @param TauTwo Second stabilization parameter (mass equation)
      * @param rAdvVel advection velocity
      * @param Area Elemental area
-    * @param Density Density on integrartion point
-           * @param KinViscosity Kinematic viscosity (nu) on integrartion point
-           * @param rCurrentProcessInfo Process info instance
-           */
+     * @param Density Density on integrartion point
+     * @param KinViscosity Kinematic viscosity (nu) on integrartion point
+     * @param rCurrentProcessInfo Process info instance
+     */
     virtual void CalculateTau(double& TauOne,
                               double& TauTwo,
                               const array_1d< double, 3 > & rAdvVel,
@@ -1111,10 +1133,10 @@ protected:
 
         const double Element_Size = this->ElementSize(Area);
 
-        //TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
-        //TauTwo = Density * (KinViscosity + 0.5 * Element_Size * AdvVelNorm);
-        TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 12.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
-        TauTwo = Density * (KinViscosity + Element_Size * AdvVelNorm / 6.0);
+        TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 4.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
+        TauTwo = Density * (KinViscosity + 0.5 * Element_Size * AdvVelNorm);
+        //TauOne = 1.0 / (Density * ( rCurrentProcessInfo[DYNAMIC_TAU] / rCurrentProcessInfo[DELTA_TIME] + 12.0 * KinViscosity / (Element_Size * Element_Size) + 2.0 * AdvVelNorm / Element_Size) );
+        //TauTwo = Density * (KinViscosity + Element_Size * AdvVelNorm / 6.0);
 
     }
 
@@ -1126,9 +1148,9 @@ protected:
      * @param TauOne First stabilization parameter (momentum equation)
      * @param rAdvVel advection velocity
      * @param Area Elemental area
-    * @param Density Density on integrartion point
-           * @param KinViscosity Kinematic viscosity (nu) on integrartion point
-           */
+     * @param Density Density on integrartion point
+     * @param KinViscosity Kinematic viscosity (nu) on integrartion point
+     */
     virtual void CalculateStaticTau(double& TauOne,
                                     const array_1d< double, 3 > & rAdvVel,
                                     const double Area,
@@ -1353,6 +1375,7 @@ protected:
 
                 // Velocity block
                 K = Density * rShapeFunc[i] * AGradN[j]; // Convective term: v * ( a * Grad(u) )
+                //K = 0.5 * Density * (rShapeFunc[i] * AGradN[j] - AGradN[i] * rShapeFunc[j]); // Skew-symmetric convective term 1/2( v*grad(u)*u - grad(v) uu )
                 K += TauOne * Density * AGradN[i] * Density * AGradN[j]; // Stabilization: (a * Grad(v)) * TauOne * (a * Grad(u))
                 K *= Weight;
 
@@ -1362,7 +1385,7 @@ protected:
                 for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
                 {
                     // Velocity block
-//                        K += Weight * Density * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
+                    //K += Weight * Density * Viscosity * rShapeDeriv(i, m) * rShapeDeriv(j, m); // Diffusive term: Viscosity * Grad(v) * Grad(u)
 
                     // v * Grad(p) block
                     G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
