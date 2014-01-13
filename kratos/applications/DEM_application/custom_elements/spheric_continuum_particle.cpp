@@ -337,6 +337,12 @@ namespace Kratos
                  
         KRATOS_TRY
 
+        
+//         if(this->Id()==2) //MSIMSI 0
+//             {
+//             KRATOS_WATCH(*mpTimeStep)
+//             KRATOS_WATCH(rCurrentProcessInfo[TIME_STEPS])
+//             }
         ParticleWeakVectorType& mrNeighbours         = this->GetValue(NEIGHBOUR_ELEMENTS); 
 
         double dt = rCurrentProcessInfo[DELTA_TIME];
@@ -1113,6 +1119,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           
           if (rCurrentProcessInfo[PRINT_GROUP_ID] == 1)
           {
+
               this->GetGeometry()[0].FastGetSolutionStepValue(EXPORT_GROUP_ID) = double(this->GetGeometry()[0].FastGetSolutionStepValue(GROUP_ID));
           }
           
@@ -1798,7 +1805,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 
             lock_p_weak->GetValue(CONTACT_FAILURE) = (mNeighbourFailureId[i_neighbour_count]);                                        
             lock_p_weak->GetValue(FAILURE_CRITERION_STATE) = failure_criterion_state;
-            if( ( acumulated_damage > lock_p_weak->GetValue(UNIDIMENSIONAL_DAMAGE) ) || (*mpTimeStep == 0) )
+            //if( ( acumulated_damage > lock_p_weak->GetValue(UNIDIMENSIONAL_DAMAGE) ) || (*mpTimeStep ) )  //MSIMSI 0
+            if( ( acumulated_damage > lock_p_weak->GetValue(UNIDIMENSIONAL_DAMAGE) ) || (rCurrentProcessInfo[TIME_STEPS] == 0) )
              { lock_p_weak->GetValue(UNIDIMENSIONAL_DAMAGE) = acumulated_damage; }                                  
                   
         } // if Target Id < Neigh Id
@@ -2010,7 +2018,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           double u_ela2 = u_ela1 + (Ncstr2_el-Ncstr1_el)/(kn_b);
           double u_ela3 = u_ela2 + (Ncstr3_el-Ncstr2_el)/(kn_c);
 
-          if ( ( indentation > u_max ) || (*mpTimeStep <= 1) )//maximum historical intentation OR first step
+          //if ( ( indentation > u_max ) || (*mpTimeStep <= 1) )//maximum historical intentation OR first step  MSIMSI 0
+          if ( ( indentation > u_max ) || (rCurrentProcessInfo[TIME_STEPS] <= 1) )//maximum historical intentation OR first step  MSIMSI 0
             
           {
 
