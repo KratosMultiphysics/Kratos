@@ -27,6 +27,10 @@ mixed_model_part       = ModelPart("Mixed_Part");
 
 RigidFace_model_part.AddNodalSolutionStepVariable(VELOCITY)
 RigidFace_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+RigidFace_model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
+RigidFace_model_part.AddNodalSolutionStepVariable(GROUP_ID)
+RigidFace_model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
+
 
 # Importing the strategy object
 
@@ -135,7 +139,9 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
   
     (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = proc.ListDefinition(balls_model_part,solver)  # defines the lists where we measure forces
 
-    strain=0.0; total_stress = 0.0; first_time_entry = 1
+    strain = 0.0; total_stress = 0.0; first_time_entry = 1
+    strain_fem = 0.0; total_stress_bot = 0.0; total_stress_mean = 0.0; total_stress_fem = 0.0
+    
     # for the graph plotting    
     velocity_node_y = 0.0
     height = DEM_parameters.SpecimenHeight
@@ -157,6 +163,9 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
       graph_export_top = open(DEM_parameters.problem_name +"_graph_TOP.grf", 'w')
       graph_export_bot = open(DEM_parameters.problem_name +"_graph_BOT.grf", 'w')
       graph_export_mean = open(DEM_parameters.problem_name +"_graph_MEAN.grf", 'w')
+      
+      if(DEM_parameters.FemPlates == "ON"):
+         graph_export_fem = open(DEM_parameters.problem_name +"_Provisional_PLATE.grf", 'w')
 
       
       #measuring height:
@@ -352,14 +361,35 @@ if(DEM_parameters.PoissonMeasure == "ON"):
         
 step_to_fix_velocities = balls_model_part.ProcessInfo[STEP_FIX_VELOCITIES]
         
+        
+if(DEM_parameters.FemPlates == "ON"):
+
+  meshes_to_translate = Vector(1)
+  meshes_to_translate[0] = 1
+
+  xyz_displacements = Vector(3)
+  xyz_displacements[0]=1
+  xyz_displacements[1]=2
+  xyz_displacements[2]=3
+  
+  translation_operation = TranslationOperation(RigidFace_model_part,meshes_to_translate,xyz_displacements,0)
+  translation_operation.Execute()
+
+        
 while (time < DEM_parameters.FinalTime):
 
     dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
     #balls_model_part.CloneTimeStep(time)
     balls_model_part.ProcessInfo[TIME] = time
+    RigidFace_model_part.ProcessInfo[TIME] = time
     balls_model_part.ProcessInfo[DELTA_TIME] = dt
+    RigidFace_model_part.ProcessInfo[DELTA_TIME] = dt
     balls_model_part.ProcessInfo[TIME_STEPS] = step
+    RigidFace_model_part.ProcessInfo[TIME_STEPS] = step
+    
+    if(DEM_parameters.FemPlates == "ON"):
+      translation_operation.ExecuteInitializeSolutionStep()
 
     #########################_SOLVE_#########################################4
     os.chdir(main_path)
@@ -415,6 +445,7 @@ while (time < DEM_parameters.FinalTime):
     total_force_top = 0.0
     total_force_bot = 0.0
     total_force_bts = 0.0
+    total_fem_force = 0.0
     
     if( DEM_parameters.ContinuumOption =="ON"):
       
@@ -471,6 +502,26 @@ while (time < DEM_parameters.FinalTime):
             total_force_bot += force_node_y
 
           total_stress_bot = total_force_bot/(DEM_parameters.MeasuringSurface*1000000)
+          
+          ##################################PLATE##################################
+          
+          if(DEM_parameters.FemPlates == "ON"):
+
+            current_heigh = 0.0
+            for node in RigidFace_model_part.Nodes:
+              if (node.GetSolutionStepValue(EXPORT_GROUP_ID)==1):
+                current_heigh = node.Y
+                break;
+           
+            strain_fem += -(current_heigh-mean_top)/height
+            for node in RigidFace_model_part.Nodes:
+              if (node.GetSolutionStepValue(EXPORT_GROUP_ID)==1):
+                force_node_fem_y = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+                total_fem_force += force_node_fem_y
+          
+            total_stress_fem = total_fem_force/(DEM_parameters.MeasuringSurface*1000000)
+          
+          ##################################PLATE##################################
           
           if(DEM_parameters.PoissonMeasure == "ON"):
                       
@@ -584,6 +635,9 @@ while (time < DEM_parameters.FinalTime):
       total_stress_mean = 0.5*(total_stress_bot + total_stress_top)
       graph_export_mean.write(str(strain)+"  "+str(total_stress_mean)+'\n')
       
+      if((DEM_parameters.FemPlates == "ON") and (current_heigh <= 0.30)):
+        graph_export_fem.write(str(strain_fem)+"  "+str(total_stress_fem)+'\n')
+
       if (DEM_parameters.PoissonMeasure =="ON"):
         graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
       
@@ -613,19 +667,23 @@ os.chdir(graphs_path)
 
 for filename in os.listdir("."):
   if filename.startswith(DEM_parameters.problem_name +"_graph_TOP"):
-    os.rename(filename, DEM_parameters.problem_name + "_graph_" + "_TOP.grf")
+    os.rename(filename, DEM_parameters.problem_name + "_graph_" + "TOP.grf")
   if filename.startswith(DEM_parameters.problem_name +"_graph_BOT"):                    
-    os.rename(filename, DEM_parameters.problem_name + "_graph_" + "_BOT.grf")
+    os.rename(filename, DEM_parameters.problem_name + "_graph_" + "BOT.grf")
   if filename.startswith(DEM_parameters.problem_name +"_graph_MEAN"):                   
-    os.rename(filename, DEM_parameters.problem_name + "_graph_" + "_MEAN.grf")
+    os.rename(filename, DEM_parameters.problem_name + "_graph_" + "MEAN.grf")
 #  if filename.startswith(DEM_parameters.problem_name +"Provisional_CHART"):                  
 #    os.rename(filename, DEM_parameters.problem_name + "_CHART_" +".grf")
-
-
+  if filename.startswith(DEM_parameters.problem_name +"_Provisional_PLATE"):                  
+    os.rename(filename, DEM_parameters.problem_name + "_graph_" +"PLATE.grf")
+    
 if (DEM_parameters.ConcreteTestOption!= "OFF"):
   graph_export_top.close()
   graph_export_bot.close()
   graph_export_mean.close()
+  
+  if(DEM_parameters.FemPlates == "ON"):
+    graph_export_fem.close()
 
   
 if(DEM_parameters.ConcreteTestOption == "BTS"):
