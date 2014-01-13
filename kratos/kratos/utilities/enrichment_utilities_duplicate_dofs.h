@@ -177,7 +177,7 @@ public:
 
         array_1d<double, n_nodes> exact_distance = rDistances;
         array_1d<double, n_nodes> abs_distance = ZeroVector(n_nodes);
-        double sub_volumes_sum = 0.00;
+        //double sub_volumes_sum = 0.00;
 
         //compute edge lenghts and max_lenght
         double max_lenght = 0.0;
@@ -317,7 +317,7 @@ public:
     {
 //         rVolumes.resize(1,false)
 //         rVolumes[0] = volume;
-        sub_volumes_sum = volume;
+//        sub_volumes_sum = volume;
 //                 // Looking for the first node with sign not zero to get the sign of the element.
 //                 for (int i_node = 0; i_node < n_nodes; i_node++)
 //                     if (signs[i_node] != 0) {
@@ -378,12 +378,12 @@ public:
 
 
         //now obtain the tetras and compute their center coordinates and volume
-        if(rShapeFunctionValues.size1() != nel*4 || rShapeFunctionValues.size2() != 4)
+        if(rShapeFunctionValues.size1() != (unsigned int)(nel)*4 || rShapeFunctionValues.size2() != 4)
             rShapeFunctionValues.resize(nel*4,4,false);
 
         std::vector< array_1d<double, 3 > >center_position(4);
         Vector gauss_volumes(4);
-        if(rVolumes.size() != nel*4)
+        if(rVolumes.size() != (unsigned int)(nel)*4)
             rVolumes.resize(nel*4,false);
 
         for (int i = 0; i < nel; i++)
@@ -429,7 +429,7 @@ public:
     //double verify_volume = 0.0;
     if (number_of_partitions > 1)   // we won't calculate the N and its gradients for element without partitions
     {
-        if(NEnriched.size1() != number_of_partitions*4 || NEnriched.size2() != 4)
+      if(NEnriched.size1() != (unsigned int)(number_of_partitions)*4 || NEnriched.size2() != 4)
             NEnriched.resize(number_of_partitions*4,4,false);
 
         //compute the maximum absolute distance on the cut so to normalize the shape functions
@@ -456,10 +456,10 @@ public:
         if(max_aux_dist_on_cut < 1e-9*max_lenght)
             max_aux_dist_on_cut =  1e-9*max_lenght;
 
-        if(rGradientsValue.size() != number_of_partitions*4)
+        if(rGradientsValue.size() != (unsigned int)(number_of_partitions)*4)
             rGradientsValue.resize(number_of_partitions*4);
 
-        if(rPartitionsSign.size() != number_of_partitions*4)
+	if(rPartitionsSign.size() != (unsigned int)(number_of_partitions)*4)
             rPartitionsSign.resize(number_of_partitions*4,false);
 
 //         KRATOS_WATCH(rShapeFunctionValues)
