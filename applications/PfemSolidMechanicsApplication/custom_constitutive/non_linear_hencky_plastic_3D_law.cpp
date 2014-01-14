@@ -75,6 +75,8 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
     Vector& StressVector                  = rValues.GetStressVector();
     Matrix& ConstitutiveMatrix            = rValues.GetConstitutiveMatrix();
 
+    const Matrix&  DeformationGradientF0P= rValues.GetDeformationGradientF0();
+
     //-----------------------------//
 
     //0.- Initialize parameters
@@ -110,6 +112,8 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
     Matrix DeformationGradientFbar = DeformationGradientF;
     DeformationGradientFbar = DeformationGradient3D(DeformationGradientFbar);
 
+    Matrix DeformationGradientF0 = DeformationGradientF0P;
+    DeformationGradientF0 = DeformationGradient3D(DeformationGradientF0);
 
     //4.-Left Cauchy-Green tensor b (without bar) to the new configuration
     Matrix IncrementalDeformationGradient;
@@ -142,12 +146,72 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
     Matrix StressMatrix = ZeroMatrix(3);    
     Matrix NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen; 
 
+
+// ESTO NO PINTA NADA AQUI PERO LO PONGO
+// DEBUGG ZONE FOR THE CONSTITUTIVE EQUATIONS
+if (false) {
+
+   unsigned int nPassos = 500;
+   Vector ThisStressVector;
+   Matrix IncrementalDeformationGradient;
+   DeformationGradientF0 = ZeroMatrix(3);
+   for (unsigned int j = 0 ; j < 3; ++j)
+      DeformationGradientF0(j,j) = 1.0;
+   DeformationGradientF0(0,0) -= 1e-12;
+   NewElasticLeftCauchyGreen = prod(DeformationGradientF0, trans(DeformationGradientF0));
+
+   Matrix RotationMatrix = ZeroMatrix(3);
+   RotationMatrix(2,2) = 1.0;
+   for (unsigned j = 0; j < 3; ++j)
+      RotationMatrix(j,j) = 1.0;
+   /*RotationMatrix(0,0) = cos(1.0/ double(nPassos) * 3.14159);
+   RotationMatrix(1,1) = RotationMatrix(0,0);
+   RotationMatrix(0,1) = - pow(  1- RotationMatrix(0,0)*RotationMatrix(0,0), 0.5);
+   RotationMatrix(1,0) = - RotationMatrix(0,1);
+*/
+   for (unsigned int i = 0; i < nPassos; ++i) {
+
+       // SETTING THE NEW DEFORMATION
+       IncrementalDeformationGradient = ZeroMatrix(3);
+       for (unsigned int j = 0; j < 3; ++j) 
+           IncrementalDeformationGradient(j,j) = 1.0;
+
+       double Inc = (double) rand()/ (double) RAND_MAX;
+       IncrementalDeformationGradient(1,1) = 1.0 - 0.01*(Inc - 0.3);
+       std::cout << "Hello"  <<  IncrementalDeformationGradient(1,1) << std::endl;;
+//       IncrementalDeformationGradient(1,1) = 0.999;
+       IncrementalDeformationGradient = prod(RotationMatrix, IncrementalDeformationGradient);
+       //COMPUTING
+       mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, DeformationGradientF0, IncrementalDeformationGradient, StressMatrix, NewElasticLeftCauchyGreen);
+
+       // FINALIZING STEP
+       mpFlowRule->UpdateInternalVariables( ReturnMappingVariables);
+       mElasticLeftCauchyGreen = NewElasticLeftCauchyGreen;
+       ThisStressVector = MathUtils<double>::StressTensorToVector(StressMatrix, 6);
+       DeformationGradientF0 = prod( IncrementalDeformationGradient, DeformationGradientF0);
+
+        // WRITTING
+        std::cout << "DebugConst Results " << i << std::endl;
+        std::cout << "DebugConst F0   " << DeformationGradientF0 << std::endl;
+        std::cout << "DebugConst ELCG " << mElasticLeftCauchyGreen << std::endl;
+        std::cout << "DebugConst INCR " << IncrementalDeformationGradient << std::endl;
+        std::cout << "DebugConst STRE "<< ThisStressVector << std::endl;
+        std::cout << " " << std::endl;
+    }  
+    KRATOS_ERROR( std::logic_error, "FINISHING THE CONSTITUTIVE TEST DEBUG ZONE BLAH BLAH BLAH", "" );
+
+}
+
+
+
+
+
     //Matrix IsochoricStressMatrix = ZeroMatrix(3);
 
     if( Options.Is(ConstitutiveLaw::COMPUTE_STRESS ) || Options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) )
     {
         //ReturnMappingVariables.Control.PlasticRegion = mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, IncrementalDeformationGradient, StressMatrix, NewElasticLeftCauchyGreen);
-         mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, IncrementalDeformationGradient, StressMatrix, NewElasticLeftCauchyGreen);
+         mpFlowRule->CalculateReturnMapping( ReturnMappingVariables, DeformationGradientF0, IncrementalDeformationGradient, StressMatrix, NewElasticLeftCauchyGreen);
 
     }
     //OPTION 1:
