@@ -318,8 +318,6 @@ public:
         std::vector<std::vector<double> >  SearchPetitionsRadius(mpi_size, std::vector<double>(0));
         std::vector<std::vector<double> >  SendResultsPerPoint(mpi_size, std::vector<double>(0));
         std::vector<std::vector<double> >  RecvResultsPerPoint(mpi_size, std::vector<double>(0));
-
-        std::vector<PointerType>           SecondStepSearch(0);
   
         int NumberOfSendPoints[mpi_size];
         int NumberOfRecvPoints[mpi_size];
@@ -327,7 +325,6 @@ public:
         std::vector<bool> SendPoint(NumberOfObjects*mpi_size);
 
         int msgSendSizeRad[mpi_size];
-        int msgRecvSizeRad[mpi_size];
 
         PointType Low, High;
         SearchStructureType Box;
@@ -394,9 +391,9 @@ public:
                 }
             }
         }
-        
-        TConfigure::TransferObjects(Communicator,SendObjectToProcess,SearchPetitions);
-//         TConfigure::TransferObjects(Communicator.GhostMesh(),SendObjectToProcess,SearchPetitions,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
+
+        //TConfigure::TransferObjects(Communicator,SendObjectToProcess,SearchPetitions);
+        TConfigure::TransferObjects(Communicator.GhostMesh(),SendObjectToProcess,SearchPetitions,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
         TConfigure::TransferObjects(SendRadiusToProcess,SearchPetitionsRadius);
 
         Communicator::NeighbourIndicesContainerType communicator_ranks = Communicator.NeighbourIndices();
@@ -442,6 +439,7 @@ public:
                         Communicator.LocalMesh(destination).Nodes().push_back((*result_it)->GetGeometry()(0));
 
                         (remoteResults[i].GetContainer()).push_back(*result_it);
+
                         accum_results++;
                     }
 
@@ -452,8 +450,8 @@ public:
             }
         }
 
-        TConfigure::TransferObjects(Communicator,remoteResults,SearchResults);
-//         TConfigure::TransferObjects(Communicator.GhostMesh(),remoteResults,SearchResults,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
+        //TConfigure::TransferObjects(Communicator,remoteResults,SearchResults);
+        TConfigure::TransferObjects(Communicator.GhostMesh(),remoteResults,SearchResults,(ThisObjects.begin())->GetGeometry()(0)->pGetVariablesList());
         TConfigure::TransferObjects(SendResultsPerPoint,RecvResultsPerPoint);
 
         for(int i = 0; i < mpi_size; i++) //for all ranks
@@ -499,18 +497,7 @@ public:
         }
         
         Communicator.GhostMesh().Nodes().Unique();
-
-        objectCounter = 0;
-        for (IteratorType object_pointer_it = it_begin; object_pointer_it != it_end; ++object_pointer_it)  
-        { 
-            Results[objectCounter].resize(NumberOfResults[objectCounter]);
-            objectCounter++;
-        }
-/*
-        for (IteratorType object_pointer_it = it_begin; object_pointer_it != it_end; ++object_pointer_it)
-        {
-            KRATOS_WATCH(*(*object_pointer_it)->GetGeometry()(0)->SolutionStepData().pGetVariablesList())
-        }*/
+        Communicator.SynchronizeNodalSolutionStepsData();
     }
 
 //************************************************************************
