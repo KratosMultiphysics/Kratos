@@ -1637,6 +1637,9 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
             
 
           }
+        
+   
+          
                 
           if( mRotationOption != 0 && mRotationSpringOption != 0 )
           {
@@ -1978,7 +1981,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         if( mFinalPressureTime <= 1e-10 )
         {
           
-            KRATOS_WATCH("WARNING: SIMULATION TIME TO CLOSE TO ZERO")
+          //  KRATOS_WATCH("WARNING: SIMULATION TIME TO CLOSE TO ZERO")
           
         }
         
