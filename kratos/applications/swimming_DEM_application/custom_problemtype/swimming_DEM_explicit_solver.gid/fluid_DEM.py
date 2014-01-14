@@ -108,37 +108,84 @@ def ApplyEmbeddedBCsToFluid(model_part):
 
 from math import *
 
-
-bigC_x = 0.5
-bigC_y = 0.5
-big_R  = 0.0707107
-
-def MoveEmbeddedStructure(model_part, time, bigC_x, bigC_y, big_R):
-    #omega = 10.472
-    #omega = 4
-    big_omega = 0.0
-    big_omega_t_phase = big_omega*time + 1.25 * 3.14159
-    center_x = bigC_x + big_R * cos(big_omega_t_phase)
-    center_y = bigC_y + big_R * sin(big_omega_t_phase)
-    center_x0 = 0.45
-    center_y0 = 0.45
-    center_vel_x = -big_R * big_omega * sin(big_omega_t_phase)
-    center_vel_y =  big_R * big_omega * cos(big_omega_t_phase)
+def MoveEmbeddedStructure(model_part, time):
     
-    small_omega = 0.0
-    
-    for node in model_part.Nodes:
-        dist_to_center_x_0 = node.X0 - center_x0
-        dist_to_center_y_0 = node.Y0 - center_y0
-        node.X = dist_to_center_x_0 + center_x
-        node.Y = dist_to_center_y_0 + center_y
-        dist_to_center_x_now = node.X - center_x
-        dist_to_center_y_now = node.Y - center_y
-        vel_x_due_to_rotation = -small_omega * dist_to_center_y_now
-        vel_y_due_to_rotation =  small_omega * dist_to_center_x_now
-        node.SetSolutionStepValue(VELOCITY_X, (center_vel_x + vel_x_due_to_rotation))
-        node.SetSolutionStepValue(VELOCITY_Y, (center_vel_y + vel_y_due_to_rotation))
-        node.SetSolutionStepValue(VELOCITY_Z, 0.0)
+    if model_part.NumberOfMeshes()>1:
+        for mesh_number in range(1, model_part.NumberOfMeshes()):  
+            mesh_nodes = model_part.GetMesh(mesh_number).Nodes
+            #print model_part.Properties[mesh_number]             
+            linear_velocity  = model_part.Properties[mesh_number][VELOCITY]
+            linear_period    = model_part.Properties[mesh_number][VELOCITY_PERIOD]
+            angular_velocity = model_part.Properties[mesh_number][ANGULAR_VELOCITY]
+            angular_period   = model_part.Properties[mesh_number][ANGULAR_VELOCITY_PERIOD]
+            initial_center   = model_part.Properties[mesh_number][ROTATION_CENTER] 
+            
+            if ( linear_period > 0.0 ):
+                linear_omega = 2 * math.pi / linear_period
+                center_position = initial_center + linear_velocity/linear_omega * sin(linear_omega * time)
+            else:
+                center_position = initial_center + time * linear_velocity
+            
+            if ( angular_period > 0.0 ):
+                angular_omega = 2 * math.pi / angular_period
+                angle = angular_velocity / angular_omega * sin(angular_omega * time)
+            else:
+                angle = time * angular_velocity
+            
+            ang = sqrt( angle[0]*angle[0] + angle[1]*angle[1] + angle[2]*angle[2] )
+            
+            xx=1.0
+            yy=0.0
+            zz=0.0
+            mod_angular_velocity = sqrt(angular_velocity[0]*angular_velocity[0] + angular_velocity[1]*angular_velocity[1] + angular_velocity[2]*angular_velocity[2])
+            if ( mod_angular_velocity > 0.0 ):
+                uu= angular_velocity[0]/mod_angular_velocity
+                vv= angular_velocity[1]/mod_angular_velocity
+                ww= angular_velocity[2]/mod_angular_velocity
+            else:
+                uu= 0.0
+                vv= 0.0
+                ww= 0.0
+            
+            new_axes1 = [0.0,0.0,0.0]
+            new_axes1[0] = uu*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + xx*cos(ang) + (-ww*yy+vv*zz)*sin(ang)
+            new_axes1[1] = vv*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + yy*cos(ang) + (ww*xx-uu*zz)*sin(ang)
+            new_axes1[2] = ww*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + zz*cos(ang) + (-vv*xx+uu*yy)*sin(ang)
+            
+            xx=0.0
+            yy=1.0
+            zz=0.0
+            
+            new_axes2 = [0.0,0.0,0.0]
+            new_axes2[0] = uu*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + xx*cos(ang) + (-ww*yy+vv*zz)*sin(ang)
+            new_axes2[1] = vv*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + yy*cos(ang) + (ww*xx-uu*zz)*sin(ang)
+            new_axes2[2] = ww*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + zz*cos(ang) + (-vv*xx+uu*yy)*sin(ang)
+            
+            new_axes3 = [new_axes1[1]*new_axes2[2] - new_axes1[2]*new_axes2[1] , new_axes1[2]*new_axes2[0] - new_axes1[0]*new_axes2[2] , new_axes1[0]*new_axes2[1] - new_axes1[1]*new_axes2[0]]
+            
+            
+            for node in mesh_nodes:                             
+                local_X = node.X0 - initial_center[0]
+                local_Y = node.Y0 - initial_center[1]
+                local_Z = node.Z0 - initial_center[2]
+                relative_position = [0.0,0.0,0.0]
+                relative_position[0] = new_axes1[0]*local_X + new_axes2[0]*local_Y + new_axes3[0]*local_Z
+                relative_position[1] = new_axes1[1]*local_X + new_axes2[1]*local_Y + new_axes3[1]*local_Z
+                relative_position[2] = new_axes1[2]*local_X + new_axes2[2]*local_Y + new_axes3[2]*local_Z
+                
+                #NEW POSITION
+                node.X = center_position[0] + relative_position[0]
+                node.Y = center_position[1] + relative_position[1]
+                node.Z = center_position[2] + relative_position[2]
+                
+                velocity_due_to_rotation = [relative_position[1]*angular_velocity[2] - relative_position[2]*angular_velocity[1] , 
+                                            relative_position[2]*angular_velocity[0] - relative_position[0]*angular_velocity[2] , 
+                                            relative_position[0]*angular_velocity[1] - relative_position[1]*angular_velocity[0]]
+                
+                #NEW VELOCITY
+                node.SetSolutionStepValue(VELOCITY, linear_velocity + velocity_due_to_rotation )
+                
+                    
 ############## EMBEDDED
 
 
@@ -513,6 +560,7 @@ n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume))
 
 if (ProjectParameters.projection_module_option):
     projection_module = swimming_DEM_procedures.ProjectionModule(fluid_model_part, balls_model_part, fem_dem_model_part, domain_size, ProjectParameters.max_solid_fraction, ProjectParameters.coupling_weighing_type, n_particles_in_depth)
+    #to do: the projection module should be created with a list of variables to be projected (one list for every direction)
     projection_module.UpdateDatabase(h_min)
     interaction_calculator = CustomFunctionsCalculator()
 
@@ -608,7 +656,7 @@ while(time <= final_time):
         time_dem = time - Dt + Dt_DEM
 
     #EMBEDDED
-    MoveEmbeddedStructure(fem_dem_model_part,time, bigC_x, bigC_y, big_R)
+    MoveEmbeddedStructure(fem_dem_model_part,time)
     #Calculate elemental distances defining the structure embedded in the fluid mesh
     calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part,fluid_model_part)
     calculate_distance_process.Execute()
@@ -666,13 +714,14 @@ while(time <= final_time):
 
     print "Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)"
     first_dem_iter = True
+    Dt_DEM_tolerance = 1e-9
       
-    while time_dem < (time_final_DEM_substepping + Dt_DEM) :
+    while time_dem < (time_final_DEM_substepping + Dt_DEM ) :
       
-        if time_dem > time_final_DEM_substepping:
-	  time_dem = time_final_DEM_substepping
-	  
-        DEM_step += 1   # this variable is necessary to get a good random insertion of particles
+        if time_dem > time_final_DEM_substepping - Dt_DEM_tolerance:
+            time_dem = time_final_DEM_substepping
+            
+        DEM_step += 1   # this variable is necessary to get a good random insertion of particles        
         
         balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
                 
@@ -691,6 +740,7 @@ while(time <= final_time):
         balls_model_part.CloneTimeStep(time_dem)
         
         #actual_Dt_DEM = balls_model_part.ProcessInfo[DELTA_TIME] #uncomment if you want to use the actual Dt for the DEM (obtained by CloneTimeStep)
+        #print "actual_Dt_DEM = ", actual_Dt_DEM
 
         dem_solver.Solve()
 
