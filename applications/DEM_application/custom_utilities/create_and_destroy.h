@@ -366,12 +366,10 @@ public:
               particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
 
           const double& i_value     = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(rVariable);
-          //double& erase_flag        = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
           bool include=true;             // = (erase_flag < 0.5);
 
           include = include && ((i_value <= value - fabs(tol)) || (i_value >= value + fabs(tol)));
 
-          //erase_flag = include ? 0.0 : 1.0;
           if(include) 
               (*particle_pointer_it)->GetGeometry()(0)->Set(TO_ERASE);
 
@@ -393,12 +391,10 @@ public:
 
           array_1d<double, 3 >& i_var = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(rVariable);
           double i_value              = sqrt(i_var[0] * i_var[0] + i_var[1] * i_var[1] + i_var[2] * i_var[2]);
-          //double& erase_flag          = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
           bool include=true;              //  = (erase_flag < 0.5);
 
           include = include && ((i_value <= value - fabs(tol)) || (i_value >= value + fabs(tol)));
 
-          //erase_flag = include ? 0.0 : 1.0;
           if(include) 
               (*particle_pointer_it)->GetGeometry()(0)->Set(TO_ERASE);
 
@@ -414,22 +410,26 @@ public:
       KRATOS_TRY
 
       Configure::ElementsContainerType& rElements = r_model_part.Elements();
-
+      int num_erased=0;
+      
       for (Configure::ElementsContainerType::ptr_iterator particle_pointer_it = rElements.ptr_begin();
               particle_pointer_it != rElements.ptr_end(); ++particle_pointer_it){
 
-          //double& erase_flag        = (*particle_pointer_it)->GetGeometry()(0)->FastGetSolutionStepValue(ERASE_FLAG);
           array_1d<double, 3 > coor = (*particle_pointer_it)->GetGeometry()(0)->Coordinates();
-          bool include=true;             // = (erase_flag < 0.5);
-
+          bool include=true;            
+          
           for (unsigned int i = 0; i < 3; i++){
               include = include && (coor[i] >= low_point[i]) && (coor[i] <= high_point[i]);
           }
           
-          if(!include) 
+          if(!include) {
               (*particle_pointer_it)->GetGeometry()(0)->Set(TO_ERASE);          
+              num_erased++;
+          }
 
       }
+      if(num_erased)
+        std::cout<<num_erased<<" particles are about to be erased."<<std::endl;
 
       KRATOS_CATCH("")
     }
