@@ -145,3 +145,97 @@ def ApplyPressure(Pressure,XLAT,XBOT,XTOP,XBOTCORNER,XTOPCORNER,alpha_top,alpha_
 
     node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE,values)
 
+def ApplyLateralPressure(Pressure,XLAT,XBOT,XTOP,XBOTCORNER,XTOPCORNER,alpha_top,alpha_bot,alpha_lat):
+
+  for node in XLAT:
+
+    r = node.GetSolutionStepValue(RADIUS)
+    x = node.X
+    y = node.Y
+    z = node.Z
+
+    values = Array3()
+    values[0] = 0.0
+    values[1] = 0.0
+    values[2] = 0.0
+
+    cross_section = 3.141592*r*r
+
+    vect = zeros(3, double) 
+
+    #vector normal al centre:
+    vect_moduli = sqrt(x*x+z*z)
+
+    if(vect_moduli>0.0):
+      vect[0]=-x/vect_moduli
+      vect[1]=0
+      vect[2]=-z/vect_moduli
+      
+    values[0]=cross_section*alpha_lat*Pressure*vect[0]
+    values[1]= 0.0
+    values[2]=cross_section*alpha_lat*Pressure*vect[2]
+
+    node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE,values)
+
+
+  for node in XTOPCORNER:
+
+    r = node.GetSolutionStepValue(RADIUS)
+    x = node.X
+    y = node.Y
+    z = node.Z
+
+    values = Array3()
+    values[0] = 0.0
+    values[1] = 0.0
+    values[2] = 0.0
+
+    cross_section = 3.141592*r*r
+
+    vect = zeros(3, double) 
+
+    #vector normal al centre:
+    vect_moduli = sqrt(x*x+z*z)
+
+    if(vect_moduli>0.0):
+      vect[0]=-x/vect_moduli
+      vect[1]=0
+      vect[2]=-z/vect_moduli
+      
+    values[0]=cross_section*alpha_lat*Pressure*vect[0]*0.70710678
+    values[1]= 0.0
+    values[2]=cross_section*alpha_lat*Pressure*vect[2]*0.70710678
+
+
+    node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE,values)
+
+
+  for node in XBOTCORNER:
+
+    r = node.GetSolutionStepValue(RADIUS)
+    x = node.X
+    y = node.Y
+    z = node.Z
+
+    values = Array3()
+    values[0] = 0.0
+    values[1] = 0.0
+    values[2] = 0.0
+
+    cross_section = 3.141592*r*r
+
+    vect = zeros(3, double) 
+
+    #vector normal al centre:
+    vect_moduli = sqrt(x*x+z*z)
+
+    if(vect_moduli>0.0):
+      vect[0]=-x/vect_moduli
+      vect[1]=0
+      vect[2]=-z/vect_moduli
+      
+    values[0]=cross_section*alpha_lat*Pressure*vect[0]*0.70710678
+    values[1]= 0.0
+    values[2]=cross_section*alpha_lat*Pressure*vect[2]*0.70710678
+
+    node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE,values)
