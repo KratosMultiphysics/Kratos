@@ -106,7 +106,7 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrai
     //SwellingSlope
     //AlphaShear
 
-    double ReferencePreasure = 20.0;
+    double ReferencePreasure = 80.0;
     double SwellingSlope = 0.0078;
     double AlphaShear = 120.0;
 
@@ -119,7 +119,6 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrai
 
 
     rMeanStress = -ReferencePreasure*std::exp( -rVolumetricStrain / SwellingSlope) * (1.0 + 1.0*AlphaShear*DeviatoricStrain2Norm/SwellingSlope);
- //   std::cout << " Calc Mean Stress: Volumetric " << rVolumetricStrain << " Computed P " << rMeanStress << std::endl;
 }
 
 
@@ -127,7 +126,7 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrai
 
 void CamClayExplicitFlowRule::CalculateDeviatoricStress(const double& rVolumetricStrain, const Vector & rDeviatoricStrainVector, Vector& rDeviatoricStress)
 {
-    double ReferencePreasure = 20.0;
+    double ReferencePreasure = 80.0;
     double SwellingSlope = 0.0078;
     double AlphaShear = 120.0;
 
@@ -137,8 +136,6 @@ void CamClayExplicitFlowRule::CalculateDeviatoricStress(const double& rVolumetri
     for (unsigned int i = 3; i<6; ++i)
          rDeviatoricStress(i) /= 2.0;  // BECAUSE VOIGT NOTATION
   
-    //std::cout << "DeviatoricStrain " << rDeviatoricStrainVector << " DeviatoricStress " << rDeviatoricStress << std::endl;
-    //std::cout << "ShearModulus " << 2.0*AlphaShear*ReferencePreasure*std::exp(-rVolumetricStrain/SwellingSlope) << std::endl;
 
 }
 
@@ -178,7 +175,7 @@ void CamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainV
 
    double SwellingSlope = 0.0078;
    double AlphaShear = 120.0;
-   double ReferencePreasure = 20.0;
+   double ReferencePreasure = 80.0;
 
 
    rElasticMatrix  = (-1.0/SwellingSlope)*MeanStress*IdentityCross;
@@ -226,21 +223,19 @@ void CamClayExplicitFlowRule::ComputePlasticHardeningParameter(const Vector& rHe
 
 
 
-    double ReferencePreasure = 20.0;
     double SwellingSlope = 0.0078;
-    double AlphaShear = 120.0;
     double OtherSlope = 0.085;
     double Beta = 1.0;
-    double VoidRatio = 0.6;
 
 
    rH = (MeanStress-PreconsolidationStress) ;
    rH *=  (PreconsolidationStress*(1.0-pow(Beta, 2.0)) - MeanStress) ;
    rH *= PreconsolidationStress/ ( OtherSlope - SwellingSlope);
    rH *= 4.0 / pow(Beta, 4.0);
-
-
-
+   rH *= 3.0;
+ 
+   rH /= 1000.0;
+   rH /= 1000.0;
 }
 
 

@@ -54,7 +54,6 @@ NonAssociativeExplicitPlasticFlowRule::~NonAssociativeExplicitPlasticFlowRule()
 bool NonAssociativeExplicitPlasticFlowRule::CalculateReturnMapping(RadialReturnVariables& rReturnMappingVariables, const Matrix& rDeformationGradientF0, const Matrix& rDeltaDeformationGradient, Matrix& rStressMatrix, Matrix& rNewElasticLeftCauchyGreen)
 {
 
-
    bool PlasticityActive = false;
    rReturnMappingVariables.Options.Set(PLASTIC_REGION,false);
 
@@ -76,10 +75,8 @@ bool NonAssociativeExplicitPlasticFlowRule::CalculateReturnMapping(RadialReturnV
    Vector PreviousStressVector;
    //TO DO SOMETHING WITH THE STR VEC
 
-   this->CalculateKirchhoffStressVector( PreviousElasticLeftCauchyGreen, PreviousStressVector); 
+   this->CalculateKirchhoffStressVector( PreviousElasticLeftCauchyGreen, PreviousStressVector);
    rReturnMappingVariables.TrialStateFunction = mpYieldCriterion->CalculateYieldCondition(rReturnMappingVariables.TrialStateFunction, PreviousStressVector, PlasticVariables.EquivalentPlasticStrain);
-   std::cout << "Beggin TrialStateFunction " << rReturnMappingVariables.TrialStateFunction << std::endl;
-
 
     //1. Compute an Elastic Trial State
     double StressErrorMeasure;
@@ -88,18 +85,19 @@ bool NonAssociativeExplicitPlasticFlowRule::CalculateReturnMapping(RadialReturnV
     this->CalculateOneExplicitStep(rDeltaDeformationGradient, rDeformationGradientF0, PreviousElasticLeftCauchyGreen, PlasticVariables, NewElasticLeftCauchyGreen, NewStressVector, NewEquivalentPlasticStrain, false, StressErrorMeasure);
 
     double ElasticTrialStateFunction;
-    ElasticTrialStateFunction = mpYieldCriterion->CalculateYieldCondition( ElasticTrialStateFunction, NewStressVector, PlasticVariables.EquivalentPlasticStrain);
+    ElasticTrialStateFunction = mpYieldCriterion->CalculateYieldCondition( ElasticTrialStateFunction, NewStressVector, NewEquivalentPlasticStrain);
 
     //2a. It is an elastic step
     if ( ElasticTrialStateFunction <= Tolerance)   {
         //Error does not matter because we are analitically in an hyperelastic bla bla bla
+        PlasticVariables.EquivalentPlasticStrain = NewEquivalentPlasticStrain;
         PlasticityActive = false;
     }
     //2b. It seems an elasto-plastic step
     else {
          if ( ( rReturnMappingVariables.TrialStateFunction < -Tolerance) && (ElasticTrialStateFunction > Tolerance) ) {
             //2b.2 Transition from elastic to plastic
-            this->CalculateExplicitSolutionWithChange( rDeltaDeformationGradient, rDeformationGradientF0, PreviousElasticLeftCauchyGreen, PlasticVariables, NewElasticLeftCauchyGreen, NewStressVector, NewEquivalentPlasticStrain,  Tolerance);
+            this->CalculateExplicitSolutionWithChange( rDeltaDeformationGradient, rDeformationGradientF0, PreviousElasticLeftCauchyGreen, PlasticVariables, NewElasticLeftCauchyGreen, NewStressVector, Tolerance);
           
             PlasticityActive = true;
          }
@@ -108,20 +106,28 @@ bool NonAssociativeExplicitPlasticFlowRule::CalculateReturnMapping(RadialReturnV
             //2b.1 The previous drift correction didn't work out, don't worry. Completeldly PlasticStep.
          // AQUI QUEDAN TODOS LOS CASOS QUE DISCUTEN; PERO DE MOMENTO PASO
          else {         
-            this->CalculateExplicitSolution( rDeltaDeformationGradient, rDeformationGradientF0, PreviousElasticLeftCauchyGreen, PlasticVariables, NewElasticLeftCauchyGreen, NewStressVector, true, Tolerance);
+
+            bool UnloadingCondition;
+            UnloadingCondition =  this->EvaluateElastoPlasticUnloadingCondition( UnloadingCondition, PreviousElasticLeftCauchyGreen, rDeltaDeformationGradient, PlasticVariables, Tolerance); 
+
+            if (UnloadingCondition ) {
+                 this->CalculateExplicitSolutionWithChange( rDeltaDeformationGradient, rDeformationGradientF0, PreviousElasticLeftCauchyGreen, PlasticVariables, NewElasticLeftCauchyGreen, NewStressVector, Tolerance);
+                PlasticityActive = true; 
+            }
+            else {
+                this->CalculateExplicitSolution( rDeltaDeformationGradient, rDeformationGradientF0, PreviousElasticLeftCauchyGreen, PlasticVariables, NewElasticLeftCauchyGreen, NewStressVector, true, Tolerance);
+
+                // NewEquivalentPlasticStrain = PlasticVariables.EquivalentPlasticStrain;
 
             PlasticityActive = true;
-
+            }
          }
  
 
     }
 
 
-   PlasticVariables.EquivalentPlasticStrain = NewEquivalentPlasticStrain;
-   rReturnMappingVariables.TrialStateFunction = mpYieldCriterion->CalculateYieldCondition(rReturnMappingVariables.TrialStateFunction, NewStressVector, PlasticVariables.EquivalentPlasticStrain);
-   std::cout << "Exit  TrialStateFunction " << rReturnMappingVariables.TrialStateFunction << std::endl;
-
+ //   PlasticVariables.EquivalentPlasticStrain = NewEquivalentPlasticStrain;
 
 
 //    if (PlasticityActive) {
@@ -135,7 +141,7 @@ bool NonAssociativeExplicitPlasticFlowRule::CalculateReturnMapping(RadialReturnV
 //    } 
 
     // COMO EL TEMA CONMUTA forque f = eye(3), luego se puede aprovechar lo anterior!!! BIEN!!!!
-/*    if (PlasticityActive) {
+    if (PlasticityActive) {
        double DriftViolation;
        DriftViolation = mpYieldCriterion->CalculateYieldCondition(DriftViolation, NewStressVector, PlasticVariables.EquivalentPlasticStrain);
 
@@ -145,30 +151,128 @@ bool NonAssociativeExplicitPlasticFlowRule::CalculateReturnMapping(RadialReturnV
 
 
     }
-*/
+
     rReturnMappingVariables.DeltaGamma = PlasticVariables.EquivalentPlasticStrain;
     rStressMatrix = MathUtils<double>::StressVectorToTensor(NewStressVector);
     rNewElasticLeftCauchyGreen = NewElasticLeftCauchyGreen; 
 
-
     rReturnMappingVariables.Options.Set(PLASTIC_REGION,PlasticityActive);
     rReturnMappingVariables.Options.Set(RETURN_MAPPING_COMPUTED, true);
 
+   rReturnMappingVariables.TrialStateFunction = mpYieldCriterion->CalculateYieldCondition(rReturnMappingVariables.TrialStateFunction, NewStressVector, PlasticVariables.EquivalentPlasticStrain);
 
    return PlasticityActive;
 
 }
+
+
+bool& NonAssociativeExplicitPlasticFlowRule::EvaluateElastoPlasticUnloadingCondition( bool& rUnloadingCondition, const Matrix& rElasticLeftCauchyGreen, const Matrix& rDeltaDeformationGradient, const InternalVariables& rPlasticVariables, const double& rTolerance)
+{
+
+     rUnloadingCondition = false;
+    
+     Vector StressVector;
+     Vector YieldFunctionD;
+     this->CalculateKirchhoffStressVector( rElasticLeftCauchyGreen, StressVector);
+     mpYieldCriterion->CalculateYieldFunctionDerivative(StressVector, YieldFunctionD, rPlasticVariables.EquivalentPlasticStrain);
+
+     Matrix ElasticMatrix;
+     Vector ElasticStrainVector ;
+     Vector IncrementalHencky;
+
+     ElasticStrainVector = ConvertCauchyGreenTensorToHenckyStrain( rElasticLeftCauchyGreen);
+     IncrementalHencky = ConvertCauchyGreenTensorToHenckyStrain( prod(rDeltaDeformationGradient, trans(rDeltaDeformationGradient) ));
+     this->ComputeElasticMatrix(ElasticStrainVector, ElasticMatrix);
+
+     Vector IncrementalElasticStress;
+     IncrementalElasticStress = prod(ElasticMatrix, IncrementalHencky);
+
+     double Numerador = 0.0;
+     double Denom1 = 0.0;
+     double Denom2 = 0.0;
+
+     for (unsigned int i = 0; i < 6; ++i) {
+         Numerador += YieldFunctionD(i)*IncrementalElasticStress(i);
+         Denom1 += pow( YieldFunctionD(i), 2.0);
+         Denom2 += pow( IncrementalElasticStress(i), 2.0);
+      }
+
+      Denom1 = pow( Denom1*Denom2, 0.5);
+    
+      Numerador /= Denom1;
+
+      if (Numerador < rTolerance) 
+          rUnloadingCondition = true;
+
+       return rUnloadingCondition;
+
+}
+
+
+
 // *************** YIELD SURFACE VIOLATION DRIFT CORRECTION **********
 // *******************************************************************
+            
 void NonAssociativeExplicitPlasticFlowRule::ReturnStressToYieldSurface(Matrix& rNewElasticLeftCauchyGreen, Vector& rStressVector, double& rAlpha, double& rDrift, const double& rTolerance)
 {
-     Vector ActualElasticHenckyStrain;
+
+/*     Vector ActualElasticHenckyStrain;
      ActualElasticHenckyStrain = this->ConvertCauchyGreenTensorToHenckyStrain( rNewElasticLeftCauchyGreen);
 
      this->ReturnStressToYieldSurface( ActualElasticHenckyStrain, rStressVector, rAlpha, rDrift, rTolerance);
 
      rNewElasticLeftCauchyGreen = this->ConvertHenckyStrainToCauchyGreenTensor( ActualElasticHenckyStrain);
+ */    // HAY ALGO MAL PORQUE DEJA DE CONVERJER LO BIEN QUE LO HACIA 
+    AuxiliarDerivativesStructure  AuxiliarDerivatives;
+    Matrix ElasticMatrix;
+    double H;
+    double DeltaGamma;
+    Vector ElasticCorrection;
+    Matrix  CorrectedLeftCauchyGreen;
+    Matrix  UpdateMatrix;
+    Vector ActualElasticHenckyStrain;
+
+
+    for (unsigned int i = 0; i < 15; ++i) {
+
+        ActualElasticHenckyStrain = this->ConvertCauchyGreenTensorToHenckyStrain( rNewElasticLeftCauchyGreen);
+
+        this->UpdateDerivatives(ActualElasticHenckyStrain, AuxiliarDerivatives, rAlpha);
+        this->ComputeElasticMatrix(ActualElasticHenckyStrain, ElasticMatrix);
+        this->ComputePlasticHardeningParameter(ActualElasticHenckyStrain, rAlpha, H);
+
+        DeltaGamma = rDrift;
+        DeltaGamma /= ( H + MathUtils<double>::Dot(AuxiliarDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD)));
+
+        Vector MuyAuxiliar = -DeltaGamma*AuxiliarDerivatives.PlasticPotentialD/ 2.0;
+        UpdateMatrix = this->ConvertHenckyStrainToCauchyGreenTensor( MuyAuxiliar);
+        for (unsigned int j = 0; j < 3; ++j)
+            rAlpha += MuyAuxiliar(j);
+ 
+        CorrectedLeftCauchyGreen =  prod(trans(UpdateMatrix), rNewElasticLeftCauchyGreen);
+        CorrectedLeftCauchyGreen =  prod( CorrectedLeftCauchyGreen, UpdateMatrix);
+    
+        this->CalculateKirchhoffStressVector( CorrectedLeftCauchyGreen, rStressVector);
+
+        rDrift = mpYieldCriterion->CalculateYieldCondition( rDrift, rStressVector, rAlpha);
+        rNewElasticLeftCauchyGreen = CorrectedLeftCauchyGreen;
+
+
+        if( fabs(rDrift) < rTolerance) {
+            return;
+        }
+
+    }
+
+    std::cout << "Leaving drift correction WITHOUT converging " << rDrift << std::endl;
+
+/*     this->ReturnStressToYieldSurface( ActualElasticHenckyStrain, rStressVector, rAlpha, rDrift, rTolerance);
+
+     rNewElasticLeftCauchyGreen = this->ConvertHenckyStrainToCauchyGreenTensor( ActualElasticHenckyStrain);
      // HAY ALGO MAL PORQUE DEJA DE CONVERJER LO BIEN QUE LO HACIA 
+    
+ */    
+
 }
 
 
@@ -180,10 +284,9 @@ void NonAssociativeExplicitPlasticFlowRule::ReturnStressToYieldSurface(Vector& r
     double DeltaGamma;
     Vector ElasticCorrection;
         
-    std::cout << "DriftViolation " << rDrift << std::endl; 
 
-    for (unsigned int i = 0; i < 80; ++i)
-    {
+    for (unsigned int i = 0; i < 15; ++i)     {
+
 
         this->UpdateDerivatives(rElasticHenckyStrainVector, AuxiliarDerivatives, rAlpha);
         this->ComputeElasticMatrix(rElasticHenckyStrainVector, ElasticMatrix);
@@ -195,18 +298,17 @@ void NonAssociativeExplicitPlasticFlowRule::ReturnStressToYieldSurface(Vector& r
         ElasticCorrection = -DeltaGamma*AuxiliarDerivatives.PlasticPotentialD;
 
         rElasticHenckyStrainVector += ElasticCorrection;
-        for (unsigned int j = 0; i<3; ++i)
+
+        for (unsigned int j = 0; j<3; ++j)
            rAlpha -= ElasticCorrection(j);
 
         this->CalculateKirchhoffStressVector( rElasticHenckyStrainVector, rStressVector);
 
         rDrift = mpYieldCriterion->CalculateYieldCondition( rDrift, rStressVector, rAlpha);
-        std::cout << "DriftViolation " << rDrift << std::endl; 
     
-        if (fabs(rDrift) < rTolerance)
-            std::cout << "    " << std::endl;
+        if (fabs(rDrift) < rTolerance)  {
             return;
-
+        }
      }
 
      if (fabs(rDrift) > 10.0*rTolerance)
@@ -230,7 +332,6 @@ Vector NonAssociativeExplicitPlasticFlowRule::ConvertCauchyGreenTensorToHenckySt
 
     Aux = prod(Aux, (EigenVectors));
     Aux = prod(trans(EigenVectors), Aux);
-   
     Vector Result; 
     Result = MathUtils<double>::StrainTensorToVector(Aux, 6);
     return Result;
@@ -256,6 +357,14 @@ Matrix NonAssociativeExplicitPlasticFlowRule::ConvertHenckyStrainToCauchyGreenTe
     Aux = prod(Aux, (EigenVectors));
     Aux = prod(trans(EigenVectors), Aux);
 
+    // COMPROVACION
+    Matrix A = ZeroMatrix(3);
+    for (unsigned int i = 0; i < 3; ++ i ) 
+        A(i,i) = EigenValues(i);
+
+    A = prod(trans(EigenVectors), A);
+    A = prod(A, EigenVectors);
+    A = A - HenckyStrainMatrix; 
     return Aux;
 
 }
@@ -283,23 +392,15 @@ void NonAssociativeExplicitPlasticFlowRule::UpdateDerivatives(const Vector& rHen
 void NonAssociativeExplicitPlasticFlowRule::ComputeIncrementalDeformationGradient(const Matrix& rInitialDeformationGradient, const Matrix& rFinalDeformationGradient, const double & rReferenceConfiguration, const double & rFinalConfiguration, Matrix& rIncrementalDeformationGradient)
 {
 
-    std::cout << "COMPUTEINCREMENTAL " << std::endl;
     Matrix DeformationGradientReference;
     Matrix DeformationGradientFinal;
 
     DeformationGradientReference = rReferenceConfiguration*rFinalDeformationGradient + ( 1.0 - rReferenceConfiguration) * rInitialDeformationGradient;
     DeformationGradientFinal     =     rFinalConfiguration*rFinalDeformationGradient + ( 1.0 -     rFinalConfiguration) * rInitialDeformationGradient;
 
-//    std::cout << "-1 ! " << rInitialDeformationGradient << std::endl;
-//    std::cout << "0 ! " << rFinalDeformationGradient << std::endl;
-//    std::cout << "1 ! "<<  DeformationGradientReference << std::endl;
-//    std::cout << "2 ! "<<  DeformationGradientFinal << std::endl;
-   
     double Det; 
     MathUtils<double>::InvertMatrix(DeformationGradientReference, rIncrementalDeformationGradient, Det);
-//    std::cout << "3 ! " << rIncrementalDeformationGradient << std::endl;
     rIncrementalDeformationGradient = prod( DeformationGradientFinal, rIncrementalDeformationGradient);
-//    std::cout << "4 ! " << rIncrementalDeformationGradient << std::endl;
    
 }
 
@@ -311,7 +412,7 @@ void NonAssociativeExplicitPlasticFlowRule::ComputeIncrementalDeformationGradien
 
 void NonAssociativeExplicitPlasticFlowRule::CalculateOneExplicitPlasticStep(const Matrix& rDeltaDeformationGradient, const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, double& rNewEquivalentPlasticStrain)
 {
-        double StepEquivalentPlasticStrain = 0.0; 
+        rNewEquivalentPlasticStrain = rPlasticVariables.EquivalentPlasticStrain;
         Matrix ElasticMatrix;
         Vector ElasticStrainVector ;
 
@@ -319,13 +420,13 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateOneExplicitPlasticStep(cons
         this->ComputeElasticMatrix(ElasticStrainVector, ElasticMatrix);
 
        	AuxiliarDerivativesStructure AuxiliarDerivatives;
-       	this->UpdateDerivatives(ElasticStrainVector, AuxiliarDerivatives, StepEquivalentPlasticStrain);
+       	this->UpdateDerivatives(ElasticStrainVector, AuxiliarDerivatives, rNewEquivalentPlasticStrain);
 
         ElasticStrainVector = ConvertCauchyGreenTensorToHenckyStrain( prod(rDeltaDeformationGradient, trans(rDeltaDeformationGradient)) );
 
 
         double H;
-        this->ComputePlasticHardeningParameter(ElasticStrainVector, StepEquivalentPlasticStrain, H);
+        this->ComputePlasticHardeningParameter(ElasticStrainVector, rNewEquivalentPlasticStrain, H);
 
 
         Vector auxVector;
@@ -334,10 +435,8 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateOneExplicitPlasticStep(cons
         for (unsigned int i = 0; i<6; ++i)
              DeltaGamma += auxVector(i)*AuxiliarDerivatives.YieldFunctionD(i);
 
-        std::cout << "DeltaGamma 1 " << DeltaGamma << " cosa " << ElasticStrainVector << " auxV " << auxVector <<  std::endl;
         double auxDenominador = H + MathUtils<double>::Dot( AuxiliarDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD));
 
-        std::cout << "DEN " << auxDenominador << std::endl;
 	DeltaGamma /= auxDenominador;
 
         if (DeltaGamma < 0 )
@@ -348,12 +447,16 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateOneExplicitPlasticStep(cons
 
         Matrix UpdateMatrix;
         UpdateMatrix = this->ConvertHenckyStrainToCauchyGreenTensor (MuyAuxiliar);
-        std::cout << "UP1 1 " << UpdateMatrix << std::endl;
         UpdateMatrix = prod( rDeltaDeformationGradient, UpdateMatrix);
-        std::cout << "UP1 2 " << UpdateMatrix << std::endl;
 
         rNewElasticLeftCauchyGreen = prod(UpdateMatrix, rPreviousElasticLeftCauchyGreen);
         rNewElasticLeftCauchyGreen = prod( rNewElasticLeftCauchyGreen, trans(UpdateMatrix));
+
+        double PlasticPotentialP = 0.0;
+        for (unsigned int i = 0; i < 3; ++i)
+             PlasticPotentialP += DeltaGamma*AuxiliarDerivatives.PlasticPotentialD(i);
+
+        rNewEquivalentPlasticStrain +=  PlasticPotentialP ;// 3.0; 
 
 
 }
@@ -368,11 +471,13 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateOneExplicitStep(const Matri
 
     if ( rElastoPlasticBool)  {
 
+
+        // ONE STEP UPDATE
         this->CalculateOneExplicitPlasticStep( rDeltaDeformationGradient, rPreviousElasticLeftCauchyGreen, rPlasticVariables, rNewElasticLeftCauchyGreen, rNewEquivalentPlasticStrain);
 
         this->CalculateKirchhoffStressVector( rNewElasticLeftCauchyGreen, rNewStressVector); 
 
-        //ADAPTIVE SECOND PART
+        //TWO STEP UPDATE
         Matrix FinalDeformationGradient = prod(rDeltaDeformationGradient, rDeformationGradientF0);
 
         Matrix HalfStepIncrementalDeformation;
@@ -382,11 +487,12 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateOneExplicitStep(const Matri
 
         this->CalculateOneExplicitPlasticStep( HalfStepIncrementalDeformation, rPreviousElasticLeftCauchyGreen, rPlasticVariables, SecondApproxLeftCauchyGreen, rNewEquivalentPlasticStrain);
 
-        std::cout << " hola " << HalfStepIncrementalDeformation << std::endl;
         ComputeIncrementalDeformationGradient(rDeformationGradientF0, FinalDeformationGradient, 0.5, 1.0, HalfStepIncrementalDeformation);
-        std::cout << " hola " << HalfStepIncrementalDeformation << std::endl;
+        double PreviousEquivalent = rPlasticVariables.EquivalentPlasticStrain;
+        rPlasticVariables.EquivalentPlasticStrain = rNewEquivalentPlasticStrain;
         this->CalculateOneExplicitPlasticStep( HalfStepIncrementalDeformation, SecondApproxLeftCauchyGreen, rPlasticVariables, SecondApproxLeftCauchyGreen, rNewEquivalentPlasticStrain);
- 
+         rPlasticVariables.EquivalentPlasticStrain = PreviousEquivalent;
+
          Vector SecondApproxStressVector;
          this->CalculateKirchhoffStressVector( SecondApproxLeftCauchyGreen, SecondApproxStressVector);
 
@@ -396,10 +502,11 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateOneExplicitStep(const Matri
             rStressErrorMeasure += pow( rNewStressVector(i) - SecondApproxStressVector(i), 2.0);
             Denominador  += pow(rNewStressVector(i), 2.0);
          }
-          rStressErrorMeasure = pow( rStressErrorMeasure/Denominador, 0.5);
+          rStressErrorMeasure = 0.1*pow( rStressErrorMeasure/Denominador, 0.5);
+
+         rNewStressVector = SecondApproxStressVector;
+         rNewElasticLeftCauchyGreen = SecondApproxLeftCauchyGreen;
          
-         std::cout << "ST1 1 " << rNewStressVector << std::endl;
-         std::cout << "ST1 2 " << SecondApproxStressVector << std::endl;
    } 
    else  {
     
@@ -407,18 +514,11 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateOneExplicitStep(const Matri
       rNewElasticLeftCauchyGreen = prod( rDeltaDeformationGradient, rNewElasticLeftCauchyGreen );
   
       rStressErrorMeasure = 0.0;
-       
-      this->CalculateKirchhoffStressVector( rNewElasticLeftCauchyGreen, rNewStressVector); 
+      rNewEquivalentPlasticStrain = rPlasticVariables.EquivalentPlasticStrain;   
+      this->CalculateKirchhoffStressVector( rNewElasticLeftCauchyGreen, rNewStressVector);
+     
    }
 
-   std::cout << " Gauss Point abstract " << rElastoPlasticBool << std::endl;
-   std::cout << "Previous LCG " << rPreviousElasticLeftCauchyGreen << std::endl;
-   std::cout << "INcrement    " << rDeltaDeformationGradient << std::endl;
-   std::cout << "ALLNEW   LCG " << rNewElasticLeftCauchyGreen << std::endl;
-   std::cout << "Stress       " << rNewStressVector << std::endl;
-   std::cout << "Error        " << rStressErrorMeasure << std::endl;
-   std::cout << "Landa        " << DeltaGamma << std::endl;
-   std::cout << " " << std::endl;
 
 }
 
@@ -429,7 +529,6 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateKirchhoffStressVector( cons
 
     Vector ElasticHenckyStrainVector;
     ElasticHenckyStrainVector = ConvertCauchyGreenTensorToHenckyStrain( rElasticLeftCauchyGreen); 
-
     this->CalculateKirchhoffStressVector(ElasticHenckyStrainVector, rNewStressVector);
 }
 
@@ -449,7 +548,7 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolution( const Mat
    Matrix IncrementalDeformationGradientF;
 
    double StressErrorMeasure ;
-   double NewEquivalentPlasticStrain = rPlasticVariables.EquivalentPlasticStrain;
+   double NewEquivalentPlasticStrain;
 
    while (DoneTimeStep < 1.0)  {
  
@@ -461,9 +560,8 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolution( const Mat
  
        this->CalculateOneExplicitStep( IncrementalDeformationGradientF, ActualDeformationGradient, ActualElasticLeftCauchyGreen, rPlasticVariables, rNewElasticLeftCauchyGreen, rNewStressVector, NewEquivalentPlasticStrain, rElastoPlasticBool, StressErrorMeasure);
 
-       std::cout << "EXPLICITCOMPUTE " << TimeStep << " " << DoneTimeStep << " " << StressErrorMeasure << std::endl;
 
-       if ( StressErrorMeasure < 100.0*rTolerance ) {
+       if ( StressErrorMeasure < 1.0*rTolerance ) {
            // Se acepta el paso
            ActualElasticLeftCauchyGreen = rNewElasticLeftCauchyGreen;
            ActualDeformationGradient = prod( IncrementalDeformationGradientF, ActualDeformationGradient);
@@ -482,7 +580,7 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolution( const Mat
  
       }
 
-      TimeStep *= 0.9* (pow( rTolerance / (StressErrorMeasure+ 1e-6), 1.0/2.0 ));
+      TimeStep *= 0.9* (pow( rTolerance / (StressErrorMeasure+ 1e-8), 1.0/2.0 ));
       TimeStep = std::max(TimeStep, MinTimeStep);
   }
 
@@ -493,9 +591,8 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolution( const Mat
 
 
 // Search for the change and then continue
-void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolutionWithChange(const Matrix& rDeltaDeformationGradient, const Matrix& rDeformationGradientF0, const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, double& rNewEquivalentPlasticStrain, const double& rTolerance)
+void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolutionWithChange(const Matrix& rDeltaDeformationGradient, const Matrix& rDeformationGradientF0, const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector,  const double& rTolerance)
 {
-
 
    Matrix FinalDeformationGradient = prod( rDeltaDeformationGradient, rDeformationGradientF0);
 
@@ -512,7 +609,7 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolutionWithChange(
    Matrix IncrementalDeformationGradientF;
 
    double StressErrorMeasure;
-   double NewEquivalentPlasticStrain;
+   double NewEquivalentPlasticStrain = rPlasticVariables.EquivalentPlasticStrain ;
 
    double Measure1;
    double Measure2;
@@ -536,10 +633,8 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolutionWithChange(
        }
        Measure1 = fabs(InitialStateFunction-EndStateFunction);
        Measure2 = fabs(InitialPosition - EndPosition);
-       std::cout << "BISECTION " << i << " M1 " << Measure1 << " M2 " << Measure2 << std::endl;
 
        if ( (Measure1 < rTolerance ) && (Measure2 < rTolerance)) {
-           std::cout << "BISECTION "  <<i  << "Converged " << std::endl;
            break;
        }
  
@@ -558,46 +653,8 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateExplicitSolutionWithChange(
 
    this->CalculateExplicitSolution( IncrementalDeformationGradientF, HalfStepDeformationGradient, rNewElasticLeftCauchyGreen, rPlasticVariables, rNewElasticLeftCauchyGreen, rNewStressVector,  true, rTolerance);
 
-// AQUI HAY UN PROBLEMA; CREO
 
 }
-/*{
-   unsigned int NumberOfSubsteps = 10;
-   double IncrementalAlpha = 1/double(NumberOfSubsteps);
-
-   Matrix FinalDeformationGradient = prod( rDeltaDeformationGradient, rDeformationGradientF0);
-  
-   Matrix ActualDeformationGradient = rDeformationGradientF0;
-   Matrix ActualElasticLeftCauchyGreen = rPreviousElasticLeftCauchyGreen;
-   Matrix IncrementalDeformationGradient;
-   
-   double StateFunctionEndSubStep;
-   double StressErrorMeasure ;
-
-   for (unsigned int iSubstep = 0; iSubstep < NumberOfSubsteps, ++iSubstep)
-   {
-        //1. Compute Small ElasticIncrements and check for YieldSurface
-        this->ComputeIncrementalDeformationGradient( rDeformationGradientF0, FinalDeformationGradient, DoneTimeStep, DoneTimeStep + IncrementalAlpha, IncrementalDeformationGradientF);
-        this->CalculateOneExplicitStep( IncrementalDeformationGradientF, ActualDeformationGradient, ActualElasticLeftCauchyGreen, rPlasticVariables, rNewElasticLeftCauchyGreen, rNewStressVector, NewEquivalentPlasticStrain, true, StressErrorMeasure);
-        StateFunctionEndSubStep = mpYieldCriterion->CalcualteYieldCondition(StateFunctionEndSubStep, rNewStressVector, rPlasticVariables.EquivalentPlasticStrain);
-        //Elastic Substep; add and continue;
-        if ( StateFunctionEndSubStep < rTolerance )  {
-           ActualElasticLeftCauchyGreen = rNewElasticLeftCauchyGreen;
-           ActualDeformationGradient = prod( IncrementalDeformationGradientF, AcualDeformationGradient);
-           DoneTimeStep += TimeStep;
-           rPlasticVariables.EquivalentPlasticStrain = NewEquivalentPlasticStrain;
-        }
-        // ElastoPlastic Substep. 
-        else {
-        }
-   }
-
-
-
-}
-
-*/
-
 
    
 void NonAssociativeExplicitPlasticFlowRule::ComputeElastoPlasticTangentMatrix(const RadialReturnVariables& rReturnMappingVariables, const Matrix& rLeftCauchyGreenMatrix, const double& rAlpha, Matrix& rElasticMatrix)
@@ -627,14 +684,8 @@ void NonAssociativeExplicitPlasticFlowRule::ComputeElastoPlasticTangentMatrix(co
       Matrix PlasticUpdate;
       PlasticUpdate = MyCrossProduct(rElasticMatrix, AuxiliarDerivatives.PlasticPotentialD, AuxiliarDerivatives.YieldFunctionD);
 
-/*      std::cout <<"PlasMat " << PlasticUpdate << std::endl;
-      std::cout <<"DERIV   " << AuxiliarDerivatives.YieldFunctionD << std::endl;
-      std::cout <<"Denom   " << H << " " << MathUtils<double>::Dot(AuxVectorF, AuxiliarDerivatives.PlasticPotentialD) << std::endl;
-      std::cout <<"ElasticM" << rElasticMatrix << std::endl;
-*/
       rElasticMatrix -= 1.0*PlasticUpdate / ( H + MathUtils<double>::Dot(AuxVectorF, AuxiliarDerivatives.PlasticPotentialD));
 
-//      std::cout <<"TOTAL   " << rElasticMatrix << std::endl;
   }
 
 }
@@ -643,13 +694,14 @@ void NonAssociativeExplicitPlasticFlowRule::ComputeElastoPlasticTangentMatrix(co
 Matrix NonAssociativeExplicitPlasticFlowRule::MyCrossProduct(const Matrix& rM, const Vector& rA, const Vector& rB)
 {
  
-    for (unsigned int i = 3; i<6; ++i) {
-    //   rA(i) /= 2.0;
-    //   rB(i) /= 2.0;
-    }
 
     Vector A = rA;
     Vector B = rB;
+
+    for (unsigned int i = 3; i<6; ++i) {
+//      A(i) /= 2.0;
+//      B(i) /= 2.0;
+    }
 
     A = prod(rM, A);
     B = prod(trans(B), rM); 
