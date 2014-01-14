@@ -450,7 +450,7 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       void Sort_Modelpart(ModelPart& r_model_part)
       {
           KRATOS_TRY
-          
+
           for (unsigned int i = 0; i < mCommunicator.LocalMeshes().size(); i++)
               mCommunicator.LocalMesh(i).Nodes().Unique();
           

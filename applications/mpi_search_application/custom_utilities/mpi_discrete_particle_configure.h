@@ -1,4 +1,4 @@
-//   Project Name:        Kratos       
+//   Project Name:        Kratos
 //   Last Modified by:    $Author: Nelson Lafontaine  $
 //   Date:                $Date: 2012-05-24 $
 //   Revision:            $Revision: 1.0 $
@@ -157,44 +157,46 @@ public:
           {
               if(i != mpi_rank && msgRecvSize[i])
               {
-                  mpi_recv_buffer[i] = (int *)malloc(sizeof(int) * msgRecvSize[i]);
+                  mpi_recv_buffer[i]    = (int *   )malloc(sizeof(int   ) * msgRecvSize[i]);
                   
-                  mpi_recv_buffer_x[i] = (double *)malloc(sizeof(double) * msgRecvSize[i]);
-                  mpi_recv_buffer_y[i] = (double *)malloc(sizeof(double) * msgRecvSize[i]);
-                  mpi_recv_buffer_z[i] = (double *)malloc(sizeof(double) * msgRecvSize[i]);
+                  mpi_recv_buffer_x[i]  = (double *)malloc(sizeof(double) * msgRecvSize[i]);
+                  mpi_recv_buffer_y[i]  = (double *)malloc(sizeof(double) * msgRecvSize[i]);
+                  mpi_recv_buffer_z[i]  = (double *)malloc(sizeof(double) * msgRecvSize[i]);
                   
                   MPI_Irecv(mpi_recv_buffer[i],msgRecvSize[i],MPI_INT,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
                   
-                  MPI_Irecv(mpi_recv_buffer_x[i],msgRecvSize[i],MPI_DOUBLE,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
-                  MPI_Irecv(mpi_recv_buffer_y[i],msgRecvSize[i],MPI_DOUBLE,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
-                  MPI_Irecv(mpi_recv_buffer_z[i],msgRecvSize[i],MPI_DOUBLE,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                  MPI_Irecv(mpi_recv_buffer_x[i],msgRecvSize[i],MPI_DOUBLE,i,1,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                  MPI_Irecv(mpi_recv_buffer_y[i],msgRecvSize[i],MPI_DOUBLE,i,2,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                  MPI_Irecv(mpi_recv_buffer_z[i],msgRecvSize[i],MPI_DOUBLE,i,3,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
               }
 
               if(i != mpi_rank && msgSendSize[i])
               {
-                  mpi_send_buffer[i] = (int *)malloc(sizeof(int) * msgSendSize[i]);
+                  mpi_send_buffer[i]    = (int *   )malloc(sizeof(int   ) * msgSendSize[i]);
                   
-                  mpi_send_buffer_x[i] = (double *)malloc(sizeof(double) * msgSendSize[i]);
-                  mpi_send_buffer_y[i] = (double *)malloc(sizeof(double) * msgSendSize[i]);
-                  mpi_send_buffer_z[i] = (double *)malloc(sizeof(double) * msgSendSize[i]);
+                  mpi_send_buffer_x[i]  = (double *)malloc(sizeof(double) * msgSendSize[i]);
+                  mpi_send_buffer_y[i]  = (double *)malloc(sizeof(double) * msgSendSize[i]);
+                  mpi_send_buffer_z[i]  = (double *)malloc(sizeof(double) * msgSendSize[i]);
                   
+                  int index = 0;
+
                   for (ElementsContainerType::iterator i_element = SendObjects[i].begin();
                       i_element != SendObjects[i].end(); ++i_element)
                   {
-                      int index = i_element-SendObjects[i].begin();
-                    
-                      mpi_send_buffer[i][index] = i_element->Id();
+                      mpi_send_buffer[i][index]   = i_element->GetGeometry()(0)->Id();
                       
-                      mpi_send_buffer_x[i][index] = i_element->GetGeometry()(0)->Coordinates()[0];
-                      mpi_send_buffer_y[i][index] = i_element->GetGeometry()(0)->Coordinates()[1];
-                      mpi_send_buffer_z[i][index] = i_element->GetGeometry()(0)->Coordinates()[2];
+                      mpi_send_buffer_x[i][index] = i_element->GetGeometry()(0)->X0();
+                      mpi_send_buffer_y[i][index] = i_element->GetGeometry()(0)->Y0();
+                      mpi_send_buffer_z[i][index] = i_element->GetGeometry()(0)->Z0();
+
+                      index++;
                   }
 
                   MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_INT,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
                   
-                  MPI_Isend(mpi_send_buffer_x[i],msgSendSize[i],MPI_DOUBLE,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
-                  MPI_Isend(mpi_send_buffer_y[i],msgSendSize[i],MPI_DOUBLE,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
-                  MPI_Isend(mpi_send_buffer_z[i],msgSendSize[i],MPI_DOUBLE,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                  MPI_Isend(mpi_send_buffer_x[i],msgSendSize[i],MPI_DOUBLE,i,1,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                  MPI_Isend(mpi_send_buffer_y[i],msgSendSize[i],MPI_DOUBLE,i,2,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
+                  MPI_Isend(mpi_send_buffer_z[i],msgSendSize[i],MPI_DOUBLE,i,3,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
               }
           }
           
@@ -207,23 +209,40 @@ public:
           { 
               if (i != mpi_rank && msgRecvSize[i])
               {
-//                   RecvObjects[i].resize(msgRecvSize[i]);
                   for(int j = 0; j < msgRecvSize[i]; j++)
                   {
                       Geometry< Node < 3 > >::PointsArrayType nodelist;
                       Node < 3 > ::Pointer pnew_node;
-                      pnew_node = Node < 3 > ::Pointer(new Node<3>(mpi_recv_buffer[i][j], 
-                                                                   mpi_recv_buffer_x[i][j], 
-                                                                   mpi_recv_buffer_y[i][j], 
+
+                      pnew_node = Node < 3 > ::Pointer(new Node<3>(mpi_recv_buffer[i][j],
+                                                                   mpi_recv_buffer_x[i][j],
+                                                                   mpi_recv_buffer_y[i][j],
                                                                    mpi_recv_buffer_z[i][j]));
-                      
-                      // Ask Pooyan: Clone the whole variable list?
+
                       pnew_node->SetSolutionStepVariablesList(pVariablesList);
-                   
+
+                      ///DOFS
+                      pnew_node->AddDof(DISPLACEMENT_X, REACTION_X);
+                      pnew_node->AddDof(DISPLACEMENT_Y, REACTION_Y);
+                      pnew_node->AddDof(DISPLACEMENT_Z, REACTION_Z);
+                      pnew_node->AddDof(VELOCITY_X,REACTION_X);
+                      pnew_node->AddDof(VELOCITY_Y,REACTION_Y);
+                      pnew_node->AddDof(VELOCITY_Z,REACTION_Z);
+                      pnew_node->AddDof(ANGULAR_VELOCITY_X,REACTION_X);
+                      pnew_node->AddDof(ANGULAR_VELOCITY_Y,REACTION_Y);
+                      pnew_node->AddDof(ANGULAR_VELOCITY_Z,REACTION_Z);
+
+                      pnew_node->pGetDof(VELOCITY_X)->FixDof();
+                      pnew_node->pGetDof(VELOCITY_Y)->FixDof();
+                      pnew_node->pGetDof(VELOCITY_Z)->FixDof();
+                      pnew_node->pGetDof(ANGULAR_VELOCITY_X)->FixDof();
+                      pnew_node->pGetDof(ANGULAR_VELOCITY_Y)->FixDof();
+                      pnew_node->pGetDof(ANGULAR_VELOCITY_Z)->FixDof();
+
                       nodelist.push_back(pnew_node);
                     
                       Element::Pointer p_ghost_element = Element::Pointer(new Element(mpi_recv_buffer[i][j], nodelist));
-                      
+
                       RecvObjects[i].push_back(p_ghost_element);
                   }
               }
@@ -253,6 +272,8 @@ public:
               }
           }
       }
+
+      /////////////////////////////////////////////////////////////////////////
       
       template<class TObjectType>
       static inline void TransferObjects(std::vector<TObjectType>& SendObjects,
