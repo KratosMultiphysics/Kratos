@@ -647,12 +647,12 @@ while (time < DEM_parameters.FinalTime):
 
 
 
-    if ( ( (DEM_parameters.ConcreteTestOption =="TRIAXIAL") or (DEM_parameters.ConcreteTestOption == "UCS") or (DEM_parameters.ConcreteTestOption == "OEDOMETRIC")) and (step >= step_to_fix_velocities ) and (count_100 == 10)):
+    if ( ( (DEM_parameters.ConcreteTestOption =="TRIAXIAL") or (DEM_parameters.ConcreteTestOption == "UCS") or (DEM_parameters.ConcreteTestOption == "OEDOMETRIC")) and (step >= step_to_fix_velocities )):
       graph_export_top.write(str(strain)+"  "+str(total_stress_top)+'\n')
       graph_export_bot.write(str(strain)+"  "+str(total_stress_bot)+'\n')
       total_stress_mean = 0.5*(total_stress_bot + total_stress_top)
       graph_export_mean.write(str(strain)+"  "+str(total_stress_mean)+'\n')
-      count_100 = 0
+
       
       if((DEM_parameters.FemPlates == "ON") and (current_heigh <= 0.30)):
         graph_export_fem.write(str(strain_fem)+"  "+str(total_stress_fem)+'\n')
@@ -660,8 +660,7 @@ while (time < DEM_parameters.FinalTime):
       if (DEM_parameters.PoissonMeasure =="ON"):
         graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
         
-    count_100  += 1
-    print (count_100)
+
     step += 1
 #-------------------------------------------------------------------------------------------------------------------------------------
 
