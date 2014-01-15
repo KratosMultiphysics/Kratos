@@ -40,7 +40,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-KRATOS_DEFINE_VARIABLE(vector<bool>, COMM_INTERFACE)
+KRATOS_DEFINE_VARIABLE(int, NEIGHBOUR_PARTITION_INDEX)
   
 ///@}
 ///@name  Enum's

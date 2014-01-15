@@ -101,9 +101,7 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       {     
           KRATOS_TRY
           KRATOS_TIMER_START("MPI_SEARCH_STUFF")
-          //TODO: Temporal compile fix. Commincator should be a member class from now on.
-          ModelPart rModelPart;
-          Clean_Modelpart(rModelPart);
+          Clean_Modelpart();
 
           // Get the data
           ElementsContainerType::ContainerType& elements_array     = const_cast<ElementsContainerType::ContainerType&>(rElements.GetContainer());
@@ -120,41 +118,41 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
           // Perform the search
           std::vector<std::size_t> NumberOfResults(NumberOfModelPElements);
           
-          for (IteratorType particle_pointer_it = elements_array.begin();
-                particle_pointer_it != elements_array.end(); ++particle_pointer_it)
-          {                   
-              rResults[particle_pointer_it-elements_array.begin()].resize(MaxNumberOfElements);
-              rResultsDistance[particle_pointer_it-elements_array.begin()].resize(MaxNumberOfElements);
-          }
-          KRATOS_TIMER_STOP("MPI_SEARCH_STUFF")
+           for (IteratorType particle_pointer_it = elements_array.begin();
+                 particle_pointer_it != elements_array.end(); ++particle_pointer_it)
+           {                   
+               rResults[particle_pointer_it-elements_array.begin()].resize(MaxNumberOfElements);
+               rResultsDistance[particle_pointer_it-elements_array.begin()].resize(MaxNumberOfElements);
+           }
+           KRATOS_TIMER_STOP("MPI_SEARCH_STUFF")
           
-          KRATOS_TIMER_START("MPI_SEARCH_KERNEL")
-          bins.SearchObjectsMpi(rElements,NumberOfSearchElements,Radius,rResults,rResultsDistance,NumberOfResults,MaxNumberOfElements,mCommunicator);
-          KRATOS_TIMER_STOP("MPI_SEARCH_KERNEL")
-          
-          KRATOS_TIMER_START("MPI_SEARCH_STUFF")
-          for(int i = 0; i < NumberOfSearchElements; i++)
-          {
-              rResults[i].resize(NumberOfResults[i]);
-              rResultsDistance[i].resize(NumberOfResults[i]);
-          }
-
-          // Update the modelpart interface and keep the coherence between domains
-          int ResultCounter = 0;
-
-          for (IteratorType particle_pointer_it = elements_array.begin();
-               particle_pointer_it != elements_array.end(); ++particle_pointer_it, ++ResultCounter)
-          {                   
-              unsigned int neighbour_counter = 0;
-
-              for (ResultIteratorType neighbour_it = rResults[ResultCounter].begin(); neighbour_counter < NumberOfResults[ResultCounter]; ++neighbour_it, ++neighbour_counter)
-              {         
-                  Add_To_Modelpart(rModelPart,neighbour_it);
-              }
-          }
-          
-          // Finally sort model for correct sync
-          Sort_Modelpart(rModelPart);
+           KRATOS_TIMER_START("MPI_SEARCH_KERNEL")
+           bins.SearchObjectsMpi(rElements,NumberOfSearchElements,Radius,rResults,rResultsDistance,NumberOfResults,MaxNumberOfElements,mCommunicator);
+           KRATOS_TIMER_STOP("MPI_SEARCH_KERNEL")
+           
+           KRATOS_TIMER_START("MPI_SEARCH_STUFF")
+           for(int i = 0; i < NumberOfSearchElements; i++)
+           {
+               rResults[i].resize(NumberOfResults[i]);
+               rResultsDistance[i].resize(NumberOfResults[i]);
+           }
+ 
+           // Update the modelpart interface and keep the coherence between domains
+           int ResultCounter = 0;
+ 
+           for (IteratorType particle_pointer_it = elements_array.begin();
+                particle_pointer_it != elements_array.end(); ++particle_pointer_it, ++ResultCounter)
+           {                   
+               unsigned int neighbour_counter = 0;
+ 
+               for (ResultIteratorType neighbour_it = rResults[ResultCounter].begin(); neighbour_counter < NumberOfResults[ResultCounter]; ++neighbour_it, ++neighbour_counter)
+               {         
+                   Add_To_Modelpart(neighbour_it);
+               }
+           }
+           
+           // Finally sort model for correct sync
+           Sort_Modelpart();
           KRATOS_TIMER_STOP("MPI_SEARCH_STUFF")
           
           KRATOS_CATCH(" ")
@@ -362,7 +360,7 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       ///@name Private Operations
       ///@{ 
         
-      virtual void Clean_Modelpart(ModelPart& r_model_part)
+      virtual void Clean_Modelpart()
       {
           KRATOS_TRY
 
@@ -397,7 +395,7 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
       }
         
       //TODO: Enable Local nodes again and remove them from the search function
-      void Add_To_Modelpart(ModelPart& r_model_part, ResultIteratorType neighbour_it)
+      void Add_To_Modelpart(ResultIteratorType neighbour_it)
       {
           KRATOS_TRY
 
@@ -447,7 +445,7 @@ class MPI_DEMSearch : public DEMSearch<MPI_DEMSearch>
           KRATOS_CATCH(" ")
       }
              
-      void Sort_Modelpart(ModelPart& r_model_part)
+      void Sort_Modelpart()
       {
           KRATOS_TRY
 

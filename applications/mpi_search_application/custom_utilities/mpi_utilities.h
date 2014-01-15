@@ -402,6 +402,10 @@ namespace Kratos
           }
           
           // Sort both the elements and nodes of the modelpart. Otherwise the results will be unpredictable
+          mModelPart.Elements().Unique();
+          mModelPart.Nodes().Unique();
+          
+          // Sort both the elements and nodes of the modelpart. Otherwise the results will be unpredictable
           mModelPart.GetCommunicator().LocalMesh().Elements().Unique();
           mModelPart.GetCommunicator().LocalMesh().Nodes().Unique();
           

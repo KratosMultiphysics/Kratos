@@ -79,6 +79,8 @@ BOOST_PYTHON_MODULE(KratosMPISearchApplication)
            ;
 
     AddCustomUtilitiesToPython();
+    
+    KRATOS_REGISTER_IN_PYTHON_VARIABLE(NEIGHBOUR_PARTITION_INDEX)
 }
 
 
