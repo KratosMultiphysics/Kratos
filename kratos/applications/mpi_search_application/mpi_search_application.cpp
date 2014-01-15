@@ -20,18 +20,18 @@
 
 namespace Kratos
 {
-    KRATOS_CREATE_VARIABLE(vector<bool>, COMM_INTERFACE)
+    KRATOS_CREATE_VARIABLE(int, NEIGHBOUR_PARTITION_INDEX)
 
     KratosMPISearchApplication::KratosMPISearchApplication()
     {}
 
     void KratosMPISearchApplication::Register()
-    {
-        KRATOS_REGISTER_VARIABLE(COMM_INTERFACE)
-      
+    { 
         // calling base class register to register Kratos components
         KratosApplication::Register();
         std::cout << "Initializing Kratos MPISearchApplication... " << std::endl;
+        
+        KRATOS_REGISTER_VARIABLE(NEIGHBOUR_PARTITION_INDEX)
     }
 
 }  // namespace Kratos.
