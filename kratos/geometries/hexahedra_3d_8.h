@@ -553,9 +553,11 @@ public:
         for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
         {
             //defining single jacobian matrix
-            Matrix jacobian = ZeroMatrix( 3, 3 );
-            //loop over all nodes
+            Matrix& jacobian = rResult[pnt];
+            jacobian.resize(3,3,false);
+            noalias(jacobian) = ZeroMatrix( 3, 3 );
 
+            //loop over all nodes
             for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
             {
                 jacobian( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
@@ -568,8 +570,6 @@ public:
                 jacobian( 2, 1 ) += ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients[pnt]( i, 1 ) );
                 jacobian( 2, 2 ) += ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients[pnt]( i, 2 ) );
             }
-
-            rResult[pnt] = jacobian;
         }//end of loop over all integration points
 
         return rResult;
@@ -601,11 +601,8 @@ public:
         //getting derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
             CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        //getting values of shape functions
-        Matrix shape_functions_values =
-            CalculateShapeFunctionsIntegrationPointsValues( ThisMethod );
-        //workaround by riccardo...
 
+        //workaround by riccardo...
         if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
         {
             // KLUDGE: While there is a bug in ublas
@@ -668,15 +665,8 @@ public:
         rResult.resize( 3, 3 );
         //derivatives of shape functions
         ShapeFunctionsGradientsType shape_functions_gradients =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        Matrix ShapeFunctionsGradientInIntegrationPoint =
-            shape_functions_gradients( IntegrationPointIndex );
-        //values of shape functions in integration points
-        vector<double> ShapeFunctionValuesInIntegrationPoint = ZeroVector( 8 );
-        /*vector<double>*/
-        ShapeFunctionValuesInIntegrationPoint = row(
-                CalculateShapeFunctionsIntegrationPointsValues( ThisMethod ),
-                IntegrationPointIndex );
+                CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+        Matrix& ShapeFunctionsGradientInIntegrationPoint = shape_functions_gradients( IntegrationPointIndex );
 
         //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
         //loop over all nodes
@@ -1221,6 +1211,72 @@ public:
     }
 
 
+    virtual ShapeFunctionsGradientsType& ShapeFunctionsIntegrationPointsGradients(
+            ShapeFunctionsGradientsType& rResult,
+            Vector& determinants_of_jacobian,
+            IntegrationMethod ThisMethod) const
+    {
+        const unsigned int integration_points_number = msGeometryData.IntegrationPointsNumber(ThisMethod);
+
+        if ( integration_points_number == 0 )
+            KRATOS_ERROR( std::logic_error,"This integration method is not supported" , *this );
+
+        //workaround by riccardo
+        if ( rResult.size() != integration_points_number )
+        {
+            // KLUDGE: While there is a bug in ublas
+            // vector resize, I have to put this beside resizing!!
+            ShapeFunctionsGradientsType temp( integration_points_number );
+            rResult.swap( temp );
+        }
+
+        if ( determinants_of_jacobian.size() != integration_points_number)
+            determinants_of_jacobian.resize(integration_points_number,false);
+
+        //calculating the local gradients
+        ShapeFunctionsGradientsType locG =
+            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
+
+        JacobiansType J( integration_points_number );
+        Jacobian(J,ThisMethod);
+//        JacobiansType invJ = InverseOfJacobian( temp, ThisMethod );
+
+        //loop over all integration points
+        for ( unsigned int pnt = 0; pnt < integration_points_number; pnt++ )
+        {
+            //current jacobian
+//            Matrix J = ZeroMatrix( 3, 3 );
+//            this->Jacobian( J, pnt, ThisMethod );
+//            double DetJ = DeterminantOfJacobian(pnt,ThisMethod);
+
+            Matrix invJ = ZeroMatrix( 3, 3 );
+            double DetJ;
+
+            MathUtils<double>::InvertMatrix3( J[pnt], invJ, DetJ );
+
+            determinants_of_jacobian[pnt] = DetJ;
+
+            rResult[pnt].resize( 8, 3 );
+
+            for ( int i = 0; i < 8; i++ )
+            {
+                for ( int j = 0; j < 3; j++ )
+                {
+                    rResult[pnt]( i, j ) =
+//                        ( locG[pnt]( i, 0 ) * invJ[pnt]( j, 0 ) )
+//                        + ( locG[pnt]( i, 1 ) * invJ[pnt]( j, 1 ) )
+//                        + ( locG[pnt]( i, 2 ) * invJ[pnt]( j, 2 ) );
+                    ( locG[pnt]( i, 0 ) * invJ( 0, j ) )
+                    + ( locG[pnt]( i, 1 ) * invJ( 1, j ) )
+                    + ( locG[pnt]( i, 2 ) * invJ( 2, j ) );
+                }
+            }
+        }
+
+        return rResult;
+    }
+
+
     /**
      * Input and output
      */
@@ -1359,10 +1415,9 @@ private:
     static Matrix CalculateShapeFunctionsIntegrationPointsValues(
         typename BaseType::IntegrationMethod ThisMethod )
     {
-        IntegrationPointsContainerType all_integration_points =
-            AllIntegrationPoints();
-        IntegrationPointsArrayType integration_points =
-            all_integration_points[ThisMethod];
+        IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
+        IntegrationPointsArrayType& integration_points = all_integration_points[ThisMethod];
+
         //number of integration points
         const int integration_points_number = integration_points.size();
         //number of nodes in current geometry
@@ -1438,7 +1493,8 @@ private:
 
         for ( int pnt = 0; pnt < integration_points_number; pnt++ )
         {
-            Matrix result = ZeroMatrix( 8, 3 );
+            Matrix& result = d_shape_f_values[pnt];
+            result = ZeroMatrix( 8, 3 );
             result( 0, 0 ) =
                 -0.125 * ( 1.0 - integration_points[pnt].Y() )
                 * ( 1.0 - integration_points[pnt].Z() );
@@ -1511,7 +1567,6 @@ private:
             result( 7, 2 ) =
                 0.125 * ( 1.0 - integration_points[pnt].X() )
                 * ( 1.0 + integration_points[pnt].Y() );
-            d_shape_f_values[pnt] = result;
         }
 
         return d_shape_f_values;
