@@ -5,7 +5,6 @@ from KratosMultiphysics.ConvectionDiffusionApplication import *
 CheckForPreviousImport()
 
 def AddVariables(model_part,config ):
-    from KratosMultiphysics import *
     
     ##########################################################
     thermal_settings = ConvectionDiffusionSettings()
