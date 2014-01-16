@@ -1317,7 +1317,7 @@ private:
           mOctree.GetAllLeavesVector(all_leaves);
 
 #pragma omp parallel for
-          for (unsigned int i = 0; i < all_leaves.size(); i++)
+          for (int i = 0; i < static_cast<int>(all_leaves.size()); i++)
           {
               *(all_leaves[i]->pGetDataPointer()) = ConfigurationType::AllocateData();
           }
@@ -1648,6 +1648,7 @@ private:
             {
                 // Creating the ray
                 double ray[3] = {coords[0], coords[1], coords[2]};
+				mOctree.NormalizeCoordinates(ray);
                 ray[i_direction] = 0; // starting from the lower extreme
 
                 GetIntersections(ray, i_direction, intersections);
