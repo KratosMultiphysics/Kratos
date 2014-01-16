@@ -125,7 +125,7 @@ public:
 
       for ( ModelPart::NodesContainerType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
 	{
-	  if((*nd)->FastGetSolutionStepValue(RIGID_WALL)==true){
+	  if((*nd)->GetSolutionStepValue(RIGID_WALL)==true){
 
 	    //(*nd)->Set(STRUCTURE);
 	    (*nd)->Set(RIGID);

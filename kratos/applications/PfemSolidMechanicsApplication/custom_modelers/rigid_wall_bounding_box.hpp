@@ -85,7 +85,7 @@ public:
     /// Default constructor.
     RigidWallBoundingBox() : SpatialBoundingBox()
     {
-        std::cout<< "Calling empty constructor" <<std::endl;
+        std::cout<< "Calling Rigid Wall BBX empty constructor" <<std::endl;
     }
 
     // General Wall constructor

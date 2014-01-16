@@ -169,13 +169,13 @@ namespace Kratos
 	}
 	
       void MeshDataTransferUtilities::TransferNodalValuesToElements(const Variable<double>& rVariable,
-							   ModelPart& rModelPart,
-							   ModelPart::IndexType MeshId)
+								    ModelPart& rModelPart,
+								    ModelPart::IndexType MeshId)
 	{
 
 	    KRATOS_TRY
 		    
-            std::cout<<" [ Data Transfer NODE to ELEMENT ]"<<std::endl;
+	    std::cout<<" [ Data Transfer NODE to ELEMENT ] :"<<rVariable<<std::endl;
 
 	    double alpha = 1; //[0,1] //smoothing level of the Jacobian	      
 
@@ -224,7 +224,7 @@ namespace Kratos
 
 	    KRATOS_TRY
 	     
-            std::cout<<" [ Data Transfer ELEMENT to NODE ]"<<std::endl;
+	      std::cout<<" [ Data Transfer ELEMENT to NODE ] :"<<rVariable<<std::endl;
 
 	    std::vector<double> Jacobians(1);					
 	    ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
@@ -250,12 +250,16 @@ namespace Kratos
 
 		    }
 		
-		  if(Area!=0)
+		  if(Area!=0 || Jacobian<=0)
 		    Jacobian /= Area;
 		  else
 		    std::cout<<" Something Wrong in node ["<<in->Id()<<"] : Area = 0 (neighbours: "<<neighb_elems.size()<<") "<<std::endl;
 
-		  in->FastGetSolutionStepValue(rVariable) = Jacobian;
+		  if( in->SolutionStepsDataHas(rVariable))
+		    in->FastGetSolutionStepValue(rVariable) = Jacobian;
+		  else
+		    std::cout<<" Something Wrong in node ["<<in->Id()<<"] : variable "<<rVariable<<" was not defined "<<std::endl;
+		    
 		}
 
 	      }
