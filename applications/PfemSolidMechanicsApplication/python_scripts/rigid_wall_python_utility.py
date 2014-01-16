@@ -70,7 +70,6 @@ class RigidWallUtility:
                         self.tip_centers[counter,sizek] = wall_configuration.tip_centers[sizej][sizek] * size_scale
                     counter = counter + 1
             
-        
             if( self.rigid_wall_active ):
                 # rigid wall bounding box
                 self.rigid_wall_bbox = []

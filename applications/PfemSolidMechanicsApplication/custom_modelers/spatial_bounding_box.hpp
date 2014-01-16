@@ -161,7 +161,7 @@ public:
     SpatialBoundingBox()
     {
       mBox.clear();
-      std::cout<< "Calling empty constructor" <<std::endl;
+      //std::cout<< " Calling Bounding Box empty constructor" <<std::endl;
     }
 
     SpatialBoundingBox(const TPointType& rPoint)
