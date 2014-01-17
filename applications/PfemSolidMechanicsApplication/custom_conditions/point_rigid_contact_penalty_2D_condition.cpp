@@ -220,7 +220,12 @@ namespace Kratos
 
     if( rVariables.Options.Is(ACTIVE)){
 
-      rRightHandSideVector = (-1) * (rVariables.Penalty.Normal * rVariables.Gap.Normal) * rVariables.Surface.Normal * rIntegrationWeight;
+      double ContactForceModulus = (-1) * (rVariables.Penalty.Normal * rVariables.Gap.Normal) * rIntegrationWeight;
+      for(unsigned int j=0; j<dimension; j++)
+	{
+	  rRightHandSideVector[j] = ContactForceModulus * rVariables.Surface.Normal[j];
+	}
+
       
       GetGeometry()[0].SetLock();
 
