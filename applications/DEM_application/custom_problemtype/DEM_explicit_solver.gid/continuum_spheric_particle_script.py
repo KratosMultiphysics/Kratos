@@ -126,7 +126,7 @@ if ( (DEM_parameters.ContinuumOption =="ON") and (DEM_parameters.ContactMeshOpti
 
 #-------------------------------------------------------------------------------------------------------------------------
 
-#------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALITZATIONS--------------------------------------------------------
+#------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALIZATIONS--------------------------------------------------------
 
 Pressure = DEM_parameters.ConfinementPressure * 1e6 #Mpa
 
@@ -217,7 +217,7 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
 #physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 #properties_list = []
 
-print 'Initialitzation Complete' + '\n'
+print 'Initialization Complete' + '\n'
 
 
 step                   = 0
@@ -228,7 +228,7 @@ initial_real_time      = timer.time()
 
 #-------------------------------------------------------------------------------------------------------------------------------------
 
-#-----------------------SINGLE FILE MESH AND RESULTS INITIALITZATION-------------------------------------------------------------------
+#-----------------------SINGLE FILE MESH AND RESULTS INITIALIZATION-------------------------------------------------------------------
 
 post_utility = PostUtilities()
 
@@ -356,12 +356,12 @@ if(DEM_parameters.PoissonMeasure == "ON"):
            right_nodes.append(node)
            xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
            right_counter = +node.GetSolutionStepValue(RADIUS)
+
            
       width_ini = xright_weight/right_counter - xleft_weight/left_counter
         
 step_to_fix_velocities = balls_model_part.ProcessInfo[STEP_FIX_VELOCITIES]
-        
-        
+                
 if(DEM_parameters.FemPlates == "ON"):
 
   meshes_to_translate = Vector(1)
@@ -489,7 +489,6 @@ while (time < DEM_parameters.FinalTime):
           for node in sup_layer_fm:
 
             force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-
             
             total_force_top += force_node_y
 
@@ -527,7 +526,6 @@ while (time < DEM_parameters.FinalTime):
                       
             xleft_weight  = 0.0         
             xright_weight  = 0.0
-
             left_counter = 0.0
             right_counter = 0.0
 
@@ -543,15 +541,15 @@ while (time < DEM_parameters.FinalTime):
             
             width_now = xright_weight/right_counter - xleft_weight/left_counter
 
-            measured_poisson =  ((width_now-width_ini)/width_ini)/strain
 
+            measured_poisson =  ((width_now-width_ini)/width_ini)/strain
             #print( (width_now/0.05)/strain )
 
     os.chdir(list_path)    
     multifile.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')   
     os.chdir(main_path)
 
-  ##########################___GiD IO____#########################################4
+  ##########################___GiD IO____#########################################
 
     time_to_print = time - time_old_print
 
@@ -599,7 +597,6 @@ while (time < DEM_parameters.FinalTime):
         if (DEM_parameters.Multifile == "multiple_files"):
             mixed_model_part.Elements.clear()
             mixed_model_part.Nodes.clear()
-
             post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
             if (DEM_parameters.ContactMeshOption == "ON"):
                 post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
@@ -665,7 +662,7 @@ while (time < DEM_parameters.FinalTime):
 #-------------------------------------------------------------------------------------------------------------------------------------
 
 
-#-----------------------FINALITZATION OPERATIONS-------------------------------------------------------------------------------------- 
+#-----------------------FINALIZATION OPERATIONS-------------------------------------------------------------------------------------- 
 #proc.PlotPhysicalProperties(properties_list, graphs_path)
 
 if (DEM_parameters.Multifile == "single_file"):
