@@ -79,9 +79,10 @@ def ApplyEmbeddedBCsToFluid(model_part):
                     by = node.GetSolutionStepValue(BODY_FORCE_Y)
                     bz = node.GetSolutionStepValue(BODY_FORCE_Z)
                     mod_bf = sqrt(bx*bx+by*by+bz*bz)
-                    normalized_bf_x = bx/mod_bf
-                    normalized_bf_y = by/mod_bf
-                    normalized_bf_z = bz/mod_bf
+                    if (mod_bf > 0.0):
+                        normalized_bf_x = bx/mod_bf
+                        normalized_bf_y = by/mod_bf
+                        normalized_bf_z = bz/mod_bf                        
                     outlet_density = node.GetSolutionStepValue(DENSITY)
                     break
             
@@ -106,6 +107,16 @@ def ApplyEmbeddedBCsToFluid(model_part):
                         node.Free(VELOCITY_Y)
                         node.Free(VELOCITY_Z)                      
 
+def ApplyEmbeddedBCsToBalls(model_part):                        
+    for node in model_part.Nodes:
+        dist = node.GetSolutionStepValue(DISTANCE)
+        if(dist < 0.0):
+            if node.Is(BLOCKED):
+                node.Set(ACTIVE,true)                                             
+            else:
+                node.Set(TO_ERASE,true)
+                
+                        
 from math import *
 
 def MoveEmbeddedStructure(model_part, time):
@@ -196,7 +207,7 @@ ProjectParameters.project_at_every_substep_option  = 0
 ProjectParameters.velocity_trap_option             = 0
 ProjectParameters.inlet_option                     = 1
 ProjectParameters.manually_imposed_drag_law_option = 0
-ProjectParameters.stationary_problem_option        = 1 # inactive (0), stop calculating the fluid after it reaches the stationary state (1)
+ProjectParameters.stationary_problem_option        = 0 # inactive (0), stop calculating the fluid after it reaches the stationary state (1)
 ProjectParameters.body_force_on_fluid              = 1
 ProjectParameters.similarity_transformation_type   = 0 # no transformation (0), Tsuji (1)
 ProjectParameters.dem_inlet_element_type           = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
@@ -271,7 +282,8 @@ balls_variables_to_add = [FLUID_VEL_PROJECTED,
                           REYNOLDS_NUMBER,
                           GEL_STRENGTH,
                           SHEAR_RATE_PROJECTED,
-                          FLUID_VORTICITY_PROJECTED]
+                          FLUID_VORTICITY_PROJECTED,
+                          DISTANCE] # <- REQUIRED BY EMBEDDED
 
 fem_dem_variables_to_add = [VELOCITY,
                             DISPLACEMENT,
@@ -663,6 +675,7 @@ while(time <= final_time):
     
     if(step>=3): #MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
         ApplyEmbeddedBCsToFluid(fluid_model_part)
+        ApplyEmbeddedBCsToBalls(balls_model_part)
     #########EMBEDDED
 
     # solving the fluid part    
