@@ -847,7 +847,10 @@ public:
             }
 
             rValues.resize(1, false);
-            rValues[0] = TauTwo * DivU;// *Density?? decide on criteria and use the same for SUBSCALE_VELOCITY
+//G
+            //rValues[0] = TauTwo * DivU;// *Density?? decide on criteria and use the same for SUBSCALE_VELOCITY
+            rValues[0] = TauTwo * (DivU);// *Density?? decide on criteria and use the same for SUBSCALE_VELOCITY
+//Z
             if(rCurrentProcessInfo[OSS_SWITCH]==1)
             {
                 double Proj = 0.0;
@@ -1158,9 +1161,18 @@ protected:
 
         for (unsigned int i = 0; i < TNumNodes; i++)
         {
+            double FluidFraction = 1.0 - this->GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION);
+            array_1d<double,3> FluidFractionGradient(3,0.0);
+            FluidFractionGradient[0] += rShapeDeriv(i, 0) * FluidFraction;
+            FluidFractionGradient[1] += rShapeDeriv(i, 1) * FluidFraction;
+            FluidFractionGradient[2] += rShapeDeriv(i, 2) * FluidFraction;
+
             for (unsigned int d = 0; d < TDim; d++)
             {
-                RHS[FirstRow+d] -= Weight * (Density * AGradN[i] * MomProj[d] + rShapeDeriv(i,d) * DivProj); // TauOne * ( a * Grad(v) ) * MomProjection + TauTwo * Div(v) * MassProjection
+//G
+                //RHS[FirstRow+d] -= Weight * (Density * AGradN[i] * MomProj[d] + rShapeDeriv(i,d) * DivProj); // TauOne * ( a * Grad(v) ) * MomProjection + TauTwo * Div(v) * MassProjection
+                RHS[FirstRow+d] -= Weight * (Density * AGradN[i] * MomProj[d] + (FluidFraction * rShapeDeriv(i,d) + rShapeFunc[i] * FluidFractionGradient[d]) * DivProj); // TauOne * ( a * Grad(v) ) * MomProjection + TauTwo * Div(v) * MassProjection
+//Z
                 RHS[FirstRow+TDim] -= Weight * rShapeDeriv(i,d) * MomProj[d]; // TauOne * Grad(q) * MomProjection
             }
             FirstRow += BlockSize;
@@ -1530,6 +1542,10 @@ protected:
                 rElementalMomRes[d] += Weight * (Density * (rShapeFunc[i] * rBodyForce[d] - AGradN[i] * rVelocity[d]) - rShapeDeriv(i, d) * rPressure);
                 rElementalMassRes -= Weight * rShapeDeriv(i, d) * rVelocity[d];
             }
+//G
+            rElementalMassRes =  this->GetGeometry()[i].FastGetSolutionStepValue(SOLID_FRACTION_RATE); // SOLID_FRACTION_RATE = - time derivative of the fluid fraction
+//Z
+
         }
     }
 
