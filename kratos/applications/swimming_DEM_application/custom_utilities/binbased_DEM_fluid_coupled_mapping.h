@@ -144,6 +144,7 @@ public:
             ClearVariables(node_it, POWER_LAW_N);
             ClearVariables(node_it, POWER_LAW_K);
             ClearVariables(node_it, GEL_STRENGTH);
+            ClearVariables(node_it, DISTANCE);
             ClearVariables(node_it, SHEAR_RATE_PROJECTED);
             ClearVariables(node_it, FLUID_VORTICITY_PROJECTED);
         }
@@ -173,9 +174,10 @@ public:
                     Interpolate(pelement, N, pparticle, VELOCITY, FLUID_VEL_PROJECTED, alpha);
                     Interpolate(pelement, N, pparticle, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED, alpha);
                     Interpolate(pelement, N, pparticle, VISCOSITY, FLUID_VISCOSITY_PROJECTED, alpha);
-                    Interpolate(pelement, N, pparticle, VISCOSITY, POWER_LAW_N, alpha);
-                    Interpolate(pelement, N, pparticle, VISCOSITY, POWER_LAW_K, alpha);
-                    Interpolate(pelement, N, pparticle, VISCOSITY, GEL_STRENGTH, alpha);
+                    Interpolate(pelement, N, pparticle, POWER_LAW_N, POWER_LAW_N, alpha);
+                    Interpolate(pelement, N, pparticle, POWER_LAW_K, POWER_LAW_K, alpha);
+                    Interpolate(pelement, N, pparticle, GEL_STRENGTH, GEL_STRENGTH, alpha);
+                    Interpolate(pelement, N, pparticle, DISTANCE, DISTANCE, alpha);
                     InterpolateShearRate(pelement, N, pparticle, SHEAR_RATE_PROJECTED, alpha);
                     InterpolateVorticity(pelement, N, pparticle, FLUID_VORTICITY_PROJECTED, alpha);
                 }
@@ -208,6 +210,7 @@ public:
             ClearVariables(node_it, POWER_LAW_N);
             ClearVariables(node_it, POWER_LAW_K);
             ClearVariables(node_it, GEL_STRENGTH);
+            ClearVariables(node_it, DISTANCE);
             ClearVariables(node_it, SHEAR_RATE_PROJECTED);
             ClearVariables(node_it, FLUID_VORTICITY_PROJECTED);
         }
@@ -238,9 +241,10 @@ public:
                     Interpolate(pelement, N, pparticle, PRESSURE_GRADIENT, PRESSURE_GRAD_PROJECTED);
                     Interpolate(pelement, N, pparticle, VISCOSITY, FLUID_VISCOSITY_PROJECTED);
                     Interpolate(pelement, N, pparticle, SOLID_FRACTION, SOLID_FRACTION_PROJECTED);
-                    Interpolate(pelement, N, pparticle, VISCOSITY, POWER_LAW_N);
-                    Interpolate(pelement, N, pparticle, VISCOSITY, POWER_LAW_K);
-                    Interpolate(pelement, N, pparticle, VISCOSITY, GEL_STRENGTH);
+                    Interpolate(pelement, N, pparticle, POWER_LAW_N, POWER_LAW_N);
+                    Interpolate(pelement, N, pparticle, POWER_LAW_K, POWER_LAW_K);
+                    Interpolate(pelement, N, pparticle, GEL_STRENGTH, GEL_STRENGTH);
+                    Interpolate(pelement, N, pparticle, DISTANCE, DISTANCE);
                     InterpolateShearRate(pelement, N, pparticle, SHEAR_RATE_PROJECTED);
                     InterpolateVorticity(pelement, N, pparticle, FLUID_VORTICITY_PROJECTED);
                 }
