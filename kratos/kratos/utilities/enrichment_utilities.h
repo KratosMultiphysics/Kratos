@@ -463,7 +463,7 @@ public:
                 NEnriched(i, 0) = 0.5 * (abs_dist - rPartitionsSign[i] * dist);
 
                 //normalizing
-                NEnriched(i, 0) /= max_aux_dist_on_cut;
+//                 NEnriched(i, 0) /= max_aux_dist_on_cut;
                 /*KRATOS_WATCH(abs_dist);
                 KRATOS_WATCH(dist);
                 KRATOS_WATCH(rPartitionsSign);
@@ -472,7 +472,7 @@ public:
                 //compute shape function gradients
                 for (int j = 0; j < 3; j++)
                 {
-                    rGradientsValue[i](0, j) = (0.5/max_aux_dist_on_cut) * (abs_distance_gradient[j] - rPartitionsSign[i] * exact_distance_gradient[j]);
+                    rGradientsValue[i](0, j) = (0.5/*/max_aux_dist_on_cut*/) * (abs_distance_gradient[j] - rPartitionsSign[i] * exact_distance_gradient[j]);
                 }
 
 

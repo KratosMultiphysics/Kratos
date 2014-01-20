@@ -1,4 +1,4 @@
-from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 relative_path_3D = "/home/biomedical/Escritorio/ToRun/3D/single/"
 relative_path_1D = "/home/biomedical/Escritorio/ToRun/1D/"
 name = "coarse_single_vessel"

@@ -268,9 +268,7 @@ public:
         }
 
 
-        CalculateMeshVelocities();
-
-        BaseType::MoveMesh();
+       MoveNodes();
 
         //clearing the system if needed
         if(mreform_dof_at_every_step == true)

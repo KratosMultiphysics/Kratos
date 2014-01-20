@@ -1,4 +1,4 @@
-from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -121,7 +121,7 @@ class MonolithicSolver:
         self.abs_pres_tol = 1e-7
 
         self.dynamic_tau_levelset = 0.01
-        self.dynamic_tau_fluid = 1.0
+        self.dynamic_tau_fluid = 0.0
         self.oss_switch = 0
 
         # non newtonian setting

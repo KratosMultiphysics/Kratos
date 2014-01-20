@@ -205,7 +205,7 @@ public:
         iparm[1] = 2; /* Fill-in reordering from METIS */
         /* Numbers of processors, value of OMP_NUM_THREADS */
 //        iparm[2] = OpenMPUtils::GetNumThreads(); //omp_get_max_threads();
-        iparm[2] = OpenMPUtils::GetNumProcs(); //omp_get_num_procs();
+        iparm[2] = OpenMPUtils::GetNumThreads(); //omp_get_num_procs();
         std::cout << "Number of threads/procs (for MKL): " << iparm[2] << std::endl;
         if( mRefinements > 0 )
             iparm[3] = 1; /* iterative-direct algorithm */
@@ -404,8 +404,8 @@ public:
         iparm[0] = 1; /* No solver default */
         iparm[1] = 2; /* Fill-in reordering from METIS */
         /* Numbers of processors, value of OMP_NUM_THREADS */
-//        iparm[2] = OpenMPUtils::GetNumThreads(); //omp_get_max_threads();
-        iparm[2] = OpenMPUtils::GetNumProcs(); //omp_get_num_procs();
+        iparm[2] = OpenMPUtils::GetNumThreads(); //omp_get_max_threads();
+//        iparm[2] = OpenMPUtils::GetNumProcs(); //omp_get_num_procs();
         std::cout << "Number of threads/procs (for MKL): " << iparm[2] << std::endl;
         if( mRefinements > 0 )
             iparm[3] = 1; /* iterative-direct algorithm */

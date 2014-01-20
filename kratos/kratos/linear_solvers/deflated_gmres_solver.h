@@ -356,7 +356,7 @@ public:
         unsigned int n_pressure_dofs = 0;
         unsigned int tot_active_dofs = 0;
         for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
-            if (it->IsFixed() != true)
+//             if (it->IsFixed() != true)
             {
                 tot_active_dofs += 1;
                 if (it->GetVariable().Key() == PRESSURE)
@@ -364,8 +364,8 @@ public:
             }
 	//KRATOS_WATCH(rA.size1())
 	//KRATOS_WATCH(tot_active_dofs)
-        if (tot_active_dofs != rA.size1() )
-            KRATOS_ERROR (std::logic_error,"total system size does not coincide with the free dof map","");
+//         if (tot_active_dofs != rA.size1() )
+//             KRATOS_ERROR (std::logic_error,"total system size does not coincide with the free dof map","");
 
         //resize arrays as needed
         mpressure_indices.resize (n_pressure_dofs,false);
@@ -384,8 +384,8 @@ public:
         unsigned int global_pos = 0;
         for (ModelPart::DofsArrayType::iterator it = rdof_set.begin(); it!=rdof_set.end(); it++)
         {
-            if (it->IsFixed() != true)
-            {
+//             if (it->IsFixed() != true)
+//             {
                 if (it->GetVariable().Key() == PRESSURE)
                 {
                     mpressure_indices[pressure_counter] = global_pos;
@@ -401,7 +401,7 @@ public:
                     other_counter++;
                 }
                 global_pos++;
-            }
+//             }
         }
     }
 */
