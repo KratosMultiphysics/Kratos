@@ -90,7 +90,7 @@
         }
 
         Py_NoSiteFlag = 1;
-        Py_SetProgramName(wchar_argv[0]);
+        Py_SetProgramName(argv[0]);
 
         Py_Initialize();
 
