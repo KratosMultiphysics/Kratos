@@ -779,7 +779,7 @@ namespace Kratos
     rVariables.RefiningOptions.Reset(Modeler::CRITERION_ENERGY);
     rVariables.RefiningOptions.Reset(Modeler::REFINE_INSERT_NODES);
 
-    //*********************************************************************
+    //********************************************************************
 
     //we need to redefine tool_tip boundaries after refining them !!
 
@@ -2309,7 +2309,7 @@ namespace Kratos
 		    double radius_factor = 3;
 		    if(NodalError[nodes_ids[in->Id()]] < rVariables.Refine.reference_error && mean_node_radius < radius_factor * rVariables.Refine.critical_radius)
 		      {
-			std::cout<<"   Energy : node remove ["<<in->Id()<<"] : "<<NodalError[nodes_ids[in->Id()]]<<std::endl;
+			// std::cout<<"   Energy : node remove ["<<in->Id()<<"] : "<<NodalError[nodes_ids[in->Id()]]<<std::endl;
 			in->Set(TO_ERASE);
 			any_node_removed = true;
 			error_remove++;
