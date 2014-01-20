@@ -62,7 +62,7 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
     Flags &Options=rValues.GetOptions();
 
     const ProcessInfo&  CurProcessInfo    = rValues.GetProcessInfo();
-    const Properties& MaterialProperties  = rValues.GetMaterialProperties();
+    // const Properties& MaterialProperties  = rValues.GetMaterialProperties(); not used JM
     const Matrix&   DeformationGradientF  = rValues.GetDeformationGradientF();
     const double&   DeterminantF          = rValues.GetDeterminantF();
 
@@ -92,15 +92,15 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
     ReturnMappingVariables.DeltaTime = CurProcessInfo[DELTA_TIME];
 
     // Initialize Splited Parts: Isochoric and Volumetric stresses and constitutive tensors
-    double voigtsize = StressVector.size();
+    // double voigtsize = StressVector.size(); not used JM
  //   VectorSplit SplitStressVector;
     MatrixSplit SplitConstitutiveMatrix;
 
     //1.- Lame constants
     //const double& YoungModulus       = MaterialProperties[YOUNG_MODULUS];
     //const double& PoissonCoefficient = MaterialProperties[POISSON_RATIO];
-    const double YoungModulus = 2.069e5;
-    const double PoissonCoefficient = 0.3;
+    // const double YoungModulus = 2.069e5; not used JM
+    // const double PoissonCoefficient = 0.3; not used JM
 
     //ReturnMappingVariables.LameLanda      = (YoungModulus*PoissonCoefficient)/((1.0+PoissonCoefficient)*(1.0-2.0*PoissonCoefficient));
     //ReturnMappingVariables.LameMu          =  YoungModulus/(2.0*(1.0+PoissonCoefficient));

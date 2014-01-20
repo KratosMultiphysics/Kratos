@@ -173,6 +173,7 @@ gauss_points_results = []
 gauss_points_results.append("GREEN_LAGRANGE_STRAIN_TENSOR")
 gauss_points_results.append("CAUCHY_STRESS_TENSOR")
 gauss_points_results.append("FORCE")
+gauss_points_results.append("PLASTIC_STRAIN")
 
 # GiD output configuration
 class GidOutputConfiguration:

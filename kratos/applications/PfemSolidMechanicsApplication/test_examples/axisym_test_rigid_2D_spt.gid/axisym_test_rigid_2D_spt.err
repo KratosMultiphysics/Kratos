@@ -1,0 +1,60 @@
+/usr/lib/python2.7/dist-packages/numpy/core/__init__.py:5: DeprecationWarning: CObject type is not supported in 3.x. Please use capsule objects instead.
+  import multiarray
+/usr/lib/python2.7/dist-packages/numpy/core/__init__.py:6: DeprecationWarning: CObject type is not supported in 3.x. Please use capsule objects instead.
+  import umath
+/usr/lib/python2.7/dist-packages/numpy/lib/polynomial.py:928: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class poly1d(object):
+/usr/lib/python2.7/dist-packages/numpy/polynomial/polynomial.py:7: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  on how this module represents and works with polynomial objects is in
+/usr/lib/python2.7/dist-packages/numpy/polynomial/chebyshev.py:7: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  on how this module represents and works with such polynomials is in the
+/usr/lib/python2.7/dist-packages/numpy/polynomial/legendre.py:7: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  This module provides a number of objects (mostly functions) useful for
+/usr/lib/python2.7/dist-packages/numpy/polynomial/hermite.py:7: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  on how this module represents and works with such polynomials is in the
+/usr/lib/python2.7/dist-packages/numpy/polynomial/hermite_e.py:7: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  on how this module represents and works with such polynomials is in the
+/usr/lib/python2.7/dist-packages/numpy/polynomial/laguerre.py:7: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  on how this module represents and works with such polynomials is in the
+/usr/lib/pymodules/python2.7/matplotlib/cbook.py:34: DeprecationWarning: The 'new' module has been removed in Python 3.0; use the 'types' module instead.
+  import new
+/usr/lib/pymodules/python2.7/matplotlib/cbook.py:158: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class _BoundMethodProxy(object):
+/usr/lib/pymodules/python2.7/matplotlib/transforms.py:1046: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class Transform(TransformNode):
+/usr/lib/pymodules/python2.7/matplotlib/transforms.py:1405: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class TransformWrapper(Transform):
+/usr/lib/pymodules/python2.7/matplotlib/transforms.py:1503: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class AffineBase(Transform):
+/usr/lib/pymodules/python2.7/matplotlib/transforms.py:1889: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class BlendedGenericTransform(Transform):
+/usr/lib/pymodules/python2.7/matplotlib/transforms.py:2005: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class BlendedAffine2D(Affine2DBase):
+/usr/lib/pymodules/python2.7/matplotlib/transforms.py:2089: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class CompositeGenericTransform(Transform):
+/usr/lib/pymodules/python2.7/matplotlib/dviread.py:397: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class DviFont(object):
+/usr/lib/python2.7/dist-packages/dateutil/rrule.py:50: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class weekday(object):
+/usr/lib/python2.7/dist-packages/dateutil/relativedelta.py:15: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class weekday(object):
+/usr/lib/python2.7/dist-packages/dateutil/tz.py:31: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class tzutc(datetime.tzinfo):
+/usr/lib/python2.7/dist-packages/dateutil/tz.py:54: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class tzoffset(datetime.tzinfo):
+/usr/lib/python2.7/dist-packages/dateutil/tz.py:83: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class tzlocal(datetime.tzinfo):
+/usr/lib/python2.7/dist-packages/dateutil/tz.py:152: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class _ttinfo(object):
+/usr/lib/python2.7/dist-packages/dateutil/tz.py:191: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class tzfile(datetime.tzinfo):
+/usr/lib/python2.7/dist-packages/dateutil/tz.py:475: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
+  class tzrange(datetime.tzinfo):
+terminate called after throwing an instance of 'std::invalid_argument'
+  what():  in virtual void Kratos::LargeDisplacementElement::SetGeneralVariables(Kratos::LargeDisplacementElement::GeneralVariables&, Kratos::ConstitutiveLaw::Parameters&, const int&) [ /home/jmaria/kratos/applications/SolidMechanicsApplication/custom_elements/large_displacement_element.cpp , Line 508 ]
+
+with subject    :  DeterminantF < 0 
+
+while executing : virtual void Kratos::LargeDisplacementElement::CalculateElementalSystem(Kratos::LargeDisplacementElement::LocalSystemComponents&, Kratos::ProcessInfo&) [ /home/jmaria/kratos/applications/SolidMechanicsApplication/custom_elements/large_displacement_element.cpp , Line 698 ] 
+
+while executing : void Kratos::ResidualBasedBossakScheme<TSparseSpace, TDenseSpace>::Calculate_RHS_Contribution(Kratos::Element::Pointer, Kratos::ResidualBasedBossakScheme<TSparseSpace, TDenseSpace>::LocalSystemVectorType&, Kratos::Element::EquationIdVectorType&, Kratos::ProcessInfo&) [with TSparseSpace = Kratos::UblasSpace<double, boost::numeric::ublas::compressed_matrix<double>, boost::numeric::ublas::vector<double> >; TDenseSpace = Kratos::UblasSpace<double, boost::numeric::ublas::matrix<double>, boost::numeric::ublas::vector<double> >; Kratos::Element::Pointer = boost::shared_ptr<Kratos::Element>; Kratos::ResidualBasedBossakScheme<TSparseSpace, TDenseSpace>::LocalSystemVectorType = boost::numeric::ublas::vector<double>; Kratos::Element::EquationIdVectorType = std::vector<long unsigned int>] [ /home/jmaria/kratos/applications/SolidMechanicsApplication/custom_strategies/custom_schemes/residual_based_bossak_scheme.hpp , Line 645 ] 

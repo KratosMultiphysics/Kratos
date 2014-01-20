@@ -463,7 +463,7 @@ void NonAssociativeExplicitPlasticFlowRule::CalculateOneExplicitPlasticStep(cons
 void NonAssociativeExplicitPlasticFlowRule::CalculateOneExplicitStep(const Matrix& rDeltaDeformationGradient, const Matrix& rDeformationGradientF0, const Matrix& rPreviousElasticLeftCauchyGreen, InternalVariables& rPlasticVariables, Matrix& rNewElasticLeftCauchyGreen, Vector& rNewStressVector, double& rNewEquivalentPlasticStrain, const bool & rElastoPlasticBool, double& rStressErrorMeasure)
 {
         
-    double DeltaGamma = 0.0;
+  //double DeltaGamma = 0.0; not used JM
 
     if ( rElastoPlasticBool)  {
 
