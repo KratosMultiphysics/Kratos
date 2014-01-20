@@ -36,6 +36,19 @@
 //elements
 
 //constitutive laws
+#include "containers/flags.h"
+#include "includes/variables.h"
+#include "includes/ublas_interface.h"
+
+// yield Criteria
+
+
+//constitutive laws
+#include "custom_constitutive/hencky_cam_clay_plane_strain_2D_law.hpp"
+#include "custom_constitutive/linear_hencky_cam_clay_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_cam_clay_axisym_2D_law.hpp"
+#include "custom_constitutive/hencky_J2_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hencky_J2_axisym_2D_law.hpp"
 
 namespace Kratos
 {
@@ -259,6 +272,11 @@ namespace Kratos
     const AxisymContactDomainLM2DCondition    mAxisymContactDomainLM2DCondition;
     const AxisymContactDomainLM2DCondition    mAxisymContactDomainPenalty2DCondition;
 
+    const NonLinearHenckyCamClayPlasticPlaneStrain2DLaw     mNonLinearHenckyCamClayPlasticPlaneStrain2DLaw;
+    const LinearHenckyCamClayPlasticPlaneStrain2DLaw           mLinearHenckyCamClayPlasticPlaneStrain2DLaw;
+    const NonLinearHenckyCamClayPlasticAxisym2DLaw          mNonLinearHenckyCamClayPlasticAxisym2DLaw;
+    const HenckyJ2PlasticPlaneStrain2DLaw                   mHenckyJ2PlasticPlaneStrain2DLaw;
+    const HenckyJ2PlasticAxisym2DLaw                        mHenckyJ2PlasticAxisym2DLaw;
     ///@} 
     ///@name Private Operators
     ///@{ 

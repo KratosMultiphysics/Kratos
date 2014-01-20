@@ -75,14 +75,12 @@ double& CamClayKinematicHardeningLaw::CalculateHardening(double &rHardening, con
 
 
 
-    double FirstPreconsolidationPreasure = 20.0;
+    double FirstPreconsolidationPressure = 40.0;
     double SwellingSlope = 0.0078;
     double OtherSlope = 0.085;
-    double AlphaShear = 120.0;
-    double Beta = 1.0;
 
 
-    rHardening = -FirstPreconsolidationPreasure*(std::exp (-rAlpha/(OtherSlope-SwellingSlope)) ) ;
+    rHardening = -FirstPreconsolidationPressure*(std::exp (-rAlpha/(OtherSlope-SwellingSlope)) ) ;
     return rHardening;
 
 }

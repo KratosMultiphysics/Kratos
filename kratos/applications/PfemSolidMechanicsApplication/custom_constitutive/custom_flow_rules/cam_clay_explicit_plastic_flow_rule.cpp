@@ -102,11 +102,8 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const Vector& rHenckyStrainVec
 void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, double& rMeanStress)
 {
 
-    //Reference Preasure
-    //SwellingSlope
-    //AlphaShear
 
-    double ReferencePreasure = 80.0;
+    double ReferencePressure = 80.0;
     double SwellingSlope = 0.0078;
     double AlphaShear = 120.0;
 
@@ -118,7 +115,7 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrai
 	DeviatoricStrain2Norm += 2.0*pow(rDeviatoricStrainVector(i)/2.0, 2.0);
 
 
-    rMeanStress = -ReferencePreasure*std::exp( -rVolumetricStrain / SwellingSlope) * (1.0 + 1.0*AlphaShear*DeviatoricStrain2Norm/SwellingSlope);
+    rMeanStress = -ReferencePressure*std::exp( -rVolumetricStrain / SwellingSlope) * (1.0 + 1.0*AlphaShear*DeviatoricStrain2Norm/SwellingSlope);
 }
 
 
@@ -126,12 +123,12 @@ void CamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrai
 
 void CamClayExplicitFlowRule::CalculateDeviatoricStress(const double& rVolumetricStrain, const Vector & rDeviatoricStrainVector, Vector& rDeviatoricStress)
 {
-    double ReferencePreasure = 80.0;
+    double ReferencePressure = 80.0;
     double SwellingSlope = 0.0078;
     double AlphaShear = 120.0;
 
     rDeviatoricStress = rDeviatoricStrainVector;
-    rDeviatoricStress *= 2.0*AlphaShear*ReferencePreasure* std::exp(-rVolumetricStrain / SwellingSlope);
+    rDeviatoricStress *= 2.0*AlphaShear*ReferencePressure* std::exp(-rVolumetricStrain / SwellingSlope);
 
     for (unsigned int i = 3; i<6; ++i)
          rDeviatoricStress(i) /= 2.0;  // BECAUSE VOIGT NOTATION
@@ -175,11 +172,11 @@ void CamClayExplicitFlowRule::ComputeElasticMatrix(const Vector& rElasticStrainV
 
    double SwellingSlope = 0.0078;
    double AlphaShear = 120.0;
-   double ReferencePreasure = 80.0;
+   double ReferencePressure = 80.0;
 
 
    rElasticMatrix  = (-1.0/SwellingSlope)*MeanStress*IdentityCross;
-   rElasticMatrix += 2.0*AlphaShear*ReferencePreasure*std::exp(-VolumetricStrain/SwellingSlope)*(FourthOrderIdentity - (1.0/3.0)*IdentityCross);
+   rElasticMatrix += 2.0*AlphaShear*ReferencePressure*std::exp(-VolumetricStrain/SwellingSlope)*(FourthOrderIdentity - (1.0/3.0)*IdentityCross);
 
 
    // PARTE ASQUEROSA
