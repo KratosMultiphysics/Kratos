@@ -67,34 +67,35 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Macros
 #define KRATOS_LOG(severity) Logger::severity##_stream(__FILE__,BOOST_CURRENT_FUNCTION,__LINE__,severity)
 
-#define KRATOS_ERROR_LOG            KRATOS_LOG(KRATOS_ERROR_LOG)
-#define KRATOS_WARNING_LOG          KRATOS_LOG(KRATOS_WARNING_LOG)
-#define KRATOS_INFO_LOG             KRATOS_LOG(KRATOS_INFO_LOG)
-#define KRATOS_DETAIL_LOG           KRATOS_LOG(KRATOS_DETAIL_LOG)
+#define KRATOS_ERROR_LOG            KRATOS_LOG(KRATOS_ERROR)
+#define KRATOS_WARNING_LOG          KRATOS_LOG(KRATOS_WARNING)
+#define KRATOS_DETAIL_LOG           KRATOS_LOG(KRATOS_DETAIL)
+#define KRATOS_INFO_LOG             KRATOS_LOG(KRATOS_INFO)
 
-#define KRATOS_ERROR_LOG_N          KRATOS_LOG_N(KRATOS_ERROR_LOG)
-#define KRATOS_WARNING_LOG_N        KRATOS_LOG_N(KRATOS_WARNING_LOG)
-#define KRATOS_INFO_LOG_N           KRATOS_LOG_N(KRATOS_INFO_LOG)
-#define KRATOS_DETAIL_LOG_N         KRATOS_LOG_N(KRATOS_DETAIL_LOG)
+#define KRATOS_ERROR_LOG_N          KRATOS_LOG_N(KRATOS_ERROR)
+#define KRATOS_WARNING_LOG_N        KRATOS_LOG_N(KRATOS_WARNING)
+#define KRATOS_DETAIL_LOG_N         KRATOS_LOG_N(KRATOS_DETAIL)
+#define KRATOS_INFO_LOG_N           KRATOS_LOG_N(KRATOS_INFO)
 
-#define KRATOS_ERROR_LOG_IF         KRATOS_LOG_IF(KRATOS_ERROR_LOG)
-#define KRATOS_WARNING_LOG_IF       KRATOS_LOG_IF(KRATOS_WARNING_LOG)
-#define KRATOS_INFO_LOG_IF          KRATOS_LOG_IF(KRATOS_INFO_LOG)
-#define KRATOS_DETAIL_LOG_IF        KRATOS_LOG_IF(KRATOS_DETAIL_LOG)
+#define KRATOS_ERROR_LOG_IF         KRATOS_LOG_IF(KRATOS_ERROR)
+#define KRATOS_WARNING_LOG_IF       KRATOS_LOG_IF(KRATOS_WARNING)
+#define KRATOS_DETAIL_LOG_IF        KRATOS_LOG_IF(KRATOS_DETAIL)
+#define KRATOS_INFO_LOG_IF          KRATOS_LOG_IF(KRATOS_INFO)
 
-#define KRATOS_ERROR_LOG_CHECK      KRATOS_LOG_CHECK(KRATOS_ERROR_LOG)
-#define KRATOS_WARNING_LOG_CHECK    KRATOS_LOG_CHECK(KRATOS_WARNING_LOG)
-#define KRATOS_INFO_LOG_CHECK       KRATOS_LOG_CHECK(KRATOS_INFO_LOG)
-#define KRATOS_DETAIL_LOG_CHECK     KRATOS_LOG_CHECK(KRATOS_DETAIL_LOG)
+#define KRATOS_ERROR_LOG_CHECK      KRATOS_LOG_CHECK(KRATOS_ERROR)
+#define KRATOS_WARNING_LOG_CHECK    KRATOS_LOG_CHECK(KRATOS_WARNING)
+#define KRATOS_DETAIL_LOG_CHECK     KRATOS_LOG_CHECK(KRATOS_DETAIL)
+#define KRATOS_INFO_LOG_CHECK       KRATOS_LOG_CHECK(KRATOS_INFO)
 
 #ifdef KRATOS_DEBUG
-#define KRATOS_DEBUG_LOG    KRATOS_LOG(KRATOS_DEBUG_LOG)
-#define KRATOS_TRACE_LOG    KRATOS_LOG(KRATOS_TRACE_LOG)
+#define KRATOS_DEBUG_LOG    KRATOS_LOG(KRATOS_DEBUG)
+#define KRATOS_TRACE_LOG    KRATOS_LOG(KRATOS_TRACE)
 #else
 #define KRATOS_DEBUG_LOG    
 #define KRATOS_TRACE_LOG    
 #endif
 
+/*
 #REMINDER: No pots usar file, cambial dilluns
 # define LOG_OCCURRENCES(file,line) file ## line
 
@@ -105,7 +106,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
   if (++LOG_OCCURRENCES_MOD_N > n) LOG_OCCURRENCES_MOD_N -= n; \
   if (LOG_OCCURRENCES_MOD_N == 1) \
     KRATOS_LOG(KRATOS_SEVERITY)
-
+*/
 
 #define KRATOS_TIME_STAMP   "[" << CurrentDateTime() << "]"
 
@@ -137,26 +138,13 @@ namespace Kratos
 class KratosLog : public std::ostream
 {
   private:
-  
-    static bool     mInstanceFalg;
-    static Log *    mInstance;
     
     /**
      * Default constructor
      */
-    Log() 
-    {    
-        std::stringstream LogFileName;
-        
-        mPrintLogOnScreen = 0;
-        mSeverityLevel    = KRATOS_INFO;
-        
-        LogFileName << "KratosMultiphysics" << '.' << getpid() << '.' << "log";
-        
-        SetLogFile(LogFileName.str());
-    }
+    Log();
     
-public:
+  public:
   
     ///@name Type Definitions
     ///@{
@@ -171,90 +159,35 @@ public:
     /**
      * Returns the instance to the log class and creates it in case it not been yet created 
      */
-    static KratosLog& GetInstance() 
-    {
-        if(!mInstanceFalg)
-        {   
-            mInstanceFalg = 1;
-            mInstance = new KratosLog();
-        }
-        
-        return (*mInstance);
-    }
+    static KratosLog& GetInstance();
 
     /// Destructor.
-    virtual ~KratosLog()
+    /*virtual*/ ~KratosLog()
     {
-        msLogFile << std::endl;
-      
-        if(msLogFile.is_open())
-            msLogFile.close();
-        
-        mInstanceFalg = 0;
-            
-        delete mInstance;
     }
     
     ///@}
     ///@name Operators
     ///@{
       
-    // NOT NEEDED ANYMORE!!!
-    /// Class operator only writes in the generic log file 
- 
-    /// This function must be overloaded twice in order to adress std::endl as it is a function
-    Log& operator<<(std::ostream& (*fn)(std::ostream&))
-    {
-        fn(msLogFile);
-        
-        if(mPrintLogOnScreen)
-            fn(std::cout);
-        
-        return * this;
-    }
+    Log& operator<<(std::ostream& (*fn)(std::ostream&));
     
-    /// Rest of the inputs
     template<typename T>
-    Log& operator << (const T& data)
-    {
-        msLogFile << data;
-        
-        if(mPrintLogOnScreen)
-            std::cout << msLogFile;
-        
-        if(mSeverityLevel == KRATOS_ERROR)
-            abort();
-        
-        return * this;
-    }
+    Log& operator << (const T& data);
 
     ///@}
     ///@name Operations
     ///@{
       
-    int SetLogFile(std::string const& LogFileName)
-    {
-        if(msLogFile.is_open())
-            msLogFile.close();
-
-        msLogFile.open(LogFileName.c_str());
-
-        return msLogFile.is_open();
-    }
+    int SetLogFile(std::string const& LogFileName);
     
-    void SetPrintLogOnScreen(bool print) 
-    {
-        mPrintLogOnScreen = print;
-    }
+    void SetPrintLogOnScreen(bool print) ;
 
     ///@}
     ///@name Access
     ///@{
     
-    std::ofstream& GetLogStream()
-    {
-        return msLogFile;
-    }
+    std::ofstream& GetLogFile();
 
     ///@}
     ///@name Inquiry
@@ -291,7 +224,7 @@ public:
 
     ///@}
 
-protected:
+  protected:
     ///@name Protected static Member Variables
     ///@{
 
@@ -327,12 +260,18 @@ protected:
 
     ///@}
 
-private:
+  private:
 
     ///@name Static Member Variables
     ///@{
 
-    std::ofstream msLogFile;
+    static bool     mInstanceFalg;
+    static Log *    mInstance;
+
+    std::ofstream msNormalLogFile;
+    std::ofstream msTimingLogFile;
+    std::ofstream msSolverLogFile;
+    std::ofstream msExtrasLogFile;
 
     bool mPrintLogOnScreen;
     int  mSeverityLevel;
@@ -370,143 +309,22 @@ private:
 
 }; // Class Log
 
-class Logger
+class KratosLogger
 {
-public:
-  
-    /**
-     * @param file:     File where the function was called
-     * @param funct:    Function where the function was called
-     * @param line:     Line where the function was called
-     * @param severity: Severity of the error **TODO: To be removed?
-     **/
-    static Log& _stream(const char * file, const char * funct, int line, int severity)
-    {
-        Log& stream = Log::GetInstance();
-         
-        stream << KRATOS_TIME_STAMP << ":" << "MISSING_SEVERITY: " << "\':";
-        return stream;
-    }
-  
-    /**
-     * @param file:     File where the function was called
-     * @param funct:    Function where the function was called
-     * @param line:     Line where the function was called
-     * @param severity: Severity of the error **TODO: To be removed?
-     **/
-    static Log& KRATOS_ERROR_LOG_stream(const char * file, const char * funct, int line, int severity)
-    {
-        Log& stream = Log::GetInstance();
-          
-        stream << KRATOS_TIME_STAMP << ":" << "KRATOS_ERROR:" << file << ":" << line << " In function \'" << funct << "\':";
-        return stream;
-    }
-    
-    /**
-     * @param file:     File where the function was called
-     * @param funct:    Function where the function was called
-     * @param line:     Line where the function was called
-     * @param severity: Severity of the error **TODO: To be removed?
-     **/ 
-    static Log& KRATOS_WARNING_LOG_stream(const char * file, const char * funct, int line, int severity)
-    {
-        Log& stream = Log::GetInstance();
-            
-        stream << KRATOS_TIME_STAMP << ":" << "KRATOS_WARNING:" << file << ":" << line << "\':";
-        return stream;
-    }
-    
-    /**
-     * @param file:     File where the function was called
-     * @param funct:    Function where the function was called
-     * @param line:     Line where the function was called
-     * @param severity: Severity of the error **TODO: To be removed?
-     **/
-    static Log& KRATOS_INFO_LOG_stream(const char * file, const char * funct, int line, int severity)
-    {
-        Log& stream = Log::GetInstance();
-         
-        stream << KRATOS_TIME_STAMP << ":";
-        return stream;
-    }
-    
-    /**
-     * @param file:     File where the function was called
-     * @param funct:    Function where the function was called
-     * @param line:     Line where the function was called
-     * @param severity: Severity of the error **TODO: To be removed?
-     **/
-    static Log& KRATOS_DETAIL_LOG_stream(const char * file, const char * funct, int line, int severity)
-    {
-        Log& stream = Log::GetInstance();
-         
-        stream << KRATOS_TIME_STAMP << ":";
-        return stream;
-    }
-    
-    /**
-     * @param file:     File where the function was called
-     * @param funct:    Function where the function was called
-     * @param line:     Line where the function was called
-     * @param severity: Severity of the error **TODO: To be removed?
-     **/
-    static Log& KRATOS_DEBUG_LOG_stream(const char * file, const char * funct, int line, int severity)
-    {
-        Log& stream = Log::GetInstance();
-        
-        stream << KRATOS_TIME_STAMP << ":";
-        return Log::GetInstance();
-    }
-    
-    /**
-     * @param file:     File where the function was called
-     * @param funct:    Function where the function was called
-     * @param line:     Line where the function was called
-     * @param severity: Severity of the error **TODO: To be removed?
-     **/
-    static Log& KRATOS_TRACE_LOG_stream(const char * file, const char * funct, int line, int severity)
-    {
-        Log& stream = Log::GetInstance();
-        
-        stream << KRATOS_TIME_STAMP << ":" << "KRATOS_TRACE:" << file << ":" << line << " In function \'" << funct << "\':";
-        return stream;
-    }
-    
-private:
-  
-    /**
-     * Returns the current time in HH:MM:SS format
-     */
-    static const std::string CurrentDateTime() 
-    {
-        time_t     now = time(0);
-        struct tm  tstruct;
-        
-        char       buf[80];
-        tstruct = *localtime(&now);
-        
-        strftime(buf, sizeof(buf), "%X", &tstruct);
+  public:
 
-        return buf;
-    }
+    static Log& _stream(                    const char * file, const char * funct, int line, int severity);
+    static Log& KRATOS_ERROR_LOG_stream(    const char * file, const char * funct, int line, int severity);
+    static Log& KRATOS_WARNING_LOG_stream(  const char * file, const char * funct, int line, int severity);
+    static Log& KRATOS_DETAIL_LOG_stream(   const char * file, const char * funct, int line, int severity);
+    static Log& KRATOS_INFO_LOG_stream(     const char * file, const char * funct, int line, int severity);
+    static Log& KRATOS_DEBUG_LOG_stream(    const char * file, const char * funct, int line, int severity);
+    static Log& KRATOS_TRACE_LOG_stream(    const char * file, const char * funct, int line, int severity);
     
-    /**
-    * Returns the current time in the specified format
-    * @param format:    valid format for time. Please check: "http://www.cplusplus.com/reference/ctime/strftime/"
-    *                   for more details.
-    */
-    static const std::string CurrentDateTime(const char * format) 
-    {
-        time_t     now = time(0);
-        struct tm  tstruct;
-        
-        char       buf[80];
-        tstruct = *localtime(&now);
-        
-        strftime(buf, sizeof(buf), format, &tstruct);
-
-        return buf;
-    }
+  private:
+  
+    static const std::string CurrentDateTime();
+    static const std::string CurrentDateTime(const char * format);
   
 };
 
