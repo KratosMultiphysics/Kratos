@@ -65,6 +65,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
 
+// #include <iostream>
+// #include <fstream>
+
 namespace Kratos
 {
 
@@ -261,6 +264,28 @@ public:
         }
 
 #else
+
+
+
+        
+//         std::size_t* Arow_indices = A.index1_data().begin();
+//         std::size_t* Acol_indices = A.index2_data().begin();
+// 
+//         std::ofstream row_file;
+//         row_file.open ("rows.txt");
+//         for (int k = 0; k < static_cast<int> (A.size1() ); k++)
+//             row_file << Arow_indices[k] << std::endl;
+//         row_file.close();
+//         
+//         std::ofstream col_file;
+//         col_file.open ("cols.txt");
+//         for (int k = 0; k < static_cast<int>(Arow_indices[A.size1()]); k++)
+//             col_file << Acol_indices[k] << std::endl;
+//         col_file.close();
+//   
+//   std::ofstream equation_ids;
+//   equation_ids.open ("equation_ids.txt");
+  
         //creating an array of lock variables of the size of the system matrix
         std::vector< omp_lock_t > lock_array(A.size1());
 
@@ -302,7 +327,10 @@ public:
 
                 //calculate elemental contribution
                 pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
+				
+// for(unsigned int kk = 0; kk<EquationId.size(); kk++)
+// 	equation_ids << EquationId[kk] << " ";
+// equation_ids << std::endl;
                 //assemble the elemental contribution
                 Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId, lock_array);
 
@@ -356,7 +384,8 @@ public:
             }
         }
 
-
+// equation_ids.close();
+// KRATOS_ERROR(std::logic_error,"i want to stop here :-D","")
 
         double stop_build = OpenMPUtils::GetCurrentTime();
         if (this->GetEchoLevel() >=1 && r_model_part.GetCommunicator().MyPID() == 0)

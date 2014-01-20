@@ -1,4 +1,4 @@
-from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 def BenchmarkCheck(Vel303x, Vel303y, Vel312, Vel322):
     benchmarking.Output(Vel303x, "x velocity at node 303", None, 1e-5)
     benchmarking.Output(Vel303y, "y velocity at node 303", None, 1e-5)

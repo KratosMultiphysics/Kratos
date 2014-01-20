@@ -188,13 +188,28 @@ public:
         // Updating the time
         rCurrentProcessInfo[TIME] = BaseType::GetModelPart().GetProcessInfo()[TIME];
         rCurrentProcessInfo[DELTA_TIME] = BaseType::GetModelPart().GetProcessInfo()[DELTA_TIME];
+        
+        //set before each solve the displacements to the value at the beginning of the latest step if they are
+        //not fixed
+        for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin() ;
+                    i != (*mpMeshModelPart).NodesEnd() ; ++i)
+        {
+            array_1d<double,3>& disp = (i)->FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double,3>& dispold = (i)->FastGetSolutionStepValue(DISPLACEMENT,1);
+            
+            if(i->IsFixed(DISPLACEMENT_X) == false) disp[0] = dispold[0];
+            if(i->IsFixed(DISPLACEMENT_Y) == false) disp[1] = dispold[1];
+            if(i->IsFixed(DISPLACEMENT_Z) == false) disp[2] = dispold[2];
+            
+            noalias(i->Coordinates()) = i->GetInitialPosition();
+            noalias(i->Coordinates()) += disp;
+        }
 
         // Solve for the mesh movement
         mstrategy->Solve();
 
         // Update FEM-base
-        CalculateMeshVelocities();
-        BaseType::MoveMesh();
+        MoveNodes();
 
         // Clearing the system if needed
         if(mreform_dof_at_every_step == true)
@@ -228,9 +243,21 @@ public:
         }
         else //mesh velocity calculated as (3*x(n+1)-4*x(n)+x(n-1))/(2*Dt)
         {
-            double c1 = 1.50*coeff;
-            double c2 = -2.0*coeff;
-            double c3 = 0.50*coeff;
+            double Dt = (*mpMeshModelPart).GetProcessInfo()[DELTA_TIME];
+            double OldDt = (*mpMeshModelPart).GetProcessInfo().GetPreviousTimeStepInfo(1)[DELTA_TIME];
+KRATOS_WATCH(Dt)
+KRATOS_WATCH(OldDt)
+
+            double Rho = OldDt / Dt;
+            double TimeCoeff = 1.0 / (Dt * Rho * Rho + Dt * Rho);
+
+            double c1 = TimeCoeff * (Rho * Rho + 2.0 * Rho); //coefficient for step n+1 (3/2Dt if Dt is constant)
+            double c2 = -TimeCoeff * (Rho * Rho + 2.0 * Rho + 1.0); //coefficient for step n (-4/2Dt if Dt is constant)
+            double c3 = TimeCoeff; //coefficient for step n-1 (1/2Dt if Dt is constant)
+            
+//             double c1 = 1.50*coeff;
+//             double c2 = -2.0*coeff;
+//             double c3 = 0.50*coeff;
 
             for(ModelPart::NodeIterator i = (*mpMeshModelPart).NodesBegin() ;
                     i != (*mpMeshModelPart).NodesEnd() ; ++i)

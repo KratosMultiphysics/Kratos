@@ -1,4 +1,4 @@
-from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # def PrintRestart_VectorVariable(variable,varname_x,varname_y,varname_z,Nodes,outfile):
 # outfile.write( "\n" )
 # for node in Nodes:

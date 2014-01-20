@@ -13,6 +13,7 @@ message("PFEM_SOLID_MECHANICS_APPLICATION.....${PFEM_SOLID_MECHANICS_APPLICATION
 message("FLUID_DYNAMICS_APPLICATION.......... ${FLUID_DYNAMICS_APPLICATION}")
 message("ALE_APPLICATION..................... ${ALE_APPLICATION}")
 message("FSI_APPLICATION..................... ${FSI_APPLICATION}")
+message("EMPIRE_APPLICATION..................... ${EMPIRE_APPLICATION}")
 message("MIXED_ELEMENT_APPLICATION........... ${MIXED_ELEMENT_APPLICATION}")
 message("DEM_APPLICATION......................${DEM_APPLICATION}")
 message("SWIMMING_DEM_APPLICATION.............${SWIMMING_DEM_APPLICATION}")
@@ -146,6 +147,10 @@ endif(${MESHLESS_APPLICATION} MATCHES ON)
 if(${WIND_TURBINE_APPLICATION} MATCHES ON)
   add_subdirectory(wind_turbine_application)
 endif(${WIND_TURBINE_APPLICATION} MATCHES ON)
+
+if(${EMPIRE_APPLICATION} MATCHES ON)
+  add_subdirectory(empire_application)
+endif(${EMPIRE_APPLICATION} MATCHES ON)
 
 # get_property(inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES)
 # message("applications subdir inc_dirs = ${inc_dirs}")
