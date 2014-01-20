@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # -*- coding: utf-8 -*-
 from KratosMultiphysics import *
 from KratosMultiphysics.mpi import *
@@ -31,7 +32,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
 
     mpi.world.barrier()
-    print "variables for the trilinos incompressible fluid solver added correctly"
+    print("variables for the trilinos incompressible fluid solver added correctly")
 
 
 def AddDofs(model_part):
@@ -47,7 +48,7 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_Z)
     mpi.world.barrier()
 
-    print "dofs for the trilinos incompressible fluid solver added correctly"
+    print("dofs for the trilinos incompressible fluid solver added correctly")
 
 
 def ReadRestartFile(FileName, nodes):
@@ -56,9 +57,9 @@ def ReadRestartFile(FileName, nodes):
     for line in aaa:
         exec(line)
 
-##   import start.pyinc
+# import start.pyinc
 
-##   aaa = __import__(FileName)
+# aaa = __import__(FileName)
 # aaa.Restart(nodes)
 
 
@@ -105,18 +106,18 @@ class IncompressibleFluidSolver:
         velocity_aztec_parameters.set("AZ_output", "AZ_none")
         # velocity_aztec_parameters.set("AZ_output",32);
 
-##        preconditioner_type = "Amesos"
-##        preconditioner_parameters = ParameterList()
-##        preconditioner_parameters.set("amesos: solver type", "Amesos_Klu");
-##        preconditioner_type = "Ifpack_PointRelaxation"
-##        preconditioner_parameters = ParameterList()
-##        preconditioner_parameters.set("relaxation: type", "Jacobi");
+# preconditioner_type = "Amesos"
+# preconditioner_parameters = ParameterList()
+# preconditioner_parameters.set("amesos: solver type", "Amesos_Klu");
+# preconditioner_type = "Ifpack_PointRelaxation"
+# preconditioner_parameters = ParameterList()
+# preconditioner_parameters.set("relaxation: type", "Jacobi");
 
-##        preconditioner_type = "ILU"
-##        preconditioner_parameters = ParameterList()
-##        overlap_level = 1
-##        nit_max = 1000
-##        tol = 1e-6
+# preconditioner_type = "ILU"
+# preconditioner_parameters = ParameterList()
+# overlap_level = 1
+# nit_max = 1000
+# tol = 1e-6
 
         velocity_preconditioner_type = "ILU"
         velocity_preconditioner_parameters = ParameterList()
@@ -126,9 +127,9 @@ class IncompressibleFluidSolver:
 
         pressure_aztec_parameters = ParameterList()
         pressure_aztec_parameters.set("AZ_solver", "AZ_bicgstab")
-        #pressure_preconditioner_type = "IC"
+        # pressure_preconditioner_type = "IC"
         pressure_preconditioner_type = "ILU"
-        #pressure_preconditioner_type = "AZ_none"
+        # pressure_preconditioner_type = "AZ_none"
         pressure_aztec_parameters.set("AZ_output", 32)
         # pressure_aztec_parameters.set("AZ_output","AZ_none");
         pressure_preconditioner_parameters = ParameterList()
@@ -167,11 +168,11 @@ class IncompressibleFluidSolver:
 
 #
 
-##        vel_solver_parameters = ParameterList()
-##        self.velocity_linear_solver =  AmesosSolver("Superludist",vel_solver_parameters);
+# vel_solver_parameters = ParameterList()
+# self.velocity_linear_solver =  AmesosSolver("Superludist",vel_solver_parameters);
 #
-##        press_solver_parameters = ParameterList()
-##        self.pressure_linear_solver =  AmesosSolver("Superludist",press_solver_parameters);
+# press_solver_parameters = ParameterList()
+# self.pressure_linear_solver =  AmesosSolver("Superludist",press_solver_parameters);
 
     def Initialize(self):
         (self.neighbour_search).Execute()
@@ -185,7 +186,7 @@ class IncompressibleFluidSolver:
 #        self.solver = ResidualBasedFluidStrategy(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)
 
         self.Comm = CreateCommunicator()
-        print self.Comm
+        print(self.Comm)
 
         solver_configuration = TrilinosFractionalStepConfiguration(
             self.Comm,
@@ -196,7 +197,7 @@ class IncompressibleFluidSolver:
             self.laplacian_form,
             self.use_dt_in_stabilization)
 
-        print "solver configuration created correctly"
+        print("solver configuration created correctly")
         self.solver = TrilinosFractionalStepStrategy(
             self.model_part,
             solver_configuration,
@@ -217,7 +218,7 @@ class IncompressibleFluidSolver:
         (self.solver).SetEchoLevel(self.echo_level)
 
 # (self.solver).SetEchoLevel(self.echo_level)
-        print "finished initialization of the fluid strategy"
+        print("finished initialization of the fluid strategy")
 
     def Solve(self):
         if(self.ReformDofAtEachIteration):
@@ -235,7 +236,7 @@ class IncompressibleFluidSolver:
         #(self.solver).ApplyFractionalVelocityFixity()
         #(self.solver).InitializeFractionalStep(self.step, self.time_order);
         #(self.solver).InitializeProjections(self.step,self.projections_are_initialized);
-        #self.projections_are_initialized = True;
+        # self.projections_are_initialized = True;
 
         #(self.solver).AssignInitialStepValues();
 

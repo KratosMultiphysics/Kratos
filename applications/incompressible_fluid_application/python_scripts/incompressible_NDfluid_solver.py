@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.MeshingApplication import *
@@ -20,7 +21,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(IS_STRUCTURE)
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE)
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE)
-    print "variables for the incompressible NDfluid solver added correctly"
+    print("variables for the incompressible NDfluid solver added correctly")
 
 
 def AddDofs(model_part):
@@ -49,7 +50,7 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_Y)
         node.AddDof(VELOCITY_Z)
 
-    print "dofs for the incompressible NDfluid solver added correctly"
+    print("dofs for the incompressible NDfluid solver added correctly")
 
 
 class IncompressibleNDFluidSolver:
@@ -83,17 +84,17 @@ class IncompressibleNDFluidSolver:
         # definition of the solvers
         pDiagPrecond = DiagonalPreconditioner()
         pILUPrecond = ILU0Preconditioner()
-##        self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
-##        self.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
+# self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
+# self.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
         self.velocity_linear_solver = BICGSTABSolver(1e-6, 5000, pDiagPrecond)
-##        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pILUPrecond)
+# self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pILUPrecond)
         self.pressure_linear_solver = BICGSTABSolver(1e-9, 5000, pDiagPrecond)
 
     def Initialize(self):
         (self.neighbour_search).Execute()
 
 #        self.solver = ResidualBasedNDFluidStrategyCoupled(self.model_part,self.velocity_linear_solver,self.pressure_linear_solver,self.CalculateReactions,self.ReformDofAtEachIteration,self.CalculateNormDxFlag,self.vel_toll,self.press_toll,self.max_vel_its,self.max_press_its, self.time_order,self.domain_size, self.laplacian_form, self.predictor_corrector)
-        print "in python: okkio using Coupled Strategy"
+        print("in python: okkio using Coupled Strategy")
         self.solver = ResidualBasedNDFluidStrategy(
             self.model_part,
             self.velocity_linear_solver,
@@ -111,11 +112,11 @@ class IncompressibleNDFluidSolver:
             self.predictor_corrector)
 
         (self.solver).SetEchoLevel(self.echo_level)
-        print "finished initialization of the fluid strategy"
+        print("finished initialization of the fluid strategy")
 
     def Solve(self):
         if(self.ReformDofAtEachIteration):
             (self.neighbour_search).Execute()
 
-        print "just before solve"
+        print("just before solve")
         (self.solver).Solve()

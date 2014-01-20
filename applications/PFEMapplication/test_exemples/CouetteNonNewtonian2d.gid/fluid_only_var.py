@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 domain_size = 2
 
 Dt = 0.01
@@ -11,6 +12,6 @@ use_oss = 0
 dynamic_tau = 1.0
 # Declare Python Variables
 
-problem_name="CouetteNonNewtonian2d"
-problem_path="/media/data/EXAMPLES/PFEM/NON_NEWTONIAN/COUETTEflow/CouetteNonNewtonian2d.gid"
-kratos_path="/home/antonia/kratos"
+problem_name = "CouetteNonNewtonian2d"
+problem_path = "/media/data/EXAMPLES/PFEM/NON_NEWTONIAN/COUETTEflow/CouetteNonNewtonian2d.gid"
+kratos_path = "/home/antonia/kratos"

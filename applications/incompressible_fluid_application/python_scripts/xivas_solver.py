@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # -*- coding: utf-8 -*-
 # importing the Kratos Library
 from KratosMultiphysics import *
@@ -27,7 +28,7 @@ def AddDofs(fluid_model_part, particle_model_part):
     edgebased_eulerian_solver.AddDofs(fluid_model_part)
     # edgebased_eulerian_solver.AddDofs(particle_model_part)
 
-    print "dofs for the xivas solver added correctly"
+    print("dofs for the xivas solver added correctly")
 
 
 def ReadRestartFile(FileName, nodes):
@@ -85,7 +86,7 @@ class XIVASSolver:
         self.min_particles_in_element = 3  # 1
 
         self.perform_cheap_correction_step = True
-        #self.implicit_viscous_correction = True
+        # self.implicit_viscous_correction = True
 
         # assign nodal H
         aux = CalculateNodalAreaProcess(fluid_model_part, domain_size)
@@ -94,7 +95,7 @@ class XIVASSolver:
             a = node.GetSolutionStepValue(NODAL_AREA)
             h = math.sqrt(2.0 * a)
             if(h == 0):
-                print "node ", node.Id, " has zero h"
+                print("node ", node.Id, " has zero h")
                 raise "error, node found with 0 h"
             node.SetSolutionStepValue(NODAL_H, 0, h)
 
@@ -119,7 +120,7 @@ class XIVASSolver:
         #(self.fluid_solver).SetEchoLevel(self.echo_level)
         hmin = (self.fluid_solver.fluid_solver).ComputeMinimum_Havg()
 
-        print "minimum nodal havg found on the mesh = ", hmin
+        print("minimum nodal havg found on the mesh = ", hmin)
         # self.node_locator.UpdateSearchDatabase()
         self.node_locator.UpdateSearchDatabaseAssignedSize(hmin)
 
@@ -127,7 +128,7 @@ class XIVASSolver:
             self.fluid_model_part,
             self.particle_model_part)
 
-        print "finished initialization of the xivas solver"
+        print("finished initialization of the xivas solver")
 
     def EstimateTimeStep(self, safety_factor, max_Dt):
         return self.fluid_solver.EstimateTimeStep(safety_factor, max_Dt)
@@ -140,7 +141,7 @@ class XIVASSolver:
             raise "error, time step for particle_model_part is not appropriately cloned (not syncronized with fluid_model_part)"
 
         (self.fluid_solver.fluid_solver).ComputeViscousForces()
-        print "ccc"
+        print("ccc")
         # self.particle_utils.StreamlineMove(self.bf,self.density,Dt,self.substeps,self.fluid_model_part,self.particle_model_part,self.restart_with_eulerian_vel,self.node_locator)
         self.particle_utils.StreamlineMove(
             self.bf,

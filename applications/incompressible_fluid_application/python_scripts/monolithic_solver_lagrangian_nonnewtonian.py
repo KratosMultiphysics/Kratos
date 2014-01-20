@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -48,10 +49,10 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(MU)
     model_part.AddNodalSolutionStepVariable(YIELD_STRESS)
     model_part.AddNodalSolutionStepVariable(EQ_STRAIN_RATE)
-    ### WATER PRESSURE GRADIENT
+    # WATER PRESSURE GRADIENT
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ)
 
-    print "variables for the dynamic structural solution added correctly"
+    print("variables for the dynamic structural solution added correctly")
 
 
 def AddDofs(model_part):
@@ -63,7 +64,7 @@ def AddDofs(model_part):
         node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)
         node.AddDof(AIR_PRESSURE, REACTION_AIR_PRESSURE)
 
-    print "dofs for the monolithic solver added correctly"
+    print("dofs for the monolithic solver added correctly")
 
 
 class MonolithicSolver:
@@ -78,16 +79,16 @@ class MonolithicSolver:
         self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme(
             self.alpha, self.move_mesh_strategy)
         # definition of the solvers
-##        self.linear_solver = SkylineLUFactorizationSolver()
-##        self.linear_solver = SuperLUSolver()
-##        self.linear_solver = SuperLUIterativeSolver()
+# self.linear_solver = SkylineLUFactorizationSolver()
+# self.linear_solver = SuperLUSolver()
+# self.linear_solver = SuperLUIterativeSolver()
 
         self.linear_solver = MKLPardisoSolver()
 
-##            pPrecond = DiagonalPreconditioner()
-##            pPrecond = ILU0Preconditioner()
-##            self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
-####        self.linear_solver = CGSolver(1e-6, 5000,pPrecond)
+# pPrecond = DiagonalPreconditioner()
+# pPrecond = ILU0Preconditioner()
+# self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+# self.linear_solver = CGSolver(1e-6, 5000,pPrecond)
 
         # definition of the convergence criteria
 # The argument order: VelRatioTolerance;  VelAbsTolerance;
@@ -106,7 +107,7 @@ class MonolithicSolver:
         self.ReformDofSetAtEachStep = True
         self.CalculateNormDxFlag = True
         self.MoveMeshFlag = True
-##        self.remeshing_flag = True
+# self.remeshing_flag = True
         # MESH CHANGES
       #  self.mark_close_nodes_process = MarkCloseNodesProcess(model_part);
         self.PfemUtils = PfemUtils()
@@ -117,12 +118,12 @@ class MonolithicSolver:
             self.neigh_finder = FindNodalNeighboursProcess(model_part, 9, 18)
         elif(domain_size == 3):
             self.Mesher = TetGenPfemModeler()
-##            self.Mesher = TetGenPfemRefineFace()
+# self.Mesher = TetGenPfemRefineFace()
             self.neigh_finder = FindNodalNeighboursProcess(model_part, 20, 30)
 
         self.alpha_shape = 1.4
         self.h_factor = 0.4
-##	self.h_factor = 0.7
+# self.h_factor = 0.7
         # detecting free_surface to all nodes
         for node in self.model_part.Nodes:
             if (node.GetSolutionStepValue(IS_BOUNDARY) == 1 and node.GetSolutionStepValue(IS_STRUCTURE) != 1):
@@ -140,7 +141,7 @@ class MonolithicSolver:
     #
     def Initialize(self, output_time_increment):
         # creating the solution strategy
-        print self.linear_solver
+        print(self.linear_solver)
 
         self.solver = ResidualBasedNewtonRaphsonStrategy(
             self.model_part,
@@ -156,7 +157,7 @@ class MonolithicSolver:
         self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, self.dynamic_tau)
         self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch)
         self.model_part.ProcessInfo.SetValue(M, self.regularization_coef)
-##        self.model_part.ProcessInfo.SetValue(SCALE, self.regularization_coef );
+# self.model_part.ProcessInfo.SetValue(SCALE, self.regularization_coef );
 
         # time increment for output
         self.output_time_increment = output_time_increment
@@ -164,7 +165,7 @@ class MonolithicSolver:
 
 #        (self.neigh_finder).Execute();
 
-        print "Remesh performed passing the element and the condition directly - not their name"
+        print("Remesh performed passing the element and the condition directly - not their name")
         self.reference_element = self.model_part.Elements[1]
 # print "refenence element:   ",self.reference_element
         self.reference_condition = self.model_part.Conditions[1]
@@ -186,7 +187,7 @@ class MonolithicSolver:
 
     #
     def EstimateDeltaTime(self, min_dt, max_dt):
-        print "Estimating delta time"
+        print("Estimating delta time")
         return (
             (self.PfemUtils).EstimateDeltaTime(min_dt, max_dt, self.model_part)
         )
@@ -220,25 +221,25 @@ class MonolithicSolver:
 
         # remesh
         if(self.domain_size == 2):
-##            (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
-##            (self.Mesher).ReGenerateMesh("BinghamNonNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+# (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+# (self.Mesher).ReGenerateMesh("BinghamNonNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
             (self.Mesher).ReGenerateMesh(self.model_part, self.reference_element,
                                          self.reference_condition, self.node_erase_process, True, True, self.alpha_shape, self.h_factor)
         elif(self.domain_size == 3):
-##            (self.Mesher).ReGenerateMesh("NoNewtonianASGS3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
-##            (self.Mesher).ReGenerateMesh("BinghamNonNewtonianASGS2D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+# (self.Mesher).ReGenerateMesh("NoNewtonianASGS3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+# (self.Mesher).ReGenerateMesh("BinghamNonNewtonianASGS2D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
             (self.Mesher).ReGenerateMesh(self.model_part, self.reference_element,
                                          self.reference_condition, self.node_erase_process, True, True, self.alpha_shape, self.h_factor)
 
-        print "regenerated mesh"
+        print("regenerated mesh")
 
          # calculating fluid neighbours before applying boundary conditions
         (self.neigh_finder).Execute()
-        print "found neighbours"
+        print("found neighbours")
         (self.PfemUtils).ApplyBoundaryConditions(self.model_part, 2)
         (self.PfemUtils).IdentifyFluidNodes(self.model_part)
         (self.PfemUtils).ApplyMinimalPressureConditions(self.model_part)
-        print "applied BC"
+        print("applied BC")
 
 # for node in self.model_part.Nodes:
 # node.SetSolutionStepValue(IS_FREE_SURFACE,0,0.0)
@@ -250,25 +251,25 @@ class MonolithicSolver:
     #
 # def Remesh3D(self, param):
 # self.remeshing_flag==False
-##        delta_displ_max = 0.0
-##        nodal_h_max = 0.0
+# delta_displ_max = 0.0
+# nodal_h_max = 0.0
 # for node in self.model_part.Nodes:
 # displacement is the total displacement from the beginning of the simulation.
 # We have to consider the Delta_displacement
-##            displX = node.GetSolutionStepValue(DISPLACEMENT_X)
-##            displY = node.GetSolutionStepValue(DISPLACEMENT_Y)
-##            displZ = node.GetSolutionStepValue(DISPLACEMENT_Z)
-##            old_displX = node.GetSolutionStepValue(DISPLACEMENT_X,1)
-##            old_displY = node.GetSolutionStepValue(DISPLACEMENT_Y,1)
-##            old_displZ = node.GetSolutionStepValue(DISPLACEMENT_Z,1)
+# displX = node.GetSolutionStepValue(DISPLACEMENT_X)
+# displY = node.GetSolutionStepValue(DISPLACEMENT_Y)
+# displZ = node.GetSolutionStepValue(DISPLACEMENT_Z)
+# old_displX = node.GetSolutionStepValue(DISPLACEMENT_X,1)
+# old_displY = node.GetSolutionStepValue(DISPLACEMENT_Y,1)
+# old_displZ = node.GetSolutionStepValue(DISPLACEMENT_Z,1)
 #
-####            displ = math.sqrt(displX*displX + displY*displY + displZ*displZ)
-##            delta_displ_square = (displX - old_displX)*(displX - old_displX) + (displY - old_displY)*(displY - old_displY) + (displZ - old_displZ)*(displZ - old_displZ)
+# displ = math.sqrt(displX*displX + displY*displY + displZ*displZ)
+# delta_displ_square = (displX - old_displX)*(displX - old_displX) + (displY - old_displY)*(displY - old_displY) + (displZ - old_displZ)*(displZ - old_displZ)
 # if (delta_displ_square > delta_displ_max):#value independent from discretization----> not good to compare with mesh dimension....
-##                delta_displ_max = delta_displ_square
-##            delta_displ_max = math.sqrt(delta_displ_max)
+# delta_displ_max = delta_displ_square
+# delta_displ_max = math.sqrt(delta_displ_max)
 # if(node.GetSolutionStepValue(NODAL_H) > nodal_h_max):#aprox max mesh dimension
-####                nodal_h_max = node.GetSolutionStepValue(NODAL_H)
+# nodal_h_max = node.GetSolutionStepValue(NODAL_H)
 #
 #
 # if(delta_displ_max > param):
@@ -276,8 +277,8 @@ class MonolithicSolver:
 #
 # (self.MeshMover).Execute();
 #
-##        (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
-##        (self.PfemUtils).MarkNodesTouchingWall(self.model_part, self.domain_size, 0.08)
+# (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
+# (self.PfemUtils).MarkNodesTouchingWall(self.model_part, self.domain_size, 0.08)
 #
 # (self.node_erase_process).Execute();
 #
@@ -291,9 +292,9 @@ class MonolithicSolver:
 #
 # remesh
 # if(self.domain_size == 2):
-##                (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+# (self.Mesher).ReGenerateMesh("NoNewtonianASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
 # elif(self.domain_size == 3):
-##                (self.Mesher).ReGenerateMesh("NoNewtonianASGS3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+# (self.Mesher).ReGenerateMesh("NoNewtonianASGS3D", "Condition3D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
 #
 # print "regenerated mesh"
 #
@@ -333,11 +334,11 @@ class MonolithicSolver:
                 displZ)
             delta_displ = (
                 displX - old_displX) * (
-                displX - old_displX) + (
-                displY - old_displY) * (
-                displY - old_displY) + (
-                displZ - old_displZ) * (
-                displZ - old_displZ)
+                    displX - old_displX) + (
+                        displY - old_displY) * (
+                            displY - old_displY) + (
+                                displZ - old_displZ) * (
+                                    displZ - old_displZ)
             delta_displ = math.sqrt(delta_displ)
 
             # 1cm for the moment but this parameter should be passed by the
@@ -347,7 +348,7 @@ class MonolithicSolver:
                 node.SetSolutionStepValue(DISPLACEMENT_Y, 0, old_displY)
                 node.SetSolutionStepValue(DISPLACEMENT_Z, 0, old_displZ)
 
-        #to update the position with the new displacement
+        # to update the position with the new displacement
         (self.MeshMover).Execute()
 
     #
@@ -428,7 +429,7 @@ class MonolithicSolver:
             gid_io.PrintOnGaussPoints(EQ_STRAIN_RATE, self.model_part, time)
             gid_io.PrintOnGaussPoints(MU, self.model_part, time)
             gid_io.PrintOnGaussPoints(TAU, self.model_part, time)
-##            gid_io.WriteNodalResults(EFFECTIVE_VISCOSITY, (self.model_part).Nodes, time, 0);
+# gid_io.WriteNodalResults(EFFECTIVE_VISCOSITY, (self.model_part).Nodes, time, 0);
             gid_io.WriteNodalResults(
                 IS_FLUID,
                 (self.model_part).Nodes,

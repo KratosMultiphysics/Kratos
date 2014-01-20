@@ -1,9 +1,10 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os.path
 import sys
 import inspect
-import kratos_globals
+from . import kratos_globals
 
-from kratos_utilities import *
+from .kratos_utilities import *
 
 # this adds the libs/ and applications/ folders to sys.path
 import KratosLoader
@@ -37,7 +38,7 @@ def CheckForPreviousImport():
         if KratosGlobals.ApplicationsInterfaceIsDeprecated:
             raise RuntimeError(msg)
         else:
-            print "\n\n WARNING: It appears that you are still using applications_interface"
-            print " to import Kratos. This will soon be OBSOLETED."
-            print " See the following message for details:\n"
-            print msg
+            print("\n\n WARNING: It appears that you are still using applications_interface")
+            print(" to import Kratos. This will soon be OBSOLETED.")
+            print(" See the following message for details:\n")
+            print(msg)

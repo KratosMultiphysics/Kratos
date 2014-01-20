@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *
@@ -32,10 +33,10 @@ def AddVariables(base_model_part):
     base_model_part.AddNodalSolutionStepVariable(IS_FLUID)
     base_model_part.AddNodalSolutionStepVariable(IS_FREE_SURFACE)
 
-    #to be removed!!!
+    # to be removed!!!
     base_model_part.AddNodalSolutionStepVariable(TEMPERATURE)
 
-    print "variables for the level set solver added correctly"
+    print("variables for the level set solver added correctly")
 
 
 def AddDofs(base_model_part):
@@ -54,7 +55,7 @@ def AddDofs(base_model_part):
         # adding dofs for convecting the distance function
         node.AddDof(DISTANCE)
 
-    print "dofs for the levelset solver added correctly"
+    print("dofs for the levelset solver added correctly")
 
 
 class LevelSetSolver:
@@ -114,7 +115,7 @@ class LevelSetSolver:
         pDiagPrecond = DiagonalPreconditioner()
         pILUPrecond = ILU0Preconditioner()
         self.velocity_linear_solver = BICGSTABSolver(1e-6, 5000, pDiagPrecond)
-##        self.pressure_linear_solver =  BICGSTABSolver(1e-5, 5000,pILUPrecond)
+# self.pressure_linear_solver =  BICGSTABSolver(1e-5, 5000,pILUPrecond)
         self.pressure_linear_solver = BICGSTABSolver(1e-3, 5000, pDiagPrecond)
 
         # level set tools
@@ -182,7 +183,7 @@ class LevelSetSolver:
             self.predictor_corrector)
         (self.solver).SetEchoLevel(self.echo_level)
 
-        print "finished initialization"
+        print("finished initialization")
 
     #
     #
@@ -201,7 +202,7 @@ class LevelSetSolver:
                 node.SetValue(IS_VISITED, 1.0)
                 node.SetSolutionStepValue(DISTANCE, 0, 0.0)
 
-        print "entered in RecalculateDistanceFunction"
+        print("entered in RecalculateDistanceFunction")
         # prepare to calculate distance inside the fluid
         self.level_set_tools.FluidDistanceComputation_FromBoundary(
             self.fluid_model_part.Nodes, IS_VISITED, DISTANCE)
@@ -238,7 +239,7 @@ class LevelSetSolver:
     #
     # take care! needs neighbours on the overall domain
     def RecalculateDistanceFunction(self):
-        print "entered in RecalculateDistanceFunction"
+        print("entered in RecalculateDistanceFunction")
         # prepare to calculate distance inside the fluid
         self.level_set_tools.FluidDistanceComputation_FromBoundary(
             self.fluid_model_part.Nodes, IS_VISITED, DISTANCE)
@@ -256,7 +257,7 @@ class LevelSetSolver:
 
         # calculate the distance inside the rest of the domain
         self.CalculateDistances()
-        print "finished  RecalculateDistanceFunction"
+        print("finished  RecalculateDistanceFunction")
 
     #
     #
@@ -264,7 +265,7 @@ class LevelSetSolver:
     def Convect(self):
 
         # convect distance function ###################
-        print "QUIIIIIIIIIIIIIIIIIIIIIIIIIIIIII"
+        print("QUIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
         # construct system -- could be done once if the mesh does not change
         self.convection_solver.ConstructSystem(
             self.fluid_model_part,
@@ -303,7 +304,7 @@ class LevelSetSolver:
         # convect distance function #################
         if(self.predict_levelset):
             self.Convect()
-            print "predicted level set function"
+            print("predicted level set function")
 
         # identify & solve fluid ######################
         # identify fluid domain
@@ -317,10 +318,10 @@ class LevelSetSolver:
 
         # apply the fluid properties before solution
         if(self.laplacian_form == 1):
-            print "FIXING PRESSURES"
+            print("FIXING PRESSURES")
             fix_pressure = True
         else:
-            print "NOT FIXING PRESSURES"
+            print("NOT FIXING PRESSURES")
             fix_pressure = False
         self.level_set_tools.ApplyFluidProperties(
             self.base_model_part.Nodes,
@@ -334,14 +335,14 @@ class LevelSetSolver:
         # detect fluid neighbours
         (self.fluid_mesh_neighbour_search).Execute()
 
-        print self.fluid_model_part
+        print(self.fluid_model_part)
 
         # solve fluid domain
         (self.solver).ApplyFractionalVelocityFixity()
         (self.solver).Solve()
 
-        print "just before extrapolation:"
-        print self.fluid_model_part
+        print("just before extrapolation:")
+        print(self.fluid_model_part)
         # extrapolate the velocity to the boundaries
         self.level_set_tools.ExtrapolateVelocities(
             self.base_model_part,
@@ -357,7 +358,7 @@ class LevelSetSolver:
         # convect distance function #################
         if(self.correct_levelset):
             self.Convect()
-            print "corrected level set function"
+            print("corrected level set function")
 
         # if required recalculate distance function -
         if(self.solve_step > self.dist_recalculation_step):

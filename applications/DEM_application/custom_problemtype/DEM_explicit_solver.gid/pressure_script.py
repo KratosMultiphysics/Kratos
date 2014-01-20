@@ -1,241 +1,235 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
-#from KratosMultiphysics.MetisApplication import *
-#from KratosMultiphysics.mpi import *
+# from KratosMultiphysics.MetisApplication import *
+# from KratosMultiphysics.mpi import *
 
 from numpy import *
 
-#PRESSURE CALCULATION
+# PRESSURE CALCULATION
 
-def ApplyPressure(Pressure,XLAT,XBOT,XTOP,XBOTCORNER,XTOPCORNER,alpha_top,alpha_bot,alpha_lat):
 
-  for node in XLAT:
+def ApplyPressure(Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat):
 
-    r = node.GetSolutionStepValue(RADIUS)
-    x = node.X
-    y = node.Y
-    z = node.Z
+    for node in XLAT:
 
-    values = Array3()
-    values[0] = 0.0
-    values[1] = 0.0
-    values[2] = 0.0
+        r = node.GetSolutionStepValue(RADIUS)
+        x = node.X
+        y = node.Y
+        z = node.Z
 
-    cross_section = 3.141592*r*r
+        values = Array3()
+        values[0] = 0.0
+        values[1] = 0.0
+        values[2] = 0.0
 
-    vect = zeros(3, double) 
+        cross_section = 3.141592 * r * r
 
-    #vector normal al centre:
-    vect_moduli = sqrt(x*x+z*z)
+        vect = zeros(3, double)
 
-    if(vect_moduli>0.0):
-      vect[0]=-x/vect_moduli
-      vect[1]=0
-      vect[2]=-z/vect_moduli
-      
-    values[0]=cross_section*alpha_lat*Pressure*vect[0]
-    values[1]= 0.0
-    values[2]=cross_section*alpha_lat*Pressure*vect[2]
+        # vector normal al centre:
+        vect_moduli = sqrt(x * x + z * z)
 
-    node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE,values)
+        if(vect_moduli > 0.0):
+            vect[0] = -x / vect_moduli
+            vect[1] = 0
+            vect[2] = -z / vect_moduli
 
+        values[0] = cross_section * alpha_lat * Pressure * vect[0]
+        values[1] = 0.0
+        values[2] = cross_section * alpha_lat * Pressure * vect[2]
 
-  for node in XTOP:
+        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
-    r = node.GetSolutionStepValue(RADIUS)
-    x = node.X
-    y = node.Y
-    z = node.Z
+    for node in XTOP:
 
-    values = Array3()
-    values[0] = 0.0
-    values[1] = 0.0
-    values[2] = 0.0
+        r = node.GetSolutionStepValue(RADIUS)
+        x = node.X
+        y = node.Y
+        z = node.Z
 
-    cross_section = 3.141592*r*r
-      
-    values[0]=0.0
-    values[1]=-cross_section*alpha_top*Pressure
-    values[2]=0.0
-    
-  
-    node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE,values)
+        values = Array3()
+        values[0] = 0.0
+        values[1] = 0.0
+        values[2] = 0.0
 
+        cross_section = 3.141592 * r * r
 
-  for node in XBOT:
+        values[0] = 0.0
+        values[1] = -cross_section * alpha_top * Pressure
+        values[2] = 0.0
 
-    r = node.GetSolutionStepValue(RADIUS)
-    x = node.X
-    y = node.Y
-    z = node.Z
+        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
-    values = Array3()
-    values[0] = 0.0
-    values[1] = 0.0
-    values[2] = 0.0
+    for node in XBOT:
 
-    cross_section = 3.141592*r*r
-      
-    values[0]=0.0
-    values[1]=cross_section*alpha_bot*Pressure
-    values[2]=0.0
+        r = node.GetSolutionStepValue(RADIUS)
+        x = node.X
+        y = node.Y
+        z = node.Z
 
-    node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE,values)
+        values = Array3()
+        values[0] = 0.0
+        values[1] = 0.0
+        values[2] = 0.0
 
+        cross_section = 3.141592 * r * r
 
-  for node in XTOPCORNER:
+        values[0] = 0.0
+        values[1] = cross_section * alpha_bot * Pressure
+        values[2] = 0.0
 
-    r = node.GetSolutionStepValue(RADIUS)
-    x = node.X
-    y = node.Y
-    z = node.Z
+        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
-    values = Array3()
-    values[0] = 0.0
-    values[1] = 0.0
-    values[2] = 0.0
+    for node in XTOPCORNER:
 
-    cross_section = 3.141592*r*r
+        r = node.GetSolutionStepValue(RADIUS)
+        x = node.X
+        y = node.Y
+        z = node.Z
 
-    vect = zeros(3, double) 
+        values = Array3()
+        values[0] = 0.0
+        values[1] = 0.0
+        values[2] = 0.0
 
-    #vector normal al centre:
-    vect_moduli = sqrt(x*x+z*z)
+        cross_section = 3.141592 * r * r
 
-    if(vect_moduli>0.0):
-      vect[0]=-x/vect_moduli
-      vect[1]=0
-      vect[2]=-z/vect_moduli
-      
-    values[0]=cross_section*alpha_lat*Pressure*vect[0]*0.70710678
-    values[1]=-cross_section*alpha_top*Pressure*0.70710678
-    values[2]=cross_section*alpha_lat*Pressure*vect[2]*0.70710678
+        vect = zeros(3, double)
 
+        # vector normal al centre:
+        vect_moduli = sqrt(x * x + z * z)
 
-    node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE,values)
+        if(vect_moduli > 0.0):
+            vect[0] = -x / vect_moduli
+            vect[1] = 0
+            vect[2] = -z / vect_moduli
 
+        values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
+        values[1] = -cross_section * alpha_top * Pressure * 0.70710678
+        values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
 
-  for node in XBOTCORNER:
+        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
-    r = node.GetSolutionStepValue(RADIUS)
-    x = node.X
-    y = node.Y
-    z = node.Z
+    for node in XBOTCORNER:
 
-    values = Array3()
-    values[0] = 0.0
-    values[1] = 0.0
-    values[2] = 0.0
+        r = node.GetSolutionStepValue(RADIUS)
+        x = node.X
+        y = node.Y
+        z = node.Z
 
-    cross_section = 3.141592*r*r
+        values = Array3()
+        values[0] = 0.0
+        values[1] = 0.0
+        values[2] = 0.0
 
-    vect = zeros(3, double) 
+        cross_section = 3.141592 * r * r
 
-    #vector normal al centre:
-    vect_moduli = sqrt(x*x+z*z)
+        vect = zeros(3, double)
 
-    if(vect_moduli>0.0):
-      vect[0]=-x/vect_moduli
-      vect[1]=0
-      vect[2]=-z/vect_moduli
-      
-    values[0]=cross_section*alpha_lat*Pressure*vect[0]*0.70710678
-    values[1]=cross_section*alpha_bot*Pressure*0.70710678
-    values[2]=cross_section*alpha_lat*Pressure*vect[2]*0.70710678
+        # vector normal al centre:
+        vect_moduli = sqrt(x * x + z * z)
 
-    node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE,values)
+        if(vect_moduli > 0.0):
+            vect[0] = -x / vect_moduli
+            vect[1] = 0
+            vect[2] = -z / vect_moduli
 
-def ApplyLateralPressure(Pressure,XLAT,XBOT,XTOP,XBOTCORNER,XTOPCORNER,alpha_top,alpha_bot,alpha_lat):
+        values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
+        values[1] = cross_section * alpha_bot * Pressure * 0.70710678
+        values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
 
-  for node in XLAT:
+        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
-    r = node.GetSolutionStepValue(RADIUS)
-    x = node.X
-    y = node.Y
-    z = node.Z
 
-    values = Array3()
-    values[0] = 0.0
-    values[1] = 0.0
-    values[2] = 0.0
+def ApplyLateralPressure(Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat):
 
-    cross_section = 3.141592*r*r
+    for node in XLAT:
 
-    vect = zeros(3, double) 
+        r = node.GetSolutionStepValue(RADIUS)
+        x = node.X
+        y = node.Y
+        z = node.Z
 
-    #vector normal al centre:
-    vect_moduli = sqrt(x*x+z*z)
+        values = Array3()
+        values[0] = 0.0
+        values[1] = 0.0
+        values[2] = 0.0
 
-    if(vect_moduli>0.0):
-      vect[0]=-x/vect_moduli
-      vect[1]=0
-      vect[2]=-z/vect_moduli
-      
-    values[0]=cross_section*alpha_lat*Pressure*vect[0]
-    values[1]= 0.0
-    values[2]=cross_section*alpha_lat*Pressure*vect[2]
+        cross_section = 3.141592 * r * r
 
-    node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE,values)
+        vect = zeros(3, double)
 
+        # vector normal al centre:
+        vect_moduli = sqrt(x * x + z * z)
 
-  for node in XTOPCORNER:
+        if(vect_moduli > 0.0):
+            vect[0] = -x / vect_moduli
+            vect[1] = 0
+            vect[2] = -z / vect_moduli
 
-    r = node.GetSolutionStepValue(RADIUS)
-    x = node.X
-    y = node.Y
-    z = node.Z
+        values[0] = cross_section * alpha_lat * Pressure * vect[0]
+        values[1] = 0.0
+        values[2] = cross_section * alpha_lat * Pressure * vect[2]
 
-    values = Array3()
-    values[0] = 0.0
-    values[1] = 0.0
-    values[2] = 0.0
+        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
-    cross_section = 3.141592*r*r
+    for node in XTOPCORNER:
 
-    vect = zeros(3, double) 
+        r = node.GetSolutionStepValue(RADIUS)
+        x = node.X
+        y = node.Y
+        z = node.Z
 
-    #vector normal al centre:
-    vect_moduli = sqrt(x*x+z*z)
+        values = Array3()
+        values[0] = 0.0
+        values[1] = 0.0
+        values[2] = 0.0
 
-    if(vect_moduli>0.0):
-      vect[0]=-x/vect_moduli
-      vect[1]=0
-      vect[2]=-z/vect_moduli
-      
-    values[0]=cross_section*alpha_lat*Pressure*vect[0]*0.70710678
-    values[1]= 0.0
-    values[2]=cross_section*alpha_lat*Pressure*vect[2]*0.70710678
+        cross_section = 3.141592 * r * r
 
+        vect = zeros(3, double)
 
-    node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE,values)
+        # vector normal al centre:
+        vect_moduli = sqrt(x * x + z * z)
 
+        if(vect_moduli > 0.0):
+            vect[0] = -x / vect_moduli
+            vect[1] = 0
+            vect[2] = -z / vect_moduli
 
-  for node in XBOTCORNER:
+        values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
+        values[1] = 0.0
+        values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
 
-    r = node.GetSolutionStepValue(RADIUS)
-    x = node.X
-    y = node.Y
-    z = node.Z
+        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
 
-    values = Array3()
-    values[0] = 0.0
-    values[1] = 0.0
-    values[2] = 0.0
+    for node in XBOTCORNER:
 
-    cross_section = 3.141592*r*r
+        r = node.GetSolutionStepValue(RADIUS)
+        x = node.X
+        y = node.Y
+        z = node.Z
 
-    vect = zeros(3, double) 
+        values = Array3()
+        values[0] = 0.0
+        values[1] = 0.0
+        values[2] = 0.0
 
-    #vector normal al centre:
-    vect_moduli = sqrt(x*x+z*z)
+        cross_section = 3.141592 * r * r
 
-    if(vect_moduli>0.0):
-      vect[0]=-x/vect_moduli
-      vect[1]=0
-      vect[2]=-z/vect_moduli
-      
-    values[0]=cross_section*alpha_lat*Pressure*vect[0]*0.70710678
-    values[1]= 0.0
-    values[2]=cross_section*alpha_lat*Pressure*vect[2]*0.70710678
+        vect = zeros(3, double)
 
-    node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE,values)
+        # vector normal al centre:
+        vect_moduli = sqrt(x * x + z * z)
+
+        if(vect_moduli > 0.0):
+            vect[0] = -x / vect_moduli
+            vect[1] = 0
+            vect[2] = -z / vect_moduli
+
+        values[0] = cross_section * alpha_lat * Pressure * vect[0] * 0.70710678
+        values[1] = 0.0
+        values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
+
+        node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)

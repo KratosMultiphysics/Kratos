@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -56,7 +57,7 @@ def AddVariables(model_part):
     # variables needed for the distance solver
     levelset_solver.AddVariables(model_part, distance_settings)
 
-    print "variables for the MONOLITHIC_SOLVER_EULERIAN added correctly"
+    print("variables for the MONOLITHIC_SOLVER_EULERIAN added correctly")
 
 
 def AddDofs(model_part):
@@ -68,7 +69,7 @@ def AddDofs(model_part):
         node.AddDof(PRESSURE)
 
     levelset_solver.AddDofs(model_part, distance_settings)
-    print "dofs for the monolithic solver added correctly"
+    print("dofs for the monolithic solver added correctly")
 
 
 class MonolithicSolver:
@@ -81,31 +82,25 @@ class MonolithicSolver:
 
         self.alpha = -0.0
         self.move_mesh_strategy = 0
-        #self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched(
-            #self.alpha, self.move_mesh_strategy, self.domain_size)
+        # self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched(
+            # self.alpha, self.move_mesh_strategy, self.domain_size)
 
         self.time_scheme = ResidualBasedPredictorCorrectorBDFSchemeTurbulent(self.domain_size)
 
-
-
-        #self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
-
+        # self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme( self.alpha,self.move_mesh_strategy )
         # definition of the solvers
-        #self.linear_solver =  SkylineLUFactorizationSolver()
-##        self.linear_solver =SuperLUSolver()
-##        self.linear_solver = MKLPardisoSolver()
-
-        #pPrecond = DiagonalPreconditioner()
-##        pPrecond = ILU0Preconditioner()
-         #self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
-
-        #gmres_size = 30
-        #ilu_level_of_fill = 2
-        #tol = 1e-5
-        #verbosity = 0
-        #self.linear_solver = PastixSolver(tol,gmres_size,ilu_level_of_fill,verbosity,False)
-        #self.linear_solver = PastixSolver(verbosity,False)
-
+        # self.linear_solver =  SkylineLUFactorizationSolver()
+# self.linear_solver =SuperLUSolver()
+# self.linear_solver = MKLPardisoSolver()
+        # pPrecond = DiagonalPreconditioner()
+# pPrecond = ILU0Preconditioner()
+         # self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+        # gmres_size = 30
+        # ilu_level_of_fill = 2
+        # tol = 1e-5
+        # verbosity = 0
+        # self.linear_solver = PastixSolver(tol,gmres_size,ilu_level_of_fill,verbosity,False)
+        # self.linear_solver = PastixSolver(verbosity,False)
         # new solvers
         self.gmres_size = 200
         self.iterations = 200
@@ -206,20 +201,20 @@ class MonolithicSolver:
         self.maxmin = []
         ParticleLevelSetUtils3D().FindMaxMinEdgeSize(
             self.level_set_model_part, self.maxmin)
-        print self.maxmin
+        print(self.maxmin)
     #
 
     def ApplyFluidProperties(self):
         # apply density
         mu1 = 1.0 * self.mu / self.rho1
-        #mu1 = self.mu
-        #mu2 = 0.01*self.mu/self.rho2
+        # mu1 = self.mu
+        # mu2 = 0.01*self.mu/self.rho2
         mu2 = mu1
-        print "sssssssss ", mu1
+        print("sssssssss ", mu1)
         BiphasicFillingUtilities().ApplyFluidProperties(
             self.model_part, mu1, self.rho1, mu2, self.rho2)
 # for node in self.model_part.Nodes:
-##            dist = node.GetSolutionStepValue(DISTANCE)
+# dist = node.GetSolutionStepValue(DISTANCE)
 # if(dist < 0):
 # node.SetSolutionStepValue(DENSITY,0,self.rho1)
 # node.SetSolutionStepValue(VISCOSITY,0,mu1)
@@ -234,7 +229,7 @@ class MonolithicSolver:
                                            self.rel_pres_tol, self.abs_pres_tol)
         builder_and_solver = ResidualBasedBlockBuilderAndSolver(
             self.linear_solver)
-        #self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,builder_and_solver,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)
+        # self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,builder_and_solver,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)
 
         self.solver = ResidualBasedNewtonRaphsonStrategy(
             self.model_part,
@@ -247,7 +242,7 @@ class MonolithicSolver:
             self.ReformDofSetAtEachStep,
             self.MoveMeshFlag)
         (self.solver).SetEchoLevel(self.echo_level)
-        print ">>>>>>>>>>>>>>>", self.oss_switch
+        print(">>>>>>>>>>>>>>>", self.oss_switch)
         self.model_part.ProcessInfo.SetValue(
             DYNAMIC_TAU, self.dynamic_tau_fluid)
         self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch)
@@ -288,7 +283,7 @@ class MonolithicSolver:
             self.normal_util.CalculateOnSimplex(
                 self.model_part,
                 self.domain_size,
-                IS_STRUCTURE,0,35.0)#,0.0),180) #35.0)  # ,0.0,35.0
+                IS_STRUCTURE, 0, 35.0)  # ,0.0),180) #35.0)  # ,0.0,35.0
 
         # saving inlet nodes
         self.inlet_nodes = []
@@ -335,7 +330,7 @@ class MonolithicSolver:
 
         if(step > 3):
             (self.solver).Predict()
-        
+
         Timer.Start("ConvectDistance")
         # convect distance function
         self.ConvectDistance()
@@ -350,7 +345,7 @@ class MonolithicSolver:
         if(self.volume_correction_switch and step > self.vol_cr_step):
             net_volume = self.model_part.ProcessInfo[NET_INPUT_MATERIAL]
             BiphasicFillingUtilities().VolumeCorrection(
-                self.model_part, net_volume,self.max_edge_size)
+                self.model_part, net_volume, self.max_edge_size)
         Timer.Start("ApplyFluidProperties")
         self.ApplyFluidProperties()
         Timer.Stop("ApplyFluidProperties")

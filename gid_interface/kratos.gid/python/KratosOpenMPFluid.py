@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #
 #
 # import the configuration data as read from the GiD
@@ -61,7 +62,7 @@ fluid_model_part.SetBufferSize(3)
 solver_module.AddDofs(fluid_model_part, SolverSettings)
 
 # If Lalplacian form = 2, free all pressure Dofs
-#laplacian_form = ProjectParameters.laplacian_form
+# laplacian_form = ProjectParameters.laplacian_form
 # if(laplacian_form >= 2):
     # for node in fluid_model_part.Nodes:
         # node.Free(PRESSURE)
@@ -93,7 +94,7 @@ if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmar
     # select nodes on the wall
     fluid_solver.wall_nodes = []
     for i in SolverSettings.SA_wall_group_ids:
-        ##get the nodes of the wall for SA.
+        # get the nodes of the wall for SA.
         nodes = fluid_model_part.GetNodes(i)
         for node in nodes:
             fluid_solver.wall_nodes.append(node)
@@ -102,7 +103,7 @@ if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmar
 
 
 fluid_solver.Initialize()
-print "fluid solver created"
+print("fluid solver created")
 #
 #
 
@@ -135,13 +136,13 @@ for it in drag_list:
     f.write(tmp)
     f.flush()
 
-print drag_file_output_list
+print(drag_file_output_list)
 
 
 def PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time):
     i = 0
     for it in drag_list:
-        print it[0]
+        print(it[0])
         nodes = fluid_model_part.GetNodes(it[0])
         drag = Vector(3)
         drag[0] = 0.0
@@ -190,8 +191,8 @@ while(time <= final_time):
     step = step + 1
     fluid_model_part.CloneTimeStep(time)
 
-    print "STEP = ", step
-    print "TIME = ", time
+    print("STEP = ", step)
+    print("TIME = ", time)
 
     if(step >= 3):
         fluid_solver.Solve()

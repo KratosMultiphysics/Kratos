@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #
 #
 # import the configuration data as read from the GiD
@@ -109,7 +110,7 @@ if(SolverSettings.TurbulenceModel == "Spalart-Allmaras"):
     # select nodes on the wall
     fluid_solver.wall_nodes = []
     for i in SolverSettings.SA_wall_group_ids:
-        ##get the nodes of the wall for SA.
+        # get the nodes of the wall for SA.
         nodes = fluid_model_part.GetNodes(i)
         for node in nodes:
             fluid_solver.wall_nodes.append(node)
@@ -117,7 +118,7 @@ if(SolverSettings.TurbulenceModel == "Spalart-Allmaras"):
             node.Fix(TURBULENT_VISCOSITY)
 
 fluid_solver.Initialize()
-print "fluid solver created"
+print("fluid solver created")
 
 #
 #
@@ -153,13 +154,13 @@ if(mpi.rank == 0):
         f.write(tmp)
         f.flush()
 
-print drag_file_output_list
+print(drag_file_output_list)
 
 
 def PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time):
     i = 0
     for it in drag_list:
-        print it[0]
+        print(it[0])
         nodes = fluid_model_part.GetNodes(it[0])
         dx = 0.0
         dy = 0.0
@@ -175,7 +176,7 @@ def PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time):
         auxx = mpi.gather(mpi.world, dx, 0)
         auxy = mpi.gather(mpi.world, dy, 0)
         auxz = mpi.gather(mpi.world, dz, 0)
-        print auxx
+        print(auxx)
 
         rx = 0.0
         ry = 0.0
@@ -190,9 +191,9 @@ def PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time):
         if(mpi.rank == 0):
             output = str(
                 time) + " " + str(
-                rx) + " " + str(
-                ry) + " " + str(
-                rz) + "\n"
+                    rx) + " " + str(
+                        ry) + " " + str(
+                            rz) + "\n"
             # print drag_file_output_list[i]
             # print output
             drag_file_output_list[i].write(output)
@@ -233,8 +234,8 @@ while(time <= final_time):
     fluid_model_part.CloneTimeStep(time)
 
     if mpi.rank == 0:
-        print "STEP = ", step
-        print "TIME = ", time
+        print("STEP = ", step)
+        print("TIME = ", time)
 
     if(step >= 3):
         fluid_solver.Solve()

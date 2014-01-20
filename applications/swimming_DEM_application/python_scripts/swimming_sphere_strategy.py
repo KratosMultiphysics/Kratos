@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import sys
 sys.path.insert(0, '../../DEM_application/python_scripts')
 sys.path.insert(0, '../../ULFapplication/python_scripts')
@@ -10,13 +11,14 @@ from KratosMultiphysics.StructuralApplication import *
 
 # Importing DEM solver strategy
 
+
 class ULFDEMStrategy:
 
-    def __init__ (self, creator_destructor, problem_parameters):
+    def __init__(self, creator_destructor, problem_parameters):
 
-        self.param               = problem_parameters
-        self.creator_destructor  = creator_destructor
-        self.ImportStrategies()             
+        self.param = problem_parameters
+        self.creator_destructor = creator_destructor
+        self.ImportStrategies()
 
     def ImportStrategies(self):
 
@@ -90,7 +92,6 @@ class ULFDEMStrategy:
         elif (self.param.SolverType == "Quasi_Inc_Constant_Pressure"):
             fluid_solver = self.fluid.ULF_FSISolver(FluidModelPart, StructureModelPart, CombinedModelPart, self.param.compute_reactions, BoxCorner1, BoxCorner2, self.param.domain_size, self.param.adaptive_refinement)
 
-
             for node in FluidModelPart.Nodes:
                 node.SetSolutionStepValue(BULK_MODULUS, 0, self.param.bulk_modulus)
                 node.SetSolutionStepValue(DENSITY, 0, self.param.density)
@@ -104,6 +105,6 @@ class ULFDEMStrategy:
                 node.SetSolutionStepValue(DENSITY, 0, self.param.density)
 
         fluid_solver.alpha_shape = self.param.alpha_shape
-        fluid_solver.echo_level  = 2
+        fluid_solver.echo_level = 2
 
         return fluid_solver

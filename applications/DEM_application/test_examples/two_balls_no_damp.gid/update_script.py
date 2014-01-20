@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 kratos_path = '../../../..'
 import sys
 sys.path.append(kratos_path)
@@ -11,9 +12,9 @@ f2.close()
 outFile = open("two_balls_no_damp.py", 'w')
 x = 0
 for line in fileOne:
-  if line.find("BENCHMARK") == -1:
-    outFile.write(line)
-  else:
-    outFile.write(fileTwo[x])
-    x += 1
+    if line.find("BENCHMARK") == -1:
+        outFile.write(line)
+    else:
+        outFile.write(fileTwo[x])
+        x += 1
 outFile.close()

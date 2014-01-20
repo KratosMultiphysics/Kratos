@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.MeshingApplication import *
@@ -29,7 +30,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(REACTION)
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE)
     model_part.AddNodalSolutionStepVariable(ARRHENIUS)
-    print "variables for the dynamic structural solution added correctly"
+    print("variables for the dynamic structural solution added correctly")
 
 
 def AddDofs(model_part):
@@ -41,7 +42,7 @@ def AddDofs(model_part):
         node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)
         node.AddDof(AIR_PRESSURE, REACTION_WATER_PRESSURE)
 
-    print "dofs for the monolithic solver added correctly"
+    print("dofs for the monolithic solver added correctly")
 
 
 class MonolithicSolver:
@@ -78,7 +79,7 @@ class MonolithicSolver:
         self.node_erase_process = NodeEraseProcess(model_part)
         self.h_multiplier = 0.4
 
-##        self.Mesher = MSuitePFEMModeler()
+# self.Mesher = MSuitePFEMModeler()
         self.Mesher = TriGenPFEMModeler()
 #	self.ChooseElement = ChooseElementProcess(model_part, 2)
 
@@ -88,7 +89,7 @@ class MonolithicSolver:
         # all the elements of both structure and fluid ... this is only true
         # after reading the input
         (self.neigh_finder).Execute()
-        print "nana"
+        print("nana")
         self.remeshing_flag = True
 
         self.alpha_shape = 1.2
@@ -130,7 +131,7 @@ class MonolithicSolver:
         (self.solver).Clear()
 
     def EstimateDeltaTime(self, min_dt, max_dt):
-        print "Estimating delta time"
+        print("Estimating delta time")
         return (
             (self.PfemUtils).EstimateDeltaTime(min_dt, max_dt, self.model_part)
         )
@@ -143,9 +144,9 @@ class MonolithicSolver:
     def Remesh(self):
 
         # and erase bad nodes
-        print "BEFOR TOUCHING"
+        print("BEFOR TOUCHING")
         if (self.remeshing_flag):
-            print "DI"
+            print("DI")
             (self.neigh_finder).ClearNeighbours()
 
             ((self.model_part).Elements).clear()
@@ -157,7 +158,7 @@ class MonolithicSolver:
                 self.box_corner1, self.box_corner2, (self.model_part).Nodes)
 
             (self.node_erase_process).Execute()
-            print "AFTER MkkkRK"
+            print("AFTER MkkkRK")
 
         if (self.remeshing_flag):
             (self.Mesher).ReGenerateMesh("Fluid2DASGS", "Condition2D", self.model_part,

@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -57,7 +58,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_PAUX)
     model_part.AddNodalSolutionStepVariable(NODAL_MAUX)
 
-    print "variables for monolithic solver lagrangian compressible 3D solution added correctly"
+    print("variables for monolithic solver lagrangian compressible 3D solution added correctly")
 
 
 def AddDofs(model_part):
@@ -69,7 +70,7 @@ def AddDofs(model_part):
         node.AddDof(WATER_PRESSURE, REACTION_WATER_PRESSURE)
         node.AddDof(AIR_PRESSURE, REACTION_AIR_PRESSURE)
 
-    print "variables for monolithic solver lagrangian compressible 3D solution added correctly"
+    print("variables for monolithic solver lagrangian compressible 3D solution added correctly")
 
 
 class MonolithicSolver:
@@ -84,13 +85,13 @@ class MonolithicSolver:
         self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeCompressible(
             self.alpha, self.move_mesh_strategy)
         # definition of the solvers
-##        self.linear_solver =  SkylineLUFactorizationSolver()
-##        self.linear_solver =SuperLUSolver()
+# self.linear_solver =  SkylineLUFactorizationSolver()
+# self.linear_solver =SuperLUSolver()
 
         pPrecond = DiagonalPreconditioner()
-##        pPrecond = ILU0Preconditioner()
+# pPrecond = ILU0Preconditioner()
         self.linear_solver = BICGSTABSolver(1e-6, 5000, pPrecond)
-##        self.linear_solver = CGSolver(1e-6, 5000,pPrecond)
+# self.linear_solver = CGSolver(1e-6, 5000,pPrecond)
 
         # definition of the convergence criteria
         self.conv_criteria = UPCriteria(1e-7, 1e-9, 1e-7, 1e-9)
@@ -176,32 +177,32 @@ class MonolithicSolver:
         (self.neigh_finder).Execute()
 # (self.solver).Solve()
 # (self.solver).Clear()
-##        (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
+# (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
 # (self.PfemUtils).MarkExcessivelyCloseNodes((self.model_part).Nodes, .05)
 # (self.node_erase_process).Execute();
 # self.Remesh()
 # self.OutputStep(time,gid_io)
        # self.CalculateDistanceAndDiviedSet(3);
-        print "143"
+        print("143")
        # self.DistToH()
        # self.Remesh()
-        print "145"
+        print("145")
         (self.solver).Solve()
-        print "a47"
+        print("a47")
         (self.solver).Clear()
-        print "149"
+        print("149")
         self.OutputStep(time, gid_io)
 
     #
     def EstimateDeltaTime(self, min_dt, max_dt):
-        print "Estimating delta time"
+        print("Estimating delta time")
         calc_dt = (
             self.PfemUtils).EstimateDeltaTime(
-            min_dt,
-            max_dt,
-            self.model_part)
+                min_dt,
+                max_dt,
+                self.model_part)
         # cfl_dt=(self.PfemUtils).CFLdeltaT(1.0,max_dt,self.model_part)
-        #max_dt = cfl_dt
+        # max_dt = cfl_dt
         # print"CFL_CHOICE",cfl_dt
         # calc_dt=(self.PfemUtils).ExactDtEstimate(max_dt,self.model_part)
 
@@ -220,8 +221,8 @@ class MonolithicSolver:
 # def Remesh(self):
 #
 # if (self.remeshing_flag==True):
-##	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
-####	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, False, self.alpha_shape, self.h_factor)
+# (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+# (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, False, self.alpha_shape, self.h_factor)
 #
 # calculating fluid neighbours before applying boundary conditions
 # (self.neigh_finder).Execute();
@@ -233,23 +234,23 @@ class MonolithicSolver:
         #    self.CalculateDistanceAndDiviedSet(3);
             (self.PfemUtils).MoveLonelyNodes(self.model_part)
             #(self.MeshMover).Execute();
-            print self.box_corner1
+            print(self.box_corner1)
             (self.PfemUtils).MarkOuterNodes(
                 self.box_corner1, self.box_corner2, (self.model_part).Nodes)
             (self.PfemUtils).MarkNodesTouchingWall(self.model_part, 3, .05)
-            print "after nodes touching wall"
+            print("after nodes touching wall")
             (self.PfemUtils).MarkExcessivelyCloseNodes(
                 (self.model_part).Nodes, 0.5)
-            print "after excessively close nodes"
+            print("after excessively close nodes")
             (self.PfemUtils).MarkNodesTouchingInterface(self.model_part, 3, .1)
-            print "after MarkNodesTouchingInterface"
+            print("after MarkNodesTouchingInterface")
 # FIND NEIGHBOUR ELEMENTS AND COLORing
             (self.elem_neighbor_finder).ClearNeighbours()
             (self.elem_neighbor_finder).Execute()
             (self.PfemUtils).ColourAirWaterElement(self.model_part, 3)
 
 #
-##            (self.PfemUtils).InterfaceDetecting(self.model_part,2, .9)
+# (self.PfemUtils).InterfaceDetecting(self.model_part,2, .9)
 # (self.PfemUtils).ChangeWallWaterFlag(self.model_part,2)
 # (self.PfemUtils).ChangeInterfaceWaterFlag(self.model_part,2)
 
@@ -266,15 +267,15 @@ class MonolithicSolver:
                                          self.node_erase_process, True, True, self.alpha_shape, self.h_factor)
             #(self.Mesher).ReGenerateMesh("ASGSCompressible3D", "Condition3D",self.model_part,(self.structure_model_part).Elements,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
 
-##	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, False, self.alpha_shape, self.h_factor)
-            print"after remesh"
+# (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, False, self.alpha_shape, self.h_factor)
+            print("after remesh")
              # calculating fluid neighbours before applying boundary
              # conditionsTrue
             (self.elem_neighbor_finder).ClearNeighbours()
             (self.elem_neighbor_finder).Execute()
             (self.neigh_finder).ClearNeighbours()
             (self.neigh_finder).Execute()
-            print "neighbors are calculated"
+            print("neighbors are calculated")
 
             (self.PfemUtils).ColourAirWaterElement(self.model_part, 3)
             (self.PfemUtils).InterfaceDetecting(self.model_part, 3, .9)
@@ -461,7 +462,7 @@ class MonolithicSolver:
 
         # mark as visited all of the nodes inside the fluid domain
         distance_tools.MarkInternalAndMixedNodes()
-        print ((self.model_part).Elements).Size()
+        print(((self.model_part).Elements).Size())
         # calculate distances towards the outside
         if(domain_size == 2):
             distance_calculator.CalculateDistances2D(
@@ -486,16 +487,16 @@ class MonolithicSolver:
 # node.SetSolutionStepValue(IS_VISITED,0,1.0)
         # save as distance of the old time step
         distance_tools.SaveScalarVariableToOldStep(DISTANCE)
-        print "finished RecalculateDistanceFunction"
+        print("finished RecalculateDistanceFunction")
      #   (self.SetDivided).SetDividedElem_2D()
 
-        print ">>>>>ELEMENTS ARE DIVIDED<<<<<<<<<<<<"
+        print(">>>>>ELEMENTS ARE DIVIDED<<<<<<<<<<<<")
      #
      #
 
     def DistToH(self):
         possible_h = self.CalculateRadius()
-        print possible_h
+        print(possible_h)
 
         min_H = possible_h * 3.14 / 60
         # min_H = .0007#0.001
@@ -511,12 +512,12 @@ class MonolithicSolver:
 
         # search for min an max of H
 # for node in (self.model_part).Nodes:
-##             node_H = node.GetSolutionStepValue(NODAL_H,0)
+# node_H = node.GetSolutionStepValue(NODAL_H,0)
 # if(node_H<self.min_H):
-##                 self.min_H = node_H
+# self.min_H = node_H
 # else:
 # if(node_H > self.max_H):
-##                     self.max_H = node_H
+# self.max_H = node_H
 
         # H = H + dist * dist
         # print ">>>>>DISt TO H ASSIGNMENT<<<<<<<<<<<<"
@@ -552,10 +553,10 @@ class MonolithicSolver:
                 radi = pow(
                     node.X - X_ref,
                     2) + pow(
-                    node.Y - Y_ref,
-                    2) + pow(
-                    node.Z - Z_ref,
-                    2)
+                        node.Y - Y_ref,
+                        2) + pow(
+                            node.Z - Z_ref,
+                            2)
                 if(radi > max_radi):
                     max_radi = radi
 

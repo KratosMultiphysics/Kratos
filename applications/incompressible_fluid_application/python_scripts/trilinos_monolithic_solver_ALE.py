@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.TrilinosApplication import *
@@ -24,7 +25,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(REACTION)
     model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE)
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
-    print "variables for the dynamic structural solution added correctly"
+    print("variables for the dynamic structural solution added correctly")
 
 
 def AddDofs(model_part):
@@ -35,7 +36,7 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_Z, REACTION_Z)
         node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)
 
-    print "dofs for the monolithic solver added correctly"
+    print("dofs for the monolithic solver added correctly")
 
 
 class MonolithicSolver:
@@ -44,7 +45,7 @@ class MonolithicSolver:
     def __init__(self, model_part, domain_size):
 
         self.model_part = model_part
-##        self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
+# self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
 
         self.Comm = CreateCommunicator()
 
@@ -56,7 +57,7 @@ class MonolithicSolver:
         self.linear_solver = TrilinosLinearSolver()
 
         # definition of the convergence criteria
-##        self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
+# self.conv_criteria = UPCriteria(1e-7,1e-9,1e-7,1e-9)
         self.conv_criteria = TrilinosUPCriteria(
             1e-3, 1e-9, 1e-3, 1e-6, self.Comm)
 

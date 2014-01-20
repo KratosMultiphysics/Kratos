@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.BloodFlowApplication import *
 CheckForPreviousImport()
@@ -221,8 +222,8 @@ class TransferTools:
             press = initial_pressure + beta * \
                 (math.sqrt(A) - math.sqrt(A0)) / \
                 A0  # math.sqrt(A/A0)*beta - beta
-            print "in Transfer PRESSURE 1D_to_3D :::::>>>>", press
-            print "in Transfer Area 1D_to_3D :::::>>>>", A
+            print("in Transfer PRESSURE 1D_to_3D :::::>>>>", press)
+            print("in Transfer Area 1D_to_3D :::::>>>>", A)
             # Edu
             # press = beta/A0*(math.sqrt(A) - math.sqrt(A0))
             # print "in Transfer1D_to_3D(EDU)",press
@@ -244,7 +245,7 @@ class TransferTools:
                 counter += 1.0
 
             avg_press = press_3d / counter
-            print "Trasfer inlet average pressure outlet 3D to 1D :::::>>>>> ", avg_press
+            print("Trasfer inlet average pressure outlet 3D to 1D :::::>>>>> ", avg_press)
 
             # TODO: make it to read from the input
             # print "inlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS)",inlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS)
@@ -256,7 +257,7 @@ class TransferTools:
             # print "beta,", beta
             A = (avg_press * A0 / beta + math.sqrt(A0)
                  ) ** 2  # A0*(avg_press/beta + 1)**2
-            print "in Transfer Area 3D_to_1D", A
+            print("in Transfer Area 3D_to_1D", A)
             inlet_nodes_1d[0].SetSolutionStepValue(NODAL_AREA, 0, A)
             # print "inlet A (on node 23) ",A
             # print
@@ -273,7 +274,7 @@ class TransferTools:
 
             # self.flow_3d_in = str(flow)
 
-            print "TRASFER to 3D to 1D:::flow entering= ", flow
+            print("TRASFER to 3D to 1D:::flow entering= ", flow)
 
             # self.f1d.write("FLOW3D -->1D (inlet_1D)--->   ")
             # self.f1d.write(str(flow))
@@ -297,7 +298,7 @@ class TransferTools:
             self.flow_3d_out = str(flow)
             self.flow_1d_in2 = str(flow)
 
-            print "TRASFER to 3D to 1D:::flow exiting in 3D = ", flow
+            print("TRASFER to 3D to 1D:::flow exiting in 3D = ", flow)
 
             # self.f1d.write(self.flow_3d_in+ " "+ self.flow_3d_out + "\n")
 
@@ -324,8 +325,8 @@ class TransferTools:
 
     def Setting3d(self):
 
-        print self
-        print len(self.model_part_3d.Conditions)
+        print(self)
+        print(len(self.model_part_3d.Conditions))
 
         for node in self.model_part_3d.Nodes:
             node.Free(VELOCITY_X)
@@ -381,4 +382,4 @@ class TransferTools:
             if(node.IsFixed(PRESSURE)):
                 counter += 1.0
 
-        print "n pressure nodes ", counter
+        print("n pressure nodes ", counter)

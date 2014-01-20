@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #
 #
 # setting the domain size for the problem to be solved
@@ -58,7 +59,7 @@ mesh_name = 0.0
 gid_io.InitializeMesh(mesh_name)
 gid_io.WriteMesh((model_part).GetMesh())
 gid_io.FinalizeMesh()
-print model_part
+print(model_part)
 
 # the buffer size should be set up here after the mesh is read for the
 # first time
@@ -106,8 +107,8 @@ for node in model_part.Nodes:
 fluid_solver = runge_kutta_frac_step_comp_solver.RungeKuttaFracStepCompSolver(
     model_part, domain_size)
 
-##pILUPrecond = ILU0Preconditioner()
-##fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
+# pILUPrecond = ILU0Preconditioner()
+# fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
 
 fluid_solver.Initialize()
 
@@ -179,15 +180,15 @@ time = 0.0
 gid_io.InitializeResults(0.0, model_part.GetMesh())
 
 for step in range(0, nsteps):
-    print "line49"
+    print("line49")
     Dt = (CFL_time_estimate_process).EstimateTime(CFL, dt_max)
-    print "CFL gave this time step", Dt
+    print("CFL gave this time step", Dt)
     time = time + Dt
 
     model_part.CloneTimeStep(time)
     temperature_model_part.CloneTimeStep(time)
 
-    print time
+    print(time)
     # print model_part.ProcessInfo()[TIME]
 
     # solving the fluid problem
@@ -198,7 +199,7 @@ for step in range(0, nsteps):
             domain_size)
         temperature_solver.Solve()
 # for node in model_part.Nodes:
-##            grav=-10.0+10.0*(0.01*( node.GetSolutionStepValue(TEMPERATURE)-293.16))
+# grav=-10.0+10.0*(0.01*( node.GetSolutionStepValue(TEMPERATURE)-293.16))
 # node.SetSolutionStepValue(BODY_FORCE_Y,0,grav);
         fluid_solver.Solve()
         # temperature_solver.Solve()

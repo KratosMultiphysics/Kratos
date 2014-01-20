@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -43,7 +44,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
 # model_part.AddNodalSolutionStepVariable(NORMAL);
 
-    print "variables for the dynamic structural solution added correctly"
+    print("variables for the dynamic structural solution added correctly")
 
 
 def AddDofs(model_part):
@@ -55,7 +56,7 @@ def AddDofs(model_part):
         node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)
 # node.AddDof(AIR_PRESSURE,REACTION_AIR_PRESSURE);
 
-    print "dofs for the monolithic solver added correctly"
+    print("dofs for the monolithic solver added correctly")
 
 
 class DecoupledSolver:
@@ -69,20 +70,20 @@ class DecoupledSolver:
         self.move_mesh_strategy = 0
 
         # definition of the solvers
-##        self.linear_solver =  SkylineLUFactorizationSolver()
+# self.linear_solver =  SkylineLUFactorizationSolver()
 
         self.linear_tol = 1e-3
 
         vel_Precond = DiagonalPreconditioner()
-##        vel_Precond = ILU0Preconditioner()
+# vel_Precond = ILU0Preconditioner()
         self.velocity_linear_solver = BICGSTABSolver(self.linear_tol,
                                                      5000, vel_Precond)
 
         pr_Precond = DiagonalPreconditioner()
-##        pr_Precond = ILU0Preconditioner()
+# pr_Precond = ILU0Preconditioner()
         self.pressure_linear_solver = BICGSTABSolver(self.linear_tol,
                                                      5000, pr_Precond)
-##        self.pressure_linear_solver =SuperLUSolver()
+# self.pressure_linear_solver =SuperLUSolver()
 
         # definition of the convergence criteria
         self.rel_vel_tol = 1e-5
@@ -99,7 +100,7 @@ class DecoupledSolver:
         self.echo_level = 0
         self.CalculateReactionFlag = True
         self.ReformDofSetAtEachStep = False
-##        self.CalculateNormDxFlag = True
+# self.CalculateNormDxFlag = True
         self.MoveMeshFlag = False
 
         self.velocity_correction = 2
@@ -199,11 +200,11 @@ class DecoupledSolver:
         self.rebuild_level = level
         if (level != 0) and (self.ReformDofSetAtEachStep):
             self.ReformDofSetAtEachStep = False
-            print "WARNING: In DecoupledSolver.SetRebuildLevel():\n" +\
-                  "I am setting ReformDofSetAtEachStep = False to be able to" +\
-                  "reuse the system matrix structure. Use this option only if" +\
-                  "you don't intend to reform the Dof set (for example due to" +\
-                  "remeshing)"
+            print("WARNING: In DecoupledSolver.SetRebuildLevel():\n" +
+                  "I am setting ReformDofSetAtEachStep = False to be able to" +
+                  "reuse the system matrix structure. Use this option only if" +
+                  "you don't intend to reform the Dof set (for example due to" +
+                  "remeshing)")
 
     def UseVelocityCorrection(self, level=2):
         self.velocity_correction = level

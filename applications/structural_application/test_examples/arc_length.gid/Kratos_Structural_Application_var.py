@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 domain_size = 2
 
 Dt = 0.01
@@ -17,4 +18,4 @@ Absolute_Tolerance = 1E-9
 Max_Iter = 30
 # Declare Python Variables
 
-problem_name="arc_length"
+problem_name = "arc_length"

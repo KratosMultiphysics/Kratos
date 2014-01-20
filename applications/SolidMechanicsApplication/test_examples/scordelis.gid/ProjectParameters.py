@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 domain_size = 3
 
 Convergence_Tolerance = 1.0
@@ -16,12 +17,12 @@ FindNodalNeighbours = "False"
 FindElementalNeighbours = "False"
 Rotational_Dofs = "True"
 
-nodal_results=["DISPLACEMENT","REACTION"]
-gauss_points_results=["GREEN_LAGRANGE_STRAIN_TENSOR","ROTATION","PK2_STRESS_TENSOR","MOMENT","FORCE"]
+nodal_results = ["DISPLACEMENT", "REACTION"]
+gauss_points_results = ["GREEN_LAGRANGE_STRAIN_TENSOR", "ROTATION", "PK2_STRESS_TENSOR", "MOMENT", "FORCE"]
 GiDPostMode = "Binary"
 GiDWriteMeshFlag = True
 GiDWriteConditionsFlag = True
 GiDMultiFileFlag = "Single"
 
-problem_name="scordelisStructuralAnalysis"
-problem_path="/home/rrossi/esempi/scordelis.gid"
+problem_name = "scordelisStructuralAnalysis"
+problem_path = "/home/rrossi/esempi/scordelis.gid"

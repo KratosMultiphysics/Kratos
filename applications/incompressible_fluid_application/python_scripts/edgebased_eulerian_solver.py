@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -12,7 +13,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(AUX_INDEX)
     model_part.AddNodalSolutionStepVariable(PRESS_PROJ)
 
-    print "variables for the edgebased incompressible fluid solver added correctly"
+    print("variables for the edgebased incompressible fluid solver added correctly")
 
 
 def AddDofs(model_part):
@@ -28,7 +29,7 @@ class EdgeBasedLevelSetSolver:
     def __init__(self, model_part, domain_size,
                  body_force, viscosity, density):
 
-        print "entered in EdgeBasedEulerianSolver python constructor"
+        print("entered in EdgeBasedEulerianSolver python constructor")
         # data of the problem
         self.model_part = model_part
         self.domain_size = domain_size
@@ -57,11 +58,11 @@ class EdgeBasedLevelSetSolver:
         (self.neighbour_search).Execute()
 
 #        pDiagPrecond = DiagonalPreconditioner()
-        #BICGSTABSolver(1e-3, 5000,pDiagPrecond)
+        # BICGSTABSolver(1e-3, 5000,pDiagPrecond)
         self.pressure_linear_solver = 1
 
 #        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000)
-        #self.pressure_linear_solver =  CGSolver(1e-3, 5000)
+        # self.pressure_linear_solver =  CGSolver(1e-3, 5000)
 
         self.tot_solve_time = 0.0
         self.step1_time = 0.0
@@ -70,7 +71,7 @@ class EdgeBasedLevelSetSolver:
         self.total_solves = 0
 
     def Initialize(self):
-        print "entered in EdgeBasedEulerianSolver Initialize"
+        print("entered in EdgeBasedEulerianSolver Initialize")
         # build the edge data structure
         if(self.domain_size == 2):
             self.matrix_container = MatrixContainer2D()
@@ -87,7 +88,7 @@ class EdgeBasedLevelSetSolver:
             self.condition_neighbours_finder.Execute()
 
         # constructing the solver
-        print "ln82"
+        print("ln82")
         if(self.domain_size == 2):
             self.fluid_solver = FluidSolver2D(
                 self.matrix_container,
@@ -102,7 +103,7 @@ class EdgeBasedLevelSetSolver:
                 self.edge_detection_angle,
                 self.assume_constant_pressure)
         else:
-            print "ln83"
+            print("ln83")
             self.fluid_solver = FluidSolver3D(
                 self.matrix_container,
                 self.model_part,
@@ -115,13 +116,13 @@ class EdgeBasedLevelSetSolver:
                 self.stabdt_convection_factor,
                 self.edge_detection_angle,
                 self.assume_constant_pressure)
-            print "ln84"
+            print("ln84")
 
         self.fluid_solver.Initialize()
-        print "ln91"
+        print("ln91")
 
-        print "**********************************************"
-        print "finished EdgeBasedLevelSetSolver initialize"
+        print("**********************************************")
+        print("finished EdgeBasedLevelSetSolver initialize")
 
     #
     #
@@ -130,17 +131,17 @@ class EdgeBasedLevelSetSolver:
 # (self.fluid_solver).UpdateFixedVelocityValues()
         (self.fluid_solver).SolveStep1()
         t1 = timer.time()
-        print self.pressure_linear_solver
+        print(self.pressure_linear_solver)
         (self.fluid_solver).SolveStep2(self.pressure_linear_solver)
         t2 = timer.time()
         (self.fluid_solver).SolveStep3()
         t3 = timer.time()
 
         tot = t3 - t0
-        print "TOTAL STEP	  time --->", t3 - t0
-        print "Step1		  time --->", t1 - t0, "tot % -->", (t1 - t0) / tot
-        print "Step2		  time --->", t2 - t1, "tot % -->", (t2 - t1) / tot
-        print "Step3		  time --->", t3 - t2, "tot % -->", (t3 - t2) / tot
+        print("TOTAL STEP	  time --->", t3 - t0)
+        print("Step1		  time --->", t1 - t0, "tot % -->", (t1 - t0) / tot)
+        print("Step2		  time --->", t2 - t1, "tot % -->", (t2 - t1) / tot)
+        print("Step3		  time --->", t3 - t2, "tot % -->", (t3 - t2) / tot)
         self.tot_solve_time += tot
         self.step1_time += t1 - t0
         self.step2_time += t2 - t1
@@ -155,16 +156,16 @@ class EdgeBasedLevelSetSolver:
         if(dt > max_Dt):
             dt = max_Dt
 
-        print dt
+        print(dt)
 
         return dt
 
     #
     #
     def PrintTimings(self):
-        print "FINAL TIMINGS IN SOLVE (sum of all step timings)"
-        print "TOTAL STEP	  time --->", self.tot_solve_time
-        print "Step1		  time --->", self.step1_time, "tot % -->", self.step1_time / self.tot_solve_time
-        print "Step2		  time --->", self.step2_time, "tot % -->", self.step2_time / self.tot_solve_time
-        print "Step3		  time --->", self.step3_time, "tot % -->", self.step3_time / self.tot_solve_time
-        print "total solves performed --->", self.total_solves
+        print("FINAL TIMINGS IN SOLVE (sum of all step timings)")
+        print("TOTAL STEP	  time --->", self.tot_solve_time)
+        print("Step1		  time --->", self.step1_time, "tot % -->", self.step1_time / self.tot_solve_time)
+        print("Step2		  time --->", self.step2_time, "tot % -->", self.step2_time / self.tot_solve_time)
+        print("Step3		  time --->", self.step3_time, "tot % -->", self.step3_time / self.tot_solve_time)
+        print("total solves performed --->", self.total_solves)

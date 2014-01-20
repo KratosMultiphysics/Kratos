@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -21,7 +22,7 @@ def AddVariables(model_part):
 
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
 
-    print "variables for the edgebased incompressible fluid substep solver added correctly"
+    print("variables for the edgebased incompressible fluid substep solver added correctly")
 
 
 def AddDofs(model_part):
@@ -37,7 +38,7 @@ class EdgeBasedLevelSetSolver:
     def __init__(self, model_part, domain_size,
                  body_force, viscosity, density):
 
-        print "entered in EdgeBasedLevelSetSubstepSolver python constructor"
+        print("entered in EdgeBasedLevelSetSubstepSolver python constructor")
         # data of the problem
         self.model_part = model_part
         self.domain_size = domain_size
@@ -85,12 +86,12 @@ class EdgeBasedLevelSetSolver:
         for node in self.model_part.Nodes:
             eps = node.GetSolutionStepValue(POROSITY)
             node.SetSolutionStepValue(PRESS_PROJ, 0, press_proj_init * eps)
-        print "entered in EdgeBasedLevelSetSubstepSolver initialize"
+        print("entered in EdgeBasedLevelSetSubstepSolver initialize")
 
         self.keep_inlet_nodes = True
 
     def Initialize(self):
-        print "entered in EdgeBasedLevelSetSubstepSolver python constructor"
+        print("entered in EdgeBasedLevelSetSubstepSolver python constructor")
         # build the edge data structure
         if(self.domain_size == 2):
             self.matrix_container = MatrixContainerC2C2D()
@@ -144,7 +145,7 @@ class EdgeBasedLevelSetSolver:
         self.max_edge_size = self.distance_utils.FindMaximumEdgeSize(
             self.model_part)
         self.distance_size = self.max_edge_size * 3.0
-        print "###################### max distance = ", self.distance_size
+        print("###################### max distance = ", self.distance_size)
 
         self.fluid_solver.SetShockCapturingCoefficient(0.1)  # 0.7)
 
@@ -190,10 +191,10 @@ class EdgeBasedLevelSetSolver:
         self.tot_volume = self.fluid_solver.ComputeTotalVolume()
 
         self.vol_variation = 0.0
-        print "initial wet volume = ", self.expected_volume
+        print("initial wet volume = ", self.expected_volume)
 
 #        print "**********************************************"
-        print "finished EdgeBasedLevelSetSubstepSolver initialize"
+        print("finished EdgeBasedLevelSetSubstepSolver initialize")
 
     #
     #
@@ -227,10 +228,10 @@ class EdgeBasedLevelSetSolver:
     #
     def FluidOnlySolve(self):
         if (self.extrapolation_layers < 3):
-            print "insufficient number of extrapolation layers. Minimum is 3"
+            print("insufficient number of extrapolation layers. Minimum is 3")
             raise ValueError
 
-        print "entered in EdgeBasedLevelSetSolver fluid only solve"
+        print("entered in EdgeBasedLevelSetSolver fluid only solve")
         (self.fluid_solver).ExtrapolateValues(self.extrapolation_layers)
 
         (self.fluid_solver).SolveStep1()
@@ -238,7 +239,7 @@ class EdgeBasedLevelSetSolver:
         (self.fluid_solver).SolveStep3()
 
         (self.fluid_solver).ExtrapolateValues(self.extrapolation_layers)
-        print "finished EdgeBasedLevelSetSolver fluid only solve"
+        print("finished EdgeBasedLevelSetSolver fluid only solve")
 
     #
     #
@@ -247,7 +248,7 @@ class EdgeBasedLevelSetSolver:
 
     def AuxSolve(self, allow_redistancing):
         if (self.extrapolation_layers < 3):
-            print "insufficient number of extrapolation layers. Minimum is 3"
+            print("insufficient number of extrapolation layers. Minimum is 3")
             raise ValueError
 
         (self.fluid_solver).GatherValues()
@@ -294,7 +295,7 @@ class EdgeBasedLevelSetSolver:
             self.Redistance()
             self.timer.Stop("Redistance")
             self.step = 0
-            print "redistance was executed"
+            print("redistance was executed")
         self.step += 1
 
         # solve fluid
@@ -308,9 +309,9 @@ class EdgeBasedLevelSetSolver:
             self.timer.Start("Solve Step 3")
             (self.fluid_solver).SolveStep3()
             self.timer.Stop("Solve Step 3")
-        #something went wrong ... restart step and do redistance
+        # something went wrong ... restart step and do redistance
         elif(allow_redistancing):
-            print "*********************************** TIMESTEP REDUCTION EXECUTED ********************************"
+            print("*********************************** TIMESTEP REDUCTION EXECUTED ********************************")
             self.fluid_solver.ReduceTimeStep(
                 self.model_part,
                 self.model_part.ProcessInfo[TIME])
@@ -319,9 +320,9 @@ class EdgeBasedLevelSetSolver:
 
 # if(self.step == self.redistance_frequency):
 # self.Redistance()
-##            self.step = 0
+# self.step = 0
 # print "redistance was executed"
-##        self.step += 1
+# self.step += 1
     #
 #
 #    def Solve(self):

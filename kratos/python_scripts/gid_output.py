@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 from KratosMultiphysics import *
 from KratosMultiphysics.MeshingApplication import *
@@ -30,7 +31,7 @@ class GiDOutput(object):
         except KeyError:
             msg = """Trying to set GiD IO flag {0} to unkonwn value {1}\n
                      Acceptable values of {0} are:\n""".format(name, value)
-            for key in flag_dict.keys():
+            for key in list(flag_dict.keys()):
                 msg.append("  {0}\n".format(str(key)))
             raise KeyError(msg)
         self.__dict__[name] = flag

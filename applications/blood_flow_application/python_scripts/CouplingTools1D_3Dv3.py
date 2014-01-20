@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.BloodFlowApplication import *
 CheckForPreviousImport()
@@ -57,7 +58,7 @@ class TransferTools:
                     aux.append(node)
                     node.Fix(NODAL_AREA)
                     node.Fix(FLOW)
-                    print "1D_inlet has been assigned", node
+                    print("1D_inlet has been assigned", node)
                     # raw_input()
             if(len(aux) != 0):
                 self.inlets_1d.append(aux)
@@ -84,7 +85,7 @@ class TransferTools:
                     normN = math.sqrt(tmp[0] ** 2 + tmp[1] ** 2 + tmp[2] ** 2)
                     tmp /= normN
                     directions.append(tmp)
-                    print "3D_inlet has been assigned", node
+                    print("3D_inlet has been assigned", node)
             if(len(aux) != 0):
                 self.inlets_3d.append(aux)
                 self.inlet_velocity_directions.append(directions)
@@ -114,7 +115,7 @@ class TransferTools:
                     node.Fix(FLOW)
             if(len(aux) != 0):
                 self.outlets_1d.append(aux)
-                print "1D_outlet has been assigned(H)", node
+                print("1D_outlet has been assigned(H)", node)
                 # raw_input()
             else:
                 break
@@ -198,10 +199,10 @@ class TransferTools:
     def Initial_Contitions(self):
 
         initial_pressure = 0
-        print "Inicializo 3D"
+        print("Inicializo 3D")
         for i in range(0, len(self.inlets_1d)):
             inlet_nodes_1d = self.inlets_1d[i]
-            print "3D-1D: inlet_nodes_1d [0].Id::::::>>>> ", inlet_nodes_1d[0].Id
+            print("3D-1D: inlet_nodes_1d [0].Id::::::>>>> ", inlet_nodes_1d[0].Id)
             for i in range(0, len(self.outlets_1d)):
                 outlet_nodes_1d = self.outlets_1d[i]
                 pressinlet3D = outlet_nodes_1d[
@@ -227,7 +228,7 @@ class TransferTools:
                             VELOCITY, 0, directions[k] * vel1d)
                         # node.SetSolutionStepValue(PRESSURE, 0, pressinlet3D)
                         k = k + 1
-            raw_input()
+            input()
 
     def Transfer1D_to_3D(self):
 
@@ -236,7 +237,7 @@ class TransferTools:
         initial_pressure = config.systolic_pressure
         initial_pressure = 0
 
-        print "Transfer1D_to_3D"
+        print("Transfer1D_to_3D")
         for i in range(0, len(self.inlets_1d)):
             inlet_nodes_1d = self.inlets_1d[i]
             # print "NODO 1D-3D:: inlet_nodes_1d[0].Id::::::>>>> ",inlet_nodes_1d[0].Id
@@ -412,7 +413,7 @@ class TransferTools:
             # print "beta,", beta
             A = (avg_press * A0 / beta + math.sqrt(A0)
                  ) ** 2  # A0*(avg_press/beta + 1)**2
-            print "in Transfer AREA 3D_to_1D----->", A
+            print("in Transfer AREA 3D_to_1D----->", A)
             # self.fout2.write(str(inlet_nodes_1d[0].GetValue(NODAL_AREA)))
             # self.fout2.write(" ")
             # self.fout2.write(str(inlet_nodes_1d[0].GetSolutionStepValue(NODAL_AREA)))

@@ -1,3 +1,5 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+ # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 import sys
 import benchmarking
@@ -39,9 +41,9 @@ import FSI_benchmarks
 Text += FSI_benchmarks.Run()
 
 # PFEM application
-##os.chdir(ApplicationsRoot + "PFEMapplication/test_exemples")
-##import pfem_benchmarks
-##Text += pfem_benchmarks.Run()
+# os.chdir(ApplicationsRoot + "PFEMapplication/test_exemples")
+# import pfem_benchmarks
+# Text += pfem_benchmarks.Run()
 
 # Fluid Dynamics application
 os.chdir(ApplicationsRoot + "FluidDynamicsApplication/test_examples")
@@ -71,6 +73,6 @@ outputfile = open("benchmarking_output.txt", "w")
 outputfile.write(Text)
 
 
-print Text
+print(Text)
 
-#benchmarking.NotifyViaEmail("Status of Kratos examples", Text, ["pooyan@cimne.upc.edu", "rrossi@cimne.upc.edu", "mossaiby@yahoo.com"])
+# benchmarking.NotifyViaEmail("Status of Kratos examples", Text, ["pooyan@cimne.upc.edu", "rrossi@cimne.upc.edu", "mossaiby@yahoo.com"])

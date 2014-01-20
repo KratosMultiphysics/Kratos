@@ -1,9 +1,10 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #
 #
 # setting the domain size for the problem to be solved
 domain_size = 2
 
-##kratos_root/benchmarking
+# kratos_root/benchmarking
 kratos_benchmarking_path = '../../../../benchmarking'
 import sys
 sys.path.append(kratos_benchmarking_path)
@@ -41,7 +42,7 @@ mesh_name = 0.0
 gid_io.InitializeMesh(mesh_name)
 gid_io.WriteMesh((model_part).GetMesh())
 gid_io.FinalizeMesh()
-print model_part
+print(model_part)
 
 # the buffer size should be set up here after the mesh is read for the
 # first time
@@ -57,7 +58,7 @@ def BenchmarkCheck(time, model_part, section_nodes, center):
 
     benchmarking.Output(time, "Time", 0.0001)
     benchmarking.Output(DragLift[0], "drag", 0.5, 0.01)
-    #benchmarking.Output(DragLift[1], "lift", 0.5, 0.01)
+    # benchmarking.Output(DragLift[1], "lift", 0.5, 0.01)
 
 
 # add Degrees of Freedom to all of the nodes
@@ -84,8 +85,8 @@ zero[2] = 0.0
 fluid_solver = runge_kutta_frac_step_solver.RungeKuttaFracStepSolver(
     model_part, domain_size)
 
-##pILUPrecond = ILU0Preconditioner()
-##fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
+# pILUPrecond = ILU0Preconditioner()
+# fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
 
 fluid_solver.Initialize()
 
@@ -121,7 +122,7 @@ def SelectSectionNodes(section_nodes, model_part):
     for node in model_part.Nodes:
         if (node.GetSolutionStepValue(IS_STRUCTURE) == 1):
             section_nodes.append(node)
-    print len(section_nodes)
+    print(len(section_nodes))
 
 # defining function to integrate forces on section contour
 
@@ -140,9 +141,9 @@ def CalculateCenterForces(time, section_nodes, center):
             0) * (node.Y - center[1]) - node.GetSolutionStepValue(FORCE_Y,
                                                                   0) * (node.X - center[0])
 
-    print "Drag =", fx
-    print "Lift =", fy
-    print "Moment =", mz
+    print("Drag =", fx)
+    print("Lift =", fy)
+    print("Moment =", mz)
 
     return [fx, fy, mz]
 
@@ -178,19 +179,19 @@ center[2] = 0.0
 section_nodes = []
 SelectSectionNodes(section_nodes, model_part)
 
-print len(section_nodes)
+print(len(section_nodes))
 
 gid_io.InitializeResults(0.0, model_part.GetMesh())
 
 for step in range(0, nsteps):
-    print "line49"
+    print("line49")
     Dt = (CFL_time_estimate_process).EstimateTime(CFL, dt_max)
-    print "CFL gave this time step", Dt
+    print("CFL gave this time step", Dt)
 
     time = time + Dt
     model_part.CloneTimeStep(time)
 
-    print time
+    print(time)
     # print model_part.ProcessInfo()[TIME]
 
     # solving the fluid problem
@@ -199,7 +200,7 @@ for step in range(0, nsteps):
         Forces = CalculateCenterForces(time, section_nodes, center)
         # printing forces on section in the output file
         PrintOutputFile(outputfile, time, Forces)
-        #BenchmarkCheck(time, model_part, section_nodes, center)
+        # BenchmarkCheck(time, model_part, section_nodes, center)
         if (benchmarking.InBuildReferenceMode()):
             BenchmarkCheck(time, model_part, section_nodes, center)
         else:

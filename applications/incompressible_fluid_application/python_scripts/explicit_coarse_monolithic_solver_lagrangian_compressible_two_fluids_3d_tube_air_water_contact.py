@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.MeshingApplication import *
@@ -59,7 +60,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_PAUX)
     model_part.AddNodalSolutionStepVariable(NODAL_MAUX)
 
-    print "variables for monolithic solver lagrangian compressible 3D solution added correctly"
+    print("variables for monolithic solver lagrangian compressible 3D solution added correctly")
 
 
 def AddDofs(model_part):
@@ -71,7 +72,7 @@ def AddDofs(model_part):
         node.AddDof(WATER_PRESSURE)
         node.AddDof(AIR_PRESSURE)
 
-    print "variables for monolithic solver lagrangian compressible 3D solution added correctly"
+    print("variables for monolithic solver lagrangian compressible 3D solution added correctly")
 
     #
     def PrintTimes(time, filename, time_full, all_remesh_time,
@@ -152,14 +153,14 @@ class MonolithicSolver:
         # U NEED IT FOR ALPHA-shape
         # print self.model_part
         (self.neigh_finder).Execute()
-        print "MMMMMMMMMMMMMMMMMMM   NEIGHBOR ARE FOUND NNNNNNNNNNNNNNNN"
+        print("MMMMMMMMMMMMMMMMMMM   NEIGHBOR ARE FOUND NNNNNNNNNNNNNNNN")
         self.Hfinder = FindNodalHProcess(self.model_part)
         self.Hfinder.Execute()
 
         self.Hdistancefinder = FindNodalHRespectingDistanceProcess(
             self.model_part)
         # self.Hdistancefinder.Execute();
-        print "OOOOOOOOOOOOOOOOOOOOOOOO   Hs ARE calculated PPPPPPPPPPPPPPPPPPPPPPPPPP"
+        print("OOOOOOOOOOOOOOOOOOOOOOOO   Hs ARE calculated PPPPPPPPPPPPPPPPPPPPPPPPPP")
         # runtime box
         self.box_corner1 = box_corner1
         self.box_corner2 = box_corner2
@@ -167,7 +168,7 @@ class MonolithicSolver:
 
         # added for contact
         self.contact_Mesher = TetGenPfemContact()
-        #self.shell_model_part = ModelPart("shell_model_part");
+        # self.shell_model_part = ModelPart("shell_model_part");
         self.contact_model_part = ModelPart("contact_model_part")
         self.contact_model_part.Properties = self.model_part.Properties
 
@@ -186,7 +187,7 @@ class MonolithicSolver:
             elem.GetNode(1).SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
             elem.GetNode(2).SetSolutionStepValue(IS_INTERFACE, 0, 1.0)
 
-        #fluid_elements = ElementsArray()
+        # fluid_elements = ElementsArray()
         (SaveElementBySizeProcess((self.model_part).Elements,
          self.fluid_element_collection, 4)).Execute()
 
@@ -217,14 +218,14 @@ class MonolithicSolver:
 
     #
     def Solve(self, gid_io, min_dt, max_dt, step):
-        print "143"
+        print("143")
 
         # self.CalculateFluidNeighborsMixedModelPartAndColor()
         if(step % 10 == 0 or self.is_remeshed == False):
 
             self.Remesh()
             self.is_remeshed = True
-            print "SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS after remesh sssssssssssssssssssssssss"
+            print("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS after remesh sssssssssssssssssssssssss")
             self.ContactMesh()
 
             (self.merge_in_one_model_parts_process).ResetId(self.model_part)
@@ -232,30 +233,30 @@ class MonolithicSolver:
         else:
             allvolume = (self.PfemUtils).CalculateVolume(self.model_part, 3)
             if(allvolume < 0.0):
-                print "XXXXXXXX  NEGATIVE VOLUME REMESH XXXXXXXXX"
+                print("XXXXXXXX  NEGATIVE VOLUME REMESH XXXXXXXXX")
                 self.Remesh()
                 self.ContactMesh()
                 (self.merge_in_one_model_parts_process).ResetId(
                     self.model_part)
 
-        print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<>>>>>>>>>>>>>>>>>>>>><<>><< after contact <<<<<<<<<<<<<<<<<<<<<<<<<<"
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<>>>>>>>>>>>>>>>>>>>>><<>><< after contact <<<<<<<<<<<<<<<<<<<<<<<<<<")
 
         new_Dt = PfemUtils().ExplicitDeltaT(
             .2, min_dt, max_dt, self.model_part)
-        print new_Dt
+        print(new_Dt)
 
         time = self.model_part.ProcessInfo[TIME]
 
-        print"time", time, new_Dt
+        print("time", time, new_Dt)
 
         time = time + new_Dt
 
         self.model_part.CloneTimeStep(time)
 
         (self.solver).Solve()
-        print "a47"
+        print("a47")
         (self.solver).Clear()
-        print "149"
+        print("149")
         time = self.model_part.ProcessInfo[TIME]
         self.OutputStep(time, gid_io)
 
@@ -267,7 +268,7 @@ class MonolithicSolver:
     def Remesh(self):
         if (self.remeshing_flag):
             # print self.model_part
-            #out of this function it just has air and water element
+            # out of this function it just has air and water element
             self.CalculateFluidNeighborsMixedModelPartAndColor()
 
             (FindNodalNeighboursProcess(
@@ -282,19 +283,19 @@ class MonolithicSolver:
             (self.PfemUtils).MarkOuterNodes(
                 self.box_corner1, self.box_corner2, (self.model_part).Nodes)
             # (self.PfemUtils).MarkNodesTouchingWall(self.model_part,3, .05)
-            print "after nodes touching wall"
+            print("after nodes touching wall")
             (self.PfemUtils).MarkExcessivelyCloseNodes(
                 (self.model_part).Nodes, 0.5)
-            print "after excessively close nodes"
+            print("after excessively close nodes")
             (self.PfemUtils).MarkNodesTouchingInterface(
                 self.model_part, 3, 2.0)
-            print "after MarkNodesTouchingInterface"
+            print("after MarkNodesTouchingInterface")
 
-            print"Before remesh"
+            print("Before remesh")
             (self.Mesher).ReGenerateMesh("ExplicitASGSCompressible3D", "Condition3D", self.model_part,
                                          (self.structure_model_part).Elements, self.node_erase_process, True, True, self.alpha_shape, self.h_factor)
             # print "ReGenerateMesh time", ReGenerate_Mesh
-            print"after remesh"
+            print("after remesh")
             # calculating fluid neighbours before applying boundary conditions
             (FindElementalNeighboursProcess(
                 self.model_part, 3, 20)).ClearNeighbours()
@@ -309,15 +310,15 @@ class MonolithicSolver:
 
             # (self.PfemUtils).InterfaceDetecting(self.model_part,3, .9)
             (self.ChooseElement).Execute()
-            print "after choose"
+            print("after choose")
 
             (self.PfemUtils).IdentifyFluidNodes(self.model_part)
 
             # HERE WE ARE ADDING STRUCTURE_MODEL_PART TO MODEL_PART
-            print ">>>>>>>>>>>>>>>>>>><<<<<<Before Merge<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+            print(">>>>>>>>>>>>>>>>>>><<<<<<Before Merge<<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
             (self.merge_in_one_model_parts_process).MergeParts(
                 self.model_part, self.structure_model_part)
-            print ">>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<merge is done>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<"
+            print(">>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<merge is done>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<")
 
         #
     def FindNeighbours(self):
@@ -396,17 +397,17 @@ class MonolithicSolver:
                 a_dist = node.GetSolutionStepValue(DISTANCE)
                 node.SetSolutionStepValue(DISTANCE, 0, -a_dist)
 
-        print "finished RecalculateDistanceFunction"
+        print("finished RecalculateDistanceFunction")
 
-        print ">>>>>ELEMENTS ARE DIVIDED<<<<<<<<<<<<"
+        print(">>>>>ELEMENTS ARE DIVIDED<<<<<<<<<<<<")
      #
      #
 
     def DistToH(self):
         possible_h = self.CalculateRadius()
-        print possible_h
+        print(possible_h)
 
-        #min_H = possible_h*3.14/60
+        # min_H = possible_h*3.14/60
         min_H = .002  # 0.001
         sec_min_H = .04  # .003
         thr_min_H = .09  # .003
@@ -415,20 +416,20 @@ class MonolithicSolver:
         sec_ref_dist = 50 * min_H
         third_ref_dist = 150 * min_H
 
-        #slope = (sec_min_H - min_H)/(sec_ref_dist-ref_dist)
+        # slope = (sec_min_H - min_H)/(sec_ref_dist-ref_dist)
         slope = (sec_min_H - min_H) / ref_dist
 
-        #second_slope = (max_H - sec_min_H)/(third_ref_dist-sec_ref_dist)
+        # second_slope = (max_H - sec_min_H)/(third_ref_dist-sec_ref_dist)
         # second_slope = (thr_min_H - sec_min_H)/(sec_ref_dist-ref_dist)
 
         # search for min an max of H
 # for node in (self.model_part).Nodes:
-##             node_H = node.GetSolutionStepValue(NODAL_H,0)
+# node_H = node.GetSolutionStepValue(NODAL_H,0)
 # if(node_H<self.min_H):
-##                 self.min_H = node_H
+# self.min_H = node_H
 # else:
 # if(node_H > self.max_H):
-##                     self.max_H = node_H
+# self.max_H = node_H
 
         # H = H + dist * dist
         # print ">>>>>DISt TO H ASSIGNMENT<<<<<<<<<<<<"
@@ -443,16 +444,16 @@ class MonolithicSolver:
                 node.SetSolutionStepValue(NODAL_H, 0, node_H)
 
             # if(ref_dist<current_dist and current_dist<= sec_ref_dist):
-                ##node_H = sec_min_H + second_slope*(current_dist - ref_dist)
+                # node_H = sec_min_H + second_slope*(current_dist - ref_dist)
                 # node.SetSolutionStepValue(NODAL_H,0,node_H)
             # if(ref_dist<current_dist and current_dist<= sec_ref_dist):
-                #node_H = min_H + slope*(abs(current_dist) - ref_dist)
+                # node_H = min_H + slope*(abs(current_dist) - ref_dist)
                 # node.SetSolutionStepValue(NODAL_H,0,node_H)
             # if(sec_ref_dist<current_dist and current_dist<=third_ref_dist):
-                #node_H = sec_min_H + second_slope*(abs(current_dist)- sec_ref_dist)
+                # node_H = sec_min_H + second_slope*(abs(current_dist)- sec_ref_dist)
                 # node.SetSolutionStepValue(NODAL_H,0,node_H)
             # if(current_dist>third_ref_dist):
-                #node_H = max_H
+                # node_H = max_H
                 # node.SetSolutionStepValue(NODAL_H,0,node_H)
    #
     def CalculateRadius(self):
@@ -468,10 +469,10 @@ class MonolithicSolver:
                 radi = pow(
                     node.X - X_ref,
                     2) + pow(
-                    node.Y - Y_ref,
-                    2) + pow(
-                    node.Z - Z_ref,
-                    2)
+                        node.Y - Y_ref,
+                        2) + pow(
+                            node.Z - Z_ref,
+                            2)
                 if(radi > max_radi):
                     max_radi = radi
 
@@ -488,7 +489,7 @@ class MonolithicSolver:
         all_elements = (self.model_part).Elements
         non_shell_elements = ElementsArray()
         fluid_elements = ElementsArray()
-        print "========= find neighbors================="
+        print("========= find neighbors=================")
         (SaveElementBySizeProcess((self.model_part)
          .Elements, non_shell_elements, 4)).Execute()
         (self.model_part).Elements = non_shell_elements
@@ -500,29 +501,29 @@ class MonolithicSolver:
        # (FindNodalNeighboursProcess(self.model_part,9,18)).Execute()
 
         (self.elem_neighbor_finder).ClearNeighbours()
-        print "after ClearNeighbours()"
+        print("after ClearNeighbours()")
         (self.elem_neighbor_finder).Execute()
-        print "after Execute() neighbors"
+        print("after Execute() neighbors")
         (self.PfemUtils).ColourAirWaterElement(self.model_part, 3)
 
         #(self.model_part).Elements = all_elements
 
     #
     def ContactMesh(self):
-        print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<inside contact mesh"
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<inside contact mesh")
 
         shell_elements = ElementsArray()
         (SaveElementBySizeProcess((self.structure_model_part).Elements, shell_elements, 3)).Execute()
 
         (self.contact_model_part).Elements = shell_elements
 
-        print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<inside contact mesh  BEFORE REGENERATE"
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<inside contact mesh  BEFORE REGENERATE")
         # print self.contact_model_part.Properties
         (self.contact_Mesher).ReGenerateMesh(
             "PfemContactElement3DVel", "Face3D", self.contact_model_part)
 
-        print "before merge"
-        print self.model_part
+        print("before merge")
+        print(self.model_part)
         (self.merge_in_one_model_parts_process).MergeParts(
             self.model_part, self.contact_model_part)
-        print "after Merge"
+        print("after Merge")

@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 domain_size = 2
 
 FSI = 0.00000e+00
@@ -26,4 +27,3 @@ SolverType = "Incompressible_Modified_FracStep"
 problem_name = 'slosh'
 problem_path = '/home/paolo/Kratos_Newest/applications/ULFapplication/test_exemples/slosh.gid'
 kratos_path = '/home/paolo/Kratos_Newest'
-

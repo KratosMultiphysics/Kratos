@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import mpi
 import fluid_only_var
 
@@ -54,17 +55,17 @@ model_part_io_fluid = ModelPartIO(input_file_name)
 
 
 mpi.world.barrier
-print "AAAPAPAPAPAPAAPAPAPAPAPAPAPAPAPAPAPAP"
+print("AAAPAPAPAPAPAAPAPAPAPAPAPAPAPAPAPAPAP")
 
 number_of_partitions = mpi.size  # we set it equal to the number of processors
-print "number_of_partitions", number_of_partitions
+print("number_of_partitions", number_of_partitions)
 partitioner = MetisPartitioningProcess(
     fluid_model_part,
     model_part_io_fluid,
     number_of_partitions,
     domain_size)
 partitioner.Execute()
-print "GetRank()", GetRank()
+print("GetRank()", GetRank())
 
 # mesh to be printed
 mesh_name = mpi.rank
@@ -101,10 +102,10 @@ if(laplacian_form >= 2):
 # check to ensure that no node has zero density or pressure
 for node in fluid_model_part.Nodes:
     if(node.GetSolutionStepValue(DENSITY) == 0.0):
-        print "node ", node.Id, " has zero density!"
+        print("node ", node.Id, " has zero density!")
         raise 'node with zero density found'
     if(node.GetSolutionStepValue(VISCOSITY) == 0.0):
-        print "node ", node.Id, " has zero viscosity!"
+        print("node ", node.Id, " has zero viscosity!")
         raise 'node with zero VISCOSITY found'
 
 # creating the solvers
@@ -127,29 +128,29 @@ elif(SolverType == "monolithic_solver_eulerian"):
 
 #
 # defining the linear solver
-##    aztec_parameters = ParameterList()
+# aztec_parameters = ParameterList()
 # aztec_parameters.set("AZ_solver","AZ_gmres");
 # aztec_parameters.set("AZ_kspace",100);
 # aztec_parameters.set("AZ_output",32);
 #
-##    preconditioner_type = "Amesos"
-##    preconditioner_parameters = ParameterList()
-##    preconditioner_parameters.set("amesos: solver type", "Amesos_Klu");
+# preconditioner_type = "Amesos"
+# preconditioner_parameters = ParameterList()
+# preconditioner_parameters.set("amesos: solver type", "Amesos_Klu");
 #
 # preconditioner_type = "ILU"
 # preconditioner_parameters = ParameterList()
 #
-##    overlap_level = 3
-##    nit_max = 300
-##    tol = 1e-6
+# overlap_level = 3
+# nit_max = 300
+# tol = 1e-6
 #
-##    fluid_solver.linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,tol,nit_max,overlap_level);
+# fluid_solver.linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,tol,nit_max,overlap_level);
 #
-##    fluid_solver.buildertype = "standard"
+# fluid_solver.buildertype = "standard"
     fluid_solver.Initialize()
 
 
-print "fluid solver created"
+print("fluid solver created")
 
 # settings to be changed
 Dt = fluid_only_var.Dt
@@ -170,7 +171,7 @@ gid_io.InitializeResults(mesh_name, (fluid_model_part).GetMesh())
 # aaa
 
 #
-##back_node = NodeFinder(fluid_model_part.Nodes , 6.199, 4.0, 0.0)
+# back_node = NodeFinder(fluid_model_part.Nodes , 6.199, 4.0, 0.0)
 # print back_node
 #
 #
@@ -193,7 +194,7 @@ while(time < final_time):
 
 # gid_io.WriteNodalResults(PRESSURE,fluid_model_part.Nodes,time,0)
 # gid_io.WriteNodalResults(VELOCITY,fluid_model_part.Nodes,time,0)
-##        BenchmarkCheck(time, back_node)
+# BenchmarkCheck(time, back_node)
 
     if(out == output_step):
         gid_io.WriteNodalResults(PRESSURE, fluid_model_part.Nodes, time, 0)

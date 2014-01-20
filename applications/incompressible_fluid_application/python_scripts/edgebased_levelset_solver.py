@@ -1,7 +1,8 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
-#from KratosMultiphysics.MeshingApplication import *
+# from KratosMultiphysics.MeshingApplication import *
 CheckForPreviousImport()
 
 
@@ -20,7 +21,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(NODAL_AREA)
     model_part.AddNodalSolutionStepVariable(STRUCTURE_VELOCITY)
 
-    print "variables for the edgebased incompressible fluid solver added correctly"
+    print("variables for the edgebased incompressible fluid solver added correctly")
 
 
 def AddDofs(model_part):
@@ -36,7 +37,7 @@ class EdgeBasedLevelSetSolver:
     def __init__(self, model_part, domain_size,
                  body_force, viscosity, density):
 
-        print "entered in EdgeBasedLevelSetSolver python constructor"
+        print("entered in EdgeBasedLevelSetSolver python constructor")
         # data of the problem
         self.model_part = model_part
         self.domain_size = domain_size
@@ -55,7 +56,7 @@ class EdgeBasedLevelSetSolver:
         self.timer = Timer()
 
         self.use_parallel_distance_calculation = False
-        ##0 = None; 1 = Ergun; 2 = Custom A y B;
+        # 0 = None; 1 = Ergun; 2 = Custom A y B;
         self.compute_porous_resistance_law = 0
 
         # neighbour search
@@ -86,10 +87,10 @@ class EdgeBasedLevelSetSolver:
         for node in self.model_part.Nodes:
             eps = node.GetSolutionStepValue(POROSITY)
             node.SetSolutionStepValue(PRESS_PROJ, 0, press_proj_init * eps)
-        print "entered in EdgeBasedLevelSetSolver initialize"
+        print("entered in EdgeBasedLevelSetSolver initialize")
 
     def Initialize(self):
-        print "entered in EdgeBasedLevelSetSolver python constructor"
+        print("entered in EdgeBasedLevelSetSolver python constructor")
         # build the edge data structure
         if(self.domain_size == 2):
             self.matrix_container = MatrixContainer2D()
@@ -143,7 +144,7 @@ class EdgeBasedLevelSetSolver:
         self.max_edge_size = self.distance_utils.FindMaximumEdgeSize(
             self.model_part)
         self.distance_size = self.max_edge_size * 3.0
-        print "###################### max distance = ", self.distance_size
+        print("###################### max distance = ", self.distance_size)
 
         self.fluid_solver.SetShockCapturingCoefficient(0.0)
 
@@ -157,8 +158,8 @@ class EdgeBasedLevelSetSolver:
             else:
                 npos = npos + 1
 
-        print "nneg=", nneg
-        print "npos=", npos
+        print("nneg=", nneg)
+        print("npos=", npos)
 
         self.fluid_solver.Initialize()
         nneg = 0
@@ -169,8 +170,8 @@ class EdgeBasedLevelSetSolver:
             else:
                 npos = npos + 1
 
-        print "nneg=", nneg
-        print "npos=", npos
+        print("nneg=", nneg)
+        print("npos=", npos)
         self.Redistance()
 
 #        for node in self.model_part.Nodes:
@@ -178,8 +179,8 @@ class EdgeBasedLevelSetSolver:
 #            node.SetSolutionStepValue(DISTANCE,1,dist)
 #        self.Redistance()
 
-        print "**********************************************"
-        print "finished EdgeBasedLevelSetSolver initialize"
+        print("**********************************************")
+        print("finished EdgeBasedLevelSetSolver initialize")
 
     #
     #
@@ -190,8 +191,8 @@ class EdgeBasedLevelSetSolver:
                 DISTANCE,
                 self.distance_size)
         else:
-            print "max distance", self.distance_size
-            print "max extrapolation layers", self.extrapolation_layers
+            print("max distance", self.distance_size)
+            print("max extrapolation layers", self.extrapolation_layers)
             self.distance_utils.CalculateDistances(
                 self.model_part,
                 DISTANCE,
@@ -203,10 +204,10 @@ class EdgeBasedLevelSetSolver:
     #
     def FluidOnlySolve(self):
         if (self.extrapolation_layers < 3):
-            print "insufficient number of extrapolation layers. Minimum is 3"
+            print("insufficient number of extrapolation layers. Minimum is 3")
             raise ValueError
 
-        print "entered in EdgeBasedLevelSetSolver fluid only solve"
+        print("entered in EdgeBasedLevelSetSolver fluid only solve")
         (self.fluid_solver).ExtrapolateValues(self.extrapolation_layers)
 
         (self.fluid_solver).SolveStep1()
@@ -214,13 +215,13 @@ class EdgeBasedLevelSetSolver:
         (self.fluid_solver).SolveStep3()
 
         (self.fluid_solver).ExtrapolateValues(self.extrapolation_layers)
-        print "finished EdgeBasedLevelSetSolver fluid only solve"
+        print("finished EdgeBasedLevelSetSolver fluid only solve")
 
     #
     #
     def Solve(self):
         if (self.extrapolation_layers < 3):
-            print "insufficient number of extrapolation layers. Minimum is 3"
+            print("insufficient number of extrapolation layers. Minimum is 3")
             raise ValueError
 
         self.timer.Start("Calculate Porous Resistance Law")
@@ -263,9 +264,9 @@ class EdgeBasedLevelSetSolver:
 
 # if(self.step == self.redistance_frequency):
 # self.Redistance()
-##            self.step = 0
+# self.step = 0
 # print "redistance was executed"
-##        self.step += 1
+# self.step += 1
 
     #
 #

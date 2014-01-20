@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 CheckForPreviousImport()
@@ -18,7 +19,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(DENSITY)
     model_part.AddNodalSolutionStepVariable(VISCOSITY)
     model_part.AddNodalSolutionStepVariable(EXTERNAL_PRESSURE)
-    print "variables for the incompressible fluid solver added correctly"
+    print("variables for the incompressible fluid solver added correctly")
 
 
 def AddDofs(model_part):
@@ -31,7 +32,7 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_X)
         node.AddDof(VELOCITY_Y)
         node.AddDof(VELOCITY_Z)
-    print "dofs for the incompressible fluid solver added correctly"
+    print("dofs for the incompressible fluid solver added correctly")
 
 
 class IncompressibleFluidSolver:
@@ -69,8 +70,8 @@ class IncompressibleFluidSolver:
         # definition of the solvers
         pDiagPrecond = DiagonalPreconditioner()
         pILUPrecond = ILU0Preconditioner()
-##        self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
-##        self.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
+# self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
+# self.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
         self.velocity_linear_solver = BICGSTABSolver(1e-6, 5000, pDiagPrecond)
         self.pressure_linear_solver = BICGSTABSolver(1e-3, 5000, pILUPrecond)
 
@@ -94,7 +95,7 @@ class IncompressibleFluidSolver:
             self.predictor_corrector)
 
         (self.solver).SetEchoLevel(self.echo_level)
-        print "finished initialization of the fluid strategy"
+        print("finished initialization of the fluid strategy")
 
     def SolutionStep1(self):
         normDx = Array3()
@@ -108,9 +109,9 @@ class IncompressibleFluidSolver:
             (self.solver).FractionalVelocityIteration(normDx)
             is_converged = (
                 self.solver).ConvergenceCheck(
-                normDx,
-                self.vel_toll)
-            print iteration, normDx
+                    normDx,
+                    self.vel_toll)
+            print(iteration, normDx)
             iteration = iteration + 1
 
     def Solve(self):
@@ -122,7 +123,7 @@ class IncompressibleFluidSolver:
         (self.solver).AssignInitialStepValues()
 
         self.SolutionStep1()
-##	(self.solver).SolveStep1(self.vel_toll, self.max_vel_its);
+# (self.solver).SolveStep1(self.vel_toll, self.max_vel_its);
 
         (self.solver).SolveStep2()
         (self.solver).ActOnLonelyNodes()

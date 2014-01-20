@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # this class is designed as the base class to add "custom operations"
 # it is designed so that only the constructor can be modified and all of the other
 # functions should retain the same interface
@@ -31,40 +32,40 @@ class Operation:
     # right after reading the model and the groups
     def ExecuteInitialize(self):
         if(self.echo_level > 0):
-            print "Finished ExecuteInitialize for Class", self.PrintInfo()
+            print("Finished ExecuteInitialize for Class", self.PrintInfo())
 
     # this function is designed for being execute once before the solution loop but after all of the
     # solvers where built
     def ExecuteBeforeSolutionLoop(self):
         if(self.echo_level > 0):
-            print "Finished ExecuteBeforeSolutionLoop for Class", self.PrintInfo()
+            print("Finished ExecuteBeforeSolutionLoop for Class", self.PrintInfo())
 
     # this function will be executed at every time step BEFORE performing the
     # solve phase
     def ExecuteInitializeSolutionStep(self):
         if(self.echo_level > 0):
-            print "Finished ExecuteInitializeSolutionStep for Class", self.PrintInfo()
+            print("Finished ExecuteInitializeSolutionStep for Class", self.PrintInfo())
 
     # this function will be executed at every time step AFTER performing the
     # solve phase
     def ExecuteFinalizeSolutionStep(self):
         if(self.echo_level > 0):
-            print "Finished ExecuteFinalizeSolutionStep for Class", self.PrintInfo()
+            print("Finished ExecuteFinalizeSolutionStep for Class", self.PrintInfo())
 
     # this function will be executed at every time step BEFORE  writing the
     # output
     def ExecuteBeforeOutputStep(self):
         if(self.echo_level > 0):
-            print "Finished ExecuteBeforeOutputStep for Class", self.PrintInfo()
+            print("Finished ExecuteBeforeOutputStep for Class", self.PrintInfo())
 
     # this function will be executed at every time step AFTER writing the
     # output
     def ExecuteAfterOutputStep(self):
         if(self.echo_level > 0):
-            print "Finished ExecuteAfterOutputStep for Class", self.PrintInfo()
+            print("Finished ExecuteAfterOutputStep for Class", self.PrintInfo())
 
     # this function is designed for being called at the beginning of the computations
     # right after reading the model and the groups
     def ExecuteFinalize(self):
         if(self.echo_level > 0):
-            print "Finished ExecuteFinalize for Class", self.PrintInfo()
+            print("Finished ExecuteFinalize for Class", self.PrintInfo())

@@ -1,18 +1,20 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.MeshingApplication import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
 
+
 class DynamicSmagorinsky:
 
-    def __init__(self,model_part,domain_size):
+    def __init__(self, model_part, domain_size):
 
         self.model_part = model_part
         self.domain_size = domain_size
 
         # Dynamic Smagorinsky helper class
-        self.smagorinsky_util = DynamicSmagorinskyUtils(model_part,domain_size)
+        self.smagorinsky_util = DynamicSmagorinskyUtils(model_part, domain_size)
 
         # Mesh refinement tool instance
         if domain_size == 2:
@@ -23,26 +25,26 @@ class DynamicSmagorinsky:
         # Neigbour search tool instance
         AvgElemNum = 10
         AvgNodeNum = 10
-        self.nodal_neighbour_search = FindNodalNeighboursProcess(model_part,\
-                                                        AvgElemNum,AvgNodeNum)
+        self.nodal_neighbour_search = FindNodalNeighboursProcess(model_part,
+                                                                 AvgElemNum, AvgNodeNum)
         # Find neighbours
         self.nodal_neighbour_search.Execute()
 
-    def Refine(self, num_refinements = 1, boundary_var = None):
+    def Refine(self, num_refinements=1, boundary_var=None):
 
-        refine_on_reference = True;
-        interpolate_internal_variables = False;
+        refine_on_reference = True
+        interpolate_internal_variables = False
 
         refinement_step = 0
 
         while refinement_step < num_refinements:
 
-            #update refinement counter
+            # update refinement counter
             refinement_step += 1
 
             # Mark all elements for refinement
             for element in self.model_part.Elements:
-                element.SetValue(SPLIT_ELEMENT,True)
+                element.SetValue(SPLIT_ELEMENT, True)
 
             # Store the mesh before the last refinement step
             # Will be used as coarse mesh in the variational Germano identity
@@ -50,16 +52,15 @@ class DynamicSmagorinsky:
                 self.smagorinsky_util.StoreCoarseMesh()
 
             # Refine
-            self.refinement_tool.LocalRefineMesh(refine_on_reference, \
+            self.refinement_tool.LocalRefineMesh(refine_on_reference,
                                                  interpolate_internal_variables)
 
             # Update neighbours
             self.nodal_neighbour_search.Execute()
-            if boundary_var != None:
+            if boundary_var is not None:
                 self.smagorinsky_util.CorrectFlagValues(boundary_var)
-            
 
-    def CorrectBoundary(self,boundary_var = FLAG_VARIABLE):
+    def CorrectBoundary(self, boundary_var=FLAG_VARIABLE):
 
         # Ensure that the refined mesh has its boundary properly identified
         # (Use on bridge analysis problems only)

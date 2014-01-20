@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #
 #
 # import the configuration data as read from the GiD
@@ -5,7 +6,7 @@ import ProjectParameters
 
 
 def PrintResults(model_part):
-        print "Writing results. Please run Gid for viewing results of analysis."
+        print("Writing results. Please run Gid for viewing results of analysis.")
         for variable_name in ProjectParameters.nodal_results:
             gid_io.WriteNodalResults(
                 varibles_dictionary[variable_name],
@@ -76,7 +77,7 @@ else:
 input_file_name = ProjectParameters.problem_name
 
 import nonlinear_convection_diffusion_solver
-#the nodes are the same
+# the nodes are the same
 nonlinear_convection_diffusion_solver.AddVariables(fluid_model_part)
 
 # reading the fluid part
@@ -107,22 +108,22 @@ for node in fluid_model_part.Nodes:
         fixed += node.IsFixed(PRESSURE)
 
 if (fixed == 0):
-        print "YOU MUST FIX PRESSURE AT LEAST AT ONE NODE!"
+        print("YOU MUST FIX PRESSURE AT LEAST AT ONE NODE!")
         raise 'Pressure is not fixed anywhere!'
 
 # check to ensure that no node has zero density or density
 for node in fluid_model_part.Nodes:
     if(node.GetSolutionStepValue(DENSITY) == 0.0):
-        print "node ", node.Id, " has zero density!"
+        print("node ", node.Id, " has zero density!")
         raise 'node with zero density found'
     if(node.GetSolutionStepValue(VISCOSITY) == 0.0):
-        print "node ", node.Id, " has zero viscosity!"
+        print("node ", node.Id, " has zero viscosity!")
         raise 'node with zero VISCOSITY found'
     if(node.GetSolutionStepValue(CONDUCTIVITY) == 0.0):
-        print "node ", node.Id, " has zero conductivity!"
+        print("node ", node.Id, " has zero conductivity!")
         raise 'node with zero CONDUCTIVITY found'
     if(node.GetSolutionStepValue(SPECIFIC_HEAT) == 0.0):
-        print "node ", node.Id, " has zero specific heat!"
+        print("node ", node.Id, " has zero specific heat!")
         raise 'node with zero SPECIFIC_HEAT found'
 
 # creating the solvers
@@ -156,7 +157,7 @@ elif(ProjectParameters.PressureLinearSolver == "CGSolver"):
     LSMI = ProjectParameters.Linear_Solver_Max_Iteration
     fluid_solver.linear_solver = CGSolver(LST, LSMI, pDiagPrecond)
 
-print "fluid solver created"
+print("fluid solver created")
 
 # Linear solver for convection-diffusion
 if(ProjectParameters.TemperatureLinearSolver == "SkylineLUFactorization"):
@@ -169,7 +170,7 @@ elif(ProjectParameters.TemperatureLinearSolver == "CGSolver"):
     LSMI = ProjectParameters.Linear_Solver_Max_Iteration
     temperature_solver.linear_solver = CGSolver(LST, LSMI, pDiagPrecond)
 
-print "temperature solver created"
+print("temperature solver created")
 
 # settings to be changed
 Dt = ProjectParameters.Dt
@@ -198,7 +199,7 @@ while(time < final_time):
         Dt = initial_Dt
     else:
         Dt = (CFL_time_estimate_process).EstimateTime(CFL, full_Dt)
-        print "CFL gave this time step", Dt
+        print("CFL gave this time step", Dt)
 
     time = time + Dt
     fluid_model_part.CloneTimeStep(time)

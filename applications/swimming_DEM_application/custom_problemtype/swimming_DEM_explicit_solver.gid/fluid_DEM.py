@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # import the configuration data as read from the GiD
 import ProjectParameters
 import define_output
@@ -13,7 +14,7 @@ from KratosMultiphysics.FluidDynamicsApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
 
-#SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+# SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 import math
 
 from KratosMultiphysics.DEMApplication import *
@@ -22,219 +23,221 @@ import DEM_explicit_solver_var as DEMParameters
 import DEM_procedures
 import swimming_DEM_procedures
 
-#EMBEDDED:
+# EMBEDDED:
 from KratosMultiphysics.SolidMechanicsApplication import *
 from KratosMultiphysics.StructuralApplication import *
 
+
 def ApplyEmbeddedBCsToFluid(model_part):
     for node in model_part.Nodes:
-        old_dist = node.GetSolutionStepValue(DISTANCE,1)
+        old_dist = node.GetSolutionStepValue(DISTANCE, 1)
         dist = node.GetSolutionStepValue(DISTANCE)
         if(dist < 0.0):
             node.Fix(PRESSURE)
             node.Fix(VELOCITY_X)
             node.Fix(VELOCITY_Y)
-            node.Fix(VELOCITY_Z)  
-            node.SetSolutionStepValue(PRESSURE,0.0)
-            node.SetSolutionStepValue(VELOCITY_X,0.0)
-            node.SetSolutionStepValue(VELOCITY_Y,0.0)
-            node.SetSolutionStepValue(VELOCITY_Z,0.0)
+            node.Fix(VELOCITY_Z)
+            node.SetSolutionStepValue(PRESSURE, 0.0)
+            node.SetSolutionStepValue(VELOCITY_X, 0.0)
+            node.SetSolutionStepValue(VELOCITY_Y, 0.0)
+            node.SetSolutionStepValue(VELOCITY_Z, 0.0)
         elif(old_dist < 0.0):
             node.Free(PRESSURE)
             node.Free(VELOCITY_X)
             node.Free(VELOCITY_Y)
-            node.Free(VELOCITY_Z)  
+            node.Free(VELOCITY_Z)
 
-    if model_part.NumberOfMeshes()>1:
-        for mesh_number in range(2, model_part.NumberOfMeshes()):  
+    if model_part.NumberOfMeshes() > 1:
+        for mesh_number in range(2, model_part.NumberOfMeshes()):
             mesh_nodes = model_part.GetMesh(mesh_number).Nodes
-            #print model_part.Properties[mesh_number] 
-            
-            #INLETS
-            if( model_part.Properties[mesh_number][IMPOSED_VELOCITY_X] == 1 or model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y] == 1 or model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z] == 1 ):
+            # print model_part.Properties[mesh_number]
+
+            # INLETS
+            if(model_part.Properties[mesh_number][IMPOSED_VELOCITY_X] == 1 or model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y] == 1 or model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z] == 1):
                 for node in mesh_nodes:
                     dist = node.GetSolutionStepValue(DISTANCE)
                     if(dist > 0.0):
                         node.Free(PRESSURE)
-                        if( model_part.Properties[mesh_number][IMPOSED_VELOCITY_X] ):
+                        if(model_part.Properties[mesh_number][IMPOSED_VELOCITY_X]):
                             node.Fix(VELOCITY_X)
                             node.SetSolutionStepValue(VELOCITY_X, model_part.Properties[mesh_number][IMPOSED_VELOCITY_X_VALUE])
-                        if( model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y] ):
+                        if(model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y]):
                             node.Fix(VELOCITY_Y)
                             node.SetSolutionStepValue(VELOCITY_Y, model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y_VALUE])
-                        if( model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z] ):
+                        if(model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z]):
                             node.Fix(VELOCITY_Z)
                             node.SetSolutionStepValue(VELOCITY_Z, model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z_VALUE])
-    
-            #OUTLETS
-            if( model_part.Properties[mesh_number][IMPOSED_PRESSURE] == 1 ): 
-                #here I assume all nodes of this outlet have the same body force and density!!
-                mod_bf=0.0
-                normalized_bf_x=0.0
-                normalized_bf_y=0.0
-                normalized_bf_z=0.0
-                outlet_density=0.0
+
+            # OUTLETS
+            if(model_part.Properties[mesh_number][IMPOSED_PRESSURE] == 1):
+                # here I assume all nodes of this outlet have the same body force and density!!
+                mod_bf = 0.0
+                normalized_bf_x = 0.0
+                normalized_bf_y = 0.0
+                normalized_bf_z = 0.0
+                outlet_density = 0.0
                 for node in mesh_nodes:
                     bx = node.GetSolutionStepValue(BODY_FORCE_X)
                     by = node.GetSolutionStepValue(BODY_FORCE_Y)
                     bz = node.GetSolutionStepValue(BODY_FORCE_Z)
-                    mod_bf = sqrt(bx*bx+by*by+bz*bz)
+                    mod_bf = sqrt(bx * bx + by * by + bz * bz)
                     if (mod_bf > 0.0):
-                        normalized_bf_x = bx/mod_bf
-                        normalized_bf_y = by/mod_bf
-                        normalized_bf_z = bz/mod_bf                        
+                        normalized_bf_x = bx / mod_bf
+                        normalized_bf_y = by / mod_bf
+                        normalized_bf_z = bz / mod_bf
                     outlet_density = node.GetSolutionStepValue(DENSITY)
                     break
-            
-                for node in mesh_nodes:                                        
-                    height = -1.0 * (node.X*normalized_bf_x + node.Y*normalized_bf_y + node.Z*normalized_bf_z)
-                    maxheight= -1.0e90
-                    
+
+                for node in mesh_nodes:
+                    height = -1.0 * (node.X * normalized_bf_x + node.Y * normalized_bf_y + node.Z * normalized_bf_z)
+                    maxheight = -1.0e90
+
                     if (height > maxheight):
                         maxheight = height
                         highest_node = node
-                        
+
                 for node in mesh_nodes:
                     dist = node.GetSolutionStepValue(DISTANCE)
-                    
-                    distance_to_highest = (node.X-highest_node.X)*normalized_bf_x  +  (node.Y-highest_node.Y)*normalized_bf_y  +  (node.Z-highest_node.Z)*normalized_bf_z
-                    base_pressure = model_part.Properties[mesh_number][PRESSURE]                   
+
+                    distance_to_highest = (node.X - highest_node.X) * normalized_bf_x  +  (node.Y - highest_node.Y) * normalized_bf_y  +  (node.Z - highest_node.Z)*normalized_bf_z
+                    base_pressure = model_part.Properties[mesh_number][PRESSURE]
                     if(dist > 0.0):
-                        node.Fix(PRESSURE)                      
-                        actual_pressure = base_pressure + outlet_density*mod_bf*distance_to_highest
-                        node.SetSolutionStepValue(PRESSURE,actual_pressure)
+                        node.Fix(PRESSURE)
+                        actual_pressure = base_pressure + outlet_density * mod_bf * distance_to_highest
+                        node.SetSolutionStepValue(PRESSURE, actual_pressure)
                         node.Free(VELOCITY_X)
                         node.Free(VELOCITY_Y)
-                        node.Free(VELOCITY_Z)                      
+                        node.Free(VELOCITY_Z)
 
-def ApplyEmbeddedBCsToBalls(model_part):                        
+
+def ApplyEmbeddedBCsToBalls(model_part):
     for node in model_part.Nodes:
         dist = node.GetSolutionStepValue(DISTANCE)
         if(dist < 0.0):
             if node.Is(BLOCKED):
-                node.Set(ACTIVE,true)                                             
+                node.Set(ACTIVE, true)
             else:
-                node.Set(TO_ERASE,true)
-                
-                        
+                node.Set(TO_ERASE, true)
+
+
 from math import *
 
+
 def MoveEmbeddedStructure(model_part, time):
-    
-    if model_part.NumberOfMeshes()>1:
-        for mesh_number in range(1, model_part.NumberOfMeshes()):  
+
+    if model_part.NumberOfMeshes() > 1:
+        for mesh_number in range(1, model_part.NumberOfMeshes()):
             mesh_nodes = model_part.GetMesh(mesh_number).Nodes
-            #print model_part.Properties[mesh_number]             
-            linear_velocity  = model_part.Properties[mesh_number][VELOCITY]
-            linear_period    = model_part.Properties[mesh_number][VELOCITY_PERIOD]
+            # print model_part.Properties[mesh_number]
+            linear_velocity = model_part.Properties[mesh_number][VELOCITY]
+            linear_period = model_part.Properties[mesh_number][VELOCITY_PERIOD]
             angular_velocity = model_part.Properties[mesh_number][ANGULAR_VELOCITY]
-            angular_period   = model_part.Properties[mesh_number][ANGULAR_VELOCITY_PERIOD]
-            initial_center   = model_part.Properties[mesh_number][ROTATION_CENTER] 
-            
-            if ( linear_period > 0.0 ):
+            angular_period = model_part.Properties[mesh_number][ANGULAR_VELOCITY_PERIOD]
+            initial_center = model_part.Properties[mesh_number][ROTATION_CENTER]
+
+            if (linear_period > 0.0):
                 linear_omega = 2 * math.pi / linear_period
-                center_position = initial_center + linear_velocity/linear_omega * sin(linear_omega * time)
+                center_position = initial_center + linear_velocity / linear_omega * sin(linear_omega * time)
             else:
                 center_position = initial_center + time * linear_velocity
-            
-            if ( angular_period > 0.0 ):
+
+            if (angular_period > 0.0):
                 angular_omega = 2 * math.pi / angular_period
                 angle = angular_velocity / angular_omega * sin(angular_omega * time)
             else:
                 angle = time * angular_velocity
-            
-            ang = sqrt( angle[0]*angle[0] + angle[1]*angle[1] + angle[2]*angle[2] )
-            
-            xx=1.0
-            yy=0.0
-            zz=0.0
-            mod_angular_velocity = sqrt(angular_velocity[0]*angular_velocity[0] + angular_velocity[1]*angular_velocity[1] + angular_velocity[2]*angular_velocity[2])
-            if ( mod_angular_velocity > 0.0 ):
-                uu= angular_velocity[0]/mod_angular_velocity
-                vv= angular_velocity[1]/mod_angular_velocity
-                ww= angular_velocity[2]/mod_angular_velocity
+
+            ang = sqrt(angle[0] * angle[0] + angle[1] * angle[1] + angle[2] * angle[2])
+
+            xx = 1.0
+            yy = 0.0
+            zz = 0.0
+            mod_angular_velocity = sqrt(angular_velocity[0] * angular_velocity[0] + angular_velocity[1] * angular_velocity[1] + angular_velocity[2] * angular_velocity[2])
+            if (mod_angular_velocity > 0.0):
+                uu = angular_velocity[0] / mod_angular_velocity
+                vv = angular_velocity[1] / mod_angular_velocity
+                ww = angular_velocity[2] / mod_angular_velocity
             else:
-                uu= 0.0
-                vv= 0.0
-                ww= 0.0
-            
-            new_axes1 = [0.0,0.0,0.0]
-            new_axes1[0] = uu*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + xx*cos(ang) + (-ww*yy+vv*zz)*sin(ang)
-            new_axes1[1] = vv*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + yy*cos(ang) + (ww*xx-uu*zz)*sin(ang)
-            new_axes1[2] = ww*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + zz*cos(ang) + (-vv*xx+uu*yy)*sin(ang)
-            
-            xx=0.0
-            yy=1.0
-            zz=0.0
-            
-            new_axes2 = [0.0,0.0,0.0]
-            new_axes2[0] = uu*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + xx*cos(ang) + (-ww*yy+vv*zz)*sin(ang)
-            new_axes2[1] = vv*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + yy*cos(ang) + (ww*xx-uu*zz)*sin(ang)
-            new_axes2[2] = ww*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + zz*cos(ang) + (-vv*xx+uu*yy)*sin(ang)
-            
-            new_axes3 = [new_axes1[1]*new_axes2[2] - new_axes1[2]*new_axes2[1] , new_axes1[2]*new_axes2[0] - new_axes1[0]*new_axes2[2] , new_axes1[0]*new_axes2[1] - new_axes1[1]*new_axes2[0]]
-            
-            
-            for node in mesh_nodes:                             
+                uu = 0.0
+                vv = 0.0
+                ww = 0.0
+
+            new_axes1 = [0.0, 0.0, 0.0]
+            new_axes1[0] = uu * (uu * xx + vv * yy + ww*zz)*(1-cos(ang)) + xx*cos(ang) + (-ww*yy+vv*zz)*sin(ang)
+            new_axes1[1] = vv * (uu * xx + vv * yy + ww*zz)*(1-cos(ang)) + yy*cos(ang) + (ww*xx-uu*zz)*sin(ang)
+            new_axes1[2] = ww * (uu * xx + vv * yy + ww*zz)*(1-cos(ang)) + zz*cos(ang) + (-vv*xx+uu*yy)*sin(ang)
+
+            xx = 0.0
+            yy = 1.0
+            zz = 0.0
+
+            new_axes2 = [0.0, 0.0, 0.0]
+            new_axes2[0] = uu * (uu * xx + vv * yy + ww*zz)*(1-cos(ang)) + xx*cos(ang) + (-ww*yy+vv*zz)*sin(ang)
+            new_axes2[1] = vv * (uu * xx + vv * yy + ww*zz)*(1-cos(ang)) + yy*cos(ang) + (ww*xx-uu*zz)*sin(ang)
+            new_axes2[2] = ww * (uu * xx + vv * yy + ww*zz)*(1-cos(ang)) + zz*cos(ang) + (-vv*xx+uu*yy)*sin(ang)
+
+            new_axes3 = [new_axes1[1] * new_axes2[2] - new_axes1[2] * new_axes2[1], new_axes1[2] * new_axes2[0] - new_axes1[0] * new_axes2[2], new_axes1[0] * new_axes2[1] - new_axes1[1]*new_axes2[0]]
+
+            for node in mesh_nodes:
                 local_X = node.X0 - initial_center[0]
                 local_Y = node.Y0 - initial_center[1]
                 local_Z = node.Z0 - initial_center[2]
-                relative_position = [0.0,0.0,0.0]
-                relative_position[0] = new_axes1[0]*local_X + new_axes2[0]*local_Y + new_axes3[0]*local_Z
-                relative_position[1] = new_axes1[1]*local_X + new_axes2[1]*local_Y + new_axes3[1]*local_Z
-                relative_position[2] = new_axes1[2]*local_X + new_axes2[2]*local_Y + new_axes3[2]*local_Z
-                
-                #NEW POSITION
+                relative_position = [0.0, 0.0, 0.0]
+                relative_position[0] = new_axes1[0] * local_X + new_axes2[0] * local_Y + new_axes3[0] * local_Z
+                relative_position[1] = new_axes1[1] * local_X + new_axes2[1] * local_Y + new_axes3[1] * local_Z
+                relative_position[2] = new_axes1[2] * local_X + new_axes2[2] * local_Y + new_axes3[2] * local_Z
+
+                # NEW POSITION
                 node.X = center_position[0] + relative_position[0]
                 node.Y = center_position[1] + relative_position[1]
                 node.Z = center_position[2] + relative_position[2]
-                
-                velocity_due_to_rotation = [relative_position[1]*angular_velocity[2] - relative_position[2]*angular_velocity[1] , 
-                                            relative_position[2]*angular_velocity[0] - relative_position[0]*angular_velocity[2] , 
-                                            relative_position[0]*angular_velocity[1] - relative_position[1]*angular_velocity[0]]
-                
-                #NEW VELOCITY
-                node.SetSolutionStepValue(VELOCITY, linear_velocity + velocity_due_to_rotation )
-                
-                    
-############## EMBEDDED
+
+                velocity_due_to_rotation = [relative_position[1] * angular_velocity[2] - relative_position[2] * angular_velocity[1],
+                                            relative_position[2] * angular_velocity[0] - relative_position[0] * angular_velocity[2],
+                                            relative_position[0] * angular_velocity[1] - relative_position[1] * angular_velocity[0]]
+
+                # NEW VELOCITY
+                node.SetSolutionStepValue(VELOCITY, linear_velocity + velocity_due_to_rotation)
+
+
+# EMBEDDED
 
 
 # PROJECT PARAMETERS (to be put in problem type)
-ProjectParameters.projection_module_option         = 1
-ProjectParameters.print_particles_results_option   = 0
-ProjectParameters.project_at_every_substep_option  = 0
-ProjectParameters.velocity_trap_option             = 0
-ProjectParameters.inlet_option                     = 1
+ProjectParameters.projection_module_option = 1
+ProjectParameters.print_particles_results_option = 0
+ProjectParameters.project_at_every_substep_option = 0
+ProjectParameters.velocity_trap_option = 0
+ProjectParameters.inlet_option = 1
 ProjectParameters.manually_imposed_drag_law_option = 0
-ProjectParameters.stationary_problem_option        = 0 # inactive (0), stop calculating the fluid after it reaches the stationary state (1)
-ProjectParameters.body_force_on_fluid              = 1
-ProjectParameters.similarity_transformation_type   = 0 # no transformation (0), Tsuji (1)
-ProjectParameters.dem_inlet_element_type           = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
-ProjectParameters.coupling_scheme_type             = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
-ProjectParameters.coupling_weighing_type           = 2 # {fluid_to_DEM, DEM_to_fluid, Solid_fraction} = {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
-ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), standard (1) (but, if drag_force_type is 2, buoyancy is always parallel to gravity) 
-ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
-ProjectParameters.drag_force_type                  = 2 # null drag (0), standard (1), Weatherford (2), Ganser (3)
-ProjectParameters.virtual_mass_force_type          = 0 # null virtual mass force (0)
-ProjectParameters.lift_force_type                  = 0 # null lift force (0)
-ProjectParameters.drag_modifier_type               = 3 # Hayder (2), Chien (3)  # problemtype option
-ProjectParameters.interaction_start_time           = 0.00
-ProjectParameters.max_solid_fraction               = 0.6
-ProjectParameters.gel_strength                     = 0.0   # problemtype option
-ProjectParameters.power_law_n                      = 0.0   # problemtype option
-ProjectParameters.power_law_k                      = 0.0   # problemtype option
-ProjectParameters.initial_drag_force               = 0.0   # problemtype option
-ProjectParameters.drag_law_slope                   = 0.0   # problemtype option
-ProjectParameters.power_law_tol                    = 0.0
-ProjectParameters.model_over_real_diameter_factor  = 1.0 # not active if similarity_transformation_type = 0
-ProjectParameters.max_pressure_variation_rate_tol  = 1e-3 # for stationary problems, criterion to stop the fluid calculations
-ProjectParameters.time_steps_per_stationarity_step = 15 # number of fluid time steps between consecutive assessment of stationarity steps
+ProjectParameters.stationary_problem_option = 0  # inactive (0), stop calculating the fluid after it reaches the stationary state (1)
+ProjectParameters.body_force_on_fluid = 1
+ProjectParameters.similarity_transformation_type = 0  # no transformation (0), Tsuji (1)
+ProjectParameters.dem_inlet_element_type = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
+ProjectParameters.coupling_scheme_type = "UpdatedFluid"  # "UpdatedFluid", "UpdatedDEM"
+ProjectParameters.coupling_weighing_type = 2  # {fluid_to_DEM, DEM_to_fluid, Solid_fraction} = {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
+ProjectParameters.buoyancy_force_type = 1  # null buoyancy (0), standard (1) (but, if drag_force_type is 2, buoyancy is always parallel to gravity)
+ProjectParameters.buoyancy_force_type = 1  # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
+ProjectParameters.drag_force_type = 2  # null drag (0), standard (1), Weatherford (2), Ganser (3)
+ProjectParameters.virtual_mass_force_type = 0  # null virtual mass force (0)
+ProjectParameters.lift_force_type = 0  # null lift force (0)
+ProjectParameters.drag_modifier_type = 3  # Hayder (2), Chien (3)  # problemtype option
+ProjectParameters.interaction_start_time = 0.00
+ProjectParameters.max_solid_fraction = 0.6
+ProjectParameters.gel_strength = 0.0   # problemtype option
+ProjectParameters.power_law_n = 0.0   # problemtype option
+ProjectParameters.power_law_k = 0.0   # problemtype option
+ProjectParameters.initial_drag_force = 0.0   # problemtype option
+ProjectParameters.drag_law_slope = 0.0   # problemtype option
+ProjectParameters.power_law_tol = 0.0
+ProjectParameters.model_over_real_diameter_factor = 1.0  # not active if similarity_transformation_type = 0
+ProjectParameters.max_pressure_variation_rate_tol = 1e-3  # for stationary problems, criterion to stop the fluid calculations
+ProjectParameters.time_steps_per_stationarity_step = 15  # number of fluid time steps between consecutive assessment of stationarity steps
 
 # variables to be printed
-ProjectParameters.dem_nodal_results                = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED", "REYNOLDS_NUMBER"]
-ProjectParameters.mixed_nodal_results              = ["VELOCITY", "DISPLACEMENT"]
-ProjectParameters.variables_to_print_in_file       = ["DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "VELOCITY"]
+ProjectParameters.dem_nodal_results = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED", "REYNOLDS_NUMBER"]
+ProjectParameters.mixed_nodal_results = ["VELOCITY", "DISPLACEMENT"]
+ProjectParameters.variables_to_print_in_file = ["DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "VELOCITY"]
 
 # changes on PROJECT PARAMETERS for the sake of consistency
 ProjectParameters.nodal_results.append("SOLID_FRACTION")
@@ -242,13 +245,13 @@ ProjectParameters.nodal_results.append("MESH_VELOCITY1")
 ProjectParameters.nodal_results.append("BODY_FORCE")
 ProjectParameters.nodal_results.append("DRAG_REACTION")
 
-#EMBEDDED
+# EMBEDDED
 ProjectParameters.nodal_results.append("DISTANCE")
-######EMBEDDED
+# EMBEDDED
 
 DEMParameters.project_from_particles_option *= ProjectParameters.projection_module_option
 ProjectParameters.project_at_every_substep_option *= ProjectParameters.projection_module_option
-ProjectParameters.time_steps_per_stationarity_step = max(1, int(ProjectParameters.time_steps_per_stationarity_step)) # it should never be smaller than 1!
+ProjectParameters.time_steps_per_stationarity_step = max(1, int(ProjectParameters.time_steps_per_stationarity_step))  # it should never be smaller than 1!
 ProjectParameters.stationary_problem_option *= not DEMParameters.project_from_particles_option
 
 for var in ProjectParameters.mixed_nodal_results:
@@ -260,14 +263,14 @@ for var in ProjectParameters.mixed_nodal_results:
 fluid_variables_to_add = [PRESSURE_GRADIENT,
                           AUX_DOUBLE_VAR,
                           DRAG_REACTION,
-                          SOLID_FRACTION,                          
+                          SOLID_FRACTION,
                           MESH_VELOCITY1,
                           YIELD_STRESS,
                           BINGHAM_SMOOTHER,
                           POWER_LAW_N,
                           POWER_LAW_K,
                           GEL_STRENGTH,
-                          DISTANCE] # <- REQUIRED BY EMBEDDED
+                          DISTANCE]  # <- REQUIRED BY EMBEDDED
 
 balls_variables_to_add = [FLUID_VEL_PROJECTED,
                           FLUID_DENSITY_PROJECTED,
@@ -278,37 +281,36 @@ balls_variables_to_add = [FLUID_VEL_PROJECTED,
                           DRAG_FORCE,
                           LIFT_FORCE,
                           BUOYANCY,
-                          SOLID_FRACTION_PROJECTED,                         
+                          SOLID_FRACTION_PROJECTED,
                           REYNOLDS_NUMBER,
                           GEL_STRENGTH,
                           SHEAR_RATE_PROJECTED,
                           FLUID_VORTICITY_PROJECTED,
-                          DISTANCE] # <- REQUIRED BY EMBEDDED
+                          DISTANCE]  # <- REQUIRED BY EMBEDDED
 
 fem_dem_variables_to_add = [VELOCITY,
                             DISPLACEMENT,
-                            FORCE, # <- REQUIRED BY EMBEDDED
-                            POSITIVE_FACE_PRESSURE, # <- REQUIRED BY EMBEDDED
-                            NEGATIVE_FACE_PRESSURE] # <- REQUIRED BY EMBEDDED
-                            
+                            FORCE,  # <- REQUIRED BY EMBEDDED
+                            POSITIVE_FACE_PRESSURE,  # <- REQUIRED BY EMBEDDED
+                            NEGATIVE_FACE_PRESSURE]  # <- REQUIRED BY EMBEDDED
 
 
 DEM_inlet_variables_to_add = balls_variables_to_add
 
 # constructing a DEM_procedures object
 dem_procedures = DEM_procedures.Procedures(DEMParameters)
-##AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 # defining variables to be used
 # GID IO IS NOT USING THIS NOW. TO BE REMOVED ONCE THE "PRINT IN POINTS"
 # CODE IS NOT USING IT
 
-variables_dictionary = {"PRESSURE"   : PRESSURE,
-                        "VELOCITY"   : VELOCITY,
-                        "MU"         : MU,         #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-                        "BUOYANCY"   : BUOYANCY,   #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-                        "DRAG_FORCE" : DRAG_FORCE,  #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-                        "LIFT_FORCE" : LIFT_FORCE} #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+variables_dictionary = {"PRESSURE": PRESSURE,
+                        "VELOCITY": VELOCITY,
+                        "MU": MU,  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+                        "BUOYANCY": BUOYANCY,  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+                        "DRAG_FORCE": DRAG_FORCE,  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+                        "LIFT_FORCE": LIFT_FORCE}  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 #                        "REACTION": REACTION,
 #                        "DISTANCE": DISTANCE, }
 
@@ -328,11 +330,11 @@ solver_module = import_solver(SolverSettings)
 
 #
 # importing variables
-print 'Adding nodal variables to the fluid_model_part' #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+print('Adding nodal variables to the fluid_model_part')  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
 # caution with breaking up this block! # (memory allocation) {
 solver_module.AddVariables(fluid_model_part, SolverSettings)
-swimming_DEM_procedures.AddNodalVariables(fluid_model_part, fluid_variables_to_add) #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+swimming_DEM_procedures.AddNodalVariables(fluid_model_part, fluid_variables_to_add)  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 # }
 
 # introducing input file name
@@ -342,11 +344,11 @@ input_file_name = ProjectParameters.problem_name
 model_part_io_fluid = ModelPartIO(input_file_name)
 model_part_io_fluid.ReadModelPart(fluid_model_part)
 
-#SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+# SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
 
 for node in fluid_model_part.Nodes:
-    first_node_yield_stress     = node.GetSolutionStepValue(YIELD_STRESS)
+    first_node_yield_stress = node.GetSolutionStepValue(YIELD_STRESS)
     break
 
 if(first_node_yield_stress == 0.0):
@@ -357,11 +359,11 @@ if(first_node_yield_stress == 0.0):
 balls_model_part = ModelPart("SolidPart")
 fem_dem_model_part = ModelPart("RigidFace_Part");
 
-print 'Adding nodal variables to the balls_model_part' # (memory allocation)
+print('Adding nodal variables to the balls_model_part')  # (memory allocation)
 
 swimming_DEM_procedures.AddNodalVariables(balls_model_part, balls_variables_to_add)
 
-print 'Adding nodal variables to the dem_fem_wall_model_part' # (memory allocation)
+print('Adding nodal variables to the dem_fem_wall_model_part')  # (memory allocation)
 
 swimming_DEM_procedures.AddNodalVariables(fem_dem_model_part, fem_dem_variables_to_add)
 
@@ -389,7 +391,7 @@ balls_model_part.ProcessInfo.SetValue(BUOYANCY_FORCE_TYPE, ProjectParameters.buo
 balls_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, ProjectParameters.drag_force_type)
 balls_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.virtual_mass_force_type)
 balls_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.lift_force_type)
-#balls_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, non_newtonian_option)
+# balls_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, non_newtonian_option)
 balls_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, ProjectParameters.manually_imposed_drag_law_option)
 balls_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, ProjectParameters.drag_modifier_type)
 balls_model_part.ProcessInfo.SetValue(GEL_STRENGTH, ProjectParameters.gel_strength)
@@ -399,30 +401,30 @@ balls_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, ProjectParameters.initial
 balls_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, ProjectParameters.drag_law_slope)
 balls_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, ProjectParameters.power_law_tol)
 
-#EMBEDDED
-#Calculate elemental distances defining the structure embedded in the fluid mesh
-calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part,fluid_model_part)
+# EMBEDDED
+# Calculate elemental distances defining the structure embedded in the fluid mesh
+calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part, fluid_model_part)
 calculate_distance_process.Execute()
 
 # Write mesh of each partitioned model part --> create a cut model part, which gets all the nodes, elements and conditions
-#new_skin_model_part = ModelPart("SkinPart");   
-#calculate_distance_process.GenerateSkinModelPart(new_skin_model_part)
-#print new_skin_model_part
+# new_skin_model_part = ModelPart("SkinPart");
+# calculate_distance_process.GenerateSkinModelPart(new_skin_model_part)
+# print new_skin_model_part
 
 # initialize GiD  I/O
-#gid_mode_skin = GiDPostMode.GiD_PostAscii
-#write_conditions_skin = WriteConditionsFlag.WriteConditions
-#multifile = MultiFileFlag.SingleFile
-#deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
-#gid_io_skin = GidIO("skin_part",gid_mode_skin,multifile,deformed_mesh_flag, write_conditions_skin)
+# gid_mode_skin = GiDPostMode.GiD_PostAscii
+# write_conditions_skin = WriteConditionsFlag.WriteConditions
+# multifile = MultiFileFlag.SingleFile
+# deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
+# gid_io_skin = GidIO("skin_part",gid_mode_skin,multifile,deformed_mesh_flag, write_conditions_skin)
 
 # mesh to be printed (single mesh case)
-#gid_io_skin.InitializeMesh( 0.0 )
-#gid_io_skin.WriteMesh( new_skin_model_part.GetMesh() )
-#gid_io_skin.FinalizeMesh()
-#######EMBEDDED
+# gid_io_skin.InitializeMesh( 0.0 )
+# gid_io_skin.WriteMesh( new_skin_model_part.GetMesh() )
+# gid_io_skin.FinalizeMesh()
+# EMBEDDED
 
-#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 
 # setting up the buffer size: SHOULD BE DONE AFTER READING!!!
@@ -432,7 +434,7 @@ fluid_model_part.SetBufferSize(3)
 solver_module.AddDofs(fluid_model_part, SolverSettings)
 
 # If Lalplacian form = 2, free all pressure Dofs
-#laplacian_form = ProjectParameters.laplacian_form
+# laplacian_form = ProjectParameters.laplacian_form
 # if(laplacian_form >= 2):
     # for node in fluid_model_part.Nodes:
         # node.Free(PRESSURE)
@@ -464,7 +466,7 @@ if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmar
     # select nodes on the wall
     fluid_solver.wall_nodes = []
     for i in SolverSettings.SA_wall_group_ids:
-        ##get the nodes of the wall for SA.
+        # get the nodes of the wall for SA.
         nodes = fluid_model_part.GetNodes(i)
         for node in nodes:
             fluid_solver.wall_nodes.append(node)
@@ -473,7 +475,7 @@ if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmar
 
 
 fluid_solver.Initialize()
-print "fluid solver created"
+print("fluid solver created")
 
 # initialize GiD  I/O
 from gid_output import GiDOutput
@@ -493,7 +495,7 @@ if not ProjectParameters.VolumeOutput:
 # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 import swimming_DEM_gid_output
 swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(input_file_name,
-                   ProjectParameters.VolumeOutput,
+                                                                   ProjectParameters.VolumeOutput,
                    ProjectParameters.GiDPostMode,
                    ProjectParameters.GiDMultiFileFlag,
                    ProjectParameters.GiDWriteMeshFlag,
@@ -514,12 +516,13 @@ for it in drag_list:
     f.write(tmp)
     f.flush()
 
-print drag_file_output_list
+print(drag_file_output_list)
+
 
 def PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time):
     i = 0
     for it in drag_list:
-        print it[0]
+        print(it[0])
         nodes = fluid_model_part.GetNodes(it[0])
         drag = Vector(3)
         drag[0] = 0.0
@@ -550,7 +553,7 @@ graph_printer = point_graph_printer.PrintGraphPrinter(
     variables_dictionary,
     domain_size)
 
-#SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+# SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 # applying changes to the physiscal properties of the model to adjust for
 # the similarity transformation if required (fluid effects only).
 swimming_DEM_procedures.ApplySimilarityTransformations(fluid_model_part, ProjectParameters.similarity_transformation_type, ProjectParameters.model_over_real_diameter_factor)
@@ -572,7 +575,7 @@ n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume))
 
 if (ProjectParameters.projection_module_option):
     projection_module = swimming_DEM_procedures.ProjectionModule(fluid_model_part, balls_model_part, fem_dem_model_part, domain_size, ProjectParameters.max_solid_fraction, ProjectParameters.coupling_weighing_type, n_particles_in_depth)
-    #to do: the projection module should be created with a list of variables to be projected (one list for every direction)
+    # to do: the projection module should be created with a list of variables to be projected (one list for every direction)
     projection_module.UpdateDatabase(h_min)
     interaction_calculator = CustomFunctionsCalculator()
 
@@ -611,7 +614,7 @@ if (ProjectParameters.inlet_option):
     DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_FORCE_TYPE, ProjectParameters.drag_force_type)
     DEM_inlet_model_part.ProcessInfo.SetValue(VIRTUAL_MASS_FORCE_TYPE, ProjectParameters.virtual_mass_force_type)
     DEM_inlet_model_part.ProcessInfo.SetValue(LIFT_FORCE_TYPE, ProjectParameters.lift_force_type)
-    #DEM_inlet_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, non_newtonian_option)
+    # DEM_inlet_model_part.ProcessInfo.SetValue(NON_NEWTONIAN_OPTION, non_newtonian_option)
     DEM_inlet_model_part.ProcessInfo.SetValue(MANUALLY_IMPOSED_DRAG_LAW_OPTION, ProjectParameters.manually_imposed_drag_law_option)
     DEM_inlet_model_part.ProcessInfo.SetValue(DRAG_MODIFIER_TYPE, ProjectParameters.drag_modifier_type)
     DEM_inlet_model_part.ProcessInfo.SetValue(GEL_STRENGTH, ProjectParameters.gel_strength)
@@ -625,11 +628,11 @@ if (ProjectParameters.inlet_option):
     DEM_inlet = DEM_Inlet(DEM_inlet_model_part)
     DEM_inlet.InitializeDEM_Inlet(balls_model_part, creator_destructor)
 
-#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 # renumerating IDs if required
 
-#swimming_DEM_procedures.RenumberNodesIdsToAvoidRepeating(fluid_model_part, balls_model_part, fem_dem_model_part)
+# swimming_DEM_procedures.RenumberNodesIdsToAvoidRepeating(fluid_model_part, balls_model_part, fem_dem_model_part)
 
 # Stepping and time settings
 
@@ -642,22 +645,22 @@ time = ProjectParameters.Start_time
 out = Dt
 step = 0
 
-#SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+# SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 time_dem = 0.0
-DEM_step = 0 # this variable is necessary to get a good random insertion of particles
+DEM_step = 0  # this variable is necessary to get a good random insertion of particles
 stat_steps = 0
 Dt_DEM = DEMParameters.MaxTimeStep
 stationarity = False
 dem_solver.Initialize()
-#AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+# AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 while(time <= final_time):
-    
+
     time = time + Dt
     step += 1
     stat_steps += 1
     fluid_model_part.CloneTimeStep(time)
-    print "\n", "TIME = ", time
+    print("\n", "TIME = ", time)
 
     if (ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
         time_final_DEM_substepping = time + Dt
@@ -667,37 +670,37 @@ while(time <= final_time):
         time_final_DEM_substepping = time
         time_dem = time - Dt + Dt_DEM
 
-    #EMBEDDED
-    MoveEmbeddedStructure(fem_dem_model_part,time)
-    #Calculate elemental distances defining the structure embedded in the fluid mesh
-    calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part,fluid_model_part)
+    # EMBEDDED
+    MoveEmbeddedStructure(fem_dem_model_part, time)
+    # Calculate elemental distances defining the structure embedded in the fluid mesh
+    calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part, fluid_model_part)
     calculate_distance_process.Execute()
-    
-    if(step>=3): #MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
+
+    if(step >= 3):  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
         ApplyEmbeddedBCsToFluid(fluid_model_part)
         ApplyEmbeddedBCsToBalls(balls_model_part)
-    #########EMBEDDED
+    # EMBEDDED
 
-    # solving the fluid part    
+    # solving the fluid part
 
     if (step >= 3 and not stationarity):
-        print "Solving Fluid... (", fluid_model_part.NumberOfElements(0), " elements )"        
+        print("Solving Fluid... (", fluid_model_part.NumberOfElements(0), " elements )")
         fluid_solver.Solve()
 
     # assessing stationarity
 
         if (stat_steps >= ProjectParameters.time_steps_per_stationarity_step and ProjectParameters.stationary_problem_option):
-            print "Assessing Stationarity..."
+            print("Assessing Stationarity...")
             stat_steps = 0
-            stationarity = interaction_calculator.AssessStationarity(fluid_model_part, ProjectParameters.max_pressure_variation_rate_tol) # in the first time step the 'old' pressure vector is created and filled
+            stationarity = interaction_calculator.AssessStationarity(fluid_model_part, ProjectParameters.max_pressure_variation_rate_tol)  # in the first time step the 'old' pressure vector is created and filled
 
             if (stationarity):
-                print "**************************************************************************************************"
-                print
-                print "The model has reached a stationary state. The fluid calculation is suspended."
-                print
-                print "**************************************************************************************************"
-        
+                print("**************************************************************************************************")
+                print()
+                print("The model has reached a stationary state. The fluid calculation is suspended.")
+                print()
+                print("**************************************************************************************************")
+
     # printing if required
 
     if (ProjectParameters.print_particles_results_option):
@@ -723,21 +726,21 @@ while(time <= final_time):
     # solving the DEM part
 
     if (time >= ProjectParameters.interaction_start_time and ProjectParameters.projection_module_option):
-        interaction_calculator.CalculatePressureGradient(fluid_model_part)                 
+        interaction_calculator.CalculatePressureGradient(fluid_model_part)
 
-    print "Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)"
+    print("Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)")
     first_dem_iter = True
     Dt_DEM_tolerance = 1e-9
-      
-    while time_dem < (time_final_DEM_substepping + Dt_DEM ) :
-      
+
+    while time_dem < (time_final_DEM_substepping + Dt_DEM):
+
         if time_dem > time_final_DEM_substepping - Dt_DEM_tolerance:
             time_dem = time_final_DEM_substepping
-            
-        DEM_step += 1   # this variable is necessary to get a good random insertion of particles        
-        
+
+        DEM_step += 1   # this variable is necessary to get a good random insertion of particles
+
         balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
-                
+
         # applying fluid-to-DEM coupling if required
 
         if (time >= ProjectParameters.interaction_start_time and ProjectParameters.projection_module_option and (ProjectParameters.project_at_every_substep_option or first_dem_iter)):
@@ -751,19 +754,19 @@ while(time <= final_time):
         # performing the time integration of the DEM part
 
         balls_model_part.CloneTimeStep(time_dem)
-        
-        #actual_Dt_DEM = balls_model_part.ProcessInfo[DELTA_TIME] #uncomment if you want to use the actual Dt for the DEM (obtained by CloneTimeStep)
-        #print "actual_Dt_DEM = ", actual_Dt_DEM
+
+        # actual_Dt_DEM = balls_model_part.ProcessInfo[DELTA_TIME] #uncomment if you want to use the actual Dt for the DEM (obtained by CloneTimeStep)
+        # print "actual_Dt_DEM = ", actual_Dt_DEM
 
         dem_solver.Solve()
 
         # adding DEM elements by the inlet
 
         if (ProjectParameters.inlet_option):
-            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, ProjectParameters.dem_inlet_element_type) #After solving, to make sure that neighbours are already set.
+            DEM_inlet.CreateElementsFromInletMesh(balls_model_part, DEM_inlet_model_part, creator_destructor, ProjectParameters.dem_inlet_element_type)  # After solving, to make sure that neighbours are already set.
 
         first_dem_iter = False
-        
+
         time_dem += Dt_DEM
 
     # measuring mean velocities in a certain control volume (the 'velocity trap')
@@ -774,7 +777,7 @@ while(time <= final_time):
     # applying DEM-to-fluid coupling
 
     if (time >= ProjectParameters.interaction_start_time and DEMParameters.project_from_particles_option):
-        print "Projecting from particles to the fluid..."
+        print("Projecting from particles to the fluid...")
         projection_module.ProjectFromParticles()
 
     # printing if required
@@ -783,14 +786,14 @@ while(time <= final_time):
         io_tools.PrintParticlesResults(ProjectParameters.variables_to_print_in_file, time, balls_model_part)
         graph_printer.PrintGraphs(time)
         PrintDrag(drag_list, drag_file_output_list, fluid_model_part, time)
-        
+
     if (output_time <= out and ProjectParameters.coupling_scheme_type == "UpdatedFluid"):
-        
+
         if (ProjectParameters.projection_module_option):
-            projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo) 
-            
-        print ""
-        print "*******************  PRINTING RESULTS FOR GID  ***************************" 
+            projection_module.ComputePostProcessResults(balls_model_part.ProcessInfo)
+
+        print("")
+        print("*******************  PRINTING RESULTS FOR GID  ***************************")
 
         if (ProjectParameters.GiDMultiFileFlag == "Multiples"):
             mixed_model_part.Elements.clear()
@@ -803,20 +806,20 @@ while(time <= final_time):
         out = 0
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
-#       gid_io.write_results(  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-#           time,               # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-#           fluid_model_part,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-#           ProjectParameters.nodal_results,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-#           ProjectParameters.gauss_points_results)    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+# gid_io.write_results(  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+# time,               # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+# fluid_model_part,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+# ProjectParameters.nodal_results,    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+# ProjectParameters.gauss_points_results)    # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 
         out = 0
 
     out = out + Dt
 
-#gid_io.finalize_results()  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+# gid_io.finalize_results()  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 swimming_DEM_gid_io.finalize_results()
 
-print "CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY."
+print("CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
 
 for i in drag_file_output_list:
     i.close()

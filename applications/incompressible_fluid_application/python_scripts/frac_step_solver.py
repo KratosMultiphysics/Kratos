@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.MeshingApplication import *
@@ -24,7 +25,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE)
     model_part.AddNodalSolutionStepVariable(ARRHENIUS)
 
-    print "variables for the frac step fluid solver added correctly"
+    print("variables for the frac step fluid solver added correctly")
 
 
 def AddDofs(model_part):
@@ -38,7 +39,7 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_Y)
         node.AddDof(VELOCITY_Z)
 
-    print "dofs for the frac step fluid solver added correctly"
+    print("dofs for the frac step fluid solver added correctly")
 
 
 def ReadRestartFile(FileName, nodes):
@@ -79,7 +80,7 @@ class FracStepSolver:
         # definition of the solvers
         pDiagPrecond = DiagonalPreconditioner()
         self.velocity_linear_solver = BICGSTABSolver(1e-6, 5000, pDiagPrecond)
-        #self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
+        # self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
 
         self.dynamic_tau = 0.001
         self.activate_tau2 = False
@@ -126,32 +127,32 @@ class FracStepSolver:
                                        self.predictor_corrector)
 
         (self.solver).SetEchoLevel(self.echo_level)
-        print "finished initialization of the fluid strategy"
+        print("finished initialization of the fluid strategy")
 
     def Solve(self):
 
         self.timer.Start("Update Fixed Velocity Values")
         (self.solver).Solve()
-        #self.timer.Stop("Update Fixed Velocity Values")
-        print "####################"
-        print "####################"
+        # self.timer.Stop("Update Fixed Velocity Values")
+        print("####################")
+        print("####################")
 
-        print self.timer.Stop("Update Fixed Velocity Values")
-        print self.timer
-        print "####################"
-        print "####################"
+        print(self.timer.Stop("Update Fixed Velocity Values"))
+        print(self.timer)
+        print("####################")
+        print("####################")
 
     def solve1(self):
 
         self.timer.Start("primero")
-        print self.model_part
+        print(self.model_part)
         (self.solver).SolveStep3()
         self.timer.Stop("primero")
 
     def solve2(self):
 
         self.timer.Start("segundo")
-        print self.model_part
+        print(self.model_part)
         (self.solver).SolveStep4()
         self.timer.Stop("segundo")
 
@@ -159,8 +160,8 @@ class FracStepSolver:
 
         self.timer.Start("reactions")
         # sssssssssss
-        print "ssssssssssssssssssssssssssss"
-        print self.model_part
+        print("ssssssssssssssssssssssssssss")
+        print(self.model_part)
         (self.solver).Compute()
         self.timer.Stop("reactions")
 

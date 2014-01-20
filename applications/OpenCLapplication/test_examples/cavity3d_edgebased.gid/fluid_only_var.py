@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 domain_size = 3
 
 Dt = 0.01
@@ -11,6 +12,6 @@ use_oss = 0
 dynamic_tau = 0.001
 # Declare Python Variables
 
-problem_name="cavity3d_edgebased"
-problem_path="/home/rrossi/esempi/cavity3d_edgebased.gid"
-kratos_path="../../../.."
+problem_name = "cavity3d_edgebased"
+problem_path = "/home/rrossi/esempi/cavity3d_edgebased.gid"
+kratos_path = "../../../.."

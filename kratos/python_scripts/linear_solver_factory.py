@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 
 #
@@ -16,7 +17,7 @@ def ConstructPreconditioner(configuration):
             elif(preconditioner_type == "ILU0Preconditioner"):
                 return ILU0Preconditioner()
             else:
-                print "Preconditioner type not found. Returning None"
+                print("Preconditioner type not found. Returning None")
                 return None
     else:
         return None
@@ -114,25 +115,25 @@ def ConstructSolver(configuration):
         if(hasattr(configuration, "gmres_krylov_space_dimension")):
             restart = configuration.gmres_krylov_space_dimension
         else:
-            print "WARNING: restart not specitifed, setting it to the number of iterations"
+            print("WARNING: restart not specitifed, setting it to the number of iterations")
             restart = max_it
 
         if(hasattr(configuration, "DropTol")):
             DropTol = configuration.DropTol
         else:
-            print "WARNING: DropTol not specified, setting it to 1e-4"
+            print("WARNING: DropTol not specified, setting it to 1e-4")
             DropTol = 1e-4
 
         if(hasattr(configuration, "FillTol")):
             FillTol = configuration.FillTol
         else:
-            print "WARNING: FillTol not specified, setting it to 1e-2"
+            print("WARNING: FillTol not specified, setting it to 1e-2")
             FillTol = 1e-2
 
         if(hasattr(configuration, "ilu_level_of_fill")):
             ilu_level_of_fill = configuration.ilu_level_of_fill
         else:
-            print "WARNING: level of fill not specified, setting it to 10"
+            print("WARNING: level of fill not specified, setting it to 10")
             ilu_level_of_fill = 10
         linear_solver = KratosMultiphysics.ExternalSolversApplication.SuperLUIterativeSolver(
             tol, max_it, restart, DropTol, FillTol, ilu_level_of_fill)
@@ -166,7 +167,7 @@ def ConstructSolver(configuration):
         import KratosMultiphysics.ExternalSolversApplication
         if hasattr(configuration, 'preconditioner_type'):
             if(configuration.preconditioner_type != "None"):
-                print "WARNING: preconditioner specified in preconditioner_type will not be used as it is not compatible with the AMGCL solver"
+                print("WARNING: preconditioner specified in preconditioner_type will not be used as it is not compatible with the AMGCL solver")
 
         max_it = configuration.max_iteration
         tol = configuration.tolerance
@@ -184,10 +185,10 @@ def ConstructSolver(configuration):
             elif(smoother_type == "SPAI0"):
                 amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.SPAI0
             else:
-                print "ERROR: smoother_type shall be one of ILU0, DAMPED_JACOBI, SPAI0"
+                print("ERROR: smoother_type shall be one of ILU0, DAMPED_JACOBI, SPAI0")
                 return None
         else:
-            print "WARNING: smoother_type not prescribed for AMGCL solver, setting it to ILU0"
+            print("WARNING: smoother_type not prescribed for AMGCL solver, setting it to ILU0")
             amgcl_smoother = KratosMultiphysics.ExternalSolversApplication.AMGCLSmoother.ILU0
 
         if hasattr(configuration, 'krylov_type'):
@@ -199,10 +200,10 @@ def ConstructSolver(configuration):
             elif(krylov_type == "CG"):
                 amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.CG
             else:
-                print "ERROR: krylov_type shall be one of GMRES, BICGSTAB, CG"
+                print("ERROR: krylov_type shall be one of GMRES, BICGSTAB, CG")
                 return None
         else:
-            print "WARNING: krylov_type not prescribed for AMGCL solver, setting it to GMRES"
+            print("WARNING: krylov_type not prescribed for AMGCL solver, setting it to GMRES")
             amgcl_krylov_type = KratosMultiphysics.ExternalSolversApplication.AMGCLIterativeSolverType.GMRES
 
         if hasattr(configuration, 'gmres_krylov_space_dimension'):
@@ -217,21 +218,21 @@ def ConstructSolver(configuration):
         linear_solver = KratosMultiphysics.MKLSolversApplication.ParallelMKLPardisoSolver(
         )
     else:
-        print "*****************************************************************"
-        print "Inexisting solver type. Possibilities are:"
-        print "Conjugate gradient"
-        print "BiConjugate gradient stabilized"
-        print "GMRES"
-        print "Deflated Conjugate gradient"
-        print "AMGCL"
-        print "GMRES-UP Block"
-        print "Skyline LU factorization"
-        print "Super LU (requires ExternalSolversApplication)"
-        print "SuperLUIterativeSolver (requires ExternalSolversApplication)"
-        print "PastixDirect (requires ExternalSolversApplication + shall be habilitated at compilation time)"
-        print "PastixIterative (requires ExternalSolversApplication + shall be habilitated at compilation time)"
-        print "Parallel MKL Pardiso (requires MKLSolversApplication)"
-        print "*****************************************************************"
+        print("*****************************************************************")
+        print("Inexisting solver type. Possibilities are:")
+        print("Conjugate gradient")
+        print("BiConjugate gradient stabilized")
+        print("GMRES")
+        print("Deflated Conjugate gradient")
+        print("AMGCL")
+        print("GMRES-UP Block")
+        print("Skyline LU factorization")
+        print("Super LU (requires ExternalSolversApplication)")
+        print("SuperLUIterativeSolver (requires ExternalSolversApplication)")
+        print("PastixDirect (requires ExternalSolversApplication + shall be habilitated at compilation time)")
+        print("PastixIterative (requires ExternalSolversApplication + shall be habilitated at compilation time)")
+        print("Parallel MKL Pardiso (requires MKLSolversApplication)")
+        print("*****************************************************************")
         raise RuntimeError(" Wrong Solver Definition ")
     # else:
         # except LogicError:
