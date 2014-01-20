@@ -7,7 +7,7 @@ from . import kratos_globals
 from .kratos_utilities import *
 
 # this adds the libs/ and applications/ folders to sys.path
-import KratosLoader
+from . import KratosLoader
 
 # import core library (Kratos.so)
 from Kratos import *
