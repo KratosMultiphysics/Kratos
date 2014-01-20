@@ -333,29 +333,3 @@ class ModelerUtility:
                 self.remesh_step = self.remesh_step + self.remesh_frequency
 
     #
-    def RemeshDomainsWithWall(self, current_step, rigid_wall):
-
-        if(self.remesh_domains):
-            if(current_step == self.remesh_step):
-                if(self.contact_search):
-                    self.ContactTransfer()
-
-                self.SetRigidWall(rigid_wall);
-                print("MESH DOMAIN")
-                self.mesh_modeler.GenerateMesh(self.model_part);
-                self.remesh_executed = True
-
-                self.remesh_step = self.remesh_step + self.remesh_frequency
-
-    #
-    def SetRigidWall(self, rigid_wall):
-
-        rigid_wall_active = rigid_wall.RigidWallActive()
-
-        # if rigid walls are present
-        if(rigid_wall_active):
-            center = rigid_wall.RigidWallCenter()
-            tip_radius = rigid_wall.RigidWallTipRadius()
-            self.mesh_modeler.SetWallTip(tip_radius, center);
-
-    #

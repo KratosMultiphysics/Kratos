@@ -79,7 +79,6 @@ namespace Kratos
     mVariables[MeshId].offset_factor =my_offset;
 
     mVariables[MeshId].refine         = false;
-    mVariables[MeshId].WallTip.is_set = false;
     mVariables[MeshId].BoundingBox.is_set = false;
 
     std::cout<<" SetRemeshData : [ refine: "<<mVariables[MeshId].refine<<" - "<<mVariables[MeshId].refine<<" remesh : "<<mVariables[MeshId].remesh<<" - "<<mVariables[MeshId].remesh<<" ] "<<std::endl;
@@ -123,21 +122,7 @@ namespace Kratos
 
   }
 
-  //*******************************************************************************************
-  //*******************************************************************************************
 
-  void TriangleMesh2DModeler::SetWallTip (double radius,
-					  Vector center)
-    
-  {
-    for(unsigned int i=0; i<mVariables.size(); i++)
-      {
-	mVariables[i].WallTip.is_set =true;
-	mVariables[i].WallTip.Radius=radius;
-	mVariables[i].WallTip.Center=center;
-	//std::cout<<" Center "<<mVariables[i].TipCenter<<std::endl;
-      }
-  }
 
   //*******************************************************************************************
   //*******************************************************************************************
@@ -2839,10 +2824,6 @@ namespace Kratos
 
 	std::cout<<"   List of Conditions Reserved Size: "<<conditions_size<<std::endl;
 
-	bool tool_set = false;
-	if(rVariables.WallTip.is_set)
-	  tool_set=true;
-
 	double alpha_radius = 0.6;
 	double tool_radius= 0;
 	double side_length= 0;
@@ -2907,21 +2888,14 @@ namespace Kratos
 
 		    rConditionGeom  = MasterCondition->GetGeometry(); 
 
-		    //to recover TIP definition on conditions
-		    tool_radius  = MasterNode.FastGetSolutionStepValue( WALL_TIP_RADIUS );
+		    //to recover TIP definition on conditions   
 			  
-		    if(tool_radius>=1e-6) //master node in tool -->  refine workpiece  // 
+		    if( MasterNode.SolutionStepsDataHas( WALL_TIP_RADIUS ) ) //master node in tool -->  refine workpiece  // 
 		      {
 			    
-			tip_center = MasterNode.FastGetSolutionStepValue( WALL_REFERENCE_POINT );
-			    
-			if(!tool_set){
-			  rVariables.WallTip.Radius=tool_radius;
-			  rVariables.WallTip.Center=tip_center;
-			  //std::cout<<" rVariables.WallTip.Radius "<<rVariables.WallTip.Radius<<" rVariables.WallTip.Center "<<rVariables.WallTip.Center<<std::endl;
-			  tool_set=true;
-			}
-			    
+			tool_radius = MasterNode.FastGetSolutionStepValue( WALL_TIP_RADIUS );
+			tip_center  = MasterNode.FastGetSolutionStepValue( WALL_REFERENCE_POINT );
+			    					    
 			PointType center (0,tip_center[0],tip_center[1],tip_center[2]);
 			array_1d<double, 3 > radius;
 			radius[0]=rConditionGeom[0].X()-center.X();
@@ -3186,11 +3160,6 @@ namespace Kratos
 
 		    std::cout<<"   rigid {side_length "<<side_length<<" > critical_side "<<rVariables.Refine.critical_side*tip_correction<<"} "<<std::endl;
 
-		    //to recover TIP definition on conditions
-		    if(tool_set)
-		      tool_radius  = rVariables.WallTip.Radius;
-		    else
-		      std::cout<<"   Tip not set "<<std::endl;
 
 		    bool on_tip = false;
 		    if(rConditionGeom[0].Is(TO_SPLIT) && rConditionGeom[1].Is(TO_SPLIT)){
@@ -3202,14 +3171,25 @@ namespace Kratos
 		      }
 		    }		  
 
+		    bool on_radius = false;
+		    if( on_tip ){
+		      if(rConditionGeom[0].SolutionStepsDataHas( WALL_TIP_RADIUS )){
+			tool_radius = rConditionGeom[0].FastGetSolutionStepValue( WALL_TIP_RADIUS );
+			tip_center  = rConditionGeom[0].FastGetSolutionStepValue( WALL_REFERENCE_POINT );
+			on_radius = true;
+		      }
+		      else if(rConditionGeom[1].SolutionStepsDataHas( WALL_TIP_RADIUS )){
+			tool_radius = rConditionGeom[1].FastGetSolutionStepValue( WALL_TIP_RADIUS );
+			tip_center  = rConditionGeom[1].FastGetSolutionStepValue( WALL_REFERENCE_POINT );
+			on_radius = true;
+		      }
+		      else{
+			on_radius = false;
+		      }
+		    }		  
 						
-		    if(tool_radius!=0 && on_tip) //master node in tool -->  refine workpiece  // (tool_radius ==0 in workpiece nodes)
+		    if( on_radius && on_tip ) //master node in tool -->  refine workpiece  // (tool_radius ==0 in workpiece nodes)
 		      {
-			//if(tool_set)
-			tip_center  = rVariables.WallTip.Center;
-			//else
-			//std::cout<<" Tip not set "<<std::endl;
-
 			PointType center (0,tip_center[0],tip_center[1],tip_center[2]);
 			array_1d<double, 3 > radius;
 			radius[0]=rConditionGeom[0].X()-center.X();
@@ -3239,14 +3219,14 @@ namespace Kratos
 					      
 		      }
 		    else{
-		      if(tool_radius!=0)
-			std::cout<<" Tool_radius "<<tool_radius<<std::endl;
+
+		      std::cout<<" Condition is not in wall Tip "<<std::endl;
+
 		      if(rConditionGeom[0].IsNot(TO_SPLIT))
 			std::cout<<" Node 0 not tool tip "<<rConditionGeom[0].Id()<<std::endl;
 			    
 		      if(rConditionGeom[1].IsNot(TO_SPLIT))
 			std::cout<<" Node 1 not tool tip "<<rConditionGeom[1].Id()<<std::endl;
-
 
 		    }
 			  
@@ -3361,12 +3341,24 @@ namespace Kratos
 
 		    if(tool_project){
 			  
-		      if(tool_set){
+		      bool on_radius = false;
+		      if(rConditionGeom[0].SolutionStepsDataHas( WALL_TIP_RADIUS )){
+			tool_radius = rConditionGeom[0].FastGetSolutionStepValue( WALL_TIP_RADIUS );
+			tip_center  = rConditionGeom[0].FastGetSolutionStepValue( WALL_REFERENCE_POINT );
+			on_radius = true;
+		      }
+		      else if(rConditionGeom[1].SolutionStepsDataHas( WALL_TIP_RADIUS )){
+			tool_radius = rConditionGeom[1].FastGetSolutionStepValue( WALL_TIP_RADIUS );
+			tip_center  = rConditionGeom[1].FastGetSolutionStepValue( WALL_REFERENCE_POINT );
+			on_radius = true;
+		      }
+		      else{
+			on_radius = false;
+		      }
+		      
 
-			//std::cout<<" rVariables.WallTip.Radius "<<rVariables.WallTip.Radius<<" rVariables.WallTip.Center "<<rVariables.WallTip.Center<<std::endl;
-			tool_radius = rVariables.WallTip.Radius;
-			tip_center  = rVariables.WallTip.Center;
-			  
+		      if(on_radius){
+
 			if(new_point.Y()<(tip_center[1]) && new_point.Y()>(tip_center[1]-tool_radius)){
 			    
 			  std::cout<<"   new_point  ("<<new_point.X()<<", "<<new_point.Y()<<") "<<std::endl;

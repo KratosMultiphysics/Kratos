@@ -178,7 +178,6 @@ protected:
       // double  critical_side;
       // double  reference_error;
       
-      BoundingBoxVariables WallTip;
       BoundingBoxVariables BoundingBox;
  
       void Initialize (){
@@ -195,7 +194,6 @@ protected:
 	offset_factor  = 0;
 
 	Refine.Initialize();
-	WallTip.Initialize();
 	BoundingBox.Initialize();
 
       };
@@ -266,9 +264,6 @@ public:
 			double radius      = 0.00004,
 			double error       = 2,
 			int MeshId         = 0);
-
-    void SetWallTip (double radius,
-		     Vector center);
 
     void SetRefiningBox (double radius,
 			 Vector center,
