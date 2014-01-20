@@ -77,10 +77,6 @@ namespace Python
 			   critical_radius, reference_error, domain);
   }
 
-  void SetWallTip(TriangleMesh2DModeler& Mesher,double radius, Vector center)
-  {
-    Mesher.SetWallTip(radius,center);
-  }
 
   void SetRefiningBox(TriangleMesh2DModeler& Mesher,double radius, Vector center, Vector velocity)
   {
@@ -119,7 +115,6 @@ namespace Python
       .def("SetInitialMeshData",SetInitialDataOnMesher)
       .def("SetRemeshData",SetRemeshDataOnMesher)
       .def("SetRefineData",SetRefineDataOnMesher)
-      .def("SetWallTip",SetWallTip)
       .def("SetRefiningBox",SetRefiningBox)
       .def("GenerateMesh",GenerateTriangleMesh)
       

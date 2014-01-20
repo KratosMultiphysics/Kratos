@@ -50,11 +50,3 @@
   class tzfile(datetime.tzinfo):
 /usr/lib/python2.7/dist-packages/dateutil/tz.py:475: DeprecationWarning: Overriding __eq__ blocks inheritance of __hash__ in 3.x
   class tzrange(datetime.tzinfo):
-terminate called after throwing an instance of 'std::invalid_argument'
-  what():  in virtual void Kratos::LargeDisplacementElement::SetGeneralVariables(Kratos::LargeDisplacementElement::GeneralVariables&, Kratos::ConstitutiveLaw::Parameters&, const int&) [ /home/jmaria/kratos/applications/SolidMechanicsApplication/custom_elements/large_displacement_element.cpp , Line 508 ]
-
-with subject    :  DeterminantF < 0 
-
-while executing : virtual void Kratos::LargeDisplacementElement::CalculateElementalSystem(Kratos::LargeDisplacementElement::LocalSystemComponents&, Kratos::ProcessInfo&) [ /home/jmaria/kratos/applications/SolidMechanicsApplication/custom_elements/large_displacement_element.cpp , Line 698 ] 
-
-while executing : void Kratos::ResidualBasedBossakScheme<TSparseSpace, TDenseSpace>::Calculate_RHS_Contribution(Kratos::Element::Pointer, Kratos::ResidualBasedBossakScheme<TSparseSpace, TDenseSpace>::LocalSystemVectorType&, Kratos::Element::EquationIdVectorType&, Kratos::ProcessInfo&) [with TSparseSpace = Kratos::UblasSpace<double, boost::numeric::ublas::compressed_matrix<double>, boost::numeric::ublas::vector<double> >; TDenseSpace = Kratos::UblasSpace<double, boost::numeric::ublas::matrix<double>, boost::numeric::ublas::vector<double> >; Kratos::Element::Pointer = boost::shared_ptr<Kratos::Element>; Kratos::ResidualBasedBossakScheme<TSparseSpace, TDenseSpace>::LocalSystemVectorType = boost::numeric::ublas::vector<double>; Kratos::Element::EquationIdVectorType = std::vector<long unsigned int>] [ /home/jmaria/kratos/applications/SolidMechanicsApplication/custom_strategies/custom_schemes/residual_based_bossak_scheme.hpp , Line 645 ] 
