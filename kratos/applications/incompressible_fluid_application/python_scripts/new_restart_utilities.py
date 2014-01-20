@@ -1,11 +1,12 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # def PrintRestart_VectorVariable(variable,varname_x,varname_y,varname_z,Nodes,outfile):
-##    outfile.write( "\n" )
+# outfile.write( "\n" )
 # for node in Nodes:
-##        vel = node.GetSolutionStepValue(variable)
-##        outstring = "NODES[" + str(node.Id) + "]("+ varname_x + ",0) = "+ str(vel[0]) + ";\n"
-##        outstring += "NODES[" + str(node.Id) + "]("+ varname_y + ",0) = "+ str(vel[1]) + ";\n"
-##        outstring += "NODES[" + str(node.Id) + "]("+ varname_z + ",0) = "+ str(vel[2]) + ";\n"
-##        outfile.write( outstring )
+# vel = node.GetSolutionStepValue(variable)
+# outstring = "NODES[" + str(node.Id) + "]("+ varname_x + ",0) = "+ str(vel[0]) + ";\n"
+# outstring += "NODES[" + str(node.Id) + "]("+ varname_y + ",0) = "+ str(vel[1]) + ";\n"
+# outstring += "NODES[" + str(node.Id) + "]("+ varname_z + ",0) = "+ str(vel[2]) + ";\n"
+# outfile.write( outstring )
 
 
 def PrintProperties(outfile):
@@ -20,9 +21,9 @@ def PrintNodes(Nodes, outfile):
     for node in Nodes:
         outstring = str(
             node.Id) + " " + str(
-            node.X) + " " + str(
-            node.Y) + " " + str(
-            node.Z) + "\n"
+                node.X) + " " + str(
+                    node.Y) + " " + str(
+                        node.Z) + "\n"
         outfile.write(outstring)
     outfile.write("End Nodes\n")
 
@@ -63,8 +64,8 @@ def PrintRestart_ScalarVariable(variable, varname, Nodes, outfile):
             is_fixed = 1
         outstring = str(
             node.Id) + " " + str(
-            is_fixed) + " " + str(
-            node.GetSolutionStepValue(
-                variable)) + "\n"
+                is_fixed) + " " + str(
+                    node.GetSolutionStepValue(
+                        variable)) + "\n"
         outfile.write(outstring)
     outfile.write("End NodalData\n")

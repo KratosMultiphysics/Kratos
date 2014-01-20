@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -6,7 +7,7 @@ from KratosMultiphysics.MeshingApplication import *
 from KratosMultiphysics.ExternalSolversApplication import *
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
-#from KratosStructuralApplication import *
+# from KratosStructuralApplication import *
 
 
 def AddVariables(model_part):
@@ -42,7 +43,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(ARRHENIUS)
     model_part.AddNodalSolutionStepVariable(IS_WATER)
 
-    print "variables for the dynamic structural solution added correctly"
+    print("variables for the dynamic structural solution added correctly")
 
 
 def AddDofs(model_part):
@@ -54,7 +55,7 @@ def AddDofs(model_part):
         node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)
         node.AddDof(AIR_PRESSURE, REACTION_AIR_PRESSURE)
 
-    print "dofs for the monolithic solver added correctly"
+    print("dofs for the monolithic solver added correctly")
 
 
 class MonolithicSolver:
@@ -69,13 +70,13 @@ class MonolithicSolver:
         self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakScheme(
             self.alpha, self.move_mesh_strategy)
         # definition of the solvers
-##        self.linear_solver =  SkylineLUFactorizationSolver()
-##       self.linear_solver =SuperLUSolver()
+# self.linear_solver =  SkylineLUFactorizationSolver()
+# self.linear_solver =SuperLUSolver()
 
         pPrecond = DiagonalPreconditioner()
-####        pPrecond = ILU0Preconditioner()
+# pPrecond = ILU0Preconditioner()
         self.linear_solver = BICGSTABSolver(1e-6, 5000, pPrecond)
-####        self.linear_solver = CGSolver(1e-6, 5000,pPrecond)
+# self.linear_solver = CGSolver(1e-6, 5000,pPrecond)
 
         # definition of the convergence criteria
 # The argument order: VelRatioTolerance;  VelAbsTolerance;
@@ -166,27 +167,27 @@ class MonolithicSolver:
 # (self.neigh_finder).Execute();
 # (self.solver).Solve()
 # (self.solver).Clear()
-##        (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
+# (self.PfemUtils).MarkOuterNodes(self.box_corner1,self.box_corner2,(self.model_part).Nodes );
 # (self.PfemUtils).MarkExcessivelyCloseNodes((self.model_part).Nodes, .05)
 # (self.node_erase_process).Execute();
 # self.Remesh()
 # self.OutputStep(time,gid_io)
-        print "143"
+        print("143")
 
         self.Remesh()
-        print "145"
+        print("145")
         (self.solver).Solve()
         # print
         # "KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK"
         (self.PfemUtils).MoveLonelyNodes(self.model_part)
-        print "a47"
+        print("a47")
         (self.solver).Clear()
-        print "149"
+        print("149")
         self.OutputStep(time, gid_io)
 
     #
     def EstimateDeltaTime(self, min_dt, max_dt):
-        print "Estimating delta time"
+        print("Estimating delta time")
         return (
             (self.PfemUtils).EstimateDeltaTime(min_dt, max_dt, self.model_part)
         )
@@ -203,8 +204,8 @@ class MonolithicSolver:
 # def Remesh(self):
 #
 # if (self.remeshing_flag==True):
-##	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
-####	    (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, False, self.alpha_shape, self.h_factor)
+# (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, True, self.alpha_shape, self.h_factor)
+# (self.Mesher).ReGenerateMesh("ASGS2D", "Condition2D",self.model_part,self.node_erase_process,True, False, self.alpha_shape, self.h_factor)
 #
 # calculating fluid neighbours before applying boundary conditions
 # (self.neigh_finder).Execute();
@@ -327,7 +328,7 @@ class MonolithicSolver:
         aaa = open(FileName)
 
         for line in aaa:
-            print line
+            print(line)
             exec(line)
 
     #

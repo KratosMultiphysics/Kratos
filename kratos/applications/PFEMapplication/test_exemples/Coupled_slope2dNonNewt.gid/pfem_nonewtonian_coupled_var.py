@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 domain_size = 2
 
 Density = 1300.0
@@ -25,9 +26,9 @@ SolverType = "monolithic_solver_lagrangian"
 laplacian_form = 3
 fluid_file = r'/home/antonia/kratos/applications/PFEMapplication/test_exemples/Coupled_slope2dNonNewt_fixed.gid/Coupled_slope2dNonNewt_fixed.mdpa'
 fluid_file = fluid_file[0:fluid_file.rindex('.mdpa')]
-fluid_file = fluid_file.replace('/','//')
+fluid_file = fluid_file.replace('/', '//')
 # Declare Python Variables
 
-problem_name="Coupled_slope2dNonNewt"
-problem_path="/home/antonia/kratos/applications/PFEMapplication/test_exemples/Coupled_slope2dNonNewt.gid"
-kratos_path="/home/antonia/kratos"
+problem_name = "Coupled_slope2dNonNewt"
+problem_path = "/home/antonia/kratos/applications/PFEMapplication/test_exemples/Coupled_slope2dNonNewt.gid"
+kratos_path = "/home/antonia/kratos"

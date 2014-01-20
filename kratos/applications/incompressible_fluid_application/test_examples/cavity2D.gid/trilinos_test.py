@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #
 #
 # setting the domain size for the problem to be solved
@@ -41,7 +42,7 @@ gid_io = GidIO(
 
 model_part_io_fluid = ModelPartIO(input_file_name)
 
-print "before performing the division"
+print("before performing the division")
 number_of_partitions = mpi.size  # we set it equal to the number of processors
 if mpi.rank == 0:
     partitioner = MetisDivideInputToPartitionsProcess(
@@ -63,12 +64,12 @@ model_part_io_fluid.ReadModelPart(model_part)
 
 # number_of_partitions = mpi.size #we set it equal to the number of processors
 # print "number_of_partitions", number_of_partitions
-##partitioner = MetisPartitioningProcess(model_part, gid_io, number_of_partitions, domain_size);
+# partitioner = MetisPartitioningProcess(model_part, gid_io, number_of_partitions, domain_size);
 # partitioner.Execute()
 # print "GetRank()",GetRank()
 
 
-print model_part
+print(model_part)
 
 # the buffer size should be set up here after the mesh is read for the
 # first time
@@ -85,7 +86,7 @@ for node in model_part.Nodes:
 # creating a fluid solver object
 fluid_solver = trilinos_fs_fluid_solver.IncompressibleFluidSolver(
     model_part, domain_size)
-#fluid_solver = flexible_trilinos_fs_fluid_solver.IncompressibleFluidSolver(model_part,domain_size)
+# fluid_solver = flexible_trilinos_fs_fluid_solver.IncompressibleFluidSolver(model_part,domain_size)
 fluid_solver.laplacian_form = 1
 fluid_solver.predictor_corrector = True
 fluid_solver.vel_toll = 1e-3
@@ -93,10 +94,10 @@ fluid_solver.time_order = 2
 fluid_solver.ReformDofAtEachIteration = False
 fluid_solver.echo_level = 0
 
-##pILUPrecond = ILU0Preconditioner()
-##pDiagPrecond = DiagonalPreconditioner()
-##fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
-##fluid_solver.pressure_linear_solver = SkylineLUFactorizationSolver();
+# pILUPrecond = ILU0Preconditioner()
+# pDiagPrecond = DiagonalPreconditioner()
+# fluid_solver.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pDiagPrecond)
+# fluid_solver.pressure_linear_solver = SkylineLUFactorizationSolver();
 
 # for node in model_part.Nodes:
 # if(node.X < 0.001 and node.Y<0.001):
@@ -132,7 +133,7 @@ for elem in model_part.Elements:
 ccc = ParallelFillCommunicator(model_part)
 ccc.Execute()
 
-print "*******************************************************************"
+print("*******************************************************************")
 
 Comm = CreateCommunicator()
 mesh_utility = TrilinosRefineMesh(model_part, Comm)
@@ -144,7 +145,7 @@ mesh_utility.Local_Refine_Mesh(
     domain_size)
 
 
-print "-----------------------------------------------------------------"
+print("-----------------------------------------------------------------")
 ccc = ParallelFillCommunicator(model_part)
 ccc.Execute()
 # ccc.PrintDebugInfo()
@@ -156,18 +157,18 @@ aaa.CalculateBodyNormals(model_part, 2)
 
 mpi.world.barrier()
 
-print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-#Comm = CreateCommunicator()
-#mesh_utility = TrilinosRefineMesh(model_part,Comm)
-#refine_on_reference = False
-#interpolate_internal_variables = False
+print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+# Comm = CreateCommunicator()
+# mesh_utility = TrilinosRefineMesh(model_part,Comm)
+# refine_on_reference = False
+# interpolate_internal_variables = False
 # mesh_utility.Local_Refine_Mesh(refine_on_reference,interpolate_internal_variables)
 
 
-##zero = Vector(3);
-##zero[0] = 0.0;
-##zero[1] = 0.0;
-##zero[2] = 0.0;
+# zero = Vector(3);
+# zero[0] = 0.0;
+# zero[1] = 0.0;
+# zero[2] = 0.0;
 mesh_name = mpi.rank
 gid_io.InitializeMesh(mesh_name)
 gid_io.WriteMesh((model_part).GetMesh())
@@ -182,7 +183,7 @@ for step in range(0, nsteps):
     model_part.CloneTimeStep(time)
 
     if(mpi.rank == 0):
-        print time
+        print(time)
     # print model_part.ProcessInfo()[TIME]
 
     # solving the fluid problem

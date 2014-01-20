@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -42,7 +43,7 @@ def AddVariables(model_part, config=None):
 
     mpi.world.barrier()
     if mpi.rank == 0:
-        print "variables for the trilinos monolithic fluid solver added correctly"
+        print("variables for the trilinos monolithic fluid solver added correctly")
 
 
 def AddDofs(model_part, config=None):
@@ -61,7 +62,7 @@ def AddDofs(model_part, config=None):
 
     mpi.world.barrier()
     if mpi.rank == 0:
-        print "dofs for the trilinos monolithic fluid solver added correctly"
+        print("dofs for the trilinos monolithic fluid solver added correctly")
 
 
 class MonolithicSolver:
@@ -183,7 +184,7 @@ class MonolithicSolver:
     def Solve(self):
         if self.divergence_clearance_steps > 0:
             if mpi.rank == 0:
-                print "Calculating divergence-free initial condition"
+                print("Calculating divergence-free initial condition")
             # initialize with a Stokes solution step
             stokes_aztec_parameters = ParameterList()
             stokes_aztec_parameters.set("AZ_solver", "AZ_gmres")
@@ -226,7 +227,7 @@ class MonolithicSolver:
 
             self.divergence_clearance_steps = 0
             if mpi.rank == 0:
-                print "Finished divergence clearance"
+                print("Finished divergence clearance")
 
         (self.solver).Solve()
 

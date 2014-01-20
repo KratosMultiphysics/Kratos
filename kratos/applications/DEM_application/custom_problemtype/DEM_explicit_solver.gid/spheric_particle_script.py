@@ -1,50 +1,51 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import time as timer
 import os
 import sys
 import math
 from numpy import *
 
-### BENCHMARK ###
-### BENCHMARK ###
-### BENCHMARK ###
-### BENCHMARK ###
-### BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
 
-### BENCHMARK ###
-### BENCHMARK ###
-### BENCHMARK ###
-### BENCHMARK ###
-### BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 
-### BENCHMARK ###
+# BENCHMARK ###
 import DEM_explicit_solver_var as DEM_parameters
 import DEM_procedures
 proc = DEM_procedures.Procedures(DEM_parameters)
 
-### BENCHMARK ###
+# BENCHMARK ###
 
-### BENCHMARK ###
-### BENCHMARK ###
-### BENCHMARK ###
-### BENCHMARK ###
-### BENCHMARK ###
-### BENCHMARK ###
-### BENCHMARK ###
-### BENCHMARK ###
-### BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
 
 #---------------------MODEL PART KRATOS AND GID.IO ------------------------------------------------------------------
 
 # Defining a model part for the solid part
 
-my_timer = Timer();
-balls_model_part = ModelPart("SolidPart");
+my_timer = Timer()
+balls_model_part = ModelPart("SolidPart")
 
-RigidFace_model_part   = ModelPart("RigidFace_Part");  
-mixed_model_part       = ModelPart("Mixed_Part");
+RigidFace_model_part = ModelPart("RigidFace_Part")
+mixed_model_part = ModelPart("Mixed_Part")
 
 RigidFace_model_part.AddNodalSolutionStepVariable(VELOCITY)
 RigidFace_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
@@ -62,7 +63,7 @@ if (DEM_parameters.OutputFileType == "Binary"):
 
 else:
     gid_mode = GiDPostMode.GiD_PostAscii
-    
+
 if (DEM_parameters.Multifile == "multiple_files"):
     multifile = MultiFileFlag.MultipleFiles
 
@@ -70,7 +71,7 @@ else:
     multifile = MultiFileFlag.SingleFile
 
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
-write_conditions   = WriteConditionsFlag.WriteConditions
+write_conditions = WriteConditionsFlag.WriteConditions
 
 gid_io = GidIO(DEM_parameters.problem_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
 model_part_io_solid = ModelPartIO(DEM_parameters.problem_name)
@@ -94,17 +95,17 @@ creator_destructor = ParticleCreatorDestructor()
 
 # Creating a solver object
 
-solver = SolverStrategy.ExplicitStrategy(balls_model_part, RigidFace_model_part,creator_destructor, DEM_parameters) #here, solver variables initialize as default
+solver = SolverStrategy.ExplicitStrategy(balls_model_part, RigidFace_model_part, creator_destructor, DEM_parameters)  # here, solver variables initialize as default
 
 # Creating necessary directories
 
-main_path        = os.getcwd()
-post_path        = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Post_Files'
-list_path        = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Post_Lists'
-neigh_list_path  = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Neigh_Lists'
+main_path = os.getcwd()
+post_path = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Post_Files'
+list_path = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Post_Lists'
+neigh_list_path = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Neigh_Lists'
 data_and_results = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Results_and_Data'
-graphs_path      = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Graphs'
-MPI_results      = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_MPI_results'
+graphs_path = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Graphs'
+MPI_results = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_MPI_results'
 
 for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path, MPI_results]:
 
@@ -113,27 +114,27 @@ for directory in [post_path, list_path, neigh_list_path, data_and_results, graph
 
 os.chdir(list_path)
 
-multifile        = open(DEM_parameters.problem_name + '_all' + '.post.lst', 'w')
-multifile_5      = open(DEM_parameters.problem_name + '_5'   + '.post.lst', 'w')
-multifile_10     = open(DEM_parameters.problem_name + '_10'  + '.post.lst', 'w')
-multifile_50     = open(DEM_parameters.problem_name + '_50'  + '.post.lst', 'w')
+multifile = open(DEM_parameters.problem_name + '_all' + '.post.lst', 'w')
+multifile_5 = open(DEM_parameters.problem_name + '_5' + '.post.lst', 'w')
+multifile_10 = open(DEM_parameters.problem_name + '_10' + '.post.lst', 'w')
+multifile_50 = open(DEM_parameters.problem_name + '_50' + '.post.lst', 'w')
 
 multifile.write('Multiple\n')
 multifile_5.write('Multiple\n')
 multifile_10.write('Multiple\n')
 multifile_50.write('Multiple\n')
 
-first_print     = True
-index_5         = 1
-index_10        = 1
-index_50        = 1
-prev_time       = 0.0
-control         = 0.0
+first_print = True
+index_5 = 1
+index_10 = 1
+index_50 = 1
+prev_time = 0.0
+control = 0.0
 
 
 os.chdir(main_path)
 
-print 'Initializing Problem....'
+print('Initializing Problem....')
 
 solver.Initialize()
 
@@ -142,25 +143,22 @@ solver.Initialize()
 #------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALITZATIONS--------------------------------------------------------
 
 
-
 # Initialization of physics monitor and of the initial position of the center of mass
+# physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
+# properties_list = []
+print('Initialitzation Complete' + '\n')
 
-#physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
-#properties_list = []
-
-print 'Initialitzation Complete' + '\n'
-
-### BENCHMARK ###
-### BENCHMARK ###
-### BENCHMARK ###
-### BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
+# BENCHMARK ###
 
 
-step                   = 0
-time                   = 0.0
-time_old_print         = 0.0
-initial_pr_time        = timer.clock()
-initial_real_time      = timer.time()
+step = 0
+time = 0.0
+time_old_print = 0.0
+initial_pr_time = timer.clock()
+initial_real_time = timer.time()
 
 #-------------------------------------------------------------------------------------------------------------------------------------
 
@@ -172,94 +170,94 @@ os.chdir(post_path)
 
 if (DEM_parameters.Multifile == "single_file"):
 
-  post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
-  post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part)
-  gid_io.InitializeMesh(0.0) 
-  gid_io.WriteMesh(RigidFace_model_part.GetMesh())
-  gid_io.WriteSphereMesh(balls_model_part.GetMesh())
-  gid_io.FinalizeMesh()
-  gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
+    post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
+    post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part)
+    gid_io.InitializeMesh(0.0)
+    gid_io.WriteMesh(RigidFace_model_part.GetMesh())
+    gid_io.WriteSphereMesh(balls_model_part.GetMesh())
+    gid_io.FinalizeMesh()
+    gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
 
-  
-##MODEL DATA
-  
+
+# MODEL DATA
+
 if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
-    proc.ModelData(balls_model_part,balls_model_part, solver) #dummy contact model part. (only for continuum)      # calculates the mean number of neighbours the mean radius, etc..
+    proc.ModelData(balls_model_part, balls_model_part, solver)  # dummy contact model part. (only for continuum)      # calculates the mean number of neighbours the mean radius, etc..
     os.chdir(main_path)
 
-  
+
 #------------------------------------------------------------------------------------------
- 
-###########################################################################################
-#                                                                                         #
-#                                    MAIN LOOP                                            #
-#                                                                                         #
-###########################################################################################
+
+#
+#
+# MAIN LOOP                                            #
+#
+#
 os.chdir(main_path)
 
 dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
 
 total_steps_expected = int(DEM_parameters.FinalTime / dt)
 
-print ('Main loop starts at instant: ' + str(initial_pr_time) + '\n')
+print(('Main loop starts at instant: ' + str(initial_pr_time) + '\n'))
 
-print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n' )
+print(('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n'))
 
 while (time < DEM_parameters.FinalTime):
 
-    dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
+    dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)  # Possible modifications of DELTA_TIME
     time = time + dt
-    #balls_model_part.CloneTimeStep(time)
+    # balls_model_part.CloneTimeStep(time)
     balls_model_part.ProcessInfo[TIME] = time
     balls_model_part.ProcessInfo[DELTA_TIME] = dt
     balls_model_part.ProcessInfo[TIME_STEPS] = step
 
-    #########################_SOLVE_#########################################4
+    # _SOLVE_#########################################4
     os.chdir(main_path)
     solver.Solve()
-    #########################TIME CONTROL######################################4
+    # TIME CONTROL######################################4
 
     incremental_time = (timer.time() - initial_real_time) - prev_time
 
     if (incremental_time > DEM_parameters.ControlTime):
         percentage = 100 * (float(step) / total_steps_expected)
 
-        print 'Real time calculation: ' + str(timer.time() - initial_real_time)
-        print 'Percentage Completed: '  + str(percentage) + ' %'
-        print "TIME STEP = "            + str(step) + '\n'
+        print('Real time calculation: ' + str(timer.time() - initial_real_time))
+        print('Percentage Completed: ' + str(percentage) + ' %')
+        print("TIME STEP = " + str(step) + '\n')
         sys.stdout.flush()
-        
+
         prev_time = (timer.time() - initial_real_time)
-  
-    if ((timer.time() - initial_real_time > 60) and first_print == True and step != 0):    
-        first_print = False    
-        estimated_sim_duration = 60.0 * (total_steps_expected / step) # seconds
 
-        print('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n')
-        print('in minutes:'        + str(estimated_sim_duration / 60.0) + 'min.' + '\n')
-        print('in hours:'        + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
-        print('in days:'        + str(estimated_sim_duration / 86400.0) + 'days' + '\n') 
+    if ((timer.time() - initial_real_time > 60) and first_print and step != 0):
+        first_print = False
+        estimated_sim_duration = 60.0 * (total_steps_expected / step)  # seconds
+
+        print(('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n'))
+        print(('in minutes:' + str(estimated_sim_duration / 60.0) + 'min.' + '\n'))
+        print(('in hours:' + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n'))
+        print(('in days:' + str(estimated_sim_duration / 86400.0) + 'days' + '\n'))
         sys.stdout.flush()
-        
-        if (estimated_sim_duration / 86400 > 2.0):
-            print('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
 
-    #########################CONCRETE_TEST_STUFF#########################################4
+        if (estimated_sim_duration / 86400 > 2.0):
+            print(('WARNING!!!:       VERY LASTING CALCULATION' + '\n'))
+
+    # CONCRETE_TEST_STUFF#########################################4
 
     os.chdir(list_path)
     multifile.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
     os.chdir(main_path)
 
-  #########################___GiD IO____#########################################4
+    # ___GiD IO____#########################################4
 
     time_to_print = time - time_old_print
 
     if (time_to_print >= DEM_parameters.OutputTimeStep):
-        ### BENCHMARK ###
+        # BENCHMARK ###
         os.chdir(data_and_results)
 
-        #properties_list = proc.MonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
+        # properties_list = proc.MonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
 
         if (index_5 == 5):
             multifile_5.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
@@ -273,7 +271,7 @@ while (time < DEM_parameters.FinalTime):
             multifile_50.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
             index_50 = 0
 
-        index_5  += 1
+        index_5 += 1
         index_10 += 1
         index_50 += 1
 
@@ -282,7 +280,7 @@ while (time < DEM_parameters.FinalTime):
 
         os.chdir(graphs_path)
 
-        if (DEM_parameters.PrintNeighbourLists == "ON"): # Printing neighbours id's
+        if (DEM_parameters.PrintNeighbourLists == "ON"):  # Printing neighbours id's
             os.chdir(neigh_list_path)
             neighbours_list = open('neigh_list_' + str(time), 'w')
 
@@ -304,18 +302,18 @@ while (time < DEM_parameters.FinalTime):
             post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
             post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part)
 
-            gid_io.InitializeMesh(time) 
+            gid_io.InitializeMesh(time)
             gid_io.WriteSphereMesh(balls_model_part.GetMesh())
             gid_io.WriteMesh(RigidFace_model_part.GetMesh())
             gid_io.FinalizeMesh()
-            
+
             gid_io.InitializeResults(time, mixed_model_part.GetMesh())
-                                
+
         proc.PrintingGlobalVariables(gid_io, mixed_model_part, time)
         proc.PrintingBallsVariables(gid_io, balls_model_part, time)
-        
+
         if (DEM_parameters.Multifile == "multiple_files"):
-            gid_io.FinalizeResults() 
+            gid_io.FinalizeResults()
 
         time_old_print = time
 
@@ -323,8 +321,8 @@ while (time < DEM_parameters.FinalTime):
 #-------------------------------------------------------------------------------------------------------------------------------------
 
 
-#-----------------------FINALITZATION OPERATIONS-------------------------------------------------------------------------------------- 
-#proc.PlotPhysicalProperties(properties_list, graphs_path)
+#-----------------------FINALITZATION OPERATIONS--------------------------------------------------------------------------------------
+# proc.PlotPhysicalProperties(properties_list, graphs_path)
 
 if (DEM_parameters.Multifile == "single_file"):
     gid_io.FinalizeResults()
@@ -335,14 +333,14 @@ multifile_10.close()
 multifile_50.close()
 os.chdir(main_path)
 
-elapsed_pr_time 	= timer.clock() - initial_pr_time
-elapsed_real_time 	= timer.time() - initial_real_time
+elapsed_pr_time = timer.clock() - initial_pr_time
+elapsed_real_time = timer.time() - initial_real_time
 
-print 'Calculation ends at instant: '                 + str(timer.time())
-print 'Calculation ends at processing time instant: ' + str(timer.clock())
-print 'Elapsed processing time: '                     + str(elapsed_pr_time)
-print 'Elapsed real time: '                           + str(elapsed_real_time)
+print('Calculation ends at instant: ' + str(timer.time()))
+print('Calculation ends at processing time instant: ' + str(timer.clock()))
+print('Elapsed processing time: ' + str(elapsed_pr_time))
+print('Elapsed real time: ' + str(elapsed_real_time))
 
 print (my_timer)
 
-print "ANALYSIS COMPLETED"
+print("ANALYSIS COMPLETED")

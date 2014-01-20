@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # -*- coding: utf-8 -*-
 from KratosMultiphysics import *
 from KratosMultiphysics.mpi import *
@@ -39,7 +40,7 @@ def AddVariables(model_part, config=None):
                 model_part.AddNodalSolutionStepVariable(DISTANCE)
     mpi.world.barrier()
     if mpi.rank == 0:
-        print "variables for the trilinos fractional step solver added correctly"
+        print("variables for the trilinos fractional step solver added correctly")
 
 
 def AddDofs(model_part, config=None):
@@ -59,7 +60,7 @@ def AddDofs(model_part, config=None):
 
     mpi.world.barrier()
     if mpi.rank == 0:
-        print "dofs for the trilinos fractional step solver added correctly"
+        print("dofs for the trilinos fractional step solver added correctly")
 
 
 class IncompressibleFluidSolver:
@@ -247,15 +248,15 @@ class IncompressibleFluidSolver:
 # generating the slip conditions
 # self.create_slip_conditions.Execute()
 # (self.solver).SetSlipProcess(self.create_slip_conditions);
-##        self.slip_conditions_initialized = True
+# self.slip_conditions_initialized = True
 # (self.solver).SetEchoLevel(self.echo_level)
 # (self.solver).SetEchoLevel(self.echo_level)
-        print "finished initialization of the fluid strategy"
+        print("finished initialization of the fluid strategy")
 
     def Solve(self):
         if self.divergence_clearance_steps > 0:
             if mpi.rank == 0:
-                print "Calculating divergence-free initial condition"
+                print("Calculating divergence-free initial condition")
             # initialize with a Stokes solution step
             stokes_aztec_parameters = ParameterList()
             stokes_aztec_parameters.set("AZ_solver", "AZ_gmres")
@@ -292,7 +293,7 @@ class IncompressibleFluidSolver:
 
             self.divergence_clearance_steps = 0
             if mpi.rank == 0:
-                print "Finished divergence clearance"
+                print("Finished divergence clearance")
 
         if(self.ReformDofAtEachIteration):
             self.slip_conditions_initialized = False
@@ -300,7 +301,7 @@ class IncompressibleFluidSolver:
 # if(self.slip_conditions_initialized == False):
 # self.create_slip_conditions.Execute()
 # (self.solver).SetSlipProcess(self.create_slip_conditions);
-##            self.slip_conditions_initialized = True
+# self.slip_conditions_initialized = True
 
         (self.solver).Solve()
 

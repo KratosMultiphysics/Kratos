@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import time as timer
 import os
 import sys
@@ -64,24 +65,24 @@ else:
     DEM_multifile = MultiFileFlag.SingleFile
 
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
-write_conditions   = WriteConditionsFlag.WriteConditions
-DEM_gid_io         = GidIO(Param.DEM_problem_name, gid_mode, DEM_multifile, deformed_mesh_flag, write_conditions)
+write_conditions = WriteConditionsFlag.WriteConditions
+DEM_gid_io = GidIO(Param.DEM_problem_name, gid_mode, DEM_multifile, deformed_mesh_flag, write_conditions)
 
 # Introducing input file name
 input_file_name = Param.problem_name
 
 # Reading the fluid part
-gid_mode             = GiDPostMode.GiD_PostBinary
-multifile            = MultiFileFlag.MultipleFiles
-deformed_mesh_flag   = WriteDeformedMeshFlag.WriteDeformed
-write_conditions     = WriteConditionsFlag.WriteConditions
-gid_io               = GidIO(input_file_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
+gid_mode = GiDPostMode.GiD_PostBinary
+multifile = MultiFileFlag.MultipleFiles
+deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
+write_conditions = WriteConditionsFlag.WriteConditions
+gid_io = GidIO(input_file_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
 model_part_io_origin = ModelPartIO(input_file_name)
 
 # Reading fluid model part
 model_part_io_origin.ReadModelPart(fluid_model_part)
 
-print "ULF model read correctly"
+print("ULF model read correctly")
 
 # Setting the fluid buffer size: SHOULD BE DONE AFTER READING!!!
 fluid_model_part.SetBufferSize(3)
@@ -90,7 +91,7 @@ fluid_model_part.SetBufferSize(3)
 model_part_io_solid = ModelPartIO(Param.DEM_problem_name)
 model_part_io_solid.ReadModelPart(balls_model_part)
 
-print "DEM model read correctly"
+print("DEM model read correctly")
 
 # Setting the DEM buffer size: SHOULD BE DONE AFTER READING!!!
 balls_model_part.SetBufferSize(3)
@@ -115,23 +116,23 @@ box_corner_2[1] = Param.bounding_box_corner2_y
 box_corner_2[2] = Param.bounding_box_corner2_z
 
 # Here we write the convergence data...
-outstring2   = "convergence_info.txt"
-outputfile1  = open(outstring2, 'w')
+outstring2 = "convergence_info.txt"
+outputfile1 = open(outstring2, 'w')
 
 # Creating solvers
 
 # Fluid solver
-fluid_solver  = solver_strategy.FluidStrategy(outputfile1, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, box_corner_1, box_corner_2)
+fluid_solver = solver_strategy.FluidStrategy(outputfile1, fluid_only_model_part, fluid_model_part, structure_model_part, combined_model_part, box_corner_1, box_corner_2)
 fluid_solver.Initialize()
 
-print "Fluid solver created and initialized"
+print("Fluid solver created and initialized")
 
 # DEM_solver
-DEM_solver = solver_strategy.DEMStrategy(balls_model_part) #here, solver variables initialize as default
+DEM_solver = solver_strategy.DEMStrategy(balls_model_part)  # here, solver variables initialize as default
 DEM_proc.GiDSolverTransfer(balls_model_part, DEM_solver)
 DEM_solver.Initialize()
 
-print "DEM solver created and initialized"
+print("DEM solver created and initialized")
 
 # Checking to ensure that no node has zero density or pressure
 is_fsi_interf = 0.0
@@ -158,11 +159,11 @@ if (Param.FSI):
 for node in fluid_model_part.Nodes:
 
     if (node.GetSolutionStepValue(DENSITY) == 0.0):
-        print "node ", node.Id, " has zero density!"
+        print("node ", node.Id, " has zero density!")
         raise 'node with zero density found'
 
     if (node.GetSolutionStepValue(VISCOSITY) == 0.0):
-        print "node ",node.Id," has zero viscosity!"
+        print("node ", node.Id, " has zero viscosity!")
         raise 'node with zero VISCOSITY found'
 
     if (Param.FSI):
@@ -195,18 +196,18 @@ for i in range(len(dir_names)):
     vars()[dir_names[i] + '_path'] = directories[i]
 
 os.chdir(data_and_results_path)
-results           = open('results.txt', 'w')
-summary_results   = open('summary_results.txt', 'w')
+results = open('results.txt', 'w')
+summary_results = open('summary_results.txt', 'w')
 
-force_list        = []
-force_list_2      = []
-time_list         = []
+force_list = []
+force_list_2 = []
+time_list = []
 
 os.chdir(post_lists_path)
-DEM_multifile     = open(Param.DEM_problem_name + '_all' + '.post.lst', 'w')
-multifile_5       = open(Param.DEM_problem_name + '_5'   + '.post.lst', 'w')
-multifile_10      = open(Param.DEM_problem_name + '_10'  + '.post.lst', 'w')
-multifile_50      = open(Param.DEM_problem_name + '_50'  + '.post.lst', 'w')
+DEM_multifile = open(Param.DEM_problem_name + '_all' + '.post.lst', 'w')
+multifile_5 = open(Param.DEM_problem_name + '_5' + '.post.lst', 'w')
+multifile_10 = open(Param.DEM_problem_name + '_10' + '.post.lst', 'w')
+multifile_50 = open(Param.DEM_problem_name + '_50' + '.post.lst', 'w')
 
 DEM_multifile.write('Multiple\n')
 multifile_5.write('Multiple\n')
@@ -214,11 +215,11 @@ multifile_10.write('Multiple\n')
 multifile_50.write('Multiple\n')
 
 first_print = True
-index_5     = 1
-index_10    = 1
-index_50    = 1
-prev_time   = 0.0
-control     = 0.0
+index_5 = 1
+index_10 = 1
+index_50 = 1
+prev_time = 0.0
+control = 0.0
 
 os.chdir(post_files_path)
 
@@ -234,26 +235,26 @@ os.chdir(main_path)
 velocity_node_y = 0.0
 
 # Initializations
-initial_dt         = 0.001 * Param.Dt
-safety_factor      = 0.5
-time               = 0.0
-step               = 0
+initial_dt = 0.001 * Param.Dt
+safety_factor = 0.5
+time = 0.0
+step = 0
 
-DEM_dt             = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
-DEM_time           = 0.0
-DEM_step           = 0
+DEM_dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
+DEM_time = 0.0
+DEM_step = 0
 DEM_time_old_print = 0.0
 
-initial_pr_time    = timer.clock()
-initial_real_time  = timer.time()
+initial_pr_time = timer.clock()
+initial_real_time = timer.time()
 
-print ('\n' + 'Calculation starts at instant: ' + str(initial_pr_time) + '\n')
+print(('\n' + 'Calculation starts at instant: ' + str(initial_pr_time) + '\n'))
 
 total_steps_expected = int(Param.FinalTime / DEM_dt)
 
-print ('Total number of TIME STEPs expected in the calculation is: ' + str(total_steps_expected) + ' if time step is kept ' + '\n' )
+print(('Total number of TIME STEPs expected in the calculation is: ' + str(total_steps_expected) + ' if time step is kept ' + '\n'))
 
-inlet_vel          = Vector(3)
+inlet_vel = Vector(3)
 
 if (Param.lagrangian_nodes_inlet == 1):
 
@@ -262,7 +263,7 @@ if (Param.lagrangian_nodes_inlet == 1):
         if (node.GetSolutionStepValue(IS_LAGRANGIAN_INLET)):
 
             inlet_vel = node.GetSolutionStepValue(VELOCITY, 0)
-            print "Lagrangian inlet(s) velocity  is ", inlet_vel
+            print("Lagrangian inlet(s) velocity  is ", inlet_vel)
             break
 else:
     inlet_vel[0] = 0.0
@@ -280,7 +281,7 @@ projection_module.ProjectFromFluid()
 # Temporal loop
 
 while (time < Param.max_time):
-    DEM_dt   = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
+    DEM_dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)
     DEM_time = DEM_time + DEM_dt
 
     if (DEM_time >= time):
@@ -288,13 +289,13 @@ while (time < Param.max_time):
 
         if (step <= 3):
             new_dt = 0.0000001
-            time   = time + new_dt * safety_factor
+            time = time + new_dt * safety_factor
 
         # Solving the fluid problem
 
         if (step > 3):
             new_dt = fluid_solver.EstimateDeltaTime(Param.Dt, Param.domain_size)
-            time   = time + new_dt * safety_factor
+            time = time + new_dt * safety_factor
             combined_model_part.CloneTimeStep(time)
 
             # Updating containers database
@@ -317,7 +318,7 @@ while (time < Param.max_time):
     balls_model_part.ProcessInfo[TIME_STEPS] = DEM_step
     total_force = 0
     force_node = 0
-   
+
     # Writing lists to be printed
     os.chdir(data_and_results_path)
     force_list.append(total_force)
@@ -341,14 +342,14 @@ while (time < Param.max_time):
 
     DEM_step += 1
 
-  ##############     GiD IO        ################################################################################
+  # GiD IO        ################################################################################
 
     time_to_print = DEM_time - DEM_time_old_print
 
     if (time_to_print >= Param.OutputTimeStep):
         os.chdir(main_path)
 
-        if (Param.PrintNeighbourLists == "ON"): # Printing neighbours id's
+        if (Param.PrintNeighbourLists == "ON"):  # Printing neighbours id's
             os.chdir(neigh_lists_path)
             neighbours_list = open('neigh_list_' + str(DEM_time), 'w')
 
@@ -369,8 +370,8 @@ while (time < Param.max_time):
             DEM_gid_io.WriteMesh(mixed_model_part.GetMesh())
             DEM_gid_io.FinalizeMesh()
             DEM_gid_io.InitializeResults(10.0, mixed_model_part.GetMesh())
-            DEM_gid_io.WriteNodalResults(VELOCITY, mixed_model_part.Nodes,time, 0)
-            DEM_gid_io.WriteNodalResults(DISPLACEMENT, mixed_model_part.Nodes,time, 0)
+            DEM_gid_io.WriteNodalResults(VELOCITY, mixed_model_part.Nodes, time, 0)
+            DEM_gid_io.WriteNodalResults(DISPLACEMENT, mixed_model_part.Nodes, time, 0)
             DEM_gid_io.WriteNodalResults(PRESSURE, fluid_model_part.Nodes, time, 0)
             DEM_gid_io.WriteNodalResults(PRESSURE_GRADIENT, fluid_model_part.Nodes, time, 0)
             DEM_gid_io.WriteNodalResults(DRAG_REACTION, fluid_model_part.Nodes, time, 0)
@@ -387,7 +388,7 @@ while (time < Param.max_time):
             DEM_gid_io.Flush()
             DEM_gid_io.FinalizeResults()
 
-        ##########PRINTING VARIABLES############
+        # PRINTING VARIABLES############
 
         os.chdir(data_and_results_path)
 
@@ -396,7 +397,7 @@ while (time < Param.max_time):
             index_5 = 0
 
         if (index_10 == 10):
-            multifile_10.write(Param.DEM_problem_name + '_' + str(DEM_time) +  '.post.bin\n')
+            multifile_10.write(Param.DEM_problem_name + '_' + str(DEM_time) + '.post.bin\n')
             index_10 = 0
 
         if (index_50 == 50):
@@ -413,7 +414,7 @@ while (time < Param.max_time):
         os.chdir(main_path)
         DEM_time_old_print = DEM_time
 
-    #End of print loop
+    # End of print loop
     os.chdir(main_path)
 
 # End of temporal loop
@@ -434,9 +435,9 @@ multifile_50.close()
 os.chdir(main_path)
 elapsed_pr_time = timer.clock() - initial_pr_time
 elapsed_real_time = timer.time() - initial_real_time
-print 'Calculation ends at instant: '                 + str(timer.time())
-print 'Calculation ends at processing time instant: ' + str(timer.clock())
-print 'Elapsed processing time: '                     + str(elapsed_pr_time)
-print 'Elapsed real time: '                           + str(elapsed_real_time)
+print('Calculation ends at instant: ' + str(timer.time()))
+print('Calculation ends at processing time instant: ' + str(timer.clock()))
+print('Elapsed processing time: ' + str(elapsed_pr_time))
+print('Elapsed real time: ' + str(elapsed_real_time))
 print (my_timer)
-print "ANALYSIS COMPLETED"
+print("ANALYSIS COMPLETED")

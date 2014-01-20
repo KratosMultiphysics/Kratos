@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -40,7 +41,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(FLAG_VARIABLE)
     model_part.AddNodalSolutionStepVariable(NORMAL)
 
-    print "variables for the MONOLITHIC_SOLVER_EULERIAN added correctly"
+    print("variables for the MONOLITHIC_SOLVER_EULERIAN added correctly")
 
 
 def AddDofs(model_part):
@@ -52,7 +53,7 @@ def AddDofs(model_part):
         node.AddDof(PRESSURE, REACTION_WATER_PRESSURE)
         node.AddDof(AIR_PRESSURE, REACTION_AIR_PRESSURE)
 
-    print "dofs for the monolithic solver added correctly"
+    print("dofs for the monolithic solver added correctly")
 
 
 class MonolithicSolver:
@@ -68,12 +69,12 @@ class MonolithicSolver:
             self.alpha, self.move_mesh_strategy)
         # definition of the solvers
         self.linear_solver = SkylineLUFactorizationSolver()
-##        self.linear_solver =SuperLUSolver()
-##        self.linear_solver = MKLPardisoSolver()
+# self.linear_solver =SuperLUSolver()
+# self.linear_solver = MKLPardisoSolver()
 
-        #pPrecond = DiagonalPreconditioner()
-##        pPrecond = ILU0Preconditioner()
-        #self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
+        # pPrecond = DiagonalPreconditioner()
+# pPrecond = ILU0Preconditioner()
+        # self.linear_solver =  BICGSTABSolver(1e-6, 5000,pPrecond)
 
         # definition of the convergence criteria
         self.rel_vel_tol = 1e-5
@@ -82,7 +83,7 @@ class MonolithicSolver:
         self.abs_pres_tol = 1e-7
 
        # self.conv_criteria = UPCriteria(1e-12,1e-14,1e-15,1e-17)
-        #self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
+        # self.model_part.ProcessInfo.SetValue(DYNAMIC_TAU, 0.001);
 
         self.dynamic_tau = 0.0
         self.oss_switch = 0

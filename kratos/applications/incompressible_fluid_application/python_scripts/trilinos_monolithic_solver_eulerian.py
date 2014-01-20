@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.mpi import *
 from KratosMultiphysics.MetisApplication import *
@@ -44,7 +45,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
     model_part.AddNodalSolutionStepVariable(NORMAL)
 
-    print "variables for the dynamic structural solution added correctly"
+    print("variables for the dynamic structural solution added correctly")
 
 
 def AddDofs(model_part):
@@ -58,7 +59,7 @@ def AddDofs(model_part):
 
     mpi.world.barrier()
 
-    print "dofs for the monolithic solver added correctly"
+    print("dofs for the monolithic solver added correctly")
 
 
 class MonolithicSolver:
@@ -102,45 +103,45 @@ class MonolithicSolver:
             self.guess_row_size = estimate_neighbours * (self.domain_size + 1)
             self.buildertype = "ML3Dpress"
 
-        #self.guess_row_size = 25
+        # self.guess_row_size = 25
         # self.buildertype="standard"
-        #aztec_parameters = ParameterList()
+        # aztec_parameters = ParameterList()
         # aztec_parameters.set("AZ_solver","AZ_gmres");
         # aztec_parameters.set("AZ_kspace",200);
         # aztec_parameters.set("AZ_output","AZ_none");
         # aztec_parameters.set("AZ_output",10);
-        #preconditioner_type = "ILU"
-        #preconditioner_parameters = ParameterList()
-        #preconditioner_parameters.set ("fact: drop tolerance", 1e-9);
-        #preconditioner_parameters.set ("fact: level-of-fill", 1);
-        #overlap_level = 0
-        #nit_max = 1000
-        #linear_tol = 1e-9
-        #self.linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,linear_tol,nit_max,overlap_level);
+        # preconditioner_type = "ILU"
+        # preconditioner_parameters = ParameterList()
+        # preconditioner_parameters.set ("fact: drop tolerance", 1e-9);
+        # preconditioner_parameters.set ("fact: level-of-fill", 1);
+        # overlap_level = 0
+        # nit_max = 1000
+        # linear_tol = 1e-9
+        # self.linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,linear_tol,nit_max,overlap_level);
 
-        #solver_parameters = ParameterList()
-        #self.linear_solver =  AmesosSolver("Superludist",solver_parameters);
+        # solver_parameters = ParameterList()
+        # self.linear_solver =  AmesosSolver("Superludist",solver_parameters);
 
         #
         # defining the linear solver
         # self.buildertype="standard"
-        #aztec_parameters = ParameterList()
+        # aztec_parameters = ParameterList()
         # aztec_parameters.set("AZ_solver","AZ_gmres");
         # aztec_parameters.set("AZ_kspace",100);
         # aztec_parameters.set("AZ_output",32);
 
-        ##preconditioner_type = "Amesos"
-        ##preconditioner_parameters = ParameterList()
-        ##preconditioner_parameters.set("amesos: solver type", "Amesos_Klu");
+        # preconditioner_type = "Amesos"
+        # preconditioner_parameters = ParameterList()
+        # preconditioner_parameters.set("amesos: solver type", "Amesos_Klu");
 
-        #preconditioner_type = "ILU"
-        #preconditioner_parameters = ParameterList()
+        # preconditioner_type = "ILU"
+        # preconditioner_parameters = ParameterList()
 
-        #overlap_level = 0
-        #nit_max = 500
-        #tol = 1e-6
+        # overlap_level = 0
+        # nit_max = 500
+        # tol = 1e-6
 
-        #self.linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,tol,nit_max,overlap_level);
+        # self.linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,tol,nit_max,overlap_level);
         # self.linear_solver.SetScalingType(AztecScalingType.LeftScaling)
         #
 
@@ -172,7 +173,7 @@ class MonolithicSolver:
             self.guess_row_size)
         self.solver.max_iter = self.max_iter
 
-##        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)
+# self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)
         (self.solver).SetEchoLevel(self.echo_level)
 
     #

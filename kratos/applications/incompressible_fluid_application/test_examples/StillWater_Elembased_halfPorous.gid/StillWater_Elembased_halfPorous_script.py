@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import elembased_levelset_var
 
 #
@@ -6,7 +7,7 @@ import elembased_levelset_var
 domain_size = elembased_levelset_var.domain_size
 
 import math
-##import cProfile
+# import cProfile
 #
 #
 # ATTENTION: here the order is important
@@ -39,7 +40,7 @@ def NodeFinder(node_list, X, Y, Z):
 
 def BenchmarkCheck(time, node1):
     benchmarking.Output(time, "Time")
-##    benchmarking.Output(node1.GetSolutionStepValue(PRESSURE), "Node 1 pressure", 1.0)
+# benchmarking.Output(node1.GetSolutionStepValue(PRESSURE), "Node 1 pressure", 1.0)
     benchmarking.Output(
         node1.GetSolutionStepValue(DISTANCE),
         "Node 1 distance",
@@ -126,8 +127,8 @@ body_force[0] = elembased_levelset_var.body_force_x
 body_force[1] = elembased_levelset_var.body_force_y
 body_force[2] = elembased_levelset_var.body_force_z
 # print body_force
-##viscosity   = elembased_levelset_var.viscosity
-##density     = elembased_levelset_var.density
+# viscosity   = elembased_levelset_var.viscosity
+# density     = elembased_levelset_var.density
 fluid_solver = level_set_elembased_fluid_solver.ElemBasedLevelSetSolver(
     fluid_model_part, domain_size, body_force)
 
@@ -138,21 +139,21 @@ fluid_solver.Initialize()
 #
 
 
-print "fluid solver created"
+print("fluid solver created")
 
 # settings to be changed
-##Dt = elembased_levelset_var.time_step
+# Dt = elembased_levelset_var.time_step
 final_time = elembased_levelset_var.max_time
 output_dt = elembased_levelset_var.output_dt
 coef = elembased_levelset_var.delta_time_coefficient
 
-#number_of_inital_steps = elembased_levelset_var.number_of_inital_steps
-#initial_time_step = elembased_levelset_var.initial_time_step
+# number_of_inital_steps = elembased_levelset_var.number_of_inital_steps
+# initial_time_step = elembased_levelset_var.initial_time_step
 out = 0
 
 #
 back_node = NodeFinder(fluid_model_part.Nodes, 6.429, 1.28, 0.0)
-print back_node
+print(back_node)
 #
 
 # mesh to be printed
@@ -187,14 +188,14 @@ while(time < final_time):
     time = time + Dt
     fluid_model_part.CloneTimeStep(time)
 
-    print "******** CURRENT TIME = ", time
+    print("******** CURRENT TIME = ", time)
 
     if(step >= 3):
 # Calculate Dt when a jump in velocity is reached
-##        Dt_old = elembased_levelset_var.time_step
-##        Dt_new = fluid_solver.CalculateDelta_t(Dt)
+# Dt_old = elembased_levelset_var.time_step
+# Dt_new = fluid_solver.CalculateDelta_t(Dt)
 # if(Dt_old >= coef * Dt_new):
-##            Dt = coef * Dt_new
+# Dt = coef * Dt_new
 
         fluid_solver.Solve()
         BenchmarkCheck(time, back_node)

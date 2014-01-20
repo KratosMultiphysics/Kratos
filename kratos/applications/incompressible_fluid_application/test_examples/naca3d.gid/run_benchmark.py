@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import fluid_only_var
 
 #
@@ -10,7 +11,7 @@ domain_size = fluid_only_var.domain_size
 # ATTENTION: here the order is important
 
 # including kratos path
-##kratos_root/benchmarking
+# kratos_root/benchmarking
 kratos_benchmarking_path = '../../../../benchmarking'
 import sys
 sys.path.append(kratos_benchmarking_path)
@@ -81,10 +82,10 @@ if(laplacian_form >= 2):
 # check to ensure that no node has zero density or pressure
 for node in fluid_model_part.Nodes:
     if(node.GetSolutionStepValue(DENSITY) == 0.0):
-        print "node ", node.Id, " has zero density!"
+        print("node ", node.Id, " has zero density!")
         raise 'node with zero density found'
     if(node.GetSolutionStepValue(VISCOSITY) == 0.0):
-        print "node ", node.Id, " has zero viscosity!"
+        print("node ", node.Id, " has zero viscosity!")
         raise 'node with zero VISCOSITY found'
 
 # creating the solvers
@@ -106,10 +107,10 @@ elif(SolverType == "pressure_splitting"):
         DecoupledSolver(fluid_model_part, domain_size)
     oss_switch = fluid_only_var.use_oss
     dynamic_tau = fluid_only_var.dynamic_tau
-##    pPrecond = ILU0Preconditioner()
+# pPrecond = ILU0Preconditioner()
     pPrecond = DiagonalPreconditioner()
     fluid_solver.pressure_linear_solver = BICGSTABSolver(1e-6, 5000, pPrecond)
-##    fluid_solver.linear_solver =  SuperLUSolver()
+# fluid_solver.linear_solver =  SuperLUSolver()
     fluid_solver.rel_vel_tol = 1e-4
     fluid_solver.abs_vel_tol = 1e-6
     fluid_solver.rel_pres_tol = 1e-4
@@ -136,7 +137,7 @@ elif(SolverType == "monolithic_solver_eulerian_compressible"):
     fluid_solver.Initialize()
 
 
-print "fluid solver created"
+print("fluid solver created")
 
 
 def BenchmarkCheck(time, model_part):

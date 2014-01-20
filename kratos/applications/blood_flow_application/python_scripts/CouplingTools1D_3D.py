@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.BloodFlowApplication import *
 CheckForPreviousImport()
@@ -19,7 +20,7 @@ def InitializeInletNodes(model_part_1d, model_part_3d):
         if(node.GetSolutionStepValue(FLAG_VARIABLE) == 1):
             inlet_nodes_3d.append(node)
 
-    print inlet_nodes_3d
+    print(inlet_nodes_3d)
     # measure 3D area
 
     BodyNormalCalculationUtils().CalculateBodyNormals(model_part_3d, 3)
@@ -37,7 +38,7 @@ def InitializeInletNodes(model_part_1d, model_part_3d):
         # for node in cond.GetNodes():
             # if(node.GetSolutionStepValue(FLAG_VARIABLE) == True):
             # area3d += a*0.3333333333333333333333333333
-    print "************************,area 3D", area3d
+    print("************************,area 3D", area3d)
 
     # fix conditions as needed
     for node in inlet_nodes_1d:
@@ -79,7 +80,7 @@ def InitializeOutletNodes(model_part_1d, model_part_3d):
 def Transfer1D_to_3D(model_part_1d, model_part_3d, inlet_nodes_1d, inlet_nodes_3d, outlet_nodes_1d, outlet_nodes_3d, area3d):
 
     vel1d = inlet_nodes_1d[0].GetSolutionStepValue(FLOW) / area3d
-    print "vel1d = ", vel1d
+    print("vel1d = ", vel1d)
 
     for node in inlet_nodes_3d:
             # aux = node.GetSolutionStepValue(NORMAL);
@@ -100,7 +101,7 @@ def Transfer1D_to_3D(model_part_1d, model_part_3d, inlet_nodes_1d, inlet_nodes_3
     press = math.sqrt(A / A0) * beta - beta
     # Edu
     # press = beta/A0*(math.sqrt(A) - math.sqrt(A0) )
-    print "in Transfer1D_to_3D", press
+    print("in Transfer1D_to_3D", press)
 
     for node in outlet_nodes_3d:
         node.SetSolutionStepValue(PRESSURE, 0, press)
@@ -115,16 +116,16 @@ def Transfer3D_to_1D(model_part_1d, model_part_3d, inlet_nodes_1d, inlet_nodes_3
     avg_press = press_3d / counter
 
     # TODO: make it to read from the input
-    print "inlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS)", inlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS)
-    print "inlet_nodes_1d[0].GetSolutionStepValue(THICKNESS)", inlet_nodes_1d[0].GetSolutionStepValue(THICKNESS)
-    print inlet_nodes_1d[0].Id
+    print("inlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS)", inlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS))
+    print("inlet_nodes_1d[0].GetSolutionStepValue(THICKNESS)", inlet_nodes_1d[0].GetSolutionStepValue(THICKNESS))
+    print(inlet_nodes_1d[0].Id)
     beta = inlet_nodes_1d[0].GetSolutionStepValue(YOUNG_MODULUS) * inlet_nodes_1d[
         0].GetSolutionStepValue(THICKNESS) * math.sqrt(math.pi)
     A = area3d * (avg_press / beta + 1) ** 2
 
     # Edu
     # A = (avg_press*A0/beta + math.sqrt(A0) )**2
-    print "in Transfer3D_to_1D", A
+    print("in Transfer3D_to_1D", A)
 
     inlet_nodes_1d[0].SetSolutionStepValue(NODAL_AREA, 0, A)
 
@@ -141,7 +142,7 @@ def Transfer3D_to_1D(model_part_1d, model_part_3d, inlet_nodes_1d, inlet_nodes_3
 
     # print "flow = ",flow
     # Edu
-    print "sin Riemman", flow
+    print("sin Riemman", flow)
     # flow=2*flow-outlet_nodes_1d[0].GetSolutionStepValue(FLOW, 1)
     # print "con Riemman",flow
 

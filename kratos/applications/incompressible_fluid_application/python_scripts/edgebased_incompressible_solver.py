@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.MeshingApplication import *
@@ -24,7 +25,7 @@ def AddDofs(model_part):
     print "dofs for the edgebased incompressible fluid solver added correctly"
 
 # def ReadRestartFile(FileName,nodes):
-##   aaa = __import__(FileName)
+# aaa = __import__(FileName)
 # aaa.Restart(nodes)
 
 
@@ -34,9 +35,9 @@ def ReadRestartFile(FileName, nodes):
     for line in aaa:
         exec(line)
 
-##   import start.pyinc
+# import start.pyinc
 
-##   aaa = __import__(FileName)
+# aaa = __import__(FileName)
 # aaa.Restart(nodes)
 
 

@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import fluid_only_var
 
 #
@@ -5,7 +6,7 @@ import fluid_only_var
 # setting the domain size for the problem to be solved
 domain_size = fluid_only_var.domain_size
 
-##kratos_root/benchmarking
+# kratos_root/benchmarking
 kratos_benchmarking_path = '../../../../benchmarking'
 import sys
 sys.path.append(kratos_benchmarking_path)

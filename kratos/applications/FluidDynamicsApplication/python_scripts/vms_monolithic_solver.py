@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -36,7 +37,7 @@ def AddVariables(model_part, config=None):
                 model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
                 model_part.AddNodalSolutionStepVariable(DISTANCE)
 
-    print "variables for the vms monolithic solver added correctly"
+    print("variables for the vms monolithic solver added correctly")
 
 
 def AddDofs(model_part, config=None):
@@ -53,7 +54,7 @@ def AddDofs(model_part, config=None):
                 for node in model_part.Nodes:
                     node.AddDof(TURBULENT_VISCOSITY)
 
-    print "dofs for the vms monolithic solver added correctly"
+    print("dofs for the vms monolithic solver added correctly")
 
 
 class MonolithicSolver:
@@ -111,7 +112,7 @@ class MonolithicSolver:
 
         self.divergence_clearance_steps = 0
 
-        print "Construction monolithic solver finished"
+        print("Construction monolithic solver finished")
 
     #
     def Initialize(self):
@@ -171,7 +172,7 @@ class MonolithicSolver:
     def Solve(self):
 
         if self.divergence_clearance_steps > 0:
-            print "Calculating divergence-free initial condition"
+            print("Calculating divergence-free initial condition")
             # initialize with a Stokes solution step
             try:
                 import KratosMultiphysics.ExternalSolversApplication as kes
@@ -212,7 +213,7 @@ class MonolithicSolver:
 #                    node.SetSolutionStepValue(VELOCITY,i,vel)
 
             self.divergence_clearance_steps = 0
-            print "Finished divergence clearance"
+            print("Finished divergence clearance")
 
         if self.ReformDofSetAtEachStep:
             if self.use_slip_conditions:

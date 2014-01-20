@@ -1,7 +1,8 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.mpi import *
-#from KratosMultiphysics.MetisApplication import *
+# from KratosMultiphysics.MetisApplication import *
 from KratosMultiphysics.TrilinosApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.FluidDynamicsApplication import *
@@ -44,7 +45,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(PARTITION_INDEX)
 
     if mpi.rank == 0:
-        print "variables for the pressure splitting solver added correctly"
+        print("variables for the pressure splitting solver added correctly")
 
 
 def AddDofs(model_part):
@@ -59,7 +60,7 @@ def AddDofs(model_part):
     mpi.world.barrier()
 
     if mpi.rank == 0:
-        print "dofs for the pressure splitting solver added correctly"
+        print("dofs for the pressure splitting solver added correctly")
 
 
 class PressureSplittingSolver:
@@ -85,18 +86,18 @@ class PressureSplittingSolver:
 # vel_aztec_parameters.set("AZ_precond","AZ_dom_decomp")
 # vel_aztec_parameters.set("AZ_subdomain_solve","AZ_icc")
 #
-####        preconditioner_type = "Amesos"
-####        preconditioner_parameters = ParameterList()
-####        preconditioner_parameters.set("amesos: solver type", "Amesos_Klu");
-####        preconditioner_type = "Ifpack_PointRelaxation"
-####        preconditioner_parameters = ParameterList()
-####        preconditioner_parameters.set("relaxation: type", "Jacobi");
+# preconditioner_type = "Amesos"
+# preconditioner_parameters = ParameterList()
+# preconditioner_parameters.set("amesos: solver type", "Amesos_Klu");
+# preconditioner_type = "Ifpack_PointRelaxation"
+# preconditioner_parameters = ParameterList()
+# preconditioner_parameters.set("relaxation: type", "Jacobi");
 #
-####        preconditioner_type = "ILU"
-####        preconditioner_parameters = ParameterList()
-####        overlap_level = 1
-####        nit_max = 1000
-####        tol = 1e-6
+# preconditioner_type = "ILU"
+# preconditioner_parameters = ParameterList()
+# overlap_level = 1
+# nit_max = 1000
+# tol = 1e-6
 
         # Velocity preconditioner
         vel_preconditioner_type = "ILU"  # "IC"
@@ -154,7 +155,7 @@ class PressureSplittingSolver:
         self.guess_row_size = estimate_neighbours * (self.domain_size + 1)
         self.buildertype = "PressureSplitting"
 
-##        self.guess_row_size = 15
+# self.guess_row_size = 15
 # self.buildertype="standard"
 
         # For Spalart-Allmaras
@@ -199,7 +200,7 @@ class PressureSplittingSolver:
 
 # self.solver.Check()
 
-##        self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)
+# self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)
 # (self.solver).SetEchoLevel(self.echo_level)
 
     #
@@ -265,6 +266,6 @@ class PressureSplittingSolver:
             max_it,
             reform_dofset,
             time_order)
-##        self.turbulence_model = TrilinosSpalartAllmarasTurbulenceModel(self.Comm,self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order)
+# self.turbulence_model = TrilinosSpalartAllmarasTurbulenceModel(self.Comm,self.model_part,turbulence_linear_solver,self.domain_size,non_linear_tol,max_it,reform_dofset,time_order)
         if DES:
             self.turbulence_model.ActivateDES(1.0)

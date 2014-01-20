@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import fluid_only_var
 
 #
@@ -9,7 +10,7 @@ domain_size = fluid_only_var.domain_size
 #
 # including kratos path
 kratos_path = '../../../..'
-##kratos_root/benchmarking
+# kratos_root/benchmarking
 kratos_benchmarking_path = '../../../../benchmarking'
 
 import sys
@@ -34,7 +35,7 @@ def NodeFinder(node_list, X, Y, Z):
 
 def BenchmarkCheck(time, node1):
     benchmarking.Output(time, "Time")
-    print "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII"
+    print("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
     benchmarking.Output(
         node1.GetSolutionStepValue(PRESSURE),
         "Node 1 pressure",
@@ -101,10 +102,10 @@ if(laplacian_form >= 2):
 # check to ensure that no node has zero density or pressure
 for node in fluid_model_part.Nodes:
     if(node.GetSolutionStepValue(DENSITY) == 0.0):
-        print "node ", node.Id, " has zero density!"
+        print("node ", node.Id, " has zero density!")
         raise 'node with zero density found'
     if(node.GetSolutionStepValue(VISCOSITY) == 0.0):
-        print "node ", node.Id, " has zero viscosity!"
+        print("node ", node.Id, " has zero viscosity!")
         raise 'node with zero VISCOSITY found'
 
 # creating the solvers
@@ -125,7 +126,7 @@ elif(SolverType == "monolithic_solver_eulerian"):
     fluid_solver.Initialize()
 
 
-print "fluid solver created"
+print("fluid solver created")
 
 # settings to be changed
 Dt = fluid_only_var.Dt
@@ -147,7 +148,7 @@ gid_io.InitializeResults(mesh_name, (fluid_model_part).GetMesh())
 
 #
 back_node = NodeFinder(fluid_model_part.Nodes, 8.027, 4.198, 0.0)
-print back_node
+print(back_node)
 
 #
 

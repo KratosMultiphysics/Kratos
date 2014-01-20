@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.ConvectionDiffusionApplication import *
@@ -49,7 +50,7 @@ def AddVariables(model_part):
 # adding of Variables to Model Part should be here when the "very fix
 # container will be ready"
 
-    print "variables for the level set solver added correctly"
+    print("variables for the level set solver added correctly")
 
 
 def AddDofs(model_part):
@@ -69,7 +70,7 @@ def AddDofs(model_part):
         node.AddDof(DISTANCE)
 # node.AddDof(TEMPERATURE);
     monolithic_solver_eulerian.AddDofs(model_part)
-    print "dofs for the levelset solver added correctly"
+    print("dofs for the levelset solver added correctly")
 
 
 class ElemBasedLevelSetSolver:
@@ -105,7 +106,7 @@ class ElemBasedLevelSetSolver:
             self.bc_tools = ElemBasedBCUtilities(model_part)
 
             # convection solver setting
-            #order of the time scheme of the convection solver
+            # order of the time scheme of the convection solver
             self.convection_order = 2
             self.reform_convection_matrix = True
             self.ReformDofAtEachIteration = True
@@ -117,10 +118,10 @@ class ElemBasedLevelSetSolver:
 
             # pure convection tool
             if(self.domain_size == 2):
-##                self.convection_solver = PureConvectionUtilities2D();
+# self.convection_solver = PureConvectionUtilities2D();
                 self.convection_solver = PureConvectionCrankNUtilities2D()
             else:
-##                self.convection_solver = PureConvectionUtilities3D();
+# self.convection_solver = PureConvectionUtilities3D();
                 self.convection_solver = PureConvectionCrankNUtilities3D()
 
             # redistancing settings
@@ -134,7 +135,7 @@ class ElemBasedLevelSetSolver:
     #
     #
     def Initialize(self):
-        print "entered in initialization"
+        print("entered in initialization")
 # calculate the normals to the overall domain
 # self.normal_tools.CalculateBodyNormals(self.model_part.Elements,self.domain_size);
 #
@@ -165,15 +166,15 @@ class ElemBasedLevelSetSolver:
         # Initialize distance function
         self.RecalculateDistanceFunction()
 
-        print "finished initialization"
+        print("finished initialization")
 
     #
 #
 # def CalculateDistances(self):
 # if(self.domain_size == 2):
-##            self.distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE, self.reorder);
+# self.distance_calculator.CalculateDistances2D(self.model_part.Elements,DISTANCE, self.reorder);
 # else:
-##            self.distance_calculator.CalculateDistances3D(self.model_part.Elements,DISTANCE, self.reorder);
+# self.distance_calculator.CalculateDistances3D(self.model_part.Elements,DISTANCE, self.reorder);
     #
     #
     # take care! needs neighbours on the overall domain
@@ -188,7 +189,7 @@ class ElemBasedLevelSetSolver:
 
         # convect distance function ###################
         if(self.ReformDofAtEachIteration):
-            print "Convect changing the matrix"
+            print("Convect changing the matrix")
             # find neighbours
             (self.mesh_neighbour_search).Execute()
 # control if it is to be repeated in all the steps or only at the beginning
@@ -229,7 +230,7 @@ class ElemBasedLevelSetSolver:
             self.convection_solver.ClearSystem()
 
         else:
-            print "Convect without changing the matrix"
+            print("Convect without changing the matrix")
             # find neighbours
             (self.mesh_neighbour_search).Execute()
 

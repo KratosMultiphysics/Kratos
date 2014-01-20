@@ -1,4 +1,5 @@
-import Tkinter
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+import tkinter
 
 
 class KratosMonitor:
@@ -8,15 +9,15 @@ class KratosMonitor:
         self.toplevel.destroy()
         self.root.destroy()
         self.toplevel = 0
-        print "Monitor Closed"
+        print("Monitor Closed")
 
     def __init__(self):
-        self.root = Tkinter.Tk()
+        self.root = tkinter.Tk()
         self.root.withdraw()
-        self.toplevel = Tkinter.Toplevel(self.root)
+        self.toplevel = tkinter.Toplevel(self.root)
         self.toplevel.title("Kratos")
         self.toplevel.protocol("WM_DELETE_WINDOW", self.DeleteRoot)
-        self.frame = Tkinter.Frame(self.toplevel)
+        self.frame = tkinter.Frame(self.toplevel)
         self.frame.grid()
         self.toplevel.bind("<Control-c>", exit)
 
@@ -32,10 +33,10 @@ class KratosMonitor:
             if(VariableName in self.Variables):
                 self.Values[VariableName].config(text=Value)
             else:
-                new_label = Tkinter.Label(
-                    self.toplevel, text=VariableName, anchor=Tkinter.W, justify=Tkinter.LEFT)
+                new_label = tkinter.Label(
+                    self.toplevel, text=VariableName, anchor=tkinter.W, justify=tkinter.LEFT)
                 new_label.grid(row=len(self.Variables), column=0,
-                               padx=8, pady=1, sticky=Tkinter.N + Tkinter.W + Tkinter.E)
+                               padx=8, pady=1, sticky=tkinter.N + tkinter.W + tkinter.E)
 # if ( len(self.Variables) % 2):
 # new_label.config(anchor=Tkinter.W, justify=Tkinter.LEFT)
 # else:
@@ -43,19 +44,19 @@ class KratosMonitor:
 
                 self.Variables[VariableName] = new_label
 
-                new_label = Tkinter.Label(
-                    self.toplevel, text=Value, anchor=Tkinter.W, justify=Tkinter.LEFT)
+                new_label = tkinter.Label(
+                    self.toplevel, text=Value, anchor=tkinter.W, justify=tkinter.LEFT)
                 new_label.grid(row=len(self.Values), column=1,
-                               padx=8, pady=1, sticky=Tkinter.N + Tkinter.W + Tkinter.E)
+                               padx=8, pady=1, sticky=tkinter.N + tkinter.W + tkinter.E)
 # if ( len(self.Values) % 2):
 # new_label.config(anchor=Tkinter.W, justify=Tkinter.LEFT)
 # else:
                 new_label.config(
-                    anchor=Tkinter.W, justify=Tkinter.LEFT, background=bg_color)
+                    anchor=tkinter.W, justify=tkinter.LEFT, background=bg_color)
                 self.Values[VariableName] = new_label
             self.root.update()
         else:
-            print "KratosMonitor : ", VariableName, " = ", Value
+            print("KratosMonitor : ", VariableName, " = ", Value)
 
 
 kratos_monitor = KratosMonitor()

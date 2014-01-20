@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 domain_size = 2
 
 SolverType = "FractionalStep"
@@ -34,21 +35,21 @@ Calculate_reactions = True
 Use_slip_conditions = True
 
 groups_dictionary = {
-        "cyl" : 2,
-        "vol" : 1,
-                   }
+    "cyl": 2,
+    "vol": 1,
+}
 
 output_time = 0.1
-output_step = 1 #100
+output_step = 1  # 100
 VolumeOutput = True
 
-nodal_results=["VELOCITY","PRESSURE","REACTION"]
-gauss_points_results=[]
+nodal_results = ["VELOCITY", "PRESSURE", "REACTION"]
+gauss_points_results = []
 GiDPostMode = "Binary"
 GiDWriteMeshFlag = True
 GiDWriteConditionsFlag = True
 GiDMultiFileFlag = "Single"
 
-problem_name="cyl_benchFluid"
-problem_path="/home/rrossi/esempi/cyl_bench.gid"
-kratos_path="D:\Kratos"
+problem_name = "cyl_benchFluid"
+problem_path = "/home/rrossi/esempi/cyl_bench.gid"
+kratos_path = "D:\Kratos"

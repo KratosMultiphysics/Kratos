@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 domain_size = 2
 
 max_time = 1.00000e+00
@@ -24,4 +25,3 @@ SolverType = "weakly_compressible_SPH"
 problem_name = 'StillWaterCoarse'
 problem_path = '/home/ckaracaova/Escritorio/GID_CEM/stillwatermeshes/StillWaterCoarse.gid'
 kratos_path = '/home/ckaracaova/kratos'
-

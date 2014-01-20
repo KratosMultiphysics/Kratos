@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import problem_settings
 
 #
@@ -11,7 +12,7 @@ domain_size = problem_settings.domain_size
 
 # including kratos path
 import sys
-##kratos_root/benchmarking
+# kratos_root/benchmarking
 kratos_benchmarking_path = '../../../../benchmarking'
 sys.path.append(kratos_benchmarking_path)
 
@@ -105,7 +106,7 @@ fluid_solver.use_mass_correction = problem_settings.use_mass_correction
 fluid_solver.tau2_factor = problem_settings.tau2_factor
 fluid_solver.edge_detection_angle = problem_settings.edge_detection_angle
 fluid_solver.assume_constant_pressure = problem_settings.assume_constant_pressure
-##0 = None; 1 = Ergun; 2 = Custom;
+# 0 = None; 1 = Ergun; 2 = Custom;
 fluid_solver.compute_porous_resistance_law = int(
     problem_settings.compute_porous_resistance_law)
 
@@ -129,7 +130,7 @@ Xtol = problem_settings.Xtol
 Ytol = problem_settings.Ytol
 # print "compute_porous_resistance_law   ", fluid_solver.compute_porous_resistance_law
 # using MKLPardisosolver ----> it has to be compiled in kratos!!
-##fluid_solver.pressure_linear_solver = MKLPardisoSolver()
+# fluid_solver.pressure_linear_solver = MKLPardisoSolver()
 
 if(pressure_fixed == "ON"):
     node_list = []
@@ -173,7 +174,7 @@ def BenchmarkCheck(time, model_part):
         None,
         0.01)
 
-print "fluid solver created"
+print("fluid solver created")
 
 # settings to be changed
 max_Dt = problem_settings.max_time_step
@@ -270,7 +271,7 @@ while(time < final_time):
     fluid_model_part.CloneTimeStep(time)
     cut_model_part.CloneTimeStep(time)
 
-    print "******** CURRENT TIME = ", time
+    print("******** CURRENT TIME = ", time)
 
     if(step >= 3):
         fluid_solver.Solve()
@@ -278,13 +279,13 @@ while(time < final_time):
         check_dt = fluid_solver.EstimateTimeStep(0.95, max_Dt)
 
         if(check_dt < Dt):
-            print "***********************************************************"
-            print "***********************************************************"
-            print "***********************************************************"
-            print "            *** REDUCING THE TIME STEP ***"
-            print "***********************************************************"
-            print "***********************************************************"
-            print "***********************************************************"
+            print("***********************************************************")
+            print("***********************************************************")
+            print("***********************************************************")
+            print("            *** REDUCING THE TIME STEP ***")
+            print("***********************************************************")
+            print("***********************************************************")
+            print("***********************************************************")
 
             # we found a velocity too large! we need to reduce the time step
             # this is to set the database to the value at the beginning of the
@@ -294,11 +295,11 @@ while(time < final_time):
             safety_factor *= problem_settings.reduction_on_failure
             reduced_dt = fluid_solver.EstimateTimeStep(safety_factor, max_Dt)
 
-            print "time before reduction= ", time
+            print("time before reduction= ", time)
             time = time - Dt + reduced_dt
-            print "reduced time = ", time
-            print "Dt = ", Dt
-            print "reduced_dt = ", reduced_dt
+            print("reduced time = ", time)
+            print("Dt = ", Dt)
+            print("reduced_dt = ", reduced_dt)
 
             # this is to set the database to the value at the beginning of the
             # step
@@ -345,14 +346,14 @@ while(time < final_time):
                         if (i + j < (number_points_x + number_points_y - 2)):
                             if (n > 0):
                                 h_tot = h / n
-                                print "Altura de la superficie libre en X = ", X_position[i], " , Y = ", Y_position[j], " , ", h_tot
+                                print("Altura de la superficie libre en X = ", X_position[i], " , Y = ", Y_position[j], " , ", h_tot)
                                 f.write(str(h_tot) + '      ')
                             else:
                                 f.write('No data available      ')
                         if (i + j == (number_points_x + number_points_y - 2)):
                             if (n > 0):
                                 h_tot = h / n
-                                print "Altura de la superficie libre en X = ", X_position[i], " , Y = ", Y_position[j], " , ", h_tot
+                                print("Altura de la superficie libre en X = ", X_position[i], " , Y = ", Y_position[j], " , ", h_tot)
                                 f.write(str(h_tot) + '      ' + '\n')
                             else:
                                 f.write('No data available      ' + '\n')

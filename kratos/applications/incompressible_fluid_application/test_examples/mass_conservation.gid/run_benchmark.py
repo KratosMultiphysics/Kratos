@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import edgebased_levelset_var
 
 #
@@ -6,7 +7,7 @@ import edgebased_levelset_var
 domain_size = edgebased_levelset_var.domain_size
 
 
-##kratos_root/benchmarking
+# kratos_root/benchmarking
 kratos_benchmarking_path = '../../../../benchmarking'
 import sys
 sys.path.append(kratos_benchmarking_path)
@@ -104,8 +105,8 @@ def BenchmarkCheck(time, model_part):
 
     num = bottom_right_node.GetSolutionStepValue(
         PRESSURE) - bottom_right_node.GetSolutionStepValue(
-        PRESSURE,
-        1)
+            PRESSURE,
+            1)
     denom = abs(bottom_right_node.GetSolutionStepValue(PRESSURE)) + 0.0001
     benchmarking.Output(time, "Time")
 
@@ -120,7 +121,7 @@ def BenchmarkCheck(time, model_part):
         0.01)
 
 
-print "fluid solver created"
+print("fluid solver created")
 
 # settings to be changed
 max_Dt = edgebased_levelset_var.max_time_step
@@ -165,7 +166,7 @@ while(time < final_time):
     time = time + Dt
     fluid_model_part.CloneTimeStep(time)
 
-    print "******** CURRENT TIME = ", time
+    print("******** CURRENT TIME = ", time)
 
     if(step >= 3):
         fluid_solver.Solve()
@@ -173,13 +174,13 @@ while(time < final_time):
         check_dt = fluid_solver.EstimateTimeStep(0.95, max_Dt)
 
         if(check_dt < Dt):
-            print "***********************************************************"
-            print "***********************************************************"
-            print "***********************************************************"
-            print "            *** REDUCING THE TIME STEP ***"
-            print "***********************************************************"
-            print "***********************************************************"
-            print "***********************************************************"
+            print("***********************************************************")
+            print("***********************************************************")
+            print("***********************************************************")
+            print("            *** REDUCING THE TIME STEP ***")
+            print("***********************************************************")
+            print("***********************************************************")
+            print("***********************************************************")
 
             # we found a velocity too large! we need to reduce the time step
             # this is to set the database to the value at the beginning of the
@@ -189,11 +190,11 @@ while(time < final_time):
             safety_factor *= 0.3
             reduced_dt = fluid_solver.EstimateTimeStep(safety_factor, max_Dt)
 
-            print "time before reduction= ", time
+            print("time before reduction= ", time)
             time = time - Dt + reduced_dt
-            print "reduced time = ", time
-            print "Dt = ", Dt
-            print "reduced_dt = ", reduced_dt
+            print("reduced time = ", time)
+            print("Dt = ", Dt)
+            print("reduced_dt = ", reduced_dt)
 
             # this is to set the database to the value at the beginning of the
             # step

@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 domain_size = 2
 
 Gravity_X = 0.0
@@ -20,6 +21,6 @@ SolverType = "pfem_solver_ale"
 laplacian_form = 3
 # Declare Python Variables
 
-problem_name="Mapping_2d"
-problem_path="/media/data/Documents_work/EXAMPLES/BENCHMARKING/Mapping_2d.gid"
-kratos_path="/home/antonia/kratos"
+problem_name = "Mapping_2d"
+problem_path = "/media/data/Documents_work/EXAMPLES/BENCHMARKING/Mapping_2d.gid"
+kratos_path = "/home/antonia/kratos"

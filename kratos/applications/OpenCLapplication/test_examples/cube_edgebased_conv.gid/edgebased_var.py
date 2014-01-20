@@ -1,6 +1,7 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 domain_size = 3
 
-max_time = 1.0 #6.28 #
+max_time = 1.0  # 6.28 #
 safety_factor = 0.3
 max_time_step = 0.001
 output_dt = 0.25
@@ -17,6 +18,6 @@ number_of_inital_steps = 10
 initial_time_step = 0.00001
 # Declare Python Variables
 
-problem_name="cube_edgebased_conv"
-problem_path="/home/rrossi/esempi/cube_edgebased_conv.gid"
-kratos_path="/home/rrossi/kratos"
+problem_name = "cube_edgebased_conv"
+problem_path = "/home/rrossi/esempi/cube_edgebased_conv.gid"
+kratos_path = "/home/rrossi/kratos"

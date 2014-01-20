@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import edgebased_levelset_var
 
 #
@@ -6,7 +7,7 @@ import edgebased_levelset_var
 domain_size = edgebased_levelset_var.domain_size
 
 import math
-##import cProfile
+# import cProfile
 #
 #
 # ATTENTION: here the order is important
@@ -127,12 +128,12 @@ fluid_solver.use_mass_correction = edgebased_levelset_var.use_mass_correction
 fluid_solver.tau2_factor = edgebased_levelset_var.tau2_factor
 fluid_solver.edge_detection_angle = edgebased_levelset_var.edge_detection_angle
 fluid_solver.assume_constant_pressure = edgebased_levelset_var.assume_constant_pressure
-##0 = None; 1 = Ergun; 2 = Custom;
+# 0 = None; 1 = Ergun; 2 = Custom;
 fluid_solver.compute_porous_resistance_law = int(
     edgebased_levelset_var.compute_porous_resistance_law)
 # print "compute_porous_resistance_law   ", fluid_solver.compute_porous_resistance_law
 # using MKLPardisosolver ----> it has to be compiled in kratos!!
-##fluid_solver.pressure_linear_solver = MKLPardisoSolver()
+# fluid_solver.pressure_linear_solver = MKLPardisoSolver()
 
 fluid_solver.dynamic_tau = 1.0
 
@@ -145,7 +146,7 @@ if(edgebased_levelset_var.wall_law_y > 1e-10):
 #
 
 
-print "fluid solver created"
+print("fluid solver created")
 
 # settings to be changed
 max_Dt = edgebased_levelset_var.max_time_step
@@ -162,7 +163,7 @@ original_max_dt = max_Dt
 
 #
 back_node = NodeFinder(fluid_model_part.Nodes, 4.804, 2.0, 0.0)
-print back_node
+print(back_node)
 #
 
 # mesh to be printed
@@ -197,7 +198,7 @@ while(time < final_time):
     time = time + Dt
     fluid_model_part.CloneTimeStep(time)
 
-    print "******** CURRENT TIME = ", time
+    print("******** CURRENT TIME = ", time)
 
     if(step >= 3):
         fluid_solver.Solve()
@@ -206,13 +207,13 @@ while(time < final_time):
         check_dt = fluid_solver.EstimateTimeStep(0.95, max_Dt)
 
         if(check_dt < Dt):
-            print "***********************************************************"
-            print "***********************************************************"
-            print "***********************************************************"
-            print "            *** REDUCING THE TIME STEP ***"
-            print "***********************************************************"
-            print "***********************************************************"
-            print "***********************************************************"
+            print("***********************************************************")
+            print("***********************************************************")
+            print("***********************************************************")
+            print("            *** REDUCING THE TIME STEP ***")
+            print("***********************************************************")
+            print("***********************************************************")
+            print("***********************************************************")
 
             # we found a velocity too large! we need to reduce the time step
             # this is to set the database to the value at the beginning of the
@@ -222,11 +223,11 @@ while(time < final_time):
             safety_factor *= edgebased_levelset_var.reduction_on_failure
             reduced_dt = fluid_solver.EstimateTimeStep(safety_factor, max_Dt)
 
-            print "time before reduction= ", time
+            print("time before reduction= ", time)
             time = time - Dt + reduced_dt
-            print "reduced time = ", time
-            print "Dt = ", Dt
-            print "reduced_dt = ", reduced_dt
+            print("reduced time = ", time)
+            print("Dt = ", Dt)
+            print("reduced_dt = ", reduced_dt)
 
             # this is to set the database to the value at the beginning of the
             # step

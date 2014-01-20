@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 domain_size = 2
 
 max_time = 20.0
@@ -17,6 +18,6 @@ number_of_inital_steps = 10
 initial_time_step = 0.00001
 # Declare Python Variables
 
-problem_name="square_edgebased"
-problem_path="/home/antonia/Desktop/ConvectionTest/square_edgebased.gid"
-kratos_path="/home/antonia/kratos"
+problem_name = "square_edgebased"
+problem_path = "/home/antonia/Desktop/ConvectionTest/square_edgebased.gid"
+kratos_path = "/home/antonia/kratos"

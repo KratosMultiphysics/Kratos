@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # importing the Kratos Library
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
@@ -57,7 +58,7 @@ def AddVariables(model_part):
     # variables needed for the distance solver
     trilinos_just_levelset_solver.AddVariables(model_part, distance_settings)
 
-    print "variables for the MONOLITHIC_SOLVER_EULERIAN added correctly"
+    print("variables for the MONOLITHIC_SOLVER_EULERIAN added correctly")
 
 
 def AddDofs(model_part):
@@ -69,7 +70,7 @@ def AddDofs(model_part):
         node.AddDof(PRESSURE)
 
     trilinos_just_levelset_solver.AddDofs(model_part, distance_settings)
-    print "dofs for the monolithic solver added correctly"
+    print("dofs for the monolithic solver added correctly")
 
 
 class MonolithicSolver:
@@ -85,7 +86,7 @@ class MonolithicSolver:
 
         self.alpha = -0.3
         self.move_mesh_strategy = 0
-        #self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched( self.alpha,self.move_mesh_strategy,self.domain_size )
+        # self.time_scheme = ResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched( self.alpha,self.move_mesh_strategy,self.domain_size )
         self.time_scheme = TrilinosResidualBasedPredictorCorrectorVelocityBossakSchemeDPGEnriched(
             self.alpha, self.move_mesh_strategy, self.domain_size)
         self.time_scheme.Check(self.model_part)
@@ -99,19 +100,19 @@ class MonolithicSolver:
             self.guess_row_size = estimate_neighbours * (self.domain_size + 1)
             # self.buildertype="ML3Dpress"
         self.buildertype = "standard"
-        #aztec_parameters = ParameterList()
+        # aztec_parameters = ParameterList()
         # aztec_parameters.set("AZ_solver","AZ_gmres");
         # aztec_parameters.set("AZ_kspace",200);
         # aztec_parameters.set("AZ_output","AZ_none");
         # aztec_parameters.set("AZ_output",10);
-        #preconditioner_type = "ILU"
-        #preconditioner_parameters = ParameterList()
-        #preconditioner_parameters.set ("fact: drop tolerance", 1e-9);
-        #preconditioner_parameters.set ("fact: level-of-fill", 1);
-        #overlap_level = 0
-        #nit_max = 1000
-        #linear_tol = 1e-5
-        #self.linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,linear_tol,nit_max,overlap_level);
+        # preconditioner_type = "ILU"
+        # preconditioner_parameters = ParameterList()
+        # preconditioner_parameters.set ("fact: drop tolerance", 1e-9);
+        # preconditioner_parameters.set ("fact: level-of-fill", 1);
+        # overlap_level = 0
+        # nit_max = 1000
+        # linear_tol = 1e-5
+        # self.linear_solver =  AztecSolver(aztec_parameters,preconditioner_type,preconditioner_parameters,linear_tol,nit_max,overlap_level);
 
         aztec_parameters = ParameterList()
         aztec_parameters.set("AZ_solver", "AZ_gmres")
@@ -175,7 +176,7 @@ class MonolithicSolver:
                                                 self.level_set_model_part, conv_elem, conv_cond)
         (ParallelFillCommunicator(self.level_set_model_part)).Execute()
         if(mpi.rank == 0):
-            print "finished initializing the parallel fill communicator for convection_model_part"
+            print("finished initializing the parallel fill communicator for convection_model_part")
         # constructing the convection solver for the distance
         self.trilinos_just_levelset_solver = trilinos_just_levelset_solver.Solver(
             self.level_set_model_part, domain_size, distance_settings)
@@ -220,14 +221,14 @@ class MonolithicSolver:
     def ApplyFluidProperties(self):
         # apply density
         mu1 = 1.0 * self.mu / self.rho1
-        #mu1 = self.mu
-        #mu2 = 0.01*self.mu/self.rho2
+        # mu1 = self.mu
+        # mu2 = 0.01*self.mu/self.rho2
         mu2 = mu1
 
         BiphasicFillingUtilities().ApplyFluidProperties(
             self.model_part, mu1, self.rho1, mu2, self.rho2)
 # for node in self.model_part.Nodes:
-##            dist = node.GetSolutionStepValue(DISTANCE)
+# dist = node.GetSolutionStepValue(DISTANCE)
 # if(dist < 0):
 # node.SetSolutionStepValue(DENSITY,0,self.rho1)
 # node.SetSolutionStepValue(VISCOSITY,0,mu1)
@@ -247,8 +248,8 @@ class MonolithicSolver:
             self.abs_pres_tol,
             self.Comm)
 
-        #builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        #self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,builder_and_solver,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)
+        # builder_and_solver = ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+        # self.solver = ResidualBasedNewtonRaphsonStrategy(self.model_part,self.time_scheme,self.linear_solver,self.conv_criteria,builder_and_solver,self.max_iter,self.CalculateReactionFlag, self.ReformDofSetAtEachStep,self.MoveMeshFlag)
         import trilinos_strategy_python
         self.solver = trilinos_strategy_python.SolvingStrategyPython(
             self.buildertype,
@@ -263,7 +264,7 @@ class MonolithicSolver:
             self.guess_row_size)
         self.solver.max_iter = self.max_iter
         (self.solver).SetEchoLevel(self.echo_level)
-        print ">>>>>>>>>>>>>>>", self.oss_switch
+        print(">>>>>>>>>>>>>>>", self.oss_switch)
         self.model_part.ProcessInfo.SetValue(
             DYNAMIC_TAU, self.dynamic_tau_fluid)
         self.model_part.ProcessInfo.SetValue(OSS_SWITCH, self.oss_switch)
@@ -352,7 +353,7 @@ class MonolithicSolver:
         # recompute distance function as needed
         if(self.internal_step_counter >= self.next_redistance):
             self.DoRedistance()
-            #BiphasicFillingUtilities().DistanceFarRegionCorrection(self.model_part,  self.max_distance)
+            # BiphasicFillingUtilities().DistanceFarRegionCorrection(self.model_part,  self.max_distance)
             self.next_redistance = self.internal_step_counter + \
                 self.redistance_frequency
 

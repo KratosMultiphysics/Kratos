@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 domain_size = 3
 
 Dt = 0.01
@@ -17,5 +18,4 @@ Absolute_Tolerance = 1E-9
 Max_Iter = 30
 # Declare Python Variables
 
-problem_name="Patch_Test_Total_Lagrangian_3D_8N"
-
+problem_name = "Patch_Test_Total_Lagrangian_3D_8N"

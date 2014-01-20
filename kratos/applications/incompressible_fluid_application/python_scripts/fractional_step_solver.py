@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # -*- coding: utf-8 -*-
 # importing the Kratos Library
 from KratosMultiphysics import *
@@ -26,7 +27,7 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(IS_INTERFACE)
     model_part.AddNodalSolutionStepVariable(ARRHENIUS)
 
-    print "variables for the incompressible fluid solver added correctly"
+    print("variables for the incompressible fluid solver added correctly")
 
 
 def AddDofs(model_part):
@@ -41,10 +42,10 @@ def AddDofs(model_part):
         node.AddDof(VELOCITY_Y)
         node.AddDof(VELOCITY_Z)
 
-    print "dofs for the incompressible fluid solver added correctly"
+    print("dofs for the incompressible fluid solver added correctly")
 
 # def ReadRestartFile(FileName,nodes):
-##   aaa = __import__(FileName)
+# aaa = __import__(FileName)
 # aaa.Restart(nodes)
 
 
@@ -54,9 +55,9 @@ def ReadRestartFile(FileName, nodes):
     for line in aaa:
         exec(line)
 
-##   import start.pyinc
+# import start.pyinc
 
-##   aaa = __import__(FileName)
+# aaa = __import__(FileName)
 # aaa.Restart(nodes)
 
 
@@ -91,10 +92,10 @@ class IncompressibleFluidSolver:
         # definition of the solvers
         pDiagPrecond = DiagonalPreconditioner()
 #        pILUPrecond = ILU0Preconditioner()
-##        self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
-##        self.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
+# self.velocity_linear_solver =  BICGSTABSolver(1e-6, 5000,pDiagPrecond)
+# self.pressure_linear_solver =  BICGSTABSolver(1e-9, 5000,pILUPrecond)
         self.velocity_linear_solver = BICGSTABSolver(1e-6, 5000, pDiagPrecond)
-##        self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pILUPrecond)
+# self.pressure_linear_solver =  BICGSTABSolver(1e-3, 5000,pILUPrecond)
         self.pressure_linear_solver = BICGSTABSolver(1e-3, 5000, pDiagPrecond)
 
         self.dynamic_tau = 0.001
@@ -153,7 +154,7 @@ class IncompressibleFluidSolver:
         self.slip_conditions_initialized = True
 
         (self.solver).SetEchoLevel(self.echo_level)
-        print "finished initialization of the fluid strategy"
+        print("finished initialization of the fluid strategy")
 
     def Solve(self):
         if(self.ReformDofAtEachIteration):
@@ -166,8 +167,8 @@ class IncompressibleFluidSolver:
             (self.solver).SetSlipProcess(self.create_slip_conditions)
             self.slip_conditions_initialized = True
 
-        print "just before solve"
-        print self.model_part
+        print("just before solve")
+        print(self.model_part)
         (self.solver).Solve()
 
         if(self.compute_reactions):
@@ -189,7 +190,7 @@ class IncompressibleFluidSolver:
             raise "error refine in 2d not yet implemented"
         else:
             Refine = KMesh.LocalRefineTetrahedraMesh(self.model_part)
-        ##just to be sure nothign is done
+        # just to be sure nothign is done
         (self.model_part).ProcessInfo[FRACTIONAL_STEP] = 10
         refinement_utils.MarkForRefinement(
             ERROR_RATIO,
@@ -205,7 +206,7 @@ class IncompressibleFluidSolver:
 
         (self.neighbour_search).Execute()
         self.slip_conditions_initialized = False
-        print "Refining finished"
+        print("Refining finished")
 
     def WriteRestartFile(self, FileName):
         restart_file = open(FileName + ".mdpa", 'w')

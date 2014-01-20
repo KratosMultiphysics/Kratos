@@ -1,3 +1,5 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
+ # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 #
 #
 # Utility routines for automatic benchmarking of Kratos examples          #
@@ -129,26 +131,43 @@ def InBuildReferenceMode():
 
 def Output(Var, Label="", AbsErr=None, RelErr=None):
     if (InBenchmarkingMode()):
-        print Header, "|", TypeToString(Var), "|", Label, "|", Var, "|", AbsErr, "|", RelErr
+        print(Header, "|", TypeToString(Var), "|", Label, "|", Var, "|", AbsErr, "|", RelErr)
 
 
 def BuildReferenceData(ExamplePath, ReferenceBenchmarkFile):
-    os.system(
-        "python " +
-        ExamplePath +
-        " --benchmarking --build-reference | grep \"" +
-        Header +
-        "\" > " +
-        ReferenceBenchmarkFile)
+    if sys.version_info >= (3, 0):
+        os.system(
+            "python3 " +
+            ExamplePath +
+            " --benchmarking --build-reference | grep \"" +
+            Header +
+            "\" > " +
+            ReferenceBenchmarkFile)
+    else:
+        os.system(
+            "python -3 " +
+            ExamplePath +
+            " --benchmarking --build-reference | grep \"" +
+            Header +
+            "\" > " +
+            ReferenceBenchmarkFile)
 
 
 def RunBenchmark(ExamplePath, ReferenceBenchmarkFile):
-    os.system(
-        "python " +
-        ExamplePath +
-        " --benchmarking | grep \"" +
-        Header +
-        "\" > BenchTemp.txt")
+    if sys.version_info >= (3, 0):
+        os.system(
+            "python3 " +
+            ExamplePath +
+            " --benchmarking | grep \"" +
+            Header +
+            "\" > BenchTemp.txt")
+    else:
+        os.system(
+            "python -3 " +
+            ExamplePath +
+            " --benchmarking | grep \"" +
+            Header +
+            "\" > BenchTemp.txt")
 
     f = open("BenchTemp.txt", "r")
     t = f.readlines()
@@ -159,8 +178,8 @@ def RunBenchmark(ExamplePath, ReferenceBenchmarkFile):
     r = f.readlines()
     f.close()
 
-    t = map(string.strip, t)
-    r = map(string.strip, r)
+    t = list(map(str.strip, t))
+    r = list(map(str.strip, r))
 
     if (len(t) != len(r)):
         Msg = "Different amount of benchmark data!"
@@ -170,10 +189,10 @@ def RunBenchmark(ExamplePath, ReferenceBenchmarkFile):
 
     for i in range(n):
         Msg = TypedCompare(
-            map(string.strip,
-                r[i].split("|")),
-            map(string.strip,
-                t[i].split("|")))
+            list(map(str.strip,
+                     r[i].split("|"))),
+            list(map(str.strip,
+                     t[i].split("|"))))
         if (Msg != True):
             return Msg
 
@@ -181,12 +200,20 @@ def RunBenchmark(ExamplePath, ReferenceBenchmarkFile):
 
 
 def MPIParallelRunBenchmark(ExamplePath, ReferenceBenchmarkFile):
-    os.system(
-        "mpirun -np 2 python " +
-        ExamplePath +
-        " --benchmarking | grep \"" +
-        Header +
-        "\" > BenchTemp.txt")
+    if sys.version_info >= (3, 0):
+        os.system(
+            "mpirun -np 2 python3 " +
+            ExamplePath +
+            " --benchmarking | grep \"" +
+            Header +
+            "\" > BenchTemp.txt")
+    if sys.version_info >= (3, 0):
+        os.system(
+            "mpirun -np 2 python -3 " +
+            ExamplePath +
+            " --benchmarking | grep \"" +
+            Header +
+            "\" > BenchTemp.txt")
 
     f = open("BenchTemp.txt", "r")
     t = f.readlines()
@@ -197,8 +224,8 @@ def MPIParallelRunBenchmark(ExamplePath, ReferenceBenchmarkFile):
     r = f.readlines()
     f.close()
 
-    t = map(string.strip, t)
-    r = map(string.strip, r)
+    t = list(map(str.strip, t))
+    r = list(map(str.strip, r))
 
     if (len(t) != len(r)):
         Msg = "Different amount of benchmark data!"
@@ -208,10 +235,10 @@ def MPIParallelRunBenchmark(ExamplePath, ReferenceBenchmarkFile):
 
     for i in range(n):
         Msg = TypedCompare(
-            map(string.strip,
-                r[i].split("|")),
-            map(string.strip,
-                t[i].split("|")))
+            list(map(str.strip,
+                     r[i].split("|"))),
+            list(map(str.strip,
+                     t[i].split("|"))))
         if (Msg != True):
             return Msg
 
@@ -224,11 +251,11 @@ def StartTiming():
 
 def StopTiming(t, AbsDiff, RelDiff):
     if (InBenchmarkingMode()):
-        print Header, "| Time | Timing | ", time.time() - t, "|", AbsDiff, "|", RelDiff
+        print(Header, "| Time | Timing | ", time.time() - t, "|", AbsDiff, "|", RelDiff)
 
 
 def NotifyViaEmail(Subject, Text, Recipients):
-    print "Sending email, please wait..."
+    print("Sending email, please wait...")
     s = smtplib.SMTP("smtps.cimne.upc.es")
     msg = "From: Kratos benchmarking <no-reply-kratos-benchmarking@cimne.upc.es>\nSubject: " + \
         Subject + "\n" + Text

@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # -*- coding: utf-8 -*-
 # importing the Kratos Library
 from KratosMultiphysics import *
@@ -27,7 +28,7 @@ def AddVariables(model_part, config=None):
     model_part.AddNodalSolutionStepVariable(REACTION)
     model_part.AddNodalSolutionStepVariable(Y_WALL)
     model_part.AddNodalSolutionStepVariable(NORMAL)
-    #Stokes needs it (in case periodic conditions are required)
+    # Stokes needs it (in case periodic conditions are required)
     model_part.AddNodalSolutionStepVariable(PATCH_INDEX)
 
     if config is not None:
@@ -37,7 +38,7 @@ def AddVariables(model_part, config=None):
                 model_part.AddNodalSolutionStepVariable(MOLECULAR_VISCOSITY)
                 model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ)
                 model_part.AddNodalSolutionStepVariable(DISTANCE)
-    print "variables for the vms fluid solver added correctly"
+    print("variables for the vms fluid solver added correctly")
 
 
 def AddDofs(model_part, config=None):
@@ -55,7 +56,7 @@ def AddDofs(model_part, config=None):
                 for node in model_part.Nodes:
                     node.AddDof(TURBULENT_VISCOSITY)
 
-    print "dofs for the vms fluid solver added correctly"
+    print("dofs for the vms fluid solver added correctly")
 
 
 class IncompressibleFluidSolver:
@@ -233,7 +234,7 @@ class IncompressibleFluidSolver:
 # (self.solver).SetSlipProcess(self.create_slip_conditions);
 # self.slip_conditions_initialized = True
 # (self.solver).SetEchoLevel(self.echo_level)
-        print "finished initialization of the fluid strategy"
+        print("finished initialization of the fluid strategy")
 
     def Solve(self):
         if(self.ReformDofAtEachIteration):
@@ -252,38 +253,37 @@ class IncompressibleFluidSolver:
         if(self.compute_reactions):
             self.solver.CalculateReactions()  # REACTION)
 
-
     def Clear(self):
         (self.solver).Clear()
         self.slip_conditions_initialized = True
 
     def do_divergence_clearance(self):
-        print "Calculating divergence-free initial condition"
+        print("Calculating divergence-free initial condition")
         # initialize with a Stokes solution step
         try:
             import KratosMultiphysics.ExternalSolversApplication as kes
             smoother_type = kes.AMGLCSmoother.ILU0
-            #smoother_type = kes.AMGCLSmoother.DAMPED_JACOBI
+            # smoother_type = kes.AMGCLSmoother.DAMPED_JACOBI
             solver_type = kes.AMGCLSolver.BICGSTAB
-            #solver_type = kes.AMGCLIterativeSolverType.CG
+            # solver_type = kes.AMGCLIterativeSolverType.CG
             gmres_size = 50
             max_iter = 200
             tol = 1e-7
             verbosity = 1
             stokes_linear_solver = kes.AMGCLSolver(
-                    smoother_type,
-                    solver_type,
-                    tol,
-                    max_iter,
-                    verbosity,
-                    gmres_size)
+                smoother_type,
+                solver_type,
+                tol,
+                max_iter,
+                verbosity,
+                gmres_size)
         except:
             pPrecond = DiagonalPreconditioner()
             stokes_linear_solver = BICGSTABSolver(1e-9, 5000, pPrecond)
         stokes_process = StokesInitializationProcess(
-                self.model_part,
-                stokes_linear_solver,
-                self.domain_size,
+            self.model_part,
+            stokes_linear_solver,
+            self.domain_size,
                 PATCH_INDEX)
         # copy periodic conditions to Stokes problem
         stokes_process.SetConditions(self.model_part.Conditions)
@@ -291,13 +291,13 @@ class IncompressibleFluidSolver:
         stokes_process.Execute()
 
         dt = self.model_part.ProcessInfo.GetValue(DELTA_TIME)
-        self.model_part.ProcessInfo.SetValue(DELTA_TIME,100.0*dt)
-        
+        self.model_part.ProcessInfo.SetValue(DELTA_TIME, 100.0 * dt)
+
         while self.divergence_clearance_steps > 0:
             if self.divergence_clearance_steps > 1:
                 for node in self.model_part.Nodes:
                     node.SetSolutionStepValue(PRESSURE, 0, 0.0)
-                    vel = node.GetSolutionStepValue(VELOCITY,0)
+                    vel = node.GetSolutionStepValue(VELOCITY, 0)
                     node.SetSolutionStepValue(VELOCITY, 1, vel)
                     node.SetSolutionStepValue(VELOCITY, 2, vel)
 
@@ -305,8 +305,7 @@ class IncompressibleFluidSolver:
 
             (self.solver).Solve()
 
-        self.model_part.ProcessInfo.SetValue(DELTA_TIME,dt)
-
+        self.model_part.ProcessInfo.SetValue(DELTA_TIME, dt)
 
     def AdaptMesh(self):
         import KratosMultiphysics.MeshingApplication as KMesh
@@ -330,7 +329,7 @@ class IncompressibleFluidSolver:
 
         (self.neighbour_search).Execute()
         self.slip_conditions_initialized = False
-        print "Refining finished"
+        print("Refining finished")
 
     def WriteRestartFile(self, FileName):
         restart_file = open(FileName + ".mdpa", 'w')

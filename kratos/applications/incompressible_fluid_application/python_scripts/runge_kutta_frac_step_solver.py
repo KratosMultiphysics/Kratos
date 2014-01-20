@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 CheckForPreviousImport()
@@ -26,7 +27,7 @@ def AddVariables(model_part):
     # this one is for Proj Dirichlet Conds
     model_part.AddNodalSolutionStepVariable(AUX_VEL)
 
-    print "variables for the Runge Kutta Frac Step GLS solver added correctly"
+    print("variables for the Runge Kutta Frac Step GLS solver added correctly")
 
 
 def AddDofs(model_part):
@@ -42,7 +43,7 @@ def AddDofs(model_part):
 
         node.AddDof(PRESSURE)
 
-    print "dofs for the the Runge Kutta Frac Step GLS solver added correctly"
+    print("dofs for the the Runge Kutta Frac Step GLS solver added correctly")
 
 
 class RungeKuttaFracStepSolver:
@@ -51,14 +52,14 @@ class RungeKuttaFracStepSolver:
     def __init__(self, model_part, domain_size):
 
         self.model_part = model_part
-        #self.move_mesh_strategy = 2
+        # self.move_mesh_strategy = 2
         pDiagPrecond = DiagonalPreconditioner()
 
         # definition of the solvers
         self.linear_solver = SkylineLUFactorizationSolver()
-        print "LIN SOLVER", self.linear_solver
-        #self.linear_solver = CGSolver(1e-3, 5000,pDiagPrecond)
-        #self.conv_criteria = UPCriteria(1e-3,1e-9,1e-3,1e-6)
+        print("LIN SOLVER", self.linear_solver)
+        # self.linear_solver = CGSolver(1e-3, 5000,pDiagPrecond)
+        # self.conv_criteria = UPCriteria(1e-3,1e-9,1e-3,1e-6)
 
         self.max_iter = 10
 
@@ -68,7 +69,7 @@ class RungeKuttaFracStepSolver:
         self.ReformDofSetAtEachStep = False
         self.CalculateNormDxFlag = True
         self.domain_size = domain_size
-        #self.MoveMeshFlag = True
+        # self.MoveMeshFlag = True
 
         if (self.domain_size == 2):
             self.neigh_finder = FindNodalNeighboursProcess(model_part, 9, 18)
@@ -76,7 +77,7 @@ class RungeKuttaFracStepSolver:
             self.neigh_finder = FindNodalNeighboursProcess(model_part, 20, 30)
         # calculate normals
         self.normal_tools = NormalCalculationUtils()
-        #self.Hfinder  = FindNodalHProcess(model_part);
+        # self.Hfinder  = FindNodalHProcess(model_part);
 
     #
     def Initialize(self):

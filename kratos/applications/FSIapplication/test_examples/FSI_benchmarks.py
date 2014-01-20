@@ -1,40 +1,42 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import os
 import sys
 
-kratos_benchmarking_path = '../../../benchmarking' 
+kratos_benchmarking_path = '../../../benchmarking'
 sys.path.append(kratos_benchmarking_path)
 import benchmarking
+
 
 def Run():
     Msg = ""
     Text = "== FSI_application ==========\n"
 
     # Example benchmark problem:
-    ################################################################
+    #
     # column
 
-    #Text += "column: "
-    #os.chdir("column.gid")
-    #sys.path.append(os.getcwd())
+    # Text += "column: "
+    # os.chdir("column.gid")
+    # sys.path.append(os.getcwd())
 
-    ##import column_benchmark
-    ##Msg = column_benchmark.Run()
+    # import column_benchmark
+    # Msg = column_benchmark.Run()
 
-    ##print "Running column.py..."
-    #Msg = benchmarking.RunBenchmark("column.py", "column_ref.txt")
+    # print "Running column.py..."
+    # Msg = benchmarking.RunBenchmark("column.py", "column_ref.txt")
 
-    #if (Msg == True):
+    # if (Msg == True):
     #	Text += "OK\n"
     #	print "colum example succesful"
-    #else:
+    # else:
     #	Text += "FAILED\n"
     #	Text += Msg
     #	Text += "\n\n"
     #	print "colum example FAILED"
 
-    #os.chdir("..")
+    # os.chdir("..")
 
-    ################################################################
+    #
 
     # non-conformant mesh test
 
@@ -42,27 +44,27 @@ def Run():
     os.chdir("meshtest.gid")
     sys.path.append(os.getcwd())
 
-    print "Running mesh.py..."
-    Msg = benchmarking.RunBenchmark("mesh.py","mesh_ref.txt")
+    print("Running mesh.py...")
+    Msg = benchmarking.RunBenchmark("mesh.py", "mesh_ref.txt")
 
-    if (Msg == True):
+    if (Msg):
         Text += "OK\n"
-        print "non-conformant mesh example successful"
+        print("non-conformant mesh example successful")
     else:
         Text += "FAILED\n"
         Text += Msg
         Text += "\n\n"
-        print "non-conformant mesh example FAILED"
+        print("non-conformant mesh example FAILED")
 
     os.chdir("..")
 
-    ################################################################
+    #
 
     # Add other examples here
 
-    ################################################################
-    print "resume of all of the examples for the FSI application :"
-    print Text
+    #
+    print("resume of all of the examples for the FSI application :")
+    print(Text)
     return Text
 
 Run()

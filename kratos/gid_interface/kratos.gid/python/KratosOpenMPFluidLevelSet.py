@@ -1,3 +1,4 @@
+from __future__ import unicode_literals, print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 # -*- coding: utf-8 -*-
 import re
 import math
@@ -99,7 +100,7 @@ fluid_solver.pressure_linear_solver = BICGSTABSolver(1e-6, 5000)
 
 fluid_solver.Initialize()
 
-print "***********fluid solver created****************"
+print("***********fluid solver created****************")
 
 if(ProjectParameters.wall_law_y > 1e-10):
     fluid_solver.fluid_solver.ActivateWallResistance(
@@ -108,7 +109,7 @@ if(ProjectParameters.wall_law_y > 1e-10):
 #
 
 
-print "fluid solver created"
+print("fluid solver created")
 
 # settings to be changed
 max_Dt = ProjectParameters.Dt
@@ -189,16 +190,16 @@ screen_output_dt = 0.1
 next_screen_output = screen_output_dt
 volume_correction_step = 1
 
-print "Process Information"
-print "---------------------------------------------------------------"
-print "Max time          :", final_time
-print "Max delta time    :", max_Dt
-print "Output delta time :", output_dt
-print "Safety factor     :", safety_factor
+print("Process Information")
+print("---------------------------------------------------------------")
+print("Max time          :", final_time)
+print("Max delta time    :", max_Dt)
+print("Output delta time :", output_dt)
+print("Safety factor     :", safety_factor)
 
 
-print "Filled %        current time     delta time      mass ratio"
-print "---------------------------------------------------------------"
+print("Filled %        current time     delta time      mass ratio")
+print("---------------------------------------------------------------")
 sys.stdout.flush()
 
 measured_volume = fluid_solver.fluid_solver.ComputeWetVolume()
@@ -208,7 +209,7 @@ time1 = time
 # AssignEnvironmentCondition.AssignCondition()
 switch = 1.0
 temp_time = 0.0
-##mean_prerssure_file = open("mean_prerssure_file.out", "w")
+# mean_prerssure_file = open("mean_prerssure_file.out", "w")
 while((time1 < final_time)):
 
     if(step < number_of_inital_steps):
@@ -238,22 +239,22 @@ while((time1 < final_time)):
     expected_volume = fluid_solver.expected_volume
 
     if(percent_done >= next_screen_output):
-        print
-        print "Filled %.0f" % percent_done, "% \t", "%e" % time1, "\t", "%e" % Dt, "\t", measured_volume / expected_volume
+        print()
+        print("Filled %.0f" % percent_done, "% \t", "%e" % time1, "\t", "%e" % Dt, "\t", measured_volume / expected_volume)
         sys.stdout.flush()
         next_screen_output += screen_output_dt
 
 # I have to change this part to not duplicate the redistance. Pooyan.
     # if(volume_correction_step > ProjectParameters.redistance_frequency):
-        ##max_volume_error = 0.999
+        # max_volume_error = 0.999
         # if(measured_volume / expected_volume < max_volume_error):
-            ##vol_variation =  fluid_solver.fluid_solver.ContinuousVolumeCorrection(expected_volume, measured_volume)
+            # vol_variation =  fluid_solver.fluid_solver.ContinuousVolumeCorrection(expected_volume, measured_volume)
             # fluid_solver.Redistance();
-            ##volume_correction_step = 1
+            # volume_correction_step = 1
         # if(measured_volume / expected_volume > 1.00):
             # time1 = time * measured_volume / expected_volume # This is NOT
             # what I like to do! Pooyan.
-    ##volume_correction_step += 1
+    # volume_correction_step += 1
     if(time1 >= next_output_time):
 
         gid_io.WriteNodalResults(DISTANCE, fluid_model_part.Nodes, time, 0)
@@ -271,5 +272,5 @@ while((time1 < final_time)):
 
 gid_io.FinalizeResults()
 
-print "Num Steps:", step
-print "END OF RUN EXECUTION"
+print("Num Steps:", step)
+print("END OF RUN EXECUTION")
