@@ -244,7 +244,7 @@ public:
     /**
      * Called at the beginning of each solution step
      */
-    void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
 
     /**

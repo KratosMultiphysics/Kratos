@@ -97,6 +97,7 @@ public:
                               ThisNodes,  PropertiesType::Pointer pProperties) const;
 
   
+    virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Access
@@ -116,12 +117,25 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
+    typedef struct
+     {
+        bool FrictionActive;
+
+        double Sign; 
+        double LastStepValue;
+        double DeltaTime; 
+     } TangentialContactVariables;
+
+
     // A protected default constructor necessary for serialization
     PointRigidContactPenalty2DCondition() {};
 
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    TangentialContactVariables mTangentialVariables;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -156,6 +170,9 @@ protected:
 				     GeneralVariables& rVariables,
 				     double& rIntegrationWeight);
 
+    virtual void CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix,
+				     GeneralVariables& rVariables,
+				     double& rIntegrationWeight);
 
     /**
      * Calculation of the External Forces Vector for a force or pressure vector 
@@ -164,6 +181,13 @@ protected:
 					      GeneralVariables& rVariables,
 					      double& rIntegrationWeight );
 
+
+    virtual void CalculateAndAddNormalContactForce(Vector& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight, const unsigned int & rDimension);
+
+
+    virtual void CalculateAndAddTangentContactForce(Vector& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight, const unsigned int & rDimension);
+
+    void ComputeCoulombCondition(double & rTangentModulus, const array_1d<double, 3> & rNormalForceVector, const int& rDimension, bool & rFrictionBool);
     ///@}
     ///@name Protected  Access
     ///@{
