@@ -70,6 +70,7 @@
 
 #include "custom_constitutive/hyperelastic_plastic_J2_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plastic_J2_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_J2_axisym_2D_law.hpp"
 
 #include "custom_constitutive/hyperelastic_plastic_U_P_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_plastic_U_P_J2_axisym_2D_law.hpp"
@@ -218,6 +219,11 @@ void  AddCustomConstitutiveLawsToPython()
 
     class_<HyperElasticPlasticJ2PlaneStrain2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
     ( "HyperElasticPlasticJ2PlaneStrain2DLaw",
+      init<>() )
+    ;
+
+    class_<HyperElasticPlasticJ2Axisym2DLaw, bases< ConstitutiveLawBaseType >, boost::noncopyable >
+    ( "HyperElasticPlasticJ2Axisym2DLaw",
       init<>() )
     ;
 

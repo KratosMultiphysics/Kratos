@@ -90,6 +90,7 @@
 
 #include "custom_constitutive/hyperelastic_plastic_J2_3D_law.hpp"
 #include "custom_constitutive/hyperelastic_plastic_J2_plane_strain_2D_law.hpp"
+#include "custom_constitutive/hyperelastic_plastic_J2_axisym_2D_law.hpp"
 
 #include "custom_constitutive/hyperelastic_plastic_U_P_J2_plane_strain_2D_law.hpp"
 #include "custom_constitutive/hyperelastic_plastic_U_P_J2_axisym_2D_law.hpp"
@@ -459,6 +460,7 @@ private:
     //Hyperelastic Plastic J2 specilization laws 
     const HyperElasticPlasticJ23DLaw              mHyperElasticPlasticJ23DLaw;
     const HyperElasticPlasticJ2PlaneStrain2DLaw   mHyperElasticPlasticJ2PlaneStrain2DLaw;
+    const HyperElasticPlasticJ2Axisym2DLaw        mHyperElasticPlasticJ2Axisym2DLaw;
 
     //Hyperelastic Plastic J2 specilization laws U-P
     const HyperElasticPlasticUPJ2PlaneStrain2DLaw mHyperElasticPlasticUPJ2PlaneStrain2DLaw;
