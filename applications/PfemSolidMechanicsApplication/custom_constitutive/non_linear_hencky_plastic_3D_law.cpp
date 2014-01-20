@@ -9,6 +9,7 @@
 #include "custom_constitutive/hyperelastic_plastic_3D_law.hpp"
 
 #include "../PfemSolidMechanicsApplication/custom_constitutive/non_linear_hencky_plastic_3D_law.hpp"
+#include "custom_constitutive/custom_flow_rules/non_associative_explicit_flow_rule.hpp"
 
 #include "solid_mechanics_application.h"
 //Molt important, el tema de constructors... etc
@@ -101,8 +102,8 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
     const double YoungModulus = 2.069e5;
     const double PoissonCoefficient = 0.3;
 
-    ReturnMappingVariables.LameLanda      = (YoungModulus*PoissonCoefficient)/((1.0+PoissonCoefficient)*(1.0-2.0*PoissonCoefficient));
-    ReturnMappingVariables.LameMu          =  YoungModulus/(2.0*(1.0+PoissonCoefficient));
+    //ReturnMappingVariables.LameLanda      = (YoungModulus*PoissonCoefficient)/((1.0+PoissonCoefficient)*(1.0-2.0*PoissonCoefficient));
+    //ReturnMappingVariables.LameMu          =  YoungModulus/(2.0*(1.0+PoissonCoefficient));
     
     //2.-Determinant of the Total Deformation Gradient
     ElasticVariables.DeterminantF0 = DeterminantF0 * DeterminantF;
@@ -147,7 +148,7 @@ void NonLinearHenckyElasticPlastic3DLaw::CalculateMaterialResponseKirchhoff (Par
     Matrix NewElasticLeftCauchyGreen = mElasticLeftCauchyGreen; 
 
 
-// ESTO NO PINTA NADA AQUI PERO LO PONGO
+// ONE POINT GAUSS INTEGRATION TO CHECK THE CONSTITUTIVE EQUATION
 // DEBUGG ZONE FOR THE CONSTITUTIVE EQUATIONS
 if (false) {
 
@@ -201,9 +202,6 @@ if (false) {
     KRATOS_ERROR( std::logic_error, "FINISHING THE CONSTITUTIVE TEST DEBUG ZONE BLAH BLAH BLAH", "" );
 
 }
-
-
-
 
 
     //Matrix IsochoricStressMatrix = ZeroMatrix(3);

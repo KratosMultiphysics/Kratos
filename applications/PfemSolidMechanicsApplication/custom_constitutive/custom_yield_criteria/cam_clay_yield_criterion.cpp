@@ -70,7 +70,7 @@ double& CamClayYieldCriterion::CalculateYieldCondition(double& rStateFunction, c
    this->CalculateInvariants( rStressVector, MeanStress, DeviatoricQ);
    
    double Beta = 1.0;
-   double ShearM = 1.4;
+   double ShearM = 0.9;
 
    double PreconsolidationStress = mpHardeningLaw->CalculateHardening(PreconsolidationStress, rAlpha);
 
@@ -81,7 +81,9 @@ if (MeanStress > -10.0)
     rStateFunction = -1.0;
 
 
-//std::cout << " rSF " << rStateFunction << " PRECONSO " << PreconsolidationStress << " meanStress " << MeanStress << " devQ " << DeviatoricQ << std::endl;
+   rStateFunction /= 1000.0;
+//   rStateFunction = -1.0;
+
 
    return rStateFunction; 
 }
@@ -106,6 +108,27 @@ void CamClayYieldCriterion::CalculateInvariants(const Vector& rStressVector, dou
    
     rDeviatoricQ = pow( 3.0/2.0*rDeviatoricQ, 1.0/2.0);
 
+/* CRITICAL STATE LINE DEPENDENCY OF LODE ANGLE
+    Matrix StressMatrix;
+    double DeviatoricDeterminant; //Buscar donde se calcula
+    StressMatrix = MathUtils<double>::StressVectorToTensor(rStressVector);
+    for (unsigned int i = 0; i<3; ++i)
+       StressMatrix(i,i) -= rMeanPressure;
+
+    DeviatoricDeterminant = 2.0;
+
+    double LodeAngleSinus;
+    LodeAngleSinus = DeviatoricDeterminant/2.0 /  pow(  rDeviatoricQ, 3.0);
+
+
+    double M = 0;
+   
+    //CONSTANTES 
+    double Mmax = 1;
+    double AlphaFourth = 0.3;
+  
+    M = Mmax * pow( 2*AlphaFourth/  ( 1 + AlphaFourth + (1-AlphaFourth)*LodeAngleSinus), 1.0/4.0);
+*/
 
 }
 
@@ -133,11 +156,13 @@ void CamClayYieldCriterion::CalculateYieldFunctionDerivative(const Vector& rStre
        ShearVector(i) = 2.0*rStressVector(i);
  
     double Beta = 1.0;
-    double ShearM = 1.4;
+    double ShearM = 0.9;
   
     rYieldFunctionD = 2.0/pow(Beta, 2.0)*(MeanStress-PreconsolidationStress)*IdentityVector;
    
-    rYieldFunctionD += 3.0/pow(ShearM, 2.0) * ShearVector;
+    rYieldFunctionD += 3.0 * ShearVector/pow(ShearM, 2.0) ;
+ 
+    rYieldFunctionD /= 1000.0;
 
 }
 void CamClayYieldCriterion::save( Serializer& rSerializer ) const

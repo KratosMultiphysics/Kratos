@@ -73,7 +73,6 @@ bool NonAssociativeExplicitPlasticFlowRule::CalculateReturnMapping(RadialReturnV
    //2- Check for yield Condition (at the beggining)
    Vector NewStressVector;
    Vector PreviousStressVector;
-   //TO DO SOMETHING WITH THE STR VEC
 
    this->CalculateKirchhoffStressVector( PreviousElasticLeftCauchyGreen, PreviousStressVector);
    rReturnMappingVariables.TrialStateFunction = mpYieldCriterion->CalculateYieldCondition(rReturnMappingVariables.TrialStateFunction, PreviousStressVector, PlasticVariables.EquivalentPlasticStrain);
@@ -93,33 +92,29 @@ bool NonAssociativeExplicitPlasticFlowRule::CalculateReturnMapping(RadialReturnV
         PlasticVariables.EquivalentPlasticStrain = NewEquivalentPlasticStrain;
         PlasticityActive = false;
     }
-    //2b. It seems an elasto-plastic step
+    //2b. It is an elasto-plastic step
     else {
          if ( ( rReturnMappingVariables.TrialStateFunction < -Tolerance) && (ElasticTrialStateFunction > Tolerance) ) {
-            //2b.2 Transition from elastic to plastic
+            //2b.1 Transition from elastic to plastic
             this->CalculateExplicitSolutionWithChange( rDeltaDeformationGradient, rDeformationGradientF0, PreviousElasticLeftCauchyGreen, PlasticVariables, NewElasticLeftCauchyGreen, NewStressVector, Tolerance);
           
             PlasticityActive = true;
          }
-
-//        else if ( (ElasticTrialStateFunction > Tolerance) && ( (rReturnMappingVariables.TrialStateFunction) > -Tolerance) ) {
-            //2b.1 The previous drift correction didn't work out, don't worry. Completeldly PlasticStep.
-         // AQUI QUEDAN TODOS LOS CASOS QUE DISCUTEN; PERO DE MOMENTO PASO
          else {         
 
             bool UnloadingCondition;
             UnloadingCondition =  this->EvaluateElastoPlasticUnloadingCondition( UnloadingCondition, PreviousElasticLeftCauchyGreen, rDeltaDeformationGradient, PlasticVariables, Tolerance); 
-
             if (UnloadingCondition ) {
+                 //2c.1 ElastoPlastic Unloading
                  this->CalculateExplicitSolutionWithChange( rDeltaDeformationGradient, rDeformationGradientF0, PreviousElasticLeftCauchyGreen, PlasticVariables, NewElasticLeftCauchyGreen, NewStressVector, Tolerance);
-                PlasticityActive = true; 
+
+                 PlasticityActive = true; 
             }
             else {
+                //2c. 2 Completedly ELastoPlastic Step 
                 this->CalculateExplicitSolution( rDeltaDeformationGradient, rDeformationGradientF0, PreviousElasticLeftCauchyGreen, PlasticVariables, NewElasticLeftCauchyGreen, NewStressVector, true, Tolerance);
 
-                // NewEquivalentPlasticStrain = PlasticVariables.EquivalentPlasticStrain;
-
-            PlasticityActive = true;
+                PlasticityActive = true;
             }
          }
  
@@ -336,6 +331,7 @@ Vector NonAssociativeExplicitPlasticFlowRule::ConvertCauchyGreenTensorToHenckySt
     Result = MathUtils<double>::StrainTensorToVector(Aux, 6);
     return Result;
 }
+
 // ********************** AND THE CONTRARY ***************
 // **99**88**77**66**
 Matrix NonAssociativeExplicitPlasticFlowRule::ConvertHenckyStrainToCauchyGreenTensor(const Vector& rElasticHenckyStrain)

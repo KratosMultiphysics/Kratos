@@ -102,16 +102,11 @@ void LinearCamClayExplicitFlowRule::CalculateMeanStress(const Vector& rHenckyStr
 void LinearCamClayExplicitFlowRule::CalculateMeanStress(const double& rVolumetricStrain, const Vector& rDeviatoricStrainVector, double& rMeanStress)
 {
 
-    //Reference Preasure
-    //SwellingSlope
-    //AlphaShear
-
-    double ReferencePreasure = 20.0;
+    double ReferencePressure = 80.0;
     double SwellingSlope = 0.0078;
-    double AlphaShear = 120.0;
 
 
-    rMeanStress = -ReferencePreasure*std::exp( -rVolumetricStrain / SwellingSlope) * (1.0 );
+    rMeanStress = -ReferencePressure*std::exp( -rVolumetricStrain / SwellingSlope) ;
 }
 
 
