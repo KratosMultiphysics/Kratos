@@ -97,6 +97,8 @@ HELP:Absolute value in meters of the radius extensions for the search.
 QUESTION: Coordination_Number
 VALUE: 10.0
 HELP:Desired Coordination number in the model
+QUESTION: Dont_Search_Until_Failure_Occurs#CB#(ON,OFF)
+VALUE: OFF
 QUESTION: Fix_Velocities_At_Predetermined_Time#CB#(ON,OFF)
 VALUE: OFF
 DEPENDENCIES: (OFF,HIDE,Time_Step_Constrain_DOFs_Percentage,#CURRENT#,HIDE,Fix_Horizontal_Velocities,#CURRENT#)(ON,RESTORE,Time_Step_Constrain_DOFs_Percentage,#CURRENT#,RESTORE,Fix_Horizontal_Velocities,#CURRENT#)
