@@ -114,6 +114,8 @@ STATE: HIDDEN
 QUESTION: Magic_Factor_Poisson
 VALUE: 1.0
 STATE: HIDDEN
+QUESTION: Loading_Velocity
+VALUE: 0.1
 
 
 TITLE: Time_Discretization_Settings
