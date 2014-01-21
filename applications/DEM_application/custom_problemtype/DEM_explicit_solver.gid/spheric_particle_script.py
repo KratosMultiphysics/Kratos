@@ -49,6 +49,9 @@ mixed_model_part = ModelPart("Mixed_Part")
 
 RigidFace_model_part.AddNodalSolutionStepVariable(VELOCITY)
 RigidFace_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
+RigidFace_model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
+RigidFace_model_part.AddNodalSolutionStepVariable(GROUP_ID)
+RigidFace_model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
 
 # Importing the strategy object
 
