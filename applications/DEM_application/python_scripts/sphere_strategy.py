@@ -363,9 +363,8 @@ class ExplicitStrategy:
         else:
             self.rota_damp_id = 0
 
-        self.tau_zero = Param.TauZero
-        self.sigma_max = Param.SigmaMax
-        self.sigma_min = Param.SigmaMin
+
+        self.tau_zero                       = Param.TauZero
 
         # PRINTING VARIABLES
         self.print_export_id = Var_Translator(Param.PostExportId)
