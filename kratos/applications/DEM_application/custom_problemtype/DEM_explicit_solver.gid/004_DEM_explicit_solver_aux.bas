@@ -29,7 +29,6 @@ Begin Conditions RigidFace3D3N
 End Conditions
 *endif
 
-
 *set elems(All)
 *if( GenData(Domain_Dimension,int) == 3 )
 Begin Conditions RigidFace3D4N
@@ -48,8 +47,6 @@ Begin Conditions RigidFace3D4N
 End Conditions
 *endif
 
-
-
 *set elems(All)
 *if( GenData(Domain_Dimension,int) == 2 )
 Begin Conditions RigidEdge3D2N
@@ -67,3 +64,29 @@ Begin Conditions RigidEdge3D2N
 *end elems
 End Conditions
 *endif
+
+
+Begin Table 1 TIME TEMPERATURE
+0.0  0.0
+1.0  0.0
+End Table
+
+Begin Table 2 TIME TEMPERATURE
+0.0  0.0
+1.0  0.0
+End Table
+
+Begin Table 3 TIME TEMPERATURE
+0.0  0.0
+1.0  0.0
+End Table
+
+
+Begin Mesh 1
+Begin MeshNodes
+
+End MeshNodes
+End Mesh
+
+Begin ConditionalData GROUP_ID
+End ConditionalData
