@@ -372,6 +372,9 @@ namespace Kratos
 
         size_t i_neighbour_count = 0;
 
+        
+      
+        
         for(ParticleWeakIteratorType neighbour_iterator = mrNeighbours.begin();
             neighbour_iterator != mrNeighbours.end(); neighbour_iterator++)
         {
@@ -415,17 +418,16 @@ namespace Kratos
             double OldLocalCoordSystem[3][3]      = {{0.0}, {0.0}, {0.0}};
 
             bool sliding = false;
-            
+
             int mapping_new_ini = mMapping_New_Ini[i_neighbour_count]; //*
             int mapping_new_cont =mMapping_New_Cont[i_neighbour_count];
-            
+
             double contact_tau = 0.0;
             double contact_sigma = 0.0;
             double failure_criterion_state = 0.0; 
             double acumulated_damage = 0.0; 
             
             unsigned int neighbour_iterator_id = neighbour_iterator->Id();
-          
 
             if (mUniformMaterialOption){
                 equiv_radius                      = mRadius;
@@ -434,7 +436,7 @@ namespace Kratos
                 equiv_ln_of_restit_coeff          = mLnOfRestitCoeff;
                 equiv_tg_of_fri_ang               = mTgOfFrictionAngle;
             }
-
+              
             else {
                 // Getting neighbour properties
                 double &other_young               = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
@@ -447,6 +449,7 @@ namespace Kratos
                 equiv_ln_of_restit_coeff          = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
                 equiv_tg_of_fri_ang               = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
             }
+
 
             // Globally defined parameters
                 double aux_norm_to_tang = 0.0;
@@ -472,6 +475,7 @@ namespace Kratos
                 kn_el = equiv_young*calculation_area*radius_sum_i;
                 kt_el = equiv_shear*calculation_area*radius_sum_i;
               */
+
               double rmin = mRadius;
               if(other_radius<mRadius) rmin = other_radius;
               
@@ -481,8 +485,7 @@ namespace Kratos
               
               kn_el = equiv_young*calculation_area*initial_dist_i;
               kt_el = equiv_shear*calculation_area*initial_dist_i;
-              
-              
+
              
 //               if(rCurrentProcessInfo[TIME_STEPS]==1)
 //               {
@@ -512,9 +515,8 @@ namespace Kratos
                 kt_el              = mMagicFactorPoisson * kn_el/(2.0 + equiv_poisson + equiv_poisson);
                 aux_norm_to_tang   = sqrt(kt_el / kn_el);
 
-
             }
-          
+
             if (mCriticalTimeOption){
                 double historic = rCurrentProcessInfo[HISTORICAL_MIN_K];
 
@@ -525,7 +527,7 @@ namespace Kratos
             }
 
             //DAMPING:
-            
+
             if(mDempack){
             
             equiv_visco_damp_coeff_normal     = mDempack_damping*2.0*sqrt(kn_el/(mRealMass+other_sqrt_of_mass*other_sqrt_of_mass))*equiv_mass;   // := 2d0* sqrt ( kn_el*(m1*m2)/(m1+m2) )
@@ -548,12 +550,11 @@ namespace Kratos
               }
               
             }
-            
-            
+
             EvaluateDeltaDisplacement(DeltDisp, RelVel, /*NormalDir, OldNormalDir, */LocalCoordSystem, OldLocalCoordSystem, other_to_me_vect, vel, delta_displ, neighbour_iterator, distance);
 
             DisplacementDueToRotation(DeltDisp, /*OldNormalDir,*/ OldLocalCoordSystem, other_radius, dt, ang_vel, neighbour_iterator);
-            
+
             double LocalDeltDisp[3] = {0.0};
             double LocalElasticContactForce[3]  = {0.0}; // 0: first tangential, // 1: second tangential, // 2: normal force
             double GlobalElasticContactForce[3] = {0.0};
@@ -568,7 +569,7 @@ namespace Kratos
             //we recover this way the old local forces projected in the new coordinates in the way they were in the old ones; Now they will be increased if its the necessary
             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, DeltDisp, LocalDeltDisp);
             GeometryFunctions::VectorGlobal2Local(OldLocalCoordSystem, RelVel, LocalRelVel);
-            
+
             /* Translational Forces */
 
             if  (indentation > 0.0 || (mNeighbourFailureId[i_neighbour_count] == 0) )//*  //#3
@@ -610,9 +611,9 @@ namespace Kratos
             //Tangential. With degradation:
             
             double degradation = 1.0;
-     
+
            
-            if(mDempack)
+            if(mDempack && (mapping_new_cont!= -1))
             {
              
               if(indentation >= 0.0 ) //COMPRESSION
@@ -630,7 +631,7 @@ namespace Kratos
               
             }
             
-            
+
               
             LocalElasticContactForce[0] += - degradation*kt_el * LocalDeltDisp[0];  // 0: first tangential
             LocalElasticContactForce[1] += - degradation*kt_el * LocalDeltDisp[1];  // 1: second tangential  
