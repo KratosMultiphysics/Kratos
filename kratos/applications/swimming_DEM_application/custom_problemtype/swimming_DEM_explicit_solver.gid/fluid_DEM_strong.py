@@ -24,43 +24,43 @@ import DEM_procedures
 import swimming_DEM_procedures
 
 # PROJECT PARAMETERS (to be put in problem type)
-ProjectParameters.projection_module_option = 1
-ProjectParameters.print_particles_results_option = 0
-ProjectParameters.project_at_every_substep_option = 0
-ProjectParameters.velocity_trap_option = 0
-ProjectParameters.inlet_option = 1
+ProjectParameters.projection_module_option         = 1
+ProjectParameters.print_particles_results_option   = 0
+ProjectParameters.project_at_every_substep_option  = 0
+ProjectParameters.velocity_trap_option             = 0
+ProjectParameters.inlet_option                     = 1
 ProjectParameters.manually_imposed_drag_law_option = 0
-ProjectParameters.stationary_problem_option = 1  # stationary, stop calculating the fluid after it reaches the stationary state (1)
-ProjectParameters.flow_in_porous_medium_option = 0  # the porosity is an imposed field (1)
-ProjectParameters.flow_in_porous_DEM_medium_option = 0  # the DEM part is kept static (1)
-ProjectParameters.body_force_on_fluid = 1
-ProjectParameters.similarity_transformation_type = 0  # no transformation (0), Tsuji (1)
-ProjectParameters.dem_inlet_element_type = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
-ProjectParameters.coupling_scheme_type = "UpdatedFluid"  # "UpdatedFluid", "UpdatedDEM"
-ProjectParameters.coupling_weighing_type = 2  # {fluid_to_DEM, DEM_to_fluid, Solid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
-ProjectParameters.buoyancy_force_type = 1  # null buoyancy (0), standard (1) (but, if drag_force_type is 2, buoyancy is always parallel to gravity)
-ProjectParameters.buoyancy_force_type = 1  # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
-ProjectParameters.drag_force_type = 2  # null drag (0), standard (1), Weatherford (2), Ganser (3)
-ProjectParameters.virtual_mass_force_type = 0  # null virtual mass force (0)
-ProjectParameters.lift_force_type = 0  # null lift force (0)
-ProjectParameters.drag_modifier_type = 3  # Hayder (2), Chien (3)  # problemtype option
-ProjectParameters.interaction_start_time = 0.00
-ProjectParameters.max_solid_fraction = 0.6
-ProjectParameters.gel_strength = 0.0   # problemtype option
-ProjectParameters.power_law_n = 0.0   # problemtype option
-ProjectParameters.power_law_k = 0.0   # problemtype option
-ProjectParameters.initial_drag_force = 0.0   # problemtype option
-ProjectParameters.drag_law_slope = 0.0   # problemtype option
-ProjectParameters.power_law_tol = 0.0
-ProjectParameters.model_over_real_diameter_factor = 1.0  # not active if similarity_transformation_type = 0
-ProjectParameters.max_pressure_variation_rate_tol = 1e-3  # for stationary problems, criterion to stop the fluid calculations
-ProjectParameters.time_steps_per_stationarity_step = 15  # number of fluid time steps between consecutive assessment of stationarity steps
-ProjectParameters.solid_fraction_fields = list()  # ignored if flow_in_porous_medium_option != 1
+ProjectParameters.stationary_problem_option        = 1 # stationary, stop calculating the fluid after it reaches the stationary state (1)
+ProjectParameters.flow_in_porous_medium_option     = 0 # the porosity is an imposed field (1)
+ProjectParameters.flow_in_porous_DEM_medium_option = 0 # the DEM part is kept static (1)
+ProjectParameters.body_force_on_fluid              = 1
+ProjectParameters.similarity_transformation_type   = 0 # no transformation (0), Tsuji (1)
+ProjectParameters.dem_inlet_element_type           = "SphericSwimmingParticle3D"  # "SphericParticle3D", "SphericSwimmingParticle3D"
+ProjectParameters.coupling_scheme_type             = "UpdatedFluid" # "UpdatedFluid", "UpdatedDEM"
+ProjectParameters.coupling_weighing_type           = 2 # {fluid_to_DEM, DEM_to_fluid, Solid_fraction} = {lin, lin, imposed} (-1), {lin, const, const} (0), {lin, lin, const} (1), {lin, lin, lin} (2)
+ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), standard (1) (but, if drag_force_type is 2, buoyancy is always parallel to gravity) 
+ProjectParameters.buoyancy_force_type              = 1 # null buoyancy (0), compute buoyancy (1)  if drag_force_type is 2 buoyancy is always parallel to gravity
+ProjectParameters.drag_force_type                  = 2 # null drag (0), standard (1), Weatherford (2), Ganser (3)
+ProjectParameters.virtual_mass_force_type          = 0 # null virtual mass force (0)
+ProjectParameters.lift_force_type                  = 0 # null lift force (0)
+ProjectParameters.drag_modifier_type               = 3 # Hayder (2), Chien (3)  # problemtype option
+ProjectParameters.interaction_start_time           = 0.00
+ProjectParameters.max_solid_fraction               = 0.6
+ProjectParameters.gel_strength                     = 0.0   # problemtype option
+ProjectParameters.power_law_n                      = 0.0   # problemtype option
+ProjectParameters.power_law_k                      = 0.0   # problemtype option
+ProjectParameters.initial_drag_force               = 0.0   # problemtype option
+ProjectParameters.drag_law_slope                   = 0.0   # problemtype option
+ProjectParameters.power_law_tol                    = 0.0
+ProjectParameters.model_over_real_diameter_factor  = 1.0 # not active if similarity_transformation_type = 0
+ProjectParameters.max_pressure_variation_rate_tol  = 1e-3 # for stationary problems, criterion to stop the fluid calculations
+ProjectParameters.time_steps_per_stationarity_step = 15 # number of fluid time steps between consecutive assessment of stationarity steps
+ProjectParameters.solid_fraction_fields            = list() # ignored if flow_in_porous_medium_option != 1
 
 field = swimming_DEM_procedures.SolidFractionFieldUtility.LinearField(0.0,
-                                                                      [0.0, 0.0, - 1.0],
-                                                                      [-1.0, -1.0, 0.15],
-                                                                      [1.0, 1.0, 0.3])
+                                                                     [0.0, 0.0, - 1.0],
+                                                                     [-1.0, -1.0, 0.15],
+                                                                     [1.0, 1.0, 0.3])
 
 ProjectParameters.solid_fraction_fields.append(field)
 field = swimming_DEM_procedures.SolidFractionFieldUtility.LinearField(1.0,
@@ -70,9 +70,9 @@ field = swimming_DEM_procedures.SolidFractionFieldUtility.LinearField(1.0,
 ProjectParameters.solid_fraction_fields.append(field)
 
 # variables to be printed
-ProjectParameters.dem_nodal_results = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED", "REYNOLDS_NUMBER"]
-ProjectParameters.mixed_nodal_results = ["VELOCITY", "DISPLACEMENT"]
-ProjectParameters.variables_to_print_in_file = ["DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "VELOCITY"]
+ProjectParameters.dem_nodal_results                = ["RADIUS", "FLUID_VEL_PROJECTED", "DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "PRESSURE_GRAD_PROJECTED", "REYNOLDS_NUMBER"]
+ProjectParameters.mixed_nodal_results              = ["VELOCITY", "DISPLACEMENT"]
+ProjectParameters.variables_to_print_in_file       = ["DRAG_FORCE", "LIFT_FORCE", "BUOYANCY", "VELOCITY"]
 
 # changes on PROJECT PARAMETERS for the sake of consistency
 ProjectParameters.nodal_results.append("SOLID_FRACTION")
@@ -85,9 +85,9 @@ DEMParameters.project_from_particles_option *= ProjectParameters.projection_modu
 ProjectParameters.project_at_every_substep_option *= ProjectParameters.projection_module_option
 
 if (ProjectParameters.flow_in_porous_medium_option):
-    ProjectParameters.coupling_weighing_type = - 1  # the solid fraction is not projected from DEM (there may not be a DEM part) but externally imposed
+    ProjectParameters.coupling_weighing_type = - 1 # the solid fraction is not projected from DEM (there may not be a DEM part) but externally imposed
 
-ProjectParameters.time_steps_per_stationarity_step = max(1, int(ProjectParameters.time_steps_per_stationarity_step))  # it should never be smaller than 1!
+ProjectParameters.time_steps_per_stationarity_step = max(1, int(ProjectParameters.time_steps_per_stationarity_step)) # it should never be smaller than 1!
 
 for var in ProjectParameters.mixed_nodal_results:
 
@@ -116,14 +116,31 @@ balls_variables_to_add = [FLUID_VEL_PROJECTED,
                           DRAG_FORCE,
                           LIFT_FORCE,
                           BUOYANCY,
-                          SOLID_FRACTION_PROJECTED,
+                          SOLID_FRACTION_PROJECTED,                         
                           REYNOLDS_NUMBER,
                           GEL_STRENGTH,
                           SHEAR_RATE_PROJECTED,
-                          FLUID_VORTICITY_PROJECTED]
+                          FLUID_VORTICITY_PROJECTED,
+                          DISTANCE] # <- REQUIRED BY EMBEDDED
 
 fem_dem_variables_to_add = [VELOCITY,
-                            DISPLACEMENT]
+                            DISPLACEMENT,
+                            FORCE, # <- REQUIRED BY EMBEDDED
+                            POSITIVE_FACE_PRESSURE, # <- REQUIRED BY EMBEDDED
+                            NEGATIVE_FACE_PRESSURE] # <- REQUIRED BY EMBEDDED
+
+balls_vars_for_coupling = [FLUID_VEL_PROJECTED,
+                           FLUID_DENSITY_PROJECTED,
+                           PRESSURE_GRAD_PROJECTED,
+                           FLUID_VISCOSITY_PROJECTED,
+                           SOLID_FRACTION_PROJECTED,
+                           SHEAR_RATE_PROJECTED,
+                           FLUID_VORTICITY_PROJECTED]
+
+fluid_vars_for_coupling = [DRAG_REACTION,
+                           BODY_FORCE
+                           SOLID_FRACTION
+                           MESH_VELOCITY1]
 
 DEM_inlet_variables_to_add = balls_variables_to_add
 
@@ -135,12 +152,12 @@ dem_procedures = DEM_procedures.Procedures(DEMParameters)
 # GID IO IS NOT USING THIS NOW. TO BE REMOVED ONCE THE "PRINT IN POINTS"
 # CODE IS NOT USING IT
 
-variables_dictionary = {"PRESSURE": PRESSURE,
-                        "VELOCITY": VELOCITY,
-                        "MU": MU,  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-                        "BUOYANCY": BUOYANCY,  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-                        "DRAG_FORCE": DRAG_FORCE,  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
-                        "LIFT_FORCE": LIFT_FORCE}  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+variables_dictionary = {"PRESSURE"   : PRESSURE,
+                        "VELOCITY"   : VELOCITY,
+                        "MU"         : MU,         #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+                        "BUOYANCY"   : BUOYANCY,   #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+                        "DRAG_FORCE" : DRAG_FORCE,  #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+                        "LIFT_FORCE" : LIFT_FORCE} #SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 #                        "REACTION": REACTION,
 #                        "DISTANCE": DISTANCE, }
 
@@ -381,7 +398,7 @@ fluid_volume = 10
 n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume))
 
 if (ProjectParameters.projection_module_option):
-    projection_module = swimming_DEM_procedures.ProjectionModule(fluid_model_part, balls_model_part, fem_dem_model_part, domain_size, ProjectParameters.max_solid_fraction, ProjectParameters.coupling_weighing_type, n_particles_in_depth)
+    projection_module = swimming_DEM_procedures.ProjectionModule(fluid_model_part, balls_model_part, fem_dem_model_part, domain_size, ProjectParameters.max_solid_fraction, ProjectParameters.coupling_weighing_type, n_particles_in_depth, balls_vars_for_coupling, fluid_vars_for_coupling)
     projection_module.UpdateDatabase(h_min)
     interaction_calculator = CustomFunctionsCalculator()
 
@@ -438,7 +455,7 @@ if (ProjectParameters.inlet_option):
 def yield_DEM_time(current_time, current_time_plus_increment, delta_time):
     current_time += delta_time
 
-    while current_time < current_time_plus_increment - delta_time:
+    while current_time < current_time_plus_increment:
         yield current_time
         current_time += delta_time
 
