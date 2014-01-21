@@ -249,7 +249,8 @@ public:
 	        /////Particle-Face contact
 		    If_PB_Contact = GeometryFunctions::JudgeIfThisFaceIsContactWithParticle(FaceNodeTotal,Coord,  Centroid, Particle_Coord, rad,
 													                           LocalCoordSystem, Weight,  DistPToB);
-			///Particle-edge contact
+	/*
+            ///Particle-edge contact
 			if(If_PB_Contact == false)
 			{
 				Weight[0] = Weight[1] = Weight[2] = Weight[3] = 0.0;
@@ -313,6 +314,8 @@ public:
 				}				
 			}
 			/////////////////////////////////////
+			
+			*/
          }
 		 
 		 ////Store the neighbour value, real contact rigidFace
