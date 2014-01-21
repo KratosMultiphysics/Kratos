@@ -58,6 +58,7 @@ SearchTolerance                  = *GenData(Search_Tolerance_Absolute)
 CoordinationNumber               = *GenData(Coordination_Number)
 *format "%10.5e"
 AmplifiedSearchRadiusExtension   = *GenData(Amplified_Continuum_Search_Radius_Extension)
+DontSearchUntilFailure           = "*GenData(Dont_Search_Until_Failure_Occurs)"
 FixVelocitiesOption              = "*GenData(Fix_Velocities_At_Predetermined_Time)"
 HorizontalFixVel                 = "*GenData(Fix_Horizontal_Velocities)"
 *format "%10.5e"
