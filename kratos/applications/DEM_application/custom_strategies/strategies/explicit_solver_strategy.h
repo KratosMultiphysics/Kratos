@@ -558,8 +558,14 @@ namespace Kratos
           }//while
 
           if(iteration<maxiteration) std::cout<< "Coordination Number iteration converged after "<<iteration<< " iterations, to value " <<out_coordination_number<< " using an extension of " << mSearchTolerance <<". "<<"\n"<<std::endl;
-          else std::cout<<"Coordination Number iteration did NOT converge after "<<iteration<<" iterations. Coordination number reached is "<<out_coordination_number<<". "<<"\n"<<std::endl;
-          
+          else
+            {   
+              std::cout<<"Coordination Number iteration did NOT converge after "<<iteration<<" iterations. Coordination number reached is "<<out_coordination_number<<". "<<"\n"<<std::endl;
+              
+              KRATOS_ERROR(std::runtime_error,"Please use a Absolute tolerance instead "," ")
+              
+              //NOTE: if it doesn't converge, problems occur with contact mesh and rigid face contact.
+            }
             
       }
       
@@ -805,7 +811,8 @@ namespace Kratos
 		
         KRATOS_TRY
 		ElementsArrayType& pElements           = mpDem_model_part->GetCommunicator().LocalMesh().Elements();	
-		ConditionsArrayType& pTContitions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions();     
+		ConditionsArrayType& pTContitions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
+        ProcessInfo& rCurrentProcessInfo      = mpDem_model_part->GetProcessInfo();
 		
 		if(pTContitions.size() > 0)
 		{
@@ -853,7 +860,7 @@ namespace Kratos
 						 neighbour_it != this->GetRigidFaceResults()[ResultCounter].end(); ++neighbour_it)
 					{
 						neighbour_rigid_faces.push_back(*neighbour_it); 
- 
+
 					}
 
 					this->GetRigidFaceResults()[ResultCounter].clear();
