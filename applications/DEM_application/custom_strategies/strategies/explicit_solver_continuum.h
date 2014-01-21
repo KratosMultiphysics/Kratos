@@ -191,9 +191,9 @@ namespace Kratos
           int time_step = rCurrentProcessInfo[TIME_STEPS];
  
           this->Contact_InitializeSolutionStep();
-    
+
           BaseType::GetForce();
-             
+
           //DEM_FEM..... "should be gathered into one single RHS for both particle and FEM nodes
           
           Clear_forces_FEM();
@@ -245,10 +245,11 @@ namespace Kratos
                   }
                   
                    BaseType::SetSearchRadius(r_model_part,rCurrentProcessInfo[AMPLIFIED_CONTINUUM_SEARCH_RADIUS_EXTENSION]);
-                   
+
                    BaseType::SearchNeighbours(); //the amplification factor has been modified after the first search.
+
                    BaseType::ComputeNewNeighboursHistoricalData();
-                        
+    
                    
                    BaseType::SearchRigidFaceNeighbours();
                    BaseType::ComputeNewRigidFaceNeighboursHistoricalData(); //Cfeng,RigidFace          
