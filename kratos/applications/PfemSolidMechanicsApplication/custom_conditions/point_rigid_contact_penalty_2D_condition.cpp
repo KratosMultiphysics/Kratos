@@ -133,8 +133,13 @@ namespace Kratos
 
       rVariables.Options.Set(ACTIVE,true);
 
-      if(ContactFace == 2) //tip surface
+      if(ContactFace == 2){ //tip surface
 	GetGeometry()[0].Set(TO_SPLIT);
+	//std::cout<<" Node ["<<GetGeometry()[0].Id()<<"] set TO_SPLIT "<<std::endl;
+      }
+      else{
+	GetGeometry()[0].Set(TO_SPLIT,false);
+      }
 
       //get contact properties and parameters
       CalculateContactFactors( rVariables );

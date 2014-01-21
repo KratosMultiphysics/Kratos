@@ -77,6 +77,10 @@ namespace Python
 			   critical_radius, reference_error, domain);
   }
 
+  void SetRigidWall(TriangleMesh2DModeler& Mesher,RigidWallBoundingBox::Pointer pRigidWall)
+  {
+    Mesher.SetRigidWall(pRigidWall);
+  }
 
   void SetRefiningBox(TriangleMesh2DModeler& Mesher,double radius, Vector center, Vector velocity)
   {
@@ -115,6 +119,7 @@ namespace Python
       .def("SetInitialMeshData",SetInitialDataOnMesher)
       .def("SetRemeshData",SetRemeshDataOnMesher)
       .def("SetRefineData",SetRefineDataOnMesher)
+      .def("SetRigidWall",SetRigidWall)
       .def("SetRefiningBox",SetRefiningBox)
       .def("GenerateMesh",GenerateTriangleMesh)
       

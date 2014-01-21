@@ -332,4 +332,14 @@ class ModelerUtility:
 
                 self.remesh_step = self.remesh_step + self.remesh_frequency
 
+ 
+
+    #
+    def SetRigidWall(self, rigid_wall):
+
+        if( rigid_wall.RigidWallActive() ):
+            rigid_wall_bbox = rigid_wall.RigidWallBoundingBoxes()
+            for sizei in range(0, len(rigid_wall_bbox)):
+                self.mesh_modeler.SetRigidWall( rigid_wall_bbox[sizei] )
+
     #

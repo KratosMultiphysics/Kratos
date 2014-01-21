@@ -102,6 +102,15 @@ main_step_solver = solver_constructor.CreateSolver(model_part, SolverSettings)
 # --DEFINE MAIN SOLVER END--##################
 
 
+# --RIGID WALL OPTIONS START--################
+# set rigid wall contact if it is active:
+# activated instead of classical contact
+# set rigid wall configuration
+rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variables.rigid_wall_config)
+
+# --RIGID WALL OPTIONS END--##################
+
+
 # --SET MESH MODELER START--##################
 
 remesh_domains = general_variables.RemeshDomains
@@ -115,7 +124,7 @@ for conditions in general_variables.MeshConditions:
 
 # build mesh modeler
 modeler.BuildMeshModeler(general_variables.mesh_modeler_config)
-
+modeler.SetRigidWall(rigid_wall)
 
 # --CONTACT SEARCH START--####################
 
@@ -126,15 +135,6 @@ modeler.BuildContactModeler(general_variables.contact_modeler_config)
 
 
 # --SET MESH MODELER END--####################
-
-
-# --RIGID WALL OPTIONS START--################
-# set rigid wall contact if it is active:
-# activated instead of classical contact
-# set rigid wall configuration
-rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variables.rigid_wall_config)
-
-# --RIGID WALL OPTIONS END--##################
 
 
 # --READ AND SET MODEL FILES--###############

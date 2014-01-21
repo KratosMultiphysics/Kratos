@@ -368,9 +368,10 @@ public:
 
 
 
-    virtual bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int ContactFace = 0)
+    virtual bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int& ContactFace)
     {
       std::cout<< "Calling empty method" <<std::endl;
+      ContactFace = 0;
       return false;
     }
 
@@ -411,12 +412,23 @@ public:
         return mBox.Center;
     }
 
+
     TPointType& OriginalCenter()
     {
         return mBox.OriginalCenter;
     }
 
     double  Radius()
+    {
+        return mBox.Radius;
+    }
+
+    virtual TPointType Center(const TPointType& rPoint)
+    {
+        return mBox.Center;
+    }
+
+    virtual double Radius(const TPointType& rPoint)
     {
         return mBox.Radius;
     }

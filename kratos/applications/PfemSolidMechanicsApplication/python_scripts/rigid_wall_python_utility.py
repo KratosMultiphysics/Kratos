@@ -100,3 +100,7 @@ class RigidWallUtility:
     #
     def RigidWallActive(self):
         return self.rigid_wall_active
+
+    #
+    def RigidWallBoundingBoxes(self):
+        return self.rigid_wall_bbox
