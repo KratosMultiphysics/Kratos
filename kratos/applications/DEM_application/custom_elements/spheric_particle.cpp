@@ -109,7 +109,7 @@ namespace Kratos
           initial_rotation_moment.clear();
           elastic_force.clear();
           
-          
+
           ComputeBallToBallContactForce(contact_force, contact_moment, elastic_force, initial_rotation_moment, rCurrentProcessInfo);
 
           if (mLimitSurfaceOption > 0){
