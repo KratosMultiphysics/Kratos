@@ -201,6 +201,25 @@ public:
     ///@name Operations
     ///@{
 
+    TPointType Center(const TPointType& rPoint)
+    {
+      unsigned int SelectedNose = BoxNoseSearch(rPoint);
+ 
+      BoxNoseVariables& rWallNose = mBoxNoses[SelectedNose];
+
+      return rWallNose.Center;
+    }
+
+    double Radius(const TPointType& rPoint)
+    {
+      unsigned int SelectedNose = BoxNoseSearch(rPoint);
+ 
+      BoxNoseVariables& rWallNose = mBoxNoses[SelectedNose];
+
+      return rWallNose.Radius;
+
+    }
+
     virtual void UpdatePosition(double & rTime)
     {
       
@@ -252,7 +271,7 @@ public:
     //************************************************************************************
     //************************************************************************************
    
-    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int ContactFace = 0)
+    bool IsInside(const TPointType& rPoint, double& rGapNormal, double& rGapTangent, TPointType& rNormal, TPointType& rTangent, int& ContactFace)
     {
       bool is_inside = false;
 
@@ -269,15 +288,19 @@ public:
 	{	  
 	case FreeSurface:      
 	  is_inside = false;
+	  ContactFace = 0;
 	  break;
 	case RakeSurface:      
 	  is_inside = CalculateRakeSurface(rPoint, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
+	  ContactFace = 1;
 	  break;
 	case TipSurface:       
 	  is_inside = CalculateTipSurface(rPoint, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
+	  ContactFace = 2;
 	  break;
 	case ClearanceSurface: 
 	  is_inside = CalculateClearanceSurface(rPoint, rGapNormal, rGapTangent, rNormal, rTangent, rWallNose);
+	  ContactFace = 3;
 	  break;
 	default:               
 	  is_inside = false;

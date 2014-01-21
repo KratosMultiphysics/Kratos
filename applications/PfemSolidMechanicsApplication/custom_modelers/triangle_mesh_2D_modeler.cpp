@@ -122,6 +122,17 @@ namespace Kratos
 
   }
 
+  //*******************************************************************************************
+  //*******************************************************************************************
+
+  void TriangleMesh2DModeler::SetRigidWall (RigidWallBoundingBox::Pointer pRigidWall)
+  {
+    for(unsigned int i=0; i<mVariables.size(); i++)
+      {
+	mVariables[i].rigid_wall_set =true;
+	mVariables[i].RigidWalls.push_back(pRigidWall);
+      }
+  }
 
 
   //*******************************************************************************************
@@ -3172,21 +3183,47 @@ namespace Kratos
 		    }		  
 
 		    bool on_radius = false;
-		    if( on_tip ){
-		      if(rConditionGeom[0].SolutionStepsDataHas( WALL_TIP_RADIUS )){
-			tool_radius = rConditionGeom[0].FastGetSolutionStepValue( WALL_TIP_RADIUS );
-			tip_center  = rConditionGeom[0].FastGetSolutionStepValue( WALL_REFERENCE_POINT );
+
+		    if( on_tip && rVariables.rigid_wall_set ){
+
+		      Vector Point(3);
+		      if( rConditionGeom[0].Is(TO_SPLIT) ){
+			
+			Point[0] = rConditionGeom[0].X();
+			Point[1] = rConditionGeom[0].Y();
+			Point[2] = rConditionGeom[0].Z();
 			on_radius = true;
+			
 		      }
-		      else if(rConditionGeom[1].SolutionStepsDataHas( WALL_TIP_RADIUS )){
-			tool_radius = rConditionGeom[1].FastGetSolutionStepValue( WALL_TIP_RADIUS );
-			tip_center  = rConditionGeom[1].FastGetSolutionStepValue( WALL_REFERENCE_POINT );
+		      else if( rConditionGeom[1].Is(TO_SPLIT) ){
+
+			Point[0] = rConditionGeom[1].X();
+			Point[1] = rConditionGeom[1].Y();
+			Point[2] = rConditionGeom[1].Z();
 			on_radius = true;
+
 		      }
 		      else{
 			on_radius = false;
 		      }
-		    }		  
+      
+
+		      if( on_radius ){
+
+			//std::cout<<" On radius "<<std::endl;
+			ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+			double Time = CurrentProcessInfo[TIME];  
+			for( unsigned int i = 0; i < rVariables.RigidWalls.size(); i++ )
+			  {
+			    if( rVariables.RigidWalls[i]->IsInside( Point, Time ) ){
+			      tool_radius = rVariables.RigidWalls[i]->Radius(Point);
+			      tip_center  = rVariables.RigidWalls[i]->Center(Point);
+			    }
+			  }
+		      }
+			
+		    }
+		    		   		  
 						
 		    if( on_radius && on_tip ) //master node in tool -->  refine workpiece  // (tool_radius ==0 in workpiece nodes)
 		      {
@@ -3195,6 +3232,7 @@ namespace Kratos
 			radius[0]=rConditionGeom[0].X()-center.X();
 			radius[1]=rConditionGeom[0].Y()-center.Y();
 			radius[2]=rConditionGeom[0].Z()-center.Z();
+
 			double distance1=norm_2(radius);
 
 			radius[0]=rConditionGeom[1].X()-center.X();
@@ -3218,17 +3256,18 @@ namespace Kratos
 			std::cout<<"   RIGID TOOL insert : "<<radius_insert<<std::endl;
 					      
 		      }
-		    else{
+		    // else{
 
-		      std::cout<<" Condition is not in wall Tip "<<std::endl;
+		      //std::cout<<" Condition is not in wall Tip "<<std::endl;
 
-		      if(rConditionGeom[0].IsNot(TO_SPLIT))
-			std::cout<<" Node 0 not tool tip "<<rConditionGeom[0].Id()<<std::endl;
+		      // if(rConditionGeom[0].IsNot(TO_SPLIT))
+		      // 	std::cout<<" Node ["<<rConditionGeom[0].Id()<<"] not tool tip "<<std::endl;
 			    
-		      if(rConditionGeom[1].IsNot(TO_SPLIT))
-			std::cout<<" Node 1 not tool tip "<<rConditionGeom[1].Id()<<std::endl;
+		      // if(rConditionGeom[1].IsNot(TO_SPLIT))
+		      // 	std::cout<<" Node ["<<rConditionGeom[1].Id()<<"] not tool tip "<<std::endl;
+		      
 
-		    }
+		    //}
 			  
 
 		  }

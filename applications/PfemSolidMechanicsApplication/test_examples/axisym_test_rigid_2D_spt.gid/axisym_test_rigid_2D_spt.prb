@@ -8,7 +8,7 @@ VALUE: QuasiStaticSolver
 QUESTION: Time_Step
 VALUE: 1.25e-8
 QUESTION: Number_of_steps
-VALUE: 100
+VALUE: 1000
 QUESTION: LineSearch#CB#(True,False)
 VALUE: True
 QUESTION: Implex#CB#(True,False)
@@ -61,7 +61,7 @@ VALUE: True
 DEPENDENCIES: (True,RESTORE,Critical_Mesh_Size,#CURRENT#,RESTORE,Critical_Dissipation,#CURRENT#,RESTORE,Critical_Error,#CURRENT#,RESTORE,Tip_Radius_Refine,#CURRENT#)
 DEPENDENCIES: (False,HIDE,Critical_Mesh_Size,#CURRENT#,HIDE,Critical_Dissipation,#CURRENT#,HIDE,Critical_Error,#CURRENT#,HIDE,Tip_Radius_Refine,False)
 QUESTION: Critical_Mesh_Size
-VALUE: 0.005
+VALUE: 0.008
 QUESTION: Critical_Dissipation
 VALUE: 100
 QUESTION: Critical_Error(%)
@@ -112,7 +112,7 @@ DEPENDENCIES: (#DEFAULT#,HIDE,Contact_Condition,#CURRENT#,HIDE,Rigid_Body_Penalt
 QUESTION: Contact_Condition#CB#(2D,Axisymmetric)
 VALUE: Axisymmetric
 QUESTION: Rigid_Body_Penalty_Parameter
-VALUE: 5
+VALUE: 3
 QUESTION: Number_of_Walls
 VALUE: 1
 QUESTION: Wall_Noses:(Wall_Label,Tip_Radius,Rake_Angle,Clearance_Angle,TipCx,TipCy,TipCz,Convexity)

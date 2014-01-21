@@ -159,7 +159,8 @@ protected:
       bool    mesh_smoothing;
       bool    jacobi_smoothing;
       bool    avoid_tip_elements;
-      
+      bool    rigid_wall_set;
+
       bool    idset;
       double  AlphaParameter;
       double  offset_factor;
@@ -178,6 +179,8 @@ protected:
       // double  critical_side;
       // double  reference_error;
       
+      std::vector<RigidWallBoundingBox::Pointer> RigidWalls;
+
       BoundingBoxVariables BoundingBox;
  
       void Initialize (){
@@ -188,8 +191,9 @@ protected:
 	mesh_smoothing = false;
 	jacobi_smoothing = false;
 	avoid_tip_elements = false;
+	rigid_wall_set = false;
 	idset = false;
-
+	
 	AlphaParameter = 0;
 	offset_factor  = 0;
 
@@ -264,6 +268,8 @@ public:
 			double radius      = 0.00004,
 			double error       = 2,
 			int MeshId         = 0);
+
+    void SetRigidWall (RigidWallBoundingBox::Pointer pRigidWall);
 
     void SetRefiningBox (double radius,
 			 Vector center,
