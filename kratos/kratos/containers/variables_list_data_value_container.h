@@ -732,6 +732,11 @@ public:
         return Position(QueueIndex);
     }
 
+    BlockType* Data(VariableData const & rThisVariable)
+    {
+        return Position(rThisVariable);
+    }
+
     SizeType DataSize()
     {
         return mpVariablesList->DataSize() * sizeof(BlockType);
