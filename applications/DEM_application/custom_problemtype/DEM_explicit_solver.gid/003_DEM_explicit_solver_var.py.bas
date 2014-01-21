@@ -63,6 +63,8 @@ FixVelocitiesOption              = "*GenData(Fix_Velocities_At_Predetermined_Tim
 HorizontalFixVel                 = "*GenData(Fix_Horizontal_Velocities)"
 *format "%10.5e"
 TotalTimePercentageFixVelocities = *GenData(Time_Step_Constrain_DOFs_Percentage)
+*format "%10.5e"
+LoadingVelocity = *GenData(Loading_Velocity)
 
 # Time Discretization Settings
 
