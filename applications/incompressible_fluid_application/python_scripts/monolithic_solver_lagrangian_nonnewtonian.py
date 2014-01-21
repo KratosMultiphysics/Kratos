@@ -3,8 +3,9 @@ from __future__ import print_function, absolute_import, division #makes KratosMu
 from KratosMultiphysics import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 from KratosMultiphysics.PFEMApplication import *
-from KratosMultiphysics.MKLSolversApplication import *
+##from KratosMultiphysics.MKLSolversApplication import *
 from KratosMultiphysics.MeshingApplication import *
+from KratosMultiphysics.ExternalSolversApplication import *
 
 # Check that KratosMultiphysics was imported in the main script
 CheckForPreviousImport()
@@ -80,10 +81,10 @@ class MonolithicSolver:
             self.alpha, self.move_mesh_strategy)
         # definition of the solvers
 # self.linear_solver = SkylineLUFactorizationSolver()
-# self.linear_solver = SuperLUSolver()
+		self.linear_solver = SuperLUSolver()
 # self.linear_solver = SuperLUIterativeSolver()
 
-        self.linear_solver = MKLPardisoSolver()
+        # self.linear_solver = MKLPardisoSolver()
 
 # pPrecond = DiagonalPreconditioner()
 # pPrecond = ILU0Preconditioner()
