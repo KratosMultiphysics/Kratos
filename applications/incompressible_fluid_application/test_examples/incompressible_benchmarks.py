@@ -123,6 +123,7 @@ def Run():
     except OSError:
         print("cavity2D test: directory does not exist")
         Text += "FAILED: directory not found\n"
+        os.chdir("..")
     else:
         print("verifying  test_fractstep_cont_laplacian.py...")
         Msg = benchmarking.RunBenchmark(
@@ -163,6 +164,7 @@ def Run():
     except OSError:
         print("cavity3D test: directory does not exist")
         Text += "FAILED: directory not found\n"
+        os.chdir("..")
     else:
         print("verifying  test_fractstep_cont_laplacian.py...3D")
         Msg = benchmarking.RunBenchmark(
@@ -188,6 +190,7 @@ def Run():
     except OSError:
         print("cylinder test: directory does not exist")
         Text += "FAILED: directory not found\n"
+        os.chdir("..")
     else:
         # import column_benchmark
         # Msg = column_benchmark.Run()
@@ -214,6 +217,7 @@ def Run():
     except OSError:
         print("cilinderGLS test: directory does not exist")
         Text += "FAILED: directory not found\n"
+        os.chdir("..")
     else:
         # import column_benchmark
         # Msg = column_benchmark.Run()
@@ -234,28 +238,29 @@ def Run():
     # Add other examples here
     #
     # dam2d
-    try:
-        Text += "dam2d: "
-        os.chdir("dam2d.gid")
-        sys.path.append(os.getcwd())
-    except OSError:
-        print("dam2d test: directory does not exist")
-        Text += "FAILED: directory not found\n"
-    else:
+    #try:
+        #Text += "dam2d: "
+        #os.chdir("dam2d.gid")
+        #sys.path.append(os.getcwd())
+    #except OSError:
+        #print("dam2d test: directory does not exist")
+        #Text += "FAILED: directory not found\n"
+        #os.chdir("..")
+    #else:
 
-        print("Running dam2d.py...")
-        Msg = benchmarking.RunBenchmark("run_example.py", "dam2d_ref.txt")
+        #print("Running dam2d.py...")
+        #Msg = benchmarking.RunBenchmark("run_example.py", "dam2d_ref.txt")
 
-        if (Msg):
-            Text += "OK\n"
-            print("dam2d example succesful")
-        else:
-            Text += "FAILED\n"
-            Text += Msg
-            Text += "\n\n"
-            print("dam2d example FAILED")
+        #if (Msg):
+            #Text += "OK\n"
+            #print("dam2d example succesful")
+        #else:
+            #Text += "FAILED\n"
+            #Text += Msg
+            #Text += "\n\n"
+            #print("dam2d example FAILED")
 
-        os.chdir("..")
+        #os.chdir("..")
 
     #
     # StillWater_Edgebased
@@ -266,6 +271,7 @@ def Run():
     except OSError:
         print("StillWater_Edgebased test: directory does not exist")
         Text += "FAILED: directory not found\n"
+        os.chdir("..")
     else:
 
         print("Running StillWater_Edgebased...")
@@ -293,6 +299,7 @@ def Run():
     except OSError:
         print("StillWater_Edgebased_halfPorous test: directory does not exist")
         Text += "FAILED: directory not found\n"
+        os.chdir("..")
     else:
         print("Running StillWater_Edgebased_halfPorous...")
         Msg = benchmarking.RunBenchmark(
@@ -319,6 +326,7 @@ def Run():
     except OSError:
         print("StillWater_Elembased_halfPorous test: directory does not exist")
         Text += "FAILED: directory not found\n"
+        os.chdir("..")
     else:
         print("Running StillWater_Elembased_halfPorous...")
         Msg = benchmarking.RunBenchmark(
@@ -368,6 +376,7 @@ def Run():
     except OSError:
         print("cavity_monolithic_3d test: directory does not exist")
         Text += "FAILED: directory not found\n"
+        os.chdir("..")
     else:
         # import column_benchmark
         # Msg = column_benchmark.Run()
@@ -398,6 +407,7 @@ def Run():
     except OSError:
         print("edgebased fixed press test: directory does not exist")
         Text += "FAILED: directory not found\n"
+        os.chdir("..")
     else:
         print("running the benchmark for edgebased_fixed_press test...")
         Msg = benchmarking.RunBenchmark(
