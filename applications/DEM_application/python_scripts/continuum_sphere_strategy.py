@@ -131,24 +131,25 @@ class ExplicitStrategy:
 
         # Initialization of member variables
 
-        # SIMULATION FLAGS
-        self.virtual_mass_option = Var_Translator(Param.VirtualMassOption)
-        self.critical_time_option = Var_Translator(Param.AutoReductionOfTimeStepOption)
-        self.case_option = 3
-        self.trihedron_option = Var_Translator(Param.PostEulerAngles)
-        self.rotation_option = Var_Translator(Param.RotationOption)
-        self.rotation_spring_option = Var_Translator(Param.RotationalSpringOption)
-        self.bounding_box_option = Var_Translator(Param.BoundingBoxOption)
-        self.activate_search = 0
-        if (len(fem_model_part.Nodes) > 0 or Param.ConcreteTestOption == "BTS"):  # MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
-            print("Search is active from the beginning.")
-            self.activate_search = 1
-        else:
-            print("Search is not active at the beginning.")
-        self.fix_velocities = Var_Translator(Param.FixVelocitiesOption)
-        self.fix_horizontal_vel = Var_Translator(Param.HorizontalFixVel)
- #        self.limit_surface_option           = Param.LimitSurfaceOption
- #        self.limit_cylinder_option          = Param.LimitCylinderOption
+
+        # SIMULATION FLAGS        
+        self.virtual_mass_option            = Var_Translator(Param.VirtualMassOption)  
+        self.critical_time_option           = Var_Translator(Param.AutoReductionOfTimeStepOption)   
+        self.case_option                    = 3  
+        self.trihedron_option               = Var_Translator(Param.PostEulerAngles)
+        self.rotation_option                = Var_Translator(Param.RotationOption)
+        self.rotation_spring_option         = Var_Translator(Param.RotationalSpringOption)  
+        self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)
+        self.activate_search                = 1
+        if(Var_Translator(Param.DontSearchUntilFailure)):
+          print "Search is not active until a bond is broken."
+          self.activate_search                = 0
+          if (len(fem_model_part.Nodes)>0 or Param.ConcreteTestOption== "BTS" ):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
+            print "WARNING: Search should be activated since there might contact with FEM."
+
+        self.fix_velocities                 = Var_Translator(Param.FixVelocitiesOption)       
+        self.fix_horizontal_vel             = Var_Translator(Param.HorizontalFixVel)
+
         self.clean_init_indentation_option = Var_Translator(Param.CleanIndentationsOption)
         self.homogeneous_material_option = Var_Translator(Param.HomogeneousMaterialOption)
         self.global_variables_option = Var_Translator(Param.GlobalVariablesOption)
