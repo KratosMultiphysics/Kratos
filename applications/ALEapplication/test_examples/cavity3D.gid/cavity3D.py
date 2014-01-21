@@ -7,10 +7,31 @@ from KratosMultiphysics import *
 from KratosMultiphysics.ALEApplication import *
 from KratosMultiphysics.IncompressibleFluidApplication import *
 
+
+# including kratos path
+kratos_libs_path = '../../../../libs' ##kratos_root/libs
+kratos_applications_path = '../../../../applications' ##kratos_root/applications
+import sys
+sys.path.append(kratos_libs_path)
+sys.path.append(kratos_applications_path)
+
+# importing Kratos main library
+from Kratos import *
+kernel = Kernel()   #defining kernel
+
+# importing applications
+import applications_interface
+applications_interface.Import_IncompressibleFluidApplication = True
+applications_interface.Import_ALEApplication = True
+applications_interface.ImportApplications(kernel, kratos_applications_path)
+
+# from now on the order is not anymore crucial
+##################################################################
+##################################################################
+
 import math
 
-
-def SelectNodes(moving_nodes, model_part):
+def SelectNodes(moving_nodes,model_part):
     for node in model_part.Nodes:
         if(node.Y > 0.49 and node.Y < 0.51):
             if(node.X > 0.0001 and node.X < 0.99999 and node.Z > 0.0001 and node.Z < 0.99999):
