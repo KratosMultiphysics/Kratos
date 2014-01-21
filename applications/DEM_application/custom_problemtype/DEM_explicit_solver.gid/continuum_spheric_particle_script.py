@@ -626,7 +626,11 @@ while (time < DEM_parameters.FinalTime):
 
       
       if(Pressure > DEM_parameters.ConfinementPressure * 1e6 ):
+        
         Pressure = DEM_parameters.ConfinementPressure * 1e6 
+        
+        if(DEM_parameters.FixVelocitiesOption == "ON"):
+            balls_model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, 1)
       
       if((DEM_parameters.FemPlates == "ON") and (current_heigh <= 0.30)):
         graph_export_fem.write(str(strain_fem)+"  "+str(total_stress_fem)+'\n')
