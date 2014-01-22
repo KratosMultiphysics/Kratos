@@ -80,21 +80,17 @@ namespace Kratos
       {
         
         KRATOS_TRY
-        
-        //KRATOS_TIMER_START("INITIALIZE")
+
          
          std::cout << "---------------------CONTINUUM EXPLICIT SOLVER STRATEGY-------------------------------" << "\n" <<std::endl;
 
           ModelPart& r_model_part            = BaseType::GetModelPart();
           ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
-        
-          mFixSwitch        = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];
-          mFixHorizontalVel = rCurrentProcessInfo[FIX_HORIZONTAL_VEL];
-          mStepFixVel       = rCurrentProcessInfo[STEP_FIX_VELOCITIES];
+                  
           mDempackOption    = bool(rCurrentProcessInfo[DEMPACK_OPTION]); 
           
           unsigned int number_of_elements = r_model_part.GetCommunicator().LocalMesh().Elements().size();
-          
+                    
           if(this->GetResults().size() != number_of_elements)
             this->GetResults().resize(number_of_elements);
           
@@ -116,8 +112,9 @@ namespace Kratos
 
           BaseType::InitializeSolutionStep();
           BaseType::InitializeElements();
-  
           this->GetInitializeWasPerformed() = true;
+          
+          //this->SetLoadingVelocity();
           
           // 0. Set search radius
           BaseType::SetSearchRadius(r_model_part, 1.0);
@@ -160,14 +157,6 @@ namespace Kratos
               this->Contact_Calculate_Area();
               this->Particle_Area_Calculate(); //2nd time
           }
-          
-          if( mFixSwitch )
-          {
-
-          FreeVelocities();
-          
-          }  
-          
      
           // 5. Finalize Solution Step
           
@@ -189,7 +178,8 @@ namespace Kratos
           ProcessInfo& rCurrentProcessInfo = r_model_part.GetProcessInfo();
 
           int time_step = rCurrentProcessInfo[TIME_STEPS];
- 
+          mFixSwitch        = rCurrentProcessInfo[FIX_VELOCITIES_FLAG];
+          
           this->Contact_InitializeSolutionStep();
 
           BaseType::GetForce();
@@ -625,8 +615,7 @@ namespace Kratos
 
       } //Contact_InitializeSolutionStep
       
-      
-     
+    
    
      void virtual PerformTimeIntegrationOfMotion(ProcessInfo& rCurrentProcessInfo)
      {
@@ -636,16 +625,10 @@ namespace Kratos
         
         if (mFixSwitch)
         {
-
-          if(  rCurrentProcessInfo[TIME_STEPS] == mStepFixVel  )
+            
+            FixHorizontalVelocities();
+            rCurrentProcessInfo[FIX_VELOCITIES_FLAG] = 0;
           
-          {
-
-            FixVelocities();
-            mFixSwitch = 0;
-          
-          } 
-        
         } // mFixSwitch
         
         BaseType::GetScheme()->Calculate(r_model_part);
@@ -746,13 +729,55 @@ namespace Kratos
 
     } //ConsistentAreaRecovering
  
-    void FixVelocities()
+    void FixHorizontalVelocities()
     {
       
       KRATOS_TRY
 
-      std::cout<<"Fixing Velocities"<<std::endl;
+      std::cout<<"Confinement Finished, fixing Horizontal Velocities"<<"\n"<<std::endl;
       
+      ModelPart& r_model_part           = BaseType::GetModelPart();
+      ElementsArrayType& pElements      = GetElements(r_model_part);
+      
+      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+
+      #pragma omp parallel for
+      for (int k = 0; k < this->GetNumberOfThreads(); k++){
+          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+          typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+          {
+             
+            if( ( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 1 ) || ( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2 ) ) //top and bot
+          
+            {
+                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
+                unsigned int pos_x = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);
+                (it)->GetGeometry()(0)->GetDof(VELOCITY_X, pos_x).FixDof();
+                
+                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z)   = 0.0;
+                unsigned int pos_z = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);
+                (it)->GetGeometry()(0)->GetDof(VELOCITY_Z, pos_z).FixDof();
+ 
+                
+            }
+
+            
+          } //loop over particles
+
+      }// loop threads OpenMP
+      
+
+      KRATOS_CATCH("")
+
+    }
+    
+     void SetLoadingVelocity()
+    {
+      
+      KRATOS_TRY
+
       ModelPart& r_model_part           = BaseType::GetModelPart();
       ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
       ElementsArrayType& pElements      = GetElements(r_model_part);
@@ -766,44 +791,25 @@ namespace Kratos
 
           for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
           {
-    
-            
-            if(  it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 1) //top
-              
-              
+             
+            if( ( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 1 ) ) //top
+          
             {
-                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_TOP];
-                //(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
-                unsigned int pos = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
-                (it)->GetGeometry()(0)->GetDof(VELOCITY_Y, pos).FixDof();
-                
-               if(mFixHorizontalVel)
-                {
-                  (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
-                  (it)->GetGeometry()(0)->Fix(VELOCITY_X);
-                  (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z)   = 0.0;
-                  (it)->GetGeometry()(0)->Fix(VELOCITY_Z);
-                }
+                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y) = rCurrentProcessInfo[FIXED_VEL_TOP];
+                unsigned int pos_y = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
+                (it)->GetGeometry()(0)->GetDof(VELOCITY_Y, pos_y).FixDof();
                 
             }
             
-            if(  it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2   )   //bot 
+            if( ( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2 ) ) //bot
+          
             {
-                unsigned int pos = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
-                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = rCurrentProcessInfo[FIXED_VEL_BOT];
-                (it)->GetGeometry()(0)->GetDof(VELOCITY_Y, pos).FixDof();
-                //(it)->GetGeometry()(0)->Fix(VELOCITY_Y);
+                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y) = rCurrentProcessInfo[FIXED_VEL_BOT];
+                unsigned int pos_y = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
+                (it)->GetGeometry()(0)->GetDof(VELOCITY_Y, pos_y).FixDof();
                 
-                
-                if(mFixHorizontalVel)
-                {
-                  (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X)   = 0.0;
-                  (it)->GetGeometry()(0)->Fix(VELOCITY_X);
-                  (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z)   = 0.0;
-                  (it)->GetGeometry()(0)->Fix(VELOCITY_Z);
-                }
-                                
             }
+
             
           } //loop over particles
 
@@ -814,50 +820,6 @@ namespace Kratos
 
     }
       
-    void FreeVelocities()
-    {
-
-      KRATOS_TRY
-
-      std::cout<<"Free Velocities"<<std::endl;
-      
-      ModelPart& r_model_part           = BaseType::GetModelPart();
-      ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
-      ElementsArrayType& pElements      = GetElements(r_model_part);
-      
-      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
-
-      #pragma omp parallel for
-      for (int k = 0; k < this->GetNumberOfThreads(); k++){
-          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-          typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
-
-          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
-          {
-                  if (  it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 1 ) //top
-                  {
-                      (it)->GetGeometry()(0)->Free(VELOCITY_Y); 
-                      rCurrentProcessInfo[FIXED_VEL_TOP] = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y); //cutre way yeah!   
-                      //I only store one value for every ball in the group ID
-                      (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = 0.0;
-                  }
-                  
-                  if ( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2 ) //bot
-                  {
-                      (it)->GetGeometry()(0)->Free(VELOCITY_Y);
-                      rCurrentProcessInfo[FIXED_VEL_BOT] = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y); //cutre way yeah!   
-                      //I only store one value for every ball in the group ID
-                      (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y)   = 0.0;
-                  }
-                  
-            } //loop over particles
-
-        }// loop threads OpenMP
-        
-
-        KRATOS_CATCH("")
-
-    }    
    
    
    void CheckPairWiseBreaking()
@@ -1104,8 +1066,6 @@ namespace Kratos
     //bool   mdelta_option;
     bool   mcontinuum_simulating_option;
     int    mFixSwitch;
-    int    mFixHorizontalVel;
-    int    mStepFixVel;
     bool   mDempackOption;
     
 
