@@ -45,6 +45,21 @@ namespace Kratos
 class PointRigidContactPenalty2DCondition
     : public PointRigidContactCondition
 {
+protected:
+
+    typedef struct
+     {
+        bool   Slip;
+        double Sign; 
+       
+        double FrictionCoeffitient;
+        double DeltaTime; 
+        double PreviousTangentForceModulus;
+
+     } TangentialContactVariables;
+
+
+
 public:
 
    ///@name Type Definitions
@@ -117,16 +132,6 @@ protected:
     ///@name Protected static Member Variables
     ///@{
 
-    typedef struct
-     {
-        bool FrictionActive;
-
-        double Sign; 
-        double LastStepValue;
-        double DeltaTime; 
-     } TangentialContactVariables;
-
-
     // A protected default constructor necessary for serialization
     PointRigidContactPenalty2DCondition() {};
 
@@ -182,12 +187,17 @@ protected:
 					      double& rIntegrationWeight );
 
 
-    virtual void CalculateAndAddNormalContactForce(Vector& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight, const unsigned int & rDimension);
+    virtual void CalculateAndAddNormalContactForce(Vector& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight);
 
 
-    virtual void CalculateAndAddTangentContactForce(Vector& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight, const unsigned int & rDimension);
+    virtual void CalculateAndAddTangentContactForce(Vector& rRightHandSideVector, GeneralVariables& rVariables, double& rIntegrationWeight);
 
-    void ComputeCoulombCondition(double & rTangentModulus, const array_1d<double, 3> & rNormalForceVector, const int& rDimension, bool & rFrictionBool);
+
+    double& CalculateNormalForceModulus( double& rNormalForceModulus, GeneralVariables& rVariables );
+    
+    double& CalculateTangentForceModulus( double& rTangentForceModulus, GeneralVariables& rVariables );
+
+    void CalculateCoulombsLaw( double& rTangentForceModulus, double& rNormalForceModulus, bool& rSlip );
     ///@}
     ///@name Protected  Access
     ///@{

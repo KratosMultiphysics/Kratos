@@ -760,6 +760,10 @@ private:
 
       rNormal *= rWallNose.Convexity; 
 
+      rTangent[0] =  rNormal[1];
+      rTangent[1] = -rNormal[0];
+      rTangent[2] =  0;
+
       //2.-compute point projection
       TPointType RakePoint(3);
 
@@ -797,6 +801,10 @@ private:
 
       rNormal *= rWallNose.Convexity;
 
+      rTangent[0] =  rNormal[1];
+      rTangent[1] = -rNormal[0];
+      rTangent[2] =  0;
+
       //3.-compute gap
       if( norm_2(rWallNose.Center-rPoint) <= rWallNose.Radius ){
 	rGapNormal = (-1) * norm_2(rPoint - Projection);
@@ -832,6 +840,10 @@ private:
       rNormal[2] = 0;
 
       rNormal *= rWallNose.Convexity;
+
+      rTangent[0] =  rNormal[1];
+      rTangent[1] = -rNormal[0];
+      rTangent[2] =  0;
 
       //2.-compute point projection
       TPointType ClearancePoint(3);
