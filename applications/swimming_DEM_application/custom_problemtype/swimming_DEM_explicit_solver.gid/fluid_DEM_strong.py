@@ -94,40 +94,14 @@ for var in ProjectParameters.mixed_nodal_results:
     if var in ProjectParameters.nodal_results:
         ProjectParameters.nodal_results.remove(var)
 
-# extra nodal variables (related to the coupling) to be added to the model parts (memory will be allocated for them)
-fluid_variables_to_add = [PRESSURE_GRADIENT,
-                          AUX_DOUBLE_VAR,
-                          DRAG_REACTION,
-                          SOLID_FRACTION,
-                          SOLID_FRACTION_GRADIENT,
-                          MESH_VELOCITY1,
-                          YIELD_STRESS,
-                          BINGHAM_SMOOTHER,
-                          POWER_LAW_N,
-                          POWER_LAW_K,
-                          GEL_STRENGTH]
+# choosing the variables to be passed as a parameter to the constructor of the
+# ProjectionModule class constructor that are to be filled with the other phase's
+# information through the coupling process
 
-balls_variables_to_add = [FLUID_VEL_PROJECTED,
-                          FLUID_DENSITY_PROJECTED,
-                          PRESSURE_GRAD_PROJECTED,
-                          FLUID_VISCOSITY_PROJECTED,
-                          POWER_LAW_N,
-                          POWER_LAW_K,
-                          DRAG_FORCE,
-                          LIFT_FORCE,
-                          BUOYANCY,
-                          SOLID_FRACTION_PROJECTED,                         
-                          REYNOLDS_NUMBER,
-                          GEL_STRENGTH,
-                          SHEAR_RATE_PROJECTED,
-                          FLUID_VORTICITY_PROJECTED,
-                          DISTANCE] # <- REQUIRED BY EMBEDDED
-
-fem_dem_variables_to_add = [VELOCITY,
-                            DISPLACEMENT,
-                            FORCE, # <- REQUIRED BY EMBEDDED
-                            POSITIVE_FACE_PRESSURE, # <- REQUIRED BY EMBEDDED
-                            NEGATIVE_FACE_PRESSURE] # <- REQUIRED BY EMBEDDED
+fluid_vars_for_coupling = [DRAG_REACTION,
+                           BODY_FORCE,
+                           SOLID_FRACTION,
+                           MESH_VELOCITY1]
 
 balls_vars_for_coupling = [FLUID_VEL_PROJECTED,
                            FLUID_DENSITY_PROJECTED,
@@ -141,13 +115,34 @@ balls_vars_for_coupling = [FLUID_VEL_PROJECTED,
                            GEL_STRENGTH,
                            DISTANCE]
 
-fluid_vars_for_coupling = [DRAG_REACTION,
-                           BODY_FORCE,
-                           SOLID_FRACTION,
-                           MESH_VELOCITY1]
+# extra nodal variables to be added to the model parts (memory will be allocated for them)
+fluid_variables_to_add = []
+fluid_variables_to_add += fluid_vars_for_coupling
+fluid_variables_to_add += [PRESSURE_GRADIENT,
+                           SOLID_FRACTION_GRADIENT,
+                           AUX_DOUBLE_VAR,
+                           YIELD_STRESS,
+                           BINGHAM_SMOOTHER,
+                           POWER_LAW_N,
+                           POWER_LAW_K,
+                           GEL_STRENGTH,
+                           DISTANCE]  # <- REQUIRED BY EMBEDDED
+
+balls_variables_to_add = []
+balls_variables_to_add += balls_vars_for_coupling
+balls_variables_to_add += [DRAG_FORCE,
+                           LIFT_FORCE,
+                           BUOYANCY,
+                           REYNOLDS_NUMBER,
+                           GEL_STRENGTH]
+
+fem_dem_variables_to_add = [VELOCITY,
+                            DISPLACEMENT,
+                            FORCE,  # <- REQUIRED BY EMBEDDED
+                            POSITIVE_FACE_PRESSURE,  # <- REQUIRED BY EMBEDDED
+                            NEGATIVE_FACE_PRESSURE]  # <- REQUIRED BY EMBEDDED
 
 DEM_inlet_variables_to_add = balls_variables_to_add
-
 # constructing a DEM_procedures object
 dem_procedures = DEM_procedures.Procedures(DEMParameters)
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
