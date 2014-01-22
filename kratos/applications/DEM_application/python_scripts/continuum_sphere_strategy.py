@@ -147,8 +147,7 @@ class ExplicitStrategy:
           if (len(fem_model_part.Nodes)>0 or Param.ConcreteTestOption== "BTS" ):   #MSI. This activates the search since there are fem contact elements. however only the particle - fem search should be active.
             print ("WARNING: Search should be activated since there might contact with FEM.")
 
-        self.fix_velocities                 = 0       
-        self.fix_horizontal_vel             = Var_Translator(Param.HorizontalFixVel)
+        self.fix_velocities_flag                 = 0       
 
         self.clean_init_indentation_option = Var_Translator(Param.CleanIndentationsOption)
         self.homogeneous_material_option = Var_Translator(Param.HomogeneousMaterialOption)
@@ -197,6 +196,9 @@ class ExplicitStrategy:
                 self.case_option = 0
             else:
                 self.case_option = 3
+                
+        self.fixed_vel_top = Param.LoadingVelocityTop
+        self.fixed_vel_bot = Param.LoadingVelocityBot
 
         # BOUNDING_BOX
         self.enlargement_factor = Param.BoundingBoxEnlargementFactor
@@ -415,16 +417,6 @@ class ExplicitStrategy:
         self.sigma_min = Param.SigmaMin
         self.internal_fricc = Param.InternalFriction
 
-        # CONCRETE TEST
-
-        self.step_to_fix_velocities = 0
-
-        if (self.concrete_test_option == "TRIAXIAL"):
-            self.time_increasing_ratio = Param.TotalTimePercentAsForceAplTime  # (%)
-            if (Param.FixVelocitiesOption == 'ON'):
-                total_steps_expected = int(Param.FinalTime / Param.MaxTimeStep)
-                self.step_to_fix_velocities = 0.01 * Param.TotalTimePercentageFixVelocities * total_steps_expected
-
         # PRINTING VARIABLES
         self.print_export_id = Var_Translator(Param.PostExportId)
         self.print_export_skin_sphere = Var_Translator(Param.PostExportSkinSphere)
@@ -489,8 +481,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
         self.model_part.ProcessInfo.SetValue(DEMPACK_OPTION, self.dempack_option)
         self.model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, self.activate_search)
-        self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities)
-        self.model_part.ProcessInfo.SetValue(FIX_HORIZONTAL_VEL, self.fix_horizontal_vel)
+        self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_option)
         self.model_part.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_option)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
@@ -623,8 +614,10 @@ class ExplicitStrategy:
 
         if (self.concrete_test_option == "TRIAXIAL"):
             self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
-            self.model_part.ProcessInfo.SetValue(TIME_INCREASING_RATIO, self.time_increasing_ratio)
-            self.model_part.ProcessInfo.SetValue(STEP_FIX_VELOCITIES, int(self.step_to_fix_velocities))
+            
+        self.model_part.ProcessInfo.SetValue(FIXED_VEL_TOP, self.fixed_vel_top)
+        self.model_part.ProcessInfo.SetValue(FIXED_VEL_BOT, self.fixed_vel_bot)
+            
 
         # OTHERS
 
