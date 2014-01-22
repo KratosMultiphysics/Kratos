@@ -68,14 +68,33 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos{
 
 namespace Python{
-    
+
 typedef ModelPart::NodesContainerType::iterator PointIterator;
 typedef std::vector<array_1d<double, 3 > > ComponentVectorType;
 typedef std::vector<array_1d<double, 3 > >::iterator ComponentIteratorType;
 
+template<class TDataType>
+
+  void AddNodalSolutionStepVariable(ModelPart& rModelPart, Variable<TDataType> const& rThisVariable)
+  {
+      rModelPart.AddNodalSolutionStepVariable(rThisVariable);
+  }
+
+template<int TDim>
+void AddDEMCouplingVariable(BinBasedDEMFluidCoupledMapping<TDim>& rProjectionModule, const VariableData& rThisVariable)
+{
+    rProjectionModule.AddDEMCouplingVariable(rThisVariable);
+}
+
+template<int TDim>
+void AddFluidCouplingVariable(BinBasedDEMFluidCoupledMapping<TDim>& rProjectionModule, const VariableData& rThisVariable)
+{
+    rProjectionModule.AddFluidCouplingVariable(rThisVariable);
+}
+
 void  AddCustomUtilitiesToPython(){
 using namespace boost::python;
-    
+
     class_<CustomFunctionsCalculator, boost::noncopyable >
         ("CustomFunctionsCalculator", init<>())
         .def("CalculatePressureGradient", &CustomFunctionsCalculator::CalculatePressureGradient)
@@ -86,15 +105,23 @@ using namespace boost::python;
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 2 > ::InterpolateFromFluidMesh)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 2 > ::InterpolateFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping < 2 > ::ComputePostProcessResults)
+        .def("AddDEMCouplingVariable", AddDEMCouplingVariable < 2 >)
+        .def("AddFluidCouplingVariable", AddFluidCouplingVariable < 2 >)
         ;
- 
+
     class_<BinBasedDEMFluidCoupledMapping < 3 > >("BinBasedDEMFluidCoupledMapping3D", init<double, int>())
         .def("InterpolateFromFluidMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolateFromFluidMesh)
         .def("InterpolateFromNewestFluidMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolateFromNewestFluidMesh)
         .def("InterpolateFromDEMMesh", &BinBasedDEMFluidCoupledMapping < 3 > ::InterpolateFromDEMMesh)
         .def("ComputePostProcessResults", &BinBasedDEMFluidCoupledMapping < 3 > ::ComputePostProcessResults)
+        .def("AddDEMCouplingVariable", AddDEMCouplingVariable < 3 >)
+        .def("AddFluidCouplingVariable", AddFluidCouplingVariable < 3 >)
         ;
-    }
+
+}
+
+
+
 
 }  // namespace Python.
 
