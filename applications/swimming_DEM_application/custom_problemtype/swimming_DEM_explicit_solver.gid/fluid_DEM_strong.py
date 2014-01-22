@@ -138,8 +138,8 @@ balls_vars_for_coupling = [FLUID_VEL_PROJECTED,
                            FLUID_VORTICITY_PROJECTED]
 
 fluid_vars_for_coupling = [DRAG_REACTION,
-                           BODY_FORCE
-                           SOLID_FRACTION
+                           BODY_FORCE,
+                           SOLID_FRACTION,
                            MESH_VELOCITY1]
 
 DEM_inlet_variables_to_add = balls_variables_to_add
