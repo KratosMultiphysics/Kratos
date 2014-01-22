@@ -387,7 +387,7 @@ protected:
 
             MathUtils<double>::CrossProduct(An,v1,v2);
             An *= -0.5;
-            const double area = norm_2(An);
+            double area = norm_2(An);
             An /= area;
             
             //define rho as the maximum one in the element
@@ -423,7 +423,6 @@ protected:
                     
                      const double wall_vel = norm_2(Vel);
                      const double tau = /*edge_fac * */NodalFactor * y * rho * (1.0 + wall_vel) * area;
-                    
 //                     KRATOS_WATCH(tau);
 
                     bounded_matrix<double,3,3> block = IdentityMatrix(3,3);
@@ -448,51 +447,51 @@ protected:
                 }
             }
 
-//         //apply pressure boundary terms
+        //apply pressure boundary terms
 // 	array_1d<double, TNumNodes> N;
 // 	N[1] = NodalFactor;
 // 	N[2] = NodalFactor;
 // 	N[3] = NodalFactor;
-//
+
 // 	//compute normal
 // 	array_1d<double,3> v1, v2, An;
 // 	v1[0] = rGeometry[1].X() - rGeometry[0].X();
 // 	v1[1] = rGeometry[1].Y() - rGeometry[0].Y();
 // 	v1[2] = rGeometry[1].Z() - rGeometry[0].Z();
-//
+// 
 // 	v2[0] = rGeometry[2].X() - rGeometry[0].X();
 // 	v2[1] = rGeometry[2].Y() - rGeometry[0].Y();
 // 	v2[2] = rGeometry[2].Z() - rGeometry[0].Z();
-//
+// 
 // 	MathUtils<double>::CrossProduct(An,v1,v2);
 //         An *= 0.5;
 // 	An /= norm_2(An);
-//
+
 //         unsigned int FirstRow(0), FirstCol(0);
 //         for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
 //         {
 // 	  array_1d<double,3> I_nn_n_node;
 // 	  array_1d<double,3> node_normal = rGeometry[i].FastGetSolutionStepValue(NORMAL);
 // 	  node_normal /= -norm_2(node_normal);
-//
+// 
 // 	  double dot_prod = inner_prod(node_normal,An);
 // 	  I_nn_n_node = (An - dot_prod*node_normal);//dot_prod*node_normal
-//
+// 
 // 	  const double nodal_pr = rGeometry[i].FastGetSolutionStepValue(PRESSURE);
-//
+// 
 // 	    for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
 // 	    {
-//
-// // 		rLocalMatrix(FirstRow + m, FirstCol + TDim) =  area * I_nn_n_node[m];
-// 		rLocalMatrix(FirstRow + m, FirstCol + TDim) =  area * An[m];
-// // 		rLocalVector[FirstRow + m] -= area * nodal_pr * I_nn_n_node[m];
-// 		rLocalVector[FirstRow + m] -= area * nodal_pr * An[m];
-//
+// 
+// 		rLocalMatrix(FirstRow + m, FirstCol + TDim) =  area * I_nn_n_node[m];
+// // 		rLocalMatrix(FirstRow + m, FirstCol + TDim) =  area * An[m];
+// 		rLocalVector[FirstRow + m] -= area * nodal_pr * I_nn_n_node[m];
+// // 		rLocalVector[FirstRow + m] -= area * nodal_pr * An[m];
+// 
 // 	    }
 // 	    FirstCol += BlockSize;
 // 	    FirstRow += BlockSize;
 // 	}
-            //double is_cutted = 0.0;
+//             double is_cutted = 0.0;
 // 	const double dist = rGeometry[0].FastGetSolutionStepValue(DISTANCE);
 //         for (unsigned int i = 1; i < TNumNodes; ++i) // iterate over rows
 //         {
@@ -509,19 +508,32 @@ protected:
             NN_gausse_one[0] = 1.0/6.0;
             NN_gausse_one[1] = 1.0/6.0;
             NN_gausse_one[2] = 2.0/3.0;
+	    area*=0.33333333333333333333333333333333333333333; //considering weight for 3 point integraion
             for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
             {
+		array_1d<double,3> I_nn_n_node;
+		array_1d<double,3> node_normal = rGeometry[i].FastGetSolutionStepValue(NORMAL);
+		node_normal /= -norm_2(node_normal);
+
+		double dot_prod = inner_prod(node_normal,An);
+		I_nn_n_node = -(An - dot_prod*node_normal);//dot_prod*node_normal
+		   
                 double ii_flag = rGeometry[i].GetValue(IS_STRUCTURE);
                 for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over rows
                 {
                     const double nodal_pr = rGeometry[j].FastGetSolutionStepValue(PRESSURE);
                     double jj_flag = rGeometry[j].GetValue(IS_STRUCTURE);
+		    		    
+		    
                     if( ii_flag != 0.0 && jj_flag != 0.0)
                     {
                         for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
                         {
-                            rLocalMatrix(FirstRow + m, FirstCol + TDim) +=  area * An[m] * NN_gausse_one[i] * NN_gausse_one[j];
-                            rLocalVector[FirstRow + m] -= area * nodal_pr * An[m] * NN_gausse_one[i] * NN_gausse_one[j];
+//                             rLocalMatrix(FirstRow + m, FirstCol + TDim) +=  area * An[m] * NN_gausse_one[i] * NN_gausse_one[j];
+//                             rLocalVector[FirstRow + m] -= area * nodal_pr * An[m] * NN_gausse_one[i] * NN_gausse_one[j];
+			    
+                            rLocalMatrix(FirstRow + m, FirstCol + TDim) +=  area * I_nn_n_node[m] * NN_gausse_one[i] * NN_gausse_one[j];
+                            rLocalVector[FirstRow + m] -= area * nodal_pr * I_nn_n_node[m] * NN_gausse_one[i] * NN_gausse_one[j];			    
                         }
                     }
                     FirstCol += BlockSize;
@@ -540,18 +552,29 @@ protected:
             NN_gausse_two[2] = 1.0/6.0;
             for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
             {
+		array_1d<double,3> I_nn_n_node;
+		array_1d<double,3> node_normal = rGeometry[i].FastGetSolutionStepValue(NORMAL);
+		node_normal /= -norm_2(node_normal);
+
+		double dot_prod = inner_prod(node_normal,An);
+		I_nn_n_node = -(An - dot_prod*node_normal);//dot_prod*node_normal	      
+	      
                 double ii_flag = rGeometry[i].GetValue(IS_STRUCTURE);
                 for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over rows
                 {
                     const double nodal_pr = rGeometry[j].FastGetSolutionStepValue(PRESSURE);
                     double jj_flag = rGeometry[j].GetValue(IS_STRUCTURE);
+		    			    
 
                     if( ii_flag != 0.0 && jj_flag != 0.0)
                     {
                         for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
                         {
-                            rLocalMatrix(FirstRow + m, FirstCol + TDim) +=  area * An[m] * NN_gausse_two[i] * NN_gausse_two[j];
-                            rLocalVector[FirstRow + m] -= area * nodal_pr * An[m] * NN_gausse_two[i] * NN_gausse_two[j];
+//                             rLocalMatrix(FirstRow + m, FirstCol + TDim) +=  area * An[m] * NN_gausse_two[i] * NN_gausse_two[j];
+//                             rLocalVector[FirstRow + m] -= area * nodal_pr * An[m] * NN_gausse_two[i] * NN_gausse_two[j];
+			    
+                            rLocalMatrix(FirstRow + m, FirstCol + TDim) +=  area * I_nn_n_node[m] * NN_gausse_two[i] * NN_gausse_two[j];
+                            rLocalVector[FirstRow + m] -= area * nodal_pr * I_nn_n_node[m] * NN_gausse_two[i] * NN_gausse_two[j];			    
                         }
                     }
                     FirstCol += BlockSize;
@@ -570,18 +593,29 @@ protected:
             NN_gausse_three[2] = 1.0/6.0;
             for (unsigned int i = 0; i < TNumNodes; ++i) // iterate over rows
             {
+
+		array_1d<double,3> I_nn_n_node;
+		array_1d<double,3> node_normal = rGeometry[i].FastGetSolutionStepValue(NORMAL);
+		node_normal /= -norm_2(node_normal);
+
+		double dot_prod = inner_prod(node_normal,An);
+		I_nn_n_node = -(An - dot_prod*node_normal);//dot_prod*node_normal
+		    
                 double ii_flag = rGeometry[i].GetValue(IS_STRUCTURE);
                 for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over rows
                 {
                     const double nodal_pr = rGeometry[j].FastGetSolutionStepValue(PRESSURE);
                     double jj_flag = rGeometry[j].GetValue(IS_STRUCTURE);
-
+		    
                     if( ii_flag != 0.0 && jj_flag != 0.0)
                     {
                         for (unsigned int m = 0; m < TDim; ++m) // iterate over v components (vx,vy[,vz])
                         {
-                            rLocalMatrix(FirstRow + m, FirstCol + TDim) +=  area * An[m] * NN_gausse_three[i] * NN_gausse_three[j];
-                            rLocalVector[FirstRow + m] -= area * nodal_pr * An[m] * NN_gausse_three[i] * NN_gausse_three[j];
+//                             rLocalMatrix(FirstRow + m, FirstCol + TDim) +=  area * An[m] * NN_gausse_three[i] * NN_gausse_three[j];
+//                             rLocalVector[FirstRow + m] -= area * nodal_pr * An[m] * NN_gausse_three[i] * NN_gausse_three[j];
+
+                            rLocalMatrix(FirstRow + m, FirstCol + TDim) +=  area * I_nn_n_node[m] * NN_gausse_three[i] * NN_gausse_three[j];
+                            rLocalVector[FirstRow + m] -= area * nodal_pr * I_nn_n_node[m] * NN_gausse_three[i] * NN_gausse_three[j];
                         }
                     }
                     FirstCol += BlockSize;
