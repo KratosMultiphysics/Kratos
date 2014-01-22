@@ -59,12 +59,11 @@ CoordinationNumber               = *GenData(Coordination_Number)
 *format "%10.5e"
 AmplifiedSearchRadiusExtension   = *GenData(Amplified_Continuum_Search_Radius_Extension)
 DontSearchUntilFailure           = "*GenData(Dont_Search_Until_Failure_Occurs)"
-FixVelocitiesOption              = "*GenData(Fix_Velocities_At_Predetermined_Time)"
 HorizontalFixVel                 = "*GenData(Fix_Horizontal_Velocities)"
 *format "%10.5e"
-TotalTimePercentageFixVelocities = *GenData(Time_Step_Constrain_DOFs_Percentage)
+LoadingVelocityTop = *GenData(Loading_Velocity_Top)
 *format "%10.5e"
-LoadingVelocity = *GenData(Loading_Velocity)
+LoadingVelocityBot = *GenData(Loading_Velocity_Bot)
 
 # Time Discretization Settings
 
@@ -189,8 +188,7 @@ MeasuringWidth                   = *GenData(Measuring_Width)
 RealTimeGraphOption              = "*GenData(Real_Time_Graph)"
 *format "%10.5e"
 ConfinementPressure              = *GenData(Confinement_Pressure)
-*format "%10.5e"
-TotalTimePercentAsForceAplTime   = *GenData(Total_Time_Percentage_As_Force_Aplication_Time)
+
 
 #POSTPROCES
 
