@@ -337,7 +337,79 @@ public:
 
     }
 
+    /**
+     * Calculate the exact distances to an isosurface define by a set of initial
+     * distances
+     * @param ThisGeometryThe Triangle itself. Note: If the geometry is not a
+     * tetrahedra the result is undefined and may cause memory error.
+     * @param Distances The distances which define the isosurface as input and
+     * the same argument is used to give the calculated exact distance
+     */
+    template<std::size_t TSize>
+    static void CalculateTriangleDistances(Element::GeometryType& ThisGeometry, array_1d<double, TSize>& Distances)
+    {
+        // Calculating the intersection points
+        array_1d<Point<3>, 4> intersection_points;
+        int number_of_intersection_points = CalculateTetrahedraIntersectionPoints(ThisGeometry, Distances, intersection_points);
 
+//        for(int i = 0 ; i < number_of_intersection_points ; i++)
+//            KRATOS_WATCH(intersection_points[i]);
+
+
+		if(number_of_intersection_points == 0)
+		{
+			std::cout << "Warning: The intersection with interface hasn't found!" << std::endl;
+			std::cout << "Warning: The distances are: " << Distances << std::endl;
+		}
+		else if(number_of_intersection_points == 1)
+		{ // There is one point with zero distance. The distance of the nodes are their distance to this point
+//                    std::cout << "1 intersection point" << std::endl;
+			array_1d<double,3> temp;
+			// loop over nodes to calculate their distance to the zero distance node.
+                        for(unsigned int i_node = 0; i_node < ThisGeometry.size() ; i_node++)
+                        {
+				noalias(temp) = intersection_points[0] - ThisGeometry[i_node];
+				Distances[i_node] = norm_2(temp);
+//                        KRATOS_WATCH(ThisGeometry[i_node].Id());
+//                        KRATOS_WATCH(intersection_points[0]);
+//                        KRATOS_WATCH(ThisGeometry[i_node].Coordinates());
+//                        KRATOS_WATCH(Distances[i_node]);
+
+			}
+//                       for(unsigned int i_node = 0; i_node < ThisGeometry.size() ; i_node++)
+//                       {
+//                           Distances[i_node] = fabs(ThisGeometry[i_node].Z()); // To be removed. Pooyan.
+//                       }
+
+		}
+		else if(number_of_intersection_points == 2)
+		{
+
+//                    std::cout << "2 intersection points" << std::endl;
+			// loop over nodes to calculate their distance to the zero distance line.
+                        for(unsigned int i_node = 0; i_node < ThisGeometry.size() ; i_node++)
+                        {
+				Distances[i_node] = PointDistanceToLineSegment3D(intersection_points[0], intersection_points[1], ThisGeometry[i_node]);
+//                        KRATOS_WATCH(intersection_points[0]);
+//                        KRATOS_WATCH(intersection_points[1]);
+//                        KRATOS_WATCH(ThisGeometry[i_node]);
+//                        KRATOS_WATCH(Distances[i_node]);
+			}
+//                       for(unsigned int i_node = 0; i_node < ThisGeometry.size() ; i_node++)
+//                       {
+//                           Distances[i_node] = ThisGeometry[i_node].Z(); // To be removed. Pooyan.
+//                       }
+
+		}
+		else
+		{
+			std::cout << "This is a triangle with more than two intersections!" << std::endl;	
+			std::cout << "Warning: Too many intersections: " << number_of_intersection_points << std::endl;		
+			std::cout << "Warning: The distances are: " << Distances << std::endl;
+			
+		}
+
+    }
 
 
     /**
