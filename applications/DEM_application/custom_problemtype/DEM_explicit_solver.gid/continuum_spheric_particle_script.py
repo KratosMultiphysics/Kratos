@@ -140,7 +140,7 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
   
     (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = proc.ListDefinition(balls_model_part,solver)  # defines the lists where we measure forces
 
-    strain = 0.0; total_stress = 0.0; first_time_entry = 1
+    strain = 0.0; total_stress = 0.0; first_time_entry = 1; first_time_entry_2 = 1
     strain_fem = 0.0; total_stress_bot = 0.0; total_stress_mean = 0.0; total_stress_fem = 0.0
     
     # for the graph plotting    
@@ -361,9 +361,7 @@ if(DEM_parameters.PoissonMeasure == "ON"):
            
       width_ini = xright_weight/right_counter - xleft_weight/left_counter
         
-step_to_fix_velocities = balls_model_part.ProcessInfo[STEP_FIX_VELOCITIES]
-        
-        
+
 if(DEM_parameters.FemPlates == "ON"):
 
   meshes_to_translate = Vector(1)
@@ -378,8 +376,8 @@ if(DEM_parameters.FemPlates == "ON"):
   translation_operation.Execute()
 
 if(DEM_parameters.ConcreteTestOption != "OFF"):
-  loading_velocity = - DEM_parameters.LoadingVelocity
-  print 'velocity for the graph: ' + str(loading_velocity) + '\n'  
+  loading_velocity = DEM_parameters.LoadingVelocityTop
+  print 'Loading velocity: ' + str(loading_velocity) + '\n'  
 
   if(DEM_parameters.FemPlates == "ON"):
   
@@ -405,25 +403,20 @@ while (time < DEM_parameters.FinalTime):
     os.chdir(main_path)
     solver.Solve()
     #########################TIME CONTROL######################################4
-
+    
     incremental_time = (timer.time() - initial_real_time) - prev_time
 
     if (incremental_time > DEM_parameters.ControlTime):
         percentage = 100 * (float(step) / total_steps_expected)
 
-        print 'Real time calculation: ' + str(timer.time() - initial_real_time)
-        print 'Percentage Completed: '  + str(percentage) + ' %'
-        print "TIME STEP = "            + str(step) + '\n'
-        
-        if( DEM_parameters.ContinuumOption =="ON" and ( step >= step_to_fix_velocities ) and DEM_parameters.ConcreteTestOption != "OFF" and DEM_parameters.MonitoringOption == "ON"):        
-            monitoring = PostUtilities().QuasiStaticAdimensionalNumber(balls_model_part,contact_model_part,balls_model_part.ProcessInfo)
-            print "The quasi-static-adimensional-number is:  "            + str(monitoring) + '\n'
-            print "The measured stiffness is:  "            + str(total_stress/strain/1e6) + "Mpa" + '\n'
-            
+        print('Real time calculation: ' + str(timer.time() - initial_real_time))
+        print('Percentage Completed: ' + str(percentage) + ' %')
+        print("TIME STEP = " + str(step) + '\n')
+
         sys.stdout.flush()
-        
+
         prev_time = (timer.time() - initial_real_time)
-  
+    
     if ((timer.time() - initial_real_time > 60) and first_print == True and step != 0):    
         first_print = False    
         estimated_sim_duration = 60.0 * (total_steps_expected / step) # seconds
@@ -624,13 +617,14 @@ while (time < DEM_parameters.FinalTime):
       
       Pressure = total_stress_mean*1e6
 
-      
       if(Pressure > DEM_parameters.ConfinementPressure * 1e6 ):
         
         Pressure = DEM_parameters.ConfinementPressure * 1e6 
         
-        if(DEM_parameters.FixVelocitiesOption == "ON"):
+        if( (DEM_parameters.HorizontalFixVel == "ON") and (first_time_entry_2) ):
+          
             balls_model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, 1)
+            first_time_entry_2 = 0
       
       if((DEM_parameters.FemPlates == "ON") and (current_heigh <= 0.30)):
         graph_export_fem.write(str(strain_fem)+"  "+str(total_stress_fem)+'\n')
