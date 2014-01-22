@@ -36,7 +36,7 @@ class TransferTools:
         self.Aprime = []
         self.Bprime = []
         # compute normals and 3d areas
-        print("CoupledTool:v5_11122013")
+        print("CoupledTool:v5_21012014")
         # raw_input()
         NormalCalculationUtils().SwapNormals(self.model_part_3d)
         BodyNormalCalculationUtils().CalculateBodyNormals(self.model_part_3d, 3)
@@ -67,6 +67,8 @@ class TransferTools:
             sys.exit("number of 1d_inlets are zero!! Please check your config.py file!")
 
         # detect 3d inlets
+        normN = 0.0
+        tmp = [] 
         for i in range(100, 101):
             nfound = 0
             aux = []
@@ -79,7 +81,12 @@ class TransferTools:
                     node.Fix(VELOCITY_Z)
                     tmp = node.GetSolutionStepValue(NORMAL)
                     normN = math.sqrt(tmp[0] ** 2 + tmp[1] ** 2 + tmp[2] ** 2)
-                    tmp /= normN
+                    #print (str(tmp))
+                    #print (str(normN))
+                    #tmp = tmp/normN
+                    tmp[0] = tmp[0]/normN
+                    tmp[1] = tmp[1]/normN
+                    tmp[2] = tmp[2]/normN                    
                     directions.append(tmp)
                     # print "3D_inlet has inlet_nodes_3d = self.inlets_3d[i]been assigned", node
             if(len(aux) != 0):
@@ -90,14 +97,12 @@ class TransferTools:
             # raw_input()
 
         if(len(self.inlets_3d) == 0):
-            sys.exit(
-                "number of 3d_inlets are zero!! Please check your config.py file!")
+            sys.exit("number of 3d_inlets are zero!! Please check your config.py file!")
             # print "number of 3d is zero"
             # err
 
         if(len(self.inlets_1d) != len(self.inlets_3d)):
-            sys.exit(
-                "number of 1d and 3d inlets is different!! Please check your config.py file!")
+            sys.exit("number of 1d and 3d inlets is different!! Please check your config.py file!")
             # print "number of 1d and 3d inlets is different"
             # err
 
