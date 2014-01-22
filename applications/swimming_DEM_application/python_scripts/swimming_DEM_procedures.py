@@ -277,7 +277,7 @@ class PorosityUtils:
 
 class ProjectionModule:
 
-    def __init__(self, fluid_model_part, balls_model_part, FEM_DEM_model_part, dimension, max_solid_fraction, coupling_type, n_particles_in_depth):
+    def __init__(self, fluid_model_part, balls_model_part, FEM_DEM_model_part, dimension, max_solid_fraction, coupling_type, n_particles_in_depth, dem_vars, fluid_vars):
 
         self.fluid_model_part = fluid_model_part
         self.particles_model_part = balls_model_part
@@ -294,6 +294,14 @@ class ProjectionModule:
         else:
             self.projector = BinBasedDEMFluidCoupledMapping2D(max_solid_fraction, coupling_type, n_particles_in_depth)
             self.bin_of_objects_fluid = BinBasedFastPointLocator2D(fluid_model_part)
+
+        # telling the projector which variables we are interested in modifying
+
+        for var in dem_vars:
+            self.projector.AddDEMCouplingVariable(var)
+
+        for var in fluid_vars:
+            self.projector.AddFluidCouplingVariable(var)
 
         # calculating the fluid nodal areas that are needed for the coupling
 
