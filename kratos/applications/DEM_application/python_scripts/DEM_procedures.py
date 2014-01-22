@@ -149,14 +149,12 @@ class Procedures:
         # SIMULATION FLAGS
         self.rotation_OPTION = Var_Translator(param.RotationOption)
         self.bounding_box_OPTION = Var_Translator(param.BoundingBoxOption)
-        self.fix_velocities = Var_Translator(param.FixVelocitiesOption)
         self.continuum_OPTION = Var_Translator(param.ContinuumOption)
         self.contact_mesh_OPTION = Var_Translator(Var_Translator(param.ContactMeshOption) & Var_Translator(param.ContinuumOption))
 
         # SIMULATION SETTINGS
 
         self.bounding_box_enlargement_factor = param.BoundingBoxEnlargementFactor
-        self.time_percentage_fix_velocities = param.TotalTimePercentageFixVelocities
        # MODEL
         self.domain_size = param.Dimension
 
