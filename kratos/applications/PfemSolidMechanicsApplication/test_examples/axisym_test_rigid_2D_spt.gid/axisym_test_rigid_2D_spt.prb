@@ -8,7 +8,7 @@ VALUE: QuasiStaticSolver
 QUESTION: Time_Step
 VALUE: 1.25e-8
 QUESTION: Number_of_steps
-VALUE: 1000
+VALUE: 2000
 QUESTION: LineSearch#CB#(True,False)
 VALUE: True
 QUESTION: Implex#CB#(True,False)
@@ -44,7 +44,7 @@ VALUE: 1E-9
 QUESTION: Max_Iter
 VALUE: 30
 QUESTION: Number_of_threads
-VALUE: 4
+VALUE: 8
 TITLE: Meshing
 QUESTION: RemeshDomains#CB#(False,True)
 VALUE: True
@@ -138,7 +138,7 @@ VALUE: Binary
 QUESTION: Write_Mesh#CB#(Deformed,Undeformed)
 VALUE: Deformed
 QUESTION: Write_Results#CB#(PreMeshing,PostMeshing)
-VALUE: PreMeshing
+VALUE: PostMeshing
 QUESTION: Write_Reactions#CB#(False,True)
 VALUE: True
 QUESTION: Write_Contact_Forces#CB#(False,True)

@@ -1343,6 +1343,9 @@ namespace Kratos
       base = 0;
       for(unsigned int i = 0; i<rModelPart.Conditions(MeshId).size(); i++)
 	{
+	  if( (conditions_begin + i)->Is(TO_ERASE) )
+	    std::cout<<" ERROR: condition to erase present "<<std::endl;
+
 	  Geometry< Node<3> >& rGeometry = (conditions_begin + i)->GetGeometry();
 	  in.segmentlist[base]   = rGeometry[0].Id();
 	  in.segmentlist[base+1] = rGeometry[1].Id();
@@ -2252,7 +2255,7 @@ namespace Kratos
     std::cout<<"   Nodes before erasing : "<<rModelPart.Nodes(MeshId).size()<<std::endl;
 
     bool any_node_removed = false;
-	
+    bool any_condition_removed = false;
 
     int error_remove = 0;
     int distance_remove = 0;
@@ -2321,7 +2324,7 @@ namespace Kratos
 	////////////////////////////////////////////////////////////
 	if (rVariables.RefiningOptions.Is(Modeler::REMOVE_ON_BOUNDARY))
 	  {
-	    RemoveNonConvexBoundary(rModelPart,rVariables,MeshId);
+	    any_condition_removed = RemoveNonConvexBoundary(rModelPart,rVariables,MeshId);
 	  }
 	//////////////////////////////////////////////////////////// 
 
@@ -2372,7 +2375,7 @@ namespace Kratos
 	    Node<3> work_point(0,0.0,0.0,0.0);
 	    unsigned int n_points_in_radius;
 
-	    double distance_factor = 0.4;
+	    double distance_factor = 1.0;
 		
 
 	    for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++)
@@ -2391,59 +2394,189 @@ namespace Kratos
 
 		    if (n_points_in_radius>1)
 		      {
-			if (in->IsNot(BOUNDARY) && in->IsNot(STRUCTURE))
-			  {
-			    //look if we are already erasing any of the other nodes
-			    double erased_nodes = 0;
-			    for(PointIterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
-			      {
-				if((*nn)->Is(TO_ERASE))
-				  erased_nodes += 1;
+			std::cout<<"     Points in Radius "<< n_points_in_radius<<" radius "<<radius<<std::endl;
+
+			//if( in->IsNot(STRUCTURE) ) {//MEANS DOFS FIXED
+
+			  if ( in->IsNot(BOUNDARY) )
+			    {
+
+			      //look if we are already erasing any of the other nodes
+			      unsigned int contact_nodes = 0;
+			      unsigned int erased_nodes = 0;
+			      for(PointIterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
+				{
+				  if( (*nn)->Is(BOUNDARY) && (*nn)->Is(CONTACT) )
+				    contact_nodes += 1;
+				  
+				  if( (*nn)->Is(TO_ERASE) )
+				    erased_nodes += 1;
+				}
+
+			      if( erased_nodes < 1 && contact_nodes < 1){ //we release the node if no other nodes neighbours are being erased
+				in->Set(TO_ERASE);
+				std::cout<<"     Distance Criterion Node ["<<in->Id()<<"] TO_ERASE "<<std::endl;
+				any_node_removed = true;
+				inside_nodes_removed++;
+				//distance_remove++;
 			      }
 
-			    if( erased_nodes < 1){ //we release the node if no other nodes neighbours are being erased
-			      in->Set(TO_ERASE);
-			      std::cout<<"  Distance Criterion Node to erase "<<in->Id()<<std::endl;
-			      any_node_removed = true;
-			      inside_nodes_removed++;
-			      //distance_remove++;
 			    }
+			  else if ( rVariables.RefiningOptions.Is(Modeler::REMOVE_ON_BOUNDARY) && (in)->IsNot(TO_ERASE)) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2(=extra_factor) * h_factor)
+			    {
+			      double extra_factor =1.5; //0.2;
+			    
+			      //std::cout<<"  Remove close boundary nodes: Candidate ["<<in->Id()<<"]"<<std::endl;
 
-			  }
-			else if ( (in)->IsNot(STRUCTURE) && rVariables.RefiningOptions.Is(Modeler::REMOVE_ON_BOUNDARY) && (in)->IsNot(TO_ERASE)) //boundary nodes will be removed if they get REALLY close to another boundary node (0.2(=extra_factor) * h_factor)
-			  {
-			    double extra_factor = 0.001; //0.2;
-
-			    //here we loop over the neighbouring nodes and if there are nodes
-			    //with BOUNDARY flag and closer than 0.2*nodal_h from our node, we remove the node we are considering
-			    unsigned int k = 0;
-			    unsigned int counter = 0;
-			    for(PointIterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
-			      {
-				if ( (*nn)->Is(BOUNDARY) && (*nn)->IsNot(CONTACT) && neighbour_distances[k] < (extra_factor*radius) && neighbour_distances[k] > 0.0 )
-				  {
-				    //KRATOS_WATCH( neighbours_distances[k] )
-				    if((*nn)->IsNot(TO_ERASE)){
-				      std::cout<<" Removed Boundary Node on Distance ["<<neighbour_distances[k]<<"<"<<extra_factor*radius<<"] "<<std::endl;
-				      counter += 1;
+			      //here we loop over the neighbouring nodes and if there are nodes
+			      //with BOUNDARY flag and closer than 0.2*nodal_h from our node, we remove the node we are considering
+			      unsigned int k = 0;
+			      unsigned int counter = 0;
+			      for(PointIterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
+				{
+				  //std::cout<<" radius * extra_factor "<<(extra_factor*radius)<<" >? "<<neighbour_distances[k]<<std::endl;
+				  if ( (*nn)->Is(BOUNDARY) && (*nn)->IsNot(CONTACT) && neighbour_distances[k] < (extra_factor*radius) && neighbour_distances[k] > 0.0 )
+				    {
+				      //KRATOS_WATCH( neighbours_distances[k] )
+				      if((*nn)->IsNot(TO_ERASE)){
+					counter += 1;
+				      }
 				    }
-				  }
-				k++;
+
+				  k++;
+				}
+
+			      if(counter > 1 && in->IsNot(NEW_ENTITY) && in->IsNot(CONTACT) ){ //Can be inserted in the boundary refine
+				in->Set(TO_ERASE);
+				std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
+				any_node_removed = true;
+				boundary_nodes_removed++;
+				//distance_remove ++;
 			      }
 
-			    if(counter > 0 && in->IsNot(NEW_ENTITY) && in->IsNot(CONTACT) ){ //Can be inserted in the boundary refine
-			      in->Set(TO_ERASE);
-			      std::cout<<"  Distance Criterion 2 Node to erase "<<in->Id()<<std::endl;
-			      any_node_removed = true;
-			      boundary_nodes_removed++;
-			      //distance_remove ++;
 			    }
-					
-			  }
+
+			  //}
+
 		      }
 			
 		  }	
 	      }
+
+	    //Build boundary after removing boundary nodes due distance criterion
+	    if(boundary_nodes_removed){
+	      
+
+	      std::vector<std::vector<Condition::Pointer> > node_shared_conditions(rModelPart.NumberOfNodes()+1); //all domain nodes
+      
+	      for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(MeshId); ic!= rModelPart.ConditionsEnd(MeshId); ic++)
+		{	 
+		  if(ic->IsNot(NEW_ENTITY) && ic->IsNot(TO_ERASE)){
+		    Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
+		    for(unsigned int i=0; i<rConditionGeom.size(); i++){
+		      //std::cout<<"["<<ic->Id()<<"] i "<<i<<" condition "<<rConditionGeom[i].Id()<<std::endl;
+		      if(rConditionGeom[i].Is(TO_ERASE))
+			std::cout<<"     Released node condition ["<<rConditionGeom[i].Id()<<"]: WARNING "<<std::endl;
+		      
+		      node_shared_conditions[rConditionGeom[i].Id()].push_back(*(ic.base()));	  
+		    }
+		  }
+
+		}
+
+
+	      //nodes
+	      int i=0,j=0;
+	      unsigned int initial_cond_size = rModelPart.Conditions().size()+1; //total model part node size
+	      unsigned int id = 1;
+	      unsigned int new_id = 0;
+
+	      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++) 
+		{
+
+		  if( in->Is(BOUNDARY) && in->IsNot(BLOCKED) && in->IsNot(NEW_ENTITY) && in->Is(TO_ERASE) ){
+
+		    unsigned int nodeId = in->Id();
+
+		    if(node_shared_conditions[nodeId].size()>=2){
+
+		      // std::cout<<"     nodeId "<<nodeId<<std::endl;
+		      if(node_shared_conditions[nodeId][0]->IsNot(TO_ERASE) && node_shared_conditions[nodeId][1]->IsNot(TO_ERASE)){
+		
+			if(node_shared_conditions[nodeId][0]->GetGeometry()[0].Id() == in->Id()){
+			  i = 1;
+			  j = 0;
+			}
+			else{
+			  i = 0;
+			  j = 1;
+			}
+	                      	
+
+			Geometry< Node<3> >& rConditionGeom1 = node_shared_conditions[nodeId][i]->GetGeometry();
+			Geometry< Node<3> >& rConditionGeom2 = node_shared_conditions[nodeId][j]->GetGeometry();
+	      
+			//node in id Node1;
+
+			Node<3> & Node0 = rConditionGeom1[0]; // other node in condition [1]
+			Node<3> & Node2 = rConditionGeom2[1]; // other node in condition [2]
+ 
+			node_shared_conditions[nodeId][i]->Set(TO_ERASE); //release condition [1]
+			node_shared_conditions[nodeId][j]->Set(TO_ERASE); //release condition [2]
+
+			any_condition_removed = true;
+
+			Condition::Pointer NewCond = node_shared_conditions[nodeId][i];
+		    
+			Node0.Set(BLOCKED);
+			Node0.Set(Modeler::ENGAGED_NODES);
+
+			Node2.Set(BLOCKED);
+			Node2.Set(Modeler::ENGAGED_NODES);
+			
+			//create new condition Node0-NodeB
+			Condition::NodesArrayType face;
+			face.reserve(2);
+
+			face.push_back(rConditionGeom1(0));
+			face.push_back(rConditionGeom2(1));
+		
+			new_id = initial_cond_size + id;
+			//properties to be used in the generation
+			Properties::Pointer properties = NewCond->pGetProperties();
+			Condition::Pointer pcond       = NewCond->Create(new_id, face, properties);
+			// std::cout<<"     ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
+
+			pcond->Set(NEW_ENTITY);
+
+			std::cout<<"     Condition INSERTED (Id: "<<new_id<<") ["<<rConditionGeom1[0].Id()<<", "<<rConditionGeom2[1].Id()<<"] "<<std::endl;
+
+			pcond->SetValue(NORMAL, NewCond->GetValue(NORMAL) );
+
+			pcond->SetValue(MASTER_NODES, NewCond->GetValue(MASTER_NODES) );
+			pcond->SetValue(CAUCHY_STRESS_VECTOR, NewCond->GetValue(CAUCHY_STRESS_VECTOR));
+			pcond->SetValue(DEFORMATION_GRADIENT, NewCond->GetValue(DEFORMATION_GRADIENT));
+
+			(rModelPart.Conditions(MeshId)).push_back(pcond);
+
+			id +=1;
+		      }
+		   
+		    }
+		  }
+		
+		}
+	    
+	      for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++)
+		{
+		  in->Reset(BLOCKED);
+		}
+
+	    }
+	    //Build boundary after removing boundary nodes due distance criterion
+	    
+
+
 	  }
 	// REMOVE ON DISTANCE
 	////////////////////////////////////////////////////////////
@@ -2454,6 +2587,29 @@ namespace Kratos
 	if(any_node_removed)
 	  mModelerUtilities.CleanRemovedNodes(rModelPart,MeshId);
 
+	if(any_condition_removed){
+	  //Clean Conditions
+	  ModelPart::ConditionsContainerType RemoveConditions;
+	    
+	  //id = 0;
+	  for(ModelPart::ConditionsContainerType::iterator ic = rModelPart.ConditionsBegin(MeshId); ic!= rModelPart.ConditionsEnd(MeshId); ic++)
+	    {
+	
+	      if(ic->IsNot(TO_ERASE)){
+		//id+=1;
+		RemoveConditions.push_back(*(ic.base()));
+		//RemoveConditions.back().SetId(id);
+	      }
+	      else{
+		std::cout<<"   Condition RELEASED:"<<ic->Id()<<std::endl;
+	      }
+	    }
+	    
+	  rModelPart.Conditions(MeshId).swap(RemoveConditions);
+	
+	}
+      
+
       }
 
     std::cout<<"   Nodes after  erasing : "<<rModelPart.Nodes(MeshId).size()<<std::endl;
@@ -2463,7 +2619,7 @@ namespace Kratos
   //*******************************************************************************************
   //*******************************************************************************************
 
-  void TriangleMesh2DModeler::RemoveNonConvexBoundary(ModelPart& rModelPart, MeshingVariables& rVariables,ModelPart::IndexType MeshId)
+  bool TriangleMesh2DModeler::RemoveNonConvexBoundary(ModelPart& rModelPart, MeshingVariables& rVariables,ModelPart::IndexType MeshId)
   {
 
     KRATOS_TRY;
@@ -2760,6 +2916,12 @@ namespace Kratos
 	      
     std::cout<<"     Ending   Conditions : "<<rModelPart.Conditions(MeshId).size()<<"  (Removed nodes: "<< removed_nodes<<" ) "<<std::endl;
     std::cout<<"     REMOVE NON CONVEX BOUNDARY ]; "<<std::endl;
+
+    if(removed_nodes)
+      return true;
+    else
+      return false;
+    
     KRATOS_CATCH(" ")
       }
 
@@ -3610,7 +3772,7 @@ namespace Kratos
 	      //RemoveConditions.back().SetId(id);
 	    }
 	    else{
-	      //std::cout<<" is a release condition "<<std::endl;
+	      std::cout<<"   Condition RELEASED:"<<ic->Id()<<std::endl;
 	    }
 	  }
 	    

@@ -481,7 +481,7 @@ protected:
     
     void RemoveCloseNodes (ModelPart& rModelPart, MeshingVariables& rMeshingVariables,ModelPart::IndexType MeshId=0);
     
-    void RemoveNonConvexBoundary(ModelPart& rModelPart, MeshingVariables& rMeshingVariables,ModelPart::IndexType MeshId=0);
+    bool RemoveNonConvexBoundary(ModelPart& rModelPart, MeshingVariables& rMeshingVariables,ModelPart::IndexType MeshId=0);
     
     void SetDissipativeElements (ModelPart& rModelPart, MeshingVariables& rMeshingVariables,ModelPart::IndexType MeshId=0);
     

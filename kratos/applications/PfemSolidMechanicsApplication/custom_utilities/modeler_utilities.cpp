@@ -213,7 +213,7 @@ namespace Kratos
 	}
 	else{
 	  if( i_node->Is(BOUNDARY) )
-	    std::cout<<" BOUNDARY NODE RELEASED "<<i_node->Id()<<std::endl;
+	    std::cout<<"   BOUNDARY NODE RELEASED "<<i_node->Id()<<std::endl;
 	}
       }
 	

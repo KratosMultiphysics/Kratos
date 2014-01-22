@@ -68,40 +68,39 @@ namespace Kratos
 
   PointRigidContactPenalty2DCondition::~PointRigidContactPenalty2DCondition()
   {
+
   }
 
-  
+  //************************************************************************************
+  //************************************************************************************
+ 
   void PointRigidContactPenalty2DCondition::InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo)
   {
+      KRATOS_TRY
 
-       array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
-
-       GeneralVariables AuxiliarVariables;
+       
+       GeneralVariables ContactVariables;
        int ContactFace = 0;
 
-       bool Aux = this->mpRigidWall->IsInside( GetGeometry()[0], AuxiliarVariables.Gap.Normal, AuxiliarVariables.Gap.Tangent, AuxiliarVariables.Surface.Normal, AuxiliarVariables.Surface.Tangent, ContactFace );
+       if ( this->mpRigidWall->IsInside( GetGeometry()[0], ContactVariables.Gap.Normal, ContactVariables.Gap.Tangent, ContactVariables.Surface.Normal, ContactVariables.Surface.Tangent, ContactFace ) ) {
 
+  	   const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+  	   array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
 
-
-       if (Aux) {
-           double TangentialModul = 0.0;
-           for (unsigned int i = 0; i < 3; ++i) {
-              TangentialModul += ContactForce[i] * AuxiliarVariables.Surface.Tangent[i];
+           mTangentialVariables.PreviousTangentForceModulus = 0.0;
+           for (unsigned int i = 0; i < dimension; ++i) {
+              mTangentialVariables.PreviousTangentForceModulus += ContactForce[i] * ContactVariables.Surface.Tangent[i];
            }
 
-           mTangentialVariables.LastStepValue = TangentialModul;
         }
         else {
-           mTangentialVariables.LastStepValue = 0.0;
+           mTangentialVariables.PreviousTangentForceModulus = 0.0;
         } 
  
-        double DeltaTime ;
-        DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-        mTangentialVariables.DeltaTime = DeltaTime;
-     
-    KRATOS_TRY
+       mTangentialVariables.DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+       mTangentialVariables.FrictionCoeffitient = 0.0;
 
-    ClearNodalForces();
+       ClearNodalForces();
 
     KRATOS_CATCH( "" )
 
@@ -194,7 +193,7 @@ namespace Kratos
     double ElasticModulus   = GetProperties()[YOUNG_MODULUS];
 
     rVariables.Penalty.Normal = distance * 2000.0 * PenaltyParameter * ElasticModulus;
-    rVariables.Penalty.Tangent = rVariables.Penalty.Normal ;  
+    rVariables.Penalty.Tangent = rVariables.Penalty.Normal * 0.0;  
     
     //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
     
@@ -253,11 +252,17 @@ namespace Kratos
 
    void PointRigidContactPenalty2DCondition::CalculateAndAddKuugTangent(MatrixType& rLeftHandSideMatrix, GeneralVariables& rVariables, double& rIntegrationWeight)
    {
+
+       double NormalForceModulus = this->CalculateNormalForceModulus( NormalForceModulus, rVariables );
+
+       double TangentForceModulus = this->CalculateTangentForceModulus( TangentForceModulus, rVariables );
+       
+       this->CalculateCoulombsLaw( TangentForceModulus, NormalForceModulus, mTangentialVariables.Slip );
+
   
-       if (mTangentialVariables.FrictionActive ) {
-          double Mu = 0.3;
-          //rLeftHandSideMatrix -= mTangentialVariables.Sign * Mu * rVariables.Penalty.Normal * rIntegrationWeight * outer_prod_2(rVariables.Surface.Tangent, rVariables.Surface.Normal);
-          rLeftHandSideMatrix += mTangentialVariables.Sign * Mu * rVariables.Penalty.Normal * rIntegrationWeight * outer_prod_2(rVariables.Surface.Tangent, rVariables.Surface.Normal);
+       if ( mTangentialVariables.Slip ) {
+	   //rLeftHandSideMatrix -= mTangentialVariables.Sign * mTangentialVariable.FrictionCoeffitient * rVariables.Penalty.Normal * rIntegrationWeight * outer_prod_2(rVariables.Surface.Tangent, rVariables.Surface.Normal);
+          rLeftHandSideMatrix += mTangentialVariables.Sign * mTangentialVariables.FrictionCoeffitient * rVariables.Penalty.Normal * rIntegrationWeight * outer_prod_2(rVariables.Surface.Tangent, rVariables.Surface.Normal);
  
        }
        else {
@@ -276,12 +281,10 @@ namespace Kratos
   {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+     if( rVariables.Options.Is(ACTIVE)){
 
-    if( rVariables.Options.Is(ACTIVE)){
-
-       this->CalculateAndAddNormalContactForce( rRightHandSideVector, rVariables, rIntegrationWeight, dimension);
-       this->CalculateAndAddTangentContactForce( rRightHandSideVector, rVariables, rIntegrationWeight, dimension);
+       this->CalculateAndAddNormalContactForce( rRightHandSideVector, rVariables, rIntegrationWeight);
+       this->CalculateAndAddTangentContactForce( rRightHandSideVector, rVariables, rIntegrationWeight);
 
     }
     else{
@@ -298,14 +301,19 @@ namespace Kratos
   //***********************************************************************************
 
   void PointRigidContactPenalty2DCondition::CalculateAndAddNormalContactForce(VectorType& rRightHandSideVector,
-									GeneralVariables& rVariables,
-									double& rIntegrationWeight,
-									const unsigned int& rDimension)
+									      GeneralVariables& rVariables,
+									      double& rIntegrationWeight)
   {
-      double ContactForceModulus = (-1) * (rVariables.Penalty.Normal * rVariables.Gap.Normal) * rIntegrationWeight;
-      for(unsigned int j=0; j<rDimension; j++)
+      
+      const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+      double NormalForceModulus = this->CalculateNormalForceModulus( NormalForceModulus, rVariables );
+
+      NormalForceModulus *= rIntegrationWeight;
+   
+      for(unsigned int j = 0; j < dimension; j++)
 	{
-	  rRightHandSideVector[j] = ContactForceModulus * rVariables.Surface.Normal[j];
+	  rRightHandSideVector[j] = NormalForceModulus * rVariables.Surface.Normal[j];
 	}
 
       
@@ -314,7 +322,7 @@ namespace Kratos
       array_1d<double, 3 > &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
 
 
-      for(unsigned int j=0; j<rDimension; j++)
+      for(unsigned int j = 0; j < dimension; j++)
 	{
 	  ContactForce[j] = rRightHandSideVector[j];
 	}
@@ -331,44 +339,27 @@ namespace Kratos
   //***********************************************************************************
 
   void PointRigidContactPenalty2DCondition::CalculateAndAddTangentContactForce(VectorType& rRightHandSideVector,
-									GeneralVariables& rVariables,
-									double& rIntegrationWeight,
-									const unsigned int& rDimension)
+									       GeneralVariables& rVariables,
+									       double& rIntegrationWeight)
   {
-  
-       array_1d<double, 3 > &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
 
+       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
-       const array_1d<double, 3> & ActualDisplacement  =  GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT);
-       const array_1d<double, 3> & PreviousDisplacement = GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT, 1);
+       double NormalForceModulus = this->CalculateNormalForceModulus( NormalForceModulus, rVariables );
 
-       double IncrementalStick = 0.0;
-  
-       for (unsigned int i = 0; i < rDimension; ++i)
-             IncrementalStick += (ActualDisplacement[i]-PreviousDisplacement[i]) * rVariables.Surface.Tangent(i);
+       double TangentForceModulus = this->CalculateTangentForceModulus( TangentForceModulus, rVariables );
+       
+       this->CalculateCoulombsLaw( TangentForceModulus, NormalForceModulus, mTangentialVariables.Slip );
 
+       TangentForceModulus *= rIntegrationWeight;
 
-       double StructureRelativeMovement = 0.0;
-       {
-          array_1d<double, 3> Velocity;
-          Velocity = this->mpRigidWall->Velocity();
-          double DT = 1.25e-8;
-          for (unsigned j = 0; j < rDimension; ++j)
-              StructureRelativeMovement -= Velocity[j] * rVariables.Surface.Tangent(j)*DT;
-       }
+       GetGeometry()[0].SetLock();
 
-       IncrementalStick += StructureRelativeMovement;
+       array_1d<double, 3 > & ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
 
-       double TangentModulus ;
-       TangentModulus= IncrementalStick*rVariables.Penalty.Tangent * rIntegrationWeight;
-
-       TangentModulus -= mTangentialVariables.LastStepValue; 
-
-       this->ComputeCoulombCondition(TangentModulus, ContactForce, rDimension, mTangentialVariables.FrictionActive );
-
-       for (unsigned int i = 0; i < rDimension ; ++i) {
-           rRightHandSideVector[i] -= TangentModulus * rVariables.Surface.Tangent(i);
-           ContactForce[i] -= TangentModulus * rVariables.Surface.Tangent(i);
+       for (unsigned int i = 0; i < dimension ; ++i) {
+           rRightHandSideVector[i] -= TangentForceModulus * rVariables.Surface.Tangent(i);
+           ContactForce[i] -= TangentForceModulus * rVariables.Surface.Tangent(i);
        }
  
        GetGeometry()[0].UnSetLock();
@@ -376,27 +367,61 @@ namespace Kratos
 
   }
 
-  //**************************** Check Coulomb law for  Tangent Contact Force *********
+  //**************************** Calculate Normal Force Modulus ***********************
   //***********************************************************************************
 
-  void PointRigidContactPenalty2DCondition::ComputeCoulombCondition(double & rTangentModulus, const array_1d<double, 3>& rNormalForceVector , const int& rDimension, bool& rFrictionBool)
+  double& PointRigidContactPenalty2DCondition::CalculateNormalForceModulus ( double& rNormalForceModulus, GeneralVariables& rVariables )
   {
 
-       double NormalModulus = 0.0;
-       for (int i = 0; i < rDimension; ++i)
-           NormalModulus += pow( rNormalForceVector[i], 2.0);
+        rNormalForceModulus = (-1) * (rVariables.Penalty.Normal * rVariables.Gap.Normal); 
 
-       NormalModulus = pow(NormalModulus, 0.5);
+       return rNormalForceModulus;
 
-       double Mu = 0.3;
+  }
 
-       if ( fabs(rTangentModulus) >  Mu* fabs(NormalModulus) ) {
-           mTangentialVariables.Sign = rTangentModulus / fabs(rTangentModulus) ; 
-           rTangentModulus =   mTangentialVariables.Sign * Mu * fabs(NormalModulus) ;
-           rFrictionBool = true;
+  //**************************** Calculate Tangent Force Modulus **********************
+  //***********************************************************************************
+
+  double& PointRigidContactPenalty2DCondition::CalculateTangentForceModulus ( double& rTangentForceModulus, GeneralVariables& rVariables )
+  {
+       const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+       const array_1d<double, 3> & CurrentDisplacement  =  GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT);
+       const array_1d<double, 3> & PreviousDisplacement =  GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT, 1);
+
+       VectorType Velocity = this->mpRigidWall->Velocity();
+
+       double TangentRelativeMovement = 0.0;
+       double WallRelativeMovement    = 0.0;
+       for (unsigned int i = 0; i < dimension; ++i)
+	 {
+	   TangentRelativeMovement += (CurrentDisplacement[i]-PreviousDisplacement[i]) * rVariables.Surface.Tangent[i];
+	   WallRelativeMovement    += (Velocity[i] * rVariables.Surface.Tangent[i]);  
+	 }
+
+       TangentRelativeMovement += (WallRelativeMovement * mTangentialVariables.DeltaTime);
+
+       //std::cout<<" TangentRelativeMovement "<< TangentRelativeMovement * rVariables.Penalty.Tangent << " Previous Tangent "<< mTangentialVariables.PreviousTangentForceModulus << " Surface Tangent "<< rVariables.Surface.Tangent << std::endl;
+
+       rTangentForceModulus = TangentRelativeMovement * rVariables.Penalty.Tangent + mTangentialVariables.PreviousTangentForceModulus; 
+
+       return rTangentForceModulus;
+
+  }
+
+  //**************************** Check Coulomb law for Tangent Contact Force **********
+  //***********************************************************************************
+
+  void PointRigidContactPenalty2DCondition::CalculateCoulombsLaw(double & rTangentForceModulus, double & rNormalForceModulus , bool& rSlip)
+  {
+
+       if ( fabs(rTangentForceModulus) >  mTangentialVariables.FrictionCoeffitient * fabs(rNormalForceModulus) ) {
+	   mTangentialVariables.Sign = rTangentForceModulus / fabs(rTangentForceModulus) ; 
+           rTangentForceModulus =   mTangentialVariables.Sign * mTangentialVariables.FrictionCoeffitient * fabs(rNormalForceModulus) ;
+           rSlip = true;
        }
        else {
-           rFrictionBool = false;
+           rSlip = false;
        }
 
   }
