@@ -68,6 +68,10 @@ class BinBasedDEMFluidCoupledMapping
 public:
     ///@name Type Definitions
     ///@{
+    typedef ModelPart::NodesContainerType::iterator NodeIteratorType;
+    typedef ModelPart::ElementsContainerType::iterator ElementIteratorType;
+    typedef std::size_t ListIndexType;
+
 
     /// Pointer definition of BinBasedDEMFluidCoupledMapping
     KRATOS_CLASS_POINTER_DEFINITION(BinBasedDEMFluidCoupledMapping<TDim>);
@@ -122,6 +126,18 @@ public:
 
     //***************************************************************************************************************
     //***************************************************************************************************************
+    void AddDEMCouplingVariable(const VariableData& rVariable){
+      mDEMCouplingVariables.Add(rVariable);
+    }
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
+    void AddFluidCouplingVariable(const VariableData& rVariable){
+      mFluidCouplingVariables.Add(rVariable);
+    }
+
+    //***************************************************************************************************************
+    //***************************************************************************************************************
 
     // The fluid data are a weighted: data_to_project = alpha * new_data + (1 - alpha) * old_data
 
@@ -134,19 +150,14 @@ public:
         KRATOS_TRY
 
         //Clear all the variables to be mapped
-        for (ModelPart::NodesContainerType::iterator node_it = rdem_model_part.NodesBegin();
+
+        for (NodeIteratorType node_it = rdem_model_part.NodesBegin();
                 node_it != rdem_model_part.NodesEnd(); ++node_it){
 
-            ClearVariables(node_it, FLUID_VEL_PROJECTED);
-            ClearVariables(node_it, PRESSURE_GRAD_PROJECTED);
-            ClearVariables(node_it, FLUID_DENSITY_PROJECTED);
-            ClearVariables(node_it, FLUID_VISCOSITY_PROJECTED);
-            ClearVariables(node_it, POWER_LAW_N);
-            ClearVariables(node_it, POWER_LAW_K);
-            ClearVariables(node_it, GEL_STRENGTH);
-            ClearVariables(node_it, DISTANCE);
-            ClearVariables(node_it, SHEAR_RATE_PROJECTED);
-            ClearVariables(node_it, FLUID_VORTICITY_PROJECTED);
+            for (ListIndexType i = 0; i != mDEMCouplingVariables.size(); ++i){
+                ClearVariable(node_it, mDEMCouplingVariables[i]);
+            }
+
         }
 
         array_1d<double, TDim + 1 > N;
@@ -156,7 +167,7 @@ public:
 
         #pragma omp parallel for firstprivate(results, N)
         for (int i = 0; i < nparticles; i++){
-            ModelPart::NodesContainerType::iterator iparticle = rdem_model_part.NodesBegin() + i;
+            NodeIteratorType iparticle = rdem_model_part.NodesBegin() + i;
             Node < 3 > ::Pointer pparticle = *(iparticle.base());
 
             if (!pparticle->IsFixed(VELOCITY_X)){
@@ -200,19 +211,13 @@ public:
 
         // resetting all variables to be interpolated
 
-        for (ModelPart::NodesContainerType::iterator node_it = rdem_model_part.NodesBegin();
+        for (NodeIteratorType node_it = rdem_model_part.NodesBegin();
              node_it != rdem_model_part.NodesEnd(); ++node_it){
-            ClearVariables(node_it, FLUID_VEL_PROJECTED);
-            ClearVariables(node_it, PRESSURE_GRAD_PROJECTED);
-            ClearVariables(node_it, FLUID_DENSITY_PROJECTED);
-            ClearVariables(node_it, FLUID_VISCOSITY_PROJECTED);
-            ClearVariables(node_it, SOLID_FRACTION_PROJECTED);
-            ClearVariables(node_it, POWER_LAW_N);
-            ClearVariables(node_it, POWER_LAW_K);
-            ClearVariables(node_it, GEL_STRENGTH);
-            ClearVariables(node_it, DISTANCE);
-            ClearVariables(node_it, SHEAR_RATE_PROJECTED);
-            ClearVariables(node_it, FLUID_VORTICITY_PROJECTED);
+
+            for (ListIndexType i = 0; i != mDEMCouplingVariables.size(); ++i){
+                ClearVariable(node_it, mDEMCouplingVariables[i]);
+            }
+
         }
 
         array_1d<double, TDim + 1 > N;
@@ -222,7 +227,7 @@ public:
 
         #pragma omp parallel for firstprivate(results, N)
         for (int i = 0; i < nparticles; i++){
-            ModelPart::NodesContainerType::iterator iparticle = rdem_model_part.NodesBegin() + i;
+            NodeIteratorType iparticle = rdem_model_part.NodesBegin() + i;
             Node < 3 > ::Pointer pparticle = *(iparticle.base());
 
             if (!pparticle->IsFixed(VELOCITY_X)){
@@ -273,7 +278,7 @@ public:
     void InterpolateFromDEMMesh(
         ModelPart& rdem_model_part,
         ModelPart& rfluid_model_part,
-        BinBasedFastPointLocator<TDim>& bin_of_objects_fluid) //this is a bin of objects which contains the FLUID model part
+        BinBasedFastPointLocator<TDim>& bin_of_objects_fluid) // this is a bin of objects which contains the FLUID model part
      {
         KRATOS_TRY
         const int n_fluid_nodes = rfluid_model_part.Nodes().size();
@@ -281,10 +286,10 @@ public:
         // resetting the variables to be mapped
         for (int i = 0; i < n_fluid_nodes; i++){
             
-            ModelPart::NodesContainerType::iterator inode = rfluid_model_part.NodesBegin() + i;
+            NodeIteratorType inode = rfluid_model_part.NodesBegin() + i;
 
             if (mCouplingType != - 1){
-                ClearVariables(inode, SOLID_FRACTION);
+                 ClearVariable(inode, SOLID_FRACTION);
               }
 
             array_1d<double, 3>& body_force        = inode->FastGetSolutionStepValue(BODY_FORCE, 0);
@@ -301,7 +306,7 @@ public:
 
         #pragma omp parallel for firstprivate(results, N)
         for (int i = 0; i < nparticles; i++){
-            ModelPart::NodesContainerType::iterator iparticle = rdem_model_part.NodesBegin() + i;
+            NodeIteratorType iparticle = rdem_model_part.NodesBegin() + i;
             Node < 3 > ::Pointer pparticle = *(iparticle.base());
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
             Element::Pointer pelement;
@@ -339,7 +344,7 @@ public:
         if (mCouplingType != - 1){
 
             for (int i = 0; i < n_fluid_nodes; i++){
-                ModelPart::NodesContainerType::iterator inode = rfluid_model_part.NodesBegin() + i;
+                NodeIteratorType inode = rfluid_model_part.NodesBegin() + i;
                 double& solid_fraction = inode->FastGetSolutionStepValue(SOLID_FRACTION, 0);
                 solid_fraction /= inode->FastGetSolutionStepValue(NODAL_AREA, 0);
 
@@ -353,7 +358,6 @@ public:
 
         KRATOS_CATCH("")
     }
-
 
     //***************************************************************************************************************
     //***************************************************************************************************************
@@ -369,17 +373,17 @@ public:
       const int n_fluid_nodes = rfluid_model_part.Nodes().size();     
 
       for (int i = 0; i < n_dem_elements; i++){
-          ModelPart::ElementsContainerType::iterator ielem = rdem_model_part.ElementsBegin() + i;
+          ElementIteratorType ielem = rdem_model_part.ElementsBegin() + i;
           Geometry< Node<3> >& geom = ielem->GetGeometry();
           double& reynolds_number = geom[0].FastGetSolutionStepValue(REYNOLDS_NUMBER, 0);
           ielem->Calculate(REYNOLDS_NUMBER, reynolds_number, r_current_process_info);
       }
 
       for (int i = 0; i < n_fluid_nodes; i++){
-          ModelPart::NodesContainerType::iterator inode = rfluid_model_part.NodesBegin() + i;
+          NodeIteratorType inode = rfluid_model_part.NodesBegin() + i;
           double fluid_fraction                         = 1 - inode->FastGetSolutionStepValue(SOLID_FRACTION, 0);
-          const array_1d<double, 3>& darcy_vel           = inode->FastGetSolutionStepValue(VELOCITY, 0);
-          array_1d<double, 3>& space_averaged_fluid_vel  = inode->FastGetSolutionStepValue(MESH_VELOCITY1, 0);
+          const array_1d<double, 3>& darcy_vel          = inode->FastGetSolutionStepValue(VELOCITY, 0);
+          array_1d<double, 3>& space_averaged_fluid_vel = inode->FastGetSolutionStepValue(MESH_VELOCITY1, 0);
           space_averaged_fluid_vel                      = darcy_vel / fluid_fraction;
       }
 
@@ -462,6 +466,8 @@ private:
     double mMaxSolidFraction;
     int mCouplingType;
     int mParticlesPerDepthDistance;
+    VariablesList mDEMCouplingVariables;
+    VariablesList mFluidCouplingVariables;
 
     //***************************************************************************************************************
     //***************************************************************************************************************
@@ -1131,7 +1137,7 @@ private:
         //Geometry element of the rOrigin_ModelPart
 
         Geometry< Node<3> >& geom = el_it->GetGeometry();
-        array_1d<double,4> N_2; // a dummy since we are nbot interested in its value at the Gauss points
+        array_1d<double,4> N_2; // a dummy since we are not interested in its value at the Gauss points
         boost::numeric::ublas::bounded_matrix<double,4,3> DN_DX; // its value is constant over the element so its value on the Gauss point will do
         double element_volume; // a dummy
         GeometryUtils::CalculateGeometryData(geom, DN_DX, N_2, element_volume);
@@ -1152,40 +1158,17 @@ private:
     //***************************************************************************************************************
     //***************************************************************************************************************
 
-    inline void Clear(ModelPart::NodesContainerType::iterator node_it,  int step_data_size )
+    inline void ClearVariable(const NodeIteratorType& node_it, const VariableData* var)
     {
-        unsigned int buffer_size = node_it->GetBufferSize();
-
-        for (unsigned int step = 0; step<buffer_size; step++){
-            //getting the data of the solution step
-            double* step_data = (node_it)->SolutionStepData().Data(step);
-
-            //copying this data in the position of the vector we are interested in
-
-            for (int j= 0; j< step_data_size; j++){
-                step_data[j] = 0.0;
-            }
-
-        }
-
+        var->AssignZero(node_it->SolutionStepData().Data(*var));
     }
 
     //***************************************************************************************************************
     //***************************************************************************************************************
 
-    inline void ClearVariables(ModelPart::NodesContainerType::iterator node_it , Variable<array_1d<double, 3> >& rVariable)
+    inline void ClearVariable(const NodeIteratorType& node_it, const VariableData& var)
     {
-        array_1d<double, 3>& Aux_var = node_it->FastGetSolutionStepValue(rVariable, 0);        
-        noalias(Aux_var) = ZeroVector(3);
-    }
-
-    //***************************************************************************************************************
-    //***************************************************************************************************************
-
-    inline void ClearVariables(ModelPart::NodesContainerType::iterator node_it,  Variable<double>& rVariable)
-    {
-        double& Aux_var = node_it->FastGetSolutionStepValue(rVariable, 0);
-        Aux_var = 0.0;
+        var.AssignZero(node_it->SolutionStepData().Data(var));
     }
 
     //***************************************************************************************************************
