@@ -307,7 +307,11 @@ balls_vars_for_coupling = [FLUID_VEL_PROJECTED,
                            FLUID_VISCOSITY_PROJECTED,
                            SOLID_FRACTION_PROJECTED,
                            SHEAR_RATE_PROJECTED,
-                           FLUID_VORTICITY_PROJECTED]
+                           FLUID_VORTICITY_PROJECTED,
+                           POWER_LAW_N,
+                           POWER_LAW_K,
+                           GEL_STRENGTH,
+                           DISTANCE]
 
 fluid_vars_for_coupling = [DRAG_REACTION,
                            BODY_FORCE
