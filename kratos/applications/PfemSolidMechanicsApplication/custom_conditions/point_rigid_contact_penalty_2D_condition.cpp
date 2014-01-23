@@ -98,7 +98,11 @@ namespace Kratos
         } 
  
        mTangentialVariables.DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+
        mTangentialVariables.FrictionCoefficient = 0.3;
+       mTangentialVariables.DynamicFrictionCoefficient = 0.2;
+       mTangentialVariables.StaticFrictionCoefficient  = 0.3;
+
 
        ClearNodalForces();
 
@@ -193,7 +197,7 @@ namespace Kratos
     double ElasticModulus   = GetProperties()[YOUNG_MODULUS];
 
     rVariables.Penalty.Normal = distance * 2000.0 * PenaltyParameter * ElasticModulus;
-    rVariables.Penalty.Tangent = rVariables.Penalty.Normal * 0.1;  
+    rVariables.Penalty.Tangent = rVariables.Penalty.Normal;  
     
     //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
     
@@ -255,19 +259,19 @@ namespace Kratos
 
        double NormalForceModulus = this->CalculateNormalForceModulus( NormalForceModulus, rVariables );
 
-       double TangentForceModulus = this->CalculateTangentForceModulus( TangentForceModulus, rVariables );
+       double TangentRelativeMovement = this->CalculateTangentRelativeMovement( TangentRelativeMovement, rVariables );
        
-       this->CalculateCoulombsLaw( TangentForceModulus, NormalForceModulus, mTangentialVariables.Slip );
+       double TangentForceModulus = this->CalculateCoulombsFrictionLaw( TangentForceModulus, NormalForceModulus, rVariables );
 
        //std::cout<<" Is Slip "<<mTangentialVariables.Slip<<std::endl;
 
        double zero_force = 1;
-       if( fabs(TangentForceModulus) <= 1e-8 )
+       if( fabs(TangentForceModulus) == 0.0)
 	 zero_force = 0;
 
        if ( mTangentialVariables.Slip ) {
 	 rLeftHandSideMatrix += zero_force * mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * outer_prod_2(rVariables.Surface.Normal, rVariables.Surface.Tangent);
-	 
+
 	 //std::cout<<" Ktangent 1 "<<zero_force * mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * outer_prod_2(rVariables.Surface.Tangent, rVariables.Surface.Normal)<<std::endl; 
        }
        else {
@@ -356,9 +360,9 @@ namespace Kratos
 
        double NormalForceModulus = this->CalculateNormalForceModulus( NormalForceModulus, rVariables );
 
-       double TangentForceModulus = this->CalculateTangentForceModulus( TangentForceModulus, rVariables );
+       double TangentRelativeMovement = this->CalculateTangentRelativeMovement( TangentRelativeMovement, rVariables );
        
-       this->CalculateCoulombsLaw( TangentForceModulus, NormalForceModulus, mTangentialVariables.Slip );
+       double TangentForceModulus = this->CalculateCoulombsFrictionLaw( TangentRelativeMovement, NormalForceModulus, rVariables );
 
        TangentForceModulus *= (-1) * rIntegrationWeight;
 
@@ -393,7 +397,7 @@ namespace Kratos
   //**************************** Calculate Tangent Force Modulus **********************
   //***********************************************************************************
 
-  double& PointRigidContactPenalty2DCondition::CalculateTangentForceModulus ( double& rTangentForceModulus, GeneralVariables& rVariables )
+  double& PointRigidContactPenalty2DCondition::CalculateTangentRelativeMovement( double& rTangentRelativeMovement, GeneralVariables& rVariables )
   {
        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
 
@@ -403,49 +407,95 @@ namespace Kratos
 
        VectorType WallDisplacement = mTangentialVariables.DeltaTime * this->mpRigidWall->Velocity();
        
-       double TangentRelativeMovement = 0.0;
-       double WallRelativeMovement    = 0.0;
+       rTangentRelativeMovement = 0.0;
+       double WallTangentRelativeMovement    = 0.0;
 
        for (unsigned int i = 0; i < dimension; ++i)
 	 {
-	   TangentRelativeMovement += DeltaDisplacement[i] * rVariables.Surface.Tangent[i];
-	   WallRelativeMovement    += WallDisplacement[i]  * rVariables.Surface.Tangent[i];  
+	   rTangentRelativeMovement += DeltaDisplacement[i] * rVariables.Surface.Tangent[i];
+	   WallTangentRelativeMovement    += WallDisplacement[i]  * rVariables.Surface.Tangent[i];  
 	 }
 
        // std::cout<<" TangentRelativeMovement "<< TangentRelativeMovement <<std::endl;
        // std::cout<<" WallRelativeMovement "<< WallRelativeMovement <<std::endl;
 
-       TangentRelativeMovement -= WallRelativeMovement;      
+       rVariables.Gap.Tangent = rTangentRelativeMovement;
 
-       //rTangentForceModulus = TangentRelativeMovement * rVariables.Penalty.Tangent + mTangentialVariables.PreviousTangentForceModulus; 
+       rTangentRelativeMovement -= WallTangentRelativeMovement;      
 
-       rTangentForceModulus = TangentRelativeMovement * rVariables.Penalty.Tangent;
-
-       return rTangentForceModulus;
+ 
+       return rTangentRelativeMovement;
 
   }
 
   //**************************** Check Coulomb law for Tangent Contact Force **********
   //***********************************************************************************
 
-  void PointRigidContactPenalty2DCondition::CalculateCoulombsLaw(double & rTangentForceModulus, double & rNormalForceModulus , bool& rSlip)
+  double PointRigidContactPenalty2DCondition::CalculateCoulombsFrictionLaw(double & rTangentRelativeMovement, double & rNormalForceModulus , GeneralVariables& rVariables)
   {
        //std::cout<< " rTangentForceModulus "<<rTangentForceModulus<< " rNormalForceModulus "<<rNormalForceModulus<<std::endl;
 
-       if ( fabs(rTangentForceModulus) >  mTangentialVariables.FrictionCoefficient * fabs(rNormalForceModulus) ) {
-	   mTangentialVariables.Sign = rTangentForceModulus / fabs(rTangentForceModulus) ; 
-           rTangentForceModulus =  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * fabs(rNormalForceModulus) ;
-	   //std::cout<<" Slip Force Modulus : "<<rTangentForceModulus<<std::endl;
-           rSlip = true;
+       mTangentialVariables.FrictionCoefficient = this->CalculateFrictionCoefficient(rTangentRelativeMovement);
+
+ 
+       double TangentForceModulus = rVariables.Penalty.Tangent * rVariables.Gap.Tangent; //+ mTangentialVariables.PreviousTangentForceModulus; 
+
+       //double TangentForceModulus = rVariables.Penalty.Tangent * (rTangentRelativeMovement - rVariables.Gap.Tangent);
+       
+
+       if ( fabs(TangentForceModulus) >  mTangentialVariables.FrictionCoefficient * fabs(rNormalForceModulus) ) {
+
+	 mTangentialVariables.Sign = TangentForceModulus/ fabs(TangentForceModulus) ; 
+
+	 TangentForceModulus =  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * fabs(rNormalForceModulus) ;
+	 //std::cout<<" Slip Force Modulus : "<<rTangentForceModulus<<std::endl;
+	 mTangentialVariables.Slip = true;
+
        }
        else {
-	   //std::cout<<" Stick Force Modulus : "<<rTangentForceModulus<<std::endl;
-	   rSlip = false;
-        }
+	 
+	 //std::cout<<" Stick Force Modulus : "<<rTangentForceModulus<<std::endl;
+	 mTangentialVariables.Slip = false;
 
+       }
+
+
+       return TangentForceModulus;
   }
 
+  
 
+  //**************************** Check friction coefficient ***************************
+  //***********************************************************************************
+
+  double PointRigidContactPenalty2DCondition::CalculateFrictionCoefficient(double & rTangentRelativeMovement)
+  {
+
+       //---FRICTION LAW in function of the relative sliding velocity ---//
+
+      double Velocity = rTangentRelativeMovement / mTangentialVariables.DeltaTime;
+
+       //Addicional constitutive parameter  C
+       //which describes how fast the static coefficient approaches the dynamic:
+       double C=0.1;
+
+       //Addicional constitutive parameter  E
+       //regularization parameter (->0, classical Coulomb law)
+       double E=0.01;
+
+
+       double FrictionCoefficient = mTangentialVariables.DynamicFrictionCoefficient + ( mTangentialVariables.StaticFrictionCoefficient-  mTangentialVariables.DynamicFrictionCoefficient ) * exp( (-1) * C * fabs(Velocity) );
+
+
+       //Square root regularization
+       FrictionCoefficient *= fabs(Velocity)/sqrt( ( Velocity * Velocity ) + ( E * E ) );
+       
+       //Hyperbolic regularization
+       //FrictionCoefficient *= tanh( fabs(Velocity)/E );
+
+       return FrictionCoefficient;
+
+  }
 
   //************************************************************************************
   //************************************************************************************

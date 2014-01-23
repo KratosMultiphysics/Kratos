@@ -52,9 +52,12 @@ protected:
         bool   Slip;
         double Sign; 
        
-        double FrictionCoefficient;
         double DeltaTime; 
         double PreviousTangentForceModulus;
+
+        double FrictionCoefficient;
+        double DynamicFrictionCoefficient;
+        double StaticFrictionCoefficient;
 
      } TangentialContactVariables;
 
@@ -195,9 +198,12 @@ protected:
 
     double& CalculateNormalForceModulus( double& rNormalForceModulus, GeneralVariables& rVariables );
     
-    double& CalculateTangentForceModulus( double& rTangentForceModulus, GeneralVariables& rVariables );
+    double& CalculateTangentRelativeMovement( double& rTangentRelativeMovement, GeneralVariables& rVariables );
 
-    void CalculateCoulombsLaw( double& rTangentForceModulus, double& rNormalForceModulus, bool& rSlip );
+    double CalculateCoulombsFrictionLaw( double& rTangentForceModulus, double& rNormalForceModulus, GeneralVariables& rVariables );
+
+    double CalculateFrictionCoefficient(double & rTangentRelativeMovement);
+
     ///@}
     ///@name Protected  Access
     ///@{
