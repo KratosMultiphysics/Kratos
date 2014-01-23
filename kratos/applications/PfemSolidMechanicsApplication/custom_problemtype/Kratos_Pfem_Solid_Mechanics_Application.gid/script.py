@@ -419,6 +419,7 @@ for step in range(istep, nstep):
                 problem_restart.Save(current_time, current_step, restart_print.operation_id());
                 StopTimeMeasuring(clock_time, "Restart");
 
+        conditions.RestartImposedDisp()
 
 # --FINALIZE--############################
 #
