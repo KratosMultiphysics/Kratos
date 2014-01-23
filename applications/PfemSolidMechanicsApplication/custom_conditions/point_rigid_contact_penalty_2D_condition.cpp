@@ -98,7 +98,7 @@ namespace Kratos
         } 
  
        mTangentialVariables.DeltaTime = rCurrentProcessInfo[DELTA_TIME];
-       mTangentialVariables.FrictionCoeffitient = 0.0;
+       mTangentialVariables.FrictionCoefficient = 0.3;
 
        ClearNodalForces();
 
@@ -193,7 +193,7 @@ namespace Kratos
     double ElasticModulus   = GetProperties()[YOUNG_MODULUS];
 
     rVariables.Penalty.Normal = distance * 2000.0 * PenaltyParameter * ElasticModulus;
-    rVariables.Penalty.Tangent = rVariables.Penalty.Normal * 0.0;  
+    rVariables.Penalty.Tangent = rVariables.Penalty.Normal * 0.1;  
     
     //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
     
@@ -259,15 +259,24 @@ namespace Kratos
        
        this->CalculateCoulombsLaw( TangentForceModulus, NormalForceModulus, mTangentialVariables.Slip );
 
-  
+       //std::cout<<" Is Slip "<<mTangentialVariables.Slip<<std::endl;
+
+       double zero_force = 1;
+       if( fabs(TangentForceModulus) <= 1e-8 )
+	 zero_force = 0;
+
        if ( mTangentialVariables.Slip ) {
-	   //rLeftHandSideMatrix -= mTangentialVariables.Sign * mTangentialVariable.FrictionCoeffitient * rVariables.Penalty.Normal * rIntegrationWeight * outer_prod_2(rVariables.Surface.Tangent, rVariables.Surface.Normal);
-          rLeftHandSideMatrix += mTangentialVariables.Sign * mTangentialVariables.FrictionCoeffitient * rVariables.Penalty.Normal * rIntegrationWeight * outer_prod_2(rVariables.Surface.Tangent, rVariables.Surface.Normal);
- 
+	 rLeftHandSideMatrix += zero_force * mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * outer_prod_2(rVariables.Surface.Normal, rVariables.Surface.Tangent);
+	 
+	 //std::cout<<" Ktangent 1 "<<zero_force * mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * outer_prod_2(rVariables.Surface.Tangent, rVariables.Surface.Normal)<<std::endl; 
        }
        else {
-          rLeftHandSideMatrix += rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod_2(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
+	 rLeftHandSideMatrix += zero_force * rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod_2(rVariables.Surface.Tangent, rVariables.Surface.Tangent);
+
+	 //std::cout<<" Ktangent 2 "<<zero_force * rVariables.Penalty.Tangent * rIntegrationWeight * outer_prod_2(rVariables.Surface.Tangent, rVariables.Surface.Tangent)<<std::endl;
+
        }
+
 
    }
 
@@ -283,8 +292,8 @@ namespace Kratos
 
      if( rVariables.Options.Is(ACTIVE)){
 
-       this->CalculateAndAddNormalContactForce( rRightHandSideVector, rVariables, rIntegrationWeight);
-       this->CalculateAndAddTangentContactForce( rRightHandSideVector, rVariables, rIntegrationWeight);
+       this->CalculateAndAddNormalContactForce( rRightHandSideVector, rVariables, rIntegrationWeight );
+       this->CalculateAndAddTangentContactForce( rRightHandSideVector, rVariables, rIntegrationWeight );
 
     }
     else{
@@ -309,7 +318,7 @@ namespace Kratos
 
       double NormalForceModulus = this->CalculateNormalForceModulus( NormalForceModulus, rVariables );
 
-      NormalForceModulus *= rIntegrationWeight;
+      NormalForceModulus *= (-1) * rIntegrationWeight;
    
       for(unsigned int j = 0; j < dimension; j++)
 	{
@@ -319,7 +328,7 @@ namespace Kratos
       
       GetGeometry()[0].SetLock();
 
-      array_1d<double, 3 > &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
+      array_1d<double, 3 >& ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
 
 
       for(unsigned int j = 0; j < dimension; j++)
@@ -351,16 +360,18 @@ namespace Kratos
        
        this->CalculateCoulombsLaw( TangentForceModulus, NormalForceModulus, mTangentialVariables.Slip );
 
-       TangentForceModulus *= rIntegrationWeight;
+       TangentForceModulus *= (-1) * rIntegrationWeight;
 
        GetGeometry()[0].SetLock();
 
        array_1d<double, 3 > & ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
 
        for (unsigned int i = 0; i < dimension ; ++i) {
-           rRightHandSideVector[i] -= TangentForceModulus * rVariables.Surface.Tangent(i);
-           ContactForce[i] -= TangentForceModulus * rVariables.Surface.Tangent(i);
+           rRightHandSideVector[i] += TangentForceModulus * rVariables.Surface.Tangent[i];
+           ContactForce[i] += TangentForceModulus * rVariables.Surface.Tangent[i];
        }
+
+       //std::cout<<" TangentForce "<<TangentForceModulus * rVariables.Surface.Tangent<<std::endl;
  
        GetGeometry()[0].UnSetLock();
 
@@ -373,7 +384,7 @@ namespace Kratos
   double& PointRigidContactPenalty2DCondition::CalculateNormalForceModulus ( double& rNormalForceModulus, GeneralVariables& rVariables )
   {
 
-        rNormalForceModulus = (-1) * (rVariables.Penalty.Normal * rVariables.Gap.Normal); 
+        rNormalForceModulus = (rVariables.Penalty.Normal * rVariables.Gap.Normal); 
 
        return rNormalForceModulus;
 
@@ -388,22 +399,27 @@ namespace Kratos
 
        const array_1d<double, 3> & CurrentDisplacement  =  GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT);
        const array_1d<double, 3> & PreviousDisplacement =  GetGeometry()[0].GetSolutionStepValue(DISPLACEMENT, 1);
+       array_1d<double, 3 > DeltaDisplacement            = CurrentDisplacement-PreviousDisplacement;
 
-       VectorType Velocity = this->mpRigidWall->Velocity();
-
+       VectorType WallDisplacement = mTangentialVariables.DeltaTime * this->mpRigidWall->Velocity();
+       
        double TangentRelativeMovement = 0.0;
        double WallRelativeMovement    = 0.0;
+
        for (unsigned int i = 0; i < dimension; ++i)
 	 {
-	   TangentRelativeMovement += (CurrentDisplacement[i]-PreviousDisplacement[i]) * rVariables.Surface.Tangent[i];
-	   WallRelativeMovement    += (Velocity[i] * rVariables.Surface.Tangent[i]);  
+	   TangentRelativeMovement += DeltaDisplacement[i] * rVariables.Surface.Tangent[i];
+	   WallRelativeMovement    += WallDisplacement[i]  * rVariables.Surface.Tangent[i];  
 	 }
 
-       TangentRelativeMovement += (WallRelativeMovement * mTangentialVariables.DeltaTime);
+       // std::cout<<" TangentRelativeMovement "<< TangentRelativeMovement <<std::endl;
+       // std::cout<<" WallRelativeMovement "<< WallRelativeMovement <<std::endl;
 
-       //std::cout<<" TangentRelativeMovement "<< TangentRelativeMovement * rVariables.Penalty.Tangent << " Previous Tangent "<< mTangentialVariables.PreviousTangentForceModulus << " Surface Tangent "<< rVariables.Surface.Tangent << std::endl;
+       TangentRelativeMovement -= WallRelativeMovement;      
 
-       rTangentForceModulus = TangentRelativeMovement * rVariables.Penalty.Tangent + mTangentialVariables.PreviousTangentForceModulus; 
+       //rTangentForceModulus = TangentRelativeMovement * rVariables.Penalty.Tangent + mTangentialVariables.PreviousTangentForceModulus; 
+
+       rTangentForceModulus = TangentRelativeMovement * rVariables.Penalty.Tangent;
 
        return rTangentForceModulus;
 
@@ -414,15 +430,18 @@ namespace Kratos
 
   void PointRigidContactPenalty2DCondition::CalculateCoulombsLaw(double & rTangentForceModulus, double & rNormalForceModulus , bool& rSlip)
   {
+       //std::cout<< " rTangentForceModulus "<<rTangentForceModulus<< " rNormalForceModulus "<<rNormalForceModulus<<std::endl;
 
-       if ( fabs(rTangentForceModulus) >  mTangentialVariables.FrictionCoeffitient * fabs(rNormalForceModulus) ) {
+       if ( fabs(rTangentForceModulus) >  mTangentialVariables.FrictionCoefficient * fabs(rNormalForceModulus) ) {
 	   mTangentialVariables.Sign = rTangentForceModulus / fabs(rTangentForceModulus) ; 
-           rTangentForceModulus =   mTangentialVariables.Sign * mTangentialVariables.FrictionCoeffitient * fabs(rNormalForceModulus) ;
+           rTangentForceModulus =  mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * fabs(rNormalForceModulus) ;
+	   //std::cout<<" Slip Force Modulus : "<<rTangentForceModulus<<std::endl;
            rSlip = true;
        }
        else {
-           rSlip = false;
-       }
+	   //std::cout<<" Stick Force Modulus : "<<rTangentForceModulus<<std::endl;
+	   rSlip = false;
+        }
 
   }
 
