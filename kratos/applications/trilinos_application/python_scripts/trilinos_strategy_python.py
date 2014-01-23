@@ -66,6 +66,9 @@ class SolvingStrategyPython:
         if (self.scheme.ElementsAreInitialized() == False):
             self.scheme.InitializeElements(self.model_part)
 
+        if (self.scheme.ConditionsAreInitialized() == False):
+            self.scheme.InitializeConditions(self.model_part)
+
     #
     #
     def Solve(self):
