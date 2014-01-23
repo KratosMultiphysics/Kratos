@@ -134,6 +134,52 @@ public:
     )
     {
         KRATOS_TRY
+
+
+	for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
+                i != r_model_part.NodesEnd(); ++i)
+        {
+            //predicting displacement = PreviousDisplacement + PreviousVelocity * DeltaTime;
+            //ATTENTION::: the prediction is performed only on free nodes
+
+            array_1d<double, 3 > & PreviousDisplacement = (i)->FastGetSolutionStepValue(DISPLACEMENT, 1);
+            array_1d<double, 3 > & CurrentDisplacement  = (i)->FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d<double, 3 > & ImposedDisplacement  = (i)->FastGetSolutionStepValue(IMPOSED_DISPLACEMENT);
+
+
+            if ((i->pGetDof(DISPLACEMENT_X))->IsFixed() == false)
+            {
+                CurrentDisplacement[0] = PreviousDisplacement[0];
+            }
+            else
+            {
+                CurrentDisplacement[0]  = PreviousDisplacement[0] + ImposedDisplacement[0];//to impose fixed displacements;
+	    }
+
+            if (i->pGetDof(DISPLACEMENT_Y)->IsFixed() == false)
+            {
+                CurrentDisplacement[1] = PreviousDisplacement[1]; 
+            }
+            else
+            {
+                CurrentDisplacement[1]  = PreviousDisplacement[1] + ImposedDisplacement[1];//to impose fixed displacements;
+	    }
+
+
+            if (i->HasDofFor(DISPLACEMENT_Z))
+            {
+                if (i->pGetDof(DISPLACEMENT_Z)->IsFixed() == false)
+                {
+                    CurrentDisplacement[2] = PreviousDisplacement[2]; 
+                }
+                else
+                {
+                    CurrentDisplacement[2]= PreviousDisplacement[2] + ImposedDisplacement[2];//to impose fixed displacements;
+		}
+            }
+
+	}
+
         KRATOS_CATCH( "" )
     }
 
