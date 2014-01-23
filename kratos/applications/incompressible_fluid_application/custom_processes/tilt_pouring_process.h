@@ -66,9 +66,12 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
-	/// @param: InitialAngle in degree
+    /// Constructor. Takes the user defined parameters for tilt pouring. It also uses the current time from ProcessInfo
+	/// @param: InitialAngle the initial angle in degree. The model will be rotated to this position at the start time and tilt back afterward
+	/// @param: EndTime The total time ot the tilting
+	/// @param: RotationPoint The center point of the rotation
 	/// @param: RotationAxis: 1 for x, 2 for y, 3 for z axis
+	/// @param: GravityDirection: array of 3 components of the gravity direction
     TiltPouringProcess(ModelPart& rModelPart, double InitialAngle, double EndTime, Point<3> const& RotationPoint, int RotationAxis, array_1d<double,3> const& Gravity) 
 		: mrModelPart(rModelPart) , mInitialAngle(InitialAngle), mEndTime(EndTime), mRotationPoint(RotationPoint), mRotationAxis(RotationAxis), mGravity(Gravity)
     {
@@ -98,7 +101,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void ExecuteInitializeSolutionStep()
+    virtual void Execute()
     {
 		double current_time = mrModelPart.GetProcessInfo()[TIME];
 		double alpha = (mEndTime - current_time) * mInitialAngle * 3.1415 / (mEndTime * 180.0);
