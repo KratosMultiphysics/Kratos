@@ -16,15 +16,29 @@ nsteps = *GenData(Number_of_steps,INT)
 class SolverSettings:
     solver_type  = "mechanical_solver"
     domain_size  = *GenData(DOMAIN_SIZE,INT)
+    scheme_type = "*GenData(Solver_Type)"
+*if(strcmp(GenData(Axisymmetric),"True")==0)
+    model_type = "Axisymmetric"	    
+*else
+    model_type = "*GenData(DOMAIN_SIZE)D"
+*endif
+*if(strcmp(GenData(DOFS),"ROTATIONS")==0)
+    RotationDofs = True
+*else
     RotationDofs = False
+*endif
+*if(strcmp(GenData(DOFS),"U-P")==0)
+    PressureDofs = True
+*else
     PressureDofs = False
+*endif
+    TemperatureDofs = False
     RigidWalls = *GenData(Rigid_Wall_Contact)
     ReformDofSetAtEachStep = True
     ComputeReactions = *GenData(Write_Reactions)
     ComputeContactForces = *GenData(Write_Contact_Forces)
     LineSearch = *GenData(LineSearch)
-    Implex = False
-    scheme_type = "*GenData(Solver_Type)"
+    Implex = *GenData(Implex)
     ComponentWise = *GenData(Component_Wise_Criterion)
     convergence_criterion = "*GenData(Convergence_Criteria)"
 *format "%10.5e"
@@ -172,7 +186,6 @@ nodal_results.append("CONTACT_FORCE")
 gauss_points_results = []
 gauss_points_results.append("GREEN_LAGRANGE_STRAIN_TENSOR")
 gauss_points_results.append("CAUCHY_STRESS_TENSOR")
-gauss_points_results.append("FORCE")
 gauss_points_results.append("PLASTIC_STRAIN")
 
 # GiD output configuration

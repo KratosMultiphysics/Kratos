@@ -43,7 +43,7 @@ import list_files_python_utility as files_utils
 import time_operation_utility as operation_utils
 import modeler_python_utility as modeler_utils
 import rigid_wall_python_utility as wall_utils
-# import graph_plot_python_utility    as plot_utils
+import graph_plot_python_utility as plot_utils
 
 
 # ------------------------#--FUNCTIONS START--#------------------#
@@ -58,7 +58,7 @@ def StartTimeMeasuring():
 def StopTimeMeasuring(time_ip, process):
     # measure process time
     time_fp = clock()
-    print(process, " [ spent time = ", time_fp - time_ip, "] ")
+    print(" ", process, " [ spent time = ", time_fp - time_ip, "] ")
 # --TIME MONITORING END --###################
 
 # --SET NUMBER OF THREADS --#################
@@ -102,25 +102,20 @@ main_step_solver = solver_constructor.CreateSolver(model_part, SolverSettings)
 # --DEFINE MAIN SOLVER END--##################
 
 
+# --RIGID WALL OPTIONS START--################
+# set rigid wall contact if it is active:
+# activated instead of classical contact
+# set rigid wall configuration
+rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size, general_variables.rigid_wall_config)
+
+# --RIGID WALL OPTIONS END--##################
+
+
 # --SET MESH MODELER START--##################
 
 remesh_domains = general_variables.RemeshDomains
 contact_search = general_variables.FindContacts
 modeler = modeler_utils.ModelerUtility(model_part, domain_size, remesh_domains, contact_search)
-
-# Optional : mesh refinement based on tool characteristics
-
-#(deffault arch=5-10 degrees)
-# critical_radius      = 0.00004
-# critical_radius      = 0.025
-# critical_radius      = general_variables.tip_radius
-
-critical_radius = general_variables.mesh_modeler_config.critical_radius
-
-if(critical_radius > 5 * general_variables.rigid_wall_config.tip_radius):
-    critical_radius = general_variables.rigid_wall_config.tip_radius
-
-# Optional : mesh refinement b#defining the mesh conditions
 
 # print check
 print(" MESH CONDITIONS :", len(general_variables.MeshConditions))
@@ -129,7 +124,7 @@ for conditions in general_variables.MeshConditions:
 
 # build mesh modeler
 modeler.BuildMeshModeler(general_variables.mesh_modeler_config)
-
+modeler.SetRigidWall(rigid_wall)
 
 # --CONTACT SEARCH START--####################
 
@@ -142,26 +137,16 @@ modeler.BuildContactModeler(general_variables.contact_modeler_config)
 # --SET MESH MODELER END--####################
 
 
-# --RIGID WALL OPTIONS START--################
-# set rigid wall contact if it is active:
-# activated instead of classical contact
-# set rigid wall configuration
-rigid_wall = wall_utils.RigidWallUtility(model_part, domain_size)
-
-rigid_wall.Initialize(general_variables.rigid_wall_config)
-
-# --RIGID WALL OPTIONS END--##################
-
-
 # --READ AND SET MODEL FILES--###############
 
 # set the restart of the problem
 restart_step = general_variables.Restart_Step
-problem_restart = restart_utils.RestartUtility(model_part, problem_path, problem_name);
+problem_restart = restart_utils.RestartUtility(model_part, problem_path, problem_name)
 
 # set the results file list of the problem (managed by the problem_restart and gid_print)
 print_lists = general_variables.PrintLists
-list_files = files_utils.ListFilesUtility(problem_path, problem_name, print_lists);
+output_mode = general_variables.GidOutputConfiguration.GiDPostMode
+list_files = files_utils.ListFilesUtility(problem_path, problem_name, print_lists, output_mode);
 list_files.Initialize(general_variables.file_list);
 
 # --READ AND SET MODEL FILES END--############
@@ -184,22 +169,8 @@ gid_print = gid_utils.GidOutputUtility(problem_name, general_variables.GidOutput
 
 # --PLOT GRAPHS OPTIONS START--###############
 
-# plot_active    = general_variables.PlotGraphs
-# plot_frequency = general_variables.PlotFrequency
-
-# graph_plot  = plot_utils.GraphPlotUtility(model_part,problem_path,plot_active,plot_frequency);
-
-# x_var   = "TIME"
-# y_var   = "REACTION"
-# mesh_id = 1
-
-# plot variables on the domain which is remeshed
-# for conditions in general_variables.MeshConditions:
-#  if(conditions["Remesh"] == 1):
-#    mesh_id =int(conditions["Subdomain"])
-
-# print " Graph Subdomain ", mesh_id
-# graph_plot.SetPlotVariables(x_var,y_var,mesh_id);
+plot_active = general_variables.PlotGraphs
+graph_plot = plot_utils.GraphPlotUtility(model_part, problem_path)
 
 # --PLOT GRAPHS OPTIONS END--#################
 
@@ -219,11 +190,30 @@ buffer_size = 3;
 # define problem variables:
 solver_constructor.AddVariables(model_part, SolverSettings)
 
+# set PfemSolidApplicationVariables
+model_part.AddNodalSolutionStepVariable(NORMAL);
+
+model_part.AddNodalSolutionStepVariable(OFFSET);
+model_part.AddNodalSolutionStepVariable(SHRINK_FACTOR);
+
+model_part.AddNodalSolutionStepVariable(MEAN_ERROR);
+model_part.AddNodalSolutionStepVariable(NODAL_H);
+
+# if hasattr(SolverSettings, "RigidWalls"):
+    # if SolverSettings.RigidWalls == True:
+model_part.AddNodalSolutionStepVariable(RIGID_WALL);
+model_part.AddNodalSolutionStepVariable(WALL_TIP_RADIUS);
+model_part.AddNodalSolutionStepVariable(WALL_REFERENCE_POINT);
+
+model_part.AddNodalSolutionStepVariable(CONTACT_FORCE);
+model_part.AddNodalSolutionStepVariable(DETERMINANT_F);
 
 # --- READ MODEL ------#
-if(load_restart == "False"):
+if(load_restart == False):
 
-    problem_restart.CleanPreviousFiles(list_files)
+    # remove results, restart, graph and list previous files
+    problem_restart.CleanPreviousFiles()
+    list_files.RemoveListFiles()
 
     # reading the model
     model_part_io = ModelPartIO(problem_name)
@@ -245,16 +235,20 @@ if(load_restart == "False"):
 else:
 
     # reading the model from the restart file
-    problem_restart.Load(restart_time);
+    problem_restart.Load(restart_step);
 
-    problem_restart.CleanPosteriorFiles(time_step, restart_time, list_files)
+    # remove results, restart, graph and list posterior files
+    problem_restart.CleanPosteriorFiles(restart_step)
+    list_files.ReBuildListFiles()
 
 # set mesh searches and modeler
-# modeler.InitializeDomains();
+print("initialize modeler")
+modeler.InitializeDomains();
 
-# if(load_restart == "False"):
+if(load_restart == False):
     # find nodal h
-    # modeler.SearchNodalH();
+    print("search mesh nodal_h")
+    modeler.SearchNodalH();
 
 
 # --- PRINT CONTROL ---#
@@ -270,15 +264,16 @@ main_step_solver.Initialize()
 main_step_solver.SetRestart(load_restart)
 
 # initial contact search
-# modeler.InitialContactSearch()
+modeler.InitialContactSearch()
 
 # define time steps and loop range of steps
-if(load_restart == "True"):
+if(load_restart):
 
     istep = model_part.ProcessInfo[TIME_STEPS] + 1
-    nstep = int(general_variables.nsteps) + buffer_size
+    nstep = int(general_variables.nsteps)
     time_step = model_part.ProcessInfo[DELTA_TIME]
-    current_step = istep - nstep
+    current_step = istep
+    buffer_size = 0
 
 else:
 
@@ -289,7 +284,7 @@ else:
 
     model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step;
 
-    conditions.Initialize();
+    conditions.Initialize(time_step);
 
 
 # initialize step operations
@@ -304,12 +299,27 @@ restart_print = operation_utils.TimeOperationUtility()
 restart_time_frequency = general_variables.RestartFrequency
 restart_print.InitializeTime(starting_time, ending_time, time_step, restart_time_frequency)
 
+contact_search = operation_utils.TimeOperationUtility()
+contact_search_frequency = general_variables.contact_modeler_config.contact_search_frequency
+contact_search.InitializeTime(starting_time, ending_time, time_step, contact_search_frequency)
+
+rigid_wall_contact_search = operation_utils.TimeOperationUtility()
+rigid_wall_contact_search_frequency = 0
+rigid_wall_contact_search.InitializeTime(starting_time, ending_time, time_step, rigid_wall_contact_search_frequency)
 
 # initialize mesh modeling variables for time integration
-# modeler.Initialize(current_step,current_step)
+modeler.Initialize(current_step, current_step)
 
 # initialize graph plot variables for time integration
-# graph_plot.Initialize(current_step)
+if(plot_active):
+    mesh_id = 0  # general_variables.PlotMeshId
+    x_variable = "DISPLACEMENT"
+    y_variable = "REACTION"
+    graph_plot.Initialize(x_variable, y_variable, mesh_id)
+
+graph_write = operation_utils.TimeOperationUtility()
+graph_write_frequency = general_variables.PlotFrequency
+graph_write.InitializeTime(starting_time, ending_time, time_step, graph_write_frequency)
 
 
 # --TIME INTEGRATION--#######################
@@ -343,11 +353,22 @@ for step in range(istep, nstep):
     if(step > start_steps):
 
         clock_time = StartTimeMeasuring();
+
+        # processes to be executed at the begining of the solution step
+        execute_rigid_wall_contact_search = rigid_wall_contact_search.perform_time_operation(current_time)
+        if(execute_rigid_wall_contact_search):
+            rigid_wall.ExecuteContactSearch()
+
         # solve time step non-linear system
         main_step_solver.Solve()
         StopTimeMeasuring(clock_time, "Solving");
 
+        # processes to be executed at the end of the solution step
+        rigid_wall.UpdatePosition()
+
         # plot graphs
+        if(plot_active):
+            graph_plot.SetStepResult()
 
         # update previous time step
         model_part.ProcessInfo[PREVIOUS_DELTA_TIME] = time_step;
@@ -362,19 +383,40 @@ for step in range(istep, nstep):
             if(execute_write):
                 clock_time = StartTimeMeasuring();
                 # print gid output file
-                gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step)
+                gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, output_print.operation_id())
                 # print on list files
                 list_files.PrintListFiles(current_step);
                 StopTimeMeasuring(clock_time, "Write Results");
-                # plot graphs
-                # graph_plot.Plot(current_time)
+
+        # remesh domains
+        modeler.RemeshDomains(current_step);
+
+        # contact search
+        modeler.ContactSearch(current_step);
+
+        # print the results at the end of the step
+        if(general_variables.WriteResults == "PostMeshing"):
+            execute_write = output_print.perform_time_operation(current_time)
+            if(execute_write):
+                clock_time = StartTimeMeasuring();
+                # print gid output file
+                gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, output_print.operation_id())
+                # print on list files
+                list_files.PrintListFiles(current_step);
+                StopTimeMeasuring(clock_time, "Write Results");
+
+           # plot graphs
+        if(plot_active):
+            execute_plot = graph_write.perform_time_operation(current_time)
+            if(execute_plot):
+                graph_plot.Plot(graph_write.operation_id())
 
         # print restart file
         if(save_restart):
             execute_save = restart_print.perform_time_operation(current_time)
             if(execute_save):
                 clock_time = StartTimeMeasuring();
-                problem_restart.Save(current_time, current_step);
+                problem_restart.Save(current_time, current_step, restart_print.operation_id());
                 StopTimeMeasuring(clock_time, "Restart");
 
 
