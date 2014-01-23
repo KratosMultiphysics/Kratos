@@ -52,7 +52,7 @@ protected:
         bool   Slip;
         double Sign; 
        
-        double FrictionCoeffitient;
+        double FrictionCoefficient;
         double DeltaTime; 
         double PreviousTangentForceModulus;
 
