@@ -84,8 +84,20 @@ void LineLoadAxisym2DCondition::CalculateKinematics(GeneralVariables& rVariables
     rVariables.Normal[0] = -rVariables.j[rPointNumber](1, 0); //-x_2,e
     rVariables.Normal[1] =  rVariables.j[rPointNumber](0, 0); // x_1,e
     
-    if(norm_2(rVariables.Normal)>0)
-      rVariables.Normal /= norm_2(rVariables.Normal);
+    //Jacobian to the deformed configuration
+    rVariables.Jacobian = norm_2(rVariables.Normal);
+
+    //Compute the unit normal and weighted tangents
+    if(rVariables.Jacobian>0){
+      rVariables.Normal   /= rVariables.Jacobian;
+      rVariables.Tangent1 /= rVariables.Jacobian;
+    }
+
+    //Jacobian to the last known configuration
+    rVariables.Tangent2[0] = rVariables.J[rPointNumber](0, 0); // x_1,e
+    rVariables.Tangent2[1] = rVariables.J[rPointNumber](1, 0); // x_2,e
+
+    rVariables.Jacobian = norm_2(rVariables.Tangent2);
 
     //Set Shape Functions Values for this integration point
     rVariables.N =row( Ncontainer, rPointNumber);

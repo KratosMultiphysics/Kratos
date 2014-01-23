@@ -152,6 +152,11 @@ protected:
 				     const double& rPointNumber);
 
     /**
+     * Calculation of the Position Increment
+     */
+    virtual Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
+
+    /**
      * Calculation of the Vector Force of the Condition
      */
     virtual Vector& CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables);

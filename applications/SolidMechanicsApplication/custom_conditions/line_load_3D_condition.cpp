@@ -75,12 +75,54 @@ void LineLoad3DCondition::InitializeGeneralVariables(GeneralVariables& rVariable
 
   ForceLoadCondition::InitializeGeneralVariables(rVariables, rCurrentProcessInfo);
 
+  //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
+  rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
+  
+  //Calculate Delta Position
+  rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+
+  ///calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
+  rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
+
+
   //Initialize Line Variables
   rVariables.Tangent1 = ZeroVector(3);
+  rVariables.Tangent2 = ZeroVector(3);
   rVariables.Normal   = ZeroVector(3);
     
 
 }
+
+//*************************COMPUTE DELTA POSITION*************************************
+//************************************************************************************
+
+
+Matrix& LineLoad3DCondition::CalculateDeltaPosition(Matrix & rDeltaPosition)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+        }
+    }
+
+    return rDeltaPosition;
+
+    KRATOS_CATCH( "" )
+}
+
+
 
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
@@ -92,6 +134,14 @@ void LineLoad3DCondition::CalculateKinematics(GeneralVariables& rVariables,
 
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
+
+    //get first vector of the plane
+    rVariables.Tangent1[0] = rVariables.J[rPointNumber](0, 0); // x_1,e
+    rVariables.Tangent1[1] = rVariables.J[rPointNumber](1, 0); // x_2,e
+    rVariables.Tangent1[3] = rVariables.J[rPointNumber](2, 0); // x_3,e
+
+    //Jacobian to the last known configuration
+    rVariables.Jacobian = norm_2(rVariables.Tangent1);
 
     //Set Shape Functions Values for this integration point
     rVariables.N =row( Ncontainer, rPointNumber);
@@ -135,7 +185,7 @@ Vector& LineLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralV
 
 double& LineLoad3DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
 {
-    rIntegrationWeight *= ( GetGeometry().Length() * 0.5 );
+    //rIntegrationWeight *= ( 0.5 );
 
     return rIntegrationWeight;
 }

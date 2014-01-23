@@ -397,9 +397,14 @@ void ForceLoadCondition::CalculateConditionSystem(LocalSystemComponents& rLocalS
         //compute element kinematics B, F, DN_DX ...
         this->CalculateKinematics(Variables,PointNumber);
 
-        //calculating weights for integration on the "reference configuration"
-        double IntegrationWeight = integration_points[PointNumber].Weight();
+        //calculating weights for integration on the "reference configuration" Jacobian respect to the reference configuration
+	//take in account in a linear element (Jacobian=2*Area) this is the relation
+
+        double IntegrationWeight = Variables.Jacobian * integration_points[PointNumber].Weight();
+
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
+
+	//std::cout<<" Variables.Jacobian "<<Variables.Jacobian<<" Weight "<<integration_points[PointNumber].Weight()<<" / "<<std::endl;
 
         //if ( dimension == 2 ) IntegrationWeight *= GetProperties()[THICKNESS];
 

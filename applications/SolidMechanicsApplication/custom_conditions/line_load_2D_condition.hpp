@@ -157,6 +157,7 @@ protected:
     virtual Vector& CalculateVectorForce(Vector& rVectorForce, GeneralVariables& rVariables);
 
 
+
     /**
      * Calculation of the Integration Weight
      */
