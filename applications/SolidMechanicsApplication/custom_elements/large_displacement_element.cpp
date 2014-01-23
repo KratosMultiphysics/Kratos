@@ -666,11 +666,11 @@ void LargeDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
 
 	// std::cout<<" Element: "<<this->Id()<<std::endl;
 	// unsigned int number_of_nodes = GetGeometry().PointsNumber();
-	// for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	//   {
-	//     GeometryType::PointsArrayType CurrentPosition  = GetGeometry().Points();
-	//     std::cout<<" Current  Position  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentPosition<<std::endl;
-	//   }
+	// // for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	// //   {
+	// //     GeometryType::PointsArrayType CurrentPosition  = GetGeometry().Points();
+	// //     std::cout<<" Current  Position  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentPosition<<std::endl;
+	// //   }
 	// for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	//   {
 	//     array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
@@ -687,8 +687,8 @@ void LargeDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
 	// std::cout<<" F  "<<Variables.F<<std::endl;
 	// std::cout<<" F0 "<<Variables.F0<<std::endl;
 	// std::cout<<" ConstitutiveMatrix "<<Variables.ConstitutiveMatrix<<std::endl;
-	// std::cout<<" K "<<rLeftHandSideMatrix<<std::endl;
-	// std::cout<<" f "<<rRightHandSideVector<<std::endl;
+	// std::cout<<" K "<<rLocalSystem.GetLeftHandSideMatrix()<<std::endl;
+	// std::cout<<" f "<<rLocalSystem.GetRightHandSideVector()<<std::endl;
 	
 
 
