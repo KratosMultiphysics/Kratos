@@ -145,6 +145,12 @@ protected:
 					    const ProcessInfo& rCurrentProcessInfo);
 
     /**
+     * Calculation of the Position Increment
+     */
+    virtual Matrix& CalculateDeltaPosition(Matrix & rDeltaPosition);
+
+
+    /**
      * Calculate Condition Kinematics
      */
     virtual void CalculateKinematics(GeneralVariables& rVariables, 

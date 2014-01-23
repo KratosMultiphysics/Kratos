@@ -73,9 +73,6 @@ void LineLoad2DCondition::InitializeGeneralVariables(GeneralVariables& rVariable
   
   LineLoad3DCondition::InitializeGeneralVariables(rVariables, rCurrentProcessInfo);
 
-  //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
-  rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
-
 }
 
 //*********************************COMPUTE KINEMATICS*********************************
@@ -95,14 +92,26 @@ void LineLoad2DCondition::CalculateKinematics(GeneralVariables& rVariables,
 
     rVariables.Normal[0] = -rVariables.j[rPointNumber](1, 0); //-x_2,e
     rVariables.Normal[1] =  rVariables.j[rPointNumber](0, 0); // x_1,e
-    
-    double Jacobian = norm_2(rVariables.Normal);
+
+    //Jacobian to the deformed configuration
+    rVariables.Jacobian = norm_2(rVariables.Normal);
+
+    //std::cout<< " jacobian "<<rVariables.Jacobian<<std::endl;
 
     //Compute the unit normal and weighted tangents
-    if(Jacobian>0){
-      rVariables.Normal   /= Jacobian;
-      rVariables.Tangent1 /= Jacobian;
+    if(rVariables.Jacobian>0){
+      rVariables.Normal   /= rVariables.Jacobian;
+      rVariables.Tangent1 /= rVariables.Jacobian;
     }
+
+
+    //Jacobian to the last known configuration
+    rVariables.Tangent2[0] = rVariables.J[rPointNumber](0, 0); // x_1,e
+    rVariables.Tangent2[1] = rVariables.J[rPointNumber](1, 0); // x_2,e
+
+    rVariables.Jacobian = norm_2(rVariables.Tangent2);
+
+    //std::cout<< " Jacobian "<<rVariables.Jacobian<<std::endl;
 
     //Set Shape Functions Values for this integration point
     rVariables.N =row( Ncontainer, rPointNumber);
@@ -158,7 +167,7 @@ Vector& LineLoad2DCondition::CalculateVectorForce(Vector& rVectorForce, GeneralV
 
 double& LineLoad2DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
 {
-  rIntegrationWeight *= ( GetGeometry().Length() * 0.5  * GetProperties()[THICKNESS] );
+  rIntegrationWeight *= (GetProperties()[THICKNESS] );
 
   return rIntegrationWeight;
 }

@@ -90,8 +90,10 @@ protected:
 
         //general variables
         double  DomainSize;
+        double  Jacobian;
         Vector  N;
         Matrix  DN_De;
+        Matrix  DeltaPosition;
 
         //pressure loads
         double  Pressure;
@@ -102,6 +104,7 @@ protected:
 
         //variables including all integration points
         GeometryType::JacobiansType j;
+        GeometryType::JacobiansType J;
 
         /**
          * sets the value of a specified pointer variable

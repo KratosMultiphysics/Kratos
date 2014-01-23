@@ -83,7 +83,44 @@ void SurfaceLoad3DCondition::InitializeGeneralVariables(GeneralVariables& rVaria
   //calculating the current jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n+1/d£]
   rVariables.j = GetGeometry().Jacobian( rVariables.j, mThisIntegrationMethod );
 
+
+  //Calculate Delta Position
+  rVariables.DeltaPosition = CalculateDeltaPosition(rVariables.DeltaPosition);
+
+  ///calculating the reference jacobian from cartesian coordinates to parent coordinates for all integration points [dx_n/d£]
+  rVariables.J = GetGeometry().Jacobian( rVariables.J, mThisIntegrationMethod, rVariables.DeltaPosition );
+
 }
+
+//*************************COMPUTE DELTA POSITION*************************************
+//************************************************************************************
+
+
+Matrix& SurfaceLoad3DCondition::CalculateDeltaPosition(Matrix & rDeltaPosition)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
+    unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    rDeltaPosition = zero_matrix<double>( number_of_nodes , dimension);
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+        array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+
+        for ( unsigned int j = 0; j < dimension; j++ )
+        {
+            rDeltaPosition(i,j) = CurrentDisplacement[j]-PreviousDisplacement[j];
+        }
+    }
+
+    return rDeltaPosition;
+
+    KRATOS_CATCH( "" )
+}
+
 
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
@@ -99,6 +136,26 @@ void SurfaceLoad3DCondition::CalculateKinematics(GeneralVariables& rVariables,
     //Get the shape functions for the order of the integration method [N]
     const Matrix& Ncontainer = rVariables.GetShapeFunctions();
 
+    //auxiliar computation
+
+    //get first vector of the plane
+    rVariables.Tangent1[0] = rVariables.J[rPointNumber](0, 0);
+    rVariables.Tangent1[1] = rVariables.J[rPointNumber](1, 0);
+    rVariables.Tangent1[2] = rVariables.J[rPointNumber](2, 0);
+
+    //get second vector of the plane
+    rVariables.Tangent2[0] = rVariables.J[rPointNumber](0, 1);
+    rVariables.Tangent2[1] = rVariables.J[rPointNumber](1, 1);
+    rVariables.Tangent2[2] = rVariables.J[rPointNumber](2, 1);
+
+    //Compute the  normal
+    CrossProduct( rVariables.Normal, rVariables.Tangent1, rVariables.Tangent2);
+
+    //Jacobian to the last known configuration
+    double Jacobian =  norm_2(rVariables.Normal);
+
+    //auxiliar computation
+
     //get first vector of the plane
     rVariables.Tangent1[0] = rVariables.j[rPointNumber](0, 0);
     rVariables.Tangent1[1] = rVariables.j[rPointNumber](1, 0);
@@ -112,15 +169,19 @@ void SurfaceLoad3DCondition::CalculateKinematics(GeneralVariables& rVariables,
     //Compute the  normal
     CrossProduct( rVariables.Normal, rVariables.Tangent1, rVariables.Tangent2);
 
-    double Jacobian = norm_2(rVariables.Normal);
+    //Jacobian to the deformed configuration
+    rVariables.Jacobian = norm_2(rVariables.Normal);
 
     //Compute the unit normal and weighted tangents
-    if(Jacobian>0){
-      rVariables.Normal   /= Jacobian;
-      rVariables.Tangent1 /= Jacobian;
-      rVariables.Tangent2 /= Jacobian;
+    if(rVariables.Jacobian>0){
+      rVariables.Normal   /= rVariables.Jacobian;
+      rVariables.Tangent1 /= rVariables.Jacobian;
+      rVariables.Tangent2 /= rVariables.Jacobian;
     }
- 
+
+    //Jacobian to the last known configuration
+    rVariables.Jacobian =  Jacobian;
+
     //Set Shape Functions Values for this integration point
     rVariables.N =row( Ncontainer, rPointNumber);
 
@@ -180,10 +241,7 @@ Vector& SurfaceLoad3DCondition::CalculateVectorForce(Vector& rVectorForce, Gener
 //************************************************************************************
 
 double& SurfaceLoad3DCondition::CalculateIntegrationWeight(double& rIntegrationWeight)
-{
-
-    rIntegrationWeight *= ( GetGeometry().Area() * 2.0 );
-    
+{ 
     return rIntegrationWeight;
 }
 

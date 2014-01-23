@@ -125,6 +125,8 @@ void PointLoad3DCondition::CalculateKinematics(GeneralVariables& rVariables,
 {
     KRATOS_TRY
 
+      rVariables.Jacobian = 1.0;
+
     KRATOS_CATCH( "" )
 }
 

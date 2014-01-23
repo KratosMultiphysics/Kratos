@@ -88,7 +88,10 @@ void PointLoadAxisym2DCondition::CalculateKinematics(GeneralVariables& rVariable
     KRATOS_TRY
 
     CalculateRadius (rVariables.CurrentRadius, rVariables.ReferenceRadius);
+    
+    rVariables.Jacobian = 1.0;
 
+    
     KRATOS_CATCH( "" )
 }
 
