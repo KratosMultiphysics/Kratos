@@ -3539,23 +3539,47 @@ namespace Kratos
 		    if( (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)) && contact_semi_active)
 		      tool_project = true;
 
+		    bool on_radius = false;
 
-		    if(tool_project){
-			  
-		      bool on_radius = false;
-		      if(rConditionGeom[0].SolutionStepsDataHas( WALL_TIP_RADIUS )){
-			tool_radius = rConditionGeom[0].FastGetSolutionStepValue( WALL_TIP_RADIUS );
-			tip_center  = rConditionGeom[0].FastGetSolutionStepValue( WALL_REFERENCE_POINT );
+		    if( tool_project && rVariables.rigid_wall_set ){
+
+		      Vector Point(3);
+		      if( rConditionGeom[0].Is(TO_SPLIT) ){
+			
+			Point[0] = rConditionGeom[0].X();
+			Point[1] = rConditionGeom[0].Y();
+			Point[2] = rConditionGeom[0].Z();
 			on_radius = true;
+			
 		      }
-		      else if(rConditionGeom[1].SolutionStepsDataHas( WALL_TIP_RADIUS )){
-			tool_radius = rConditionGeom[1].FastGetSolutionStepValue( WALL_TIP_RADIUS );
-			tip_center  = rConditionGeom[1].FastGetSolutionStepValue( WALL_REFERENCE_POINT );
+		      else if( rConditionGeom[1].Is(TO_SPLIT) ){
+
+			Point[0] = rConditionGeom[1].X();
+			Point[1] = rConditionGeom[1].Y();
+			Point[2] = rConditionGeom[1].Z();
 			on_radius = true;
+
 		      }
 		      else{
 			on_radius = false;
 		      }
+      
+
+		      if( on_radius ){
+
+			//std::cout<<" On radius "<<std::endl;
+			ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+			double Time = CurrentProcessInfo[TIME];  
+			for( unsigned int i = 0; i < rVariables.RigidWalls.size(); i++ )
+			  {
+			    if( rVariables.RigidWalls[i]->IsInside( Point, Time ) ){
+			      tool_radius = rVariables.RigidWalls[i]->Radius(Point);
+			      tip_center  = rVariables.RigidWalls[i]->Center(Point);
+			    }
+			  }
+		      }
+
+
 		      
 
 		      if(on_radius){
@@ -3691,7 +3715,7 @@ namespace Kratos
 	    //set specific controls values and flags:
 	    pnode->Set(BOUNDARY);
 	    pnode->Set(NEW_ENTITY);  //if boundary is rebuild, the flag INSERTED must be set to new conditions too
-	    std::cout<<" node "<<pnode->Id()<<" is new entity "<<std::endl;
+	    std::cout<<"   node "<<pnode->Id()<<" is new entity "<<std::endl;
 	    
 	    pnode->SetValue(DOMAIN_LABEL,MeshId);
 	    double& nodal_h = pnode->FastGetSolutionStepValue(NODAL_H);
