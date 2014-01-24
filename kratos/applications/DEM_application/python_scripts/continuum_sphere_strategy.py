@@ -35,7 +35,7 @@ def AddVariables(model_part, Param):
 
     # ROTATION RELATED PROPERTIES
     if (Var_Translator(Param.RotationOption)):
-        model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
+        #model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
         model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
         model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
@@ -47,7 +47,8 @@ def AddVariables(model_part, Param):
     model_part.AddNodalSolutionStepVariable(MAX_INDENTATION)
 
     # LOCAL AXIS
-    model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
+    if (Param.PostEulerAngles == "1" or Param.PostEulerAngles == 1):
+        model_part.AddNodalSolutionStepVariable(EULER_ANGLES)
 
 # BOUNDARY SURFACE
 #
