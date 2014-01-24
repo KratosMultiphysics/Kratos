@@ -54,6 +54,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "includes/serializer.h"
 
+#ifndef M_PI
+#define M_PI 3.1415926535897932384626433832795
+#endif // M_PI
+
 namespace Kratos
 {
 
@@ -239,9 +243,9 @@ namespace Kratos
 			R(2, 1) = 2.0 * ( mZ*mY + mW*mX );
 			R(2, 2) = 2.0 * ( mW*mW + mZ*mZ - 0.5 );
 		}
-		
+
 		/**
-		Extracts the Rotation Vector (Euler Angles) from this Quaternion
+		Extracts the Rotation Vector from this Quaternion
 		@param rx the output x component if the rotation vector
 		@param ry the output y component if the rotation vector
 		@param rz the output z component if the rotation vector
@@ -282,7 +286,7 @@ namespace Kratos
 		}
 		
 		/**
-		Extracts the Rotation Vector (Euler Angles) from this Quaternion
+		Extracts the Rotation Vector from this Quaternion
 		The vector type is the template parameter. No check is made on this type.
 		The following assumptions are made:
 		The vector type should provide indexing like vector(i) where i goes from 0 to 2.
@@ -323,6 +327,35 @@ namespace Kratos
 			b(0) = a(0) + b(0)*mW + c0;
 			b(1) = a(1) + b(1)*mW + c1;
 			b(2) = a(2) + b(2)*mW + c2;
+		}
+
+		/**
+		Rotates a vector using this quaternion.
+		Note: this is faster than constructing the rotation matrix and perform the matrix
+		multiplication for a single vector.
+		The vector type is the template parameter. No check is made on this type.
+		The following assumptions are made:
+		The vector type should provide indexing like vector(i) where i goes from 0 to 2.
+		(i.e. a C-Style vector of size 3)
+		@param a the input source vector - rotated on exit
+		*/
+		template<class TVector3>
+		inline void RotateVector3(TVector3& a)const
+		{
+			// b = 2.0 * cross( this->VectorialPart, a )
+			T b0 = 2.0 * (mY * a(2) - mZ * a(1));
+			T b1 = 2.0 * (mZ * a(0) - mX * a(2));
+			T b2 = 2.0 * (mX * a(1) - mY * a(0));
+
+			// c = cross( this->VectorialPart, b )
+			T c0 = mY * b2 - mZ * b1;
+			T c1 = mZ * b0 - mX * b2;
+			T c2 = mX * b1 - mY * b0;
+
+			// set results
+			a(0) += b0*mW + c0;
+			a(1) += b1*mW + c1;
+			a(2) += b2*mW + c2;
 		}
 
 		///@}
@@ -374,11 +407,11 @@ namespace Kratos
 		}
 
 		/**
-		Returns a Quaternion from 3 Euler Angles
+		Returns a Quaternion from a rotation vector
 		@param rx the x component of the source rotation vector
 		@param ry the y component of the source rotation vector
 		@param rz the z component of the source rotation vector
-		@return a Quaternion from 3 Euler Angles
+		@return a Quaternion from a rotation vector
 		*/
 		static inline Quaternion FromRotationVector(T rx, T ry, T rz)
 		{
@@ -402,13 +435,13 @@ namespace Kratos
 		}
 		
 		/**
-		Returns a Quaternion from 3 Euler Angles.
+		Returns a Quaternion from a rotation vector.
 		The vector type is the template parameter. No check is made on this type.
 		The following assumptions are made:
 		The vector type should provide indexing like vector(i) where i goes from 0 to 2.
 		(i.e. a C-Style vector of size 3)
 		@param v the source rotation vector
-		@return a Quaternion from 3 Euler Angles
+		@return a Quaternion from a rotation vector
 		*/
 		template<class TVector3>
 		static inline Quaternion FromRotationVector(const TVector3& v)
