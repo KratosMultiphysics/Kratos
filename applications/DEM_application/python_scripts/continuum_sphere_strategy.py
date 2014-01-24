@@ -612,7 +612,7 @@ class ExplicitStrategy:
             self.model_part.ProcessInfo.SetValue(DONZE_G3, self.donze_g3)
             self.model_part.ProcessInfo.SetValue(DONZE_MAX_DEF, self.donze_max_def)
 
-        if (self.concrete_test_option == "TRIAXIAL"):
+        if ( (self.concrete_test_option == "TRIAXIAL") or (self.concrete_test_option == "HYDROSTATIC")):
             self.model_part.ProcessInfo.SetValue(TRIAXIAL_TEST_OPTION, 1)
             
         self.model_part.ProcessInfo.SetValue(FIXED_VEL_TOP, self.fixed_vel_top)
