@@ -105,12 +105,11 @@ solver = SolverStrategy.ExplicitStrategy(balls_model_part, RigidFace_model_part,
 main_path = os.getcwd()
 post_path = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Post_Files'
 list_path = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Post_Lists'
-neigh_list_path = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Neigh_Lists'
 data_and_results = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Results_and_Data'
 graphs_path = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Graphs'
 MPI_results = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_MPI_results'
 
-for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path, MPI_results]:
+for directory in [post_path, list_path, data_and_results, graphs_path, MPI_results]:
 
     if not os.path.isdir(directory):
         os.makedirs(str(directory))
@@ -280,21 +279,6 @@ while (time < DEM_parameters.FinalTime):
 
         if (DEM_parameters.Multifile == "multiple_files"):
             gid_io.FinalizeResults()
-
-        os.chdir(graphs_path)
-
-        if (DEM_parameters.PrintNeighbourLists == "ON"):  # Printing neighbours id's
-            os.chdir(neigh_list_path)
-            neighbours_list = open('neigh_list_' + str(time), 'w')
-
-            for elem in balls_model_part.Elements:
-                ID = (elem.Id)
-                Neigh_ID = elem.GetValue(NEIGHBOURS_IDS)
-
-            for i in range(len(Neigh_ID)):
-                neighbours_list.write(str(ID) + ' ' + str(Neigh_ID[i]) + '\n')
-
-            neighbours_list.close()
 
         os.chdir(post_path)
 
