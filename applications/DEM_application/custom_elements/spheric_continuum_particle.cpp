@@ -1975,10 +1975,17 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         
      {
  
-        array_1d<double, 3> total_externally_applied_force  = this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE); 
+        
+        externally_applied_force  = this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE); 
+       
+       
+       
+       //array_1d<double, 3> total_externally_applied_force  = this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE); 
+		
+        //double time_now = rCurrentProcessInfo[TIME]; //MSIMSI 1 I tried to do a *mpTIME
 
-        double time_now = rCurrentProcessInfo[TIME]; //MSIMSI 1 I tried to do a *mpTIME
-
+        /*
+        
         if( mFinalPressureTime <= 1e-10 )
         {
           
@@ -1999,7 +2006,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           externally_applied_force = total_externally_applied_force;
           
         }
-        
+        */
     
         
      } //SphericContinuumParticle::ComputePressureForces
