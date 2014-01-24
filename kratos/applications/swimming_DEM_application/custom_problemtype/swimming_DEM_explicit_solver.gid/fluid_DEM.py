@@ -115,11 +115,11 @@ def ApplyEmbeddedBCsToBalls(model_part):
         dist = node.GetSolutionStepValue(DISTANCE)
         if(dist < 0.0):
             if node.Is(BLOCKED):
-                node.Set(ACTIVE, true)
+                node.Set(ACTIVE,True)                                             
             else:
-                node.Set(TO_ERASE, true)
-
-
+                node.Set(TO_ERASE,True)
+                
+                        
 from math import *
 
 
@@ -146,39 +146,42 @@ def MoveEmbeddedStructure(model_part, time):
                 angle = angular_velocity / angular_omega * sin(angular_omega * time)
             else:
                 angle = time * angular_velocity
-
-            ang = sqrt(angle[0] * angle[0] + angle[1] * angle[1] + angle[2] * angle[2])
-
-            xx = 1.0
-            yy = 0.0
-            zz = 0.0
-            mod_angular_velocity = sqrt(angular_velocity[0] * angular_velocity[0] + angular_velocity[1] * angular_velocity[1] + angular_velocity[2] * angular_velocity[2])
-            if (mod_angular_velocity > 0.0):
-                uu = angular_velocity[0] / mod_angular_velocity
-                vv = angular_velocity[1] / mod_angular_velocity
-                ww = angular_velocity[2] / mod_angular_velocity
+            
+            ang = sqrt( angle[0]*angle[0] + angle[1]*angle[1] + angle[2]*angle[2] )
+            
+            xx=1.0
+            yy=0.0
+            zz=0.0
+            mod_angular_velocity = sqrt(angular_velocity[0]*angular_velocity[0] + angular_velocity[1]*angular_velocity[1] + angular_velocity[2]*angular_velocity[2])
+            if ( mod_angular_velocity > 0.0 ):
+                inv_mod_angular_velocity = 1 / mod_angular_velocity
+                uu= angular_velocity[0]*inv_mod_angular_velocity
+                vv= angular_velocity[1]*inv_mod_angular_velocity
+                ww= angular_velocity[2]*inv_mod_angular_velocity
             else:
-                uu = 0.0
-                vv = 0.0
-                ww = 0.0
-
-            new_axes1 = [0.0, 0.0, 0.0]
-            new_axes1[0] = uu * (uu * xx + vv * yy + ww*zz)*(1-cos(ang)) + xx*cos(ang) + (-ww*yy+vv*zz)*sin(ang)
-            new_axes1[1] = vv * (uu * xx + vv * yy + ww*zz)*(1-cos(ang)) + yy*cos(ang) + (ww*xx-uu*zz)*sin(ang)
-            new_axes1[2] = ww * (uu * xx + vv * yy + ww*zz)*(1-cos(ang)) + zz*cos(ang) + (-vv*xx+uu*yy)*sin(ang)
-
-            xx = 0.0
-            yy = 1.0
-            zz = 0.0
-
-            new_axes2 = [0.0, 0.0, 0.0]
-            new_axes2[0] = uu * (uu * xx + vv * yy + ww*zz)*(1-cos(ang)) + xx*cos(ang) + (-ww*yy+vv*zz)*sin(ang)
-            new_axes2[1] = vv * (uu * xx + vv * yy + ww*zz)*(1-cos(ang)) + yy*cos(ang) + (ww*xx-uu*zz)*sin(ang)
-            new_axes2[2] = ww * (uu * xx + vv * yy + ww*zz)*(1-cos(ang)) + zz*cos(ang) + (-vv*xx+uu*yy)*sin(ang)
-
-            new_axes3 = [new_axes1[1] * new_axes2[2] - new_axes1[2] * new_axes2[1], new_axes1[2] * new_axes2[0] - new_axes1[0] * new_axes2[2], new_axes1[0] * new_axes2[1] - new_axes1[1]*new_axes2[0]]
-
-            for node in mesh_nodes:
+                uu= 0.0
+                vv= 0.0
+                ww= 0.0
+            
+            new_axes1 = [0.0,0.0,0.0]
+            sin_ang = sin(ang)
+            new_axes1[0] = uu*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + xx*cos(ang) + (-ww*yy+vv*zz)*sin_ang
+            new_axes1[1] = vv*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + yy*cos(ang) + (ww*xx-uu*zz)*sin_ang
+            new_axes1[2] = ww*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + zz*cos(ang) + (-vv*xx+uu*yy)*sin_ang
+            
+            xx=0.0
+            yy=1.0
+            zz=0.0
+            
+            new_axes2 = [0.0,0.0,0.0]
+            new_axes2[0] = uu*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + xx*cos(ang) + (-ww*yy+vv*zz)*sin_ang
+            new_axes2[1] = vv*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + yy*cos(ang) + (ww*xx-uu*zz)*sin_ang
+            new_axes2[2] = ww*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + zz*cos(ang) + (-vv*xx+uu*yy)*sin_ang
+            
+            new_axes3 = [new_axes1[1]*new_axes2[2] - new_axes1[2]*new_axes2[1] , new_axes1[2]*new_axes2[0] - new_axes1[0]*new_axes2[2] , new_axes1[0]*new_axes2[1] - new_axes1[1]*new_axes2[0]]
+            
+            
+            for node in mesh_nodes:                             
                 local_X = node.X0 - initial_center[0]
                 local_Y = node.Y0 - initial_center[1]
                 local_Z = node.Z0 - initial_center[2]
@@ -191,16 +194,19 @@ def MoveEmbeddedStructure(model_part, time):
                 node.X = center_position[0] + relative_position[0]
                 node.Y = center_position[1] + relative_position[1]
                 node.Z = center_position[2] + relative_position[2]
-
-                velocity_due_to_rotation = [relative_position[1] * angular_velocity[2] - relative_position[2] * angular_velocity[1],
-                                            relative_position[2] * angular_velocity[0] - relative_position[0] * angular_velocity[2],
-                                            relative_position[0] * angular_velocity[1] - relative_position[1] * angular_velocity[0]]
-
-                # NEW VELOCITY
-                node.SetSolutionStepValue(VELOCITY, linear_velocity + velocity_due_to_rotation)
-
-
-# EMBEDDED
+                
+                velocity_due_to_rotation = [relative_position[1]*angular_velocity[2] - relative_position[2]*angular_velocity[1] , 
+                                            relative_position[2]*angular_velocity[0] - relative_position[0]*angular_velocity[2] , 
+                                            relative_position[0]*angular_velocity[1] - relative_position[1]*angular_velocity[0]]
+                
+                #NEW VELOCITY
+                total_vel[0] = linear_velocity[0] + velocity_due_to_rotation[0]
+                total_vel[1] = linear_velocity[1] + velocity_due_to_rotation[1]
+                total_vel[2] = linear_velocity[2] + velocity_due_to_rotation[2]
+                node.SetSolutionStepValue(VELOCITY, total_vel )
+                
+                    
+############## EMBEDDED
 
 
 # PROJECT PARAMETERS (to be put in problem type)
@@ -247,7 +253,7 @@ ProjectParameters.nodal_results.append("DRAG_REACTION")
 
 # EMBEDDED
 ProjectParameters.nodal_results.append("DISTANCE")
-# EMBEDDED
+######EMBEDDED
 
 DEMParameters.project_from_particles_option *= ProjectParameters.projection_module_option
 ProjectParameters.project_at_every_substep_option *= ProjectParameters.projection_module_option
@@ -259,46 +265,34 @@ for var in ProjectParameters.mixed_nodal_results:
     if var in ProjectParameters.nodal_results:
         ProjectParameters.nodal_results.remove(var)
 
-# choosing the variables to be passed as a parameter to the constructor of the
-# ProjectionModule class constructor that are to be filled with the other phase's
-# information through the coupling process
+# extra nodal variables (related to the coupling) to be added to the model parts (memory will be allocated for them)
+fluid_variables_to_add = [PRESSURE_GRADIENT,
+                          AUX_DOUBLE_VAR,
+                          DRAG_REACTION,
+                          SOLID_FRACTION,                          
+                          MESH_VELOCITY1,
+                          YIELD_STRESS,
+                          BINGHAM_SMOOTHER,
+                          POWER_LAW_N,
+                          POWER_LAW_K,
+                          GEL_STRENGTH,
+                          DISTANCE] # <- REQUIRED BY EMBEDDED
 
-fluid_vars_for_coupling = [DRAG_REACTION,
-                           BODY_FORCE,
-                           SOLID_FRACTION,
-                           MESH_VELOCITY1]
-
-balls_vars_for_coupling = [FLUID_VEL_PROJECTED,
-                           FLUID_DENSITY_PROJECTED,
-                           PRESSURE_GRAD_PROJECTED,
-                           FLUID_VISCOSITY_PROJECTED,
-                           SOLID_FRACTION_PROJECTED,
-                           SHEAR_RATE_PROJECTED,
-                           FLUID_VORTICITY_PROJECTED,
-                           POWER_LAW_N,
-                           POWER_LAW_K,
-                           GEL_STRENGTH,
-                           DISTANCE]
-
-# extra nodal variables to be added to the model parts (memory will be allocated for them)
-fluid_variables_to_add = []
-fluid_variables_to_add += fluid_vars_for_coupling
-fluid_variables_to_add += [PRESSURE_GRADIENT,
-                           AUX_DOUBLE_VAR,
-                           YIELD_STRESS,
-                           BINGHAM_SMOOTHER,
-                           POWER_LAW_N,
-                           POWER_LAW_K,
-                           GEL_STRENGTH,
-                           DISTANCE]  # <- REQUIRED BY EMBEDDED
-
-balls_variables_to_add = []
-balls_variables_to_add += balls_vars_for_coupling
-balls_variables_to_add += [DRAG_FORCE,
-                           LIFT_FORCE,
-                           BUOYANCY,
-                           REYNOLDS_NUMBER,
-                           GEL_STRENGTH]
+balls_variables_to_add = [FLUID_VEL_PROJECTED,
+                          FLUID_DENSITY_PROJECTED,
+                          PRESSURE_GRAD_PROJECTED,
+                          FLUID_VISCOSITY_PROJECTED,
+                          POWER_LAW_N,
+                          POWER_LAW_K,
+                          DRAG_FORCE,
+                          LIFT_FORCE,
+                          BUOYANCY,
+                          SOLID_FRACTION_PROJECTED,                         
+                          REYNOLDS_NUMBER,
+                          GEL_STRENGTH,
+                          SHEAR_RATE_PROJECTED,
+                          FLUID_VORTICITY_PROJECTED,
+                          DISTANCE] # <- REQUIRED BY EMBEDDED
 
 fem_dem_variables_to_add = [VELOCITY,
                             DISPLACEMENT,
@@ -433,7 +427,7 @@ calculate_distance_process.Execute()
 # gid_io_skin.InitializeMesh( 0.0 )
 # gid_io_skin.WriteMesh( new_skin_model_part.GetMesh() )
 # gid_io_skin.FinalizeMesh()
-# EMBEDDED
+###### EMBEDDED
 
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
@@ -505,13 +499,12 @@ if not ProjectParameters.VolumeOutput:
 
 # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 import swimming_DEM_gid_output
-swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(
-                                                                   input_file_name,
-                                                                   ProjectParameters.VolumeOutput,
-                                                                   ProjectParameters.GiDPostMode,
-                                                                   ProjectParameters.GiDMultiFileFlag,
-                                                                   ProjectParameters.GiDWriteMeshFlag,
-                                                                   ProjectParameters.GiDWriteConditionsFlag)
+swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(input_file_name,
+                   ProjectParameters.VolumeOutput,
+                   ProjectParameters.GiDPostMode,
+                   ProjectParameters.GiDMultiFileFlag,
+                   ProjectParameters.GiDWriteMeshFlag,
+                   ProjectParameters.GiDWriteConditionsFlag)
 
 swimming_DEM_gid_io.initialize_swimming_DEM_results(balls_model_part, fem_dem_model_part, mixed_model_part)
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -586,7 +579,7 @@ fluid_volume = 10
 n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume))
 
 if (ProjectParameters.projection_module_option):
-    projection_module = swimming_DEM_procedures.ProjectionModule(fluid_model_part, balls_model_part, fem_dem_model_part, domain_size, ProjectParameters.max_solid_fraction, ProjectParameters.coupling_weighing_type, n_particles_in_depth, balls_vars_for_coupling, fluid_vars_for_coupling)
+    projection_module = swimming_DEM_procedures.ProjectionModule(fluid_model_part, balls_model_part, fem_dem_model_part, domain_size, ProjectParameters.max_solid_fraction, ProjectParameters.coupling_weighing_type, n_particles_in_depth)
     #to do: the projection module should be created with a list of variables to be projected (one list for every direction)
     projection_module.UpdateDatabase(h_min)
     interaction_calculator = CustomFunctionsCalculator()
@@ -691,7 +684,7 @@ while(time <= final_time):
     if(step >= 3):  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
         ApplyEmbeddedBCsToFluid(fluid_model_part)
         ApplyEmbeddedBCsToBalls(balls_model_part)
-    # EMBEDDED
+    #########EMBEDDED
 
     # solving the fluid part
 
