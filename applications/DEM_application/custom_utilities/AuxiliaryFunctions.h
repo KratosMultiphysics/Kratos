@@ -173,7 +173,7 @@ namespace Kratos
 
 	  {		
         
-        array_1d<double,3> externally_applied_force_now = external_total_applied_force*current_time/final_time;
+		array_1d<double,3> externally_applied_force_now = external_total_applied_force*current_time/final_time;
         
 		return externally_applied_force_now;
         
