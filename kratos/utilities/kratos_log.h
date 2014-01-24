@@ -78,16 +78,16 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define KRATOS_TRACE_LOG    
 #endif
 
-#define KRATOS_LOG(SEVERITY) KratosLogger<SEVERITY>::KratosLogStream()
+#define KRATOS_LOG(SEVERITY) KratosLog<SEVERITY>::KratosLogStream()
 
-# define LOG_OCCURRENCES(line) #KRATOS_LOG_N_ ## line
+# define KRATOS_LOG_OCCURRENCES(line) kratos_log_loop_counter ## line
 
 // Each N
 #define KRATOS_LOG_N(KRATOS_SEVERITY) \
-  {static int LOG_OCCURRENCES(__FILE__,__LINE__) = 0, LOG_OCCURRENCES_MOD_N = 0; \
+  {static int KRATOS_LOG_OCCURRENCES(__LINE__) = 0, KRATOS_LOG_OCCURRENCES_MOD_N = 0; \
   ++LOG_OCCURRENCES; \
-  if (++LOG_OCCURRENCES_MOD_N > n) LOG_OCCURRENCES_MOD_N -= n; \
-  if (LOG_OCCURRENCES_MOD_N == 1) \
+  if (++KRATOS_LOG_OCCURRENCES > n) KRATOS_LOG_OCCURRENCES -= n; \
+  if (KRATOS_LOG_OCCURRENCES == 1) \
     KRATOS_LOG(KRATOS_SEVERITY)}
 
 #define KRATOS_TIME_STAMP   "[" << CurrentDateTime() << "]"
@@ -114,23 +114,28 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
  
-template<int S>
+template<int S>  
 class KratosLog
 {
   public:
     
-    static SetOutput(int severity);
-    static SetSeverityLevel(std::string const& LogFileName);
+    static void SetOutput(int severity);
+    static void SetSeverityLevel(std::string const& LogFileName);
 
-    Log& operator<<(std::ostream& (*fn)(std::ostream&));
+    KratosLog& operator<<(std::ostream& (*fn)(std::ostream&));
     
     template<typename T>
-    Log& operator << (const T& data);
+    KratosLog& operator << (const T& data);
+    
+    static std::ostream mOutputFile;
     
   private:
     
-    static int mSeverity;
-    static std::ostream mOutputFile;
+    static int  mSeverity;
+    
+    static bool mPrintLogOnScreen;
+    static int  mSeverityLevel;
+   
  
   
 };  
@@ -138,14 +143,14 @@ class KratosLog
 /// Logger clas for kratos
 /** Detail class definition.
 */
-class KratosLog : public std::ostream
+class KratosLogger : public std::ostream
 {
   private:
     
     /**
      * Default constructor
      */
-    Log();
+    KratosLogger();
     
   public:
   
@@ -159,10 +164,10 @@ class KratosLog : public std::ostream
       KRATOS_SEVERITY_INF,
       KRATOS_SEVERITY_DEB,
       KRATOS_SEVERITY_TRC
-    }
+    };
 
     /// Pointer definition of Timer
-    KRATOS_CLASS_POINTER_DEFINITION(KratosLog);
+    KRATOS_CLASS_POINTER_DEFINITION(KratosLogger);
 
     ///@}
     ///@name Life Cycle
@@ -172,12 +177,9 @@ class KratosLog : public std::ostream
      * Returns the instance to the log class and creates it in case it not been yet created 
      */
     static KratosLogger& GetInstance();
-    static Kratos
 
     /// Destructor.
-    /*virtual*/ ~KratosLogger()
-    {
-    }
+    ~KratosLogger();
     
     ///@}
     ///@name Operators
@@ -187,7 +189,7 @@ class KratosLog : public std::ostream
     ///@name Operations
     ///@{
       
-    int SetLogFile(std::string const& LogFileName);
+    int SetLogFile(std::ofstream&, std::string const&);
    
     void SetPrintLogOnScreen(bool print) ;
 
@@ -195,12 +197,15 @@ class KratosLog : public std::ostream
     ///@name Access
     ///@{
       
-    KratosLog& GetKratosErrorLog();
-    KratosLog& GetKratosWarningLog();
-    KratosLog& GetKratosDetailLog();
-    KratosLog& GetKratosInfoLog();
-    KratosLog& GetKratosDebugLog();
-    KratosLog& GetKratosTraceLog();
+    KratosLog<KRATOS_SEVERITY_ERR>& GetKratosLog();
+    
+    template<int S>
+    KratosLog& KratosLogStream(const char * file, const char * funct, int line, int severity);
+    
+    std::ofstream& GetLogNormalFile();
+    std::ofstream& GetLogTimingFile();
+    std::ofstream& GetLogSolverFile();   
+    std::ofstream& GetLogExtrasFile();
     
     static const std::string CurrentDateTime();
     static const std::string CurrentDateTime(const char * format);
@@ -283,16 +288,11 @@ class KratosLog : public std::ostream
 
     static bool           mInstanceFalg;
     static KratosLogger * mpInstance;
-    
-    static KratosLog<> mError
 
     std::ofstream msNormalLogFile;
     std::ofstream msTimingLogFile;
     std::ofstream msSolverLogFile;
     std::ofstream msExtrasLogFile;
-
-    bool mPrintLogOnScreen;
-    int  mSeverityLevel;
 
     ///@}
     ///@name Member Variables
