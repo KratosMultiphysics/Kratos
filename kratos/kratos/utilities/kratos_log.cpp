@@ -50,9 +50,9 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 namespace Kratos
 {
   
-    /// KratosLog
+    /// KratosLogger
   
-    KratosLog()
+    KratosLogger()
     {    
         std::stringstream NormalLogFileName;
         std::stringstream TimingLogFileName;
@@ -74,7 +74,7 @@ namespace Kratos
         SetLogFile(msExtrasLogFile,ExtrasLogFileName.str());
     }
 
-    ~KratosLog()
+    ~KratosLogger()
     {
         msLogFile << std::endl;
       
@@ -86,18 +86,18 @@ namespace Kratos
         delete mInstance;
     }
 
-    static KratosLog& KratosLog::GetInstance() 
+    static KratosLogger& KratosLogger::GetInstance() 
     {
         if(!mInstanceFalg)
         {   
             mInstanceFalg = 1;
-            mInstance = new KratosLog();
+            mpInstance = new KratosLogger();
         }
         
-        return (*mInstance);
+        return (*mpInstance);
     }
     
-    int KratosLog::SetLogFile(std::ofstream & fileStream, std::string const& LogFileName)
+    int KratosLogger::SetLogFile(std::ofstream & fileStream, std::string const& LogFileName)
     {
         if(fileStream.is_open())
             fileStream.close();
@@ -107,35 +107,48 @@ namespace Kratos
         return fileStream.is_open();
     }
     
-    void KratosLog::SetPrintLogOnScreen(bool print) 
+    void KratosLogger::SetPrintLogOnScreen(bool print) 
     {
         mPrintLogOnScreen = print;
     }
     
-    void KratosLog::SetSeverityLevel(int severity)
-    {
-        mSeverityLevel = severity;
-    }
+//     void KratosLogger::SetSeverityLevel(int severity)
+//     {
+//         mSeverityLevel = severity;
+//     }
     
-    std::ofstream& GetNormalLogFile()
+    std::ofstream& KratosLogger::GetNormalLogFile()
     {
         return msNormalLogFile;
     }
     
-    std::ofstream& GetTimingLogFile()
+    std::ofstream& KratosLogger::GetTimingLogFile()
     {
         return msTimingLogFile;
     }
     
-    std::ofstream& GetSolverLogFile()
+    std::ofstream& KratosLogger::GetSolverLogFile()
     {
         return msSolverLogFile;
     }
     
-    std::ofstream& GetExtrasLogFile()
+    std::ofstream& KratosLogger::GetExtrasLogFile()
     {
         return msExtrasLogFile;
     }
+    
+    /////////////// KRATOS LOG ////////////////////////////////////////////////////////////////
+
+    void KratosLog::SetSeverityLevel(int severity)
+    {
+        mSeverity = severity;
+    }
+    
+    void KratosLog::SetOutput(std::string const& LogFileName)
+    {
+        mOutputFile = 
+    }
+
     
     /// Class operator only writes in the generic log file 
     /// This function must be overloaded twice in order to adress std::endl as it is a function
@@ -150,7 +163,7 @@ namespace Kratos
     }
     
     /// Rest of the inputs
-    template<typename T>
+    template<typename KRATOS_SEVERITY_ERROR>
     Log& KratosLog::operator << (const T& data)
     {
         if(mPrintLogOnScreen)
@@ -168,25 +181,11 @@ namespace Kratos
         return * this;
     }
     
+    
     bool Log::mInstanceFalg = 0;
     Log* Log::mInstance     = NULL;
     
     /// KratosLogger
-    
-    /**
-     * This should never be called or instanced.
-     * @param file:     File where the function was called
-     * @param funct:    Function where the function was called
-     * @param line:     Line where the function was called
-     * @param severity: Severity of the error **TODO: To be removed?
-     **/
-    static Log& KratosLogger::_stream(const char * file, const char * funct, int line, int severity)
-    {
-        Log& stream = Log::GetInstance();
-         
-        stream.GetLogFile() << KRATOS_TIME_STAMP << ":" << "MISSING_SEVERITY: " << "\':";
-        return stream;
-    }
   
     /**
      * @param file:     File where the function was called
@@ -194,7 +193,7 @@ namespace Kratos
      * @param line:     Line where the function was called
      * @param severity: Severity of the error **TODO: To be removed?
      **/
-    static Log& KratosLogger::KRATOS_ERROR_LOG_stream(const char * file, const char * funct, int line, int severity)
+    static inline Log& KratosLogger<KRATOS_SEVERITY_ERR>::KratosLogStream(const char * file, const char * funct, int line, int severity)
     {
         Log& stream = Log::GetInstance();
           
@@ -208,7 +207,7 @@ namespace Kratos
      * @param line:     Line where the function was called
      * @param severity: Severity of the error **TODO: To be removed?
      **/ 
-    static Log& KratosLogger::KRATOS_WARNING_LOG_stream(const char * file, const char * funct, int line, int severity)
+    static inline Log& KratosLogger<KRATOS_SEVERITY_WAR>::KratosLogStream(const char * file, const char * funct, int line, int severity)
     {
         Log& stream = Log::GetInstance();
             
@@ -222,7 +221,7 @@ namespace Kratos
      * @param line:     Line where the function was called
      * @param severity: Severity of the error **TODO: To be removed?
      **/
-    static Log& KratosLogger::KRATOS_DETAIL_LOG_stream(const char * file, const char * funct, int line, int severity)
+    static inline Log& KratosLogger<KRATOS_SEVERITY_DET>::KratosLogStream(const char * file, const char * funct, int line, int severity)
     {
         Log& stream = Log::GetInstance();
          
@@ -236,7 +235,7 @@ namespace Kratos
      * @param line:     Line where the function was called
      * @param severity: Severity of the error **TODO: To be removed?
      **/
-    static Log& KratosLogger::KRATOS_INFO_LOG_stream(const char * file, const char * funct, int line, int severity)
+    static inline Log& KratosLogger<KRATOS_SEVERITY_INF>::KratosLogStream(const char * file, const char * funct, int line, int severity)
     {
         Log& stream = Log::GetInstance();
          
@@ -250,7 +249,7 @@ namespace Kratos
      * @param line:     Line where the function was called
      * @param severity: Severity of the error **TODO: To be removed?
      **/
-    static Log& KratosLogger::KRATOS_DEBUG_LOG_stream(const char * file, const char * funct, int line, int severity)
+    static inline Log& KratosLogger<KRATOS_SEVERITY_DEB>::KratosLogStream(const char * file, const char * funct, int line, int severity)
     {
         Log& stream = Log::GetInstance();
         
@@ -264,7 +263,7 @@ namespace Kratos
      * @param line:     Line where the function was called
      * @param severity: Severity of the error **TODO: To be removed?
      **/
-    static Log& KratosLogger::KRATOS_TRACE_LOG_stream(const char * file, const char * funct, int line, int severity)
+    static inline Log& KratosLogger<KRATOS_SEVERITY_TRC>::KratosLogStream(const char * file, const char * funct, int line, int severity)
     {
         Log& stream = Log::GetInstance();
         

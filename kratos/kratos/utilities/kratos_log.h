@@ -65,27 +65,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 
 // Macros
-#define KRATOS_LOG(severity) Logger::severity##_stream(__FILE__,BOOST_CURRENT_FUNCTION,__LINE__,severity)
-
 #define KRATOS_ERROR_LOG            KRATOS_LOG(KRATOS_ERROR)
-#define KRATOS_WARNING_LOG          KRATOS_LOG(KRATOS_WARNING)
-#define KRATOS_DETAIL_LOG           KRATOS_LOG(KRATOS_DETAIL)
-#define KRATOS_INFO_LOG             KRATOS_LOG(KRATOS_INFO)
-
 #define KRATOS_ERROR_LOG_N          KRATOS_LOG_N(KRATOS_ERROR)
-#define KRATOS_WARNING_LOG_N        KRATOS_LOG_N(KRATOS_WARNING)
-#define KRATOS_DETAIL_LOG_N         KRATOS_LOG_N(KRATOS_DETAIL)
-#define KRATOS_INFO_LOG_N           KRATOS_LOG_N(KRATOS_INFO)
-
 #define KRATOS_ERROR_LOG_IF         KRATOS_LOG_IF(KRATOS_ERROR)
-#define KRATOS_WARNING_LOG_IF       KRATOS_LOG_IF(KRATOS_WARNING)
-#define KRATOS_DETAIL_LOG_IF        KRATOS_LOG_IF(KRATOS_DETAIL)
-#define KRATOS_INFO_LOG_IF          KRATOS_LOG_IF(KRATOS_INFO)
-
 #define KRATOS_ERROR_LOG_CHECK      KRATOS_LOG_CHECK(KRATOS_ERROR)
-#define KRATOS_WARNING_LOG_CHECK    KRATOS_LOG_CHECK(KRATOS_WARNING)
-#define KRATOS_DETAIL_LOG_CHECK     KRATOS_LOG_CHECK(KRATOS_DETAIL)
-#define KRATOS_INFO_LOG_CHECK       KRATOS_LOG_CHECK(KRATOS_INFO)
 
 #ifdef KRATOS_DEBUG
 #define KRATOS_DEBUG_LOG    KRATOS_LOG(KRATOS_DEBUG)
@@ -95,18 +78,17 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define KRATOS_TRACE_LOG    
 #endif
 
-/*
-#REMINDER: No pots usar file, cambial dilluns
-# define LOG_OCCURRENCES(file,line) file ## line
+#define KRATOS_LOG(SEVERITY) KratosLogger<SEVERITY>::KratosLogStream()
+
+# define LOG_OCCURRENCES(line) #KRATOS_LOG_N_ ## line
 
 // Each N
 #define KRATOS_LOG_N(KRATOS_SEVERITY) \
-  static int LOG_OCCURRENCES(__FILE__,__LINE__) = 0, LOG_OCCURRENCES_MOD_N = 0; \
+  {static int LOG_OCCURRENCES(__FILE__,__LINE__) = 0, LOG_OCCURRENCES_MOD_N = 0; \
   ++LOG_OCCURRENCES; \
   if (++LOG_OCCURRENCES_MOD_N > n) LOG_OCCURRENCES_MOD_N -= n; \
   if (LOG_OCCURRENCES_MOD_N == 1) \
-    KRATOS_LOG(KRATOS_SEVERITY)
-*/
+    KRATOS_LOG(KRATOS_SEVERITY)}
 
 #define KRATOS_TIME_STAMP   "[" << CurrentDateTime() << "]"
 
@@ -131,6 +113,27 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+ 
+template<int S>
+class KratosLog
+{
+  public:
+    
+    static SetOutput(int severity);
+    static SetSeverityLevel(std::string const& LogFileName);
+
+    Log& operator<<(std::ostream& (*fn)(std::ostream&));
+    
+    template<typename T>
+    Log& operator << (const T& data);
+    
+  private:
+    
+    static int mSeverity;
+    static std::ostream mOutputFile;
+ 
+  
+};  
   
 /// Logger clas for kratos
 /** Detail class definition.
@@ -148,6 +151,15 @@ class KratosLog : public std::ostream
   
     ///@name Type Definitions
     ///@{
+      
+    enum{
+      KRATOS_SEVERITY_ERR,
+      KRATOS_SEVERITY_WAR,
+      KRATOS_SEVERITY_DET,
+      KRATOS_SEVERITY_INF,
+      KRATOS_SEVERITY_DEB,
+      KRATOS_SEVERITY_TRC
+    }
 
     /// Pointer definition of Timer
     KRATOS_CLASS_POINTER_DEFINITION(KratosLog);
@@ -159,35 +171,39 @@ class KratosLog : public std::ostream
     /**
      * Returns the instance to the log class and creates it in case it not been yet created 
      */
-    static KratosLog& GetInstance();
+    static KratosLogger& GetInstance();
+    static Kratos
 
     /// Destructor.
-    /*virtual*/ ~KratosLog()
+    /*virtual*/ ~KratosLogger()
     {
     }
     
     ///@}
     ///@name Operators
     ///@{
-      
-    Log& operator<<(std::ostream& (*fn)(std::ostream&));
-    
-    template<typename T>
-    Log& operator << (const T& data);
 
     ///@}
     ///@name Operations
     ///@{
       
     int SetLogFile(std::string const& LogFileName);
-    
+   
     void SetPrintLogOnScreen(bool print) ;
 
     ///@}
     ///@name Access
     ///@{
+      
+    KratosLog& GetKratosErrorLog();
+    KratosLog& GetKratosWarningLog();
+    KratosLog& GetKratosDetailLog();
+    KratosLog& GetKratosInfoLog();
+    KratosLog& GetKratosDebugLog();
+    KratosLog& GetKratosTraceLog();
     
-    std::ofstream& GetLogFile();
+    static const std::string CurrentDateTime();
+    static const std::string CurrentDateTime(const char * format);
 
     ///@}
     ///@name Inquiry
@@ -265,8 +281,10 @@ class KratosLog : public std::ostream
     ///@name Static Member Variables
     ///@{
 
-    static bool     mInstanceFalg;
-    static Log *    mInstance;
+    static bool           mInstanceFalg;
+    static KratosLogger * mpInstance;
+    
+    static KratosLog<> mError
 
     std::ofstream msNormalLogFile;
     std::ofstream msTimingLogFile;
@@ -307,26 +325,7 @@ class KratosLog : public std::ostream
 
     ///@}
 
-}; // Class Log
-
-class KratosLogger
-{
-  public:
-
-    static Log& _stream(                    const char * file, const char * funct, int line, int severity);
-    static Log& KRATOS_ERROR_LOG_stream(    const char * file, const char * funct, int line, int severity);
-    static Log& KRATOS_WARNING_LOG_stream(  const char * file, const char * funct, int line, int severity);
-    static Log& KRATOS_DETAIL_LOG_stream(   const char * file, const char * funct, int line, int severity);
-    static Log& KRATOS_INFO_LOG_stream(     const char * file, const char * funct, int line, int severity);
-    static Log& KRATOS_DEBUG_LOG_stream(    const char * file, const char * funct, int line, int severity);
-    static Log& KRATOS_TRACE_LOG_stream(    const char * file, const char * funct, int line, int severity);
-    
-  private:
-  
-    static const std::string CurrentDateTime();
-    static const std::string CurrentDateTime(const char * format);
-  
-};
+}; // Class Logger
 
 ///@}
 
