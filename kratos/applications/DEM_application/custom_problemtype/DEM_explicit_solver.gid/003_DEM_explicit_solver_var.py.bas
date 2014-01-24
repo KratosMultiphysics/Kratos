@@ -178,6 +178,8 @@ FemPlates                        = "*GenData(Use_FEM_Plate)"
 MonitoringOption                 = "*GenData(Monitoring_Option)"
 PoissonMeasure                   = "*GenData(Poisson_Measure)"
 *format "%10.5e"
+GraphExportFrequency             = *GenData(Graph_export_frequency)
+*format "%10.5e"
 SpecimenHeight                   = *GenData(Specimen_height)
 *format "%10.5e"
 SpecimenWidth                    = *GenData(Specimen_width)
