@@ -9,6 +9,7 @@ from numpy import *
 # PRESSURE CALCULATION
 
 
+
 def ApplyPressure(Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat):
 
     for node in XLAT:
@@ -233,3 +234,33 @@ def ApplyLateralPressure(Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alp
         values[2] = cross_section * alpha_lat * Pressure * vect[2] * 0.70710678
 
         node.SetSolutionStepValue(EXTERNAL_APPLIED_FORCE, values)
+
+def MeasureRadialStrain(LAT):
+    
+   mean_radial_strain = 0.0
+   weight = 0.0
+   
+   for node in LAT:
+     
+     r = node.GetSolutionStepValue(RADIUS)
+     x = node.X
+     z = node.Z
+     
+     x0 = node.X0
+     z0 = node.Z0
+     
+     dist_initial = sqrt(x0 * x0 + z0 * z0)
+     dist_now = sqrt(x * x + z * z)
+     
+     node_radial_strain = (dist_now - dist_initial) / dist_initial
+     
+     mean_radial_strain += node_radial_strain*r*r
+     weight += r*r
+   
+   if(weight == 0.0):
+     print ("Error in MeasureRadialStrain. Lateral skin particles not well defined")
+   else:
+     
+    radial_strain = mean_radial_strain/weight
+   
+   return radial_strain
