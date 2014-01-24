@@ -466,7 +466,7 @@ while (time < DEM_parameters.FinalTime):
           total_force_bts += force_node_y
           
         bts_export.write(str(step)+"  "+str(total_force_bts)+'\n')
-        
+        bts_export.flush()
         
       elif (DEM_parameters.ConcreteTestOption != "OFF"):
 
@@ -495,11 +495,14 @@ while (time < DEM_parameters.FinalTime):
         total_stress_mean = 0.5*(total_stress_bot + total_stress_top)
         graph_export_mean.write(str(strain)+"    "+str(total_stress_mean)+'\n')
         
-        sys.stdout.flush()
+        graph_export_top.flush()
+        graph_export_bot.flush()
+        graph_export_mean.flush()
         
         volumetric_strain = strain - 2*radial_strain
         
         graph_export_volumetric.write(str(volumetric_strain)+"    "+str(total_stress_mean)+'\n')
+        graph_export_volumetric.flush()
         
         Pressure = total_stress_mean*1e6
 
@@ -534,7 +537,7 @@ while (time < DEM_parameters.FinalTime):
           if((DEM_parameters.FemPlates == "ON") and (current_heigh <= 0.30)):
             
               graph_export_fem.write(str(strain_fem)+"  "+str(total_stress_fem)+'\n')    
-        
+	      graph_export_fem.flush()
         
         ##################################POISSON##################################
         
