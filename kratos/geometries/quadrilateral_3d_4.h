@@ -427,7 +427,11 @@ public:
      */
     virtual double Length() const
     {
-        return sqrt( fabs( DeterminantOfJacobian( PointType() ) ) );
+		// Old
+        //return sqrt( fabs( DeterminantOfJacobian( PointType() ) ) );
+
+		// New - 24/01/2014 - Massimo Petracca
+		return 2.0 * std::sqrt( Area() );
     }
 
     /** This method calculates and returns area or surface area of
@@ -447,8 +451,65 @@ public:
      */
     virtual double Area() const
     {
-        Vector d = this->Points()[2] - this->Points()[0];
-        return( sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );
+		// Old
+
+        /*Vector d = this->Points()[2] - this->Points()[0];
+        return( sqrt( d[0]*d[0] + d[1]*d[1] + d[2]*d[2] ) );*/
+
+		// New - 24/01/2014 - Massimo Petracca
+		// the following procedure calculates the area of a general
+		// quadrilateral (flat or warped) using the parametric representation
+		// of ruled hyperbolic paraboloid surface.
+		// the integration of the normal is then performed with a 2x2 gauss quadrature
+		// in the U-V domain [0,1].
+		// results explicitly written after symbolic calculation.
+
+		const TPointType& p1 = this->Points()[0];
+		const TPointType& p2 = this->Points()[1];
+		const TPointType& p3 = this->Points()[2];
+		const TPointType& p4 = this->Points()[3];
+
+		double p1x = p1.X();
+		double p1y = p1.Y();
+		double p1z = p1.Z();
+
+		double p2x = p2.X();
+		double p2y = p2.Y();
+		double p2z = p2.Z();
+
+		double p3x = p3.X();
+		double p3y = p3.Y();
+		double p3z = p3.Z();
+
+		double p4x = p4.X();
+		double p4y = p4.Y();
+		double p4z = p4.Z();
+
+		double pos = 0.5 + 0.5 / std::sqrt(3.0);
+		double w = 0.25;
+
+		double C1  = pos*(p1z - p2z + p3z - p4z);
+		double C2  = pos*(p1y - p2y + p3y - p4y);
+		double C3  = pos*(p1x - p2x + p3x - p4x);
+		double C4  = C1 - p1z + p2z;
+		double C5  = C1 + p1z - p2z;
+		double C6  = C2 + p1y - p2y;
+		double C7  = C2 - p1y + p2y;
+		double C8  = C3 - p1x + p2x;
+		double C9  = C3 + p1x - p2x;
+		double C10 = C1 - p1z + p4z;
+		double C11 = C2 - p1y + p4y;
+		double C12 = C3 - p1x + p4x;
+		double C13 = C1 + p1z - p4z;
+		double C14 = C2 + p1y - p4y;
+		double C15 = C3 + p1x - p4x;
+
+		return w * (
+			std::sqrt( std::pow(C4*C11 - C7*C10, 2.0) + std::pow(C4*C12 - C8*C10, 2.0) + std::pow(C7*C12 - C8*C11, 2.0)) + 
+			std::sqrt( std::pow(C5*C11 - C6*C10, 2.0) + std::pow(C5*C12 - C9*C10, 2.0) + std::pow(C6*C12 - C9*C11, 2.0)) + 
+			std::sqrt( std::pow(C4*C14 - C7*C13, 2.0) + std::pow(C4*C15 - C8*C13, 2.0) + std::pow(C7*C15 - C8*C14, 2.0)) + 
+			std::sqrt( std::pow(C5*C14 - C6*C13, 2.0) + std::pow(C5*C15 - C9*C13, 2.0) + std::pow(C6*C15 - C9*C14, 2.0))
+			);
     }
 
     /** This method calculates and returns length, area or volume of
@@ -467,25 +528,36 @@ public:
      */
     virtual double DomainSize() const
     {
-        return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+		// Old
+
+        //return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
+
+		// New - 24/01/2014 - Massimo Petracca
+
+		return Area();
     }
 
 
     virtual double Volume() const
     {
+		// Old
 
-        Vector temp;
-        DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double Volume = 0.00;
+        //Vector temp;
+        //DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
+        //const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
+        //double Volume = 0.00;
 
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-            Volume += temp[i] * integration_points[i].Weight();
-        }
+        //for ( unsigned int i = 0; i < integration_points.size(); i++ )
+        //{
+        //    Volume += temp[i] * integration_points[i].Weight();
+        //}
 
-        //KRATOS_WATCH(temp)
-        return Volume;
+        ////KRATOS_WATCH(temp)
+        //return Volume;
+
+		// New - 24/01/2014 - Massimo Petracca
+
+		return Area();
     }
 
 
@@ -1133,7 +1205,7 @@ public:
      */
     virtual std::string Info() const
     {
-        return "2 dimensional quadrilateral with four nodes in 2D space";
+        return "3 dimensional quadrilateral with four nodes in 3D space";
     }
 
     /**
@@ -1144,7 +1216,7 @@ public:
      */
     virtual void PrintInfo( std::ostream& rOStream ) const
     {
-        rOStream << "2 dimensional quadrilateral with four nodes in 2D space";
+        rOStream << "3 dimensional quadrilateral with four nodes in 3D space";
     }
 
     /**
