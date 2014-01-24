@@ -12,6 +12,7 @@
 #
 #    HISTORY:
 #
+#     0.5- 24/01/14-G. Socorro, add the option for the case of stationary problem
 #     0.4- 14/11/13-G. Socorro, modify the proc WriteConvectionDiffusionPropertyAtNodes and WriteConvectionDiffusionProjectParameters
 #     0.3- 10/11/13-G. Socorro, add the proc CDWriteDefaultProperties,GetPropertyIdForFaceHeatFluxBC, GetPropertyDataFromFaceHeatFluxBC and WriteConvectionDiffusionPrescribedFaceHeatFluxBC
 #     0.2- 27/09/13-G. Socorro, create some new proc GetConvectionDiffusionMaterialProperties,WriteConvectionDiffusionPrescribedHeatFluxBC
@@ -126,7 +127,7 @@ proc ::wkcf::GetPropertyDataFromFaceHeatFluxBC {AppId} {
     # For debug
     if {!$::wkcf::pflag} {
 	set endtime [clock seconds]
-	set ttime [expr $endtime-$inittime]
+	set ttime [expr {$endtime-$inittime}]
 	# WarnWinText "endtime:$endtime ttime:$ttime"
 	WarnWinText "Get the mapping between property and face heat flux boundary condition: [::KUtils::Duration $ttime]"
     }
@@ -257,7 +258,7 @@ proc ::wkcf::WriteConvectionDiffusionPropertyAtNodes {AppId} {
     # For debug
     if {!$::wkcf::pflag} {
 	set endtime [clock seconds]
-	set ttime [expr $endtime-$inittime]
+	set ttime [expr {$endtime-$inittime}]
 	# WarnWinText "endtime:$endtime ttime:$ttime"
 	WarnWinText "Write property at nodes: [::KUtils::Duration $ttime]"
     }
@@ -411,6 +412,16 @@ proc ::wkcf::WriteConvectionDiffusionProjectParameters {AppId fileid PDir} {
     }
     puts $fileid ""
 
+    # Solution type
+    set cxpath "$rootid//c.AnalysisData//i.SolutionType"
+    set SolutionType [::xmlutils::setXml $cxpath $cproperty]
+    if {$SolutionType eq "Static"} {
+	puts $fileid "Stationary=True"
+    } else {
+	puts $fileid "Stationary=False"
+    }
+    puts $fileid ""
+    
     puts $fileid "class SolverSettings1:"
     puts $fileid "    solver_type = \"convection_diffusion_solver\""
     puts $fileid "    domain_size= $domain_size"
@@ -510,23 +521,30 @@ proc ::wkcf::WriteConvectionDiffusionProjectParameters {AppId fileid PDir} {
     puts $fileid ""
 
     puts $fileid "AutomaticDeltaTime = \"Fixed\""
-    # Start time
-    set cxpath "$rootid//c.SolutionStrategy//c.ProblemParameters//i.StartTime"
-    set StartTime [::xmlutils::setXml $cxpath $cproperty]
-    # End time
-    set cxpath "$rootid//c.SolutionStrategy//c.ProblemParameters//i.EndTime"
-    set EndTime [::xmlutils::setXml $cxpath $cproperty]
-    # Delta time
-    set cxpath "$rootid//c.SolutionStrategy//c.ProblemParameters//i.DeltaTime"
-    set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
     
-     # WarnWinText "StartTime:$StartTime EndTime:$EndTime DeltaTime:$DeltaTime"
+    set StartTime 0.0
+    set EndTime 1.0
+    set DeltaTime 0.001
+    set nsteps 1000
+    if {$SolutionType eq "Dynamic"} {
+	# Start time
+	set cxpath "$rootid//c.SolutionStrategy//c.ProblemParameters//i.StartTime"
+	set StartTime [::xmlutils::setXml $cxpath $cproperty]
+	# End time
+	set cxpath "$rootid//c.SolutionStrategy//c.ProblemParameters//i.EndTime"
+	set EndTime [::xmlutils::setXml $cxpath $cproperty]
+	# Delta time
+	set cxpath "$rootid//c.SolutionStrategy//c.ProblemParameters//i.DeltaTime"
+	set DeltaTime [::xmlutils::setXml $cxpath $cproperty]
+	set nsteps [expr {int(double($EndTime-$StartTime)/double($DeltaTime))}]
+    }
+    
+    # WarnWinText "StartTime:$StartTime EndTime:$EndTime DeltaTime:$DeltaTime"
     puts $fileid "Dt = $DeltaTime"
     puts $fileid "Start_time = $StartTime"
     puts $fileid "max_time = $EndTime"
-    set nsteps [expr int(double($EndTime-$StartTime)/double($DeltaTime))]
     puts $fileid "nsteps = $nsteps"
-    
+	
     puts $fileid ""
 
     puts $fileid "#output settings"
@@ -535,7 +553,7 @@ proc ::wkcf::WriteConvectionDiffusionProjectParameters {AppId fileid PDir} {
     set OutputDeltaTime [::xmlutils::setXml $cxpath $cproperty]
     puts $fileid "output_time = $OutputDeltaTime"
     # WarnWinText "OutputDeltaTime:$OutputDeltaTime"
-    set output_step [expr int($OutputDeltaTime/double($DeltaTime))]
+    set output_step [expr {int($OutputDeltaTime/double($DeltaTime))}]
     # WarnWinText "output_step:$output_step"
     puts $fileid "output_step = $output_step"
     # Volumen Output
