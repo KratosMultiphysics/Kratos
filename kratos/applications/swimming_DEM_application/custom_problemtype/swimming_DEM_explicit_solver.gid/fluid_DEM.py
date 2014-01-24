@@ -82,9 +82,10 @@ def ApplyEmbeddedBCsToFluid(model_part):
                     bz = node.GetSolutionStepValue(BODY_FORCE_Z)
                     mod_bf = sqrt(bx * bx + by * by + bz * bz)
                     if (mod_bf > 0.0):
-                        normalized_bf_x = bx / mod_bf
-                        normalized_bf_y = by / mod_bf
-                        normalized_bf_z = bz / mod_bf
+                        inv_mod_bf = 1 / mod_bf
+                        normalized_bf_x = bx * inv_mod_bf
+                        normalized_bf_y = by * inv_mod_bf
+                        normalized_bf_z = bz * inv_mod_bf
                     outlet_density = node.GetSolutionStepValue(DENSITY)
                     break
 
@@ -165,18 +166,19 @@ def MoveEmbeddedStructure(model_part, time):
             
             new_axes1 = [0.0,0.0,0.0]
             sin_ang = sin(ang)
-            new_axes1[0] = uu*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + xx*cos(ang) + (-ww*yy+vv*zz)*sin_ang
-            new_axes1[1] = vv*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + yy*cos(ang) + (ww*xx-uu*zz)*sin_ang
-            new_axes1[2] = ww*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + zz*cos(ang) + (-vv*xx+uu*yy)*sin_ang
+            cos_ang = cos(ang)
+            new_axes1[0] = uu*(uu*xx+vv*yy+ww*zz)*(1-cos_ang) + xx*cos_ang + (-ww*yy+vv*zz)*sin_ang
+            new_axes1[1] = vv*(uu*xx+vv*yy+ww*zz)*(1-cos_ang) + yy*cos_ang + (ww*xx-uu*zz)*sin_ang
+            new_axes1[2] = ww*(uu*xx+vv*yy+ww*zz)*(1-cos_ang) + zz*cos_ang + (-vv*xx+uu*yy)*sin_ang
             
             xx=0.0
             yy=1.0
             zz=0.0
             
             new_axes2 = [0.0,0.0,0.0]
-            new_axes2[0] = uu*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + xx*cos(ang) + (-ww*yy+vv*zz)*sin_ang
-            new_axes2[1] = vv*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + yy*cos(ang) + (ww*xx-uu*zz)*sin_ang
-            new_axes2[2] = ww*(uu*xx+vv*yy+ww*zz)*(1-cos(ang)) + zz*cos(ang) + (-vv*xx+uu*yy)*sin_ang
+            new_axes2[0] = uu*(uu*xx+vv*yy+ww*zz)*(1-cos_ang) + xx*cos_ang + (-ww*yy+vv*zz)*sin_ang
+            new_axes2[1] = vv*(uu*xx+vv*yy+ww*zz)*(1-cos_ang) + yy*cos_ang + (ww*xx-uu*zz)*sin_ang
+            new_axes2[2] = ww*(uu*xx+vv*yy+ww*zz)*(1-cos_ang) + zz*cos_ang + (-vv*xx+uu*yy)*sin_ang
             
             new_axes3 = [new_axes1[1]*new_axes2[2] - new_axes1[2]*new_axes2[1] , new_axes1[2]*new_axes2[0] - new_axes1[0]*new_axes2[2] , new_axes1[0]*new_axes2[1] - new_axes1[1]*new_axes2[0]]
             
