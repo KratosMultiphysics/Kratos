@@ -307,6 +307,9 @@ DEPENDENCIES: (UCS,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#,RESTORE,Specimen_height
 DEPENDENCIES: (TRIAXIAL,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#,RESTORE,Measuring_Surface,#CURRENT#,RESTORE,Poisson_Measure,#CURRENT#,RESTORE,Measuring_Width,#CURRENT#,RESTORE,Confinement_Pressure,#CURRENT#)
 DEPENDENCIES: (OEDOMETRIC,RESTORE,RADIAL_DISPLACEMENT,#CURRENT#,RESTORE,Specimen_height,#CURRENT#,RESTORE,Specimen_width,#CURRENT#,HIDE,Confinement_Pressure,0.0,RESTORE,Measuring_Surface,#CURRENT#,HIDE,Poisson_Measure,#CURRENT#,HIDE,Measuring_Width,#CURRENT#)
 DEPENDENCIES: (BTS,HIDE,Confinement_Pressure,#CURRENT#,HIDE,RADIAL_DISPLACEMENT,#CURRENT#,HIDE,Specimen_height,#CURRENT#,HIDE,Specimen_width,#CURRENT#,HIDE,Measuring_Surface,#CURRENT#,HIDE,Poisson_Measure,#CURRENT#,HIDE,Measuring_Width,#CURRENT#,HIDE,Real_Time_Graph,#CURRENT#) 
+QUESTION: Graph_export_frequency
+VALUE: 0.1
+HELP: in seconds of the simulation
 QUESTION: Use_FEM_Plate#CB#(ON,OFF)
 VALUE: OFF
 QUESTION: Specimen_height
