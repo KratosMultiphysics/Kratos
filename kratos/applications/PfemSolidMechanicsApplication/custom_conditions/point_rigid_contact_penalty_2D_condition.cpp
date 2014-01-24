@@ -270,7 +270,9 @@ namespace Kratos
 	 zero_force = 0;
 
        if ( mTangentialVariables.Slip ) {
-	 rLeftHandSideMatrix += zero_force * mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * outer_prod_2(rVariables.Surface.Normal, rVariables.Surface.Tangent);
+	 rLeftHandSideMatrix += zero_force * mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * outer_prod_2(rVariables.Surface.Tangent, rVariables.Surface.Normal);
+
+	 rLeftHandSideMatrix += zero_force * mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rVariables.Gap.Normal * rIntegrationWeight * outer_prod_2(rVariables.Surface.Normal, rVariables.Surface.Normal);
 
 	 //std::cout<<" Ktangent 1 "<<zero_force * mTangentialVariables.Sign * mTangentialVariables.FrictionCoefficient * rVariables.Penalty.Normal * rIntegrationWeight * outer_prod_2(rVariables.Surface.Tangent, rVariables.Surface.Normal)<<std::endl; 
        }
