@@ -340,8 +340,10 @@ SUPGConvDiffPhaseChange3D::~SUPGConvDiffPhaseChange3D() {
 	      double mid_T = 0.5*(solid_T + fluid_T);
 	      double aux_denom = TT - mid_T;
 	      if(fabs(aux_denom) < 1e-6)
+	      {
 		if(aux_denom >= 0) aux_denom = 1e-6;
 		else aux_denom = -1e-6;
+	      }
 // 	      if(aux_denom < 1e-6) aux_denom = 1e-6;
 	      tangent_DF_DT = (nd_FF - nd_FF_old)/aux_denom;
 	      
