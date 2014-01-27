@@ -2142,6 +2142,8 @@ protected:
                ReadMeshElementsBlock(rModelPart, mesh);
             else if(word == "MeshConditions")
                ReadMeshConditionsBlock(rModelPart, mesh);
+	    else if(word == "MeshProperties")
+	       ReadMeshPropertiesBlock(rModelPart, mesh);
             else
                SkipBlock(word);
         }
@@ -2219,6 +2221,93 @@ protected:
         }
 
         rMesh.Conditions().Sort();
+        KRATOS_CATCH("")
+    }
+    
+    void ReadMeshPropertiesBlock(ModelPart& rModelPart, MeshType& rMesh)
+    {
+        KRATOS_TRY
+
+        Properties temp_properties;
+
+        std::string word;
+        std::string variable_name;
+
+        SizeType temp_properties_id;
+
+        ReadWord(word);
+        ExtractValue(word, temp_properties_id);
+        temp_properties.SetId(temp_properties_id);
+
+
+        while(!mInput.eof())
+        {
+            ReadWord(variable_name);
+            if(CheckEndBlock("MeshProperties", variable_name))
+                break;
+
+	    if(KratosComponents<Variable<std::string> >::Has(variable_name))
+            {
+                std::string value;
+		        std::string  temp;
+
+                ReadWord(value); // reading value
+                ExtractValue(value,temp);
+                temp_properties[KratosComponents<Variable<std::string> >::Get(variable_name)] = temp;
+            }
+	    else if(KratosComponents<Variable<double> >::Has(variable_name))
+            {
+                std::string value;
+                double temp;
+
+                ReadWord(value); // reading value
+                ExtractValue(value,temp);
+                temp_properties[KratosComponents<Variable<double> >::Get(variable_name)] = temp;
+            }
+            else if(KratosComponents<Variable<int> >::Has(variable_name))
+            {
+                std::string value;
+                int temp;
+
+                ReadWord(value); // reading value
+                ExtractValue(value,temp);
+                temp_properties[KratosComponents<Variable<int> >::Get(variable_name)] = temp;
+            }
+            else if(KratosComponents<Variable<bool> >::Has(variable_name))
+            {
+                std::string value;
+                bool temp;
+
+                ReadWord(value); // reading value
+                ExtractValue(value,temp);
+                temp_properties[KratosComponents<Variable<bool> >::Get(variable_name)] = temp;
+            }
+            else if(KratosComponents<Variable<array_1d<double, 3> > >::Has(variable_name))
+            {
+                Vector temp_vector; // defining a Vector because for array_1d the operator >> is not defined yet!
+                ReadVectorialValue(temp_vector);
+                temp_properties[KratosComponents<Variable<array_1d<double,3> > >::Get(variable_name)] = temp_vector;
+            }
+            else if(KratosComponents<Variable<Vector> >::Has(variable_name))
+            {
+                ReadVectorialValue(temp_properties[KratosComponents<Variable<Vector> >::Get(variable_name)]);
+            }
+            else if(KratosComponents<Variable<Matrix> >::Has(variable_name))
+            {
+                ReadVectorialValue(temp_properties[KratosComponents<Variable<Matrix> >::Get(variable_name)]);
+            }
+            else
+            {
+                std::stringstream buffer;
+                buffer << variable_name << " is not a valid variable!!!" << std::endl;
+                buffer << " [Line " << mNumberOfLines << " ]";
+                KRATOS_ERROR(std::invalid_argument, buffer.str(), "");
+            }
+
+        }
+
+        rMesh.Properties().push_back(temp_properties);
+
         KRATOS_CATCH("")
     }
 
