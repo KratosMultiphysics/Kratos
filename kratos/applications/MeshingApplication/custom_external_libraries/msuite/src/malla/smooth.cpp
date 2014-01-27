@@ -23,7 +23,7 @@ bool malla::smooth_surface()
     int i,j,k,l,nc,ivuela,iqueda,ilast,ie,ie1,ie2,ixq,ixv,count=0;
     int in,in1,in2,ivk,iek,nci,ncj,jmax=-1,iv1,iv2,nv;
     double hm,vm,h21,h22,c,cmin,cmax;
-    bool nohacerlo, inversion, unohecho=true, retval=false;
+    bool nohacerlo, unohecho=true, retval=false;
     elemento e3(e_triangulo);
     cpline vec3(3);
     vec3.len=3;
@@ -222,13 +222,13 @@ bool malla::smooth_surface()
             for (j=0; j<env.len; j++) e[env[j]].replace(ivuela,iqueda);
             enq+=env;
             // recalcula esferas
-            inversion=false;
+            //bool inversion=false;
             for (j=0; j<enq.len; j++)
             {
                 ie=enq[j];
                 punto olddir=dir[ie];
                 esfera_e(ie,ce[ie],re[ie],ve[ie],&dir[ie]);
-                if (olddir*dir[ie]<0) inversion=true; // se invirtio un elemento
+                //if (olddir*dir[ie]<0) inversion=true; // se invirtio un elemento
             }
             // recalcula nn
             cpline &nnq=nn[iqueda];

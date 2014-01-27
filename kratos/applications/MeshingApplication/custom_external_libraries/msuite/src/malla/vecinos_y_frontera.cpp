@@ -251,7 +251,7 @@ bool malla::mk_frontera(bool remake)
     n[i].f.set(flag1);
     lastfound=i;
     double maxx=n[i][0],lastmax=n[i][0];
-    int imax=i; // punto de maximo x
+    //int imax=i; // punto de maximo x
     // puede haber piezas sueltas, tangentes, elementos contra dos fronteras, etc. (alpha)
     while (npuesto)
     {
@@ -289,7 +289,7 @@ bool malla::mk_frontera(bool remake)
                             npuesto+=inc;
                             nf+=inc;
                             n[inc].f.set(flag1);
-                            if (set_max(maxx,n[inc][0])) imax=inc;
+                            //if (set_max(maxx,n[inc][0])) imax=inc;
                         }
                     }
                     if (!tienealnodo||!menor) continue;
