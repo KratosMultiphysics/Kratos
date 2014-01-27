@@ -1,3 +1,50 @@
+/*
+==============================================================================
+Kratos
+A General Purpose Software for Multi-Physics Finite Element Analysis
+Version 1.0 (Released on march 05, 2007).
+
+Copyright 2007
+Pooyan Dadvand, Riccardo Rossi
+pooyan@cimne.upc.edu
+rrossi@cimne.upc.edu
+CIMNE (International Center for Numerical Methods in Engineering),
+Gran Capita' s/n, 08034 Barcelona, Spain
+
+Permission is hereby granted, free  of charge, to any person obtaining
+a  copy  of this  software  and  associated  documentation files  (the
+"Software"), to  deal in  the Software without  restriction, including
+without limitation  the rights to  use, copy, modify,  merge, publish,
+distribute,  sublicense and/or  sell copies  of the  Software,  and to
+permit persons to whom the Software  is furnished to do so, subject to
+the following condition:
+
+Distribution of this code for  any  commercial purpose  is permissible
+ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
+
+The  above  copyright  notice  and  this permission  notice  shall  be
+included in all copies or substantial portions of the Software.
+
+THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
+CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
+TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+==============================================================================
+ */
+
+//
+//   Project Name:        Kratos
+//   Last Modified by:    $Author: jcotela $
+//   Date:                $Date: 2010-10-09 10:34:00 $
+//   Revision:            $Revision: 0.1 $
+//
+//
+
+
 #ifndef MONOLITHIC_DEM_COUPLED_H
 #define MONOLITHIC_DEM_COUPLED_H
 
@@ -1310,8 +1357,7 @@ protected:
 
         // Build the local matrix and RHS
         unsigned int FirstRow(0), FirstCol(0); // position of the first term of the local matrix that corresponds to each node combination
-        double K, G, L, qF; // Temporary results
-        //double PDivV
+        double K, G, PDivV, L, qF; // Temporary results
 
         array_1d<double,3> BodyForce(3,0.0);
         this->EvaluateInPoint(BodyForce, BODY_FORCE,rShapeFunc);
@@ -1357,12 +1403,13 @@ protected:
 
                     // v * Grad(p) block
                     G = TauOne * Density * AGradN[i] * rShapeDeriv(j, m); // Stabilization: (a * Grad(v)) * TauOne * Grad(p)
-                    //PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
+
+                    PDivV = rShapeDeriv(i, m) * rShapeFunc[j]; // Div(v) * p
 //G
-                    DivPEpsilon = FluidFraction * rShapeDeriv(i, m) * rShapeFunc[j] + FluidFractionGradient[m] * rShapeFunc[i] * rShapeFunc[j]; // Div(v) * p
+                    DivPEpsilon = FluidFraction * rShapeDeriv(i, m) * rShapeFunc[j] + FluidFractionGradient[m] * rShapeFunc[i] * rShapeFunc[j]; // eps * q * Div(v) + q * Grad(eps) * u
 
                     // Write v * Grad(p) component
-                    rDampMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - DivPEpsilon);
+                    rDampMatrix(FirstRow + m, FirstCol + TDim) += Weight * (G - PDivV);
                     // Use symmetry to write the q * Div(u) component
                     rDampMatrix(FirstCol + TDim, FirstRow + m) += Weight * (G + DivPEpsilon);
 //Z
@@ -1372,7 +1419,10 @@ protected:
                     for (unsigned int n = 0; n < TDim; ++n) // iterate over u components (ux,uy[,uz])
                     {
                         // Velocity block
-                        rDampMatrix(FirstRow + m, FirstCol + n) += Weight * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
+              //G
+                        //rDampMatrix(FirstRow + m, FirstCol + n) += Weight * TauTwo * rShapeDeriv(i, m) * rShapeDeriv(j, n); // Stabilization: Div(v) * TauTwo * Div(u)
+                        rDampMatrix(FirstRow + m, FirstCol + n) +=  Weight * TauTwo * (FluidFraction * rShapeDeriv(i, m) * + FluidFractionGradient[m] * rShapeFunc[i]) * (FluidFraction * rShapeDeriv(j, n) * + FluidFractionGradient[n] * rShapeFunc[j]); // Stabilization: (eps * Div(v) + Grad(eps) * v)* TauTwo * (eps * Div(u) + Grad(eps) * u)
+              //Z
                     }
 
                 }
