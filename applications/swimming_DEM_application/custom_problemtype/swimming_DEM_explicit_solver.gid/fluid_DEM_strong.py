@@ -19,9 +19,12 @@ import math
 
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.StructuralApplication import *
 import DEM_explicit_solver_var as DEMParameters
 import DEM_procedures
 import swimming_DEM_procedures
+import embedded
 
 # PROJECT PARAMETERS (to be put in problem type)
 ProjectParameters.projection_module_option         = 1
@@ -80,6 +83,7 @@ ProjectParameters.nodal_results.append("SOLID_FRACTION_GRADIENT")
 ProjectParameters.nodal_results.append("MESH_VELOCITY1")
 ProjectParameters.nodal_results.append("BODY_FORCE")
 ProjectParameters.nodal_results.append("DRAG_REACTION")
+ProjectParameters.nodal_results.append("DISTANCE") # embedded
 
 DEMParameters.project_from_particles_option *= ProjectParameters.projection_module_option
 ProjectParameters.project_at_every_substep_option *= ProjectParameters.projection_module_option
@@ -88,6 +92,7 @@ if (ProjectParameters.flow_in_porous_medium_option):
     ProjectParameters.coupling_weighing_type = - 1 # the solid fraction is not projected from DEM (there may not be a DEM part) but externally imposed
 
 ProjectParameters.time_steps_per_stationarity_step = max(1, int(ProjectParameters.time_steps_per_stationarity_step)) # it should never be smaller than 1!
+ProjectParameters.stationary_problem_option *= not DEMParameters.project_from_particles_option
 
 for var in ProjectParameters.mixed_nodal_results:
 
@@ -247,6 +252,12 @@ balls_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, ProjectParameters.initial
 balls_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, ProjectParameters.drag_law_slope)
 balls_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, ProjectParameters.power_law_tol)
 
+# creating a distance calculation process for the embedded technology
+# (used to calculate elemental distances defining the structure embedded in the fluid mesh)
+#calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part, fluid_model_part)
+calculate_DEM_distance_process = CalculateSignedDistanceTo3DSkinProcess(balls_model_part, fluid_model_part)
+#calculate_distance_process.Execute()
+
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
 
@@ -317,7 +328,8 @@ if not ProjectParameters.VolumeOutput:
 
 # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 import swimming_DEM_gid_output
-swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(input_file_name,
+swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(
+                                                                   input_file_name,
                                                                    ProjectParameters.VolumeOutput,
                                                                    ProjectParameters.GiDPostMode,
                                                                    ProjectParameters.GiDMultiFileFlag,
@@ -510,6 +522,16 @@ while(time <= final_time):
 
     else:
         time_final_DEM_substepping = time
+
+    embedded.MoveEmbeddedStructure(fem_dem_model_part, time)
+    # Calculate elemental distances defining the structure embedded in the fluid mesh
+    #calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part, fluid_model_part)
+    #calculate_distance_process.Execute()
+    calculate_DEM_distance_process.Execute()
+
+    if(step >= 3):  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
+        embedded.ApplyEmbeddedBCsToFluid(fluid_model_part)
+        embedded.ApplyEmbeddedBCsToBalls(balls_model_part)
 
     # solving the fluid part
 
