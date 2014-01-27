@@ -755,8 +755,8 @@ bool malla::graba_key(const char *arch)
     // facu pone h despues pero no esta bien con el estandar
     f << "*NODE\n"
       << "$#   nid               x               y               z               h\n";
-    char num[17];
-    num[16]=0;
+    //char num[17];
+    //num[16]=0;
     if (hayh) for (i=0; i<n.len; i++)
             f << setw(8) << i+1
               << setprecision(8) << setw(16) << n[i][0] // e-001 ????

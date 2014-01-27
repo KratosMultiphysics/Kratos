@@ -283,7 +283,7 @@ bool malla::lee_dat(_NE)
     // formato en que vienen los nodos
     _gettoken;
     sscanf(token,"%d",&qn); // cantidad de nodos
-    bool hayn=false,hayz=false,/*hayh=false,*/hayf=false; // hayh y hayv de malla
+    bool hayn=false/*hayz=false,hayh=false,hayf=false*/; // hayh y hayv de malla
     hayh=hayv=false;
     int numbase=1; //default
     pline tdat(8);
@@ -305,7 +305,7 @@ bool malla::lee_dat(_NE)
         }
         if (!strcmp(token,"xyz"))
         {
-            hayz=true;
+	  //hayz=true;
             tdat+=1;
             tdat+=2;
             tdat+=3;
@@ -323,7 +323,7 @@ bool malla::lee_dat(_NE)
         }
         if (*token=='z')
         {
-            hayz=true;
+	  //hayz=true;
             tdat+=3;
             continue;
         }
@@ -335,7 +335,7 @@ bool malla::lee_dat(_NE)
         }
         if (*token=='f')
         {
-            hayf=true;
+	  //hayf=true;
             tdat+=5;
             continue;
         }
@@ -502,7 +502,7 @@ bool malla::lee_msh(_NE)
     if (!abre(arch,ext,false)&&!abre(arch,ext,true)) return false;
     _initime;
     char stipo[20];
-    int i,j,dim,nv=-1;
+    int i,j,/*dim,*/nv=-1;
     double coord;
     punto pt;
 
@@ -523,7 +523,7 @@ bool malla::lee_msh(_NE)
                 {
                     _nexttoken;
                     if (token[0]=='=') _nexttoken;
-                    dim=atoi(token);
+                    //dim=atoi(token);
                 }
                 else if (!strcmp("elemtype",token))
                 {
