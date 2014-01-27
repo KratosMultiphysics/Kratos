@@ -812,7 +812,7 @@ namespace Kratos
         KRATOS_TRY
 		ElementsArrayType& pElements           = mpDem_model_part->GetCommunicator().LocalMesh().Elements();	
 		ConditionsArrayType& pTContitions      = mpFem_model_part->GetCommunicator().LocalMesh().Conditions(); 
-        ProcessInfo& rCurrentProcessInfo      = mpDem_model_part->GetProcessInfo();
+		//ProcessInfo& rCurrentProcessInfo      = mpDem_model_part->GetProcessInfo();
 		
 		if(pTContitions.size() > 0)
 		{
