@@ -73,13 +73,13 @@ public:
 	/// @param: RotationAxis: 1 for x, 2 for y, 3 for z axis
 	/// @param: GravityDirection: array of 3 components of the gravity direction
     TiltPouringProcess(ModelPart& rModelPart, double InitialAngle, double EndTime, Point<3> const& RotationPoint, int RotationAxis, array_1d<double,3> const& Gravity) 
-		: mrModelPart(rModelPart) , mInitialAngle(InitialAngle), mEndTime(EndTime), mRotationPoint(RotationPoint), mRotationAxis(RotationAxis), mGravity(Gravity)
+		: mrModelPart(rModelPart) , mInitialAngle(InitialAngle), mEndTime(EndTime), mRotationPoint(RotationPoint), mRotationAxis(RotationAxis), mGravity(Gravity), mOldRotationMatrix(IdentityMatrix(3))
     {
     }
 
     /// Copy constructor.
     TiltPouringProcess(TiltPouringProcess const& rOther)
-		: mrModelPart(rOther.mrModelPart) , mInitialAngle(rOther.mInitialAngle), mEndTime(rOther.mEndTime), mRotationPoint(rOther.mRotationPoint), mRotationAxis(rOther.mRotationAxis), mGravity(rOther.mGravity)
+		: mrModelPart(rOther.mrModelPart) , mInitialAngle(rOther.mInitialAngle), mEndTime(rOther.mEndTime), mRotationPoint(rOther.mRotationPoint), mRotationAxis(rOther.mRotationAxis), mGravity(rOther.mGravity), mOldRotationMatrix(rOther.mOldRotationMatrix)
     {
     }
 
@@ -129,11 +129,13 @@ public:
 			if (i_node->Is(INLET))
 			{
 				array_1d<double,3>& velocity = i_node->GetSolutionStepValue(VELOCITY);
-				array_1d<double,3> new_velocity = prod(rotation_matrix, velocity);
+				array_1d<double,3> reference_velocity = prod(trans(mOldRotationMatrix), velocity);
+				array_1d<double,3> new_velocity = prod(rotation_matrix, reference_velocity);
 				velocity = new_velocity;
 			}
 
         }
+		mOldRotationMatrix = rotation_matrix;
 
 	}
  
@@ -240,6 +242,7 @@ private:
 	Point<3> mRotationPoint;
 	int mRotationAxis;
 	array_1d<double,3> mGravity;
+	Matrix mOldRotationMatrix;
 
     ///@}
     ///@name Private Operators
