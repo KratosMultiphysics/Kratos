@@ -25,7 +25,6 @@ import swimming_DEM_procedures
 
 # EMBEDDED:
 from KratosMultiphysics.SolidMechanicsApplication import *
-from KratosMultiphysics.StructuralApplication import *
 
 
 def ApplyEmbeddedBCsToFluid(model_part):
@@ -135,16 +134,24 @@ def MoveEmbeddedStructure(model_part, time):
             angular_velocity = model_part.Properties[mesh_number][ANGULAR_VELOCITY]
             angular_period = model_part.Properties[mesh_number][ANGULAR_VELOCITY_PERIOD]
             initial_center = model_part.Properties[mesh_number][ROTATION_CENTER]
+            center_position = [0.0,0.0,0.0]
 
             if (linear_period > 0.0):
                 linear_omega = 2 * math.pi / linear_period
-                center_position = initial_center + linear_velocity / linear_omega * sin(linear_omega * time)
+                center_position[0] = initial_center[0] + linear_velocity[0] / linear_omega * sin(linear_omega * time)
+                center_position[1] = initial_center[1] + linear_velocity[1] / linear_omega * sin(linear_omega * time)
+                center_position[2] = initial_center[2] + linear_velocity[2] / linear_omega * sin(linear_omega * time)
             else:
-                center_position = initial_center + time * linear_velocity
+                center_position[0] = initial_center[0] + time * linear_velocity[0]
+                center_position[1] = initial_center[1] + time * linear_velocity[1]
+                center_position[2] = initial_center[2] + time * linear_velocity[2]
 
+            angle = [0.0,0.0,0.0]    
             if (angular_period > 0.0):
                 angular_omega = 2 * math.pi / angular_period
-                angle = angular_velocity / angular_omega * sin(angular_omega * time)
+                angle[0] = angular_velocity[0] / angular_omega * sin(angular_omega * time)
+                angle[1] = angular_velocity[1] / angular_omega * sin(angular_omega * time)
+                angle[2] = angular_velocity[2] / angular_omega * sin(angular_omega * time)
             else:
                 angle = time * angular_velocity
             
@@ -202,6 +209,7 @@ def MoveEmbeddedStructure(model_part, time):
                                             relative_position[0]*angular_velocity[1] - relative_position[1]*angular_velocity[0]]
                 
                 #NEW VELOCITY
+                total_vel = [0.0,0.0,0.0]
                 total_vel[0] = linear_velocity[0] + velocity_due_to_rotation[0]
                 total_vel[1] = linear_velocity[1] + velocity_due_to_rotation[1]
                 total_vel[2] = linear_velocity[2] + velocity_due_to_rotation[2]
@@ -267,34 +275,46 @@ for var in ProjectParameters.mixed_nodal_results:
     if var in ProjectParameters.nodal_results:
         ProjectParameters.nodal_results.remove(var)
 
-# extra nodal variables (related to the coupling) to be added to the model parts (memory will be allocated for them)
-fluid_variables_to_add = [PRESSURE_GRADIENT,
-                          AUX_DOUBLE_VAR,
-                          DRAG_REACTION,
-                          SOLID_FRACTION,                          
-                          MESH_VELOCITY1,
-                          YIELD_STRESS,
-                          BINGHAM_SMOOTHER,
-                          POWER_LAW_N,
-                          POWER_LAW_K,
-                          GEL_STRENGTH,
-                          DISTANCE] # <- REQUIRED BY EMBEDDED
+# choosing the variables to be passed as a parameter to the constructor of the
+# ProjectionModule class constructor that are to be filled with the other phase's
+# information through the coupling process
 
-balls_variables_to_add = [FLUID_VEL_PROJECTED,
-                          FLUID_DENSITY_PROJECTED,
-                          PRESSURE_GRAD_PROJECTED,
-                          FLUID_VISCOSITY_PROJECTED,
-                          POWER_LAW_N,
-                          POWER_LAW_K,
-                          DRAG_FORCE,
-                          LIFT_FORCE,
-                          BUOYANCY,
-                          SOLID_FRACTION_PROJECTED,                         
-                          REYNOLDS_NUMBER,
-                          GEL_STRENGTH,
-                          SHEAR_RATE_PROJECTED,
-                          FLUID_VORTICITY_PROJECTED,
-                          DISTANCE] # <- REQUIRED BY EMBEDDED
+fluid_vars_for_coupling = [DRAG_REACTION,
+                           BODY_FORCE,
+                           SOLID_FRACTION,
+                           MESH_VELOCITY1]
+
+balls_vars_for_coupling = [FLUID_VEL_PROJECTED,
+                           FLUID_DENSITY_PROJECTED,
+                           PRESSURE_GRAD_PROJECTED,
+                           FLUID_VISCOSITY_PROJECTED,
+                           SOLID_FRACTION_PROJECTED,
+                           SHEAR_RATE_PROJECTED,
+                           FLUID_VORTICITY_PROJECTED,
+                           POWER_LAW_N,
+                           POWER_LAW_K,
+                           GEL_STRENGTH,
+                           DISTANCE]
+
+# extra nodal variables to be added to the model parts (memory will be allocated for them)
+fluid_variables_to_add = []
+fluid_variables_to_add += fluid_vars_for_coupling
+fluid_variables_to_add += [PRESSURE_GRADIENT,
+                           AUX_DOUBLE_VAR,
+                           YIELD_STRESS,
+                           BINGHAM_SMOOTHER,
+                           POWER_LAW_N,
+                           POWER_LAW_K,
+                           GEL_STRENGTH,
+                           DISTANCE]  # <- REQUIRED BY EMBEDDED
+
+balls_variables_to_add = []
+balls_variables_to_add += balls_vars_for_coupling
+balls_variables_to_add += [DRAG_FORCE,
+                           LIFT_FORCE,
+                           BUOYANCY,
+                           REYNOLDS_NUMBER,
+                           GEL_STRENGTH]
 
 fem_dem_variables_to_add = [VELOCITY,
                             DISPLACEMENT,
@@ -501,12 +521,13 @@ if not ProjectParameters.VolumeOutput:
 
 # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 import swimming_DEM_gid_output
-swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(input_file_name,
-                   ProjectParameters.VolumeOutput,
-                   ProjectParameters.GiDPostMode,
-                   ProjectParameters.GiDMultiFileFlag,
-                   ProjectParameters.GiDWriteMeshFlag,
-                   ProjectParameters.GiDWriteConditionsFlag)
+swimming_DEM_gid_io = swimming_DEM_gid_output.SwimmingDEMGiDOutput(
+                                                                   input_file_name,
+                                                                   ProjectParameters.VolumeOutput,
+                                                                   ProjectParameters.GiDPostMode,
+                                                                   ProjectParameters.GiDMultiFileFlag,
+                                                                   ProjectParameters.GiDWriteMeshFlag,
+                                                                   ProjectParameters.GiDWriteConditionsFlag)
 
 swimming_DEM_gid_io.initialize_swimming_DEM_results(balls_model_part, fem_dem_model_part, mixed_model_part)
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
@@ -581,7 +602,7 @@ fluid_volume = 10
 n_particles_in_depth = int(math.sqrt(n_balls / fluid_volume))
 
 if (ProjectParameters.projection_module_option):
-    projection_module = swimming_DEM_procedures.ProjectionModule(fluid_model_part, balls_model_part, fem_dem_model_part, domain_size, ProjectParameters.max_solid_fraction, ProjectParameters.coupling_weighing_type, n_particles_in_depth)
+    projection_module = swimming_DEM_procedures.ProjectionModule(fluid_model_part, balls_model_part, fem_dem_model_part, domain_size, ProjectParameters.max_solid_fraction, ProjectParameters.coupling_weighing_type, n_particles_in_depth, balls_vars_for_coupling, fluid_vars_for_coupling)
     #to do: the projection module should be created with a list of variables to be projected (one list for every direction)
     projection_module.UpdateDatabase(h_min)
     interaction_calculator = CustomFunctionsCalculator()
