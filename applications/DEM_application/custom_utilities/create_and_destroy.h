@@ -91,12 +91,15 @@ public:
     {
               
       pnew_node = r_modelpart.CreateNewNode(aId, bx, cy, dz, 0.0);
-      pnew_node->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
+      array_1d<double, 3 > null_vector(3,0.0);                                 
+      /*pnew_node->FastGetSolutionStepValue(VELOCITY_X) = 0.0;
       pnew_node->FastGetSolutionStepValue(VELOCITY_Y) = 0.0;
-      pnew_node->FastGetSolutionStepValue(VELOCITY_Z) = 0.0;
+      pnew_node->FastGetSolutionStepValue(VELOCITY_Z) = 0.0;*/
+      pnew_node->FastGetSolutionStepValue(VELOCITY) = null_vector;
+      /*pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X) = 0.0;*/
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY) = null_vector;
       pnew_node->FastGetSolutionStepValue(RADIUS) = 0.05;
       pnew_node->FastGetSolutionStepValue(PARTICLE_DENSITY) = 1000;
       pnew_node->FastGetSolutionStepValue(YOUNG_MODULUS) = 10000;
@@ -137,12 +140,15 @@ public:
       pnew_node->FastGetSolutionStepValue(ROLLING_FRICTION)             = params[ROLLING_FRICTION];
       pnew_node->FastGetSolutionStepValue(PARTICLE_ROTATION_DAMP_RATIO) = params[PARTICLE_ROTATION_DAMP_RATIO];
       pnew_node->FastGetSolutionStepValue(PARTICLE_SPHERICITY)          = params[PARTICLE_SPHERICITY];
-      pnew_node->FastGetSolutionStepValue(VELOCITY_X)                   = params[VELOCITY][0];//*cos(r_modelpart.GetProcessInfo()[TIME] * 2.0 * M_PI /2.0);
-      pnew_node->FastGetSolutionStepValue(VELOCITY_Y)                   = params[VELOCITY][1];
-      pnew_node->FastGetSolutionStepValue(VELOCITY_Z)                   = params[VELOCITY][2];
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X)           = 0.0;
+      //pnew_node->FastGetSolutionStepValue(VELOCITY_X)                   = params[VELOCITY][0];//*cos(r_modelpart.GetProcessInfo()[TIME] * 2.0 * M_PI /2.0);
+      /*pnew_node->FastGetSolutionStepValue(VELOCITY_Y)                   = params[VELOCITY][1];
+      pnew_node->FastGetSolutionStepValue(VELOCITY_Z)                   = params[VELOCITY][2];*/
+      pnew_node->FastGetSolutionStepValue(VELOCITY)                     = params[VELOCITY];
+      array_1d<double, 3 > null_vector(3,0.0);                              
+      /*pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_X)           = 0.0;
       pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_Y)           = 0.0;
-      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_Z)           = 0.0;
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY_Z)           = 0.0;*/
+      pnew_node->FastGetSolutionStepValue(ANGULAR_VELOCITY)             = null_vector;
       
       ///DOFS
       pnew_node->AddDof(DISPLACEMENT_X, REACTION_X);
