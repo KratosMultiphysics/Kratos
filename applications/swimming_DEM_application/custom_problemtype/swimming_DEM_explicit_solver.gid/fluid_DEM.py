@@ -358,6 +358,7 @@ solver_module = import_solver(SolverSettings)
 #
 # importing variables
 print('Adding nodal variables to the fluid_model_part')  # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
+sys.stdout.flush()
 
 # caution with breaking up this block! # (memory allocation) {
 solver_module.AddVariables(fluid_model_part, SolverSettings)
@@ -387,10 +388,12 @@ balls_model_part = ModelPart("SolidPart")
 fem_dem_model_part = ModelPart("RigidFace_Part");
 
 print('Adding nodal variables to the balls_model_part')  # (memory allocation)
+sys.stdout.flush()
 
 swimming_DEM_procedures.AddNodalVariables(balls_model_part, balls_variables_to_add)
 
 print('Adding nodal variables to the dem_fem_wall_model_part')  # (memory allocation)
+sys.stdout.flush()
 
 swimming_DEM_procedures.AddNodalVariables(fem_dem_model_part, fem_dem_variables_to_add)
 
@@ -503,6 +506,7 @@ if(ProjectParameters.FluidSolverConfiguration.TurbulenceModel == "Spalart-Allmar
 
 fluid_solver.Initialize()
 print("fluid solver created")
+sys.stdout.flush()
 
 # initialize GiD  I/O
 from gid_output import GiDOutput
@@ -689,6 +693,7 @@ while(time <= final_time):
     stat_steps += 1
     fluid_model_part.CloneTimeStep(time)
     print("\n", "TIME = ", time)
+    sys.stdout.flush()
 
     if (ProjectParameters.coupling_scheme_type == "UpdatedDEM"):
         time_final_DEM_substepping = time + Dt
@@ -713,12 +718,14 @@ while(time <= final_time):
 
     if (step >= 3 and not stationarity):
         print("Solving Fluid... (", fluid_model_part.NumberOfElements(0), " elements )")
+        sys.stdout.flush()
         fluid_solver.Solve()
 
     # assessing stationarity
 
         if (stat_steps >= ProjectParameters.time_steps_per_stationarity_step and ProjectParameters.stationary_problem_option):
             print("Assessing Stationarity...")
+            sys.stdout.flush()
             stat_steps = 0
             stationarity = interaction_calculator.AssessStationarity(fluid_model_part, ProjectParameters.max_pressure_variation_rate_tol)  # in the first time step the 'old' pressure vector is created and filled
 
@@ -728,6 +735,7 @@ while(time <= final_time):
                 print("The model has reached a stationary state. The fluid calculation is suspended.")
                 print()
                 print("**************************************************************************************************")
+                sys.stdout.flush()
 
     # printing if required
 
@@ -757,6 +765,7 @@ while(time <= final_time):
         interaction_calculator.CalculatePressureGradient(fluid_model_part)
 
     print("Solving DEM... (", balls_model_part.NumberOfElements(0), " elements)")
+    sys.stdout.flush()
     first_dem_iter = True
     Dt_DEM_tolerance = 1e-9
 
@@ -806,6 +815,7 @@ while(time <= final_time):
 
     if (time >= ProjectParameters.interaction_start_time and DEMParameters.project_from_particles_option):
         print("Projecting from particles to the fluid...")
+        sys.stdout.flush()
         projection_module.ProjectFromParticles()
 
     # printing if required
@@ -822,6 +832,7 @@ while(time <= final_time):
 
         print("")
         print("*******************  PRINTING RESULTS FOR GID  ***************************")
+        sys.stdout.flush()
 
         if (ProjectParameters.GiDMultiFileFlag == "Multiples"):
             mixed_model_part.Elements.clear()
@@ -848,6 +859,7 @@ while(time <= final_time):
 swimming_DEM_gid_io.finalize_results()
 
 print("CALCULATIONS FINISHED. THE SIMULATION ENDED SUCCESSFULLY.")
+sys.stdout.flush()
 
 for i in drag_file_output_list:
     i.close()
