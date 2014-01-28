@@ -3,7 +3,7 @@ import time as timer
 import os
 import sys
 import math
-from numpy import *
+#from numpy import *
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
@@ -132,7 +132,7 @@ count_100 = 1
 os.chdir(main_path)
 
 if(mpi.rank == 0):
-  print 'Initializing Problem....'
+  print ("Initializing Problem....")
 
 
 # MPI initialization
@@ -208,7 +208,7 @@ if ((DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOpt
       print ('Initial Height of the Model: ' + str(ini_height) + '\n')
 
       if(DEM_parameters.PredefinedSkinOption == "ON"):
-        print "ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF"
+        print ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
 
       (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area) = proc.CylinderSkinDetermination(balls_model_part, solver, DEM_parameters)  # defines the skin and areas
 
@@ -225,8 +225,8 @@ if ((DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOpt
       alpha_bot = 3.141592 * diameter * diameter * 0.25 / (xbot_area + 0.70710678 * xbotcorner_area)
       alpha_lat = 3.141592 * diameter * height / (xlat_area + 0.70710678 * xtopcorner_area + 0.70710678 * xbotcorner_area)
 
-	  if(mpi.rank == 0):
-          print "Applying Pressure", "\n"
+      if(mpi.rank == 0):
+          print ("Applying Pressure", "\n")
 
       Press.ApplyPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER, alpha_top, alpha_bot, alpha_lat)
       renew_pressure = 0
@@ -238,7 +238,7 @@ if ((DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOpt
 # physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 # properties_list = []
 if(mpi.rank == 0):
-    print 'Initialization Complete' + '\n'
+    print ("Initialization Complete" + "\n")
 
 
 step = 0
@@ -288,7 +288,7 @@ if(DEM_parameters.ConcreteTestOption == "OEDOMETRIC"):
 if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
     (coordination_number) = proc.ModelData(balls_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
-    print ('Coordination Number: ' + str(coordination_number) + '\n')
+    print ("Coordination Number: " + str(coordination_number) + "\n")
     os.chdir(main_path)
 
 
@@ -303,9 +303,9 @@ os.chdir(graphs_path)
 
 if(DEM_parameters.Dempack and (DEM_parameters.ConcreteTestOption != "OFF")):
 
-  print("This chart is only valid for one material case" + '\n')
+  print("This chart is only valid for one material case" + "\n")
 
-  chart.write(("***********PARAMETERS*****************") + '\n')
+  chart.write(("***********PARAMETERS*****************") + "\n")
   chart.write("                                    " + '\n')
   chart.write("    DENSI  = " + (str(w_densi)) + " Kg/m3     " + '\n')
   chart.write("    STAFRC = " + (str(DEM_parameters.InternalFriction)) + "           " + '\n')
@@ -353,9 +353,9 @@ total_steps_expected = int(DEM_parameters.FinalTime / dt)
 
 if(mpi.rank == 0):
 
-    print ('Main loop starts at instant: ' + str(initial_pr_time) + '\n')
+    print ("Main loop starts at instant: " + str(initial_pr_time) + "\n")
 
-    print ('Total number of TIME STEPs expected in the calculation are: ' + str(total_steps_expected) + ' if time step is kept ' + '\n')
+    print ("Total number of TIME STEPs expected in the calculation are: " + str(total_steps_expected) + " if time step is kept " + "\n")
 
 left_nodes = list()
 right_nodes = list()
@@ -436,14 +436,14 @@ while (time < DEM_parameters.FinalTime):
     if ((incremental_time > DEM_parameters.ControlTime) and (mpi.rank == 0)):
         percentage = 100 * (float(step) / total_steps_expected)
 
-        print 'Real time calculation: ' + str(timer.time() - initial_real_time)
-        print 'Percentage Completed: ' + str(percentage) + ' %'
-        print "TIME STEP = " + str(step) + '\n'
+        print ('Real time calculation: ' + str(timer.time() - initial_real_time))
+        print ('Percentage Completed: ' + str(percentage) + ' %')
+        print ("TIME STEP = " + str(step) + '\n')
 
         if(DEM_parameters.ContinuumOption == "ON" and (step >= step_to_fix_velocities) and DEM_parameters.ConcreteTestOption != "OFF" and DEM_parameters.MonitoringOption == "ON"):
             monitoring = PostUtilities().QuasiStaticAdimensionalNumber(balls_model_part, contact_model_part, balls_model_part.ProcessInfo)
-            print "The quasi-static-adimensional-number is:  " + str(monitoring) + '\n'
-            print "The measured stiffness is:  " + str(total_stress / strain / 1e6) + "Mpa" + '\n'
+            print ("The quasi-static-adimensional-number is:  " + str(monitoring) + '\n')
+            print ("The measured stiffness is:  " + str(total_stress / strain / 1e6) + "Mpa" + '\n')
 
         sys.stdout.flush()
 
@@ -492,9 +492,9 @@ while (time < DEM_parameters.FinalTime):
 
             total_force_bts += force_node_y
 
-           total_force_bts_gath   = mpi.gather(mpi.world, total_force_bts, 0)
+          total_force_bts_gath   = mpi.gather(mpi.world, total_force_bts, 0)
   
-           if(mpi.rank == 0):
+          if(mpi.rank == 0):
               total_force_bts = reduce(lambda x,y:x+y, total_force_bts_gath)
     
         elif ( ( step >= step_to_fix_velocities ) and DEM_parameters.ConcreteTestOption != "OFF"):
@@ -520,8 +520,8 @@ while (time < DEM_parameters.FinalTime):
         
                 ini_height2 = subtotal_top/weight_top - subtotal_bot/weight_bot
       
-                print 'Current Height after confinement: ' + str(ini_height2) + '\n'
-                print 'Axial strain due to the confinement: ' + str( 100*(ini_height2-ini_height)/ini_height ) + ' %' +'\n'        
+                print ('Current Height after confinement: ' + str(ini_height2) + '\n')
+                print ('Axial strain due to the confinement: ' + str( 100*(ini_height2-ini_height)/ini_height ) + ' %' +'\n'        )
                 height = ini_height2
        
                 for node in sup_layer_fm:
@@ -534,7 +534,7 @@ while (time < DEM_parameters.FinalTime):
                for vel in velocity_gath:
                   if (vel != 0.0):
                      velocity_node_y = vel              #only if all are the same
-                     print 'velocity for the graph: ' + str(velocity_node_y) + '\n'
+                     print ('velocity for the graph: ' + str(velocity_node_y) + '\n')
                   break        
             first_time_entry = 0
 
@@ -558,7 +558,7 @@ while (time < DEM_parameters.FinalTime):
 
             total_force_bot += force_node_y
 
-		  total_force_bot__gath   = mpi.gather(mpi.world, total_force_bot, 0) 
+          total_force_bot__gath   = mpi.gather(mpi.world, total_force_bot, 0) 
           
           if(mpi.rank == 0):        
             total_force_bot = reduce(lambda x,y:x+y,total_force_bot_gath)  
@@ -789,11 +789,11 @@ elapsed_real_time   = timer.time() - initial_real_time
 
 if(mpi.rank == 0):
 
-  print 'Calculation ends at instant: '                 + str(timer.time())
-  print 'Calculation ends at processing time instant: ' + str(timer.clock())
-  print 'Elapsed processing time: '                     + str(elapsed_pr_time)
-  print 'Elapsed real time: '                           + str(elapsed_real_time)
+  print ('Calculation ends at instant: '                 + str(timer.time()))
+  print ('Calculation ends at processing time instant: ' + str(timer.clock()))
+  print ('Elapsed processing time: '                     + str(elapsed_pr_time))
+  print ('Elapsed real time: '                           + str(elapsed_real_time))
 
   print (my_timer)
 
-  print "ANALYSIS COMPLETED" 
+  print ("ANALYSIS COMPLETED" )
