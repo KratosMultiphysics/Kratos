@@ -422,118 +422,120 @@ while (time < DEM_parameters.FinalTime):
     total_force_bts = 0.0
     total_fem_force = 0.0
 
-    strain += -1.0*loading_velocity*dt/height
+    if( DEM_parameters.ConcreteTestOption != "OFF" )
+    
+      strain += -1.0*loading_velocity*dt/height
         
-    if( DEM_parameters.ConcreteTestOption != "OFF" and (graph_counter == graph_frequency) ):
-      
-      graph_counter = 0
-      
-      if( DEM_parameters.ConcreteTestOption =="BTS"):
-
-        for node in sup_layer_fm:
-
-          force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-
-          total_force_bts += force_node_y
-          
-        bts_export.write(str(step)+"  "+str(total_force_bts)+'\n')
-        bts_export.flush()
+      if( graph_counter == graph_frequency):
         
-      elif (DEM_parameters.ConcreteTestOption != "OFF"):
-
-       
-        radial_strain = MaterialTest.MeasureRadialStrain(proc.XLAT)
+        graph_counter = 0
         
-        for node in sup_layer_fm:
+        if( DEM_parameters.ConcreteTestOption =="BTS"):
 
-          force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+          for node in sup_layer_fm:
 
-          total_force_top += force_node_y
+            force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
 
-        total_stress_top = total_force_top/(DEM_parameters.MeasuringSurface*1000000)
-        
-        for node in inf_layer_fm:
-
-          force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-
-          total_force_bot += force_node_y
-
-        total_stress_bot = total_force_bot/(DEM_parameters.MeasuringSurface*1000000)
-        
-        graph_export_top.write(str(strain)+"    "+str(total_stress_top)+'\n')
-        graph_export_bot.write(str(strain)+"    "+str(total_stress_bot)+'\n')
-        total_stress_mean = 0.5*(total_stress_bot + total_stress_top)
-        graph_export_mean.write(str(strain)+"    "+str(total_stress_mean)+'\n')
-        
-        graph_export_top.flush()
-        graph_export_bot.flush()
-        graph_export_mean.flush()
-        
-        volumetric_strain = strain - 2*radial_strain
-        
-        graph_export_volumetric.write(str(volumetric_strain)+"    "+str(total_stress_mean)+'\n')
-        graph_export_volumetric.flush()
-        
-        Pressure = total_stress_mean*1e6
-
-        if(Pressure > DEM_parameters.ConfinementPressure * 1e6 ):
-          
-          Pressure = DEM_parameters.ConfinementPressure * 1e6 
-          
-          if( (DEM_parameters.HorizontalFixVel == "ON") and (first_time_entry_2) ):
+            total_force_bts += force_node_y
             
-              balls_model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, 1)
-              first_time_entry_2 = 0
-                
-        
-        ##################################PLATE##################################
-
-        if(DEM_parameters.FemPlates == "ON"):
-
-          for node in RigidFace_model_part.Nodes:
-            if (node.GetSolutionStepValue(EXPORT_GROUP_ID)==1):
-              current_heigh = node.Y
-              break;
+          bts_export.write(str(step)+"  "+str(total_force_bts)+'\n')
+          bts_export.flush()
           
-          strain_fem = -(current_heigh-mean_top)/height
-          for node in RigidFace_model_part.Nodes:
-            if (node.GetSolutionStepValue(EXPORT_GROUP_ID)==1):
+        elif (DEM_parameters.ConcreteTestOption != "OFF"):
 
-              force_node_fem_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
-              total_fem_force += force_node_fem_y
+        
+          radial_strain = MaterialTest.MeasureRadialStrain(proc.XLAT)
+          
+          for node in sup_layer_fm:
+
+            force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+
+            total_force_top += force_node_y
+
+          total_stress_top = total_force_top/(DEM_parameters.MeasuringSurface*1000000)
+          
+          for node in inf_layer_fm:
+
+            force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
+
+            total_force_bot += force_node_y
+
+          total_stress_bot = total_force_bot/(DEM_parameters.MeasuringSurface*1000000)
+          
+          graph_export_top.write(str(strain)+"    "+str(total_stress_top)+'\n')
+          graph_export_bot.write(str(strain)+"    "+str(total_stress_bot)+'\n')
+          total_stress_mean = 0.5*(total_stress_bot + total_stress_top)
+          graph_export_mean.write(str(strain)+"    "+str(total_stress_mean)+'\n')
+          
+          graph_export_top.flush()
+          graph_export_bot.flush()
+          graph_export_mean.flush()
+          
+          volumetric_strain = strain - 2*radial_strain
+          
+          graph_export_volumetric.write(str(volumetric_strain)+"    "+str(total_stress_mean)+'\n')
+          graph_export_volumetric.flush()
+          
+          Pressure = total_stress_mean*1e6
+
+          if(Pressure > DEM_parameters.ConfinementPressure * 1e6 ):
+            
+            Pressure = DEM_parameters.ConfinementPressure * 1e6 
+            
+            if( (DEM_parameters.HorizontalFixVel == "ON") and (first_time_entry_2) ):
               
-          total_stress_fem = total_fem_force/(DEM_parameters.MeasuringSurface*1000000)
+                balls_model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, 1)
+                first_time_entry_2 = 0
+                  
           
-          if((DEM_parameters.FemPlates == "ON") and (current_heigh <= 0.30)):
-            
-              graph_export_fem.write(str(strain_fem)+"  "+str(total_stress_fem)+'\n')    
-	      graph_export_fem.flush()
-        
-        ##################################POISSON##################################
-        
-        #if(DEM_parameters.PoissonMeasure == "ON"):
-                    
-          #xleft_weight  = 0.0         
-          #xright_weight  = 0.0
+          ##################################PLATE##################################
 
-          #left_counter = 0.0
-          #right_counter = 0.0
+          if(DEM_parameters.FemPlates == "ON"):
 
-          #for node in left_nodes:
+            for node in RigidFace_model_part.Nodes:
+              if (node.GetSolutionStepValue(EXPORT_GROUP_ID)==1):
+                current_heigh = node.Y
+                break;
             
-            #xleft_weight = +(node.X - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-            #left_counter = +node.GetSolutionStepValue(RADIUS)
+            strain_fem = -(current_heigh-mean_top)/height
+            for node in RigidFace_model_part.Nodes:
+              if (node.GetSolutionStepValue(EXPORT_GROUP_ID)==1):
+
+                force_node_fem_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
+                total_fem_force += force_node_fem_y
+                
+            total_stress_fem = total_fem_force/(DEM_parameters.MeasuringSurface*1000000)
             
-          #for node in right_nodes:
-            
-            #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-            #right_counter = +node.GetSolutionStepValue(RADIUS)
+            if((DEM_parameters.FemPlates == "ON") and (current_heigh <= 0.30)):
+              
+                graph_export_fem.write(str(strain_fem)+"  "+str(total_stress_fem)+'\n')    
+            graph_export_fem.flush()
           
-          #width_now = xright_weight/right_counter - xleft_weight/left_counter
-
-          #measured_poisson =  ((width_now-width_ini)/width_ini)/strain
+          ##################################POISSON##################################
           
-          #graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
+          #if(DEM_parameters.PoissonMeasure == "ON"):
+                      
+            #xleft_weight  = 0.0         
+            #xright_weight  = 0.0
+
+            #left_counter = 0.0
+            #right_counter = 0.0
+
+            #for node in left_nodes:
+              
+              #xleft_weight = +(node.X - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+              #left_counter = +node.GetSolutionStepValue(RADIUS)
+              
+            #for node in right_nodes:
+              
+              #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+              #right_counter = +node.GetSolutionStepValue(RADIUS)
+            
+            #width_now = xright_weight/right_counter - xleft_weight/left_counter
+
+            #measured_poisson =  ((width_now-width_ini)/width_ini)/strain
+            
+            #graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
 
     graph_counter += 1
 
