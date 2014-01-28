@@ -3,7 +3,7 @@ import time as timer
 import os
 import sys
 import math
-#from numpy import *
+from numpy import *
 
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
@@ -17,6 +17,8 @@ import DEM_explicit_solver_var as DEM_parameters
 import DEM_procedures
 proc = DEM_procedures.Procedures(DEM_parameters)
 
+import DEM_material_test_script as MaterialTest
+
 from DEM_procedures_mpi import *
 
 import pressure_script as Press
@@ -28,8 +30,8 @@ import pressure_script as Press
 my_timer = Timer();
 balls_model_part = ModelPart("SolidPart");
 
-RigidFace_model_part = ModelPart("RigidFace_Part");
-mixed_model_part = ModelPart("Mixed_Part");
+RigidFace_model_part   = ModelPart("RigidFace_Part");  
+mixed_model_part       = ModelPart("Mixed_Part");
 
 RigidFace_model_part.AddNodalSolutionStepVariable(VELOCITY)
 RigidFace_model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
@@ -37,6 +39,8 @@ RigidFace_model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
 RigidFace_model_part.AddNodalSolutionStepVariable(GROUP_ID)
 RigidFace_model_part.AddNodalSolutionStepVariable(EXPORT_GROUP_ID)
 
+renew_pressure = 0
+Pressure = 0
 
 # Importing the strategy object
 
@@ -92,7 +96,7 @@ creator_destructor = ParticleCreatorDestructor()
 
 # Creating a solver object
 
-solver = SolverStrategy.ExplicitStrategy(balls_model_part, RigidFace_model_part, creator_destructor, DEM_parameters)  # here, solver variables initialize as default
+solver = SolverStrategy.ExplicitStrategy(balls_model_part, RigidFace_model_part,creator_destructor, DEM_parameters) #here, solver variables initialize as default
 
 # Creating necessary directories
 
@@ -111,10 +115,10 @@ for directory in [post_path, list_path, neigh_list_path, data_and_results, graph
 
 os.chdir(list_path)
 
-multifile = open(DEM_parameters.problem_name + '_all' + '.post.lst', 'w')
-multifile_5 = open(DEM_parameters.problem_name + '_5' + '.post.lst', 'w')
-multifile_10 = open(DEM_parameters.problem_name + '_10' + '.post.lst', 'w')
-multifile_50 = open(DEM_parameters.problem_name + '_50' + '.post.lst', 'w')
+multifile        = open(DEM_parameters.problem_name + '_all' + '.post.lst', 'w')
+multifile_5      = open(DEM_parameters.problem_name + '_5'   + '.post.lst', 'w')
+multifile_10     = open(DEM_parameters.problem_name + '_10'  + '.post.lst', 'w')
+multifile_50     = open(DEM_parameters.problem_name + '_50'  + '.post.lst', 'w')
 
 multifile.write('Multiple\n')
 multifile_5.write('Multiple\n')
@@ -145,32 +149,28 @@ mpiutils.CalculateModelNewIds(balls_model_part, 0)
 
 solver.Initialize()
 
-if ((DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ContactMeshOption == "ON")):
+if ( (DEM_parameters.ContinuumOption =="ON") and (DEM_parameters.ContactMeshOption =="ON") ) :
 
   contact_model_part = solver.contact_model_part
 
-#-------------------------------------------------------------------------------------------------------------------------
 
 #------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALIZATIONS--------------------------------------------------------
 
-Pressure = DEM_parameters.ConfinementPressure * 1e6  # Mpa
+#if (DEM_parameters.PredefinedSkinOption == "ON" ):
 
-if (DEM_parameters.PredefinedSkinOption == "ON"):
+   #proc.SetPredefinedSkin(balls_model_part)
 
-   proc.SetPredefinedSkin(balls_model_part)
+if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOption != "OFF") ):
+  
+    (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = proc.ListDefinition(balls_model_part,solver)  # defines the lists where we measure forces
 
-
-if ((DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOption != "OFF")):
-
-    (sup_layer_fm, inf_layer_fm, sup_plate_fm, inf_plate_fm) = proc.ListDefinition(balls_model_part, solver)  # defines the lists where we measure forces
-
-    strain = 0.0; total_stress = 0.0; first_time_entry = 1
+    strain = 0.0; total_stress = 0.0; volumetric_strain = 0.0; radial_strain = 0.0; first_time_entry = 1; first_time_entry_2 = 1
     strain_fem = 0.0; total_stress_bot = 0.0; total_stress_mean = 0.0; total_stress_fem = 0.0
-
-    # for the graph plotting
-    velocity_node_y = 0.0
-    height = DEM_parameters.SpecimenHeight
-    diameter = DEM_parameters.SpecimenWidth
+    
+    # for the graph plotting    
+    loading_velocity = 0.0
+    height = DEM_parameters.SpecimenHeight #DEM_parameters.SpecimenLenght
+    diameter = DEM_parameters.SpecimenWidth #DEM_parameters.SpecimenDiameter
 
     initial_time = datetime.datetime.now()
 
@@ -179,77 +179,77 @@ if ((DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOpt
     chart = open(DEM_parameters.problem_name + "_Parameter_chart.grf", 'w')
 
     if(DEM_parameters.ConcreteTestOption == "BTS"):
-
+      if (mpi.rank == 0):
         bts_export = open(DEM_parameters.problem_name + "_bts" + ".grf", 'w');
-        proc.BtsSkinDetermination(balls_model_part, solver, DEM_parameters)
+      proc.BtsSkinDetermination(balls_model_part, solver, DEM_parameters)
 
     else:
-
-      graph_export_top = open(DEM_parameters.problem_name + "_graph_TOP.grf", 'w')
-      graph_export_bot = open(DEM_parameters.problem_name + "_graph_BOT.grf", 'w')
-      graph_export_mean = open(DEM_parameters.problem_name + "_graph_MEAN.grf", 'w')
-
+      if (mpi.rank == 0):
+        graph_export_top = open(DEM_parameters.problem_name + "_graph_TOP.grf", 'w')
+        graph_export_bot = open(DEM_parameters.problem_name +"_graph_BOT.grf", 'w')
+        graph_export_mean = open(DEM_parameters.problem_name +"_graph_MEAN.grf", 'w')
+        graph_export_volumetric = open(DEM_parameters.problem_name+"_graph_VOL.grf",'w')
+      
       if(DEM_parameters.FemPlates == "ON"):
-         graph_export_fem = open(DEM_parameters.problem_name + "_Provisional_PLATE.grf", 'w')
+        if (mpi.rank == 0):
+          graph_export_fem = open(DEM_parameters.problem_name +"_graph_PLATE.grf", 'w')
 
-      # measuring height:
+      #measuring height:
       pre_utilities = PreUtilities(balls_model_part)
+    
+      (subtotal_top,weight_top) = pre_utilities.MeasureTopHeigh(balls_model_part)
+      (subtotal_bot,weight_bot) = pre_utilities.MeasureBotHeigh(balls_model_part)
+  
+      if(DEM_parameters.FemPlates == "ON"):
+        mean_top = 0.30
+        mean_bot = 0.00
+        
+      else:
+        (subtotal_top,weight_top) = pre_utilities.MeasureTopHeigh(balls_model_part)
+        (subtotal_bot,weight_bot) = pre_utilities.MeasureBotHeigh(balls_model_part)
 
-      (subtotal_top, weight_top) = pre_utilities.MeasureTopHeigh(balls_model_part)
-      (subtotal_bot, weight_bot) = pre_utilities.MeasureBotHeigh(balls_model_part)
-
-      mean_top = subtotal_top / weight_top;
-      mean_bot = subtotal_bot / weight_bot;
-
+        mean_top = subtotal_top/weight_top;
+        mean_bot = subtotal_bot/weight_bot;
+    
       ini_height = mean_top - mean_bot
 
-      height = ini_height
+      height = ini_height    
+    
+      print ('Initial Height of the Model: ' + str(ini_height)+'\n')
+      
+      if(DEM_parameters.PredefinedSkinOption == "ON" ):
+        if (mpi.rank == 0):
+          print ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
 
-      print ('Initial Height of the Model: ' + str(ini_height) + '\n')
-
-      if(DEM_parameters.PredefinedSkinOption == "ON"):
-        print ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
-
-      (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area) = proc.CylinderSkinDetermination(balls_model_part, solver, DEM_parameters)  # defines the skin and areas
-
-      if (DEM_parameters.PoissonMeasure == "ON"):
-
-        graph_export_poisson = open(DEM_parameters.problem_name + "_poisson_" + str(datetime.datetime.now()) + ".csv", 'w');
-
+      (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = proc.CylinderSkinDetermination(balls_model_part,solver,DEM_parameters) # defines the skin and areas
+       
     os.chdir(main_path)
+    
+    if ( ( DEM_parameters.ConcreteTestOption == "TRIAXIAL") or ( DEM_parameters.ConcreteTestOption == "HYDROSTATIC") ):
 
-    if (DEM_parameters.ConcreteTestOption == "TRIAXIAL") and (Pressure != 0.0):
-
-      # Correction Coefs
-      alpha_top = 3.141592 * diameter * diameter * 0.25 / (xtop_area + 0.70710678 * xtopcorner_area)
-      alpha_bot = 3.141592 * diameter * diameter * 0.25 / (xbot_area + 0.70710678 * xbotcorner_area)
-      alpha_lat = 3.141592 * diameter * height / (xlat_area + 0.70710678 * xtopcorner_area + 0.70710678 * xbotcorner_area)
-
-      if(mpi.rank == 0):
-          print ("Applying Pressure", "\n")
-
-      Press.ApplyPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER, alpha_top, alpha_bot, alpha_lat)
-      renew_pressure = 0
-
-#
-
+      #Correction Coefs
+      alpha_top = 3.141592*diameter*diameter*0.25/(xtop_area + 0.70710678*xtopcorner_area)
+      alpha_bot = 3.141592*diameter*diameter*0.25/(xbot_area + 0.70710678*xbotcorner_area)
+      alpha_lat = 3.141592*diameter*height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
 
 # Initialization of physics monitor and of the initial position of the center of mass
-# physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
-# properties_list = []
+
+#physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
+#properties_list = []
 if(mpi.rank == 0):
+
     print ("Initialization Complete" + "\n")
 
+step                   = 0
+time                   = 0.0
+time_old_print         = 0.0
+initial_pr_time        = timer.clock()
+initial_real_time      = timer.time()
+graph_counter          = 0
+graph_frequency        = int(DEM_parameters.GraphExportFrequency/balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
+first_print  = True; index_5 = 1; index_10  = 1; index_50  = 1; prev_time  = 0.0; control = 0.0
 
-step = 0
-time = 0.0
-time_old_print = 0.0
-initial_pr_time = timer.clock()
-initial_real_time = timer.time()
-
-#-------------------------------------------------------------------------------------------------------------------------------------
-
-#-----------------------SINGLE FILE MESH AND RESULTS INITIALIZATION-------------------------------------------------------------------
+#-----------------------SINGLE FILE MESH AND RESULTS INITIALITZATION-------------------------------------------------------------------
 
 post_utility = PostUtilities()
 
@@ -263,27 +263,26 @@ if (DEM_parameters.Multifile == "single_file"):
   if (DEM_parameters.ContactMeshOption == "ON"):
       post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
   post_utility.AddModelPartToModelPart(mixed_model_part, RigidFace_model_part)
-  gid_io.InitializeMesh(0.0)
+  gid_io.InitializeMesh(0.0) 
   gid_io.WriteMesh(RigidFace_model_part.GetMesh())
   gid_io.WriteSphereMesh(balls_model_part.GetMesh())
   if (DEM_parameters.ContactMeshOption == "ON"):
       gid_io.WriteMesh(contact_model_part.GetMesh())
   gid_io.FinalizeMesh()
   gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
-
-
-# OEDOMETRIC
+  
+##OEDOMETRIC
 
 if(DEM_parameters.ConcreteTestOption == "OEDOMETRIC"):
-
+  
   for node in proc.LAT:
 
     node.SetSolutionStepValue(VELOCITY_X, 0.0);
     node.SetSolutionStepValue(VELOCITY_Z, 0.0);
     node.Fix(VELOCITY_X);
     node.Fix(VELOCITY_Z);
-
-# MODEL DATA
+    
+##MODEL DATA 
 
 if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
@@ -291,8 +290,8 @@ if (DEM_parameters.ModelDataInfo == "ON"):
     print ("Coordination Number: " + str(coordination_number) + "\n")
     os.chdir(main_path)
 
-
-# WHEATHERFORD
+  
+##WHEATHERFORD
 
 w_densi = DEM_parameters.w_densi
 w_dynfrc = DEM_parameters.w_dynfrc
@@ -302,52 +301,71 @@ w_poiss = DEM_parameters.w_poiss
 os.chdir(graphs_path)
 
 if(DEM_parameters.Dempack and (DEM_parameters.ConcreteTestOption != "OFF")):
+  
+  loading_velocity = DEM_parameters.LoadingVelocityTop
+  
+  if(mpi.rank == 0):
+    print ('************DEM VIRTUAL LAB******************'+'\n')
+    print ('Loading velocity: ' + str(loading_velocity) + '\n')
+    print ('Expected maximum deformation: ' + str(-loading_velocity*DEM_parameters.FinalTime/height*100) +'%'+'\n'+'\n'  )
+ 
+    print("This chart is only valid for one material case" + "\n")
 
-  print("This chart is only valid for one material case" + "\n")
+    chart.write(("***********PARAMETERS*****************") + "\n")
+    chart.write("                                    " + '\n')
+    chart.write("    DENSI  = " + (str(w_densi)) + " Kg/m3     " + '\n')
+    chart.write("    STAFRC = " + (str(DEM_parameters.InternalFriction)) + "           " + '\n')
+    chart.write("    DYNFRC = " + (str(w_dynfrc)) + "          " + '\n')
+    chart.write("    YOUNG  = " + (str(w_young / 1e9)) + " GPa" + "     " + '\n')
+    chart.write("    POISS  = " + (str(w_poiss)) + "           " + '\n')
+    chart.write("    FTS    = " + (str(DEM_parameters.SigmaMin)) + " Mpa        " + '\n')
+    chart.write("    LCS1   = " + (str(DEM_parameters.C1)) + " Mpa       " + '\n')
+    chart.write("    LCS2   = " + (str(DEM_parameters.C2)) + " Mpa       " + '\n')
+    chart.write("    LCS3   = " + (str(DEM_parameters.C3)) + " Mpa       " + '\n')
+    chart.write("    YRC1   = " + (str(DEM_parameters.N1)) + "           " + '\n')
+    chart.write("    YRC2   = " + (str(DEM_parameters.N2)) + "           " + '\n')
+    chart.write("    YRC3   = " + (str(DEM_parameters.N3)) + "           " + '\n')
+    chart.write("    NG     = " + (str(7.0 / 6.0 * 2.0 * (1.0 + w_poiss))) +"           " + '\n')
+    chart.write("    FSS    = " + (str(DEM_parameters.TauZero)) + " Mpa       " + '\n')
+    chart.write("    YEP    = " + (str(DEM_parameters.PlasticYoungModulus / 1e9)) + " GPa" + "     " + '\n')
+    chart.write("    YIELD  = " + (str(DEM_parameters.PlasticYieldStress)) + " Mpa       " + '\n')
+    chart.write("    EDR    = " + (str(DEM_parameters.DamageDeformationFactor)) + "           " + '\n')
+    chart.write("    GDAMP  = " + (str(DEM_parameters.DempackGlobalDamping)) + "           " + '\n')
+    chart.write("    LDAMP  = " + (str(DEM_parameters.DempackDamping)) + "           " + '\n')
+    chart.write("    ALPHA  = " + (str(DEM_parameters.AreaFactor)) + "           " + '\n')
+    chart.write("                                    " + '\n')
+    chart.write("**************************************" + '\n')
 
-  chart.write(("***********PARAMETERS*****************") + "\n")
-  chart.write("                                    " + '\n')
-  chart.write("    DENSI  = " + (str(w_densi)) + " Kg/m3     " + '\n')
-  chart.write("    STAFRC = " + (str(DEM_parameters.InternalFriction)) + "           " + '\n')
-  chart.write("    DYNFRC = " + (str(w_dynfrc)) + "          " + '\n')
-  chart.write("    YOUNG  = " + (str(w_young / 1e9)) + " GPa" + "     " + '\n')
-  chart.write("    POISS  = " + (str(w_poiss)) + "           " + '\n')
-  chart.write("    FTS    = " + (str(DEM_parameters.SigmaMin)) + " Mpa        " + '\n')
-  chart.write("    LCS1   = " + (str(DEM_parameters.C1)) + " Mpa       " + '\n')
-  chart.write("    LCS2   = " + (str(DEM_parameters.C2)) + " Mpa       " + '\n')
-  chart.write("    LCS3   = " + (str(DEM_parameters.C3)) + " Mpa       " + '\n')
-  chart.write("    YRC1   = " + (str(DEM_parameters.N1)) + "           " + '\n')
-  chart.write("    YRC2   = " + (str(DEM_parameters.N2)) + "           " + '\n')
-  chart.write("    YRC3   = " + (str(DEM_parameters.N3)) + "           " + '\n')
-  chart.write("    NG     = " + (str(7.0 / 6.0 * 2.0 * (1.0 + w_poiss))) +"           " + '\n')
-  chart.write("    FSS    = " + (str(DEM_parameters.TauZero)) + " Mpa       " + '\n')
-  chart.write("    YEP    = " + (str(DEM_parameters.PlasticYoungModulus / 1e9)) + " GPa" + "     " + '\n')
-  chart.write("    YIELD  = " + (str(DEM_parameters.PlasticYieldStress)) + " Mpa       " + '\n')
-  chart.write("    EDR    = " + (str(DEM_parameters.DamageDeformationFactor)) + "           " + '\n')
-  chart.write("    GDAMP  = " + (str(DEM_parameters.DempackGlobalDamping)) + "           " + '\n')
-  chart.write("    LDAMP  = " + (str(DEM_parameters.DempackDamping)) + "           " + '\n')
-  chart.write("    ALPHA  = " + (str(DEM_parameters.AreaFactor)) + "           " + '\n')
-  chart.write("                                    " + '\n')
-  chart.write("**************************************" + '\n')
+    chart.close()
+    a_chart = open(DEM_parameters.problem_name + "_Parameter_chart.grf", "r")
+  
+    for line in a_chart.readlines():
+      print(line)
+    a_chart.close()
 
-  chart.close()
-  a_chart = open(DEM_parameters.problem_name + "_Parameter_chart.grf", "r")
+if(DEM_parameters.FemPlates == "ON"):
 
-  for line in a_chart.readlines():
-    print(line)
-  a_chart.close()
+  meshes_to_translate = Vector(1)
+  meshes_to_translate[0] = 1
 
+  xyz_displacements = Vector(3)
+  xyz_displacements[0]=1
+  xyz_displacements[1]=2
+  xyz_displacements[2]=3
+
+  translation_operation = TranslationOperation(RigidFace_model_part,meshes_to_translate,xyz_displacements,0)
+  translation_operation.Execute()
 
 #------------------------------------------------------------------------------------------
-
-#
-#
-# MAIN LOOP                                            #
-#
-#
+ 
+###########################################################################################
+#                                                                                         #
+#                                    MAIN LOOP                                            #
+#                                                                                         #
+###########################################################################################
 os.chdir(main_path)
 
-dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)  # Possible modifications of DELTA_TIME
+dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
 
 total_steps_expected = int(DEM_parameters.FinalTime / dt)
 
@@ -360,131 +378,89 @@ if(mpi.rank == 0):
 left_nodes = list()
 right_nodes = list()
 
-xleft_weight = 0.0
-xright_weight = 0.0
+xleft_weight  = 0.0         
+xright_weight  = 0.0
 
 left_counter = 0.0
 right_counter = 0.0
 
-if(DEM_parameters.PoissonMeasure == "ON"):
-
-      for node in balls_model_part.Nodes:
-
-        if (node.GetSolutionStepValue(GROUP_ID) == 4):
-
-           left_nodes.append(node)
-           xleft_weight = +(node.X0 - node.GetSolutionStepValue(RADIUS)) * node.GetSolutionStepValue(RADIUS)
-           left_counter = +node.GetSolutionStepValue(RADIUS)
-
-        elif(node.GetSolutionStepValue(GROUP_ID) == 8):
-
-           right_nodes.append(node)
-           xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS)) * node.GetSolutionStepValue(RADIUS)
-           right_counter = +node.GetSolutionStepValue(RADIUS)
-
-      xleft_weight_gath = mpi.gather(mpi.world, xleft_weight, 0)
-      left_counter_gath = mpi.gather(mpi.world, left_counter, 0)
-      xright_weight_gath = mpi.gather(mpi.world, xright_weight, 0)
-      right_counter_gath = mpi.gather(mpi.world, right_counter, 0)
-
-      if(mpi.rank == 0):
-          xleft_weight = reduce(lambda x, y: x + y, xleft_weight_gath)
-          left_counter = reduce(lambda x, y: x + y, left_counter_gath)
-          xright_weight = reduce(lambda x, y: x + y, xright_weight_gath)
-          right_counter = reduce(lambda x, y: x + y, right_counter_gath)
-
-          width_ini = xright_weight / right_counter - xleft_weight / left_counter
-
-step_to_fix_velocities = balls_model_part.ProcessInfo[STEP_FIX_VELOCITIES]
-
-if(DEM_parameters.FemPlates == "ON"):
-
-  meshes_to_translate = Vector(1)
-  meshes_to_translate[0] = 1
-
-  xyz_displacements = Vector(3)
-  xyz_displacements[0] = 1
-  xyz_displacements[1] = 2
-  xyz_displacements[2] = 3
-
-  translation_operation = TranslationOperation(RigidFace_model_part, meshes_to_translate, xyz_displacements, 0)
-  translation_operation.Execute()
-
 
 while (time < DEM_parameters.FinalTime):
 
-    dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME)  # Possible modifications of DELTA_TIME
+    dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications of DELTA_TIME
     time = time + dt
-    # balls_model_part.CloneTimeStep(time)
+    #balls_model_part.CloneTimeStep(time)
     balls_model_part.ProcessInfo[TIME] = time
     RigidFace_model_part.ProcessInfo[TIME] = time
     balls_model_part.ProcessInfo[DELTA_TIME] = dt
     RigidFace_model_part.ProcessInfo[DELTA_TIME] = dt
     balls_model_part.ProcessInfo[TIME_STEPS] = step
     RigidFace_model_part.ProcessInfo[TIME_STEPS] = step
-
+    
     if(DEM_parameters.FemPlates == "ON"):
       translation_operation.ExecuteInitializeSolutionStep()
 
-    # _SOLVE_#########################################4
+    #########################_SOLVE_#########################################4
     os.chdir(main_path)
     solver.Solve()
-    # TIME CONTROL######################################4
-
+    #########################TIME CONTROL######################################4
+    
     incremental_time = (timer.time() - initial_real_time) - prev_time
 
     if ((incremental_time > DEM_parameters.ControlTime) and (mpi.rank == 0)):
         percentage = 100 * (float(step) / total_steps_expected)
 
-        print ('Real time calculation: ' + str(timer.time() - initial_real_time))
-        print ('Percentage Completed: ' + str(percentage) + ' %')
-        print ("TIME STEP = " + str(step) + '\n')
-
-        if(DEM_parameters.ContinuumOption == "ON" and (step >= step_to_fix_velocities) and DEM_parameters.ConcreteTestOption != "OFF" and DEM_parameters.MonitoringOption == "ON"):
-            monitoring = PostUtilities().QuasiStaticAdimensionalNumber(balls_model_part, contact_model_part, balls_model_part.ProcessInfo)
-            print ("The quasi-static-adimensional-number is:  " + str(monitoring) + '\n')
-            print ("The measured stiffness is:  " + str(total_stress / strain / 1e6) + "Mpa" + '\n')
+        print('Real time calculation: ' + str(timer.time() - initial_real_time))
+        print('Simulation time: ' + str(time))
+        print('Percentage Completed: ' + str(percentage) + ' %')
+        print("TIME STEP = " + str(step) + '\n')
 
         sys.stdout.flush()
 
         prev_time = (timer.time() - initial_real_time)
 
-    if (((timer.time() - initial_real_time > 60) and first_print and step != 0) and (mpi.rank == 0)):
+    if (((timer.time() - initial_real_time > 60) and first_print == True and step != 0) and (mpi.rank == 0)):
         first_print = False
-        estimated_sim_duration = 60.0 * (total_steps_expected / step)  # seconds
+        estimated_sim_duration = 60.0 * (total_steps_expected / step) # seconds
 
         print('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n')
-        print('in minutes:' + str(estimated_sim_duration / 60.0) + 'min.' + '\n')
-        print('in hours:' + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
-        print('in days:' + str(estimated_sim_duration / 86400.0) + 'days' + '\n')
+        print('in minutes:'        + str(estimated_sim_duration / 60.0) + 'min.' + '\n')
+        print('in hours:'        + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
+        print('in days:'        + str(estimated_sim_duration / 86400.0) + 'days' + '\n') 
         sys.stdout.flush()
 
         if (estimated_sim_duration / 86400 > 2.0 and (mpi.rank == 0)):
+
           print('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
 
-    # CONCRETE_TEST_STUFF#########################################4
+    #########################CONCRETE_TEST_STUFF#########################################
 
     os.chdir(data_and_results)
-
-    if((DEM_parameters.ConcreteTestOption == "TRIAXIAL") and (Pressure != 0.0)):
-       # and (step < 0.01*DEM_parameters.TotalTimePercentAsForceAplTime*total_steps_expected) )
-
-        if(renew_pressure == 10):
-
-          Press.ApplyPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER, alpha_top, alpha_bot, alpha_lat)
-
+                                                                                                                                                                                               
+    if( (DEM_parameters.ConcreteTestOption == "TRIAXIAL" ) and (DEM_parameters.ConfinementPressure != 0.0) ):
+        
+        if( renew_pressure == 10):
+          
+          MaterialTest.ApplyLateralPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
+                 
           renew_pressure = 0
-
+    
         renew_pressure += 1
-
+    
     total_force_top = 0.0
     total_force_bot = 0.0
     total_force_bts = 0.0
     total_fem_force = 0.0
 
-    if(DEM_parameters.ContinuumOption == "ON"):
-
-        if(DEM_parameters.ConcreteTestOption == "BTS"):
+    if( DEM_parameters.ConcreteTestOption != "OFF" ):
+    
+      strain += -1.0*loading_velocity*dt/height
+        
+      if( graph_counter == graph_frequency):
+        
+        graph_counter = 0
+        
+        if( DEM_parameters.ConcreteTestOption =="BTS"):
 
           for node in sup_layer_fm:
 
@@ -496,54 +472,18 @@ while (time < DEM_parameters.FinalTime):
   
           if(mpi.rank == 0):
               total_force_bts = reduce(lambda x,y:x+y, total_force_bts_gath)
+              bts_export.write(str(step)+"  "+str(total_force_bts)+'\n')
+              bts_export.flush()
     
-        elif ( ( step >= step_to_fix_velocities ) and DEM_parameters.ConcreteTestOption != "OFF"):
+        elif (DEM_parameters.ConcreteTestOption != "OFF"):
 
-          if(first_time_entry):
-            # measuring height:
-
-            pre_utilities = PreUtilities(balls_model_part)
-
-            (subtotal_top,weight_top) = pre_utilities.MeasureTopHeigh(balls_model_part)
-            (subtotal_bot,weight_bot) = pre_utilities.MeasureBotHeigh(balls_model_part)
-
-            subtotal_top_gath   = mpi.gather(mpi.world, subtotal_top, 0) 
-            weight_top_gath     = mpi.gather(mpi.world, weight_top, 0) 
-            subtotal_bot_gath   = mpi.gather(mpi.world, subtotal_bot, 0) 
-            weight_bot_gath     = mpi.gather(mpi.world, weight_bot, 0)
-  
-            if(mpi.rank == 0):
-                subtotal_top = reduce(lambda x,y:x+y, subtotal_top_gath)
-                weight_top = reduce(lambda x,y:x+y, weight_top_gath)
-                subtotal_bot = reduce(lambda x,y:x+y, subtotal_bot_gath)
-                weight_bot = reduce(lambda x,y:x+y, weight_bot_gath)
         
-                ini_height2 = subtotal_top/weight_top - subtotal_bot/weight_bot
-      
-                print ('Current Height after confinement: ' + str(ini_height2) + '\n')
-                print ('Axial strain due to the confinement: ' + str( 100*(ini_height2-ini_height)/ini_height ) + ' %' +'\n'        )
-                height = ini_height2
-       
-                for node in sup_layer_fm:
-                   velocity_node_y = node.GetSolutionStepValue(VELOCITY_Y) #Applied velocity during the uniaxial compression test
-                   break
-        
-            velocity_gath   = mpi.gather(mpi.world, velocity_node_y, 0) 
-        
-            if(mpi.rank == 0):
-               for vel in velocity_gath:
-                  if (vel != 0.0):
-                     velocity_node_y = vel              #only if all are the same
-                     print ('velocity for the graph: ' + str(velocity_node_y) + '\n')
-                  break        
-            first_time_entry = 0
-
-          strain += -1.0*velocity_node_y*dt/height
-
+          radial_strain = MaterialTest.MeasureRadialStrain(proc.XLAT)
+          
           for node in sup_layer_fm:
 
             force_node_y = node.GetSolutionStepValue(ELASTIC_FORCES)[1]
-            
+
             total_force_top += force_node_y
               
           total_force_top__gath   = mpi.gather(mpi.world, total_force_top, 0) 
@@ -551,7 +491,7 @@ while (time < DEM_parameters.FinalTime):
           if(mpi.rank == 0):        
             total_force_top = reduce(lambda x,y:x+y,total_force_top_gath)  
             total_stress_top = total_force_top/(DEM_parameters.MeasuringSurface*1000000)
-
+          
           for node in inf_layer_fm:
 
             force_node_y = -node.GetSolutionStepValue(ELASTIC_FORCES)[1]
@@ -564,73 +504,72 @@ while (time < DEM_parameters.FinalTime):
             total_force_bot = reduce(lambda x,y:x+y,total_force_bot_gath)  
             total_stress_bot = total_force_bot/(DEM_parameters.MeasuringSurface*1000000)
 
-          # PLATE##################################
+            graph_export_top.write(str(strain)+"    "+str(total_stress_top)+'\n')
+            graph_export_bot.write(str(strain)+"    "+str(total_stress_bot)+'\n')
+            total_stress_mean = 0.5*(total_stress_bot + total_stress_top)
+            graph_export_mean.write(str(strain)+"    "+str(total_stress_mean)+'\n')
           
+            graph_export_top.flush()
+            graph_export_bot.flush()
+            graph_export_mean.flush()
+          
+          volumetric_strain = strain - 2*radial_strain
+          
+          graph_export_volumetric.write(str(volumetric_strain)+"    "+str(total_stress_mean)+'\n')
+          graph_export_volumetric.flush()
+          
+          Pressure = total_stress_mean*1e6
+
+          if(Pressure > DEM_parameters.ConfinementPressure * 1e6 ):
+            
+            Pressure = DEM_parameters.ConfinementPressure * 1e6 
+            
+            if( (DEM_parameters.HorizontalFixVel == "ON") and (first_time_entry_2) ):
+              
+                balls_model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, 1)
+                first_time_entry_2 = 0
+                  
+          
+          ##################################PLATE##################################
+
           if(DEM_parameters.FemPlates == "ON"):
 
-            current_heigh = 0.0
             for node in RigidFace_model_part.Nodes:
               if (node.GetSolutionStepValue(EXPORT_GROUP_ID)==1):
                 current_heigh = node.Y
                 break;
-           
-            strain_fem += -(current_heigh-mean_top)/height
+            
+            strain_fem = -(current_heigh-mean_top)/height
             for node in RigidFace_model_part.Nodes:
               if (node.GetSolutionStepValue(EXPORT_GROUP_ID)==1):
-                force_node_fem_y = node.GetSolutionStepValue(TOTAL_FORCES)[2]
+
+                force_node_fem_y = node.GetSolutionStepValue(TOTAL_FORCES)[1]
                 total_fem_force += force_node_fem_y
-          
+                
             total_stress_fem = total_fem_force/(DEM_parameters.MeasuringSurface*1000000)
+            
+            if((DEM_parameters.FemPlates == "ON") and (current_heigh <= 0.30)):
+              
+                graph_export_fem.write(str(strain_fem)+"  "+str(total_stress_fem)+'\n')    
+            graph_export_fem.flush()
           
-          # PLATE##################################
+          ##################################POISSON##################################
           
-          if(DEM_parameters.PoissonMeasure == "ON"):
-                      
-            xleft_weight  = 0.0         
-            xright_weight  = 0.0
-            left_counter = 0.0
-            right_counter = 0.0
 
-            for node in left_nodes:
-              
-              xleft_weight = +(node.X - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-              left_counter = +node.GetSolutionStepValue(RADIUS)
-              
-            for node in right_nodes:
-              
-              xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-              right_counter = +node.GetSolutionStepValue(RADIUS)
-        
-        
-            xleft_weight_gath    = mpi.gather(mpi.world, xleft_weight, 0) 
-            left_counter_gath    = mpi.gather(mpi.world, left_counter, 0) 
-            xright_weight_gath   = mpi.gather(mpi.world, xright_weight, 0) 
-            right_counter_gath   = mpi.gather(mpi.world, right_counter, 0)
-  
-            if(mpi.rank == 0):
-              xleft_weight = reduce(lambda x,y:x+y, xleft_weight_gath)
-              left_counter = reduce(lambda x,y:x+y, left_counter_gath)
-              xright_weight = reduce(lambda x,y:x+y, xright_weight_gath)
-              right_counter = reduce(lambda x,y:x+y, right_counter_gath)
-     
-              width_now = xright_weight/right_counter - xleft_weight/left_counter
-
-
-            measured_poisson =  ((width_now-width_ini)/width_ini)/strain
-            # print( (width_now/0.05)/strain )
+    graph_counter += 1
 
     os.chdir(list_path)    
     multifile.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')   
     os.chdir(main_path)
 
-  # ___GiD IO____#########################################
+  ##########################___GiD IO____#########################################4
 
     time_to_print = time - time_old_print
 
     if (time_to_print >= DEM_parameters.OutputTimeStep):
         os.chdir(data_and_results)
 
-        # properties_list = proc.MonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
+        #properties_list = proc.MonitorPhysicalProperties(balls_model_part, physics_calculator, properties_list)
 
         if (index_5 == 5):
             multifile_5.write(DEM_parameters.problem_name + '_' + str(time) + '.post.bin\n')
@@ -671,6 +610,7 @@ while (time < DEM_parameters.FinalTime):
         if (DEM_parameters.Multifile == "multiple_files"):
             mixed_model_part.Elements.clear()
             mixed_model_part.Nodes.clear()
+
             post_utility.AddModelPartToModelPart(mixed_model_part, balls_model_part)
             if (DEM_parameters.ContactMeshOption == "ON"):
                 post_utility.AddModelPartToModelPart(mixed_model_part, contact_model_part)
@@ -696,49 +636,20 @@ while (time < DEM_parameters.FinalTime):
             gid_io.FinalizeResults() 
 
         time_old_print = time
-        
-    if(mpi.rank == 0):
-        if(DEM_parameters.ConcreteTestOption == "BTS"):
-            bts_export.write(str(step)+"  "+str(total_force_bts)+'\n')
-      
-#    if ( ( (DEM_parameters.ConcreteTestOption =="TRIAXIAL") or (DEM_parameters.ConcreteTestOption == "UCS") or (DEM_parameters.ConcreteTestOption == "OEDOMETRIC")) and (step >= step_to_fix_velocities ) and (count_100 == 100)):
-#      graph_export_top.write(str(strain)+"  "+str(total_stress_top)+'\n')
-#      graph_export_bot.write(str(strain)+"  "+str(total_stress_bot)+'\n')
-#      total_stress_mean = 0.5*(total_stress_bot + total_stress_top)
-#      graph_export_mean.write(str(strain)+"  "+str(total_stress_mean)+'\n')
-#      count_100 = 0
-#      
-#      if((DEM_parameters.FemPlates == "ON") and (current_heigh <= 0.30)):
-#        graph_export_fem.write(str(strain_fem)+"  "+str(total_stress_fem)+'\n')
-#
-#      if (DEM_parameters.PoissonMeasure =="ON"):
-#        graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
-#      
-#    count_100  += 1         
-#    step += 1
-
-
-
-        if ( ( (DEM_parameters.ConcreteTestOption =="TRIAXIAL") or (DEM_parameters.ConcreteTestOption == "UCS") or (DEM_parameters.ConcreteTestOption == "OEDOMETRIC")) and (step >= step_to_fix_velocities )):
-          graph_export_top.write(str(strain)+"  "+str(total_stress_top)+'\n')
-          graph_export_bot.write(str(strain)+"  "+str(total_stress_bot)+'\n')
-          total_stress_mean = 0.5*(total_stress_bot + total_stress_top)
-          graph_export_mean.write(str(strain)+"  "+str(total_stress_mean)+'\n')
-
-      
-        if((DEM_parameters.FemPlates == "ON") and (current_heigh <= 0.30)):
-          graph_export_fem.write(str(strain_fem)+"  "+str(total_stress_fem)+'\n')
-
-        if (DEM_parameters.PoissonMeasure =="ON"):
-          graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
-        
+  
 
     step += 1
+    
+    
+    if(step == 100):
+      if ( (DEM_parameters.ContinuumOption =="ON") and (DEM_parameters.ContactMeshOption =="ON") ) :
+          MaterialTest.OrientationStudy(contact_model_part)
+    
 #-------------------------------------------------------------------------------------------------------------------------------------
 
 
 #-----------------------FINALIZATION OPERATIONS-------------------------------------------------------------------------------------- 
-# proc.PlotPhysicalProperties(properties_list, graphs_path)
+#proc.PlotPhysicalProperties(properties_list, graphs_path)
 
 if (DEM_parameters.Multifile == "single_file"):
     gid_io.FinalizeResults()
@@ -746,35 +657,25 @@ if (DEM_parameters.Multifile == "single_file"):
 
 os.chdir(graphs_path)
 
-# for filename in os.listdir("."):
-#  if filename.startswith("Provisional_TOP"):
-#    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_TOP.grf")
-#  if filename.startswith("Provisional_BOT"):
-#    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_BOT.grf")
-#  if filename.startswith("Provisional_MEAN"):
-#    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_MEAN.grf")
-#  if filename.startswith("Parameters"):
-#    os.rename(filename, DEM_parameters.problem_name + "_CHART_" + str(initial_time) +".grf")
-
 for filename in os.listdir("."):
-  if filename.startswith(DEM_parameters.problem_name +"_graph_TOP"):
-    os.rename(filename, DEM_parameters.problem_name + "_graph_" + "TOP.grf")
-  if filename.startswith(DEM_parameters.problem_name +"_graph_BOT"):                    
-    os.rename(filename, DEM_parameters.problem_name + "_graph_" + "BOT.grf")
-  if filename.startswith(DEM_parameters.problem_name +"_graph_MEAN"):                   
-    os.rename(filename, DEM_parameters.problem_name + "_graph_" + "MEAN.grf")
-  if filename.startswith(DEM_parameters.problem_name +"_Provisional_PLATE"):                  
-    os.rename(filename, DEM_parameters.problem_name + "_graph_" +"PLATE.grf")
-    
+  if filename.startswith(DEM_parameters.problem_name + "_graph_TOP.grf"):
+    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_TOP.csv")
+  if filename.startswith(DEM_parameters.problem_name + "_graph_BOT.grf"):
+    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_BOP.csv")
+  if filename.startswith(DEM_parameters.problem_name + "_graph_MEAN.grf"):
+    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_MEAN.csv")
+  if filename.startswith(DEM_parameters.problem_name + "_graph_PLATE.grf"):
+    os.rename(filename, DEM_parameters.problem_name + "_graph_" + str(initial_time) + "_PLATE.csv")
+
 if (DEM_parameters.ConcreteTestOption!= "OFF"):
   graph_export_top.close()
   graph_export_bot.close()
   graph_export_mean.close()
+  graph_export_volumetric.close()
   
   if(DEM_parameters.FemPlates == "ON"):
     graph_export_fem.close()
 
-  
 if(DEM_parameters.ConcreteTestOption == "BTS"):
   bts_export.close()
   
