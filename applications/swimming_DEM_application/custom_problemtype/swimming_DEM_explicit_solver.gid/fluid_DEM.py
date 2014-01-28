@@ -16,208 +16,14 @@ from KratosMultiphysics.MeshingApplication import *
 
 # SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
 import math
-
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.SwimmingDEMApplication import *
+from KratosMultiphysics.SolidMechanicsApplication import *
+from KratosMultiphysics.StructuralApplication import *
 import DEM_explicit_solver_var as DEMParameters
 import DEM_procedures
 import swimming_DEM_procedures
-
-# EMBEDDED:
-from KratosMultiphysics.SolidMechanicsApplication import *
-
-
-def ApplyEmbeddedBCsToFluid(model_part):
-    for node in model_part.Nodes:
-        old_dist = node.GetSolutionStepValue(DISTANCE, 1)
-        dist = node.GetSolutionStepValue(DISTANCE)
-        if(dist < 0.0):
-            node.Fix(PRESSURE)
-            node.Fix(VELOCITY_X)
-            node.Fix(VELOCITY_Y)
-            node.Fix(VELOCITY_Z)
-            node.SetSolutionStepValue(PRESSURE, 0.0)
-            node.SetSolutionStepValue(VELOCITY_X, 0.0)
-            node.SetSolutionStepValue(VELOCITY_Y, 0.0)
-            node.SetSolutionStepValue(VELOCITY_Z, 0.0)
-        elif(old_dist < 0.0):
-            node.Free(PRESSURE)
-            node.Free(VELOCITY_X)
-            node.Free(VELOCITY_Y)
-            node.Free(VELOCITY_Z)
-
-    if model_part.NumberOfMeshes() > 1:
-        for mesh_number in range(2, model_part.NumberOfMeshes()):
-            mesh_nodes = model_part.GetMesh(mesh_number).Nodes
-            # print model_part.Properties[mesh_number]
-
-            # INLETS
-            if(model_part.Properties[mesh_number][IMPOSED_VELOCITY_X] == 1 or model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y] == 1 or model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z] == 1):
-                for node in mesh_nodes:
-                    dist = node.GetSolutionStepValue(DISTANCE)
-                    if(dist > 0.0):
-                        node.Free(PRESSURE)
-                        if(model_part.Properties[mesh_number][IMPOSED_VELOCITY_X]):
-                            node.Fix(VELOCITY_X)
-                            node.SetSolutionStepValue(VELOCITY_X, model_part.Properties[mesh_number][IMPOSED_VELOCITY_X_VALUE])
-                        if(model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y]):
-                            node.Fix(VELOCITY_Y)
-                            node.SetSolutionStepValue(VELOCITY_Y, model_part.Properties[mesh_number][IMPOSED_VELOCITY_Y_VALUE])
-                        if(model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z]):
-                            node.Fix(VELOCITY_Z)
-                            node.SetSolutionStepValue(VELOCITY_Z, model_part.Properties[mesh_number][IMPOSED_VELOCITY_Z_VALUE])
-
-            # OUTLETS
-            if(model_part.Properties[mesh_number][IMPOSED_PRESSURE] == 1):
-                # here I assume all nodes of this outlet have the same body force and density!!
-                mod_bf = 0.0
-                normalized_bf_x = 0.0
-                normalized_bf_y = 0.0
-                normalized_bf_z = 0.0
-                outlet_density = 0.0
-                for node in mesh_nodes:
-                    bx = node.GetSolutionStepValue(BODY_FORCE_X)
-                    by = node.GetSolutionStepValue(BODY_FORCE_Y)
-                    bz = node.GetSolutionStepValue(BODY_FORCE_Z)
-                    mod_bf = sqrt(bx * bx + by * by + bz * bz)
-                    if (mod_bf > 0.0):
-                        inv_mod_bf = 1 / mod_bf
-                        normalized_bf_x = bx * inv_mod_bf
-                        normalized_bf_y = by * inv_mod_bf
-                        normalized_bf_z = bz * inv_mod_bf
-                    outlet_density = node.GetSolutionStepValue(DENSITY)
-                    break
-
-                for node in mesh_nodes:
-                    height = -1.0 * (node.X * normalized_bf_x + node.Y * normalized_bf_y + node.Z * normalized_bf_z)
-                    maxheight = -1.0e90
-
-                    if (height > maxheight):
-                        maxheight = height
-                        highest_node = node
-
-                for node in mesh_nodes:
-                    dist = node.GetSolutionStepValue(DISTANCE)
-
-                    distance_to_highest = (node.X - highest_node.X) * normalized_bf_x  +  (node.Y - highest_node.Y) * normalized_bf_y  +  (node.Z - highest_node.Z)*normalized_bf_z
-                    base_pressure = model_part.Properties[mesh_number][PRESSURE]
-                    if(dist > 0.0):
-                        node.Fix(PRESSURE)
-                        actual_pressure = base_pressure + outlet_density * mod_bf * distance_to_highest
-                        node.SetSolutionStepValue(PRESSURE, actual_pressure)
-                        node.Free(VELOCITY_X)
-                        node.Free(VELOCITY_Y)
-                        node.Free(VELOCITY_Z)
-
-
-def ApplyEmbeddedBCsToBalls(model_part):
-    for node in model_part.Nodes:
-        dist = node.GetSolutionStepValue(DISTANCE)
-        if(dist < 0.0):
-            if node.Is(BLOCKED):
-                node.Set(ACTIVE,True)                                             
-            else:
-                node.Set(TO_ERASE,True)
-                
-                        
-from math import *
-
-
-def MoveEmbeddedStructure(model_part, time):
-
-    if model_part.NumberOfMeshes() > 1:
-        for mesh_number in range(1, model_part.NumberOfMeshes()):
-            mesh_nodes = model_part.GetMesh(mesh_number).Nodes
-            # print model_part.Properties[mesh_number]
-            linear_velocity = model_part.Properties[mesh_number][VELOCITY]
-            linear_period = model_part.Properties[mesh_number][VELOCITY_PERIOD]
-            angular_velocity = model_part.Properties[mesh_number][ANGULAR_VELOCITY]
-            angular_period = model_part.Properties[mesh_number][ANGULAR_VELOCITY_PERIOD]
-            initial_center = model_part.Properties[mesh_number][ROTATION_CENTER]
-            center_position = [0.0,0.0,0.0]
-
-            if (linear_period > 0.0):
-                linear_omega = 2 * math.pi / linear_period
-                center_position[0] = initial_center[0] + linear_velocity[0] / linear_omega * sin(linear_omega * time)
-                center_position[1] = initial_center[1] + linear_velocity[1] / linear_omega * sin(linear_omega * time)
-                center_position[2] = initial_center[2] + linear_velocity[2] / linear_omega * sin(linear_omega * time)
-            else:
-                center_position[0] = initial_center[0] + time * linear_velocity[0]
-                center_position[1] = initial_center[1] + time * linear_velocity[1]
-                center_position[2] = initial_center[2] + time * linear_velocity[2]
-
-            angle = [0.0,0.0,0.0]    
-            if (angular_period > 0.0):
-                angular_omega = 2 * math.pi / angular_period
-                angle[0] = angular_velocity[0] / angular_omega * sin(angular_omega * time)
-                angle[1] = angular_velocity[1] / angular_omega * sin(angular_omega * time)
-                angle[2] = angular_velocity[2] / angular_omega * sin(angular_omega * time)
-            else:
-                angle = time * angular_velocity
-            
-            ang = sqrt( angle[0]*angle[0] + angle[1]*angle[1] + angle[2]*angle[2] )
-            
-            xx=1.0
-            yy=0.0
-            zz=0.0
-            mod_angular_velocity = sqrt(angular_velocity[0]*angular_velocity[0] + angular_velocity[1]*angular_velocity[1] + angular_velocity[2]*angular_velocity[2])
-            if ( mod_angular_velocity > 0.0 ):
-                inv_mod_angular_velocity = 1 / mod_angular_velocity
-                uu= angular_velocity[0]*inv_mod_angular_velocity
-                vv= angular_velocity[1]*inv_mod_angular_velocity
-                ww= angular_velocity[2]*inv_mod_angular_velocity
-            else:
-                uu= 0.0
-                vv= 0.0
-                ww= 0.0
-            
-            new_axes1 = [0.0,0.0,0.0]
-            sin_ang = sin(ang)
-            cos_ang = cos(ang)
-            new_axes1[0] = uu*(uu*xx+vv*yy+ww*zz)*(1-cos_ang) + xx*cos_ang + (-ww*yy+vv*zz)*sin_ang
-            new_axes1[1] = vv*(uu*xx+vv*yy+ww*zz)*(1-cos_ang) + yy*cos_ang + (ww*xx-uu*zz)*sin_ang
-            new_axes1[2] = ww*(uu*xx+vv*yy+ww*zz)*(1-cos_ang) + zz*cos_ang + (-vv*xx+uu*yy)*sin_ang
-            
-            xx=0.0
-            yy=1.0
-            zz=0.0
-            
-            new_axes2 = [0.0,0.0,0.0]
-            new_axes2[0] = uu*(uu*xx+vv*yy+ww*zz)*(1-cos_ang) + xx*cos_ang + (-ww*yy+vv*zz)*sin_ang
-            new_axes2[1] = vv*(uu*xx+vv*yy+ww*zz)*(1-cos_ang) + yy*cos_ang + (ww*xx-uu*zz)*sin_ang
-            new_axes2[2] = ww*(uu*xx+vv*yy+ww*zz)*(1-cos_ang) + zz*cos_ang + (-vv*xx+uu*yy)*sin_ang
-            
-            new_axes3 = [new_axes1[1]*new_axes2[2] - new_axes1[2]*new_axes2[1] , new_axes1[2]*new_axes2[0] - new_axes1[0]*new_axes2[2] , new_axes1[0]*new_axes2[1] - new_axes1[1]*new_axes2[0]]
-            
-            
-            for node in mesh_nodes:                             
-                local_X = node.X0 - initial_center[0]
-                local_Y = node.Y0 - initial_center[1]
-                local_Z = node.Z0 - initial_center[2]
-                relative_position = [0.0, 0.0, 0.0]
-                relative_position[0] = new_axes1[0] * local_X + new_axes2[0] * local_Y + new_axes3[0] * local_Z
-                relative_position[1] = new_axes1[1] * local_X + new_axes2[1] * local_Y + new_axes3[1] * local_Z
-                relative_position[2] = new_axes1[2] * local_X + new_axes2[2] * local_Y + new_axes3[2] * local_Z
-
-                # NEW POSITION
-                node.X = center_position[0] + relative_position[0]
-                node.Y = center_position[1] + relative_position[1]
-                node.Z = center_position[2] + relative_position[2]
-                
-                velocity_due_to_rotation = [relative_position[1]*angular_velocity[2] - relative_position[2]*angular_velocity[1] , 
-                                            relative_position[2]*angular_velocity[0] - relative_position[0]*angular_velocity[2] , 
-                                            relative_position[0]*angular_velocity[1] - relative_position[1]*angular_velocity[0]]
-                
-                #NEW VELOCITY
-                total_vel = [0.0,0.0,0.0]
-                total_vel[0] = linear_velocity[0] + velocity_due_to_rotation[0]
-                total_vel[1] = linear_velocity[1] + velocity_due_to_rotation[1]
-                total_vel[2] = linear_velocity[2] + velocity_due_to_rotation[2]
-                node.SetSolutionStepValue(VELOCITY, total_vel )
-                
-                    
-############## EMBEDDED
-
+import embedded
 
 # PROJECT PARAMETERS (to be put in problem type)
 ProjectParameters.projection_module_option         = 1
@@ -260,10 +66,7 @@ ProjectParameters.nodal_results.append("SOLID_FRACTION")
 ProjectParameters.nodal_results.append("MESH_VELOCITY1")
 ProjectParameters.nodal_results.append("BODY_FORCE")
 ProjectParameters.nodal_results.append("DRAG_REACTION")
-
-# EMBEDDED
-ProjectParameters.nodal_results.append("DISTANCE")
-######EMBEDDED
+ProjectParameters.nodal_results.append("DISTANCE") # embedded
 
 DEMParameters.project_from_particles_option *= ProjectParameters.projection_module_option
 ProjectParameters.project_at_every_substep_option *= ProjectParameters.projection_module_option
@@ -431,28 +234,10 @@ balls_model_part.ProcessInfo.SetValue(INIT_DRAG_FORCE, ProjectParameters.initial
 balls_model_part.ProcessInfo.SetValue(DRAG_LAW_SLOPE, ProjectParameters.drag_law_slope)
 balls_model_part.ProcessInfo.SetValue(POWER_LAW_TOLERANCE, ProjectParameters.power_law_tol)
 
-# EMBEDDED
-# Calculate elemental distances defining the structure embedded in the fluid mesh
+# creating a distance calculation process for the embedded technology
+# (used to calculate elemental distances defining the structure embedded in the fluid mesh)
 calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part, fluid_model_part)
 calculate_distance_process.Execute()
-
-# Write mesh of each partitioned model part --> create a cut model part, which gets all the nodes, elements and conditions
-# new_skin_model_part = ModelPart("SkinPart");
-# calculate_distance_process.GenerateSkinModelPart(new_skin_model_part)
-# print new_skin_model_part
-
-# initialize GiD  I/O
-# gid_mode_skin = GiDPostMode.GiD_PostAscii
-# write_conditions_skin = WriteConditionsFlag.WriteConditions
-# multifile = MultiFileFlag.SingleFile
-# deformed_mesh_flag = WriteDeformedMeshFlag.WriteUndeformed
-# gid_io_skin = GidIO("skin_part",gid_mode_skin,multifile,deformed_mesh_flag, write_conditions_skin)
-
-# mesh to be printed (single mesh case)
-# gid_io_skin.InitializeMesh( 0.0 )
-# gid_io_skin.WriteMesh( new_skin_model_part.GetMesh() )
-# gid_io_skin.FinalizeMesh()
-###### EMBEDDED
 
 # AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 
@@ -703,16 +488,13 @@ while(time <= final_time):
         time_final_DEM_substepping = time
         time_dem = time - Dt + Dt_DEM
 
-    # EMBEDDED
-    MoveEmbeddedStructure(fem_dem_model_part, time)
+    embedded.MoveEmbeddedStructure(fem_dem_model_part, time)
     # Calculate elemental distances defining the structure embedded in the fluid mesh
-    calculate_distance_process = CalculateSignedDistanceTo3DSkinProcess(fem_dem_model_part, fluid_model_part)
     calculate_distance_process.Execute()
 
     if(step >= 3):  # MA: because I think DISTANCE,1 (from previous time step) is not calculated correctly for step=1
-        ApplyEmbeddedBCsToFluid(fluid_model_part)
-        ApplyEmbeddedBCsToBalls(balls_model_part)
-    #########EMBEDDED
+        embedded.ApplyEmbeddedBCsToFluid(fluid_model_part)
+        embedded.ApplyEmbeddedBCsToBalls(balls_model_part)
 
     # solving the fluid part
 
