@@ -115,7 +115,7 @@ namespace Kratos
             double radius_sum = mRadius + ((*ineighbour).lock())->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
             double initial_delta = radius_sum - distance;
 
-            int r_other_continuum_group = ((*ineighbour).lock())->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_CONTINUUM);
+            int r_other_continuum_group = ((*ineighbour).lock())->GetGeometry()(0)->FastGetSolutionStepValue(COHESIVE_GROUP);
 
             ini_size++;
             mIniNeighbourIds[ini_size - 1] = ((*ineighbour).lock())->Id();
@@ -382,8 +382,7 @@ namespace Kratos
             array_1d<double,3> other_to_me_vect   = this->GetGeometry()(0)->Coordinates() - neighbour_iterator->GetGeometry()(0)->Coordinates();
             const double &other_radius                  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS);
             const double &other_sqrt_of_mass            = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(SQRT_OF_MASS);
-            const double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-
+ 
             double distance                       = sqrt(other_to_me_vect[0] * other_to_me_vect[0] +
                                                           other_to_me_vect[1] * other_to_me_vect[1] +
                                                           other_to_me_vect[2] * other_to_me_vect[2]);
@@ -428,41 +427,22 @@ namespace Kratos
             double acumulated_damage = 0.0; 
             
             unsigned int neighbour_iterator_id = neighbour_iterator->Id();
-
-            if (mUniformMaterialOption){
-                equiv_radius                      = mRadius;
-                equiv_young                       = mYoung;
-                equiv_poisson                     = mPoisson;
-                equiv_ln_of_restit_coeff          = mLnOfRestitCoeff;
-                equiv_tg_of_fri_ang               = mTgOfFrictionAngle;
-            }
               
-            else {
-                // Getting neighbour properties
-                double &other_young               = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-                double &other_poisson             = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
-                double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
-                double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
+      
+            // Getting neighbour properties
+            double &other_young               = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+            double &other_poisson             = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+            double &other_ln_of_restit_coeff  = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(LN_OF_RESTITUTION_COEFF);
+            double &other_tg_of_fri_angle     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(PARTICLE_FRICTION);
 
-                equiv_young                       = 2 * mYoung * other_young / (mYoung + other_young);
-                equiv_poisson                     = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
-                equiv_ln_of_restit_coeff          = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
-                equiv_tg_of_fri_ang               = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
-            }
+            equiv_young                       = 2 * mYoung * other_young / (mYoung + other_young);
+            equiv_poisson                     = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
+            equiv_ln_of_restit_coeff          = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
+            equiv_tg_of_fri_ang               = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+        
+            double aux_norm_to_tang = 0.0;
 
-
-            // Globally defined parameters
-                double aux_norm_to_tang = 0.0;
-
-            if (mGlobalVariablesOption){
-              
-                kn_el                                = mGlobalKn;
-                kt_el                                = mGlobalKt;
-                aux_norm_to_tang                     = mGlobalAuxNormToTang;
-
-            }
-
-            else if(mDempack){
+            if(mDempack){
                 
               
               /*
@@ -511,8 +491,8 @@ namespace Kratos
                   calculation_area = mcont_ini_neigh_area[mapping_new_ini];                            
                 }
               
-                kn_el              = mMagicFactor * equiv_young * calculation_area * radius_sum_i; //MSIMSI 1: initial gap? aki dividim nomes per suma de radis.
-                kt_el              = mMagicFactorPoisson * kn_el/(2.0 + equiv_poisson + equiv_poisson);
+                kn_el              = equiv_young * calculation_area * radius_sum_i; //MSIMSI 1: initial gap? aki dividim nomes per suma de radis.
+                kt_el              = kn_el/(2.0 + equiv_poisson + equiv_poisson);
                 aux_norm_to_tang   = sqrt(kt_el / kn_el);
 
             }
@@ -1058,14 +1038,12 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
          mGamma3 = r_process_info[DONZE_G3];
          mMaxDef = r_process_info[DONZE_MAX_DEF];
 
-         mMagicFactorPoisson  = r_process_info[DEM_MAGIC_FACTOR_POISSON];
-         
          mSkinSphere = &(this->GetValue(SKIN_SPHERE));
            
 
          mFinalSimulationTime = r_process_info[FINAL_SIMULATION_TIME];
          
-         mContinuumGroup        = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_CONTINUUM);             
+         mContinuumGroup        = this->GetGeometry()[0].FastGetSolutionStepValue(COHESIVE_GROUP);             
 
          mpCaseOption                   = r_process_info[CASE_OPTION]; 
          
@@ -1157,15 +1135,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           
           }
           */
-           if(rCurrentProcessInfo[PRINT_RADIAL_DISPLACEMENT]==1)
-          {
-            
-            double X = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_X);
-            double Z = this->GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT_Z);
-            
-            this->GetGeometry()[0].FastGetSolutionStepValue(RADIAL_DISPLACEMENT) = sqrt(X*X+Z*Z);
-            
-          }
+        
            // the elemental variable is copied to a nodal variable in order to export the results onto GiD Post. Also a casting to double is necessary for GiD interpretation.
       }
   
@@ -1281,8 +1251,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
       mOldNeighbourContactForces.swap(temp_neighbours_contact_forces);
     
   } //ComputeNewNeighboursHistoricalData
-	  
-	
+      
+    
   
 
   
@@ -1561,9 +1531,6 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
                 }
 
                 double K = mYoung * M_PI * this->GetGeometry()(0)->FastGetSolutionStepValue(RADIUS); //M. Error, should be the same that the local definition.
-
-                if (rCurrentProcessInfo[GLOBAL_VARIABLES_OPTION]==1)
-                    K = rCurrentProcessInfo[GLOBAL_KN];
 
                 Output = 0.34 * sqrt( mRealMass / K);
 
@@ -1975,17 +1942,13 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
         
      {
  
-        
-        externally_applied_force  = this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE); 
+       
+       externally_applied_force = this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE); 
        
        
-       
-       //array_1d<double, 3> total_externally_applied_force  = this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE); 
-		
-        //double time_now = rCurrentProcessInfo[TIME]; //MSIMSI 1 I tried to do a *mpTIME
+       /*
+        double time_now = rCurrentProcessInfo[TIME]; //MSIMSI 1 I tried to do a *mpTIME
 
-        /*
-        
         if( mFinalPressureTime <= 1e-10 )
         {
           
@@ -2006,8 +1969,8 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
           externally_applied_force = total_externally_applied_force;
           
         }
-        */
-    
+       
+    */
         
      } //SphericContinuumParticle::ComputePressureForces
     
@@ -2330,7 +2293,7 @@ void SphericContinuumParticle::InitializeSolutionStep(ProcessInfo& rCurrentProce
 //                   double equiv_poisson    = (mPoisson + other_poisson) * 0.5 ;
 //                   double equiv_young      = (mYoung  + other_young)  * 0.5;
 // 
-//                   double kn_el               = mMagicFactor*equiv_young * equiv_area / (2.0 * equiv_radius);
+//                   double kn_el               = equiv_young * equiv_area / (2.0 * equiv_radius);
 //                   double ks               = kn_el / (2.0 * (1.0 + equiv_poisson));
 // 
 //                   array_1d<double,3> other_to_me_vect = GetGeometry()(0)->Coordinates() - ineighbour->GetGeometry()(0)->Coordinates();
