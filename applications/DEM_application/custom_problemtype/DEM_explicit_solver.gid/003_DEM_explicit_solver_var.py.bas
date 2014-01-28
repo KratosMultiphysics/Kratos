@@ -264,6 +264,8 @@ w_poiss = *elemsmatprop(Poisson_ratio)
 *endif 
 *end elems
 
+#provisional, transition to new problemtype:
 
+RollingFrictionOption = "ON"
 
 # Declare Python Variables
