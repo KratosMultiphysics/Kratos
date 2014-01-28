@@ -49,7 +49,7 @@ def AddVariables(model_part, Param):
         #model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
         model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
-        if( Var_Translator(Param.RolllingFrictionOption)):
+        if( Var_Translator(Param.RollingFrictionOption)):
           model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
 
     # OTHER PROPERTIES
