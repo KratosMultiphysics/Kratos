@@ -179,7 +179,6 @@ void MonolithicDEMCoupled<3>::GetSecondDerivativesVector(Vector& Values, int Ste
         Values[LocalIndex++] = rAcceleration[0];
         Values[LocalIndex++] = rAcceleration[1];
         Values[LocalIndex++] = rAcceleration[2];
-        Values[LocalIndex++] = 0.0; // Pressure Dof
     }
 }
 
