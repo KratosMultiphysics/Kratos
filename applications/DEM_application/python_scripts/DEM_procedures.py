@@ -178,14 +178,13 @@ class Procedures:
         self.total_volume = param.TotalElementsVolume
 
         if (Var_Translator(param.ContinuumOption)):
-            self.print_export_particle_failure_id = Var_Translator(param.PostExportParticleFailureId)
             self.print_export_skin_sphere = Var_Translator(param.PostExportSkinSphere)
             self.predefined_skin_option = Var_Translator(param.PredefinedSkinOption)
             if (self.contact_mesh_OPTION):
                 self.print_local_contact_force = Var_Translator(param.PostLocalContactForce)
                 self.print_failure_criterion_state = Var_Translator(param.PostFailureCriterionState)
                 self.print_unidimensional_damage = Var_Translator(param.PostUnidimensionalDamage)
-                self.print_contact_failure = Var_Translator(param.PostContactFailure)
+                self.print_contact_failure = Var_Translator(param.PostContactFailureId)
                 self.print_contact_tau = Var_Translator(param.PostContactTau)
                 self.print_contact_sigma = Var_Translator(param.PostContactSigma)
                 self.print_mean_contact_area = Var_Translator(param.PostMeanContactArea)
@@ -549,8 +548,8 @@ class Procedures:
 
         if (self.continuum_OPTION):
 
-            if (self.print_export_particle_failure_id):
-                gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, export_model_part.Nodes, time, 0)
+            #if (self.print_export_particle_failure_id):
+                #gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, export_model_part.Nodes, time, 0)
             if (self.print_export_skin_sphere):
                 gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, export_model_part.Nodes, time, 0)
 
