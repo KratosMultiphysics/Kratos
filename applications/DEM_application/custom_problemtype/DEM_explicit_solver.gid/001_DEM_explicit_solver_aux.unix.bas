@@ -36,7 +36,6 @@ then
 
 fi
 
-cp "$3/pressure_script.py" "$2/"
 cp "$3/load_graf.dem" "$2/"
 
 echo "Running on: " >& "$2/$1.info"
