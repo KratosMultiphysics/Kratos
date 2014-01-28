@@ -322,6 +322,12 @@ public:
 
         // Calculate Momentum RHS contribution
         this->AddMomentumRHS(rRightHandSideVector, Density, N, Area);
+//G
+        const double& DeltaTime = rCurrentProcessInfo[DELTA_TIME];
+        static const double arr[] = {0.5,0.5};
+        std::vector<double> SchemeWeights (arr, arr + sizeof(arr) / sizeof(arr[0]));
+        this->AddOtherContributionsRHS(rRightHandSideVector, N, SchemeWeights, DeltaTime);
+//Z
 
         // For OSS: Add projection of residuals to RHS
         if (rCurrentProcessInfo[OSS_SWITCH] == 1)
@@ -1095,7 +1101,7 @@ protected:
      * @param TauTwo Second stabilization parameter (mass equation)
      * @param rAdvVel advection velocity
      * @param Area Elemental area
-    * @param Density Density on integrartion point
+     * @param Density Density on integrartion point
            * @param KinViscosity Kinematic viscosity (nu) on integrartion point
            * @param rCurrentProcessInfo Process info instance
            */
@@ -1179,6 +1185,30 @@ protected:
             ++LocalIndex; // Skip pressure Dof
         }
     }
+//G
+    virtual void AddOtherContributionsRHS(VectorType& F,
+    const array_1d<double, TNumNodes>& rShapeFunc,
+    const std::vector<double>& TimeSchemeWeights,
+    const double& DeltaTime)
+    {
+
+      double SolidFractionRate;
+      this->EvaluateTimeDerivativeInPoint(SolidFractionRate, SOLID_FRACTION_RATE, rShapeFunc, DeltaTime, TimeSchemeWeights);
+
+      // Add the results to the velocity components (Local Dofs are vx, vy, [vz,] p for each node)
+      int LocalIndex = 0;
+
+      for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
+
+          for (unsigned int d = 0; d < TDim; ++d){
+              F[LocalIndex++] += SolidFractionRate;
+          }
+
+          ++LocalIndex; // Skip pressure Dof
+      }
+
+    }
+//Z
 
     /// Add OSS projection terms to the RHS
     virtual void AddProjectionToRHS(VectorType& RHS,
@@ -1807,6 +1837,27 @@ protected:
         for (unsigned int iNode = 1; iNode < TNumNodes; ++iNode)
             rResult += rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable);
     }
+//G
+    virtual void EvaluateTimeDerivativeInPoint(double& rResult,
+                                               const Variable< double >& rVariable,
+                                               const array_1d< double, TNumNodes >& rShapeFunc,
+                                               const double& DeltaTime,
+                                               const std::vector<double>& rSchemeWeigths)
+    {
+        // Compute the time derivative of a nodal variable as a liner contribution of weighted value of the nodal variable in the (Gauss) Point
+        rResult = 0.0;
+
+        for (unsigned int iWeight = 0; iWeight < rSchemeWeigths.size(); ++iWeight){
+
+            for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
+                rResult += rSchemeWeigths[iWeight] * rShapeFunc[iNode] * this->GetGeometry()[iNode].FastGetSolutionStepValue(rVariable, iWeight);
+            }
+
+        }
+
+        rResult /= DeltaTime;
+    }
+//Z
 
     /// Add the weighted value of a variable at a point inside the element to a vector
     /**
