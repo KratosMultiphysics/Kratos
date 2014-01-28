@@ -8,7 +8,6 @@ def AddVariables(model_part, Param):
     # KINEMATIC
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(RADIAL_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
     model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
@@ -38,11 +37,12 @@ def AddVariables(model_part, Param):
         #model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
         model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
-        model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
+        if( Var_Translator(Param.RollingFrictionOption)):
+          model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
 
     # OTHER PROPERTIES
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
-    model_part.AddNodalSolutionStepVariable(PARTICLE_CONTINUUM)  # Continuum group
+    model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
 #    model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
     model_part.AddNodalSolutionStepVariable(MAX_INDENTATION)
 
@@ -134,12 +134,11 @@ class ExplicitStrategy:
 
 
         # SIMULATION FLAGS        
-        self.virtual_mass_option            = Var_Translator(Param.VirtualMassOption)  
+  
         self.critical_time_option           = Var_Translator(Param.AutoReductionOfTimeStepOption)   
         self.case_option                    = 3  
         self.trihedron_option               = Var_Translator(Param.PostEulerAngles)
         self.rotation_option                = Var_Translator(Param.RotationOption)
-        self.rotation_spring_option         = Var_Translator(Param.RotationalSpringOption)  
         self.bounding_box_option            = Var_Translator(Param.BoundingBoxOption)
         self.activate_search                = 1
         if(Var_Translator(Param.DontSearchUntilFailure)):
@@ -151,11 +150,15 @@ class ExplicitStrategy:
         self.fix_velocities_flag                 = 0       
 
         self.clean_init_indentation_option = Var_Translator(Param.CleanIndentationsOption)
-        self.homogeneous_material_option = Var_Translator(Param.HomogeneousMaterialOption)
-        self.global_variables_option = Var_Translator(Param.GlobalVariablesOption)
         self.stress_strain_operations = Var_Translator(Param.StressStrainOperationsOption)
         self.MoveMeshFlag = True
-
+        
+        self.virtual_mass_option            = 0
+        self.nodal_mass_coeff = Param.VirtualMassCoefficient
+        if(self.nodal_mass_coeff != 1.00):
+           self.virtual_mass_option            = 1
+           
+        
         self.delta_option = Var_Translator(Param.DeltaOption)
 
         self.continuum_simulating_option = Var_Translator(Param.ContinuumOption)
@@ -219,144 +222,12 @@ class ExplicitStrategy:
         # self.contact_model_part.Nodes       = self.model_part.Nodes; #This is not necessary, elements point at the nodes of the balls_model_part already. It is also problematic when summing modelparts!
         self.domain_size = Param.Dimension
 
-# BOUNDARY
-#        if (Param.LimitSurfaceOption > 0):
-#          self.surface_normal_dir_1           = Vector(3)
-#          self.surface_normal_dir_1[0]        = Param.SurfaceNormalDirX1
-#          self.surface_normal_dir_1[1]        = Param.SurfaceNormalDirY1
-#          self.surface_normal_dir_1[2]        = Param.SurfaceNormalDirZ1
-#          self.surface_point_coor_1           = Vector(3)
-#          self.surface_point_coor_1[0]        = Param.SurfacePointCoorX1
-#          self.surface_point_coor_1[1]        = Param.SurfacePointCoorY1
-#          self.surface_point_coor_1[2]        = Param.SurfacePointCoorZ1
-#          self.surface_friction_angle_1       = Param.SurfaceFrictionAngle1
-#        if (Param.LimitSurfaceOption > 1):
-#          self.surface_normal_dir_2           = Vector(3)
-#          self.surface_normal_dir_2[0]        = Param.SurfaceNormalDirX2
-#          self.surface_normal_dir_2[1]        = Param.SurfaceNormalDirY2
-#          self.surface_normal_dir_2[2]        = Param.SurfaceNormalDirZ2
-#          self.surface_point_coor_2           = Vector(3)
-#          self.surface_point_coor_2[0]        = Param.SurfacePointCoorX2
-#          self.surface_point_coor_2[1]        = Param.SurfacePointCoorY2
-#          self.surface_point_coor_2[2]        = Param.SurfacePointCoorZ2
-#          self.surface_friction_angle_2       = Param.SurfaceFrictionAngle2
-#        if (Param.LimitSurfaceOption > 2):
-#          self.surface_normal_dir_3           = Vector(3)
-#          self.surface_normal_dir_3[0]        = Param.SurfaceNormalDirX3
-#          self.surface_normal_dir_3[1]        = Param.SurfaceNormalDirY3
-#          self.surface_normal_dir_3[2]        = Param.SurfaceNormalDirZ3
-#          self.surface_point_coor_3           = Vector(3)
-#          self.surface_point_coor_3[0]        = Param.SurfacePointCoorX3
-#          self.surface_point_coor_3[1]        = Param.SurfacePointCoorY3
-#          self.surface_point_coor_3[2]        = Param.SurfacePointCoorZ3
-#          self.surface_friction_angle_3       = Param.SurfaceFrictionAngle3
-#        if (Param.LimitSurfaceOption > 3):
-#          self.surface_normal_dir_4           = Vector(3)
-#          self.surface_normal_dir_4[0]        = Param.SurfaceNormalDirX4
-#          self.surface_normal_dir_4[1]        = Param.SurfaceNormalDirY4
-#          self.surface_normal_dir_4[2]        = Param.SurfaceNormalDirZ4
-#          self.surface_point_coor_4           = Vector(3)
-#          self.surface_point_coor_4[0]        = Param.SurfacePointCoorX4
-#          self.surface_point_coor_4[1]        = Param.SurfacePointCoorY4
-#          self.surface_point_coor_4[2]        = Param.SurfacePointCoorZ4
-#          self.surface_friction_angle_4       = Param.SurfaceFrictionAngle4
-#        if (Param.LimitSurfaceOption > 4):
-#          self.surface_normal_dir_5           = Vector(3)
-#          self.surface_normal_dir_5[0]        = Param.SurfaceNormalDirX5
-#          self.surface_normal_dir_5[1]        = Param.SurfaceNormalDirY5
-#          self.surface_normal_dir_5[2]        = Param.SurfaceNormalDirZ5
-#          self.surface_point_coor_5           = Vector(3)
-#          self.surface_point_coor_5[0]        = Param.SurfacePointCoorX5
-#          self.surface_point_coor_5[1]        = Param.SurfacePointCoorY5
-#          self.surface_point_coor_5[2]        = Param.SurfacePointCoorZ5
-#          self.surface_friction_angle_5       = Param.SurfaceFrictionAngle5
-#
-#        if (Param.LimitCylinderOption > 0):
-#          self.cylinder_axis_dir_1              = Vector(3)
-#          self.cylinder_axis_dir_1[0]           = Param.CylinderAxisX1
-#          self.cylinder_axis_dir_1[1]           = Param.CylinderAxisY1
-#          self.cylinder_axis_dir_1[2]           = Param.CylinderAxisZ1
-#          self.cylinder_initial_base_centre_1   = Vector(3)
-#          self.cylinder_initial_base_centre_1[0]= Param.CylinderInitialBaseCentreX1
-#          self.cylinder_initial_base_centre_1[1]= Param.CylinderInitialBaseCentreY1
-#          self.cylinder_initial_base_centre_1[2]= Param.CylinderInitialBaseCentreZ1
-#          self.cylinder_radius_1                = Param.CylinderRadius1
-#          self.cylinder_velocity_1              = Param.CylinderVelocity1
-#          self.cylinder_angular_velocity_1      = Param.CylinderAngularVelocity1
-#          self.cylinder_friction_angle_1        = Param.CylinderFrictionAngle1
-#        if (Param.LimitCylinderOption > 1):
-#          self.cylinder_axis_dir_2              = Vector(3)
-#          self.cylinder_axis_dir_2[0]           = Param.CylinderAxisX2
-#          self.cylinder_axis_dir_2[1]           = Param.CylinderAxisY2
-#          self.cylinder_axis_dir_2[2]           = Param.CylinderAxisZ2
-#          self.cylinder_initial_base_centre_2   = Vector(3)
-#          self.cylinder_initial_base_centre_2[0]= Param.CylinderInitialBaseCentreX2
-#          self.cylinder_initial_base_centre_2[1]= Param.CylinderInitialBaseCentreY2
-#          self.cylinder_initial_base_centre_2[2]= Param.CylinderInitialBaseCentreZ2
-#          self.cylinder_radius_2                = Param.CylinderRadius2
-#          self.cylinder_velocity_2              = Param.CylinderVelocity2
-#          self.cylinder_angular_velocity_2      = Param.CylinderAngularVelocity2
-#          self.cylinder_friction_angle_2        = Param.CylinderFrictionAngle2
-#        if (Param.LimitCylinderOption > 2):
-#          self.cylinder_axis_dir_3              = Vector(3)
-#          self.cylinder_axis_dir_3[0]           = Param.CylinderAxisX3
-#          self.cylinder_axis_dir_3[1]           = Param.CylinderAxisY3
-#          self.cylinder_axis_dir_3[2]           = Param.CylinderAxisZ3
-#          self.cylinder_initial_base_centre_3   = Vector(3)
-#          self.cylinder_initial_base_centre_3[0]= Param.CylinderInitialBaseCentreX3
-#          self.cylinder_initial_base_centre_3[1]= Param.CylinderInitialBaseCentreY3
-#          self.cylinder_initial_base_centre_3[2]= Param.CylinderInitialBaseCentreZ3
-#          self.cylinder_radius_3                = Param.CylinderRadius3
-#          self.cylinder_velocity_3              = Param.CylinderVelocity3
-#          self.cylinder_angular_velocity_3      = Param.CylinderAngularVelocity3
-#          self.cylinder_friction_angle_3        = Param.CylinderFrictionAngle3
-#        if (Param.LimitCylinderOption > 3):
-#          self.cylinder_axis_dir_4              = Vector(3)
-#          self.cylinder_axis_dir_4[0]           = Param.CylinderAxisX4
-#          self.cylinder_axis_dir_4[1]           = Param.CylinderAxisY4
-#          self.cylinder_axis_dir_4[2]           = Param.CylinderAxisZ4
-#          self.cylinder_initial_base_centre_4   = Vector(3)
-#          self.cylinder_initial_base_centre_4[0]= Param.CylinderInitialBaseCentreX4
-#          self.cylinder_initial_base_centre_4[1]= Param.CylinderInitialBaseCentreY4
-#          self.cylinder_initial_base_centre_4[2]= Param.CylinderInitialBaseCentreZ4
-#          self.cylinder_radius_4                = Param.CylinderRadius4
-#          self.cylinder_velocity_4              = Param.CylinderVelocity4
-#          self.cylinder_angular_velocity_4      = Param.CylinderAngularVelocity4
-#          self.cylinder_friction_angle_4        = Param.CylinderFrictionAngle4
-#        if (Param.LimitCylinderOption > 4):
-#          self.cylinder_axis_dir_5              = Vector(3)
-#          self.cylinder_axis_dir_5[0]           = Param.CylinderAxisX5
-#          self.cylinder_axis_dir_5[1]           = Param.CylinderAxisY5
-#          self.cylinder_axis_dir_5[2]           = Param.CylinderAxisZ5
-#          self.cylinder_initial_base_centre_5   = Vector(3)
-#          self.cylinder_initial_base_centre_5[0]= Param.CylinderInitialBaseCentreX5
-#          self.cylinder_initial_base_centre_5[1]= Param.CylinderInitialBaseCentreY5
-#          self.cylinder_initial_base_centre_5[2]= Param.CylinderInitialBaseCentreZ5
-#          self.cylinder_radius_5                = Param.CylinderRadius5
-#          self.cylinder_velocity_5              = Param.CylinderVelocity5
-#          self.cylinder_angular_velocity_5      = Param.CylinderAngularVelocity5
-#          self.cylinder_friction_angle_5        = Param.CylinderFrictionAngle5
-#
 
         # GLOBAL PHISICAL ASPECTS
         self.gravity = Vector(3)
         self.gravity[0] = Param.GravityX
         self.gravity[1] = Param.GravityY
         self.gravity[2] = Param.GravityZ
-
-        # GLOBAL MATERIAL PROPERTIES
-        self.nodal_mass_coeff = Param.VirtualMassCoefficient
-        self.magic_factor = Param.MagicFactor
-        self.magic_factor_poisson = Param.MagicFactorPoisson
-
-        if (self.global_variables_option):
-            self.global_kn = Param.GlobalKn
-            self.global_kt = Param.GlobalKt
-            self.global_kr = Param.GlobalKr
-            self.global_rn = Param.GlobalRn
-            self.global_rt = Param.GlobalRT
-            self.global_rr = Param.GlobalRr
-            self.global_fri_ang = Param.GlobalFrictionAngle
 
         if (Param.NormalForceCalculationType == "Linear"):
             self.force_calculation_type_id = 0
@@ -399,14 +270,8 @@ class ExplicitStrategy:
             else:
                 self.damp_id = 0
 
-        if (Param.RotaDampingType == "LocalDamp"):
-            self.rota_damp_id = 1
-
-        elif (Param.RotaDampingType == "RollingFric"):
-            self.rota_damp_id = 2
-
-        else:
-            self.rota_damp_id = 0
+        if (Var_Translator(Param.RollingFrictionOption)):
+            self.rolling_friction_option = 1
 
         if (Param.FailureCriterionType == "Mohr-Coulomb"):
             self.failure_criterion_option = 1
@@ -421,7 +286,6 @@ class ExplicitStrategy:
         # PRINTING VARIABLES
         self.print_export_id = Var_Translator(Param.PostExportId)
         self.print_export_skin_sphere = Var_Translator(Param.PostExportSkinSphere)
-        self.print_radial_displacement = Var_Translator(Param.PostRadialDisplacement)
         self.print_group_id = Var_Translator(Param.PostGroupId)
 
         self.dummy_switch = 0
@@ -483,13 +347,10 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(DEMPACK_OPTION, self.dempack_option)
         self.model_part.ProcessInfo.SetValue(ACTIVATE_SEARCH, self.activate_search)
         self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
-        self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_option)
-        self.model_part.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_option)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
         self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
         self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option);
-        self.model_part.ProcessInfo.SetValue(ROTATION_SPRING_OPTION, self.rotation_spring_option);
-
+       
         # TOLERANCES
         self.model_part.ProcessInfo.SetValue(DISTANCE_TOLERANCE, 0);
 
@@ -555,25 +416,18 @@ class ExplicitStrategy:
 #
         # GLOBAL PHISICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
-        self.model_part.ProcessInfo.SetValue(DEM_MAGIC_FACTOR, self.magic_factor)
-        self.model_part.ProcessInfo.SetValue(DEM_MAGIC_FACTOR_POISSON, self.magic_factor_poisson)
 
         # GLOBAL MATERIAL PROPERTIES
 
         self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
 
-        if (self.global_variables_option):
-            self.model_part.ProcessInfo.SetValue(GLOBAL_KN, self.global_kn)
-            self.model_part.ProcessInfo.SetValue(GLOBAL_KT, self.global_kt)
-
         # PRINTING VARIABLES
-        self.model_part.ProcessInfo.SetValue(PRINT_RADIAL_DISPLACEMENT, self.print_radial_displacement)
         self.model_part.ProcessInfo.SetValue(PRINT_GROUP_ID, self.print_group_id)
         self.model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
         self.model_part.ProcessInfo.SetValue(PRINT_SKIN_SPHERE, self.print_export_skin_sphere)
         self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
         self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
-        self.model_part.ProcessInfo.SetValue(ROTA_DAMP_TYPE, self.rota_damp_id)
+        self.model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
 
         # TIME RELATED PARAMETERS
         self.model_part.ProcessInfo.SetValue(DELTA_TIME, self.delta_time)
