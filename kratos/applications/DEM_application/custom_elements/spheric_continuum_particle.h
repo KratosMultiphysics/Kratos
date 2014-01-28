@@ -249,7 +249,6 @@ namespace Kratos
         double mYoungPlastic;
         double mPlasticityLimit;
         double mDamageMaxDisplacementFactor;
-        double mMagicFactorPoisson;
      
         double mGamma1;
         double mGamma2;
