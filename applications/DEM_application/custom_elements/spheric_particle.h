@@ -242,10 +242,9 @@ namespace Kratos
       int mDampType;
       int mElasticityType;
       int mRotationOption;
-      int mRotationDampType;
+      int mRollingFrictionOption;
       int mGlobalVariablesOption;
-      int mCriticalTimeOption;
-      int mUniformMaterialOption;     
+      int mCriticalTimeOption;   
       int mLimitSurfaceOption;
       int mLimitCylinderOption;
       int mRotationSpringOption;
@@ -259,7 +258,6 @@ namespace Kratos
       double mFrictionAngle;
       double mTgOfFrictionAngle;
       double mLnOfRestitCoeff;
-      double mMagicFactor;
       double mGlobalKn;
       double mGlobalKt;
       double mGlobalAuxNormToTang;
