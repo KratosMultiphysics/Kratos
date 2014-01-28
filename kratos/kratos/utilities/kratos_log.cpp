@@ -46,11 +46,12 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "utilities/kratos_log.h"
 
-
 namespace Kratos
 {
   
     /// KratosLogger
+    KratosLogger *  KratosLogger::mpInstance    = NULL;
+    bool            KratosLogger::mInstanceFalg = 0;
   
     KratosLogger::KratosLogger()
     {    
@@ -85,7 +86,7 @@ namespace Kratos
         delete mpInstance;
     }
 
-    static KratosLogger& KratosLogger::GetInstance() 
+    KratosLogger& KratosLogger::GetInstance() 
     {
         if(!mInstanceFalg)
         {   
@@ -148,10 +149,32 @@ namespace Kratos
 //         //mOutputFile = 
 //     }
 
+    // Template instantiation
+    template class KratosLog<KRATOS_SEVERITY_ERR>;
+    template KratosLog<KRATOS_SEVERITY_ERR>& KratosLog<KRATOS_SEVERITY_ERR>::GetInstance();
+    
+    template<> KratosLog<KRATOS_SEVERITY_ERR> * KratosLog<KRATOS_SEVERITY_ERR>::mpInstance      = NULL;
+    template<> bool                             KratosLog<KRATOS_SEVERITY_ERR>::mInstanceFalg   = 0;
+    
+    //template<typename T> KratosLog<KRATOS_SEVERITY_ERR>& KratosLog<KRATOS_SEVERITY_ERR>::operator << (const T& data);
+    
+    template<const int S>
+    KratosLog<S>& KratosLog<S>::GetInstance() 
+    {
+        if(!mInstanceFalg)
+        {   
+            mInstanceFalg = 1;
+            mpInstance = new KratosLog<S>();
+        }
+        
+        return (*mpInstance);
+    }
+
     
     /// Class operator only writes in the generic log file 
     /// This function must be overloaded twice in order to adress std::endl as it is a function
-    KratosLog& KratosLog::operator<<(std::ostream& (*fn)(std::ostream&))
+    template<int S>
+    KratosLog<S>& KratosLog<S>::operator << (std::ostream& (*fn)(std::ostream&))
     {   
         if(mPrintLogOnScreen)
             fn(std::cout);
@@ -162,8 +185,9 @@ namespace Kratos
     }
     
     /// Rest of the inputs
+    template<int S>
     template<typename T>
-    KratosLog& KratosLog::operator << (const T& data)
+    KratosLog<S>& KratosLog<S>::operator << (const T& data)
     {
         if(mPrintLogOnScreen)
         {
@@ -172,7 +196,7 @@ namespace Kratos
         
         mOutputFile << data;
         
-        if(mSeverityLevel == KratosLogger::KRATOS_SEVERITY_ERR)
+        if(mSeverityLevel == KRATOS_SEVERITY_ERR)
         {
             abort();
         }
@@ -188,11 +212,13 @@ namespace Kratos
      * @param line:     Line where the function was called
      * @param severity: Severity of the error **TODO: To be removed?
      **/
-    template<KratosLogger::KRATOS_SEVERITY_ERR>
-    static inline KratosLog& KratosLogger::KratosLogStream(const char * file, const char * funct, int line, int severity)
+    inline KratosLog<KRATOS_SEVERITY_ERR>& KratosLogger::KratosLogStream(const char * file, const char * funct, int line, int severity)
     {
-        KratosLog<KratosLogger::KRATOS_SEVERITY_ERR> << KRATOS_TIME_STAMP << ":" << "KRATOS_ERROR:" << file << ":" << line << " In function \'" << funct << "\':";
-        return KratosLog<KratosLogger::KRATOS_SEVERITY_ERR>::mOutputFile;
+        KratosLog<KRATOS_SEVERITY_ERR>& log = KratosLog<KRATOS_SEVERITY_ERR>::GetInstance();
+        
+        log << KRATOS_TIME_STAMP << ":" << "KRATOS_ERROR:" << file << ":" << line << " In function \'" << funct << "\':";
+        
+        return log;
     }
     
 //     /**
@@ -268,7 +294,7 @@ namespace Kratos
         /**
      * Returns the current time in HH:MM:SS format
      */
-    static const std::string KratosLogger::CurrentDateTime() 
+    const std::string KratosLogger::CurrentDateTime() 
     {
         time_t     now = time(0);
         struct tm  tstruct;
@@ -286,7 +312,7 @@ namespace Kratos
     * @param format:    valid format for time. Please check: "http://www.cplusplus.com/reference/ctime/strftime/"
     *                   for more details.
     */
-    static const std::string KratosLogger::CurrentDateTime(const char * format) 
+    const std::string KratosLogger::CurrentDateTime(const char * format) 
     {
         time_t     now = time(0);
         struct tm  tstruct;

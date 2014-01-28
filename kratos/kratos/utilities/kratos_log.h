@@ -65,7 +65,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "includes/define.h"
 
 // Macros
-#define KRATOS_ERROR_LOG            KRATOS_LOG(KRATOS_ERROR)
+#define KRATOS_ERROR_LOG            KRATOS_LOG(KRATOS_SEVERITY_ERR)
 #define KRATOS_ERROR_LOG_N          KRATOS_LOG_N(KRATOS_ERROR)
 #define KRATOS_ERROR_LOG_IF         KRATOS_LOG_IF(KRATOS_ERROR)
 #define KRATOS_ERROR_LOG_CHECK      KRATOS_LOG_CHECK(KRATOS_ERROR)
@@ -78,7 +78,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define KRATOS_TRACE_LOG    
 #endif
 
-#define KRATOS_LOG(SEVERITY) KratosLog<SEVERITY>::KratosLogStream()
+#define KRATOS_LOG(SEVERITY)                                                            \
+  KratosLog<SEVERITY>::GetInstance()    \
 
 # define KRATOS_LOG_OCCURRENCES(line) kratos_log_loop_counter ## line
 
@@ -113,31 +114,43 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
+  
+enum{
+  KRATOS_SEVERITY_ERR,
+  KRATOS_SEVERITY_WAR,
+  KRATOS_SEVERITY_DET,
+  KRATOS_SEVERITY_INF,
+  KRATOS_SEVERITY_DEB,
+  KRATOS_SEVERITY_TRC
+};
  
-template<int S>  
+template<int const S>  
 class KratosLog
 {
   public:
     
+    static KratosLog<S>& GetInstance();
+    
     static void SetOutput(int severity);
     static void SetSeverityLevel(std::string const& LogFileName);
 
-    KratosLog& operator<<(std::ostream& (*fn)(std::ostream&));
+    KratosLog<S>& operator<<(std::ostream& (*fn)(std::ostream&));
     
     template<typename T>
-    KratosLog& operator << (const T& data);
+    KratosLog<S>& operator << (const T& data);
     
     static std::ostream mOutputFile;
     
   private:
     
-    static int  mSeverity;
+    static int          mSeverity;
     
-    static bool mPrintLogOnScreen;
-    static int  mSeverityLevel;
-   
- 
-  
+    static bool         mPrintLogOnScreen;
+    static int          mSeverityLevel;
+    
+    static bool         mInstanceFalg;
+    static KratosLog *  mpInstance;
+
 };  
   
 /// Logger clas for kratos
@@ -156,15 +169,6 @@ class KratosLogger : public std::ostream
   
     ///@name Type Definitions
     ///@{
-      
-    enum{
-      KRATOS_SEVERITY_ERR,
-      KRATOS_SEVERITY_WAR,
-      KRATOS_SEVERITY_DET,
-      KRATOS_SEVERITY_INF,
-      KRATOS_SEVERITY_DEB,
-      KRATOS_SEVERITY_TRC
-    };
 
     /// Pointer definition of Timer
     KRATOS_CLASS_POINTER_DEFINITION(KratosLogger);
@@ -199,8 +203,7 @@ class KratosLogger : public std::ostream
       
     KratosLog<KRATOS_SEVERITY_ERR>& GetKratosLog();
     
-    template<int S>
-    KratosLog& KratosLogStream(const char * file, const char * funct, int line, int severity);
+    KratosLog<KRATOS_SEVERITY_ERR>& KratosLogStream(const char * file, const char * funct, int line, int severity);
     
     std::ofstream& GetLogNormalFile();
     std::ofstream& GetLogTimingFile();
