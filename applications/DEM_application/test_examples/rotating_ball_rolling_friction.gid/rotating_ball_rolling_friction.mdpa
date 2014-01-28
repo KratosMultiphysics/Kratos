@@ -59,7 +59,7 @@ Begin NodalData GROUP_ID
 2 0 1
 End NodalData
 
-Begin NodalData PARTICLE_CONTINUUM
+Begin NodalData COHESIVE_GROUP
 1 0 0
 2 0 0
 End NodalData
