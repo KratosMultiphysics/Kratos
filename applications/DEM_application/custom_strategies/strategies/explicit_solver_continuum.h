@@ -114,7 +114,7 @@ namespace Kratos
           BaseType::InitializeElements();
           this->GetInitializeWasPerformed() = true;
           
-          //this->SetLoadingVelocity();
+          this->ApplyPrescribedBoundaryConditions();
           
           // 0. Set search radius
           BaseType::SetSearchRadius(r_model_part, 1.0);
@@ -773,55 +773,83 @@ namespace Kratos
 
     }
     
-     void SetLoadingVelocity()
+     void ApplyPrescribedBoundaryConditions()
     {
       
       KRATOS_TRY
 
       ModelPart& r_model_part           = BaseType::GetModelPart();
-      ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
-      ElementsArrayType& pElements      = GetElements(r_model_part);
+    //  ProcessInfo& rCurrentProcessInfo  = r_model_part.GetProcessInfo();
       
-      OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
+      for (ModelPart::MeshesContainerType::iterator mesh_it = r_model_part.GetMeshes().begin(); mesh_it != r_model_part.GetMeshes().end(); ++mesh_it)
+      {
+        
+          ElementsArrayType& pElements = mesh_it->Elements();
+          Properties properties =  mesh_it->GetProperties(0);  
 
-      #pragma omp parallel for
-      for (int k = 0; k < this->GetNumberOfThreads(); k++){
-          typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
-          typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+          bool fix_x = bool(properties[IMPOSED_VELOCITY_X]);
+          bool fix_y = bool(properties[IMPOSED_VELOCITY_Y]);
+          bool fix_z = bool(properties[IMPOSED_VELOCITY_Z]);
+          
+          double vel_x = properties[IMPOSED_VELOCITY_X_VALUE];
+          double vel_y = properties[IMPOSED_VELOCITY_Y_VALUE];  
+          double vel_z = properties[IMPOSED_VELOCITY_Z_VALUE];  
+          
+         if( fix_x || fix_y || fix_z )
+         {
+            
+          OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
-          for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+          #pragma omp parallel 
+          
+          #pragma omp for
+          
+          for (int k = 0; k < this->GetNumberOfThreads(); k++)
+          
           {
-             
-            if( ( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 1 ) ) //top
-          
-            {
-                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y) = rCurrentProcessInfo[FIXED_VEL_TOP];
-                unsigned int pos_y = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
-                (it)->GetGeometry()(0)->GetDof(VELOCITY_Y, pos_y).FixDof();
-                
-            }
-            
-            if( ( it->GetGeometry()(0)->FastGetSolutionStepValue(GROUP_ID) == 2 ) ) //bot
-          
-            {
-                (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y) = rCurrentProcessInfo[FIXED_VEL_BOT];
-                unsigned int pos_y = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);
-                (it)->GetGeometry()(0)->GetDof(VELOCITY_Y, pos_y).FixDof();
-                
-            }
+              typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+              typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
 
-            
-          } //loop over particles
+              for (typename ElementsArrayType::iterator it = it_begin; it != it_end; ++it)
+              {
 
-      }// loop threads OpenMP
+                array_1d<double, 3>& velocity = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY);
+                
+                if(fix_x)
+                {
+                  velocity[0] = vel_x;
+                  unsigned int pos_x = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_X_DOF_POS);  
+                  (it)->GetGeometry()(0)->GetDof(VELOCITY_X, pos_x).FixDof();  
+                }
+                
+                if(fix_y)
+                {
+                  velocity[1] = vel_y;
+                  unsigned int pos_y = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Y_DOF_POS);  
+                  (it)->GetGeometry()(0)->GetDof(VELOCITY_Y, pos_y).FixDof();  
+                }
+                
+                if(fix_z)
+                {
+                  velocity[2] = vel_z;
+                  unsigned int pos_z = (it)->GetGeometry()(0)->FastGetSolutionStepValue(VELOCITY_Z_DOF_POS);  
+                  (it)->GetGeometry()(0)->GetDof(VELOCITY_Z, pos_z).FixDof();  
+                
+                }
+     
+              } //loop over particles
+
+            }// loop threads OpenMP
+            
+          } //if(fix_x || fix_y || fix_z)
+        
+      } //for each mesh
       
-
       KRATOS_CATCH("")
 
     }
-      
-   
-   
+    
+
    void CheckPairWiseBreaking()
      {
           KRATOS_TRY
