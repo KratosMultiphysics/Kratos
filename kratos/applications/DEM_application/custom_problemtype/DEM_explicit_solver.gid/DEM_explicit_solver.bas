@@ -115,7 +115,7 @@ Begin NodalData GROUP_ID
 *end groups
 End NodalData
 
-Begin NodalData PARTICLE_CONTINUUM
+Begin NodalData COHESIVE_GROUP
 *loop elems *all
 *if(strcmp(ElemsTypeName,"Sphere")==0 || strcmp(ElemsTypeName,"Circle")==0)
 *elemsconec(1) 0 *elemsmatprop(Continuum_group)
