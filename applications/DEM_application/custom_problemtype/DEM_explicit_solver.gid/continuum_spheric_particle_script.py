@@ -264,7 +264,7 @@ if(DEM_parameters.Dempack and (DEM_parameters.ConcreteTestOption != "OFF")):
   
   print '************DEM VIRTUAL LAB******************'+'\n'
   print 'Loading velocity: ' + str(loading_velocity) + '\n'
-  print 'Expected maximum deformation: ' + str(loading_velocity*DEM_parameters.FinalTime/height*100) +'%'+'\n'+'\n'  
+  print 'Expected maximum deformation: ' + str(-loading_velocity*DEM_parameters.FinalTime/height*100) +'%'+'\n'+'\n'  
 
   chart.write(("***********PARAMETERS*****************")+'\n')
   chart.write( "                                    " +'\n')
@@ -422,6 +422,8 @@ while (time < DEM_parameters.FinalTime):
     total_force_bts = 0.0
     total_fem_force = 0.0
 
+    strain += -1.0*loading_velocity*dt/height
+        
     if( DEM_parameters.ConcreteTestOption != "OFF" and (graph_counter == graph_frequency) ):
       
       graph_counter = 0
@@ -439,8 +441,7 @@ while (time < DEM_parameters.FinalTime):
         
       elif (DEM_parameters.ConcreteTestOption != "OFF"):
 
-        strain += -1.0*loading_velocity*dt/height
-        
+       
         radial_strain = MaterialTest.MeasureRadialStrain(proc.XLAT)
         
         for node in sup_layer_fm:
