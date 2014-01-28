@@ -334,7 +334,7 @@ class ExplicitStrategy:
 
         else:
 
-            raise 'Specified NormalForceCalculationType is not defined'
+            raise Exception('Specified NormalForceCalculationType is not defined')
 
         if (Param.NormalDampingType == "ViscDamp"):
 
@@ -372,7 +372,7 @@ class ExplicitStrategy:
 
         if (Param.TimeStepsPerSearchStep < 1):
 
-            raise 'Variable TimeStepsPerSearchStep must be an integer, grater or equal to 1. The current input value is ', Param.TimeStepsPerSearchStep
+            raise Exception('Variable TimeStepsPerSearchStep must be an integer, grater or equal to 1. The current input value is ', Param.TimeStepsPerSearchStep)
 
         elif (not isinstance(Param.TimeStepsPerSearchStep, int)):
 
