@@ -1,3 +1,4 @@
+from __future__ import print_function, absolute_import, division #makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 import time as timer
 import os
 import sys
@@ -44,18 +45,18 @@ SolverStrategy.AddVariables(balls_model_part, DEM_parameters)
 
 if (DEM_parameters.OutputFileType == "Binary"):
     gid_mode = GiDPostMode.GiD_PostBinary
-  
+
 else:
     gid_mode = GiDPostMode.GiD_PostAscii
-  
+
 if (DEM_parameters.Multifile == "multiple_files"):
     multifile = MultiFileFlag.MultipleFiles
-  
+
 else:
     multifile = MultiFileFlag.SingleFile
 
 deformed_mesh_flag = WriteDeformedMeshFlag.WriteDeformed
-write_conditions   = WriteConditionsFlag.WriteConditions
+write_conditions = WriteConditionsFlag.WriteConditions
 
 gid_io = GidIO(DEM_parameters.problem_name, gid_mode, multifile, deformed_mesh_flag, write_conditions)
 model_part_io_solid = ModelPartIO(DEM_parameters.problem_name)
@@ -109,15 +110,16 @@ multifile_50.write('Multiple\n')
 
 os.chdir(main_path)
 
-print 'Initializing Problem....'
+print ("Initializing Problem....")
 
 solver.Initialize()
 
 if ( (DEM_parameters.ContinuumOption =="ON") and (DEM_parameters.ContactMeshOption =="ON") ) :
 
-  contact_model_part = solver.contact_model_part   
+  contact_model_part = solver.contact_model_part
 
-#------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALITZATIONS--------------------------------------------------------
+
+#------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALIZATIONS--------------------------------------------------------
 
 #if (DEM_parameters.PredefinedSkinOption == "ON" ):
 
@@ -140,12 +142,12 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
     os.chdir(graphs_path)
 
     chart = open(DEM_parameters.problem_name + "_Parameter_chart.grf", 'w')
-    
+
     if(DEM_parameters.ConcreteTestOption == "BTS"):
 
-        bts_export = open(DEM_parameters.problem_name +"_bts"+".grf",'w');      
-        proc.BtsSkinDetermination(balls_model_part,solver,DEM_parameters)
-        
+        bts_export = open(DEM_parameters.problem_name + "_bts" + ".grf", 'w');
+        proc.BtsSkinDetermination(balls_model_part, solver, DEM_parameters)
+
     else:
 
       graph_export_top = open(DEM_parameters.problem_name + "_graph_TOP.grf", 'w')
@@ -180,7 +182,7 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
       print ('Initial Height of the Model: ' + str(ini_height)+'\n')
       
       if(DEM_parameters.PredefinedSkinOption == "ON" ):
-        print "ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF"
+        print ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
 
       (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = proc.CylinderSkinDetermination(balls_model_part,solver,DEM_parameters) # defines the skin and areas
        
@@ -198,7 +200,7 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
 #physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 #properties_list = []
 
-print 'Initialitzation Complete' + '\n'
+print ("Initialization Complete" + "\n")
 
 step                   = 0
 time                   = 0.0
@@ -235,8 +237,8 @@ if(DEM_parameters.ConcreteTestOption == "OEDOMETRIC"):
   
   for node in proc.LAT:
 
-    node.SetSolutionStepValue(VELOCITY_X,0.0);
-    node.SetSolutionStepValue(VELOCITY_Z,0.0);
+    node.SetSolutionStepValue(VELOCITY_X, 0.0);
+    node.SetSolutionStepValue(VELOCITY_Z, 0.0);
     node.Fix(VELOCITY_X);
     node.Fix(VELOCITY_Z);
     
@@ -245,7 +247,7 @@ if(DEM_parameters.ConcreteTestOption == "OEDOMETRIC"):
 if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
     (coordination_number) = proc.ModelData(balls_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
-    print ('Coordination Number: ' + str(coordination_number) + '\n' )
+    print ("Coordination Number: " + str(coordination_number) + "\n")
     os.chdir(main_path)
 
   
@@ -262,9 +264,9 @@ if(DEM_parameters.Dempack and (DEM_parameters.ConcreteTestOption != "OFF")):
   
   loading_velocity = DEM_parameters.LoadingVelocityTop
   
-  print '************DEM VIRTUAL LAB******************'+'\n'
-  print 'Loading velocity: ' + str(loading_velocity) + '\n'
-  print 'Expected maximum deformation: ' + str(-loading_velocity*DEM_parameters.FinalTime/height*100) +'%'+'\n'+'\n'  
+  print ('************DEM VIRTUAL LAB******************'+'\n')
+  print ('Loading velocity: ' + str(loading_velocity) + '\n')
+  print ('Expected maximum deformation: ' + str(-loading_velocity*DEM_parameters.FinalTime/height*100) +'%'+'\n'+'\n'  )
 
   chart.write(("***********PARAMETERS*****************")+'\n')
   chart.write( "                                    " +'\n')
@@ -297,7 +299,7 @@ if(DEM_parameters.Dempack and (DEM_parameters.ConcreteTestOption != "OFF")):
   for line in a_chart.readlines():
     print(line)
   a_chart.close()
-  
+
 if(DEM_parameters.FemPlates == "ON"):
 
   meshes_to_translate = Vector(1)
@@ -390,8 +392,8 @@ while (time < DEM_parameters.FinalTime):
 
         prev_time = (timer.time() - initial_real_time)
     
-    if ((timer.time() - initial_real_time > 60) and first_print == True and step != 0):    
-        first_print = False    
+    if ((timer.time() - initial_real_time > 60) and first_print == True and step != 0):
+        first_print = False
         estimated_sim_duration = 60.0 * (total_steps_expected / step) # seconds
 
         print('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n')
@@ -399,11 +401,12 @@ while (time < DEM_parameters.FinalTime):
         print('in hours:'        + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
         print('in days:'        + str(estimated_sim_duration / 86400.0) + 'days' + '\n') 
         sys.stdout.flush()
-        
-        if (estimated_sim_duration / 86400 > 2.0):
-            print('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
 
-    #########################CONCRETE_TEST_STUFF#########################################4
+        if (estimated_sim_duration / 86400 > 2.0):
+
+          print('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
+
+    #########################CONCRETE_TEST_STUFF#########################################
 
     os.chdir(data_and_results)
                                                                                                                                                                                                
@@ -602,8 +605,8 @@ while (time < DEM_parameters.FinalTime):
             gid_io.FinalizeResults() 
 
         time_old_print = time
-    
-   
+  
+
     step += 1
     
     
@@ -614,7 +617,7 @@ while (time < DEM_parameters.FinalTime):
 #-------------------------------------------------------------------------------------------------------------------------------------
 
 
-#-----------------------FINALITZATION OPERATIONS-------------------------------------------------------------------------------------- 
+#-----------------------FINALIZATION OPERATIONS-------------------------------------------------------------------------------------- 
 #proc.PlotPhysicalProperties(properties_list, graphs_path)
 
 if (DEM_parameters.Multifile == "single_file"):
@@ -654,11 +657,11 @@ os.chdir(main_path)
 elapsed_pr_time     = timer.clock() - initial_pr_time
 elapsed_real_time   = timer.time() - initial_real_time
 
-print 'Calculation ends at instant: '                 + str(timer.time())
-print 'Calculation ends at processing time instant: ' + str(timer.clock())
-print 'Elapsed processing time: '                     + str(elapsed_pr_time)
-print 'Elapsed real time: '                           + str(elapsed_real_time)
+print ('Calculation ends at instant: '                 + str(timer.time()))
+print ('Calculation ends at processing time instant: ' + str(timer.clock()))
+print ('Elapsed processing time: '                     + str(elapsed_pr_time))
+print ('Elapsed real time: '                           + str(elapsed_real_time))
 
 print (my_timer)
 
-print "ANALYSIS COMPLETED"
+print ("ANALYSIS COMPLETED")
