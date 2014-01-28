@@ -210,31 +210,19 @@ namespace Kratos
               double kn;
               double kt;
 
-              if (mUniformMaterialOption){
-                  equiv_young                        = mYoung;
-                  equiv_poisson                      = mPoisson;
-              }
 
-              else {
-                  // Getting neighbour properties
-                  const double &other_young           = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-                  const double &other_poisson         = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+              // Getting neighbour properties
+              const double &other_young           = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+              const double &other_poisson         = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
 
-                  equiv_young                         = 2 * mYoung * other_young / (mYoung + other_young);
-                  equiv_poisson                       = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
-              }
+              equiv_young                         = 2 * mYoung * other_young / (mYoung + other_young);
+              equiv_poisson                       = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
+          
 
-              // Globally defined parameters
-
-              if (mGlobalVariablesOption){
-                  kn                                  = mGlobalKn;
-                  kt                                  = mGlobalKt;
-              }
-
-              else {
-                  kn                                  = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-                  kt                                  = kn / (2.0 + equiv_poisson + equiv_poisson);
-              }
+       
+              kn                                  = equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+              kt                                  = kn / (2.0 + equiv_poisson + equiv_poisson);
+           
 
               // Normal contribution
 
@@ -503,19 +491,15 @@ namespace Kratos
 
           // ROLLING FRICTION
 
-          if (mRotationDampType == 2){  // rolling friction type
+          if (mRollingFrictionOption){  // rolling friction 
               double rolling_friction_coeff            = mRollingFriction * mRadius;
               double equiv_rolling_friction_coeff;
 
-              if (mUniformMaterialOption){
-                  equiv_rolling_friction_coeff         = rolling_friction_coeff;
-              }
 
-              else {
-                  const double& other_rolling_friction = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
-                  double other_rolling_friction_coeff  = other_rolling_friction * other_radius;
-                  equiv_rolling_friction_coeff         = 2 * rolling_friction_coeff * other_rolling_friction_coeff / (rolling_friction_coeff + other_rolling_friction_coeff);
-              }
+              const double& other_rolling_friction = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
+              double other_rolling_friction_coeff  = other_rolling_friction * other_radius;
+              equiv_rolling_friction_coeff         = 2 * rolling_friction_coeff * other_rolling_friction_coeff / (rolling_friction_coeff + other_rolling_friction_coeff);
+              
 
               if (equiv_rolling_friction_coeff != 0.0){
                   double MaxRotaMoment[3]      = {0.0};
@@ -1088,10 +1072,6 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
                      }//switch
 
-                 if (mGlobalVariablesOption){ //globally defined parameters
-                     kn = mGlobalKn;
-                     kt = mGlobalKt;
-                 }
 
                  // Historical minimun K for the critical time:
                  if (mCriticalTimeOption){
@@ -1283,7 +1263,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                      RotaMoment[1] -= MA[1] * mRadius;
                      RotaMoment[2] -= MA[2] * mRadius;
 
-                     if (mRotationDampType == 2){  // Rolling friction type
+                     if (mRollingFrictionOption){  // Rolling friction type
                          double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
                          double rolling_friction_coeff       = rolling_friction * mRadius;
 
@@ -1577,11 +1557,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
                      }//switch
                     
-                     if (mGlobalVariablesOption){ //globally defined parameters
-                         kn = mGlobalKn;
-                         kt = mGlobalKt;
-                     }
-
+        
                      // Historical minimun K for the critical time:
                      if (mCriticalTimeOption){
                          double historic = rCurrentProcessInfo[HISTORICAL_MIN_K];
@@ -1789,7 +1765,7 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                          RotaMoment[1] -= MA[1] * mRadius;
                          RotaMoment[2] -= MA[2] * mRadius;
 
-                         if (mRotationDampType == 2){  // Rolling friction type
+                         if (mRollingFrictionOption){  // Rolling friction 
                              double rolling_friction             = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
                              double rolling_friction_coeff       = rolling_friction * mRadius;
 
@@ -1945,81 +1921,55 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
 
         // Globally defined parameters
 
-        if (mGlobalVariablesOption){
-            kn                                  = mGlobalKn;
-            kt                                  = mGlobalKt;
-            aux_norm_to_tang                    = mGlobalAuxNormToTang;
-            equiv_ln_of_restit_coeff            = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
-            equiv_tg_of_fri_ang                 = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
-			
-        }
-
-        else {
-            double equiv_young;
-            double equiv_poisson;
-            double corrected_area               = equiv_area;
-
-            if (mUniformMaterialOption){
-                equiv_young                     = mYoung;
-                equiv_poisson                   = mPoisson;
-                equiv_ln_of_restit_coeff        = mLnOfRestitCoeff;
-                equiv_tg_of_fri_ang             = mTgOfFrictionAngle;
-                
-                kn                                  = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-                kt                                  = kn / (2.0 + equiv_poisson + equiv_poisson);
-                aux_norm_to_tang                    = sqrt(kt / kn);
-            }
-
-            else {
-
-                const double &other_young       = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
-                const double &other_poisson     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
-                double effective_radius         = 0.5 * equiv_radius;
-
-                switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
-                
-                    case 0:
-                        equiv_young                     = 2 * mYoung * other_young / (mYoung + other_young);
-                        equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
-                        equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
-                        equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
-
-                        kn                              = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-                        kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);
-                        aux_norm_to_tang                = sqrt(kt / kn);
-                        
-                    break;
-
-                    case 1:
-                        equiv_young                     = mYoung * other_young / (other_young * (1- mPoisson * mPoisson) + mYoung * (1- other_poisson * other_poisson));
-                        equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
-                        equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
-                        equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
-
-                        kn                              = (4/3) * equiv_young * sqrt(effective_radius);
-                        kt                              = 2.0 * kn * (1 - equiv_poisson * equiv_poisson) / ((2.0 - equiv_poisson) * (1 + equiv_poisson));
-                        aux_norm_to_tang                = sqrt(kt / kn); 
-                 
-                    break;
-
-                    default:
-                        equiv_young                     = 2 * mYoung * other_young / (mYoung + other_young);
-                        equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
-                        equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
-                        equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
-
-                        kn                              = mMagicFactor * equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
-                        kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);
-                        aux_norm_to_tang                = sqrt(kt / kn);
-                    break;
-
-                }//switch
-
-            }
-            
-        }
-
         
+        double equiv_young;
+        double equiv_poisson;
+        double corrected_area               = equiv_area;
+
+        const double &other_young       = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(YOUNG_MODULUS);
+        const double &other_poisson     = neighbour_iterator->GetGeometry()(0)->FastGetSolutionStepValue(POISSON_RATIO);
+        double effective_radius         = 0.5 * equiv_radius;
+
+        switch (mElasticityType){ //  0 ---linear compression & tension ; 1 --- Hertzian (non-linear compression, linear tension)
+        
+            case 0:
+                equiv_young                     = 2 * mYoung * other_young / (mYoung + other_young);
+                equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
+                equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
+                equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+
+                kn                              = equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);
+                aux_norm_to_tang                = sqrt(kt / kn);
+                
+            break;
+
+            case 1:
+                equiv_young                     = mYoung * other_young / (other_young * (1- mPoisson * mPoisson) + mYoung * (1- other_poisson * other_poisson));
+                equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
+                equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
+                equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+
+                kn                              = (4/3) * equiv_young * sqrt(effective_radius);
+                kt                              = 2.0 * kn * (1 - equiv_poisson * equiv_poisson) / ((2.0 - equiv_poisson) * (1 + equiv_poisson));
+                aux_norm_to_tang                = sqrt(kt / kn); 
+          
+            break;
+
+            default:
+                equiv_young                     = 2 * mYoung * other_young / (mYoung + other_young);
+                equiv_poisson                   = 2 * mPoisson * other_poisson / (mPoisson + other_poisson);
+                equiv_ln_of_restit_coeff        = 0.5 * (mLnOfRestitCoeff + other_ln_of_restit_coeff);
+                equiv_tg_of_fri_ang             = 0.5 * (mTgOfFrictionAngle + other_tg_of_fri_angle);
+
+                kn                              = equiv_young * corrected_area * radius_sum_i; //M_PI * 0.5 * equiv_young * equiv_radius; //M: CANET FORMULA
+                kt                              = kn / (2.0 + equiv_poisson + equiv_poisson);
+                aux_norm_to_tang                = sqrt(kt / kn);
+            break;
+
+        }//switch
+
+
         if (mLnOfRestitCoeff > 0.0 || other_ln_of_restit_coeff > 0.0){ // Limit expressions when the restitution coefficient tends to 0. Variable lnRestitCoeff is set to 1.0 (instead of minus infinite) by the problem type.
             equiv_visco_damp_coeff_normal = 2 * sqrt(equiv_mass * kn);
 
@@ -2135,32 +2085,16 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
               mDampType                      = r_process_info[DAMP_TYPE];
               mElasticityType                = r_process_info[FORCE_CALCULATION_TYPE];
               mRotationOption                = r_process_info[ROTATION_OPTION]; //M:  it's 1/0, should be a boolean
-              mRotationDampType              = r_process_info[ROTA_DAMP_TYPE];
-              mGlobalVariablesOption         = r_process_info[GLOBAL_VARIABLES_OPTION];
+              mRollingFrictionOption         = r_process_info[ROLLING_FRICTION_OPTION];
               mCriticalTimeOption            = r_process_info[CRITICAL_TIME_OPTION];
-              mUniformMaterialOption         = r_process_info[UNIFORM_MATERIAL_OPTION];
-              mMagicFactor                   = r_process_info[DEM_MAGIC_FACTOR];
-
-              if (mGlobalVariablesOption){
-                  mGlobalKn                  = r_process_info[GLOBAL_KN];
-                  mGlobalKt                  = r_process_info[GLOBAL_KT];
-                  
-                  if (mGlobalKn == 0.0){
-                      mGlobalAuxNormToTang       = 0.0;
-                  }
-
-                  else{
-                      mGlobalAuxNormToTang       = sqrt(mGlobalKt / mGlobalKn);
-                  }
-              }
-              
+             
               mLimitSurfaceOption            = r_process_info[LIMIT_SURFACE_OPTION];
               mLimitCylinderOption           = r_process_info[LIMIT_CYLINDER_OPTION];
               
               mpTimeStep                     =  &(r_process_info[TIME_STEPS]); // reference. ****
               mpActivateSearch               =  &(r_process_info[ACTIVATE_SEARCH]);
 
-              if (mRotationOption){
+              if (mRollingFrictionOption){
                   mRollingFriction           = this->GetGeometry()(0)->FastGetSolutionStepValue(ROLLING_FRICTION);
               }
 
@@ -2259,10 +2193,6 @@ void SphericParticle::ComputeRigidFaceToMeVelocity(ConditionWeakIteratorType rOb
                   }
 
                   double K = M_PI * mYoung * mRadius; //M. Error, should be the same that the local definition.
-
-                  if (mGlobalVariablesOption == 1){
-                      K = mGlobalKn;
-                  }
 
                   Output = 0.34 * sqrt(mass / K);
 
