@@ -50,11 +50,12 @@ def AddVariables(model_part, Param):
         #model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
         model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
-        model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
+        if( Var_Translator(Param.RolllingFrictionOption)):
+          model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
 
     # OTHER PROPERTIES
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
-    model_part.AddNodalSolutionStepVariable(PARTICLE_CONTINUUM)  # Continuum group
+    model_part.AddNodalSolutionStepVariable(COHESIVE_GROUP)  # Continuum group
 #    model_part.AddNodalSolutionStepVariable(REPRESENTATIVE_VOLUME)
     model_part.AddNodalSolutionStepVariable(MAX_INDENTATION)
     model_part.AddNodalSolutionStepVariable(PARTICLE_SPHERICITY)  # MA: this is added temporarily until inlet becomes a process
@@ -132,17 +133,15 @@ class ExplicitStrategy:
         # Initialization of member variables
 
         # SIMULATION FLAGS
-        self.virtual_mass_option = Var_Translator(Param.VirtualMassOption)
         self.critical_time_option = Var_Translator(Param.AutoReductionOfTimeStepOption)
         self.trihedron_option = Var_Translator(Param.PostEulerAngles)
         self.rotation_option = Var_Translator(Param.RotationOption)
         self.bounding_box_option = Var_Translator(Param.BoundingBoxOption)
-        self.fix_velocities = Var_Translator(Param.FixVelocitiesOption)
+        self.fix_velocities_flag = 0
+        
 #        self.limit_surface_option           = Param.LimitSurfaceOption
 #        self.limit_cylinder_option          = Param.LimitCylinderOption
         self.clean_init_indentation_option = Var_Translator(Param.CleanIndentationsOption)
-        self.homogeneous_material_option = Var_Translator(Param.HomogeneousMaterialOption)
-        self.global_variables_option = Var_Translator(Param.GlobalVariablesOption)
         self.contact_mesh_option = Var_Translator(Param.ContactMeshOption)
         self.automatic_bounding_box_option = Var_Translator(Param.AutomaticBoundingBoxOption)
 
@@ -324,12 +323,9 @@ class ExplicitStrategy:
 
         # GLOBAL MATERIAL PROPERTIES
         self.nodal_mass_coeff = Param.VirtualMassCoefficient
-        self.magic_factor = Param.MagicFactor
-
-        if (self.global_variables_option):
-            self.global_kn = Param.GlobalKn
-            self.global_kt = Param.GlobalKt
-
+        if(self.nodal_mass_coeff != 1.00):
+           self.virtual_mass_option            = 1
+           
         if (Param.NormalForceCalculationType == "Linear"):
             self.force_calculation_type_id = 0
 
@@ -355,14 +351,9 @@ class ExplicitStrategy:
             else:
                 self.damp_id = 0
 
-        if (Param.RotaDampingType == "LocalDamp"):
-            self.rota_damp_id = 1
+        if (Var_Translator(Param.RollingFrictionOption)):
+            self.rolling_friction_option = 1
 
-        elif (Param.RotaDampingType == "RollingFric"):
-            self.rota_damp_id = 2
-
-        else:
-            self.rota_damp_id = 0
 
 
         self.tau_zero                       = Param.TauZero
@@ -448,9 +439,7 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(TRIHEDRON_OPTION, self.trihedron_option)
         self.model_part.ProcessInfo.SetValue(ROTATION_OPTION, self.rotation_option)
         self.model_part.ProcessInfo.SetValue(BOUNDING_BOX_OPTION, self.bounding_box_option)
-        self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities)
-        self.model_part.ProcessInfo.SetValue(GLOBAL_VARIABLES_OPTION, self.global_variables_option)
-        self.model_part.ProcessInfo.SetValue(UNIFORM_MATERIAL_OPTION, self.homogeneous_material_option)
+        self.model_part.ProcessInfo.SetValue(FIX_VELOCITIES_FLAG, self.fix_velocities_flag)
         self.model_part.ProcessInfo.SetValue(NEIGH_INITIALIZED, 0);
         self.model_part.ProcessInfo.SetValue(TOTAL_CONTACTS, 0);
         self.model_part.ProcessInfo.SetValue(CLEAN_INDENT_OPTION, self.clean_init_indentation_option)
@@ -536,14 +525,9 @@ class ExplicitStrategy:
 
         # GLOBAL PHISICAL ASPECTS
         self.model_part.ProcessInfo.SetValue(GRAVITY, self.gravity)
-        self.model_part.ProcessInfo.SetValue(DEM_MAGIC_FACTOR, self.magic_factor)
 
         # GLOBAL MATERIAL PROPERTIES
         self.model_part.ProcessInfo.SetValue(NODAL_MASS_COEFF, self.nodal_mass_coeff)
-
-        if (self.global_variables_option):
-            self.model_part.ProcessInfo.SetValue(GLOBAL_KN, self.global_kn)
-            self.model_part.ProcessInfo.SetValue(GLOBAL_KT, self.global_kt)
 
         # SEARCH-RELATED
         self.model_part.ProcessInfo.SetValue(SEARCH_TOLERANCE, self.search_tolerance)  # needed in ProcessInfo for MPISearch
@@ -552,7 +536,7 @@ class ExplicitStrategy:
 
         self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
         self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
-        self.model_part.ProcessInfo.SetValue(ROTA_DAMP_TYPE, self.rota_damp_id)
+        self.model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
         self.model_part.ProcessInfo.SetValue(PRINT_RADIAL_DISPLACEMENT, self.print_radial_displacement)
         self.model_part.ProcessInfo.SetValue(PRINT_GROUP_ID, self.print_group_id)
         self.model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
