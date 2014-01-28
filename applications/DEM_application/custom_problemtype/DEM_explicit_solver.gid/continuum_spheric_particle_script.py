@@ -422,7 +422,7 @@ while (time < DEM_parameters.FinalTime):
     total_force_bts = 0.0
     total_fem_force = 0.0
 
-    if( DEM_parameters.ConcreteTestOption != "OFF" )
+    if( DEM_parameters.ConcreteTestOption != "OFF" ):
     
       strain += -1.0*loading_velocity*dt/height
         
