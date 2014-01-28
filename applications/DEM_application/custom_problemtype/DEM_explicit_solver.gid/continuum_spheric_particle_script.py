@@ -13,7 +13,7 @@ import DEM_explicit_solver_var as DEM_parameters
 import DEM_procedures
 proc = DEM_procedures.Procedures(DEM_parameters)
 
-import pressure_script as Press
+import DEM_material_test_script as MaterialTest
 
 #---------------------MODEL PART KRATOS AND GID.IO ------------------------------------------------------------------
 
@@ -86,12 +86,11 @@ solver = SolverStrategy.ExplicitStrategy(balls_model_part, RigidFace_model_part,
 main_path        = os.getcwd()
 post_path        = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Post_Files'
 list_path        = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Post_Lists'
-neigh_list_path  = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Neigh_Lists'
 data_and_results = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Results_and_Data'
 graphs_path      = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_Graphs'
 MPI_results      = str(main_path) + '/' + str(DEM_parameters.problem_name) + '_MPI_results'
 
-for directory in [post_path, list_path, neigh_list_path, data_and_results, graphs_path, MPI_results]:
+for directory in [post_path, list_path, data_and_results, graphs_path, MPI_results]:
 
     if not os.path.isdir(directory):
         os.makedirs(str(directory))
@@ -108,14 +107,6 @@ multifile_5.write('Multiple\n')
 multifile_10.write('Multiple\n')
 multifile_50.write('Multiple\n')
 
-first_print     = True
-index_5         = 1
-index_10        = 1
-index_50        = 1
-prev_time       = 0.0
-control         = 0.0
-
-
 os.chdir(main_path)
 
 print 'Initializing Problem....'
@@ -126,15 +117,11 @@ if ( (DEM_parameters.ContinuumOption =="ON") and (DEM_parameters.ContactMeshOpti
 
   contact_model_part = solver.contact_model_part   
 
-#-------------------------------------------------------------------------------------------------------------------------
-
 #------------------------------------------DEM_PROCEDURES FUNCTIONS & INITIALITZATIONS--------------------------------------------------------
 
+#if (DEM_parameters.PredefinedSkinOption == "ON" ):
 
-if (DEM_parameters.PredefinedSkinOption == "ON" ):
-
-   proc.SetPredefinedSkin(balls_model_part)
-
+   #proc.SetPredefinedSkin(balls_model_part)
 
 if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOption != "OFF") ):
   
@@ -145,8 +132,8 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
     
     # for the graph plotting    
     loading_velocity = 0.0
-    height = DEM_parameters.SpecimenHeight
-    diameter = DEM_parameters.SpecimenWidth
+    height = DEM_parameters.SpecimenHeight #DEM_parameters.SpecimenLenght
+    diameter = DEM_parameters.SpecimenWidth #DEM_parameters.SpecimenDiameter
 
     initial_time = datetime.datetime.now()
 
@@ -169,7 +156,6 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
       if(DEM_parameters.FemPlates == "ON"):
          graph_export_fem = open(DEM_parameters.problem_name +"_graph_PLATE.grf", 'w')
 
-      
       #measuring height:
       pre_utilities = PreUtilities(balls_model_part)
     
@@ -193,27 +179,19 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
     
       print ('Initial Height of the Model: ' + str(ini_height)+'\n')
       
-      
       if(DEM_parameters.PredefinedSkinOption == "ON" ):
         print "ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF"
 
       (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = proc.CylinderSkinDetermination(balls_model_part,solver,DEM_parameters) # defines the skin and areas
        
-      if (DEM_parameters.PoissonMeasure =="ON"):
-        
-        graph_export_poisson = open(DEM_parameters.problem_name + "_poisson_"+str(datetime.datetime.now())+".csv",'w');
-
     os.chdir(main_path)
-      
     
-    if ( ( DEM_parameters.ConcreteTestOption == "TRIAXIAL") and (DEM_parameters.ConfinementPressure != 0.0) ):
+    if ( ( DEM_parameters.ConcreteTestOption == "TRIAXIAL") or ( DEM_parameters.ConcreteTestOption == "HYDROSTATIC") ):
 
       #Correction Coefs
       alpha_top = 3.141592*diameter*diameter*0.25/(xtop_area + 0.70710678*xtopcorner_area)
       alpha_bot = 3.141592*diameter*diameter*0.25/(xbot_area + 0.70710678*xbotcorner_area)
       alpha_lat = 3.141592*diameter*height/(xlat_area + 0.70710678*xtopcorner_area + 0.70710678*xbotcorner_area) 
-
-
 
 # Initialization of physics monitor and of the initial position of the center of mass
 
@@ -222,7 +200,6 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
 
 print 'Initialitzation Complete' + '\n'
 
-
 step                   = 0
 time                   = 0.0
 time_old_print         = 0.0
@@ -230,8 +207,7 @@ initial_pr_time        = timer.clock()
 initial_real_time      = timer.time()
 graph_counter          = 0
 graph_frequency        = int(DEM_parameters.GraphExportFrequency/balls_model_part.ProcessInfo.GetValue(DELTA_TIME))
-
-#-------------------------------------------------------------------------------------------------------------------------------------
+first_print  = True; index_5 = 1; index_10  = 1; index_50  = 1; prev_time  = 0.0; control = 0.0
 
 #-----------------------SINGLE FILE MESH AND RESULTS INITIALITZATION-------------------------------------------------------------------
 
@@ -252,7 +228,6 @@ if (DEM_parameters.Multifile == "single_file"):
       gid_io.WriteMesh(contact_model_part.GetMesh())
   gid_io.FinalizeMesh()
   gid_io.InitializeResults(0.0, mixed_model_part.GetMesh())
-
   
 ##OEDOMETRIC
 
@@ -285,7 +260,11 @@ os.chdir(graphs_path)
 
 if(DEM_parameters.Dempack and (DEM_parameters.ConcreteTestOption != "OFF")):
   
-  print("This chart is only valid for one material case" + '\n')
+  loading_velocity = DEM_parameters.LoadingVelocityTop
+  
+  print '************DEM VIRTUAL LAB******************'+'\n'
+  print 'Loading velocity: ' + str(loading_velocity) + '\n'
+  print 'Expected maximum deformation: ' + str(loading_velocity*DEM_parameters.FinalTime/height*100) +'%'+'\n'+'\n'  
 
   chart.write(("***********PARAMETERS*****************")+'\n')
   chart.write( "                                    " +'\n')
@@ -319,6 +298,18 @@ if(DEM_parameters.Dempack and (DEM_parameters.ConcreteTestOption != "OFF")):
     print(line)
   a_chart.close()
   
+if(DEM_parameters.FemPlates == "ON"):
+
+  meshes_to_translate = Vector(1)
+  meshes_to_translate[0] = 1
+
+  xyz_displacements = Vector(3)
+  xyz_displacements[0]=1
+  xyz_displacements[1]=2
+  xyz_displacements[2]=3
+
+  translation_operation = TranslationOperation(RigidFace_model_part,meshes_to_translate,xyz_displacements,0)
+  translation_operation.Execute()
 
 #------------------------------------------------------------------------------------------
  
@@ -346,46 +337,24 @@ xright_weight  = 0.0
 left_counter = 0.0
 right_counter = 0.0
 
-if(DEM_parameters.PoissonMeasure == "ON"):
+#if(DEM_parameters.PoissonMeasure == "ON"):
         
-      for node in balls_model_part.Nodes:
+      #for node in balls_model_part.Nodes:
         
-        if (node.GetSolutionStepValue(GROUP_ID)==4):
+        #if (node.GetSolutionStepValue(GROUP_ID)==4):
           
-           left_nodes.append(node)
-           xleft_weight = +(node.X0 - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-           left_counter = +node.GetSolutionStepValue(RADIUS)
+           #left_nodes.append(node)
+           #xleft_weight = +(node.X0 - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+           #left_counter = +node.GetSolutionStepValue(RADIUS)
            
-        elif(node.GetSolutionStepValue(GROUP_ID)==8):
+        #elif(node.GetSolutionStepValue(GROUP_ID)==8):
           
-           right_nodes.append(node)
-           xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-           right_counter = +node.GetSolutionStepValue(RADIUS)
+           #right_nodes.append(node)
+           #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+           #right_counter = +node.GetSolutionStepValue(RADIUS)
            
-      width_ini = xright_weight/right_counter - xleft_weight/left_counter
+      #width_ini = xright_weight/right_counter - xleft_weight/left_counter
         
-
-if(DEM_parameters.FemPlates == "ON"):
-
-  meshes_to_translate = Vector(1)
-  meshes_to_translate[0] = 1
-
-  xyz_displacements = Vector(3)
-  xyz_displacements[0]=1
-  xyz_displacements[1]=2
-  xyz_displacements[2]=3
-  
-  translation_operation = TranslationOperation(RigidFace_model_part,meshes_to_translate,xyz_displacements,0)
-  translation_operation.Execute()
-
-if(DEM_parameters.ConcreteTestOption != "OFF"):
-  loading_velocity = DEM_parameters.LoadingVelocityTop
-  print 'Loading velocity: ' + str(loading_velocity) + '\n'  
-
-  if(DEM_parameters.FemPlates == "ON"):
-  
-    translation_operation = TranslationOperation(RigidFace_model_part, meshes_to_translate, xyz_displacements, 0)
-    translation_operation.Execute()
 
 while (time < DEM_parameters.FinalTime):
 
@@ -413,6 +382,7 @@ while (time < DEM_parameters.FinalTime):
         percentage = 100 * (float(step) / total_steps_expected)
 
         print('Real time calculation: ' + str(timer.time() - initial_real_time))
+        print('Simulation time: ' + str(time))
         print('Percentage Completed: ' + str(percentage) + ' %')
         print("TIME STEP = " + str(step) + '\n')
 
@@ -441,7 +411,7 @@ while (time < DEM_parameters.FinalTime):
         
         if( renew_pressure == 10):
           
-          Press.ApplyLateralPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
+          MaterialTest.ApplyLateralPressure(Pressure, proc.XLAT, proc.XBOT, proc.XTOP, proc.XBOTCORNER, proc.XTOPCORNER,alpha_top,alpha_bot,alpha_lat)
                  
           renew_pressure = 0
     
@@ -454,7 +424,6 @@ while (time < DEM_parameters.FinalTime):
 
     if( DEM_parameters.ConcreteTestOption != "OFF" and (graph_counter == graph_frequency) ):
       
-            
       graph_counter = 0
       
       if( DEM_parameters.ConcreteTestOption =="BTS"):
@@ -472,7 +441,7 @@ while (time < DEM_parameters.FinalTime):
 
         strain += -1.0*loading_velocity*dt/height
         
-        radial_strain = Press.MeasureRadialStrain(proc.XLAT)
+        radial_strain = MaterialTest.MeasureRadialStrain(proc.XLAT)
         
         for node in sup_layer_fm:
 
@@ -541,29 +510,29 @@ while (time < DEM_parameters.FinalTime):
         
         ##################################POISSON##################################
         
-        if(DEM_parameters.PoissonMeasure == "ON"):
+        #if(DEM_parameters.PoissonMeasure == "ON"):
                     
-          xleft_weight  = 0.0         
-          xright_weight  = 0.0
+          #xleft_weight  = 0.0         
+          #xright_weight  = 0.0
 
-          left_counter = 0.0
-          right_counter = 0.0
+          #left_counter = 0.0
+          #right_counter = 0.0
 
-          for node in left_nodes:
+          #for node in left_nodes:
             
-            xleft_weight = +(node.X - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-            left_counter = +node.GetSolutionStepValue(RADIUS)
+            #xleft_weight = +(node.X - node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+            #left_counter = +node.GetSolutionStepValue(RADIUS)
             
-          for node in right_nodes:
+          #for node in right_nodes:
             
-            xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
-            right_counter = +node.GetSolutionStepValue(RADIUS)
+            #xright_weight = +(node.X + node.GetSolutionStepValue(RADIUS))*node.GetSolutionStepValue(RADIUS)
+            #right_counter = +node.GetSolutionStepValue(RADIUS)
           
-          width_now = xright_weight/right_counter - xleft_weight/left_counter
+          #width_now = xright_weight/right_counter - xleft_weight/left_counter
 
-          measured_poisson =  ((width_now-width_ini)/width_ini)/strain
+          #measured_poisson =  ((width_now-width_ini)/width_ini)/strain
           
-          graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
+          #graph_export_poisson.write(str(strain)+"  "+str(measured_poisson)+'\n')
 
     graph_counter += 1
 
@@ -599,21 +568,6 @@ while (time < DEM_parameters.FinalTime):
         if (DEM_parameters.Multifile == "multiple_files"):
             gid_io.FinalizeResults()
 
-        os.chdir(graphs_path)
-
-        if (DEM_parameters.PrintNeighbourLists == "ON"): # Printing neighbours id's
-            os.chdir(neigh_list_path)
-            neighbours_list = open('neigh_list_' + str(time), 'w')
-
-            for elem in balls_model_part.Elements:
-                ID = (elem.Id)
-                Neigh_ID = elem.GetValue(NEIGHBOURS_IDS)
-
-            for i in range(len(Neigh_ID)):
-                neighbours_list.write(str(ID) + ' ' + str(Neigh_ID[i]) + '\n')
-
-            neighbours_list.close()
-
         os.chdir(post_path)
 
         if (DEM_parameters.Multifile == "multiple_files"):
@@ -648,6 +602,12 @@ while (time < DEM_parameters.FinalTime):
     
    
     step += 1
+    
+    
+    if(step == 100):
+      if ( (DEM_parameters.ContinuumOption =="ON") and (DEM_parameters.ContactMeshOption =="ON") ) :
+          MaterialTest.OrientationStudy(contact_model_part)
+    
 #-------------------------------------------------------------------------------------------------------------------------------------
 
 
