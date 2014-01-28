@@ -135,36 +135,30 @@ public:
 			}
 
         }
+
 		mOldRotationMatrix = rotation_matrix;
 
 	}
  
+    /// this function will be executed at every time step BEFORE  writing the output
+    void ExecuteBeforeOutputStep()
+    {
+ 		double current_time = mrModelPart.GetProcessInfo()[TIME];
+		double alpha = (mEndTime - current_time) * mInitialAngle * 3.1415 / (mEndTime * 180.0);
 
-	void CalculateRotationMatrix(Matrix& RotationMatrix, int RotationAxis, double Alpha)
-	{
-		if(RotationAxis == 1) // x
-		{
-			RotationMatrix(0,0) = 1.00;   RotationMatrix(0,1) = 0.00;         RotationMatrix(0,2) = 0.00;    
-			RotationMatrix(1,0) = 0.00;   RotationMatrix(1,1) = cos(Alpha);  RotationMatrix(1,2) = -sin(Alpha); 
-			RotationMatrix(2,0) = 0.00;   RotationMatrix(2,1) = sin(Alpha);  RotationMatrix(2,2) = cos(Alpha);  
-		}
-		else if(RotationAxis == 2) // y
-		{
-			RotationMatrix(0,0) = cos(Alpha);   RotationMatrix(0,1) = 0.00;  RotationMatrix(0,2) = sin(Alpha);    
-			RotationMatrix(1,0) = 0.00;			RotationMatrix(1,1) = 1.00;  RotationMatrix(1,2) = 0.00; 
-			RotationMatrix(2,0) = -sin(Alpha);	RotationMatrix(2,1) = 0.00;  RotationMatrix(2,2) = cos(Alpha);  
-		}
-		else if(RotationAxis == 3) // z
-		{
-			RotationMatrix(0,0) = cos(Alpha);   RotationMatrix(0,1) = -sin(Alpha);  RotationMatrix(0,2) = 0.00;    
-			RotationMatrix(1,0) = sin(Alpha);	RotationMatrix(1,1) = cos(Alpha);   RotationMatrix(1,2) = 0.00; 
-			RotationMatrix(2,0) = 0.00;			RotationMatrix(2,1) = 0.00;			RotationMatrix(2,2) = 1.00;  
-		}
-		else // error
-		{
-			KRATOS_ERROR(std::invalid_argument, "Invalid rotation axis. The valid axis are 1 for x, 2 for y, 3 for z axis and given axis is: ", RotationAxis);
-		}
-	}
+		Matrix rotation_matrix(3,3);
+		CalculateRotationMatrix(rotation_matrix, mRotationAxis, alpha);
+
+		ModelPart::NodesContainerType& r_nodes = mrModelPart.Nodes();
+		for(ModelPart::NodesContainerType::iterator i_node = r_nodes.begin(); i_node!=r_nodes.end(); i_node++)
+        {
+				array_1d<double,3>& velocity = i_node->GetSolutionStepValue(VELOCITIES);
+				array_1d<double,3> new_velocity = prod(rotation_matrix, velocity);
+				velocity = new_velocity;
+
+        }
+   }
+
 
     ///@}
     ///@name Input and output
@@ -253,6 +247,31 @@ private:
     ///@name Private Operations
     ///@{
 
+	void CalculateRotationMatrix(Matrix& RotationMatrix, int RotationAxis, double Alpha)
+	{
+		if(RotationAxis == 1) // x
+		{
+			RotationMatrix(0,0) = 1.00;   RotationMatrix(0,1) = 0.00;         RotationMatrix(0,2) = 0.00;    
+			RotationMatrix(1,0) = 0.00;   RotationMatrix(1,1) = cos(Alpha);  RotationMatrix(1,2) = -sin(Alpha); 
+			RotationMatrix(2,0) = 0.00;   RotationMatrix(2,1) = sin(Alpha);  RotationMatrix(2,2) = cos(Alpha);  
+		}
+		else if(RotationAxis == 2) // y
+		{
+			RotationMatrix(0,0) = cos(Alpha);   RotationMatrix(0,1) = 0.00;  RotationMatrix(0,2) = sin(Alpha);    
+			RotationMatrix(1,0) = 0.00;			RotationMatrix(1,1) = 1.00;  RotationMatrix(1,2) = 0.00; 
+			RotationMatrix(2,0) = -sin(Alpha);	RotationMatrix(2,1) = 0.00;  RotationMatrix(2,2) = cos(Alpha);  
+		}
+		else if(RotationAxis == 3) // z
+		{
+			RotationMatrix(0,0) = cos(Alpha);   RotationMatrix(0,1) = -sin(Alpha);  RotationMatrix(0,2) = 0.00;    
+			RotationMatrix(1,0) = sin(Alpha);	RotationMatrix(1,1) = cos(Alpha);   RotationMatrix(1,2) = 0.00; 
+			RotationMatrix(2,0) = 0.00;			RotationMatrix(2,1) = 0.00;			RotationMatrix(2,2) = 1.00;  
+		}
+		else // error
+		{
+			KRATOS_ERROR(std::invalid_argument, "Invalid rotation axis. The valid axis are 1 for x, 2 for y, 3 for z axis and given axis is: ", RotationAxis);
+		}
+	}
 
     ///@}
     ///@name Private  Access
