@@ -19,7 +19,6 @@ def AddVariables(model_part, Param):
     # KINEMATIC
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
-    model_part.AddNodalSolutionStepVariable(RADIAL_DISPLACEMENT)
     model_part.AddNodalSolutionStepVariable(VELOCITY)
     model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_ANGLE)
     model_part.AddNodalSolutionStepVariable(DELTA_ROTA_DISPLACEMENT)
@@ -361,7 +360,6 @@ class ExplicitStrategy:
         # PRINTING VARIABLES
         self.print_export_id = Var_Translator(Param.PostExportId)
         self.print_group_id = Var_Translator(Param.PostGroupId)
-        self.print_radial_displacement = Var_Translator(Param.PostRadialDisplacement)
 
         # TIME RELATED PARAMETERS
         self.delta_time = Param.MaxTimeStep
@@ -537,7 +535,6 @@ class ExplicitStrategy:
         self.model_part.ProcessInfo.SetValue(FORCE_CALCULATION_TYPE, self.force_calculation_type_id)
         self.model_part.ProcessInfo.SetValue(DAMP_TYPE, self.damp_id)
         self.model_part.ProcessInfo.SetValue(ROLLING_FRICTION_OPTION, self.rolling_friction_option)
-        self.model_part.ProcessInfo.SetValue(PRINT_RADIAL_DISPLACEMENT, self.print_radial_displacement)
         self.model_part.ProcessInfo.SetValue(PRINT_GROUP_ID, self.print_group_id)
         self.model_part.ProcessInfo.SetValue(PRINT_EXPORT_ID, self.print_export_id)
 
