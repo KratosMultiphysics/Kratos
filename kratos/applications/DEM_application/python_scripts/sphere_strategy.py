@@ -49,8 +49,7 @@ def AddVariables(model_part, Param):
         #model_part.AddNodalSolutionStepVariable(PARTICLE_INERTIA)
         model_part.AddNodalSolutionStepVariable(PARTICLE_MOMENT_OF_INERTIA)
         model_part.AddNodalSolutionStepVariable(PARTICLE_ROTATION_DAMP_RATIO)
-        if( Var_Translator(Param.RollingFrictionOption)):
-          model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
+        model_part.AddNodalSolutionStepVariable(ROLLING_FRICTION)
 
     # OTHER PROPERTIES
     model_part.AddNodalSolutionStepVariable(PARTICLE_MATERIAL)   # Colour defined in GiD
@@ -350,12 +349,8 @@ class ExplicitStrategy:
             else:
                 self.damp_id = 0
 
-        if (Var_Translator(Param.RollingFrictionOption)):
-            self.rolling_friction_option = 1
-
-
-
-        self.tau_zero                       = Param.TauZero
+        self.rolling_friction_option = Var_Translator(Param.RollingFrictionOption)
+        self.tau_zero                = Param.TauZero
 
         # PRINTING VARIABLES
         self.print_export_id = Var_Translator(Param.PostExportId)
