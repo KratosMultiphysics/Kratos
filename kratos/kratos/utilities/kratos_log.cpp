@@ -48,9 +48,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 namespace Kratos
 {
-  
-    template<> bool                             KratosLog<KRATOS_SEVERITY_ERROR>::mInstanceFalg = 0;
-    template<> KratosLog<KRATOS_SEVERITY_ERROR> * KratosLog<KRATOS_SEVERITY_ERROR>::mpInstance    = NULL;
+    template<> bool                                 KratosLog<KRATOS_SEVERITY_ERROR>::mInstanceFalg = 0;
+    template<> KratosLog<KRATOS_SEVERITY_ERROR> *   KratosLog<KRATOS_SEVERITY_ERROR>::mpInstance    = NULL;
     
     template<> KratosLog<KRATOS_SEVERITY_ERROR>::KratosLog()
     {
@@ -82,27 +81,45 @@ namespace Kratos
         
         return (*mpInstance);
     }
-  
-    /**
-     * @param file:     File where the function was called
-     * @param funct:    Function where the function was called
-     * @param line:     Line where the function was called
-     * @param severity: Severity of the error **TODO: To be removed?
-     **/
-    //inline KratosLog<KRATOS_SEVERITY_ERROR>& KratosLogger::KratosLogStream(const char * file, const char * funct, int line, int severity)
-    //{
-        //KratosLog<KRATOS_SEVERITY_ERROR>& log = KratosLog<KRATOS_SEVERITY_ERROR>::GetInstance();
-        
-        //log << KRATOS_TIME_STAMP << ":" << "KRATOS_ERROR:" << file << ":" << line << " In function \'" << funct << "\':";
-        
-        //return log;
-    //}
     
+    template<> bool                                  KratosLog<KRATOS_SEVERITY_WARNING>::mInstanceFalg = 0;
+    template<> KratosLog<KRATOS_SEVERITY_WARNING> *  KratosLog<KRATOS_SEVERITY_WARNING>::mpInstance    = NULL;
     
+    template<> KratosLog<KRATOS_SEVERITY_WARNING>::KratosLog()
+    {
+        mOutputFile = new std::ofstream();
+    }
+    
+    template<> KratosLog<KRATOS_SEVERITY_WARNING>::~KratosLog()
+    {
+        free(mOutputFile);
+    }
+
+    template<> void KratosLog<KRATOS_SEVERITY_WARNING>::SetOutput(std::string const& LogFileName)
+    {
+        if(mOutputFile->is_open())
+
+            mOutputFile->close();
+
+        mOutputFile->open(LogFileName.c_str());
+    }
+    
+    template<> KratosLog<KRATOS_SEVERITY_WARNING>& KratosLog<KRATOS_SEVERITY_WARNING>::GetInstance() 
+    {
+        if(!mInstanceFalg)
+        {   
+            mInstanceFalg = 1;
+            mpInstance = new KratosLog<KRATOS_SEVERITY_WARNING>();
+            mpInstance->SetOutput("KRATOS_LOG_TEST.log");
+        }
+        
+        return (*mpInstance);
+    }
+
 //         /**
 //      * Returns the current time in HH:MM:SS format
 //      */
-//     const std::string KratosLogger::CurrentDateTime() 
+//     inline const std::string KratosLogger::CurrentDateTime() 
 //     {
 //         time_t     now = time(0);
 //         struct tm  tstruct;
@@ -120,7 +137,7 @@ namespace Kratos
 //     * @param format:    valid format for time. Please check: "http://www.cplusplus.com/reference/ctime/strftime/"
 //     *                   for more details.
 //     */
-//     const std::string KratosLogger::CurrentDateTime(const char * format) 
+//     inline const std::string KratosLogger::CurrentDateTime(const char * format) 
 //     {
 //         time_t     now = time(0);
 //         struct tm  tstruct;
