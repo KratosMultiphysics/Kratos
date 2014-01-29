@@ -192,7 +192,7 @@ class ModelerUtility:
         if(configuration.tip_radius_refine):
 
             # tip arch opening (in degrees = 5-7.5-10)
-            tool_arch_opening = 5
+            tool_arch_opening = 15
             # tip surface length
             tool_arch_length = tool_arch_opening * (3.1416 / 180.0)
 
