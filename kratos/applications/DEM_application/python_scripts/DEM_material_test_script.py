@@ -92,7 +92,7 @@ def OrientationStudy(contact_model_part):
     i+=1    
 
   
-  OrientationChart.close()
+  #OrientationChart.close()
       
 def ApplyPressure(Pressure, XLAT, XBOT, XTOP, XBOTCORNER, XTOPCORNER, alpha_top, alpha_bot, alpha_lat):
 
