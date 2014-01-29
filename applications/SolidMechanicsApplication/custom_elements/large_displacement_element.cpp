@@ -647,7 +647,6 @@ void LargeDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
         double IntegrationWeight = integration_points[PointNumber].Weight() * Variables.detJ;
         IntegrationWeight = this->CalculateIntegrationWeight( IntegrationWeight );
 
-        //if ( dimension == 2 ) IntegrationWeight *= GetProperties()[THICKNESS];
 
         if ( rLocalSystem.CalculationFlags.Is(LargeDisplacementElement::COMPUTE_LHS_MATRIX) ) //calculation of the matrix is required
         {
