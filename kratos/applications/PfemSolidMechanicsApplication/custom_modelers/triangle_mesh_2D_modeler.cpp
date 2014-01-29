@@ -2406,7 +2406,7 @@ namespace Kratos
 
 		    if (n_points_in_radius>1)
 		      {
-			std::cout<<"     Points in Radius "<< n_points_in_radius<<" radius "<<radius<<std::endl;
+			//std::cout<<"     Points in Radius "<< n_points_in_radius<<" radius "<<radius<<std::endl;
 
 			//if( in->IsNot(STRUCTURE) ) {//MEANS DOFS FIXED
 
@@ -3350,7 +3350,7 @@ namespace Kratos
 		  if( side_length > rVariables.Refine.critical_side * tip_correction){
 		  
 
-		    std::cout<<"   rigid {side_length "<<side_length<<" > critical_side "<<rVariables.Refine.critical_side*tip_correction<<"} "<<std::endl;
+		    //std::cout<<"   rigid {side_length "<<side_length<<" > critical_side "<<rVariables.Refine.critical_side*tip_correction<<"} "<<std::endl;
 
 
 		    bool on_tip = false;
