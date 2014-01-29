@@ -385,7 +385,7 @@ for step in range(istep, nstep):
                 # print gid output file
                 gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, output_print.operation_id())
                 # print on list files
-                list_files.PrintListFiles(current_step);
+                list_files.PrintListFiles(output_print.operation_id());
                 StopTimeMeasuring(clock_time, "Write Results");
 
         # remesh domains
@@ -402,7 +402,7 @@ for step in range(istep, nstep):
                 # print gid output file
                 gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, output_print.operation_id())
                 # print on list files
-                list_files.PrintListFiles(current_step);
+                list_files.PrintListFiles(output_print.operation_id());
                 StopTimeMeasuring(clock_time, "Write Results");
 
            # plot graphs

@@ -237,6 +237,8 @@ void PointRigidContactCondition::ClearNodalForces()
 	GetGeometry()[i].UnSetLock();
       }
 
+    //KRATOS_WATCH( " CLEAR NODAL FORCE " )
+
     KRATOS_CATCH( "" )
 }
 

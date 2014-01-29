@@ -1393,7 +1393,7 @@ namespace Kratos
   {
 
     std::cout<<" [ SELECT ELEMENTS TO REFINE : "<<std::endl;
-    std::cout<<"   refine selection "<<std::endl;
+    //std::cout<<"   refine selection "<<std::endl;
 
     ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
 
@@ -1440,7 +1440,7 @@ namespace Kratos
 	//*********************************************************************
 
 	int id = 0; 
-	double area_factor=0.95; //1
+	double area_factor=0.75; //1
 	    
 	for(int el = 0; el< out.numberoftriangles; el++)
 	  {
@@ -1476,6 +1476,7 @@ namespace Kratos
 		      count_boundary+=1;
 		  }
 		    
+
 		// if(count_dissipative>0)
 		//   std::cout<<" Count REFINE nodes "<<count_dissipative<<std::endl;
 		//std::cout<<"   prescribed_h (el:"<<el<<") = "<<prescribed_h<<std::endl;
@@ -1489,9 +1490,9 @@ namespace Kratos
 		  		  
 		double Area = 0;
 		double element_radius = mModelerUtilities.CalculateCircRadius (vertices[0].X(),vertices[0].Y(),
-							     vertices[1].X(),vertices[1].Y(),
-							     vertices[2].X(),vertices[2].Y(),
-							     Area);
+									       vertices[1].X(),vertices[1].Y(),
+									       vertices[2].X(),vertices[2].Y(),
+									       Area);
 		  
 		if( refine_candidate ){
 
@@ -1508,9 +1509,11 @@ namespace Kratos
 		  // if(dissipative)
 		  //   std::cout<<" element_radius "<<element_radius<<" critical_radius "<<rVariables.Refine.critical_radius<<std::endl;
 
-		  double boundary_margin = 1.0;
+		  double boundary_margin = 0.75;
 		  if( count_boundary >= 2 )
 		    boundary_margin = 1.5;
+
+		  //std::cout<<" Critical Radius: "<<element_radius<<" > "<<rVariables.Refine.critical_radius * boundary_margin<<std::endl;
 
 		  if( element_radius > rVariables.Refine.critical_radius * boundary_margin ){
 		    refine_size = true;
@@ -1521,7 +1524,7 @@ namespace Kratos
 		    
 		  double boundary_insert_factor = 1.4;
 
-		  if(count_boundary_inserted >= 1  &&  element_radius > rVariables.Refine.critical_radius*boundary_insert_factor ){  
+		  if(count_boundary_inserted >= 1  &&  element_radius > rVariables.Refine.critical_side*boundary_insert_factor ){  
 		    boundary_size = true;
 		  }
 
@@ -1529,6 +1532,8 @@ namespace Kratos
 		  //Also a criteria for the critical_dissipation (set in nodes)
 		  if(rVariables.RefiningOptions.Is(Modeler::CRITERION_ENERGY))
 		    {
+
+		      //std::cout<<" [ Refine Criteria ["<<id<<"] : (dissipative: "<<dissipative<<"; size: "<<refine_size<<"; boundary_size: "<<boundary_size<<"; prescribed h: "<<prescribed_h*0.3333<<") ]"<<std::endl;
 
 		      //********* PLASTIC POWER ENERGY REFINEMENT CRITERION (A)
 		      if( (dissipative == true && refine_size == true) || (boundary_size == true) )
@@ -1548,9 +1553,11 @@ namespace Kratos
 			prescribed_h *= 0.3333;
 
 			//if h is the height of a equilateral triangle, the area is 1/2*h*h
-			in.trianglearealist[id] = 0.5*(1.5*prescribed_h*1.5*prescribed_h);
+			in.trianglearealist[id] = area_factor*0.25*(1.5*prescribed_h*1.5*prescribed_h);
 			//in.trianglearealist[id] = 2*Area;
 		      }
+
+		      //std::cout<<" [ AREA: "<<Area<<"; NEW AREA: "<<in.trianglearealist[id]<<" ]"<<std::endl;
 		    }
 		  else
 		    {
@@ -1562,7 +1569,7 @@ namespace Kratos
 			prescribed_h *= 0.3333;
 				    
 			//if h is the height of a equilateral triangle, the area is 1/2*h*h
-			in.trianglearealist[id] = area_factor*0.5*(1.5*prescribed_h*1.5*prescribed_h);
+			in.trianglearealist[id] = area_factor*0.25*(1.5*prescribed_h*1.5*prescribed_h);
 		      }
 		      else{
 
@@ -1570,7 +1577,7 @@ namespace Kratos
 			prescribed_h *= 0.3333;
 
 			//if h is the height of a equilateral triangle, the area is 1/2*h*h
-			//in.trianglearealist[id] = 0.5*(1.5*prescribed_h*1.5*prescribed_h);
+			//in.trianglearealist[id] = 0.25*(1.5*prescribed_h*1.5*prescribed_h);
 			in.trianglearealist[id] = Area;
 		      }
 
@@ -2380,6 +2387,11 @@ namespace Kratos
 
 	    for(ModelPart::NodesContainerType::const_iterator in = rModelPart.NodesBegin(MeshId); in != rModelPart.NodesEnd(MeshId); in++)
 	      {
+		bool on_contact_tip = false;
+		array_1d<double, 3 > & ContactForceNormal  = in->FastGetSolutionStepValue(CONTACT_FORCE);
+		
+		if(norm_2(ContactForceNormal)>0 || in->Is(TO_SPLIT) || in->Is(CONTACT) )
+		  on_contact_tip = true;				  
 
 		if( in->IsNot(NEW_ENTITY) )
 		  {
@@ -2434,8 +2446,14 @@ namespace Kratos
 			      unsigned int counter = 0;
 			      for(PointIterator nn=neighbours.begin(); nn!=neighbours.begin() + n_points_in_radius ; nn++)
 				{
+				  bool nn_on_contact_tip = false;
+				  array_1d<double, 3 > & ContactForceNormal  = (*nn)->FastGetSolutionStepValue(CONTACT_FORCE);
+				  
+				  if(norm_2(ContactForceNormal)>0 || (*nn)->Is(TO_SPLIT) || (*nn)->Is(CONTACT) )
+				    nn_on_contact_tip = true;				  
+
 				  //std::cout<<" radius * extra_factor "<<(extra_factor*radius)<<" >? "<<neighbour_distances[k]<<std::endl;
-				  if ( (*nn)->Is(BOUNDARY) && (*nn)->IsNot(CONTACT) && neighbour_distances[k] < (extra_factor*radius) && neighbour_distances[k] > 0.0 )
+				  if ( (*nn)->Is(BOUNDARY) && !nn_on_contact_tip && neighbour_distances[k] < (extra_factor*radius) && neighbour_distances[k] > 0.0 )
 				    {
 				      //KRATOS_WATCH( neighbours_distances[k] )
 				      if((*nn)->IsNot(TO_ERASE)){
@@ -2446,7 +2464,7 @@ namespace Kratos
 				  k++;
 				}
 
-			      if(counter > 1 && in->IsNot(NEW_ENTITY) && in->IsNot(CONTACT) ){ //Can be inserted in the boundary refine
+			      if(counter > 1 && in->IsNot(NEW_ENTITY) && !on_contact_tip ){ //Can be inserted in the boundary refine
 				in->Set(TO_ERASE);
 				std::cout<<"     Removed Boundary Node ["<<in->Id()<<"] on Distance "<<std::endl;
 				any_node_removed = true;
@@ -3261,7 +3279,7 @@ namespace Kratos
 	std::cout<<"   Contact Search End ["<<list_of_conditions.size()<<" : "<<list_of_nodes.size()<<"]"<<std::endl;
 	std::cout<<"   Boundary Search Start "<<std::endl;
 	    
-	double non_contact_boundary_factor = 1.5;
+	double non_contact_boundary_factor = 2.0;
 
 	//LOOP TO CONSIDER ALL SUBDOMAIN CONDITIONS
 	double cond_counter=0;
@@ -3318,6 +3336,7 @@ namespace Kratos
 		  contact_active = true;
 		}
 		else if(norm_2(ContactForceNormal1)>0 || norm_2(ContactForceNormal2)>0){
+		  //std::cout<<" FC1: ["<<rConditionGeom[0].Id()<<"]: "<<norm_2(ContactForceNormal1)<<" FC2: ["<<rConditionGeom[1].Id()<<"]: "<<norm_2(ContactForceNormal2)<<std::endl;
 		  contact_semi_active = true;
 		}
 
@@ -3326,9 +3345,9 @@ namespace Kratos
 
 		  side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);		    	     
 
-		  double tip_correction = 0.6;
+		  double tip_correction = 0.25;
 
-		  if( side_length > rVariables.Refine.critical_side*tip_correction){
+		  if( side_length > rVariables.Refine.critical_side * tip_correction){
 		  
 
 		    std::cout<<"   rigid {side_length "<<side_length<<" > critical_side "<<rVariables.Refine.critical_side*tip_correction<<"} "<<std::endl;
@@ -3339,7 +3358,7 @@ namespace Kratos
 		      on_tip = true;
 		    }
 		    else if (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)){
-		      if( side_length > 1.5*rVariables.Refine.critical_side*tip_correction ){
+		      if( side_length > rVariables.Refine.critical_side*tip_correction ){
 			on_tip = true;
 		      }
 		    }		  
@@ -3504,13 +3523,55 @@ namespace Kratos
 
 		  //condition_radius = mModelerUtilities.CalculateCircRadius (pGeom);
 
+		  double critical_side_size = rVariables.Refine.critical_side;
+		  
+		  bool on_tip = false;
+		  if( contact_semi_active ){
+		    
+		    if (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT))
+		      on_tip = true;
+		    
+		    critical_side_size /= non_contact_boundary_factor;
+		  }
+		  else if( contact_active ){
+		    
+		    if (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT))
+		      on_tip = true;
+		    
+		    if( on_tip == false )
+		      critical_side_size *= (2.0 * non_contact_boundary_factor);
+		    else
+		      critical_side_size /= non_contact_boundary_factor;
+		  }
+		  else{
+		    
+		    critical_side_size *= non_contact_boundary_factor;
+		  }
+
+		  
 		  //if(plastic_power > rVariables.Refine.critical_dissipation && condition_radius > rVariables.Refine.critical_radius)
-		  if( !accepted && side_length > rVariables.Refine.critical_side * non_contact_boundary_factor)
+		  if( !accepted && side_length > critical_side_size )
 		    {
 		      mesh_size_insert = true;
 
 		      std::cout<<"   insert on mesh size "<<std::endl;		      
 		    }
+		  else if( contact_semi_active && side_length > critical_side_size )
+		    {
+		      mesh_size_insert = true;
+
+		      std::cout<<"   insert on mesh size semi_contact "<<std::endl;		      
+		      
+		    }
+		  else if( on_tip && side_length > critical_side_size )
+		    {
+		      mesh_size_insert = true;
+
+		      std::cout<<"   insert on mesh size semi_contact on tip "<<std::endl;		      
+		      
+		    }
+		  
+
 		}
 
 
@@ -3727,7 +3788,7 @@ namespace Kratos
 	    noalias(pnode->GetSolutionStepValue(NORMAL)) = list_of_conditions[i]->GetValue(NORMAL);
 	    //std::cout<<" NORMAL "<<pnode->GetSolutionStepValue(NORMAL)<<std::endl;
 	    //correct contact_normal interpolation (laplacian boundary projection uses it)
-	    //noalias(pnode->GetSolutionStepValue(FORCE_CONTACT_NORMAL)) = ZeroNormal;
+	    noalias(pnode->FastGetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
 
 	    //recover the original position of the node
 	    const array_1d<double,3>& disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);
