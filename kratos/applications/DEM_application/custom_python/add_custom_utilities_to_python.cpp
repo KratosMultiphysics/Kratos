@@ -60,6 +60,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/calculate_global_physical_properties.h"
 #include "custom_utilities/pre_utilities.h"
 #include "custom_utilities/post_utilities.h"
+#include "custom_utilities/search_utilities.h"
+#include "custom_utilities/omp_dem_search.h"
 
 #include "boost/python/list.hpp"
 #include "boost/python/extract.hpp"
@@ -68,9 +70,10 @@ namespace Kratos{
 
 namespace Python{
 
-typedef ModelPart::NodesContainerType::iterator PointIterator;
-typedef std::vector<array_1d<double, 3 > > ComponentVectorType;
+typedef ModelPart::NodesContainerType::iterator      PointIterator;
+typedef std::vector<array_1d<double, 3 > >           ComponentVectorType;
 typedef std::vector<array_1d<double, 3 > >::iterator ComponentIteratorType;
+typedef SpatialSearch::NodesContainerType            NodesArrayType;
 
 boost::python::list Aux_MeasureTopHeight(PreUtilities& ThisPreUtils, ModelPart& rModelPart)
 {
@@ -133,6 +136,8 @@ void  AddCustomUtilitiesToPython(){
         ("SphericElementGlobalPhysicsCalculator", init<ModelPart&>())
         .def("CalculateTotalVolume", &SphericElementGlobalPhysicsCalculator::CalculateTotalVolume)
         .def("CalculateTotalMass", &SphericElementGlobalPhysicsCalculator::CalculateTotalMass)
+        .def("CalculateMaxNodalVariable", &SphericElementGlobalPhysicsCalculator::CalculateMaxNodalVariable)
+        .def("CalculateMinNodalVariable", &SphericElementGlobalPhysicsCalculator::CalculateMinNodalVariable)
         .def("CalculateD50", &SphericElementGlobalPhysicsCalculator::CalculateD50)
         .def("CalculateCenterOfMass", &SphericElementGlobalPhysicsCalculator::CalculateCenterOfMass)
         .def("GetInitialCenterOfMass", &SphericElementGlobalPhysicsCalculator::GetInitialCenterOfMass)
@@ -142,6 +147,19 @@ void  AddCustomUtilitiesToPython(){
         .def("CalculateTotalMomentum", &SphericElementGlobalPhysicsCalculator::CalculateTotalMomentum)
         .def("CalulateTotalAngularMomentum", &SphericElementGlobalPhysicsCalculator::CalulateTotalAngularMomentum)
         ;
+
+     void (DemSearchUtilities::*SearchNodeNeigboursDistancesMM)(ModelPart&,ModelPart&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
+     void (DemSearchUtilities::*SearchNodeNeigboursDistancesML)(NodesArrayType&,ModelPart&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
+     void (DemSearchUtilities::*SearchNodeNeigboursDistancesLM)(ModelPart&,NodesArrayType&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
+     void (DemSearchUtilities::*SearchNodeNeigboursDistancesLL)(NodesArrayType&,NodesArrayType&,const double&,const Variable<double>&) = &DemSearchUtilities::SearchNodeNeigboursDistances<Variable<double> >;
+
+     class_<DemSearchUtilities, boost::noncopyable >
+         ("DemSearchUtilities", init<SpatialSearch::Pointer>())
+         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesMM)
+         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesML)
+         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLM)
+         .def("SearchNodeNeighboursDistances", SearchNodeNeigboursDistancesLL)
+         ;
 
       class_<PreUtilities, boost::noncopyable >
         ("PreUtilities", init<ModelPart&>())
