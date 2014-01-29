@@ -652,11 +652,11 @@ public:
 #else
         //creating an array of lock variables of the size of the system vector
         /*std::vector< omp_lock_t > lock_array(b.size());*/
-		size_t total_size = b.size();
-		if (BaseType::mCalculateReactionsFlag)
-			total_size += (*BaseType::mpReactionsVector).size();
-		std::vector< omp_lock_t > lock_array(total_size);
-
+	int total_size = b.size();
+	if (BaseType::mCalculateReactionsFlag)
+	  total_size += (*BaseType::mpReactionsVector).size();
+	std::vector< omp_lock_t > lock_array(total_size);
+	
         //int b_size = b.size();
         for (int i = 0; i < total_size; i++)
             omp_init_lock(&lock_array[i]);
