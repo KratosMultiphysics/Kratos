@@ -148,7 +148,7 @@ namespace Kratos
               mSearchRadius[it-rSearchNodes.begin()] = rSearchRadius;
           }
 
-          mSpatialSearch->SearchNodesInRadiusExclusive(rSearchNodes,rBinsNodes,mSearchRadius,mNodesResults,mResultsDistances);
+          mSpatialSearch->SearchNodesInRadiusExclusive(rBinsNodes,rSearchNodes,mSearchRadius,mNodesResults,mResultsDistances);
           
           for(std::size_t i = 0; i < node_size; i++)
           {
