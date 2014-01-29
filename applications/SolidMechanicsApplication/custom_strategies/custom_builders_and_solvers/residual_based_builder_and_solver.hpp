@@ -610,7 +610,7 @@ public:
 
         //getting the array of the conditions
         ConditionsArrayType& ConditionsArray = r_model_part.Conditions();
-
+		
          //resetting to zero the vector of reactions
         TSparseSpace::SetToZero(*(BaseType::mpReactionsVector));
 
@@ -651,10 +651,14 @@ public:
 
 #else
         //creating an array of lock variables of the size of the system vector
-        std::vector< omp_lock_t > lock_array(b.size());
+        /*std::vector< omp_lock_t > lock_array(b.size());*/
+		size_t total_size = b.size();
+		if (BaseType::mCalculateReactionsFlag)
+			total_size += (*BaseType::mpReactionsVector).size();
+		std::vector< omp_lock_t > lock_array(total_size);
 
-        int b_size = b.size();
-        for (int i = 0; i < b_size; i++)
+        //int b_size = b.size();
+        for (int i = 0; i < total_size; i++)
             omp_init_lock(&lock_array[i]);
 
         //create a partition of the element array
@@ -669,7 +673,7 @@ public:
             KRATOS_WATCH( number_of_threads )
             KRATOS_WATCH( element_partition )
         }
-
+		
         double start_prod = omp_get_wtime();
 
         #pragma omp parallel for
@@ -690,7 +694,6 @@ public:
             // assemble all elements
             for (typename ElementsArrayType::ptr_iterator it = it_begin; it != it_end; ++it)
             {
-
                 //calculate elemental contribution
                 pScheme->Calculate_RHS_Contribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
@@ -735,7 +738,7 @@ public:
         if (this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
             std::cout << "time: " << stop_prod - start_prod << std::endl;
 
-        for (int i = 0; i < b_size; i++)
+        for (int i = 0; i < total_size; i++)
             omp_destroy_lock(&lock_array[i]);
 
         if( this->GetEchoLevel() > 2 && r_model_part.GetCommunicator().MyPID() == 0)
@@ -989,6 +992,7 @@ public:
         TSystemVectorType& Dx,
         TSystemVectorType& b)
     {
+
         //refresh RHS to have the correct reactions
         this->BuildRHS(pScheme, r_model_part, b);
 
@@ -1012,6 +1016,7 @@ public:
             }
             num++;
         }
+
     }
 
     //**************************************************************************
@@ -1420,52 +1425,57 @@ protected:
         unsigned int local_size = RHS_Contribution.size();
 
         if (BaseType::mCalculateReactionsFlag == false) //if we don't need to calculate reactions
-	  {
-	    for (unsigned int i_local = 0; i_local < local_size; i_local++)
-	      {
-		unsigned int i_global = EquationId[i_local];
+	    {
+			for (unsigned int i_local = 0; i_local < local_size; i_local++)
+			{
+				unsigned int i_global = EquationId[i_local];
 
-		if (i_global < BaseType::mEquationSystemSize)
-		  {
-		    omp_set_lock(&lock_array[i_global]);
+				if (i_global < BaseType::mEquationSystemSize)
+				{
+					omp_set_lock(&lock_array[i_global]);
 
-		    b[i_global] += RHS_Contribution(i_local);
+		            b[i_global] += RHS_Contribution(i_local);
+			        
+		            omp_unset_lock(&lock_array[i_global]);
+				}
+		        //note that computation of reactions is not performed here!
+            }
 
-		    omp_unset_lock(&lock_array[i_global]);
-		  }
-		//note that computation of reactions is not performed here!
-	      }
-
-	  }
+	    }
         else   //when the calculation of reactions is needed
-	  {
-            TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
+		{
+			TSystemVectorType& ReactionsVector = *BaseType::mpReactionsVector;
 
             for (unsigned int i_local = 0; i_local < local_size; i_local++)
-	      {
-                unsigned int i_global = EquationId[i_local];
+			{
+				unsigned int i_global = EquationId[i_local];
 
                 if (i_global < BaseType::mEquationSystemSize) //on "free" DOFs
-		  {
-		    omp_set_lock(&lock_array[i_global]);
+				{
+					omp_set_lock(&lock_array[i_global]);
 
                     b[i_global] += RHS_Contribution[i_local];
 
-		    omp_unset_lock(&lock_array[i_global]);
-		  }
+                    omp_unset_lock(&lock_array[i_global]);
+				}
                 else   //on "fixed" DOFs
-		  {
+				{
+					/*std::cout << " - LK.size() = " << lock_array.size();
+					std::cout << " - REAC.size() = " << ReactionsVector.size();
+					std::cout << " - TARGET ID = " << i_global - BaseType::mEquationSystemSize;
+					std::cout << " -system = " << BaseType::mEquationSystemSize << std::endl;*/
 
-		    omp_set_lock(&lock_array[i_global - BaseType::mEquationSystemSize]);
+					// bug fixed: lock_array now has dimension(=num_free + num_fixed) if 
+					// calculate reaction is needed
+					omp_set_lock(&lock_array[i_global/* - BaseType::mEquationSystemSize*/]);
 
                     ReactionsVector[i_global - BaseType::mEquationSystemSize] -= RHS_Contribution[i_local];
-
-		    omp_unset_lock(&lock_array[i_global - BaseType::mEquationSystemSize]);
-		  }
-	      }
-	  }
-
-    }
+					
+					omp_unset_lock(&lock_array[i_global/* - BaseType::mEquationSystemSize*/]);
+				}
+			}
+		}
+	}
 
 
 #endif
