@@ -118,7 +118,7 @@ class ListFilesUtility:
                 pass
 
     #
-    def PrintListFiles(self, current_step):
+    def PrintListFiles(self, current_id):
 
         # print list files:
         if(self.print_lists):
@@ -136,7 +136,7 @@ class ListFilesUtility:
                         listfile.write(problemname)
                         self.header_in_list[lfile] = False
 
-                    problemname = self.problem_name + "_" + str(current_step) + self.output_mode + "\n"
+                    problemname = self.problem_name + "_" + str(current_id) + self.output_mode + "\n"
                     listfile.write(problemname)
                     listfile.close()
                     self.listprint[lfile] = 1
@@ -144,3 +144,4 @@ class ListFilesUtility:
                     self.listprint[lfile] = self.listprint[lfile] + 1
 
     #
+

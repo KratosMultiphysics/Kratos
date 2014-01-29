@@ -117,6 +117,8 @@ void NonLinearAssociativePlasticFlowRule::SetCriterionParameters( RadialReturnVa
 
 	rCriterionParameters.SetRateFactor(0);
 
+	mThermalVariables.clear();
+
 }
 
 
