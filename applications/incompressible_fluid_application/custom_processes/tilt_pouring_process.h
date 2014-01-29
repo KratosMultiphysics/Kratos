@@ -126,13 +126,6 @@ public:
 			array_1d<double,3> displacement = new_coordinates - i_node->Coordinates();
 			i_node->GetSolutionStepValue(DISPLACEMENT) = displacement;
 
-			if (i_node->Is(INLET))
-			{
-				array_1d<double,3>& velocity = i_node->GetSolutionStepValue(VELOCITY);
-				array_1d<double,3> reference_velocity = prod(trans(mOldRotationMatrix), velocity);
-				array_1d<double,3> new_velocity = prod(rotation_matrix, reference_velocity);
-				velocity = new_velocity;
-			}
 
         }
 
