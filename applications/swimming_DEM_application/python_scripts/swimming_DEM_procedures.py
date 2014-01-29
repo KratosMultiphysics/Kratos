@@ -208,15 +208,14 @@ class IOTools:
 
     def CreateProblemDirectories(self, main_path, dir_names):
 
-        directories = []
-        n_dir = len(dir_names)
+        directories = {}
 
-        for i in range(n_dir):
-            directories.append(str(main_path) + '/' + str(self.param.DEM_problem_name) + '_' + dir_names[i])
+        for name in dir_names:
+            dir_abs_path = main_path + '/' + name
+            directories[name] = dir_abs_path
 
-        for directory in directories:
-            if (not os.path.isdir(directory)):
-                os.makedirs(str(directory))
+            if (not os.path.isdir(dir_abs_path)):
+                os.makedirs(str(dir_abs_path))
 
         return directories
 
