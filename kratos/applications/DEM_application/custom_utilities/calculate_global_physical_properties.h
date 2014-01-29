@@ -57,6 +57,10 @@ class SphericElementGlobalPhysicsCalculator
 
       virtual ~SphericElementGlobalPhysicsCalculator(){}
 
+
+      //***************************************************************************************************************
+      //***************************************************************************************************************
+
       double CalculateTotalVolume(ModelPart& rModelPart)
       {
           ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
@@ -79,6 +83,115 @@ class SphericElementGlobalPhysicsCalculator
 
         return added_volume;
       }
+
+      //***************************************************************************************************************
+      //***************************************************************************************************************
+
+      double CalculateMaxNodalVariable(ModelPart& rModelPart, const Variable<double>& rVariable)
+      {
+        ElementsArrayType& pElements = rModelPart.GetCommunicator().LocalMesh().Elements();
+
+        if (pElements.size() == 0){
+            return 0.0;
+          }
+
+        ElementsArrayType::iterator it_begin = pElements.ptr_begin();
+
+        if(!it_begin->GetGeometry()(0)->SolutionStepsDataHas(rVariable)){
+            KRATOS_ERROR(std::invalid_argument, "Cannot compute maximum of the required nodal variable. Missing variable ", rVariable);
+          }
+
+        Vector max_values;
+        double max_val = - std::numeric_limits<double>::max();
+        max_values.resize(OpenMPUtils::GetNumThreads());
+
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+            max_values[k] = max_val;
+          }
+
+        OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), this->GetElementPartition());
+
+        unsigned int elem_counter;
+
+        #pragma omp parallel for private(elem_counter)
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+            elem_counter = this->GetElementPartition()[k];
+            ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+                max_values[k] = std::max(max_values[k], (it)->GetGeometry()(0)->FastGetSolutionStepValue(rVariable));
+                elem_counter++;
+
+            }
+
+          }
+
+        // getting the maximum between threads:
+
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+            max_val = std::max(max_val, max_values[k]);
+          }
+
+        return max_val;
+      }
+
+      //***************************************************************************************************************
+      //***************************************************************************************************************
+
+      double CalculateMinNodalVariable(ModelPart& rModelPart, const Variable<double>& rVariable)
+      {
+
+
+        ElementsArrayType& pElements = rModelPart.GetCommunicator().LocalMesh().Elements();
+
+        if (pElements.size() == 0){
+            return 0.0;
+          }
+
+        ElementsArrayType::iterator it_begin = pElements.ptr_begin();
+
+        if(!it_begin->GetGeometry()(0)->SolutionStepsDataHas(rVariable)){
+            KRATOS_ERROR(std::invalid_argument, "Cannot compute minimum of the required nodal variable. Missing variable ", rVariable);
+          }
+
+        Vector min_values;
+        double min_val = std::numeric_limits<double>::max();
+        min_values.resize(OpenMPUtils::GetNumThreads());
+
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+            min_values[k] = min_val;
+          }
+
+        OpenMPUtils::CreatePartition(OpenMPUtils::GetNumThreads(), pElements.size(), this->GetElementPartition());
+
+        unsigned int elem_counter;
+
+        #pragma omp parallel for private(elem_counter)
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+            elem_counter = this->GetElementPartition()[k];
+            ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
+            ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
+
+            for (ElementsArrayType::iterator it = it_begin; it != it_end; ++it){
+                min_values[k] = std::min(min_values[k], (it)->GetGeometry()(0)->FastGetSolutionStepValue(rVariable));
+                elem_counter++;
+
+            }
+
+          }
+
+        // getting the minimum between threads:
+
+        for (int k = 0; k < OpenMPUtils::GetNumThreads(); k++){
+            min_val = std::min(min_val, min_values[k]);
+          }
+
+        return min_val;
+      }
+
+      //***************************************************************************************************************
+      //***************************************************************************************************************
 
       double CalculateD50(ModelPart& rModelPart)
       {
@@ -114,6 +227,9 @@ class SphericElementGlobalPhysicsCalculator
           return d50;
       }
 
+      //***************************************************************************************************************
+      //***************************************************************************************************************
+
       double CalculateTotalMass(ModelPart& rModelPart)
       {
           ElementsArrayType& pElements        = rModelPart.GetCommunicator().LocalMesh().Elements();
@@ -138,6 +254,9 @@ class SphericElementGlobalPhysicsCalculator
 
         return added_mass;
       }
+
+      //***************************************************************************************************************
+      //***************************************************************************************************************
 
       array_1d<double, 3> CalculateCenterOfMass(ModelPart& rModelPart)
       {
@@ -169,6 +288,9 @@ class SphericElementGlobalPhysicsCalculator
           return center_of_mass;
       }
 
+      //***************************************************************************************************************
+      //***************************************************************************************************************
+
       double CalculateGravitationalPotentialEnergy(ModelPart& rModelPart, const array_1d<double, 3> reference_point)
       {
 
@@ -182,6 +304,9 @@ class SphericElementGlobalPhysicsCalculator
 
           return potential_energy;
       }
+
+      //***************************************************************************************************************
+      //***************************************************************************************************************
 
       double CalculateKineticEnergy(ModelPart& rModelPart)
       {
@@ -209,6 +334,8 @@ class SphericElementGlobalPhysicsCalculator
           return kinetic_energy;
       }
 
+      //***************************************************************************************************************
+      //***************************************************************************************************************
 
       double CalculateElasticEnergy(ModelPart& rModelPart)
       {
@@ -235,6 +362,9 @@ class SphericElementGlobalPhysicsCalculator
 
           return potential_energy;
       }
+
+      //***************************************************************************************************************
+      //***************************************************************************************************************
 
       array_1d<double, 3> CalculateTotalMomentum(ModelPart& rModelPart)
       {
@@ -267,6 +397,9 @@ class SphericElementGlobalPhysicsCalculator
 
           return momentum;
       }
+
+      //***************************************************************************************************************
+      //***************************************************************************************************************
 
       array_1d<double, 3> CalulateTotalAngularMomentum(ModelPart& rModelPart)
       {
@@ -303,6 +436,8 @@ class SphericElementGlobalPhysicsCalculator
           return angular_momentum;
       }
 
+      //***************************************************************************************************************
+      //***************************************************************************************************************
 
         ///@}
         ///@name Access
