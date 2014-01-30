@@ -1450,11 +1450,11 @@ namespace Kratos
 		double prescribed_h      = 0;
 		bool   dissipative       = false;
 		bool   refine_size       = false;
-		bool   boundary_size     = false;
 
 		int    count_dissipative = 0;
 		int    count_boundary_inserted = 0;
 		int    count_boundary = 0;
+		int    count_contact_boundary = 0;
 
 		Geometry<Node<3> > vertices;
 
@@ -1472,8 +1472,13 @@ namespace Kratos
 		    if((nodes_begin + out.trianglelist[el*3+pn]-1)->Is(NEW_ENTITY))
 		      count_boundary_inserted+=1;	      
 
-		    if((nodes_begin + out.trianglelist[el*3+pn]-1)->Is(BOUNDARY))
+		    if((nodes_begin + out.trianglelist[el*3+pn]-1)->Is(BOUNDARY)){
 		      count_boundary+=1;
+		      array_1d<double, 3 > & ContactForceNormal = (nodes_begin + out.trianglelist[el*3+pn]-1)->FastGetSolutionStepValue(CONTACT_FORCE);
+		      if( norm_2(ContactForceNormal) )
+			count_contact_boundary+=1;
+		    }
+		    
 		  }
 		    
 
@@ -1517,45 +1522,46 @@ namespace Kratos
 
 		  if( element_radius > rVariables.Refine.critical_radius * boundary_margin ){
 		    refine_size = true;
-		    //std::cout<<" Critical Radius True "<<std::endl;
 		  }
 
-		  //refine_size = true;
 		    
-		  double boundary_insert_factor = 1.4;
-
-		  if(count_boundary_inserted >= 1  &&  element_radius > rVariables.Refine.critical_side*boundary_insert_factor ){  
-		    boundary_size = true;
-		  }
-
-
 		  //Also a criteria for the critical_dissipation (set in nodes)
 		  if(rVariables.RefiningOptions.Is(Modeler::CRITERION_ENERGY))
 		    {
 
-		      //std::cout<<" [ Refine Criteria ["<<id<<"] : (dissipative: "<<dissipative<<"; size: "<<refine_size<<"; boundary_size: "<<boundary_size<<"; prescribed h: "<<prescribed_h*0.3333<<") ]"<<std::endl;
+		      //std::cout<<" [ Refine Criteria ["<<id<<"] : (dissipative: "<<dissipative<<"; size: "<<refine_size<<"; prescribed h: "<<prescribed_h*0.3333<<") ]"<<std::endl;
 
 		      //********* PLASTIC POWER ENERGY REFINEMENT CRITERION (A)
-		      if( (dissipative == true && refine_size == true) || (boundary_size == true) )
+		      if( (dissipative == true && refine_size == true) )
 			{
-			  //std::cout<<" Refine element on energy dissipation "<<std::endl;
+			  in.trianglearealist[id] = area_factor*Area;
+
+			  //std::cout<<" Area Factor Refine DISSIPATIVE :"<<in.trianglearealist[id]<<std::endl;
+			}
+		      else if (refine_size == true)
+			{
 
 			  //calculate the prescribed h
 			  prescribed_h *= 0.3333;
 
 			  //if h is the height of a equilateral triangle, the area is 1/2*h*h
-			  //in.trianglearealist[id] = area_factor*0.5*(1.5*prescribed_h*1.5*prescribed_h);
-			  in.trianglearealist[id] = area_factor*Area;
+			  in.trianglearealist[id] = area_factor*0.5*(1.5*prescribed_h*1.5*prescribed_h);
+
+			  if( count_boundary_inserted || count_contact_boundary){
+			    in.trianglearealist[id] = area_factor*Area;
+			    //std::cout<<" count boundary inserted-contact on "<<std::endl;
+			  }
+
+
+			  //std::cout<<" Area Factor Refine SIZE :"<<in.trianglearealist[id]<<std::endl;
+
 			}
 		      else{
-
-			//calculate the prescribed h
-			prescribed_h *= 0.3333;
-
-			//if h is the height of a equilateral triangle, the area is 1/2*h*h
-			in.trianglearealist[id] = area_factor*0.25*(1.5*prescribed_h*1.5*prescribed_h);
-			//in.trianglearealist[id] = 2*Area;
+			
+			  in.trianglearealist[id] = 2*Area;
+			  //std::cout<<" Area Factor Refine NO :"<<in.trianglearealist[id]<<std::endl;
 		      }
+
 
 		      //std::cout<<" [ AREA: "<<Area<<"; NEW AREA: "<<in.trianglearealist[id]<<" ]"<<std::endl;
 		    }
@@ -1569,7 +1575,7 @@ namespace Kratos
 			prescribed_h *= 0.3333;
 				    
 			//if h is the height of a equilateral triangle, the area is 1/2*h*h
-			in.trianglearealist[id] = area_factor*0.25*(1.5*prescribed_h*1.5*prescribed_h);
+			in.trianglearealist[id] = area_factor*0.5*(1.5*prescribed_h*1.5*prescribed_h);
 		      }
 		      else{
 
@@ -1577,7 +1583,7 @@ namespace Kratos
 			prescribed_h *= 0.3333;
 
 			//if h is the height of a equilateral triangle, the area is 1/2*h*h
-			//in.trianglearealist[id] = 0.25*(1.5*prescribed_h*1.5*prescribed_h);
+			//in.trianglearealist[id] = 0.5*(1.5*prescribed_h*1.5*prescribed_h);
 			in.trianglearealist[id] = Area;
 		      }
 
@@ -3559,7 +3565,7 @@ namespace Kratos
 		    if( on_tip == false )
 		      critical_side_size *= (2.0 * contact_boundary_factor);
 		    else
-		      critical_side_size /= contact_boundary_factor;
+		      critical_side_size /= (2.0 * contact_boundary_factor);
 		    
 		  }
 		  else if( contact_active ){
@@ -3570,7 +3576,7 @@ namespace Kratos
 		    if( on_tip == false )
 		      critical_side_size *= (2.0 * contact_boundary_factor);
 		    else
-		      critical_side_size /= contact_boundary_factor;
+		      critical_side_size /= (2.0 * contact_boundary_factor);
 		  }
 		  else{
 		    
@@ -3808,7 +3814,7 @@ namespace Kratos
 	    //set specific controls values and flags:
 	    pnode->Set(BOUNDARY);
 	    pnode->Set(NEW_ENTITY);  //if boundary is rebuild, the flag INSERTED must be set to new conditions too
-	    std::cout<<"   node "<<pnode->Id()<<" is new entity "<<std::endl;
+	    std::cout<<"   Node ["<<pnode->Id()<<"] is a NEW_ENTITY "<<std::endl;
 	    
 	    pnode->SetValue(DOMAIN_LABEL,MeshId);
 	    double& nodal_h = pnode->FastGetSolutionStepValue(NODAL_H);
@@ -3819,8 +3825,12 @@ namespace Kratos
 	    //correct normal interpolation
 	    noalias(pnode->GetSolutionStepValue(NORMAL)) = list_of_conditions[i]->GetValue(NORMAL);
 	    //std::cout<<" NORMAL "<<pnode->GetSolutionStepValue(NORMAL)<<std::endl;
+
 	    //correct contact_normal interpolation (laplacian boundary projection uses it)
-	    noalias(pnode->FastGetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
+	    array_1d<double, 3 > & ContactForceNormal1  = rConditionGeom[0].FastGetSolutionStepValue(CONTACT_FORCE);
+	    array_1d<double, 3 > & ContactForceNormal2  = rConditionGeom[1].FastGetSolutionStepValue(CONTACT_FORCE);
+	    if(norm_2(ContactForceNormal1)==0 || norm_2(ContactForceNormal2)==0)
+	      noalias(pnode->FastGetSolutionStepValue(CONTACT_FORCE)) = ZeroNormal;
 
 	    //recover the original position of the node
 	    const array_1d<double,3>& disp = pnode->FastGetSolutionStepValue(DISPLACEMENT);

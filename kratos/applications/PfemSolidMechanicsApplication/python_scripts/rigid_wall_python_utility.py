@@ -33,6 +33,9 @@ class RigidWallUtility:
                 if(self.wall_labels[sizej] == sizei + 1):
                     self.noses_per_wall[sizei] = self.noses_per_wall[sizei] + 1
 
+        self.rigid_wall_bbox = []
+        self.contact_search_process = []
+
         for sizei in range(0, self.number_of_walls):
 
             self.number_of_noses = int(self.noses_per_wall[sizei])
@@ -73,14 +76,13 @@ class RigidWallUtility:
 
             if(self.rigid_wall_active):
                 # rigid wall bounding box
-                self.rigid_wall_bbox = []
-                self.rigid_wall_bbox.append(RigidWallBoundingBox(self.convexities, self.tip_radius, self.rake_angles, self.clearance_angles, self.tip_centers, self.wall_velocity, self.wall_angular_velocity, self.wall_reference_point))
+                wall_label = sizei + 1
+                self.rigid_wall_bbox.append(RigidWallBoundingBox(int(wall_label), self.convexities, self.tip_radius, self.rake_angles, self.clearance_angles, self.tip_centers, self.wall_velocity, self.wall_angular_velocity, self.wall_reference_point))
 
                 if(wall_configuration.contact_condition == "Axisymmetric"):
                     self.rigid_wall_bbox[sizei].SetAxisymmetric()
 
                 # rigid wall contact search process
-                self.contact_search_process = []
                 self.contact_search_process.append(RigidWallContactSearch(self.rigid_wall_bbox[sizei], self.model_part))
 
     #

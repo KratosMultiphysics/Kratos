@@ -114,8 +114,17 @@ public:
     Condition::Pointer Create(IndexType NewId, NodesArrayType const&
                               ThisNodes,  PropertiesType::Pointer pProperties) const;
 
+    /**
+     * Called at the beginning of each step
+     */
   
     virtual void InitializeSolutionStep(ProcessInfo& rCurrentProcessInfo);
+
+
+    /**
+     * Called at the beginning of each iteration
+     */
+    virtual void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo);
 
     ///@}
     ///@name Access

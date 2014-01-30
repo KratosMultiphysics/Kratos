@@ -141,7 +141,7 @@ namespace Python
 
     class_<RigidWallBoundingBox, boost::noncopyable > 
       ( "RigidWallBoundingBox", 
-	init<Vector, Vector, Vector, Vector, Matrix, Vector, Vector, Vector>() )
+	init<int, Vector, Vector, Vector, Vector, Matrix, Vector, Vector, Vector>() )
       .def("SetAxisymmetric",&RigidWallBoundingBox::SetAxisymmetric)
       ;
 	

@@ -124,6 +124,8 @@ protected:
   typedef struct
   {
 
+    int Label;
+
     TPointType  Velocity;         // velocity, relative to rotation center and box center (the same)
     TPointType  AngularVelocity;  // angular velocity, relative to the Rotation Center 
 
@@ -135,6 +137,7 @@ protected:
     
     void clear()
     {
+      Label = 0;
       Velocity.clear();
       AngularVelocity.clear();
       RotationCenter.clear();
@@ -437,6 +440,18 @@ public:
     {
         return mMovement.Velocity;
     }
+
+
+    int GetMovementLabel()
+    {
+        return mMovement.Label;
+    }
+
+    void SetMovementLabel(int &rLabel)
+    {
+        mMovement.Label = rLabel;
+    }
+
 
     void SetAxisymmetric()
     {
