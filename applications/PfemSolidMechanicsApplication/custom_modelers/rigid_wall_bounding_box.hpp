@@ -248,21 +248,31 @@ public:
       if( rWallNose.Convexity == -1)
        	rWallNose.Radius *= 0.1; //decrease the bounding box 
 
+      // bool node_in =false;
+      // if( rWallNose.Convexity == 1 && (rPoint[0]>=95 && rPoint[1]>=6.9) )
+      //  	node_in = true;
 
       switch( ContactSearch(rPoint, rWallNose) )
 	{
-  
-	case FreeSurface:      
+  	case FreeSurface:      
 	  is_inside = false;
+	  // if( node_in )
+	  //   std::cout<<" Nose "<<SelectedNose<<" [ FreeSurface :"<<rPoint<<"]"<<std::endl;
 	  break;
 	case RakeSurface:      
 	  is_inside = true;
+	  // if( node_in )
+	  //   std::cout<<" Nose "<<SelectedNose<<" [ RakeSurface :"<<rPoint<<"]"<<std::endl;
 	  break;
 	case TipSurface:       
 	  is_inside = true;
+	  // if( node_in )
+	  //   std::cout<<" Nose "<<SelectedNose<<" [ TipSurface :"<<rPoint<<"]"<<std::endl;
 	  break;
 	case ClearanceSurface: 
 	  is_inside = true;
+	  // if( node_in )
+	  //   std::cout<<" Nose "<<SelectedNose<<" [ ClearanceSurface :"<<rPoint<<"]"<<std::endl;
 	  break;
 	default:               
 	  is_inside = false;
@@ -469,7 +479,17 @@ private:
       //in order to be susceptible to refine
       //rPoint.Reset(TO_SPLIT);
       
-       if(rWallNose.Convexity == 1){
+      // bool node_in =false;
+      // if( rWallNose.Convexity == 1 && (rPoint[0]>=95 && rPoint[1]>=6.9) )
+      //  	node_in = true;
+
+      // if( node_in ){
+      // 	std::cout<<" Point : "<<rPoint<<std::endl;
+      // 	std::cout<<" [ FaceR: "<<FaceR<<"; FaceT: "<<FaceT<<"; FaceC: "<<FaceC<<" ] "<<std::endl; 
+      // 	std::cout<<" [ Face1: "<<Face1<<"; Face2: "<<Face2<<"; Face3: "<<Face3<<" ] "<<std::endl;
+      // }
+
+      if(rWallNose.Convexity == 1){
 
 	if(FaceR>0 && Face3<0 && Face1<0){
 	  Face = RakeSurface;
@@ -489,10 +509,6 @@ private:
       }
       else{
 	
-	// std::cout<<" Point : "<<rPoint<<std::endl;
-	// std::cout<<" [ FaceR: "<<FaceR<<"; FaceT: "<<FaceT<<"; FaceC: "<<FaceC<<" ] "<<std::endl;
-	// std::cout<<" [ Face1: "<<Face1<<"; Face2: "<<Face2<<"; Face3: "<<Face3<<" ] "<<std::endl;
-
 	if(FaceR<0 && Face3<0 && Face1<0){
 	  Face = RakeSurface;
 	}
@@ -524,17 +540,17 @@ private:
     {
       KRATOS_TRY
 
-	if( rTangentAngle != 0 ){
+	// if( rTangentAngle != 0 ){
 	  
-	  rPointFace[0] = rPoint[0] - ( 1.0/rTangentAngle ) * ( rPoint[1] - rLinePoint[1] ) - rLinePoint[0];
-	  rPointFace[1] = rPoint[1] - (   rTangentAngle   ) * ( rPoint[0] - rLinePoint[0] ) - rLinePoint[1];
+	//   rPointFace[0] = rPoint[0] - ( 1.0/rTangentAngle ) * ( rPoint[1] - rLinePoint[1] ) - rLinePoint[0];
+	//   rPointFace[1] = rPoint[1] - (   rTangentAngle   ) * ( rPoint[0] - rLinePoint[0] ) - rLinePoint[1];
 
-	}
-	else{
+	// }
+	// else{
 	  
-	  rPointFace[0] = rPoint[0] - rLinePoint[0];
-	  rPointFace[1] = rPoint[1] - rLinePoint[1];  
-	}	
+      rPointFace[0] = rPoint[0] - rLinePoint[0];
+      rPointFace[1] = rPoint[1] - rLinePoint[1];  
+	// }	
 
       rPointFace [2] = 0;
       
@@ -560,39 +576,50 @@ private:
       RakePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.RakeAngle);
       RakePoint[2] = 0;
  
+
+      // bool node_in =false;
+      // if( rWallNose.Convexity == 1 && (rPoint[0]>=95 && rPoint[1]>=6.9) )
+      //  	node_in = true;
+
+      // if( node_in ) 
+      // 	std::cout<<" RakePoint "<<RakePoint<<" Radius "<<rWallNose.Radius<<" Angle "<<rWallNose.RakeAngle<<" Center "<<rWallNose.Center<<std::endl;
+
+
       PointFaceEvaluation(rPoint, RakePoint, rWallNose.TangentRakeAngle, PointFace);
       PointFaceEvaluation(rWallNose.Center, RakePoint, rWallNose.TangentRakeAngle, CenterFace);
 
-      PointFace[0] *= CenterFace[0];
-      PointFace[1] *= CenterFace[1];
+      Face = inner_prod(PointFace,CenterFace);
 
-      double MaximumDistance=-9.999999999999999e300;
+      // PointFace[0] *= CenterFace[0];
+      // PointFace[1] *= CenterFace[1];
 
-      for(unsigned int i=0; i<2; i++)
-	{
-	  double Distance = fabs( PointFace[i] );
-	  if( Distance > MaximumDistance ){
-	    MaximumDistance = Distance;
-	  }
-	}
+      // double MaximumDistance=-1;
 
-      double zero_tol = MaximumDistance * 1e-3;
+      // for(unsigned int i=0; i<2; i++)
+      // 	{
+      // 	  double Distance = fabs( PointFace[i] );
+      // 	  if( Distance > MaximumDistance ){
+      // 	    MaximumDistance = Distance;
+      // 	  }
+      // 	}
+
+      // double zero_tol = MaximumDistance * 1e-3;
       
 
-      //the sign is evaluated (+) accepted and  (-) rejected
-      if( fabs(PointFace[0]) > zero_tol && fabs(PointFace[1]) > zero_tol ){
-      	Face = PointFace[0] * PointFace[1];
-      }
-      else if( fabs(PointFace[0]) > zero_tol && fabs(PointFace[1]) < zero_tol ){
-      	Face = PointFace[0];
-      }
-      else if( fabs(PointFace[0]) < zero_tol && fabs(PointFace[1]) > zero_tol ){
-      	Face = PointFace[1];
-      }
-      else{
-      	std::cout<<" Critical point reached and accepted on Rake Face: "<<PointFace<<std::endl;
-      	Face = +1;
-      }
+      // //the sign is evaluated (+) accepted and  (-) rejected
+      // if( fabs(PointFace[0]) > zero_tol && fabs(PointFace[1]) > zero_tol ){
+      // 	Face = PointFace[0] * PointFace[1];
+      // }
+      // else if( fabs(PointFace[0]) > zero_tol && fabs(PointFace[1]) < zero_tol ){
+      // 	Face = PointFace[0];
+      // }
+      // else if( fabs(PointFace[0]) < zero_tol && fabs(PointFace[1]) > zero_tol ){
+      // 	Face = PointFace[1];
+      // }
+      // else{
+      // 	std::cout<<" Critical point reached and accepted on Rake Face: "<<PointFace<<std::endl;
+      // 	Face = +1;
+      // }
 
       //Face (+) rPoint is "in" :: (-) rPoint is "out" the rake part of the nose
       return Face;
@@ -619,42 +646,47 @@ private:
       ClearancePoint[1] = rWallNose.Center[1] + rWallNose.Radius * cos(rWallNose.ClearanceAngle);
       ClearancePoint[2] = 0; 
 
-      //std::cout<<" ClearancePoint "<<ClearancePoint<<std::endl;
+      // bool node_in =false;
+      // if( rWallNose.Convexity == 1 && (rPoint[0]>=95 && rPoint[1]>=6.9) )
+      //  	node_in = true;
+
+      // if( node_in ) 
+      // 	std::cout<<" ClearancePoint "<<ClearancePoint<<" Radius "<<rWallNose.Radius<<" Angle "<<rWallNose.ClearanceAngle<<" Center "<<rWallNose.Center<<std::endl;
 
       PointFaceEvaluation(rPoint, ClearancePoint, rWallNose.TangentClearanceAngle, PointFace);
       PointFaceEvaluation(rWallNose.Center, ClearancePoint, rWallNose.TangentClearanceAngle, CenterFace);
 
- 
-      PointFace[0] *= CenterFace[0];
-      PointFace[1] *= CenterFace[1];
+      Face = inner_prod(PointFace,CenterFace);
 
+      // PointFace[0] *= CenterFace[0];
+      // PointFace[1] *= CenterFace[1];
 
-      double MaximumDistance=-9.999999999999999e300;
+      // double MaximumDistance=-1;
 
-      for(unsigned int i=0; i<2; i++)
-	{
-	  double Distance = fabs( PointFace[i] );
-	  if( Distance > MaximumDistance ){
-	    MaximumDistance = Distance;
-	  }
-	}
+      // for(unsigned int i=0; i<2; i++)
+      // 	{
+      // 	  double Distance = fabs( PointFace[i] );
+      // 	  if( Distance > MaximumDistance ){
+      // 	    MaximumDistance = Distance;
+      // 	  }
+      // 	}
 
-      double zero_tol = MaximumDistance * 1e-3;
+      // double zero_tol = MaximumDistance * 1e-3;
       
-      //the sign is evaluated (+) accepted and  (-) rejected
-      if( fabs(PointFace[0]) > zero_tol && fabs(PointFace[1]) > zero_tol ){
-      	Face = PointFace[0] * PointFace[1];
-      }
-      else if( fabs(PointFace[0]) > zero_tol && fabs(PointFace[1]) < zero_tol ){
-      	Face = PointFace[0];
-      }
-      else if( fabs(PointFace[0]) < zero_tol && fabs(PointFace[1]) > zero_tol ){
-      	Face = PointFace[1];
-      }
-      else{
-      	std::cout<<" Critical point reached and accepted on Clearance Face :"<<PointFace<<std::endl;
-      	Face = +1;
-      }
+      // //the sign is evaluated (+) accepted and  (-) rejected
+      // if( fabs(PointFace[0]) > zero_tol && fabs(PointFace[1]) > zero_tol ){
+      // 	Face = PointFace[0] * PointFace[1];
+      // }
+      // else if( fabs(PointFace[0]) > zero_tol && fabs(PointFace[1]) < zero_tol ){
+      // 	Face = PointFace[0];
+      // }
+      // else if( fabs(PointFace[0]) < zero_tol && fabs(PointFace[1]) > zero_tol ){
+      // 	Face = PointFace[1];
+      // }
+      // else{
+      // 	std::cout<<" Critical point reached and accepted on Clearance Face :"<<PointFace<<std::endl;
+      // 	Face = +1;
+      // }
 	  
 
       //Face (+) rPoint is "in" :: (-) rPoint is "out" the clearance part of the nose
