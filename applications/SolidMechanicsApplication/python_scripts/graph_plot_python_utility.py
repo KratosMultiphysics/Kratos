@@ -185,7 +185,7 @@ class GraphPlotUtility:
         xlim(x_limits.min, x_limits.max)
         ylim(y_min, y_max)
 
-        figure_name = os.path.join(self.problem_path, self.plot_name + "_" + str(write_id))
+        figure_name = os.path.join(self.problem_path, self.plot_name + "_" + str(write_id))+ "graph"
 
         savefig(figure_name)
 

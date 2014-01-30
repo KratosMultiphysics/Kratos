@@ -66,7 +66,7 @@ class RestartUtility:
                     
                 end_parts  = file_parts[num_parts-1].split(".") # you get ["145","post","bin"]
                 print_id   = end_parts[0] # you get "145"
-                
+
                 if( int(print_id)>=restart_step ):
                     filelist.append(f)
 
@@ -92,7 +92,7 @@ class RestartUtility:
         self.CleanPreviousFileType(file_ending_type)
 
         # remove previous graph files:
-        file_ending_type = ".png"
+        file_ending_type = ".graph.png"
         self.CleanPreviousFileType(file_ending_type)
 
         # remove previous restart files:
@@ -116,12 +116,12 @@ class RestartUtility:
 
         # remove previous graphs after restart:
 
-        file_ending_type = ".png"
-        self.CleanPosteriorFileType(restart_step, file_ending_type)
+        file_ending_type = "graph.png"
+        self.CleanPosteriorFileType(restart_step+1, file_ending_type)
 
         # remove previous restart files:
         file_ending_type = ".rest"
-        self.CleanPosteriorFileType(restart_step, file_ending_type)
+        self.CleanPosteriorFileType(restart_step+1, file_ending_type)
 
     #
     def Save(self, current_time, current_step, current_id):
