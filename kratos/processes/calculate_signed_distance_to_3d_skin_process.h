@@ -155,7 +155,7 @@ public:
     ///@{
 
     static data_type* AllocateData() {
-        return new data_type(27, NULL);
+        return new data_type(27, (CellNodeData*)NULL);
     }
 
     static void CopyData(data_type* source, data_type* destination) {
