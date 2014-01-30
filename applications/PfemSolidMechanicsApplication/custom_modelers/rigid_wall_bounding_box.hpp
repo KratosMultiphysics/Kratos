@@ -89,7 +89,8 @@ public:
     }
 
     // General Wall constructor
-    RigidWallBoundingBox( Vector Convexities,
+    RigidWallBoundingBox( int Label,
+			  Vector Convexities,
 			  Vector Radius,
 			  Vector RakeAngles,
 			  Vector ClearanceAngles,
@@ -168,6 +169,7 @@ public:
 
       std::cout<<" [--------] "<<std::endl;
       
+      this->mMovement.Label                   = Label;
       this->mMovement.Velocity                = Velocity;
       this->mMovement.AngularVelocity         = AngularVelocity;
       this->mMovement.OriginalRotationCenter  = RotationCenter;

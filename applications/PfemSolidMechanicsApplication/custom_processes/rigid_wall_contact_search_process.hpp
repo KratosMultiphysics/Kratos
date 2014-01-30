@@ -125,17 +125,20 @@ public:
 
       for ( ModelPart::NodesContainerType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
 	{
-	  if((*nd)->GetSolutionStepValue(RIGID_WALL)==true){
+	  if( (*nd)->SolutionStepsDataHas(RIGID_WALL) ){
+	    
+	    if( (*nd)->GetSolutionStepValue(RIGID_WALL) == mpRigidWall->GetMovementLabel() ){
 
-	    //(*nd)->Set(STRUCTURE);
-	    (*nd)->Set(RIGID);
+	      //(*nd)->Set(STRUCTURE);
+	      (*nd)->Set(RIGID);
 
-	    //set new coordinates (MOVE MESH)
-	    (*nd)->X() = (*nd)->X0() + mpRigidWall->Velocity()[0] * Time;
-            (*nd)->Y() = (*nd)->Y0() + mpRigidWall->Velocity()[1] * Time;
-            (*nd)->Z() = (*nd)->Z0() + mpRigidWall->Velocity()[2] * Time;
+	      //set new coordinates (MOVE MESH)
+	      (*nd)->X() = (*nd)->X0() + mpRigidWall->Velocity()[0] * Time;
+	      (*nd)->Y() = (*nd)->Y0() + mpRigidWall->Velocity()[1] * Time;
+	      (*nd)->Z() = (*nd)->Z0() + mpRigidWall->Velocity()[2] * Time;
 
-	    //std::cout<<" node "<<(*nd)->Id()<<" Position ("<<(*nd)->X()<<", "<<(*nd)->Y()<<" "<<(*nd)->Z()<<") "<<std::endl;
+	      //std::cout<<" node "<<(*nd)->Id()<<" Position ("<<(*nd)->X()<<", "<<(*nd)->Y()<<" "<<(*nd)->Z()<<") "<<std::endl;
+	    }
 	  }
 
 	  //set point rigid wall condition : usually in non rigid_wall points
@@ -190,17 +193,23 @@ public:
       //double DeltaTime = CurrentProcessInfo[DELTA_TIME];
 
       ModelPart::NodesContainerType& NodesArray = mrModelPart.Nodes();
-
+      
+      int counter = 0;
+      
       for ( ModelPart::NodesContainerType::ptr_iterator nd = NodesArray.ptr_begin(); nd != NodesArray.ptr_end(); ++nd)
 	{
-	  if((*nd)->Is(RIGID)){
-	    array_1d<double, 3 > &CurrentDisplacement  = (*nd)->FastGetSolutionStepValue(DISPLACEMENT);	    
+	  if((*nd)->Is(RIGID) && (*nd)->FastGetSolutionStepValue(RIGID_WALL) == mpRigidWall->GetMovementLabel() ){
+	    array_1d<double, 3 >& CurrentDisplacement  = (*nd)->FastGetSolutionStepValue(DISPLACEMENT);	    
 	    CurrentDisplacement[0] = mpRigidWall->Velocity()[0] * Time;
 	    CurrentDisplacement[1] = mpRigidWall->Velocity()[1] * Time;
 	    CurrentDisplacement[2] = mpRigidWall->Velocity()[2] * Time;
+
+	    counter++;
 	  }
 	}
 
+
+      std::cout<<" EXECUTE FINALIZE CONTACT "<< mpRigidWall->Velocity()<<" number : "<<counter<<std::endl;
 
       //Clean Rigid Contact Conditions
       ModelPart::ConditionsContainerType NonRigidContactConditions;

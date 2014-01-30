@@ -92,6 +92,7 @@ namespace Kratos
               mTangentialVariables.PreviousTangentForceModulus += ContactForce[i] * ContactVariables.Surface.Tangent[i];
            }
 
+
         }
         else {
            mTangentialVariables.PreviousTangentForceModulus = 0.0;
@@ -112,6 +113,21 @@ namespace Kratos
 
   }
 
+
+  //************************************************************************************
+  //************************************************************************************
+  void PointRigidContactPenalty2DCondition::InitializeNonLinearIteration(ProcessInfo& CurrentProcessInfo)
+  {
+    CurrentProcessInfo[NUMBER_OF_ACTIVE_CONTACTS] = 0;
+    CurrentProcessInfo[NUMBER_OF_STICK_CONTACTS]  = 0;
+    CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
+  
+    //added to control force evolution per step:
+    array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
+    mTangentialVariables.PreviousTangentForceModulus = norm_2(ContactForce);
+
+    ClearNodalForces();
+  }
     
   //************************************************************************************
   //************************************************************************************
@@ -403,6 +419,20 @@ namespace Kratos
   {
 
         rNormalForceModulus = (rVariables.Penalty.Normal * rVariables.Gap.Normal); 
+
+
+	//relaxation to solve convergence problems in some steps
+	if( mTangentialVariables.PreviousTangentForceModulus * 2.0 < fabs(rNormalForceModulus) ){
+	  if( mTangentialVariables.PreviousTangentForceModulus > fabs(rNormalForceModulus) * 1e-4 ){
+	    
+	    std::cout<<"CONTACT FORCE MODULUS Node ["<<GetGeometry()[0].Id()<<"]: ("<<mTangentialVariables.PreviousTangentForceModulus<<" < "<<fabs(rNormalForceModulus)<<") "<<std::endl;
+
+	    rVariables.Penalty.Normal *=0.5;
+	    rNormalForceModulus       *=0.5;
+
+	  }
+
+	}
 
        return rNormalForceModulus;
 
