@@ -3061,6 +3061,10 @@ namespace Kratos
 	    Geometry< Node<3> > rConditionGeom;
 	    array_1d<double,3> tip_center;
 
+	    //*********************************************************************************
+	    // DEFOMABLE CONTACT CONDITIONS
+	    //*********************************************************************************
+
 	    if( ic->Is(CONTACT) )   //Refine radius on the workpiece for the ContactDomain zone
 	      {
 
@@ -3279,7 +3283,14 @@ namespace Kratos
 	std::cout<<"   Contact Search End ["<<list_of_conditions.size()<<" : "<<list_of_nodes.size()<<"]"<<std::endl;
 	std::cout<<"   Boundary Search Start "<<std::endl;
 	    
+
+	//*********************************************************************************
+	// RIGID CONTACT CONDITIONS AND OTHER BOUNDARY
+	//*********************************************************************************
+
+
 	double non_contact_boundary_factor = 2.0;
+	double contact_boundary_factor     = 1.5;
 
 	//LOOP TO CONSIDER ALL SUBDOMAIN CONDITIONS
 	double cond_counter=0;
@@ -3322,6 +3333,10 @@ namespace Kratos
 
 	      if( ic->IsNot(TO_ERASE) ){
 
+		//*********************************************************************************
+		// RIGID CONTACT CONDITIONS
+		//*********************************************************************************
+
 		// TOOL TIP INSERT;
 
 		//std::cout<<" Condition "<<ic->Id()<<"("<<ic->GetGeometry()[0].Id()<<", "<<ic->GetGeometry()[1].Id()<<") NOT RELEASE  (number: "<<cond_counter<<") "<<std::endl;
@@ -3358,7 +3373,7 @@ namespace Kratos
 		      on_tip = true;
 		    }
 		    else if (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)){
-		      if( side_length > rVariables.Refine.critical_side*tip_correction ){
+		      if( side_length > rVariables.Refine.critical_side * tip_correction ){
 			on_tip = true;
 		      }
 		    }		  
@@ -3456,13 +3471,18 @@ namespace Kratos
 		}
 
 
+		//*********************************************************************************
+		// FREE BOUNDARY CONDITIONS ENERGY INSERTION
+		//*********************************************************************************
+
+
 		// ENERGY INSERT
 
 		unsigned int vsize=ic->GetValue(MASTER_ELEMENTS).size();
 
 		//std::cout<<" MASTER_ELEMENTS_SIZE: "<<vsize<<std::endl;
 
-		if (rVariables.RefiningOptions.Is(Modeler::CRITERION_ENERGY) && vsize>0){
+		if (!radius_insert && rVariables.RefiningOptions.Is(Modeler::CRITERION_ENERGY) && vsize>0){
 		   
 		  Element::ElementType& MasterElement = ic->GetValue(MASTER_ELEMENTS)[vsize-1];
 
@@ -3504,6 +3524,11 @@ namespace Kratos
 		}
 
 
+		//*********************************************************************************
+		// FREE BOUNDARY CONDITIONS SIZE INSERTION
+		//*********************************************************************************
+
+
 		// BOUNDARY SIZE INSERT
 
 		if( (!radius_insert || !energy_insert) && vsize>0 ){
@@ -3531,7 +3556,11 @@ namespace Kratos
 		    if (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT))
 		      on_tip = true;
 		    
-		    critical_side_size /= non_contact_boundary_factor;
+		    if( on_tip == false )
+		      critical_side_size *= (2.0 * contact_boundary_factor);
+		    else
+		      critical_side_size /= contact_boundary_factor;
+		    
 		  }
 		  else if( contact_active ){
 		    
@@ -3539,9 +3568,9 @@ namespace Kratos
 		      on_tip = true;
 		    
 		    if( on_tip == false )
-		      critical_side_size *= (2.0 * non_contact_boundary_factor);
+		      critical_side_size *= (2.0 * contact_boundary_factor);
 		    else
-		      critical_side_size /= non_contact_boundary_factor;
+		      critical_side_size /= contact_boundary_factor;
 		  }
 		  else{
 		    
@@ -3550,7 +3579,7 @@ namespace Kratos
 
 		  
 		  //if(plastic_power > rVariables.Refine.critical_dissipation && condition_radius > rVariables.Refine.critical_radius)
-		  if( !accepted && side_length > critical_side_size )
+		  if( !accepted && !contact_semi_active && !contact_active && side_length > critical_side_size )
 		    {
 		      mesh_size_insert = true;
 
@@ -3563,11 +3592,11 @@ namespace Kratos
 		      std::cout<<"   insert on mesh size semi_contact "<<std::endl;		      
 		      
 		    }
-		  else if( on_tip && side_length > critical_side_size )
+		  else if( contact_active && side_length > critical_side_size )
 		    {
 		      mesh_size_insert = true;
 
-		      std::cout<<"   insert on mesh size semi_contact on tip "<<std::endl;		      
+		      std::cout<<"   insert on mesh size on contact "<<std::endl;		      
 		      
 		    }
 		  
@@ -3575,6 +3604,9 @@ namespace Kratos
 		}
 
 
+		//*********************************************************************************
+		//                               BOUNDARY REBUILD                                //
+		//*********************************************************************************
 
 
 		if( radius_insert || energy_insert || mesh_size_insert ) //Boundary must be rebuild 

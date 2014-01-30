@@ -198,9 +198,16 @@ namespace Kratos
     double PenaltyParameter = GetProperties()[PENALTY_PARAMETER];
     double ElasticModulus   = GetProperties()[YOUNG_MODULUS];
 
-    rVariables.Penalty.Normal = distance * 2000.0 * PenaltyParameter * ElasticModulus;
+    rVariables.Penalty.Normal  = distance * PenaltyParameter * ElasticModulus;
     rVariables.Penalty.Tangent = rVariables.Penalty.Normal;  
     
+    if( GetGeometry()[0].Is(TO_SPLIT) ){ // to relax the tool tip
+
+      rVariables.Penalty.Normal  *= 0.5;
+      rVariables.Penalty.Tangent *= 0.5;
+
+    }
+
     //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
     
     KRATOS_CATCH( "" )

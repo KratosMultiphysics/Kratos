@@ -383,8 +383,6 @@ for step in range(istep, nstep):
             if(execute_write):
                 clock_time = StartTimeMeasuring();
                 current_id = output_print.operation_id()
-                if(save_restart):
-                    current_id = current_step
                 # print gid output file
                 gid_print.write_results(model_part, general_variables.nodal_results, general_variables.gauss_points_results, current_time, current_step, current_id)
                 # print on list files
@@ -415,14 +413,16 @@ for step in range(istep, nstep):
         if(plot_active):
             execute_plot = graph_write.perform_time_operation(current_time)
             if(execute_plot):
-                graph_plot.Plot(graph_write.operation_id())
+                current_id = output_print.operation_id()
+                graph_plot.Plot(current_id)
 
         # print restart file
         if(save_restart):
             execute_save = restart_print.perform_time_operation(current_time)
             if(execute_save):
                 clock_time = StartTimeMeasuring();
-                problem_restart.Save(current_time, current_step, restart_print.operation_id());
+                current_id = output_print.operation_id()
+                problem_restart.Save(current_time, current_step, current_id);
                 StopTimeMeasuring(clock_time, "Restart");
 
         conditions.RestartImposedDisp()
