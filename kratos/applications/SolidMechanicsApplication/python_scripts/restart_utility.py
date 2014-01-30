@@ -57,18 +57,17 @@ class RestartUtility:
     #
     def CleanPosteriorFileType(self, restart_step, file_ending_type):
 
-        total_files = 0
         filelist = []
         for f in os.listdir(self.problem_path):
             if(f.endswith(file_ending_type)):
-                total_files = total_files + 1
-
-        total_files = total_files + 100  # arbitrary number to ensure to remove all files
-
-        for rfile in range(0, total_files):
-            for f in os.listdir(self.problem_path):
-                step_time = restart_step + rfile
-                if(f.endswith("_" + str(step_time) + file_ending_type)):
+                #if f.name = problem_tested_145.post.bin
+                file_parts = f.split('_')  # you get ["problem","tested","145.post.bin"]
+                num_parts  = len(file_parts) 
+                    
+                end_parts  = file_parts[num_parts-1].split(".") # you get ["145","post","bin"]
+                print_id   = end_parts[0] # you get "145"
+                
+                if( int(print_id)>=restart_step ):
                     filelist.append(f)
 
         for f in filelist:
@@ -105,32 +104,29 @@ class RestartUtility:
 
         print("Restart: -remove restart step posterior problem files-")
 
-        # set load restart step
-        self.restart_step = restart_step + 1
-
         # remove previous results after restart:
         file_ending_type = ".post.bin"
-        self.CleanPosteriorFileType(self.restart_step, file_ending_type)
+        self.CleanPosteriorFileType(restart_step, file_ending_type)
 
         file_ending_type = ".post.res"
-        self.CleanPosteriorFileType(self.restart_step, file_ending_type)
+        self.CleanPosteriorFileType(restart_step, file_ending_type)
 
         file_ending_type = ".post.msh"
-        self.CleanPosteriorFileType(self.restart_step, file_ending_type)
+        self.CleanPosteriorFileType(restart_step, file_ending_type)
 
         # remove previous graphs after restart:
 
         file_ending_type = ".png"
-        self.CleanPosteriorFileType(self.restart_step, file_ending_type)
+        self.CleanPosteriorFileType(restart_step, file_ending_type)
 
         # remove previous restart files:
         file_ending_type = ".rest"
-        self.CleanPosteriorFileType(self.restart_step, file_ending_type)
+        self.CleanPosteriorFileType(restart_step, file_ending_type)
 
     #
     def Save(self, current_time, current_step, current_id):
 
-        label = current_step + 1
+        label = current_id
 
         restart_path = os.path.join(self.problem_path, self.problem_name + "_" + str(label))
 

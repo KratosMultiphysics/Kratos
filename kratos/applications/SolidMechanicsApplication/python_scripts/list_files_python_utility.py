@@ -72,39 +72,54 @@ class ListFilesUtility:
 
         # Rebuld List Files from existing problem build
         if(self.print_lists):
-            total_files = 0
+
+            file_id   = []
+
             for f in os.listdir(self.problem_path):
+
                 if(f.endswith(self.output_mode)):
-                    total_files = total_files + 1
+                    
+                    #if f.name = problem_tested_145.post.bin
+                    file_parts = f.split('_')  # you get ["problem","tested","145.post.bin"]
+                    num_parts  = len(file_parts) 
+                    
+                    end_parts  = file_parts[num_parts-1].split(".") # you get ["145","post","bin"]
+                    print_id   = end_parts[0] # you get "145"
 
-            for rfile in range(0, total_files):
+                    file_id.append(int(print_id))
 
-                for f in os.listdir(self.problem_path):
+  
+            file_id.sort()
 
-                    if(f.endswith("_" + str(rfile) + self.output_mode)):
+            num_list_files = len(file_id)
 
-                        num_list_files = len(self.file_list)
-                        for lfile in range(0, num_list_files):
-                            if(self.file_list[lfile] == self.listprint[lfile]):
+            for lfile in range(0, num_list_files):
+               
+                print_id   = file_id[lfile]
+                   
+                num_list_files = len(self.file_list)
 
-                                problempath = os.path.join(self.problem_path, self.problem_name + "_" + str(self.file_list[lfile]) + ".post.lst")
+                for lfile in range(0, num_list_files):
+                    if(self.file_list[lfile] == self.listprint[lfile]):
 
-                                if(self.FileExists(problempath) == False):
-                                    self.header_in_list[lfile]
+                        problempath = os.path.join(self.problem_path, self.problem_name + "_" + str(self.file_list[lfile]) + ".post.lst")
 
-                                listfile = open(problempath, "a")
+                        if(self.FileExists(problempath) == False):
+                            self.header_in_list[lfile]
+                                
+                        listfile = open(problempath, "a")
 
-                                if(self.header_in_list[lfile]):
-                                    problemname = "Multiple\n"
-                                    listfile.write(problemname)
-                                    self.header_in_list[lfile] = False
+                        if(self.header_in_list[lfile]):
+                            problemname = "Multiple\n"
+                            listfile.write(problemname)
+                            self.header_in_list[lfile] = False
 
-                                problemname = self.problem_name + "_" + str(rfile) + self.output_mode + "\n"
-                                listfile.write(problemname)
-                                listfile.close()
-                                self.listprint[lfile] = 1
-                            else:
-                                self.listprint[lfile] = self.listprint[lfile] + 1
+                        problemname = self.problem_name + "_" + str(print_id) + self.output_mode + "\n"
+                        listfile.write(problemname)
+                        listfile.close()
+                        self.listprint[lfile] = 1
+                    else:
+                        self.listprint[lfile] = self.listprint[lfile] + 1
 
     #
     def RemoveListFiles(self):
