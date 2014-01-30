@@ -76,6 +76,10 @@ model_part_io_solid = ModelPartIO(DEM_parameters.problem_name)
 MPICommSetup = SetMPICommunicatorProcess(balls_model_part)
 MPICommSetup.Execute()
 
+def MPIprint(message):
+    if (mpi.rank == 0):
+        print(message)    
+
 model_part_io_solid.ReadModelPart(balls_model_part)
 
 rigidFace_mp_filename = DEM_parameters.problem_name + "DEM_FEM_boundary"
@@ -135,8 +139,7 @@ count_100 = 1
 
 os.chdir(main_path)
 
-if(mpi.rank == 0):
-  print ("Initializing Problem....")
+MPIprint ("Initializing Problem....")
 
 
 # MPI initialization
@@ -215,11 +218,10 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
 
       height = ini_height    
     
-      print ('Initial Height of the Model: ' + str(ini_height)+'\n')
+      MPIprint ('Initial Height of the Model: ' + str(ini_height)+'\n')
       
       if(DEM_parameters.PredefinedSkinOption == "ON" ):
-        if (mpi.rank == 0):
-          print ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
+        MPIprint ("ERROR: in Concrete Test Option the Skin is automatically predefined. Switch the Predefined Skin Option OFF")
 
       (xtop_area,xbot_area,xlat_area,xtopcorner_area,xbotcorner_area) = proc.CylinderSkinDetermination(balls_model_part,solver,DEM_parameters) # defines the skin and areas
        
@@ -236,9 +238,8 @@ if ( (DEM_parameters.ContinuumOption == "ON") and (DEM_parameters.ConcreteTestOp
 
 #physics_calculator = SphericElementGlobalPhysicsCalculator(balls_model_part)
 #properties_list = []
-if(mpi.rank == 0):
 
-    print ("Initialization Complete" + "\n")
+MPIprint ("Initialization Complete" + "\n")
 
 step                   = 0
 time                   = 0.0
@@ -287,7 +288,7 @@ if(DEM_parameters.ConcreteTestOption == "OEDOMETRIC"):
 if (DEM_parameters.ModelDataInfo == "ON"):
     os.chdir(data_and_results)
     (coordination_number) = proc.ModelData(balls_model_part, contact_model_part, solver)       # calculates the mean number of neighbours the mean radius, etc..
-    print ("Coordination Number: " + str(coordination_number) + "\n")
+    MPIprint ("Coordination Number: " + str(coordination_number) + "\n")
     os.chdir(main_path)
 
   
@@ -304,14 +305,12 @@ if(DEM_parameters.Dempack and (DEM_parameters.ConcreteTestOption != "OFF")):
   
   loading_velocity = DEM_parameters.LoadingVelocityTop
   
-  if(mpi.rank == 0):
-    print ('************DEM VIRTUAL LAB******************'+'\n')
-    print ('Loading velocity: ' + str(loading_velocity) + '\n')
-    print ('Expected maximum deformation: ' + str(-loading_velocity*DEM_parameters.FinalTime/height*100) +'%'+'\n'+'\n'  )
- 
-    print("This chart is only valid for one material case" + "\n")
+  MPIprint ('************DEM VIRTUAL LAB******************'+'\n')
+  MPIprint ('Loading velocity: ' + str(loading_velocity) + '\n')
+  MPIprint ('Expected maximum deformation: ' + str(-loading_velocity*DEM_parameters.FinalTime/height*100) +'%'+'\n'+'\n'  )
 
-    chart.write(("***********PARAMETERS*****************") + "\n")
+  if(mpi.rank == 0): 
+    chart.write(("***********PARAMETERS*****************")+'\n')
     chart.write("                                    " + '\n')
     chart.write("    DENSI  = " + (str(w_densi)) + " Kg/m3     " + '\n')
     chart.write("    STAFRC = " + (str(DEM_parameters.InternalFriction)) + "           " + '\n')
@@ -369,11 +368,9 @@ dt = balls_model_part.ProcessInfo.GetValue(DELTA_TIME) # Possible modifications 
 
 total_steps_expected = int(DEM_parameters.FinalTime / dt)
 
-if(mpi.rank == 0):
+MPIprint ("Main loop starts at instant: " + str(initial_pr_time) + "\n")
 
-    print ("Main loop starts at instant: " + str(initial_pr_time) + "\n")
-
-    print ("Total number of TIME STEPs expected in the calculation are: " + str(total_steps_expected) + " if time step is kept " + "\n")
+MPIprint ("Total number of TIME STEPs expected in the calculation are: " + str(total_steps_expected) + " if time step is kept " + "\n")
 
 left_nodes = list()
 right_nodes = list()
@@ -407,31 +404,31 @@ while (time < DEM_parameters.FinalTime):
     
     incremental_time = (timer.time() - initial_real_time) - prev_time
 
-    if ((incremental_time > DEM_parameters.ControlTime) and (mpi.rank == 0)):
+    if (incremental_time > DEM_parameters.ControlTime):
         percentage = 100 * (float(step) / total_steps_expected)
 
-        print('Real time calculation: ' + str(timer.time() - initial_real_time))
-        print('Simulation time: ' + str(time))
-        print('Percentage Completed: ' + str(percentage) + ' %')
-        print("TIME STEP = " + str(step) + '\n')
+        MPIprint('Real time calculation: ' + str(timer.time() - initial_real_time))
+        MPIprint('Simulation time: ' + str(time))
+        MPIprint('Percentage Completed: ' + str(percentage) + ' %')
+        MPIprint("TIME STEP = " + str(step) + '\n')
 
         sys.stdout.flush()
 
         prev_time = (timer.time() - initial_real_time)
 
-    if (((timer.time() - initial_real_time > 60) and first_print == True and step != 0) and (mpi.rank == 0)):
+    if ((timer.time() - initial_real_time > 60) and first_print == True and step != 0):
         first_print = False
         estimated_sim_duration = 60.0 * (total_steps_expected / step) # seconds
 
-        print('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n')
-        print('in minutes:'        + str(estimated_sim_duration / 60.0) + 'min.' + '\n')
-        print('in hours:'        + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
-        print('in days:'        + str(estimated_sim_duration / 86400.0) + 'days' + '\n') 
+        MPIprint('The calculation total estimated time is ' + str(estimated_sim_duration) + 'seconds' + '\n')
+        MPIprint('in minutes:'        + str(estimated_sim_duration / 60.0) + 'min.' + '\n')
+        MPIprint('in hours:'        + str(estimated_sim_duration / 3600.0) + 'hrs.' + '\n')
+        MPIprint('in days:'        + str(estimated_sim_duration / 86400.0) + 'days' + '\n') 
         sys.stdout.flush()
 
-        if (estimated_sim_duration / 86400 > 2.0 and (mpi.rank == 0)):
+        if (estimated_sim_duration / 86400 > 2.0):
 
-          print('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
+          MPIprint('WARNING!!!:       VERY LASTING CALCULATION' + '\n')
 
     #########################CONCRETE_TEST_STUFF#########################################
 
@@ -688,13 +685,11 @@ os.chdir(main_path)
 elapsed_pr_time     = timer.clock() - initial_pr_time
 elapsed_real_time   = timer.time() - initial_real_time
 
-if(mpi.rank == 0):
+MPIprint ('Calculation ends at instant: '                 + str(timer.time()))
+MPIprint ('Calculation ends at processing time instant: ' + str(timer.clock()))
+MPIprint ('Elapsed processing time: '                     + str(elapsed_pr_time))
+MPIprint ('Elapsed real time: '                           + str(elapsed_real_time))
 
-  print ('Calculation ends at instant: '                 + str(timer.time()))
-  print ('Calculation ends at processing time instant: ' + str(timer.clock()))
-  print ('Elapsed processing time: '                     + str(elapsed_pr_time))
-  print ('Elapsed real time: '                           + str(elapsed_real_time))
+MPIprint (my_timer)
 
-  print (my_timer)
-
-  print ("ANALYSIS COMPLETED" )
+MPIprint ("ANALYSIS COMPLETED" )
