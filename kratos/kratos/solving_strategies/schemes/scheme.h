@@ -319,6 +319,20 @@ public:
         return mConditionsAreInitialized;
     }
 
+    void SetSchemeIsInitialized(bool SchemeIsInitializedFlag = true)
+    {
+        mSchemeIsInitialized = SchemeIsInitializedFlag;
+    }
+
+    void SetElementsAreInitialized(bool ElementsAreInitializedFlag = true)
+    {
+        mElementsAreInitialized = ElementsAreInitializedFlag;
+    }
+
+    void SetConditionsAreInitialized(bool ConditionsAreInitializedFlag = true)
+    {
+        mConditionsAreInitialized = ConditionsAreInitializedFlag;
+    }
 
     /**
     this is the place to initialize the elements.
