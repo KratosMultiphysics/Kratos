@@ -499,7 +499,6 @@ namespace Kratos
           OpenMPUtils::CreatePartition(this->GetNumberOfThreads(), pElements.size(), this->GetElementPartition());
 
           #pragma omp parallel for
-
           for (int k = 0; k < this->GetNumberOfThreads(); k++){
               typename ElementsArrayType::iterator it_begin = pElements.ptr_begin() + this->GetElementPartition()[k];
               typename ElementsArrayType::iterator it_end   = pElements.ptr_begin() + this->GetElementPartition()[k + 1];
@@ -708,9 +707,9 @@ namespace Kratos
         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part, this->GetRadius(), this->GetResults(), this->GetResultsDistances());
 //         mpSpSearch->SearchElementsInRadiusExclusive(r_model_part,this->GetRadius(),this->GetResults());
         
-        for (SpatialSearch::ElementsContainerType::iterator i = r_model_part.GetCommunicator().GhostMesh().Elements().begin(); i != r_model_part.GetCommunicator().GhostMesh().Elements().end(); i++){
-            r_model_part.Elements().push_back(*i);
-        }
+//         for (SpatialSearch::ElementsContainerType::iterator i = r_model_part.GetCommunicator().GhostMesh().Elements().begin(); i != r_model_part.GetCommunicator().GhostMesh().Elements().end(); i++){
+//             r_model_part.Elements().push_back(*i);
+//         }
         
 //         SynchronizeSolidMesh(r_model_part);
         
