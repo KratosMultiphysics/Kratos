@@ -504,9 +504,40 @@ void LargeDisplacementElement::SetGeneralVariables(GeneralVariables& rVariables,
 {
     rVariables.detF  = MathUtils<double>::Det(rVariables.F);
 
-    if(rVariables.detF<0)
-        KRATOS_ERROR( std::invalid_argument,"DeterminantF < 0", "" )
+    if(rVariables.detF<0){
+        
+	std::cout<<" Element: "<<this->Id()<<std::endl;
+	unsigned int number_of_nodes = GetGeometry().PointsNumber();
+	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	  {
+	    array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
+	    array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+	    array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+	    array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
+	    std::cout<<" Previous  Position  node["<<GetGeometry()[i].Id()<<"]: "<<PreviousPosition<<std::endl;
+	  }
+	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	  {
+	    array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
+	    std::cout<<" Current  Position  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentPosition<<std::endl;
+	  }
+	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	  {
+	    array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+	    std::cout<<" Previous Displacement  node["<<GetGeometry()[i].Id()<<"]: "<<PreviousDisplacement<<std::endl;
+	  }
 
+	for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	  {
+	    array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+	    std::cout<<" Current  Displacement  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentDisplacement<<std::endl;
+	  }
+	std::cout<<" F  "<<rVariables.F<<std::endl;
+	std::cout<<" F0 "<<rVariables.F0<<std::endl;
+	
+        KRATOS_ERROR( std::invalid_argument,"DeterminantF < 0", "" )
+    }
+    
     rValues.SetDeterminantF0(rVariables.detF0);
     rValues.SetDeformationGradientF0(rVariables.F0);
     rValues.SetDeterminantF(rVariables.detF);
@@ -665,11 +696,19 @@ void LargeDisplacementElement::CalculateElementalSystem( LocalSystemComponents& 
 
 	// std::cout<<" Element: "<<this->Id()<<std::endl;
 	// unsigned int number_of_nodes = GetGeometry().PointsNumber();
-	// // for ( unsigned int i = 0; i < number_of_nodes; i++ )
-	// //   {
-	// //     GeometryType::PointsArrayType CurrentPosition  = GetGeometry().Points();
-	// //     std::cout<<" Current  Position  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentPosition<<std::endl;
-	// //   }
+	// for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	//   {
+	//     array_1d<double, 3> &CurrentPosition  = GetGeometry()[i].Coordinates();
+	//     array_1d<double, 3 > & CurrentDisplacement  = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT);
+	//     array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
+	//     array_1d<double, 3> PreviousPosition  = CurrentPosition - (CurrentDisplacement-PreviousDisplacement);
+	//     std::cout<<" Previous  Position  node["<<GetGeometry()[i].Id()<<"]: "<<PreviousPosition<<std::endl;
+	//   }
+	// for ( unsigned int i = 0; i < number_of_nodes; i++ )
+	//   {
+	//     array_1d<double, 3> & CurrentPosition  = GetGeometry()[i].Coordinates();
+	//     std::cout<<" Current  Position  node["<<GetGeometry()[i].Id()<<"]: "<<CurrentPosition<<std::endl;
+	//   }
 	// for ( unsigned int i = 0; i < number_of_nodes; i++ )
 	//   {
 	//     array_1d<double, 3 > & PreviousDisplacement = GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT,1);
