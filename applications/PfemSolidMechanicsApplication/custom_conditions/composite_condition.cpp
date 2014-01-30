@@ -89,7 +89,21 @@ CompositeCondition&  CompositeCondition::operator=(CompositeCondition const& rOt
 
 Condition::Pointer CompositeCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-    return Condition::Pointer(new CompositeCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+
+    CompositeCondition::Pointer pNewCondition  = CompositeCondition::Pointer ( new CompositeCondition( NewId, GetGeometry().Create( ThisNodes), pProperties) );
+
+    for (ConditionConstantIterator cn = this->mChildConditions.begin(); cn != this->mChildConditions.end(); ++cn)
+    {
+
+         Condition::Pointer pLocalChildCondition;
+         pLocalChildCondition = cn->Create(NewId, (ThisNodes), pProperties) ;
+         pNewCondition->AddChild( pLocalChildCondition);
+
+    }
+
+    return Condition::Pointer (pNewCondition);
+
+//    return Condition::Pointer(new CompositeCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
 
