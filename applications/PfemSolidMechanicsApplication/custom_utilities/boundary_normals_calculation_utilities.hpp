@@ -142,9 +142,6 @@ public:
 	  for(unsigned int MeshId=start; MeshId<NumberOfMeshes; MeshId++)
 	    {
 
-		typedef GeometryData::IntegrationMethod IntegrationMethod;
-
-
 		//Reset normals
 		ModelPart::NodesContainerType&    rNodes = rModelPart.Nodes(MeshId);
 		ModelPart::ElementsContainerType& rElems = rModelPart .Elements(MeshId);
