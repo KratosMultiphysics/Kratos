@@ -100,9 +100,10 @@ namespace Kratos
        mTangentialVariables.DeltaTime = rCurrentProcessInfo[DELTA_TIME];
 
        mTangentialVariables.Sign = 1;
-       mTangentialVariables.FrictionCoefficient = 0.3;
-       mTangentialVariables.DynamicFrictionCoefficient = 0.2;
-       mTangentialVariables.StaticFrictionCoefficient  = 0.3;
+       
+       mTangentialVariables.FrictionCoefficient = 0.0;//0.3;
+       mTangentialVariables.DynamicFrictionCoefficient = 0.0;//0.2;
+       mTangentialVariables.StaticFrictionCoefficient  = 0.0;//0.3;
 
 
        ClearNodalForces();
