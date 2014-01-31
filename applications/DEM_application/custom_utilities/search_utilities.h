@@ -68,10 +68,10 @@ namespace Kratos
       
       /**
        * Calcualtes the distance between the nodes in "rSearchModelPart" and their neighbous in "rBinsModelPart"
-       * @param rSearchModelPart: Modelpart containing all nodes to be searched
-       * @param rBinsModelPart: List of nodes containing all nodes suitable of being neigbours
-       * @param SearchRadius: List contaning the search radius for each node
-       * @param ResultDistances: List of distances for each neighbour of each node in "rSearchModelPart"    
+       * @param rSearchModelPart:   Modelpart containing all nodes to be searched
+       * @param rBinsModelPart:     Modelpart containing all nodes for the search structure
+       * @param SearchRadius:       List contaning the search radius for each node
+       * @param ResultDistances:    List of distances for each neighbour of each node in "rSearchModelPart"    
        */
       template<class TVariableType>
       void SearchNodeNeigboursDistances(ModelPart& rSearchModelPart, ModelPart& rBinsModelPart, const double& rSearchRadius, const TVariableType& rDistanceVar)
@@ -88,10 +88,10 @@ namespace Kratos
 
       /**
        * Calcualtes the distance between the nodes in "rSearchModelPart" and their neighbous in "rBinsNodes"
-       * @param rSearchModelPart: Modelpart containing all nodes to be searched
-       * @param rBinsNodes: List of nodes containing all nodes suitable of being neigbours
-       * @param SearchRadius: List contaning the search radius for each node
-       * @param ResultDistances: List of distances for each neighbour of each node in "rSearchModelPart"    
+       * @param rSearchModelPart:   Modelpart containing all nodes to be searched
+       * @param rBinsNodes:         List of nodes containing all nodes for the search structure
+       * @param SearchRadius:       List contaning the search radius for each node
+       * @param ResultDistances:    List of distances for each neighbour of each node in "rSearchModelPart"    
        */
       template<class TVariableType>
       void SearchNodeNeigboursDistances(ModelPart& rSearchModelPart, NodesArrayType& rBinsNodes, const double& rSearchRadius, const TVariableType& rDistanceVar)
@@ -107,10 +107,10 @@ namespace Kratos
 
       /**
        * Calcualtes the distance between the nodes in "rSearchNodes" and their neighbous in "rBinsModelPart"
-       * @param rSearchNodes: Modelpart containing all nodes to be searched
-       * @param rBinsModelPart: List of nodes containing all nodes suitable of being neigbours
-       * @param SearchRadius: List contaning the search radius for each node
-       * @param ResultDistances: List of distances for each neighbour of each node in "rSearchModelPart"    
+       * @param rSearchNodes:       List of nodes containing all nodes to be searched
+       * @param rBinsModelPart:     Modelpart containing all nodes for the search structure
+       * @param SearchRadius:       List contaning the search radius for each node
+       * @param ResultDistances:    List of distances for each neighbour of each node in "rSearchModelPart"    
        */      
       template<class TVariableType> 
       void SearchNodeNeigboursDistances(NodesArrayType& rSearchNodes, ModelPart& rBinsModelPart, const double& rSearchRadius, const TVariableType& rDistanceVar)
@@ -127,10 +127,10 @@ namespace Kratos
       /**
        * Calcualtes the distance between the nodes in "rSearchNodes" and their neighbous in "rBinsNodes"
        * This function contains the implementation.
-       * @param rSearchNodes: Modelpart containing all nodes to be searched
-       * @param rBinsNodes: List of nodes containing all nodes suitable of being neigbours
-       * @param SearchRadius: List contaning the search radius for each node
-       * @param ResultDistances: List of distances for each neighbour of each node in "rSearchModelPart"    
+       * @param rSearchNodes:       List of nodes containing all nodes to be searched
+       * @param rBinsNodes:         List of nodes containing all nodes for the search structure
+       * @param SearchRadius:       List contaning the search radius for each node
+       * @param ResultDistances:    List of distances for each neighbour of each node in "rSearchModelPart"    
        */      
       template<class TVariableType>
       void SearchNodeNeigboursDistances(NodesArrayType& rSearchNodes, NodesArrayType& rBinsNodes, const double& rSearchRadius, const TVariableType& rDistanceVar)
