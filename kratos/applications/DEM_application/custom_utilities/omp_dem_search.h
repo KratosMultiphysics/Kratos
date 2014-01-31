@@ -297,7 +297,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               ResultElementsContainerType   localResults(MaxNumberOfElements);
               std::size_t                   NumberOfResults = 0;
               
-              #pragma omp parallel for
+              #pragma omp for
               for(int i = 0; i < static_cast<int>(elements_array.size()); i++)
               {
                   ResultElementsContainerType::iterator ResultsPointer = localResults.begin();
@@ -324,7 +324,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
           
           NodesContainerType::ContainerType& nodes_array     = const_cast<NodesContainerType::ContainerType&>(rNodes.GetContainer());
           NodesContainerType::ContainerType& nodes_ModelPart = const_cast<NodesContainerType::ContainerType&>(rStructureNodes.GetContainer());
-              
+          
           NodeBinsType bins(nodes_ModelPart.begin(), nodes_ModelPart.end());
           
           #pragma omp parallel
@@ -333,7 +333,7 @@ class OMP_DEMSearch : public DEMSearch<OMP_DEMSearch>
               DistanceType              localResultsDistances(MaxNumberOfNodes);
               std::size_t               NumberOfResults = 0;
               
-              #pragma omp parallel for
+              #pragma omp for
               for(int i = 0; i < static_cast<int>(nodes_array.size()); i++)
               {
                   ResultNodesContainerType::iterator    ResultsPointer          = localResults.begin();
