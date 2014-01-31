@@ -137,36 +137,40 @@ namespace Kratos
       {
           KRATOS_TRY
           
-          std::size_t node_size = rSearchNodes.size();
-          
-          mResultsDistances.resize(node_size);
-          mSearchRadius.resize(node_size);
-          mNodesResults.resize(node_size);
-     
-          for (NodesArrayType::iterator it = rSearchNodes.begin(); it != rSearchNodes.end(); ++it)
+          if(rSearchNodes.size() && rBinsNodes.size())
           {
-              mSearchRadius[it-rSearchNodes.begin()] = rSearchRadius;
-          }
-
-          mSpatialSearch->SearchNodesInRadiusExclusive(rBinsNodes,rSearchNodes,mSearchRadius,mNodesResults,mResultsDistances);
-          
-          for(std::size_t i = 0; i < node_size; i++)
-          {
-              double minDist = 0;
-                  
-              if(mResultsDistances[i].size())
+              std::size_t node_size = rSearchNodes.size();
+              
+              mResultsDistances.resize(node_size);
+              mSearchRadius.resize(node_size);
+              mNodesResults.resize(node_size);
+              
+        
+              for(NodesArrayType::iterator it = rSearchNodes.begin(); it != rSearchNodes.end(); ++it)
               {
-                  minDist = mResultsDistances[i][0];
-                      
-                  for(std::size_t j = 0; j < mResultsDistances[i].size() ; j++)
-                  {
-                      mResultsDistances[i][j] -= mNodesResults[i][j]->FastGetSolutionStepValue(RADIUS);
-                      minDist = minDist < mResultsDistances[i][j] ? minDist : mResultsDistances[i][j];
-                  }
+                  mSearchRadius[it-rSearchNodes.begin()] = rSearchRadius;
               }
-                  
-              NodesArrayType::iterator it = rSearchNodes.begin() + i;
-              it->FastGetSolutionStepValue(rDistanceVar) = minDist;
+
+              mSpatialSearch->SearchNodesInRadiusExclusive(rBinsNodes,rSearchNodes,mSearchRadius,mNodesResults,mResultsDistances);
+              
+              for(std::size_t i = 0; i < node_size; i++)
+              {
+                  double minDist = 0;
+                      
+                  if(mResultsDistances[i].size())
+                  {
+                      minDist = mResultsDistances[i][0];
+                          
+                      for(std::size_t j = 0; j < mResultsDistances[i].size() ; j++)
+                      {
+                          mResultsDistances[i][j] -= mNodesResults[i][j]->FastGetSolutionStepValue(RADIUS);
+                          minDist = minDist < mResultsDistances[i][j] ? minDist : mResultsDistances[i][j];
+                      }
+                  }
+                      
+                  NodesArrayType::iterator it = rSearchNodes.begin() + i;
+                  it->FastGetSolutionStepValue(rDistanceVar) = minDist;
+              }
           }
           
           KRATOS_CATCH("")
