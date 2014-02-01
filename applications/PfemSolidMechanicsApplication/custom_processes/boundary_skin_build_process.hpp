@@ -246,7 +246,7 @@ namespace Kratos
 			    
 			    bool perform_search = true;
 			    for(unsigned int i=0; i<size; i++)
-			      if( rConditionGeom[i].FastGetSolutionStepValue(RIGID_WALL)==true )
+			      if( rConditionGeom[i].SolutionStepsDataHas(RIGID_WALL) )
 				perform_search = false;			   		     
 
 			    if( size != 2 ) 
@@ -623,7 +623,7 @@ namespace Kratos
 							Condition::Pointer p_cond;
 							if(condition_found)
 							{
-								p_cond = pBoundaryCondition->Create(id, face, properties);
+								p_cond = pBoundaryCondition->Clone(id, face);
 							}
 							else
 							{
@@ -683,7 +683,7 @@ namespace Kratos
 
 				  id +=1;
 
-				  mr_model_part.Conditions(MeshId).push_back(ic->Create(id,face,ic->pGetProperties()));
+				  mr_model_part.Conditions(MeshId).push_back(ic->Clone(id,face));
 
 				}
 				//std::cout<<" Set preserved condition not found "<<ic->Id()<<std::endl;
@@ -807,10 +807,9 @@ namespace Kratos
 						    Geometry< Node<3> >& rConditionGeom = ic->GetGeometry();
 			
 						    if( FindCondition(rConditionGeom,rGeom,lpofa,i) ){
-			  
-						      //std::cout<<" Condition Found "<<std::endl;
-						      pBoundaryCondition = (*(ic.base())); 
-						      composite_cond->AddChild(pBoundaryCondition);
+
+						      composite_cond->AddChild(*(ic.base()));
+
 						      PreservedConditions[ic->Id()-1] += 1;
 
 						      if( rConditionGeom.PointsNumber() == 1 )
@@ -871,7 +870,7 @@ namespace Kratos
 
 				  id +=1;
 
-				  mr_model_part.Conditions(MeshId).push_back(ic->Create(id,face,ic->pGetProperties()));
+				  mr_model_part.Conditions(MeshId).push_back(ic->Clone(id,face));
 
 				  //std::cout<<" Set preserved condition not found "<<ic->Id()<<std::endl;
 

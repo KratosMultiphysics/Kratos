@@ -33,6 +33,17 @@ WallCondition::WallCondition( IndexType NewId, GeometryType::Pointer pGeometry, 
 
 }
 
+
+//************************************CLONE*******************************************
+//************************************************************************************
+
+
+Condition::Pointer WallCondition::Clone( IndexType NewId, NodesArrayType const& ThisNodes ) const
+{
+  return this->Create(NewId, ThisNodes, pGetProperties());
+}
+
+
 //************************************************************************************
 //************************************************************************************
 
@@ -40,6 +51,7 @@ Condition::Pointer WallCondition::Create( IndexType NewId, NodesArrayType const&
 {
     return Condition::Pointer( new WallCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
+
 
 WallCondition::~WallCondition()
 {

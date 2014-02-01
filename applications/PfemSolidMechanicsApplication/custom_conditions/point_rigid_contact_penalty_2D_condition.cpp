@@ -123,8 +123,8 @@ namespace Kratos
     CurrentProcessInfo[NUMBER_OF_SLIP_CONTACTS]   = 0;
   
     //added to control force evolution per step:
-    array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
-    mTangentialVariables.PreviousTangentForceModulus = norm_2(ContactForce);
+    // array_1d<double, 3> &ContactForce = GetGeometry()[0].FastGetSolutionStepValue(CONTACT_FORCE);
+    // mTangentialVariables.PreviousTangentForceModulus = norm_2(ContactForce);
 
     ClearNodalForces();
   }
@@ -217,12 +217,12 @@ namespace Kratos
     rVariables.Penalty.Normal  = distance * PenaltyParameter * ElasticModulus;
     rVariables.Penalty.Tangent = rVariables.Penalty.Normal;  
     
-    if( GetGeometry()[0].Is(TO_SPLIT) ){ // to relax the tool tip
+    // if( GetGeometry()[0].Is(TO_SPLIT) ){ // to relax the tool tip
 
-      rVariables.Penalty.Normal  *= 0.5;
-      rVariables.Penalty.Tangent *= 0.5;
+    //   rVariables.Penalty.Normal  *= 0.25;
+    //   rVariables.Penalty.Tangent *= 0.25;
 
-    }
+    // }
 
     //std::cout<<" Node "<<GetGeometry()[0].Id()<<" Contact Factors "<<rVariables.Penalty.Normal<<" Gap Normal "<<rVariables.Gap.Normal<<" Gap Tangent "<<rVariables.Gap.Tangent<<" Surface.Normal "<<rVariables.Surface.Normal<<" Surface.Tangent "<<rVariables.Surface.Tangent<<" distance "<<distance<<" ElasticModulus "<<ElasticModulus<<" PenaltyParameter "<<PenaltyParameter<<std::endl;
     
@@ -420,21 +420,7 @@ namespace Kratos
 
         rNormalForceModulus = (rVariables.Penalty.Normal * rVariables.Gap.Normal); 
 
-
-	//relaxation to solve convergence problems in some steps
-	if( mTangentialVariables.PreviousTangentForceModulus * 2.0 < fabs(rNormalForceModulus) ){
-	  if( mTangentialVariables.PreviousTangentForceModulus > fabs(rNormalForceModulus) * 1e-4 ){
-	    
-	    std::cout<<"CONTACT FORCE MODULUS Node ["<<GetGeometry()[0].Id()<<"]: ("<<mTangentialVariables.PreviousTangentForceModulus<<" < "<<fabs(rNormalForceModulus)<<") "<<std::endl;
-
-	    rVariables.Penalty.Normal *=0.5;
-	    rNormalForceModulus       *=0.5;
-
-	  }
-
-	}
-
-       return rNormalForceModulus;
+	return rNormalForceModulus;
 
   }
 

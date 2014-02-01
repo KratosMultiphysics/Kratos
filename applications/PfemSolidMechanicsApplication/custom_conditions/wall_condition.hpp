@@ -95,6 +95,9 @@ public:
 
     Condition::Pointer Create( IndexType NewId, NodesArrayType const& ThisNodes,  PropertiesType::Pointer pProperties ) const;
 
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
+
+
     void Initialize ();
 
     void InitializeSolutionStep ( ProcessInfo& CurrentProcessInfo );
