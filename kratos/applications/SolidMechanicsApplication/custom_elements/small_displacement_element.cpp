@@ -351,16 +351,23 @@ void SmallDisplacementElement::GetValueOnIntegrationPoints( const Variable<doubl
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo )
 {
-    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
-    if ( rVariable == VON_MISES_STRESS )
+  if ( rVariable == VON_MISES_STRESS ){
         CalculateOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+  }
+  else{
+    
+    const unsigned int& integration_points_number = GetGeometry().IntegrationPointsNumber( mThisIntegrationMethod );
 
     if ( rValues.size() != integration_points_number )
         rValues.resize( integration_points_number );
 
     for ( unsigned int ii = 0; ii < integration_points_number; ii++ )
         rValues[ii] = mConstitutiveLawVector[ii]->GetValue( rVariable, rValues[ii] );
+
+  }
+
+ 
 }
 
 

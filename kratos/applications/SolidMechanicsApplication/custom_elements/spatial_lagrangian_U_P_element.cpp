@@ -192,7 +192,7 @@ void SpatialLagrangianUPElement::GetValueOnIntegrationPoints( const Variable<dou
   }
   else{
 
-    LargeDisplacementUPElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
+    LargeDisplacementElement::GetValueOnIntegrationPoints( rVariable, rValues, rCurrentProcessInfo );
 
   }
 

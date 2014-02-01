@@ -75,8 +75,8 @@ Condition::Pointer ForceLoadCondition::Create(
 
 Condition::Pointer ForceLoadCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
-  KRATOS_ERROR( std::logic_error, "calling the default constructor for a force load condition ... illegal operation!!", "" )
-
+  std::cout<<" Call base class FORCE LOAD CONDITION Clone "<<std::endl;
+  
   ForceLoadCondition NewCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
 
   return Condition::Pointer( new ForceLoadCondition(NewCondition) );
