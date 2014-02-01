@@ -89,21 +89,7 @@ CompositeCondition&  CompositeCondition::operator=(CompositeCondition const& rOt
 
 Condition::Pointer CompositeCondition::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
-
-    CompositeCondition::Pointer pNewCondition  = CompositeCondition::Pointer ( new CompositeCondition( NewId, GetGeometry().Create( ThisNodes), pProperties) );
-
-    for (ConditionConstantIterator cn = this->mChildConditions.begin(); cn != this->mChildConditions.end(); ++cn)
-    {
-
-         Condition::Pointer pLocalChildCondition;
-         pLocalChildCondition = cn->Create(NewId, (ThisNodes), pProperties) ;
-         pNewCondition->AddChild( pLocalChildCondition);
-
-    }
-
-    return Condition::Pointer (pNewCondition);
-
-//    return Condition::Pointer(new CompositeCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
+  return Condition::Pointer(new CompositeCondition( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
 
@@ -112,7 +98,19 @@ Condition::Pointer CompositeCondition::Create( IndexType NewId, NodesArrayType c
 
 Condition::Pointer CompositeCondition::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
 {
-  return this->Create( NewId, rThisNodes, pGetProperties() );
+  
+  CompositeCondition NewCompositeCondition( NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
+
+  for (ConditionConstantIterator cn = this->mChildConditions.begin(); cn != this->mChildConditions.end(); ++cn)
+    {
+         // Condition::Pointer pNewChildCondition;
+	 // pNewChildCondition = cn->Clone(cn->Id(), rThisNodes);
+         // NewCompositeCondition.AddChild( pNewChildCondition );
+         // std::cout<<" Add Child "<<std::endl;
+         NewCompositeCondition.AddChild(*(cn.base()));
+    }
+  
+  return Condition::Pointer( new CompositeCondition(NewCompositeCondition) );
 }
 
 
@@ -125,6 +123,28 @@ CompositeCondition::~CompositeCondition()
 {
 }
 
+
+//************* SETTING METHODS
+//************************************************************************************
+//************************************************************************************
+void CompositeCondition::AddChild(ConditionType::Pointer pNewChildCondition)
+{
+  bool set = false;
+      
+  if( pNewChildCondition->Is(BOUNDARY) ){ //not add composite conditions as child conditions
+    set = true;
+  }
+  else{
+    for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
+      {
+	if(pNewChildCondition->Id() == cn->Id())
+	  set=true;
+      }
+  }
+	
+  if(!set)
+    mChildConditions.insert(mChildConditions.begin(), pNewChildCondition);
+}
 
 
 //************* GETTING METHODS

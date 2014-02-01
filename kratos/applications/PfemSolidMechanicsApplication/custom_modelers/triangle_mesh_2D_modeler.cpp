@@ -101,7 +101,7 @@ namespace Kratos
       std::cout<<" Something wrong with mesh ID "<<MeshId<<std::endl;
 
     //other reference variables (JuanManuel)
-    double side_tolerance = 6; //3;
+    double side_tolerance = 4; //6; //3;
 
     mVariables[MeshId].refine                      = refine;
 
@@ -1528,8 +1528,9 @@ namespace Kratos
 		  //Also a criteria for the critical_dissipation (set in nodes)
 		  if(rVariables.RefiningOptions.Is(Modeler::CRITERION_ENERGY))
 		    {
+		      // if( dissipative )
+		      // 	std::cout<<" [ Refine Criteria ["<<id<<"] : (dissipative: "<<dissipative<<"; size: "<<refine_size<<"; prescribed h: "<<prescribed_h*0.3333<<") ]"<<std::endl;
 
-		      //std::cout<<" [ Refine Criteria ["<<id<<"] : (dissipative: "<<dissipative<<"; size: "<<refine_size<<"; prescribed h: "<<prescribed_h*0.3333<<") ]"<<std::endl;
 
 		      //********* PLASTIC POWER ENERGY REFINEMENT CRITERION (A)
 		      if( (dissipative == true && refine_size == true) )
@@ -1545,10 +1546,10 @@ namespace Kratos
 			  prescribed_h *= 0.3333;
 
 			  //if h is the height of a equilateral triangle, the area is 1/2*h*h
-			  in.trianglearealist[id] = area_factor*0.5*(1.5*prescribed_h*1.5*prescribed_h);
+			  in.trianglearealist[id] = 0.5*(1.5*prescribed_h*1.5*prescribed_h);
 
-			  if( count_boundary_inserted || count_contact_boundary){
-			    in.trianglearealist[id] = area_factor*Area;
+			  if( count_boundary_inserted && count_contact_boundary){
+			    in.trianglearealist[id] = area_factor*0.5*(1.5*prescribed_h*1.5*prescribed_h);
 			    //std::cout<<" count boundary inserted-contact on "<<std::endl;
 			  }
 
@@ -2318,7 +2319,7 @@ namespace Kratos
 		    mean_node_radius /= double(neighb_elems.size());
 			
 
-		    double radius_factor = 1.5;
+		    double radius_factor = 0.5;
 		    if(NodalError[nodes_ids[in->Id()]] < rVariables.Refine.reference_error && mean_node_radius < radius_factor * rVariables.Refine.critical_radius)
 		      {
 			// std::cout<<"   Energy : node remove ["<<in->Id()<<"] : "<<NodalError[nodes_ids[in->Id()]]<<std::endl;
@@ -2567,8 +2568,7 @@ namespace Kratos
 		
 			new_id = initial_cond_size + id;
 			//properties to be used in the generation
-			Properties::Pointer properties = NewCond->pGetProperties();
-			Condition::Pointer pcond       = NewCond->Create(new_id, face, properties);
+			Condition::Pointer pcond       = NewCond->Clone(new_id, face);
 			// std::cout<<"     ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
 
 			pcond->Set(NEW_ENTITY);
@@ -2781,8 +2781,7 @@ namespace Kratos
 		
 		  new_id = initial_cond_size + id;
 		  //properties to be used in the generation
-		  Properties::Pointer properties = NewCond->pGetProperties();
-		  Condition::Pointer pcond       = NewCond->Create(new_id, face, properties);
+		  Condition::Pointer pcond       = NewCond->Clone(new_id, face);
 		  // std::cout<<"     ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
 
 		  pcond->Set(NEW_ENTITY);
@@ -2907,8 +2906,7 @@ namespace Kratos
 		
 		    new_id = initial_cond_size + id;
 		    //properties to be used in the generation
-		    Properties::Pointer properties = NewCond->pGetProperties();
-		    Condition::Pointer pcond       = NewCond->Create(new_id, face, properties);
+		    Condition::Pointer pcond       = NewCond->Clone(new_id, face);
 		    // std::cout<<" ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
 
 		    pcond->Set(NEW_ENTITY);
@@ -2963,12 +2961,13 @@ namespace Kratos
       {
 	double plastic_power=0;
 	std::vector<double> Value(1);
-	(iii)->GetValueOnIntegrationPoints(PLASTIC_POWER,Value,CurrentProcessInfo);
+	(iii)->GetValueOnIntegrationPoints(PLASTIC_DISSIPATION,Value,CurrentProcessInfo);
 	    
 	plastic_power = Value[0] * iii->GetGeometry().Area();
-	    
+
+	
 	// if(plastic_power>0)
-	//   std::cout<<" Element ["<<iii->Id()<<" plastic_power "<<plastic_power<<" critical_dissipation "<<rVariables.Refine.critical_dissipation<<std::endl;
+	//   std::cout<<" Element ["<<iii->Id()<<" plastic_power "<<plastic_power<<" critical_dissipation "<<rVariables.Refine.critical_dissipation<<" Area "<<iii->GetGeometry().Area()<<std::endl;
 
 	if( plastic_power > rVariables.Refine.critical_dissipation)
 	  {
@@ -3295,8 +3294,7 @@ namespace Kratos
 	//*********************************************************************************
 
 
-	double non_contact_boundary_factor = 2.0;
-	double contact_boundary_factor     = 1.5;
+	double non_contact_boundary_factor = 1.75;
 
 	//LOOP TO CONSIDER ALL SUBDOMAIN CONDITIONS
 	double cond_counter=0;
@@ -3366,7 +3364,7 @@ namespace Kratos
 
 		  side_length = mModelerUtilities.CalculateSideLength (rConditionGeom[0],rConditionGeom[1]);		    	     
 
-		  double tip_correction = 0.25;
+		  double tip_correction = 0.5;
 
 		  if( side_length > rVariables.Refine.critical_side * tip_correction){
 		  
@@ -3379,7 +3377,7 @@ namespace Kratos
 		      on_tip = true;
 		    }
 		    else if (rConditionGeom[0].Is(TO_SPLIT) || rConditionGeom[1].Is(TO_SPLIT)){
-		      if( side_length > rVariables.Refine.critical_side * tip_correction ){
+		      if( side_length > rVariables.Refine.critical_side * 0.25){
 			on_tip = true;
 		      }
 		    }		  
@@ -3496,7 +3494,7 @@ namespace Kratos
 
 		  plastic_power=0;
 		  std::vector<double> Value(1);
-		  MasterElement.GetValueOnIntegrationPoints(PLASTIC_POWER,Value,CurrentProcessInfo);
+		  MasterElement.GetValueOnIntegrationPoints(PLASTIC_DISSIPATION,Value,CurrentProcessInfo);
 			
 		  //std::cout<<"   Plastic Power "<<Value[0]<<std::endl;
 				  
@@ -3563,9 +3561,9 @@ namespace Kratos
 		      on_tip = true;
 		    
 		    if( on_tip == false )
-		      critical_side_size *= (2.0 * contact_boundary_factor);
+		      critical_side_size *= (non_contact_boundary_factor * non_contact_boundary_factor);
 		    else
-		      critical_side_size /= (2.0 * contact_boundary_factor);
+		      critical_side_size *= non_contact_boundary_factor;
 		    
 		  }
 		  else if( contact_active ){
@@ -3574,9 +3572,10 @@ namespace Kratos
 		      on_tip = true;
 		    
 		    if( on_tip == false )
-		      critical_side_size *= (2.0 * contact_boundary_factor);
+		      critical_side_size *= (non_contact_boundary_factor * non_contact_boundary_factor);
 		    else
-		      critical_side_size /= (2.0 * contact_boundary_factor);
+		      critical_side_size *= non_contact_boundary_factor;
+
 		  }
 		  else{
 		    
@@ -3852,11 +3851,10 @@ namespace Kratos
 		
 	    id   = initial_cond_size+(i*2);
 	    //properties to be used in the generation
-	    Properties::Pointer properties = list_of_conditions[i]->pGetProperties();
-	    Condition::Pointer pcond1      = list_of_conditions[i]->Create(id, face1, properties);
+	    Condition::Pointer pcond1      = list_of_conditions[i]->Clone(id, face1);
 	    // std::cout<<" ID"<<id<<" 1s "<<pcond1->GetGeometry()[0].Id()<<" "<<pcond1->GetGeometry()[1].Id()<<std::endl;
 	    id   = initial_cond_size+(i*2+1);
-	    Condition::Pointer pcond2      = list_of_conditions[i]->Create(id, face2, properties);
+	    Condition::Pointer pcond2      = list_of_conditions[i]->Clone(id, face2);
 	    // std::cout<<" ID"<<id<<" 2s "<<pcond2->GetGeometry()[0].Id()<<" "<<pcond2->GetGeometry()[1].Id()<<std::endl;
 
 	    pcond1->Set(NEW_ENTITY);
@@ -4363,7 +4361,7 @@ namespace Kratos
 
 		Condition::Pointer p_cond;
 		if(condition_found){
-		  p_cond = pBoundaryCondition->Create(id, face, properties);
+		  p_cond = pBoundaryCondition->Clone(id, face);
 		      
 		  p_cond->Data() =pBoundaryCondition->Data();
 
@@ -4450,7 +4448,7 @@ namespace Kratos
 
 	  id +=1;
 
-	  rModelPart.Conditions(MeshId).push_back(ic->Create(id,face,ic->pGetProperties()));
+	  rModelPart.Conditions(MeshId).push_back(ic->Clone(id,face));
 
 	  rModelPart.Conditions(MeshId).back().Data() = ic->Data();
 	  std::cout<<" Temporal Condition Not Set "<<ic->Id()<<"("<<ic->GetGeometry()[0].Id()<<","<<ic->GetGeometry()[1].Id()<<")"<<std::endl;

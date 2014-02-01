@@ -90,6 +90,7 @@ public:
 
     /// Default constructors.
     CompositeCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+
     CompositeCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ///Copy constructor
@@ -119,20 +120,7 @@ public:
 
     /** Inserts a condition in the composite.
     */
-    void AddChild(ConditionType::Pointer pNewChildCondition)
-    {
-      bool set = false;
-      
-      for (ConditionIterator cn = mChildConditions.begin() ; cn != mChildConditions.end(); ++cn)
-	{
-	  if(pNewChildCondition->Id() == cn->Id())
-	    set=true;
-	}
-
-	
-      if(!set)
-        mChildConditions.insert(mChildConditions.begin(), pNewChildCondition);
-    }
+    void AddChild(ConditionType::Pointer pNewChildCondition);
 
     /** Returns the Condition::Pointer  corresponding to it's identifier */
     ConditionType::Pointer pGetChild(IndexType ChildConditionId)
@@ -224,8 +212,7 @@ public:
      * @param pProperties: the properties assigned to the new condition
      * @return a Pointer to the new condition
      */
-    Condition::Pointer Clone(IndexType NewId, 
-			     NodesArrayType const& ThisNodes) const;
+    Condition::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const;
 
 
     //************* GETTING METHODS
