@@ -38,8 +38,8 @@ AxisymSpatialLagrangianUPElement::AxisymSpatialLagrangianUPElement( IndexType Ne
     : LargeDisplacementUPElement( NewId, pGeometry, pProperties )
 {
     //mThisIntegrationMethod = GetGeometry().GetDefaultIntegrationMethod();
-    //mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
-    mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
+    mThisIntegrationMethod = GeometryData::GI_GAUSS_1;
+    //mThisIntegrationMethod = GeometryData::GI_GAUSS_2;
 }
 
 
