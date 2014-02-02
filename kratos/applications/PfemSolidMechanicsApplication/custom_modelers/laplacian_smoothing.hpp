@@ -136,7 +136,7 @@ namespace Kratos
 	  //defintions for spatial search
   
 	  double convergence_tol =0.001;
-	  double smoothing_factor=0.1;
+	  double smoothing_factor=0.02;//0.1;
 	  double smoothing_iters =3;
 	  double iters=0;
 
