@@ -438,22 +438,123 @@ private:
 
     unsigned int BoxNoseSearch(const TPointType& rPoint)
     {
-      double MinimumDistance=9.999999999999999e300;
+      double MinimumDistance       =9.999999999999999e300;
+      double MinimumDistanceRadius =9.999999999999999e300;
 
       unsigned int NumberBoxNoses = mBoxNoses.size();
 
-      unsigned int SelectedNose = 0;
+      unsigned int SelectedNose         = 0;
+      unsigned int SelectedNoseDistance = 0;
+      unsigned int SelectedNoseRadius   = 0;    
+
+      std::vector<double> NoseDistanceVector (NumberBoxNoses);
 
       for(unsigned int i=0; i<NumberBoxNoses; i++)
 	{
-	  double NoseDistance = norm_2( (mBoxNoses[i].Center - rPoint) );
-	  if( NoseDistance < MinimumDistance ){
-	    MinimumDistance = NoseDistance;
-	    SelectedNose    = i;
-	    //std::cout<<" SelectedNose: "<<SelectedNose<<" MinimumDistance "<<MinimumDistance<<std::endl;
+
+	  //based on distance
+	  TPointType Distance = (mBoxNoses[i].Center - rPoint);
+	  double NoseDistance = norm_2( Distance );  
+	  double NoseDistanceRadius = norm_2( Distance );  
+
+	  if( NoseDistance > 0 ){
+
+	    // //CORRECTION START: add a correction by velocity component for critical points
+	    
+	    // //based on center movement
+	    // TPointType VelocityProjection = this->mMovement.Velocity;
+	    // double NormVelocity = norm_2(VelocityProjection);
+	    // if( NormVelocity > 0 )
+	    //   VelocityProjection /= NormVelocity;
+
+	    // Distance += (NoseDistance * 0.01) * VelocityProjection;
+	    // NoseDistance = norm_2( Distance );
+
+	    // //CORRECTION END
+	    
+	    //CORRECTION START: add a correction by radius component for critical points
+	    Distance = ( 1.0 - (mBoxNoses[i].Radius)/NoseDistance ) * Distance;
+	    NoseDistanceRadius = norm_2( Distance );
+	    
+	    //CORRECTION END
+
 	  }
 
+	  NoseDistanceVector[i] = NoseDistance;
+
+	  if( NoseDistance < MinimumDistance ){
+	    MinimumDistance = NoseDistance;
+	    SelectedNoseDistance    = i;
+	    //std::cout<<" SelectedNoseDistance: "<<SelectedNoseDistance<<" MinimumDistance "<<MinimumDistance<<std::endl;
+	  }
+
+	  if( NoseDistanceRadius < MinimumDistanceRadius ){
+	    MinimumDistanceRadius = NoseDistanceRadius;
+	    SelectedNoseRadius    = i;
+	    //std::cout<<" SelectedNoseDistanceRadiius: "<<SelectedNoseRadius<<" MinimumDistanceRadius "<<MinimumDistanceRadius<<std::endl;
+	  }
+
+	  
 	}
+
+
+      if( SelectedNoseDistance ==  SelectedNoseRadius ){
+
+	SelectedNose = SelectedNoseRadius;
+
+      }
+      else{
+	
+	if( mBoxNoses[SelectedNoseDistance].Convexity > mBoxNoses[SelectedNoseRadius].Convexity ){
+
+	  if( NoseDistanceVector[SelectedNoseDistance] > mBoxNoses[SelectedNoseDistance].Radius ){
+
+	    if ( NoseDistanceVector[SelectedNoseRadius] > mBoxNoses[SelectedNoseRadius].Radius + (mBoxNoses[SelectedNoseDistance].Radius * 0.01) ){
+	      SelectedNose = SelectedNoseDistance;
+	    }
+	    else{
+	      SelectedNose = SelectedNoseRadius;
+	    }
+
+	  }
+	  else{
+
+	    SelectedNose = SelectedNoseDistance;
+	  }
+
+
+	}
+	else if( mBoxNoses[SelectedNoseDistance].Convexity < mBoxNoses[SelectedNoseRadius].Convexity ){
+
+
+	  if( mBoxNoses[SelectedNoseDistance].Radius < mBoxNoses[SelectedNoseRadius].Radius ){
+
+	    if ( NoseDistanceVector[SelectedNoseDistance] < mBoxNoses[SelectedNoseDistance].Radius + (mBoxNoses[SelectedNoseDistance].Radius * 0.01) ){
+	      SelectedNose = SelectedNoseDistance;
+	    }
+	    else{
+	      SelectedNose = SelectedNoseRadius;
+	    }
+
+	    //std::cout<< " Selected Nose "<<SelectedNose<< " SelectedNoseDistance.Radius "<<mBoxNoses[SelectedNoseDistance].Radius<<" SelectedNoseRadius.Radius "<<mBoxNoses[SelectedNoseRadius].Radius<<std::endl;
+
+	  }
+	  else{
+
+	    SelectedNose = SelectedNoseDistance;
+
+	  }
+
+
+	}
+	else{
+	  
+	  SelectedNose = SelectedNoseRadius;
+	}
+
+      }
+	  
+      
       
       return SelectedNose;
     }

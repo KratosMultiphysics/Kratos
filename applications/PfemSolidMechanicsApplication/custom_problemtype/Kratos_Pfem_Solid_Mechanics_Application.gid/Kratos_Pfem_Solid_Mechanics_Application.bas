@@ -36,6 +36,9 @@ Begin Properties *MatNum
 *format "%10.5e"
  POISSON_RATIO *MatProp(POISSON_RATIO,real)
 *format "%10.5e"
+ THICKNESS *MatProp(THICKNESS,real)
+*if(strcmp(MatProp(HARDENING_MODEL),"SIMO")==0)
+*format "%10.5e"
  YIELD_STRESS *MatProp(YIELD_STRESS,real)
 *format "%10.5e"
  KINEMATIC_HARDENING_MODULUS *MatProp(KINEMATIC_HARDENING_MODULUS,real)
@@ -45,8 +48,19 @@ Begin Properties *MatNum
  REFERENCE_HARDENING_MODULUS *MatProp(REFERENCE_HARDENING_MODULUS,real)
 *format "%10.5e"
  INFINITY_HARDENING_MODULUS *MatProp(INFINITY_HARDENING,real)
+*elseif(strcmp(MatProp(THERMAL_MODEL),"CAMCLAY")==0)
 *format "%10.5e"
- THICKNESS *MatProp(THICKNESS,real)
+ PRE_CONSOLIDATION_STRESS *MatProp(PRE_CONSOLIDATION_STRESS,real)
+*format "%10.5e"
+ OVER_CONSOLIDATION_RATIO *MatProp(OVER_CONSOLIDATION_RATIO,real)
+*format "%10.5e"
+ NORMAL_COMPRESSION_SLOPE *MatProp(NORMAL_COMPRESSION_SLOPE,real)
+*format "%10.5e"
+ SWELLING_SLOPE *MatProp(SWELLING_SLOPE,real)
+*format "%10.5e"
+ CRITICAL_STATE_LINE *MatProp(CRITICAL_STATE_LINE,real)
+*format "%10.5e"
+ ALPHA_SHEAR *MatProp(ALPHA_SHEAR,real)
 End Properties
 
 *endif
