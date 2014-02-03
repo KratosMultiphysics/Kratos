@@ -310,7 +310,7 @@ proc ::wkcf::SelectPythonScript {} {
 	
 	    # Copy the script file
 	    if {[catch {file copy -force "$fromfname" "$tofname"} error]} {
-		WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $fromfname $tofname $error ]
+		WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%s)" $fromfname $tofname $error ]
 		return ""
 	    }
 	
@@ -327,7 +327,7 @@ proc ::wkcf::SelectPythonScript {} {
 	    
 	    # Copy the script file
 	    if {[catch {file copy -force "$mpifromfname" "$mpitofname"} error]} {
-		WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $mpifromfname $mpitofname $error ]
+		WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%s)" $mpifromfname $mpitofname $error ]
 		return ""
 	    }
 	}
@@ -370,7 +370,7 @@ proc ::wkcf::SelectPythonScript {} {
 		
 		# Copy the script file
 		if {[catch {file copy -force -- "$fromfname" "$tofname"} error]} {
-		    WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $fromfname $tofname $error ]
+		    WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%s)" $fromfname $tofname $error ]
 		    return ""
 		}
 
@@ -383,7 +383,7 @@ proc ::wkcf::SelectPythonScript {} {
 		
 		# Copy the script file
 		if {[catch {file copy -force -- "$fromfname" "$tofname"} error]} {
-		    WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $fromfname $tofname $error ]
+		    WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%s)" $fromfname $tofname $error ]
 		    return ""
 		}
 	    }
@@ -395,7 +395,7 @@ proc ::wkcf::SelectPythonScript {} {
 	    set mpifromfname [file native [file join $PTDir python $mpifilename]]
  
 	    if {[catch {file copy -force -- "$mpifromfname" "$mpitofname"} error]} {
-		WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $mpifromfname $mpitofname $error ]
+		WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%s)" $mpifromfname $mpitofname $error ]
 		return ""
 	    }
 	}
@@ -416,7 +416,7 @@ proc ::wkcf::SelectPythonScript {} {
 	    
 	    # Copy the script file
 	    if {[catch {file copy -force -- "$fromfname" "$tofname"} error]} {
-		WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%)" $fromfname $tofname $error ]
+		WarnWin [= "Could not copy the Kratos Python script (%s) to (%s): Error (%s)" $fromfname $tofname $error ]
 		return ""
 	    }
 	} 
