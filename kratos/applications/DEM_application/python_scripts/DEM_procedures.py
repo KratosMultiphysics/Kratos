@@ -20,7 +20,7 @@ def Var_Translator(variable):
 
 class MdpaCreator:
 
-    def __init__(self, path, param):
+    def __init__(self, path, DEM_parameters):
         self.problem_parameters = param
         self.current_path = path
 
@@ -95,24 +95,24 @@ class GranulometryUtils:
 
 class PostUtils:
 
-    def __init__(self, param, balls_model_part):
-        self.param = param
+    def __init__(self, DEM_parameters, balls_model_part):
+        self.DEM_parameters = DEM_parameters
         self.balls_model_part = balls_model_part
         self.post_utilities = PostUtilities()
 
     def ComputeMeanVelocitiesinTrap(self, file_name, time_dem):
 
-        if (self.param.VelocityTrapOption):
+        if (self.DEM_parameters.VelocityTrapOption):
             average_velocity = Array3()
             low_point = Array3()
 
-            low_point[0] = self.param.VelocityTrapMinX
-            low_point[1] = self.param.VelocityTrapMinY
-            low_point[2] = self.param.VelocityTrapMinZ
+            low_point[0] = self.DEM_parameters.VelocityTrapMinX
+            low_point[1] = self.DEM_parameters.VelocityTrapMinY
+            low_point[2] = self.DEM_parameters.VelocityTrapMinZ
             high_point = Array3()
-            high_point[0] = self.param.VelocityTrapMaxX
-            high_point[1] = self.param.VelocityTrapMaxY
-            high_point[2] = self.param.VelocityTrapMaxZ
+            high_point[0] = self.DEM_parameters.VelocityTrapMaxX
+            high_point[1] = self.DEM_parameters.VelocityTrapMaxY
+            high_point[2] = self.DEM_parameters.VelocityTrapMaxZ
 
             average_velocity = self.post_utilities.VelocityTrap(self.balls_model_part, low_point, high_point)
             f = open(file_name, 'a')
@@ -124,17 +124,11 @@ class PostUtils:
 
 class Procedures:
 
-    def __init__(self, param):
+    def __init__(self, DEM_parameters):
 
         # GLOBAL VARIABLES OF THE SCRIPT
         # Defining list of skin particles (For a test tube of height 30 cm and diameter 15 cm)
 
-        self.sup_layer_fm = list()
-        self.inf_layer_fm = list()
-        self.sup_plate_fm = list()
-        self.inf_plate_fm = list()
-        self.special_selection = list()
-        self.others = list()
         self.SKIN = list()
         self.LAT = list()
         self.BOT = list()
@@ -147,47 +141,42 @@ class Procedures:
 
         # Initialization of member variables
         # SIMULATION FLAGS
-        self.rotation_OPTION = Var_Translator(param.RotationOption)
-        self.bounding_box_OPTION = Var_Translator(param.BoundingBoxOption)
-        self.continuum_OPTION = Var_Translator(param.ContinuumOption)
-        self.contact_mesh_OPTION = Var_Translator(Var_Translator(param.ContactMeshOption) & Var_Translator(param.ContinuumOption))
+        self.rotation_OPTION = Var_Translator(DEM_parameters.RotationOption)
+        self.bounding_box_OPTION = Var_Translator(DEM_parameters.BoundingBoxOption)
+        self.continuum_OPTION = Var_Translator(DEM_parameters.ContinuumOption)
+        self.contact_mesh_OPTION = Var_Translator(Var_Translator(DEM_parameters.ContactMeshOption) & Var_Translator(DEM_parameters.ContinuumOption))
 
         # SIMULATION SETTINGS
 
-        self.bounding_box_enlargement_factor = param.BoundingBoxEnlargementFactor
+        self.bounding_box_enlargement_factor = DEM_parameters.BoundingBoxEnlargementFactor
        # MODEL
-        self.domain_size = param.Dimension
+        self.domain_size = DEM_parameters.Dimension
 
         # PRINTING VARIABLES
 
-        self.print_radius = Var_Translator(param.PostRadius)
-        self.print_velocity = Var_Translator(param.PostVelocity)
-        self.print_angular_velocity = Var_Translator(param.PostAngularVelocity)
-        self.print_displacement = Var_Translator(param.PostDisplacement)
-        self.print_radial_displacement = Var_Translator(param.PostRadialDisplacement)
-        self.print_total_forces = Var_Translator(param.PostTotalForces)
-        self.print_damp_forces = Var_Translator(param.PostDampForces)
-        self.print_applied_forces = Var_Translator(param.PostAppliedForces)
-        self.print_particle_moment = Var_Translator(param.PostParticleMoment)
-        self.print_particle_cohesion = Var_Translator(param.PostParticleCohesion)
-        self.print_particle_tension = Var_Translator(param.PostParticleTension)
-        self.print_euler_angles = Var_Translator(param.PostEulerAngles)
-        self.print_group_id = Var_Translator(param.PostGroupId)
-        self.print_export_id = Var_Translator(param.PostExportId)
+        self.print_radius = Var_Translator(DEM_parameters.PostRadius)
+        self.print_velocity = Var_Translator(DEM_parameters.PostVelocity)
+        self.print_angular_velocity = Var_Translator(DEM_parameters.PostAngularVelocity)
+        self.print_displacement = Var_Translator(DEM_parameters.PostDisplacement)
+        self.print_total_forces = Var_Translator(DEM_parameters.PostTotalForces)
+        self.print_damp_forces = Var_Translator(DEM_parameters.PostDampForces)
+        self.print_applied_forces = Var_Translator(DEM_parameters.PostAppliedForces)
+        self.print_particle_moment = Var_Translator(DEM_parameters.PostParticleMoment)
+        self.print_euler_angles = Var_Translator(DEM_parameters.PostEulerAngles)
+        self.print_group_id = Var_Translator(DEM_parameters.PostGroupId)
+        self.print_export_id = Var_Translator(DEM_parameters.PostExportId)
 
-        self.total_volume = param.TotalElementsVolume
-
-        if (Var_Translator(param.ContinuumOption)):
-            self.print_export_skin_sphere = Var_Translator(param.PostExportSkinSphere)
-            self.predefined_skin_option = Var_Translator(param.PredefinedSkinOption)
+        if (DEM_parameters.ElementType == "SphericContPartDEMElement3D"):
+            self.print_export_skin_sphere = Var_Translator(DEM_parameters.PostExportSkinSphere)
+            self.predefined_skin_option = Var_Translator(DEM_parameters.PredefinedSkinOption)
             if (self.contact_mesh_OPTION):
-                self.print_local_contact_force = Var_Translator(param.PostLocalContactForce)
-                self.print_failure_criterion_state = Var_Translator(param.PostFailureCriterionState)
-                self.print_unidimensional_damage = Var_Translator(param.PostUnidimensionalDamage)
-                self.print_contact_failure = Var_Translator(param.PostContactFailureId)
-                self.print_contact_tau = Var_Translator(param.PostContactTau)
-                self.print_contact_sigma = Var_Translator(param.PostContactSigma)
-                self.print_mean_contact_area = Var_Translator(param.PostMeanContactArea)
+                self.print_local_contact_force = Var_Translator(DEM_parameters.PostLocalContactForce)
+                self.print_failure_criterion_state = Var_Translator(DEM_parameters.PostFailureCriterionState)
+                #self.print_unidimensional_damage = Var_Translator(DEM_parameters.PostUnidimensionalDamage)
+                self.print_contact_failure = Var_Translator(DEM_parameters.PostContactFailureId)
+                self.print_contact_tau = Var_Translator(DEM_parameters.PostContactTau)
+                self.print_contact_sigma = Var_Translator(DEM_parameters.PostContactSigma)
+                self.print_mean_contact_area = Var_Translator(DEM_parameters.PostMeanContactArea)
 
     def AddMpiVariables(self, model_part):
 
@@ -286,15 +275,15 @@ class Procedures:
 
         return Coordination_Number
 
-    def CylinderSkinDetermination(self, model_part, solver, param):
+    def CylinderSkinDetermination(self, model_part, solver, DEM_parameters):
 
         # SKIN DETERMINATION
         total_cross_section = 0.0
 
         # Cylinder dimensions
 
-        h = param.SpecimenHeight
-        d = param.SpecimenWidth
+        h = DEM_parameters.SpecimenLength
+        d = DEM_parameters.SpecimenDiameter
 
         eps = 2.0
 
@@ -370,7 +359,7 @@ class Procedures:
 
         return (xtop_area, xbot_area, xlat_area, xtopcorner_area, xbotcorner_area)
 
-    def BtsSkinDetermination(self, model_part, solver, param):
+    def BtsSkinDetermination(self, model_part, solver):
 
         # SKIN DETERMINATION
 
@@ -531,18 +520,12 @@ class Procedures:
 
     def PrintingBallsVariables(self, gid_io, export_model_part, time):
 
-        if (self.print_radial_displacement):
-            gid_io.WriteNodalResults(RADIAL_DISPLACEMENT, export_model_part.Nodes, time, 0)
         if (self.print_applied_forces):
             gid_io.WriteNodalResults(EXTERNAL_APPLIED_FORCE, export_model_part.Nodes, time, 0)
         if (self.print_damp_forces):
             gid_io.WriteNodalResults(DAMP_FORCES, export_model_part.Nodes, time, 0)
         if (self.print_radius):
             gid_io.WriteNodalResults(RADIUS, export_model_part.Nodes, time, 0)
-        if (self.print_particle_cohesion):
-            gid_io.WriteNodalResults(PARTICLE_COHESION, export_model_part.Nodes, time, 0)
-        if (self.print_particle_tension):
-            gid_io.WriteNodalResults(PARTICLE_TENSION, export_model_part.Nodes, time, 0)
         if (self.print_export_id):
             gid_io.WriteNodalResults(EXPORT_ID, export_model_part.Nodes, time, 0)
 
@@ -578,8 +561,8 @@ class Procedures:
                 gid_io.PrintOnGaussPoints(CONTACT_FAILURE, export_model_part, time)
             if (self.print_failure_criterion_state):
                 gid_io.PrintOnGaussPoints(FAILURE_CRITERION_STATE, export_model_part, time)
-            if (self.print_unidimensional_damage):
-                gid_io.PrintOnGaussPoints(UNIDIMENSIONAL_DAMAGE, export_model_part, time)
+            #if (self.print_unidimensional_damage):
+                #gid_io.PrintOnGaussPoints(UNIDIMENSIONAL_DAMAGE, export_model_part, time)
             if (self.print_contact_tau):
                 gid_io.PrintOnGaussPoints(CONTACT_TAU, export_model_part, time)
             if (self.print_contact_sigma):
@@ -598,20 +581,5 @@ class Procedures:
 
                 element.SetValue(SKIN_SPHERE, 1)
 
-    def ListDefinition(self, model_part, solver):
+ 
 
-        for node in model_part.Nodes:
-            if (node.GetSolutionStepValue(GROUP_ID) == 1):  # reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
-                self.sup_layer_fm.append(node)
-            elif (node.GetSolutionStepValue(GROUP_ID) == 2):  # reserved for speciment particles with imposed displacement and strain-stress measurement (superior). Doesn't recive pressure
-                self.inf_layer_fm.append(node)
-            elif (node.GetSolutionStepValue(GROUP_ID) == 3):  # reserved for auxiliar strain-stress measurement plate (superior)
-                self.sup_plate_fm.append(node)
-            elif (node.GetSolutionStepValue(GROUP_ID) == 4):  # reserved for auxiliar strain-stress measurement plate (inferior)
-                self.inf_plate_fm.append(node)
-            elif (node.GetSolutionStepValue(GROUP_ID) == 5):
-                self.special_selection.append(node)
-            else:
-                self.others.append(node)
-
-        return (self.sup_layer_fm, self.inf_layer_fm, self.sup_plate_fm, self.inf_plate_fm)
