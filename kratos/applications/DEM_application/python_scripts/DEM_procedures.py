@@ -176,6 +176,8 @@ class Procedures:
                 self.print_contact_tau = Var_Translator(DEM_parameters.PostContactTau)
                 self.print_contact_sigma = Var_Translator(DEM_parameters.PostContactSigma)
                 self.print_mean_contact_area = Var_Translator(DEM_parameters.PostMeanContactArea)
+        else:
+            self.print_export_skin_sphere = 0
 
     def AddMpiVariables(self, model_part):
 
