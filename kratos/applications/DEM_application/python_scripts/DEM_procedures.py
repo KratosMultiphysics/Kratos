@@ -143,13 +143,12 @@ class Procedures:
         # SIMULATION FLAGS
         self.rotation_OPTION = Var_Translator(DEM_parameters.RotationOption)
         self.bounding_box_OPTION = Var_Translator(DEM_parameters.BoundingBoxOption)
-        self.continuum_OPTION = Var_Translator(DEM_parameters.ContinuumOption)
-        self.contact_mesh_OPTION = Var_Translator(Var_Translator(DEM_parameters.ContactMeshOption) & Var_Translator(DEM_parameters.ContinuumOption))
+        self.contact_mesh_OPTION = Var_Translator(DEM_parameters.ContactMeshOption)
 
         # SIMULATION SETTINGS
 
         self.bounding_box_enlargement_factor = DEM_parameters.BoundingBoxEnlargementFactor
-       # MODEL
+        # MODEL
         self.domain_size = DEM_parameters.Dimension
 
         # PRINTING VARIABLES
@@ -529,13 +528,12 @@ class Procedures:
         if (self.print_export_id):
             gid_io.WriteNodalResults(EXPORT_ID, export_model_part.Nodes, time, 0)
 
-        if (self.continuum_OPTION):
+        if (self.print_export_skin_sphere):
+            gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, export_model_part.Nodes, time, 0)
 
             #if (self.print_export_particle_failure_id):
                 #gid_io.WriteNodalResults(EXPORT_PARTICLE_FAILURE_ID, export_model_part.Nodes, time, 0)
-            if (self.print_export_skin_sphere):
-                gid_io.WriteNodalResults(EXPORT_SKIN_SPHERE, export_model_part.Nodes, time, 0)
-
+     
         # Aixo sempre per que si no hi ha manera de debugar
         # gid_io.WriteNodalResults(PARTITION_INDEX, export_model_part.Nodes, time, 0)
         # gid_io.WriteNodalResults(INTERNAL_ENERGY, export_model_part.Nodes, time, 0)
