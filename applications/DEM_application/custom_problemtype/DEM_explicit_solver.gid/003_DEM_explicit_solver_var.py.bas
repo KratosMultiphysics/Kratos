@@ -87,9 +87,10 @@ NormalDampingType                = "*GenData(Normal_Contact_Damp)"
 TangentialDampingType            = "*GenData(Tangential_Contact_Damp)"
 FailureCriterionType             = "*GenData(Failure_Criterion)"
 *format "%10.5e"
-DempackDamping                   = *GenData(LDAMP)
+LocalDampingFactor               = *GenData(LDAMP)
 *format "%10.5e"
-DempackGlobalDamping             = *GenData(GDAMP)
+GlobalForceReduction             = *GenData(GDAMP)
+
 *format "%10.5e"
 AreaFactor                       = *GenData(Alpha)
 *format "%10.5e"
@@ -196,14 +197,11 @@ ConfinementPressure              = *GenData(Confinement_Pressure)
 
 PostVelocity                     = "*GenData(VELOCITY)"
 PostDisplacement                 = "*GenData(DISPLACEMENT)"
-PostRadialDisplacement           = "*GenData(RADIAL_DISPLACEMENT)"
 PostRHS                          = "*GenData(RHS)"
 PostTotalForces                  = "*GenData(TOTAL_FORCES)"
 PostDampForces                   = "*GenData(DAMP_FORCES)"
 PostAppliedForces                = "*GenData(APPLIED_FORCES)"
 PostRadius                       = "*GenData(RADIUS)"
-PostParticleCohesion             = "*GenData(PARTICLE_COHESION)"
-PostParticleTension              = "*GenData(PARTICLE_TENSION)"
 PostGroupId                      = "*GenData(GROUP_ID)"
 PostExportId                     = "*GenData(EXPORT_ID)"
 PostExportParticleFailureId      = "*GenData(EXPORT_PARTICLE_FAILURE_ID)"
